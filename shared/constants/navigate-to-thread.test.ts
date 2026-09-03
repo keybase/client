@@ -44,6 +44,13 @@ const pendingRoute = {
 }
 
 const realConvID = 'ff00ff00' as T.Chat.ConversationIDKey
+// Distinct per deep-link test: navigateAppend's `_pendingAppend` "uncommitted dupe" cache is
+// module-level state that the mocked `addListener` never clears (the real navigator would fire
+// its 'state' listener and clear it; this stub's listener never fires), so a later test in this
+// file reusing `realConvID` with an equal-shaped params object would be silently caught by that
+// leftover cache instead of by the code under test. A conv id used nowhere else sidesteps that.
+const deepLinkConvID = 'aa11aa11' as T.Chat.ConversationIDKey
+const deepLinkConvID2 = 'bb22bb22' as T.Chat.ConversationIDKey
 
 beforeEach(() => {
   dispatch.mockClear()
@@ -79,12 +86,12 @@ test('no thread on screen still pushes the conversation', () => {
 
 // Removing `inputAction` from the sameVisibleThread condition means a prefill-only call
 // (no highlightMessageID) issued while already on that thread falls through to the bottom
-// `else` instead of taking the early-return branch. It must not read as a second push:
-// navigateAppend's dupe guard compares route params shallowly against the currently-visible
-// route, and every place in router.tsx that sets chatConversation params writes the same four
-// keys (conversationIDKey, createConversationError, highlightMessageID, threadSearch), even
-// when some are undefined - so the shapes line up and the guard short-circuits.
-test('reissuing navigateToThread on the same visible thread with no highlight does not push a duplicate', () => {
+// `else` instead of taking the early-return branch. That must never read as a second push.
+// The guarantee comes from `replace` itself (visibleConvo === conversationIDKey forces a
+// setParams retarget), not from the visible route's params object happening to have the same
+// keys as the ones this call builds - a route built elsewhere (a deep link, see the next test)
+// can have a completely different params shape and this must still not push.
+test('reissuing navigateToThread on the same visible thread with no highlight retargets instead of pushing', () => {
   const visibleThreadRoute = {
     key: 'conv-visible',
     name: 'chatConversation',
@@ -99,7 +106,53 @@ test('reissuing navigateToThread on the same visible thread with no highlight do
 
   navigateToThread(realConvID, 'createdMessagePrivately')
 
-  expect(dispatch).not.toHaveBeenCalled()
+  expect(dispatch).toHaveBeenCalledTimes(1)
+  const action = dispatch.mock.calls[0]?.[0] as {type: string; payload: unknown; source?: string}
+  expect(action.type).toBe('SET_PARAMS')
+  expect(action.source).toBe(visibleThreadRoute.key)
+  expect(action.payload).toMatchObject({conversationIDKey: realConvID})
+})
+
+// A conversation opened via a `keybase://convid/<id>` deep link lands on chatConversation with
+// only {conversationIDKey} as params (router-v2/linking.tsx's makeChatConversationState) - one
+// key, not the four this file's own params objects always carry. shallowEqual bails on a
+// key-count mismatch before comparing values, so navigateAppend's dupe guard alone cannot be
+// trusted to catch this shape; the fix must not push a duplicate regardless.
+test('reissuing navigateToThread on a deep-linked thread (single-key params) does not push a duplicate', () => {
+  const deepLinkedThreadRoute = {
+    key: 'conv-deep-link',
+    name: 'chatConversation',
+    params: {conversationIDKey: deepLinkConvID},
+  }
+  setRootRoutes([loggedIn, deepLinkedThreadRoute])
+
+  navigateToThread(deepLinkConvID, 'createdMessagePrivately')
+
+  expect(dispatch).toHaveBeenCalledTimes(1)
+  const action = dispatch.mock.calls[0]?.[0] as {type: string; payload: unknown; source?: string}
+  expect(action.type).toBe('SET_PARAMS')
+  expect(action.source).toBe(deepLinkedThreadRoute.key)
+  expect(action.payload).toMatchObject({conversationIDKey: deepLinkConvID})
+})
+
+// Same shape as the deep-link case above, but with no prefill/highlight at all - this hole
+// predates this task (a plain re-navigate to the same deep-linked thread already pushed a
+// duplicate before `inputAction` existed on this signature), so it's covered independently of
+// the injectText migration.
+test('a plain re-navigate to a deep-linked thread with no highlight or prefill does not push a duplicate', () => {
+  const deepLinkedThreadRoute = {
+    key: 'conv-deep-link-plain',
+    name: 'chatConversation',
+    params: {conversationIDKey: deepLinkConvID2},
+  }
+  setRootRoutes([loggedIn, deepLinkedThreadRoute])
+
+  navigateToThread(deepLinkConvID2, 'focused')
+
+  expect(dispatch).toHaveBeenCalledTimes(1)
+  const action = dispatch.mock.calls[0]?.[0] as {type: string; payload: unknown; source?: string}
+  expect(action.type).toBe('SET_PARAMS')
+  expect(action.source).toBe(deepLinkedThreadRoute.key)
 })
 
 // setParams keeps the native screen alive, and iOS never re-measures a header title subview it

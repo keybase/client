@@ -972,8 +972,15 @@ export const navigateToThread = (
   } else if (reason === 'push' || reason === 'savedLastState') {
     navToThread(conversationIDKey, navParams)
   } else {
+    // Either half being true means "retarget the screen we're already on" instead of pushing a
+    // new one. The second half must not rely on the two params objects happening to have the
+    // same keys (navigateAppend's dupe guard does a shallow-equal that bails on key-count
+    // mismatch alone) - a route built outside this file, e.g. a deep link's single-key
+    // {conversationIDKey} from router-v2/linking.tsx's makeChatConversationState, would defeat
+    // that check and let a same-conversation call push a second thread screen.
     const replace =
-      visibleRouteName === threadRouteName && !T.Chat.isValidConversationIDKey(visibleConvo ?? '')
+      visibleRouteName === threadRouteName &&
+      (!T.Chat.isValidConversationIDKey(visibleConvo ?? '') || visibleConvo === conversationIDKey)
     const modalPath = getModalStack()
     if (modalPath.length > 0) {
       clearModals()
@@ -994,7 +1001,8 @@ export const navigateToThread = (
       // as two pushes. setParams has no transition at all. It relies on the pending thread's
       // header title already having content (seeded by navigateToPendingThread): iOS never
       // re-measures a title subview it first measured empty, so a blank pending title would
-      // leave the bar blank for the real conv too.
+      // leave the bar blank for the real conv too. Same-conversation retargets ride this path
+      // too: the screen is already showing real content, so setParams is a plain in-place merge.
       _getNavigator()?.dispatch({...CommonActions.setParams(params), source: visible?.key})
     } else {
       navigateAppend({name: threadRouteName, params})
