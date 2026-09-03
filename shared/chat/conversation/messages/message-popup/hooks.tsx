@@ -134,6 +134,11 @@ const useItemsForMessage = (p: {
     : []
 
   const setOrangeLine = React.useContext(SetOrangeLineContext)
+  const clearModals = C.Router2.clearModals
+  // Edit and Reply put something in the composer, so the composer has to be visible afterwards.
+  // From the attachment viewer this popup sits under a modal route, and nothing else dismisses it -
+  // the intent lands but the user is left staring at the modal that hid it. Delete already does this.
+  //
   // Both arms of this fork and the one in _onEdit below land in the same reducer in the same
   // tick - a mounted provider consumes a store write synchronously - so neither is a shortcut.
   // The fork is about scope: with a provider above us the dispatch is by construction the one for
@@ -145,6 +150,7 @@ const useItemsForMessage = (p: {
     } else {
       setThreadInputReplyTo(conversationIDKey, ordinal)
     }
+    clearModals()
   }
   const itemReply = message.exploded
     ? []
@@ -158,6 +164,7 @@ const useItemsForMessage = (p: {
     } else {
       setThreadInputEditing(conversationIDKey, ordinal)
     }
+    clearModals()
   }
 
   const you = useCurrentUserState(s => s.username)
@@ -205,7 +212,6 @@ const useItemsForMessage = (p: {
     ? ([{icon: 'iconfont-envelope-solid', onClick: onMarkAsUnread, title: 'Mark as unread'}] as const)
     : []
 
-  const clearModals = C.Router2.clearModals
   const _onDelete = () => {
     actions.deleteMessage()
     clearModals()
