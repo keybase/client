@@ -297,8 +297,9 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
 
 // For callers that may or may not sit inside the provider — the message popup is rendered inline
 // in the thread on desktop but as its own modal route on phones, and from the info panel and the
-// attachment viewer it is outside the thread entirely. Inside, talk to the store directly; the
-// router round-trip is only there to reach across a screen boundary.
+// attachment viewer it is outside the thread entirely. Inside, talk to the store directly; outside,
+// setThreadInputEditing/setThreadInputReplyTo (constants/router.tsx) reach across the screen
+// boundary through the input-intent store instead.
 export function useConversationInputDispatchOptional(): ConversationInputDispatch | undefined {
   return React.useContext(DispatchContext)
 }
