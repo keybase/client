@@ -40,10 +40,17 @@ export const useInputIntentState = Z.createZustand<State>('inputIntent', () => (
 
 // Which consumers are mounted, as a fact the store is told rather than one it infers. The
 // alternative - "nobody consumed synchronously inside setState, so nothing is mounted" - cannot
-// tell an absent provider from a mounted one whose delivery is not synchronous, and a screen
-// frozen by enableFreeze (react-native-screens wraps every off-top screen in react-freeze) is
-// exactly that shape. A frozen provider is still mounted, so it stays registered and its intent
-// is still waiting for it on thaw, which is what the route-param channel used to give us.
+// tell an absent provider from a mounted one whose delivery is not synchronous, and it had to
+// overwrite the conversation's one mailbox slot before it could ask, so a dropped commandStatus
+// destroyed whatever durable intent was already waiting there.
+//
+// It is not airtight, and the gap is worth naming. Registration rides a passive effect, so it
+// survives a react-freeze hide (a <Suspense> boundary: React tears down layout effects only) but
+// NOT React's <Activity mode="hidden">, which unmounts passive effects and which
+// @react-navigation/native-stack's ActivityView puts every screen under. A consumer hidden that
+// way is unregistered and still drops a commandStatus. The screen directly beneath a modal is
+// neither: native-stack forces activityMode 'normal' for it, which is why the location-permission
+// banner was never actually being lost.
 //
 // Deliberately not zustand state: nothing renders from it, and a subscriber must never see it
 // change. Entries are per mount, so the two providers a conversation can have are independent.

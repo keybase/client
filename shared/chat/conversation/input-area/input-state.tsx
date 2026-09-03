@@ -253,10 +253,10 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
       }
     }
   )
-  // Registration is what makes this provider's mount a fact the store can check, and it rides a
-  // passive effect on purpose: a react-freeze freeze (react-native-screens' DelayedFreeze) tears
-  // down layout effects and leaves passive ones alone, so a frozen thread stays registered and a
-  // commandStatus written while a modal covers it is still waiting when the screen thaws.
+  // Registration is what makes this provider's mount a fact the store can check instead of
+  // inferring it from "somebody consumed synchronously". It rides this passive effect, so it
+  // survives a react-freeze hide (layout effects only) but not <Activity mode="hidden">, which
+  // unmounts passive effects - see the registry in input-intent-store.tsx for what that costs.
   React.useEffect(() => {
     const consume = () => {
       const intent = consumeInputIntent(id, storeInputIntentTypes)
