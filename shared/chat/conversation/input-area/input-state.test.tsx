@@ -4,11 +4,12 @@ import * as Message from '@/constants/chat/message'
 import type * as React from 'react'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
-import {act, cleanup, renderHook} from '@testing-library/react'
+import {act, cleanup, render, renderHook} from '@testing-library/react'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
+import {setInputIntent, useInputIntentState} from '../input-intent-store'
 import {useCurrentUserState} from '@/stores/current-user'
-import {ConversationInputProvider, useConversationInput} from './input-state'
+import {ConversationInputProvider, useConversationInput, type ConversationInputState} from './input-state'
 import {ConversationThreadProvider, useConversationThreadActions} from '../thread-context'
 
 let mockRouteParams: Record<string, unknown> = {}
@@ -466,4 +467,120 @@ test('command status and markdown engine events are conversation scoped', () => 
     displayText: 'no actions',
     displayType: T.RPCChat.UICommandStatusDisplayTyp.status,
   })
+})
+
+function ThreadActionsProbe(p: {onActions: (actions: ReturnType<typeof useConversationThreadActions>) => void}) {
+  p.onActions(useConversationThreadActions())
+  return null
+}
+
+function InputStateProbe(p: {onState: (state: ConversationInputState) => void}) {
+  p.onState(useConversationInput(s => s))
+  return null
+}
+
+test('an intent written before the provider mounts is delivered on mount', () => {
+  setInputIntent(convID, {text: 'prefill from store', type: 'injectText'})
+
+  const {result} = renderInput(convID)
+
+  expect(result.current.unsentText).toBe('prefill from store')
+})
+
+test('a consumed intent does not replay on remount', () => {
+  setInputIntent(convID, {text: 'only once', type: 'injectText'})
+
+  const first = renderInput(convID)
+  expect(first.result.current.unsentText).toBe('only once')
+  first.unmount()
+
+  const second = renderInput(convID)
+  expect(second.result.current.unsentText).toBeUndefined()
+})
+
+test('an intent for one conversation is not delivered to a different conversation provider', () => {
+  setInputIntent(convID, {text: 'for convID only', type: 'injectText'})
+
+  const {result} = renderInput(otherConvID)
+
+  expect(result.current.unsentText).toBeUndefined()
+  expect(useInputIntentState.getState().intents.get(convID)).toEqual({
+    text: 'for convID only',
+    type: 'injectText',
+  })
+})
+
+test('two setEditing writes before the input provider mounts: the second one applies', () => {
+  const firstOrdinal = T.Chat.numberToOrdinal(211)
+  const secondOrdinal = T.Chat.numberToOrdinal(212)
+  let threadActions: ReturnType<typeof useConversationThreadActions> | undefined
+  let inputState: ConversationInputState | undefined
+
+  const {rerender} = render(
+    <ConversationThreadProvider id={convID}>
+      <ThreadActionsProbe onActions={actions => (threadActions = actions)} />
+    </ConversationThreadProvider>
+  )
+
+  act(() => {
+    // Only the second ordinal has a backing message, so a bug that let the first
+    // (overwritten) write through would leave editing at its empty default instead
+    // of silently reproducing the same result as a correct second-write application.
+    threadActions?.addMessages(
+      [
+        makeTextMessage({
+          id: T.Chat.numberToMessageID(212),
+          ordinal: secondOrdinal,
+          outboxID: T.Chat.stringToOutboxID('edit-second-write'),
+          text: 'second write text',
+        }),
+      ],
+      {markAsRead: false}
+    )
+  })
+
+  setInputIntent(convID, {ordinal: firstOrdinal, type: 'setEditing'})
+  setInputIntent(convID, {ordinal: secondOrdinal, type: 'setEditing'})
+
+  rerender(
+    <ConversationThreadProvider id={convID}>
+      <ThreadActionsProbe onActions={actions => (threadActions = actions)} />
+      <ConversationInputProvider id={convID}>
+        <InputStateProbe onState={state => (inputState = state)} />
+      </ConversationInputProvider>
+    </ConversationThreadProvider>
+  )
+
+  expect(inputState?.editing).toBe(secondOrdinal)
+  expect(inputState?.unsentText).toBe('second write text')
+})
+
+test('an intent that arrives after mount is delivered without a remount', () => {
+  const {result} = renderInput(convID)
+  expect(result.current.unsentText).toBeUndefined()
+
+  act(() => {
+    setInputIntent(convID, {text: 'arrived after mount', type: 'injectText'})
+  })
+
+  expect(result.current.unsentText).toBe('arrived after mount')
+})
+
+test('commandStatus reaches a mounted provider but is dropped when none is mounted', () => {
+  const commandStatusInfo = {
+    actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
+    displayText: 'from store',
+    displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
+  }
+
+  setInputIntent(convID, {info: commandStatusInfo, type: 'commandStatus'})
+
+  const {result} = renderInput(convID)
+  expect(result.current.commandStatus).toBeUndefined()
+
+  act(() => {
+    setInputIntent(convID, {info: commandStatusInfo, type: 'commandStatus'})
+  })
+
+  expect(result.current.commandStatus).toEqual(commandStatusInfo)
 })

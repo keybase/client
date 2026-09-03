@@ -3,11 +3,12 @@ import * as T from '@/constants/types'
 import logger from '@/logger'
 import {clearThreadInputAction} from '@/constants/router'
 import {findLast} from '@/util/arrays'
-import {useChatThreadRouteParams, type ThreadInputAction} from '../thread-search-route'
+import {useChatThreadRouteParams} from '../thread-search-route'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useConversationThreadStore} from '../thread-context'
 import {useConversationSendActions} from '../send-actions'
+import {useInputIntentState, consumeInputIntent, type InputIntent} from '../input-intent-store'
 
 type ConversationInputStore = T.Immutable<{
   commandMarkdown?: T.RPCChat.UICommandMarkdown
@@ -110,6 +111,15 @@ DispatchContext.displayName = 'ConversationInputDispatchContext'
 
 const actionConversationIDKey = (convID: string) => T.Chat.stringToConversationIDKey(convID)
 
+// 'highlight' belongs to ConversationCenterProvider; claiming it here would let this provider
+// silently eat an intent meant for the other consumer.
+const storeInputIntentTypes: ReadonlyArray<InputIntent['type']> = [
+  'commandStatus',
+  'injectText',
+  'setEditing',
+  'setReplyTo',
+]
+
 export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat.ConversationIDKey}>) => {
   const {children, id} = p
   const routeInputAction = useChatThreadRouteParams()?.inputAction
@@ -211,22 +221,32 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
     toggleGiphyPrefill,
   }))
 
-  const applyInputAction = React.useEffectEvent((action: ThreadInputAction) => {
-    switch (action.type) {
-      case 'commandStatus':
-        setCommandStatusInfo(action.info)
-        break
-      case 'injectText':
-        injectIntoInput(action.text)
-        break
-      case 'setEditing':
-        setEditing(action.ordinal)
-        break
-      case 'setReplyTo':
-        setReplyTo(action.ordinal)
-        break
+  const applyInputAction = React.useEffectEvent(
+    (action: T.Immutable<Exclude<InputIntent, {type: 'highlight'}>>) => {
+      switch (action.type) {
+        case 'commandStatus':
+          setCommandStatusInfo(
+            action.info
+              ? {
+                  actions: T.castDraft(action.info.actions),
+                  displayText: action.info.displayText,
+                  displayType: action.info.displayType,
+                }
+              : undefined
+          )
+          break
+        case 'injectText':
+          injectIntoInput(action.text)
+          break
+        case 'setEditing':
+          setEditing(action.ordinal)
+          break
+        case 'setReplyTo':
+          setReplyTo(action.ordinal)
+          break
+      }
     }
-  })
+  )
   const consumedInputActionRef = React.useRef<string | undefined>(undefined)
   React.useEffect(() => {
     if (!routeInputAction) {
@@ -240,6 +260,17 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
     applyInputAction(routeInputAction)
     clearThreadInputAction(routeInputAction.key)
   }, [routeInputAction])
+
+  React.useEffect(() => {
+    const consume = () => {
+      const intent = consumeInputIntent(id, storeInputIntentTypes)
+      if (intent) {
+        applyInputAction(intent as T.Immutable<Exclude<InputIntent, {type: 'highlight'}>>)
+      }
+    }
+    consume()
+    return useInputIntentState.subscribe(consume)
+  }, [id])
 
   useEngineActionListener('chat.1.chatUi.chatCommandStatus', action => {
     const {actions, convID, displayText, typ} = action.payload.params
