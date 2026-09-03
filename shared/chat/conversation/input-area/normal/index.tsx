@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import logger from '@/logger'
 import CommandMarkdown from '../../command-markdown'
 import CommandStatus from '../../command-status'
 import Giphy from '../../giphy'
@@ -105,7 +106,10 @@ const Input = function Input() {
 
 const doInjectText = (inputRef: React.RefObject<InputRef | null>, text: string, focus?: boolean) => {
   if (!inputRef.current) {
-    console.log('injectText injectingTextRef null')
+    // Silently loses the text: the caller has already moved the value into unsentText, and the
+    // effect that got us here clears it straight after. An edit prefill dropped here looks like
+    // edit mode never opened.
+    logger.error('[chat] injectText dropped: input ref is null')
     return
   }
   if (!text) {
