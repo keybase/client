@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as T from './types'
 import {metasReceived, participantInfoReceived, useInboxMetadataState} from '@/chat/inbox/metadata-store'
+import {setInputIntent} from '@/chat/conversation/input-intent-store'
 import {refreshInboxLayout} from '@/chat/inbox/inbox-refresh'
 import {useCurrentUserState} from '@/stores/current-user'
 import type {ThreadInputAction} from '@/chat/conversation/thread-search-route'
@@ -827,29 +828,6 @@ const makeThreadInputAction = (action: ThreadInputActionRequest): ThreadInputAct
   key: makeUUID(),
 })
 
-const setThreadInputAction = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  action: ThreadInputActionRequest
-) => {
-  const n = _getNavigator()
-  if (!n) return
-  const found = getVisibleThreadScreen()
-  const params = found?.route.params as {conversationIDKey?: T.Chat.ConversationIDKey} | undefined
-  if (!found?.navKey || params?.conversationIDKey !== conversationIDKey) {
-    // Reached from the message menu, so a bail here is a menu item that visibly does nothing.
-    logger.error(
-      `[chat] dropped thread input action ${action.type}: ` +
-        `${!found ? 'no visible thread screen' : !found.navKey ? 'thread route has no owning navigator' : 'thread route is on another conversation'}`
-    )
-    return
-  }
-  n.dispatch({
-    ...CommonActions.setParams({inputAction: makeThreadInputAction(action)}),
-    source: found.route.key,
-    target: found.navKey,
-  })
-}
-
 export const clearThreadInputAction = (key?: string) => {
   const n = _getNavigator()
   if (!n) return
@@ -870,21 +848,21 @@ export const setThreadInputCommandStatus = (
   conversationIDKey: T.Chat.ConversationIDKey,
   info?: T.Chat.CommandStatusInfo
 ) => {
-  setThreadInputAction(conversationIDKey, {info, type: 'commandStatus'})
+  setInputIntent(conversationIDKey, {info, type: 'commandStatus'})
 }
 
 export const setThreadInputEditing = (
   conversationIDKey: T.Chat.ConversationIDKey,
   ordinal: T.Chat.Ordinal
 ) => {
-  setThreadInputAction(conversationIDKey, {ordinal, type: 'setEditing'})
+  setInputIntent(conversationIDKey, {ordinal, type: 'setEditing'})
 }
 
 export const setThreadInputReplyTo = (
   conversationIDKey: T.Chat.ConversationIDKey,
   ordinal: T.Chat.Ordinal
 ) => {
-  setThreadInputAction(conversationIDKey, {ordinal, type: 'setReplyTo'})
+  setInputIntent(conversationIDKey, {ordinal, type: 'setReplyTo'})
 }
 
 type ThreadNavParams = {

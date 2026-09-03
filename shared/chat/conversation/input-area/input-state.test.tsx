@@ -8,6 +8,7 @@ import {act, cleanup, render, renderHook} from '@testing-library/react'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
 import {setInputIntent, useInputIntentState} from '../input-intent-store'
+import {setThreadInputCommandStatus, setThreadInputEditing, setThreadInputReplyTo} from '@/constants/router'
 import {useCurrentUserState} from '@/stores/current-user'
 import {ConversationInputProvider, useConversationInput, type ConversationInputState} from './input-state'
 import {ConversationThreadProvider, useConversationThreadActions} from '../thread-context'
@@ -583,4 +584,84 @@ test('commandStatus reaches a mounted provider but is dropped when none is mount
   })
 
   expect(result.current.commandStatus).toEqual(commandStatusInfo)
+})
+
+test('setThreadInputEditing reaches the store with no provider mounted, then applies on mount', () => {
+  const editOrdinal = T.Chat.numberToOrdinal(801)
+  let threadActions: ReturnType<typeof useConversationThreadActions> | undefined
+  let inputState: ConversationInputState | undefined
+
+  const {rerender} = render(
+    <ConversationThreadProvider id={convID}>
+      <ThreadActionsProbe onActions={actions => (threadActions = actions)} />
+    </ConversationThreadProvider>
+  )
+
+  act(() => {
+    threadActions?.addMessages(
+      [
+        makeTextMessage({
+          id: T.Chat.numberToMessageID(801),
+          ordinal: editOrdinal,
+          outboxID: T.Chat.stringToOutboxID('router-setEditing'),
+          text: 'router edit text',
+        }),
+      ],
+      {markAsRead: false}
+    )
+  })
+
+  setThreadInputEditing(convID, editOrdinal)
+
+  rerender(
+    <ConversationThreadProvider id={convID}>
+      <ThreadActionsProbe onActions={actions => (threadActions = actions)} />
+      <ConversationInputProvider id={convID}>
+        <InputStateProbe onState={state => (inputState = state)} />
+      </ConversationInputProvider>
+    </ConversationThreadProvider>
+  )
+
+  expect(inputState?.editing).toBe(editOrdinal)
+  expect(inputState?.unsentText).toBe('router edit text')
+})
+
+test('setThreadInputReplyTo reaches the store with no provider mounted, then applies on mount', () => {
+  const replyOrdinal = T.Chat.numberToOrdinal(802)
+
+  setThreadInputReplyTo(convID, replyOrdinal)
+
+  const {result} = renderInput(convID)
+
+  expect(result.current.replyTo).toBe(replyOrdinal)
+})
+
+test('setThreadInputCommandStatus reaches a mounted provider', () => {
+  const commandStatusInfo = {
+    actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
+    displayText: 'from router, mounted',
+    displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
+  }
+
+  const {result} = renderInput(convID)
+
+  act(() => {
+    setThreadInputCommandStatus(convID, commandStatusInfo)
+  })
+
+  expect(result.current.commandStatus).toEqual(commandStatusInfo)
+})
+
+test('setThreadInputCommandStatus is dropped when no provider is mounted', () => {
+  const commandStatusInfo = {
+    actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
+    displayText: 'from router, unmounted',
+    displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
+  }
+
+  setThreadInputCommandStatus(convID, commandStatusInfo)
+
+  const {result} = renderInput(convID)
+
+  expect(result.current.commandStatus).toBeUndefined()
 })
