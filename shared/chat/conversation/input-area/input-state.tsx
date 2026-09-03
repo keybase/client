@@ -1,9 +1,7 @@
 import * as React from 'react'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {clearThreadInputAction} from '@/constants/router'
 import {findLast} from '@/util/arrays'
-import {useChatThreadRouteParams} from '../thread-search-route'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useConversationThreadStore} from '../thread-context'
@@ -122,7 +120,6 @@ const storeInputIntentTypes: ReadonlyArray<InputIntent['type']> = [
 
 export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat.ConversationIDKey}>) => {
   const {children, id} = p
-  const routeInputAction = useChatThreadRouteParams()?.inputAction
   const [state, dispatchState] = React.useReducer(inputReducer, initialConversationInputStore)
   // Only setEditing reads thread state, so read it lazily instead of subscribing —
   // a subscription here re-renders the whole input subtree on every thread change.
@@ -247,20 +244,6 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
       }
     }
   )
-  const consumedInputActionRef = React.useRef<string | undefined>(undefined)
-  React.useEffect(() => {
-    if (!routeInputAction) {
-      consumedInputActionRef.current = undefined
-      return
-    }
-    if (consumedInputActionRef.current === routeInputAction.key) {
-      return
-    }
-    consumedInputActionRef.current = routeInputAction.key
-    applyInputAction(routeInputAction)
-    clearThreadInputAction(routeInputAction.key)
-  }, [routeInputAction])
-
   React.useEffect(() => {
     const consume = () => {
       const intent = consumeInputIntent(id, storeInputIntentTypes)

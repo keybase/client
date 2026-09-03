@@ -13,12 +13,6 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {ConversationInputProvider, useConversationInput, type ConversationInputState} from './input-state'
 import {ConversationThreadProvider, useConversationThreadActions} from '../thread-context'
 
-let mockRouteParams: Record<string, unknown> = {}
-// useChatThreadRouteParams only honors params on the chat thread routes, so the mock needs a matching name
-jest.mock('@react-navigation/native', () => ({
-  useRoute: () => ({name: 'chatConversation', params: mockRouteParams}),
-}))
-
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
 
@@ -104,7 +98,6 @@ const notifyInputEngineAction = (action: Parameters<typeof notifyEngineActionLis
 }
 
 beforeEach(() => {
-  mockRouteParams = {}
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
     deviceName: 'test-device',
@@ -117,14 +110,6 @@ afterEach(() => {
   cleanup()
   jest.restoreAllMocks()
   resetAllStores()
-})
-
-test('route input action injects prefill text into the mounted provider', () => {
-  mockRouteParams = {inputAction: {key: 'prefill-1', text: 'prefill from route', type: 'injectText'}}
-
-  const {result} = renderInput()
-
-  expect(result.current.unsentText).toBe('prefill from route')
 })
 
 test('setEditing last picks the latest editable local message and injects its content', () => {

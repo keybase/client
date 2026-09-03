@@ -45,12 +45,6 @@ test('any of the recognized keys makes the params usable', () => {
   mockRoute = {name: 'chatConversation', params: {highlightMessageID}}
   expect(params()?.highlightMessageID).toBe(highlightMessageID)
 
-  mockRoute = {
-    name: 'chatConversation',
-    params: {inputAction: {key: 'k', text: 'draft', type: 'injectText'}},
-  }
-  expect(params()?.inputAction).toEqual({key: 'k', text: 'draft', type: 'injectText'})
-
   // hasOwnProperty, not truthiness: an explicitly undefined key still claims the params
   const withError = {createConversationError: undefined}
   mockRoute = {name: 'chatConversation', params: withError}

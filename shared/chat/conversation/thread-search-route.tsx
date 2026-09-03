@@ -6,16 +6,9 @@ export type ThreadSearchRoute = {
   query?: string
 }
 
-export type ThreadInputAction =
-  | {key: string; type: 'commandStatus'; info?: T.Chat.CommandStatusInfo}
-  | {key: string; type: 'injectText'; text?: string}
-  | {key: string; type: 'setEditing'; ordinal: T.Chat.Ordinal}
-  | {key: string; type: 'setReplyTo'; ordinal: T.Chat.Ordinal}
-
 export type ThreadSearchRouteProps = {
   createConversationError?: T.Chat.CreateConversationError
   highlightMessageID?: T.Chat.MessageID
-  inputAction?: ThreadInputAction
   threadSearch?: ThreadSearchRoute
 }
 
@@ -26,8 +19,7 @@ const isThreadSearchRouteParams = (
   typeof params === 'object' &&
   (Object.prototype.hasOwnProperty.call(params, 'threadSearch') ||
     Object.prototype.hasOwnProperty.call(params, 'highlightMessageID') ||
-    Object.prototype.hasOwnProperty.call(params, 'createConversationError') ||
-    Object.prototype.hasOwnProperty.call(params, 'inputAction'))
+    Object.prototype.hasOwnProperty.call(params, 'createConversationError'))
 
 export const useChatThreadRouteParams = (): ThreadSearchRouteProps | undefined => {
   const route = useRoute()

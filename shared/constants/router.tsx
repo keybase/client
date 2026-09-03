@@ -4,7 +4,6 @@ import {metasReceived, participantInfoReceived, useInboxMetadataState} from '@/c
 import {setInputIntent} from '@/chat/conversation/input-intent-store'
 import {refreshInboxLayout} from '@/chat/inbox/inbox-refresh'
 import {useCurrentUserState} from '@/stores/current-user'
-import type {ThreadInputAction} from '@/chat/conversation/thread-search-route'
 import * as Tabs from './tabs'
 import {
   StackActions,
@@ -812,22 +811,6 @@ export const clearThreadHighlightMessageID = () => {
   if (!found?.navKey) return
   n.dispatch({
     ...CommonActions.setParams({highlightMessageID: undefined}),
-    source: found.route.key,
-    target: found.navKey,
-  })
-}
-
-export const clearThreadInputAction = (key?: string) => {
-  const n = _getNavigator()
-  if (!n) return
-  const found = getVisibleThreadScreen()
-  if (!found?.navKey) return
-  const params = found.route.params as {inputAction?: ThreadInputAction} | undefined
-  if (key && params?.inputAction?.key !== key) {
-    return
-  }
-  n.dispatch({
-    ...CommonActions.setParams({inputAction: undefined}),
     source: found.route.key,
     target: found.navKey,
   })
