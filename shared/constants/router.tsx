@@ -936,10 +936,6 @@ export const navigateToThread = (
   }
 
   const {createConversationError, intent, threadSearchQuery} = opts ?? {}
-  // Write before the navigation dispatches: the thread mounts during it and consumes on mount.
-  if (intent) {
-    setInputIntent(conversationIDKey, intent)
-  }
 
   const visible = getVisibleScreen()
   const params = visible?.params as {conversationIDKey?: T.Chat.ConversationIDKey} | undefined
@@ -948,6 +944,14 @@ export const navigateToThread = (
 
   if (visibleRouteName !== threadRouteName && reason === 'findNewestConversation') {
     return
+  }
+
+  // Below every early return that aborts the navigation, above every dispatch that performs one.
+  // An intent written on an aborted navigation would sit in the mailbox and fire on some later,
+  // unrelated mount of this conversation; written after a dispatch it would miss the consume the
+  // mount does. The thread mounts during the dispatches below, so this is the only safe window.
+  if (intent) {
+    setInputIntent(conversationIDKey, intent)
   }
 
   const threadSearch = threadSearchQuery ? {query: threadSearchQuery} : undefined

@@ -26,6 +26,7 @@ import {
   useConversationThreadSelector,
   useConversationThreadStore,
 } from './thread-context'
+import {ConversationThreadLoadStatusProvider} from './thread-load-status-context'
 import {useConversationParticipants} from './data-hooks'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
@@ -502,6 +503,100 @@ test('mounted thread listener applies messagesUpdated for the active conversatio
 
   expect(result.current.ordinals).toEqual([T.Chat.numberToOrdinal(401)])
   expect(result.current.message?.id).toBe(firstMsgID)
+})
+
+// The full jump -> scroll-to-bottom -> stale-reload chain behind normal/container.tsx's
+// allowMarkReadOnLoad. Jumping to a highlighted message mounts the thread with
+// skipThreadLoadOnSelection (the centered load replaces the select-on-mount load) and blocks
+// mark-read. The block is NOT permanent: applyThreadLoad releases it as soon as the user scrolls
+// to the latest message ('forward' with no moreToLoad). The stale reload that follows -
+// ChatThreadsStale fires on every mobile background -> foreground - must then be free to mark the
+// thread read. reloadStaleThread reads allowMarkReadOnLoad through useEffectEvent, i.e. the latest
+// render's value, so a caller that derived it from the one-shot highlight and froze it at `false`
+// would leave the conversation badged unread for as long as the thread stayed mounted.
+const staleThreadUpdate = {
+  payload: {
+    params: {
+      uid: '',
+      updates: [
+        {convID: T.Chat.keyToConversationID(convID), updateType: T.RPCChat.StaleUpdateType.newactivity},
+      ],
+    },
+  },
+  type: 'chat.1.NotifyChat.ChatThreadsStale',
+} as never
+
+const renderJumpedThenScrolledToBottom = (allowMarkReadOnLoad: boolean) => {
+  useConfigState.setState({loggedIn: true})
+  jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(true)
+  const markAsRead = jest
+    .spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise')
+    .mockResolvedValue({offline: false})
+  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
+    p.incomingCallMap['chat.1.chatUi.chatThreadFull']?.({
+      thread: JSON.stringify({
+        messages: [makeValidTextUIMessage(T.Chat.numberToMessageID(203), 'latest')],
+        pagination: {last: true, next: '', num: 100, previous: ''},
+      }),
+    })
+    await Promise.resolve()
+    return {offline: false}
+  })
+  const {result} = renderHook(() => useConversationThreadActions(), {
+    wrapper: ({children}: {children: React.ReactNode}) => (
+      <ConversationThreadProvider id={convID}>
+        <ConversationThreadLoadStatusProvider
+          allowMarkReadOnLoad={allowMarkReadOnLoad}
+          id={convID}
+          skipThreadLoadOnSelection={true}
+        >
+          {children}
+        </ConversationThreadLoadStatusProvider>
+      </ConversationThreadProvider>
+    ),
+  })
+  // jumping to a highlighted message blocks mark-read
+  act(() => {
+    result.current.setMarkReadBlocked(true)
+  })
+  // ...then the user scrolls all the way forward to the latest message, releasing the block
+  act(() => {
+    result.current.applyThreadLoad({
+      centered: false,
+      enableActiveMarkRead: false,
+      messages: [makeTextMessage()],
+      moreToLoad: false,
+      scrollDirection: 'forward',
+    })
+  })
+  return markAsRead
+}
+
+test('a stale reload after a jump and a scroll to the bottom marks the thread read', async () => {
+  const markAsRead = renderJumpedThenScrolledToBottom(true)
+
+  act(() => {
+    notifyEngineActionListeners(staleThreadUpdate)
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+
+  expect(markAsRead).toHaveBeenCalledTimes(1)
+})
+
+// The counterfactual: exactly what deriving allowMarkReadOnLoad from the one-shot highlight did.
+test('a stale reload that disallows mark read leaves the thread unread even once the block is gone', async () => {
+  const markAsRead = renderJumpedThenScrolledToBottom(false)
+
+  act(() => {
+    notifyEngineActionListeners(staleThreadUpdate)
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+
+  expect(markAsRead).not.toHaveBeenCalled()
 })
 
 test('mounted thread listener applies incoming messages for the active conversation', async () => {

@@ -9,7 +9,7 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
 import {useShellState} from '@/stores/shell'
 import {OrangeLineContext, SetOrangeLineContext, setConversationOrangeLine} from '../orange-line-context'
-import {setInputIntent, useInputIntentState} from '../input-intent-store'
+import {consumeInputIntent, setInputIntent, useInputIntentState} from '../input-intent-store'
 import NormalWrapper from './container'
 
 type ConstantsModule = typeof C
@@ -486,14 +486,23 @@ test('active max visible message changes do not refresh the orange line', async 
   expectOrangeLine(T.Chat.numberToOrdinal(10))
 })
 
-test('a pending highlight intent skips thread load on selection', () => {
+// skipThreadLoadOnSelection only: a pending highlight means the center provider is about to issue
+// a centered load, so the plain 'focused' load would be a wasted fetch.
+//
+// allowMarkReadOnLoad must stay TRUE here. It is read live by reloadStaleThread on every
+// ChatThreadsStale/ChatInboxSynced, and the highlight's mark-read block lives in thread-context,
+// which releases it once the user scrolls to the latest message or jumps to recent. Deriving this
+// prop from the one-shot highlight froze it past that release: after jumping to a message and
+// scrolling to the bottom, the next stale reload (mobile background -> foreground is the everyday
+// trigger) came back with allowMarkAsRead:false and the conversation stayed badged as unread.
+test('a pending highlight intent skips thread load but leaves mark-read allowed', () => {
   mockLoaded = false
   setInputIntent(convID, {messageID: T.Chat.numberToMessageID(123), type: 'highlight'})
 
   render(<NormalWrapper />)
 
   expect(mockThreadLoadStatusProviderProps).toEqual({
-    allowMarkReadOnLoad: false,
+    allowMarkReadOnLoad: true,
     id: convID,
     skipThreadLoadOnSelection: true,
   })
@@ -536,6 +545,27 @@ test('a pending highlight for another conversation does not skip thread load on 
     allowMarkReadOnLoad: true,
     id: convID,
     skipThreadLoadOnSelection: false,
+  })
+})
+
+// The peek must run in a useState initializer keyed on the conversation, not a useMemo React may
+// drop and recompute: a recompute after ConversationCenterProvider consumed reads an empty mailbox.
+// Re-rendering with the intent already consumed must not change what the provider was mounted with.
+test('the mount-time highlight decision survives a re-render after the intent is consumed', () => {
+  mockLoaded = false
+  setInputIntent(convID, {messageID: T.Chat.numberToMessageID(123), type: 'highlight'})
+
+  const {rerender} = render(<NormalWrapper />)
+  // ConversationCenterProvider is mocked out here, so drain the mailbox the way it would
+  act(() => {
+    consumeInputIntent(convID, ['highlight'])
+  })
+  rerender(<NormalWrapper />)
+
+  expect(mockThreadLoadStatusProviderProps).toEqual({
+    allowMarkReadOnLoad: true,
+    id: convID,
+    skipThreadLoadOnSelection: true,
   })
 })
 

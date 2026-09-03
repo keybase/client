@@ -185,6 +185,19 @@ test('the options object writes the intent before navigating and forwards thread
   })
 })
 
+// The intent write sits below every early return that aborts the navigation. An intent written
+// on an aborted navigation would sit in the mailbox and fire on some later, unrelated mount.
+test('an aborted navigation writes no intent', () => {
+  setRootRoutes([loggedIn])
+
+  navigateToThread(optionsConvID, 'findNewestConversation', {
+    intent: {messageID: T.Chat.numberToMessageID(99), type: 'highlight'},
+  })
+
+  expect(dispatch).not.toHaveBeenCalled()
+  expect(useInputIntentState.getState().intents.size).toBe(0)
+})
+
 test('no options writes no intent', () => {
   setRootRoutes([loggedIn])
 
