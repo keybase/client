@@ -177,11 +177,6 @@ func ParseWotReact(base GenericChainLink) (ret *WotReactChainLink, err error) {
 	}, nil
 }
 
-type sigExpansion struct {
-	Key string `json:"key"`
-	Obj any    `json:"obj"`
-}
-
 // =========================================================================
 // Remote, Web and Social
 type RemoteProofChainLink interface {
