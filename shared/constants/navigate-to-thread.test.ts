@@ -252,3 +252,38 @@ test('the pending thread is seeded with the participants so its header title is 
     conversationIDKey: T.Chat.pendingWaitingConversationIDKey,
   })
 })
+
+// navigateToThread writes the intent before dispatching, because the thread consumes on mount and
+// a write afterwards would miss it. The dispatch can still not happen - here the navigator is not
+// installed at all, the shape of a navigateToThread arriving from a push notification or an engine
+// handler before the nav container is ready. A durable intent left behind by a navigation that
+// never occurred would fire on some later, unrelated mount of that conversation.
+test('a navigation that cannot dispatch leaves no intent behind', () => {
+  const nr = navigationRef as unknown as Record<string, unknown>
+  nr['current'] = undefined
+  nr['dispatch'] = dispatch
+  nr['getRootState'] = () => undefined
+  nr['isReady'] = () => false
+
+  const convID = T.Chat.stringToConversationIDKey('conv-no-navigator')
+  navigateToThread(convID, 'push', {
+    intent: {messageID: T.Chat.numberToMessageID(7), type: 'highlight'},
+  })
+
+  expect(dispatch).not.toHaveBeenCalled()
+  expect(useInputIntentState.getState().intents.get(convID)).toBeUndefined()
+})
+
+test('a navigation that does dispatch keeps the intent for the mount to consume', () => {
+  setRootRoutes([loggedIn])
+  const convID = T.Chat.stringToConversationIDKey('conv-with-navigator')
+  navigateToThread(convID, 'push', {
+    intent: {messageID: T.Chat.numberToMessageID(7), type: 'highlight'},
+  })
+
+  expect(dispatch).toHaveBeenCalled()
+  expect(useInputIntentState.getState().intents.get(convID)).toEqual({
+    messageID: T.Chat.numberToMessageID(7),
+    type: 'highlight',
+  })
+})

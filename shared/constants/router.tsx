@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as T from './types'
 import {metasReceived, participantInfoReceived, useInboxMetadataState} from '@/chat/inbox/metadata-store'
-import {setInputIntent, type InputIntent} from '@/chat/conversation/input-intent-store'
+import {clearInputIntent, setInputIntent, type InputIntent} from '@/chat/conversation/input-intent-store'
 import {refreshInboxLayout} from '@/chat/inbox/inbox-refresh'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as Tabs from './tabs'
@@ -391,17 +391,19 @@ export function navUpToScreen(nameOrPath: RouteKeys | NavigateAppendType, replac
 // backstop in case the container tears down before the listener fires.
 let _pendingAppend: {name: string; params?: object; time: number} | undefined
 
-export function navigateAppend(path: NavigateAppendType, replace?: boolean) {
+// Returns whether the target is now the visible route - either because we dispatched, or
+// because we were already there. False means nothing happened and nothing will.
+export function navigateAppend(path: NavigateAppendType, replace?: boolean): boolean {
   if (DEBUG_NAV) {
     console.log('[Nav] navigateAppend', {path})
   }
   const n = _getNavigator()
   if (!n) {
-    return
+    return false
   }
   const ns = getRootState()
   if (!ns) {
-    return
+    return false
   }
   const nextPath = path as {name: string | number | symbol; params: object}
   const routeName = typeof nextPath.name === 'string' ? nextPath.name : String(nextPath.name)
@@ -410,24 +412,25 @@ export function navigateAppend(path: NavigateAppendType, replace?: boolean) {
     if (DEBUG_NAV) {
       console.log('[Nav] navigateAppend no routeName bail', routeName)
     }
-    return
+    return false
   }
   const vp = getVisiblePath(ns)
   const visible = vp.at(-1)
   if (visible) {
     if (routeName === visible.name && shallowEqual(visible.params, params)) {
       console.log('Skipping append dupe')
-      return
+      // Already the visible route with these params - the caller's goal is met.
+      return true
     }
   }
 
   if (replace) {
     if (visible?.name === routeName) {
       n.dispatch(CommonActions.setParams(params))
-      return
+      return true
     } else {
       n.dispatch(StackActions.replace(routeName, params))
-      return
+      return true
     }
   }
 
@@ -437,7 +440,8 @@ export function navigateAppend(path: NavigateAppendType, replace?: boolean) {
     Date.now() - _pendingAppend.time < 1000
   ) {
     console.log('Skipping append dupe (uncommitted)')
-    return
+    // An identical push is already in flight and uncommitted.
+    return true
   }
   _pendingAppend = {name: routeName, params, time: Date.now()}
   const unsub = n.addListener('state', () => {
@@ -445,6 +449,7 @@ export function navigateAppend(path: NavigateAppendType, replace?: boolean) {
     unsub()
   })
   n.dispatch(StackActions.push(routeName, params))
+  return true
 }
 
 export const switchTab = (name: Tabs.AppTab) => {
@@ -723,15 +728,19 @@ export const previewConversation = (p: PreviewConversationParams) => {
   ignorePromise(previewConversationTeam())
 }
 
-export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['chatRoot']>>) => {
+// Returns whether chatRoot now carries these params - by dispatch, or because it already did.
+// False means the nav tree was not in a state where anything could happen.
+export const setChatRootParams = (
+  params: Partial<NonNullable<KBRootParamList['chatRoot']>>
+): boolean => {
   const n = _getNavigator()
-  if (!n) return
+  if (!n) return false
   const rs = getRootState()
   const tabNavState = rs?.routes?.[0]?.state
-  if (!tabNavState?.key) return
+  if (!tabNavState?.key) return false
   const tabRoutes = tabNavState.routes as Array<Route>
   const chatTabIndex = tabRoutes.findIndex(r => r.name === Tabs.chatTab)
-  if (chatTabIndex < 0) return
+  if (chatTabIndex < 0) return false
   const chatTabRoute = tabRoutes[chatTabIndex]
   const chatStackState = chatTabRoute?.state
   const chatStackRoutes = chatStackState?.routes as Array<Route> | undefined
@@ -766,7 +775,8 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
         target: chatStackState.key,
       })
     }
-    return
+    // Either we just merged the params in, or they were already what we wanted.
+    return true
   }
   n.dispatch({
     ...CommonActions.reset({...tabNavState, index: chatTabIndex, routes: updatedRoutes} as Parameters<
@@ -774,6 +784,7 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
     >[0]),
     target: tabNavState.key,
   })
+  return true
 }
 
 export const setThreadInputCommandStatus = (
@@ -831,14 +842,17 @@ export type NavigateToThreadReason =
   | 'misc'
   | 'teamMention'
 
-const navToThread = (conversationIDKey: T.Chat.ConversationIDKey, navParams?: ThreadNavParams) => {
+const navToThread = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  navParams?: ThreadNavParams
+): boolean => {
   if (DEBUG_NAV) {
     console.log('[Nav] navToThread', conversationIDKey)
   }
   const n = _getNavigator()
-  if (!n) return
+  if (!n) return false
   const rs = getRootState()
-  if (!rs?.key) return
+  if (!rs?.key) return false
   const params = {
     conversationIDKey,
     createConversationError: navParams?.createConversationError,
@@ -850,7 +864,7 @@ const navToThread = (conversationIDKey: T.Chat.ConversationIDKey, navParams?: Th
     // All tab stacks share the same screen config, so navigate('chatRoot') would target the
     // current tab. Separate switchTab + navigateAppend has a race (stale state between dispatches).
     // A single reset on the tab navigator atomically switches tabs and sets params.
-    setChatRootParams(params)
+    return setChatRootParams(params)
   } else {
     // Phone: switch to the chat tab, then push the conversation above the tabs.
     const nextState = {
@@ -869,6 +883,7 @@ const navToThread = (conversationIDKey: T.Chat.ConversationIDKey, navParams?: Th
       ...CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]),
       target: rs.key,
     })
+    return true
   }
 }
 
@@ -898,10 +913,12 @@ export const navigateToThread = (
     return
   }
 
-  // Below every early return that aborts the navigation, above every dispatch that performs one.
-  // An intent written on an aborted navigation would sit in the mailbox and fire on some later,
-  // unrelated mount of this conversation; written after a dispatch it would miss the consume the
-  // mount does. The thread mounts during the dispatches below, so this is the only safe window.
+  // Written here, above every dispatch: the thread mounts during those dispatches and consumes on
+  // mount, so an intent written afterwards would miss it. But a dispatch can still turn out not to
+  // happen - navToThread, setChatRootParams and navigateAppend each bail when the navigator, root
+  // state or tab tree is unavailable - and a durable intent left behind by a navigation that never
+  // occurred would fire on some later, unrelated mount of this conversation. So the write is rolled
+  // back below unless the path we took reports that it landed.
   if (intent) {
     setInputIntent(conversationIDKey, intent)
   }
@@ -911,10 +928,11 @@ export const navigateToThread = (
     createConversationError,
     threadSearch,
   }
+  let navigated: boolean
   if (isSplit) {
-    navToThread(conversationIDKey, navParams)
+    navigated = navToThread(conversationIDKey, navParams)
   } else if (reason === 'push' || reason === 'savedLastState') {
-    navToThread(conversationIDKey, navParams)
+    navigated = navToThread(conversationIDKey, navParams)
   } else {
     // Either half being true means "retarget the screen we're already on" instead of pushing a
     // new one. The second half must not rely on the two params objects happening to have the
@@ -946,10 +964,16 @@ export const navigateToThread = (
       // re-measures a title subview it first measured empty, so a blank pending title would
       // leave the bar blank for the real conv too. Same-conversation retargets ride this path
       // too: the screen is already showing real content, so setParams is a plain in-place merge.
-      _getNavigator()?.dispatch({...CommonActions.setParams(params), source: visible?.key})
+      const n = _getNavigator()
+      n?.dispatch({...CommonActions.setParams(params), source: visible?.key})
+      navigated = !!n
     } else {
-      navigateAppend({name: threadRouteName, params})
+      navigated = navigateAppend({name: threadRouteName, params})
     }
+  }
+
+  if (intent && !navigated) {
+    clearInputIntent(conversationIDKey, intent)
   }
 }
 

@@ -20,7 +20,7 @@ const attachment = (id: number) =>
 let navigateAppend: jest.SpyInstance
 
 beforeEach(() => {
-  navigateAppend = jest.spyOn(Router, 'navigateAppend').mockImplementation(() => {})
+  navigateAppend = jest.spyOn(Router, 'navigateAppend').mockImplementation(() => true)
 })
 
 afterEach(() => {

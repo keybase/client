@@ -31,7 +31,7 @@ const moderation = (p: {author: string; isTeam: boolean; numPart: number}) =>
 const titles = (items: ReadonlyArray<{title: string}>) => items.map(i => i.title)
 
 beforeEach(() => {
-  navigateAppend = jest.spyOn(Router, 'navigateAppend').mockImplementation(() => {})
+  navigateAppend = jest.spyOn(Router, 'navigateAppend').mockImplementation(() => true)
   clearModals = jest.spyOn(Router, 'clearModals').mockImplementation(() => {})
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',

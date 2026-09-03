@@ -128,6 +128,22 @@ export const peekInputIntent = <K extends InputIntent['type']>(
   return intent as T.Immutable<Extract<InputIntent, {type: K}>>
 }
 
+// Roll back a write whose reason for existing fell through - navigateToThread writes the intent
+// before dispatching, and the dispatch can still turn out to be a no-op. Identity-checked so it
+// can only ever remove the exact entry the caller wrote: if a mounted consumer already took it,
+// or anything else has since written to this conversation's slot, this is a no-op.
+export const clearInputIntent = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  intent: T.Immutable<InputIntent>
+) => {
+  if (useInputIntentState.getState().intents.get(conversationIDKey) !== intent) {
+    return
+  }
+  useInputIntentState.setState(s => {
+    s.intents.delete(conversationIDKey)
+  })
+}
+
 export const consumeInputIntent = <K extends InputIntent['type']>(
   conversationIDKey: T.Chat.ConversationIDKey,
   types: ReadonlyArray<K>
