@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as T from './types'
 import {metasReceived, participantInfoReceived, useInboxMetadataState} from '@/chat/inbox/metadata-store'
-import {setInputIntent} from '@/chat/conversation/input-intent-store'
+import {setInputIntent, type InputIntent} from '@/chat/conversation/input-intent-store'
 import {refreshInboxLayout} from '@/chat/inbox/inbox-refresh'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as Tabs from './tabs'
@@ -523,6 +523,11 @@ export const leaveConversation = (
   navigateToInbox(true, 'leftAConversation')
 }
 
+// previewConversation/createConversation carry an optional highlight all the way down; this keeps
+// the `{}`-when-absent spread out of every call site.
+const highlightIntent = (messageID?: T.Chat.MessageID) =>
+  messageID ? ({intent: {messageID, type: 'highlight'}} as const) : undefined
+
 export const createConversation = (
   participants: ReadonlyArray<string>,
   highlightMessageID?: T.Chat.MessageID
@@ -565,7 +570,7 @@ export const createConversation = (
         participantInfoReceived(conversationIDKey, participantInfo)
       }
 
-      navigateToThread(conversationIDKey, 'justCreated', highlightMessageID)
+      navigateToThread(conversationIDKey, 'justCreated', highlightIntent(highlightMessageID))
 
       refreshInboxLayout('joinedAConversation')
     } catch (error) {
@@ -580,11 +585,14 @@ export const createConversation = (
           disallowedUsers = value.split(',')
         }
         const allowedUsers = participants.filter(x => !disallowedUsers.includes(x))
-        navigateToThread(T.Chat.pendingErrorConversationIDKey, 'justCreated', highlightMessageID, undefined, {
-          allowedUsers,
-          code: error.code,
-          disallowedUsers,
-          message: error.desc,
+        navigateToThread(T.Chat.pendingErrorConversationIDKey, 'justCreated', {
+          createConversationError: {
+            allowedUsers,
+            code: error.code,
+            disallowedUsers,
+            message: error.desc,
+          },
+          ...highlightIntent(highlightMessageID),
         })
       }
     }
@@ -623,7 +631,7 @@ export const previewConversation = (p: PreviewConversationParams) => {
       if (names.length !== toFindN) continue
       const participantSet = [...names].sort().join(',')
       if (participantSet === toFind) {
-        navigateToThread(conversationIDKey, 'justCreated', highlightMessageID)
+        navigateToThread(conversationIDKey, 'justCreated', highlightIntent(highlightMessageID))
         return
       }
     }
@@ -646,7 +654,7 @@ export const previewConversation = (p: PreviewConversationParams) => {
         })
       }
 
-      navigateToThread(conversationIDKey, 'previewResolved', highlightMessageID)
+      navigateToThread(conversationIDKey, 'previewResolved', highlightIntent(highlightMessageID))
       return
     }
 
@@ -691,7 +699,7 @@ export const previewConversation = (p: PreviewConversationParams) => {
         metasReceived([meta])
       }
 
-      navigateToThread(first.conversationIDKey, 'previewResolved', highlightMessageID)
+      navigateToThread(first.conversationIDKey, 'previewResolved', highlightIntent(highlightMessageID))
     } catch (error) {
       if (
         error instanceof RPCError &&
@@ -839,7 +847,6 @@ export const setThreadInputReplyTo = (
 
 type ThreadNavParams = {
   createConversationError?: T.Chat.CreateConversationError
-  highlightMessageID?: T.Chat.MessageID
   threadSearch?: {query?: string}
 }
 
@@ -883,7 +890,6 @@ const navToThread = (conversationIDKey: T.Chat.ConversationIDKey, navParams?: Th
   const params = {
     conversationIDKey,
     createConversationError: navParams?.createConversationError,
-    highlightMessageID: navParams?.highlightMessageID,
     threadSearch: navParams?.threadSearch,
   }
 
@@ -917,12 +923,22 @@ const navToThread = (conversationIDKey: T.Chat.ConversationIDKey, navParams?: Th
 export const navigateToThread = (
   conversationIDKey: T.Chat.ConversationIDKey,
   reason: NavigateToThreadReason,
-  highlightMessageID?: T.Chat.MessageID,
-  threadSearchQuery?: string,
-  createConversationError?: T.Chat.CreateConversationError
+  opts?: {
+    // One slot: an intent is either a highlight or a composer instruction, never both, so
+    // "highlight and prefill at once" is unrepresentable instead of a runtime coin-flip.
+    intent?: InputIntent
+    threadSearchQuery?: string
+    createConversationError?: T.Chat.CreateConversationError
+  }
 ) => {
   if (reason === 'navChanged') {
     return
+  }
+
+  const {createConversationError, intent, threadSearchQuery} = opts ?? {}
+  // Write before the navigation dispatches: the thread mounts during it and consumes on mount.
+  if (intent) {
+    setInputIntent(conversationIDKey, intent)
   }
 
   const visible = getVisibleScreen()
@@ -937,18 +953,7 @@ export const navigateToThread = (
   const threadSearch = threadSearchQuery ? {query: threadSearchQuery} : undefined
   const navParams = {
     createConversationError,
-    highlightMessageID,
     threadSearch,
-  }
-  const sameVisibleThread = visibleRouteName === threadRouteName && visibleConvo === conversationIDKey
-  if (sameVisibleThread && highlightMessageID) {
-    const sameThreadParams = {conversationIDKey, ...navParams}
-    if (isSplit) {
-      setChatRootParams(sameThreadParams)
-    } else {
-      navigateAppend({name: threadRouteName, params: sameThreadParams}, true)
-    }
-    return
   }
   if (isSplit) {
     navToThread(conversationIDKey, navParams)
@@ -972,7 +977,6 @@ export const navigateToThread = (
     const params = {
       conversationIDKey,
       createConversationError,
-      highlightMessageID,
       threadSearch,
     }
     if (replace) {

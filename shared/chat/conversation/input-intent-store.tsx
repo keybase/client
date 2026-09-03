@@ -56,14 +56,31 @@ export const setInputIntent = (conversationIDKey: T.Chat.ConversationIDKey, inte
 
 // Two providers can be mounted for the same conversation (the input provider, and
 // ConversationCenterProvider for 'highlight'), each with its own slice of InputIntent['type'].
-// `types` restricts a consume to the caller's slice so one provider can never swallow an
+// `types` restricts a read to the caller's slice so one provider can never swallow an
 // intent meant for the other; an intent whose type isn't in `types` is left pending.
-export const consumeInputIntent = (
+//
+// peek reads without consuming. Only for a component that must know an intent is waiting
+// without being its consumer: NormalWrapper picks the initial thread-load options from a
+// pending 'highlight' that ConversationCenterProvider, mounted below it, actually consumes.
+export const peekInputIntent = <K extends InputIntent['type']>(
   conversationIDKey: T.Chat.ConversationIDKey,
-  types: ReadonlyArray<InputIntent['type']>
-): T.Immutable<InputIntent> | undefined => {
+  types: ReadonlyArray<K>
+): T.Immutable<Extract<InputIntent, {type: K}>> | undefined => {
   const intent = useInputIntentState.getState().intents.get(conversationIDKey)
-  if (!intent || !types.includes(intent.type)) {
+  if (!intent || !types.includes(intent.type as K)) {
+    return undefined
+  }
+  // The bus's only cast: `types.includes` is the runtime proof of the narrowing the signature
+  // promises, and TS can't see through Array.includes. Consumers get it for free.
+  return intent as T.Immutable<Extract<InputIntent, {type: K}>>
+}
+
+export const consumeInputIntent = <K extends InputIntent['type']>(
+  conversationIDKey: T.Chat.ConversationIDKey,
+  types: ReadonlyArray<K>
+): T.Immutable<Extract<InputIntent, {type: K}>> | undefined => {
+  const intent = peekInputIntent(conversationIDKey, types)
+  if (!intent) {
     return undefined
   }
   useInputIntentState.setState(s => {

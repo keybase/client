@@ -8,7 +8,6 @@ export type ThreadSearchRoute = {
 
 export type ThreadSearchRouteProps = {
   createConversationError?: T.Chat.CreateConversationError
-  highlightMessageID?: T.Chat.MessageID
   threadSearch?: ThreadSearchRoute
 }
 
@@ -18,7 +17,6 @@ const isThreadSearchRouteParams = (
   !!params &&
   typeof params === 'object' &&
   (Object.prototype.hasOwnProperty.call(params, 'threadSearch') ||
-    Object.prototype.hasOwnProperty.call(params, 'highlightMessageID') ||
     Object.prototype.hasOwnProperty.call(params, 'createConversationError'))
 
 export const useChatThreadRouteParams = (): ThreadSearchRouteProps | undefined => {

@@ -6,6 +6,7 @@ import * as T from '@/constants/types'
 import {navigateToPendingThread, navigateToThread, navigationRef, setModalRouteNames} from '@/constants/router'
 import {useInboxMetadataState} from '@/chat/inbox/metadata-store'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useInputIntentState} from '@/chat/conversation/input-intent-store'
 
 const dispatch = jest.fn()
 
@@ -51,10 +52,13 @@ const realConvID = 'ff00ff00' as T.Chat.ConversationIDKey
 // leftover cache instead of by the code under test. A conv id used nowhere else sidesteps that.
 const deepLinkConvID = 'aa11aa11' as T.Chat.ConversationIDKey
 const deepLinkConvID2 = 'bb22bb22' as T.Chat.ConversationIDKey
+const optionsConvID = 'cc33cc33' as T.Chat.ConversationIDKey
+const optionsConvID2 = 'dd44dd44' as T.Chat.ConversationIDKey
 
 beforeEach(() => {
-  dispatch.mockClear()
+  dispatch.mockReset()
   setModalRouteNames(['chatNewChat'])
+  useInputIntentState.getState().dispatch.resetState()
 })
 
 // Creating a conversation parks the thread screen on PENDING-WAITING while the RPC runs, so the
@@ -84,21 +88,19 @@ test('no thread on screen still pushes the conversation', () => {
   expect(action.payload.name).toBe('chatConversation')
 })
 
-// Removing the old input-intent route param from the sameVisibleThread condition means a
-// prefill-only call (no highlightMessageID) issued while already on that thread falls through to the bottom
-// `else` instead of taking the early-return branch. That must never read as a second push.
-// The guarantee comes from `replace` itself (visibleConvo === conversationIDKey forces a
-// setParams retarget), not from the visible route's params object happening to have the same
-// keys as the ones this call builds - a route built elsewhere (a deep link, see the next test)
-// can have a completely different params shape and this must still not push.
-test('reissuing navigateToThread on the same visible thread with no highlight retargets instead of pushing', () => {
+// The old `sameVisibleThread && highlightMessageID` early return is gone, so every call issued
+// while already on that thread falls through to the bottom `else`. That must never read as a
+// second push. The guarantee comes from `replace` itself (visibleConvo === conversationIDKey
+// forces a setParams retarget), not from the visible route's params object happening to have the
+// same keys as the ones this call builds - a route built elsewhere (a deep link, see the next
+// test) can have a completely different params shape and this must still not push.
+test('reissuing navigateToThread on the same visible thread retargets instead of pushing', () => {
   const visibleThreadRoute = {
     key: 'conv-visible',
     name: 'chatConversation',
     params: {
       conversationIDKey: realConvID,
       createConversationError: undefined,
-      highlightMessageID: undefined,
       threadSearch: undefined,
     },
   }
@@ -135,11 +137,10 @@ test('reissuing navigateToThread on a deep-linked thread (single-key params) doe
   expect(action.payload).toMatchObject({conversationIDKey: deepLinkConvID})
 })
 
-// Same shape as the deep-link case above, but with no prefill/highlight at all - this hole
-// predates this task (a plain re-navigate to the same deep-linked thread already pushed a
-// duplicate before the input-intent route param existed on this signature), so it's covered
-// independently of the injectText migration.
-test('a plain re-navigate to a deep-linked thread with no highlight or prefill does not push a duplicate', () => {
+// Same shape as the deep-link case above, but reached by a reason that never carried an intent -
+// this hole predates the intent-store work (a plain re-navigate to the same deep-linked thread
+// already pushed a duplicate), so it's covered independently of that migration.
+test('a plain re-navigate to a deep-linked thread does not push a duplicate', () => {
   const deepLinkedThreadRoute = {
     key: 'conv-deep-link-plain',
     name: 'chatConversation',
@@ -153,6 +154,43 @@ test('a plain re-navigate to a deep-linked thread with no highlight or prefill d
   const action = dispatch.mock.calls[0]?.[0] as {type: string; payload: unknown; source?: string}
   expect(action.type).toBe('SET_PARAMS')
   expect(action.source).toBe(deepLinkedThreadRoute.key)
+})
+
+// The options object replaced a positional tail (highlightMessageID, threadSearchQuery,
+// createConversationError). An `intent` is written to the input-intent bus before the navigation
+// dispatches, because the thread mounts during that dispatch and consumes on mount.
+test('the options object writes the intent before navigating and forwards threadSearchQuery', () => {
+  setRootRoutes([loggedIn])
+  const messageID = T.Chat.numberToMessageID(99)
+  const order: Array<string> = []
+  dispatch.mockImplementation(() => {
+    order.push(`intent:${String(useInputIntentState.getState().intents.has(optionsConvID))}`)
+  })
+
+  navigateToThread(optionsConvID, 'justCreated', {
+    intent: {messageID, type: 'highlight'},
+    threadSearchQuery: 'needle',
+  })
+
+  expect(order).toEqual(['intent:true'])
+  expect(useInputIntentState.getState().intents.get(optionsConvID)).toEqual({
+    messageID,
+    type: 'highlight',
+  })
+  const action = dispatch.mock.calls[0]?.[0] as {type: string; payload: {params: object}}
+  expect(action.type).toBe('PUSH')
+  expect(action.payload.params).toMatchObject({
+    conversationIDKey: optionsConvID,
+    threadSearch: {query: 'needle'},
+  })
+})
+
+test('no options writes no intent', () => {
+  setRootRoutes([loggedIn])
+
+  navigateToThread(optionsConvID2, 'justCreated')
+
+  expect(useInputIntentState.getState().intents.size).toBe(0)
 })
 
 // setParams keeps the native screen alive, and iOS never re-measures a header title subview it

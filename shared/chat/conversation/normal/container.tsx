@@ -16,6 +16,7 @@ import {
 } from '../thread-context'
 import {ConversationThreadLoadStatusProvider} from '../thread-load-status-context'
 import {MaybeMentionProvider} from '@/common-adapters/markdown/maybe-mention/context'
+import {peekInputIntent} from '../input-intent-store'
 import {useChatThreadRouteParams} from '../thread-search-route'
 
 type OrangeLineState = {
@@ -177,8 +178,15 @@ const NormalWrapper = function NormalWrapper() {
     C.useShallow(s => ({active: s.active, mobileAppState: s.mobileAppState}))
   )
   const routeParams = useChatThreadRouteParams()
-  const skipThreadLoadOnSelection = !!routeParams?.highlightMessageID
-  const allowMarkReadOnLoad = !routeParams?.highlightMessageID && !routeParams?.threadSearch
+  // Peek, don't consume: ConversationCenterProvider below is the highlight's consumer. We only
+  // need to know one is pending to pick this conversation's initial thread-load options, and the
+  // write always lands before the thread mounts (navigateToThread sets it before dispatching).
+  const pendingHighlight = React.useMemo(
+    () => !!peekInputIntent(conversationIDKey, ['highlight']),
+    [conversationIDKey]
+  )
+  const skipThreadLoadOnSelection = pendingHighlight
+  const allowMarkReadOnLoad = !pendingHighlight && !routeParams?.threadSearch
   useShowManageChannels()
   return (
     <MaybeMentionProvider>

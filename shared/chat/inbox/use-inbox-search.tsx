@@ -424,7 +424,7 @@ export function useInboxSearch(): InboxSearchController {
       }
 
       if (query) {
-        C.Router2.navigateToThread(conversationIDKey, 'inboxSearch', undefined, query)
+        C.Router2.navigateToThread(conversationIDKey, 'inboxSearch', {threadSearchQuery: query})
       } else {
         C.Router2.navigateToThread(conversationIDKey, 'inboxSearch')
         clearSearch()

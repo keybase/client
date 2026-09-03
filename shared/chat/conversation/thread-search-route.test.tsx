@@ -1,6 +1,5 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import * as T from '@/constants/types'
 import {cleanup, renderHook} from '@testing-library/react'
 
 let mockRoute: {name: string; params?: unknown} = {name: 'chatConversation', params: undefined}
@@ -41,10 +40,6 @@ test('missing or non object params are ignored', () => {
 })
 
 test('any of the recognized keys makes the params usable', () => {
-  const highlightMessageID = T.Chat.numberToMessageID(4)
-  mockRoute = {name: 'chatConversation', params: {highlightMessageID}}
-  expect(params()?.highlightMessageID).toBe(highlightMessageID)
-
   // hasOwnProperty, not truthiness: an explicitly undefined key still claims the params
   const withError = {createConversationError: undefined}
   mockRoute = {name: 'chatConversation', params: withError}
@@ -52,7 +47,7 @@ test('any of the recognized keys makes the params usable', () => {
 })
 
 test('the thread search shortcut only reads the search slice', () => {
-  mockRoute = {name: 'chatConversation', params: {highlightMessageID: T.Chat.numberToMessageID(4)}}
+  mockRoute = {name: 'chatConversation', params: {createConversationError: undefined}}
   expect(search()).toBeUndefined()
   mockRoute = {name: 'chatConversation', params: {threadSearch: {query: 'hello'}}}
   expect(search()).toEqual({query: 'hello'})

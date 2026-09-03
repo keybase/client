@@ -111,12 +111,9 @@ const actionConversationIDKey = (convID: string) => T.Chat.stringToConversationI
 
 // 'highlight' belongs to ConversationCenterProvider; claiming it here would let this provider
 // silently eat an intent meant for the other consumer.
-const storeInputIntentTypes: ReadonlyArray<InputIntent['type']> = [
-  'commandStatus',
-  'injectText',
-  'setEditing',
-  'setReplyTo',
-]
+// `as const` (not a widened ReadonlyArray<InputIntent['type']>) so consumeInputIntent's generic
+// narrows its return to exactly these four members - no cast needed at the call site below.
+const storeInputIntentTypes = ['commandStatus', 'injectText', 'setEditing', 'setReplyTo'] as const
 
 export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat.ConversationIDKey}>) => {
   const {children, id} = p
@@ -248,7 +245,7 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
     const consume = () => {
       const intent = consumeInputIntent(id, storeInputIntentTypes)
       if (intent) {
-        applyInputAction(intent as T.Immutable<Exclude<InputIntent, {type: 'highlight'}>>)
+        applyInputAction(intent)
       }
     }
     consume()
