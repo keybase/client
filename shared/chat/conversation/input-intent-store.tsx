@@ -11,7 +11,10 @@
 //
 // commandStatus is delivered only to a consumer that is registered for the conversation when it
 // is written, matching what its sibling engine listener does; everything else waits in the map
-// until a consumer takes it.
+// until a consumer takes it. Strictly that invariant is about registration, not consumption: a
+// consumer that registered and then never consumed would leave a commandStatus sitting here
+// durably. Unreachable today only because registration and the subscription that consumes are the
+// same effect - split them and you owe this a second look.
 //
 // Do not add composer state to this store. The composer's state lives in the reducer in
 // input-area/input-state.tsx; this only carries a one-shot instruction to it.

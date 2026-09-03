@@ -652,11 +652,15 @@ test('setThreadInputCommandStatus is dropped when no provider is mounted', () =>
   expect(result.current.commandStatus).toBeUndefined()
 })
 
-// The counterfactual to the test above: mounted-but-frozen is not unmounted. react-native-screens
-// freezes every screen that is not on top (DelayedFreeze -> react-freeze: a Suspense boundary
-// throwing a thenable that never settles), and the location popup is an opaque modal route, so the
-// thread underneath is frozen while it is up. Denying location permission writes a commandStatus
-// from that modal, and the composer's error banner has to be there when the modal closes.
+// The counterfactual to the test above: hidden is not unmounted, so a registered consumer keeps
+// its commandStatus even though it consumes nothing while it is hidden. <Freeze> here is the real
+// react-freeze (react-native-screens' DelayedFreeze renders it): a Suspense boundary throwing a
+// thenable that never settles, which React hides by tearing down layout effects only. Passive
+// effects stay connected, so the registration this provider makes in one survives.
+//
+// Note what this does NOT claim: the thread beneath the location popup is not hidden at all -
+// native-stack forces activityMode 'normal' for the screen under a modal - which is why that
+// banner was never being lost. See the registry in input-intent-store.tsx.
 test('a commandStatus written while the provider is frozen is applied on thaw', () => {
   const commandStatusInfo = {
     actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
