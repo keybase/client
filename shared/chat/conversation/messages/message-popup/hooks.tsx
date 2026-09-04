@@ -13,6 +13,10 @@ import {linkFromConvAndMessage} from '@/constants/deeplinks'
 import {markConversationAsUnread, useConversationParticipants} from '../../data-hooks'
 import {showForwardMessagePicker} from '../../fwd-msg'
 import {navToProfile, setThreadInputEditing, setThreadInputReplyTo} from '@/constants/router'
+import {
+  useConversationInputDispatchOptional,
+  type ConversationInputState,
+} from '../../input-area/input-state'
 import {SetOrangeLineContext} from '../../orange-line-context'
 import {useChatTeam, useChatTeamMembers} from '../../team-hooks'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -52,12 +56,16 @@ type ItemActions = {
 const useItemsForMessage = (p: {
   actions: ItemActions
   conversationIDKey: T.Chat.ConversationIDKey
+  // Set only when this popup is rendered inside the thread's input provider, i.e. it is this
+  // conversation's composer we are driving. Absent for the phone modal route, the info panel and
+  // the attachment viewer, which reach the composer through the router instead.
+  inputDispatch?: ConversationInputState['dispatch']
   message: T.Chat.Message
   meta: T.Chat.ConversationMeta
   onHidden: () => void
   participantInfo: T.Chat.ParticipantInfo
 }) => {
-  const {actions, conversationIDKey, message, meta, onHidden, participantInfo} = p
+  const {actions, conversationIDKey, inputDispatch, message, meta, onHidden, participantInfo} = p
   const ordinal = message.ordinal
   const isAttach = message.type === 'attachment'
   const {author, id, deviceName, timestamp, deviceRevokedAt} = message
@@ -126,7 +134,11 @@ const useItemsForMessage = (p: {
 
   const setOrangeLine = React.useContext(SetOrangeLineContext)
   const onReply = () => {
-    setThreadInputReplyTo(conversationIDKey, ordinal)
+    if (inputDispatch) {
+      inputDispatch.setReplyTo(ordinal)
+    } else {
+      setThreadInputReplyTo(conversationIDKey, ordinal)
+    }
   }
   const itemReply = message.exploded
     ? []
@@ -135,7 +147,11 @@ const useItemsForMessage = (p: {
       : []
 
   const _onEdit = () => {
-    setThreadInputEditing(conversationIDKey, ordinal)
+    if (inputDispatch) {
+      inputDispatch.setEditing(ordinal)
+    } else {
+      setThreadInputEditing(conversationIDKey, ordinal)
+    }
   }
 
   const you = useCurrentUserState(s => s.username)
@@ -339,6 +355,8 @@ const useThreadItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const participantInfo = useConversationParticipants(conversationIDKey)
   const {messageDelete, toggleMessageReaction} = useConversationThreadMessageActions()
   const setMarkAsUnread = useConversationThreadSetMarkAsUnread()
+  // Rendered inline in the thread, so the composer is right here in context.
+  const inputDispatch = useConversationInputDispatchOptional()
   return useItemsForMessage({
     actions: {
       deleteMessage: () => messageDelete(ordinal),
@@ -346,6 +364,7 @@ const useThreadItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
       toggleReaction: emoji => toggleMessageReaction(ordinal, emoji),
     },
     conversationIDKey,
+    inputDispatch,
     message,
     meta,
     onHidden,

@@ -80,7 +80,10 @@ const lightTheme = makeTheme(colors, false)
 
 // Shared NavigationContainer plumbing (identical on both platforms)
 const onUnhandledAction = (a: Readonly<{type: string}>) => {
-  logger.info(`[NAV] Unhandled action: ${a.type}`, a, C.Router2.logState())
+  // error, not info: an action nothing handled is a user-visible no-op (a menu item that does
+  // nothing). Error is the only level retained at full depth in both dev and release and dumped
+  // periodically in both, so it is the one that survives to a remote log send.
+  logger.error(`[NAV] Unhandled action: ${a.type}`, a, C.Router2.logState())
 }
 const onStateChange = () => {
   const navState = C.Router2.getRootState()

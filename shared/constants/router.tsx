@@ -768,12 +768,37 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
   })
 }
 
+// The navigator holding this route, i.e. the one whose router can act on a setParams naming it.
+const findNavKeyForRouteKey = (routeKey: string): string | undefined => {
+  const walk = (state: T.Immutable<NavState> | undefined): string | undefined => {
+    const routes = state?.routes as Array<Route> | undefined
+    if (!routes) return undefined
+    if (state?.key && routes.some(r => r.key === routeKey)) return state.key
+    for (const r of routes) {
+      const found = walk(r.state)
+      if (found) return found
+    }
+    return undefined
+  }
+  return walk(getRootState())
+}
+
+// Both halves matter for the thread setParams helpers below. The route is what we check and what
+// `source` names; navKey is what `target` must name, and without it the action never arrives.
+// navigationRef.dispatch starts at the *deepest focused* navigator (BaseNavigationContainer routes
+// it through listeners.focus, which recurses into focused children), and useOnAction only bubbles
+// an action DOWN when action.target is set — upward otherwise. On desktop the thread lives at
+// root > loggedIn > tabs > chatTab > chatStack, so with anything else focused the action bubbles up
+// past the chat stack, which is a sibling and never an ancestor, and is dropped. That drop is
+// silent here: our onUnhandledAction downgrades react-navigation's warning to logger.info. Phones
+// are unaffected — chatConversation is a direct route of the root stack, so bubbling up finds it.
+// Note this scan looks *past* modals, which is exactly when the focused navigator is not ours.
 const getVisibleThreadScreen = () => {
   const visiblePath = getVisiblePath()
   for (let i = visiblePath.length - 1; i >= 0; --i) {
     const route = visiblePath[i]
-    if (route?.name === threadRouteName) {
-      return route
+    if (route?.name === threadRouteName && route.key) {
+      return {navKey: findNavKeyForRouteKey(route.key), route}
     }
   }
   return undefined
@@ -782,11 +807,12 @@ const getVisibleThreadScreen = () => {
 export const clearThreadHighlightMessageID = () => {
   const n = _getNavigator()
   if (!n) return
-  const visible = getVisibleThreadScreen()
-  if (!visible?.key || visible.name !== threadRouteName) return
+  const found = getVisibleThreadScreen()
+  if (!found?.navKey) return
   n.dispatch({
     ...CommonActions.setParams({highlightMessageID: undefined}),
-    source: visible.key,
+    source: found.route.key,
+    target: found.navKey,
   })
 }
 
@@ -807,29 +833,36 @@ const setThreadInputAction = (
 ) => {
   const n = _getNavigator()
   if (!n) return
-  const visible = getVisibleThreadScreen()
-  const params = visible?.params as {conversationIDKey?: T.Chat.ConversationIDKey} | undefined
-  if (!visible?.key || visible.name !== threadRouteName || params?.conversationIDKey !== conversationIDKey) {
+  const found = getVisibleThreadScreen()
+  const params = found?.route.params as {conversationIDKey?: T.Chat.ConversationIDKey} | undefined
+  if (!found?.navKey || params?.conversationIDKey !== conversationIDKey) {
+    // Reached from the message menu, so a bail here is a menu item that visibly does nothing.
+    logger.error(
+      `[chat] dropped thread input action ${action.type}: ` +
+        `${!found ? 'no visible thread screen' : !found.navKey ? 'thread route has no owning navigator' : 'thread route is on another conversation'}`
+    )
     return
   }
   n.dispatch({
     ...CommonActions.setParams({inputAction: makeThreadInputAction(action)}),
-    source: visible.key,
+    source: found.route.key,
+    target: found.navKey,
   })
 }
 
 export const clearThreadInputAction = (key?: string) => {
   const n = _getNavigator()
   if (!n) return
-  const visible = getVisibleThreadScreen()
-  if (!visible?.key || visible.name !== threadRouteName) return
-  const params = visible.params as {inputAction?: ThreadInputAction} | undefined
+  const found = getVisibleThreadScreen()
+  if (!found?.navKey) return
+  const params = found.route.params as {inputAction?: ThreadInputAction} | undefined
   if (key && params?.inputAction?.key !== key) {
     return
   }
   n.dispatch({
     ...CommonActions.setParams({inputAction: undefined}),
-    source: visible.key,
+    source: found.route.key,
+    target: found.navKey,
   })
 }
 

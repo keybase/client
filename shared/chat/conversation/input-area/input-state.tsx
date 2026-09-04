@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as T from '@/constants/types'
+import logger from '@/logger'
 import {clearThreadInputAction} from '@/constants/router'
 import {findLast} from '@/util/arrays'
 import {useChatThreadRouteParams, type ThreadInputAction} from '../thread-search-route'
@@ -164,7 +165,12 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
       ordinal = e
     }
 
-    if (!ordinal) return
+    // Both bails leave the composer exactly as it was, so from the message menu they read as
+    // "Edit did nothing". Say which one happened; there is no other signal that it did.
+    if (!ordinal) {
+      logger.error(`[chat] setEditing found no editable message (${e === 'last' ? 'last' : 'ordinal'})`)
+      return
+    }
     const message = messageMap.get(ordinal)
     if (message?.type === 'text' || message?.type === 'attachment') {
       dispatchState({
@@ -172,6 +178,8 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
         text: message.type === 'text' ? message.text.stringValue() : message.title,
         type: 'setEditing',
       })
+    } else {
+      logger.error(`[chat] setEditing ignored ordinal ${ordinal}: message is ${message?.type ?? 'missing'}`)
     }
   })
   const sendComposerText = React.useEffectEvent((text: string) => {
@@ -274,6 +282,14 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
       <StateContext value={state}>{children}</StateContext>
     </DispatchContext>
   )
+}
+
+// For callers that may or may not sit inside the provider — the message popup is rendered inline
+// in the thread on desktop but as its own modal route on phones, and from the info panel and the
+// attachment viewer it is outside the thread entirely. Inside, talk to the store directly; the
+// router round-trip is only there to reach across a screen boundary.
+export function useConversationInputDispatchOptional(): ConversationInputDispatch | undefined {
+  return React.useContext(DispatchContext)
 }
 
 export function useConversationInput<T>(selector: (state: ConversationInputState) => T): T {
