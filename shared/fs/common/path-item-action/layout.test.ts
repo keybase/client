@@ -165,25 +165,23 @@ test('iOS drops download', () => {
   ).toBe(false)
 })
 
-test('mobile consolidates the two share actions into one Share entry', () => {
+test('mobile lists both share actions inline, never behind a submenu', () => {
   g.isMobile = true
   const path = p('/keybase/private/testuser/a.txt')
   const root = getRootLayout('row', path, file(), FS.emptyFileContext, me)
-  expect(root.share).toBe(true)
-  expect(root.sendAttachmentToChat).toBe(false)
-  expect(root.sendToOtherApp).toBe(false)
+  expect(root.sendAttachmentToChat).toBe(true)
+  expect(root.sendToOtherApp).toBe(true)
 
-  // the share submenu still lists both, and nothing else
+  // the share-only menu lists both, and nothing else
   expect(enabled(getShareLayout('row', path, file(), FS.emptyFileContext, me))).toEqual([
     'sendAttachmentToChat',
     'sendToOtherApp',
   ])
 })
 
-test('desktop has a single share action, so it is not consolidated', () => {
+test('desktop only shares to chat', () => {
   const path = p('/keybase/private/testuser/a.txt')
   const root = getRootLayout('row', path, file(), FS.emptyFileContext, me)
-  expect(root.share).toBe(false)
   expect(root.sendAttachmentToChat).toBe(true)
   expect(root.sendToOtherApp).toBe(false)
 })

@@ -168,18 +168,6 @@ const Container = (op: OwnProps) => {
     }
   })()
 
-  const itemShare = layout.share
-    ? ([
-        {
-          icon: 'iconfont-share',
-          onClick: () => {
-            setView(T.FS.PathItemActionMenuView.Share)
-          },
-          title: 'Share...',
-        },
-      ] as const)
-    : []
-
   const itemSendToChat = layout.sendAttachmentToChat
     ? ([
         {
@@ -192,7 +180,7 @@ const Container = (op: OwnProps) => {
           subTitle: `The ${
             pathItem.type === T.FS.PathType.Folder ? 'folder' : 'file'
           } will be sent as an attachment.`,
-          title: 'Attach in another conversation',
+          title: 'Share to Chat',
         },
       ] as const)
     : []
@@ -206,7 +194,7 @@ const Container = (op: OwnProps) => {
           icon: 'iconfont-share',
           inProgress: true,
           onClick: undefined,
-          title: 'Send to another app',
+          title: 'Share to another app',
         },
       ] as const
     } else {
@@ -218,7 +206,7 @@ const Container = (op: OwnProps) => {
           download(path, 'share', onDownloadStarted)
         }
       })
-      return [{icon: 'iconfont-share', onClick, title: 'Send to another app'}] as const
+      return [{icon: 'iconfont-share', onClick, title: 'Share to another app'}] as const
     }
   })()
 
@@ -339,7 +327,6 @@ const Container = (op: OwnProps) => {
     ...itemChat,
     ...itemFinder,
     ...itemSave,
-    ...itemShare,
     ...itemSendToChat,
     ...itemSendToApp,
     ...itemDownload,

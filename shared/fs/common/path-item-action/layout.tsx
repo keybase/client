@@ -15,7 +15,6 @@ export type Layout = {
   showInSystemFileManager: boolean
   sendAttachmentToChat: boolean
   sendToOtherApp: boolean
-  share: boolean
 }
 
 const empty = {
@@ -34,13 +33,12 @@ const empty = {
   // eslint-disable-next-line sort-keys
   sendAttachmentToChat: false,
   sendToOtherApp: false,
-  share: false,
 }
 
 const isMyOwn = (parsedPath: T.FS.ParsedPathGroupTlf, me: string) =>
   !parsedPath.readers?.length && parsedPath.writers.length === 1 && parsedPath.writers[0] === me
 
-const getRawLayout = (
+export const getRootLayout = (
   mode: 'row' | 'screen',
   path: T.FS.Path,
   pathItem: T.FS.PathItem,
@@ -106,29 +104,11 @@ const getRawLayout = (
 
 const totalShare = (layout: Layout) => (layout.sendAttachmentToChat ? 1 : 0) + (layout.sendToOtherApp ? 1 : 0)
 
-const consolidateShares = (layout: Layout): Layout =>
-  isMobile && totalShare(layout) > 1
-    ? {
-        ...layout,
-        sendAttachmentToChat: false,
-        sendToOtherApp: false,
-        share: true,
-      }
-    : layout
-
 const filterForOnlyShares = (layout: Layout): Layout => ({
   ...empty,
   sendAttachmentToChat: layout.sendAttachmentToChat,
   sendToOtherApp: layout.sendToOtherApp,
 })
-
-export const getRootLayout = (
-  mode: 'row' | 'screen',
-  path: T.FS.Path,
-  pathItem: T.FS.PathItem,
-  fileContext: T.FS.FileContext,
-  me: string
-): Layout => consolidateShares(getRawLayout(mode, path, pathItem, fileContext, me))
 
 export const getShareLayout = (
   mode: 'row' | 'screen',
@@ -136,7 +116,7 @@ export const getShareLayout = (
   pathItem: T.FS.PathItem,
   fileContext: T.FS.FileContext,
   me: string
-): Layout => filterForOnlyShares(getRawLayout(mode, path, pathItem, fileContext, me))
+): Layout => filterForOnlyShares(getRootLayout(mode, path, pathItem, fileContext, me))
 
 export const hasShare = (
   mode: 'row' | 'screen',
@@ -144,4 +124,5 @@ export const hasShare = (
   pathItem: T.FS.PathItem,
   fileContext: T.FS.FileContext
 ): boolean =>
-  totalShare(getRawLayout(mode, path, pathItem, fileContext, '' /* username doesn't matter for shares */)) > 0
+  totalShare(getRootLayout(mode, path, pathItem, fileContext, '' /* username doesn't matter for shares */)) >
+  0
