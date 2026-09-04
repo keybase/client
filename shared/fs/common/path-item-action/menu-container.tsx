@@ -344,12 +344,25 @@ const Container = (op: OwnProps) => {
     }
   }, [justDoneWithIntent, hide])
 
-  const userInitiatedHide = () => {
+  // The OS share sheet presents below our bottom sheet, which lives in a
+  // FullWindowOverlay, so the sheet has to be down before the download lands.
+  // Only the sheet goes: this component owns the hand-off to the OS and has to
+  // stay mounted for it, so it hides itself rather than calling hide().
+  const sheetVisible = visible && !sharing
+
+  // The sheet closing on its own above isn't the user dismissing the menu, and
+  // gorhom reports that close through onDismiss all the same. Read the latest
+  // sharing through an effect event: the callback the sheet was unmounted with
+  // is the stale one.
+  const userInitiatedHide = React.useEffectEvent(() => {
+    if (sharing) {
+      return
+    }
     hide()
     if (downloadID) {
       dismissDownload(downloadID)
     }
-  }
+  })
 
   return (
     <Kb.FloatingMenu
@@ -357,7 +370,7 @@ const Container = (op: OwnProps) => {
       closeOnSelect={false}
       containerStyle={containerStyle}
       attachTo={attachTo}
-      visible={visible}
+      visible={sheetVisible}
       onHidden={userInitiatedHide}
       position="left center"
       header={
