@@ -729,7 +729,7 @@ export const useAttachmentSections = (
     if (isMobile) {
       clearModals()
     }
-    C.Router2.navigateToThread(conversationIDKey, 'misc', messageID)
+    C.Router2.navigateToThread(conversationIDKey, 'misc', {intent: {messageID, type: 'highlight'}})
   }
 
   const loadSelectedAttachmentView = React.useEffectEvent(() => {

@@ -6,6 +6,7 @@ import * as T from '@/constants/types'
 import {navigateToPendingThread, navigateToThread, navigationRef, setModalRouteNames} from '@/constants/router'
 import {useInboxMetadataState} from '@/chat/inbox/metadata-store'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useInputIntentState} from '@/chat/conversation/input-intent-store'
 
 const dispatch = jest.fn()
 
@@ -44,10 +45,27 @@ const pendingRoute = {
 }
 
 const realConvID = 'ff00ff00' as T.Chat.ConversationIDKey
+// Distinct per deep-link test: navigateAppend's `_pendingAppend` "uncommitted dupe" cache is
+// module-level state that the mocked `addListener` never clears (the real navigator would fire
+// its 'state' listener and clear it; this stub's listener never fires), so a later test in this
+// file reusing `realConvID` with an equal-shaped params object would be silently caught by that
+// leftover cache instead of by the code under test. A conv id used nowhere else sidesteps that.
+//
+// Not laziness: there is no reset to put in beforeEach. `_pendingAppend` is module-private and
+// unexported, and jest.resetModules() would hand each test a fresh copy of constants/router with
+// its own `navigationRef`, so the stub installed by setRootRoutes would no longer be the one the
+// code under test reads. Distinct ids are the only lever from outside the module.
+const deepLinkConvID = 'aa11aa11' as T.Chat.ConversationIDKey
+const deepLinkConvID2 = 'bb22bb22' as T.Chat.ConversationIDKey
+const optionsConvID = 'cc33cc33' as T.Chat.ConversationIDKey
+const optionsConvID2 = 'dd44dd44' as T.Chat.ConversationIDKey
+const optionsConvID3 = 'ee55ee55' as T.Chat.ConversationIDKey
+const optionsConvID4 = 'ff66ff66' as T.Chat.ConversationIDKey
 
 beforeEach(() => {
-  dispatch.mockClear()
+  dispatch.mockReset()
   setModalRouteNames(['chatNewChat'])
+  useInputIntentState.getState().dispatch.resetState()
 })
 
 // Creating a conversation parks the thread screen on PENDING-WAITING while the RPC runs, so the
@@ -77,6 +95,148 @@ test('no thread on screen still pushes the conversation', () => {
   expect(action.payload.name).toBe('chatConversation')
 })
 
+// The old `sameVisibleThread && highlightMessageID` early return is gone, so every call issued
+// while already on that thread falls through to the bottom `else`. That must never read as a
+// second push. The guarantee comes from `replace` itself (visibleConvo === conversationIDKey
+// forces a setParams retarget), not from the visible route's params object happening to have the
+// same keys as the ones this call builds - a route built elsewhere (a deep link, see the next
+// test) can have a completely different params shape and this must still not push.
+test('reissuing navigateToThread on the same visible thread retargets instead of pushing', () => {
+  const visibleThreadRoute = {
+    key: 'conv-visible',
+    name: 'chatConversation',
+    params: {
+      conversationIDKey: realConvID,
+      createConversationError: undefined,
+      threadSearch: undefined,
+    },
+  }
+  setRootRoutes([loggedIn, visibleThreadRoute])
+
+  navigateToThread(realConvID, 'createdMessagePrivately')
+
+  expect(dispatch).toHaveBeenCalledTimes(1)
+  const action = dispatch.mock.calls[0]?.[0] as {type: string; payload: unknown; source?: string}
+  expect(action.type).toBe('SET_PARAMS')
+  expect(action.source).toBe(visibleThreadRoute.key)
+  expect(action.payload).toMatchObject({conversationIDKey: realConvID})
+})
+
+// A conversation opened via a `keybase://convid/<id>` deep link lands on chatConversation with
+// only {conversationIDKey} as params (router-v2/linking.tsx's makeChatConversationState) - one
+// key, not the four this file's own params objects always carry. shallowEqual bails on a
+// key-count mismatch before comparing values, so navigateAppend's dupe guard alone cannot be
+// trusted to catch this shape; the fix must not push a duplicate regardless.
+test('reissuing navigateToThread on a deep-linked thread (single-key params) does not push a duplicate', () => {
+  const deepLinkedThreadRoute = {
+    key: 'conv-deep-link',
+    name: 'chatConversation',
+    params: {conversationIDKey: deepLinkConvID},
+  }
+  setRootRoutes([loggedIn, deepLinkedThreadRoute])
+
+  navigateToThread(deepLinkConvID, 'createdMessagePrivately')
+
+  expect(dispatch).toHaveBeenCalledTimes(1)
+  const action = dispatch.mock.calls[0]?.[0] as {type: string; payload: unknown; source?: string}
+  expect(action.type).toBe('SET_PARAMS')
+  expect(action.source).toBe(deepLinkedThreadRoute.key)
+  expect(action.payload).toMatchObject({conversationIDKey: deepLinkConvID})
+})
+
+// Same shape as the deep-link case above, but reached by a reason that never carried an intent -
+// this hole predates the intent-store work (a plain re-navigate to the same deep-linked thread
+// already pushed a duplicate), so it's covered independently of that migration.
+test('a plain re-navigate to a deep-linked thread does not push a duplicate', () => {
+  const deepLinkedThreadRoute = {
+    key: 'conv-deep-link-plain',
+    name: 'chatConversation',
+    params: {conversationIDKey: deepLinkConvID2},
+  }
+  setRootRoutes([loggedIn, deepLinkedThreadRoute])
+
+  navigateToThread(deepLinkConvID2, 'focused')
+
+  expect(dispatch).toHaveBeenCalledTimes(1)
+  const action = dispatch.mock.calls[0]?.[0] as {type: string; payload: unknown; source?: string}
+  expect(action.type).toBe('SET_PARAMS')
+  expect(action.source).toBe(deepLinkedThreadRoute.key)
+})
+
+// The options object replaced a positional tail (highlightMessageID, threadSearchQuery,
+// createConversationError). An `intent` is written to the input-intent bus before the navigation
+// dispatches, because the thread mounts during that dispatch and consumes on mount.
+test('the options object writes the intent before navigating and forwards threadSearchQuery', () => {
+  setRootRoutes([loggedIn])
+  const messageID = T.Chat.numberToMessageID(99)
+  const order: Array<string> = []
+  dispatch.mockImplementation(() => {
+    order.push(`intent:${String(useInputIntentState.getState().intents.has(optionsConvID))}`)
+  })
+
+  navigateToThread(optionsConvID, 'justCreated', {
+    intent: {messageID, type: 'highlight'},
+    threadSearchQuery: 'needle',
+  })
+
+  expect(order).toEqual(['intent:true'])
+  expect(useInputIntentState.getState().intents.get(optionsConvID)).toEqual({
+    messageID,
+    type: 'highlight',
+  })
+  const action = dispatch.mock.calls[0]?.[0] as {type: string; payload: {params: object}}
+  expect(action.type).toBe('PUSH')
+  expect(action.payload.params).toMatchObject({
+    conversationIDKey: optionsConvID,
+    threadSearch: {query: 'needle'},
+  })
+})
+
+// The intent write sits below every early return that aborts the navigation. An intent written
+// on an aborted navigation would sit in the mailbox and fire on some later, unrelated mount.
+test('an aborted navigation writes no intent', () => {
+  setRootRoutes([loggedIn])
+
+  navigateToThread(optionsConvID, 'findNewestConversation', {
+    intent: {messageID: T.Chat.numberToMessageID(99), type: 'highlight'},
+  })
+
+  expect(dispatch).not.toHaveBeenCalled()
+  expect(useInputIntentState.getState().intents.size).toBe(0)
+})
+
+// The prefill callers - send-to-chat, incoming-share, attachment-get-titles and the two
+// reply-privately paths - hand their text to this option instead of writing the bus themselves,
+// so that the write-before-navigate ordering is owned here rather than honoured by convention in
+// five places. A caller whose text is optional passes undefined rather than skipping the nav.
+test('an injectText intent is written before navigating, and an undefined one writes nothing', () => {
+  setRootRoutes([loggedIn])
+  const order: Array<string> = []
+  dispatch.mockImplementation(() => {
+    order.push(`intent:${String(useInputIntentState.getState().intents.has(optionsConvID3))}`)
+  })
+
+  navigateToThread(optionsConvID3, 'justCreated', {intent: {text: 'prefill me', type: 'injectText'}})
+
+  expect(order).toEqual(['intent:true'])
+  expect(useInputIntentState.getState().intents.get(optionsConvID3)).toEqual({
+    text: 'prefill me',
+    type: 'injectText',
+  })
+
+  navigateToThread(optionsConvID4, 'justCreated', {intent: undefined})
+
+  expect(useInputIntentState.getState().intents.has(optionsConvID4)).toBe(false)
+})
+
+test('no options writes no intent', () => {
+  setRootRoutes([loggedIn])
+
+  navigateToThread(optionsConvID2, 'justCreated')
+
+  expect(useInputIntentState.getState().intents.size).toBe(0)
+})
+
 // setParams keeps the native screen alive, and iOS never re-measures a header title subview it
 // first measured empty - so the pending thread has to have a title before it is shown.
 test('the pending thread is seeded with the participants so its header title is never empty', () => {
@@ -90,5 +250,40 @@ test('the pending thread is seeded with the participants so its header title is 
   const action = dispatch.mock.calls[0]?.[0] as {type: string; payload: {params: object}}
   expect(action.payload.params).toMatchObject({
     conversationIDKey: T.Chat.pendingWaitingConversationIDKey,
+  })
+})
+
+// navigateToThread writes the intent before dispatching, because the thread consumes on mount and
+// a write afterwards would miss it. The dispatch can still not happen - here the navigator is not
+// installed at all, the shape of a navigateToThread arriving from a push notification or an engine
+// handler before the nav container is ready. A durable intent left behind by a navigation that
+// never occurred would fire on some later, unrelated mount of that conversation.
+test('a navigation that cannot dispatch leaves no intent behind', () => {
+  const nr = navigationRef as unknown as Record<string, unknown>
+  nr['current'] = undefined
+  nr['dispatch'] = dispatch
+  nr['getRootState'] = () => undefined
+  nr['isReady'] = () => false
+
+  const convID = T.Chat.stringToConversationIDKey('conv-no-navigator')
+  navigateToThread(convID, 'push', {
+    intent: {messageID: T.Chat.numberToMessageID(7), type: 'highlight'},
+  })
+
+  expect(dispatch).not.toHaveBeenCalled()
+  expect(useInputIntentState.getState().intents.get(convID)).toBeUndefined()
+})
+
+test('a navigation that does dispatch keeps the intent for the mount to consume', () => {
+  setRootRoutes([loggedIn])
+  const convID = T.Chat.stringToConversationIDKey('conv-with-navigator')
+  navigateToThread(convID, 'push', {
+    intent: {messageID: T.Chat.numberToMessageID(7), type: 'highlight'},
+  })
+
+  expect(dispatch).toHaveBeenCalled()
+  expect(useInputIntentState.getState().intents.get(convID)).toEqual({
+    messageID: T.Chat.numberToMessageID(7),
+    type: 'highlight',
   })
 })

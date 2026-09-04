@@ -60,7 +60,7 @@ const PopAttachLoaded = (ownProps: OwnProps & {
   const onJump = () => {
     showConversationInfoPanel(conversationIDKey, false, 'attachments')
     clearModals()
-    C.Router2.navigateToThread(conversationIDKey, 'misc', id)
+    C.Router2.navigateToThread(conversationIDKey, 'misc', {intent: {messageID: id, type: 'highlight'}})
   }
 
   const onAllMedia = () => {

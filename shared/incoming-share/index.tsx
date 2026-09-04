@@ -102,7 +102,9 @@ const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) =>
         },
       })
     } else {
-      C.Router2.navigateToThread(selectedConversationIDKey, 'extension', undefined, undefined, undefined, text)
+      C.Router2.navigateToThread(selectedConversationIDKey, 'extension', {
+        intent: text === undefined ? undefined : {text, type: 'injectText'},
+      })
     }
   }, [canDirectNav, selectedConversationIDKey, sendPaths, text, navigateAppend])
 

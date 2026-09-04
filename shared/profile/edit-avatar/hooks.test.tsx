@@ -189,7 +189,7 @@ describe('useEditAvatar onSave', () => {
   })
 
   test('the wizard path never calls uploadTeamAvatar and appends the next wizard route', async () => {
-    const navigateAppend = jest.spyOn(C.Router2, 'navigateAppend').mockImplementation(() => {})
+    const navigateAppend = jest.spyOn(C.Router2, 'navigateAppend').mockImplementation(() => true)
     mockTeams.set('team-1', {memberCount: 3, name: 'keybase'})
     const newTeamWizard = {
       name: 'keybase',
@@ -217,7 +217,7 @@ describe('useEditAvatar onSave', () => {
   })
 
   test('the wizard path stores an undefined crop when no crop was given', async () => {
-    const navigateAppend = jest.spyOn(C.Router2, 'navigateAppend').mockImplementation(() => {})
+    const navigateAppend = jest.spyOn(C.Router2, 'navigateAppend').mockImplementation(() => true)
     mockTeams.set('team-1', {memberCount: 3, name: 'keybase'})
     const newTeamWizard = {
       name: 'keybase',
@@ -236,7 +236,7 @@ describe('useEditAvatar onSave', () => {
   })
 
   test('a wizard save with no wizard state is a no op', async () => {
-    const navigateAppend = jest.spyOn(C.Router2, 'navigateAppend').mockImplementation(() => {})
+    const navigateAppend = jest.spyOn(C.Router2, 'navigateAppend').mockImplementation(() => true)
     mockTeams.set('team-1', {memberCount: 3, name: 'keybase'})
     const {result} = await renderLoadedTeam({teamID: 'team-1', wizard: true})
     act(() => {

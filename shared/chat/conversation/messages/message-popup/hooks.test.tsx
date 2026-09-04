@@ -23,6 +23,7 @@ const you = 'testuser'
 const them = 'testuser-mac'
 
 let navigateAppend: jest.SpyInstance
+let clearModals: jest.SpyInstance
 
 const moderation = (p: {author: string; isTeam: boolean; numPart: number}) =>
   renderHook(() => useModeration(p.author, conversationIDKey, p.isTeam, p.numPart)).result.current
@@ -30,7 +31,8 @@ const moderation = (p: {author: string; isTeam: boolean; numPart: number}) =>
 const titles = (items: ReadonlyArray<{title: string}>) => items.map(i => i.title)
 
 beforeEach(() => {
-  navigateAppend = jest.spyOn(Router, 'navigateAppend').mockImplementation(() => {})
+  navigateAppend = jest.spyOn(Router, 'navigateAppend').mockImplementation(() => true)
+  clearModals = jest.spyOn(Router, 'clearModals').mockImplementation(() => {})
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
     deviceName: 'device-name',
@@ -169,5 +171,49 @@ describe('delete and kick for a team admin', () => {
     const {itemDelete, itemKick} = items(false)
     expect(itemDelete).toEqual([])
     expect(titles(itemKick)).toEqual(['Kick user'])
+  })
+})
+
+// Edit and Reply are the two items that put something in the composer. Reached from the
+// attachment viewer the popup sits under a modal route, so without this the intent lands
+// behind a modal the user cannot see past - the state is right and looks broken.
+describe('composer items dismiss a covering modal', () => {
+  const yourEditableMessage = () => {
+    const message = Chat.makeMessageText({
+      author: you,
+      conversationIDKey,
+      id: T.Chat.numberToMessageID(1),
+      ordinal: T.Chat.numberToOrdinal(1),
+    })
+    const meta: T.Chat.ConversationMeta = {
+      ...Chat.makeConversationMeta(),
+      conversationIDKey,
+      teamType: 'adhoc',
+    }
+    return renderHook(() =>
+      useStorelessItems({
+        conversationIDKey,
+        message,
+        meta,
+        onHidden: () => {},
+        participantInfo: {all: [you, them], contactName: new Map(), name: []},
+      })
+    ).result.current
+  }
+
+  test('Edit clears modals so the composer it just filled is visible', () => {
+    const {itemEdit} = yourEditableMessage()
+    expect(titles(itemEdit)).toEqual(['Edit'])
+    expect(clearModals).not.toHaveBeenCalled()
+    itemEdit[0].onClick()
+    expect(clearModals).toHaveBeenCalledTimes(1)
+  })
+
+  test('Reply clears modals so the composer it just filled is visible', () => {
+    const {itemReply} = yourEditableMessage()
+    expect(titles(itemReply)).toEqual(['Reply'])
+    expect(clearModals).not.toHaveBeenCalled()
+    itemReply[0].onClick()
+    expect(clearModals).toHaveBeenCalledTimes(1)
   })
 })

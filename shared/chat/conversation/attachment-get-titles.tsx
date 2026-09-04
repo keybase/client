@@ -134,14 +134,10 @@ const ContainerInner = (ownProps: OwnProps) => {
       clearModals()
 
       if (selectConversationWithReason) {
-        C.Router2.navigateToThread(
-          conversationIDKey,
-          selectConversationWithReason,
-          undefined,
-          undefined,
-          undefined,
-          ownProps.inputPrefillText
-        )
+        const prefill = ownProps.inputPrefillText
+        C.Router2.navigateToThread(conversationIDKey, selectConversationWithReason, {
+          intent: prefill === undefined ? undefined : {text: prefill, type: 'injectText'},
+        })
       }
     }
 

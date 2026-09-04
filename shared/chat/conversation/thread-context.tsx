@@ -720,7 +720,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
 
       const text = formatTextForQuoting(message.text.stringValue())
       metasReceived([meta])
-      navigateToThread(newThreadCID, 'createdMessagePrivately', undefined, undefined, undefined, text)
+      navigateToThread(newThreadCID, 'createdMessagePrivately', {intent: {text, type: 'injectText'}})
     }
     ignorePromise(f())
   })

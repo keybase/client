@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {clearThreadHighlightMessageID} from '@/constants/router'
+import {consumeInputIntent, useInputIntentState} from './input-intent-store'
 import {produce} from 'immer'
 import {useChatThreadRouteParams} from './thread-search-route'
 import {useThreadLoadStatusOptionsGetter} from './thread-load-status-context'
@@ -51,6 +51,11 @@ CenterActionsContext.displayName = 'ConversationCenterActionsContext'
 export const useConversationCenter = () => React.useContext(CenterStateContext)
 export const useConversationCenterActions = () => React.useContext(CenterActionsContext)
 
+// The other half of the input-intent bus's type split: the input provider claims the other four
+// types (input-area/input-state.tsx). Neither may claim the other's or whichever mounts first
+// silently eats it.
+const centerInputIntentTypes = ['highlight'] as const
+
 const stateForThreadSearchVisible = (state: CenterState, threadSearchVisible: boolean): CenterState =>
   produce(state, draft => {
     if (draft.threadSearchVisible === threadSearchVisible) {
@@ -68,10 +73,9 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
   children: React.ReactNode
   id: T.Chat.ConversationIDKey
 }) {
-  const {children} = p
+  const {children, id} = p
   const routeParams = useChatThreadRouteParams()
   const threadSearchVisible = !!routeParams?.threadSearch
-  const routeHighlightMessageID = routeParams?.highlightMessageID
   const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
   const loadMessagesCentered = useConversationThreadLoadMessagesCentered()
   const jumpToRecentThread = useConversationThreadJumpToRecent()
@@ -122,23 +126,25 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
     }
   }, [setMarkReadBlocked, threadSearchVisible])
 
-  const consumedRouteHighlightRef = React.useRef<T.Chat.MessageID | undefined>(undefined)
-  const consumeRouteHighlight = React.useEffectEvent((messageID: T.Chat.MessageID) => {
+  const applyHighlight = React.useEffectEvent((messageID: T.Chat.MessageID) => {
     setMarkReadBlocked(true)
     centerOnMessage(messageID, 'flash')
-    clearThreadHighlightMessageID()
   })
+  // Same two delivery moments as ConversationInputProvider: consume whatever was written before
+  // we mounted, then a registered subscription for later writes. Not a selector hook - that would
+  // re-render this subtree, and enableFreeze defers render-driven subscriptions on mobile while a
+  // registered callback still runs. Delete-on-consume is the dedupe, so jumping twice to the same
+  // messageID centers twice.
   React.useEffect(() => {
-    if (!routeHighlightMessageID) {
-      consumedRouteHighlightRef.current = undefined
-      return
+    const consume = () => {
+      const intent = consumeInputIntent(id, centerInputIntentTypes)
+      if (intent) {
+        applyHighlight(intent.messageID)
+      }
     }
-    if (consumedRouteHighlightRef.current === routeHighlightMessageID) {
-      return
-    }
-    consumedRouteHighlightRef.current = routeHighlightMessageID
-    consumeRouteHighlight(routeHighlightMessageID)
-  }, [routeHighlightMessageID])
+    consume()
+    return useInputIntentState.subscribe(consume)
+  }, [id])
 
   const center = currentCenterState.center
   const centeredHighlightOrdinal = center && center.highlightMode !== 'none' ? center.ordinal : undefined

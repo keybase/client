@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as T from './types'
 import {metasReceived, participantInfoReceived, useInboxMetadataState} from '@/chat/inbox/metadata-store'
+import {clearInputIntent, setInputIntent, type InputIntent} from '@/chat/conversation/input-intent-store'
 import {refreshInboxLayout} from '@/chat/inbox/inbox-refresh'
 import {useCurrentUserState} from '@/stores/current-user'
-import type {ThreadInputAction} from '@/chat/conversation/thread-search-route'
 import * as Tabs from './tabs'
 import {
   StackActions,
@@ -391,17 +391,19 @@ export function navUpToScreen(nameOrPath: RouteKeys | NavigateAppendType, replac
 // backstop in case the container tears down before the listener fires.
 let _pendingAppend: {name: string; params?: object; time: number} | undefined
 
-export function navigateAppend(path: NavigateAppendType, replace?: boolean) {
+// Returns whether the target is now the visible route - either because we dispatched, or
+// because we were already there. False means nothing happened and nothing will.
+export function navigateAppend(path: NavigateAppendType, replace?: boolean): boolean {
   if (DEBUG_NAV) {
     console.log('[Nav] navigateAppend', {path})
   }
   const n = _getNavigator()
   if (!n) {
-    return
+    return false
   }
   const ns = getRootState()
   if (!ns) {
-    return
+    return false
   }
   const nextPath = path as {name: string | number | symbol; params: object}
   const routeName = typeof nextPath.name === 'string' ? nextPath.name : String(nextPath.name)
@@ -410,24 +412,25 @@ export function navigateAppend(path: NavigateAppendType, replace?: boolean) {
     if (DEBUG_NAV) {
       console.log('[Nav] navigateAppend no routeName bail', routeName)
     }
-    return
+    return false
   }
   const vp = getVisiblePath(ns)
   const visible = vp.at(-1)
   if (visible) {
     if (routeName === visible.name && shallowEqual(visible.params, params)) {
       console.log('Skipping append dupe')
-      return
+      // Already the visible route with these params - the caller's goal is met.
+      return true
     }
   }
 
   if (replace) {
     if (visible?.name === routeName) {
       n.dispatch(CommonActions.setParams(params))
-      return
+      return true
     } else {
       n.dispatch(StackActions.replace(routeName, params))
-      return
+      return true
     }
   }
 
@@ -437,7 +440,8 @@ export function navigateAppend(path: NavigateAppendType, replace?: boolean) {
     Date.now() - _pendingAppend.time < 1000
   ) {
     console.log('Skipping append dupe (uncommitted)')
-    return
+    // An identical push is already in flight and uncommitted.
+    return true
   }
   _pendingAppend = {name: routeName, params, time: Date.now()}
   const unsub = n.addListener('state', () => {
@@ -445,6 +449,7 @@ export function navigateAppend(path: NavigateAppendType, replace?: boolean) {
     unsub()
   })
   n.dispatch(StackActions.push(routeName, params))
+  return true
 }
 
 export const switchTab = (name: Tabs.AppTab) => {
@@ -523,6 +528,11 @@ export const leaveConversation = (
   navigateToInbox(true, 'leftAConversation')
 }
 
+// previewConversation/createConversation carry an optional highlight all the way down; this keeps
+// the `{}`-when-absent spread out of every call site.
+const highlightIntent = (messageID?: T.Chat.MessageID) =>
+  messageID ? ({intent: {messageID, type: 'highlight'}} as const) : undefined
+
 export const createConversation = (
   participants: ReadonlyArray<string>,
   highlightMessageID?: T.Chat.MessageID
@@ -565,7 +575,7 @@ export const createConversation = (
         participantInfoReceived(conversationIDKey, participantInfo)
       }
 
-      navigateToThread(conversationIDKey, 'justCreated', highlightMessageID)
+      navigateToThread(conversationIDKey, 'justCreated', highlightIntent(highlightMessageID))
 
       refreshInboxLayout('joinedAConversation')
     } catch (error) {
@@ -580,11 +590,14 @@ export const createConversation = (
           disallowedUsers = value.split(',')
         }
         const allowedUsers = participants.filter(x => !disallowedUsers.includes(x))
-        navigateToThread(T.Chat.pendingErrorConversationIDKey, 'justCreated', highlightMessageID, undefined, {
-          allowedUsers,
-          code: error.code,
-          disallowedUsers,
-          message: error.desc,
+        navigateToThread(T.Chat.pendingErrorConversationIDKey, 'justCreated', {
+          createConversationError: {
+            allowedUsers,
+            code: error.code,
+            disallowedUsers,
+            message: error.desc,
+          },
+          ...highlightIntent(highlightMessageID),
         })
       }
     }
@@ -623,7 +636,7 @@ export const previewConversation = (p: PreviewConversationParams) => {
       if (names.length !== toFindN) continue
       const participantSet = [...names].sort().join(',')
       if (participantSet === toFind) {
-        navigateToThread(conversationIDKey, 'justCreated', highlightMessageID)
+        navigateToThread(conversationIDKey, 'justCreated', highlightIntent(highlightMessageID))
         return
       }
     }
@@ -646,7 +659,7 @@ export const previewConversation = (p: PreviewConversationParams) => {
         })
       }
 
-      navigateToThread(conversationIDKey, 'previewResolved', highlightMessageID)
+      navigateToThread(conversationIDKey, 'previewResolved', highlightIntent(highlightMessageID))
       return
     }
 
@@ -691,7 +704,7 @@ export const previewConversation = (p: PreviewConversationParams) => {
         metasReceived([meta])
       }
 
-      navigateToThread(first.conversationIDKey, 'previewResolved', highlightMessageID)
+      navigateToThread(first.conversationIDKey, 'previewResolved', highlightIntent(highlightMessageID))
     } catch (error) {
       if (
         error instanceof RPCError &&
@@ -715,15 +728,19 @@ export const previewConversation = (p: PreviewConversationParams) => {
   ignorePromise(previewConversationTeam())
 }
 
-export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['chatRoot']>>) => {
+// Returns whether chatRoot now carries these params - by dispatch, or because it already did.
+// False means the nav tree was not in a state where anything could happen.
+export const setChatRootParams = (
+  params: Partial<NonNullable<KBRootParamList['chatRoot']>>
+): boolean => {
   const n = _getNavigator()
-  if (!n) return
+  if (!n) return false
   const rs = getRootState()
   const tabNavState = rs?.routes?.[0]?.state
-  if (!tabNavState?.key) return
+  if (!tabNavState?.key) return false
   const tabRoutes = tabNavState.routes as Array<Route>
   const chatTabIndex = tabRoutes.findIndex(r => r.name === Tabs.chatTab)
-  if (chatTabIndex < 0) return
+  if (chatTabIndex < 0) return false
   const chatTabRoute = tabRoutes[chatTabIndex]
   const chatStackState = chatTabRoute?.state
   const chatStackRoutes = chatStackState?.routes as Array<Route> | undefined
@@ -758,7 +775,8 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
         target: chatStackState.key,
       })
     }
-    return
+    // Either we just merged the params in, or they were already what we wanted.
+    return true
   }
   n.dispatch({
     ...CommonActions.reset({...tabNavState, index: chatTabIndex, routes: updatedRoutes} as Parameters<
@@ -766,131 +784,32 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
     >[0]),
     target: tabNavState.key,
   })
-}
-
-// The navigator holding this route, i.e. the one whose router can act on a setParams naming it.
-const findNavKeyForRouteKey = (routeKey: string): string | undefined => {
-  const walk = (state: T.Immutable<NavState> | undefined): string | undefined => {
-    const routes = state?.routes as Array<Route> | undefined
-    if (!routes) return undefined
-    if (state?.key && routes.some(r => r.key === routeKey)) return state.key
-    for (const r of routes) {
-      const found = walk(r.state)
-      if (found) return found
-    }
-    return undefined
-  }
-  return walk(getRootState())
-}
-
-// Both halves matter for the thread setParams helpers below. The route is what we check and what
-// `source` names; navKey is what `target` must name, and without it the action never arrives.
-// navigationRef.dispatch starts at the *deepest focused* navigator (BaseNavigationContainer routes
-// it through listeners.focus, which recurses into focused children), and useOnAction only bubbles
-// an action DOWN when action.target is set — upward otherwise. On desktop the thread lives at
-// root > loggedIn > tabs > chatTab > chatStack, so with anything else focused the action bubbles up
-// past the chat stack, which is a sibling and never an ancestor, and is dropped. That drop is
-// silent here: our onUnhandledAction downgrades react-navigation's warning to logger.info. Phones
-// are unaffected — chatConversation is a direct route of the root stack, so bubbling up finds it.
-// Note this scan looks *past* modals, which is exactly when the focused navigator is not ours.
-const getVisibleThreadScreen = () => {
-  const visiblePath = getVisiblePath()
-  for (let i = visiblePath.length - 1; i >= 0; --i) {
-    const route = visiblePath[i]
-    if (route?.name === threadRouteName && route.key) {
-      return {navKey: findNavKeyForRouteKey(route.key), route}
-    }
-  }
-  return undefined
-}
-
-export const clearThreadHighlightMessageID = () => {
-  const n = _getNavigator()
-  if (!n) return
-  const found = getVisibleThreadScreen()
-  if (!found?.navKey) return
-  n.dispatch({
-    ...CommonActions.setParams({highlightMessageID: undefined}),
-    source: found.route.key,
-    target: found.navKey,
-  })
-}
-
-type ThreadInputActionRequest =
-  | {type: 'commandStatus'; info?: T.Chat.CommandStatusInfo}
-  | {type: 'injectText'; text?: string}
-  | {type: 'setEditing'; ordinal: T.Chat.Ordinal}
-  | {type: 'setReplyTo'; ordinal: T.Chat.Ordinal}
-
-const makeThreadInputAction = (action: ThreadInputActionRequest): ThreadInputAction => ({
-  ...action,
-  key: makeUUID(),
-})
-
-const setThreadInputAction = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  action: ThreadInputActionRequest
-) => {
-  const n = _getNavigator()
-  if (!n) return
-  const found = getVisibleThreadScreen()
-  const params = found?.route.params as {conversationIDKey?: T.Chat.ConversationIDKey} | undefined
-  if (!found?.navKey || params?.conversationIDKey !== conversationIDKey) {
-    // Reached from the message menu, so a bail here is a menu item that visibly does nothing.
-    logger.error(
-      `[chat] dropped thread input action ${action.type}: ` +
-        `${!found ? 'no visible thread screen' : !found.navKey ? 'thread route has no owning navigator' : 'thread route is on another conversation'}`
-    )
-    return
-  }
-  n.dispatch({
-    ...CommonActions.setParams({inputAction: makeThreadInputAction(action)}),
-    source: found.route.key,
-    target: found.navKey,
-  })
-}
-
-export const clearThreadInputAction = (key?: string) => {
-  const n = _getNavigator()
-  if (!n) return
-  const found = getVisibleThreadScreen()
-  if (!found?.navKey) return
-  const params = found.route.params as {inputAction?: ThreadInputAction} | undefined
-  if (key && params?.inputAction?.key !== key) {
-    return
-  }
-  n.dispatch({
-    ...CommonActions.setParams({inputAction: undefined}),
-    source: found.route.key,
-    target: found.navKey,
-  })
+  return true
 }
 
 export const setThreadInputCommandStatus = (
   conversationIDKey: T.Chat.ConversationIDKey,
   info?: T.Chat.CommandStatusInfo
 ) => {
-  setThreadInputAction(conversationIDKey, {info, type: 'commandStatus'})
+  setInputIntent(conversationIDKey, {info, type: 'commandStatus'})
 }
 
 export const setThreadInputEditing = (
   conversationIDKey: T.Chat.ConversationIDKey,
   ordinal: T.Chat.Ordinal
 ) => {
-  setThreadInputAction(conversationIDKey, {ordinal, type: 'setEditing'})
+  setInputIntent(conversationIDKey, {ordinal, type: 'setEditing'})
 }
 
 export const setThreadInputReplyTo = (
   conversationIDKey: T.Chat.ConversationIDKey,
   ordinal: T.Chat.Ordinal
 ) => {
-  setThreadInputAction(conversationIDKey, {ordinal, type: 'setReplyTo'})
+  setInputIntent(conversationIDKey, {ordinal, type: 'setReplyTo'})
 }
 
 type ThreadNavParams = {
   createConversationError?: T.Chat.CreateConversationError
-  highlightMessageID?: T.Chat.MessageID
-  inputAction?: ThreadInputAction
   threadSearch?: {query?: string}
 }
 
@@ -923,19 +842,20 @@ export type NavigateToThreadReason =
   | 'misc'
   | 'teamMention'
 
-const navToThread = (conversationIDKey: T.Chat.ConversationIDKey, navParams?: ThreadNavParams) => {
+const navToThread = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  navParams?: ThreadNavParams
+): boolean => {
   if (DEBUG_NAV) {
     console.log('[Nav] navToThread', conversationIDKey)
   }
   const n = _getNavigator()
-  if (!n) return
+  if (!n) return false
   const rs = getRootState()
-  if (!rs?.key) return
+  if (!rs?.key) return false
   const params = {
     conversationIDKey,
     createConversationError: navParams?.createConversationError,
-    highlightMessageID: navParams?.highlightMessageID,
-    inputAction: navParams?.inputAction,
     threadSearch: navParams?.threadSearch,
   }
 
@@ -944,7 +864,7 @@ const navToThread = (conversationIDKey: T.Chat.ConversationIDKey, navParams?: Th
     // All tab stacks share the same screen config, so navigate('chatRoot') would target the
     // current tab. Separate switchTab + navigateAppend has a race (stale state between dispatches).
     // A single reset on the tab navigator atomically switches tabs and sets params.
-    setChatRootParams(params)
+    return setChatRootParams(params)
   } else {
     // Phone: switch to the chat tab, then push the conversation above the tabs.
     const nextState = {
@@ -963,20 +883,26 @@ const navToThread = (conversationIDKey: T.Chat.ConversationIDKey, navParams?: Th
       ...CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]),
       target: rs.key,
     })
+    return true
   }
 }
 
 export const navigateToThread = (
   conversationIDKey: T.Chat.ConversationIDKey,
   reason: NavigateToThreadReason,
-  highlightMessageID?: T.Chat.MessageID,
-  threadSearchQuery?: string,
-  createConversationError?: T.Chat.CreateConversationError,
-  inputPrefillText?: string
+  opts?: {
+    // One slot: an intent is either a highlight or a composer instruction, never both, so
+    // "highlight and prefill at once" is unrepresentable instead of a runtime coin-flip.
+    intent?: InputIntent
+    threadSearchQuery?: string
+    createConversationError?: T.Chat.CreateConversationError
+  }
 ) => {
   if (reason === 'navChanged') {
     return
   }
+
+  const {createConversationError, intent, threadSearchQuery} = opts ?? {}
 
   const visible = getVisibleScreen()
   const params = visible?.params as {conversationIDKey?: T.Chat.ConversationIDKey} | undefined
@@ -987,32 +913,36 @@ export const navigateToThread = (
     return
   }
 
+  // Written here, above every dispatch: the thread mounts during those dispatches and consumes on
+  // mount, so an intent written afterwards would miss it. But a dispatch can still turn out not to
+  // happen - navToThread, setChatRootParams and navigateAppend each bail when the navigator, root
+  // state or tab tree is unavailable - and a durable intent left behind by a navigation that never
+  // occurred would fire on some later, unrelated mount of this conversation. So the write is rolled
+  // back below unless the path we took reports that it landed.
+  if (intent) {
+    setInputIntent(conversationIDKey, intent)
+  }
+
   const threadSearch = threadSearchQuery ? {query: threadSearchQuery} : undefined
-  const inputAction =
-    inputPrefillText !== undefined ? makeThreadInputAction({text: inputPrefillText, type: 'injectText'}) : undefined
   const navParams = {
     createConversationError,
-    highlightMessageID,
-    inputAction,
     threadSearch,
   }
-  const sameVisibleThread = visibleRouteName === threadRouteName && visibleConvo === conversationIDKey
-  if (sameVisibleThread && (highlightMessageID || inputAction)) {
-    const sameThreadParams = {conversationIDKey, ...navParams}
-    if (isSplit) {
-      setChatRootParams(sameThreadParams)
-    } else {
-      navigateAppend({name: threadRouteName, params: sameThreadParams}, true)
-    }
-    return
-  }
+  let navigated: boolean
   if (isSplit) {
-    navToThread(conversationIDKey, navParams)
+    navigated = navToThread(conversationIDKey, navParams)
   } else if (reason === 'push' || reason === 'savedLastState') {
-    navToThread(conversationIDKey, navParams)
+    navigated = navToThread(conversationIDKey, navParams)
   } else {
+    // Either half being true means "retarget the screen we're already on" instead of pushing a
+    // new one. The second half must not rely on the two params objects happening to have the
+    // same keys (navigateAppend's dupe guard does a shallow-equal that bails on key-count
+    // mismatch alone) - a route built outside this file, e.g. a deep link's single-key
+    // {conversationIDKey} from router-v2/linking.tsx's makeChatConversationState, would defeat
+    // that check and let a same-conversation call push a second thread screen.
     const replace =
-      visibleRouteName === threadRouteName && !T.Chat.isValidConversationIDKey(visibleConvo ?? '')
+      visibleRouteName === threadRouteName &&
+      (!T.Chat.isValidConversationIDKey(visibleConvo ?? '') || visibleConvo === conversationIDKey)
     const modalPath = getModalStack()
     if (modalPath.length > 0) {
       clearModals()
@@ -1021,8 +951,6 @@ export const navigateToThread = (
     const params = {
       conversationIDKey,
       createConversationError,
-      highlightMessageID,
-      inputAction,
       threadSearch,
     }
     if (replace) {
@@ -1034,11 +962,18 @@ export const navigateToThread = (
       // as two pushes. setParams has no transition at all. It relies on the pending thread's
       // header title already having content (seeded by navigateToPendingThread): iOS never
       // re-measures a title subview it first measured empty, so a blank pending title would
-      // leave the bar blank for the real conv too.
-      _getNavigator()?.dispatch({...CommonActions.setParams(params), source: visible?.key})
+      // leave the bar blank for the real conv too. Same-conversation retargets ride this path
+      // too: the screen is already showing real content, so setParams is a plain in-place merge.
+      const n = _getNavigator()
+      n?.dispatch({...CommonActions.setParams(params), source: visible?.key})
+      navigated = !!n
     } else {
-      navigateAppend({name: threadRouteName, params})
+      navigated = navigateAppend({name: threadRouteName, params})
     }
+  }
+
+  if (intent && !navigated) {
+    clearInputIntent(conversationIDKey, intent)
   }
 }
 

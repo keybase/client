@@ -16,6 +16,7 @@ import {
 } from '../thread-context'
 import {ConversationThreadLoadStatusProvider} from '../thread-load-status-context'
 import {MaybeMentionProvider} from '@/common-adapters/markdown/maybe-mention/context'
+import {peekInputIntent} from '../input-intent-store'
 import {useChatThreadRouteParams} from '../thread-search-route'
 
 type OrangeLineState = {
@@ -171,14 +172,43 @@ const NormalOrangeLineProvider = (props: OrangeLineProviderProps) => {
   )
 }
 
+// Keyed on the conversation by its caller, so the peek runs in a useState initializer exactly
+// once per conversation - before ConversationCenterProvider, mounted below, consumes the intent.
+// A useMemo would not do: React may drop and recompute one, and a later recompute would read an
+// already-consumed mailbox and flip the answer.
+//
+// Peek, don't consume. A pending 'highlight' means the center provider is about to issue a
+// centered load, so the plain 'focused' load on selection would be a wasted second fetch.
+//
+// It feeds skipThreadLoadOnSelection ONLY. allowMarkReadOnLoad must stay live: it is read by
+// reloadStaleThread on every ChatThreadsStale/ChatInboxSynced, and a highlight's mark-read block
+// is not permanent - thread-context releases it once the user scrolls to the latest message
+// (applyThreadLoad, scrollDirection 'forward' with no moreToLoad) or jumps to recent. That live
+// block already gates mark-read inside the thread provider, so repeating it here could only
+// freeze it past its release.
+const NormalThreadProviders = (
+  p: React.PropsWithChildren<{id: T.Chat.ConversationIDKey; threadSearchVisible: boolean}>
+) => {
+  const {children, id, threadSearchVisible} = p
+  const [pendingHighlight] = React.useState(() => !!peekInputIntent(id, ['highlight']))
+  return (
+    <ConversationThreadLoadStatusProvider
+      allowMarkReadOnLoad={!threadSearchVisible}
+      id={id}
+      skipThreadLoadOnSelection={pendingHighlight}
+    >
+      {children}
+    </ConversationThreadLoadStatusProvider>
+  )
+}
+
 const NormalWrapper = function NormalWrapper() {
   const conversationIDKey = useConversationThreadID()
   const {active, mobileAppState} = useShellState(
     C.useShallow(s => ({active: s.active, mobileAppState: s.mobileAppState}))
   )
   const routeParams = useChatThreadRouteParams()
-  const skipThreadLoadOnSelection = !!routeParams?.highlightMessageID
-  const allowMarkReadOnLoad = !routeParams?.highlightMessageID && !routeParams?.threadSearch
+  const threadSearchVisible = !!routeParams?.threadSearch
   useShowManageChannels()
   return (
     <MaybeMentionProvider>
@@ -189,11 +219,10 @@ const NormalWrapper = function NormalWrapper() {
         mobileAppState={mobileAppState}
       >
         <ChatTeamProvider>
-          <ConversationThreadLoadStatusProvider
-            allowMarkReadOnLoad={allowMarkReadOnLoad}
+          <NormalThreadProviders
             key={conversationIDKey}
             id={conversationIDKey}
-            skipThreadLoadOnSelection={skipThreadLoadOnSelection}
+            threadSearchVisible={threadSearchVisible}
           >
             <ConversationCenterProvider id={conversationIDKey}>
               <ConversationInputProvider key={conversationIDKey} id={conversationIDKey}>
@@ -202,7 +231,7 @@ const NormalWrapper = function NormalWrapper() {
                 </ThreadRefsProvider>
               </ConversationInputProvider>
             </ConversationCenterProvider>
-          </ConversationThreadLoadStatusProvider>
+          </NormalThreadProviders>
         </ChatTeamProvider>
       </NormalOrangeLineProvider>
     </MaybeMentionProvider>

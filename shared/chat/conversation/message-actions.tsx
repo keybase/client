@@ -128,7 +128,7 @@ export const replyPrivatelyToConversationMessage = (message: T.Chat.Message) => 
 
     const text = formatTextForQuoting(message.text.stringValue())
     metasReceived([meta])
-    navigateToThread(newThreadCID, 'createdMessagePrivately', undefined, undefined, undefined, text)
+    navigateToThread(newThreadCID, 'createdMessagePrivately', {intent: {text, type: 'injectText'}})
   }
   ignorePromise(f())
 }

@@ -36,14 +36,9 @@ export const MobileSendToChat = (props: Props) => {
       })
     } else {
       clearModals()
-      C.Router2.navigateToThread(
-        conversationIDKey,
-        isFromShareExtension ? 'extension' : 'files',
-        undefined,
-        undefined,
-        undefined,
-        text
-      )
+      C.Router2.navigateToThread(conversationIDKey, isFromShareExtension ? 'extension' : 'files', {
+        intent: text === undefined ? undefined : {text, type: 'injectText'},
+      })
     }
   }
   return <ConversationList {...props} onSelect={onSelect} />

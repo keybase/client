@@ -1,13 +1,17 @@
 import * as React from 'react'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {clearThreadInputAction} from '@/constants/router'
 import {findLast} from '@/util/arrays'
-import {useChatThreadRouteParams, type ThreadInputAction} from '../thread-search-route'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useConversationThreadStore} from '../thread-context'
 import {useConversationSendActions} from '../send-actions'
+import {
+  consumeInputIntent,
+  registerInputIntentConsumer,
+  useInputIntentState,
+  type InputIntent,
+} from '../input-intent-store'
 
 type ConversationInputStore = T.Immutable<{
   commandMarkdown?: T.RPCChat.UICommandMarkdown
@@ -110,9 +114,14 @@ DispatchContext.displayName = 'ConversationInputDispatchContext'
 
 const actionConversationIDKey = (convID: string) => T.Chat.stringToConversationIDKey(convID)
 
+// 'highlight' belongs to ConversationCenterProvider; claiming it here would let this provider
+// silently eat an intent meant for the other consumer.
+// `as const` (not a widened ReadonlyArray<InputIntent['type']>) so consumeInputIntent's generic
+// narrows its return to exactly these four members - no cast needed at the call site below.
+const storeInputIntentTypes = ['commandStatus', 'injectText', 'setEditing', 'setReplyTo'] as const
+
 export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat.ConversationIDKey}>) => {
   const {children, id} = p
-  const routeInputAction = useChatThreadRouteParams()?.inputAction
   const [state, dispatchState] = React.useReducer(inputReducer, initialConversationInputStore)
   // Only setEditing reads thread state, so read it lazily instead of subscribing —
   // a subscription here re-renders the whole input subtree on every thread change.
@@ -165,10 +174,17 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
       ordinal = e
     }
 
-    // Both bails leave the composer exactly as it was, so from the message menu they read as
-    // "Edit did nothing". Say which one happened; there is no other signal that it did.
+    // A bail leaves the composer exactly as it was, so from the message menu it reads as "Edit
+    // did nothing" and there is no other signal that it happened - worth an error. 'last' is the
+    // desktop composer's up-arrow handler, though: pressing up in a conversation you have never
+    // posted in finds nothing to edit, which is an ordinary outcome and not a fault to report at
+    // error level, into remote logs, on every keystroke.
     if (!ordinal) {
-      logger.error(`[chat] setEditing found no editable message (${e === 'last' ? 'last' : 'ordinal'})`)
+      if (e === 'last') {
+        logger.info('[chat] setEditing found no editable message of yours (last)')
+      } else {
+        logger.error('[chat] setEditing found no editable message (ordinal)')
+      }
       return
     }
     const message = messageMap.get(ordinal)
@@ -211,35 +227,51 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
     toggleGiphyPrefill,
   }))
 
-  const applyInputAction = React.useEffectEvent((action: ThreadInputAction) => {
-    switch (action.type) {
-      case 'commandStatus':
-        setCommandStatusInfo(action.info)
-        break
-      case 'injectText':
-        injectIntoInput(action.text)
-        break
-      case 'setEditing':
-        setEditing(action.ordinal)
-        break
-      case 'setReplyTo':
-        setReplyTo(action.ordinal)
-        break
+  const applyInputAction = React.useEffectEvent(
+    (action: T.Immutable<Exclude<InputIntent, {type: 'highlight'}>>) => {
+      switch (action.type) {
+        case 'commandStatus':
+          setCommandStatusInfo(
+            action.info
+              ? {
+                  actions: T.castDraft(action.info.actions),
+                  displayText: action.info.displayText,
+                  displayType: action.info.displayType,
+                }
+              : undefined
+          )
+          break
+        case 'injectText':
+          injectIntoInput(action.text)
+          break
+        case 'setEditing':
+          setEditing(action.ordinal)
+          break
+        case 'setReplyTo':
+          setReplyTo(action.ordinal)
+          break
+      }
     }
-  })
-  const consumedInputActionRef = React.useRef<string | undefined>(undefined)
+  )
+  // Registration is what makes this provider's mount a fact the store can check instead of
+  // inferring it from "somebody consumed synchronously". It rides this passive effect, so it
+  // survives a react-freeze hide (layout effects only) but not <Activity mode="hidden">, which
+  // unmounts passive effects - see the registry in input-intent-store.tsx for what that costs.
   React.useEffect(() => {
-    if (!routeInputAction) {
-      consumedInputActionRef.current = undefined
-      return
+    const consume = () => {
+      const intent = consumeInputIntent(id, storeInputIntentTypes)
+      if (intent) {
+        applyInputAction(intent)
+      }
     }
-    if (consumedInputActionRef.current === routeInputAction.key) {
-      return
+    const unregister = registerInputIntentConsumer(id, storeInputIntentTypes)
+    consume()
+    const unsubscribe = useInputIntentState.subscribe(consume)
+    return () => {
+      unsubscribe()
+      unregister()
     }
-    consumedInputActionRef.current = routeInputAction.key
-    applyInputAction(routeInputAction)
-    clearThreadInputAction(routeInputAction.key)
-  }, [routeInputAction])
+  }, [id])
 
   useEngineActionListener('chat.1.chatUi.chatCommandStatus', action => {
     const {actions, convID, displayText, typ} = action.payload.params
@@ -286,8 +318,14 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
 
 // For callers that may or may not sit inside the provider — the message popup is rendered inline
 // in the thread on desktop but as its own modal route on phones, and from the info panel and the
-// attachment viewer it is outside the thread entirely. Inside, talk to the store directly; the
-// router round-trip is only there to reach across a screen boundary.
+// attachment viewer it is outside the thread entirely.
+//
+// Both paths end in the same reducer in the same tick: a mounted provider consumes an intent
+// synchronously inside the store's setState, so this is not a fast path against a slow one. What
+// the context gives you is scope - the dispatch belongs to the thread you are actually rendered
+// inside, so a popup cannot drive some other conversation's composer. Callers with no provider
+// above them name the conversation explicitly instead, through setThreadInputEditing /
+// setThreadInputReplyTo (constants/router.tsx) and the input-intent store.
 export function useConversationInputDispatchOptional(): ConversationInputDispatch | undefined {
   return React.useContext(DispatchContext)
 }
