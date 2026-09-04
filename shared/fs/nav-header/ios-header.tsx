@@ -68,7 +68,7 @@ type MenuProps = {
 }
 
 // iOS 26: a single overflow menu (one glass pill) replaces the old row of
-// upload + actions buttons. Search / Upload / More each fire the same popups
+// upload + actions buttons. Filter / Upload / More each fire the same popups
 // the Android header uses (the folder-view filter, the upload menu, and the
 // path-item actions menu). Because the native menu's onPress needs to reach
 // React state, the menu is attached from the screen body via setOptions rather
@@ -87,46 +87,60 @@ const IosHeaderMenuInner = ({path, mayUpload}: MenuProps) => {
   const canUpload = mayUpload && pathItem.type === T.FS.PathType.Folder && pathItem.writable
 
   React.useEffect(() => {
+    // Filter and Upload only apply to some screens; on a file preview neither
+    // does, and a menu holding a lone "More" is just an extra tap — so drop
+    // straight to a button that opens the actions popup.
+    const extras = [
+      ...(canFilter
+        ? [
+            {
+              icon: sfIcon('line.3.horizontal.decrease'),
+              label: 'Filter',
+              onPress: () => setFolderViewFilter(''),
+              type: 'action' as const,
+            },
+          ]
+        : []),
+      ...(canUpload
+        ? [
+            {
+              icon: sfIcon('arrow.up.doc'),
+              label: 'Upload',
+              onPress: () => uploadRef.current?.open(),
+              type: 'action' as const,
+            },
+          ]
+        : []),
+    ]
+    const openMore = () => moreRef.current?.open()
     navigation.setOptions({
       unstable_headerRightItems:
         hasSoftError || path === FS.defaultPath
           ? undefined
           : () => [
-              {
-                icon: sfIcon('ellipsis'),
-                label: 'More',
-                menu: {
-                  items: [
-                    ...(canFilter
-                      ? [
-                          {
-                            icon: sfIcon('magnifyingglass'),
-                            label: 'Search',
-                            onPress: () => setFolderViewFilter(''),
-                            type: 'action' as const,
-                          },
-                        ]
-                      : []),
-                    ...(canUpload
-                      ? [
-                          {
-                            icon: sfIcon('arrow.up.doc'),
-                            label: 'Upload',
-                            onPress: () => uploadRef.current?.open(),
-                            type: 'action' as const,
-                          },
-                        ]
-                      : []),
-                    {
-                      icon: sfIcon('ellipsis'),
-                      label: 'More',
-                      onPress: () => moreRef.current?.open(),
-                      type: 'action' as const,
+              extras.length
+                ? {
+                    icon: sfIcon('ellipsis'),
+                    label: 'More',
+                    menu: {
+                      items: [
+                        ...extras,
+                        {
+                          icon: sfIcon('ellipsis'),
+                          label: 'More',
+                          onPress: openMore,
+                          type: 'action' as const,
+                        },
+                      ],
                     },
-                  ],
-                },
-                type: 'menu' as const,
-              },
+                    type: 'menu' as const,
+                  }
+                : {
+                    icon: sfIcon('ellipsis'),
+                    label: 'More',
+                    onPress: openMore,
+                    type: 'button' as const,
+                  },
             ],
     })
   }, [navigation, hasSoftError, path, canFilter, canUpload, setFolderViewFilter])
