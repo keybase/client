@@ -42,6 +42,10 @@ export interface Spec extends TurboModule {
     endMs: number,
     removeAudio: boolean
   ): Promise<string>
+  // iOS only: presents the system share sheet for a local file. `text` is the
+  // file's contents when it is worth offering as text, '' otherwise (codegen
+  // has no optional string). Resolves true when an activity ran.
+  iosShareFile(path: string, text: string): Promise<boolean>
   androidShareText(text: string, mimeType: string): Promise<boolean>
   androidShare(text: string, mimeType: string): Promise<boolean>
   androidAddCompleteDownload(o: {

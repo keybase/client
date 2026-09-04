@@ -739,6 +739,11 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     }
 
     @ReactMethod
+    override fun iosShareFile(path: String, text: String, promise: Promise) {
+        promise.reject(Exception("wrong platform"))
+    }
+
+    @ReactMethod
     override fun processMedia(
         path: String,
         isVideo: Boolean,

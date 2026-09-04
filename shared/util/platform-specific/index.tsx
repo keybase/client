@@ -3,7 +3,7 @@ import logger from '@/logger'
 import * as MediaLibrary from 'expo-media-library'
 import * as ExpoLocation from 'expo-location'
 import {File} from 'expo-file-system'
-import {addNotificationRequest, androidShare, androidShareText} from 'react-native-kb'
+import {addNotificationRequest, androidShare, androidShareText, iosShareFile} from 'react-native-kb'
 import {ActionSheetIOS} from 'react-native'
 
 export const requestPermissionsToWrite = async () => {
@@ -95,6 +95,30 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
   }
 }
 
+// Reminders and the other text targets activate on the share item's
+// attributedContentText, which only a plain string item fills in -- handed just
+// a file they either save the file:// path as the reminder or don't show up at
+// all. iosShareFile sends the contents as their own item next to the file, and
+// keeps the text away from whatever would write it out a second time.
+const kMaxInlineShareTextBytes = 10 * 1024 * 1024
+
+const inlineShareText = async (filePath: string, mimeType: string): Promise<string | undefined> => {
+  if (!mimeType.startsWith('text/')) {
+    return undefined
+  }
+  try {
+    const file = new File(filePath.startsWith('file://') ? filePath : 'file://' + filePath)
+    // a text file this big is not going into a reminder; let it stay a file
+    if (file.size > kMaxInlineShareTextBytes) {
+      return undefined
+    }
+    return await file.text()
+  } catch (e) {
+    logger.info('failed to read share text, sharing the file alone: ' + String(e))
+    return undefined
+  }
+}
+
 export const showShareActionSheet = async (options: {
   filePath?: string
   message?: string
@@ -104,6 +128,11 @@ export const showShareActionSheet = async (options: {
     return Promise.reject(new Error('Show Share Action - unsupported on this platform'))
   }
   if (isIOS) {
+    if (options.filePath) {
+      const text = options.message ?? (await inlineShareText(options.filePath, options.mimeType))
+      await iosShareFile(options.filePath, text ?? '')
+      return
+    }
     return new Promise<void>((resolve, reject) => {
       ActionSheetIOS.showShareActionSheetWithOptions(
         {
