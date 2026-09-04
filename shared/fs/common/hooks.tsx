@@ -1354,6 +1354,12 @@ export const useFsWatchDownloadForMobile = isMobile
             dismissDownload(downloadID)
             setJustDoneWithIntent(true)
           } catch (err) {
+            // the hand-off is over either way: without this the download sits in
+            // the footer with nothing left to dismiss it, and whoever is waiting
+            // on the intent never hears back
+            handledIntentKeyRef.current = handledIntentKey
+            dismissDownload(downloadID)
+            setJustDoneWithIntent(true)
             errorToActionOrThrow(err)
           }
         }

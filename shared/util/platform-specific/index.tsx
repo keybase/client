@@ -100,7 +100,10 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
 // a file they either save the file:// path as the reminder or don't show up at
 // all. iosShareFile sends the contents as their own item next to the file, and
 // keeps the text away from whatever would write it out a second time.
-const kMaxInlineShareTextBytes = 10 * 1024 * 1024
+
+// the text crosses the bridge as a string and is held as one until the sheet
+// closes, and no target that takes text has any use for more than this
+const kMaxInlineShareTextBytes = 256 * 1024
 
 const inlineShareText = async (filePath: string, mimeType: string): Promise<string | undefined> => {
   if (!mimeType.startsWith('text/')) {
@@ -108,7 +111,7 @@ const inlineShareText = async (filePath: string, mimeType: string): Promise<stri
   }
   try {
     const file = new File(filePath.startsWith('file://') ? filePath : 'file://' + filePath)
-    // a text file this big is not going into a reminder; let it stay a file
+    // a text file past that is not going into a reminder; let it stay a file
     if (file.size > kMaxInlineShareTextBytes) {
       return undefined
     }

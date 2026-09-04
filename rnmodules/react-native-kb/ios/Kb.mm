@@ -717,8 +717,14 @@ RCT_EXPORT_METHOD(iosShareFile:(NSString *)path text:(NSString *)text resolve:(R
     }
     UIActivityViewController *share = [[UIActivityViewController alloc] initWithActivityItems:items
                                                                        applicationActivities:nil];
+    // both of these run on the main thread, so the flag needs no other guarding
+    __block BOOL settled = NO;
     share.completionWithItemsHandler =
         ^(UIActivityType activityType, BOOL completed, NSArray *returned, NSError *activityError) {
+          if (settled) {
+            return;
+          }
+          settled = YES;
           if (activityError) {
             reject(@"share_error", activityError.localizedDescription, activityError);
           } else {
@@ -734,7 +740,17 @@ RCT_EXPORT_METHOD(iosShareFile:(NSString *)path text:(NSString *)text resolve:(R
                                       CGRectGetMidY(presenter.view.bounds), 0, 0);
       popover.permittedArrowDirections = 0;
     }
-    [presenter presentViewController:share animated:YES completion:nil];
+    [presenter presentViewController:share
+                            animated:YES
+                          completion:^{
+                            // a refused presentation never reaches
+                            // completionWithItemsHandler, which would leave the
+                            // caller awaiting the share forever
+                            if (share.presentingViewController == nil && !settled) {
+                              settled = YES;
+                              reject(@"share_error", @"Could not present the share sheet", nil);
+                            }
+                          }];
   });
 }
 
