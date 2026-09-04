@@ -1342,10 +1342,15 @@ export const useFsWatchDownloadForMobile = isMobile
             handledIntentKeyRef.current = handledIntentKey
             return
           }
+          // Both failure paths below report done the way the success path does.
+          // Without it the download sits in the footer with nothing left to
+          // dismiss it, and whoever is waiting on the intent never hears back --
+          // for a share that means a popup left mounted and permanently hidden.
           if (dlState.error) {
             handledIntentKeyRef.current = handledIntentKey
             redbar(dlState.error)
             dismissDownload(downloadID)
+            setJustDoneWithIntent(true)
             return
           }
           try {
@@ -1354,6 +1359,9 @@ export const useFsWatchDownloadForMobile = isMobile
             dismissDownload(downloadID)
             setJustDoneWithIntent(true)
           } catch (err) {
+            handledIntentKeyRef.current = handledIntentKey
+            dismissDownload(downloadID)
+            setJustDoneWithIntent(true)
             errorToActionOrThrow(err)
           }
         }

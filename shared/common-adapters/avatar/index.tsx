@@ -18,8 +18,6 @@ type Props = {
   imageOverrideUrl?: string
   isTeam?: boolean
   onClick?: ((e?: React.BaseSyntheticEvent) => void) | 'profile'
-  onError?: () => void
-  onLoad?: () => void
   testID?: string
   size: 128 | 96 | 64 | 48 | 32 | 24 | 16
   // for callsites that will never have a name (e.g. the 'create a team' button); without it
@@ -175,8 +173,6 @@ function Avatar(p: Props) {
     style,
     children,
     testID,
-    onError,
-    onLoad,
   } = p
   const {showPlaceholder} = p
   const {imageOverrideUrl, crop} = p
@@ -282,14 +278,8 @@ function Avatar(p: Props) {
             style={cached.image}
             recyclingKey={name}
             cachePolicy="memory-disk"
-            onError={() => {
-              setErrorUri(source.uri)
-              onError?.()
-            }}
-            onLoad={() => {
-              setErrorUri(undefined)
-              onLoad?.()
-            }}
+            onError={() => setErrorUri(source.uri)}
+            onLoad={() => setErrorUri(undefined)}
           />
         </>
       ) : name || !isTeam || showPlaceholder ? (

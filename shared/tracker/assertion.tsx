@@ -95,9 +95,12 @@ const Assertion = (ownProps: OwnProps) => {
     if (metas.find(m => m.label === 'unreachable')) {
       return {
         header: (
-          <Kb.Text center={true} type="BodySmallSemibold" style={styles.popupHeaderTextRed}>
-            Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?
-          </Kb.Text>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.popupHeaderRed}>
+            <Kb.Text center={true} type="BodySmallSemibold" style={styles.popupHeaderText}>
+              Your proof could not be found, and Keybase has stopped checking. How would you like to
+              proceed?
+            </Kb.Text>
+          </Kb.Box2>
         ),
         items: [
           {onClick: onShowProof, title: 'View proof'},
@@ -120,9 +123,11 @@ const Assertion = (ownProps: OwnProps) => {
       }
       return {
         header: pendingMessage ? (
-          <Kb.Text center={true} type="BodySmallSemibold" style={styles.popupHeaderTextBlue}>
-            {pendingMessage}
-          </Kb.Text>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.popupHeaderBlue}>
+            <Kb.Text center={true} type="BodySmallSemibold" style={styles.popupHeaderText}>
+              {pendingMessage}
+            </Kb.Text>
+          </Kb.Box2>
         ) : null,
         items: [onRevoke],
       }
@@ -445,10 +450,13 @@ const AssertionSiteIcon = (p: SIProps) => {
   )
 }
 
-const popupHeaderTextBase = (theme: Kb.Styles.Theme) =>
+const popupHeaderBase = () =>
   ({
-    color: theme.white,
     ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
+    // the menu's card is rounded but can't clip its children — the valid-proof
+    // header hangs a decoration icon outside its bounds — so the banner rounds itself
+    borderTopLeftRadius: Kb.Styles.borderRadius,
+    borderTopRightRadius: Kb.Styles.borderRadius,
   }) as const
 
 const useStyles = Kb.Styles.createStyleHook(
@@ -458,10 +466,9 @@ const useStyles = Kb.Styles.createStyleHook(
       crypto: Kb.Styles.platformStyles({
         isElectron: {display: 'inline-block', fontSize: 11, wordBreak: 'break-all'},
       }),
-      floatingMenu: {
-        maxWidth: 240,
-        minWidth: 196,
-      },
+      floatingMenu: Kb.Styles.platformStyles({
+        isElectron: {maxWidth: 240, minWidth: 196},
+      }),
       // desktop is handled by css
       halfOpacity: Kb.Styles.platformStyles({isMobile: {opacity: 0.5}}),
       menuHeader: {
@@ -469,14 +476,15 @@ const useStyles = Kb.Styles.createStyleHook(
         padding: Kb.Styles.globalMargins.small,
       },
       metaAssertion: {flexShrink: 0, paddingLeft: 20 + Kb.Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
-      popupHeaderTextBlue: {
-        ...popupHeaderTextBase(theme),
+      popupHeaderBlue: {
+        ...popupHeaderBase(),
         backgroundColor: theme.blue,
       },
-      popupHeaderTextRed: {
-        ...popupHeaderTextBase(theme),
+      popupHeaderRed: {
+        ...popupHeaderBase(),
         backgroundColor: theme.red,
       },
+      popupHeaderText: {color: theme.white},
       site: {color: theme.black_20},
       siteIconFullDecoration: {bottom: -8, position: 'absolute', right: -10},
       statusAssertion: Kb.Styles.platformStyles({

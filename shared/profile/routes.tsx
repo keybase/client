@@ -158,6 +158,6 @@ export const newModalRoutes = defineRouteMap({
     getOptions: {modalSize: 'wide'},
   }),
   profileShowcaseTeamOffer: C.makeScreen(React.lazy(async () => import('./showcase-team-offer')), {
-    getOptions: {modalSize: 'wide', title: 'Feature your teams'},
+    getOptions: {...Kb.doneModalOptions('Feature your teams'), modalSize: 'wide'},
   }),
 })

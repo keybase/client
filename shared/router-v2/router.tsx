@@ -86,16 +86,7 @@ const onUnhandledAction = (a: Readonly<{type: string}>) => {
   logger.error(`[NAV] Unhandled action: ${a.type}`, a, C.Router2.logState())
 }
 const onStateChange = () => {
-  const navState = C.Router2.getRootState()
-  C.useRouterState.getState().dispatch.setNavState(navState)
-  if (isMobile && navState) {
-    const tab = C.Router2.getTab(navState)
-    const visible = C.Router2.getVisibleScreen(navState)?.name ?? 'none'
-    const tabRoot = tab ? tabRoots[tab] : undefined
-    logger.info(
-      `[AccountSwitcherHeader] navigation tab=${tab ?? 'none'} visible=${visible} root=${tabRoot || 'none'} expected=${visible === tabRoot ? 'yes' : 'no'}`
-    )
-  }
+  C.useRouterState.getState().dispatch.setNavState(C.Router2.getRootState())
 }
 const setNavRef = (ref: typeof C.Router2.navigationRef.current) => {
   if (ref) {
@@ -346,20 +337,24 @@ const tabStackOptions = ({
   navigation,
   route,
 }: {
-  navigation: {canGoBack: () => boolean}
-  route: {name: string}
+  navigation: {getState: () => {routes: ReadonlyArray<{key: string}>}}
+  route: {key: string}
 }): NativeStackNavigationOptions => {
-  const canGoBack = navigation.canGoBack()
-  logger.info(
-    `[AccountSwitcherHeader] options route=${route.name} canGoBack=${canGoBack ? 'yes' : 'no'} install=${canGoBack ? 'no' : 'yes'}`
-  )
+  // Ask THIS stack, not canGoBack(): canGoBack delegates to the parent navigators
+  // (@react-navigation/core useNavigationHelpers), and on a phone each tab stack holds
+  // only its root screen, so it always answered about the root stack instead. Anything
+  // pushed above the tabs then made every tab root look pushed, and since options are
+  // only recomputed when the tab stack re-renders, the avatar stayed gone after the
+  // push was popped — until some unrelated re-render (badge, theme) happened to land
+  // at depth 1.
+  const isRoot = navigation.getState().routes[0]?.key === route.key
   return {
     ...Common.defaultNavigationOptions,
     // Root screens show the account switcher avatar. Pushed screens use the
     // native back button (liquid glass pill on iOS 26).
-    headerBackVisible: canGoBack,
-    headerLeft: isAndroid && !canGoBack ? () => <AccountSwitchHeaderAvatar /> : undefined,
-    ...(isIOS && !canGoBack
+    headerBackVisible: !isRoot,
+    headerLeft: isAndroid && isRoot ? () => <AccountSwitchHeaderAvatar /> : undefined,
+    ...(isIOS && isRoot
       ? {
           unstable_headerLeftItems: () => [
             {

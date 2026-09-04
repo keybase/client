@@ -80,6 +80,7 @@ const TeamRow = (p: RowProps) => {
             label={showcased ? 'Featured' : 'Feature'}
             onClick={() => onPromote(!showcased)}
             small={true}
+            style={styles.promoteButton}
             type="Success"
             mode={showcased ? 'Secondary' : 'Primary'}
             waiting={waiting}
@@ -139,6 +140,12 @@ const useStyles = Kb.Styles.createStyleHook(
       noteText: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.large, Kb.Styles.globalMargins.small),
       },
+      // Feature / Featured are different lengths; pin a width wide enough for the
+      // longer label so the button doesn't resize as rows toggle.
+      promoteButton: Kb.Styles.platformStyles({
+        isElectron: {minWidth: 88},
+        isMobile: {minWidth: 112},
+      }),
       teamNameShowcaseTeamOffer: {flexShrink: 1},
       teamRowShowcaseTeamOffer: Kb.Styles.platformStyles({
         common: {

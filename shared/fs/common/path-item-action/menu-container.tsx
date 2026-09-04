@@ -168,18 +168,6 @@ const Container = (op: OwnProps) => {
     }
   })()
 
-  const itemShare = layout.share
-    ? ([
-        {
-          icon: 'iconfont-share',
-          onClick: () => {
-            setView(T.FS.PathItemActionMenuView.Share)
-          },
-          title: 'Share...',
-        },
-      ] as const)
-    : []
-
   const itemSendToChat = layout.sendAttachmentToChat
     ? ([
         {
@@ -192,7 +180,7 @@ const Container = (op: OwnProps) => {
           subTitle: `The ${
             pathItem.type === T.FS.PathType.Folder ? 'folder' : 'file'
           } will be sent as an attachment.`,
-          title: 'Attach in another conversation',
+          title: 'Share to Chat',
         },
       ] as const)
     : []
@@ -206,7 +194,7 @@ const Container = (op: OwnProps) => {
           icon: 'iconfont-share',
           inProgress: true,
           onClick: undefined,
-          title: 'Send to another app',
+          title: 'Share to another app',
         },
       ] as const
     } else {
@@ -218,7 +206,7 @@ const Container = (op: OwnProps) => {
           download(path, 'share', onDownloadStarted)
         }
       })
-      return [{icon: 'iconfont-share', onClick, title: 'Send to another app'}] as const
+      return [{icon: 'iconfont-share', onClick, title: 'Share to another app'}] as const
     }
   })()
 
@@ -339,7 +327,6 @@ const Container = (op: OwnProps) => {
     ...itemChat,
     ...itemFinder,
     ...itemSave,
-    ...itemShare,
     ...itemSendToChat,
     ...itemSendToApp,
     ...itemDownload,
@@ -357,12 +344,25 @@ const Container = (op: OwnProps) => {
     }
   }, [justDoneWithIntent, hide])
 
-  const userInitiatedHide = () => {
+  // The OS share sheet presents below our bottom sheet, which lives in a
+  // FullWindowOverlay, so the sheet has to be down before the download lands.
+  // Only the sheet goes: this component owns the hand-off to the OS and has to
+  // stay mounted for it, so it hides itself rather than calling hide().
+  const sheetVisible = visible && !sharing
+
+  // The sheet closing on its own above isn't the user dismissing the menu, and
+  // gorhom reports that close through onDismiss all the same. Read the latest
+  // sharing through an effect event: the callback the sheet was unmounted with
+  // is the stale one.
+  const userInitiatedHide = React.useEffectEvent(() => {
+    if (sharing) {
+      return
+    }
     hide()
     if (downloadID) {
       dismissDownload(downloadID)
     }
-  }
+  })
 
   return (
     <Kb.FloatingMenu
@@ -370,7 +370,7 @@ const Container = (op: OwnProps) => {
       closeOnSelect={false}
       containerStyle={containerStyle}
       attachTo={attachTo}
-      visible={visible}
+      visible={sheetVisible}
       onHidden={userInitiatedHide}
       position="left center"
       header={

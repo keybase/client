@@ -38,6 +38,16 @@ export const processMedia = (
   return Promise.resolve(path)
 }
 
+// iOS only. Shares the file, offering `text` (pass '' for none) alongside it so
+// targets that only take text get the contents, without the ones that write a
+// file getting both.
+export const iosShareFile = (path: string, text: string): Promise<boolean> => {
+  if (Platform.OS === 'ios') {
+    return Kb.iosShareFile(path, text)
+  }
+  return Promise.reject(new Error('wrong platform'))
+}
+
 export const androidShareText = (text: string, mimeType: string): Promise<boolean> => {
   if (Platform.OS === 'android') {
     return Kb.androidShareText(text, mimeType)

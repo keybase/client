@@ -184,6 +184,52 @@ static NSDictionary *kbConstants(void) {
   return constants;
 }
 
+// Targets that only take text (Reminders, Notes) activate on the share item's
+// attributedContentText, which nothing but a plain string item fills in, so the
+// contents have to go over as their own item next to the file. The two then
+// carry the same bytes, and anything that writes an item out saves both -- Save
+// to Files ends up with two identical copies -- so the text sits out those.
+@interface KbShareItem : NSObject <UIActivityItemSource>
+- (instancetype)initWithItem:(id)item subject:(NSString *)subject skipping:(NSSet<UIActivityType> *)skipping;
+@end
+
+@implementation KbShareItem {
+  id _item;
+  NSString *_subject;
+  NSSet<UIActivityType> *_skipping;
+}
+
+- (instancetype)initWithItem:(id)item subject:(NSString *)subject skipping:(NSSet<UIActivityType> *)skipping {
+  if ((self = [super init])) {
+    _item = item;
+    _subject = subject;
+    _skipping = skipping;
+  }
+  return self;
+}
+
+// the sheet builds its activity list from the placeholders, so this has to be
+// the real thing even where itemForActivityType later declines
+- (id)activityViewControllerPlaceholderItem:(UIActivityViewController *)activityViewController {
+  return _item;
+}
+
+- (id)activityViewController:(UIActivityViewController *)activityViewController
+         itemForActivityType:(UIActivityType)activityType {
+  if (activityType != nil && [_skipping containsObject:activityType]) {
+    return nil;
+  }
+  return _item;
+}
+
+- (NSString *)activityViewController:(UIActivityViewController *)activityViewController
+              subjectForActivityType:(UIActivityType)activityType {
+  return _subject;
+}
+
+@end
+
+
 @implementation Kb {
   // Guarded by kbBridgeMutex: written on the JS thread in
   // installJSIBindingsWithRuntime, read and cleared on the TurboModule shared
@@ -642,6 +688,70 @@ RCT_EXPORT_METHOD(processMedia:(NSString *)path isVideo:(BOOL)isVideo compress:(
   } else {
     [MediaUtils processImageFromOriginal:url compress:compress completion:done];
   }
+}
+
+RCT_EXPORT_METHOD(iosShareFile:(NSString *)path text:(NSString *)text resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
+  NSString *barePath = kbBarePath(path);
+  if (barePath.length == 0) {
+    reject(@"share_error", @"No file to share", nil);
+    return;
+  }
+  NSURL *fileURL = [NSURL fileURLWithPath:barePath];
+  NSString *name = fileURL.lastPathComponent;
+
+  NSMutableArray<KbShareItem *> *items = [NSMutableArray array];
+  if (text.length > 0) {
+    // no public constant for Save to Files
+    NSSet<UIActivityType> *writesAFile = [NSSet setWithObjects:@"com.apple.DocumentManagerUICore.SaveToFiles",
+                                                              @"com.apple.CloudDocsUI.AddToiCloudDrive",
+                                                              UIActivityTypeAirDrop, nil];
+    [items addObject:[[KbShareItem alloc] initWithItem:text subject:name skipping:writesAFile]];
+  }
+  [items addObject:[[KbShareItem alloc] initWithItem:fileURL subject:name skipping:nil]];
+
+  dispatch_async(dispatch_get_main_queue(), ^{
+    UIViewController *presenter = RCTPresentedViewController();
+    if (presenter == nil) {
+      reject(@"share_error", @"Nothing to present the share sheet from", nil);
+      return;
+    }
+    UIActivityViewController *share = [[UIActivityViewController alloc] initWithActivityItems:items
+                                                                       applicationActivities:nil];
+    // both of these run on the main thread, so the flag needs no other guarding
+    __block BOOL settled = NO;
+    share.completionWithItemsHandler =
+        ^(UIActivityType activityType, BOOL completed, NSArray *returned, NSError *activityError) {
+          if (settled) {
+            return;
+          }
+          settled = YES;
+          if (activityError) {
+            reject(@"share_error", activityError.localizedDescription, activityError);
+          } else {
+            resolve(@(completed));
+          }
+        };
+    // the menu that started this is already gone, so there is nothing left to
+    // anchor an iPad popover to; centre it on the presenter instead
+    UIPopoverPresentationController *popover = share.popoverPresentationController;
+    if (popover) {
+      popover.sourceView = presenter.view;
+      popover.sourceRect = CGRectMake(CGRectGetMidX(presenter.view.bounds),
+                                      CGRectGetMidY(presenter.view.bounds), 0, 0);
+      popover.permittedArrowDirections = 0;
+    }
+    [presenter presentViewController:share
+                            animated:YES
+                          completion:^{
+                            // a refused presentation never reaches
+                            // completionWithItemsHandler, which would leave the
+                            // caller awaiting the share forever
+                            if (share.presentingViewController == nil && !settled) {
+                              settled = YES;
+                              reject(@"share_error", @"Could not present the share sheet", nil);
+                            }
+                          }];
+  });
 }
 
 RCT_EXPORT_METHOD(checkPushPermissions: (RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject) {
