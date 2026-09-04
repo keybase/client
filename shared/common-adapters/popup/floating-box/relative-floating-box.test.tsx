@@ -46,7 +46,7 @@ const positionOf = (
   } = {}
 ): Positioned => {
   const {attach = true, ...rest} = extra
-  const {container} = render(
+  render(
     <RelativeFloatingBox
       attachTo={attach ? makeAttachTo(attachRect) : undefined}
       onClosePopup={() => {}}
@@ -56,7 +56,6 @@ const positionOf = (
       <Box2 direction="vertical">content</Box2>
     </RelativeFloatingBox>
   )
-  void container
   const modalRoot = document.getElementById('modal-root')!
   const node = modalRoot.lastElementChild as HTMLElement
   const {top, left, right, bottom, opacity} = node.style
