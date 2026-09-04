@@ -1,0 +1,18 @@
+diff --git a/node_modules/react-native-keyboard-controller/src/components/ScrollViewWithBottomPadding/index.tsx b/node_modules/react-native-keyboard-controller/src/components/ScrollViewWithBottomPadding/index.tsx
+index 637f79a..6fa60f1 100644
+--- a/node_modules/react-native-keyboard-controller/src/components/ScrollViewWithBottomPadding/index.tsx
++++ b/node_modules/react-native-keyboard-controller/src/components/ScrollViewWithBottomPadding/index.tsx
+@@ -155,6 +155,13 @@ const ScrollViewWithBottomPadding = forwardRef<
+           // offset), making the list mount scrolled to the top natively.
+           // eslint-disable-next-line react-compiler/react-compiler
+           prevContentOffsetY.value = curr;
++          // Declare the key even though the value is swallowed. Reanimated decides whether a
++          // settled update is a prop or a style from the keys of the FIRST evaluation
++          // (AnimatedComponent's `animatedPropsKeys`, built from `initial.value`). A key that
++          // only ever shows up later is filed as a style, which switches on the settled-props
++          // render path -- and that path re-renders a stale `settledProps` over the real props,
++          // putting `contentInset` back to 0 so UIKit clamps `contentOffset` to 0.
++          result.contentOffset = undefined;
+         } else if (curr !== prevContentOffsetY.value) {
+           prevContentOffsetY.value = curr;
+           result.contentOffset = { x: 0, y: curr };

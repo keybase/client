@@ -35,7 +35,6 @@ import type {ScrollViewProps} from 'react-native'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import {
   KeyboardChatScrollView,
-  KeyboardEvents,
   useKeyboardState,
   useReanimatedKeyboardAnimation,
 } from 'react-native-keyboard-controller'
@@ -747,10 +746,6 @@ const maintainVisibleContentPositionNoAutoscroll = {
   minIndexForVisible: 0,
 }
 
-// Smallest offset (px) the keyboard-inset clamp can start from: it only ever fires from
-// inside the inset region, so anything shallower is an ordinary scroll, not the clamp.
-const minClampJump = 40
-
 const NativeConversationList = function NativeConversationList() {
   const nativeStyles = useNativeStyles()
   const List = FlatList as unknown as React.ComponentType<
@@ -793,11 +788,6 @@ const NativeConversationList = function NativeConversationList() {
 
   const insets = useSafeAreaInsets()
   const isKeyboardVisible = useKeyboardState((s: {isVisible: boolean}) => s.isVisible)
-  // read from the scroll handler and from deferred timers, both of which run after render
-  const isKeyboardVisibleRef = React.useRef(isKeyboardVisible)
-  React.useLayoutEffect(() => {
-    isKeyboardVisibleRef.current = isKeyboardVisible
-  })
 
   // While the thread-search bar is open it overlays the bottom of the list. Reserve
   // that height as extra content padding so centered/newest messages clear it.
@@ -864,90 +854,20 @@ const NativeConversationList = function NativeConversationList() {
       listRef.current?.scrollToOffset({animated: false, offset: newOffset})
     }
   )
-  // iOS: the keyboard inset on this list's scroll view lives only in the UI-thread props
-  // KeyboardChatScrollView animates — the React tree still carries contentInset 0. Any commit
-  // that reaches the scroll view node re-mounts that 0, and UIKit's
-  // _adjustContentOffsetIfNecessary then clamps contentOffset to 0, dropping the thread by the
-  // keyboard's height so the newest messages sit behind it (typing is the usual trigger, since
-  // it is the first commit after the keyboard opens). Reanimated restores the inset on its next
-  // pass but never the offset, so only the offset needs putting back. The clamp is
-  // recognizable: it lands exactly on 0 from inside the inset region (offset < 0, i.e. pinned
-  // at the newest message), teleports the whole inset in one frame, and arrives with no drag or
-  // keyboard transition in flight — none of which a real scroll to the end does.
-  const isUserScrollingRef = React.useRef(false)
-  const isKeyboardAnimatingRef = React.useRef(false)
   const [onScrollNative] = React.useState(
     () =>
       (e: {nativeEvent: {contentOffset: {y: number}; contentSize: {height: number}}}) => {
-        const y = e.nativeEvent.contentOffset.y
-        const prevY = scrollOffsetRef.current
-        scrollOffsetRef.current = y
+        scrollOffsetRef.current = e.nativeEvent.contentOffset.y
         contentHeightRef.current = e.nativeEvent.contentSize.height
-        if (
-          isIOS &&
-          y === 0 &&
-          prevY <= -minClampJump &&
-          isKeyboardVisibleRef.current &&
-          !isUserScrollingRef.current &&
-          !isKeyboardAnimatingRef.current
-        ) {
-          scrollOffsetRef.current = prevY
-          listRef.current?.scrollToOffset({animated: false, offset: prevY})
-        }
       }
   )
   const [onContentSizeChangeNative] = React.useState(() => (_w: number, h: number) => {
     contentHeightRef.current = h
   })
-  const userScrollTimerRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  const [clearUserScrollTimer] = React.useState(() => () => {
-    if (userScrollTimerRef.current !== undefined) {
-      clearTimeout(userScrollTimerRef.current)
-      userScrollTimerRef.current = undefined
-    }
-  })
   // user touched the list: stop fighting them
   const [onScrollBeginDrag] = React.useState(() => () => {
-    clearUserScrollTimer()
-    isUserScrollingRef.current = true
     correctRef.current.active = false
   })
-  const [onScrollEndDrag] = React.useState(() => () => {
-    clearUserScrollTimer()
-    userScrollTimerRef.current = setTimeout(() => {
-      userScrollTimerRef.current = undefined
-      isUserScrollingRef.current = false
-    }, 400)
-  })
-  const [onMomentumScrollEnd] = React.useState(() => () => {
-    clearUserScrollTimer()
-    isUserScrollingRef.current = false
-  })
-
-  React.useEffect(() => {
-    return () => {
-      clearUserScrollTimer()
-    }
-  }, [clearUserScrollTimer])
-  // the keyboard transition moves the offset itself; don't read those frames as the clamp
-  React.useEffect(() => {
-    if (!isIOS) return undefined
-    const subs = [
-      ...(['keyboardWillShow', 'keyboardWillHide'] as const).map(ev =>
-        KeyboardEvents.addListener(ev, () => {
-          isKeyboardAnimatingRef.current = true
-        })
-      ),
-      ...(['keyboardDidShow', 'keyboardDidHide'] as const).map(ev =>
-        KeyboardEvents.addListener(ev, () => {
-          isKeyboardAnimatingRef.current = false
-        })
-      ),
-    ]
-    return () => {
-      subs.forEach(sub => sub.remove())
-    }
-  }, [])
 
   const jumpToRecent = useJumpToRecent(scrollToBottom, messageOrdinals.length)
 
@@ -960,6 +880,10 @@ const NativeConversationList = function NativeConversationList() {
   // baseline resets on a real conversation switch (value compare) rather than on
   // a react-native-screens freeze/thaw, which re-mounts effects.
   const numBaselineConvRef = React.useRef(conversationIDKey)
+  const isKeyboardVisibleRef = React.useRef(isKeyboardVisible)
+  React.useLayoutEffect(() => {
+    isKeyboardVisibleRef.current = isKeyboardVisible
+  })
   React.useLayoutEffect(() => {
     const sameConv = numBaselineConvRef.current === conversationIDKey
     numBaselineConvRef.current = conversationIDKey
@@ -1098,8 +1022,6 @@ const NativeConversationList = function NativeConversationList() {
             scrollEventThrottle={16}
             onContentSizeChange={onContentSizeChangeNative}
             onScrollBeginDrag={onScrollBeginDrag}
-            onScrollEndDrag={onScrollEndDrag}
-            onMomentumScrollEnd={onMomentumScrollEnd}
             keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
             keyExtractor={keyExtractor}
