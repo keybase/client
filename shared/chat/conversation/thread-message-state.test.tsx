@@ -80,6 +80,7 @@ const makeThreadState = (
     messageMap,
     messageOrdinals,
     messageTypeMap,
+    moreToLoadForward: false,
     pendingOutboxToOrdinal,
     ...extra,
   }
@@ -398,11 +399,203 @@ describe('addMessagesToThreadState', () => {
     expect(state.validatedOrdinalRange).toEqual({from: 5, to: 60})
   })
 
+  test('a notification may not strand a new ordinal below the loaded window', () => {
+    // The post-load ResolveSkippedUnboxeds push can carry the channel-name message at ID 1 long
+    // after the window has moved on. Adding it puts an orphan row at index 0 and breaks scrollback.
+    const state = makeThreadState([])
+    addMessagesToThreadState(state, [textAt(7152), textAt(7153)], {})
+    addMessagesToThreadState(state, [textAt(1)], {dropNewBelowWindow: true})
+    expect(state.messageOrdinals).toEqual([7152, 7153])
+  })
+
+  test('a notification still updates a message already inside the window', () => {
+    const state = makeThreadState([])
+    addMessagesToThreadState(state, [textAt(10), textAt(20)], {})
+    addMessagesToThreadState(state, [textAt(10, {text: 'edited'})], {dropNewBelowWindow: true})
+    expect(state.messageOrdinals).toEqual([10, 20])
+    const m = state.messageMap.get(T.Chat.numberToOrdinal(10))
+    expect(m?.type === 'text' ? m.text.stringValue() : undefined).toBe('edited')
+  })
+
+  test('a notification may still append a new ordinal above the window', () => {
+    const state = makeThreadState([])
+    addMessagesToThreadState(state, [textAt(10), textAt(20)], {})
+    addMessagesToThreadState(state, [textAt(21)], {dropNewBelowWindow: true})
+    expect(state.messageOrdinals).toEqual([10, 20, 21])
+  })
+
+  test('a thread load may still extend the window downward', () => {
+    const state = makeThreadState([])
+    addMessagesToThreadState(state, [textAt(7152), textAt(7153)], {})
+    addMessagesToThreadState(state, [textAt(7038)], {})
+    expect(state.messageOrdinals).toEqual([7038, 7152, 7153])
+  })
+
+  test('a superseded placeholder does not strand its own ordinal in the list', () => {
+    // A sent message keeps the fractional ordinal it had in the outbox, so a later placeholder for
+    // the same message ID maps onto that fractional ordinal, not its own integer one.
+    const state = makeThreadState([])
+    addMessagesToThreadState(
+      state,
+      [
+        makeTextMessage({
+          id: T.Chat.numberToMessageID(100),
+          ordinal: T.Chat.numberToOrdinal(100.001),
+          outboxID: undefined,
+        }),
+      ],
+      {}
+    )
+    expect(state.messageOrdinals).toEqual([100.001])
+    addMessagesToThreadState(
+      state,
+      [
+        Message.makeMessagePlaceholder({
+          conversationIDKey: convID,
+          id: T.Chat.numberToMessageID(100),
+          ordinal: T.Chat.numberToOrdinal(100),
+        }),
+      ],
+      {}
+    )
+    expect(state.messageOrdinals).toEqual([100.001])
+    expect(state.messageMap.has(T.Chat.numberToOrdinal(100))).toBe(false)
+  })
+
   test('the render type index only tracks non text messages', () => {
     const state = makeThreadState([])
     const attachment = makeAttachmentMessage({ordinal: T.Chat.numberToOrdinal(20), outboxID: undefined})
     addMessagesToThreadState(state, [textAt(10), attachment], {})
     expect(state.messageTypeMap.has(T.Chat.numberToOrdinal(10))).toBe(false)
     expect(state.messageTypeMap.get(T.Chat.numberToOrdinal(20))).toBe('attachment:file')
+  })
+
+  test('a placeholder for a message we already hold does not get it pruned', () => {
+    // Regression: the placeholder bailed out of incomingOrdinals bookkeeping, so the validatedRange
+    // prune saw its ordinal as absent from the response and deleted the real message underneath.
+    // A quick-mode Pull returns a placeholder for anything it could not unbox, so this is the
+    // ordinary shape of a focused refresh, not an edge case.
+    const state = makeThreadState([textAt(49), textAt(50), textAt(51)])
+    addMessagesToThreadState(
+      state,
+      [textAt(49), Message.makeMessagePlaceholder({ordinal: T.Chat.numberToOrdinal(50)}), textAt(51)],
+      {validatedRange: {from: T.Chat.numberToOrdinal(49), to: T.Chat.numberToOrdinal(51)}}
+    )
+    expect(state.messageOrdinals).toEqual([
+      T.Chat.numberToOrdinal(49),
+      T.Chat.numberToOrdinal(50),
+      T.Chat.numberToOrdinal(51),
+    ])
+    expect(state.messageMap.get(T.Chat.numberToOrdinal(50))?.type).toEqual('text')
+  })
+
+  test('a message dropped below the window leaves nothing behind in the maps', () => {
+    const state = makeThreadState([textAt(7152), textAt(7153)])
+    addMessagesToThreadState(state, [textAt(1)], {dropNewBelowWindow: true})
+
+    expect(state.messageOrdinals).toEqual([
+      T.Chat.numberToOrdinal(7152),
+      T.Chat.numberToOrdinal(7153),
+    ])
+    // The ordinal is not in the list, so nothing may still point at it. An entry left in these maps
+    // makes getOrdinalForMessageID hand out an ordinal with no row, and callers act on a message the
+    // thread is not showing.
+    expect(state.messageMap.has(T.Chat.numberToOrdinal(1))).toBe(false)
+    expect(state.messageIDToOrdinal.has(T.Chat.numberToMessageID(1))).toBe(false)
+    expect(state.messageTypeMap.has(T.Chat.numberToOrdinal(1))).toBe(false)
+  })
+
+  test('a message dropped below the window does not disturb one already in the window', () => {
+    const state = makeThreadState([textAt(7152), textAt(7153)])
+    addMessagesToThreadState(state, [textAt(1), textAt(7152)], {dropNewBelowWindow: true})
+
+    expect(state.messageOrdinals).toEqual([
+      T.Chat.numberToOrdinal(7152),
+      T.Chat.numberToOrdinal(7153),
+    ])
+    expect(state.messageMap.has(T.Chat.numberToOrdinal(1))).toBe(false)
+    expect(state.messageMap.has(T.Chat.numberToOrdinal(7152))).toBe(true)
+    expect(state.messageIDToOrdinal.get(T.Chat.numberToMessageID(7152))).toEqual(
+      T.Chat.numberToOrdinal(7152)
+    )
+  })
+
+  test('a message newer than the window is dropped while there is more to load forward', () => {
+    // A centered jump - a search result - leaves a contiguous window with more on both sides of it.
+    // A push newer than the ceiling has a hole under it just as a below-floor one has a hole over
+    // it, and paging forward is what fills that hole.
+    const state = makeThreadState([textAt(7152), textAt(7153)], {moreToLoadForward: true})
+    addMessagesToThreadState(state, [textAt(9001)], {dropNewBelowWindow: true})
+
+    expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(7152), T.Chat.numberToOrdinal(7153)])
+    expect(state.messageMap.has(T.Chat.numberToOrdinal(9001))).toBe(false)
+  })
+
+  test('a message newer than the window appends once the window reaches the newest message', () => {
+    // The ordinary live path: the window contains the latest message, so there is no hole to open
+    // above it and an incoming message must land.
+    const state = makeThreadState([textAt(7152), textAt(7153)], {moreToLoadForward: false})
+    addMessagesToThreadState(state, [textAt(9001)], {dropNewBelowWindow: true})
+
+    expect(state.messageOrdinals).toEqual([
+      T.Chat.numberToOrdinal(7152),
+      T.Chat.numberToOrdinal(7153),
+      T.Chat.numberToOrdinal(9001),
+    ])
+  })
+
+  test('a cleared window refuses a notification in either direction', () => {
+    // messagesClear wipes messageOrdinals and marks the gap, because jumpToRecent and a centered
+    // jump both clear then reload. A push landing in that gap would otherwise face an empty window,
+    // install itself as the whole of it, and strand once the load response arrives. Neither reload
+    // can be predicted from the old window - a centered jump lands on an arbitrary region, and
+    // jump-to-recent on the newest page, which is nowhere near a reader parked far back - so above
+    // strands as surely as below.
+    const state = makeThreadState([])
+    state.windowCleared = true
+    addMessagesToThreadState(state, [textAt(1), textAt(7155), textAt(9001)], {dropNewBelowWindow: true})
+    expect(state.messageOrdinals ?? []).toEqual([])
+
+    // ...and the load that follows populates it normally.
+    addMessagesToThreadState(state, [textAt(8900), textAt(8901)], {})
+    expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(8900), T.Chat.numberToOrdinal(8901)])
+  })
+
+  test('with no window and nothing cleared a notification still applies', () => {
+    // A conversation that has never held a window - a first load, or one that is genuinely empty.
+    // There is no floor to be below, so nothing is dropped and a new message appears at once.
+    const state = makeThreadState([])
+    addMessagesToThreadState(state, [textAt(1)], {dropNewBelowWindow: true})
+    expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(1)])
+  })
+
+  test('a message remapped out of the window is dropped, not stranded', () => {
+    // The window is judged on the ordinal the message will occupy, which an outbox or messageID
+    // match can move. Here messageIDToOrdinal still points at an ancient ordinal the thread no
+    // longer renders, so a push whose own ordinal sits inside the window remaps outside it.
+    const state = makeThreadState([textAt(7152), textAt(7153)], {moreToLoadForward: true})
+    const strandedOrdinal = T.Chat.numberToOrdinal(1)
+    const messageID = T.Chat.numberToMessageID(7153)
+    // An entry the thread no longer renders: gone from the ordinal list, still in the map and index.
+    state.messageMap.set(strandedOrdinal, T.castDraft(textAt(1, {id: messageID})))
+    state.messageIDToOrdinal.set(messageID, strandedOrdinal)
+
+    addMessagesToThreadState(state, [textAt(7153)], {dropNewBelowWindow: true})
+
+    expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(7152), T.Chat.numberToOrdinal(7153)])
+  })
+
+  test('a message remapped onto a row already in the window still merges', () => {
+    // The mirror of the case above: the raw ordinal is outside the window but the row it maps onto
+    // is one the thread is already showing, so this is an update to that row, not a new one.
+    const sent = textAt(7153, {outboxID: T.Chat.stringToOutboxID('sent-1')})
+    const state = makeThreadState([textAt(7152), sent], {moreToLoadForward: true})
+    const resent = textAt(1, {outboxID: T.Chat.stringToOutboxID('sent-1'), text: 'edited'})
+
+    addMessagesToThreadState(state, [resent], {dropNewBelowWindow: true})
+
+    expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(7152), T.Chat.numberToOrdinal(7153)])
+    const merged = state.messageMap.get(T.Chat.numberToOrdinal(7153))
+    expect(merged?.type === 'text' && merged.text.stringValue()).toBe('edited')
   })
 })

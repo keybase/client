@@ -107,6 +107,10 @@ export type ConversationThreadState = {
   messageIDToOrdinal: Map<T.Chat.MessageID, T.Chat.Ordinal>
   messageMap: Map<T.Chat.Ordinal, T.Chat.Message>
   messageOrdinals?: ReadonlyArray<T.Chat.Ordinal>
+  // Set between a messagesClear and the reload that refills the window, so a notification arriving
+  // in that gap cannot install itself as the new window. Cleared once that load settles, however it
+  // settles - see clearWindowGate.
+  windowCleared?: boolean
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType>
   moreToLoadBack: boolean
   moreToLoadForward: boolean
@@ -187,6 +191,12 @@ export type LoadMoreMessagesParams = ThreadLoadStatusOptions & {
   messageIDControl?: T.RPCChat.MessageIDControl | null
   numberOfMessagesToLoad?: number
   reason: string
+  // Internal: set only by the empty-back-page reload in thread-load.tsx, carrying the oldest
+  // message ID the previous attempt saw. Each reload must reach strictly further back than that,
+  // which is what stops it looping. Callers leave it unset.
+  retryBelowMessageID?: T.Chat.MessageID
+  // How many times the back-page reload has already chained. See maxBackPageReloads.
+  retryCount?: number
   scrollDirection?: ScrollDirection
 }
 type LoadMoreMessages = ((p: LoadMoreMessagesParams) => void) & {cancel: () => void}
@@ -225,7 +235,6 @@ export type ConversationThreadActions = {
     scrollDirection: ScrollDirection
     validatedRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
   }) => void
-  clearValidatedOrdinalRange: () => void
   clearUnfurlPrompt: (messageID: T.Chat.MessageID, domain: string) => void
   deleteMessages: (p: {
     messageIDs?: ReadonlyArray<T.Chat.MessageID>
@@ -239,6 +248,7 @@ export type ConversationThreadActions = {
     explodedBy?: string,
     liveUpdate?: boolean
   ) => void
+  clearWindowGate: () => void
   getSnapshot: () => ConversationThreadState
   loadMoreMessages: LoadMoreMessages
   markThreadAsRead: () => void
@@ -428,6 +438,16 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         logger.info('mark read bail on unloaded thread')
         return
       }
+      // Marking read overwrites the read position, so it must not run before we know what that
+      // position was. An unlocalized conversation reads -1, which a db nuke makes the norm, and
+      // localization races the thread load - mark-read needs neither, it reads the newest message
+      // out of the window. If it wins that race the true read position is gone before useOrangeLine
+      // ever sees it, localization then lands already advanced, and the thread shows no unread
+      // divider at all. Wait for localization; the effect below runs this again once it lands.
+      if ((getInboxConversationMeta(id)?.readMsgID ?? T.Chat.numberToMessageID(-1)) < 0) {
+        logger.info('mark read bail on unlocalized conversation')
+        return
+      }
       if (snapshot.moreToLoadForward) {
         logger.info('mark read bail on not containing latest message')
         return
@@ -458,6 +478,23 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       markThreadAsRead()
     }
   }, [lookingAtThread])
+  // The other half of the unlocalized bail above: whatever mark-read attempt was refused for want of
+  // a read position, run it again now that there is one. Only on the transition, so an ordinary
+  // mark-read moving readMsgID does not bounce back through here.
+  //
+  // useOrangeLine latches in a child of this provider, and React runs child effects first, so it has
+  // already asked for the unreadline against the pre-mark position by the time this fires.
+  const metaReadMsgID = useInboxMetadataState(
+    s => (s.metas.get(id) ?? emptyConversationMeta).readMsgID
+  )
+  const wasUnlocalizedRef = React.useRef(metaReadMsgID < 0)
+  React.useEffect(() => {
+    const wasUnlocalized = wasUnlocalizedRef.current
+    wasUnlocalizedRef.current = metaReadMsgID < 0
+    if (wasUnlocalized && metaReadMsgID >= 0) {
+      markThreadAsRead()
+    }
+  }, [metaReadMsgID])
   const addMessages = React.useEffectEvent(
     (
       messages: ReadonlyArray<T.Chat.Message>,
@@ -471,7 +508,11 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         if (opt.liveUpdate) {
           s.liveUpdateVersion += 1
         }
-        addMessagesToThreadState(s, messages, {validatedRange: opt.validatedRange})
+        addMessagesToThreadState(s, messages, {
+          // Only thread loads may extend the window downward; a notification must not.
+          dropNewBelowWindow: true,
+          validatedRange: opt.validatedRange,
+        })
         clearOptimisticReactionsForMessagesInThreadState(s, messages)
       })
       if (opt.markAsRead) {
@@ -498,6 +539,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
     }) => {
       updateThreadState(s => {
         s.loaded = true
+        s.windowCleared = false
         if (p.messages.length) {
           addMessagesToThreadState(s, p.messages, {validatedRange: p.validatedRange})
           clearOptimisticReactionsForMessagesInThreadState(s, p.messages)
@@ -866,9 +908,15 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       markThreadAsRead()
     }
   )
-  const clearValidatedOrdinalRange = React.useEffectEvent(() => {
+  // applyThreadLoad drops the gate when a load refills the window, but a load can end without ever
+  // applying: offline, scchatnotinteam, or a response that carries no thread. Left alone the gate
+  // would keep dropping notifications for the life of the provider, with no window to correct it.
+  const clearWindowGate = React.useEffectEvent(() => {
+    if (!threadStore.getState().windowCleared) {
+      return
+    }
     updateThreadState(s => {
-      s.validatedOrdinalRange = undefined
+      s.windowCleared = false
     })
   })
   const messagesClear = React.useEffectEvent(() => {
@@ -878,6 +926,12 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       s.clearVersion += 1
       s.pendingOutboxToOrdinal.clear()
       s.loaded = false
+      // Mark the gap. A notification landing between here and the reload would otherwise face an
+      // empty window, install itself as the whole of it, and strand once the load response arrives.
+      // Both callers reload a region disjoint from the one being dropped - a centered jump an
+      // arbitrary one, jumpToRecent the newest page - so nothing arriving first can be placed
+      // against what is coming.
+      s.windowCleared = true
       s.messageIDToOrdinal.clear()
       s.messageMap.clear()
       s.messageOrdinals = undefined
@@ -1001,7 +1055,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       addOptimisticReaction,
       applyThreadLoad,
       clearUnfurlPrompt,
-      clearValidatedOrdinalRange,
+      clearWindowGate,
       completeAttachmentDownload,
       deleteMessages,
       explodeMessages,
@@ -1184,12 +1238,15 @@ export const useConversationThreadLoadMessagesCentered = () => {
 }
 
 export const useConversationThreadJumpToRecent = () => {
-  const {clearValidatedOrdinalRange, setMarkReadBlocked} = useConversationThreadActions()
+  const {setMarkReadBlocked} = useConversationThreadActions()
   const loadMoreMessages = useConversationThreadLoadMoreMessages()
+  const messagesClear = useConversationThreadMessagesClear()
 
   const jumpToRecent: JumpToRecent = options => {
     setMarkReadBlocked(false)
-    clearValidatedOrdinalRange()
+    // The newest window is disjoint from wherever the reader was, so merging the two would leave a
+    // gap in the ordinals. Drop the old window first, the way a centered jump does.
+    messagesClear()
     loadMoreMessages({...(options ?? {}), reason: 'jump to recent'})
   }
   return jumpToRecent

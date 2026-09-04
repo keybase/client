@@ -455,47 +455,8 @@ export const useConversationAttachmentActions = () => {
     ignorePromise(f())
   }
 
-  const loadNextAttachment = async (from: T.Chat.Ordinal, backInTime: boolean) => {
-    const fromMsg = threadStore.getState().messageMap.get(from)
-    if (!fromMsg) {
-      return Promise.reject(new Error('Incorrect from'))
-    }
-    const {deviceName, username} = useCurrentUserState.getState()
-    const getLastOrdinal = () => threadStore.getState().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
-    const result = await T.RPCChat.localGetNextAttachmentMessageLocalRpcPromise({
-      assetTypes: [T.RPCChat.AssetMetadataType.image, T.RPCChat.AssetMetadataType.video],
-      backInTime,
-      convID: T.Chat.keyToConversationID(conversationIDKey),
-      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-      messageID: fromMsg.id,
-    })
-
-    if (result.message) {
-      const goodMessage = Message.uiMessageToMessage(
-        conversationIDKey,
-        result.message,
-        username,
-        getLastOrdinal,
-        deviceName
-      )
-      if (goodMessage?.type === 'attachment') {
-        actions.addMessages([goodMessage])
-        let ordinal = goodMessage.ordinal
-        if (goodMessage.outboxID && !threadStore.getState().messageMap.get(ordinal)) {
-          const pendingOrdinal = threadStore.getState().pendingOutboxToOrdinal.get(goodMessage.outboxID)
-          if (pendingOrdinal) {
-            ordinal = pendingOrdinal
-          }
-        }
-        return ordinal
-      }
-    }
-    return Promise.reject(new Error('No more results'))
-  }
-
   return {
     attachmentDownload,
-    loadNextAttachment,
     messageAttachmentNativeSave,
     messageAttachmentNativeShare,
     showAttachmentPreview: (ordinal: T.Chat.Ordinal, message?: T.Chat.MessageAttachment) => {

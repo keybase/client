@@ -23,6 +23,9 @@ import type {
 } from './thread-context'
 
 export const numMessagesOnInitialLoad = isMobile ? 20 : 100
+// How far the no-new-ordinals back-page chain will walk on its own before handing the thread back to
+// the reader. See the reload block in loadConversationThreadMessages.
+export const maxBackPageReloads = 10
 export const numMessagesOnScrollback = 100
 
 const ignoreErrors = [
@@ -162,7 +165,12 @@ export const loadConversationThreadMessages = (
   if (!T.Chat.isValidConversationIDKey(conversationIDKey)) {
     return
   }
-  const {scrollDirection = 'none', numberOfMessagesToLoad = numMessagesOnInitialLoad} = p
+  const {
+    scrollDirection = 'none',
+    numberOfMessagesToLoad = numMessagesOnInitialLoad,
+    retryBelowMessageID,
+    retryCount = 0,
+  } = p
   const {
     allowMarkAsRead = true,
     reason,
@@ -187,9 +195,25 @@ export const loadConversationThreadMessages = (
     }
 
     const loadStartedSnapshot = actions.getSnapshot()
+    const clearVersionAtLoadStart = loadStartedSnapshot.clearVersion
+    // applyThreadLoad drops the window gate when a load refills the window, but a load can end
+    // without ever applying: offline, scchatnotinteam, a response carrying no thread, or a bail
+    // before the RPC is even made. Left alone the gate would keep dropping notifications for the
+    // life of the provider, which is a thread that silently stops receiving messages.
+    //
+    // Keyed on clearVersion, not on isThreadLoadCurrent: the load generation only moves when the
+    // conversation changes or the thread unmounts, so two loads of the same conversation both call
+    // themselves current. A load that started before the clear would otherwise pull down the gate
+    // belonging to the load that started after it, while that one is still in flight.
+    const releaseWindowGate = () => {
+      if (actions.getSnapshot().clearVersion === clearVersionAtLoadStart) {
+        actions.clearWindowGate()
+      }
+    }
     const currentMeta = getMeta(conversationIDKey)
     if (currentMeta.membershipType === 'youAreReset' || currentMeta.rekeyers.size > 0) {
       logger.info('loadMoreMessages: bail: we are reset')
+      releaseWindowGate()
       return
     }
     const loadStartedLiveUpdateVersion = loadStartedSnapshot.liveUpdateVersion
@@ -204,7 +228,21 @@ export const loadConversationThreadMessages = (
     )
 
     const loadingKey = Strings.waitingKeyChatThreadLoad(conversationIDKey)
-    let reconciled = false
+    // Set once a cached response arrives carrying messages. Once the service has sent a cached
+    // thread it switches the full response to INCREMENTAL, filtering it down to only the messages
+    // that changed (chat/uithreadloader.go mergeLocalRemoteThread). From that point neither response
+    // is a complete window. Judged on the messages, not on the response: a cold cache still sends a
+    // pass, because PullLocalOnly's collector suppresses the miss, and that pass carries no
+    // messages - INCREMENTAL against an empty local thread filters nothing out, so the full pass
+    // that follows is a whole window after all.
+    let sawCachedPass = false
+    // The reload below is judged against the whole load, not one pass of it. A warm-cache load
+    // delivers the page on the cached pass and then an INCREMENTAL full pass carrying only what
+    // changed, so measuring the full pass alone says "added nothing" for a perfectly good page.
+    // Measuring from before either pass tells the two apart: a page of real messages moves this,
+    // a page of tombstones does not, wherever it arrived.
+    const floorAtLoadStart = loadStartedSnapshot.messageOrdinals?.[0]
+    let oldestSeenThisLoad = Number.MAX_SAFE_INTEGER as T.Chat.MessageID
     const onGotThread = (thread: string, why: string) => {
       if (!thread) {
         return
@@ -231,6 +269,9 @@ export const loadConversationThreadMessages = (
         devicename,
         () => getLastOrdinalFromSnapshot(actions.getSnapshot())
       )
+      if (why === 'cached' && messages.length) {
+        sawCachedPass = true
+      }
       const moreToLoad = pagination ? !pagination.last : true
       const canMarkReadForThreadWindow =
         allowMarkAsRead &&
@@ -239,19 +280,24 @@ export const loadConversationThreadMessages = (
         scrollDirection !== 'back' &&
         reason !== 'findNewestConversation' &&
         reason !== 'findNewestConversationFromLayout'
+      // Pruning is only safe against a response that is a whole window: a full pass with no cached
+      // pass before it. Anything else is partial, and pruning against it deletes messages that are
+      // still in the thread.
       let validatedRange: {from: T.Chat.Ordinal; to: T.Chat.Ordinal} | undefined
-      if (messages.length) {
-        if (scrollDirection === 'none' && !reconciled) {
-          const ords = messages
-            .filter(m => m.conversationMessage !== false && m.type !== 'deleted')
-            .map(m => m.ordinal)
-          if (ords.length > 0) {
-            validatedRange = {
-              from: Math.min(...ords) as T.Chat.Ordinal,
-              to: Math.max(...ords) as T.Chat.Ordinal,
-            }
+      if (messages.length && scrollDirection === 'none' && why === 'full' && !sawCachedPass) {
+        const ords = messages
+          .filter(m => m.conversationMessage !== false && m.type !== 'deleted')
+          .map(m => m.ordinal)
+        if (ords.length > 0) {
+          validatedRange = {
+            from: Math.min(...ords) as T.Chat.Ordinal,
+            to: Math.max(...ords) as T.Chat.Ordinal,
           }
-          reconciled = true
+        }
+      }
+      for (const m of messages) {
+        if (m.id > 0 && m.id < oldestSeenThisLoad) {
+          oldestSeenThisLoad = m.id
         }
       }
       actions.applyThreadLoad({
@@ -264,6 +310,52 @@ export const loadConversationThreadMessages = (
         scrollDirection,
         validatedRange,
       })
+      const after = actions.getSnapshot()
+      // A back page can be composed entirely of messages the thread will never render: a message
+      // superseded by a DELETE arrives as a hidden placeholder, becomes `deleted`, and addMessages
+      // drops it. The ordinal list is then identical to what it was, so the list never fires
+      // onStartReached again and scrollback stops even though the pager says there is more. Ask for
+      // the next page ourselves.
+      //
+      // The tombstones still carry message IDs, and each page reaches further back than the last,
+      // so requiring strict progress terminates: message IDs are finite and only ever decrease
+      // here. Strict progress alone is a weak bound though - a channel whose history was largely
+      // expunged has tens of thousands of them, which is minutes of paging off one gesture - so the
+      // chain also stops after maxBackPageReloads. Stopping is safe: the reader is still pinned at
+      // the top with an unchanged list, and scrolling away and back fires onStartReached again,
+      // which starts a fresh chain from wherever this one left off.
+      const floorAfter = after.messageOrdinals?.[0]
+      const windowGrewDownward =
+        floorAfter !== undefined && (floorAtLoadStart === undefined || floorAfter < floorAtLoadStart)
+      if (
+        scrollDirection === 'back' &&
+        // The full pass is the last one of a load, so by here the whole load has been applied.
+        why === 'full' &&
+        moreToLoad &&
+        // The floor, not the count: a page can add real messages while its `deleted` entries
+        // remove more from the window, which nets negative on a count but is real progress.
+        !windowGrewDownward &&
+        oldestSeenThisLoad < (retryBelowMessageID ?? Number.MAX_SAFE_INTEGER) &&
+        retryCount < maxBackPageReloads &&
+        // A clear under us - jump to recent, a centered jump - means this chain is walking back
+        // from a window that no longer exists, and would prepend pages the reader never asked for.
+        after.clearVersion === clearVersionAtLoadStart
+      ) {
+        logger.info(
+          `loadMoreMessages: back page added no ordinals, reloading below ${oldestSeenThisLoad} (${
+            retryCount + 1
+          }/${maxBackPageReloads}): convID: ${conversationIDKey}`
+        )
+        // Through the action, not loadConversationThreadMessages directly: the action carries the
+        // 500ms throttle and the unmount cancel(), and a long run of tombstones would otherwise
+        // issue these back to back with no pacing. The throttle only ever drops a call that a
+        // later load supersedes, and that load extends the window or retries in turn.
+        actions.loadMoreMessages({
+          ...p,
+          retryBelowMessageID: oldestSeenThisLoad,
+          retryCount: retryCount + 1,
+        })
+      }
 
       if (canMarkReadForThreadWindow) {
         actions.markThreadAsRead()
@@ -313,6 +405,8 @@ export const loadConversationThreadMessages = (
           throw error
         }
       }
+    } finally {
+      releaseWindowGate()
     }
   }
 

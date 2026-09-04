@@ -58,18 +58,36 @@ const useOrangeLine = (
   const {maxVisibleMsgID, readMsgID} = useThreadMeta(
     C.useShallow(m => ({maxVisibleMsgID: m.maxVisibleMsgID, readMsgID: m.readMsgID}))
   )
-  // Keep the read position from when this conversation mounted. Mark-as-read updates
-  // readMsgID shortly after navigation, but the open thread should retain its orange line.
-  const [initialReadMsgID] = React.useState(() => readMsgID)
+  // Keep the read position from when this conversation mounted. Mark-as-read updates readMsgID
+  // shortly after navigation, but the open thread should retain its orange line.
+  //
+  // An unlocalized conversation reads -1 ("not known yet"), which a DB nuke makes the norm, so
+  // freezing on mount would pin that and the thread would never get an orange line for the life of
+  // the mount. Wait for the first real value instead.
+  const [mountReadMsgID] = React.useState(() => readMsgID)
+  // Fall back to the live value only while the mount-time one is unknown; once the latch below
+  // fires it stops mattering, so this cannot drift as mark-as-read moves readMsgID.
+  const initialReadMsgID = mountReadMsgID >= 0 ? mountReadMsgID : readMsgID
 
   const loadOrangeLine = React.useEffectEvent(
     (conversationIDKey: T.Chat.ConversationIDKey, readMsgID: T.Chat.MessageID) => {
+      // Negative means we do not know the read position yet: an unlocalized conversation reads -1
+      // from emptyConversationMeta, which a DB nuke makes the norm, and the old code turned that
+      // into 0 - so the service answered "everything is unread" and put the line above the oldest
+      // message. Since the state is set once and only refreshed while the conversation is
+      // inactive, that answer stuck.
+      //
+      // Zero is different and must still be asked: ReaderInfo reports 0 for a conversation you
+      // have genuinely never read, where "everything is unread" is the right answer.
+      if (readMsgID < 0) {
+        return
+      }
       const f = async () => {
         const convID = T.Chat.keyToConversationID(conversationIDKey)
         const unreadlineRes = await T.RPCChat.localGetUnreadlineRpcPromise({
           convID,
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-          readMsgID: readMsgID < 0 ? 0 : readMsgID,
+          readMsgID,
         })
         const nextOrangeLine = T.Chat.numberToOrdinal(
           unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
@@ -100,7 +118,9 @@ const useOrangeLine = (
   // messages we sent ourselves.
   const initialOrangeLineLoadedRef = React.useRef(false)
   React.useEffect(() => {
-    if (loaded && !initialOrangeLineLoadedRef.current) {
+    // Only claim the latch once there is a read position to ask about, so an unlocalized
+    // conversation gets its orange line when localization lands rather than never.
+    if (loaded && !initialOrangeLineLoadedRef.current && initialReadMsgID >= 0) {
       initialOrangeLineLoadedRef.current = true
       loadOrangeLine(id, initialReadMsgID)
     }
