@@ -311,7 +311,7 @@ const useCollapseAction = (ordinal: T.Chat.Ordinal) => {
 const useCollapseIconDesktop = (ordinal: T.Chat.Ordinal, isCollapsed: boolean, isWhite: boolean) => {
   const onCollapse = useCollapseAction(ordinal)
   return (
-    <Kb.ClickableBox direction="horizontal" alignSelf="flex-start" gap="xtiny" onClick={onCollapse}>
+    <Kb.ClickableBox direction="horizontal" alignSelf="center" gap="xtiny" onClick={onCollapse}>
       <CollapseIcon isCollapsed={isCollapsed} isWhite={isWhite} />
     </Kb.ClickableBox>
   )
@@ -324,7 +324,7 @@ export const Collapsed = ({isCollapsed, ordinal}: {isCollapsed: boolean; ordinal
   const onCollapse = useCollapseAction(ordinal)
   const collapseIcon = useCollapseIcon(ordinal, isCollapsed, false)
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={true}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
       <Kb.Text type="BodyTiny" onClick={onCollapse}>
         Collapsed
       </Kb.Text>
