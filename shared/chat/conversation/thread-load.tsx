@@ -188,16 +188,6 @@ export const loadConversationThreadMessages = (
   const isCurrentThreadLoad = () => isThreadLoadCurrent?.() ?? true
 
   const f = async () => {
-    if (!isCurrentThreadLoad()) {
-      logger.info('loadMoreMessages: bail: stale mounted thread load')
-      return
-    }
-
-    if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
-      logger.info('loadMoreMessages: bail: no conversationIDKey')
-      return
-    }
-
     const loadStartedSnapshot = actions.getSnapshot()
     const clearVersionAtLoadStart = loadStartedSnapshot.clearVersion
     // applyThreadLoad drops the window gate when a load refills the window, but a load can end
@@ -223,6 +213,21 @@ export const loadConversationThreadMessages = (
         actions.clearWindowGate(loadID)
       }
     }
+    // Every bail from here on releases, including the two that used to sit above the claim: the
+    // clear issues its reload synchronously, so if that reload is the one bailing there is nothing
+    // else coming to take the gate down, and the thread stops receiving messages for good.
+    if (!isCurrentThreadLoad()) {
+      logger.info('loadMoreMessages: bail: stale mounted thread load')
+      releaseWindowGate()
+      return
+    }
+
+    if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
+      logger.info('loadMoreMessages: bail: no conversationIDKey')
+      releaseWindowGate()
+      return
+    }
+
     const currentMeta = getMeta(conversationIDKey)
     if (currentMeta.membershipType === 'youAreReset' || currentMeta.rekeyers.size > 0) {
       logger.info('loadMoreMessages: bail: we are reset')
@@ -248,14 +253,20 @@ export const loadConversationThreadMessages = (
     // where localSentThread is that exact pass). Neither pass is a whole window on its own, so the
     // two are gathered here and the last one reconciles against the both of them.
     const carried = new Set<T.Chat.Ordinal>()
-    // Whether a cached pass reached us at all, and whether it made it into the window. They come
-    // apart: the gate-owner guard turns a pass away, and the owner can drop the gate before the
-    // full pass arrives, so a load can have its cached pass refused and its full pass admitted. The
-    // service counts that cached pass as sent either way, so what follows is still INCREMENTAL -
-    // only the messages that changed - and reconciling against those alone would take out every row
-    // between them. Recorded before the guards, because the guards are what turn a pass away.
-    let sawCachedResponse = false
-    let appliedCachedPass = false
+    // A load is all or nothing. Once one of its passes is turned away, the rest of them are too:
+    // the service filters each pass against what it has already sent this load, so the ones that
+    // follow a refused pass are a subset of a window we never took, and both ways of using them
+    // are wrong. Merging one into whatever refilled the window in the meantime is the disjoint
+    // window this whole invariant exists to prevent; reconciling against one takes out every row
+    // between the few messages it happens to carry.
+    let refusedAPass = false
+    // Whether the service's cached goroutine reported at all - with a thread, or with the nil it
+    // sends when the local cache had nothing. It is the only evidence the client gets that the
+    // full pass was not filtered behind our back: the service records the cached thread as sent
+    // before it marshals it, so a marshal failure there leaves us with an INCREMENTAL full pass
+    // and no sign of the pass it was filtered against (LoadNonblock in
+    // go/chat/uithreadloader.go). No report, no reconciling.
+    let sawCachedReport = false
     // The reload below is judged against the whole load, not one pass of it. A warm-cache load
     // delivers the page on the cached pass and then an INCREMENTAL full pass carrying only what
     // changed, so measuring the full pass alone says "added nothing" for a perfectly good page.
@@ -265,15 +276,18 @@ export const loadConversationThreadMessages = (
     let oldestSeenThisLoad = Number.MAX_SAFE_INTEGER as T.Chat.MessageID
     const onGotThread = (thread: string, why: string) => {
       if (!thread) {
-        // No cached thread was sent, so the service has nothing to filter the full pass against and
-        // it stays a whole window. Deliberately not counted as a cached response.
         return
       }
-      if (why === 'cached') {
-        sawCachedResponse = true
+      if (refusedAPass) {
+        logger.info(`loadMoreMessages: pass ignored, an earlier one of this load was: ${why}`)
+        return
+      }
+      const refuse = (msg: string) => {
+        refusedAPass = true
+        logger.info(msg)
       }
       if (!isCurrentThreadLoad()) {
-        logger.info(`loadMoreMessages: stale response ignored: ${why}`)
+        refuse(`loadMoreMessages: stale response ignored: ${why}`)
         return
       }
       // A clear under us - jump to recent, a centered jump - dropped the window this load was
@@ -284,7 +298,7 @@ export const loadConversationThreadMessages = (
       // reload, which then merges its own page into the leftovers.
       const snapshotAtResponse = actions.getSnapshot()
       if (snapshotAtResponse.clearVersion !== clearVersionAtLoadStart) {
-        logger.info(`loadMoreMessages: response ignored after clear: ${why}`)
+        refuse(`loadMoreMessages: response ignored after clear: ${why}`)
         return
       }
       // clearVersion cannot separate two loads issued after the same clear, and the second one is
@@ -299,11 +313,11 @@ export const loadConversationThreadMessages = (
         snapshotAtResponse.windowGateOwner !== undefined &&
         snapshotAtResponse.windowGateOwner !== loadID
       ) {
-        logger.info(`loadMoreMessages: response ignored, another load owns the window: ${why}`)
+        refuse(`loadMoreMessages: response ignored, another load owns the window: ${why}`)
         return
       }
       if (protectLoadedFocusRefresh && snapshotAtResponse.liveUpdateVersion !== loadStartedLiveUpdateVersion) {
-        logger.info(
+        refuse(
           `loadMoreMessages: stale response ignored after live update: ${why} reason=${reason} convID=${conversationIDKey}`
         )
         return
@@ -332,9 +346,7 @@ export const loadConversationThreadMessages = (
       // would leave the stale-row cleanup running on cold caches only, which is where ghost rows
       // are least likely to be: a reopened conversation is warm every time.
       const reconcile: ThreadLoadReconcile | undefined =
-        scrollDirection === 'none'
-          ? {carried, prune: why === 'full' && !(sawCachedResponse && !appliedCachedPass)}
-          : undefined
+        scrollDirection === 'none' ? {carried, prune: why === 'full' && sawCachedReport} : undefined
       for (const m of messages) {
         if (m.id > 0 && m.id < oldestSeenThisLoad) {
           oldestSeenThisLoad = m.id
@@ -351,9 +363,6 @@ export const loadConversationThreadMessages = (
         scrollDirection,
       })
       const after = actions.getSnapshot()
-      if (why === 'cached') {
-        appliedCachedPass = true
-      }
       // A back page can be composed entirely of messages the thread will never render: a message
       // superseded by a DELETE arrives as a hidden placeholder, becomes `deleted`, and addMessages
       // drops it. The ordinal list is then identical to what it was, so the list never fires
@@ -422,7 +431,10 @@ export const loadConversationThreadMessages = (
         conversationIDKey,
         knownRemotes,
         messageIDControl,
-        onCachedThread: thread => onGotThread(thread, 'cached'),
+        onCachedThread: thread => {
+          sawCachedReport = true
+          onGotThread(thread, 'cached')
+        },
         onFullThread: thread => onGotThread(thread, 'full'),
         onThreadStatus: status => {
           logger.info(

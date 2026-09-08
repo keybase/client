@@ -621,45 +621,6 @@ describe('addMessagesToThreadState', () => {
     expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(7153), T.Chat.numberToOrdinal(9001)])
   })
 
-  test('a pending send lands during a jump-to-recent gap', () => {
-    // The reader sends from a search-jumped thread: input-area posts and jumps to recent in the
-    // same tick, so the clear happens first and the outbox notification arrives into the gap. Its
-    // ordinal is the service's - the outbox record's, above the newest message - so it belongs in
-    // the very page the reload is fetching, and dropping it leaves the composer empty with no
-    // "sending..." row for as long as that reload takes.
-    const pending = makeTextMessage({
-      id: T.Chat.numberToMessageID(0),
-      ordinal: T.Chat.numberToOrdinal(7153.001),
-      outboxID: T.Chat.stringToOutboxID('sending-1'),
-      submitState: 'pending',
-    })
-    const state = makeThreadState([])
-    state.windowCleared = true
-    state.windowClearedForNewest = true
-    addMessagesToThreadState(state, [pending], {dropNewBelowWindow: true})
-    expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(7153.001)])
-
-    // Nothing else gets in on its coattails.
-    addMessagesToThreadState(state, [textAt(9001)], {dropNewBelowWindow: true})
-    expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(7153.001)])
-  })
-
-  test('a pending send is still dropped during a centered-jump gap', () => {
-    // The exemption is only sound because jump-to-recent reloads the newest page. A centered jump
-    // lands on an arbitrary older region, and a pending row sitting at the bottom of the thread
-    // would strand above it once that page arrives.
-    const pending = makeTextMessage({
-      id: T.Chat.numberToMessageID(0),
-      ordinal: T.Chat.numberToOrdinal(7153.001),
-      outboxID: T.Chat.stringToOutboxID('sending-1'),
-      submitState: 'pending',
-    })
-    const state = makeThreadState([])
-    state.windowCleared = true
-    addMessagesToThreadState(state, [pending], {dropNewBelowWindow: true})
-    expect(state.messageOrdinals ?? []).toEqual([])
-  })
-
   test('a message remapped out of the window is dropped, not stranded', () => {
     // The window is judged on the ordinal the message will occupy, which an outbox or messageID
     // match can move. Here messageIDToOrdinal still points at an ancient ordinal the thread no

@@ -112,10 +112,6 @@ export type ConversationThreadState = {
   // in that gap cannot install itself as the new window. Cleared once that load settles, however it
   // settles - see clearWindowGate.
   windowCleared?: boolean
-  // Whether the reload the clear issued fetches the newest page, which is the one region a message
-  // arriving during the gap can still be placed against. See the pending-send exemption in
-  // addMessagesToThreadState.
-  windowClearedForNewest?: boolean
   // The load that owns the gate above: the first one to claim it after the clear, which is the
   // reload the clear issued. Only that load may drop the gate. clearVersion alone cannot tell two
   // loads of the same conversation apart, and a second load at the same generation - a
@@ -223,7 +219,7 @@ type LoadNewerMessagesDueToScroll = (
   options?: ThreadLoadStatusOptions
 ) => void
 type JumpToRecent = (options?: ThreadLoadStatusOptions) => void
-type MessagesClear = (opts?: {reloadsNewest?: boolean}) => void
+type MessagesClear = () => void
 type SelectedConversation = (options?: SelectedConversationOptions) => void
 export type ConversationThreadActions = {
   addMessages: (
@@ -545,9 +541,8 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       reconcile?: ThreadLoadReconcile
       scrollDirection: ScrollDirection
     }) => {
-      // Judged on what this pass carried rather than on the window being non-empty: a pending send
-      // of our own is admitted during a jump-to-recent gap, and a window holding only that must not
-      // read as a window this load filled.
+      // Judged on what this pass carried rather than on the state of the window, so the gate turns
+      // on the one thing that decides it: whether this pass put a row on screen.
       const carriedRenderedMessage = p.messages.some(
         m => m.conversationMessage !== false && m.type !== 'deleted'
       )
@@ -555,8 +550,11 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         s.loaded = true
         // The reconciling pass runs even with nothing to add: the warm reload where nothing changed
         // answers with an empty full pass, and the span its earlier pass covered is authoritative
-        // all the same - the stale rows inside it are exactly what the prune is for.
-        if (p.messages.length || p.reconcile) {
+        // all the same - the stale rows inside it are exactly what the prune is for. A pass with
+        // neither is skipped rather than passed through: addMessagesToThreadState always leaves a
+        // messageOrdinals array behind, and an empty one reads as a loaded, empty thread - the top
+        // of the conversation renders against it and then swaps when the real page arrives.
+        if (p.messages.length || p.reconcile?.prune) {
           addMessagesToThreadState(s, p.messages, {reconcile: p.reconcile})
           clearOptimisticReactionsForMessagesInThreadState(s, p.messages)
         }
@@ -567,7 +565,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         // an ordinal releases the gate in its own finally instead - see clearWindowGate.
         if (carriedRenderedMessage) {
           s.windowCleared = false
-          s.windowClearedForNewest = undefined
           s.windowGateOwner = undefined
         }
         switch (p.scrollDirection) {
@@ -961,11 +958,10 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
     }
     updateThreadState(d => {
       d.windowCleared = false
-      d.windowClearedForNewest = undefined
       d.windowGateOwner = undefined
     })
   })
-  const messagesClear = React.useEffectEvent((opts?: {reloadsNewest?: boolean}) => {
+  const messagesClear = React.useEffectEvent(() => {
     activeMarkReadEnabledRef.current = false
     shownUsernameCache.clear()
     updateThreadState(s => {
@@ -978,7 +974,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       // arbitrary one, jumpToRecent the newest page - so nothing arriving first can be placed
       // against what is coming.
       s.windowCleared = true
-      s.windowClearedForNewest = opts?.reloadsNewest
       s.windowGateOwner = undefined
       s.messageIDToOrdinal.clear()
       s.messageMap.clear()
@@ -1293,10 +1288,8 @@ export const useConversationThreadJumpToRecent = () => {
   const jumpToRecent: JumpToRecent = options => {
     setMarkReadBlocked(false)
     // The newest window is disjoint from wherever the reader was, so merging the two would leave a
-    // gap in the ordinals. Drop the old window first, the way a centered jump does - but say that
-    // the reload covers the newest page, so a send made in the same breath still shows its pending
-    // row (input-area/normal sends and then jumps here).
-    messagesClear({reloadsNewest: true})
+    // gap in the ordinals. Drop the old window first, the way a centered jump does.
+    messagesClear()
     loadMoreMessages({...(options ?? {}), reason: 'jump to recent'})
   }
   return jumpToRecent

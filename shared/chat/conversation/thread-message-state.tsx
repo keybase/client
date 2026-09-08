@@ -3,10 +3,6 @@ import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
 import type {WritableDraft} from '@/util/zustand'
 
-// A message we are posting: it exists only in the outbox, so it has no server ID yet.
-const isPendingSend = (m: T.Chat.Message) =>
-  !m.id && 'submitState' in m && m.submitState === 'pending'
-
 type MessageLookup = Pick<T.Chat.Message, 'id' | 'ordinal'>
 
 // How a thread load reconciles the window against what the service returned.
@@ -33,10 +29,6 @@ type WritableConversationThreadMessageState = {
   // there is no window to place an arriving message against. See the drop rules in
   // addMessagesToThreadState.
   windowCleared?: boolean
-  // Whether the reload that clear issued fetches the newest page. Only jump-to-recent does; a
-  // centered jump lands on an arbitrary older region. It is the one case where something arriving
-  // during the gap can be placed after all - see the pending-send exemption below.
-  windowClearedForNewest?: boolean
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType>
   // Set by a thread load, cleared by messagesClear: whether either flag below means anything yet.
   loaded: boolean
@@ -241,7 +233,7 @@ export const addMessagesToThreadState = (
   // not render, and getOrdinalForMessageID would then hand out an ordinal with no row. Nothing is
   // lost either way: paging to it loads it in the ordinary way.
   const windowCeiling = ords?.[ords.length - 1]
-  const isOutsideWindow = (o: T.Chat.Ordinal, m: T.Chat.Message) => {
+  const isOutsideWindow = (o: T.Chat.Ordinal) => {
     if (!dropNewBelowWindow || existing.has(o)) {
       return false
     }
@@ -251,14 +243,6 @@ export const addMessagesToThreadState = (
     // reader was. A message landing in the gap that the reload does not carry waits for the next
     // load or push; a stranded ordinal, by contrast, breaks paging for the life of the thread.
     if (state.windowCleared) {
-      // A send of our own is the exception, and only while the reload is fetching the newest page.
-      // Its ordinal comes from the service (the outbox record's, not our window's), so it sits at
-      // the bottom of the thread, which is exactly the region that reload is going to cover -
-      // nothing can open under it. Dropping it instead shows the composer emptying with no
-      // "sending..." row behind it, for as long as the reload takes.
-      if (state.windowClearedForNewest && isPendingSend(m)) {
-        return false
-      }
       return true
     }
     // moreToLoadBack starts false and only a thread load ever sets it, so until one has landed a
@@ -284,7 +268,7 @@ export const addMessagesToThreadState = (
     // Judged on mapOrdinal, the ordinal the message will actually occupy: an outbox or messageID
     // match can move it out of the window, or onto a row already inside it. Deletions and
     // non-conversation messages are not rows, so the window does not bound them.
-    if (regularMessage && _m.type !== 'deleted' && isOutsideWindow(mapOrdinal, _m)) {
+    if (regularMessage && _m.type !== 'deleted' && isOutsideWindow(mapOrdinal)) {
       incomingOrdinals.delete(_m.ordinal)
       incomingOrdinals.delete(mapOrdinal)
       continue

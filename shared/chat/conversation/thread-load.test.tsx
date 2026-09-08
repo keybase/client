@@ -453,6 +453,22 @@ describe('a load releases the window gate it was issued under', () => {
     resetAllStores()
   })
 
+  test('releases it when the load bails before the rpc is even made', async () => {
+    // The clear issues its reload synchronously, so if that reload is the one bailing there is
+    // nothing else coming to take the gate down and the thread stops receiving messages for good.
+    const rpc = jest.spyOn(ThreadRpc, 'loadThreadNonblock')
+    const actions = gateActions(() => 3)
+    loadConversationThreadMessages(
+      conversationIDKey,
+      {isThreadLoadCurrent: () => false, reason: 'focused'},
+      actions
+    )
+    await flushPromises()
+
+    expect(rpc).not.toHaveBeenCalled()
+    expect(actions.clearWindowGate).toHaveBeenCalledTimes(1)
+  })
+
   test('releases it when the load ends without ever applying', async () => {
     // A response that carries no thread: applyThreadLoad never runs, so nothing else would take the
     // gate down. Left up it drops every notification for the life of the provider.
@@ -725,6 +741,25 @@ describe('only a pass that can account for a whole window reconciles', () => {
       )
       // The load that owned the gate settles here, so the full pass is no longer refused.
       ownedByAnother = false
+      p.onFullThread?.(
+        JSON.stringify({messages: page(7153, 7150), pagination: {last: false, num: 100}})
+      )
+      return undefined as never
+    })
+    loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
+    await flushPromises()
+
+    expect(actions.applyThreadLoad).not.toHaveBeenCalled()
+  })
+
+  test('does not reconcile when the service never reported a cached pass', async () => {
+    // The service records the cached thread as sent before it marshals it, so a failure there
+    // leaves the full pass INCREMENTAL against a pass we were never shown. The cached callback
+    // firing - with a thread, or with the nil a cold cache sends - is the only sign we get that
+    // this did not happen.
+    const actions = recordingActions()
+    jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+      await Promise.resolve()
       p.onFullThread?.(
         JSON.stringify({messages: page(7153, 7150), pagination: {last: false, num: 100}})
       )

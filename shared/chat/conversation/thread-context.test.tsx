@@ -1891,31 +1891,12 @@ test('only the load that claimed the window gate may drop it', () => {
   expect(result.current.actions.getSnapshot().windowCleared).toBe(false)
 })
 
-test('a window holding only a pending send is not a window the load filled', () => {
-  // The pending-send exemption lets our own outbox row in during a jump-to-recent gap, so the
-  // window is no longer empty. The gate must still be judged on what the load carried: an empty
-  // cached pass arriving behind that row would otherwise read as "the load filled the window" and
-  // drop the gate before the real page is anywhere.
+test('an empty pass leaves the thread unloaded rather than loaded and empty', () => {
+  // addMessagesToThreadState always leaves a messageOrdinals array behind, and the top-of-thread
+  // block reads `messageOrdinals !== undefined` as "this conversation has loaded at least once".
+  // A cold open answers with an empty cached pass first, so handing that pass to the store renders
+  // the top of the conversation against an empty thread, which then swaps when the page lands.
   const {result} = renderHook(() => ({actions: useConversationThreadActions()}), {wrapper})
-
-  act(() => {
-    result.current.actions.messagesClear({reloadsNewest: true})
-  })
-  act(() => {
-    result.current.actions.addMessages(
-      [
-        Message.makeMessageText({
-          conversationIDKey: convID,
-          ordinal: T.Chat.numberToOrdinal(7153.001),
-          outboxID: T.Chat.stringToOutboxID('sending-1'),
-          submitState: 'pending',
-          text: new HiddenString('hi'),
-        }),
-      ],
-      {liveUpdate: true}
-    )
-  })
-  expect(result.current.actions.getSnapshot().messageOrdinals).toEqual([7153.001])
 
   act(() => {
     result.current.actions.applyThreadLoad({
@@ -1923,10 +1904,11 @@ test('a window holding only a pending send is not a window the load filled', () 
       enableActiveMarkRead: false,
       messages: [],
       moreToLoad: true,
+      reconcile: {carried: new Set(), prune: false},
       scrollDirection: 'none',
     })
   })
-  expect(result.current.actions.getSnapshot().windowCleared).toBe(true)
+  expect(result.current.actions.getSnapshot().messageOrdinals).toBeUndefined()
 })
 
 test('an empty pass during a jump-to-recent gap leaves the gate up', () => {
