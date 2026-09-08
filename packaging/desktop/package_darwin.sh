@@ -214,11 +214,21 @@ update_plist() { (
 sign() { (
 	cd "$out_dir"
 	code_sign_identity="90524F7BEAEACD94C7B473787F4949582F904104" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
-	# need to sign some stuff from electron that doesn't get picked up for some reason
-	codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$app_name.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Libraries/libffmpeg.dylib"
-	codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$app_name.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Libraries/libEGL.dylib"
-	codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$app_name.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Libraries/libGLESv2.dylib"
-	codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$app_name.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Libraries/libvk_swiftshader.dylib"
+	# need to sign some stuff from electron that doesn't get picked up for some reason.
+	# Which of these ship varies by electron version (44 dropped libEGL/libGLESv2), so
+	# warn instead of failing the build when one isn't there.
+	sign_if_present() {
+		if [ -e "$1" ]; then
+			codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$1"
+		else
+			echo "WARNING: skipping codesign, file not found: $1"
+		fi
+	}
+	electron_libs_dir="$app_name.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Libraries"
+	sign_if_present "$electron_libs_dir/libffmpeg.dylib"
+	sign_if_present "$electron_libs_dir/libEGL.dylib"
+	sign_if_present "$electron_libs_dir/libGLESv2.dylib"
+	sign_if_present "$electron_libs_dir/libvk_swiftshader.dylib"
 	codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$app_name.app/Contents/Frameworks/Squirrel.framework/Versions/A/Resources/ShipIt"
 
 	codesign --verbose --force --deep --timestamp --options runtime --entitlements "$client_dir"/osx/Keybase.entitlements --sign "$code_sign_identity" "$app_name.app"
