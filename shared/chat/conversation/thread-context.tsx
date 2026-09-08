@@ -541,11 +541,42 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       reconcile?: ThreadLoadReconcile
       scrollDirection: ScrollDirection
     }) => {
+      const rendered = p.messages.filter(m => m.conversationMessage !== false && m.type !== 'deleted')
       // Judged on what this pass carried rather than on the state of the window, so the gate turns
       // on the one thing that decides it: whether this pass put a row on screen.
-      const carriedRenderedMessage = p.messages.some(
-        m => m.conversationMessage !== false && m.type !== 'deleted'
-      )
+      const carriedRenderedMessage = rendered.length > 0
+      // A 'none' load fetches the newest page, and a window with more to load forward does not
+      // reach it. Merging the two leaves ordinals with a hole through the middle, and the branch
+      // below then reports that window as containing the latest message - which is the gap this
+      // whole invariant is about, arriving through a ChatThreadsStale reload while the reader sits
+      // on a search result. Both conditions are needed: a window that already reaches the newest
+      // message merges fine, and so does a page that overlaps what we hold, however far back the
+      // reader is. Neither holds here, so the page is left alone rather than applied - the reader
+      // keeps their window, and jumping to recent (which empties it first) is what replaces it.
+      const beforeApply = threadStore.getState()
+      const windowOrdinals = beforeApply.messageOrdinals
+      const floor = windowOrdinals?.[0]
+      const ceiling = windowOrdinals?.[windowOrdinals.length - 1]
+      if (
+        p.scrollDirection === 'none' &&
+        rendered.length &&
+        beforeApply.moreToLoadForward &&
+        floor !== undefined &&
+        ceiling !== undefined
+      ) {
+        let lowest = Number.MAX_SAFE_INTEGER
+        let highest = Number.MIN_SAFE_INTEGER
+        for (const m of rendered) {
+          lowest = Math.min(lowest, m.ordinal)
+          highest = Math.max(highest, m.ordinal)
+        }
+        if (lowest > ceiling || highest < floor) {
+          logger.info(
+            `applyThreadLoad: page ${lowest}-${highest} does not reach window ${floor}-${ceiling}, ignoring`
+          )
+          return
+        }
+      }
       updateThreadState(s => {
         s.loaded = true
         // The reconciling pass runs even with nothing to add: the warm reload where nothing changed

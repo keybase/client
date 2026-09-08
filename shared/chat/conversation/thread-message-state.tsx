@@ -367,7 +367,11 @@ export const addMessagesToThreadState = (
         to = Math.max(to, o) as T.Chat.Ordinal
       }
       for (const o of existing) {
-        if (o >= from && o <= to && !reconcile.carried.has(o)) {
+        // A row with no server ID is one of ours, still in the outbox: the service cannot have
+        // failed to return what it has never been told about. It sits on a fractional ordinal just
+        // above the message it was composed after, so the span reaches it as soon as anything
+        // newer arrives - and deleting it takes the row out from under a send in flight.
+        if (o >= from && o <= to && !reconcile.carried.has(o) && state.messageMap.get(o)?.id) {
           clearMessageIDIndexForOrdinal(state, o)
           existing.delete(o)
           state.messageMap.delete(o)

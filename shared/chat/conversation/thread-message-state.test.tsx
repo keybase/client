@@ -621,6 +621,28 @@ describe('addMessagesToThreadState', () => {
     expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(7153), T.Chat.numberToOrdinal(9001)])
   })
 
+  test('a reconciling pass leaves a send that is still in the outbox alone', () => {
+    // The span covers both passes now, so it reaches above the window the first one carried: send a
+    // message between the passes and its fractional ordinal falls inside a span that neither pass
+    // could have carried. The service has never been told about that row, so its absence says
+    // nothing - deleting it takes the row out from under a send in flight.
+    const state = makeThreadState([textAt(6900), textAt(7000)])
+    const carried = new Set<T.Chat.Ordinal>()
+    addMessagesToThreadState(state, [textAt(6900), textAt(7000)], {reconcile: {carried, prune: false}})
+
+    const pending = makeTextMessage({
+      id: T.Chat.numberToMessageID(0),
+      ordinal: T.Chat.numberToOrdinal(7000.001),
+      outboxID: T.Chat.stringToOutboxID('sending-1'),
+      submitState: 'pending',
+    })
+    addMessagesToThreadState(state, [pending], {})
+    expect(state.messageOrdinals).toEqual([6900, 7000, 7000.001])
+
+    addMessagesToThreadState(state, [textAt(7001)], {reconcile: {carried, prune: true}})
+    expect(state.messageOrdinals).toEqual([6900, 7000, 7000.001, 7001])
+  })
+
   test('a message remapped out of the window is dropped, not stranded', () => {
     // The window is judged on the ordinal the message will occupy, which an outbox or messageID
     // match can move. Here messageIDToOrdinal still points at an ancient ordinal the thread no

@@ -1891,6 +1891,101 @@ test('only the load that claimed the window gate may drop it', () => {
   expect(result.current.actions.getSnapshot().windowCleared).toBe(false)
 })
 
+test('a stale reload does not merge the newest page into a centered window', () => {
+  // The reader taps a search result and sits on the window around it, with more to load forward.
+  // A ChatThreadsStale reload fetches the newest page, which is nowhere near that window: merging
+  // the two leaves ordinals with a hole through the middle and then calls the result the latest
+  // message, which is the gap this invariant is about.
+  const {result} = renderHook(
+    () => ({
+      actions: useConversationThreadActions(),
+      ordinals: useConversationThreadSelector(s => s.messageOrdinals),
+    }),
+    {wrapper}
+  )
+
+  const textAt = (ord: number) =>
+    Message.makeMessageText({
+      author: 'alice',
+      conversationIDKey: convID,
+      id: T.Chat.numberToMessageID(ord),
+      ordinal: T.Chat.numberToOrdinal(ord),
+      outboxID: undefined,
+      text: new HiddenString(`m${ord}`),
+      timestamp: 100,
+    })
+
+  act(() => {
+    result.current.actions.applyThreadLoad({
+      centered: true,
+      enableActiveMarkRead: false,
+      messages: [textAt(7000), textAt(7001)],
+      moreToLoad: true,
+      scrollDirection: 'none',
+    })
+  })
+  expect(result.current.actions.getSnapshot().moreToLoadForward).toBe(true)
+
+  act(() => {
+    result.current.actions.applyThreadLoad({
+      centered: false,
+      enableActiveMarkRead: false,
+      messages: [textAt(9900), textAt(9901)],
+      moreToLoad: true,
+      scrollDirection: 'none',
+    })
+  })
+
+  expect(result.current.ordinals).toEqual([7000, 7001])
+  // ...and the window still knows it has not reached the latest message.
+  expect(result.current.actions.getSnapshot().moreToLoadForward).toBe(true)
+})
+
+test('a newest page that reaches the window is still merged', () => {
+  // The other side of the rule. A reader near the bottom gets a page that overlaps what they hold,
+  // so there is no hole to open and the refresh must land.
+  const {result} = renderHook(
+    () => ({
+      actions: useConversationThreadActions(),
+      ordinals: useConversationThreadSelector(s => s.messageOrdinals),
+    }),
+    {wrapper}
+  )
+
+  const textAt = (ord: number) =>
+    Message.makeMessageText({
+      author: 'alice',
+      conversationIDKey: convID,
+      id: T.Chat.numberToMessageID(ord),
+      ordinal: T.Chat.numberToOrdinal(ord),
+      outboxID: undefined,
+      text: new HiddenString(`m${ord}`),
+      timestamp: 100,
+    })
+
+  act(() => {
+    result.current.actions.applyThreadLoad({
+      centered: true,
+      enableActiveMarkRead: false,
+      messages: [textAt(9900), textAt(9901)],
+      moreToLoad: true,
+      scrollDirection: 'none',
+    })
+  })
+
+  act(() => {
+    result.current.actions.applyThreadLoad({
+      centered: false,
+      enableActiveMarkRead: false,
+      messages: [textAt(9901), textAt(9902)],
+      moreToLoad: true,
+      scrollDirection: 'none',
+    })
+  })
+
+  expect(result.current.ordinals).toEqual([9900, 9901, 9902])
+})
+
 test('an empty pass leaves the thread unloaded rather than loaded and empty', () => {
   // addMessagesToThreadState always leaves a messageOrdinals array behind, and the top-of-thread
   // block reads `messageOrdinals !== undefined` as "this conversation has loaded at least once".
