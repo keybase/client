@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
-import Separator from '../messages/separator'
+import Separator, {NativeSeparator} from '../messages/separator'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import {MessageRow} from '../messages/wrapper'
@@ -20,6 +20,7 @@ import {
   useConversationThreadSelector,
   useConversationThreadStore,
 } from '../thread-context'
+import {CatchUp, useCatchUp} from './catch-up'
 import {useJumpToRecent} from './jump-to-recent'
 import {useThreadLoadStatusOptionsGetter} from '../thread-load-status-context'
 import {getMessageRowType, getMessageShowUsername} from '../messages/row-metadata'
@@ -538,6 +539,15 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
 
   const jumpToRecent = useJumpToRecent(scrollToBottom, messageOrdinals.length)
 
+  const {onCatchUp, onViewableOrdinalsChanged, showCatchUp} = useCatchUp({loaded})
+  // Data runs oldest-first here, so the first viewable row is the oldest one on screen.
+  const onViewableItemsChanged = React.useCallback(
+    (info: {viewableItems: ReadonlyArray<{item: T.Chat.Ordinal}>}) => {
+      onViewableOrdinalsChanged(info.viewableItems.at(0)?.item)
+    },
+    [onViewableOrdinalsChanged]
+  )
+
   const {focusInput} = React.useContext(ThreadRefsContext)
   const handleListClick = (ev: React.MouseEvent) => {
     const target = ev.target as {
@@ -657,8 +667,10 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           onStartReached={onStartReached}
           onStartReachedThreshold={2}
           onEndReached={onEndReached}
+          onViewableItemsChanged={onViewableItemsChanged}
         />
         {jumpToRecent}
+        {showCatchUp && <CatchUp onClick={onCatchUp} />}
       </div>
     </Kb.ErrorBoundary>
   )
@@ -947,6 +959,8 @@ const NativeConversationList = function NativeConversationList() {
 
   const jumpToRecent = useJumpToRecent(scrollToBottom, messageOrdinals.length)
 
+  const {onCatchUp, onViewableOrdinalsChanged, showCatchUp} = useCatchUp({loaded})
+
   // When keyboard is open, maintainVisibleContentPosition adjusts contentOffset by the new
   // message height when a message is added, undoing the scrollToBottom from onSubmit.
   // Defer the re-scroll past the native MPV adjustment (which runs on the UI thread after
@@ -1040,13 +1054,15 @@ const NativeConversationList = function NativeConversationList() {
 
   const onViewableItemsChanged = useNativeSafeOnViewableItemsChanged(onEndReached, messageOrdinals.length)
   const [onViewableItemsChangedNative] = React.useState(
-    () => (info: {viewableItems: Array<{index: number | null}>}) => {
+    () => (info: {viewableItems: Array<{index: number | null; item: T.Chat.Ordinal}>}) => {
       onViewableItemsChanged.current(info)
       const first = info.viewableItems.at(0)?.index
       const last = info.viewableItems.at(-1)?.index
       vFirstRef.current = first
       vLastRef.current = last
       correctCenter(first, last)
+      // The list is inverted and its data reversed, so the last viewable row is the oldest.
+      onViewableOrdinalsChanged(info.viewableItems.at(-1)?.item)
     }
   )
 
@@ -1086,7 +1102,7 @@ const NativeConversationList = function NativeConversationList() {
             estimatedItemSize={72}
             ListHeaderComponent={SpecialBottomMessage}
             ListFooterComponent={SpecialTopMessage}
-            ItemSeparatorComponent={Separator}
+            ItemSeparatorComponent={NativeSeparator}
             overScrollMode="never"
             contentContainerStyle={nativeContentContainerStyle}
             data={messageOrdinals}
@@ -1115,6 +1131,7 @@ const NativeConversationList = function NativeConversationList() {
               {jumpToRecent}
             </Animated.View>
           )}
+          {showCatchUp && <CatchUp onClick={onCatchUp} />}
         </Kb.Box2>
       </PerfProfiler>
     </Kb.ErrorBoundary>
