@@ -40,7 +40,7 @@ function Image(p: Props) {
 
   const filename =
     isMobile || !fileName ? null : (
-      <Kb.Box2 direction="horizontal" alignSelf="flex-start" gap="xtiny">
+      <Kb.Box2 direction="horizontal" alignSelf="flex-start" alignItems="center" gap="xtiny">
         <Kb.Text type="BodySmall">{fileName}</Kb.Text>
         {collapseIcon}
       </Kb.Box2>
