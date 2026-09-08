@@ -20,7 +20,7 @@ import {useStore} from 'zustand'
 import {createStore, type StoreApi} from 'zustand/vanilla'
 import {useIsFocused} from '@react-navigation/core'
 import {
-  type ValidatedRange,
+  type ThreadLoadReconcile,
   addMessagesToThreadState,
   applyOptimisticReactionsToMessage,
   completeAttachmentDownloadInThreadState,
@@ -231,7 +231,6 @@ export type ConversationThreadActions = {
     opt?: {
       liveUpdate?: boolean
       markAsRead?: boolean
-      validatedRange?: ValidatedRange
     }
   ) => void
   applyThreadLoad: (p: {
@@ -241,8 +240,8 @@ export type ConversationThreadActions = {
     forceContainsLatestCalc?: boolean
     messages: ReadonlyArray<T.Chat.Message>
     moreToLoad: boolean
+    reconcile?: ThreadLoadReconcile
     scrollDirection: ScrollDirection
-    validatedRange?: ValidatedRange
   }) => void
   clearUnfurlPrompt: (messageID: T.Chat.MessageID, domain: string) => void
   deleteMessages: (p: {
@@ -512,7 +511,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       opt: {
         liveUpdate?: boolean
         markAsRead?: boolean
-        validatedRange?: ValidatedRange
       } = {}
     ) => {
       updateThreadState(s => {
@@ -522,7 +520,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         addMessagesToThreadState(s, messages, {
           // Only thread loads may extend the window downward; a notification must not.
           dropNewBelowWindow: true,
-          validatedRange: opt.validatedRange,
         })
         clearOptimisticReactionsForMessagesInThreadState(s, messages)
       })
@@ -545,8 +542,8 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       forceContainsLatestCalc?: boolean
       messages: ReadonlyArray<T.Chat.Message>
       moreToLoad: boolean
+      reconcile?: ThreadLoadReconcile
       scrollDirection: ScrollDirection
-      validatedRange?: ValidatedRange
     }) => {
       // Judged on what this pass carried rather than on the window being non-empty: a pending send
       // of our own is admitted during a jump-to-recent gap, and a window holding only that must not
@@ -556,11 +553,11 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       )
       updateThreadState(s => {
         s.loaded = true
-        // A range with no messages behind it is still worth applying: the warm reload where nothing
-        // changed answers with an empty full pass, and that is an authoritative statement about the
-        // span - the stale rows inside it are exactly what the prune is for.
-        if (p.messages.length || p.validatedRange) {
-          addMessagesToThreadState(s, p.messages, {validatedRange: p.validatedRange})
+        // The reconciling pass runs even with nothing to add: the warm reload where nothing changed
+        // answers with an empty full pass, and the span its earlier pass covered is authoritative
+        // all the same - the stale rows inside it are exactly what the prune is for.
+        if (p.messages.length || p.reconcile) {
+          addMessagesToThreadState(s, p.messages, {reconcile: p.reconcile})
           clearOptimisticReactionsForMessagesInThreadState(s, p.messages)
         }
         // Only a pass that actually rendered something drops the gate. A cold cache sends an empty

@@ -9,14 +9,20 @@ const isPendingSend = (m: T.Chat.Message) =>
 
 type MessageLookup = Pick<T.Chat.Message, 'id' | 'ordinal'>
 
-// The span a thread load is authoritative over, and what it holds. Ordinals inside the span that
-// the load did not carry are stale and get pruned. `alsoPresent` is the rest of what the load
-// carried: a warm load answers in two passes, and a message the earlier one delivered is still
-// present even though the pass doing the pruning no longer mentions it.
-export type ValidatedRange = {
-  from: T.Chat.Ordinal
-  to: T.Chat.Ordinal
-  alsoPresent?: ReadonlySet<T.Chat.Ordinal>
+// How a thread load reconciles the window against what the service returned.
+//
+// A load answers in passes - a cached one off the local database, then a full one the service has
+// filtered down to what changed - and only the passes together are a whole window. So each pass
+// adds what it delivered to `carried`, and the last one prunes: rows inside the span of `carried`
+// that no pass delivered are stale, and go.
+//
+// The set is filled in here rather than by the caller, and that is the point of it: it holds the
+// ordinals the messages actually occupy, after the outbox and message-ID remaps below. A message
+// you sent keeps the fractional ordinal it had in the outbox, so the ordinal it arrives under is
+// not the one it lives at, and a set built from the response would leave that row unprotected.
+export type ThreadLoadReconcile = {
+  carried: Set<T.Chat.Ordinal>
+  prune: boolean
 }
 
 type WritableConversationThreadMessageState = {
@@ -183,10 +189,10 @@ export const addMessagesToThreadState = (
   messages: ReadonlyArray<T.Chat.Message>,
   opt: {
     dropNewBelowWindow?: boolean
-    validatedRange?: ValidatedRange
+    reconcile?: ThreadLoadReconcile
   }
 ) => {
-  const {dropNewBelowWindow, validatedRange} = opt
+  const {dropNewBelowWindow, reconcile} = opt
   // The bounds of the loaded window before this batch is merged in.
   const ords = state.messageOrdinals
   const windowFloor = ords?.[0]
@@ -300,9 +306,9 @@ export const addMessagesToThreadState = (
           // below would strand _m.ordinal in the list with nothing stored under it.
           //
           // Do the remap anyway rather than just forgetting _m.ordinal. `incomingOrdinals` is what
-          // the validatedRange prune treats as "still present", so an ordinal missing from it
-          // inside the range gets the real message deleted - including when mapOrdinal and
-          // _m.ordinal are the same, where the delete below would otherwise be a plain loss.
+          // the prune treats as "still present", so an ordinal missing from it inside the span
+          // gets the real message deleted - including when mapOrdinal and _m.ordinal are the same,
+          // where the delete below would otherwise be a plain loss.
           incomingOrdinals.delete(_m.ordinal)
           incomingOrdinals.add(mapOrdinal)
           continue
@@ -363,20 +369,27 @@ export const addMessagesToThreadState = (
       changed = true
     }
   }
-  if (validatedRange) {
-    // The service response is authoritative within this range; prune stale local ordinals.
-    for (const o of existing) {
-      if (
-        o >= validatedRange.from &&
-        o <= validatedRange.to &&
-        !incomingOrdinals.has(o) &&
-        !validatedRange.alsoPresent?.has(o)
-      ) {
-        clearMessageIDIndexForOrdinal(state, o)
-        existing.delete(o)
-        state.messageMap.delete(o)
-        state.messageTypeMap.delete(o)
-        changed = true
+  if (reconcile) {
+    for (const o of incomingOrdinals) {
+      reconcile.carried.add(o)
+    }
+    if (reconcile.prune) {
+      // The load is authoritative over the span it covered, so a row inside it that no pass of the
+      // load delivered is stale. Outside the span nothing is known and nothing is touched.
+      let from = Number.MAX_SAFE_INTEGER as T.Chat.Ordinal
+      let to = Number.MIN_SAFE_INTEGER as T.Chat.Ordinal
+      for (const o of reconcile.carried) {
+        from = Math.min(from, o) as T.Chat.Ordinal
+        to = Math.max(to, o) as T.Chat.Ordinal
+      }
+      for (const o of existing) {
+        if (o >= from && o <= to && !reconcile.carried.has(o)) {
+          clearMessageIDIndexForOrdinal(state, o)
+          existing.delete(o)
+          state.messageMap.delete(o)
+          state.messageTypeMap.delete(o)
+          changed = true
+        }
       }
     }
   }

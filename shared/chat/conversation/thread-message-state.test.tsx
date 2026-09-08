@@ -379,23 +379,44 @@ describe('addMessagesToThreadState', () => {
     expect(state.messageMap.has(T.Chat.numberToOrdinal(20))).toBe(true)
   })
 
-  test('a validated range prunes local ordinals the service did not send back', () => {
+  test('a reconciling pass prunes local ordinals the service did not send back', () => {
     const state = makeThreadState([])
     addMessagesToThreadState(state, [textAt(10), textAt(20), textAt(30)], {})
     addMessagesToThreadState(state, [textAt(10), textAt(30)], {
-      validatedRange: {from: T.Chat.numberToOrdinal(10), to: T.Chat.numberToOrdinal(30)},
+      reconcile: {carried: new Set(), prune: true},
     })
     expect(state.messageOrdinals).toEqual([10, 30])
     expect(state.messageMap.has(T.Chat.numberToOrdinal(20))).toBe(false)
   })
 
-  test('a validated range leaves ordinals outside of it alone', () => {
+  test('a reconciling pass counts what an earlier pass of the same load carried', () => {
+    // The warm shape, at this level: the cached pass delivers the page, the full pass behind it
+    // only what changed. The span covers both, and a row the first pass delivered is present even
+    // though the second never mentions it.
     const state = makeThreadState([])
-    addMessagesToThreadState(state, [textAt(10), textAt(50)], {})
-    addMessagesToThreadState(state, [textAt(50)], {
-      validatedRange: {from: T.Chat.numberToOrdinal(40), to: T.Chat.numberToOrdinal(60)},
+    const carried = new Set<T.Chat.Ordinal>()
+    addMessagesToThreadState(state, [textAt(10), textAt(20), textAt(30)], {
+      reconcile: {carried, prune: false},
     })
-    expect(state.messageOrdinals).toEqual([10, 50])
+    addMessagesToThreadState(state, [textAt(30)], {reconcile: {carried, prune: true}})
+    expect(state.messageOrdinals).toEqual([10, 20, 30])
+
+    // ...and a row neither pass carried is stale, so it goes.
+    const withGhost = makeThreadState([textAt(10), textAt(20), textAt(30)])
+    const carriedAgain = new Set<T.Chat.Ordinal>()
+    addMessagesToThreadState(withGhost, [textAt(10)], {reconcile: {carried: carriedAgain, prune: false}})
+    addMessagesToThreadState(withGhost, [textAt(30)], {reconcile: {carried: carriedAgain, prune: true}})
+    expect(withGhost.messageOrdinals).toEqual([10, 30])
+  })
+
+  test('a reconciling pass leaves ordinals outside its span alone', () => {
+    const state = makeThreadState([])
+    addMessagesToThreadState(state, [textAt(10), textAt(50), textAt(60)], {})
+    addMessagesToThreadState(state, [textAt(50), textAt(60)], {
+      reconcile: {carried: new Set(), prune: true},
+    })
+    // 10 is below everything the load covered, so nothing is known about it.
+    expect(state.messageOrdinals).toEqual([10, 50, 60])
   })
 
   test('a notification may not strand a new ordinal below the loaded window', () => {
@@ -470,15 +491,15 @@ describe('addMessagesToThreadState', () => {
   })
 
   test('a placeholder for a message we already hold does not get it pruned', () => {
-    // Regression: the placeholder bailed out of incomingOrdinals bookkeeping, so the validatedRange
-    // prune saw its ordinal as absent from the response and deleted the real message underneath.
+    // Regression: the placeholder bailed out of incomingOrdinals bookkeeping, so the prune saw its
+    // ordinal as absent from the response and deleted the real message underneath.
     // A quick-mode Pull returns a placeholder for anything it could not unbox, so this is the
     // ordinary shape of a focused refresh, not an edge case.
     const state = makeThreadState([textAt(49), textAt(50), textAt(51)])
     addMessagesToThreadState(
       state,
       [textAt(49), Message.makeMessagePlaceholder({ordinal: T.Chat.numberToOrdinal(50)}), textAt(51)],
-      {validatedRange: {from: T.Chat.numberToOrdinal(49), to: T.Chat.numberToOrdinal(51)}}
+      {reconcile: {carried: new Set(), prune: true}}
     )
     expect(state.messageOrdinals).toEqual([
       T.Chat.numberToOrdinal(49),

@@ -14,7 +14,7 @@ import {
 import * as ThreadRpc from './thread-rpc'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
-import type {ValidatedRange} from './thread-message-state'
+import type {ThreadLoadReconcile} from './thread-message-state'
 import type {
   ConversationThreadActions,
   ConversationThreadState,
@@ -611,7 +611,7 @@ describe('a load releases the window gate it was issued under', () => {
     expect(actions.clearWindowGate).not.toHaveBeenCalled()
   })
 })
-describe('the prune range is judged against a whole window', () => {
+describe('only a pass that can account for a whole window reconciles', () => {
   const flushPromises = async () => {
     for (let i = 0; i < 200; i++) {
       await Promise.resolve()
@@ -651,15 +651,12 @@ describe('the prune range is judged against a whole window', () => {
       return undefined as never
     })
 
-  const validatedRangeOfLastLoad = (actions: ConversationThreadActions) => {
+  // Whether the last pass of a load was the one that reconciles. What gets pruned is the store's
+  // business - addMessagesToThreadState fills the carried set itself - so these tests only check
+  // which passes are allowed to ask for it; the thread-context suite covers the pruning.
+  const prunedOnLastPass = (actions: ConversationThreadActions) => {
     const calls = (actions.applyThreadLoad as unknown as jest.Mock).mock.calls
-    return (calls.at(-1)?.[0] as {validatedRange?: ValidatedRange} | undefined)?.validatedRange
-  }
-  // The span alone. What the range also carries - the ordinals the cached pass delivered - is
-  // asserted where it matters rather than in every expectation.
-  const validatedSpanOfLastLoad = (actions: ConversationThreadActions) => {
-    const range = validatedRangeOfLastLoad(actions)
-    return range && {from: range.from, to: range.to}
+    return (calls.at(-1)?.[0] as {reconcile?: ThreadLoadReconcile} | undefined)?.reconcile?.prune
   }
 
   beforeEach(() => {
@@ -676,7 +673,7 @@ describe('the prune range is judged against a whole window', () => {
     resetAllStores()
   })
 
-  test('prunes against a full pass that followed an empty cached one', async () => {
+  test('reconciles on a full pass that followed an empty cached one', async () => {
     // First open after a db nuke: PullLocalOnly finds nothing, but its collector suppresses the miss
     // and a cached pass is sent anyway, carrying no messages. INCREMENTAL against an empty local
     // thread filters nothing out, so the full pass really is the whole window - and only a whole
@@ -689,13 +686,10 @@ describe('the prune range is judged against a whole window', () => {
     loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
     await flushPromises()
 
-    expect(validatedSpanOfLastLoad(actions)).toEqual({
-      from: T.Chat.numberToOrdinal(7152),
-      to: T.Chat.numberToOrdinal(7153),
-    })
+    expect(prunedOnLastPass(actions)).toBe(true)
   })
 
-  test('does not prune when a cached pass arrived but another load owned the window', async () => {
+  test('does not reconcile when a cached pass arrived but another load owned the window', async () => {
     // The gate-owner guard is the one guard that can turn a cached pass away and still let the full
     // pass behind it through: the owner drops the gate in between. The service counts that cached
     // pass as sent either way, so the full pass is INCREMENTAL - a handful of changed messages - and
@@ -739,10 +733,10 @@ describe('the prune range is judged against a whole window', () => {
     loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
     await flushPromises()
 
-    expect(validatedRangeOfLastLoad(actions)).toBeUndefined()
+    expect(prunedOnLastPass(actions)).toBe(false)
   })
 
-  test('prunes against both passes of a warm-cache load, not the full one alone', async () => {
+  test('reconciles on the full pass of a warm-cache load, against both passes', async () => {
     // The warm-cache sequence: the cached pass carries the page and the full pass behind it is
     // INCREMENTAL, only what changed. Neither is a window on its own - but INCREMENTAL walks the
     // authoritative window and omits only what the cached pass already carried unchanged, so the
@@ -757,11 +751,6 @@ describe('the prune range is judged against a whole window', () => {
     loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
     await flushPromises()
 
-    expect(validatedSpanOfLastLoad(actions)).toEqual({
-      from: T.Chat.numberToOrdinal(7052),
-      to: T.Chat.numberToOrdinal(7153),
-    })
-    // ...and the rows only the cached pass carried count as present, or the prune would take them.
-    expect(validatedRangeOfLastLoad(actions)?.alsoPresent?.has(T.Chat.numberToOrdinal(7052))).toBe(true)
+    expect(prunedOnLastPass(actions)).toBe(true)
   })
 })

@@ -12,7 +12,7 @@ import {persistRoute} from '@/util/storeless-actions'
 import {uint8ArrayToString} from '@/util/uint8array'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
-import {type ValidatedRange, getOrdinalForMessageID} from './thread-message-state'
+import {type ThreadLoadReconcile, getOrdinalForMessageID} from './thread-message-state'
 import {getInboxConversationMeta, updateInboxConversationMeta} from '@/chat/inbox/metadata'
 import {loadThreadNonblock, threadLoadReasonToRPCReason} from './thread-rpc'
 import type {
@@ -241,18 +241,18 @@ export const loadConversationThreadMessages = (
     )
 
     const loadingKey = Strings.waitingKeyChatThreadLoad(conversationIDKey)
-    // The ordinals the cached pass carried. Once the service has sent a cached thread it switches
-    // the full response to INCREMENTAL, which walks the authoritative window and sends only the
-    // messages the cached pass did not already carry unchanged (mergeLocalRemoteThread in
-    // go/chat/uithreadloader.go, where localSentThread is that exact cached pass). Neither pass is
-    // a whole window on its own, but together they cover every message in the window - which is
-    // what the prune below needs, and why it unions them rather than gating on the full pass alone.
-    const cachedPassOrdinals = new Set<T.Chat.Ordinal>()
+    // What this load has put in the window, filled in by addMessagesToThreadState as each pass
+    // applies. Once the service has sent a cached thread it switches the full response to
+    // INCREMENTAL, which walks the authoritative window and sends only the messages that cached
+    // pass did not already carry unchanged (mergeLocalRemoteThread in go/chat/uithreadloader.go,
+    // where localSentThread is that exact pass). Neither pass is a whole window on its own, so the
+    // two are gathered here and the last one reconciles against the both of them.
+    const carried = new Set<T.Chat.Ordinal>()
     // Whether a cached pass reached us at all, and whether it made it into the window. They come
     // apart: the gate-owner guard turns a pass away, and the owner can drop the gate before the
     // full pass arrives, so a load can have its cached pass refused and its full pass admitted. The
     // service counts that cached pass as sent either way, so what follows is still INCREMENTAL -
-    // only the messages that changed - and a span built from those alone would prune every row
+    // only the messages that changed - and reconciling against those alone would take out every row
     // between them. Recorded before the guards, because the guards are what turn a pass away.
     let sawCachedResponse = false
     let appliedCachedPass = false
@@ -325,30 +325,16 @@ export const loadConversationThreadMessages = (
         scrollDirection !== 'back' &&
         reason !== 'findNewestConversation' &&
         reason !== 'findNewestConversationFromLayout'
-      // Pruning is only safe against a whole window, and a single pass is not one: the cached pass
-      // is whatever the local cache holds, gaps included, and the full pass behind it carries only
-      // what changed. The two together are the window, so the range is computed on the full pass
-      // from the union of both. Waiting for a pass with no cached one before it would leave the
-      // stale-ordinal cleanup running on cold caches only, which is where ghost rows are least
-      // likely to be - a reopened conversation is warm every time.
-      const renderedMessages = messages.filter(
-        m => m.conversationMessage !== false && m.type !== 'deleted'
-      )
-      const renderedOrdinals = renderedMessages.map(m => m.ordinal)
-      let validatedRange: ValidatedRange | undefined
-      if (scrollDirection === 'none' && why === 'full' && !(sawCachedResponse && !appliedCachedPass)) {
-        const ords = [...renderedOrdinals, ...cachedPassOrdinals]
-        if (ords.length > 0) {
-          validatedRange = {
-            // The cached pass was applied in its own call, so what it delivered is not among the
-            // messages this one carries. Without it every row only that pass mentioned would read
-            // as missing from the window and be pruned.
-            alsoPresent: cachedPassOrdinals,
-            from: Math.min(...ords) as T.Chat.Ordinal,
-            to: Math.max(...ords) as T.Chat.Ordinal,
-          }
-        }
-      }
+      // Reconciling is only safe against a whole window, and a single pass is not one: the cached
+      // pass is whatever the local cache holds, gaps included, and the full pass behind it carries
+      // only what changed. The full pass is the last one, so it is the one that prunes - against
+      // everything both passes delivered. Waiting instead for a pass with no cached one before it
+      // would leave the stale-row cleanup running on cold caches only, which is where ghost rows
+      // are least likely to be: a reopened conversation is warm every time.
+      const reconcile: ThreadLoadReconcile | undefined =
+        scrollDirection === 'none'
+          ? {carried, prune: why === 'full' && !(sawCachedResponse && !appliedCachedPass)}
+          : undefined
       for (const m of messages) {
         if (m.id > 0 && m.id < oldestSeenThisLoad) {
           oldestSeenThisLoad = m.id
@@ -361,24 +347,12 @@ export const loadConversationThreadMessages = (
         forceContainsLatestCalc,
         messages,
         moreToLoad,
+        reconcile,
         scrollDirection,
-        validatedRange,
       })
       const after = actions.getSnapshot()
       if (why === 'cached') {
         appliedCachedPass = true
-        // Recorded once the pass has landed, and in the window's terms rather than the response's.
-        // A message you sent keeps the fractional ordinal it had in the outbox, so the ordinal it
-        // parsed with - the server one - is not the ordinal it occupies. The prune walks the
-        // window, so an entry under the parsed ordinal protects nothing and the row goes. Both are
-        // recorded: whichever one the row ends up under, it counts as delivered.
-        for (const m of renderedMessages) {
-          cachedPassOrdinals.add(m.ordinal)
-          const occupied = m.id ? getOrdinalForMessageIDInSnapshot(after, m.id) : undefined
-          if (occupied) {
-            cachedPassOrdinals.add(occupied)
-          }
-        }
       }
       // A back page can be composed entirely of messages the thread will never render: a message
       // superseded by a DELETE arrives as a hidden placeholder, becomes `deleted`, and addMessages
