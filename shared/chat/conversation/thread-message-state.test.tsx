@@ -80,6 +80,10 @@ const makeThreadState = (
     messageMap,
     messageOrdinals,
     messageTypeMap,
+    // A thread that has loaded at least once, so the two flags below mean what they say.
+    loaded: true,
+    // A partial window by default: the drop rules only bound an edge that still has more past it.
+    moreToLoadBack: true,
     moreToLoadForward: false,
     pendingOutboxToOrdinal,
     ...extra,
@@ -531,6 +535,22 @@ describe('addMessagesToThreadState', () => {
     expect(state.messageMap.has(T.Chat.numberToOrdinal(9001))).toBe(false)
   })
 
+  test('a message older than the window prepends once the window reaches the oldest message', () => {
+    // The mirror of the ceiling rule. A small channel pages back to its start, but message 1 - the
+    // setChannelname system message - came back as a hidden placeholder and was dropped, so the
+    // floor is 2. The ResolveSkippedUnboxeds push then delivers the real message 1. With no more to
+    // load back there is no hole under the floor for it to strand against, and nothing else will
+    // ever fetch it: loadOlderMessagesDueToScroll bails outright once moreToLoadBack is false.
+    const state = makeThreadState([textAt(2), textAt(3)], {moreToLoadBack: false})
+    addMessagesToThreadState(state, [textAt(1)], {dropNewBelowWindow: true})
+
+    expect(state.messageOrdinals).toEqual([
+      T.Chat.numberToOrdinal(1),
+      T.Chat.numberToOrdinal(2),
+      T.Chat.numberToOrdinal(3),
+    ])
+  })
+
   test('a message newer than the window appends once the window reaches the newest message', () => {
     // The ordinary live path: the window contains the latest message, so there is no hole to open
     // above it and an incoming message must land.
@@ -567,6 +587,61 @@ describe('addMessagesToThreadState', () => {
     const state = makeThreadState([])
     addMessagesToThreadState(state, [textAt(1)], {dropNewBelowWindow: true})
     expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(1)])
+  })
+
+  test('the floor is still bound while no load has landed to say otherwise', () => {
+    // moreToLoadBack is initialized false and only a thread load ever sets it. Pushes reach the
+    // window before the first load answers, so a second push older than the one they installed
+    // would read that false as "the window reaches the oldest message" and prepend. The load then
+    // fills the region between, and the pushed row is left stranded over the hole.
+    const state = makeThreadState([textAt(7153)], {loaded: false, moreToLoadBack: false})
+    addMessagesToThreadState(state, [textAt(1)], {dropNewBelowWindow: true})
+    expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(7153)])
+
+    // The ceiling is deliberately not bound the same way. A clear whose reload never applies leaves
+    // `loaded` false with no load coming, and dropping everything newer than the window would then
+    // be permanent - the thread would stop receiving messages for good.
+    addMessagesToThreadState(state, [textAt(9001)], {dropNewBelowWindow: true})
+    expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(7153), T.Chat.numberToOrdinal(9001)])
+  })
+
+  test('a pending send lands during a jump-to-recent gap', () => {
+    // The reader sends from a search-jumped thread: input-area posts and jumps to recent in the
+    // same tick, so the clear happens first and the outbox notification arrives into the gap. Its
+    // ordinal is the service's - the outbox record's, above the newest message - so it belongs in
+    // the very page the reload is fetching, and dropping it leaves the composer empty with no
+    // "sending..." row for as long as that reload takes.
+    const pending = makeTextMessage({
+      id: T.Chat.numberToMessageID(0),
+      ordinal: T.Chat.numberToOrdinal(7153.001),
+      outboxID: T.Chat.stringToOutboxID('sending-1'),
+      submitState: 'pending',
+    })
+    const state = makeThreadState([])
+    state.windowCleared = true
+    state.windowClearedForNewest = true
+    addMessagesToThreadState(state, [pending], {dropNewBelowWindow: true})
+    expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(7153.001)])
+
+    // Nothing else gets in on its coattails.
+    addMessagesToThreadState(state, [textAt(9001)], {dropNewBelowWindow: true})
+    expect(state.messageOrdinals).toEqual([T.Chat.numberToOrdinal(7153.001)])
+  })
+
+  test('a pending send is still dropped during a centered-jump gap', () => {
+    // The exemption is only sound because jump-to-recent reloads the newest page. A centered jump
+    // lands on an arbitrary older region, and a pending row sitting at the bottom of the thread
+    // would strand above it once that page arrives.
+    const pending = makeTextMessage({
+      id: T.Chat.numberToMessageID(0),
+      ordinal: T.Chat.numberToOrdinal(7153.001),
+      outboxID: T.Chat.stringToOutboxID('sending-1'),
+      submitState: 'pending',
+    })
+    const state = makeThreadState([])
+    state.windowCleared = true
+    addMessagesToThreadState(state, [pending], {dropNewBelowWindow: true})
+    expect(state.messageOrdinals ?? []).toEqual([])
   })
 
   test('a message remapped out of the window is dropped, not stranded', () => {

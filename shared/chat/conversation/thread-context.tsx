@@ -20,6 +20,7 @@ import {useStore} from 'zustand'
 import {createStore, type StoreApi} from 'zustand/vanilla'
 import {useIsFocused} from '@react-navigation/core'
 import {
+  type ValidatedRange,
   addMessagesToThreadState,
   applyOptimisticReactionsToMessage,
   completeAttachmentDownloadInThreadState,
@@ -111,6 +112,16 @@ export type ConversationThreadState = {
   // in that gap cannot install itself as the new window. Cleared once that load settles, however it
   // settles - see clearWindowGate.
   windowCleared?: boolean
+  // Whether the reload the clear issued fetches the newest page, which is the one region a message
+  // arriving during the gap can still be placed against. See the pending-send exemption in
+  // addMessagesToThreadState.
+  windowClearedForNewest?: boolean
+  // The load that owns the gate above: the first one to claim it after the clear, which is the
+  // reload the clear issued. Only that load may drop the gate. clearVersion alone cannot tell two
+  // loads of the same conversation apart, and a second load at the same generation - a
+  // ChatThreadsStale reload, say - would otherwise settle first and take down a gate the reload is
+  // still relying on.
+  windowGateOwner?: number
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType>
   moreToLoadBack: boolean
   moreToLoadForward: boolean
@@ -214,7 +225,7 @@ type LoadNewerMessagesDueToScroll = (
   options?: ThreadLoadStatusOptions
 ) => void
 type JumpToRecent = (options?: ThreadLoadStatusOptions) => void
-type MessagesClear = () => void
+type MessagesClear = (opts?: {reloadsNewest?: boolean}) => void
 type SelectedConversation = (options?: SelectedConversationOptions) => void
 export type ConversationThreadActions = {
   addMessages: (
@@ -222,7 +233,7 @@ export type ConversationThreadActions = {
     opt?: {
       liveUpdate?: boolean
       markAsRead?: boolean
-      validatedRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
+      validatedRange?: ValidatedRange
     }
   ) => void
   applyThreadLoad: (p: {
@@ -233,7 +244,7 @@ export type ConversationThreadActions = {
     messages: ReadonlyArray<T.Chat.Message>
     moreToLoad: boolean
     scrollDirection: ScrollDirection
-    validatedRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
+    validatedRange?: ValidatedRange
   }) => void
   clearUnfurlPrompt: (messageID: T.Chat.MessageID, domain: string) => void
   deleteMessages: (p: {
@@ -248,7 +259,8 @@ export type ConversationThreadActions = {
     explodedBy?: string,
     liveUpdate?: boolean
   ) => void
-  clearWindowGate: () => void
+  claimWindowGate: (loadID: number) => void
+  clearWindowGate: (loadID: number) => void
   getSnapshot: () => ConversationThreadState
   loadMoreMessages: LoadMoreMessages
   markThreadAsRead: () => void
@@ -482,8 +494,9 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
   // a read position, run it again now that there is one. Only on the transition, so an ordinary
   // mark-read moving readMsgID does not bounce back through here.
   //
-  // useOrangeLine latches in a child of this provider, and React runs child effects first, so it has
-  // already asked for the unreadline against the pre-mark position by the time this fires.
+  // Safe against the orange line: useOrangeLine latches the read position into state on the commit
+  // localization lands in, so the position it later asks the unreadline about does not depend on
+  // beating this mark-read to it.
   const metaReadMsgID = useInboxMetadataState(
     s => (s.metas.get(id) ?? emptyConversationMeta).readMsgID
   )
@@ -501,7 +514,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       opt: {
         liveUpdate?: boolean
         markAsRead?: boolean
-        validatedRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
+        validatedRange?: ValidatedRange
       } = {}
     ) => {
       updateThreadState(s => {
@@ -535,14 +548,29 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       messages: ReadonlyArray<T.Chat.Message>
       moreToLoad: boolean
       scrollDirection: ScrollDirection
-      validatedRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
+      validatedRange?: ValidatedRange
     }) => {
+      // Judged on what this pass carried rather than on the window being non-empty: a pending send
+      // of our own is admitted during a jump-to-recent gap, and a window holding only that must not
+      // read as a window this load filled.
+      const carriedRenderedMessage = p.messages.some(
+        m => m.conversationMessage !== false && m.type !== 'deleted'
+      )
       updateThreadState(s => {
         s.loaded = true
-        s.windowCleared = false
         if (p.messages.length) {
           addMessagesToThreadState(s, p.messages, {validatedRange: p.validatedRange})
           clearOptimisticReactionsForMessagesInThreadState(s, p.messages)
+        }
+        // Only a pass that actually rendered something drops the gate. A cold cache sends an empty
+        // cached pass ahead of the full response, and a page can be all tombstones: dropping the
+        // gate on either would let a notification arriving before the real page install itself as
+        // the whole window and strand once that page lands. A load that ends without ever producing
+        // an ordinal releases the gate in its own finally instead - see clearWindowGate.
+        if (carriedRenderedMessage) {
+          s.windowCleared = false
+          s.windowClearedForNewest = undefined
+          s.windowGateOwner = undefined
         }
         switch (p.scrollDirection) {
           case 'forward':
@@ -908,18 +936,37 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       markThreadAsRead()
     }
   )
+  // The reload a clear issues claims the gate, so a load that merely happens to be running at the
+  // same clear generation cannot drop it out from under that reload. First claim wins: the clear
+  // issues its reload synchronously, so that reload is the first to get here.
+  const claimWindowGate = React.useEffectEvent((loadID: number) => {
+    const s = threadStore.getState()
+    if (!s.windowCleared || s.windowGateOwner !== undefined) {
+      return
+    }
+    updateThreadState(d => {
+      d.windowGateOwner = loadID
+    })
+  })
   // applyThreadLoad drops the gate when a load refills the window, but a load can end without ever
   // applying: offline, scchatnotinteam, or a response that carries no thread. Left alone the gate
   // would keep dropping notifications for the life of the provider, with no window to correct it.
-  const clearWindowGate = React.useEffectEvent(() => {
-    if (!threadStore.getState().windowCleared) {
+  const clearWindowGate = React.useEffectEvent((loadID: number) => {
+    const s = threadStore.getState()
+    if (!s.windowCleared) {
       return
     }
-    updateThreadState(s => {
-      s.windowCleared = false
+    // An unclaimed gate is released by whoever settles first: nothing claimed it, so there is no
+    // reload in flight to protect, and leaving it up would strand the thread.
+    if (s.windowGateOwner !== undefined && s.windowGateOwner !== loadID) {
+      return
+    }
+    updateThreadState(d => {
+      d.windowCleared = false
+      d.windowGateOwner = undefined
     })
   })
-  const messagesClear = React.useEffectEvent(() => {
+  const messagesClear = React.useEffectEvent((opts?: {reloadsNewest?: boolean}) => {
     activeMarkReadEnabledRef.current = false
     shownUsernameCache.clear()
     updateThreadState(s => {
@@ -932,6 +979,8 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       // arbitrary one, jumpToRecent the newest page - so nothing arriving first can be placed
       // against what is coming.
       s.windowCleared = true
+      s.windowClearedForNewest = opts?.reloadsNewest
+      s.windowGateOwner = undefined
       s.messageIDToOrdinal.clear()
       s.messageMap.clear()
       s.messageOrdinals = undefined
@@ -1055,6 +1104,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       addOptimisticReaction,
       applyThreadLoad,
       clearUnfurlPrompt,
+      claimWindowGate,
       clearWindowGate,
       completeAttachmentDownload,
       deleteMessages,
@@ -1245,8 +1295,10 @@ export const useConversationThreadJumpToRecent = () => {
   const jumpToRecent: JumpToRecent = options => {
     setMarkReadBlocked(false)
     // The newest window is disjoint from wherever the reader was, so merging the two would leave a
-    // gap in the ordinals. Drop the old window first, the way a centered jump does.
-    messagesClear()
+    // gap in the ordinals. Drop the old window first, the way a centered jump does - but say that
+    // the reload covers the newest page, so a send made in the same breath still shows its pending
+    // row (input-area/normal sends and then jumps here).
+    messagesClear({reloadsNewest: true})
     loadMoreMessages({...(options ?? {}), reason: 'jump to recent'})
   }
   return jumpToRecent

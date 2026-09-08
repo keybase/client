@@ -308,8 +308,8 @@ playwright — ask them to paste it, or have them re-trigger while you are attac
 
 Use the page URL, not the title — the title stays `"Keybase DEV"` until the router navigates and can't be relied on:
 
-- Main app: URL contains `main.dev.html`
-- Menubar: URL contains `menubar.dev.html`
+- Main app: URL contains `main.html`
+- Menubar: URL contains `remote.html?component=menubar` (the menubar is a remote window, not its own shell)
 - Avoid: `devtools://` pages and the `"Keybase DEV"` standalone DevTools window
 
 ```js
@@ -317,7 +317,7 @@ Use the page URL, not the title — the title stays `"Keybase DEV"` until the ro
 let mainPage
 for (const ctx of browser.contexts()) {
   for (const p of ctx.pages()) {
-    if (p.url().includes('main.dev.html')) { mainPage = p; break }
+    if (p.url().includes('main.html')) { mainPage = p; break }
   }
   if (mainPage) break
 }

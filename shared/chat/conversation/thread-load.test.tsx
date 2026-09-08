@@ -14,6 +14,7 @@ import {
 import * as ThreadRpc from './thread-rpc'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
+import type {ValidatedRange} from './thread-message-state'
 import type {
   ConversationThreadActions,
   ConversationThreadState,
@@ -190,6 +191,7 @@ describe('a back page that adds no ordinals reloads itself', () => {
           }
         }
       }),
+      claimWindowGate: jest.fn(),
       clearWindowGate: jest.fn(),
       getSnapshot: () =>
         ({
@@ -370,6 +372,7 @@ describe('a back page that adds no ordinals reloads itself', () => {
     let clearVersion = 0
     const actions = {
       applyThreadLoad: jest.fn(),
+      claimWindowGate: jest.fn(),
       getSnapshot: () =>
         ({
           clearVersion,
@@ -420,6 +423,7 @@ describe('a load releases the window gate it was issued under', () => {
   const gateActions = (clearVersion: () => number) =>
     ({
       applyThreadLoad: jest.fn(),
+      claimWindowGate: jest.fn(),
       clearWindowGate: jest.fn(),
       getSnapshot: () =>
         ({
@@ -463,6 +467,132 @@ describe('a load releases the window gate it was issued under', () => {
     expect(actions.clearWindowGate).toHaveBeenCalledTimes(1)
   })
 
+  test('does not apply a response that arrives after a clear', async () => {
+    // The back page is in flight when the reader taps jump-to-recent: messagesClear empties the
+    // window and starts its own load. Applying this one anyway repopulates the window the clear
+    // dropped and lowers the gate the new load is relying on, and the two disjoint pages then
+    // merge - the stranded-row bug the gate exists to prevent.
+    let clearVersion = 3
+    jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+      await Promise.resolve()
+      clearVersion = 4
+      p.onFullThread?.(
+        JSON.stringify({
+          messages: [
+            {
+              placeholder: {hidden: false, messageID: T.Chat.numberToMessageID(7152)},
+              state: T.RPCChat.MessageUnboxedState.placeholder,
+            },
+          ],
+          pagination: {last: false, num: 100},
+        })
+      )
+      return undefined as never
+    })
+    const actions = gateActions(() => clearVersion)
+    loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
+    await flushPromises()
+
+    expect(actions.applyThreadLoad).not.toHaveBeenCalled()
+    expect(actions.clearWindowGate).not.toHaveBeenCalled()
+  })
+
+  test('does not apply a response while another load owns the gate', async () => {
+    // Two loads issued after the same clear: the reload the clear started owns the gate, and a
+    // ChatThreadsStale reload fired behind it answers first. clearVersion cannot tell them apart -
+    // it moved once, for the clear both of them started after. Applying this one would fill the
+    // cleared window with the newest page while the owner is still fetching a disjoint region, and
+    // the owner's page would then merge into it.
+    let claimed = -1
+    const actions = {
+      applyThreadLoad: jest.fn(),
+      claimWindowGate: jest.fn((loadID: number) => {
+        claimed = loadID
+      }),
+      clearWindowGate: jest.fn(),
+      getSnapshot: () =>
+        ({
+          clearVersion: 3,
+          liveUpdateVersion: 0,
+          loaded: true,
+          messageIDToOrdinal: new Map(),
+          messageMap: new Map(),
+          messageOrdinals: undefined,
+          pendingOutboxToOrdinal: new Map(),
+          // Someone else got here first.
+          windowCleared: true,
+          windowGateOwner: claimed + 1,
+        }) as unknown as ConversationThreadState,
+      loadMoreMessages: jest.fn(),
+      markThreadAsRead: jest.fn(),
+    } as unknown as ConversationThreadActions
+    jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+      await Promise.resolve()
+      p.onFullThread?.(
+        JSON.stringify({
+          messages: [
+            {
+              placeholder: {hidden: false, messageID: T.Chat.numberToMessageID(7152)},
+              state: T.RPCChat.MessageUnboxedState.placeholder,
+            },
+          ],
+          pagination: {last: false, num: 100},
+        })
+      )
+      return undefined as never
+    })
+    loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
+    await flushPromises()
+
+    expect(actions.applyThreadLoad).not.toHaveBeenCalled()
+  })
+
+  test('applies the response of the load that owns the gate', async () => {
+    // The other half: the gate is up and this is the reload that claimed it, so it is the one
+    // allowed to refill the window.
+    let claimed = -1
+    const actions = {
+      applyThreadLoad: jest.fn(),
+      claimWindowGate: jest.fn((loadID: number) => {
+        claimed = loadID
+      }),
+      clearWindowGate: jest.fn(),
+      getSnapshot: () =>
+        ({
+          clearVersion: 3,
+          liveUpdateVersion: 0,
+          loaded: true,
+          messageIDToOrdinal: new Map(),
+          messageMap: new Map(),
+          messageOrdinals: undefined,
+          pendingOutboxToOrdinal: new Map(),
+          windowCleared: true,
+          windowGateOwner: claimed,
+        }) as unknown as ConversationThreadState,
+      loadMoreMessages: jest.fn(),
+      markThreadAsRead: jest.fn(),
+    } as unknown as ConversationThreadActions
+    jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+      await Promise.resolve()
+      p.onFullThread?.(
+        JSON.stringify({
+          messages: [
+            {
+              placeholder: {hidden: false, messageID: T.Chat.numberToMessageID(7152)},
+              state: T.RPCChat.MessageUnboxedState.placeholder,
+            },
+          ],
+          pagination: {last: false, num: 100},
+        })
+      )
+      return undefined as never
+    })
+    loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
+    await flushPromises()
+
+    expect(actions.applyThreadLoad).toHaveBeenCalled()
+  })
+
   test('leaves a newer clear’s gate alone', async () => {
     // The load is in flight when the user taps a search result: messagesClear bumps clearVersion and
     // starts its own load. This one must not pull down the gate that one is relying on - the load
@@ -481,7 +611,7 @@ describe('a load releases the window gate it was issued under', () => {
     expect(actions.clearWindowGate).not.toHaveBeenCalled()
   })
 })
-describe('a cached pass that carries nothing leaves the full pass a whole window', () => {
+describe('the prune range is judged against a whole window', () => {
   const flushPromises = async () => {
     for (let i = 0; i < 200; i++) {
       await Promise.resolve()
@@ -497,6 +627,7 @@ describe('a cached pass that carries nothing leaves the full pass a whole window
   const recordingActions = () =>
     ({
       applyThreadLoad: jest.fn(),
+      claimWindowGate: jest.fn(),
       clearWindowGate: jest.fn(),
       getSnapshot: () =>
         ({
@@ -522,7 +653,13 @@ describe('a cached pass that carries nothing leaves the full pass a whole window
 
   const validatedRangeOfLastLoad = (actions: ConversationThreadActions) => {
     const calls = (actions.applyThreadLoad as unknown as jest.Mock).mock.calls
-    return (calls.at(-1)?.[0] as {validatedRange?: {from: number; to: number}} | undefined)?.validatedRange
+    return (calls.at(-1)?.[0] as {validatedRange?: ValidatedRange} | undefined)?.validatedRange
+  }
+  // The span alone. What the range also carries - the ordinals the cached pass delivered - is
+  // asserted where it matters rather than in every expectation.
+  const validatedSpanOfLastLoad = (actions: ConversationThreadActions) => {
+    const range = validatedRangeOfLastLoad(actions)
+    return range && {from: range.from, to: range.to}
   }
 
   beforeEach(() => {
@@ -552,15 +689,19 @@ describe('a cached pass that carries nothing leaves the full pass a whole window
     loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
     await flushPromises()
 
-    expect(validatedRangeOfLastLoad(actions)).toEqual({
+    expect(validatedSpanOfLastLoad(actions)).toEqual({
       from: T.Chat.numberToOrdinal(7152),
       to: T.Chat.numberToOrdinal(7153),
     })
   })
 
-  test('does not prune against a full pass that followed a cached page', async () => {
-    // The warm-cache sequence: the cached pass carried the page, so the full pass is INCREMENTAL -
-    // only what changed. Pruning against that deletes messages that are still in the thread.
+  test('prunes against both passes of a warm-cache load, not the full one alone', async () => {
+    // The warm-cache sequence: the cached pass carries the page and the full pass behind it is
+    // INCREMENTAL, only what changed. Neither is a window on its own - but INCREMENTAL walks the
+    // authoritative window and omits only what the cached pass already carried unchanged, so the
+    // two together are that window, and the range spans both. Judging the full pass alone would
+    // give up pruning on every conversation the cache is warm for, which is all of them after the
+    // first open.
     const actions = recordingActions()
     mockPasses(
       JSON.stringify({messages: page(7153, 7052), pagination: {last: false, num: 100}}),
@@ -569,6 +710,11 @@ describe('a cached pass that carries nothing leaves the full pass a whole window
     loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
     await flushPromises()
 
-    expect(validatedRangeOfLastLoad(actions)).toBeUndefined()
+    expect(validatedSpanOfLastLoad(actions)).toEqual({
+      from: T.Chat.numberToOrdinal(7052),
+      to: T.Chat.numberToOrdinal(7153),
+    })
+    // ...and the rows only the cached pass carried count as present, or the prune would take them.
+    expect(validatedRangeOfLastLoad(actions)?.alsoPresent?.has(T.Chat.numberToOrdinal(7052))).toBe(true)
   })
 })

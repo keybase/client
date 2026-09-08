@@ -1462,10 +1462,12 @@ test('mounted thread listener applies attachment download and upload progress', 
   ).toBeUndefined()
 })
 
-test('a cached pass never prunes messages the incremental full pass no longer resends', async () => {
+test('a warm-cache load prunes against both passes, not either one alone', async () => {
   // Regression: once the service has sent a cached thread it switches the full response to
-  // INCREMENTAL, so the full pass only carries the messages that changed. Treating either partial
-  // response as authoritative deleted real messages that were still in the thread.
+  // INCREMENTAL, so the full pass only carries what changed. Treating either pass on its own as
+  // authoritative deleted real messages that were still in the thread. The two together are the
+  // window - INCREMENTAL walks it and omits only what the cached pass already carried - so the
+  // range spans both, and everything inside it that either pass carried survives.
   useConfigState.setState({loggedIn: true})
   jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(true)
   jest.spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise').mockResolvedValue({offline: false})
@@ -1476,15 +1478,13 @@ test('a cached pass never prunes messages the incremental full pass no longer re
       pagination: {last: true, next: '', num: 100, previous: ''},
     })
 
-  // A partial cached pass missing 302/303, then an incremental full pass that SPANS the same gap -
-  // it carries the oldest and newest but not the two in between. The span is what makes this
-  // dangerous: a validatedRange of [301..304] computed from a partial response covers 302 and 303,
-  // which are absent from that response and would be pruned. A full pass carrying only 304 gives a
-  // degenerate [304..304] range with nothing to prune, and would pass even without the fix.
+  // The cache holds the older three; only 304 changed, so that is all the full pass carries. The
+  // span is what makes this the dangerous shape: a range of [301..304] computed from the full pass
+  // alone covers 302 and 303, which are absent from it and would be pruned.
   jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
-    p.incomingCallMap['chat.1.chatUi.chatThreadCached']?.({thread: threadJSON([ids[0]!, ids[3]!])})
+    p.incomingCallMap['chat.1.chatUi.chatThreadCached']?.({thread: threadJSON(ids.slice(0, 3))})
     await Promise.resolve()
-    p.incomingCallMap['chat.1.chatUi.chatThreadFull']?.({thread: threadJSON([ids[0]!, ids[3]!])})
+    p.incomingCallMap['chat.1.chatUi.chatThreadFull']?.({thread: threadJSON([ids[3]!])})
     await Promise.resolve()
     return {offline: false}
   })
@@ -1527,6 +1527,69 @@ test('a cached pass never prunes messages the incremental full pass no longer re
   })
 
   expect(result.current.ordinals).toEqual([301, 302, 303, 304])
+})
+
+test('a warm-cache load still prunes a row neither pass carries', async () => {
+  // The other half of the same rule: a row inside the range that neither pass returned is a ghost -
+  // a cache repair left it behind, or it was deleted while we were away - and reconciling it away
+  // is what the range is for. Gating on a full pass with no cached one before it would have given
+  // this up for every conversation the cache is warm for.
+  useConfigState.setState({loggedIn: true})
+  jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(true)
+  jest.spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise').mockResolvedValue({offline: false})
+  const ids = [301, 302, 303, 304].map(T.Chat.numberToMessageID)
+  const threadJSON = (msgIDs: ReadonlyArray<T.Chat.MessageID>) =>
+    JSON.stringify({
+      messages: msgIDs.map(id => makeValidTextUIMessage(id, `m${id}`)),
+      pagination: {last: true, next: '', num: 100, previous: ''},
+    })
+
+  // 303 is in neither pass, and it sits inside the span the two of them cover.
+  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
+    p.incomingCallMap['chat.1.chatUi.chatThreadCached']?.({thread: threadJSON([ids[0]!, ids[1]!])})
+    await Promise.resolve()
+    p.incomingCallMap['chat.1.chatUi.chatThreadFull']?.({thread: threadJSON([ids[3]!])})
+    await Promise.resolve()
+    return {offline: false}
+  })
+  const {result} = renderHook(
+    () => ({
+      actions: useConversationThreadActions(),
+      loadMoreMessages: useConversationThreadLoadMoreMessages(),
+      ordinals: useConversationThreadSelector(s => s.messageOrdinals),
+    }),
+    {wrapper}
+  )
+
+  act(() => {
+    result.current.actions.applyThreadLoad({
+      centered: false,
+      enableActiveMarkRead: false,
+      messages: ids.map(id =>
+        Message.makeMessageText({
+          author: 'alice',
+          conversationIDKey: convID,
+          id,
+          ordinal: T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(id)),
+          outboxID: undefined,
+          text: new HiddenString(`m${id}`),
+          timestamp: 100,
+        })
+      ),
+      moreToLoad: false,
+      scrollDirection: 'none',
+    })
+  })
+  expect(result.current.ordinals).toEqual([301, 302, 303, 304])
+
+  act(() => {
+    result.current.loadMoreMessages({reason: 'test'})
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+
+  expect(result.current.ordinals).toEqual([301, 302, 304])
 })
 
 // The window invariant, at the callsite that enforces it. The four unit tests in
@@ -1628,6 +1691,126 @@ test('jumpToRecent drops the old window instead of merging a disjoint one into i
   // Only the newest window survives. If the old one were merged in, ordinals would read
   // [101, 102, 9001] with a 8899-wide hole.
   expect(result.current.ordinals).toEqual([T.Chat.numberToOrdinal(9001)])
+})
+
+test('only the load that claimed the window gate may drop it', () => {
+  // clearVersion cannot separate two loads of the same conversation - the load generation only
+  // moves on a conversation change or unmount, so both call themselves current. The reader taps a
+  // search result, messagesClear issues the centered reload, and a ChatThreadsStale notification
+  // then fires a second load at the same generation. If that one settles first - no thread, an
+  // error - it would take the gate down while the reload is still in flight, and a push landing in
+  // what is left of the gap strands exactly as it did before the gate existed.
+  const {result} = renderHook(() => ({actions: useConversationThreadActions()}), {wrapper})
+
+  act(() => {
+    result.current.actions.applyThreadLoad({
+      centered: false,
+      enableActiveMarkRead: false,
+      messages: [textAt(7152), textAt(7153)],
+      moreToLoad: true,
+      scrollDirection: 'none',
+    })
+  })
+  act(() => {
+    result.current.actions.messagesClear()
+  })
+
+  // The reload the clear issued claims the gate; the stale-thread load that follows loses the race.
+  act(() => {
+    result.current.actions.claimWindowGate(1)
+    result.current.actions.claimWindowGate(2)
+  })
+  act(() => {
+    result.current.actions.clearWindowGate(2)
+  })
+  expect(result.current.actions.getSnapshot().windowCleared).toBe(true)
+
+  act(() => {
+    result.current.actions.clearWindowGate(1)
+  })
+  expect(result.current.actions.getSnapshot().windowCleared).toBe(false)
+})
+
+test('a window holding only a pending send is not a window the load filled', () => {
+  // The pending-send exemption lets our own outbox row in during a jump-to-recent gap, so the
+  // window is no longer empty. The gate must still be judged on what the load carried: an empty
+  // cached pass arriving behind that row would otherwise read as "the load filled the window" and
+  // drop the gate before the real page is anywhere.
+  const {result} = renderHook(() => ({actions: useConversationThreadActions()}), {wrapper})
+
+  act(() => {
+    result.current.actions.messagesClear({reloadsNewest: true})
+  })
+  act(() => {
+    result.current.actions.addMessages(
+      [
+        Message.makeMessageText({
+          conversationIDKey: convID,
+          ordinal: T.Chat.numberToOrdinal(7153.001),
+          outboxID: T.Chat.stringToOutboxID('sending-1'),
+          submitState: 'pending',
+          text: new HiddenString('hi'),
+        }),
+      ],
+      {liveUpdate: true}
+    )
+  })
+  expect(result.current.actions.getSnapshot().messageOrdinals).toEqual([7153.001])
+
+  act(() => {
+    result.current.actions.applyThreadLoad({
+      centered: false,
+      enableActiveMarkRead: false,
+      messages: [],
+      moreToLoad: true,
+      scrollDirection: 'none',
+    })
+  })
+  expect(result.current.actions.getSnapshot().windowCleared).toBe(true)
+})
+
+test('an empty pass during a jump-to-recent gap leaves the gate up', () => {
+  // A cold cache sends a cached pass carrying no messages ahead of the full response, and it
+  // reaches applyThreadLoad like any other. Dropping the gate on it reopens the gap: a
+  // notification landing before the real page becomes the sole ordinal, and the page that follows
+  // is disjoint from it.
+  const {result} = renderHook(() => ({actions: useConversationThreadActions()}), {wrapper})
+
+  act(() => {
+    result.current.actions.applyThreadLoad({
+      centered: false,
+      enableActiveMarkRead: false,
+      messages: [textAt(7152), textAt(7153)],
+      moreToLoad: true,
+      scrollDirection: 'none',
+    })
+  })
+  act(() => {
+    result.current.actions.messagesClear()
+  })
+  act(() => {
+    result.current.actions.applyThreadLoad({
+      centered: false,
+      enableActiveMarkRead: false,
+      messages: [],
+      moreToLoad: true,
+      scrollDirection: 'none',
+    })
+  })
+  act(() => {
+    result.current.actions.addMessages([textAt(7155)], {liveUpdate: true})
+  })
+  act(() => {
+    result.current.actions.applyThreadLoad({
+      centered: false,
+      enableActiveMarkRead: false,
+      messages: [textAt(9001)],
+      moreToLoad: true,
+      scrollDirection: 'none',
+    })
+  })
+
+  expect(result.current.actions.getSnapshot().messageOrdinals).toEqual([T.Chat.numberToOrdinal(9001)])
 })
 
 test('a notification during a jump-to-recent gap cannot become the new window', () => {
