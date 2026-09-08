@@ -342,7 +342,7 @@ export const SystemFileManagerIntegrationProvider = ({
   )
 
   return (
-    <SfmiContext.Provider
+    <SfmiContext
       value={{
         ...sfmiState,
         driverDisable,
@@ -352,7 +352,7 @@ export const SystemFileManagerIntegrationProvider = ({
       }}
     >
       {children}
-    </SfmiContext.Provider>
+    </SfmiContext>
   )
 }
 

@@ -213,9 +213,9 @@ export const LoadedTeamsListProvider = (props: React.PropsWithChildren) => {
   const teamsList = useTeamsListRaw()
   const teamsRoleMap = useTeamsRoleMapRaw()
   return (
-    <TeamsListContext.Provider value={teamsList}>
-      <TeamsRoleMapContext.Provider value={teamsRoleMap}>{props.children}</TeamsRoleMapContext.Provider>
-    </TeamsListContext.Provider>
+    <TeamsListContext value={teamsList}>
+      <TeamsRoleMapContext value={teamsRoleMap}>{props.children}</TeamsRoleMapContext>
+    </TeamsListContext>
   )
 }
 

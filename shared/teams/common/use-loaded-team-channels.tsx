@@ -254,7 +254,7 @@ export const LoadedTeamChannelsProvider = (
     () => ({...loadedTeamChannels, teamID}),
     [loadedTeamChannels, teamID]
   )
-  return <LoadedTeamChannelsContext.Provider value={value}>{children}</LoadedTeamChannelsContext.Provider>
+  return <LoadedTeamChannelsContext value={value}>{children}</LoadedTeamChannelsContext>
 }
 
 export const useLoadedTeamChannels = (

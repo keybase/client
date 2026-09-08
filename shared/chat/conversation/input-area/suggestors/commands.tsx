@@ -237,8 +237,8 @@ export const List = (p: ListProps) => {
   const {botCommands} = useConversationMeta(conversationIDKey)
   const items = useDataSource({conversationIDKey, filter, inputSnapshot, suppressCommandSuggestions})
   return (
-    <BotCommandSettingsContext.Provider value={botSettings}>
-      <BotCommandConversationContext.Provider value={{botCommands, conversationIDKey}}>
+    <BotCommandSettingsContext value={botSettings}>
+      <BotCommandConversationContext value={{botCommands, conversationIDKey}}>
         <Common.List
           {...rest}
           keyExtractor={keyExtractor}
@@ -247,7 +247,7 @@ export const List = (p: ListProps) => {
           loading={false}
           rowHeight={rowHeight}
         />
-      </BotCommandConversationContext.Provider>
-    </BotCommandSettingsContext.Provider>
+      </BotCommandConversationContext>
+    </BotCommandSettingsContext>
   )
 }

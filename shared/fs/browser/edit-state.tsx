@@ -321,8 +321,8 @@ export const FsBrowserEditProvider = ({children}: {children: React.ReactNode}) =
   })
 
   return (
-    <BrowserEditContext.Provider value={{edits: sessions, newFolderRow, startRename}}>
+    <BrowserEditContext value={{edits: sessions, newFolderRow, startRename}}>
       {children}
-    </BrowserEditContext.Provider>
+    </BrowserEditContext>
   )
 }
