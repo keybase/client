@@ -313,15 +313,28 @@ export type ClickableBoxProps = Box2Props & {
   onClick?: (e?: React.BaseSyntheticEvent) => void
   onLongPress?: () => void
   hitSlop?: number
+  // Opt-in button semantics: a tab stop on desktop, activated with enter/space, announced as a
+  // button. Off by default because most clickable boxes wrap rows and whole cards, and making
+  // every one of them a tab stop would bury the real controls.
+  asButton?: boolean
 }
 
 export const ClickableBox = (p: ClickableBoxProps & {ref?: React.Ref<MeasureRef | null>}) => {
-  const {onClick, onLongPress, hitSlop, ref, ...box2p} = p
+  const {onClick, onLongPress, hitSlop, asButton, ref, ...box2p} = p
 
   if (!isMobile) {
     const {children, style: _style, onMouseOver, onMouseEnter, onMouseDown, onMouseLeave, onMouseMove, onMouseUp, onContextMenu, testID, flex, title, tooltip} = box2p
     const cn = box2ClassNames(box2p, 'clickable-box2')
     const s = Styles.collapseStyles([flex != null && flex !== 1 ? {flex} : undefined, _style]) as React.CSSProperties
+    const onKeyDown =
+      asButton && onClick
+        ? (e: React.KeyboardEvent) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              onClick(e)
+            }
+          }
+        : undefined
     return (
       <div
         ref={ref as React.Ref<HTMLDivElement>}
@@ -330,13 +343,16 @@ export const ClickableBox = (p: ClickableBoxProps & {ref?: React.Ref<MeasureRef 
         data-tooltip={tooltip}
         onClick={onClick}
         onContextMenu={onContextMenu}
+        onKeyDown={onKeyDown}
         onMouseDown={onMouseDown}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
         onMouseMove={onMouseMove}
         onMouseOver={onMouseOver}
         onMouseUp={onMouseUp}
+        role={asButton ? 'button' : undefined}
         style={s}
+        tabIndex={asButton ? 0 : undefined}
         title={title}
       >
         {children}
@@ -354,6 +370,7 @@ export const ClickableBox = (p: ClickableBoxProps & {ref?: React.Ref<MeasureRef 
       onLongPress={onLongPress}
       onPress={onClick ? e => { onClick(e) } : undefined}
       pointerEvents={pointerEvents}
+      role={asButton ? 'button' : undefined}
       style={s}
       testID={box2p.testID}
     >

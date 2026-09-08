@@ -2,9 +2,9 @@
 /// <reference types="jest" />
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {act, cleanup, render} from '@testing-library/react'
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {OrangeLineContext} from '../orange-line-context'
-import {shouldShowCatchUp, useCatchUp} from './catch-up'
+import {CatchUp, shouldShowCatchUp, useCatchUp} from './catch-up'
 
 const ord = T.Chat.numberToOrdinal
 
@@ -72,9 +72,9 @@ const Probe = (p: {loaded: boolean}) => {
 }
 
 const Tree = (p: {loaded?: boolean; orangeLineOrdinal: T.Chat.Ordinal}) => (
-  <OrangeLineContext.Provider value={p.orangeLineOrdinal}>
+  <OrangeLineContext value={p.orangeLineOrdinal}>
     <Probe loaded={p.loaded ?? true} />
-  </OrangeLineContext.Provider>
+  </OrangeLineContext>
 )
 
 describe('useCatchUp', () => {
@@ -114,5 +114,25 @@ describe('useCatchUp', () => {
       seen?.onCatchUp()
     })
     expect(seen?.showCatchUp).toBe(false)
+  })
+})
+
+// The pill is a ClickableBox, which is a bare div by default: without button semantics it is not a
+// tab stop and enter/space do nothing, so keyboard users have no way to reach the unread line.
+describe('CatchUp', () => {
+  afterEach(cleanup)
+
+  test('is reachable from the keyboard', () => {
+    render(<CatchUp onClick={jest.fn()} />)
+    expect(screen.getByRole('button')).toHaveProperty('tabIndex', 0)
+  })
+
+  test('activates on enter and on space', () => {
+    const onClick = jest.fn()
+    render(<CatchUp onClick={onClick} />)
+    const pill = screen.getByRole('button')
+    fireEvent.keyDown(pill, {key: 'Enter'})
+    fireEvent.keyDown(pill, {key: ' '})
+    expect(onClick).toHaveBeenCalledTimes(2)
   })
 })

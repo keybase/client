@@ -27,7 +27,7 @@ jest.mock('@/stores/current-user', () => ({useCurrentUserState: () => 'testuser'
 import Separator, {NativeSeparator} from './separator'
 
 const Tree = (p: {children: React.ReactNode}) => (
-  <OrangeLineContext.Provider value={newer}>{p.children}</OrangeLineContext.Provider>
+  <OrangeLineContext value={newer}>{p.children}</OrangeLineContext>
 )
 
 // The line is a 1px bar painted with the orange theme token, so its presence is what proves the

@@ -90,6 +90,7 @@ export const CatchUp = (p: {onClick: () => void}) => {
   return (
     <Kb.Box2 direction="vertical" style={styles.container} pointerEvents="box-none">
       <Kb.ClickableBox
+        asButton={true}
         direction="horizontal"
         alignItems="center"
         gap="xtiny"
