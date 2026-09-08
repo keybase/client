@@ -41,7 +41,6 @@ type WritableConversationThreadMessageState = {
   // ceiling an append rather than a stranded row.
   moreToLoadForward: boolean
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal>
-  validatedOrdinalRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
 }
 
 type ThreadMessagesDeleteParams = {
@@ -380,13 +379,6 @@ export const addMessagesToThreadState = (
         changed = true
       }
     }
-    const prev = state.validatedOrdinalRange
-    state.validatedOrdinalRange = prev
-      ? {
-          from: Math.min(prev.from, validatedRange.from) as T.Chat.Ordinal,
-          to: Math.max(prev.to, validatedRange.to) as T.Chat.Ordinal,
-        }
-      : {from: validatedRange.from, to: validatedRange.to}
   }
   if (changed || !state.messageOrdinals) {
     state.messageOrdinals = [...existing].sort((a, b) => a - b)

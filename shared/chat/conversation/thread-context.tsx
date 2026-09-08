@@ -130,7 +130,6 @@ export type ConversationThreadState = {
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal>
   typing: Set<string>
   unfurlPrompt: Map<T.Chat.MessageID, Set<string>>
-  validatedOrdinalRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
 }
 
 type ConversationThreadStore = StoreApi<ConversationThreadState>
@@ -165,7 +164,6 @@ const makeEmptyThreadState = (): ConversationThreadState =>
       pendingOutboxToOrdinal: new Map<T.Chat.OutboxID, T.Chat.Ordinal>(),
       typing: new Set<string>(),
       unfurlPrompt: new Map<T.Chat.MessageID, Set<string>>(),
-      validatedOrdinalRange: undefined as {from: T.Chat.Ordinal; to: T.Chat.Ordinal} | undefined,
     },
     () => {}
   )
@@ -558,7 +556,10 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       )
       updateThreadState(s => {
         s.loaded = true
-        if (p.messages.length) {
+        // A range with no messages behind it is still worth applying: the warm reload where nothing
+        // changed answers with an empty full pass, and that is an authoritative statement about the
+        // span - the stale rows inside it are exactly what the prune is for.
+        if (p.messages.length || p.validatedRange) {
           addMessagesToThreadState(s, p.messages, {validatedRange: p.validatedRange})
           clearOptimisticReactionsForMessagesInThreadState(s, p.messages)
         }
@@ -986,7 +987,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       s.messageOrdinals = undefined
       s.messageTypeMap.clear()
       s.optimisticReactionMap.clear()
-      s.validatedOrdinalRange = undefined
     })
   })
   const setTyping = React.useEffectEvent((typing: ReadonlySet<string>) => {

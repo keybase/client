@@ -387,20 +387,15 @@ describe('addMessagesToThreadState', () => {
     })
     expect(state.messageOrdinals).toEqual([10, 30])
     expect(state.messageMap.has(T.Chat.numberToOrdinal(20))).toBe(false)
-    expect(state.validatedOrdinalRange).toEqual({from: 10, to: 30})
   })
 
-  test('a validated range leaves ordinals outside of it alone and widens the known range', () => {
+  test('a validated range leaves ordinals outside of it alone', () => {
     const state = makeThreadState([])
     addMessagesToThreadState(state, [textAt(10), textAt(50)], {})
     addMessagesToThreadState(state, [textAt(50)], {
       validatedRange: {from: T.Chat.numberToOrdinal(40), to: T.Chat.numberToOrdinal(60)},
     })
     expect(state.messageOrdinals).toEqual([10, 50])
-    addMessagesToThreadState(state, [textAt(10)], {
-      validatedRange: {from: T.Chat.numberToOrdinal(5), to: T.Chat.numberToOrdinal(15)},
-    })
-    expect(state.validatedOrdinalRange).toEqual({from: 5, to: 60})
   })
 
   test('a notification may not strand a new ordinal below the loaded window', () => {

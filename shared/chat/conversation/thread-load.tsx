@@ -318,14 +318,10 @@ export const loadConversationThreadMessages = (
       // from the union of both. Waiting for a pass with no cached one before it would leave the
       // stale-ordinal cleanup running on cold caches only, which is where ghost rows are least
       // likely to be - a reopened conversation is warm every time.
-      const renderedOrdinals = messages
-        .filter(m => m.conversationMessage !== false && m.type !== 'deleted')
-        .map(m => m.ordinal)
-      if (why === 'cached') {
-        for (const o of renderedOrdinals) {
-          cachedPassOrdinals.add(o)
-        }
-      }
+      const renderedMessages = messages.filter(
+        m => m.conversationMessage !== false && m.type !== 'deleted'
+      )
+      const renderedOrdinals = renderedMessages.map(m => m.ordinal)
       let validatedRange: ValidatedRange | undefined
       if (scrollDirection === 'none' && why === 'full') {
         const ords = [...renderedOrdinals, ...cachedPassOrdinals]
@@ -356,6 +352,20 @@ export const loadConversationThreadMessages = (
         validatedRange,
       })
       const after = actions.getSnapshot()
+      if (why === 'cached') {
+        // Recorded once the pass has landed, and in the window's terms rather than the response's.
+        // A message you sent keeps the fractional ordinal it had in the outbox, so the ordinal it
+        // parsed with - the server one - is not the ordinal it occupies. The prune walks the
+        // window, so an entry under the parsed ordinal protects nothing and the row goes. Both are
+        // recorded: whichever one the row ends up under, it counts as delivered.
+        for (const m of renderedMessages) {
+          cachedPassOrdinals.add(m.ordinal)
+          const occupied = m.id ? getOrdinalForMessageIDInSnapshot(after, m.id) : undefined
+          if (occupied) {
+            cachedPassOrdinals.add(occupied)
+          }
+        }
+      }
       // A back page can be composed entirely of messages the thread will never render: a message
       // superseded by a DELETE arrives as a hidden placeholder, becomes `deleted`, and addMessages
       // drops it. The ordinal list is then identical to what it was, so the list never fires

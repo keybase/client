@@ -73,7 +73,11 @@ const makeAttachmentMessage = (override?: Partial<T.Chat.MessageAttachment>) =>
     ...override,
   })
 
-const makeValidTextUIMessage = (serverMsgID: T.Chat.MessageID, text: string): T.RPCChat.UIMessage => ({
+const makeValidTextUIMessage = (
+  serverMsgID: T.Chat.MessageID,
+  text: string,
+  outboxID = ''
+): T.RPCChat.UIMessage => ({
   state: T.RPCChat.MessageUnboxedState.valid,
   valid: {
     atMentions: null,
@@ -103,7 +107,7 @@ const makeValidTextUIMessage = (serverMsgID: T.Chat.MessageID, text: string): T.
       },
     },
     messageID: T.Chat.messageIDToNumber(serverMsgID),
-    outboxID: '',
+    outboxID,
     paymentInfos: null,
     pinnedMessageID: null,
     reactions: {},
@@ -1527,6 +1531,162 @@ test('a warm-cache load prunes against both passes, not either one alone', async
   })
 
   expect(result.current.ordinals).toEqual([301, 302, 303, 304])
+})
+
+test('a warm-cache load does not prune a message sitting on its outbox ordinal', async () => {
+  // A message you sent keeps the fractional ordinal it had in the outbox, so the ordinal it parses
+  // with - its server one - is not the ordinal it occupies. The prune walks the window, so what
+  // the passes delivered has to be recorded in the window's terms too; recording the parsed
+  // ordinal deletes the row it was meant to protect.
+  useConfigState.setState({loggedIn: true})
+  jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(true)
+  jest.spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise').mockResolvedValue({offline: false})
+  const outboxID = T.Chat.stringToOutboxID('sent-1')
+  const sentOrdinal = T.Chat.numberToOrdinal(302.001)
+
+  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
+    p.incomingCallMap['chat.1.chatUi.chatThreadCached']?.({
+      thread: JSON.stringify({
+        messages: [
+          makeValidTextUIMessage(T.Chat.numberToMessageID(301), 'm301'),
+          makeValidTextUIMessage(T.Chat.numberToMessageID(302), 'm302'),
+          makeValidTextUIMessage(T.Chat.numberToMessageID(303), 'mine', 'sent-1'),
+        ],
+        pagination: {last: true, next: '', num: 100, previous: ''},
+      }),
+    })
+    await Promise.resolve()
+    p.incomingCallMap['chat.1.chatUi.chatThreadFull']?.({
+      thread: JSON.stringify({
+        messages: [makeValidTextUIMessage(T.Chat.numberToMessageID(301), 'm301 edited')],
+        pagination: {last: true, next: '', num: 100, previous: ''},
+      }),
+    })
+    await Promise.resolve()
+    return {offline: false}
+  })
+  const {result} = renderHook(
+    () => ({
+      actions: useConversationThreadActions(),
+      loadMoreMessages: useConversationThreadLoadMoreMessages(),
+      ordinals: useConversationThreadSelector(s => s.messageOrdinals),
+    }),
+    {wrapper}
+  )
+
+  // The window as it stands after the send settled: the message is at its outbox ordinal, indexed
+  // under the server ID the service will send it back as.
+  act(() => {
+    result.current.actions.applyThreadLoad({
+      centered: false,
+      enableActiveMarkRead: false,
+      messages: [
+        Message.makeMessageText({
+          author: 'alice',
+          conversationIDKey: convID,
+          id: T.Chat.numberToMessageID(301),
+          ordinal: T.Chat.numberToOrdinal(301),
+          outboxID: undefined,
+          text: new HiddenString('m301'),
+          timestamp: 100,
+        }),
+        Message.makeMessageText({
+          author: 'alice',
+          conversationIDKey: convID,
+          id: T.Chat.numberToMessageID(302),
+          ordinal: T.Chat.numberToOrdinal(302),
+          outboxID: undefined,
+          text: new HiddenString('m302'),
+          timestamp: 100,
+        }),
+        Message.makeMessageText({
+          author: 'testuser',
+          conversationIDKey: convID,
+          id: T.Chat.numberToMessageID(303),
+          ordinal: sentOrdinal,
+          outboxID,
+          text: new HiddenString('mine'),
+          timestamp: 100,
+        }),
+      ],
+      moreToLoad: false,
+      scrollDirection: 'none',
+    })
+  })
+  expect(result.current.ordinals).toEqual([301, 302, sentOrdinal])
+
+  act(() => {
+    result.current.loadMoreMessages({reason: 'test'})
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+
+  expect(result.current.ordinals).toEqual([301, 302, sentOrdinal])
+})
+
+test('a full pass that changed nothing still reconciles the window', async () => {
+  // The ordinary warm reload: the cached pass is the window and the INCREMENTAL full pass behind it
+  // carries nothing at all, because nothing changed. That is still an authoritative answer about
+  // the span, so a row the service no longer has is still a ghost - skipping the prune for want of
+  // messages to add leaves it on screen until the conversation is reopened.
+  useConfigState.setState({loggedIn: true})
+  jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(true)
+  jest.spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise').mockResolvedValue({offline: false})
+  const ids = [301, 302, 303].map(T.Chat.numberToMessageID)
+
+  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
+    p.incomingCallMap['chat.1.chatUi.chatThreadCached']?.({
+      thread: JSON.stringify({
+        messages: [ids[0]!, ids[2]!].map(id => makeValidTextUIMessage(id, `m${id}`)),
+        pagination: {last: true, next: '', num: 100, previous: ''},
+      }),
+    })
+    await Promise.resolve()
+    p.incomingCallMap['chat.1.chatUi.chatThreadFull']?.({
+      thread: JSON.stringify({messages: null, pagination: {last: true, next: '', num: 100, previous: ''}}),
+    })
+    await Promise.resolve()
+    return {offline: false}
+  })
+  const {result} = renderHook(
+    () => ({
+      actions: useConversationThreadActions(),
+      loadMoreMessages: useConversationThreadLoadMoreMessages(),
+      ordinals: useConversationThreadSelector(s => s.messageOrdinals),
+    }),
+    {wrapper}
+  )
+
+  act(() => {
+    result.current.actions.applyThreadLoad({
+      centered: false,
+      enableActiveMarkRead: false,
+      messages: ids.map(id =>
+        Message.makeMessageText({
+          author: 'alice',
+          conversationIDKey: convID,
+          id,
+          ordinal: T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(id)),
+          outboxID: undefined,
+          text: new HiddenString(`m${id}`),
+          timestamp: 100,
+        })
+      ),
+      moreToLoad: false,
+      scrollDirection: 'none',
+    })
+  })
+  expect(result.current.ordinals).toEqual([301, 302, 303])
+
+  act(() => {
+    result.current.loadMoreMessages({reason: 'test'})
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+
+  expect(result.current.ordinals).toEqual([301, 303])
 })
 
 test('a warm-cache load still prunes a row neither pass carries', async () => {
