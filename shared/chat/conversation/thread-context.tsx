@@ -964,6 +964,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
     }
     updateThreadState(d => {
       d.windowCleared = false
+      d.windowClearedForNewest = undefined
       d.windowGateOwner = undefined
     })
   })

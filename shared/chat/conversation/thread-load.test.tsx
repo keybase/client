@@ -695,6 +695,53 @@ describe('the prune range is judged against a whole window', () => {
     })
   })
 
+  test('does not prune when a cached pass arrived but another load owned the window', async () => {
+    // The gate-owner guard is the one guard that can turn a cached pass away and still let the full
+    // pass behind it through: the owner drops the gate in between. The service counts that cached
+    // pass as sent either way, so the full pass is INCREMENTAL - a handful of changed messages - and
+    // a span built from those alone covers every row between them with nothing recorded as present.
+    // That is not a stale-row cleanup, it is deleting the thread.
+    let claimed = -1
+    let ownedByAnother = true
+    const actions = {
+      applyThreadLoad: jest.fn(),
+      claimWindowGate: jest.fn((loadID: number) => {
+        claimed = loadID
+      }),
+      clearWindowGate: jest.fn(),
+      getSnapshot: () =>
+        ({
+          clearVersion: 0,
+          liveUpdateVersion: 0,
+          loaded: true,
+          messageIDToOrdinal: new Map(),
+          messageMap: new Map(),
+          messageOrdinals: undefined,
+          pendingOutboxToOrdinal: new Map(),
+          windowCleared: ownedByAnother,
+          windowGateOwner: claimed + 1,
+        }) as unknown as ConversationThreadState,
+      loadMoreMessages: jest.fn(),
+      markThreadAsRead: jest.fn(),
+    } as unknown as ConversationThreadActions
+    jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+      await Promise.resolve()
+      p.onCachedThread?.(
+        JSON.stringify({messages: page(7153, 7052), pagination: {last: false, num: 100}})
+      )
+      // The load that owned the gate settles here, so the full pass is no longer refused.
+      ownedByAnother = false
+      p.onFullThread?.(
+        JSON.stringify({messages: page(7153, 7150), pagination: {last: false, num: 100}})
+      )
+      return undefined as never
+    })
+    loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
+    await flushPromises()
+
+    expect(validatedRangeOfLastLoad(actions)).toBeUndefined()
+  })
+
   test('prunes against both passes of a warm-cache load, not the full one alone', async () => {
     // The warm-cache sequence: the cached pass carries the page and the full pass behind it is
     // INCREMENTAL, only what changed. Neither is a window on its own - but INCREMENTAL walks the

@@ -248,6 +248,14 @@ export const loadConversationThreadMessages = (
     // a whole window on its own, but together they cover every message in the window - which is
     // what the prune below needs, and why it unions them rather than gating on the full pass alone.
     const cachedPassOrdinals = new Set<T.Chat.Ordinal>()
+    // Whether a cached pass reached us at all, and whether it made it into the window. They come
+    // apart: the gate-owner guard turns a pass away, and the owner can drop the gate before the
+    // full pass arrives, so a load can have its cached pass refused and its full pass admitted. The
+    // service counts that cached pass as sent either way, so what follows is still INCREMENTAL -
+    // only the messages that changed - and a span built from those alone would prune every row
+    // between them. Recorded before the guards, because the guards are what turn a pass away.
+    let sawCachedResponse = false
+    let appliedCachedPass = false
     // The reload below is judged against the whole load, not one pass of it. A warm-cache load
     // delivers the page on the cached pass and then an INCREMENTAL full pass carrying only what
     // changed, so measuring the full pass alone says "added nothing" for a perfectly good page.
@@ -257,7 +265,12 @@ export const loadConversationThreadMessages = (
     let oldestSeenThisLoad = Number.MAX_SAFE_INTEGER as T.Chat.MessageID
     const onGotThread = (thread: string, why: string) => {
       if (!thread) {
+        // No cached thread was sent, so the service has nothing to filter the full pass against and
+        // it stays a whole window. Deliberately not counted as a cached response.
         return
+      }
+      if (why === 'cached') {
+        sawCachedResponse = true
       }
       if (!isCurrentThreadLoad()) {
         logger.info(`loadMoreMessages: stale response ignored: ${why}`)
@@ -323,7 +336,7 @@ export const loadConversationThreadMessages = (
       )
       const renderedOrdinals = renderedMessages.map(m => m.ordinal)
       let validatedRange: ValidatedRange | undefined
-      if (scrollDirection === 'none' && why === 'full') {
+      if (scrollDirection === 'none' && why === 'full' && !(sawCachedResponse && !appliedCachedPass)) {
         const ords = [...renderedOrdinals, ...cachedPassOrdinals]
         if (ords.length > 0) {
           validatedRange = {
@@ -353,6 +366,7 @@ export const loadConversationThreadMessages = (
       })
       const after = actions.getSnapshot()
       if (why === 'cached') {
+        appliedCachedPass = true
         // Recorded once the pass has landed, and in the window's terms rather than the response's.
         // A message you sent keeps the fractional ordinal it had in the outbox, so the ordinal it
         // parsed with - the server one - is not the ordinal it occupies. The prune walks the
