@@ -79,6 +79,7 @@ type IconInfo = {
   extension?: string
   imagesDir?: string
   isFont: boolean
+  mults?: Array<number>
   gridSize?: string
   charCode?: number
   nameDark?: string
@@ -138,6 +139,28 @@ function insertIllustrationAssets(illustrationFiles: Array<string>) {
   }, {})
 }
 
+const defaultMults = [1, 2, 3]
+const sameMults = (a: Array<number>, b: Array<number>) =>
+  a.length === b.length && a.every((n, i) => n === b[i])
+
+// 'foo.png' -> 1x, 'foo@2x.png' -> 2x. A name with no '@Nx' is the 1x, so an entry with no
+// extension at all (a subdirectory) must keep its whole name -- shortening it would collide
+// with a real icon and strip that icon's retina candidates.
+function availableMults(allFiles: Array<string>) {
+  const out: {[key: string]: Array<number>} = {}
+  allFiles.forEach(f => {
+    const dot = f.lastIndexOf('.')
+    const stem = dot < 0 ? f : f.slice(0, dot)
+    const m = /^(.*)@(\d)x$/.exec(stem)
+    const base = m?.[1] ?? stem
+    const mult = m ? Number(m[2]) : 1
+    const arr = (out[base] ??= [])
+    if (!arr.includes(mult)) arr.push(mult)
+  })
+  Object.values(out).forEach(a => a.sort())
+  return out
+}
+
 function updateIconConstants() {
   console.log('Generating icon constants (from the following directories)')
   console.log('\t*' + pngAssetDirPaths.map(({assetDirPath}) => assetDirPath).join('\n\t*'))
@@ -148,8 +171,19 @@ function updateIconConstants() {
     // They are included later in srcSet generation by icon.*.tsx
     //
     // On macOS (10.12+) Finder.app will no longer display .DS_Store files. Make sure they are not included here.
-    const iconFiles = fs.readdirSync(assetDirPath).filter(i => !i.includes('@') && !i.includes('DS_Store'))
+    const allFiles = fs.readdirSync(assetDirPath).filter(i => !i.includes('DS_Store'))
+    const iconFiles = allFiles.filter(i => !i.includes('@'))
     const newIcons = insertFn(iconFiles)
+    // ...but do record which ones each icon actually has: srcSet must not advertise a
+    // candidate with no file behind it, or the browser picks it, 404s, and shows nothing.
+    const available = availableMults(allFiles)
+    Object.keys(newIcons).forEach(name => {
+      const mults = available[name]
+      const icon = newIcons[name]
+      if (icon && mults && !sameMults(mults, defaultMults)) {
+        icon.mults = mults
+      }
+    })
     return {
       ...prevIcons,
       ...newIcons,
@@ -173,7 +207,8 @@ type IconMeta = {
   gridSize?: number
   extension?: string
   charCode?: number
-  nameDark?: string
+  mults?: ReadonlyArray<number>
+  nameDark?: IconType
   imagesDir?: string
   require?: ReqOut
   requireDark?: ReqOut
@@ -213,6 +248,7 @@ ${Object.keys(icons)
       icon.imagesDir && icon.imagesDir !== "'icons'" ? `imagesDir: ${icon.imagesDir}` : '',
       icon.gridSize ? `gridSize: ${icon.gridSize}` : '',
       icon.isFont ? `isFont: ${icon.isFont}` : '',
+      icon.mults ? `mults: [${icon.mults.join(', ')}]` : '',
       icon.nameDark ? `nameDark: ${icon.nameDark}` : '',
       req ? req : '',
     ]
