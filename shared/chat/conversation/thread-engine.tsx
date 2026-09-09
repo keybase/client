@@ -228,6 +228,37 @@ export const applyEphemeralPurgeToThread = (
   }
 }
 
+// The stale-thread notifications, kept with the rest of the chat notification listeners rather
+// than in the module that reacts to them. Both mean the same thing - the window we hold may no
+// longer match the service - and the reaction is the caller's: thread-window reloads the newest
+// page.
+export const useThreadStaleReloadListeners = (
+  id: T.Chat.ConversationIDKey,
+  reloadStaleThread: () => void
+): void => {
+  useEngineActionListener('chat.1.NotifyChat.ChatThreadsStale', action => {
+    const hasStaleThread = (action.payload.params.updates ?? []).some(
+      update => T.Chat.conversationIDToKey(update.convID) === id
+    )
+    if (hasStaleThread) {
+      reloadStaleThread()
+    }
+  })
+
+  useEngineActionListener('chat.1.NotifyChat.ChatInboxSynced', action => {
+    const {syncRes} = action.payload.params
+    if (syncRes.syncType !== T.RPCChat.SyncInboxResType.incremental) {
+      return
+    }
+    const hasStaleThread = (syncRes.incremental.items ?? []).some(
+      item => T.Chat.stringToConversationIDKey(item.conv.convID) === id
+    )
+    if (hasStaleThread) {
+      reloadStaleThread()
+    }
+  })
+}
+
 export const useThreadEngineListeners = (
   id: T.Chat.ConversationIDKey,
   threadActions: ConversationThreadActions

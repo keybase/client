@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {useThreadLoadStatus} from './thread-load-status-context'
+import {useThreadLoadStatus} from './thread-window'
 import {useConversationThreadID} from './thread-context'
 
 const ValidatedStatus = () => {

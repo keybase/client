@@ -3,12 +3,8 @@ import * as T from '@/constants/types'
 import {consumeInputIntent, useInputIntentState} from './input-intent-store'
 import {produce} from 'immer'
 import {useChatThreadRouteParams} from './thread-search-route'
-import {useThreadLoadStatusOptionsGetter} from './thread-load-status-context'
-import {
-  useConversationThreadJumpToRecent,
-  useConversationThreadLoadMessagesCentered,
-  useConversationThreadSetMarkReadBlocked,
-} from './thread-context'
+import {useConversationThreadSetMarkReadBlocked} from './thread-context'
+import {useRequestWindow} from './thread-window'
 
 type CenterState = {
   center: T.Chat.CenterOrdinal | undefined
@@ -76,9 +72,7 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
   const {children, id} = p
   const routeParams = useChatThreadRouteParams()
   const threadSearchVisible = !!routeParams?.threadSearch
-  const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
-  const loadMessagesCentered = useConversationThreadLoadMessagesCentered()
-  const jumpToRecentThread = useConversationThreadJumpToRecent()
+  const requestWindow = useRequestWindow()
   const setMarkReadBlocked = useConversationThreadSetMarkReadBlocked()
   const [centerState, setCenterState] = React.useState<CenterState>(() => ({
     center: undefined,
@@ -109,14 +103,12 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
 
   const centerOnMessage = (messageID: T.Chat.MessageID, highlightMode: T.Chat.CenterOrdinalHighlightMode) => {
     setCenterForMessage(messageID, highlightMode)
-    loadMessagesCentered(messageID, highlightMode, {
-      ...getThreadLoadStatusOptions(),
-    })
+    requestWindow({anchor: {centeredOn: messageID}, reason: 'centered'})
   }
 
   const jumpToRecent = () => {
     clearCenter()
-    jumpToRecentThread(getThreadLoadStatusOptions())
+    requestWindow({anchor: 'newest', reason: 'jump to recent'})
   }
 
   React.useEffect(() => {

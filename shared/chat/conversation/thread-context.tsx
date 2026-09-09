@@ -6,13 +6,10 @@ import * as T from '@/constants/types'
 import {getVisibleScreen, navigateAppend, navigateToThread, navigateUp, setChatRootParams} from '@/constants/router'
 import {isPhone} from '@/constants/platform'
 import logger from '@/logger'
-import throttle from 'lodash/throttle'
-import {clearChatTimeCache} from '@/util/timestamp'
 import {findLast} from '@/util/arrays'
 import {ignorePromise} from '@/constants/utils'
 import {RPCError} from '@/util/errors'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useUsersState} from '@/stores/users'
 import {useConfigState} from '@/stores/config'
 import {useShellState} from '@/stores/shell'
 import {produce, type Draft} from 'immer'
@@ -40,13 +37,7 @@ import {
   updateAttachmentUploadProgressInThreadState,
   updateReactionsInThreadState,
 } from './thread-message-state'
-import {
-  getInboxConversationMeta,
-  getInboxConversationParticipants,
-  metasReceived,
-  unboxRows,
-  useInboxMetadataState,
-} from '@/chat/inbox/metadata'
+import {getInboxConversationMeta, metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {loadThreadMessageIDAtIndex, markConversationRead} from './thread-rpc'
 import {
   cancelConversationPost,
@@ -61,9 +52,6 @@ import {
   getClientPrevFromSnapshot,
   getExplodingModeFromConfig,
   getMeta,
-  loadConversationThreadMessages,
-  numMessagesOnInitialLoad,
-  numMessagesOnScrollback,
   persistExplodingMode,
 } from './thread-load'
 import {useThreadEngineListeners} from './thread-engine'
@@ -80,12 +68,6 @@ const sameStringSet = (a: ReadonlySet<string>, b: ReadonlySet<string>) => {
   return true
 }
 
-const emptyParticipantInfo: T.Chat.ParticipantInfo = {
-  all: [],
-  contactName: new Map(),
-  name: [],
-}
-
 const formatTextForQuoting = (text: string) =>
   text
     .split('\n')
@@ -97,10 +79,12 @@ ConversationThreadIDContext.displayName = 'ConversationThreadIDContext'
 
 export type ConversationThreadState = {
   accountsInfoMap: Map<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
-  // Bumped on every messagesClear. The desktop list remounts on it: LegendList cannot recover
+  // The identity of the loaded window: bumped whenever the window is dropped (messagesClear) or the
+  // conversation under it changes. Two things read it. thread-window refuses any response fetched
+  // against an older generation, and the desktop list remounts on it - LegendList cannot recover
   // from a non-empty -> empty -> non-empty data transition (it resets its layout state and waits
   // for a container layout event that never comes), so the thread renders blank forever.
-  clearVersion: number
+  generation: number
   explodingMode: number
   flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
   loaded: boolean
@@ -109,15 +93,9 @@ export type ConversationThreadState = {
   messageMap: Map<T.Chat.Ordinal, T.Chat.Message>
   messageOrdinals?: ReadonlyArray<T.Chat.Ordinal>
   // Set between a messagesClear and the reload that refills the window, so a notification arriving
-  // in that gap cannot install itself as the new window. Cleared once that load settles, however it
-  // settles - see clearWindowGate.
+  // in that gap cannot install itself as the new window. thread-window decides which load may take
+  // it down; see releaseWindowGate.
   windowCleared?: boolean
-  // The load that owns the gate above: the first one to claim it after the clear, which is the
-  // reload the clear issued. Only that load may drop the gate. clearVersion alone cannot tell two
-  // loads of the same conversation apart, and a second load at the same generation - a
-  // ChatThreadsStale reload, say - would otherwise settle first and take down a gate the reload is
-  // still relying on.
-  windowGateOwner?: number
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType>
   moreToLoadBack: boolean
   moreToLoadForward: boolean
@@ -144,7 +122,7 @@ const makeEmptyThreadState = (): ConversationThreadState =>
   produce(
     {
       accountsInfoMap: new Map<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>(),
-      clearVersion: 0,
+      generation: 0,
       explodingMode: 0,
       flipStatusMap: new Map<string, T.RPCChat.UICoinFlipStatus>(),
       liveUpdateVersion: 0,
@@ -173,54 +151,7 @@ const makeInitialThreadState = (id: T.Chat.ConversationIDKey) => {
 const makeThreadStore = (id: T.Chat.ConversationIDKey) =>
   createStore<ConversationThreadState>(() => makeInitialThreadState(id))
 
-export type ThreadLoadStatusOptions = {
-  isThreadLoadCurrent?: () => boolean
-  onThreadLoadStatus?: ThreadLoadStatusReporter
-}
-
-type SelectedConversationOptions = ThreadLoadStatusOptions & {
-  allowMarkAsRead?: boolean
-  skipThreadLoad?: boolean
-}
-
 export type ScrollDirection = 'none' | 'back' | 'forward'
-export type LoadMoreMessagesParams = ThreadLoadStatusOptions & {
-  allowMarkAsRead?: boolean
-  centeredMessageID?: {
-    conversationIDKey: T.Chat.ConversationIDKey
-    highlightMode: T.Chat.CenterOrdinalHighlightMode
-    messageID: T.Chat.MessageID
-  }
-  forceContainsLatestCalc?: boolean
-  knownRemotes?: ReadonlyArray<string>
-  messageIDControl?: T.RPCChat.MessageIDControl | null
-  numberOfMessagesToLoad?: number
-  reason: string
-  // Internal: set only by the empty-back-page reload in thread-load.tsx, carrying the oldest
-  // message ID the previous attempt saw. Each reload must reach strictly further back than that,
-  // which is what stops it looping. Callers leave it unset.
-  retryBelowMessageID?: T.Chat.MessageID
-  // How many times the back-page reload has already chained. See maxBackPageReloads.
-  retryCount?: number
-  scrollDirection?: ScrollDirection
-}
-type LoadMoreMessages = ((p: LoadMoreMessagesParams) => void) & {cancel: () => void}
-type LoadMessagesCentered = (
-  messageID: T.Chat.MessageID,
-  highlightMode: T.Chat.CenterOrdinalHighlightMode,
-  options?: ThreadLoadStatusOptions
-) => void
-type LoadOlderMessagesDueToScroll = (
-  numOrdinals: number,
-  options?: ThreadLoadStatusOptions
-) => void
-type LoadNewerMessagesDueToScroll = (
-  numOrdinals: number,
-  options?: ThreadLoadStatusOptions
-) => void
-type JumpToRecent = (options?: ThreadLoadStatusOptions) => void
-type MessagesClear = () => void
-type SelectedConversation = (options?: SelectedConversationOptions) => void
 export type ConversationThreadActions = {
   addMessages: (
     messages: ReadonlyArray<T.Chat.Message>,
@@ -233,12 +164,12 @@ export type ConversationThreadActions = {
     centered: boolean
     disableActiveMarkRead?: boolean
     enableActiveMarkRead: boolean
-    forceContainsLatestCalc?: boolean
     messages: ReadonlyArray<T.Chat.Message>
     moreToLoad: boolean
     reconcile?: ThreadLoadReconcile
     scrollDirection: ScrollDirection
   }) => void
+  bumpWindowGeneration: () => void
   clearUnfurlPrompt: (messageID: T.Chat.MessageID, domain: string) => void
   deleteMessages: (p: {
     messageIDs?: ReadonlyArray<T.Chat.MessageID>
@@ -252,17 +183,15 @@ export type ConversationThreadActions = {
     explodedBy?: string,
     liveUpdate?: boolean
   ) => void
-  claimWindowGate: (loadID: number) => void
-  clearWindowGate: (loadID: number) => void
   getSnapshot: () => ConversationThreadState
-  loadMoreMessages: LoadMoreMessages
   markThreadAsRead: () => void
   setMarkReadBlocked: (blocked: boolean) => void
   messageDelete: (ordinal: T.Chat.Ordinal) => void
   messageReplyPrivately: (ordinal: T.Chat.Ordinal) => void
-  messagesClear: MessagesClear
+  messagesClear: () => void
   receivePaymentInfo: (messageID: T.Chat.MessageID, paymentInfo: T.Chat.ChatPaymentInfo) => void
   receiveRequestInfo: (messageID: T.Chat.MessageID, requestInfo: T.Chat.ChatRequestInfo) => void
+  releaseWindowGate: () => void
   retryMessage: (outboxID: T.Chat.OutboxID) => void
   setExplodingMode: (seconds: number, incoming?: boolean) => void
   setMessageErrored: (outboxID: T.Chat.OutboxID, reason: string, errorTyp?: number) => void
@@ -298,11 +227,6 @@ const ConversationThreadActionsContext = React.createContext<ConversationThreadA
 )
 ConversationThreadActionsContext.displayName = 'ConversationThreadActionsContext'
 
-export type ThreadLoadStatusReporter = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  status: T.RPCChat.UIChatThreadStatusTyp
-) => void
-
 export const useConversationThreadID = () => {
   const conversationIDKey = React.useContext(ConversationThreadIDContext)
   if (!conversationIDKey) {
@@ -317,26 +241,6 @@ export const useConversationThreadActions = () => {
     throw new Error('Missing ConversationThreadProvider actions in the tree')
   }
   return actions
-}
-
-const useScrollLoadGate = () => {
-  const lastScrollNumOrdinalsRef = React.useRef(0)
-  const lastScrollTimeRef = React.useRef(0)
-  return (numOrdinals: number) => {
-    const now = Date.now()
-    if (numOrdinals !== lastScrollNumOrdinalsRef.current) {
-      lastScrollNumOrdinalsRef.current = numOrdinals
-      lastScrollTimeRef.current = now
-      return true
-    }
-
-    const ok = now - lastScrollTimeRef.current > 500
-    if (ok) {
-      lastScrollNumOrdinalsRef.current = numOrdinals
-      lastScrollTimeRef.current = now
-    }
-    return ok
-  }
 }
 
 export const useConversationThreadSelector = <TValue,>(
@@ -535,48 +439,11 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       centered: boolean
       disableActiveMarkRead?: boolean
       enableActiveMarkRead: boolean
-      forceContainsLatestCalc?: boolean
       messages: ReadonlyArray<T.Chat.Message>
       moreToLoad: boolean
       reconcile?: ThreadLoadReconcile
       scrollDirection: ScrollDirection
     }) => {
-      const rendered = p.messages.filter(m => m.conversationMessage !== false && m.type !== 'deleted')
-      // Judged on what this pass carried rather than on the state of the window, so the gate turns
-      // on the one thing that decides it: whether this pass put a row on screen.
-      const carriedRenderedMessage = rendered.length > 0
-      // A 'none' load fetches the newest page, and a window with more to load forward does not
-      // reach it. Merging the two leaves ordinals with a hole through the middle, and the branch
-      // below then reports that window as containing the latest message - which is the gap this
-      // whole invariant is about, arriving through a ChatThreadsStale reload while the reader sits
-      // on a search result. Both conditions are needed: a window that already reaches the newest
-      // message merges fine, and so does a page that overlaps what we hold, however far back the
-      // reader is. Neither holds here, so the page is left alone rather than applied - the reader
-      // keeps their window, and jumping to recent (which empties it first) is what replaces it.
-      const beforeApply = threadStore.getState()
-      const windowOrdinals = beforeApply.messageOrdinals
-      const floor = windowOrdinals?.[0]
-      const ceiling = windowOrdinals?.[windowOrdinals.length - 1]
-      if (
-        p.scrollDirection === 'none' &&
-        rendered.length &&
-        beforeApply.moreToLoadForward &&
-        floor !== undefined &&
-        ceiling !== undefined
-      ) {
-        let lowest = Number.MAX_SAFE_INTEGER
-        let highest = Number.MIN_SAFE_INTEGER
-        for (const m of rendered) {
-          lowest = Math.min(lowest, m.ordinal)
-          highest = Math.max(highest, m.ordinal)
-        }
-        if (lowest > ceiling || highest < floor) {
-          logger.info(
-            `applyThreadLoad: page ${lowest}-${highest} does not reach window ${floor}-${ceiling}, ignoring`
-          )
-          return
-        }
-      }
       updateThreadState(s => {
         s.loaded = true
         // The reconciling pass runs even with nothing to add: the warm reload where nothing changed
@@ -588,15 +455,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         if (p.messages.length || p.reconcile?.prune) {
           addMessagesToThreadState(s, p.messages, {reconcile: p.reconcile})
           clearOptimisticReactionsForMessagesInThreadState(s, p.messages)
-        }
-        // Only a pass that actually rendered something drops the gate. A cold cache sends an empty
-        // cached pass ahead of the full response, and a page can be all tombstones: dropping the
-        // gate on either would let a notification arriving before the real page install itself as
-        // the whole window and strand once that page lands. A load that ends without ever producing
-        // an ordinal releases the gate in its own finally instead - see clearWindowGate.
-        if (carriedRenderedMessage) {
-          s.windowCleared = false
-          s.windowGateOwner = undefined
         }
         switch (p.scrollDirection) {
           case 'forward':
@@ -610,7 +468,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
             // A centered window may already include the latest message; leaving
             // moreToLoadForward true would drop live incoming messages and block mark-read.
             let containsLatest = false
-            if (p.centered && p.forceContainsLatestCalc) {
+            if (p.centered) {
               const {maxVisibleMsgID} = getMeta(id)
               const ordinal = findLast(s.messageOrdinals ?? [], o => !!s.messageMap.get(o)?.id)
               const message = ordinal ? s.messageMap.get(ordinal) : undefined
@@ -962,41 +820,22 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       markThreadAsRead()
     }
   )
-  // The reload a clear issues claims the gate, so a load that merely happens to be running at the
-  // same clear generation cannot drop it out from under that reload. First claim wins: the clear
-  // issues its reload synchronously, so that reload is the first to get here.
-  const claimWindowGate = React.useEffectEvent((loadID: number) => {
-    const s = threadStore.getState()
-    if (!s.windowCleared || s.windowGateOwner !== undefined) {
-      return
-    }
-    updateThreadState(d => {
-      d.windowGateOwner = loadID
-    })
-  })
-  // applyThreadLoad drops the gate when a load refills the window, but a load can end without ever
-  // applying: offline, scchatnotinteam, or a response that carries no thread. Left alone the gate
-  // would keep dropping notifications for the life of the provider, with no window to correct it.
-  const clearWindowGate = React.useEffectEvent((loadID: number) => {
-    const s = threadStore.getState()
-    if (!s.windowCleared) {
-      return
-    }
-    // An unclaimed gate is released by whoever settles first: nothing claimed it, so there is no
-    // reload in flight to protect, and leaving it up would strand the thread.
-    if (s.windowGateOwner !== undefined && s.windowGateOwner !== loadID) {
-      return
-    }
+  // Which load may take the gate down is thread-window's decision; this only performs it.
+  const releaseWindowGate = React.useEffectEvent(() => {
     updateThreadState(d => {
       d.windowCleared = false
-      d.windowGateOwner = undefined
+    })
+  })
+  const bumpWindowGeneration = React.useEffectEvent(() => {
+    updateThreadState(d => {
+      d.generation += 1
     })
   })
   const messagesClear = React.useEffectEvent(() => {
     activeMarkReadEnabledRef.current = false
     shownUsernameCache.clear()
     updateThreadState(s => {
-      s.clearVersion += 1
+      s.generation += 1
       s.pendingOutboxToOrdinal.clear()
       s.loaded = false
       // Mark the gap. A notification landing between here and the reload would otherwise face an
@@ -1005,7 +844,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       // arbitrary one, jumpToRecent the newest page - so nothing arriving first can be placed
       // against what is coming.
       s.windowCleared = true
-      s.windowGateOwner = undefined
       s.messageIDToOrdinal.clear()
       s.messageMap.clear()
       s.messageOrdinals = undefined
@@ -1103,46 +941,25 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
     }
   )
   const [threadActions] = React.useState<ConversationThreadActions>(() => {
-    const impl = (p: LoadMoreMessagesParams) => loadConversationThreadMessages(id, p, threadActions)
-    const throttled = throttle(impl, 500)
-    // The throttle keeps only the last trailing call, so a centered or jump-to-recent
-    // load issued between two other loads would be silently dropped — after
-    // loadMessagesCentered already cleared the thread. Run those immediately instead.
-    const loadMoreMessages: LoadMoreMessages = Object.assign(
-      (p: LoadMoreMessagesParams) => {
-        if (p.centeredMessageID || p.messageIDControl || p.reason === 'jump to recent') {
-          throttled.cancel()
-          impl(p)
-        } else {
-          throttled(p)
-        }
-      },
-      {
-        cancel: () => {
-          throttled.cancel()
-        },
-      }
-    )
     const threadActions: ConversationThreadActions = {
       addMessages,
       addOptimisticReaction,
       applyThreadLoad,
+      bumpWindowGeneration,
       clearUnfurlPrompt,
-      claimWindowGate,
-      clearWindowGate,
       completeAttachmentDownload,
       deleteMessages,
       explodeMessages,
       failAttachmentDownload,
       finishAttachmentDownload,
       getSnapshot,
-      loadMoreMessages,
       markThreadAsRead,
       messageDelete,
       messageReplyPrivately,
       messagesClear,
       receivePaymentInfo,
       receiveRequestInfo,
+      releaseWindowGate,
       removeOptimisticReaction,
       retryMessage,
       setAttachmentMobileSaving,
@@ -1165,11 +982,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
     }
     return threadActions
   })
-  React.useEffect(() => {
-    return () => {
-      threadActions.loadMoreMessages.cancel()
-    }
-  }, [threadActions])
   useThreadEngineListeners(id, threadActions)
 
   return (
@@ -1229,103 +1041,6 @@ export const getConversationThreadDisplayMessage = (
 export const useConversationThreadMessage = (ordinal: T.Chat.Ordinal) =>
   useConversationThreadSelector(snapshot => getConversationThreadDisplayMessage(snapshot, ordinal))
 
-export const useConversationThreadLoadMoreMessages = () => useConversationThreadActions().loadMoreMessages
-
-const useConversationThreadMessagesClear = () => useConversationThreadActions().messagesClear
-
-export const useConversationThreadLoadOlderMessagesDueToScroll = () => {
-  const threadStore = useConversationThreadStore()
-  const loadMoreMessages = useConversationThreadLoadMoreMessages()
-  const okToLoadMore = useScrollLoadGate()
-
-  const loadOlderMessagesDueToScroll: LoadOlderMessagesDueToScroll = (numOrdinals, options) => {
-    if (!threadStore.getState().moreToLoadBack) {
-      logger.info('bail: scrolling back and at the end')
-      return
-    }
-
-    if (!numOrdinals) {
-      return
-    }
-
-    if (!okToLoadMore(numOrdinals)) {
-      return
-    }
-
-    loadMoreMessages({
-      ...(options ?? {}),
-      numberOfMessagesToLoad: numMessagesOnScrollback,
-      reason: 'scroll back',
-      scrollDirection: 'back',
-    })
-  }
-  return loadOlderMessagesDueToScroll
-}
-
-export const useConversationThreadLoadNewerMessagesDueToScroll = () => {
-  const loadMoreMessages = useConversationThreadLoadMoreMessages()
-  const okToLoadMore = useScrollLoadGate()
-
-  const loadNewerMessagesDueToScroll: LoadNewerMessagesDueToScroll = (numOrdinals, options) => {
-    if (!numOrdinals) {
-      return
-    }
-
-    if (!okToLoadMore(numOrdinals)) {
-      return
-    }
-
-    loadMoreMessages({
-      ...(options ?? {}),
-      numberOfMessagesToLoad: numMessagesOnScrollback,
-      reason: 'scroll forward',
-      scrollDirection: 'forward',
-    })
-  }
-  return loadNewerMessagesDueToScroll
-}
-
-export const useConversationThreadLoadMessagesCentered = () => {
-  const conversationIDKey = useConversationThreadID()
-  const loadMoreMessages = useConversationThreadLoadMoreMessages()
-  const messagesClear = useConversationThreadMessagesClear()
-
-  const loadMessagesCentered: LoadMessagesCentered = (messageID, highlightMode, options) => {
-    messagesClear()
-    loadMoreMessages({
-      centeredMessageID: {
-        conversationIDKey,
-        highlightMode,
-        messageID,
-      },
-      forceContainsLatestCalc: true,
-      messageIDControl: {
-        mode: T.RPCChat.MessageIDControlMode.centered,
-        num: numMessagesOnInitialLoad,
-        pivot: messageID,
-      },
-      ...(options ?? {}),
-      reason: 'centered',
-    })
-  }
-  return loadMessagesCentered
-}
-
-export const useConversationThreadJumpToRecent = () => {
-  const {setMarkReadBlocked} = useConversationThreadActions()
-  const loadMoreMessages = useConversationThreadLoadMoreMessages()
-  const messagesClear = useConversationThreadMessagesClear()
-
-  const jumpToRecent: JumpToRecent = options => {
-    setMarkReadBlocked(false)
-    // The newest window is disjoint from wherever the reader was, so merging the two would leave a
-    // gap in the ordinals. Drop the old window first, the way a centered jump does.
-    messagesClear()
-    loadMoreMessages({...(options ?? {}), reason: 'jump to recent'})
-  }
-  return jumpToRecent
-}
-
 export const useConversationThreadMarkThreadAsRead = () => useConversationThreadActions().markThreadAsRead
 
 export const useConversationThreadSetMarkAsUnread = () => useConversationThreadActions().setMarkAsUnread
@@ -1336,34 +1051,6 @@ export const useConversationThreadMessageActions = () => {
   const {messageDelete, messageReplyPrivately, toggleMessageCollapse, toggleMessageReaction, unfurlRemove} =
     useConversationThreadActions()
   return {messageDelete, messageReplyPrivately, toggleMessageCollapse, toggleMessageReaction, unfurlRemove}
-}
-
-export const useConversationThreadSelectedConversation = () => {
-  const conversationIDKey = useConversationThreadID()
-  const loadMoreMessages = useConversationThreadLoadMoreMessages()
-
-  const selectedConversation: SelectedConversation = (options?: SelectedConversationOptions) => {
-    const {skipThreadLoad, ...loadStatusOptions} = options ?? {}
-    clearChatTimeCache()
-
-    unboxRows([conversationIDKey])
-
-    const username = useCurrentUserState.getState().username
-    const participantInfo = getInboxConversationParticipants(conversationIDKey) ?? emptyParticipantInfo
-    const otherParticipants = Meta.getRowParticipants(participantInfo, username || '')
-    if (otherParticipants.length === 1) {
-      const otherUsername = otherParticipants[0] || ''
-
-      if (otherUsername && !otherUsername.includes('@')) {
-        useUsersState.getState().dispatch.getBio(otherUsername)
-      }
-    }
-
-    if (!skipThreadLoad) {
-      loadMoreMessages({...loadStatusOptions, reason: 'focused'})
-    }
-  }
-  return selectedConversation
 }
 
 export const useConversationThreadToggleSearch = () => {

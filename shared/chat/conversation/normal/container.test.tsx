@@ -64,7 +64,7 @@ function mockPassthroughProvider({children}: {children: React.ReactNode}) {
   return React.createElement(React.Fragment, null, children)
 }
 
-function mockConversationThreadLoadStatusProvider(
+function mockConversationThreadWindowProvider(
   props: React.PropsWithChildren<{
     allowMarkReadOnLoad?: boolean
     id: T.Chat.ConversationIDKey
@@ -112,8 +112,8 @@ jest.mock('../input-area/input-state', () => {
   return {ConversationInputProvider: mockPassthroughProvider}
 })
 
-jest.mock('../thread-load-status-context', () => {
-  return {ConversationThreadLoadStatusProvider: mockConversationThreadLoadStatusProvider}
+jest.mock('../thread-window', () => {
+  return {ConversationThreadWindowProvider: mockConversationThreadWindowProvider}
 })
 
 jest.mock('@/common-adapters/markdown/maybe-mention/context', () => {
