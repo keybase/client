@@ -571,25 +571,33 @@ export const runThreadWindowLoad = (p: {
           oldestSeenThisLoad = m.id
         }
       }
-      if (mayJoinWindow(snapshotAtResponse, messages, scrollDirection)) {
-        actions.applyThreadLoad({
-          centered: !!centeredOn,
-          disableActiveMarkRead: !allowMarkAsRead || !!centeredOn,
-          enableActiveMarkRead: canMarkReadForThreadWindow,
-          messages,
-          moreToLoad,
-          reconcile,
-          scrollDirection,
-        })
-        // Only a pass that actually rendered something drops the gate. A cold cache sends an empty
-        // cached pass ahead of the full response, and a page can be all tombstones: dropping the
-        // gate on either would let a notification arriving before the real page install itself as
-        // the whole window and strand once that page lands. A load that ends without ever producing
-        // an ordinal releases the gate in its own finally instead.
-        if (renderedMessages(messages).length) {
-          gate.refillOwner = undefined
-          actions.releaseWindowGate()
-        }
+      if (!mayJoinWindow(snapshotAtResponse, messages, scrollDirection)) {
+        // A disjoint page is the case the refusal exists for, so it retires the whole load rather
+        // than just this pass. A warm cache sends the page on the cached pass and an INCREMENTAL
+        // full pass behind it carrying only what changed - so letting the load continue past a
+        // skipped cached pass leaves `sawCachedReport` set with nothing in `carried`, and an empty
+        // full pass then joins unopposed and prunes a centered window against the handful of rows
+        // it happens to hold, marking an old window read on the way out.
+        refuse(`requestWindow: pass ignored, it does not join the loaded window: ${why}`)
+        return
+      }
+      actions.applyThreadLoad({
+        centered: !!centeredOn,
+        disableActiveMarkRead: !allowMarkAsRead || !!centeredOn,
+        enableActiveMarkRead: canMarkReadForThreadWindow,
+        messages,
+        moreToLoad,
+        reconcile,
+        scrollDirection,
+      })
+      // Only a pass that actually rendered something drops the gate. A cold cache sends an empty
+      // cached pass ahead of the full response, and a page can be all tombstones: dropping the gate
+      // on either would let a notification arriving before the real page install itself as the
+      // whole window and strand once that page lands. A load that ends without ever producing an
+      // ordinal releases the gate in its own finally instead.
+      if (renderedMessages(messages).length) {
+        gate.refillOwner = undefined
+        actions.releaseWindowGate()
       }
       const after = store.getState()
       // A back page can be composed entirely of messages the thread will never render: a message

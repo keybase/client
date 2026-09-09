@@ -966,6 +966,53 @@ describe('the window gate', () => {
     expect(context.store.getState().windowCleared).toBe(false)
   })
 
+  test('a disjoint cached pass retires the load instead of letting the full pass prune', async () => {
+    // The cached pass is whatever the local cache holds and it can be a page from somewhere else
+    // entirely - here, newer messages while the reader sits on a centered window. Skipping just that
+    // pass is not enough: the service has already recorded that a cached thread was sent, so the
+    // INCREMENTAL full pass behind it arrives carrying only what changed and, with nothing in
+    // `carried` from the pass that was dropped, reconciles the whole window against those few rows -
+    // deleting everything between them and marking an old window read on the way past.
+    let sendFull: (() => void) | undefined
+    jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+      await Promise.resolve()
+      // Entirely above the loaded window: it cannot join.
+      p.onCachedThread?.(threadJSON([T.Chat.numberToMessageID(9000)], false))
+      return new Promise(resolve => {
+        sendFull = () => {
+          p.onFullThread?.(
+            threadJSON([T.Chat.numberToMessageID(7150), T.Chat.numberToMessageID(7153)], false)
+          )
+          resolve(undefined as never)
+        }
+      })
+    })
+    const {context, result} = renderContext()
+    act(() => {
+      result.current.actions.applyThreadLoad({
+        centered: true,
+        enableActiveMarkRead: false,
+        messages: [textAt(7150), textAt(7151), textAt(7152), textAt(7153)],
+        moreToLoad: true,
+        scrollDirection: 'none',
+      })
+    })
+    const before = result.current.ordinals
+
+    drive(context, newestLoad({reason: 'focused'}))
+    await act(async () => {
+      await flushPromises()
+    })
+    await act(async () => {
+      sendFull?.()
+      await flushPromises()
+    })
+
+    // The window the reader is looking at is still all there: 7151 and 7152 sit inside the span the
+    // full pass would have reconciled against, and are exactly what the prune would have taken.
+    expect(result.current.ordinals).toEqual(before)
+  })
+
   test('an empty pass during a jump-to-recent gap leaves the gate up', async () => {
     // A cold cache sends a cached pass carrying no messages ahead of the full response. Dropping
     // the gate on it reopens the gap: a notification landing before the real page becomes the sole
