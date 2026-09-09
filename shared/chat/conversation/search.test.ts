@@ -417,6 +417,41 @@ describe('navigation', () => {
     expect(result.current.selectedIndex).toBe(0)
   })
 
+  test('the retreat takes the centre back with it, not just the counter', async () => {
+    // centerOn cleared and reloaded the thread around a message it turned out not to hold. Handing
+    // the counter back without moving the centre leaves the reader on a window centered on nothing
+    // while `n of m` names a row somewhere else.
+    const {result} = mountWithHits(3)
+    expect(result.current.selectedIndex).toBe(0)
+    mockCenterOn.mockClear()
+    mockCenterOn.mockResolvedValueOnce('not-found')
+    mockCenterOn.mockResolvedValue('centered')
+
+    act(() => result.current.onUp())
+    expect(result.current.selectedIndex).toBe(1)
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    expect(result.current.selectedIndex).toBe(0)
+    // Re-centred on the hit it came from, rather than left pointing at the missing one.
+    expect(mockCenterOn).toHaveBeenLastCalledWith(messageID(10), 'always')
+  })
+
+  test('a retreat with nowhere to go gives up the centre', async () => {
+    // The first hit of a fresh search is selected as select(0, 0), so there is no earlier hit to
+    // fall back to. Holding a centre the thread cannot show is worse than holding none.
+    mockCenterOn.mockResolvedValue('not-found')
+    mockClearCenter.mockClear()
+    const {result} = mountWithHits(3)
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    expect(result.current.selectedIndex).toBe(0)
+    expect(mockClearCenter).toHaveBeenCalled()
+  })
+
   test('a hit the list could only clamp onto still counts as reached', async () => {
     // A hit within half a viewport of either end of the thread cannot be put in the middle, but it
     // is on screen and it is where the reader was sent.

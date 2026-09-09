@@ -768,7 +768,7 @@ const NativeConversationList = function NativeConversationList() {
     scrollFailRetryRef.current = 0
   }, [centeredOrdinalOrNone])
   const [onScrollToIndexFailed] = React.useState(() => () => {
-    if (scrollFailRetryRef.current > maxScrollToIndexRetries) {
+    if (scrollFailRetryRef.current >= maxScrollToIndexRetries) {
       return
     }
     scrollFailRetryRef.current += 1

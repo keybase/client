@@ -7,6 +7,7 @@ import sortedIndexOf from 'lodash/sortedIndexOf'
 import {useChatThreadRouteParams} from './thread-search-route'
 import {useRequestWindow} from './thread-window'
 import {
+  type ConversationThreadState,
   useConversationThreadSelector,
   useConversationThreadSetMarkReadBlocked,
   useConversationThreadStore,
@@ -202,6 +203,17 @@ type CenterScrollContextType = {
   takeEndAnchor: () => void
 }
 
+const ordinalInWindow = (snapshot: ConversationThreadState, messageID: T.Chat.MessageID) => {
+  const found = getOrdinalForMessageIDInSnapshot(snapshot, messageID)
+  if (found === null) {
+    return undefined
+  }
+  const ordinals = snapshot.messageOrdinals
+  return ordinals && sortedIndexOf(ordinals as unknown as number[], found as unknown as number) >= 0
+    ? found
+    : undefined
+}
+
 const missingContext = () => {
   throw new Error('Missing ConversationCenteringProvider in the tree')
 }
@@ -295,19 +307,9 @@ export const ConversationCenteringProvider = function ConversationCenteringProvi
   // window is the only way to get the right one. The row has to be in the window as well as in the
   // map: a message the thread holds but does not render has nothing to scroll to, and reporting its
   // ordinal would send the corrector after a row that never mounts.
-  const centeredOrdinal = useConversationThreadSelector(s => {
-    if (!target) {
-      return undefined
-    }
-    const found = getOrdinalForMessageIDInSnapshot(s, target.messageID)
-    if (found === null) {
-      return undefined
-    }
-    const ordinals = s.messageOrdinals
-    return ordinals && sortedIndexOf(ordinals as unknown as number[], found as unknown as number) >= 0
-      ? found
-      : undefined
-  })
+  const centeredOrdinal = useConversationThreadSelector(s =>
+    target ? ordinalInWindow(s, target.messageID) : undefined
+  )
 
   const scrollRef = React.useRef<ScrollControl>({
     adapter: undefined,
@@ -438,8 +440,20 @@ export const ConversationCenteringProvider = function ConversationCenteringProvi
   // ordinal rather than a "did it change" flag, so the correction still runs when the thread finishes
   // loading after the target was set.
   const lastCorrectedRef = React.useRef<T.Chat.Ordinal | undefined>(undefined)
+  // Names the current centering request. Everything below that can resume after an await checks it
+  // before touching shared state.
+  const centerRequestRef = React.useRef(0)
   const correctOnto = React.useEffectEvent(async (ordinal: T.Chat.Ordinal) => {
+    // Bound to the request that started it. Waiting for the adapter can park this for the whole
+    // timeout, long enough for a newer centerOn to install its own pending and its own correction -
+    // and a stale resumption checking only `correction === signal` would pass that check by
+    // overwriting the newer signal on its way through, then answer the newer request with this
+    // one's outcome and cancel the correction actually steering the list.
+    const request = centerRequestRef.current
     const adapter = await waitForAdapter()
+    if (centerRequestRef.current !== request) {
+      return
+    }
     if (!adapter) {
       settlePending('clamped')
       return
@@ -448,6 +462,9 @@ export const ConversationCenteringProvider = function ConversationCenteringProvi
     const signal = {cancelled: false}
     scrollRef.current.correction = signal
     const outcome = await runCenterCorrection({adapter, ordinal, signal, sleep})
+    if (centerRequestRef.current !== request) {
+      return
+    }
     if (scrollRef.current.correction === signal) {
       scrollRef.current.correction = undefined
       settlePending(outcome)
@@ -490,20 +507,35 @@ export const ConversationCenteringProvider = function ConversationCenteringProvi
 
   // The thread came back without the message: nothing is going to correct onto it, so answer for the
   // request rather than leaving the caller waiting on a row that will never render.
+  //
+  // Judged on the reload this request asked for having finished, not on elapsed time. 'not-found' is
+  // the one outcome a caller reads as "this hit is unreachable" - search hands its counter back on
+  // it - so reporting it off a stopwatch would mean a slow RPC retracts a hit that is about to
+  // arrive. If the window never settles at all, the honest answer is not 'not-found': say 'clamped'
+  // and leave the caller's optimistic answer standing.
   const watchForMissingMessage = React.useEffectEvent(async (pending: PendingCenter) => {
+    const generationAtRequest = store.getState().generation
     for (let elapsed = 0; elapsed <= centerTimeoutMs; elapsed += measurePollMs) {
       if (scrollRef.current.pending !== pending || pending.corrected) {
         return
       }
+      const snapshot = store.getState()
+      // The window this request asked for, done loading.
+      if (snapshot.generation !== generationAtRequest && snapshot.loaded) {
+        if (ordinalInWindow(snapshot, pending.messageID) === undefined) {
+          settlePending('not-found')
+        }
+        // Otherwise the row is here and the correction owns it from now on.
+        return
+      }
       await sleep(measurePollMs)
     }
-    if (scrollRef.current.pending === pending && !pending.corrected) {
-      settlePending('not-found')
-    }
+    settlePending('clamped')
   })
 
   const runCenterOn = React.useEffectEvent(
     async (messageID: T.Chat.MessageID, highlightMode: T.Chat.CenterOrdinalHighlightMode) => {
+      centerRequestRef.current += 1
       settlePending('clamped')
       abortCorrection()
       takeCentering()
@@ -520,6 +552,7 @@ export const ConversationCenteringProvider = function ConversationCenteringProvi
     }
   )
   const runJumpToRecent = React.useEffectEvent(() => {
+    centerRequestRef.current += 1
     clearTarget()
     requestWindow({anchor: 'newest', reason: 'jump to recent'})
   })

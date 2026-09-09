@@ -25,7 +25,11 @@ const seededMessages = [
   {id: 33, ordinal: 32.001},
   {id: 42, ordinal: 42},
 ]
-const mockSnapshot = {
+// Mutable, and read through `getState()` on every poll: 'not-found' is now judged on the reload
+// this request asked for having finished, so a test has to be able to land one.
+let mockSnapshot = {
+  generation: 0,
+  loaded: false,
   messageIDToOrdinal: new Map(
     seededMessages.map(m => [T.Chat.numberToMessageID(m.id), T.Chat.numberToOrdinal(m.ordinal)])
   ),
@@ -42,6 +46,11 @@ const mockSnapshot = {
   messageOrdinals: seededMessages.map(m => T.Chat.numberToOrdinal(m.ordinal)),
   moreToLoadForward: false,
   pendingOutboxToOrdinal: new Map(),
+}
+const initialSnapshot = mockSnapshot
+// The window this request asked for coming back, with or without the message in it.
+const landWindow = () => {
+  mockSnapshot = {...mockSnapshot, generation: mockSnapshot.generation + 1, loaded: true}
 }
 
 // Both providers under test pull thread/engine plumbing they don't exercise here.
@@ -417,6 +426,7 @@ const CenterHarness = (p: {adapter?: CenterScrollAdapter; messageID: number}) =>
 
 describe('centerOn reports what actually happened', () => {
   beforeEach(() => {
+    mockSnapshot = initialSnapshot
     jest.useFakeTimers()
   })
   afterEach(() => {
@@ -446,7 +456,7 @@ describe('centerOn reports what actually happened', () => {
     })
   })
 
-  test('a message the thread never came back with is reported as not found', async () => {
+  test('a message the thread came back without is reported as not found', async () => {
     // The `n of m` counter used to advance for these anyway, because the only thing asked was
     // whether the hit had an id at all.
     render(
@@ -454,8 +464,22 @@ describe('centerOn reports what actually happened', () => {
         <CenterHarness adapter={alwaysCentered} messageID={9999} />
       </ConversationCenteringProvider>
     )
-    await drain(3300)
+    // The reload lands, and 9999 is not in it.
+    landWindow()
+    await drain(300)
     expect(outcome).toBe<CenterOutcome>('not-found')
+  })
+
+  test('a reload that has not come back yet does not retract the hit', async () => {
+    // 'not-found' is the one outcome search hands its counter back on, so a slow RPC must not
+    // produce it off a stopwatch: the message may be moments from arriving.
+    render(
+      <ConversationCenteringProvider id={convX}>
+        <CenterHarness adapter={alwaysCentered} messageID={9999} />
+      </ConversationCenteringProvider>
+    )
+    await drain(3300)
+    expect(outcome).toBe<CenterOutcome>('clamped')
   })
 
   test('a list that cannot reach the row reports a clamp rather than a success', async () => {
