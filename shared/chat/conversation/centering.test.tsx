@@ -71,6 +71,7 @@ import {
   type CenterOutcome,
   type CenterScrollAdapter,
   ConversationCenteringProvider,
+  measureNativeCenter,
   runCenterCorrection,
   runEndAnchorCorrection,
   useConversationCenter,
@@ -285,8 +286,8 @@ describe('the centering scroll corrector', () => {
 
   test('a row outside the rendered window is scrolled to by index first', async () => {
     const {adapter, calls} = scriptedAdapter([
-      {kind: 'offscreen'},
-      {kind: 'offscreen'},
+      {kind: 'needs-anchor'},
+      {kind: 'needs-anchor'},
       measured(0, 700),
       measured(0, 700),
       measured(0, 700),
@@ -350,6 +351,66 @@ describe('the centering scroll corrector', () => {
     await expect(run(adapter)).resolves.toBe<CenterOutcome>('clamped')
     // 3000ms of budget at one 50ms poll per correction.
     expect(calls.scrollToOffset).toHaveLength(60)
+  })
+})
+
+describe('the native index-space measurement', () => {
+  const run = async (adapter: CenterScrollAdapter, signal = {cancelled: false}) =>
+    runCenterCorrection({adapter, ordinal, signal, sleep: immediately})
+
+  // Every one of these used to come back as a `measured` reading whose offBy and tolerance were both
+  // zero, which the corrector cannot tell from "already in the middle": it counts its three settled
+  // readings, returns 'centered', and never issues a scroll. Search then records the hit as reached
+  // and parks `n of m` on a row the reader was never taken to.
+  const base = {contentHeight: 4000, first: 0, last: 9, num: 20, scroll: 500, targetIdx: 15}
+
+  test('a normal reading measures in index space and scales by the average row height', () => {
+    // centre of the viewable range is index 4.5, the target is 15, so 10.5 rows below it at 200px a
+    // row, damped by 0.9.
+    expect(measureNativeCenter(base)).toEqual({
+      kind: 'measured',
+      offBy: 10.5 * 200 * 0.9,
+      scroll: 500,
+      tolerance: 0.5 * 200 * 0.9,
+    })
+  })
+
+  test('a content height the list has not reported yet asks for the anchor, not a zero deadband', () => {
+    expect(measureNativeCenter({...base, contentHeight: 0})).toEqual({kind: 'needs-anchor'})
+  })
+
+  test('a transient empty viewable range is waited out, not re-anchored', () => {
+    // The list reports an empty viewable set for a frame after a scroll lands somewhere its cells
+    // have not rendered yet. Answering that with the coarse anchor would throw away a fine
+    // correction that may be one reading from settling.
+    expect(measureNativeCenter({...base, first: undefined, last: undefined})).toEqual({
+      kind: 'pending',
+    })
+    expect(measureNativeCenter({...base, last: null})).toEqual({kind: 'pending'})
+  })
+
+  test('no range and no scale asks for the anchor', () => {
+    // On first mount and after the window is dropped both are cleared together, and it is the
+    // missing scale that puts the coarse anchor back in play.
+    expect(
+      measureNativeCenter({...base, contentHeight: 0, first: undefined, last: undefined})
+    ).toEqual({kind: 'needs-anchor'})
+  })
+
+  test('a target the window does not hold asks for the anchor', () => {
+    expect(measureNativeCenter({...base, targetIdx: -1})).toEqual({kind: 'needs-anchor'})
+    expect(measureNativeCenter({...base, num: 0})).toEqual({kind: 'needs-anchor'})
+  })
+
+  test('a needs-anchor reading can never be mistaken for a settled one', async () => {
+    // The whole point of the guards above: drive the corrector with what a zero content height used
+    // to produce and it must not report 'centered' off readings it never scrolled for.
+    const degenerate: CenterMeasurement = {kind: 'measured', offBy: 0, scroll: 0, tolerance: 0}
+    const {adapter, calls} = scriptedAdapter([degenerate, degenerate, degenerate])
+    await expect(run(adapter)).resolves.toBe<CenterOutcome>('centered')
+    expect(calls.scrollToOffset).toEqual([])
+    // ...which is exactly why the adapter must not hand that shape over in the first place.
+    expect(measureNativeCenter({...base, contentHeight: 0})).toEqual({kind: 'needs-anchor'})
   })
 })
 

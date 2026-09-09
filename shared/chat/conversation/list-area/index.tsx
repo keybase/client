@@ -10,7 +10,12 @@ import {MessageRow} from '../messages/wrapper'
 import {RowHoveredContext} from '../messages/ids-context'
 import {PerfProfiler} from '@/perf/react-profiler'
 import {ThreadRefsContext} from '../normal/context'
-import {type CenterScrollAdapter, useConversationCenter, useConversationCenterScroll} from '../centering'
+import {
+  type CenterScrollAdapter,
+  measureNativeCenter,
+  useConversationCenter,
+  useConversationCenterScroll,
+} from '../centering'
 import {
   ShownUsernameCacheContext,
   useConversationThreadID,
@@ -107,9 +112,9 @@ const usePagination = () => {
 }
 
 const centerTolerancePx = 8
-// Native measures in index space, so its deadband is half a row and its steps are damped to keep an
-// inverted list of tall image rows from oscillating around the target.
-const nativeCenterDamping = 0.9
+// Native measures in index space (measureNativeCenter, in the centering module, does the arithmetic),
+// so its budgets are about how long to keep chasing a moving target on an inverted list of tall
+// image rows rather than about pixels.
 const maxNativeCenterCorrections = 12
 const maxStaleRangeReads = 3
 const maxScrollToIndexRetries = 5
@@ -340,7 +345,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           | (ElLike & {querySelector: (s: string) => ElLike | null})
           | null
         const el = wrapper ? wrapper.querySelector(`[data-ordinal="${ordinal}"]`) : null
-        if (!wrapper || !el) return {kind: 'offscreen'}
+        if (!wrapper || !el) return {kind: 'needs-anchor'}
         const scroll = listRef.current?.getState().scroll
         if (scroll === undefined) return {kind: 'pending'}
         const elRect = el.getBoundingClientRect()
@@ -639,7 +644,7 @@ const NativeConversationList = function NativeConversationList() {
   >
 
   const conversationIDKey = useConversationThreadID()
-  const {loaded, ordinals} = useThreadWindow()
+  const {generation, loaded, ordinals} = useThreadWindow()
   const {centeredHighlightOrdinal, centeredOrdinal, hasCenter} = useConversationCenter()
   const noCenteredOrdinal = T.Chat.numberToOrdinal(-1)
   const centeredOrdinalOrNone = centeredOrdinal ?? noCenteredOrdinal
@@ -701,6 +706,27 @@ const NativeConversationList = function NativeConversationList() {
   }, [messageOrdinals])
   const vFirstRef = React.useRef<number | null | undefined>(undefined)
   const vLastRef = React.useRef<number | null | undefined>(undefined)
+  // The range is indices into one window. Dropping the window renumbers every one of them, and the
+  // list does not report a fresh range until it scrolls, so a correction taken between the two would
+  // be computed off indices that no longer point at anything. Forget it, and the content height it
+  // was scaled by, with the generation they belong to and let the corrector coarse-anchor its way
+  // back.
+  //
+  // Value compare against a ref rather than a dependency, for the same reason numBaselineConvRef
+  // below does it: a react-native-screens freeze/thaw re-mounts effects while the refs survive, and
+  // zeroing this geometry on a thaw would throw away measurements that are still perfectly good -
+  // with nothing to restore them, because a list whose content and offset did not change reports
+  // neither a new size nor a new range.
+  const geometryGenerationRef = React.useRef(generation)
+  React.useEffect(() => {
+    if (geometryGenerationRef.current === generation) {
+      return
+    }
+    geometryGenerationRef.current = generation
+    vFirstRef.current = undefined
+    vLastRef.current = undefined
+    contentHeightRef.current = 0
+  }, [generation])
   // The viewable range only updates when the list reports one, and correcting twice off the same
   // reading overshoots. Bounded, though: a scroll that moves nothing never produces a new range,
   // and the corrector has to be allowed to see that it moved nothing.
@@ -713,29 +739,24 @@ const NativeConversationList = function NativeConversationList() {
       maxCorrections: maxNativeCenterCorrections,
       measureTarget: ordinal => {
         const ords = ordsRef.current
-        const num = ords.length
-        const targetIdx = ords.indexOf(ordinal)
-        if (!num || targetIdx < 0) return {kind: 'offscreen'}
-        const first = vFirstRef.current
-        const last = vLastRef.current
-        if (first == null || last == null) return {kind: 'pending'}
+        const measurement = measureNativeCenter({
+          contentHeight: contentHeightRef.current,
+          first: vFirstRef.current,
+          last: vLastRef.current,
+          num: ords.length,
+          scroll: scrollOffsetRef.current,
+          targetIdx: ords.indexOf(ordinal),
+        })
+        // Only a real measurement can be stale. A request for the anchor is about what the list has
+        // not reported yet, and making it wait out the stale budget first would sit on its hands for
+        // three polls before asking to be put in the neighbourhood.
+        if (measurement.kind !== 'measured') return measurement
         if (rangeVersionRef.current === consumedRangeRef.current) {
           staleRangeReadsRef.current += 1
           if (staleRangeReadsRef.current <= maxStaleRangeReads) return {kind: 'pending'}
         }
         staleRangeReadsRef.current = 0
-        const centerIdx = (first + last) / 2
-        const diff = targetIdx - centerIdx
-        const avgH = contentHeightRef.current / num
-        return {
-          kind: 'measured',
-          // higher index = older = higher offset, damped to avoid overshoot/oscillation
-          offBy: diff * avgH * nativeCenterDamping,
-          scroll: scrollOffsetRef.current,
-          // half a row, expressed through the same damping so the deadband stays the index-space
-          // half-row it has always been
-          tolerance: 0.5 * avgH * nativeCenterDamping,
-        }
+        return measurement
       },
       scrollToIndex: ordinal => {
         if (T.Chat.ordinalToNumber(ordinal) <= 0) return

@@ -25,8 +25,11 @@ export type CenterMeasurement =
   // oscillating; `scroll` is the offset it was measured at; `tolerance` is how close this list can
   // realistically get, below which chasing the remainder only fights the list's own adjustments.
   | {kind: 'measured'; offBy: number; scroll: number; tolerance: number}
-  // The row is outside the rendered window, so there is nothing to measure until it mounts.
-  | {kind: 'offscreen'}
+  // No trustworthy frame of reference yet: the row has not mounted, or the list has not reported
+  // the geometry the measurement is taken against. The corrector answers with the coarse anchor -
+  // scrollToIndex - and re-polls, so this is the signal that asks to be put in the neighbourhood
+  // before anything tries to measure a remainder.
+  | {kind: 'needs-anchor'}
   // Measurable, but not against anything current: the list has not reported a fresh position since
   // the last correction, and correcting off a stale one overshoots.
   | {kind: 'pending'}
@@ -66,6 +69,49 @@ const settledChecks = 3
 // are pinned against an edge - stop rather than spin.
 const pinnedChecksToClamp = 3
 
+// The native list cannot measure a row's offset directly (inverted list + custom keyboard
+// scrollview + tall variable-height image rows all make scrollToItem land wrong), so it measures in
+// index space - the reported viewable range against the target's index - and converts to pixels with
+// the average row height. Pure, and separated from the refs that feed it, because every way this
+// arithmetic can be fed nothing useful ends in the same silent failure: an `offBy` and a `tolerance`
+// that are both zero read as "already centred" to the corrector, which then settles without ever
+// scrolling and reports 'centered' for a row nobody moved to.
+const nativeCenterDamping = 0.9
+export const measureNativeCenter = (p: {
+  contentHeight: number
+  first: number | null | undefined
+  last: number | null | undefined
+  num: number
+  scroll: number
+  targetIdx: number
+}): CenterMeasurement => {
+  const {contentHeight, first, last, num, scroll, targetIdx} = p
+  // The row is not in the window, so there is no index to measure against.
+  if (!num || targetIdx < 0) return {kind: 'needs-anchor'}
+  const avgH = contentHeight / num
+  // No content height means no scale, and at zero the deadband collapses onto the offset, so every
+  // reading would come back as already centred. This is also the state the list is left in on first
+  // mount and whenever the window is dropped, which is what puts the coarse anchor back in play at
+  // exactly the two moments an index-space measurement has nothing trustworthy to stand on.
+  if (!(avgH > 0)) return {kind: 'needs-anchor'}
+  // Scale but no range: the list reports an empty viewable set for a frame whenever a scroll lands
+  // somewhere its cells have not rendered yet. That is a gap to wait out, not a reason to re-anchor
+  // - answering it with the coarse scroll would throw away a correction that may be one reading away
+  // from settling and yank the thread back to the middle of nowhere.
+  if (first == null || last == null) return {kind: 'pending'}
+  const centerIdx = (first + last) / 2
+  const diff = targetIdx - centerIdx
+  return {
+    kind: 'measured',
+    // higher index = older = higher offset, damped to avoid overshoot/oscillation
+    offBy: diff * avgH * nativeCenterDamping,
+    scroll,
+    // half a row, expressed through the same damping so the deadband stays the index-space half-row
+    // it has always been
+    tolerance: 0.5 * avgH * nativeCenterDamping,
+  }
+}
+
 export const runCenterCorrection = async (p: {
   adapter: CenterScrollAdapter
   ordinal: T.Chat.Ordinal
@@ -79,7 +125,7 @@ export const runCenterCorrection = async (p: {
   let scrollAtLastRequest: number | undefined
   for (let elapsed = 0; elapsed < centerTimeoutMs && !signal.cancelled; ) {
     const measurement = adapter.measureTarget(ordinal)
-    if (measurement.kind === 'offscreen') {
+    if (measurement.kind === 'needs-anchor') {
       adapter.scrollToIndex(ordinal)
       settled = 0
       pinnedChecks = 0
