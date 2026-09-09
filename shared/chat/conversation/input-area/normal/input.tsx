@@ -29,7 +29,6 @@ import {
   withTiming,
   default as Reanimated,
 } from '@/common-adapters/reanimated'
-import {useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller'
 import FilePickerPopup from '../filepicker-popup'
 import {launchCameraAsync, launchImageLibraryAsync} from '@/util/expo-image-picker'
 import {pickDocumentsAsync} from '@/util/expo-document-picker.native'
@@ -37,7 +36,8 @@ import {filePickerError} from '@/util/storeless-actions'
 import {AudioSendWrapper} from '@/chat/audio/audio-send.native'
 import {standardTransformer} from '../suggestors/common'
 import logger from '@/logger'
-import {MaxInputAreaContext} from './max-input-area-context'
+import {ComposerAnchorContext, ComposerBoxContext} from '@/chat/conversation/composer-viewport-context'
+import {expandedInputMaxHeight} from '@/chat/conversation/composer-geometry'
 import MoreMenuPopup from './moremenu-popup.native'
 
 // ==================== DESKTOP LOW-LEVEL INPUT ====================
@@ -955,12 +955,6 @@ const useDesktopStyles = Kb.Styles.createStyleHook(
 
 // ==================== NATIVE PLATFORM INPUT ====================
 
-const singleLineHeight = 36
-const threeLineHeight = 78
-const inputAreaHeight = 91
-const maxExpandedSuggestionListHeight = 240
-const minExpandedSuggestionListHeight = 120
-
 type MenuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
 type NativeButtonsProps = Pick<
@@ -1216,18 +1210,13 @@ const NativeAnimatedInput = (() => {
     return function NativeAnimatedInput(p: NativeAnimatedInputProps) {
       'use no memo'
       const nativeStyles = useNativeStyles()
-      const maxInputArea = React.useContext(MaxInputAreaContext)
+      const {visibleHeight, singleLineHeight, threeLineHeight} = React.useContext(ComposerBoxContext)
+      const {keyboardHeight} = React.useContext(ComposerAnchorContext)
       const {expanded, inputRef, reservedHeight = 0, ...rest} = p
       const lastExpandedRef = React.useRef(expanded)
       const offset = useSharedValue(expanded ? 1 : 0)
-      // 0 (closed) down to -keyboardHeight (open). When the keyboard is up the
-      // input is pinned above it, so the room to expand into shrinks by the
-      // keyboard height — otherwise the expanded input grows past the top of the
-      // screen.
-      const {height: keyboardAnimHeight} = useReanimatedKeyboardAnimation()
       const as = useAnimatedStyle(() => {
-        const available = maxInputArea + keyboardAnimHeight.value
-        const maxHeight = Math.max(threeLineHeight, available - inputAreaHeight - 15 - reservedHeight)
+        const maxHeight = expandedInputMaxHeight(visibleHeight, keyboardHeight.value, reservedHeight)
         return {
           maxHeight: withTiming(offset.value ? maxHeight : threeLineHeight),
           minHeight: withTiming(offset.value ? maxHeight : singleLineHeight),
@@ -1256,18 +1245,7 @@ const NativePlatformInput = (p: Props) => {
   const [height, setHeight] = React.useState(0)
   const [expanded, setExpanded] = React.useState(false) // updates immediately, used for the icon etc
   const inputRef = React.useRef<RefType | null>(null)
-  const maxInputArea = React.useContext(MaxInputAreaContext)
-  const preferredExpandedSuggestionListHeight = maxInputArea
-    ? Math.max(
-        minExpandedSuggestionListHeight,
-        Math.min(maxExpandedSuggestionListHeight, Math.floor(maxInputArea * 0.35))
-      )
-    : 0
-  const maxSuggestionReserveHeight = Math.max(0, maxInputArea - inputAreaHeight - 15 - threeLineHeight)
-  const expandedSuggestionListHeight = Math.min(
-    preferredExpandedSuggestionListHeight,
-    maxSuggestionReserveHeight
-  )
+  const {expandedSuggestionListHeight} = React.useContext(ComposerBoxContext)
   const suggestionListStyle = Kb.Styles.collapseStyles([
     nativeStyles.suggestionList,
     !!height && {marginBottom: height},

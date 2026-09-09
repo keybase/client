@@ -1,11 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as InputState from './input-area/input-state'
-import {MaxInputAreaContext} from './input-area/normal/max-input-area-context'
-
-// used until the conversation reports its height; the markdown mounts long after layout, so this
-// is only a backstop against an unbounded body
-const fallbackMaxHeight = 250
+import {ComposerBoxContext} from './composer-viewport-context'
 
 const CommandMarkdown = () => {
   const styles = useStyles()
@@ -15,10 +11,8 @@ const CommandMarkdown = () => {
   // a percentage maxHeight has no definite-height ancestor here, so yoga re-resolves it at
   // every nesting level and each box ends up taller than its content: the leftover slack shows
   // as a gap between the input's buttons and the keyboard. clamp in points instead.
-  const maxInputArea = React.useContext(MaxInputAreaContext)
-  const maxHeightStyle = isMobile
-    ? {maxHeight: maxInputArea ? Math.floor(maxInputArea * 0.35) : fallbackMaxHeight}
-    : undefined
+  const {commandMarkdownMaxHeight} = React.useContext(ComposerBoxContext)
+  const maxHeightStyle = isMobile ? {maxHeight: commandMarkdownMaxHeight} : undefined
   return (
     <Kb.Box2
       direction="vertical"
