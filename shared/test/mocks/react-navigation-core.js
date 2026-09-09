@@ -52,15 +52,23 @@ exports.useFocusEffect = fn => {
 }
 exports.createNavigationContainerRef = () => makeNavigationContainerRef()
 
+// Action creators, matching @react-navigation/routers' real payload shapes so that a
+// test asserting on a dispatched action is asserting what production dispatches.
 exports.CommonActions = {
   goBack: () => ({type: 'GO_BACK'}),
-  navigate: payload => ({payload, type: 'NAVIGATE'}),
+  navigate: (name, params, options) => ({
+    payload: {merge: options && options.merge, name, params, pop: options && options.pop},
+    type: 'NAVIGATE',
+  }),
   reset: payload => ({payload, type: 'RESET'}),
-  setParams: payload => ({payload, type: 'SET_PARAMS'}),
+  setParams: params => ({payload: {params}, type: 'SET_PARAMS'}),
 }
 
 exports.StackActions = {
-  popTo: name => ({payload: {name}, type: 'POP_TO'}),
+  popTo: (name, params, options) => ({
+    payload: {merge: options && options.merge, name, params},
+    type: 'POP_TO',
+  }),
   popToTop: () => ({type: 'POP_TO_TOP'}),
   push: (name, params) => ({payload: {name, params}, type: 'PUSH'}),
   replace: (name, params) => ({payload: {name, params}, type: 'REPLACE'}),

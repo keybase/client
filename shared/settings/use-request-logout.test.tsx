@@ -6,19 +6,14 @@ jest.mock('@/constants', () => ({
   ...(jest.requireActual('@/constants') as object),
   useRPC: jest.fn(),
 }))
-jest.mock('@/constants/router', () => ({
-  navigateAppend: jest.fn(),
-  switchTab: jest.fn(),
-}))
-
 import {act, cleanup, renderHook, waitFor} from '@testing-library/react'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Tabs from '@/constants/tabs'
-import {navigateAppend, switchTab} from '@/constants/router'
 import {settingsPasswordTab} from '@/constants/settings'
 import {resetAllStores} from '@/util/zustand'
 import {usePushState} from '@/stores/push'
+import {installFakeNavigator, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 import {useRequestLogout} from './use-request-logout'
 
 type MutableGlobals = {isMobile: boolean}
@@ -44,7 +39,14 @@ const mockCanLogoutRPC = () => {
   }
 }
 
+let nav: FakeNavigator
+
+beforeEach(() => {
+  nav = installFakeNavigator()
+})
+
 afterEach(() => {
+  restoreNavigator()
   cleanup()
   jest.clearAllMocks()
   jest.restoreAllMocks()
@@ -78,7 +80,7 @@ test('logs out after unregistering the push token when the service allows it', a
   await waitFor(() => expect(logoutRPC).toHaveBeenCalledWith({force: false, keepSecrets: false}))
   // the API call needs the still-logged-in session, so the token has to go first
   expect(order).toEqual(['deleteToken', 'logout'])
-  expect(navigateAppend).not.toHaveBeenCalled()
+  expect(nav.actions).toEqual([])
 })
 
 test('a failing logout rpc is swallowed', async () => {
@@ -102,7 +104,7 @@ test('a failing logout rpc is swallowed', async () => {
 
   await waitFor(() => expect(logoutRPC).toHaveBeenCalled())
   // failures are swallowed: nothing navigates and the caller never sees a rejection
-  expect(navigateAppend).not.toHaveBeenCalled()
+  expect(nav.actions).toEqual([])
 })
 
 test('desktop routes to the password tab when the user cannot log out yet', () => {
@@ -119,8 +121,10 @@ test('desktop routes to the password tab when the user cannot log out yet', () =
   })
 
   expect(logoutRPC).not.toHaveBeenCalled()
-  expect(switchTab).toHaveBeenCalledWith(Tabs.settingsTab)
-  expect(navigateAppend).toHaveBeenCalledWith({name: settingsPasswordTab, params: {}})
+  expect(nav.actions).toContainEqual(
+    expect.objectContaining({payload: {name: Tabs.settingsTab}, type: 'JUMP_TO'})
+  )
+  expect(nav.pushes()).toContainEqual({name: settingsPasswordTab, params: {}})
 })
 
 test('mobile pushes the password tab without switching tabs', () => {
@@ -136,6 +140,6 @@ test('mobile pushes the password tab without switching tabs', () => {
     rpc.answer(false)
   })
 
-  expect(switchTab).not.toHaveBeenCalled()
-  expect(navigateAppend).toHaveBeenCalledWith({name: settingsPasswordTab, params: {}})
+  expect(nav.types()).not.toContain('JUMP_TO')
+  expect(nav.pushes()).toContainEqual({name: settingsPasswordTab, params: {}})
 })

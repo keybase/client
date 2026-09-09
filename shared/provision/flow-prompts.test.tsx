@@ -7,16 +7,6 @@ import {useWaitingState} from '@/stores/waiting'
 import {waitingKeyProvision} from '@/constants/strings'
 import {RPCError} from '@/util/errors'
 
-jest.mock('@/constants/router', () => {
-  const actual = jest.requireActual('@/constants/router')
-  return {
-    ...actual,
-    clearModals: jest.fn(),
-    navigateAppend: jest.fn(),
-    navigateUp: jest.fn(),
-  }
-})
-
 import {
   cancelProvision,
   startProvision,
@@ -25,16 +15,26 @@ import {
   submitProvisionUsername,
 } from './flow'
 
-const {clearModals: mockClearModals, navigateAppend: mockNavigateAppend} = require('@/constants/router') as {
-  clearModals: jest.Mock
-  navigateAppend: jest.Mock
-}
+import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+
+let nav: FakeNavigator
+
+// Provisioning runs from a modal, so the fake starts with one open: clearModals only has
+// something to dispatch when a modal is actually on screen. This one is never a
+// navigation target below, so a replace onto another screen stays a replace.
+const openModal = 'deviceAdd'
+
+beforeEach(() => {
+  nav = installFakeNavigator({
+    modalRouteNames: [openModal],
+    rootState: makeRootState({above: [{name: openModal}]}),
+  })
+})
 
 afterEach(() => {
+  restoreNavigator()
   cancelProvision()
   jest.restoreAllMocks()
-  mockClearModals.mockReset()
-  mockNavigateAppend.mockReset()
   resetAllStores()
 })
 
@@ -81,14 +81,12 @@ describe('final error handling', () => {
     attempt.reject(new RPCError('no such user', T.RPCGen.StatusCode.scnotfound))
     await flush()
 
-    expect(mockNavigateAppend).toHaveBeenCalledWith(
-      {
-        name: 'username',
-        params: {inlineErrorCode: T.RPCGen.StatusCode.scnotfound, username: 'testuser'},
-      },
-      true
-    )
-    expect(mockClearModals).not.toHaveBeenCalled()
+    expect(nav.navigations()).toContainEqual({
+      name: 'username',
+      params: {inlineErrorCode: T.RPCGen.StatusCode.scnotfound, username: 'testuser'},
+      replace: true,
+    })
+    expect(nav.modalsCleared()).toBe(false)
   })
 
   test('a malformed username also stays on the username screen', async () => {
@@ -97,13 +95,11 @@ describe('final error handling', () => {
     attempt.reject(new RPCError('bad username', T.RPCGen.StatusCode.scbadusername))
     await flush()
 
-    expect(mockNavigateAppend).toHaveBeenCalledWith(
-      {
-        name: 'username',
-        params: {inlineErrorCode: T.RPCGen.StatusCode.scbadusername, username: 'testuser'},
-      },
-      true
-    )
+    expect(nav.navigations()).toContainEqual({
+      name: 'username',
+      params: {inlineErrorCode: T.RPCGen.StatusCode.scbadusername, username: 'testuser'},
+      replace: true,
+    })
   })
 
   test('any other error clears modals and shows the error screen with the rpc details', async () => {
@@ -115,23 +111,21 @@ describe('final error handling', () => {
     attempt.reject(error)
     await flush()
 
-    expect(mockClearModals).toHaveBeenCalled()
-    expect(mockNavigateAppend).toHaveBeenCalledWith(
-      {
-        name: 'error',
-        params: {
-          error: {
-            code: T.RPCGen.StatusCode.scdeviceprovisionoffline,
-            desc: error.desc,
-            details: error.details,
-            fields: [{key: 'has_active_device', value: '1'}],
-            message: error.message,
-          },
-          username: 'testuser',
+    expect(nav.modalsCleared()).toBe(true)
+    expect(nav.navigations()).toContainEqual({
+      name: 'error',
+      params: {
+        error: {
+          code: T.RPCGen.StatusCode.scdeviceprovisionoffline,
+          desc: error.desc,
+          details: error.details,
+          fields: [{key: 'has_active_device', value: '1'}],
+          message: error.message,
         },
+        username: 'testuser',
       },
-      true
-    )
+      replace: true,
+    })
   })
 
   test('an error caused by our own cancel shows nothing', async () => {
@@ -140,8 +134,8 @@ describe('final error handling', () => {
     attempt.reject(new RPCError('Input canceled', T.RPCGen.StatusCode.scgeneric))
     await flush()
 
-    expect(mockClearModals).not.toHaveBeenCalled()
-    expect(mockNavigateAppend).not.toHaveBeenCalledWith(expect.objectContaining({name: 'error'}), true)
+    expect(nav.modalsCleared()).toBe(false)
+    expect(nav.navigations()).not.toContainEqual(expect.objectContaining({name: 'error', replace: true}))
   })
 
   test('a kex cancel from the daemon shows nothing', async () => {
@@ -150,7 +144,7 @@ describe('final error handling', () => {
     attempt.reject(new RPCError('kex canceled by caller', T.RPCGen.StatusCode.scgeneric))
     await flush()
 
-    expect(mockNavigateAppend).not.toHaveBeenCalledWith(expect.objectContaining({name: 'error'}), true)
+    expect(nav.navigations()).not.toContainEqual(expect.objectContaining({name: 'error', replace: true}))
   })
 
   test('a non-rpc failure does not navigate anywhere', async () => {
@@ -159,8 +153,8 @@ describe('final error handling', () => {
     attempt.reject(new Error('boom'))
     await flush()
 
-    expect(mockClearModals).not.toHaveBeenCalled()
-    expect(mockNavigateAppend).not.toHaveBeenCalledWith(expect.objectContaining({name: 'error'}), true)
+    expect(nav.modalsCleared()).toBe(false)
+    expect(nav.navigations()).not.toContainEqual(expect.objectContaining({name: 'error', replace: true}))
   })
 })
 
@@ -174,10 +168,11 @@ describe('passphrase prompts', () => {
       response as any
     )
 
-    expect(mockNavigateAppend).toHaveBeenCalledWith(
-      {name: 'password', params: {error: undefined, username: 'testuser'}},
-      false
-    )
+    expect(nav.navigations()).toContainEqual({
+      name: 'password',
+      params: {error: undefined, username: 'testuser'},
+      replace: false,
+    })
   })
 
   test('the service rejecting the password is rewritten to a readable error and replaces the screen', async () => {
@@ -189,10 +184,11 @@ describe('passphrase prompts', () => {
       response as any
     )
 
-    expect(mockNavigateAppend).toHaveBeenCalledWith(
-      {name: 'password', params: {error: 'Incorrect password.', username: 'testuser'}},
-      true
-    )
+    expect(nav.navigations()).toContainEqual({
+      name: 'password',
+      params: {error: 'Incorrect password.', username: 'testuser'},
+      replace: true,
+    })
   })
 
   test('any other retry label is passed through verbatim', async () => {
@@ -204,10 +200,11 @@ describe('passphrase prompts', () => {
       response as any
     )
 
-    expect(mockNavigateAppend).toHaveBeenCalledWith(
-      {name: 'password', params: {error: 'Try again', username: 'testuser'}},
-      true
-    )
+    expect(nav.navigations()).toContainEqual({
+      name: 'password',
+      params: {error: 'Try again', username: 'testuser'},
+      replace: true,
+    })
   })
 
   test('a paper key prompt names the device the user picked', async () => {
@@ -226,10 +223,11 @@ describe('passphrase prompts', () => {
       response as any
     )
 
-    expect(mockNavigateAppend).toHaveBeenCalledWith(
-      {name: 'paperkey', params: {deviceName: 'paper key one', error: undefined}},
-      false
-    )
+    expect(nav.navigations()).toContainEqual({
+      name: 'paperkey',
+      params: {deviceName: 'paper key one', error: undefined},
+      replace: false,
+    })
   })
 })
 
@@ -243,18 +241,16 @@ describe('text code prompt', () => {
       response as any
     )
 
-    expect(mockNavigateAppend).toHaveBeenCalledWith(
-      {
-        name: 'codePage',
-        params: {
-          deviceName: '',
-          error: undefined,
-          otherDevice: expect.objectContaining({name: ''}),
-          textCode: 'one two three',
-        },
+    expect(nav.navigations()).toContainEqual({
+      name: 'codePage',
+      params: {
+        deviceName: '',
+        error: undefined,
+        otherDevice: expect.objectContaining({name: ''}),
+        textCode: 'one two three',
       },
-      false
-    )
+      replace: false,
+    })
 
     submitProvisionTextCode('  one,two\n\nthree  ')
 
@@ -270,12 +266,12 @@ describe('text code prompt', () => {
       response as any
     )
 
-    expect(mockNavigateAppend).toHaveBeenCalledWith(
+    expect(nav.navigations()).toContainEqual(
       expect.objectContaining({
         name: 'codePage',
         params: expect.objectContaining({error: 'nope', textCode: 'four five six'}),
-      }),
-      true
+        replace: true,
+      })
     )
   })
 })
@@ -314,9 +310,10 @@ test('starting provisioning while logged in logs out first', async () => {
   await flush()
 
   expect(logout).toHaveBeenCalledWith({force: false, keepSecrets: true}, 'config:loginAsOther')
-  expect(mockNavigateAppend).toHaveBeenCalledWith({
+  expect(nav.navigations()).toContainEqual({
     name: 'username',
     params: {fromReset: false, username: 'testuser'},
+    replace: false,
   })
 })
 

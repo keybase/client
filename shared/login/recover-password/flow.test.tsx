@@ -2,37 +2,22 @@
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 
-jest.mock('@/constants/router', () => {
-  const actual = jest.requireActual('@/constants/router')
-  return {
-    ...actual,
-    clearModals: jest.fn(),
-    navigateAppend: jest.fn(),
-    navigateUp: jest.fn(),
-  }
-})
-
+import {installFakeNavigator, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 import {
   startRecoverPassword,
   submitRecoverPasswordDeviceSelect,
   submitRecoverPasswordReset,
 } from './flow'
 
-const {
-  clearModals: mockClearModals,
-  navigateAppend: mockNavigateAppend,
-  navigateUp: mockNavigateUp,
-} = require('@/constants/router') as {
-  clearModals: jest.Mock
-  navigateAppend: jest.Mock
-  navigateUp: jest.Mock
-}
+let nav: FakeNavigator
+
+beforeEach(() => {
+  nav = installFakeNavigator()
+})
 
 afterEach(() => {
+  restoreNavigator()
   jest.restoreAllMocks()
-  mockClearModals.mockReset()
-  mockNavigateAppend.mockReset()
-  mockNavigateUp.mockReset()
   resetAllStores()
 })
 
@@ -70,21 +55,19 @@ test('startRecoverPassword exposes device selection handlers', async () => {
     startRecoverPassword({username: 'alice'})
     await flush()
 
-    expect(mockNavigateAppend).toHaveBeenCalledWith(
-      {
-        name: 'recoverPasswordDeviceSelector',
-        params: {
-          devices: [
-            expect.objectContaining({
-              id: T.Devices.stringToDeviceID('device-1'),
-              name: 'phone',
-              type: 'mobile',
-            }),
-          ],
-        },
+    expect(nav.navigations()).toContainEqual({
+      name: 'recoverPasswordDeviceSelector',
+      params: {
+        devices: [
+          expect.objectContaining({
+            id: T.Devices.stringToDeviceID('device-1'),
+            name: 'phone',
+            type: 'mobile',
+          }),
+        ],
       },
-      false
-    )
+      replace: false,
+    })
 
     submitRecoverPasswordDeviceSelect(T.Devices.stringToDeviceID('device-1'))
     submitRecoverPasswordDeviceSelect(T.Devices.stringToDeviceID('device-1'))
@@ -156,9 +139,10 @@ test('reset-password prompt resolves callback and local banner handler', async (
     startRecoverPassword({onResetEmailSent, username: 'alice'})
     await flush()
 
-    expect(mockNavigateAppend).toHaveBeenCalledWith({
+    expect(nav.navigations()).toContainEqual({
       name: 'recoverPasswordPromptResetPassword',
       params: {username: 'alice'},
+      replace: false,
     })
 
     submitRecoverPasswordReset(T.RPCGen.ResetPromptResponse.confirmReset)
@@ -167,7 +151,7 @@ test('reset-password prompt resolves callback and local banner handler', async (
     expect(promptResponse?.result).toHaveBeenCalledTimes(1)
     expect(promptResponse?.result).toHaveBeenCalledWith(T.RPCGen.ResetPromptResponse.confirmReset)
     expect(onResetEmailSent).toHaveBeenCalledTimes(1)
-    expect(mockNavigateUp).toHaveBeenCalledTimes(1)
+    expect(nav.types().filter(t => t === 'GO_BACK')).toHaveLength(1)
   } finally {
     finishListener()
     await flush()
