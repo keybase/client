@@ -9,9 +9,9 @@ RUN apt-get update
 RUN apt-get install -y gcc-x86-64-linux-gnu wget ca-certificates gnupg
 RUN gpg --import /code_signing_key
 
-RUN wget -q https://go.dev/dl/go1.25.5.linux-arm64.tar.gz && \
-  tar -C /usr/local -xzf go1.25.5.linux-arm64.tar.gz && \
-  rm go1.25.5.linux-arm64.tar.gz
+RUN wget -q https://go.dev/dl/go1.27.1.linux-arm64.tar.gz && \
+  tar -C /usr/local -xzf go1.27.1.linux-arm64.tar.gz && \
+  rm go1.27.1.linux-arm64.tar.gz
 
 ENV PATH="/usr/local/go/bin:${PATH}"
 ENV GOPATH="/go"

@@ -81,19 +81,19 @@ helpers.rootLinuxNode(env, {
     WINDOWS_PATH="${env.PATH}"
   }
   sh '''#!/bin/bash
-      # Install and download Go 1.25.5
+      # Install and download Go 1.27.1
       # Ensure GOBIN is set so we know where the binary goes
       export GOBIN="${HOME}/go/bin"
       mkdir -p "${GOBIN}"
 
-      echo "Installing go1.25.5..."
-      go install golang.org/dl/go1.25.5@latest
+      echo "Installing go1.27.1..."
+      go install golang.org/dl/go1.27.1@latest
 
-      echo "Downloading Go 1.25.5 SDK..."
-      "${GOBIN}/go1.25.5" download
+      echo "Downloading Go 1.27.1 SDK..."
+      "${GOBIN}/go1.27.1" download
 
-      # Create symlink so 'go' invokes go1.25.5
-      ln -sf "${GOBIN}/go1.25.5" "${GOBIN}/go"
+      # Create symlink so 'go' invokes go1.27.1
+      ln -sf "${GOBIN}/go1.27.1" "${GOBIN}/go"
 
       # Install golangci-lint
       echo "Installing golangci-lint v2.7.2..."
@@ -105,7 +105,7 @@ helpers.rootLinuxNode(env, {
 
       # Capture both Go and Node environment variables
       # Put ~/go/bin first so our symlinked 'go' is used
-      echo "GOROOT=$("${GOBIN}/go1.25.5" env GOROOT)" > build_env
+      echo "GOROOT=$("${GOBIN}/go1.27.1" env GOROOT)" > build_env
       echo "NODE_PATH=$(npm root -g)" >> build_env
       echo "PATH=${GOBIN}:$(npm config get prefix)/bin:${PATH}" >> build_env
       cat build_env
@@ -328,7 +328,7 @@ helpers.rootLinuxNode(env, {
                 def BASEDIR="${pwd()}"
                 def GOPATH="${BASEDIR}\\go"
 
-                // Install Go 1.25.5 on Windows (using Git Bash for Unix-like symlink support)
+                // Install Go 1.27.1 on Windows (using Git Bash for Unix-like symlink support)
                 // Need to add existing Go to PATH first so we can run 'go install'
                 withEnv([
                   "PATH=C:\\tools\\go\\bin;${WINDOWS_PATH}",
@@ -341,8 +341,8 @@ helpers.rootLinuxNode(env, {
                     unset GOMODCACHE
                     unset GOBIN
 
-                    echo "Installing go1.25.5..."
-                    go install golang.org/dl/go1.25.5@latest
+                    echo "Installing go1.27.1..."
+                    go install golang.org/dl/go1.27.1@latest
 
                     # Find where Go installed it (will be in default GOPATH/bin)
                     GOBIN=$(go env GOPATH)/bin
@@ -351,13 +351,13 @@ helpers.rootLinuxNode(env, {
                     # Remove any existing go wrapper/symlink to start fresh
                     rm -f "${GOBIN}/go"
 
-                    echo "Downloading Go 1.25.5 SDK..."
-                    "${GOBIN}/go1.25.5" download
+                    echo "Downloading Go 1.27.1 SDK..."
+                    "${GOBIN}/go1.27.1" download
 
-                    # Create symlink so 'go' invokes go1.25.5 (Git Bash handles .exe transparently)
-                    ln -sf "${GOBIN}/go1.25.5" "${GOBIN}/go"
+                    # Create symlink so 'go' invokes go1.27.1 (Git Bash handles .exe transparently)
+                    ln -sf "${GOBIN}/go1.27.1" "${GOBIN}/go"
 
-                    echo "Go 1.25.5 installed successfully"
+                    echo "Go 1.27.1 installed successfully"
                     "${GOBIN}/go" version
 
                     # Save paths for Jenkins to use
