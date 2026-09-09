@@ -467,11 +467,9 @@ export const listenForPushTaps = (): (() => void) => {
 };
 
 const onNavStateChanged = (
-  nextNavState: RouterState["navState"],
-  previousNavState: RouterState["navState"],
+  next: RouterState["navState"],
+  prev: RouterState["navState"],
 ) => {
-  const next = nextNavState as Util.NavState;
-  const prev = previousNavState as Util.NavState;
   if (prev === next) return;
 
   // Clear critical update when we nav away from tab
