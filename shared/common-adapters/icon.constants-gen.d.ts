@@ -5,7 +5,8 @@ type IconMeta = {
   gridSize?: number
   extension?: string
   charCode?: number
-  nameDark?: string
+  mults?: ReadonlyArray<number>
+  nameDark?: IconType
   imagesDir?: string
   require?: ReqOut
   requireDark?: ReqOut

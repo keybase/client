@@ -37,13 +37,13 @@ const RoverDesktop = () => {
 
   return (
     <div style={desktopStyles.container}>
-      <div style={{...desktopStyles.foreground, bottom: transBackgroundY(y), left: transBackgroundX(x)}}>
+      <div style={{...desktopStyles.layer, bottom: transBackgroundY(y), left: transBackgroundX(x)}}>
         <Kb.ImageIcon style={desktopStyles.background} type="icon-illustration-mars-rover-background" />
       </div>
-      <div style={{...desktopStyles.rover, bottom: transRoverY(x, y), left: transRoverX(x)}}>
-        <Kb.ImageIcon type="icon-illustration-mars-rover" />
+      <div style={{...desktopStyles.layer, bottom: transRoverY(x, y), left: transRoverX(x)}}>
+        <Kb.ImageIcon style={desktopStyles.rover} type="icon-illustration-mars-rover" />
       </div>
-      <div style={{...desktopStyles.foreground, bottom: transForegroundY(y), left: transForegroundX(x)}}>
+      <div style={{...desktopStyles.layer, bottom: transForegroundY(y), left: transForegroundX(x)}}>
         <Kb.ImageIcon style={desktopStyles.foreground} type="icon-illustration-mars-rover-foreground" />
       </div>
     </div>
@@ -65,13 +65,19 @@ const Rover = isMobile ? RoverNative : RoverDesktop
 
 const desktopCommon = {bottom: 0, left: 0, position: 'absolute'} as const
 
+// The three image sizes are the assets' own pixel dimensions, and they are load-bearing:
+// ImageIconDesktop emits an <img> with no width/height attribute, so an unsized layer has a
+// 0x0 box until its bitmap arrives -- and a lazy image with a zero-area box is never fetched,
+// so it stays 0x0 forever. Keep these in step with the png files.
 const useDesktopStyles = Kb.Styles.createStyleHook(
   () =>
     ({
-      background: {...desktopCommon, bottom: 10},
+      background: {...desktopCommon, bottom: 10, height: 379, width: 539},
       container: desktopCommon,
-      foreground: desktopCommon,
-      rover: {...desktopCommon, bottom: 70},
+      foreground: {...desktopCommon, height: 90, width: 539},
+      // the parallax wrappers each supply their own bottom/left inline every render
+      layer: {position: 'absolute'},
+      rover: {height: 78, width: 74},
     }) as const
 )
 
