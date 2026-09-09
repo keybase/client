@@ -1,7 +1,12 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import debounce from 'lodash/debounce'
+import type {DebouncedFunc} from 'lodash'
+import type * as EngineGen from '@/constants/rpc'
 import {produce} from 'immer'
 import {joinAnyEpoch, nextReloadEpoch} from './reload-epoch'
+import {subscribeToEngineAction} from '@/engine/action-listener'
+import {registerExternalResetter} from '@/util/zustand'
 import {useReloadOnReconnect} from './use-reload-on-reconnect'
 
 export type CachedResourceCache<T, K> = {
@@ -40,16 +45,51 @@ type StoredCachedResourceState<T, K> = CachedResourceState<T> & {
   initialData: T
 }
 
+/**
+ * One engine action that should reload (or drop) this resource. `when` narrows
+ * it to the entry this instance holds - the same notification fires for every
+ * team in the app.
+ */
+export type CachedResourceInvalidation = {
+  type: EngineGen.ActionType
+  when?: (action: EngineGen.Actions) => boolean
+  effect?: 'reload' | 'clear'
+}
+
 type Props<T, K> = {
-  cache: CachedResourceCache<T, K>
-  cacheKey: K
+  /**
+   * Where the entry lives. Omit for a resource nothing else shares: it then gets
+   * a cache of its own, private to this instance.
+   */
+  namespace?: CachedResourceNamespace<T, K>
+  /**
+   * Which entry in the namespace. `undefined` means this instance has no entry:
+   * it shares nothing and resets nothing, so an instance that is off (a shadow
+   * behind a provider, an unresolved id) cannot clobber a loader's data. It is
+   * also what stops the resource loading, together with `enabled`.
+   */
+  cacheKey?: K
   enabled?: boolean
   initialData: T
   load: () => Promise<T>
   onError?: (error: unknown) => void
+  /**
+   * Reuse identities from the previously cached value. A load that produces a
+   * deep-equal result should hand back the object already in the cache so
+   * downstream memos can bail.
+   */
+  recycle?: (previous: T, next: T) => T
+  /** Engine actions (and the namespace's own invalidations) that reload this. */
+  invalidateOn?: ReadonlyArray<CachedResourceInvalidation>
   refreshKey?: unknown
   staleMs: number
 }
+
+// One logical change fires several notifications - metadata, role map and
+// changedByID all land for a single team edit, and a reconnect fires all of them
+// at once. Coalesce: leading so the common single notification still reloads
+// immediately, trailing to catch the rest of a burst.
+const invalidationDebounceMs = 2000
 
 const emptyState = <T,>(data: T): CachedResourceState<T> => ({
   data,
@@ -155,7 +195,7 @@ export const createCachedResourceCache = <T, K>(initialData: T, key: K): CachedR
   }
 }
 
-export const getCachedResourceCache = <T, K>(
+const getCachedResourceCache = <T, K>(
   map: Map<K, CachedResourceCache<T, K>>,
   initialData: T,
   key: K
@@ -169,11 +209,102 @@ export const getCachedResourceCache = <T, K>(
   return created
 }
 
+/**
+ * A named family of cache entries - the map, the sign-out reset and the
+ * invalidation broadcast that every consumer used to hand-roll. Create one per
+ * module, at module scope.
+ */
+export type CachedResourceNamespace<T, K> = {
+  /** current value for a key without creating an entry, for provider-less reads */
+  peek: (key: K) => T
+  /** drop the entry and tell every mounted consumer of it to reload, as one event */
+  invalidate: (key: K) => void
+  /** same, for every entry at once */
+  invalidateAll: () => void
+  /** internal: the entry a mounted consumer loads into */
+  getCache: (key: K) => CachedResourceCache<T, K>
+  /** internal: consumers listen for invalidate() */
+  subscribe: (listener: (key: K, epoch: number) => void) => () => void
+}
+
+export const createCachedResourceNamespace = <T, K>(
+  id: string,
+  initialDataForKey: (key: K) => T,
+  // Cap entries when one is expensive to hold. Least recently asked for goes
+  // first: clearing the whole map at the cap makes the key you switch back to
+  // reload even though its entry was still fresh.
+  options?: {maxEntries?: number}
+): CachedResourceNamespace<T, K> => {
+  const {maxEntries} = options ?? {}
+  const caches = new Map<K, CachedResourceCache<T, K>>()
+  const listeners = new Set<(key: K, epoch: number) => void>()
+
+  // module scope outlives sign-out, and these entries are per-user data. Dropping
+  // the map is not enough on its own: a consumer still mounted through the
+  // sign-out holds the cache object itself, so each one is emptied as well.
+  registerExternalResetter(id, () => {
+    caches.forEach((cache, key) => {
+      cache.reset(initialDataForKey(key), key)
+    })
+    caches.clear()
+  })
+
+  const notify = (key: K, epoch: number) => {
+    for (const listener of [...listeners]) {
+      listener(key, epoch)
+    }
+  }
+
+  return {
+    getCache: key => {
+      if (maxEntries !== undefined) {
+        // Map iterates in insertion order, so re-inserting on use is what makes
+        // that order recency.
+        const existing = caches.get(key)
+        if (existing) {
+          caches.delete(key)
+          caches.set(key, existing)
+        } else {
+          while (caches.size >= maxEntries) {
+            const oldest = caches.keys().next()
+            if (oldest.done) {
+              break
+            }
+            caches.delete(oldest.value)
+          }
+        }
+      }
+      return getCachedResourceCache(caches, initialDataForKey(key), key)
+    },
+    invalidate: key => {
+      caches.get(key)?.invalidate(key)
+      // one invalidation is one event: every listener reloads against the same
+      // epoch so they share an rpc instead of superseding each other
+      notify(key, nextReloadEpoch())
+    },
+    invalidateAll: () => {
+      const epoch = nextReloadEpoch()
+      for (const key of [...caches.keys()]) {
+        caches.get(key)?.invalidate(key)
+        notify(key, epoch)
+      }
+    },
+    peek: key => caches.get(key)?.getData() ?? initialDataForKey(key),
+    subscribe: listener => {
+      listeners.add(listener)
+      return () => {
+        listeners.delete(listener)
+      }
+    },
+  }
+}
+
 const runLoad = async <T, K>(
   cache: CachedResourceCache<T, K>,
   cacheKey: K,
   initialData: T,
   load: () => Promise<T>,
+  recycle: ((previous: T, next: T) => T) | undefined,
   onError: ((error: unknown) => void) | undefined,
   requestVersion: number,
   requestVersionRef: React.RefObject<number>,
@@ -201,7 +332,8 @@ const runLoad = async <T, K>(
       }
       return
     }
-    request = load().then(data => {
+    request = load().then(raw => {
+      const data = recycle ? recycle(cache.getData(), raw) : raw
       cache.setDataLoaded(data, generation, epoch)
       return data
     })
@@ -231,7 +363,38 @@ const runLoad = async <T, K>(
 }
 
 export const useCachedResource = <T, K>(props: Props<T, K>) => {
-  const {cache, cacheKey, enabled = true, initialData, load, onError, refreshKey, staleMs} = props
+  const {
+    cacheKey: requestedKey,
+    enabled: requestedEnabled = true,
+    initialData,
+    invalidateOn,
+    load,
+    namespace,
+    onError,
+    recycle,
+    refreshKey,
+    staleMs,
+  } = props
+  // An instance with no key of its own shares nothing, so it also cannot reset
+  // anything shared - which is what a disabled or unresolved instance would
+  // otherwise do to the loader's entry.
+  const shared = !!namespace && requestedKey !== undefined && requestedEnabled
+  const [privateCache] = React.useState(() =>
+    createCachedResourceCache<T, K | undefined>(initialData, undefined)
+  )
+  const cache = React.useMemo(
+    () =>
+      shared
+        ? (namespace.getCache(requestedKey) as CachedResourceCache<T, K | undefined>)
+        : privateCache,
+    [namespace, privateCache, requestedKey, shared]
+  ) as CachedResourceCache<T, K>
+  // Without a namespace the private cache is this instance's own, so it keeps the
+  // real key and a key change still resets and refetches through the usual path.
+  const cacheKey = (shared || !namespace ? requestedKey : undefined) as K
+  // The key requirement is what makes an entry-less instance inert; without a
+  // namespace there is no entry to be inert about.
+  const enabled = requestedEnabled && (namespace === undefined || requestedKey !== undefined)
   const [state, setState] = React.useState<StoredCachedResourceState<T, K>>(() =>
     storedState(cache, cacheKey, initialData, cachedState(cache, cacheKey, initialData))
   )
@@ -243,8 +406,10 @@ export const useCachedResource = <T, K>(props: Props<T, K>) => {
     cacheKey,
     enabled,
     initialData,
+    invalidateOn,
     load,
     onError,
+    recycle,
     staleMs,
   })
   React.useLayoutEffect(() => {
@@ -253,11 +418,13 @@ export const useCachedResource = <T, K>(props: Props<T, K>) => {
       cacheKey,
       enabled,
       initialData,
+      invalidateOn,
       load,
       onError,
+      recycle,
       staleMs,
     }
-  }, [cache, cacheKey, enabled, initialData, load, onError, staleMs])
+  })
 
   // deliberately does not depend on initialData: resetCache is in the main
   // effect's dep array, and callers routinely rebuild initialData (seeding it
@@ -279,7 +446,7 @@ export const useCachedResource = <T, K>(props: Props<T, K>) => {
   )
 
   const loadResource = React.useCallback(async (force: boolean, epoch: number) => {
-    const {cache, cacheKey, enabled, initialData, load, onError, staleMs} = latestRef.current
+    const {cache, cacheKey, enabled, initialData, load, onError, recycle, staleMs} = latestRef.current
     const resetCache = (nextKey: K) => {
       cache.reset(initialData, nextKey)
     }
@@ -323,6 +490,7 @@ export const useCachedResource = <T, K>(props: Props<T, K>) => {
       cacheKey,
       initialData,
       load,
+      recycle,
       onError,
       requestVersion,
       requestVersionRef,
@@ -346,6 +514,83 @@ export const useCachedResource = <T, K>(props: Props<T, K>) => {
   const loadIfStale = React.useCallback(async () => {
     await loadResource(false, joinAnyEpoch)
   }, [loadResource])
+
+  // One trigger for every invalidation source - engine notifications and the
+  // namespace's own invalidate(). The debounce comes BEFORE the epoch: a burst
+  // that coalesces into one reload is one event, and an epoch allocated per
+  // notification would make each reload supersede the last. An invalidate()
+  // broadcast carries its epoch through so every consumer of it shares one rpc.
+  const invalidateNow = React.useEffectEvent((epoch?: number) => {
+    void loadResource(true, typeof epoch === 'number' ? epoch : nextReloadEpoch())
+  })
+  // useEffectEvent hands back a new wrapper identity every render (only its inner
+  // ref is stable), so the debouncer is built once around the first wrapper; it
+  // stays valid because every wrapper shares that ref.
+  const [debouncedInvalidate] = React.useState<DebouncedFunc<(epoch?: number) => void>>(() =>
+    debounce((epoch?: number) => invalidateNow(epoch), invalidationDebounceMs, {
+      leading: true,
+      trailing: true,
+    })
+  )
+  // Cancel on the way out AND whenever the entry changes: a trailing reload
+  // queued for the old key would otherwise fire against the new one, allocate a
+  // fresh epoch and supersede the load already in flight for it.
+  React.useEffect(
+    () => () => {
+      debouncedInvalidate.cancel()
+    },
+    [cache, cacheKey, debouncedInvalidate]
+  )
+  const clearNow = React.useEffectEvent(() => {
+    // A queued trailing reload would re-issue the rpc for the very team that was
+    // just deleted or left, and repopulate the entry this is dropping.
+    debouncedInvalidate.cancel()
+    clear(latestRef.current.cacheKey)
+  })
+
+  // joined rather than passed as an array so the effect below has a stable dep:
+  // callers build invalidateOn inline, and its predicates close over this render
+  // deduped: two entries for one type (a reload and a clear, say) must not mean
+  // two subscriptions, each of which would then run the whole array
+  const invalidateTypes = [...new Set((invalidateOn ?? []).map(entry => entry.type))].join('|')
+  React.useEffect(() => {
+    if (!enabled || !invalidateTypes) {
+      return
+    }
+    const unsubs = invalidateTypes.split('|').map(type =>
+      subscribeToEngineAction(type as EngineGen.ActionType, action => {
+        for (const entry of latestRef.current.invalidateOn ?? []) {
+          if (entry.type !== action.type || (entry.when && !entry.when(action))) {
+            continue
+          }
+          if (entry.effect === 'clear') {
+            clearNow()
+          } else {
+            debouncedInvalidate()
+          }
+        }
+      })
+    )
+    return () => {
+      for (const unsub of unsubs) unsub()
+    }
+  }, [debouncedInvalidate, enabled, invalidateTypes])
+
+  // a mounted consumer picks up an invalidate() too, not just the next mount
+  React.useEffect(() => {
+    if (!shared) {
+      return
+    }
+    return namespace.subscribe((invalidatedKey, epoch) => {
+      if (Object.is(invalidatedKey, requestedKey)) {
+        // Straight through, not through the debounce: an invalidate() is already
+        // one event carrying one epoch, and it has zeroed loadedAt, so deferring
+        // it to a trailing edge leaves every consumer rendering empty for the
+        // rest of the window instead of for one round trip.
+        invalidateNow(epoch)
+      }
+    })
+  }, [namespace, requestedKey, shared])
 
   // reconnects orphan any in-flight load; force so cached data from before the
   // restart doesn't mask post-restart changes. Disabled hooks must not touch the

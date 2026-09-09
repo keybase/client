@@ -6,14 +6,8 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import SaveIndicator from '@/common-adapters/save-indicator'
 import logger from '@/logger'
-import {registerExternalResetter} from '@/util/zustand'
-import {useEngineActionListener} from '@/engine/action-listener'
-import {
-  type CachedResourceCache,
-  createCachedResourceCache,
-  getCachedResourceCache,
-  useCachedResource,
-} from '@/util/use-cached-resource'
+import type * as EngineGen from '@/constants/rpc'
+import {createCachedResourceNamespace, useCachedResource} from '@/util/use-cached-resource'
 import {useLoadedTeam} from '../../use-loaded-team'
 import {useConfirm} from './use-confirm'
 import {ConversationThreadProvider, useThreadMeta} from '@/chat/conversation/thread-context'
@@ -380,30 +374,28 @@ const noTeamRetentionPolicy: TeamRetentionData = undefined
 // One cache per team, shared by every consumer (settings tab and every chat info
 // panel for the team): a burst of remounts would otherwise be a burst of
 // GetTeamRetentionLocal calls with identical arguments.
-const teamRetentionCaches = new Map<T.Teams.TeamID, CachedResourceCache<TeamRetentionData, T.Teams.TeamID>>()
-
-// module scope outlives sign-out, so the next user would inherit this user's policies
-registerExternalResetter('teams-retention-caches', () => {
-  teamRetentionCaches.clear()
-})
+const teamRetentionPolicies = createCachedResourceNamespace<TeamRetentionData, T.Teams.TeamID>(
+  'teams-retention-caches',
+  () => noTeamRetentionPolicy
+)
 
 const useLoadedTeamRetentionPolicy = (teamID: T.Teams.TeamID) => {
-  const enabled = !!teamID && teamID !== T.Teams.noTeamID
-  // an adhoc conversation has no team, and useCachedResource resets the cache it
-  // holds when disabled — give those instances their own throwaway cache so they
-  // can't wipe the shared one out from under a real loader
-  const [localCache] = React.useState<CachedResourceCache<TeamRetentionData, T.Teams.TeamID>>(() =>
-    createCachedResourceCache<TeamRetentionData, T.Teams.TeamID>(noTeamRetentionPolicy, teamID)
-  )
-  const sharedCache = React.useMemo(
-    () => getCachedResourceCache(teamRetentionCaches, noTeamRetentionPolicy, teamID),
-    [teamID]
-  )
-  const {data: teamPolicy, reload} = useCachedResource({
-    cache: enabled ? sharedCache : localCache,
-    cacheKey: teamID,
-    enabled,
+  // an adhoc conversation has no team
+  const validTeamID = teamID && teamID !== T.Teams.noTeamID ? teamID : undefined
+  const {data: teamPolicy} = useCachedResource({
+    cacheKey: validTeamID,
     initialData: noTeamRetentionPolicy,
+    // the notification carries the new policy, but a reload is what refreshes
+    // the shared entry for the other consumers too
+    invalidateOn: [
+      {
+        type: 'chat.1.NotifyChat.ChatSetTeamRetention',
+        when: (action: EngineGen.Actions) =>
+          (action as EngineGen.ActionOf<'chat.1.NotifyChat.ChatSetTeamRetention'>).payload.params
+            .teamID === validTeamID,
+      },
+    ],
+    namespace: teamRetentionPolicies,
     // resolve rather than reject on failure: the picker falls back to the default
     // "retain" policy on error instead of spinning forever
     load: async () => {
@@ -420,14 +412,6 @@ const useLoadedTeamRetentionPolicy = (teamID: T.Teams.TeamID) => {
       return policy.type === 'inherit' ? Teams.retentionPolicies.policyRetain : policy
     },
     staleMs: teamRetentionStaleMs,
-  })
-
-  // the notification carries the new policy, but reload() is what actually
-  // invalidates the shared cache for the other consumers
-  useEngineActionListener('chat.1.NotifyChat.ChatSetTeamRetention', action => {
-    if (action.payload.params.teamID === teamID) {
-      void reload()
-    }
   })
 
   return {

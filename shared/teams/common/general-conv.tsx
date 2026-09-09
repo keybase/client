@@ -1,14 +1,7 @@
-import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Meta from '@/constants/chat/meta'
 import {metasReceived} from '@/chat/inbox/metadata'
-import {registerExternalResetter} from '@/util/zustand'
-import {
-  type CachedResourceCache,
-  createCachedResourceCache,
-  getCachedResourceCache,
-  useCachedResource,
-} from '@/util/use-cached-resource'
+import {createCachedResourceNamespace, useCachedResource} from '@/util/use-cached-resource'
 
 type GeneralConvData = T.Chat.ConversationIDKey | undefined
 
@@ -18,35 +11,17 @@ const noGeneralConv: GeneralConvData = undefined
 // team rows and the bot install modal - and each used to hold the answer in its
 // own state, so every mount was another findGeneralConvFromTeamID. Share one
 // cache per team, and let it live a while since the answer is effectively static.
-const generalConvCaches = new Map<T.Teams.TeamID, CachedResourceCache<GeneralConvData, T.Teams.TeamID>>()
+const generalConvs = createCachedResourceNamespace<GeneralConvData, T.Teams.TeamID>(
+  'teams-general-conv-caches',
+  () => noGeneralConv
+)
 const generalConvStaleMs = 5 * 60_000
-
-// module scope outlives sign-out. Dropping the map is not enough on its own: a
-// consumer that is still mounted through the sign-out holds the cache object
-// itself, so each one has to be emptied as well.
-registerExternalResetter('teams-general-conv-caches', () => {
-  generalConvCaches.forEach((cache, teamID) => cache.reset(noGeneralConv, teamID))
-  generalConvCaches.clear()
-})
 
 export const useGeneralConvIDKey = (teamID?: T.Teams.TeamID, enabled = true) => {
   const validTeamID = teamID && teamID !== T.Teams.noTeamID ? teamID : undefined
-  const on = enabled && !!validTeamID
-  const cacheKey = validTeamID ?? T.Teams.noTeamID
-  // a disabled instance resets whatever cache it holds, so keep it off the shared one
-  const [localCache] = React.useState<CachedResourceCache<GeneralConvData, T.Teams.TeamID>>(() =>
-    createCachedResourceCache<GeneralConvData, T.Teams.TeamID>(noGeneralConv, cacheKey)
-  )
-  // an off instance must not seed the shared map: it never loads, so the entry it
-  // created would sit there empty for the life of the session
-  const sharedCache = React.useMemo(
-    () => (on ? getCachedResourceCache(generalConvCaches, noGeneralConv, cacheKey) : undefined),
-    [cacheKey, on]
-  )
   const {data} = useCachedResource({
-    cache: sharedCache ?? localCache,
-    cacheKey,
-    enabled: on,
+    cacheKey: validTeamID,
+    enabled,
     initialData: noGeneralConv,
     load: async () => {
       const conv = await T.RPCChat.localFindGeneralConvFromTeamIDRpcPromise({
@@ -59,6 +34,7 @@ export const useGeneralConvIDKey = (teamID?: T.Teams.TeamID, enabled = true) => 
       metasReceived([meta])
       return meta.conversationIDKey
     },
+    namespace: generalConvs,
     staleMs: generalConvStaleMs,
   })
   return data

@@ -4,8 +4,10 @@ import {afterEach, expect, jest, test} from '@jest/globals'
 import {act, cleanup, render, renderHook} from '@testing-library/react'
 import {useDaemonState} from '@/stores/daemon'
 import {nextReloadEpoch} from './reload-epoch'
-import {createCachedResourceCache, useCachedResource} from './use-cached-resource'
+import {createCachedResourceNamespace, useCachedResource} from './use-cached-resource'
 import {flush} from '@/test/flush'
+import {notifyEngineActionListeners} from '@/engine/action-listener'
+import {resetAllStores} from '@/util/zustand'
 
 afterEach(() => {
   cleanup()
@@ -14,10 +16,16 @@ afterEach(() => {
 
 type Data = {v: number}
 
+// a fresh namespace per test: they are module-scope in real callers, and reusing
+// one here would leak a loaded entry into the next test
+let namespaceCount = 0
+const makeNamespace = <T,>(initialData: T) =>
+  createCachedResourceNamespace<T, string>(`test-${namespaceCount++}`, () => initialData)
+
 // A caller that rebuilds initialData every render (seeding it from another
 // store) must not put useCachedResource into a render loop.
 test('unstable initialData does not loop', async () => {
-  const cache = createCachedResourceCache<Data, string>({v: 0}, 'k')
+  const namespace = makeNamespace<Data>({v: 0})
   let calls = 0
   let renders = 0
   const load = jest.fn(async () => {
@@ -29,7 +37,7 @@ test('unstable initialData does not loop', async () => {
     // counts real renders: compiling this away is exactly what the test measures
     'use no memo'
     renders++
-    const {data} = useCachedResource({cache, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
+    const {data} = useCachedResource({namespace, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
     return <div>{data.v}</div>
   }
   render(<Comp />)
@@ -42,7 +50,7 @@ test('unstable initialData does not loop', async () => {
 // backoff every re-render re-issued the request the instant the previous one
 // settled, which hammered both the service and the server.
 test('a failed load backs off instead of retrying on every render', async () => {
-  const cache = createCachedResourceCache<Data, string>({v: 0}, 'k')
+  const namespace = makeNamespace<Data>({v: 0})
   let calls = 0
   let loadIfStale: (() => Promise<void>) | undefined
   const load = jest.fn(async () => {
@@ -55,7 +63,7 @@ test('a failed load backs off instead of retrying on every render', async () => 
     // so without this the assertion below holds even with no backoff at all
     'use no memo'
     const resource = useCachedResource({
-      cache,
+      namespace,
       cacheKey: 'k',
       initialData: {v: 0},
       load,
@@ -92,7 +100,7 @@ test('a failed load backs off instead of retrying on every render', async () => 
 })
 
 test('reload bypasses the failure backoff', async () => {
-  const cache = createCachedResourceCache<Data, string>({v: 0}, 'k')
+  const namespace = makeNamespace<Data>({v: 0})
   let calls = 0
   let reload: (() => Promise<void>) | undefined
   const load = jest.fn(async () => {
@@ -104,7 +112,7 @@ test('reload bypasses the failure backoff', async () => {
     // hoists reload out to the test body; the compiler rejects the assignment
     'use no memo'
     const resource = useCachedResource({
-      cache,
+      namespace,
       cacheKey: 'k',
       initialData: {v: 0},
       load,
@@ -124,7 +132,7 @@ test('reload bypasses the failure backoff', async () => {
 })
 
 test('a successful load is served from cache while fresh', async () => {
-  const cache = createCachedResourceCache<Data, string>({v: 0}, 'k')
+  const namespace = makeNamespace<Data>({v: 0})
   let calls = 0
   const load = jest.fn(async () => {
     calls++
@@ -132,7 +140,7 @@ test('a successful load is served from cache while fresh', async () => {
     return {v: calls}
   })
   const Comp = ({staleMs}: {staleMs: number}) => {
-    const {data, loaded} = useCachedResource({cache, cacheKey: 'k', initialData: {v: 0}, load, staleMs})
+    const {data, loaded} = useCachedResource({namespace, cacheKey: 'k', initialData: {v: 0}, load, staleMs})
     return <div>{loaded ? data.v : 'x'}</div>
   }
   const first = render(<Comp staleMs={5000} />)
@@ -145,7 +153,7 @@ test('a successful load is served from cache while fresh', async () => {
   const second = render(<Comp staleMs={5000} />)
   await flush()
   expect(calls).toBe(1)
-  expect(cache.getData()).toEqual({v: 1})
+  expect(namespace.peek('k')).toEqual({v: 1})
 
   // and a consumer that considers it stale does reload it
   second.unmount()
@@ -158,7 +166,7 @@ test('a successful load is served from cache while fresh', async () => {
 // already on the wire before the change: joining it would serve pre-change data
 // AND stamp loadedAt on it, pinning the stale value for the whole window.
 test('a forced reload supersedes a request that predates it', async () => {
-  const cache = createCachedResourceCache<Data, string>({v: 0}, 'k')
+  const namespace = makeNamespace<Data>({v: 0})
   let calls = 0
   const releases: Array<(v: Data) => void> = []
   const load = jest.fn(async () => {
@@ -170,7 +178,7 @@ test('a forced reload supersedes a request that predates it', async () => {
   let reload: (() => Promise<void>) | undefined
   const Comp = () => {
     'use no memo'
-    const resource = useCachedResource({cache, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
+    const resource = useCachedResource({namespace, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
     reload = resource.reload
     return <div>{resource.loaded ? `v${resource.data.v}` : 'pending'}</div>
   }
@@ -197,14 +205,14 @@ test('a forced reload supersedes a request that predates it', async () => {
   })
   await flush()
   expect(view.getAllByText('v2')).toHaveLength(1)
-  expect(cache.getData()).toEqual({v: 2})
+  expect(namespace.peek('k')).toEqual({v: 2})
 })
 
 // The mutation and the reload it triggers routinely fall inside one millisecond,
 // so ordering the two by Date.now() compares them equal and the forced load
 // joins the very request it exists to supersede.
 test('a forced reload supersedes a same-millisecond request', async () => {
-  const cache = createCachedResourceCache<Data, string>({v: 0}, 'k')
+  const namespace = makeNamespace<Data>({v: 0})
   let calls = 0
   const releases: Array<(v: Data) => void> = []
   const load = jest.fn(async () => {
@@ -216,7 +224,7 @@ test('a forced reload supersedes a same-millisecond request', async () => {
   let reload: (() => Promise<void>) | undefined
   const Comp = () => {
     'use no memo'
-    const resource = useCachedResource({cache, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
+    const resource = useCachedResource({namespace, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
     reload = resource.reload
     return <div>{resource.loaded ? `v${resource.data.v}` : 'pending'}</div>
   }
@@ -241,7 +249,7 @@ test('a forced reload supersedes a same-millisecond request', async () => {
 // the property the module-level caches depend on: without it, sharing a cache
 // across screens still issues an RPC per screen.
 test('concurrent consumers of one cache share a single load', async () => {
-  const cache = createCachedResourceCache<Data, string>({v: 0}, 'k')
+  const namespace = makeNamespace<Data>({v: 0})
   let calls = 0
   let release: ((v: Data) => void) | undefined
   const load = jest.fn(async () => {
@@ -251,7 +259,7 @@ test('concurrent consumers of one cache share a single load', async () => {
     })
   })
   const Comp = () => {
-    const {data, loaded} = useCachedResource({cache, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
+    const {data, loaded} = useCachedResource({namespace, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
     return <div>{loaded ? `v${data.v}` : 'pending'}</div>
   }
   const view = render(
@@ -278,7 +286,7 @@ test('concurrent consumers of one cache share a single load', async () => {
 // the first supersede its predecessor - N rpcs for one event. Measured as 4
 // identical getAnnotatedTeam inside 106ms after one reconnect.
 test('consumers reloading for one event share a single rpc', async () => {
-  const cache = createCachedResourceCache<Data, string>({v: 0}, 'k')
+  const namespace = makeNamespace<Data>({v: 0})
   let calls = 0
   const releases: Array<(v: Data) => void> = []
   const load = jest.fn(async () => {
@@ -290,7 +298,7 @@ test('consumers reloading for one event share a single rpc', async () => {
   const reloads: Array<(epoch?: number) => Promise<void>> = []
   const Comp = () => {
     'use no memo'
-    const resource = useCachedResource({cache, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
+    const resource = useCachedResource({namespace, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
     reloads.push(resource.reload)
     return <div>{resource.loaded ? `v${resource.data.v}` : 'pending'}</div>
   }
@@ -328,7 +336,7 @@ test('consumers reloading for one event share a single rpc', async () => {
 // teams list reloaded 75ms apart for one reconnect, and the first request had
 // already settled, so the in-flight check had nothing to collapse onto.
 test('a consumer reloading for an event already in the cache does not refetch', async () => {
-  const cache = createCachedResourceCache<Data, string>({v: 0}, 'k')
+  const namespace = makeNamespace<Data>({v: 0})
   let calls = 0
   const releases: Array<(v: Data) => void> = []
   const load = jest.fn(async () => {
@@ -340,7 +348,7 @@ test('a consumer reloading for an event already in the cache does not refetch', 
   const reloads: Array<(epoch?: number) => Promise<void>> = []
   const Comp = () => {
     'use no memo'
-    const resource = useCachedResource({cache, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
+    const resource = useCachedResource({namespace, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
     reloads.push(resource.reload)
     return <div>{resource.loaded ? `v${resource.data.v}` : 'pending'}</div>
   }
@@ -389,7 +397,7 @@ test('a consumer reloading for an event already in the cache does not refetch', 
 // The collapse must not swallow a genuinely newer event: a reload for a later
 // epoch still supersedes whatever an earlier one put on the wire.
 test('a later epoch still supersedes an in-flight request', async () => {
-  const cache = createCachedResourceCache<Data, string>({v: 0}, 'k')
+  const namespace = makeNamespace<Data>({v: 0})
   let calls = 0
   const releases: Array<(v: Data) => void> = []
   const load = jest.fn(async () => {
@@ -401,7 +409,7 @@ test('a later epoch still supersedes an in-flight request', async () => {
   let reload: ((epoch?: number) => Promise<void>) | undefined
   const Comp = () => {
     'use no memo'
-    const resource = useCachedResource({cache, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
+    const resource = useCachedResource({namespace, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
     reload = resource.reload
     return <div>{resource.loaded ? `v${resource.data.v}` : 'pending'}</div>
   }
@@ -432,7 +440,7 @@ test('a later epoch still supersedes an in-flight request', async () => {
   })
   await flush()
   expect(view.getAllByText('v3')).toHaveLength(1)
-  expect(cache.getData()).toEqual({v: 3})
+  expect(namespace.peek('k')).toEqual({v: 3})
 })
 
 // End to end over the wiring that actually produced the burst: one reconnect,
@@ -441,7 +449,7 @@ test('a reconnect reloads every consumer with one rpc', async () => {
   act(() => {
     useDaemonState.setState({handshakeGeneration: 1, handshakeState: 'done'})
   })
-  const cache = createCachedResourceCache<Data, string>({v: 0}, 'k')
+  const namespace = makeNamespace<Data>({v: 0})
   let calls = 0
   const releases: Array<(v: Data) => void> = []
   const load = jest.fn(async () => {
@@ -451,7 +459,7 @@ test('a reconnect reloads every consumer with one rpc', async () => {
     })
   })
   const Comp = () => {
-    const {data, loaded} = useCachedResource({cache, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
+    const {data, loaded} = useCachedResource({namespace, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
     return <div>{loaded ? `v${data.v}` : 'pending'}</div>
   }
   const view = render(
@@ -487,7 +495,7 @@ test('a reconnect reloads every consumer with one rpc', async () => {
 // An engine reset orphans in-flight rpcs without ever settling them. A forced
 // load must not adopt one of those, or reload() never resolves.
 test('reload() bypasses an orphaned in-flight request', async () => {
-  const cache = createCachedResourceCache<string, string>('', 'k')
+  const namespace = makeNamespace<string>('')
   let resolveSecond: ((v: string) => void) | undefined
   const load = jest
     .fn<() => Promise<string>>()
@@ -499,7 +507,7 @@ test('reload() bypasses an orphaned in-flight request', async () => {
         })
     )
   const {result} = renderHook(() =>
-    useCachedResource({cache, cacheKey: 'k', initialData: '', load, staleMs: 10_000})
+    useCachedResource({namespace, cacheKey: 'k', initialData: '', load, staleMs: 10_000})
   )
   await flush()
   expect(load).toHaveBeenCalledTimes(1)
@@ -524,14 +532,14 @@ test('a disabled resource ignores reconnects until it is enabled', async () => {
   act(() => {
     useDaemonState.setState({handshakeGeneration: 1, handshakeState: 'done'})
   })
-  const cache = createCachedResourceCache<Data, string>({v: 0}, 'k')
+  const namespace = makeNamespace<Data>({v: 0})
   const load = jest.fn(async () => {
     await Promise.resolve()
     return {v: 1}
   })
   const {rerender, result} = renderHook(
     ({enabled}: {enabled: boolean}) =>
-      useCachedResource({cache, cacheKey: 'k', enabled, initialData: {v: 0}, load, staleMs: 5000}),
+      useCachedResource({namespace, cacheKey: 'k', enabled, initialData: {v: 0}, load, staleMs: 5000}),
     {initialProps: {enabled: false}}
   )
   await flush()
@@ -553,32 +561,56 @@ test('a disabled resource ignores reconnects until it is enabled', async () => {
   expect(result.current.data).toEqual({v: 1})
 })
 
-// Nothing runs loadResource while a hook is disabled, so becoming disabled is
-// the only chance to drop data the cache is still holding under the old key.
-test('a resource that is disabled while its key changes clears the stale key', async () => {
-  const cache = createCachedResourceCache<Data, string>({v: 0}, 'a')
+// The hazard every consumer used to hand-roll around: a disabled instance - a
+// shadow behind a provider, an off-screen row, an id that has not resolved -
+// reset whatever cache object it was handed, wiping a real loader's data and
+// costing a refetch on the next mount. With no key of its own it has no shared
+// entry to reset.
+test('a disabled instance never touches the shared entry', async () => {
+  const namespace = makeNamespace<Data>({v: 0})
+  let calls = 0
+  const load = jest.fn(async () => {
+    calls++
+    await Promise.resolve()
+    return {v: calls}
+  })
+  const props = {cacheKey: 'k', initialData: {v: 0}, load, namespace, staleMs: 5000}
+
+  const loader = renderHook(() => useCachedResource({...props, enabled: true}))
+  await flush()
+  expect(calls).toBe(1)
+  loader.unmount()
+
+  const disabled = renderHook(() => useCachedResource({...props, enabled: false}))
+  await flush()
+  disabled.unmount()
+
+  // still inside the stale window, so the entry must still be there
+  expect(namespace.peek('k')).toEqual({v: 1})
+  const again = renderHook(() => useCachedResource({...props, enabled: true}))
+  await flush()
+  expect(calls).toBe(1)
+  expect(again.result.current.data).toEqual({v: 1})
+})
+
+// An instance with no key has nothing shared to load into either, and must not
+// seed an entry a later real loader would find already present but empty.
+test('an instance with no key loads nothing and seeds no entry', async () => {
+  const namespace = makeNamespace<Data>({v: 0})
   const load = jest.fn(async () => {
     await Promise.resolve()
     return {v: 1}
   })
-  const {rerender} = renderHook(
-    ({cacheKey, enabled}: {cacheKey: string; enabled: boolean}) =>
-      useCachedResource({cache, cacheKey, enabled, initialData: {v: 0}, load, staleMs: 5000}),
-    {initialProps: {cacheKey: 'a', enabled: true}}
+  renderHook(() =>
+    useCachedResource<Data, string>({cacheKey: undefined, initialData: {v: 0}, load, namespace, staleMs: 5000})
   )
   await flush()
-  expect(cache.getKey()).toBe('a')
-  expect(cache.getLoadedAt()).not.toBe(0)
-
-  rerender({cacheKey: 'b', enabled: false})
-  await flush()
-  expect(cache.getKey()).toBe('b')
-  expect(cache.getLoadedAt()).toBe(0)
-  expect(load).toHaveBeenCalledTimes(1)
+  expect(load).not.toHaveBeenCalled()
+  expect(namespace.peek('k')).toEqual({v: 0})
 })
 
 test('clear() drops the cached data and reloads', async () => {
-  const cache = createCachedResourceCache<Data, string>({v: 0}, 'k')
+  const namespace = makeNamespace<Data>({v: 0})
   let calls = 0
   const load = jest.fn(async () => {
     calls++
@@ -586,7 +618,7 @@ test('clear() drops the cached data and reloads', async () => {
     return {v: calls}
   })
   const {result} = renderHook(() =>
-    useCachedResource({cache, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
+    useCachedResource({namespace, cacheKey: 'k', initialData: {v: 0}, load, staleMs: 5000})
   )
   await flush()
   expect(calls).toBe(1)
@@ -598,7 +630,7 @@ test('clear() drops the cached data and reloads', async () => {
   })
   expect(result.current.data).toEqual({v: 0})
   expect(result.current.loaded).toBe(false)
-  expect(cache.getLoadedAt()).toBe(0)
+  expect(namespace.peek('k')).toEqual({v: 0})
 
   // clear() invalidates rather than just blanking state: the next stale check
   // has to go back to the wire even though staleMs has not elapsed.
@@ -610,13 +642,13 @@ test('clear() drops the cached data and reloads', async () => {
   expect(result.current.data).toEqual({v: 2})
 })
 
-test('a cacheKey change resets the cache and refetches', async () => {
-  const cache = createCachedResourceCache<Data, string>({v: 0}, 'a')
+test('a cacheKey change loads the new key, and each key keeps its own entry', async () => {
+  const namespace = makeNamespace<Data>({v: 0})
   const seen: Array<string> = []
   const {rerender, result} = renderHook(
     ({cacheKey}: {cacheKey: string}) =>
       useCachedResource({
-        cache,
+        namespace,
         cacheKey,
         initialData: {v: 0},
         load: async () => {
@@ -635,13 +667,130 @@ test('a cacheKey change resets the cache and refetches', async () => {
   rerender({cacheKey: 'b'})
   await flush()
   expect(seen).toEqual(['a', 'b'])
-  expect(cache.getKey()).toBe('b')
   expect(result.current.data).toEqual({v: 2})
 
-  // data for the old key must not resurface when the key comes back: the reset
-  // dropped it, so this is a fresh load rather than a cache hit.
+  // one entry per key, so coming back inside the stale window is a hit rather
+  // than a refetch - and 'a' can never be served under key 'b'
   rerender({cacheKey: 'a'})
   await flush()
-  expect(seen).toEqual(['a', 'b', 'a'])
-  expect(result.current.data).toEqual({v: 3})
+  expect(seen).toEqual(['a', 'b'])
+  expect(result.current.data).toEqual({v: 1})
+  expect(namespace.peek('b')).toEqual({v: 2})
+})
+
+// The entries are per-user data and module scope outlives a sign-out.
+test('a sign-out reset empties every entry in the namespace', async () => {
+  const namespace = makeNamespace<Data>({v: 0})
+  let calls = 0
+  const load = jest.fn(async () => {
+    calls++
+    await Promise.resolve()
+    return {v: calls}
+  })
+  const props = {cacheKey: 'k', initialData: {v: 0}, load, namespace, staleMs: 5000}
+  const first = renderHook(() => useCachedResource(props))
+  await flush()
+  expect(calls).toBe(1)
+  first.unmount()
+
+  act(() => {
+    resetAllStores()
+  })
+  expect(namespace.peek('k')).toEqual({v: 0})
+
+  renderHook(() => useCachedResource(props))
+  await flush()
+  expect(calls).toBe(2)
+})
+
+const homeRefresh = {payload: {params: {}}, type: 'keybase.1.homeUI.homeUIRefresh'} as never
+
+// Service notifications are coalesced over a 2s window, but an explicit
+// invalidate() is already one event with its own epoch, and it has zeroed
+// loadedAt - deferring it to the trailing edge leaves every consumer rendering
+// empty for the rest of the window instead of for one round trip.
+test('an explicit invalidate reloads now even inside an open coalescing window', async () => {
+  const namespace = makeNamespace<Data>({v: 0})
+  let calls = 0
+  const load = async () => {
+    calls++
+    await Promise.resolve()
+    return {v: calls}
+  }
+  renderHook(() =>
+    useCachedResource({
+      cacheKey: 'k',
+      initialData: {v: 0},
+      invalidateOn: [{type: 'keybase.1.homeUI.homeUIRefresh'}],
+      load,
+      namespace,
+      staleMs: 5000,
+    })
+  )
+  await flush()
+  expect(calls).toBe(1)
+
+  // leading edge of the coalescing window
+  act(() => {
+    notifyEngineActionListeners(homeRefresh)
+  })
+  await flush()
+  expect(calls).toBe(2)
+
+  act(() => {
+    namespace.invalidate('k')
+  })
+  await flush()
+  expect(calls).toBe(3)
+})
+
+// A queued trailing reload would re-issue the rpc for the very team that was
+// just deleted or left, and repopulate the entry the clear dropped.
+test('a clear cancels a reload queued by an earlier notification', async () => {
+  jest.useFakeTimers({doNotFake: ['nextTick', 'setImmediate']})
+  const namespace = makeNamespace<Data>({v: 0})
+  let calls = 0
+  const load = async () => {
+    calls++
+    await Promise.resolve()
+    return {v: calls}
+  }
+  renderHook(() =>
+    useCachedResource({
+      cacheKey: 'k',
+      initialData: {v: 0},
+      invalidateOn: [
+        {type: 'keybase.1.homeUI.homeUIRefresh'},
+        {effect: 'clear', type: 'keybase.1.NotifyBadges.badgeState'},
+      ],
+      load,
+      namespace,
+      staleMs: 5000,
+    })
+  )
+  await flush()
+  expect(calls).toBe(1)
+
+  // two inside one window: leading fires now, trailing is queued
+  act(() => {
+    notifyEngineActionListeners(homeRefresh)
+    notifyEngineActionListeners(homeRefresh)
+  })
+  await flush()
+  expect(calls).toBe(2)
+
+  act(() => {
+    notifyEngineActionListeners({payload: {params: {}}, type: 'keybase.1.NotifyBadges.badgeState'} as never)
+  })
+  await flush()
+  expect(namespace.peek('k')).toEqual({v: 0})
+
+  act(() => {
+    jest.advanceTimersByTime(5000)
+  })
+  await flush()
+  // the trailing edge must not have fired: clear() is deliberate, and a reload
+  // behind it would put the dropped entry straight back
+  expect(calls).toBe(2)
+  jest.useRealTimers()
 })

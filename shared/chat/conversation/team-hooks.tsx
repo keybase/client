@@ -1,20 +1,19 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import {useEngineActionListener} from '@/engine/action-listener'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import * as Teams from '@/constants/teams'
 import logger from '@/logger'
 import * as React from 'react'
 import {useTeamsListMap, useTeamsRoleMap} from '@/teams/use-teams-list'
+import type * as EngineGen from '@/constants/rpc'
 import {
-  type CachedResourceCache,
-  getCachedResourceCache,
+  type CachedResourceInvalidation,
+  createCachedResourceNamespace,
   useCachedResource,
 } from '@/util/use-cached-resource'
 import {updateChosenChannelsTeamnames, useChosenChannelsTeamnames} from './manage-channels-badge'
 import {useThreadMeta} from './thread-context'
-import {registerExternalResetter} from '@/util/zustand'
 
 type ChatTeamState = {
   role: T.Teams.MaybeTeamRoleType
@@ -43,30 +42,38 @@ export type ChatManageChannelsBadge = ChatManageChannelsBadgeState & {
 }
 
 type ChatTeamMembersData = ReadonlyMap<string, T.Teams.MemberInfo>
-type TeamCacheKey = T.Teams.TeamID | undefined
-type TeamCacheMap<D> = Map<TeamCacheKey, CachedResourceCache<D, TeamCacheKey>>
 
 const emptyChatTeamMembersData: ChatTeamMembersData = new Map<string, T.Teams.MemberInfo>()
 
 // Module level so switching conversations (or channels within a team) reuses
 // loaded members instead of refetching. teamChangedByID & friends invalidate.
-const chatTeamMembersCacheMap: TeamCacheMap<ChatTeamMembersData> = new Map()
+const chatTeamMembers = createCachedResourceNamespace<ChatTeamMembersData, T.Teams.TeamID>(
+  'chat-team-hooks-caches',
+  () => emptyChatTeamMembersData
+)
 const chatTeamReloadStaleMs = 5 * 60_000
 
-// module scope outlives sign-out, so the next user would be served the previous
-// user's member lists
-registerExternalResetter('chat-team-hooks-caches', () => {
-  chatTeamMembersCacheMap.clear()
-})
-
-// A disabled "shadow" instance (one that returns the context value instead of
-// its own) must NOT share the loader's cache: with enabled=false
-// useCachedResource resets the cache, which would clobber the loader's data.
-// Give shadows a private throwaway map so their resets are harmless.
-const useTeamCacheMap = <D,>(sharedCacheMap: TeamCacheMap<D>, forceLocalCache: boolean) => {
-  const [localCacheMap] = React.useState<TeamCacheMap<D>>(() => new Map())
-  return forceLocalCache ? localCacheMap : sharedCacheMap
-}
+const teamMemberInvalidations = (teamID?: T.Teams.TeamID) =>
+  [
+    {
+      type: 'keybase.1.NotifyTeam.teamChangedByID',
+      when: (action: EngineGen.Actions) =>
+        (action as EngineGen.ActionOf<'keybase.1.NotifyTeam.teamChangedByID'>).payload.params.teamID ===
+        teamID,
+    },
+    {
+      effect: 'clear',
+      type: 'keybase.1.NotifyTeam.teamDeleted',
+      when: (action: EngineGen.Actions) =>
+        (action as EngineGen.ActionOf<'keybase.1.NotifyTeam.teamDeleted'>).payload.params.teamID === teamID,
+    },
+    {
+      effect: 'clear',
+      type: 'keybase.1.NotifyTeam.teamExit',
+      when: (action: EngineGen.Actions) =>
+        (action as EngineGen.ActionOf<'keybase.1.NotifyTeam.teamExit'>).payload.params.teamID === teamID,
+    },
+  ] satisfies ReadonlyArray<CachedResourceInvalidation>
 
 const loadableTeamID = (teamID: T.Teams.TeamID) =>
   teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
@@ -104,24 +111,13 @@ const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string): ChatTeam => 
   }
 }
 
-const useChatTeamMembersRaw = (
-  teamID: T.Teams.TeamID,
-  enabled = true,
-  subscribeToUpdates = enabled,
-  forceLocalCache = false
-): ChatTeamMembers => {
+const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeamMembers => {
   const validTeamID = loadableTeamID(teamID)
-  const cacheMap = useTeamCacheMap(chatTeamMembersCacheMap, forceLocalCache)
-  const cache = React.useMemo(
-    () => getCachedResourceCache(cacheMap, emptyChatTeamMembersData, validTeamID),
-    [cacheMap, validTeamID]
-  )
-
-  const {clear, data, loaded, loading, reload} = useCachedResource({
-    cache,
+  const {data, loaded, loading, reload} = useCachedResource({
     cacheKey: validTeamID,
-    enabled: enabled && !!validTeamID,
+    enabled,
     initialData: emptyChatTeamMembersData,
+    invalidateOn: teamMemberInvalidations(validTeamID),
     load: async () => {
       const members = Teams.rpcDetailsToMemberInfos(
         (await T.RPCGen.teamsTeamGetMembersByIDRpcPromise({id: validTeamID ?? T.Teams.noTeamID})) ?? []
@@ -134,39 +130,12 @@ const useChatTeamMembersRaw = (
       )
       return members
     },
+    namespace: chatTeamMembers,
     onError: error => {
       logger.warn(`Failed to reload chat team members for ${validTeamID}`, error)
     },
     staleMs: chatTeamReloadStaleMs,
   })
-
-  useEngineActionListener(
-    'keybase.1.NotifyTeam.teamChangedByID',
-    action => {
-      if (action.payload.params.teamID === validTeamID) {
-        void reload()
-      }
-    },
-    subscribeToUpdates
-  )
-  useEngineActionListener(
-    'keybase.1.NotifyTeam.teamDeleted',
-    action => {
-      if (action.payload.params.teamID === validTeamID) {
-        clear(validTeamID)
-      }
-    },
-    subscribeToUpdates
-  )
-  useEngineActionListener(
-    'keybase.1.NotifyTeam.teamExit',
-    action => {
-      if (action.payload.params.teamID === validTeamID) {
-        clear(validTeamID)
-      }
-    },
-    subscribeToUpdates
-  )
 
   // `loading` means "nothing to show yet" - a background revalidation of cached
   // data must not flip callers back to their empty/spinner state.
@@ -195,12 +164,7 @@ export const ChatTeamProvider = (props: React.PropsWithChildren) => {
   const enabled = teamType !== 'adhoc' && !!loadableTeamID(teamID)
   const sameAsOuter = outer?.teamID === teamID
   const team = useChatTeamRaw(teamID, teamname)
-  const members = useChatTeamMembersRaw(
-    teamID,
-    enabled && !sameAsOuter,
-    enabled && !sameAsOuter,
-    sameAsOuter
-  )
+  const members = useChatTeamMembersRaw(teamID, enabled && !sameAsOuter)
   const value: ChatTeamContextValue = sameAsOuter ? outer! : {members, team, teamID}
   return <ChatTeamContext.Provider value={value}>{children}</ChatTeamContext.Provider>
 }
@@ -215,7 +179,7 @@ export const useChatTeam = (teamID: T.Teams.TeamID, teamname?: string): ChatTeam
 export const useChatTeamMembers = (teamID: T.Teams.TeamID): ChatTeamMembers => {
   const context = React.useContext(ChatTeamContext)
   const useContextValue = context?.teamID === teamID
-  const raw = useChatTeamMembersRaw(teamID, !useContextValue, !useContextValue, useContextValue)
+  const raw = useChatTeamMembersRaw(teamID, !useContextValue)
   return useContextValue ? context.members : raw
 }
 

@@ -1,22 +1,17 @@
 import * as C from '@/constants'
-import type {DebouncedFunc} from 'lodash'
-import debounce from 'lodash/debounce'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as Teams from '@/constants/teams'
 import {ensureError} from '@/util/errors'
-import {nextReloadEpoch} from '@/util/reload-epoch'
-import {useEngineActionListener} from '@/engine/action-listener'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {
-  type CachedResourceCache,
-  createCachedResourceCache,
+  type CachedResourceInvalidation,
+  createCachedResourceNamespace,
   useCachedResource,
 } from '@/util/use-cached-resource'
-import {registerExternalResetter} from '@/util/zustand'
 
 type TeamsList = {
   reload: () => void
@@ -35,23 +30,46 @@ const TeamsListContext = React.createContext<TeamsList | null>(null)
 const TeamsRoleMapContext = React.createContext<TeamsRoleMap | null>(null)
 const teamsListReloadStaleMs = 5 * 60_000
 
-const teamsListInvalidationListeners = new Set<(epoch: number) => void>()
-const teamsRoleMapInvalidationListeners = new Set<(epoch: number) => void>()
-const teamsListCache = createCachedResourceCache<ReadonlyArray<T.Teams.TeamMeta>, string | undefined>(
-  emptyTeams,
-  undefined
+// Both are keyed by username, and every read goes through peek(currentUsername),
+// so the previous user's list can never be rendered. Their entries are dropped by
+// the namespace's sign-out reset, which is what keeps a re-login inside the stale
+// window from being served them.
+const teamsListResource = createCachedResourceNamespace<ReadonlyArray<T.Teams.TeamMeta>, string>(
+  'teams-list-cache',
+  () => emptyTeams
 )
-const teamsRoleMapCache = createCachedResourceCache<T.RPCGen.TeamRoleMapAndVersion, string | undefined>(
-  emptyTeamRoleMap,
-  undefined
+const teamsRoleMapResource = createCachedResourceNamespace<T.RPCGen.TeamRoleMapAndVersion, string>(
+  'teams-role-map-cache',
+  () => emptyTeamRoleMap
 )
 
-// module scope outlives sign-out; both are keyed by username, so the next user
-// would briefly render the previous user's team list and role map
-registerExternalResetter('teams-list-caches', () => {
-  teamsListCache.reset(emptyTeams, undefined)
-  teamsRoleMapCache.reset(emptyTeamRoleMap, undefined)
-})
+// Reads for consumers rendered outside the provider. Keyed on the current user
+// so an entry the previous one left behind can never be rendered.
+const peekTeams = () => {
+  const username = useCurrentUserState.getState().username
+  return username ? teamsListResource.peek(username) : emptyTeams
+}
+const peekRoleMap = () => {
+  const username = useCurrentUserState.getState().username
+  return username ? teamsRoleMapResource.peek(username) : emptyTeamRoleMap
+}
+
+// reload whenever the service signals a team change. One logical change fires
+// several of these; useCachedResource coalesces the burst onto one reload.
+const makeTeamChangeInvalidations = (includeMetadataUpdate: boolean) =>
+  [
+    ...(includeMetadataUpdate
+      ? ([{type: 'keybase.1.NotifyTeam.teamMetadataUpdate'}] as const)
+      : ([] as const)),
+    {type: 'keybase.1.NotifyTeam.teamRoleMapChanged'},
+    {type: 'keybase.1.NotifyTeam.teamChangedByID'},
+    {type: 'keybase.1.NotifyTeam.teamDeleted'},
+    {type: 'keybase.1.NotifyTeam.teamExit'},
+  ] satisfies ReadonlyArray<CachedResourceInvalidation>
+
+// Incoming team chat messages fire teamMetadataUpdate; only the list cares.
+const teamsListInvalidations = makeTeamChangeInvalidations(true)
+const teamsRoleMapInvalidations = makeTeamChangeInvalidations(false)
 
 const teamListToArray = (list: ReadonlyArray<T.RPCGen.AnnotatedMemberInfo>) => {
   return [...Teams.teamListToMeta(list).values()]
@@ -62,7 +80,7 @@ const teamListToArray = (list: ReadonlyArray<T.RPCGen.AnnotatedMemberInfo>) => {
 // array when nothing changed) so context consumers like TeamsRoot can bail.
 const recycleTeamList = (
   old: ReadonlyArray<T.Teams.TeamMeta>,
-  next: Array<T.Teams.TeamMeta>
+  next: ReadonlyArray<T.Teams.TeamMeta>
 ): ReadonlyArray<T.Teams.TeamMeta> => {
   if (old.length === next.length && next.every((t, i) => isEqual(t, old[i]))) {
     return old
@@ -74,75 +92,14 @@ const recycleTeamList = (
   })
 }
 
-const invalidateCachedResource = <T, K>(cache: CachedResourceCache<T, K>, nextKey: K) => {
-  cache.invalidate(nextKey)
-}
-
 export const invalidateLoadedTeams = () => {
   const username = useCurrentUserState.getState().username
   const loggedIn = useConfigState.getState().loggedIn
   if (!loggedIn || !username) {
     return
   }
-  invalidateCachedResource(teamsListCache, username)
-  invalidateCachedResource(teamsRoleMapCache, username)
-  // one invalidation is one event: every listener reloads against the same
-  // epoch so they share an rpc instead of superseding each other
-  const epoch = nextReloadEpoch()
-  teamsListInvalidationListeners.forEach(listener => listener(epoch))
-  teamsRoleMapInvalidationListeners.forEach(listener => listener(epoch))
-}
-
-// reload whenever the service signals a team change or invalidateLoadedTeams fires
-const useReloadOnTeamChanges = (
-  enabled: boolean,
-  reload: (epoch?: number) => unknown,
-  invalidationListeners: Set<(epoch: number) => void>,
-  includeMetadataUpdate = false
-) => {
-  const reloadNow = React.useEffectEvent(() => {
-    if (enabled) {
-      void reload()
-    }
-  })
-  // service notifications arrive in bursts (one logical change can fire metadata,
-  // role map, and changedByID); coalesce so a burst costs at most a leading and
-  // a trailing reload instead of one per event. Lazy ref init is the sanctioned
-  // create-once exception: a restarted render just recreates the debouncer.
-  const debouncedReloadRef = React.useRef<DebouncedFunc<() => void> | null>(null)
-  if (debouncedReloadRef.current == null) {
-    debouncedReloadRef.current = debounce(() => reloadNow(), 2000, {leading: true, trailing: true})
-  }
-  React.useEffect(() => {
-    return () => {
-      debouncedReloadRef.current?.cancel()
-    }
-  }, [])
-  const onChange = () => {
-    debouncedReloadRef.current?.()
-  }
-  useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {
-    if (includeMetadataUpdate) {
-      onChange()
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamRoleMapChanged', onChange)
-  useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', onChange)
-  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', onChange)
-  useEngineActionListener('keybase.1.NotifyTeam.teamExit', onChange)
-
-  React.useEffect(() => {
-    if (!enabled) {
-      return
-    }
-    const listener = (epoch: number) => {
-      void reload(epoch)
-    }
-    invalidationListeners.add(listener)
-    return () => {
-      invalidationListeners.delete(listener)
-    }
-  }, [enabled, reload, invalidationListeners])
+  teamsListResource.invalidate(username)
+  teamsRoleMapResource.invalidate(username)
 }
 
 const useTeamsListRaw = (enabled = true): TeamsList => {
@@ -150,27 +107,27 @@ const useTeamsListRaw = (enabled = true): TeamsList => {
   const loggedIn = useConfigState(s => s.loggedIn)
   const loadTeamsRPC = C.useRPC(T.RPCGen.teamsTeamListUnverifiedRpcPromise)
   const {data: teams, reload} = useCachedResource({
-    cache: teamsListCache,
-    cacheKey: username,
-    enabled: enabled && !!username && loggedIn,
+    cacheKey: username || undefined,
+    enabled: enabled && loggedIn,
     initialData: emptyTeams,
+    invalidateOn: teamsListInvalidations,
     load: async () =>
       new Promise<ReadonlyArray<T.Teams.TeamMeta>>((resolve, reject) => {
         loadTeamsRPC(
           [{includeImplicitTeams: false, userAssertion: username}, C.waitingKeyTeamsLoaded],
-          result => resolve(recycleTeamList(teamsListCache.getData(), teamListToArray(result.teams ?? []))),
+          result => resolve(teamListToArray(result.teams ?? [])),
           error => reject(ensureError(error))
         )
       }),
+    namespace: teamsListResource,
     onError: error => {
       if ((error as {code?: number}).code !== T.RPCGen.StatusCode.scapinetworkerror) {
         logger.warn('Failed to load teams list', error)
       }
     },
+    recycle: recycleTeamList,
     staleMs: teamsListReloadStaleMs,
   })
-
-  useReloadOnTeamChanges(enabled, reload, teamsListInvalidationListeners, true)
 
   return React.useMemo(() => ({reload, teams}), [reload, teams])
 }
@@ -184,10 +141,10 @@ const useTeamsRoleMapRaw = (enabled = true): TeamsRoleMap => {
     loadIfStale,
     reload,
   } = useCachedResource({
-    cache: teamsRoleMapCache,
-    cacheKey: username,
-    enabled: enabled && !!username && loggedIn,
+    cacheKey: username || undefined,
+    enabled: enabled && loggedIn,
     initialData: emptyTeamRoleMap,
+    invalidateOn: teamsRoleMapInvalidations,
     load: async () =>
       new Promise<T.RPCGen.TeamRoleMapAndVersion>((resolve, reject) => {
         loadRoleMapRPC(
@@ -196,6 +153,7 @@ const useTeamsRoleMapRaw = (enabled = true): TeamsRoleMap => {
           error => reject(ensureError(error))
         )
       }),
+    namespace: teamsRoleMapResource,
     onError: error => {
       if ((error as {code?: number}).code !== T.RPCGen.StatusCode.scapinetworkerror) {
         logger.warn('Failed to load teams role map', error)
@@ -203,8 +161,6 @@ const useTeamsRoleMapRaw = (enabled = true): TeamsRoleMap => {
     },
     staleMs: teamsListReloadStaleMs,
   })
-
-  useReloadOnTeamChanges(enabled, reload, teamsRoleMapInvalidationListeners)
 
   return React.useMemo(() => ({loadIfStale, reload, roleMap}), [loadIfStale, reload, roleMap])
 }
@@ -229,7 +185,7 @@ export const useTeamsList = (): TeamsList => {
   const context = React.useContext(TeamsListContext)
   // read the cache every render (not a one-time snapshot) so provider-less
   // consumers still see fresh data; identity stays stable while data does
-  const teams = teamsListCache.getData()
+  const teams = peekTeams()
   const fallback = React.useMemo(() => ({reload: noopLoad, teams}), [teams])
   return context ?? fallback
 }
@@ -240,14 +196,14 @@ export const useTeamsList = (): TeamsList => {
 // throwing. The cache stays fresh because the provider is mounted elsewhere.
 export const useTeamsRoleMap = (): TeamsRoleMap => {
   const context = React.useContext(TeamsRoleMapContext)
-  const roleMap = teamsRoleMapCache.getData()
+  const roleMap = peekRoleMap()
   const fallback = React.useMemo(() => ({loadIfStale: noopLoad, reload: noopLoad, roleMap}), [roleMap])
   return context ?? fallback
 }
 
 export const useTeamsListMap = () => {
   const context = React.useContext(TeamsListContext)
-  const teams = context?.teams ?? teamsListCache.getData()
+  const teams = context?.teams ?? peekTeams()
   return React.useMemo(() => new Map(teams.map(team => [team.id, team] as const)), [teams])
 }
 
@@ -256,6 +212,6 @@ export const useTeamsListNameToIDMap = () => {
   // (popup-root is a sibling to the router, outside LoadedTeamsListProvider), so
   // fall back to the module cache instead of throwing when there's no provider.
   const context = React.useContext(TeamsListContext)
-  const teams = context?.teams ?? teamsListCache.getData()
+  const teams = context?.teams ?? peekTeams()
   return React.useMemo(() => new Map(teams.map(team => [team.teamname, team.id] as const)), [teams])
 }

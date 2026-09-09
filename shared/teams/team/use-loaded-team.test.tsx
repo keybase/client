@@ -10,6 +10,7 @@ import {LoadedTeamsListProvider} from '../use-teams-list'
 import {LoadedTeamChannelsProvider, useLoadedTeamChannels} from '../common/use-loaded-team-channels'
 import {LoadedTeamProvider, useLoadedTeam} from './use-loaded-team'
 import {flush} from '@/test/flush'
+import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 
 const teamID = 'tid1' as T.Teams.TeamID
@@ -138,4 +139,55 @@ test('signing out drops the shared team caches', async () => {
   )
   await flush()
   expect(annotatedCalls()).toBe(callsWhileSignedIn + 1)
+})
+
+// The engine listeners, the debounce and the epoch used to be hand-rolled here;
+// they are now one invalidateOn declaration, so a team notification still has to
+// put the team back on the wire - and exactly once for the whole screen, not
+// once per mounted consumer.
+test('a team change reloads the screen once', async () => {
+  useCurrentUserState.setState({username: 'testuser'})
+  useConfigState.setState({loggedIn: true})
+  render(
+    <LoadedTeamsListProvider>
+      <LoadedTeamProvider teamID={teamID}>
+        <WithChannels />
+      </LoadedTeamProvider>
+    </LoadedTeamsListProvider>
+  )
+  await flush()
+  expect(annotatedCalls()).toBe(1)
+
+  act(() => {
+    notifyEngineActionListeners({
+      payload: {params: {teamID}},
+      type: 'keybase.1.NotifyTeam.teamChangedByID',
+    } as never)
+  })
+  await flush()
+  expect(annotatedCalls()).toBe(2)
+})
+
+// A notification for some other team must not cost this one an rpc.
+test('a change to another team leaves this one alone', async () => {
+  useCurrentUserState.setState({username: 'testuser'})
+  useConfigState.setState({loggedIn: true})
+  render(
+    <LoadedTeamsListProvider>
+      <LoadedTeamProvider teamID={teamID}>
+        <WithChannels />
+      </LoadedTeamProvider>
+    </LoadedTeamsListProvider>
+  )
+  await flush()
+  expect(annotatedCalls()).toBe(1)
+
+  act(() => {
+    notifyEngineActionListeners({
+      payload: {params: {teamID: 'tid2'}},
+      type: 'keybase.1.NotifyTeam.teamChangedByID',
+    } as never)
+  })
+  await flush()
+  expect(annotatedCalls()).toBe(1)
 })
