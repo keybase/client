@@ -8,6 +8,7 @@ import {formatTimeForConversationList} from '@/util/timestamp'
 import {getRowIdentity} from './row-identity'
 import {OrangeLineContext} from '../orange-line-context'
 import {useConversationThreadSelector, useConversationThreadStore} from '../thread-context'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const missingMessage = Chat.makeMessageDeleted({})
 const noOrdinal = T.Chat.numberToOrdinal(0)
@@ -17,6 +18,10 @@ const noOrdinal = T.Chat.numberToOrdinal(0)
 const useSeparatorData = (trailingItem: T.Chat.Ordinal) => {
   const orangeOrdinal = React.useContext(OrangeLineContext)
   const store = useConversationThreadStore()
+  // Subscribed, not read off the store inside the selector: the answer depends on it, so this
+  // selector has to re-run when it changes or the separator would keep drawing a time label for a
+  // header the row has stopped painting.
+  const you = useCurrentUserState(s => s.username)
 
   return useConversationThreadSelector(
     C.useShallow(s => {
@@ -36,7 +41,7 @@ const useSeparatorData = (trailingItem: T.Chat.Ordinal) => {
       if (orangeLineAbove && !isMobile) {
         // Through the same derivation the row and the list use, so all three agree about whether
         // this row carries an author header.
-        const {showUsername} = getRowIdentity(store, s, ordinal)
+        const {showUsername} = getRowIdentity(store, s, ordinal, you)
         const tooSoon = !m.timestamp || Date.now() - m.timestamp < 1000 * 60 * 60 * 2
         const isJoinLeave = m.type === 'systemJoined'
         if (!showUsername && !tooSoon && !isJoinLeave) {

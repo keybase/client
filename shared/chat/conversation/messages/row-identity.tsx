@@ -10,7 +10,7 @@ import {
   useConversationThreadStore,
 } from '../thread-context'
 
-export type RowIdentity = {
+type RowIdentity = {
   // The recycling pool this row joins. A message that leads its author group renders an avatar +
   // username header (~40px taller) than a grouped follow-on of the same render type. Without
   // splitting the pool, recycleItems reuses one container across both heights, so a recycled view
@@ -87,20 +87,53 @@ const computeRowIdentity = (
   return {poolKey: reserveHeader ? `${base}:hdr` : base, reserveHeader, showUsername: ''}
 }
 
+// What one row would show as its author header under a given signed-in user, or '' for none. Only
+// used to ask which rows a change of that user can actually reach.
+const showUsernameFor = (snapshot: ConversationThreadState, ordinal: T.Chat.Ordinal, you: string) => {
+  const message = snapshot.messageMap.get(ordinal)
+  if (!message) {
+    return ''
+  }
+  return getMessageShowUsername({
+    message,
+    messageMap: snapshot.messageMap,
+    messageOrdinals: snapshot.messageOrdinals ?? noOrdinals,
+    ordinal,
+    you,
+  }).showUsername
+}
+
 // The one derivation. Both entry points below come through here, so the list and the row can only
 // ever be told the same thing about a row.
 export const getRowIdentity = (
   store: ConversationThreadStore,
   snapshot: ConversationThreadState,
-  ordinal: T.Chat.Ordinal
+  ordinal: T.Chat.Ordinal,
+  you: string
 ): RowIdentity => {
-  const you = useCurrentUserState.getState().username
   let cache = caches.get(store)
-  // The sticky record describes one window; a clear or a conversation change replaces that window,
-  // and a different signed-in user changes every answer in it.
-  if (cache?.generation !== snapshot.generation || cache.you !== you) {
+  // The sticky record describes one window: a clear or a conversation change replaces that window,
+  // and every ordinal in the record was numbered against the old one.
+  if (cache?.generation !== snapshot.generation) {
     cache = makeCache(snapshot.generation, you)
     caches.set(store, cache)
+  } else if (cache.you !== you) {
+    const was = cache.you
+    cache.you = you
+    // Every memoized answer was computed with the old name, so the memo goes.
+    cache.bySnapshot = new WeakMap()
+    // The sticky record does not. `you` reaches almost nothing - one row type suppresses its header
+    // when the invitee is you - and dropping the whole record would collapse every reserved header
+    // in the thread at once over a change that cannot reach any of them. Which rows it does reach is
+    // asked of the derivation rather than spelled out here, so a second `you`-dependent answer
+    // cannot quietly go stale in this loop. Unlike the load that this record exists to smooth over,
+    // a different signed-in user is a real change in what the row is, so the ones it does reach give
+    // up their reserved height rather than keeping a gap that nothing will ever fill again.
+    for (const ordinal of [...cache.shown.keys()]) {
+      if (showUsernameFor(snapshot, ordinal, was) !== showUsernameFor(snapshot, ordinal, you)) {
+        cache.shown.delete(ordinal)
+      }
+    }
   }
   let byOrdinal = cache.bySnapshot.get(snapshot)
   if (!byOrdinal) {
@@ -116,17 +149,26 @@ export const getRowIdentity = (
   return identity
 }
 
+// `you` is passed in rather than read off the store inside the derivation, and every entry point
+// below subscribes to it. Reading it imperatively would have left the row, the separator and the
+// recycling pool free to disagree again the moment it changed: the wrapper re-renders through its
+// own subscription while the separator's thread selector does not re-run and getItemType keeps the
+// same callback, which is exactly the three-way disagreement this module exists to make impossible.
+
 // For a row rendering itself.
 export const useRowIdentity = (ordinal: T.Chat.Ordinal): RowIdentity => {
   const store = useConversationThreadStore()
-  return useConversationThreadSelector(useShallow(s => getRowIdentity(store, s, ordinal)))
+  const you = useCurrentUserState(s => s.username)
+  return useConversationThreadSelector(useShallow(s => getRowIdentity(store, s, ordinal, you)))
 }
 
-// For getItemType, which the list calls outside React and which only wants the pool.
+// For getItemType, which the list calls outside React and which only wants the pool. `you` is in the
+// callback identity so the list re-reads its pools when it changes.
 export const useRowPoolKey = () => {
   const store = useConversationThreadStore()
+  const you = useCurrentUserState(s => s.username)
   return React.useCallback(
-    (ordinal: T.Chat.Ordinal) => getRowIdentity(store, store.getState(), ordinal).poolKey,
-    [store]
+    (ordinal: T.Chat.Ordinal) => getRowIdentity(store, store.getState(), ordinal, you).poolKey,
+    [store, you]
   )
 }
