@@ -91,7 +91,9 @@ describe('usePopup2', () => {
     expect(result.current.popupAnchor).toBe(popupAnchor)
   })
 
-  test('desktop passes the anchor ref to makePopup, mobile does not', () => {
+  // the platform rule lives in the popup modules, not here: the anchor is handed
+  // over on both platforms and the mobile presentations simply never measure it
+  test('passes the anchor ref to makePopup on every platform', () => {
     const parms: Array<Popup2Parms> = []
     const spyMake = (p: Popup2Parms) => {
       parms.push(p)
@@ -110,7 +112,7 @@ describe('usePopup2', () => {
     act(() => {
       mobile.result.current.showPopup()
     })
-    expect(parms[0]?.attachTo).toBeUndefined()
+    expect(parms[0]?.attachTo).toBe(mobile.result.current.popupAnchor)
   })
 
   test('a new makePopup identity re-renders the popup contents while showing', () => {

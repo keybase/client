@@ -2,7 +2,8 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import {Box2} from './box'
-import Popup from './popup'
+import {AnchoredPopup} from './popup/anchored'
+import {Portal} from './portal'
 import {Animated as NativeAnimated, Easing as NativeEasing, useColorScheme} from 'react-native'
 import {colors, darkColors} from '@/styles/colors'
 import './toast.css'
@@ -19,8 +20,9 @@ type Props = {
 }
 
 const Kb = {
+  AnchoredPopup,
   Box2,
-  Popup,
+  Portal,
 }
 
 const positionFallbacks = [] as const
@@ -120,7 +122,7 @@ const Toast = (props: Props) => {
 
   if (!isMobile) {
     return (
-      <Popup
+      <Kb.AnchoredPopup
         attachTo={props.attachTo}
         propagateOutsideClicks={true}
         position={props.position}
@@ -138,12 +140,12 @@ const Toast = (props: Props) => {
         >
           {props.children}
         </div>
-      </Popup>
+      </Kb.AnchoredPopup>
     )
   }
 
   return shouldRender ? (
-    <Kb.Popup>
+    <Kb.Portal hostName="popup-root">
       <Kb.Box2 direction="vertical" pointerEvents="none" centerChildren={true} style={Styles.globalStyles.fillAbsolute}>
         <NativeAnimated.View
           style={[
@@ -160,7 +162,7 @@ const Toast = (props: Props) => {
           {props.children}
         </NativeAnimated.View>
       </Kb.Box2>
-    </Kb.Popup>
+    </Kb.Portal>
   ) : null
 }
 

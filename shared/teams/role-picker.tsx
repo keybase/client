@@ -402,9 +402,8 @@ export function FloatingRolePicker<IncludeSetIndividually extends boolean = fals
       {children}
       <Kb.Box2 direction="vertical" ref={popupAnchor} />
       {open && (
-        <Kb.Popup
+        <Kb.AnchoredPopup
           attachTo={popupAnchor}
-          mobileAnchored={true}
           position={position || 'top center'}
           onHidden={onCancel ?? (() => {})}
           hideKeyboard={true}
@@ -428,7 +427,7 @@ export function FloatingRolePicker<IncludeSetIndividually extends boolean = fals
               {picker}
             </Kb.Box2>
           </Kb.SafeAreaView>
-        </Kb.Popup>
+        </Kb.AnchoredPopup>
       )}
     </>
   )
