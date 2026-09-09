@@ -1,7 +1,9 @@
 package attachments
 
 import (
+	"bytes"
 	"encoding/base64"
+	"image/png"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -12,6 +14,22 @@ func TestAudioVisualization(t *testing.T) {
 	desired := "iVBORw0KGgoAAAANSUhEUgAAAIAAAABACAIAAABdtOgoAAABZklEQVR4nOybwYqDQBAF17D//8vmkEvAKDM6Y3XbVYdlIaDt1LynAfO/ruufcLzoAaqjABgFwCQWsCwLPcIAEgt4BgqAebiA+DXVJCD+ZeTlgQmgtsu58z5QQC66BVhH31xfDRMAowAYBcAoAEYBMB0CYj7/xJyqnXIJiCasnIBoKAAGE9BeBdFKYyzDBLig57CCBtO7vRQAo4CJtKRBAT+48y6lABgFwE9l0wXkfei8Z/KTAnqH6/2WMOPiRx1z7GxW0HSOhU0RkLd27scEwCgARgEwsIAsd4t5c5oAmMECsuzoOJgAGAXAKABmV0C1Nqeu1wTA/BBQbe+zmAAYBcBMFGCVtWACYBQAowCYSwJs+eukTMA88fdvqZQCrhMnu0UFfIigobSACIQQEGEnUoQQUBkFwLy+X4bdVkFLOYz6ed7x2Y9f2t1+uvd/Ly3HbFm37Tp//poAGAXAKABGATDvAAAA///A4wRAawkUAgAAAABJRU5ErkJggg=="
 
 	v := newAudioVisualizer(amps)
-	dat, _ := v.visualize()
-	require.Equal(t, desired, base64.StdEncoding.EncodeToString(dat))
+	dat, width := v.visualize()
+	require.Equal(t, 128, width)
+
+	wantPNG, err := base64.StdEncoding.DecodeString(desired)
+	require.NoError(t, err)
+	want, err := png.Decode(bytes.NewReader(wantPNG))
+	require.NoError(t, err)
+	got, err := png.Decode(bytes.NewReader(dat))
+	require.NoError(t, err)
+	require.Equal(t, want.Bounds(), got.Bounds())
+	b := want.Bounds()
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			wr, wg, wb, wa := want.At(x, y).RGBA()
+			gr, gg, gb, ga := got.At(x, y).RGBA()
+			require.Equal(t, [4]uint32{wr, wg, wb, wa}, [4]uint32{gr, gg, gb, ga}, "pixel %d,%d", x, y)
+		}
+	}
 }
