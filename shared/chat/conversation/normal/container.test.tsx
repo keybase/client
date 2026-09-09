@@ -104,8 +104,8 @@ jest.mock('../team-hooks', () => {
   return {ChatTeamProvider: mockPassthroughProvider}
 })
 
-jest.mock('../center-context', () => {
-  return {ConversationCenterProvider: mockPassthroughProvider}
+jest.mock('../centering', () => {
+  return {ConversationCenteringProvider: mockPassthroughProvider}
 })
 
 jest.mock('../input-area/input-state', () => {
@@ -601,7 +601,7 @@ test('a pending highlight intent skips thread load but leaves mark-read allowed'
   })
 })
 
-// Peek, not consume: ConversationCenterProvider (mocked away here) is the real consumer, so the
+// Peek, not consume: ConversationCenteringProvider (mocked away here) is the real consumer, so the
 // intent has to survive NormalWrapper's read.
 test('reading the pending highlight leaves it in the store for the center provider', () => {
   mockLoaded = false
@@ -642,14 +642,14 @@ test('a pending highlight for another conversation does not skip thread load on 
 })
 
 // The peek must run in a useState initializer keyed on the conversation, not a useMemo React may
-// drop and recompute: a recompute after ConversationCenterProvider consumed reads an empty mailbox.
+// drop and recompute: a recompute after ConversationCenteringProvider consumed reads an empty mailbox.
 // Re-rendering with the intent already consumed must not change what the provider was mounted with.
 test('the mount-time highlight decision survives a re-render after the intent is consumed', () => {
   mockLoaded = false
   setInputIntent(convID, {messageID: T.Chat.numberToMessageID(123), type: 'highlight'})
 
   const {rerender} = render(<NormalWrapper />)
-  // ConversationCenterProvider is mocked out here, so drain the mailbox the way it would
+  // ConversationCenteringProvider is mocked out here, so drain the mailbox the way it would
   act(() => {
     consumeInputIntent(convID, ['highlight'])
   })

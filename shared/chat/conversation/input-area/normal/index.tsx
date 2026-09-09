@@ -14,7 +14,7 @@ import {infoPanelWidthTablet} from '../../info-panel/common'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import {ThreadRefsContext} from '@/chat/conversation/normal/context'
 import type {RefType as InputRef} from './input.shared'
-import {useConversationCenter, useConversationCenterActions} from '../../center-context'
+import {useConversationCenter, useConversationCenterActions} from '../../centering'
 import {
   useConversationThreadID,
   useConversationThreadMessage,

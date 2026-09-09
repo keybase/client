@@ -61,7 +61,7 @@ type Consumer = {types: ReadonlyArray<InputIntent['type']>}
 const consumers = new Map<T.Chat.ConversationIDKey, Array<Consumer>>()
 
 // Only ConversationInputProvider registers today: it is the sole consumer of the one type whose
-// delivery is gated on a mount. ConversationCenterProvider claims 'highlight', which is durable,
+// delivery is gated on a mount. ConversationCenteringProvider claims 'highlight', which is durable,
 // so registering it would add an entry nothing ever asks about.
 export const registerInputIntentConsumer = <K extends InputIntent['type']>(
   conversationIDKey: T.Chat.ConversationIDKey,
@@ -108,13 +108,13 @@ export const setInputIntent = (conversationIDKey: T.Chat.ConversationIDKey, inte
 }
 
 // Two providers can be mounted for the same conversation (the input provider, and
-// ConversationCenterProvider for 'highlight'), each with its own slice of InputIntent['type'].
+// ConversationCenteringProvider for 'highlight'), each with its own slice of InputIntent['type'].
 // `types` restricts a read to the caller's slice so one provider can never swallow an
 // intent meant for the other; an intent whose type isn't in `types` is left pending.
 //
 // peek reads without consuming. Only for a component that must know an intent is waiting
 // without being its consumer: NormalWrapper picks the initial thread-load options from a
-// pending 'highlight' that ConversationCenterProvider, mounted below it, actually consumes.
+// pending 'highlight' that ConversationCenteringProvider, mounted below it, actually consumes.
 export const peekInputIntent = <K extends InputIntent['type']>(
   conversationIDKey: T.Chat.ConversationIDKey,
   types: ReadonlyArray<K>

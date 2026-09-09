@@ -6,7 +6,7 @@ import * as Kb from '@/common-adapters'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useChatTeam} from './team-hooks'
 import {ZoomedImage} from './common'
-import {useConversationCenterActions} from './center-context'
+import {useConversationCenterActions} from './centering'
 import {useConversationThreadID, useThreadMeta} from './thread-context'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
@@ -22,7 +22,7 @@ const PinnedMessage = function PinnedMessage() {
       teamname: m.teamname,
     }))
   )
-  const {centerOnMessage} = useConversationCenterActions()
+  const {centerOn} = useConversationCenterActions()
   const you = useCurrentUserState(s => s.username)
   const {yourOperations} = useChatTeam(teamID, teamname)
   const unpinning = C.Waiting.useAnyWaiting(C.waitingKeyChatUnpin(conversationIDKey))
@@ -40,7 +40,7 @@ const PinnedMessage = function PinnedMessage() {
 
   const onClick = () => {
     if (messageID) {
-      centerOnMessage(messageID, 'flash')
+      void centerOn(messageID, 'flash')
     }
   }
   const onUnpin = () => {
