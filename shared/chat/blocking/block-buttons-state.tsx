@@ -4,6 +4,7 @@ import * as Z from '@/util/zustand'
 import {bodyToJSON} from '@/constants/rpc-utils'
 import {ignorePromise} from '@/constants/utils'
 import logger from '@/logger'
+import {EnginePriority, registerEngineHandlers} from '@/engine/action-listener'
 
 const blockButtonsGregorPrefix = 'blockButtons.'
 
@@ -122,3 +123,12 @@ export const useBlockButtonsInfo = (teamID: T.Teams.TeamID) => {
 
   return blockButtonsInfo
 }
+
+registerEngineHandlers(
+  {
+    'keybase.1.gregorUI.pushState': action => {
+      useBlockButtonsState.getState().dispatch.updateFromGregorItems(action.payload.params.state.items)
+    },
+  },
+  {id: 'chat/blocking/block-buttons-state', priority: EnginePriority.shared}
+)

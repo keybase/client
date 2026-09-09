@@ -1,7 +1,4 @@
-import type * as EngineGen from '@/constants/rpc'
 import * as T from '../types'
-import * as S from '@/constants/strings'
-import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import * as Tabs from '@/constants/tabs'
 declare global {
@@ -14,37 +11,36 @@ declare global {
   var __hmr_TBstores: Map<unknown, unknown> | undefined
 }
 import {useBlockButtonsState} from '@/chat/blocking/block-buttons-state'
-import {useNotifState} from '@/stores/notifications'
-import {notifyEngineActionListeners} from '@/engine/action-listener'
+
+// Engine handler manifest. Each of these modules registers its own handlers for
+// the engine actions it owns when it is first imported; importing them here is
+// what guarantees that happens before the engine starts delivering.
+import '@/chat/blocking/block-buttons-state'
+import '@/chat/inbox/badge-state'
+import '@/chat/inbox/engine'
+import '@/chat/inbox/metadata'
+import '@/common-adapters/avatar/store'
+import '@/router-v2/deep-link-emitter'
+import '@/stores/config'
+import '@/stores/followers-engine'
+import '@/stores/notifications'
+import '@/stores/settings-email'
+import '@/stores/settings-phone'
+import '@/stores/users'
 import {serviceStaticConfigToStaticConfig} from '@/constants/chat/static-config'
-import {emitDeepLink} from '@/router-v2/linking'
 import {ignorePromise, timeoutPromise} from '../utils'
 import {isPhone, serverConfigFileName} from '../platform'
-import {useAvatarState} from '@/common-adapters/avatar/store'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState, type BootstrapStep} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
-import {useFollowerState} from '@/stores/followers'
 import {useShellState} from '@/stores/shell'
-import {useSettingsEmailState} from '@/stores/settings-email'
-import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {useUsersState} from '@/stores/users'
-import {useWaitingState} from '@/stores/waiting'
 import {useRouterState} from '@/stores/router'
 import * as Util from '@/constants/router'
-import {handleConvoEngineIncoming} from '@/chat/inbox/engine'
-import {
-  onChatRouteChanged,
-  onChatInboxSynced,
-  onGetInboxConvsUnboxed,
-  onGetInboxUnverifiedConvs,
-  onInboxLayoutChanged,
-  onIncomingInboxUIItem,
-} from '@/chat/inbox/metadata'
-import {syncInboxBadgeState} from '@/chat/inbox/badge-state'
+import {onChatRouteChanged} from '@/chat/inbox/metadata'
 import {clearSignupEmail} from '@/people/signup-email'
 import {clearSignupDeviceNameDraft} from '@/signup/device-name-draft'
 import {clearNavBadges} from '@/teams/actions'
@@ -321,178 +317,4 @@ export const initSharedSubscriptions = (platformBootstrapSteps: Array<BootstrapS
   _sharedUnsubs.push(
     subscribeValue(useRouterState, s => s.navState, onNavStateChanged)
   )
-}
-
-// This is to defer loading stores we don't need immediately.
-export const _onEngineIncoming = (action: EngineGen.Actions) => {
-  const routeConvoEngineIncoming = (engineAction: EngineGen.Actions) => {
-    const result = handleConvoEngineIncoming(engineAction)
-    if (result.inboxUIItem) {
-      onIncomingInboxUIItem(result.inboxUIItem)
-    }
-    if (result.userReacjis) {
-      useDaemonState.getState().dispatch.updateUserReacjis(result.userReacjis)
-    }
-  }
-
-  switch (action.type) {
-    case 'keybase.1.NotifyBadges.badgeState':
-      {
-        const {badgeState} = action.payload.params
-        syncInboxBadgeState(badgeState)
-        useNotifState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
-    case 'keybase.1.gregorUI.pushState': {
-      const {state} = action.payload.params
-      const items = state.items || []
-      const goodState = items.reduce<Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>>(
-        (arr, {md, item}) => {
-          if (md && item) {
-            arr.push({item, md})
-          }
-          return arr
-        },
-        []
-      )
-      if (goodState.length !== items.length) {
-        logger.warn('Lost some messages in filtering out nonNull gregor items')
-      }
-      useBlockButtonsState.getState().dispatch.updateFromGregorItems(state.items)
-
-      useNotifState.getState().dispatch.onEngineIncomingImpl(action)
-      break
-    }
-    case 'chat.1.NotifyChat.ChatSetTeamRetention':
-      {
-        routeConvoEngineIncoming(action)
-      }
-      break
-    case 'keybase.1.NotifyEmailAddress.emailAddressVerified':
-      {
-        const emailAddress = action.payload.params.emailAddress
-        if (emailAddress) {
-          useSettingsEmailState.getState().dispatch.notifyEmailVerified(emailAddress)
-        }
-        clearSignupEmail()
-      }
-      break
-    case 'keybase.1.NotifyPhoneNumber.phoneNumbersChanged': {
-      const {list} = action.payload.params
-      useSettingsPhoneState.getState().dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
-      break
-    }
-    case 'keybase.1.NotifyEmailAddress.emailsChanged': {
-      const list = action.payload.params.list ?? []
-      useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(list)
-      break
-    }
-    case 'chat.1.chatUi.chatInboxFailed':
-    case 'chat.1.NotifyChat.ChatSetConvSettings':
-    case 'chat.1.NotifyChat.ChatAttachmentUploadStart':
-    case 'chat.1.NotifyChat.ChatPromptUnfurl':
-    case 'chat.1.NotifyChat.ChatPaymentInfo':
-    case 'chat.1.NotifyChat.ChatRequestInfo':
-    case 'chat.1.NotifyChat.ChatAttachmentDownloadProgress':
-    case 'chat.1.NotifyChat.ChatAttachmentDownloadComplete':
-    case 'chat.1.NotifyChat.ChatAttachmentUploadProgress':
-    case 'chat.1.chatUi.chatCommandMarkdown':
-    case 'chat.1.chatUi.chatGiphyToggleResultWindow':
-    case 'chat.1.chatUi.chatCommandStatus':
-    case 'chat.1.chatUi.chatGiphySearchResults':
-    case 'chat.1.NotifyChat.ChatParticipantsInfo':
-    case 'chat.1.NotifyChat.ChatConvUpdate':
-    case 'chat.1.chatUi.chatCoinFlipStatus':
-    case 'chat.1.NotifyChat.ChatThreadsStale':
-    case 'chat.1.NotifyChat.ChatSubteamRename':
-    case 'chat.1.NotifyChat.ChatTLFFinalize':
-    case 'chat.1.NotifyChat.NewChatActivity':
-    case 'chat.1.NotifyChat.ChatTypingUpdate':
-    case 'chat.1.NotifyChat.ChatSetConvRetention':
-      routeConvoEngineIncoming(action)
-      break
-    case 'chat.1.NotifyChat.ChatIdentifyUpdate': {
-      const {update} = action.payload.params
-      const usernames = update.CanonicalName.split(',')
-      const broken = (update.breaks.breaks || []).map(b => b.user.username)
-      const updates = usernames.map(name => ({info: {broken: broken.includes(name)}, name}))
-      useUsersState.getState().dispatch.updates(updates)
-      break
-    }
-    case 'chat.1.NotifyChat.ChatInboxStale':
-      ignorePromise(useInboxLayoutState.getState().dispatch.refresh('inboxStale'))
-      break
-    case 'chat.1.chatUi.chatInboxUnverified':
-      onGetInboxUnverifiedConvs(action)
-      break
-    case 'chat.1.NotifyChat.ChatInboxSyncStarted':
-      useWaitingState.getState().dispatch.increment(S.waitingKeyChatInboxSyncStarted)
-      break
-    case 'chat.1.NotifyChat.ChatInboxSynced':
-      useWaitingState.getState().dispatch.clear(S.waitingKeyChatInboxSyncStarted)
-      ignorePromise(
-        onChatInboxSynced(action, async reason => useInboxLayoutState.getState().dispatch.refresh(reason))
-      )
-      break
-    case 'chat.1.chatUi.chatInboxLayout': {
-      const {hasLoaded, dispatch} = useInboxLayoutState.getState()
-      dispatch.updateLayout(action.payload.params.layout)
-      const {layout} = useInboxLayoutState.getState()
-      if (layout) {
-        onInboxLayoutChanged(layout, hasLoaded)
-      }
-      break
-    }
-    case 'chat.1.chatUi.chatInboxConversation':
-      onGetInboxConvsUnboxed(action)
-      break
-    case 'keybase.1.NotifyService.handleKeybaseLink':
-      {
-        const {link, deferred} = action.payload.params
-        if (deferred && !link.startsWith('keybase://team-invite-link/')) {
-          return
-        }
-        // Route through the linking config; it falls back to handleAppLink
-        // for URL patterns not handled declaratively.
-        const fullUrl = link.startsWith('keybase://') ? link : `keybase://${link}`
-        emitDeepLink(fullUrl)
-      }
-      break
-    case 'keybase.1.NotifyTeam.avatarUpdated': {
-      const {name} = action.payload.params
-      useAvatarState.getState().dispatch.updated(name)
-      break
-    }
-    case 'keybase.1.NotifyTracking.trackingChanged': {
-      const {isTracking, username} = action.payload.params
-      useFollowerState.getState().dispatch.updateFollowing(username, isTracking)
-      break
-    }
-    case 'keybase.1.NotifyTracking.trackingInfo': {
-      const {uid, followers: _newFollowers, followees: _newFollowing} = action.payload.params
-      if (useCurrentUserState.getState().uid !== uid) {
-        break
-      }
-      const newFollowers = new Set(_newFollowers)
-      const newFollowing = new Set(_newFollowing)
-      const {following: oldFollowing, followers: oldFollowers, dispatch} = useFollowerState.getState()
-      const following = isEqual(newFollowing, oldFollowing) ? oldFollowing : newFollowing
-      const followers = isEqual(newFollowers, oldFollowers) ? oldFollowers : newFollowers
-      dispatch.replace(followers, following)
-      break
-    }
-    case 'keybase.1.NotifyTracking.notifyUserBlocked':
-      {
-        useUsersState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
-    case 'keybase.1.NotifyUsers.identifyUpdate':
-      {
-        useUsersState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
-    default:
-  }
-  useConfigState.getState().dispatch.onEngineIncoming(action)
-  notifyEngineActionListeners(action)
 }

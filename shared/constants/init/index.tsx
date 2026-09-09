@@ -14,7 +14,12 @@ import logger from '@/logger'
 import {getEngine} from '@/engine'
 import {afterKbfsDaemonRpcStatusChanged} from '@/fs/common/lifecycle'
 import {logState, setThreadInputCommandStatus} from '@/constants/router'
-import {initSharedSubscriptions, _onEngineIncoming, onEngineConnected as onSharedEngineConnected} from './shared'
+import {initSharedSubscriptions, onEngineConnected as onSharedEngineConnected} from './shared'
+import {
+  EnginePriority,
+  notifyEngineActionListeners,
+  registerEngineHandlers,
+} from '@/engine/action-listener'
 import {noConversationIDKey} from '../types/chat/common'
 import {dumpLogs, persistRoute} from '@/util/storeless-actions'
 
@@ -219,110 +224,107 @@ const loadStartupDetails = async () => {
 // ─── onEngineIncoming ─────────────────────────────────────────────────────────
 
 export const onEngineIncoming = (action: EngineGen.Actions) => {
-  _onEngineIncoming(action)
+  notifyEngineActionListeners(action)
+}
 
-  if (isMobile) {
-    switch (action.type) {
-      case 'chat.1.chatUi.triggerContactSync':
-        useSettingsContactsState.getState().dispatch.manageContactsCache()
-        break
-      case 'keybase.1.logUi.log': {
-        const {params} = action.payload
-        const {level, text} = params
-        logger.info('keybase.1.logUi.log:', params.text.data)
-        if (level >= T.RPCGen.LogLevel.error) {
-          NotifyPopup(text.data)
-        }
-        break
-      }
-      case 'chat.1.chatUi.chatWatchPosition':
-        ignorePromise(onChatWatchPosition(action))
-        break
-      case 'chat.1.chatUi.chatClearWatch':
-        ignorePromise(onChatClearWatch())
-        break
-      default:
-    }
-  } else {
-    const {isWindows, kbfsNotification} = _getDesktop()
-    switch (action.type) {
-      case 'keybase.1.logsend.prepareLogsend': {
-        const f = async () => {
-          const response = action.payload.response
-          try {
-            await dumpLogs()
-          } finally {
-            response.result()
-          }
-        }
-        ignorePromise(f())
-        break
-      }
-      case 'keybase.1.NotifyApp.exit':
-        console.log('App exit requested')
-        _getDesktop().KB2.functions.exitApp?.(0)
-        break
-      case 'keybase.1.NotifyFS.FSActivity':
-        kbfsNotification(action.payload.params.notification, (title, opts, onClick) => { NotifyPopup(title, opts, -1, undefined, onClick) })
-        break
-      case 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile': {
-        const f = async () => {
-          try {
-            await T.RPCGen.pgpPgpStorageDismissRpcPromise()
-          } catch (err) {
-            console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
-          }
-        }
-        ignorePromise(f())
-        break
-      }
-      case 'keybase.1.NotifyService.shutdown': {
-        const {code} = action.payload.params
-        if (isWindows && code !== (T.RPCGen.ExitCode.restart as number)) {
-          console.log('Quitting due to service shutdown with code: ', code)
-          // Quit just the app, not the service
-          _getDesktop().KB2.functions.quitApp?.()
-        }
-        break
-      }
-      case 'keybase.1.logUi.log': {
-        const {params} = action.payload
-        const {level, text} = params
-        logger.info('keybase.1.logUi.log:', params.text.data)
-        if (level >= T.RPCGen.LogLevel.error) {
-          NotifyPopup(text.data)
-        }
-        break
-      }
-      case 'keybase.1.NotifySession.clientOutOfDate': {
-        const {upgradeTo, upgradeURI, upgradeMsg} = action.payload.params
-        const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
-        NotifyPopup('Client out of date!', {body}, 60 * 60)
-        // This is from the API server. Consider notifications from server always critical.
-        useConfigState
-          .getState()
-          .dispatch.setOutOfDate({critical: true, message: upgradeMsg, outOfDate: true, updating: false})
-        break
-      }
-      case 'keybase.1.NotifySession.loggedOut': {
-        if (useConfigState.getState().userSwitching) {
-          logger.info('Resetting renderer engine for account switch logout')
-          getEngine().reset()
-        }
-        break
-      }
-      case 'keybase.1.NotifySession.loggedIn': {
-        if (useConfigState.getState().userSwitching) {
-          logger.info('Refreshing renderer session registration for account switch login')
-          getEngine().reset()
-          onSharedEngineConnected()
-        }
-        break
-      }
-      default:
-    }
+// Notifications the app shell owns rather than any one feature. These ran after
+// every other handler for the same action, so they register at that priority.
+const onLogUI = (action: EngineGen.ActionOf<'keybase.1.logUi.log'>) => {
+  const {params} = action.payload
+  const {level, text} = params
+  logger.info('keybase.1.logUi.log:', params.text.data)
+  if (level >= T.RPCGen.LogLevel.error) {
+    NotifyPopup(text.data)
   }
 }
+
+const nativeEngineHandlers = {
+  'chat.1.chatUi.chatClearWatch': () => {
+    ignorePromise(onChatClearWatch())
+  },
+  'chat.1.chatUi.chatWatchPosition': (
+    action: EngineGen.ActionOf<'chat.1.chatUi.chatWatchPosition'>
+  ) => {
+    ignorePromise(onChatWatchPosition(action))
+  },
+  'chat.1.chatUi.triggerContactSync': () => {
+    useSettingsContactsState.getState().dispatch.manageContactsCache()
+  },
+  'keybase.1.logUi.log': onLogUI,
+}
+
+const desktopEngineHandlers = {
+  'keybase.1.NotifyApp.exit': () => {
+    console.log('App exit requested')
+    _getDesktop().KB2.functions.exitApp?.(0)
+  },
+  'keybase.1.NotifyFS.FSActivity': (action: EngineGen.ActionOf<'keybase.1.NotifyFS.FSActivity'>) => {
+    _getDesktop().kbfsNotification(action.payload.params.notification, (title, opts, onClick) => {
+      NotifyPopup(title, opts, -1, undefined, onClick)
+    })
+  },
+  'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile': () => {
+    const f = async () => {
+      try {
+        await T.RPCGen.pgpPgpStorageDismissRpcPromise()
+      } catch (err) {
+        console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
+      }
+    }
+    ignorePromise(f())
+  },
+  'keybase.1.NotifyService.shutdown': (action: EngineGen.ActionOf<'keybase.1.NotifyService.shutdown'>) => {
+    const {code} = action.payload.params
+    if (_getDesktop().isWindows && code !== (T.RPCGen.ExitCode.restart as number)) {
+      console.log('Quitting due to service shutdown with code: ', code)
+      // Quit just the app, not the service
+      _getDesktop().KB2.functions.quitApp?.()
+    }
+  },
+  'keybase.1.NotifySession.clientOutOfDate': (
+    action: EngineGen.ActionOf<'keybase.1.NotifySession.clientOutOfDate'>
+  ) => {
+    const {upgradeTo, upgradeURI, upgradeMsg} = action.payload.params
+    const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
+    NotifyPopup('Client out of date!', {body}, 60 * 60)
+    // This is from the API server. Consider notifications from server always critical.
+    useConfigState
+      .getState()
+      .dispatch.setOutOfDate({critical: true, message: upgradeMsg, outOfDate: true, updating: false})
+  },
+  'keybase.1.NotifySession.loggedIn': () => {
+    if (useConfigState.getState().userSwitching) {
+      logger.info('Refreshing renderer session registration for account switch login')
+      getEngine().reset()
+      onSharedEngineConnected()
+    }
+  },
+  'keybase.1.NotifySession.loggedOut': () => {
+    if (useConfigState.getState().userSwitching) {
+      logger.info('Resetting renderer engine for account switch logout')
+      getEngine().reset()
+    }
+  },
+  'keybase.1.logUi.log': onLogUI,
+  'keybase.1.logsend.prepareLogsend': (
+    action: EngineGen.ActionOf<'keybase.1.logsend.prepareLogsend'>
+  ) => {
+    const f = async () => {
+      const response = action.payload.response
+      try {
+        await dumpLogs()
+      } finally {
+        response.result()
+      }
+    }
+    ignorePromise(f())
+  },
+}
+
+registerEngineHandlers(isMobile ? nativeEngineHandlers : desktopEngineHandlers, {
+  id: 'constants/init/platform',
+  priority: EnginePriority.platform,
+})
 
 // ─── initPlatformListener ─────────────────────────────────────────────────────
 

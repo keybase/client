@@ -1,4 +1,6 @@
 import * as Z from '@/util/zustand'
+import {EnginePriority, registerEngineHandlers} from '@/engine/action-listener'
+import {clearSignupEmail} from '@/people/signup-email'
 import type * as T from '@/constants/types'
 import logger from '@/logger'
 
@@ -66,3 +68,21 @@ export const useSettingsEmailState = Z.createZustand<State>('settings-email', se
     dispatch,
   }
 })
+
+registerEngineHandlers(
+  {
+    'keybase.1.NotifyEmailAddress.emailAddressVerified': action => {
+      const {emailAddress} = action.payload.params
+      if (emailAddress) {
+        useSettingsEmailState.getState().dispatch.notifyEmailVerified(emailAddress)
+      }
+      clearSignupEmail()
+    },
+    'keybase.1.NotifyEmailAddress.emailsChanged': action => {
+      useSettingsEmailState
+        .getState()
+        .dispatch.notifyEmailAddressEmailsChanged(action.payload.params.list ?? [])
+    },
+  },
+  {id: 'stores/settings-email', priority: EnginePriority.shared}
+)

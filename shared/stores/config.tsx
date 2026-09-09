@@ -1,8 +1,8 @@
 import * as T from '@/constants/types'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {waitingKeyConfigLogin, waitingKeyConfigLoginAsOther} from '@/constants/strings'
-import type * as EngineGen from '@/constants/rpc'
 import * as Z from '@/util/zustand'
+import {EnginePriority, registerEngineHandlers} from '@/engine/action-listener'
 import {noConversationIDKey} from '@/constants/types/chat/common'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
@@ -102,7 +102,6 @@ export type State = Store & {
     logoutToLoggedOutFlow: () => void
     logoutAndTryToLogInAs: (username: string) => void
     onEngineConnected: () => void
-    onEngineIncoming: (action: EngineGen.Actions) => void
     powerMonitorEvent: (event: string) => void
     resetState: (isDebug?: boolean) => void
     resetRevokedSelf: () => void
@@ -158,32 +157,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
     if (old === r) return
     set(s => {
       s.gregorReachable = r
-    })
-  }
-
-  const setGregorPushState = (state: T.RPCGen.Gregor1.State) => {
-    const items = state.items || []
-    const goodState = items.reduce<Array<{md: T.RPCGregor.Metadata; item: T.RPCGregor.Item}>>(
-      (arr, {md, item}) => {
-        if (md && item) {
-          arr.push({item, md})
-        }
-        return arr
-      },
-      []
-    )
-    if (goodState.length !== items.length) {
-      logger.warn('Lost some messages in filtering out nonNull gregor items')
-    }
-    set(s => {
-      s.gregorPushState = T.castDraft(goodState)
-      s.allowAnimatedEmojis = !goodState.find(i => i.item.category === 'emojianimations')
-    })
-  }
-
-  const updateRuntimeStats = (stats?: T.RPCGen.RuntimeStats) => {
-    set(s => {
-      s.runtimeStats = stats ? T.castDraft({...s.runtimeStats, ...stats}) : undefined
     })
   }
 
@@ -346,62 +319,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       ignorePromise(registerForGregorNotifications())
 
       onEngineConnectedInPlatform()
-    },
-    onEngineIncoming: action => {
-      switch (action.type) {
-        case 'keybase.1.NotifyAudit.rootAuditError':
-          get().dispatch.setGlobalError(
-            new Error(`Keybase is buggy, please report this: ${action.payload.params.message}`)
-          )
-          break
-        case 'keybase.1.NotifyAudit.boxAuditError':
-          get().dispatch.setGlobalError(
-            new Error(
-              `Keybase had a problem loading a team, please report this with \`keybase log send\`: ${action.payload.params.message}`
-            )
-          )
-          break
-        case 'keybase.1.NotifyBadges.badgeState':
-          get().dispatch.setBadgeState(action.payload.params.badgeState)
-          break
-        case 'keybase.1.gregorUI.pushState': {
-          const {state} = action.payload.params
-          setGregorPushState(state)
-          break
-        }
-        case 'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate': {
-          updateRuntimeStats(action.payload.params.stats ?? undefined)
-          break
-        }
-        case 'keybase.1.NotifyService.HTTPSrvInfoUpdate': {
-          get().dispatch.setHTTPSrvInfo(action.payload.params.info.address, action.payload.params.info.token)
-          break
-        }
-        case 'keybase.1.NotifySession.loggedIn': {
-          logger.info('keybase.1.NotifySession.loggedIn')
-          // only send this if we think we're not logged in
-          const {loggedIn, dispatch} = get()
-          if (!loggedIn) {
-            dispatch.setLoggedIn(true)
-          }
-          break
-        }
-        case 'keybase.1.NotifySession.loggedOut': {
-          logger.info('keybase.1.NotifySession.loggedOut')
-          const {loggedIn, dispatch} = get()
-          // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
-          if (loggedIn) {
-            dispatch.setLoggedIn(false)
-          }
-          break
-        }
-        case 'keybase.1.reachability.reachabilityChanged':
-          if (get().loggedIn) {
-            get().dispatch.setGregorReachable(action.payload.params.reachability.reachable)
-          }
-          break
-        default:
-      }
     },
     powerMonitorEvent: event => {
       const f = async () => {
@@ -608,3 +525,83 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
     dispatch,
   }
 })
+
+const setGregorPushState = (state: T.RPCGen.Gregor1.State) => {
+  const items = state.items || []
+  const goodState = items.reduce<Array<{md: T.RPCGregor.Metadata; item: T.RPCGregor.Item}>>(
+    (arr, {md, item}) => {
+      if (md && item) {
+        arr.push({item, md})
+      }
+      return arr
+    },
+    []
+  )
+  if (goodState.length !== items.length) {
+    logger.warn('Lost some messages in filtering out nonNull gregor items')
+  }
+  useConfigState.setState(s => {
+    s.gregorPushState = T.castDraft(goodState)
+    s.allowAnimatedEmojis = !goodState.find(i => i.item.category === 'emojianimations')
+  })
+}
+
+const updateRuntimeStats = (stats?: T.RPCGen.RuntimeStats) => {
+  useConfigState.setState(s => {
+    s.runtimeStats = stats ? T.castDraft({...s.runtimeStats, ...stats}) : undefined
+  })
+}
+
+// Module scope on purpose: registering inside the zustand creator would close
+// over the store instance createZustand throws away on a hot reload, leaving
+// these writing into an orphan while the app renders from the surviving one.
+registerEngineHandlers(
+  {
+    'keybase.1.NotifyAudit.boxAuditError': action => {
+      useConfigState.getState().dispatch.setGlobalError(
+        new Error(
+          `Keybase had a problem loading a team, please report this with \`keybase log send\`: ${action.payload.params.message}`
+        )
+      )
+    },
+    'keybase.1.NotifyAudit.rootAuditError': action => {
+      useConfigState.getState().dispatch.setGlobalError(
+        new Error(`Keybase is buggy, please report this: ${action.payload.params.message}`)
+      )
+    },
+    'keybase.1.NotifyBadges.badgeState': action => {
+      useConfigState.getState().dispatch.setBadgeState(action.payload.params.badgeState)
+    },
+    'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate': action => {
+      updateRuntimeStats(action.payload.params.stats ?? undefined)
+    },
+    'keybase.1.NotifyService.HTTPSrvInfoUpdate': action => {
+      useConfigState.getState().dispatch.setHTTPSrvInfo(action.payload.params.info.address, action.payload.params.info.token)
+    },
+    'keybase.1.NotifySession.loggedIn': () => {
+      logger.info('keybase.1.NotifySession.loggedIn')
+      // only send this if we think we're not logged in
+      const {loggedIn, dispatch} = useConfigState.getState()
+      if (!loggedIn) {
+        dispatch.setLoggedIn(true)
+      }
+    },
+    'keybase.1.NotifySession.loggedOut': () => {
+      logger.info('keybase.1.NotifySession.loggedOut')
+      const {loggedIn, dispatch} = useConfigState.getState()
+      // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
+      if (loggedIn) {
+        dispatch.setLoggedIn(false)
+      }
+    },
+    'keybase.1.gregorUI.pushState': action => {
+      setGregorPushState(action.payload.params.state)
+    },
+    'keybase.1.reachability.reachabilityChanged': action => {
+      if (useConfigState.getState().loggedIn) {
+        useConfigState.getState().dispatch.setGregorReachable(action.payload.params.reachability.reachable)
+      }
+    },
+  },
+  {id: 'stores/config', priority: EnginePriority.config}
+)

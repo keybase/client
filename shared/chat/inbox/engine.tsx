@@ -15,10 +15,13 @@ import {
   getInboxConversationMeta,
   metaReceivedError,
   metasReceived,
+  onIncomingInboxUIItem,
   syncInboxParticipantsFromParticipantMap,
   updateInboxConversationMeta,
   unboxRows,
 } from './metadata'
+import {useDaemonState} from '@/stores/daemon'
+import {EnginePriority, registerEngineHandlers} from '@/engine/action-listener'
 
 type ConvoEngineIncomingResult = {
   handled: boolean
@@ -283,3 +286,50 @@ export const handleConvoEngineIncoming = (action: EngineGen.Actions): ConvoEngin
       return {handled: false}
   }
 }
+
+const routeConvoEngineIncoming = (action: EngineGen.Actions) => {
+  const result = handleConvoEngineIncoming(action)
+  if (result.inboxUIItem) {
+    onIncomingInboxUIItem(result.inboxUIItem)
+  }
+  if (result.userReacjis) {
+    useDaemonState.getState().dispatch.updateUserReacjis(result.userReacjis)
+  }
+}
+
+registerEngineHandlers(
+  {
+    'chat.1.NotifyChat.ChatAttachmentDownloadComplete': routeConvoEngineIncoming,
+    'chat.1.NotifyChat.ChatAttachmentDownloadProgress': routeConvoEngineIncoming,
+    'chat.1.NotifyChat.ChatAttachmentUploadProgress': routeConvoEngineIncoming,
+    'chat.1.NotifyChat.ChatAttachmentUploadStart': routeConvoEngineIncoming,
+    'chat.1.NotifyChat.ChatConvUpdate': routeConvoEngineIncoming,
+    'chat.1.NotifyChat.ChatIdentifyUpdate': action => {
+      const {update} = action.payload.params
+      const usernames = update.CanonicalName.split(',')
+      const broken = (update.breaks.breaks || []).map(b => b.user.username)
+      useUsersState
+        .getState()
+        .dispatch.updates(usernames.map(name => ({info: {broken: broken.includes(name)}, name})))
+    },
+    'chat.1.NotifyChat.ChatParticipantsInfo': routeConvoEngineIncoming,
+    'chat.1.NotifyChat.ChatPaymentInfo': routeConvoEngineIncoming,
+    'chat.1.NotifyChat.ChatPromptUnfurl': routeConvoEngineIncoming,
+    'chat.1.NotifyChat.ChatRequestInfo': routeConvoEngineIncoming,
+    'chat.1.NotifyChat.ChatSetConvRetention': routeConvoEngineIncoming,
+    'chat.1.NotifyChat.ChatSetConvSettings': routeConvoEngineIncoming,
+    'chat.1.NotifyChat.ChatSetTeamRetention': routeConvoEngineIncoming,
+    'chat.1.NotifyChat.ChatSubteamRename': routeConvoEngineIncoming,
+    'chat.1.NotifyChat.ChatTLFFinalize': routeConvoEngineIncoming,
+    'chat.1.NotifyChat.ChatThreadsStale': routeConvoEngineIncoming,
+    'chat.1.NotifyChat.ChatTypingUpdate': routeConvoEngineIncoming,
+    'chat.1.NotifyChat.NewChatActivity': routeConvoEngineIncoming,
+    'chat.1.chatUi.chatCoinFlipStatus': routeConvoEngineIncoming,
+    'chat.1.chatUi.chatCommandMarkdown': routeConvoEngineIncoming,
+    'chat.1.chatUi.chatCommandStatus': routeConvoEngineIncoming,
+    'chat.1.chatUi.chatGiphySearchResults': routeConvoEngineIncoming,
+    'chat.1.chatUi.chatGiphyToggleResultWindow': routeConvoEngineIncoming,
+    'chat.1.chatUi.chatInboxFailed': routeConvoEngineIncoming,
+  },
+  {id: 'chat/inbox/engine', priority: EnginePriority.shared}
+)

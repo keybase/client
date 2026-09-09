@@ -1,5 +1,6 @@
 import type * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
+import {EnginePriority, registerEngineHandlers} from '@/engine/action-listener'
 
 // This store has no dependencies on other stores and is safe to import directly from other stores.
 type Store = T.Immutable<{
@@ -38,3 +39,12 @@ export const useAvatarState = Z.createZustand<State>(set => {
     dispatch,
   }
 })
+
+registerEngineHandlers(
+  {
+    'keybase.1.NotifyTeam.avatarUpdated': action => {
+      useAvatarState.getState().dispatch.updated(action.payload.params.name)
+    },
+  },
+  {id: 'common-adapters/avatar/store', priority: EnginePriority.shared}
+)

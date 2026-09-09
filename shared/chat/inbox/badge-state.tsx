@@ -1,5 +1,6 @@
 import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
+import {EnginePriority, registerEngineHandlers} from '@/engine/action-listener'
 
 export type BadgeCounts = {badgeCount: number; unreadCount: number}
 
@@ -35,3 +36,15 @@ export const syncInboxBadgeState = (badgeState?: T.RPCGen.BadgeState) => {
 
 export const getInboxBadge = (id: T.Chat.ConversationIDKey): BadgeCounts =>
   useInboxBadgeState.getState().counts.get(id) ?? emptyCounts
+
+// Runs ahead of every other badgeState handler: the tab badge counts useNotifState
+// derives, and anything rendering off them, must never read a conversation map
+// from the previous badgeState.
+registerEngineHandlers(
+  {
+    'keybase.1.NotifyBadges.badgeState': action => {
+      syncInboxBadgeState(action.payload.params.badgeState)
+    },
+  },
+  {id: 'chat/inbox/badge-state', priority: EnginePriority.sharedFirst}
+)

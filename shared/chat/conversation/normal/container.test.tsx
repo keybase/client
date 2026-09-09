@@ -89,6 +89,7 @@ jest.mock('@/constants', () => {
 })
 
 jest.mock('@/engine/action-listener', () => ({
+  ...jest.requireActual<object>('@/engine/action-listener'),
   useEngineActionListener: jest.fn(),
 }))
 
