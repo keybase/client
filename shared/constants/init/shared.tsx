@@ -217,9 +217,7 @@ const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus']) => 
   }
 }
 
-const onNavStateChanged =(nextNavState: RouterState['navState'], previousNavState: RouterState['navState']) => {
-  const next = nextNavState as Util.NavState
-  const prev = previousNavState as Util.NavState
+const onNavStateChanged = (next: RouterState['navState'], prev: RouterState['navState']) => {
   if (prev === next) return
 
   // Clear critical update when we nav away from tab

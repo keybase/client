@@ -15,8 +15,8 @@ test('an unknown path produces no navigation state', () => {
   expect(getStateFromPath('/')).toBeUndefined()
 })
 
-// spelled out here rather than reusing makeChatConversationState, so a bug shared
-// by the builder and the path parser cannot pass unnoticed
+// spelled out here rather than reusing makeChatConversationState or NavTree's builders,
+// so a bug shared by the builder and the path parser cannot pass unnoticed
 const chatConversationState = (conversationIDKey: string) => ({
   index: 0,
   routes: [

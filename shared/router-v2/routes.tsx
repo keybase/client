@@ -12,7 +12,6 @@ import {newRoutes as teamsNewRoutes, newModalRoutes as teamsNewModalRoutes} from
 import {newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
 import {newModalRoutes as incomingShareNewModalRoutes} from '../incoming-share/routes'
 import type * as React from 'react'
-import * as Tabs from '@/constants/tabs'
 import {defineRouteMap} from '@/constants/types/router'
 import type {GetOptions, GetOptionsParams, GetOptionsRet, RouteDef} from '@/constants/types/router'
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
@@ -57,19 +56,7 @@ if (__DEV__) {
   )
 }
 
-export const tabRoots = {
-  [Tabs.peopleTab]: 'peopleRoot',
-  [Tabs.chatTab]: 'chatRoot',
-  [Tabs.cryptoTab]: 'cryptoRoot',
-  [Tabs.fsTab]: 'fsRoot',
-  [Tabs.teamsTab]: 'teamsRoot',
-  [Tabs.gitTab]: 'gitRoot',
-  [Tabs.devicesTab]: 'devicesRoot',
-  [Tabs.settingsTab]: 'settingsRoot',
-
-  [Tabs.loginTab]: '',
-  [Tabs.searchTab]: '',
-} as const
+export {tabRoots} from '@/constants/nav-tree'
 
 export const modalRoutes = defineRouteMap({
   ...chatNewModalRoutes,

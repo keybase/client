@@ -1,11 +1,12 @@
 import type * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
-import type * as Util from '@/constants/router'
+import {castDraft} from 'immer'
+import type {NavState} from '@/constants/nav-tree'
 
-export {type NavState} from '@/constants/router'
+export {type NavState} from '@/constants/nav-tree'
 
 type Store = T.Immutable<{
-  navState?: unknown
+  navState?: NavState
 }>
 
 const initialStore: Store = {
@@ -15,7 +16,7 @@ const initialStore: Store = {
 export type State = Store & {
   dispatch: {
     resetState: () => void
-    setNavState: (ns: Util.NavState) => void
+    setNavState: (ns: T.Immutable<NavState>) => void
   }
 }
 
@@ -32,10 +33,10 @@ export const useRouterState = Z.createZustand<State>('router', (set, get) => {
       if (DEBUG_NAV) {
         console.log('[Nav] setNavState')
       }
-      const prev = get().navState as Util.NavState
+      const prev = get().navState
       if (prev === next) return
       set(s => {
-        s.navState = next
+        s.navState = castDraft(next)
       })
     },
   }

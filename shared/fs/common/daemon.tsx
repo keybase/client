@@ -75,7 +75,7 @@ export const FsDaemonProvider = ({children}: {children: React.ReactNode}) => {
   // Re-kick the watcher when the daemon handshake (re)completes: the watch loop exits
   // if the service dies, and a new handshake means RPCs work again.
   const handshakeDone = useDaemonState(s => s.handshakeState === 'done')
-  const navState = useRouterState(s => s.navState as RouterConstants.NavState | undefined)
+  const navState = useRouterState(s => s.navState)
   const [kbfsDaemonStatus, setKbfsDaemonStatus] = React.useState<T.FS.KbfsDaemonStatus>(
     Constants.unknownKbfsDaemonStatus
   )
