@@ -5,6 +5,7 @@ import type * as React from 'react'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {ChatTeamProvider, useChatTeamMemberRole, useChatTeamMembers} from './team-hooks'
+import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 
 // The provider reads the conversation's team off the thread meta.
 let mockThreadMeta = {teamID: '' as T.Teams.TeamID, teamType: 'big' as T.Chat.TeamType, teamname: ''}
@@ -30,18 +31,28 @@ const flushPromises = async () => {
   }
 }
 
-const mockGetMembers = (members: ReadonlyArray<T.RPCGen.TeamMemberDetails>) =>
-  jest.spyOn(T.RPCGen, 'teamsTeamGetMembersByIDRpcPromise').mockResolvedValue(members)
+let engine: FakeEngine
+
+const installMembers = (
+  members: ReadonlyArray<T.RPCGen.TeamMemberDetails>,
+  extra: Parameters<typeof installFakeEngine>[0] = {}
+) => {
+  engine = installFakeEngine({'keybase.1.teams.teamGetMembersByID': () => members, ...extra})
+  return engine
+}
+
+const getMembersCalls = () => engine.callCount('keybase.1.teams.teamGetMembersByID')
 
 afterEach(() => {
   cleanup()
+  engine.uninstall()
   jest.restoreAllMocks()
   resetAllStores()
 })
 
 test('useChatTeamMembers serves cached members on remount so roles render without a refetch', async () => {
   const teamID = makeTeamID(1)
-  const rpc = mockGetMembers([memberDetails('testuser', T.RPCGen.TeamRole.owner)])
+  installMembers([memberDetails('testuser', T.RPCGen.TeamRole.owner)])
 
   const first = renderHook(() => useChatTeamMembers(teamID))
   expect(first.result.current.loading).toBe(true)
@@ -49,7 +60,7 @@ test('useChatTeamMembers serves cached members on remount so roles render withou
     await flushPromises()
   })
   expect(first.result.current.members.get('testuser')?.type).toBe('owner')
-  expect(rpc).toHaveBeenCalledTimes(1)
+  expect(getMembersCalls()).toBe(1)
   first.unmount()
 
   // Reopening the same team must have the roles on the very first render.
@@ -59,19 +70,19 @@ test('useChatTeamMembers serves cached members on remount so roles render withou
   await act(async () => {
     await flushPromises()
   })
-  expect(rpc).toHaveBeenCalledTimes(1)
+  expect(getMembersCalls()).toBe(1)
 })
 
 test('useChatTeamMemberRole resolves from cache on the first render under a remounted provider', async () => {
   const teamID = makeTeamID(2)
   mockThreadMeta = {teamID, teamType: 'big', teamname: 'keybase'}
-  const annotatedTeamRPC = jest
-    .spyOn(T.RPCGen, 'teamsGetAnnotatedTeamRpcPromise')
-    .mockResolvedValue({} as T.RPCGen.AnnotatedTeam)
-  const rpc = mockGetMembers([
-    memberDetails('testuser', T.RPCGen.TeamRole.admin),
-    memberDetails('testuser-mac', T.RPCGen.TeamRole.reader),
-  ])
+  installMembers(
+    [
+      memberDetails('testuser', T.RPCGen.TeamRole.admin),
+      memberDetails('testuser-mac', T.RPCGen.TeamRole.reader),
+    ],
+    {'keybase.1.teams.getAnnotatedTeam': () => ({}) as T.RPCGen.AnnotatedTeam}
+  )
 
   const wrapper = ({children}: {children: React.ReactNode}) => (
     <ChatTeamProvider>{children}</ChatTeamProvider>
@@ -88,14 +99,14 @@ test('useChatTeamMemberRole resolves from cache on the first render under a remo
   await act(async () => {
     await flushPromises()
   })
-  expect(rpc).toHaveBeenCalledTimes(1)
-  expect(annotatedTeamRPC).not.toHaveBeenCalled()
+  expect(getMembersCalls()).toBe(1)
+  expect(engine.callCount('keybase.1.teams.getAnnotatedTeam')).toBe(0)
 })
 
 test('a disabled shadow useChatTeamMembers does not clobber the provider cache', async () => {
   const teamID = makeTeamID(3)
   mockThreadMeta = {teamID, teamType: 'big', teamname: 'keybase'}
-  mockGetMembers([memberDetails('testuser', T.RPCGen.TeamRole.owner)])
+  installMembers([memberDetails('testuser', T.RPCGen.TeamRole.owner)])
 
   const wrapper = ({children}: {children: React.ReactNode}) => (
     <ChatTeamProvider>{children}</ChatTeamProvider>
