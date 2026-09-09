@@ -5,13 +5,40 @@ import type {WritableDraft} from '@/util/zustand'
 
 type MessageLookup = Pick<T.Chat.Message, 'id' | 'ordinal'>
 
+// How a thread load reconciles the window against what the service returned.
+//
+// A load answers in passes - a cached one off the local database, then a full one the service has
+// filtered down to what changed - and only the passes together are a whole window. So each pass
+// adds what it delivered to `carried`, and the last one prunes: rows inside the span of `carried`
+// that no pass delivered are stale, and go.
+//
+// The set is filled in here rather than by the caller, and that is the point of it: it holds the
+// ordinals the messages actually occupy, after the outbox and message-ID remaps below. A message
+// you sent keeps the fractional ordinal it had in the outbox, so the ordinal it arrives under is
+// not the one it lives at, and a set built from the response would leave that row unprotected.
+export type ThreadLoadReconcile = {
+  carried: Set<T.Chat.Ordinal>
+  prune: boolean
+}
+
 type WritableConversationThreadMessageState = {
   messageIDToOrdinal: Map<T.Chat.MessageID, T.Chat.Ordinal>
   messageMap: Map<T.Chat.Ordinal, WritableDraft<T.Chat.Message>>
   messageOrdinals?: ReadonlyArray<T.Chat.Ordinal>
+  // Set by messagesClear, cleared once the reload that refills the window settles. While it is set
+  // there is no window to place an arriving message against. See the drop rules in
+  // addMessagesToThreadState.
+  windowCleared?: boolean
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType>
+  // Set by a thread load, cleared by messagesClear: whether either flag below means anything yet.
+  loaded: boolean
+  // False once the window reaches the oldest message, which is what makes a push older than the
+  // floor a prepend rather than a stranded row.
+  moreToLoadBack: boolean
+  // False once the window reaches the newest message, which is what makes a push newer than the
+  // ceiling an append rather than a stranded row.
+  moreToLoadForward: boolean
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal>
-  validatedOrdinalRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
 }
 
 type ThreadMessagesDeleteParams = {
@@ -152,9 +179,15 @@ const mergeMessage = (
 export const addMessagesToThreadState = (
   state: WritableConversationThreadMessageState,
   messages: ReadonlyArray<T.Chat.Message>,
-  opt: {validatedRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}}
+  opt: {
+    dropNewBelowWindow?: boolean
+    reconcile?: ThreadLoadReconcile
+  }
 ) => {
-  const {validatedRange} = opt
+  const {dropNewBelowWindow, reconcile} = opt
+  // The bounds of the loaded window before this batch is merged in.
+  const ords = state.messageOrdinals
+  const windowFloor = ords?.[0]
   const incomingOrdinals = new Set<T.Chat.Ordinal>()
   for (const m of messages) {
     if (m.conversationMessage !== false && m.type !== 'deleted') {
@@ -179,10 +212,67 @@ export const addMessagesToThreadState = (
     return mapOrdinal
   }
 
+  const existing = new Set(state.messageOrdinals ?? [])
+
+  // A notification (the post-load ResolveSkippedUnboxeds push, say) can carry a message from far
+  // outside the loaded window - the channel-name message at ID 1 is the usual one. Adding it
+  // strands a row against a hole, and the list then pages against that row instead of the real
+  // edge of the thread, so scrolling that way stops working. Only a thread load may extend the
+  // window; a push may land inside it, or extend an edge that is already the end of the thread.
+  //
+  // Both edges matter. A centered jump - a search result - leaves a contiguous window with more to
+  // load above and below it, and the reader can page either way from there, so a push newer than
+  // the ceiling strands exactly as one older than the floor does. Each edge is only a bound while
+  // there is still more to load past it: once the window reaches the end of the thread on that
+  // side there is no hole to open, and the message must simply join the window. A fully paged-back
+  // thread is the case that matters below - the ResolveSkippedUnboxeds push carrying the real
+  // message 1 has nowhere else to come from, and paging cannot fetch it again.
+  //
+  // Decided before anything is written for the message, so it is skipped whole. Dropping only the
+  // ordinal later would leave messageMap and messageIDToOrdinal holding a message the thread does
+  // not render, and getOrdinalForMessageID would then hand out an ordinal with no row. Nothing is
+  // lost either way: paging to it loads it in the ordinary way.
+  const windowCeiling = ords?.[ords.length - 1]
+  const isOutsideWindow = (o: T.Chat.Ordinal) => {
+    if (!dropNewBelowWindow || existing.has(o)) {
+      return false
+    }
+    // A clear is always followed by a reload that replaces the window wholesale, so until that
+    // lands there is nothing to place an arriving message against: a centered jump reloads an
+    // arbitrary region, and jump-to-recent the newest page, which is disjoint from wherever the
+    // reader was. A message landing in the gap that the reload does not carry waits for the next
+    // load or push; a stranded ordinal, by contrast, breaks paging for the life of the thread.
+    if (state.windowCleared) {
+      return true
+    }
+    // moreToLoadBack starts false and only a thread load ever sets it, so until one has landed a
+    // false reads as "the window reaches the oldest message" when it only means "nothing has said
+    // yet" - and pushes do reach the window before the first load answers. An older push admitted
+    // on that reading lands under a floor the load is about to fill, stranded over the hole.
+    //
+    // Only this edge. The same reasoning would wedge the other one: after a clear whose reload
+    // never applies there is no load coming at all, and bounding the ceiling on a flag that can no
+    // longer change would drop every incoming message for the life of the thread. Below is the
+    // edge with a backstop - the load that fills the hole is what makes the drop temporary, and
+    // paging back reaches those messages again in the ordinary way.
+    const below =
+      windowFloor !== undefined && o < windowFloor && (!state.loaded || state.moreToLoadBack)
+    const above = windowCeiling !== undefined && o > windowCeiling && state.moreToLoadForward
+    return below || above
+  }
+
   const deletedOrdinals = new Set<T.Chat.Ordinal>()
   for (const _m of messages) {
     const regularMessage = _m.conversationMessage !== false
     const mapOrdinal = getMapOrdinal(_m, regularMessage)
+    // Judged on mapOrdinal, the ordinal the message will actually occupy: an outbox or messageID
+    // match can move it out of the window, or onto a row already inside it. Deletions and
+    // non-conversation messages are not rows, so the window does not bound them.
+    if (regularMessage && _m.type !== 'deleted' && isOutsideWindow(mapOrdinal)) {
+      incomingOrdinals.delete(_m.ordinal)
+      incomingOrdinals.delete(mapOrdinal)
+      continue
+    }
     const getIncomingMessage = (): WritableDraft<T.Chat.Message> =>
       messageForThreadState(_m, mapOrdinal)
 
@@ -195,6 +285,16 @@ export const addMessagesToThreadState = (
       if (_m.type === 'placeholder') {
         const old = state.messageMap.get(mapOrdinal)
         if (old && old.type !== 'placeholder') {
+          // The real message already sits under mapOrdinal, which is not always _m.ordinal: a sent
+          // message keeps the fractional ordinal it had in the outbox. Bailing out before the remap
+          // below would strand _m.ordinal in the list with nothing stored under it.
+          //
+          // Do the remap anyway rather than just forgetting _m.ordinal. `incomingOrdinals` is what
+          // the prune treats as "still present", so an ordinal missing from it inside the span
+          // gets the real message deleted - including when mapOrdinal and _m.ordinal are the same,
+          // where the delete below would otherwise be a plain loss.
+          incomingOrdinals.delete(_m.ordinal)
+          incomingOrdinals.add(mapOrdinal)
           continue
         }
       }
@@ -240,7 +340,6 @@ export const addMessagesToThreadState = (
     }
   }
 
-  const existing = new Set(state.messageOrdinals ?? [])
   let changed = false
   for (const o of incomingOrdinals) {
     if (!existing.has(o)) {
@@ -254,24 +353,33 @@ export const addMessagesToThreadState = (
       changed = true
     }
   }
-  if (validatedRange) {
-    // The service response is authoritative within this range; prune stale local ordinals.
-    for (const o of existing) {
-      if (o >= validatedRange.from && o <= validatedRange.to && !incomingOrdinals.has(o)) {
-        clearMessageIDIndexForOrdinal(state, o)
-        existing.delete(o)
-        state.messageMap.delete(o)
-        state.messageTypeMap.delete(o)
-        changed = true
+  if (reconcile) {
+    for (const o of incomingOrdinals) {
+      reconcile.carried.add(o)
+    }
+    if (reconcile.prune) {
+      // The load is authoritative over the span it covered, so a row inside it that no pass of the
+      // load delivered is stale. Outside the span nothing is known and nothing is touched.
+      let from = Number.MAX_SAFE_INTEGER as T.Chat.Ordinal
+      let to = Number.MIN_SAFE_INTEGER as T.Chat.Ordinal
+      for (const o of reconcile.carried) {
+        from = Math.min(from, o) as T.Chat.Ordinal
+        to = Math.max(to, o) as T.Chat.Ordinal
+      }
+      for (const o of existing) {
+        // A row with no server ID is one of ours, still in the outbox: the service cannot have
+        // failed to return what it has never been told about. It sits on a fractional ordinal just
+        // above the message it was composed after, so the span reaches it as soon as anything
+        // newer arrives - and deleting it takes the row out from under a send in flight.
+        if (o >= from && o <= to && !reconcile.carried.has(o) && state.messageMap.get(o)?.id) {
+          clearMessageIDIndexForOrdinal(state, o)
+          existing.delete(o)
+          state.messageMap.delete(o)
+          state.messageTypeMap.delete(o)
+          changed = true
+        }
       }
     }
-    const prev = state.validatedOrdinalRange
-    state.validatedOrdinalRange = prev
-      ? {
-          from: Math.min(prev.from, validatedRange.from) as T.Chat.Ordinal,
-          to: Math.max(prev.to, validatedRange.to) as T.Chat.Ordinal,
-        }
-      : validatedRange
   }
   if (changed || !state.messageOrdinals) {
     state.messageOrdinals = [...existing].sort((a, b) => a - b)

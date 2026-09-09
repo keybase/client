@@ -19,7 +19,7 @@ export async function connectToElectron(): Promise<{browser: Browser; page: Page
   // KB_E2E_TEST=1 suppresses the menubar widget and devtools windows, so
   // pages()[0] is always the main app. Keep the URL check as a safety net.
   const allPages = browser.contexts().flatMap(ctx => ctx.pages())
-  const mainPage = allPages.find(p => p.url().includes('main.dev.html')) ?? allPages[0]
+  const mainPage = allPages.find(p => p.url().includes('main.html')) ?? allPages[0]
 
   if (!mainPage) {
     throw new Error('Could not find main app page. Is the app running with KB_ENABLE_REMOTE_DEBUG=1 KB_E2E_TEST=1?')

@@ -290,6 +290,45 @@ test('initial load uses the read message ID from mount even if meta changes befo
   expectOrangeLine(T.Chat.numberToOrdinal(15))
 })
 
+test('the read position is latched when localization lands, not when the load finishes', async () => {
+  // The DB-nuke order: the conversation is unlocalized and the thread is still loading, so the
+  // loaded gate skips the fetch when localization lands. The load then finishing flips `loaded`
+  // and issues mark-read in the same breath, so by the next render the meta can already carry the
+  // advanced read position. Asking the service about that one puts the unreadline at the newest
+  // message and the thread shows no divider at all; the position from the moment localization
+  // landed is the only one that means anything here.
+  const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
+    offline: false,
+    unreadlineID: T.Chat.numberToMessageID(6),
+  })
+  mockLoaded = false
+  mockMeta = makeMeta(convID, -1)
+
+  render(<NormalWrapper />)
+  await flushOrangeLine()
+  expect(unreadlineRpc).not.toHaveBeenCalled()
+
+  // Localization lands while the thread load is still in flight.
+  mockMeta = makeMeta(convID, 5, 9)
+  act(() => {
+    useShellState.setState({mobileAppState: 'background'})
+  })
+  await flushOrangeLine()
+  expect(unreadlineRpc).not.toHaveBeenCalled()
+
+  // The load finishes, and the mark-read it issues has already moved the read position.
+  mockMeta = makeMeta(convID, 9, 9)
+  act(() => {
+    mockLoaded = true
+    useShellState.setState({mobileAppState: 'active'})
+  })
+  await flushOrangeLine()
+
+  expect(unreadlineRpc).toHaveBeenCalledTimes(1)
+  expectUnreadlineRpcReadMsgID(unreadlineRpc, 5)
+  expectOrangeLine(T.Chat.numberToOrdinal(6))
+})
+
 test('a thread reload does not refetch the orange line against the stale mount read position', async () => {
   const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
     offline: false,
@@ -322,7 +361,12 @@ test('a thread reload does not refetch the orange line against the stale mount r
   expectOrangeLine(noOrangeLine)
 })
 
-test('negative read message IDs are clamped before fetching the orange line', async () => {
+test('an unknown read position draws no orange line rather than one above everything', async () => {
+  // A negative read position means the conversation's meta has not landed yet
+  // (emptyConversationMeta reads -1), which a DB nuke makes the norm. The old code clamped it to 0,
+  // and the service answers 0 with "everything is unread", pinning the line above the oldest
+  // message - and since the state is set once, that answer used to stick for the life of the mount.
+  // 0 itself is a real read position and is still asked about; see the zero-value test below.
   const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
     offline: false,
     unreadlineID: T.Chat.numberToMessageID(8),
@@ -332,9 +376,58 @@ test('negative read message IDs are clamped before fetching the orange line', as
   render(<NormalWrapper />)
   await flushOrangeLine()
 
-  expect(unreadlineRpc).toHaveBeenCalledTimes(1)
-  expectUnreadlineRpcReadMsgID(unreadlineRpc, 0)
-  expectOrangeLine(T.Chat.numberToOrdinal(8))
+  expect(unreadlineRpc).not.toHaveBeenCalled()
+  expectOrangeLine(noOrangeLine)
+})
+
+test('an unknown read position is not asked about', async () => {
+  // -1 is emptyConversationMeta's "not localized yet", the norm right after a DB nuke. The old code
+  // clamped it to 0, so the service answered "everything is unread" and pinned the line above the
+  // oldest message - and since the state is set once, that answer stuck.
+  const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
+    offline: false,
+    unreadlineID: T.Chat.numberToMessageID(8),
+  })
+  mockMeta = makeMeta(convID, -1)
+
+  render(<NormalWrapper />)
+  await flushOrangeLine()
+
+  expect(unreadlineRpc).not.toHaveBeenCalled()
+  expectOrangeLine(noOrangeLine)
+})
+
+test('an inactive conversation with an unknown read position is not asked about either', async () => {
+  // The inactive refresh passes the live readMsgID rather than the mount-time one, so it reaches
+  // loadOrangeLine with -1 directly and needs its own guard.
+  const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
+    offline: false,
+    unreadlineID: T.Chat.numberToMessageID(8),
+  })
+  mockMeta = makeMeta(convID, -1)
+  useShellState.setState({active: false})
+
+  render(<NormalWrapper />)
+  await flushOrangeLine()
+
+  expect(unreadlineRpc).not.toHaveBeenCalled()
+})
+
+test('a zero read position is a real answer and is still asked about', async () => {
+  // ReaderInfo reports 0 for a conversation you have genuinely never read - every first open of a
+  // new channel or DM. "Everything is unread" is the correct answer there, so suppressing the
+  // request would silently drop the orange line for exactly those conversations. Only a negative
+  // read position means "not known yet".
+  const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
+    offline: false,
+    unreadlineID: T.Chat.numberToMessageID(8),
+  })
+  mockMeta = makeMeta(convID, 0)
+
+  render(<NormalWrapper />)
+  await flushOrangeLine()
+
+  expect(unreadlineRpc).toHaveBeenCalledWith(expect.objectContaining({readMsgID: 0}))
 })
 
 test('zero unreadline responses render as no orange line', async () => {
