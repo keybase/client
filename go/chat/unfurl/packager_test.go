@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 
 	"github.com/keybase/client/go/chat/attachments"
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -82,12 +83,12 @@ func TestPackager(t *testing.T) {
 	typ, err := res.UnfurlType()
 	require.NoError(t, err)
 	require.Equal(t, chat1.UnfurlType_GENERIC, typ)
-	image := res.Generic().Image
-	require.NotNil(t, image)
+	imgAsset := res.Generic().Image
+	require.NotNil(t, imgAsset)
 	favicon := res.Generic().Favicon
 	require.NotNil(t, favicon)
-	require.NotZero(t, image.Metadata.Image().Height)
-	require.NotZero(t, image.Metadata.Image().Width)
+	require.NotZero(t, imgAsset.Metadata.Image().Height)
+	require.NotZero(t, imgAsset.Metadata.Image().Width)
 	require.NotZero(t, favicon.Metadata.Image().Height)
 	require.NotZero(t, favicon.Metadata.Image().Width)
 
@@ -101,20 +102,15 @@ func TestPackager(t *testing.T) {
 	cachedRes, valid = packager.cache.get(cacheKey)
 	require.False(t, valid)
 
-	compareSol := func(name string, resDat []byte) {
-		dat, err := os.ReadFile(filepath.Join("testcases", name))
-		require.NoError(t, err)
-		require.True(t, bytes.Equal(dat, resDat))
-	}
 	var buf bytes.Buffer
 	s3params, err := ri().GetS3Params(context.TODO(), chat1.GetS3ParamsArg{
 		ConversationID: convID,
 		TempCreds:      true,
 	})
 	require.NoError(t, err)
-	require.NoError(t, store.DownloadAsset(context.TODO(), s3params, *image, &buf, s3Signer, nil))
-	compareSol("nytogimage_sol.jpg", buf.Bytes())
+	require.NoError(t, store.DownloadAsset(context.TODO(), s3params, *imgAsset, &buf, s3Signer, nil))
+	kbtest.RequireDecodedImageNear(t, filepath.Join("testcases", "nytogimage_sol.jpg"), buf.Bytes())
 	buf.Reset()
 	require.NoError(t, store.DownloadAsset(context.TODO(), s3params, *favicon, &buf, s3Signer, nil))
-	compareSol("nytimes_sol.ico", buf.Bytes())
+	kbtest.RequireDecodedImageNear(t, filepath.Join("testcases", "nytimes_sol.ico"), buf.Bytes())
 }

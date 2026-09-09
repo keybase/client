@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/client/go/kbhttp/manager"
 
 	"github.com/keybase/client/go/chat/attachments"
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/clockwork"
 
@@ -220,9 +221,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 					var buf bytes.Buffer
 					_, err = io.Copy(&buf, resp.Body)
 					require.NoError(t, err)
-					refBytes, err := os.ReadFile(filepath.Join("unfurl", "testcases", "nytimes_sol.ico"))
-					require.NoError(t, err)
-					require.True(t, bytes.Equal(refBytes, buf.Bytes()))
+					kbtest.RequireDecodedImageNear(t, filepath.Join("unfurl", "testcases", "nytimes_sol.ico"), buf.Bytes())
 					require.Equal(t, "MIKE", generic.Title)
 				case <-time.After(timeout):
 					require.Fail(t, "no message unfurl")
