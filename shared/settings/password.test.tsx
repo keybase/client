@@ -8,12 +8,6 @@ jest.mock('@/constants', () => ({
   ...(jest.requireActual('@/constants') as object),
   useRPC: jest.fn(),
 }))
-jest.mock('@/constants/router', () => ({
-  clearModals: jest.fn(),
-  navigateAppend: jest.fn(),
-  navigateUp: jest.fn(),
-  switchTab: jest.fn(),
-}))
 // the real components pull in native/electron-only rendering; we only care
 // about the password validation logic here
 jest.mock('@/common-adapters', () => {
@@ -65,8 +59,8 @@ import {act, cleanup, fireEvent, render, renderHook, screen} from '@testing-libr
 import * as C from '@/constants'
 import RPCError from '@/util/rpcerror'
 import * as T from '@/constants/types'
-import {navigateUp} from '@/constants/router'
 import {resetAllStores} from '@/util/zustand'
+import {installFakeNavigator, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 import {UpdatePassword, useSubmitNewPassword} from './password'
 
 const typePasswords = (password: string, confirm: string) => {
@@ -76,7 +70,14 @@ const typePasswords = (password: string, confirm: string) => {
 
 const saveButton = () => screen.getByText('Save') as HTMLButtonElement
 
+let nav: FakeNavigator
+
+beforeEach(() => {
+  nav = installFakeNavigator()
+})
+
 afterEach(() => {
+  restoreNavigator()
   cleanup()
   jest.clearAllMocks()
   jest.restoreAllMocks()
@@ -164,7 +165,7 @@ test('useSubmitNewPassword force-changes the password and navigates back', () =>
   act(() => {
     rpc.resolveNext()
   })
-  expect(navigateUp).toHaveBeenCalled()
+  expect(nav.types()).toContain('GO_BACK')
   expect(result.current.error).toBe('')
 })
 
@@ -206,7 +207,7 @@ test('useSubmitNewPassword logs the user out after a successful change when aske
 
   // requestLogout() starts by asking the service whether logging out is safe
   expect(rpcs.submitFor(T.RPCGen.userCanLogoutRpcPromise)).toHaveBeenCalled()
-  expect(navigateUp).toHaveBeenCalled()
+  expect(nav.types()).toContain('GO_BACK')
 })
 
 test('useSubmitNewPassword leaves the session alone when it is not asked to log out', () => {
@@ -221,7 +222,7 @@ test('useSubmitNewPassword leaves the session alone when it is not asked to log 
   })
 
   expect(rpcs.submitFor(T.RPCGen.userCanLogoutRpcPromise)).not.toHaveBeenCalled()
-  expect(navigateUp).toHaveBeenCalled()
+  expect(nav.types()).toContain('GO_BACK')
 })
 
 test('useSubmitNewPassword does not log out when the change fails', () => {
@@ -239,7 +240,7 @@ test('useSubmitNewPassword does not log out when the change fails', () => {
   })
 
   expect(rpcs.submitFor(T.RPCGen.userCanLogoutRpcPromise)).not.toHaveBeenCalled()
-  expect(navigateUp).not.toHaveBeenCalled()
+  expect(nav.types()).not.toContain('GO_BACK')
   expect(result.current.error).toBe('too weak')
 })
 
@@ -254,7 +255,7 @@ test('useSubmitNewPassword shows the service description on failure and clears i
     rpc.rejectNext(new RPCError('too weak', T.RPCGen.StatusCode.scgeneric))
   })
   expect(result.current.error).toBe('too weak')
-  expect(navigateUp).not.toHaveBeenCalled()
+  expect(nav.types()).not.toContain('GO_BACK')
 
   act(() => {
     result.current.onSave('longenough2')

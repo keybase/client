@@ -8,7 +8,6 @@ jest.mock('@/constants', () => ({
   ...(jest.requireActual('@/constants') as object),
   useRPC: jest.fn(),
 }))
-jest.mock('@/constants/router', () => ({navigateUp: jest.fn()}))
 // the confirmation gate is the logic under test; the chrome around it is
 // native/electron-only
 jest.mock('@/common-adapters', () => {

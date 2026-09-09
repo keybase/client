@@ -26,7 +26,7 @@ import {dumpLogs} from '@/util/storeless-actions'
 const {hideWindow, ctlQuit} = KB2.functions
 
 export type Props = {
-  navigation: C.Router2.Navigator
+  navigation: C.Router2.NavigationRef
   state: C.Router2.NavState
 }
 

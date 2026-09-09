@@ -5,21 +5,14 @@ import {clearInputIntent, setInputIntent, type InputIntent} from '@/chat/convers
 import {refreshInboxLayout} from '@/chat/inbox/inbox-refresh'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as Tabs from './tabs'
-import {
-  StackActions,
-  TabActions,
-  CommonActions,
-  type NavigationContainerRef,
-  NavigationContext,
-  createNavigationContainerRef,
-} from '@react-navigation/core'
+import {CommonActions, type NavigationContainerRef, NavigationContext} from '@react-navigation/core'
 import type {StaticScreenProps} from '@react-navigation/core'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import * as NavTree from './nav-tree'
+import {getNavigator} from './navigator'
 import type {GetOptionsRet, RouteDef} from './types/router'
 import {isSplit, threadRouteName} from './chat/layout'
-import {ignorePromise, shallowEqual} from './utils'
-import {registerDebugClear} from '@/util/debug-registry'
+import {ignorePromise} from './utils'
 import {makeUUID} from '@/util/uuid'
 import * as Meta from './chat/meta'
 import * as Strings from './strings'
@@ -53,18 +46,12 @@ type ScreenComponent<COM extends React.LazyExoticComponent<any>> = (
   p: StaticScreenProps<ScreenParams<COM>>
 ) => React.ReactElement
 
-export const navigationRef = createNavigationContainerRef()
-
-registerDebugClear(() => {
-  navigationRef.current = null
-})
-
 export type {Route, NavState} from './nav-tree'
-type Route = NavTree.Route
 type NavState = NavTree.NavState
-export type Navigator = NavigationContainerRef<KBRootParamList>
+export type NavigationRef = NavigationContainerRef<KBRootParamList>
 
 export {setModalRouteNames} from './nav-tree'
+export {navigationRef} from './navigator'
 
 const DEBUG_NAV = __DEV__ && (false as boolean)
 
@@ -85,20 +72,10 @@ const uiParticipantsToParticipantInfo = (
   return participantInfo
 }
 
-export const getRootState = (): NavState | undefined => {
-  if (!navigationRef.isReady()) return
-  return navigationRef.getRootState()
-}
+export const getRootState = (): NavState | undefined => getNavigator().getRootState()
 
 export const getTab = (navState?: T.Immutable<NavState>): undefined | Tabs.Tab =>
   NavTree.currentTab(navState || getRootState())
-
-export const _getNavigator = () => {
-  return navigationRef.isReady() ? navigationRef : undefined
-}
-
-const getActiveStackState = (navState?: T.Immutable<NavState>) =>
-  NavTree.activeStack(navState || getRootState())
 
 // Public API
 // gives you loggedin/tab/stackitems + modals
@@ -185,179 +162,32 @@ export function makeScreen<COM extends React.LazyExoticComponent<any>>(
   }
 }
 
+// Free-function facade over the default Navigator. Every call site in the app goes
+// through these; the adapter underneath is what tests swap.
 export const clearModals = () => {
-  if (DEBUG_NAV) {
-    console.log('[Nav] clearModals')
-  }
-  const n = _getNavigator()
-  if (!n) return
-  const ns = getRootState()
-  if (!NavTree.isLoggedIn(ns)) {
-    return
-  }
-  const rootRoutes = ns?.routes ?? []
-  const keepRoutes = rootRoutes.filter((route, index) => index === 0 || !NavTree.isModalRouteName(route.name))
-  if (keepRoutes.length !== rootRoutes.length) {
-    n.dispatch({
-      ...CommonActions.reset({
-        ...ns,
-        index: keepRoutes.length - 1,
-        routes: keepRoutes,
-      } as Parameters<typeof CommonActions.reset>[0]),
-      target: ns?.key,
-    })
-  }
+  getNavigator().clearModals()
 }
 
 export const navigateUp = () => {
-  if (DEBUG_NAV) {
-    console.log('[Nav] navigateUp')
-  }
-  const n = _getNavigator()
-  return n?.dispatch(CommonActions.goBack())
+  getNavigator().navigateUp()
 }
 
 export const popStack = () => {
-  if (DEBUG_NAV) {
-    console.log('[Nav] popStack')
-  }
-  const n = _getNavigator()
-  n?.dispatch(StackActions.popToTop())
+  getNavigator().popStack()
 }
 
 export function navUpToScreen(name: RouteKeys): void
 export function navUpToScreen(path: NavigateAppendType, replaceIfMissing?: boolean): void
 export function navUpToScreen(nameOrPath: RouteKeys | NavigateAppendType, replaceIfMissing = false) {
-  if (DEBUG_NAV) {
-    console.log('[Nav] navUpToScreen', {nameOrPath, replaceIfMissing})
-  }
-  const n = _getNavigator()
-  if (!n) return
-  const activeStackState = getActiveStackState()
-  const activeStackKey = activeStackState?.key
-  if (typeof nameOrPath === 'string') {
-    const action = StackActions.popTo(nameOrPath)
-    n.dispatch(activeStackKey ? {...action, target: activeStackKey} : action)
-    return
-  }
-
-  const routeName = nameOrPath.name
-  const params = nameOrPath.params as object
-
-  const activeStackRoutes = activeStackState?.routes as Array<Route> | undefined
-  let routeIndex = -1
-  if (activeStackRoutes) {
-    for (let i = activeStackRoutes.length - 1; i >= 0; i--) {
-      if (activeStackRoutes[i]?.name === routeName) {
-        routeIndex = i
-        break
-      }
-    }
-  }
-  if (routeIndex >= 0 && activeStackState) {
-    const nextRoutes = activeStackRoutes!.slice(0, routeIndex + 1).map((route, index) =>
-      index === routeIndex ? {...route, params} : route
-    )
-    n.dispatch({
-      ...CommonActions.reset({
-        ...activeStackState,
-        index: routeIndex,
-        routes: nextRoutes,
-      } as Parameters<typeof CommonActions.reset>[0]),
-      target: activeStackKey,
-    })
-    return
-  }
-
-  if (replaceIfMissing) {
-    const action = StackActions.replace(routeName, params)
-    n.dispatch(activeStackKey ? {...action, target: activeStackKey} : action)
-    return
-  }
-
-  const action = StackActions.popTo(routeName)
-  n.dispatch(activeStackKey ? {...action, target: activeStackKey} : action)
+  getNavigator().navUpToScreen(nameOrPath, replaceIfMissing)
 }
 
-// A push dispatched this tick isn't in getRootState() until React Navigation commits, so the
-// visible-route dupe check below misses repeat taps that land before the commit (e.g. a janky JS
-// thread queueing both). Track the in-flight push until the next state event; the time bound is a
-// backstop in case the container tears down before the listener fires.
-let _pendingAppend: {name: string; params?: object; time: number} | undefined
-
-// Returns whether the target is now the visible route - either because we dispatched, or
-// because we were already there. False means nothing happened and nothing will.
 export function navigateAppend(path: NavigateAppendType, replace?: boolean): boolean {
-  if (DEBUG_NAV) {
-    console.log('[Nav] navigateAppend', {path})
-  }
-  const n = _getNavigator()
-  if (!n) {
-    return false
-  }
-  const ns = getRootState()
-  if (!ns) {
-    return false
-  }
-  const nextPath = path as {name: string | number | symbol; params: object}
-  const routeName = typeof nextPath.name === 'string' ? nextPath.name : String(nextPath.name)
-  const params = nextPath.params
-  if (!routeName) {
-    if (DEBUG_NAV) {
-      console.log('[Nav] navigateAppend no routeName bail', routeName)
-    }
-    return false
-  }
-  const vp = getVisiblePath(ns)
-  const visible = vp.at(-1)
-  if (visible) {
-    if (routeName === visible.name && shallowEqual(visible.params, params)) {
-      console.log('Skipping append dupe')
-      // Already the visible route with these params - the caller's goal is met.
-      return true
-    }
-  }
-
-  if (replace) {
-    if (visible?.name === routeName) {
-      n.dispatch(CommonActions.setParams(params))
-      return true
-    } else {
-      n.dispatch(StackActions.replace(routeName, params))
-      return true
-    }
-  }
-
-  if (
-    _pendingAppend?.name === routeName &&
-    shallowEqual(_pendingAppend.params, params) &&
-    Date.now() - _pendingAppend.time < 1000
-  ) {
-    console.log('Skipping append dupe (uncommitted)')
-    // An identical push is already in flight and uncommitted.
-    return true
-  }
-  _pendingAppend = {name: routeName, params, time: Date.now()}
-  const unsub = n.addListener('state', () => {
-    _pendingAppend = undefined
-    unsub()
-  })
-  n.dispatch(StackActions.push(routeName, params))
-  return true
+  return getNavigator().navigateAppend(path, replace)
 }
 
 export const switchTab = (name: Tabs.AppTab) => {
-  if (DEBUG_NAV) {
-    console.log('[Nav] switchTab', {name})
-  }
-  const n = _getNavigator()
-  if (!n) return
-  const tabNavState = NavTree.tabNavigatorState(getRootState())
-  if (!tabNavState?.key) return
-  n.dispatch({
-    ...TabActions.jumpTo(name),
-    target: tabNavState.key,
-  })
+  getNavigator().switchTab(name)
 }
 
 export const navToProfile = (username: string) => {
@@ -621,63 +451,8 @@ export const previewConversation = (p: PreviewConversationParams) => {
   ignorePromise(previewConversationTeam())
 }
 
-// Returns whether chatRoot now carries these params - by dispatch, or because it already did.
-// False means the nav tree was not in a state where anything could happen.
-export const setChatRootParams = (
-  params: Partial<NonNullable<KBRootParamList['chatRoot']>>
-): boolean => {
-  const n = _getNavigator()
-  if (!n) return false
-  const tabNavState = NavTree.tabNavigatorState(getRootState())
-  if (!tabNavState?.key) return false
-  const tabRoutes = tabNavState.routes as Array<Route>
-  const chatTabIndex = tabRoutes.findIndex(r => r.name === Tabs.chatTab)
-  if (chatTabIndex < 0) return false
-  const chatTabRoute = tabRoutes[chatTabIndex]
-  const chatStackState = chatTabRoute?.state
-  const chatStackRoutes = chatStackState?.routes as Array<Route> | undefined
-  const chatStackIndex = chatStackState?.index ?? 0
-  const currentChatRoute = chatStackRoutes?.[chatStackIndex]
-  const currentChatRoot = chatStackRoutes?.[0]
-  const updatedRoutes = tabRoutes.map((route, i) => {
-    if (i !== chatTabIndex) return route
-    const currentParams = currentChatRoot?.name === 'chatRoot' ? currentChatRoot.params : undefined
-    return {
-      ...route,
-      state: {
-        ...(route.state ?? {}),
-        index: 0,
-        routes: [{name: 'chatRoot', params: {...currentParams, ...params}}],
-      },
-    }
-  })
-  const nextChatRoot = updatedRoutes[chatTabIndex]?.state?.routes[0]
-  if (
-    tabNavState.index === chatTabIndex &&
-    currentChatRoute?.name === 'chatRoot' &&
-    chatStackState?.key &&
-    nextChatRoot?.params
-  ) {
-    // When split chat is already showing chatRoot, update that route in place instead of
-    // resetting the whole tab navigator. This avoids an extra same-screen navigation when
-    // the tab becomes visible and chat selects a thread immediately afterward.
-    if (!shallowEqual(currentChatRoute.params, nextChatRoot.params)) {
-      n.dispatch({
-        ...CommonActions.navigate('chatRoot', nextChatRoot.params, {merge: true}),
-        target: chatStackState.key,
-      })
-    }
-    // Either we just merged the params in, or they were already what we wanted.
-    return true
-  }
-  n.dispatch({
-    ...CommonActions.reset({...tabNavState, index: chatTabIndex, routes: updatedRoutes} as Parameters<
-      typeof CommonActions.reset
-    >[0]),
-    target: tabNavState.key,
-  })
-  return true
-}
+export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['chatRoot']>>): boolean =>
+  getNavigator().setChatRootParams(params)
 
 export const setThreadInputCommandStatus = (
   conversationIDKey: T.Chat.ConversationIDKey,
@@ -741,9 +516,9 @@ const navToThread = (
   if (DEBUG_NAV) {
     console.log('[Nav] navToThread', conversationIDKey)
   }
-  const n = _getNavigator()
-  if (!n) return false
-  const rs = getRootState()
+  const nav = getNavigator()
+  if (!nav.isReady()) return false
+  const rs = nav.getRootState()
   if (!rs?.key) return false
   const params = {
     conversationIDKey,
@@ -760,7 +535,7 @@ const navToThread = (
   } else {
     // Phone: switch to the chat tab, then push the conversation above the tabs.
     const nextState = NavTree.pushedAboveTabs(Tabs.chatTab, {name: 'chatConversation', params})
-    n.dispatch({
+    nav.dispatch({
       ...CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]),
       target: rs.key,
     })
@@ -845,9 +620,9 @@ export const navigateToThread = (
       // re-measures a title subview it first measured empty, so a blank pending title would
       // leave the bar blank for the real conv too. Same-conversation retargets ride this path
       // too: the screen is already showing real content, so setParams is a plain in-place merge.
-      const n = _getNavigator()
-      n?.dispatch({...CommonActions.setParams(params), source: visible?.key})
-      navigated = !!n
+      const nav = getNavigator()
+      nav.dispatch({...CommonActions.setParams(params), source: visible?.key})
+      navigated = nav.isReady()
     } else {
       navigated = navigateAppend({name: threadRouteName, params})
     }

@@ -7,19 +7,19 @@ import {useConfigState} from '@/stores/config'
 import {useWaitingState} from '@/stores/waiting'
 import {waitingKeySignup} from '@/constants/strings'
 
-jest.mock('@/constants/router', () => {
-  const actual = jest.requireActual('@/constants/router')
-  return {...actual, navigateAppend: jest.fn()}
-})
-
+import {installFakeNavigator, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 import useRequestAutoInvite from './use-request-auto-invite'
 
-const {navigateAppend: mockNavigateAppend} = require('@/constants/router') as {navigateAppend: jest.Mock}
+let nav: FakeNavigator
+
+beforeEach(() => {
+  nav = installFakeNavigator()
+})
 
 afterEach(() => {
+  restoreNavigator()
   cleanup()
   jest.restoreAllMocks()
-  mockNavigateAppend.mockReset()
   resetAllStores()
 })
 
@@ -33,7 +33,7 @@ test('fetches an invite code and moves on to the username screen', async () => {
   result.current('testuser')
 
   await waitFor(() =>
-    expect(mockNavigateAppend).toHaveBeenCalledWith({
+    expect(nav.pushes()).toContainEqual({
       name: 'signupEnterUsername',
       params: {inviteCode: 'invite-code', username: 'testuser'},
     })
@@ -51,7 +51,7 @@ test('logs out first when an account is already signed in', async () => {
   result.current('testuser')
 
   await waitFor(() =>
-    expect(mockNavigateAppend).toHaveBeenCalledWith({
+    expect(nav.pushes()).toContainEqual({
       name: 'signupEnterUsername',
       params: {inviteCode: 'invite-code', username: 'testuser'},
     })
@@ -66,7 +66,7 @@ test('a failed invite code fetch still continues with an empty code', async () =
   result.current('testuser')
 
   await waitFor(() =>
-    expect(mockNavigateAppend).toHaveBeenCalledWith({
+    expect(nav.pushes()).toContainEqual({
       name: 'signupEnterUsername',
       params: {inviteCode: '', username: 'testuser'},
     })
@@ -85,5 +85,5 @@ test('a request already in flight is ignored', async () => {
   // nothing to wait for; give any queued work a full macrotask to run anyway
   await new Promise(resolve => setTimeout(resolve, 0))
   expect(getCode).not.toHaveBeenCalled()
-  expect(mockNavigateAppend).not.toHaveBeenCalled()
+  expect(nav.actions).toEqual([])
 })
