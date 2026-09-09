@@ -115,9 +115,9 @@ function Dropdown<N extends React.ReactNode>(p: Props<N>) {
     ))
     return (
       <Kb.Popup
+        intent="menu"
         style={Styles.collapseStyles([styles.overlay, overlayStyle])}
         attachTo={attachTo}
-        visible={true}
         onHidden={hidePopup}
         position={position || 'center center'}
       >

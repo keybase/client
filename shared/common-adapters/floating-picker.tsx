@@ -3,7 +3,7 @@ import * as Styles from '@/styles'
 import SafeAreaView from './safe-area-view'
 import {Picker} from '@react-native-picker/picker'
 import {Box2} from './box'
-import Popup from './popup'
+import {Sheet} from './popup/sheet'
 import Text from './text'
 
 type PickerItem<T> = {
@@ -24,7 +24,7 @@ export type Props<T> = {
   visible: boolean
 }
 
-const Kb = {Box2, Picker, Popup, SafeAreaView, Text}
+const Kb = {Box2, Picker, SafeAreaView, Sheet, Text}
 
 function WrapPicker<T>(p: {
   initialValue?: T
@@ -68,10 +68,7 @@ const FloatingPicker = <T extends string | number>(props: Props<T>): React.React
   }
 
   return (
-    <Kb.Popup
-      key={isAndroid ? props.selectedValue || 0 : undefined}
-      onHidden={props.onHidden}
-    >
+    <Kb.Sheet key={isAndroid ? props.selectedValue || 0 : undefined} onHidden={props.onHidden}>
       <Kb.Box2 direction="vertical" fullWidth={true} alignItems="stretch" justifyContent="flex-end" style={styles.menu}>
         {props.header}
         <Kb.Box2
@@ -100,7 +97,7 @@ const FloatingPicker = <T extends string | number>(props: Props<T>): React.React
         />
         <Kb.SafeAreaView style={styles.safeArea} />
       </Kb.Box2>
-    </Kb.Popup>
+    </Kb.Sheet>
   )
 }
 

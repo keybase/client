@@ -26,7 +26,13 @@ const SFMIPopup = (props: Props) => {
     const {attachTo, hidePopup} = p
 
     return (
-      <Kb.Popup style={styles.popup} attachTo={attachTo} onHidden={hidePopup} position="bottom right">
+      <Kb.Popup
+        intent="menu"
+        style={styles.popup}
+        attachTo={attachTo}
+        onHidden={hidePopup}
+        position="bottom right"
+      >
         <Kb.ClickableBox
           direction="vertical"
           fullWidth={true}

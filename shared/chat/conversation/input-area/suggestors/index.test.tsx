@@ -26,7 +26,7 @@ jest.mock('../../thread-context', () => ({useConversationThreadID: () => 'conv'}
 jest.mock('../input-state', () => ({useConversationInput: () => false}))
 jest.mock('@/common-adapters', () => {
   const actual = jest.requireActual<Record<string, unknown>>('@/common-adapters')
-  return {...actual, Popup: (p: {children: React.ReactNode}) => <>{p.children}</>}
+  return {...actual, AnchoredPopup: (p: {children: React.ReactNode}) => <>{p.children}</>}
 })
 
 // the suggestors read the caret through the input ref; drive it directly so the
