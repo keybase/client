@@ -39,38 +39,28 @@ export const getPreviousOrdinal = (
 // (author grouping), so the oldest row of the loaded window has no previous and must assume it
 // leads a group. A scroll-back load then hands it a same-author previous and the header has to go —
 // but dropping the header outright shrinks the row ~40px mid-load and the thread jumps. So the row
-// keeps the SPACE and loses the CONTENT: `showUsername` is always the currently correct answer
-// (empty once the row groups) while `reserveHeader` says a header was already painted here, so the
-// row renders it invisibly and its height never changes. shownCache records which rows painted one.
+// keeps the SPACE and loses the CONTENT, which is row-identity.tsx's business: this answers only
+// what the row should show right now, and whether that answer is firm enough to be remembered.
 //
-// Only non-provisional decisions are recorded. A row whose previous ordinal is in the window but
+// `provisional` marks the answers that are not. A row whose previous ordinal is in the window but
 // whose message is missing or still an unboxing placeholder reads as a different author and shows a
 // header it will lose a moment later; that neighbor's own height is about to change anyway, so
 // reserving space for it would leave a permanent blank gap where an avatar never belonged. Ditto a
-// stale ordinal that isn't in the window at all. The cache is owned per-conversation by the thread
-// provider (ShownUsernameCacheContext) and passed in; omitting it (e.g. in tests) disables both the
-// recording and the reservation.
+// stale ordinal that isn't in the window at all.
 export const getMessageShowUsername = (p: {
   message: T.Chat.Message
   messageMap: ReadonlyMap<T.Chat.Ordinal, T.Chat.Message>
   messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
   ordinal: T.Chat.Ordinal
   you: string
-  shownCache?: Map<T.Chat.Ordinal, string>
-}): {reserveHeader: boolean; showUsername: string} => {
-  const {message, messageMap, messageOrdinals, ordinal, you, shownCache} = p
+}): {provisional: boolean; showUsername: string} => {
+  const {message, messageMap, messageOrdinals, ordinal, you} = p
   const {inWindow, previous} = getPreviousOrdinalInfo(messageOrdinals, ordinal)
   const previousMessage = previous ? messageMap.get(previous) : undefined
-  const showUsername = getUsernameToShow(message, previousMessage, you)
-  if (!shownCache) return {reserveHeader: false, showUsername}
-  const provisional = !inWindow || (!!previous && (!previousMessage || previousMessage.type === 'placeholder'))
-  if (showUsername) {
-    if (!provisional) {
-      shownCache.set(ordinal, showUsername)
-    }
-    return {reserveHeader: false, showUsername}
+  return {
+    provisional: !inWindow || (!!previous && (!previousMessage || previousMessage.type === 'placeholder')),
+    showUsername: getUsernameToShow(message, previousMessage, you),
   }
-  return {reserveHeader: shownCache.has(ordinal), showUsername}
 }
 
 export const getMessageRowRecycleType = (

@@ -106,17 +106,9 @@ export type ConversationThreadState = {
   unfurlPrompt: Map<T.Chat.MessageID, Set<string>>
 }
 
-type ConversationThreadStore = StoreApi<ConversationThreadState>
+export type ConversationThreadStore = StoreApi<ConversationThreadState>
 const ConversationThreadStoreContext = React.createContext<ConversationThreadStore | undefined>(undefined)
 ConversationThreadStoreContext.displayName = 'ConversationThreadStoreContext'
-
-// Per-conversation sticky username-header cache (see getMessageShowUsername). Owned by the provider
-// as a ref, so it lives and dies with the conversation rather than as a module global; cleared on
-// messagesClear (thread reload). Maps ordinal -> the author username it has shown.
-export const ShownUsernameCacheContext = React.createContext<Map<T.Chat.Ordinal, string> | undefined>(
-  undefined
-)
-ShownUsernameCacheContext.displayName = 'ShownUsernameCacheContext'
 
 const makeEmptyThreadState = (): ConversationThreadState =>
   produce(
@@ -279,14 +271,11 @@ const ConversationThreadContextProvider = (p: {
   actions: ConversationThreadActions
   children: React.ReactNode
   id: T.Chat.ConversationIDKey
-  shownUsernameCache: Map<T.Chat.Ordinal, string>
   store: ConversationThreadStore
 }) => (
   <ConversationThreadIDContext value={p.id}>
     <ConversationThreadActionsContext value={p.actions}>
-      <ConversationThreadStoreContext value={p.store}>
-        <ShownUsernameCacheContext value={p.shownUsernameCache}>{p.children}</ShownUsernameCacheContext>
-      </ConversationThreadStoreContext>
+      <ConversationThreadStoreContext value={p.store}>{p.children}</ConversationThreadStoreContext>
     </ConversationThreadActionsContext>
   </ConversationThreadIDContext>
 )
@@ -294,9 +283,6 @@ const ConversationThreadContextProvider = (p: {
 const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => {
   const {children, id} = p
   const [threadStore] = React.useState(() => makeThreadStore(id))
-  // sticky username-header cache, owned here so it's scoped to this conversation (see
-  // getMessageShowUsername / ShownUsernameCacheContext); reset on messagesClear (thread reload).
-  const [shownUsernameCache] = React.useState(() => new Map<T.Chat.Ordinal, string>())
   const active = useShellState(s => s.active)
   const appFocused = useShellState(s => s.appFocused)
   const routeFocused = useIsFocused()
@@ -833,7 +819,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
   })
   const messagesClear = React.useEffectEvent(() => {
     activeMarkReadEnabledRef.current = false
-    shownUsernameCache.clear()
     updateThreadState(s => {
       s.generation += 1
       s.pendingOutboxToOrdinal.clear()
@@ -985,12 +970,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
   useThreadEngineListeners(id, threadActions)
 
   return (
-    <ConversationThreadContextProvider
-      id={id}
-      actions={threadActions}
-      store={threadStore}
-      shownUsernameCache={shownUsernameCache}
-    >
+    <ConversationThreadContextProvider id={id} actions={threadActions} store={threadStore}>
       {children}
     </ConversationThreadContextProvider>
   )

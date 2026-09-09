@@ -4,7 +4,6 @@ import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as InputState from '../../input-area/input-state'
-import * as RowMetadata from '../row-metadata'
 import {MessageContext, RowHoveredContext, useOrdinal} from '../ids-context'
 import EmojiRow from '../emoji-row'
 import ExplodingHeightRetainer from './exploding-height-retainer'
@@ -23,7 +22,6 @@ import {navToProfile} from '@/constants/router'
 import {formatTimeForChat} from '@/util/timestamp'
 import {
   getConversationThreadDisplayMessage,
-  ShownUsernameCacheContext,
   useConversationThreadActions,
   useConversationThreadID,
   useConversationThreadMessageActions,
@@ -31,6 +29,7 @@ import {
   useThreadMeta,
 } from '../../thread-context'
 import {emptyParticipantInfo} from '../../data-hooks'
+import {useRowIdentity} from '../row-identity'
 import {useInboxMetadataState} from '@/chat/inbox/metadata'
 import type {ConversationInputState} from '../../input-area/input-state'
 import {useChatTeamMemberRole} from '../../team-hooks'
@@ -390,7 +389,9 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
   )
   const {retryMessage} = useConversationThreadActions()
   const messageActions = useConversationThreadMessageActions()
-  const shownCache = React.useContext(ShownUsernameCacheContext)
+  // The same derivation the list types this row's recycling pool from, so the two cannot disagree
+  // about whether this row paints an author header.
+  const {reserveHeader, showUsername} = useRowIdentity(ordinal)
   const conversationIDKey = useConversationThreadID()
   // Reload-free read: avoid useConversationParticipants' per-mount unboxRows + engine
   // listener registration, which is too expensive to pay per message row.
@@ -415,14 +416,6 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
         paymentStatusMap: s.paymentStatusMap,
         unfurlPrompt: s.unfurlPrompt,
         you,
-      })
-      const {reserveHeader, showUsername} = RowMetadata.getMessageShowUsername({
-        message,
-        messageMap: s.messageMap,
-        messageOrdinals: s.messageOrdinals ?? [],
-        ordinal,
-        you,
-        shownCache,
       })
       return {
         ...commonData,
