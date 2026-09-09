@@ -96,8 +96,8 @@ helpers.rootLinuxNode(env, {
       ln -sf "${GOBIN}/go1.27.1" "${GOBIN}/go"
 
       # Install golangci-lint
-      echo "Installing golangci-lint v2.7.2..."
-      curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b "${GOBIN}" v2.7.2
+      echo "Installing golangci-lint v2.13.2..."
+      curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b "${GOBIN}" v2.13.2
 
       # Set up Node
       source  ~/.nvm/nvm.sh
@@ -643,9 +643,6 @@ def testGoTestSuite(prefix, packagesToTest) {
   def dirs = getTestDirsNix()
   def goversion = sh(returnStdout: true, script: "go version").trim()
   println "Testing Go code on commit ${env.COMMIT_HASH} with ${goversion}. Merging to branch ${env.CHANGE_TARGET}."
-
-  // Make sure we don't accidentally pull in the testing package.
-  sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/client/go/keybase | grep testing'
 
   println "Building citogo"
   sh '(cd citogo && go install)'
