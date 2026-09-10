@@ -1,0 +1,19 @@
+go/service/interesting_test.go
+  s_0a8cfbc9aad50d::t_942867c9d9e24e 40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "44cc4cdb7bc6fea0aee4f7054e5dd124a9d8b050",
+  "prompts": {},
+  "sessions": {
+    "s_0a8cfbc9aad50d": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "38537f13-dbfc-4b47-9b9f-b3da80a06eef",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
