@@ -1,0 +1,306 @@
+go/kbfs/libkbfs/cr_chains_test.go
+  s_8cf28452dcf46d::t_8b178f32bbbf99 108-110
+go/engine/device_add_test.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 32,53
+go/engine/resolve_identify2.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 29
+go/client/cmd_passphrase_remember.go
+  s_8cf28452dcf46d::t_9249b320baf256 70
+go/chat/attachment_httpsrv.go
+  s_8cf28452dcf46d::t_344a118015d086 379,384-388,390-392
+  s_8cf28452dcf46d::t_6c1e8984666820 402
+  s_8cf28452dcf46d::t_040addbb76b201 505
+  s_8cf28452dcf46d::t_4d20caa7071d52 393
+  s_8cf28452dcf46d::t_14e77a88495cbd 470
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 11
+  s_8cf28452dcf46d::t_2375c96a240688 389
+go/client/cmd_pgp_push_private.go
+  s_8cf28452dcf46d::t_856e15dab1a167 55-56,65-66
+go/install/install.go
+  s_8cf28452dcf46d::t_ce8ff29ceadbcf 251
+go/kbfs/data/file_data_test.go
+  s_8cf28452dcf46d::t_19fb81803ac37a 589-593
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 72-73,189,202,221-222,244-245,272-273,290-291,295-296,305-306,310-311,423-424,440-441,450-451,458-459,467-468,486-487,502-503,519-520,541-542,552-553,598-599,648-649,658-659,673-674,685-686,696-697,700-701,729-730,744-745,755-756,773-774,780-781,791-792,798-799,834-835,844-845,856-857,879-880,911-912
+go/libkb/merkle_client.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 2231-2233
+go/teams/loader.go
+  s_8cf28452dcf46d::t_b7118a474650c5 1022-1023,1025,1027
+go/teams/keys.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 287
+go/libkb/sync_secret.go
+  s_8cf28452dcf46d::t_c9c19bcd7d72df 183
+go/libkb/keyring.go
+  s_8cf28452dcf46d::t_54ce75cdc2e0c6 113
+go/engine/gpg_import_key.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 160,218,223
+go/kbfs/libpages/stats_test.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 41,48
+go/client/gpg_ui.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 44
+go/merkle/encoder_test.go
+  s_8cf28452dcf46d::t_91420a91bfa3ab 11-12,15
+  s_8cf28452dcf46d::t_53e5e5831f0319 21
+go/chat/deliverer.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 424,512
+go/client/cmd_ping.go
+  s_8cf28452dcf46d::t_63cd715511de3b 93
+  s_8cf28452dcf46d::t_ea912e547e1eec 170
+  s_8cf28452dcf46d::t_997b79e9b63896 175
+  s_8cf28452dcf46d::t_0a2ee9703c4d80 181
+  s_8cf28452dcf46d::t_b92cd7fab38c55 161
+  s_8cf28452dcf46d::t_b50d0acec9a2ad 166
+  s_8cf28452dcf46d::t_e9d42761b80558 187
+go/client/cmd_pgp_pull_private.go
+  s_8cf28452dcf46d::t_e2f794f72d3973 31-32,36-37
+go/tools/ssss/main.go
+  s_8cf28452dcf46d::t_68d4e2554c2cba 111
+go/engine/kex2_test.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 59,80,135,156
+go/libkb/keygen_test.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 106
+go/libkb/notify_router.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 227-229,231,244-252,254,1596-1597
+go/libkb/identify3_test.go
+  s_8cf28452dcf46d::t_56069a72c90af1 107-109
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 23-27,29-35,85,87
+go/kbfs/kbfsmd/root_metadata_v3_test.go
+  s_8cf28452dcf46d::t_b5541d60b851dc 20-24
+go/lsof/lsof.go
+  s_8cf28452dcf46d::t_d1b3a434e9fc96 189
+go/systests/rekey_test.go
+  s_8cf28452dcf46d::t_36a3c67a843d62 803
+go/chat/helper.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 31,1389-1390,1472-1473
+go/ephemeral/user_ek_box_storage_test.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 185
+go/client/cmd_id.go
+  s_8cf28452dcf46d::t_96ceab461d36ec 87
+  s_8cf28452dcf46d::t_fa63fa8c91a6cb 150
+go/libkb/env.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 25-116,118-122,130-148,437-438,886-887,896-897,907-908,935-936,965-966,973-974,1033-1034,1042-1043,1052-1053,1059-1060,1068-1069,1077-1078,1086-1087,1095-1096,1104-1105,1113-1114,1124-1125,1135-1136,1144-1145,1155-1156,1166-1167,1177-1178,1186-1187,1213-1214,1316-1317,1338-1339,1347-1348,1356-1357,1365-1366,1374-1375,1383-1384,1391-1392,1399-1400,1407-1408,1416-1417,1425-1426,1434-1435,1443-1444,1452-1453,1460-1461,1518-1519,1527-1528,1536-1537,1778-1779,2116-2117,2135-2136,2143-2144,2151-2152,2182-2183
+go/libkb/passphrase_stream_test.go
+  s_8cf28452dcf46d::t_09e563d70839f0 23
+go/avatars/fullcaching.go
+  s_8cf28452dcf46d::t_8d81a5d224b2de 299
+go/pvl/helpers.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 129
+go/teams/oracle_test.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 58,74,116
+go/kbfs/libkbfs/conflict_resolver_test.go
+  s_8cf28452dcf46d::t_04dddc4293853a 129
+  s_8cf28452dcf46d::t_a8c5dd03500336 97,99-101
+  s_8cf28452dcf46d::t_026a57e5e01c1e 121
+  s_8cf28452dcf46d::t_d26f211c51934c 98
+go/service/gregor.go
+  s_8cf28452dcf46d::t_9cf23f60068ea4 1236
+  s_8cf28452dcf46d::t_e72cfe9a3a8b50 1220
+  s_8cf28452dcf46d::t_7133c8b83739f5 1245
+  s_8cf28452dcf46d::t_76d64367e04ee8 1225
+  s_8cf28452dcf46d::t_7524e1f1d3b84a 1230
+go/libkb/nist.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 305,363
+go/kbtest/chat.go
+  s_8cf28452dcf46d::t_0a4e4ecab02f0d 1662-1666,1668-1670,1678-1680
+  s_8cf28452dcf46d::t_8f3cf6b7ba5550 237-241
+go/chat/s3/s3.go
+  s_8cf28452dcf46d::t_1f6d9b5689a5f1 988-990
+go/kbfs/simplefs/simplefs_test.go
+  s_8cf28452dcf46d::t_2f8c9d43014c1e 155
+go/kbfs/libkbfs/config_local.go
+  s_8cf28452dcf46d::t_8f164aebf25f17 1295,1300
+  s_8cf28452dcf46d::t_cf7350451ce3f1 1277
+go/engine/login_provision.go
+  s_8cf28452dcf46d::t_871fa28d841323 205
+go/teams/create.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 445,659
+go/chat/journey_card_manager.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 37
+go/chat/giphy/search.go
+  s_8cf28452dcf46d::t_b4b79560d1ee5e 26-27
+go/chat/types/interfaces.go
+  s_8cf28452dcf46d::t_0a4e4ecab02f0d 721
+go/teams/chain_parse.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 447,450
+go/client/simplefs_ls_test.go
+  s_8cf28452dcf46d::t_1eace7b704802c 15
+go/libkb/naclwrap.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 581,745
+go/saltpackkeys/saltpack_recipient_keyfinder_engine.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 25,38
+go/chat/utils/null_chat_ui.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 43,45,47-51,69-71,73
+go/kbfs/data/path.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 51
+go/client/cmd_chat_listmembers.go
+  s_8cf28452dcf46d::t_6753f41ef9118b 110
+go/kbfs/libhttpserver/content_type_utils.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 101,109
+go/systests/multiuser_common_test.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 123-131,135
+go/libkb/globals.go
+  s_8cf28452dcf46d::t_49a56b3670121c 540
+go/.golangci.yml
+  s_8cf28452dcf46d::t_b9eaff7c31d3e6 44,46,48,50
+  s_8cf28452dcf46d::t_e777a59324b75d 74
+  s_8cf28452dcf46d::t_3a81fa5affa6fe 11-13,26,28-31,33-35,45,47,49,51,69-70,73,76-78,83-84,89-93,99,101,103,105,107
+  s_8cf28452dcf46d::t_9808534ebfa94c 72,75
+  s_8cf28452dcf46d::t_96310f5343da9e 71
+go/teams/transactions.go
+  s_8cf28452dcf46d::t_5460982a8ce2b7 168
+go/libkb/rpc_exim.go
+  s_8cf28452dcf46d::t_fe03904b3d4ee3 2314
+go/teams/rename.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 83-84,91-92,139,141-142,206
+go/client/cmd_team_list_requests.go
+  s_8cf28452dcf46d::t_307afff9622428 80
+go/kbfs/libfuse/dir.go
+  s_8cf28452dcf46d::t_7f383864973509 212,217-219
+go/chat/botcommands_test.go
+  s_8cf28452dcf46d::t_43dd3a5d646ee3 157,167
+go/kbfs/tlfhandle/identify_util_test.go
+  s_8cf28452dcf46d::t_7ec2c70e4adfb7 111-120,122-132
+  s_8cf28452dcf46d::t_0a4e4ecab02f0d 47-48,145-146,166-167,175-176,215-216,222-223,229-230
+go/client/cmd_git_list.go
+  s_8cf28452dcf46d::t_f3244bc28714e4 76
+go/chat/uithreadloader.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 668
+go/mounter/mounter_nix.go
+  s_8cf28452dcf46d::t_9d334900a5f156 21
+go/updater/test/test.go
+  s_8cf28452dcf46d::t_f7ad108eed30f2 90
+go/kbfs/test/benchmark_test.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 57-58,60-61,77,125-126,128-129,149,199-200,205-206,288-289,294-295,331-332,336-337,340-341,386-387
+go/client/team_cli_rendering.go
+  s_8cf28452dcf46d::t_a9d65cb76ecd8a 42
+go/stellar/stellarsvc/service_test.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 472
+go/kbfs/libfuse/fs.go
+  s_8cf28452dcf46d::t_e963a792d936b0 320
+go/chat/archive.go
+  s_8cf28452dcf46d::t_b05529c8572586 847
+go/keybase/main.go
+  s_8cf28452dcf46d::t_88961668037feb 505
+  s_8cf28452dcf46d::t_8e9967738521c1 498
+go/teams/proofs_test.go
+  s_8cf28452dcf46d::t_2dad9d16ed013c 12,15
+go/engine/device_history.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 97
+go/updater/watchdog/watchdog.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 141
+go/engine/bug_3964_repairman_test.go
+  s_8cf28452dcf46d::t_1a48007df8d705 41
+  s_8cf28452dcf46d::t_2eb1e6bbdb31af 35
+go/kbfs/kbfssync/leveled_mutex_test.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 39
+go/client/cmd_chat_retention.go
+  s_8cf28452dcf46d::t_c124dec1ccffa5 316
+go/systests/user_test.go
+  s_8cf28452dcf46d::t_ecbd14cd5dac42 189
+go/libkb/client.go
+  s_8cf28452dcf46d::t_f536f527f5d30b 124
+go/service/saltpack.go
+  s_8cf28452dcf46d::t_449572df3c7fc2 964
+go/libkb/api_mock.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 23-29,31,227-228,230,238-242,244
+go/libkb/erasable_kv_store_test.go
+  s_8cf28452dcf46d::t_f5ca8db13d661a 59
+go/service/rekey_master.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 579,671
+go/libkb/nacl_box_test.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 88,91,94,97,109,112,115,118
+go/libkb/config.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 28
+go/client/cmd_team_bot_settings.go
+  s_8cf28452dcf46d::t_5399464933ea67 162
+go/stellar/bundle/boxer.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 206
+go/kbtest/kbtest.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 276,297
+go/chat/identify_ui.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 43-45,47
+go/teams/audit.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 626
+go/client/cmd_status.go
+  s_8cf28452dcf46d::t_e973bca531fd47 216
+go/kbfs/libpages/config/config_v1_test.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 373
+go/libkb/json.go
+  s_8cf28452dcf46d::t_c3a05cd400a7a1 305
+  s_8cf28452dcf46d::t_c3ebfb77aca533 64
+go/updater/keybase/config.go
+  s_8cf28452dcf46d::t_8fd252cd3bc738 86
+go/ephemeral/kex2_test.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 95,116
+go/systests/passphrase_test.go
+  s_8cf28452dcf46d::t_61d3baedf7f860 400
+go/libkb/track.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 221
+go/updater/util/file.go
+  s_8cf28452dcf46d::t_3d59c467c118e7 218
+go/kbfs/libkbfs/folder_branch_ops.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 128,449-450,452-453,455-456,458-459,473-474,544-545,806-807,861-862,881-882,891-892,911-912,951-952,1041-1042,1068-1069,1076-1077,1113-1114,1143-1144,1169-1170,1175-1176,1216-1217,1243-1244,1248-1249,1261-1262,1267-1268,1276-1277,1286-1287,1291-1292,1304-1305,1310-1311,1344-1345,1348-1349,1366-1367,1375-1376,1418-1419,1527-1528,1533-1534,1539-1540,1553-1554,1578-1579,1583-1584,1592-1593,1601-1602,1606-1607,1615-1616,1623-1624,1634-1635,1638-1639,1656-1657,1700-1701,1758-1759,1785-1786,1793-1794,1825-1826,1843-1844,1857-1858,1869-1870,1883-1884,1896-1897,1905-1906,1934-1935,1944-1945,1957-1958,1964-1965,2079-2080,2117-2118,2122-2123,2131-2132,2159-2160,2211-2212,2265-2266,2285-2286,2368-2369,2449-2450,2599-2600,2606-2607,2639-2640,2693-2694,2700-2701,2724-2725,2731-2732,2824-2825,2831-2832,2839-2840,2857-2858,2876-2877,2931-2932,2938-2939,2967-2968,2974-2975,2982-2983,3001-3002,3014-3015,3020-3021,3024-3025,3046-3047,3060-3061,3072-3073,3108-3109,3145-3146,3151-3152,3167-3168,3192-3193,3243-3244,3282-3283,3287-3288,3334-3335,3477-3478,3492-3493,3518-3519,3541-3542,3605-3606,3654-3655,3660-3661,3687-3688,3767-3768,3781-3782,3788-3789,3800-3801,3806-3807,3840-3841,3880-3881,3907-3908,3946-3947,3951-3952,3985-3986,4031-4032,4034-4035,4075-4076,4096-4097,4134-4135,4168-4169,4188-4189,4197-4198,4240-4241,4249-4250,4290-4291,4317-4318,4371-4372,4381-4382,4435-4436,4611-4612,4708-4709,4787-4789,4823-4824,4835-4836,4847-4848,4878-4879,4908-4909,4916-4917,4955-4956,5057-5058,5091-5092,5096-5097,5128-5129,5135-5136,5155-5156,5259-5261,5296-5297,5303-5304,5320-5321,5360-5361,5369-5370,5416-5418,5439-5440,5463-5464,5486-5487,5516-5517,5524-5525,5529-5530,5556-5557,5561-5562,5585-5586,5627-5628,5647-5648,5661-5662,5673-5674,5684-5685,5694-5695,5700-5701,5730-5731,5736-5737,5779-5780,5804-5805,5818-5819,5823-5824,5844-5845,5860-5861,5865-5866,5886-5887,5928-5929,5959-5960,5970-5971,5973-5974,5981-5982,5987-5988,5995-5996,6000-6001,6037-6038,6049-6050,6061-6062,6064-6065,6072-6073,6078-6079,6086-6087,6091-6092,6151-6152,6188-6189,6278-6279,6303-6304,6396-6397,6419-6420,6529-6530,6547-6548,6577-6578,6599-6600,6630-6631,6678-6679,6893-6894,6909-6910,6950-6951,7025-7026,7048-7049,7052-7053,7066-7067,7080-7081,7097-7098,7140-7141,7232-7233,7268-7269,7299-7300,7307-7308,7436-7437,7453-7454,7516-7517,7612-7613,7625-7626,7799-7800,7808-7809,7853-7854,7879-7880,7921-7922,8036-8037,8144-8145,8189-8190,8194-8195,8343-8344,8351-8352,8406-8407,8413-8414,8461-8462,8470-8471,8490-8491,8506-8507,8558-8559,8639-8640,8645-8646,8801-8802,8863-8864,8924-8925,8945-8946,8981-8982,9024-9025,9038-9039,9061-9062,9077-9078,9084-9085,9089-9090,9111-9112,9133-9134,9143-9144,9166-9167,9193-9194,9227-9228,9234-9235,9267-9268,9303-9304,9323-9324,9337-9338,9350-9351,9359-9360,9376-9377,9488-9489,9550-9551,9609-9610,9676-9677,9712-9713,9724-9725,9774-9775,9779-9780,9784-9785,9805-9806,9821-9822,9858-9859,9868-9869,9891-9892,9895-9896,9901-9902,9943-9944,9975-9976,9981-9982,9999-10000,10016-10017,10027-10028,10037-10038,10042-10043,10051-10052,10066-10067,10096-10097,10106-10107,10121-10122,10127-10128,10155-10156,10162-10163,10193-10194,10202-10203,10230-10231,10269-10270,10291-10292,10311-10312,10317-10318,10334-10335,10341-10342,10357-10358,10372-10373,10415-10416,10427-10428,10431-10432,10445-10446,10503-10504,10507-10508
+go/teams/loader2.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 64-65,520,839-840
+go/client/cmd_whoami.go
+  s_8cf28452dcf46d::t_4f23ae5fe1a64a 67
+go/tlfupgrade/tlfupgrade_test.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 22
+go/git/settings.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 87
+go/client/cmd_network_stats.go
+  s_8cf28452dcf46d::t_8118ca8567aa49 156
+go/chat/search/indexer.go
+  s_8cf28452dcf46d::t_8cdf8c8f52dbee 354,356,362
+go/engine/identify2_with_uid.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 279-280
+go/chat/storage/inbox.go
+  s_8cf28452dcf46d::t_7a7e026580d374 515-516
+go/teams/sig.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 101,103-104
+go/engine/paperkey_gen.go
+  s_8cf28452dcf46d::t_f50b81894d5508 196
+go/kbfs/kbfssync/leveled_mutex.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 181-182,305-306,443,449,453
+go/engine/background_task.go
+  s_8cf28452dcf46d::t_2b6209b47642bf 116-117
+go/libkb/secret_store_secretservice_test.go
+  s_8cf28452dcf46d::t_7c35a9b1b18980 137
+  s_8cf28452dcf46d::t_bab0e614a9b983 173
+go/libkb/saltpack.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 75-76,136
+go/stellar/stellarsvc/remote_mock_test.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 752,837,891
+go/engine/identify2_test.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 91,112,114-115,1123-1124,1302-1313,1328-1329,1371-1382
+go/libkb/keyfamily.go
+  s_8cf28452dcf46d::t_14e57fb1fa547d 436
+go/service/main.go
+  s_8cf28452dcf46d::t_a78daf0fbd5ea0 1537
+  s_8cf28452dcf46d::t_e32758e9e8850f 1509
+  s_8cf28452dcf46d::t_a52d7870e667e0 1494
+go/chat/search/md.go
+  s_8cf28452dcf46d::t_efa95c6e2222d7 6
+  s_8cf28452dcf46d::t_a57fe72aa1a649 52-54
+go/terminalescaper/escaper.go
+  s_8cf28452dcf46d::t_5790750921753d 117,169
+go/kbfs/kbpagesconfig/editor.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 32-33,45-46,50-51,57-58,76-77,93-94,108-109,118-119,135,200-201
+go/chat/unfurl/exemption.go
+  s_8cf28452dcf46d::t_1dc6d3e8bbaa43 18,55
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "d2352088b65b8184c65cb61ad6bc19f730f89815",
+  "prompts": {},
+  "sessions": {
+    "s_8cf28452dcf46d": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "cb418cae-c748-405b-bdb5-6b6df3325943",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
