@@ -117,7 +117,7 @@ func (c *initOrderCn) NewKeybaseService(
 		CryptPublicKey: idutil.MakeLocalUserCryptPublicKeyOrBust(name),
 		VerifyingKey:   idutil.MakeLocalUserVerifyingKeyOrBust(name),
 	}})
-	gated := gateOnKBFSInit(config, []rpc.Protocol{newGatedTestProtocol(&c.calls)})
+	gated := gateOnKBFSReady(config, []rpc.Protocol{newGatedTestProtocol(&c.calls)})
 	c.gated = gated[0].Methods["method"].Handler
 	c.callIntoKBFS()
 	return c.daemon, nil
@@ -156,7 +156,7 @@ func (c *initOrderCn) callIntoKBFS() {
 		ctx, keybase1.PaperKeyCachedArg{Uid: session.UID}))
 	require.NoError(t, c.daemon.LoggedOut(ctx))
 
-	// Requests get an error, or wait, until init finishes.
+	// Until init is ready, requests get an error or wait.
 	_, err = c.daemon.GetTLFCryptKeys(ctx, keybase1.TLFQuery{TlfName: "testuser"})
 	require.Equal(t, errKBFSNotInitialized{}, err)
 	waitCtx, cancel := context.WithTimeout(ctx, 20*time.Millisecond)

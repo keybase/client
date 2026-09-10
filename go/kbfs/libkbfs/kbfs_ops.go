@@ -53,6 +53,9 @@ type KBFSOpsStandard struct {
 	initDoneCh            <-chan struct{}
 	// initFailedCh is closed instead of initDoneCh if init fails.
 	initFailedCh chan struct{}
+	// initReadyCh is closed once config has what requests need, ahead of
+	// the slow tail of init (journaling).
+	initReadyCh chan struct{}
 
 	favs *Favorites
 
@@ -72,7 +75,10 @@ type KBFSOpsStandard struct {
 	initSyncCancel context.CancelFunc
 }
 
-var _ KBFSOps = (*KBFSOpsStandard)(nil)
+var (
+	_ KBFSOps        = (*KBFSOpsStandard)(nil)
+	_ kbfsInitWaiter = (*KBFSOpsStandard)(nil)
+)
 
 const longOperationDebugDumpDuration = time.Minute
 
@@ -85,7 +91,7 @@ const ctxKBFSOpsSkipEditHistoryBlock ctxKBFSOpsSkipEditHistoryBlockType = 1
 // NewKBFSOpsStandard constructs a new KBFSOpsStandard object.
 // `initDone` should be closed when the rest of initialization (such
 // as journal initialization) has completed. If it fails instead, call
-// initFailed.
+// initFailed. Call initReady as soon as config has what requests need.
 func NewKBFSOpsStandard(
 	appStateUpdater env.AppStateUpdater, config Config,
 	initDoneCh <-chan struct{},
@@ -101,6 +107,7 @@ func NewKBFSOpsStandard(
 		reIdentifyControlChan: make(chan chan<- struct{}),
 		initDoneCh:            initDoneCh,
 		initFailedCh:          make(chan struct{}),
+		initReadyCh:           make(chan struct{}),
 		favs:                  NewFavorites(config),
 		syncedTlfObservers:    newSyncedTlfObserverList(),
 		longOperationDebugDumper: NewImpatientDebugDumper(
@@ -112,26 +119,41 @@ func NewKBFSOpsStandard(
 	return kops
 }
 
-// initFailed tells anything in waitForInit that init won't finish.
+// initReady tells anything in waitForReady that config now has what requests
+// need, ahead of the rest of init.
+func (fs *KBFSOpsStandard) initReady() {
+	close(fs.initReadyCh)
+}
+
+// initFailed tells anything waiting on init that it won't finish.
 func (fs *KBFSOpsStandard) initFailed() {
 	close(fs.initFailedCh)
 }
 
-// waitForInit blocks until init has finished, and returns
-// errKBFSNotInitialized if it failed. A nil initDoneCh (KBFSOps built
-// outside init, as in tests) counts as finished.
-func (fs *KBFSOpsStandard) waitForInit(ctx context.Context) error {
+// waitForReady blocks until init has set up what requests need (initReady, or
+// init finishing), and returns errKBFSNotInitialized if init failed. A nil
+// initDoneCh (KBFSOps built outside init, as in tests) counts as ready.
+func (fs *KBFSOpsStandard) waitForReady(ctx context.Context) error {
 	if fs.initDoneCh == nil {
 		return nil
 	}
-	// Check for success first, so an already-canceled ctx can't win the
-	// select below when init has finished.
+	// Check in priority order first, so a failed init always errors and an
+	// already-canceled ctx can't win the select below.
 	select {
+	case <-fs.initFailedCh:
+		return errKBFSNotInitialized{}
+	default:
+	}
+	select {
+	case <-fs.initReadyCh:
+		return nil
 	case <-fs.initDoneCh:
 		return nil
 	default:
 	}
 	select {
+	case <-fs.initReadyCh:
+		return nil
 	case <-fs.initDoneCh:
 		return nil
 	case <-fs.initFailedCh:

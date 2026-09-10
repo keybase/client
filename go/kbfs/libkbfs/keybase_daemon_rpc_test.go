@@ -92,10 +92,11 @@ func TestKeybaseDaemonRPCGatesAdditionalProtocolsOnInit(t *testing.T) {
 	require.ErrorIs(t, err, context.DeadlineExceeded)
 	require.Zero(t, calls)
 
-	// Init finishing mid-wait lets the request through.
+	// Init becoming ready mid-wait lets the request through, without the
+	// rest of init having finished.
 	go func() {
 		time.Sleep(50 * time.Millisecond)
-		close(initDoneCh)
+		kbfsOps.initReady()
 	}()
 	readyCtx, readyCancel := context.WithTimeout(
 		context.Background(), 5*time.Second)
