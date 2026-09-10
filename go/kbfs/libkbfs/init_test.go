@@ -9,6 +9,7 @@ import (
 	"errors"
 	"net"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/kbconst"
 	"github.com/keybase/client/go/kbfs/env"
@@ -21,8 +22,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// initTestContext is the minimal Context doInit needs up to the point where
-// initOrderCn fails it.
+// initTestContext is the minimal Context doInit and NewKeybaseDaemonRPC need
+// in tests. It has no sockets, so connections just keep failing to dial.
 type initTestContext struct {
 	env.EmptyAppStateUpdater
 	env     *libkb.Env
@@ -30,6 +31,15 @@ type initTestContext struct {
 }
 
 var _ Context = (*initTestContext)(nil)
+
+func newInitTestContext(t *testing.T) *initTestContext {
+	return &initTestContext{
+		env: libkb.NewEnv(nil, nil, func() logger.Logger {
+			return logger.NewNull()
+		}),
+		dataDir: t.TempDir(),
+	}
+}
 
 var errNoSocket = errors.New("no socket in test")
 
@@ -68,30 +78,37 @@ func (c *initTestContext) BindToKBFSSocket() (net.Listener, error) {
 func (c *initTestContext) GetVDebugSetting() string  { return "" }
 func (c *initTestContext) GetPerfLog() logger.Logger { return logger.NewNull() }
 
-type shutdownRecorder struct {
-	KeybaseService
-	shutdown chan struct{}
-}
-
-func (s shutdownRecorder) Shutdown() {
-	close(s.shutdown)
-	s.KeybaseService.Shutdown()
+// newGatedTestProtocol returns a one-method protocol, standing in for
+// SimpleFS/git/fs, that counts the calls that reach its handler.
+func newGatedTestProtocol(calls *int) rpc.Protocol {
+	return rpc.Protocol{
+		Name: "gatedTest",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"method": {Handler: func(context.Context, any) (any, error) {
+				*calls++
+				return nil, nil
+			}},
+		},
+	}
 }
 
 var errInitTestCrypto = errors.New("crypto unavailable in test")
 
-// initOrderCn stands in for the service. NewChat runs right after init sets
-// the service, so it delivers what the live service can send at that point
-// while the rest of init is still to come. NewCrypto then fails init.
+// initOrderCn stands in for the service. Both while its connection is being
+// built and once init has set it, it calls into KBFS the way the live service
+// can while init is still running. NewCrypto then fails init.
 type initOrderCn struct {
-	t        *testing.T
-	daemon   *KeybaseDaemonRPC
-	shutdown chan struct{}
+	t      *testing.T
+	config Config
+	daemon *KeybaseDaemonRPC
+	gated  func(context.Context, any) (any, error)
+	calls  int
 }
 
 func (c *initOrderCn) NewKeybaseService(
 	config Config, _ InitParams, _ Context, log logger.Logger,
 ) (KeybaseService, error) {
+	c.config = config
 	name := kbname.NormalizedUsername("fake username")
 	c.daemon = newKeybaseDaemonRPC(config, nil, log)
 	c.daemon.fillClients(&fakeKeybaseClient{session: idutil.SessionInfo{
@@ -100,19 +117,16 @@ func (c *initOrderCn) NewKeybaseService(
 		CryptPublicKey: idutil.MakeLocalUserCryptPublicKeyOrBust(name),
 		VerifyingKey:   idutil.MakeLocalUserVerifyingKeyOrBust(name),
 	}})
-	return shutdownRecorder{c.daemon, c.shutdown}, nil
+	gated := gateOnKBFSInit(config, []rpc.Protocol{newGatedTestProtocol(&c.calls)})
+	c.gated = gated[0].Methods["method"].Handler
+	c.callIntoKBFS()
+	return c.daemon, nil
 }
 
 func (c *initOrderCn) NewChat(
 	config Config, _ InitParams, _ Context, _ logger.Logger,
 ) (Chat, error) {
-	ctx := context.Background()
-	require.NoError(c.t, c.daemon.ReachabilityChanged(
-		ctx, keybase1.Reachability{Reachable: keybase1.Reachable_NO}))
-	require.NoError(c.t, c.daemon.FavoritesChanged(ctx, keybase1.UID("")))
-	_, err := c.daemon.CurrentSession(ctx, 0)
-	require.NoError(c.t, err)
-	require.NoError(c.t, c.daemon.LoggedOut(ctx))
+	c.callIntoKBFS()
 	return newChatLocal(config), nil
 }
 
@@ -122,30 +136,68 @@ func (c *initOrderCn) NewCrypto(
 	return nil, errInitTestCrypto
 }
 
-// The service can call KBFS's handlers as soon as its connection is up, which
-// is before init finishes. KBFSOps and MDOps must already be set by then, and
-// a failed init must shut the connection down.
-func TestInitSetsUpKBFSBeforeService(t *testing.T) {
-	dataDir := t.TempDir()
-	kbCtx := &initTestContext{
-		env: libkb.NewEnv(nil, nil, func() logger.Logger {
-			return logger.NewNull()
-		}),
-		dataDir: dataDir,
+func (c *initOrderCn) callIntoKBFS() {
+	t := c.t
+	ctx := context.Background()
+	for _, r := range []keybase1.Reachable{
+		keybase1.Reachable_YES, keybase1.Reachable_NO,
+	} {
+		require.NoError(t, c.daemon.ReachabilityChanged(
+			ctx, keybase1.Reachability{Reachable: r}))
 	}
+	require.NoError(t, c.daemon.FavoritesChanged(ctx, keybase1.UID("")))
+	require.NoError(t, c.daemon.TeamChangedByID(ctx, keybase1.TeamChangedByIDArg{
+		Changes: keybase1.TeamChangeSet{Renamed: true},
+	}))
+	require.NoError(t, c.daemon.TeamAbandoned(ctx, keybase1.TeamID("")))
+	session, err := c.daemon.CurrentSession(ctx, 0)
+	require.NoError(t, err)
+	require.NoError(t, c.daemon.PaperKeyCached(
+		ctx, keybase1.PaperKeyCachedArg{Uid: session.UID}))
+	require.NoError(t, c.daemon.LoggedOut(ctx))
+
+	// Requests get an error, or wait, until init finishes.
+	_, err = c.daemon.GetTLFCryptKeys(ctx, keybase1.TLFQuery{TlfName: "testuser"})
+	require.Equal(t, errKBFSNotInitialized{}, err)
+	waitCtx, cancel := context.WithTimeout(ctx, 20*time.Millisecond)
+	defer cancel()
+	_, err = c.gated(waitCtx, nil)
+	require.ErrorIs(t, err, context.DeadlineExceeded)
+}
+
+// The service can call into KBFS as soon as its connection is up, which is
+// before init finishes. KBFSOps and MDOps must already be set by then, and
+// once init fails, requests must fail instead of waiting.
+func TestInitSetsUpKBFSBeforeService(t *testing.T) {
+	cn := &initOrderCn{t: t}
+	kbCtx := newInitTestContext(t)
+	initReturned := false
+	// Registered after TempDir, so it runs first and closes the favorites
+	// db before the directory is removed. Skipped if doInit stopped partway
+	// (a failed assertion), since the favorites Shutdown can then block.
+	t.Cleanup(func() {
+		if !initReturned {
+			return
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		require.NoError(t, cn.config.KBFSOps().Shutdown(ctx))
+	})
 	params := DefaultInitParams(kbCtx)
-	params.StorageRoot = dataDir
+	params.StorageRoot = kbCtx.dataDir
 	params.DiskCacheMode = DiskCacheModeOff
 	params.EnableJournal = false
 
-	cn := &initOrderCn{t: t, shutdown: make(chan struct{})}
 	_, err := doInit(
 		context.Background(), kbCtx, params, cn, logger.NewTestLogger(t), "test")
+	initReturned = true
 	require.ErrorContains(t, err, errInitTestCrypto.Error())
 
-	select {
-	case <-cn.shutdown:
-	default:
-		t.Fatal("init failed without shutting down the service connection")
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	_, err = cn.gated(ctx, nil)
+	require.Equal(t, errKBFSNotInitialized{}, err)
+	_, err = cn.daemon.GetTLFCryptKeys(ctx, keybase1.TLFQuery{TlfName: "testuser"})
+	require.Equal(t, errKBFSNotInitialized{}, err)
+	require.Zero(t, cn.calls)
 }
