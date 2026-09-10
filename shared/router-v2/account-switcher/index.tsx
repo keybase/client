@@ -36,7 +36,7 @@ const AccountSwitcher = (p: {onSelected?: () => void}) => {
     if (isMobile) {
       rememberAccountSwitchTab(you, username, C.Router2.getTab())
     }
-    setUserSwitching(true)
+    setUserSwitching(true, username)
     login(username, '')
   }
 

@@ -452,6 +452,33 @@ export function navigateAppend(path: NavigateAppendType, replace?: boolean): boo
   return true
 }
 
+// Push once the root stack has a `rootRouteName` route. For a push whose target lives in a
+// conditional root group that a store change is about to mount (e.g. the logged-out stack): a push
+// dispatched before the group mounts reaches no navigator that can handle it and is dropped. Gives
+// up after `timeoutMs` so a group that never mounts can't fire the push at some unrelated later time.
+export const navigateAppendOnceRootHas = (
+  rootRouteName: string,
+  path: NavigateAppendType,
+  timeoutMs = 5000
+) => {
+  const rootHas = () => getRootState()?.routes?.some(r => r.name === rootRouteName) ?? false
+  if (rootHas()) {
+    navigateAppend(path)
+    return
+  }
+  const n = _getNavigator()
+  if (!n) {
+    return
+  }
+  const timer = setTimeout(() => unsub(), timeoutMs)
+  const unsub = n.addListener('state', () => {
+    if (!rootHas()) return
+    clearTimeout(timer)
+    unsub()
+    navigateAppend(path)
+  })
+}
+
 export const switchTab = (name: Tabs.AppTab) => {
   if (DEBUG_NAV) {
     console.log('[Nav] switchTab', {name})

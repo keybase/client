@@ -6,6 +6,7 @@ import {
   consumePendingAccountSwitchTab,
   getMostRecentlyUsedAccount,
   rememberAccountSwitchTab,
+  showLoggedInScreens,
 } from './account-switch'
 
 const account = (username: string, hasStoredSecret = true) => ({
@@ -71,5 +72,26 @@ describe('pending account-switch tab', () => {
     rememberAccountSwitchTab('alice', 'bob', Tabs.loginTab)
 
     expect(consumePendingAccountSwitchTab('bob')).toBeUndefined()
+  })
+})
+
+describe('showLoggedInScreens', () => {
+  const state = (loggedIn: boolean, userSwitching = false, userSwitchingFromLoggedIn = false) => ({
+    loggedIn,
+    userSwitching,
+    userSwitchingFromLoggedIn,
+  })
+
+  test('follows loggedIn when no switch is running', () => {
+    expect(showLoggedInScreens(state(true))).toBe(true)
+    expect(showLoggedInScreens(state(false))).toBe(false)
+  })
+
+  test('holds the logged-in screens through the loggedIn flap of a switch that started logged in', () => {
+    expect(showLoggedInScreens(state(false, true, true))).toBe(true)
+  })
+
+  test('keeps the logged-out screens for a switch that started logged out', () => {
+    expect(showLoggedInScreens(state(false, true, false))).toBe(false)
   })
 })

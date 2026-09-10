@@ -265,7 +265,7 @@ function Tab(props: TabProps) {
         const accountRows = useConfigState.getState().configuredAccounts
         const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
         if (row) {
-          setUserSwitching(true)
+          setUserSwitching(true, row.username)
           login(row.username, '')
         } else {
           onSelectTab(tab)
