@@ -90,6 +90,19 @@ func TestKeybaseDaemonRPCNotificationsBeforeKBFSOps(t *testing.T) {
 	require.NoError(t, daemon.TeamAbandoned(ctx, keybase1.TeamID("")))
 	require.NoError(t, daemon.LoggedOut(ctx))
 
+	// Service-initiated requests get an error instead of a nil dereference.
+	query := keybase1.TLFQuery{TlfName: "testuser"}
+	_, err := daemon.GetTLFCryptKeys(ctx, query)
+	require.Equal(t, errKBFSNotInitialized{}, err)
+	_, err = daemon.GetPublicCanonicalTLFNameAndID(ctx, query)
+	require.Equal(t, errKBFSNotInitialized{}, err)
+	require.Equal(t, errKBFSNotInitialized{},
+		daemon.FSEditListRequest(ctx, keybase1.FSEditListRequest{}))
+	require.Equal(t, errKBFSNotInitialized{},
+		daemon.StartMigration(ctx, keybase1.Folder{}))
+	require.Equal(t, errKBFSNotInitialized{},
+		daemon.FinalizeMigration(ctx, keybase1.Folder{}))
+
 	// The logged-in flow is deferred, not dropped: the session stays
 	// uncached until KBFSOps is set, and the next lookup runs it.
 	testCurrentSession(t, client, daemon, session, expectCall)
