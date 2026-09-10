@@ -94,7 +94,7 @@ func (e *DeviceHistory) loadDevices(m libkb.MetaContext, user *libkb.User) error
 	}
 
 	for _, d := range ckf.GetAllDevices() {
-		exp := keybase1.DeviceDetail{Device: *(d.ProtExportWithDeviceNum())}
+		exp := keybase1.DeviceDetail{Device: *d.ProtExportWithDeviceNum()}
 		cki, ok := ckis.Infos[d.Kid]
 		if !ok {
 			return fmt.Errorf("no ComputedKeyInfo for device %s, kid %s", d.ID, d.Kid)

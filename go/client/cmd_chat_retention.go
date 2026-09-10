@@ -313,5 +313,5 @@ func (c *CmdChatSetRetention) parseExpireAgeLimited(s string) (gregor1.DurationS
 }
 
 func (c *CmdChatSetRetention) println(dui libkb.DumbOutputUI, format string, args ...any) {
-	dui.Printf(fmt.Sprintf(format, args...) + "\n")
+	_, _ = dui.Printf("%s\n", fmt.Sprintf(format, args...))
 }

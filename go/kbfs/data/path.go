@@ -48,7 +48,7 @@ func (p Path) IsValidForNotification() bool {
 		return false
 	}
 
-	if p.Tlf == (tlf.NullID) {
+	if p.Tlf == tlf.NullID {
 		return false
 	}
 

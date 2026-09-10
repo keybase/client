@@ -121,8 +121,7 @@ func genClientConfigForInternalAPI(g *GlobalContext) (*ClientConfig, error) {
 			err = fmt.Errorf("In parsing CAs for %s: %s", host, err)
 			return nil, err
 		}
-		g.Log.Debug(fmt.Sprintf("Using special root CA for %s: %s",
-			host, ShortCA(rawCA)))
+		g.Log.Debug("Using special root CA for %s: %s", host, ShortCA(rawCA))
 	}
 
 	// If we're using proxies, they might have their own CAs.
@@ -163,7 +162,6 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) (*Client
 	dialer := net.Dialer{
 		Timeout:   30 * time.Second,
 		KeepAlive: 30 * time.Second,
-		DualStack: true,
 	}
 	xprt := http.Transport{
 		// Don't change this without re-testing proxy support. Currently the client supports proxies through

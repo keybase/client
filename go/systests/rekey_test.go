@@ -800,7 +800,7 @@ func (rkt *rekeyTester) confirmRekeyDismiss(dw *deviceWrapper) {
 
 func (rkt *rekeyTester) isGregorStateEmpty() (ret bool) {
 	rkt.log.Debug("+ isGregorStateEmpty")
-	defer func() { rkt.log.Debug(fmt.Sprintf("- isGregorStateEmpty -> %v", ret)) }()
+	defer func() { rkt.log.Debug("- isGregorStateEmpty -> %v", ret) }()
 	state, err := rkt.primaryDevice().gregorClient.GetState(context.TODO())
 	if err != nil {
 		rkt.log.Warning("failed to query gregor state: %s", err)

@@ -1491,7 +1491,7 @@ func (d *Service) tryLogin(ctx context.Context, mode libkb.LoginAttempt) {
 func (d *Service) startProfile() {
 	cpu := os.Getenv("KEYBASE_CPUPROFILE")
 	if cpu != "" {
-		f, err := os.Create(cpu)
+		f, err := os.Create(cpu) //nolint:gosec // G703: path is KEYBASE_CPUPROFILE from the environment
 		if err != nil {
 			d.G().Log.Warning("error creating cpu profile: %s", err)
 		} else {
@@ -1506,7 +1506,7 @@ func (d *Service) startProfile() {
 
 	tr := os.Getenv("KEYBASE_SVCTRACE")
 	if tr != "" {
-		f, err := os.Create(tr)
+		f, err := os.Create(tr) //nolint:gosec // G703: path is KEYBASE_SVCTRACE from the environment
 		if err != nil {
 			d.G().Log.Warning("error creating service trace: %s", err)
 		} else {
@@ -1534,7 +1534,7 @@ func (d *Service) stopProfile() {
 	if mem == "" {
 		return
 	}
-	f, err := os.Create(mem)
+	f, err := os.Create(mem) //nolint:gosec // G703: path is KEYBASE_MEMPROFILE from the environment
 	if err != nil {
 		d.G().Log.Warning("could not create memory profile: %s", err)
 		return

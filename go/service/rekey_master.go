@@ -576,7 +576,7 @@ func (r *RekeyHandler2) DebugShowRekeyStatus(ctx context.Context, sessionID int)
 	devices := me.GetComputedKeyFamily().GetAllActiveDevices()
 	arg.ProblemSetDevices.Devices = make([]keybase1.Device, len(devices))
 	for i, dev := range devices {
-		arg.ProblemSetDevices.Devices[i] = *(dev.ProtExport())
+		arg.ProblemSetDevices.Devices[i] = *dev.ProtExport()
 	}
 
 	rekeyUI, err := r.G().UIRouter.GetRekeyUINoSessionID()
@@ -668,7 +668,7 @@ func newProblemSetDevices(u *libkb.User, pset keybase1.ProblemSet) (keybase1.Pro
 				continue
 			}
 			dset[dev.ID] = true
-			set.Devices = append(set.Devices, *(dev.ProtExport()))
+			set.Devices = append(set.Devices, *dev.ProtExport())
 		}
 	}
 	return set, nil

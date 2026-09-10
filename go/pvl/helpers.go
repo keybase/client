@@ -126,7 +126,7 @@ func validateDomain(s string) bool {
 		}
 	}
 
-	ok := (u.IsAbs()) &&
+	ok := u.IsAbs() &&
 		(u.Scheme == proto) &&
 		(u.User == nil) &&
 		(u.Path == "") &&

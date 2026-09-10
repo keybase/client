@@ -98,7 +98,7 @@ func getGUIFileContext(contentTypeRaw, contentDispositionRaw string) (
 	case contentTypeProcessed == "application/pdf":
 		viewType = keybase1.GUIViewType_PDF
 	default:
-		viewType = (keybase1.GUIViewType_DEFAULT)
+		viewType = keybase1.GUIViewType_DEFAULT
 	}
 
 	return viewType, strconv.Itoa(int(viewType))
@@ -106,7 +106,7 @@ func getGUIFileContext(contentTypeRaw, contentDispositionRaw string) (
 
 func getGUIInvarianceFromHTTPHeader(header http.Header) (invariance string) {
 	contentTypeRaw := header.Get("Content-Type")
-	contentDispositionRaw := (header.Get("Content-Disposition"))
+	contentDispositionRaw := header.Get("Content-Disposition")
 	_, invariance = getGUIFileContext(contentTypeRaw, contentDispositionRaw)
 	return invariance
 }

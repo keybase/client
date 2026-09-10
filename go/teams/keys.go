@@ -284,7 +284,7 @@ func (t *TeamKeyManager) recipientBox(secret keybase1.PerTeamKeySeed, nonce *non
 	}
 
 	nonceBytes, nonceCounter := nonce.Nonce()
-	ctext := box.Seal(nil, secret[:], &nonceBytes, ((*[32]byte)(&recipientPerUserNaclKeypair.Public)), ((*[32]byte)(senderKey.Private)))
+	ctext := box.Seal(nil, secret[:], &nonceBytes, (*[32]byte)(&recipientPerUserNaclKeypair.Public), (*[32]byte)(senderKey.Private))
 
 	boxStruct := PerTeamSharedSecretBox{
 		Version:         libkb.SharedTeamKeyBoxVersion1,

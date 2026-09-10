@@ -623,7 +623,7 @@ func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkl
 		return err
 	}
 
-	numPostProbes, maxMerkleProbe, postProbeTuples, err := a.doPostProbes(m, history, newAuditIndex, headMerkleSeqno, *(lastMerkleRoot.Seqno()), chain, hiddenChain, maxChainSeqno, maxHiddenSeqno, auditMode)
+	numPostProbes, maxMerkleProbe, postProbeTuples, err := a.doPostProbes(m, history, newAuditIndex, headMerkleSeqno, *lastMerkleRoot.Seqno(), chain, hiddenChain, maxChainSeqno, maxHiddenSeqno, auditMode)
 	if err != nil {
 		history.PostProbesToRetry = getMerkleSeqnosFromProbes(postProbeTuples)
 		err2 := a.putToCache(m, id, lru, history)

@@ -3,6 +3,7 @@ package search
 import (
 	"context"
 	"fmt"
+	"math"
 	"sync"
 	"unsafe"
 
@@ -48,6 +49,9 @@ func (m *indexMetadata) dup() (res *indexMetadata) {
 func (m *indexMetadata) Size() int64 {
 	size := unsafe.Sizeof(m.Version)
 	size += uintptr(len(m.SeenIDs)) * unsafe.Sizeof(chat1.MessageID(0))
+	if size > math.MaxInt64 {
+		return math.MaxInt64
+	}
 	return int64(size)
 }
 

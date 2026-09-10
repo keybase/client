@@ -20,7 +20,7 @@ type dktest struct {
 	lkey       string
 }
 
-var dktests = []dktest{
+var dktests = []dktest{ //nolint:gosec // G101: scrypt test vectors, not live credentials
 	{
 		name:       "simple 1",
 		passphrase: "my passphrase",

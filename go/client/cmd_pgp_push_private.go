@@ -52,9 +52,8 @@ func parsePGPFingerprints(ctx *cli.Context) ([]keybase1.PGPFingerprint, error) {
 func (v *CmdPGPPushPrivate) Run() (err error) {
 	if !v.force {
 		dui := v.G().UI.GetDumbOutputUI()
-		dui.Printf(
-			ColorString(v.G(), "bold", "PLEASE READ THIS CAREFULLY -- PRIVATE KEYS ARE AT STAKE!") + "\n" +
-				`
+		msg := ColorString(v.G(), "bold", "PLEASE READ THIS CAREFULLY -- PRIVATE KEYS ARE AT STAKE!") + "\n" +
+			`
   This command will export PGP ` + ColorString(v.G(), "bold", "private") + ` keys from GnuPG and write them
   to KBFS, in your private directory under .keys/pgp. After the operation
   completes, they will be available on all of your Keybase devices, on which
@@ -63,7 +62,8 @@ func (v *CmdPGPPushPrivate) Run() (err error) {
   all uploads are encrypted for all of your devices using device keys and therefore
   are not susceptible to brute-force passphrase guessing attacks. An attacker
   would need access to one of your unlocked Keybase devices to access your PGP
-  private key.` + "\n\n")
+  private key.` + "\n\n"
+		dui.Printf("%s", msg)
 		err = v.G().UI.GetTerminalUI().PromptForConfirmation("Really push your PGP private key to KBFS?")
 		if err != nil {
 			return err

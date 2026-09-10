@@ -159,7 +159,7 @@ func renderBotSettings(g *libkb.GlobalContext, username string, convID *chat1.Co
 		if err != nil {
 			return err
 		}
-		dui.Printf(strings.Join(convNames, "\n\t"))
+		dui.Printf("%s", strings.Join(convNames, "\n\t"))
 	}
 	dui.Printf("\n")
 	return nil

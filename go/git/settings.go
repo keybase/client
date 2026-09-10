@@ -84,7 +84,7 @@ func SetTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, arg keybas
 	}
 	apiArg.Args["chat_disabled"] = libkb.B{Val: arg.ChatDisabled}
 
-	if arg.ChannelName != nil && *(arg.ChannelName) != "" {
+	if arg.ChannelName != nil && *arg.ChannelName != "" {
 		// lookup the conv id for the channel name
 		vis := keybase1.TLFVisibility_PRIVATE
 		if arg.Folder.FolderType == keybase1.FolderType_PUBLIC {

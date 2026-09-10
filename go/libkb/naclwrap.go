@@ -578,7 +578,7 @@ func (k NaclDHKeyPair) Encrypt(msg []byte, sender *NaclDHKeyPair) (*NaclEncrypti
 	}
 
 	var ctext []byte
-	ctext = box.Seal(ctext, msg, &nonce, ((*[32]byte)(&k.Public)), ((*[32]byte)(sender.Private)))
+	ctext = box.Seal(ctext, msg, &nonce, (*[32]byte)(&k.Public), (*[32]byte)(sender.Private))
 	ret := &NaclEncryptionInfo{
 		Ciphertext:     ctext,
 		EncryptionType: kbcrypto.KIDNaclDH,
@@ -742,7 +742,7 @@ func (k NaclDHKeyPair) Decrypt(nei *NaclEncryptionInfo) (plaintext []byte, sende
 	}
 
 	if plaintext, ok = box.Open(plaintext, nei.Ciphertext, &nonce,
-		((*[32]byte)(&senderDH.Public)), ((*[32]byte)(k.Private))); !ok {
+		(*[32]byte)(&senderDH.Public), (*[32]byte)(k.Private)); !ok {
 		err = DecryptOpenError{}
 		return
 	}

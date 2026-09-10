@@ -209,12 +209,14 @@ func (f *Folder) invalidateNodeDataRange(node fs.Node, write libkbfs.WriteRange)
 	if file, ok := node.(*File); ok {
 		file.eiCache.destroy()
 	}
-	off := int64(write.Off)
-	size := int64(write.Len)
+	var off, size int64
 	if write.Off > math.MaxInt64 || write.Len > math.MaxInt64 {
 		// out of bounds, just invalidate all data
 		off = 0
 		size = -1
+	} else {
+		off = int64(write.Off)
+		size = int64(write.Len)
 	}
 	if write.Len == 0 {
 		// truncate, invalidate all data in the now-lost tail

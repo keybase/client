@@ -202,7 +202,7 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 	}
 	provisionee := NewKex2Provisionee(m.G(), device, secret.Secret(), uid, salt)
 
-	var canceler func()
+	contxt, canceler := context.WithCancel(context.Background())
 
 	// display secret and prompt for secret from X in a goroutine:
 	go func() {
@@ -212,8 +212,6 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 			Phrase:          secret.Phrase(),
 			OtherDeviceType: provisionerType,
 		}
-		var contxt context.Context
-		contxt, canceler = context.WithCancel(context.Background())
 		for i := range 10 {
 			receivedSecret, err := m.UIs().ProvisionUI.DisplayAndPromptSecret(contxt, arg)
 			if err != nil {

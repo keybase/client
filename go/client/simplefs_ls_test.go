@@ -12,7 +12,7 @@ import (
 
 func testLSSortByName(t *testing.T, expectedOrder []string) {
 	listings := make([]Listing, len(expectedOrder))
-	perm := rand.Perm(len(expectedOrder))
+	perm := rand.Perm(len(expectedOrder)) //nolint:gosec // G404: shuffling test fixtures, not crypto
 	for i, v := range perm {
 		listings[v] = Listing{
 			name: expectedOrder[i],

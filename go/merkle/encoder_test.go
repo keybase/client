@@ -8,17 +8,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func dummy(i int) []byte {
-	return bytes.Repeat([]byte{byte(i)}, 32)
+func dummy(i byte) []byte {
+	return bytes.Repeat([]byte{i}, 32)
 }
 
-func dummy16(i int) (ret [16]byte) {
+func dummy16(i byte) (ret [16]byte) {
 	x := dummy(i)
 	copy(ret[:], x)
 	return ret
 }
 
-func dummy32(i int) (ret [32]byte) {
+func dummy32(i byte) (ret [32]byte) {
 	x := dummy(i)
 	copy(ret[:], x)
 	return ret

@@ -718,4 +718,4 @@ type UnboxingError interface {
 	ToStatus() keybase1.Status
 }
 
-var _ error = (UnboxingError)(nil)
+var _ error = UnboxingError(nil)

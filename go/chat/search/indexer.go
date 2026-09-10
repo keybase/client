@@ -351,14 +351,15 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 		// Keep the shutdown goroutine self-contained. Start waits on stoppingCh,
 		// so these remain the old run's store and loops.
 		store, eg := idx.store, idx.eg
+		stopCtx := context.WithoutCancel(ctx)
 		go func() {
-			idx.Debug(context.Background(), "Stop: waiting for shutdown")
+			idx.Debug(stopCtx, "Stop: waiting for shutdown")
 			if eg != nil {
 				// nil when nothing ever started a loop, which only a test does
 				_ = eg.Wait()
 			}
 			store.ClearMemory()
-			idx.Debug(context.Background(), "Stop: shutdown complete")
+			idx.Debug(stopCtx, "Stop: shutdown complete")
 			idx.Lock()
 			if idx.stoppingCh == ch {
 				idx.stoppingCh = nil

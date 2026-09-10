@@ -421,7 +421,7 @@ type delivererBackgroundTaskError struct {
 	Typ string
 }
 
-var _ (DelivererInfoError) = (*delivererBackgroundTaskError)(nil)
+var _ DelivererInfoError = (*delivererBackgroundTaskError)(nil)
 
 func (e delivererBackgroundTaskError) Error() string {
 	return fmt.Sprintf("%s in progress", e.Typ)
@@ -509,7 +509,7 @@ func (e unfurlError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 	return chat1.OutboxErrorType_MISC, e.status == types.UnfurlerTaskStatusPermFailed
 }
 
-var _ (DelivererInfoError) = (*unfurlError)(nil)
+var _ DelivererInfoError = (*unfurlError)(nil)
 
 func (s *Deliverer) processUnfurl(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
 	if !obr.IsUnfurl() {

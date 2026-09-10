@@ -276,8 +276,8 @@ type Identify2WithUID struct {
 }
 
 var (
-	_ (Engine2)                      = (*Identify2WithUID)(nil)
-	_ (libkb.CheckCompletedListener) = (*Identify2WithUID)(nil)
+	_ Engine2                      = (*Identify2WithUID)(nil)
+	_ libkb.CheckCompletedListener = (*Identify2WithUID)(nil)
 )
 
 // Name is the unique engine name.

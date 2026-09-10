@@ -67,7 +67,7 @@ func (c *CmdPassphraseRemember) Run() error {
 
 		if c.json {
 			dui := c.G().UI.GetDumbOutputUI()
-			_, err = dui.Printf(strconv.FormatBool(currentVal) + "\n")
+			_, err = dui.Printf("%s\n", strconv.FormatBool(currentVal))
 			return err
 		}
 

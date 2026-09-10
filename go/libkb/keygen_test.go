@@ -103,7 +103,7 @@ func TestCreateIds(t *testing.T) {
 		for _, id := range pids {
 			bundleID, ok := bundle.Identities[id.Id]
 			require.True(t, ok, "%s: no bundle identity found for %q", test.name, id.Id)
-			require.Equal(t, *id, *(bundleID.UserId), "%s: bundle UserId = %+v, expected %+v", test.name, bundleID.UserId, id)
+			require.Equal(t, *id, *bundleID.UserId, "%s: bundle UserId = %+v, expected %+v", test.name, bundleID.UserId, id)
 		}
 	}
 }

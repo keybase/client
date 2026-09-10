@@ -296,7 +296,7 @@ func (c *FullCachingSource) specLoad(m libkb.MetaContext, names []string, format
 				lp.path = c.normalizeFilenameFromCache(m, entry.Path)
 				lp.remoteURL = entry.URL
 				var file *os.File
-				if file, err = os.Open(lp.path); err != nil {
+				if file, err = os.Open(lp.path); err != nil { //nolint:gosec // G703: path comes from our disk LRU, not request input
 					c.debug(m, "specLoad: error loading hit: file: %s err: %s", lp.path, err)
 					if err := c.diskLRU.Remove(m.Ctx(), m.G(), key); err != nil {
 						c.debug(m, "specLoad: unable to remove from LRU %v", err)

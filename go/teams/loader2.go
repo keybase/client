@@ -61,7 +61,8 @@ func (l *TeamLoader) fillInStubbedLinks(mctx libkb.MetaContext,
 	for _, link := range newLinks {
 		if link.isStubbed() {
 			return state, proofSet, parentChildOperations, NewStubbedErrorWithNote(
-				link, "filling stubbed link")
+				link, "filling stubbed link",
+			)
 		}
 
 		var signer *SignerX
@@ -516,7 +517,7 @@ func (l *TeamLoader) toParentChildOperation(ctx context.Context,
 		if link.inner.Body.Team.Name == nil {
 			return nil, fmt.Errorf("parent-child operation %v missing new name", link.LinkType())
 		}
-		newName, err := keybase1.TeamNameFromString((string)(*link.inner.Body.Team.Name))
+		newName, err := keybase1.TeamNameFromString(string(*link.inner.Body.Team.Name))
 		if err != nil {
 			return nil, fmt.Errorf("parent-child operation %v has invalid new name: %v",
 				link.LinkType(), *link.inner.Body.Team.Name)
@@ -835,7 +836,8 @@ func (l *TeamLoader) addSecrets(mctx libkb.MetaContext,
 			}
 			if _, ok := state.ReaderKeyMasks[rkm.Application]; !ok {
 				state.ReaderKeyMasks[rkm.Application] = make(
-					map[keybase1.PerTeamKeyGeneration]keybase1.MaskB64)
+					map[keybase1.PerTeamKeyGeneration]keybase1.MaskB64,
+				)
 			}
 			state.ReaderKeyMasks[rkm.Application][rkm.Generation] = rkm.Mask
 

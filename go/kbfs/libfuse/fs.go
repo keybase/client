@@ -317,7 +317,7 @@ func (f *FS) WithContext(ctx context.Context) context.Context {
 				//
 				// It should be safe to ignore the CancelFunc here because our
 				// parent context will be canceled by the FUSE serve loop.
-				ctx, _ = context.WithDeadline(ctx, start.Add(19*time.Second)) //nolint:govet // lostcancel: Parent context will be canceled by FUSE serve loop
+				ctx, _ = context.WithDeadline(ctx, start.Add(19*time.Second)) //nolint:govet,gosec // G118: parent context is canceled by FUSE serve loop
 			}
 
 			return ctx

@@ -61,7 +61,7 @@ func (f *JSONFile) Load(warnOnNotFound bool) error {
 		if warnOnNotFound {
 			f.G().Log.Warning(msg)
 		} else {
-			f.G().Log.Debug(msg)
+			f.G().Log.Debug("%s", msg)
 		}
 	}
 	return nil
@@ -302,7 +302,7 @@ func (f *JSONFile) save() (err error) {
 			f.G().Log.Debug("error marshaling for log dump: %s", err)
 		} else {
 			f.G().Log.Debug("data written to %s:", filename)
-			f.G().Log.Debug(string(encodedForLog))
+			f.G().Log.Debug("%s", encodedForLog)
 		}
 
 		// load the file and dump its contents to the log

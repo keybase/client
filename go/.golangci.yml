@@ -8,9 +8,9 @@ formatters:
   exclusions:
     generated: lax
     paths:
-      - prot.go
-      - cmd_wallet.*.go
-      - protocol
+      - prot.go # AVDL-generated protocol bindings
+      - cmd_wallet.*.go # Stellar wallet CLI commands
+      - protocol # Generated RPC protocol package
       - third_party$
       - builtin$
       - kbfs/dokan # Windows-specific FUSE implementation, not maintained
@@ -23,15 +23,16 @@ formatters:
 linters:
   exclusions:
     generated: lax
+    # golangci-lint built-in exclusion presets (common false positives).
     presets:
-      - comments
-      - common-false-positives
-      - legacy
-      - std-error-handling
+      - comments # Missing comments on exported identifiers
+      - common-false-positives # Known noisy checks across linters
+      - legacy # Deprecated default exclusions kept for compatibility
+      - std-error-handling # Unchecked errors on Close/Flush/stdout/stderr
     paths:
-      - prot.go
-      - cmd_wallet.*.go
-      - protocol
+      - prot.go # AVDL-generated protocol bindings
+      - cmd_wallet.*.go # Stellar wallet CLI commands
+      - protocol # Generated RPC protocol package
       - third_party$
       - builtin$
       - examples$
@@ -40,6 +41,14 @@ linters:
       - kbfs/libdokan # Windows-specific FUSE implementation, not maintained
       - kbfs/test/engine_fs_test.go # Test framework - interface methods required even if unused
       - kbfs/libkbfs/protected_context.go # Test hook - method overridden in tests
+    rules:
+      # Tests only: gosec is noisy on fixtures, temp paths, and non-crypto RNG.
+      - path: _test\.go$
+        text: "G101:" # Look for hardcoded credentials
+      - path: _test\.go$
+        text: "G703:" # Path traversal via taint analysis
+      - path: _test\.go$
+        text: "G404:" # Insecure random number source (rand)
   enable:
     - gocritic
     - unconvert
@@ -57,37 +66,45 @@ linters:
   settings:
     gocritic:
       disabled-checks:
-        - ifElseChain
-        - elseif
+        - ifElseChain # Long if-else chains should be rewritten as switch
+        - elseif # Nested if should be merged into else-if
+
+    gosec:
+      # These exploded after the gosec upgrade with mostly false positives
+      # (protocol enum conversions, fire-and-forget goroutines, SSA slice indexes).
+      excludes:
+        - G115 # Type conversion which leads to integer overflow
+        - G118 # Context propagation failure leading to goroutine/resource leaks
+        - G602 # Possible slice bounds out of range
 
     govet:
       enable-all: true
       disable:
-        - shadow
-        - fieldalignment
+        - shadow # Declaration of a variable that shadows another
+        - fieldalignment # Struct fields are not aligned for minimal size
 
     staticcheck:
       checks:
         - 'all'
-        - '-ST1000' # Disable package comment requirement - too many to fix
-        - '-ST1003' # Disable naming conventions (Db vs DB, etc.) - too many to fix
-        - '-ST1005' # Disable capitalized error string check (style preference)
-        - '-ST1016' # Disable inconsistent receiver names - too many to fix
-        - '-ST1020' # Disable comment format requirement - too many to fix
+        - '-ST1000' # Incorrect or missing package comment
+        - '-ST1003' # Poorly chosen identifier (Db vs DB, etc.)
+        - '-ST1005' # Incorrectly formatted error string
+        - '-ST1016' # Use consistent method receiver names
+        - '-ST1020' # The documentation of an exported function should start with the function name
 
     revive:
       enable-all-rules: false
       rules:
         # Disabled rules
-        - name: unused-parameter
+        - name: unused-parameter # Function parameter is unused
           disabled: true
-        - name: error-strings
+        - name: error-strings # Error strings should not be capitalized or end with punctuation
           disabled: true
-        - name: exported
+        - name: exported # Exported identifier should have a comment
           disabled: true
-        - name: package-comments
+        - name: package-comments # Package should have a package comment
           disabled: true
-        - name: var-naming
+        - name: var-naming # Variable naming does not match initialisms / style
           disabled: true
 
         # Enabled rules

@@ -29,7 +29,8 @@ func newKBPConfigEditorWithPrompter(kbpConfigDir string, p prompter) (
 		cfg, editor.originalConfigStr, err = readConfigAndClose(f)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"reading config file %s error: %v", kbpConfigPath, err)
+				"reading config file %s error: %v", kbpConfigPath, err,
+			)
 		}
 		switch cfg.Version() {
 		case config.Version1:
@@ -41,17 +42,20 @@ func newKBPConfigEditorWithPrompter(kbpConfigDir string, p prompter) (
 			if needsUpgrade {
 				return nil, errors.New(
 					"config has bcrypt password hashes. Please run " +
-						"`kbpagesconfig upgrade` to migrate to sha256")
+						"`kbpagesconfig upgrade` to migrate to sha256",
+				)
 			}
 		default:
 			return nil, fmt.Errorf(
-				"unsupported config version %s", cfg.Version())
+				"unsupported config version %s", cfg.Version(),
+			)
 		}
 	case os.IsNotExist(err):
 		editor.kbpConfig = config.DefaultV1()
 	default:
 		return nil, fmt.Errorf(
-			"open file %s error: %v", kbpConfigPath, err)
+			"open file %s error: %v", kbpConfigPath, err,
+		)
 	}
 	return editor, nil
 }
@@ -69,7 +73,8 @@ func (e *kbpConfigEditor) confirmAndWrite() error {
 		return fmt.Errorf("new config would not be valid: %v", err)
 	}
 	return confirmAndWrite(
-		e.originalConfigStr, e.kbpConfig, e.kbpConfigPath, e.prompter)
+		e.originalConfigStr, e.kbpConfig, e.kbpConfigPath, e.prompter,
+	)
 }
 
 func (e *kbpConfigEditor) setUser(username string, isAdd bool) error {
@@ -85,7 +90,8 @@ func (e *kbpConfigEditor) setUser(username string, isAdd bool) error {
 			"a password. Since we use a fast hash function for password "+
 			"hashing, we recommend generating random passwords with enough "+
 			"entropy. Would you like to generate a random password now "+
-			"(recommended)?", username), true)
+			"(recommended)?", username,
+	), true)
 	if err != nil {
 		return fmt.Errorf("getting confirmation error: %v", err)
 	}
@@ -99,7 +105,8 @@ func (e *kbpConfigEditor) setUser(username string, isAdd bool) error {
 			"Here's the password for %s:\n\n\t%s\n\n"+
 				"This is the only time you'll see it, so please write it "+
 				"down or give it to %s. Continue?",
-			username, password, username), false)
+			username, password, username,
+		), false)
 		if err != nil {
 			return fmt.Errorf("getting confirmation error: %v", err)
 		}
@@ -108,7 +115,8 @@ func (e *kbpConfigEditor) setUser(username string, isAdd bool) error {
 		}
 	} else {
 		input, err := e.prompter.PromptPassword(fmt.Sprintf(
-			"enter a password for %s: ", username))
+			"enter a password for %s: ", username,
+		))
 		if err != nil {
 			return fmt.Errorf("getting password error: %v", err)
 		}
@@ -124,7 +132,7 @@ func (e *kbpConfigEditor) setUser(username string, isAdd bool) error {
 	if e.kbpConfig.Users == nil {
 		e.kbpConfig.Users = make(map[string]string)
 	}
-	e.kbpConfig.Users[username] = (hashed)
+	e.kbpConfig.Users[username] = hashed
 	return nil
 }
 
@@ -189,7 +197,8 @@ func (e *kbpConfigEditor) getUserPermissionsOnPath(
 	username string, pathStr string,
 ) (read, list bool, err error) {
 	read, list, _, _, _, err = e.kbpConfig.GetPermissions(
-		pathStr, &username)
+		pathStr, &username,
+	)
 	return read, list, err
 }
 

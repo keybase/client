@@ -749,7 +749,7 @@ func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post s
 		b = r.addAccountByID(caller.Uid, extract.To, false)
 	}
 	a.SubtractBalance(extract.Amount)
-	a.AdjustBalance(-(int64(unpackedTx.Tx.Fee)))
+	a.AdjustBalance(-int64(unpackedTx.Tx.Fee))
 	b.AddBalance(extract.Amount)
 
 	summary := stellar1.NewPaymentSummaryWithDirect(stellar1.PaymentSummaryDirect{
@@ -834,7 +834,7 @@ func (r *BackendMock) SubmitRelayPayment(ctx context.Context, tc *TestContext, p
 	}
 	b := r.addAccountByID(caller.Uid, extract.To, false)
 	a.SubtractBalance(extract.Amount)
-	a.AdjustBalance(-(int64(unpackedTx.Tx.Fee)))
+	a.AdjustBalance(-int64(unpackedTx.Tx.Fee))
 	b.AddBalance(extract.Amount)
 
 	summary := stellar1.NewPaymentSummaryWithRelay(stellar1.PaymentSummaryRelay{
@@ -888,7 +888,7 @@ func (r *BackendMock) SubmitRelayClaim(ctx context.Context, tc *TestContext, pos
 	if amt, _ := stellarnet.ParseStellarAmount(a.balance.Amount); amt == 0 {
 		return res, fmt.Errorf("claim source account has zero balance: %v", a.accountID)
 	}
-	a.AdjustBalance(-(int64(unpackedTx.Tx.Fee)))
+	a.AdjustBalance(-int64(unpackedTx.Tx.Fee))
 	b.AdjustBalance(a.ZeroBalance())
 
 	caller, err := tc.G.GetMeUV(ctx)

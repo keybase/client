@@ -234,7 +234,11 @@ func (m *TlfMock) getTlfID(cname keybase1.CanonicalTlfName) (keybase1.TLFID, err
 		}
 		tlfID = m.newTLFID()
 		m.world.tlfs[cname] = tlfID
-		m.world.tlfKeys[cname] = mustGetRandCryptKeys(byte(len(m.world.tlfKeys) + 1))
+		n := len(m.world.tlfKeys) + 1
+		if n > 255 {
+			return "", fmt.Errorf("too many mock TLFs")
+		}
+		m.world.tlfKeys[cname] = mustGetRandCryptKeys(byte(n))
 	}
 	return keybase1.TLFID(hex.EncodeToString([]byte(tlfID))), nil
 }
@@ -1655,10 +1659,15 @@ func (f *MockUIRouter) GetIdentifyUI() (libkb.IdentifyUI, error) { return nil, n
 func (f *MockUIRouter) GetIdentifyUICtx(ctx context.Context) (int, libkb.IdentifyUI, error) {
 	return 0, nil, nil
 }
-func (f *MockUIRouter) GetSecretUI(sessionID int) (libkb.SecretUI, error)         { return nil, nil }
-func (f *MockUIRouter) GetRekeyUI() (keybase1.RekeyUIInterface, int, error)       { return nil, 0, nil }
+
+func (f *MockUIRouter) GetSecretUI(sessionID int) (libkb.SecretUI, error) { return nil, nil }
+
+func (f *MockUIRouter) GetRekeyUI() (keybase1.RekeyUIInterface, int, error) { return nil, 0, nil }
+
 func (f *MockUIRouter) GetRekeyUINoSessionID() (keybase1.RekeyUIInterface, error) { return nil, nil }
-func (f *MockUIRouter) GetHomeUI() (keybase1.HomeUIInterface, error)              { return nil, nil }
+
+func (f *MockUIRouter) GetHomeUI() (keybase1.HomeUIInterface, error) { return nil, nil }
+
 func (f *MockUIRouter) GetIdentify3UIAdapter(libkb.MetaContext) (libkb.IdentifyUI, error) {
 	return nil, nil
 }
@@ -1666,7 +1675,9 @@ func (f *MockUIRouter) GetIdentify3UIAdapter(libkb.MetaContext) (libkb.IdentifyU
 func (f *MockUIRouter) GetIdentify3UI(libkb.MetaContext) (keybase1.Identify3UiInterface, error) {
 	return nil, nil
 }
-func (f *MockUIRouter) GetLogUI() (libkb.LogUI, error)                                { return nil, nil }
+
+func (f *MockUIRouter) GetLogUI() (libkb.LogUI, error) { return nil, nil }
+
 func (f *MockUIRouter) WaitForUIType(uiKind libkb.UIKind, timeout time.Duration) bool { return false }
 func (f *MockUIRouter) DumpUIs() map[libkb.UIKind]libkb.ConnectionID                  { return nil }
 func (f *MockUIRouter) Shutdown()                                                     {}

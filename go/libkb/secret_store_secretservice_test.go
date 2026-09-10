@@ -134,7 +134,7 @@ func TestSSSSCorruptNoise(t *testing.T) {
 
 	_, err = s.RetrieveSecret(mctx, alice)
 	require.Error(t, err)
-	require.Equal(t, err.(UnboxError).Info(), "noise hashes do not match")
+	require.Equal(t, "noise hashes do not match", err.(UnboxError).Info())
 
 	err = s.ClearSecret(mctx, alice)
 	require.NoError(t, err)
@@ -170,7 +170,7 @@ func TestSSSSCorruptKeyring(t *testing.T) {
 
 	_, err = s.RetrieveSecret(mctx, alice)
 	require.Error(t, err)
-	require.Equal(t, err.(UnboxError).Info(), "noise hashes match")
+	require.Equal(t, "noise hashes match", err.(UnboxError).Info())
 	// (i.e., issue is something else - likely a MAC mismatch, but secretbox.Open doesn't give a more specific error)
 
 	err = s.ClearSecret(mctx, alice)

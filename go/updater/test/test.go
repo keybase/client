@@ -87,7 +87,7 @@ func copyFakeLayout(dst string) {
 		log.Fatalf("Error reading winlayout.log: %s", err)
 	}
 	// Write data to dst
-	err = os.WriteFile(dst, data, 0o600)
+	err = os.WriteFile(dst, data, 0o600) //nolint:gosec // G703: test helper writes a fixture next to the binary
 	if err != nil {
 		log.Fatalf("Error writing to %s: %s", dst, err)
 	}

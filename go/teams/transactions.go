@@ -165,7 +165,7 @@ func (tx *AddMemberTx) findPayload(tag txPayloadTag, forUID keybase1.UID) any {
 	case txPayloadTagInviteKeybase, txPayloadTagInviteSocial:
 		ret.Val = &SCTeamInvites{}
 	default:
-		panic(fmt.Sprintf("Unexpected tag %q", tag))
+		panic(fmt.Sprintf("Unexpected tag %d", tag))
 	}
 	tx.payloads = append(tx.payloads, ret)
 	return ret.Val

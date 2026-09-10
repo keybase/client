@@ -2311,6 +2311,7 @@ func (e NeedOtherRekeyError) ToStatus() keybase1.Status {
 }
 
 func ImportDbKey(k keybase1.DbKey) DbKey {
+	// ObjType is a byte; wrap like the historical RPC encoding.
 	return DbKey{
 		Typ: ObjType(k.ObjType),
 		Key: k.Key,

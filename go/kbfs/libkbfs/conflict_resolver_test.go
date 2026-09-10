@@ -94,6 +94,11 @@ func (fc failingCodec) Encode(any) ([]byte, error) {
 	return nil, errors.New("Stopping resolution process early")
 }
 
+func crFakeID(rev kbfsmd.Revision) kbfsmd.ID {
+	// Single-byte fake ID; wrap so PrevRoot at rev 0 stays FakeID(255).
+	return kbfsmd.FakeID(byte(rev))
+}
+
 func crMakeFakeRMD(rev kbfsmd.Revision, bid kbfsmd.BranchID) ImmutableRootMetadata {
 	var writerFlags kbfsmd.WriterFlags
 	if bid != kbfsmd.NullBranchID {
@@ -113,7 +118,7 @@ func crMakeFakeRMD(rev kbfsmd.Revision, bid kbfsmd.BranchID) ImmutableRootMetada
 				VerifyingKey: key,
 			},
 			Revision: rev,
-			PrevRoot: kbfsmd.FakeID(byte(rev - 1)),
+			PrevRoot: crFakeID(rev - 1),
 		},
 		tlfHandle: h,
 		data: PrivateMetadata{
@@ -121,7 +126,7 @@ func crMakeFakeRMD(rev kbfsmd.Revision, bid kbfsmd.BranchID) ImmutableRootMetada
 				Ops: []op{newGCOp(0)}, // arbitrary op to fool unembed checks
 			},
 		},
-	}, key, kbfsmd.FakeID(byte(rev)), time.Now(), true)
+	}, key, crFakeID(rev), time.Now(), true)
 }
 
 func TestCRInput(t *testing.T) {

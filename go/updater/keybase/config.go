@@ -83,7 +83,7 @@ func (c *config) load() error {
 }
 
 func (c *config) loadFromPath(path string) error {
-	file, err := os.Open(path)
+	file, err := os.Open(path) //nolint:gosec // G703: updater config path from our own layout
 	if err != nil {
 		return fmt.Errorf("Unable to open config file: %s", err)
 	}

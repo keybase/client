@@ -180,7 +180,7 @@ func (ss *SecretSyncer) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err err
 	if len(keys) == 0 {
 		return nil, nil
 	}
-	ss.G().Log.Debug("NOTE: calling SecretSyncer.FindActiveKey: returning first secret key from randomly ordered map", err)
+	ss.G().Log.Debug("NOTE: calling SecretSyncer.FindActiveKey: returning first secret key from randomly ordered map: %v", err)
 	return keys[0], nil
 }
 

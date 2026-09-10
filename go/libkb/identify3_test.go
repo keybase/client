@@ -20,12 +20,19 @@ func (i *id3FakeUIRouter) GetIdentifyUI() (IdentifyUI, error) { return nil, nil 
 func (i *id3FakeUIRouter) GetIdentifyUICtx(ctx context.Context) (int, IdentifyUI, error) {
 	return 0, nil, nil
 }
-func (i *id3FakeUIRouter) GetSecretUI(sessionID int) (SecretUI, error)               { return nil, nil }
-func (i *id3FakeUIRouter) GetRekeyUI() (keybase1.RekeyUIInterface, int, error)       { return nil, 0, nil }
+
+func (i *id3FakeUIRouter) GetSecretUI(sessionID int) (SecretUI, error) { return nil, nil }
+
+func (i *id3FakeUIRouter) GetRekeyUI() (keybase1.RekeyUIInterface, int, error) { return nil, 0, nil }
+
 func (i *id3FakeUIRouter) GetRekeyUINoSessionID() (keybase1.RekeyUIInterface, error) { return nil, nil }
-func (i *id3FakeUIRouter) GetHomeUI() (keybase1.HomeUIInterface, error)              { return nil, nil }
-func (i *id3FakeUIRouter) GetChatUI() (ChatUI, error)                                { return nil, nil }
-func (i *id3FakeUIRouter) GetLogUI() (LogUI, error)                                  { return nil, nil }
+
+func (i *id3FakeUIRouter) GetHomeUI() (keybase1.HomeUIInterface, error) { return nil, nil }
+
+func (i *id3FakeUIRouter) GetChatUI() (ChatUI, error) { return nil, nil }
+
+func (i *id3FakeUIRouter) GetLogUI() (LogUI, error) { return nil, nil }
+
 func (i *id3FakeUIRouter) GetIdentify3UIAdapter(MetaContext) (IdentifyUI, error) {
 	return nil, nil
 }
@@ -75,7 +82,9 @@ func (i *id3FakeUI) Identify3TrackerTimedOut(_ context.Context, id keybase1.Iden
 	i.timeOuts = append(i.timeOuts, id)
 	return nil
 }
+
 func (i *id3FakeUI) Identify3Result(context.Context, keybase1.Identify3ResultArg) error { return nil }
+
 func (i *id3FakeUI) Identify3Summary(_ context.Context, summary keybase1.Identify3Summary) error {
 	return nil
 }
@@ -95,6 +104,9 @@ func TestIdentify3State(t *testing.T) {
 
 	mkID := func(i int) keybase1.Identify3GUIID {
 		var buf [1]byte
+		if i < 0 || i > 255 {
+			t.Fatalf("test id out of range: %d", i)
+		}
 		buf[0] = byte(i)
 		return keybase1.Identify3GUIID(hex.EncodeToString(buf[:]))
 	}

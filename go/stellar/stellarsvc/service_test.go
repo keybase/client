@@ -469,7 +469,7 @@ func TestRecentPaymentsLocal(t *testing.T) {
 		require.Equal(t, accountIDSender, p.FromStellar)
 		require.Equal(t, accountIDRecip, *p.ToStellar)
 		require.NotNil(t, p.ToUsername)
-		require.Equal(t, tcs[1].Fu.Username, *(p.ToUsername))
+		require.Equal(t, tcs[1].Fu.Username, *p.ToUsername)
 		require.Equal(t, "100.0000000", p.Amount)
 	}
 	senderPayments, err := srvSender.RecentPaymentsCLILocal(context.Background(), nil)

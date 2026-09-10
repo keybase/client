@@ -38,14 +38,14 @@ func TestGetActives(t *testing.T) {
 	now := time.Now()
 	getter := makeFileInfoActivesGetterForTest(
 		[]time.Time{
-			now.Add(-(time.Minute)),
+			now.Add(-time.Minute),
 			now.Add(-(time.Minute * 12)),
 			now.Add(-(time.Hour + time.Minute)),
 			now.Add(-(time.Hour*24 + time.Minute)),
 			now.Add(-(time.Hour*24*7 + time.Minute)),
 		}, // tlfs
 		[]time.Time{
-			now.Add(-(time.Minute)),
+			now.Add(-time.Minute),
 			now.Add(-(time.Minute * 12)),
 			now.Add(-(time.Hour + time.Minute)),
 			now.Add(-(time.Hour*24 + time.Minute)),

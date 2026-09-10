@@ -36,7 +36,7 @@ func (o testMutexLevel) String() string {
 }
 
 func testMutexLevelToString(o MutexLevel) string {
-	return (testMutexLevel(o)).String()
+	return testMutexLevel(o).String()
 }
 
 func TestLeveledMutexSingleFlow(t *testing.T) {

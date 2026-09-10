@@ -23,7 +23,6 @@ var avatarTransport = &http.Transport{
 	DialContext: (&net.Dialer{
 		Timeout:   30 * time.Second,
 		KeepAlive: 30 * time.Second,
-		DualStack: true,
 	}).DialContext,
 	MaxConnsPerHost:       10,
 	MaxIdleConns:          100,

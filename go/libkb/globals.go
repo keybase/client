@@ -537,7 +537,7 @@ func VersionMessage(linefn func(string)) {
 }
 
 func (g *GlobalContext) StartupMessage() {
-	VersionMessage(func(s string) { g.Log.Debug(s) })
+	VersionMessage(func(s string) { g.Log.Debug("%s", s) })
 }
 
 func (g *GlobalContext) ConfigureAPI() error {

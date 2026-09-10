@@ -98,10 +98,10 @@ func NewSubteamSig(mctx libkb.MetaContext, me libkb.UserForSignatures, key libkb
 	}
 
 	teamSection := SCTeamSection{
-		ID: (SCTeamID)(parentTeam.GetID()),
+		ID: SCTeamID(parentTeam.GetID()),
 		Subteam: &SCSubteam{
-			ID:   (SCTeamID)(subteamID),
-			Name: (SCTeamName)(subteamName.String()),
+			ID:   SCTeamID(subteamID),
+			Name: SCTeamName(subteamName.String()),
 		},
 		Admin:    admin,
 		Entropy:  entropy,

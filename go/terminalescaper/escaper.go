@@ -114,7 +114,7 @@ func replace(mapping func(rune) rune, s string) string {
 		case r == -1 && isStartOfColorCode(s, i):
 			// This branch is NOT part of strings.Map
 			// Allow color codes.
-			b[nbytes] = byte(c)
+			b[nbytes] = byte(c) //nolint:gosec // G115: color-code runes are ASCII ESC sequences
 			nbytes++
 		case r == -1:
 			// This else branch is NOT part of strings.Map
@@ -166,7 +166,7 @@ func replace(mapping func(rune) rune, s string) string {
 		case r == -1 && isStartOfColorCode(s, i):
 			// This branch is NOT part of strings.Map
 			// Allow color codes.
-			b[nbytes] = byte(c)
+			b[nbytes] = byte(c) //nolint:gosec // G115: color-code runes are ASCII ESC sequences
 			nbytes++
 		case r == -1: // This else branch is NOT part of strings.Map, but mirrors the preceding if branch
 			if nbytes+2 >= len(b) {
