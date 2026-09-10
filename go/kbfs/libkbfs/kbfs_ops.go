@@ -51,6 +51,8 @@ type KBFSOpsStandard struct {
 	// watcher.
 	reIdentifyControlChan chan chan<- struct{}
 	initDoneCh            <-chan struct{}
+	// initFailedCh is closed instead of initDoneCh if init fails.
+	initFailedCh chan struct{}
 
 	favs *Favorites
 
@@ -82,7 +84,8 @@ const ctxKBFSOpsSkipEditHistoryBlock ctxKBFSOpsSkipEditHistoryBlockType = 1
 
 // NewKBFSOpsStandard constructs a new KBFSOpsStandard object.
 // `initDone` should be closed when the rest of initialization (such
-// as journal initialization) has completed.
+// as journal initialization) has completed. If it fails instead, call
+// initFailed.
 func NewKBFSOpsStandard(
 	appStateUpdater env.AppStateUpdater, config Config,
 	initDoneCh <-chan struct{},
@@ -97,6 +100,7 @@ func NewKBFSOpsStandard(
 		opsByFav:              make(map[favorites.Folder]*folderBranchOps),
 		reIdentifyControlChan: make(chan chan<- struct{}),
 		initDoneCh:            initDoneCh,
+		initFailedCh:          make(chan struct{}),
 		favs:                  NewFavorites(config),
 		syncedTlfObservers:    newSyncedTlfObserverList(),
 		longOperationDebugDumper: NewImpatientDebugDumper(
@@ -106,6 +110,35 @@ func NewKBFSOpsStandard(
 	kops.currentStatus.Init()
 	go kops.markForReIdentifyIfNeededLoop()
 	return kops
+}
+
+// initFailed tells anything in waitForInit that init won't finish.
+func (fs *KBFSOpsStandard) initFailed() {
+	close(fs.initFailedCh)
+}
+
+// waitForInit blocks until init has finished, and returns
+// errKBFSNotInitialized if it failed. A nil initDoneCh (KBFSOps built
+// outside init, as in tests) counts as finished.
+func (fs *KBFSOpsStandard) waitForInit(ctx context.Context) error {
+	if fs.initDoneCh == nil {
+		return nil
+	}
+	// Check for success first, so an already-canceled ctx can't win the
+	// select below when init has finished.
+	select {
+	case <-fs.initDoneCh:
+		return nil
+	default:
+	}
+	select {
+	case <-fs.initDoneCh:
+		return nil
+	case <-fs.initFailedCh:
+		return errKBFSNotInitialized{}
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 func (fs *KBFSOpsStandard) markForReIdentifyIfNeededLoop() {
@@ -2180,6 +2213,8 @@ func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
 
 	select {
 	case <-fs.initDoneCh:
+	case <-fs.initFailedCh:
+		return
 	case <-ctx.Done():
 		return
 	}
@@ -2267,6 +2302,8 @@ func (fs *KBFSOpsStandard) initSyncedTlfs() {
 
 	select {
 	case <-fs.initDoneCh:
+	case <-fs.initFailedCh:
+		return
 	case <-ctx.Done():
 		return
 	}

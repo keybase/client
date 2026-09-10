@@ -81,15 +81,12 @@ func (k *KeybaseDaemonRPC) addKBFSProtocols() {
 	k.AddProtocols(protocols)
 }
 
-const kbfsInitPollInterval = 100 * time.Millisecond
-
-// waitForKBFSInit wraps every method of the given protocols (SimpleFS, git,
-// fs) so each request waits until init has set the key and block servers,
-// which it does after the service connection is live. Each request is served
-// on its own goroutine, so waiting doesn't block the connection. The wait
-// ends with the caller's context, or when a failed init shuts the
-// connection down.
-func waitForKBFSInit(config Config, protocols []rpc.Protocol) []rpc.Protocol {
+// gateOnKBFSInit wraps every method of the given protocols (SimpleFS, git,
+// fs) so each request waits for init to finish, which is after the service
+// connection is live. Each request is served on its own goroutine, so
+// waiting doesn't block the connection. A request fails with
+// errKBFSNotInitialized if init failed, or ends with the caller's context.
+func gateOnKBFSInit(config Config, protocols []rpc.Protocol) []rpc.Protocol {
 	if len(protocols) == 0 {
 		return protocols
 	}
@@ -99,7 +96,7 @@ func waitForKBFSInit(config Config, protocols []rpc.Protocol) []rpc.Protocol {
 		for name, m := range p.Methods {
 			handler := m.Handler
 			m.Handler = func(ctx context.Context, arg any) (any, error) {
-				if err := waitForKBFSServersReady(ctx, config); err != nil {
+				if err := waitForKBFSInit(ctx, config); err != nil {
 					return nil, err
 				}
 				return handler(ctx, arg)
@@ -110,22 +107,6 @@ func waitForKBFSInit(config Config, protocols []rpc.Protocol) []rpc.Protocol {
 		wrapped = append(wrapped, p)
 	}
 	return wrapped
-}
-
-func waitForKBFSServersReady(ctx context.Context, config Config) error {
-	if kbfsServersReady(config) {
-		return nil
-	}
-	ticker := time.NewTicker(kbfsInitPollInterval)
-	defer ticker.Stop()
-	for !kbfsServersReady(config) {
-		select {
-		case <-ticker.C:
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-	}
-	return nil
 }
 
 // NewKeybaseDaemonRPC makes a new KeybaseDaemonRPC that makes RPC
@@ -151,7 +132,7 @@ func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger,
 	k.notifyService = newNotifyServiceHandler(config, log)
 
 	k.addKBFSProtocols()
-	k.AddProtocols(waitForKBFSInit(config, additionalProtocols))
+	k.AddProtocols(gateOnKBFSInit(config, additionalProtocols))
 
 	return k
 }

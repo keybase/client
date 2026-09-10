@@ -807,11 +807,35 @@ func doInit(
 	// right away. None of these use the service until they're called.
 	initDoneCh := make(chan struct{})
 	kbfsOps := NewKBFSOpsStandard(kbCtx, config, initDoneCh)
-	defer close(initDoneCh)
+	// Handlers on the service connection wait for init to finish (see
+	// waitForKBFSInit), so tell them how it ended.
+	initSucceeded := false
+	defer func() {
+		if initSucceeded {
+			close(initDoneCh)
+		} else {
+			kbfsOps.initFailed()
+		}
+	}()
 	config.SetKBFSOps(kbfsOps)
 	config.SetNotifier(kbfsOps)
 	config.SetKeyManager(NewKeyManagerStandard(config))
 	config.SetMDOps(NewMDOpsStandard(config))
+
+	// Also before the service connection: a login it delivers can create the
+	// disk block cache, which expects the disk limiter. The limiter only reads
+	// local config.
+	config.SetDiskBlockCacheFraction(getCacheFrac(
+		ctx, kbCtx, params.DiskBlockCacheFraction,
+		defaultDiskBlockCacheFraction, configBlockCacheDiskMaxFracStr, log))
+	config.SetSyncBlockCacheFraction(getCacheFrac(
+		ctx, kbCtx, params.SyncBlockCacheFraction,
+		defaultSyncBlockCacheFraction, configBlockCacheSyncMaxFracStr, log))
+	err = config.EnableDiskLimiter(params.StorageRoot)
+	if err != nil {
+		log.CWarningf(ctx, "Could not enable disk limiter: %+v", err)
+		return nil, err
+	}
 
 	// Initialize Keybase service connection.
 	if keybaseServiceCn == nil {
@@ -826,15 +850,6 @@ func doInit(
 		service = NewKeybaseServiceMeasured(service, registry)
 	}
 	config.SetKeybaseService(service)
-	// If init fails from here on, close the connection so the service stops
-	// routing to this half-initialized KBFS. That also cancels requests
-	// waiting in waitForKBFSInit.
-	initSucceeded := false
-	defer func() {
-		if !initSucceeded {
-			service.Shutdown()
-		}
-	}()
 
 	// Initialize Chat client (for file edit notifications).
 	chat, err := keybaseServiceCn.NewChat(config, params, kbCtx, kbfsLog)
@@ -842,18 +857,6 @@ func doInit(
 		return nil, fmt.Errorf("problem creating chat: %s", err)
 	}
 	config.SetChat(chat)
-
-	config.SetDiskBlockCacheFraction(getCacheFrac(
-		ctx, kbCtx, params.DiskBlockCacheFraction,
-		defaultDiskBlockCacheFraction, configBlockCacheDiskMaxFracStr, log))
-	config.SetSyncBlockCacheFraction(getCacheFrac(
-		ctx, kbCtx, params.SyncBlockCacheFraction,
-		defaultSyncBlockCacheFraction, configBlockCacheSyncMaxFracStr, log))
-	err = config.EnableDiskLimiter(params.StorageRoot)
-	if err != nil {
-		log.CWarningf(ctx, "Could not enable disk limiter: %+v", err)
-		return nil, err
-	}
 
 	kbfsOps.favs.Initialize(ctx)
 

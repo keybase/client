@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/test/clocktest"
@@ -55,74 +56,53 @@ func TestKeybaseDaemonRPCGetCurrentSessionCanceled(t *testing.T) {
 	testRPCWithCanceledContext(t, serverConn, f)
 }
 
-// Init sets the key and block servers after the service connection is live,
-// so service-initiated requests can arrive before them.
-func TestKeybaseDaemonRPCRequestsBeforeServers(t *testing.T) {
+// NewKeybaseDaemonRPC gates the additional protocols (SimpleFS/git/fs) on
+// init, since the service can call them as soon as the connection is up.
+func TestKeybaseDaemonRPCGatesAdditionalProtocolsOnInit(t *testing.T) {
 	config := MakeTestConfigOrBust(t, "testuser")
-	keyServer := config.KeyServer()
-	config.SetKeyServer(nil)
+	origKBFSOps := config.KBFSOps()
+	initDoneCh := make(chan struct{})
+	kbfsOps := NewKBFSOpsStandard(env.EmptyAppStateUpdater{}, config, initDoneCh)
+	config.SetKBFSOps(kbfsOps)
 	defer func() {
-		config.SetKeyServer(keyServer)
+		config.SetKBFSOps(origKBFSOps)
+		require.NoError(t, kbfsOps.Shutdown(context.Background()))
 		CheckConfigAndShutdown(context.Background(), t, config)
 	}()
 
-	daemon := newKeybaseDaemonRPC(config, nil, logger.NewTestLogger(t))
-	ctx := context.Background()
-	query := keybase1.TLFQuery{TlfName: "testuser"}
-	_, err := daemon.GetTLFCryptKeys(ctx, query)
-	require.Equal(t, errKBFSNotInitialized{}, err)
-	_, err = daemon.GetPublicCanonicalTLFNameAndID(ctx, query)
-	require.Equal(t, errKBFSNotInitialized{}, err)
-	require.Equal(t, errKBFSNotInitialized{},
-		daemon.FSEditListRequest(ctx, keybase1.FSEditListRequest{}))
-	require.Equal(t, errKBFSNotInitialized{},
-		daemon.StartMigration(ctx, keybase1.Folder{}))
-	require.Equal(t, errKBFSNotInitialized{},
-		daemon.FinalizeMigration(ctx, keybase1.Folder{}))
-}
+	var calls int
+	daemon := NewKeybaseDaemonRPC(
+		config, newInitTestContext(t), logger.NewTestLogger(t), false,
+		[]rpc.Protocol{newGatedTestProtocol(&calls)})
+	defer daemon.Shutdown()
+	var handler func(context.Context, any) (any, error)
+	daemon.lock.Lock()
+	for _, p := range daemon.protocols {
+		if p.Name == "gatedTest" {
+			handler = p.Methods["method"].Handler
+		}
+	}
+	daemon.lock.Unlock()
+	require.NotNil(t, handler)
 
-// The SimpleFS/git/fs protocols share the service connection, so their
-// requests can also arrive before init has set the servers.
-func TestWaitForKBFSInit(t *testing.T) {
-	config := MakeTestConfigOrBust(t, "testuser")
-	blockServer := config.BlockServer()
-	config.SetBlockServer(nil)
-	defer func() {
-		config.SetBlockServer(blockServer)
-		CheckConfigAndShutdown(context.Background(), t, config)
-	}()
-
-	called := make(chan struct{}, 1)
-	protocols := waitForKBFSInit(config, []rpc.Protocol{{
-		Name: "test",
-		Methods: map[string]rpc.ServeHandlerDescription{
-			"method": {Handler: func(context.Context, any) (any, error) {
-				called <- struct{}{}
-				return nil, nil
-			}},
-		},
-	}})
-	handler := protocols[0].Methods["method"].Handler
-
-	// Not ready: the request waits until the caller gives up, and the
-	// handler never runs.
+	// Init still running: the request waits, and the handler doesn't run.
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
 	_, err := handler(ctx, nil)
 	require.ErrorIs(t, err, context.DeadlineExceeded)
-	require.Empty(t, called)
+	require.Zero(t, calls)
 
-	// Becoming ready mid-wait lets the request through.
+	// Init finishing mid-wait lets the request through.
 	go func() {
 		time.Sleep(50 * time.Millisecond)
-		config.SetBlockServer(blockServer)
+		close(initDoneCh)
 	}()
 	readyCtx, readyCancel := context.WithTimeout(
 		context.Background(), 5*time.Second)
 	defer readyCancel()
 	_, err = handler(readyCtx, nil)
 	require.NoError(t, err)
-	require.Len(t, called, 1)
+	require.Equal(t, 1, calls)
 }
 
 // TODO: Add tests for Favorite* methods, too.
