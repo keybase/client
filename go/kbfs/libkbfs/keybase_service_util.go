@@ -138,17 +138,16 @@ func serviceLoggedIn(ctx context.Context, config Config, session idutil.SessionI
 
 // serviceLoggedOut should be called when the current user logs out.
 func serviceLoggedOut(ctx context.Context, config Config) {
-	// A logout can arrive before init has set KBFSOps and MDOps. Nothing has
-	// been cached yet then, and Chat may still be unset.
-	if !kbfsOpsReady(config) {
-		return
-	}
 	if jManager, err := GetJournalManager(config); err == nil {
 		jManager.shutdownExistingJournals(ctx)
 	}
 	config.ResetCaches()
 	config.UserHistory().Clear()
-	config.Chat().ClearCache()
+	// Init sets Chat after the service connection is live, so a logout can
+	// arrive before it exists.
+	if chat := config.Chat(); chat != nil {
+		chat.ClearCache()
+	}
 	mdServer := config.MDServer()
 	if mdServer != nil {
 		mdServer.RefreshAuthToken(ctx)

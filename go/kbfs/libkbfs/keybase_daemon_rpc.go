@@ -84,10 +84,11 @@ func (k *KeybaseDaemonRPC) addKBFSProtocols() {
 const kbfsInitPollInterval = 100 * time.Millisecond
 
 // waitForKBFSInit wraps every method of the given protocols (SimpleFS, git,
-// fs) so each request waits until init has set up KBFSOps, MDOps and the
-// servers. The service connection, and so these handlers, is live before
-// init sets them. Each request is served on its own goroutine, so waiting
-// doesn't block the connection; the caller's context bounds the wait.
+// fs) so each request waits until init has set the key and block servers,
+// which it does after the service connection is live. Each request is served
+// on its own goroutine, so waiting doesn't block the connection. The wait
+// ends with the caller's context, or when a failed init shuts the
+// connection down.
 func waitForKBFSInit(config Config, protocols []rpc.Protocol) []rpc.Protocol {
 	if len(protocols) == 0 {
 		return protocols
@@ -526,10 +527,8 @@ func (k *KeybaseDaemonRPC) FavoritesChanged(ctx context.Context,
 	uid keybase1.UID,
 ) error {
 	k.log.Debug("Received FavoritesChanged RPC.")
-	if kbfsOps := k.config.KBFSOps(); kbfsOps != nil {
-		kbfsOps.RefreshCachedFavorites(ctx,
-			FavoritesRefreshModeInMainFavoritesLoop)
-	}
+	k.config.KBFSOps().RefreshCachedFavorites(ctx,
+		FavoritesRefreshModeInMainFavoritesLoop)
 	return nil
 }
 

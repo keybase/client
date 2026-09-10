@@ -797,8 +797,23 @@ func doInit(
 
 	kbfsLog := config.MakeLogger("")
 
-	// Initialize Keybase service connection. This needs to happen before
-	// KBPKI client.
+	// Initialize KBPKI client (needed for KBFSOps, MD Server, and Chat). It
+	// reaches the service through config, so it doesn't need it yet.
+	k := NewKBPKIClient(config, kbfsLog)
+	config.SetKBPKI(k)
+
+	// Set up KBFSOps and MDOps before the service connection. Creating the
+	// connection registers the KBFS handlers, and the service can call them
+	// right away. None of these use the service until they're called.
+	initDoneCh := make(chan struct{})
+	kbfsOps := NewKBFSOpsStandard(kbCtx, config, initDoneCh)
+	defer close(initDoneCh)
+	config.SetKBFSOps(kbfsOps)
+	config.SetNotifier(kbfsOps)
+	config.SetKeyManager(NewKeyManagerStandard(config))
+	config.SetMDOps(NewMDOpsStandard(config))
+
+	// Initialize Keybase service connection.
 	if keybaseServiceCn == nil {
 		keybaseServiceCn = keybaseDaemon{}
 	}
@@ -811,10 +826,15 @@ func doInit(
 		service = NewKeybaseServiceMeasured(service, registry)
 	}
 	config.SetKeybaseService(service)
-
-	// Initialize KBPKI client (needed for KBFSOps, MD Server, and Chat).
-	k := NewKBPKIClient(config, kbfsLog)
-	config.SetKBPKI(k)
+	// If init fails from here on, close the connection so the service stops
+	// routing to this half-initialized KBFS. That also cancels requests
+	// waiting in waitForKBFSInit.
+	initSucceeded := false
+	defer func() {
+		if !initSucceeded {
+			service.Shutdown()
+		}
+	}()
 
 	// Initialize Chat client (for file edit notifications).
 	chat, err := keybaseServiceCn.NewChat(config, params, kbCtx, kbfsLog)
@@ -822,14 +842,6 @@ func doInit(
 		return nil, fmt.Errorf("problem creating chat: %s", err)
 	}
 	config.SetChat(chat)
-
-	initDoneCh := make(chan struct{})
-	kbfsOps := NewKBFSOpsStandard(kbCtx, config, initDoneCh)
-	defer close(initDoneCh)
-	config.SetKBFSOps(kbfsOps)
-	config.SetNotifier(kbfsOps)
-	config.SetKeyManager(NewKeyManagerStandard(config))
-	config.SetMDOps(NewMDOpsStandard(config))
 
 	config.SetDiskBlockCacheFraction(getCacheFrac(
 		ctx, kbCtx, params.DiskBlockCacheFraction,
@@ -995,6 +1007,7 @@ func doInit(
 		go cleanOldTempStorageRoots(config)
 	}
 
+	initSucceeded = true
 	return config, nil
 }
 

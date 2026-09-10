@@ -55,46 +55,19 @@ func TestKeybaseDaemonRPCGetCurrentSessionCanceled(t *testing.T) {
 	testRPCWithCanceledContext(t, serverConn, f)
 }
 
-// Service notifications can arrive before init has called SetKBFSOps.
-func TestKeybaseDaemonRPCNotificationsBeforeKBFSOps(t *testing.T) {
+// Init sets the key and block servers after the service connection is live,
+// so service-initiated requests can arrive before them.
+func TestKeybaseDaemonRPCRequestsBeforeServers(t *testing.T) {
 	config := MakeTestConfigOrBust(t, "testuser")
-	kbfsOps, mdOps := config.KBFSOps(), config.MDOps()
-	config.SetKBFSOps(nil)
+	keyServer := config.KeyServer()
+	config.SetKeyServer(nil)
 	defer func() {
-		config.SetKBFSOps(kbfsOps)
-		config.SetMDOps(mdOps)
+		config.SetKeyServer(keyServer)
 		CheckConfigAndShutdown(context.Background(), t, config)
 	}()
 
-	name := kbname.NormalizedUsername("fake username")
-	session := idutil.SessionInfo{
-		Name:           name,
-		UID:            keybase1.MakeTestUID(1),
-		CryptPublicKey: idutil.MakeLocalUserCryptPublicKeyOrBust(name),
-		VerifyingKey:   idutil.MakeLocalUserVerifyingKeyOrBust(name),
-	}
-	client := &fakeKeybaseClient{session: session}
 	daemon := newKeybaseDaemonRPC(config, nil, logger.NewTestLogger(t))
-	daemon.fillClients(client)
 	ctx := context.Background()
-	for _, r := range []keybase1.Reachable{
-		keybase1.Reachable_YES, keybase1.Reachable_NO,
-	} {
-		require.NoError(t, daemon.ReachabilityChanged(
-			ctx, keybase1.Reachability{Reachable: r}))
-	}
-	require.NoError(t, daemon.FavoritesChanged(ctx, keybase1.UID("")))
-	// PaperKeyCached only acts for the current session's user.
-	daemon.setCachedCurrentSession(session)
-	require.NoError(t, daemon.PaperKeyCached(
-		ctx, keybase1.PaperKeyCachedArg{Uid: session.UID}))
-	require.NoError(t, daemon.TeamChangedByID(ctx, keybase1.TeamChangedByIDArg{
-		Changes: keybase1.TeamChangeSet{Renamed: true},
-	}))
-	require.NoError(t, daemon.TeamAbandoned(ctx, keybase1.TeamID("")))
-	require.NoError(t, daemon.LoggedOut(ctx))
-
-	// Service-initiated requests get an error instead of a nil dereference.
 	query := keybase1.TLFQuery{TlfName: "testuser"}
 	_, err := daemon.GetTLFCryptKeys(ctx, query)
 	require.Equal(t, errKBFSNotInitialized{}, err)
@@ -106,28 +79,16 @@ func TestKeybaseDaemonRPCNotificationsBeforeKBFSOps(t *testing.T) {
 		daemon.StartMigration(ctx, keybase1.Folder{}))
 	require.Equal(t, errKBFSNotInitialized{},
 		daemon.FinalizeMigration(ctx, keybase1.Folder{}))
-
-	// The logged-in flow is deferred, not dropped: the session stays
-	// uncached until KBFSOps is set, and the next lookup runs it.
-	testCurrentSession(t, client, daemon, session, expectCall)
-	testCurrentSession(t, client, daemon, session, expectCall)
-	// KBFSOps alone isn't enough: init sets MDOps just after it.
-	config.SetMDOps(nil)
-	config.SetKBFSOps(kbfsOps)
-	testCurrentSession(t, client, daemon, session, expectCall)
-	config.SetMDOps(mdOps)
-	testCurrentSession(t, client, daemon, session, expectCall)
-	testCurrentSession(t, client, daemon, session, expectCached)
 }
 
 // The SimpleFS/git/fs protocols share the service connection, so their
-// requests can also arrive before init has set up KBFS.
+// requests can also arrive before init has set the servers.
 func TestWaitForKBFSInit(t *testing.T) {
 	config := MakeTestConfigOrBust(t, "testuser")
-	kbfsOps := config.KBFSOps()
-	config.SetKBFSOps(nil)
+	blockServer := config.BlockServer()
+	config.SetBlockServer(nil)
 	defer func() {
-		config.SetKBFSOps(kbfsOps)
+		config.SetBlockServer(blockServer)
 		CheckConfigAndShutdown(context.Background(), t, config)
 	}()
 
@@ -154,9 +115,12 @@ func TestWaitForKBFSInit(t *testing.T) {
 	// Becoming ready mid-wait lets the request through.
 	go func() {
 		time.Sleep(50 * time.Millisecond)
-		config.SetKBFSOps(kbfsOps)
+		config.SetBlockServer(blockServer)
 	}()
-	_, err = handler(context.Background(), nil)
+	readyCtx, readyCancel := context.WithTimeout(
+		context.Background(), 5*time.Second)
+	defer readyCancel()
+	_, err = handler(readyCtx, nil)
 	require.NoError(t, err)
 	require.Len(t, called, 1)
 }
