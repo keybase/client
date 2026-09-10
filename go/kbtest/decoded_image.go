@@ -4,11 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"image"
+	"image/jpeg"
+	"image/png"
 	"os"
 	"testing"
-
-	_ "image/jpeg"
-	_ "image/png"
 
 	"github.com/stretchr/testify/require"
 )
@@ -28,11 +27,11 @@ func decodedImageNearFile(path string, got []byte) error {
 	if err != nil {
 		return err
 	}
-	want, _, err := image.Decode(bytes.NewReader(wantBytes))
+	want, err := decodeImage(wantBytes)
 	if err != nil {
 		return err
 	}
-	gotImg, _, err := image.Decode(bytes.NewReader(got))
+	gotImg, err := decodeImage(got)
 	if err != nil {
 		return err
 	}
@@ -52,6 +51,13 @@ func decodedImageNearFile(path string, got []byte) error {
 		return fmt.Errorf("max channel delta %d exceeds %d", seen, decodedImageMaxDelta)
 	}
 	return nil
+}
+
+func decodeImage(data []byte) (image.Image, error) {
+	if img, err := jpeg.Decode(bytes.NewReader(data)); err == nil {
+		return img, nil
+	}
+	return png.Decode(bytes.NewReader(data))
 }
 
 func chDelta8(a, b uint32) int {
