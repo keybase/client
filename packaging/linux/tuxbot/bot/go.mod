@@ -1,8 +1,8 @@
 module github.com/keybase/client/packaging/linux/tuxbot/bot
 
-go 1.25.0
+go 1.26.0
 
-toolchain go1.25.5
+toolchain go1.27.1
 
 require (
 	github.com/blang/semver v3.5.1+incompatible

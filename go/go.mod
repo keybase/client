@@ -1,15 +1,19 @@
 module github.com/keybase/client/go
 
-go 1.25.0
+go 1.26.0
 
-toolchain go1.25.5
+toolchain go1.27.1
 
 require (
 	bazil.org/fuse v0.0.0-20200424023519-3c101025617f
 	camlistore.org v0.0.0-20161205184337-c55c8602d3ce
 	github.com/PuerkitoBio/goquery v1.12.0
 	github.com/akavel/rsrc v0.2.1-0.20151103204339-ba14da1f8271
+	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/araddon/dateparse v0.0.0-20180729174819-cfd92a431d0e
+	github.com/aws/aws-sdk-go-v2 v1.42.1
+	github.com/aws/aws-sdk-go-v2/config v1.28.6
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.105.0
 	github.com/blang/semver v3.5.1+incompatible
 	// NOTE: if bleve is updated, consider removing the `replace` directive
 	// for bbolt at the bottom of this go.mod
@@ -27,13 +31,16 @@ require (
 	github.com/go-git/go-billy/v5 v5.9.0
 	github.com/go-git/go-git/v5 v5.19.1
 	github.com/go-sql-driver/mysql v1.9.3
+	github.com/gocolly/colly/v2 v2.3.0
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8
 	github.com/golang/mock v1.6.0
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/josephspurrier/goversioninfo v0.0.0-20160622020813-53f6213da3d7
+	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/keybase/backoff v1.0.1-0.20160517061000-726b63b835ec
 	github.com/keybase/cli v1.2.1-0.20191217150554-9323fd7ddfab
 	github.com/keybase/clockwork v0.1.1-0.20161209210251-976f45f4a979
+	github.com/keybase/dbus v0.0.0-20220506165403-5aa21ea2c23a
 	github.com/keybase/go-codec v0.0.0-20180928230036-164397562123
 	github.com/keybase/go-crypto v0.0.0-20200123153347-de78d2cb44f4
 	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20260820164554-02506b5063cb
@@ -72,28 +79,17 @@ require (
 	github.com/urfave/cli v1.22.1
 	github.com/vividcortex/ewma v1.1.2-0.20170804035156-43880d236f69
 	go.uber.org/zap v1.24.0
-	golang.org/x/crypto v0.54.0
-	golang.org/x/image v0.43.0
-	golang.org/x/mobile v0.0.0-20260611195102-4dd8f1dbf5d2 // indirect
-	golang.org/x/net v0.56.0
-	golang.org/x/sync v0.22.0
-	golang.org/x/sys v0.47.0
-	golang.org/x/text v0.40.0
+	golang.org/x/crypto v0.57.0
+	golang.org/x/image v0.46.0
+	golang.org/x/net v0.59.0
+	golang.org/x/sync v0.23.0
+	golang.org/x/sys v0.48.0
+	golang.org/x/text v0.42.0
 	golang.org/x/time v0.14.0
+	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	mvdan.cc/xurls/v2 v2.0.0-00010101000000-000000000000
 	rsc.io/qr v0.2.0
 	stathat.com/c/ramcache v1.0.0
-)
-
-require (
-	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
-	github.com/aws/aws-sdk-go-v2 v1.42.1
-	github.com/aws/aws-sdk-go-v2/config v1.28.6
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.105.0
-	github.com/gocolly/colly/v2 v2.3.0
-	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
-	github.com/keybase/dbus v0.0.0-20220506165403-5aa21ea2c23a
-	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 )
 
 require (
@@ -184,9 +180,10 @@ require (
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go4.org v0.0.0-20161118210015-09d86de304dc // indirect
-	golang.org/x/mod v0.37.0 // indirect
-	golang.org/x/telemetry v0.0.0-20260625142307-59b4966ccb57 // indirect
-	golang.org/x/tools v0.47.0 // indirect
+	golang.org/x/mobile v0.0.0-20260908204917-8b95e45f8d3e // indirect
+	golang.org/x/mod v0.41.0 // indirect
+	golang.org/x/telemetry v0.0.0-20260908163034-4bcc4b2ee518 // indirect
+	golang.org/x/tools v0.50.0 // indirect
 	golang.org/x/vuln v1.1.4 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect

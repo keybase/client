@@ -77,6 +77,6 @@ clean:
 fmt:
 	@./fmt.sh
 
-build: fmt build-stamp go-build-stamp js/rpc.js
+build: build-stamp go-build-stamp js/rpc.js
 
 .PHONY: test config
