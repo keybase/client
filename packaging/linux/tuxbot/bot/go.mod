@@ -8,7 +8,7 @@ require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/heroku/docker-registry-client v0.0.0-20190909225348-afc9e1acc3d5
-	github.com/keybase/go-keybase-chat-bot v0.0.0-20260714190752-406d338a3ba3
+	github.com/keybase/go-keybase-chat-bot v0.0.0-20260909165657-742f1152f4ca
 	github.com/pkg/errors v0.9.1
 	github.com/subosito/gotenv v1.2.0
 )

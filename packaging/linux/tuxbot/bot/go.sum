@@ -62,8 +62,8 @@ github.com/heroku/docker-registry-client v0.0.0-20190909225348-afc9e1acc3d5 h1:6
 github.com/heroku/docker-registry-client v0.0.0-20190909225348-afc9e1acc3d5/go.mod h1:Yho0S7KhsnHQRCC5lDraYF1SsLMeWtf/tKdufKu3TJA=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
-github.com/keybase/go-keybase-chat-bot v0.0.0-20260714190752-406d338a3ba3 h1:b9O4pu49GbvV+6Gb5JZ+heshUqZr0E3OjZpzgp3IlmU=
-github.com/keybase/go-keybase-chat-bot v0.0.0-20260714190752-406d338a3ba3/go.mod h1:SOGuqjCQ9xEgLnDM4V3Tq8LAXWJZiZpLMeqBH3yk0So=
+github.com/keybase/go-keybase-chat-bot v0.0.0-20260909165657-742f1152f4ca h1:zXkvKS7BOhgYCRe4DCjuGgGqtX/TfawSrAwd/Hc/u9Q=
+github.com/keybase/go-keybase-chat-bot v0.0.0-20260909165657-742f1152f4ca/go.mod h1:sKfgJSjJDheg1HMbNPuNv8KxZ94G8zrSU6vopVV9dUg=
 github.com/kisielk/gotool v0.0.0-20161130080628-0de1eaf82fa3/go.mod h1:jxZFDH7ILpTPQTk+E2s+z4CUas9lVNjIuKR4c5/zKgM=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/klauspost/compress v1.4.0/go.mod h1:RyIbtBH6LamlWaDj8nUwkbUhJ87Yi3uG0guNDohfE1A=

@@ -43,22 +43,22 @@ require (
 	github.com/keybase/dbus v0.0.0-20220506165403-5aa21ea2c23a
 	github.com/keybase/go-codec v0.0.0-20180928230036-164397562123
 	github.com/keybase/go-crypto v0.0.0-20200123153347-de78d2cb44f4
-	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20260820164554-02506b5063cb
+	github.com/keybase/go-framed-msgpack-rpc v0.0.0-20260909184308-742055b1a3f3
 	github.com/keybase/go-jsonw v0.0.0-20200325173637-df90f282c233
-	github.com/keybase/go-kext v0.0.0-20251211195321-cdcb1aed632b
-	github.com/keybase/go-keychain v0.0.2-0.20260716175100-8615c072de2a
-	github.com/keybase/go-logging v0.0.0-20251211195308-ca8e152456e3
-	github.com/keybase/go-merkle-tree v0.0.0-20260811140106-cab7e0795a81
+	github.com/keybase/go-kext v0.0.0-20260909165642-34d5d1a72128
+	github.com/keybase/go-keychain v0.0.2-0.20260909174218-60d38a4413e3
+	github.com/keybase/go-logging v0.0.0-20260909170031-52d5b05a21de
+	github.com/keybase/go-merkle-tree v0.0.0-20260909170101-b5943b9f9586
 	github.com/keybase/go-porterstemmer v1.0.2-0.20181016185745-521f1ed5c3f7
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
-	github.com/keybase/go-triplesec v0.0.0-20260810140528-ab3b1ab35b9d
-	github.com/keybase/go-triplesec-insecure v0.0.0-20260810140530-0774afed5cdc
-	github.com/keybase/go-winio v0.4.12-0.20180913221037-b1d96ab97b58
+	github.com/keybase/go-triplesec v0.0.0-20260909170152-be7629d2f461
+	github.com/keybase/go-triplesec-insecure v0.0.0-20260909170114-66d1455e4e28
+	github.com/keybase/go-winio v0.4.12-0.20181031203417-0903bf878a72
 	github.com/keybase/golang-ico v0.0.0-20181117022008-819cbeb217c9
 	github.com/keybase/gomounts v0.0.0-20180302000443-349507f4d353
 	github.com/keybase/keybase-test-vectors v1.0.12-0.20200309162119-ea1e58fecd5d
-	github.com/keybase/pipeliner v0.0.0-20260715175516-0b5e8243fcee
-	github.com/keybase/saltpack v0.0.0-20260731163415-735fecfa1520
+	github.com/keybase/pipeliner v0.0.0-20260909170448-94c6ed58540b
+	github.com/keybase/saltpack v0.0.0-20260909171118-5bef7952e563
 	github.com/keybase/showtrends-sdk/go v0.0.0-20260416134812-fab649f0dcd6
 	github.com/keybase/stellarnet v0.0.0-20200311180805-6c05850f9050
 	github.com/kr/text v0.2.0
@@ -147,7 +147,7 @@ require (
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
-	github.com/keybase/msgpackzip v0.0.0-20260715171557-e81e137bd2ef // indirect
+	github.com/keybase/msgpackzip v0.0.0-20260909174327-47c0c65d548a // indirect
 	github.com/keybase/vcr v0.0.0-20191017153547-a32d93056205 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
