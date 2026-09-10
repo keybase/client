@@ -807,8 +807,8 @@ func doInit(
 	// right away. None of these use the service until they're called.
 	initDoneCh := make(chan struct{})
 	kbfsOps := NewKBFSOpsStandard(kbCtx, config, initDoneCh)
-	// Handlers on the service connection wait for init to finish (see
-	// waitForKBFSInit), so tell them how it ended.
+	// Handlers on the service connection wait for init (see
+	// waitForKBFSReady), so tell them how it ended.
 	initSucceeded := false
 	defer func() {
 		if initSucceeded {
@@ -983,6 +983,10 @@ func doInit(
 			log.CDebugf(ctx, "Started RPC server for KBFS")
 		}
 	}
+
+	// Requests on the service connection have what they need from here on.
+	// Don't hold them for journaling, which can take a while.
+	kbfsOps.initReady()
 
 	ctx60s, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()

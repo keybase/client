@@ -431,33 +431,34 @@ func (k *KeybaseServiceBase) ReachabilityChanged(ctx context.Context,
 }
 
 // errKBFSNotInitialized is returned to the service for requests that arrive
-// before init has finished, or after it failed.
+// before init has set up what they need, or after init failed.
 type errKBFSNotInitialized struct{}
 
 func (errKBFSNotInitialized) Error() string { return "KBFS is not initialized yet" }
 
 // kbfsInitWaiter is implemented by KBFSOpsStandard. Init sets up the service
-// connection before it finishes, so handlers on that connection use it.
+// connection before it has set up everything requests need, so handlers on
+// that connection use it.
 type kbfsInitWaiter interface {
-	waitForInit(ctx context.Context) error
+	waitForReady(ctx context.Context) error
 }
 
-// waitForKBFSInit blocks until init has finished, and returns
-// errKBFSNotInitialized if it failed.
-func waitForKBFSInit(ctx context.Context, config Config) error {
+// waitForKBFSReady blocks until init has set up what requests need, and
+// returns errKBFSNotInitialized if init failed.
+func waitForKBFSReady(ctx context.Context, config Config) error {
 	if w, ok := config.KBFSOps().(kbfsInitWaiter); ok {
-		return w.waitForInit(ctx)
+		return w.waitForReady(ctx)
 	}
 	return nil
 }
 
-// kbfsInitDone reports, without blocking, whether init has finished.
-// Service-initiated requests check this rather than waiting, so none of them
-// can block on an init that is itself waiting on the service.
-func kbfsInitDone(config Config) bool {
+// kbfsReady reports, without blocking, whether init has set up what requests
+// need. Service-initiated requests check this rather than waiting, so none of
+// them can block on an init that is itself waiting on the service.
+func kbfsReady(config Config) bool {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	return waitForKBFSInit(ctx, config) == nil
+	return waitForKBFSReady(ctx, config) == nil
 }
 
 // StartReachability implements keybase1.ReachabilityInterface.
@@ -1370,7 +1371,7 @@ func (k *KeybaseServiceBase) FSEditListRequest(ctx context.Context,
 		k.log)
 	k.log.CDebugf(ctx, "Edit list request for %s (public: %t)",
 		req.Folder.Name, !req.Folder.Private)
-	if !kbfsInitDone(k.config) {
+	if !kbfsReady(k.config) {
 		return errKBFSNotInitialized{}
 	}
 	tlfHandle, err := getHandleFromFolderName(
@@ -1521,7 +1522,7 @@ func (k *KeybaseServiceBase) StartMigration(ctx context.Context,
 	if mdServer == nil {
 		return errors.New("no mdserver")
 	}
-	if !kbfsInitDone(k.config) {
+	if !kbfsReady(k.config) {
 		return errKBFSNotInitialized{}
 	}
 	// Making a favorite here to reuse the code that converts from
@@ -1548,7 +1549,7 @@ func (k *KeybaseServiceBase) StartMigration(ctx context.Context,
 func (k *KeybaseServiceBase) FinalizeMigration(ctx context.Context,
 	folder keybase1.Folder,
 ) (err error) {
-	if !kbfsInitDone(k.config) {
+	if !kbfsReady(k.config) {
 		return errKBFSNotInitialized{}
 	}
 	fav := favorites.NewFolderFromProtocol(folder)
@@ -1588,7 +1589,7 @@ func (k *KeybaseServiceBase) GetTLFCryptKeys(ctx context.Context,
 		return keybase1.GetTLFCryptKeysRes{}, err
 	}
 
-	if !kbfsInitDone(k.config) {
+	if !kbfsReady(k.config) {
 		return res, errKBFSNotInitialized{}
 	}
 	tlfHandle, err := getHandleFromFolderName(
@@ -1635,7 +1636,7 @@ func (k *KeybaseServiceBase) GetPublicCanonicalTLFNameAndID(
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
 	}
 
-	if !kbfsInitDone(k.config) {
+	if !kbfsReady(k.config) {
 		return res, errKBFSNotInitialized{}
 	}
 	tlfHandle, err := getHandleFromFolderName(
