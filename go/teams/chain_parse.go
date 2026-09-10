@@ -444,10 +444,10 @@ func CreateTeamBotSettings(bots map[keybase1.UserVersion]keybase1.TeamBotSetting
 		}
 		var convs, triggers *[]string
 		if len(botSettings.Triggers) > 0 {
-			triggers = &(botSettings.Triggers)
+			triggers = &botSettings.Triggers
 		}
 		if len(botSettings.Convs) > 0 {
-			convs = &(botSettings.Convs)
+			convs = &botSettings.Convs
 		}
 		res = append(res, SCTeamBot{
 			Bot:      ToSCTeamBotUV(bot),

@@ -17,7 +17,11 @@ import (
 func TestRootMetadataVersionV3(t *testing.T) {
 	counter := uint32(1)
 	check := func(ty tlf.Type, keyType tlf.KeyingType, ver MetadataVer) {
-		tlfID := tlf.FakeID(byte(counter), ty)
+		var idByte byte
+		if counter <= 255 {
+			idByte = byte(counter)
+		}
+		tlfID := tlf.FakeID(idByte, ty)
 		var id keybase1.UserOrTeamID
 		var readers []keybase1.UserOrTeamID
 		if keyType == tlf.TeamKeying {

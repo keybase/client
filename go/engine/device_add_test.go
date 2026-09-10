@@ -29,7 +29,7 @@ func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, 
 	uid keybase1.UID,
 ) {
 	defer wg.Done()
-	err := (func() error {
+	err := func() error {
 		uis := libkb.UIs{
 			ProvisionUI: &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
 		}
@@ -50,7 +50,7 @@ func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, 
 		}
 		provisionee := NewKex2Provisionee(tcY.G, device, secretY, uid, fakeSalt())
 		return RunEngine2(m, provisionee)
-	})()
+	}()
 	assert.NoError(t, err, "kex2 provisionee")
 }
 

@@ -40,10 +40,15 @@ func (u NullChatUI) ChatSearchInboxDone(context.Context, chat1.ChatSearchInboxDo
 func (u NullChatUI) ChatSearchIndexStatus(context.Context, chat1.ChatSearchIndexStatusArg) error {
 	return nil
 }
+
 func (u NullChatUI) ChatSearchConvHits(context.Context, chat1.UIChatSearchConvHits) error { return nil }
+
 func (u NullChatUI) ChatSearchTeamHits(context.Context, chat1.UIChatSearchTeamHits) error { return nil }
-func (u NullChatUI) ChatSearchBotHits(context.Context, chat1.UIChatSearchBotHits) error   { return nil }
-func (u NullChatUI) ChatStellarShowConfirm(context.Context) error                         { return nil }
+
+func (u NullChatUI) ChatSearchBotHits(context.Context, chat1.UIChatSearchBotHits) error { return nil }
+
+func (u NullChatUI) ChatStellarShowConfirm(context.Context) error { return nil }
+
 func (u NullChatUI) ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error) {
 	return false, nil
 }
@@ -61,8 +66,11 @@ func (u NullChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.Con
 func (u NullChatUI) ChatGiphyToggleResultWindow(ctx context.Context, convID chat1.ConversationID, show, clearInput bool) error {
 	return nil
 }
-func (u NullChatUI) ChatShowManageChannels(context.Context, string) error               { return nil }
+
+func (u NullChatUI) ChatShowManageChannels(context.Context, string) error { return nil }
+
 func (u NullChatUI) ChatCoinFlipStatus(context.Context, []chat1.UICoinFlipStatus) error { return nil }
+
 func (u NullChatUI) ChatCommandMarkdown(context.Context, chat1.ConversationID, *chat1.UICommandMarkdown) error {
 	return nil
 }

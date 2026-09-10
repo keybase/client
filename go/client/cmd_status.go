@@ -213,7 +213,7 @@ func (c *CmdStatus) outputJSON(fstatus *keybase1.FullStatus) error {
 		return err
 	}
 	dui := c.G().UI.GetDumbOutputUI()
-	_, err = dui.Printf(string(b) + "\n")
+	_, err = dui.Printf("%s\n", b)
 	return err
 }
 

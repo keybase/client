@@ -113,10 +113,8 @@ func (e *BackgroundTask) Run(m libkb.MetaContext) (err error) {
 
 	// start the loop and return
 	go func() {
-		err := e.loop(m)
-		if err != nil {
-			e.log(m, "loop error: %s", err)
-		}
+		// loop only returns when its sleep is canceled; it never returns nil.
+		e.log(m, "loop error: %s", e.loop(m))
 		cancel()
 		e.meta("loop-exit")
 	}()

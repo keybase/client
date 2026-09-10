@@ -28,7 +28,7 @@ type Helper struct {
 	ri func() chat1.RemoteInterface
 }
 
-var _ (libkb.ChatHelper) = (*Helper)(nil)
+var _ libkb.ChatHelper = (*Helper)(nil)
 
 func NewHelper(g *globals.Context, ri func() chat1.RemoteInterface) *Helper {
 	return &Helper{
@@ -1386,7 +1386,8 @@ func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple cha
 			MessageBody: chat1.NewMessageBodyWithMetadata(
 				chat1.MessageConversationMetadata{
 					ConversationTitle: *topicName,
-				}),
+				},
+			),
 		}
 	} else {
 		if membersType == chat1.ConversationMembersType_TEAM {
@@ -1468,7 +1469,8 @@ func (h *Helper) BulkAddToConv(ctx context.Context, uid gregor1.UID, convID chat
 	}
 
 	info, err := CreateNameInfoSource(ctx, h.G(), mt).LookupName(
-		ctx, conv.Metadata.IdTriple.Tlfid, conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC, "")
+		ctx, conv.Metadata.IdTriple.Tlfid, conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC, "",
+	)
 	if err != nil {
 		return err
 	}

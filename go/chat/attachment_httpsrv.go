@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"hash"
+	"html"
 	"io"
 	"net/http"
 	"net/url"
@@ -375,12 +376,21 @@ func (r *AttachmentHTTPSrv) serveGiphyLink(ctx context.Context, w http.ResponseW
 	// Grab range headers
 	rangeHeader := req.Header.Get("Range")
 	client := giphy.AssetClient(libkb.NewMetaContext(ctx, r.G().GlobalContext))
-	url, err := giphy.ProxyURL(val.(string))
+	proxyURL, err := giphy.ProxyURL(val.(string))
 	if err != nil {
 		r.makeError(ctx, w, http.StatusInternalServerError, "url creation: %s", err)
 		return
 	}
-	giphyReq, err := http.NewRequest("GET", url, nil)
+	parsed, err := url.Parse(proxyURL)
+	if err != nil {
+		r.makeError(ctx, w, http.StatusInternalServerError, "url parse: %s", err)
+		return
+	}
+	if parsed.Scheme != "https" || parsed.Host != giphy.ProxyHost {
+		r.makeError(ctx, w, http.StatusBadRequest, "refusing non-giphy-proxy URL")
+		return
+	}
+	giphyReq, err := http.NewRequest("GET", parsed.String(), nil) //nolint:gosec // G704: host allowlisted to giphy-proxy above
 	if err != nil {
 		r.makeError(ctx, w, http.StatusInternalServerError, "request creation: %s", err)
 		return
@@ -389,7 +399,7 @@ func (r *AttachmentHTTPSrv) serveGiphyLink(ctx context.Context, w http.ResponseW
 		giphyReq.Header.Add("Range", rangeHeader)
 	}
 	giphyReq.Host = giphy.MediaHost
-	resp, err := client.Do(giphyReq)
+	resp, err := client.Do(giphyReq) //nolint:gosec // G704: request URL host allowlisted to giphy-proxy
 	if err != nil {
 		status := http.StatusInternalServerError
 		if resp != nil {
@@ -457,7 +467,7 @@ func (r *AttachmentHTTPSrv) serveUnfurlVideoHostPage(ctx context.Context, w http
 					<video id="vid" %s preload="auto" style="width: 100%%; height: 100%%; border-radius: 4px; object-fit:fill" src="%s" playsinline webkit-playsinline loop autoplay muted />
 				</body>
 			</html>
-		`, autoplay, req.URL.String()+"&contentforce=true"); err != nil {
+		`, autoplay, html.EscapeString(req.URL.String()+"&contentforce=true")); err != nil {
 			r.Debug(ctx, "serveUnfurlVideoHostPage: failed to write HTML video player: %s", err)
 		}
 		return true
@@ -492,7 +502,7 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 					<video id="vid" style="width: 100%%; height: 100%%; object-fit:fill; border-radius: 4px" poster="%s" src="%s" preload="none" playsinline webkit-playsinline />
 				</body>
 			</html>
-		`, req.URL.Query().Get("poster"), req.URL.String()+"&contentforce=true"); err != nil {
+		`, html.EscapeString(req.URL.Query().Get("poster")), html.EscapeString(req.URL.String()+"&contentforce=true")); err != nil {
 			r.Debug(ctx, "serve: failed to write HTML video player: %s", err)
 		}
 		return true

@@ -25,7 +25,7 @@ type JSONConfigFile struct {
 	userConfigWrapper *UserConfigWrapper
 }
 
-var _ (ConfigReader) = (*JSONConfigFile)(nil)
+var _ ConfigReader = (*JSONConfigFile)(nil)
 
 func NewJSONConfigFile(g *GlobalContext, s string) *JSONConfigFile {
 	return &JSONConfigFile{NewJSONFile(g, s, "config"), &UserConfigWrapper{}}

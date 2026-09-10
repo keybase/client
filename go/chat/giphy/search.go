@@ -23,7 +23,8 @@ const (
 	APIHost    = "api.giphy.com"
 	MediaHost  = "media.giphy.com"
 	Host       = "giphy.com"
-	giphyProxy = "https://giphy-proxy.core.keybaseapi.com"
+	ProxyHost  = "giphy-proxy.core.keybaseapi.com"
+	giphyProxy = "https://" + ProxyHost
 )
 
 func getPreferredPreview(mctx libkb.MetaContext, img gifImage) (string, bool, error) {

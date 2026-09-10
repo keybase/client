@@ -41,7 +41,7 @@ func (g GPGUI) SelectKeyID(_ context.Context, keys []keybase1.GPGKey) (string, e
 		for j, userID := range k.Identities {
 			userIDs[j] = fmt.Sprintf("%s <%s>", userID.Username, userID.Email)
 		}
-		(fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n", i+1, k.Algorithm, k.KeyID, k.Creation, strings.Join(userIDs, ", ")))
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n", i+1, k.Algorithm, k.KeyID, k.Creation, strings.Join(userIDs, ", "))
 	}
 	w.Flush()
 

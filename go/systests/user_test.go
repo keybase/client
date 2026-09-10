@@ -186,7 +186,7 @@ func (n *signupTerminalUI) PromptYesNo(pd libkb.PromptDescriptor, s string, def 
 	default:
 		err = fmt.Errorf("unknown prompt %v", pd)
 	}
-	n.G().Log.Debug("Terminal PromptYesNo %d: %s -> %s (%v)\n", pd, s, ret, libkb.ErrToOk(err))
+	n.G().Log.Debug("Terminal PromptYesNo %d: %s -> %t (%v)\n", pd, s, ret, libkb.ErrToOk(err))
 	return ret, err
 }
 

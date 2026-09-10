@@ -54,9 +54,11 @@ func BenchmarkWrite1mb512k(b *testing.B) {
 func benchmarkWriteSeqN(b *testing.B, n int64, mask int64) {
 	buf := make([]byte, n)
 	b.SetBytes(n)
-	benchmark(b,
+	benchmark(
+		b,
 		users("alice"),
-		as(alice,
+		as(
+			alice,
 			custom(func(cb func(fileOp) error) error {
 				err := cb(mkfile("bench", ""))
 				if err != nil {
@@ -72,7 +74,7 @@ func benchmarkWriteSeqN(b *testing.B, n int64, mask int64) {
 					return err
 				}
 				for i := 0; i < n; i++ {
-					err = cb(pwriteBS("bench", buf, (int64(i*n))&mask))
+					err = cb(pwriteBS("bench", buf, int64(i*n)&mask))
 					if err != nil {
 						return err
 					}
@@ -120,9 +122,11 @@ func BenchmarkReadHole1mb512k(b *testing.B) {
 func benchmarkReadSeqHoleN(b *testing.B, n int64, mask int64) {
 	buf := make([]byte, n)
 	b.SetBytes(n)
-	benchmark(b,
+	benchmark(
+		b,
 		users("alice"),
-		as(alice,
+		as(
+			alice,
 			custom(func(cb func(fileOp) error) error {
 				err := cb(mkfile("bench", ""))
 				if err != nil {
@@ -142,7 +146,7 @@ func benchmarkReadSeqHoleN(b *testing.B, n int64, mask int64) {
 					return err
 				}
 				for i := 0; i < n; i++ {
-					err = cb(preadBS("bench", buf, (int64(i*n))&mask))
+					err = cb(preadBS("bench", buf, int64(i*n)&mask))
 					if err != nil {
 						return err
 					}
@@ -192,12 +196,14 @@ func benchmarkWriteWithBandwidthHelper(b *testing.B, fileBytes int64,
 	buf := make([]byte, perWriteBytes)
 	b.SetBytes(fileBytes)
 	numWritesPerFile := int(fileBytes / perWriteBytes)
-	benchmark(b,
+	benchmark(
+		b,
 		users("alice"),
 		blockSize(512<<10),
 		bandwidth(writebwKBps),
 		opTimeout(19*time.Second),
-		as(alice,
+		as(
+			alice,
 			custom(func(cb func(fileOp) error) (err error) {
 				startIter := 0
 				var n int
@@ -279,12 +285,14 @@ func BenchmarkWriteMixedFilesNormalBandwidth(b *testing.B) {
 	}
 	b.SetBytes(totalSize)
 
-	benchmark(b,
+	benchmark(
+		b,
 		users("alice"),
 		blockSize(512<<10),
 		bandwidth(11*1024/8 /* 11 Mbps */),
 		opTimeout(19*time.Second),
-		as(alice,
+		as(
+			alice,
 			custom(func(cb func(fileOp) error) (err error) {
 				var n int
 				err = cb(getBenchN(&n))
@@ -320,14 +328,17 @@ func benchmarkMultiFileSync(
 	b *testing.B, numFiles, fileSize int, timeWrites, timeFlush bool,
 ) {
 	isolateStages := !timeWrites || !timeFlush
-	benchmark(b,
+	benchmark(
+		b,
 		journal(),
 		users("alice"),
 		batchSize(20),
-		as(alice,
+		as(
+			alice,
 			mkdir("a"),
 		),
-		as(alice,
+		as(
+			alice,
 			enableJournal(),
 			custom(func(cb func(fileOp) error) (err error) {
 				if isolateStages {
@@ -372,7 +383,8 @@ func benchmarkMultiFileSync(
 						f := fmt.Sprintf("a/b/c/file%d", i)
 						start := (i%numFiles)*fileSize + (iter % fileSize)
 						err := cb(pwriteBSSync(
-							f, buf[start:start+fileSize], 0, false))
+							f, buf[start:start+fileSize], 0, false,
+						))
 						if err != nil {
 							return err
 						}

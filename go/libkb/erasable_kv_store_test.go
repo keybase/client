@@ -56,7 +56,7 @@ func TestErasableKVStore(t *testing.T) {
 	copy(corruptedNoise, noise)
 	corruptedNoise[0] ^= 0x01
 
-	err = os.WriteFile(noiseFilePath, corruptedNoise, PermFile)
+	err = os.WriteFile(noiseFilePath, corruptedNoise, PermFile) //nolint:gosec // G703: test corrupts a file it just created
 	require.NoError(t, err)
 
 	var corrupt string

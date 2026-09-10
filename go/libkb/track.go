@@ -218,6 +218,7 @@ func (t TrackDiffNoneViaTemporary) BreaksTracking() bool     { return false }
 func (t TrackDiffNoneViaTemporary) IsSameAsTracked() bool    { return true }
 func (t TrackDiffNoneViaTemporary) ToDisplayString() string  { return "snoozed" }
 func (t TrackDiffNoneViaTemporary) ToDisplayMarkup() *Markup { return NewMarkup(t.ToDisplayString()) }
+
 func (t TrackDiffNoneViaTemporary) GetTrackDiffType() keybase1.TrackDiffType {
 	return keybase1.TrackDiffType_NONE_VIA_TEMPORARY
 }

@@ -110,7 +110,7 @@ func (k *KeyringFile) Index() error {
 }
 
 func (k *KeyringFile) Load() error {
-	k.G().Log.Debug(fmt.Sprintf("+ Loading PGP Keyring %s", k.filename))
+	k.G().Log.Debug("+ Loading PGP Keyring %s", k.filename)
 	file, err := os.Open(k.filename)
 	if os.IsNotExist(err) {
 		k.G().Log.Warning(fmt.Sprintf("No PGP Keyring found at %s", k.filename))

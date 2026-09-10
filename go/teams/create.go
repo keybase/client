@@ -442,7 +442,7 @@ func makeRootTeamSection(teamName string, teamID keybase1.TeamID, members SCTeam
 ) (SCTeamSection, error) {
 	teamSection := SCTeamSection{
 		Name:     (*SCTeamName)(&teamName),
-		ID:       (SCTeamID)(teamID),
+		ID:       SCTeamID(teamID),
 		Public:   public,
 		Implicit: implicit,
 		PerTeamKey: &SCPerTeamKey{
@@ -656,7 +656,7 @@ func makeSubteamTeamSection(subteamName keybase1.TeamName, subteamID keybase1.Te
 	subteamName2 := subteamName.String()
 	teamSection := SCTeamSection{
 		Name: (*SCTeamName)(&subteamName2),
-		ID:   (SCTeamID)(subteamID),
+		ID:   SCTeamID(subteamID),
 		Parent: &SCTeamParent{
 			ID:      SCTeamID(parentTeam.GetID()),
 			Seqno:   parentTeam.GetLatestSeqno() + 1, // the seqno of the *new* parent link

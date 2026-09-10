@@ -92,7 +92,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	go func() {
 		defer wg.Done()
 
-		err := (func() error {
+		err := func() error {
 			uis := libkb.UIs{
 				ProvisionUI: &kbtest.TestProvisionUI{SecretCh: make(chan kex2.Secret, 1)},
 			}
@@ -113,7 +113,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 			provisionee := engine.NewKex2Provisionee(tcY.G, device, secretY, userX.GetUID(), fakeSalt())
 			mctxY = mctxY.WithUIs(uis).WithNewProvisionalLoginContext()
 			return engine.RunEngine2(mctxY, provisionee)
-		})()
+		}()
 		assert.NoError(t, err, "provisionee")
 	}()
 

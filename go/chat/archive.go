@@ -844,7 +844,7 @@ func tarGzip(inPath, outPath string) error {
 		if fi.IsDir() {
 			return nil
 		}
-		file, err := os.Open(fp)
+		file, err := os.Open(fp) //nolint:gosec // G122: packing a user-selected export directory; Walk path is the archive tree
 		if err != nil {
 			return err
 		}

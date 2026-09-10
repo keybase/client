@@ -90,7 +90,7 @@ type pingGregorTransport struct {
 var _ rpc.ConnectionTransport = (*pingGregorTransport)(nil)
 
 func (t *pingGregorTransport) Dial(context.Context) (rpc.Transporter, error) {
-	t.G().Log.Debug("pingGregorTransport Dial", t.host)
+	t.G().Log.Debug("pingGregorTransport Dial %s", t.host)
 	var err error
 	t.conn, err = libkb.ProxyDial(t.G().Env, "tcp", t.host)
 	if err != nil {
@@ -158,33 +158,33 @@ func (g *pingGregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 }
 
 func (g *pingGregorHandler) OnConnectError(err error, reconnectThrottleDuration time.Duration) {
-	g.G().Log.Debug("pingGregorHandler OnConnectError", err)
+	g.G().Log.Debug("pingGregorHandler OnConnectError: %v", err)
 	g.pingErrors <- err
 }
 
 func (g *pingGregorHandler) OnDisconnected(ctx context.Context, status rpc.DisconnectStatus) {
-	g.G().Log.Debug("pingGregorHandler OnDisconnected", status)
+	g.G().Log.Debug("pingGregorHandler OnDisconnected: %v", status)
 }
 
 func (g *pingGregorHandler) OnDoCommandError(err error, nextTime time.Duration) {
-	g.G().Log.Debug("pingGregorHandler DoCommandError", err)
+	g.G().Log.Debug("pingGregorHandler DoCommandError: %v", err)
 	g.pingErrors <- err
 }
 
 func (g *pingGregorHandler) ShouldRetry(name string, err error) bool {
-	g.G().Log.Debug("pingGregorHandler ShouldRetry", name, err)
+	g.G().Log.Debug("pingGregorHandler ShouldRetry: %s %v", name, err)
 	g.pingErrors <- err
 	return false
 }
 
 func (g *pingGregorHandler) ShouldRetryOnConnect(err error) bool {
-	g.G().Log.Debug("pingGregorHandler ShouldRetryOnConnect", err)
+	g.G().Log.Debug("pingGregorHandler ShouldRetryOnConnect: %v", err)
 	g.pingErrors <- err
 	return false
 }
 
 func (g *pingGregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message) error {
-	g.G().Log.Debug("pingGregorHandler BroadcaseMessage", m)
+	g.G().Log.Debug("pingGregorHandler BroadcaseMessage: %v", m)
 	return nil
 }
 

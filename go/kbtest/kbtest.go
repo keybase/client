@@ -273,7 +273,7 @@ func ProvisionNewDeviceKex(tcX *libkb.TestContext, tcY *libkb.TestContext, userX
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		err := (func() error {
+		err := func() error {
 			uis := libkb.UIs{
 				ProvisionUI: &TestProvisionUI{SecretCh: make(chan kex2.Secret, 1)},
 			}
@@ -294,7 +294,7 @@ func ProvisionNewDeviceKex(tcX *libkb.TestContext, tcY *libkb.TestContext, userX
 			}
 			provisionee := engine.NewKex2Provisionee(tcY.G, device, secretY, userX.GetUID(), FakeSalt())
 			return engine.RunEngine2(m, provisionee)
-		})()
+		}()
 		provisioneeErrCh <- err
 	}()
 

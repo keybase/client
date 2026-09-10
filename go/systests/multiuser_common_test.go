@@ -120,16 +120,19 @@ func (d *smuDeviceWrapper) clearUPAKCache() {
 
 type smuTerminalUI struct{}
 
-func (t smuTerminalUI) ErrorWriter() io.Writer                                        { return nil }
-func (t smuTerminalUI) Output(string) error                                           { return nil }
-func (t smuTerminalUI) OutputDesc(libkb.OutputDescriptor, string) error               { return nil }
-func (t smuTerminalUI) OutputWriter() io.Writer                                       { return nil }
-func (t smuTerminalUI) UnescapedOutputWriter() io.Writer                              { return nil }
-func (t smuTerminalUI) Printf(fmt string, args ...any) (int, error)                   { return 0, nil }
-func (t smuTerminalUI) PrintfUnescaped(fmt string, args ...any) (int, error)          { return 0, nil }
+func (t smuTerminalUI) ErrorWriter() io.Writer                          { return nil }
+func (t smuTerminalUI) Output(string) error                             { return nil }
+func (t smuTerminalUI) OutputDesc(libkb.OutputDescriptor, string) error { return nil }
+func (t smuTerminalUI) OutputWriter() io.Writer                         { return nil }
+func (t smuTerminalUI) UnescapedOutputWriter() io.Writer                { return nil }
+func (t smuTerminalUI) Printf(fmt string, args ...any) (int, error)     { return 0, nil }
+
+func (t smuTerminalUI) PrintfUnescaped(fmt string, args ...any) (int, error) { return 0, nil }
+
 func (t smuTerminalUI) Prompt(libkb.PromptDescriptor, string) (string, error)         { return "", nil }
 func (t smuTerminalUI) PromptForConfirmation(prompt string) error                     { return nil }
 func (t smuTerminalUI) PromptPassword(libkb.PromptDescriptor, string) (string, error) { return "", nil }
+
 func (t smuTerminalUI) PromptPasswordMaybeScripted(libkb.PromptDescriptor, string) (string, error) {
 	return "", nil
 }

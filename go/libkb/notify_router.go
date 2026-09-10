@@ -224,8 +224,11 @@ func (n *NoopNotifyListener) ChatRequestInfo(uid keybase1.UID, convID chat1.Conv
 func (n *NoopNotifyListener) ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, domain string) {
 }
-func (n *NoopNotifyListener) ChatConvUpdate(uid keybase1.UID, convID chat1.ConversationID)          {}
+
+func (n *NoopNotifyListener) ChatConvUpdate(uid keybase1.UID, convID chat1.ConversationID) {}
+
 func (n *NoopNotifyListener) ChatWelcomeMessageLoaded(keybase1.TeamID, chat1.WelcomeMessageDisplay) {}
+
 func (n *NoopNotifyListener) ChatParticipantsInfo(
 	participants map[chat1.ConvIDStr][]chat1.UIParticipant) {
 }
@@ -238,11 +241,17 @@ func (n *NoopNotifyListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno
 
 func (n *NoopNotifyListener) TeamChangedByName(teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno, source keybase1.TeamChangedSource) {
 }
-func (n *NoopNotifyListener) TeamDeleted(teamID keybase1.TeamID)                                    {}
-func (n *NoopNotifyListener) TeamExit(teamID keybase1.TeamID)                                       {}
-func (n *NoopNotifyListener) TeamRoleMapChanged(version keybase1.UserTeamVersion)                   {}
-func (n *NoopNotifyListener) NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration)    {}
+
+func (n *NoopNotifyListener) TeamDeleted(teamID keybase1.TeamID) {}
+
+func (n *NoopNotifyListener) TeamExit(teamID keybase1.TeamID) {}
+
+func (n *NoopNotifyListener) TeamRoleMapChanged(version keybase1.UserTeamVersion) {}
+
+func (n *NoopNotifyListener) NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration) {}
+
 func (n *NoopNotifyListener) NewTeambotEK(teamID keybase1.TeamID, generation keybase1.EkGeneration) {}
+
 func (n *NoopNotifyListener) TeambotEKNeeded(teamID keybase1.TeamID, botUID keybase1.UID,
 	generation keybase1.EkGeneration, forceCreateGen *keybase1.EkGeneration) {
 }
@@ -1584,7 +1593,8 @@ func (n *NotifyRouter) HandleChatArchiveComplete(ctx context.Context, jobID chat
 			go func() {
 				_ = (chat1.NotifyChatClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).ChatArchiveComplete(context.Background(),
+				}).ChatArchiveComplete(
+					context.Background(),
 					jobID,
 				)
 				wg.Done()

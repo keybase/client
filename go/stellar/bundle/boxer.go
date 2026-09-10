@@ -203,7 +203,7 @@ type PukFinder interface {
 	SeedByGeneration(m libkb.MetaContext, generation keybase1.PerUserKeyGeneration) (libkb.PerUserKeySeed, error)
 }
 
-type AccountPukGens map[stellar1.AccountID](keybase1.PerUserKeyGeneration)
+type AccountPukGens map[stellar1.AccountID]keybase1.PerUserKeyGeneration
 
 // DecodeAndUnbox decodes the encrypted and visible encoded bundles and unboxes
 // the encrypted bundle using PukFinder to find the correct puk. It combines

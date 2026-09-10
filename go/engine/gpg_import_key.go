@@ -157,7 +157,7 @@ func (e *GPGImportKeyEngine) Run(mctx libkb.MetaContext) (err error) {
 	publicKeys := me.GetActivePGPKeys(false)
 	duplicate := false
 	for _, key := range publicKeys {
-		if key.GetFingerprint().Eq(*(selected.GetFingerprint())) {
+		if key.GetFingerprint().Eq(*selected.GetFingerprint()) {
 			duplicate = true
 			break
 		}
@@ -215,12 +215,12 @@ func (e *GPGImportKeyEngine) Run(mctx libkb.MetaContext) (err error) {
 		// If we don't need secret key to save in Keybase keyring,
 		// just import public key and rely on GPG fallback for reverse
 		// signature.
-		bundle, err = gpg.ImportKey(mctx, false, *(selected.GetFingerprint()), tty)
+		bundle, err = gpg.ImportKey(mctx, false, *selected.GetFingerprint(), tty)
 		if err != nil {
 			return fmt.Errorf("ImportKey (secret: false) error: %s", err)
 		}
 	} else {
-		bundle, err = gpg.ImportKey(mctx, true, *(selected.GetFingerprint()), tty)
+		bundle, err = gpg.ImportKey(mctx, true, *selected.GetFingerprint(), tty)
 		if err != nil {
 			return fmt.Errorf("ImportKey (secret: true) error: %s", err)
 		}

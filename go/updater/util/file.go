@@ -215,7 +215,7 @@ func MakeTempDir(prefix string, mode os.FileMode) (string, error) {
 // IsDirReal returns true if directory exists and is a real directory (not a symlink).
 // If it returns false, an error will be set explaining why.
 func IsDirReal(path string) (bool, error) {
-	fileInfo, err := os.Lstat(path)
+	fileInfo, err := os.Lstat(path) //nolint:gosec // G703: inspects a caller-provided path to reject symlinks
 	if err != nil {
 		return false, err
 	}

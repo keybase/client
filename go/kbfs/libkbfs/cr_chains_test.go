@@ -105,6 +105,9 @@ func testCRCheckOps(t *testing.T, cc *crChains, original data.BlockPointer,
 
 	codec := kbfscodec.NewMsgpack()
 	for i, op := range chain.ops {
+		if i >= len(expectedOps) {
+			require.FailNow(t, fmt.Sprintf("index %d out of range for expected ops (len %d)", i, len(expectedOps)))
+		}
 		eOp := expectedOps[i]
 		// First check for rename create ops.
 		if co, ok := op.(*createOp); ok && co.renamed {

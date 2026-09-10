@@ -193,7 +193,7 @@ func (e *PaperKeyGen) makeEncKey(seed []byte) error {
 }
 
 func (e *PaperKeyGen) getClientHalfFromSecretStore(m libkb.MetaContext) (clientHalf libkb.LKSecClientHalf, ppgen libkb.PassphraseGeneration, err error) {
-	defer m.Trace("PaperKeyGen#getClientHalfFromSecretStore", &err)
+	defer m.Trace("PaperKeyGen#getClientHalfFromSecretStore", &err)()
 
 	secretStore := libkb.NewSecretStore(m, e.arg.Me.GetNormalizedName())
 	if secretStore == nil {

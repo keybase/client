@@ -1217,23 +1217,23 @@ func (h IdentifyUIHandler) handleShowTrackerPopupCreate(ctx context.Context, cli
 	}
 	body, err := jsonw.Unmarshal(item.Body().Bytes())
 	if err != nil {
-		h.G().Log.Debug("body failed to unmarshal", err)
+		h.G().Log.Debug("body failed to unmarshal: %v", err)
 		return err
 	}
 	uidString, err := body.AtPath("uid").GetString()
 	if err != nil {
-		h.G().Log.Debug("failed to extract uid", err)
+		h.G().Log.Debug("failed to extract uid: %v", err)
 		return err
 	}
 	uid, err := keybase1.UIDFromString(uidString)
 	if err != nil {
-		h.G().Log.Debug("failed to convert UID from string", err)
+		h.G().Log.Debug("failed to convert UID from string: %v", err)
 		return err
 	}
 
 	identifyUI, err := h.G().UIRouter.GetIdentifyUI()
 	if err != nil {
-		h.G().Log.Debug("failed to get IdentifyUI", err)
+		h.G().Log.Debug("failed to get IdentifyUI: %v", err)
 		return err
 	}
 	if identifyUI == nil {
@@ -1242,7 +1242,7 @@ func (h IdentifyUIHandler) handleShowTrackerPopupCreate(ctx context.Context, cli
 	}
 	secretUI, err := h.G().UIRouter.GetSecretUI(0)
 	if err != nil {
-		h.G().Log.Debug("failed to get SecretUI", err)
+		h.G().Log.Debug("failed to get SecretUI: %v", err)
 		return err
 	}
 	if secretUI == nil {

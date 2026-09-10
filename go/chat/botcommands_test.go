@@ -154,7 +154,7 @@ func TestBotCommandManager(t *testing.T) {
 	require.NoError(t, readErrCh(errCh))
 	cmds, _, err = tc.Context().BotCommandManager.ListCommands(ctx, impConv.Id)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(cmds))
+	require.Len(t, cmds, 1)
 	require.Equal(t, "status", cmds[0].Name)
 
 	// A missing command record should trigger the same recovery.
@@ -164,7 +164,7 @@ func TestBotCommandManager(t *testing.T) {
 	require.NoError(t, readErrCh(errCh))
 	cmds, _, err = tc.Context().BotCommandManager.ListCommands(ctx, impConv.Id)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(cmds))
+	require.Len(t, cmds, 1)
 	require.Equal(t, "status", cmds[0].Name)
 
 	require.NoError(t, readErrCh(errCh1))

@@ -665,7 +665,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 	startTime := t.clock.Now()
 	baseDelay := 3 * time.Second
 	getDelay := func() time.Duration {
-		return baseDelay - (t.clock.Now().Sub(startTime))
+		return baseDelay - t.clock.Now().Sub(startTime)
 	}
 	wg.Add(1)
 	go func() {

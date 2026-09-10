@@ -15,7 +15,7 @@ type OneTimeWhitelistExemption struct {
 	domain string
 }
 
-var _ (types.WhitelistExemption) = (*OneTimeWhitelistExemption)(nil)
+var _ types.WhitelistExemption = (*OneTimeWhitelistExemption)(nil)
 
 func NewOneTimeWhitelistExemption(convID chat1.ConversationID, msgID chat1.MessageID, domain string) *OneTimeWhitelistExemption {
 	return &OneTimeWhitelistExemption{
@@ -52,7 +52,7 @@ type SingleMessageWhitelistExemption struct {
 	domain string
 }
 
-var _ (types.WhitelistExemption) = (*SingleMessageWhitelistExemption)(nil)
+var _ types.WhitelistExemption = (*SingleMessageWhitelistExemption)(nil)
 
 func NewSingleMessageWhitelistExemption(convID chat1.ConversationID, msgID chat1.MessageID, domain string) *SingleMessageWhitelistExemption {
 	return &SingleMessageWhitelistExemption{

@@ -85,16 +85,16 @@ func TestOpenWrongKeyCombos(t *testing.T) {
 	data, err = boxOpen(encryptedData, nonce, kp1.Public, (*NaclDHKeyPrivate)(&kp2.Public))
 	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
-	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp1.Private), (*NaclDHKeyPrivate)(&kp1.Public))
+	data, err = boxOpen(encryptedData, nonce, NaclDHKeyPublic(*kp1.Private), (*NaclDHKeyPrivate)(&kp1.Public))
 	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
-	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp1.Private), kp1.Private)
+	data, err = boxOpen(encryptedData, nonce, NaclDHKeyPublic(*kp1.Private), kp1.Private)
 	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
-	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp1.Private), (*NaclDHKeyPrivate)(&kp2.Public))
+	data, err = boxOpen(encryptedData, nonce, NaclDHKeyPublic(*kp1.Private), (*NaclDHKeyPrivate)(&kp2.Public))
 	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
-	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp1.Private), kp2.Private)
+	data, err = boxOpen(encryptedData, nonce, NaclDHKeyPublic(*kp1.Private), kp2.Private)
 	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
 	data, err = boxOpen(encryptedData, nonce, kp2.Public, (*NaclDHKeyPrivate)(&kp1.Public))
@@ -106,16 +106,16 @@ func TestOpenWrongKeyCombos(t *testing.T) {
 	data, err = boxOpen(encryptedData, nonce, kp2.Public, kp2.Private)
 	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
-	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp2.Private), (*NaclDHKeyPrivate)(&kp1.Public))
+	data, err = boxOpen(encryptedData, nonce, NaclDHKeyPublic(*kp2.Private), (*NaclDHKeyPrivate)(&kp1.Public))
 	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
-	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp2.Private), kp1.Private)
+	data, err = boxOpen(encryptedData, nonce, NaclDHKeyPublic(*kp2.Private), kp1.Private)
 	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
-	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp2.Private), (*NaclDHKeyPrivate)(&kp2.Public))
+	data, err = boxOpen(encryptedData, nonce, NaclDHKeyPublic(*kp2.Private), (*NaclDHKeyPrivate)(&kp2.Public))
 	require.Error(t, err, "Open unexpectedly worked: %v", data)
 
-	data, err = boxOpen(encryptedData, nonce, (NaclDHKeyPublic)(*kp2.Private), kp2.Private)
+	data, err = boxOpen(encryptedData, nonce, NaclDHKeyPublic(*kp2.Private), kp2.Private)
 	require.Error(t, err, "Open unexpectedly worked: %v", data)
 }
 

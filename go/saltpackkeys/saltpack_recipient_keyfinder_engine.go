@@ -22,7 +22,7 @@ import (
 // This is a separate object (and also not part of the engine package) to avoid circular dependencies (as teams depends on engine).
 type SaltpackRecipientKeyfinderEngine struct {
 	engine.SaltpackUserKeyfinder
-	SymmetricEntityKeyMap map[keybase1.TeamID](keybase1.TeamApplicationKey)
+	SymmetricEntityKeyMap map[keybase1.TeamID]keybase1.TeamApplicationKey
 	SaltpackSymmetricKeys []libkb.SaltpackReceiverSymmetricKey
 }
 
@@ -35,7 +35,7 @@ var (
 func NewSaltpackRecipientKeyfinderEngineAsInterface(arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface {
 	return &SaltpackRecipientKeyfinderEngine{
 		SaltpackUserKeyfinder: *engine.NewSaltpackUserKeyfinder(arg),
-		SymmetricEntityKeyMap: make(map[keybase1.TeamID](keybase1.TeamApplicationKey)),
+		SymmetricEntityKeyMap: make(map[keybase1.TeamID]keybase1.TeamApplicationKey),
 	}
 }
 

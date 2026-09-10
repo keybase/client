@@ -152,6 +152,7 @@ func testListWithFilterAndUsername(
 	})
 	sort.Strings(expectedEntries)
 	for i, entry := range listResult.Entries {
+		require.Less(t, i, len(expectedEntries))
 		require.Equal(t, expectedEntries[i], entry.Name)
 		require.Equal(t, username, entry.LastWriterUnverified.Username)
 	}

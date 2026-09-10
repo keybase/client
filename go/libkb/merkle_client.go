@@ -2228,7 +2228,9 @@ func (mrp MerkleRootPayload) rootHash() NodeHash          { return mrp.unpacked.
 func (mrp MerkleRootPayload) legacyUIDRootHash() NodeHash { return mrp.unpacked.Body.LegacyUIDRoot }
 func (mrp MerkleRootPayload) pvlHash() string             { return mrp.unpacked.Body.PvlHash }
 func (mrp MerkleRootPayload) proofServicesHash() string   { return mrp.unpacked.Body.ProofServicesHash }
-func (mrp MerkleRootPayload) externalURLHash() string     { return mrp.unpacked.Body.ExternalURLHash }
+
+func (mrp MerkleRootPayload) externalURLHash() string { return mrp.unpacked.Body.ExternalURLHash }
+
 func (mrp MerkleRootPayload) blindMerkleRootHash() string {
 	return mrp.unpacked.Body.BlindMerkleRootHash
 }

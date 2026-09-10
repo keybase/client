@@ -18,7 +18,7 @@ import (
 func Unmount(dir string, force bool, log Log) error {
 	if !force {
 		mounted, err := IsMounted(dir, log)
-		if err != nil {
+		if err != nil { //nolint:staticcheck // SA4023: always errors on !darwin; can be nil on darwin
 			return err
 		}
 		if !mounted {

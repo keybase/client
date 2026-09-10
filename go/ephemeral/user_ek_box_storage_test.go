@@ -182,7 +182,7 @@ func TestUserEKBoxStorageDeleteExpiredKeys(t *testing.T) {
 	// Test with an expired and a stale key
 	keyMap = keyExpiryMap{
 		0: keybase1.ToTime(now.Add(-(libkb.MaxEphemeralKeyStaleness + libkb.MinEphemeralKeyLifetime))),
-		1: keybase1.ToTime(now.Add(-(libkb.MinEphemeralKeyLifetime))),
+		1: keybase1.ToTime(now.Add(-libkb.MinEphemeralKeyLifetime)),
 	}
 	expired = s.getExpiredGenerations(mctx, keyMap, now)
 	expected = []keybase1.EkGeneration{0}

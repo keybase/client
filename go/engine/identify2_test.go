@@ -88,6 +88,7 @@ func (i *Identify2WithUIDTester) ListDisplayConfigs(libkb.MetaContext) []keybase
 }
 func (i *Identify2WithUIDTester) SuggestionFoldPriority(libkb.MetaContext) int { return 0 }
 func (i *Identify2WithUIDTester) Key() string                                  { return i.GetTypeName() }
+
 func (i *Identify2WithUIDTester) CheckProofText(_ string, _ keybase1.SigID, _ string) error {
 	return nil
 }
@@ -108,8 +109,10 @@ func (i *Identify2WithUIDTester) ToServiceJSON(_ string) *jsonw.Wrapper { return
 func (i *Identify2WithUIDTester) MakeProofChecker(_ libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return i
 }
+
 func (i *Identify2WithUIDTester) GetServiceType(context.Context, string) libkb.ServiceType { return i }
-func (i *Identify2WithUIDTester) PickerSubtext() string                                    { return "" }
+
+func (i *Identify2WithUIDTester) PickerSubtext() string { return "" }
 
 func (i *Identify2WithUIDTester) CheckStatus(m libkb.MetaContext, h libkb.SigHint,
 	pcm libkb.ProofCheckerMode, _ keybase1.MerkleStoreEntry,
@@ -1117,7 +1120,8 @@ func TestForcedIdentifyReusesProofCheckedAfterRequest(t *testing.T) {
 
 func TestForcedIdentifyReusesSoftFailureCheckedAfterRequest(t *testing.T) {
 	testForcedIdentifyReusesProofCheckedAfterRequest(
-		t, libkb.NewProofError(keybase1.ProofStatus_HTTP_500, "temporary failure"))
+		t, libkb.NewProofError(keybase1.ProofStatus_HTTP_500, "temporary failure"),
+	)
 }
 
 func TestResolveThenIdentify2RecordsRequestBeforeResolution(t *testing.T) {
@@ -1295,16 +1299,18 @@ func TestTrackResetReuseKey(t *testing.T) {
 
 	// Bob should be able to ID Alice without any issues
 	idUI := &FakeIdentifyUI{}
-	require.NoError(t, RunEngine2(
-		NewMetaContextForTest(tcY).WithUIs(libkb.UIs{
-			LogUI:      tcY.G.UI.GetLogUI(),
-			IdentifyUI: &FakeIdentifyUI{},
-		}),
-		NewResolveThenIdentify2(tcY.G, &keybase1.Identify2Arg{
-			UserAssertion:    fuX.Username,
-			ForceDisplay:     true,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
-		})),
+	require.NoError(
+		t, RunEngine2(
+			NewMetaContextForTest(tcY).WithUIs(libkb.UIs{
+				LogUI:      tcY.G.UI.GetLogUI(),
+				IdentifyUI: &FakeIdentifyUI{},
+			}),
+			NewResolveThenIdentify2(tcY.G, &keybase1.Identify2Arg{
+				UserAssertion:    fuX.Username,
+				ForceDisplay:     true,
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
+			}),
+		),
 	)
 	require.False(t, idUI.BrokenTracking)
 	require.Empty(t, idUI.DisplayKeyDiffs)
@@ -1319,7 +1325,8 @@ func TestTrackResetReuseKey(t *testing.T) {
 	// Alice logs in (and provisions) again
 	loginEng := NewLogin(tcX.G, keybase1.DeviceTypeV2_DESKTOP, fuX.Username, keybase1.ClientType_CLI)
 	loginEng.naclSigningKeyPair = pairX
-	require.NoError(t,
+	require.NoError(
+		t,
 		RunEngine2(
 			NewMetaContextForTest(tcX).WithUIs(libkb.UIs{
 				ProvisionUI: newTestProvisionUI(),
@@ -1361,16 +1368,18 @@ func TestTrackResetReuseKey(t *testing.T) {
 
 	// Which should fix the identification
 	idUI = &FakeIdentifyUI{}
-	require.NoError(t, RunEngine2(
-		NewMetaContextForTest(tcY).WithUIs(libkb.UIs{
-			LogUI:      tcY.G.UI.GetLogUI(),
-			IdentifyUI: idUI,
-		}),
-		NewResolveThenIdentify2(tcY.G, &keybase1.Identify2Arg{
-			UserAssertion:    fuX.Username,
-			ForceDisplay:     true,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
-		})),
+	require.NoError(
+		t, RunEngine2(
+			NewMetaContextForTest(tcY).WithUIs(libkb.UIs{
+				LogUI:      tcY.G.UI.GetLogUI(),
+				IdentifyUI: idUI,
+			}),
+			NewResolveThenIdentify2(tcY.G, &keybase1.Identify2Arg{
+				UserAssertion:    fuX.Username,
+				ForceDisplay:     true,
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
+			}),
+		),
 	)
 	require.False(t, idUI.BrokenTracking)
 	require.Empty(t, idUI.DisplayKeyDiffs)

@@ -26,7 +26,7 @@ type ResolveThenIdentify2 struct {
 	trackOptions keybase1.TrackOptions
 }
 
-var _ (Engine2) = (*ResolveThenIdentify2)(nil)
+var _ Engine2 = (*ResolveThenIdentify2)(nil)
 
 func NewResolveThenIdentify2(g *libkb.GlobalContext, arg *keybase1.Identify2Arg) *ResolveThenIdentify2 {
 	return &ResolveThenIdentify2{

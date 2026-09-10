@@ -138,7 +138,7 @@ func (w *Watchdog) heartbeatToLog(delay time.Duration) {
 // watchProgram will monitor a program and restart it if it exits.
 // This method will run forever.
 func (w *Watchdog) startProgram(idx int) {
-	program := &(w.Programs[idx])
+	program := &w.Programs[idx]
 	for {
 		start := time.Now()
 		err := program.Run(w.Log, w.shutdownCh)

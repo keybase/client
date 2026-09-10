@@ -512,7 +512,8 @@ func (i *Inbox) Merge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers
 
 	i.Debug(ctx, "Merge: vers: %d convs: %d", vers, len(convsIn))
 	if len(convsIn) == 1 {
-		i.Debug(ctx, "Merge: single conversation: %s", convsIn[0].GetConvID())
+		conv := convsIn[0]
+		i.Debug(ctx, "Merge: single conversation: %s", conv.GetConvID())
 	}
 	convIDs := make([]chat1.ConversationID, 0, len(convsIn))
 	for _, conv := range convsIn {

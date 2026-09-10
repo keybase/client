@@ -495,14 +495,14 @@ func startProfile(g *libkb.GlobalContext) {
 			g.Log.Debug("dumping periodic memory profile")
 			f, err := os.CreateTemp("", "keybase_memprofile")
 			if err != nil {
-				g.Log.Debug("could not create memory profile: ", err)
+				g.Log.Debug("could not create memory profile: %v", err)
 				continue
 			}
 
 			debug.FreeOSMemory()
 			runtime.GC() // get up-to-date statistics
 			if err := pprof.WriteHeapProfile(f); err != nil {
-				g.Log.Debug("could not write memory profile: ", err)
+				g.Log.Debug("could not write memory profile: %v", err)
 				continue
 			}
 			f.Close()

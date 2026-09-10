@@ -34,7 +34,7 @@ type JourneyCardManager struct {
 	ri         func() chat1.RemoteInterface
 }
 
-var _ (types.JourneyCardManager) = (*JourneyCardManager)(nil)
+var _ types.JourneyCardManager = (*JourneyCardManager)(nil)
 
 func NewJourneyCardManager(g *globals.Context, ri func() chat1.RemoteInterface) *JourneyCardManager {
 	return &JourneyCardManager{

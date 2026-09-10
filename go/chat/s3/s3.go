@@ -985,8 +985,9 @@ func (s3 *S3) run(ctx context.Context, req *request, resp any) (*http.Response, 
 	if s3.client == nil {
 		s3.client = &http.Client{
 			Transport: &http.Transport{
-				Dial: func(netw, addr string) (c net.Conn, err error) {
-					c, err = net.DialTimeout(netw, addr, s3.ConnectTimeout)
+				DialContext: func(ctx context.Context, netw, addr string) (c net.Conn, err error) {
+					d := net.Dialer{Timeout: s3.ConnectTimeout}
+					c, err = d.DialContext(ctx, netw, addr)
 					if err != nil {
 						return
 					}

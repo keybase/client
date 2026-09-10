@@ -961,7 +961,7 @@ func zipDir(directory string, prog *progress.ProgressWriter) io.ReadCloser {
 			if err != nil {
 				return err
 			}
-			f, err := os.Open(path)
+			f, err := os.Open(path) //nolint:gosec // G122: zipping a user-selected directory; Walk path is the archive tree
 			if err != nil {
 				return err
 			}

@@ -72,7 +72,8 @@ func (k naclBoxPrecomputedSharedKey) Unbox(nonce saltpack.Nonce, msg []byte) (
 	[]byte, error,
 ) {
 	ret, ok := box.OpenAfterPrecomputation(
-		[]byte{}, msg, (*[24]byte)(&nonce), (*[32]byte)(&k))
+		[]byte{}, msg, (*[24]byte)(&nonce), (*[32]byte)(&k),
+	)
 	if !ok {
 		return nil, DecryptionError{}
 	}
@@ -132,7 +133,7 @@ var _ saltpack.Keyring = naclKeyring{}
 func (n naclKeyring) LookupBoxSecretKey(
 	kids [][]byte,
 ) (int, saltpack.BoxSecretKey) {
-	sk := (naclBoxSecretKey)(n)
+	sk := naclBoxSecretKey(n)
 	pkKid := sk.GetPublicKey().ToKID()
 	for i, kid := range kids {
 		if bytes.Equal(pkKid, kid) {

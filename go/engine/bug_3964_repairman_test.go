@@ -32,13 +32,13 @@ func (a *auditLog) ClearLines() {
 
 func (a *auditLog) Debug(format string, args ...any) {
 	s := fmt.Sprintf(format, args...)
-	a.l.CloneWithAddedDepth(1).Debug(s)
+	a.l.CloneWithAddedDepth(1).Debug("%s", s)
 	*a.lines = append(*a.lines, s)
 }
 
 func (a *auditLog) CDebugf(ctx context.Context, format string, args ...any) {
 	s := fmt.Sprintf(format, args...)
-	a.l.CloneWithAddedDepth(1).CDebugf(ctx, s)
+	a.l.CloneWithAddedDepth(1).CDebugf(ctx, "%s", s)
 	*a.lines = append(*a.lines, s)
 }
 

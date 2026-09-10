@@ -84,7 +84,7 @@ func (v *CmdID) Run() error {
 You can either specify a user to id: keybase id <username>
 Or log in once on this device and run "keybase id" again.
 `
-		_, _ = v.G().UI.GetDumbOutputUI().PrintfStderr(msg)
+		_, _ = v.G().UI.GetDumbOutputUI().PrintfStderr("%s", msg)
 		return nil
 	}
 	return err
@@ -147,7 +147,7 @@ func (ui *idCmdIdentifyUI) Finish(_ libkb.MetaContext) error {
 		return err
 	}
 	dui := ui.parent.GetDumbOutputUI()
-	_, err = dui.Printf(string(b) + "\n")
+	_, err = dui.Printf("%s\n", b)
 	return err
 }
 

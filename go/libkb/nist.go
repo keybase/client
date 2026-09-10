@@ -302,7 +302,7 @@ func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1
 	n.Lock()
 	defer n.Unlock()
 
-	naclKey, ok := (key).(NaclSigningKeyPair)
+	naclKey, ok := key.(NaclSigningKeyPair)
 	if !ok {
 		return errors.New("cannot generate a NIST without a NaCl key")
 	}
@@ -360,7 +360,7 @@ func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1
 		Payload: payload.abbreviate(lastSuccessfulShortHash),
 	}
 
-	longTmp, err = (long).pack(typ)
+	longTmp, err = long.pack(typ)
 	if err != nil {
 		return err
 	}

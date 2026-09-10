@@ -1274,8 +1274,7 @@ func (c *ConfigLocal) EnableJournaling(
 	ctx context.Context, journalRoot string,
 	bws TLFJournalBackgroundWorkStatus,
 ) error {
-	jManager, err := GetJournalManager(c)
-	if err == nil {
+	if _, err := GetJournalManager(c); err == nil {
 		// Journaling shouldn't be enabled twice for the same
 		// config.
 		return errors.New("trying to enable journaling twice")
@@ -1293,12 +1292,12 @@ func (c *ConfigLocal) EnableJournaling(
 	flushListener := c.KBFSOps().(mdFlushListener)
 
 	// Make sure the journal root exists.
-	err = ioutil.MkdirAll(journalRoot, 0o700)
+	err := ioutil.MkdirAll(journalRoot, 0o700)
 	if err != nil {
 		return err
 	}
 
-	jManager = makeJournalManager(c, log, journalRoot, c.BlockCache(),
+	jManager := makeJournalManager(c, log, journalRoot, c.BlockCache(),
 		c.DirtyBlockCache(), c.BlockServer(), c.MDOps(), branchListener,
 		flushListener, bws)
 
