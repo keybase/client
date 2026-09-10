@@ -81,12 +81,12 @@ func (k *KeybaseDaemonRPC) addKBFSProtocols() {
 	k.AddProtocols(protocols)
 }
 
-// gateOnKBFSInit wraps every method of the given protocols (SimpleFS, git,
-// fs) so each request waits for init to finish, which is after the service
-// connection is live. Each request is served on its own goroutine, so
-// waiting doesn't block the connection. A request fails with
+// gateOnKBFSReady wraps every method of the given protocols (SimpleFS, git,
+// fs) so each request waits until init has set up what requests need, which
+// is after the service connection is live. Each request is served on its own
+// goroutine, so waiting doesn't block the connection. A request fails with
 // errKBFSNotInitialized if init failed, or ends with the caller's context.
-func gateOnKBFSInit(config Config, protocols []rpc.Protocol) []rpc.Protocol {
+func gateOnKBFSReady(config Config, protocols []rpc.Protocol) []rpc.Protocol {
 	if len(protocols) == 0 {
 		return protocols
 	}
@@ -96,7 +96,7 @@ func gateOnKBFSInit(config Config, protocols []rpc.Protocol) []rpc.Protocol {
 		for name, m := range p.Methods {
 			handler := m.Handler
 			m.Handler = func(ctx context.Context, arg any) (any, error) {
-				if err := waitForKBFSInit(ctx, config); err != nil {
+				if err := waitForKBFSReady(ctx, config); err != nil {
 					return nil, err
 				}
 				return handler(ctx, arg)
@@ -132,7 +132,7 @@ func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger,
 	k.notifyService = newNotifyServiceHandler(config, log)
 
 	k.addKBFSProtocols()
-	k.AddProtocols(gateOnKBFSInit(config, additionalProtocols))
+	k.AddProtocols(gateOnKBFSReady(config, additionalProtocols))
 
 	return k
 }
