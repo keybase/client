@@ -125,11 +125,14 @@ func serviceLoggedIn(ctx context.Context, config Config, session idutil.SessionI
 		go bServer.RefreshAuthToken(context.Background())
 	}
 
-	if config.Mode().DoRefreshFavoritesOnInit() {
-		config.KBFSOps().RefreshCachedFavorites(
-			ctx, FavoritesRefreshModeInMainFavoritesLoop)
+	// CurrentSession can land here before init has called SetKBFSOps.
+	if kbfsOps := config.KBFSOps(); kbfsOps != nil {
+		if config.Mode().DoRefreshFavoritesOnInit() {
+			kbfsOps.RefreshCachedFavorites(
+				ctx, FavoritesRefreshModeInMainFavoritesLoop)
+		}
+		kbfsOps.PushStatusChange()
 	}
-	config.KBFSOps().PushStatusChange()
 
 	config.ResetForLogin(ctx, session.Name)
 

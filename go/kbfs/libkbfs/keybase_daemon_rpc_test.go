@@ -55,6 +55,32 @@ func TestKeybaseDaemonRPCGetCurrentSessionCanceled(t *testing.T) {
 	testRPCWithCanceledContext(t, serverConn, f)
 }
 
+// Service notifications can arrive before init has called SetKBFSOps.
+func TestKeybaseDaemonRPCNotificationsBeforeKBFSOps(t *testing.T) {
+	config := MakeTestConfigOrBust(t, "testuser")
+	kbfsOps := config.KBFSOps()
+	config.SetKBFSOps(nil)
+	defer func() {
+		config.SetKBFSOps(kbfsOps)
+		CheckConfigAndShutdown(context.Background(), t, config)
+	}()
+
+	daemon := newKeybaseDaemonRPC(config, nil, logger.NewTestLogger(t))
+	ctx := context.Background()
+	for _, r := range []keybase1.Reachable{
+		keybase1.Reachable_YES, keybase1.Reachable_NO,
+	} {
+		require.NoError(t, daemon.ReachabilityChanged(
+			ctx, keybase1.Reachability{Reachable: r}))
+	}
+	require.NoError(t, daemon.FavoritesChanged(ctx, keybase1.UID("")))
+	require.NoError(t, daemon.PaperKeyCached(ctx, keybase1.PaperKeyCachedArg{}))
+	require.NoError(t, daemon.TeamChangedByID(ctx, keybase1.TeamChangedByIDArg{
+		Changes: keybase1.TeamChangeSet{Renamed: true},
+	}))
+	require.NoError(t, daemon.TeamAbandoned(ctx, keybase1.TeamID("")))
+}
+
 // TODO: Add tests for Favorite* methods, too.
 
 type fakeKeybaseClient struct {

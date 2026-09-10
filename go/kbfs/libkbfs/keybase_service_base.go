@@ -417,11 +417,15 @@ func (k *KeybaseServiceBase) ReachabilityChanged(ctx context.Context,
 	reachability keybase1.Reachability,
 ) error {
 	k.log.CDebugf(ctx, "CheckReachability invoked: %v", reachability)
-	if reachability.Reachable == keybase1.Reachable_YES {
-		k.config.KBFSOps().PushConnectionStatusChange(GregorServiceName, nil)
-	} else {
-		k.config.KBFSOps().PushConnectionStatusChange(
-			GregorServiceName, errDisconnected{})
+	// The service connection delivers notifications before init has called
+	// SetKBFSOps, so KBFSOps can still be nil here.
+	if kbfsOps := k.config.KBFSOps(); kbfsOps != nil {
+		if reachability.Reachable == keybase1.Reachable_YES {
+			kbfsOps.PushConnectionStatusChange(GregorServiceName, nil)
+		} else {
+			kbfsOps.PushConnectionStatusChange(
+				GregorServiceName, errDisconnected{})
+		}
 	}
 	mdServer := k.config.MDServer()
 	if mdServer != nil {
@@ -452,13 +456,15 @@ func (k *KeybaseServiceBase) PaperKeyCached(ctx context.Context,
 	k.log.CDebugf(ctx, "Paper key for %s cached", arg.Uid)
 
 	if k.getCachedCurrentSession().UID == arg.Uid {
-		err := k.config.KBFSOps().KickoffAllOutstandingRekeys()
-		if err != nil {
-			// Ignore and log errors here. For now the only way it could error
-			// is when the method is called on a folderBranchOps which is a
-			// developer mistake and not recoverable from code.
-			k.log.CDebugf(ctx,
-				"Calling KickoffAllOutstandingRekeys error: %s", err)
+		if kbfsOps := k.config.KBFSOps(); kbfsOps != nil {
+			err := kbfsOps.KickoffAllOutstandingRekeys()
+			if err != nil {
+				// Ignore and log errors here. For now the only way it could error
+				// is when the method is called on a folderBranchOps which is a
+				// developer mistake and not recoverable from code.
+				k.log.CDebugf(ctx,
+					"Calling KickoffAllOutstandingRekeys error: %s", err)
+			}
 		}
 		// Ignore any errors for now, we don't want to block this
 		// notification and it's not worth spawning a goroutine for.
@@ -1403,8 +1409,8 @@ func (k *KeybaseServiceBase) TeamChangedByID(ctx context.Context,
 		arg.Changes.KeyRotated, arg.Changes.Renamed)
 	k.setCachedTeamInfo(arg.TeamID, idutil.TeamInfo{})
 
-	if arg.Changes.Renamed {
-		k.config.KBFSOps().TeamNameChanged(ctx, arg.TeamID)
+	if kbfsOps := k.config.KBFSOps(); arg.Changes.Renamed && kbfsOps != nil {
+		kbfsOps.TeamNameChanged(ctx, arg.TeamID)
 	}
 	return nil
 }
@@ -1454,7 +1460,9 @@ func (k *KeybaseDaemonRPC) TeamAbandoned(
 ) error {
 	k.log.CDebugf(ctx, "Implicit team %s abandoned", tid)
 	k.setCachedTeamInfo(tid, idutil.TeamInfo{})
-	k.config.KBFSOps().TeamAbandoned(ctx, tid)
+	if kbfsOps := k.config.KBFSOps(); kbfsOps != nil {
+		kbfsOps.TeamAbandoned(ctx, tid)
+	}
 	return nil
 }
 

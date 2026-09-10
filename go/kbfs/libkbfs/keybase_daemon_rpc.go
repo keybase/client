@@ -480,8 +480,10 @@ func (k *KeybaseDaemonRPC) FavoritesChanged(ctx context.Context,
 	uid keybase1.UID,
 ) error {
 	k.log.Debug("Received FavoritesChanged RPC.")
-	k.config.KBFSOps().RefreshCachedFavorites(ctx,
-		FavoritesRefreshModeInMainFavoritesLoop)
+	if kbfsOps := k.config.KBFSOps(); kbfsOps != nil {
+		kbfsOps.RefreshCachedFavorites(ctx,
+			FavoritesRefreshModeInMainFavoritesLoop)
+	}
 	return nil
 }
 
