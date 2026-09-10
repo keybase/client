@@ -58,10 +58,11 @@ func TestKeybaseDaemonRPCGetCurrentSessionCanceled(t *testing.T) {
 // Service notifications can arrive before init has called SetKBFSOps.
 func TestKeybaseDaemonRPCNotificationsBeforeKBFSOps(t *testing.T) {
 	config := MakeTestConfigOrBust(t, "testuser")
-	kbfsOps := config.KBFSOps()
+	kbfsOps, mdOps := config.KBFSOps(), config.MDOps()
 	config.SetKBFSOps(nil)
 	defer func() {
 		config.SetKBFSOps(kbfsOps)
+		config.SetMDOps(mdOps)
 		CheckConfigAndShutdown(context.Background(), t, config)
 	}()
 
@@ -83,7 +84,10 @@ func TestKeybaseDaemonRPCNotificationsBeforeKBFSOps(t *testing.T) {
 			ctx, keybase1.Reachability{Reachable: r}))
 	}
 	require.NoError(t, daemon.FavoritesChanged(ctx, keybase1.UID("")))
-	require.NoError(t, daemon.PaperKeyCached(ctx, keybase1.PaperKeyCachedArg{}))
+	// PaperKeyCached only acts for the current session's user.
+	daemon.setCachedCurrentSession(session)
+	require.NoError(t, daemon.PaperKeyCached(
+		ctx, keybase1.PaperKeyCachedArg{Uid: session.UID}))
 	require.NoError(t, daemon.TeamChangedByID(ctx, keybase1.TeamChangedByIDArg{
 		Changes: keybase1.TeamChangeSet{Renamed: true},
 	}))
@@ -107,9 +111,54 @@ func TestKeybaseDaemonRPCNotificationsBeforeKBFSOps(t *testing.T) {
 	// uncached until KBFSOps is set, and the next lookup runs it.
 	testCurrentSession(t, client, daemon, session, expectCall)
 	testCurrentSession(t, client, daemon, session, expectCall)
+	// KBFSOps alone isn't enough: init sets MDOps just after it.
+	config.SetMDOps(nil)
 	config.SetKBFSOps(kbfsOps)
 	testCurrentSession(t, client, daemon, session, expectCall)
+	config.SetMDOps(mdOps)
+	testCurrentSession(t, client, daemon, session, expectCall)
 	testCurrentSession(t, client, daemon, session, expectCached)
+}
+
+// The SimpleFS/git/fs protocols share the service connection, so their
+// requests can also arrive before init has set up KBFS.
+func TestWaitForKBFSInit(t *testing.T) {
+	config := MakeTestConfigOrBust(t, "testuser")
+	kbfsOps := config.KBFSOps()
+	config.SetKBFSOps(nil)
+	defer func() {
+		config.SetKBFSOps(kbfsOps)
+		CheckConfigAndShutdown(context.Background(), t, config)
+	}()
+
+	called := make(chan struct{}, 1)
+	protocols := waitForKBFSInit(config, []rpc.Protocol{{
+		Name: "test",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"method": {Handler: func(context.Context, any) (any, error) {
+				called <- struct{}{}
+				return nil, nil
+			}},
+		},
+	}})
+	handler := protocols[0].Methods["method"].Handler
+
+	// Not ready: the request waits until the caller gives up, and the
+	// handler never runs.
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	defer cancel()
+	_, err := handler(ctx, nil)
+	require.ErrorIs(t, err, context.DeadlineExceeded)
+	require.Empty(t, called)
+
+	// Becoming ready mid-wait lets the request through.
+	go func() {
+		time.Sleep(50 * time.Millisecond)
+		config.SetKBFSOps(kbfsOps)
+	}()
+	_, err = handler(context.Background(), nil)
+	require.NoError(t, err)
+	require.Len(t, called, 1)
 }
 
 // TODO: Add tests for Favorite* methods, too.
