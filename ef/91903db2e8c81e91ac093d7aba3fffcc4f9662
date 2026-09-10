@@ -1,0 +1,191 @@
+go/bind/keybase_test.go
+  s_a007ab341723ad::t_5ff61c49ae5613 323,508-510,515,520-522,528,532-534,537
+go/chat/convloader_test.go
+  s_a007ab341723ad::t_f06a62827a02df 5,326-327
+go/chat/convsource.go
+  s_a007ab341723ad::t_bb68b8ec059dfa 7,114-115
+go/chat/inboxsource_test.go
+  s_a007ab341723ad::t_238e58f1f5e5d3 52,56-57,61
+go/chat/journey_card_manager.go
+  s_a007ab341723ad::t_c41aae6e015f05 419-420
+go/chat/localizer.go
+  s_a007ab341723ad::t_e49ae28fef7159 7,922-923
+go/chat/mobilepush.go
+  s_a007ab341723ad::t_234ccb5f203780 95
+go/chat/search/deadlock_test.go
+  s_a007ab341723ad::t_1ab4fcee3e94c9 281,285,289-290,308
+go/chat/search/flush_test.go
+  s_a007ab341723ad::t_d6adf6a43fa1db 243,273,294
+go/chat/search/indexer.go
+  s_a007ab341723ad::t_771e7f613a0e53 270,287,700
+go/chat/search/reindex_test.go
+  s_a007ab341723ad::t_be9c021de6d9d9 356
+go/chat/search/utils.go
+  s_a007ab341723ad::t_4c784b8a588d61 7,151-152
+go/chat/server_test.go
+  s_a007ab341723ad::t_d50c7a3c297db5 8690,8700,8754
+go/chat/storage/inbox_test.go
+  s_a007ab341723ad::t_2849bdde2ccbb2 6,171,175,260,263,299,305
+go/chat/uithreadloader.go
+  s_a007ab341723ad::t_f648e65964e83f 670,726
+go/chat/unfurl/scraper_test.go
+  s_a007ab341723ad::t_e498fe2e84a27e 72,74,77,79,192-195,201-204,210-213,220-222,229-231,237-239,245-247,253-255,261-262,268-270,276-278,281-282,293-295,305-307
+go/chat/utils/kbfs_path_utils_test.go
+  s_a007ab341723ad::t_73e7b424b391ea 13-14,29,32-34,36,50-51,53-56,58,60-66,68-72,77-78,83-84,86-87,89
+go/chat/utils/utils.go
+  s_a007ab341723ad::t_587825162a043e 799,1361,2587
+go/chatrender/chat_cli_rendering.go
+  s_a007ab341723ad::t_1792ea5fe2b192 8,371-372
+go/client/cmd_stress.go
+  s_a007ab341723ad::t_ce3478dc135214 79,81
+go/client/cmd_team_bot_settings.go
+  s_a007ab341723ad::t_c156054809b5d6 100,120,122,127,133,137,139,141,145,148
+go/client/cmd_wallet_history.go
+  s_a007ab341723ad::t_814cba79affd60 9,79-80
+go/engine/identify2_test.go
+  s_a007ab341723ad::t_41f7b2fda58687 661,666,1055,1059,1104,1112
+go/engine/identify2_with_uid.go
+  s_a007ab341723ad::t_c26b8fd86f62f3 1062,1064,1069,1071
+go/engine/kex2_test.go
+  s_a007ab341723ad::t_23e3b4e2109b42 56,80,83,95,128,152,155,167
+go/engine/login_test.go
+  s_a007ab341723ad::t_230b28ceee3742 264,268,273,281,361,368,373,385,452,459,463,475,519,526,530,542,1038,1044,1049,1060,2322,2329,2333,2345,2676,2683,2687,2699,2844,2851,2855,2867,2912,2919,2923,2935,3014,3021,3025,3037,3246,3253,3257,3269,3342,3349,3353,3365,3719,3727,3731,3740,3781,3789,3797,3807
+go/engine/upak_loader_test.go
+  s_a007ab341723ad::t_69b35d4075ff41 297,302,304,310
+go/ephemeral/kex2_test.go
+  s_a007ab341723ad::t_d30686f0e18628 91,116,119,131
+go/kbfs/data/block_tree.go
+  s_a007ab341723ad::t_0a762c779d4b41 11,640-641
+go/kbfs/data/file_data.go
+  s_a007ab341723ad::t_1f05cc80839e9d 11,924-925,972-973
+go/kbfs/kbfsblock/server_errors.go
+  s_a007ab341723ad::t_d9e9d6930ef14e 358
+go/kbfs/kbfsedits/tlf_history.go
+  s_a007ab341723ad::t_3a7c20618b070e 12,142-143
+go/kbfs/kbfsgit/runner.go
+  s_a007ab341723ad::t_fa8e09fba8b118 2423,2432
+go/kbfs/kbfssync/leveled_mutex_test.go
+  s_a007ab341723ad::t_e480c23217c342 104,112,114,120,122,128,130,136,138,142,144,148,150,154
+go/kbfs/kbfssync/repeated_wait_group_test.go
+  s_a007ab341723ad::t_c8cf87850d7842 65,67
+go/kbfs/libcontext/delayed_cancellation.go
+  s_a007ab341723ad::t_ca5e53b65a10e0 130-131,184,188,208,213
+go/kbfs/libkbfs/block_retrieval_queue.go
+  s_a007ab341723ad::t_dca38905500585 696,698
+go/kbfs/libkbfs/block_util.go
+  s_a007ab341723ad::t_457041ef6da70e 149
+go/kbfs/libkbfs/conflict_resolver.go
+  s_a007ab341723ad::t_6fc951b0f4c39b 15,1039,1041,1044,1056,1980-1981,2650-2651
+go/kbfs/libkbfs/folder_block_manager.go
+  s_a007ab341723ad::t_cec88044fbdf66 10,510,907-908,915-916,1374
+go/kbfs/libkbfs/folder_block_ops.go
+  s_a007ab341723ad::t_504e286ec4145e 574
+go/kbfs/libkbfs/folder_branch_ops.go
+  s_a007ab341723ad::t_f72aa298673c67 15,531,533,5387-5388,7360-7361,7387-7388,7397
+go/kbfs/libkbfs/folder_update_prepper.go
+  s_a007ab341723ad::t_ba84e0e76085bb 10,741-742,755-756,1317-1318,1542-1543
+go/kbfs/libkbfs/journal_manager.go
+  s_a007ab341723ad::t_268927c294a1c5 782
+go/kbfs/libkbfs/journal_manager_util.go
+  s_a007ab341723ad::t_6f8bd3def085ea 103
+go/kbfs/libkbfs/kbfs_cr_test.go
+  s_a007ab341723ad::t_e3b4d0a4bb2592 1118,1126,1676,1687,1794,1812,1825,1834,1925,1936
+go/kbfs/libkbfs/kbfs_ops_concur_test.go
+  s_a007ab341723ad::t_2837f25ebf710a 2239,2244
+go/kbfs/libkbfs/md_ops.go
+  s_a007ab341723ad::t_e8b55f9fea9623 1256
+go/kbfs/libkbfs/mdserver_memory.go
+  s_a007ab341723ad::t_db2a3237c05553 10,344-345,351-352
+go/kbfs/libkbfs/node_cache.go
+  s_a007ab341723ad::t_91d587eeb4a81d 9,380-381
+go/kbfs/libkbfs/online_status_tracker.go
+  s_a007ab341723ad::t_5bea8c735d9dcd 321,338
+go/kbfs/libpages/config/config_v1_test.go
+  s_a007ab341723ad::t_5d5b1d32a3e1a7 148,156,173,181,198,206,223,231,248,256,273,281,298,306,323,331
+go/kbfs/libpages/config/utils_test.go
+  s_a007ab341723ad::t_3a9e744997665e 27,29
+go/kbtest/kbtest.go
+  s_a007ab341723ad::t_532c7300d728d1 273,297,300,309
+go/libkb/all_provisioned_usernames.go
+  s_a007ab341723ad::t_d89764d2a2a3ca 60
+go/libkb/bootstrap_active_device.go
+  s_a007ab341723ad::t_ea61b34711a660 65
+go/libkb/errors.go
+  s_a007ab341723ad::t_b09cb131df252f 129,503
+go/libkb/file_test.go
+  s_a007ab341723ad::t_62c1f9412b6737 37,44,51,56
+go/libkb/id_table.go
+  s_a007ab341723ad::t_e674dad8712a28 8,1492-1493,1508-1509,1528-1529
+go/libkb/json_test.go
+  s_a007ab341723ad::t_e4af003f92b3c2 29,34,37,42
+go/libkb/kex2_router_test.go
+  s_a007ab341723ad::t_effb2575a7b6dc 77,80
+go/libkb/link_cache_test.go
+  s_a007ab341723ad::t_a6d8ccd34d15e2 101,110
+go/libkb/lksec_test.go
+  s_a007ab341723ad::t_8e49c52a067c74 11
+go/libkb/merkle_reset_chain.go
+  s_a007ab341723ad::t_df5965b9c2a85c 7,124,126-127
+go/libkb/notify_router.go
+  s_a007ab341723ad::t_27691e00b73d8a 777,782,807,812,1040,1049,1069,1073,1096,1105,1127,1135,1155,1159,1181,1188,1211,1218,1238,1242,1261,1265,1286,1294,1316,1323,1344,1351,1373,1380,1402,1410,1432,1442,1464,1474,1496,1504,1524,1532,1552,1559,1723,1728,1949,1953,2031,2035,2147,2151,2186,2190,2270,2274,2295,2299,2320,2324,2347,2351,2372,2376,2397,2401,2429,2433,2461,2465,2495,2499,2528,2532,2562,2566,2681,2690,2710,2719
+go/libkb/remote_proof_links.go
+  s_a007ab341723ad::t_399ef36bb01e2a 138-139
+go/libkb/sig_chain.go
+  s_a007ab341723ad::t_e5e0b0e6156bf4 10,446-447,575-576
+go/libkb/skb_keyring.go
+  s_a007ab341723ad::t_a671f0ad39861c 9,204,206,217
+go/libkb/upak_lite.go
+  s_a007ab341723ad::t_2e9868dd0b97a7 6,174-175
+go/protocol/keybase1/extras.go
+  s_a007ab341723ad::t_a504a9cc7d2fd4 655,1685-1686
+go/service/config.go
+  s_a007ab341723ad::t_284e46f03a6645 364
+go/service/gregor.go
+  s_a007ab341723ad::t_7b8987bc607609 826,971
+go/service/interesting_test.go
+  s_a007ab341723ad::t_2a5881a5d0df80 5,39
+go/service/kvstore_test.go
+  s_a007ab341723ad::t_8286857764bd17 783,786-787,790
+go/stellar/stellarsvc/frontend_test.go
+  s_a007ab341723ad::t_d9ef03a0b22c45 7,441-442
+go/stellar/stellarsvc/service_test.go
+  s_a007ab341723ad::t_2cad4dd7dfc3fb 1397,1401
+go/teams/audit.go
+  s_a007ab341723ad::t_60f9058e7cc7cb 6,256-257
+go/teams/chain.go
+  s_a007ab341723ad::t_29cd9b36c4fd82 232-233,279-280
+go/teams/ftl.go
+  s_a007ab341723ad::t_37edf412bb3baa 5,881
+go/teams/handler.go
+  s_a007ab341723ad::t_0ae174329f489b 602,620
+go/teams/implicit.go
+  s_a007ab341723ad::t_db41fa5e93f64a 244
+go/teams/loader.go
+  s_a007ab341723ad::t_512d52e9c3b4a1 8,760-762
+go/teams/resolve.go
+  s_a007ab341723ad::t_30fceffe468ea3 132
+go/teams/service_helper.go
+  s_a007ab341723ad::t_170a75475eb989 2204-2205
+go/tools/pvlcheck/main.go
+  s_a007ab341723ad::t_561585b50146db 49
+go/uidmap/uidmap_test.go
+  s_a007ab341723ad::t_70b6b63d12db5f 125,127
+go/updater/watchdog/watchdog_test.go
+  s_a007ab341723ad::t_108fd2489cd25d 257,260
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "ef91903db2e8c81e91ac093d7aba3fffcc4f9662",
+  "prompts": {},
+  "sessions": {
+    "s_a007ab341723ad": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "3582db59-f307-4f01-a900-8e55bef037e8",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
