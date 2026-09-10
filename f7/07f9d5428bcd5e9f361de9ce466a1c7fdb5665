@@ -1,0 +1,22 @@
+go/client/cmd_team_bot_settings.go
+  s_26037099bba060::t_2f435402e152f6 127
+  s_26037099bba060::t_a016f0e730ddb8 139
+go/client/cmd_ctl_nix.go
+  s_26037099bba060::t_96ff342e670400 433,441,443
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "f707f9d5428bcd5e9f361de9ce466a1c7fdb5665",
+  "prompts": {},
+  "sessions": {
+    "s_26037099bba060": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "a028a9e2-0bcd-44b5-a9b1-5544acf445dc",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
