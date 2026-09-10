@@ -32,7 +32,7 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liquid-glass'
 import {Platform, StatusBar, View} from 'react-native'
 import AccountSwitchHeaderAvatar from './account-switch-header-avatar'
-import {clearPendingAccountSwitch, consumePendingAccountSwitchTab} from './account-switch'
+import {clearPendingAccountSwitch, consumePendingAccountSwitchTab, showLoggedInScreens} from './account-switch'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
 const isLiquidGlassSupported = isMobile ? (_isLiquidGlassSupported as boolean) : false
@@ -604,8 +604,8 @@ if (isMobile) {
     }
   }
 
-  const useIsLoggedInNative = () => useConfigState(s => s.loggedIn)
-  const useIsLoggedOutNative = () => !useConfigState(s => s.loggedIn)
+  const useIsLoggedInNative = () => useConfigState(showLoggedInScreens)
+  const useIsLoggedOutNative = () => !useConfigState(showLoggedInScreens)
 
   const nativeModalScreensConfig = routeMapToStaticScreens(modalRoutes, makeLayout, true, false, false)
   const nativePhoneRootScreensConfig = routeMapToStaticScreens(

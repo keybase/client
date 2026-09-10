@@ -58,6 +58,10 @@ const mobileInitialStore: Store = {
 
 const initialStore: Store = isMobile ? mobileInitialStore : desktopInitialStore
 
+// The account a notification tap is switching to, so that when the switch ends only that tap's
+// pending notification is dropped (see the config subscription at the bottom of this file).
+let pushSwitchForUid: string | undefined
+
 export const usePushState = Z.createZustand<State>('push', (set, get) => {
   if (!isMobile) {
     const dispatch: State['dispatch'] = {
@@ -226,7 +230,8 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
                 return
               }
               logger.info('[Push] switching to account for notification tap')
-              configDispatch.setUserSwitching(true)
+              pushSwitchForUid = forUid
+              configDispatch.setUserSwitching(true, account.username)
               set(s => {
                 s.pendingPushNotification = notification
               })
@@ -432,9 +437,17 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
   }
 })
 
-// A login error used to clear the pending push notification via a direct call
-// from config's setLoginError. Subscribing here instead keeps config from
-// importing push (breaks the config <-> push require cycle).
+// Drop the pending push notification when the login or account switch it was waiting on
+// ends without reaching its account:
+// - a login error;
+// - a switch started by a notification tap that ends with that tap's notification still
+//   pending. A successful switch consumes it (push-listener replays it when the uid changes,
+//   before the router clears userSwitching), so if it's still there the switch never landed,
+//   e.g. its login cancelled its own prompt. Left pending, the account-list replay in
+//   push-listener would re-run that switch the next time the accounts refresh. A notification
+//   parked for an account that isn't configured yet belongs to no switch, so it's kept.
+// Subscribing here instead of calling from config keeps config from importing push (breaks
+// the config <-> push require cycle).
 //
 // Guard against HMR: the config store instance (and its subscribers) survive
 // hot reloads via Z.createZustand's registry, but this module re-evaluates, so
@@ -444,7 +457,15 @@ const _g = globalThis as any
 if (!__DEV__ || !_g.__pushLoginErrorSubscribed) {
   if (__DEV__) _g.__pushLoginErrorSubscribed = true
   useConfigState.subscribe((s, p) => {
-    if (s.loginError && s.loginError !== p.loginError) {
+    const loginFailed = !!s.loginError && s.loginError !== p.loginError
+    let endedSwitchForUid: string | undefined
+    if (p.userSwitching && !s.userSwitching) {
+      endedSwitchForUid = pushSwitchForUid
+      pushSwitchForUid = undefined
+    }
+    const pending = usePushState.getState().pendingPushNotification
+    const pendingForUid = pending && 'forUid' in pending ? pending.forUid : undefined
+    if (loginFailed || (!!endedSwitchForUid && pendingForUid === endedSwitchForUid)) {
       usePushState.getState().dispatch.clearPendingPushNotification()
     }
   })

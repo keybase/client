@@ -37,6 +37,18 @@ export const consumePendingAccountSwitchTab = (currentUsername: string) => {
   return pending.tab
 }
 
+// Whether the root navigator shows the logged-in screens. A switch that starts while logged in flaps
+// loggedIn false and back between the service's loggedOut and loggedIn notifications. Following
+// that would swap the native root stack to loggedOut and back right before the navKey remount, and
+// that churn leaves RNS screens from the unmounted navigator on screen, swallowing every touch. So
+// hold the logged-in screens through such a switch. A switch that starts logged out (e.g. a
+// notification tap on the login screen) keeps the logged-out screens until it lands.
+export const showLoggedInScreens = (s: {
+  loggedIn: boolean
+  userSwitching: boolean
+  userSwitchingFromLoggedIn: boolean
+}) => s.loggedIn || (s.userSwitching && s.userSwitchingFromLoggedIn)
+
 export const clearPendingAccountSwitch = (currentUsername: string) => {
   if (pendingAccountSwitch?.targetUsername !== currentUsername) {
     pendingAccountSwitch = undefined
