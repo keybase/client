@@ -1490,7 +1490,6 @@ func (idt *IdentityTable) VerifySelfSig(nun NormalizedUsername, uid keybase1.UID
 func (idt *IdentityTable) GetTrackList() (ret []*TrackChainLink) {
 	for _, v := range idt.tracks {
 		for _, link := range slices.Backward(v) {
-
 			if !link.IsRevoked() {
 				ret = append(ret, link)
 				break
@@ -1526,7 +1525,6 @@ func (idt *IdentityTable) TrackChainLinkFor(username NormalizedUsername, uid key
 func (idt *IdentityTable) ActiveCryptocurrency(family CryptocurrencyFamily) *CryptocurrencyChainLink {
 	tab := idt.cryptocurrency
 	for _, link := range slices.Backward(tab) {
-
 		if link.typ.ToCryptocurrencyFamily() == family {
 			if link.IsRevoked() {
 				return nil

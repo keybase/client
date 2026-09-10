@@ -10,8 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//go:fix inline
-func strPointer(str string) *string { return new(str) }
 func makeKBFSPathForTest(rawPath string, standardPath *string) chat1.KBFSPath {
 	if standardPath == nil {
 		return chat1.KBFSPath{RawPath: rawPath, StandardPath: rawPath}

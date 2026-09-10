@@ -371,7 +371,6 @@ func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb
 	t.Logf("start provisioner")
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
 	wg.Go(func() {
-
 		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
@@ -461,7 +460,6 @@ func TestProvisionMobile(t *testing.T) {
 	// start provisioner
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
 	wg.Go(func() {
-
 		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
@@ -528,7 +526,6 @@ func TestProvisionWithRevoke(t *testing.T) {
 	// start provisioner
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
 	wg.Go(func() {
-
 		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
@@ -1047,7 +1044,6 @@ func TestProvisionWithUnexpectedX(t *testing.T) {
 	t.Logf("start provisioner")
 	provisioner := NewKex2Provisioner(tcF.G, secretX, nil)
 	wg.Go(func() {
-
 		uis := libkb.UIs{
 			SecretUI:    actualUser.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
@@ -2331,7 +2327,6 @@ func TestProvisionKexUseSyncPGP(t *testing.T) {
 	// start provisioner
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
 	wg.Go(func() {
-
 		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
@@ -2685,7 +2680,6 @@ func TestResetAccountKexProvision(t *testing.T) {
 	// start provisioner
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
 	wg.Go(func() {
-
 		uis := libkb.UIs{
 			SecretUI:    u.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
@@ -2853,7 +2847,6 @@ func TestResetAccountLikeNistur(t *testing.T) {
 	// start provisioner
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
 	wg.Go(func() {
-
 		uis := libkb.UIs{
 			SecretUI:    u.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
@@ -2921,7 +2914,6 @@ func TestResetMultipleDevices(t *testing.T) {
 	// start provisioner
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
 	wg.Go(func() {
-
 		uis := libkb.UIs{
 			SecretUI:    u.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
@@ -3023,7 +3015,6 @@ func TestProvisionWithBadConfig(t *testing.T) {
 	// start provisioner
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
 	wg.Go(func() {
-
 		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
@@ -3255,7 +3246,6 @@ func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool) {
 	// start provisioner
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
 	wg.Go(func() {
-
 		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
@@ -3351,7 +3341,6 @@ func TestProvisionAndRevoke(t *testing.T) {
 	// start provisioner
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
 	wg.Go(func() {
-
 		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
@@ -3729,7 +3718,6 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 	// start provisioner for step #1
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
 	wg.Go(func() {
-
 		// We're reusing the m from the PGP key generation
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
 		err := RunEngine2(m, provisioner)
@@ -3795,7 +3783,6 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 	}
 	provisioner = NewKex2Provisioner(tcY.G, secretY, nil)
 	wg.Go(func() {
-
 		// We're reusing the m from the PGP key generation
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		// m.ActiveDevice().ClearPassphraseStreamCache()

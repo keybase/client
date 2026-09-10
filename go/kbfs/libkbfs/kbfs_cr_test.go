@@ -1674,7 +1674,6 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 	var wg sync.WaitGroup
 	putCtx, cancel2 := context.WithCancel(putCtx)
 	wg.Go(func() {
-
 		c <- struct{}{}
 		// Make sure the CR gets done with a context we can use for
 		// stalling.
@@ -1792,7 +1791,6 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 	var wg sync.WaitGroup
 	firstPutCtx, cancel := context.WithCancel(putCtx)
 	wg.Go(func() {
-
 		// Make sure the CR gets done with a context we can use for
 		// stalling.
 		err = RestartCRForTesting(firstPutCtx, config2,
@@ -1823,7 +1821,6 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 
 	// Now restart CR, and make sure it blocks all writes.
 	wg.Go(func() {
-
 		// Make sure the CR gets done with a context we can use for
 		// stalling.
 		err = RestartCRForTesting(putCtx, config2,

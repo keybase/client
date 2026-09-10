@@ -739,7 +739,6 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 	for _, op := range md.data.Changes.Ops {
 		// Iterate in reverse since we may be deleting references as we go.
 		for _, ptr := range slices.Backward(op.Refs()) {
-
 			// Don't add usage if it's an unembedded block change
 			// pointer.  Also, we shouldn't be referencing this
 			// anymore!
@@ -1540,7 +1539,6 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 		}
 		for _, unmergedResOp := range unmergedChains.resOps {
 			for _, ptr := range slices.Backward(unmergedResOp.Refs()) {
-
 				if unmergedChains.blockChangePointers[ptr] &&
 					!toDeleteMap[ptr.ID] {
 					fup.vlog.CLogf(

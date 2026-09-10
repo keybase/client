@@ -5385,7 +5385,6 @@ func (fbo *folderBranchOps) unrefEntryLocked(ctx context.Context,
 	// pointers that are unreferenced will be fixed up during syncing.
 	for _, dirOp := range fbo.dirOps {
 		for _, ref := range slices.Backward(dirOp.dirOp.Refs()) {
-
 			if _, ok := unrefsToAdd[ref]; ok {
 				dirOp.dirOp.DelRefBlock(ref)
 				delete(unrefsToAdd, ref)

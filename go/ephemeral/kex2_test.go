@@ -89,7 +89,6 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 
 	// start provisionee
 	wg.Go(func() {
-
 		err := func() error {
 			uis := libkb.UIs{
 				ProvisionUI: &kbtest.TestProvisionUI{SecretCh: make(chan kex2.Secret, 1)},

@@ -638,7 +638,6 @@ func (bt *blockTree) newRightBlock(
 	// Find the lowest block that can accommodate a new right block.
 	lowestAncestorWithRoom := -1
 	for i, pb := range slices.Backward(parentBlocks) {
-
 		if pb.pblock.NumIndirectPtrs() < bt.bsplit.MaxPtrsPerBlock() {
 			lowestAncestorWithRoom = i
 			break

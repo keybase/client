@@ -69,16 +69,6 @@ func (d *dummyHTTPSrv) serveAppleTouchIcon(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(404)
 }
 
-//go:fix inline
-func strPtr(s string) *string {
-	return new(s)
-}
-
-//go:fix inline
-func intPtr(i int) *int {
-	return new(i)
-}
-
 func createTestCaseHTTPSrv(t *testing.T) *dummyHTTPSrv {
 	return newDummyHTTPSrv(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)

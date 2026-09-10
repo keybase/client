@@ -23,8 +23,3 @@ func generateSHA256PasswordHashForTestOrBust(t *testing.T, password string) stri
 	require.NoError(t, err)
 	return passwordHash
 }
-
-//go:fix inline
-func stringPtr(str string) *string {
-	return new(str)
-}

@@ -124,7 +124,7 @@ func renderBotSettings(g *libkb.GlobalContext, username string, convID *chat1.Co
 		username = libkb.NewNormalizedUsername(username).String()
 		for _, cmd := range cmds.Commands {
 			if cmd.Username == username {
-				output.WriteString(fmt.Sprintf("\t\t- !%s\n", cmd.Name))
+				fmt.Fprintf(&output, "\t\t- !%s\n", cmd.Name)
 			}
 		}
 	}
@@ -136,7 +136,7 @@ func renderBotSettings(g *libkb.GlobalContext, username string, convID *chat1.Co
 	if len(botSettings.Triggers) > 0 {
 		output.WriteString("\t- messages that match the following:\n\t\t")
 		for _, trigger := range botSettings.Triggers {
-			output.WriteString(fmt.Sprintf("%q\n\t\t", trigger))
+			fmt.Fprintf(&output, "%q\n\t\t", trigger)
 		}
 		output.WriteString("\n")
 	}

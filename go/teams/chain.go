@@ -230,7 +230,6 @@ func (t TeamSigChainState) assertBecameAdminAt(uv keybase1.UserVersion, scl keyb
 	points := t.inner.UserLog[uv]
 	linkMap := t.inner.LinkIDs
 	for i, point := range slices.Backward(points) {
-
 		if point.SigMeta.SigChainLocation.Eq(scl) {
 			if !point.Role.IsAdminOrAbove() {
 				return ret, NewAdminPermissionError(t.GetID(), uv, "not admin permission")
