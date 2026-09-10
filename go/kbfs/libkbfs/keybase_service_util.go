@@ -125,14 +125,11 @@ func serviceLoggedIn(ctx context.Context, config Config, session idutil.SessionI
 		go bServer.RefreshAuthToken(context.Background())
 	}
 
-	// CurrentSession can land here before init has called SetKBFSOps.
-	if kbfsOps := config.KBFSOps(); kbfsOps != nil {
-		if config.Mode().DoRefreshFavoritesOnInit() {
-			kbfsOps.RefreshCachedFavorites(
-				ctx, FavoritesRefreshModeInMainFavoritesLoop)
-		}
-		kbfsOps.PushStatusChange()
+	if config.Mode().DoRefreshFavoritesOnInit() {
+		config.KBFSOps().RefreshCachedFavorites(
+			ctx, FavoritesRefreshModeInMainFavoritesLoop)
 	}
+	config.KBFSOps().PushStatusChange()
 
 	config.ResetForLogin(ctx, session.Name)
 
@@ -141,6 +138,11 @@ func serviceLoggedIn(ctx context.Context, config Config, session idutil.SessionI
 
 // serviceLoggedOut should be called when the current user logs out.
 func serviceLoggedOut(ctx context.Context, config Config) {
+	// A logout can arrive before init has called SetKBFSOps. Nothing has been
+	// cached yet then, and Chat may still be unset.
+	if config.KBFSOps() == nil {
+		return
+	}
 	if jManager, err := GetJournalManager(config); err == nil {
 		jManager.shutdownExistingJournals(ctx)
 	}

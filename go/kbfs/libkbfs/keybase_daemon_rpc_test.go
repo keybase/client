@@ -65,7 +65,16 @@ func TestKeybaseDaemonRPCNotificationsBeforeKBFSOps(t *testing.T) {
 		CheckConfigAndShutdown(context.Background(), t, config)
 	}()
 
+	name := kbname.NormalizedUsername("fake username")
+	session := idutil.SessionInfo{
+		Name:           name,
+		UID:            keybase1.MakeTestUID(1),
+		CryptPublicKey: idutil.MakeLocalUserCryptPublicKeyOrBust(name),
+		VerifyingKey:   idutil.MakeLocalUserVerifyingKeyOrBust(name),
+	}
+	client := &fakeKeybaseClient{session: session}
 	daemon := newKeybaseDaemonRPC(config, nil, logger.NewTestLogger(t))
+	daemon.fillClients(client)
 	ctx := context.Background()
 	for _, r := range []keybase1.Reachable{
 		keybase1.Reachable_YES, keybase1.Reachable_NO,
@@ -79,6 +88,15 @@ func TestKeybaseDaemonRPCNotificationsBeforeKBFSOps(t *testing.T) {
 		Changes: keybase1.TeamChangeSet{Renamed: true},
 	}))
 	require.NoError(t, daemon.TeamAbandoned(ctx, keybase1.TeamID("")))
+	require.NoError(t, daemon.LoggedOut(ctx))
+
+	// The logged-in flow is deferred, not dropped: the session stays
+	// uncached until KBFSOps is set, and the next lookup runs it.
+	testCurrentSession(t, client, daemon, session, expectCall)
+	testCurrentSession(t, client, daemon, session, expectCall)
+	config.SetKBFSOps(kbfsOps)
+	testCurrentSession(t, client, daemon, session, expectCall)
+	testCurrentSession(t, client, daemon, session, expectCached)
 }
 
 // TODO: Add tests for Favorite* methods, too.

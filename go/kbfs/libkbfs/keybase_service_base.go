@@ -1190,8 +1190,14 @@ func (k *KeybaseServiceBase) CurrentSession(
 	}
 
 	if newSession && k.config != nil {
-		// Don't hold the lock while calling `serviceLoggedIn`.
-		_ = serviceLoggedIn(ctx, k.config, s, TLFJournalBackgroundWorkEnabled)
+		if k.config.KBFSOps() == nil {
+			// Init hasn't called SetKBFSOps yet, and the logged-in flow needs
+			// it. Forget the session so the first lookup after init runs it.
+			k.setCachedCurrentSession(idutil.SessionInfo{})
+		} else {
+			// Don't hold the lock while calling `serviceLoggedIn`.
+			_ = serviceLoggedIn(ctx, k.config, s, TLFJournalBackgroundWorkEnabled)
+		}
 	}
 
 	return s, nil
