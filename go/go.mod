@@ -60,7 +60,7 @@ require (
 	github.com/keybase/pipeliner v0.0.0-20260909170448-94c6ed58540b
 	github.com/keybase/saltpack v0.0.0-20260909171118-5bef7952e563
 	github.com/keybase/showtrends-sdk/go v0.0.0-20260416134812-fab649f0dcd6
-	github.com/keybase/stellarnet v0.0.0-20211117211618-42803c16835a
+	github.com/keybase/stellarnet v0.0.0-20200311180805-6c05850f9050
 	github.com/kr/text v0.2.0
 	github.com/kyokomi/emoji v2.2.2+incompatible
 	github.com/mattn/go-isatty v0.0.20
