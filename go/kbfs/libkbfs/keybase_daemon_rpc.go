@@ -81,6 +81,52 @@ func (k *KeybaseDaemonRPC) addKBFSProtocols() {
 	k.AddProtocols(protocols)
 }
 
+const kbfsInitPollInterval = 100 * time.Millisecond
+
+// waitForKBFSInit wraps every method of the given protocols (SimpleFS, git,
+// fs) so each request waits until init has set up KBFSOps, MDOps and the
+// servers. The service connection, and so these handlers, is live before
+// init sets them. Each request is served on its own goroutine, so waiting
+// doesn't block the connection; the caller's context bounds the wait.
+func waitForKBFSInit(config Config, protocols []rpc.Protocol) []rpc.Protocol {
+	if len(protocols) == 0 {
+		return protocols
+	}
+	wrapped := make([]rpc.Protocol, 0, len(protocols))
+	for _, p := range protocols {
+		methods := make(map[string]rpc.ServeHandlerDescription, len(p.Methods))
+		for name, m := range p.Methods {
+			handler := m.Handler
+			m.Handler = func(ctx context.Context, arg any) (any, error) {
+				if err := waitForKBFSServersReady(ctx, config); err != nil {
+					return nil, err
+				}
+				return handler(ctx, arg)
+			}
+			methods[name] = m
+		}
+		p.Methods = methods
+		wrapped = append(wrapped, p)
+	}
+	return wrapped
+}
+
+func waitForKBFSServersReady(ctx context.Context, config Config) error {
+	if kbfsServersReady(config) {
+		return nil
+	}
+	ticker := time.NewTicker(kbfsInitPollInterval)
+	defer ticker.Stop()
+	for !kbfsServersReady(config) {
+		select {
+		case <-ticker.C:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+	return nil
+}
+
 // NewKeybaseDaemonRPC makes a new KeybaseDaemonRPC that makes RPC
 // calls using the socket of the given Keybase context.
 func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger,
@@ -104,7 +150,7 @@ func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger,
 	k.notifyService = newNotifyServiceHandler(config, log)
 
 	k.addKBFSProtocols()
-	k.AddProtocols(additionalProtocols)
+	k.AddProtocols(waitForKBFSInit(config, additionalProtocols))
 
 	return k
 }
