@@ -18,7 +18,7 @@ import {
 } from "@/util/errors";
 import { type CommonResponseHandler } from "@/engine/types";
 import { invalidPasswordErrorString } from "@/constants/config";
-import { navigateAppend } from "@/constants/router";
+import { navigateAppendOnceRootHas } from "@/constants/router";
 import { onEngineConnected as onEngineConnectedInPlatform } from "@/util/storeless-actions";
 import { useDaemonState } from "@/stores/daemon";
 import { getEngine, hasEngine } from "@/engine/require";
@@ -57,6 +57,10 @@ type Store = T.Immutable<{
     tab?: Tab;
   };
   userSwitching: boolean;
+  // The account an in-progress switch is logging into ('' when none or not known)
+  userSwitchingTo: string;
+  // Whether the in-progress switch started while logged in
+  userSwitchingFromLoggedIn: boolean;
   windowShownCount: Map<string, number>;
 }>;
 
@@ -92,6 +96,8 @@ const initialStore: Store = {
     loaded: false,
   },
   userSwitching: false,
+  userSwitchingFromLoggedIn: false,
+  userSwitchingTo: "",
   windowShownCount: new Map(),
 };
 
@@ -124,7 +130,7 @@ export type State = Store & {
     setStartupDetails: (st: Omit<Store["startup"], "loaded">) => void;
     setOutOfDate: (outOfDate: T.Config.OutOfDate) => void;
     setUpdating: () => void;
-    setUserSwitching: (sw: boolean) => void;
+    setUserSwitching: (sw: boolean, to?: string) => void;
     toggleRuntimeStats: () => void;
     updateGregorCategory: (
       category: string,
@@ -248,8 +254,11 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
               "keybase.1.provisionUi.DisplayAndPromptSecret": cancelOnCallback,
               "keybase.1.provisionUi.PromptNewDeviceName": (_, response) => {
                 cancelOnCallback(undefined, response);
-                // this account needs provisioning; hand off to the provision flow
-                navigateAppend({
+                // This account needs provisioning; hand off to the provision flow. 'username' lives in
+                // the logged-out stack, which the routers keep unmounted while userSwitching is set, so
+                // end the switch and push once that stack is up.
+                get().dispatch.setUserSwitching(false);
+                navigateAppendOnceRootHas("loggedOut", {
                   name: "username",
                   params: { autoSubmit: true, username },
                 });
@@ -474,6 +483,8 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
         httpSrv: s.httpSrv,
         startup: { loaded: s.startup.loaded },
         userSwitching: s.userSwitching,
+        userSwitchingFromLoggedIn: s.userSwitchingFromLoggedIn,
+        userSwitchingTo: s.userSwitchingTo,
       }));
     },
     revoke: (name, wasCurrentDevice) => {
@@ -589,7 +600,7 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
         s.outOfDate.updating = true;
       });
     },
-    setUserSwitching: (sw) => {
+    setUserSwitching: (sw, to) => {
       if (sw && !get().userSwitching) {
         Z.resetAllStores();
         if (hasEngine()) {
@@ -598,6 +609,8 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
       }
       set((s) => {
         s.userSwitching = sw;
+        s.userSwitchingFromLoggedIn = sw && s.loggedIn;
+        s.userSwitchingTo = sw ? (to ?? "") : "";
       });
     },
     toggleRuntimeStats: () => {

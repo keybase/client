@@ -44,7 +44,7 @@ export const subscribeIntentAccountSwitch = () => {
     }
     switchingFor = intent.id
     logger.info('[AccountLink] switching accounts for a tapped push')
-    dispatch.setUserSwitching(true)
+    dispatch.setUserSwitching(true, account.username)
     dispatch.login(account.username, '')
   }
   const dropOnFailure = (s: ConfigState, old: ConfigState) => {
