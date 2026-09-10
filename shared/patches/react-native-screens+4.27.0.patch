@@ -114,6 +114,33 @@ index add33c4..8022575 100644
      }
    }
  #endif // RNS_IPHONE_OS_VERSION_AVAILABLE(26_0)
+diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
+index 06c1957..222e098 100644
+--- a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
++++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
+@@ -307,12 +307,22 @@ - (BOOL)updateSelectedViewControllerTo:(nullable UIViewController *)nextSelected
+   RCTAssert(![NSString rnscreens_isBlankOrNull:screenKey],
+             @"[RNScreens] The screenKey MUST NOT be null if the view controller is not null");
+ 
++  BOOL isInitialSelection = _navigationState == nil;
+   [self progressNavigationState:screenKey withOrigin:actionOrigin];
+ 
+   if (currSelectedViewController == nextSelectedViewController) {
+     return YES;
+   }
+ 
++  // setViewControllers: already selected index 0; don't slide the iOS 26 glass pill to the startup tab.
++  if (isInitialSelection) {
++    [UIView performWithoutAnimation:^{
++      [self setSelectedViewController:nextSelectedViewController];
++      [self.tabBar layoutIfNeeded];
++    }];
++    return YES;
++  }
++
+   [self setSelectedViewController:nextSelectedViewController];
+   return YES;
+ }
 diff --git a/node_modules/react-native-screens/ios/utils/UINavigationBar+RNSUtility.h b/node_modules/react-native-screens/ios/utils/UINavigationBar+RNSUtility.h
 index 0e7010d..8e3af12 100644
 --- a/node_modules/react-native-screens/ios/utils/UINavigationBar+RNSUtility.h

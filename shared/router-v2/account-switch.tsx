@@ -30,6 +30,9 @@ export const rememberAccountSwitchTab = (
       : undefined
 }
 
+export const peekPendingAccountSwitchTab = (currentUsername: string) =>
+  pendingAccountSwitch?.targetUsername === currentUsername ? pendingAccountSwitch.tab : undefined
+
 export const consumePendingAccountSwitchTab = (currentUsername: string) => {
   const pending = pendingAccountSwitch
   if (pending?.targetUsername !== currentUsername) return

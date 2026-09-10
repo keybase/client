@@ -5,6 +5,7 @@ import {
   clearPendingAccountSwitch,
   consumePendingAccountSwitchTab,
   getMostRecentlyUsedAccount,
+  peekPendingAccountSwitchTab,
   rememberAccountSwitchTab,
   showLoggedInScreens,
 } from './account-switch'
@@ -43,6 +44,14 @@ describe('pending account-switch tab', () => {
 
     expect(consumePendingAccountSwitchTab('bob')).toBe(Tabs.chatTab)
     expect(consumePendingAccountSwitchTab('bob')).toBeUndefined()
+  })
+
+  test('peeks the remembered tab for the target account without consuming it', () => {
+    rememberAccountSwitchTab('alice', 'bob', Tabs.fsTab)
+
+    expect(peekPendingAccountSwitchTab('alice')).toBeUndefined()
+    expect(peekPendingAccountSwitchTab('bob')).toBe(Tabs.fsTab)
+    expect(consumePendingAccountSwitchTab('bob')).toBe(Tabs.fsTab)
   })
 
   test('does not consume the tab before the account changes', () => {
