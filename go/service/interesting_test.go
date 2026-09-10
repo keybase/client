@@ -37,7 +37,7 @@ func TestInterestingPeople(t *testing.T) {
 
 	fn2 := func(uid keybase1.UID) (res []keybase1.UID, err error) {
 		for _, user := range slices.Backward(users) {
-			res = append(res, u.User.GetUID())
+			res = append(res, user.User.GetUID())
 		}
 		return res, nil
 	}
