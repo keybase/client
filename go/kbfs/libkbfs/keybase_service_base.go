@@ -417,15 +417,11 @@ func (k *KeybaseServiceBase) ReachabilityChanged(ctx context.Context,
 	reachability keybase1.Reachability,
 ) error {
 	k.log.CDebugf(ctx, "CheckReachability invoked: %v", reachability)
-	// The service connection delivers notifications before init has called
-	// SetKBFSOps, so KBFSOps can still be nil here.
-	if kbfsOps := k.config.KBFSOps(); kbfsOps != nil {
-		if reachability.Reachable == keybase1.Reachable_YES {
-			kbfsOps.PushConnectionStatusChange(GregorServiceName, nil)
-		} else {
-			kbfsOps.PushConnectionStatusChange(
-				GregorServiceName, errDisconnected{})
-		}
+	if reachability.Reachable == keybase1.Reachable_YES {
+		k.config.KBFSOps().PushConnectionStatusChange(GregorServiceName, nil)
+	} else {
+		k.config.KBFSOps().PushConnectionStatusChange(
+			GregorServiceName, errDisconnected{})
 	}
 	mdServer := k.config.MDServer()
 	if mdServer != nil {
@@ -440,17 +436,11 @@ type errKBFSNotInitialized struct{}
 
 func (errKBFSNotInitialized) Error() string { return "KBFS is not initialized yet" }
 
-// kbfsOpsReady reports whether init has set KBFSOps and MDOps. The service
-// connection, and so every handler on it, is live before init sets them.
-func kbfsOpsReady(config Config) bool {
-	return config.KBFSOps() != nil && config.MDOps() != nil
-}
-
-// kbfsServersReady also requires the key and block servers, which init sets
-// last. Requests that fetch keys or blocks need them.
+// kbfsServersReady reports whether init has set the key and block servers.
+// Init sets them after the service connection is live, and requests that
+// fetch keys or blocks need them.
 func kbfsServersReady(config Config) bool {
-	return kbfsOpsReady(config) &&
-		config.KeyServer() != nil && config.BlockServer() != nil
+	return config.KeyServer() != nil && config.BlockServer() != nil
 }
 
 // StartReachability implements keybase1.ReachabilityInterface.
@@ -475,15 +465,13 @@ func (k *KeybaseServiceBase) PaperKeyCached(ctx context.Context,
 	k.log.CDebugf(ctx, "Paper key for %s cached", arg.Uid)
 
 	if k.getCachedCurrentSession().UID == arg.Uid {
-		if kbfsOps := k.config.KBFSOps(); kbfsOps != nil {
-			err := kbfsOps.KickoffAllOutstandingRekeys()
-			if err != nil {
-				// Ignore and log errors here. For now the only way it could error
-				// is when the method is called on a folderBranchOps which is a
-				// developer mistake and not recoverable from code.
-				k.log.CDebugf(ctx,
-					"Calling KickoffAllOutstandingRekeys error: %s", err)
-			}
+		err := k.config.KBFSOps().KickoffAllOutstandingRekeys()
+		if err != nil {
+			// Ignore and log errors here. For now the only way it could error
+			// is when the method is called on a folderBranchOps which is a
+			// developer mistake and not recoverable from code.
+			k.log.CDebugf(ctx,
+				"Calling KickoffAllOutstandingRekeys error: %s", err)
 		}
 		// Ignore any errors for now, we don't want to block this
 		// notification and it's not worth spawning a goroutine for.
@@ -1167,14 +1155,11 @@ func (k *KeybaseServiceBase) getCurrentSession(
 	}
 
 	var s idutil.SessionInfo
-	cache := true
 	// Close and clear the in-progress channel, even on an error.
 	defer func() {
 		k.sessionCacheLock.Lock()
 		defer k.sessionCacheLock.Unlock()
-		if cache {
-			k.cachedCurrentSession = s
-		}
+		k.cachedCurrentSession = s
 		close(k.sessionInProgressCh)
 		k.sessionInProgressCh = nil
 	}()
@@ -1195,13 +1180,6 @@ func (k *KeybaseServiceBase) getCurrentSession(
 	k.log.CDebugf(
 		ctx, "new session with username %s, uid %s, crypt public key %s, and verifying key %s",
 		s.Name, s.UID, s.CryptPublicKey, s.VerifyingKey)
-	// The logged-in flow needs KBFSOps and MDOps, which init sets after the
-	// service connection is live. Until then leave the session uncached, so
-	// the first lookup once they're set is the new session that runs it.
-	if k.config != nil && !kbfsOpsReady(k.config) {
-		cache = false
-		return s, false, nil
-	}
 	return s, true, nil
 }
 
@@ -1441,8 +1419,8 @@ func (k *KeybaseServiceBase) TeamChangedByID(ctx context.Context,
 		arg.Changes.KeyRotated, arg.Changes.Renamed)
 	k.setCachedTeamInfo(arg.TeamID, idutil.TeamInfo{})
 
-	if kbfsOps := k.config.KBFSOps(); arg.Changes.Renamed && kbfsOps != nil {
-		kbfsOps.TeamNameChanged(ctx, arg.TeamID)
+	if arg.Changes.Renamed {
+		k.config.KBFSOps().TeamNameChanged(ctx, arg.TeamID)
 	}
 	return nil
 }
@@ -1492,9 +1470,7 @@ func (k *KeybaseDaemonRPC) TeamAbandoned(
 ) error {
 	k.log.CDebugf(ctx, "Implicit team %s abandoned", tid)
 	k.setCachedTeamInfo(tid, idutil.TeamInfo{})
-	if kbfsOps := k.config.KBFSOps(); kbfsOps != nil {
-		kbfsOps.TeamAbandoned(ctx, tid)
-	}
+	k.config.KBFSOps().TeamAbandoned(ctx, tid)
 	return nil
 }
 
