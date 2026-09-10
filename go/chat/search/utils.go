@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/araddon/dateparse"
@@ -147,8 +148,8 @@ func searchMatches(msg chat1.MessageUnboxed, queryRe *regexp.Regexp) (validMatch
 func getUIMsgs(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgs []chat1.MessageUnboxed,
 ) (uiMsgs []chat1.UIMessage) {
-	for i := len(msgs) - 1; i >= 0; i-- {
-		msg := msgs[i]
+	for _, msg := range slices.Backward(msgs) {
+
 		uiMsg := utils.PresentMessageUnboxed(ctx, g, msg, uid, convID)
 		uiMsgs = append(uiMsgs, uiMsg)
 	}

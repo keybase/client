@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 	"time"
 
 	"github.com/buger/jsonparser"
@@ -442,8 +443,8 @@ func (sc *SigChain) VerifyChain(mctx MetaContext, uid keybase1.UID) (err error) 
 	expectedNextHighSkip := NewInitialHighSkip()
 	firstUnverifiedChainIdx := 0
 outer:
-	for i := len(sc.chainLinks) - 1; i >= 0; i-- {
-		curr := sc.chainLinks[i]
+	for i, curr := range slices.Backward(sc.chainLinks) {
+
 		mctx.VLogf(VLog1, "| verify link %d (%s)", i, curr.id)
 		if curr.chainVerified {
 			expectedNextHighSkipPre, err := curr.ExpectedNextHighSkip(mctx, uid)
@@ -571,8 +572,8 @@ func (sc SigChain) GetLastLoadedSeqno() (ret keybase1.Seqno) {
 }
 
 func (sc *SigChain) Store(m MetaContext) (err error) {
-	for i := len(sc.chainLinks) - 1; i >= 0; i-- {
-		link := sc.chainLinks[i]
+	for _, link := range slices.Backward(sc.chainLinks) {
+
 		var didStore bool
 		if didStore, err = link.Store(m); err != nil || !didStore {
 			return err

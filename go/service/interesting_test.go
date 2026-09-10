@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"slices"
 	"testing"
 
 	"github.com/keybase/client/go/kbtest"
@@ -35,7 +36,7 @@ func TestInterestingPeople(t *testing.T) {
 	users = append(users, u)
 
 	fn2 := func(uid keybase1.UID) (res []keybase1.UID, err error) {
-		for i := len(users) - 1; i >= 0; i-- {
+		for _, user := range slices.Backward(users) {
 			res = append(res, u.User.GetUID())
 		}
 		return res, nil

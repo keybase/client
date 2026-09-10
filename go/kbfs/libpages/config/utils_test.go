@@ -24,6 +24,7 @@ func generateSHA256PasswordHashForTestOrBust(t *testing.T, password string) stri
 	return passwordHash
 }
 
+//go:fix inline
 func stringPtr(str string) *string {
-	return &str
+	return new(str)
 }

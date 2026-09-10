@@ -122,11 +122,9 @@ func TestLookupUsernameConcurrent(t *testing.T) {
 
 	var wg sync.WaitGroup
 	for i := 1; i < 10; i++ {
-		wg.Add(1)
-		go func() {
+		wg.Go(func() {
 			testStuff()
-			wg.Done()
-		}()
+		})
 	}
 
 	wg.Wait()

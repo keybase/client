@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"sync"
 	"time"
@@ -110,8 +111,8 @@ func (s *baseConversationSource) addConversationCards(ctx context.Context, uid g
 	}
 	// Slot it in to the left of its prev.
 	addLeftOf := 0
-	for i := len(thread.Messages) - 1; i >= 0; i-- {
-		msgID := thread.Messages[i].GetMessageID()
+	for i, v := range slices.Backward(thread.Messages) {
+		msgID := v.GetMessageID()
 		if msgID != 0 && msgID >= card.PrevID {
 			addLeftOf = i
 			break

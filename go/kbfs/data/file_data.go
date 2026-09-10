@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"slices"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/kbfsblock"
@@ -920,8 +921,8 @@ func (fd *FileData) Split(ctx context.Context, id tlf.ID,
 			pb.clearEncodedSize()
 
 			// Update parent pointer offsets as needed.
-			for i := len(rParentBlocks) - 1; i >= 0; i-- {
-				pb := rParentBlocks[i]
+			for _, pb := range slices.Backward(rParentBlocks) {
+
 				pb.pblock.(*FileBlock).IPtrs[pb.childIndex].Off = endOfBlock
 				// If this isn't the leftmost child at this level,
 				// there's no need to update the parent.
@@ -968,8 +969,8 @@ func (fd *FileData) Split(ctx context.Context, id tlf.ID,
 				}
 
 				// Update parent pointer offsets as needed.
-				for i := len(rParentBlocks) - 1; i >= 0; i-- {
-					pb := rParentBlocks[i]
+				for _, pb := range slices.Backward(rParentBlocks) {
+
 					pb.pblock.(*FileBlock).IPtrs[pb.childIndex].Off = endOfBlock
 					// If this isn't the leftmost child at this level,
 					// there's no need to update the parent.

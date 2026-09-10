@@ -101,9 +101,7 @@ func TestLeveledMutexIncorrect(t *testing.T) {
 // runLockSubsequences() runs all possible subsequences of {mu1, mu2,
 // mu3}.Lock() under the given WaitGroup.
 func runLockSubsequences(wg *sync.WaitGroup, mu1, mu2, mu3 LeveledLocker) {
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		state := MakeLevelState(testMutexLevelToString)
 		mu1.Lock(state)
 		defer mu1.Unlock(state)
@@ -111,61 +109,49 @@ func runLockSubsequences(wg *sync.WaitGroup, mu1, mu2, mu3 LeveledLocker) {
 		defer mu2.Unlock(state)
 		mu3.Lock(state)
 		defer mu3.Unlock(state)
-	}()
+	})
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		state := MakeLevelState(testMutexLevelToString)
 		mu1.Lock(state)
 		defer mu1.Unlock(state)
 		mu2.Lock(state)
 		defer mu2.Unlock(state)
-	}()
+	})
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		state := MakeLevelState(testMutexLevelToString)
 		mu1.Lock(state)
 		defer mu1.Unlock(state)
 		mu3.Lock(state)
 		defer mu3.Unlock(state)
-	}()
+	})
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		state := MakeLevelState(testMutexLevelToString)
 		mu2.Lock(state)
 		defer mu2.Unlock(state)
 		mu3.Lock(state)
 		defer mu3.Unlock(state)
-	}()
+	})
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		state := MakeLevelState(testMutexLevelToString)
 		mu1.Lock(state)
 		defer mu1.Unlock(state)
-	}()
+	})
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		state := MakeLevelState(testMutexLevelToString)
 		mu2.Lock(state)
 		defer mu2.Unlock(state)
-	}()
+	})
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		state := MakeLevelState(testMutexLevelToString)
 		mu3.Lock(state)
 		defer mu3.Unlock(state)
-	}()
+	})
 }
 
 func TestLeveledMutexMultiFlow(t *testing.T) {

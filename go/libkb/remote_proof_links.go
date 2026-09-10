@@ -135,8 +135,8 @@ func (r *RemoteProofLinks) active() []ProofLinkWithState {
 	for _, list := range r.links {
 		// Loop over all proofs for that type, from most recent,
 		// to oldest.
-		for i := len(list) - 1; i >= 0; i-- {
-			both := list[i]
+		for _, both := range slices.Backward(list) {
+
 			link := both.link
 			id := CanonicalProofName(link)
 

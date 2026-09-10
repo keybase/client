@@ -823,8 +823,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	})
 	if err != nil {
 		// This will cause us to try and refresh session on the next attempt
-		var bse libkb.BadSessionError
-		if errors.As(err, &bse) {
+		if _, ok := errors.AsType[libkb.BadSessionError](err); ok {
 			g.chatLog.Debug(ctx, "bad session from SyncAll(): forcing session check on next attempt")
 			nist.MarkFailure()
 		}
@@ -969,8 +968,7 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 		g.chatLog.Debug(ctx, "duplicate connection error, not retrying")
 		return false
 	}
-	var bse libkb.BadSessionError
-	if errors.As(err, &bse) {
+	if _, ok := errors.AsType[libkb.BadSessionError](err); ok {
 		g.chatLog.Debug(ctx, "bad session error, not retrying")
 		return false
 	}

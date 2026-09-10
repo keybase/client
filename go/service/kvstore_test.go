@@ -780,18 +780,14 @@ func TestKVStoreRace(t *testing.T) {
 	var wg sync.WaitGroup
 	errChan := make(chan error, 10)
 	for range 5 {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			_, err = handler1.PutKVEntry(ctx1, putArg)
 			errChan <- err
-		}()
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		})
+		wg.Go(func() {
 			_, err = handler2.PutKVEntry(ctx2, putArg)
 			errChan <- err
-		}()
+		})
 	}
 	wg.Wait()
 	close(errChan)

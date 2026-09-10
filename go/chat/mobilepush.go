@@ -92,7 +92,7 @@ func (a *PushAck) Ack(ctx context.Context, pushIDs []string) {
 	}
 	// Acking is idempotent server-side; retry since a lost ack means the user
 	// gets a duplicate generic notification.
-	for attempt := 0; attempt < 3; attempt++ {
+	for attempt := range 3 {
 		err := cli.RemoteNotificationSuccessful(ctx, arg)
 		if err == nil {
 			return

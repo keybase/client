@@ -571,7 +571,7 @@ func (fbo *folderBlockOps) GetCleanEncodedBlocksSizeSum(ctx context.Context,
 	// not to use the cached block.
 	assumeCacheIsLive := !onlyCountIfLive
 	eg, groupCtx := errgroup.WithContext(ctx)
-	for i := 0; i < numWorkers; i++ {
+	for range numWorkers {
 		eg.Go(func() error {
 			for ptrs := range ptrCh {
 				sizes, statuses, err := fbo.getCleanEncodedBlockSizesLocked(

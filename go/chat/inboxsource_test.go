@@ -49,20 +49,16 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 	t.Logf("spawning update goroutines")
 	var wg sync.WaitGroup
 
-	wg.Add(1)
-	go func() {
+	wg.Go(func() {
 		_, err = tc.ChatG.InboxSource.SetStatus(ctx, uid, 0, conv.GetConvID(),
 			chat1.ConversationStatus_UNFILED)
 		assert.NoError(t, err)
-		wg.Done()
-	}()
-	wg.Add(1)
-	go func() {
+	})
+	wg.Go(func() {
 		_, err = tc.ChatG.InboxSource.SetStatus(ctx, uid, 1, conv.GetConvID(),
 			chat1.ConversationStatus_UNFILED)
 		assert.NoError(t, err)
-		wg.Done()
-	}()
+	})
 	wg.Wait()
 
 	ib, _, err = tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(),

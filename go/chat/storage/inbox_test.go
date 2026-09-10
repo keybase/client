@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"encoding/hex"
+	"slices"
 	"sort"
 	"testing"
 	"time"
@@ -167,11 +168,11 @@ func TestInboxQueries(t *testing.T) {
 	}
 	convs[6].Conv.Metadata.SupersededBy = append(convs[6].Conv.Metadata.SupersededBy, convs[17].Conv.Metadata)
 	convs[17].Conv.Metadata.Supersedes = append(convs[17].Conv.Metadata.Supersedes, convs[6].Conv.Metadata)
-	for i := len(convs) - 1; i >= 0; i-- {
+	for i, conv := range slices.Backward(convs) {
 		if i == 6 {
 			continue
 		}
-		full = append(full, convs[i])
+		full = append(full, conv)
 	}
 	for _, conv := range full {
 		t.Logf("convID: %s", conv.GetConvID())
@@ -256,10 +257,10 @@ func TestInboxEmptySuperseder(t *testing.T) {
 	var full, superseded []types.RemoteConversation
 	convs[6].Conv.Metadata.SupersededBy = append(convs[6].Conv.Metadata.SupersededBy, convs[17].Conv.Metadata)
 	convs[17].Conv.Metadata.Supersedes = append(convs[17].Conv.Metadata.Supersedes, convs[6].Conv.Metadata)
-	for i := len(convs) - 1; i >= 0; i-- {
+	for _, conv := range slices.Backward(convs) {
 		// Don't skip the superseded one, since it's not supposed to be filtered out
 		// by an empty superseder
-		full = append(full, convs[i])
+		full = append(full, conv)
 	}
 	for _, conv := range full {
 		t.Logf("convID: %s", conv.GetConvID())
@@ -295,13 +296,13 @@ func TestInboxEmptySuperseder(t *testing.T) {
 
 	full = []types.RemoteConversation{}
 	superseded = []types.RemoteConversation{}
-	for i := len(convs) - 1; i >= 0; i-- {
+	for i, conv := range slices.Backward(convs) {
 		// skip the superseded one, since it's supposed to be filtered out
 		// if not OneChatTypePerTLF
 		if i == 6 {
 			continue
 		}
-		full = append(full, convs[i])
+		full = append(full, conv)
 	}
 	require.NoError(t, inbox.Merge(context.TODO(), uid, 1, utils.PluckConvs(full), nil))
 	superseded = append(superseded, full...)

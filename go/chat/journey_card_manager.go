@@ -416,8 +416,8 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 
 	// Prefer showing cards later in the order.
 	checkForNeverBeforeSeenCards := func(ctx context.Context, types []chat1.JourneycardType, breakOnShown bool) *chat1.JourneycardType {
-		for i := len(types) - 1; i >= 0; i-- {
-			cardType := types[i]
+		for _, cardType := range slices.Backward(types) {
+
 			if jcd.hasShownOrDismissedOrLockout(convID, cardType) {
 				if breakOnShown {
 					break

@@ -98,8 +98,7 @@ func TestLinkCacheConcurrent(t *testing.T) {
 
 	var wg sync.WaitGroup
 	for range 10 {
-		wg.Add(1)
-		go func() {
+		wg.Go(func() {
 			for range 100 {
 				link := randChainLink()
 				c.Put(m, link.id, link)
@@ -108,8 +107,7 @@ func TestLinkCacheConcurrent(t *testing.T) {
 					t.Errorf("concurrent Get failed")
 				}
 			}
-			wg.Done()
-		}()
+		})
 	}
 	wg.Wait()
 }

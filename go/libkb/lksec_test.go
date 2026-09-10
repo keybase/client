@@ -8,7 +8,7 @@ import (
 )
 
 func TestSplitCiphertextRejectsShortInput(t *testing.T) {
-	for length := 0; length < 24+secretbox.Overhead; length++ {
+	for length := range 24 + secretbox.Overhead {
 		data, nonce, err := splitCiphertext(make([]byte, length))
 		require.Error(t, err, "length %d", length)
 		require.Nil(t, data, "length %d", length)

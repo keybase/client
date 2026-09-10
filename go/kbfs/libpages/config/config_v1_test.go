@@ -145,7 +145,7 @@ func TestConfigV1Full(t *testing.T) {
 	require.True(t, possibleList)
 	require.Equal(t, "/", realm)
 	read, list, possibleRead, possibleList,
-		realm, err = config.GetPermissions("/", stringPtr("alice"))
+		realm, err = config.GetPermissions("/", new("alice"))
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)
@@ -153,7 +153,7 @@ func TestConfigV1Full(t *testing.T) {
 	require.True(t, possibleList)
 	require.Equal(t, "/", realm)
 	read, list, possibleRead, possibleList,
-		realm, err = config.GetPermissions("/", stringPtr("bob"))
+		realm, err = config.GetPermissions("/", new("bob"))
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)
@@ -170,7 +170,7 @@ func TestConfigV1Full(t *testing.T) {
 	require.True(t, possibleList)
 	require.Equal(t, "/alice-and-bob", realm)
 	read, list, possibleRead, possibleList,
-		realm, err = config.GetPermissions("/alice-and-bob", stringPtr("alice"))
+		realm, err = config.GetPermissions("/alice-and-bob", new("alice"))
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)
@@ -178,7 +178,7 @@ func TestConfigV1Full(t *testing.T) {
 	require.True(t, possibleList)
 	require.Equal(t, "/alice-and-bob", realm)
 	read, list, possibleRead, possibleList,
-		realm, err = config.GetPermissions("/alice-and-bob", stringPtr("bob"))
+		realm, err = config.GetPermissions("/alice-and-bob", new("bob"))
 	require.NoError(t, err)
 	require.True(t, read)
 	require.False(t, list)
@@ -195,7 +195,7 @@ func TestConfigV1Full(t *testing.T) {
 	require.True(t, possibleList)
 	require.Equal(t, "/bob", realm)
 	read, list, possibleRead, possibleList,
-		realm, err = config.GetPermissions("/bob", stringPtr("alice"))
+		realm, err = config.GetPermissions("/bob", new("alice"))
 	require.NoError(t, err)
 	require.False(t, read)
 	require.False(t, list)
@@ -203,7 +203,7 @@ func TestConfigV1Full(t *testing.T) {
 	require.True(t, possibleList)
 	require.Equal(t, "/bob", realm)
 	read, list, possibleRead, possibleList,
-		realm, err = config.GetPermissions("/bob", stringPtr("bob"))
+		realm, err = config.GetPermissions("/bob", new("bob"))
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)
@@ -220,7 +220,7 @@ func TestConfigV1Full(t *testing.T) {
 	require.True(t, possibleList)
 	require.Equal(t, "/public", realm)
 	read, list, possibleRead, possibleList,
-		realm, err = config.GetPermissions("/public", stringPtr("alice"))
+		realm, err = config.GetPermissions("/public", new("alice"))
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)
@@ -228,7 +228,7 @@ func TestConfigV1Full(t *testing.T) {
 	require.True(t, possibleList)
 	require.Equal(t, "/public", realm)
 	read, list, possibleRead, possibleList,
-		realm, err = config.GetPermissions("/public", stringPtr("bob"))
+		realm, err = config.GetPermissions("/public", new("bob"))
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)
@@ -245,7 +245,7 @@ func TestConfigV1Full(t *testing.T) {
 	require.True(t, possibleList)
 	require.Equal(t, "/public/not-really", realm)
 	read, list, possibleRead, possibleList,
-		realm, err = config.GetPermissions("/public/not-really", stringPtr("alice"))
+		realm, err = config.GetPermissions("/public/not-really", new("alice"))
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)
@@ -253,7 +253,7 @@ func TestConfigV1Full(t *testing.T) {
 	require.True(t, possibleList)
 	require.Equal(t, "/public/not-really", realm)
 	read, list, possibleRead, possibleList,
-		realm, err = config.GetPermissions("/public/not-really", stringPtr("bob"))
+		realm, err = config.GetPermissions("/public/not-really", new("bob"))
 	require.NoError(t, err)
 	require.False(t, read)
 	require.False(t, list)
@@ -270,7 +270,7 @@ func TestConfigV1Full(t *testing.T) {
 	require.True(t, possibleList)
 	require.Equal(t, "/bob", realm)
 	read, list, possibleRead, possibleList,
-		realm, err = config.GetPermissions("/bob/dir", stringPtr("alice"))
+		realm, err = config.GetPermissions("/bob/dir", new("alice"))
 	require.NoError(t, err)
 	require.False(t, read)
 	require.False(t, list)
@@ -278,7 +278,7 @@ func TestConfigV1Full(t *testing.T) {
 	require.True(t, possibleList)
 	require.Equal(t, "/bob", realm)
 	read, list, possibleRead, possibleList,
-		realm, err = config.GetPermissions("/bob/dir", stringPtr("bob"))
+		realm, err = config.GetPermissions("/bob/dir", new("bob"))
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)
@@ -295,7 +295,7 @@ func TestConfigV1Full(t *testing.T) {
 	require.True(t, possibleList)
 	require.Equal(t, "/bob", realm)
 	read, list, possibleRead, possibleList,
-		realm, err = config.GetPermissions("/bob/dir/sub", stringPtr("alice"))
+		realm, err = config.GetPermissions("/bob/dir/sub", new("alice"))
 	require.NoError(t, err)
 	require.False(t, read)
 	require.False(t, list)
@@ -303,7 +303,7 @@ func TestConfigV1Full(t *testing.T) {
 	require.True(t, possibleList)
 	require.Equal(t, "/bob", realm)
 	read, list, possibleRead, possibleList,
-		realm, err = config.GetPermissions("/bob/dir/sub", stringPtr("bob"))
+		realm, err = config.GetPermissions("/bob/dir/sub", new("bob"))
 	require.NoError(t, err)
 	require.True(t, read)
 	require.True(t, list)
@@ -320,7 +320,7 @@ func TestConfigV1Full(t *testing.T) {
 	require.False(t, possibleList)
 	require.Equal(t, "/bob/dir/deep-dir/deep-deep-dir", realm)
 	read, list, possibleRead, possibleList,
-		realm, err = config.GetPermissions("/bob/dir/deep-dir/deep-deep-dir", stringPtr("alice"))
+		realm, err = config.GetPermissions("/bob/dir/deep-dir/deep-deep-dir", new("alice"))
 	require.NoError(t, err)
 	require.False(t, read)
 	require.False(t, list)
@@ -328,7 +328,7 @@ func TestConfigV1Full(t *testing.T) {
 	require.False(t, possibleList)
 	require.Equal(t, "/bob/dir/deep-dir/deep-deep-dir", realm)
 	read, list, possibleRead, possibleList,
-		realm, err = config.GetPermissions("/bob/dir/deep-dir/deep-deep-dir", stringPtr("bob"))
+		realm, err = config.GetPermissions("/bob/dir/deep-dir/deep-deep-dir", new("bob"))
 	require.NoError(t, err)
 	require.False(t, read)
 	require.False(t, list)

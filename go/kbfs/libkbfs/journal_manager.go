@@ -779,7 +779,7 @@ func (j *JournalManager) EnableExistingJournals(
 	// Initialize many TLF journals at once to overlap disk latency as
 	// much as possible.
 	numWorkers := min(100, len(fileInfos))
-	for i := 0; i < numWorkers; i++ {
+	for range numWorkers {
 		eg.Go(worker)
 	}
 

@@ -652,10 +652,7 @@ func (s SigID) ToDisplayString(verbose bool) string {
 	if verbose {
 		return string(s)
 	}
-	prefixLen := SigIDQueryMin
-	if len(s) < prefixLen {
-		prefixLen = len(s)
-	}
+	prefixLen := min(len(s), SigIDQueryMin)
 	return fmt.Sprintf("%s...", s[:prefixLen])
 }
 
@@ -1685,8 +1682,8 @@ func (u UserPlusKeysV2AllIncarnations) FindKID(kid KID) (*UserPlusKeysV2, *Publi
 	if ok {
 		return &u.Current, &ret
 	}
-	for i := len(u.PastIncarnations) - 1; i >= 0; i-- {
-		prev := u.PastIncarnations[i]
+	for _, prev := range slices.Backward(u.PastIncarnations) {
+
 		ret, ok = prev.DeviceKeys[kid]
 		if ok {
 			return &prev, &ret

@@ -317,10 +317,8 @@ func (ost *onlineStatusTracker) run(ctx context.Context) {
 		initialState, sideEffects, onlineStatusUpdates,
 		ost.userIn, ost.userOut, tryingTimerUp, connected, disconnected)
 
-	ost.wg.Add(1)
 	// mdserver connection status watch routine
-	go func() {
-		defer ost.wg.Done()
+	ost.wg.Go(func() {
 		invalidateChan := invalidateChan
 		var serviceErrors map[string]error
 		for {
@@ -337,7 +335,7 @@ func (ost *onlineStatusTracker) run(ctx context.Context) {
 				return
 			}
 		}
-	}()
+	})
 
 	for {
 		select {

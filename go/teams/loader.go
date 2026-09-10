@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"sort"
 	"sync"
 	"time"
@@ -756,9 +757,9 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	// Sloppy because this calculation misses out on e.g. a rotate_key signed by an admin.
 	// This value is used for skipping fullVerify on team.leave links, see `verifyLink`.
 	var fullVerifyCutoff keybase1.Seqno
-	for i := len(links) - 1; i >= 0; i-- {
-		if links[i].LinkType().RequiresAtLeastRole().IsAdminOrAbove() {
-			fullVerifyCutoff = links[i].Seqno()
+	for _, link := range slices.Backward(links) {
+		if link.LinkType().RequiresAtLeastRole().IsAdminOrAbove() {
+			fullVerifyCutoff = link.Seqno()
 			break
 		}
 	}

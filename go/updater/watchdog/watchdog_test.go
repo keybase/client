@@ -254,12 +254,10 @@ func TestWatchdogExitAllRace(t *testing.T) {
 	// spin up three watchdogs at the same time with the same three programs
 	var wg sync.WaitGroup
 	for range 3 {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			err := Watch([]Program{exiter, procProgram1, procProgram2}, 0, testLog)
 			assert.NoError(t, err)
-		}()
+		})
 	}
 	wg.Wait()
 	assertOneProcessOfEachProgramIsRunning()

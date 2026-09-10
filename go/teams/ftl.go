@@ -2,6 +2,7 @@ package teams
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -877,8 +878,7 @@ func (f *FastTeamChainLoader) checkStubs(m libkb.MetaContext, shoppingList shopp
 
 	foundUpPointer := false
 	foundKeyRotation := false
-	for i := len(newLinks) - 1; i >= 0; i-- {
-		link := newLinks[i]
+	for _, link := range slices.Backward(newLinks) {
 
 		// Check that the most recent up pointer is unstubbed
 		if !foundUpPointer && isUpPointer(link.LinkType()) {

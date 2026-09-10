@@ -693,11 +693,9 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 }
 
 func channelToWaitGroup(wg *sync.WaitGroup, ch <-chan struct{}) {
-	wg.Add(1)
-	go func() {
+	wg.Go(func() {
 		<-ch
-		wg.Done()
-	}()
+	})
 }
 
 func (brq *blockRetrievalQueue) finalizeAllRequests() {

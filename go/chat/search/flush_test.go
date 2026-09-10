@@ -240,7 +240,7 @@ func TestFlushSignalledWhenPendingSetIsFull(t *testing.T) {
 	ctx, s, _, convID := setupFlushTestStore(t, "flush-size-bound")
 
 	s.Lock()
-	for i := chat1.MessageID(0); i < maxDirtyEntries-1; i++ {
+	for i := range chat1.MessageID(maxDirtyEntries - 1) {
 		te := newTokenEntry()
 		te.MsgIDs[i] = chat1.EmptyStruct{}
 		require.NoError(t, s.putTokenEntry(ctx, convID, fmt.Sprintf("tok%d", i), te))
@@ -270,7 +270,7 @@ func TestPendingCountTracksDistinctEntries(t *testing.T) {
 	ctx, s, _, convID := setupFlushTestStore(t, "flush-size-distinct")
 
 	s.Lock()
-	for i := chat1.MessageID(0); i < maxDirtyEntries*2; i++ {
+	for i := range chat1.MessageID(maxDirtyEntries * 2) {
 		te := newTokenEntry()
 		te.MsgIDs[i] = chat1.EmptyStruct{}
 		require.NoError(t, s.putTokenEntry(ctx, convID, "same", te))
@@ -291,7 +291,7 @@ func TestFlushResetsPendingCount(t *testing.T) {
 	ctx, s, _, convID := setupFlushTestStore(t, "flush-size-reset")
 
 	s.Lock()
-	for i := 0; i < maxDirtyEntries; i++ {
+	for i := range maxDirtyEntries {
 		require.NoError(t, s.putTokenEntry(ctx, convID, fmt.Sprintf("tok%d", i), newTokenEntry()))
 	}
 	s.Unlock()

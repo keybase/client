@@ -241,8 +241,7 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 
 func isDupImplicitTeamError(err error) bool {
 	if err != nil {
-		var aerr libkb.AppStatusError
-		if errors.As(err, &aerr) {
+		if aerr, ok := errors.AsType[libkb.AppStatusError](err); ok {
 			code := keybase1.StatusCode(aerr.Code)
 			switch code {
 			case keybase1.StatusCode_SCTeamImplicitDuplicate:

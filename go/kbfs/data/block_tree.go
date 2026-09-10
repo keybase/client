@@ -8,6 +8,7 @@ import (
 	"context"
 	stderrors "errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -636,8 +637,8 @@ func (bt *blockTree) newRightBlock(
 ) {
 	// Find the lowest block that can accommodate a new right block.
 	lowestAncestorWithRoom := -1
-	for i := len(parentBlocks) - 1; i >= 0; i-- {
-		pb := parentBlocks[i]
+	for i, pb := range slices.Backward(parentBlocks) {
+
 		if pb.pblock.NumIndirectPtrs() < bt.bsplit.MaxPtrsPerBlock() {
 			lowestAncestorWithRoom = i
 			break

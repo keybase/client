@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"slices"
 	"sort"
 	"testing"
 	"time"
@@ -437,8 +438,8 @@ func TestSetAccountAsDefault(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	for i := len(additionalAccs) - 1; i >= 0; i-- {
-		v := additionalAccs[i]
+	for _, v := range slices.Backward(additionalAccs) {
+
 		arg := stellar1.SetWalletAccountAsDefaultLocalArg{
 			AccountID: v,
 		}

@@ -26,24 +26,20 @@ func TestJsonTransaction(t *testing.T) {
 
 	var wg sync.WaitGroup
 	for range 20 {
-		wg.Add(1)
-		go func() {
+		wg.Go(func() {
 			tx, err := tc.G.Env.GetConfigWriter().BeginTransaction()
 			if err == nil {
 				_ = tx.Abort()
 			}
-			wg.Done()
-		}()
+		})
 	}
 	for range 20 {
-		wg.Add(1)
-		go func() {
+		wg.Go(func() {
 			tx, err := tc.G.Env.GetConfigWriter().BeginTransaction()
 			if err == nil {
 				_ = tx.Commit()
 			}
-			wg.Done()
-		}()
+		})
 	}
 	wg.Wait()
 }

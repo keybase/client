@@ -1394,13 +1394,11 @@ func TestShutdown(t *testing.T) {
 		}(i)
 	}
 
-	wg.Add(1)
-	go func() {
+	wg.Go(func() {
 		if err := tcs[0].Srv.walletState.Shutdown(tcs[0].MetaContext()); err != nil {
 			t.Logf("shutdown error: %s", err)
 		}
-		wg.Done()
-	}()
+	})
 
 	wg.Wait()
 }

@@ -278,20 +278,16 @@ func TestSearchMetadataConcurrentReadWrite(t *testing.T) {
 	}
 
 	// Writer: continuously mutate md.SeenIDs under s.Lock() via store.Add.
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		for id := chat1.MessageID(1); id <= maxID; id++ {
 			reportErr(s.Add(ctx, convID, []chat1.MessageUnboxed{makeTextMsg(id)}))
 		}
-	}()
+	})
 
 	// Reader: exercise the store read accessors that iterate SeenIDs,
 	// mirroring the SelectiveSync/reindexConv read path that previously raced.
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		for i := 0; i < 2000; i++ {
+	wg.Go(func() {
+		for range 2000 {
 			if _, err := s.MissingIDForConv(ctx, conv); err != nil {
 				reportErr(err)
 				return
@@ -309,7 +305,7 @@ func TestSearchMetadataConcurrentReadWrite(t *testing.T) {
 				return
 			}
 		}
-	}()
+	})
 
 	wg.Wait()
 	select {
