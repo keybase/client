@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import {afterEach, beforeEach, expect, jest, test} from '@jest/globals'
+import {afterEach, beforeEach, expect, test} from '@jest/globals'
 import {act, cleanup, render} from '@testing-library/react'
 import * as T from '@/constants/types'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -10,6 +10,7 @@ import {LoadedTeamsListProvider} from '../use-teams-list'
 import {LoadedTeamChannelsProvider, useLoadedTeamChannels} from '../common/use-loaded-team-channels'
 import {LoadedTeamProvider, useLoadedTeam} from './use-loaded-team'
 import {flush} from '@/test/flush'
+import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 
 const teamID = 'tid1' as T.Teams.TeamID
 
@@ -24,51 +25,40 @@ const annotated = {
   transitiveSubteamsUnverified: {entries: []},
 } as unknown as T.RPCGen.AnnotatedTeam
 
-let annotatedCalls = 0
-jest.spyOn(T.RPCGen, 'teamsGetAnnotatedTeamRpcPromise').mockImplementation(async () => {
-  annotatedCalls++
-  await Promise.resolve()
-  return annotated
-})
-jest.spyOn(T.RPCChat, 'localGetTLFConversationsLocalRpcPromise').mockImplementation(async () => {
-  await Promise.resolve()
-  return {convs: [], offline: false} as never
-})
-let listCalls = 0
-jest.spyOn(T.RPCGen, 'teamsTeamListUnverifiedRpcPromise').mockImplementation(async () => {
-  listCalls++
-  await Promise.resolve()
-  return {
-    teams: [
-      {
-        fqName: 'testteam',
-        isOpenTeam: false,
-        memberCount: 1,
-        role: T.RPCGen.TeamRole.owner,
-        teamID,
-        username: 'testuser',
-      },
-    ],
-  } as never
-})
-jest.spyOn(T.RPCGen, 'teamsGetTeamRoleMapRpcPromise').mockImplementation(async () => {
-  await Promise.resolve()
-  return {teams: {}, version: 1} as never
-})
-
+let engine: FakeEngine
 let bodyRenders = 0
 
-// these counters and the module-scope resource caches both outlive a single
-// test, so without a reset each test sees whatever the previous one left behind
+const annotatedCalls = () => engine.callCount('keybase.1.teams.getAnnotatedTeam')
+const listCalls = () => engine.callCount('keybase.1.teams.teamListUnverified')
+
+// the module-scope resource caches outlive a single test, so without a fresh
+// engine and a store reset each test sees whatever the previous one left behind
 beforeEach(() => {
-  annotatedCalls = 0
-  listCalls = 0
   bodyRenders = 0
+  engine = installFakeEngine({
+    'chat.1.local.getTLFConversationsLocal': () => ({convs: [], offline: false}),
+    'keybase.1.teams.getAnnotatedTeam': () => annotated,
+    'keybase.1.teams.getTeamRoleMap': () => ({teams: {}, version: 1}),
+    'keybase.1.teams.teamListUnverified': () =>
+      ({
+        teams: [
+          {
+            fqName: 'testteam',
+            isOpenTeam: false,
+            memberCount: 1,
+            role: T.RPCGen.TeamRole.owner,
+            teamID,
+            username: 'testuser',
+          },
+        ],
+      }) as unknown as T.RPCGen.AnnotatedTeamList,
+  })
   resetAllStores()
 })
 
 afterEach(() => {
   cleanup()
+  engine.uninstall()
 })
 
 const Body = () => {
@@ -107,9 +97,9 @@ test('team screen loads getAnnotatedTeam once', async () => {
     </LoadedTeamsListProvider>
   )
   await flush()
-  expect(listCalls).toBe(1)
+  expect(listCalls()).toBe(1)
   expect(bodyRenders).toBeLessThan(10)
-  expect(annotatedCalls).toBe(1)
+  expect(annotatedCalls()).toBe(1)
 })
 
 // These caches live at module scope, so they outlive the signed-in session. If
@@ -127,7 +117,7 @@ test('signing out drops the shared team caches', async () => {
     </LoadedTeamsListProvider>
   )
   await flush()
-  const callsWhileSignedIn = annotatedCalls
+  const callsWhileSignedIn = annotatedCalls()
   expect(callsWhileSignedIn).toBeGreaterThan(0)
 
   first.unmount()
@@ -147,5 +137,5 @@ test('signing out drops the shared team caches', async () => {
     </LoadedTeamsListProvider>
   )
   await flush()
-  expect(annotatedCalls).toBe(callsWhileSignedIn + 1)
+  expect(annotatedCalls()).toBe(callsWhileSignedIn + 1)
 })

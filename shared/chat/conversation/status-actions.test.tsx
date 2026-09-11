@@ -2,6 +2,7 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {joinConversation} from './status-actions'
+import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const convID = T.Chat.keyToConversationID(conversationIDKey)
@@ -12,29 +13,44 @@ const flushPromises = async () => {
   }
 }
 
+let engine: FakeEngine
+let onJoin: () => void = () => {}
+
+beforeEach(() => {
+  onJoin = () => {}
+  engine = installFakeEngine({
+    'chat.1.local.joinConversationByIDLocal': () => {
+      onJoin()
+      return {} as never
+    },
+    'chat.1.local.refreshParticipants': () => {},
+  })
+})
+
 afterEach(() => {
+  engine.uninstall()
   jest.restoreAllMocks()
 })
 
 test('joining a conversation refreshes its participants', async () => {
-  jest.spyOn(T.RPCChat, 'localJoinConversationByIDLocalRpcPromise').mockResolvedValue({} as never)
-  jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
-
   joinConversation(conversationIDKey)
   await flushPromises()
 
-  expect(T.RPCChat.localJoinConversationByIDLocalRpcPromise).toHaveBeenCalledWith({convID})
-  expect(T.RPCChat.localRefreshParticipantsRpcPromise).toHaveBeenCalledWith({convID})
+  expect(engine.calls('chat.1.local.joinConversationByIDLocal')).toEqual([
+    {method: 'chat.1.local.joinConversationByIDLocal', params: {convID}},
+  ])
+  expect(engine.calls('chat.1.local.refreshParticipants')).toEqual([
+    {method: 'chat.1.local.refreshParticipants', params: {convID}},
+  ])
 })
 
 test('a failed join never claims the participants are fresh', async () => {
-  jest
-    .spyOn(T.RPCChat, 'localJoinConversationByIDLocalRpcPromise')
-    .mockRejectedValue(new Error('cannot join'))
-  jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
+  onJoin = () => {
+    throw new Error('cannot join')
+  }
 
   joinConversation(conversationIDKey)
   await flushPromises()
 
-  expect(T.RPCChat.localRefreshParticipantsRpcPromise).not.toHaveBeenCalled()
+  expect(engine.callCount('chat.1.local.refreshParticipants')).toBe(0)
 })
