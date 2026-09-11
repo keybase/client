@@ -5,6 +5,7 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
 import {usePushState} from '@/stores/push'
+import * as NavTree from '@/constants/nav-tree'
 import type {LinkingOptions} from '@react-navigation/native'
 import type {RootParamList} from './route-params'
 import {Linking} from 'react-native'
@@ -15,72 +16,13 @@ export {emitDeepLink, normalizeUrl} from './deep-link-emitter'
 
 // ---- State building helpers ----
 
-type PartialRoute = {
-  name: string
-  params?: Record<string, unknown>
-  state?: PartialNavState
-}
-
-type PartialNavState = {
-  routes: Array<PartialRoute>
-  index?: number
-}
-
-// Build state for navigating to a screen within a tab
-const makeTabState = (
-  tab: string,
-  screenStack?: Array<{name: string; params?: Record<string, unknown>}>
-): PartialNavState => {
-  const tabRoute: PartialRoute = {name: tab}
-  if (screenStack && screenStack.length > 0) {
-    tabRoute.state = {
-      index: screenStack.length - 1,
-      routes: screenStack,
-    }
-  }
-  return {
-    index: 0,
-    routes: [{name: 'loggedIn', state: {index: 0, routes: [tabRoute]}}],
-  }
-}
-
 // Build state for navigating to a chat conversation
-export const makeChatConversationState = (conversationIDKey: string): PartialNavState => {
-  if (isSplit) {
-    // Tablet/desktop: chatRoot with conversationIDKey param (split view)
-    return makeTabState(Tabs.chatTab, [{name: 'chatRoot', params: {conversationIDKey}}])
-  }
-  // Phone: tabs at root, conversation pushed above them
-  return {
-    index: 1,
-    routes: [
-      {
-        name: 'loggedIn',
-        state: {
-          index: 0,
-          routes: [{name: Tabs.chatTab, state: {index: 0, routes: [{name: 'chatRoot', params: {}}]}}],
-        },
-      },
-      {name: 'chatConversation', params: {conversationIDKey}},
-    ],
-  }
-}
-
-// Build state for a modal screen at root level. underTab selects which tab sits
-// beneath the modal; without it loggedIn falls back to the initial (people) tab.
-const makeModalState = (
-  modalName: string,
-  params?: Record<string, unknown>,
-  underTab?: Tabs.AppTab
-): PartialNavState => ({
-  index: 1,
-  routes: [
-    underTab
-      ? {name: 'loggedIn', state: {index: 0, routes: [{name: underTab}]}}
-      : {name: 'loggedIn'},
-    {name: modalName, ...(params ? {params} : {})},
-  ],
-})
+export const makeChatConversationState = (conversationIDKey: string): NavTree.PartialNavState =>
+  isSplit
+    ? // Tablet/desktop: chatRoot with conversationIDKey param (split view)
+      NavTree.tabState(Tabs.chatTab, [{name: 'chatRoot', params: {conversationIDKey}}])
+    : // Phone: tabs at root, conversation pushed above them
+      NavTree.pushedAboveTabs(Tabs.chatTab, {name: 'chatConversation', params: {conversationIDKey}})
 
 // ---- URL pattern handling ----
 
@@ -156,7 +98,7 @@ export const subscribeNavigationIntents = (
 const customGetStateFromPath = (
   path: string,
   _options?: object
-): PartialNavState | undefined => {
+): NavTree.PartialNavState | undefined => {
   // path has prefix already stripped by React Navigation (e.g., "convid/abc123")
   const cleanPath = path.replace(/^\/+/, '').replace(/\?.*$/, '')
   if (!cleanPath) return undefined
@@ -175,7 +117,7 @@ const customGetStateFromPath = (
     // keybase://profile/show/{username}
     case 'profile':
       if (parts[1] === 'show' && parts[2]) {
-        return makeTabState(Tabs.peopleTab, [
+        return NavTree.tabState(Tabs.peopleTab, [
           {name: 'peopleRoot'},
           {name: 'profile', params: {username: parts[2]}},
         ])
@@ -191,23 +133,11 @@ const customGetStateFromPath = (
         const path = `/keybase/${decoded}`
         if (isSplit) {
           // Tablet: push the folder above the Files tab root, inside the tab stack.
-          return makeTabState(Tabs.fsTab, [{name: 'fsRoot'}, {name: 'fsBrowse', params: {path}}])
+          return NavTree.tabState(Tabs.fsTab, [{name: 'fsRoot'}, {name: 'fsBrowse', params: {path}}])
         }
         // Phone: fsRoot is the only screen in the Files tab stack; folders open as
         // fsBrowse pushed on the root stack, above the tabs.
-        return {
-          index: 1,
-          routes: [
-            {
-              name: 'loggedIn',
-              state: {
-                index: 0,
-                routes: [{name: Tabs.fsTab, state: {index: 0, routes: [{name: 'fsRoot'}]}}],
-              },
-            },
-            {name: 'fsBrowse', params: {path}},
-          ],
-        }
+        return NavTree.pushedAboveTabs(Tabs.fsTab, {name: 'fsBrowse', params: {path}})
       } catch {}
       break
     }
@@ -217,7 +147,7 @@ const customGetStateFromPath = (
     case 'incoming-share':
       // Share always ends in chat, so park the chat tab (inbox) beneath the modal;
       // otherwise dismissing/back lands on the initial people tab.
-      return makeModalState(
+      return NavTree.modalState(
         'incomingShareNew',
         parts[1] ? {selectedConversationIDKey: stringToConversationIDKey(parts[1])} : undefined,
         Tabs.chatTab
@@ -225,7 +155,7 @@ const customGetStateFromPath = (
 
     // keybase://settingsPushPrompt
     case 'settingsPushPrompt':
-      return makeModalState('settingsPushPrompt')
+      return NavTree.modalState('settingsPushPrompt')
 
     // Tab switches: keybase://tabs.chatTab, etc.
     case Tabs.chatTab:
@@ -236,7 +166,7 @@ const customGetStateFromPath = (
     case Tabs.cryptoTab:
     case Tabs.devicesTab:
     case Tabs.gitTab:
-      return makeTabState(root)
+      return NavTree.tabState(root)
 
     default:
       break

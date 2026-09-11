@@ -12,10 +12,10 @@ import {
   type NavigationContainerRef,
   NavigationContext,
   createNavigationContainerRef,
-  type NavigationState,
 } from '@react-navigation/core'
 import type {StaticScreenProps} from '@react-navigation/core'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
+import * as NavTree from './nav-tree'
 import type {GetOptionsRet, RouteDef} from './types/router'
 import {isSplit, threadRouteName} from './chat/layout'
 import {ignorePromise, shallowEqual} from './utils'
@@ -59,28 +59,14 @@ registerDebugClear(() => {
   navigationRef.current = null
 })
 
-export type Route = NavigationState<KBRootParamList>['routes'][0]
-// still a little paranoid about some things being missing in this type
-export type NavState = Partial<Route['state']>
+export type {Route, NavState} from './nav-tree'
+type Route = NavTree.Route
+type NavState = NavTree.NavState
 export type Navigator = NavigationContainerRef<KBRootParamList>
 
+export {setModalRouteNames} from './nav-tree'
+
 const DEBUG_NAV = __DEV__ && (false as boolean)
-// Modal route names, registered at startup from the router config (the single source
-// of truth — see modalRoutes in router-v2/routes). A serialized NavigationState route
-// does not carry its `presentation`, so we cannot detect modals structurally: a route
-// living in the root stack (alongside the tab navigator) is a modal iff its name is in
-// this set. Everything else there (e.g. chatConversation, and any other non-modal screen
-// pushed above the tab bar on phones) is a genuinely-visible screen.
-let modalRouteNames: ReadonlySet<string> | undefined
-export const setModalRouteNames = (names: Iterable<string>) => {
-  modalRouteNames = new Set<string>(names)
-}
-const isRootModalRoute = (name: string) => {
-  if (!modalRouteNames) {
-    throw new Error('modalRouteNames not registered; call setModalRouteNames at startup')
-  }
-  return modalRouteNames.has(name)
-}
 
 const uiParticipantsToParticipantInfo = (
   uiParticipants: ReadonlyArray<T.RPCChat.UIParticipant>
@@ -104,116 +90,26 @@ export const getRootState = (): NavState | undefined => {
   return navigationRef.getRootState()
 }
 
-export const getTab = (navState?: T.Immutable<NavState>): undefined | Tabs.Tab => {
-  const s = navState || getRootState()
-  const loggedInRoute = s?.routes?.[0]
-  if (loggedInRoute?.name === 'loggedIn') {
-    // eslint-disable-next-line
-    return loggedInRoute.state?.routes?.[loggedInRoute.state.index ?? 0]?.name as Tabs.Tab
-  }
-  return undefined
-}
-
-const _isLoggedIn = (s: T.Immutable<NavState>) => {
-  if (!s) {
-    return false
-  }
-  return s.routes?.[0]?.name === 'loggedIn'
-}
+export const getTab = (navState?: T.Immutable<NavState>): undefined | Tabs.Tab =>
+  NavTree.currentTab(navState || getRootState())
 
 export const _getNavigator = () => {
   return navigationRef.isReady() ? navigationRef : undefined
 }
 
-const getActiveStackState = (navState?: T.Immutable<NavState>): T.Immutable<NavState> | undefined => {
-  const rs = navState || getRootState()
-  const findActiveStackState = (
-    state: T.Immutable<NavState> | undefined,
-    depth: number
-  ): T.Immutable<NavState> | undefined => {
-    if (!state?.routes || state.index === undefined) {
-      return undefined
-    }
-    if (depth === 0) {
-      const topModal = (state.routes.slice(1) as Array<Route>)
-        .filter(route => isRootModalRoute(route.name))
-        .at(-1)
-      if (topModal) {
-        return findActiveStackState(topModal.state, depth + 1) ?? state
-      }
-      const loggedInRoute = state.routes[0] as Route | undefined
-      return findActiveStackState(loggedInRoute?.state, depth + 1) ?? (state.type === 'stack' ? state : undefined)
-    }
-    const childRoute = state.routes[state.index] as Route | undefined
-    return findActiveStackState(childRoute?.state, depth + 1) ?? (state.type === 'stack' ? state : undefined)
-  }
-  return findActiveStackState(rs, 0)
-}
+const getActiveStackState = (navState?: T.Immutable<NavState>) =>
+  NavTree.activeStack(navState || getRootState())
 
 // Public API
 // gives you loggedin/tab/stackitems + modals
-export const getVisiblePath = (navState?: T.Immutable<NavState>, _inludeModals?: boolean) => {
-  const rs = navState || getRootState()
-  const inludeModals = _inludeModals ?? true
+export const getVisiblePath = (navState?: T.Immutable<NavState>, includeModals?: boolean) =>
+  NavTree.visiblePath(navState || getRootState(), {includeModals})
 
-  const findVisibleRoute = (
-    arr: T.Immutable<Array<Route>>,
-    s: T.Immutable<NavState>,
-    depth: number
-  ): T.Immutable<Array<Route>> => {
-    if (!s?.routes || s.index === undefined) {
-      return arr
-    }
-    let childRoute = s.routes[s.index] as Route | undefined
-    if (!childRoute) {
-      return arr
-    }
+export const getModalStack = (navState?: T.Immutable<NavState>) =>
+  NavTree.modalStack(navState || getRootState())
 
-    let toAdd: Array<Route>
-    let toAddModals: Array<Route> = []
-    // special handling of modals, we keep them to the side to add them later, then go down the visible tab
-    if (depth === 0) {
-      childRoute = s.routes[0] as Route
-      toAdd = [childRoute]
-      // routes[1+] holds both real modals and root non-modal screens (e.g.
-      // chatConversation on phones, stacked above the tab bar). The latter are
-      // genuinely visible, so always include them; only gate real modals on includeModals.
-      const rest = s.routes.slice(1) as Array<Route>
-      toAddModals = inludeModals ? rest : rest.filter(r => !isRootModalRoute(r.name))
-    } else {
-      // include items in the stack
-      if (s.type === 'stack') {
-        toAdd = s.routes as Array<Route>
-      } else {
-        toAdd = [childRoute]
-      }
-    }
-
-    const nextArr = [...arr, ...toAdd]
-    const children = findVisibleRoute(nextArr, childRoute.state, depth + 1)
-    return [...children, ...toAddModals]
-  }
-
-  if (!rs) return []
-  const vs = findVisibleRoute([], rs, 0)
-  return vs
-}
-
-export const getModalStack = (navState?: T.Immutable<NavState>) => {
-  const rs = navState || getRootState()
-  if (!rs) {
-    return []
-  }
-  if (!_isLoggedIn(rs)) {
-    return []
-  }
-  return (rs.routes?.slice(1) ?? []).filter(r => isRootModalRoute(r.name))
-}
-
-export const getVisibleScreen = (navState?: T.Immutable<NavState>, _inludeModals?: boolean) => {
-  const visible = getVisiblePath(navState, _inludeModals ?? true)
-  return visible.at(-1)
-}
+export const getVisibleScreen = (navState?: T.Immutable<NavState>, includeModals?: boolean) =>
+  NavTree.visibleScreen(navState || getRootState(), {includeModals})
 
 export const logState = () => {
   const rs = getRootState()
@@ -221,7 +117,7 @@ export const logState = () => {
     ps.map(p => ({key: p.key, name: p.name}))
   const modals = safePaths(getModalStack(rs))
   const visible = safePaths(getVisiblePath(rs))
-  return {loggedIn: _isLoggedIn(rs), modals, visible}
+  return {loggedIn: NavTree.isLoggedIn(rs), modals, visible}
 }
 
 // if a toast is inside of a portal then its not in nav so useFocusEffect would throw,
@@ -296,13 +192,11 @@ export const clearModals = () => {
   const n = _getNavigator()
   if (!n) return
   const ns = getRootState()
-  if (!_isLoggedIn(ns)) {
+  if (!NavTree.isLoggedIn(ns)) {
     return
   }
   const rootRoutes = ns?.routes ?? []
-  const keepRoutes = rootRoutes.filter(
-    (route, index) => index === 0 || !isRootModalRoute(route.name)
-  )
+  const keepRoutes = rootRoutes.filter((route, index) => index === 0 || !NavTree.isModalRouteName(route.name))
   if (keepRoutes.length !== rootRoutes.length) {
     n.dispatch({
       ...CommonActions.reset({
@@ -458,8 +352,7 @@ export const switchTab = (name: Tabs.AppTab) => {
   }
   const n = _getNavigator()
   if (!n) return
-  const ns = getRootState()
-  const tabNavState = ns?.routes?.[0]?.state
+  const tabNavState = NavTree.tabNavigatorState(getRootState())
   if (!tabNavState?.key) return
   n.dispatch({
     ...TabActions.jumpTo(name),
@@ -735,8 +628,7 @@ export const setChatRootParams = (
 ): boolean => {
   const n = _getNavigator()
   if (!n) return false
-  const rs = getRootState()
-  const tabNavState = rs?.routes?.[0]?.state
+  const tabNavState = NavTree.tabNavigatorState(getRootState())
   if (!tabNavState?.key) return false
   const tabRoutes = tabNavState.routes as Array<Route>
   const chatTabIndex = tabRoutes.findIndex(r => r.name === Tabs.chatTab)
@@ -867,18 +759,7 @@ const navToThread = (
     return setChatRootParams(params)
   } else {
     // Phone: switch to the chat tab, then push the conversation above the tabs.
-    const nextState = {
-      index: 1,
-      routes: [
-        {
-          name: 'loggedIn',
-          state: {
-            routes: [{name: Tabs.chatTab, state: {index: 0, routes: [{name: 'chatRoot', params: {}}]}}],
-          },
-        },
-        {name: 'chatConversation', params},
-      ],
-    }
+    const nextState = NavTree.pushedAboveTabs(Tabs.chatTab, {name: 'chatConversation', params})
     n.dispatch({
       ...CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]),
       target: rs.key,
