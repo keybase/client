@@ -1,0 +1,23 @@
+go/install/install.go
+  s_f4eccbceef9177::t_30610e9904e6c2 251
+  s_f4eccbceef9177::t_de151fd868e2d5 250
+go/mounter/mounter_nix.go
+  s_f4eccbceef9177::t_32eaa04d95db83 21
+  s_f4eccbceef9177::t_274368fe49da9f 20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "610ed3fa1919c2b14744c1bb837836ec9b98f422",
+  "prompts": {},
+  "sessions": {
+    "s_f4eccbceef9177": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "a8b7142b-cf9d-490a-aad8-3c8829ed6e7b",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
