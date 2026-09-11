@@ -143,7 +143,11 @@ func serviceLoggedOut(ctx context.Context, config Config) {
 	}
 	config.ResetCaches()
 	config.UserHistory().Clear()
-	config.Chat().ClearCache()
+	// Init sets Chat after the service connection is live, so a logout can
+	// arrive before it exists.
+	if chat := config.Chat(); chat != nil {
+		chat.ClearCache()
+	}
 	mdServer := config.MDServer()
 	if mdServer != nil {
 		mdServer.RefreshAuthToken(ctx)

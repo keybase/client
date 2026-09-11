@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/test/clocktest"
@@ -53,6 +54,56 @@ func TestKeybaseDaemonRPCGetCurrentSessionCanceled(t *testing.T) {
 		return err
 	}
 	testRPCWithCanceledContext(t, serverConn, f)
+}
+
+// NewKeybaseDaemonRPC gates the additional protocols (SimpleFS/git/fs) on
+// init, since the service can call them as soon as the connection is up.
+func TestKeybaseDaemonRPCGatesAdditionalProtocolsOnInit(t *testing.T) {
+	config := MakeTestConfigOrBust(t, "testuser")
+	origKBFSOps := config.KBFSOps()
+	initDoneCh := make(chan struct{})
+	kbfsOps := NewKBFSOpsStandard(env.EmptyAppStateUpdater{}, config, initDoneCh)
+	config.SetKBFSOps(kbfsOps)
+	defer func() {
+		config.SetKBFSOps(origKBFSOps)
+		require.NoError(t, kbfsOps.Shutdown(context.Background()))
+		CheckConfigAndShutdown(context.Background(), t, config)
+	}()
+
+	var calls int
+	daemon := NewKeybaseDaemonRPC(
+		config, newInitTestContext(t), logger.NewTestLogger(t), false,
+		[]rpc.Protocol{newGatedTestProtocol(&calls)})
+	defer daemon.Shutdown()
+	var handler func(context.Context, any) (any, error)
+	daemon.lock.Lock()
+	for _, p := range daemon.protocols {
+		if p.Name == "gatedTest" {
+			handler = p.Methods["method"].Handler
+		}
+	}
+	daemon.lock.Unlock()
+	require.NotNil(t, handler)
+
+	// Init still running: the request waits, and the handler doesn't run.
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	defer cancel()
+	_, err := handler(ctx, nil)
+	require.ErrorIs(t, err, context.DeadlineExceeded)
+	require.Zero(t, calls)
+
+	// Init becoming ready mid-wait lets the request through, without the
+	// rest of init having finished.
+	go func() {
+		time.Sleep(50 * time.Millisecond)
+		kbfsOps.initReady()
+	}()
+	readyCtx, readyCancel := context.WithTimeout(
+		context.Background(), 5*time.Second)
+	defer readyCancel()
+	_, err = handler(readyCtx, nil)
+	require.NoError(t, err)
+	require.Equal(t, 1, calls)
 }
 
 // TODO: Add tests for Favorite* methods, too.

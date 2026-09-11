@@ -50,7 +50,13 @@ type KBFSOpsStandard struct {
 	// Closing this channel will shutdown the reidentification
 	// watcher.
 	reIdentifyControlChan chan chan<- struct{}
-	initDoneCh            <-chan struct{}
+	initDoneCh <-chan struct{}
+	// Closed once, under initMu: ready if requests can run, failed if
+	// init failed before that. initFailed is a no-op after ready.
+	initReadyCh  chan struct{}
+	initFailedCh chan struct{}
+	initMu       sync.Mutex
+	initSignaled bool
 
 	favs *Favorites
 
@@ -70,7 +76,10 @@ type KBFSOpsStandard struct {
 	initSyncCancel context.CancelFunc
 }
 
-var _ KBFSOps = (*KBFSOpsStandard)(nil)
+var (
+	_ KBFSOps        = (*KBFSOpsStandard)(nil)
+	_ kbfsInitWaiter = (*KBFSOpsStandard)(nil)
+)
 
 const longOperationDebugDumpDuration = time.Minute
 
@@ -82,7 +91,8 @@ const ctxKBFSOpsSkipEditHistoryBlock ctxKBFSOpsSkipEditHistoryBlockType = 1
 
 // NewKBFSOpsStandard constructs a new KBFSOpsStandard object.
 // `initDone` should be closed when the rest of initialization (such
-// as journal initialization) has completed.
+// as journal initialization) has completed. If it fails instead, call
+// initFailed. Call initReady as soon as config has what requests need.
 func NewKBFSOpsStandard(
 	appStateUpdater env.AppStateUpdater, config Config,
 	initDoneCh <-chan struct{},
@@ -97,6 +107,8 @@ func NewKBFSOpsStandard(
 		opsByFav:              make(map[favorites.Folder]*folderBranchOps),
 		reIdentifyControlChan: make(chan chan<- struct{}),
 		initDoneCh:            initDoneCh,
+		initReadyCh:           make(chan struct{}),
+		initFailedCh:          make(chan struct{}),
 		favs:                  NewFavorites(config),
 		syncedTlfObservers:    newSyncedTlfObserverList(),
 		longOperationDebugDumper: NewImpatientDebugDumper(
@@ -106,6 +118,62 @@ func NewKBFSOpsStandard(
 	kops.currentStatus.Init()
 	go kops.markForReIdentifyIfNeededLoop()
 	return kops
+}
+
+func (fs *KBFSOpsStandard) signalInit(ready bool) {
+	fs.initMu.Lock()
+	defer fs.initMu.Unlock()
+	if fs.initSignaled {
+		return
+	}
+	fs.initSignaled = true
+	if ready {
+		close(fs.initReadyCh)
+	} else {
+		close(fs.initFailedCh)
+	}
+}
+
+// initReady tells anything in waitForReady that config now has what requests
+// need, ahead of the rest of init.
+func (fs *KBFSOpsStandard) initReady() {
+	fs.signalInit(true)
+}
+
+// initFailed tells anything waiting on init that it won't finish. No-op if
+// initReady already ran: in-flight requests cannot be recalled.
+func (fs *KBFSOpsStandard) initFailed() {
+	fs.signalInit(false)
+}
+
+// ready reports, without blocking, whether init has set up what requests need.
+func (fs *KBFSOpsStandard) ready() bool {
+	if fs.initDoneCh == nil {
+		return true
+	}
+	select {
+	case <-fs.initReadyCh:
+		return true
+	default:
+		return false
+	}
+}
+
+// waitForReady blocks until init has set up what requests need, and returns
+// errKBFSNotInitialized if init failed. A nil initDoneCh (KBFSOps built
+// outside init, as in tests) counts as ready.
+func (fs *KBFSOpsStandard) waitForReady(ctx context.Context) error {
+	if fs.initDoneCh == nil {
+		return nil
+	}
+	select {
+	case <-fs.initReadyCh:
+		return nil
+	case <-fs.initFailedCh:
+		return errKBFSNotInitialized{}
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 func (fs *KBFSOpsStandard) markForReIdentifyIfNeededLoop() {
@@ -2180,6 +2248,8 @@ func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
 
 	select {
 	case <-fs.initDoneCh:
+	case <-fs.initFailedCh:
+		return
 	case <-ctx.Done():
 		return
 	}
@@ -2267,6 +2337,8 @@ func (fs *KBFSOpsStandard) initSyncedTlfs() {
 
 	select {
 	case <-fs.initDoneCh:
+	case <-fs.initFailedCh:
+		return
 	case <-ctx.Done():
 		return
 	}

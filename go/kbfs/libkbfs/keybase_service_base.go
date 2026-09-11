@@ -430,6 +430,39 @@ func (k *KeybaseServiceBase) ReachabilityChanged(ctx context.Context,
 	return nil
 }
 
+// errKBFSNotInitialized is returned to the service for requests that arrive
+// before init has set up what they need, or after init failed.
+type errKBFSNotInitialized struct{}
+
+func (errKBFSNotInitialized) Error() string { return "KBFS is not initialized yet" }
+
+// kbfsInitWaiter is implemented by KBFSOpsStandard. Init sets up the service
+// connection before it has set up everything requests need, so handlers on
+// that connection use it.
+type kbfsInitWaiter interface {
+	waitForReady(ctx context.Context) error
+	ready() bool
+}
+
+// waitForKBFSReady blocks until init has set up what requests need, and
+// returns errKBFSNotInitialized if init failed.
+func waitForKBFSReady(ctx context.Context, config Config) error {
+	if w, ok := config.KBFSOps().(kbfsInitWaiter); ok {
+		return w.waitForReady(ctx)
+	}
+	return nil
+}
+
+// kbfsReady reports, without blocking, whether init has set up what requests
+// need. Service-initiated requests check this rather than waiting, so none of
+// them can block on an init that is itself waiting on the service.
+func kbfsReady(config Config) bool {
+	if w, ok := config.KBFSOps().(kbfsInitWaiter); ok {
+		return w.ready()
+	}
+	return true
+}
+
 // StartReachability implements keybase1.ReachabilityInterface.
 func (k *KeybaseServiceBase) StartReachability(ctx context.Context) (res keybase1.Reachability, err error) {
 	return k.CheckReachability(ctx)
@@ -1340,6 +1373,9 @@ func (k *KeybaseServiceBase) FSEditListRequest(ctx context.Context,
 		k.log)
 	k.log.CDebugf(ctx, "Edit list request for %s (public: %t)",
 		req.Folder.Name, !req.Folder.Private)
+	if !kbfsReady(k.config) {
+		return errKBFSNotInitialized{}
+	}
 	tlfHandle, err := getHandleFromFolderName(
 		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, req.Folder.Name,
 		!req.Folder.Private)
@@ -1484,6 +1520,10 @@ func (k *KeybaseDaemonRPC) TeamTreeMembershipsDone(context.Context,
 func (k *KeybaseServiceBase) StartMigration(ctx context.Context,
 	folder keybase1.Folder,
 ) (err error) {
+	// Before init is ready, MDServer is nil too; report the transient error.
+	if !kbfsReady(k.config) {
+		return errKBFSNotInitialized{}
+	}
 	mdServer := k.config.MDServer()
 	if mdServer == nil {
 		return errors.New("no mdserver")
@@ -1512,6 +1552,9 @@ func (k *KeybaseServiceBase) StartMigration(ctx context.Context,
 func (k *KeybaseServiceBase) FinalizeMigration(ctx context.Context,
 	folder keybase1.Folder,
 ) (err error) {
+	if !kbfsReady(k.config) {
+		return errKBFSNotInitialized{}
+	}
 	fav := favorites.NewFolderFromProtocol(folder)
 	handle, err := GetHandleFromFolderNameAndType(
 		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, fav.Name, fav.Type)
@@ -1549,6 +1592,9 @@ func (k *KeybaseServiceBase) GetTLFCryptKeys(ctx context.Context,
 		return keybase1.GetTLFCryptKeysRes{}, err
 	}
 
+	if !kbfsReady(k.config) {
+		return res, errKBFSNotInitialized{}
+	}
 	tlfHandle, err := getHandleFromFolderName(
 		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, query.TlfName, false)
 	if err != nil {
@@ -1593,6 +1639,9 @@ func (k *KeybaseServiceBase) GetPublicCanonicalTLFNameAndID(
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
 	}
 
+	if !kbfsReady(k.config) {
+		return res, errKBFSNotInitialized{}
+	}
 	tlfHandle, err := getHandleFromFolderName(
 		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, query.TlfName,
 		true /* public */)

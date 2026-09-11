@@ -797,8 +797,47 @@ func doInit(
 
 	kbfsLog := config.MakeLogger("")
 
-	// Initialize Keybase service connection. This needs to happen before
-	// KBPKI client.
+	// Initialize KBPKI client (needed for KBFSOps, MD Server, and Chat). It
+	// reaches the service through config, so it doesn't need it yet.
+	k := NewKBPKIClient(config, kbfsLog)
+	config.SetKBPKI(k)
+
+	// Set up KBFSOps and MDOps before the service connection. Creating the
+	// connection registers the KBFS handlers, and the service can call them
+	// right away. None of these use the service until they're called.
+	initDoneCh := make(chan struct{})
+	kbfsOps := NewKBFSOpsStandard(kbCtx, config, initDoneCh)
+	// Handlers on the service connection wait for init (see
+	// waitForKBFSReady), so tell them how it ended.
+	initSucceeded := false
+	defer func() {
+		if initSucceeded {
+			close(initDoneCh)
+		} else {
+			kbfsOps.initFailed()
+		}
+	}()
+	config.SetKBFSOps(kbfsOps)
+	config.SetNotifier(kbfsOps)
+	config.SetKeyManager(NewKeyManagerStandard(config))
+	config.SetMDOps(NewMDOpsStandard(config))
+
+	// Also before the service connection: a login it delivers can create the
+	// disk block cache, which expects the disk limiter. The limiter only reads
+	// local config.
+	config.SetDiskBlockCacheFraction(getCacheFrac(
+		ctx, kbCtx, params.DiskBlockCacheFraction,
+		defaultDiskBlockCacheFraction, configBlockCacheDiskMaxFracStr, log))
+	config.SetSyncBlockCacheFraction(getCacheFrac(
+		ctx, kbCtx, params.SyncBlockCacheFraction,
+		defaultSyncBlockCacheFraction, configBlockCacheSyncMaxFracStr, log))
+	err = config.EnableDiskLimiter(params.StorageRoot)
+	if err != nil {
+		log.CWarningf(ctx, "Could not enable disk limiter: %+v", err)
+		return nil, err
+	}
+
+	// Initialize Keybase service connection.
 	if keybaseServiceCn == nil {
 		keybaseServiceCn = keybaseDaemon{}
 	}
@@ -812,36 +851,12 @@ func doInit(
 	}
 	config.SetKeybaseService(service)
 
-	// Initialize KBPKI client (needed for KBFSOps, MD Server, and Chat).
-	k := NewKBPKIClient(config, kbfsLog)
-	config.SetKBPKI(k)
-
 	// Initialize Chat client (for file edit notifications).
 	chat, err := keybaseServiceCn.NewChat(config, params, kbCtx, kbfsLog)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating chat: %s", err)
 	}
 	config.SetChat(chat)
-
-	initDoneCh := make(chan struct{})
-	kbfsOps := NewKBFSOpsStandard(kbCtx, config, initDoneCh)
-	defer close(initDoneCh)
-	config.SetKBFSOps(kbfsOps)
-	config.SetNotifier(kbfsOps)
-	config.SetKeyManager(NewKeyManagerStandard(config))
-	config.SetMDOps(NewMDOpsStandard(config))
-
-	config.SetDiskBlockCacheFraction(getCacheFrac(
-		ctx, kbCtx, params.DiskBlockCacheFraction,
-		defaultDiskBlockCacheFraction, configBlockCacheDiskMaxFracStr, log))
-	config.SetSyncBlockCacheFraction(getCacheFrac(
-		ctx, kbCtx, params.SyncBlockCacheFraction,
-		defaultSyncBlockCacheFraction, configBlockCacheSyncMaxFracStr, log))
-	err = config.EnableDiskLimiter(params.StorageRoot)
-	if err != nil {
-		log.CWarningf(ctx, "Could not enable disk limiter: %+v", err)
-		return nil, err
-	}
 
 	kbfsOps.favs.Initialize(ctx)
 
@@ -969,6 +984,19 @@ func doInit(
 		}
 	}
 
+	if params.BGFlushDirOpBatchSize < 1 {
+		return nil, fmt.Errorf(
+			"Illegal sync batch size: %d", params.BGFlushDirOpBatchSize)
+	}
+	log.CDebugf(ctx, "Enabling a dir op batch size of %d",
+		params.BGFlushDirOpBatchSize)
+	config.SetBGFlushDirOpBatchSize(params.BGFlushDirOpBatchSize)
+
+	// Requests on the service connection have what they need from here on.
+	// Don't hold them for journaling, which can take a while. Nothing after
+	// this point may fail init, since released requests can't be recalled.
+	kbfsOps.initReady()
+
 	ctx60s, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	// TODO: Don't turn on journaling if either -bserver or
@@ -983,18 +1011,11 @@ func doInit(
 		log.CDebugf(ctx, "Journaling enabled")
 	}
 
-	if params.BGFlushDirOpBatchSize < 1 {
-		return nil, fmt.Errorf(
-			"Illegal sync batch size: %d", params.BGFlushDirOpBatchSize)
-	}
-	log.CDebugf(ctx, "Enabling a dir op batch size of %d",
-		params.BGFlushDirOpBatchSize)
-	config.SetBGFlushDirOpBatchSize(params.BGFlushDirOpBatchSize)
-
 	if config.Mode().OldStorageRootCleaningEnabled() {
 		go cleanOldTempStorageRoots(config)
 	}
 
+	initSucceeded = true
 	return config, nil
 }
 

@@ -11,7 +11,7 @@ const fileRoot = `${htmlPrefix}${(`${distRoot}/`).replaceAll(path.sep, '/')}`
 // be loaded from file://). Cold dev + prod load the built html from file://.
 // Vite keeps the shells at their source paths in both cases, so the same
 // relative path is used for the http origin and the dist file root.
-const devServerOrigin = 'http://localhost:4000'
+export const devServerOrigin = 'http://localhost:4000'
 const htmlRelPath: Record<string, string> = {
   main: 'desktop/renderer/main.html',
   remote: 'desktop/remote/remote.html',

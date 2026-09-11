@@ -81,6 +81,34 @@ func (k *KeybaseDaemonRPC) addKBFSProtocols() {
 	k.AddProtocols(protocols)
 }
 
+// gateOnKBFSReady wraps every method of the given protocols (SimpleFS, git,
+// fs) so each request waits until init has set up what requests need, which
+// is after the service connection is live. Each request is served on its own
+// goroutine, so waiting doesn't block the connection. A request fails with
+// errKBFSNotInitialized if init failed, or ends with the caller's context.
+func gateOnKBFSReady(config Config, protocols []rpc.Protocol) []rpc.Protocol {
+	if len(protocols) == 0 {
+		return protocols
+	}
+	wrapped := make([]rpc.Protocol, 0, len(protocols))
+	for _, p := range protocols {
+		methods := make(map[string]rpc.ServeHandlerDescription, len(p.Methods))
+		for name, m := range p.Methods {
+			handler := m.Handler
+			m.Handler = func(ctx context.Context, arg any) (any, error) {
+				if err := waitForKBFSReady(ctx, config); err != nil {
+					return nil, err
+				}
+				return handler(ctx, arg)
+			}
+			methods[name] = m
+		}
+		p.Methods = methods
+		wrapped = append(wrapped, p)
+	}
+	return wrapped
+}
+
 // NewKeybaseDaemonRPC makes a new KeybaseDaemonRPC that makes RPC
 // calls using the socket of the given Keybase context.
 func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger,
@@ -92,6 +120,9 @@ func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger,
 	if debug {
 		k.daemonLog.Configure("", true, "")
 	}
+	// Handlers in OnConnect can run before this constructor returns, and
+	// KBPKI reaches the daemon through config.
+	config.SetKeybaseService(k)
 	conn := NewSharedKeybaseConnection(kbCtx, config, k)
 	k.fillClients(conn.GetClient())
 	k.shutdownFn = conn.Shutdown
@@ -104,7 +135,7 @@ func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger,
 	k.notifyService = newNotifyServiceHandler(config, log)
 
 	k.addKBFSProtocols()
-	k.AddProtocols(additionalProtocols)
+	k.AddProtocols(gateOnKBFSReady(config, additionalProtocols))
 
 	return k
 }
