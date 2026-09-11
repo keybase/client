@@ -184,9 +184,9 @@ export const FsDaemonProvider = ({children}: {children: React.ReactNode}) => {
     : Constants.unknownKbfsDaemonStatus
 
   return (
-    <FsDaemonStatusContext.Provider value={visibleKbfsDaemonStatus}>
-      <FsDaemonActionsContext.Provider value={actions}>{children}</FsDaemonActionsContext.Provider>
-    </FsDaemonStatusContext.Provider>
+    <FsDaemonStatusContext value={visibleKbfsDaemonStatus}>
+      <FsDaemonActionsContext value={actions}>{children}</FsDaemonActionsContext>
+    </FsDaemonStatusContext>
   )
 }
 

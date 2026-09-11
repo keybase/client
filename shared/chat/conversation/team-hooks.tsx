@@ -202,7 +202,7 @@ export const ChatTeamProvider = (props: React.PropsWithChildren) => {
     sameAsOuter
   )
   const value: ChatTeamContextValue = sameAsOuter ? outer! : {members, team, teamID}
-  return <ChatTeamContext.Provider value={value}>{children}</ChatTeamContext.Provider>
+  return <ChatTeamContext value={value}>{children}</ChatTeamContext>
 }
 
 export const useChatTeam = (teamID: T.Teams.TeamID, teamname?: string): ChatTeam => {

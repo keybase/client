@@ -104,7 +104,7 @@ export const ActivityLevelsProvider = (props: React.PropsWithChildren) => {
     )
   )
   const value = useActivityLevelsRaw(cache)
-  return <ActivityLevelsContext.Provider value={value}>{children}</ActivityLevelsContext.Provider>
+  return <ActivityLevelsContext value={value}>{children}</ActivityLevelsContext>
 }
 
 const Activity = (p: Props) => {
