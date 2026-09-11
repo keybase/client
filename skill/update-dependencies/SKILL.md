@@ -139,7 +139,7 @@ On every dep-update pass, audit each entry (except `**/@types/react`, which is p
 
 Testing removal is one `yarn` run — always do it empirically rather than reasoning from lockfile ranges. But "empirically" means verifying the lockfile actually re-resolved (step 3), not just that `yarn` exited 0.
 
-Known still-needed entries (as of 2026-09), all three because mocha/xcode pin an old range: `**/serialize-javascript` (mocha, via @wdio/mocha-framework, still pins `^6.0.2` — GHSA-5c6j-r48x-rmvq, GHSA-qj8w-gfj5-8c6v), `**/mocha/diff` (mocha 11 pins `^7.0.0`; mocha 12 moved to `^9.0.0` but @wdio/mocha-framework pins mocha `^11.8.0`, so scope the resolution to mocha rather than forcing every diff consumer — GHSA-73rr-hh4g-fpgx), and `**/xcode/uuid` (xcode pins `^7.0.3`, no release since 2021 — GHSA-w5hq-g745-h8pq). Still run the removal test each pass (a parent may finally ship a fix), but expect these to survive it.
+Known still-needed entries (as of 2026-09), all because a parent pins an old range: `**/serialize-javascript` (mocha, via @wdio/mocha-framework, still pins `^6.0.2` — GHSA-5c6j-r48x-rmvq, GHSA-qj8w-gfj5-8c6v), `**/mocha/diff` (mocha 11 pins `^7.0.0`; mocha 12 moved to `^9.0.0` but @wdio/mocha-framework pins mocha `^11.8.0`, so scope the resolution to mocha rather than forcing every diff consumer — GHSA-73rr-hh4g-fpgx), `**/xcode/uuid` (xcode pins `^7.0.3`, no release since 2021 — GHSA-w5hq-g745-h8pq), and `**/morgan` (`@appium/base-driver` exact-pins `morgan 1.11.0` — GHSA-jxfw-x594-9x9m; blanket is fine, it's the only copy). Still run the removal test each pass (a parent may finally ship a fix), but expect these to survive it.
 
 ### 5. Evaluate existing patches
 
