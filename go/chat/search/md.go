@@ -3,7 +3,6 @@ package search
 import (
 	"context"
 	"fmt"
-	"math"
 	"sync"
 	"unsafe"
 
@@ -47,12 +46,7 @@ func (m *indexMetadata) dup() (res *indexMetadata) {
 }
 
 func (m *indexMetadata) Size() int64 {
-	size := unsafe.Sizeof(m.Version)
-	size += uintptr(len(m.SeenIDs)) * unsafe.Sizeof(chat1.MessageID(0))
-	if size > math.MaxInt64 {
-		return math.MaxInt64
-	}
-	return int64(size)
+	return int64(unsafe.Sizeof(m.Version)) + int64(len(m.SeenIDs))*int64(unsafe.Sizeof(chat1.MessageID(0)))
 }
 
 func (m *indexMetadata) MissingIDForConv(conv chat1.Conversation) (res []chat1.MessageID) {
