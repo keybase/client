@@ -178,7 +178,8 @@ func (b *BackgroundConvLoader) monitorAppState(stopCh chan struct{}) error {
 	state := keybase1.MobileAppState_FOREGROUND
 	for {
 		select {
-		case state = <-b.G().MobileAppState.NextUpdate(&state):
+		case <-b.G().MobileAppState.NextUpdate(state):
+			state = b.G().MobileAppState.State()
 			switch state {
 			case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
 				b.Debug(ctx, "monitorAppState: active state: %v", state)

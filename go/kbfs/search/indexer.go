@@ -1401,7 +1401,8 @@ outerLoop:
 				// Re-load the index on each login/logout event.
 				i.log.CDebugf(ctx, "User changed")
 				continue outerLoop
-			case state = <-kbCtx.NextAppStateUpdate(&state):
+			case <-kbCtx.NextAppStateUpdate(state):
+				state = kbCtx.AppState()
 				// TODO(HOTPOT-1494): once we are doing actual
 				// indexing in a separate goroutine, pause/unpause it
 				// via a channel send from here.
@@ -1409,7 +1410,8 @@ outerLoop:
 					i.log.CDebugf(ctx,
 						"Pausing indexing while not foregrounded: state=%s",
 						state)
-					state = <-kbCtx.NextAppStateUpdate(&state)
+					<-kbCtx.NextAppStateUpdate(state)
+					state = kbCtx.AppState()
 				}
 				i.log.CDebugf(ctx, "Resuming indexing while foregrounded")
 				continue
