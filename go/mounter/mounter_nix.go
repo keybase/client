@@ -17,7 +17,8 @@ import (
 // Unmount tries to unmount normally and then if force if unsuccessful.
 func Unmount(dir string, force bool, log Log) error {
 	if !force {
-		mounted, err := IsMounted(dir, log) //nolint:staticcheck // SA4023: err always/never nil depending on GOOS
+		//nolint:staticcheck // SA4023: err always/never nil depending on GOOS
+		mounted, err := IsMounted(dir, log)
 		if err != nil {
 			return err
 		}

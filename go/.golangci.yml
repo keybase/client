@@ -69,6 +69,12 @@ linters:
         - ifElseChain # Long if-else chains should be rewritten as switch
         - elseif # Nested if should be merged into else-if
 
+    testifylint:
+      disable:
+        # FailNow is not safe off the test goroutine. Many tests use assert
+        # for errors inside wg.Go / helpers on purpose.
+        - require-error
+
     gosec:
       # These exploded after the gosec upgrade with mostly false positives
       # (protocol enum conversions, fire-and-forget goroutines, SSA slice indexes).
