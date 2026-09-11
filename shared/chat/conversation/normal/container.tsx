@@ -14,7 +14,7 @@ import {
   useConversationThreadSelector,
   useThreadMeta,
 } from '../thread-context'
-import {ConversationThreadLoadStatusProvider} from '../thread-load-status-context'
+import {ConversationThreadWindowProvider} from '../thread-window'
 import {MaybeMentionProvider} from '@/common-adapters/markdown/maybe-mention/context'
 import {peekInputIntent} from '../input-intent-store'
 import {useChatThreadRouteParams} from '../thread-search-route'
@@ -222,13 +222,13 @@ const NormalThreadProviders = (
   const {children, id, threadSearchVisible} = p
   const [pendingHighlight] = React.useState(() => !!peekInputIntent(id, ['highlight']))
   return (
-    <ConversationThreadLoadStatusProvider
+    <ConversationThreadWindowProvider
       allowMarkReadOnLoad={!threadSearchVisible}
       id={id}
       skipThreadLoadOnSelection={pendingHighlight}
     >
       {children}
-    </ConversationThreadLoadStatusProvider>
+    </ConversationThreadWindowProvider>
   )
 }
 

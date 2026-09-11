@@ -8,16 +8,12 @@ import {resetAllStores} from '@/util/zustand'
 const convX = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const convY = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
 
-const mockLoadMessagesCentered = jest.fn()
-const mockJumpToRecentThread = jest.fn()
+const mockRequestWindow = jest.fn()
 const mockSetMarkReadBlocked = jest.fn()
-const mockThreadLoadStatusOptions = {isThreadLoadCurrent: () => true, onThreadLoadStatus: () => {}}
 let mockRouteParams: {threadSearch?: {query?: string}} | undefined
 
 // Both providers under test pull thread/engine plumbing they don't exercise here.
 jest.mock('./thread-context', () => ({
-  useConversationThreadJumpToRecent: () => mockJumpToRecentThread,
-  useConversationThreadLoadMessagesCentered: () => mockLoadMessagesCentered,
   useConversationThreadSetMarkReadBlocked: () => mockSetMarkReadBlocked,
   useConversationThreadStore: () => ({getState: () => ({})}),
 }))
@@ -25,9 +21,7 @@ jest.mock('./send-actions', () => ({
   useConversationSendActions: () => ({sendGiphyResult: jest.fn(), sendMessage: jest.fn()}),
 }))
 jest.mock('@/engine/action-listener', () => ({useEngineActionListener: () => {}}))
-jest.mock('./thread-load-status-context', () => ({
-  useThreadLoadStatusOptionsGetter: () => () => mockThreadLoadStatusOptions,
-}))
+jest.mock('./thread-window', () => ({useRequestWindow: () => mockRequestWindow}))
 jest.mock('./thread-search-route', () => ({useChatThreadRouteParams: () => mockRouteParams}))
 
 import {ConversationCenterProvider, useConversationCenter} from './center-context'
@@ -80,29 +74,21 @@ test('a highlight written before mount is consumed on mount', () => {
   render(<Tree id={convX} />)
 
   expect(mockSetMarkReadBlocked).toHaveBeenCalledWith(true)
-  expect(mockLoadMessagesCentered).toHaveBeenCalledTimes(1)
-  expect(mockLoadMessagesCentered).toHaveBeenCalledWith(
-    T.Chat.numberToMessageID(42),
-    'flash',
-    expect.anything()
-  )
+  expect(mockRequestWindow).toHaveBeenCalledTimes(1)
+  expect(mockRequestWindow).toHaveBeenCalledWith({anchor: {centeredOn: T.Chat.numberToMessageID(42)}, reason: 'centered'})
   expect(seenHighlightOrdinal).toBe(T.Chat.numberToOrdinal(42))
   expect(useInputIntentState.getState().intents.has(convX)).toBe(false)
 })
 
 test('a highlight written after mount is delivered by the subscription', () => {
   render(<Tree id={convX} />)
-  expect(mockLoadMessagesCentered).not.toHaveBeenCalled()
+  expect(mockRequestWindow).not.toHaveBeenCalled()
 
   act(() => {
     setInputIntent(convX, highlight(7))
   })
 
-  expect(mockLoadMessagesCentered).toHaveBeenCalledWith(
-    T.Chat.numberToMessageID(7),
-    'flash',
-    expect.anything()
-  )
+  expect(mockRequestWindow).toHaveBeenCalledWith({anchor: {centeredOn: T.Chat.numberToMessageID(7)}, reason: 'centered'})
   expect(seenHighlightOrdinal).toBe(T.Chat.numberToOrdinal(7))
 })
 
@@ -118,13 +104,8 @@ test('jumping twice to the same message centers both times', () => {
     setInputIntent(convX, highlight(11))
   })
 
-  expect(mockLoadMessagesCentered).toHaveBeenCalledTimes(2)
-  expect(mockLoadMessagesCentered).toHaveBeenNthCalledWith(
-    2,
-    T.Chat.numberToMessageID(11),
-    'flash',
-    expect.anything()
-  )
+  expect(mockRequestWindow).toHaveBeenCalledTimes(2)
+  expect(mockRequestWindow).toHaveBeenNthCalledWith(2, {anchor: {centeredOn: T.Chat.numberToMessageID(11)}, reason: 'centered'})
 })
 
 // The two-consumer collision the store's `types` filter exists for.
@@ -133,11 +114,7 @@ test('the input provider does not consume a highlight meant for the center provi
 
   render(<Tree id={convX} />)
 
-  expect(mockLoadMessagesCentered).toHaveBeenCalledWith(
-    T.Chat.numberToMessageID(5),
-    'flash',
-    expect.anything()
-  )
+  expect(mockRequestWindow).toHaveBeenCalledWith({anchor: {centeredOn: T.Chat.numberToMessageID(5)}, reason: 'centered'})
   expect(seenUnsentText).toBeUndefined()
 })
 
@@ -147,7 +124,7 @@ test('the center provider does not consume an injectText meant for the input pro
   render(<Tree id={convX} />)
 
   expect(seenUnsentText).toBe('hello')
-  expect(mockLoadMessagesCentered).not.toHaveBeenCalled()
+  expect(mockRequestWindow).not.toHaveBeenCalled()
   expect(useInputIntentState.getState().intents.has(convX)).toBe(false)
 })
 
@@ -156,6 +133,6 @@ test('a highlight for another conversation is left alone', () => {
 
   render(<Tree id={convX} />)
 
-  expect(mockLoadMessagesCentered).not.toHaveBeenCalled()
+  expect(mockRequestWindow).not.toHaveBeenCalled()
   expect(useInputIntentState.getState().intents.get(convY)).toEqual(highlight(3))
 })
