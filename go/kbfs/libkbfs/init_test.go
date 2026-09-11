@@ -159,6 +159,8 @@ func (c *initOrderCn) callIntoKBFS() {
 	// Until init is ready, requests get an error or wait.
 	_, err = c.daemon.GetTLFCryptKeys(ctx, keybase1.TLFQuery{TlfName: "testuser"})
 	require.Equal(t, errKBFSNotInitialized{}, err)
+	err = c.daemon.StartMigration(ctx, keybase1.Folder{Name: "testuser"})
+	require.Equal(t, errKBFSNotInitialized{}, err)
 	waitCtx, cancel := context.WithTimeout(ctx, 20*time.Millisecond)
 	defer cancel()
 	_, err = c.gated(waitCtx, nil)

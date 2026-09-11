@@ -1518,12 +1518,13 @@ func (k *KeybaseDaemonRPC) TeamTreeMembershipsDone(context.Context,
 func (k *KeybaseServiceBase) StartMigration(ctx context.Context,
 	folder keybase1.Folder,
 ) (err error) {
+	// Before init is ready, MDServer is nil too; report the transient error.
+	if !kbfsReady(k.config) {
+		return errKBFSNotInitialized{}
+	}
 	mdServer := k.config.MDServer()
 	if mdServer == nil {
 		return errors.New("no mdserver")
-	}
-	if !kbfsReady(k.config) {
-		return errKBFSNotInitialized{}
 	}
 	// Making a favorite here to reuse the code that converts from
 	// `keybase1.FolderType` into `tlf.Type`.
