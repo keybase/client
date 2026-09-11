@@ -984,8 +984,17 @@ func doInit(
 		}
 	}
 
+	if params.BGFlushDirOpBatchSize < 1 {
+		return nil, fmt.Errorf(
+			"Illegal sync batch size: %d", params.BGFlushDirOpBatchSize)
+	}
+	log.CDebugf(ctx, "Enabling a dir op batch size of %d",
+		params.BGFlushDirOpBatchSize)
+	config.SetBGFlushDirOpBatchSize(params.BGFlushDirOpBatchSize)
+
 	// Requests on the service connection have what they need from here on.
-	// Don't hold them for journaling, which can take a while.
+	// Don't hold them for journaling, which can take a while. Nothing after
+	// this point may fail init, since released requests can't be recalled.
 	kbfsOps.initReady()
 
 	ctx60s, cancel := context.WithTimeout(ctx, 60*time.Second)
@@ -1001,14 +1010,6 @@ func doInit(
 		}
 		log.CDebugf(ctx, "Journaling enabled")
 	}
-
-	if params.BGFlushDirOpBatchSize < 1 {
-		return nil, fmt.Errorf(
-			"Illegal sync batch size: %d", params.BGFlushDirOpBatchSize)
-	}
-	log.CDebugf(ctx, "Enabling a dir op batch size of %d",
-		params.BGFlushDirOpBatchSize)
-	config.SetBGFlushDirOpBatchSize(params.BGFlushDirOpBatchSize)
 
 	if config.Mode().OldStorageRootCleaningEnabled() {
 		go cleanOldTempStorageRoots(config)
