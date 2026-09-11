@@ -51,10 +51,10 @@ export default function UnfurlGenericView(p: UnfurlGenericViewProps) {
     </Kb.Box2>
   )
 
-  const snippet = description ? (
+	const snippet = description ? (
     <Kb.Text type="Body" lineClamp={5} selectable={true}>
       {description}
-      {(imageLocation === 'collapsed' || imageLocation === 'bottom') && (
+      {onToggleCollapse && (imageLocation === 'collapsed' || imageLocation === 'bottom') ? (
         <>
           {' '}
           <Kb.Icon
@@ -64,7 +64,7 @@ export default function UnfurlGenericView(p: UnfurlGenericViewProps) {
             type={isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
           />
         </>
-      )}
+      ) : null}
     </Kb.Text>
   ) : null
 

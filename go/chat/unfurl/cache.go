@@ -75,3 +75,9 @@ func (c *unfurlCache) put(key string, data any) {
 		ctime: gregor1.ToTime(c.clock.Now()),
 	})
 }
+
+func (c *unfurlCache) remove(key string) {
+	c.Lock()
+	defer c.Unlock()
+	c.cache.Remove(key)
+}

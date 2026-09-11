@@ -56,7 +56,7 @@ type dummyActivityNotifier struct {
 
 func makeDummyActivityNotifier() *dummyActivityNotifier {
 	return &dummyActivityNotifier{
-		ch: make(chan promptNotification, 1),
+		ch: make(chan promptNotification, 8),
 	}
 }
 
@@ -324,7 +324,8 @@ func TestUnfurlerSuppress(t *testing.T) {
 
 	store := attachments.NewStoreTesting(g, nil)
 	s3signer := &ptsigner{}
-	g.ActivityNotifier = makeDummyActivityNotifier()
+	notifier := makeDummyActivityNotifier()
+	g.ActivityNotifier = notifier
 	g.MessageDeliverer = dummyDeliverer{}
 	sender := makeDummySender()
 	ri := func() chat1.RemoteInterface { return paramsRemote{} }
@@ -342,9 +343,20 @@ func TestUnfurlerSuppress(t *testing.T) {
 
 	outboxID, err := storage.NewOutboxID()
 	require.NoError(t, err)
-	msg := makeTextMsgWithMsgID("check out this link! "+url, outboxID, 4)
+	// a second url that is not whitelisted makes this the prompt-resolution case: the
+	// first pass must persist the dismissal so a later UnfurlAndSend with no suppress list
+	// still skips it. a pass that issues no prompt deletes those markers, because nothing
+	// will run UnfurlAndSend on that message again.
+	promptURL := "http://example.com/other"
+	msg := makeTextMsgWithMsgID("check out this link! "+url+" and "+promptURL, outboxID, 4)
 
 	unfurler.UnfurlAndSend(context.TODO(), uid, convID, msg, []string{url})
+	select {
+	case n := <-notifier.ch:
+		require.Equal(t, "example.com", n.domain)
+	case <-time.After(2 * time.Second):
+		require.Fail(t, "expected a prompt for the un-dismissed url")
+	}
 	select {
 	case <-sender.ch:
 		require.Fail(t, "should not have sent a suppressed unfurl")
@@ -356,6 +368,12 @@ func TestUnfurlerSuppress(t *testing.T) {
 	// dismissal honoured, and it is not on a clock: however long the message waited to
 	// send, this pass must still skip the URL
 	unfurler.UnfurlAndSend(context.TODO(), uid, convID, msg, nil)
+	select {
+	case n := <-notifier.ch:
+		require.Equal(t, "example.com", n.domain)
+	case <-time.After(2 * time.Second):
+		require.Fail(t, "expected a prompt on the second pass")
+	}
 	select {
 	case <-sender.ch:
 		require.Fail(t, "should not have sent a suppressed unfurl on the second pass")
@@ -533,6 +551,7 @@ func TestUnfurlerPreviewable(t *testing.T) {
 // auto-whitelist, and suppressing it would lose an unfurl the send would have landed
 func TestUnfurlerCarded(t *testing.T) {
 	require.True(t, carded("https://example.com/a"))
+	require.True(t, carded("https://youtube.com/watch?v=mmJ_LT8bUj0"))
 	require.True(t, carded("not a url at all"))
 	require.False(t, carded("https://giphy.com/gifs/abc"))
 	require.False(t, carded("https://gph.is/2X9abc"))
@@ -563,4 +582,111 @@ func TestUnfurlerPreviewURLsAutoWhitelistFailureNotSuppressed(t *testing.T) {
 	url := fmt.Sprintf("https://%s/?lat=nope&lon=1&acc=1&done=true", types.MapsDomain)
 
 	require.Empty(t, unfurler.PreviewURLs(context.TODO(), uid, convID, "check this out "+url))
+}
+
+func TestUnfurlerPreviewURLsCancelKeepsPrior(t *testing.T) {
+	tc := externalstest.SetupTest(t, "unfurler", 0)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+
+	store := attachments.NewStoreTesting(g, nil)
+	s3signer := &ptsigner{}
+	g.ActivityNotifier = makeDummyActivityNotifier()
+	g.MessageDeliverer = dummyDeliverer{}
+	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
+	sender := makeDummySender()
+	ri := func() chat1.RemoteInterface { return paramsRemote{} }
+	memStorage := newMemConversationBackedStorage()
+	unfurler := NewUnfurler(g, store, s3signer, memStorage, sender, ri)
+
+	uid := gregor1.UID([]byte{0, 1})
+	convID := chat1.ConversationID([]byte{0, 1, 2})
+	secondStarted := make(chan struct{}, 1)
+	release := make(chan struct{})
+	srv := newDummyHTTPSrv(t, func(w http.ResponseWriter, r *http.Request) {
+		name := r.URL.Query().Get("name")
+		if name == "second.html" {
+			select {
+			case secondStarted <- struct{}{}:
+			default:
+			}
+			<-release
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.WriteHeader(200)
+		dat, err := os.ReadFile(filepath.Join("testcases", "wsj0.html"))
+		assert.NoError(t, err)
+		_, err = io.Copy(w, bytes.NewBuffer(dat))
+		assert.NoError(t, err)
+	})
+	addr := srv.Start()
+	defer srv.Stop()
+
+	url1 := fmt.Sprintf("http://%s/?name=wsj0.html", addr)
+	url2 := fmt.Sprintf("http://%s/?name=second.html", addr)
+	require.NoError(t, unfurler.WhitelistAdd(context.TODO(), uid, "127.0.0.1"))
+
+	ctx, cancel := context.WithCancel(context.TODO())
+	ch := make(chan []chat1.UnfurlPreviewInfo, 1)
+	go func() { ch <- unfurler.PreviewURLs(ctx, uid, convID, url1+" "+url2) }()
+	select {
+	case <-secondStarted:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "second scrape never started")
+	}
+	cancel()
+	select {
+	case res := <-ch:
+		require.Len(t, res, 1, "a cancel must keep urls already scraped in this request")
+		require.Equal(t, url1, res[0].Url)
+		require.NotNil(t, res[0].Unfurl)
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "cancelled preview never returned")
+	}
+	close(release)
+}
+
+func TestUnfurlerSuppressClearedWhenNoPrompt(t *testing.T) {
+	tc := externalstest.SetupTest(t, "unfurler", 0)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+
+	store := attachments.NewStoreTesting(g, nil)
+	s3signer := &ptsigner{}
+	g.ActivityNotifier = makeDummyActivityNotifier()
+	g.MessageDeliverer = dummyDeliverer{}
+	sender := makeDummySender()
+	ri := func() chat1.RemoteInterface { return paramsRemote{} }
+	memStorage := newMemConversationBackedStorage()
+	unfurler := NewUnfurler(g, store, s3signer, memStorage, sender, ri)
+
+	uid := gregor1.UID([]byte{0, 1})
+	convID := chat1.ConversationID([]byte{0, 1, 2})
+	srv := createTestCaseHTTPSrv(t)
+	addr := srv.Start()
+	defer srv.Stop()
+
+	url := fmt.Sprintf("http://%s/?name=%s", addr, "wsj0.html")
+	require.NoError(t, unfurler.WhitelistAdd(context.TODO(), uid, "127.0.0.1"))
+
+	outboxID, err := storage.NewOutboxID()
+	require.NoError(t, err)
+	msg := makeTextMsgWithMsgID("check out this link! "+url, outboxID, 4)
+
+	unfurler.UnfurlAndSend(context.TODO(), uid, convID, msg, []string{url})
+	select {
+	case <-sender.ch:
+		require.Fail(t, "should not have sent a suppressed unfurl")
+	case <-time.After(2 * time.Second):
+	}
+
+	// no prompt on that pass, so nothing will UnfurlAndSend this message again. drop the
+	// marker rather than leave it in the kv store for the life of the device
+	unfurler.UnfurlAndSend(context.TODO(), uid, convID, msg, nil)
+	select {
+	case <-sender.ch:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "marker from a no-prompt pass must not outlive that pass")
+	}
 }

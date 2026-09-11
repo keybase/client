@@ -45,6 +45,19 @@ describe('unfurl previews', () => {
     expect(spy).not.toHaveBeenCalled()
   })
 
+  it('calls the rpc for an uppercase scheme', async () => {
+    const spy = jest
+      .spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
+      .mockResolvedValue([info('HTTP://A.COM')])
+    let last: ReturnType<typeof useUnfurlPreviews> | undefined
+    render(<Harness text="see HTTP://A.COM" onRender={r => (last = r)} />)
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    await waitFor(() => expect(last?.previews.length).toBe(1))
+    expect(spy).toHaveBeenCalledTimes(1)
+  })
+
   it('debounces and returns previews', async () => {
     const spy = jest
       .spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
@@ -145,6 +158,36 @@ describe('unfurl previews', () => {
     await waitFor(() => expect(spy).toHaveBeenCalledTimes(2))
     expect(getSuppressedURLs(convID)).toEqual(['http://a.com'])
     expect(last?.previews.length).toBe(0)
+  })
+
+  it('drops the card for a url the user has typed a query string onto', async () => {
+    const spy = jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
+    spy.mockResolvedValueOnce([info('http://a.com')])
+    spy.mockResolvedValueOnce([info('http://a.com?foo=1')])
+    let last: ReturnType<typeof useUnfurlPreviews> | undefined
+    const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    await waitFor(() => expect(last?.previews.length).toBe(1))
+    rerender(<Harness text="see http://a.com?foo=1" onRender={r => (last = r)} />)
+    await waitFor(() => expect(last?.previews.length).toBe(0))
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    await waitFor(() => expect(last?.previews.map(p => p.url)).toEqual(['http://a.com?foo=1']))
+  })
+
+  it('keeps showing a card when the url is followed by a question mark', async () => {
+    jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([info('http://a.com')])
+    let last: ReturnType<typeof useUnfurlPreviews> | undefined
+    const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    await waitFor(() => expect(last?.previews.length).toBe(1))
+    rerender(<Harness text="see http://a.com?" onRender={r => (last = r)} />)
+    expect(last?.previews.length).toBe(1)
   })
 
   it('drops the card for a url the user has typed on past', async () => {
