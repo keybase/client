@@ -3,12 +3,16 @@
 jest.mock('@/constants/chat/layout', () => ({isSplit: false, threadRouteName: 'chatConversation'}))
 
 import * as T from '@/constants/types'
-import {navigateToPendingThread, navigateToThread, navigationRef, setModalRouteNames} from '@/constants/router'
+import type {NavState} from '@/constants/nav-tree'
+import {navigateToPendingThread, navigateToThread} from '@/constants/router'
+import {installFakeNavigator, restoreNavigator, type FakeNavigator, type RecordedAction} from '@/test/fake-navigator'
 import {useInboxMetadataState} from '@/chat/inbox/metadata-store'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useInputIntentState} from '@/chat/conversation/input-intent-store'
 
-const dispatch = jest.fn()
+let nav: FakeNavigator
+// Set per test by the ordering tests; called at the moment of dispatch.
+let onDispatch: ((action: RecordedAction) => void) | undefined
 
 const loggedIn = {
   key: 'loggedIn-1',
@@ -27,15 +31,17 @@ const loggedIn = {
   },
 }
 
+// Installs a root state and marks the navigator ready, i.e. the container has mounted.
 const setRootRoutes = (routes: Array<unknown>) => {
-  const state = {index: routes.length - 1, key: 'root-1', routeNames: [], routes, stale: false, type: 'stack'}
-  // the jest mock's container ref is a plain object, so stub its methods directly
-  const nr = navigationRef as unknown as Record<string, unknown>
-  nr['current'] = {}
-  nr['dispatch'] = dispatch
-  nr['getRootState'] = () => state
-  nr['isReady'] = () => true
-  nr['addListener'] = () => () => {}
+  nav.setReady(true)
+  nav.setRootState({
+    index: routes.length - 1,
+    key: 'root-1',
+    routeNames: [],
+    routes,
+    stale: false,
+    type: 'stack',
+  } as NavState)
 }
 
 const pendingRoute = {
@@ -45,16 +51,6 @@ const pendingRoute = {
 }
 
 const realConvID = 'ff00ff00' as T.Chat.ConversationIDKey
-// Distinct per deep-link test: navigateAppend's `_pendingAppend` "uncommitted dupe" cache is
-// module-level state that the mocked `addListener` never clears (the real navigator would fire
-// its 'state' listener and clear it; this stub's listener never fires), so a later test in this
-// file reusing `realConvID` with an equal-shaped params object would be silently caught by that
-// leftover cache instead of by the code under test. A conv id used nowhere else sidesteps that.
-//
-// Not laziness: there is no reset to put in beforeEach. `_pendingAppend` is module-private and
-// unexported, and jest.resetModules() would hand each test a fresh copy of constants/router with
-// its own `navigationRef`, so the stub installed by setRootRoutes would no longer be the one the
-// code under test reads. Distinct ids are the only lever from outside the module.
 const deepLinkConvID = 'aa11aa11' as T.Chat.ConversationIDKey
 const deepLinkConvID2 = 'bb22bb22' as T.Chat.ConversationIDKey
 const optionsConvID = 'cc33cc33' as T.Chat.ConversationIDKey
@@ -63,9 +59,17 @@ const optionsConvID3 = 'ee55ee55' as T.Chat.ConversationIDKey
 const optionsConvID4 = 'ff66ff66' as T.Chat.ConversationIDKey
 
 beforeEach(() => {
-  dispatch.mockReset()
-  setModalRouteNames(['chatNewChat'])
+  onDispatch = undefined
+  nav = installFakeNavigator({
+    modalRouteNames: ['chatNewChat'],
+    onDispatch: action => onDispatch?.(action),
+    ready: false,
+  })
   useInputIntentState.getState().dispatch.resetState()
+})
+
+afterEach(() => {
+  restoreNavigator()
 })
 
 // Creating a conversation parks the thread screen on PENDING-WAITING while the RPC runs, so the
@@ -77,11 +81,11 @@ test('pending -> resolved conversation retargets the live screen instead of anim
 
   navigateToThread(realConvID, 'justCreated')
 
-  expect(dispatch).toHaveBeenCalledTimes(1)
-  const action = dispatch.mock.calls[0]?.[0] as {type: string; payload: unknown; source?: string}
-  expect(action.type).toBe('SET_PARAMS')
-  expect(action.source).toBe(pendingRoute.key)
-  expect(action.payload).toMatchObject({conversationIDKey: realConvID})
+  expect(nav.actions).toHaveLength(1)
+  const action = nav.actions[0]
+  expect(action?.type).toBe('SET_PARAMS')
+  expect(action?.source).toBe(pendingRoute.key)
+  expect(action?.payload?.['params']).toMatchObject({conversationIDKey: realConvID})
 })
 
 test('no thread on screen still pushes the conversation', () => {
@@ -89,10 +93,10 @@ test('no thread on screen still pushes the conversation', () => {
 
   navigateToThread(realConvID, 'justCreated')
 
-  expect(dispatch).toHaveBeenCalledTimes(1)
-  const action = dispatch.mock.calls[0]?.[0] as {type: string; payload: {name: string}}
-  expect(action.type).toBe('PUSH')
-  expect(action.payload.name).toBe('chatConversation')
+  expect(nav.actions).toHaveLength(1)
+  const action = nav.actions[0]
+  expect(action?.type).toBe('PUSH')
+  expect(action?.payload?.['name']).toBe('chatConversation')
 })
 
 // The old `sameVisibleThread && highlightMessageID` early return is gone, so every call issued
@@ -115,11 +119,11 @@ test('reissuing navigateToThread on the same visible thread retargets instead of
 
   navigateToThread(realConvID, 'createdMessagePrivately')
 
-  expect(dispatch).toHaveBeenCalledTimes(1)
-  const action = dispatch.mock.calls[0]?.[0] as {type: string; payload: unknown; source?: string}
-  expect(action.type).toBe('SET_PARAMS')
-  expect(action.source).toBe(visibleThreadRoute.key)
-  expect(action.payload).toMatchObject({conversationIDKey: realConvID})
+  expect(nav.actions).toHaveLength(1)
+  const action = nav.actions[0]
+  expect(action?.type).toBe('SET_PARAMS')
+  expect(action?.source).toBe(visibleThreadRoute.key)
+  expect(action?.payload?.['params']).toMatchObject({conversationIDKey: realConvID})
 })
 
 // A conversation opened via a `keybase://convid/<id>` deep link lands on chatConversation with
@@ -137,11 +141,11 @@ test('reissuing navigateToThread on a deep-linked thread (single-key params) doe
 
   navigateToThread(deepLinkConvID, 'createdMessagePrivately')
 
-  expect(dispatch).toHaveBeenCalledTimes(1)
-  const action = dispatch.mock.calls[0]?.[0] as {type: string; payload: unknown; source?: string}
-  expect(action.type).toBe('SET_PARAMS')
-  expect(action.source).toBe(deepLinkedThreadRoute.key)
-  expect(action.payload).toMatchObject({conversationIDKey: deepLinkConvID})
+  expect(nav.actions).toHaveLength(1)
+  const action = nav.actions[0]
+  expect(action?.type).toBe('SET_PARAMS')
+  expect(action?.source).toBe(deepLinkedThreadRoute.key)
+  expect(action?.payload?.['params']).toMatchObject({conversationIDKey: deepLinkConvID})
 })
 
 // Same shape as the deep-link case above, but reached by a reason that never carried an intent -
@@ -157,10 +161,10 @@ test('a plain re-navigate to a deep-linked thread does not push a duplicate', ()
 
   navigateToThread(deepLinkConvID2, 'focused')
 
-  expect(dispatch).toHaveBeenCalledTimes(1)
-  const action = dispatch.mock.calls[0]?.[0] as {type: string; payload: unknown; source?: string}
-  expect(action.type).toBe('SET_PARAMS')
-  expect(action.source).toBe(deepLinkedThreadRoute.key)
+  expect(nav.actions).toHaveLength(1)
+  const action = nav.actions[0]
+  expect(action?.type).toBe('SET_PARAMS')
+  expect(action?.source).toBe(deepLinkedThreadRoute.key)
 })
 
 // The options object replaced a positional tail (highlightMessageID, threadSearchQuery,
@@ -170,9 +174,9 @@ test('the options object writes the intent before navigating and forwards thread
   setRootRoutes([loggedIn])
   const messageID = T.Chat.numberToMessageID(99)
   const order: Array<string> = []
-  dispatch.mockImplementation(() => {
+  onDispatch = () => {
     order.push(`intent:${String(useInputIntentState.getState().intents.has(optionsConvID))}`)
-  })
+  }
 
   navigateToThread(optionsConvID, 'justCreated', {
     intent: {messageID, type: 'highlight'},
@@ -184,9 +188,9 @@ test('the options object writes the intent before navigating and forwards thread
     messageID,
     type: 'highlight',
   })
-  const action = dispatch.mock.calls[0]?.[0] as {type: string; payload: {params: object}}
-  expect(action.type).toBe('PUSH')
-  expect(action.payload.params).toMatchObject({
+  const action = nav.actions[0]
+  expect(action?.type).toBe('PUSH')
+  expect(action?.payload?.['params']).toMatchObject({
     conversationIDKey: optionsConvID,
     threadSearch: {query: 'needle'},
   })
@@ -201,7 +205,7 @@ test('an aborted navigation writes no intent', () => {
     intent: {messageID: T.Chat.numberToMessageID(99), type: 'highlight'},
   })
 
-  expect(dispatch).not.toHaveBeenCalled()
+  expect(nav.actions).toEqual([])
   expect(useInputIntentState.getState().intents.size).toBe(0)
 })
 
@@ -212,9 +216,9 @@ test('an aborted navigation writes no intent', () => {
 test('an injectText intent is written before navigating, and an undefined one writes nothing', () => {
   setRootRoutes([loggedIn])
   const order: Array<string> = []
-  dispatch.mockImplementation(() => {
+  onDispatch = () => {
     order.push(`intent:${String(useInputIntentState.getState().intents.has(optionsConvID3))}`)
-  })
+  }
 
   navigateToThread(optionsConvID3, 'justCreated', {intent: {text: 'prefill me', type: 'injectText'}})
 
@@ -247,8 +251,7 @@ test('the pending thread is seeded with the participants so its header title is 
 
   const seeded = useInboxMetadataState.getState().participants.get(T.Chat.pendingWaitingConversationIDKey)
   expect(seeded?.name).toEqual(['testuser', 'testuser-mac'])
-  const action = dispatch.mock.calls[0]?.[0] as {type: string; payload: {params: object}}
-  expect(action.payload.params).toMatchObject({
+  expect(nav.actions[0]?.payload?.['params']).toMatchObject({
     conversationIDKey: T.Chat.pendingWaitingConversationIDKey,
   })
 })
@@ -259,18 +262,12 @@ test('the pending thread is seeded with the participants so its header title is 
 // handler before the nav container is ready. A durable intent left behind by a navigation that
 // never occurred would fire on some later, unrelated mount of that conversation.
 test('a navigation that cannot dispatch leaves no intent behind', () => {
-  const nr = navigationRef as unknown as Record<string, unknown>
-  nr['current'] = undefined
-  nr['dispatch'] = dispatch
-  nr['getRootState'] = () => undefined
-  nr['isReady'] = () => false
-
   const convID = T.Chat.stringToConversationIDKey('conv-no-navigator')
   navigateToThread(convID, 'push', {
     intent: {messageID: T.Chat.numberToMessageID(7), type: 'highlight'},
   })
 
-  expect(dispatch).not.toHaveBeenCalled()
+  expect(nav.actions).toEqual([])
   expect(useInputIntentState.getState().intents.get(convID)).toBeUndefined()
 })
 
@@ -281,7 +278,7 @@ test('a navigation that does dispatch keeps the intent for the mount to consume'
     intent: {messageID: T.Chat.numberToMessageID(7), type: 'highlight'},
   })
 
-  expect(dispatch).toHaveBeenCalled()
+  expect(nav.actions.length).toBeGreaterThan(0)
   expect(useInputIntentState.getState().intents.get(convID)).toEqual({
     messageID: T.Chat.numberToMessageID(7),
     type: 'highlight',

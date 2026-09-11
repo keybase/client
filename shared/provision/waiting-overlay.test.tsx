@@ -8,7 +8,6 @@ import {useWaitingState} from '@/stores/waiting'
 import {waitingKeyProvision} from '@/constants/strings'
 
 const mockPauseProvision = jest.fn()
-const mockNavigateUp = jest.fn()
 const mockAddListener = jest.fn()
 
 jest.mock('@/common-adapters', () => {
@@ -32,22 +31,21 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({addListener: mockAddListener}),
 }))
 
-jest.mock('@/constants/router', () => ({
-  navigateUp: (...args: Array<unknown>) => mockNavigateUp(...args),
-}))
-
 jest.mock('./flow', () => ({
   pauseProvision: (...args: Array<unknown>) => mockPauseProvision(...args),
 }))
 
+import {installFakeNavigator, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 import ProvisionWaitingOverlay from './waiting-overlay'
 
 type BeforeRemoveEvent = {data: {action: {type: string}}}
 
 describe('ProvisionWaitingOverlay', () => {
   let beforeRemove: undefined | ((e: BeforeRemoveEvent) => void)
+  let nav: FakeNavigator
 
   beforeEach(() => {
+    nav = installFakeNavigator()
     jest.useFakeTimers()
     beforeRemove = undefined
     mockAddListener.mockImplementation((event: string, callback: (e: BeforeRemoveEvent) => void) => {
@@ -59,11 +57,11 @@ describe('ProvisionWaitingOverlay', () => {
   })
 
   afterEach(() => {
+    restoreNavigator()
     cleanup()
     jest.useRealTimers()
     mockAddListener.mockReset()
     mockPauseProvision.mockReset()
-    mockNavigateUp.mockReset()
     resetAllStores()
   })
 
@@ -121,7 +119,7 @@ describe('ProvisionWaitingOverlay', () => {
 
     act(() => screen.getByText('Cancel').click())
     expect(mockPauseProvision).toHaveBeenCalled()
-    expect(mockNavigateUp).toHaveBeenCalled()
+    expect(nav.types()).toContain('GO_BACK')
   })
 
   test('popping the screen while waiting pauses the flow', () => {

@@ -17,7 +17,6 @@ jest.mock('@/stores/followers', () => ({
   },
 }))
 jest.mock('@/teams/use-teams-list', () => ({useTeamsListNameToIDMap: () => new Map<string, string>()}))
-jest.mock('@/constants/router', () => ({navToProfile: jest.fn()}))
 jest.mock('./avatar', () => ({
   __esModule: true,
   default: ({

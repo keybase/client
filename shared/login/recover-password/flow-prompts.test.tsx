@@ -4,16 +4,6 @@ import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {RPCError} from '@/util/errors'
 
-jest.mock('@/constants/router', () => {
-  const actual = jest.requireActual('@/constants/router')
-  return {
-    ...actual,
-    clearModals: jest.fn(),
-    navigateAppend: jest.fn(),
-    navigateUp: jest.fn(),
-  }
-})
-
 import {
   cancelRecoverPassword,
   startRecoverPassword,
@@ -22,22 +12,25 @@ import {
   submitRecoverPasswordPaperKey,
   submitRecoverPasswordPassword,
 } from './flow'
+import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 
-const {
-  clearModals: mockClearModals,
-  navigateAppend: mockNavigateAppend,
-  navigateUp: mockNavigateUp,
-} = require('@/constants/router') as {
-  clearModals: jest.Mock
-  navigateAppend: jest.Mock
-  navigateUp: jest.Mock
-}
+let nav: FakeNavigator
+
+// Recovery runs from a modal, so the fake starts with one open: clearModals only has
+// something to dispatch when a modal is actually on screen. Nothing below replaces onto
+// this name - a replace onto the visible route collapses into a setParams instead.
+const openModal = 'recoverPasswordPromptResetPassword'
+
+beforeEach(() => {
+  nav = installFakeNavigator({
+    modalRouteNames: [openModal],
+    rootState: makeRootState({above: [{name: openModal}]}),
+  })
+})
 
 afterEach(() => {
+  restoreNavigator()
   jest.restoreAllMocks()
-  mockClearModals.mockReset()
-  mockNavigateAppend.mockReset()
-  mockNavigateUp.mockReset()
   resetAllStores()
 })
 
@@ -85,7 +78,7 @@ describe('device selection', () => {
       code: T.RPCGen.StatusCode.scinputcanceled,
       desc: 'Input canceled',
     })
-    expect(mockNavigateUp).toHaveBeenCalled()
+    expect(nav.types()).toContain('GO_BACK')
   })
 
   test('selecting no device answers with an empty device id', async () => {
@@ -131,10 +124,11 @@ describe('device selection', () => {
       {error: jest.fn(), result: jest.fn()} as any
     )
 
-    expect(mockNavigateAppend).toHaveBeenCalledWith(
-      {name: 'recoverPasswordDeviceSelector', params: {devices: []}},
-      true
-    )
+    expect(nav.navigations()).toContainEqual({
+      name: 'recoverPasswordDeviceSelector',
+      params: {devices: []},
+      replace: true,
+    })
   })
 })
 
@@ -148,10 +142,11 @@ describe('paper key prompt', () => {
       response as any
     )
 
-    expect(mockNavigateAppend).toHaveBeenCalledWith(
-      {name: 'recoverPasswordPaperKey', params: {error: 'nope'}},
-      true
-    )
+    expect(nav.navigations()).toContainEqual({
+      name: 'recoverPasswordPaperKey',
+      params: {error: 'nope'},
+      replace: true,
+    })
 
     submitRecoverPasswordPaperKey('one two three')
 
@@ -166,10 +161,11 @@ describe('paper key prompt', () => {
       {error: jest.fn(), result: jest.fn()} as any
     )
 
-    expect(mockNavigateAppend).toHaveBeenCalledWith(
-      {name: 'recoverPasswordPaperKey', params: {error: undefined}},
-      true
-    )
+    expect(nav.navigations()).toContainEqual({
+      name: 'recoverPasswordPaperKey',
+      params: {error: undefined},
+      replace: true,
+    })
   })
 
   test('backing out of the paper key prompt restarts recovery from the top', async () => {
@@ -205,9 +201,10 @@ describe('new password prompt', () => {
       response as any
     )
 
-    expect(mockNavigateAppend).toHaveBeenCalledWith({
+    expect(nav.navigations()).toContainEqual({
       name: 'recoverPasswordSetPassword',
       params: {error: undefined},
+      replace: false,
     })
 
     submitRecoverPasswordPassword('hunter2hunter2')
@@ -223,10 +220,11 @@ describe('new password prompt', () => {
       {error: jest.fn(), result: jest.fn()} as any
     )
 
-    expect(mockNavigateAppend).toHaveBeenCalledWith(
-      {name: 'recoverPasswordSetPassword', params: {error: 'too short'}},
-      true
-    )
+    expect(nav.navigations()).toContainEqual({
+      name: 'recoverPasswordSetPassword',
+      params: {error: 'too short'},
+      replace: true,
+    })
   })
 
   test('cancelling the new password prompt rejects the rpc without restarting', async () => {
@@ -253,13 +251,11 @@ test('a device-recovery explanation replaces the current screen', async () => {
     {kind: T.RPCGen.DeviceType.mobile, name: 'testuser-mac'} as any
   )
 
-  expect(mockNavigateAppend).toHaveBeenCalledWith(
-    {
-      name: 'recoverPasswordExplainDevice',
-      params: {deviceName: 'testuser-mac', deviceType: T.RPCGen.DeviceType.mobile, username: 'testuser'},
-    },
-    true
-  )
+  expect(nav.navigations()).toContainEqual({
+    name: 'recoverPasswordExplainDevice',
+    params: {deviceName: 'testuser-mac', deviceType: T.RPCGen.DeviceType.mobile, username: 'testuser'},
+    replace: true,
+  })
 })
 
 test('a reset prompt that is not a password reset hands off to the account reset flow', async () => {
@@ -271,10 +267,11 @@ test('a reset prompt that is not a password reset hands off to the account reset
     response as any
   )
 
-  expect(mockNavigateAppend).toHaveBeenCalledWith(
-    {name: 'recoverPasswordPromptResetAccount', params: {skipPassword: true, username: 'testuser'}},
-    true
-  )
+  expect(nav.navigations()).toContainEqual({
+    name: 'recoverPasswordPromptResetAccount',
+    params: {skipPassword: true, username: 'testuser'},
+    replace: true,
+  })
   expect(response.result).toHaveBeenCalledWith(T.RPCGen.ResetPromptResponse.nothing)
 })
 
@@ -285,7 +282,7 @@ describe('completion', () => {
     first.resolve()
     await flush()
 
-    expect(mockClearModals).toHaveBeenCalled()
+    expect(nav.modalsCleared()).toBe(true)
   })
 
   test('a cancelled recovery shows no error screen and leaves modals alone', async () => {
@@ -294,10 +291,9 @@ describe('completion', () => {
     first.reject(new RPCError('Input canceled', T.RPCGen.StatusCode.scinputcanceled))
     await flush()
 
-    expect(mockClearModals).not.toHaveBeenCalled()
-    expect(mockNavigateAppend).not.toHaveBeenCalledWith(
-      expect.objectContaining({name: 'recoverPasswordError'}),
-      true
+    expect(nav.modalsCleared()).toBe(false)
+    expect(nav.navigations()).not.toContainEqual(
+      expect.objectContaining({name: 'recoverPasswordError', replace: true})
     )
   })
 
@@ -308,11 +304,12 @@ describe('completion', () => {
     first.reject(error)
     await flush()
 
-    expect(mockNavigateAppend).toHaveBeenCalledWith(
-      {name: 'recoverPasswordError', params: {error: error.message}},
-      true
-    )
-    expect(mockClearModals).not.toHaveBeenCalled()
+    expect(nav.navigations()).toContainEqual({
+      name: 'recoverPasswordError',
+      params: {error: error.message},
+      replace: true,
+    })
+    expect(nav.modalsCleared()).toBe(false)
   })
 
   test('a failure while logged in shows the error as a modal', async () => {
@@ -323,10 +320,11 @@ describe('completion', () => {
     first.reject(error)
     await flush()
 
-    expect(mockNavigateAppend).toHaveBeenCalledWith(
-      {name: 'recoverPasswordErrorModal', params: {error: error.message}},
-      true
-    )
+    expect(nav.navigations()).toContainEqual({
+      name: 'recoverPasswordErrorModal',
+      params: {error: error.message},
+      replace: true,
+    })
   })
 
   test('handlers stop responding once the run is over', async () => {
