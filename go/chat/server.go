@@ -1606,9 +1606,6 @@ func (h *Server) UpdateUnsentText(ctx context.Context, arg chat1.UpdateUnsentTex
 		h.Debug(ctx, "UpdateUnsentText: failed to save draft: %s", err)
 	}
 
-	// Attempt to prefetch any unfurls in the background that are in the message text
-	go h.G().Unfurler.Prefetch(globals.BackgroundChatCtx(ctx, h.G()), uid, arg.ConversationID, arg.Text)
-
 	// Preview any slash commands in the text
 	go h.G().CommandsSource.PreviewBuiltinCommand(globals.BackgroundChatCtx(ctx, h.G()), uid,
 		arg.ConversationID, arg.TlfName, arg.Text)

@@ -101,13 +101,18 @@ const debounceMS = 500
 
 // what can follow a url and still end it. typing on past one makes the old url a prefix of
 // the new one, and a plain substring test would keep the stale card alive and dismissable
-// while the message carries a different link
-const urlEnd = /[\s.,;:!?)\]}'"]/
+// while the message carries a different link. `?` starts a query string, so it continues
+// the url unless it is itself the last character (a question mark after the link).
+const urlEnd = /[\s.,;:!)\]}'"]/
 
 const stillInText = (text: string, url: string) => {
   for (let from = text.indexOf(url); from >= 0; from = text.indexOf(url, from + 1)) {
     const after = text[from + url.length]
     if (after === undefined || urlEnd.test(after)) return true
+    if (after === '?') {
+      const next = text[from + url.length + 1]
+      if (next === undefined || urlEnd.test(next)) return true
+    }
   }
   return false
 }
@@ -152,7 +157,7 @@ export const useUnfurlPreviews = (conversationIDKey: T.Chat.ConversationIDKey, t
   // draft is restored. clearing dismissals on that would throw away what the user
   // dismissed before switching away, so only prune once real text has been seen.
   const sawTextRef = React.useRef(false)
-  const hasLink = text.includes('http')
+  const hasLink = /https?:\/\//i.test(text)
 
   // retires every fetch this mount left in flight, so one cannot write into the mount that
   // replaces it. 0 is not a request id, and ids are never reused, so nothing can match again

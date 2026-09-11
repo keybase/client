@@ -56,15 +56,13 @@ const (
 
 type Unfurler struct {
 	sync.Mutex
-	prefetchLock sync.Mutex
 	globals.Contextified
 	utils.DebugLabeler
 
 	unfurlMap map[string]bool
-	// collapses concurrent preview scrapes of the same url. Prefetch gets this for free
-	// from prefetchLock, which serializes it; PreviewURLs is a synchronous rpc that can be
-	// called again while an earlier call is still in flight, which the composer does
-	// whenever the user edits a link before its fetch comes back
+	// collapses concurrent preview scrapes of the same url. PreviewURLs is a synchronous
+	// rpc that can be called again while an earlier call is still in flight, which the
+	// composer does whenever the user edits a link before its fetch comes back
 	previewGroup singleflight.Group
 	// the composer scrapes on every debounced edit, and each edit of a url is a different
 	// key, so the singleflight above collapses nothing across them. these bound what an
@@ -128,6 +126,7 @@ func (u *Unfurler) Complete(ctx context.Context, outboxID chat1.OutboxID) {
 	if err := u.G().GetKVStore().Delete(u.statusKey(outboxID)); err != nil {
 		u.Debug(ctx, "Complete: failed to delete status: %s", err)
 	}
+	u.deleteSuppressed(ctx, outboxID)
 }
 
 func (u *Unfurler) statusKey(outboxID chat1.OutboxID) libkb.DbKey {
@@ -268,15 +267,16 @@ func (u *Unfurler) makeBaseUnfurlMessage(ctx context.Context, fromMsg chat1.Mess
 // deterministic per-URL outbox ID the unfurl task would use. UnfurlAndSend runs again
 // whenever the user resolves an unfurl prompt for another URL in the same message, and that
 // pass carries no suppress list, so the marker is what keeps the dismissal honoured, on a
-// clock or not.
-//
-// Nothing deletes these. Complete() clears the task and status keys for a URL that actually
-// unfurled, but a suppressed URL never gets a task, so it has no such moment: the marker
-// would have to be cleaned when the message itself goes away, which the unfurler is not
-// told about. Each is one bool per dismissed URL per message, so the footprint is small and
-// grows only with links the user explicitly declined.
+// clock or not. Complete() deletes the marker for a URL that actually unfurled. A pass that
+// issues no prompt will not run again, so it deletes every marker for this message.
 func (u *Unfurler) markSuppressed(ctx context.Context, outboxID chat1.OutboxID) error {
 	return u.G().GetKVStore().PutObj(u.suppressedKey(outboxID), nil, true)
+}
+
+func (u *Unfurler) deleteSuppressed(ctx context.Context, outboxID chat1.OutboxID) {
+	if err := u.G().GetKVStore().Delete(u.suppressedKey(outboxID)); err != nil {
+		u.Debug(ctx, "deleteSuppressed: failed to delete: %s", err)
+	}
 }
 
 func (u *Unfurler) isSuppressed(ctx context.Context, outboxID chat1.OutboxID) bool {
@@ -316,6 +316,7 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 	for _, u := range msg.Valid().Unfurls {
 		prevUnfurled[u.Url] = true
 	}
+	prompted := false
 	// for each hit, either prompt the user for action, or generate a new message
 	for _, hit := range hits {
 		if prevUnfurled[hit.URL] {
@@ -342,6 +343,7 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 		}
 		switch hit.Typ {
 		case ExtractorHitPrompt:
+			prompted = true
 			domain, err := GetDomain(hit.URL)
 			if err != nil {
 				u.Debug(ctx, "UnfurlAndSend: error getting domain for prompt: %s", err)
@@ -374,15 +376,19 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 			u.Debug(ctx, "UnfurlAndSend: unknown hit typ: %v", hit.Typ)
 		}
 	}
+	if !prompted {
+		for _, hit := range hits {
+			u.deleteSuppressed(ctx, storage.GetOutboxIDFromURL(hit.URL, convID, msg))
+		}
+	}
 }
 
-// Prefetch attempts to parse hits out of `msgText` and scrape/package the
-// unfurl so the result is cached.
+// Prefetch scrape/packages whitelisted URLs in msgText so the scraper and packager
+// caches are warm. live location calls this before it deletes the previous map unfurl
+// and posts the next one, so the swap is not waiting on a scrape.
 func (u *Unfurler) Prefetch(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgText string,
 ) (numPrefetched int) {
-	u.prefetchLock.Lock()
-	defer u.prefetchLock.Unlock()
 	defer u.Trace(ctx, nil, "Prefetch")()
 
 	hits, err := u.extractor.Extract(ctx, uid, convID, 0, msgText, u.settings)
@@ -394,8 +400,6 @@ func (u *Unfurler) Prefetch(ctx context.Context, uid gregor1.UID, convID chat1.C
 	}
 
 	prevUnfurled := make(map[string]bool)
-	// for each hit that is already whitelisted try to prefetch the result to
-	// populate the message cache.
 	for _, hit := range hits {
 		if prevUnfurled[hit.URL] {
 			u.Debug(ctx, "Prefetch: skipping prev unfurled")
@@ -403,13 +407,7 @@ func (u *Unfurler) Prefetch(ctx context.Context, uid gregor1.UID, convID chat1.C
 		}
 		prevUnfurled[hit.URL] = true // only one action per unique URL
 		if hit.Typ == ExtractorHitUnfurl {
-			// through the same singleflight as the preview: UpdateUnsentText prefetches the
-			// text the composer is previewing, so the two would otherwise scrape it twice
-			key := previewScrapeKey(uid, convID, hit.URL)
-			_, err := u.previewGroup.Do(key, func() (any, error) {
-				return u.scrapeAndPackage(ctx, uid, convID, hit.URL)
-			})
-			if err != nil {
+			if _, err := u.scrapeAndPackage(ctx, uid, convID, hit.URL); err != nil {
 				u.Debug(ctx, "Prefetch: unable to scrapeAndPackge: %s", err)
 			} else {
 				numPrefetched++
@@ -434,6 +432,31 @@ func previewable(unfurl chat1.Unfurl) bool {
 // %x, not %s: uid and convID are raw bytes and can contain the separator
 func previewScrapeKey(uid gregor1.UID, convID chat1.ConversationID, url string) string {
 	return fmt.Sprintf("%x:%x:%s", uid, convID, url)
+}
+
+// groupedScrapeAndPackage runs scrapeAndPackage through the preview singleflight and
+// semaphore. the slot is taken inside Do so waiters for the same url do not occupy a slot.
+func (u *Unfurler) groupedScrapeAndPackage(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, url string,
+) (chat1.Unfurl, error) {
+	key := previewScrapeKey(uid, convID, url)
+	scraped, err := u.previewGroup.Do(key, func() (any, error) {
+		u.previewSem <- struct{}{}
+		defer func() { <-u.previewSem }()
+		return u.scrapeAndPackage(ctx, uid, convID, url)
+	})
+	if err != nil {
+		if !errors.Is(err, context.Canceled) {
+			u.previewFailures.put(key, err.Error())
+		}
+		return chat1.Unfurl{}, err
+	}
+	u.previewFailures.remove(key)
+	unfurl, ok := scraped.(chat1.Unfurl)
+	if !ok {
+		return chat1.Unfurl{}, fmt.Errorf("unexpected scrape result type: %T", scraped)
+	}
+	return unfurl, nil
 }
 
 // previewScrape scrapes and packages one url, collapsing concurrent calls for the same
@@ -462,22 +485,8 @@ func (u *Unfurler) previewScrape(ctx context.Context, uid gregor1.UID, convID ch
 	}
 	ch := make(chan scrapeRes, 1)
 	go func() {
-		u.previewSem <- struct{}{}
-		defer func() { <-u.previewSem }()
-		scraped, err := u.previewGroup.Do(key, func() (any, error) {
-			return u.scrapeAndPackage(scrapeCtx, uid, convID, url)
-		})
-		if err != nil {
-			u.previewFailures.put(key, err.Error())
-			ch <- scrapeRes{err: err}
-			return
-		}
-		unfurl, ok := scraped.(chat1.Unfurl)
-		if !ok {
-			ch <- scrapeRes{err: fmt.Errorf("unexpected scrape result type: %T", scraped)}
-			return
-		}
-		ch <- scrapeRes{unfurl: unfurl}
+		unfurl, err := u.groupedScrapeAndPackage(scrapeCtx, uid, convID, url)
+		ch <- scrapeRes{unfurl: unfurl, err: err}
 	}()
 	select {
 	case res := <-ch:
@@ -527,7 +536,7 @@ func (u *Unfurler) PreviewURLs(ctx context.Context, uid gregor1.UID, convID chat
 		if err != nil {
 			u.Debug(ctx, "PreviewURLs: unable to scrapeAndPackage: %s", err)
 			if ctx.Err() != nil {
-				return nil
+				return res
 			}
 			if !carded(hit.URL) {
 				continue

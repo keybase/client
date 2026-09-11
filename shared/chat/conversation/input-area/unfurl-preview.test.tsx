@@ -29,6 +29,20 @@ const genericInfo: T.RPCChat.UnfurlPreviewInfo = {
   url: 'http://a.com',
 } as T.RPCChat.UnfurlPreviewInfo
 
+const genericWithMedia: T.RPCChat.UnfurlPreviewInfo = {
+  unfurl: {
+    generic: {
+      description: 'a long description',
+      media: {height: 80, isVideo: false, url: 'http://img.test/a.png', width: 200},
+      siteName: 'a',
+      title: 'Alpha',
+      url: 'http://a.com',
+    },
+    unfurlType: T.RPCChat.UnfurlType.generic,
+  },
+  url: 'http://a.com',
+} as T.RPCChat.UnfurlPreviewInfo
+
 const mapInfo: T.RPCChat.UnfurlPreviewInfo = {
   unfurl: {
     generic: {mapInfo: {isLiveLocationDone: true}, siteName: 'Google Maps', title: 'here', url: 'http://map.com'},
@@ -55,6 +69,16 @@ describe('UnfurlPreview', () => {
     mockPreviews = [genericInfo]
     const {container} = render(<UnfurlPreview conversationIDKey={convID} text="http://a.com" />)
     expect(container.firstChild).not.toBeNull()
+  })
+
+  it('does not show a collapse caret in the composer', () => {
+    mockPreviews = [genericWithMedia]
+    const {container, queryByText} = render(
+      <UnfurlPreview conversationIDKey={convID} text="http://a.com" />
+    )
+    expect(queryByText('a long description')).toBeTruthy()
+    expect(container.querySelector('.icon-gen-iconfont-caret-down')).toBeNull()
+    expect(container.querySelector('.icon-gen-iconfont-caret-right')).toBeNull()
   })
 
   it('renders nothing for a map unfurl', () => {
