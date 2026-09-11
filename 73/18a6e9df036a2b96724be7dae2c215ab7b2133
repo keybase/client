@@ -1,0 +1,49 @@
+go/kbfs/libkbfs/kbfs_ops.go
+  s_7cb7aba0901228::t_095b277db542cd 124-125,127-128,134-136,160-161
+  s_7cb7aba0901228::t_5956a1bf76b6ca 53-56,59
+  s_7cb7aba0901228::t_37e0856f4598bc 58
+  s_7cb7aba0901228::t_31e803c9c1a9a7 123,126,129-133,140,143-144,146,149-150,152,155-156,158,162-166
+go/kbfs/libkbfs/favorites.go
+  s_7cb7aba0901228::t_2af1081a831fdb 775
+  s_7cb7aba0901228::t_17ef3ec3a4ab91 307-309
+  s_7cb7aba0901228::t_d6778b9fe2e08a 857
+  s_7cb7aba0901228::t_b44bd99a512256 940,944-950
+  s_7cb7aba0901228::t_2a40a03b1ff67b 73
+  s_7cb7aba0901228::t_f734c791df518d 304,314-319
+  s_7cb7aba0901228::t_55ae7b22713ae9 967
+  s_7cb7aba0901228::t_a1b5fde5338081 1088
+  s_7cb7aba0901228::t_0b9e1e83087de2 173,774,779,782-787
+  s_7cb7aba0901228::t_fa4657834f58c2 1011
+  s_7cb7aba0901228::t_78c3628b5f38a2 170
+  s_7cb7aba0901228::t_04146bfb1bf088 453-456
+  s_7cb7aba0901228::t_e99d54ab78e3e4 134
+  s_7cb7aba0901228::t_9d4cec3ca85038 165-169,171-172
+  s_7cb7aba0901228::t_ff83be669636b3 174
+go/kbfs/libkbfs/init_test.go
+  s_7cb7aba0901228::t_caba7ca90c51a1 114
+  s_7cb7aba0901228::t_ee6afc9bc6b8c8 191
+go/kbfs/libkbfs/keybase_daemon_rpc.go
+  s_7cb7aba0901228::t_0f02357549da2c 123-125
+go/kbfs/libkbfs/kbpki_client.go
+  s_7cb7aba0901228::t_2529cd991573a8 56-63,68-71,73,82-86,95-99
+  s_7cb7aba0901228::t_cd5034ec2a755f 455-459,464-468,475-478,480
+go/kbfs/libkbfs/keybase_service_base.go
+  s_7cb7aba0901228::t_8b32c3e71de098 444
+  s_7cb7aba0901228::t_a103d3e1d23b79 460-463
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "7318a6e9df036a2b96724be7dae2c215ab7b2133",
+  "prompts": {},
+  "sessions": {
+    "s_7cb7aba0901228": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "82f0820d-4589-4262-8d9d-04675f50b793",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
