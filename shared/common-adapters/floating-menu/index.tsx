@@ -50,9 +50,9 @@ function FloatingMenu(props: Props) {
     return unsub
   }, [navigation, onHidden])
 
-  // modal mode callers control mounting themselves; sheets present on mount so
-  // they must unmount when not visible
-  if (!visible && mode !== 'modal') {
+  // sheets present on mount, so an invisible menu must not render at all. Popup
+  // used to catch the modal case on the way past; it no longer takes visible.
+  if (!visible) {
     return null
   }
 
@@ -77,9 +77,9 @@ function FloatingMenu(props: Props) {
 
   return (
     <Popup
+      intent="menu"
       attachTo={props.attachTo}
       onHidden={onHidden}
-      visible={props.visible}
       position={props.position}
       positionFallbacks={props.positionFallbacks}
       propagateOutsideClicks={props.propagateOutsideClicks}

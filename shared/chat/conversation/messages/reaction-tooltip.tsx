@@ -135,7 +135,7 @@ const ReactionTooltip = (p: OwnProps) => {
 
   if (isMobile) {
     return (
-      <Kb.Popup
+      <Kb.Sheet
         onHidden={onHidden}
         style={styles.sheet}
         footer={
@@ -173,12 +173,12 @@ const ReactionTooltip = (p: OwnProps) => {
             ))}
           </Kb.Box2>
         </MessageContext>
-      </Kb.Popup>
+      </Kb.Sheet>
     )
   }
 
   return (
-    <Kb.Popup
+    <Kb.AnchoredPopup
       attachTo={attachmentRef}
       onHidden={onHidden}
       position="top center"
@@ -205,7 +205,7 @@ const ReactionTooltip = (p: OwnProps) => {
           />
         </Kb.Box2>
       </MessageContext>
-    </Kb.Popup>
+    </Kb.AnchoredPopup>
   )
 }
 

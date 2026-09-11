@@ -21,7 +21,13 @@ export const useTeamLinkPopup = (teamname: string) => {
         </Kb.Box2>
       )
       return (
-        <Kb.Popup position="bottom left" style={styles.overlay} attachTo={attachTo} onHidden={hidePopup}>
+        <Kb.Popup
+          intent="menu"
+          position="bottom left"
+          style={styles.overlay}
+          attachTo={attachTo}
+          onHidden={hidePopup}
+        >
           {content}
         </Kb.Popup>
       )

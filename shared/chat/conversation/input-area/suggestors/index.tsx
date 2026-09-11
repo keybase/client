@@ -479,20 +479,18 @@ const Popup = (p: PopupProps) => {
   const attachRef = inputRef as React.RefObject<Kb.MeasureRef | null>
 
   return (
-    <Kb.Popup
+    <Kb.AnchoredPopup
       attachTo={attachRef}
-      mobileAnchored={true}
       matchDimension={true}
       position="top center"
       positionFallbacks={positionFallbacks}
-      visible={true}
       propagateOutsideClicks={false}
       onHidden={setInactive}
       containerStyle={suggestionOverlayStyle}
       style={suggestionOverlayStyle}
     >
       {isMobile ? <MobileSuggestionArea>{children}</MobileSuggestionArea> : children}
-    </Kb.Popup>
+    </Kb.AnchoredPopup>
   )
 }
 

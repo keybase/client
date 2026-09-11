@@ -140,7 +140,7 @@ const Dropdown = (p: DropdownProps) => {
         direction="horizontal"
         alignItems="center"
         style={styles.dropdown}
-        ref={isMobile ? null : popupAnchor}
+        ref={popupAnchor}
         onClick={showPopup}
       >
         <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.label}>

@@ -207,6 +207,7 @@ const ChooseEmojiDesktop = (props: ChooseEmojiProps) => {
     const {attachTo, hidePopup} = p
     return (
       <Kb.Popup
+        intent="menu"
         attachTo={attachTo}
         containerStyle={popupContainerStyle}
         position="bottom left"
