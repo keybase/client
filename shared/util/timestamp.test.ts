@@ -72,6 +72,16 @@ describe('formatDurationShort', () => {
     expect(formatDurationShort(hour)).toBe('60m')
     expect(formatDurationShort(day)).toBe('24h')
   })
+
+  test('rounds up, so a unit only drops once a whole unit has elapsed', () => {
+    // a fresh 24h fuse reads 24h, and 23h only once an hour has passed
+    expect(formatDurationShort(day - 1)).toBe('24h')
+    expect(formatDurationShort(23 * hour + 20 * minute)).toBe('24h')
+    expect(formatDurationShort(23 * hour)).toBe('23h')
+    expect(formatDurationShort(2 * day + hour)).toBe('3d')
+    expect(formatDurationShort(61 * second)).toBe('2m')
+    expect(formatDurationShort(500)).toBe('1s')
+  })
 })
 
 describe('formatDuration', () => {

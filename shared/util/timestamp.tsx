@@ -252,18 +252,19 @@ export function msToDHMS(ms: number): string {
   return `${days}d ${hours}h ${mins}m ${secs}s`
 }
 
+// rounds up, so a fresh 24h fuse reads 24h and only reads 23h once a whole hour has passed
 export function formatDurationShort(ms: number): string {
   if (ms < 0) {
     return '0s'
   }
   if (ms > oneDayInMs) {
-    return `${Math.round(ms / oneDayInMs)}d`
+    return `${Math.ceil(ms / oneDayInMs)}d`
   }
   if (ms > oneHourInMs) {
-    return `${Math.round(ms / oneHourInMs)}h`
+    return `${Math.ceil(ms / oneHourInMs)}h`
   }
   if (ms > oneMinuteInMs) {
-    return `${Math.round(ms / oneMinuteInMs)}m`
+    return `${Math.ceil(ms / oneMinuteInMs)}m`
   }
-  return `${Math.floor(ms / 1000)}s`
+  return `${Math.ceil(ms / 1000)}s`
 }

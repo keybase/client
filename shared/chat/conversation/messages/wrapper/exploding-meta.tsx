@@ -28,6 +28,7 @@ type ExplodingMetaInnerProps = OwnProps & {pending: boolean}
 type Mode = 'none' | 'countdown' | 'boom' | 'hidden'
 export type TimerState = {
   exploded: boolean
+  explodesAt: number
   inter: number
   mode: Mode
   now: number
@@ -38,16 +39,38 @@ const isPendingSubmitState = (submitState?: T.Chat.Message['submitState']) =>
 
 const cappedLoopInterval = (difference: number) => Math.min(getLoopInterval(difference), 60000)
 
-export const makeInitialTimerState = (p: {exploded: boolean; explodesAt: number; pending: boolean}): TimerState => {
+type TimerProps = {exploded: boolean; explodesAt: number; pending: boolean}
+
+export const makeInitialTimerState = (p: TimerProps): TimerState => {
+  const {exploded, explodesAt} = p
   const now = Date.now()
   if (p.pending) {
-    return {exploded: p.exploded, inter: 0, mode: 'none', now}
+    return {exploded, explodesAt, inter: 0, mode: 'none', now}
   }
-  const difference = p.explodesAt - now
-  if (difference <= 0 || p.exploded) {
-    return {exploded: p.exploded, inter: 0, mode: 'hidden', now}
+  const difference = explodesAt - now
+  if (difference <= 0 || exploded) {
+    return {exploded, explodesAt, inter: 0, mode: 'hidden', now}
   }
-  return {exploded: p.exploded, inter: cappedLoopInterval(difference), mode: 'countdown', now}
+  return {exploded, explodesAt, inter: cappedLoopInterval(difference), mode: 'countdown', now}
+}
+
+// The service derives explodesAt from its receive time on every unbox, so a reload can move it
+// after the row mounted. Measuring the new value against the mount-time now overshoots the fuse,
+// which reads a fresh 24h message as 1d.
+export const syncTimerState = (s: TimerState, p: TimerProps): TimerState => {
+  if (s.exploded !== p.exploded) {
+    return produce(s, draft => {
+      draft.exploded = p.exploded
+      if (p.exploded) {
+        draft.inter = 0
+        draft.mode = 'boom'
+      }
+    })
+  }
+  if (s.explodesAt !== p.explodesAt && !p.exploded && s.mode !== 'boom') {
+    return makeInitialTimerState(p)
+  }
+  return s
 }
 
 function ExplodingMetaInner(p: ExplodingMetaInnerProps) {
@@ -58,15 +81,8 @@ function ExplodingMetaInner(p: ExplodingMetaInnerProps) {
     makeInitialTimerState({exploded, explodesAt, pending})
   )
 
-  let currentTimerState = timerState
-  if (timerState.exploded !== exploded) {
-    currentTimerState = produce(timerState, draft => {
-      draft.exploded = exploded
-      if (exploded) {
-        draft.inter = 0
-        draft.mode = 'boom'
-      }
-    })
+  const currentTimerState = syncTimerState(timerState, {exploded, explodesAt, pending})
+  if (currentTimerState !== timerState) {
     setTimerState(currentTimerState)
   }
   const {inter, mode, now} = currentTimerState
@@ -224,46 +240,17 @@ const oneMinuteInMs = 60 * 1000
 const oneHourInMs = oneMinuteInMs * 60
 const oneDayInMs = oneHourInMs * 24
 
+// formatDurationShort rounds up, so the display drops a unit exactly when the time left
+// reaches a whole multiple of it; wake then
 export const getLoopInterval = (diff: number) => {
-  let nearestUnit: number = 0
-
-  // If diff is less than half a unit away,
-  // we need to return the remainder so we
-  // update when the unit changes
-  const shouldReturnRemainder = (diff: number, nearestUnit: number) => diff - nearestUnit <= nearestUnit / 2
-
-  if (diff > oneDayInMs) {
-    nearestUnit = oneDayInMs
-
-    // special case for when we're coming on 1 day
-    if (shouldReturnRemainder(diff, nearestUnit)) {
-      return diff - nearestUnit
-    }
-  } else if (diff > oneHourInMs) {
-    nearestUnit = oneHourInMs
-
-    // special case for when we're coming on 1 hour
-    if (shouldReturnRemainder(diff, nearestUnit)) {
-      return diff - nearestUnit
-    }
-  } else if (diff > oneMinuteInMs) {
-    nearestUnit = oneMinuteInMs
-
-    // special case for when we're coming on 1 minute
-    if (shouldReturnRemainder(diff, nearestUnit)) {
-      return diff - nearestUnit
-    }
-  }
-  if (!nearestUnit) {
+  const unit = diff > oneDayInMs ? oneDayInMs : diff > oneHourInMs ? oneHourInMs : diff > oneMinuteInMs ? oneMinuteInMs : 0
+  if (!unit) {
     // less than a minute, check every half second
     return 500
   }
-  const deltaMS = diff - Math.floor(diff / nearestUnit) * nearestUnit
-  const halfNearestUnit = nearestUnit / 2
-  if (deltaMS > halfNearestUnit) {
-    return deltaMS - halfNearestUnit
-  }
-  return deltaMS + halfNearestUnit
+  // under a second the effect switches to the per-second ticker, which never recomputes the
+  // interval, so a timer landing just past a boundary would tick every second from then on
+  return Math.max(diff % unit || unit, 1000)
 }
 
 const useStyles = Kb.Styles.createStyleHook(
