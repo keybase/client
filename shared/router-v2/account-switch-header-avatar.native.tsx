@@ -32,7 +32,7 @@ const AccountSwitchHeaderAvatar = () => {
     handledLongPressRef.current = true
     C.ignorePromise(Haptics.selectionAsync())
     rememberAccountSwitchTab(username, recentAccount.username, C.Router2.getTab())
-    setUserSwitching(true)
+    setUserSwitching(true, recentAccount.username)
     login(recentAccount.username, '')
   }
 

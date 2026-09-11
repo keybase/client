@@ -1,4 +1,12 @@
 /// <reference types="jest" />
+jest.mock('@/constants/router', () => ({
+  ...jest.requireActual('@/constants/router'),
+  navigateAppendOnceRootHas: jest.fn(),
+}))
+
+import * as T from '@/constants/types'
+import {navigateAppendOnceRootHas} from '@/constants/router'
+import {RPCError} from '@/util/errors'
 import {noConversationIDKey} from '../../constants/types/chat/common'
 import {useConfigState} from '../config'
 
@@ -21,6 +29,8 @@ const resetConfigState = () => {
       loaded: false,
     },
     userSwitching: false,
+    userSwitchingFromLoggedIn: false,
+    userSwitchingTo: '',
   } as any)
   dispatch.resetState()
 }
@@ -119,4 +129,95 @@ test('custom resetState preserves the fields config intentionally carries across
   expect(state.defaultUsername).toBe('alice')
   expect(state.userSwitching).toBe(true)
   expect(state.globalError).toBeUndefined()
+})
+
+const flush = async () => new Promise<void>(resolve => setImmediate(resolve))
+
+const switchWithLoginFailure = async (failure: unknown) => {
+  jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockRejectedValue(failure)
+  const {dispatch} = useConfigState.getState()
+  dispatch.setUserSwitching(true)
+  dispatch.login('testuser', '')
+  await flush()
+}
+
+describe('login ending an account switch', () => {
+  const mockOnceRootHas = jest.mocked(navigateAppendOnceRootHas)
+
+  afterEach(() => {
+    jest.restoreAllMocks()
+    mockOnceRootHas.mockReset()
+  })
+
+  test('an account that needs provisioning ends the switch before handing off to username', async () => {
+    let switchingAtHandOff: boolean | undefined
+    mockOnceRootHas.mockImplementation(() => {
+      switchingAtHandOff = useConfigState.getState().userSwitching
+    })
+    const cancelled = jest.fn().mockRejectedValue(new RPCError('Canceling RPC', T.RPCGen.StatusCode.scgeneric))
+    jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockImplementation(listener => {
+      const prompt = (listener as any).customResponseIncomingCallMap['keybase.1.provisionUi.PromptNewDeviceName']
+      prompt({}, {error: jest.fn(), result: jest.fn()})
+      return cancelled()
+    })
+    const {dispatch} = useConfigState.getState()
+    dispatch.setUserSwitching(true)
+    dispatch.login('testuser', '')
+    await flush()
+
+    expect(mockOnceRootHas).toHaveBeenCalledWith('loggedOut', {
+      name: 'username',
+      params: {autoSubmit: true, username: 'testuser'},
+    })
+    expect(switchingAtHandOff).toBe(false)
+  })
+
+  test('a prompt login cancelled itself clears userSwitching without a login error', async () => {
+    await switchWithLoginFailure(new RPCError('Canceling RPC', T.RPCGen.StatusCode.scgeneric))
+
+    const state = useConfigState.getState()
+    expect(state.userSwitching).toBe(false)
+    expect(state.loginError).toBeUndefined()
+  })
+
+  test('a failure that is not an RPCError clears userSwitching', async () => {
+    await switchWithLoginFailure(new Error('boom'))
+
+    expect(useConfigState.getState().userSwitching).toBe(false)
+  })
+
+  test('an RPC error clears userSwitching and records the login error', async () => {
+    await switchWithLoginFailure(new RPCError('bad things', T.RPCGen.StatusCode.scgeneric))
+
+    const state = useConfigState.getState()
+    expect(state.userSwitching).toBe(false)
+    expect(state.loginError?.desc).toBeTruthy()
+  })
+})
+
+test("setUserSwitching records the switch's target, clears it with the flag, and keeps it across resets", () => {
+  const {dispatch} = useConfigState.getState()
+
+  dispatch.setUserSwitching(true, 'testuser')
+  dispatch.resetState()
+  expect(useConfigState.getState().userSwitchingTo).toBe('testuser')
+
+  dispatch.setUserSwitching(false)
+  expect(useConfigState.getState().userSwitchingTo).toBe('')
+})
+
+test('setUserSwitching records whether the switch started logged in, through the mid-switch reset', () => {
+  const {dispatch} = useConfigState.getState()
+
+  dispatch.setUserSwitching(true, 'testuser')
+  expect(useConfigState.getState().userSwitchingFromLoggedIn).toBe(false)
+
+  dispatch.setLoggedIn(true)
+  dispatch.setUserSwitching(true, 'testuser')
+  // the service's loggedOut notification during a switch resets every store
+  dispatch.setLoggedIn(false)
+  expect(useConfigState.getState().userSwitchingFromLoggedIn).toBe(true)
+
+  dispatch.setUserSwitching(false)
+  expect(useConfigState.getState().userSwitchingFromLoggedIn).toBe(false)
 })

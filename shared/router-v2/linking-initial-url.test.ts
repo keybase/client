@@ -6,6 +6,7 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
 import {usePushState} from '@/stores/push'
+import {peekPendingAccountSwitchTab, rememberAccountSwitchTab} from './account-switch'
 import {createLinkingConfig} from './linking'
 
 const setCurrentUser = (uid: string) => {
@@ -53,7 +54,24 @@ beforeEach(() => {
 
 afterEach(() => {
   handleAppLink.mockReset()
+  rememberAccountSwitchTab('', '', undefined)
   resetAllStores()
+})
+
+test('an account switch starts on the switcher tab without consuming it before onReady', async () => {
+  rememberAccountSwitchTab('testuser', 'testuser-mac', Tabs.teamsTab)
+  setCurrentUser('testuser-mac')
+  setStartup({conversation: 'conv-1', conversationUid: 'testuser-mac', tab: Tabs.chatTab})
+
+  await expect(getInitialURL()).resolves.toBe(`keybase://${Tabs.teamsTab}`)
+  expect(peekPendingAccountSwitchTab('testuser-mac')).toBe(Tabs.teamsTab)
+})
+
+test('a switcher tab remembered for another account does not preempt the saved route', async () => {
+  rememberAccountSwitchTab('current-uid', 'testuser-mac', Tabs.teamsTab)
+  setStartup({tab: Tabs.chatTab})
+
+  await expect(getInitialURL()).resolves.toBe(`keybase://${Tabs.chatTab}`)
 })
 
 test('a logged out app has no initial url', async () => {
