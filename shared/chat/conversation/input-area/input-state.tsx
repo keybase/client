@@ -114,7 +114,7 @@ DispatchContext.displayName = 'ConversationInputDispatchContext'
 
 const actionConversationIDKey = (convID: string) => T.Chat.stringToConversationIDKey(convID)
 
-// 'highlight' belongs to ConversationCenterProvider; claiming it here would let this provider
+// 'highlight' belongs to ConversationCenteringProvider; claiming it here would let this provider
 // silently eat an intent meant for the other consumer.
 // `as const` (not a widened ReadonlyArray<InputIntent['type']>) so consumeInputIntent's generic
 // narrows its return to exactly these four members - no cast needed at the call site below.

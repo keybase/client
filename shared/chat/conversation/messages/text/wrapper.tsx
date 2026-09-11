@@ -5,7 +5,7 @@ import {useOrdinal} from '../ids-context'
 import {WrapperMessage, useWrapperMessage, type Props} from '../wrapper/wrapper'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {useSharedStyles} from '../shared-styles'
-import {useConversationCenterActions} from '../../center-context'
+import {useConversationCenterActions} from '../../centering'
 
 const getStyle = (
   sharedStyles: ReturnType<typeof useSharedStyles>,
@@ -44,7 +44,7 @@ function WrapperText(p: Props) {
   const {ordinal, isCenteredHighlight = false} = p
   const wrapper = useWrapperMessage(ordinal, isCenteredHighlight)
   const {messageData} = wrapper
-  const {centerOnMessage} = useConversationCenterActions()
+  const {centerOn} = useConversationCenterActions()
   const {isEditing, message, replyTo} = messageData
 
   const {hasCoinFlip, hasUnfurlList, hasUnfurlPrompts, showCenteredHighlight, text, textType, type} =
@@ -61,7 +61,7 @@ function WrapperText(p: Props) {
   const onReplyClick = () => {
     const id = replyTo?.id ?? 0
     if (id) {
-      centerOnMessage(id, 'flash')
+      void centerOn(id, 'flash')
     }
   }
   const reply = useReply(replyTo, onReplyClick)

@@ -9,7 +9,9 @@ const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]
 const username = 'testuser'
 const devicename = 'testuser-mac'
 
-const mockCenterOnMessage = jest.fn()
+type CenterOutcome = 'centered' | 'clamped' | 'not-found'
+// Centering answers with the outcome; unless a test says otherwise the hit was reached.
+const mockCenterOn = jest.fn<Promise<CenterOutcome>, [T.Chat.MessageID, string]>()
 const mockClearCenter = jest.fn()
 const mockToggleThreadSearch = jest.fn()
 const mockCancelSearch = jest.fn()
@@ -17,9 +19,9 @@ type CallMap = Record<string, (p: any) => void>
 const mockSearchCalls: Array<{incomingCallMap: CallMap; query: string}> = []
 const mockLastOrdinal = {current: T.Chat.numberToOrdinal(0)}
 
-jest.mock('./center-context', () => ({
+jest.mock('./centering', () => ({
   useConversationCenterActions: () => ({
-    centerOnMessage: mockCenterOnMessage,
+    centerOn: mockCenterOn,
     clearCenter: mockClearCenter,
     jumpToRecent: () => {},
   }),
@@ -101,6 +103,7 @@ const deliverDone = () => {
 }
 
 beforeEach(() => {
+  mockCenterOn.mockResolvedValue('centered')
   jest.useFakeTimers()
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
@@ -114,7 +117,8 @@ afterEach(() => {
   cleanup()
   jest.useRealTimers()
   mockSearchCalls.length = 0
-  mockCenterOnMessage.mockClear()
+  mockCenterOn.mockClear()
+  mockCenterOn.mockResolvedValue('centered')
   mockClearCenter.mockClear()
   mockToggleThreadSearch.mockClear()
   mockCancelSearch.mockClear()
@@ -303,7 +307,7 @@ describe('navigation', () => {
   test('the first hit is auto-selected and centered', () => {
     const {result} = mountWithHits(3)
     expect(result.current.selectedIndex).toBe(0)
-    expect(mockCenterOnMessage).toHaveBeenCalledWith(messageID(10), 'always')
+    expect(mockCenterOn).toHaveBeenCalledWith(messageID(10), 'always')
   })
 
   test('onUp walks forward through the hits and wraps at the end', () => {
@@ -342,33 +346,33 @@ describe('navigation', () => {
     act(() => result.current.onUp())
     act(() => result.current.onDown())
     expect(result.current.selectedIndex).toBe(0)
-    expect(mockCenterOnMessage).not.toHaveBeenCalled()
+    expect(mockCenterOn).not.toHaveBeenCalled()
   })
 
   test('every move centers on the matching message', () => {
     const {result} = mountWithHits(3)
-    mockCenterOnMessage.mockClear()
+    mockCenterOn.mockClear()
     act(() => result.current.onUp())
-    expect(mockCenterOnMessage).toHaveBeenCalledWith(messageID(11), 'always')
+    expect(mockCenterOn).toHaveBeenCalledWith(messageID(11), 'always')
     act(() => result.current.onDown())
-    expect(mockCenterOnMessage).toHaveBeenCalledWith(messageID(10), 'always')
+    expect(mockCenterOn).toHaveBeenCalledWith(messageID(10), 'always')
   })
 
   test('selectResult jumps directly to an index', () => {
     const {result} = mountWithHits(3)
     act(() => result.current.selectResult(2))
     expect(result.current.selectedIndex).toBe(2)
-    expect(mockCenterOnMessage).toHaveBeenLastCalledWith(messageID(12), 'always')
+    expect(mockCenterOn).toHaveBeenLastCalledWith(messageID(12), 'always')
   })
 
   test('selectResult out of range leaves the selection where it was', () => {
     const {result} = mountWithHits(2)
     act(() => result.current.selectResult(1))
-    mockCenterOnMessage.mockClear()
+    mockCenterOn.mockClear()
     act(() => result.current.selectResult(7))
     // a bogus index would surface as `8 of 2` and send the up/down walk adrift
     expect(result.current.selectedIndex).toBe(1)
-    expect(mockCenterOnMessage).not.toHaveBeenCalled()
+    expect(mockCenterOn).not.toHaveBeenCalled()
   })
 
   test('onUp steps over a hit it cannot center on instead of wedging', () => {
@@ -381,7 +385,7 @@ describe('navigation', () => {
 
     act(() => result.current.onUp())
     expect(result.current.selectedIndex).toBe(2)
-    expect(mockCenterOnMessage).toHaveBeenLastCalledWith(messageID(12), 'always')
+    expect(mockCenterOn).toHaveBeenLastCalledWith(messageID(12), 'always')
     act(() => result.current.onUp())
     expect(result.current.selectedIndex).toBe(0)
   })
@@ -396,15 +400,100 @@ describe('navigation', () => {
     expect(result.current.selectedIndex).toBe(0)
   })
 
+  // The counter used to advance on `!!message.id` alone, so a hit the thread could not produce -
+  // expunged, or outside what the centered load came back with - left `n of m` claiming a row that
+  // never rendered.
+  test('a hit the thread cannot produce hands the counter back', async () => {
+    const {result} = mountWithHits(3)
+    expect(result.current.selectedIndex).toBe(0)
+    mockCenterOn.mockResolvedValue('not-found')
+
+    act(() => result.current.onUp())
+    // taken optimistically, so the counter answers the keypress
+    expect(result.current.selectedIndex).toBe(1)
+    await act(async () => {
+      await Promise.resolve()
+    })
+    expect(result.current.selectedIndex).toBe(0)
+  })
+
+  test('the retreat takes the centre back with it, not just the counter', async () => {
+    // centerOn cleared and reloaded the thread around a message it turned out not to hold. Handing
+    // the counter back without moving the centre leaves the reader on a window centered on nothing
+    // while `n of m` names a row somewhere else.
+    const {result} = mountWithHits(3)
+    expect(result.current.selectedIndex).toBe(0)
+    mockCenterOn.mockClear()
+    mockCenterOn.mockResolvedValueOnce('not-found')
+    mockCenterOn.mockResolvedValue('centered')
+
+    act(() => result.current.onUp())
+    expect(result.current.selectedIndex).toBe(1)
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    expect(result.current.selectedIndex).toBe(0)
+    // Re-centred on the hit it came from, rather than left pointing at the missing one.
+    expect(mockCenterOn).toHaveBeenLastCalledWith(messageID(10), 'always')
+  })
+
+  test('a retreat with nowhere to go gives up the centre', async () => {
+    // The first hit of a fresh search is selected as select(0, 0), so there is no earlier hit to
+    // fall back to. Holding a centre the thread cannot show is worse than holding none.
+    mockCenterOn.mockResolvedValue('not-found')
+    mockClearCenter.mockClear()
+    const {result} = mountWithHits(3)
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    expect(result.current.selectedIndex).toBe(0)
+    expect(mockClearCenter).toHaveBeenCalled()
+  })
+
+  test('a hit the list could only clamp onto still counts as reached', async () => {
+    // A hit within half a viewport of either end of the thread cannot be put in the middle, but it
+    // is on screen and it is where the reader was sent.
+    const {result} = mountWithHits(3)
+    mockCenterOn.mockResolvedValue('clamped')
+
+    act(() => result.current.onUp())
+    await act(async () => {
+      await Promise.resolve()
+    })
+    expect(result.current.selectedIndex).toBe(1)
+  })
+
+  test('a later selection owns the counter, however the earlier one settled', async () => {
+    const {result} = mountWithHits(3)
+    let settleFirst: ((outcome: CenterOutcome) => void) | undefined
+    mockCenterOn.mockReturnValueOnce(
+      new Promise<CenterOutcome>(resolve => {
+        settleFirst = resolve
+      })
+    )
+
+    act(() => result.current.onUp())
+    expect(result.current.selectedIndex).toBe(1)
+    act(() => result.current.onUp())
+    expect(result.current.selectedIndex).toBe(2)
+    await act(async () => {
+      settleFirst?.('not-found')
+      await Promise.resolve()
+    })
+    expect(result.current.selectedIndex).toBe(2)
+  })
+
   test('a walk with nothing selectable leaves the selection alone', () => {
     const {result} = mountSearch('needle')
     deliverHits(hitMessage(0), hitMessage(0, {bodySummary: 'other'}))
     deliverDone()
-    mockCenterOnMessage.mockClear()
+    mockCenterOn.mockClear()
     act(() => result.current.onUp())
     act(() => result.current.onDown())
     expect(result.current.selectedIndex).toBe(0)
-    expect(mockCenterOnMessage).not.toHaveBeenCalled()
+    expect(mockCenterOn).not.toHaveBeenCalled()
   })
 })
 

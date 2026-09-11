@@ -8,7 +8,7 @@ import InvitationToBlock from '@/chat/blocking/invitation-to-block'
 import ListArea from '../list-area'
 import PinnedMessage from '../pinned-message'
 import ThreadLoadStatus from '../load-status'
-import {useConversationCenterActions} from '../center-context'
+import {useConversationCenterActions} from '../centering'
 import {
   useConversationThreadID,
   useConversationThreadToggleSearch,

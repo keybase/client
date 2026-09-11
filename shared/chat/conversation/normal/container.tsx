@@ -7,7 +7,7 @@ import * as T from '@/constants/types'
 import {ThreadRefsProvider} from './context'
 import {OrangeLineContext, SetOrangeLineContext, useExplicitOrangeLineState} from '../orange-line-context'
 import {ChatTeamProvider} from '../team-hooks'
-import {ConversationCenterProvider} from '../center-context'
+import {ConversationCenteringProvider} from '../centering'
 import {ConversationInputProvider} from '../input-area/input-state'
 import {
   useConversationThreadID,
@@ -203,7 +203,7 @@ const NormalOrangeLineProvider = (props: OrangeLineProviderProps) => {
 }
 
 // Keyed on the conversation by its caller, so the peek runs in a useState initializer exactly
-// once per conversation - before ConversationCenterProvider, mounted below, consumes the intent.
+// once per conversation - before ConversationCenteringProvider, mounted below, consumes the intent.
 // A useMemo would not do: React may drop and recompute one, and a later recompute would read an
 // already-consumed mailbox and flip the answer.
 //
@@ -254,13 +254,13 @@ const NormalWrapper = function NormalWrapper() {
             id={conversationIDKey}
             threadSearchVisible={threadSearchVisible}
           >
-            <ConversationCenterProvider id={conversationIDKey}>
+            <ConversationCenteringProvider id={conversationIDKey}>
               <ConversationInputProvider key={conversationIDKey} id={conversationIDKey}>
                 <ThreadRefsProvider>
                   <Normal />
                 </ThreadRefsProvider>
               </ConversationInputProvider>
-            </ConversationCenterProvider>
+            </ConversationCenteringProvider>
           </NormalThreadProviders>
         </ChatTeamProvider>
       </NormalOrangeLineProvider>

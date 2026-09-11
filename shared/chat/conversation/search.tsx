@@ -6,7 +6,7 @@ import * as Kb from '@/common-adapters'
 import {RPCError} from '@/util/errors'
 import {formatTimeForMessages} from '@/util/timestamp'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useConversationCenterActions} from './center-context'
+import {useConversationCenterActions} from './centering'
 import {cancelActiveThreadSearchRPC, searchInboxRPC} from '../search-rpc'
 import {
   useConversationThreadID,
@@ -100,7 +100,7 @@ const runSearchInbox = async (p: {
 export const useCommon = (ownProps: CommonProps) => {
   const {conversationIDKey, initialQuery, style} = ownProps
   const toggleThreadSearch = useConversationThreadToggleSearch()
-  const {centerOnMessage, clearCenter} = useConversationCenterActions()
+  const {centerOn, clearCenter} = useConversationCenterActions()
   const onToggleThreadSearch = () => {
     clearCenter()
     toggleThreadSearch()
@@ -235,34 +235,67 @@ export const useCommon = (ownProps: CommonProps) => {
     runThreadSearch(text)
   }
 
-  // returns whether the index was taken; the index feeds the `n of m` counter and
-  // the up/down walk, so never record one we can't center on
-  const [selectHit] = React.useState(() => (index: number) => {
-    const message = hitsRef.current[index]
-    if (!message?.id) {
-      return false
+  // The index feeds the `n of m` counter and the up/down walk, so it may only rest on a hit the
+  // thread actually reached. Taken optimistically - the counter should answer the keypress, not the
+  // round trip - then given back if centering reports the message was never in the thread.
+  // 'clamped' counts as reached: a hit within half a viewport of either end cannot be put in the
+  // middle, but it is on screen and it is where the reader was sent. Only 'not-found' means the
+  // thread came back without the message at all, and leaving the counter parked on a row that never
+  // rendered is what used to make `n of m` lie.
+  const selectRequestRef = React.useRef(0)
+  const [selectHit] = React.useState(() => {
+    const select = (index: number, previousIndex: number): boolean => {
+      const message = hitsRef.current[index]
+      if (!message?.id) {
+        return false
+      }
+      const request = ++selectRequestRef.current
+      setSelectedIndex(index)
+      const settle = async () => {
+        const outcome = await centerOn(message.id, 'always')
+        // A later selection owns the counter now.
+        if (selectRequestRef.current !== request || outcome !== 'not-found') {
+          return
+        }
+        // Putting the counter back is only half of the retreat. centerOn cleared and reloaded the
+        // thread around a message it turned out not to hold, so the centre is still on that message:
+        // leaving it there parks the reader on a window centered on nothing while the counter names
+        // a row somewhere else. Go back to the hit we came from, centre included.
+        const previous = hitsRef.current[previousIndex]
+        // Nowhere to retreat to: the first hit of a fresh search comes in as select(0, 0), and a
+        // previous hit with no id was never reachable either. Give up the centre rather than hold
+        // one the thread cannot show.
+        if (previousIndex === index || !previous?.id) {
+          setSelectedIndex(previousIndex)
+          clearCenter()
+          return
+        }
+        // One step, not a walk: the retreat passes itself as its own previous, so if that hit is
+        // missing too it lands on the branch above instead of unwinding the whole list.
+        select(previousIndex, previousIndex)
+      }
+      void settle()
+      return true
     }
-    centerOnMessage(message.id, 'always')
-    setSelectedIndex(index)
-    return true
+    return select
   })
 
-  // walk in `delta`'s direction until we land on a hit we can center on, so a hit
-  // we can't center on can never wedge the walk in place
+  // walk in `delta`'s direction until we land on a hit that has an id at all, so a hit with none
+  // can never wedge the walk in place
   const step = (delta: 1 | -1) => {
     if (!numHits) {
       return
     }
     for (let moved = 1; moved <= numHits; ++moved) {
       const index = (((selectedIndex + delta * moved) % numHits) + numHits) % numHits
-      if (selectHit(index)) {
+      if (selectHit(index, selectedIndex)) {
         return
       }
     }
   }
 
   const selectResult = (index: number) => {
-    selectHit(index)
+    selectHit(index, selectedIndex)
   }
 
   const onUp = () => {
@@ -311,7 +344,8 @@ export const useCommon = (ownProps: CommonProps) => {
   React.useEffect(() => {
     if (hasHits && !hadHitsRef.current) {
       hadHitsRef.current = true
-      selectHit(0)
+      // The first hit of a fresh search: there is nothing to hand the counter back to.
+      selectHit(0, 0)
     } else if (!hasHits) {
       hadHitsRef.current = false
     }

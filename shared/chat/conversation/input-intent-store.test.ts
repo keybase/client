@@ -112,7 +112,7 @@ test('a consumer registered for another conversation does not make this one deli
 })
 
 // A consumer only makes deliverable the types it claims, the same split consumeInputIntent
-// enforces: ConversationCenterProvider being mounted must not vouch for the composer.
+// enforces: ConversationCenteringProvider being mounted must not vouch for the composer.
 test('a consumer that does not claim commandStatus does not make it deliverable', () => {
   jest.spyOn(logger, 'info').mockImplementation(() => {})
   registrations.push(registerInputIntentConsumer(convX, ['highlight']))
