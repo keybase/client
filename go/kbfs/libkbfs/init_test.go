@@ -111,6 +111,7 @@ func (c *initOrderCn) NewKeybaseService(
 	c.config = config
 	name := kbname.NormalizedUsername("fake username")
 	c.daemon = newKeybaseDaemonRPC(config, nil, log)
+	config.SetKeybaseService(c.daemon)
 	c.daemon.fillClients(&fakeKeybaseClient{session: idutil.SessionInfo{
 		Name:           name,
 		UID:            keybase1.MakeTestUID(1),
@@ -187,7 +188,7 @@ func TestInitSetsUpKBFSBeforeService(t *testing.T) {
 	})
 	params := DefaultInitParams(kbCtx)
 	params.StorageRoot = kbCtx.dataDir
-	params.DiskCacheMode = DiskCacheModeOff
+	params.DiskCacheMode = DiskCacheModeLocal
 	params.EnableJournal = false
 
 	_, err := doInit(

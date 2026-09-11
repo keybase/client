@@ -50,12 +50,13 @@ type KBFSOpsStandard struct {
 	// Closing this channel will shutdown the reidentification
 	// watcher.
 	reIdentifyControlChan chan chan<- struct{}
-	initDoneCh            <-chan struct{}
-	// initFailedCh is closed instead of initDoneCh if init fails.
+	initDoneCh <-chan struct{}
+	// Closed once, under initMu: ready if requests can run, failed if
+	// init failed before that. initFailed is a no-op after ready.
+	initReadyCh  chan struct{}
 	initFailedCh chan struct{}
-	// initReadyCh is closed once config has what requests need, ahead of
-	// the slow tail of init (journaling).
-	initReadyCh chan struct{}
+	initMu       sync.Mutex
+	initSignaled bool
 
 	favs *Favorites
 
@@ -106,8 +107,8 @@ func NewKBFSOpsStandard(
 		opsByFav:              make(map[favorites.Folder]*folderBranchOps),
 		reIdentifyControlChan: make(chan chan<- struct{}),
 		initDoneCh:            initDoneCh,
-		initFailedCh:          make(chan struct{}),
 		initReadyCh:           make(chan struct{}),
+		initFailedCh:          make(chan struct{}),
 		favs:                  NewFavorites(config),
 		syncedTlfObservers:    newSyncedTlfObserverList(),
 		longOperationDebugDumper: NewImpatientDebugDumper(
@@ -119,42 +120,54 @@ func NewKBFSOpsStandard(
 	return kops
 }
 
+func (fs *KBFSOpsStandard) signalInit(ready bool) {
+	fs.initMu.Lock()
+	defer fs.initMu.Unlock()
+	if fs.initSignaled {
+		return
+	}
+	fs.initSignaled = true
+	if ready {
+		close(fs.initReadyCh)
+	} else {
+		close(fs.initFailedCh)
+	}
+}
+
 // initReady tells anything in waitForReady that config now has what requests
 // need, ahead of the rest of init.
 func (fs *KBFSOpsStandard) initReady() {
-	close(fs.initReadyCh)
+	fs.signalInit(true)
 }
 
-// initFailed tells anything waiting on init that it won't finish.
+// initFailed tells anything waiting on init that it won't finish. No-op if
+// initReady already ran: in-flight requests cannot be recalled.
 func (fs *KBFSOpsStandard) initFailed() {
-	close(fs.initFailedCh)
+	fs.signalInit(false)
 }
 
-// waitForReady blocks until init has set up what requests need (initReady, or
-// init finishing), and returns errKBFSNotInitialized if init failed. A nil
-// initDoneCh (KBFSOps built outside init, as in tests) counts as ready.
+// ready reports, without blocking, whether init has set up what requests need.
+func (fs *KBFSOpsStandard) ready() bool {
+	if fs.initDoneCh == nil {
+		return true
+	}
+	select {
+	case <-fs.initReadyCh:
+		return true
+	default:
+		return false
+	}
+}
+
+// waitForReady blocks until init has set up what requests need, and returns
+// errKBFSNotInitialized if init failed. A nil initDoneCh (KBFSOps built
+// outside init, as in tests) counts as ready.
 func (fs *KBFSOpsStandard) waitForReady(ctx context.Context) error {
 	if fs.initDoneCh == nil {
 		return nil
 	}
-	// Check in priority order first, so a failed init always errors and an
-	// already-canceled ctx can't win the select below.
-	select {
-	case <-fs.initFailedCh:
-		return errKBFSNotInitialized{}
-	default:
-	}
 	select {
 	case <-fs.initReadyCh:
-		return nil
-	case <-fs.initDoneCh:
-		return nil
-	default:
-	}
-	select {
-	case <-fs.initReadyCh:
-		return nil
-	case <-fs.initDoneCh:
 		return nil
 	case <-fs.initFailedCh:
 		return errKBFSNotInitialized{}
