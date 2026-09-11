@@ -1,13 +1,14 @@
 import * as T from '@/constants/types'
-import type {DebouncedFunc} from 'lodash'
-import debounce from 'lodash/debounce'
-import {useEngineActionListener} from '@/engine/action-listener'
 import logger from '@/logger'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import {useTeamsListMap, useTeamsRoleMap} from '../use-teams-list'
-import {type CachedResourceCache, getCachedResourceCache, useCachedResource} from '@/util/use-cached-resource'
-import {registerExternalResetter} from '@/util/zustand'
+import type * as EngineGen from '@/constants/rpc'
+import {
+  type CachedResourceInvalidation,
+  createCachedResourceNamespace,
+  useCachedResource,
+} from '@/util/use-cached-resource'
 
 type LoadedTeam = {
   loaded: boolean
@@ -23,21 +24,36 @@ type LoadedTeamContextValue = LoadedTeam & {
 }
 
 type LoadedTeamData = Pick<LoadedTeam, 'teamDetails' | 'teamMeta'>
-type LoadedTeamCacheMap = Map<
-  T.Teams.TeamID | undefined,
-  CachedResourceCache<LoadedTeamData, T.Teams.TeamID | undefined>
->
 
 const LoadedTeamContext = React.createContext<LoadedTeamContextValue | null>(null)
 const loadedTeamReloadStaleMs = 5_000
 
-// One map for every consumer, for the same reason as the team channel cache: the
-// stale window and the single-flight live on the cache object, so callers holding
-// separate maps cannot see each other's in-flight request. While each provider
-// and each provider-less consumer held its own map, 81% of getAnnotatedTeam calls
-// in an e2e run landed inside their own 5s stale window - the team screen, the
-// channel screen and any modal above them each paid a full 200ms team load.
-const loadedTeamCache: LoadedTeamCacheMap = new Map()
+// One logical change fires metadata, role map and changedByID, and a reconnect
+// fires all three at once - measured as 4 getAnnotatedTeam for one team inside
+// 116ms. useCachedResource coalesces them onto one reload.
+const teamInvalidations = (teamID?: T.Teams.TeamID) =>
+  [
+    {type: 'keybase.1.NotifyTeam.teamMetadataUpdate'},
+    {type: 'keybase.1.NotifyTeam.teamRoleMapChanged'},
+    {
+      type: 'keybase.1.NotifyTeam.teamChangedByID',
+      when: (action: EngineGen.Actions) =>
+        (action as EngineGen.ActionOf<'keybase.1.NotifyTeam.teamChangedByID'>).payload.params.teamID ===
+        teamID,
+    },
+    {
+      effect: 'clear',
+      type: 'keybase.1.NotifyTeam.teamDeleted',
+      when: (action: EngineGen.Actions) =>
+        (action as EngineGen.ActionOf<'keybase.1.NotifyTeam.teamDeleted'>).payload.params.teamID === teamID,
+    },
+    {
+      effect: 'clear',
+      type: 'keybase.1.NotifyTeam.teamExit',
+      when: (action: EngineGen.Actions) =>
+        (action as EngineGen.ActionOf<'keybase.1.NotifyTeam.teamExit'>).payload.params.teamID === teamID,
+    },
+  ] satisfies ReadonlyArray<CachedResourceInvalidation>
 
 const loadableTeamID = (teamID: T.Teams.TeamID) =>
   teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
@@ -47,11 +63,16 @@ const emptyLoadedTeamData = (teamID?: T.Teams.TeamID): LoadedTeamData => ({
   teamMeta: teamID ? Teams.makeTeamMeta({id: teamID}) : Teams.emptyTeamMeta,
 })
 
-// module scope outlives sign-out and this is per-user team data
-registerExternalResetter('loaded-team-cache', () => {
-  loadedTeamCache.forEach((cache, teamID) => cache.reset(emptyLoadedTeamData(teamID), teamID))
-  loadedTeamCache.clear()
-})
+// One entry per team, shared by every consumer: the stale window and the
+// single-flight live on the entry, so consumers holding separate ones cannot see
+// each other's in-flight request. While each provider and each provider-less
+// consumer held its own map, 81% of getAnnotatedTeam calls in an e2e run landed
+// inside their own 5s stale window - the team screen, the channel screen and any
+// modal above them each paid a full 200ms team load.
+const loadedTeams = createCachedResourceNamespace<LoadedTeamData, T.Teams.TeamID>(
+  'loaded-team-cache',
+  emptyLoadedTeamData
+)
 
 const roleAndDetailsFromMap = (
   map: T.RPCGen.TeamRoleMapAndVersion,
@@ -83,30 +104,9 @@ const annotatedTeamToMeta = (
   teamname: annotatedTeam.name,
 })
 
-// forceLocalCache: a disabled "shadow" instance (one that returns the context
-// value instead of its own) must NOT share the loader's cache map. With enabled=false
-// useCachedResource resets the cache (loadedAt=0), which would clobber the loader's
-// loaded data. Give shadows a private throwaway map so their resets are harmless.
-const useLoadedTeamCacheMap = (forceLocalCache: boolean) => {
-  const [localCacheMap] = React.useState<LoadedTeamCacheMap>(() => new Map())
-  return forceLocalCache ? localCacheMap : loadedTeamCache
-}
-
-const useLoadedTeamRaw = (
-  teamID: T.Teams.TeamID,
-  enabled = true,
-  subscribeToUpdates = enabled,
-  forceLocalCache = false
-): LoadedTeam => {
+const useLoadedTeamRaw = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam => {
   const validTeamID = loadableTeamID(teamID)
   const {loadIfStale: loadRoleMapIfStale, roleMap} = useTeamsRoleMap()
-  // a disabled instance resets whatever cache it holds, so it must never hold the
-  // shared one - gate on exactly the load condition, not just forceLocalCache
-  const cacheMap = useLoadedTeamCacheMap(forceLocalCache || !enabled || !validTeamID)
-  const cache = React.useMemo(
-    () => getCachedResourceCache(cacheMap, emptyLoadedTeamData(validTeamID), validTeamID),
-    [cacheMap, validTeamID]
-  )
   // Seed from the teams-list cache so the header (teamname, avatar, member count)
   // renders immediately instead of waiting for getAnnotatedTeam to round-trip.
   // key the memo on this team's meta, not on the map: the map gets a new
@@ -118,11 +118,11 @@ const useLoadedTeamRaw = (
     const data = emptyLoadedTeamData(validTeamID)
     return listMeta ? {...data, teamMeta: listMeta} : data
   }, [validTeamID, listMeta])
-  const {data, loaded, loading, reload, clear} = useCachedResource({
-    cache,
+  const {data, loaded, loading, reload} = useCachedResource({
     cacheKey: validTeamID,
-    enabled: enabled && !!validTeamID,
+    enabled,
     initialData,
+    invalidateOn: teamInvalidations(validTeamID),
     load: async () => {
       const teamIDToLoad = validTeamID ?? T.Teams.noTeamID
       const [annotatedTeam] = await Promise.all([
@@ -134,6 +134,7 @@ const useLoadedTeamRaw = (
         teamMeta: annotatedTeamToMeta(teamIDToLoad, annotatedTeam, undefined),
       }
     },
+    namespace: loadedTeams,
     onError: error => {
       logger.warn(`Failed to load team data for ${validTeamID}`, error)
     },
@@ -156,45 +157,6 @@ const useLoadedTeamRaw = (
   )
   const yourOperations = React.useMemo(() => Teams.deriveCanPerform(roleAndDetails), [roleAndDetails])
 
-  // One logical change fires metadata, role map and changedByID, and a reconnect
-  // fires all three at once - measured as 4 getAnnotatedTeam for one team inside
-  // 116ms, each a separate event superseding the last. Coalesce them the way
-  // useReloadOnTeamChanges does for the teams list: leading so the common single
-  // notification still reloads immediately, trailing to catch the rest of a burst.
-  const reloadNow = React.useEffectEvent(() => {
-    if (enabled) {
-      void reload()
-    }
-  })
-  const [debouncedReload] = React.useState<DebouncedFunc<() => void>>(() =>
-    debounce(() => reloadNow(), 2000, {leading: true, trailing: true})
-  )
-  React.useEffect(() => {
-    return () => {
-      debouncedReload.cancel()
-    }
-  }, [debouncedReload])
-  const onTeamChange = () => {
-    debouncedReload()
-  }
-  useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', onTeamChange, subscribeToUpdates)
-  useEngineActionListener('keybase.1.NotifyTeam.teamRoleMapChanged', onTeamChange, subscribeToUpdates)
-  useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
-    if (action.payload.params.teamID === validTeamID) {
-      onTeamChange()
-    }
-  }, subscribeToUpdates)
-  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      clear(validTeamID)
-    }
-  }, subscribeToUpdates)
-  useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      clear(validTeamID)
-    }
-  }, subscribeToUpdates)
-
   const teamDetails = data.teamDetails
   return React.useMemo(
     () => ({loaded, loading, reload, teamDetails, teamMeta, yourOperations}),
@@ -212,11 +174,6 @@ export const LoadedTeamProvider = (props: React.PropsWithChildren<{teamID: T.Tea
 export const useLoadedTeam = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam => {
   const context = React.useContext(LoadedTeamContext)
   const useContextValue = context?.teamID === teamID
-  const raw = useLoadedTeamRaw(
-    teamID,
-    enabled && !useContextValue,
-    enabled && !useContextValue,
-    useContextValue
-  )
+  const raw = useLoadedTeamRaw(teamID, enabled && !useContextValue)
   return useContextValue ? context : raw
 }

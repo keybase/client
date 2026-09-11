@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {createCachedResourceCache, type CachedResourceCache, useCachedResource} from '@/util/use-cached-resource'
+import {createCachedResourceNamespace, useCachedResource} from '@/util/use-cached-resource'
 
 const activityToIcon: {[key in 'active' | 'recently']: Kb.IconType} = {
   active: 'iconfont-campfire-burning',
@@ -76,16 +76,23 @@ const parseActivityLevels = (
   }
 }
 
-const useActivityLevelsRaw = (
-  cache: CachedResourceCache<ActivityLevelsData, typeof activityLevelsCacheKey>,
-  enabled = true
-): ActivityLevels => {
+// One entry for the whole app rather than one per provider: the teams root, a
+// team, a channel and the add-to-channels modal nest, and each mount used to pay
+// its own getLastActiveForTeams. The trade is that a remount inside the stale
+// window is served from the entry instead of refetching - activity levels are a
+// coarse "how busy is this" bucket, so up to staleMs of drift is acceptable.
+const activityLevels = createCachedResourceNamespace<ActivityLevelsData, typeof activityLevelsCacheKey>(
+  'teams-activity-levels',
+  () => emptyActivityLevelsData
+)
+
+const useActivityLevelsRaw = (enabled = true): ActivityLevels => {
   const {data, loaded, loading, reload} = useCachedResource({
-    cache,
     cacheKey: activityLevelsCacheKey,
     enabled,
     initialData: emptyActivityLevelsData,
     load: async () => parseActivityLevels(await T.RPCChat.localGetLastActiveForTeamsRpcPromise()),
+    namespace: activityLevels,
     onError: error => {
       logger.warn('Failed to load activity levels', error)
     },
@@ -97,13 +104,7 @@ const useActivityLevelsRaw = (
 
 export const ActivityLevelsProvider = (props: React.PropsWithChildren) => {
   const {children} = props
-  const [cache] = React.useState(() =>
-    createCachedResourceCache<ActivityLevelsData, typeof activityLevelsCacheKey>(
-      emptyActivityLevelsData,
-      activityLevelsCacheKey
-    )
-  )
-  const value = useActivityLevelsRaw(cache)
+  const value = useActivityLevelsRaw()
   return <ActivityLevelsContext.Provider value={value}>{children}</ActivityLevelsContext.Provider>
 }
 
