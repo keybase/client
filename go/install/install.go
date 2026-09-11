@@ -249,6 +249,7 @@ func UpdaterBinPath() (string, error) {
 	}
 	//nolint:staticcheck // SA4023: err always/never nil depending on GOOS
 	name, err := updaterBinName()
+	//nolint:staticcheck // SA4023: err always/never nil depending on GOOS
 	if err != nil {
 		return "", err
 	}
