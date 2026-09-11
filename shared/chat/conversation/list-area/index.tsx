@@ -33,14 +33,11 @@ import type {LegendListRef} from '@/common-adapters'
 import {FlatList} from 'react-native'
 import type {ScrollViewProps} from 'react-native'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
-import {
-  KeyboardChatScrollView,
-  useKeyboardState,
-  useReanimatedKeyboardAnimation,
-} from 'react-native-keyboard-controller'
-import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated'
+import {KeyboardChatScrollView, useKeyboardState} from 'react-native-keyboard-controller'
+import Animated, {useAnimatedStyle} from 'react-native-reanimated'
 import {ThreadSearchOverlayContext} from '../thread-search-overlay-context'
-import {useSafeAreaInsets} from 'react-native-safe-area-context'
+import {ComposerAnchorContext} from '../composer-viewport-context'
+import {restingScrollOffset, stickyTranslateY} from '../composer-geometry'
 type ItemType = T.Chat.Ordinal
 
 const noOrdinals: ReadonlyArray<T.Chat.Ordinal> = []
@@ -720,17 +717,13 @@ const useNativeScrolling = (p: {
   const loadOlderMessages = useConversationThreadLoadOlderMessagesDueToScroll()
   const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
 
-  // KeyboardChatScrollView sets contentInset.top = K - insets.bottom and
-  // contentOffset.y = -(K - insets.bottom) when keyboard is open. Scrolling to
-  // offset=0 would place content K-insets.bottom pixels lower (behind the keyboard).
-  // We compute the correct resting offset: keyboardHeight.value (negative) + insets.bottom.
-  // When keyboard is closed keyboardHeight.value = 0 so the result is clamped to 0.
-  const {height: keyboardAnimHeight} = useReanimatedKeyboardAnimation()
-  const {bottom: insetsBottom} = useSafeAreaInsets()
+  const {bottomInset, keyboardHeight} = React.useContext(ComposerAnchorContext)
   const scrollToBottom = React.useCallback(() => {
-    const offset = Math.min(keyboardAnimHeight.value + insetsBottom, 0)
-    listRef.current?.scrollToOffset({animated: false, offset})
-  }, [insetsBottom, keyboardAnimHeight, listRef])
+    listRef.current?.scrollToOffset({
+      animated: false,
+      offset: restingScrollOffset(bottomInset, keyboardHeight.value),
+    })
+  }, [bottomInset, keyboardHeight, listRef])
 
   const {setScrollRef} = React.useContext(ThreadRefsContext)
   React.useEffect(() => {
@@ -862,25 +855,17 @@ const NativeConversationList = function NativeConversationList() {
 
   const getItemType = useGetItemType()
 
-  const insets = useSafeAreaInsets()
+  const {bottomInset, keyboardHeight, keyboardProgress} = React.useContext(ComposerAnchorContext)
   const isKeyboardVisible = useKeyboardState((s: {isVisible: boolean}) => s.isVisible)
 
   // While the thread-search bar is open it overlays the bottom of the list. Reserve
   // that height as extra content padding so centered/newest messages clear it.
   const searchOverlayHeight = React.useContext(ThreadSearchOverlayContext)
-  const {height: keyboardAnimHeight, progress: keyboardProgress} = useReanimatedKeyboardAnimation()
-  const insetsBottom = insets.bottom
-  // The input/search bar lives in a KeyboardStickyView with offset
-  // {closed: -insets.bottom, opened: 0}, so it's translated above the list's layout
-  // bottom even when the keyboard is closed. Mirror that exact translation here so the
-  // jump button always rests on the bar's visual top edge instead of being clipped by it.
+  // The input/search bar is translated above the list's layout bottom even when the
+  // keyboard is closed. Mirror that exact translation here so the jump button always
+  // rests on the bar's visual top edge instead of being clipped by it.
   const jumpLiftStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateY:
-          keyboardAnimHeight.value + interpolate(keyboardProgress.value, [0, 1], [-insetsBottom, 0]),
-      },
-    ],
+    transform: [{translateY: stickyTranslateY(bottomInset, keyboardHeight.value, keyboardProgress.value)}],
   }))
 
   const {scrollToCentered, scrollToBottom, onEndReached, onScrollToIndexFailed} = useNativeScrolling({
@@ -1056,13 +1041,13 @@ const NativeConversationList = function NativeConversationList() {
         automaticallyAdjustContentInsets={false}
         contentInsetAdjustmentBehavior="never"
         inverted={true}
-        offset={insets.bottom}
+        offset={bottomInset}
         extraContentPadding={searchOverlayHeight}
         {...props}
-        scrollIndicatorInsets={{top: insets.bottom}}
+        scrollIndicatorInsets={{top: bottomInset}}
       />
     ),
-    [insets.bottom, searchOverlayHeight]
+    [bottomInset, searchOverlayHeight]
   )
 
   const mvpAutoscroll = !(centeredOrdinalOrNone > 0 || !numOrdinals || isKeyboardVisible)
@@ -1070,9 +1055,9 @@ const NativeConversationList = function NativeConversationList() {
   const nativeContentContainerStyle = React.useMemo(
     () => ({
       paddingBottom: 0,
-      paddingTop: mobileTypingContainerHeight + insets.bottom,
+      paddingTop: mobileTypingContainerHeight + bottomInset,
     }),
-    [insets.bottom]
+    [bottomInset]
   )
 
   return (

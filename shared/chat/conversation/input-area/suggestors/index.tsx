@@ -10,7 +10,8 @@ import type {PlatformInputProps as Props, RefType as InputRef} from '../normal/i
 import {useConversationThreadID} from '../../thread-context'
 import {KeyboardStickyView, useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
-import {MaxInputAreaContext} from '../normal/max-input-area-context'
+import {ComposerBoxContext} from '@/chat/conversation/composer-viewport-context'
+import {composerStickyOffset, suggestionAreaHeight} from '@/chat/conversation/composer-geometry'
 import {useAnimatedStyle, default as Reanimated} from '@/common-adapters/reanimated'
 
 const positionFallbacks = ['bottom center'] as const
@@ -447,21 +448,24 @@ type PopupProps = {
 }
 const MobileSuggestionArea = (p: {children: React.ReactNode}) => {
   const styles = useStyles()
+  // @gorhom/portal renders this at the popup host, a sibling of the router, so
+  // the conversation's contexts never reach it and the insets and the keyboard
+  // animation have to come from hooks here rather than from the viewport
   const insets = useSafeAreaInsets()
-  const maxInputArea = React.useContext(MaxInputAreaContext)
+  const {visibleHeight} = React.useContext(ComposerBoxContext)
   const {height: keyboardHeight} = useReanimatedKeyboardAnimation()
-  // this overlay is portaled to the window root, but the input bar sits
-  // insets.bottom above the window bottom while the keyboard is closed (the
-  // KeyboardStickyView in conversation/normal), so mirror its offsets or the
-  // list covers the input when no keyboard is up
-  const stickyOffset = React.useMemo(() => ({closed: -insets.bottom, opened: 0}), [insets.bottom])
-  // the sticky view only translates, it keeps the full window height, so give
-  // the list the same box the conversation has (below the header, above the
-  // keyboard). without it the list's percentage maxHeight resolves against the
-  // whole screen and the bottom-anchored list runs up over the header.
-  // keyboardHeight is negative while the keyboard is up
+  // the input bar sits insets.bottom above the window bottom while the keyboard
+  // is closed, so mirror its offset or this list covers the input
+  const stickyOffset = React.useMemo(() => composerStickyOffset(insets.bottom), [insets.bottom])
+  // the sticky view only translates, it keeps the full window height, so this is
+  // meant to give the list the same box the conversation has — without it the
+  // list's percentage maxHeight resolves against the whole screen and the
+  // bottom-anchored list runs up over the header. it does not currently do that:
+  // visibleHeight is the context default 0 for the reason above, so the height
+  // stays undefined. left in place because it is the intended clamp and costs
+  // nothing; making it bite means getting the viewport past the portal.
   const areaStyle = useAnimatedStyle(() => ({
-    height: maxInputArea ? Math.max(0, maxInputArea + keyboardHeight.value) : undefined,
+    height: suggestionAreaHeight(visibleHeight, keyboardHeight.value),
   }))
 
   return (
