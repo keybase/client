@@ -247,8 +247,10 @@ func UpdaterBinPath() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	//nolint:staticcheck // SA4023: err always/never nil depending on GOOS
 	name, err := updaterBinName()
-	if err != nil { //nolint:staticcheck // SA4023: always errors on unix; succeeds on darwin/windows
+	//nolint:staticcheck // SA4023: err always/never nil depending on GOOS
+	if err != nil {
 		return "", err
 	}
 	return filepath.Join(filepath.Dir(path), name), nil
