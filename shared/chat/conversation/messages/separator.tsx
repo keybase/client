@@ -5,9 +5,10 @@ import * as React from 'react'
 import * as RowMetadata from './row-metadata'
 import * as T from '@/constants/types'
 import {formatTimeForConversationList} from '@/util/timestamp'
+import {getRowIdentity} from './row-identity'
 import {OrangeLineContext} from '../orange-line-context'
+import {useConversationThreadSelector, useConversationThreadStore} from '../thread-context'
 import {useCurrentUserState} from '@/stores/current-user'
-import {ShownUsernameCacheContext, useConversationThreadSelector} from '../thread-context'
 
 const missingMessage = Chat.makeMessageDeleted({})
 const noOrdinal = T.Chat.numberToOrdinal(0)
@@ -16,8 +17,11 @@ const noOrdinal = T.Chat.numberToOrdinal(0)
 // `trailingItem` on both platforms, so the orange line sits above that ordinal's message.
 const useSeparatorData = (trailingItem: T.Chat.Ordinal) => {
   const orangeOrdinal = React.useContext(OrangeLineContext)
+  const store = useConversationThreadStore()
+  // Subscribed, not read off the store inside the selector: the answer depends on it, so this
+  // selector has to re-run when it changes or the separator would keep drawing a time label for a
+  // header the row has stopped painting.
   const you = useCurrentUserState(s => s.username)
-  const shownCache = React.useContext(ShownUsernameCacheContext)
 
   return useConversationThreadSelector(
     C.useShallow(s => {
@@ -35,14 +39,9 @@ const useSeparatorData = (trailingItem: T.Chat.Ordinal) => {
       // only pay for the time label when an orange line will actually render
       let orangeTime = ''
       if (orangeLineAbove && !isMobile) {
-        const {showUsername} = RowMetadata.getMessageShowUsername({
-          message: m,
-          messageMap: s.messageMap,
-          messageOrdinals,
-          ordinal,
-          you,
-          shownCache,
-        })
+        // Through the same derivation the row and the list use, so all three agree about whether
+        // this row carries an author header.
+        const {showUsername} = getRowIdentity(store, s, ordinal, you)
         const tooSoon = !m.timestamp || Date.now() - m.timestamp < 1000 * 60 * 60 * 2
         const isJoinLeave = m.type === 'systemJoined'
         if (!showUsername && !tooSoon && !isJoinLeave) {

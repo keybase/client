@@ -16,16 +16,10 @@ import {
   useConversationCenter,
   useConversationCenterScroll,
 } from '../centering'
-import {
-  ShownUsernameCacheContext,
-  useConversationThreadID,
-  useConversationThreadMarkThreadAsRead,
-  useConversationThreadStore,
-} from '../thread-context'
+import {useConversationThreadID, useConversationThreadMarkThreadAsRead} from '../thread-context'
 import {useJumpToRecent} from './jump-to-recent'
 import {useRequestWindow, useThreadWindow} from '../thread-window'
-import {getMessageRowType, getMessageShowUsername} from '../messages/row-metadata'
-import {useCurrentUserState} from '@/stores/current-user'
+import {useRowPoolKey} from '../messages/row-identity'
 import * as InputState from '../input-area/input-state'
 import sortedIndexOf from 'lodash/sortedIndexOf'
 import {copyToClipboard} from '@/util/storeless-actions'
@@ -45,47 +39,7 @@ import {ThreadSearchOverlayContext} from '../thread-search-overlay-context'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
 type ItemType = T.Chat.Ordinal
 
-const noOrdinals: ReadonlyArray<T.Chat.Ordinal> = []
-
 const keyExtractor = (ordinal: ItemType) => String(ordinal)
-
-// Item type for list recycling pool separation. A message that leads its author group renders an
-// avatar + username header (~40px taller) than a grouped follow-on of the same render type. Without
-// splitting the pool, recycleItems reuses one container across both heights, so a recycled view
-// paints at the wrong height for a frame before re-measure — visible as rows overlapping during
-// scroll. Append ':hdr' so header and grouped rows pool separately. A row that reserves header
-// space after a scroll-back load is as tall as a headered one, so it belongs in the same pool.
-const useGetItemType = () => {
-  const threadStore = useConversationThreadStore()
-  const you = useCurrentUserState(s => s.username)
-  // Must be the same sticky cache the rows render with (wrapper.tsx): without it, a row that keeps
-  // its sticky header after a scroll-back load would be typed headerless here, mixing tall headered
-  // rows into the headerless pool and poisoning that pool's height average.
-  const shownCache = React.useContext(ShownUsernameCacheContext)
-  return React.useCallback(
-    (ordinal: T.Chat.Ordinal) => {
-      if (!ordinal) {
-        return 'null'
-      }
-      const {messageMap, messageTypeMap, messageOrdinals} = threadStore.getState()
-      const message = messageMap.get(ordinal)
-      if (!message) {
-        return messageTypeMap.get(ordinal) ?? 'text'
-      }
-      const base = getMessageRowType(message, messageTypeMap.get(ordinal))
-      const {reserveHeader, showUsername} = getMessageShowUsername({
-        message,
-        messageMap,
-        messageOrdinals: messageOrdinals ?? noOrdinals,
-        ordinal,
-        shownCache,
-        you,
-      })
-      return showUsername || reserveHeader ? `${base}:hdr` : base
-    },
-    [threadStore, you, shownCache]
-  )
-}
 
 // ==================== SHARED ====================
 
@@ -215,7 +169,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     messageOrdinalsRef.current = messageOrdinals
   }, [messageOrdinals])
 
-  const getItemType = useGetItemType()
+  const getItemType = useRowPoolKey()
 
   // Asks the scroller, not the list's own isAtEnd: that flag comes from the content size and viewport
   // the list has recorded, and both lag a composer collapse, so it reads not-at-end while the scroller
@@ -669,7 +623,7 @@ const NativeConversationList = function NativeConversationList() {
 
   const numOrdinals = messageOrdinals.length
 
-  const getItemType = useGetItemType()
+  const getItemType = useRowPoolKey()
 
   const insets = useSafeAreaInsets()
   const isKeyboardVisible = useKeyboardState((s: {isVisible: boolean}) => s.isVisible)
