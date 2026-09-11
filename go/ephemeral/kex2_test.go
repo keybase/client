@@ -88,10 +88,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	var wg sync.WaitGroup
 
 	// start provisionee
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		err := func() error {
 			uis := libkb.UIs{
 				ProvisionUI: &kbtest.TestProvisionUI{SecretCh: make(chan kex2.Secret, 1)},
@@ -115,12 +112,10 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 			return engine.RunEngine2(mctxY, provisionee)
 		}()
 		assert.NoError(t, err, "provisionee")
-	}()
+	})
 
 	// start provisioner
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: &kbtest.TestProvisionUI{},
@@ -132,7 +127,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
-	}()
+	})
 
 	wg.Wait()
 

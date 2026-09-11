@@ -3,6 +3,7 @@ package teams
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sort"
 	"sync"
 	"time"
@@ -252,8 +253,8 @@ func maxMerkleProbeInAuditHistory(h *keybase1.AuditHistory) keybase1.Seqno {
 	// doing probes). So keep going backwards until we hit the first non-0
 	// maxMerkleProbe. Remember, maxMerkleProbe is the maximum merkle seqno
 	// probed in the last audit.
-	for i := len(h.Audits) - 1; i >= 0; i-- {
-		if mmp := h.Audits[i].MaxMerkleProbe; mmp >= keybase1.Seqno(0) {
+	for _, v := range slices.Backward(h.Audits) {
+		if mmp := v.MaxMerkleProbe; mmp >= keybase1.Seqno(0) {
 			return mmp
 		}
 	}

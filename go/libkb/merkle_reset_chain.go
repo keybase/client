@@ -4,6 +4,7 @@ import (
 	sha512 "crypto/sha512"
 	json "encoding/json"
 	fmt "fmt"
+	"slices"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -120,10 +121,10 @@ func (mr *MerkleResets) verifyAndLoad(m MetaContext, urc unverifiedResetChain) (
 	foundDelete := false
 	lastWasDelete := false
 
-	for i := len(urc) - 1; i >= 0; i-- {
+	for i, u := range slices.Backward(urc) {
 		resetSeqno := i + 1
-		link := urc[i].link
-		hash := urc[i].hash
+		link := u.link
+		hash := u.hash
 		if !hashEq(curr, hash) {
 			err = mkerr("hash chain mismatch at seqno %d", resetSeqno)
 			return err

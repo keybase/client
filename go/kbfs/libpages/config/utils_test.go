@@ -23,7 +23,3 @@ func generateSHA256PasswordHashForTestOrBust(t *testing.T, password string) stri
 	require.NoError(t, err)
 	return passwordHash
 }
-
-func stringPtr(str string) *string {
-	return &str
-}

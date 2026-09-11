@@ -97,7 +97,7 @@ func (c *CmdTeamBotSettings) Run() error {
 }
 
 func renderBotSettings(g *libkb.GlobalContext, username string, convID *chat1.ConversationID, botSettings keybase1.TeamBotSettings) error {
-	var output string
+	var output strings.Builder
 	if botSettings.Cmds {
 		chatClient, err := GetChatLocalClient(g)
 		if err != nil {
@@ -117,35 +117,35 @@ func renderBotSettings(g *libkb.GlobalContext, username string, convID *chat1.Co
 		}
 
 		if len(cmds.Commands) > 0 {
-			output += "\t- command messages for the following commands: \n"
+			output.WriteString("\t- command messages for the following commands: \n")
 		} else {
-			output += "\t- command messages\n"
+			output.WriteString("\t- command messages\n")
 		}
 		username = libkb.NewNormalizedUsername(username).String()
 		for _, cmd := range cmds.Commands {
 			if cmd.Username == username {
-				output += fmt.Sprintf("\t\t- !%s\n", cmd.Name)
+				fmt.Fprintf(&output, "\t\t- !%s\n", cmd.Name)
 			}
 		}
 	}
 
 	if botSettings.Mentions {
-		output += "\t- when @-mentioned\n"
+		output.WriteString("\t- when @-mentioned\n")
 	}
 
 	if len(botSettings.Triggers) > 0 {
-		output += "\t- messages that match the following:\n\t\t"
+		output.WriteString("\t- messages that match the following:\n\t\t")
 		for _, trigger := range botSettings.Triggers {
-			output += fmt.Sprintf("%q\n\t\t", trigger)
+			fmt.Fprintf(&output, "%q\n\t\t", trigger)
 		}
-		output += "\n"
+		output.WriteString("\n")
 	}
 
 	dui := g.UI.GetDumbOutputUI()
-	if len(output) == 0 {
+	if len(output.String()) == 0 {
 		dui.Printf("%s will not receive any messages with the current bot settings\n", username)
 	} else {
-		dui.Printf("%s will receive messages in the following cases:\n%s", username, output)
+		dui.Printf("%s will receive messages in the following cases:\n%s", username, output.String())
 	}
 	if len(botSettings.Convs) == 0 {
 		dui.Printf("%s can send/receive into all conversations", username)

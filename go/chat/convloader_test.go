@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"slices"
 	"testing"
 	"time"
 
@@ -322,8 +323,8 @@ func TestConvLoaderJobQueue(t *testing.T) {
 		types.ConvLoaderPriorityHigh, types.ConvLoaderPriorityMedium,
 		types.ConvLoaderPriorityLow, types.ConvLoaderPriorityLow,
 	}
-	for i := len(order) - 1; i >= 0; i-- {
-		_, err = j.Push(newTask(convID1, order[i], types.ConvLoaderUnique))
+	for _, o := range slices.Backward(order) {
+		_, err = j.Push(newTask(convID1, o, types.ConvLoaderUnique))
 		require.NoError(t, err)
 	}
 	for i := range order {

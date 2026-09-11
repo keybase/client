@@ -62,8 +62,7 @@ func bootstrapActiveDeviceFromConfigReturnRawError(m MetaContext, online bool, a
 }
 
 func isBootstrapLoggedOutError(err error) bool {
-	var nue NoUIDError
-	if errors.As(err, &nue) {
+	if _, ok := errors.AsType[NoUIDError](err); ok {
 		return true
 	}
 	if errors.Is(err, ErrUnlockNotPossible) {

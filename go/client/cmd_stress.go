@@ -76,11 +76,9 @@ func (c *CmdStress) Run() error {
 
 	var wg sync.WaitGroup
 	for i := 0; i < c.numUsers; i++ {
-		wg.Add(1)
-		go func() {
+		wg.Go(func() {
 			c.simulate(username, passphrase)
-			wg.Done()
-		}()
+		})
 	}
 	wg.Wait()
 

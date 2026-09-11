@@ -658,14 +658,12 @@ func TestIdentify2WithUIDWithFailedAssertion(t *testing.T) {
 
 	starts := 0
 	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
+	wg.Go(func() {
 		tc.G.Log.Debug("In BG: waiting for UI notification on startCh")
 		<-i.startCh
 		starts++
 		tc.G.Log.Debug("In BG: waited for UI notification on startCh")
-		wg.Done()
-	}()
+	})
 
 	i.checkStatusHook = func(l libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
 		if strings.Contains(l.GetHumanURL(), "twitter") {
@@ -1054,11 +1052,11 @@ func testForcedIdentifyReusesProofCheckedAfterRequest(t *testing.T, checkErr lib
 	tester := newIdentify2WithUIDTester(tc.G)
 	tc.G.SetProofServices(tester)
 
-	var checks int64
+	var checks atomic.Int64
 	firstCheckStarted := make(chan struct{})
 	releaseFirstCheck := make(chan struct{})
 	tester.checkStatusHook = func(libkb.SigHint, libkb.ProofCheckerMode) libkb.ProofError {
-		if atomic.AddInt64(&checks, 1) == 1 {
+		if checks.Add(1) == 1 {
 			close(firstCheckStarted)
 			<-releaseFirstCheck
 		}
@@ -1103,7 +1101,7 @@ func testForcedIdentifyReusesProofCheckedAfterRequest(t *testing.T, checkErr lib
 
 	require.NoError(t, <-firstResult)
 	require.NoError(t, <-secondResult)
-	require.Equal(t, int64(1), atomic.LoadInt64(&checks))
+	require.Equal(t, int64(1), checks.Load())
 
 	// A request made after the shared result was produced still forces a new
 	// remote check.
@@ -1111,7 +1109,7 @@ func testForcedIdentifyReusesProofCheckedAfterRequest(t *testing.T, checkErr lib
 	third := newEngine()
 	third.requestedAt = tc.G.Clock().Now()
 	require.NoError(t, <-run(third))
-	require.Equal(t, int64(2), atomic.LoadInt64(&checks))
+	require.Equal(t, int64(2), checks.Load())
 }
 
 func TestForcedIdentifyReusesProofCheckedAfterRequest(t *testing.T) {

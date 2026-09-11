@@ -796,7 +796,7 @@ func ParseAtMentionedItems(ctx context.Context, g *globals.Context, body string,
 			channel = toks[1]
 		}
 
-		normalizedBaseName := strings.Split(m.normalizedName, "#")[0]
+		normalizedBaseName, _, _ := strings.Cut(m.normalizedName, "#")
 		switch normalizedBaseName {
 		case "channel", "everyone":
 			chanRes = chat1.ChannelMention_ALL
@@ -1358,7 +1358,7 @@ func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.Remot
 		if idx := strings.IndexAny(tlfWriters, " #"); idx >= 0 {
 			tlfWriters = tlfWriters[:idx]
 		}
-		for _, w := range strings.Split(tlfWriters, ",") {
+		for w := range strings.SplitSeq(tlfWriters, ",") {
 			if w = strings.TrimSpace(w); w != "" {
 				writers[w] = true
 			}
@@ -2584,8 +2584,7 @@ func SuspendComponents(ctx context.Context, g *globals.Context, suspendables []t
 }
 
 func IsPermanentErr(err error) bool {
-	var uberr types.UnboxingError
-	if errors.As(err, &uberr) {
+	if uberr, ok := errors.AsType[types.UnboxingError](err); ok {
 		return uberr.IsPermanent()
 	}
 	return err != nil

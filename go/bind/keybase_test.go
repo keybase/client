@@ -320,7 +320,7 @@ func TestEnsureConnection_EpochMonotonicAcrossRedials(t *testing.T) {
 
 	seen := map[int64]bool{}
 	var prev int64 = -1
-	for i := 0; i < 20; i++ {
+	for i := range 20 {
 		connMutex.Lock()
 		conn = nil // force ensureConnection to dial again
 		err := ensureConnection()
@@ -505,42 +505,36 @@ func TestConcurrentReadWriteAndResetsThroughRealEntryPoints(t *testing.T) {
 
 	var wg sync.WaitGroup
 
-	for g := 0; g < writers; g++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for i := 0; i < iterations; i++ {
+	for range writers {
+		wg.Go(func() {
+			for range iterations {
 				if err := WriteArr(appPayload); err == nil {
 					writes.Add(1)
 				}
 			}
-		}()
+		})
 	}
 
 	// Failure-driven resetters: capture an epoch the way ReadArr/WriteArr do,
 	// then race to reset it.
-	for g := 0; g < resetters; g++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for i := 0; i < iterations; i++ {
+	for range resetters {
+		wg.Go(func() {
+			for range iterations {
 				connMutex.Lock()
 				epoch := connEpoch
 				connMutex.Unlock()
 				_ = ResetIfCurrent(epoch)
 			}
-		}()
+		})
 	}
 
 	// Unconditional resetters: e.g. concurrent invalidate/engineReset.
-	for g := 0; g < resetters; g++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for i := 0; i < iterations; i++ {
+	for range resetters {
+		wg.Go(func() {
+			for range iterations {
 				_ = Reset()
 			}
-		}()
+		})
 	}
 
 	workersDone := make(chan struct{})

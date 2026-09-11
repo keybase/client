@@ -62,11 +62,9 @@ func TestRepeatedWaitGroupMultiWait(t *testing.T) {
 	// Three in parallel!
 	var wg sync.WaitGroup
 	for range 3 {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			testRepeatedWaitGroupSimpleWait(t, &rwg)
-		}()
+		})
 	}
 	wg.Wait()
 }

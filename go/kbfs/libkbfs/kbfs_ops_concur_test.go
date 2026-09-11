@@ -2236,14 +2236,12 @@ func TestKBFSOpsLookupSyncRace(t *testing.T) {
 	// u2 starts to sync but the sync is stalled while holding the
 	// block lock.
 	doStallUpdate <- struct{}{}
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		if err := kbfsOps2.SyncFromServer(
 			ctx, rootNode2.GetFolderBranch(), nil); err != nil {
 			t.Errorf("Couldn't sync user 2 from server: %v", err)
 		}
-	}()
+	})
 
 	// Unblock the lookup.
 	select {

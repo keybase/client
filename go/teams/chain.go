@@ -229,8 +229,7 @@ func IsNewStyleInvite(invite keybase1.TeamInvite) (bool, error) {
 func (t TeamSigChainState) assertBecameAdminAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (ret proofTermBookends, err error) {
 	points := t.inner.UserLog[uv]
 	linkMap := t.inner.LinkIDs
-	for i := len(points) - 1; i >= 0; i-- {
-		point := points[i]
+	for i, point := range slices.Backward(points) {
 		if point.SigMeta.SigChainLocation.Eq(scl) {
 			if !point.Role.IsAdminOrAbove() {
 				return ret, NewAdminPermissionError(t.GetID(), uv, "not admin permission")
@@ -276,8 +275,8 @@ func (t TeamSigChainState) AssertWasRoleOrAboveAt(uv keybase1.UserVersion,
 		return mkErr("negative seqno: %v", scl.Seqno)
 	}
 	points := t.inner.UserLog[uv]
-	for i := len(points) - 1; i >= 0; i-- {
-		point := points[i]
+	for i, point := range slices.Backward(points) {
+
 		if err := point.SigMeta.SigChainLocation.Comparable(scl); err != nil {
 			return mkErr("%s", err.Error())
 		}

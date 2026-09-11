@@ -12,6 +12,7 @@ import (
 	stdpath "path"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -527,11 +528,9 @@ func newFolderBranchOps(
 }
 
 func (fbo *folderBranchOps) goTracked(f func()) {
-	fbo.doneWg.Add(1)
-	go func() {
-		defer fbo.doneWg.Done()
+	fbo.doneWg.Go(func() {
 		f()
-	}()
+	})
 }
 
 // markForReIdentifyIfNeeded checks whether this tlf is identified and mark
@@ -5385,8 +5384,7 @@ func (fbo *folderBranchOps) unrefEntryLocked(ctx context.Context,
 	// sync can just be forgotten about.  Note that any updated
 	// pointers that are unreferenced will be fixed up during syncing.
 	for _, dirOp := range fbo.dirOps {
-		for i := len(dirOp.dirOp.Refs()) - 1; i >= 0; i-- {
-			ref := dirOp.dirOp.Refs()[i]
+		for _, ref := range slices.Backward(dirOp.dirOp.Refs()) {
 			if _, ok := unrefsToAdd[ref]; ok {
 				dirOp.dirOp.DelRefBlock(ref)
 				delete(unrefsToAdd, ref)
@@ -7358,8 +7356,8 @@ func (fbo *folderBranchOps) undoMDUpdatesLocked(ctx context.Context,
 	}
 
 	// go backwards through the updates
-	for i := len(rmds) - 1; i >= 0; i-- {
-		rmd := rmds[i]
+	for _, rmd := range slices.Backward(rmds) {
+
 		// on undo, it's ok to re-apply the current revision since you
 		// need to invert all of its ops.
 		//
@@ -7385,8 +7383,8 @@ func (fbo *folderBranchOps) undoMDUpdatesLocked(ctx context.Context,
 
 		// iterate the ops in reverse and invert each one
 		ops := rmd.data.Changes.Ops
-		for j := len(ops) - 1; j >= 0; j-- {
-			io, err := invertOpForLocalNotifications(ops[j])
+		for _, op := range slices.Backward(ops) {
+			io, err := invertOpForLocalNotifications(op)
 			if err != nil {
 				fbo.log.CWarningf(ctx,
 					"got error %v when invert op %v; "+
@@ -7395,7 +7393,7 @@ func (fbo *folderBranchOps) undoMDUpdatesLocked(ctx context.Context,
 						"state, which can be fixed by "+
 						"either closing them all or "+
 						"restarting KBFS.",
-					err, ops[j])
+					err, op)
 				continue
 			}
 			err = fbo.notifyOneOpLocked(ctx, lState, io, rmd.ReadOnly(), false)

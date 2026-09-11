@@ -1115,9 +1115,7 @@ func TestCRDouble(t *testing.T) {
 	onSyncStalledCh, syncUnstallCh, syncCtx := StallMDOp(
 		syncCtx, config2, StallableMDAfterPutUnmerged, 1)
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		err = kbfsOps2.SyncAll(syncCtx, fileNodeC.GetFolderBranch())
 		// Even though internally folderBranchOps ignores the
 		// cancellation error when putting on an unmerged branch, the
@@ -1125,7 +1123,7 @@ func TestCRDouble(t *testing.T) {
 		if err != nil {
 			assert.Equal(t, context.Canceled, err)
 		}
-	}()
+	})
 	<-onSyncStalledCh
 	cancel()
 	close(syncUnstallCh)
@@ -1675,10 +1673,7 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 
 	var wg sync.WaitGroup
 	putCtx, cancel2 := context.WithCancel(putCtx)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		c <- struct{}{}
 		// Make sure the CR gets done with a context we can use for
 		// stalling.
@@ -1688,7 +1683,7 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 		err = kbfsOps2.SyncFromServer(putCtx,
 			rootNode2.GetFolderBranch(), nil)
 		assert.Error(t, err)
-	}()
+	})
 	<-onPutStalledCh
 	cancel2()
 	close(putUnstallCh)
@@ -1795,10 +1790,7 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 
 	var wg sync.WaitGroup
 	firstPutCtx, cancel := context.WithCancel(putCtx)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		// Make sure the CR gets done with a context we can use for
 		// stalling.
 		err = RestartCRForTesting(firstPutCtx, config2,
@@ -1815,7 +1807,7 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 		if !assert.NoError(t, err) {
 			return
 		}
-	}()
+	})
 	<-onPutStalledCh
 	cancel()
 	putUnstallCh <- struct{}{}
@@ -1828,10 +1820,7 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 	require.NoError(t, err)
 
 	// Now restart CR, and make sure it blocks all writes.
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		// Make sure the CR gets done with a context we can use for
 		// stalling.
 		err = RestartCRForTesting(putCtx, config2,
@@ -1839,7 +1828,7 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 		if !assert.NoError(t, err) {
 			return
 		}
-	}()
+	})
 	<-onPutStalledCh
 	c <- struct{}{}
 
@@ -1930,9 +1919,7 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 
 	var wg sync.WaitGroup
 	putCtx, cancel2 := context.WithCancel(putCtx)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		_, _, err = kbfsOps2.CreateFile(
 			putCtx, rootNode2, testPPS("c"), false, NoExcl)
 		assert.NoError(t, err)
@@ -1943,7 +1930,7 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 		if err != nil {
 			assert.Equal(t, context.Canceled, err)
 		}
-	}()
+	})
 	<-onPutStalledCh
 	cancel2()
 	close(putUnstallCh)

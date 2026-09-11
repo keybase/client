@@ -146,7 +146,7 @@ func doBlockPuts(ctx context.Context, bserv BlockServer, bcache data.BlockCache,
 		}
 		return nil
 	}
-	for i := 0; i < numWorkers; i++ {
+	for range numWorkers {
 		eg.Go(worker)
 	}
 

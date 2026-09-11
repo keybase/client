@@ -1059,20 +1059,16 @@ func (e *Identify2WithUID) loadUsers(m libkb.MetaContext) (err error) {
 		loggedIn, myUID := isLoggedIn(m)
 		if loggedIn {
 			selfLoad = myUID.Equal(e.arg.Uid)
-			wg.Add(1)
-			go func() {
+			wg.Go(func() {
 				loadMeErr = e.loadMe(m, myUID)
-				wg.Done()
-			}()
+			})
 		}
 	}
 
 	if !selfLoad {
-		wg.Add(1)
-		go func() {
+		wg.Go(func() {
 			loadThemErr = e.loadThem(m)
-			wg.Done()
-		}()
+		})
 	}
 	wg.Wait()
 

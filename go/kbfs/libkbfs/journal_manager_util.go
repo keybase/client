@@ -100,7 +100,7 @@ func FillInJournalStatusUnflushedPaths(ctx context.Context, config Config,
 
 	// Do up to 10 statuses at a time.
 	numWorkers := min(len(tlfIDs), 10)
-	for i := 0; i < numWorkers; i++ {
+	for range numWorkers {
 		eg.Go(statusFn)
 	}
 	for _, tlfID := range tlfIDs {

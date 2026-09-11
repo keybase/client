@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -918,8 +919,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	if err != nil {
 		s.Debug(ctx, "unable to get outbox records: %v", err)
 	}
-	for index := len(obrs) - 1; index >= 0; index-- {
-		msg := chat1.NewMessageUnboxedWithOutbox(obrs[index])
+	for _, obr := range slices.Backward(obrs) {
+		msg := chat1.NewMessageUnboxedWithOutbox(obr)
 		if msg.IsVisible() {
 			conversationLocal.Info.SnippetMsg = &msg
 			break

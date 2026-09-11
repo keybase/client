@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sync"
 
 	"github.com/keybase/client/go/kbfs/data"
@@ -737,8 +738,7 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 	unrefs := make(map[data.BlockPointer]bool)
 	for _, op := range md.data.Changes.Ops {
 		// Iterate in reverse since we may be deleting references as we go.
-		for i := len(op.Refs()) - 1; i >= 0; i-- {
-			ptr := op.Refs()[i]
+		for _, ptr := range slices.Backward(op.Refs()) {
 			// Don't add usage if it's an unembedded block change
 			// pointer.  Also, we shouldn't be referencing this
 			// anymore!
@@ -751,8 +751,8 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 			}
 		}
 		// Iterate in reverse since we may be deleting unrefs as we go.
-		for i := len(op.Unrefs()) - 1; i >= 0; i-- {
-			ptr := op.Unrefs()[i]
+		for _, ptr := range slices.Backward(op.Unrefs()) {
+
 			unrefs[ptr] = true
 			delete(refs, ptr)
 			if _, isCreateOp := op.(*createOp); isCreateOp {
@@ -1313,8 +1313,8 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 	// Also add in file updates from sync operations, since the
 	// resolutionOp may not include file-specific updates.  Start from
 	// the end of the list, so we use the final sync op for each file.
-	for i := len(oldOps) - 1; i >= 0; i-- {
-		op := oldOps[i]
+	for _, op := range slices.Backward(oldOps) {
+
 		so, ok := op.(*syncOp)
 		if !ok {
 			continue
@@ -1538,8 +1538,7 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 			toDeleteMap[id] = true
 		}
 		for _, unmergedResOp := range unmergedChains.resOps {
-			for i := len(unmergedResOp.Refs()) - 1; i >= 0; i-- {
-				ptr := unmergedResOp.Refs()[i]
+			for _, ptr := range slices.Backward(unmergedResOp.Refs()) {
 				if unmergedChains.blockChangePointers[ptr] &&
 					!toDeleteMap[ptr.ID] {
 					fup.vlog.CLogf(

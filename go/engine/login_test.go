@@ -261,20 +261,16 @@ func testProvisionAfterSwitch(t *testing.T, shouldItWork bool) {
 
 	// start provisionee
 	t.Logf("start provisionee")
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		err := RunEngine2(m, eng)
 		assertError(err)
-	}()
+	})
 
 	// start provisioner
 	t.Logf("start provisioner")
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		uis := libkb.UIs{
 			SecretUI:    userProvisionAs.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
@@ -282,7 +278,7 @@ func testProvisionAfterSwitch(t *testing.T, shouldItWork bool) {
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
 		err := RunEngine2(m, provisioner)
 		assertError(err)
-	}()
+	})
 
 	secretFromY := <-secretCh
 
@@ -362,24 +358,19 @@ func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb
 
 	// start provisionee
 	t.Logf("start provisionee")
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		err := RunEngine2(m, eng)
 		if err != nil {
 			t.Errorf("login error: %s", err)
 			return
 		}
-	}()
+	})
 
 	// start provisioner
 	t.Logf("start provisioner")
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
@@ -390,7 +381,7 @@ func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
-	}()
+	})
 
 	secretFromY := <-secretCh
 
@@ -457,23 +448,18 @@ func TestProvisionMobile(t *testing.T) {
 	var wg sync.WaitGroup
 
 	// start provisionee
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		err := RunEngine2(m, eng)
 		if err != nil {
 			t.Errorf("login error: %s", err)
 			return
 		}
-	}()
+	})
 
 	// start provisioner
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
@@ -484,7 +470,7 @@ func TestProvisionMobile(t *testing.T) {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
-	}()
+	})
 
 	secretFromY := <-secretCh
 
@@ -528,23 +514,18 @@ func TestProvisionWithRevoke(t *testing.T) {
 	var wg sync.WaitGroup
 
 	// start provisionee
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		err := RunEngine2(m, eng)
 		if err != nil {
 			t.Errorf("login error: %s", err)
 			return
 		}
-	}()
+	})
 
 	// start provisioner
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
@@ -555,7 +536,7 @@ func TestProvisionWithRevoke(t *testing.T) {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
-	}()
+	})
 
 	secretFromY := <-secretCh
 
@@ -1051,23 +1032,18 @@ func TestProvisionWithUnexpectedX(t *testing.T) {
 
 	// start provisionee
 	t.Logf("start provisionee")
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		err := RunEngine2(m, eng)
 		if assert.Error(t, err) {
 			assert.Contains(t, err.Error(), "different user")
 		}
-	}()
+	})
 
 	// start provisioner
 	t.Logf("start provisioner")
 	provisioner := NewKex2Provisioner(tcF.G, secretX, nil)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		uis := libkb.UIs{
 			SecretUI:    actualUser.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
@@ -1077,7 +1053,7 @@ func TestProvisionWithUnexpectedX(t *testing.T) {
 		if assert.Error(t, err) {
 			assert.Contains(t, err.Error(), "different user")
 		}
-	}()
+	})
 
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
@@ -2339,23 +2315,18 @@ func TestProvisionKexUseSyncPGP(t *testing.T) {
 	var wg sync.WaitGroup
 
 	// start provisionee
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		err := RunEngine2(m, eng)
 		if err != nil {
 			t.Errorf("login error: %s", err)
 			return
 		}
-	}()
+	})
 
 	// start provisioner
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
@@ -2366,7 +2337,7 @@ func TestProvisionKexUseSyncPGP(t *testing.T) {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
-	}()
+	})
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
 
@@ -2697,23 +2668,18 @@ func TestResetAccountKexProvision(t *testing.T) {
 	var wg sync.WaitGroup
 
 	// start provisionee
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		err := RunEngine2(m, eng)
 		if err != nil {
 			t.Errorf("login error: %s", err)
 			return
 		}
-	}()
+	})
 
 	// start provisioner
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		uis := libkb.UIs{
 			SecretUI:    u.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
@@ -2724,7 +2690,7 @@ func TestResetAccountKexProvision(t *testing.T) {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
-	}()
+	})
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
 
@@ -2869,23 +2835,18 @@ func TestResetAccountLikeNistur(t *testing.T) {
 	var wg sync.WaitGroup
 
 	// start provisionee
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		err := RunEngine2(m, eng)
 		if err != nil {
 			t.Errorf("login error: %s", err)
 			return
 		}
-	}()
+	})
 
 	// start provisioner
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		uis := libkb.UIs{
 			SecretUI:    u.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
@@ -2896,7 +2857,7 @@ func TestResetAccountLikeNistur(t *testing.T) {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
-	}()
+	})
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
 
@@ -2941,23 +2902,18 @@ func TestResetMultipleDevices(t *testing.T) {
 	var wg sync.WaitGroup
 
 	// start provisionee
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		err := RunEngine2(m, eng)
 		if err != nil {
 			t.Errorf("login error: %s", err)
 			return
 		}
-	}()
+	})
 
 	// start provisioner
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		uis := libkb.UIs{
 			SecretUI:    u.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
@@ -2968,7 +2924,7 @@ func TestResetMultipleDevices(t *testing.T) {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
-	}()
+	})
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
 
@@ -3047,23 +3003,18 @@ func TestProvisionWithBadConfig(t *testing.T) {
 	var wg sync.WaitGroup
 
 	// start provisionee
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		err := RunEngine2(m, eng)
 		if err != nil {
 			t.Errorf("login error: %s", err)
 			return
 		}
-	}()
+	})
 
 	// start provisioner
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
@@ -3074,7 +3025,7 @@ func TestProvisionWithBadConfig(t *testing.T) {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
-	}()
+	})
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
 
@@ -3283,23 +3234,18 @@ func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool) {
 	var wg sync.WaitGroup
 
 	// start provisionee
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		err := RunEngine2(m, eng)
 		if err != nil {
 			t.Errorf("provisionee login error: %s", err)
 			return
 		}
-	}()
+	})
 
 	// start provisioner
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
@@ -3310,7 +3256,7 @@ func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool) {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
-	}()
+	})
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
 
@@ -3383,23 +3329,18 @@ func TestProvisionAndRevoke(t *testing.T) {
 	var wg sync.WaitGroup
 
 	// start provisionee
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		err := RunEngine2(m, eng)
 		if err != nil {
 			t.Errorf("provisionee login error: %s", err)
 			return
 		}
-	}()
+	})
 
 	// start provisioner
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
@@ -3410,7 +3351,7 @@ func TestProvisionAndRevoke(t *testing.T) {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
-	}()
+	})
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
 
@@ -3764,9 +3705,7 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 	var wg sync.WaitGroup
 
 	// start provisionee for step #1
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		eng := NewLogin(tcY.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 		err := RunEngine2(m, eng)
@@ -3774,14 +3713,11 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 			t.Errorf("provisionee login error: %s", err)
 			return
 		}
-	}()
+	})
 
 	// start provisioner for step #1
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		// We're reusing the m from the PGP key generation
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
 		err := RunEngine2(m, provisioner)
@@ -3789,7 +3725,7 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
-	}()
+	})
 	secretFromY := <-secretCh
 	provisioner.AddSecret(secretFromY)
 
@@ -3830,9 +3766,7 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 	t.Logf("kex#2 starting")
 
 	// start provisionee for step #2
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		m := NewMetaContextForTest(tcZ).WithUIs(uis)
 		eng := NewLogin(tcZ.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 		err := RunEngine2(m, eng)
@@ -3840,7 +3774,7 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 			t.Errorf("provisionee login error: %s", err)
 			return
 		}
-	}()
+	})
 
 	// start provisioner for step #2
 	var secretY kex2.Secret
@@ -3848,10 +3782,7 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 		require.NoError(t, err)
 	}
 	provisioner = NewKex2Provisioner(tcY.G, secretY, nil)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		// We're reusing the m from the PGP key generation
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
 		// m.ActiveDevice().ClearPassphraseStreamCache()
@@ -3860,7 +3791,7 @@ func TestProvisionAfterPasswordChange(t *testing.T) {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
-	}()
+	})
 	secretFromZ := <-secretCh
 	provisioner.AddSecret(secretFromZ)
 

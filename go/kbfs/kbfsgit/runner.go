@@ -2420,9 +2420,7 @@ func (r *runner) processCommands(ctx context.Context) (err error) {
 	// interrupted).
 	commandChan := make(chan string, 100)
 	processorErrChan := make(chan error, 1)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		switch r.processType {
 		case processGit:
 			processorErrChan <- r.processCommand(ctx, commandChan)
@@ -2431,7 +2429,7 @@ func (r *runner) processCommands(ctx context.Context) (err error) {
 		default:
 			panic(fmt.Sprintf("Unknown process type: %v", r.processType))
 		}
-	}()
+	})
 
 	for {
 		stdinErrChan := make(chan error, 1)

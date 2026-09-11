@@ -2201,8 +2201,8 @@ func FindNextMerkleRootAfterRemoval(mctx libkb.MetaContext, arg keybase1.FindNex
 	}
 	var earliestDemotion int
 	var logPoint *keybase1.UserLogPoint
-	for i := len(logPoints) - 1; i >= 0; i-- {
-		if demotionPredicate(logPoints[i]) {
+	for i, logPoint0 := range slices.Backward(logPoints) {
+		if demotionPredicate(logPoint0) {
 			earliestDemotion = i
 		} else if earliestDemotion != 0 {
 			p := logPoints[earliestDemotion].DeepCopy()

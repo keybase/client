@@ -127,8 +127,8 @@ func NewContextWithReplayFrom(ctx context.Context) (context.Context, error) {
 }
 
 type cancellationDelayer struct {
-	delay    int64
-	canceled int64
+	delay    atomic.Int64
+	canceled atomic.Int64
 
 	done chan struct{}
 }
@@ -181,11 +181,11 @@ func NewContextWithCancellationDelayer(
 		case <-ctx.Done():
 		case <-c.done:
 		}
-		d := time.Duration(atomic.LoadInt64(&c.delay))
+		d := time.Duration(c.delay.Load())
 		if d != 0 {
 			time.Sleep(d)
 		}
-		atomic.StoreInt64(&c.canceled, 1)
+		c.canceled.Store(1)
 		cancel()
 	}()
 	return newCtx, nil
@@ -205,12 +205,12 @@ func NewContextWithCancellationDelayer(
 // cancellation is already enabled.
 func EnableDelayedCancellationWithGracePeriod(ctx context.Context, timeout time.Duration) error {
 	if c, ok := ctx.Value(CtxCancellationDelayerKey).(*cancellationDelayer); ok {
-		if atomic.LoadInt64(&c.canceled) > 0 {
+		if c.canceled.Load() > 0 {
 			// Too late! The parent context is already canceled and timer has already
 			// started.
 			return context.Canceled
 		}
-		atomic.StoreInt64(&c.delay, int64(timeout))
+		c.delay.Store(int64(timeout))
 		return nil
 	}
 	return NoCancellationDelayerError{}

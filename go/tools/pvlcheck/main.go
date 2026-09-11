@@ -46,7 +46,7 @@ var (
 	debugLogs  = flag.Bool("debug", false, "print the interpreter's per-instruction debug trace")
 )
 
-func die(format string, args ...interface{}) {
+func die(format string, args ...any) {
 	fmt.Fprintf(os.Stderr, format+"\n", args...)
 	os.Exit(1)
 }

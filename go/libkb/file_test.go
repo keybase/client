@@ -34,30 +34,26 @@ func TestFileSaveConcurrent(t *testing.T) {
 
 	var wg sync.WaitGroup
 	for range 20 {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			file := NewFile(filename, []byte("test data"), 0o644)
 			t.Logf("Saving")
 			err := file.Save(log)
 			if err != nil {
 				t.Errorf("save err: %s", err)
 			}
-		}()
+		})
 	}
 	wg.Wait()
 
 	var wg2 sync.WaitGroup
 	file := NewFile(filename, []byte("test data"), 0o644)
 	for range 20 {
-		wg2.Add(1)
-		go func() {
-			defer wg2.Done()
+		wg2.Go(func() {
 			err := file.Save(log)
 			if err != nil {
 				t.Errorf("save err: %s", err)
 			}
-		}()
+		})
 	}
 	wg2.Wait()
 }

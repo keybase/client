@@ -129,8 +129,7 @@ func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
 // prevent us from creating a team. We don't want a team where we don't know if
 // SBS user is resolvable but we just were unable to get the answer.
 func shouldPreventTeamCreation(err error) bool {
-	var resErr libkb.ResolutionError
-	if errors.As(err, &resErr) {
+	if resErr, ok := errors.AsType[libkb.ResolutionError](err); ok {
 		switch resErr.Kind {
 		case libkb.ResolutionErrorRateLimited, libkb.ResolutionErrorInvalidInput, libkb.ResolutionErrorRequestFailed:
 			return true

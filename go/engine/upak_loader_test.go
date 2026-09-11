@@ -294,24 +294,20 @@ func TestUPAKDeadlock(t *testing.T) {
 		ch <- struct{}{}
 	}
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		_ = tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
 			assert.Equal(t, fu.UID(), u.GetUID(), "right UID")
 			return nil
 		})
-	}()
+	})
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		un, err := tc.G.GetUPAKLoader().LookupUsername(context.TODO(), fu.UID())
 		assert.NoError(t, err)
 		if un.String() != fu.Username {
 			t.Errorf("username mismatch: %s != %s", un, fu.Username)
 		}
-	}()
+	})
 
 	doneCh := make(chan struct{})
 	go func() {

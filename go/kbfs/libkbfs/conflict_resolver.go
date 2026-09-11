@@ -12,6 +12,7 @@ import (
 	"os"
 	sysPath "path"
 	"runtime/debug"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -1035,12 +1036,12 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 	//   that parent later.
 	// * Otherwise, iterate up the path towards the root.
 	var mostRecent data.BlockPointer
-	for i := len(currPath.Path) - 1; i >= 0; i-- {
+	for _, v := range slices.Backward(currPath.Path) {
 		currOriginal, err := unmergedChains.originalFromMostRecent(
-			currPath.Path[i].BlockPointer)
+			v.BlockPointer)
 		if err != nil {
 			cr.log.CDebugf(ctx, "Couldn't find original pointer for %v",
-				currPath.Path[i])
+				v)
 			return data.Path{}, data.BlockPointer{}, nil, err
 		}
 
@@ -1052,7 +1053,7 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 
 		mergedPath.Path = append(mergedPath.Path, data.PathNode{
 			BlockPointer: currOriginal,
-			Name:         currPath.Path[i].Name,
+			Name:         v.Name,
 		})
 
 		// Has it been renamed?
@@ -1976,8 +1977,8 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 		symPath.WriteString("./")
 		newParentStart := 0
 	outer:
-		for i := len(mergedPathOldParent.Path) - 1; i >= 0; i-- {
-			mostRecent := mergedPathOldParent.Path[i].BlockPointer
+		for _, v := range slices.Backward(mergedPathOldParent.Path) {
+			mostRecent := v.BlockPointer
 			for j, pnode := range mergedPathNewParent.Path {
 				original, err := unmergedChains.originalFromMostRecentOrSame(mostRecent)
 				if err != nil {
@@ -2646,8 +2647,8 @@ func (cr *ConflictResolver) makeRevertedOps(ctx context.Context,
 
 	// Insert the operations starting closest to the root, so
 	// necessary directories are created first.
-	for i := len(sortedPaths) - 1; i >= 0; i-- {
-		ptr := sortedPaths[i].TailPointer()
+	for _, sortedPath := range slices.Backward(sortedPaths) {
+		ptr := sortedPath.TailPointer()
 		chain, ok := chains.byMostRecent[ptr]
 		if !ok {
 			return nil, fmt.Errorf("makeRevertedOps: Couldn't find chain "+

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -367,8 +368,8 @@ func (v ConversationView) RenderToWriter(g *libkb.GlobalContext, writer io.Write
 	}
 
 	table := &flexibletable.Table{}
-	for i := len(v.Messages) - 1; i >= 0; i-- {
-		m := v.Messages[i]
+	for _, m := range slices.Backward(v.Messages) {
+
 		mv, err := newMessageView(g, v.Opts, v.Conversation.Info.Id, m)
 		if err != nil {
 			g.Log.Error("Message render error: %s", err)

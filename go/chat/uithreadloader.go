@@ -667,9 +667,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 	getDelay := func() time.Duration {
 		return baseDelay - t.clock.Now().Sub(startTime)
 	}
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		// Run the full Pull operation, and redo pagination
 		ctx = globals.CtxModifyUnboxMode(ctx, types.UnboxModeQuick)
 		cancelUIStatus := t.setUIStatus(ctx, chatUI, chat1.NewUIChatThreadStatusWithServer(), getDelay())
@@ -725,7 +723,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 
 		// This means we transmitted with success, so cancel local thread
 		cancel()
-	}()
+	})
 	wg.Wait()
 
 	t.Debug(ctx, "LoadNonblock[%s]: payload transfer complete convID: %s fullSent: %v", reqID, convID, fullSent)

@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"context"
 	"reflect"
+	"slices"
 	"sync"
 	"time"
 
@@ -340,15 +341,15 @@ func (md *MDServerMemory) GetForTLFByTime(
 	blocks := blockList.blocks
 
 	// Iterate backward until we find a timestamp less than `serverTime`.
-	for i := len(blocks) - 1; i >= 0; i-- {
-		t := blocks[i].timestamp
+	for _, block := range slices.Backward(blocks) {
+		t := block.timestamp
 		if t.After(serverTime) {
 			continue
 		}
 
 		maxVer := md.config.MetadataVersion()
-		ver := blocks[i].version
-		buf := blocks[i].encodedMd
+		ver := block.version
+		buf := block.encodedMd
 		rmds, err := DecodeRootMetadataSigned(
 			md.config.Codec(), id, ver, maxVer, buf, t)
 		if err != nil {

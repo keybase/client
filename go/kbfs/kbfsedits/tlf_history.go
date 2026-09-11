@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -138,8 +139,8 @@ func (th *TlfHistory) AddNotifications(
 			continue
 		}
 
-		for j := len(revList) - 1; j >= 0; j-- {
-			revMsg := revList[j]
+		for j, revMsg := range slices.Backward(revList) {
+
 			if revMsg.Version != NotificationV2 {
 				// Ignore messages that are too new for us to understand.
 				continue

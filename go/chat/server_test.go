@@ -8687,7 +8687,7 @@ func TestMarkTLFAsReadLocal(t *testing.T) {
 		// Create multiple conversations (will be in the same team for TEAM type)
 		numConvs := 5
 		var tlfID chat1.TLFID
-		for i := 0; i < numConvs; i++ {
+		for i := range numConvs {
 			conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 				mt, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
 
@@ -8697,7 +8697,7 @@ func TestMarkTLFAsReadLocal(t *testing.T) {
 			}
 
 			// Post some messages
-			for j := 0; j < 3; j++ {
+			for j := range 3 {
 				mustPostLocalForTest(t, ctc, users[0], conv,
 					chat1.NewMessageBodyWithText(chat1.MessageText{
 						Body: fmt.Sprintf("Message %d in conv %d", j, i),
@@ -8751,7 +8751,7 @@ func TestMarkTLFAsReadLocalSkipsAlreadyRead(t *testing.T) {
 			mt, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
 		tlfID := conv.Triple.Tlfid
 
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			mustPostLocalForTest(t, ctc, users[0], conv,
 				chat1.NewMessageBodyWithText(chat1.MessageText{
 					Body: fmt.Sprintf("Message %d", i),

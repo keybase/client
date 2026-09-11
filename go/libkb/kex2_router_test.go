@@ -74,12 +74,10 @@ func TestKex2Router(t *testing.T) {
 	// test calling receive before send
 	var wg sync.WaitGroup
 	var merr error
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		// Very large timeout, for the benefit of CI, which may be slow
 		msgs, merr = kt.get(mr, 3, 10*time.Second)
-	}()
+	})
 
 	time.Sleep(3 * time.Millisecond)
 	if err := kt.post(mr, []byte(m3)); err != nil {

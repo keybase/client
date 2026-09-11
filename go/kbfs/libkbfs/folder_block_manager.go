@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sync"
 	"time"
 
@@ -506,7 +507,7 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 			}
 		}
 	}
-	for i := 0; i < numWorkers; i++ {
+	for range numWorkers {
 		wg.Add(1)
 		go worker()
 	}
@@ -903,16 +904,16 @@ func (fbm *folderBlockManager) getMostRecentGCRevision(
 		}
 
 		numNew := len(rmds)
-		for i := len(rmds) - 1; i >= 0; i-- {
-			rmd := rmds[i]
+		for _, rmd := range slices.Backward(rmds) {
+
 			if rmd.data.LastGCRevision >= kbfsmd.RevisionInitial {
 				fbm.log.CDebugf(ctx, "Found last gc revision %d in "+
 					"MD revision %d", rmd.data.LastGCRevision,
 					rmd.Revision())
 				return rmd.data.LastGCRevision, nil
 			}
-			for j := len(rmd.data.Changes.Ops) - 1; j >= 0; j-- {
-				GCOp, ok := rmd.data.Changes.Ops[j].(*GCOp)
+			for _, v := range slices.Backward(rmd.data.Changes.Ops) {
+				GCOp, ok := v.(*GCOp)
 				if !ok || GCOp.LatestRev == kbfsmd.RevisionUninitialized {
 					continue
 				}
@@ -1370,7 +1371,7 @@ func (fbm *folderBlockManager) doChunkedGetNonLiveBlocks(
 
 	eg, groupCtx := errgroup.WithContext(ctx)
 	chunkResults := make(chan []kbfsblock.ID, numChunks)
-	for i := 0; i < numWorkers; i++ {
+	for range numWorkers {
 		eg.Go(func() error {
 			for chunk := range chunks {
 				fbm.log.CDebugf(groupCtx,

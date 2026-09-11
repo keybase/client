@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -1488,8 +1489,7 @@ func (idt *IdentityTable) VerifySelfSig(nun NormalizedUsername, uid keybase1.UID
 
 func (idt *IdentityTable) GetTrackList() (ret []*TrackChainLink) {
 	for _, v := range idt.tracks {
-		for i := len(v) - 1; i >= 0; i-- {
-			link := v[i]
+		for _, link := range slices.Backward(v) {
 			if !link.IsRevoked() {
 				ret = append(ret, link)
 				break
@@ -1504,8 +1504,8 @@ func (idt *IdentityTable) TrackChainLinkFor(username NormalizedUsername, uid key
 	if !found {
 		return nil, nil
 	}
-	for i := len(list) - 1; i >= 0; i-- {
-		link := list[i]
+	for _, link := range slices.Backward(list) {
+
 		if link.IsRevoked() {
 			// noop; continue on!
 			continue
@@ -1524,8 +1524,7 @@ func (idt *IdentityTable) TrackChainLinkFor(username NormalizedUsername, uid key
 
 func (idt *IdentityTable) ActiveCryptocurrency(family CryptocurrencyFamily) *CryptocurrencyChainLink {
 	tab := idt.cryptocurrency
-	for i := len(tab) - 1; i >= 0; i-- {
-		link := tab[i]
+	for _, link := range slices.Backward(tab) {
 		if link.typ.ToCryptocurrencyFamily() == family {
 			if link.IsRevoked() {
 				return nil

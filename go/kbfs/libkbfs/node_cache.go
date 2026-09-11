@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"slices"
 	"sync"
 
 	"github.com/keybase/client/go/kbfs/data"
@@ -376,8 +377,8 @@ func (ncs *nodeCacheStandard) PathFromNode(node Node) (p data.Path) {
 			if len(p.Path) == 0 {
 				return core.cachedPath
 			}
-			for i := len(core.cachedPath.Path) - 1; i >= 0; i-- {
-				p.Path = append(p.Path, core.cachedPath.Path[i])
+			for _, v := range slices.Backward(core.cachedPath.Path) {
+				p.Path = append(p.Path, v)
 			}
 			break
 		}

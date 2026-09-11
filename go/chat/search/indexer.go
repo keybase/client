@@ -267,9 +267,7 @@ func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
 			return
 		}
 		ctx, cancelFn = context.WithCancel(ctx)
-		syncAttemptWG.Add(1)
-		go func() {
-			defer syncAttemptWG.Done()
+		syncAttemptWG.Go(func() {
 			idx.Debug(ctx, "running SelectiveSync")
 			if err := idx.SelectiveSync(ctx); err != nil {
 				idx.Debug(ctx, "unable to complete SelectiveSync: %v", err)
@@ -286,7 +284,7 @@ func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
 				cancelFn()
 				cancelFn = nil
 			}
-		}()
+		})
 	}
 
 	stopSync := func(ctx context.Context) {
@@ -699,10 +697,7 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 			return res, ctx.Err()
 		default:
 		}
-		end := start + idx.pageSize
-		if end > len(missingIDs) {
-			end = len(missingIDs)
-		}
+		end := min(start+idx.pageSize, len(missingIDs))
 		chunk := missingIDs[start:end]
 		msgs, err := idx.G().ConvSource.GetMessages(ctx, convID, idx.uid, chunk, &reason, nil, false)
 		res.attempted++

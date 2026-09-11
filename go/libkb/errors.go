@@ -126,8 +126,7 @@ func NewProofAPIError(s keybase1.ProofStatus, u string, d string, a ...any) *Pro
 // =============================================================================
 
 func XapiError(err error, u string) *ProofAPIError {
-	var ae *APIError
-	if errors.As(err, &ae) {
+	if ae, ok := errors.AsType[*APIError](err); ok {
 		var code keybase1.ProofStatus
 		switch ae.Code / 100 {
 		case 3:
@@ -501,8 +500,7 @@ type AppStatusError struct {
 // If the error is an AppStatusError, returns its code.
 // Otherwise returns (SCGeneric, false).
 func GetAppStatusCode(err error) (code keybase1.StatusCode, ok bool) {
-	var ase AppStatusError
-	if errors.As(err, &ase) {
+	if ase, ok := errors.AsType[AppStatusError](err); ok {
 		return keybase1.StatusCode(ase.Code), true
 	}
 	return keybase1.StatusCode_SCGeneric, false

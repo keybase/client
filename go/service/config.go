@@ -361,7 +361,7 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (r
 	}
 	res = eng.Status()
 	m.Debug("GetBootstrapStatus: attempting to get HTTP server address")
-	for i := 0; i < 40; i++ { // wait at most 2 seconds
+	for range 40 { // wait at most 2 seconds
 		addr, addrErr := h.svc.httpSrv.Addr()
 		if addrErr != nil {
 			m.Debug("GetBootstrapStatus: failed to get HTTP server address: %s", addrErr)

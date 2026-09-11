@@ -270,9 +270,7 @@ func ProvisionNewDeviceKex(tcX *libkb.TestContext, tcY *libkb.TestContext, userX
 	provisionerErrCh := make(chan error, 1)
 
 	// start provisionee
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		err := func() error {
 			uis := libkb.UIs{
 				ProvisionUI: &TestProvisionUI{SecretCh: make(chan kex2.Secret, 1)},
@@ -296,12 +294,10 @@ func ProvisionNewDeviceKex(tcX *libkb.TestContext, tcY *libkb.TestContext, userX
 			return engine.RunEngine2(m, provisionee)
 		}()
 		provisioneeErrCh <- err
-	}()
+	})
 
 	// start provisioner
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: &TestProvisionUI{},
@@ -310,7 +306,7 @@ func ProvisionNewDeviceKex(tcX *libkb.TestContext, tcY *libkb.TestContext, userX
 		go provisioner.AddSecret(secretY)
 		m := libkb.NewMetaContextForTest(*tcX).WithUIs(uis)
 		provisionerErrCh <- engine.RunEngine2(m, provisioner)
-	}()
+	})
 
 	wg.Wait()
 	require.NoError(t, <-provisioneeErrCh, "kex2 provisionee")
