@@ -441,6 +441,7 @@ func (errKBFSNotInitialized) Error() string { return "KBFS is not initialized ye
 // that connection use it.
 type kbfsInitWaiter interface {
 	waitForReady(ctx context.Context) error
+	ready() bool
 }
 
 // waitForKBFSReady blocks until init has set up what requests need, and
@@ -456,9 +457,10 @@ func waitForKBFSReady(ctx context.Context, config Config) error {
 // need. Service-initiated requests check this rather than waiting, so none of
 // them can block on an init that is itself waiting on the service.
 func kbfsReady(config Config) bool {
-	ctx, cancel := context.WithCancel(context.Background())
-	cancel()
-	return waitForKBFSReady(ctx, config) == nil
+	if w, ok := config.KBFSOps().(kbfsInitWaiter); ok {
+		return w.ready()
+	}
+	return true
 }
 
 // StartReachability implements keybase1.ReachabilityInterface.

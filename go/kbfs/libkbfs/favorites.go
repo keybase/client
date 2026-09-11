@@ -70,6 +70,7 @@ type favReq struct {
 	favs               chan<- []favorites.Folder
 	favsAll            chan<- keybase1.FavoritesResult
 	homeTLFInfo        *homeTLFInfo
+	loadDisk           bool
 
 	// For asynchronous refreshes, pass in the Favorites from the server here
 	favResult *keybase1.FavoritesResult
@@ -130,6 +131,7 @@ type Favorites struct {
 	shutdownChan chan struct{}
 	muShutdown   sync.RWMutex
 	shutdown     bool
+	loopOnce     sync.Once
 }
 
 func newFavoritesWithChan(config Config, reqChan chan *favReq) *Favorites {
@@ -157,8 +159,17 @@ func newFavoritesWithChan(config Config, reqChan chan *favReq) *Favorites {
 		bufferedInterval: defaultFavoritesBufferedReqInterval,
 		shutdownChan:     make(chan struct{}),
 	}
-
 	return f
+}
+
+func (f *Favorites) startLoop() {
+	if f.disabled {
+		return
+	}
+	f.loopOnce.Do(func() {
+		f.loopWG.Add(1)
+		go f.loop()
+	})
 }
 
 // NewFavorites constructs a new Favorites instance.
@@ -290,27 +301,25 @@ func (f *Favorites) writeCacheToDisk(ctx context.Context) error {
 // InitForTest starts the Favorites cache's internal processing loop without
 // loading cached favorites from disk.
 func (f *Favorites) InitForTest() {
-	if f.disabled {
-		return
-	}
-	go f.loop()
+	f.startLoop()
 }
 
-// Initialize loads the favorites cache from disk and starts listening for
-// requests asynchronously.
+// Initialize starts the processing loop and loads the favorites cache from
+// disk. Other methods start the loop on first use so notifications that
+// arrive before this can still be processed.
 func (f *Favorites) Initialize(ctx context.Context) {
 	if f.disabled {
 		return
 	}
-	// load cache from disk
-	err := f.readCacheFromDisk(ctx)
-	if err != nil {
+	req := &favReq{
+		ctx:      ctx,
+		loadDisk: true,
+		done:     make(chan struct{}),
+	}
+	if err := f.sendReq(ctx, req); err != nil {
 		f.log.CWarningf(
 			ctx, "Failed to read cached favorites from disk: %v", err)
 	}
-
-	// launch background loop
-	go f.loop()
 }
 
 func (f *Favorites) closeReq(req *favReq, err error) {
@@ -440,6 +449,10 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 			f.config.Reporter().NotifyFavoritesChanged(req.ctx)
 		}
 	}()
+
+	if req.loadDisk {
+		return f.readCacheFromDisk(req.ctx)
+	}
 
 	if req.refresh && !req.buffered {
 		<-f.refreshWaiting
@@ -674,7 +687,6 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 }
 
 func (f *Favorites) loop() {
-	f.loopWG.Add(1)
 	defer f.loopWG.Done()
 	bufferedTicker := time.NewTicker(f.bufferedInterval)
 	defer bufferedTicker.Stop()
@@ -759,13 +771,20 @@ func (f *Favorites) waitOnReq(ctx context.Context,
 	}
 }
 
-func (f *Favorites) sendReq(ctx context.Context, req *favReq) error {
+func (f *Favorites) enqueue(ctx context.Context, req *favReq) error {
+	f.startLoop()
 	f.wg.Add(1)
 	select {
 	case f.reqChan <- req:
+		return nil
 	case <-ctx.Done():
 		f.wg.Done()
-		err := ctx.Err()
+		return ctx.Err()
+	}
+}
+
+func (f *Favorites) sendReq(ctx context.Context, req *favReq) error {
+	if err := f.enqueue(ctx, req); err != nil {
 		f.closeReq(req, err)
 		return err
 	}
@@ -835,14 +854,8 @@ func (f *Favorites) AddAsync(ctx context.Context, fav favorites.ToAdd) {
 	// if the original context is canceled.
 	req, doSend := f.startOrJoinAddReq(context.Background(), fav)
 	if doSend {
-		f.wg.Add(1)
-		select {
-		case f.reqChan <- req:
-		case <-ctx.Done():
-			f.wg.Done()
-			err := ctx.Err()
+		if err := f.enqueue(ctx, req); err != nil {
 			f.closeReq(req, err)
-			return
 		}
 	}
 }
@@ -914,36 +927,27 @@ func (f *Favorites) RefreshCache(ctx context.Context, mode FavoritesRefreshMode)
 		done:    make(chan struct{}),
 		ctx:     context.Background(),
 	}
-	f.wg.Add(1)
 
 	if mode == FavoritesRefreshModeBlocking {
 		favResult, err := f.config.KBPKI().FavoriteList(ctx)
 		if err != nil {
 			f.log.CDebugf(ctx, "Failed to refresh cached Favorites: %+v", err)
-			// Because the request will not make it to the main processing
-			// loop, mark it as done and clear the refresh channel here.
-			f.wg.Done()
 			<-f.refreshWaiting
 			return
 		}
 		req.favResult = &favResult
 	}
-	select {
-	case f.reqChan <- req:
-		go func() {
-			<-req.done
-			if req.err != nil {
-				f.log.CDebugf(ctx, "Failed to refresh cached Favorites ("+
-					"error in main loop): %+v", req.err)
-			}
-		}()
-	case <-ctx.Done():
-		// Because the request will not make it to the main processing
-		// loop, mark it as done and clear the refresh channel here.
-		f.wg.Done()
+	if err := f.enqueue(ctx, req); err != nil {
 		<-f.refreshWaiting
 		return
 	}
+	go func() {
+		<-req.done
+		if req.err != nil {
+			f.log.CDebugf(ctx, "Failed to refresh cached Favorites ("+
+				"error in main loop): %+v", req.err)
+		}
+	}()
 }
 
 // RefreshCacheWhenMTimeChanged refreshes the cached favorites, but
@@ -960,6 +964,7 @@ func (f *Favorites) RefreshCacheWhenMTimeChanged(
 	if f.disabled || f.shutdown {
 		return
 	}
+	f.startLoop()
 
 	req := &favReq{
 		refresh:   true,
@@ -1003,13 +1008,7 @@ func (f *Favorites) ClearCache(ctx context.Context) {
 		done:    make(chan struct{}),
 		ctx:     context.Background(),
 	}
-	f.wg.Add(1)
-	select {
-	case f.reqChan <- req:
-	case <-ctx.Done():
-		f.wg.Done()
-		return
-	}
+	_ = f.enqueue(ctx, req)
 }
 
 // GetFolderWithFavFlags returns the a FolderWithFavFlags for give folder, if found.
@@ -1086,13 +1085,7 @@ func (f *Favorites) setHomeTLFInfo(ctx context.Context, info homeTLFInfo) {
 		done:        make(chan struct{}),
 		ctx:         context.Background(),
 	}
-	f.wg.Add(1)
-	select {
-	case f.reqChan <- req:
-	case <-ctx.Done():
-		f.wg.Done()
-		return
-	}
+	_ = f.enqueue(ctx, req)
 }
 
 // GetAll returns the logged-in user's list of favorite, new, and ignored TLFs.

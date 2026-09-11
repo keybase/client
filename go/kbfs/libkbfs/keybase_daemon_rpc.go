@@ -120,6 +120,9 @@ func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger,
 	if debug {
 		k.daemonLog.Configure("", true, "")
 	}
+	// Handlers in OnConnect can run before this constructor returns, and
+	// KBPKI reaches the daemon through config.
+	config.SetKeybaseService(k)
 	conn := NewSharedKeybaseConnection(kbCtx, config, k)
 	k.fillClients(conn.GetClient())
 	k.shutdownFn = conn.Shutdown
