@@ -1,8 +1,12 @@
 /// <reference types="jest" />
 import * as Tabs from '@/constants/tabs'
+import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '../current-user'
 import {useNotifState} from '../notifications'
+import {useConfigState} from '../config'
+import {useInboxBadgeState} from '@/chat/inbox/badge-state'
+import * as T from '@/constants/types'
 
 beforeEach(() => {
   useCurrentUserState.getState().dispatch.setBootstrap({
@@ -55,7 +59,7 @@ test('badge engine updates badge counts', () => {
     unverifiedPhones: 2,
   } as any
 
-  store.getState().dispatch.onEngineIncomingImpl({
+  notifyEngineActionListeners({
     payload: {params: {badgeState}},
     type: 'keybase.1.NotifyBadges.badgeState',
   } as any)
@@ -76,7 +80,7 @@ test('badge engine updates badge counts', () => {
 test('stale badgeState events do not regress badge counts', () => {
   const store = useNotifState
 
-  store.getState().dispatch.onEngineIncomingImpl({
+  notifyEngineActionListeners({
     payload: {
       params: {
         badgeState: {
@@ -93,7 +97,7 @@ test('stale badgeState events do not regress badge counts', () => {
     type: 'keybase.1.NotifyBadges.badgeState',
   } as any)
 
-  store.getState().dispatch.onEngineIncomingImpl({
+  notifyEngineActionListeners({
     payload: {
       params: {
         badgeState: {
@@ -123,7 +127,7 @@ test('stale badgeState events do not regress badge counts', () => {
 test('same-version badgeState updates teams detail and teams badge count', () => {
   const store = useNotifState
 
-  store.getState().dispatch.onEngineIncomingImpl({
+  notifyEngineActionListeners({
     payload: {
       params: {
         badgeState: {
@@ -140,7 +144,7 @@ test('same-version badgeState updates teams detail and teams badge count', () =>
     type: 'keybase.1.NotifyBadges.badgeState',
   } as any)
 
-  store.getState().dispatch.onEngineIncomingImpl({
+  notifyEngineActionListeners({
     payload: {
       params: {
         badgeState: {
@@ -173,7 +177,7 @@ test('gregor push state populates per-team access requests', () => {
   const store = useNotifState
   const encode = (value: unknown) => new TextEncoder().encode(JSON.stringify(value))
 
-  store.getState().dispatch.onEngineIncomingImpl({
+  notifyEngineActionListeners({
     payload: {
       params: {
         state: {
@@ -208,4 +212,34 @@ test('gregor push state populates per-team access requests', () => {
 
   expect(store.getState().newTeamRequests.get('team-1')).toEqual(new Set(['alice', 'bob']))
   expect(store.getState().newTeamRequests.get('team-2')).toEqual(new Set(['charlie']))
+})
+
+// One badgeState now fans out to three separately registered handlers instead of
+// one central switch arm; the inbox conversation map is written first, because
+// what reads the tab counts renders off it.
+test('one badgeState reaches the inbox map, the tab counts and config', () => {
+  const convID = new Uint8Array([1, 2, 3, 4])
+  notifyEngineActionListeners({
+    payload: {
+      params: {
+        badgeState: {
+          bigTeamBadgeCount: 4,
+          conversations: [{badgeCount: 2, convID, unreadMessages: 5}],
+          homeTodoItems: 2,
+          inboxVers: 3,
+          newTeamAccessRequestCount: 0,
+          smallTeamBadgeCount: 3,
+          unverifiedEmails: 0,
+          unverifiedPhones: 0,
+        },
+      },
+    },
+    type: 'keybase.1.NotifyBadges.badgeState',
+  } as any)
+
+  expect(
+    useInboxBadgeState.getState().counts.get(T.Chat.conversationIDToKey(convID as never))
+  ).toEqual({badgeCount: 2, unreadCount: 5})
+  expect(useNotifState.getState().navBadges.get(Tabs.chatTab)).toBe(7)
+  expect(useConfigState.getState().badgeState?.inboxVers).toBe(3)
 })

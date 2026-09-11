@@ -18,6 +18,10 @@ import * as Z from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
+import {useWaitingState} from '@/stores/waiting'
+import {useInboxLayoutState} from './layout-state'
+import {waitingKeyChatInboxSyncStarted} from '@/constants/strings'
+import {EnginePriority, registerEngineHandlers} from '@/engine/action-listener'
 
 export const getInboxConversationMeta = (conversationIDKey: T.Chat.ConversationIDKey) =>
   useInboxMetadataState.getState().metas.get(conversationIDKey)
@@ -673,3 +677,31 @@ export const onChatInboxSynced = async (
       await refreshInbox('inboxSyncedUnknown')
   }
 }
+
+registerEngineHandlers(
+  {
+    'chat.1.NotifyChat.ChatInboxStale': () => {
+      ignorePromise(useInboxLayoutState.getState().dispatch.refresh('inboxStale'))
+    },
+    'chat.1.NotifyChat.ChatInboxSyncStarted': () => {
+      useWaitingState.getState().dispatch.increment(waitingKeyChatInboxSyncStarted)
+    },
+    'chat.1.NotifyChat.ChatInboxSynced': action => {
+      useWaitingState.getState().dispatch.clear(waitingKeyChatInboxSyncStarted)
+      ignorePromise(
+        onChatInboxSynced(action, async reason => useInboxLayoutState.getState().dispatch.refresh(reason))
+      )
+    },
+    'chat.1.chatUi.chatInboxConversation': onGetInboxConvsUnboxed,
+    'chat.1.chatUi.chatInboxLayout': action => {
+      const {hasLoaded, dispatch} = useInboxLayoutState.getState()
+      dispatch.updateLayout(action.payload.params.layout)
+      const {layout} = useInboxLayoutState.getState()
+      if (layout) {
+        onInboxLayoutChanged(layout, hasLoaded)
+      }
+    },
+    'chat.1.chatUi.chatInboxUnverified': onGetInboxUnverifiedConvs,
+  },
+  {id: 'chat/inbox/metadata', priority: EnginePriority.shared}
+)

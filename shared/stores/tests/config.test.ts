@@ -1,5 +1,6 @@
 /// <reference types="jest" />
 import {noConversationIDKey} from '../../constants/types/chat/common'
+import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {useConfigState} from '../config'
 
 const resetConfigState = () => {
@@ -75,17 +76,16 @@ test('setOutOfDate merges fields and setGlobalError normalizes unknown input', (
   expect(state.globalError?.message).toBe('Unknown error: "boom"')
 })
 
-test('onEngineIncoming owns audit errors and badge state', () => {
-  const {dispatch} = useConfigState.getState()
+test('config owns audit errors and badge state off the engine action stream', () => {
   const badgeState = {inboxVers: 7} as any
 
-  dispatch.onEngineIncoming({
+  notifyEngineActionListeners({
     payload: {params: {badgeState}},
     type: 'keybase.1.NotifyBadges.badgeState',
   } as any)
   expect(useConfigState.getState().badgeState).toEqual(badgeState)
 
-  dispatch.onEngineIncoming({
+  notifyEngineActionListeners({
     payload: {params: {message: 'root bad'}},
     type: 'keybase.1.NotifyAudit.rootAuditError',
   } as any)
@@ -93,7 +93,7 @@ test('onEngineIncoming owns audit errors and badge state', () => {
     'Keybase is buggy, please report this: root bad'
   )
 
-  dispatch.onEngineIncoming({
+  notifyEngineActionListeners({
     payload: {params: {message: 'box bad'}},
     type: 'keybase.1.NotifyAudit.boxAuditError',
   } as any)

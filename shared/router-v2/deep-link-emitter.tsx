@@ -2,6 +2,7 @@ import {
   type NavigationIntentOptions,
   useNavigationIntentsState,
 } from '@/stores/navigation-intents'
+import {EnginePriority, registerEngineHandlers} from '@/engine/action-listener'
 
 // Deep-link emission + URL normalization. Kept separate from './linking'
 // (which imports the config/push/current-user stores) so stores/push can enqueue
@@ -71,3 +72,22 @@ export const emitDeepLink = (url: string, options?: NavigationIntentOptions) => 
   if (!normalized) return
   useNavigationIntentsState.getState().dispatch.enqueue(normalized, options)
 }
+
+registerEngineHandlers(
+  {
+    'keybase.1.NotifyService.handleKeybaseLink': action => {
+      const {link, deferred} = action.payload.params
+      // Only this handler is skipped. The central switch this replaced returned
+      // out of the whole dispatch here, so it also suppressed every other
+      // listener for the action; nothing else subscribes to it, and suppressing
+      // unrelated listeners was never the intent.
+      if (deferred && !link.startsWith('keybase://team-invite-link/')) {
+        return
+      }
+      // Route through the linking config; it falls back to handleAppLink
+      // for URL patterns not handled declaratively.
+      emitDeepLink(link.startsWith('keybase://') ? link : `keybase://${link}`)
+    },
+  },
+  {id: 'router-v2/deep-link-emitter', priority: EnginePriority.shared}
+)

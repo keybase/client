@@ -1,5 +1,5 @@
-import type * as EngineGen from '@/constants/rpc'
 import * as Z from '@/util/zustand'
+import {EnginePriority, registerEngineHandlers} from '@/engine/action-listener'
 import logger from '@/logger'
 import * as T from '@/constants/types'
 import {mapGetEnsureValue} from '@/util/map'
@@ -20,7 +20,6 @@ export type State = Store & {
   dispatch: {
     getBio: (username: string) => void
     getBlockState: (usernames: ReadonlyArray<string>) => void
-    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: () => void
     replace: (infoMap: State['infoMap'], blockMap?: State['blockMap']) => void
     updates: (infos: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
@@ -63,34 +62,6 @@ export const useUsersState = Z.createZustand<State>('users', (set, get) => {
       }
       ignorePromise(f())
     },
-    onEngineIncomingImpl: action => {
-      switch (action.type) {
-        case 'keybase.1.NotifyUsers.identifyUpdate': {
-          const {brokenUsernames, okUsernames} = action.payload.params
-          const combined = [
-            ...(brokenUsernames ?? []).map(name => ({info: {broken: true}, name})),
-            ...(okUsernames ?? []).map(name => ({info: {broken: false}, name})),
-          ]
-          if (combined.length) {
-            get().dispatch.updates(combined)
-          }
-          break
-        }
-        case 'keybase.1.NotifyTracking.notifyUserBlocked': {
-          const {blocks} = action.payload.params.b
-          set(s => {
-            for (const [username, bs] of Object.entries(blocks ?? {})) {
-              s.blockMap.set(username, {
-                chatBlocked: bs?.find(item => item.blockType === T.RPCGen.UserBlockType.chat)?.blocked ?? false,
-                followBlocked: bs?.find(item => item.blockType === T.RPCGen.UserBlockType.follow)?.blocked ?? false,
-              })
-            }
-          })
-          break
-        }
-        default:
-      }
-    },
     replace: (infoMap, blockMap) => {
       set(s => {
         s.infoMap = T.castDraft(infoMap)
@@ -122,3 +93,31 @@ export const useUsersState = Z.createZustand<State>('users', (set, get) => {
     dispatch,
   }
 })
+
+registerEngineHandlers(
+  {
+    'keybase.1.NotifyTracking.notifyUserBlocked': action => {
+      const {blocks} = action.payload.params.b
+      useUsersState.setState(s => {
+        for (const [username, bs] of Object.entries(blocks ?? {})) {
+          s.blockMap.set(username, {
+            chatBlocked: bs?.find(item => item.blockType === T.RPCGen.UserBlockType.chat)?.blocked ?? false,
+            followBlocked:
+              bs?.find(item => item.blockType === T.RPCGen.UserBlockType.follow)?.blocked ?? false,
+          })
+        }
+      })
+    },
+    'keybase.1.NotifyUsers.identifyUpdate': action => {
+      const {brokenUsernames, okUsernames} = action.payload.params
+      const combined = [
+        ...(brokenUsernames ?? []).map(name => ({info: {broken: true}, name})),
+        ...(okUsernames ?? []).map(name => ({info: {broken: false}, name})),
+      ]
+      if (combined.length) {
+        useUsersState.getState().dispatch.updates(combined)
+      }
+    },
+  },
+  {id: 'stores/users', priority: EnginePriority.shared}
+)

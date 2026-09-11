@@ -24,7 +24,10 @@ jest.mock('./thread-context', () => ({
 jest.mock('./send-actions', () => ({
   useConversationSendActions: () => ({sendGiphyResult: jest.fn(), sendMessage: jest.fn()}),
 }))
-jest.mock('@/engine/action-listener', () => ({useEngineActionListener: () => {}}))
+jest.mock('@/engine/action-listener', () => ({
+  ...jest.requireActual<object>('@/engine/action-listener'),
+  useEngineActionListener: () => {},
+}))
 jest.mock('./thread-load-status-context', () => ({
   useThreadLoadStatusOptionsGetter: () => () => mockThreadLoadStatusOptions,
 }))

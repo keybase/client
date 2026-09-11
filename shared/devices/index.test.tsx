@@ -67,7 +67,10 @@ jest.mock('@/util/use-local-badging', () => {
     useLocalBadging: () => ({badged: mockBadged}),
   }
 })
-jest.mock('@/engine/action-listener', () => ({useEngineActionListener: () => {}}))
+jest.mock('@/engine/action-listener', () => ({
+  ...jest.requireActual<object>('@/engine/action-listener'),
+  useEngineActionListener: () => {},
+}))
 jest.mock('@react-navigation/native', () => ({useNavigation: () => ({setOptions: () => {}})}))
 
 let mockRPCResults: Array<T.RPCGen.DeviceDetail> = []

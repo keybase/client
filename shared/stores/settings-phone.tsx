@@ -1,6 +1,7 @@
 import type * as T from '@/constants/types'
 import * as RPCGen from '@/constants/rpc/rpc-gen'
 import * as Z from '@/util/zustand'
+import {EnginePriority, registerEngineHandlers} from '@/engine/action-listener'
 import type {RPCError} from '@/util/errors'
 import {e164ToDisplay} from '@/util/phone-numbers'
 
@@ -89,3 +90,14 @@ export const useSettingsPhoneState = Z.createZustand<State>('settings-phone', se
     dispatch,
   }
 })
+
+registerEngineHandlers(
+  {
+    'keybase.1.NotifyPhoneNumber.phoneNumbersChanged': action => {
+      useSettingsPhoneState
+        .getState()
+        .dispatch.notifyPhoneNumberPhoneNumbersChanged(action.payload.params.list ?? undefined)
+    },
+  },
+  {id: 'stores/settings-phone', priority: EnginePriority.shared}
+)

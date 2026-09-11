@@ -8,6 +8,7 @@ import * as Tabs from '@/constants/tabs'
 import logger from '@/logger'
 import {mapGetEnsureValue} from '@/util/map'
 import {useCurrentUserState} from '@/stores/current-user'
+import {EnginePriority, registerEngineHandlers} from '@/engine/action-listener'
 
 export type BadgeType = 'regular' | 'update' | 'error' | 'uploading'
 export type NotificationKeys = 'kbfsUploading' | 'outOfSpace'
@@ -42,7 +43,6 @@ const initialStore: Store = {
 export type State = Store & {
   dispatch: {
     clearDeviceBadges: () => void
-    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: () => void
     badgeApp: (key: NotificationKeys, on: boolean) => void
     setBadgeCounts: (counts: Map<Tabs.Tab, number>) => void
@@ -138,85 +138,6 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
         s.deviceBadges = new Set()
       })
     },
-    onEngineIncomingImpl: action => {
-      switch (action.type) {
-        case 'keybase.1.NotifyBadges.badgeState': {
-          const badgeState = action.payload.params.badgeState
-          // device badges track the latest server state even when the inbox
-          // version guard below skips the rest
-          set(s => {
-            s.deviceBadges = new Set([
-              ...(badgeState.newDevices ?? []),
-              ...(badgeState.revokedDevices ?? []),
-            ])
-          })
-          const currentBadgeVersion = get().badgeVersion
-          if (currentBadgeVersion > badgeState.inboxVers) {
-            break
-          }
-          // badgeState fires on every incoming message; keep identities stable when the
-          // team data didn't change so subscribers (TeamsRoot etc) can bail. Compare
-          // against committed state, not the draft (immer 11 breaks lodash isEqual on drafts).
-          {
-            const prev = get()
-            const deletedTeams = badgeState.deletedTeams ?? []
-            const newTeams = new Set(badgeState.newTeams ?? [])
-            const teamIDToResetUsers = badgeStateToTeamIDToResetUsers(badgeState)
-            set(s => {
-              if (!isEqual(prev.deletedTeams, deletedTeams)) {
-                s.deletedTeams = T.castDraft(deletedTeams)
-              }
-              if (!isEqual(prev.newTeams, newTeams)) {
-                s.newTeams = newTeams
-              }
-              if (!isEqual(prev.teamIDToResetUsers, teamIDToResetUsers)) {
-                s.teamIDToResetUsers = teamIDToResetUsers
-              }
-            })
-          }
-          if (currentBadgeVersion === badgeState.inboxVers) {
-            // Teams badge detail can change without advancing inboxVers, so keep the
-            // Teams tab badge in sync with the latest server-owned badge state.
-            get().dispatch.setBadgeCounts(
-              new Map([[Tabs.teamsTab, badgeStateToBadgeCounts(badgeState).get(Tabs.teamsTab) ?? 0]])
-            )
-            break
-          }
-          set(s => {
-            s.badgeVersion = badgeState.inboxVers
-          })
-          const counts = badgeStateToBadgeCounts(badgeState)
-          get().dispatch.setBadgeCounts(counts)
-          break
-        }
-        case 'keybase.1.gregorUI.pushState': {
-          const {state} = action.payload.params
-          const items = state.items || []
-          const goodState = items.reduce<Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>>(
-            (arr, {md, item}) => {
-              if (md && item) {
-                arr.push({item, md})
-              }
-              return arr
-            },
-            []
-          )
-          if (goodState.length !== items.length) {
-            logger.warn('Lost some messages in filtering out nonNull gregor items')
-          }
-          {
-            const newTeamRequests = gregorItemsToNewTeamRequests(goodState)
-            if (!isEqual(get().newTeamRequests, newTeamRequests)) {
-              set(s => {
-                s.newTeamRequests = newTeamRequests
-              })
-            }
-          }
-          break
-        }
-        default:
-      }
-    },
     resetState: Z.defaultReset,
     setBadgeCounts: counts => {
       set(s => {
@@ -259,3 +180,86 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
     dispatch,
   }
 })
+
+const onBadgeState = (action: EngineGen.ActionOf<'keybase.1.NotifyBadges.badgeState'>) => {
+  const get = () => useNotifState.getState()
+  const set = (fn: Parameters<typeof useNotifState.setState>[0]) => {
+    useNotifState.setState(fn)
+  }
+  const badgeState = action.payload.params.badgeState
+  // device badges track the latest server state even when the inbox
+  // version guard below skips the rest
+  set(s => {
+    s.deviceBadges = new Set([...(badgeState.newDevices ?? []), ...(badgeState.revokedDevices ?? [])])
+  })
+  const currentBadgeVersion = get().badgeVersion
+  if (currentBadgeVersion > badgeState.inboxVers) {
+    return
+  }
+  // badgeState fires on every incoming message; keep identities stable when the
+  // team data didn't change so subscribers (TeamsRoot etc) can bail. Compare
+  // against committed state, not the draft (immer 11 breaks lodash isEqual on drafts).
+  {
+    const prev = get()
+    const deletedTeams = badgeState.deletedTeams ?? []
+    const newTeams = new Set(badgeState.newTeams ?? [])
+    const teamIDToResetUsers = badgeStateToTeamIDToResetUsers(badgeState)
+    set(s => {
+      if (!isEqual(prev.deletedTeams, deletedTeams)) {
+        s.deletedTeams = T.castDraft(deletedTeams)
+      }
+      if (!isEqual(prev.newTeams, newTeams)) {
+        s.newTeams = newTeams
+      }
+      if (!isEqual(prev.teamIDToResetUsers, teamIDToResetUsers)) {
+        s.teamIDToResetUsers = teamIDToResetUsers
+      }
+    })
+  }
+  if (currentBadgeVersion === badgeState.inboxVers) {
+    // Teams badge detail can change without advancing inboxVers, so keep the
+    // Teams tab badge in sync with the latest server-owned badge state.
+    get().dispatch.setBadgeCounts(
+      new Map([[Tabs.teamsTab, badgeStateToBadgeCounts(badgeState).get(Tabs.teamsTab) ?? 0]])
+    )
+    return
+  }
+  set(s => {
+    s.badgeVersion = badgeState.inboxVers
+  })
+  get().dispatch.setBadgeCounts(badgeStateToBadgeCounts(badgeState))
+}
+
+const onGregorPushState = (action: EngineGen.ActionOf<'keybase.1.gregorUI.pushState'>) => {
+  const get = () => useNotifState.getState()
+  const set = (fn: Parameters<typeof useNotifState.setState>[0]) => {
+    useNotifState.setState(fn)
+  }
+  const items = action.payload.params.state.items || []
+  const goodState = items.reduce<Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>>(
+    (arr, {md, item}) => {
+      if (md && item) {
+        arr.push({item, md})
+      }
+      return arr
+    },
+    []
+  )
+  if (goodState.length !== items.length) {
+    logger.warn('Lost some messages in filtering out nonNull gregor items')
+  }
+  const newTeamRequests = gregorItemsToNewTeamRequests(goodState)
+  if (!isEqual(get().newTeamRequests, newTeamRequests)) {
+    set(s => {
+      s.newTeamRequests = newTeamRequests
+    })
+  }
+}
+
+registerEngineHandlers(
+  {
+    'keybase.1.NotifyBadges.badgeState': onBadgeState,
+    'keybase.1.gregorUI.pushState': onGregorPushState,
+  },
+  {id: 'stores/notifications', priority: EnginePriority.shared}
+)

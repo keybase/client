@@ -1,4 +1,5 @@
 /// <reference types="jest" />
+import {notifyEngineActionListeners} from '@/engine/action-listener'
 import type * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useNotifState} from './notifications'
@@ -52,8 +53,7 @@ describe('notifications store identity stability', () => {
   })
 
   it('keeps team map identities stable across badgeStates with unchanged team data', () => {
-    const dispatch = useNotifState.getState().dispatch
-    dispatch.onEngineIncomingImpl(
+    notifyEngineActionListeners(
       badgeAction(
         makeBadgeState({
           inboxVers: 10,
@@ -68,7 +68,7 @@ describe('notifications store identity stability', () => {
     expect(before.navBadges.get('tabs.chatTab' as never) ?? 0).toBeGreaterThanOrEqual(0)
 
     // same team data, only chat badge count moved (an incoming message)
-    dispatch.onEngineIncomingImpl(
+    notifyEngineActionListeners(
       badgeAction(
         makeBadgeState({
           inboxVers: 11,
@@ -87,8 +87,7 @@ describe('notifications store identity stability', () => {
   })
 
   it('keeps newTeamRequests identity stable across equal gregor pushStates', () => {
-    const dispatch = useNotifState.getState().dispatch
-    dispatch.onEngineIncomingImpl(
+    notifyEngineActionListeners(
       gregorAction([
         {body: JSON.stringify({id: 'teamA', username: 'testuser'}), category: 'team.request_access:teamA'},
       ])
@@ -96,7 +95,7 @@ describe('notifications store identity stability', () => {
     const before = useNotifState.getState().newTeamRequests
     expect(before.get('teamA' as never)?.has('testuser')).toBe(true)
 
-    dispatch.onEngineIncomingImpl(
+    notifyEngineActionListeners(
       gregorAction([
         {body: JSON.stringify({id: 'teamA', username: 'testuser'}), category: 'team.request_access:teamA'},
       ])
