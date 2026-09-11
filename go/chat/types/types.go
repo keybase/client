@@ -581,11 +581,17 @@ type DummyUnfurler struct{}
 var _ Unfurler = (*DummyUnfurler)(nil)
 
 func (d DummyUnfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msg chat1.MessageUnboxed) {
+	msg chat1.MessageUnboxed, suppress []string) {
 }
 
 func (d DummyUnfurler) Prefetch(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msgText string) int {
 	return 0
+}
+
+func (d DummyUnfurler) PreviewURLs(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	text string,
+) []chat1.UnfurlPreviewInfo {
+	return nil
 }
 
 func (d DummyUnfurler) Status(ctx context.Context, outboxID chat1.OutboxID) (UnfurlerTaskStatus, *chat1.UnfurlResult, error) {

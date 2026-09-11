@@ -225,7 +225,7 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTr
 	unfurlDoneCh := make(chan struct{}, 10)
 	outboxID := storage.GetOutboxIDFromURL(body, t.convID, newMsg)
 	listenerID := l.G().NotifyRouter.AddListener(newUnfurlNotifyListener(l.G(), outboxID, unfurlDoneCh))
-	l.G().Unfurler.UnfurlAndSend(ctx, l.uid, t.convID, newMsg)
+	l.G().Unfurler.UnfurlAndSend(ctx, l.uid, t.convID, newMsg, nil)
 	select {
 	case <-unfurlDoneCh:
 	case <-time.After(time.Minute):

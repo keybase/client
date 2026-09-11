@@ -147,6 +147,7 @@
   "chat.1.local.toggleMessageCollapse": {"promise":true},
   "chat.1.local.trackGiphySelect": {"promise":true},
   "chat.1.local.unboxMobilePushNotification": {"promise":true},
+  "chat.1.local.unfurlPreviewLocal": {"promise":true},
   "chat.1.local.unpinMessage": {"promise":true},
   "chat.1.local.updateTyping": {"promise":true},
   "chat.1.local.updateUnsentText": {"promise":true},

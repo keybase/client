@@ -1757,6 +1757,7 @@ func (o SenderPrepareOptions) DeepCopy() SenderPrepareOptions {
 
 type SenderSendOptions struct {
 	JoinMentionsAs *ConversationMemberStatus `codec:"joinMentionsAs,omitempty" json:"joinMentionsAs,omitempty"`
+	UnfurlSuppress []string                  `codec:"unfurlSuppress" json:"unfurlSuppress"`
 }
 
 func (o SenderSendOptions) DeepCopy() SenderSendOptions {
@@ -1768,6 +1769,17 @@ func (o SenderSendOptions) DeepCopy() SenderSendOptions {
 			tmp := x.DeepCopy()
 			return &tmp
 		})(o.JoinMentionsAs),
+		UnfurlSuppress: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.UnfurlSuppress),
 	}
 }
 
@@ -5844,6 +5856,24 @@ func (o UnfurlPromptResult) DeepCopy() UnfurlPromptResult {
 	}
 }
 
+type UnfurlPreviewInfo struct {
+	Url    string         `codec:"url" json:"url"`
+	Unfurl *UnfurlDisplay `codec:"unfurl,omitempty" json:"unfurl,omitempty"`
+}
+
+func (o UnfurlPreviewInfo) DeepCopy() UnfurlPreviewInfo {
+	return UnfurlPreviewInfo{
+		Url: o.Url,
+		Unfurl: (func(x *UnfurlDisplay) *UnfurlDisplay {
+			if x == nil {
+				return nil
+			}
+			tmp := x.DeepCopy()
+			return &tmp
+		})(o.Unfurl),
+	}
+}
+
 type GalleryItemTyp int
 
 const (
@@ -6816,6 +6846,7 @@ type PostLocalNonblockArg struct {
 	ReplyTo            *MessageID                   `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 	IdentifyBehavior   keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 	SkipInChatPayments bool                         `codec:"skipInChatPayments" json:"skipInChatPayments"`
+	UnfurlSuppress     []string                     `codec:"unfurlSuppress" json:"unfurlSuppress"`
 }
 
 type ForwardMessageArg struct {
@@ -6847,6 +6878,7 @@ type PostTextNonblockArg struct {
 	OutboxID          *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	IdentifyBehavior  keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 	EphemeralLifetime *gregor1.DurationSec         `codec:"ephemeralLifetime,omitempty" json:"ephemeralLifetime,omitempty"`
+	UnfurlSuppress    []string                     `codec:"unfurlSuppress" json:"unfurlSuppress"`
 }
 
 type PostDeleteNonblockArg struct {
@@ -7234,6 +7266,11 @@ type SaveUnfurlSettingsArg struct {
 	Whitelist []string   `codec:"whitelist" json:"whitelist"`
 }
 
+type UnfurlPreviewLocalArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	Text   string         `codec:"text" json:"text"`
+}
+
 type ToggleMessageCollapseArg struct {
 	ConvID   ConversationID `codec:"convID" json:"convID"`
 	MsgID    MessageID      `codec:"msgID" json:"msgID"`
@@ -7553,6 +7590,7 @@ type LocalInterface interface {
 	ResolveUnfurlPrompt(context.Context, ResolveUnfurlPromptArg) error
 	GetUnfurlSettings(context.Context) (UnfurlSettingsDisplay, error)
 	SaveUnfurlSettings(context.Context, SaveUnfurlSettingsArg) error
+	UnfurlPreviewLocal(context.Context, UnfurlPreviewLocalArg) ([]UnfurlPreviewInfo, error)
 	ToggleMessageCollapse(context.Context, ToggleMessageCollapseArg) error
 	BulkAddToConv(context.Context, BulkAddToConvArg) error
 	BulkAddToManyConvs(context.Context, BulkAddToManyConvsArg) error
@@ -8777,6 +8815,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"unfurlPreviewLocal": {
+				MakeArg: func() any {
+					var ret [1]UnfurlPreviewLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
+					typedArgs, ok := args.(*[1]UnfurlPreviewLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]UnfurlPreviewLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.UnfurlPreviewLocal(ctx, typedArgs[0])
+					return
+				},
+			},
 			"toggleMessageCollapse": {
 				MakeArg: func() any {
 					var ret [1]ToggleMessageCollapseArg
@@ -9918,6 +9971,11 @@ func (c LocalClient) GetUnfurlSettings(ctx context.Context) (res UnfurlSettingsD
 
 func (c LocalClient) SaveUnfurlSettings(ctx context.Context, __arg SaveUnfurlSettingsArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.saveUnfurlSettings", []any{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) UnfurlPreviewLocal(ctx context.Context, __arg UnfurlPreviewLocalArg) (res []UnfurlPreviewInfo, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.unfurlPreviewLocal", []any{__arg}, &res, 15000*time.Millisecond)
 	return
 }
 
