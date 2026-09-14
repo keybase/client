@@ -17,7 +17,7 @@ function LeftTabNavigator({
   screenOptions,
 }: Props) {
   const styles = useStyles()
-  const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
+  const {state, navigation, descriptors, render} = useNavigationBuilder(TabRouter, {
     backBehavior,
     children,
     initialRouteName,
@@ -26,32 +26,30 @@ function LeftTabNavigator({
 
   const hasModals = useRouterState(() => getModalStack().length > 0)
 
-  return (
-    <NavigationContent>
-      <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.box}>
-        <TabBar
-          state={state}
-          navigation={
-            // eslint-disable-next-line
-            navigation as any
-          }
-        />
-        <Kb.BoxGrow style={styles.content}>
-          {state.routes.map((route, i) => {
-            const selected = i === state.index
-            const desc = descriptors[route.key]
-            return (
-              <React.Activity key={route.name} mode={selected ? 'visible' : 'hidden'}>
-                <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
-                  {desc?.render()}
-                </Kb.Box2>
-              </React.Activity>
-            )
-          })}
-        </Kb.BoxGrow>
-        <ModalBackdrop hasModals={hasModals} />
-      </Kb.Box2>
-    </NavigationContent>
+  return render(
+    <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.box}>
+      <TabBar
+        state={state}
+        navigation={
+          // eslint-disable-next-line
+          navigation as any
+        }
+      />
+      <Kb.BoxGrow style={styles.content}>
+        {state.routes.map((route, i) => {
+          const selected = i === state.index
+          const desc = descriptors[route.key]
+          return (
+            <React.Activity key={route.name} mode={selected ? 'visible' : 'hidden'}>
+              <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+                {desc?.render()}
+              </Kb.Box2>
+            </React.Activity>
+          )
+        })}
+      </Kb.BoxGrow>
+      <ModalBackdrop hasModals={hasModals} />
+    </Kb.Box2>
   )
 }
 

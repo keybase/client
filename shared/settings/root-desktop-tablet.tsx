@@ -17,7 +17,7 @@ function LeftTabNavigator({
   backBehavior: 'initialRoute' | 'firstRoute' | 'history' | 'order' | 'none'
 }) {
   const styles = useStyles()
-  const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
+  const {state, navigation, descriptors, render} = useNavigationBuilder(TabRouter, {
     backBehavior,
     children,
     initialRouteName,
@@ -41,27 +41,25 @@ function LeftTabNavigator({
     navRef.current(s)
   }
 
-  return (
-    <NavigationContent>
-      <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.box}>
-        <Kb.Box2 direction="vertical" fullHeight={true} style={styles.nav}>
-          <LeftNav onClick={onSelectTab} selected={selectedTab} navigate={navigate} />
-        </Kb.Box2>
-        <Kb.BoxGrow>
-          {state.routes.map((route, i) => {
-            const selected = i === state.index
-            const desc = descriptors[route.key]
-            return (
-              <React.Activity key={route.name} mode={selected ? 'visible' : 'hidden'}>
-                <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
-                  {desc?.render()}
-                </Kb.Box2>
-              </React.Activity>
-            )
-          })}
-        </Kb.BoxGrow>
+  return render(
+    <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.box}>
+      <Kb.Box2 direction="vertical" fullHeight={true} style={styles.nav}>
+        <LeftNav onClick={onSelectTab} selected={selectedTab} navigate={navigate} />
       </Kb.Box2>
-    </NavigationContent>
+      <Kb.BoxGrow>
+        {state.routes.map((route, i) => {
+          const selected = i === state.index
+          const desc = descriptors[route.key]
+          return (
+            <React.Activity key={route.name} mode={selected ? 'visible' : 'hidden'}>
+              <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+                {desc?.render()}
+              </Kb.Box2>
+            </React.Activity>
+          )
+        })}
+      </Kb.BoxGrow>
+    </Kb.Box2>
   )
 }
 
