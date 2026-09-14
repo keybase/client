@@ -50,7 +50,7 @@ type KBFSOpsStandard struct {
 	// Closing this channel will shutdown the reidentification
 	// watcher.
 	reIdentifyControlChan chan chan<- struct{}
-	initDoneCh <-chan struct{}
+	initDoneCh            <-chan struct{}
 	// Closed once, under initMu: ready if requests can run, failed if
 	// init failed before that. initFailed is a no-op after ready.
 	initReadyCh  chan struct{}
