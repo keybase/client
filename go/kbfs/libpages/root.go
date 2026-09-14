@@ -138,6 +138,7 @@ func (r *Root) MakeFS(
 	fs CacheableFS, tlfID tlf.ID, shutdown func(), err error,
 ) {
 	fsCtx, cancel := context.WithCancel(context.Background())
+	var unsubscribe func()
 	defer func() {
 		zapFields := []zapcore.Field{
 			zap.String("root_type", r.Type.String()),
@@ -148,6 +149,9 @@ func (r *Root) MakeFS(
 		if err == nil {
 			log.Info("root.MakeFS", zapFields...)
 		} else {
+			if unsubscribe != nil {
+				unsubscribe()
+			}
 			cancel()
 			log.Warn("root.MakeFS", append(zapFields, zap.Error(err))...)
 		}
@@ -173,10 +177,11 @@ func (r *Root) MakeFS(
 		if err != nil {
 			return CacheableFS{}, tlf.ID{}, nil, err
 		}
-		obsoleteCh, err := tlfFS.SubscribeToObsolete()
+		obsoleteCh, unsub, err := tlfFS.SubscribeToObsolete()
 		if err != nil {
 			return CacheableFS{}, tlf.ID{}, nil, err
 		}
+		unsubscribe = unsub
 		cacheableFS := CacheableFS{
 			obsoleteTrackingCh: obsoleteCh,
 			tlfFS:              tlfFS,
@@ -185,7 +190,10 @@ func (r *Root) MakeFS(
 		if _, err = cacheableFS.Use(); err != nil {
 			return CacheableFS{}, tlf.ID{}, nil, err
 		}
-		return cacheableFS, tlfHandle.TlfID(), cancel, nil
+		return cacheableFS, tlfHandle.TlfID(), func() {
+			unsub()
+			cancel()
+		}, nil
 	case GitRoot:
 		tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
 			ctx, kbfsConfig.KBPKI(), kbfsConfig.MDOps(), kbfsConfig,

@@ -101,11 +101,11 @@ func EmptyAmountStack(mctx libkb.MetaContext) {
 func cancelOnMobileBackground(mctx libkb.MetaContext) (libkb.MetaContext, context.CancelFunc) {
 	mctx, cancel := mctx.WithContextCancel()
 	go func() {
+		const foreground = keybase1.MobileAppState_FOREGROUND
 		for {
-			foreground := keybase1.MobileAppState_FOREGROUND
 			select {
-			case state := <-mctx.G().MobileAppState.NextUpdate(&foreground):
-				if state != foreground {
+			case <-mctx.G().MobileAppState.NextUpdate(foreground):
+				if mctx.G().MobileAppState.State() != foreground {
 					cancel()
 					return
 				}

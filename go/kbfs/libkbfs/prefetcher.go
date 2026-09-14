@@ -1352,8 +1352,8 @@ func (p *blockPrefetcher) handleAppStateChange(
 		p.log.CDebugf(
 			context.TODO(), "Pausing prefetcher while backgrounded")
 		select {
-		case *appState = <-p.appStateUpdater.NextAppStateUpdate(
-			appState):
+		case <-p.appStateUpdater.NextAppStateUpdate(*appState):
+			*appState = p.appStateUpdater.AppState()
 		case req := <-p.prefetchStatusCh.Out():
 			p.handleStatusRequest(req.(*prefetchStatusRequest))
 			continue
@@ -1423,8 +1423,8 @@ func (p *blockPrefetcher) handleNetStateChange(
 		p.log.CDebugf(
 			context.TODO(), "Pausing prefetcher on cell network")
 		select {
-		case *netState = <-p.appStateUpdater.NextNetworkStateUpdate(
-			netState):
+		case <-p.appStateUpdater.NextNetworkStateUpdate(*netState):
+			*netState = p.appStateUpdater.NetworkState()
 		case <-subCh:
 			p.log.CDebugf(context.TODO(), "Settings changed")
 		case req := <-p.prefetchStatusCh.Out():
@@ -1545,9 +1545,11 @@ func (p *blockPrefetcher) run(
 			p.log.Debug("shutting down, clearing in flight fetches")
 			ch := chInterface.(<-chan error)
 			<-ch
-		case appState = <-p.appStateUpdater.NextAppStateUpdate(&appState):
+		case <-p.appStateUpdater.NextAppStateUpdate(appState):
+			appState = p.appStateUpdater.AppState()
 			p.handleAppStateChange(&appState)
-		case netState = <-p.appStateUpdater.NextNetworkStateUpdate(&netState):
+		case <-p.appStateUpdater.NextNetworkStateUpdate(netState):
+			netState = p.appStateUpdater.NetworkState()
 			p.handleNetStateChange(&netState, subCh)
 		case <-subCh:
 			// Settings have changed, so recheck the network state.

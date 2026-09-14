@@ -255,7 +255,8 @@ func (c *FullCachingSource) monitorAppState(m libkb.MetaContext) {
 	c.debug(m, "monitorAppState: starting up")
 	state := keybase1.MobileAppState_FOREGROUND
 	for {
-		state = <-m.G().MobileAppState.NextUpdate(&state)
+		<-m.G().MobileAppState.NextUpdate(state)
+		state = m.G().MobileAppState.State()
 		if state == keybase1.MobileAppState_BACKGROUND {
 			c.debug(m, "monitorAppState: backgrounded")
 			if err := c.diskLRU.Flush(m.Ctx(), m.G()); err != nil {

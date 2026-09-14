@@ -125,7 +125,8 @@ func (e *EKLib) backgroundKeygen(mctx libkb.MetaContext, stopCh <-chan struct{})
 		select {
 		case <-ticker.C:
 			runIfNeeded(false /* force */)
-		case state = <-mctx.G().MobileAppState.NextUpdate(&state):
+		case <-mctx.G().MobileAppState.NextUpdate(state):
+			state = mctx.G().MobileAppState.State()
 			if state == keybase1.MobileAppState_BACKGROUNDACTIVE {
 				// Before running we pause briefly so we don't stampede for
 				// resources with other background tasks. libkb.BgTicker
