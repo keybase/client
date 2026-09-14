@@ -57,8 +57,8 @@ func NewMobileAppState(g *GlobalContext) *MobileAppState {
 //
 // Note: state transitions between two NextUpdate calls may be collapsed - a
 // caller is guaranteed only that when the returned channel fires, State()
-// returns a value different from the one they last observed; they are not
-// guaranteed to observe every intermediate transition.
+// returns the most up-to-date valule; they are not guaranteed to
+// observe every intermediate transition.
 func (a *MobileAppState) NextUpdate(lastState keybase1.MobileAppState) <-chan struct{} {
 	a.Lock()
 	defer a.Unlock()
