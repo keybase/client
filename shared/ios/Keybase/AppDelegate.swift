@@ -479,11 +479,11 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     log.info("applicationWillEnterForeground: hiding keyz screen.")
     PerfFPSMonitor.appWillEnterForeground()
     hideCover()
-    // Tell Go we're foregrounding now instead of waiting for didBecomeActive: the service's
-    // local http server restarts on this signal, and doing it here gives it a head start
-    // before React Native resumes and image loads race the restart. Can't use
-    // notifyAppState here since applicationState is still .background at this point.
-    Keybasego.KeybaseSetAppStateForeground()
+    // HTTP and gregor should come up before React Native resumes painting (image
+    // loads race a stopped http server). BACKGROUNDACTIVE starts those without
+    // claiming the user is on-screen — FOREGROUND waits for didBecomeActive.
+    // Can't use notifyAppState here: applicationState is still .background.
+    Keybasego.KeybaseSetAppStateBackgroundActive()
     NSLog("applicationWillEnterForeground: done")
   }
 

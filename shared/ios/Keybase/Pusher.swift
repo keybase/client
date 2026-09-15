@@ -15,6 +15,9 @@ class PushNotifier: NSObject, Keybasego.KeybasePushNotifierProtocol {
   ) {
     // Invoked by Go over the gomobile cgo bridge, so this runs on a Go-runtime-managed thread,
     // not a real NSThread/dispatch queue. Hop to a GCD queue before touching UserNotifications.
+    // Block until the request is queued so Go does not ack the silent push (and cancel the
+    // server fallback) before iOS has the local notification.
+    let queued = DispatchSemaphore(value: 0)
     pushQueue.async {
       let content = UNMutableNotificationContent()
       if let soundName = soundName {
@@ -30,8 +33,10 @@ class PushNotifier: NSObject, Keybasego.KeybasePushNotifierProtocol {
         if let error = error {
           log.error("local notification failed: \(error.localizedDescription, privacy: .public)")
         }
+        queued.signal()
       }
     }
+    _ = queued.wait(timeout: .now() + 2)
   }
 
   // If we lost the race against the server's fallback timeout, the generic
