@@ -1,4 +1,4 @@
-# Keybase Filesystem (KBFS) [![Build Status](https://travis-ci.org/keybase/kbfs.svg?branch=master)](https://travis-ci.org/keybase/kbfs) [![Build status](https://ci.appveyor.com/api/projects/status/xpxqhgpl60m1h3sb/branch/master?svg=true)](https://ci.appveyor.com/project/keybase/kbfs/branch/master)
+# Keybase Filesystem (KBFS)
 
 This repository contains the official [Keybase](https://keybase.io)
 implementation of the client-side code for the Keybase filesystem

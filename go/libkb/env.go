@@ -636,7 +636,7 @@ func (e *Env) GetDuration(def time.Duration, flist ...func() (time.Duration, boo
 }
 
 func (e *Env) GetServerURI() (string, error) {
-	// appveyor and os x travis CI set server URI, so need to
+	// Some CI environments set server URI, so need to
 	// check for test flag here in order for production api endpoint
 	// tests to pass.
 	if e.Test.UseProductionRunMode {
