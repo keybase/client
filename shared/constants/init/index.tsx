@@ -346,27 +346,23 @@ const _initNativePlatformListener = () => {
   useShellState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     let appFocused: boolean
-    let logStateVal: T.RPCGen.MobileAppState
     switch (s.mobileAppState) {
       case 'active':
         appFocused = true
-        logStateVal = T.RPCGen.MobileAppState.foreground
         break
       case 'background':
         appFocused = false
-        logStateVal = T.RPCGen.MobileAppState.background
         persistRoute(false, true, () => useConfigState.getState().startup.loaded)
         break
       case 'inactive':
         appFocused = false
-        logStateVal = T.RPCGen.MobileAppState.inactive
         break
       default:
         appFocused = false
-        logStateVal = T.RPCGen.MobileAppState.foreground
     }
 
-    logger.info(`setting app state on service to: ${logStateVal}`)
+    // Native KeybaseSetAppState* is the only writer of Go MobileAppState.
+    logger.info(`app focus changed: ${s.mobileAppState}`)
     s.dispatch.changedFocus(appFocused)
   })
 
