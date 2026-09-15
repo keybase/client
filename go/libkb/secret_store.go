@@ -133,9 +133,10 @@ func GetConfiguredAccountsFromProvisionedUsernames(m MetaContext, s SecretStoreA
 		}
 	}
 
-	// Get the full names
-	usernamePackages, err := m.G().UIDMapper.MapUIDsToUsernamePackages(m.Ctx(), m.G(),
-		uids, time.Hour*24, time.Second*10, false)
+	// Full names are cache-only so the account switcher does not wait on the
+	// network the way logged-in startup already avoids gating on this list.
+	usernamePackages, err := m.G().UIDMapper.MapUIDsToUsernamePackagesOffline(m.Ctx(), m.G(),
+		uids, time.Hour*24)
 	if err != nil {
 		if usernamePackages != nil {
 			// If data is returned, interpret the error as a warning

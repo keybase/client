@@ -94,10 +94,15 @@ const loadChatStaticConfigStep = async () => {
   useConfigState.getState().dispatch.setChatStaticConfig(staticConfig)
 }
 
-const loadAccountsStep = async () => {
+export const loadAccountsStep = async () => {
   const refreshAccounts = useConfigState.getState().dispatch.refreshAccounts
-  if (useDaemonState.getState().bootstrapStatus?.loggedIn) {
-    // logged in: the account list only feeds the switcher, don't gate startup on it
+  // refreshAccounts is local (config/keychain + offline uidmap). Handshake must
+  // not await it while logged in or switching; the logged-out picker still
+  // awaits so the list is not empty.
+  if (
+    useDaemonState.getState().bootstrapStatus?.loggedIn ||
+    useConfigState.getState().userSwitching
+  ) {
     ignorePromise(refreshAccounts().catch(() => {}))
     return
   }
