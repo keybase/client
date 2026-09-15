@@ -1,0 +1,23 @@
+README.md
+  s_856a9b19c2f99b::t_83b9626dfe724d 1
+go/libkb/env.go
+  s_856a9b19c2f99b::t_0ae9d1af2c7eff 639
+go/kbfs/README.md
+  s_856a9b19c2f99b::t_f4ca127757bad5 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "9675e4b44765acdea2151cb5d4e6131dc2488cf4",
+  "prompts": {},
+  "sessions": {
+    "s_856a9b19c2f99b": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "c82ce242-5cbd-4a8c-b966-f3355ef51be2",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
