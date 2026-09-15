@@ -1,0 +1,23 @@
+shared/ios/Keybase/AppDelegate.swift
+  s_fe758d3adeaf06::t_5d2d74f98b1c8c 482-486
+shared/constants/init/index.tsx
+  s_fe758d3adeaf06::t_269f99f9d7fa8a 364-365
+shared/ios/Keybase/Pusher.swift
+  s_fe758d3adeaf06::t_bdf3dbf8bce4ab 18-20,36,39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "4b07c4a381e16495b74119b4532cf3315bfd84a1",
+  "prompts": {},
+  "sessions": {
+    "s_fe758d3adeaf06": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "66550994-5253-4ea0-868a-07069085af02",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
