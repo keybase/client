@@ -1,0 +1,46 @@
+go/libkb/all_provisioned_usernames_test.go
+  s_362c2ec9db8639::t_a658e7c3c6cd5c 25-28,30-35,40-42,55-56,61,68-69,71-73,75,78-80,84-85
+  s_362c2ec9db8639::t_d7f11156a4e6da 15-19
+  s_362c2ec9db8639::t_11b1572e1a7b6f 10,12,20-21,29,43-46,49,51,53,64,66-67
+  s_2c4ee0c82e5593::t_f89ca27952bc90 23-24
+  s_2c4ee0c82e5593::t_1215f50e88ec80 22
+  s_362c2ec9db8639::t_596206146fb51c 39,47-48,50,52,54,62,70,74,76-77,86-90
+shared/constants/init/shared.test.ts
+  s_362c2ec9db8639::t_02cdde016bb2b9 16
+  s_362c2ec9db8639::t_e4995093825bd9 10,12,17-19,25-26,33,43
+go/libkb/all_provisioned_usernames.go
+  s_362c2ec9db8639::t_130e50343a1952 3-7,9-21,24,27-28,32-33,58,61-65,68-69,73-74,78-80,91-103,109-130,132-133,135-137,141,143,147,158-159,164,167
+  s_362c2ec9db8639::t_8021ab4012f76d 168
+  s_362c2ec9db8639::t_74fdad5f7ef650 8,22-23,25-26,34-35,66-67,70-72,75-77,81-90,104-108,131,134,138-140,142,144-146,148-157,160-163,165-166
+go/libkb/globals.go
+  s_362c2ec9db8639::t_25b0bdfbfbcbe9 112
+  s_362c2ec9db8639::t_6ab3bc18e074eb 249
+shared/constants/init/shared.tsx
+  s_362c2ec9db8639::t_a9dc4fce3a8b75 500
+  s_362c2ec9db8639::t_7ccb86bfb85a58 499,501-502
+  s_362c2ec9db8639::t_2b498b7c2902e2 99-101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "1e7f620b13eb367dc4fddaef641dec202263993e",
+  "prompts": {},
+  "sessions": {
+    "s_2c4ee0c82e5593": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4dc12b6e-759f-4185-8c82-251bc53a3e1b",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    },
+    "s_362c2ec9db8639": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "a9aa91c8-c14e-45a6-84f7-01fb31caa40d",
+        "model": "auto-smart"
+      },
+      "human_author": null
+    }
+  }
+}
