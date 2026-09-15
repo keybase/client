@@ -94,10 +94,14 @@ const loadChatStaticConfigStep = async () => {
   useConfigState.getState().dispatch.setChatStaticConfig(staticConfig)
 }
 
-const loadAccountsStep = async () => {
+export const loadAccountsStep = async () => {
   const refreshAccounts = useConfigState.getState().dispatch.refreshAccounts
-  if (useDaemonState.getState().bootstrapStatus?.loggedIn) {
-    // logged in: the account list only feeds the switcher, don't gate startup on it
+  // The account list only feeds the switcher / relogin picker. Logged-in startup
+  // and account switches must not wait on the server revoke check behind it.
+  if (
+    useDaemonState.getState().bootstrapStatus?.loggedIn ||
+    useConfigState.getState().userSwitching
+  ) {
     ignorePromise(refreshAccounts().catch(() => {}))
     return
   }
