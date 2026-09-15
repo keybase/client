@@ -1,0 +1,25 @@
+go/libkb/secret_store.go
+  s_2c4ee0c82e5593::t_91fb9c4b25714d 136-139
+go/libkb/all_provisioned_usernames.go
+  s_2c4ee0c82e5593::t_2a8ea3cf6d73d2 3-9,20,23,30-31
+  s_2c4ee0c82e5593::t_336e4182a2be8a 19,21,24-25
+  s_2c4ee0c82e5593::t_df9ba3c4fbb35b 32
+shared/constants/init/shared.tsx
+  s_2c4ee0c82e5593::t_997378a75ce278 97,99-104
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "af74afcedcceeed1448285e22c51da8c45a6db13",
+  "prompts": {},
+  "sessions": {
+    "s_2c4ee0c82e5593": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4dc12b6e-759f-4185-8c82-251bc53a3e1b",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
