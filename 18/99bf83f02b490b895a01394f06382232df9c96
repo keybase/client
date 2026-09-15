@@ -1,0 +1,28 @@
+shared/constants/init/shared.tsx
+  s_362c2ec9db8639::t_2b498b7c2902e2 99-101
+go/libkb/all_provisioned_usernames.go
+  s_362c2ec9db8639::t_96a348bebd07b6 6-9
+go/libkb/all_provisioned_usernames_test.go
+  s_362c2ec9db8639::t_d7f11156a4e6da 15-19
+  s_362c2ec9db8639::t_11b1572e1a7b6f 10,12,20-21,29,31-33,35,38-39,41
+  s_362c2ec9db8639::t_f2aa3df0c87e4c 40
+shared/constants/init/shared.test.ts
+  s_362c2ec9db8639::t_02cdde016bb2b9 16
+  s_362c2ec9db8639::t_e4995093825bd9 10,12,17-19,25-26,33,43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "1899bf83f02b490b895a01394f06382232df9c96",
+  "prompts": {},
+  "sessions": {
+    "s_362c2ec9db8639": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "a9aa91c8-c14e-45a6-84f7-01fb31caa40d",
+        "model": "auto-smart"
+      },
+      "human_author": null
+    }
+  }
+}
