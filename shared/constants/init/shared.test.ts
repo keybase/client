@@ -5,28 +5,32 @@ import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
 import {loadAccountsStep} from './shared'
 
-const hangingRefresh = async () => new Promise<void>(() => {})
-
 describe('loadAccountsStep', () => {
   const originalDispatch = useConfigState.getState().dispatch
+  let resolveRefresh: (() => void) | undefined
 
-  const withHangingRefreshAccounts = () => {
+  const withDeferredRefreshAccounts = () => {
     useConfigState.setState({
       dispatch: {
         ...originalDispatch,
-        refreshAccounts: hangingRefresh,
+        refreshAccounts: async () =>
+          new Promise<void>(resolve => {
+            resolveRefresh = resolve
+          }),
       },
     })
   }
 
   afterEach(() => {
+    resolveRefresh?.()
+    resolveRefresh = undefined
     jest.restoreAllMocks()
     useConfigState.setState({dispatch: originalDispatch})
     resetAllStores()
   })
 
   test('does not wait for accounts while switching', async () => {
-    withHangingRefreshAccounts()
+    withDeferredRefreshAccounts()
     useConfigState.getState().dispatch.setUserSwitching(true)
     useDaemonState.setState(s => {
       s.bootstrapStatus = {loggedIn: false} as any
@@ -36,7 +40,7 @@ describe('loadAccountsStep', () => {
   })
 
   test('does not wait for accounts when already logged in', async () => {
-    withHangingRefreshAccounts()
+    withDeferredRefreshAccounts()
     useDaemonState.setState(s => {
       s.bootstrapStatus = {loggedIn: true} as any
     })

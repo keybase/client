@@ -1,22 +1,24 @@
 package libkb
 
 import (
-	"sync"
 	"testing"
-	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
-type hangingAPI struct {
+type fatalAPI struct {
 	NullMockAPI
-	started chan struct{}
-	once    sync.Once
+	t *testing.T
 }
 
-func (h *hangingAPI) PostDecode(MetaContext, APIArg, APIResponseWrapper) error {
-	h.once.Do(func() { close(h.started) })
+func (f *fatalAPI) Get(MetaContext, APIArg) (*APIRes, error) {
+	f.t.Fatal("unexpected API Get")
+	return nil, nil
+}
+
+func (f *fatalAPI) PostDecode(MetaContext, APIArg, APIResponseWrapper) error {
+	f.t.Fatal("unexpected API PostDecode")
 	return nil
 }
 
@@ -24,26 +26,22 @@ func TestGetAllProvisionedUsernamesDoesNotWaitOnServer(t *testing.T) {
 	tc := SetupTest(t, "gapu", 1)
 	defer tc.Cleanup()
 
-	hanging := &hangingAPI{started: make(chan struct{})}
-	tc.G.API = hanging
+	tc.G.API = &fatalAPI{t: t}
 
-	uid, err := UIDFromHex("d17a826a3b5420dc5c7d2b7afd31d819")
+	testuser := NewNormalizedUsername("testuser")
+	testuserMac := NewNormalizedUsername("testuser-mac")
+	device1, err := NewDeviceID()
 	require.NoError(t, err)
-	deviceID, err := keybase1.DeviceIDFromString("c548e9e7e58f8397b2dd0d8c622af818")
+	device2, err := NewDeviceID()
 	require.NoError(t, err)
 	require.NoError(t, tc.G.Env.GetConfigWriter().SetUserConfig(
-		NewUserConfig(uid, NewNormalizedUsername("zoomua"), []byte("salt"), deviceID), true))
+		NewUserConfig(keybase1.MakeTestUID(1), testuser, []byte("salt"), device1), true))
+	require.NoError(t, tc.G.Env.GetConfigWriter().SetUserConfig(
+		NewUserConfig(keybase1.MakeTestUID(2), testuserMac, []byte("salt"), device2), true))
+	require.NoError(t, tc.G.Env.GetConfigWriter().SwitchUser(testuser))
 
-	start := time.Now()
 	current, all, err := GetAllProvisionedUsernames(NewMetaContextForTest(tc))
 	require.NoError(t, err)
-	require.Less(t, time.Since(start), 200*time.Millisecond)
-	require.Equal(t, NewNormalizedUsername("zoomua"), current)
-	require.Equal(t, []NormalizedUsername{NewNormalizedUsername("zoomua")}, all)
-
-	select {
-	case <-hanging.started:
-		t.Fatal("GetAllProvisionedUsernames must not call device/for_users")
-	case <-time.After(50 * time.Millisecond):
-	}
+	require.Equal(t, testuser, current)
+	require.ElementsMatch(t, []NormalizedUsername{testuser, testuserMac}, all)
 }
