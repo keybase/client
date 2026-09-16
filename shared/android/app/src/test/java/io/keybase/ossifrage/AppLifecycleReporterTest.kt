@@ -3,8 +3,12 @@ package io.keybase.ossifrage
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import java.util.Collections
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Future
 import java.util.concurrent.FutureTask
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -290,14 +294,18 @@ class RunPushWindowTest {
 
 class SendQuickReplyTest {
     private val bind = FakeBind()
+    private val infos = mutableListOf<String>()
+    private val errors = mutableListOf<Pair<String, Throwable>>()
 
-    private fun send(send: () -> Unit = { bind.calls.add("send") }) = sendQuickReply(bind, {}, send)
+    private fun send(send: () -> Unit = { bind.calls.add("send") }) =
+        sendQuickReply(bind, { infos.add(it) }, { msg, e -> errors.add(msg to e) }, send)
 
     @Test
     fun foregroundReplySends() {
         bind.token = 0
         assertEquals(QUICK_REPLY_SENT, send())
         assertEquals(listOf("pushWindowBegin", "send"), bind.calls)
+        assertTrue(errors.isEmpty())
     }
 
     @Test
@@ -307,8 +315,67 @@ class SendQuickReplyTest {
     }
 
     @Test
-    fun failedReplyIsNotReportedAsReplied() {
-        assertEquals(QUICK_REPLY_FAILED, send { throw IllegalStateException("offline") })
+    fun failedReplyIsNotReportedAsRepliedAndLogsTheException() {
+        val failure = IllegalStateException("outbox full")
+        assertEquals(QUICK_REPLY_FAILED, send { throw failure })
         assertEquals(listOf("pushWindowBegin", "pushWindowEnd(7)"), bind.calls)
+        assertEquals(listOf("Failed to send quick reply" to failure), errors.toList())
+        assertTrue(infos.isEmpty())
+    }
+}
+
+class RunReceiverWorkTest {
+    private val finishes = AtomicInteger()
+    private val finished = CountDownLatch(1)
+    private val warnings = Collections.synchronizedList(mutableListOf<String>())
+    private val errors = Collections.synchronizedList(mutableListOf<Throwable>())
+    private val threads = Collections.synchronizedSet(mutableSetOf<Thread>())
+
+    private fun run(budgetMs: Long, work: () -> Unit) = runReceiverWork(
+        budgetMs,
+        { r -> Thread { threads.add(Thread.currentThread()); r.run() }.start() },
+        { warnings.add(it) },
+        { _, e -> errors.add(e) },
+        {
+            finishes.incrementAndGet()
+            finished.countDown()
+        },
+        work,
+    )
+
+    @Test
+    fun finishesAfterTheWorkOffTheCallingThread() {
+        val ranOn = AtomicReference<Thread>()
+        run(10_000) { ranOn.set(Thread.currentThread()) }
+        assertTrue(finished.await(5, TimeUnit.SECONDS))
+        assertTrue(ranOn.get() != Thread.currentThread())
+        Thread.sleep(50)
+        assertEquals(1, finishes.get())
+        assertTrue(warnings.isEmpty())
+    }
+
+    @Test
+    fun finishesAndLogsWhenTheWorkThrows() {
+        val failure = IllegalStateException("boom")
+        run(10_000) { throw failure }
+        assertTrue(finished.await(5, TimeUnit.SECONDS))
+        assertEquals(listOf<Throwable>(failure), errors.toList())
+        assertEquals(1, finishes.get())
+    }
+
+    @Test
+    fun finishesAtTheBudgetWhileTheWorkIsStillRunning() {
+        val release = CountDownLatch(1)
+        val workDone = CountDownLatch(1)
+        run(100) {
+            release.await()
+            workDone.countDown()
+        }
+        assertTrue(finished.await(5, TimeUnit.SECONDS))
+        assertEquals(1, warnings.size)
+        release.countDown()
+        assertTrue(workDone.await(5, TimeUnit.SECONDS))
+        Thread.sleep(50)
+        assertEquals("finishes once", 1, finishes.get())
     }
 }

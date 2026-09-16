@@ -171,8 +171,6 @@ dependencies {
     implementation 'com.android.installreferrer:installreferrer:2.2'
     implementation "androidx.lifecycle:lifecycle-common-java8:2.10.0"
     implementation "androidx.lifecycle:lifecycle-process:2.10.0"
-    // Operation.getResult() returns a ListenableFuture. Keep in sync with the guava version on the runtime classpath.
-    compileOnly "com.google.guava:guava:33.3.1-android"
 
     testImplementation "junit:junit:4.13.2"
 }

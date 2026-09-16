@@ -7,8 +7,10 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.Operation
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
+import androidx.work.await
 import com.bumptech.glide.Glide
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
@@ -28,6 +30,9 @@ import io.keybase.ossifrage.modules.LegacyJobsCleanupFlag
 import io.keybase.ossifrage.modules.NativeLogger
 import io.keybase.ossifrage.modules.scheduleBackgroundSync
 import keybase.Keybase
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import java.util.concurrent.TimeUnit
 
 internal class AppLifecycleListener(private val context: Context?) :
@@ -113,7 +118,7 @@ private class WorkManagerBackgroundSyncJobs(context: Context) : BackgroundSyncJo
 
     // WorkManager tags every request with its worker's class name.
     override fun cancelAll() {
-        workManager.cancelAllWorkByTag(BackgroundSyncWorker::class.java.name).result.get()
+        workManager.cancelAllWorkByTag(BackgroundSyncWorker::class.java.name).awaitDone("cancel")
     }
 
     override fun enqueueUnique() {
@@ -122,7 +127,21 @@ private class WorkManagerBackgroundSyncJobs(context: Context) : BackgroundSyncJo
             1, TimeUnit.HOURS,
             15, TimeUnit.MINUTES
         ).build()
-        workManager.enqueueUniquePeriodicWork("background_sync", ExistingPeriodicWorkPolicy.KEEP, request).result.get()
+        workManager.enqueueUniquePeriodicWork("background_sync", ExistingPeriodicWorkPolicy.KEEP, request).awaitDone("enqueue")
+    }
+
+    // A stalled WorkManager must not park the scheduling thread forever.
+    private fun Operation.awaitDone(what: String) {
+        try {
+            runBlocking { withTimeout(OPERATION_TIMEOUT_MS) { await() } }
+        } catch (e: TimeoutCancellationException) {
+            NativeLogger.warn("MainApplication: background sync $what timed out after ${OPERATION_TIMEOUT_MS}ms")
+            throw e
+        }
+    }
+
+    companion object {
+        private const val OPERATION_TIMEOUT_MS = 30_000L
     }
 }
 

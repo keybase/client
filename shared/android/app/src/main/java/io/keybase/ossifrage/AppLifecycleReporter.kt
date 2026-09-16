@@ -2,6 +2,7 @@ package io.keybase.ossifrage
 
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
@@ -142,13 +143,51 @@ internal fun runPushWindow(bind: LifecycleBind, log: (String) -> Unit, inForegro
 
 // Sends a notification quick reply, which must go out even with the app in
 // the foreground. Returns the text for the replied notification.
-internal fun sendQuickReply(bind: LifecycleBind, log: (String) -> Unit, send: () -> Unit): String =
+internal fun sendQuickReply(
+    bind: LifecycleBind,
+    info: (String) -> Unit,
+    error: (String, Throwable) -> Unit,
+    send: () -> Unit,
+): String =
     try {
-        if (runPushWindow(bind, log, InForeground.RUN, send)) QUICK_REPLY_SENT else QUICK_REPLY_FAILED
+        if (runPushWindow(bind, info, InForeground.RUN, send)) QUICK_REPLY_SENT else QUICK_REPLY_FAILED
     } catch (e: Exception) {
-        log("sendQuickReply: failed to send: $e")
+        error("Failed to send quick reply", e)
         QUICK_REPLY_FAILED
     }
+
+// Runs a receiver's work off the main thread and calls finish exactly once:
+// when the work ends or when budgetMs runs out, whichever is first, so the
+// broadcast never outlives its limit. Work that overruns keeps going. An
+// exception from work is logged, since it would otherwise kill the process.
+internal fun runReceiverWork(
+    budgetMs: Long,
+    start: (Runnable) -> Unit,
+    warn: (String) -> Unit,
+    error: (String, Throwable) -> Unit,
+    finish: () -> Unit,
+    work: () -> Unit,
+) {
+    val done = CountDownLatch(1)
+    start(Runnable {
+        try {
+            work()
+        } catch (e: Exception) {
+            error("runReceiverWork: work failed", e)
+        } finally {
+            done.countDown()
+        }
+    })
+    start(Runnable {
+        try {
+            if (!done.await(budgetMs, TimeUnit.MILLISECONDS)) {
+                warn("runReceiverWork: still running after ${budgetMs}ms, finishing the broadcast")
+            }
+        } finally {
+            finish()
+        }
+    })
+}
 
 internal const val QUICK_REPLY_SENT = "Replied"
 internal const val QUICK_REPLY_FAILED = "Couldn't send reply"
