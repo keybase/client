@@ -32,7 +32,6 @@ type LiveLocationTracker struct {
 	trackers       map[types.LiveLocationKey]*locationTrack
 	lastCoord      chat1.Coordinate
 	maxCoords      int
-	bgActive       backgroundActiveOwner
 
 	// testing only
 	TestingCoordsAddedCh chan struct{}
@@ -97,7 +96,7 @@ func (l *LiveLocationTracker) removeTrackerLocked(ctx context.Context, t *locati
 	delete(l.trackers, t.Key())
 	l.saveLocked(ctx)
 	if len(l.trackers) == 0 {
-		l.bgActive.release(l.G().MobileAppState)
+		l.G().MobileLifecycle.LiveLocationRelease()
 	}
 }
 
@@ -384,7 +383,7 @@ func (l *LiveLocationTracker) LocationUpdate(ctx context.Context, coord chat1.Co
 		// if the app is woken up as the result of a location update, and we think we are currently
 		// backgrounded, then go ahead and mark us as background active so that we can get
 		// location updates out
-		l.bgActive.claim(l.G().MobileAppState)
+		l.G().MobileLifecycle.LiveLocationClaim()
 	}
 	if l.lastCoord.Eq(coord) {
 		l.Debug(ctx, "LocationUpdate: ignoring dup coordinate")

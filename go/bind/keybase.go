@@ -31,6 +31,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/simplefs"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb/lifecycle"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -879,7 +880,7 @@ func SetAppStateForeground() {
 		return
 	}
 	defer kbCtx.Trace("SetAppStateForeground", nil)()
-	kbCtx.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
+	kbCtx.MobileLifecycle.DidBecomeActive()
 }
 
 func SetAppStateBackground() {
@@ -887,43 +888,7 @@ func SetAppStateBackground() {
 		return
 	}
 	defer kbCtx.Trace("SetAppStateBackground", nil)()
-	updateAppStateAndFlush(kbCtx.MobileAppState, keybase1.MobileAppState_BACKGROUND, flushLocalDbs)
-}
-
-// updateAppStateAndFlush flushes only when the state actually changes, so
-// repeated lifecycle callbacks don't queue a flush each.
-func updateAppStateAndFlush(appState *libkb.MobileAppState, state keybase1.MobileAppState, flush func()) {
-	if appState.Update(state) {
-		flush()
-	}
-}
-
-// flushLocalDbs flushes the leveldb memtables in the background. An unclean
-// kill while suspended (routine on iOS) with a non-empty journal forces a
-// journal replay — or a whole-DB recovery — during the next launch, which is
-// the main cold-start cost. Called when the app heads to the background so
-// the journals are empty if the OS kills the process.
-func flushLocalDbs() {
-	if kbCtx == nil {
-		return
-	}
-	flush := func(name string, db *libkb.JSONLocalDb) {
-		if db == nil {
-			return
-		}
-		ldb, ok := db.GetEngine().(*libkb.LevelDb)
-		if !ok {
-			return
-		}
-		begin := time.Now()
-		if err := ldb.Flush(); err != nil {
-			log("Go: flushLocalDbs: %s flush error: %v", name, err)
-			return
-		}
-		log("Go: flushLocalDbs: %s flushed in %s", name, time.Since(begin))
-	}
-	go flush("LocalDb", kbCtx.LocalDb)
-	go flush("LocalChatDb", kbCtx.LocalChatDb)
+	kbCtx.MobileLifecycle.DidEnterBackground(func() bool { return false })
 }
 
 func SetAppStateInactive() {
@@ -931,7 +896,7 @@ func SetAppStateInactive() {
 		return
 	}
 	defer kbCtx.Trace("SetAppStateInactive", nil)()
-	kbCtx.MobileAppState.Update(keybase1.MobileAppState_INACTIVE)
+	kbCtx.MobileLifecycle.WillResignActive()
 }
 
 func SetAppStateBackgroundActive() {
@@ -939,7 +904,35 @@ func SetAppStateBackgroundActive() {
 		return
 	}
 	defer kbCtx.Trace("SetAppStateBackgroundActive", nil)()
-	kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUNDACTIVE)
+	kbCtx.MobileLifecycle.WillEnterForeground()
+}
+
+// AppWillEnterForeground reports iOS applicationWillEnterForeground.
+func AppWillEnterForeground() {
+	if !isInited() {
+		return
+	}
+	defer kbCtx.Trace("AppWillEnterForeground", nil)()
+	kbCtx.MobileLifecycle.WillEnterForeground()
+}
+
+// AppDidBecomeActive reports iOS applicationDidBecomeActive, or Android's
+// process start.
+func AppDidBecomeActive() {
+	if !isInited() {
+		return
+	}
+	defer kbCtx.Trace("AppDidBecomeActive", nil)()
+	kbCtx.MobileLifecycle.DidBecomeActive()
+}
+
+// AppWillResignActive reports iOS applicationWillResignActive.
+func AppWillResignActive() {
+	if !isInited() {
+		return
+	}
+	defer kbCtx.Trace("AppWillResignActive", nil)()
+	kbCtx.MobileLifecycle.WillResignActive()
 }
 
 func waitForInit(maxDur time.Duration) error {
@@ -968,9 +961,7 @@ func BackgroundSync() string {
 		return fmt.Sprintf("waitForInit timeout: %v", err)
 	}
 	defer kbCtx.Trace("BackgroundSync", nil)()
-	msg := runBackgroundSyncWindow(kbCtx.MobileAppState, backgroundSyncWindowDuration, flushLocalDbs)
-	kbCtx.Log.Debug("BackgroundSync: %s", msg)
-	return msg
+	return kbCtx.MobileLifecycle.BackgroundSync()
 }
 
 // pushPendingMessageFailure sends at most one notification that a message
@@ -996,9 +987,7 @@ func AppWillExit(pusher PushNotifier) {
 		return
 	}
 	defer kbCtx.Trace("AppWillExit", nil)()
-	notifyPendingMessageFailure(pusher)
-	backgroundTaskGen.Store(0)
-	updateAppStateAndFlush(kbCtx.MobileAppState, keybase1.MobileAppState_BACKGROUND, flushLocalDbs)
+	kbCtx.MobileLifecycle.WillTerminate(func() { notifyPendingMessageFailure(pusher) })
 }
 
 // AppBackgroundTaskExpired is called when the OS is about to suspend the app
@@ -1010,9 +999,7 @@ func AppBackgroundTaskExpired(pusher PushNotifier) {
 		return
 	}
 	defer kbCtx.Trace("AppBackgroundTaskExpired", nil)()
-	expireBackgroundTask(kbCtx.MobileAppState, &backgroundTaskGen, flushLocalDbs, func() {
-		notifyPendingMessageFailure(pusher)
-	})
+	kbCtx.MobileLifecycle.BackgroundTaskExpired(func() { notifyPendingMessageFailure(pusher) })
 }
 
 // notifyPendingMessageFailure warns the user that messages still waiting to
@@ -1024,7 +1011,8 @@ func notifyPendingMessageFailure(pusher PushNotifier) {
 	}
 }
 
-func shouldStayRunningInBackground(ctx context.Context) bool {
+func shouldStayRunningInBackground() bool {
+	ctx := context.Background()
 	convs, err := kbChatCtx.MessageDeliverer.ActiveDeliveries(ctx)
 	if err != nil {
 		kbCtx.Log.Debug("shouldStayRunningInBackground: failed to get active deliveries: %s", err)
@@ -1051,9 +1039,7 @@ func AppDidEnterBackground() bool {
 		return false
 	}
 	defer kbCtx.Trace("AppDidEnterBackground", nil)()
-	// The OS may still kill us once the background task runs out.
-	return enterBackground(kbCtx.MobileAppState, shouldStayRunningInBackground(context.Background()),
-		&backgroundTaskGen, flushLocalDbs)
+	return kbCtx.MobileLifecycle.DidEnterBackground(shouldStayRunningInBackground)
 }
 
 // AppPushWindowBegin moves the app to BACKGROUNDACTIVE while a push
@@ -1066,7 +1052,7 @@ func AppPushWindowBegin() int64 {
 		return -1
 	}
 	defer kbCtx.Trace("AppPushWindowBegin", nil)()
-	return beginPushWindow(kbCtx.MobileAppState)
+	return kbCtx.MobileLifecycle.PushWindowBegin()
 }
 
 // AppPushWindowEnd closes the window opened by AppPushWindowBegin, only if
@@ -1078,9 +1064,7 @@ func AppPushWindowEnd(token int64) bool {
 		return false
 	}
 	defer kbCtx.Trace("AppPushWindowEnd", nil)()
-	return endPushWindow(kbCtx.MobileAppState, token, func() bool {
-		return shouldStayRunningInBackground(context.Background())
-	}, &backgroundTaskGen, flushLocalDbs)
+	return kbCtx.MobileLifecycle.PushWindowEnd(token, shouldStayRunningInBackground)
 }
 
 func AppBeginBackgroundTaskNonblock(pusher PushNotifier) {
@@ -1098,14 +1082,15 @@ func AppBeginBackgroundTask(pusher PushNotifier) {
 		return
 	}
 	defer kbCtx.Trace("AppBeginBackgroundTask", nil)()
-	runBackgroundTask(context.Background(), kbCtx.MobileAppState, &backgroundTaskGen, backgroundTaskDeps{
-		activeDeliveries: kbChatCtx.MessageDeliverer.ActiveDeliveries,
-		nextFailure:      kbChatCtx.MessageDeliverer.NextFailure,
-		notifyFailure:    func(obrs []chat1.OutboxRecord) { pushPendingMessageFailure(obrs, pusher) },
-		debug:            kbCtx.Log.Debug,
-		pollInterval:     backgroundTaskPollInterval,
-		maxDuration:      backgroundTaskMaxDuration,
-	}, flushLocalDbs)
+	kbCtx.MobileLifecycle.RunBackgroundTask(context.Background(), backgroundTaskDeps(pusher))
+}
+
+func backgroundTaskDeps(pusher PushNotifier) lifecycle.BackgroundTaskDeps {
+	return lifecycle.BackgroundTaskDeps{
+		ActiveDeliveries: kbChatCtx.MessageDeliverer.ActiveDeliveries,
+		NextFailure:      kbChatCtx.MessageDeliverer.NextFailure,
+		NotifyFailure:    func(obrs []chat1.OutboxRecord) { pushPendingMessageFailure(obrs, pusher) },
+	}
 }
 
 func startTrace(logFile string) {
