@@ -92,6 +92,9 @@ const onChatWatchPosition = async (
     )
   }
 
+  // iOS watches location natively (ios/Keybase/LocationWatcher.swift), so JS only asks for permission.
+  if (isIOS) return
+
   locationRefs++
 
   if (locationRefs === 1) {
@@ -112,6 +115,7 @@ const onChatWatchPosition = async (
 }
 
 const onChatClearWatch = async () => {
+  if (isIOS) return
   const {ExpoLocation, ExpoTaskManager} = _getNative()
   locationRefs--
   if (locationRefs <= 0) {

@@ -186,6 +186,15 @@ type ShareIntentDonator interface {
 	DeleteDonation(conversationID string)
 }
 
+// NativeLocationWatcher is implemented by the native iOS layer. It runs the OS
+// location service while live location is on and reports each fix through
+// LocationUpdate, so live location works without JS. When nil (Android,
+// desktop), the chat UI watches position instead.
+type NativeLocationWatcher interface {
+	StartWatching()
+	StopWatching()
+}
+
 // shareIntentDonatorAdapter adapts keybase.ShareIntentDonator to types.ShareIntentDonator.
 type shareIntentDonatorAdapter struct {
 	wrapped ShareIntentDonator
@@ -325,10 +334,10 @@ func setInited() {
 func InitOnce(homeDir, mobileSharedHome, logFile, runModeStr string,
 	accessGroupOverride bool, dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper,
 	mobileOsVersion string, isIPad bool, installReferrerListener NativeInstallReferrerListener, isIOS bool,
-	shareIntentDonator ShareIntentDonator,
+	shareIntentDonator ShareIntentDonator, locationWatcher NativeLocationWatcher,
 ) {
 	startOnce.Do(func() {
-		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh, mobileOsVersion, isIPad, installReferrerListener, isIOS, shareIntentDonator); err != nil {
+		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh, mobileOsVersion, isIPad, installReferrerListener, isIOS, shareIntentDonator, locationWatcher); err != nil {
 			log("Init error: %s", err)
 		}
 	})
@@ -338,7 +347,7 @@ func InitOnce(homeDir, mobileSharedHome, logFile, runModeStr string,
 func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	accessGroupOverride bool, externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper,
 	mobileOsVersion string, isIPad bool, installReferrerListener NativeInstallReferrerListener, isIOS bool,
-	shareIntentDonator ShareIntentDonator,
+	shareIntentDonator ShareIntentDonator, locationWatcher NativeLocationWatcher,
 ) (err error) {
 	// Dump all goroutines on a fatal error; the GOTRACEBACK env var can't be
 	// used here since the runtime reads it before Init runs.
@@ -460,6 +469,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	if shareIntentDonator != nil {
 		kbChatCtx.ShareIntentDonator = shareIntentDonatorAdapter{wrapped: shareIntentDonator}
 	}
+	kbChatCtx.LocationWatcher = locationWatcher
 	// Runs the startup login attempt and then the long-lived background
 	// tasks. Off the Init thread so a slow login can't hold up app launch;
 	// must start after the chat context fields above are set since chat
@@ -925,6 +935,18 @@ func AppWillResignActive() {
 	}
 	defer kbCtx.Trace("AppWillResignActive", nil)()
 	kbCtx.MobileLifecycle.WillResignActive()
+}
+
+// LocationUpdate reports a location fix from the native location service.
+func LocationUpdate(lat, lon float64, accuracy int) {
+	if !isInited() || !kbCtx.ActiveDevice.HaveKeys() {
+		return
+	}
+	locationUpdate(kbChatCtx.LiveLocationTracker, lat, lon, accuracy)
+}
+
+func locationUpdate(tracker types.LiveLocationTracker, lat, lon float64, accuracy int) {
+	tracker.LocationUpdate(context.Background(), chat1.Coordinate{Lat: lat, Lon: lon, Accuracy: float64(accuracy)})
 }
 
 func waitForInit(maxDur time.Duration) error {

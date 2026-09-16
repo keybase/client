@@ -469,6 +469,14 @@ type ShareIntentDonator interface {
 	DeleteDonation(conversationID string)
 }
 
+// LocationWatcher runs the OS location service natively (iOS), so live
+// location keeps working without the UI. Fixes come back through
+// LiveLocationTracker.LocationUpdate. When nil, the chat UI watches position.
+type LocationWatcher interface {
+	StartWatching()
+	StopWatching()
+}
+
 type StellarLoader interface {
 	LoadPayment(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo
 	LoadRequest(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, requestID stellar1.KeybaseRequestID) *chat1.UIRequestInfo
