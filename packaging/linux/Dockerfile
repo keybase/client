@@ -1,7 +1,6 @@
-# Builder stays on Debian 11 (glibc 2.31) so packaged binaries still run on
-# Ubuntu 20.04 / Debian 11. Bullseye LTS ended 2026-08-31; apt uses the archive.
+# Bookworm (glibc 2.36): Debian 12 / Ubuntu 24.04+. Older distros will not run these binaries.
 # When updating this file, bump keybase_packaging_v# in docker_build.sh.
-FROM debian:bullseye
+FROM debian:bookworm
 LABEL maintainer="Keybase <admin@keybase.io>"
 
 # Install dependencies from the standard repos.
@@ -12,24 +11,9 @@ LABEL maintainer="Keybase <admin@keybase.io>"
 #   - 'curl' and 'wget' are for downloading Go and Node
 #   - 'build-essential' pulls in gcc etc., which Go requires.
 #   - unzip because electron packager requires it
-# debian:bullseye has no CA store; fetch ca-certificates over HTTP, then use HTTPS.
-RUN printf 'Acquire::Check-Valid-Until "false";\n' > /etc/apt/apt.conf.d/99no-check-valid \
-  && printf '%s\n' \
-    'deb http://archive.debian.org/debian bullseye main' \
-    'deb http://archive.debian.org/debian bullseye-updates main' \
-    'deb http://archive.debian.org/debian-security bullseye-security main' \
-    > /etc/apt/sources.list \
-  && rm -f /etc/apt/sources.list.d/* \
-  && apt-get update \
-  && apt-get install -y ca-certificates \
-  && printf '%s\n' \
-    'deb https://archive.debian.org/debian bullseye main' \
-    'deb https://archive.debian.org/debian bullseye-updates main' \
-    'deb https://archive.debian.org/debian-security bullseye-security main' \
-    > /etc/apt/sources.list \
-  && apt-get update \
+RUN apt-get update \
   && apt-get install -y fakeroot reprepro rpm createrepo-c git wget \
-    build-essential curl s3cmd gnupg2 unzip rsync gcc-x86-64-linux-gnu \
+    build-essential curl s3cmd gnupg unzip rsync gcc-x86-64-linux-gnu ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
 RUN arch="$(dpkg --print-architecture)" \

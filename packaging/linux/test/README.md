@@ -100,7 +100,7 @@ so the systemd pam config runs.
 
 # Rocky Linux (RPM):
 
-    docker pull rockylinux:9
+    docker pull rockylinux/rockylinux:10
     docker build -t keybase-centos-test $GOPATH/src/github.com/keybase/client/packaging/linux/test/keybase-centos-test
     docker run --privileged -v /var/tmp/keybase_build_work:/root -ti keybase-centos-test bash
 
