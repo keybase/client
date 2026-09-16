@@ -53,12 +53,24 @@ func NewKBPKIClient(
 	return &KBPKIClient{serviceOwner, log, cache}
 }
 
+func (k *KBPKIClient) service() (KeybaseService, error) {
+	s := k.serviceOwner.KeybaseService()
+	if s == nil {
+		return nil, errKBFSNotInitialized{}
+	}
+	return s, nil
+}
+
 // GetCurrentSession implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetCurrentSession(ctx context.Context) (
 	idutil.SessionInfo, error,
 ) {
+	s, err := k.service()
+	if err != nil {
+		return idutil.SessionInfo{}, err
+	}
 	const sessionID = 0
-	return k.serviceOwner.KeybaseService().CurrentSession(ctx, sessionID)
+	return s.CurrentSession(ctx, sessionID)
 }
 
 // Resolve implements the KBPKI interface for KBPKIClient.
@@ -67,7 +79,11 @@ func (k *KBPKIClient) Resolve(
 	offline keybase1.OfflineAvailability) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error,
 ) {
-	return k.serviceOwner.KeybaseService().Resolve(ctx, assertion, offline)
+	s, err := k.service()
+	if err != nil {
+		return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""), err
+	}
+	return s.Resolve(ctx, assertion, offline)
 }
 
 // Identify implements the KBPKI interface for KBPKIClient.
@@ -76,7 +92,11 @@ func (k *KBPKIClient) Identify(
 	offline keybase1.OfflineAvailability) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error,
 ) {
-	return k.serviceOwner.KeybaseService().Identify(
+	s, err := k.service()
+	if err != nil {
+		return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""), err
+	}
+	return s.Identify(
 		ctx, assertion, reason, offline)
 }
 
@@ -432,20 +452,32 @@ func (k *KBPKIClient) CreateTeamTLF(
 
 // FavoriteAdd implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) FavoriteAdd(ctx context.Context, folder keybase1.FolderHandle) error {
-	return k.serviceOwner.KeybaseService().FavoriteAdd(ctx, folder)
+	s, err := k.service()
+	if err != nil {
+		return err
+	}
+	return s.FavoriteAdd(ctx, folder)
 }
 
 // FavoriteDelete implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) FavoriteDelete(ctx context.Context, folder keybase1.FolderHandle) error {
-	return k.serviceOwner.KeybaseService().FavoriteDelete(ctx, folder)
+	s, err := k.service()
+	if err != nil {
+		return err
+	}
+	return s.FavoriteDelete(ctx, folder)
 }
 
 // FavoriteList implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) FavoriteList(ctx context.Context) (
 	keybase1.FavoritesResult, error,
 ) {
+	s, err := k.service()
+	if err != nil {
+		return keybase1.FavoritesResult{}, err
+	}
 	const sessionID = 0
-	return k.serviceOwner.KeybaseService().FavoriteList(ctx, sessionID)
+	return s.FavoriteList(ctx, sessionID)
 }
 
 // Notify implements the KBPKI interface for KBPKIClient.
