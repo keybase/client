@@ -13,6 +13,8 @@ import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
 import {hexToUint8Array} from '@/util/uint8array'
 import {hideConversation, joinConversation, muteConversation} from '../status-actions'
 import {useConversationMarkAsUnread, useConversationMetadata} from '../data-hooks'
+import {useInboxRowIsPinned} from '@/chat/inbox/rows-state'
+import {setConversationPinned, usePinnedConvIDs} from '@/chat/inbox/pinned-convs'
 
 const isHexBytes = (s: string) => s.length > 0 && s.length % 2 === 0 && /^[0-9a-fA-F]+$/.test(s)
 
@@ -23,6 +25,7 @@ export type OwnProps = {
   floatingMenuContainerStyle?: Kb.Styles.StylesCrossPlatform
   hasHeader: boolean
   isSmallTeam: boolean
+  showPinItems?: boolean
   teamID?: T.Teams.TeamID
   visible: boolean
 }
@@ -92,12 +95,15 @@ const useData = (p: {
 const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   const styles = useStyles()
   const {attachTo, onHidden, floatingMenuContainerStyle, hasHeader} = p
-  const {isSmallTeam, teamID: pteamID} = p
+  const {isSmallTeam, teamID: pteamID, showPinItems} = p
   const conversationIDKey = p.conversationIDKey ?? Chat.noConversationIDKey
 
   const data = useData({conversationIDKey, isSmallTeam, pteamID})
   const {teamname, teamID, channelname, isInChannel, ignored, fullname} = data
   const {manageChannelsSubtitle, manageChannelsTitle, participants, teamType, isMuted} = data
+
+  const isPinned = useInboxRowIsPinned(conversationIDKey)
+  const pinnedConvIDs = usePinnedConvIDs()
 
   const {yourOperations} = useChatTeam(teamID, teamname)
   const {dismiss: dismissManageChannelsBadge, showBadge: badgeSubscribe} = useChatManageChannelsBadge(
@@ -292,7 +298,34 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
     }
   }
 
-  const items: Kb.MenuItems = []
+  const pinItems: Kb.MenuItems = []
+  if (showPinItems && conversationIDKey !== Chat.noConversationIDKey) {
+    if (isPinned) {
+      if (pinnedConvIDs[0] !== conversationIDKey) {
+        pinItems.push({
+          icon: 'iconfont-pin',
+          iconIsVisible: false,
+          onClick: () => setConversationPinned(conversationIDKey, true),
+          title: 'Move to top',
+        } as const)
+      }
+      pinItems.push({
+        icon: 'iconfont-pin',
+        iconIsVisible: false,
+        onClick: () => setConversationPinned(conversationIDKey, false),
+        title: 'Unpin',
+      } as const)
+    } else {
+      pinItems.push({
+        icon: 'iconfont-pin',
+        iconIsVisible: false,
+        onClick: () => setConversationPinned(conversationIDKey, true),
+        title: 'Pin to top',
+      } as const)
+    }
+  }
+
+  const items: Kb.MenuItems = [...pinItems]
   if (isAdhoc) {
     if (markAsUnread) {
       items.push(markAsUnread)

@@ -252,6 +252,9 @@ export const useInboxRowIsMuted = (id: string): boolean => {
   return !metaTrusted && layoutIsMuted !== undefined ? layoutIsMuted : metaIsMuted
 }
 
+export const useInboxRowIsPinned = (id: string): boolean =>
+  useInboxLayoutState(s => getSmallLayoutRow(s, id)?.isPinned ?? false)
+
 export const useInboxRowBig = (id: string): InboxRowBig => {
   const meta = useInboxMetadataState(
     useShallow((s): BigRowMeta => {

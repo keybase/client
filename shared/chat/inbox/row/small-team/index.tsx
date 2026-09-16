@@ -10,7 +10,7 @@ import './small-team.css'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import {formatTimeForConversationList} from '@/util/timestamp'
 import {useOpenedRowState} from '../opened-row-state'
-import {useInboxRowSmall} from '@/chat/inbox/rows-state'
+import {useInboxRowIsPinned, useInboxRowSmall} from '@/chat/inbox/rows-state'
 import TeamMenu from '@/chat/conversation/info-panel/menu'
 export type Props = {
   conversationIDKey: string
@@ -126,6 +126,7 @@ const TopLine = (p: TopLineProps) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
   const {isSelected, backgroundColor, conversationIDKey, participants, teamDisplayName, timestamp, hasBadge, hasUnread} = p
+  const isPinned = useInboxRowIsPinned(conversationIDKey)
   const showBold = !isSelected && hasUnread
   const subColor = isSelected
     ? theme.white
@@ -180,6 +181,9 @@ const TopLine = (p: TopLineProps) => {
           )}
         </Kb.Box2>
       </Kb.Box2>
+      {isPinned && (
+        <Kb.Icon type="iconfont-pin-solid" fontSize={isMobile ? 14 : 10} color={subColor} style={styles.pinIcon} />
+      )}
       <Kb.Text key="timestamp" type="BodyTiny" className="conversation-timestamp" style={timestampStyle}>
         {timestampText}
       </Kb.Text>
@@ -206,6 +210,7 @@ const TopLineGear = (p: {conversationIDKey: T.Chat.ConversationIDKey; subColor: 
         onHidden={hidePopup}
         hasHeader={true}
         isSmallTeam={true}
+        showPinItems={true}
       />
     )
   }
@@ -512,6 +517,7 @@ const useStyles = Kb.Styles.createStyleHook(
       nameContainer: {
         ...Kb.Styles.globalStyles.fillAbsolute,
       },
+      pinIcon: {marginRight: Kb.Styles.globalMargins.xtiny},
       rowContainer: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
