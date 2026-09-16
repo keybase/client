@@ -2,7 +2,9 @@ package maps
 
 import (
 	"context"
+	"errors"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -215,4 +217,48 @@ func TestLiveLocationTrackerNativeWatchStopsWhenTrackerEnds(t *testing.T) {
 	clock.Advance(2 * time.Hour)
 	waitTrackerRemoved(t, l, track)
 	require.Equal(t, []string{"start", "stop"}, watcher.Calls())
+}
+
+type failingWatchChatUI struct {
+	utils.NullChatUI
+	attempts atomic.Int32
+}
+
+func (u *failingWatchChatUI) ChatWatchPosition(context.Context, chat1.ConversationID,
+	chat1.UIWatchPositionPerm,
+) (chat1.LocationWatchID, error) {
+	u.attempts.Add(1)
+	return 0, errors.New("no UI yet")
+}
+
+func TestLiveLocationTrackerChatUIWatchGivesUp(t *testing.T) {
+	tc := libkb.SetupTest(t, "LiveLocationTrackerChatUIWatchGivesUp", 0)
+	t.Cleanup(tc.Cleanup)
+	ui := &failingWatchChatUI{}
+	l := newWatchTestTracker(t, tc, nil, ui)
+	clock := l.clock.(clockwork.FakeClock)
+
+	done := make(chan error, 1)
+	track := newLocationTrack(watchTestConvID, 1, clock.Now().Add(time.Hour), false, 10, false)
+	go func() {
+		_, err := l.startChatUIWatch(context.Background(), track)
+		done <- err
+	}()
+	// One try plus 21 retries, a second apart.
+	const maxAttempts = 22
+	for n := int32(1); ; n++ {
+		require.Eventually(t, func() bool { return ui.attempts.Load() >= n }, 10*time.Second, time.Millisecond)
+		if n == maxAttempts {
+			break
+		}
+		clock.BlockUntil(1)
+		clock.Advance(time.Second)
+	}
+	select {
+	case err := <-done:
+		require.Error(t, err)
+	case <-time.After(10 * time.Second):
+		require.Fail(t, "still retrying", "after %d attempts", ui.attempts.Load())
+	}
+	require.EqualValues(t, maxAttempts, ui.attempts.Load())
 }

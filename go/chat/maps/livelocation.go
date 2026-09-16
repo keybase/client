@@ -314,8 +314,8 @@ func (l *LiveLocationTracker) startChatUIWatch(ctx context.Context, t *locationT
 		} else {
 			break
 		}
-		maxWatchAttempts++
-		time.Sleep(time.Second)
+		watchAttempts++
+		l.clock.Sleep(time.Second)
 	}
 	return watchID, nil
 }
