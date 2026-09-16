@@ -33,12 +33,21 @@ type Srv struct {
 	// out before a restart keep working.
 	token          string
 	listenerSource func() kbhttp.ListenerSource
+	// stopInBackground is false on Android, where the server stays up in
+	// every state.
+	stopInBackground bool
 
 	// mu guards everything below and serializes starts and stops.
 	mu        sync.Mutex
 	httpSrv   *kbhttp.Srv
 	endpoints map[string]srvEndpoint
 	shutdown  bool
+	// exitRestartGen is one past the app-state generation of the last restart
+	// after an unexpected exit, so a listener that keeps dying restarts at
+	// most once per generation.
+	exitRestartGen uint64
+	// exits counts handled unexpected exits, for tests.
+	exits int
 	// monitorState is the state the monitor last acted on, and monitorWait
 	// the change channel it is waiting on for that state; tests use them to
 	// wait until the monitor has caught up.
@@ -56,28 +65,22 @@ func NewSrv(g *libkb.GlobalContext) *Srv {
 	return newSrv(g, listenerSource, runtime.GOOS != "android")
 }
 
-// newSrv starts the server unless the app is in BACKGROUND. With
-// followAppState false the server is started unconditionally and stays up.
-func newSrv(g *libkb.GlobalContext, listenerSource func() kbhttp.ListenerSource, followAppState bool) *Srv {
+func newSrv(g *libkb.GlobalContext, listenerSource func() kbhttp.ListenerSource, stopInBackground bool) *Srv {
 	token, _ := libkb.RandHexString("", 32)
 	h := &Srv{
-		Contextified:   libkb.NewContextified(g),
-		token:          token,
-		listenerSource: listenerSource,
-		endpoints:      make(map[string]srvEndpoint),
-		shutdownCh:     make(chan struct{}),
-		monitorDone:    make(chan struct{}),
+		Contextified:     libkb.NewContextified(g),
+		token:            token,
+		listenerSource:   listenerSource,
+		stopInBackground: stopInBackground,
+		endpoints:        make(map[string]srvEndpoint),
+		shutdownCh:       make(chan struct{}),
+		monitorDone:      make(chan struct{}),
 	}
-	h.httpSrv = kbhttp.NewSrv(g.GetLog(), listenerSource())
+	h.httpSrv = h.newHTTPSrv()
 	g.PushShutdownHook(func(mctx libkb.MetaContext) error {
 		h.stop()
 		return nil
 	})
-	if !followAppState {
-		close(h.monitorDone)
-		h.startHTTPSrv()
-		return h
-	}
 	state := g.MobileAppState.State()
 	h.reconcile(state)
 	go h.monitorAppState(state)
@@ -86,6 +89,47 @@ func newSrv(g *libkb.GlobalContext, listenerSource func() kbhttp.ListenerSource,
 
 func (r *Srv) debug(ctx context.Context, msg string, args ...any) {
 	r.G().Log.CDebugf(ctx, "Srv: %s", fmt.Sprintf(msg, args...))
+}
+
+// TokenPrefix shortens a token for logging.
+func TokenPrefix(token string) string {
+	if len(token) > 8 {
+		return token[:8] + "..."
+	}
+	return token
+}
+
+func (r *Srv) newHTTPSrv() *kbhttp.Srv {
+	srv := kbhttp.NewSrv(r.G().GetLog(), r.listenerSource())
+	srv.OnUnexpectedExit(r.serverExited)
+	return srv
+}
+
+func (r *Srv) wantUp(state keybase1.MobileAppState) bool {
+	return !r.stopInBackground || state != keybase1.MobileAppState_BACKGROUND
+}
+
+// serverExited restarts a server whose listener died without a Stop, for
+// example one the OS reclaimed while the app was suspended without ever
+// reaching BACKGROUND.
+func (r *Srv) serverExited() {
+	ctx := context.Background()
+	state, gen := r.G().MobileAppState.StateAndGeneration()
+	r.mu.Lock()
+	restart := r.wantUp(state) && r.exitRestartGen != gen+1
+	if restart {
+		r.exitRestartGen = gen + 1
+	}
+	r.mu.Unlock()
+	if restart {
+		r.debug(ctx, "serverExited: restarting in %v", state)
+		r.startHTTPSrv()
+	} else {
+		r.debug(ctx, "serverExited: not restarting in %v (generation %d)", state, gen)
+	}
+	r.mu.Lock()
+	r.exits++
+	r.mu.Unlock()
 }
 
 // startHTTPSrv starts the server if it isn't serving, including after its
@@ -114,7 +158,7 @@ func (r *Srv) start(ctx context.Context) (info keybase1.HttpSrvInfo, started boo
 				// The advantage is that backing in and out of the thread will restore attachments,
 				// whereas if we do nothing you need to bkg/foreground.
 				r.debug(ctx, "startHTTPSrv: pinned port taken error, re-initializing and trying again")
-				r.httpSrv = kbhttp.NewSrv(r.G().GetLog(), r.listenerSource())
+				r.httpSrv = r.newHTTPSrv()
 				continue
 			}
 			r.debug(ctx, "startHTTPSrv: failed to start HTTP server: %s", err)
@@ -131,11 +175,7 @@ func (r *Srv) start(ctx context.Context) (info keybase1.HttpSrvInfo, started boo
 	if err != nil {
 		r.debug(ctx, "startHTTPSrv: failed to get address after start?: %s", err)
 	}
-	tokenPrefix := r.token
-	if len(tokenPrefix) > 8 {
-		tokenPrefix = tokenPrefix[:8] + "..."
-	}
-	r.debug(ctx, "startHTTPSrv: addr: %s token: %s", addr, tokenPrefix)
+	r.debug(ctx, "startHTTPSrv: addr: %s token: %s", addr, TokenPrefix(r.token))
 	return keybase1.HttpSrvInfo{
 		Address: addr,
 		Token:   r.token,
@@ -159,11 +199,12 @@ func (r *Srv) stop() {
 	r.httpSrv.Stop()
 }
 
-// reconcile tears the server down only in BACKGROUND. INACTIVE (Control
-// Center, system alerts, the app switcher) keeps it up, and every other state
-// restarts it if it isn't serving.
+// reconcile tears the server down only in BACKGROUND, and only where
+// stopInBackground. INACTIVE (Control Center, system alerts, the app
+// switcher) keeps it up, and every other state restarts it if it isn't
+// serving.
 func (r *Srv) reconcile(state keybase1.MobileAppState) {
-	if state == keybase1.MobileAppState_BACKGROUND {
+	if !r.wantUp(state) {
 		r.stopHTTPSrv()
 		return
 	}
@@ -217,7 +258,7 @@ func (r *Srv) checkToken(tokenMode SrvTokenMode,
 		case SrvTokenModeDefault:
 			if !hmac.Equal([]byte(req.URL.Query().Get("token")), []byte(r.token)) {
 				r.debug(context.Background(), "HandleFunc: token failed: %s != %s",
-					req.URL.Query().Get("token"), r.token)
+					TokenPrefix(req.URL.Query().Get("token")), TokenPrefix(r.token))
 				w.WriteHeader(http.StatusForbidden)
 				return
 			}

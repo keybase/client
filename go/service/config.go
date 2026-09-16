@@ -15,6 +15,7 @@ import (
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/install"
+	"github.com/keybase/client/go/kbhttp/manager"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/status"
@@ -366,7 +367,7 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (r
 		if infoErr != nil {
 			m.Debug("GetBootstrapStatus: failed to get HTTP server address: %s", infoErr)
 		} else {
-			m.Debug("GetBootstrapStatus: http server: addr: %s token: %s", info.Address, info.Token)
+			m.Debug("GetBootstrapStatus: http server: addr: %s token: %s", info.Address, manager.TokenPrefix(info.Token))
 			res.HttpSrvInfo = &info
 			break
 		}

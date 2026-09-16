@@ -148,6 +148,7 @@ type Srv struct {
 	listenerSource ListenerSource
 	server         *http.Server
 	doneCh         chan struct{}
+	onExit         func()
 }
 
 // NewSrv creates a new HTTP server with the given listener
@@ -157,6 +158,15 @@ func NewSrv(log logger.Logger, listenerSource ListenerSource) *Srv {
 		log:            log,
 		listenerSource: listenerSource,
 	}
+}
+
+// OnUnexpectedExit sets f to run whenever the server stops serving without
+// Stop, as when its listener is closed underneath it. f runs without the
+// server's lock held, so it may call back into the server.
+func (h *Srv) OnUnexpectedExit(f func()) {
+	h.Lock()
+	defer h.Unlock()
+	h.onExit = f
 }
 
 // Start starts listening on the server's listener source.
@@ -199,11 +209,16 @@ func (h *Srv) StartWithHandlers(register func(mux *http.ServeMux)) (err error) {
 		// Serve can return without Stop (the listener was closed underneath
 		// us), so forget the dead server or Start could never run again. A
 		// Stop and a newer Start may already have replaced it.
-		if h.server == server {
+		unexpected := h.server == server
+		if unexpected {
 			h.server = nil
 		}
+		onExit := h.onExit
 		h.Unlock()
 		close(doneCh)
+		if unexpected && onExit != nil {
+			onExit()
+		}
 	}(h.server, h.doneCh)
 	return nil
 }

@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -113,4 +114,23 @@ func TestSrvOldServeExitKeepsNewServer(t *testing.T) {
 	<-oldDone
 	require.True(t, srv.Active())
 	<-srv.Stop()
+}
+
+func TestSrvOnUnexpectedExit(t *testing.T) {
+	source := &capturingListenerSource{}
+	srv := NewSrv(logger.NewTestLogger(t), source)
+	var exits atomic.Int32
+	srv.OnUnexpectedExit(func() {
+		// Must not deadlock: the callback runs without the server's lock.
+		_ = srv.Active()
+		exits.Add(1)
+	})
+
+	require.NoError(t, srv.Start())
+	<-srv.Stop()
+	require.NoError(t, srv.Start())
+	source.kill()
+	require.Eventually(t, func() bool { return exits.Load() >= 1 }, 5*time.Second, time.Millisecond)
+	time.Sleep(50 * time.Millisecond)
+	require.Equal(t, int32(1), exits.Load(), "Stop reported as an unexpected exit")
 }
