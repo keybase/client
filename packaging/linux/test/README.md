@@ -25,7 +25,7 @@ Then, from inside the docker environment:
 
 Now you can test it in a fresh ubuntu environment:
 
-    docker pull ubuntu
+    docker pull ubuntu:24.04
     docker build -t keybase-ubuntu-test $GOPATH/src/github.com/keybase/client/packaging/linux/test/keybase-ubuntu-test
     docker run --privileged -v /var/tmp/keybase_build_work:/root -ti keybase-ubuntu-test bash
 
@@ -89,23 +89,22 @@ The following packages will be upgraded:
 
 Systemd requires that the docker container be run as a daemon:
 
-    docker pull solita/ubuntu-systemd
+    docker pull jrei/systemd-ubuntu:24.04
     docker build -t keybase-ubuntu-systemd-test $GOPATH/src/github.com/keybase/client/packaging/linux/test/keybase-ubuntu-systemd-test
-    docker run --rm --privileged -v /:/host solita/ubuntu-systemd setup
-    docker run -d --privileged -v /var/tmp/keybase_build_work:/root --security-opt seccomp:unconfined -v /sys/fs/cgroup:/sys/fs/cgroup:ro --tmpfs /run --tmpfs /run/lock --name systemd -ti keybase-ubuntu-systemd-test
+    docker run -d --privileged -v /var/tmp/keybase_build_work:/root --cgroupns=host -v /sys/fs/cgroup:/sys/fs/cgroup:rw --name systemd -ti keybase-ubuntu-systemd-test
     docker exec -ti systemd bash
 
 Then inside the container you can use the same steps as above to
 install and start keybase. Instead of `su`, you may need to `login <user>`
 so the systemd pam config runs.
 
-# Centos:
+# Rocky Linux (RPM):
 
-    docker pull centos
+    docker pull rockylinux:9
     docker build -t keybase-centos-test $GOPATH/src/github.com/keybase/client/packaging/linux/test/keybase-centos-test
     docker run --privileged -v /var/tmp/keybase_build_work:/root -ti keybase-centos-test bash
 
-From inside the Centos docker environment:
+From inside the Rocky docker environment:
 
     cd /root/build/rpm/x86_64/RPMS/x86_64
     rpm -Uvh `ls -tr *.rpm | tail -1`
@@ -114,7 +113,7 @@ To test an upgrade, start a different docker container:
 
 Then inside it:
 
-    yum install https://prerelease.keybase.io/keybase_amd64.rpm
+    dnf install https://prerelease.keybase.io/keybase_amd64.rpm
     useradd -m strib
     su - strib
     run_keybase
@@ -149,7 +148,7 @@ enabled=1
 metadata_expire=60
 
 # nogpgcheck needed in test
-bash-4.2# yum update keybase --nogpgcheck
+bash-4.2# dnf update keybase --nogpgcheck
 Loaded plugins: fastestmirror, ovl
 Loading mirror speeds from cached hostfile
  * base: mirror.jaleco.com
@@ -168,14 +167,14 @@ Note that reinstalling will overwrite this change unless you `sudo touch
 comment out codesigning while testing). You also need to `rm -r /root/build/rpm
 /root/build/rpm_repo` in between `layout_repo`s.
 
-# Centos with systemd:
+# Rocky with systemd:
 
-You can use the Dockerfile at https://github.com/xrowgmbh/docker-systemd-example-httpd, but note that centos
-doesn't support systemd user services right now, so Keybase will be using background anyway.
+You can use a systemd-enabled Rocky image, but note that this RPM test
+path does not use systemd user services, so Keybase will run in the background.
 
 # Arch:
 
-    docker pull base/archlinux
+    docker pull archlinux:base
     docker build -t keybase-arch-test $GOPATH/src/github.com/keybase/client/packaging/linux/test/keybase-arch-test
     docker run --privileged -v /var/tmp/keybase_build_work:/root -ti keybase-arch-test bash
 

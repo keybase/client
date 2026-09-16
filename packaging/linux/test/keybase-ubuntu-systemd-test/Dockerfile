@@ -1,11 +1,8 @@
-FROM solita/ubuntu-systemd
-MAINTAINER Keybase <admin@keybase.io>
+FROM jrei/systemd-ubuntu:24.04
+LABEL maintainer="Keybase <admin@keybase.io>"
 
-RUN apt-get update
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Install dependencies for keybase
-RUN apt-get install -y fuse psmisc procps lsof
-
-# Nice to have
-RUN apt-get install -y vim less curl
-
+RUN apt-get update \
+  && apt-get install -y fuse libfuse2t64 psmisc procps lsof vim less curl \
+  && rm -rf /var/lib/apt/lists/*

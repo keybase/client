@@ -7,7 +7,7 @@ LABEL maintainer="Keybase <admin@keybase.io>"
 
 RUN apk add --update --no-cache gnupg procps ca-certificates bash
 
-ENV TINI_VERSION v0.18.0
+ENV TINI_VERSION v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini.asc /tini.asc
 COPY packaging/linux/docker/tini_key.asc /tini_key.asc
