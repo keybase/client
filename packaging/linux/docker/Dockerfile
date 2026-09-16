@@ -9,13 +9,20 @@ COPY .docker/code_signing_key /code_signing_key
 
 RUN printf 'Acquire::Check-Valid-Until "false";\n' > /etc/apt/apt.conf.d/99no-check-valid \
   && printf '%s\n' \
+    'deb http://archive.debian.org/debian bullseye main' \
+    'deb http://archive.debian.org/debian bullseye-updates main' \
+    'deb http://archive.debian.org/debian-security bullseye-security main' \
+    > /etc/apt/sources.list \
+  && rm -f /etc/apt/sources.list.d/* \
+  && apt-get update \
+  && apt-get install -y ca-certificates \
+  && printf '%s\n' \
     'deb https://archive.debian.org/debian bullseye main' \
     'deb https://archive.debian.org/debian bullseye-updates main' \
     'deb https://archive.debian.org/debian-security bullseye-security main' \
     > /etc/apt/sources.list \
-  && rm -f /etc/apt/sources.list.d/* \
   && apt-get update \
-  && apt-get install -y gcc-x86-64-linux-gnu wget ca-certificates gnupg \
+  && apt-get install -y gcc-x86-64-linux-gnu wget gnupg \
   && rm -rf /var/lib/apt/lists/*
 RUN gpg --import /code_signing_key
 
