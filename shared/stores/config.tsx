@@ -608,8 +608,11 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
         }
       }
       set((s) => {
+        // A second switch that starts after the mid-switch logout would read loggedIn as false, so
+        // keep holding the logged-in screens if the switch already in flight is holding them.
+        s.userSwitchingFromLoggedIn =
+          sw && (s.loggedIn || (s.userSwitching && s.userSwitchingFromLoggedIn));
         s.userSwitching = sw;
-        s.userSwitchingFromLoggedIn = sw && s.loggedIn;
         s.userSwitchingTo = sw ? (to ?? "") : "";
       });
     },

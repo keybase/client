@@ -283,3 +283,16 @@ test('setUserSwitching records whether the switch started logged in, through the
   dispatch.setUserSwitching(false)
   expect(useConfigState.getState().userSwitchingFromLoggedIn).toBe(false)
 })
+
+test('a switch started during another switch keeps the first switch\'s logged-in state and takes the new target', () => {
+  const {dispatch} = useConfigState.getState()
+
+  dispatch.setLoggedIn(true)
+  dispatch.setUserSwitching(true, 'testuser')
+  dispatch.setLoggedIn(false)
+  dispatch.setUserSwitching(true, 'testuser-mac')
+
+  const state = useConfigState.getState()
+  expect(state.userSwitchingFromLoggedIn).toBe(true)
+  expect(state.userSwitchingTo).toBe('testuser-mac')
+})
