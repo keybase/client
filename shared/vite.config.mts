@@ -5,8 +5,7 @@
  * orchestrator and package.desktop.mts) because they are node/electron targets,
  * not part of this web module graph.
  */
-import react, {reactCompilerPreset} from '@vitejs/plugin-react'
-import babel from '@rolldown/plugin-babel'
+import react from '@vitejs/plugin-react'
 import path from 'node:path'
 import {createRequire} from 'node:module'
 import {fileURLToPath} from 'node:url'
@@ -232,13 +231,12 @@ const htmlPlugin = (isDev: boolean): Plugin => ({
   },
 })
 
-// @vitejs/plugin-react@6 uses oxc (not babel) for JSX/fast-refresh and has no
-// babel option, so react-compiler (babel-only) runs as a separate
-// @rolldown/plugin-babel pass with the exported reactCompilerPreset — the
-// react.dev-documented setup. Without it, un-memoized values cause effect loops
+// `compiler` runs oxc-transform-react, the Rust port of react-compiler. Metro, jest and
+// lint:bailouts still use babel-plugin-react-compiler, so the two ports must stay in
+// agreement. Without the compiler, un-memoized values cause effect loops
 // (e.g. GlobalKeyEventHandler). Platform globals come from the Vite `define`,
 // '@' from resolve.alias.
-export const makeReactPlugins = () => [react(), babel({presets: [reactCompilerPreset()]})]
+export const makeReactPlugins = () => [react({compiler: true})]
 
 export const sharedResolve = {
   alias: makeAlias(),
