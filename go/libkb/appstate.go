@@ -109,17 +109,23 @@ func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) (changed bo
 	return true
 }
 
+// UpdateWithCheck applies state only if check accepts the current state,
+// evaluated under the same lock as the update. It returns the generation
+// after the call, whether the update was applied, and whether the value
+// changed. Owners keep newGen to undo their transition with
+// UpdateIfGeneration.
 func (a *MobileAppState) UpdateWithCheck(state keybase1.MobileAppState,
 	check func(keybase1.MobileAppState) bool,
-) {
+) (newGen uint64, applied bool, changed bool) {
 	defer a.G().Trace(fmt.Sprintf("MobileAppState.UpdateWithCheck(%v)", state), nil)()
 	a.Lock()
 	defer a.Unlock()
-	if check(a.state) {
-		a.updateLocked(state)
-	} else {
+	if !check(a.state) {
 		a.G().Log.Debug("MobileAppState.UpdateWithCheck: skipping update, failed check")
+		return a.generation, false, false
 	}
+	changed = a.updateLocked(state)
+	return a.generation, true, changed
 }
 
 // Update sets the current app state and bumps the generation, even when state

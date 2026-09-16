@@ -81,6 +81,28 @@ func TestMobileAppStateGeneration(t *testing.T) {
 	require.Greater(t, newGen, gen3)
 }
 
+func TestMobileAppStateUpdateWithCheck(t *testing.T) {
+	tc := SetupTest(t, "MobileAppStateUpdateWithCheck", 0)
+	defer tc.Cleanup()
+	a := NewMobileAppState(tc.G)
+	isBackground := func(s keybase1.MobileAppState) bool { return s == keybase1.MobileAppState_BACKGROUND }
+
+	_, gen := a.StateAndGeneration()
+	newGen, applied, changed := a.UpdateWithCheck(keybase1.MobileAppState_BACKGROUNDACTIVE, isBackground)
+	require.False(t, applied)
+	require.False(t, changed)
+	require.Equal(t, gen, newGen)
+	require.Equal(t, keybase1.MobileAppState_FOREGROUND, a.State())
+
+	a.Update(keybase1.MobileAppState_BACKGROUND)
+	newGen, applied, changed = a.UpdateWithCheck(keybase1.MobileAppState_BACKGROUNDACTIVE, isBackground)
+	require.True(t, applied)
+	require.True(t, changed)
+	state, cur := a.StateAndGeneration()
+	require.Equal(t, keybase1.MobileAppState_BACKGROUNDACTIVE, state)
+	require.Equal(t, cur, newGen)
+}
+
 func TestMobileAppStateSideEffectsOnlyOnChange(t *testing.T) {
 	tc := SetupTest(t, "MobileAppStateSideEffects", 0)
 	defer tc.Cleanup()

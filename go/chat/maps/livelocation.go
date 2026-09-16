@@ -32,6 +32,7 @@ type LiveLocationTracker struct {
 	trackers       map[types.LiveLocationKey]*locationTrack
 	lastCoord      chat1.Coordinate
 	maxCoords      int
+	bgActive       backgroundActiveOwner
 
 	// testing only
 	TestingCoordsAddedCh chan struct{}
@@ -89,6 +90,14 @@ func (l *LiveLocationTracker) saveLocked(ctx context.Context) {
 	}
 	if err := l.storage.Save(ctx, trackers); err != nil {
 		l.Debug(ctx, "save: failed to save: %s", err)
+	}
+}
+
+func (l *LiveLocationTracker) removeTrackerLocked(ctx context.Context, t *locationTrack) {
+	delete(l.trackers, t.Key())
+	l.saveLocked(ctx)
+	if len(l.trackers) == 0 {
+		l.bgActive.release(l.G().MobileAppState)
 	}
 }
 
@@ -260,8 +269,7 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 	if t.endTime.Before(l.clock.Now()) {
 		l.Lock()
 		defer l.Unlock()
-		delete(l.trackers, t.Key())
-		l.saveLocked(ctx)
+		l.removeTrackerLocked(ctx, t)
 		l.Debug(ctx, "tracker: old tracker, not running and clearing")
 		return errors.New("tracker from the past")
 	}
@@ -279,8 +287,7 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 		}
 		l.Lock()
 		defer l.Unlock()
-		delete(l.trackers, t.Key())
-		l.saveLocked(ctx)
+		l.removeTrackerLocked(ctx, t)
 	}()
 	// if this is a live location request, just put whatever the last coord is on the screen, makes it
 	// feel more live
@@ -373,14 +380,11 @@ func (l *LiveLocationTracker) LocationUpdate(ctx context.Context, coord chat1.Co
 	defer l.Trace(ctx, nil, "LocationUpdate")()
 	l.Lock()
 	defer l.Unlock()
-	if l.G().IsMobileAppType() {
+	if l.G().IsMobileAppType() && len(l.trackers) > 0 {
 		// if the app is woken up as the result of a location update, and we think we are currently
 		// backgrounded, then go ahead and mark us as background active so that we can get
 		// location updates out
-		l.G().MobileAppState.UpdateWithCheck(keybase1.MobileAppState_BACKGROUNDACTIVE,
-			func(curState keybase1.MobileAppState) bool {
-				return curState == keybase1.MobileAppState_BACKGROUND
-			})
+		l.bgActive.claim(l.G().MobileAppState)
 	}
 	if l.lastCoord.Eq(coord) {
 		l.Debug(ctx, "LocationUpdate: ignoring dup coordinate")
