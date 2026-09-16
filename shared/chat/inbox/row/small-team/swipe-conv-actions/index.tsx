@@ -10,6 +10,7 @@ type Props = {
   children: React.ReactNode
   conversationIDKey: ConversationIDKey
   onPress?: () => void
+  onLongPress?: () => void
 }
 import Swipeable, {type SwipeableMethods} from '@/common-adapters/swipeable-row'
 import {useOpenedRowState} from '../../opened-row-state'
@@ -78,7 +79,7 @@ function SwipeConvActions(p: Props) {
     return <div style={Kb.Styles.castStyleDesktop(desktopStyles.row)}>{p.children}</div>
   }
 
-  const {children, onPress} = p
+  const {children, onPress, onLongPress} = p
 
   const closeOpenedRow = () => {
     if (isOpened) {
@@ -136,8 +137,13 @@ function SwipeConvActions(p: Props) {
     )
   }
 
-  const inner = onPress ? (
-    <Pressable onPress={onPress} style={nativeStyles.touchable} testID={TestIDs.CHAT_INBOX_ROW}>
+  const inner = onPress || onLongPress ? (
+    <Pressable
+      onPress={onPress}
+      onLongPress={onLongPress}
+      style={nativeStyles.touchable}
+      testID={TestIDs.CHAT_INBOX_ROW}
+    >
       <View accessible={false} style={nativeStyles.touchable}>
         {children}
       </View>

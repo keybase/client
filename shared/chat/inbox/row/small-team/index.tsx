@@ -26,6 +26,22 @@ const SmallTeam = (p: Props) => {
   const row = useInboxRowSmall(conversationIDKey)
   const setOpenedRow = useOpenedRowState(s => s.dispatch.setOpenRow)
 
+  const makePopup = (mp: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = mp
+    return (
+      <TeamMenu
+        visible={true}
+        attachTo={attachTo}
+        conversationIDKey={conversationIDKey}
+        onHidden={hidePopup}
+        hasHeader={true}
+        isSmallTeam={true}
+        showPinItems={true}
+      />
+    )
+  }
+  const {showingPopup, showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+
   const {isMuted, isLocked, draft: rawDraft, teamDisplayName, hasBadge, hasUnread} = row
   const {hasResetUsers, youNeedToRekey, youAreReset, participantNeedToRekey, participants} = row
   const {snippet, snippetDecoration, typingSnippet, timestamp, isDecryptingSnippet} = row
@@ -39,6 +55,12 @@ const SmallTeam = (p: Props) => {
           setOpenedRow(Chat.noConversationIDKey)
           C.Router2.navigateToThread(conversationIDKey, 'inboxSmall')
         }))
+  const onLongPress = isMobile
+    ? () => {
+        setOpenedRow(Chat.noConversationIDKey)
+        showPopup()
+      }
+    : undefined
 
   const backgroundColor = isSelected
     ? theme.blue
@@ -77,6 +99,8 @@ const SmallTeam = (p: Props) => {
             hasUnread={hasUnread}
             isSelected={isSelected}
             backgroundColor={backgroundColor}
+            showPopup={showPopup}
+            popupAnchor={popupAnchor}
           />
         </Kb.Box2>
         <BottomLineDisplay
@@ -97,17 +121,20 @@ const SmallTeam = (p: Props) => {
   )
 
   return (
-    <SwipeConvActions conversationIDKey={conversationIDKey} onPress={onSelectConversation}>
-      {isMobile ? (
-        <Kb.Box2 direction="vertical" style={containerStyle}>
-          {rowContents}
-        </Kb.Box2>
-      ) : (
-        <Kb.ClickableBox direction="vertical" fullWidth={true} onClick={onSelectConversation} className={className} testID={TestIDs.CHAT_INBOX_ROW} style={containerStyle}>
-          {rowContents}
-        </Kb.ClickableBox>
-      )}
-    </SwipeConvActions>
+    <>
+      {showingPopup && popup}
+      <SwipeConvActions conversationIDKey={conversationIDKey} onPress={onSelectConversation} onLongPress={onLongPress}>
+        {isMobile ? (
+          <Kb.Box2 direction="vertical" style={containerStyle}>
+            {rowContents}
+          </Kb.Box2>
+        ) : (
+          <Kb.ClickableBox direction="vertical" fullWidth={true} onClick={onSelectConversation} className={className} testID={TestIDs.CHAT_INBOX_ROW} style={containerStyle}>
+            {rowContents}
+          </Kb.ClickableBox>
+        )}
+      </SwipeConvActions>
+    </>
   )
 }
 
@@ -120,12 +147,15 @@ type TopLineProps = {
   hasUnread: boolean
   isSelected: boolean
   backgroundColor?: string
+  showPopup: () => void
+  popupAnchor: React.RefObject<Kb.MeasureRef | null>
 }
 
 const TopLine = (p: TopLineProps) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
-  const {isSelected, backgroundColor, conversationIDKey, participants, teamDisplayName, timestamp, hasBadge, hasUnread} = p
+  const {isSelected, backgroundColor, conversationIDKey, participants, teamDisplayName, timestamp} = p
+  const {hasBadge, hasUnread, showPopup, popupAnchor} = p
   const isPinned = useInboxRowIsPinned(conversationIDKey)
   const showBold = !isSelected && hasUnread
   const subColor = isSelected
@@ -188,46 +218,35 @@ const TopLine = (p: TopLineProps) => {
         {timestampText}
       </Kb.Text>
       {!isMobile && (
-        <TopLineGear conversationIDKey={conversationIDKey} subColor={subColor} isSelected={isSelected} />
+        <TopLineGear subColor={subColor} isSelected={isSelected} showPopup={showPopup} popupAnchor={popupAnchor} />
       )}
       {hasBadge ? <Kb.Box2 direction="horizontal" key="unreadDot" style={styles.unreadDotStyle} /> : null}
     </Kb.Box2>
   )
 }
 
-const TopLineGear = (p: {conversationIDKey: T.Chat.ConversationIDKey; subColor: string; isSelected: boolean}) => {
+type TopLineGearProps = {
+  subColor: string
+  isSelected: boolean
+  showPopup: () => void
+  popupAnchor: React.RefObject<Kb.MeasureRef | null>
+}
+
+const TopLineGear = (p: TopLineGearProps) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
-  const {conversationIDKey, subColor, isSelected} = p
+  const {subColor, isSelected, showPopup, popupAnchor} = p
   const iconHoverColor = isSelected ? theme.white_75 : theme.black
-  const makePopup = (mp: Kb.Popup2Parms) => {
-    const {attachTo, hidePopup} = mp
-    return (
-      <TeamMenu
-        visible={true}
-        attachTo={attachTo}
-        conversationIDKey={conversationIDKey}
-        onHidden={hidePopup}
-        hasHeader={true}
-        isSmallTeam={true}
-        showPinItems={true}
-      />
-    )
-  }
-  const {showingPopup, showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
-    <>
-      {showingPopup && popup}
-      <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.icon}>
-        <Kb.Icon
-          type="iconfont-gear"
-          className="conversation-gear"
-          onClick={showPopup}
-          color={subColor}
-          hoverColor={iconHoverColor}
-        />
-      </Kb.Box2>
-    </>
+    <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.icon}>
+      <Kb.Icon
+        type="iconfont-gear"
+        className="conversation-gear"
+        onClick={showPopup}
+        color={subColor}
+        hoverColor={iconHoverColor}
+      />
+    </Kb.Box2>
   )
 }
 
