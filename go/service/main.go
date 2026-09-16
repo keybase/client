@@ -1071,16 +1071,9 @@ func (d *Service) gregordConnect() (err error) {
 	}
 	d.G().Log.Debug("| gregor URI: %s", uri)
 
-	// If we are already connected, then shutdown and reset the gregor
-	// handler
-	if d.gregor.IsConnected() {
-		if err := d.gregor.Reset(); err != nil {
-			return err
-		}
-	}
-
-	// Connect to gregord
-	return d.gregor.Connect(uri)
+	// Reset a live connection so it authenticates again. Nothing connects
+	// while the app is in BACKGROUND.
+	return d.gregor.ConnectFresh(uri)
 }
 
 // ReleaseLock releases the locking pidfile by closing, unlocking and

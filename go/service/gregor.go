@@ -200,6 +200,9 @@ type gregorHandler struct {
 	reachability     *reachability
 	chatLog          utils.DebugLabeler
 
+	// connGate decides when to connect and disconnect
+	connGate *gregorConnGate
+
 	// This mutex protects the con object
 	connMutex sync.Mutex
 	conn      *rpc.Connection
@@ -250,6 +253,7 @@ func newGregorHandler(g *globals.Context) *gregorHandler {
 		pushStateCh:     make(chan struct{}, 100),
 		forcePingCh:     make(chan struct{}, 5),
 	}
+	gh.connGate = newGregorConnGate(g.ExternalG(), gh, gh.chatLog.Debug, gh.forcePing)
 	return gh
 }
 
@@ -258,63 +262,18 @@ func (g *gregorHandler) Init() {
 	// Start broadcast handler goroutine
 	go g.broadcastMessageHandler()
 	// Start the app state monitor thread
-	go g.monitorAppState()
+	g.connGate.start()
+	g.G().PushShutdownHook(func(libkb.MetaContext) error {
+		g.connGate.stop()
+		return nil
+	})
 	// Start replay thread
 	go g.syncReplayThread()
 }
 
-const (
-	monitorConnect int = iota
-	monitorDisconnect
-	monitorNoop
-)
-
-func (g *gregorHandler) monitorAppState() {
-	ctx := libkb.WithLogTag(context.Background(), "GRGRMON")
-	// Wait for state updates and react accordingly
-	state := keybase1.MobileAppState_FOREGROUND
-	suspended := false
-	for {
-		monitorAction := monitorNoop
-		select {
-		case <-g.G().MobileAppState.NextUpdate(state):
-			state = g.G().MobileAppState.State()
-			switch state {
-			case keybase1.MobileAppState_FOREGROUND:
-				g.forcePing(ctx)
-				monitorAction = monitorConnect
-			case keybase1.MobileAppState_BACKGROUNDACTIVE:
-				monitorAction = monitorConnect
-			case keybase1.MobileAppState_BACKGROUND, keybase1.MobileAppState_INACTIVE:
-				monitorAction = monitorDisconnect
-			}
-		case <-g.G().DesktopAppState.NextSuspendUpdate(suspended):
-			suspended = g.G().DesktopAppState.Suspended()
-			if !suspended {
-				monitorAction = monitorConnect
-				g.chatLog.Debug(ctx, "resumed, connecting")
-			} else {
-				g.chatLog.Debug(ctx, "suspended, disconnecting")
-				monitorAction = monitorDisconnect
-			}
-		}
-		switch monitorAction {
-		case monitorConnect:
-			// Make sure the URI is set before attempting this (possible it isn't in a race)
-			if g.uri != nil {
-				g.chatLog.Debug(ctx, "foregrounded, reconnecting")
-				if err := g.Connect(g.uri); err != nil {
-					g.chatLog.Debug(ctx, "error reconnecting: %s", err)
-				}
-			}
-		case monitorDisconnect:
-			g.chatLog.Debug(ctx, "backgrounded, shutting down connection")
-			g.Shutdown(ctx)
-		}
-	}
-}
-
 func (g *gregorHandler) GetURI() *rpc.FMPURI {
+	g.connMutex.Lock()
+	defer g.connMutex.Unlock()
 	return g.uri
 }
 
@@ -437,7 +396,19 @@ func (g *gregorHandler) setReachability(r *reachability) {
 	g.reachability = r
 }
 
-func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
+// Connect connects to uri unless the app is in BACKGROUND, in which case it
+// connects once the app leaves BACKGROUND.
+func (g *gregorHandler) Connect(uri *rpc.FMPURI) error {
+	return g.connGate.connect(libkb.WithLogTag(context.Background(), "GRGRCONN"), uri, false)
+}
+
+// ConnectFresh is Connect, resetting any live connection first so it
+// authenticates again.
+func (g *gregorHandler) ConnectFresh(uri *rpc.FMPURI) error {
+	return g.connGate.connect(libkb.WithLogTag(context.Background(), "GRGRCONN"), uri, true)
+}
+
+func (g *gregorHandler) connectNow(uri *rpc.FMPURI) (err error) {
 	ctx := libkb.WithLogTag(context.Background(), "GRGRCONN")
 	defer g.chatLog.Trace(ctx, &err, "Connect")()
 
@@ -1391,8 +1362,11 @@ const (
 
 func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, did keybase1.DeviceID, token string, nist *libkb.NIST, res loggedInRes) {
 	// Check to see if we have been shut down,
+	g.connMutex.Lock()
+	shutdownCh := g.shutdownCh
+	g.connMutex.Unlock()
 	select {
-	case <-g.shutdownCh:
+	case <-shutdownCh:
 		return uid, did, token, nil, loggedInMaybe
 	default:
 		// if we were going to block, then that means we are still alive
@@ -1473,16 +1447,7 @@ func (g *gregorHandler) isReachable(ctx context.Context) bool {
 }
 
 func (g *gregorHandler) Reconnect(ctx context.Context) (didShutdown bool, err error) {
-	if g.IsConnected() {
-		didShutdown = true
-		g.chatLog.Debug(ctx, "Reconnect: reconnecting to server")
-		g.Shutdown(ctx)
-		return didShutdown, g.Connect(g.uri)
-	}
-
-	didShutdown = false
-	g.chatLog.Debug(ctx, "Reconnect: skipping reconnect, already disconnected")
-	return didShutdown, nil
+	return g.connGate.reconnect(ctx)
 }
 
 func (g *gregorHandler) forcePing(ctx context.Context) {
@@ -1493,7 +1458,7 @@ func (g *gregorHandler) forcePing(ctx context.Context) {
 	}
 }
 
-func (g *gregorHandler) pingOnce(ctx context.Context, id []byte, shutdownCancel context.CancelFunc) {
+func (g *gregorHandler) pingOnce(ctx context.Context, id []byte, shutdownCh chan struct{}, shutdownCancel context.CancelFunc) {
 	var err error
 	doneCh := make(chan error)
 	timeout := g.G().Env.GetGregorPingTimeout()
@@ -1525,7 +1490,7 @@ func (g *gregorHandler) pingOnce(ctx context.Context, id []byte, shutdownCancel 
 
 	select {
 	case err = <-doneCh:
-	case <-g.shutdownCh:
+	case <-shutdownCh:
 		g.chatLog.Debug(ctx, "ping loop: id: %x shutdown received", id)
 		shutdownCancel()
 		return
@@ -1550,7 +1515,9 @@ func (g *gregorHandler) pingOnce(ctx context.Context, id []byte, shutdownCancel 
 	}
 }
 
-func (g *gregorHandler) pingLoop(ctx context.Context) {
+// pingLoop runs until shutdownCh, the channel of the connection it was
+// started for, closes.
+func (g *gregorHandler) pingLoop(ctx context.Context, shutdownCh chan struct{}) {
 	id, _ := libkb.RandBytes(4)
 	duration := g.G().Env.GetGregorPingInterval()
 	timeout := g.G().Env.GetGregorPingTimeout()
@@ -1568,10 +1535,10 @@ func (g *gregorHandler) pingLoop(ctx context.Context) {
 		select {
 		case <-g.forcePingCh:
 			g.chatLog.Debug(pingCtx, "ping loop: forced attempt")
-			g.pingOnce(pingCtx, id, shutdownCancel)
+			g.pingOnce(pingCtx, id, shutdownCh, shutdownCancel)
 		case <-ticker.C:
-			g.pingOnce(pingCtx, id, shutdownCancel)
-		case <-g.shutdownCh:
+			g.pingOnce(pingCtx, id, shutdownCh, shutdownCancel)
+		case <-shutdownCh:
 			g.chatLog.Debug(pingCtx, "ping loop: id: %x shutdown received", id)
 			shutdownCancel()
 			return
@@ -1627,7 +1594,7 @@ func (g *gregorHandler) connectTLS(ctx context.Context) error {
 
 	// Start up ping loop to keep the connection to gregord alive, and to kick
 	// off the reconnect logic in the RPC library
-	go g.pingLoop(ctx)
+	go g.pingLoop(ctx, g.shutdownCh)
 
 	return nil
 }
@@ -1660,7 +1627,7 @@ func (g *gregorHandler) connectNoTLS(ctx context.Context) error {
 
 	// Start up ping loop to keep the connection to gregord alive, and to kick
 	// off the reconnect logic in the RPC library
-	go g.pingLoop(ctx)
+	go g.pingLoop(ctx, g.shutdownCh)
 
 	return nil
 }
