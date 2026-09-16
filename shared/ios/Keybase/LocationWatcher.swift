@@ -8,11 +8,12 @@ private let log = Logger(subsystem: "com.keybase.app", category: "location")
 // Runs the OS location service for live location (go/chat/maps) without JS. Go
 // starts and stops watching; each fix goes back to Go. Created in
 // didFinishLaunching, before Go restores its trackers, so an app relaunched by
-// significant-change monitoring starts watching again. Its options match the
-// expo-location background task it replaced.
+// significant-change monitoring starts watching again. Its CLLocationManager
+// options match expo-location's background task, which Android still uses.
 final class LocationWatcher: NSObject, Keybasego.KeybaseNativeLocationWatcherProtocol, CLLocationManagerDelegate {
   // In the background a fix is only reported once the device has moved this far
-  // since the last one reported.
+  // since the last one reported. The first fix after starting is reported right
+  // away, so the move that relaunched the app gets posted.
   private static let deferredUpdatesDistance: CLLocationDistance = 65
 
   // Everything below is main thread only.
@@ -60,7 +61,8 @@ final class LocationWatcher: NSObject, Keybasego.KeybaseNativeLocationWatcherPro
       pending = location
     }
     guard let location = pending,
-          UIApplication.shared.applicationState == .active || pendingDistance >= Self.deferredUpdatesDistance
+          lastReported == nil || UIApplication.shared.applicationState == .active
+            || pendingDistance >= Self.deferredUpdatesDistance
     else { return }
     lastReported = location
     pending = nil

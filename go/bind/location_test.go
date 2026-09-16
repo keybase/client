@@ -2,6 +2,7 @@ package keybase
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
@@ -71,4 +72,59 @@ func TestLocationUpdateReachesTrackers(t *testing.T) {
 		require.Fail(t, "native watch never stopped")
 	}
 	require.Equal(t, keybase1.MobileAppState_BACKGROUND, tc.G.MobileAppState.State())
+}
+
+type recordingLiveLocationTracker struct {
+	types.LiveLocationTracker
+	sync.Mutex
+	coords []chat1.Coordinate
+}
+
+func (r *recordingLiveLocationTracker) LocationUpdate(_ context.Context, coord chat1.Coordinate) {
+	r.Lock()
+	defer r.Unlock()
+	r.coords = append(r.coords, coord)
+}
+
+func (r *recordingLiveLocationTracker) Coords() []chat1.Coordinate {
+	r.Lock()
+	defer r.Unlock()
+	return append([]chat1.Coordinate(nil), r.coords...)
+}
+
+func TestLocationUpdateGuards(t *testing.T) {
+	resetConnStateForTest(t)
+	savedChatCtx := kbChatCtx
+	t.Cleanup(func() { kbChatCtx = savedChatCtx })
+	setInitComplete := func(v bool) {
+		initMutex.Lock()
+		defer initMutex.Unlock()
+		initComplete = v
+	}
+
+	tc := libkb.SetupTest(t, "LocationUpdateGuards", 0)
+	defer tc.Cleanup()
+	tracker := &recordingLiveLocationTracker{}
+	kbCtx = tc.G
+	kbChatCtx = &globals.ChatContext{LiveLocationTracker: tracker}
+
+	setInitComplete(true)
+	LocationUpdate(1, 2, 3)
+	require.Empty(t, tracker.Coords(), "dropped while logged out")
+
+	sigKey, err := libkb.GenerateNaclSigningKeyPair()
+	require.NoError(t, err)
+	encKey, err := libkb.GenerateNaclDHKeyPair()
+	require.NoError(t, err)
+	uv := keybase1.UserVersion{Uid: keybase1.MakeTestUID(1), EldestSeqno: 1}
+	require.NoError(t, tc.G.ActiveDevice.Set(libkb.NewMetaContextForTest(tc), uv, keybase1.DeviceID("dev"),
+		sigKey, encKey, "testuser-device", 0, libkb.KeychainModeNone))
+
+	setInitComplete(false)
+	LocationUpdate(1, 2, 3)
+	require.Empty(t, tracker.Coords(), "dropped before Init completes")
+
+	setInitComplete(true)
+	LocationUpdate(1, 2, 3)
+	require.Equal(t, []chat1.Coordinate{{Lat: 1, Lon: 2, Accuracy: 3}}, tracker.Coords())
 }
