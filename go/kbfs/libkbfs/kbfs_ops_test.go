@@ -163,7 +163,9 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 		idutil.SessionInfo{}, err)
 	config.mockRep.EXPECT().
 		NotifyFavoritesChanged(gomock.Any()).Return().AnyTimes()
-	kbfsops.favs.Initialize(ctx)
+	// `ctx` (a named return) isn't built until the end of this function, so
+	// use a standalone context here.
+	kbfsops.favs.Initialize(context.Background())
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).AnyTimes().
 		Return(keybase1.FavoritesResult{}, nil)
 	config.mockKbs.EXPECT().EncryptFavorites(gomock.Any(), gomock.Any()).

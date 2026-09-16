@@ -150,6 +150,9 @@ func MakeTestConfigOrBustLoggedInWithMode(
 	kbfsOps := NewKBFSOpsStandard(
 		env.EmptyAppStateUpdater{}, config, initDoneCh)
 	defer close(initDoneCh)
+	// Test configs are fully built by the time this returns, so stand in for
+	// the readiness signal that init sends in production.
+	defer kbfsOps.initReady()
 	config.SetKBFSOps(kbfsOps)
 	config.SetNotifier(kbfsOps)
 
@@ -267,6 +270,8 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 	initDoneCh := make(chan struct{})
 	kbfsOps := NewKBFSOpsStandard(env.EmptyAppStateUpdater{}, c, initDoneCh)
 	defer close(initDoneCh)
+	// See the comment in MakeTestConfigOrBustLoggedInWithMode.
+	defer kbfsOps.initReady()
 	c.SetKBFSOps(kbfsOps)
 	c.SetNotifier(kbfsOps)
 
