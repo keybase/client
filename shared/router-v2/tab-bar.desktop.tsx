@@ -262,7 +262,8 @@ function Tab(props: TabProps) {
   )
   const onQuickSwitch = isPeopleTab
     ? () => {
-        const accountRows = useConfigState.getState().configuredAccounts
+        const {configuredAccounts: accountRows, userSwitching} = useConfigState.getState()
+        if (userSwitching) return
         const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
         if (row) {
           setUserSwitching(true, row.username)
