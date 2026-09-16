@@ -8,7 +8,6 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
-	"errors"
 	"io"
 	"net/http"
 	"path"
@@ -33,11 +32,9 @@ const fsCacheSize = 64
 
 // Server is a local HTTP server for serving KBFS content over HTTP.
 type Server struct {
-	config          libkbfs.Config
-	logger          logger.Logger
-	vlog            *libkb.VDebugLog
-	appStateUpdater env.AppStateUpdater
-	cancel          func()
+	config libkbfs.Config
+	logger logger.Logger
+	vlog   *libkb.VDebugLog
 
 	tokenLock       sync.RWMutex
 	token           string
@@ -45,8 +42,7 @@ type Server struct {
 
 	fs *lru.Cache
 
-	serverLock sync.RWMutex
-	server     *kbhttp.Srv
+	server *appStateServer
 }
 
 const (
@@ -221,55 +217,9 @@ const (
 	requestPathRoot = "/files/"
 )
 
-func (s *Server) restart() (err error) {
-	s.serverLock.Lock()
-	defer s.serverLock.Unlock()
-	if s.server != nil {
-		s.server.Stop()
-		err = s.server.Start()
-	}
-	if s.server == nil ||
-		// If pinned port is in use, just pick a new one like we never had a
-		// server before.
-		errors.Is(err, kbhttp.ErrPinnedPortInUse) {
-		s.server = kbhttp.NewSrv(s.logger,
-			kbhttp.NewRandomPortRangeListenerSource(portStart, portEnd))
-		err = s.server.Start()
-	}
-	if err != nil {
-		return err
-	}
-	// Have to start this first to populate the ServeMux object.
-	s.server.Handle(requestPathRoot,
+func (s *Server) registerHandlers(mux *http.ServeMux) {
+	mux.Handle(requestPathRoot,
 		http.StripPrefix(requestPathRoot, http.HandlerFunc(s.serve)))
-	return nil
-}
-
-func (s *Server) monitorAppState(ctx context.Context) {
-	state := keybase1.MobileAppState_FOREGROUND
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-s.appStateUpdater.NextAppStateUpdate(state):
-			state = s.appStateUpdater.AppState()
-			// Due to the way NextUpdate is designed, it's possible we miss an
-			// update if processing the last update takes too long. So it's
-			// possible to get consecutive FOREGROUND updates even if there are
-			// other states in-between. Since libkb/appstate.go already
-			// deduplicates, it'll never actually send consecutive identical
-			// states to us. In addition, apart from FOREGROUND/BACKGROUND,
-			// there are other possible states too, and potentially more in the
-			// future. So, we just restart the server under FOREGROUND instead
-			// of trying to listen on all state updates.
-			if state != keybase1.MobileAppState_FOREGROUND {
-				continue
-			}
-			if err := s.restart(); err != nil {
-				s.logger.Error("(Re)starting server failed: %v", err)
-			}
-		}
-	}
 }
 
 // New creates and starts a new server.
@@ -278,10 +228,9 @@ func New(appStateUpdater env.AppStateUpdater, config libkbfs.Config) (
 ) {
 	logger := config.MakeLogger("HTTP")
 	s = &Server{
-		appStateUpdater: appStateUpdater,
-		config:          config,
-		logger:          logger,
-		vlog:            config.MakeVLogger(logger),
+		config: config,
+		logger: logger,
+		vlog:   config.MakeVLogger(logger),
 	}
 	s.fs, err = lru.NewWithEvict(fsCacheSize, func(_ any, value any) {
 		if e, ok := value.(obsoleteTrackingFS); ok && e.unsubscribe != nil {
@@ -291,30 +240,26 @@ func New(appStateUpdater env.AppStateUpdater, config libkbfs.Config) (
 	if err != nil {
 		return nil, err
 	}
-	if err = s.restart(); err != nil {
+	s.server = newAppStateServer(appStateUpdater, logger,
+		func() kbhttp.ListenerSource {
+			return kbhttp.NewRandomPortRangeListenerSource(portStart, portEnd)
+		}, s.registerHandlers)
+	if err = s.server.start(); err != nil {
 		return nil, err
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	go s.monitorAppState(ctx)
-	s.cancel = cancel
 	libmime.Patch(additionalMimeTypes)
 	return s, nil
 }
 
 // Address returns the address that the server is listening on.
 func (s *Server) Address() (string, error) {
-	s.serverLock.RLock()
-	defer s.serverLock.RUnlock()
 	return s.server.Addr()
 }
 
 // Shutdown shuts down the server.
 func (s *Server) Shutdown() {
-	s.serverLock.Lock()
-	defer s.serverLock.Unlock()
-	s.server.Stop()
+	s.server.Shutdown()
 	// Purge the LRU so its evict callback runs and unsubscribes any
 	// folder-branch observers still held by cached entries.
 	s.fs.Purge()
-	s.cancel()
 }
