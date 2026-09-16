@@ -231,8 +231,11 @@ type gregorHandler struct {
 	forcePingCh chan struct{}
 
 	// Testing
-	testingEvents       *testingEvents
-	transportForTesting *connTransport
+	testingEvents *testingEvents
+	// beforeGregorClientInstall, if set, runs in resetGregorClientFor after
+	// the client is built and before it is installed.
+	beforeGregorClientInstall func()
+	transportForTesting       *connTransport
 }
 
 var (
@@ -331,6 +334,16 @@ func (g *gregorHandler) shutdownGregorClient(ctx context.Context) {
 }
 
 func (g *gregorHandler) resetGregorClient(ctx context.Context, uid gregor1.UID, deviceID gregor1.DeviceID) (gcli *grclient.Client, err error) {
+	return g.resetGregorClientFor(ctx, nil, uid, deviceID)
+}
+
+// resetGregorClientFor installs a new client for uid. With conn set, it
+// installs only while conn is still the current connection, checked under
+// the lock Shutdown takes, so an OnConnect that loses a race with a logout
+// or a reconnect doesn't install a client for the old connection.
+func (g *gregorHandler) resetGregorClientFor(ctx context.Context, conn *rpc.Connection,
+	uid gregor1.UID, deviceID gregor1.DeviceID,
+) (gcli *grclient.Client, err error) {
 	defer g.chatLog.Trace(ctx, &err, "resetGregorClient")()
 	// Create client object if we are logged in
 	if uid != nil && deviceID != nil {
@@ -343,6 +356,19 @@ func (g *gregorHandler) resetGregorClient(ctx context.Context, uid gregor1.UID, 
 		if err = gcli.Restore(ctx); err != nil {
 			// If this fails, we'll keep trying since the server can bail us out
 			g.Debug(ctx, "restore local state failed: %s", err)
+		}
+	}
+	if g.beforeGregorClientInstall != nil {
+		g.beforeGregorClientInstall()
+	}
+	if conn != nil {
+		g.connMutex.Lock()
+		defer g.connMutex.Unlock()
+		if conn != g.conn {
+			if gcli != nil {
+				gcli.Stop()
+			}
+			return nil, chat.ErrDuplicateConnection
 		}
 	}
 	g.gregorCliMu.Lock()
@@ -769,7 +795,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	if err != nil {
 		return err
 	}
-	gcli, err := g.resetGregorClient(ctx, uid, deviceID)
+	gcli, err := g.resetGregorClientFor(ctx, conn, uid, deviceID)
 	if err != nil {
 		return fmt.Errorf("failed to get gregor client: %s", err)
 	}

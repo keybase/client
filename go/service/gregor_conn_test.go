@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/libkb/lifecycle/lifecycletest"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
@@ -611,4 +612,131 @@ func TestGregorHandlerConnectInBackground(t *testing.T) {
 	h.connGate.reconcile(context.Background())
 	require.True(t, hasConn(h), "did not connect on leaving BACKGROUND")
 	h.Shutdown(context.Background())
+}
+
+// acceptingListener accepts and holds connections, counting them, so a
+// connection dials successfully and then fails in OnConnect.
+type acceptingListener struct {
+	net.Listener
+	accepts atomic.Int64
+	mu      sync.Mutex
+	conns   []net.Conn
+}
+
+func newAcceptingListener(t *testing.T) *acceptingListener {
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	a := &acceptingListener{Listener: l}
+	go func() {
+		for {
+			c, err := l.Accept()
+			if err != nil {
+				return
+			}
+			a.mu.Lock()
+			a.conns = append(a.conns, c)
+			a.mu.Unlock()
+			a.accepts.Add(1)
+		}
+	}()
+	t.Cleanup(func() {
+		_ = l.Close()
+		a.mu.Lock()
+		defer a.mu.Unlock()
+		for _, c := range a.conns {
+			_ = c.Close()
+		}
+	})
+	return a
+}
+
+func (a *acceptingListener) uri(t *testing.T) *rpc.FMPURI {
+	uri, err := rpc.ParseFMPURI("fmprpc://" + a.Addr().String())
+	require.NoError(t, err)
+	return uri
+}
+
+// requireStale waits until the handler holds a connection that is not
+// connected: with nobody logged in, OnConnect fails with an auth error the
+// connection does not retry on its own.
+func requireStale(t *testing.T, h *gregorHandler, a *acceptingListener, accepts int64) {
+	t.Helper()
+	require.Eventually(t, func() bool {
+		return a.accepts.Load() >= accepts && hasConn(h) && !h.IsConnected()
+	}, 10*time.Second, time.Millisecond, "connection did not fail")
+}
+
+// After a terminal connect failure, the ping loop's pings redial at the ping
+// interval, without tearing the connection down and without spinning.
+func TestGregorHandlerTerminalFailureRedialsOnPing(t *testing.T) {
+	t.Setenv("KEYBASE_PUSH_PING_INTERVAL", "100ms")
+	tc, g := setupGregorTest(t)
+	defer tc.Cleanup()
+	g.Syncer = chat.NewSyncer(g)
+	a := newAcceptingListener(t)
+
+	h := newGregorHandler(g)
+	defer h.Shutdown(context.Background())
+	require.NoError(t, h.Connect(a.uri(t)))
+	requireStale(t, h, a, 1)
+	start := a.accepts.Load()
+	time.Sleep(time.Second)
+	redials := a.accepts.Load() - start
+	t.Logf("%d redials in 1s", redials)
+	require.GreaterOrEqual(t, redials, int64(3), "ping loop did not redial a failed connection")
+	require.LessOrEqual(t, redials, int64(13), "redialing faster than the ping interval")
+	require.True(t, hasConn(h), "failed connection was torn down")
+}
+
+// A transition to FOREGROUND redials a failed connection right away instead
+// of waiting for the next ping.
+func TestGregorHandlerTerminalFailureRedialsOnForeground(t *testing.T) {
+	t.Setenv("KEYBASE_PUSH_PING_INTERVAL", "1h")
+	tc, g := setupGregorTest(t)
+	defer tc.Cleanup()
+	g.Syncer = chat.NewSyncer(g)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_INACTIVE)
+	a := newAcceptingListener(t)
+
+	h := newGregorHandler(g)
+	h.Init()
+	defer h.Shutdown(context.Background())
+	require.NoError(t, h.Connect(a.uri(t)))
+	requireStale(t, h, a, 1)
+	time.Sleep(200 * time.Millisecond)
+	require.EqualValues(t, 1, a.accepts.Load())
+
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
+	require.Eventually(t, func() bool { return a.accepts.Load() >= 2 }, 10*time.Second, time.Millisecond,
+		"FOREGROUND did not redial a failed connection")
+	require.True(t, hasConn(h), "failed connection was torn down")
+}
+
+// An OnConnect that passed its connection check before a logout must not
+// install a gregor client for the dropped connection.
+func TestGregorClientInstallRacingLogout(t *testing.T) {
+	tc, g := setupGregorTest(t)
+	defer tc.Cleanup()
+	g.Syncer = chat.NewSyncer(g)
+	ctx := context.Background()
+
+	h := newGregorHandler(g)
+	require.NoError(t, h.Connect(closedPortURI(t)))
+	h.connMutex.Lock()
+	conn := h.conn
+	h.connMutex.Unlock()
+	uid := gregor1.UID(make([]byte, 16))
+	deviceID := gregor1.DeviceID(make([]byte, 16))
+
+	gcli, err := h.resetGregorClientFor(ctx, conn, uid, deviceID)
+	require.NoError(t, err)
+	require.NotNil(t, gcli)
+	_, err = h.getGregorCli()
+	require.NoError(t, err, "current connection did not install its client")
+
+	h.beforeGregorClientInstall = func() { require.NoError(t, h.Disconnect()) }
+	_, err = h.resetGregorClientFor(ctx, conn, uid, deviceID)
+	require.ErrorIs(t, err, chat.ErrDuplicateConnection)
+	_, err = h.getGregorCli()
+	require.Error(t, err, "installed a client for a connection logout dropped")
 }
