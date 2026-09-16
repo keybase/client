@@ -24,10 +24,18 @@
 //    Fix: give each branch its own named component and pick between them
 //    (`const Foo = isMobile ? FooMobile : FooDesktop`).
 //
+// Desktop (vite) compiles with oxc-transform-react, the Rust port, while metro and jest use
+// the babel plugin, so every file also goes through oxc:
+// 4. Compiler mismatch: the two ports memoize a different number of functions in a file,
+//    so desktop and mobile run differently memoized code. Cache sizes are not compared --
+//    the ports legitimately group scopes differently.
+// 5. oxc bailouts and whole-props deps, with the same opt-out rules as the babel ones.
+//
 // Usage (from shared/):
 //   node --experimental-strip-types scripts/react-compiler-bailouts.mts <file-or-dir> [...more]
 //   node --experimental-strip-types scripts/react-compiler-bailouts.mts --check .   # exit 1 on any finding
 import * as babel from '@babel/core'
+import {transformSync as oxcTransform} from 'oxc-transform-react'
 import {readFileSync, readdirSync, statSync} from 'fs'
 import {basename, join, extname} from 'path'
 
@@ -83,7 +91,7 @@ const t = babel.types
 // Walks the compiled output for `if ($[n] !== props)` guards, where `props` is the
 // component's single parameter. Reports only the ones whose guarded block reads
 // properties off it -- a block that uses the whole object has no finer dep available.
-const reportWholePropsDeps = (file: string, code: string) => {
+const reportWholePropsDeps = (file: string, code: string, compiler: 'babel' | 'oxc') => {
   let ast: babel.types.File
   try {
     ast = babel.parseSync(code, {
@@ -150,7 +158,7 @@ const reportWholePropsDeps = (file: string, code: string) => {
           if (seen.wholeUse) return
           found++
           console.log(
-            `${file}:${bp.node.loc?.start.line ?? '?'} ${fnName} memoizes on the whole \`${name}\` object`
+            `${file}:${bp.node.loc?.start.line ?? '?'} [${compiler} output] ${fnName} memoizes on the whole \`${name}\` object`
           )
         },
       })
@@ -225,12 +233,46 @@ const reportUncompiledComponents = (file: string, source: string) => {
   return found
 }
 
+// Each memoized function makes exactly one cache call through the compiler-runtime import.
+const countMemoCaches = (code: string) => {
+  const m = /import\s*\{\s*c\s+as\s+(\w+)\s*\}\s*from\s*["']react\/compiler-runtime["']/.exec(code)
+  return m ? code.match(new RegExp(`\\b${m[1]}\\(\\d+\\)`, 'g'))?.length ?? 0 : 0
+}
+
+// oxc reports a bailout at the offending expression rather than at the function start,
+// so an opt-out is any enclosing function (or the module) carrying 'use no memo'.
+const getOptOutRanges = (source: string) => {
+  const ranges: Array<[number, number]> = []
+  const ast = babel.parseSync(source, {
+    babelrc: false,
+    configFile: false,
+    filename: 'optouts.tsx',
+    presets: [['@babel/preset-typescript', {allExtensions: true, isTSX: true}]],
+    sourceType: 'module',
+  })
+  if (!ast) return ranges
+  const hasOptOut = (directives: Array<babel.types.Directive>) =>
+    directives.some(d => d.value.value === 'use no memo')
+  if (hasOptOut(ast.program.directives)) ranges.push([0, source.length])
+  babel.traverse(ast, {
+    Function(path) {
+      const {body, start, end} = path.node
+      if (t.isBlockStatement(body) && hasOptOut(body.directives) && start != null && end != null) {
+        ranges.push([start, end])
+      }
+    },
+  })
+  return ranges
+}
+
 let totalOk = 0
 let totalBail = 0
 let totalOptOut = 0
 let totalParseFailed = 0
 let totalWholeProps = 0
 let totalUncompiled = 0
+let totalMismatch = 0
+let totalOxcBail = 0
 for (const file of files) {
   const source = readFileSync(file, 'utf8')
   const events: Array<CompilerEvent> = []
@@ -270,14 +312,46 @@ for (const file of files) {
   }
   // the runtime import name depends on the compiler's target, so key off the cache call
   if (compiled?.includes('useMemoCache(') || compiled?.includes('_c(')) {
-    totalWholeProps += reportWholePropsDeps(file, compiled)
+    totalWholeProps += reportWholePropsDeps(file, compiled, 'babel')
   }
   totalUncompiled += reportUncompiledComponents(file, source)
+
+  const oxc = oxcTransform(file, source, {jsx: {runtime: 'automatic'}, reactCompiler: {}, sourcemap: false})
+  if (oxc.errors.length > 0) {
+    const optOuts = getOptOutRanges(source)
+    const sourceBytes = Buffer.from(source)
+    for (const e of oxc.errors) {
+      // oxc offsets are utf-8 bytes; babel ranges and slice() are utf-16 indexes
+      const byteAt = e.labels[0]?.start
+      const at = byteAt === undefined ? undefined : sourceBytes.subarray(0, byteAt).toString().length
+      if (at !== undefined && optOuts.some(([s, end]) => s <= at && at < end)) continue
+      totalOxcBail++
+      const line = at === undefined ? '?' : source.slice(0, at).split('\n').length
+      console.log(`${file}:${line} [oxc${oxc.fatal ? ' fatal' : ''}] ${e.message}`)
+    }
+  }
+  const babelCaches = compiled ? countMemoCaches(compiled) : 0
+  const oxcCaches = countMemoCaches(oxc.code)
+  if (babelCaches !== oxcCaches) {
+    totalMismatch++
+    console.log(`${file}: babel memoizes ${babelCaches} functions, oxc memoizes ${oxcCaches}`)
+  }
+  if (oxcCaches > 0) {
+    totalWholeProps += reportWholePropsDeps(file, oxc.code, 'oxc')
+  }
 }
 console.log(
-  `\n${totalOk} compiled, ${totalBail} bailed out, ${totalOptOut} opted out, ${totalWholeProps} whole-props deps, ${totalUncompiled} uncompiled, ${totalParseFailed} parse failed, ${files.length} files`
+  `\n${totalOk} compiled, ${totalBail} bailed out, ${totalOptOut} opted out, ${totalWholeProps} whole-props deps, ${totalUncompiled} uncompiled, ${totalOxcBail} oxc bailed out, ${totalMismatch} compiler mismatches, ${totalParseFailed} parse failed, ${files.length} files`
 )
-if (checkMode && (totalBail > 0 || totalParseFailed > 0 || totalWholeProps > 0 || totalUncompiled > 0)) {
+if (
+  checkMode &&
+  (totalBail > 0 ||
+    totalParseFailed > 0 ||
+    totalWholeProps > 0 ||
+    totalUncompiled > 0 ||
+    totalOxcBail > 0 ||
+    totalMismatch > 0)
+) {
   if (totalParseFailed > 0) {
     console.log('\nSome files failed to parse, so they could not be checked.')
   }
@@ -294,6 +368,11 @@ if (checkMode && (totalBail > 0 || totalParseFailed > 0 || totalWholeProps > 0 |
   if (totalUncompiled > 0) {
     console.log(
       '\nComponents the compiler cannot name are never compiled, so nothing in them is memoized. Give each one a name -- for a platform ternary, name both branches and pick between them (`const Foo = isMobile ? FooMobile : FooDesktop`).'
+    )
+  }
+  if (totalOxcBail > 0 || totalMismatch > 0) {
+    console.log(
+      "\nNew oxc react-compiler findings. Desktop compiles with oxc, mobile with babel. Fix oxc bailouts like babel ones. A mismatch means the ports disagree about the same code: rewrite it so both compile it the same way, or add 'use no memo'."
     )
   }
   process.exit(1)

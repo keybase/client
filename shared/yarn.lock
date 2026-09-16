@@ -3022,6 +3022,101 @@
   resolved "https://registry.yarnpkg.com/@oxc-resolver/binding-win32-x64-msvc/-/binding-win32-x64-msvc-11.21.2.tgz#dbdf12721396ef4c31899d0963b002df32f57050"
   integrity sha512-VPoCAhKvCQTlG7vxqaBXcmuvbh77BfnGXj8g0pbvVXpm1F/R8rDVwqIWcEbMzrI1JvJlm8v7T9uMVQb6UctMRg==
 
+"@oxc-transform-react/binding-android-arm-eabi@0.145.0":
+  version "0.145.0"
+  resolved "https://registry.yarnpkg.com/@oxc-transform-react/binding-android-arm-eabi/-/binding-android-arm-eabi-0.145.0.tgz#955b60e36fa566a8d29d8b53eef9c26b4defa950"
+  integrity sha512-KuK3zAp10yFyeAxIXlZn2ycsFpaKLxUmj5BVRS1io4XfwnKTozb/goZakgKD5JEiHOVOtEKt1r7pTrmW/pFxxA==
+
+"@oxc-transform-react/binding-android-arm64@0.145.0":
+  version "0.145.0"
+  resolved "https://registry.yarnpkg.com/@oxc-transform-react/binding-android-arm64/-/binding-android-arm64-0.145.0.tgz#8946c5f2e16a6e93e8ec4709dab9493976a8d2eb"
+  integrity sha512-eDUKx6MAgRAF67JPScjLF6h8lL2qmlvFrXGSG8mYFIVJb++NMyDygiIo8TAKdWQNguoBElUZw/SK2EPRaKsryQ==
+
+"@oxc-transform-react/binding-darwin-arm64@0.145.0":
+  version "0.145.0"
+  resolved "https://registry.yarnpkg.com/@oxc-transform-react/binding-darwin-arm64/-/binding-darwin-arm64-0.145.0.tgz#9d3f65cb6cea42072df297cdf981d348e8b2791e"
+  integrity sha512-msCgwbVLswJ08JaUOjfPddieVJwE4IT1Y23A1DDyKVyzZp2ormo9a4ffDEu9nmmovdEj8VqAyFgggsgzIkBVrA==
+
+"@oxc-transform-react/binding-darwin-x64@0.145.0":
+  version "0.145.0"
+  resolved "https://registry.yarnpkg.com/@oxc-transform-react/binding-darwin-x64/-/binding-darwin-x64-0.145.0.tgz#2bc656e3247051caeb29d5fbc84201f48f9c1185"
+  integrity sha512-R0PtsoOCsARulmWhLG1fFInT+98TRl/H6w6ifi8XOLvpdsksD1rxsw4Ol84lHbdHCcMNjfJTckZzQIZBMiXkLg==
+
+"@oxc-transform-react/binding-freebsd-x64@0.145.0":
+  version "0.145.0"
+  resolved "https://registry.yarnpkg.com/@oxc-transform-react/binding-freebsd-x64/-/binding-freebsd-x64-0.145.0.tgz#24269512b0ac1e8528f43fc2b8962fb4d48b3700"
+  integrity sha512-/MJ7+IvxfutSGqn6hIXU92wGNk5FlkqbTHM+kEl7ytLLOSAyivYhF2gxdYMmXTwOG56k2XviMcE0D/TBjdyoRA==
+
+"@oxc-transform-react/binding-linux-arm-gnueabihf@0.145.0":
+  version "0.145.0"
+  resolved "https://registry.yarnpkg.com/@oxc-transform-react/binding-linux-arm-gnueabihf/-/binding-linux-arm-gnueabihf-0.145.0.tgz#564eb44718d37c35c36b5bdb391cf1b48b592b35"
+  integrity sha512-ssHZ0W2wSjQwaBQdkg8u+A7dTdw2vkGSK0hRfCoDCkRkETu+19Q8Tae7NNxlYHcP1iUQYhEj8Qfgpq+S/MdrYA==
+
+"@oxc-transform-react/binding-linux-arm-musleabihf@0.145.0":
+  version "0.145.0"
+  resolved "https://registry.yarnpkg.com/@oxc-transform-react/binding-linux-arm-musleabihf/-/binding-linux-arm-musleabihf-0.145.0.tgz#ae6942b6742de317c9a018cad3b7743fda4a803a"
+  integrity sha512-adJy4lQVcoIW6CUzQYbDgbHZMDSLoizwCinG2Dex29jdACKwIgXQQrIAHAgfveaZleKIB/rf3usGoRcOGyfz7Q==
+
+"@oxc-transform-react/binding-linux-arm64-gnu@0.145.0":
+  version "0.145.0"
+  resolved "https://registry.yarnpkg.com/@oxc-transform-react/binding-linux-arm64-gnu/-/binding-linux-arm64-gnu-0.145.0.tgz#63285b0f5f9820f65f1a6dff5c15f196bef1a279"
+  integrity sha512-7KRa0CC1FaSKx5sy+bDtqGvXF+RiVoMmSe8OmTKm9kRZkNVdmsmpnsQhgravehTohlWDveo5aoGMwcFtffGDmw==
+
+"@oxc-transform-react/binding-linux-arm64-musl@0.145.0":
+  version "0.145.0"
+  resolved "https://registry.yarnpkg.com/@oxc-transform-react/binding-linux-arm64-musl/-/binding-linux-arm64-musl-0.145.0.tgz#9df89a873e5882f9a0b9a170aebf9a541b1b54cf"
+  integrity sha512-fGhZkDnk2RoMp6THas9HFGorF0A1wwPPA/2Lu9IUO1ip5MJqS/JG7/conmiz0DBG0PWBtnKl2Y8sA/VBiD/oQw==
+
+"@oxc-transform-react/binding-linux-ppc64-gnu@0.145.0":
+  version "0.145.0"
+  resolved "https://registry.yarnpkg.com/@oxc-transform-react/binding-linux-ppc64-gnu/-/binding-linux-ppc64-gnu-0.145.0.tgz#72ea1ba06dcd443e1874c919bb8f924f45fbfae8"
+  integrity sha512-VBaUTjRZYRypD2tL7cmbM2Fn6fvTnacLQ1GdsU1Y6A3fkqA/z+wc5Vy1QnnuFe9sIwb9xCvSS2tJVlucR39FYw==
+
+"@oxc-transform-react/binding-linux-riscv64-gnu@0.145.0":
+  version "0.145.0"
+  resolved "https://registry.yarnpkg.com/@oxc-transform-react/binding-linux-riscv64-gnu/-/binding-linux-riscv64-gnu-0.145.0.tgz#cecdc3d827c92a411759ffc573ee083c6cd003f8"
+  integrity sha512-s2cimMVAmWe9dtjyWdGsYtevi9C7gJoOXwrCZD0BX7hgyGmuBO3iWQjx4W48hdXlWS176NoxuFIHAN72N86upA==
+
+"@oxc-transform-react/binding-linux-riscv64-musl@0.145.0":
+  version "0.145.0"
+  resolved "https://registry.yarnpkg.com/@oxc-transform-react/binding-linux-riscv64-musl/-/binding-linux-riscv64-musl-0.145.0.tgz#bdc90d6ce1bd4ba622f336d358ab13494299db8e"
+  integrity sha512-hFPrsL2nKL4aa8vFmheR53PcrxQgym8bnaSD1pMX9IoyQq+/ksAuw1CDJSV9c5xhxxZdw/KTPVer7M/6OQvfoA==
+
+"@oxc-transform-react/binding-linux-s390x-gnu@0.145.0":
+  version "0.145.0"
+  resolved "https://registry.yarnpkg.com/@oxc-transform-react/binding-linux-s390x-gnu/-/binding-linux-s390x-gnu-0.145.0.tgz#5cc8d96abc63d86c7050e15bc14b7b1184c8331a"
+  integrity sha512-YLKhySqqu0JAtT0z8GuaFF7Hht3IvQLZShTH0DxeV28NwSthva+qJ7GN09ALT1bqRVvMjNGycgPHaGSWBUIt7A==
+
+"@oxc-transform-react/binding-linux-x64-gnu@0.145.0":
+  version "0.145.0"
+  resolved "https://registry.yarnpkg.com/@oxc-transform-react/binding-linux-x64-gnu/-/binding-linux-x64-gnu-0.145.0.tgz#5758ceec6df609fd4d6dfb46a6cc5b129e59175b"
+  integrity sha512-WqgJ+0M9mwQ1cRfSgk4vzYudD2imLSBhUZ2QFes06vUjigts5Dw4NajWKc2JibPHYsoiUA9Zj39zWwC5AxXEGQ==
+
+"@oxc-transform-react/binding-linux-x64-musl@0.145.0":
+  version "0.145.0"
+  resolved "https://registry.yarnpkg.com/@oxc-transform-react/binding-linux-x64-musl/-/binding-linux-x64-musl-0.145.0.tgz#2dbedb93ec21b2b3e15459c27cbaff896a3ac4a5"
+  integrity sha512-eIre/TjGt07IVKoWUrUOkPxN7UKeWxbiGvCywoGLDRe1/2K50MrA2vQahZ8AlW5CLmajOr9ePKrkRzLg1fa0cQ==
+
+"@oxc-transform-react/binding-openharmony-arm64@0.145.0":
+  version "0.145.0"
+  resolved "https://registry.yarnpkg.com/@oxc-transform-react/binding-openharmony-arm64/-/binding-openharmony-arm64-0.145.0.tgz#fe3f3fd4ebc210ac535a664572bd9346d00dc80e"
+  integrity sha512-zhWiyJ+9XD4cuhSZIT6aozuXDHcZHNdoVe88xVmx2XN00anjZ6VAGj31rhD8ndha/F8NllcQEr8Q61Dr2MHv5Q==
+
+"@oxc-transform-react/binding-win32-arm64-msvc@0.145.0":
+  version "0.145.0"
+  resolved "https://registry.yarnpkg.com/@oxc-transform-react/binding-win32-arm64-msvc/-/binding-win32-arm64-msvc-0.145.0.tgz#4c5e43afd98e6c35cad1f1d8f511200a48bc547d"
+  integrity sha512-Q0oiZfrfYyhmpqH2K0dylDTooIadecGsoiQks7G0AbuszCu2I7zYyJo4ArFc3d5Hj49Jjc5dDAE5WP/Sg2p8hw==
+
+"@oxc-transform-react/binding-win32-ia32-msvc@0.145.0":
+  version "0.145.0"
+  resolved "https://registry.yarnpkg.com/@oxc-transform-react/binding-win32-ia32-msvc/-/binding-win32-ia32-msvc-0.145.0.tgz#63572e542f0bdcd485b2eb35b6455e19a84e2ae2"
+  integrity sha512-ERpriVJY5S8hXd3BJi4UtzsIVsEQnntmpqTgRqh0XCaflLRLTQnPWpkO8rgtI7xye5MRhfhA+qsxKg2olJs4qA==
+
+"@oxc-transform-react/binding-win32-x64-msvc@0.145.0":
+  version "0.145.0"
+  resolved "https://registry.yarnpkg.com/@oxc-transform-react/binding-win32-x64-msvc/-/binding-win32-x64-msvc-0.145.0.tgz#cc619e0fc058014d29187dedd680b7363167bc7a"
+  integrity sha512-sa781BGPLDw8+7ATrgUpLr0f4t0Q14O+zk3fOuQbUpjW5jERc9a3k1xIYKX1JkTG/sszoFhi8LzyCoMC49tkWA==
+
 "@parcel/watcher-android-arm64@2.6.0":
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/@parcel/watcher-android-arm64/-/watcher-android-arm64-2.6.0.tgz#99aaa3223d43807c9340af439cad7e9b6d26ada6"
@@ -3621,13 +3716,6 @@
   version "1.2.8"
   resolved "https://registry.yarnpkg.com/@rolldown/binding-win32-x64-msvc/-/binding-win32-x64-msvc-1.2.8.tgz#df4e965896c61411b96566abf345f46141f498c4"
   integrity sha512-uz2ZvfgXbxqNwijjjbxrnvALwpyODDcgc1T1N8N3rf/DXKQmaFwmB4LX4yyjggpwN2obdQLb2rgirX5ffCWYng==
-
-"@rolldown/plugin-babel@0.2.4":
-  version "0.2.4"
-  resolved "https://registry.yarnpkg.com/@rolldown/plugin-babel/-/plugin-babel-0.2.4.tgz#a59834763baaef465a46146e74023e244264c199"
-  integrity sha512-ygmm2j/mN+aCvstHo0x3IOu4uc6LqXT9SJ3q4kpfG/+Yhfz0B+E47FITcC0FljZADwUFARP6E2kiE+Lc26D8wg==
-  dependencies:
-    picomatch "^4.0.7"
 
 "@rolldown/pluginutils@^1.0.0", "@rolldown/pluginutils@^1.0.1":
   version "1.0.1"
@@ -10792,6 +10880,31 @@ oxc-resolver@11.21.2:
     "@oxc-resolver/binding-wasm32-wasi" "11.21.2"
     "@oxc-resolver/binding-win32-arm64-msvc" "11.21.2"
     "@oxc-resolver/binding-win32-x64-msvc" "11.21.2"
+
+oxc-transform-react@0.145.0:
+  version "0.145.0"
+  resolved "https://registry.yarnpkg.com/oxc-transform-react/-/oxc-transform-react-0.145.0.tgz#8e6b599354d999458ba8643c08c0127d86f17c7c"
+  integrity sha512-y8cfjow11WKvDekonySPVvRUvNuIvqNT0LZ0Aey6j5dsNUD6k4hy6Mae/SLmng5egmb1GdJS11GduJ+IoEAXEw==
+  optionalDependencies:
+    "@oxc-transform-react/binding-android-arm-eabi" "0.145.0"
+    "@oxc-transform-react/binding-android-arm64" "0.145.0"
+    "@oxc-transform-react/binding-darwin-arm64" "0.145.0"
+    "@oxc-transform-react/binding-darwin-x64" "0.145.0"
+    "@oxc-transform-react/binding-freebsd-x64" "0.145.0"
+    "@oxc-transform-react/binding-linux-arm-gnueabihf" "0.145.0"
+    "@oxc-transform-react/binding-linux-arm-musleabihf" "0.145.0"
+    "@oxc-transform-react/binding-linux-arm64-gnu" "0.145.0"
+    "@oxc-transform-react/binding-linux-arm64-musl" "0.145.0"
+    "@oxc-transform-react/binding-linux-ppc64-gnu" "0.145.0"
+    "@oxc-transform-react/binding-linux-riscv64-gnu" "0.145.0"
+    "@oxc-transform-react/binding-linux-riscv64-musl" "0.145.0"
+    "@oxc-transform-react/binding-linux-s390x-gnu" "0.145.0"
+    "@oxc-transform-react/binding-linux-x64-gnu" "0.145.0"
+    "@oxc-transform-react/binding-linux-x64-musl" "0.145.0"
+    "@oxc-transform-react/binding-openharmony-arm64" "0.145.0"
+    "@oxc-transform-react/binding-win32-arm64-msvc" "0.145.0"
+    "@oxc-transform-react/binding-win32-ia32-msvc" "0.145.0"
+    "@oxc-transform-react/binding-win32-x64-msvc" "0.145.0"
 
 p-limit@^2.0.0, p-limit@^2.2.0:
   version "2.3.0"
