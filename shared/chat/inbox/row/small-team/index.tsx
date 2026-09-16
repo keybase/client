@@ -24,6 +24,7 @@ const SmallTeam = (p: Props) => {
   const {conversationIDKey, isSelected} = p
 
   const row = useInboxRowSmall(conversationIDKey)
+  const isPinned = useInboxRowIsPinned(conversationIDKey)
   const setOpenedRow = useOpenedRowState(s => s.dispatch.setOpenRow)
 
   const makePopup = (mp: Kb.Popup2Parms) => {
@@ -75,7 +76,15 @@ const SmallTeam = (p: Props) => {
     ? Kb.Styles.collapseStyles([styles.container, {backgroundColor}])
     : styles.container
   const rowContents = (
-    <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} fullHeight={true} style={styles.rowContainer}>
+    <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} fullHeight={true} relative={true} style={styles.rowContainer}>
+      {isPinned && (
+        <Kb.Icon
+          type="iconfont-pin-solid"
+          fontSize={isMobile ? 12 : 9}
+          color={isSelected ? theme.white_75 : theme.black_35}
+          style={styles.pinIcon}
+        />
+      )}
       {teamDisplayName ? (
         <TeamAvatar teamname={teamDisplayName} isMuted={isMuted} isSelected={isSelected} isHovered={false} />
       ) : (
@@ -91,7 +100,6 @@ const SmallTeam = (p: Props) => {
       <Kb.Box2 direction="vertical" fullHeight={true} justifyContent="center" style={styles.conversationRow}>
         <Kb.Box2 direction="vertical" justifyContent="flex-end" style={styles.withBottomLine} fullWidth={true}>
           <TopLine
-            conversationIDKey={conversationIDKey}
             participants={participants}
             teamDisplayName={teamDisplayName}
             timestamp={timestamp}
@@ -139,7 +147,6 @@ const SmallTeam = (p: Props) => {
 }
 
 type TopLineProps = {
-  conversationIDKey: T.Chat.ConversationIDKey
   participants: ReadonlyArray<string>
   teamDisplayName: string
   timestamp: number
@@ -154,9 +161,8 @@ type TopLineProps = {
 const TopLine = (p: TopLineProps) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
-  const {isSelected, backgroundColor, conversationIDKey, participants, teamDisplayName, timestamp} = p
+  const {isSelected, backgroundColor, participants, teamDisplayName, timestamp} = p
   const {hasBadge, hasUnread, showPopup, popupAnchor} = p
-  const isPinned = useInboxRowIsPinned(conversationIDKey)
   const showBold = !isSelected && hasUnread
   const subColor = isSelected
     ? theme.white
@@ -211,9 +217,6 @@ const TopLine = (p: TopLineProps) => {
           )}
         </Kb.Box2>
       </Kb.Box2>
-      {isPinned && (
-        <Kb.Icon type="iconfont-pin-solid" fontSize={isMobile ? 14 : 10} color={subColor} style={styles.pinIcon} />
-      )}
       <Kb.Text key="timestamp" type="BodyTiny" className="conversation-timestamp" style={timestampStyle}>
         {timestampText}
       </Kb.Text>
@@ -536,7 +539,11 @@ const useStyles = Kb.Styles.createStyleHook(
       nameContainer: {
         ...Kb.Styles.globalStyles.fillAbsolute,
       },
-      pinIcon: {marginRight: Kb.Styles.globalMargins.xtiny},
+      pinIcon: {
+        left: Kb.Styles.globalMargins.xxtiny,
+        position: 'absolute',
+        top: Kb.Styles.globalMargins.xtiny,
+      },
       rowContainer: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
