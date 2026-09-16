@@ -85,7 +85,8 @@ const Header = () => {
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     const menuItems: Kb.MenuItems = [
-      {disabled: userSwitching, onClick: onAddAccount, title: 'Log in as another user'},
+      // the desktop menu only styles disabled items, so drop the handler too
+      {disabled: userSwitching, onClick: userSwitching ? undefined : onAddAccount, title: 'Log in as another user'},
       {onClick: onSettings, title: 'Settings'},
       {onClick: onHelp, title: 'Help'},
       {danger: true, onClick: onSignOut, title: 'Sign out'},
