@@ -1,7 +1,7 @@
-FROM rockylinux:9
+FROM rockylinux/rockylinux:10
 LABEL maintainer="Keybase <admin@keybase.io>"
 
-RUN dnf install -y fuse libXScrnSaver initscripts psmisc procps-ng lsof vim less curl sudo \
+RUN dnf install -y fuse initscripts psmisc procps-ng lsof vim less curl sudo \
   && dnf clean all
 
 RUN useradd -m kb -G wheel -s /bin/bash
