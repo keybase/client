@@ -25,11 +25,12 @@ test('unpin removes', () => {
   expect(unpin(['b'], 'a')).toEqual(['b'])
 })
 
-test('pruneToLayout keeps only ids the layout marks pinned', () => {
+test('pruneToLayout keeps ids present as any row in the layout', () => {
   const rows = [
     {convID: 'a', isPinned: true},
     {convID: 'b', isPinned: false},
   ] as unknown as ReadonlyArray<T.RPCChat.UIInboxSmallTeamRow>
-  expect(pruneToLayout(['gone', 'b', 'a'], rows)).toEqual(['a'])
+  expect(pruneToLayout(['gone', 'b', 'a'], rows)).toEqual(['b', 'a'])
   expect(pruneToLayout(['a'], undefined)).toEqual(['a'])
+  expect(pruneToLayout(['a'], null)).toEqual(['a'])
 })

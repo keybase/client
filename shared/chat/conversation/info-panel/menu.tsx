@@ -13,8 +13,8 @@ import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
 import {hexToUint8Array} from '@/util/uint8array'
 import {hideConversation, joinConversation, muteConversation} from '../status-actions'
 import {useConversationMarkAsUnread, useConversationMetadata} from '../data-hooks'
-import {useInboxRowIsPinned} from '@/chat/inbox/rows-state'
-import {setConversationPinned, usePinnedConvIDs} from '@/chat/inbox/pinned-convs'
+import {useInboxRowIsPinned, useInboxRowIsTopPinned} from '@/chat/inbox/rows-state'
+import {setConversationPinned} from '@/chat/inbox/pinned-convs'
 
 const isHexBytes = (s: string) => s.length > 0 && s.length % 2 === 0 && /^[0-9a-fA-F]+$/.test(s)
 
@@ -103,7 +103,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   const {manageChannelsSubtitle, manageChannelsTitle, participants, teamType, isMuted} = data
 
   const isPinned = useInboxRowIsPinned(conversationIDKey)
-  const pinnedConvIDs = usePinnedConvIDs()
+  const isTopPinned = useInboxRowIsTopPinned(conversationIDKey)
 
   const {yourOperations} = useChatTeam(teamID, teamname)
   const {dismiss: dismissManageChannelsBadge, showBadge: badgeSubscribe} = useChatManageChannelsBadge(
@@ -301,7 +301,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   const pinItems: Kb.MenuItems = []
   if (showPinItems && conversationIDKey !== Chat.noConversationIDKey) {
     if (isPinned) {
-      if (pinnedConvIDs[0] !== conversationIDKey) {
+      if (!isTopPinned) {
         pinItems.push({
           icon: 'iconfont-pin',
           iconIsVisible: false,

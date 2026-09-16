@@ -1,14 +1,12 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import * as React from 'react'
 import logger from '@/logger'
 import {bodyToJSON} from '@/constants/rpc-utils'
-import {useConfigState} from '@/stores/config'
 import {useInboxLayoutState} from './layout-state'
 
 export const pinnedConvsGregorKey = 'chatPinnedConvs'
 
-type GregorItems = ReadonlyArray<{readonly item?: T.RPCGen.Gregor1.Item | null}> | null | undefined
+type GregorItems = T.RPCGen.Gregor1.State['items']
 
 export const getPinnedConvIDs = (items: GregorItems): ReadonlyArray<T.Chat.ConversationIDKey> => {
   const found = items?.find(i => i.item?.category === pinnedConvsGregorKey)
@@ -18,48 +16,59 @@ export const getPinnedConvIDs = (items: GregorItems): ReadonlyArray<T.Chat.Conve
     : []
 }
 
-export const usePinnedConvIDs = () => {
-  const gregorPushState = useConfigState(s => s.gregorPushState)
-  return React.useMemo(() => getPinnedConvIDs(gregorPushState), [gregorPushState])
-}
-
 export const pruneToLayout = (
   list: ReadonlyArray<string>,
   smallTeams: ReadonlyArray<T.RPCChat.UIInboxSmallTeamRow> | null | undefined
 ) => {
   if (!smallTeams) return [...list]
-  const pinned = new Set(smallTeams.filter(r => r.isPinned).map(r => r.convID as string))
-  return list.filter(id => pinned.has(id))
+  const present = new Set(smallTeams.map(r => r.convID as string))
+  return list.filter(id => present.has(id))
 }
 
 export const pinToTop = (list: ReadonlyArray<string>, id: string) => [id, ...list.filter(i => i !== id)]
 
 export const unpin = (list: ReadonlyArray<string>, id: string) => list.filter(i => i !== id)
 
-export const setConversationPinned = (id: T.Chat.ConversationIDKey, pinned: boolean) => {
-  const f = async () => {
-    const current = getPinnedConvIDs(useConfigState.getState().gregorPushState)
-    const smallTeams = useInboxLayoutState.getState().layout?.smallTeams
-    const pruned = pruneToLayout(current, smallTeams)
-    const next = pinned ? pinToTop(pruned, id) : unpin(pruned, id)
-    try {
-      await T.RPCGen.gregorUpdateCategoryRpcPromise({
-        body: JSON.stringify(next),
-        category: pinnedConvsGregorKey,
-        dtime: {offset: 0, time: 0},
-      })
-    } catch (error) {
-      logger.warn(`setConversationPinned: saving pinned convs failed: ${String(error)}`)
-      return
-    }
-    try {
-      // the gregor handler also rebuilds, but this one doesn't wait on the push round trip
-      await T.RPCChat.localRequestInboxLayoutRpcPromise({
-        reselectMode: T.RPCChat.InboxLayoutReselectMode.default,
-      })
-    } catch (error) {
-      logger.warn(`setConversationPinned: layout refresh failed: ${String(error)}`)
-    }
+// Chained onto so two quick pin/unpin clicks run one after another, each reading the list the
+// previous write produced, instead of both racing off the same stale snapshot.
+let pinChain: Promise<void> = Promise.resolve()
+
+const doSetConversationPinned = async (id: T.Chat.ConversationIDKey, pinned: boolean) => {
+  let items: GregorItems
+  try {
+    // Read from the service instead of the gregorPushState store: the service applies its
+    // local outbox before answering, so a write from the previous link in this chain is
+    // visible here right away, where the push-based store copy lags behind by the debounce.
+    items = (await T.RPCGen.gregorGetStateRpcPromise()).items
+  } catch (error) {
+    logger.warn(`setConversationPinned: fetching pinned convs failed: ${String(error)}`)
+    return
   }
-  C.ignorePromise(f())
+  const current = getPinnedConvIDs(items)
+  const smallTeams = useInboxLayoutState.getState().layout?.smallTeams
+  const pruned = pruneToLayout(current, smallTeams)
+  const next = pinned ? pinToTop(pruned, id) : unpin(pruned, id)
+  try {
+    await T.RPCGen.gregorUpdateCategoryRpcPromise({
+      body: JSON.stringify(next),
+      category: pinnedConvsGregorKey,
+      dtime: {offset: 0, time: 0},
+    })
+  } catch (error) {
+    logger.warn(`setConversationPinned: saving pinned convs failed: ${String(error)}`)
+    return
+  }
+  try {
+    // the gregor handler also rebuilds, but this one doesn't wait on the push round trip
+    await T.RPCChat.localRequestInboxLayoutRpcPromise({
+      reselectMode: T.RPCChat.InboxLayoutReselectMode.default,
+    })
+  } catch (error) {
+    logger.warn(`setConversationPinned: layout refresh failed: ${String(error)}`)
+  }
+}
+
+export const setConversationPinned = (id: T.Chat.ConversationIDKey, pinned: boolean) => {
+  pinChain = pinChain.then(async () => doSetConversationPinned(id, pinned))
+  C.ignorePromise(pinChain)
 }

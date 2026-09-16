@@ -255,6 +255,11 @@ export const useInboxRowIsMuted = (id: string): boolean => {
 export const useInboxRowIsPinned = (id: string): boolean =>
   useInboxLayoutState(s => getSmallLayoutRow(s, id)?.isPinned ?? false)
 
+// True only for the first pinned row in the layout, so "Move to top" hides off the
+// authoritative layout order instead of the laggy gregor-pushed pin list.
+export const useInboxRowIsTopPinned = (id: string): boolean =>
+  useInboxLayoutState(s => s.layout?.smallTeams?.find(r => r.isPinned)?.convID === id)
+
 export const useInboxRowBig = (id: string): InboxRowBig => {
   const meta = useInboxMetadataState(
     useShallow((s): BigRowMeta => {
