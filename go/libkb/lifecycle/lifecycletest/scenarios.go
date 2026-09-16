@@ -440,24 +440,6 @@ var Scenarios = []Scenario{
 		Observed: states(bga, fg, bg, bga, bg),
 	},
 	{
-		// With work pending but no way to start a background task, the window
-		// closes instead of staying BACKGROUNDACTIVE with no one to end it.
-		Name:     "android push window closes when no background task can start",
-		Platform: Android,
-		Steps: steps(androidLaunch, []Step{
-			step(DidEnterBackground, bg, 1).flush().returns(false),
-			step(WorkStarts, bg, 0),
-			step(PushWindowBegin, bga, 1).returns(true),
-			step(PushWindowClose, bg, 1).flush(),
-			step(BackgroundTaskStart, bg, 0).returns(false),
-			step(PushWindowBegin, bga, 1).returns(true),
-			step(WillEnterForeground, bga, 1),
-			step(PushWindowClose, bga, 0),
-			step(DidBecomeActive, fg, 1),
-		}),
-		Observed: states(bga, fg, bg, bga, bg, bga, fg),
-	},
-	{
 		Name:     "android overlapping push windows",
 		Platform: Android,
 		Steps: steps(androidLaunch, []Step{
@@ -470,28 +452,34 @@ var Scenarios = []Scenario{
 		Observed: states(bga, fg, bg, bga, bg),
 	},
 	{
-		// A process started without UI (WorkManager) reports the background
-		// first, so the sync gets its window and returns to BACKGROUND.
-		Name:     "android WorkManager BackgroundSync at cold start",
+		// BackgroundSyncWorker doesn't init Go, so it only syncs in a process
+		// where something else did. After a push (or quick reply) cold start,
+		// that component already reported the background, so the sync gets its
+		// window and returns to BACKGROUND.
+		Name:     "android WorkManager BackgroundSync after a push cold start",
 		Platform: Android,
 		Steps: []Step{
 			step(DidEnterBackground, bg, 1).flush().returns(false),
+			step(PushWindowBegin, bga, 1).returns(true),
+			step(PushWindowEnd, bg, 1).flush().returns(false),
 			step(BackgroundSyncStart, bga, 1).returns(true),
 			step(BackgroundSyncTimerFires, bg, 1).flush(),
 		},
-		Observed: states(bga, bg, bga, bg),
+		Observed: states(bga, bg, bga, bg, bga, bg),
 	},
 	{
-		Name:     "android UI starts during a WorkManager cold start sync",
+		Name:     "android UI starts during a WorkManager sync after a push cold start",
 		Platform: Android,
 		Steps: []Step{
 			step(DidEnterBackground, bg, 1).flush().returns(false),
+			step(PushWindowBegin, bga, 1).returns(true),
+			step(PushWindowEnd, bg, 1).flush().returns(false),
 			step(BackgroundSyncStart, bga, 1).returns(true),
 			step(WillEnterForeground, bga, 1),
 			step(DidBecomeActive, fg, 1),
 			step(BackgroundSyncWait, fg, 0),
 		},
-		Observed: states(bga, bg, bga, fg),
+		Observed: states(bga, bg, bga, bg, bga, fg),
 	},
 	{
 		Name:     "android WorkManager BackgroundSync racing a push window",

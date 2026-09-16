@@ -6,9 +6,9 @@ import android.content.res.Configuration
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
-import androidx.work.WorkRequest
 import com.bumptech.glide.Glide
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
@@ -79,7 +79,7 @@ class MainApplication : Application(), ReactApplication {
             }
         }.start()
 
-        val backgroundSyncRequest: WorkRequest = PeriodicWorkRequest.Builder(
+        val backgroundSyncRequest: PeriodicWorkRequest = PeriodicWorkRequest.Builder(
             BackgroundSyncWorker::class.java,
             1, TimeUnit.HOURS,
             15, TimeUnit.MINUTES
@@ -87,7 +87,7 @@ class MainApplication : Application(), ReactApplication {
             .build()
         WorkManager
             .getInstance(this)
-            .enqueue(backgroundSyncRequest)
+            .enqueueUniquePeriodicWork(BACKGROUND_SYNC_WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, backgroundSyncRequest)
     }
 
     fun onReactContextInitialized(context: ReactContext?) {
@@ -104,5 +104,9 @@ class MainApplication : Application(), ReactApplication {
     override fun onLowMemory() {
         Keybase.forceGC()
         super.onLowMemory()
+    }
+
+    companion object {
+        private const val BACKGROUND_SYNC_WORK_NAME = "background_sync"
     }
 }

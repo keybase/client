@@ -55,9 +55,6 @@ const (
 	BackgroundTaskExpired
 	PushWindowBegin
 	PushWindowEnd
-	// PushWindowClose ends the push window when native can't start a
-	// background task.
-	PushWindowClose
 	LiveLocationClaim
 	LiveLocationRelease
 
@@ -102,7 +99,6 @@ var actionNames = map[Action]string{
 	BackgroundTaskExpired:    "BackgroundTaskExpired",
 	PushWindowBegin:          "PushWindowBegin",
 	PushWindowEnd:            "PushWindowEnd",
-	PushWindowClose:          "PushWindowClose",
 	LiveLocationClaim:        "LiveLocationClaim",
 	LiveLocationRelease:      "LiveLocationRelease",
 	BackgroundSyncStart:      "BackgroundSyncStart",
@@ -320,8 +316,6 @@ func (h *Harness) perform(step Step) bool {
 		return h.tokens[step.Slot] > 0
 	case PushWindowEnd:
 		return c.PushWindowEnd(h.tokens[step.Slot], h.stayRunning)
-	case PushWindowClose:
-		c.PushWindowClose(h.tokens[step.Slot])
 	case LiveLocationClaim:
 		c.LiveLocationClaim()
 	case LiveLocationRelease:

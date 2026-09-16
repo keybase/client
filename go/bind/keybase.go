@@ -1058,18 +1058,6 @@ func AppPushWindowEnd(token int64) bool {
 	return kbCtx.MobileLifecycle.PushWindowEnd(token, shouldStayRunningInBackground)
 }
 
-// AppPushWindowClose closes the window opened by AppPushWindowBegin, only if
-// nothing has updated the app state since, without handing it over to a
-// background task. Use it instead of AppPushWindowEnd when no background task
-// can be started.
-func AppPushWindowClose(token int64) {
-	if !isInited() {
-		return
-	}
-	defer kbCtx.Trace("AppPushWindowClose", nil)()
-	kbCtx.MobileLifecycle.PushWindowClose(token)
-}
-
 func AppBeginBackgroundTaskNonblock(pusher PushNotifier) {
 	if !isInited() {
 		return

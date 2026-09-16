@@ -95,22 +95,6 @@ class MainActivity : ReactActivity() {
         super.onPause()
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun startActivityForResult(intent: Intent, requestCode: Int, options: Bundle?) {
-        @Suppress("DEPRECATION")
-        super.startActivityForResult(intent, requestCode, options)
-        if (requestCode >= 0) {
-            lifecycleReporter().onExternalActivityLaunched()
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        lifecycleReporter().onExternalActivityResult()
-        super.onActivityResult(requestCode, resultCode, data)
-    }
-
-    private fun lifecycleReporter() = (application as MainApplication).lifecycleReporter
-
     private fun getFileNameFromResolver(resolver: ContentResolver, uri: Uri, extension: String?): String {
         // Use a GUID default.
         var filename = String.format("%s.%s", UUID.randomUUID().toString(), extension)
@@ -179,7 +163,7 @@ class MainActivity : ReactActivity() {
     override fun onDestroy() {
         NativeLogger.info("Activity onDestroy")
         super.onDestroy()
-        lifecycleReporter().onMainActivityDestroy(isFinishing, isChangingConfigurations)
+        (application as MainApplication).lifecycleReporter.onMainActivityDestroy(isFinishing, isChangingConfigurations)
     }
 
     private var cachedIntent: Intent? = null

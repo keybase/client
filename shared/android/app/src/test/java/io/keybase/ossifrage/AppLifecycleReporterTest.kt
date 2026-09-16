@@ -16,7 +16,6 @@ private class FakeBind : LifecycleBind {
     var stayRunning = false
     var token = 7L
     var endHandsOver = false
-    var hasContext = true
     var onDidEnterBackground: () -> Unit = {}
 
     override fun willEnterForeground() {
@@ -47,12 +46,6 @@ private class FakeBind : LifecycleBind {
         return endHandsOver
     }
 
-    override fun pushWindowClose(token: Long) {
-        calls.add("pushWindowClose($token)")
-    }
-
-    override fun canBeginBackgroundTask() = hasContext
-
     override fun beginBackgroundTask() {
         calls.add("beginBackgroundTask")
     }
@@ -61,11 +54,6 @@ private class FakeBind : LifecycleBind {
 // Runs nothing until told to, so tests see what was queued and in what order.
 private class ManualExecutor : LifecycleExecutor {
     val queue = mutableListOf<Runnable>()
-    val scheduled = mutableListOf<Scheduled>()
-
-    class Scheduled(val delayMs: Long, val task: Runnable) {
-        var cancelled = false
-    }
 
     override fun submit(task: Runnable): Future<*> {
         val future = FutureTask<Unit>(task, Unit)
@@ -73,23 +61,10 @@ private class ManualExecutor : LifecycleExecutor {
         return future
     }
 
-    override fun schedule(delayMs: Long, task: Runnable): () -> Unit {
-        val s = Scheduled(delayMs, task)
-        scheduled.add(s)
-        return { s.cancelled = true }
-    }
-
     fun runAll() {
         while (queue.isNotEmpty()) {
             queue.removeAt(0).run()
         }
-    }
-
-    // Fires a scheduled task as the executor would, even a cancelled one
-    // whose cancel lost the race.
-    fun fire(s: Scheduled) {
-        queue.add(s.task)
-        runAll()
     }
 }
 
@@ -154,32 +129,13 @@ class AppLifecycleReporterTest {
         reporter.onResume(Owner)
         reporter.onPause(Owner)
         assertEquals(listOf("willEnterForeground", "didBecomeActive", "didBecomeActive"), calls())
-        assertTrue(executor.scheduled.isEmpty())
     }
 
+    // A full-screen picker or camera stops the process like any other exit.
     @Test
-    fun fullScreenPickerStopIsDeferredUntilTheUserReturns() {
+    fun fullScreenPickerBackgroundsAndReturningForegrounds() {
         launch()
-        reporter.onExternalActivityLaunched()
         stop()
-        assertEquals(1, executor.scheduled.size)
-        assertEquals(AppLifecycleReporter.EXTERNAL_ACTIVITY_GRACE_MS, executor.scheduled[0].delayMs)
-        reporter.onStart(Owner)
-        reporter.onExternalActivityResult()
-        reporter.onResume(Owner)
-        assertTrue(executor.scheduled[0].cancelled)
-        // The cancel can lose the race with the timer.
-        executor.fire(executor.scheduled[0])
-        assertEquals(listOf("willEnterForeground", "didBecomeActive", "didBecomeActive"), calls())
-    }
-
-    @Test
-    fun pickerLeftOpenBackgroundsAfterTheGracePeriod() {
-        launch()
-        reporter.onExternalActivityLaunched()
-        stop()
-        executor.fire(executor.scheduled[0])
-        executor.fire(executor.scheduled[0])
         reporter.onStart(Owner)
         reporter.onResume(Owner)
         assertEquals(
@@ -190,32 +146,6 @@ class AppLifecycleReporterTest {
             ),
             calls(),
         )
-    }
-
-    @Test
-    fun anotherPickerAfterReturningDefersAgain() {
-        launch()
-        reporter.onExternalActivityLaunched()
-        stop()
-        val first = executor.scheduled[0]
-        reporter.onStart(Owner)
-        reporter.onResume(Owner)
-        reporter.onExternalActivityLaunched()
-        stop()
-        executor.fire(first)
-        assertFalse("a stale timer doesn't end the new deferral", calls().contains("didEnterBackground"))
-        executor.fire(executor.scheduled[1])
-        assertEquals("didEnterBackground", calls().last())
-    }
-
-    @Test
-    fun stopAfterTheResultArrivedIsNotDeferred() {
-        launch()
-        reporter.onExternalActivityLaunched()
-        reporter.onExternalActivityResult()
-        stop()
-        assertTrue(executor.scheduled.isEmpty())
-        assertEquals(listOf("willEnterForeground", "didBecomeActive", "didEnterBackground"), calls())
     }
 
     @Test
@@ -336,14 +266,6 @@ class RunPushWindowTest {
         bind.endHandsOver = true
         run()
         assertEquals(listOf("pushWindowBegin", "task", "pushWindowEnd(7)", "beginBackgroundTask"), bind.calls)
-    }
-
-    @Test
-    fun windowClosesWhenNoBackgroundTaskCanStart() {
-        bind.endHandsOver = true
-        bind.hasContext = false
-        run()
-        assertEquals(listOf("pushWindowBegin", "task", "pushWindowClose(7)"), bind.calls)
     }
 
     @Test
