@@ -53,7 +53,12 @@ const Header = () => {
   const username = useCurrentUserState(s => s.username)
   const fullname = useUsersState(s => s.infoMap.get(username)?.fullname ?? '')
 
-  const logoutToLoggedOutFlow = useConfigState(s => s.dispatch.logoutToLoggedOutFlow)
+  const {logoutToLoggedOutFlow, userSwitching} = useConfigState(
+    C.useShallow(s => ({
+      logoutToLoggedOutFlow: s.dispatch.logoutToLoggedOutFlow,
+      userSwitching: s.userSwitching,
+    }))
+  )
   const onHelp = () => { void openURL('https://book.keybase.io') }
   const onQuit = () => {
     if (!__DEV__) {
@@ -80,7 +85,7 @@ const Header = () => {
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     const menuItems: Kb.MenuItems = [
-      {onClick: onAddAccount, title: 'Log in as another user'},
+      {disabled: userSwitching, onClick: onAddAccount, title: 'Log in as another user'},
       {onClick: onSettings, title: 'Settings'},
       {onClick: onHelp, title: 'Help'},
       {danger: true, onClick: onSignOut, title: 'Sign out'},
