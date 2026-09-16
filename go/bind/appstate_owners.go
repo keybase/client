@@ -26,6 +26,25 @@ const (
 // works under; 0 when no window is open.
 var backgroundTaskGen atomic.Uint64
 
+// testHookAfterWindowUpdate runs between opening a background task window and
+// recording its generation.
+var testHookAfterWindowUpdate func()
+
+// recordWindowGen raises taskGen to gen. Opening a window and recording it are
+// separate steps, so concurrent openers can record out of order; only raising
+// keeps the newest window recorded.
+func recordWindowGen(taskGen *atomic.Uint64, gen uint64) {
+	if testHookAfterWindowUpdate != nil {
+		testHookAfterWindowUpdate()
+	}
+	for {
+		cur := taskGen.Load()
+		if cur >= gen || taskGen.CompareAndSwap(cur, gen) {
+			return
+		}
+	}
+}
+
 func isState(want keybase1.MobileAppState) func(keybase1.MobileAppState) bool {
 	return func(s keybase1.MobileAppState) bool { return s == want }
 }
@@ -75,7 +94,7 @@ func enterBackground(appState *libkb.MobileAppState, stayRunning bool, taskGen *
 	}
 	gen, _, changed := appState.UpdateWithCheck(keybase1.MobileAppState_BACKGROUNDACTIVE,
 		func(keybase1.MobileAppState) bool { return true })
-	taskGen.Store(gen)
+	recordWindowGen(taskGen, gen)
 	if changed {
 		flush()
 	}
@@ -105,12 +124,15 @@ func endPushWindow(appState *libkb.MobileAppState, token int64, stayRunning func
 		return false
 	}
 	gen := uint64(token)
+	if _, cur := appState.StateAndGeneration(); cur != gen {
+		return false
+	}
 	if stayRunning() {
 		newGen, applied, _ := appState.UpdateIfGeneration(gen, keybase1.MobileAppState_BACKGROUNDACTIVE)
 		if !applied {
 			return false
 		}
-		taskGen.Store(newGen)
+		recordWindowGen(taskGen, newGen)
 		return true
 	}
 	undoToBackground(appState, gen, flush)
@@ -119,8 +141,14 @@ func endPushWindow(appState *libkb.MobileAppState, token int64, stayRunning func
 
 // expireBackgroundTask ends the background task window without clobbering a
 // state reported after the window opened, such as a return to the foreground.
-func expireBackgroundTask(appState *libkb.MobileAppState, taskGen *atomic.Uint64, flush func()) {
-	undoToBackground(appState, taskGen.Swap(0), flush)
+// notifyPending runs only when the window was still open, since otherwise we
+// aren't about to be suspended.
+func expireBackgroundTask(appState *libkb.MobileAppState, taskGen *atomic.Uint64, flush func(),
+	notifyPending func(),
+) {
+	if undoToBackground(appState, taskGen.Swap(0), flush) {
+		notifyPending()
+	}
 }
 
 type backgroundTaskDeps struct {

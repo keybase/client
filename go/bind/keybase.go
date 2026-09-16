@@ -1003,15 +1003,16 @@ func AppWillExit(pusher PushNotifier) {
 
 // AppBackgroundTaskExpired is called when the OS is about to suspend the app
 // before the background task started by AppBeginBackgroundTask finished. It
-// returns to BACKGROUND only if nothing has updated the app state since
-// AppDidEnterBackground opened the window.
+// returns to BACKGROUND, and warns about messages still waiting to send, only
+// if nothing has updated the app state since the window opened.
 func AppBackgroundTaskExpired(pusher PushNotifier) {
 	if !isInited() {
 		return
 	}
 	defer kbCtx.Trace("AppBackgroundTaskExpired", nil)()
-	notifyPendingMessageFailure(pusher)
-	expireBackgroundTask(kbCtx.MobileAppState, &backgroundTaskGen, flushLocalDbs)
+	expireBackgroundTask(kbCtx.MobileAppState, &backgroundTaskGen, flushLocalDbs, func() {
+		notifyPendingMessageFailure(pusher)
+	})
 }
 
 // notifyPendingMessageFailure warns the user that messages still waiting to

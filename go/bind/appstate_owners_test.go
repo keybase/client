@@ -6,6 +6,8 @@ package keybase
 import (
 	"context"
 	"math/rand"
+	"runtime"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -29,7 +31,7 @@ func (f *flushCounter) flush()     { f.n.Add(1) }
 func (f *flushCounter) count() int { return int(f.n.Load()) }
 
 func newTestAppState(t *testing.T, initial keybase1.MobileAppState) *libkb.MobileAppState {
-	tc := libkb.SetupTest(t, t.Name(), 0)
+	tc := libkb.SetupTest(t, strings.ReplaceAll(t.Name(), "/", "_"), 0)
 	t.Cleanup(tc.Cleanup)
 	appState := libkb.NewMobileAppState(tc.G)
 	appState.Update(initial)
@@ -265,31 +267,34 @@ func TestBackgroundTaskWithoutWindowEarlyOut(t *testing.T) {
 func TestBackgroundTaskExpiredInWindow(t *testing.T) {
 	appState := newTestAppState(t, foreground)
 	var taskGen atomic.Uint64
-	var flushes flushCounter
+	var flushes, notified flushCounter
 	require.True(t, enterBackground(appState, true, &taskGen, flushes.flush))
 
-	expireBackgroundTask(appState, &taskGen, flushes.flush)
+	expireBackgroundTask(appState, &taskGen, flushes.flush, notified.flush)
 	require.Equal(t, background, appState.State())
 	require.Equal(t, 2, flushes.count())
+	require.Equal(t, 1, notified.count())
 	require.Zero(t, taskGen.Load())
 
 	// A second expiration has no window to close.
 	appState.Update(foreground)
-	expireBackgroundTask(appState, &taskGen, flushes.flush)
+	expireBackgroundTask(appState, &taskGen, flushes.flush, notified.flush)
 	require.Equal(t, foreground, appState.State())
+	require.Equal(t, 1, notified.count())
 }
 
 func TestBackgroundTaskExpiredAfterForeground(t *testing.T) {
 	appState := newTestAppState(t, foreground)
 	var taskGen atomic.Uint64
-	var flushes flushCounter
+	var flushes, notified flushCounter
 	require.True(t, enterBackground(appState, true, &taskGen, flushes.flush))
 
 	appState.Update(backgroundActive) // willEnterForeground
 	appState.Update(foreground)       // didBecomeActive
-	expireBackgroundTask(appState, &taskGen, flushes.flush)
+	expireBackgroundTask(appState, &taskGen, flushes.flush, notified.flush)
 	require.Equal(t, foreground, appState.State())
 	require.Equal(t, 1, flushes.count())
+	require.Zero(t, notified.count(), "no pending-message warning while in the foreground")
 }
 
 // The expiration arriving after the task already closed its window must not
@@ -297,13 +302,60 @@ func TestBackgroundTaskExpiredAfterForeground(t *testing.T) {
 func TestBackgroundTaskExpiredAfterTaskFinished(t *testing.T) {
 	appState := newTestAppState(t, foreground)
 	var taskGen atomic.Uint64
+	var notified flushCounter
 	require.True(t, enterBackground(appState, true, &taskGen, func() {}))
 	requireDone(t, startBackgroundTask(appState, &taskGen, newFakeDeliverer(0), time.Minute, func() {}))
 	require.Equal(t, background, appState.State())
 
 	appState.Update(foreground)
-	expireBackgroundTask(appState, &taskGen, func() {})
+	expireBackgroundTask(appState, &taskGen, func() {}, notified.flush)
 	require.Equal(t, foreground, appState.State())
+	require.Zero(t, notified.count())
+}
+
+// Two windows open concurrently and record their generations in the opposite
+// order; the newer window must stay recorded so its task can close it.
+func TestBackgroundTaskWindowsRecordedOutOfOrder(t *testing.T) {
+	stay := func() bool { return true }
+	openers := map[string]func(*libkb.MobileAppState, *atomic.Uint64){
+		"enterBackground": func(appState *libkb.MobileAppState, taskGen *atomic.Uint64) {
+			enterBackground(appState, true, taskGen, func() {})
+		},
+		"endPushWindow": func(appState *libkb.MobileAppState, taskGen *atomic.Uint64) {
+			endPushWindow(appState, beginPushWindow(appState), stay, taskGen, func() {})
+		},
+	}
+	for name, openFirst := range openers {
+		t.Run(name, func(t *testing.T) {
+			appState := newTestAppState(t, background)
+			var taskGen atomic.Uint64
+			paused := make(chan struct{})
+			release := make(chan struct{})
+			var calls atomic.Int32
+			testHookAfterWindowUpdate = func() {
+				if calls.Add(1) == 1 {
+					close(paused)
+					<-release
+				}
+			}
+			t.Cleanup(func() { testHookAfterWindowUpdate = nil })
+
+			firstDone := make(chan struct{})
+			go func() {
+				openFirst(appState, &taskGen)
+				close(firstDone)
+			}()
+			<-paused
+			require.True(t, enterBackground(appState, true, &taskGen, func() {}))
+			_, newest := appState.StateAndGeneration()
+			close(release)
+			requireDone(t, firstDone)
+			require.Equal(t, newest, taskGen.Load())
+
+			requireDone(t, startBackgroundTask(appState, &taskGen, newFakeDeliverer(0), time.Minute, func() {}))
+			require.Equal(t, background, appState.State())
+		})
+	}
 }
 
 func TestPushWindow(t *testing.T) {
@@ -357,6 +409,20 @@ func TestPushWindowForegroundInBetween(t *testing.T) {
 	require.Equal(t, gen, taskGen.Load())
 }
 
+func TestPushWindowEndStaleTokenSkipsStayRunning(t *testing.T) {
+	appState := newTestAppState(t, background)
+	var taskGen atomic.Uint64
+	token := beginPushWindow(appState)
+	appState.Update(foreground)
+	called := false
+	require.False(t, endPushWindow(appState, token, func() bool {
+		called = true
+		return true
+	}, &taskGen, func() {}))
+	require.False(t, called)
+	require.Equal(t, foreground, appState.State())
+}
+
 func TestPushWindowOverlapping(t *testing.T) {
 	appState := newTestAppState(t, background)
 	var taskGen atomic.Uint64
@@ -384,79 +450,135 @@ func TestPushWindowHandsOverToBackgroundTask(t *testing.T) {
 	require.Equal(t, background, appState.State())
 }
 
-// Owners run concurrently with lifecycle events. Once the last lifecycle event
-// is FOREGROUND and every owner has finished, no owner may have moved the app
-// out of FOREGROUND.
+// Owners run concurrently with lifecycle events, then each phase ends on a
+// known last event and checks nothing is left stuck: FOREGROUND stays
+// FOREGROUND, a background task window closes to BACKGROUND, and a plain
+// BACKGROUND stays BACKGROUND. Owner goroutines must all exit.
 func TestAppStateOwnersStress(t *testing.T) {
 	appState := newTestAppState(t, background)
 	var taskGen atomic.Uint64
 	flush := func() {}
-	const iterations = 300
-
-	var owners sync.WaitGroup
-	lifecycleDone := make(chan struct{})
-	runOwner := func(f func(r *rand.Rand)) {
-		owners.Add(1)
-		go func(seed int64) {
-			defer owners.Done()
-			r := rand.New(rand.NewSource(seed))
-			for {
-				select {
-				case <-lifecycleDone:
-					return
-				default:
-				}
-				f(r)
-			}
-		}(rand.Int63())
-	}
-	for range 4 {
-		runOwner(func(r *rand.Rand) {
-			token := beginPushWindow(appState)
-			if r.Intn(2) == 0 {
-				time.Sleep(time.Duration(r.Intn(100)) * time.Microsecond)
-			}
-			if endPushWindow(appState, token, func() bool { return r.Intn(3) == 0 }, &taskGen, flush) {
-				runBackgroundTask(context.Background(), appState, &taskGen,
-					newFakeDeliverer(0).deps(time.Minute), flush)
-			}
-		})
-		runOwner(func(r *rand.Rand) {
-			runBackgroundSyncWindow(appState, time.Duration(r.Intn(200))*time.Microsecond, flush)
-		})
-		runOwner(func(*rand.Rand) {
-			expireBackgroundTask(appState, &taskGen, flush)
-		})
-	}
-
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	for range iterations {
-		switch r.Intn(5) {
-		case 0:
-			appState.Update(foreground)
-		case 1:
-			appState.Update(backgroundActive)
-		case 2:
-			appState.Update(keybase1.MobileAppState_INACTIVE)
-		case 3:
-			enterBackground(appState, r.Intn(2) == 0, &taskGen, flush)
-		case 4:
-			appState.Update(background)
+	notify := func() {}
+	// Widen the gap between opening a window and recording it, where a
+	// competing opener can slip in.
+	testHookAfterWindowUpdate = func() {
+		if rand.Intn(2) == 0 {
+			time.Sleep(time.Duration(rand.Intn(200)) * time.Microsecond)
 		}
-		time.Sleep(time.Duration(r.Intn(50)) * time.Microsecond)
 	}
-	appState.Update(foreground)
-	close(lifecycleDone)
+	t.Cleanup(func() { testHookAfterWindowUpdate = nil })
+	baseline := runtime.NumGoroutine()
 
+	chaos := func(t *testing.T, iterations int) {
+		var owners sync.WaitGroup
+		lifecycleDone := make(chan struct{})
+		runOwner := func(f func(r *rand.Rand)) {
+			owners.Add(1)
+			go func(seed int64) {
+				defer owners.Done()
+				r := rand.New(rand.NewSource(seed))
+				for {
+					select {
+					case <-lifecycleDone:
+						return
+					default:
+					}
+					f(r)
+				}
+			}(rand.Int63())
+		}
+		for range 4 {
+			runOwner(func(r *rand.Rand) {
+				token := beginPushWindow(appState)
+				if r.Intn(2) == 0 {
+					time.Sleep(time.Duration(r.Intn(100)) * time.Microsecond)
+				}
+				if endPushWindow(appState, token, func() bool { return r.Intn(3) == 0 }, &taskGen, flush) {
+					runBackgroundTask(context.Background(), appState, &taskGen,
+						newFakeDeliverer(0).deps(time.Minute), flush)
+				}
+			})
+			runOwner(func(r *rand.Rand) {
+				runBackgroundSyncWindow(appState, time.Duration(r.Intn(200))*time.Microsecond, flush)
+			})
+			runOwner(func(*rand.Rand) {
+				expireBackgroundTask(appState, &taskGen, flush, notify)
+			})
+		}
+
+		r := rand.New(rand.NewSource(time.Now().UnixNano()))
+		for range iterations {
+			switch r.Intn(5) {
+			case 0:
+				appState.Update(foreground)
+			case 1:
+				appState.Update(backgroundActive)
+			case 2:
+				appState.Update(keybase1.MobileAppState_INACTIVE)
+			case 3:
+				enterBackground(appState, r.Intn(2) == 0, &taskGen, flush)
+			case 4:
+				appState.Update(background)
+			}
+			time.Sleep(time.Duration(r.Intn(50)) * time.Microsecond)
+		}
+		appState.Update(foreground)
+		close(lifecycleDone)
+		waitGroupWithin(t, &owners, "owners deadlocked")
+		require.Equal(t, foreground, appState.State())
+	}
+
+	t.Run("ends in foreground", func(t *testing.T) {
+		chaos(t, 300)
+	})
+
+	// Android's onPause and the push service both open a window and start a
+	// task; the newest window must close once the tasks are done.
+	t.Run("ends in background task", func(t *testing.T) {
+		for range 50 {
+			chaos(t, 20)
+			var tasks sync.WaitGroup
+			for range 4 {
+				tasks.Add(1)
+				go func() {
+					defer tasks.Done()
+					if enterBackground(appState, true, &taskGen, flush) {
+						runBackgroundTask(context.Background(), appState, &taskGen,
+							newFakeDeliverer(0).deps(time.Minute), flush)
+					}
+				}()
+			}
+			waitGroupWithin(t, &tasks, "background tasks deadlocked")
+			require.Equal(t, background, appState.State())
+		}
+	})
+
+	t.Run("ends in background", func(t *testing.T) {
+		chaos(t, 300)
+		appState.Update(background)
+		require.Equal(t, background, appState.State())
+	})
+
+	// require.Eventually runs its condition on extra goroutines, so poll by hand.
+	settled := runtime.NumGoroutine()
+	for deadline := time.Now().Add(5 * time.Second); settled > baseline && time.Now().Before(deadline); {
+		time.Sleep(10 * time.Millisecond)
+		settled = runtime.NumGoroutine()
+	}
+	require.LessOrEqual(t, settled, baseline, "leaked goroutines")
+	t.Logf("goroutines: baseline %d, settled %d", baseline, settled)
+}
+
+func waitGroupWithin(t *testing.T, wg *sync.WaitGroup, msg string) {
+	t.Helper()
 	done := make(chan struct{})
 	go func() {
-		owners.Wait()
+		wg.Wait()
 		close(done)
 	}()
 	select {
 	case <-done:
 	case <-time.After(30 * time.Second):
-		require.Fail(t, "owners deadlocked")
+		require.Fail(t, msg)
 	}
-	require.Equal(t, foreground, appState.State())
 }
