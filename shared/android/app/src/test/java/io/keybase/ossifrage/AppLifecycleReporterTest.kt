@@ -329,11 +329,10 @@ class RunReceiverWorkTest {
     private val finished = CountDownLatch(1)
     private val warnings = Collections.synchronizedList(mutableListOf<String>())
     private val errors = Collections.synchronizedList(mutableListOf<Throwable>())
-    private val threads = Collections.synchronizedSet(mutableSetOf<Thread>())
 
     private fun run(budgetMs: Long, work: () -> Unit) = runReceiverWork(
         budgetMs,
-        { r -> Thread { threads.add(Thread.currentThread()); r.run() }.start() },
+        { r -> Thread(r).start() },
         { warnings.add(it) },
         { _, e -> errors.add(e) },
         {
@@ -343,7 +342,7 @@ class RunReceiverWorkTest {
         work,
     )
 
-    @Test
+    @Test(timeout = 10_000)
     fun finishesAfterTheWorkOffTheCallingThread() {
         val ranOn = AtomicReference<Thread>()
         run(10_000) { ranOn.set(Thread.currentThread()) }
@@ -354,7 +353,7 @@ class RunReceiverWorkTest {
         assertTrue(warnings.isEmpty())
     }
 
-    @Test
+    @Test(timeout = 10_000)
     fun finishesAndLogsWhenTheWorkThrows() {
         val failure = IllegalStateException("boom")
         run(10_000) { throw failure }
@@ -363,12 +362,12 @@ class RunReceiverWorkTest {
         assertEquals(1, finishes.get())
     }
 
-    @Test
+    @Test(timeout = 10_000)
     fun finishesAtTheBudgetWhileTheWorkIsStillRunning() {
         val release = CountDownLatch(1)
         val workDone = CountDownLatch(1)
         run(100) {
-            release.await()
+            release.await(5, TimeUnit.SECONDS)
             workDone.countDown()
         }
         assertTrue(finished.await(5, TimeUnit.SECONDS))
