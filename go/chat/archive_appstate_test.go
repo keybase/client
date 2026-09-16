@@ -168,10 +168,11 @@ func requireArchiveJobsPaused(t *testing.T, r *ChatArchiveRegistry, runner *arch
 
 func TestArchiveConcurrentResumesLaunchOnce(t *testing.T) {
 	r, runner, _ := setupAppStateArchive(t, false)
+	stopCh := make(chan struct{})
 	r.Lock()
 	r.started = true
+	r.stopCh = stopCh
 	r.Unlock()
-	stopCh := make(chan struct{})
 	defer close(stopCh)
 
 	var wg sync.WaitGroup
@@ -222,6 +223,34 @@ func TestArchivePauseBeforeRegistration(t *testing.T) {
 
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	requireArchiveJobsRunning(t, r)
+}
+
+// A resume whose delay fired as its run stopped must not launch jobs in the
+// run, possibly another user's, that started next; that run resumes on its
+// own schedule. The context is left uncanceled: the stopped run's monitor may
+// not have exited to cancel it yet.
+func TestArchiveStaleResumeAfterRestart(t *testing.T) {
+	r, runner, _ := setupAppStateArchive(t, true)
+	oldStopCh := make(chan struct{})
+	r.Lock()
+	r.started = true
+	r.stopCh = oldStopCh
+	r.Unlock()
+	r.beforeResumeDecision = func() {
+		r.Lock()
+		r.started = false
+		close(oldStopCh)
+		r.Unlock()
+		r.resumeJobsDelay = time.Hour
+		r.Start(context.TODO(), gregor1.UID([]byte{5, 6, 7, 8}))
+	}
+	require.NoError(t, r.resumeAllBgJobs(context.Background(), oldStopCh))
+	defer requireArchiveStopped(t, r)
+	select {
+	case id := <-runner.launched:
+		require.FailNow(t, fmt.Sprintf("stale resume launched %v", id))
+	case <-time.After(300 * time.Millisecond):
+	}
 }
 
 func TestArchiveStartInBackgroundDoesNotResume(t *testing.T) {

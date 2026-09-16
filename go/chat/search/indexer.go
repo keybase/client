@@ -83,6 +83,9 @@ type Indexer struct {
 	syncLoopCh, cancelSyncCh, pokeSyncCh chan struct{}
 	// selectiveSync, if set, runs in place of SelectiveSync. Tests only.
 	selectiveSync func(ctx context.Context) error
+	// beforeSyncStateCheck and afterSyncStart, if set, run in attemptSync
+	// around its app-state check and sync start. Tests only.
+	beforeSyncStateCheck, afterSyncStart func()
 }
 
 var _ types.Indexer = (*Indexer)(nil)
@@ -262,10 +265,19 @@ func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
 		if netState.IsLimited() {
 			return
 		}
-		// A change after this read wakes the loop, which cancels the sync.
+		if idx.beforeSyncStateCheck != nil {
+			idx.beforeSyncStateCheck()
+		}
 		if state := idx.G().MobileAppState.State(); state != keybase1.MobileAppState_FOREGROUND {
 			idx.Debug(ctx, "not running SelectiveSync in %v", state)
 			return
+		}
+		// The loop may not have woken for the change into FOREGROUND yet. Wait
+		// on changes from FOREGROUND from here on, so leaving it after this
+		// read wakes the loop, which cancels the sync.
+		appState = keybase1.MobileAppState_FOREGROUND
+		if idx.afterSyncStart != nil {
+			defer idx.afterSyncStart()
 		}
 		l.Lock()
 		defer l.Unlock()

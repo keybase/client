@@ -191,6 +191,97 @@ func TestConvLoaderStopWaitsForReplacedRun(t *testing.T) {
 	}
 }
 
+// A suspension that outlives a run parks the next run's loop before it
+// takes anything off the queue.
+func TestConvLoaderSuspensionCarriesIntoNextRun(t *testing.T) {
+	b, _, tc := setupAppStateConvLoader(t)
+	clock := clockwork.NewFakeClock()
+	b.clock = clock
+	uid := gregor1.UID([]byte{1, 2, 3, 4})
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
+	b.Start(context.TODO(), uid)
+	requireConvLoaderStopped(t, b)
+	b.Start(context.TODO(), uid)
+	defer requireConvLoaderStopped(t, b)
+	require.Eventually(t, func() bool {
+		b.Lock()
+		defer b.Unlock()
+		return len(b.suspendCh) == 0
+	}, 10*time.Second, time.Millisecond, "loop did not take the suspension")
+
+	require.NoError(t, b.Queue(context.TODO(), convLoaderTestJob()))
+	// A loop that pulls the job waits out its delay on the clock.
+	blocked := make(chan struct{})
+	go func() {
+		clock.BlockUntil(1)
+		close(blocked)
+	}()
+	defer clock.After(time.Hour)
+	select {
+	case <-blocked:
+		require.FailNow(t, "loop pulled a job while suspended")
+	case <-time.After(300 * time.Millisecond):
+	}
+	b.Lock()
+	queued := b.queue.queue.Len()
+	b.Unlock()
+	require.Equal(t, 1, queued, "queue drained while suspended")
+}
+
+// pullBlocker fails the first load of the old user's conversation once
+// released, so the old run asks to retry it.
+type pullBlocker struct {
+	types.ConversationSource
+	oldUID  gregor1.UID
+	started chan struct{}
+	release chan struct{}
+
+	mu   sync.Mutex
+	uids []gregor1.UID
+}
+
+func (p *pullBlocker) Pull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	reason chat1.GetThreadReason, customRi func() chat1.RemoteInterface, query *chat1.GetThreadQuery,
+	pagination *chat1.Pagination,
+) (chat1.ThreadView, error) {
+	p.mu.Lock()
+	p.uids = append(p.uids, uid)
+	p.mu.Unlock()
+	if uid.Eq(p.oldUID) {
+		close(p.started)
+		<-p.release
+		return chat1.ThreadView{}, context.Canceled
+	}
+	return chat1.ThreadView{}, nil
+}
+
+func TestConvLoaderReplacedRunRetryStaysInItsRun(t *testing.T) {
+	b, _, _ := setupAppStateConvLoader(t)
+	oldUID, newUID := gregor1.UID([]byte{1, 2, 3, 4}), gregor1.UID([]byte{5, 6, 7, 8})
+	pulls := &pullBlocker{oldUID: oldUID, started: make(chan struct{}), release: make(chan struct{})}
+	b.G().ConvSource = pulls
+	b.Start(context.TODO(), oldUID)
+	require.NoError(t, b.Queue(context.TODO(), convLoaderTestJob()))
+	select {
+	case <-pulls.started:
+	case <-time.After(10 * time.Second):
+		require.FailNow(t, "old run did not load")
+	}
+	b.Start(context.TODO(), newUID)
+	defer requireConvLoaderStopped(t, b)
+	close(pulls.release)
+
+	// past the retry delay and the new run's load delays
+	time.Sleep(time.Second)
+	b.Lock()
+	queued := b.queue.queue.Len()
+	b.Unlock()
+	require.Zero(t, queued, "old run's retry reached the new queue")
+	pulls.mu.Lock()
+	defer pulls.mu.Unlock()
+	require.Equal(t, []gregor1.UID{oldUID}, pulls.uids)
+}
+
 func TestConvLoaderScenarioReplay(t *testing.T) {
 	for _, sc := range lifecycletest.Scenarios {
 		t.Run(sc.Name, func(t *testing.T) {

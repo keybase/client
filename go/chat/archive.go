@@ -64,6 +64,9 @@ type ChatArchiveRegistry struct {
 	// runJob, if set, runs a launched job in place of a ChatArchiver. Tests
 	// only.
 	runJob func(ctx context.Context, uid gregor1.UID, req chat1.ArchiveChatJobRequest) error
+	// beforeResumeDecision, if set, runs in resumeAllBgJobs after its delay
+	// and before it takes the lock. Tests only.
+	beforeResumeDecision func()
 
 	edb        *encrypteddb.EncryptedDB
 	jobHistory chat1.ArchiveChatHistory
@@ -189,8 +192,16 @@ func (r *ChatArchiveRegistry) resumeAllBgJobs(ctx context.Context, stopCh chan s
 		return ctx.Err()
 	case <-time.After(r.resumeJobsDelay):
 	}
+	if r.beforeResumeDecision != nil {
+		r.beforeResumeDecision()
+	}
 	r.Lock()
 	defer r.Unlock()
+	// The delay can win over a closed stopCh, and a later Start (possibly for
+	// another user) can run before the lock is taken.
+	if r.stopCh != stopCh {
+		return nil
+	}
 	// Decide under the lock the monitor pauses under: a pause either comes
 	// first and is seen here, or bumps pauseEpoch and pauses what launches.
 	if state := r.G().MobileAppState.State(); state != keybase1.MobileAppState_FOREGROUND {

@@ -148,6 +148,34 @@ func TestSyncLoopBackgroundCancelsSync(t *testing.T) {
 	require.Zero(t, active)
 }
 
+// The loop can start a sync on a poke before it wakes for the change into
+// FOREGROUND. A BACKGROUND that lands before it returns to its select must
+// still cancel that sync.
+func TestSyncLoopBackgroundAfterUnobservedForeground(t *testing.T) {
+	s := newAppStateSyncLoop(t, keybase1.MobileAppState_BACKGROUND)
+	var beforeOnce, afterOnce sync.Once
+	s.idx.beforeSyncStateCheck = func() {
+		beforeOnce.Do(func() { s.tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND) })
+	}
+	s.idx.afterSyncStart = func() {
+		afterOnce.Do(func() {
+			for {
+				if _, active := s.syncs.counts(); active == 1 {
+					break
+				}
+				time.Sleep(time.Millisecond)
+			}
+			s.tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
+		})
+	}
+	s.start()
+	defer s.stop()
+	s.poke()
+	s.requireActive(0, "sync kept running in BACKGROUND")
+	starts, _ := s.syncs.counts()
+	require.Equal(t, 1, starts)
+}
+
 func TestSyncLoopScenarioReplay(t *testing.T) {
 	for _, sc := range lifecycletest.Scenarios {
 		t.Run(sc.Name, func(t *testing.T) {
@@ -200,8 +228,6 @@ func TestSyncLoopAppStateStress(t *testing.T) {
 	s.requireActive(1, "no sync in FOREGROUND")
 	s.stop()
 	s.requireActive(0, "sync outlived the loop")
-	// BgTicker.Stop leaves its tick goroutine blocked on the stopped ticker.
-	baseline++
 	deadline := time.Now().Add(10 * time.Second)
 	for runtime.NumGoroutine() > baseline && time.Now().Before(deadline) {
 		time.Sleep(10 * time.Millisecond)

@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"sync"
 	"time"
 )
 
@@ -11,6 +12,8 @@ type BgTicker struct {
 	c          chan time.Time
 	ticker     *time.Ticker
 	resumeWait time.Duration
+	done       chan struct{}
+	stopOnce   sync.Once
 }
 
 // This ticker wrap's Go's time.Ticker to wait a given time.Duration before
@@ -30,18 +33,38 @@ func NewBgTickerWithWait(duration time.Duration, wait time.Duration) *BgTicker {
 		c:          c,
 		ticker:     time.NewTicker(duration - wait),
 		resumeWait: wait,
+		done:       make(chan struct{}),
 	}
 	go t.tick()
 	return t
 }
 
+// tick ends on Stop: a stopped time.Ticker never closes its channel, and
+// nobody may be left to read C.
 func (t *BgTicker) tick() {
-	for c := range t.ticker.C {
-		time.Sleep(RandomJitter(t.resumeWait))
-		t.c <- c
+	for {
+		var c time.Time
+		select {
+		case c = <-t.ticker.C:
+		case <-t.done:
+			return
+		}
+		wait := time.NewTimer(RandomJitter(t.resumeWait))
+		select {
+		case <-wait.C:
+		case <-t.done:
+			wait.Stop()
+			return
+		}
+		select {
+		case t.c <- c:
+		case <-t.done:
+			return
+		}
 	}
 }
 
 func (t *BgTicker) Stop() {
 	t.ticker.Stop()
+	t.stopOnce.Do(func() { close(t.done) })
 }

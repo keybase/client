@@ -268,7 +268,7 @@ func (b *BackgroundConvLoader) Start(ctx context.Context, uid gregor1.UID) {
 	state := b.G().MobileAppState.State()
 	b.setAppStateLocked(ctx, state)
 	eg.Go(func() error { return b.loop(uid, stopCh, suspendCh, queue, loadCh) })
-	eg.Go(func() error { return b.loadLoop(uid, stopCh, loadCh) })
+	eg.Go(func() error { return b.loadLoop(uid, stopCh, queue, loadCh) })
 	eg.Go(func() error { return b.monitorAppState(stopCh, state) })
 }
 
@@ -396,8 +396,26 @@ func (b *BackgroundConvLoader) isRunning() bool {
 func (b *BackgroundConvLoader) enqueue(ctx context.Context, task clTask) error {
 	b.Lock()
 	defer b.Unlock()
+	return b.push(ctx, b.queue, task)
+}
+
+// requeue puts a task back on the queue of the run that loaded it, and drops
+// it once that run has stopped, so it never reaches a later run (or user).
+func (b *BackgroundConvLoader) requeue(ctx context.Context, stopCh chan struct{}, queue *jobQueue, task clTask) {
+	select {
+	case <-stopCh:
+		b.Debug(ctx, "requeue: run stopped, dropping task: %s", task.job)
+		return
+	default:
+	}
+	if err := b.push(ctx, queue, task); err != nil {
+		b.Debug(ctx, "enqueue error %s", err)
+	}
+}
+
+func (b *BackgroundConvLoader) push(ctx context.Context, queue *jobQueue, task clTask) error {
 	b.Debug(ctx, "enqueue: adding task: %s", task.job)
-	queued, err := b.queue.Push(task)
+	queued, err := queue.Push(task)
 	if err != nil {
 		return err
 	}
@@ -479,28 +497,27 @@ func (b *BackgroundConvLoader) loop(uid gregor1.UID, stopCh chan struct{}, suspe
 	}
 }
 
-func (b *BackgroundConvLoader) loadLoop(uid gregor1.UID, stopCh chan struct{}, loadCh chan *clTask) error {
+func (b *BackgroundConvLoader) loadLoop(uid gregor1.UID, stopCh chan struct{}, queue *jobQueue,
+	loadCh chan *clTask,
+) error {
 	bgctx := context.Background()
 	b.Debug(bgctx, "loadLoop: starting for uid: %s", uid)
 	for {
 		select {
 		case task := <-loadCh:
-			switch {
-			case !b.isRunning():
+			select {
+			case <-stopCh:
 				b.Debug(bgctx, "loadLoop: shutting down for %s", uid)
 				return nil
-			case b.isSuspended():
-				b.Debug(bgctx, "loadLoop: suspended, re-enqueueing task: %s", task.job)
-				if err := b.enqueue(bgctx, *task); err != nil {
-					b.Debug(bgctx, "enqueue error %s", err)
-				}
 			default:
+			}
+			if b.isSuspended() {
+				b.Debug(bgctx, "loadLoop: suspended, re-enqueueing task: %s", task.job)
+				b.requeue(bgctx, stopCh, queue, *task)
+			} else {
 				b.Debug(bgctx, "loadLoop: running task: %s", task.job)
-				nextTask := b.load(bgctx, *task, uid)
-				if nextTask != nil {
-					if err := b.enqueue(bgctx, *nextTask); err != nil {
-						b.Debug(bgctx, "enqueue error %s", err)
-					}
+				if nextTask := b.load(bgctx, *task, uid); nextTask != nil {
+					b.requeue(bgctx, stopCh, queue, *nextTask)
 				}
 			}
 			b.clock.Sleep(b.loadWait)
