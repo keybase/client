@@ -27,6 +27,10 @@ type MobileAppState struct {
 	Contextified
 	sync.Mutex
 	state keybase1.MobileAppState
+	// generation increments on every accepted update, including one that
+	// sets the current value again, so a writer that read an older generation
+	// can tell that someone else has spoken since.
+	generation uint64
 	// changed is closed and replaced whenever state actually changes. Any
 	// caller holding a reference to the previous channel is woken by the
 	// close; they then re-read State() to see the new value.
@@ -38,15 +42,25 @@ type MobileAppState struct {
 }
 
 func NewMobileAppState(g *GlobalContext) *MobileAppState {
-	state := keybase1.MobileAppState_FOREGROUND
-	if runtime.GOOS == "android" {
-		// we need this so cold notifications work on android
-		state = keybase1.MobileAppState_BACKGROUNDACTIVE
-	}
 	return &MobileAppState{
 		Contextified: NewContextified(g),
-		state:        state,
+		state:        initialMobileAppState(runtime.GOOS),
 		changed:      make(chan struct{}),
+	}
+}
+
+func initialMobileAppState(goos string) keybase1.MobileAppState {
+	switch goos {
+	case "android":
+		// we need this so cold notifications work on android
+		return keybase1.MobileAppState_BACKGROUNDACTIVE
+	case "ios":
+		// iOS launches the process in the background for silent pushes and
+		// background refresh; the scene life cycle reports foreground once
+		// the app is actually on screen.
+		return keybase1.MobileAppState_BACKGROUND
+	default:
+		return keybase1.MobileAppState_FOREGROUND
 	}
 }
 
@@ -68,29 +82,31 @@ func (a *MobileAppState) NextUpdate(lastState keybase1.MobileAppState) <-chan st
 	return a.changed
 }
 
-func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) {
-	if a.state != state {
-		a.G().Log.Debug("MobileAppState.Update: useful update: %v, we are currently in state: %v",
-			state, a.state)
-		a.G().PerfLog.Debug("MobileAppState.Update: useful update: %v, we are currently in state: %v",
-			state, a.state)
-		a.state = state
-		t := time.Now()
-		a.mtime = &t // only update mtime if we're changing state
-		close(a.changed)
-		a.changed = make(chan struct{})
-
-		// cancel RPCs if we go into the background
-		switch a.state {
-		case keybase1.MobileAppState_BACKGROUND:
-			a.G().RPCCanceler.CancelLiveContexts(RPCCancelerReasonBackground)
-		default:
-			// Nothing to do for other states.
-		}
-	} else {
-		a.G().Log.Debug("MobileAppState.Update: ignoring update: %v, we are currently in state: %v",
-			state, a.state)
+func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) (changed bool) {
+	a.generation++
+	if a.state == state {
+		a.G().Log.Debug("MobileAppState.Update: same-value update: %v, generation: %d",
+			state, a.generation)
+		return false
 	}
+	a.G().Log.Debug("MobileAppState.Update: useful update: %v, we are currently in state: %v, generation: %d",
+		state, a.state, a.generation)
+	a.G().PerfLog.Debug("MobileAppState.Update: useful update: %v, we are currently in state: %v",
+		state, a.state)
+	a.state = state
+	t := time.Now()
+	a.mtime = &t // only update mtime if we're changing state
+	close(a.changed)
+	a.changed = make(chan struct{})
+
+	// cancel RPCs if we go into the background
+	switch a.state {
+	case keybase1.MobileAppState_BACKGROUND:
+		a.G().RPCCanceler.CancelLiveContexts(RPCCancelerReasonBackground)
+	default:
+		// Nothing to do for other states.
+	}
+	return true
 }
 
 func (a *MobileAppState) UpdateWithCheck(state keybase1.MobileAppState,
@@ -106,12 +122,33 @@ func (a *MobileAppState) UpdateWithCheck(state keybase1.MobileAppState,
 	}
 }
 
-// Update updates the current app state, and notifies any waiting calls from NextUpdate
-func (a *MobileAppState) Update(state keybase1.MobileAppState) {
+// Update sets the current app state and bumps the generation, even when state
+// is already current. It returns whether the value changed; only a change
+// wakes NextUpdate callers and has side effects.
+func (a *MobileAppState) Update(state keybase1.MobileAppState) (changed bool) {
 	defer a.G().Trace(fmt.Sprintf("MobileAppState.Update(%v)", state), nil)()
 	a.Lock()
 	defer a.Unlock()
-	a.updateLocked(state)
+	return a.updateLocked(state)
+}
+
+// UpdateIfGeneration applies state only if no update has been accepted since
+// gen was read from StateAndGeneration. It returns the generation after the
+// call (the new one when applied, the current one otherwise), whether the
+// update was applied, and whether the value changed.
+func (a *MobileAppState) UpdateIfGeneration(gen uint64, state keybase1.MobileAppState) (
+	newGen uint64, applied bool, changed bool,
+) {
+	defer a.G().Trace(fmt.Sprintf("MobileAppState.UpdateIfGeneration(%d, %v)", gen, state), nil)()
+	a.Lock()
+	defer a.Unlock()
+	if a.generation != gen {
+		a.G().Log.Debug("MobileAppState.UpdateIfGeneration: skipping update, generation %d is now %d",
+			gen, a.generation)
+		return a.generation, false, false
+	}
+	changed = a.updateLocked(state)
+	return a.generation, true, changed
 }
 
 // State returns the current app state
@@ -119,6 +156,14 @@ func (a *MobileAppState) State() keybase1.MobileAppState {
 	a.Lock()
 	defer a.Unlock()
 	return a.state
+}
+
+// StateAndGeneration returns the current app state together with the
+// generation that produced it, for use with UpdateIfGeneration.
+func (a *MobileAppState) StateAndGeneration() (keybase1.MobileAppState, uint64) {
+	a.Lock()
+	defer a.Unlock()
+	return a.state, a.generation
 }
 
 func (a *MobileAppState) StateAndMtime() (keybase1.MobileAppState, *time.Time) {

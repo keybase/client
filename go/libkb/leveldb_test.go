@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/syndtr/goleveldb/leveldb"
 )
@@ -69,6 +70,28 @@ func doSomeIO() error {
 	return os.WriteFile(filepath.Join(dir, "some-io"), []byte("O_O"), 0o600)
 }
 
+func levelDbStats(t *testing.T, db *LevelDb) (stats leveldb.DBStats) {
+	require.NoError(t, db.doWhileOpenAndNukeIfCorrupted(func() error {
+		return db.db.Stats(&stats)
+	}))
+	return stats
+}
+
+func levelDbTableCount(t *testing.T, db *LevelDb) (count int) {
+	for _, n := range levelDbStats(t, db).LevelTablesCounts {
+		count += n
+	}
+	return count
+}
+
+func levelDbLevelTableCount(t *testing.T, db *LevelDb, level int) int {
+	counts := levelDbStats(t, db).LevelTablesCounts
+	if level >= len(counts) {
+		return 0
+	}
+	return counts[level]
+}
+
 func testLevelDbPut(db *LevelDb) (key DbKey, err error) {
 	key = DbKey{Key: "test-key", Typ: 0}
 	v := []byte{1, 2, 3, 4}
@@ -123,8 +146,10 @@ func TestLevelDb(t *testing.T) {
 
 				key, err := testLevelDbPut(db)
 				require.NoError(t, err)
+				require.Zero(t, levelDbTableCount(t, db), "the put should still be in the memtable")
 
 				require.NoError(t, db.Flush())
+				require.NotZero(t, levelDbTableCount(t, db), "flush should write the memtable to a table")
 				require.NoError(t, db.Flush())
 
 				// Data survives the flush and the sentinel is cleaned up.
@@ -138,6 +163,104 @@ func TestLevelDb(t *testing.T) {
 				// Writes still work after a flush.
 				_, err = testLevelDbPut(db)
 				require.NoError(t, err)
+			},
+		},
+		{
+			name: "flush-single-flight", testBody: func(t *testing.T) {
+				tc := SetupTest(t, "LevelDb-flush-single-flight", 0)
+				defer tc.Cleanup()
+				db, err := createTempLevelDbForTest(&tc, &td)
+				require.NoError(t, err)
+
+				_, err = testLevelDbPut(db)
+				require.NoError(t, err)
+
+				db.flushing.Store(true)
+				require.NoError(t, db.Flush())
+				require.Zero(t, levelDbTableCount(t, db), "a flush already in flight should make this one a no-op")
+
+				db.flushing.Store(false)
+				require.NoError(t, db.Flush())
+				require.NotZero(t, levelDbTableCount(t, db))
+			},
+		},
+		{
+			name: "flush-compacts-only-sentinel-range", testBody: func(t *testing.T) {
+				tc := SetupTest(t, "LevelDb-flush-narrow", 0)
+				defer tc.Cleanup()
+				db, err := createTempLevelDbForTest(&tc, &td)
+				require.NoError(t, err)
+
+				// Opening a transaction flushes the memtable to level 0 without a
+				// table compaction, which leaves level-0 tables that don't hold the
+				// flush sentinel.
+				for _, k := range []string{"a", "b"} {
+					require.NoError(t, db.Put(DbKey{Key: k, Typ: 0}, nil, []byte{1}))
+					tr, err := db.OpenTransaction()
+					require.NoError(t, err)
+					tr.Discard()
+				}
+				require.Equal(t, 2, levelDbLevelTableCount(t, db, 0))
+
+				require.NoError(t, db.Flush())
+				require.Equal(t, 2, levelDbLevelTableCount(t, db, 0),
+					"flush should not compact tables outside the sentinel range")
+			},
+		},
+		{
+			name: "open-transaction-after-close", testBody: func(t *testing.T) {
+				tc := SetupTest(t, "LevelDb-transaction-closed", 0)
+				defer tc.Cleanup()
+				db, err := createTempLevelDbForTest(&tc, &td)
+				require.NoError(t, err)
+
+				require.NoError(t, db.ForceOpen())
+				require.NoError(t, db.Close())
+				_, err = db.OpenTransaction()
+				require.ErrorAs(t, err, &LevelDBOpenClosedError{})
+			},
+		},
+		{
+			name: "concurrent-open", testBody: func(t *testing.T) {
+				tc := SetupTest(t, "LevelDb-concurrent-open", 0)
+				defer tc.Cleanup()
+				db, err := createTempLevelDbForTest(&tc, &td)
+				require.NoError(t, err)
+
+				// Under -race, this catches the lazy open assigning db.db while
+				// Flush reads it.
+				var wg sync.WaitGroup
+				for i := 0; i < 8; i++ {
+					wg.Add(2)
+					go func() {
+						defer wg.Done()
+						_, _, err := db.Get(DbKey{Key: "test-key", Typ: 0})
+						assert.NoError(t, err)
+					}()
+					go func() {
+						defer wg.Done()
+						assert.NoError(t, db.Flush())
+					}()
+				}
+				wg.Wait()
+
+				// A lazy open racing a Nuke reopens rather than reporting closed.
+				for i := 0; i < 8; i++ {
+					wg.Add(2)
+					go func() {
+						defer wg.Done()
+						key := DbKey{Key: "test-key", Typ: 0}
+						assert.NoError(t, db.Put(key, nil, []byte{1}))
+						_, _, err := db.Get(key)
+						assert.NoError(t, err)
+					}()
+					go func() {
+						defer wg.Done()
+						_, err := db.Nuke()
+						assert.NoError(t, err)
+					}()
+				}
+				wg.Wait()
 			},
 		},
 		{

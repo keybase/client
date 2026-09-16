@@ -888,8 +888,15 @@ func SetAppStateBackground() {
 		return
 	}
 	defer kbCtx.Trace("SetAppStateBackground", nil)()
-	kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
-	flushLocalDbs()
+	updateAppStateAndFlush(kbCtx.MobileAppState, keybase1.MobileAppState_BACKGROUND, flushLocalDbs)
+}
+
+// updateAppStateAndFlush flushes only when the state actually changes, so
+// repeated lifecycle callbacks don't queue a flush each.
+func updateAppStateAndFlush(appState *libkb.MobileAppState, state keybase1.MobileAppState, flush func()) {
+	if appState.Update(state) {
+		flush()
+	}
 }
 
 // flushLocalDbs flushes the leveldb memtables in the background. An unclean
@@ -1027,8 +1034,7 @@ func AppWillExit(pusher PushNotifier) {
 		// know they will get stuck
 		pushPendingMessageFailure(obrs, pusher)
 	}
-	kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
-	flushLocalDbs()
+	updateAppStateAndFlush(kbCtx.MobileAppState, keybase1.MobileAppState_BACKGROUND, flushLocalDbs)
 }
 
 // AppDidEnterBackground notifies the service that the app is in the background
@@ -1058,8 +1064,8 @@ func AppDidEnterBackground() bool {
 	}
 	if stayRunning {
 		kbCtx.Log.Debug("AppDidEnterBackground: setting background active")
-		kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUNDACTIVE)
-		flushLocalDbs()
+		// The OS may still kill us once the background task runs out.
+		updateAppStateAndFlush(kbCtx.MobileAppState, keybase1.MobileAppState_BACKGROUNDACTIVE, flushLocalDbs)
 		return true
 	}
 	SetAppStateBackground()
