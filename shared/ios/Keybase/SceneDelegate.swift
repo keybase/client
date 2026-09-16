@@ -10,9 +10,16 @@ class SceneDelegate: ExpoAppSceneDelegate {
   ) {
     super.scene(scene, willConnectTo: session, options: connectionOptions)
 
-    guard let window = self.window,
-      let appDelegate = UIApplication.shared.delegate as? AppDelegate
-    else { return }
+    guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
+    if let response = connectionOptions.notificationResponse {
+      appDelegate.handleNotificationResponse(response)
+    }
+    guard let window = self.window else { return }
     appDelegate.didStartReactNative(in: window)
+  }
+
+  override func sceneDidDisconnect(_ scene: UIScene) {
+    super.sceneDidDisconnect(scene)
+    (UIApplication.shared.delegate as? AppDelegate)?.didDisconnectScene()
   }
 }

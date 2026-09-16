@@ -49,7 +49,13 @@ static __weak Kb *kbSharedInstance = nil;
 static std::mutex kbSharedInstanceMutex;
 static BOOL kbPasteImageEnabled = NO;
 static NSString *kbStoredDeviceToken = nil;
+// Push notifications that arrive before JS can take them. A tap waits in
+// kbInitialNotification for getInitialNotification (the startup path); anything
+// else waits in kbPendingNotifications and is emitted once JS is ready.
+static std::mutex kbNotificationMutex;
 static NSDictionary *kbInitialNotification = nil;
+static NSMutableArray<NSDictionary *> *kbPendingNotifications = nil;
+static const NSUInteger kbMaxPendingNotifications = 50;
 
 // The bridge is created on the JS thread and consumed by the reader thread,
 // so every access goes through this lock — a plain shared_ptr member would be
@@ -237,6 +243,12 @@ static NSDictionary *kbConstants(void) {
   // lock) keeps this ivar and kbCurrentBridge consistent with each other
   // without ever nesting the two critical sections.
   std::shared_ptr<kb::KBBridge> myBridge_;
+  // Guarded by kbNotificationMutex. Set once this instance's JS has asked for
+  // the initial notification: JS registers its onPushNotification listener
+  // before that call, so an emit from here on has a listener. canEmit alone is
+  // not enough, since the emitter callback exists as soon as JS creates the
+  // module, well before the listener.
+  BOOL pushListenerReady_;
 }
 
 RCT_EXPORT_MODULE()
@@ -799,13 +811,22 @@ RCT_EXPORT_METHOD(setApplicationIconBadgeNumber: (double)badgeNumber) {
 }
 
 RCT_EXPORT_METHOD(getInitialNotification: (RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject) {
-  if (kbInitialNotification) {
-    NSDictionary *notification = kbInitialNotification;
+  NSDictionary *notification = nil;
+  {
+    std::lock_guard<std::mutex> lock(kbNotificationMutex);
+    notification = kbInitialNotification;
     kbInitialNotification = nil;
-    resolve(notification);
-  } else {
-    resolve([NSNull null]);
+    pushListenerReady_ = YES;
+    // Emitted under the lock so a push delivered concurrently can't overtake
+    // the ones queued before it.
+    if ([self canEmit]) {
+      for (NSDictionary *pending in kbPendingNotifications) {
+        [self emitOnPushNotification:pending];
+      }
+    }
+    kbPendingNotifications = nil;
   }
+  resolve(notification ?: [NSNull null]);
 }
 
 RCT_EXPORT_METHOD(removeAllPendingNotificationRequests) {
@@ -892,18 +913,26 @@ RCT_EXPORT_METHOD(addNotificationRequest: (JS::NativeKb::SpecAddNotificationRequ
   });
 }
 
-+ (void)setInitialNotification:(NSDictionary *)notification {
-  kbInitialNotification = notification;
-}
-
-+ (void)emitPushNotification:(NSDictionary *)notification {
++ (void)deliverPushNotification:(NSDictionary *)notification {
+  std::lock_guard<std::mutex> lock(kbNotificationMutex);
   Kb *instance = kbSharedInstance;
-  if (instance && [instance canEmit]) {
+  if (instance && instance->pushListenerReady_ && [instance canEmit]) {
     [instance emitOnPushNotification:notification];
-    NSLog(@"Kb.emitPushNotification: sent event 'onPushNotification' to JS");
-  } else {
-    NSLog(@"Kb.emitPushNotification: WARNING - module not ready, event not sent");
+    return;
   }
+  if ([notification[@"userInteraction"] boolValue]) {
+    kbInitialNotification = notification;
+    NSLog(@"Kb.deliverPushNotification: JS not ready, stored tap for getInitialNotification");
+    return;
+  }
+  if (!kbPendingNotifications) {
+    kbPendingNotifications = [NSMutableArray array];
+  }
+  if (kbPendingNotifications.count >= kbMaxPendingNotifications) {
+    [kbPendingNotifications removeObjectAtIndex:0];
+    NSLog(@"Kb.deliverPushNotification: pending queue full, dropped the oldest");
+  }
+  [kbPendingNotifications addObject:notification];
 }
 
 - (void)handleHardwareKeyPressed:(NSNotification *)notification {
@@ -952,32 +981,6 @@ void KbSetDeviceToken(NSString *token) {
   [Kb setDeviceToken:token];
 }
 
-void KbSetInitialNotification(NSDictionary *notification) {
-  [Kb setInitialNotification:notification];
-}
-
-void KbEmitPushNotification(NSDictionary *notification) {
-  [Kb emitPushNotification:notification];
-}
-
-void KbEmitStoredNotificationOnBecomeActive(void) {
-  NSDictionary *stored = kbInitialNotification;
-  kbInitialNotification = nil;
-  if (!stored) {
-    NSLog(@"KbEmitStoredNotificationOnBecomeActive: no stored notification");
-    return;
-  }
-  if (![stored[@"userInteraction"] boolValue]) {
-    // Not from a user tap; nothing to re-emit.
-    return;
-  }
-  if ([stored[@"reEmittedInBecomeActive"] boolValue]) {
-    // Already re-emitted once; keep it stored for getInitialNotification.
-    kbInitialNotification = stored;
-    return;
-  }
-  [Kb emitPushNotification:stored];
-  NSMutableDictionary *copy = [stored mutableCopy];
-  copy[@"reEmittedInBecomeActive"] = @YES;
-  kbInitialNotification = copy;
+void KbDeliverPushNotification(NSDictionary *notification) {
+  [Kb deliverPushNotification:notification];
 }
