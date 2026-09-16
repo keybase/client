@@ -9,6 +9,7 @@ import {
   onPushToken,
   onShareData,
   getInitialNotification,
+  pushListenerRegistered,
   removeAllPendingNotificationRequests,
 } from 'react-native-kb'
 import {useConfigState} from '@/stores/config'
@@ -126,6 +127,7 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
               membersType,
               type: 'chat.newmessageSilent_2',
               unboxPayload: data.m || '',
+              userInteraction,
             }
           }
         }
@@ -169,14 +171,16 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
               conversationIDKey: T.Chat.stringToConversationIDKey(data.convID),
               forUid,
               type: 'chat.extension',
+              userInteraction,
             }
           : undefined
       default:
         {
           const unk = data as any
-          if (typeof unk.message === 'string' && unk.message.startsWith('Your contact') && userInteraction) {
+          if (typeof unk.message === 'string' && unk.message.startsWith('Your contact')) {
             return {
               type: 'settings.contacts',
+              userInteraction,
             }
           }
         }
@@ -193,9 +197,35 @@ const getInitialPush = async () => {
   const n = await getInitialNotification()
   return n ? normalizePush(n) : undefined
 }
+
+const isTap = (notification: T.Push.PushNotification) =>
+  'userInteraction' in notification && notification.userInteraction
+
+// Native clears the initial notification when it is read, so a read that loses a race is a lost
+// tap. Both platforms resolve it right away; the timeout only keeps a misbehaving native module
+// from holding startup, and a tap that still shows up after it is handled like a live one.
+const initialPushTimeoutMs = 3000
+
 const getStartupDetailsFromInitialPush = async () => {
-  const notification = await Promise.race([getInitialPush(), timeoutPromise(10)])
-  if (!notification) {
+  const initialPush = getInitialPush()
+  const timedOut = 'timedOut' as const
+  const notification = await Promise.race([
+    initialPush,
+    timeoutPromise(initialPushTimeoutMs).then(() => timedOut),
+  ])
+  if (notification === timedOut) {
+    logger.warn('[Push] initial notification read timed out')
+    initialPush
+      .then(n => {
+        if (n) {
+          usePushState.getState().dispatch.handlePush(n)
+        }
+      })
+      .catch(() => {})
+    return
+  }
+  // only a tap on a visible notification may pick where the app opens
+  if (!notification || !isTap(notification)) {
     return
   }
 
@@ -224,131 +254,149 @@ const getStartupDetailsFromInitialPush = async () => {
 }
 
 export const initPushListener = () => {
+  const unsubs: Array<() => void> = []
   // Permissions
-  useShellState.subscribe((s, old) => {
-    if (s.mobileAppState === old.mobileAppState) return
-    // Only recheck on foreground, not background
-    if (s.mobileAppState !== 'active') {
-      logger.info('[PushCheck] skip on backgrounding')
-      return
-    }
-    logger.debug(`[PushCheck] checking on foreground`)
-    usePushState
-      .getState()
-      .dispatch.checkPermissions()
-      .then(() => {})
-      .catch(() => {})
-  })
+  unsubs.push(
+    useShellState.subscribe((s, old) => {
+      if (s.mobileAppState === old.mobileAppState) return
+      // Only recheck on foreground, not background
+      if (s.mobileAppState !== 'active') {
+        logger.info('[PushCheck] skip on backgrounding')
+        return
+      }
+      logger.debug(`[PushCheck] checking on foreground`)
+      usePushState
+        .getState()
+        .dispatch.checkPermissions()
+        .then(() => {})
+        .catch(() => {})
+    })
+  )
 
   let lastCount = -1
-  useConfigState.subscribe((s, old) => {
-    if (s.badgeState === old.badgeState) return
-    if (!s.badgeState) return
-    const count = s.badgeState.bigTeamBadgeCount + s.badgeState.smallTeamBadgeCount
-    setApplicationIconBadgeNumber(count)
-    // Only do this native call if the count actually changed, not over and over if its zero
-    if (count === 0 && lastCount !== 0) {
-      removeAllPendingNotificationRequests()
-    }
-    lastCount = count
-  })
+  unsubs.push(
+    useConfigState.subscribe((s, old) => {
+      if (s.badgeState === old.badgeState) return
+      if (!s.badgeState) return
+      const count = s.badgeState.bigTeamBadgeCount + s.badgeState.smallTeamBadgeCount
+      setApplicationIconBadgeNumber(count)
+      // Only do this native call if the count actually changed, not over and over if its zero
+      if (count === 0 && lastCount !== 0) {
+        removeAllPendingNotificationRequests()
+      }
+      lastCount = count
+    })
+  )
 
   // Retry token upload when user state becomes available.
   // The FCM token often arrives before username/deviceID are loaded,
   // so the initial upload silently bails. This retries once user state is ready.
-  useCurrentUserState.subscribe((s, old) => {
-    if (s.username === old.username && s.deviceID === old.deviceID) return
-    const token = usePushState.getState().token
-    if (token && s.username && s.deviceID) {
-      usePushState.getState().dispatch.setPushToken(token)
-    }
-  })
+  unsubs.push(
+    useCurrentUserState.subscribe((s, old) => {
+      if (s.username === old.username && s.deviceID === old.deviceID) return
+      const token = usePushState.getState().token
+      if (token && s.username && s.deviceID) {
+        usePushState.getState().dispatch.setPushToken(token)
+      }
+    })
+  )
 
   usePushState.getState().dispatch.initialPermissionsCheck()
 
   // When current-user.uid changes, run pending push if it was for this account.
-  useCurrentUserState.subscribe((s, old) => {
-    if (s.uid === old.uid) return
-    const pushState = usePushState.getState()
-    const pending = pushState.pendingPushNotification
-    if (!pending || !('forUid' in pending)) return
-    const forUid = (pending as {forUid?: string}).forUid
-    if (!forUid || forUid !== s.uid) return
-    pushState.dispatch.clearPendingPushNotification()
-    // Replay while switching remains true. The replacement NavigationContainer
-    // clears it from onReady, so the intent cannot be consumed by the old router.
-    pushState.dispatch.handlePush(pending)
-  })
+  unsubs.push(
+    useCurrentUserState.subscribe((s, old) => {
+      if (s.uid === old.uid) return
+      const pushState = usePushState.getState()
+      const pending = pushState.pendingPushNotification
+      if (!pending || !('forUid' in pending)) return
+      const forUid = (pending as {forUid?: string}).forUid
+      if (!forUid || forUid !== s.uid) return
+      pushState.dispatch.clearPendingPushNotification()
+      // Replay while switching remains true. The replacement NavigationContainer
+      // clears it from onReady, so the intent cannot be consumed by the old router.
+      pushState.dispatch.handlePush(pending)
+    })
+  )
 
-  useConfigState.subscribe((s, old) => {
-    if (s.configuredAccounts === old.configuredAccounts || s.userSwitching) return
-    const pushState = usePushState.getState()
-    const pending = pushState.pendingPushNotification
-    if (!pending || !('forUid' in pending)) return
-    const forUid = (pending as {forUid?: string}).forUid
-    if (!forUid || forUid === useCurrentUserState.getState().uid) return
-    const account = s.configuredAccounts.find(acc => acc.uid === forUid)
-    if (!account?.hasStoredSecret) return
-    pushState.dispatch.handlePush(pending)
-  })
+  unsubs.push(
+    useConfigState.subscribe((s, old) => {
+      if (s.configuredAccounts === old.configuredAccounts || s.userSwitching) return
+      const pushState = usePushState.getState()
+      const pending = pushState.pendingPushNotification
+      if (!pending || !('forUid' in pending)) return
+      const forUid = (pending as {forUid?: string}).forUid
+      if (!forUid || forUid === useCurrentUserState.getState().uid) return
+      const account = s.configuredAccounts.find(acc => acc.uid === forUid)
+      if (!account?.hasStoredSecret) return
+      pushState.dispatch.handlePush(pending)
+    })
+  )
 
-  useConfigState.subscribe((s, old) => {
-    if (s.loggedIn === old.loggedIn) return
-    if (!s.loggedIn && !s.userSwitching) {
-      usePushState.getState().dispatch.clearPendingPushNotification()
+  unsubs.push(
+    useConfigState.subscribe((s, old) => {
+      if (s.loggedIn === old.loggedIn) return
+      if (!s.loggedIn && !s.userSwitching) {
+        usePushState.getState().dispatch.clearPendingPushNotification()
+      }
+    })
+  )
+
+  // Set up listener immediately, before waiting for token
+  // This ensures notifications aren't lost if they arrive before token is ready
+  const onNotification = (n: object) => {
+    logger.debug('[onNotification]: ', n)
+    const notification = normalizePush(n)
+    if (!notification) {
+      logger.warn('[onNotification]: normalized notification is null/undefined')
+      return
     }
-  })
+    usePushState.getState().dispatch.handlePush(notification)
+  }
 
-  const listenNative = async () => {
-    // Set up listener immediately, before waiting for token
-    // This ensures notifications aren't lost if they arrive before token is ready
-    const onNotification = (n: object) => {
-      logger.debug('[onNotification]: ', n)
-      const notification = normalizePush(n)
-      if (!notification) {
-        logger.warn('[onNotification]: normalized notification is null/undefined')
-        return
-      }
-      usePushState.getState().dispatch.handlePush(notification)
-    }
+  try {
+    // Unified push notification handling for both iOS and Android
+    // Silent notifications (chat.newmessageSilent_2) are handled entirely natively
+    // Other notification types are handled natively first, then emitted to JS via onPushNotification
+    const pushSub = onPushNotification(onNotification)
+    unsubs.push(() => pushSub.remove())
+    // iOS holds pushes that arrive before this; they are emitted once it's called
+    pushListenerRegistered()
 
-    try {
-      // Unified push notification handling for both iOS and Android
-      // Silent notifications (chat.newmessageSilent_2) are handled entirely natively
-      // Other notification types are handled natively first, then emitted to JS via onPushNotification
-      onPushNotification(onNotification)
-
-      if (isIOS) {
-        onPushToken(token => {
-          logger.debug('[PushToken] received token via onPushToken event: ', token)
-          usePushState.getState().dispatch.setPushToken(token)
-        })
-      }
-
-      if (isAndroid) {
-        onShareData(evt => {
-          const {setAndroidShare} = useConfigState.getState().dispatch
-
-          const text = evt.text
-          const urls = evt.localPaths
-
-          if (urls) {
-            setAndroidShare({type: T.RPCGen.IncomingShareType.file, urls})
-          } else if (text) {
-            setAndroidShare({text, type: T.RPCGen.IncomingShareType.text})
-          } else {
-            return
-          }
-          emitDeepLink('keybase://incoming-share')
-        })
-        // shareListenersRegistered() is deliberately NOT called here: the init/index.tsx
-        // router subscriber controls when native flushes pending share intents.
-      }
-    } catch (e) {
-      logger.error('[Push] failed to set up listeners: ', e)
+    if (isIOS) {
+      const tokenSub = onPushToken(token => {
+        logger.debug('[PushToken] received token via onPushToken event: ', token)
+        usePushState.getState().dispatch.setPushToken(token)
+      })
+      unsubs.push(() => tokenSub.remove())
     }
 
-    // Get token after listener is set up (may fail if not ready yet, but listener is already active)
+    if (isAndroid) {
+      const shareSub = onShareData(evt => {
+        const {setAndroidShare} = useConfigState.getState().dispatch
+
+        const text = evt.text
+        const urls = evt.localPaths
+
+        if (urls) {
+          setAndroidShare({type: T.RPCGen.IncomingShareType.file, urls})
+        } else if (text) {
+          setAndroidShare({text, type: T.RPCGen.IncomingShareType.text})
+        } else {
+          return
+        }
+        emitDeepLink('keybase://incoming-share')
+      })
+      unsubs.push(() => shareSub.remove())
+      // shareListenersRegistered() is deliberately NOT called here: the init/index.tsx
+      // router subscriber controls when native flushes pending share intents.
+    }
+  } catch (e) {
+    logger.error('[Push] failed to set up listeners: ', e)
+  }
+
+  // Get token after listener is set up (may fail if not ready yet, but listener is already active)
+  const fetchToken = async () => {
     try {
       const pushToken = await getRegistrationToken()
       logger.debug('[PushToken] received new token: ', pushToken)
@@ -358,7 +406,9 @@ export const initPushListener = () => {
       // Token will be retrieved later when permissions are checked
     }
   }
-  ignorePromise(listenNative())
+  ignorePromise(fetchToken())
+
+  return unsubs
 }
 
 export {getStartupDetailsFromInitialPush}

@@ -5,7 +5,7 @@ import * as React from 'react'
 import Main from './main'
 import {KeyboardProvider} from 'react-native-keyboard-controller'
 import {ReducedMotionConfig, ReduceMotion} from 'react-native-reanimated'
-import {AppRegistry, AppState, Appearance, Platform} from 'react-native'
+import {AppRegistry, AppState, Appearance, Platform, TurboModuleRegistry, type TurboModule} from 'react-native'
 import {PortalProvider} from '@/common-adapters/portal.native'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {makeEngine} from '../engine'
@@ -20,6 +20,7 @@ import * as DarkMode from '@/stores/darkmode'
 import {colors, darkColors} from '@/styles/colors'
 import {initPlatformListener, onEngineConnected, onEngineDisconnected, onEngineIncoming} from '@/constants/init/index'
 import logger from '@/logger'
+import {watchAppState, type QueryNativeAppState} from './watch-app-state'
 
 logger.info('INIT App index module load')
 
@@ -56,21 +57,35 @@ const initDarkMode = () => {
   } catch {}
 }
 
+type NativeAppStateSpec = {
+  getCurrentAppState: (onSuccess: (s: {app_state: string}) => void, onError: (e: unknown) => void) => void
+}
+const nativeAppState = TurboModuleRegistry.get<NativeAppStateSpec & TurboModule>('AppState')
+const queryNativeAppState: QueryNativeAppState | undefined = nativeAppState
+  ? onState => {
+      nativeAppState.getCurrentAppState(
+        s => onState(s.app_state),
+        () => onState('unknown')
+      )
+    }
+  : undefined
+
 const useDarkHookup = () => {
   const appStateRef = React.useRef('active')
   const setSystemDarkMode = DarkMode.useDarkModeState(s => s.dispatch.setSystemDarkMode)
   const setMobileAppState = useShellState(s => s.dispatch.setMobileAppState)
 
   React.useEffect(() => {
-    const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
-      appStateRef.current = nextAppState
-      if (nextAppState !== 'unknown' && nextAppState !== 'extension') {
+    const stopWatchingAppState = watchAppState({
+      appState: AppState,
+      onState: nextAppState => {
+        appStateRef.current = nextAppState
         setMobileAppState(nextAppState)
-      }
-
-      if (nextAppState === 'active') {
-        setSystemDarkMode(Appearance.getColorScheme() === 'dark')
-      }
+        if (nextAppState === 'active') {
+          setSystemDarkMode(Appearance.getColorScheme() === 'dark')
+        }
+      },
+      queryNativeAppState,
     })
 
     // only watch dark changes if in foreground due to ios calling this to take snapshots
@@ -81,7 +96,7 @@ const useDarkHookup = () => {
     })
 
     return () => {
-      appStateChangeSub.remove()
+      stopWatchingAppState()
       darkSub.remove()
     }
   }, [setSystemDarkMode, setMobileAppState])

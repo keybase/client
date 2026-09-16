@@ -115,13 +115,15 @@ export type State = Store & {
     setDefaultUsername: (u: string) => void
     setGlobalError: (e?: unknown) => void
     setGregorReachable: (r: Store['gregorReachable']) => void
-    setHTTPSrvInfo: (address: string, token: string) => void
+    // readStartedAt: from startHTTPSrvInfoRead, for a value read through an RPC; omit for a live notification
+    setHTTPSrvInfo: (address: string, token: string, readStartedAt?: number) => void
     setJustDeletedSelf: (s: string) => void
     setLoggedIn: (l: boolean) => void
     setStartupDetails: (st: Omit<Store['startup'], 'loaded'>) => void
     setOutOfDate: (outOfDate: T.Config.OutOfDate) => void
     setUpdating: () => void
     setUserSwitching: (sw: boolean) => void
+    startHTTPSrvInfoRead: () => number
     toggleRuntimeStats: () => void
     updateGregorCategory: (category: string, body: string, dtime?: {offset: number; time: number}) => void
   }
@@ -129,6 +131,12 @@ export type State = Store & {
 
 export const useConfigState = Z.createZustand<State>('config', (set, get) => {
   let inflightRefreshAccounts: Promise<void> | undefined
+  // The http server can move (new port) at any time and says so with HTTPSrvInfoUpdate, while
+  // a bootstrap status read can take seconds. Every source is stamped with when its value was
+  // observed (a notification when it arrives, an RPC read when it starts) and only a stamp newer
+  // than the applied one wins, so a read that started before a notification can't undo it.
+  let httpSrvClock = 0
+  let httpSrvAppliedAt = 0
 
   const _checkForUpdate = async () => {
     try {
@@ -461,6 +469,8 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         configuredAccounts: s.configuredAccounts,
         defaultUsername: s.defaultUsername,
         dispatch: s.dispatch,
+        // process-wide, not per account; nothing reloads it on logout
+        httpSrv: s.httpSrv,
         startup: {loaded: s.startup.loaded},
         userSwitching: s.userSwitching,
       }))
@@ -528,7 +538,12 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
     setGregorReachable: r => {
       setGregorReachable(r)
     },
-    setHTTPSrvInfo: (address, token) => {
+    setHTTPSrvInfo: (address, token, readStartedAt = ++httpSrvClock) => {
+      if (readStartedAt <= httpSrvAppliedAt) {
+        logger.info(`[HTTPSrv] ignoring ${address}: read before a newer value`)
+        return
+      }
+      httpSrvAppliedAt = readStartedAt
       set(s => {
         s.httpSrv.address = address
         s.httpSrv.token = token
@@ -584,6 +599,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         s.userSwitching = sw
       })
     },
+    startHTTPSrvInfoRead: () => ++httpSrvClock,
     toggleRuntimeStats: () => {
       const f = async () => {
         await T.RPCGen.configToggleRuntimeStatsRpcPromise()

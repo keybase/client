@@ -4,6 +4,7 @@ import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import {maxHandshakeTries} from '@/constants/values'
+import {useConfigState} from '@/stores/config'
 
 // A bootstrap step gates the handshake: the app stays on the splash screen until every step
 // resolves. Throwing fails the whole attempt (FatalHandshakeError skips the remaining retries).
@@ -61,10 +62,17 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
       }
       const gen = generation
       const f = async () => {
+        const configDispatch = useConfigState.getState().dispatch
+        const httpSrvReadStartedAt = configDispatch.startHTTPSrvInfoRead()
         const bs = await T.RPCGen.configGetBootstrapStatusRpcPromise()
         logger.info(
           `[Bootstrap] loggedIn: ${bs.loggedIn ? 1 : 0} http: ${bs.httpSrvInfo ? bs.httpSrvInfo.address : 'none'}`
         )
+        // applied here rather than from bootstrapStatus: the address has its own ordering, and a
+        // status that is skipped below or later edited in place must not skip or replay it
+        if (bs.httpSrvInfo) {
+          configDispatch.setHTTPSrvInfo(bs.httpSrvInfo.address, bs.httpSrvInfo.token, httpSrvReadStartedAt)
+        }
         // a newer handshake owns the store now; don't write a potentially older status over its load
         if (gen !== generation || isEqual(bs, get().bootstrapStatus)) {
           return

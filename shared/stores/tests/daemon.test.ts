@@ -3,6 +3,7 @@ import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
 import {maxHandshakeTries} from '@/constants/values'
 import {resetAllStores} from '@/util/zustand'
+import {useConfigState} from '../config'
 import {FatalHandshakeError, useDaemonState} from '../daemon'
 
 const bootstrapStatus = {
@@ -145,5 +146,92 @@ describe('daemon store', () => {
     expect(store.getState().error).toBe(undefined)
     expect(store.getState().handshakeFailedReason).toBe('')
     expect(store.getState().handshakeRetriesLeft).toBe(maxHandshakeTries)
+  })
+})
+
+describe('httpSrvInfo ordering', () => {
+  const withHTTP = (address: string): T.RPCGen.BootstrapStatus => ({
+    ...bootstrapStatus,
+    httpSrvInfo: {address, token: 'token'},
+  })
+  const notify = (address: string) =>
+    useConfigState.getState().dispatch.onEngineIncoming({
+      payload: {params: {info: {address, token: 'token'}}},
+      type: 'keybase.1.NotifyService.HTTPSrvInfoUpdate',
+    } as any)
+  const deferredBootstrap = () => {
+    let resolve!: (bs: T.RPCGen.BootstrapStatus) => void
+    const promise = new Promise<T.RPCGen.BootstrapStatus>(_resolve => {
+      resolve = _resolve
+    })
+    return {promise, resolve}
+  }
+
+  beforeEach(() => {
+    jest.useFakeTimers()
+    useConfigState.setState(s => {
+      s.httpSrv = {address: '', token: ''}
+    })
+  })
+  afterEach(() => {
+    jest.useRealTimers()
+    jest.restoreAllMocks()
+    resetAllStores()
+  })
+
+  test('a bootstrap read that started before a notification does not overwrite it', async () => {
+    const read = deferredBootstrap()
+    jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockReturnValue(read.promise)
+
+    const load = useDaemonState.getState().dispatch.loadDaemonBootstrapStatus()
+    notify('127.0.0.1:2000')
+    read.resolve(withHTTP('127.0.0.1:1000'))
+    await load
+
+    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:2000')
+    expect(useDaemonState.getState().bootstrapStatus?.username).toBe('testuser')
+  })
+
+  test('a bootstrap read that started after a notification is applied', async () => {
+    notify('127.0.0.1:2000')
+    jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue(withHTTP('127.0.0.1:3000'))
+
+    await useDaemonState.getState().dispatch.loadDaemonBootstrapStatus()
+
+    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:3000')
+  })
+
+  test('an older bootstrap read landing after a newer one does not overwrite it', async () => {
+    const older = deferredBootstrap()
+    jest
+      .spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise')
+      .mockReturnValueOnce(older.promise)
+      .mockResolvedValueOnce(withHTTP('127.0.0.1:3000'))
+    const {dispatch} = useDaemonState.getState()
+
+    const olderLoad = dispatch.loadDaemonBootstrapStatus()
+    // a new handshake starts its own load instead of reusing the in-flight one
+    dispatch.startHandshake()
+    await jest.advanceTimersByTimeAsync(0)
+    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:3000')
+
+    older.resolve(withHTTP('127.0.0.1:1000'))
+    await olderLoad
+    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:3000')
+  })
+
+  test('a status equal to the stored one still applies its newer address', async () => {
+    jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue(withHTTP('127.0.0.1:1000'))
+    const {dispatch} = useDaemonState.getState()
+    await dispatch.loadDaemonBootstrapStatus()
+    notify('127.0.0.1:2000')
+    await dispatch.loadDaemonBootstrapStatus()
+    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:1000')
+  })
+
+  test('logging out keeps the http server address', () => {
+    notify('127.0.0.1:2000')
+    useConfigState.getState().dispatch.resetState()
+    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:2000')
   })
 })

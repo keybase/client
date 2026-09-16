@@ -216,10 +216,6 @@ const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus']) => 
     return
   }
   configDispatch.setLoggedIn(loggedIn)
-
-  if (bootstrap.httpSrvInfo) {
-    configDispatch.setHTTPSrvInfo(bootstrap.httpSrvInfo.address, bootstrap.httpSrvInfo.token)
-  }
 }
 
 const onNavStateChanged =(nextNavState: RouterState['navState'], previousNavState: RouterState['navState']) => {
@@ -244,6 +240,21 @@ const onNavStateChanged =(nextNavState: RouterState['navState'], previousNavStat
   }
 
   onChatRouteChanged(prev, next)
+}
+
+// An HTTPSrvInfoUpdate sent before the service subscription took effect never reached us, and
+// the handshake's bootstrap read may have started before it too, so read the address once more.
+const refreshHTTPSrvInfo = async () => {
+  const {dispatch} = useConfigState.getState()
+  const readStartedAt = dispatch.startHTTPSrvInfoRead()
+  try {
+    const {httpSrvInfo} = await T.RPCGen.configGetBootstrapStatusRpcPromise()
+    if (httpSrvInfo) {
+      dispatch.setHTTPSrvInfo(httpSrvInfo.address, httpSrvInfo.token, readStartedAt)
+    }
+  } catch (error) {
+    logger.warn('[HTTPSrv] refresh failed: ', error)
+  }
 }
 
 export const onEngineConnected = () => {
@@ -287,7 +298,9 @@ export const onEngineConnected = () => {
         if (error) {
           logger.warn('error in toggling notifications: ', error)
         }
+        return
       }
+      await refreshHTTPSrvInfo()
     }
     ignorePromise(notifyCtl())
   }

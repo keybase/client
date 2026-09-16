@@ -264,13 +264,13 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
             case 'autoreset':
               break
             case 'chat.extension':
-              {
+              if (notification.userInteraction) {
                 const {conversationIDKey} = notification
                 emitDeepLink(`keybase://convid/${conversationIDKey}`, navigationIntentOptions)
               }
               break
             case 'settings.contacts':
-              if (useConfigState.getState().loggedIn) {
+              if (notification.userInteraction && useConfigState.getState().loggedIn) {
                 emitDeepLink('keybase://people', navigationIntentOptions)
               }
               break
