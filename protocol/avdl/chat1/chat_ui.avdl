@@ -26,6 +26,7 @@ protocol chatUi {
     union { null, string } draft;
     boolean isMuted;
     boolean isTeam;
+    boolean isPinned;
   }
 
   enum UIInboxBigTeamRowTyp {

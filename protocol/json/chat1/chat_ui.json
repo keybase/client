@@ -97,6 +97,10 @@
         {
           "type": "boolean",
           "name": "isTeam"
+        },
+        {
+          "type": "boolean",
+          "name": "isPinned"
         }
       ]
     },

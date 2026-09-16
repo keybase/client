@@ -695,6 +695,7 @@ func (d *Service) startupGregor() {
 		d.gregor.PushHandler(newPhoneNumbersGregorHandler(d.G()))
 		d.gregor.PushHandler(newEmailsGregorHandler(d.G()))
 		d.gregor.PushHandler(newKBFSFavoritesHandler(d.G()))
+		d.gregor.PushHandler(newChatPinnedConvsGregorHandler(globals.NewContext(d.G(), d.ChatG())))
 
 		// Connect to gregord
 		if gcErr := d.tryGregordConnect(); gcErr != nil {
