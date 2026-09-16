@@ -93,12 +93,23 @@ class MainActivity : ReactActivity() {
     override fun onPause() {
         NativeLogger.info("Activity onPause")
         super.onPause()
-        if (Keybase.appDidEnterBackground()) {
-            Keybase.appBeginBackgroundTaskNonblock(KBPushNotifier(this, Bundle()))
-        } else {
-            Keybase.setAppStateBackground()
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun startActivityForResult(intent: Intent, requestCode: Int, options: Bundle?) {
+        @Suppress("DEPRECATION")
+        super.startActivityForResult(intent, requestCode, options)
+        if (requestCode >= 0) {
+            lifecycleReporter().onExternalActivityLaunched()
         }
     }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        lifecycleReporter().onExternalActivityResult()
+        super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    private fun lifecycleReporter() = (application as MainApplication).lifecycleReporter
 
     private fun getFileNameFromResolver(resolver: ContentResolver, uri: Uri, extension: String?): String {
         // Use a GUID default.
@@ -157,20 +168,18 @@ class MainActivity : ReactActivity() {
     override fun onResume() {
         NativeLogger.info("Activity onResume")
         super.onResume()
-        Keybase.setAppStateForeground()
         handleIntent()
     }
 
     override fun onStart() {
         NativeLogger.info("Activity onStart")
         super.onStart()
-        Keybase.setAppStateForeground()
     }
 
     override fun onDestroy() {
         NativeLogger.info("Activity onDestroy")
         super.onDestroy()
-        Keybase.appWillExit(KBPushNotifier(this, Bundle()))
+        lifecycleReporter().onMainActivityDestroy(isFinishing, isChangingConfigurations)
     }
 
     private var cachedIntent: Intent? = null

@@ -52,9 +52,15 @@ class MainApplication : Application(), ReactApplication {
     }
 
 
+    internal val lifecycleReporter by lazy {
+        AppLifecycleReporter(KeybaseLifecycleBind(this), SingleThreadLifecycleExecutor()) { NativeLogger.info(it) }
+    }
+
     override fun onCreate() {
         NativeLogger.info("MainApplication created")
         super.onCreate()
+        // Before any activity or service starts, so no process event is missed.
+        ProcessLifecycleOwner.get().lifecycle.addObserver(lifecycleReporter)
         try {
             DefaultNewArchitectureEntryPoint.releaseLevel = ReleaseLevel.valueOf(BuildConfig.REACT_NATIVE_RELEASE_LEVEL.uppercase())
         } catch (e: IllegalArgumentException) {

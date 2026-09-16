@@ -284,6 +284,13 @@ func (c *Controller) PushWindowEnd(token int64, stayRunning func() bool) bool {
 	return false
 }
 
+// PushWindowClose is PushWindowEnd for a caller that can't run a background
+// task: it never hands the window over, so nothing is left in
+// BACKGROUNDACTIVE waiting on a task that won't start.
+func (c *Controller) PushWindowClose(token int64) {
+	c.PushWindowEnd(token, func() bool { return false })
+}
+
 // BackgroundSync moves BACKGROUND to BACKGROUNDACTIVE for the sync window,
 // then undoes that transition unless someone else updated the state meanwhile.
 // It returns a status for native logs.

@@ -885,31 +885,8 @@ func FlushLogs() {
 	logger.FlushLogFile()
 }
 
-func SetAppStateForeground() {
-	if !isInited() {
-		return
-	}
-	defer kbCtx.Trace("SetAppStateForeground", nil)()
-	kbCtx.MobileLifecycle.DidBecomeActive()
-}
-
-func SetAppStateBackground() {
-	if !isInited() {
-		return
-	}
-	defer kbCtx.Trace("SetAppStateBackground", nil)()
-	kbCtx.MobileLifecycle.DidEnterBackground(func() bool { return false })
-}
-
-func SetAppStateBackgroundActive() {
-	if !isInited() {
-		return
-	}
-	defer kbCtx.Trace("SetAppStateBackgroundActive", nil)()
-	kbCtx.MobileLifecycle.WillEnterForeground()
-}
-
-// AppWillEnterForeground reports iOS applicationWillEnterForeground.
+// AppWillEnterForeground reports iOS applicationWillEnterForeground, or
+// Android's process start.
 func AppWillEnterForeground() {
 	if !isInited() {
 		return
@@ -919,7 +896,7 @@ func AppWillEnterForeground() {
 }
 
 // AppDidBecomeActive reports iOS applicationDidBecomeActive, or Android's
-// process start.
+// process resume.
 func AppDidBecomeActive() {
 	if !isInited() {
 		return
@@ -1079,6 +1056,18 @@ func AppPushWindowEnd(token int64) bool {
 	}
 	defer kbCtx.Trace("AppPushWindowEnd", nil)()
 	return kbCtx.MobileLifecycle.PushWindowEnd(token, shouldStayRunningInBackground)
+}
+
+// AppPushWindowClose closes the window opened by AppPushWindowBegin, only if
+// nothing has updated the app state since, without handing it over to a
+// background task. Use it instead of AppPushWindowEnd when no background task
+// can be started.
+func AppPushWindowClose(token int64) {
+	if !isInited() {
+		return
+	}
+	defer kbCtx.Trace("AppPushWindowClose", nil)()
+	kbCtx.MobileLifecycle.PushWindowClose(token)
 }
 
 func AppBeginBackgroundTaskNonblock(pusher PushNotifier) {

@@ -30,12 +30,12 @@ class ChatBroadcastReceiver : BroadcastReceiver() {
         val messageBody = getMessageText(intent)
         if (messageBody != null) {
             try {
-                val withBackgroundActive: WithBackgroundActive = object : WithBackgroundActive {
-                    override fun task() {
-                        Keybase.handlePostTextReply(convData.convID, convData.tlfName, convData.lastMsgId, messageBody)
-                    }
+                val lifecycleReporter = (context.applicationContext as MainApplication).lifecycleReporter
+                lifecycleReporter.reportHeadlessStart()
+                lifecycleReporter.awaitReported(5000)
+                runPushWindow(KeybaseLifecycleBind(context), { NativeLogger.info(it) }) {
+                    Keybase.handlePostTextReply(convData.convID, convData.tlfName, convData.lastMsgId, messageBody)
                 }
-                withBackgroundActive.whileActive(context)
                 repliedNotification.setContentText("Replied")
             } catch (e: Exception) {
                 repliedNotification.setContentText("Couldn't send reply")

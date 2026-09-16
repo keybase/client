@@ -40,8 +40,11 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
         return style
     }
 
+    private val lifecycleReporter get() = (application as MainApplication).lifecycleReporter
+
     override fun onCreate() {
         setupKBRuntime(this, false)
+        lifecycleReporter.reportHeadlessStart()
         NativeLogger.info("KeybasePushNotificationListenerService created")
         createNotificationChannel(this)
     }
@@ -116,28 +119,28 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
 
                     var goProcessingSucceeded = false
                     try {
-                        val withBackgroundActive: WithBackgroundActive = object : WithBackgroundActive {
-                            override fun task() {
-                                try {
-                                    Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
-                                            n.membersType.toLong(), n.displayPlaintext, n.messageId.toLong(), n.pushId,
-                                            n.badgeCount.toLong(), n.unixTime, n.soundName, if (dontNotify) null else notifier, true,
-                                            targetUID)
-                                    goProcessingSucceeded = true
-                                    if (!dontNotify) {
-                                        seenChatNotifications.add(n.convID + n.messageId)
-                                    }
-                                } catch (ex: Exception) {
-                                    if (isOtherAccountPushError(ex)) {
-                                        NativeLogger.info("Go skipped notification for a different active account: " + ex.message)
-                                    } else {
-                                        NativeLogger.error("Go Couldn't handle background notification2: " + ex.message)
-                                    }
-                                    throw ex
+                        // The push window must see the state after the process
+                        // start or stop that came before this push.
+                        lifecycleReporter.awaitReported(5000)
+                        runPushWindow(KeybaseLifecycleBind(applicationContext), { NativeLogger.info(it) }) {
+                            try {
+                                Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
+                                        n.membersType.toLong(), n.displayPlaintext, n.messageId.toLong(), n.pushId,
+                                        n.badgeCount.toLong(), n.unixTime, n.soundName, if (dontNotify) null else notifier, true,
+                                        targetUID)
+                                goProcessingSucceeded = true
+                                if (!dontNotify) {
+                                    seenChatNotifications.add(n.convID + n.messageId)
                                 }
+                            } catch (ex: Exception) {
+                                if (isOtherAccountPushError(ex)) {
+                                    NativeLogger.info("Go skipped notification for a different active account: " + ex.message)
+                                } else {
+                                    NativeLogger.error("Go Couldn't handle background notification2: " + ex.message)
+                                }
+                                throw ex
                             }
                         }
-                        withBackgroundActive.whileActive(applicationContext)
                     } catch (ex: Exception) {
                         if (isOtherAccountPushError(ex)) {
                             NativeLogger.info("Skipping active-account processing for different-account push")
@@ -385,53 +388,6 @@ internal class NotificationData(type: String, bundle: Bundle) {
             pushId = ""
         } else {
             throw Error("Tried to parse notification of unhandled type: $type")
-        }
-    }
-}
-
-// Interface to run some task while in backgroundActive.
-// If already foreground, ignore
-internal interface WithBackgroundActive {
-    @Throws(Exception::class)
-    fun task()
-
-    @Throws(Exception::class)
-    fun whileActive(context: Context?) {
-        try {
-            // We are foreground don't show anything
-            val isForeground = Keybase.isAppStateForeground()
-            NativeLogger.info("WithBackgroundActive.whileActive isForeground: $isForeground")
-            if (isForeground) {
-                NativeLogger.info("WithBackgroundActive.whileActive app is foreground, returning early")
-                return
-            } else {
-                NativeLogger.info("WithBackgroundActive.whileActive setting background active and calling task")
-                Keybase.setAppStateBackgroundActive()
-                task()
-                NativeLogger.info("WithBackgroundActive.whileActive task completed")
-
-                // Check if we are foreground now for some reason. In that case we don't want to go background again
-                val isForegroundNow = Keybase.isAppStateForeground()
-                NativeLogger.info("WithBackgroundActive.whileActive isForegroundNow: $isForegroundNow")
-                if (isForegroundNow) {
-                    NativeLogger.info("WithBackgroundActive.whileActive app became foreground, returning")
-                    return
-                }
-                val didEnterBackground = Keybase.appDidEnterBackground()
-                NativeLogger.info("WithBackgroundActive.whileActive didEnterBackground: $didEnterBackground")
-                if (didEnterBackground) {
-                    if (context != null) {
-                        NativeLogger.info("WithBackgroundActive.whileActive beginning background task")
-                        Keybase.appBeginBackgroundTaskNonblock(KBPushNotifier(context, Bundle()))
-                    }
-                } else {
-                    NativeLogger.info("WithBackgroundActive.whileActive setting app state to background")
-                    Keybase.setAppStateBackground()
-                }
-            }
-        } catch (ex: Exception) {
-            NativeLogger.error("WithBackgroundActive.whileActive exception: " + ex.message)
-            throw ex
         }
     }
 }

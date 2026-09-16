@@ -66,9 +66,15 @@ var iosToBackgroundTask = []Step{
 	step(BackgroundTaskStart, bga, 0).returns(true),
 }
 
-var androidLaunch = []Step{
+// androidStart is the process lifecycle's start and resume, from any state.
+// The observed states assume it starts from BACKGROUND.
+var androidStart = []Step{
+	step(WillEnterForeground, bga, 1),
 	step(DidBecomeActive, fg, 1),
 }
+
+// androidLaunch starts the UI in a fresh process (BACKGROUNDACTIVE).
+var androidLaunch = androidStart
 
 // Scenarios replays whole native event sequences. Consumers of the app state
 // can play them with their own checks (see Play).
@@ -341,23 +347,27 @@ var Scenarios = []Scenario{
 		Platform: Android,
 		Steps: steps(androidLaunch, []Step{
 			step(DidEnterBackground, bg, 1).flush().returns(false),
-			step(DidBecomeActive, fg, 1),
+		}, androidStart, []Step{
 			step(WorkStarts, fg, 0),
 			step(DidEnterBackground, bga, 1).flush().returns(true),
 			step(BackgroundTaskStart, bga, 0).returns(true),
+			// The same value, so the task keeps waiting, but the window is no
+			// longer its own.
+			step(WillEnterForeground, bga, 1),
 			step(DidBecomeActive, fg, 1),
 			step(BackgroundTaskWait, fg, 0),
 		}),
-		Observed: states(bga, fg, bg, fg, bga, fg),
+		Observed: states(bga, fg, bg, bga, fg, bga, fg),
 	},
 	{
-		Name:     "android dialog or picker pause keeps the foreground",
+		Name:     "android dialog, permission prompt or picker pause keeps the foreground",
 		Platform: Android,
 		Steps: steps(androidLaunch, []Step{
 			step(Nothing, fg, 0),
 			step(PushWindowBegin, fg, 0).returns(false),
 			step(PushWindowEnd, fg, 0).returns(false),
-			step(Nothing, fg, 0),
+			// Back from the prompt: the process resumes without a start.
+			step(DidBecomeActive, fg, 1),
 		}),
 		Observed: states(bga, fg),
 	},
@@ -382,13 +392,16 @@ var Scenarios = []Scenario{
 		Observed: states(bga, fg, bg, bga, bg),
 	},
 	{
+		// A process started without UI reports the background before the push
+		// window opens.
 		Name:     "android push at cold start",
 		Platform: Android,
 		Steps: []Step{
+			step(DidEnterBackground, bg, 1).flush().returns(false),
 			step(PushWindowBegin, bga, 1).returns(true),
 			step(PushWindowEnd, bg, 1).flush().returns(false),
 		},
-		Observed: states(bga, bg),
+		Observed: states(bga, bg, bga, bg),
 	},
 	{
 		Name:     "android push window racing process start",
@@ -396,14 +409,18 @@ var Scenarios = []Scenario{
 		Steps: steps(androidLaunch, []Step{
 			step(DidEnterBackground, bg, 1).flush().returns(false),
 			step(PushWindowBegin, bga, 1).returns(true),
+			// The process start's first half matches the window's value, but
+			// still supersedes it.
+			step(WillEnterForeground, bga, 1),
+			step(PushWindowEnd, bga, 0).returns(false),
 			step(DidBecomeActive, fg, 1),
+			step(PushWindowBegin, fg, 0).returns(false),
 			step(PushWindowEnd, fg, 0).returns(false),
 			// Foreground and back to the background while the push is
 			// handled: the value matches, but the window isn't the push's.
-			step(PushWindowBegin, fg, 0).returns(false),
 			step(DidEnterBackground, bg, 1).flush().returns(false),
 			step(PushWindowBegin, bga, 1).returns(true),
-			step(DidBecomeActive, fg, 1),
+		}, androidStart, []Step{
 			step(DidEnterBackground, bg, 1).flush().returns(false),
 			step(PushWindowEnd, bg, 0).returns(false),
 		}),
@@ -423,6 +440,24 @@ var Scenarios = []Scenario{
 		Observed: states(bga, fg, bg, bga, bg),
 	},
 	{
+		// With work pending but no way to start a background task, the window
+		// closes instead of staying BACKGROUNDACTIVE with no one to end it.
+		Name:     "android push window closes when no background task can start",
+		Platform: Android,
+		Steps: steps(androidLaunch, []Step{
+			step(DidEnterBackground, bg, 1).flush().returns(false),
+			step(WorkStarts, bg, 0),
+			step(PushWindowBegin, bga, 1).returns(true),
+			step(PushWindowClose, bg, 1).flush(),
+			step(BackgroundTaskStart, bg, 0).returns(false),
+			step(PushWindowBegin, bga, 1).returns(true),
+			step(WillEnterForeground, bga, 1),
+			step(PushWindowClose, bga, 0),
+			step(DidBecomeActive, fg, 1),
+		}),
+		Observed: states(bga, fg, bg, bga, bg, bga, fg),
+	},
+	{
 		Name:     "android overlapping push windows",
 		Platform: Android,
 		Steps: steps(androidLaunch, []Step{
@@ -435,15 +470,28 @@ var Scenarios = []Scenario{
 		Observed: states(bga, fg, bg, bga, bg),
 	},
 	{
-		// Current behavior, pinned until Task 9 revisits it: Android starts in
-		// BACKGROUNDACTIVE, so a WorkManager cold start skips the sync and
-		// nothing moves the state to BACKGROUND.
-		Name:     "android WorkManager BackgroundSync at cold start skips (current behavior)",
+		// A process started without UI (WorkManager) reports the background
+		// first, so the sync gets its window and returns to BACKGROUND.
+		Name:     "android WorkManager BackgroundSync at cold start",
 		Platform: Android,
 		Steps: []Step{
-			step(BackgroundSyncStart, bga, 0).returns(false),
+			step(DidEnterBackground, bg, 1).flush().returns(false),
+			step(BackgroundSyncStart, bga, 1).returns(true),
+			step(BackgroundSyncTimerFires, bg, 1).flush(),
 		},
-		Observed: states(bga),
+		Observed: states(bga, bg, bga, bg),
+	},
+	{
+		Name:     "android UI starts during a WorkManager cold start sync",
+		Platform: Android,
+		Steps: []Step{
+			step(DidEnterBackground, bg, 1).flush().returns(false),
+			step(BackgroundSyncStart, bga, 1).returns(true),
+			step(WillEnterForeground, bga, 1),
+			step(DidBecomeActive, fg, 1),
+			step(BackgroundSyncWait, fg, 0),
+		},
+		Observed: states(bga, bg, bga, fg),
 	},
 	{
 		Name:     "android WorkManager BackgroundSync racing a push window",
