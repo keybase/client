@@ -362,15 +362,12 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (r
 	res = eng.Status()
 	m.Debug("GetBootstrapStatus: attempting to get HTTP server address")
 	for range 40 { // wait at most 2 seconds
-		addr, addrErr := h.svc.httpSrv.Addr()
-		if addrErr != nil {
-			m.Debug("GetBootstrapStatus: failed to get HTTP server address: %s", addrErr)
+		info, infoErr := h.svc.httpSrv.Info()
+		if infoErr != nil {
+			m.Debug("GetBootstrapStatus: failed to get HTTP server address: %s", infoErr)
 		} else {
-			m.Debug("GetBootstrapStatus: http server: addr: %s token: %s", addr, h.svc.httpSrv.Token())
-			res.HttpSrvInfo = &keybase1.HttpSrvInfo{
-				Address: addr,
-				Token:   h.svc.httpSrv.Token(),
-			}
+			m.Debug("GetBootstrapStatus: http server: addr: %s token: %s", info.Address, info.Token)
+			res.HttpSrvInfo = &info
 			break
 		}
 		time.Sleep(50 * time.Millisecond)
