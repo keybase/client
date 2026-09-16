@@ -1,11 +1,11 @@
-FROM debian:bullseye
+FROM debian:bookworm
 LABEL maintainer="Keybase <admin@keybase.io>"
 
 RUN apt-get update \
     && apt-get install -y gnupg2 procps ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-ENV TINI_VERSION v0.18.0
+ENV TINI_VERSION v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/local/bin/tini
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini.asc /usr/local/bin/tini.asc
 COPY packaging/linux/docker/tini_key.asc /tini_key.asc

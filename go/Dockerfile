@@ -1,9 +1,8 @@
 FROM 897413463132.dkr.ecr.us-east-1.amazonaws.com/glibc
-MAINTAINER Keybase <admin@keybase.io>
+LABEL maintainer="Keybase <admin@keybase.io>"
 
 # Remove openssl once KBFSDocker changes are in
-RUN apk add --update fuse jq bash openssl git iproute2 procps && \
-    rm -rf /tmp/* /var/cache/apk/*
+RUN apk add --no-cache fuse jq bash openssl git iproute2 procps
 
 RUN adduser -D keybase && \
     mkdir /keybase && \
@@ -20,5 +19,5 @@ ENV KEYBASE_DEBUG=0 \
     KEYBASE_UPGRADE_PER_USER_KEY=1 \
     PATH=/home/keybase:$PATH
 
-ADD keybase/keybase /home/keybase/keybase
-ADD revision /home/keybase/client_revision
+COPY keybase/keybase /home/keybase/keybase
+COPY revision /home/keybase/client_revision

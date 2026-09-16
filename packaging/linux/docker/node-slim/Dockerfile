@@ -1,14 +1,14 @@
 ARG BASE_IMAGE=keybaseio/client:latest
 FROM $BASE_IMAGE AS base
 
-FROM node:24-bullseye-slim
+FROM node:24-bookworm-slim
 LABEL maintainer="Keybase <admin@keybase.io>"
 
 RUN apt-get update \
     && apt-get install -y gnupg2 procps ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-ENV TINI_VERSION v0.18.0
+ENV TINI_VERSION v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini.asc /tini.asc
 COPY packaging/linux/docker/tini_key.asc /tini_key.asc

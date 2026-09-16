@@ -1,13 +1,11 @@
-FROM ubuntu
-MAINTAINER Keybase <admin@keybase.io>
+FROM ubuntu:24.04
+LABEL maintainer="Keybase <admin@keybase.io>"
 
-RUN apt-get update
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Install dependencies for keybase
-RUN apt-get install -y libappindicator1 fuse psmisc procps lsof
+RUN apt-get update \
+  && apt-get install -y fuse libfuse2t64 psmisc procps lsof vim less curl sudo openssl \
+  && rm -rf /var/lib/apt/lists/*
 
-# Nice to have
-RUN apt-get install -y vim less curl sudo
-
-run useradd -m kb -G sudo -s /bin/bash -p $(echo pw | openssl passwd -1 -stdin)
-run echo -e "alias dlnightly='curl -O https://prerelease.keybase.io/nightly/keybase_amd64.deb'\nalias dlrelease='curl -O https://prerelease.keybase.io/keybase_amd64.deb'" >> /home/kb/.bashrc
+RUN useradd -m kb -G sudo -s /bin/bash -p "$(openssl passwd -1 pw)"
+RUN echo "alias dlnightly='curl -O https://prerelease.keybase.io/nightly/keybase_amd64.deb'\nalias dlrelease='curl -O https://prerelease.keybase.io/keybase_amd64.deb'" >> /home/kb/.bashrc
