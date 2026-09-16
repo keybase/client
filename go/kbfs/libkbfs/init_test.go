@@ -175,16 +175,30 @@ func TestInitSetsUpKBFSBeforeService(t *testing.T) {
 	cn := &initOrderCn{t: t}
 	kbCtx := newInitTestContext(t)
 	initReturned := false
-	// Registered after TempDir, so it runs first and closes the favorites
-	// db before the directory is removed. Skipped if doInit stopped partway
-	// (a failed assertion), since the favorites Shutdown can then block.
+	// Registered after TempDir, so it runs first and closes the dbs before
+	// the directory is removed; Windows can't remove files that are still
+	// open. Init failed before it set the servers and crypto that
+	// ConfigLocal.Shutdown shuts down, so close the dbs directly. Skipped if
+	// doInit stopped partway (a failed assertion), since the favorites
+	// Shutdown can then block.
 	t.Cleanup(func() {
 		if !initReturned {
 			return
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		require.NoError(t, cn.config.KBFSOps().Shutdown(ctx))
+		config := cn.config.(*ConfigLocal)
+		require.NoError(t, config.KBFSOps().Shutdown(ctx))
+		// Created by the service's login notifications.
+		if dbc := config.DiskBlockCache(); dbc != nil {
+			select {
+			case <-dbc.Shutdown(ctx):
+			case <-ctx.Done():
+				require.NoError(t, ctx.Err())
+			}
+		}
+		require.NoError(t, config.conflictResolutionDB.Close())
+		require.NoError(t, config.settingsDB.Close())
 	})
 	params := DefaultInitParams(kbCtx)
 	params.StorageRoot = kbCtx.dataDir
