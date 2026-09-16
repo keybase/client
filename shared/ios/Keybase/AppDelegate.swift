@@ -466,7 +466,9 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     log.info("applicationDidBecomeActive: hiding keyz screen.")
     hideCover()
     log.info("applicationDidBecomeActive: notifying service.")
-    notifyAppState(application)
+    // Forwarded from sceneDidBecomeActive, where applicationState still reads
+    // .inactive; notifyAppState would stop the http server.
+    Keybasego.KeybaseSetAppStateForeground()
 
     // Re-emit a notification the user tapped while React Native wasn't ready yet.
     KbEmitStoredNotificationOnBecomeActive()
