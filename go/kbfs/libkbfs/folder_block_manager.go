@@ -1318,7 +1318,11 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 			for state != keybase1.MobileAppState_FOREGROUND {
 				fbm.log.CDebugf(context.Background(),
 					"Pausing QR while not foregrounded: state=%s", state)
-				<-fbm.appStateUpdater.NextAppStateUpdate(state)
+				select {
+				case <-fbm.appStateUpdater.NextAppStateUpdate(state):
+				case <-fbm.shutdownChan:
+					return
+				}
 				state = fbm.appStateUpdater.AppState()
 			}
 			fbm.log.CDebugf(
@@ -1594,7 +1598,11 @@ func (fbm *folderBlockManager) cleanDiskCachesInBackground() {
 				fbm.log.CDebugf(context.Background(),
 					"Pausing sync-cache cleaning while not foregrounded: "+
 						"state=%s", state)
-				<-fbm.appStateUpdater.NextAppStateUpdate(state)
+				select {
+				case <-fbm.appStateUpdater.NextAppStateUpdate(state):
+				case <-fbm.shutdownChan:
+					return
+				}
 				state = fbm.appStateUpdater.AppState()
 			}
 			fbm.log.CDebugf(context.Background(),
