@@ -257,6 +257,32 @@ var Scenarios = []Scenario{
 		Observed: states(bg, bga, fg, ina, bga, fg),
 	},
 	{
+		Name:     "ios background task finishes after willEnterForeground",
+		Platform: IOS,
+		Steps: steps(iosLaunch, iosToBackgroundTask, []Step{
+			step(WillEnterForeground, bga, 1),
+			// The same-value update doesn't wake the task; when it finishes,
+			// the window is no longer current, so it leaves the state alone.
+			step(BackgroundTaskDelivered, bga, 0),
+			step(DidBecomeActive, fg, 1),
+		}),
+		Observed: states(bg, bga, fg, ina, bga, fg),
+	},
+	{
+		Name:     "ios background task superseded before it starts",
+		Platform: IOS,
+		Steps: steps(iosLaunch, []Step{
+			step(WorkStarts, fg, 0),
+			step(WillResignActive, ina, 1),
+			step(DidEnterBackground, bga, 1).flush().returns(true),
+			step(WillEnterForeground, bga, 1),
+			// Returning false means it exited without polling deliveries.
+			step(BackgroundTaskStart, bga, 0).returns(false),
+			step(DidBecomeActive, fg, 1),
+		}),
+		Observed: states(bg, bga, fg, ina, bga, fg),
+	},
+	{
 		Name:     "ios live location across background",
 		Platform: IOS,
 		Steps: steps(iosLaunch, iosToBackgroundTask, []Step{
@@ -336,6 +362,16 @@ var Scenarios = []Scenario{
 		Observed: states(bga, fg),
 	},
 	{
+		Name:     "android background task without a window",
+		Platform: Android,
+		Steps: []Step{
+			step(WorkStarts, bga, 0),
+			// Cold start is BACKGROUNDACTIVE, but no window was opened.
+			step(BackgroundTaskStart, bga, 0).returns(false),
+		},
+		Observed: states(bga),
+	},
+	{
 		Name:     "android push window in the background",
 		Platform: Android,
 		Steps: steps(androidLaunch, []Step{
@@ -399,7 +435,10 @@ var Scenarios = []Scenario{
 		Observed: states(bga, fg, bg, bga, bg),
 	},
 	{
-		Name:     "android WorkManager BackgroundSync at cold start",
+		// Current behavior, pinned until Task 9 revisits it: Android starts in
+		// BACKGROUNDACTIVE, so a WorkManager cold start skips the sync and
+		// nothing moves the state to BACKGROUND.
+		Name:     "android WorkManager BackgroundSync at cold start skips (current behavior)",
 		Platform: Android,
 		Steps: []Step{
 			step(BackgroundSyncStart, bga, 0).returns(false),

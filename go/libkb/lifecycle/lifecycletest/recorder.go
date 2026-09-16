@@ -23,13 +23,17 @@ type Source interface {
 
 // Recorder watches a Source the way consumers do: it seeds from State() and
 // wakes on NextUpdate. Like any consumer it can miss a state that is replaced
-// before it wakes, so call Sync at quiescent points to observe every change.
+// before it wakes (X to Y and back to X records nothing); Sync only guarantees
+// the recorder has woken for every change so far.
 type Recorder struct {
 	src    Source
 	mu     sync.Mutex
 	states []keybase1.MobileAppState
-	stop   chan struct{}
-	done   chan struct{}
+	// waiting is the NextUpdate channel the recorder is blocked on. Every
+	// real change closes and replaces the source's channel.
+	waiting <-chan struct{}
+	stop    chan struct{}
+	done    chan struct{}
 }
 
 func NewRecorder(src Source) *Recorder {
@@ -47,8 +51,12 @@ func NewRecorder(src Source) *Recorder {
 func (r *Recorder) loop(state keybase1.MobileAppState) {
 	defer close(r.done)
 	for {
+		ch := r.src.NextUpdate(state)
+		r.mu.Lock()
+		r.waiting = ch
+		r.mu.Unlock()
 		select {
-		case <-r.src.NextUpdate(state):
+		case <-ch:
 		case <-r.stop:
 			return
 		}
@@ -97,15 +105,33 @@ func (r *Recorder) Teardowns() int {
 	return n
 }
 
-// Sync waits until the recorder has observed the source's current state.
+// Sync waits until the recorder has woken for every change to the source so
+// far: it is blocked on the source's current, still open, NextUpdate channel.
+// Comparing values alone would miss a change and its reversal within one step.
 // Only meaningful while nothing else is updating the state.
 func (r *Recorder) Sync(t testing.TB) {
 	t.Helper()
 	deadline := time.Now().Add(5 * time.Second)
-	for r.Last() != r.src.State() {
+	for !r.synced() {
 		if time.Now().After(deadline) {
 			t.Fatalf("recorder stuck at %v, state is %v", r.Last(), r.src.State())
 		}
 		time.Sleep(time.Millisecond)
+	}
+}
+
+func (r *Recorder) synced() bool {
+	r.mu.Lock()
+	waiting := r.waiting
+	last := r.states[len(r.states)-1]
+	r.mu.Unlock()
+	if waiting == nil || waiting != r.src.NextUpdate(last) {
+		return false
+	}
+	select {
+	case <-waiting:
+		return false
+	default:
+		return true
 	}
 }
