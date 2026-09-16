@@ -104,6 +104,7 @@ const initialStore: Store = {
 export type State = Store & {
   dispatch: {
     checkForUpdate: () => void;
+    endUserSwitchLandedOn: (username: string) => void;
     initAppUpdateLoop: () => void;
     installerRan: () => void;
     loadIsOnline: () => void;
@@ -142,6 +143,9 @@ export type State = Store & {
 
 export const useConfigState = Z.createZustand<State>("config", (set, get) => {
   let inflightRefreshAccounts: Promise<void> | undefined;
+  // Bumped by every login. A login that fails after a newer one started (e.g. picking a second
+  // account mid-switch) must not end the newer switch or show its own error.
+  let loginGeneration = 0;
 
   const _checkForUpdate = async () => {
     try {
@@ -204,6 +208,14 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
       };
       ignorePromise(f());
     },
+    endUserSwitchLandedOn: (username) => {
+      // A navigator that comes up for an account a newer switch has already moved past (the user
+      // picked another account mid-switch) must leave that switch running.
+      const { userSwitching, userSwitchingTo } = get();
+      if (userSwitching && (!userSwitchingTo || userSwitchingTo === username)) {
+        get().dispatch.setUserSwitching(false);
+      }
+    },
     initAppUpdateLoop: () => {
       const f = async () => {
         while (true) {
@@ -245,6 +257,8 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
         });
       };
       const ignoreCallback = () => {};
+      const generation = ++loginGeneration;
+      const superseded = () => generation !== loginGeneration;
       const f = async () => {
         try {
           await T.RPCGen.loginLoginRpcListener({
@@ -254,6 +268,7 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
               "keybase.1.provisionUi.DisplayAndPromptSecret": cancelOnCallback,
               "keybase.1.provisionUi.PromptNewDeviceName": (_, response) => {
                 cancelOnCallback(undefined, response);
+                if (superseded()) return;
                 // This account needs provisioning; hand off to the provision flow. 'username' lives in
                 // the logged-out stack, which the routers keep unmounted while userSwitching is set, so
                 // end the switch and push once that stack is up.
@@ -272,6 +287,7 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
                   // Service asking us again due to a bad passphrase?
                   if (params.pinentry.retryLabel) {
                     cancelOnCallback(params, response);
+                    if (superseded()) return;
                     let retryLabel = params.pinentry.retryLabel;
                     if (retryLabel === invalidPasswordErrorString) {
                       retryLabel = "Incorrect password.";
@@ -308,6 +324,13 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
           });
           logger.info("login call succeeded");
         } catch (error) {
+          if (superseded()) {
+            logger.info(
+              "login failed after a newer login started, ignoring",
+              error,
+            );
+            return;
+          }
           // Nothing else ends a cancelled switch, and the logged-out status it withheld applies only then
           if (!(error instanceof RPCError) || error.desc === cancelDesc) {
             get().dispatch.setUserSwitching(false);

@@ -262,7 +262,13 @@ function DesktopRouter() {
 
   const isDarkMode = useDarkModeState(s => s.isDarkMode())
   const navKey = Common.useUserSwitchNavKey()
-  const currentUid = useCurrentUserState(s => s.uid)
+  const {currentUid, username} = useCurrentUserState(
+    C.useShallow(s => ({
+      currentUid: s.uid,
+      username: s.username,
+    }))
+  )
+  const endUserSwitchLandedOn = useConfigState(s => s.dispatch.endUserSwitchLandedOn)
   const setNavigationReady = useNavigationIntentsState(s => s.dispatch.setNavigationReady)
 
   React.useEffect(
@@ -292,6 +298,7 @@ function DesktopRouter() {
       onReady={() => {
         onStateChange()
         setNavigationReady(true, currentUid)
+        endUserSwitchLandedOn(username)
       }}
       onStateChange={onStateChange}
       onUnhandledAction={onUnhandledAction}
@@ -655,8 +662,9 @@ function NativeRouter() {
   const theme = Kb.Styles.useTheme()
   const loggedInLoaded = useHandshakeEverDone()
 
-  const {loggedIn, startupLoaded, userSwitching} = useConfigState(
+  const {endUserSwitchLandedOn, loggedIn, startupLoaded, userSwitching} = useConfigState(
     C.useShallow(s => ({
+      endUserSwitchLandedOn: s.dispatch.endUserSwitchLandedOn,
       loggedIn: s.loggedIn,
       startupLoaded: s.startup.loaded,
       userSwitching: s.userSwitching,
@@ -703,6 +711,7 @@ function NativeRouter() {
       C.Router2.switchTab(tab)
     }
     setNavigationReady(true, currentUid)
+    endUserSwitchLandedOn(username)
   }
 
   if (!loggedInLoaded || (loggedIn && !startupLoaded)) {
