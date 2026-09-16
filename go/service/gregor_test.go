@@ -725,7 +725,8 @@ func TestGregorBadgesIBM(t *testing.T) {
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown(context.Background())
-	h.badger = badges.NewBadger(tc.G)
+	badger := badges.NewBadger(tc.G)
+	h.badger = badger
 	t.Logf("client setup complete")
 
 	t.Logf("server message")
@@ -745,7 +746,7 @@ func TestGregorBadgesIBM(t *testing.T) {
 	ri := func() chat1.RemoteInterface {
 		return dummyRemoteClient{RemoteClient: chat1.RemoteClient{Cli: h.cli}}
 	}
-	badgerResync(context.TODO(), t, h.badger, ri, h.gregorCli)
+	badgerResync(context.TODO(), t, badger, ri, h.gregorCli)
 
 	listener.getBadgeState(t) // skip one since resync sends 2
 	bs := listener.getBadgeState(t)
@@ -760,7 +761,7 @@ func TestGregorBadgesIBM(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("client sync complete")
 
-	badgerResync(context.TODO(), t, h.badger, ri, h.gregorCli)
+	badgerResync(context.TODO(), t, badger, ri, h.gregorCli)
 
 	bs = listener.getBadgeState(t)
 	require.Equal(t, 1, bs.NewTlfs, "no more badges")
@@ -776,7 +777,8 @@ func TestGregorTeamBadges(t *testing.T) {
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown(context.Background())
-	h.badger = badges.NewBadger(tc.G)
+	badger := badges.NewBadger(tc.G)
+	h.badger = badger
 	t.Logf("client setup complete")
 
 	t.Logf("server message")
@@ -798,7 +800,7 @@ func TestGregorTeamBadges(t *testing.T) {
 	ri := func() chat1.RemoteInterface {
 		return dummyRemoteClient{RemoteClient: chat1.RemoteClient{Cli: h.cli}}
 	}
-	badgerResync(context.TODO(), t, h.badger, ri, h.gregorCli)
+	badgerResync(context.TODO(), t, badger, ri, h.gregorCli)
 
 	listener.getBadgeState(t) // skip one since resync sends 2
 	bs := listener.getBadgeState(t)
@@ -823,18 +825,19 @@ func TestGregorBadgesOOBM(t *testing.T) {
 	// Set up client and server
 	h, _, _ := setupSyncTests(t, g)
 	defer h.Shutdown(context.Background())
-	h.badger = badges.NewBadger(tc.G)
+	badger := badges.NewBadger(tc.G)
+	h.badger = badger
 	t.Logf("client setup complete")
 
 	t.Logf("sending first chat update")
-	h.badger.PushChatUpdate(context.TODO(), chat1.UnreadUpdate{
+	badger.PushChatUpdate(context.TODO(), chat1.UnreadUpdate{
 		ConvID:         chat1.ConversationID(`a`),
 		UnreadMessages: 2,
 	}, 0)
 	_ = listener.getBadgeState(t)
 
 	t.Logf("sending second chat update")
-	h.badger.PushChatUpdate(context.TODO(), chat1.UnreadUpdate{
+	badger.PushChatUpdate(context.TODO(), chat1.UnreadUpdate{
 		ConvID:         chat1.ConversationID(`b`),
 		UnreadMessages: 2,
 	}, 1)
@@ -845,7 +848,7 @@ func TestGregorBadgesOOBM(t *testing.T) {
 
 	t.Logf("resyncing")
 	// Instead of calling badger.Resync, reach in and twiddle the knobs.
-	h.badger.State().UpdateWithChatFull(context.TODO(), chat1.UnreadUpdateFull{
+	badger.State().UpdateWithChatFull(context.TODO(), chat1.UnreadUpdateFull{
 		InboxVers: chat1.InboxVers(4),
 		Updates: []chat1.UnreadUpdate{
 			{ConvID: chat1.ConversationID(`b`), UnreadMessages: 0},
@@ -853,14 +856,14 @@ func TestGregorBadgesOOBM(t *testing.T) {
 		},
 		InboxSyncStatus: chat1.SyncInboxResType_CLEAR,
 	}, false)
-	err := h.badger.Send(context.TODO())
+	err := badger.Send(context.TODO())
 	require.NoError(t, err)
 	bs = listener.getBadgeState(t)
 	require.Equal(t, 1, badgeStateStats(bs).UnreadChatConversations, "unread chat convs")
 	require.Equal(t, 3, badgeStateStats(bs).UnreadChatMessages, "unread chat messages")
 
 	t.Logf("clearing")
-	h.badger.Clear(context.TODO())
+	badger.Clear(context.TODO())
 	bs = listener.getBadgeState(t)
 	require.Equal(t, 0, badgeStateStats(bs).UnreadChatConversations, "unread chat convs")
 	require.Equal(t, 0, badgeStateStats(bs).UnreadChatMessages, "unread chat messages")
