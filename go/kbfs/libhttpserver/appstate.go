@@ -16,7 +16,7 @@ import (
 )
 
 // appStateServer runs an HTTP server that is up in every app state except
-// BACKGROUND. Moving between up states (for example an INACTIVE blip from
+// BACKGROUND, or in every state when it does not stop in the background. Moving between up states (for example an INACTIVE blip from
 // Control Center) leaves a running server alone, so in-flight requests
 // survive, and restarts one that is not serving.
 type appStateServer struct {
@@ -24,6 +24,9 @@ type appStateServer struct {
 	logger          logger.Logger
 	newSource       func() kbhttp.ListenerSource
 	register        func(mux *http.ServeMux)
+	// stopInBackground is false on Android, where the server stays up in
+	// every state.
+	stopInBackground bool
 
 	// mu guards everything below and serializes starts and stops.
 	mu       sync.Mutex
@@ -53,14 +56,16 @@ type appStateServer struct {
 func newAppStateServer(
 	appStateUpdater env.AppStateUpdater, log logger.Logger,
 	newSource func() kbhttp.ListenerSource, register func(mux *http.ServeMux),
+	stopInBackground bool,
 ) *appStateServer {
 	s := &appStateServer{
-		appStateUpdater: appStateUpdater,
-		logger:          log,
-		newSource:       newSource,
-		register:        register,
-		shutdownCh:      make(chan struct{}),
-		monitorDone:     make(chan struct{}),
+		appStateUpdater:  appStateUpdater,
+		logger:           log,
+		newSource:        newSource,
+		register:         register,
+		stopInBackground: stopInBackground,
+		shutdownCh:       make(chan struct{}),
+		monitorDone:      make(chan struct{}),
 	}
 	s.server = s.newServer()
 	return s
@@ -73,7 +78,7 @@ func (s *appStateServer) start() error {
 	s.mu.Lock()
 	state := s.appStateUpdater.AppState()
 	var err error
-	if wantUp(state) {
+	if s.wantUp(state) {
 		err = s.startLocked()
 	}
 	s.mu.Unlock()
@@ -85,8 +90,8 @@ func (s *appStateServer) start() error {
 	return nil
 }
 
-func wantUp(state keybase1.MobileAppState) bool {
-	return state != keybase1.MobileAppState_BACKGROUND
+func (s *appStateServer) wantUp(state keybase1.MobileAppState) bool {
+	return !s.stopInBackground || state != keybase1.MobileAppState_BACKGROUND
 }
 
 func (s *appStateServer) newServer() *kbhttp.Srv {
@@ -112,7 +117,7 @@ func (s *appStateServer) startLocked() error {
 }
 
 func (s *appStateServer) reconcileLocked(state keybase1.MobileAppState) {
-	if !wantUp(state) {
+	if !s.wantUp(state) {
 		<-s.server.Stop()
 		return
 	}
@@ -153,7 +158,7 @@ func (s *appStateServer) serverExited() {
 		s.beforeExitRestart()
 	}
 	s.exits++
-	if !wantUp(state) || s.exitRestart == s.changes+1 {
+	if !s.wantUp(state) || s.exitRestart == s.changes+1 {
 		s.logger.Debug("Not restarting server after it exited in %v", state)
 		return
 	}

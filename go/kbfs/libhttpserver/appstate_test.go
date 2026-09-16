@@ -126,10 +126,10 @@ func setupServer(t *testing.T, state keybase1.MobileAppState) *testServer {
 	tc := libkb.SetupTest(t, "libhttpserver", 2)
 	t.Cleanup(tc.Cleanup)
 	tc.G.MobileAppState.Update(state)
-	return startServer(t, tc.G.MobileAppState)
+	return startServer(t, tc.G.MobileAppState, true)
 }
 
-func startServer(t *testing.T, appState *libkb.MobileAppState) *testServer {
+func startServer(t *testing.T, appState *libkb.MobileAppState, stopInBackground bool) *testServer {
 	ts := &testServer{
 		l:        &listeners{},
 		appState: appState,
@@ -149,7 +149,8 @@ func startServer(t *testing.T, appState *libkb.MobileAppState) *testServer {
 		})
 	}
 	ts.appStateServer = newAppStateServer(
-		mobileAppState{appState}, logger.NewTestLogger(t), ts.l.source, register)
+		mobileAppState{appState}, logger.NewTestLogger(t), ts.l.source, register,
+		stopInBackground)
 	require.NoError(t, ts.start())
 	t.Cleanup(ts.Shutdown)
 	return ts
@@ -259,7 +260,7 @@ func TestAppStateServerUpUnlessBackground(t *testing.T) {
 			ts.waitMonitor(t)
 			check := func() {
 				t.Helper()
-				if wantUp(ts.appState.State()) {
+				if ts.appState.State() != keybase1.MobileAppState_BACKGROUND {
 					ts.requireServing(t)
 				} else {
 					ts.requireStopped(t)
@@ -413,13 +414,51 @@ func TestAppStateServerNo404DuringRestart(t *testing.T) {
 	}
 }
 
+// Without stopping in the background (Android), the server serves in every
+// state, and a dead one comes back on any transition or once after it exits.
+func TestAppStateServerNotStoppingInBackgroundStaysUp(t *testing.T) {
+	tc := libkb.SetupTest(t, "libhttpserver", 2)
+	defer tc.Cleanup()
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
+	ts := startServer(t, tc.G.MobileAppState, false)
+	ts.waitMonitor(t)
+	ts.requireServing(t)
+	for _, next := range []keybase1.MobileAppState{
+		keybase1.MobileAppState_BACKGROUNDACTIVE,
+		keybase1.MobileAppState_BACKGROUND,
+		keybase1.MobileAppState_FOREGROUND,
+		keybase1.MobileAppState_INACTIVE,
+		keybase1.MobileAppState_BACKGROUND,
+	} {
+		ts.update(t, next)
+		ts.requireServing(t)
+	}
+
+	n := ts.exitCount()
+	ts.l.kill(t)
+	ts.waitExits(t, n+1)
+	ts.requireServing(t)
+
+	ts.killUntilDown(t)
+	ts.update(t, keybase1.MobileAppState_BACKGROUNDACTIVE)
+	ts.requireServing(t)
+	ts.killUntilDown(t)
+	ts.update(t, keybase1.MobileAppState_BACKGROUND)
+	ts.requireServing(t)
+}
+
 func TestAppStateServerScenarioReplay(t *testing.T) {
 	for _, sc := range lifecycletest.Scenarios {
 		t.Run(sc.Name, func(t *testing.T) {
 			tc := libkb.SetupTest(t, "libhttpserver", 2)
 			defer tc.Cleanup()
 			tc.G.MobileAppState.Update(sc.Platform.InitialState())
-			ts := startServer(t, tc.G.MobileAppState)
+			// Android keeps the server up in every state.
+			stopInBackground := sc.Platform == lifecycletest.IOS
+			wantUp := func(state keybase1.MobileAppState) bool {
+				return !stopInBackground || state != keybase1.MobileAppState_BACKGROUND
+			}
+			ts := startServer(t, tc.G.MobileAppState, stopInBackground)
 			lifecycletest.Play(t, tc.G.MobileAppState, sc, func(h *lifecycletest.Harness, i int, step lifecycletest.Step) {
 				ts.waitMonitor(t)
 				if !wantUp(step.Want) {
@@ -455,7 +494,7 @@ func TestAppStateServerStress(t *testing.T) {
 	defer tc.Cleanup()
 	baseline := runtime.NumGoroutine()
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
-	ts := startServer(t, tc.G.MobileAppState)
+	ts := startServer(t, tc.G.MobileAppState, true)
 
 	stop := make(chan struct{})
 	var wg sync.WaitGroup

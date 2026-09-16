@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"path"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -243,7 +244,7 @@ func New(appStateUpdater env.AppStateUpdater, config libkbfs.Config) (
 	s.server = newAppStateServer(appStateUpdater, logger,
 		func() kbhttp.ListenerSource {
 			return kbhttp.NewRandomPortRangeListenerSource(portStart, portEnd)
-		}, s.registerHandlers)
+		}, s.registerHandlers, runtime.GOOS != "android")
 	if err = s.server.start(); err != nil {
 		return nil, err
 	}
