@@ -42,6 +42,7 @@
 		DBDF89F62DF7779900EA18C2 /* Pusher.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBDF89F52DF7779900EA18C2 /* Pusher.swift */; };
 		DBF123462DF1234500A12345 /* ShareIntentDonatorImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF123452DF1234500A12345 /* ShareIntentDonatorImpl.swift */; };
 		DBPERF022600000002 /* PerfFPSMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBPERF022600000001 /* PerfFPSMonitor.swift */; };
+		DBSCENE00270000000000002 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBSCENE00270000000000001 /* SceneDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -120,6 +121,7 @@
 		DBDF89F52DF7779900EA18C2 /* Pusher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pusher.swift; sourceTree = "<group>"; };
 		DBF123452DF1234500A12345 /* ShareIntentDonatorImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareIntentDonatorImpl.swift; sourceTree = "<group>"; };
 		DBPERF022600000001 /* PerfFPSMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerfFPSMonitor.swift; sourceTree = "<group>"; };
+		DBSCENE00270000000000001 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		F68DC40B579A1F9AC0F34950 /* Pods_KeybaseShare.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_KeybaseShare.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -270,6 +272,7 @@
 			children = (
 				005BF9961BB9C6B000BD8953 /* Keybase.entitlements */,
 				DBB8CC202DF336C200D43215 /* AppDelegate.swift */,
+				DBSCENE00270000000000001 /* SceneDelegate.swift */,
 				DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */,
 				DBDCF3091B8D03DD00BA95D8 /* Info.plist */,
 				DB07050422E21B8B002F273D /* KeepThisFile.swift */,
@@ -592,6 +595,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DBB8CC212DF336C200D43215 /* AppDelegate.swift in Sources */,
+				DBSCENE00270000000000002 /* SceneDelegate.swift in Sources */,
 				DB07050522E21B8B002F273D /* KeepThisFile.swift in Sources */,
 				DBDF89F62DF7779900EA18C2 /* Pusher.swift in Sources */,
 				DBF123462DF1234500A12345 /* ShareIntentDonatorImpl.swift in Sources */,

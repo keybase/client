@@ -36,11 +36,12 @@ class KeyboardWindow: UIWindow {
 }
 
 @main
-class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInteractionDelegate {
+class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotificationCenterDelegate, UIDropInteractionDelegate {
   var window: UIWindow?
 
   var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
   var reactNativeFactory: RCTReactNativeFactory?
+  var reactNativeFactoryModuleName: String { "Keybase" }
 
   var resignImageView: UIImageView?
   var fsPaths: [String: String] = [:]
@@ -89,15 +90,6 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     reactNativeDelegate = delegate
     reactNativeFactory = factory
 
-#if os(iOS) || os(tvOS)
-    let screenBounds = (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.screen.bounds ?? UIScreen.main.bounds
-    window = KeyboardWindow(frame: screenBounds)
-    factory.startReactNative(
-      withModuleName: "Keybase",
-      in: window,
-      launchOptions: launchOptions)
-#endif
-
     self.writeStartupTimingLog("After RN init")
     self.closeStartupLogFile()
 
@@ -106,10 +98,7 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     // Start FPS monitoring if launched with -PERF_FPS_MONITOR
     PerfFPSMonitor.startIfEnabled()
 
-    if let rootView = self.window?.rootViewController?.view {
-      self.addDrop(rootView)
-      self.didLaunchSetupAfter(application: application, rootView: rootView)
-    }
+    self.didLaunchSetupAfter(application: application)
 
     return true
   }
@@ -249,13 +238,26 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     UNUserNotificationCenter.current().delegate = self
   }
 
-  func didLaunchSetupAfter(application: UIApplication, rootView: UIView) {
+  // BGTaskScheduler.register must run before didFinishLaunching returns, so this
+  // can't wait for the scene to connect.
+  func didLaunchSetupAfter(application: UIApplication) {
     notifyAppState(application)
+
+    BGTaskScheduler.shared.register(forTaskWithIdentifier: "com.keybase.app.refresh", using: nil) { task in
+      self.handleAppRefresh(task: task as! BGAppRefreshTask)
+    }
+    scheduleAppRefresh()
+  }
+
+  // Called by SceneDelegate once the window exists and React Native has started in it.
+  func didStartReactNative(in window: UIWindow) {
+    guard let rootView = window.rootViewController?.view else { return }
+    addDrop(rootView)
 
     rootView.backgroundColor = .systemBackground
 
     // Snapshot resizing workaround for iPad
-    let screenBounds = self.window?.windowScene?.screen.bounds ?? UIScreen.main.bounds
+    let screenBounds = window.windowScene?.screen.bounds ?? window.bounds
     var dim = screenBounds.width
     if screenBounds.height > dim {
       dim = screenBounds.height
@@ -266,12 +268,7 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     self.resignImageView?.alpha = 0
     self.resignImageView?.backgroundColor = rootView.backgroundColor
     self.resignImageView?.image = UIImage(named: "LaunchImage")
-    if let view = self.resignImageView { self.window?.addSubview(view) }
-
-    BGTaskScheduler.shared.register(forTaskWithIdentifier: "com.keybase.app.refresh", using: nil) { task in
-      self.handleAppRefresh(task: task as! BGAppRefreshTask)
-    }
-    scheduleAppRefresh()
+    if let view = self.resignImageView { window.addSubview(view) }
   }
 
   func addDrop(_ rootView: UIView) {
