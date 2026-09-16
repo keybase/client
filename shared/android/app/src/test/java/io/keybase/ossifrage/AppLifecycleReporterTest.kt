@@ -239,25 +239,33 @@ class AppLifecycleReporterTest {
 class RunPushWindowTest {
     private val bind = FakeBind()
 
-    private fun run(task: () -> Unit = { bind.calls.add("task") }) = runPushWindow(bind, {}, task)
+    private fun run(inForeground: InForeground = InForeground.SKIP, task: () -> Unit = { bind.calls.add("task") }) =
+        runPushWindow(bind, {}, inForeground, task)
 
     @Test
     fun foregroundSkipsTheTask() {
         bind.token = 0
-        run()
+        assertFalse(run())
         assertEquals(listOf("pushWindowBegin"), bind.calls)
+    }
+
+    @Test
+    fun foregroundRunsATaskThatMustRunWithoutAWindow() {
+        bind.token = 0
+        assertTrue(run(InForeground.RUN))
+        assertEquals(listOf("pushWindowBegin", "task"), bind.calls)
     }
 
     @Test
     fun notInitializedRunsTheTaskWithoutAWindow() {
         bind.token = -1
-        run()
+        assertTrue(run())
         assertEquals(listOf("pushWindowBegin", "task"), bind.calls)
     }
 
     @Test
     fun windowEndsAfterTheTask() {
-        run()
+        assertTrue(run())
         assertEquals(listOf("pushWindowBegin", "task", "pushWindowEnd(7)"), bind.calls)
     }
 
@@ -276,6 +284,31 @@ class RunPushWindowTest {
         } catch (e: IllegalStateException) {
             assertEquals("boom", e.message)
         }
+        assertEquals(listOf("pushWindowBegin", "pushWindowEnd(7)"), bind.calls)
+    }
+}
+
+class SendQuickReplyTest {
+    private val bind = FakeBind()
+
+    private fun send(send: () -> Unit = { bind.calls.add("send") }) = sendQuickReply(bind, {}, send)
+
+    @Test
+    fun foregroundReplySends() {
+        bind.token = 0
+        assertEquals(QUICK_REPLY_SENT, send())
+        assertEquals(listOf("pushWindowBegin", "send"), bind.calls)
+    }
+
+    @Test
+    fun backgroundReplySendsInAWindow() {
+        assertEquals(QUICK_REPLY_SENT, send())
+        assertEquals(listOf("pushWindowBegin", "send", "pushWindowEnd(7)"), bind.calls)
+    }
+
+    @Test
+    fun failedReplyIsNotReportedAsReplied() {
+        assertEquals(QUICK_REPLY_FAILED, send { throw IllegalStateException("offline") })
         assertEquals(listOf("pushWindowBegin", "pushWindowEnd(7)"), bind.calls)
     }
 }

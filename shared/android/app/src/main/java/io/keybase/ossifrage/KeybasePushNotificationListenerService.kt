@@ -122,7 +122,9 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                         // The push window must see the state after the process
                         // start or stop that came before this push.
                         lifecycleReporter.awaitReported(5000)
-                        runPushWindow(KeybaseLifecycleBind(applicationContext), { NativeLogger.info(it) }) {
+                        // In the foreground the app already has the message, and
+                        // must not show a notification for it.
+                        runPushWindow(KeybaseLifecycleBind(applicationContext), { NativeLogger.info(it) }, InForeground.SKIP) {
                             try {
                                 Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
                                         n.membersType.toLong(), n.displayPlaintext, n.messageId.toLong(), n.pushId,

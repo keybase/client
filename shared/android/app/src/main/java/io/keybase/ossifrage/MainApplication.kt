@@ -22,8 +22,11 @@ import com.reactnativekb.IncomingShareCache
 import expo.modules.ApplicationLifecycleDispatcher.onApplicationCreate
 import expo.modules.ApplicationLifecycleDispatcher.onConfigurationChanged
 import expo.modules.ExpoReactHostFactory
+import io.keybase.ossifrage.modules.BackgroundSyncJobs
 import io.keybase.ossifrage.modules.BackgroundSyncWorker
+import io.keybase.ossifrage.modules.LegacyJobsCleanupFlag
 import io.keybase.ossifrage.modules.NativeLogger
+import io.keybase.ossifrage.modules.scheduleBackgroundSync
 import keybase.Keybase
 import java.util.concurrent.TimeUnit
 
@@ -79,15 +82,13 @@ class MainApplication : Application(), ReactApplication {
             }
         }.start()
 
-        val backgroundSyncRequest: PeriodicWorkRequest = PeriodicWorkRequest.Builder(
-            BackgroundSyncWorker::class.java,
-            1, TimeUnit.HOURS,
-            15, TimeUnit.MINUTES
-        )
-            .build()
-        WorkManager
-            .getInstance(this)
-            .enqueueUniquePeriodicWork(BACKGROUND_SYNC_WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, backgroundSyncRequest)
+        Thread {
+            try {
+                scheduleBackgroundSync(WorkManagerBackgroundSyncJobs(this), SharedPrefsCleanupFlag(this))
+            } catch (e: Exception) {
+                NativeLogger.warn("MainApplication: error scheduling background sync", e)
+            }
+        }.start()
     }
 
     fun onReactContextInitialized(context: ReactContext?) {
@@ -105,8 +106,36 @@ class MainApplication : Application(), ReactApplication {
         Keybase.forceGC()
         super.onLowMemory()
     }
+}
+
+private class WorkManagerBackgroundSyncJobs(context: Context) : BackgroundSyncJobs {
+    private val workManager = WorkManager.getInstance(context)
+
+    // WorkManager tags every request with its worker's class name.
+    override fun cancelAll() {
+        workManager.cancelAllWorkByTag(BackgroundSyncWorker::class.java.name).result.get()
+    }
+
+    override fun enqueueUnique() {
+        val request = PeriodicWorkRequest.Builder(
+            BackgroundSyncWorker::class.java,
+            1, TimeUnit.HOURS,
+            15, TimeUnit.MINUTES
+        ).build()
+        workManager.enqueueUniquePeriodicWork("background_sync", ExistingPeriodicWorkPolicy.KEEP, request).result.get()
+    }
+}
+
+private class SharedPrefsCleanupFlag(context: Context) : LegacyJobsCleanupFlag {
+    private val prefs = context.getSharedPreferences("background_sync", Context.MODE_PRIVATE)
+
+    override fun isDone() = prefs.getBoolean(KEY, false)
+
+    override fun markDone() {
+        prefs.edit().putBoolean(KEY, true).commit()
+    }
 
     companion object {
-        private const val BACKGROUND_SYNC_WORK_NAME = "background_sync"
+        private const val KEY = "legacy_jobs_cancelled"
     }
 }

@@ -29,18 +29,13 @@ class ChatBroadcastReceiver : BroadcastReceiver() {
         val notificationManager = NotificationManagerCompat.from(context)
         val messageBody = getMessageText(intent)
         if (messageBody != null) {
-            try {
-                val lifecycleReporter = (context.applicationContext as MainApplication).lifecycleReporter
-                lifecycleReporter.reportHeadlessStart()
-                lifecycleReporter.awaitReported(5000)
-                runPushWindow(KeybaseLifecycleBind(context), { NativeLogger.info(it) }) {
-                    Keybase.handlePostTextReply(convData.convID, convData.tlfName, convData.lastMsgId, messageBody)
-                }
-                repliedNotification.setContentText("Replied")
-            } catch (e: Exception) {
-                repliedNotification.setContentText("Couldn't send reply")
-                NativeLogger.error("Failed to send quick reply", e)
+            val lifecycleReporter = (context.applicationContext as MainApplication).lifecycleReporter
+            lifecycleReporter.reportHeadlessStart()
+            lifecycleReporter.awaitReported(5000)
+            val status = sendQuickReply(KeybaseLifecycleBind(context), { NativeLogger.error(it) }) {
+                Keybase.handlePostTextReply(convData.convID, convData.tlfName, convData.lastMsgId, messageBody)
             }
+            repliedNotification.setContentText(status)
         } else {
             repliedNotification.setContentText("Couldn't send reply - Failed to read input.")
             NativeLogger.error("Message Body in quick reply was null")

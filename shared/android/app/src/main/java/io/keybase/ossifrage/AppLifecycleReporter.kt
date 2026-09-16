@@ -114,13 +114,20 @@ internal class AppLifecycleReporter(
     }
 }
 
-// Runs task in a push window: Go stays up in BACKGROUNDACTIVE while it runs,
-// unless the app is in the foreground, where the task is skipped.
-internal fun runPushWindow(bind: LifecycleBind, log: (String) -> Unit, task: () -> Unit) {
+internal enum class InForeground { SKIP, RUN }
+
+// Runs task in a push window: Go stays up in BACKGROUNDACTIVE while it runs.
+// When the app is in the foreground no window opens (Go is already up), and
+// the task runs or is skipped per inForeground. Returns whether it ran.
+internal fun runPushWindow(bind: LifecycleBind, log: (String) -> Unit, inForeground: InForeground, task: () -> Unit): Boolean {
     val token = bind.pushWindowBegin()
     if (token == 0L) {
-        log("runPushWindow: app is in the foreground, skipping")
-        return
+        if (inForeground == InForeground.SKIP) {
+            log("runPushWindow: app is in the foreground, skipping")
+            return false
+        }
+        task()
+        return true
     }
     try {
         task()
@@ -130,4 +137,18 @@ internal fun runPushWindow(bind: LifecycleBind, log: (String) -> Unit, task: () 
             bind.beginBackgroundTask()
         }
     }
+    return true
 }
+
+// Sends a notification quick reply, which must go out even with the app in
+// the foreground. Returns the text for the replied notification.
+internal fun sendQuickReply(bind: LifecycleBind, log: (String) -> Unit, send: () -> Unit): String =
+    try {
+        if (runPushWindow(bind, log, InForeground.RUN, send)) QUICK_REPLY_SENT else QUICK_REPLY_FAILED
+    } catch (e: Exception) {
+        log("sendQuickReply: failed to send: $e")
+        QUICK_REPLY_FAILED
+    }
+
+internal const val QUICK_REPLY_SENT = "Replied"
+internal const val QUICK_REPLY_FAILED = "Couldn't send reply"
