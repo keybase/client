@@ -48,6 +48,9 @@ type Srv struct {
 	exitRestartGen uint64
 	// exits counts handled unexpected exits, for tests.
 	exits int
+	// beforeExitRestart, if set, runs in serverExited between reading the
+	// app state and acting on it. Tests only.
+	beforeExitRestart func()
 	// monitorState is the state the monitor last acted on, and monitorWait
 	// the change channel it is waiting on for that state; tests use them to
 	// wait until the monitor has caught up.
@@ -114,38 +117,43 @@ func (r *Srv) wantUp(state keybase1.MobileAppState) bool {
 // reaching BACKGROUND.
 func (r *Srv) serverExited() {
 	ctx := context.Background()
-	state, gen := r.G().MobileAppState.StateAndGeneration()
 	r.mu.Lock()
-	restart := r.wantUp(state) && r.exitRestartGen != gen+1
-	if restart {
-		r.exitRestartGen = gen + 1
+	// Read the state and start under mu, so a BACKGROUND the monitor applies
+	// concurrently either comes first (seen here) or stops what starts here.
+	state, gen := r.G().MobileAppState.StateAndGeneration()
+	if r.beforeExitRestart != nil {
+		r.beforeExitRestart()
 	}
-	r.mu.Unlock()
-	if restart {
+	var info keybase1.HttpSrvInfo
+	started := false
+	if r.wantUp(state) && r.exitRestartGen != gen+1 {
+		r.exitRestartGen = gen + 1
 		r.debug(ctx, "serverExited: restarting in %v", state)
-		r.startHTTPSrv()
+		info, started = r.startLocked(ctx)
 	} else {
 		r.debug(ctx, "serverExited: not restarting in %v (generation %d)", state, gen)
 	}
-	r.mu.Lock()
 	r.exits++
 	r.mu.Unlock()
+	if started {
+		r.G().NotifyRouter.HandleHTTPSrvInfoUpdate(ctx, info)
+	}
 }
 
 // startHTTPSrv starts the server if it isn't serving, including after its
 // listener died underneath it.
 func (r *Srv) startHTTPSrv() {
 	ctx := context.Background()
-	info, started := r.start(ctx)
+	r.mu.Lock()
+	info, started := r.startLocked(ctx)
+	r.mu.Unlock()
 	if !started {
 		return
 	}
 	r.G().NotifyRouter.HandleHTTPSrvInfoUpdate(ctx, info)
 }
 
-func (r *Srv) start(ctx context.Context) (info keybase1.HttpSrvInfo, started bool) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+func (r *Srv) startLocked(ctx context.Context) (info keybase1.HttpSrvInfo, started bool) {
 	if r.shutdown || r.httpSrv.Active() {
 		return info, false
 	}

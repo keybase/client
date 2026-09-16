@@ -127,10 +127,10 @@ func TestSrvOnUnexpectedExit(t *testing.T) {
 	})
 
 	require.NoError(t, srv.Start())
+	// The done channel closes only after any exit callback has run.
 	<-srv.Stop()
+	require.Equal(t, int32(0), exits.Load(), "Stop reported as an unexpected exit")
 	require.NoError(t, srv.Start())
 	source.kill()
-	require.Eventually(t, func() bool { return exits.Load() >= 1 }, 5*time.Second, time.Millisecond)
-	time.Sleep(50 * time.Millisecond)
-	require.Equal(t, int32(1), exits.Load(), "Stop reported as an unexpected exit")
+	require.Eventually(t, func() bool { return exits.Load() == 1 }, 5*time.Second, time.Millisecond)
 }

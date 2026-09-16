@@ -162,7 +162,8 @@ func NewSrv(log logger.Logger, listenerSource ListenerSource) *Srv {
 
 // OnUnexpectedExit sets f to run whenever the server stops serving without
 // Stop, as when its listener is closed underneath it. f runs without the
-// server's lock held, so it may call back into the server.
+// server's lock held, so it may call back into the server, and before that
+// server's done channel closes.
 func (h *Srv) OnUnexpectedExit(f func()) {
 	h.Lock()
 	defer h.Unlock()
@@ -215,10 +216,10 @@ func (h *Srv) StartWithHandlers(register func(mux *http.ServeMux)) (err error) {
 		}
 		onExit := h.onExit
 		h.Unlock()
-		close(doneCh)
 		if unexpected && onExit != nil {
 			onExit()
 		}
+		close(doneCh)
 	}(h.server, h.doneCh)
 	return nil
 }

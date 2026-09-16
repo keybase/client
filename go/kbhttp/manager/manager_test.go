@@ -210,24 +210,52 @@ func TestUnexpectedExitRestartsOncePerGeneration(t *testing.T) {
 	l.failing.Store(true)
 	l.kill(t)
 	// The restart's listener fails at once; its exit must not restart again.
+	// Each exit decides and starts under mu, so once two exits are handled
+	// the listener count is final.
 	waitExits(t, srv, 2)
-	time.Sleep(50 * time.Millisecond)
-	require.Equal(t, 2, exits(srv), "restart loop on a failing listener")
-	require.Equal(t, 2, l.Calls())
+	require.Equal(t, 2, l.Calls(), "restart loop on a failing listener")
 	requireStopped(t, srv)
 
 	// A new generation allows one more restart after the monitor's own.
 	srv.G().MobileAppState.Update(keybase1.MobileAppState_INACTIVE)
 	waitMonitor(t, srv)
 	waitExits(t, srv, 4)
-	time.Sleep(50 * time.Millisecond)
-	require.Equal(t, 4, exits(srv), "restart loop on a failing listener")
-	require.Equal(t, 4, l.Calls())
+	require.Equal(t, 4, l.Calls(), "restart loop on a failing listener")
 
 	l.failing.Store(false)
 	srv.G().MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	waitMonitor(t, srv)
 	requireServing(t, srv)
+}
+
+// A BACKGROUND applied while an unexpected exit is deciding whether to
+// restart must not leave the server up.
+func TestUnexpectedExitRacingBackground(t *testing.T) {
+	srv, l := setup(t, keybase1.MobileAppState_FOREGROUND, true)
+	waitMonitor(t, srv)
+	requireServing(t, srv)
+
+	srv.mu.Lock()
+	srv.beforeExitRestart = func() {
+		// serverExited has read FOREGROUND. The monitor is idle, so mu is
+		// held here only if serverExited holds it; otherwise let the monitor
+		// fully apply BACKGROUND before serverExited acts on its stale read.
+		holdsMu := !srv.mu.TryLock()
+		if !holdsMu {
+			srv.mu.Unlock()
+		}
+		srv.G().MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
+		if !holdsMu {
+			waitMonitor(t, srv)
+		}
+	}
+	srv.mu.Unlock()
+
+	l.kill(t)
+	waitExits(t, srv, 1)
+	waitMonitor(t, srv)
+	require.Equal(t, keybase1.MobileAppState_BACKGROUND, srv.G().MobileAppState.State())
+	requireStopped(t, srv)
 }
 
 func TestNothingStartsAfterShutdown(t *testing.T) {
