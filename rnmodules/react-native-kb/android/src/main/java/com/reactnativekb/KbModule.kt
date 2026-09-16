@@ -187,6 +187,11 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
     }
 
+    // Only iOS queues pushes until JS listens.
+    @ReactMethod
+    override fun pushListenerRegistered() {
+    }
+
     // Sharing
     @ReactMethod
     override fun androidShare(uriPath: String, mimeType: String, promise: Promise) {

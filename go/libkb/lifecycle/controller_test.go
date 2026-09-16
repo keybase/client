@@ -142,6 +142,40 @@ func TestPushWindowEndStaleTokenSkipsStayRunning(t *testing.T) {
 	require.Equal(t, foreground, appState.State())
 }
 
+// Native gives these last events only a short wait, so the state change and
+// the flush must happen before the slow pending-message warning.
+func TestExitEventsApplyBeforeNotifying(t *testing.T) {
+	events := map[string]struct {
+		prepare func(c *lifecycle.Controller)
+		do      func(c *lifecycle.Controller, notifyPending func())
+	}{
+		"willTerminate": {
+			prepare: func(c *lifecycle.Controller) { c.DidBecomeActive() },
+			do:      func(c *lifecycle.Controller, notifyPending func()) { c.WillTerminate(notifyPending) },
+		},
+		"backgroundTaskExpired": {
+			prepare: func(c *lifecycle.Controller) { require.True(t, c.DidEnterBackground(stay)) },
+			do:      func(c *lifecycle.Controller, notifyPending func()) { c.BackgroundTaskExpired(notifyPending) },
+		},
+	}
+	for name, event := range events {
+		t.Run(name, func(t *testing.T) {
+			appState, _ := newAppState(t)
+			var flushes int
+			c := lifecycle.New(appState, lifecycle.Config{Flush: func() { flushes++ }})
+			event.prepare(c)
+			flushesBefore := flushes
+			notified := false
+			event.do(c, func() {
+				notified = true
+				require.Equal(t, background, appState.State())
+				require.Equal(t, flushesBefore+1, flushes)
+			})
+			require.True(t, notified)
+		})
+	}
+}
+
 func TestEventString(t *testing.T) {
 	require.Equal(t, "willEnterForeground", lifecycle.EventWillEnterForeground.String())
 	require.Equal(t, "liveLocationRelease", lifecycle.EventLiveLocationRelease.String())

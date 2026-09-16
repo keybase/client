@@ -891,14 +891,6 @@ func SetAppStateBackground() {
 	kbCtx.MobileLifecycle.DidEnterBackground(func() bool { return false })
 }
 
-func SetAppStateInactive() {
-	if !isInited() {
-		return
-	}
-	defer kbCtx.Trace("SetAppStateInactive", nil)()
-	kbCtx.MobileLifecycle.WillResignActive()
-}
-
 func SetAppStateBackgroundActive() {
 	if !isInited() {
 		return

@@ -167,6 +167,11 @@ export const notifyJSReady = (): void => {
 export const shareListenersRegistered = (): void => {
   return Kb.shareListenersRegistered()
 }
+// iOS: call once onPushNotification is subscribed; pushes queued while JS
+// wasn't listening are emitted then.
+export const pushListenerRegistered = (): void => {
+  return Kb.pushListenerRegistered()
+}
 
 export const clearLocalLogs = (): Promise<void> => {
   return Kb.clearLocalLogs()

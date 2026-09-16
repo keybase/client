@@ -66,6 +66,7 @@ export interface Spec extends TurboModule {
   engineReset(): void
   notifyJSReady(): void
   shareListenersRegistered(): void
+  pushListenerRegistered(): void
   setEnablePasteImage(enabled: boolean): void
   clearLocalLogs(): Promise<void>
 }

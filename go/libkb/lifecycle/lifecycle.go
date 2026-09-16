@@ -218,11 +218,14 @@ func (c *Controller) DidEnterBackground(stayRunning func() bool) bool {
 }
 
 // WillTerminate forces BACKGROUND regardless of owners: the process is about
-// to die. notifyPending warns about messages that won't send.
+// to die. notifyPending warns about messages that won't send. It runs last:
+// it can take seconds (an outbox query and a local notification), and native
+// only waits briefly before the process exits, so the state change and the
+// flush must not wait behind it.
 func (c *Controller) WillTerminate(notifyPending func()) {
-	notifyPending()
 	c.taskGen.Store(0)
 	c.update(keybase1.MobileAppState_BACKGROUND)
+	notifyPending()
 	c.debug(EventWillTerminate, "applied")
 }
 
