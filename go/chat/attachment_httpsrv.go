@@ -149,6 +149,10 @@ func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.Conversatio
 		ConvID: convID,
 		MsgID:  msgID,
 	})
+	if url == "" {
+		// Without a server there is no URL; the query alone would be a garbage one.
+		return ""
+	}
 	url += fmt.Sprintf("&prev=%v&noanim=%v&isemoji=%v", preview, noAnim, isEmoji)
 	r.Debug(ctx, "GetURL: handler URL: convID: %s msgID: %d %s", convID, msgID, url)
 	return url

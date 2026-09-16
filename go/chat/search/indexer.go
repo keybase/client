@@ -81,6 +81,8 @@ type Indexer struct {
 	consumeCh                            chan chat1.ConversationID
 	reindexCh                            chan chat1.ConversationID
 	syncLoopCh, cancelSyncCh, pokeSyncCh chan struct{}
+	// selectiveSync, if set, runs in place of SelectiveSync. Tests only.
+	selectiveSync func(ctx context.Context) error
 }
 
 var _ types.Indexer = (*Indexer)(nil)
@@ -243,7 +245,7 @@ func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
 
 	ticker := libkb.NewBgTicker(idx.syncInterval)
 	after := time.After(idx.startSyncDelay)
-	appState := keybase1.MobileAppState_FOREGROUND
+	appState := idx.G().MobileAppState.State()
 	netState := keybase1.MobileNetworkState_WIFI
 	var cancelFn context.CancelFunc
 	var l sync.Mutex
@@ -260,6 +262,11 @@ func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
 		if netState.IsLimited() {
 			return
 		}
+		// A change after this read wakes the loop, which cancels the sync.
+		if state := idx.G().MobileAppState.State(); state != keybase1.MobileAppState_FOREGROUND {
+			idx.Debug(ctx, "not running SelectiveSync in %v", state)
+			return
+		}
 		l.Lock()
 		defer l.Unlock()
 		if cancelFn != nil {
@@ -267,9 +274,13 @@ func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
 			return
 		}
 		ctx, cancelFn = context.WithCancel(ctx)
+		selectiveSync := idx.SelectiveSync
+		if idx.selectiveSync != nil {
+			selectiveSync = idx.selectiveSync
+		}
 		syncAttemptWG.Go(func() {
 			idx.Debug(ctx, "running SelectiveSync")
-			if err := idx.SelectiveSync(ctx); err != nil {
+			if err := selectiveSync(ctx); err != nil {
 				idx.Debug(ctx, "unable to complete SelectiveSync: %v", err)
 				if idx.syncLoopCh != nil {
 					select {
