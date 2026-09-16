@@ -1,0 +1,57 @@
+packaging/linux/docker/slim/Dockerfile
+  s_21e5cd80401a8a::t_724130ca58306c 5,12
+packaging/linux/docker/Dockerfile
+  s_21e5cd80401a8a::t_1cd0ded3750daf 1-2,10,17-19,22
+  s_21e5cd80401a8a::t_25540971274e3d 11-16,23-31
+packaging/linux/docker/python-slim/Dockerfile
+  s_21e5cd80401a8a::t_f3f3cd07058443 4,11
+packaging/linux/test/keybase-centos-test/Dockerfile
+  s_21e5cd80401a8a::t_013d2d76795b7f 1-2,4-5,7-9
+packaging/linux/docker/node/Dockerfile
+  s_21e5cd80401a8a::t_76a5c7015e7afc 4,11
+packaging/linux/docker/standard/Dockerfile
+  s_21e5cd80401a8a::t_c030ccdbd6d3a6 1,8
+packaging/linux/test/README.md
+  s_21e5cd80401a8a::t_919611dafac05d 28,92,94,101,103,107,116,151,170,172-173,177
+packaging/linux/docker/README.md
+  s_21e5cd80401a8a::t_643c43b76a3477 11-12
+packaging/linux/docker/alpine/Dockerfile
+  s_21e5cd80401a8a::t_c6b9f8265d25cf 6
+go/kbfs/Dockerfile
+  s_21e5cd80401a8a::t_46eaef1cd0cd75 2,11-14
+packaging/linux/docker_build.sh
+  s_21e5cd80401a8a::t_8aaf123843dd8e 61
+packaging/linux/docker/python/Dockerfile
+  s_21e5cd80401a8a::t_5d6251d076831e 4,11
+packaging/linux/Dockerfile
+  s_21e5cd80401a8a::t_d6762e25d0a7e3 1-3,14-15,22-25,27,43-44,46-49
+  s_21e5cd80401a8a::t_84e8cfb2f73357 16-21,28-36,42,50-51
+packaging/linux/test/keybase-ubuntu-test/Dockerfile
+  s_21e5cd80401a8a::t_49674bc382f414 1-2,4,6-8,10-11
+packaging/linux/docker/alpine-slim/Dockerfile
+  s_21e5cd80401a8a::t_65a76602dfec9c 10
+go/Dockerfile
+  s_21e5cd80401a8a::t_695d5aa3cdd4c0 2,5,22-23
+packaging/linux/test/keybase-arch-test/Dockerfile
+  s_21e5cd80401a8a::t_ea47bf27dd5997 1-2,4-6
+packaging/linux/docker/node-slim/Dockerfile
+  s_21e5cd80401a8a::t_a7a6fbb33c5f28 4,11
+packaging/linux/test/keybase-ubuntu-systemd-test/Dockerfile
+  s_21e5cd80401a8a::t_481e941fcecb59 1-2,4,6-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "84a1c9f1f496ae3adc9d8a645c08b838f5c37975",
+  "prompts": {},
+  "sessions": {
+    "s_21e5cd80401a8a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "cc0de42f-5c29-4dfb-a193-94eb6357fba9",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
