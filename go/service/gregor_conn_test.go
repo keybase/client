@@ -19,8 +19,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// fakeGregorConn models the handler's connection: it can exist without being
+// connected (stale), and connectNow does nothing while one exists.
 type fakeGregorConn struct {
 	sync.Mutex
+	exists    bool
 	up        bool
 	uri       *rpc.FMPURI
 	connects  int
@@ -31,8 +34,8 @@ type fakeGregorConn struct {
 func (f *fakeGregorConn) connectNow(uri *rpc.FMPURI) error {
 	f.Lock()
 	defer f.Unlock()
-	if !f.up {
-		f.up = true
+	if !f.exists {
+		f.exists, f.up = true, true
 		f.uri = uri
 		f.connects++
 	}
@@ -42,8 +45,8 @@ func (f *fakeGregorConn) connectNow(uri *rpc.FMPURI) error {
 func (f *fakeGregorConn) Shutdown(context.Context) {
 	f.Lock()
 	defer f.Unlock()
-	if f.up {
-		f.up = false
+	if f.exists {
+		f.exists, f.up = false, false
 		f.shutdowns++
 	}
 }
@@ -54,6 +57,14 @@ func (f *fakeGregorConn) Reset() error {
 	defer f.Unlock()
 	f.resets++
 	return nil
+}
+
+// goStale leaves the connection in place but not connected, as when its auth
+// fails with an error the connection does not retry.
+func (f *fakeGregorConn) goStale() {
+	f.Lock()
+	defer f.Unlock()
+	f.up = false
 }
 
 func (f *fakeGregorConn) IsConnected() bool {
@@ -170,7 +181,7 @@ func TestGregorConnLoginInBackground(t *testing.T) {
 	c.waitMonitor(t)
 	first := testGregorURI(t, "first.test")
 	require.NoError(t, c.gate.connect(context.Background(), first, true))
-	require.Equal(t, fakeGregorCounts{up: true, connects: 1}, c.conn.counts())
+	require.Equal(t, fakeGregorCounts{up: true, connects: 1, resets: 1}, c.conn.counts())
 
 	c.update(t, keybase1.MobileAppState_BACKGROUND)
 	c.requireUp(t, false, "still connected in BACKGROUND")
@@ -178,7 +189,7 @@ func TestGregorConnLoginInBackground(t *testing.T) {
 	second := testGregorURI(t, "second.test")
 	require.NoError(t, c.gate.connect(context.Background(), second, true))
 	c.requireUp(t, false, "login connected in BACKGROUND")
-	require.Equal(t, fakeGregorCounts{connects: 1, shutdowns: 1}, c.conn.counts())
+	require.Equal(t, fakeGregorCounts{connects: 1, shutdowns: 1, resets: 2}, c.conn.counts())
 
 	c.update(t, keybase1.MobileAppState_FOREGROUND)
 	c.requireUp(t, true, "did not connect on foreground after a background login")
@@ -186,7 +197,7 @@ func TestGregorConnLoginInBackground(t *testing.T) {
 
 	// A login while connected resets the connection before connecting.
 	require.NoError(t, c.gate.connect(context.Background(), first, true))
-	require.Equal(t, fakeGregorCounts{up: true, connects: 3, shutdowns: 2, resets: 1}, c.conn.counts())
+	require.Equal(t, fakeGregorCounts{up: true, connects: 3, shutdowns: 2, resets: 3}, c.conn.counts())
 	require.Equal(t, first, c.conn.lastURI())
 }
 
@@ -234,6 +245,72 @@ func TestGregorConnDuplicateEvents(t *testing.T) {
 		require.Equal(t, fakeGregorCounts{connects: round, shutdowns: round}, c.conn.counts())
 	}
 	require.EqualValues(t, 3, c.pings.Load())
+}
+
+var allAppStates = []keybase1.MobileAppState{
+	keybase1.MobileAppState_INACTIVE,
+	keybase1.MobileAppState_FOREGROUND,
+	keybase1.MobileAppState_BACKGROUND,
+	keybase1.MobileAppState_BACKGROUNDACTIVE,
+	keybase1.MobileAppState_FOREGROUND,
+	keybase1.MobileAppState_BACKGROUND,
+	keybase1.MobileAppState_INACTIVE,
+}
+
+// requireStaysDown drives every transition and checks that nothing connects.
+func (c *gregorConnTest) requireStaysDown(t *testing.T, why string) {
+	t.Helper()
+	connects := c.conn.counts().connects
+	for _, state := range allAppStates {
+		c.update(t, state)
+		_, err := c.gate.reconnect(context.Background())
+		require.NoError(t, err)
+		c.requireUp(t, false, fmt.Sprintf("connected in %v %s", state, why))
+	}
+	require.Equal(t, connects, c.conn.counts().connects, "connect attempted "+why)
+}
+
+func TestGregorConnLogoutStaysDown(t *testing.T) {
+	c := setupGregorConn(t, keybase1.MobileAppState_FOREGROUND)
+	c.waitMonitor(t)
+	uri := testGregorURI(t, "gregord.test")
+	require.NoError(t, c.gate.connect(context.Background(), uri, true))
+	c.requireUp(t, true, "login did not connect")
+
+	require.NoError(t, c.gate.forget(context.Background()))
+	c.requireUp(t, false, "logout left gregor connected")
+	c.requireStaysDown(t, "after logout")
+
+	c.update(t, keybase1.MobileAppState_FOREGROUND)
+	require.NoError(t, c.gate.connect(context.Background(), uri, true))
+	c.requireUp(t, true, "login after logout did not connect")
+}
+
+func TestGregorConnLogoutInBackground(t *testing.T) {
+	c := setupGregorConn(t, keybase1.MobileAppState_FOREGROUND)
+	c.waitMonitor(t)
+	require.NoError(t, c.gate.connect(context.Background(), testGregorURI(t, "gregord.test"), true))
+	c.update(t, keybase1.MobileAppState_BACKGROUND)
+	require.NoError(t, c.gate.forget(context.Background()))
+	c.update(t, keybase1.MobileAppState_BACKGROUNDACTIVE)
+	c.update(t, keybase1.MobileAppState_FOREGROUND)
+	c.requireUp(t, false, "foreground after a background logout connected")
+	require.Equal(t, 1, c.conn.counts().connects)
+}
+
+// A connection whose auth failed while logged out stays in place without
+// being connected; the next login must still connect.
+func TestGregorConnLoginReplacesStaleConn(t *testing.T) {
+	c := setupGregorConn(t, keybase1.MobileAppState_FOREGROUND)
+	c.waitMonitor(t)
+	uri := testGregorURI(t, "gregord.test")
+	require.NoError(t, c.gate.connect(context.Background(), uri, false))
+	c.conn.goStale()
+	c.update(t, keybase1.MobileAppState_INACTIVE)
+	c.update(t, keybase1.MobileAppState_FOREGROUND)
+	require.NoError(t, c.gate.connect(context.Background(), uri, true))
+	c.requireUp(t, true, "login left a stale connection in place")
+	require.Equal(t, fakeGregorCounts{up: true, connects: 2, shutdowns: 1, resets: 1}, c.conn.counts())
 }
 
 // A BACKGROUND applied while a connect is deciding must not leave gregor
@@ -324,6 +401,27 @@ func TestGregorConnScenarioReplay(t *testing.T) {
 				if got := c.conn.IsConnected(); got != want {
 					t.Fatalf("step %d %v: connected %v in %v after a login", i, step.Do, got, step.Want)
 				}
+				require.NoError(t, c.gate.forget(context.Background()))
+				c.waitMonitor(t)
+				if c.conn.IsConnected() {
+					t.Fatalf("step %d %v: connected in %v after a logout", i, step.Do, step.Want)
+				}
+				require.NoError(t, c.gate.connect(context.Background(), uri, true))
+				c.waitMonitor(t)
+				if got := c.conn.IsConnected(); got != want {
+					t.Fatalf("step %d %v: connected %v in %v after a logout and login", i, step.Do, got, step.Want)
+				}
+			})
+		})
+		t.Run(sc.Name+"/logged out", func(t *testing.T) {
+			c := setupGregorConn(t, keybase1.MobileAppState_FOREGROUND)
+			require.NoError(t, c.gate.connect(context.Background(), testGregorURI(t, "gregord.test"), true))
+			require.NoError(t, c.gate.forget(context.Background()))
+			lifecycletest.Play(t, c.tc.G.MobileAppState, sc, func(h *lifecycletest.Harness, i int, step lifecycletest.Step) {
+				c.waitMonitor(t)
+				if c.conn.IsConnected() || c.conn.counts().connects != 1 {
+					t.Fatalf("step %d %v: connect attempted in %v while logged out", i, step.Do, step.Want)
+				}
 			})
 		})
 	}
@@ -359,11 +457,13 @@ func TestGregorConnStress(t *testing.T) {
 					return
 				default:
 				}
-				switch (i + w) % 3 {
+				switch (i + w) % 4 {
 				case 0:
 					_ = gate.connect(ctx, uri, false)
 				case 1:
 					_ = gate.connect(ctx, uri, true)
+				case 2:
+					_ = gate.forget(ctx)
 				default:
 					_, _ = gate.reconnect(ctx)
 				}
@@ -398,15 +498,14 @@ func TestGregorConnStress(t *testing.T) {
 		t.Fatal("deadlock: transitions and connects did not finish")
 	}
 
-	// Make real changes so the monitor must wake for them.
-	final := keybase1.MobileAppState_INACTIVE
-	if tc.G.MobileAppState.State() == final {
-		final = keybase1.MobileAppState_FOREGROUND
-	}
-	c.update(t, final)
-	c.requireUp(t, true, "down after settling in "+final.String())
+	require.NoError(t, gate.forget(context.Background()))
+	c.requireStaysDown(t, "after settling logged out")
+	require.NoError(t, gate.connect(context.Background(), uri, true))
+	c.requireUp(t, true, "login did not connect after settling")
 	c.update(t, keybase1.MobileAppState_BACKGROUND)
 	c.requireUp(t, false, "up after settling in BACKGROUND")
+	c.update(t, keybase1.MobileAppState_BACKGROUNDACTIVE)
+	c.requireUp(t, true, "down after settling in BACKGROUNDACTIVE")
 	counts := conn.counts()
 	t.Logf("%d connects, %d shutdowns, %d resets", counts.connects, counts.shutdowns, counts.resets)
 
@@ -477,6 +576,24 @@ func hasConn(h *gregorHandler) bool {
 }
 
 // The service's startup and login connects go through the handler's gate.
+// Logout goes through the handler's gate, so no transition reconnects.
+func TestGregorHandlerDisconnectStaysDown(t *testing.T) {
+	tc, g := setupGregorTest(t)
+	defer tc.Cleanup()
+	g.Syncer = chat.NewSyncer(g)
+
+	h := newGregorHandler(g)
+	require.NoError(t, h.ConnectFresh(closedPortURI(t)))
+	require.True(t, hasConn(h), "did not connect")
+	require.NoError(t, h.Disconnect())
+	require.False(t, hasConn(h), "Disconnect left a connection")
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
+	h.connGate.reconcile(context.Background())
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
+	h.connGate.reconcile(context.Background())
+	require.False(t, hasConn(h), "reconnected after Disconnect")
+}
+
 func TestGregorHandlerConnectInBackground(t *testing.T) {
 	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()

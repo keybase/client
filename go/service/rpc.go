@@ -53,8 +53,8 @@ func (t *connTransport) IsConnected() bool {
 	return transport != nil && transport.IsConnected()
 }
 
-// Finalize and Close close transports outside mu: closing waits for the
-// receiver, whose handlers may call IsConnected.
+// Finalize and Close close transports outside mu, because closing blocks until
+// the transport's loops stop and IsConnected should not wait on that.
 func (t *connTransport) Finalize() {
 	t.mu.Lock()
 	old := t.transport

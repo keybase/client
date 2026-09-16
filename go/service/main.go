@@ -1032,7 +1032,7 @@ func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 
 	log("shutting down gregor")
 	if d.gregor != nil {
-		_ = d.gregor.Reset()
+		_ = d.gregor.Disconnect()
 	}
 
 	log("shutting down rekeyMaster")

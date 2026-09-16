@@ -89,13 +89,15 @@ func (c *gregorConnGate) stop() {
 	c.stopOnce.Do(func() { close(c.stopCh) })
 }
 
-// connect connects to uri unless the app is in BACKGROUND. With reset, an
-// existing connection is reset first so it authenticates again.
+// connect connects to uri unless the app is in BACKGROUND. With reset, any
+// existing connection is reset first so it authenticates again; that
+// includes one that is not connected, such as one whose auth failed while
+// logged out, which would otherwise keep connectNow from dialing.
 func (c *gregorConnGate) connect(ctx context.Context, uri *rpc.FMPURI, reset bool) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.uri = uri
-	if reset && c.conn.IsConnected() {
+	if reset {
 		if err := c.conn.Reset(); err != nil {
 			return err
 		}
@@ -109,6 +111,16 @@ func (c *gregorConnGate) connect(ctx context.Context, uri *rpc.FMPURI, reset boo
 		return nil
 	}
 	return c.conn.connectNow(uri)
+}
+
+// forget resets the connection and drops the uri, so nothing reconnects until
+// the next connect.
+func (c *gregorConnGate) forget(ctx context.Context) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.debug(ctx, "forget: resetting and forgetting the uri")
+	c.uri = nil
+	return c.conn.Reset()
 }
 
 // reconnect drops a live connection and connects again, unless the app is
