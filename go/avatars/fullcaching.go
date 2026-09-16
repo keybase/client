@@ -91,6 +91,7 @@ type FullCachingSource struct {
 	started              bool
 	diskLRU              *lru.DiskLRU
 	diskLRUCleanerCancel context.CancelFunc
+	bgFlusher            backgroundFlusher
 	staleThreshold       time.Duration
 	simpleSource         libkb.AvatarLoaderSource
 
@@ -212,10 +213,15 @@ func (c *FullCachingSource) StartBackgroundTasks(mctx libkb.MetaContext) {
 		return
 	}
 	c.started = true
-	go c.monitorAppState(mctx)
+	c.bgFlusher.start(mctx, func(m libkb.MetaContext) {
+		c.debug(m, "monitorAppState: backgrounded")
+		if err := c.diskLRU.Flush(m.Ctx(), m.G()); err != nil {
+			c.debug(m, "monitorAppState: unable to flush diskLRU %v", err)
+		}
+	})
 	c.populateCacheCh = make(chan populateArg, 100)
 	for range 10 {
-		go c.populateCacheWorker(mctx)
+		go c.populateCacheWorker(mctx, c.populateCacheCh)
 	}
 	mctx, cancel := mctx.WithContextCancel()
 	c.diskLRUCleanerCancel = cancel
@@ -230,6 +236,7 @@ func (c *FullCachingSource) StopBackgroundTasks(mctx libkb.MetaContext) {
 		return
 	}
 	c.started = false
+	c.bgFlusher.stop()
 	close(c.populateCacheCh)
 	if c.diskLRUCleanerCancel != nil {
 		c.diskLRUCleanerCancel()
@@ -249,21 +256,6 @@ func (c *FullCachingSource) avatarKey(name string, format keybase1.AvatarFormat)
 
 func (c *FullCachingSource) isStale(m libkb.MetaContext, item lru.DiskLRUEntry) bool {
 	return m.G().GetClock().Now().Sub(item.Ctime) > c.staleThreshold
-}
-
-func (c *FullCachingSource) monitorAppState(m libkb.MetaContext) {
-	c.debug(m, "monitorAppState: starting up")
-	state := keybase1.MobileAppState_FOREGROUND
-	for {
-		<-m.G().MobileAppState.NextUpdate(state)
-		state = m.G().MobileAppState.State()
-		if state == keybase1.MobileAppState_BACKGROUND {
-			c.debug(m, "monitorAppState: backgrounded")
-			if err := c.diskLRU.Flush(m.Ctx(), m.G()); err != nil {
-				c.debug(m, "monitorAppState: unable to flush diskLRU %v", err)
-			}
-		}
-	}
 }
 
 func (c *FullCachingSource) processLRUHit(entry lru.DiskLRUEntry) (res lruEntry) {
@@ -392,8 +384,8 @@ func (c *FullCachingSource) removeFile(m libkb.MetaContext, ent *lru.DiskLRUEntr
 	}
 }
 
-func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
-	for arg := range c.populateCacheCh {
+func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext, populateCacheCh <-chan populateArg) {
+	for arg := range populateCacheCh {
 		err := c.populateCacheJob(m, arg)
 		if err != nil {
 			c.debug(m, "populateCacheWorker: %s", err)

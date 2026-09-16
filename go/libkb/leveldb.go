@@ -193,7 +193,7 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 			l.db = db
 			l.dbMu.Unlock()
 			if db != nil {
-				l.cleaner.setDb(db)
+				l.cleaner.start(db)
 			}
 		})
 
