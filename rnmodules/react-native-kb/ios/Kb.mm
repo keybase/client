@@ -301,6 +301,80 @@ static NSDictionary *kbConstants(void) {
 
 RCT_EXPORT_MODULE()
 
+// UIApplication.applicationState lags under scenes (it still reads inactive in
+// didBecomeActive), and RN's AppState reads it, so JS takes the app state from
+// here instead: derived from the scene activation notifications, active if any
+// scene is active, inactive if any is in the foreground, background otherwise.
+// Observed from a load-time constructor (RCT_EXPORT_MODULE owns +load) so
+// every transition since launch is seen before any module (or JS) exists. kbSceneStates is main-thread only; kbAppState is what
+// getAppState reads from the JS thread.
+static NSMapTable<UIScene *, NSString *> *kbSceneStates = nil;
+static std::mutex kbAppStateMutex;
+static NSString *kbAppState = @"background";
+
+__attribute__((constructor)) static void kbObserveSceneStates(void) {
+  kbSceneStates = [NSMapTable weakToStrongObjectsMapTable];
+  NSDictionary<NSNotificationName, NSString *> *states = @{
+    UISceneWillEnterForegroundNotification : @"inactive",
+    UISceneDidActivateNotification : @"active",
+    UISceneWillDeactivateNotification : @"inactive",
+    UISceneDidEnterBackgroundNotification : @"background",
+  };
+  NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+  for (NSNotificationName name in states) {
+    NSString *state = states[name];
+    [center addObserverForName:name
+                        object:nil
+                         queue:nil
+                    usingBlock:^(NSNotification *note) {
+                      [Kb scene:note.object changedToState:state];
+                    }];
+  }
+  [center addObserverForName:UISceneDidDisconnectNotification
+                      object:nil
+                       queue:nil
+                  usingBlock:^(NSNotification *note) {
+                    [Kb scene:note.object changedToState:nil];
+                  }];
+}
+
++ (void)scene:(UIScene *)scene changedToState:(NSString *)state {
+  if (![scene isKindOfClass:[UIScene class]]) {
+    return;
+  }
+  if (state) {
+    [kbSceneStates setObject:state forKey:scene];
+  } else {
+    [kbSceneStates removeObjectForKey:scene];
+  }
+  NSString *next = @"background";
+  for (NSString *sceneState in kbSceneStates.objectEnumerator) {
+    if ([sceneState isEqualToString:@"active"]) {
+      next = sceneState;
+      break;
+    }
+    if ([sceneState isEqualToString:@"inactive"]) {
+      next = sceneState;
+    }
+  }
+  {
+    std::lock_guard<std::mutex> lock(kbAppStateMutex);
+    if ([next isEqualToString:kbAppState]) {
+      return;
+    }
+    kbAppState = next;
+  }
+  Kb *instance = kbSharedInstance;
+  if (instance && [instance canEmit]) {
+    [instance emitOnAppStateChange:next];
+  }
+}
+
+- (NSString *)getAppState {
+  std::lock_guard<std::mutex> lock(kbAppStateMutex);
+  return kbAppState;
+}
+
 + (BOOL)requiresMainQueueSetup {
   return YES;
 }

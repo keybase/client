@@ -167,6 +167,16 @@ export const notifyJSReady = (): void => {
 export const shareListenersRegistered = (): void => {
   return Kb.shareListenersRegistered()
 }
+// iOS only. UIApplication.applicationState (and so RN's AppState) lags under scenes, reading
+// inactive while the scene is already active; these follow the scene activation notifications.
+export const iosOnAppStateChange = (callback: (state: string) => void): EventSubscription => {
+  return Kb.onAppStateChange(callback)
+}
+
+export const iosGetAppState = (): string => {
+  return Kb.getAppState()
+}
+
 // iOS: call once onPushNotification is subscribed; pushes queued while JS
 // wasn't listening are emitted then.
 export const pushListenerRegistered = (): void => {

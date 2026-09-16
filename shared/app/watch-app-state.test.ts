@@ -1,102 +1,93 @@
 /// <reference types="jest" />
-import {inactiveRecheckMs, watchAppState, type MobileAppState} from './watch-app-state'
+import {resetAllStores} from '@/util/zustand'
+import {useShellState} from '@/stores/shell'
+import {watchAppState} from './watch-app-state'
 
-const makeAppState = (currentState: string | null) => {
+const makeSource = (initial: string) => {
+  let state = initial
   let listener: ((state: string) => void) | undefined
-  const remove = jest.fn(() => {
+  const unsubscribe = jest.fn(() => {
     listener = undefined
   })
   return {
-    appState: {
-      addEventListener: (_type: 'change', l: (state: string) => void) => {
-        listener = l
-        return {remove}
-      },
-      currentState,
+    emit: (next: string) => {
+      state = next
+      listener?.(next)
     },
-    emit: (state: string) => listener?.(state),
-    remove,
+    source: {
+      current: () => state,
+      subscribe: (l: (state: string) => void) => {
+        listener = l
+        return unsubscribe
+      },
+    },
+    unsubscribe,
   }
 }
 
-beforeEach(() => {
-  jest.useFakeTimers()
-})
+const watchIntoStore = (source: Parameters<typeof watchAppState>[0]) =>
+  watchAppState(source, useShellState.getState().dispatch.setMobileAppState)
+
 afterEach(() => {
-  jest.useRealTimers()
+  resetAllStores()
+  useShellState.setState({mobileAppState: 'unknown'})
 })
 
-test('seeds from the current state when subscribing', () => {
-  const {appState} = makeAppState('active')
-  const states = new Array<MobileAppState>()
-  const stop = watchAppState({appState, onState: s => states.push(s)})
-  expect(states).toEqual(['active'])
+test('the store is seeded from the current native state', () => {
+  const {source} = makeSource('active')
+  const stop = watchIntoStore(source)
+  expect(useShellState.getState().mobileAppState).toBe('active')
   stop()
 })
 
-test('ignores states that are not app states', () => {
-  const {appState, emit} = makeAppState('unknown')
-  const states = new Array<MobileAppState>()
-  const stop = watchAppState({appState, onState: s => states.push(s)})
-  emit('extension')
-  emit('background')
-  expect(states).toEqual(['background'])
-  stop()
-})
+test('the store follows every native transition, including a return to a state it already had', () => {
+  const {emit, source} = makeSource('active')
+  const stop = watchIntoStore(source)
+  const seen = new Array<string>()
+  const unsub = useShellState.subscribe(s => seen.push(s.mobileAppState))
 
-test('a stale inactive seed converges to active once native reports it', () => {
-  const {appState} = makeAppState('inactive')
-  let nativeState = 'inactive'
-  const queryNativeAppState = jest.fn((onState: (s: string) => void) => onState(nativeState))
-  const states = new Array<MobileAppState>()
-  const stop = watchAppState({appState, onState: s => states.push(s), queryNativeAppState})
-  expect(states).toEqual(['inactive'])
-
-  jest.advanceTimersByTime(inactiveRecheckMs)
-  expect(queryNativeAppState).toHaveBeenCalledTimes(1)
-  expect(states).toEqual(['inactive'])
-
-  nativeState = 'active'
-  jest.advanceTimersByTime(inactiveRecheckMs)
-  expect(states).toEqual(['inactive', 'active'])
-
-  jest.advanceTimersByTime(inactiveRecheckMs * 10)
-  expect(queryNativeAppState).toHaveBeenCalledTimes(2)
-  stop()
-})
-
-test('a stale inactive change event converges too', () => {
-  const {appState, emit} = makeAppState('background')
-  const queryNativeAppState = jest.fn((onState: (s: string) => void) => onState('active'))
-  const states = new Array<MobileAppState>()
-  const stop = watchAppState({appState, onState: s => states.push(s), queryNativeAppState})
   emit('inactive')
-  jest.advanceTimersByTime(inactiveRecheckMs)
-  expect(states).toEqual(['background', 'inactive', 'active'])
-  stop()
-})
-
-test('a real change wins over a recheck that answers late', () => {
-  const {appState, emit} = makeAppState('inactive')
-  let answer: ((s: string) => void) | undefined
-  const queryNativeAppState = (onState: (s: string) => void) => {
-    answer = onState
-  }
-  const states = new Array<MobileAppState>()
-  const stop = watchAppState({appState, onState: s => states.push(s), queryNativeAppState})
-  jest.advanceTimersByTime(inactiveRecheckMs)
+  emit('active')
+  emit('inactive')
   emit('background')
-  answer?.('active')
-  expect(states).toEqual(['inactive', 'background'])
+  emit('inactive')
+  emit('active')
+
+  expect(seen).toEqual(['inactive', 'active', 'inactive', 'background', 'inactive', 'active'])
+  unsub()
   stop()
 })
 
-test('stopping removes the listener and pending rechecks', () => {
-  const {appState, remove} = makeAppState('inactive')
-  const queryNativeAppState = jest.fn()
-  const stop = watchAppState({appState, onState: () => {}, queryNativeAppState})
+test('a change between subscribing and seeding is not lost', () => {
+  const {emit, source} = makeSource('inactive')
+  const stop = watchAppState(
+    {
+      current: source.current,
+      // native changes while the listener is being registered, and the event misses it
+      subscribe: l => {
+        emit('active')
+        return source.subscribe(l)
+      },
+    },
+    useShellState.getState().dispatch.setMobileAppState
+  )
+  expect(useShellState.getState().mobileAppState).toBe('active')
   stop()
-  jest.advanceTimersByTime(inactiveRecheckMs * 4)
-  expect(queryNativeAppState).not.toHaveBeenCalled()
-  expect(remove).toHaveBeenCalled()
+})
+
+test('states that are not app states are ignored', () => {
+  const {emit, source} = makeSource('unknown')
+  const stop = watchIntoStore(source)
+  expect(useShellState.getState().mobileAppState).toBe('unknown')
+  emit('extension')
+  expect(useShellState.getState().mobileAppState).toBe('unknown')
+  emit('background')
+  expect(useShellState.getState().mobileAppState).toBe('background')
+  stop()
+})
+
+test('stopping unsubscribes from native', () => {
+  const {source, unsubscribe} = makeSource('active')
+  watchIntoStore(source)()
+  expect(unsubscribe).toHaveBeenCalled()
 })

@@ -1,7 +1,7 @@
 import * as Message from '@/constants/chat/message'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
-import {localServerURLKeys, shouldKeepEmojiURLs} from './local-server-urls'
+import {localServerURLKeys, shouldKeepEmojiURLs, unfurlKeepingLocalServerURLs} from './local-server-urls'
 import type {WritableDraft} from '@/util/zustand'
 
 type MessageLookup = Pick<T.Chat.Message, 'id' | 'ordinal'>
@@ -177,6 +177,12 @@ const mergeMessage = (
           if (key === 'reactions') {
             const old = (cur as Map<unknown, T.Chat.ReactionDesc>).get(k)
             ;(cur as Map<unknown, unknown>).set(k, reactionKeepingEmojiURLs(old, v as T.Chat.ReactionDesc))
+          } else if (key === 'unfurls') {
+            const old = (cur as Map<unknown, T.RPCChat.UIMessageUnfurlInfo>).get(k)
+            ;(cur as Map<unknown, unknown>).set(
+              k,
+              unfurlKeepingLocalServerURLs(old, v as T.RPCChat.UIMessageUnfurlInfo)
+            )
           } else {
             ;(cur as Map<unknown, unknown>).set(k, v)
           }

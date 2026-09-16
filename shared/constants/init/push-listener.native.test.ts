@@ -162,7 +162,6 @@ describe('live pushes', () => {
 describe('startup push', () => {
   const tapped = {
     'chat.newmessage': {convID, m: 'payload', t: 2, type: 'chat.newmessage'},
-    'chat.newmessageSilent_2': {c: convID, m: 'payload', t: 2, type: 'chat.newmessageSilent_2'},
     follow: {type: 'follow', username: 'testuser-mac'},
   }
 
@@ -186,15 +185,19 @@ describe('startup push', () => {
     expect(pushStore.usePushState.getState().pendingPushNotification).toBeUndefined()
   })
 
+  test('a tapped chat.newmessage for another account is kept pending for the account switch', async () => {
+    const {pushListener, pushStore} = load()
+    getInitialNotification = async () =>
+      Promise.resolve({...tapped['chat.newmessage'], uid: otherUid, userInteraction: true})
+    await expect(pushListener.getStartupDetailsFromInitialPush()).resolves.toBeUndefined()
+    const pending = pushStore.usePushState.getState().pendingPushNotification
+    expect(pending?.type).toBe('chat.newmessage')
+    expect(pending && 'forUid' in pending && pending.forUid).toBe(otherUid)
+  })
+
   test('tapped pushes pick the startup screen', async () => {
     const {pushListener} = load()
     getInitialNotification = async () => Promise.resolve({...tapped['chat.newmessage'], userInteraction: true})
-    await expect(pushListener.getStartupDetailsFromInitialPush()).resolves.toEqual({
-      startupConversation: convID,
-      startupPushPayload: 'payload',
-    })
-    getInitialNotification = async () =>
-      Promise.resolve({...tapped['chat.newmessageSilent_2'], userInteraction: true})
     await expect(pushListener.getStartupDetailsFromInitialPush()).resolves.toEqual({
       startupConversation: convID,
       startupPushPayload: 'payload',

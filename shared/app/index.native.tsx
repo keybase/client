@@ -5,7 +5,7 @@ import * as React from 'react'
 import Main from './main'
 import {KeyboardProvider} from 'react-native-keyboard-controller'
 import {ReducedMotionConfig, ReduceMotion} from 'react-native-reanimated'
-import {AppRegistry, AppState, Appearance, Platform, TurboModuleRegistry, type TurboModule} from 'react-native'
+import {AppRegistry, AppState, Appearance, Platform} from 'react-native'
 import {PortalProvider} from '@/common-adapters/portal.native'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {makeEngine} from '../engine'
@@ -15,12 +15,12 @@ import {Image as ExpoImage} from 'expo-image'
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
 import {useUnmountAll} from '@/util/debug-react'
-import {darkModeSupported, guiConfig} from 'react-native-kb'
+import {darkModeSupported, guiConfig, iosGetAppState, iosOnAppStateChange} from 'react-native-kb'
 import * as DarkMode from '@/stores/darkmode'
 import {colors, darkColors} from '@/styles/colors'
 import {initPlatformListener, onEngineConnected, onEngineDisconnected, onEngineIncoming} from '@/constants/init/index'
 import logger from '@/logger'
-import {watchAppState, type QueryNativeAppState} from './watch-app-state'
+import {watchAppState, type AppStateSource} from './watch-app-state'
 
 logger.info('INIT App index module load')
 
@@ -57,18 +57,23 @@ const initDarkMode = () => {
   } catch {}
 }
 
-type NativeAppStateSpec = {
-  getCurrentAppState: (onSuccess: (s: {app_state: string}) => void, onError: (e: unknown) => void) => void
-}
-const nativeAppState = TurboModuleRegistry.get<NativeAppStateSpec & TurboModule>('AppState')
-const queryNativeAppState: QueryNativeAppState | undefined = nativeAppState
-  ? onState => {
-      nativeAppState.getCurrentAppState(
-        s => onState(s.app_state),
-        () => onState('unknown')
-      )
+// UIApplication.applicationState lags under iOS scenes, so RN's AppState can sit at inactive while
+// the app is active; iOS reports the scene state itself. Android has no such lag.
+const appStateSource: AppStateSource = isIOS
+  ? {
+      current: iosGetAppState,
+      subscribe: listener => {
+        const sub = iosOnAppStateChange(listener)
+        return () => sub.remove()
+      },
     }
-  : undefined
+  : {
+      current: () => AppState.currentState,
+      subscribe: listener => {
+        const sub = AppState.addEventListener('change', listener)
+        return () => sub.remove()
+      },
+    }
 
 const useDarkHookup = () => {
   const appStateRef = React.useRef('active')
@@ -76,16 +81,12 @@ const useDarkHookup = () => {
   const setMobileAppState = useShellState(s => s.dispatch.setMobileAppState)
 
   React.useEffect(() => {
-    const stopWatchingAppState = watchAppState({
-      appState: AppState,
-      onState: nextAppState => {
-        appStateRef.current = nextAppState
-        setMobileAppState(nextAppState)
-        if (nextAppState === 'active') {
-          setSystemDarkMode(Appearance.getColorScheme() === 'dark')
-        }
-      },
-      queryNativeAppState,
+    const stopWatchingAppState = watchAppState(appStateSource, nextAppState => {
+      appStateRef.current = nextAppState
+      setMobileAppState(nextAppState)
+      if (nextAppState === 'active') {
+        setSystemDarkMode(Appearance.getColorScheme() === 'dark')
+      }
     })
 
     // only watch dark changes if in foreground due to ios calling this to take snapshots

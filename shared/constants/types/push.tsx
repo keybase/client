@@ -12,7 +12,6 @@ export type PushNotification =
       membersType: RPCChatTypes.ConversationMembersType
       type: 'chat.newmessageSilent_2'
       unboxPayload: string
-      userInteraction: boolean
     }
   | {
       conversationIDKey: ChatTypes.ConversationIDKey
