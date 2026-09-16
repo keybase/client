@@ -13,8 +13,8 @@ import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
 import {hexToUint8Array} from '@/util/uint8array'
 import {hideConversation, joinConversation, muteConversation} from '../status-actions'
 import {useConversationMarkAsUnread, useConversationMetadata} from '../data-hooks'
-import {useInboxRowIsPinned, useInboxRowIsTopPinned} from '@/chat/inbox/rows-state'
-import {setConversationPinned} from '@/chat/inbox/pinned-convs'
+import {useInboxPinnedCount, useInboxRowIsPinned, useInboxRowIsTopPinned} from '@/chat/inbox/rows-state'
+import {maxPinnedConvs, setConversationPinned} from '@/chat/inbox/pinned-convs'
 
 const isHexBytes = (s: string) => s.length > 0 && s.length % 2 === 0 && /^[0-9a-fA-F]+$/.test(s)
 
@@ -104,6 +104,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
 
   const isPinned = useInboxRowIsPinned(conversationIDKey)
   const isTopPinned = useInboxRowIsTopPinned(conversationIDKey)
+  const atPinLimit = useInboxPinnedCount() >= maxPinnedConvs
 
   const {yourOperations} = useChatTeam(teamID, teamname)
   const {dismiss: dismissManageChannelsBadge, showBadge: badgeSubscribe} = useChatManageChannelsBadge(
@@ -317,9 +318,11 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
       } as const)
     } else {
       pinItems.push({
+        disabled: atPinLimit,
         icon: 'iconfont-pin',
         iconIsVisible: false,
         onClick: () => setConversationPinned(conversationIDKey, true),
+        subTitle: atPinLimit ? `You can pin up to ${maxPinnedConvs} conversations` : undefined,
         title: 'Pin to top',
       } as const)
     }

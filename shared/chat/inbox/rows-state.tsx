@@ -260,6 +260,9 @@ export const useInboxRowIsPinned = (id: string): boolean =>
 export const useInboxRowIsTopPinned = (id: string): boolean =>
   useInboxLayoutState(s => s.layout?.smallTeams?.find(r => r.isPinned)?.convID === id)
 
+export const useInboxPinnedCount = (): number =>
+  useInboxLayoutState(s => s.layout?.smallTeams?.reduce((n, r) => (r.isPinned ? n + 1 : n), 0) ?? 0)
+
 export const useInboxRowBig = (id: string): InboxRowBig => {
   const meta = useInboxMetadataState(
     useShallow((s): BigRowMeta => {

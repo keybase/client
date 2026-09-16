@@ -5,6 +5,8 @@ import {bodyToJSON} from '@/constants/rpc-utils'
 import {useInboxLayoutState} from './layout-state'
 
 export const pinnedConvsGregorKey = 'chatPinnedConvs'
+// The whole list is stored in one gregor item, so keep it bounded.
+export const maxPinnedConvs = 25
 
 type GregorItems = T.RPCGen.Gregor1.State['items']
 
@@ -29,6 +31,14 @@ export const pinToTop = (list: ReadonlyArray<string>, id: string) => [id, ...lis
 
 export const unpin = (list: ReadonlyArray<string>, id: string) => list.filter(i => i !== id)
 
+// Returns undefined when pinning a new conversation would exceed maxPinnedConvs. The menu
+// disables pinning at the limit, but it reads the layout, which can lag a quick write.
+export const nextPinnedList = (list: ReadonlyArray<string>, id: string, pinned: boolean) => {
+  if (!pinned) return unpin(list, id)
+  if (!list.includes(id) && list.length >= maxPinnedConvs) return undefined
+  return pinToTop(list, id)
+}
+
 // Chained onto so two quick pin/unpin clicks run one after another, each reading the list the
 // previous write produced, instead of both racing off the same stale snapshot.
 let pinChain: Promise<void> = Promise.resolve()
@@ -47,7 +57,11 @@ const doSetConversationPinned = async (id: T.Chat.ConversationIDKey, pinned: boo
   const current = getPinnedConvIDs(items)
   const smallTeams = useInboxLayoutState.getState().layout?.smallTeams
   const pruned = pruneToLayout(current, smallTeams)
-  const next = pinned ? pinToTop(pruned, id) : unpin(pruned, id)
+  const next = nextPinnedList(pruned, id, pinned)
+  if (!next) {
+    logger.warn(`setConversationPinned: already at ${maxPinnedConvs} pinned convs`)
+    return
+  }
   try {
     await T.RPCGen.gregorUpdateCategoryRpcPromise({
       body: JSON.stringify(next),
