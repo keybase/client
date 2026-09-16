@@ -1,0 +1,22 @@
+packaging/linux/docker/Dockerfile
+  s_21e5cd80401a8a::t_9da1064d067052 10-11,14-16,22-24
+packaging/linux/Dockerfile
+  s_21e5cd80401a8a::t_c6bec6ed5b5556 16-19,22-24,30-32
+  s_21e5cd80401a8a::t_66603b77f1fd28 2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "77048ef0b9140ec797c4dbf3f57a74437e290c08",
+  "prompts": {},
+  "sessions": {
+    "s_21e5cd80401a8a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "cc0de42f-5c29-4dfb-a193-94eb6357fba9",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
