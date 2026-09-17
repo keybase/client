@@ -52,8 +52,8 @@ func (s *outboxBaseboxStorage) readStorage(ctx context.Context) (res diskOutbox,
 	} else {
 		found, ierr := s.readDiskBox(ctx, s.dbKey(), &res)
 		if ierr != nil {
-			if _, ok := ierr.(libkb.LoginRequiredError); ok {
-				return res, MiscError{Msg: ierr.Error()}
+			if mapped := mapEncryptedDBError(ierr); mapped != nil {
+				return res, mapped
 			}
 			return res, NewInternalError(ctx, s.DebugLabeler, "failure to read chat outbox: %s", ierr)
 		}

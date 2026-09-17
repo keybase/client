@@ -932,3 +932,57 @@ func TestUpdateLocalMtime(t *testing.T) {
 	require.Equal(t, mtime1, convs[0].GetMtime())
 	require.Equal(t, mtime2, convs[1].GetMtime())
 }
+
+func TestInboxDecryptFailIsMissNotNuke(t *testing.T) {
+	tc, inbox, uidA := setupInboxTest(t, "decmiss")
+	defer tc.Cleanup()
+
+	conv := makeConvo(gregor1.Time(1), 1, 1)
+	require.NoError(t, inbox.Merge(context.TODO(), uidA, 7, []chat1.Conversation{conv.Conv}, nil))
+
+	_, found, err := tc.G.LocalChatDb.GetRaw(inbox.dbVersionsKey(uidA))
+	require.NoError(t, err)
+	require.True(t, found)
+
+	_, err = kbtest.CreateAndSignupFakeUser("ib", tc.G)
+	require.NoError(t, err)
+
+	inboxMemCache.Clear(uidA)
+	_, _, err = inbox.Read(context.TODO(), uidA, nil)
+	require.Error(t, err)
+	require.IsType(t, MissError{}, err)
+
+	_, found, err = tc.G.LocalChatDb.GetRaw(inbox.dbVersionsKey(uidA))
+	require.NoError(t, err)
+	require.True(t, found, "wrong-user decrypt must not delete inbox versions")
+}
+
+func TestInboxMemCacheClearOnlyUID(t *testing.T) {
+	uidA := gregor1.UID([]byte("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"))
+	uidB := gregor1.UID([]byte("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"))
+	convA := makeConvo(gregor1.Time(1), 1, 1)
+	convB := makeConvo(gregor1.Time(2), 1, 1)
+	inboxMemCache.PutConv(uidA, convA)
+	inboxMemCache.PutConv(uidB, convB)
+	inboxMemCache.Clear(uidA)
+	require.Nil(t, inboxMemCache.GetConv(uidA, convA.GetConvID()))
+	require.NotNil(t, inboxMemCache.GetConv(uidB, convB.GetConvID()))
+	inboxMemCache.clearCache()
+}
+
+func TestInboxClearLockedIndexErrorKeepsVersions(t *testing.T) {
+	tc, inbox, uid := setupInboxTest(t, "clridx")
+	defer tc.Cleanup()
+
+	conv := makeConvo(gregor1.Time(1), 1, 1)
+	require.NoError(t, inbox.Merge(context.TODO(), uid, 3, []chat1.Conversation{conv.Conv}, nil))
+	require.NoError(t, tc.G.LocalChatDb.PutRaw(inbox.dbIndexKey(uid), []byte("not-a-box")))
+	inboxMemCache.Clear(uid)
+
+	err := inbox.clearLocked(context.TODO(), uid)
+	require.Error(t, err)
+
+	_, found, gerr := tc.G.LocalChatDb.GetRaw(inbox.dbVersionsKey(uid))
+	require.NoError(t, gerr)
+	require.True(t, found, "clearLocked must not delete versions when the index cannot be read")
+}

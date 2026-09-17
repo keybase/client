@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -40,6 +41,19 @@ func (i *baseBox) readDiskBox(ctx context.Context, key libkb.DbKey, res any) (bo
 
 func (i *baseBox) writeDiskBox(ctx context.Context, key libkb.DbKey, data any) error {
 	return i.encryptedDB.Put(ctx, key, data)
+}
+
+func mapEncryptedDBError(err error) Error {
+	if err == nil {
+		return nil
+	}
+	if _, ok := err.(libkb.LoginRequiredError); ok {
+		return MiscError{Msg: err.Error()}
+	}
+	if errors.Is(err, encrypteddb.ErrDecryptionFailed) {
+		return MissError{Msg: "decryption failed"}
+	}
+	return nil
 }
 
 func (i *baseBox) maybeNuke(err Error, key libkb.DbKey) {
