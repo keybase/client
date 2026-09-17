@@ -55,10 +55,6 @@ func (c Tuxbot) ACL() access.ACL {
 	return c.acl
 }
 
-func (c Tuxbot) WarnOnCrash() bool {
-	return false
-}
-
 func makeCmd(currentUser *user.User, proc string, args ...string) *exec.Cmd {
 	cmd := exec.Command(proc, args...)
 	cmd.Dir = filepath.Join(currentUser.HomeDir, "client")
