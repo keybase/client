@@ -14,7 +14,9 @@ export type BootstrapStep = () => Promise<void>
 export class FatalHandshakeError extends Error {}
 
 type Store = T.Immutable<{
-  bootstrapStatus?: T.RPCGen.BootstrapStatus
+  // without the version: that only orders this read against the login, logout and http server
+  // notifications, and keeping it would make every read after one of those look like a change
+  bootstrapStatus?: Omit<T.RPCGen.BootstrapStatus, 'version'>
   error?: Error
   handshakeFailedReason: string
   /** counts handshakes, so consumers can tell one reconnect from the next */
@@ -44,6 +46,8 @@ export type State = Store & {
 }
 
 const retryDelayMs = 1000
+// the initial read plus two retries; a status that keeps losing to newer logins or logouts is dropped
+const maxStaleSnapshotReads = 3
 
 export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
   let bootstrapSteps: Array<BootstrapStep> = []
@@ -63,23 +67,30 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
       const gen = generation
       const f = async () => {
         const configDispatch = useConfigState.getState().dispatch
-        const httpSrvReadStartedAt = configDispatch.startHTTPSrvInfoRead()
-        const bs = await T.RPCGen.configGetBootstrapStatusRpcPromise()
-        logger.info(
-          `[Bootstrap] loggedIn: ${bs.loggedIn ? 1 : 0} http: ${bs.httpSrvInfo ? bs.httpSrvInfo.address : 'none'}`
-        )
-        // applied here rather than from bootstrapStatus: the address has its own ordering, and a
-        // status that is skipped below or later edited in place must not skip or replay it
-        if (bs.httpSrvInfo) {
-          configDispatch.setHTTPSrvInfo(bs.httpSrvInfo.address, bs.httpSrvInfo.token, httpSrvReadStartedAt)
-        }
-        // a newer handshake owns the store now; don't write a potentially older status over its load
-        if (gen !== generation || isEqual(bs, get().bootstrapStatus)) {
+        for (let read = 1; read <= maxStaleSnapshotReads; read++) {
+          const {version, ...bs} = await T.RPCGen.configGetBootstrapStatusRpcPromise()
+          logger.info(
+            `[Bootstrap] loggedIn: ${bs.loggedIn ? 1 : 0} http: ${bs.httpSrvInfo ? bs.httpSrvInfo.address : 'none'} version: ${version}`
+          )
+          // applied here rather than from bootstrapStatus: the address has its own ordering, and a
+          // status that is skipped below or later edited in place must not skip or replay it
+          if (bs.httpSrvInfo) {
+            configDispatch.setHTTPSrvInfo(bs.httpSrvInfo.address, bs.httpSrvInfo.token, version)
+          }
+          if (!configDispatch.acceptSessionSnapshot(version)) {
+            logger.info('[Bootstrap] a login or logout is newer than this status, reading it again')
+            continue
+          }
+          // a newer handshake owns the store now; don't write a potentially older status over its load
+          if (gen !== generation || isEqual(bs, get().bootstrapStatus)) {
+            return
+          }
+          set(s => {
+            s.bootstrapStatus = T.castDraft(bs)
+          })
           return
         }
-        set(s => {
-          s.bootstrapStatus = T.castDraft(bs)
-        })
+        logger.warn('[Bootstrap] the status kept losing to newer logins or logouts, not applying it')
       }
       const p = f()
       inflightBootstrapStatus = p

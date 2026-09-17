@@ -91,6 +91,10 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
+    // a login or logout notification: applied only if it is newer than the last applied one
+    acceptSessionVersion: (version: number) => boolean
+    // a bootstrap status: applied unless a login or logout notification is newer
+    acceptSessionSnapshot: (version: number) => boolean
     checkForUpdate: () => void
     initAppUpdateLoop: () => void
     installerRan: () => void
@@ -113,28 +117,30 @@ export type State = Store & {
     setDefaultUsername: (u: string) => void
     setGlobalError: (e?: unknown) => void
     setGregorReachable: (r: Store['gregorReachable']) => void
-    // readStartedAt: from startHTTPSrvInfoRead, for a value read through an RPC; omit for a live notification
-    setHTTPSrvInfo: (address: string, token: string, readStartedAt?: number) => void
+    setHTTPSrvInfo: (address: string, token: string, version: number) => void
     setJustDeletedSelf: (s: string) => void
     setLoggedIn: (l: boolean) => void
     setStartupDetails: (st: Omit<Store['startup'], 'loaded'>) => void
     setOutOfDate: (outOfDate: T.Config.OutOfDate) => void
     setUpdating: () => void
     setUserSwitching: (sw: boolean) => void
-    startHTTPSrvInfoRead: () => number
     toggleRuntimeStats: () => void
     updateGregorCategory: (category: string, body: string, dtime?: {offset: number; time: number}) => void
   }
 }
 
+// Below every version the service can hand out: it can hand out 0, because the http server
+// starts before the notify router exists and its first update stamps nothing.
+const noVersionApplied = -1
+
 export const useConfigState = Z.createZustand<State>('config', (set, get) => {
   let inflightRefreshAccounts: Promise<void> | undefined
-  // The http server can move (new port) at any time and says so with HTTPSrvInfoUpdate, while
-  // a bootstrap status read can take seconds. Every source is stamped with when its value was
-  // observed (a notification when it arrives, an RPC read when it starts) and only a stamp newer
-  // than the applied one wins, so a read that started before a notification can't undo it.
-  let httpSrvClock = 0
-  let httpSrvAppliedAt = 0
+  // The http server address and the session change at any time and say so with versioned
+  // notifications, while a bootstrap status read can take seconds. The service stamps both from
+  // one counter, so only a newer version wins. A new engine connection may be a restarted
+  // service, so both start over.
+  let httpSrvVersion = noVersionApplied
+  let sessionVersion = noVersionApplied
 
   const _checkForUpdate = async () => {
     try {
@@ -194,6 +200,16 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
   }
 
   const dispatch: State['dispatch'] = {
+    acceptSessionSnapshot: version => {
+      if (version < sessionVersion) return false
+      sessionVersion = version
+      return true
+    },
+    acceptSessionVersion: version => {
+      if (version <= sessionVersion) return false
+      sessionVersion = version
+      return true
+    },
     checkForUpdate: () => {
       const f = async () => {
         await _checkForUpdate()
@@ -324,6 +340,9 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       ignorePromise(f())
     },
     onEngineConnected: () => {
+      // this may be a restarted service, whose versions start over
+      httpSrvVersion = noVersionApplied
+      sessionVersion = noVersionApplied
       // An engine reset drops in-flight RPCs without settling their promises; a refresh
       // caught by that would poison the dedupe cache forever
       inflightRefreshAccounts = undefined
@@ -380,13 +399,18 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
           break
         }
         case 'keybase.1.NotifyService.HTTPSrvInfoUpdate': {
-          get().dispatch.setHTTPSrvInfo(action.payload.params.info.address, action.payload.params.info.token)
+          const {info, version} = action.payload.params
+          get().dispatch.setHTTPSrvInfo(info.address, info.token, version)
           break
         }
         case 'keybase.1.NotifySession.loggedIn': {
           logger.info('keybase.1.NotifySession.loggedIn')
-          // only send this if we think we're not logged in
           const {loggedIn, dispatch} = get()
+          if (!dispatch.acceptSessionVersion(action.payload.params.version)) {
+            logger.info('keybase.1.NotifySession.loggedIn: older than the applied session, ignoring')
+            break
+          }
+          // only send this if we think we're not logged in
           if (!loggedIn) {
             dispatch.setLoggedIn(true)
           }
@@ -395,6 +419,10 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         case 'keybase.1.NotifySession.loggedOut': {
           logger.info('keybase.1.NotifySession.loggedOut')
           const {loggedIn, dispatch} = get()
+          if (!dispatch.acceptSessionVersion(action.payload.params.version)) {
+            logger.info('keybase.1.NotifySession.loggedOut: older than the applied session, ignoring')
+            break
+          }
           // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
           if (loggedIn) {
             dispatch.setLoggedIn(false)
@@ -536,12 +564,12 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
     setGregorReachable: r => {
       setGregorReachable(r)
     },
-    setHTTPSrvInfo: (address, token, readStartedAt = ++httpSrvClock) => {
-      if (readStartedAt <= httpSrvAppliedAt) {
-        logger.info(`[HTTPSrv] ignoring ${address}: read before a newer value`)
+    setHTTPSrvInfo: (address, token, version) => {
+      if (version <= httpSrvVersion) {
+        logger.info(`[HTTPSrv] ignoring ${address}: version ${version} is not newer`)
         return
       }
-      httpSrvAppliedAt = readStartedAt
+      httpSrvVersion = version
       set(s => {
         s.httpSrv.address = address
         s.httpSrv.token = token
@@ -595,7 +623,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         s.userSwitching = sw
       })
     },
-    startHTTPSrvInfoRead: () => ++httpSrvClock,
     toggleRuntimeStats: () => {
       const f = async () => {
         await T.RPCGen.configToggleRuntimeStatsRpcPromise()

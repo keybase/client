@@ -242,21 +242,6 @@ const onNavStateChanged =(nextNavState: RouterState['navState'], previousNavStat
   onChatRouteChanged(prev, next)
 }
 
-// An HTTPSrvInfoUpdate sent before the service subscription took effect never reached us, and
-// the handshake's bootstrap read may have started before it too, so read the address once more.
-const refreshHTTPSrvInfo = async () => {
-  const {dispatch} = useConfigState.getState()
-  const readStartedAt = dispatch.startHTTPSrvInfoRead()
-  try {
-    const {httpSrvInfo} = await T.RPCGen.configGetBootstrapStatusRpcPromise()
-    if (httpSrvInfo) {
-      dispatch.setHTTPSrvInfo(httpSrvInfo.address, httpSrvInfo.token, readStartedAt)
-    }
-  } catch (error) {
-    logger.warn('[HTTPSrv] refresh failed: ', error)
-  }
-}
-
 export const onEngineConnected = () => {
   {
     const registerUIs = async () => {
@@ -279,9 +264,8 @@ export const onEngineConnected = () => {
     ignorePromise(registerUIs())
   }
   useConfigState.getState().dispatch.onEngineConnected()
-  useDaemonState.getState().dispatch.startHandshake()
   {
-    const notifyCtl = async () => {
+    const subscribeThenHandshake = async () => {
       try {
         // prettier-ignore
         await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
@@ -298,11 +282,12 @@ export const onEngineConnected = () => {
         if (error) {
           logger.warn('error in toggling notifications: ', error)
         }
-        return
       }
-      await refreshHTTPSrvInfo()
+      // The handshake's bootstrap read must come after the subscription: a login, logout or
+      // http server change announced between them would reach nobody.
+      useDaemonState.getState().dispatch.startHandshake()
     }
-    ignorePromise(notifyCtl())
+    ignorePromise(subscribeThenHandshake())
   }
 }
 

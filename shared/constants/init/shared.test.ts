@@ -77,12 +77,7 @@ describe('onEngineConnected', () => {
     resetAllStores()
   })
 
-  test('reads the http server address again once the service subscription is in place', async () => {
-    useConfigState.setState(s => {
-      s.httpSrv = {address: '127.0.0.1:1000', token: 'token'}
-      s.dispatch = {...originalConfigDispatch, onEngineConnected: () => {}}
-    })
-    useDaemonState.setState({dispatch: {...originalDaemonDispatch, startHandshake: () => {}}})
+  const stubRegistrations = () => {
     for (const rpc of [
       'delegateUiCtlRegisterChatUIRpcPromise',
       'delegateUiCtlRegisterLogUIRpcPromise',
@@ -93,25 +88,43 @@ describe('onEngineConnected', () => {
     ] as const) {
       jest.spyOn(T.RPCGen, rpc).mockResolvedValue(undefined)
     }
+    useConfigState.setState(s => {
+      s.dispatch = {...originalConfigDispatch, onEngineConnected: () => {}}
+    })
+  }
+
+  test('the handshake starts only once the notification subscription resolves', async () => {
+    stubRegistrations()
+    const startHandshake = jest.fn()
+    useDaemonState.setState({dispatch: {...originalDaemonDispatch, startHandshake}})
     let subscribed!: () => void
     jest.spyOn(T.RPCGen, 'notifyCtlSetNotificationsRpcPromise').mockReturnValue(
       new Promise<void>(resolve => {
         subscribed = resolve
       })
     )
-    const bootstrap = jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue({
-      httpSrvInfo: {address: '127.0.0.1:2000', token: 'token'},
-      loggedIn: true,
-    } as T.RPCGen.BootstrapStatus)
 
     onEngineConnected()
     await Promise.resolve()
-    expect(bootstrap).not.toHaveBeenCalled()
+    expect(startHandshake).not.toHaveBeenCalled()
 
     subscribed()
     await new Promise(resolve => setImmediate(resolve))
 
-    expect(bootstrap).toHaveBeenCalledTimes(1)
-    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:2000')
+    expect(startHandshake).toHaveBeenCalledTimes(1)
+  })
+
+  test('the handshake still starts when the subscription fails', async () => {
+    stubRegistrations()
+    const startHandshake = jest.fn()
+    useDaemonState.setState({dispatch: {...originalDaemonDispatch, startHandshake}})
+    jest
+      .spyOn(T.RPCGen, 'notifyCtlSetNotificationsRpcPromise')
+      .mockRejectedValue(new Error('no notifications'))
+
+    onEngineConnected()
+    await new Promise(resolve => setImmediate(resolve))
+
+    expect(startHandshake).toHaveBeenCalledTimes(1)
   })
 })
