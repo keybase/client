@@ -283,6 +283,7 @@ func (r *ChatArchiveRegistry) Stop(ctx context.Context) chan struct{} {
 			r.Debug(ctx, err.Error())
 		}
 		r.started = false
+		r.uid = nil
 		close(r.stopCh)
 		go func() {
 			r.Debug(context.Background(), "Stop: waiting for shutdown")

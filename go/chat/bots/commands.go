@@ -122,6 +122,7 @@ func (b *CachingBotCommandManager) Stop(ctx context.Context) chan struct{} {
 	if b.started {
 		close(b.stopCh)
 		b.started = false
+		b.uid = nil
 		go func() {
 			err := b.eg.Wait()
 			if err != nil {

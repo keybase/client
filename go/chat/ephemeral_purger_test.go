@@ -378,11 +378,11 @@ func TestQueueState(t *testing.T) {
 	purger := NewBackgroundEphemeralPurger(g)
 	purger.SetClock(world.Fc)
 	purger.Start(context.Background(), uid)
-	<-purger.Stop(context.Background())
+	defer func() { <-purger.Stop(context.Background()) }()
 
+	require.Equal(t, 0, purger.Len())
 	pq := purger.pq
 	require.NotNil(t, pq)
-	require.Zero(t, pq.Len())
 	require.Nil(t, pq.Peek())
 
 	now := world.Fc.Now()
