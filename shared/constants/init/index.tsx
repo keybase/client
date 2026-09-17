@@ -66,6 +66,24 @@ const ensureBackgroundTask = (ExpoTaskManager: ExpoTaskManagerModule) => {
   })
 }
 
+// Builds from before iOS watched location natively left this expo task registered, and expo
+// restores it on every launch into a second CLLocationManager (expo-location's
+// EXLocationTaskConsumer didRegisterTask), so remove it. JS is early enough to do it: nothing
+// here registers a UMAppLoader, so expo's EXTaskService can never start JS for a restored task
+// on a background launch (expo-task-manager EXTaskService.m `_loadAppWithId:appUrl:`).
+export const unregisterLegacyIOSLocationTask = async () => {
+  if (!isIOS) return
+  const {ExpoTaskManager} = _getNative()
+  try {
+    if (await ExpoTaskManager.isTaskRegisteredAsync(locationTaskName)) {
+      await ExpoTaskManager.unregisterTaskAsync(locationTaskName)
+      logger.info('[location] removed the legacy iOS background location task')
+    }
+  } catch (error) {
+    logger.info('[location] failed to remove the legacy iOS background location task: ' + String(error))
+  }
+}
+
 const setPermissionDeniedCommandStatus = (conversationIDKey: T.Chat.ConversationIDKey, text: string) => {
   setThreadInputCommandStatus(conversationIDKey, {
     actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
@@ -465,6 +483,8 @@ const _initNativePlatformListener = () => {
   ignorePromise(loadStartupDetails())
 
   _platformUnsubs.push(...initPushListener())
+
+  ignorePromise(unregisterLegacyIOSLocationTask())
 
   const {NetInfo} = _getNative()
   _platformUnsubs.push(

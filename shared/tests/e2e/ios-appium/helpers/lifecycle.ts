@@ -296,6 +296,11 @@ export const metroClientLogSince = (mark: LogMark): Array<string> =>
     })
     .filter(Boolean)
 
+// Metro's bundle requests since the mark. A JS runtime that starts against a dev server always
+// asks for a bundle, so this catches a JS start whose own logging never reached client_log.
+export const metroBundlingStartedSince = (mark: LogMark): Array<string> =>
+  linesSince(mark).filter(l => l.includes('"metro:bundling:started"'))
+
 export const findLines = (lines: Array<string>, re: RegExp) => lines.filter(l => re.test(l))
 
 // Waits until `read` yields a line matching every pattern, in order. Returns the matched lines.

@@ -150,14 +150,6 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                     }
 
 
-                    val isReactNativeRunning = try {
-                        com.reactnativekb.KbModule.isReactNativeRunning()
-                    } catch (e: Exception) {
-                        NativeLogger.info("KeybasePushNotificationListenerService couldn't check if React Native is running: ${e.message}, assuming not")
-                        false
-                    }
-                    NativeLogger.info("KeybasePushNotificationListenerService isReactNativeRunning: $isReactNativeRunning")
-
                     val isForeground = try {
                         Keybase.isAppStateForeground()
                     } catch (e: Exception) {

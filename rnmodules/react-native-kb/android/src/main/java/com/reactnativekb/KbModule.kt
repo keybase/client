@@ -780,11 +780,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
 
         @JvmStatic
-        fun isReactNativeRunning(): Boolean {
-            return instance != null
-        }
-
-        @JvmStatic
         fun emitShareData(data: WritableMap) {
             val module = instance
             if (module == null) {

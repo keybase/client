@@ -29,6 +29,14 @@ const load = (platform: 'ios' | 'android'): typeof Init => {
         defineTask: () => {
           calls.push('defineTask')
         },
+        isTaskRegisteredAsync: async () => {
+          calls.push('isTaskRegistered')
+          return Promise.resolve(true)
+        },
+        unregisterTaskAsync: async () => {
+          calls.push('unregisterTask')
+          return Promise.resolve()
+        },
       },
       requestLocationPermission: async (perm: unknown) => {
         calls.push(`requestPermission:${String(perm)}`)
@@ -100,4 +108,18 @@ test('Android asks for permission and runs the expo location task', async () => 
     'startLocationUpdates',
     'stopLocationUpdates',
   ])
+})
+
+test('iOS removes the legacy expo background location task', async () => {
+  const init = load('ios')
+  await init.unregisterLegacyIOSLocationTask()
+
+  expect(calls).toEqual(['isTaskRegistered', 'unregisterTask'])
+})
+
+test('Android keeps its expo background location task', async () => {
+  const init = load('android')
+  await init.unregisterLegacyIOSLocationTask()
+
+  expect(calls).toEqual([])
 })
