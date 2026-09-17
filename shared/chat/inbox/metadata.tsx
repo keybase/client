@@ -15,7 +15,8 @@ import logger from '@/logger'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {RPCError} from '@/util/errors'
 import * as Z from '@/util/zustand'
-import {useConfigState} from '@/stores/config'
+import {useConfigState, isChatSessionReady} from '@/stores/config'
+import {withChatSessionRetry} from './session-rpc'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 
@@ -405,7 +406,7 @@ async function runMetaQueueWorker(generation: number) {
 
 const requestInboxUnboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, force: boolean) => {
   const f = async () => {
-    if (!useConfigState.getState().loggedIn) {
+    if (!isChatSessionReady()) {
       return
     }
 
@@ -431,9 +432,11 @@ const requestInboxUnboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, for
       `unboxRows: unboxing len: ${conversationIDKeys.length} convs: ${conversationIDKeys.join(',')}`
     )
     try {
-      await T.RPCChat.localRequestInboxUnboxRpcPromise({
-        convIDs: conversationIDKeys.map(k => T.Chat.keyToConversationID(k)),
-      })
+      await withChatSessionRetry(async () =>
+        T.RPCChat.localRequestInboxUnboxRpcPromise({
+          convIDs: conversationIDKeys.map(k => T.Chat.keyToConversationID(k)),
+        })
+      )
     } catch (error) {
       if (error instanceof RPCError) {
         logger.info(`unboxRows: failed ${error.desc}`)
