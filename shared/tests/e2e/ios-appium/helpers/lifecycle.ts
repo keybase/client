@@ -3,7 +3,9 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import {udidForName} from './app'
-import {escapeToTabs, navigateToChat} from './navigate'
+import * as T from '../../shared/test-ids'
+import {waitForTestID} from './elements'
+import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 
 // Lifecycle flows assert on state and logs, never on screenshots:
 // - JS state is read from the running app through the Metro inspector (Runtime.evaluate).
@@ -477,6 +479,11 @@ export const openSelfConversation = async (username: string) => {
     },
     {interval: 500, timeout: 20000}
   )
+  // JS names the screen before the native push lands. Until it does, the tab root still looks
+  // current, so a reset right after this would skip popping the conversation and leave the tab
+  // bar hidden under it. iPad's split view never shows a back button here, hence the catch.
+  await waitForTestID(T.CHAT_INPUT, 10000)
+  await browser.waitUntil(async () => !(await atTabs()), {interval: 150, timeout: 5000}).catch(() => {})
   return convID
 }
 

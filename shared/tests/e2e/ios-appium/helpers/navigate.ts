@@ -62,7 +62,7 @@ export async function tapSettingsRow(text: string): Promise<void> {
 // True once we're at the root of a tab. The tab bar alone isn't proof: on iPad
 // it stays visible inside pushed stack screens, so also require that no back
 // button (app-custom or native) is present.
-async function atTabs(): Promise<boolean> {
+export async function atTabs(): Promise<boolean> {
   if (browser.isAndroid) {
     // tab() scopes to the native BottomNavigationView's label resource-ids with
     // EXACT text — a looser contains-match gets fooled by screen content (the
