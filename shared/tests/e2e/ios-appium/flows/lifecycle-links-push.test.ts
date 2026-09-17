@@ -41,6 +41,23 @@ const waitForScreen = async (what: string, match: (s: Awaited<ReturnType<typeof 
 const waitForBackground = async (goMark: ReturnType<typeof goLogMark>) =>
   waitForLinesInOrder('the app to enter the background', () => goLogSince(goMark), [/lifecycle: didEnterBackground: /])
 
+// Terminating right after navigating can leave the previous screen as the route the app saves
+// and restores on launch (routes are saved on a delay, and on backgrounding). Leaving on People
+// and backgrounding first makes a cold launch that opens a conversation prove the launch
+// input (link or push) did it, not the restored route.
+const terminateFromPeople = async () => {
+  await escapeToTabs()
+  await navigateToPeople()
+  const goMark = goLogMark()
+  const metroMark = metroLogMark()
+  await backgroundApp()
+  await waitForBackground(goMark)
+  await waitForLinesInOrder('JS to see the background', () => metroClientLogSince(metroMark), [
+    /app focus changed: background$/,
+  ])
+  await terminateApp()
+}
+
 const onProfile = (s: Awaited<ReturnType<typeof appSnapshot>>['screen']) =>
   s?.name === 'profile' && s.params?.['username'] === profileLink.username
 
@@ -67,17 +84,8 @@ describe('app lifecycle: deep links', () => {
   it('opens a deep link that launches the app', async () => {
     const user = requireSmokeUser()
     await waitForAppState('active')
-    const metroMark0 = metroLogMark()
     const convID = await openSelfConversation(user)
-    // Leave on People and background once, so the route the app saves and would restore on
-    // launch is not the conversation the link opens.
-    await escapeToTabs()
-    await navigateToPeople()
-    const goMark = goLogMark()
-    await backgroundApp()
-    await waitForBackground(goMark)
-    await waitForLinesInOrder('JS to see the background', () => metroClientLogSince(metroMark0), [/app focus changed: background/])
-    await terminateApp()
+    await terminateFromPeople()
     const metroMark = metroLogMark()
     const url = `keybase://convid/${convID}`
     openUrl(url)
@@ -165,8 +173,7 @@ describe('app lifecycle: push notifications', () => {
 
   it('tapping a push while the app is not running launches into its conversation', async () => {
     await waitForAppState('active')
-    await navigateToPeople()
-    await terminateApp()
+    await terminateFromPeople()
     const metroMark = metroLogMark()
     const body = `e2e-push-cold-${Date.now()}`
     sendPush(pushFor(body))
@@ -174,6 +181,9 @@ describe('app lifecycle: push notifications', () => {
 
     await waitForAppState('active', undefined, 90000)
     await waitForScreen('the pushed conversation', s => s?.name === 'chatConversation' && s.params?.['conversationIDKey'] === convID)
+    // The tap reaches JS as the initial notification and picks the startup conversation.
+    const startup = findLines(metroClientLogSince(metroMark), /initialState: push /)
+    expect(startup).toEqual([expect.stringContaining(`initialState: push ${convID}`)])
     expect(findLines(metroClientLogSince(metroMark), /\[Push\] handleLoudMessage: ignore non userInteraction/)).toEqual([])
   })
 })

@@ -45,6 +45,14 @@ export const waitFor = async <R>(
   }
 }
 
+const statOrUndefined = (file: string) => {
+  try {
+    return fs.statSync(file)
+  } catch {
+    return undefined
+  }
+}
+
 // -- app process ------------------------------------------------------------
 
 // The pid of the running app on the simulator, or undefined when it isn't running.
@@ -66,8 +74,9 @@ export const terminateApp = async (udid = deviceUdid()) => {
   await waitFor('the app to exit', () => (appPid(udid) === undefined ? true : undefined), {timeout: 10000})
 }
 
-// Crash reports for the app written after `since`. The simulator writes them to the host's
-// DiagnosticReports, named after the executable.
+// Crash reports for the iOS app written after `since`. Simulator crashes land in the host's
+// DiagnosticReports next to the host's own, including the desktop Keybase app's, so match on
+// the bundle id in the report's JSON header line.
 export const crashReportsSince = (since: number): Array<string> => {
   const dir = path.join(os.homedir(), 'Library/Logs/DiagnosticReports')
   let names: Array<string>
@@ -76,10 +85,18 @@ export const crashReportsSince = (since: number): Array<string> => {
   } catch {
     return []
   }
+  const bundleOf = (file: string) => {
+    try {
+      const header = fs.readFileSync(file, 'utf8').split('\n', 1)[0] ?? ''
+      return (JSON.parse(header) as {bundleID?: string}).bundleID
+    } catch {
+      return undefined
+    }
+  }
   return names
-    .filter(n => /^Keybase[-_].*\.(ips|crash)$/.test(n))
+    .filter(n => n.endsWith('.ips'))
     .map(n => path.join(dir, n))
-    .filter(p => fs.statSync(p).mtimeMs >= since)
+    .filter(p => (statOrUndefined(p)?.mtimeMs ?? 0) >= since && bundleOf(p) === BUNDLE_ID)
 }
 
 // -- Metro inspector ----------------------------------------------------------
@@ -210,14 +227,6 @@ export const waitForAvatar200 = async (username: string, device = deviceName(), 
 // -- logs --------------------------------------------------------------------
 
 type LogMark = {file: string; offset: number; ino: number}
-
-const statOrUndefined = (file: string) => {
-  try {
-    return fs.statSync(file)
-  } catch {
-    return undefined
-  }
-}
 
 const readFrom = (file: string, offset: number) => {
   const size = fs.statSync(file).size
@@ -479,30 +488,37 @@ export const startSenderDevice = async (username: string) => {
   const name = senderDeviceName()
   const udid = udidForName(name)
   const bootedHere = !isBooted(udid)
-  if (bootedHere) {
-    simctl('boot', udid)
-    simctl('bootstatus', udid, '-b')
-  }
   const stop = async () => {
     await terminateApp(udid).catch(() => {})
     if (bootedHere) simctl('shutdown', udid)
   }
-  simctl('launch', udid, BUNDLE_ID)
-  await waitFor(
-    `${name} to be logged in as ${username}`,
-    async () =>
-      (await jsEval<boolean>(
-        `return kbModule('stores/config.tsx').useConfigState.getState().loggedIn &&
-           kbModule('stores/current-user.tsx').useCurrentUserState.getState().username === ${JSON.stringify(username)}`,
-        name
-      ))
-        ? true
-        : undefined,
-    {interval: 1000, timeout: 180000}
-  ).catch(async (e: unknown) => {
-    await stop()
+  // Every step after a boot cleans up on failure, so a failed start never leaves a second
+  // simulator running (it render-throttles the one under test).
+  const ready = async () => {
+    if (bootedHere) {
+      simctl('boot', udid)
+      simctl('bootstatus', udid, '-b')
+    }
+    simctl('launch', udid, BUNDLE_ID)
+    await waitFor(
+      `${name} to be logged in as ${username}`,
+      async () =>
+        (await jsEval<boolean>(
+          `return kbModule('stores/config.tsx').useConfigState.getState().loggedIn &&
+             kbModule('stores/current-user.tsx').useCurrentUserState.getState().username === ${JSON.stringify(username)}`,
+          name
+        ))
+          ? true
+          : undefined,
+      {interval: 1000, timeout: 180000}
+    )
+  }
+  try {
+    await ready()
+  } catch (e) {
+    await stop().catch(() => {})
     throw e
-  })
+  }
   const send = async (conversationIDKey: string, text: string) =>
     jsEval(
       `kbModule('chat/conversation/send-actions.tsx').sendTextToConversation(${JSON.stringify(conversationIDKey)}, ${JSON.stringify(username)}, ${JSON.stringify(text)}); return true`,

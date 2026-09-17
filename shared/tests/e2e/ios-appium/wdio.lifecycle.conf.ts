@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import {config as base} from './wdio.conf'
-import {waitForAppState} from './helpers/lifecycle'
+import {BUNDLE_ID, waitForAppState} from './helpers/lifecycle'
 import {escapeToTabs} from './helpers/navigate'
 
 // App lifecycle flows (launch, background, deep links, push, live location). They
@@ -12,13 +12,10 @@ const debugDir = process.env['KB_IOS_APPIUM_DEBUG_DIR'] ?? 'tests/results/ios-ap
 export const config: WebdriverIO.Config = {
   ...base,
   specs: [process.env['KB_IOS_SPEC'] ?? './lifecycle.test.ts'],
-  // Xcode 27 has no Simulator.app for the driver to open (its window is DeviceHub now), and
-  // the driver fails the session when it can't. The runner boots the simulator and shows it.
   // Flows wait minutes on logs without sending a command (a relaunch for a location change,
   // a map post that times out), so the session must outlive the default idle timeout.
   capabilities: (base.capabilities as Array<Record<string, unknown>>).map(c => ({
     ...c,
-    'appium:isHeadless': true,
     'appium:newCommandTimeout': 900,
   })),
   // A lifecycle regression is often intermittent, so a retry would hide exactly what
@@ -30,8 +27,8 @@ export const config: WebdriverIO.Config = {
     // eslint-disable-next-line no-console
     console.log(`▶ ${new Date().toLocaleTimeString()} starting: ${test.title}`)
     const foreground = 4
-    if ((await browser.execute('mobile: queryAppState', {bundleId: 'keybase.ios'})) !== foreground) {
-      await browser.execute('mobile: activateApp', {bundleId: 'keybase.ios'})
+    if ((await browser.execute('mobile: queryAppState', {bundleId: BUNDLE_ID})) !== foreground) {
+      await browser.execute('mobile: activateApp', {bundleId: BUNDLE_ID})
     }
     // A just-launched app is still loading its screens; resetting before then misses taps.
     await waitForAppState('active', undefined, 90000)

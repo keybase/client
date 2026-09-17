@@ -9,6 +9,16 @@
 # The receive flow also launches the app on a second simulator signed in to the same account
 # (KB_IOS_SENDER_DEVICE, default iPadTest), booting it if needed and shutting it down after.
 # Results (json only, no screenshots) land in tests/results/ios-appium-lifecycle-<slug>.
+#
+# Side effects on the simulators, left in place after the run:
+# - the device under test grants the app location "always" (simctl privacy) and simulated
+#   locations are set on it;
+# - the app is granted notification permission through its own prompt, which makes it upload
+#   an APNs sandbox push token for KB_SMOKE_USER's device to the Keybase server;
+# - Notification Center keeps the test notifications, and the smoke user's conversation with
+#   themselves gains test messages and live location posts;
+# - the sender simulator must already have this build installed and signed in; the flow launches
+#   it and shuts it down afterwards if it booted it.
 set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SHARED_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"

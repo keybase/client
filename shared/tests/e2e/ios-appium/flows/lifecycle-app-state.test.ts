@@ -94,7 +94,11 @@ describe('app lifecycle: app state', () => {
       expect(appPid()).toBe(pid)
       expect(crashReportsSince(since)).toEqual([])
     } finally {
-      await sender.stop()
+      // A cleanup failure must not hide the test's own failure.
+      await sender.stop().catch((e: unknown) => {
+        // eslint-disable-next-line no-console
+        console.warn(`sender device cleanup failed: ${e instanceof Error ? e.message : String(e)}`)
+      })
     }
   })
 
@@ -131,8 +135,8 @@ describe('app lifecycle: app state', () => {
     )
     // JS saw the app go away and come back, ending active.
     const focus = findLines(metroClientLogSince(metroMark), /app focus changed: /)
-    expect(focus.some(l => l.includes('app focus changed: background'))).toBe(true)
-    expect(focus.at(-1)).toContain('app focus changed: active')
+    expect(focus.some(l => l.endsWith('app focus changed: background'))).toBe(true)
+    expect(focus.at(-1)).toMatch(/app focus changed: active$/)
 
     const avatar = await waitForAvatar200(user)
     expect(avatar.status).toBe(200)
@@ -164,7 +168,10 @@ describe('app lifecycle: app state', () => {
       /lifecycle: didBecomeActive: /,
     ])
     const focus = findLines(metroClientLogSince(metroMark), /app focus changed: /)
-    expect(focus).toEqual([expect.stringContaining('inactive'), expect.stringContaining('active')])
+    expect(focus).toEqual([
+      expect.stringMatching(/app focus changed: inactive$/),
+      expect.stringMatching(/app focus changed: active$/),
+    ])
     expect(findLines(goLogSince(goMark), /Srv: startHTTPSrv: addr: /)).toEqual([])
     expect((await appSnapshot()).httpSrv.address).toBe(before.httpSrv.address)
   })
