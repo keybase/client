@@ -44,6 +44,7 @@ type AppState interface {
 // and stops it, reacting to app state changes, unexpected exits, handler
 // registrations and shutdown.
 type Srv struct {
+	name     string // prefixes every log line, so each server's lines are told apart
 	log      logger.Logger
 	appState AppState
 	// token is set once and kept across restarts, so URLs handed out before a restart keep working.
@@ -76,7 +77,9 @@ func NewSrv(g *libkb.GlobalContext) *Srv {
 		return kbhttp.NewRandomPortRangeListenerSource(g.GetEnv().GetAttachmentHTTPStartPort(), 18000)
 	}
 	// A failed start is logged, and the next app state change tries again.
-	r, _ := New(g.GetLog(), g.MobileAppState, listenerSource, runtime.GOOS != "android", func(ctx context.Context, info keybase1.HttpSrvInfo) {
+	r, _ := New("Srv", g.GetLog(), g.MobileAppState, listenerSource, runtime.GOOS != "android", func(ctx context.Context, info keybase1.HttpSrvInfo) {
+		// e2e tests match this line; only this server logs it.
+		g.GetLog().CDebugf(ctx, "Srv: start: addr: %s token: %s", info.Address, TokenPrefix(info.Token))
 		// Read NotifyRouter when notifying: the service sets it after creating this server.
 		g.NotifyRouter.HandleHTTPSrvInfoUpdate(ctx, info)
 	})
@@ -89,11 +92,12 @@ func NewSrv(g *libkb.GlobalContext) *Srv {
 
 // New returns a server that has acted on the current app state, with the
 // error of that first start, if any. The server runs until Shutdown either way.
-func New(log logger.Logger, appState AppState, listenerSource func() kbhttp.ListenerSource, stopInBackground bool,
+func New(name string, log logger.Logger, appState AppState, listenerSource func() kbhttp.ListenerSource, stopInBackground bool,
 	notify func(context.Context, keybase1.HttpSrvInfo),
 ) (*Srv, error) {
 	token, _ := libkb.RandHexString("", 32)
 	r := &Srv{
+		name:             name,
 		log:              log,
 		appState:         appState,
 		token:            token,
@@ -113,7 +117,7 @@ func New(log logger.Logger, appState AppState, listenerSource func() kbhttp.List
 }
 
 func (r *Srv) debug(ctx context.Context, msg string, args ...any) {
-	r.log.CDebugf(ctx, "Srv: %s", fmt.Sprintf(msg, args...))
+	r.log.CDebugf(ctx, "%s: %s", r.name, fmt.Sprintf(msg, args...))
 }
 
 // TokenPrefix shortens a token for logging.
@@ -212,7 +216,7 @@ func (r *Srv) start(ctx context.Context) error {
 		err = r.httpSrv.StartWithHandlers(r.registerEndpoints)
 	}
 	if err != nil {
-		r.log.CWarningf(ctx, "Srv: start: failed to start HTTP server: %s", err)
+		r.log.CWarningf(ctx, "%s: start: failed to start HTTP server: %s", r.name, err)
 		return err
 	}
 	// Publish before notifying, so a listener reading Info gets the address it is told about.
@@ -220,7 +224,6 @@ func (r *Srv) start(ctx context.Context) error {
 	if info.Address == "" { // Serve already exited; run handles that exit next
 		return nil
 	}
-	r.debug(ctx, "start: addr: %s token: %s", info.Address, TokenPrefix(r.token))
 	r.notify(ctx, info)
 	return nil
 }

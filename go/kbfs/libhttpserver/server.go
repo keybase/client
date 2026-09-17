@@ -248,7 +248,7 @@ func New(appStateUpdater env.AppStateUpdater, config libkbfs.Config) (
 	if err != nil {
 		return nil, err
 	}
-	s.server, err = manager.New(logger, appState{appStateUpdater},
+	s.server, err = manager.New("kbfsHTTP", logger, appState{appStateUpdater},
 		func() kbhttp.ListenerSource {
 			return kbhttp.NewRandomPortRangeListenerSource(portStart, portEnd)
 		}, runtime.GOOS != "android", func(context.Context, keybase1.HttpSrvInfo) {})

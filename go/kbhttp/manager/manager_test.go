@@ -154,7 +154,7 @@ func setupWithNotify(t *testing.T, state keybase1.MobileAppState, stopInBackgrou
 	t.Cleanup(tc.Cleanup)
 	tc.G.MobileAppState.Update(state)
 	l := &listeners{}
-	srv, err := New(tc.G.Log, &appState{MobileAppState: tc.G.MobileAppState}, l.source, stopInBackground, notify)
+	srv, err := New("Srv", tc.G.Log, &appState{MobileAppState: tc.G.MobileAppState}, l.source, stopInBackground, notify)
 	require.NoError(t, err)
 	t.Cleanup(srv.Shutdown)
 	// New returns having acted on the launch state; HandleFunc below would wait for run anyway.
@@ -535,7 +535,7 @@ func TestNewReturnsFirstStartError(t *testing.T) {
 	tc := libkb.SetupTest(t, "kbhttp", 2)
 	defer tc.Cleanup()
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
-	srv, err := New(tc.G.Log, tc.G.MobileAppState, func() kbhttp.ListenerSource { return failingSource{} }, true,
+	srv, err := New("Srv", tc.G.Log, tc.G.MobileAppState, func() kbhttp.ListenerSource { return failingSource{} }, true,
 		func(context.Context, keybase1.HttpSrvInfo) {})
 	require.Error(t, err)
 	requireStopped(t, srv)
@@ -704,7 +704,7 @@ func TestStressTransitionsAndRequests(t *testing.T) {
 	baseline := runtime.NumGoroutine()
 
 	l := &listeners{}
-	srv, err := New(tc.G.Log, &appState{MobileAppState: tc.G.MobileAppState}, l.source, true,
+	srv, err := New("Srv", tc.G.Log, &appState{MobileAppState: tc.G.MobileAppState}, l.source, true,
 		func(context.Context, keybase1.HttpSrvInfo) {})
 	require.NoError(t, err)
 	srv.HandleFunc("test", SrvTokenModeDefault, func(w http.ResponseWriter, req *http.Request) {
