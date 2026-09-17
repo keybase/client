@@ -21,7 +21,7 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
 
   var resignImageView: UIImageView?
   var fsPaths: [String: String] = [:]
-  private let lifecycle = AppLifecycleForwarder(events: KeybaseLifecycleEvents())
+  private let lifecycle = AppLifecycleForwarder()
   private var locationWatcher: LocationWatcher?
   private var lastNotificationResponseKey: String?
   var iph: ItemProviderHelper?
@@ -394,7 +394,7 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     } completion: { finished in
       log.info("applicationWillResignActive: rendered keyz screen. Finished: \(finished)")
     }
-    lifecycle.willResignActive()
+    lifecycle.uiInactive()
   }
 
   override func applicationDidEnterBackground(_ application: UIApplication) {
@@ -418,7 +418,7 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     log.info("applicationWillEnterForeground: hiding keyz screen.")
     PerfFPSMonitor.appWillEnterForeground()
     hideCover()
-    lifecycle.willEnterForeground()
+    lifecycle.uiInactive()
   }
 
   func applicationProtectedDataDidBecomeAvailable(_ application: UIApplication) {
@@ -427,53 +427,28 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
 
 }
 
-// The Go lifecycle entry points, one bind call each. Native reports only UI
-// state and background task tokens; Go derives the app state
-// (go/libkb/lifecycle). Nothing here may derive state, and
-// UIApplication.applicationState lags inside the scene-forwarded callbacks
-// anyway.
-protocol AppLifecycleEvents {
-  func uiActive()
-  func uiInactive()
-  // A background task token when Go wants to keep running, 0 otherwise; runBackgroundTask then does that work.
-  func uiBackground() -> Int64
-  func runBackgroundTask(_ token: Int64)
-  func backgroundTaskExpired()
-  func willTerminate()
-}
-
-struct KeybaseLifecycleEvents: AppLifecycleEvents {
-  func uiActive() { Keybasego.KeybaseAppUIActive() }
-  func uiInactive() { Keybasego.KeybaseAppUIInactive() }
-  func uiBackground() -> Int64 { Keybasego.KeybaseAppUIBackground() }
-  func runBackgroundTask(_ token: Int64) { Keybasego.KeybaseAppBeginBackgroundTask(token, PushNotifier()) }
-  func backgroundTaskExpired() { Keybasego.KeybaseAppBackgroundTaskExpired(PushNotifier()) }
-  func willTerminate() { Keybasego.KeybaseAppWillExit(PushNotifier()) }
-}
-
 // Hands lifecycle events to Go on one serial queue, so Go sees them in callback
 // order without the main thread waiting on Go (didEnterBackground queries the
 // chat outbox). Also owns the UIKit background task that keeps the app alive
 // while Go decides and does its background work. Main thread only.
+//
+// Native reports only UI state; Go derives the app state (go/libkb/lifecycle).
+// Nothing here may derive state, and UIApplication.applicationState lags inside
+// the scene-forwarded callbacks anyway.
 final class AppLifecycleForwarder {
   // Upper bound on how long the expiration handler and willTerminate hold the
   // main thread for Go's last work (flush, a pending-message warning).
   private static let exitWorkTimeout: TimeInterval = 1
 
-  private let events: AppLifecycleEvents
   private let queue = DispatchQueue(label: "com.keybase.app.lifecycle", qos: .userInitiated)
   private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
 
-  init(events: AppLifecycleEvents) {
-    self.events = events
-  }
-
-  func willEnterForeground() { queue.async { self.events.uiInactive() } }
-  func didBecomeActive() { queue.async { self.events.uiActive() } }
-  func willResignActive() { queue.async { self.events.uiInactive() } }
+  // willEnterForeground and willResignActive.
+  func uiInactive() { queue.async { Keybasego.KeybaseAppUIInactive() } }
+  func didBecomeActive() { queue.async { Keybasego.KeybaseAppUIActive() } }
 
   func willTerminate() {
-    runBounded { $0.willTerminate() }
+    runBounded { Keybasego.KeybaseAppWillExit(PushNotifier()) }
   }
 
   // Every background entry starts its own task before asking Go, so the app
@@ -492,13 +467,14 @@ final class AppLifecycleForwarder {
       application.endBackgroundTask(previous)
     }
     queue.async {
-      let token = self.events.uiBackground()
+      // A token when Go started a background task, 0 otherwise.
+      let token = Keybasego.KeybaseAppUIBackground(PushNotifier())
       guard token > 0 else {
         DispatchQueue.main.async { self.endBackgroundTask(task) }
         return
       }
       DispatchQueue.global(qos: .default).async {
-        self.events.runBackgroundTask(token)
+        Keybasego.KeybaseAppWaitBackgroundTask(token)
         DispatchQueue.main.async { self.endBackgroundTask(task) }
       }
     }
@@ -507,7 +483,7 @@ final class AppLifecycleForwarder {
   private func backgroundTaskExpired(_ task: UIBackgroundTaskIdentifier) {
     guard task != .invalid, task == backgroundTask else { return }
     log.info("background task expired")
-    runBounded { $0.backgroundTaskExpired() }
+    runBounded { Keybasego.KeybaseAppBackgroundTaskExpired(PushNotifier()) }
     endBackgroundTask(task)
   }
 
@@ -519,10 +495,10 @@ final class AppLifecycleForwarder {
 
   // Queued behind earlier events to keep the order; the wait only bounds how
   // long the app stays alive for it.
-  private func runBounded(_ work: @escaping (AppLifecycleEvents) -> Void) {
+  private func runBounded(_ work: @escaping () -> Void) {
     let done = DispatchSemaphore(value: 0)
     queue.async {
-      work(self.events)
+      work()
       done.signal()
     }
     _ = done.wait(timeout: .now() + Self.exitWorkTimeout)

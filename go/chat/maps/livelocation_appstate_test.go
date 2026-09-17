@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb/lifecycle"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
@@ -34,9 +35,8 @@ func TestLiveLocationTrackerBackgroundActive(t *testing.T) {
 		l.removeTrackerLocked(ctx, track)
 	}
 
-	noStay := func() bool { return false }
 	lc := tc.G.MobileLifecycle
-	require.Zero(t, lc.UIBackground(noStay))
+	require.Zero(t, lc.UIBackground(false, lifecycle.BackgroundTaskDeps{}))
 	require.Equal(t, keybase1.MobileAppState_BACKGROUND, appState.State())
 	l.LocationUpdate(ctx, coord(1))
 	require.Equal(t, keybase1.MobileAppState_BACKGROUND, appState.State(), "no trackers, no hold")
@@ -55,7 +55,7 @@ func TestLiveLocationTrackerBackgroundActive(t *testing.T) {
 	third := addTracker(3)
 	l.LocationUpdate(ctx, coord(3))
 	require.Equal(t, keybase1.MobileAppState_FOREGROUND, appState.State())
-	require.Zero(t, lc.UIBackground(noStay))
+	require.Zero(t, lc.UIBackground(false, lifecycle.BackgroundTaskDeps{}))
 	require.Equal(t, keybase1.MobileAppState_BACKGROUNDACTIVE, appState.State())
 	removeTracker(third)
 	require.Equal(t, keybase1.MobileAppState_BACKGROUND, appState.State())

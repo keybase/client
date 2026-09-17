@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb/lifecycle"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
@@ -41,7 +42,7 @@ func TestLocationUpdateReachesTrackers(t *testing.T) {
 	tracker.SetClock(clock)
 	tracker.TestingCoordsAddedCh = make(chan struct{}, 10)
 	ctx := context.Background()
-	require.Zero(t, tc.G.MobileLifecycle.UIBackground(func() bool { return false }))
+	require.Zero(t, tc.G.MobileLifecycle.UIBackground(false, lifecycle.BackgroundTaskDeps{}))
 
 	tracker.StartTracking(ctx, chat1.ConversationID("conv"), 1, clock.Now().Add(time.Hour))
 	select {

@@ -17,9 +17,7 @@ import org.junit.Test
 
 private class FakeBind : LifecycleBind {
     val calls: MutableList<String> = Collections.synchronizedList(mutableListOf())
-    var backgroundToken = 0L
     var token = 7L
-    var endTaskToken = 0L
     var onUiBackground: () -> Unit = {}
 
     override fun uiActive() {
@@ -30,10 +28,9 @@ private class FakeBind : LifecycleBind {
         calls.add("uiInactive")
     }
 
-    override fun uiBackground(): Long {
+    override fun uiBackground() {
         onUiBackground()
         calls.add("uiBackground")
-        return backgroundToken
     }
 
     override fun willExit() {
@@ -45,13 +42,8 @@ private class FakeBind : LifecycleBind {
         return token
     }
 
-    override fun pushWindowEnd(token: Long): Long {
+    override fun pushWindowEnd(token: Long) {
         calls.add("pushWindowEnd($token)")
-        return endTaskToken
-    }
-
-    override fun beginBackgroundTask(token: Long) {
-        calls.add("beginBackgroundTask($token)")
     }
 }
 
@@ -111,17 +103,6 @@ class AppLifecycleReporterTest {
                 "uiBackground",
                 "uiInactive", "uiActive",
             ),
-            calls(),
-        )
-    }
-
-    @Test
-    fun processStopWithWorkStartsTheBackgroundTask() {
-        launch()
-        bind.backgroundToken = 9L
-        stop()
-        assertEquals(
-            listOf("uiInactive", "uiActive", "uiBackground", "beginBackgroundTask(9)"),
             calls(),
         )
     }
@@ -218,11 +199,11 @@ class AppLifecycleReporterTest {
                 bind.uiActive()
             }
 
-            override fun uiBackground(): Long {
+            override fun uiBackground() {
                 threads.add(Thread.currentThread())
                 // Slow, like the outbox query, so later events queue behind it.
                 Thread.sleep(5)
-                return bind.uiBackground()
+                bind.uiBackground()
             }
         }
         val ordered = AppLifecycleReporter(record, SingleThreadLifecycleExecutor()) {}
@@ -271,13 +252,6 @@ class RunPushWindowTest {
     fun windowEndsAfterTheTask() {
         assertTrue(run())
         assertEquals(listOf("pushWindowBegin", "task", "pushWindowEnd(7)"), bind.calls)
-    }
-
-    @Test
-    fun windowHandedOverStartsTheBackgroundTask() {
-        bind.endTaskToken = 11L
-        run()
-        assertEquals(listOf("pushWindowBegin", "task", "pushWindowEnd(7)", "beginBackgroundTask(11)"), bind.calls)
     }
 
     @Test

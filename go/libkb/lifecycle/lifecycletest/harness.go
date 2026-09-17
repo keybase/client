@@ -48,7 +48,9 @@ const (
 
 	// Native lifecycle events, as native reports them: willEnterForeground and
 	// willResignActive are UIInactive, didBecomeActive is UIActive,
-	// didEnterBackground is UIBackground.
+	// didEnterBackground is UIBackground. When DidEnterBackground or
+	// PushWindowEnd starts a background task, they wait until it is polling
+	// and return true.
 	WillEnterForeground
 	DidBecomeActive
 	WillResignActive
@@ -57,7 +59,7 @@ const (
 	BackgroundTaskExpired
 	PushWindowBegin
 	PushWindowEnd
-	LiveLocationClaim
+	LiveLocationAcquire
 	LiveLocationRelease
 
 	// BackgroundSyncStart starts the blocking BackgroundSync call and waits
@@ -70,9 +72,6 @@ const (
 	// BackgroundSyncWait waits for a BackgroundSync that bails out on its own.
 	BackgroundSyncWait
 
-	// BackgroundTaskStart starts the blocking RunBackgroundTask call and
-	// waits until it is polling (returns true) or has exited early (false).
-	BackgroundTaskStart
 	// BackgroundTaskDelivered finishes pending deliveries and polls until
 	// the task returns.
 	BackgroundTaskDelivered
@@ -101,12 +100,11 @@ var actionNames = map[Action]string{
 	BackgroundTaskExpired:    "BackgroundTaskExpired",
 	PushWindowBegin:          "PushWindowBegin",
 	PushWindowEnd:            "PushWindowEnd",
-	LiveLocationClaim:        "LiveLocationClaim",
+	LiveLocationAcquire:      "LiveLocationAcquire",
 	LiveLocationRelease:      "LiveLocationRelease",
 	BackgroundSyncStart:      "BackgroundSyncStart",
 	BackgroundSyncTimerFires: "BackgroundSyncTimerFires",
 	BackgroundSyncWait:       "BackgroundSyncWait",
-	BackgroundTaskStart:      "BackgroundTaskStart",
 	BackgroundTaskDelivered:  "BackgroundTaskDelivered",
 	BackgroundTaskFails:      "BackgroundTaskFails",
 	BackgroundTaskTimesUp:    "BackgroundTaskTimesUp",
@@ -162,19 +160,14 @@ type Harness struct {
 	Controller *lifecycle.Controller
 	Recorder   *Recorder
 
-	flushes  atomic.Int32
-	warnings atomic.Int32
-	stay     atomic.Bool
-	pending  atomic.Int32
-	failures chan []chat1.OutboxRecord
-	tokens   map[int]int64
-	// taskToken is the background task hold the last UIBackground or
-	// PushWindowEnd opened, for BackgroundTaskStart.
-	taskToken    int64
+	flushes      atomic.Int32
+	warnings     atomic.Int32
+	stay         atomic.Bool
+	pending      atomic.Int32
+	failures     chan []chat1.OutboxRecord
+	tokens       map[int]int64
 	liveLocation *lifecycle.Hold
 
-	cancel   context.CancelFunc
-	ctx      context.Context
 	syncDone chan struct{}
 	taskDone chan struct{}
 	running  sync.WaitGroup
@@ -199,7 +192,6 @@ func NewHarness(t testing.TB, appState lifecycle.AppState, platform Platform) *H
 		syncDone: closedChan(),
 		taskDone: closedChan(),
 	}
-	h.ctx, h.cancel = context.WithCancel(context.Background())
 	h.Controller = lifecycle.New(appState, lifecycle.Config{
 		Clock:                      h.Clock,
 		BackgroundSyncWindow:       syncWindow,
@@ -220,7 +212,7 @@ func closedChan() chan struct{} {
 
 // Close ends any background task or sync still running, and the recorder.
 func (h *Harness) Close() {
-	h.cancel()
+	h.Controller.Close()
 	h.Clock.Advance(maxDuration)
 	h.running.Wait()
 	h.Recorder.Stop()
@@ -230,8 +222,6 @@ func (h *Harness) Flushes() int  { return int(h.flushes.Load()) }
 func (h *Harness) Warnings() int { return int(h.warnings.Load()) }
 
 func (h *Harness) warn() { h.warnings.Add(1) }
-
-func (h *Harness) stayRunning() bool { return h.stay.Load() }
 
 func (h *Harness) deps() lifecycle.BackgroundTaskDeps {
 	return lifecycle.BackgroundTaskDeps{
@@ -244,7 +234,6 @@ func (h *Harness) deps() lifecycle.BackgroundTaskDeps {
 }
 
 func (h *Harness) goRun(f func()) chan struct{} {
-	h.Clock.ForgetAfters()
 	done := make(chan struct{})
 	h.running.Add(1)
 	go func() {
@@ -303,8 +292,7 @@ func (h *Harness) perform(step Step) bool {
 	case DidBecomeActive:
 		c.UIActive()
 	case DidEnterBackground:
-		h.taskToken = c.UIBackground(h.stayRunning)
-		return h.taskToken > 0
+		return h.startsTask(func() int64 { return c.UIBackground(h.stay.Load(), h.deps()) })
 	case WillTerminate:
 		c.WillTerminate(h.warn)
 	case BackgroundTaskExpired:
@@ -313,21 +301,13 @@ func (h *Harness) perform(step Step) bool {
 		h.tokens[step.Slot] = c.PushWindowBegin()
 		return h.tokens[step.Slot] > 0
 	case PushWindowEnd:
-		if task := c.PushWindowEnd(h.tokens[step.Slot], h.stayRunning); task > 0 {
-			h.taskToken = task
-			return true
-		}
-		return false
-	case LiveLocationClaim:
-		if h.liveLocation == nil || h.liveLocation.Released() {
-			h.liveLocation = c.AcquireBackgroundWork(lifecycle.ReasonLiveLocation)
-		}
+		return h.startsTask(func() int64 { return c.PushWindowEnd(h.tokens[step.Slot], h.stay.Load(), h.deps()) })
+	case LiveLocationAcquire:
+		h.liveLocation = c.AcquireBackgroundWork(lifecycle.ReasonLiveLocation)
 	case LiveLocationRelease:
-		if h.liveLocation != nil {
-			h.liveLocation.Release()
-			h.liveLocation = nil
-		}
+		h.liveLocation.Release()
 	case BackgroundSyncStart:
+		h.Clock.ForgetAfters()
 		h.syncDone = h.goRun(func() { c.BackgroundSync() })
 		return h.Clock.WaitForAfter(h.T, syncWindow, h.syncDone)
 	case BackgroundSyncTimerFires:
@@ -335,10 +315,6 @@ func (h *Harness) perform(step Step) bool {
 		h.wait(h.syncDone, "BackgroundSync")
 	case BackgroundSyncWait:
 		h.wait(h.syncDone, "BackgroundSync")
-	case BackgroundTaskStart:
-		token := h.taskToken
-		h.taskDone = h.goRun(func() { c.RunBackgroundTask(h.ctx, token, h.deps()) })
-		return h.Clock.WaitForAfter(h.T, pollInterval, h.taskDone)
 	case BackgroundTaskDelivered:
 		h.pending.Store(0)
 		for {
@@ -347,15 +323,15 @@ func (h *Harness) perform(step Step) bool {
 				break
 			}
 		}
-		h.wait(h.taskDone, "RunBackgroundTask")
+		h.wait(h.taskDone, "background task")
 	case BackgroundTaskFails:
 		h.failures <- make([]chat1.OutboxRecord, 1)
-		h.wait(h.taskDone, "RunBackgroundTask")
+		h.wait(h.taskDone, "background task")
 	case BackgroundTaskTimesUp:
 		h.Clock.Advance(maxDuration)
-		h.wait(h.taskDone, "RunBackgroundTask")
+		h.wait(h.taskDone, "background task")
 	case BackgroundTaskWait:
-		h.wait(h.taskDone, "RunBackgroundTask")
+		h.wait(h.taskDone, "background task")
 	case WorkStarts:
 		h.stay.Store(true)
 		h.pending.Store(1)
@@ -366,6 +342,18 @@ func (h *Harness) perform(step Step) bool {
 		h.T.Fatalf("unknown action %v", step.Do)
 	}
 	return false
+}
+
+// startsTask runs a call that may start a background task and, if it did,
+// waits until the task is polling. It reports whether the task is running.
+func (h *Harness) startsTask(call func() int64) bool {
+	h.Clock.ForgetAfters()
+	token := call()
+	if token == 0 {
+		return false
+	}
+	h.taskDone = h.goRun(func() { h.Controller.WaitBackgroundTask(token) })
+	return h.Clock.WaitForAfter(h.T, pollInterval, h.taskDone)
 }
 
 // Play runs every step of sc on a fresh harness and checks the observed

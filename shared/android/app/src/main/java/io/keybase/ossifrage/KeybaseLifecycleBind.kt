@@ -9,14 +9,13 @@ internal class KeybaseLifecycleBind(private val context: Context) : LifecycleBin
 
     override fun uiInactive() = Keybase.appUIInactive()
 
-    override fun uiBackground(): Long = Keybase.appUIBackground()
+    override fun uiBackground() {
+        Keybase.appUIBackground(KBPushNotifier(context, Bundle()))
+    }
 
     override fun willExit() = Keybase.appWillExit(KBPushNotifier(context, Bundle()))
 
     override fun pushWindowBegin(): Long = Keybase.appPushWindowBegin()
 
-    override fun pushWindowEnd(token: Long): Long = Keybase.appPushWindowEnd(token)
-
-    override fun beginBackgroundTask(token: Long) =
-        Keybase.appBeginBackgroundTaskNonblock(token, KBPushNotifier(context, Bundle()))
+    override fun pushWindowEnd(token: Long) = Keybase.appPushWindowEnd(token, KBPushNotifier(context, Bundle()))
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb/lifecycle"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
@@ -274,14 +275,13 @@ func TestLiveLocationTrackerFailedWatchLeavesNoHold(t *testing.T) {
 	l := newWatchTestTracker(t, tc, nil, ui)
 	clock := l.clock.(clockwork.FakeClock)
 	appState := tc.G.MobileAppState
-	noStay := func() bool { return false }
 
 	track := startTestTracker(l, 1)
 	require.NotNil(t, track)
 	// A fix while the watch is still retrying holds the app up.
 	require.Eventually(t, func() bool { return ui.attempts.Load() >= 1 }, 10*time.Second, time.Millisecond)
 	l.LocationUpdate(context.Background(), chat1.Coordinate{Lat: 1, Lon: 1})
-	require.Zero(t, tc.G.MobileLifecycle.UIBackground(noStay))
+	require.Zero(t, tc.G.MobileLifecycle.UIBackground(false, lifecycle.BackgroundTaskDeps{}))
 	require.Equal(t, keybase1.MobileAppState_BACKGROUNDACTIVE, appState.State())
 
 	for ui.attempts.Load() < 22 {
@@ -296,6 +296,6 @@ func TestLiveLocationTrackerFailedWatchLeavesNoHold(t *testing.T) {
 	// A later fix finds no tracker to hold the app up for.
 	tc.G.MobileLifecycle.UIActive()
 	l.LocationUpdate(context.Background(), chat1.Coordinate{Lat: 2, Lon: 2})
-	require.Zero(t, tc.G.MobileLifecycle.UIBackground(noStay))
+	require.Zero(t, tc.G.MobileLifecycle.UIBackground(false, lifecycle.BackgroundTaskDeps{}))
 	require.Equal(t, keybase1.MobileAppState_BACKGROUND, appState.State())
 }

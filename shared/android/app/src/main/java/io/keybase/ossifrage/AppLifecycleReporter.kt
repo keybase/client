@@ -12,11 +12,10 @@ import java.util.concurrent.TimeUnit
 internal interface LifecycleBind {
     fun uiActive()
     fun uiInactive()
-    fun uiBackground(): Long
+    fun uiBackground()
     fun willExit()
     fun pushWindowBegin(): Long
-    fun pushWindowEnd(token: Long): Long
-    fun beginBackgroundTask(token: Long)
+    fun pushWindowEnd(token: Long)
 }
 
 internal interface LifecycleExecutor {
@@ -94,12 +93,7 @@ internal class AppLifecycleReporter(
 
     private fun reportBackground(why: String) {
         reported = true
-        enqueue("uiBackground: $why") {
-            val token = bind.uiBackground()
-            if (token > 0) {
-                bind.beginBackgroundTask(token)
-            }
-        }
+        enqueue("uiBackground: $why") { bind.uiBackground() }
     }
 
     // Callers hold the lock, so tasks are queued in the order events happen.
@@ -135,10 +129,7 @@ internal fun runPushWindow(bind: LifecycleBind, log: (String) -> Unit, inForegro
     } finally {
         // Negative: Go isn't initialized, so no window opened.
         if (token > 0) {
-            val task = bind.pushWindowEnd(token)
-            if (task > 0) {
-                bind.beginBackgroundTask(task)
-            }
+            bind.pushWindowEnd(token)
         }
     }
     return true
