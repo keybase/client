@@ -40,7 +40,7 @@ const waitForScreen = async (what: string, match: (s: Awaited<ReturnType<typeof 
 
 // A push sent before the app is really in the background is handed to the app instead of shown.
 const waitForBackground = async (goMark: ReturnType<typeof goLogMark>) =>
-  waitForLinesInOrder('the app to enter the background', () => goLogSince(goMark), [/lifecycle: didEnterBackground: /])
+  waitForLinesInOrder('the app to enter the background', () => goLogSince(goMark), [/lifecycle: uiBackground: /])
 
 // Terminating right after navigating can leave the previous screen as the route the app saves
 // and restores on launch (routes are saved on a delay, and on backgrounding). Leaving on People
@@ -67,7 +67,7 @@ const onProfile = (s: Awaited<ReturnType<typeof appSnapshot>>['screen']) =>
 //   a cold deep link; "[onNotification]: <payload>" for each push JS receives, whose payload
 //   carries native's "userInteraction"; "[Push] handleLoudMessage: ignore non userInteraction"
 //   when JS declines to navigate for an untapped push.
-// - Go (ios.log): "lifecycle: didEnterBackground: " before a push is sent to a backgrounded app,
+// - Go (ios.log): "lifecycle: uiBackground: " before a push is sent to a backgrounded app,
 //   so it can't arrive while the app is still in the foreground (and not be shown).
 describe('app lifecycle: deep links', () => {
   it('opens a deep link while running', async () => {

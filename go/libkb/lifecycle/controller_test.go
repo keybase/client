@@ -39,107 +39,128 @@ func noDeliveries() lifecycle.BackgroundTaskDeps {
 	}
 }
 
-func requireDone(t *testing.T, done chan struct{}) {
-	t.Helper()
-	select {
-	case <-done:
-	case <-time.After(5 * time.Second):
-		require.Fail(t, "did not finish")
-	}
+func TestHoldReleaseIsIdempotent(t *testing.T) {
+	appState, _ := newAppState(t)
+	flushes := 0
+	c := lifecycle.New(appState, lifecycle.Config{Flush: func() { flushes++ }})
+	require.Zero(t, c.UIBackground(noStay))
+	require.Equal(t, background, appState.State())
+	require.Equal(t, 1, flushes)
+	h := c.AcquireBackgroundWork(lifecycle.ReasonPushWindow)
+	require.Equal(t, backgroundActive, appState.State())
+	require.True(t, h.Release())
+	require.True(t, h.Released())
+	require.Equal(t, background, appState.State())
+	require.Equal(t, 2, flushes)
+	require.False(t, h.Release())
+	require.Equal(t, 2, flushes)
 }
 
-// Two windows open concurrently and record their generations in the opposite
-// order; the newer window must stay recorded so its task can close it.
-func TestWindowsRecordedOutOfOrder(t *testing.T) {
-	openers := map[string]func(*lifecycle.Controller){
-		"didEnterBackground": func(c *lifecycle.Controller) { c.DidEnterBackground(stay) },
-		"pushWindowEnd":      func(c *lifecycle.Controller) { c.PushWindowEnd(c.PushWindowBegin(), stay) },
+// An id is never reused, so releasing an old hold again can't end a newer one.
+func TestReleasingAnOldHoldNeverReleasesANewerOne(t *testing.T) {
+	appState, _ := newAppState(t)
+	c := lifecycle.New(appState, lifecycle.Config{})
+	c.UIBackground(noStay)
+	first := c.AcquireBackgroundWork(lifecycle.ReasonPushWindow)
+	require.True(t, first.Release())
+	second := c.AcquireBackgroundWork(lifecycle.ReasonPushWindow)
+	require.NotEqual(t, first.ID(), second.ID())
+	require.False(t, first.Release())
+	require.False(t, second.Released())
+	require.Equal(t, backgroundActive, appState.State())
+	require.True(t, second.Release())
+	require.Equal(t, background, appState.State())
+}
+
+func TestLaunchHoldEndsAtTheFirstUIReport(t *testing.T) {
+	reports := map[string]func(c *lifecycle.Controller){
+		"background": func(c *lifecycle.Controller) { c.UIBackground(noStay) },
+		"inactive":   func(c *lifecycle.Controller) { c.UIInactive() },
+		"active":     func(c *lifecycle.Controller) { c.UIActive() },
 	}
-	for name, openFirst := range openers {
+	for name, report := range reports {
 		t.Run(name, func(t *testing.T) {
 			appState, _ := newAppState(t)
-			appState.Update(background)
-			c := lifecycle.New(appState, lifecycle.Config{BackgroundTaskPollInterval: time.Millisecond})
-			paused := make(chan struct{})
-			release := make(chan struct{})
-			calls := 0
-			var mu sync.Mutex
-			lifecycle.SetTestHookAfterWindowUpdate(c, func() {
-				mu.Lock()
-				calls++
-				first := calls == 1
-				mu.Unlock()
-				if first {
-					close(paused)
-					<-release
-				}
-			})
-
-			firstDone := make(chan struct{})
-			go func() {
-				openFirst(c)
-				close(firstDone)
-			}()
-			<-paused
-			require.True(t, c.DidEnterBackground(stay))
-			_, newest := appState.StateAndGeneration()
-			close(release)
-			requireDone(t, firstDone)
-			require.Equal(t, newest, lifecycle.TaskGen(c))
-
-			c.RunBackgroundTask(context.Background(), noDeliveries())
-			require.Equal(t, background, appState.State())
+			appState.Update(backgroundActive)
+			c := lifecycle.New(appState, lifecycle.Config{})
+			require.Equal(t, 1, lifecycle.Holds(c))
+			report(c)
+			require.Equal(t, 0, lifecycle.Holds(c))
 		})
 	}
 }
 
-func TestLiveLocationClaimsRecordedOutOfOrder(t *testing.T) {
+func TestUILeavingBackgroundEndsTaskAndSyncHolds(t *testing.T) {
 	appState, _ := newAppState(t)
 	appState.Update(background)
 	c := lifecycle.New(appState, lifecycle.Config{})
-	paused := make(chan struct{})
-	release := make(chan struct{})
-	calls := 0
-	var mu sync.Mutex
-	lifecycle.SetTestHookAfterWindowUpdate(c, func() {
-		mu.Lock()
-		calls++
-		first := calls == 1
-		mu.Unlock()
-		if first {
-			close(paused)
-			<-release
-		}
-	})
-	firstDone := make(chan struct{})
-	go func() {
-		c.LiveLocationClaim()
-		close(firstDone)
-	}()
-	<-paused
-	// Another owner's round trip, then a newer claim.
+	require.Positive(t, c.UIBackground(stay))
+	push := c.PushWindowBegin()
+	require.Positive(t, push)
+	live := c.AcquireBackgroundWork(lifecycle.ReasonLiveLocation)
+	synced := make(chan string, 1)
+	go func() { synced <- c.BackgroundSync() }()
+	require.Eventually(t, func() bool { return lifecycle.Holds(c) == 4 }, 5*time.Second, time.Millisecond)
+	c.UIInactive()
+	select {
+	case msg := <-synced:
+		require.Contains(t, msg, "bailing out early")
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "BackgroundSync kept its window after the UI left the background")
+	}
+	require.Equal(t, 2, lifecycle.Holds(c))
+	require.Zero(t, c.PushWindowEnd(push, stay))
+	require.True(t, live.Release())
+	require.Equal(t, 0, lifecycle.Holds(c))
+	require.Equal(t, inactive, appState.State())
+}
+
+func TestExpirationEndsOnlyBackgroundTaskHolds(t *testing.T) {
+	appState, _ := newAppState(t)
 	appState.Update(background)
-	c.LiveLocationClaim()
-	close(release)
-	requireDone(t, firstDone)
-	c.LiveLocationRelease()
+	c := lifecycle.New(appState, lifecycle.Config{})
+	require.Positive(t, c.UIBackground(stay))
+	push := c.PushWindowBegin()
+	live := c.AcquireBackgroundWork(lifecycle.ReasonLiveLocation)
+	notified := 0
+	c.BackgroundTaskExpired(func() { notified++ })
+	require.Equal(t, 1, notified)
+	require.Equal(t, 2, lifecycle.Holds(c))
+	require.Equal(t, backgroundActive, appState.State())
+	c.BackgroundTaskExpired(func() { notified++ })
+	require.Equal(t, 1, notified, "nothing was left to expire")
+	require.Zero(t, c.PushWindowEnd(push, noStay))
+	require.True(t, live.Release())
 	require.Equal(t, background, appState.State())
 }
 
-func TestPushWindowEndStaleTokenSkipsStayRunning(t *testing.T) {
+func TestWillTerminateEndsEveryHold(t *testing.T) {
+	appState, _ := newAppState(t)
+	c := lifecycle.New(appState, lifecycle.Config{})
+	live := c.AcquireBackgroundWork(lifecycle.ReasonLiveLocation)
+	require.Zero(t, c.PushWindowBegin(), "no push window in the foreground")
+	c.UIInactive()
+	push := c.PushWindowBegin()
+	require.Positive(t, push)
+	c.WillTerminate(noop)
+	require.Equal(t, 0, lifecycle.Holds(c))
+	require.True(t, live.Released())
+	require.Equal(t, background, appState.State())
+	require.Zero(t, c.PushWindowEnd(push, stay))
+}
+
+func TestPushWindowEndOutsideBackgroundSkipsStayRunning(t *testing.T) {
 	appState, _ := newAppState(t)
 	appState.Update(background)
 	c := lifecycle.New(appState, lifecycle.Config{})
 	token := c.PushWindowBegin()
-	c.DidBecomeActive()
+	c.UIInactive()
 	called := false
-	require.False(t, c.PushWindowEnd(token, func() bool {
-		called = true
-		return true
-	}))
+	require.Zero(t, c.PushWindowEnd(token, func() bool { called = true; return true }))
 	require.False(t, called)
-	require.False(t, c.PushWindowEnd(-1, stay))
-	require.Equal(t, foreground, appState.State())
+	require.Zero(t, c.PushWindowEnd(-1, stay))
+	require.Equal(t, inactive, appState.State())
+	require.Equal(t, 0, lifecycle.Holds(c))
 }
 
 // Native gives these last events only a short wait, so the state change and
@@ -150,11 +171,11 @@ func TestExitEventsApplyBeforeNotifying(t *testing.T) {
 		do      func(c *lifecycle.Controller, notifyPending func())
 	}{
 		"willTerminate": {
-			prepare: func(c *lifecycle.Controller) { c.DidBecomeActive() },
+			prepare: func(c *lifecycle.Controller) { c.UIActive() },
 			do:      func(c *lifecycle.Controller, notifyPending func()) { c.WillTerminate(notifyPending) },
 		},
 		"backgroundTaskExpired": {
-			prepare: func(c *lifecycle.Controller) { require.True(t, c.DidEnterBackground(stay)) },
+			prepare: func(c *lifecycle.Controller) { require.Positive(t, c.UIBackground(stay)) },
 			do:      func(c *lifecycle.Controller, notifyPending func()) { c.BackgroundTaskExpired(notifyPending) },
 		},
 	}
@@ -177,29 +198,23 @@ func TestExitEventsApplyBeforeNotifying(t *testing.T) {
 }
 
 func TestEventString(t *testing.T) {
-	require.Equal(t, "willEnterForeground", lifecycle.EventWillEnterForeground.String())
-	require.Equal(t, "liveLocationRelease", lifecycle.EventLiveLocationRelease.String())
+	require.Equal(t, "uiInactive", lifecycle.EventUIInactive.String())
+	require.Equal(t, "release", lifecycle.EventRelease.String())
 	require.Equal(t, "Event(99)", lifecycle.Event(99).String())
+	require.Equal(t, "liveLocation", lifecycle.ReasonLiveLocation.String())
 }
 
-// Owners run concurrently with lifecycle events, then each phase ends on a
-// known last event and checks nothing is left stuck: FOREGROUND stays
-// FOREGROUND, a background task window closes to BACKGROUND, and a plain
-// BACKGROUND stays BACKGROUND. Owner goroutines must all exit.
-func TestOwnersStress(t *testing.T) {
+// Hold owners run concurrently with UI reports, then each phase ends on known
+// last reports and checks nothing is left holding the app up: FOREGROUND
+// stays FOREGROUND and a background UI with no work is BACKGROUND. Owner
+// goroutines must all exit.
+func TestHoldsStress(t *testing.T) {
 	appState, _ := newAppState(t)
 	appState.Update(background)
 	c := lifecycle.New(appState, lifecycle.Config{
 		BackgroundSyncWindow:       200 * time.Microsecond,
 		BackgroundTaskPollInterval: time.Millisecond,
 		BackgroundTaskMaxDuration:  time.Minute,
-	})
-	// Widen the gap between opening a window and recording it, where a
-	// competing opener can slip in.
-	lifecycle.SetTestHookAfterWindowUpdate(c, func() {
-		if rand.Intn(2) == 0 {
-			time.Sleep(time.Duration(rand.Intn(200)) * time.Microsecond)
-		}
 	})
 	baseline := runtime.NumGoroutine()
 
@@ -227,73 +242,77 @@ func TestOwnersStress(t *testing.T) {
 				if r.Intn(2) == 0 {
 					time.Sleep(time.Duration(r.Intn(100)) * time.Microsecond)
 				}
-				if c.PushWindowEnd(token, func() bool { return r.Intn(3) == 0 }) {
-					c.RunBackgroundTask(context.Background(), noDeliveries())
+				if task := c.PushWindowEnd(token, func() bool { return r.Intn(3) == 0 }); task > 0 {
+					c.RunBackgroundTask(context.Background(), task, noDeliveries())
 				}
 			})
 			runOwner(func(*rand.Rand) { c.BackgroundSync() })
 			runOwner(func(*rand.Rand) { c.BackgroundTaskExpired(noop) })
 			runOwner(func(r *rand.Rand) {
-				c.LiveLocationClaim()
+				h := c.AcquireBackgroundWork(lifecycle.ReasonLiveLocation)
 				time.Sleep(time.Duration(r.Intn(100)) * time.Microsecond)
-				c.LiveLocationRelease()
+				h.Release()
 			})
 		}
 
 		r := rand.New(rand.NewSource(time.Now().UnixNano()))
 		for range iterations {
-			switch r.Intn(6) {
+			switch r.Intn(5) {
 			case 0:
-				c.DidBecomeActive()
+				c.UIActive()
 			case 1:
-				c.WillEnterForeground()
+				c.UIInactive()
 			case 2:
-				c.WillResignActive()
+				if task := c.UIBackground(func() bool { return r.Intn(2) == 0 }); task > 0 {
+					owners.Add(1)
+					go func() {
+						defer owners.Done()
+						c.RunBackgroundTask(context.Background(), task, noDeliveries())
+					}()
+				}
 			case 3:
-				c.DidEnterBackground(func() bool { return r.Intn(2) == 0 })
+				c.UIBackground(noStay)
 			case 4:
-				c.DidEnterBackground(noStay)
-			case 5:
 				if r.Intn(10) == 0 {
 					c.WillTerminate(noop)
 				}
 			}
 			time.Sleep(time.Duration(r.Intn(50)) * time.Microsecond)
 		}
-		c.DidBecomeActive()
+		c.UIActive()
 		close(lifecycleDone)
 		waitGroupWithin(t, &owners, "owners deadlocked")
 		require.Equal(t, foreground, appState.State())
+		require.Equal(t, 0, lifecycle.Holds(c))
 	}
 
 	t.Run("ends in foreground", func(t *testing.T) {
 		chaos(t, 300)
 	})
 
-	// Android's process stop and the push service both open a window and
-	// start a task; the newest window must close once the tasks are done.
-	t.Run("ends in background task", func(t *testing.T) {
-		for range 50 {
-			chaos(t, 20)
-			var tasks sync.WaitGroup
-			for range 4 {
-				tasks.Add(1)
-				go func() {
-					defer tasks.Done()
-					if c.DidEnterBackground(stay) {
-						c.RunBackgroundTask(context.Background(), noDeliveries())
-					}
-				}()
-			}
-			waitGroupWithin(t, &tasks, "background tasks deadlocked")
-			require.Equal(t, background, appState.State())
-		}
-	})
-
 	t.Run("ends in background", func(t *testing.T) {
 		chaos(t, 300)
-		c.DidEnterBackground(noStay)
+		c.UIBackground(noStay)
 		require.Equal(t, background, appState.State())
+		require.Equal(t, 0, lifecycle.Holds(c))
+	})
+
+	t.Run("concurrent holds end in background", func(t *testing.T) {
+		for range 50 {
+			chaos(t, 20)
+			c.UIBackground(noStay)
+			var holders sync.WaitGroup
+			for range 4 {
+				holders.Add(1)
+				go func() {
+					defer holders.Done()
+					c.AcquireBackgroundWork(lifecycle.ReasonPushWindow).Release()
+				}()
+			}
+			waitGroupWithin(t, &holders, "holders deadlocked")
+			require.Equal(t, background, appState.State())
+			require.Equal(t, 0, lifecycle.Holds(c))
+		}
 	})
 
 	// require.Eventually runs its condition on extra goroutines, so poll by hand.

@@ -3,6 +3,8 @@
 
 package lifecycle
 
-func SetTestHookAfterWindowUpdate(c *Controller, hook func()) { c.testHookAfterWindowUpdate = hook }
-
-func TaskGen(c *Controller) uint64 { return c.taskGen.Load() }
+func Holds(c *Controller) int {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return len(c.holds)
+}

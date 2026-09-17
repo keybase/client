@@ -46,7 +46,9 @@ const (
 	// pauses the activity.
 	Nothing Action = iota + 1
 
-	// Native lifecycle events.
+	// Native lifecycle events, as native reports them: willEnterForeground and
+	// willResignActive are UIInactive, didBecomeActive is UIActive,
+	// didEnterBackground is UIBackground.
 	WillEnterForeground
 	DidBecomeActive
 	WillResignActive
@@ -135,9 +137,6 @@ type Step struct {
 	// Slot names the push window for PushWindowBegin/End.
 	Slot int
 	Want keybase1.MobileAppState
-	// Gen is how much the generation moves: 1 for an accepted update, even a
-	// same-value one, 0 for a rejected or skipped one.
-	Gen int
 	// Flush: local DBs were flushed.
 	Flush bool
 	// Warn: the user was warned about messages that won't send.
@@ -169,6 +168,10 @@ type Harness struct {
 	pending  atomic.Int32
 	failures chan []chat1.OutboxRecord
 	tokens   map[int]int64
+	// taskToken is the background task hold the last UIBackground or
+	// PushWindowEnd opened, for BackgroundTaskStart.
+	taskToken    int64
+	liveLocation *lifecycle.Hold
 
 	cancel   context.CancelFunc
 	ctx      context.Context
@@ -265,16 +268,12 @@ func (h *Harness) wait(done chan struct{}, what string) {
 func (h *Harness) Do(step Step) {
 	t := h.T
 	t.Helper()
-	_, gen := h.AppState.StateAndGeneration()
 	flushes, warnings := h.Flushes(), h.Warnings()
 	ret := h.perform(step)
 	h.Recorder.Sync(t)
-	state, newGen := h.AppState.StateAndGeneration()
+	state := h.AppState.State()
 	if state != step.Want {
 		t.Fatalf("%v: state %v, want %v", step.Do, state, step.Want)
-	}
-	if got := newGen - gen; got != uint64(step.Gen) {
-		t.Fatalf("%v: generation moved by %d, want %d", step.Do, got, step.Gen)
 	}
 	if got := h.Flushes() - flushes; got != boolInt(step.Flush) {
 		t.Fatalf("%v: %d flushes, want %d", step.Do, got, boolInt(step.Flush))
@@ -299,14 +298,13 @@ func (h *Harness) perform(step Step) bool {
 	c := h.Controller
 	switch step.Do {
 	case Nothing:
-	case WillEnterForeground:
-		c.WillEnterForeground()
+	case WillEnterForeground, WillResignActive:
+		c.UIInactive()
 	case DidBecomeActive:
-		c.DidBecomeActive()
-	case WillResignActive:
-		c.WillResignActive()
+		c.UIActive()
 	case DidEnterBackground:
-		return c.DidEnterBackground(h.stayRunning)
+		h.taskToken = c.UIBackground(h.stayRunning)
+		return h.taskToken > 0
 	case WillTerminate:
 		c.WillTerminate(h.warn)
 	case BackgroundTaskExpired:
@@ -315,11 +313,20 @@ func (h *Harness) perform(step Step) bool {
 		h.tokens[step.Slot] = c.PushWindowBegin()
 		return h.tokens[step.Slot] > 0
 	case PushWindowEnd:
-		return c.PushWindowEnd(h.tokens[step.Slot], h.stayRunning)
+		if task := c.PushWindowEnd(h.tokens[step.Slot], h.stayRunning); task > 0 {
+			h.taskToken = task
+			return true
+		}
+		return false
 	case LiveLocationClaim:
-		c.LiveLocationClaim()
+		if h.liveLocation == nil || h.liveLocation.Released() {
+			h.liveLocation = c.AcquireBackgroundWork(lifecycle.ReasonLiveLocation)
+		}
 	case LiveLocationRelease:
-		c.LiveLocationRelease()
+		if h.liveLocation != nil {
+			h.liveLocation.Release()
+			h.liveLocation = nil
+		}
 	case BackgroundSyncStart:
 		h.syncDone = h.goRun(func() { c.BackgroundSync() })
 		return h.Clock.WaitForAfter(h.T, syncWindow, h.syncDone)
@@ -329,7 +336,8 @@ func (h *Harness) perform(step Step) bool {
 	case BackgroundSyncWait:
 		h.wait(h.syncDone, "BackgroundSync")
 	case BackgroundTaskStart:
-		h.taskDone = h.goRun(func() { c.RunBackgroundTask(h.ctx, h.deps()) })
+		token := h.taskToken
+		h.taskDone = h.goRun(func() { c.RunBackgroundTask(h.ctx, token, h.deps()) })
 		return h.Clock.WaitForAfter(h.T, pollInterval, h.taskDone)
 	case BackgroundTaskDelivered:
 		h.pending.Store(0)

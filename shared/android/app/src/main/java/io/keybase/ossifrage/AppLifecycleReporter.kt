@@ -10,13 +10,13 @@ import java.util.concurrent.TimeUnit
 // The Go lifecycle entry points. Kept free of Android and gomobile types so
 // the event mapping runs in JVM tests.
 internal interface LifecycleBind {
-    fun willEnterForeground()
-    fun didBecomeActive()
-    fun didEnterBackground(): Boolean
+    fun uiActive()
+    fun uiInactive()
+    fun uiBackground(): Long
     fun willExit()
     fun pushWindowBegin(): Long
-    fun pushWindowEnd(token: Long): Boolean
-    fun beginBackgroundTask()
+    fun pushWindowEnd(token: Long): Long
+    fun beginBackgroundTask(token: Long)
 }
 
 internal interface LifecycleExecutor {
@@ -32,13 +32,12 @@ internal class SingleThreadLifecycleExecutor : LifecycleExecutor {
 // Reports the app's process lifecycle to Go as events; Go decides the state.
 //
 // Events reach Go in the order they happen, on one background thread:
-// didEnterBackground queries the outbox, so it can't run on the main thread.
+// uiBackground queries the outbox, so it can't run on the main thread.
 //
 // Only the process lifecycle counts. Activity pauses (dialogs, permission
 // prompts, choosers, the photo picker sheet) report nothing, not even
-// willResignActive: INACTIVE would let a push window open and end in
-// BACKGROUND while the app is on screen. A full-screen picker or camera stops
-// the process like any other exit.
+// UIInactive: only the process lifecycle decides what Go sees. A full-screen
+// picker or camera stops the process like any other exit.
 internal class AppLifecycleReporter(
     private val bind: LifecycleBind,
     private val executor: LifecycleExecutor,
@@ -51,12 +50,12 @@ internal class AppLifecycleReporter(
     override fun onStart(owner: LifecycleOwner) {
         started = true
         reported = true
-        enqueue("willEnterForeground") { bind.willEnterForeground() }
+        enqueue("uiInactive") { bind.uiInactive() }
     }
 
     @Synchronized
     override fun onResume(owner: LifecycleOwner) {
-        enqueue("didBecomeActive") { bind.didBecomeActive() }
+        enqueue("uiActive") { bind.uiActive() }
     }
 
     @Synchronized
@@ -95,9 +94,10 @@ internal class AppLifecycleReporter(
 
     private fun reportBackground(why: String) {
         reported = true
-        enqueue("didEnterBackground: $why") {
-            if (bind.didEnterBackground()) {
-                bind.beginBackgroundTask()
+        enqueue("uiBackground: $why") {
+            val token = bind.uiBackground()
+            if (token > 0) {
+                bind.beginBackgroundTask(token)
             }
         }
     }
@@ -134,8 +134,11 @@ internal fun runPushWindow(bind: LifecycleBind, log: (String) -> Unit, inForegro
         task()
     } finally {
         // Negative: Go isn't initialized, so no window opened.
-        if (token > 0 && bind.pushWindowEnd(token)) {
-            bind.beginBackgroundTask()
+        if (token > 0) {
+            val task = bind.pushWindowEnd(token)
+            if (task > 0) {
+                bind.beginBackgroundTask(task)
+            }
         }
     }
     return true

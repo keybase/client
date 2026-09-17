@@ -10,14 +10,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestKeygenLoopSeedsFromState(t *testing.T) {
-	tc := libkb.SetupTest(t, "ephemeral", 2)
-	defer tc.Cleanup()
-	mctx := libkb.NewMetaContextForTest(tc)
-	appState := tc.G.MobileAppState
-	appState.Update(keybase1.MobileAppState_BACKGROUNDACTIVE)
-
-	var runs atomic.Int32
+// startKeygenLoop runs keygenLoop without ticks or jitter. next waits until the
+// loop is about to wait in the given state; stop ends the loop.
+func startKeygenLoop(t *testing.T, mctx libkb.MetaContext) (runs *atomic.Int32, next func(keybase1.MobileAppState), stop func()) {
+	runs = new(atomic.Int32)
 	waiting := make(chan keybase1.MobileAppState, 10)
 	stopCh := make(chan struct{})
 	done := make(chan struct{})
@@ -29,7 +25,7 @@ func TestKeygenLoopSeedsFromState(t *testing.T) {
 			func(state keybase1.MobileAppState) { waiting <- state })
 	}()
 
-	next := func(want keybase1.MobileAppState) {
+	next = func(want keybase1.MobileAppState) {
 		t.Helper()
 		select {
 		case got := <-waiting:
@@ -38,6 +34,27 @@ func TestKeygenLoopSeedsFromState(t *testing.T) {
 			t.Fatal("keygen loop did not wait")
 		}
 	}
+	stop = func() {
+		t.Helper()
+		close(stopCh)
+		select {
+		case <-done:
+		case <-time.After(10 * time.Second):
+			t.Fatal("keygen loop did not stop")
+		}
+	}
+	return runs, next, stop
+}
+
+func TestKeygenLoopSeedsFromState(t *testing.T) {
+	tc := libkb.SetupTest(t, "ephemeral", 2)
+	defer tc.Cleanup()
+	mctx := libkb.NewMetaContextForTest(tc)
+	appState := tc.G.MobileAppState
+	appState.Update(keybase1.MobileAppState_BACKGROUNDACTIVE)
+
+	runs, next, stop := startKeygenLoop(t, mctx)
+	defer stop()
 
 	// A background-active launch is not a transition into BACKGROUNDACTIVE.
 	next(keybase1.MobileAppState_BACKGROUNDACTIVE)
@@ -50,11 +67,41 @@ func TestKeygenLoopSeedsFromState(t *testing.T) {
 	appState.Update(keybase1.MobileAppState_BACKGROUNDACTIVE)
 	next(keybase1.MobileAppState_BACKGROUNDACTIVE)
 	require.EqualValues(t, 1, runs.Load())
+}
 
-	close(stopCh)
-	select {
-	case <-done:
-	case <-time.After(10 * time.Second):
-		t.Fatal("keygen loop did not stop")
-	}
+// Keygen runs when work wakes the app in the background and when the UI comes
+// back from BACKGROUND (INACTIVE), but not when the UI merely stops being
+// active.
+func TestKeygenLoopRunsWhenLeavingTheBackground(t *testing.T) {
+	tc := libkb.SetupTest(t, "ephemeral", 2)
+	defer tc.Cleanup()
+	mctx := libkb.NewMetaContextForTest(tc)
+	appState := tc.G.MobileAppState
+	appState.Update(keybase1.MobileAppState_BACKGROUND)
+
+	runs, next, stop := startKeygenLoop(t, mctx)
+	defer stop()
+
+	next(keybase1.MobileAppState_BACKGROUND)
+	require.Zero(t, runs.Load())
+	appState.Update(keybase1.MobileAppState_INACTIVE)
+	next(keybase1.MobileAppState_INACTIVE)
+	require.EqualValues(t, 1, runs.Load())
+	appState.Update(keybase1.MobileAppState_FOREGROUND)
+	next(keybase1.MobileAppState_FOREGROUND)
+	require.EqualValues(t, 1, runs.Load())
+	// INACTIVE from the foreground.
+	appState.Update(keybase1.MobileAppState_INACTIVE)
+	next(keybase1.MobileAppState_INACTIVE)
+	require.EqualValues(t, 1, runs.Load())
+	appState.Update(keybase1.MobileAppState_BACKGROUND)
+	next(keybase1.MobileAppState_BACKGROUND)
+	require.EqualValues(t, 1, runs.Load())
+	appState.Update(keybase1.MobileAppState_BACKGROUNDACTIVE)
+	next(keybase1.MobileAppState_BACKGROUNDACTIVE)
+	require.EqualValues(t, 2, runs.Load())
+	// INACTIVE from BACKGROUNDACTIVE.
+	appState.Update(keybase1.MobileAppState_INACTIVE)
+	next(keybase1.MobileAppState_INACTIVE)
+	require.EqualValues(t, 2, runs.Load())
 }

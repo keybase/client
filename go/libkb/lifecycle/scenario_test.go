@@ -72,11 +72,11 @@ func TestHarnessCloseEndsRunningWork(t *testing.T) {
 	const bga = keybase1.MobileAppState_BACKGROUNDACTIVE
 	cases := map[string][]lifecycletest.Step{
 		"background sync": {
-			{Do: lifecycletest.BackgroundSyncStart, Want: bga, Gen: 1, Returns: lifecycletest.ReturnTrue},
+			{Do: lifecycletest.BackgroundSyncStart, Want: bga, Returns: lifecycletest.ReturnTrue},
 		},
 		"background task": {
 			{Do: lifecycletest.WorkStarts, Want: keybase1.MobileAppState_BACKGROUND},
-			{Do: lifecycletest.DidEnterBackground, Want: bga, Gen: 1, Flush: true, Returns: lifecycletest.ReturnTrue},
+			{Do: lifecycletest.DidEnterBackground, Want: bga, Returns: lifecycletest.ReturnTrue},
 			{Do: lifecycletest.BackgroundTaskStart, Want: bga, Returns: lifecycletest.ReturnTrue},
 		},
 	}

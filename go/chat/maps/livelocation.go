@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb/lifecycle"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -32,6 +33,8 @@ type LiveLocationTracker struct {
 	trackers       map[types.LiveLocationKey]*locationTrack
 	lastCoord      chat1.Coordinate
 	maxCoords      int
+	// bgHold keeps the app running while tracking; guarded by the tracker's mutex.
+	bgHold *lifecycle.Hold
 
 	nativeWatchMu   sync.Mutex
 	nativeWatchRefs int
@@ -98,8 +101,9 @@ func (l *LiveLocationTracker) saveLocked(ctx context.Context) {
 func (l *LiveLocationTracker) removeTrackerLocked(ctx context.Context, t *locationTrack) {
 	delete(l.trackers, t.Key())
 	l.saveLocked(ctx)
-	if len(l.trackers) == 0 {
-		l.G().MobileLifecycle.LiveLocationRelease()
+	if len(l.trackers) == 0 && l.bgHold != nil {
+		l.bgHold.Release()
+		l.bgHold = nil
 	}
 }
 
@@ -434,11 +438,9 @@ func (l *LiveLocationTracker) LocationUpdate(ctx context.Context, coord chat1.Co
 	defer l.Trace(ctx, nil, "LocationUpdate")()
 	l.Lock()
 	defer l.Unlock()
-	if l.G().IsMobileAppType() && len(l.trackers) > 0 {
-		// if the app is woken up as the result of a location update, and we think we are currently
-		// backgrounded, then go ahead and mark us as background active so that we can get
-		// location updates out
-		l.G().MobileLifecycle.LiveLocationClaim()
+	if l.G().IsMobileAppType() && len(l.trackers) > 0 && (l.bgHold == nil || l.bgHold.Released()) {
+		// A location update can wake a backgrounded app; hold it up so the update gets out.
+		l.bgHold = l.G().MobileLifecycle.AcquireBackgroundWork(lifecycle.ReasonLiveLocation)
 	}
 	if l.lastCoord.Eq(coord) {
 		l.Debug(ctx, "LocationUpdate: ignoring dup coordinate")

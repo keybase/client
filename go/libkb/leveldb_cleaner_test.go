@@ -226,10 +226,8 @@ func TestLevelDbCleanerScenarioReplay(t *testing.T) {
 				switch {
 				case step.Want != prev && step.Want != keybase1.MobileAppState_BACKGROUNDACTIVE:
 					require.True(t, canceled, "step %d %v: clean not canceled in %v", i, step.Do, step.Want)
-				case step.Want == keybase1.MobileAppState_BACKGROUNDACTIVE && step.Gen <= 1:
-					require.False(t, canceled, "step %d %v: clean canceled in BACKGROUNDACTIVE", i, step.Do)
-				case step.Want == prev && step.Gen <= 1:
-					require.False(t, canceled, "step %d %v: clean canceled without a transition", i, step.Do)
+				case step.Want == keybase1.MobileAppState_BACKGROUNDACTIVE || step.Want == prev:
+					require.False(t, canceled, "step %d %v: clean canceled without a transition out of BACKGROUNDACTIVE", i, step.Do)
 				}
 				prev = step.Want
 			}

@@ -42,10 +42,12 @@ type Srv struct {
 	httpSrv   *kbhttp.Srv
 	endpoints map[string]srvEndpoint
 	shutdown  bool
-	// exitRestartGen is one past the app-state generation of the last restart
-	// after an unexpected exit, so a listener that keeps dying restarts at
-	// most once per generation.
-	exitRestartGen uint64
+	// exitRestartChange is one past stateChanges at the last restart after an
+	// unexpected exit, so a listener that keeps dying restarts at most once
+	// per app state change.
+	exitRestartChange uint64
+	// stateChanges counts the app state changes the monitor applied.
+	stateChanges uint64
 	// exits counts handled unexpected exits, for tests.
 	exits int
 	// beforeExitRestart, if set, runs in serverExited between reading the
@@ -120,18 +122,18 @@ func (r *Srv) serverExited() {
 	r.mu.Lock()
 	// Read the state and start under mu, so a BACKGROUND the monitor applies
 	// concurrently either comes first (seen here) or stops what starts here.
-	state, gen := r.G().MobileAppState.StateAndGeneration()
+	state := r.G().MobileAppState.State()
 	if r.beforeExitRestart != nil {
 		r.beforeExitRestart()
 	}
 	var info keybase1.HttpSrvInfo
 	started := false
-	if r.wantUp(state) && r.exitRestartGen != gen+1 {
-		r.exitRestartGen = gen + 1
+	if r.wantUp(state) && r.exitRestartChange != r.stateChanges+1 {
+		r.exitRestartChange = r.stateChanges + 1
 		r.debug(ctx, "serverExited: restarting in %v", state)
 		info, started = r.startLocked(ctx)
 	} else {
-		r.debug(ctx, "serverExited: not restarting in %v (generation %d)", state, gen)
+		r.debug(ctx, "serverExited: not restarting in %v", state)
 	}
 	r.exits++
 	r.mu.Unlock()
@@ -233,6 +235,9 @@ func (r *Srv) monitorAppState(state keybase1.MobileAppState) {
 			return
 		}
 		state = r.G().MobileAppState.State()
+		r.mu.Lock()
+		r.stateChanges++
+		r.mu.Unlock()
 		r.reconcile(state)
 	}
 }

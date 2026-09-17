@@ -34,9 +34,12 @@ func TestLiveLocationTrackerBackgroundActive(t *testing.T) {
 		l.removeTrackerLocked(ctx, track)
 	}
 
-	appState.Update(keybase1.MobileAppState_BACKGROUND)
+	noStay := func() bool { return false }
+	lc := tc.G.MobileLifecycle
+	require.Zero(t, lc.UIBackground(noStay))
+	require.Equal(t, keybase1.MobileAppState_BACKGROUND, appState.State())
 	l.LocationUpdate(ctx, coord(1))
-	require.Equal(t, keybase1.MobileAppState_BACKGROUND, appState.State(), "no trackers, no claim")
+	require.Equal(t, keybase1.MobileAppState_BACKGROUND, appState.State(), "no trackers, no hold")
 
 	first := addTracker(1)
 	second := addTracker(2)
@@ -47,11 +50,13 @@ func TestLiveLocationTrackerBackgroundActive(t *testing.T) {
 	removeTracker(second)
 	require.Equal(t, keybase1.MobileAppState_BACKGROUND, appState.State())
 
-	// A foreground while tracking leaves the state to the foreground.
+	// A fix in the foreground holds too, so backgrounding keeps the work running.
+	lc.UIActive()
 	third := addTracker(3)
 	l.LocationUpdate(ctx, coord(3))
-	require.Equal(t, keybase1.MobileAppState_BACKGROUNDACTIVE, appState.State())
-	appState.Update(keybase1.MobileAppState_FOREGROUND)
-	removeTracker(third)
 	require.Equal(t, keybase1.MobileAppState_FOREGROUND, appState.State())
+	require.Zero(t, lc.UIBackground(noStay))
+	require.Equal(t, keybase1.MobileAppState_BACKGROUNDACTIVE, appState.State())
+	removeTracker(third)
+	require.Equal(t, keybase1.MobileAppState_BACKGROUND, appState.State())
 }

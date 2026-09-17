@@ -144,7 +144,7 @@ func waitExits(t *testing.T, srv *Srv, n int) {
 }
 
 // killUntilDown kills the listener until an unexpected exit is not
-// restarted, because this app-state generation already had its restart.
+// restarted, because this app state change already had its restart.
 func killUntilDown(t *testing.T, srv *Srv, l *listeners) {
 	t.Helper()
 	for range 2 {
@@ -216,7 +216,7 @@ func TestUnexpectedExitRestartsOncePerGeneration(t *testing.T) {
 	require.Equal(t, 2, l.Calls(), "restart loop on a failing listener")
 	requireStopped(t, srv)
 
-	// A new generation allows one more restart after the monitor's own.
+	// A new app state change allows one more restart after the monitor's own.
 	srv.G().MobileAppState.Update(keybase1.MobileAppState_INACTIVE)
 	waitMonitor(t, srv)
 	waitExits(t, srv, 4)

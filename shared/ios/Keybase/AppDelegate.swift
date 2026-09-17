@@ -427,27 +427,26 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
 
 }
 
-// The Go lifecycle events, one bind call each. Go decides what state each event
-// means (go/libkb/lifecycle); nothing here may derive state, and
+// The Go lifecycle entry points, one bind call each. Native reports only UI
+// state and background task tokens; Go derives the app state
+// (go/libkb/lifecycle). Nothing here may derive state, and
 // UIApplication.applicationState lags inside the scene-forwarded callbacks
 // anyway.
 protocol AppLifecycleEvents {
-  func willEnterForeground()
-  func didBecomeActive()
-  func willResignActive()
-  // True when Go wants to keep running; runBackgroundTask then does that work.
-  func didEnterBackground() -> Bool
-  func runBackgroundTask()
+  func uiActive()
+  func uiInactive()
+  // A background task token when Go wants to keep running, 0 otherwise; runBackgroundTask then does that work.
+  func uiBackground() -> Int64
+  func runBackgroundTask(_ token: Int64)
   func backgroundTaskExpired()
   func willTerminate()
 }
 
 struct KeybaseLifecycleEvents: AppLifecycleEvents {
-  func willEnterForeground() { Keybasego.KeybaseAppWillEnterForeground() }
-  func didBecomeActive() { Keybasego.KeybaseAppDidBecomeActive() }
-  func willResignActive() { Keybasego.KeybaseAppWillResignActive() }
-  func didEnterBackground() -> Bool { Keybasego.KeybaseAppDidEnterBackground() }
-  func runBackgroundTask() { Keybasego.KeybaseAppBeginBackgroundTask(PushNotifier()) }
+  func uiActive() { Keybasego.KeybaseAppUIActive() }
+  func uiInactive() { Keybasego.KeybaseAppUIInactive() }
+  func uiBackground() -> Int64 { Keybasego.KeybaseAppUIBackground() }
+  func runBackgroundTask(_ token: Int64) { Keybasego.KeybaseAppBeginBackgroundTask(token, PushNotifier()) }
   func backgroundTaskExpired() { Keybasego.KeybaseAppBackgroundTaskExpired(PushNotifier()) }
   func willTerminate() { Keybasego.KeybaseAppWillExit(PushNotifier()) }
 }
@@ -469,9 +468,9 @@ final class AppLifecycleForwarder {
     self.events = events
   }
 
-  func willEnterForeground() { queue.async { self.events.willEnterForeground() } }
-  func didBecomeActive() { queue.async { self.events.didBecomeActive() } }
-  func willResignActive() { queue.async { self.events.willResignActive() } }
+  func willEnterForeground() { queue.async { self.events.uiInactive() } }
+  func didBecomeActive() { queue.async { self.events.uiActive() } }
+  func willResignActive() { queue.async { self.events.uiInactive() } }
 
   func willTerminate() {
     runBounded { $0.willTerminate() }
@@ -493,12 +492,13 @@ final class AppLifecycleForwarder {
       application.endBackgroundTask(previous)
     }
     queue.async {
-      guard self.events.didEnterBackground() else {
+      let token = self.events.uiBackground()
+      guard token > 0 else {
         DispatchQueue.main.async { self.endBackgroundTask(task) }
         return
       }
       DispatchQueue.global(qos: .default).async {
-        self.events.runBackgroundTask()
+        self.events.runBackgroundTask(token)
         DispatchQueue.main.async { self.endBackgroundTask(task) }
       }
     }

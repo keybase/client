@@ -1,10 +1,10 @@
 // Copyright 2026 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-// Package lifecycle turns the mobile app's lifecycle events, as reported by
-// native code, into MobileAppState updates. Owners of a transition (background
-// sync, background tasks, push windows, live location) undo only their own
-// transition, by generation.
+// Package lifecycle derives the mobile app's MobileAppState from the UI state
+// native code reports and the background work that must keep running:
+// FOREGROUND and INACTIVE follow the UI, and a background UI is
+// BACKGROUNDACTIVE while any hold is open and BACKGROUND otherwise.
 //
 // It must not import libkb: libkb holds a Controller, and libkb's own tests
 // drive it.
@@ -14,7 +14,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sync/atomic"
+	"slices"
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/protocol/chat1"
@@ -23,40 +24,85 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+type UIState int
+
+const (
+	UIBackground UIState = iota
+	UIInactive
+	UIActive
+)
+
+func (s UIState) String() string {
+	switch s {
+	case UIBackground:
+		return "background"
+	case UIInactive:
+		return "inactive"
+	case UIActive:
+		return "active"
+	default:
+		return fmt.Sprintf("UIState(%d)", int(s))
+	}
+}
+
+// Reason says what a hold keeps running, and so which events end it.
+type Reason int
+
+const (
+	ReasonLaunch Reason = iota + 1
+	ReasonBackgroundTask
+	ReasonBackgroundSync
+	ReasonPushWindow
+	ReasonLiveLocation
+)
+
+var reasonNames = map[Reason]string{
+	ReasonLaunch:         "launch",
+	ReasonBackgroundTask: "backgroundTask",
+	ReasonBackgroundSync: "backgroundSync",
+	ReasonPushWindow:     "pushWindow",
+	ReasonLiveLocation:   "liveLocation",
+}
+
+func (r Reason) String() string {
+	if name, ok := reasonNames[r]; ok {
+		return name
+	}
+	return fmt.Sprintf("Reason(%d)", int(r))
+}
+
 type Event int
 
 const (
-	EventWillEnterForeground Event = iota
-	EventDidBecomeActive
-	EventWillResignActive
-	EventDidEnterBackground
+	EventUIActive Event = iota
+	EventUIInactive
+	EventUIBackground
 	EventWillTerminate
+	EventBackgroundTaskExpired
 	EventBackgroundTaskBegin
 	EventBackgroundTaskEnd
-	EventBackgroundTaskExpired
 	EventPushWindowBegin
 	EventPushWindowEnd
 	EventBackgroundSyncBegin
 	EventBackgroundSyncEnd
-	EventLiveLocationClaim
-	EventLiveLocationRelease
+	EventAcquire
+	EventRelease
 )
 
 var eventNames = map[Event]string{
-	EventWillEnterForeground:   "willEnterForeground",
-	EventDidBecomeActive:       "didBecomeActive",
-	EventWillResignActive:      "willResignActive",
-	EventDidEnterBackground:    "didEnterBackground",
+	EventUIActive:              "uiActive",
+	EventUIInactive:            "uiInactive",
+	EventUIBackground:          "uiBackground",
 	EventWillTerminate:         "willTerminate",
+	EventBackgroundTaskExpired: "backgroundTaskExpired",
 	EventBackgroundTaskBegin:   "backgroundTaskBegin",
 	EventBackgroundTaskEnd:     "backgroundTaskEnd",
-	EventBackgroundTaskExpired: "backgroundTaskExpired",
 	EventPushWindowBegin:       "pushWindowBegin",
 	EventPushWindowEnd:         "pushWindowEnd",
 	EventBackgroundSyncBegin:   "backgroundSyncBegin",
 	EventBackgroundSyncEnd:     "backgroundSyncEnd",
-	EventLiveLocationClaim:     "liveLocationClaim",
-	EventLiveLocationRelease:   "liveLocationRelease",
+	EventAcquire:               "acquire",
+	EventRelease:               "release",
 }
 
 func (e Event) String() string {
@@ -69,11 +115,7 @@ func (e Event) String() string {
 // AppState is the part of libkb.MobileAppState the controller drives.
 type AppState interface {
 	State() keybase1.MobileAppState
-	StateAndGeneration() (keybase1.MobileAppState, uint64)
 	Update(state keybase1.MobileAppState) (changed bool)
-	UpdateWithCheck(state keybase1.MobileAppState, check func(keybase1.MobileAppState) bool) (
-		newGen uint64, applied bool, changed bool)
-	UpdateIfGeneration(gen uint64, state keybase1.MobileAppState) (newGen uint64, applied bool, changed bool)
 	NextUpdate(lastState keybase1.MobileAppState) <-chan struct{}
 }
 
@@ -90,25 +132,56 @@ type Config struct {
 	BackgroundSyncWindow       time.Duration
 	BackgroundTaskPollInterval time.Duration
 	BackgroundTaskMaxDuration  time.Duration
-	// Flush runs after every real change into BACKGROUND, and into a
-	// background task window, where the OS may suspend or kill the process
-	// next. It must not block.
+	// Flush runs when the UI enters the background and when the state
+	// changes into BACKGROUND, where the OS may suspend or kill the process
+	// next. It runs at most once per controller call, under the controller's
+	// lock, so it must not block.
 	Flush func()
 	Debug func(format string, args ...interface{})
 }
 
+type BackgroundTaskDeps struct {
+	ActiveDeliveries func(context.Context) ([]chat1.OutboxRecord, error)
+	NextFailure      func() (chan []chat1.OutboxRecord, func())
+	NotifyFailure    func([]chat1.OutboxRecord)
+}
+
+// Hold keeps a backgrounded app BACKGROUNDACTIVE until it is released or the
+// controller ends it.
+type Hold struct {
+	c      *Controller
+	id     int64
+	reason Reason
+	done   chan struct{}
+}
+
+func (h *Hold) ID() int64 { return h.id }
+
+// Done is closed once the hold has ended, by Release or by the controller.
+func (h *Hold) Done() <-chan struct{} { return h.done }
+
+func (h *Hold) Released() bool {
+	select {
+	case <-h.done:
+		return true
+	default:
+		return false
+	}
+}
+
+// Release ends the hold. It reports whether this call ended it; ending a hold
+// again, or one the controller already ended, does nothing.
+func (h *Hold) Release() bool { return h.c.release(h.id) }
+
 type Controller struct {
 	appState AppState
 	cfg      Config
-	// taskGen is the generation of the open background task window, 0 when
-	// none is open.
-	taskGen atomic.Uint64
-	// liveLocationGen is the generation of live location's claim, 0 when it
-	// holds none.
-	liveLocationGen atomic.Uint64
-	// testHookAfterWindowUpdate runs between opening a window and recording
-	// its generation.
-	testHookAfterWindowUpdate func()
+
+	// mu serializes every UI report and hold change with the state it writes.
+	mu     sync.Mutex
+	ui     UIState
+	nextID int64
+	holds  map[int64]*Hold
 }
 
 func New(appState AppState, cfg Config) *Controller {
@@ -130,230 +203,261 @@ func New(appState AppState, cfg Config) *Controller {
 	if cfg.Debug == nil {
 		cfg.Debug = func(string, ...interface{}) {}
 	}
-	return &Controller{appState: appState, cfg: cfg}
+	c := &Controller{appState: appState, cfg: cfg, holds: make(map[int64]*Hold)}
+	switch appState.State() {
+	case keybase1.MobileAppState_FOREGROUND:
+		c.ui = UIActive
+	case keybase1.MobileAppState_INACTIVE:
+		c.ui = UIInactive
+	case keybase1.MobileAppState_BACKGROUNDACTIVE:
+		// Android starts its process up; the first UI report ends this.
+		c.ui = UIBackground
+		c.acquireLocked(ReasonLaunch)
+	default:
+		c.ui = UIBackground
+	}
+	return c
 }
 
-func (c *Controller) debug(ev Event, format string, args ...interface{}) {
-	state, gen := c.appState.StateAndGeneration()
-	c.cfg.Debug("lifecycle: %v: %s (state: %v, generation: %d)", ev, fmt.Sprintf(format, args...), state, gen)
+func derive(ui UIState, holds int) keybase1.MobileAppState {
+	switch {
+	case ui == UIActive:
+		return keybase1.MobileAppState_FOREGROUND
+	case ui == UIInactive:
+		return keybase1.MobileAppState_INACTIVE
+	case holds > 0:
+		return keybase1.MobileAppState_BACKGROUNDACTIVE
+	default:
+		return keybase1.MobileAppState_BACKGROUND
+	}
 }
 
-func (c *Controller) update(state keybase1.MobileAppState) {
-	if c.appState.Update(state) && state == keybase1.MobileAppState_BACKGROUND {
+func (c *Controller) debugLocked(ev Event, format string, args ...interface{}) {
+	c.cfg.Debug("lifecycle: %v: %s (ui: %v, holds: %d, state: %v)", ev, fmt.Sprintf(format, args...),
+		c.ui, len(c.holds), c.appState.State())
+}
+
+// applyLocked writes the derived state. The OS may suspend or kill the
+// process once the UI is in the background or nothing holds it up, so it
+// flushes when the UI just entered the background or the state just changed
+// into BACKGROUND.
+func (c *Controller) applyLocked(uiEnteredBackground bool) {
+	state := derive(c.ui, len(c.holds))
+	changed := c.appState.Update(state)
+	if uiEnteredBackground || (changed && state == keybase1.MobileAppState_BACKGROUND) {
 		c.cfg.Flush()
 	}
 }
 
-// recordGen raises owner to gen. Opening a window and recording it are
-// separate steps, so concurrent openers can record out of order; only raising
-// keeps the newest window recorded.
-func (c *Controller) recordGen(owner *atomic.Uint64, gen uint64) {
-	if c.testHookAfterWindowUpdate != nil {
-		c.testHookAfterWindowUpdate()
-	}
-	for {
-		cur := owner.Load()
-		if cur >= gen || owner.CompareAndSwap(cur, gen) {
-			return
-		}
-	}
+func (c *Controller) acquireLocked(reason Reason) *Hold {
+	c.nextID++
+	h := &Hold{c: c, id: c.nextID, reason: reason, done: make(chan struct{})}
+	c.holds[h.id] = h
+	return h
 }
 
-// undoToBackground returns to BACKGROUND only if nothing has updated the app
-// state since the owner's own transition at gen.
-func (c *Controller) undoToBackground(gen uint64) (applied bool) {
-	if gen == 0 {
+func (c *Controller) dropLocked(id int64) bool {
+	h, ok := c.holds[id]
+	if !ok {
 		return false
 	}
-	_, applied, changed := c.appState.UpdateIfGeneration(gen, keybase1.MobileAppState_BACKGROUND)
-	if changed {
-		c.cfg.Flush()
-	}
-	return applied
-}
-
-func always(keybase1.MobileAppState) bool { return true }
-
-func isState(want keybase1.MobileAppState) func(keybase1.MobileAppState) bool {
-	return func(s keybase1.MobileAppState) bool { return s == want }
-}
-
-// WillEnterForeground brings networking up before the UI resumes, without
-// claiming the user is looking at the app yet.
-func (c *Controller) WillEnterForeground() {
-	c.update(keybase1.MobileAppState_BACKGROUNDACTIVE)
-	c.debug(EventWillEnterForeground, "applied")
-}
-
-func (c *Controller) DidBecomeActive() {
-	c.update(keybase1.MobileAppState_FOREGROUND)
-	c.debug(EventDidBecomeActive, "applied")
-}
-
-// WillResignActive covers the app being on screen without receiving events:
-// Control Center, system alerts, the app switcher, iPad focus loss.
-func (c *Controller) WillResignActive() {
-	c.update(keybase1.MobileAppState_INACTIVE)
-	c.debug(EventWillResignActive, "applied")
-}
-
-// DidEnterBackground moves to BACKGROUND, or, when stayRunning says work must
-// keep going, opens a BACKGROUNDACTIVE window for a background task and
-// returns true.
-func (c *Controller) DidEnterBackground(stayRunning func() bool) bool {
-	if !stayRunning() {
-		c.taskGen.Store(0)
-		c.update(keybase1.MobileAppState_BACKGROUND)
-		c.debug(EventDidEnterBackground, "no work to keep running")
-		return false
-	}
-	gen, _, changed := c.appState.UpdateWithCheck(keybase1.MobileAppState_BACKGROUNDACTIVE, always)
-	c.recordGen(&c.taskGen, gen)
-	// The OS may still suspend or kill us once the background task runs out.
-	if changed {
-		c.cfg.Flush()
-	}
-	c.debug(EventDidEnterBackground, "opened background task window at %d", gen)
+	delete(c.holds, id)
+	close(h.done)
 	return true
 }
 
-// WillTerminate forces BACKGROUND regardless of owners: the process is about
-// to die. notifyPending warns about messages that won't send. It runs last:
-// it can take seconds (an outbox query and a local notification), and native
-// only waits briefly before the process exits, so the state change and the
-// flush must not wait behind it.
-func (c *Controller) WillTerminate(notifyPending func()) {
-	c.taskGen.Store(0)
-	c.update(keybase1.MobileAppState_BACKGROUND)
-	notifyPending()
-	c.debug(EventWillTerminate, "applied")
+func (c *Controller) dropReasonsLocked(reasons ...Reason) (dropped int) {
+	for id, h := range c.holds {
+		if slices.Contains(reasons, h.reason) && c.dropLocked(id) {
+			dropped++
+		}
+	}
+	return dropped
 }
 
-// BackgroundTaskExpired ends the background task window without clobbering a
-// state reported after the window opened, such as a return to the foreground.
-// notifyPending runs only when the window was still open, since otherwise we
-// aren't about to be suspended.
+// setUILocked records a UI report. Any report ends the launch hold; leaving
+// the background ends the holds that only keep a backgrounded app alive.
+func (c *Controller) setUILocked(ui UIState) (enteredBackground bool) {
+	c.dropReasonsLocked(ReasonLaunch)
+	prev := c.ui
+	c.ui = ui
+	if prev == UIBackground && ui != UIBackground {
+		c.dropReasonsLocked(ReasonBackgroundTask, ReasonBackgroundSync)
+	}
+	return prev != UIBackground && ui == UIBackground
+}
+
+// AcquireBackgroundWork opens a hold that keeps a backgrounded app
+// BACKGROUNDACTIVE until it is released.
+func (c *Controller) AcquireBackgroundWork(reason Reason) *Hold {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	h := c.acquireLocked(reason)
+	c.applyLocked(false)
+	c.debugLocked(EventAcquire, "%v hold %d", reason, h.id)
+	return h
+}
+
+func (c *Controller) release(id int64) bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	h, ok := c.holds[id]
+	if !ok {
+		return false
+	}
+	c.dropLocked(id)
+	c.applyLocked(false)
+	c.debugLocked(EventRelease, "%v hold %d", h.reason, id)
+	return true
+}
+
+func (c *Controller) UIActive() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.applyLocked(c.setUILocked(UIActive))
+	c.debugLocked(EventUIActive, "applied")
+}
+
+// UIInactive covers the app on screen without receiving events (Control
+// Center, alerts, the app switcher, iPad focus loss) and a scene or process
+// coming to the foreground before it is active.
+func (c *Controller) UIInactive() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.applyLocked(c.setUILocked(UIInactive))
+	c.debugLocked(EventUIInactive, "applied")
+}
+
+// UIBackground records the UI leaving the screen. When stayRunning says work
+// must keep going it opens a background task hold and returns its token for
+// RunBackgroundTask; otherwise it returns 0.
+func (c *Controller) UIBackground(stayRunning func() bool) int64 {
+	stay := stayRunning()
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	entered := c.setUILocked(UIBackground)
+	var token int64
+	if stay {
+		token = c.acquireLocked(ReasonBackgroundTask).id
+	}
+	c.applyLocked(entered)
+	c.debugLocked(EventUIBackground, "background task hold %d", token)
+	return token
+}
+
+// WillTerminate ends every hold: the process is about to die. notifyPending
+// warns about messages that won't send; it runs last because it can take
+// seconds and native waits only briefly.
+func (c *Controller) WillTerminate(notifyPending func()) {
+	c.mu.Lock()
+	entered := c.setUILocked(UIBackground)
+	for id := range c.holds {
+		c.dropLocked(id)
+	}
+	c.applyLocked(entered)
+	c.debugLocked(EventWillTerminate, "ended every hold")
+	c.mu.Unlock()
+	notifyPending()
+}
+
+// BackgroundTaskExpired ends every background task hold: iOS is ending the
+// app's background time. Native drops stale expirations, so these are the
+// current entry's holds and any older ones still running. Live location,
+// push window and sync holds keep their own lifetimes.
 func (c *Controller) BackgroundTaskExpired(notifyPending func()) {
-	gen := c.taskGen.Swap(0)
-	applied := c.undoToBackground(gen)
-	if applied {
+	c.mu.Lock()
+	ended := c.dropReasonsLocked(ReasonBackgroundTask)
+	c.applyLocked(false)
+	c.debugLocked(EventBackgroundTaskExpired, "ended %d background task holds", ended)
+	c.mu.Unlock()
+	if ended > 0 {
 		notifyPending()
 	}
-	c.debug(EventBackgroundTaskExpired, "window %d closed: %v", gen, applied)
 }
 
-// PushWindowBegin moves to BACKGROUNDACTIVE while a push is handled, unless
-// the app is in the foreground. It returns the token for PushWindowEnd, or 0
-// if the app is in the foreground.
+// PushWindowBegin holds the app up while a push is handled. It returns the
+// hold's token, or 0 when the app is active and nothing needs holding.
 func (c *Controller) PushWindowBegin() int64 {
-	gen, applied, _ := c.appState.UpdateWithCheck(keybase1.MobileAppState_BACKGROUNDACTIVE,
-		func(s keybase1.MobileAppState) bool { return s != keybase1.MobileAppState_FOREGROUND })
-	if !applied {
-		c.debug(EventPushWindowBegin, "skipped in the foreground")
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.ui == UIActive {
+		c.debugLocked(EventPushWindowBegin, "skipped in the foreground")
 		return 0
 	}
-	c.debug(EventPushWindowBegin, "opened at %d", gen)
-	return int64(gen)
+	h := c.acquireLocked(ReasonPushWindow)
+	c.applyLocked(false)
+	c.debugLocked(EventPushWindowBegin, "hold %d", h.id)
+	return h.id
 }
 
-// PushWindowEnd closes the window opened at token, only if nothing has updated
-// the app state since. It returns true when it hands the window over to a
-// background task (as DidEnterBackground does), and false when it moved to
-// BACKGROUND or someone else owns the state now.
-func (c *Controller) PushWindowEnd(token int64, stayRunning func() bool) bool {
+// PushWindowEnd ends the push window's hold. If the UI is still in the
+// background and work must keep going, it first opens a background task hold
+// and returns its token.
+func (c *Controller) PushWindowEnd(token int64, stayRunning func() bool) int64 {
 	if token <= 0 {
-		return false
+		return 0
 	}
-	gen := uint64(token)
-	if _, cur := c.appState.StateAndGeneration(); cur != gen {
-		c.debug(EventPushWindowEnd, "window %d superseded", gen)
-		return false
+	c.mu.Lock()
+	h, ok := c.holds[token]
+	query := ok && h.reason == ReasonPushWindow && c.ui == UIBackground
+	c.mu.Unlock()
+	stay := query && stayRunning()
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	var task int64
+	if stay && c.ui == UIBackground {
+		task = c.acquireLocked(ReasonBackgroundTask).id
 	}
-	if stayRunning() {
-		newGen, applied, _ := c.appState.UpdateIfGeneration(gen, keybase1.MobileAppState_BACKGROUNDACTIVE)
-		if !applied {
-			c.debug(EventPushWindowEnd, "window %d superseded", gen)
-			return false
-		}
-		c.recordGen(&c.taskGen, newGen)
-		c.debug(EventPushWindowEnd, "window %d handed to background task at %d", gen, newGen)
-		return true
+	if h, ok := c.holds[token]; ok && h.reason == ReasonPushWindow {
+		c.dropLocked(token)
 	}
-	applied := c.undoToBackground(gen)
-	c.debug(EventPushWindowEnd, "window %d closed: %v", gen, applied)
-	return false
+	c.applyLocked(false)
+	c.debugLocked(EventPushWindowEnd, "hold %d ended, background task hold %d", token, task)
+	return task
 }
 
-// BackgroundSync moves BACKGROUND to BACKGROUNDACTIVE for the sync window,
-// then undoes that transition unless someone else updated the state meanwhile.
-// It returns a status for native logs.
+// BackgroundSync holds the app up for the sync window while the UI is in the
+// background. It returns a status for native logs.
 func (c *Controller) BackgroundSync() string {
-	gen, applied, _ := c.appState.UpdateWithCheck(keybase1.MobileAppState_BACKGROUNDACTIVE,
-		isState(keybase1.MobileAppState_BACKGROUND))
-	if !applied {
+	c.mu.Lock()
+	if c.ui != UIBackground {
 		msg := "skipping, app not in background state: " + c.appState.State().String()
-		c.debug(EventBackgroundSyncBegin, "%s", msg)
+		c.debugLocked(EventBackgroundSyncBegin, "%s", msg)
+		c.mu.Unlock()
 		return msg
 	}
-	c.debug(EventBackgroundSyncBegin, "opened at %d", gen)
-	timer := c.cfg.Clock.After(c.cfg.BackgroundSyncWindow)
+	h := c.acquireLocked(ReasonBackgroundSync)
+	c.applyLocked(false)
+	c.debugLocked(EventBackgroundSyncBegin, "hold %d", h.id)
+	c.mu.Unlock()
 	var msg string
 	select {
-	case <-c.appState.NextUpdate(keybase1.MobileAppState_BACKGROUNDACTIVE):
-		msg = "bailing out early, appstate change: " + c.appState.State().String()
-	case <-timer:
-		if c.undoToBackground(gen) {
-			msg = "completed window"
-		} else {
-			msg = "completed window, app state updated meanwhile: " + c.appState.State().String()
-		}
+	case <-h.Done():
+		msg = "bailing out early, hold ended: " + c.appState.State().String()
+	case <-c.cfg.Clock.After(c.cfg.BackgroundSyncWindow):
+		msg = "completed window"
 	}
-	c.debug(EventBackgroundSyncEnd, "%s", msg)
+	h.Release()
+	c.mu.Lock()
+	c.debugLocked(EventBackgroundSyncEnd, "%s", msg)
+	c.mu.Unlock()
 	return msg
 }
 
-// LiveLocationClaim moves BACKGROUND to BACKGROUNDACTIVE while live location
-// is tracking, so location updates get out.
-func (c *Controller) LiveLocationClaim() {
-	gen, applied, _ := c.appState.UpdateWithCheck(keybase1.MobileAppState_BACKGROUNDACTIVE,
-		isState(keybase1.MobileAppState_BACKGROUND))
-	if !applied {
+// RunBackgroundTask keeps the background task hold at token until outgoing
+// messages are delivered, one fails, time runs out, the hold is ended (the UI
+// left the background, expiration, termination) or ctx is done.
+func (c *Controller) RunBackgroundTask(ctx context.Context, token int64, deps BackgroundTaskDeps) {
+	c.mu.Lock()
+	// Task holds exist only while the UI is in the background: leaving it ends them.
+	h, ok := c.holds[token]
+	if !ok || h.reason != ReasonBackgroundTask {
+		c.debugLocked(EventBackgroundTaskBegin, "hold %d not open, early out", token)
+		c.mu.Unlock()
 		return
 	}
-	c.recordGen(&c.liveLocationGen, gen)
-	c.debug(EventLiveLocationClaim, "claimed at %d", gen)
-}
-
-// LiveLocationRelease returns to BACKGROUND, flushing like every other return
-// to BACKGROUND, only if nothing has updated the app state since the claim.
-func (c *Controller) LiveLocationRelease() {
-	gen := c.liveLocationGen.Swap(0)
-	if gen == 0 {
-		return
-	}
-	applied := c.undoToBackground(gen)
-	c.debug(EventLiveLocationRelease, "claim %d released: %v", gen, applied)
-}
-
-type BackgroundTaskDeps struct {
-	ActiveDeliveries func(context.Context) ([]chat1.OutboxRecord, error)
-	NextFailure      func() (chan []chat1.OutboxRecord, func())
-	NotifyFailure    func([]chat1.OutboxRecord)
-}
-
-// RunBackgroundTask waits while the background task window opened by
-// DidEnterBackground or PushWindowEnd is still current, until outgoing
-// messages are delivered, one fails, time runs out or ctx is done; then it
-// returns to BACKGROUND unless someone else has updated the app state since
-// the window opened.
-func (c *Controller) RunBackgroundTask(ctx context.Context, deps BackgroundTaskDeps) {
-	gen := c.taskGen.Load()
-	state, cur := c.appState.StateAndGeneration()
-	if state != keybase1.MobileAppState_BACKGROUNDACTIVE || gen == 0 || cur != gen {
-		c.debug(EventBackgroundTaskBegin, "no background task window, early out")
-		return
-	}
-	c.debug(EventBackgroundTaskBegin, "window %d", gen)
+	c.debugLocked(EventBackgroundTaskBegin, "hold %d", token)
+	c.mu.Unlock()
 	clock := c.cfg.Clock
 	// Round(0) drops the monotonic reading, so time the device spends asleep
 	// counts toward the maximum.
@@ -361,8 +465,8 @@ func (c *Controller) RunBackgroundTask(ctx context.Context, deps BackgroundTaskD
 	g, ctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
 		select {
-		case <-c.appState.NextUpdate(state):
-			return errors.New("app state change")
+		case <-h.Done():
+			return errors.New("hold ended")
 		case <-ctx.Done():
 			return ctx.Err()
 		}
@@ -406,7 +510,8 @@ func (c *Controller) RunBackgroundTask(ctx context.Context, deps BackgroundTaskD
 		}
 	})
 	err := g.Wait()
-	// A matching CAS also clears the window, so a later expiration is a no-op.
-	closed := c.taskGen.CompareAndSwap(gen, 0) && c.undoToBackground(gen)
-	c.debug(EventBackgroundTaskEnd, "window %d done because: %v, closed: %v", gen, err, closed)
+	released := h.Release()
+	c.mu.Lock()
+	c.debugLocked(EventBackgroundTaskEnd, "hold %d done because: %v, released: %v", token, err, released)
+	c.mu.Unlock()
 }

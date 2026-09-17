@@ -12,9 +12,7 @@ const (
 	ina = keybase1.MobileAppState_INACTIVE
 )
 
-func step(do Action, want keybase1.MobileAppState, gen int) Step {
-	return Step{Do: do, Want: want, Gen: gen}
-}
+func step(do Action, want keybase1.MobileAppState) Step { return Step{Do: do, Want: want} }
 
 func (s Step) flush() Step {
 	s.Flush = true
@@ -53,331 +51,327 @@ func states(s ...keybase1.MobileAppState) []keybase1.MobileAppState { return s }
 // iosLaunch brings a freshly started iOS service (BACKGROUND) to the
 // foreground: the scene connects and becomes active.
 var iosLaunch = []Step{
-	step(WillEnterForeground, bga, 1),
-	step(DidBecomeActive, fg, 1),
+	step(WillEnterForeground, ina),
+	step(DidBecomeActive, fg),
 }
 
 // iosToBackgroundTask backgrounds a foreground app with a message still
 // sending, and starts the background task.
 var iosToBackgroundTask = []Step{
-	step(WorkStarts, fg, 0),
-	step(WillResignActive, ina, 1),
-	step(DidEnterBackground, bga, 1).flush().returns(true),
-	step(BackgroundTaskStart, bga, 0).returns(true),
+	step(WorkStarts, fg),
+	step(WillResignActive, ina),
+	step(DidEnterBackground, bga).flush().returns(true),
+	step(BackgroundTaskStart, bga).returns(true),
 }
 
-// androidStart is the process lifecycle's start and resume, from any state.
-// The observed states assume it starts from BACKGROUND.
+// androidStart is the process lifecycle's start and resume.
 var androidStart = []Step{
-	step(WillEnterForeground, bga, 1),
-	step(DidBecomeActive, fg, 1),
+	step(WillEnterForeground, ina),
+	step(DidBecomeActive, fg),
 }
 
-// androidLaunch starts the UI in a fresh process (BACKGROUNDACTIVE).
+// androidLaunch starts the UI in a fresh process (BACKGROUNDACTIVE until the first report).
 var androidLaunch = androidStart
 
 // Scenarios replays whole native event sequences. Consumers of the app state
 // can play them with their own checks (see Play).
 var Scenarios = []Scenario{
-	{
-		Name:     "ios cold foreground launch",
-		Platform: IOS,
-		Steps:    iosLaunch,
-		Observed: states(bg, bga, fg),
-	},
+	{Name: "ios cold foreground launch", Platform: IOS, Steps: iosLaunch, Observed: states(bg, ina, fg)},
 	{
 		Name:     "ios background launch by silent push stays in the background, then foreground",
 		Platform: IOS,
-		Steps: steps([]Step{
-			step(Nothing, bg, 0),
-			step(BackgroundTaskExpired, bg, 0),
-		}, iosLaunch),
-		Observed: states(bg, bga, fg),
+		Steps:    steps([]Step{step(Nothing, bg), step(BackgroundTaskExpired, bg)}, iosLaunch),
+		Observed: states(bg, ina, fg),
 	},
 	{
 		Name:     "ios background launch by BGAppRefresh, then foreground",
 		Platform: IOS,
 		Steps: steps([]Step{
-			step(BackgroundSyncStart, bga, 1).returns(true),
-			step(BackgroundSyncTimerFires, bg, 1).flush(),
+			step(BackgroundSyncStart, bga).returns(true),
+			step(BackgroundSyncTimerFires, bg).flush(),
 		}, iosLaunch),
-		Observed: states(bg, bga, bg, bga, fg),
+		Observed: states(bg, bga, bg, ina, fg),
 	},
 	{
 		Name:     "ios home and return",
 		Platform: IOS,
 		Steps: steps(iosLaunch, []Step{
-			step(WillResignActive, ina, 1),
-			step(DidEnterBackground, bg, 1).flush().returns(false),
-			step(WillEnterForeground, bga, 1),
-			step(DidBecomeActive, fg, 1),
+			step(WillResignActive, ina),
+			step(DidEnterBackground, bg).flush().returns(false),
+			step(WillEnterForeground, ina),
+			step(DidBecomeActive, fg),
 		}),
-		Observed: states(bg, bga, fg, ina, bg, bga, fg),
+		Observed: states(bg, ina, fg, ina, bg, ina, fg),
 	},
 	{
 		Name:     "ios quick background and foreground cycles with duplicate events",
 		Platform: IOS,
 		Steps: steps(iosLaunch, []Step{
-			step(WillResignActive, ina, 1),
-			step(WillResignActive, ina, 1),
-			step(DidEnterBackground, bg, 1).flush().returns(false),
-			step(DidEnterBackground, bg, 1).returns(false),
-			step(WillEnterForeground, bga, 1),
-			step(WillEnterForeground, bga, 1),
-			step(DidBecomeActive, fg, 1),
-			step(DidBecomeActive, fg, 1),
+			step(WillResignActive, ina),
+			step(WillResignActive, ina),
+			step(DidEnterBackground, bg).flush().returns(false),
+			step(DidEnterBackground, bg).returns(false),
+			step(WillEnterForeground, ina),
+			step(WillEnterForeground, ina),
+			step(DidBecomeActive, fg),
+			step(DidBecomeActive, fg),
 			// Backgrounding abandoned before didEnterBackground.
-			step(WillResignActive, ina, 1),
-			step(DidBecomeActive, fg, 1),
-			step(WillResignActive, ina, 1),
-			step(DidEnterBackground, bg, 1).flush().returns(false),
-			step(WillEnterForeground, bga, 1),
-			step(DidBecomeActive, fg, 1),
+			step(WillResignActive, ina),
+			step(DidBecomeActive, fg),
+			step(WillResignActive, ina),
+			step(DidEnterBackground, bg).flush().returns(false),
+			step(WillEnterForeground, ina),
+			step(DidBecomeActive, fg),
 		}),
-		Observed: states(bg, bga, fg, ina, bg, bga, fg, ina, fg, ina, bg, bga, fg),
+		Observed: states(bg, ina, fg, ina, bg, ina, fg, ina, fg, ina, bg, ina, fg),
 	},
 	{
 		Name:     "ios control center or system alert keeps things up",
 		Platform: IOS,
 		Steps: steps(iosLaunch, []Step{
-			step(WillResignActive, ina, 1),
-			step(DidBecomeActive, fg, 1),
-			step(WillResignActive, ina, 1),
-			step(DidBecomeActive, fg, 1),
+			step(WillResignActive, ina), step(DidBecomeActive, fg),
+			step(WillResignActive, ina), step(DidBecomeActive, fg),
 		}),
-		Observed: states(bg, bga, fg, ina, fg, ina, fg),
+		Observed: states(bg, ina, fg, ina, fg, ina, fg),
 	},
 	{
 		Name:     "ipad focus loss keeps things up",
 		Platform: IOS,
 		Steps: steps(iosLaunch, []Step{
-			step(WillResignActive, ina, 1),
-			step(WillResignActive, ina, 1),
-			step(DidBecomeActive, fg, 1),
-			step(WillResignActive, ina, 1),
-			step(DidBecomeActive, fg, 1),
-			step(DidBecomeActive, fg, 1),
+			step(WillResignActive, ina), step(WillResignActive, ina), step(DidBecomeActive, fg),
+			step(WillResignActive, ina), step(DidBecomeActive, fg), step(DidBecomeActive, fg),
 		}),
-		Observed: states(bg, bga, fg, ina, fg, ina, fg),
+		Observed: states(bg, ina, fg, ina, fg, ina, fg),
 	},
 	{
 		Name:     "ios lock and unlock",
 		Platform: IOS,
 		Steps: steps(iosLaunch, []Step{
-			step(WillResignActive, ina, 1),
-			step(DidEnterBackground, bg, 1).flush().returns(false),
-			step(WillEnterForeground, bga, 1),
-			step(DidBecomeActive, fg, 1),
+			step(WillResignActive, ina),
+			step(DidEnterBackground, bg).flush().returns(false),
+			step(WillEnterForeground, ina),
+			step(DidBecomeActive, fg),
 		}),
-		Observed: states(bg, bga, fg, ina, bg, bga, fg),
+		Observed: states(bg, ina, fg, ina, bg, ina, fg),
 	},
 	{
+		// Leaving the background ends the sync's hold, so the sync returns at once.
 		Name:     "ios BackgroundSync window racing willEnterForeground and didBecomeActive",
 		Platform: IOS,
 		Steps: []Step{
-			step(BackgroundSyncStart, bga, 1).returns(true),
-			step(WillEnterForeground, bga, 1),
-			step(DidBecomeActive, fg, 1),
-			step(BackgroundSyncWait, fg, 0),
+			step(BackgroundSyncStart, bga).returns(true),
+			step(WillEnterForeground, ina),
+			step(DidBecomeActive, fg),
+			step(BackgroundSyncWait, fg),
 		},
-		Observed: states(bg, bga, fg),
+		Observed: states(bg, bga, ina, fg),
 	},
 	{
 		Name:     "ios slow didBecomeActive after the BackgroundSync window ends",
 		Platform: IOS,
 		Steps: []Step{
-			step(BackgroundSyncStart, bga, 1).returns(true),
-			step(WillEnterForeground, bga, 1),
-			step(BackgroundSyncTimerFires, bga, 0),
-			step(DidBecomeActive, fg, 1),
+			step(BackgroundSyncStart, bga).returns(true),
+			step(WillEnterForeground, ina),
+			step(BackgroundSyncTimerFires, ina),
+			step(DidBecomeActive, fg),
 		},
-		Observed: states(bg, bga, fg),
+		Observed: states(bg, bga, ina, fg),
 	},
 	{
 		Name:     "ios BackgroundSync skips outside the background",
 		Platform: IOS,
 		Steps: steps(iosLaunch, []Step{
-			step(BackgroundSyncStart, fg, 0).returns(false),
-			step(WillResignActive, ina, 1),
-			step(BackgroundSyncStart, ina, 0).returns(false),
+			step(BackgroundSyncStart, fg).returns(false),
+			step(WillResignActive, ina),
+			step(BackgroundSyncStart, ina).returns(false),
 		}),
-		Observed: states(bg, bga, fg, ina),
+		Observed: states(bg, ina, fg, ina),
 	},
 	{
 		Name:     "ios background task completes",
 		Platform: IOS,
 		Steps: steps(iosLaunch, iosToBackgroundTask, []Step{
-			step(BackgroundTaskDelivered, bg, 1).flush(),
-			step(BackgroundTaskExpired, bg, 0),
+			step(BackgroundTaskDelivered, bg).flush(),
+			step(BackgroundTaskExpired, bg),
 		}, iosLaunch),
-		Observed: states(bg, bga, fg, ina, bga, bg, bga, fg),
+		Observed: states(bg, ina, fg, ina, bga, bg, ina, fg),
 	},
 	{
 		Name:     "ios background task fails",
 		Platform: IOS,
-		Steps: steps(iosLaunch, iosToBackgroundTask, []Step{
-			step(BackgroundTaskFails, bg, 1).flush().warn(),
-		}),
-		Observed: states(bg, bga, fg, ina, bga, bg),
+		Steps:    steps(iosLaunch, iosToBackgroundTask, []Step{step(BackgroundTaskFails, bg).flush().warn()}),
+		Observed: states(bg, ina, fg, ina, bga, bg),
 	},
 	{
 		Name:     "ios background task runs out of time",
 		Platform: IOS,
-		Steps: steps(iosLaunch, iosToBackgroundTask, []Step{
-			step(BackgroundTaskTimesUp, bg, 1).flush().warn(),
-		}),
-		Observed: states(bg, bga, fg, ina, bga, bg),
+		Steps:    steps(iosLaunch, iosToBackgroundTask, []Step{step(BackgroundTaskTimesUp, bg).flush().warn()}),
+		Observed: states(bg, ina, fg, ina, bga, bg),
 	},
 	{
 		Name:     "ios background task expires",
 		Platform: IOS,
 		Steps: steps(iosLaunch, iosToBackgroundTask, []Step{
-			step(BackgroundTaskExpired, bg, 1).flush().warn(),
-			step(BackgroundTaskWait, bg, 0),
-			step(BackgroundTaskExpired, bg, 0),
+			step(BackgroundTaskExpired, bg).flush().warn(),
+			step(BackgroundTaskWait, bg),
+			step(BackgroundTaskExpired, bg),
 		}),
-		Observed: states(bg, bga, fg, ina, bga, bg),
+		Observed: states(bg, ina, fg, ina, bga, bg),
 	},
 	{
 		Name:     "ios background task expires after return to foreground",
 		Platform: IOS,
 		Steps: steps(iosLaunch, iosToBackgroundTask, []Step{
-			step(WillEnterForeground, bga, 1),
-			step(DidBecomeActive, fg, 1),
-			step(BackgroundTaskWait, fg, 0),
-			step(BackgroundTaskExpired, fg, 0),
+			step(WillEnterForeground, ina),
+			step(DidBecomeActive, fg),
+			step(BackgroundTaskWait, fg),
+			step(BackgroundTaskExpired, fg),
 		}),
-		Observed: states(bg, bga, fg, ina, bga, fg),
+		Observed: states(bg, ina, fg, ina, bga, ina, fg),
 	},
 	{
 		Name:     "ios background task expires between willEnterForeground and didBecomeActive",
 		Platform: IOS,
 		Steps: steps(iosLaunch, iosToBackgroundTask, []Step{
-			step(WillEnterForeground, bga, 1),
-			step(BackgroundTaskExpired, bga, 0),
-			// The same-value update doesn't wake the task; it finishes
-			// later and leaves the state alone.
-			step(BackgroundTaskDelivered, bga, 0),
-			step(DidBecomeActive, fg, 1),
+			step(WillEnterForeground, ina),
+			step(BackgroundTaskExpired, ina),
+			step(BackgroundTaskDelivered, ina),
+			step(DidBecomeActive, fg),
 		}),
-		Observed: states(bg, bga, fg, ina, bga, fg),
+		Observed: states(bg, ina, fg, ina, bga, ina, fg),
 	},
 	{
+		// Leaving the background ended the task's hold; finishing later changes nothing.
 		Name:     "ios background task finishes after willEnterForeground",
 		Platform: IOS,
 		Steps: steps(iosLaunch, iosToBackgroundTask, []Step{
-			step(WillEnterForeground, bga, 1),
-			// The same-value update doesn't wake the task; when it finishes,
-			// the window is no longer current, so it leaves the state alone.
-			step(BackgroundTaskDelivered, bga, 0),
-			step(DidBecomeActive, fg, 1),
+			step(WillEnterForeground, ina),
+			step(BackgroundTaskDelivered, ina),
+			step(DidBecomeActive, fg),
 		}),
-		Observed: states(bg, bga, fg, ina, bga, fg),
+		Observed: states(bg, ina, fg, ina, bga, ina, fg),
 	},
 	{
 		Name:     "ios background task superseded before it starts",
 		Platform: IOS,
 		Steps: steps(iosLaunch, []Step{
-			step(WorkStarts, fg, 0),
-			step(WillResignActive, ina, 1),
-			step(DidEnterBackground, bga, 1).flush().returns(true),
-			step(WillEnterForeground, bga, 1),
+			step(WorkStarts, fg),
+			step(WillResignActive, ina),
+			step(DidEnterBackground, bga).flush().returns(true),
+			step(WillEnterForeground, ina),
 			// Returning false means it exited without polling deliveries.
-			step(BackgroundTaskStart, bga, 0).returns(false),
-			step(DidBecomeActive, fg, 1),
+			step(BackgroundTaskStart, ina).returns(false),
+			step(DidBecomeActive, fg),
 		}),
-		Observed: states(bg, bga, fg, ina, bga, fg),
+		Observed: states(bg, ina, fg, ina, bga, ina, fg),
 	},
 	{
 		Name:     "ios live location across background",
 		Platform: IOS,
 		Steps: steps(iosLaunch, iosToBackgroundTask, []Step{
-			step(BackgroundTaskDelivered, bg, 1).flush(),
+			step(BackgroundTaskDelivered, bg).flush(),
 			// A location update wakes the app while tracking.
-			step(LiveLocationClaim, bga, 1),
-			step(LiveLocationClaim, bga, 0),
+			step(LiveLocationClaim, bga),
+			step(LiveLocationClaim, bga),
 			// Tracking ends.
-			step(LiveLocationRelease, bg, 1).flush(),
-			step(LiveLocationRelease, bg, 0),
-			step(LiveLocationClaim, bga, 1),
-			step(WillEnterForeground, bga, 1),
-			step(DidBecomeActive, fg, 1),
-			step(LiveLocationRelease, fg, 0),
-			// Claims only from BACKGROUND.
-			step(LiveLocationClaim, fg, 0),
+			step(LiveLocationRelease, bg).flush(),
+			step(LiveLocationRelease, bg),
+			step(LiveLocationClaim, bga),
+			step(WillEnterForeground, ina),
+			step(DidBecomeActive, fg),
+			step(LiveLocationRelease, fg),
+			// A claim in the foreground keeps the app running once it backgrounds.
+			step(LiveLocationClaim, fg),
+			step(WorkStops, fg),
+			step(WillResignActive, ina),
+			step(DidEnterBackground, bga).flush().returns(false),
+			step(LiveLocationRelease, bg).flush(),
 		}),
-		Observed: states(bg, bga, fg, ina, bga, bg, bga, bg, bga, fg),
+		Observed: states(bg, ina, fg, ina, bga, bg, bga, bg, bga, ina, fg, ina, bga, bg),
+	},
+	{
+		Name:     "ios background task expiration keeps live location running",
+		Platform: IOS,
+		Steps: steps(iosLaunch, []Step{step(LiveLocationClaim, fg)}, iosToBackgroundTask, []Step{
+			step(BackgroundTaskExpired, bga).warn(),
+			step(BackgroundTaskWait, bga),
+			step(LiveLocationRelease, bg).flush(),
+		}),
+		Observed: states(bg, ina, fg, ina, bga, bg),
 	},
 	{
 		Name:     "ios termination from the background",
 		Platform: IOS,
 		Steps: steps(iosLaunch, []Step{
-			step(WillResignActive, ina, 1),
-			step(DidEnterBackground, bg, 1).flush().returns(false),
-			step(WillTerminate, bg, 1).warn(),
+			step(WillResignActive, ina),
+			step(DidEnterBackground, bg).flush().returns(false),
+			step(WillTerminate, bg).warn(),
 		}),
-		Observed: states(bg, bga, fg, ina, bg),
+		Observed: states(bg, ina, fg, ina, bg),
 	},
 	{
 		Name:     "ios termination from the foreground",
 		Platform: IOS,
-		Steps: steps(iosLaunch, []Step{
-			step(WillTerminate, bg, 1).flush().warn(),
-		}),
-		Observed: states(bg, bga, fg, bg),
+		Steps:    steps(iosLaunch, []Step{step(WillTerminate, bg).flush().warn()}),
+		Observed: states(bg, ina, fg, bg),
 	},
 	{
 		Name:     "ios termination during a background task",
 		Platform: IOS,
 		Steps: steps(iosLaunch, iosToBackgroundTask, []Step{
-			step(WillTerminate, bg, 1).flush().warn(),
-			step(BackgroundTaskWait, bg, 0),
-			step(BackgroundTaskExpired, bg, 0),
+			step(WillTerminate, bg).flush().warn(),
+			step(BackgroundTaskWait, bg),
+			step(BackgroundTaskExpired, bg),
 		}),
-		Observed: states(bg, bga, fg, ina, bga, bg),
+		Observed: states(bg, ina, fg, ina, bga, bg),
 	},
 	{
-		Name:     "android cold launch",
-		Platform: Android,
-		Steps:    androidLaunch,
-		Observed: states(bga, fg),
+		Name:     "ios termination ends live location's hold",
+		Platform: IOS,
+		Steps: steps(iosLaunch, []Step{
+			step(LiveLocationClaim, fg),
+			step(WillResignActive, ina),
+			step(DidEnterBackground, bga).flush().returns(false),
+			step(WillTerminate, bg).flush().warn(),
+			step(LiveLocationRelease, bg),
+		}),
+		Observed: states(bg, ina, fg, ina, bga, bg),
 	},
+	{Name: "android cold launch", Platform: Android, Steps: androidLaunch, Observed: states(bga, ina, fg)},
 	{
 		Name:     "android process stop and start",
 		Platform: Android,
 		Steps: steps(androidLaunch, []Step{
-			step(DidEnterBackground, bg, 1).flush().returns(false),
+			step(DidEnterBackground, bg).flush().returns(false),
 		}, androidStart, []Step{
-			step(WorkStarts, fg, 0),
-			step(DidEnterBackground, bga, 1).flush().returns(true),
-			step(BackgroundTaskStart, bga, 0).returns(true),
-			// The same value, so the task keeps waiting, but the window is no
-			// longer its own.
-			step(WillEnterForeground, bga, 1),
-			step(DidBecomeActive, fg, 1),
-			step(BackgroundTaskWait, fg, 0),
+			step(WorkStarts, fg),
+			step(DidEnterBackground, bga).flush().returns(true),
+			step(BackgroundTaskStart, bga).returns(true),
+			step(WillEnterForeground, ina),
+			step(DidBecomeActive, fg),
+			step(BackgroundTaskWait, fg),
 		}),
-		Observed: states(bga, fg, bg, bga, fg, bga, fg),
+		Observed: states(bga, ina, fg, bg, ina, fg, bga, ina, fg),
 	},
 	{
 		Name:     "android dialog, permission prompt or picker pause keeps the foreground",
 		Platform: Android,
 		Steps: steps(androidLaunch, []Step{
-			step(Nothing, fg, 0),
-			step(PushWindowBegin, fg, 0).returns(false),
-			step(PushWindowEnd, fg, 0).returns(false),
+			step(Nothing, fg),
+			step(PushWindowBegin, fg).returns(false),
+			step(PushWindowEnd, fg).returns(false),
 			// Back from the prompt: the process resumes without a start.
-			step(DidBecomeActive, fg, 1),
+			step(DidBecomeActive, fg),
 		}),
-		Observed: states(bga, fg),
+		Observed: states(bga, ina, fg),
 	},
 	{
 		Name:     "android background task without a window",
 		Platform: Android,
 		Steps: []Step{
-			step(WorkStarts, bga, 0),
-			// Cold start is BACKGROUNDACTIVE, but no window was opened.
-			step(BackgroundTaskStart, bga, 0).returns(false),
+			step(WorkStarts, bga),
+			// Cold start holds the app up, but no background task hold was opened.
+			step(BackgroundTaskStart, bga).returns(false),
 		},
 		Observed: states(bga),
 	},
@@ -385,85 +379,80 @@ var Scenarios = []Scenario{
 		Name:     "android push window in the background",
 		Platform: Android,
 		Steps: steps(androidLaunch, []Step{
-			step(DidEnterBackground, bg, 1).flush().returns(false),
-			step(PushWindowBegin, bga, 1).returns(true),
-			step(PushWindowEnd, bg, 1).flush().returns(false),
+			step(DidEnterBackground, bg).flush().returns(false),
+			step(PushWindowBegin, bga).returns(true),
+			step(PushWindowEnd, bg).flush().returns(false),
 		}),
-		Observed: states(bga, fg, bg, bga, bg),
+		Observed: states(bga, ina, fg, bg, bga, bg),
 	},
 	{
-		// A process started without UI reports the background before the push
-		// window opens.
+		// A process started without UI reports the background before the push window opens.
 		Name:     "android push at cold start",
 		Platform: Android,
 		Steps: []Step{
-			step(DidEnterBackground, bg, 1).flush().returns(false),
-			step(PushWindowBegin, bga, 1).returns(true),
-			step(PushWindowEnd, bg, 1).flush().returns(false),
+			step(DidEnterBackground, bg).flush().returns(false),
+			step(PushWindowBegin, bga).returns(true),
+			step(PushWindowEnd, bg).flush().returns(false),
 		},
 		Observed: states(bga, bg, bga, bg),
 	},
 	{
+		// The push window's hold lasts until its own end, whatever the process does meanwhile.
 		Name:     "android push window racing process start",
 		Platform: Android,
 		Steps: steps(androidLaunch, []Step{
-			step(DidEnterBackground, bg, 1).flush().returns(false),
-			step(PushWindowBegin, bga, 1).returns(true),
-			// The process start's first half matches the window's value, but
-			// still supersedes it.
-			step(WillEnterForeground, bga, 1),
-			step(PushWindowEnd, bga, 0).returns(false),
-			step(DidBecomeActive, fg, 1),
-			step(PushWindowBegin, fg, 0).returns(false),
-			step(PushWindowEnd, fg, 0).returns(false),
-			// Foreground and back to the background while the push is
-			// handled: the value matches, but the window isn't the push's.
-			step(DidEnterBackground, bg, 1).flush().returns(false),
-			step(PushWindowBegin, bga, 1).returns(true),
+			step(DidEnterBackground, bg).flush().returns(false),
+			step(PushWindowBegin, bga).returns(true),
+			step(WillEnterForeground, ina),
+			step(PushWindowEnd, ina).returns(false),
+			step(DidBecomeActive, fg),
+			step(PushWindowBegin, fg).returns(false),
+			step(PushWindowEnd, fg).returns(false),
+			step(DidEnterBackground, bg).flush().returns(false),
+			step(PushWindowBegin, bga).returns(true),
 		}, androidStart, []Step{
-			step(DidEnterBackground, bg, 1).flush().returns(false),
-			step(PushWindowEnd, bg, 0).returns(false),
+			step(DidEnterBackground, bga).flush().returns(false),
+			step(PushWindowEnd, bg).flush().returns(false),
 		}),
-		Observed: states(bga, fg, bg, bga, fg, bg, bga, fg, bg),
+		Observed: states(bga, ina, fg, bg, bga, ina, fg, bg, bga, ina, fg, bga, bg),
 	},
 	{
 		Name:     "android push window hands over to a background task",
 		Platform: Android,
 		Steps: steps(androidLaunch, []Step{
-			step(DidEnterBackground, bg, 1).flush().returns(false),
-			step(PushWindowBegin, bga, 1).returns(true),
-			step(WorkStarts, bga, 0),
-			step(PushWindowEnd, bga, 1).returns(true),
-			step(BackgroundTaskStart, bga, 0).returns(true),
-			step(BackgroundTaskDelivered, bg, 1).flush(),
+			step(DidEnterBackground, bg).flush().returns(false),
+			step(PushWindowBegin, bga).returns(true),
+			step(WorkStarts, bga),
+			step(PushWindowEnd, bga).returns(true),
+			step(BackgroundTaskStart, bga).returns(true),
+			step(BackgroundTaskDelivered, bg).flush(),
 		}),
-		Observed: states(bga, fg, bg, bga, bg),
+		Observed: states(bga, ina, fg, bg, bga, bg),
 	},
 	{
 		Name:     "android overlapping push windows",
 		Platform: Android,
 		Steps: steps(androidLaunch, []Step{
-			step(DidEnterBackground, bg, 1).flush().returns(false),
-			step(PushWindowBegin, bga, 1).slot(0).returns(true),
-			step(PushWindowBegin, bga, 1).slot(1).returns(true),
-			step(PushWindowEnd, bga, 0).slot(0).returns(false),
-			step(PushWindowEnd, bg, 1).slot(1).flush().returns(false),
+			step(DidEnterBackground, bg).flush().returns(false),
+			step(PushWindowBegin, bga).slot(0).returns(true),
+			step(PushWindowBegin, bga).slot(1).returns(true),
+			step(PushWindowEnd, bga).slot(0).returns(false),
+			step(PushWindowEnd, bg).slot(1).flush().returns(false),
 		}),
-		Observed: states(bga, fg, bg, bga, bg),
+		Observed: states(bga, ina, fg, bg, bga, bg),
 	},
 	{
-		// BackgroundSyncWorker doesn't init Go, so it only syncs in a process
-		// where something else did. After a push (or quick reply) cold start,
-		// that component already reported the background, so the sync gets its
-		// window and returns to BACKGROUND.
+		// BackgroundSyncWorker doesn't init Go, so it only syncs in a process where
+		// something else did; a push (or quick reply) cold start already reported
+		// the background.
 		Name:     "android WorkManager BackgroundSync after a push cold start",
 		Platform: Android,
 		Steps: []Step{
-			step(DidEnterBackground, bg, 1).flush().returns(false),
-			step(PushWindowBegin, bga, 1).returns(true),
-			step(PushWindowEnd, bg, 1).flush().returns(false),
-			step(BackgroundSyncStart, bga, 1).returns(true),
-			step(BackgroundSyncTimerFires, bg, 1).flush(),
+			step(DidEnterBackground, bg).flush().returns(false),
+			step(PushWindowBegin, bga).returns(true),
+			step(PushWindowEnd, bg).flush().returns(false),
+			step(BackgroundSyncStart, bga).returns(true),
+			step(BackgroundSyncTimerFires, bg).flush(),
 		},
 		Observed: states(bga, bg, bga, bg, bga, bg),
 	},
@@ -471,34 +460,33 @@ var Scenarios = []Scenario{
 		Name:     "android UI starts during a WorkManager sync after a push cold start",
 		Platform: Android,
 		Steps: []Step{
-			step(DidEnterBackground, bg, 1).flush().returns(false),
-			step(PushWindowBegin, bga, 1).returns(true),
-			step(PushWindowEnd, bg, 1).flush().returns(false),
-			step(BackgroundSyncStart, bga, 1).returns(true),
-			step(WillEnterForeground, bga, 1),
-			step(DidBecomeActive, fg, 1),
-			step(BackgroundSyncWait, fg, 0),
+			step(DidEnterBackground, bg).flush().returns(false),
+			step(PushWindowBegin, bga).returns(true),
+			step(PushWindowEnd, bg).flush().returns(false),
+			step(BackgroundSyncStart, bga).returns(true),
+			step(WillEnterForeground, ina),
+			step(DidBecomeActive, fg),
+			step(BackgroundSyncWait, fg),
 		},
-		Observed: states(bga, bg, bga, bg, bga, fg),
+		Observed: states(bga, bg, bga, bg, bga, ina, fg),
 	},
 	{
+		// The sync keeps its hold after the push window ends.
 		Name:     "android WorkManager BackgroundSync racing a push window",
 		Platform: Android,
 		Steps: steps(androidLaunch, []Step{
-			step(DidEnterBackground, bg, 1).flush().returns(false),
-			step(BackgroundSyncStart, bga, 1).returns(true),
-			step(PushWindowBegin, bga, 1).returns(true),
-			step(PushWindowEnd, bg, 1).flush().returns(false),
-			step(BackgroundSyncWait, bg, 0),
+			step(DidEnterBackground, bg).flush().returns(false),
+			step(BackgroundSyncStart, bga).returns(true),
+			step(PushWindowBegin, bga).returns(true),
+			step(PushWindowEnd, bga).returns(false),
+			step(BackgroundSyncTimerFires, bg).flush(),
 		}),
-		Observed: states(bga, fg, bg, bga, bg),
+		Observed: states(bga, ina, fg, bg, bga, bg),
 	},
 	{
 		Name:     "android termination",
 		Platform: Android,
-		Steps: steps(androidLaunch, []Step{
-			step(WillTerminate, bg, 1).flush().warn(),
-		}),
-		Observed: states(bga, fg, bg),
+		Steps:    steps(androidLaunch, []Step{step(WillTerminate, bg).flush().warn()}),
+		Observed: states(bga, ina, fg, bg),
 	},
 }

@@ -30,7 +30,7 @@ import {
 // - "LiveLocationTracker: tracker[<id>]: got coords" when the tracker takes it,
 // - "+ LiveLocationTracker: updateMapUnfurl" when Go posts the location to the conversation,
 // - "LiveLocationTracker: restoreLocked: restored <n> trackers" when a relaunch restores sharing,
-// - "lifecycle: liveLocationClaim: " when a fix keeps a backgrounded app's work running.
+// - "lifecycle: acquire: liveLocation hold " when a fix holds a backgrounded app up.
 // And in the app's unified log (com.keybase.app, category location): "starting location updates"
 // and "stopping location updates" when the Swift watcher turns the OS service on and off.
 // The posted map itself never renders here: the maps server rejects the render request, so the
@@ -106,7 +106,7 @@ describe('app lifecycle: live location', () => {
     const goMark = goLogMark()
     await backgroundApp()
     await waitForLinesInOrder('the app to enter the background', () => goLogSince(goMark), [
-      /lifecycle: didEnterBackground: /,
+      /lifecycle: uiBackground: /,
     ])
     // JS doesn't run in the background, so anything after this comes from native.
     const moveMark = goLogMark()
@@ -117,7 +117,7 @@ describe('app lifecycle: live location', () => {
       [/\+ LiveLocationTracker: LocationUpdate/, /tracker\[\d+\]: got coords/, /\+ LiveLocationTracker: updateMapUnfurl/],
       180000
     )
-    expect(findLines(goLogSince(goMark), /lifecycle: willEnterForeground: /)).toEqual([])
+    expect(findLines(goLogSince(moveMark), /lifecycle: ui(Inactive|Active): /)).toEqual([])
     await activateApp()
     await waitForAppState('active')
   })
@@ -145,8 +145,8 @@ describe('app lifecycle: live location', () => {
     expect(lines).toHaveLength(4)
     // Launched for location, not by the user: no scene came to the foreground.
     const relaunched = goLogSince(goMark)
-    expect(findLines(relaunched, /lifecycle: liveLocationClaim: /).length).toBeGreaterThan(0)
-    expect(findLines(relaunched, /lifecycle: willEnterForeground: /)).toEqual([])
+    expect(findLines(relaunched, /lifecycle: acquire: liveLocation hold /).length).toBeGreaterThan(0)
+    expect(findLines(relaunched, /lifecycle: ui(Inactive|Active): /)).toEqual([])
     expect(appPid()).toBe(pid)
   })
 

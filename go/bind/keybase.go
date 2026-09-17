@@ -885,33 +885,23 @@ func FlushLogs() {
 	logger.FlushLogFile()
 }
 
-// AppWillEnterForeground reports iOS applicationWillEnterForeground, or
-// Android's process start.
-func AppWillEnterForeground() {
+// AppUIActive reports the app on screen and receiving events: iOS didBecomeActive, Android process resume.
+func AppUIActive() {
 	if !isInited() {
 		return
 	}
-	defer kbCtx.Trace("AppWillEnterForeground", nil)()
-	kbCtx.MobileLifecycle.WillEnterForeground()
+	defer kbCtx.Trace("AppUIActive", nil)()
+	kbCtx.MobileLifecycle.UIActive()
 }
 
-// AppDidBecomeActive reports iOS applicationDidBecomeActive, or Android's
-// process resume.
-func AppDidBecomeActive() {
+// AppUIInactive reports the app on screen but not active: iOS willEnterForeground and
+// willResignActive, Android process start.
+func AppUIInactive() {
 	if !isInited() {
 		return
 	}
-	defer kbCtx.Trace("AppDidBecomeActive", nil)()
-	kbCtx.MobileLifecycle.DidBecomeActive()
-}
-
-// AppWillResignActive reports iOS applicationWillResignActive.
-func AppWillResignActive() {
-	if !isInited() {
-		return
-	}
-	defer kbCtx.Trace("AppWillResignActive", nil)()
-	kbCtx.MobileLifecycle.WillResignActive()
+	defer kbCtx.Trace("AppUIInactive", nil)()
+	kbCtx.MobileLifecycle.UIInactive()
 }
 
 // LocationUpdate reports a location fix from the native location service.
@@ -983,8 +973,8 @@ func AppWillExit(pusher PushNotifier) {
 
 // AppBackgroundTaskExpired is called when the OS is about to suspend the app
 // before the background task started by AppBeginBackgroundTask finished. It
-// returns to BACKGROUND, and warns about messages still waiting to send, only
-// if nothing has updated the app state since the window opened.
+// ends every background task hold, and warns about messages still waiting to
+// send if one was open.
 func AppBackgroundTaskExpired(pusher PushNotifier) {
 	if !isInited() {
 		return
@@ -1023,21 +1013,20 @@ func shouldStayRunningInBackground() bool {
 	return false
 }
 
-// AppDidEnterBackground notifies the service that the app is in the background
-// [iOS] returning true will request about ~3mins from iOS to continue execution
-func AppDidEnterBackground() bool {
+// AppUIBackground reports the app off screen. It returns a background task token
+// for AppBeginBackgroundTask when work must keep running, 0 otherwise.
+func AppUIBackground() int64 {
 	if !isInited() {
-		return false
+		return 0
 	}
-	defer kbCtx.Trace("AppDidEnterBackground", nil)()
-	return kbCtx.MobileLifecycle.DidEnterBackground(shouldStayRunningInBackground)
+	defer kbCtx.Trace("AppUIBackground", nil)()
+	return kbCtx.MobileLifecycle.UIBackground(shouldStayRunningInBackground)
 }
 
-// AppPushWindowBegin moves the app to BACKGROUNDACTIVE while a push
-// notification is handled, unless the app is in the foreground. It returns a
-// token for AppPushWindowEnd: positive when the window opened, 0 when the app
-// is in the foreground (skip the work), and -1 when the service isn't
-// initialized (no window, but the work may still run).
+// AppPushWindowBegin holds the app up while a push notification is handled,
+// unless the app is active. It returns a token for AppPushWindowEnd: positive
+// when the hold opened, 0 when the app is active (skip the work), and -1 when
+// the service isn't initialized (no hold, but the work may still run).
 func AppPushWindowBegin() int64 {
 	if !isInited() {
 		return -1
@@ -1046,34 +1035,34 @@ func AppPushWindowBegin() int64 {
 	return kbCtx.MobileLifecycle.PushWindowBegin()
 }
 
-// AppPushWindowEnd closes the window opened by AppPushWindowBegin, only if
-// nothing has updated the app state since. It returns true when the caller
-// should start AppBeginBackgroundTaskNonblock to keep running, as with
-// AppDidEnterBackground.
-func AppPushWindowEnd(token int64) bool {
+// AppPushWindowEnd ends the hold opened by AppPushWindowBegin. It returns a
+// background task token for AppBeginBackgroundTaskNonblock when work must keep
+// running, 0 otherwise.
+func AppPushWindowEnd(token int64) int64 {
 	if !isInited() {
-		return false
+		return 0
 	}
 	defer kbCtx.Trace("AppPushWindowEnd", nil)()
 	return kbCtx.MobileLifecycle.PushWindowEnd(token, shouldStayRunningInBackground)
 }
 
-func AppBeginBackgroundTaskNonblock(pusher PushNotifier) {
+func AppBeginBackgroundTaskNonblock(token int64, pusher PushNotifier) {
 	if !isInited() {
 		return
 	}
 	defer kbCtx.Trace("AppBeginBackgroundTaskNonblock", nil)()
-	go AppBeginBackgroundTask(pusher)
+	go AppBeginBackgroundTask(token, pusher)
 }
 
-// AppBeginBackgroundTask notifies us that an app background task has been started on our behalf. This
-// function will return once we no longer need any time in the background.
-func AppBeginBackgroundTask(pusher PushNotifier) {
+// AppBeginBackgroundTask runs the background task whose token AppUIBackground or
+// AppPushWindowEnd returned. It returns once we no longer need any time in the
+// background.
+func AppBeginBackgroundTask(token int64, pusher PushNotifier) {
 	if !isInited() {
 		return
 	}
 	defer kbCtx.Trace("AppBeginBackgroundTask", nil)()
-	kbCtx.MobileLifecycle.RunBackgroundTask(context.Background(), backgroundTaskDeps(pusher))
+	kbCtx.MobileLifecycle.RunBackgroundTask(context.Background(), token, backgroundTaskDeps(pusher))
 }
 
 func backgroundTaskDeps(pusher PushNotifier) lifecycle.BackgroundTaskDeps {

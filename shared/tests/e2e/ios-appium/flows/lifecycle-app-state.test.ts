@@ -26,7 +26,7 @@ import {
 } from '../helpers/lifecycle'
 
 // Log lines these flows rely on:
-// - Go (ios.log): "lifecycle: <event>: ..." per native lifecycle event,
+// - Go (ios.log): "lifecycle: <uiActive|uiInactive|uiBackground|…>: …" per native UI report,
 //   "MobileAppState.Update: useful update: <STATE>" per Go app state change,
 //   "Srv: startHTTPSrv: addr: <address>" when the image server (re)starts.
 // - Metro (JS): "app focus changed: <state>" when the shell store's app state changes.
@@ -41,9 +41,9 @@ describe('app lifecycle: app state', () => {
     // The app restores its last screen, which may hide the tab bar, so wait on state.
     const snap = await waitForAppState('active', undefined, 90000)
     const goLines = await waitForLinesInOrder('Go to report the launch', () => goLogSince(goMark), [
-      /lifecycle: willEnterForeground: /,
+      /lifecycle: uiInactive: /,
       /MobileAppState\.Update: useful update: FOREGROUND/,
-      /lifecycle: didBecomeActive: /,
+      /lifecycle: uiActive: /,
     ])
     expect(goLines).toHaveLength(3)
     // JS must hold the address of the server Go started, not a stale one.
@@ -70,8 +70,8 @@ describe('app lifecycle: app state', () => {
       const goMark = goLogMark()
       await backgroundApp()
       await waitForLinesInOrder('Go to go to the background', () => goLogSince(goMark), [
-        /lifecycle: willResignActive: /,
-        /lifecycle: didEnterBackground: /,
+        /lifecycle: uiInactive: /,
+        /lifecycle: uiBackground: /,
       ])
 
       const text = `e2e-lifecycle-recv-${Date.now()}`
@@ -82,10 +82,10 @@ describe('app lifecycle: app state', () => {
       const snap = await waitForAppState('active')
       expect(snap.screen?.params?.['conversationIDKey']).toBe(convID)
       await waitForLinesInOrder('Go to return to the foreground', () => goLogSince(goMark), [
-        /lifecycle: didEnterBackground: /,
-        /lifecycle: willEnterForeground: /,
+        /lifecycle: uiBackground: /,
+        /lifecycle: uiInactive: /,
         /MobileAppState\.Update: useful update: FOREGROUND/,
-        /lifecycle: didBecomeActive: /,
+        /lifecycle: uiActive: /,
       ])
       await waitForAvatar200(user)
 
@@ -125,8 +125,8 @@ describe('app lifecycle: app state', () => {
       'Go to see every cycle',
       () => {
         const lines = goLogSince(goMark)
-        const backgrounds = findLines(lines, /lifecycle: didEnterBackground: /).length
-        const actives = findLines(lines, /lifecycle: didBecomeActive: /).length
+        const backgrounds = findLines(lines, /lifecycle: uiBackground: /).length
+        const actives = findLines(lines, /lifecycle: uiActive: /).length
         return backgrounds >= cycles && actives >= cycles && goAppStateUpdates(goMark).at(-1) === 'FOREGROUND'
           ? true
           : undefined
@@ -154,18 +154,18 @@ describe('app lifecycle: app state', () => {
     const inactive = await waitForAppState('inactive', undefined, 15000)
     await waitForLinesInOrder('Go to go inactive', () => goLogSince(goMark), [
       /MobileAppState\.Update: useful update: INACTIVE/,
-      /lifecycle: willResignActive: /,
+      /lifecycle: uiInactive: /,
     ])
     // INACTIVE is not background: the image server keeps serving at the same address.
     expect(inactive.httpSrv.address).toBe(before.httpSrv.address)
     await waitForAvatar200(user)
-    expect(findLines(goLogSince(goMark), /lifecycle: didEnterBackground: /)).toEqual([])
+    expect(findLines(goLogSince(goMark), /lifecycle: uiBackground: /)).toEqual([])
 
     await closeNotificationCenter()
     await waitForAppState('active', undefined, 15000)
     await waitForLinesInOrder('Go to become active again', () => goLogSince(goMark), [
       /MobileAppState\.Update: useful update: FOREGROUND/,
-      /lifecycle: didBecomeActive: /,
+      /lifecycle: uiActive: /,
     ])
     const focus = findLines(metroClientLogSince(metroMark), /app focus changed: /)
     expect(focus).toEqual([

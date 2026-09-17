@@ -41,7 +41,7 @@ func TestLocationUpdateReachesTrackers(t *testing.T) {
 	tracker.SetClock(clock)
 	tracker.TestingCoordsAddedCh = make(chan struct{}, 10)
 	ctx := context.Background()
-	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
+	require.Zero(t, tc.G.MobileLifecycle.UIBackground(func() bool { return false }))
 
 	tracker.StartTracking(ctx, chat1.ConversationID("conv"), 1, clock.Now().Add(time.Hour))
 	select {

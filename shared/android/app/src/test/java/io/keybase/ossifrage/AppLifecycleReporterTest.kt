@@ -17,23 +17,23 @@ import org.junit.Test
 
 private class FakeBind : LifecycleBind {
     val calls: MutableList<String> = Collections.synchronizedList(mutableListOf())
-    var stayRunning = false
+    var backgroundToken = 0L
     var token = 7L
-    var endHandsOver = false
-    var onDidEnterBackground: () -> Unit = {}
+    var endTaskToken = 0L
+    var onUiBackground: () -> Unit = {}
 
-    override fun willEnterForeground() {
-        calls.add("willEnterForeground")
+    override fun uiActive() {
+        calls.add("uiActive")
     }
 
-    override fun didBecomeActive() {
-        calls.add("didBecomeActive")
+    override fun uiInactive() {
+        calls.add("uiInactive")
     }
 
-    override fun didEnterBackground(): Boolean {
-        onDidEnterBackground()
-        calls.add("didEnterBackground")
-        return stayRunning
+    override fun uiBackground(): Long {
+        onUiBackground()
+        calls.add("uiBackground")
+        return backgroundToken
     }
 
     override fun willExit() {
@@ -45,13 +45,13 @@ private class FakeBind : LifecycleBind {
         return token
     }
 
-    override fun pushWindowEnd(token: Long): Boolean {
+    override fun pushWindowEnd(token: Long): Long {
         calls.add("pushWindowEnd($token)")
-        return endHandsOver
+        return endTaskToken
     }
 
-    override fun beginBackgroundTask() {
-        calls.add("beginBackgroundTask")
+    override fun beginBackgroundTask(token: Long) {
+        calls.add("beginBackgroundTask($token)")
     }
 }
 
@@ -107,9 +107,9 @@ class AppLifecycleReporterTest {
         assertTrue("nothing reaches Go on the calling thread", bind.calls.isEmpty())
         assertEquals(
             listOf(
-                "willEnterForeground", "didBecomeActive",
-                "didEnterBackground",
-                "willEnterForeground", "didBecomeActive",
+                "uiInactive", "uiActive",
+                "uiBackground",
+                "uiInactive", "uiActive",
             ),
             calls(),
         )
@@ -118,10 +118,10 @@ class AppLifecycleReporterTest {
     @Test
     fun processStopWithWorkStartsTheBackgroundTask() {
         launch()
-        bind.stayRunning = true
+        bind.backgroundToken = 9L
         stop()
         assertEquals(
-            listOf("willEnterForeground", "didBecomeActive", "didEnterBackground", "beginBackgroundTask"),
+            listOf("uiInactive", "uiActive", "uiBackground", "beginBackgroundTask(9)"),
             calls(),
         )
     }
@@ -132,7 +132,7 @@ class AppLifecycleReporterTest {
         reporter.onPause(Owner)
         reporter.onResume(Owner)
         reporter.onPause(Owner)
-        assertEquals(listOf("willEnterForeground", "didBecomeActive", "didBecomeActive"), calls())
+        assertEquals(listOf("uiInactive", "uiActive", "uiActive"), calls())
     }
 
     // A full-screen picker or camera stops the process like any other exit.
@@ -144,9 +144,9 @@ class AppLifecycleReporterTest {
         reporter.onResume(Owner)
         assertEquals(
             listOf(
-                "willEnterForeground", "didBecomeActive",
-                "didEnterBackground",
-                "willEnterForeground", "didBecomeActive",
+                "uiInactive", "uiActive",
+                "uiBackground",
+                "uiInactive", "uiActive",
             ),
             calls(),
         )
@@ -157,11 +157,11 @@ class AppLifecycleReporterTest {
         reporter.onCreate(Owner)
         reporter.reportHeadlessStart()
         reporter.reportHeadlessStart()
-        assertEquals(listOf("didEnterBackground"), calls())
+        assertEquals(listOf("uiBackground"), calls())
         reporter.onStart(Owner)
         reporter.onResume(Owner)
         reporter.reportHeadlessStart()
-        assertEquals(listOf("didEnterBackground", "willEnterForeground", "didBecomeActive"), calls())
+        assertEquals(listOf("uiBackground", "uiInactive", "uiActive"), calls())
     }
 
     @Test
@@ -171,17 +171,17 @@ class AppLifecycleReporterTest {
         reporter.onResume(Owner)
         stop()
         reporter.reportHeadlessStart()
-        assertEquals(listOf("willEnterForeground", "didBecomeActive", "didEnterBackground"), calls())
+        assertEquals(listOf("uiInactive", "uiActive", "uiBackground"), calls())
     }
 
     @Test
     fun awaitReportedWaitsForQueuedEvents() {
         val executor = SingleThreadLifecycleExecutor()
         val reporter = AppLifecycleReporter(bind, executor) {}
-        bind.onDidEnterBackground = { Thread.sleep(100) }
+        bind.onUiBackground = { Thread.sleep(100) }
         reporter.reportHeadlessStart()
         reporter.awaitReported(5000)
-        assertEquals(listOf("didEnterBackground"), bind.calls.toList())
+        assertEquals(listOf("uiBackground"), bind.calls.toList())
     }
 
     @Test
@@ -189,16 +189,16 @@ class AppLifecycleReporterTest {
         launch()
         reporter.onMainActivityDestroy(isFinishing = false, isChangingConfigurations = false)
         reporter.onMainActivityDestroy(isFinishing = true, isChangingConfigurations = true)
-        assertEquals(listOf("willEnterForeground", "didBecomeActive"), calls())
+        assertEquals(listOf("uiInactive", "uiActive"), calls())
         reporter.onMainActivityDestroy(isFinishing = true, isChangingConfigurations = false)
         stop()
         reporter.onStart(Owner)
         reporter.onResume(Owner)
         assertEquals(
             listOf(
-                "willEnterForeground", "didBecomeActive",
-                "willExit", "didEnterBackground",
-                "willEnterForeground", "didBecomeActive",
+                "uiInactive", "uiActive",
+                "willExit", "uiBackground",
+                "uiInactive", "uiActive",
             ),
             calls(),
         )
@@ -208,21 +208,21 @@ class AppLifecycleReporterTest {
     fun eventsReachGoInOrderOnOneBackgroundThread() {
         val threads = Collections.synchronizedSet(mutableSetOf<Thread>())
         val record = object : LifecycleBind by bind {
-            override fun willEnterForeground() {
+            override fun uiInactive() {
                 threads.add(Thread.currentThread())
-                bind.willEnterForeground()
+                bind.uiInactive()
             }
 
-            override fun didBecomeActive() {
+            override fun uiActive() {
                 threads.add(Thread.currentThread())
-                bind.didBecomeActive()
+                bind.uiActive()
             }
 
-            override fun didEnterBackground(): Boolean {
+            override fun uiBackground(): Long {
                 threads.add(Thread.currentThread())
                 // Slow, like the outbox query, so later events queue behind it.
                 Thread.sleep(5)
-                return bind.didEnterBackground()
+                return bind.uiBackground()
             }
         }
         val ordered = AppLifecycleReporter(record, SingleThreadLifecycleExecutor()) {}
@@ -231,7 +231,7 @@ class AppLifecycleReporterTest {
             ordered.onStart(Owner)
             ordered.onResume(Owner)
             ordered.onStop(Owner)
-            expected += listOf("willEnterForeground", "didBecomeActive", "didEnterBackground")
+            expected += listOf("uiInactive", "uiActive", "uiBackground")
         }
         ordered.awaitReported(10_000)
         assertEquals(expected, bind.calls.toList())
@@ -275,9 +275,9 @@ class RunPushWindowTest {
 
     @Test
     fun windowHandedOverStartsTheBackgroundTask() {
-        bind.endHandsOver = true
+        bind.endTaskToken = 11L
         run()
-        assertEquals(listOf("pushWindowBegin", "task", "pushWindowEnd(7)", "beginBackgroundTask"), bind.calls)
+        assertEquals(listOf("pushWindowBegin", "task", "pushWindowEnd(7)", "beginBackgroundTask(11)"), bind.calls)
     }
 
     @Test
