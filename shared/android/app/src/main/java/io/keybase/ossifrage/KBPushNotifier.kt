@@ -12,8 +12,6 @@ import android.graphics.PorterDuffXfermode
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
@@ -23,7 +21,6 @@ import keybase.ChatNotification
 import org.json.JSONObject
 import keybase.PushNotifier
 import java.io.BufferedInputStream
-import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 
