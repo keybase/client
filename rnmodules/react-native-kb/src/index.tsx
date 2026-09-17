@@ -97,10 +97,6 @@ export const setApplicationIconBadgeNumber = (n: number): void => {
   Kb.setApplicationIconBadgeNumber(n)
 }
 
-export const getInitialNotification = (): Promise<object | null> => {
-  return Kb.getInitialNotification()
-}
-
 export const removeAllPendingNotificationRequests = (): void => {
   Kb.removeAllPendingNotificationRequests()
 }
@@ -143,8 +139,15 @@ export const onMetaEvent = (callback: (payload: string) => void): EventSubscript
 }
 
 // Push events
-export const onPushNotification = (callback: (notification: object) => void): EventSubscription => {
-  return Kb.onPushNotification(n => callback(n))
+
+// A tapped notification's payload waits in native until takePushTap reads it; subscribe first,
+// then take, and take again on every event.
+export const onPushTap = (callback: () => void): EventSubscription => {
+  return Kb.onPushTap(() => callback())
+}
+
+export const takePushTap = (): string => {
+  return Kb.takePushTap()
 }
 
 export const onPushToken = (callback: (token: string) => void): EventSubscription => {
@@ -175,12 +178,6 @@ export const iosOnAppStateChange = (callback: (state: string) => void): EventSub
 
 export const iosGetAppState = (): string => {
   return Kb.getAppState()
-}
-
-// iOS: call once onPushNotification is subscribed; pushes queued while JS
-// wasn't listening are emitted then.
-export const pushListenerRegistered = (): void => {
-  return Kb.pushListenerRegistered()
 }
 
 export const clearLocalLogs = (): Promise<void> => {

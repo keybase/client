@@ -15,7 +15,6 @@ import com.google.firebase.messaging.RemoteMessage
 import io.keybase.ossifrage.MainActivity.Companion.setupKBRuntime
 import io.keybase.ossifrage.modules.NativeLogger
 import keybase.Keybase
-import com.reactnativekb.KbModule
 import org.json.JSONObject
 
 class KeybasePushNotificationListenerService : FirebaseMessagingService() {
@@ -211,11 +210,6 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
 
                     }
 
-                    if (type == "chat.newmessage") {
-                        val emitBundle = bundle.clone() as Bundle
-                        emitBundle.putBoolean("userInteraction", false)
-                        KbModule.emitPushNotification(emitBundle)
-                    }
                 }
 
                 "follow" -> {
@@ -223,18 +217,12 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                     val m = bundle.getString("message")
                     if (username != null && m != null) {
                         notifier.followNotification(username, m)
-                        val emitBundle = bundle.clone() as Bundle
-                        emitBundle.putBoolean("userInteraction", false)
-                        KbModule.emitPushNotification(emitBundle)
                     } else {
                     }
                 }
 
                 "device.revoked", "device.new" -> {
                     notifier.deviceNotification()
-                    val emitBundle = bundle.clone() as Bundle
-                    emitBundle.putBoolean("userInteraction", false)
-                    KbModule.emitPushNotification(emitBundle)
                 }
 
                 "chat.readmessage" -> {
@@ -251,15 +239,10 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                         val notificationManager = NotificationManagerCompat.from(applicationContext)
                         notificationManager.cancelAll()
                     }
-                    val emitBundle = bundle.clone() as Bundle
-                    KbModule.emitPushNotification(emitBundle)
                 }
 
                 else -> {
                     notifier.generalNotification()
-                    val emitBundle = bundle.clone() as Bundle
-                    emitBundle.putBoolean("userInteraction", false)
-                    KbModule.emitPushNotification(emitBundle)
                 }
             }
         } catch (ex: Exception) {

@@ -49,32 +49,11 @@ static __weak Kb *kbSharedInstance = nil;
 static std::mutex kbSharedInstanceMutex;
 static BOOL kbPasteImageEnabled = NO;
 static NSString *kbStoredDeviceToken = nil;
-// Push notifications that arrive before JS can take them. A tap waits in
-// kbInitialNotification for getInitialNotification (the startup path); anything
-// else waits in kbPendingNotifications and is emitted once JS is ready.
-static std::mutex kbNotificationMutex;
-static NSDictionary *kbInitialNotification = nil;
-static NSMutableArray<NSDictionary *> *kbPendingNotifications = nil;
-static const NSUInteger kbMaxPendingNotifications = 50;
-// A background-launched process can sit suspended for hours before the user
-// opens the app. The only thing a queued non-tap push still does in JS is
-// badge upkeep (chat.readmessage), and JS reloads badge state from the service
-// at startup, so anything older than this is superseded rather than useful.
-static const uint64_t kbMaxPendingNotificationAgeNs = 10 * 60 * NSEC_PER_SEC;
-static NSString *const kbPendingPayloadKey = @"payload";
-static NSString *const kbPendingQueuedAtKey = @"queuedAt";
-
-// Continues while the device sleeps, unlike mach_absolute_time, so a push
-// queued before a long sleep reads as old.
-static uint64_t kbMonotonicNowNs(void) {
-  return clock_gettime_nsec_np(CLOCK_MONOTONIC);
-}
-
-// Pushes whose only effect in JS is navigation. Without a tap they must not
-// navigate, so they are never queued for a later JS.
-static BOOL kbIsNavigationOnlyPush(NSDictionary *notification) {
-  return [notification[@"type"] isEqual:@"chat.extension"];
-}
+// The payload of the last tapped notification, until JS takes it. Only the native
+// notification-tap handler writes it (never a URL another app opens), so it alone may
+// carry an account switch.
+static std::mutex kbPushTapMutex;
+static NSString *kbPushTapPayload = nil;
 
 // The bridge is created on the JS thread and consumed by the reader thread,
 // so every access goes through this lock — a plain shared_ptr member would be
@@ -262,41 +241,6 @@ static NSDictionary *kbConstants(void) {
   // lock) keeps this ivar and kbCurrentBridge consistent with each other
   // without ever nesting the two critical sections.
   std::shared_ptr<kb::KBBridge> myBridge_;
-  // Guarded by kbNotificationMutex. Set once this instance's JS has registered
-  // its onPushNotification listener (pushListenerRegistered, or the
-  // getInitialNotification fallback). canEmit alone is not enough, since the
-  // emitter callback exists as soon as JS creates the module, well before the
-  // listener.
-  BOOL pushListenerReady_;
-}
-
-// REQUIRES kbNotificationMutex. Marks this instance's JS as listening and emits
-// the queued pushes that are still fresh. Emitting under the lock keeps a push
-// delivered concurrently from overtaking the ones queued before it.
-- (void)pushListenerReadyLocked {
-  pushListenerReady_ = YES;
-  if (kbPendingNotifications.count == 0) {
-    return;
-  }
-  if (![self canEmit]) {
-    NSLog(@"Kb.pushListenerReady: emitter not ready, keeping %lu queued pushes",
-          (unsigned long)kbPendingNotifications.count);
-    return;
-  }
-  uint64_t now = kbMonotonicNowNs();
-  NSUInteger stale = 0;
-  for (NSDictionary *pending in kbPendingNotifications) {
-    uint64_t queuedAt = [pending[kbPendingQueuedAtKey] unsignedLongLongValue];
-    if (now - queuedAt > kbMaxPendingNotificationAgeNs) {
-      stale++;
-      continue;
-    }
-    [self emitOnPushNotification:pending[kbPendingPayloadKey]];
-  }
-  if (stale > 0) {
-    NSLog(@"Kb.pushListenerReady: dropped %lu stale queued pushes", (unsigned long)stale);
-  }
-  kbPendingNotifications = nil;
 }
 
 RCT_EXPORT_MODULE()
@@ -373,6 +317,13 @@ __attribute__((constructor)) static void kbObserveSceneStates(void) {
 - (NSString *)getAppState {
   std::lock_guard<std::mutex> lock(kbAppStateMutex);
   return kbAppState;
+}
+
+- (NSString *)takePushTap {
+  std::lock_guard<std::mutex> lock(kbPushTapMutex);
+  NSString *payload = kbPushTapPayload ?: @"";
+  kbPushTapPayload = nil;
+  return payload;
 }
 
 + (BOOL)requiresMainQueueSetup {
@@ -628,11 +579,6 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getTypedConstants) {
 }
 
 RCT_EXPORT_METHOD(shareListenersRegistered) {
-}
-
-RCT_EXPORT_METHOD(pushListenerRegistered) {
-  std::lock_guard<std::mutex> lock(kbNotificationMutex);
-  [self pushListenerReadyLocked];
 }
 
 // No current caller (kept for future use).
@@ -937,21 +883,6 @@ RCT_EXPORT_METHOD(setApplicationIconBadgeNumber: (double)badgeNumber) {
   });
 }
 
-RCT_EXPORT_METHOD(getInitialNotification: (RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject) {
-  NSDictionary *notification = nil;
-  {
-    std::lock_guard<std::mutex> lock(kbNotificationMutex);
-    notification = kbInitialNotification;
-    kbInitialNotification = nil;
-    // Fallback until JS calls pushListenerRegistered: today JS registers its
-    // listener before it asks for the initial notification.
-    if (!pushListenerReady_) {
-      [self pushListenerReadyLocked];
-    }
-  }
-  resolve(notification ?: [NSNull null]);
-}
-
 RCT_EXPORT_METHOD(removeAllPendingNotificationRequests) {
   UNUserNotificationCenter *current = UNUserNotificationCenter.currentNotificationCenter;
   [current removeAllPendingNotificationRequests];
@@ -1036,36 +967,20 @@ RCT_EXPORT_METHOD(addNotificationRequest: (JS::NativeKb::SpecAddNotificationRequ
   });
 }
 
-+ (void)deliverPushNotification:(NSDictionary *)notification {
-  std::lock_guard<std::mutex> lock(kbNotificationMutex);
-  Kb *instance = kbSharedInstance;
-  if (instance && instance->pushListenerReady_ && [instance canEmit]) {
-    if (kbPendingNotifications.count > 0) {
-      [instance pushListenerReadyLocked];
+// Keeps the latest tap for JS and tells JS if it is listening. The event carries nothing:
+// JS takes the payload from the slot, at startup and on the event, so a tap is taken
+// exactly once.
++ (void)deliverPushTap:(NSString *)payload {
+  {
+    std::lock_guard<std::mutex> lock(kbPushTapMutex);
+    kbPushTapPayload = payload;
+  }
+  dispatch_async(dispatch_get_main_queue(), ^{
+    Kb *instance = kbSharedInstance;
+    if (instance && [instance canEmit]) {
+      [instance emitOnPushTap:@""];
     }
-    [instance emitOnPushNotification:notification];
-    return;
-  }
-  if ([notification[@"userInteraction"] boolValue]) {
-    kbInitialNotification = notification;
-    NSLog(@"Kb.deliverPushNotification: JS not ready, stored tap for getInitialNotification");
-    return;
-  }
-  if (kbIsNavigationOnlyPush(notification)) {
-    NSLog(@"Kb.deliverPushNotification: JS not ready, dropped a navigation-only push without a tap");
-    return;
-  }
-  if (!kbPendingNotifications) {
-    kbPendingNotifications = [NSMutableArray array];
-  }
-  if (kbPendingNotifications.count >= kbMaxPendingNotifications) {
-    [kbPendingNotifications removeObjectAtIndex:0];
-    NSLog(@"Kb.deliverPushNotification: pending queue full, dropped the oldest");
-  }
-  [kbPendingNotifications addObject:@{
-    kbPendingPayloadKey : notification,
-    kbPendingQueuedAtKey : @(kbMonotonicNowNs()),
-  }];
+  });
 }
 
 - (void)handleHardwareKeyPressed:(NSNotification *)notification {
@@ -1114,6 +1029,6 @@ void KbSetDeviceToken(NSString *token) {
   [Kb setDeviceToken:token];
 }
 
-void KbDeliverPushNotification(NSDictionary *notification) {
-  [Kb deliverPushNotification:notification];
+void KbDeliverPushTap(NSString *payload) {
+  [Kb deliverPushTap:payload];
 }

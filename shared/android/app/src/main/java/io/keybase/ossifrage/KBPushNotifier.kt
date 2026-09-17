@@ -20,11 +20,21 @@ import androidx.core.app.Person
 import androidx.core.app.RemoteInput
 import androidx.core.graphics.drawable.IconCompat
 import keybase.ChatNotification
+import org.json.JSONObject
 import keybase.PushNotifier
 import java.io.BufferedInputStream
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+
+internal fun bundleJSON(bundle: Bundle): String {
+    val json = JSONObject()
+    for (key in bundle.keySet()) {
+        @Suppress("DEPRECATION")
+        json.put(key, JSONObject.wrap(bundle.get(key)))
+    }
+    return json.toString()
+}
 
 class KBPushNotifier internal constructor(private val context: Context, private val bundle: Bundle) : PushNotifier {
     private var convMsgCache: SmallMsgRingBuffer? = null
@@ -38,15 +48,14 @@ class KBPushNotifier internal constructor(private val context: Context, private 
         this.convMsgCache = convMsgCache
     }
 
-    // Controls the Intent that gets built
+    // A tap goes through PushTapActivity, which hands the push's payload to JS. The payload is
+    // the Intent's data so each notification gets its own PendingIntent (see PushTapData), and
+    // immutable so whoever holds this PendingIntent can't substitute another payload.
     private fun buildPendingIntent(bundle: Bundle): PendingIntent {
-        val open_activity_intent = Intent(context, MainActivity::class.java)
-        open_activity_intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-        open_activity_intent.setPackage(context.packageName)
-        open_activity_intent.putExtra("notification", bundle)
-
-        // unique so our intents are deduped, else it'll reuse old ones
-        return PendingIntent.getActivity(context, (System.currentTimeMillis() / 1000).toInt(), open_activity_intent, PendingIntent.FLAG_MUTABLE)
+        val intent = Intent(context, PushTapActivity::class.java)
+        intent.setData(Uri.parse(PushTapData.encode(bundleJSON(bundle))))
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
     }
 
     private fun getKeybaseAvatar(avatarUri: String): IconCompat? {
@@ -105,7 +114,6 @@ class KBPushNotifier internal constructor(private val context: Context, private 
     private fun displayChatNotification2(chatNotification: ChatNotification) {
         try {
             KeybasePushNotificationListenerService.createNotificationChannel(context)
-            bundle.putBoolean("userInteraction", true)
             bundle.putString("type", "chat.newmessage")
             bundle.putString("convID", chatNotification.convID)
             if (chatNotification.uid.isNotEmpty()) {
@@ -179,7 +187,6 @@ class KBPushNotifier internal constructor(private val context: Context, private 
 
     fun followNotification(username: String, notificationMsg: String?) {
         val bundle = bundle.clone() as Bundle
-        bundle.putBoolean("userInteraction", true)
         bundle.putString("type", "follow")
         bundle.putString("username", username)
         val builder = NotificationCompat.Builder(context, KeybasePushNotificationListenerService.FOLLOW_CHANNEL_ID)
@@ -203,7 +210,6 @@ class KBPushNotifier internal constructor(private val context: Context, private 
     }
 
     fun genericNotification(uniqueTag: String?, notificationTitle: String?, notificationMsg: String?, bundle: Bundle, channelID: String?) {
-        bundle.putBoolean("userInteraction", true)
         val builder = NotificationCompat.Builder(context, channelID!!)
                 .setSmallIcon(R.drawable.ic_notif) // Set the intent that will fire when the user taps the notification
                 .setContentIntent(buildPendingIntent(bundle))

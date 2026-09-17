@@ -1,7 +1,5 @@
-import {
-  type NavigationIntentOptions,
-  useNavigationIntentsState,
-} from '@/stores/navigation-intents'
+import logger from '@/logger'
+import {useNavigationIntentsState} from '@/stores/navigation-intents'
 
 // Deep-link emission + URL normalization. Kept separate from './linking'
 // (which imports the config/push/current-user stores) so stores/push can enqueue
@@ -66,8 +64,76 @@ export const setInitialURLOnce = (url: string) => {
 
 // Producers only enqueue navigation intent. The active router consumes it once
 // the intended account is active and its NavigationContainer is ready.
-export const emitDeepLink = (url: string, options?: NavigationIntentOptions) => {
+//
+// A link here can come from any app, web page or typed URL, so it never carries
+// a targetUid: only enqueuePushTap may target (and so switch) an account.
+export const emitDeepLink = (url: string) => {
   const normalized = normalizeUrl(url)
   if (!normalized) return
-  useNavigationIntentsState.getState().dispatch.enqueue(normalized, options)
+  useNavigationIntentsState.getState().dispatch.enqueue(normalized)
+}
+
+// ---- Notification taps ----
+
+// Where a tap on a notification with this payload opens, or undefined when the
+// tap only opens the app. `targetUid` names the account the notification is for.
+export const pushTapTarget = (payload: string): {url: string; targetUid?: string} | undefined => {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(payload)
+  } catch {
+    return undefined
+  }
+  if (typeof parsed !== 'object' || parsed === null) return undefined
+  const fields = parsed as Record<string, unknown>
+  const get = (key: string): string => {
+    const value = fields[key]
+    if (typeof value === 'string') return value
+    if (typeof value === 'number') return String(value)
+    return ''
+  }
+  const forAccount = (url: string, uid: string) => (uid ? {targetUid: uid, url} : {url})
+
+  switch (get('type')) {
+    case 'chat.newmessage': {
+      const convID = get('convID')
+      return convID ? forAccount(`keybase://convid/${encodeURIComponent(convID)}`, get('uid')) : undefined
+    }
+    case 'follow': {
+      const username = get('username')
+      return username
+        ? forAccount(
+            `keybase://profile/show/${encodeURIComponent(username)}`,
+            get('uid') || get('targetUID')
+          )
+        : undefined
+    }
+    case 'device.new':
+    case 'device.revoked': {
+      const uid = get('uid')
+      return uid ? forAccount('keybase://devices', uid) : undefined
+    }
+    // Nothing to open: these are handled natively and in Go.
+    case 'chat.readmessage':
+    case 'chat.newmessageSilent_2':
+    case 'autoreset':
+    case 'chat.extension':
+    case 'chat.failedpending':
+      return undefined
+    default:
+      return get('message').startsWith('Your contact') ? {url: 'keybase://tabs.peopleTab'} : undefined
+  }
+}
+
+// For payloads from native's notification-tap channel only (see
+// constants/init/push-listener.native). A targetUid marks an intent as a tap,
+// and nothing else can set one, so no link another app opens can switch accounts.
+export const enqueuePushTap = (payload: string) => {
+  const target = pushTapTarget(payload)
+  if (!target) {
+    logger.info('[PushTap] took a tap with nothing to open')
+    return
+  }
+  logger.info('[PushTap] took a tap link:', target.url)
+  useNavigationIntentsState.getState().dispatch.enqueue(target.url, {targetUid: target.targetUid})
 }

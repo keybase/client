@@ -1,6 +1,13 @@
 import logger from '@/logger'
 import * as T from '@/constants/types'
-import {navigateAppend, navigateToThread, navToProfile, previewConversation, switchTab} from './router'
+import {
+  navigateAppend,
+  navigateToThread,
+  navToProfile,
+  navUpToScreen,
+  previewConversation,
+  switchTab,
+} from './router'
 import * as Tabs from './tabs'
 import {showTeamByName} from '@/teams/team-page-actions'
 
@@ -75,6 +82,10 @@ const handleKeybaseLink = (link: string) => {
         return
       }
       break
+    case 'devices':
+      switchTab(Tabs.settingsTab)
+      navUpToScreen('devicesRoot')
+      return
     case 'private':
     case 'public':
       try {

@@ -1,272 +1,34 @@
 import * as T from '@/constants/types'
-import {ignorePromise, timeoutPromise} from '@/constants/utils'
+import {ignorePromise} from '@/constants/utils'
 import logger from '@/logger'
-import {emitDeepLink} from '@/router-v2/linking'
+import {emitDeepLink, enqueuePushTap} from '@/router-v2/deep-link-emitter'
+import {subscribeIntentAccountSwitch} from '@/router-v2/account-link-switch'
 import {
   getRegistrationToken,
   setApplicationIconBadgeNumber,
-  onPushNotification,
+  onPushTap,
   onPushToken,
   onShareData,
-  getInitialNotification,
-  pushListenerRegistered,
   removeAllPendingNotificationRequests,
+  takePushTap,
 } from 'react-native-kb'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useDaemonState} from '@/stores/daemon'
 import {usePushState} from '@/stores/push'
 import {useShellState} from '@/stores/shell'
 
-type DataCommon = {
-  userInteraction: boolean
-}
-type DataReadMessage = DataCommon & {
-  type: 'chat.readmessage'
-  b: string | number
-  i?: string
-}
-type DataNewMessage = DataCommon & {
-  type: 'chat.newmessage'
-  convID?: string
-  t: string | number
-  m: string
-}
-type DataNewMessageSilent2 = DataCommon & {
-  type: 'chat.newmessageSilent_2'
-  t: string | number
-  c?: string
-  m: string
-}
-type DataFollow = DataCommon & {
-  type: 'follow'
-  targetUID?: string
-  username?: string
-}
-type DataChatExtension = DataCommon & {
-  type: 'chat.extension'
-  convID?: string
-}
-type DataDeviceRevoked = DataCommon & {
-  type: 'device.revoked'
-  device_id?: string
-}
-type DataDeviceNew = DataCommon & {
-  type: 'device.new'
-  device_id?: string
-}
-type DataAutoreset = DataCommon & {
-  type: 'autoreset'
-}
-type Data =
-  | DataReadMessage
-  | DataNewMessage
-  | DataNewMessageSilent2
-  | DataFollow
-  | DataChatExtension
-  | DataDeviceRevoked
-  | DataDeviceNew
-  | DataAutoreset
-
-type PushN = Data & {
-  message?: string
-}
-
-const anyToConversationMembersType = (a: string | number): T.RPCChat.ConversationMembersType | undefined => {
-  const membersTypeNumber: T.RPCChat.ConversationMembersType =
-    typeof a === 'string' ? parseInt(a, 10) : a || -1
-  switch (membersTypeNumber) {
-    case T.RPCChat.ConversationMembersType.kbfs:
-      return T.RPCChat.ConversationMembersType.kbfs
-    case T.RPCChat.ConversationMembersType.team:
-      return T.RPCChat.ConversationMembersType.team
-    case T.RPCChat.ConversationMembersType.impteamnative:
-      return T.RPCChat.ConversationMembersType.impteamnative
-    case T.RPCChat.ConversationMembersType.impteamupgrade:
-      return T.RPCChat.ConversationMembersType.impteamupgrade
-    default:
-      return undefined
+// Native keeps a tapped notification's payload in a slot until it is taken. Subscribe first, then
+// take: a tap from before the subscription is read now, a later one on its event, and the slot's
+// clear-on-read keeps one tap from being taken twice.
+export const subscribePushTaps = () => {
+  const take = () => {
+    const payload = takePushTap()
+    if (!payload) return
+    enqueuePushTap(payload)
   }
-}
-const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
-  try {
-    if (!_n) {
-      return undefined
-    }
-
-    const data = _n as PushN
-    const userInteraction = !!data.userInteraction
-    const dataUid = data as {uid?: string; targetUID?: string}
-    const forUid = dataUid.uid
-
-    switch (data.type) {
-      case 'chat.readmessage': {
-        const badges = typeof data.b === 'string' ? parseInt(data.b) : data.b
-        return {
-          badges,
-          forUid: data.i,
-          type: 'chat.readmessage',
-        } as const
-      }
-      case 'chat.newmessage':
-        return data.convID
-          ? {
-              conversationIDKey: T.Chat.stringToConversationIDKey(data.convID),
-              forUid,
-              membersType: anyToConversationMembersType(data.t),
-              type: 'chat.newmessage',
-              unboxPayload: data.m || '',
-              userInteraction,
-            }
-          : undefined
-      case 'chat.newmessageSilent_2':
-        if (data.c) {
-          const membersType = anyToConversationMembersType(data.t)
-          if (membersType) {
-            return {
-              conversationIDKey: T.Chat.stringToConversationIDKey(data.c),
-              membersType,
-              type: 'chat.newmessageSilent_2',
-              unboxPayload: data.m || '',
-            }
-          }
-        }
-        return undefined
-      case 'follow':
-        return data.username
-          ? {
-              forUid: forUid ?? dataUid.targetUID,
-              type: 'follow',
-              userInteraction,
-              username: data.username,
-            }
-          : undefined
-      case 'device.revoked':
-        return forUid
-          ? {
-              forUid,
-              type: 'device.revoked',
-              userInteraction,
-            }
-          : undefined
-      case 'device.new':
-        return forUid
-          ? {
-              forUid,
-              type: 'device.new',
-              userInteraction,
-            }
-          : undefined
-      case 'autoreset':
-        return forUid
-          ? {
-              forUid,
-              type: 'autoreset',
-              userInteraction,
-            }
-          : undefined
-      case 'chat.extension':
-        return data.convID
-          ? {
-              conversationIDKey: T.Chat.stringToConversationIDKey(data.convID),
-              forUid,
-              type: 'chat.extension',
-              userInteraction,
-            }
-          : undefined
-      default:
-        {
-          const unk = data as any
-          if (typeof unk.message === 'string' && unk.message.startsWith('Your contact')) {
-            return {
-              type: 'settings.contacts',
-              userInteraction,
-            }
-          }
-        }
-
-        return undefined
-    }
-  } catch (e) {
-    logger.error('Error handling push', e)
-    return undefined
-  }
-}
-
-const getInitialPush = async () => {
-  const n = await getInitialNotification()
-  return n ? normalizePush(n) : undefined
-}
-
-const isTap = (notification: T.Push.PushNotification) =>
-  'userInteraction' in notification && notification.userInteraction
-
-// Native clears the initial notification when it is read, so a read that loses a race is a lost
-// tap. Both platforms resolve it right away; the timeout only keeps a misbehaving native module
-// from holding startup, and a tap that still shows up after it is handled like a live one.
-const initialPushTimeoutMs = 3000
-
-// The account startup opens in. On a cold start the read can finish before bootstrap names it, so
-// wait for the bootstrap status: the router mounts only after the handshake has loaded it, so the
-// wait never holds back the first screen.
-const getStartupUid = async () => {
-  const {uid} = useCurrentUserState.getState()
-  if (uid) return uid
-  const loaded = useDaemonState.getState().bootstrapStatus
-  if (loaded) return loaded.uid
-  return new Promise<string>(resolve => {
-    const unsub = useDaemonState.subscribe(s => {
-      if (!s.bootstrapStatus) return
-      unsub()
-      resolve(s.bootstrapStatus.uid)
-    })
-  })
-}
-
-const getStartupDetailsFromInitialPush = async () => {
-  const initialPush = getInitialPush()
-  const timedOut = 'timedOut' as const
-  const notification = await Promise.race([
-    initialPush,
-    timeoutPromise(initialPushTimeoutMs).then(() => timedOut),
-  ])
-  if (notification === timedOut) {
-    logger.warn('[Push] initial notification read timed out')
-    initialPush
-      .then(n => {
-        if (n) {
-          usePushState.getState().dispatch.handlePush(n)
-        }
-      })
-      .catch(() => {})
-    return
-  }
-  // only a tap on a visible notification may pick where the app opens
-  if (!notification || !isTap(notification)) {
-    return
-  }
-
-  if (notification.type === 'follow') {
-    if (notification.username) {
-      return {startupFollowUser: notification.username}
-    }
-  } else if (notification.type === 'chat.newmessage') {
-    if (notification.conversationIDKey) {
-      // A tap for another account can't open here: it would show that conversation under the
-      // wrong account. handlePush switches accounts, or keeps it pending until the account list
-      // lists that account, and replays it once the switch lands.
-      if (notification.forUid && notification.forUid !== (await getStartupUid())) {
-        usePushState.getState().dispatch.handlePush(notification)
-        return
-      }
-      return {
-        startupConversation: notification.conversationIDKey,
-        startupPushPayload: notification.unboxPayload,
-      }
-    }
-  }
-
-  return
+  const sub = onPushTap(take)
+  take()
+  return () => sub.remove()
 }
 
 export const initPushListener = () => {
@@ -319,66 +81,11 @@ export const initPushListener = () => {
 
   usePushState.getState().dispatch.initialPermissionsCheck()
 
-  // When current-user.uid changes, run pending push if it was for this account.
-  unsubs.push(
-    useCurrentUserState.subscribe((s, old) => {
-      if (s.uid === old.uid) return
-      const pushState = usePushState.getState()
-      const pending = pushState.pendingPushNotification
-      if (!pending || !('forUid' in pending)) return
-      const forUid = (pending as {forUid?: string}).forUid
-      if (!forUid || forUid !== s.uid) return
-      pushState.dispatch.clearPendingPushNotification()
-      // Replay while switching remains true. The replacement NavigationContainer
-      // clears it from onReady, so the intent cannot be consumed by the old router.
-      pushState.dispatch.handlePush(pending)
-    })
-  )
-
-  unsubs.push(
-    useConfigState.subscribe((s, old) => {
-      if (s.configuredAccounts === old.configuredAccounts || s.userSwitching) return
-      const pushState = usePushState.getState()
-      const pending = pushState.pendingPushNotification
-      if (!pending || !('forUid' in pending)) return
-      const forUid = (pending as {forUid?: string}).forUid
-      if (!forUid || forUid === useCurrentUserState.getState().uid) return
-      const account = s.configuredAccounts.find(acc => acc.uid === forUid)
-      if (!account?.hasStoredSecret) return
-      pushState.dispatch.handlePush(pending)
-    })
-  )
-
-  unsubs.push(
-    useConfigState.subscribe((s, old) => {
-      if (s.loggedIn === old.loggedIn) return
-      if (!s.loggedIn && !s.userSwitching) {
-        usePushState.getState().dispatch.clearPendingPushNotification()
-      }
-    })
-  )
-
-  // Set up listener immediately, before waiting for token
-  // This ensures notifications aren't lost if they arrive before token is ready
-  const onNotification = (n: object) => {
-    logger.debug('[onNotification]: ', n)
-    const notification = normalizePush(n)
-    if (!notification) {
-      logger.warn('[onNotification]: normalized notification is null/undefined')
-      return
-    }
-    usePushState.getState().dispatch.handlePush(notification)
-  }
+  // The switch subscriber goes first, so a tap taken right below already sees it.
+  unsubs.push(subscribeIntentAccountSwitch(), subscribePushTaps())
 
   try {
-    // Unified push notification handling for both iOS and Android
-    // Silent notifications (chat.newmessageSilent_2) are handled entirely natively
-    // Other notification types are handled natively first, then emitted to JS via onPushNotification
-    const pushSub = onPushNotification(onNotification)
-    unsubs.push(() => pushSub.remove())
-    // iOS holds pushes that arrive before this; they are emitted once it's called
-    pushListenerRegistered()
-
+    // Token and share listeners
     if (isIOS) {
       const tokenSub = onPushToken(token => {
         logger.debug('[PushToken] received token via onPushToken event: ', token)
@@ -426,5 +133,3 @@ export const initPushListener = () => {
 
   return unsubs
 }
-
-export {getStartupDetailsFromInitialPush}

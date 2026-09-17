@@ -1,11 +1,12 @@
 import {TurboModuleRegistry, type TurboModule} from 'react-native'
-import type {EventEmitter, UnsafeObject} from 'react-native/Libraries/Types/CodegenTypes'
+import type {EventEmitter} from 'react-native/Libraries/Types/CodegenTypes'
 
 export interface Spec extends TurboModule {
   readonly onMetaEvent: EventEmitter<string>
   readonly onHardwareKeyPressed: EventEmitter<string>
   readonly onPasteImage: EventEmitter<Array<string>>
-  readonly onPushNotification: EventEmitter<UnsafeObject>
+  // A tapped notification's payload is waiting in native's tap slot; call takePushTap. Carries nothing.
+  readonly onPushTap: EventEmitter<string>
   readonly onPushToken: EventEmitter<string>
   readonly onShareData: EventEmitter<{text?: string; localPaths?: Array<string>}>
   // iOS only: 'active' | 'inactive' | 'background', from the scene activation notifications
@@ -62,13 +63,13 @@ export interface Spec extends TurboModule {
   requestPushPermissions(): Promise<boolean>
   getRegistrationToken(): Promise<string>
   setApplicationIconBadgeNumber(n: number): void
-  getInitialNotification(): Promise<object | null>
+  // Returns the waiting tap payload and clears it, or '' when there is none.
+  takePushTap(): string
   removeAllPendingNotificationRequests(): void
   addNotificationRequest(config: {body: string; id: string}): Promise<void>
   engineReset(): void
   notifyJSReady(): void
   shareListenersRegistered(): void
-  pushListenerRegistered(): void
   // iOS only: the current value onAppStateChange reports; '' on Android
   getAppState(): string
   setEnablePasteImage(enabled: boolean): void

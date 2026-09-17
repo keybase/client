@@ -64,9 +64,10 @@ const onProfile = (s: Awaited<ReturnType<typeof appSnapshot>>['screen']) =>
 
 // Log lines these flows rely on:
 // - Metro (JS): "[Startup] loadStartupDetails: Linking.getInitialURL returned in <n>ms: <url>" for
-//   a cold deep link; "[onNotification]: <payload>" for each push JS receives, whose payload
-//   carries native's "userInteraction"; "[Push] handleLoudMessage: ignore non userInteraction"
-//   when JS declines to navigate for an untapped push.
+//   a cold deep link; "[PushTap] took a tap link: <link>" for every tap JS takes, cold or warm
+//   (only a tap reaches JS at all); "[DeepLink] url event: <url>" for a link opened while running;
+//   "[AccountLink] switching accounts" for a tap that switches accounts, which must never appear
+//   in these flows.
 // - Go (ios.log): "lifecycle: uiBackground: " before a push is sent to a backgrounded app,
 //   so it can't arrive while the app is still in the foreground (and not be shown).
 describe('app lifecycle: deep links', () => {
@@ -95,6 +96,24 @@ describe('app lifecycle: deep links', () => {
     const startup = findLines(metroClientLogSince(metroMark), /Linking\.getInitialURL returned in \d+ms: /)
     expect(startup.at(-1)).toContain(url)
   })
+
+  it('a link naming another account opens as a plain link and never switches accounts', async () => {
+    const user = requireSmokeUser()
+    await waitForAppState('active')
+    const convID = await openSelfConversation(user)
+    await navigateToPeople()
+    const uidBefore = await jsEval<string>(`return kbModule('stores/current-user.tsx').useCurrentUserState.getState().uid`)
+    const metroMark = metroLogMark()
+    // a uid that isn't this account: a link, unlike a tap, can never act on one
+    openUrl(`keybase://convid/${convID}?uid=00000000000000000000000000000019`)
+    await waitForScreen('the linked conversation', s => s?.name === 'chatConversation' && s.params?.['conversationIDKey'] === convID)
+    const lines = metroClientLogSince(metroMark)
+    expect(findLines(lines, /\[DeepLink\] url event: /)).toHaveLength(1)
+    expect(findLines(lines, /\[AccountLink\]/)).toEqual([])
+    expect(findLines(lines, /\[PushTap\] took a tap link: /)).toEqual([])
+    await browser.pause(3000)
+    expect(await jsEval<string>(`return kbModule('stores/current-user.tsx').useCurrentUserState.getState().uid`)).toBe(uidBefore)
+  })
 })
 
 describe('app lifecycle: push notifications', () => {
@@ -109,8 +128,9 @@ describe('app lifecycle: push notifications', () => {
     type: 'chat.newmessage',
     uid,
   })
-  // The payload JS logs for a push, found by its unique body.
-  const jsPushes = (lines: Array<string>, body: string) => findLines(lines, /\[onNotification\]/).filter(l => l.includes(body))
+  const tapLink = () => `keybase://convid/${convID}`
+  // Every tap JS took. A push that was not tapped produces none.
+  const tapLines = (lines: Array<string>) => findLines(lines, /\[PushTap\] took a tap link: /)
 
   before(async () => {
     const user = requireSmokeUser()
@@ -128,14 +148,8 @@ describe('app lifecycle: push notifications', () => {
     const body = `e2e-push-foreground-${Date.now()}`
     sendPush(pushFor(body))
 
-    const [delivered] = await waitForLinesInOrder('JS to receive the push', () => jsPushes(metroClientLogSince(metroMark), body), [
-      /\[onNotification\]/,
-    ])
-    expect(delivered).toContain('"userInteraction": false')
-    await waitForLinesInOrder('JS to decline to navigate', () => metroClientLogSince(metroMark), [
-      /\[Push\] handleLoudMessage: ignore non userInteraction/,
-    ])
-    await browser.pause(3000)
+    await browser.pause(5000)
+    expect(tapLines(metroClientLogSince(metroMark))).toEqual([])
     expect((await appSnapshot()).screen?.name).not.toBe('chatConversation')
   })
 
@@ -157,7 +171,7 @@ describe('app lifecycle: push notifications', () => {
     await waitForAppState('active')
     await browser.pause(3000)
     expect((await appSnapshot()).screen?.name).not.toBe('chatConversation')
-    expect(jsPushes(metroClientLogSince(metroMark), body)).toEqual([])
+    expect(tapLines(metroClientLogSince(metroMark))).toEqual([])
   })
 
   it('tapping a push shown in the background opens its conversation', async () => {
@@ -173,8 +187,10 @@ describe('app lifecycle: push notifications', () => {
 
     await waitForAppState('active')
     await waitForScreen('the pushed conversation', s => s?.name === 'chatConversation' && s.params?.['conversationIDKey'] === convID)
-    const [delivered] = jsPushes(metroClientLogSince(metroMark), body)
-    expect(delivered).toContain('"userInteraction": true')
+    const lines = metroClientLogSince(metroMark)
+    // Delivered once, and never through Linking.
+    expect(tapLines(lines)).toEqual([expect.stringContaining(tapLink())])
+    expect(findLines(lines, /\[DeepLink\] url event: /)).toEqual([])
   })
 
   it('tapping a push while the app is not running launches into its conversation', async () => {
@@ -187,13 +203,12 @@ describe('app lifecycle: push notifications', () => {
 
     await waitForAppState('active', undefined, 90000)
     await waitForScreen('the pushed conversation', s => s?.name === 'chatConversation' && s.params?.['conversationIDKey'] === convID)
-    // The tap reaches JS as the initial notification and picks the startup conversation.
+    // The tap reaches JS through the native tap slot and picks the startup route.
     const lines = metroClientLogSince(metroMark)
-    const startup = findLines(lines, /initialState: push /)
-    expect(startup).toEqual([expect.stringContaining(`initialState: push ${convID}`)])
+    expect(tapLines(lines)).toEqual([expect.stringContaining(tapLink())])
     // startup's inbox load can still pick a screen after the route opens; the conversation must stay
     await browser.pause(3000)
     expect((await appSnapshot()).screen?.params?.['conversationIDKey']).toBe(convID)
-    expect(findLines(metroClientLogSince(metroMark), /\[Push\] handleLoudMessage: ignore non userInteraction/)).toEqual([])
+    expect(findLines(metroClientLogSince(metroMark), /\[AccountLink\]/)).toEqual([])
   })
 })

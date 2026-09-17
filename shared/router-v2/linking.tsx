@@ -1,4 +1,5 @@
 import * as Tabs from '@/constants/tabs'
+import logger from '@/logger'
 import {isSplit} from '@/constants/chat/layout'
 import {isValidConversationIDKey, stringToConversationIDKey} from '@/constants/types/chat/common'
 import {useConfigState} from '@/stores/config'
@@ -247,6 +248,14 @@ const customGetStateFromPath = (
 
 // ---- Linking config ----
 
+// Known URLs become launch state; the rest open imperatively once the router is up.
+const openInitialLink = (link: string, handleAppLink: (link: string) => void) => {
+  if (isHandledByLinkingConfig(link)) return setInitialURLOnce(link)
+  setInitialURLOnce(link)
+  setTimeout(() => handleAppLink(link), 1)
+  return null
+}
+
 export const createLinkingConfig = (
   handleAppLink: (link: string) => void
 ): LinkingOptions<RootParamList> => {
@@ -255,7 +264,7 @@ export const createLinkingConfig = (
       const {loggedIn, startup, androidShare} = useConfigState.getState()
       if (!loggedIn) return null
 
-      const {tab: startupTab, followUser: startupFollowUser} = startup
+      const {tab: startupTab} = startup
       let startupConversation = startup.conversation
       if (!isValidConversationIDKey(startupConversation)) {
         startupConversation = ''
@@ -266,6 +275,13 @@ export const createLinkingConfig = (
       const {uid: currentUid} = useCurrentUserState.getState()
       if (startupConversation && startup.conversationUid && startup.conversationUid !== currentUid) {
         startupConversation = ''
+      }
+
+      // A tapped push picks where the app opens, once its account is current. A tap for
+      // another account stays queued until account-link-switch has switched to it.
+      const {intent} = useNavigationIntentsState.getState()
+      if (intent && (!intent.targetUid || intent.targetUid === currentUid)) {
+        return openInitialLink(intent.url, handleAppLink)
       }
 
       const pushState = usePushState.getState()
@@ -284,11 +300,7 @@ export const createLinkingConfig = (
       if (deepLinkUrl) {
         const normalized = normalizeUrl(deepLinkUrl)
         if (normalized) {
-          if (isHandledByLinkingConfig(normalized)) return setInitialURLOnce(normalized)
-          // URL not handled by linking config; use imperative navigation as fallback
-          setInitialURLOnce(normalized)
-          setTimeout(() => handleAppLink(normalized), 1)
-          return null
+          return openInitialLink(normalized, handleAppLink)
         }
       }
 
@@ -298,10 +310,6 @@ export const createLinkingConfig = (
 
       if (androidShare && !haveSavedTab) {
         return setInitialURLOnce('keybase://incoming-share')
-      }
-
-      if (startupFollowUser && !startupConversation) {
-        return setInitialURLOnce(`keybase://profile/show/${startupFollowUser}`)
       }
 
       if (startupConversation) {
@@ -330,6 +338,7 @@ export const createLinkingConfig = (
     let removeLinkingSub: (() => void) | undefined
     if (isMobile) {
       const sub = Linking.addEventListener('url', ({url}: {url: string}) => {
+        logger.info('[DeepLink] url event:', url)
         emitDeepLink(url)
       })
       removeLinkingSub = () => sub.remove()

@@ -1,10 +1,8 @@
 import * as S from '@/constants/strings'
 import * as T from '@/constants/types'
-import * as Tabs from '@/constants/tabs'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '@/constants/utils'
-import {navUpToScreen, switchTab, getRootState} from '@/constants/router'
 import {emitDeepLink} from '@/router-v2/deep-link-emitter'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -14,7 +12,6 @@ import {openAppSettings} from '@/util/storeless-actions'
 type Store = {
   hasPermissions: boolean
   justSignedUp: boolean
-  pendingPushNotification?: T.Push.PushNotification
   showPushPrompt: boolean
   token: string
 }
@@ -22,9 +19,7 @@ type Store = {
 type State = Store & {
   dispatch: {
     checkPermissions: () => Promise<boolean>
-    clearPendingPushNotification: () => void
     deleteTokenForLogout: () => Promise<void>
-    handlePush: (notification: T.Push.PushNotification) => void
     initialPermissionsCheck: () => void
     rejectPermissions: () => void
     requestPermissions: () => void
@@ -34,7 +29,7 @@ type State = Store & {
   }
 }
 import {isDevApplePushToken} from '@/local-debug'
-import {checkPushPermissions, getRegistrationToken, iosGetHasShownPushPrompt, requestPushPermissions, removeAllPendingNotificationRequests} from 'react-native-kb'
+import {checkPushPermissions, getRegistrationToken, iosGetHasShownPushPrompt, requestPushPermissions} from 'react-native-kb'
 
 export const tokenType = isMobile
   ? isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
@@ -50,7 +45,6 @@ const desktopInitialStore: Store = {
 const mobileInitialStore: Store = {
   hasPermissions: true,
   justSignedUp: false,
-  pendingPushNotification: undefined,
   showPushPrompt: false,
   token: '',
 }
@@ -63,9 +57,7 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
       checkPermissions: async () => {
         return Promise.resolve(false)
       },
-      clearPendingPushNotification: () => {},
       deleteTokenForLogout: async () => {},
-      handlePush: () => {},
       initialPermissionsCheck: () => {},
       rejectPermissions: () => {},
       requestPermissions: () => {},
@@ -108,41 +100,6 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
     }
   }
 
-  const handleLoudMessage = async (notification: T.Push.PushNotification) => {
-    if (notification.type !== 'chat.newmessage') {
-      return
-    }
-    if (!notification.userInteraction) {
-      logger.warn('[Push] handleLoudMessage: ignore non userInteraction')
-      return
-    }
-
-    const {conversationIDKey, unboxPayload, membersType} = notification
-
-    const rootState = getRootState()
-    const topRoute = rootState?.routes?.at(-1)
-    const alreadyOnConv =
-      topRoute?.name === 'chatConversation' &&
-      (topRoute.params as {conversationIDKey?: string} | undefined)?.conversationIDKey === conversationIDKey
-    if (!alreadyOnConv) {
-      const targetUid = 'forUid' in notification ? notification.forUid : undefined
-      emitDeepLink(`keybase://convid/${conversationIDKey}`, {
-        targetUid,
-      })
-    }
-    if (unboxPayload && membersType && !isIOS) {
-      try {
-        await T.RPCChat.localUnboxMobilePushNotificationRpcPromise({
-          convID: conversationIDKey,
-          membersType,
-          payload: unboxPayload,
-        })
-      } catch {
-        logger.info('[Push] failed to unbox message from payload')
-      }
-    }
-  }
-
   const dispatch: State['dispatch'] = {
     checkPermissions: async () => {
       const permissions = await checkPermissionsFromNative()
@@ -166,11 +123,6 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
         return false
       }
     },
-    clearPendingPushNotification: () => {
-      set(s => {
-        s.pendingPushNotification = undefined
-      })
-    },
     deleteTokenForLogout: async () => {
       try {
         const deviceID = useCurrentUserState.getState().deviceID
@@ -189,98 +141,6 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
       } catch (e) {
         logger.error('[PushToken] delete failed', e)
       }
-    },
-    handlePush: notification => {
-      const f = async () => {
-        try {
-          const forUid = 'forUid' in notification ? notification.forUid : undefined
-          const navigationIntentOptions = {
-            targetUid: forUid,
-          }
-
-          if (forUid) {
-            const currentUid = useCurrentUserState.getState().uid
-            if (forUid !== currentUid) {
-              const userInteraction = 'userInteraction' in notification ? notification.userInteraction : false
-              if (!userInteraction) {
-                logger.info('[Push] notification for different account but no userInteraction, skipping')
-                return
-              }
-              const {configuredAccounts, dispatch: configDispatch} = useConfigState.getState()
-              const account = configuredAccounts.find(acc => acc.uid === forUid)
-              if (!account) {
-                logger.info('[Push] notification forUid not in configured accounts yet, waiting to retry')
-                set(s => {
-                  s.pendingPushNotification = notification
-                })
-                return
-              }
-              if (!account.hasStoredSecret) {
-                logger.info('[Push] account has no stored secret, cannot switch')
-                return
-              }
-              if (useConfigState.getState().userSwitching) {
-                logger.info('[Push] switch already in progress for this account, skipping duplicate')
-                return
-              }
-              logger.info('[Push] switching to account for notification tap')
-              configDispatch.setUserSwitching(true)
-              set(s => {
-                s.pendingPushNotification = notification
-              })
-              configDispatch.login(account.username, '')
-              return
-            }
-          }
-
-          switch (notification.type) {
-            case 'chat.readmessage':
-              if (notification.badges === 0) {
-                removeAllPendingNotificationRequests()
-              }
-              break
-            case 'chat.newmessageSilent_2':
-              // entirely handled by go on ios and in onNotification on Android
-              break
-            case 'chat.newmessage':
-              await handleLoudMessage(notification)
-              break
-            case 'follow':
-              // We only care if the user clicked while in session
-              if (notification.userInteraction) {
-                const {username} = notification
-                emitDeepLink(`keybase://profile/show/${username}`, navigationIntentOptions)
-              }
-              break
-            case 'device.revoked':
-            case 'device.new':
-              if (notification.userInteraction && useConfigState.getState().loggedIn) {
-                switchTab(Tabs.settingsTab)
-                navUpToScreen('devicesRoot')
-              }
-              break
-            case 'autoreset':
-              break
-            case 'chat.extension':
-              if (notification.userInteraction) {
-                const {conversationIDKey} = notification
-                emitDeepLink(`keybase://convid/${conversationIDKey}`, navigationIntentOptions)
-              }
-              break
-            case 'settings.contacts':
-              if (notification.userInteraction && useConfigState.getState().loggedIn) {
-                emitDeepLink('keybase://people', navigationIntentOptions)
-              }
-              break
-          }
-        } catch (e) {
-          if (__DEV__) {
-            console.error(e)
-          }
-          logger.error('[Push] unhandled', e)
-        }
-      }
-      ignorePromise(f())
     },
     initialPermissionsCheck: () => {
       const f = async () => {
@@ -354,14 +214,7 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
       ignorePromise(f())
     },
     resetState: () => {
-      const pendingPushNotification = useConfigState.getState().userSwitching
-        ? get().pendingPushNotification
-        : undefined
-      set(s => ({
-        ...initialStore,
-        dispatch: s.dispatch,
-        pendingPushNotification,
-      }))
+      set(s => ({...initialStore, dispatch: s.dispatch}))
     },
     setPushToken: (token: string) => {
       set(s => {
@@ -424,21 +277,3 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
     dispatch,
   }
 })
-
-// A login error used to clear the pending push notification via a direct call
-// from config's setLoginError. Subscribing here instead keeps config from
-// importing push (breaks the config <-> push require cycle).
-//
-// Guard against HMR: the config store instance (and its subscribers) survive
-// hot reloads via Z.createZustand's registry, but this module re-evaluates, so
-// an unguarded subscribe would register a duplicate every reload.
-// eslint-disable-next-line
-const _g = globalThis as any
-if (!__DEV__ || !_g.__pushLoginErrorSubscribed) {
-  if (__DEV__) _g.__pushLoginErrorSubscribed = true
-  useConfigState.subscribe((s, p) => {
-    if (s.loginError && s.loginError !== p.loginError) {
-      usePushState.getState().dispatch.clearPendingPushNotification()
-    }
-  })
-}

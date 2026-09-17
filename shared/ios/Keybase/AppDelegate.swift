@@ -23,7 +23,6 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
   var fsPaths: [String: String] = [:]
   private let lifecycle = AppLifecycleForwarder()
   private var locationWatcher: LocationWatcher?
-  private var lastNotificationResponseKey: String?
   var iph: ItemProviderHelper?
   private var startupLogFileHandle: FileHandle?
   private let logQueue = DispatchQueue(label: "kb.startup.log", qos: .utility)
@@ -313,11 +312,8 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
   }
 
   override func application(_ application: UIApplication, didReceiveRemoteNotification notification: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-    guard let type = notification["type"] as? String else {
-      completionHandler(.noData)
-      return
-    }
-    if type == "chat.newmessageSilent_2" {
+    switch notification["type"] as? String {
+    case "chat.newmessageSilent_2":
       DispatchQueue.global(qos: .default).async {
         let convID = notification["c"] as? String
         let messageID = (notification["d"] as? NSNumber)?.intValue ?? 0
@@ -340,36 +336,41 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
         completionHandler(.newData)
         log.info("Remote notification handle finished...")
       }
-    } else {
-      KbDeliverPushNotification(Self.pushPayload(notification, userInteraction: false))
+    case "chat.readmessage":
+      Self.clearPendingNotificationsIfAllRead(notification)
       completionHandler(.newData)
+    default:
+      completionHandler(.noData)
     }
   }
 
-  private static func pushPayload(_ userInfo: [AnyHashable: Any], userInteraction: Bool) -> [String: Any] {
-    var payload = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
-    payload["userInteraction"] = userInteraction
-    return payload
+  // A read receipt that leaves this account with nothing unread clears the notification
+  // requests still waiting to show.
+  private static func clearPendingNotificationsIfAllRead(_ notification: [AnyHashable: Any]) {
+    let badge = (notification["b"] as? NSNumber)?.intValue ?? Int(notification["b"] as? String ?? "") ?? -1
+    guard badge == 0 else { return }
+    let target = notification["i"] as? String ?? ""
+    DispatchQueue.global(qos: .default).async {
+      guard target.isEmpty || target == Keybasego.KeybaseCurrentUID() else { return }
+      UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+    }
   }
 
-  // A tap that cold-starts the app can arrive both here (via the scene's
-  // connection options) and through userNotificationCenter(_:didReceive:), so
-  // deliver each response once.
-  func handleNotificationResponse(_ response: UNNotificationResponse) {
-    let notification = response.notification
-    let key = "\(notification.request.identifier)|\(notification.date.timeIntervalSince1970)"
-    guard key != lastNotificationResponseKey else { return }
-    lastNotificationResponseKey = key
-    KbDeliverPushNotification(Self.pushPayload(notification.request.content.userInfo, userInteraction: true))
-  }
-
+  // The only way a tap reaches JS. UIKit calls this only for a notification delivered to
+  // this app; URLs other apps open go through Linking instead, so only real taps can carry
+  // an account.
   public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-    handleNotificationResponse(response)
+    let userInfo = response.notification.request.content.userInfo
+    let payload = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
+    if JSONSerialization.isValidJSONObject(payload),
+       let data = try? JSONSerialization.data(withJSONObject: payload),
+       let json = String(data: data, encoding: .utf8) {
+      KbDeliverPushTap(json)
+    }
     completionHandler()
   }
 
   public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-    KbDeliverPushNotification(Self.pushPayload(notification.request.content.userInfo, userInteraction: false))
     completionHandler([])
   }
 

@@ -172,9 +172,9 @@ class MainActivity : ReactActivity() {
     private var pendingShareSubject: String? = null
     private var pendingShareText: String? = null
 
-    // Snapshot share/notification data out of the intent right away: share URI
-    // permission grants and clip data are tied to the delivered intent, and JS may
-    // not be ready to consume them until much later (see tryHandleIntentWithRetry).
+    // Snapshot share data out of the intent right away: share URI permission grants and clip
+    // data are tied to the delivered intent, and JS may not be ready to consume them until much
+    // later (see tryHandleIntentWithRetry).
     private fun captureIntent(intent: Intent) {
         cachedIntent = intent
         if (Intent.ACTION_SEND == intent.action || Intent.ACTION_SEND_MULTIPLE == intent.action) {
@@ -182,17 +182,13 @@ class MainActivity : ReactActivity() {
             pendingShareSubject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
             pendingShareText = intent.getStringExtra(Intent.EXTRA_TEXT)
         }
-        val bundleFromNotification = intent.getBundleExtra("notification")
-        if (bundleFromNotification != null) {
-            KbModule.setInitialNotification(bundleFromNotification.clone() as Bundle)
-        }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         captureIntent(intent)
-        NativeLogger.info("MainActivity.onNewIntent: action=${intent.action}, uriCount=${pendingShareUris?.size ?: 0}, hasNotification=${intent.getBundleExtra("notification") != null}")
+        NativeLogger.info("MainActivity.onNewIntent: action=${intent.action}, uriCount=${pendingShareUris?.size ?: 0}")
     }
 
     private var jsIsListening = false
@@ -201,8 +197,6 @@ class MainActivity : ReactActivity() {
         jsIsListening = true
         tryHandleIntentWithRetry()
     }
-
-    private var handledIntentHash: String? = null
 
     private fun extractSharedUris(intent: Intent): List<Uri> {
         val action = intent.action
@@ -267,27 +261,6 @@ class MainActivity : ReactActivity() {
             return false
         }
         NativeLogger.info("MainActivity.handleIntent: processing intent action=${intent.action}")
-
-        // Here we are just reading from the notification bundle.
-        // If other sources start the app, we can get their intent data the same way.
-        val bundleFromNotification = intent.getBundleExtra("notification")
-
-        if (bundleFromNotification != null) {
-            // Prevent duplicate handling of the same notification
-            val convID = bundleFromNotification.getString("convID") ?: bundleFromNotification.getString("c")
-            val messageId = bundleFromNotification.getString("msgID") ?: bundleFromNotification.getString("d") ?: ""
-            val intentHash = "${convID}_${messageId}"
-            if (handledIntentHash == intentHash) {
-                NativeLogger.info("MainActivity.handleIntent skipping duplicate notification: $intentHash")
-            } else {
-                handledIntentHash = intentHash
-                NativeLogger.info("MainActivity.handleIntent processing notification: $intentHash")
-
-                KbModule.emitPushNotification(bundleFromNotification)
-            }
-
-            intent.removeExtra("notification")
-        }
 
         val action = intent.action
         if (Intent.ACTION_SEND == action || Intent.ACTION_SEND_MULTIPLE == action) {
