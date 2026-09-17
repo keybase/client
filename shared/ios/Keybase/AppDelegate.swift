@@ -122,20 +122,19 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     logQueue.async { [weak self] in
       guard let self else { return }
       if self.startupLogFileHandle == nil {
-        if !FileManager.default.fileExists(atPath: logFilePath) {
-          FileManager.default.createFile(
-            atPath: logFilePath,
-            contents: nil,
-            attributes: [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication]
-          )
-        }
-        if let fileHandle = FileHandle(forWritingAtPath: logFilePath) {
-          fileHandle.seekToEndOfFile()
-          self.startupLogFileHandle = fileHandle
-        } else {
-          NSLog("Error opening startup timing log file: \(logFilePath)")
+        // Go's logger opens this same file during KeybaseInit, so share it instead of replacing
+        // it: createFile swaps in a new file by renaming, which leaves Go logging the whole
+        // session to an unlinked file, and a non-append handle writes over Go's lines.
+        let fd = open(logFilePath, O_WRONLY | O_CREAT | O_APPEND, 0o600)
+        guard fd >= 0 else {
+          NSLog("Error opening startup timing log file: \(logFilePath) errno=\(errno)")
           return
         }
+        try? FileManager.default.setAttributes(
+          [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
+          ofItemAtPath: logFilePath
+        )
+        self.startupLogFileHandle = FileHandle(fileDescriptor: fd, closeOnDealloc: true)
       }
       guard let fileHandle = self.startupLogFileHandle else { return }
       do {
