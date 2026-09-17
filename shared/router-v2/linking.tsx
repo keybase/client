@@ -126,6 +126,9 @@ export const subscribeNavigationIntents = (
     try {
       // Profile links use imperative navigation to build their intermediate
       // back stack. Other known URLs can use React Navigation's linking state.
+      // This split only differs on mobile: desktop passes handleAppLink as both
+      // arguments (router.tsx), so every URL there lands in handleKeybaseLink,
+      // which must therefore stay correct for URLs the config also handles.
       if (intent.url.startsWith('keybase://profile/')) {
         handleAppLink(intent.url)
       } else if (isHandledByLinkingConfig(intent.url)) {
@@ -257,6 +260,8 @@ const customGetStateFromPath = (
 // ---- Linking config ----
 
 // Known URLs become launch state; the rest open imperatively once the router is up.
+// setInitialURLOnce also consumes: markInitialURLHandled clears a pending intent with the
+// same URL, so subscribeNavigationIntents won't navigate to it a second time.
 const openInitialLink = (link: string, handleAppLink: (link: string) => void) => {
   if (isHandledByLinkingConfig(link)) return setInitialURLOnce(link)
   setInitialURLOnce(link)

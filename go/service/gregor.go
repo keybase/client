@@ -966,6 +966,8 @@ func (g *gregorHandler) onConnectSynced(ctx context.Context, conn *rpc.Connectio
 	}
 
 	// Sync down events since we have been dead
+	// TODO: unlike the badge steps around it, serverSync is check-then-act: conn can stop being
+	// current between this check and the sync. Gating it means running an RPC under the gate.
 	g.runOnConnectStep(onConnectStepServerSync)
 	if !g.isCurrentConn(conn) {
 		return chat.ErrDuplicateConnection
