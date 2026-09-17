@@ -18,20 +18,10 @@ import androidx.core.app.Person
 import androidx.core.app.RemoteInput
 import androidx.core.graphics.drawable.IconCompat
 import keybase.ChatNotification
-import org.json.JSONObject
 import keybase.PushNotifier
 import java.io.BufferedInputStream
 import java.net.HttpURLConnection
 import java.net.URL
-
-internal fun bundleJSON(bundle: Bundle): String {
-    val json = JSONObject()
-    for (key in bundle.keySet()) {
-        @Suppress("DEPRECATION")
-        json.put(key, JSONObject.wrap(bundle.get(key)))
-    }
-    return json.toString()
-}
 
 class KBPushNotifier internal constructor(private val context: Context, private val bundle: Bundle) : PushNotifier {
     private var convMsgCache: SmallMsgRingBuffer? = null
@@ -45,15 +35,17 @@ class KBPushNotifier internal constructor(private val context: Context, private 
         this.convMsgCache = convMsgCache
     }
 
-    // A tap goes through PushTapActivity, which hands the push's payload to JS. The payload is
-    // the Intent's data so each notification gets its own PendingIntent (see PushTapData), and
-    // immutable so whoever holds this PendingIntent can't substitute another payload.
-    private fun buildPendingIntent(bundle: Bundle): PendingIntent {
-        val intent = Intent(context, PushTapActivity::class.java)
-        intent.setData(Uri.parse(PushTapData.encode(bundleJSON(bundle))))
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-    }
+    // A tap goes through PushTapActivity, which hands the push's payload to JS. The payload must
+    // be the Intent's data for each notification to get its own PendingIntent (see PushTapData),
+    // so the Intent is never built without it. Immutable, so whoever holds this PendingIntent
+    // can't substitute another payload.
+    private fun tapIntent(bundle: Bundle): Intent =
+        Intent(context, PushTapActivity::class.java)
+            .setData(Uri.parse(PushTapData.tapIntentData(bundleTapFields(bundle))))
+            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+    private fun buildPendingIntent(bundle: Bundle): PendingIntent =
+        PendingIntent.getActivity(context, 0, tapIntent(bundle), PendingIntent.FLAG_IMMUTABLE)
 
     private fun getKeybaseAvatar(avatarUri: String): IconCompat? {
         if (avatarUri.isEmpty()) return null

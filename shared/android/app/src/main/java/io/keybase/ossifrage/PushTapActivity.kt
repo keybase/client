@@ -11,7 +11,11 @@ import com.reactnativekb.KbModule
 class PushTapActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        PushTapData.decode(intent.dataString).takeIf { it.isNotEmpty() }?.let { KbModule.deliverPushTap(it) }
+        // A malformed data URI must still open the app, so a failed decode can't escape here.
+        runCatching { PushTapData.decode(intent.dataString) }
+            .getOrDefault("")
+            .takeIf { it.isNotEmpty() }
+            ?.let { KbModule.deliverPushTap(it) }
         startActivity(
             Intent(this, MainActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)

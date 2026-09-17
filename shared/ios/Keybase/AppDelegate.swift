@@ -366,6 +366,8 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
        let data = try? JSONSerialization.data(withJSONObject: payload),
        let json = String(data: data, encoding: .utf8) {
       KbDeliverPushTap(json)
+    } else {
+      log.error("Dropped a notification tap: its payload could not be serialized")
     }
     completionHandler()
   }

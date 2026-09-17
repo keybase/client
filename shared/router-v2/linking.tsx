@@ -1,3 +1,4 @@
+import * as Settings from '@/constants/settings'
 import * as Tabs from '@/constants/tabs'
 import logger from '@/logger'
 import {isSplit} from '@/constants/chat/layout'
@@ -184,6 +185,13 @@ const customGetStateFromPath = (
       // profile/new-proof is handled by handleAppLink fallback for now
       break
 
+    // keybase://devices — a tap on a device push. Devices live in the Settings tab on phone and
+    // tablet, and in their own tab on desktop.
+    case 'devices':
+      return isMobile
+        ? makeTabState(Tabs.settingsTab, [{name: 'settingsRoot'}, {name: Settings.settingsDevicesTab}])
+        : makeTabState(Tabs.devicesTab)
+
     // KBFS paths: keybase://private/..., keybase://public/...
     case 'private':
     case 'public': {
@@ -278,9 +286,14 @@ export const createLinkingConfig = (
       }
 
       // A tapped push picks where the app opens, once its account is current. A tap for
-      // another account stays queued until account-link-switch has switched to it.
+      // another account stays queued until account-link-switch has switched to it. The same
+      // lifetime applies here as in subscribeNavigationIntents.
       const {intent} = useNavigationIntentsState.getState()
-      if (intent && (!intent.targetUid || intent.targetUid === currentUid)) {
+      if (
+        intent &&
+        Date.now() - intent.createdAt <= navigationIntentLifetimeMs &&
+        (!intent.targetUid || intent.targetUid === currentUid)
+      ) {
         return openInitialLink(intent.url, handleAppLink)
       }
 

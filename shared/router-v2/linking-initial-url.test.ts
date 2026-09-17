@@ -163,3 +163,12 @@ test('the returned initial url is recorded so the same deep link is not re-enque
 
   expect(useNavigationIntentsState.getState().lastHandledIntent?.url).toBe(`keybase://${Tabs.chatTab}`)
 })
+
+test('a queued tap older than the intent lifetime is not the startup route', async () => {
+  setStartup({conversation: 'conv-1'})
+  enqueuePushTap('{"type":"chat.newmessage","convID":"0000ab","uid":"current-uid"}')
+  const intent = useNavigationIntentsState.getState().intent
+  useNavigationIntentsState.setState({intent: {...intent!, createdAt: Date.now() - 6 * 60_000}})
+
+  await expect(getInitialURL()).resolves.toBe('keybase://convid/conv-1')
+})
