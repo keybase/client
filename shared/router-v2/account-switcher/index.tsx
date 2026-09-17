@@ -19,6 +19,7 @@ const AccountSwitcher = (p: {onSelected?: () => void}) => {
     logoutAndTryToLogInAs: onSelectAccountLoggedOut,
     logoutToLoggedOutFlow: onLoginAsAnotherUser,
     setUserSwitching,
+    userSwitching,
   } = useConfigState(
     C.useShallow(s => ({
       accountRows: s.configuredAccounts,
@@ -26,17 +27,20 @@ const AccountSwitcher = (p: {onSelected?: () => void}) => {
       logoutAndTryToLogInAs: s.dispatch.logoutAndTryToLogInAs,
       logoutToLoggedOutFlow: s.dispatch.logoutToLoggedOutFlow,
       setUserSwitching: s.dispatch.setUserSwitching,
+      userSwitching: s.userSwitching,
     }))
   )
   const you = useCurrentUserState(s => s.username)
   const fullname = _fullnames.get(you)?.fullname ?? ''
-  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyConfigLogin)
+  // The mid-switch store reset clears the login waiting key while the switch is still running, so
+  // also hold the rows on userSwitching or a second switch can start before the first lands.
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyConfigLogin) || userSwitching
 
   const onSelectAccountLoggedIn = (username: string) => {
     if (isMobile) {
       rememberAccountSwitchTab(you, username, C.Router2.getTab())
     }
-    setUserSwitching(true)
+    setUserSwitching(true, username)
     login(username, '')
   }
 
@@ -124,6 +128,7 @@ const MobileHeader = (props: Props) => {
           mode="Primary"
           fullWidth={true}
           waitingKey={C.waitingKeyConfigLoginAsOther}
+          disabled={props.waiting}
         />
       </Kb.Box2>
     </>

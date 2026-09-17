@@ -10,7 +10,7 @@ import type {Tab} from '@/constants/tabs'
 import {RPCError, convertToError, isErrorTransient, niceError} from '@/util/errors'
 import {type CommonResponseHandler} from '@/engine/types'
 import {invalidPasswordErrorString} from '@/constants/config'
-import {navigateAppend} from '@/constants/router'
+import {navigateAppendOnceRootHas} from '@/constants/router'
 import {onEngineConnected as onEngineConnectedInPlatform} from '@/util/storeless-actions'
 
 type Store = T.Immutable<{
@@ -50,6 +50,10 @@ type Store = T.Immutable<{
     tab?: Tab
   }
   userSwitching: boolean
+  // The account an in-progress switch is logging into ('' when none or not known)
+  userSwitchingTo: string
+  // Whether the in-progress switch started while logged in
+  userSwitchingFromLoggedIn: boolean
   windowShownCount: Map<string, number>
 }>
 
@@ -88,12 +92,15 @@ const initialStore: Store = {
     loaded: false,
   },
   userSwitching: false,
+  userSwitchingFromLoggedIn: false,
+  userSwitchingTo: '',
   windowShownCount: new Map(),
 }
 
 export type State = Store & {
   dispatch: {
     checkForUpdate: () => void
+    endUserSwitchLandedOn: (username: string) => void
     initAppUpdateLoop: () => void
     installerRan: () => void
     loadIsOnline: () => void
@@ -121,7 +128,7 @@ export type State = Store & {
     setStartupDetails: (st: Omit<Store['startup'], 'loaded'>) => void
     setOutOfDate: (outOfDate: T.Config.OutOfDate) => void
     setUpdating: () => void
-    setUserSwitching: (sw: boolean) => void
+    setUserSwitching: (sw: boolean, to?: string) => void
     toggleRuntimeStats: () => void
     updateGregorCategory: (category: string, body: string, dtime?: {offset: number; time: number}) => void
   }
@@ -129,6 +136,9 @@ export type State = Store & {
 
 export const useConfigState = Z.createZustand<State>('config', (set, get) => {
   let inflightRefreshAccounts: Promise<void> | undefined
+  // Bumped by every login. A login that fails after a newer one started (e.g. picking a second
+  // account mid-switch) must not end the newer switch or show its own error.
+  let loginGeneration = 0
 
   const _checkForUpdate = async () => {
     try {
@@ -194,6 +204,14 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       }
       ignorePromise(f())
     },
+    endUserSwitchLandedOn: username => {
+      // A navigator that comes up for an account a newer switch has already moved past (the user
+      // picked another account mid-switch) must leave that switch running.
+      const {userSwitching, userSwitchingTo} = get()
+      if (userSwitching && (!userSwitchingTo || userSwitchingTo === username)) {
+        get().dispatch.setUserSwitching(false)
+      }
+    },
     initAppUpdateLoop: () => {
       const f = async () => {
         while (true) {
@@ -229,6 +247,8 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         response.error({code: T.RPCGen.StatusCode.scgeneric, desc: cancelDesc})
       }
       const ignoreCallback = () => {}
+      const generation = ++loginGeneration
+      const superseded = () => generation !== loginGeneration
       const f = async () => {
         try {
           await T.RPCGen.loginLoginRpcListener({
@@ -238,8 +258,15 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
               'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
               'keybase.1.provisionUi.PromptNewDeviceName': (_, response) => {
                 cancelOnCallback(undefined, response)
-                // this account needs provisioning; hand off to the provision flow
-                navigateAppend({name: 'username', params: {autoSubmit: true, username}})
+                if (superseded()) return
+                // This account needs provisioning; hand off to the provision flow. 'username' lives in
+                // the logged-out stack, which the routers keep unmounted while userSwitching is set, so
+                // end the switch and push once that stack is up.
+                get().dispatch.setUserSwitching(false)
+                navigateAppendOnceRootHas('loggedOut', {
+                  name: 'username',
+                  params: {autoSubmit: true, username},
+                })
               },
               'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
               'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
@@ -248,6 +275,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
                   // Service asking us again due to a bad passphrase?
                   if (params.pinentry.retryLabel) {
                     cancelOnCallback(params, response)
+                    if (superseded()) return
                     let retryLabel = params.pinentry.retryLabel
                     if (retryLabel === invalidPasswordErrorString) {
                       retryLabel = 'Incorrect password.'
@@ -282,15 +310,24 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
           logger.info('login call succeeded')
           get().dispatch.setLoggedIn(true)
         } catch (error) {
+          if (superseded()) {
+            logger.info('login failed after a newer login started, ignoring', error)
+            return
+          }
+          // The routers keep the logged-in screens mounted while userSwitching is set, so a switch
+          // that ends here has to clear it or the logged-out screens can't mount.
           if (!(error instanceof RPCError)) {
+            get().dispatch.setUserSwitching(false)
             return
           }
           if (error.code === T.RPCGen.StatusCode.scalreadyloggedin) {
             get().dispatch.setLoggedIn(true)
           } else if (error.desc !== cancelDesc) {
-            // If we're canceling then ignore the error
             error.desc = niceError(error)
             get().dispatch.setLoginError(error)
+          } else {
+            // We cancelled one of our own prompts: not an error to show, but the switch is over.
+            get().dispatch.setUserSwitching(false)
           }
         }
       }
@@ -463,6 +500,8 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         dispatch: s.dispatch,
         startup: {loaded: s.startup.loaded},
         userSwitching: s.userSwitching,
+        userSwitchingFromLoggedIn: s.userSwitchingFromLoggedIn,
+        userSwitchingTo: s.userSwitchingTo,
       }))
     },
     revoke: (name, wasCurrentDevice) => {
@@ -579,9 +618,14 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         s.outOfDate.updating = true
       })
     },
-    setUserSwitching: sw => {
+    setUserSwitching: (sw, to) => {
       set(s => {
+        // A second switch that starts after the mid-switch logout would read loggedIn as false, so
+        // keep holding the logged-in screens if the switch already in flight is holding them.
+        s.userSwitchingFromLoggedIn =
+          sw && (s.loggedIn || (s.userSwitching && s.userSwitchingFromLoggedIn))
         s.userSwitching = sw
+        s.userSwitchingTo = sw ? (to ?? '') : ''
       })
     },
     toggleRuntimeStats: () => {

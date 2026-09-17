@@ -32,7 +32,7 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liquid-glass'
 import {Platform, StatusBar, View} from 'react-native'
 import AccountSwitchHeaderAvatar from './account-switch-header-avatar'
-import {clearPendingAccountSwitch, consumePendingAccountSwitchTab} from './account-switch'
+import {clearPendingAccountSwitch, consumePendingAccountSwitchTab, showLoggedInScreens} from './account-switch'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
 const isLiquidGlassSupported = isMobile ? (_isLiquidGlassSupported as boolean) : false
@@ -262,13 +262,13 @@ function DesktopRouter() {
 
   const isDarkMode = useDarkModeState(s => s.isDarkMode())
   const navKey = Common.useUserSwitchNavKey()
-  const currentUid = useCurrentUserState(s => s.uid)
-  const {setUserSwitching, userSwitching} = useConfigState(
+  const {currentUid, username} = useCurrentUserState(
     C.useShallow(s => ({
-      setUserSwitching: s.dispatch.setUserSwitching,
-      userSwitching: s.userSwitching,
+      currentUid: s.uid,
+      username: s.username,
     }))
   )
+  const endUserSwitchLandedOn = useConfigState(s => s.dispatch.endUserSwitchLandedOn)
   const setNavigationReady = useNavigationIntentsState(s => s.dispatch.setNavigationReady)
 
   React.useEffect(
@@ -298,9 +298,7 @@ function DesktopRouter() {
       onReady={() => {
         onStateChange()
         setNavigationReady(true, currentUid)
-        if (userSwitching) {
-          setUserSwitching(false)
-        }
+        endUserSwitchLandedOn(username)
       }}
       onStateChange={onStateChange}
       onUnhandledAction={onUnhandledAction}
@@ -604,8 +602,8 @@ if (isMobile) {
     }
   }
 
-  const useIsLoggedInNative = () => useConfigState(s => s.loggedIn)
-  const useIsLoggedOutNative = () => !useConfigState(s => s.loggedIn)
+  const useIsLoggedInNative = () => useConfigState(showLoggedInScreens)
+  const useIsLoggedOutNative = () => !useConfigState(showLoggedInScreens)
 
   const nativeModalScreensConfig = routeMapToStaticScreens(modalRoutes, makeLayout, true, false, false)
   const nativePhoneRootScreensConfig = routeMapToStaticScreens(
@@ -667,10 +665,10 @@ function NativeRouter() {
   const theme = Kb.Styles.useTheme()
   const loggedInLoaded = useHandshakeEverDone()
 
-  const {loggedIn, setUserSwitching, startupLoaded, userSwitching} = useConfigState(
+  const {endUserSwitchLandedOn, loggedIn, startupLoaded, userSwitching} = useConfigState(
     C.useShallow(s => ({
+      endUserSwitchLandedOn: s.dispatch.endUserSwitchLandedOn,
       loggedIn: s.loggedIn,
-      setUserSwitching: s.dispatch.setUserSwitching,
       startupLoaded: s.startup.loaded,
       userSwitching: s.userSwitching,
     }))
@@ -716,9 +714,7 @@ function NativeRouter() {
       C.Router2.switchTab(tab)
     }
     setNavigationReady(true, currentUid)
-    if (userSwitching) {
-      setUserSwitching(false)
-    }
+    endUserSwitchLandedOn(username)
   }
 
   if (!loggedInLoaded || (loggedIn && !startupLoaded)) {
