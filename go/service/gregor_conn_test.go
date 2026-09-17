@@ -533,7 +533,14 @@ func TestGregorConnStress(t *testing.T) {
 	select {
 	case <-done:
 	case <-time.After(60 * time.Second):
-		t.Fatal("deadlock: transitions and connects did not finish")
+		// A deadlock leaves the workers holding the gate, so the cleanup that
+		// stops the monitor never returns. Nothing this test writes is
+		// flushed through that hung unwind, neither t.Fatal's message nor a
+		// panic's, so say it on stderr first; go test's own timeout then
+		// dumps every stack.
+		const msg = "deadlock: transitions and connects did not finish"
+		fmt.Fprintln(os.Stderr, msg)
+		t.Fatal(msg)
 	}
 
 	require.NoError(t, gate.forget(context.Background()))
