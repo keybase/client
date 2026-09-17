@@ -354,7 +354,7 @@ func (c *Controller) PushWindowBegin() int64 {
 
 // PushWindowEnd ends the push window's hold. If the UI is still in the
 // background and stay says work must keep going, it first starts a background
-// task and returns its hold's token.
+// task. The token it returns is for the test harness; native ignores it.
 func (c *Controller) PushWindowEnd(token int64, stay bool, deps BackgroundTaskDeps) int64 {
 	c.mu.Lock()
 	defer c.mu.Unlock()

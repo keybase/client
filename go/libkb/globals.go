@@ -842,6 +842,12 @@ func (g *GlobalContext) Shutdown(mctx MetaContext) error {
 			g.hiddenTeamChainManager.Shutdown(mctx)
 		}
 
+		// Ends the background tasks the controller runs before the chat
+		// services they poll go away.
+		if g.MobileLifecycle != nil {
+			g.MobileLifecycle.Close()
+		}
+
 		if g.NotifyRouter != nil {
 			g.NotifyRouter.Shutdown()
 		}

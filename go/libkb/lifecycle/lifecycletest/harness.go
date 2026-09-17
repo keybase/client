@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/libkb/lifecycle"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 type Platform int
@@ -305,6 +306,7 @@ func (h *Harness) perform(step Step) bool {
 	case LiveLocationAcquire:
 		h.liveLocation = c.AcquireBackgroundWork(lifecycle.ReasonLiveLocation)
 	case LiveLocationRelease:
+		require.NotNil(h.T, h.liveLocation, "LiveLocationRelease without LiveLocationAcquire")
 		h.liveLocation.Release()
 	case BackgroundSyncStart:
 		h.Clock.ForgetAfters()

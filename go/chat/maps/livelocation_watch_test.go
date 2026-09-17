@@ -285,9 +285,11 @@ func TestLiveLocationTrackerFailedWatchLeavesNoHold(t *testing.T) {
 	require.Equal(t, keybase1.MobileAppState_BACKGROUNDACTIVE, appState.State())
 
 	for ui.attempts.Load() < 22 {
+		// Read the count while the retry is parked on the clock: Advance
+		// releases it, so a count read afterward can already include it.
 		clock.BlockUntil(1)
-		clock.Advance(time.Second)
 		n := ui.attempts.Load()
+		clock.Advance(time.Second)
 		require.Eventually(t, func() bool { return ui.attempts.Load() > n }, 10*time.Second, time.Millisecond)
 	}
 	waitTrackerRemoved(t, l, track)
