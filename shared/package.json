@@ -76,6 +76,7 @@
     "test:e2e:ios:ipad": "bash tests/e2e/run-ios-appium.sh iPadTest",
     "test:e2e:ios:iphone-old": "bash tests/e2e/run-ios-appium.sh iPhoneTestOld",
     "test:e2e:ios:ipad-old": "bash tests/e2e/run-ios-appium.sh iPadTestOld",
+    "test:e2e:ios:lifecycle": "bash tests/e2e/run-ios-lifecycle.sh iPhoneTest",
     "test:e2e:ios:report": "node tests/e2e/generate-appium-report.mts && open tests/results/ios-appium-report.html",
     "test:e2e:android": "bash tests/e2e/run-android-appium.sh",
     "test:e2e:android:report": "node tests/e2e/generate-appium-report.mts android && open tests/results/android-appium-report.html",
