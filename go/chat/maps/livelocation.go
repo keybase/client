@@ -33,7 +33,8 @@ type LiveLocationTracker struct {
 	trackers       map[types.LiveLocationKey]*locationTrack
 	lastCoord      chat1.Coordinate
 	maxCoords      int
-	// bgHold keeps the app running while tracking; guarded by the tracker's mutex.
+	// bgHold keeps the app running while tracking; guarded by the tracker's
+	// mutex and changed only by syncHoldLocked.
 	bgHold *lifecycle.Hold
 
 	nativeWatchMu   sync.Mutex
@@ -101,9 +102,22 @@ func (l *LiveLocationTracker) saveLocked(ctx context.Context) {
 func (l *LiveLocationTracker) removeTrackerLocked(ctx context.Context, t *locationTrack) {
 	delete(l.trackers, t.Key())
 	l.saveLocked(ctx)
-	if len(l.trackers) == 0 && l.bgHold != nil {
-		l.bgHold.Release()
-		l.bgHold = nil
+	l.syncHoldLocked(false)
+}
+
+// syncHoldLocked ties bgHold to the trackers map: no trackers means no hold,
+// and a fix while tracking opens one if none is open (the controller may have
+// ended it). Every removal from the map and every fix calls it.
+func (l *LiveLocationTracker) syncHoldLocked(fix bool) {
+	switch {
+	case len(l.trackers) == 0:
+		if l.bgHold != nil {
+			l.bgHold.Release()
+			l.bgHold = nil
+		}
+	case fix && l.G().IsMobileAppType() && (l.bgHold == nil || l.bgHold.Released()):
+		// A location update can wake a backgrounded app; hold it up so the update gets out.
+		l.bgHold = l.G().MobileLifecycle.AcquireBackgroundWork(lifecycle.ReasonLiveLocation)
 	}
 }
 
@@ -132,6 +146,7 @@ func (l *LiveLocationTracker) runRestoredLocked(trackers []*locationTrack) {
 			return l.tracker(myT)
 		})
 	}
+	l.syncHoldLocked(false)
 }
 
 func (l *LiveLocationTracker) getLastCoord() chat1.Coordinate {
@@ -326,11 +341,15 @@ func (l *LiveLocationTracker) startChatUIWatch(ctx context.Context, t *locationT
 
 func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 	ctx := context.Background()
-	// check to see if we are being asked to start a tracker that is already expired
-	if t.endTime.Before(l.clock.Now()) {
+	// Every exit removes the tracker, which also ends the background-work hold
+	// once no tracker remains.
+	defer func() {
 		l.Lock()
 		defer l.Unlock()
 		l.removeTrackerLocked(ctx, t)
+	}()
+	// check to see if we are being asked to start a tracker that is already expired
+	if t.endTime.Before(l.clock.Now()) {
 		l.Debug(ctx, "tracker: old tracker, not running and clearing")
 		return errors.New("tracker from the past")
 	}
@@ -338,15 +357,11 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 	// start up the OS watch routine
 	watchID, stopWatch, err := l.startWatch(ctx, t)
 	if err != nil {
+		l.Debug(ctx, "tracker: unable to start watching, clearing: %s", err)
 		return err
 	}
-	defer func() {
-		// drop everything when our live location ends
-		stopWatch()
-		l.Lock()
-		defer l.Unlock()
-		l.removeTrackerLocked(ctx, t)
-	}()
+	// Deferred after the removal, so it runs first: stop watching, then remove.
+	defer stopWatch()
 	// if this is a live location request, just put whatever the last coord is on the screen, makes it
 	// feel more live
 	if lastCoord := l.getLastCoord(); !lastCoord.IsZero() {
@@ -438,10 +453,7 @@ func (l *LiveLocationTracker) LocationUpdate(ctx context.Context, coord chat1.Co
 	defer l.Trace(ctx, nil, "LocationUpdate")()
 	l.Lock()
 	defer l.Unlock()
-	if l.G().IsMobileAppType() && len(l.trackers) > 0 && (l.bgHold == nil || l.bgHold.Released()) {
-		// A location update can wake a backgrounded app; hold it up so the update gets out.
-		l.bgHold = l.G().MobileLifecycle.AcquireBackgroundWork(lifecycle.ReasonLiveLocation)
-	}
+	l.syncHoldLocked(true)
 	if l.lastCoord.Eq(coord) {
 		l.Debug(ctx, "LocationUpdate: ignoring dup coordinate")
 		return

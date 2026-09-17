@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
@@ -261,4 +262,40 @@ func TestLiveLocationTrackerChatUIWatchGivesUp(t *testing.T) {
 		require.Fail(t, "still retrying", "after %d attempts", ui.attempts.Load())
 	}
 	require.EqualValues(t, maxAttempts, ui.attempts.Load())
+}
+
+// A tracker whose watch never starts ends like any other: it leaves no tracker
+// and no background-work hold, so the app can still reach BACKGROUND.
+func TestLiveLocationTrackerFailedWatchLeavesNoHold(t *testing.T) {
+	t.Setenv("KEYBASE_APP_TYPE", string(libkb.MobileAppType))
+	tc := libkb.SetupTest(t, "LiveLocationTrackerFailedWatchLeavesNoHold", 0)
+	t.Cleanup(tc.Cleanup)
+	ui := &failingWatchChatUI{}
+	l := newWatchTestTracker(t, tc, nil, ui)
+	clock := l.clock.(clockwork.FakeClock)
+	appState := tc.G.MobileAppState
+	noStay := func() bool { return false }
+
+	track := startTestTracker(l, 1)
+	require.NotNil(t, track)
+	// A fix while the watch is still retrying holds the app up.
+	require.Eventually(t, func() bool { return ui.attempts.Load() >= 1 }, 10*time.Second, time.Millisecond)
+	l.LocationUpdate(context.Background(), chat1.Coordinate{Lat: 1, Lon: 1})
+	require.Zero(t, tc.G.MobileLifecycle.UIBackground(noStay))
+	require.Equal(t, keybase1.MobileAppState_BACKGROUNDACTIVE, appState.State())
+
+	for ui.attempts.Load() < 22 {
+		clock.BlockUntil(1)
+		clock.Advance(time.Second)
+		n := ui.attempts.Load()
+		require.Eventually(t, func() bool { return ui.attempts.Load() > n }, 10*time.Second, time.Millisecond)
+	}
+	waitTrackerRemoved(t, l, track)
+	require.Equal(t, keybase1.MobileAppState_BACKGROUND, appState.State())
+
+	// A later fix finds no tracker to hold the app up for.
+	tc.G.MobileLifecycle.UIActive()
+	l.LocationUpdate(context.Background(), chat1.Coordinate{Lat: 2, Lon: 2})
+	require.Zero(t, tc.G.MobileLifecycle.UIBackground(noStay))
+	require.Equal(t, keybase1.MobileAppState_BACKGROUND, appState.State())
 }

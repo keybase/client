@@ -332,6 +332,8 @@ func (c *Controller) UIInactive() {
 // must keep going it opens a background task hold and returns its token for
 // RunBackgroundTask; otherwise it returns 0.
 func (c *Controller) UIBackground(stayRunning func() bool) int64 {
+	// stayRunning takes other locks (the live location tracker's, which is held
+	// while calling into the controller), so it must run outside c.mu.
 	stay := stayRunning()
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -401,6 +403,7 @@ func (c *Controller) PushWindowEnd(token int64, stayRunning func() bool) int64 {
 	h, ok := c.holds[token]
 	query := ok && h.reason == ReasonPushWindow && c.ui == UIBackground
 	c.mu.Unlock()
+	// Outside c.mu, as in UIBackground: stayRunning takes locks held while calling into the controller.
 	stay := query && stayRunning()
 	c.mu.Lock()
 	defer c.mu.Unlock()

@@ -124,10 +124,10 @@ func (e *EKLib) backgroundKeygen(mctx libkb.MetaContext, stopCh <-chan struct{})
 }
 
 // keygenLoop runs run on every tick, and also when the app enters
-// BACKGROUNDACTIVE or the UI comes back from BACKGROUND (INACTIVE), after a
-// jittered pause so it doesn't stampede for resources with other background
-// tasks (libkb.BgTicker handles this internally for ticks). waiting, if set, is
-// told the state before each wait.
+// BACKGROUNDACTIVE or leaves BACKGROUND, after a jittered pause so it doesn't
+// stampede for resources with other background tasks (libkb.BgTicker handles
+// this internally for ticks). waiting, if set, is told the state before each
+// wait.
 func (e *EKLib) keygenLoop(mctx libkb.MetaContext, stopCh <-chan struct{}, tick <-chan time.Time,
 	jitter func() time.Duration, run func(), waiting func(keybase1.MobileAppState),
 ) {
@@ -156,10 +156,12 @@ func (e *EKLib) keygenLoop(mctx libkb.MetaContext, stopCh <-chan struct{}, tick 
 	}
 }
 
-// keygenOnTransition: work woke the app in the background, or the UI is coming back from it.
+// keygenOnTransition: work woke the app in the background, or the app left
+// BACKGROUND. NextUpdate collapses changes, so a return to the foreground can
+// arrive as BACKGROUND to FOREGROUND without the INACTIVE in between.
 func keygenOnTransition(prev, state keybase1.MobileAppState) bool {
 	return state == keybase1.MobileAppState_BACKGROUNDACTIVE ||
-		(prev == keybase1.MobileAppState_BACKGROUND && state == keybase1.MobileAppState_INACTIVE)
+		(prev == keybase1.MobileAppState_BACKGROUND && state != keybase1.MobileAppState_BACKGROUND)
 }
 
 func (e *EKLib) SetClock(clock clockwork.Clock) {

@@ -69,9 +69,8 @@ func TestKeygenLoopSeedsFromState(t *testing.T) {
 	require.EqualValues(t, 1, runs.Load())
 }
 
-// Keygen runs when work wakes the app in the background and when the UI comes
-// back from BACKGROUND (INACTIVE), but not when the UI merely stops being
-// active.
+// Keygen runs when work wakes the app in the background and when the app
+// leaves BACKGROUND, but not when the UI merely stops being active.
 func TestKeygenLoopRunsWhenLeavingTheBackground(t *testing.T) {
 	tc := libkb.SetupTest(t, "ephemeral", 2)
 	defer tc.Cleanup()
@@ -104,4 +103,13 @@ func TestKeygenLoopRunsWhenLeavingTheBackground(t *testing.T) {
 	appState.Update(keybase1.MobileAppState_INACTIVE)
 	next(keybase1.MobileAppState_INACTIVE)
 	require.EqualValues(t, 2, runs.Load())
+	appState.Update(keybase1.MobileAppState_BACKGROUND)
+	next(keybase1.MobileAppState_BACKGROUND)
+	require.EqualValues(t, 2, runs.Load())
+	// NextUpdate collapses willEnterForeground's INACTIVE and didBecomeActive's
+	// FOREGROUND when they land together; the loop then sees BACKGROUND to
+	// FOREGROUND.
+	appState.Update(keybase1.MobileAppState_FOREGROUND)
+	next(keybase1.MobileAppState_FOREGROUND)
+	require.EqualValues(t, 3, runs.Load())
 }

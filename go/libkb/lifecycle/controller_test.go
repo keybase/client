@@ -163,6 +163,29 @@ func TestPushWindowEndOutsideBackgroundSkipsStayRunning(t *testing.T) {
 	require.Equal(t, 0, lifecycle.Holds(c))
 }
 
+// stayRunning reaches back into the controller (the live location tracker
+// holds its own lock while acquiring a hold), so the controller must not hold
+// its lock while calling it.
+func TestStayRunningRunsOutsideTheLock(t *testing.T) {
+	appState, _ := newAppState(t)
+	c := lifecycle.New(appState, lifecycle.Config{})
+	reenter := func() bool {
+		c.AcquireBackgroundWork(lifecycle.ReasonLiveLocation).Release()
+		return true
+	}
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		c.UIBackground(reenter)
+		c.PushWindowEnd(c.PushWindowBegin(), reenter)
+	}()
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "stayRunning deadlocked on the controller's lock")
+	}
+}
+
 // Native gives these last events only a short wait, so the state change and
 // the flush must happen before the slow pending-message warning.
 func TestExitEventsApplyBeforeNotifying(t *testing.T) {
