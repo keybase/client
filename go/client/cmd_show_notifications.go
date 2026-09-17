@@ -99,7 +99,7 @@ func (d *notificationDisplay) printf(fmt string, args ...any) error {
 	return err
 }
 
-func (d *notificationDisplay) LoggedOut(_ context.Context) error {
+func (d *notificationDisplay) LoggedOut(_ context.Context, _ int64) error {
 	return d.printf("Logged out\n")
 }
 

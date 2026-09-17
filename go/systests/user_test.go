@@ -247,7 +247,7 @@ func newNotifyHandler() *notifyHandler {
 	}
 }
 
-func (h *notifyHandler) LoggedOut(_ context.Context) error {
+func (h *notifyHandler) LoggedOut(_ context.Context, _ int64) error {
 	h.logoutCh <- struct{}{}
 	return nil
 }

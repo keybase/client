@@ -25,6 +25,7 @@ import (
 	"os"
 	"runtime"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/keybase/client/go/libkb/lifecycle"
@@ -78,6 +79,7 @@ type GlobalContext struct {
 	Identify3State                   *Identify3State             // keep track of Identify3 sessions
 	vidMu                            *sync.Mutex                 // protect VID
 	RuntimeStats                     RuntimeStats                // performance runtime stats
+	stateVersion                     atomic.Int64                // see StateVersion
 
 	cacheMu                *sync.RWMutex   // protects all caches
 	ProofCache             *ProofCache     // where to cache proof results
@@ -327,6 +329,15 @@ func (g *GlobalContext) Init() *GlobalContext {
 func NewGlobalContextInit() *GlobalContext {
 	return NewGlobalContext().Init()
 }
+
+// StateVersion is the version of the last change a notification announced (the
+// http server address, login, logout). The bootstrap status reads it before the
+// state, so a client can tell whether the status or a notification is newer.
+func (g *GlobalContext) StateVersion() int64 { return g.stateVersion.Load() }
+
+// NextStateVersion stamps a change about to be announced. Call it after the
+// change is readable, so nothing carrying this version is still invisible.
+func (g *GlobalContext) NextStateVersion() int64 { return g.stateVersion.Add(1) }
 
 func (g *GlobalContext) SetService() {
 	g.Service = true

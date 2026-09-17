@@ -72,7 +72,7 @@ export type MessageTypes = {
     outParam: void,
   },
   'keybase.1.NotifyService.HTTPSrvInfoUpdate': {
-    inParam: {readonly info: HttpSrvInfo},
+    inParam: {readonly info: HttpSrvInfo,readonly version: number},
     outParam: void,
   },
   'keybase.1.NotifyService.handleKeybaseLink': {
@@ -88,11 +88,11 @@ export type MessageTypes = {
     outParam: void,
   },
   'keybase.1.NotifySession.loggedIn': {
-    inParam: {readonly username: string,readonly signedUp: boolean},
+    inParam: {readonly username: string,readonly signedUp: boolean,readonly version: number},
     outParam: void,
   },
   'keybase.1.NotifySession.loggedOut': {
-    inParam: undefined,
+    inParam: {readonly version: number},
     outParam: void,
   },
   'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged': {
@@ -2527,7 +2527,7 @@ export type BlockQuotaInfo = {readonly folders?: ReadonlyArray<FolderUsageStat> 
 export type BlockRefNonce = string | null
 export type BlockReference = {readonly bid: BlockIdCombo,readonly nonce: BlockRefNonce,readonly chargedTo: UserOrTeamID,}
 export type BlockReferenceCount = {readonly ref: BlockReference,readonly liveCount: number,}
-export type BootstrapStatus = {readonly registered: boolean,readonly loggedIn: boolean,readonly uid: UID,readonly username: string,readonly deviceID: DeviceID,readonly deviceName: string,readonly fullname: FullName,readonly userReacjis: UserReacjis,readonly httpSrvInfo?: HttpSrvInfo | null,}
+export type BootstrapStatus = {readonly registered: boolean,readonly loggedIn: boolean,readonly uid: UID,readonly username: string,readonly deviceID: DeviceID,readonly deviceName: string,readonly fullname: FullName,readonly userReacjis: UserReacjis,readonly httpSrvInfo?: HttpSrvInfo | null,readonly version: number,}
 export type BotToken = string
 export type BotTokenInfo = {readonly token: BotToken,readonly ctime: Time,}
 export type BoxAuditAttempt = {readonly ctime: UnixTime,readonly error?: string | null,readonly result: BoxAuditAttemptResult,readonly generation?: PerTeamKeyGeneration | null,readonly rotated: boolean,}

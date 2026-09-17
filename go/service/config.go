@@ -356,11 +356,16 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (r
 	// attempt (which can be slow: leveldb open/recovery, keychain reads) so
 	// we don't report loggedIn=false while it is still in flight.
 	h.svc.awaitInitialLoginAttempt(m, 30*time.Second)
+	// Read the version after that wait but before the state it describes. A login,
+	// logout or http server change that lands from here on stamps its notification
+	// with a newer version, so the client keeps the notification over this status.
+	version := h.G().StateVersion()
 	eng := engine.NewBootstrap(h.G())
 	if err = engine.RunEngine2(m, eng); err != nil {
 		return res, err
 	}
 	res = eng.Status()
+	res.Version = version
 	m.Debug("GetBootstrapStatus: attempting to get HTTP server address")
 	for range 40 { // wait at most 2 seconds
 		info, infoErr := h.svc.httpSrv.Info()

@@ -274,6 +274,7 @@ protocol config {
     FullName fullname;        // current user's fullname
     UserReacjis userReacjis;    // reacjis preferences for current logged in user
     union { null, HttpSrvInfo } httpSrvInfo; // info about the service http server
+    long version; // state version read before the rest of this status; compare against the versions on the login, logout and http server notifications
   }
 
   BootstrapStatus getBootstrapStatus(int sessionID);

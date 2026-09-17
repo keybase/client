@@ -738,6 +738,10 @@
             "HttpSrvInfo"
           ],
           "name": "httpSrvInfo"
+        },
+        {
+          "type": "long",
+          "name": "version"
         }
       ]
     },

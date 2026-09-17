@@ -667,6 +667,7 @@ type BootstrapStatus struct {
 	Fullname    FullName     `codec:"fullname" json:"fullname"`
 	UserReacjis UserReacjis  `codec:"userReacjis" json:"userReacjis"`
 	HttpSrvInfo *HttpSrvInfo `codec:"httpSrvInfo,omitempty" json:"httpSrvInfo,omitempty"`
+	Version     int64        `codec:"version" json:"version"`
 }
 
 func (o BootstrapStatus) DeepCopy() BootstrapStatus {
@@ -686,6 +687,7 @@ func (o BootstrapStatus) DeepCopy() BootstrapStatus {
 			tmp := x.DeepCopy()
 			return &tmp
 		})(o.HttpSrvInfo),
+		Version: o.Version,
 	}
 }
 

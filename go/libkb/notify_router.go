@@ -406,6 +406,7 @@ func (n *NotifyRouter) HandleLogout(ctx context.Context) {
 	}
 	defer n.G().CTrace(ctx, "NotifyRouter#HandleLogout", nil)()
 	ctx = CopyTagsToBackground(ctx)
+	version := n.G().NextStateVersion()
 	// For all connections we currently have open...
 	n.cm.ApplyAllDetails(func(id ConnectionID, xp rpc.Transporter, d *keybase1.ClientDetails) bool {
 		// If the connection wants the `Session` notification type
@@ -417,7 +418,7 @@ func (n *NotifyRouter) HandleLogout(ctx context.Context) {
 				// A send of a `LoggedOut` RPC
 				_ = (keybase1.NotifySessionClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).LoggedOut(ctx)
+				}).LoggedOut(ctx, version)
 			}()
 		}
 		desc := "<nil>"
@@ -461,6 +462,7 @@ func (n *NotifyRouter) SendLogin(ctx context.Context, u string, signedUp bool) {
 	n.G().Log.CDebugf(ctx, "+ Sending login notification, as user %q, signedUp %t", u, signedUp)
 	// For all connections we currently have open...
 	ctx = CopyTagsToBackground(ctx)
+	version := n.G().NextStateVersion()
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Session` notification type
 		if n.getNotificationChannels(id).Session {
@@ -472,6 +474,7 @@ func (n *NotifyRouter) SendLogin(ctx context.Context, u string, signedUp bool) {
 				}).LoggedIn(ctx, keybase1.LoggedInArg{
 					Username: u,
 					SignedUp: signedUp,
+					Version:  version,
 				})
 			}()
 		}
@@ -2823,12 +2826,13 @@ func (n *NotifyRouter) HandleHTTPSrvInfoUpdate(ctx context.Context, info keybase
 	if n == nil {
 		return
 	}
+	version := n.G().NextStateVersion()
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Service {
 			go func() {
 				_ = (keybase1.NotifyServiceClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).HTTPSrvInfoUpdate(ctx, info)
+				}).HTTPSrvInfoUpdate(ctx, keybase1.HTTPSrvInfoUpdateArg{Info: info, Version: version})
 			}()
 		}
 		return true

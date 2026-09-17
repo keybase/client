@@ -3,7 +3,7 @@
 protocol NotifySession {
 
   @notify("")
-  void loggedOut();
-  void loggedIn(string username, boolean signedUp); // signedUp if this is due to a signup
+  void loggedOut(long version);
+  void loggedIn(string username, boolean signedUp, long version); // signedUp if this is due to a signup
   void clientOutOfDate(string upgradeTo, string upgradeURI, string upgradeMsg);
 }

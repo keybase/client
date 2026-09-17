@@ -7,7 +7,7 @@ protocol NotifyService {
     string token;
   }
   @lint("ignore")
-  void HTTPSrvInfoUpdate(HttpSrvInfo info) oneway;
+  void HTTPSrvInfoUpdate(HttpSrvInfo info, long version) oneway;
 
   void handleKeybaseLink(string link, boolean deferred) oneway;
 
