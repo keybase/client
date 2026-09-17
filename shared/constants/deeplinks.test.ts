@@ -10,12 +10,41 @@ jest.mock('./router', () => ({
 jest.mock('@/teams/team-page-actions', () => ({showTeamByName: jest.fn()}))
 import * as Router from './router'
 import * as Tabs from './tabs'
+import {settingsDevicesTab} from './settings'
 import {handleAppLink} from './deeplinks'
 
-test('a devices link opens the devices list in settings', () => {
-  handleAppLink('keybase://devices')
+const withIsMobile = (isMobile: boolean, f: () => void) => {
+  const was = global.isMobile
+  global.isMobile = isMobile
+  try {
+    f()
+  } finally {
+    global.isMobile = was
+  }
+}
 
-  expect(Router.switchTab).toHaveBeenCalledWith(Tabs.settingsTab)
-  expect(Router.navUpToScreen).toHaveBeenCalledWith('devicesRoot')
-  expect(Router.navigateAppend).not.toHaveBeenCalled()
+beforeEach(() => {
+  jest.clearAllMocks()
+})
+
+// On desktop handleAppLink IS the linking subscription's listener (router.tsx passes it as
+// both listener and fallback), so this case is the whole implementation there.
+test('a devices link opens the devices tab on desktop', () => {
+  withIsMobile(false, () => {
+    handleAppLink('keybase://devices')
+
+    expect(Router.switchTab).toHaveBeenCalledWith(Tabs.devicesTab)
+    expect(Router.navUpToScreen).toHaveBeenCalledWith('devicesRoot')
+    expect(Router.navigateAppend).not.toHaveBeenCalled()
+  })
+})
+
+test('a devices link opens the devices screen under settings on mobile', () => {
+  withIsMobile(true, () => {
+    handleAppLink('keybase://devices')
+
+    expect(Router.switchTab).toHaveBeenCalledWith(Tabs.settingsTab)
+    expect(Router.navUpToScreen).toHaveBeenCalledWith(settingsDevicesTab)
+    expect(Router.navigateAppend).not.toHaveBeenCalled()
+  })
 })

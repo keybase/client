@@ -9,6 +9,7 @@ import {
   switchTab,
 } from './router'
 import * as Tabs from './tabs'
+import {settingsDevicesTab} from './settings'
 import {showTeamByName} from '@/teams/team-page-actions'
 
 const prefix = 'keybase://'
@@ -83,8 +84,9 @@ const handleKeybaseLink = (link: string) => {
       }
       break
     case 'devices':
-      switchTab(Tabs.settingsTab)
-      navUpToScreen('devicesRoot')
+      // Devices live under Settings on phone/tablet and in their own tab on desktop.
+      switchTab(isMobile ? Tabs.settingsTab : Tabs.devicesTab)
+      navUpToScreen(isMobile ? settingsDevicesTab : 'devicesRoot')
       return
     case 'private':
     case 'public':
