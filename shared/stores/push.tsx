@@ -29,7 +29,6 @@ type State = Store & {
     rejectPermissions: () => void
     requestPermissions: () => void
     resetState: () => void
-    setPendingPushNotification: (notification: T.Push.PushNotification) => void
     setPushToken: (token: string) => void
     showPermissionsPrompt: (p: {show?: boolean; persistSkip?: boolean; justSignedUp?: boolean}) => void
   }
@@ -71,7 +70,6 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
       rejectPermissions: () => {},
       requestPermissions: () => {},
       resetState: Z.defaultReset,
-      setPendingPushNotification: () => {},
       setPushToken: () => {},
       showPermissionsPrompt: () => {},
     }
@@ -364,11 +362,6 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
         dispatch: s.dispatch,
         pendingPushNotification,
       }))
-    },
-    setPendingPushNotification: (notification: T.Push.PushNotification) => {
-      set(s => {
-        s.pendingPushNotification = notification
-      })
     },
     setPushToken: (token: string) => {
       set(s => {

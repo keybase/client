@@ -13,6 +13,7 @@ import {
   findNotification,
   goLogMark,
   goLogSince,
+  jsEval,
   metroClientLogSince,
   metroLogMark,
   openSelfConversation,
@@ -98,12 +99,15 @@ describe('app lifecycle: deep links', () => {
 
 describe('app lifecycle: push notifications', () => {
   let convID = ''
+  let uid = ''
+  // Real pushes name the account they are for; a payload without uid skips the account check.
   const pushFor = (body: string) => ({
     aps: {alert: {body, title: 'e2e'}, sound: 'default'},
     convID,
     m: '',
     t: '1',
     type: 'chat.newmessage',
+    uid,
   })
   // The payload JS logs for a push, found by its unique body.
   const jsPushes = (lines: Array<string>, body: string) => findLines(lines, /\[onNotification\]/).filter(l => l.includes(body))
@@ -113,6 +117,8 @@ describe('app lifecycle: push notifications', () => {
     await waitForAppState('active')
     await ensureNotificationPermission()
     convID = await openSelfConversation(user)
+    uid = await jsEval<string>(`return kbModule('stores/current-user.tsx').useCurrentUserState.getState().uid`)
+    expect(uid).not.toBe('')
   })
 
   it('a visible push that arrives in the foreground does not navigate', async () => {
@@ -182,8 +188,12 @@ describe('app lifecycle: push notifications', () => {
     await waitForAppState('active', undefined, 90000)
     await waitForScreen('the pushed conversation', s => s?.name === 'chatConversation' && s.params?.['conversationIDKey'] === convID)
     // The tap reaches JS as the initial notification and picks the startup conversation.
-    const startup = findLines(metroClientLogSince(metroMark), /initialState: push /)
+    const lines = metroClientLogSince(metroMark)
+    const startup = findLines(lines, /initialState: push /)
     expect(startup).toEqual([expect.stringContaining(`initialState: push ${convID}`)])
+    // startup's inbox load can still pick a screen after the route opens; the conversation must stay
+    await browser.pause(3000)
+    expect((await appSnapshot()).screen?.params?.['conversationIDKey']).toBe(convID)
     expect(findLines(metroClientLogSince(metroMark), /\[Push\] handleLoudMessage: ignore non userInteraction/)).toEqual([])
   })
 })

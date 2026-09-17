@@ -3,6 +3,7 @@ import type * as PushListener from './push-listener.native'
 import type * as PushStore from '@/stores/push'
 import type * as ConfigStore from '@/stores/config'
 import type * as CurrentUserStore from '@/stores/current-user'
+import type * as DaemonStore from '@/stores/daemon'
 import type * as T from '@/constants/types'
 
 // push-listener and the push store pick their mobile behavior when they load, so each test loads
@@ -11,6 +12,7 @@ import type * as T from '@/constants/types'
 type Loaded = {
   configStore: typeof ConfigStore
   currentUserStore: typeof CurrentUserStore
+  daemonStore: typeof DaemonStore
   pushListener: typeof PushListener
   pushStore: typeof PushStore
 }
@@ -67,6 +69,7 @@ const load = (): Loaded => {
   const loaded = {
     configStore: require('@/stores/config') as typeof ConfigStore,
     currentUserStore: require('@/stores/current-user') as typeof CurrentUserStore,
+    daemonStore: require('@/stores/daemon') as typeof DaemonStore,
     pushListener: require('./push-listener.native') as typeof PushListener,
     pushStore: require('@/stores/push') as typeof PushStore,
   }
@@ -193,6 +196,100 @@ describe('startup push', () => {
     const pending = pushStore.usePushState.getState().pendingPushNotification
     expect(pending?.type).toBe('chat.newmessage')
     expect(pending && 'forUid' in pending && pending.forUid).toBe(otherUid)
+  })
+
+  test('a tapped chat.newmessage for the account already current picks the startup screen', async () => {
+    const {pushListener, pushStore} = load()
+    pushListener.initPushListener()
+    getInitialNotification = async () =>
+      Promise.resolve({...tapped['chat.newmessage'], uid: currentUid, userInteraction: true})
+    await expect(pushListener.getStartupDetailsFromInitialPush()).resolves.toEqual({
+      startupConversation: convID,
+      startupPushPayload: 'payload',
+    })
+    expect(pushStore.usePushState.getState().pendingPushNotification).toBeUndefined()
+    await flush()
+    expect(emitDeepLink).not.toHaveBeenCalled()
+  })
+
+  test('a tapped chat.newmessage read before bootstrap names the account picks the startup screen once it does', async () => {
+    const {currentUserStore, daemonStore, pushListener, pushStore} = load()
+    currentUserStore.useCurrentUserState.setState({uid: '', username: ''})
+    pushListener.initPushListener()
+    getInitialNotification = async () =>
+      Promise.resolve({...tapped['chat.newmessage'], uid: currentUid, userInteraction: true})
+    let settled = false
+    const read = pushListener.getStartupDetailsFromInitialPush().finally(() => {
+      settled = true
+    })
+    await jest.advanceTimersByTimeAsync(100)
+    expect(settled).toBe(false)
+
+    // the order bootstrap applies it in: the status, then the current user it names
+    daemonStore.useDaemonState.setState({
+      bootstrapStatus: {deviceID: '', loggedIn: true, uid: currentUid, username: 'testuser'} as T.RPCGen.BootstrapStatus,
+    })
+    currentUserStore.useCurrentUserState.getState().dispatch.setBootstrap({
+      deviceID: '',
+      deviceName: '',
+      uid: currentUid,
+      username: 'testuser',
+    })
+    await expect(read).resolves.toEqual({startupConversation: convID, startupPushPayload: 'payload'})
+    expect(pushStore.usePushState.getState().pendingPushNotification).toBeUndefined()
+    await flush()
+    expect(emitDeepLink).not.toHaveBeenCalled()
+  })
+
+  test('a tapped chat.newmessage for another account replays once that account is current', async () => {
+    const {currentUserStore, pushListener, pushStore} = load()
+    pushListener.initPushListener()
+    getInitialNotification = async () =>
+      Promise.resolve({...tapped['chat.newmessage'], uid: otherUid, userInteraction: true})
+    await expect(pushListener.getStartupDetailsFromInitialPush()).resolves.toBeUndefined()
+    expect(pushStore.usePushState.getState().pendingPushNotification?.type).toBe('chat.newmessage')
+
+    currentUserStore.useCurrentUserState.getState().dispatch.setBootstrap({
+      deviceID: '',
+      deviceName: '',
+      uid: otherUid,
+      username: 'testuser-mac',
+    })
+    await flush()
+    expect(pushStore.usePushState.getState().pendingPushNotification).toBeUndefined()
+    expect(emitDeepLink).toHaveBeenCalledWith(`keybase://convid/${convID}`, {targetUid: otherUid})
+  })
+
+  test('a tapped chat.newmessage for a stored account already listed switches to it', async () => {
+    const {configStore, pushListener, pushStore} = load()
+    const login = jest.fn()
+    const config = configStore.useConfigState.getState()
+    configStore.useConfigState.setState({
+      configuredAccounts: [
+        {hasStoredSecret: true, uid: currentUid, username: 'testuser'},
+        {hasStoredSecret: true, uid: otherUid, username: 'testuser-mac'},
+      ],
+      dispatch: {...config.dispatch, login},
+    })
+    pushListener.initPushListener()
+    getInitialNotification = async () =>
+      Promise.resolve({...tapped['chat.newmessage'], uid: otherUid, userInteraction: true})
+    await expect(pushListener.getStartupDetailsFromInitialPush()).resolves.toBeUndefined()
+    await flush()
+    expect(login).toHaveBeenCalledWith('testuser-mac', '')
+    expect(pushStore.usePushState.getState().pendingPushNotification?.type).toBe('chat.newmessage')
+    expect(emitDeepLink).not.toHaveBeenCalled()
+  })
+
+  test('an untapped chat.newmessage for the current account neither picks the startup screen nor navigates', async () => {
+    const {pushListener, pushStore} = load()
+    pushListener.initPushListener()
+    getInitialNotification = async () =>
+      Promise.resolve({...tapped['chat.newmessage'], uid: currentUid, userInteraction: false})
+    await expect(pushListener.getStartupDetailsFromInitialPush()).resolves.toBeUndefined()
+    await flush()
+    expect(pushStore.usePushState.getState().pendingPushNotification).toBeUndefined()
+    expect(emitDeepLink).not.toHaveBeenCalled()
   })
 
   test('tapped pushes pick the startup screen', async () => {

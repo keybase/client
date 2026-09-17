@@ -14,6 +14,7 @@ import {
 } from 'react-native-kb'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useDaemonState} from '@/stores/daemon'
 import {usePushState} from '@/stores/push'
 import {useShellState} from '@/stores/shell'
 
@@ -205,6 +206,23 @@ const isTap = (notification: T.Push.PushNotification) =>
 // from holding startup, and a tap that still shows up after it is handled like a live one.
 const initialPushTimeoutMs = 3000
 
+// The account startup opens in. On a cold start the read can finish before bootstrap names it, so
+// wait for the bootstrap status: the router mounts only after the handshake has loaded it, so the
+// wait never holds back the first screen.
+const getStartupUid = async () => {
+  const {uid} = useCurrentUserState.getState()
+  if (uid) return uid
+  const loaded = useDaemonState.getState().bootstrapStatus
+  if (loaded) return loaded.uid
+  return new Promise<string>(resolve => {
+    const unsub = useDaemonState.subscribe(s => {
+      if (!s.bootstrapStatus) return
+      unsub()
+      resolve(s.bootstrapStatus.uid)
+    })
+  })
+}
+
 const getStartupDetailsFromInitialPush = async () => {
   const initialPush = getInitialPush()
   const timedOut = 'timedOut' as const
@@ -234,12 +252,11 @@ const getStartupDetailsFromInitialPush = async () => {
     }
   } else if (notification.type === 'chat.newmessage') {
     if (notification.conversationIDKey) {
-      // For chat.newmessage with forUid, route through the pending-notification
-      // subscribers so account-switching logic runs if the notification is for a
-      // different account. Returning startupConversation here would navigate to a
-      // conversation in the wrong account before the switch can happen.
-      if (notification.forUid) {
-        usePushState.getState().dispatch.setPendingPushNotification(notification)
+      // A tap for another account can't open here: it would show that conversation under the
+      // wrong account. handlePush switches accounts, or keeps it pending until the account list
+      // lists that account, and replays it once the switch lands.
+      if (notification.forUid && notification.forUid !== (await getStartupUid())) {
+        usePushState.getState().dispatch.handlePush(notification)
         return
       }
       return {
