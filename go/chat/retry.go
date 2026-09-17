@@ -299,7 +299,7 @@ func (f *FetchRetrier) Failure(ctx context.Context, uid gregor1.UID, desc types.
 	defer f.Trace(ctx, nil, "Failure(%s)", desc)()
 	f.Lock()
 	defer f.Unlock()
-	if !f.running {
+	if !f.running || !f.G().ChatSessionReady() {
 		f.Debug(ctx, "Failure: not starting new retrier, not running")
 		return
 	}
