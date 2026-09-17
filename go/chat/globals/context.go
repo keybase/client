@@ -252,11 +252,17 @@ func ChatCtx(ctx context.Context, g *Context, mode keybase1.TLFIdentifyBehavior,
 	if _, ok := CtxTrace(res); !ok {
 		res = CtxAddLogTags(res, g)
 	}
+	if _, ok := ctxChatSession(res); !ok {
+		res = CtxStampChatSession(res, g)
+	}
 	return res
 }
 
 func BackgroundChatCtx(sourceCtx context.Context, g *Context) context.Context {
 	rctx := libkb.CopyTagsToBackground(sourceCtx)
+	if epoch, ok := ctxChatSession(sourceCtx); ok {
+		rctx = context.WithValue(rctx, chatSessionKey, epoch)
+	}
 
 	in := CtxIdentifyNotifier(sourceCtx)
 	if ident, breaks, ok := CtxIdentifyMode(sourceCtx); ok {

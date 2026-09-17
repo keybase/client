@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
@@ -122,6 +123,16 @@ func (h *UIInboxLoader) doStopLocked(ctx context.Context) chan struct{} {
 	return ch
 }
 
+func (h *UIInboxLoader) sessionUID(ctx context.Context) (gregor1.UID, error) {
+	h.Lock()
+	started, uid := h.started, h.uid
+	h.Unlock()
+	if !started || uid.IsNil() || globals.ChatSessionStale(ctx, h.G()) {
+		return uid, storage.NewAbortedError()
+	}
+	return uid, nil
+}
+
 func (h *UIInboxLoader) getChatUI(ctx context.Context) (libkb.ChatUI, error) {
 	if h.G().UIRouter == nil {
 		return nil, errors.New("no UI router available")
@@ -137,7 +148,7 @@ func (h *UIInboxLoader) getChatUI(ctx context.Context) (libkb.ChatUI, error) {
 	return ui, nil
 }
 
-func (h *UIInboxLoader) presentUnverifiedInbox(ctx context.Context, convs []types.RemoteConversation,
+func (h *UIInboxLoader) presentUnverifiedInbox(ctx context.Context, uid gregor1.UID, convs []types.RemoteConversation,
 	offline bool,
 ) (res chat1.UnverifiedInboxUIItems, err error) {
 	for _, rawConv := range convs {
@@ -146,7 +157,7 @@ func (h *UIInboxLoader) presentUnverifiedInbox(ctx context.Context, convs []type
 				rawConv.Conv.GetConvID())
 			continue
 		}
-		res.Items = append(res.Items, utils.PresentRemoteConversation(ctx, h.G(), h.uid, rawConv))
+		res.Items = append(res.Items, utils.PresentRemoteConversation(ctx, h.G(), uid, rawConv))
 	}
 	res.Offline = offline
 	return res, err
@@ -172,28 +183,35 @@ func (h *UIInboxLoader) flushConvBatch() (err error) {
 	}
 	ctx := globals.ChatCtx(context.Background(), h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 	defer h.Trace(ctx, &err, "flushConvBatch")()
+	uid, sessErr := h.sessionUID(ctx)
 	var convs []chat1.ConversationLocal
 	for _, conv := range h.convTransmitBatch {
 		convs = append(convs, conv)
 	}
 	h.lastBatchFlush = h.clock.Now()
 	h.convTransmitBatch = make(map[chat1.ConvIDStr]chat1.ConversationLocal) // clear batch always
+	if sessErr != nil {
+		return sessErr
+	}
 	h.Debug(ctx, "flushConvBatch: transmitting %d convs", len(convs))
 	defer func() {
+		if _, sessErr := h.sessionUID(ctx); sessErr != nil {
+			return
+		}
 		if err != nil {
 			h.Debug(ctx, "flushConvBatch: failed to transmit, retrying convs: num: %d err: %s",
 				len(convs), err)
 			for _, conv := range convs {
-				h.G().FetchRetrier.Failure(ctx, h.uid,
+				h.G().FetchRetrier.Failure(ctx, uid,
 					NewConversationRetry(h.G(), conv.GetConvID(), &conv.Info.Triple.Tlfid, InboxLoad))
 			}
 		}
-		if err = h.G().InboxSource.MergeLocalMetadata(ctx, h.uid, convs); err != nil {
+		if err = h.G().InboxSource.MergeLocalMetadata(ctx, uid, convs); err != nil {
 			h.Debug(ctx, "flushConvBatch: unable to write inbox local metadata: %s", err)
 		}
 	}()
 	start := time.Now()
-	dat, err := json.Marshal(utils.PresentConversationLocals(ctx, h.G(), h.uid, convs,
+	dat, err := json.Marshal(utils.PresentConversationLocals(ctx, h.G(), uid, convs,
 		utils.PresentParticipantsModeInclude))
 	if err != nil {
 		return err
@@ -213,14 +231,20 @@ func (h *UIInboxLoader) flushConvBatch() (err error) {
 
 func (h *UIInboxLoader) flushUnverified(r unverifiedResponse) (err error) {
 	ctx := context.Background()
+	uid, sessErr := h.sessionUID(ctx)
+	if sessErr != nil {
+		return sessErr
+	}
 	defer func() {
 		if err != nil {
 			h.Debug(ctx, "flushUnverified: failed to transmit, retrying: %s", err)
-			h.G().FetchRetrier.Failure(ctx, h.uid, NewFullInboxRetry(h.G(), r.Query))
+			if _, sessErr := h.sessionUID(ctx); sessErr == nil {
+				h.G().FetchRetrier.Failure(ctx, uid, NewFullInboxRetry(h.G(), r.Query))
+			}
 		}
 	}()
 	start := time.Now()
-	uires, err := h.presentUnverifiedInbox(ctx, r.Convs, h.G().InboxSource.IsOffline(ctx))
+	uires, err := h.presentUnverifiedInbox(ctx, uid, r.Convs, h.G().InboxSource.IsOffline(ctx))
 	if err != nil {
 		h.Debug(ctx, "flushUnverified: failed to present untrusted inbox, failing: %s", err.Error())
 		return err
@@ -250,20 +274,26 @@ func (h *UIInboxLoader) flushUnverified(r unverifiedResponse) (err error) {
 
 func (h *UIInboxLoader) flushFailed(r failedResponse) {
 	ctx := context.Background()
+	uid, sessErr := h.sessionUID(ctx)
+	if sessErr != nil {
+		return
+	}
 	ui, err := h.getChatUI(ctx)
 	h.Debug(ctx, "flushFailed: transmitting: %s", r.Conv.GetConvID())
 	if err == nil {
 		if err := ui.ChatInboxFailed(ctx, chat1.ChatInboxFailedArg{
 			ConvID: r.Conv.GetConvID(),
-			Error:  utils.PresentConversationErrorLocal(ctx, h.G(), h.uid, *r.Conv.Error),
+			Error:  utils.PresentConversationErrorLocal(ctx, h.G(), uid, *r.Conv.Error),
 		}); err != nil {
 			h.Debug(ctx, "flushFailed: failed to send failed conv: %s", err)
 		}
 	}
 	// If we get a transient failure, add this to the retrier queue
 	if r.Conv.Error.Typ == chat1.ConversationErrorType_TRANSIENT {
-		h.G().FetchRetrier.Failure(ctx, h.uid,
-			NewConversationRetry(h.G(), r.Conv.GetConvID(), &r.Conv.Info.Triple.Tlfid, InboxLoad))
+		if _, sessErr := h.sessionUID(ctx); sessErr == nil {
+			h.G().FetchRetrier.Failure(ctx, uid,
+				NewConversationRetry(h.G(), r.Conv.GetConvID(), &r.Conv.Info.Triple.Tlfid, InboxLoad))
+		}
 	}
 }
 
@@ -301,7 +331,11 @@ func (h *UIInboxLoader) LoadNonblock(ctx context.Context, query *chat1.GetInboxL
 	maxUnbox *int, skipUnverified bool,
 ) (err error) {
 	defer h.Trace(ctx, &err, "LoadNonblock")()
-	uid := h.uid
+	uid, err := h.sessionUID(ctx)
+	if err != nil {
+		h.Debug(ctx, "LoadNonblock: rejecting, loader not started for current session")
+		return err
+	}
 	// Retry helpers
 	retryInboxLoad := func() {
 		h.G().FetchRetrier.Failure(ctx, uid, NewFullInboxRetry(h.G(), query))
@@ -313,6 +347,12 @@ func (h *UIInboxLoader) LoadNonblock(ctx context.Context, query *chat1.GetInboxL
 		// handle errors on the main processing thread, any errors during localizaton are handled
 		// in the goroutine for localization callbacks
 		if err != nil {
+			if _, ok := err.(storage.AbortedError); ok {
+				return
+			}
+			if _, sessErr := h.sessionUID(ctx); sessErr != nil {
+				return
+			}
 			if query != nil && len(query.ConvIDs) > 0 {
 				h.Debug(ctx, "LoadNonblock: failed to load convID query, retrying all convs")
 				for _, convID := range query.ConvIDs {
@@ -704,22 +744,32 @@ func (h *UIInboxLoader) OnLogout(mctx libkb.MetaContext) error {
 
 func (h *UIInboxLoader) getInboxFromQuery(ctx context.Context) (inbox types.Inbox, err error) {
 	defer h.Trace(ctx, &err, "getInboxFromQuery")()
+	uid, err := h.sessionUID(ctx)
+	if err != nil {
+		return inbox, err
+	}
 	query := h.Query()
 	rquery, _, err := h.G().InboxSource.GetInboxQueryLocalToRemote(ctx, &query)
 	if err != nil {
 		return inbox, err
 	}
-	return h.G().InboxSource.ReadUnverified(ctx, h.uid, types.InboxSourceDataSourceAll, rquery)
+	return h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, rquery)
 }
 
 func (h *UIInboxLoader) flushLayout(reselectMode chat1.InboxLayoutReselectMode) (err error) {
 	ctx := globals.ChatCtx(context.Background(), h.G(), keybase1.TLFIdentifyBehavior_GUI, nil, nil)
 	defer h.Trace(ctx, &err, "flushLayout")()
+	uid, err := h.sessionUID(ctx)
+	if err != nil {
+		return err
+	}
 	defer func() {
 		if err != nil {
 			h.Debug(ctx, "flushLayout: failed to transmit, retrying: %s", err)
-			q := h.Query()
-			h.G().FetchRetrier.Failure(ctx, h.uid, NewFullInboxRetry(h.G(), &q))
+			if _, sessErr := h.sessionUID(ctx); sessErr == nil {
+				q := h.Query()
+				h.G().FetchRetrier.Failure(ctx, uid, NewFullInboxRetry(h.G(), &q))
+			}
 		}
 	}()
 	ui, err := h.getChatUI(ctx)
@@ -838,6 +888,10 @@ func (h *UIInboxLoader) UpdateLayout(ctx context.Context, reselectMode chat1.Inb
 	reason string,
 ) {
 	defer h.Trace(ctx, nil, "UpdateLayout: %s", reason)()
+	if _, err := h.sessionUID(ctx); err != nil {
+		h.Debug(ctx, "UpdateLayout: rejecting, loader not started for current session")
+		return
+	}
 	select {
 	case h.layoutCh <- reselectMode:
 	default:
@@ -871,6 +925,9 @@ func (h *UIInboxLoader) UpdateLayoutFromSubteamRename(ctx context.Context, convs
 
 func (h *UIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) (err error) {
 	defer h.Trace(ctx, &err, "UpdateConvs")()
+	if _, err := h.sessionUID(ctx); err != nil {
+		return err
+	}
 	query := chat1.GetInboxLocalQuery{
 		ComputeActiveList: true,
 		ConvIDs:           convIDs,
