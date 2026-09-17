@@ -949,8 +949,7 @@ func TestInboxDecryptFailIsMissNotNuke(t *testing.T) {
 
 	inboxMemCache.Clear(uidA)
 	_, _, err = inbox.Read(context.TODO(), uidA, nil)
-	require.Error(t, err)
-	require.IsType(t, MissError{}, err)
+	require.ErrorAs(t, err, new(MissError))
 
 	_, found, err = tc.G.LocalChatDb.GetRaw(inbox.dbVersionsKey(uidA))
 	require.NoError(t, err)
