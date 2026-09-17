@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"strings"
 	"sync"
 
 	"github.com/keybase/client/go/chat/types"
@@ -81,7 +82,12 @@ func (i *inboxMemCacheImpl) Clear(uid gregor1.UID) {
 	defer i.Unlock()
 	delete(i.versMap, uid.String())
 	delete(i.indexMap, uid.String())
-	i.convMap = make(map[string]types.RemoteConversation)
+	prefix := uid.String()
+	for k := range i.convMap {
+		if strings.HasPrefix(k, prefix) {
+			delete(i.convMap, k)
+		}
+	}
 }
 
 func (i *inboxMemCacheImpl) clearCache() {

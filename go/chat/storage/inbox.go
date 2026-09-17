@@ -179,6 +179,13 @@ func (i *Inbox) dbConvKey(uid gregor1.UID, convID chat1.ConversationID) libkb.Db
 	}
 }
 
+func (i *Inbox) diskReadError(ctx context.Context, uid gregor1.UID, err error) Error {
+	if mapped := mapEncryptedDBError(err); mapped != nil {
+		return mapped
+	}
+	return NewInternalError(ctx, i.DebugLabeler, "failed to read inbox: uid: %s err: %s", uid, err)
+}
+
 func (i *Inbox) maybeNuke(ctx context.Context, ef func() Error, uid gregor1.UID) {
 	err := ef()
 	if err != nil && err.ShouldClear() {
@@ -202,11 +209,7 @@ func (i *Inbox) readDiskVersions(ctx context.Context, uid gregor1.UID, useInMemo
 	} else {
 		found, err := i.readDiskBox(ctx, i.dbVersionsKey(uid), &ibox)
 		if err != nil {
-			if _, ok := err.(libkb.LoginRequiredError); ok {
-				return ibox, MiscError{Msg: err.Error()}
-			}
-			return ibox, NewInternalError(ctx, i.DebugLabeler,
-				"failed to read inbox: uid: %d err: %s", uid, err)
+			return ibox, i.diskReadError(ctx, uid, err)
 		}
 		if !found {
 			return ibox, MissError{}
@@ -270,11 +273,7 @@ func (i *Inbox) readDiskIndex(ctx context.Context, uid gregor1.UID, useInMemory 
 	} else {
 		found, err := i.readDiskBox(ctx, i.dbIndexKey(uid), &ibox)
 		if err != nil {
-			if _, ok := err.(libkb.LoginRequiredError); ok {
-				return ibox, MiscError{Msg: err.Error()}
-			}
-			return ibox, NewInternalError(ctx, i.DebugLabeler,
-				"failed to read inbox: uid: %d err: %s", uid, err)
+			return ibox, i.diskReadError(ctx, uid, err)
 		}
 		if !found {
 			return ibox, MissError{}
@@ -320,11 +319,7 @@ func (i *Inbox) readConvs(ctx context.Context, uid gregor1.UID, convIDs []chat1.
 		dbReads++
 		found, err := i.readDiskBox(ctx, i.dbConvKey(uid, convID), &conv)
 		if err != nil {
-			if _, ok := err.(libkb.LoginRequiredError); ok {
-				return res, MiscError{Msg: err.Error()}
-			}
-			return res, NewInternalError(ctx, i.DebugLabeler,
-				"failed to read inbox: uid: %d err: %s", uid, err)
+			return res, i.diskReadError(ctx, uid, err)
 		}
 		if !found {
 			return res, MissError{}
@@ -716,6 +711,7 @@ func (i *Inbox) clearLocked(ctx context.Context, uid gregor1.UID) (err Error) {
 	var iboxIndex inboxDiskIndex
 	if iboxIndex, err = i.readDiskIndex(ctx, uid, true); err != nil {
 		i.Debug(ctx, "Clear: failed to read index: %s", err)
+		return err
 	}
 	for _, convID := range iboxIndex.ConversationIDs {
 		if ierr := i.G().LocalChatDb.Delete(i.dbConvKey(uid, convID)); ierr != nil {
