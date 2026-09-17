@@ -85,6 +85,10 @@ export function iosCapabilities(udid: string, opts: IosCapsOpts = {}) {
     'appium:bundleId': 'keybase.ios',
     'appium:noReset': true,
     'appium:newCommandTimeout': 120,
+    // Never let the driver open the simulator window itself: Xcode 27 has no Simulator.app (its
+    // window is DeviceHub.app), and the driver fails session creation when it can't open it.
+    // The runners boot the simulator and bring its window up.
+    'appium:isHeadless': true,
     // A fresh WDA build (prebuilt: false) runs xcodebuild and can take minutes
     // the first time; the prebuilt path launches in seconds.
     'appium:wdaLaunchTimeout': prebuilt ? 120000 : 600000,
