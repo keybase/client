@@ -75,29 +75,39 @@ func NewUIInboxLoader(g *globals.Context) *UIInboxLoader {
 func (h *UIInboxLoader) Start(ctx context.Context, uid gregor1.UID) {
 	defer h.Trace(ctx, nil, "Start")()
 	h.Lock()
-	defer h.Unlock()
-	if h.started {
-		return
-	}
+	waitCh := h.doStopLocked(ctx)
+	h.Unlock()
+	<-waitCh
+	h.Lock()
 	h.transmitCh = make(chan any, 1000)
 	h.layoutCh = make(chan chat1.InboxLayoutReselectMode, 1000)
 	h.bigTeamUnboxCh = make(chan []chat1.ConversationID, 1000)
 	h.stopCh = make(chan struct{})
 	h.started = true
 	h.uid = uid
-	h.eg.Go(func() error { return h.transmitLoop(h.stopCh) })
-	h.eg.Go(func() error { return h.layoutLoop(h.stopCh) })
-	h.eg.Go(func() error { return h.bigTeamUnboxLoop(h.stopCh) })
+	h.convTransmitBatch = make(map[chat1.ConvIDStr]chat1.ConversationLocal)
+	stopCh := h.stopCh
+	h.Unlock()
+	h.setLastLayout(nil)
+	h.eg.Go(func() error { return h.transmitLoop(stopCh) })
+	h.eg.Go(func() error { return h.layoutLoop(stopCh) })
+	h.eg.Go(func() error { return h.bigTeamUnboxLoop(stopCh) })
 }
 
 func (h *UIInboxLoader) Stop(ctx context.Context) chan struct{} {
 	defer h.Trace(ctx, nil, "Stop")()
 	h.Lock()
 	defer h.Unlock()
+	return h.doStopLocked(ctx)
+}
+
+func (h *UIInboxLoader) doStopLocked(ctx context.Context) chan struct{} {
 	ch := make(chan struct{})
 	if h.started {
 		close(h.stopCh)
 		h.started = false
+		h.uid = nil
+		h.convTransmitBatch = make(map[chat1.ConvIDStr]chat1.ConversationLocal)
 		go func() {
 			err := h.eg.Wait()
 			if err != nil {
@@ -108,6 +118,7 @@ func (h *UIInboxLoader) Stop(ctx context.Context) chan struct{} {
 	} else {
 		close(ch)
 	}
+	h.setLastLayout(nil)
 	return ch
 }
 
@@ -684,6 +695,7 @@ func (h *UIInboxLoader) prepareShareConversations(ctx context.Context, widgetLis
 
 // OnLogout clears donated share intents on logout so the next user does not see the previous user's suggestions.
 func (h *UIInboxLoader) OnLogout(mctx libkb.MetaContext) error {
+	<-h.Stop(mctx.Ctx())
 	if h.G().ShareIntentDonator != nil {
 		h.G().ShareIntentDonator.DeleteAllDonations()
 	}

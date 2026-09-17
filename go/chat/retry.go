@@ -391,6 +391,7 @@ func (f *FetchRetrier) Stop(ctx context.Context) chan struct{} {
 	for _, control := range f.retriers {
 		control.Shutdown()
 	}
+	f.retriers = make(map[string]*retrierControl)
 	ch := make(chan struct{})
 	close(ch)
 	return ch
