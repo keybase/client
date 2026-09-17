@@ -110,6 +110,8 @@ func New(name string, log logger.Logger, appState AppState, listenerSource func(
 		done:             make(chan struct{}),
 		endpoints:        make(map[string]srvEndpoint),
 	}
+	// Publish an empty status before run can be observed, so readers never dereference nil.
+	r.status.Store(&keybase1.HttpSrvInfo{})
 	r.httpSrv = r.newHTTPSrv()
 	ready := make(chan error)
 	go r.run(ready)
