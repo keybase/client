@@ -5,7 +5,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
@@ -23,14 +22,6 @@ func newAppStateHandler(xp rpc.Transporter, g *libkb.GlobalContext) *appStateHan
 		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
-}
-
-func (a *appStateHandler) UpdateAppState(ctx context.Context, state keybase1.MobileAppState) (err error) {
-	a.G().Trace(fmt.Sprintf("UpdateAppState(%v)", state), &err)()
-
-	// Update app state
-	a.G().MobileAppState.Update(state)
-	return nil
 }
 
 func (a *appStateHandler) UpdateMobileNetState(ctx context.Context, stateStr string) (err error) {
