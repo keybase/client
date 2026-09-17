@@ -1,0 +1,21 @@
+go/chat/sync.go
+  s_853e2d28c2e344::t_a7225419e57a41 160
+  s_853e2d28c2e344::t_899ddbe63a8adb 159,161-162
+  s_853e2d28c2e344::t_5b71b177021062 394
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "50f20b093d2648e9705c934eb5afac91b592b982",
+  "prompts": {},
+  "sessions": {
+    "s_853e2d28c2e344": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d5a3add1-5cdb-47ca-a334-54991bf7ad5e",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
