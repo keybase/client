@@ -1,0 +1,19 @@
+packaging/linux/tuxbot/bot/tuxbot/tuxbot.go
+  s_21e5cd80401a8a::t_2014a604524a8e 429,435
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "133a0cc958af5731ea36bdcd877388ecf4f9ace8",
+  "prompts": {},
+  "sessions": {
+    "s_21e5cd80401a8a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "cc0de42f-5c29-4dfb-a193-94eb6357fba9",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
