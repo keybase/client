@@ -24,6 +24,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libmime"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbhttp"
+	"github.com/keybase/client/go/kbhttp/manager"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -43,7 +44,7 @@ type Server struct {
 
 	fs *lru.Cache
 
-	server *appStateServer
+	server *manager.Srv
 }
 
 const (
@@ -218,9 +219,15 @@ const (
 	requestPathRoot = "/files/"
 )
 
-func (s *Server) registerHandlers(mux *http.ServeMux) {
-	mux.Handle(requestPathRoot,
-		http.StripPrefix(requestPathRoot, http.HandlerFunc(s.serve)))
+// appState adapts env.AppStateUpdater to manager.AppState.
+type appState struct {
+	env.AppStateUpdater
+}
+
+func (a appState) State() keybase1.MobileAppState { return a.AppState() }
+
+func (a appState) NextUpdate(last keybase1.MobileAppState) <-chan struct{} {
+	return a.NextAppStateUpdate(last)
 }
 
 // New creates and starts a new server.
@@ -241,13 +248,18 @@ func New(appStateUpdater env.AppStateUpdater, config libkbfs.Config) (
 	if err != nil {
 		return nil, err
 	}
-	s.server = newAppStateServer(appStateUpdater, logger,
+	s.server, err = manager.New(logger, appState{appStateUpdater},
 		func() kbhttp.ListenerSource {
 			return kbhttp.NewRandomPortRangeListenerSource(portStart, portEnd)
-		}, s.registerHandlers, runtime.GOOS != "android")
-	if err = s.server.start(); err != nil {
+		}, runtime.GOOS != "android", func(context.Context, keybase1.HttpSrvInfo) {})
+	if err != nil {
+		s.server.Shutdown()
 		return nil, err
 	}
+	// The token is checked in serve. No one has the address before New
+	// returns, so registering after the first start answers no request with a 404.
+	s.server.HandleFunc(strings.TrimPrefix(requestPathRoot, "/"), manager.SrvTokenModeUnchecked,
+		http.StripPrefix(requestPathRoot, http.HandlerFunc(s.serve)).ServeHTTP)
 	libmime.Patch(additionalMimeTypes)
 	return s, nil
 }

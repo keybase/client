@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/kbhttp"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -27,29 +28,24 @@ type srvEndpoint struct {
 	serve     func(w http.ResponseWriter, req *http.Request)
 }
 
-// srvStatus is what run last published; readers never wait on run.
-type srvStatus struct {
-	active bool
-	info   keybase1.HttpSrvInfo
-	// state is the app state run last acted on and wait the change channel it
-	// waits on for it; exits counts unexpected exits it handled. Tests use them.
-	state keybase1.MobileAppState
-	wait  <-chan struct{}
-	exits int
-}
-
 type handlerRequest struct {
 	endpoint string
 	desc     srvEndpoint
 	done     chan struct{}
 }
 
-// Srv runs the local HTTP server. One goroutine, run, owns it: only run starts
+// AppState is the app state a Srv follows.
+type AppState interface {
+	State() keybase1.MobileAppState
+	NextUpdate(lastState keybase1.MobileAppState) <-chan struct{}
+}
+
+// Srv runs a local HTTP server. One goroutine, run, owns it: only run starts
 // and stops it, reacting to app state changes, unexpected exits, handler
 // registrations and shutdown.
 type Srv struct {
-	libkb.Contextified
-
+	log      logger.Logger
+	appState AppState
 	// token is set once and kept across restarts, so URLs handed out before a restart keep working.
 	token            string
 	listenerSource   func() kbhttp.ListenerSource
@@ -57,7 +53,8 @@ type Srv struct {
 	// notify runs on run, so it must not call HandleFunc.
 	notify func(context.Context, keybase1.HttpSrvInfo)
 
-	status       atomic.Pointer[srvStatus]
+	// status is what run last published, empty while not serving; readers never wait on run.
+	status       atomic.Pointer[keybase1.HttpSrvInfo]
 	exited       chan struct{}
 	handlers     chan handlerRequest
 	shutdownOnce sync.Once
@@ -68,29 +65,37 @@ type Srv struct {
 	httpSrv   *kbhttp.Srv
 	endpoints map[string]srvEndpoint
 	state     keybase1.MobileAppState
-	wait      <-chan struct{}
-	exits     int
 	// restartedSinceChange caps restarts after unexpected exits at one per app
 	// state change, so a listener that keeps dying doesn't spin.
 	restartedSinceChange bool
 }
 
+// NewSrv runs the service's HTTP server until the service shuts down.
 func NewSrv(g *libkb.GlobalContext) *Srv {
 	listenerSource := func() kbhttp.ListenerSource {
 		return kbhttp.NewRandomPortRangeListenerSource(g.GetEnv().GetAttachmentHTTPStartPort(), 18000)
 	}
-	return newSrv(g, listenerSource, runtime.GOOS != "android", func(ctx context.Context, info keybase1.HttpSrvInfo) {
+	// A failed start is logged, and the next app state change tries again.
+	r, _ := New(g.GetLog(), g.MobileAppState, listenerSource, runtime.GOOS != "android", func(ctx context.Context, info keybase1.HttpSrvInfo) {
 		// Read NotifyRouter when notifying: the service sets it after creating this server.
 		g.NotifyRouter.HandleHTTPSrvInfoUpdate(ctx, info)
 	})
+	g.PushShutdownHook(func(libkb.MetaContext) error {
+		r.Shutdown()
+		return nil
+	})
+	return r
 }
 
-func newSrv(g *libkb.GlobalContext, listenerSource func() kbhttp.ListenerSource, stopInBackground bool,
+// New returns a server that has acted on the current app state, with the
+// error of that first start, if any. The server runs until Shutdown either way.
+func New(log logger.Logger, appState AppState, listenerSource func() kbhttp.ListenerSource, stopInBackground bool,
 	notify func(context.Context, keybase1.HttpSrvInfo),
-) *Srv {
+) (*Srv, error) {
 	token, _ := libkb.RandHexString("", 32)
 	r := &Srv{
-		Contextified:     libkb.NewContextified(g),
+		log:              log,
+		appState:         appState,
 		token:            token,
 		listenerSource:   listenerSource,
 		stopInBackground: stopInBackground,
@@ -102,18 +107,13 @@ func newSrv(g *libkb.GlobalContext, listenerSource func() kbhttp.ListenerSource,
 		endpoints:        make(map[string]srvEndpoint),
 	}
 	r.httpSrv = r.newHTTPSrv()
-	g.PushShutdownHook(func(libkb.MetaContext) error {
-		r.stop()
-		return nil
-	})
-	ready := make(chan struct{})
-	go r.run(g.MobileAppState.State(), ready)
-	<-ready
-	return r
+	ready := make(chan error)
+	go r.run(ready)
+	return r, <-ready
 }
 
 func (r *Srv) debug(ctx context.Context, msg string, args ...any) {
-	r.G().Log.CDebugf(ctx, "Srv: %s", fmt.Sprintf(msg, args...))
+	r.log.CDebugf(ctx, "Srv: %s", fmt.Sprintf(msg, args...))
 }
 
 // TokenPrefix shortens a token for logging.
@@ -125,7 +125,7 @@ func TokenPrefix(token string) string {
 }
 
 func (r *Srv) newHTTPSrv() *kbhttp.Srv {
-	srv := kbhttp.NewSrv(r.G().GetLog(), r.listenerSource())
+	srv := kbhttp.NewSrv(r.log, r.listenerSource())
 	srv.OnUnexpectedExit(func() {
 		select {
 		case r.exited <- struct{}{}:
@@ -139,24 +139,23 @@ func (r *Srv) wantUp(state keybase1.MobileAppState) bool {
 	return !r.stopInBackground || state != keybase1.MobileAppState_BACKGROUND
 }
 
-func (r *Srv) run(state keybase1.MobileAppState, ready chan struct{}) {
+func (r *Srv) run(ready chan<- error) {
 	defer close(r.done)
 	ctx := context.Background()
-	r.state = state
-	r.debug(ctx, "run: starting up in %v", state)
-	r.reconcile(ctx)
+	r.state = r.appState.State()
+	r.debug(ctx, "run: starting up in %v", r.state)
+	err := r.reconcile(ctx)
 	for {
-		r.wait = r.G().MobileAppState.NextUpdate(r.state)
 		r.publish()
 		if ready != nil {
-			close(ready)
+			ready <- err
 			ready = nil
 		}
 		select {
-		case <-r.wait:
-			r.state = r.G().MobileAppState.State()
+		case <-r.appState.NextUpdate(r.state):
+			r.state = r.appState.State()
 			r.restartedSinceChange = false
-			r.reconcile(ctx)
+			_ = r.reconcile(ctx)
 		case <-r.exited:
 			r.serverExited(ctx)
 		case req := <-r.handlers:
@@ -168,7 +167,7 @@ func (r *Srv) run(state keybase1.MobileAppState, ready chan struct{}) {
 			close(req.done)
 		case <-r.shutdownCh:
 			<-r.httpSrv.Stop()
-			r.status.Store(&srvStatus{})
+			r.status.Store(&keybase1.HttpSrvInfo{})
 			return
 		}
 	}
@@ -177,12 +176,12 @@ func (r *Srv) run(state keybase1.MobileAppState, ready chan struct{}) {
 // reconcile tears the server down only in BACKGROUND, and only where
 // stopInBackground. INACTIVE (Control Center, system alerts, the app
 // switcher) keeps it up, and every other state starts it if it isn't serving.
-func (r *Srv) reconcile(ctx context.Context) {
+func (r *Srv) reconcile(ctx context.Context) error {
 	if !r.wantUp(r.state) {
 		r.httpSrv.Stop()
-		return
+		return nil
 	}
-	r.start(ctx)
+	return r.start(ctx)
 }
 
 // serverExited restarts a server whose listener died without a Stop, for
@@ -191,19 +190,18 @@ func (r *Srv) serverExited(ctx context.Context) {
 	if r.httpSrv.Active() {
 		return
 	}
-	r.exits++
 	if !r.wantUp(r.state) || r.restartedSinceChange {
 		r.debug(ctx, "serverExited: not restarting in %v", r.state)
 		return
 	}
 	r.restartedSinceChange = true
 	r.debug(ctx, "serverExited: restarting in %v", r.state)
-	r.start(ctx)
+	_ = r.start(ctx)
 }
 
-func (r *Srv) start(ctx context.Context) {
+func (r *Srv) start(ctx context.Context) error {
 	if r.httpSrv.Active() {
-		return
+		return nil
 	}
 	err := r.httpSrv.StartWithHandlers(r.registerEndpoints)
 	if errors.Is(err, kbhttp.ErrPinnedPortInUse) {
@@ -214,26 +212,26 @@ func (r *Srv) start(ctx context.Context) {
 		err = r.httpSrv.StartWithHandlers(r.registerEndpoints)
 	}
 	if err != nil {
-		r.debug(ctx, "start: failed to start HTTP server: %s", err)
-		return
+		r.log.CWarningf(ctx, "Srv: start: failed to start HTTP server: %s", err)
+		return err
 	}
 	// Publish before notifying, so a listener reading Info gets the address it is told about.
-	r.publish()
-	info, err := r.Info()
-	if err != nil { // Serve already exited; run handles that exit next
-		return
+	info := r.publish()
+	if info.Address == "" { // Serve already exited; run handles that exit next
+		return nil
 	}
 	r.debug(ctx, "start: addr: %s token: %s", info.Address, TokenPrefix(r.token))
 	r.notify(ctx, info)
+	return nil
 }
 
-func (r *Srv) publish() {
-	st := &srvStatus{state: r.state, wait: r.wait, exits: r.exits}
+func (r *Srv) publish() keybase1.HttpSrvInfo {
+	var info keybase1.HttpSrvInfo
 	if addr, err := r.httpSrv.Addr(); err == nil {
-		st.active = true
-		st.info = keybase1.HttpSrvInfo{Address: addr, Token: r.token}
+		info = keybase1.HttpSrvInfo{Address: addr, Token: r.token}
 	}
-	r.status.Store(st)
+	r.status.Store(&info)
+	return info
 }
 
 func (r *Srv) registerEndpoints(mux *http.ServeMux) {
@@ -242,7 +240,8 @@ func (r *Srv) registerEndpoints(mux *http.ServeMux) {
 	}
 }
 
-func (r *Srv) stop() {
+// Shutdown stops the server for good and waits for run to exit.
+func (r *Srv) Shutdown() {
 	r.shutdownOnce.Do(func() { close(r.shutdownCh) })
 	<-r.done
 }
@@ -277,7 +276,7 @@ func (r *Srv) checkToken(tokenMode SrvTokenMode,
 	}
 }
 
-func (r *Srv) Active() bool { return r.status.Load().active }
+func (r *Srv) Active() bool { return r.status.Load().Address != "" }
 
 func (r *Srv) Addr() (string, error) {
 	info, err := r.Info()
@@ -288,9 +287,9 @@ func (r *Srv) Token() string { return r.token }
 
 // Info returns the address and token together, for handing both to a client.
 func (r *Srv) Info() (keybase1.HttpSrvInfo, error) {
-	st := r.status.Load()
-	if !st.active {
+	info := *r.status.Load()
+	if info.Address == "" {
 		return keybase1.HttpSrvInfo{}, errors.New("server not running")
 	}
-	return st.info, nil
+	return info, nil
 }
