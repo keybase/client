@@ -20,14 +20,23 @@ type gregorConnector interface {
 	IsConnected() bool
 }
 
+// gregorAppState is the mobile app state the gate follows. Tests wrap the
+// real one to act between a connect's state read and what it does with it.
+type gregorAppState interface {
+	State() keybase1.MobileAppState
+	NextUpdate(lastState keybase1.MobileAppState) <-chan struct{}
+}
+
 // gregorConnGate decides when gregor is connected. Only BACKGROUND, or a
 // desktop suspend, takes the connection down; INACTIVE keeps it up.
 //
 // Every connect and the monitor read the app state and act on it under mu.
 // A BACKGROUND that lands after a connect read the state wakes the monitor,
-// which then waits for that connect before taking the connection down.
+// which then waits for that connect before taking the connection down. mu
+// also runs the steps OnConnect applies after syncing (see do), so none of
+// them interleaves with a disconnect.
 type gregorConnGate struct {
-	mobile       *libkb.MobileAppState
+	mobile       gregorAppState
 	desktop      *libkb.DesktopAppState
 	conn         gregorConnector
 	debug        func(ctx context.Context, format string, args ...any)
@@ -38,9 +47,6 @@ type gregorConnGate struct {
 	// held back in BACKGROUND, so the monitor connects once the app leaves
 	// BACKGROUND.
 	uri *rpc.FMPURI
-	// beforeConnect, if set, runs in connect between reading the app state
-	// and acting on it. Tests only.
-	beforeConnect func()
 	// The monitor's last seen states and the change channels it waits on for
 	// them; tests use them to wait until the monitor has caught up.
 	monitorState       keybase1.MobileAppState
@@ -54,18 +60,28 @@ type gregorConnGate struct {
 	monitorDone chan struct{}
 }
 
-func newGregorConnGate(g *libkb.GlobalContext, conn gregorConnector,
+func newGregorConnGate(mobile gregorAppState, desktop *libkb.DesktopAppState, conn gregorConnector,
 	debug func(ctx context.Context, format string, args ...any), onForeground func(ctx context.Context),
 ) *gregorConnGate {
 	return &gregorConnGate{
-		mobile:       g.MobileAppState,
-		desktop:      g.DesktopAppState,
+		mobile:       mobile,
+		desktop:      desktop,
 		conn:         conn,
 		debug:        debug,
 		onForeground: onForeground,
 		stopCh:       make(chan struct{}),
 		monitorDone:  make(chan struct{}),
 	}
+}
+
+// do runs f under the gate, so it cannot interleave with a connect, a reset,
+// a reconnect or a reconcile, and so with none of the Shutdowns and Resets
+// those make. f must not call back into the gate: mu is not reentrant. The
+// lock order is mu, then the handler's connMutex.
+func (c *gregorConnGate) do(f func()) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	f()
 }
 
 func (c *gregorConnGate) canConnect(state keybase1.MobileAppState) bool {
@@ -103,9 +119,6 @@ func (c *gregorConnGate) connect(ctx context.Context, uri *rpc.FMPURI, reset boo
 		}
 	}
 	state := c.mobile.State()
-	if c.beforeConnect != nil {
-		c.beforeConnect()
-	}
 	if !c.canConnect(state) {
 		c.debug(ctx, "connect: not connecting in %v", state)
 		return nil

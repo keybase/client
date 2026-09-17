@@ -96,11 +96,39 @@ func (f *fakeGregorConn) lastURI() *rpc.FMPURI {
 	return f.uri
 }
 
+// gregorTestAppState wraps the real app state so a test can act between a
+// connect's state read and what the connect does with that read.
+type gregorTestAppState struct {
+	*libkb.MobileAppState
+	mu sync.Mutex
+	// afterRead, if set, runs once after a State read, before the reader acts.
+	afterRead func()
+}
+
+func (a *gregorTestAppState) State() keybase1.MobileAppState {
+	state := a.MobileAppState.State()
+	a.mu.Lock()
+	f := a.afterRead
+	a.afterRead = nil
+	a.mu.Unlock()
+	if f != nil {
+		f()
+	}
+	return state
+}
+
+func (a *gregorTestAppState) setAfterRead(f func()) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.afterRead = f
+}
+
 type gregorConnTest struct {
-	tc    libkb.TestContext
-	gate  *gregorConnGate
-	conn  *fakeGregorConn
-	pings *atomic.Int64
+	tc     libkb.TestContext
+	gate   *gregorConnGate
+	mobile *gregorTestAppState
+	conn   *fakeGregorConn
+	pings  *atomic.Int64
 }
 
 func testGregorURI(t testing.TB, host string) *rpc.FMPURI {
@@ -117,7 +145,8 @@ func setupGregorConn(t *testing.T, state keybase1.MobileAppState) *gregorConnTes
 	tc.G.MobileAppState.Update(state)
 	conn := &fakeGregorConn{}
 	pings := &atomic.Int64{}
-	gate := newGregorConnGate(tc.G, conn,
+	mobile := &gregorTestAppState{MobileAppState: tc.G.MobileAppState}
+	gate := newGregorConnGate(mobile, tc.G.DesktopAppState, conn,
 		func(ctx context.Context, format string, args ...any) { t.Logf(format, args...) },
 		func(context.Context) { pings.Add(1) })
 	gate.start()
@@ -129,7 +158,7 @@ func setupGregorConn(t *testing.T, state keybase1.MobileAppState) *gregorConnTes
 			t.Error("monitor did not exit on stop")
 		}
 	})
-	return &gregorConnTest{tc: tc, gate: gate, conn: conn, pings: pings}
+	return &gregorConnTest{tc: tc, gate: gate, mobile: mobile, conn: conn, pings: pings}
 }
 
 // waitMonitor waits until the monitor has acted on the current states and is
@@ -324,7 +353,7 @@ func TestGregorConnLoginReplacesStaleConn(t *testing.T) {
 func TestGregorConnBackgroundRacingConnect(t *testing.T) {
 	c := setupGregorConn(t, keybase1.MobileAppState_FOREGROUND)
 	c.waitMonitor(t)
-	c.gate.beforeConnect = func() {
+	c.mobile.setAfterRead(func() {
 		// connect has read FOREGROUND. The monitor is idle, so mu is held
 		// here only if connect holds it; otherwise let the monitor fully
 		// apply BACKGROUND before connect acts on its stale read.
@@ -336,7 +365,7 @@ func TestGregorConnBackgroundRacingConnect(t *testing.T) {
 		if !holdsMu {
 			c.waitMonitor(t)
 		}
-	}
+	})
 	require.NoError(t, c.gate.connect(context.Background(), testGregorURI(t, "gregord.test"), false))
 	c.waitMonitor(t)
 	require.Equal(t, keybase1.MobileAppState_BACKGROUND, c.tc.G.MobileAppState.State())
@@ -439,9 +468,11 @@ func TestGregorConnStress(t *testing.T) {
 	baseline := runtime.NumGoroutine()
 
 	conn := &fakeGregorConn{}
-	gate := newGregorConnGate(tc.G, conn, func(context.Context, string, ...any) {}, func(context.Context) {})
+	mobile := &gregorTestAppState{MobileAppState: tc.G.MobileAppState}
+	gate := newGregorConnGate(mobile, tc.G.DesktopAppState, conn,
+		func(context.Context, string, ...any) {}, func(context.Context) {})
 	gate.start()
-	c := &gregorConnTest{tc: tc, gate: gate, conn: conn}
+	c := &gregorConnTest{tc: tc, gate: gate, mobile: mobile, conn: conn}
 	uri := testGregorURI(t, "gregord.test")
 	states := []keybase1.MobileAppState{
 		keybase1.MobileAppState_FOREGROUND,
@@ -598,6 +629,25 @@ func TestGregorHandlerDisconnectStaysDown(t *testing.T) {
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	h.connGate.reconcile(context.Background())
 	require.False(t, hasConn(h), "reconnected after Disconnect")
+}
+
+// The service skips Init when gregor is disabled or in Tor mode, so the
+// gate's monitor never starts, but a logout still disconnects. It must
+// return instead of waiting for anything.
+func TestGregorHandlerDisconnectWithoutInit(t *testing.T) {
+	tc, g := setupGregorTest(t)
+	defer tc.Cleanup()
+	g.Syncer = chat.NewSyncer(g)
+
+	h := newGregorHandler(g)
+	done := make(chan error, 1)
+	go func() { done <- h.Disconnect() }()
+	select {
+	case err := <-done:
+		require.NoError(t, err)
+	case <-time.After(10 * time.Second):
+		require.Fail(t, "Disconnect blocked with no Init")
+	}
 }
 
 func TestGregorHandlerConnectInBackground(t *testing.T) {
@@ -985,6 +1035,87 @@ func TestGregorOnConnectBadgePushHoldsOffLogout(t *testing.T) {
 	<-logoutDone
 	pushes, _ := c.badger.counts()
 	require.Equal(t, 1, pushes)
+}
+
+// reinstall makes conn the current connection again, so the next tail run is
+// not short-circuited by the logout before it. No dial is involved, so no
+// connection callback races this.
+func (c *onConnectTailTest) reinstall() {
+	c.h.connMutex.Lock()
+	defer c.h.connMutex.Unlock()
+	c.h.conn = c.conn
+	c.h.shutdownCh = make(chan struct{})
+}
+
+// OnConnect's tail, a logout and app state transitions all run under the
+// connection gate. Racing them must not deadlock, and a logout must still
+// leave gregor down.
+func TestGregorOnConnectTailStress(t *testing.T) {
+	c := setupOnConnectTail(t)
+	// Swap in a connection that never dials. This test puts the current
+	// connection back after each logout, and a dialing one would reconnect
+	// behind it and outlive the test.
+	require.NoError(t, c.h.Disconnect())
+	c.conn = &rpc.Connection{}
+	c.reinstall()
+	c.h.connGate.start()
+	t.Cleanup(c.h.connGate.stop)
+
+	stop := make(chan struct{})
+	var tails, writers sync.WaitGroup
+	for range 2 {
+		tails.Add(1)
+		go func() {
+			defer tails.Done()
+			for {
+				select {
+				case <-stop:
+					return
+				default:
+				}
+				c.reinstall()
+				_ = c.run()
+				// A run queues at most one replay, and Init's replay thread
+				// is not running here to take it off.
+				select {
+				case <-c.h.replayCh:
+				default:
+				}
+				_ = c.h.Disconnect()
+				runtime.Gosched()
+			}
+		}()
+	}
+	for w := range 2 {
+		writers.Add(1)
+		go func() {
+			defer writers.Done()
+			rng := rand.New(rand.NewSource(int64(w)))
+			for range 300 {
+				c.h.G().MobileAppState.Update(allAppStates[rng.Intn(len(allAppStates))])
+				runtime.Gosched()
+			}
+		}()
+	}
+
+	done := make(chan struct{})
+	go func() {
+		writers.Wait()
+		close(stop)
+		tails.Wait()
+		close(done)
+	}()
+	select {
+	case <-done:
+	case <-time.After(60 * time.Second):
+		t.Fatal("deadlock: the connect tail, logouts and transitions did not finish")
+	}
+
+	require.NoError(t, c.h.Disconnect())
+	require.False(t, hasConn(c.h), "logout left a connection after settling")
+	c.h.G().MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
+	c.h.connGate.reconcile(context.Background())
+	require.False(t, hasConn(c.h), "reconnected after a logout")
 }
 
 type failingRPCClient struct{}

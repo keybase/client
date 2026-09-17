@@ -200,13 +200,11 @@ type gregorHandler struct {
 	reachability     *reachability
 	chatLog          utils.DebugLabeler
 
-	// connGate decides when to connect and disconnect
+	// connGate decides when to connect and disconnect, and runs the steps
+	// OnConnect applies after syncing that can't be undone (badge pushes), so
+	// none of them lands after a Shutdown for the connection it came from.
 	connGate *gregorConnGate
 
-	// connTailMu serializes Shutdown with the steps OnConnect applies after
-	// syncing that can't be undone (badge pushes), so none lands after a
-	// Shutdown for the connection it came from. Taken before connMutex.
-	connTailMu sync.Mutex
 	// syncerConn is the connection that last marked the chat syncer
 	// connected, under connMutex.
 	syncerConn *rpc.Connection
@@ -286,7 +284,8 @@ func newGregorHandler(g *globals.Context) *gregorHandler {
 		pushStateCh:     make(chan struct{}, 100),
 		forcePingCh:     make(chan struct{}, 5),
 	}
-	gh.connGate = newGregorConnGate(g.ExternalG(), gh, gh.chatLog.Debug, gh.forcePing)
+	eg := g.ExternalG()
+	gh.connGate = newGregorConnGate(eg.MobileAppState, eg.DesktopAppState, gh, gh.chatLog.Debug, gh.forcePing)
 	return gh
 }
 
@@ -888,23 +887,26 @@ func (g *gregorHandler) isCurrentConn(conn *rpc.Connection) bool {
 	return conn == g.conn
 }
 
-// ifCurrentConnTail runs f and reports true if conn is still the current
-// connection, holding connTailMu so a Shutdown can't land while f runs.
-func (g *gregorHandler) ifCurrentConnTail(conn *rpc.Connection, f func()) bool {
-	g.connTailMu.Lock()
-	defer g.connTailMu.Unlock()
-	current := g.isCurrentConn(conn)
-	if current {
-		f()
-	}
-	return current
+// onGateIfCurrent runs f under the connection gate if conn is still the
+// current connection, and reports whether it ran. Every Shutdown and Reset is
+// made under the gate too, so a disconnect lands entirely before f, and f is
+// then skipped, or entirely after it.
+func (g *gregorHandler) onGateIfCurrent(conn *rpc.Connection, f func()) bool {
+	ran := false
+	g.connGate.do(func() {
+		if g.isCurrentConn(conn) {
+			f()
+			ran = true
+		}
+	})
+	return ran
 }
 
 // connectSyncer marks the chat syncer connected for conn and syncs it.
-// Syncer.Connected can't run under a lock Shutdown takes, since the sync
-// calls the server through this handler, so a Shutdown can land while it
-// runs; conn then undoes its own mark, unless a newer connection has marked
-// the syncer since.
+// Syncer.Connected can't run under the connection gate, since the sync calls
+// the server through this handler and may ask the gate to reconnect, so a
+// Shutdown can land while it runs; conn then undoes its own mark, unless a
+// newer connection has marked the syncer since.
 func (g *gregorHandler) connectSyncer(ctx context.Context, conn *rpc.Connection, chatCli chat1.RemoteInterface,
 	uid gregor1.UID, syncRes *chat1.SyncChatRes,
 ) error {
@@ -948,7 +950,7 @@ func (g *gregorHandler) onConnectSynced(ctx context.Context, conn *rpc.Connectio
 	// could be received.
 	// See: https://github.com/keybase/client/pull/12651
 	g.runOnConnectStep(onConnectStepChatBadges)
-	if !g.ifCurrentConnTail(conn, func() {
+	if !g.onGateIfCurrent(conn, func() {
 		if g.badger != nil {
 			g.badger.PushChatFullUpdate(ctx, syncAllRes.Badge)
 		}
@@ -977,7 +979,7 @@ func (g *gregorHandler) onConnectSynced(ctx context.Context, conn *rpc.Connectio
 	// Update badging from gregor, and call out to reachability module if we
 	// have one.
 	g.runOnConnectStep(onConnectStepGregorBadges)
-	if !g.ifCurrentConnTail(conn, func() {
+	if !g.onGateIfCurrent(conn, func() {
 		if g.badger != nil {
 			state, err := gcli.StateMachineState(ctx, nil, false)
 			if err != nil {
@@ -1008,19 +1010,15 @@ func (g *gregorHandler) onConnectSynced(ctx context.Context, conn *rpc.Connectio
 		}
 	}(g.makeReconnectOobm())
 
-	// No longer first connect if we are now connected. Checked and written
-	// under connMutex: Reset sets first connect back to true after its
-	// Shutdown, so a logout either lands first and this is skipped, or
-	// overwrites this.
+	// No longer first connect if we are now connected.
 	g.runOnConnectStep(onConnectStepConnected)
-	g.connMutex.Lock()
-	defer g.connMutex.Unlock()
-	if conn != g.conn {
+	if !g.onGateIfCurrent(conn, func() {
+		g.chatLog.Debug(ctx, "setting first connect to false")
+		g.setFirstConnect(false)
+		g.setConnectedAt(time.Now())
+	}) {
 		return chat.ErrDuplicateConnection
 	}
-	g.chatLog.Debug(ctx, "setting first connect to false")
-	g.setFirstConnect(false)
-	g.setConnectedAt(time.Now())
 	g.chatLog.Debug(ctx, "OnConnect complete")
 	return nil
 }
@@ -1476,10 +1474,11 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 	}
 }
 
+// Shutdown disconnects. It is only ever called under the connection gate,
+// from reconcile, reconnect or Reset, which is what keeps it from
+// interleaving with the steps OnConnect applies after syncing.
 func (g *gregorHandler) Shutdown(ctx context.Context) {
 	defer g.chatLog.Trace(ctx, nil, "Shutdown")()
-	g.connTailMu.Lock()
-	defer g.connTailMu.Unlock()
 	g.connMutex.Lock()
 	defer g.connMutex.Unlock()
 
