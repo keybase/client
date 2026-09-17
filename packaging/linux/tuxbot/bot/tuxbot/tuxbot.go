@@ -426,13 +426,13 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 		cleanupCmd := exec.Command("./cleanup")
 		cleanupCmd.Dir = filepath.Join(currentUser.HomeDir)
 		ret, err := cleanupCmd.CombinedOutput()
-		c.Debug("RET: ```%s```, ERR: %s", ret, err)
+		c.Debug("RET: ```%s```, ERR: %v", ret, err)
 		return nil
 	case "restartdocker":
 		cmd := exec.Command("./restartdocker")
 		cmd.Dir = filepath.Join(currentUser.HomeDir)
 		ret, err := cmd.CombinedOutput()
-		c.Debug("RET: ```%s```, ERR: %s", ret, err)
+		c.Debug("RET: ```%s```, ERR: %v", ret, err)
 		return nil
 	default:
 		return fmt.Errorf("invalid command %s", command)
