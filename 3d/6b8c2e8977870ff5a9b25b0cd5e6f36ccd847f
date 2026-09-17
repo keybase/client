@@ -1,0 +1,33 @@
+go/chat/storage/basebox.go
+  s_853e2d28c2e344::t_923256bfd55352 5,46-58
+go/chat/storage/inbox.go
+  s_853e2d28c2e344::t_2f143de1da0b29 182-188,212,276,322,714
+go/chat/storage/inbox_memcache.go
+  s_853e2d28c2e344::t_d5e72682956646 4,85-90
+go/chat/storage/inbox_test.go
+  s_853e2d28c2e344::t_a413a577730640 935-988
+go/chat/storage/outbox_basebox.go
+  s_853e2d28c2e344::t_559e73819692f6 55-56
+go/chat/storage/readoutbox.go
+  s_853e2d28c2e344::t_677479efb015be 68-69,71
+go/chat/storage/storage_blockengine.go
+  s_853e2d28c2e344::t_1c91f6bc29fac4 267
+go/chat/sync.go
+  s_853e2d28c2e344::t_80e66a67e37c1d 160-163
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "3d6b8c2e8977870ff5a9b25b0cd5e6f36ccd847f",
+  "prompts": {},
+  "sessions": {
+    "s_853e2d28c2e344": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d5a3add1-5cdb-47ca-a334-54991bf7ad5e",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
