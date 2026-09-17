@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net"
+	"os"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -1091,9 +1092,11 @@ func TestGregorOnConnectTailStress(t *testing.T) {
 		go func() {
 			defer writers.Done()
 			rng := rand.New(rand.NewSource(int64(w)))
-			for range 300 {
+			for range 500 {
 				c.h.G().MobileAppState.Update(allAppStates[rng.Intn(len(allAppStates))])
-				runtime.Gosched()
+				if rng.Intn(4) == 0 {
+					time.Sleep(time.Duration(rng.Intn(200)) * time.Microsecond)
+				}
 			}
 		}()
 	}
@@ -1108,7 +1111,14 @@ func TestGregorOnConnectTailStress(t *testing.T) {
 	select {
 	case <-done:
 	case <-time.After(60 * time.Second):
-		t.Fatal("deadlock: the connect tail, logouts and transitions did not finish")
+		// A deadlock leaves the racers holding the handler's locks, so the
+		// cleanup that shuts the handler down never returns. Nothing this
+		// test writes is flushed through that hung unwind, neither t.Fatal's
+		// message nor a panic's, so say it on stderr first; go test's own
+		// timeout then dumps every stack.
+		const msg = "deadlock: the connect tail, logouts and transitions did not finish"
+		fmt.Fprintln(os.Stderr, msg)
+		t.Fatal(msg)
 	}
 
 	require.NoError(t, c.h.Disconnect())

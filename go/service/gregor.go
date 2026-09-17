@@ -1474,9 +1474,10 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 	}
 }
 
-// Shutdown disconnects. It is only ever called under the connection gate,
-// from reconcile, reconnect or Reset, which is what keeps it from
-// interleaving with the steps OnConnect applies after syncing.
+// Shutdown disconnects. In production it is only ever called under the
+// connection gate, from reconcile, reconnect or Reset, which is what keeps it
+// from interleaving with the steps OnConnect applies after syncing. Tests
+// call it directly.
 func (g *gregorHandler) Shutdown(ctx context.Context) {
 	defer g.chatLog.Trace(ctx, nil, "Shutdown")()
 	g.connMutex.Lock()

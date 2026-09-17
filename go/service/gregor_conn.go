@@ -20,8 +20,9 @@ type gregorConnector interface {
 	IsConnected() bool
 }
 
-// gregorAppState is the mobile app state the gate follows. Tests wrap the
-// real one to act between a connect's state read and what it does with it.
+// gregorAppState is the mobile app state the gate follows, as an interface so
+// it can be substituted: tests wrap the real one to act between a connect's
+// state read and what the connect does with it.
 type gregorAppState interface {
 	State() keybase1.MobileAppState
 	NextUpdate(lastState keybase1.MobileAppState) <-chan struct{}
