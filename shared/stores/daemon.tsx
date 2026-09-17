@@ -145,7 +145,9 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
         s.handshakeState = 'loading'
       })
       const run = async () => {
-        await readAfter
+        // readAfter only orders the read behind the subscription; if it rejects the handshake
+        // must still run, or the app sits on the splash with no retry and no Reload.
+        await readAfter?.catch(() => {})
         while (gen === generation) {
           try {
             await get().dispatch.loadDaemonBootstrapStatus()

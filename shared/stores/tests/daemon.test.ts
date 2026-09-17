@@ -41,6 +41,19 @@ describe('daemon store', () => {
     expect(store.getState().bootstrapStatus?.username).toBe('testuser')
   })
 
+  test('a rejecting readAfter still starts the handshake', async () => {
+    jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue(bootstrapStatus)
+    const step = jest.fn(async () => {})
+    const store = useDaemonState
+    store.getState().dispatch.initBootstrapSteps([step])
+
+    store.getState().dispatch.startHandshake(Promise.reject(new Error('subscribe failed')))
+    await jest.advanceTimersByTimeAsync(0)
+
+    expect(step).toHaveBeenCalledTimes(1)
+    expect(store.getState().handshakeState).toBe('done')
+  })
+
   test('a failing step retries and can recover', async () => {
     jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue(bootstrapStatus)
     const step = jest.fn(async () => {}).mockRejectedValueOnce(new Error('flaky'))
