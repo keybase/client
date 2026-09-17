@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"runtime"
 	"sync"
+	"sync/atomic"
 
 	"github.com/keybase/client/go/kbhttp"
 	"github.com/keybase/client/go/libkb"
@@ -26,70 +27,89 @@ type srvEndpoint struct {
 	serve     func(w http.ResponseWriter, req *http.Request)
 }
 
+// srvStatus is what run last published; readers never wait on run.
+type srvStatus struct {
+	active bool
+	info   keybase1.HttpSrvInfo
+	// state is the app state run last acted on and wait the change channel it
+	// waits on for it; exits counts unexpected exits it handled. Tests use them.
+	state keybase1.MobileAppState
+	wait  <-chan struct{}
+	exits int
+}
+
+type handlerRequest struct {
+	endpoint string
+	desc     srvEndpoint
+	done     chan struct{}
+}
+
+// Srv runs the local HTTP server. One goroutine, run, owns it: only run starts
+// and stops it, reacting to app state changes, unexpected exits, handler
+// registrations and shutdown.
 type Srv struct {
 	libkb.Contextified
 
-	// token is set once in NewSrv and kept across restarts, so URLs handed
-	// out before a restart keep working.
-	token          string
-	listenerSource func() kbhttp.ListenerSource
-	// stopInBackground is false on Android, where the server stays up in
-	// every state.
-	stopInBackground bool
+	// token is set once and kept across restarts, so URLs handed out before a restart keep working.
+	token            string
+	listenerSource   func() kbhttp.ListenerSource
+	stopInBackground bool // false on Android, where the server stays up in every state
+	// notify runs on run, so it must not call HandleFunc.
+	notify func(context.Context, keybase1.HttpSrvInfo)
 
-	// mu guards everything below and serializes starts and stops.
-	mu        sync.Mutex
+	status       atomic.Pointer[srvStatus]
+	exited       chan struct{}
+	handlers     chan handlerRequest
+	shutdownOnce sync.Once
+	shutdownCh   chan struct{}
+	done         chan struct{}
+
+	// Owned by run.
 	httpSrv   *kbhttp.Srv
 	endpoints map[string]srvEndpoint
-	shutdown  bool
-	// exitRestartChange is one past stateChanges at the last restart after an
-	// unexpected exit, so a listener that keeps dying restarts at most once
-	// per app state change.
-	exitRestartChange uint64
-	// stateChanges counts the app state changes the monitor applied.
-	stateChanges uint64
-	// exits counts handled unexpected exits, for tests.
-	exits int
-	// beforeExitRestart, if set, runs in serverExited between reading the
-	// app state and acting on it. Tests only.
-	beforeExitRestart func()
-	// monitorState is the state the monitor last acted on, and monitorWait
-	// the change channel it is waiting on for that state; tests use them to
-	// wait until the monitor has caught up.
-	monitorState keybase1.MobileAppState
-	monitorWait  <-chan struct{}
-
-	shutdownCh  chan struct{}
-	monitorDone chan struct{}
+	state     keybase1.MobileAppState
+	wait      <-chan struct{}
+	exits     int
+	// restartedSinceChange caps restarts after unexpected exits at one per app
+	// state change, so a listener that keeps dying doesn't spin.
+	restartedSinceChange bool
 }
 
 func NewSrv(g *libkb.GlobalContext) *Srv {
 	listenerSource := func() kbhttp.ListenerSource {
 		return kbhttp.NewRandomPortRangeListenerSource(g.GetEnv().GetAttachmentHTTPStartPort(), 18000)
 	}
-	return newSrv(g, listenerSource, runtime.GOOS != "android")
+	return newSrv(g, listenerSource, runtime.GOOS != "android", func(ctx context.Context, info keybase1.HttpSrvInfo) {
+		// Read NotifyRouter when notifying: the service sets it after creating this server.
+		g.NotifyRouter.HandleHTTPSrvInfoUpdate(ctx, info)
+	})
 }
 
-func newSrv(g *libkb.GlobalContext, listenerSource func() kbhttp.ListenerSource, stopInBackground bool) *Srv {
+func newSrv(g *libkb.GlobalContext, listenerSource func() kbhttp.ListenerSource, stopInBackground bool,
+	notify func(context.Context, keybase1.HttpSrvInfo),
+) *Srv {
 	token, _ := libkb.RandHexString("", 32)
-	h := &Srv{
+	r := &Srv{
 		Contextified:     libkb.NewContextified(g),
 		token:            token,
 		listenerSource:   listenerSource,
 		stopInBackground: stopInBackground,
-		endpoints:        make(map[string]srvEndpoint),
+		notify:           notify,
+		exited:           make(chan struct{}, 1),
+		handlers:         make(chan handlerRequest),
 		shutdownCh:       make(chan struct{}),
-		monitorDone:      make(chan struct{}),
+		done:             make(chan struct{}),
+		endpoints:        make(map[string]srvEndpoint),
 	}
-	h.httpSrv = h.newHTTPSrv()
-	g.PushShutdownHook(func(mctx libkb.MetaContext) error {
-		h.stop()
+	r.httpSrv = r.newHTTPSrv()
+	g.PushShutdownHook(func(libkb.MetaContext) error {
+		r.stop()
 		return nil
 	})
-	state := g.MobileAppState.State()
-	h.reconcile(state)
-	go h.monitorAppState(state)
-	return h
+	ready := make(chan struct{})
+	go r.run(g.MobileAppState.State(), ready)
+	<-ready
+	return r
 }
 
 func (r *Srv) debug(ctx context.Context, msg string, args ...any) {
@@ -106,7 +126,12 @@ func TokenPrefix(token string) string {
 
 func (r *Srv) newHTTPSrv() *kbhttp.Srv {
 	srv := kbhttp.NewSrv(r.G().GetLog(), r.listenerSource())
-	srv.OnUnexpectedExit(r.serverExited)
+	srv.OnUnexpectedExit(func() {
+		select {
+		case r.exited <- struct{}{}:
+		default:
+		}
+	})
 	return srv
 }
 
@@ -114,152 +139,122 @@ func (r *Srv) wantUp(state keybase1.MobileAppState) bool {
 	return !r.stopInBackground || state != keybase1.MobileAppState_BACKGROUND
 }
 
-// serverExited restarts a server whose listener died without a Stop, for
-// example one the OS reclaimed while the app was suspended without ever
-// reaching BACKGROUND.
-func (r *Srv) serverExited() {
+func (r *Srv) run(state keybase1.MobileAppState, ready chan struct{}) {
+	defer close(r.done)
 	ctx := context.Background()
-	r.mu.Lock()
-	// Read the state and start under mu, so a BACKGROUND the monitor applies
-	// concurrently either comes first (seen here) or stops what starts here.
-	state := r.G().MobileAppState.State()
-	if r.beforeExitRestart != nil {
-		r.beforeExitRestart()
-	}
-	var info keybase1.HttpSrvInfo
-	started := false
-	if r.wantUp(state) && r.exitRestartChange != r.stateChanges+1 {
-		r.exitRestartChange = r.stateChanges + 1
-		r.debug(ctx, "serverExited: restarting in %v", state)
-		info, started = r.startLocked(ctx)
-	} else {
-		r.debug(ctx, "serverExited: not restarting in %v", state)
-	}
-	r.exits++
-	r.mu.Unlock()
-	if started {
-		r.G().NotifyRouter.HandleHTTPSrvInfoUpdate(ctx, info)
-	}
-}
-
-// startHTTPSrv starts the server if it isn't serving, including after its
-// listener died underneath it.
-func (r *Srv) startHTTPSrv() {
-	ctx := context.Background()
-	r.mu.Lock()
-	info, started := r.startLocked(ctx)
-	r.mu.Unlock()
-	if !started {
-		return
-	}
-	r.G().NotifyRouter.HandleHTTPSrvInfoUpdate(ctx, info)
-}
-
-func (r *Srv) startLocked(ctx context.Context) (info keybase1.HttpSrvInfo, started bool) {
-	if r.shutdown || r.httpSrv.Active() {
-		return info, false
-	}
-	maxTries := 2
-	success := false
-	for range maxTries {
-		if err := r.httpSrv.StartWithHandlers(r.registerEndpointsLocked); err != nil {
-			if errors.Is(err, kbhttp.ErrPinnedPortInUse) {
-				// If we hit this, just try again and get a different port.
-				// The advantage is that backing in and out of the thread will restore attachments,
-				// whereas if we do nothing you need to bkg/foreground.
-				r.debug(ctx, "startHTTPSrv: pinned port taken error, re-initializing and trying again")
-				r.httpSrv = r.newHTTPSrv()
-				continue
-			}
-			r.debug(ctx, "startHTTPSrv: failed to start HTTP server: %s", err)
-			break
+	r.state = state
+	r.debug(ctx, "run: starting up in %v", state)
+	r.reconcile(ctx)
+	for {
+		r.wait = r.G().MobileAppState.NextUpdate(r.state)
+		r.publish()
+		if ready != nil {
+			close(ready)
+			ready = nil
 		}
-		success = true
-		break
+		select {
+		case <-r.wait:
+			r.state = r.G().MobileAppState.State()
+			r.restartedSinceChange = false
+			r.reconcile(ctx)
+		case <-r.exited:
+			r.serverExited(ctx)
+		case req := <-r.handlers:
+			r.endpoints[req.endpoint] = req.desc
+			// A stopped server has no mux; start registers every endpoint.
+			if r.httpSrv.Active() {
+				r.httpSrv.HandleFunc("/"+req.endpoint, r.checkToken(req.desc.tokenMode, req.desc.serve))
+			}
+			close(req.done)
+		case <-r.shutdownCh:
+			<-r.httpSrv.Stop()
+			r.status.Store(&srvStatus{})
+			return
+		}
 	}
-	if !success {
-		r.debug(ctx, "startHTTPSrv: exhausted attempts to start HTTP server, giving up")
-		return info, false
-	}
-	addr, err := r.httpSrv.Addr()
-	if err != nil {
-		r.debug(ctx, "startHTTPSrv: failed to get address after start?: %s", err)
-	}
-	r.debug(ctx, "startHTTPSrv: addr: %s token: %s", addr, TokenPrefix(r.token))
-	return keybase1.HttpSrvInfo{
-		Address: addr,
-		Token:   r.token,
-	}, true
-}
-
-func (r *Srv) stopHTTPSrv() {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.httpSrv.Stop()
-}
-
-func (r *Srv) stop() {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	if r.shutdown {
-		return
-	}
-	r.shutdown = true
-	close(r.shutdownCh)
-	r.httpSrv.Stop()
 }
 
 // reconcile tears the server down only in BACKGROUND, and only where
 // stopInBackground. INACTIVE (Control Center, system alerts, the app
-// switcher) keeps it up, and every other state restarts it if it isn't
-// serving.
-func (r *Srv) reconcile(state keybase1.MobileAppState) {
-	if !r.wantUp(state) {
-		r.stopHTTPSrv()
+// switcher) keeps it up, and every other state starts it if it isn't serving.
+func (r *Srv) reconcile(ctx context.Context) {
+	if !r.wantUp(r.state) {
+		r.httpSrv.Stop()
 		return
 	}
-	r.startHTTPSrv()
+	r.start(ctx)
 }
 
-func (r *Srv) monitorAppState(state keybase1.MobileAppState) {
-	defer close(r.monitorDone)
-	r.debug(context.Background(), "monitorAppState: starting up in %v", state)
-	for {
-		next := r.G().MobileAppState.NextUpdate(state)
-		r.mu.Lock()
-		r.monitorState, r.monitorWait = state, next
-		r.mu.Unlock()
-		select {
-		case <-next:
-		case <-r.shutdownCh:
-			return
-		}
-		state = r.G().MobileAppState.State()
-		r.mu.Lock()
-		r.stateChanges++
-		r.mu.Unlock()
-		r.reconcile(state)
+// serverExited restarts a server whose listener died without a Stop, for
+// example one the OS reclaimed while the app was suspended without reaching BACKGROUND.
+func (r *Srv) serverExited(ctx context.Context) {
+	if r.httpSrv.Active() {
+		return
 	}
+	r.exits++
+	if !r.wantUp(r.state) || r.restartedSinceChange {
+		r.debug(ctx, "serverExited: not restarting in %v", r.state)
+		return
+	}
+	r.restartedSinceChange = true
+	r.debug(ctx, "serverExited: restarting in %v", r.state)
+	r.start(ctx)
+}
+
+func (r *Srv) start(ctx context.Context) {
+	if r.httpSrv.Active() {
+		return
+	}
+	err := r.httpSrv.StartWithHandlers(r.registerEndpoints)
+	if errors.Is(err, kbhttp.ErrPinnedPortInUse) {
+		// Try again on a different port. Backing in and out of a thread then restores
+		// attachments; doing nothing would need a background/foreground.
+		r.debug(ctx, "start: pinned port taken, trying a new one")
+		r.httpSrv = r.newHTTPSrv()
+		err = r.httpSrv.StartWithHandlers(r.registerEndpoints)
+	}
+	if err != nil {
+		r.debug(ctx, "start: failed to start HTTP server: %s", err)
+		return
+	}
+	// Publish before notifying, so a listener reading Info gets the address it is told about.
+	r.publish()
+	info, err := r.Info()
+	if err != nil { // Serve already exited; run handles that exit next
+		return
+	}
+	r.debug(ctx, "start: addr: %s token: %s", info.Address, TokenPrefix(r.token))
+	r.notify(ctx, info)
+}
+
+func (r *Srv) publish() {
+	st := &srvStatus{state: r.state, wait: r.wait, exits: r.exits}
+	if addr, err := r.httpSrv.Addr(); err == nil {
+		st.active = true
+		st.info = keybase1.HttpSrvInfo{Address: addr, Token: r.token}
+	}
+	r.status.Store(st)
+}
+
+func (r *Srv) registerEndpoints(mux *http.ServeMux) {
+	for endpoint, desc := range r.endpoints {
+		mux.HandleFunc("/"+endpoint, r.checkToken(desc.tokenMode, desc.serve))
+	}
+}
+
+func (r *Srv) stop() {
+	r.shutdownOnce.Do(func() { close(r.shutdownCh) })
+	<-r.done
 }
 
 func (r *Srv) HandleFunc(endpoint string, tokenMode SrvTokenMode,
 	serve func(w http.ResponseWriter, req *http.Request),
 ) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.endpoints[endpoint] = srvEndpoint{
-		tokenMode: tokenMode,
-		serve:     serve,
-	}
-	// A stopped server has no mux; startHTTPSrv registers every endpoint.
-	if r.httpSrv.Active() {
-		r.httpSrv.HandleFunc("/"+endpoint, r.checkToken(tokenMode, serve))
-	}
-}
-
-func (r *Srv) registerEndpointsLocked(mux *http.ServeMux) {
-	for endpoint, desc := range r.endpoints {
-		mux.HandleFunc("/"+endpoint, r.checkToken(desc.tokenMode, desc.serve))
+	req := handlerRequest{endpoint: endpoint, desc: srvEndpoint{tokenMode: tokenMode, serve: serve}, done: make(chan struct{})}
+	select {
+	case r.handlers <- req:
+		<-req.done
+	case <-r.done:
 	}
 }
 
@@ -282,29 +277,20 @@ func (r *Srv) checkToken(tokenMode SrvTokenMode,
 	}
 }
 
-func (r *Srv) Active() bool {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	return r.httpSrv.Active()
-}
+func (r *Srv) Active() bool { return r.status.Load().active }
 
 func (r *Srv) Addr() (string, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	return r.httpSrv.Addr()
+	info, err := r.Info()
+	return info.Address, err
 }
 
-func (r *Srv) Token() string {
-	return r.token
-}
+func (r *Srv) Token() string { return r.token }
 
 // Info returns the address and token together, for handing both to a client.
 func (r *Srv) Info() (keybase1.HttpSrvInfo, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	addr, err := r.httpSrv.Addr()
-	if err != nil {
-		return keybase1.HttpSrvInfo{}, err
+	st := r.status.Load()
+	if !st.active {
+		return keybase1.HttpSrvInfo{}, errors.New("server not running")
 	}
-	return keybase1.HttpSrvInfo{Address: addr, Token: r.token}, nil
+	return st.info, nil
 }

@@ -28,8 +28,11 @@ import {
 // Log lines these flows rely on:
 // - Go (ios.log): "lifecycle: <uiActive|uiInactive|uiBackground|…>: …" per native UI report,
 //   "MobileAppState.Update: useful update: <STATE>" per Go app state change,
-//   "Srv: startHTTPSrv: addr: <address>" when the image server (re)starts.
+//   "Srv: start: addr: <address>" when the image server (re)starts.
 // - Metro (JS): "app focus changed: <state>" when the shell store's app state changes.
+// The cold launch test requires a match, so an empty result in the Notification Center test
+// means no restart, not a pattern that no longer matches Go's log.
+const httpSrvStarted = /Srv: start: addr: /
 describe('app lifecycle: app state', () => {
   it('cold launch reaches active under scenes and serves images', async () => {
     const user = requireSmokeUser()
@@ -47,7 +50,7 @@ describe('app lifecycle: app state', () => {
     ])
     expect(goLines).toHaveLength(3)
     // JS must hold the address of the server Go started, not a stale one.
-    const started = findLines(goLogSince(goMark), /Srv: startHTTPSrv: addr: /).at(-1) ?? ''
+    const started = findLines(goLogSince(goMark), httpSrvStarted).at(-1) ?? ''
     expect(started).toContain(`addr: ${snap.httpSrv.address} `)
 
     const avatar = await waitForAvatar200(user)
@@ -172,7 +175,7 @@ describe('app lifecycle: app state', () => {
       expect.stringMatching(/app focus changed: inactive$/),
       expect.stringMatching(/app focus changed: active$/),
     ])
-    expect(findLines(goLogSince(goMark), /Srv: startHTTPSrv: addr: /)).toEqual([])
+    expect(findLines(goLogSince(goMark), httpSrvStarted)).toEqual([])
     expect((await appSnapshot()).httpSrv.address).toBe(before.httpSrv.address)
   })
 })
