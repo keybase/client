@@ -3,7 +3,6 @@ package chatbot
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -24,7 +23,6 @@ type Bot interface {
 	DispatchReaction(msg chat1.MsgSummary, message string) error
 	SourceDirectory() string
 	ACL() access.ACL
-	WarnOnCrash() bool
 }
 
 func Ingest(bot Bot, msg chat1.MsgSummary) error {
@@ -64,18 +62,10 @@ func Listen(bot Bot) error {
 	acl := bot.ACL()
 	for {
 		msg, err := subscription.Read()
-		switch err := err.(type) {
-		case nil:
-		case *json.SyntaxError:
-			// It is likely that the Keybase service crashed resulting in a
-			// broken api-listen pipe, so exit - hopefully, the process
-			// manager will restart us and the keybase service.
-			if bot.WarnOnCrash() {
-				bot.Info("Error reading message (fatal): %v", err)
-			}
-			os.Exit(1)
-		default:
-			bot.Info("Error reading message (nonfatal): %v", err)
+		if err != nil {
+			// Never post listen/parse errors into chat: Info() sends to the
+			// team channel and turns a dead api-listen pipe into a flood.
+			bot.VDebug("Error reading message: %v", err)
 			continue
 		}
 
