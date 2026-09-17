@@ -2,7 +2,8 @@
 
 let mockIsPhone = false
 let mockLoggedIn = true
-let mockUsername = 'alice'
+let mockUserSwitching = false
+let mockUsername = 'testuser'
 const mockLoggerInfo = jest.fn()
 const mockLoggerWarn = jest.fn()
 
@@ -22,9 +23,11 @@ jest.mock('@/logger', () => ({
 }))
 
 jest.mock('@/stores/config', () => ({
+  isChatSessionReady: () => mockLoggedIn && !mockUserSwitching,
   useConfigState: {
     getState: () => ({
       loggedIn: mockLoggedIn,
+      userSwitching: mockUserSwitching,
     }),
   },
 }))
@@ -55,7 +58,8 @@ const layoutWithRows: T.RPCChat.UIInboxLayout = {
 beforeEach(() => {
   mockIsPhone = false
   mockLoggedIn = true
-  mockUsername = 'alice'
+  mockUserSwitching = false
+  mockUsername = 'testuser'
   mockLoggerInfo.mockClear()
   mockLoggerWarn.mockClear()
   useInboxLayoutState.getState().dispatch.resetState()

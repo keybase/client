@@ -301,6 +301,10 @@ class Engine {
     this._sessionsMap.get(sessionID)?.cancel()
   }
 
+  cancelOutstandingSessions() {
+    this._cancelOutstandingSessions()
+  }
+
   // Reset the engine
   reset() {
     if (isMobile) {

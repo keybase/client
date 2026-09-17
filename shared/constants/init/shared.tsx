@@ -207,15 +207,20 @@ const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus']) => 
   const {deviceID, deviceName, loggedIn, uid, username} = bootstrap
   useCurrentUserState.getState().dispatch.setBootstrap({deviceID, deviceName, uid, username})
 
-  const configDispatch = useConfigState.getState().dispatch
-  if (username) {
+  const {dispatch: configDispatch, defaultUsername: intendedUsername, userSwitching} =
+    useConfigState.getState()
+  if (username && (!userSwitching || username === intendedUsername)) {
     configDispatch.setDefaultUsername(username)
   }
-  if (!loggedIn && useConfigState.getState().userSwitching) {
+  if (!loggedIn && userSwitching) {
     logger.info('[Bootstrap] ignoring loggedIn=false result during account switch')
     return
   }
   configDispatch.setLoggedIn(loggedIn)
+
+  if (loggedIn && username && username === intendedUsername) {
+    configDispatch.setUserSwitching(false)
+  }
 
   if (bootstrap.httpSrvInfo) {
     configDispatch.setHTTPSrvInfo(bootstrap.httpSrvInfo.address, bootstrap.httpSrvInfo.token)

@@ -12,6 +12,7 @@ import {type CommonResponseHandler} from '@/engine/types'
 import {invalidPasswordErrorString} from '@/constants/config'
 import {navigateAppend} from '@/constants/router'
 import {onEngineConnected as onEngineConnectedInPlatform} from '@/util/storeless-actions'
+import {getEngine, hasEngine} from '@/engine/require'
 
 type Store = T.Immutable<{
   allowAnimatedEmojis: boolean
@@ -295,6 +296,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         }
       }
       get().dispatch.setLoginError()
+      get().dispatch.setDefaultUsername(username)
       ignorePromise(f())
     },
     logoutAndTryToLogInAs: username => {
@@ -580,6 +582,12 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       })
     },
     setUserSwitching: sw => {
+      if (sw && !get().userSwitching) {
+        Z.resetAllStores()
+        if (hasEngine()) {
+          getEngine().cancelOutstandingSessions()
+        }
+      }
       set(s => {
         s.userSwitching = sw
       })
@@ -608,3 +616,8 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
     dispatch,
   }
 })
+
+export const isChatSessionReady = () => {
+  const {loggedIn, userSwitching} = useConfigState.getState()
+  return loggedIn && !userSwitching
+}
