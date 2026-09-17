@@ -13,7 +13,7 @@ LABEL maintainer="Keybase <admin@keybase.io>"
 #   - unzip because electron packager requires it
 RUN apt-get update \
   && apt-get install -y fakeroot reprepro rpm createrepo-c git wget \
-    build-essential curl s3cmd gnupg unzip rsync gcc-x86-64-linux-gnu ca-certificates \
+    build-essential curl s3cmd gnupg gnupg2 unzip rsync gcc-x86-64-linux-gnu ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
 RUN arch="$(dpkg --print-architecture)" \
