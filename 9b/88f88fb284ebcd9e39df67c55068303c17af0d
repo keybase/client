@@ -1,0 +1,23 @@
+packaging/linux/tuxbot/bot/chatbot/chatbot.go
+  s_ee97987c18c7d1::t_c080b9a852bef8 65-68
+packaging/linux/tuxbot/bot/go.mod
+  s_ee97987c18c7d1::t_5100f25a883b3d 11
+packaging/linux/tuxbot/bot/go.sum
+  s_ee97987c18c7d1::t_183569653b10b5 65-66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "9b88f88fb284ebcd9e39df67c55068303c17af0d",
+  "prompts": {},
+  "sessions": {
+    "s_ee97987c18c7d1": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "768745b4-5410-4e76-b349-417c5ec5363d",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
