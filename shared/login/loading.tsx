@@ -26,7 +26,7 @@ const SplashContainer = () => {
         C.Router2.navigateAppend({name: 'feedback', params: {}})
       }
     : undefined
-  const onRetry = handshakeFailed ? startHandshake : undefined
+  const onRetry = handshakeFailed ? () => startHandshake() : undefined
 
   return <Splash failed={failed} status={status} onRetry={onRetry} onFeedback={onFeedback} />
 }

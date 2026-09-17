@@ -265,7 +265,7 @@ export const onEngineConnected = () => {
   }
   useConfigState.getState().dispatch.onEngineConnected()
   {
-    const subscribeThenHandshake = async () => {
+    const subscribe = async () => {
       try {
         // prettier-ignore
         await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
@@ -283,11 +283,11 @@ export const onEngineConnected = () => {
           logger.warn('error in toggling notifications: ', error)
         }
       }
-      // The handshake's bootstrap read must come after the subscription: a login, logout or
-      // http server change announced between them would reach nobody.
-      useDaemonState.getState().dispatch.startHandshake()
     }
-    ignorePromise(subscribeThenHandshake())
+    // The handshake starts now, so the reconnect clears the disconnect state at once, but its
+    // bootstrap read waits for the subscription: a login, logout or http server change announced
+    // between the read and the subscription would reach nobody.
+    useDaemonState.getState().dispatch.startHandshake(subscribe())
   }
 }
 

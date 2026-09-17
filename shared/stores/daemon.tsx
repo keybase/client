@@ -40,12 +40,19 @@ export type State = Store & {
     loadDaemonBootstrapStatus: () => Promise<void>
     resetState: () => void
     setError: (e?: Error) => void
-    startHandshake: () => void
+    // readAfter: the bootstrap read must not start before the notification subscription is in
+    // place, or a login, logout or http server change announced between them reaches nobody.
+    // Everything else -- clearing the disconnect state, invalidating the previous handshake --
+    // happens synchronously, so a reconnect is visible without waiting on an RPC.
+    startHandshake: (readAfter?: Promise<void>) => void
     updateUserReacjis: (userReacjis: T.RPCGen.UserReacjis) => void
   }
 }
 
 const retryDelayMs = 1000
+// The version is missing when the service predates it; the version gates then have nothing to
+// order by and apply everything, as we did before versions existed.
+type MaybeVersionedStatus = Omit<T.RPCGen.BootstrapStatus, 'version'> & {version?: number}
 // the initial read plus two retries; a status that keeps losing to newer logins or logouts is dropped
 const maxStaleSnapshotReads = 3
 
@@ -68,7 +75,8 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
       const f = async () => {
         const configDispatch = useConfigState.getState().dispatch
         for (let read = 1; read <= maxStaleSnapshotReads; read++) {
-          const {version, ...bs} = await T.RPCGen.configGetBootstrapStatusRpcPromise()
+          const {version, ...bs}: MaybeVersionedStatus =
+            await T.RPCGen.configGetBootstrapStatusRpcPromise()
           logger.info(
             `[Bootstrap] loggedIn: ${bs.loggedIn ? 1 : 0} http: ${bs.httpSrvInfo ? bs.httpSrvInfo.address : 'none'} version: ${version}`
           )
@@ -77,12 +85,16 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
           if (bs.httpSrvInfo) {
             configDispatch.setHTTPSrvInfo(bs.httpSrvInfo.address, bs.httpSrvInfo.token, version)
           }
+          // a newer handshake owns the store now; don't write a potentially older status over its
+          // load, and don't consume the session version it needs
+          if (gen !== generation) {
+            return
+          }
           if (!configDispatch.acceptSessionSnapshot(version)) {
             logger.info('[Bootstrap] a login or logout is newer than this status, reading it again')
             continue
           }
-          // a newer handshake owns the store now; don't write a potentially older status over its load
-          if (gen !== generation || isEqual(bs, get().bootstrapStatus)) {
+          if (isEqual(bs, get().bootstrapStatus)) {
             return
           }
           set(s => {
@@ -90,7 +102,9 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
           })
           return
         }
-        logger.warn('[Bootstrap] the status kept losing to newer logins or logouts, not applying it')
+        logger.warn(
+          '[Bootstrap] the status kept losing to newer logins or logouts; the session is whatever the last notification said and the current user stays as it was'
+        )
       }
       const p = f()
       inflightBootstrapStatus = p
@@ -118,7 +132,7 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
         s.error = e
       })
     },
-    startHandshake: () => {
+    startHandshake: readAfter => {
       const gen = ++generation
       // startHandshake follows an engine reset, which drops in-flight RPCs without settling
       // their promises; reusing one here would stall the handshake forever
@@ -131,6 +145,7 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
         s.handshakeState = 'loading'
       })
       const run = async () => {
+        await readAfter
         while (gen === generation) {
           try {
             await get().dispatch.loadDaemonBootstrapStatus()

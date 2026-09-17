@@ -230,6 +230,12 @@ describe('httpSrvInfo ordering', () => {
     expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:1')
   })
 
+  test('a notification with the version already applied is ignored', () => {
+    notify('127.0.0.1:2', 5)
+    notify('127.0.0.1:3', 5)
+    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:2')
+  })
+
   test('logging out keeps the http server address', () => {
     notify('127.0.0.1:2', 1)
     useConfigState.getState().dispatch.resetState()
@@ -245,6 +251,13 @@ describe('httpSrvInfo ordering', () => {
 })
 
 describe('session ordering', () => {
+  const deferredBootstrap = () => {
+    let resolve!: (bs: T.RPCGen.BootstrapStatus) => void
+    const promise = new Promise<T.RPCGen.BootstrapStatus>(_resolve => {
+      resolve = _resolve
+    })
+    return {promise, resolve}
+  }
   const notifySession = (kind: 'loggedIn' | 'loggedOut', version: number) =>
     useConfigState.getState().dispatch.onEngineIncoming({
       payload: {
@@ -306,6 +319,18 @@ describe('session ordering', () => {
     expect(useDaemonState.getState().bootstrapStatus).toBe(stored)
   })
 
+  test('a status whose version ties the applied notification is applied', async () => {
+    notifySession('loggedOut', 4)
+    const spy = jest
+      .spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise')
+      .mockResolvedValue({...bootstrapStatus, version: 4})
+
+    await useDaemonState.getState().dispatch.loadDaemonBootstrapStatus()
+
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(useDaemonState.getState().bootstrapStatus?.username).toBe('testuser')
+  })
+
   test('a session notification older than the applied one is ignored', () => {
     useConfigState.setState({loggedIn: true})
 
@@ -313,6 +338,61 @@ describe('session ordering', () => {
     expect(useConfigState.getState().loggedIn).toBe(false)
 
     notifySession('loggedIn', 4)
+    expect(useConfigState.getState().loggedIn).toBe(false)
+  })
+
+  test('a notification with the version already applied is ignored', () => {
+    useConfigState.setState({loggedIn: false})
+
+    notifySession('loggedIn', 5)
+    expect(useConfigState.getState().loggedIn).toBe(true)
+
+    notifySession('loggedOut', 5)
+    expect(useConfigState.getState().loggedIn).toBe(true)
+  })
+
+  test('a service too old to send a version still applies its status and its notifications', async () => {
+    useConfigState.setState({loggedIn: true})
+    jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue({
+      ...bootstrapStatus,
+      httpSrvInfo: {address: '127.0.0.1:1', token: 'token'},
+      version: undefined,
+    } as unknown as T.RPCGen.BootstrapStatus)
+
+    await useDaemonState.getState().dispatch.loadDaemonBootstrapStatus()
+
+    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:1')
+    expect(useDaemonState.getState().bootstrapStatus?.username).toBe('testuser')
+
+    useConfigState.getState().dispatch.onEngineIncoming({
+      payload: {params: {}},
+      type: 'keybase.1.NotifySession.loggedOut',
+    } as any)
+    expect(useConfigState.getState().loggedIn).toBe(false)
+  })
+
+  test('a superseded read does not swallow a later session notification', async () => {
+    // it can read a version at least as new as the winner's; consuming it and then throwing the
+    // status away would leave nothing to apply that version's state
+    useConfigState.setState({loggedIn: true})
+    const superseded = deferredBootstrap()
+    jest
+      .spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise')
+      .mockReturnValueOnce(superseded.promise)
+      .mockResolvedValue({...bootstrapStatus, version: 5})
+    const {dispatch} = useDaemonState.getState()
+    dispatch.initBootstrapSteps([])
+
+    const losing = dispatch.loadDaemonBootstrapStatus()
+    // a new handshake starts its own load instead of reusing the in-flight one
+    dispatch.startHandshake()
+    await jest.advanceTimersByTimeAsync(0)
+    superseded.resolve({...bootstrapStatus, username: 'stale', version: 9})
+    await losing
+    await jest.advanceTimersByTimeAsync(0)
+    expect(useDaemonState.getState().bootstrapStatus?.username).toBe('testuser')
+
+    notifySession('loggedOut', 9)
     expect(useConfigState.getState().loggedIn).toBe(false)
   })
 })

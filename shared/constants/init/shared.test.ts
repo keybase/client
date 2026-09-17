@@ -93,38 +93,63 @@ describe('onEngineConnected', () => {
     })
   }
 
-  test('the handshake starts only once the notification subscription resolves', async () => {
-    stubRegistrations()
-    const startHandshake = jest.fn()
-    useDaemonState.setState({dispatch: {...originalDaemonDispatch, startHandshake}})
+  const deferredSubscription = () => {
     let subscribed!: () => void
     jest.spyOn(T.RPCGen, 'notifyCtlSetNotificationsRpcPromise').mockReturnValue(
       new Promise<void>(resolve => {
         subscribed = resolve
       })
     )
+    return () => subscribed()
+  }
+  // config's onEngineConnected, which resets the applied versions, is stubbed out here, so each
+  // test reads a version newer than the last one applied
+  let version = 0
+  const spyOnBootstrap = () =>
+    jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue({
+      httpSrvInfo: {address: '127.0.0.1:2000', token: 'token'},
+      loggedIn: true,
+      version: ++version,
+    } as T.RPCGen.BootstrapStatus)
+
+  test('a reconnect clears the disconnect state at once, before the subscription resolves', () => {
+    stubRegistrations()
+    useDaemonState.setState({error: new Error('Disconnected'), handshakeState: 'failed'})
+    deferredSubscription()
+    spyOnBootstrap()
+
+    onEngineConnected()
+
+    expect(useDaemonState.getState().error).toBe(undefined)
+    expect(useDaemonState.getState().handshakeState).toBe('loading')
+  })
+
+  test('the bootstrap read starts only once the notification subscription resolves', async () => {
+    stubRegistrations()
+    const subscribed = deferredSubscription()
+    const bootstrap = spyOnBootstrap()
 
     onEngineConnected()
     await Promise.resolve()
-    expect(startHandshake).not.toHaveBeenCalled()
+    expect(bootstrap).not.toHaveBeenCalled()
 
     subscribed()
     await new Promise(resolve => setImmediate(resolve))
 
-    expect(startHandshake).toHaveBeenCalledTimes(1)
+    expect(bootstrap).toHaveBeenCalledTimes(1)
+    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:2000')
   })
 
-  test('the handshake still starts when the subscription fails', async () => {
+  test('the bootstrap read still runs when the subscription fails', async () => {
     stubRegistrations()
-    const startHandshake = jest.fn()
-    useDaemonState.setState({dispatch: {...originalDaemonDispatch, startHandshake}})
     jest
       .spyOn(T.RPCGen, 'notifyCtlSetNotificationsRpcPromise')
       .mockRejectedValue(new Error('no notifications'))
+    const bootstrap = spyOnBootstrap()
 
     onEngineConnected()
     await new Promise(resolve => setImmediate(resolve))
 
-    expect(startHandshake).toHaveBeenCalledTimes(1)
+    expect(bootstrap).toHaveBeenCalledTimes(1)
   })
 })

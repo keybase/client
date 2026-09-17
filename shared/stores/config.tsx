@@ -92,9 +92,9 @@ const initialStore: Store = {
 export type State = Store & {
   dispatch: {
     // a login or logout notification: applied only if it is newer than the last applied one
-    acceptSessionVersion: (version: number) => boolean
+    acceptSessionVersion: (version: number | undefined) => boolean
     // a bootstrap status: applied unless a login or logout notification is newer
-    acceptSessionSnapshot: (version: number) => boolean
+    acceptSessionSnapshot: (version: number | undefined) => boolean
     checkForUpdate: () => void
     initAppUpdateLoop: () => void
     installerRan: () => void
@@ -117,7 +117,7 @@ export type State = Store & {
     setDefaultUsername: (u: string) => void
     setGlobalError: (e?: unknown) => void
     setGregorReachable: (r: Store['gregorReachable']) => void
-    setHTTPSrvInfo: (address: string, token: string, version: number) => void
+    setHTTPSrvInfo: (address: string, token: string, version: number | undefined) => void
     setJustDeletedSelf: (s: string) => void
     setLoggedIn: (l: boolean) => void
     setStartupDetails: (st: Omit<Store['startup'], 'loaded'>) => void
@@ -132,15 +132,28 @@ export type State = Store & {
 // Below every version the service can hand out: it can hand out 0, because the http server
 // starts before the notify router exists and its first update stamps nothing.
 const noVersionApplied = -1
+const nothingApplied = () => ({http: noVersionApplied, session: noVersionApplied})
 
 export const useConfigState = Z.createZustand<State>('config', (set, get) => {
   let inflightRefreshAccounts: Promise<void> | undefined
   // The http server address and the session change at any time and say so with versioned
   // notifications, while a bootstrap status read can take seconds. The service stamps both from
-  // one counter, so only a newer version wins. A new engine connection may be a restarted
-  // service, so both start over.
-  let httpSrvVersion = noVersionApplied
-  let sessionVersion = noVersionApplied
+  // one counter, so only a newer version wins.
+  let applied = nothingApplied()
+  // A notification must be strictly newer than what we applied. A bootstrap status may carry the
+  // version of a notification we already applied, since that is the same state read again.
+  const acceptVersion = (
+    kind: 'http' | 'session',
+    version: number | undefined,
+    source: 'notification' | 'status'
+  ) => {
+    // a service too old to send a version gives us nothing to order by, so everything it sends is
+    // applied in the order it arrives, as it was before versions existed
+    if (version === undefined) return true
+    if (source === 'status' ? version < applied[kind] : version <= applied[kind]) return false
+    applied[kind] = version
+    return true
+  }
 
   const _checkForUpdate = async () => {
     try {
@@ -200,16 +213,8 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
   }
 
   const dispatch: State['dispatch'] = {
-    acceptSessionSnapshot: version => {
-      if (version < sessionVersion) return false
-      sessionVersion = version
-      return true
-    },
-    acceptSessionVersion: version => {
-      if (version <= sessionVersion) return false
-      sessionVersion = version
-      return true
-    },
+    acceptSessionSnapshot: version => acceptVersion('session', version, 'status'),
+    acceptSessionVersion: version => acceptVersion('session', version, 'notification'),
     checkForUpdate: () => {
       const f = async () => {
         await _checkForUpdate()
@@ -341,8 +346,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
     },
     onEngineConnected: () => {
       // this may be a restarted service, whose versions start over
-      httpSrvVersion = noVersionApplied
-      sessionVersion = noVersionApplied
+      applied = nothingApplied()
       // An engine reset drops in-flight RPCs without settling their promises; a refresh
       // caught by that would poison the dedupe cache forever
       inflightRefreshAccounts = undefined
@@ -565,11 +569,12 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       setGregorReachable(r)
     },
     setHTTPSrvInfo: (address, token, version) => {
-      if (version <= httpSrvVersion) {
+      // the notification rule, for the status too: a status whose version ties the notification we
+      // applied carries that notification's address, so nothing is lost by ignoring it
+      if (!acceptVersion('http', version, 'notification')) {
         logger.info(`[HTTPSrv] ignoring ${address}: version ${version} is not newer`)
         return
       }
-      httpSrvVersion = version
       set(s => {
         s.httpSrv.address = address
         s.httpSrv.token = token
