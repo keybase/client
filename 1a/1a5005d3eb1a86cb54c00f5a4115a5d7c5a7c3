@@ -1,0 +1,46 @@
+go/service/main.go
+  s_853e2d28c2e344::t_d628a2707ffa95 178-179,487,1026-1027
+  s_853e2d28c2e344::t_258ad0d2916d3c 1028
+go/chat/session_rpc_test.go
+  s_853e2d28c2e344::t_d628a2707ffa95 1-35
+go/service/chat_session_protocol_test.go
+  s_853e2d28c2e344::t_d628a2707ffa95 1-41
+go/chat/storage/inbox.go
+  s_853e2d28c2e344::t_d628a2707ffa95 205-207,272-274
+go/chat/localizer.go
+  s_853e2d28c2e344::t_d628a2707ffa95 329-332,557-559
+go/chat/uiinboxloader.go
+  s_853e2d28c2e344::t_d628a2707ffa95 16,126-135,151,160,186,193-195,201-205,208-211,216,236-239,243-245,249,279-282,288,295-298,336-340,352-357,723-726,732,741-744,859-862,896-898
+go/service/canceling.go
+  s_853e2d28c2e344::t_d628a2707ffa95 6,11-29
+  s_853e2d28c2e344::t_e082e6224c9fba 30
+go/chat/globals/session.go
+  s_853e2d28c2e344::t_d628a2707ffa95 1-77
+go/chat/globals/session_test.go
+  s_853e2d28c2e344::t_d628a2707ffa95 1-32
+go/chat/globals/context.go
+  s_853e2d28c2e344::t_d628a2707ffa95 255-257,287-289
+go/chat/globals/globals.go
+  s_853e2d28c2e344::t_d628a2707ffa95 7,56-59
+go/chat/retry.go
+  s_853e2d28c2e344::t_d628a2707ffa95 302
+go/chat/uiinboxloader_test.go
+  s_853e2d28c2e344::t_d628a2707ffa95 10,535-555
+  s_853e2d28c2e344::t_4d62e60a844bf3 556
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "1a1a5005d3eb1a86cb54c00f5a4115a5d7c5a7c3",
+  "prompts": {},
+  "sessions": {
+    "s_853e2d28c2e344": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d5a3add1-5cdb-47ca-a334-54991bf7ad5e",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
