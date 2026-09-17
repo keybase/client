@@ -34,8 +34,9 @@ import {
 // - "+ LiveLocationTracker: updateMapUnfurl" when Go posts the location to the conversation,
 // - "LiveLocationTracker: restoreLocked: restored <n> trackers" when a relaunch restores sharing,
 // - "lifecycle: acquire: liveLocation hold " when a fix holds a backgrounded app up.
-// The relaunch flow also reads Metro's start.log: a background launch must start no JS at all,
-// so neither a bundle request nor a JS log line may appear while it runs.
+// The relaunch flow also reads Metro's start.log: a background launch must start no JS at all, so
+// neither a bundle request nor a JS log line may appear while it runs, and activating the app
+// afterwards must make both appear from the same mark.
 // And in the app's unified log (com.keybase.app, category location): "starting location updates"
 // and "stopping location updates" when the Swift watcher turns the OS service on and off.
 // The posted map itself never renders here: the maps server rejects the render request, so the
@@ -66,9 +67,6 @@ const sendCommand = async (text: string) => {
 describe('app lifecycle: live location', () => {
   let convID = ''
   let sharing = false
-  // Taken when the background relaunch starts, and read again once a scene starts the app, so
-  // the "no JS ran" assertions can't pass because nothing reaches start.log at all.
-  let relaunchMetroMark: ReturnType<typeof metroLogMark> | undefined
 
   before(() => {
     const udid = deviceUdid()
@@ -131,14 +129,14 @@ describe('app lifecycle: live location', () => {
   })
 
   it('a move relaunches the app after it was killed and posts from the background', async function () {
-    // iOS delivers significant location changes on its own schedule: seconds to minutes.
-    this.timeout(420000)
+    // iOS delivers significant location changes on its own schedule: seconds to minutes. The
+    // budget covers all three waits below: the relaunch, the Go log, and the control's activation.
+    this.timeout(510000)
     await terminateApp()
     const goMark = goLogMark()
     // start.log is shared by every device attached to Metro, so this device must be the only
     // one running while the relaunch is watched.
     const metroMark = metroLogMark()
-    relaunchMetroMark = metroMark
     setLocation(moves[2]!.lat, moves[2]!.lon)
 
     // iOS relaunches the app in the background for the significant location change.
@@ -163,6 +161,13 @@ describe('app lifecycle: live location', () => {
     // No scene connected, so React Native never started: no bundle request and no JS logging.
     expect(metroBundlingStartedSince(metroMark)).toEqual([])
     expect(metroClientLogSince(metroMark)).toEqual([])
+
+    // Control: starting a scene makes both readers, from that same mark, see the JS start they
+    // just reported absent, so neither can go quietly blind.
+    await activateApp()
+    await waitForAppState('active', undefined, 90000)
+    expect(metroBundlingStartedSince(metroMark).length).toBeGreaterThan(0)
+    expect(metroClientLogSince(metroMark).length).toBeGreaterThan(0)
   })
 
   it('stops sharing, stops the OS location service, and a move no longer relaunches the app', async function () {
@@ -170,8 +175,6 @@ describe('app lifecycle: live location', () => {
     const user = requireSmokeUser()
     await activateApp()
     await waitForAppState('active', undefined, 90000)
-    // The scene did start React Native, from the same mark the relaunch read as empty.
-    expect(metroClientLogSince(relaunchMetroMark!).length).toBeGreaterThan(0)
     await openSelfConversation(user)
     const goMark = goLogMark()
     const since = new Date(Date.now() - 1000)

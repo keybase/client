@@ -29,9 +29,10 @@ const load = (platform: 'ios' | 'android'): typeof Init => {
         defineTask: () => {
           calls.push('defineTask')
         },
+        // Registered until it is unregistered, like the real task store.
         isTaskRegisteredAsync: async () => {
           calls.push('isTaskRegistered')
-          return Promise.resolve(true)
+          return Promise.resolve(!calls.includes('unregisterTask'))
         },
         unregisterTaskAsync: async () => {
           calls.push('unregisterTask')
@@ -110,11 +111,14 @@ test('Android asks for permission and runs the expo location task', async () => 
   ])
 })
 
-test('iOS removes the legacy expo background location task', async () => {
+// The second run stands for every launch after the cleanup: unregistering a task that is gone
+// throws E_TASK_NOT_FOUND, so it must not be asked for again.
+test('iOS removes the legacy expo background location task once', async () => {
   const init = load('ios')
   await init.unregisterLegacyIOSLocationTask()
+  await init.unregisterLegacyIOSLocationTask()
 
-  expect(calls).toEqual(['isTaskRegistered', 'unregisterTask'])
+  expect(calls).toEqual(['isTaskRegistered', 'unregisterTask', 'isTaskRegistered'])
 })
 
 test('Android keeps its expo background location task', async () => {
