@@ -890,16 +890,16 @@ func (g *gregorHandler) isCurrentConn(conn *rpc.Connection) bool {
 // onGateIfCurrent runs f under the connection gate if conn is still the
 // current connection, and reports whether it ran. Every Shutdown and Reset is
 // made under the gate too, so a disconnect lands entirely before f, and f is
-// then skipped, or entirely after it.
+// then skipped, or entirely after it. f must not call back into the gate: its
+// mutex is not reentrant. The lock order is the gate's mu, then connMutex.
 func (g *gregorHandler) onGateIfCurrent(conn *rpc.Connection, f func()) bool {
-	ran := false
-	g.connGate.do(func() {
-		if g.isCurrentConn(conn) {
-			f()
-			ran = true
-		}
-	})
-	return ran
+	g.connGate.mu.Lock()
+	defer g.connGate.mu.Unlock()
+	if !g.isCurrentConn(conn) {
+		return false
+	}
+	f()
+	return true
 }
 
 // connectSyncer marks the chat syncer connected for conn and syncs it.

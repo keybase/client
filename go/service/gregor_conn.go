@@ -83,16 +83,6 @@ func newGregorConnGate(mobile gregorAppState, desktop *libkb.DesktopAppState, co
 	}
 }
 
-// do runs f under the gate, so it cannot interleave with a connect, a reset,
-// a reconnect or a reconcile, and so with none of the Shutdowns and Resets
-// those make. f must not call back into the gate: mu is not reentrant. The
-// lock order is mu, then the handler's connMutex.
-func (c *gregorConnGate) do(f func()) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	f()
-}
-
 func (c *gregorConnGate) canConnect(state keybase1.MobileAppState) bool {
 	return state != keybase1.MobileAppState_BACKGROUND
 }
