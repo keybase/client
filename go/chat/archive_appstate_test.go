@@ -19,7 +19,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/sync/errgroup"
 )
 
 // archiveJobRunner stands in for ChatArchiver: a launched job waits for
@@ -113,20 +112,6 @@ func archiveStatuses(r *ChatArchiveRegistry) (statuses map[chat1.ArchiveJobID]ch
 	return statuses, len(r.runningJobs)
 }
 
-func waitArchiveMonitor(t *testing.T, r *ChatArchiveRegistry) {
-	t.Helper()
-	require.Eventually(t, func() bool {
-		r.Lock()
-		w := r.watcher
-		r.Unlock()
-		if w == nil {
-			return false
-		}
-		_, caughtUp := w.CaughtUp()
-		return caughtUp
-	}, 10*time.Second, time.Millisecond, "monitor did not catch up")
-}
-
 func requireArchiveStopped(t *testing.T, r *ChatArchiveRegistry) {
 	t.Helper()
 	select {
@@ -199,8 +184,80 @@ func TestArchiveConcurrentResumesLaunchOnce(t *testing.T) {
 	requireArchiveJobsPaused(t, r, runner)
 }
 
-// A pause that lands after a job launched, but before it registered, pauses
-// it on registration.
+// A job launched by one resume, passed over by a pause because it had not
+// registered yet, and skipped by the next resume because it was still
+// launching, runs once it registers in the foreground.
+func TestArchiveRelaunchAfterPauseWhileLaunching(t *testing.T) {
+	r, runner, tc := setupAppStateArchive(t, false)
+	stopCh := make(chan struct{})
+	r.Lock()
+	r.started = true
+	r.stopCh = stopCh
+	r.Unlock()
+	defer close(stopCh)
+	ctx := context.Background()
+
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
+	require.NoError(t, r.resumeAllBgJobs(ctx, stopCh))
+	for range archiveTestJobIDs {
+		select {
+		case <-runner.launched:
+		case <-time.After(10 * time.Second):
+			require.FailNow(t, "jobs did not launch")
+		}
+	}
+
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
+	r.Lock()
+	require.NoError(t, r.bgPauseAllJobsLocked(ctx))
+	r.Unlock()
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
+	require.NoError(t, r.resumeAllBgJobs(ctx, stopCh))
+	launches, _ := runner.counts()
+	for _, id := range archiveTestJobIDs {
+		require.Equal(t, 1, launches[id], "launches of %v", id)
+	}
+
+	close(runner.release)
+	requireArchiveJobsRunning(t, r)
+	r.Lock()
+	require.NoError(t, r.bgPauseAllJobsLocked(ctx))
+	r.Unlock()
+	requireArchiveJobsPaused(t, r, runner)
+}
+
+// A job that registers as running while the app is not in the foreground is
+// paused at once, and resumes on the next FOREGROUND.
+func TestArchiveSetWhileInactivePauses(t *testing.T) {
+	r, _, tc := setupAppStateArchive(t, true)
+	ctx := context.Background()
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_INACTIVE)
+	r.Start(ctx, gregor1.UID([]byte{1, 2, 3, 4}))
+	defer requireArchiveStopped(t, r)
+
+	jobID := chat1.ArchiveJobID("job-manual")
+	paused := make(chan struct{})
+	var once sync.Once
+	job := chat1.ArchiveChatJob{
+		Request: chat1.ArchiveChatJobRequest{JobID: jobID},
+		Status:  chat1.ArchiveChatJobStatus_RUNNING,
+	}
+	require.NoError(t, r.Set(ctx, func() { once.Do(func() { close(paused) }) }, job))
+	select {
+	case <-paused:
+	default:
+		require.FailNow(t, "Set did not pause the job")
+	}
+	statuses, running := archiveStatuses(r)
+	require.Equal(t, chat1.ArchiveChatJobStatus_BACKGROUND_PAUSED, statuses[jobID])
+	require.Zero(t, running)
+
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
+	requireArchiveJobsRunning(t, r)
+}
+
+// A pause that lands while launched jobs have not registered yet leaves them
+// paused once they do, and the next FOREGROUND resumes them.
 func TestArchivePauseBeforeRegistration(t *testing.T) {
 	r, runner, tc := setupAppStateArchive(t, false)
 	r.Start(context.TODO(), gregor1.UID([]byte{1, 2, 3, 4}))
@@ -212,9 +269,7 @@ func TestArchivePauseBeforeRegistration(t *testing.T) {
 			require.FailNow(t, "jobs did not launch")
 		}
 	}
-	waitArchiveMonitor(t, r)
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
-	waitArchiveMonitor(t, r)
 	close(runner.release)
 	requireArchiveJobsPaused(t, r, runner)
 
@@ -222,90 +277,115 @@ func TestArchivePauseBeforeRegistration(t *testing.T) {
 	requireArchiveJobsRunning(t, r)
 }
 
-// A resume whose delay fired as its run stopped must not launch jobs in the
+// A resume whose timer fired as its run stopped must not launch jobs in the
 // run, possibly another user's, that started next; that run resumes on its
-// own schedule. The context is left uncanceled: the stopped run's monitor may
-// not have exited to cancel it yet.
+// own schedule.
 func TestArchiveStaleResumeAfterRestart(t *testing.T) {
-	r, runner, _ := setupAppStateArchive(t, true)
-	oldStopCh := make(chan struct{})
+	r, _, _ := setupAppStateArchive(t, true)
+	r.resumeJobsDelay = time.Hour
+	r.Start(context.TODO(), gregor1.UID([]byte{1, 2, 3, 4}))
 	r.Lock()
-	r.started = true
-	r.stopCh = oldStopCh
+	oldStopCh := r.stopCh
 	r.Unlock()
-	r.beforeResumeDecision = func() {
-		r.Lock()
-		r.started = false
-		close(oldStopCh)
-		r.Unlock()
-		r.resumeJobsDelay = time.Hour
-		r.Start(context.TODO(), gregor1.UID([]byte{5, 6, 7, 8}))
-	}
-	require.NoError(t, r.resumeAllBgJobs(context.Background(), oldStopCh))
+	requireArchiveStopped(t, r)
+	r.Start(context.TODO(), gregor1.UID([]byte{5, 6, 7, 8}))
 	defer requireArchiveStopped(t, r)
-	select {
-	case id := <-runner.launched:
-		require.FailNow(t, fmt.Sprintf("stale resume launched %v", id))
-	case <-time.After(300 * time.Millisecond):
-	}
+
+	require.NoError(t, r.resumeAllBgJobs(context.Background(), oldStopCh))
+	r.Lock()
+	defer r.Unlock()
+	require.Empty(t, r.launching, "stale resume launched jobs")
 }
 
-// A resume whose delay fires just as a plain Stop, with no Start following
-// it, takes the lock must not launch jobs: there is no live run left to
+// A resume whose timer fired just as a plain Stop, with no Start following
+// it, took the lock must not launch jobs: there is no live run left to
 // launch them into.
 func TestArchiveResumeAfterPlainStopLaunchesNothing(t *testing.T) {
-	r, runner, _ := setupAppStateArchive(t, true)
+	r, _, _ := setupAppStateArchive(t, true)
+	r.resumeJobsDelay = time.Hour
+	r.Start(context.TODO(), gregor1.UID([]byte{1, 2, 3, 4}))
+	r.Lock()
+	stopCh := r.stopCh
+	r.Unlock()
+	requireArchiveStopped(t, r)
+
+	require.NoError(t, r.resumeAllBgJobs(context.Background(), stopCh))
+	r.Lock()
+	defer r.Unlock()
+	require.Empty(t, r.launching, "resumed after a plain Stop")
+}
+
+// A launch that ends after a later launch of the same job started must not
+// clear the later one's entry, or the next resume starts the job again
+// before the later launch registers.
+func TestArchiveEndedLaunchKeepsLaterLaunch(t *testing.T) {
+	r, _, _ := setupAppStateArchive(t, true)
+	jobID := archiveTestJobIDs[0]
+	r.jobHistory.JobHistory = map[chat1.ArchiveJobID]chat1.ArchiveChatJob{jobID: {
+		Request: chat1.ArchiveChatJobRequest{JobID: jobID},
+		Status:  chat1.ArchiveChatJobStatus_BACKGROUND_PAUSED,
+	}}
+	var mu sync.Mutex
+	launches := 0
+	firstExit := make(chan struct{})
+	secondLaunched := make(chan struct{})
+	secondRelease := make(chan struct{})
+	r.runJob = func(ctx context.Context, uid gregor1.UID, req chat1.ArchiveChatJobRequest) error {
+		mu.Lock()
+		launches++
+		n := launches
+		mu.Unlock()
+		switch n {
+		case 1:
+			pauseCh := make(chan struct{})
+			job := chat1.ArchiveChatJob{Request: req, Status: chat1.ArchiveChatJobStatus_RUNNING}
+			if err := r.Set(ctx, func() { close(pauseCh) }, job); err != nil {
+				return err
+			}
+			<-pauseCh
+			<-firstExit
+		case 2:
+			close(secondLaunched)
+			<-secondRelease
+		}
+		return nil
+	}
+	launchCount := func() int {
+		mu.Lock()
+		defer mu.Unlock()
+		return launches
+	}
 	stopCh := make(chan struct{})
 	r.Lock()
 	r.started = true
 	r.stopCh = stopCh
-	r.eg = new(errgroup.Group)
 	r.Unlock()
+	defer close(stopCh)
+	ctx := context.Background()
 
-	reached := make(chan struct{})
-	release := make(chan struct{})
-	r.beforeResumeDecision = func() {
-		close(reached)
-		<-release
-	}
-
-	resumeDone := make(chan error, 1)
-	go func() {
-		resumeDone <- r.resumeAllBgJobs(context.Background(), stopCh)
-	}()
-
-	<-reached
-	// Stop takes the lock first, because the resume goroutine is parked in
-	// beforeResumeDecision, not yet at r.Lock().
-	stopDone := make(chan struct{})
-	go func() {
-		<-r.Stop(context.Background())
-		close(stopDone)
-	}()
+	require.NoError(t, r.resumeAllBgJobs(ctx, stopCh))
+	require.Eventually(t, func() bool {
+		_, running := archiveStatuses(r)
+		return running == 1
+	}, 10*time.Second, time.Millisecond, "first launch did not register")
+	r.Lock()
+	require.NoError(t, r.bgPauseAllJobsLocked(ctx))
+	r.Unlock()
+	require.NoError(t, r.resumeAllBgJobs(ctx, stopCh))
 	select {
-	case <-stopDone:
+	case <-secondLaunched:
 	case <-time.After(10 * time.Second):
-		require.FailNow(t, "Stop did not finish")
-	}
-	close(release)
-
-	// Before the fix, this check's identity comparison can't tell a plain
-	// Stop apart from a still-live run (Stop closes stopCh but never
-	// replaces it), so resumeAllBgJobs falls through to initLocked and gets
-	// a spurious "not started" error instead of cleanly recognizing the run
-	// is over.
-	select {
-	case err := <-resumeDone:
-		require.NoError(t, err)
-	case <-time.After(10 * time.Second):
-		require.FailNow(t, "resumeAllBgJobs did not return")
+		require.FailNow(t, "second launch did not start")
 	}
 
-	select {
-	case id := <-runner.launched:
-		require.FailNow(t, fmt.Sprintf("resumed %v after a plain Stop", id))
-	case <-time.After(500 * time.Millisecond):
-	}
+	close(firstExit)
+	require.Never(t, func() bool {
+		if err := r.resumeAllBgJobs(ctx, stopCh); err != nil {
+			return true
+		}
+		return launchCount() > 2
+	}, 300*time.Millisecond, 10*time.Millisecond, "job launched again before its launch registered")
+	close(secondRelease)
 }
 
 func TestArchiveStartInBackgroundDoesNotResume(t *testing.T) {
@@ -317,7 +397,6 @@ func TestArchiveStartInBackgroundDoesNotResume(t *testing.T) {
 	} {
 		tc.G.MobileAppState.Update(state)
 		r.Start(context.TODO(), gregor1.UID([]byte{1, 2, 3, 4}))
-		waitArchiveMonitor(t, r)
 		select {
 		case id := <-runner.launched:
 			require.FailNow(t, fmt.Sprintf("resumed %v at a Start in %v", id, state))
@@ -328,7 +407,6 @@ func TestArchiveStartInBackgroundDoesNotResume(t *testing.T) {
 
 	r.Start(context.TODO(), gregor1.UID([]byte{1, 2, 3, 4}))
 	defer requireArchiveStopped(t, r)
-	waitArchiveMonitor(t, r)
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	requireArchiveJobsRunning(t, r)
 	launches, _ := runner.counts()
@@ -344,7 +422,6 @@ func TestArchiveScenarioReplay(t *testing.T) {
 			r.Start(context.TODO(), gregor1.UID([]byte{1, 2, 3, 4}))
 			defer requireArchiveStopped(t, r)
 			lifecycletest.Play(t, tc.G.MobileAppState, sc, func(h *lifecycletest.Harness, i int, step lifecycletest.Step) {
-				waitArchiveMonitor(t, r)
 				if step.Want == keybase1.MobileAppState_FOREGROUND {
 					requireArchiveJobsRunning(t, r)
 				} else {
@@ -355,28 +432,8 @@ func TestArchiveScenarioReplay(t *testing.T) {
 	}
 }
 
-// Each FOREGROUND schedules a resume that the next transition cancels while
-// it waits out its delay; the canceled resume must still see its own context.
-func TestArchiveCanceledResumesKeepTheirContext(t *testing.T) {
-	r, runner, tc := setupAppStateArchive(t, true)
-	r.resumeJobsDelay = time.Hour
-	r.Start(context.TODO(), gregor1.UID([]byte{1, 2, 3, 4}))
-	for range 20 {
-		for _, state := range []keybase1.MobileAppState{
-			keybase1.MobileAppState_INACTIVE,
-			keybase1.MobileAppState_FOREGROUND,
-		} {
-			tc.G.MobileAppState.Update(state)
-			waitArchiveMonitor(t, r)
-		}
-	}
-	requireArchiveStopped(t, r)
-	launches, _ := runner.counts()
-	require.Empty(t, launches)
-}
-
-// Rapid transitions race resumes against pauses and the monitor's resume
-// contexts against the goroutines using them.
+// Rapid transitions race resumes against pauses, and Starts and Stops against
+// the loop.
 func TestArchiveAppStateStress(t *testing.T) {
 	r, runner, tc := setupAppStateArchive(t, true)
 	// Pauses flush, and the first flush opens the local db and its goroutines.
@@ -431,7 +488,6 @@ func TestArchiveAppStateStress(t *testing.T) {
 
 	r.Start(context.TODO(), uid)
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
-	waitArchiveMonitor(t, r)
 	requireArchiveJobsPaused(t, r, runner)
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	requireArchiveJobsRunning(t, r)

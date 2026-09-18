@@ -42,35 +42,26 @@ type ChatArchiveRegistry struct {
 	flushDelay      time.Duration
 	stopCh          chan struct{}
 	clock           clockwork.Clock
-	// eg holds the current run's goroutines. Each run gets its own, since
-	// Stop waits on it from a goroutine and a Group cannot be added to
-	// while somebody waits on it.
+	// eg holds the current run's loop. Each run gets its own, since Stop
+	// waits on it from a goroutine and a Group cannot be added to while
+	// somebody waits on it.
 	eg *errgroup.Group
 	// Changes to flush to disk?
 	dirty        bool
 	remoteClient func() chat1.RemoteInterface
 	runningJobs  map[chat1.ArchiveJobID]types.PauseArchiveFn
 	// launching holds jobs started by a resume that have not registered as
-	// running yet, so an overlapping resume does not start them again.
-	launching map[chat1.ArchiveJobID]*archiveLaunch
-	// pauseEpoch counts background pauses. A launched job that registers
-	// after one is paused right away, since the pause could not reach it.
-	pauseEpoch uint64
-	// watcher is the current run's app-state watcher, nil between runs.
-	watcher *libkb.AppStateWatcher
+	// running yet, so an overlapping resume does not start them again. Each
+	// entry is its launch's number, so a launch that ends clears only its
+	// own entry and never that of a later launch of the same job.
+	launching  map[chat1.ArchiveJobID]uint64
+	lastLaunch uint64
 	// runJob, if set, runs a launched job in place of a ChatArchiver. Tests
 	// only.
 	runJob func(ctx context.Context, uid gregor1.UID, req chat1.ArchiveChatJobRequest) error
-	// beforeResumeDecision, if set, runs in resumeAllBgJobs after its delay
-	// and before it takes the lock. Tests only.
-	beforeResumeDecision func()
 
 	edb        *encrypteddb.EncryptedDB
 	jobHistory chat1.ArchiveChatHistory
-}
-
-type archiveLaunch struct {
-	pauseEpoch uint64
 }
 
 type ArchiveJobNotFoundError struct {
@@ -101,7 +92,7 @@ func NewChatArchiveRegistry(g *globals.Context, remoteClient func() chat1.Remote
 		clock:        clockwork.NewRealClock(),
 		flushDelay:   15 * time.Second,
 		runningJobs:  make(map[chat1.ArchiveJobID]types.PauseArchiveFn),
-		launching:    make(map[chat1.ArchiveJobID]*archiveLaunch),
+		launching:    make(map[chat1.ArchiveJobID]uint64),
 		jobHistory:   chat1.ArchiveChatHistory{JobHistory: make(map[chat1.ArchiveJobID]chat1.ArchiveChatJob)},
 		edb:          encrypteddb.New(g.ExternalG(), dbFn, keyFn),
 	}
@@ -157,41 +148,64 @@ func (r *ChatArchiveRegistry) flushLocked(ctx context.Context) error {
 	return nil
 }
 
-func (r *ChatArchiveRegistry) flushLoop(stopCh chan struct{}) error {
+func (r *ChatArchiveRegistry) flush(ctx context.Context) {
+	var err error
+	defer r.Trace(ctx, &err, "flush")()
+	r.Lock()
+	defer r.Unlock()
+	err = r.flushLocked(ctx)
+}
+
+func (r *ChatArchiveRegistry) bgPauseAllJobs(ctx context.Context) {
+	r.Lock()
+	defer r.Unlock()
+	_ = r.bgPauseAllJobsLocked(ctx)
+}
+
+// loop runs one run of the registry until stopCh closes: it flushes on a
+// timer, pauses running jobs whenever the app leaves the foreground, and
+// resumes paused jobs once the app has been in the foreground for
+// resumeJobsDelay.
+func (r *ChatArchiveRegistry) loop(stopCh chan struct{}, state keybase1.MobileAppState) error {
 	ctx := context.Background()
-	r.Debug(ctx, "flushLoop: starting")
+	r.Debug(ctx, "loop: starting in %v", state)
+	defer r.Debug(ctx, "loop: shutting down")
+	flushCh := r.clock.After(r.flushDelay)
+	resume := time.NewTimer(r.resumeJobsDelay)
+	if state != keybase1.MobileAppState_FOREGROUND {
+		resume.Stop()
+	}
+	// changed is refreshed only when the loop reads a new state: a resume
+	// can skip on a state the loop has not seen yet, and a fresh NextUpdate
+	// taken after the state came back would miss that change.
+	changed := r.G().MobileAppState.NextUpdate(state)
 	for {
 		select {
 		case <-stopCh:
-			r.Debug(ctx, "flushLoop: shutting down")
 			return nil
-		case <-r.clock.After(r.flushDelay):
-			func() {
-				var err error
-				defer r.Trace(ctx, &err, "flushLoop")()
-				r.Lock()
-				defer r.Unlock()
-				err = r.flushLocked(ctx)
-				if err != nil {
-					r.Debug(ctx, "flushLoop: failed to flush: %s", err)
-				}
-			}()
+		case <-flushCh:
+			r.flush(ctx)
+			flushCh = r.clock.After(r.flushDelay)
+		case <-changed:
+			state = r.G().MobileAppState.State()
+			changed = r.G().MobileAppState.NextUpdate(state)
+			r.Debug(ctx, "loop: next state -> %v", state)
+			if state == keybase1.MobileAppState_FOREGROUND {
+				resume.Reset(r.resumeJobsDelay)
+			} else {
+				resume.Stop()
+				r.bgPauseAllJobs(ctx)
+			}
+		case <-resume.C:
+			if err := r.resumeAllBgJobs(ctx, stopCh); err != nil {
+				r.Debug(ctx, err.Error())
+			}
 		}
 	}
 }
 
 func (r *ChatArchiveRegistry) resumeAllBgJobs(ctx context.Context, stopCh chan struct{}) (err error) {
 	defer r.Trace(ctx, &err, "resumeAllBgJobs")()
-	select {
-	case <-stopCh:
-		return nil
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-time.After(r.resumeJobsDelay):
-	}
-	if r.beforeResumeDecision != nil {
-		r.beforeResumeDecision()
-	}
 	r.Lock()
 	defer r.Unlock()
 	// Stop closes stopCh under this lock, so a closed channel here means this
@@ -202,8 +216,6 @@ func (r *ChatArchiveRegistry) resumeAllBgJobs(ctx context.Context, stopCh chan s
 		return nil
 	default:
 	}
-	// Decide under the lock the monitor pauses under: a pause either comes
-	// first and is seen here, or bumps pauseEpoch and pauses what launches.
 	if state := r.G().MobileAppState.State(); state != keybase1.MobileAppState_FOREGROUND {
 		r.Debug(ctx, "resumeAllBgJobs: not resuming in %v", state)
 		return nil
@@ -228,7 +240,8 @@ func (r *ChatArchiveRegistry) launchLocked(ctx context.Context, req chat1.Archiv
 		r.Debug(ctx, "launch: %v is already starting", jobID)
 		return
 	}
-	launch := &archiveLaunch{pauseEpoch: r.pauseEpoch}
+	r.lastLaunch++
+	launch := r.lastLaunch
 	r.launching[jobID] = launch
 	uid, runJob := r.uid, r.runJob
 	go func() {
@@ -250,43 +263,8 @@ func (r *ChatArchiveRegistry) launchLocked(ctx context.Context, req chat1.Archiv
 	}()
 }
 
-func (r *ChatArchiveRegistry) monitorAppState(w *libkb.AppStateWatcher, stopCh chan struct{},
-	eg *errgroup.Group, state keybase1.MobileAppState, cancelInitialResume context.CancelFunc,
-) error {
-	// cancelResume cancels the resume scheduled for the last FOREGROUND.
-	cancelResume := cancelInitialResume
-	defer func() { cancelResume() }()
-	w.Run(state, stopCh, func(state keybase1.MobileAppState) bool {
-		r.Debug(context.Background(), "monitorAppState: next state -> %v", state)
-		cancelResume()
-		switch state {
-		case keybase1.MobileAppState_FOREGROUND:
-			ctx, cancel := context.WithCancel(context.Background())
-			cancelResume = cancel
-			eg.Go(func() error {
-				if err := r.resumeAllBgJobs(ctx, stopCh); err != nil {
-					r.Debug(ctx, err.Error())
-				}
-				return nil
-			})
-		default:
-			cancelResume = func() {}
-			func() {
-				ctx := context.Background()
-				var err error
-				defer r.Trace(ctx, &err, "monitorAppState")()
-				r.Lock()
-				defer r.Unlock()
-				err = r.bgPauseAllJobsLocked(ctx)
-			}()
-		}
-		return true
-	})
-	return nil
-}
-
 // Resumes previously BACKGROUND_PAUSED jobs, after a delay, if the app is in
-// the foreground by then.
+// the foreground.
 func (r *ChatArchiveRegistry) Start(ctx context.Context, uid gregor1.UID) {
 	defer r.Trace(ctx, nil, "Start")()
 	r.Lock()
@@ -298,25 +276,15 @@ func (r *ChatArchiveRegistry) Start(ctx context.Context, uid gregor1.UID) {
 	r.started = true
 	r.stopCh = make(chan struct{})
 	r.eg = new(errgroup.Group)
-	stopCh, eg := r.stopCh, r.eg
+	stopCh := r.stopCh
 	state := r.G().MobileAppState.State()
-	r.watcher = r.G().MobileAppState.NewWatcher()
-	w := r.watcher
-	resumeCtx, cancelResume := context.WithCancel(context.Background())
-	eg.Go(func() error {
-		return r.flushLoop(stopCh)
-	})
-	eg.Go(func() error {
-		return r.resumeAllBgJobs(resumeCtx, stopCh)
-	})
-	eg.Go(func() error {
-		return r.monitorAppState(w, stopCh, eg, state, cancelResume)
+	r.eg.Go(func() error {
+		return r.loop(stopCh, state)
 	})
 }
 
 func (r *ChatArchiveRegistry) bgPauseAllJobsLocked(ctx context.Context) (err error) {
 	defer r.Trace(ctx, &err, "bgPauseAllJobsLocked")()
-	r.pauseEpoch++
 	err = r.initLocked(ctx)
 	if err != nil {
 		return err
@@ -354,7 +322,6 @@ func (r *ChatArchiveRegistry) Stop(ctx context.Context) chan struct{} {
 		}
 		r.started = false
 		close(r.stopCh)
-		r.watcher = nil
 		eg := r.eg
 		go func() {
 			r.Debug(context.Background(), "Stop: waiting for shutdown")
@@ -470,14 +437,15 @@ func (r *ChatArchiveRegistry) Set(ctx context.Context, cancel types.PauseArchive
 		if cancel == nil {
 			break
 		}
-		if launch, ok := r.launching[jobID]; ok {
-			delete(r.launching, jobID)
-			if launch.pauseEpoch != r.pauseEpoch {
-				r.Debug(ctx, "Set: %v was paused while starting", jobID)
-				cancel()
-				job.Status = chat1.ArchiveChatJobStatus_BACKGROUND_PAUSED
-				break
-			}
+		delete(r.launching, jobID)
+		// The loop pauses running jobs under this lock when the app leaves
+		// the foreground. A job registering while the app is out of it came
+		// after that pause, so it is paused here.
+		if state := r.G().MobileAppState.State(); state != keybase1.MobileAppState_FOREGROUND {
+			r.Debug(ctx, "Set: pausing %v in %v", jobID, state)
+			cancel()
+			job.Status = chat1.ArchiveChatJobStatus_BACKGROUND_PAUSED
+			break
 		}
 		r.runningJobs[jobID] = cancel
 	}
