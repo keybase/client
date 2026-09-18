@@ -1,5 +1,6 @@
 import logger from '@/logger'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
+import {useSettingsPhoneState} from '@/stores/settings-phone'
 
 // Deep-link emission + URL normalization. Kept separate from './linking'
 // (which imports the config/push/current-user stores) so stores/push can enqueue
@@ -36,6 +37,16 @@ const normalizeHttpUrl = (url: string): string | undefined => {
     return action
       ? `keybase://team-page/${teamName}/${action}`
       : `keybase://team-page/${teamName}`
+  }
+
+  // /phone-app — the install link our own chat invite banner texts to an unresolved @phone
+  // participant (chat/conversation/bottom-banner.tsx). It is not a username, so it has to be
+  // carved out ahead of the single-segment rule below, which would otherwise open a profile
+  // for a user that does not exist. Nudge the invitee to add the number their inviter wrote
+  // to; skip the nudge once we know they already have one.
+  if (pathname === '/phone-app' || pathname === '/phone-app/') {
+    const phones = useSettingsPhoneState.getState().phones
+    return phones && phones.size > 0 ? undefined : 'keybase://settingsAddPhone'
   }
 
   // /username (single path segment)

@@ -44,7 +44,6 @@ type Store = T.Immutable<{
     // uid of the account that persisted `conversation` (from ui.routeState2).
     // Used to avoid replaying a conversation under a different account.
     conversationUid?: string
-    link: string
     tab?: Tab
   }
   userSwitching: boolean
@@ -80,7 +79,6 @@ const initialStore: Store = {
   revokedTrigger: 0,
   startup: {
     conversation: noConversationIDKey,
-    link: '',
     loaded: false,
   },
   userSwitching: false,

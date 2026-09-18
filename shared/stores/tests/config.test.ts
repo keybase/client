@@ -16,7 +16,6 @@ const resetConfigState = () => {
     },
     startup: {
       conversation: noConversationIDKey,
-      link: '',
       loaded: false,
     },
     userSwitching: false,

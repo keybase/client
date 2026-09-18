@@ -239,6 +239,11 @@ const customGetStateFromPath = (
     case 'settingsPushPrompt':
       return makeModalState('settingsPushPrompt')
 
+    // keybase://settingsAddPhone — where https://keybase.io/phone-app lands. Settings sits
+    // under the modal so dismissing it leaves the invitee somewhere they can find it again.
+    case 'settingsAddPhone':
+      return makeModalState('settingsAddPhone', undefined, Tabs.settingsTab)
+
     // Tab switches: keybase://tabs.chatTab, etc.
     case Tabs.chatTab:
     case Tabs.peopleTab:

@@ -21,7 +21,6 @@ const setCurrentUser = (uid: string) => {
 type Startup = {
   conversation: T.Chat.ConversationIDKey
   conversationUid?: string
-  link: string
   tab?: Tabs.Tab
 }
 
@@ -31,7 +30,6 @@ const setStartup = (st: Partial<Startup>) => {
   useConfigState.setState({
     startup: {
       conversation: T.Chat.noConversationIDKey,
-      link: '',
       loaded: true,
       ...st,
     },

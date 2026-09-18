@@ -176,12 +176,11 @@ const loadStartupDetails = async () => {
 
   let conversation: T.Chat.ConversationIDKey | undefined
   let conversationUid = ''
-  let link = ''
   let tab = ''
 
-  if (initialUrl) {
-    link = initialUrl
-  } else if (routeState) {
+  // The linking config reads the launch URL itself; this read only decides whether the
+  // saved route may be restored, since a launch URL outranks it.
+  if (!initialUrl && routeState) {
     // Last priority, saved from last session
     try {
       const item = JSON.parse(routeState) as
@@ -214,7 +213,6 @@ const loadStartupDetails = async () => {
   useConfigState.getState().dispatch.setStartupDetails({
     conversation: conversation ?? noConversationIDKey,
     conversationUid,
-    link,
     tab: tab as Tabs.Tab,
   })
 
@@ -611,7 +609,6 @@ const _initDesktopPlatformListener = () => {
     if (s.handshakeState !== old.handshakeState && s.handshakeState === 'done') {
       useConfigState.getState().dispatch.setStartupDetails({
         conversation: Chat.noConversationIDKey,
-        link: '',
         tab: undefined,
       })
     }
