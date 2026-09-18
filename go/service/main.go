@@ -1392,16 +1392,6 @@ func (d *Service) configurePath() {
 	}
 }
 
-// tryLogin runs LoginOffline which will load the local session file and unlock the
-// local device keys without making any network requests.
-//
-// If that fails for any reason, LoginProvisionedDevice is used, which should get
-// around any issue where the session.json file is out of date or missing since the
-// last time the service started.
-// awaitInitialLoginAttempt blocks until the first startup login attempt has
-// finished (however it went), the context is done, or maxWait elapses. Used
-// by RPCs whose answer depends on login state so they don't race the login
-// that runs off the Init path on mobile.
 // initialLoginAttemptSettled reports whether the first startup login attempt has
 // finished, without waiting for it. A caller that must not block uses this to say
 // "I do not know yet" instead of reporting a logged-out session that no attempt
@@ -1415,6 +1405,10 @@ func (d *Service) initialLoginAttemptSettled() bool {
 	}
 }
 
+// awaitInitialLoginAttempt blocks until the first startup login attempt has
+// finished (however it went), the context is done, or maxWait elapses. Used
+// by RPCs whose answer depends on login state so they don't race the login
+// that runs off the Init path on mobile.
 func (d *Service) awaitInitialLoginAttempt(m libkb.MetaContext, maxWait time.Duration) {
 	select {
 	case <-d.initialLoginAttemptDone:
@@ -1425,6 +1419,12 @@ func (d *Service) awaitInitialLoginAttempt(m libkb.MetaContext, maxWait time.Dur
 	}
 }
 
+// tryLogin runs LoginOffline which will load the local session file and unlock the
+// local device keys without making any network requests.
+//
+// If that fails for any reason, LoginProvisionedDevice is used, which should get
+// around any issue where the session.json file is out of date or missing since the
+// last time the service started.
 func (d *Service) tryLogin(ctx context.Context, mode libkb.LoginAttempt) {
 	if mode != libkb.LoginAttemptNone {
 		// Signal on every exit path; sync.Once makes repeat calls no-ops.

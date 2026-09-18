@@ -206,15 +206,6 @@ const onConfiguredAccountsChanged = (configuredAccounts: ConfigState['configured
   }
 }
 
-// True while this connection has told us it cannot settle the session: no setNotifications reply
-// at all (a service too old for it, or a subscribe that failed and left us with no channels
-// either), or a reply taken before the service's startup login attempt had settled, which carries
-// no session because there is none to describe yet. Only then does the bootstrap status -- which
-// the service holds back until that attempt settles, and which carries no version -- own the
-// session. Keyed on the reply rather than on "nothing versioned has landed yet", so a status
-// cannot win by merely arriving before a reply that is on its way, and cleared per connection so
-// a downgrade to an older service hands the fallback back.
-let snapshotCannotSettleSession = false
 
 // Only a status that agrees with the session we are in describes the current user: a read that
 // spans a logout describes the previous one, and resetAllStores has already cleared them.
@@ -230,7 +221,12 @@ const applyStatusIdentity = (bootstrap: DaemonState['bootstrapStatus']) => {
 }
 
 const applyUnversionedStatusSession = (bootstrap: NonNullable<DaemonState['bootstrapStatus']>) => {
-  if (!snapshotCannotSettleSession) {
+  // Only while the connected service has said it cannot settle the session: no setNotifications
+  // reply at all (a service too old for it, or a subscribe that failed and left us with no
+  // channels either), or a reply taken before the service's startup login attempt had settled.
+  // The config store clears this the moment a real session version is accepted, so the fallback
+  // hands back to the versioned stream as soon as there is one.
+  if (!useConfigState.getState().dispatch.sessionIsUnversioned()) {
     return
   }
   const {httpSrvInfo, loggedIn} = bootstrap
@@ -249,7 +245,9 @@ export const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus
   if (!bootstrap) {
     return
   }
-  // the session first: the identity below is applied only if it agrees with it
+  // The session first: the identity below is applied only if it agrees with it. That holds
+  // because onLoggedInChanged is registered first on useConfigState in initSharedSubscriptions,
+  // so setLoggedIn's fan-out has already run by the time applyStatusIdentity reads the session.
   applyUnversionedStatusSession(bootstrap)
   applyStatusIdentity(bootstrap)
 }
@@ -257,9 +255,16 @@ export const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus
 // The reply to setNotifications: the state as of the moment this connection subscribed, so there
 // is no read to order against the subscription. An old service returns nothing here and the
 // bootstrap status keeps that job -- see applyUnversionedStatusSession.
-export const applyClientState = (clientState?: T.RPCGen.ClientState) => {
+export const applyClientState = (clientState?: T.RPCGen.ClientState, generation?: number) => {
+  // A reply from a connection a later handshake has already replaced must not write anything:
+  // the flag below has no connection identity of its own, and a rejection delivered a microtask
+  // after the reconnect would otherwise re-arm the fallback on the new connection.
+  if (generation !== undefined && generation !== useDaemonState.getState().handshakeGeneration) {
+    logger.info('[Bootstrap] dropping a subscription reply from a replaced connection')
+    return
+  }
   const session = clientState?.session
-  snapshotCannotSettleSession = !session
+  useConfigState.getState().dispatch.setSessionIsUnversioned(!session)
   if (!clientState || !session) {
     logger.info(
       clientState
@@ -348,10 +353,11 @@ export const onEngineConnected = () => {
   }
   useConfigState.getState().dispatch.onEngineConnected()
   {
-    const subscribe = async () => {
+    const subscribe = async (generation: number) => {
+      let clientState: T.RPCGen.ClientState | undefined
       try {
         // prettier-ignore
-        const clientState = await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
+        clientState = await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
           channels: {
             allowChatNotifySkips: true, app: true, audit: true, badges: true, chat: true, chatarchive: true,
             chatattachments: true, chatdev: false, chatemoji: false, chatemojicross: false, chatkbfsedits: false,
@@ -361,22 +367,25 @@ export const onEngineConnected = () => {
             team: true, teambot: false, tracking: true, users: true, wallet: false,
           },
         })
-        applyClientState(clientState)
       } catch (error) {
         if (error) {
           logger.warn('error in toggling notifications: ', error)
         }
-        // no reply and no channels either, so nothing versioned will reach this connection: the
-        // bootstrap status is all we have, exactly as for a service too old to answer at all
-        applyClientState(undefined)
+        // clientState stays undefined: no reply and no channels either, so nothing versioned will
+        // reach this connection and the bootstrap status is all we have, exactly as for a service
+        // too old to answer at all
       }
+      // outside the try on purpose: a throw from applying a good reply must not be read as a
+      // failed subscribe and re-run the unversioned fallback over half-applied versioned state
+      applyClientState(clientState, generation)
     }
-    // a new connection has told us nothing yet; the reply below is what settles it
-    snapshotCannotSettleSession = false
-    ignorePromise(subscribe())
-    // Nothing orders these two any more: the subscription reply is what carries the session and
+    // a new connection has told us nothing yet; the reply is what settles it
+    useConfigState.getState().dispatch.setSessionIsUnversioned(false)
+    // startHandshake first so this connection has its generation before the subscribe goes out.
+    // Nothing orders the two RPCs any more: the subscription reply is what carries the session and
     // the http address, so the bootstrap read has nothing left to race with.
     useDaemonState.getState().dispatch.startHandshake()
+    ignorePromise(subscribe(useDaemonState.getState().handshakeGeneration))
   }
 }
 
@@ -402,6 +411,8 @@ export const initSharedSubscriptions = (platformBootstrapSteps: Array<BootstrapS
   for (const unsub of _sharedUnsubs) unsub()
   _sharedUnsubs.length = 0
   _sharedUnsubs.push(
+    // onLoggedInChanged first: onBootstrapStatusChanged sets the session and then reads it back
+    // through applyStatusIdentity, which only works if this subscriber has already run
     subscribeValue(useConfigState, s => s.loggedIn, onLoggedInChanged),
     subscribeValue(useConfigState, s => s.revokedTrigger, onRevokedTriggerChanged),
     subscribeValue(useConfigState, s => s.configuredAccounts, onConfiguredAccountsChanged)

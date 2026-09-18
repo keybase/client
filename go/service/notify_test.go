@@ -41,10 +41,18 @@ func TestSetNotificationsHoldsBackAnUnsettledSession(t *testing.T) {
 	require.False(t, res.Session.LoggedIn, "logged out in a fresh test context")
 }
 
-// The channels are registered before the state is read, in that one call. A read
-// that came first could describe a change that this connection was not yet
-// subscribed to hear about, which is the gap the reply exists to close.
-func TestSetNotificationsRegistersBeforeReadingState(t *testing.T) {
+// What is checkable from out here: the call registers the channels, labels the
+// read no earlier than everything already announced, and leaves every later
+// change strictly newer than that label -- which together are what let a client
+// keep a notification over the reply.
+//
+// The order of the two statements INSIDE SetNotifications is not observable from
+// here and this test does not pin it: AddConnection has already registered empty
+// channels, so the pre-call assertion is trivially true, and swapping register
+// and read still satisfies everything below. That ordering is held by the comment
+// on SetNotifications; pinning it would need a recording transport and a send
+// that blocks until the channels are set.
+func TestSetNotificationsRegistersChannelsAndLabelsTheRead(t *testing.T) {
 	tc := libkb.SetupTest(t, "notify", 0)
 	defer tc.Cleanup()
 	g := tc.G
@@ -56,11 +64,6 @@ func TestSetNotificationsRegistersBeforeReadingState(t *testing.T) {
 	// a change announced before anyone subscribed
 	g.NotifyRouter.HandleLogout(context.Background())
 	announced := g.StateVersion()
-
-	// The registration is what makes the read safe, so observe it from the read
-	// itself: ActiveDevice is read inside SetNotifications, and a logout announced
-	// from here would already have been delivered to this connection.
-	require.False(t, g.NotifyRouter.GetChannels(connID).Session, "not subscribed yet")
 
 	// only Session, so nothing below actually sends down this test's nil transport
 	res, err := h.SetNotifications(context.Background(), keybase1.NotificationChannels{Session: true})

@@ -170,8 +170,16 @@ describe('onEngineConnected', () => {
     onEngineConnected()
     await new Promise(resolve => setImmediate(resolve))
 
+    expect(useConfigState.getState().dispatch.sessionIsUnversioned()).toBe(true)
+
     deferredSubscription()
     onEngineConnected()
+
+    expect(useConfigState.getState().dispatch.sessionIsUnversioned()).toBe(false)
+
+    // the first connection's fallback logged us in; this connection has said nothing yet, so a
+    // status arriving now must not be the one to decide the session again
+    useConfigState.setState({loggedIn: false})
     onBootstrapStatusChanged({
       deviceID: 'd1',
       deviceName: 'testuser-mac',
@@ -180,6 +188,52 @@ describe('onEngineConnected', () => {
       uid: 'u1',
       username: 'testuser',
     } as never)
+
+    expect(useConfigState.getState().loggedIn).toBe(false)
+  })
+
+  test('a throw while applying a good reply is not read as a failed subscribe', async () => {
+    // otherwise the catch flips this connection to the unversioned fallback and re-applies the
+    // status on top of half-applied versioned state
+    stubRegistrations()
+    jest.spyOn(T.RPCGen, 'notifyCtlSetNotificationsRpcPromise').mockResolvedValue({
+      session: {deviceID: 'd1', deviceName: 'testuser-mac', loggedIn: true, uid: 'u1', username: 'testuser'},
+      version: {counter: 1, epoch: 4242},
+    } as never)
+    spyOnBootstrap()
+    const originalCurrentUser = useCurrentUserState.getState().dispatch
+    useCurrentUserState.setState({
+      dispatch: {
+        ...originalCurrentUser,
+        setBootstrap: () => {
+          throw new Error('boom')
+        },
+      },
+    })
+
+    onEngineConnected()
+    await new Promise(resolve => setImmediate(resolve))
+    useCurrentUserState.setState({dispatch: originalCurrentUser})
+
+    expect(useConfigState.getState().dispatch.sessionIsUnversioned()).toBe(false)
+  })
+
+  test('a reply from a connection a later handshake replaced writes nothing', async () => {
+    stubRegistrations()
+    const subscribed = deferredSubscription()
+    spyOnBootstrap()
+
+    onEngineConnected()
+    // a reconnect before the first reply lands
+    deferredSubscription()
+    onEngineConnected()
+    useConfigState.setState({loggedIn: false})
+
+    subscribed({
+      session: {deviceID: 'd1', deviceName: 'testuser-mac', loggedIn: true, uid: 'u1', username: 'testuser'},
+      version: {counter: 1, epoch: 4243},
+    })
+    await new Promise(resolve => setImmediate(resolve))
 
     expect(useConfigState.getState().loggedIn).toBe(false)
   })

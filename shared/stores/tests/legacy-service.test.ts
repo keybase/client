@@ -9,9 +9,11 @@ import {applyClientState, onBootstrapStatusChanged} from '@/constants/init/share
 // Its own file: whether the connected service can settle the session is module state in the init
 // layer that outlives resetAllStores, and jest gives each file a fresh module registry.
 
-const notifySession = (kind: 'loggedIn' | 'loggedOut') =>
+const notifySession = (kind: 'loggedIn' | 'loggedOut', version?: T.RPCGen.StateVersion) =>
   useConfigState.getState().dispatch.onEngineIncoming({
-    payload: {params: kind === 'loggedIn' ? {signedUp: false, username: 'testuser'} : {}},
+    payload: {
+      params: kind === 'loggedIn' ? {signedUp: false, username: 'testuser', version} : {version},
+    },
     type: `keybase.1.NotifySession.${kind}`,
   } as never)
 
@@ -32,9 +34,13 @@ const snapshot = (over: Partial<T.RPCGen.ClientState> = {}): T.RPCGen.ClientStat
   ...over,
 })
 
+// the applied versions live outside the store and survive resetAllStores on purpose, so each
+// test gets its own epoch rather than a counter that has to beat every earlier test's
+let testEpoch = 1000
 beforeEach(() => {
-  // httpSrv is process-wide and survives resetAllStores on purpose
+  testEpoch++
   useConfigState.setState(st => {
+    // httpSrv is process-wide and survives resetAllStores on purpose
     st.httpSrv = {address: '', token: ''}
   })
 })
@@ -116,5 +122,32 @@ describe('a service that cannot settle the session', () => {
       version: {counter: 4, epoch: 1000},
     })
     expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:3')
+  })
+
+  test('hands the session back the moment the service settles it', () => {
+    // mobile: the reply lands before tryLogin finishes, so the fallback is armed. Once the
+    // login notification arrives the service has settled it, and the versioned stream owns the
+    // session from there -- otherwise an unversioned write outranks every notification for the
+    // life of the connection.
+    applyClientState({version: {counter: 4, epoch: testEpoch}})
+    expect(useConfigState.getState().dispatch.sessionIsUnversioned()).toBe(true)
+
+    notifySession('loggedIn', {counter: 5, epoch: testEpoch})
+
+    expect(useConfigState.getState().dispatch.sessionIsUnversioned()).toBe(false)
+    expect(useConfigState.getState().loggedIn).toBe(true)
+  })
+
+  test('a status spanning a logout cannot resurrect the session it retired', () => {
+    // GetBootstrapStatus does network work after a wait of up to 30s, and no generation is
+    // bumped by a logout, so a read started before it resolves afterwards saying loggedIn:true
+    applyClientState({version: {counter: 4, epoch: testEpoch}})
+    notifySession('loggedIn', {counter: 5, epoch: testEpoch})
+    notifySession('loggedOut', {counter: 6, epoch: testEpoch})
+    expect(useConfigState.getState().loggedIn).toBe(false)
+
+    onBootstrapStatusChanged(status())
+
+    expect(useConfigState.getState().loggedIn).toBe(false)
   })
 })

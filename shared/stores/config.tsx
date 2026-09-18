@@ -91,6 +91,9 @@ export type State = Store & {
   dispatch: {
     // a login or logout notification: applied only if it is newer than the last applied one
     acceptSessionVersion: (version?: T.RPCGen.StateVersion) => boolean
+    // whether the connected service has told us it cannot settle the session -- see the closure
+    sessionIsUnversioned: () => boolean
+    setSessionIsUnversioned: (unversioned: boolean) => void
     checkForUpdate: () => void
     initAppUpdateLoop: () => void
     installerRan: () => void
@@ -124,6 +127,11 @@ export type State = Store & {
   }
 }
 
+// A version we cannot compare is no ordering at all: a service too old to send one, or one built
+// from an intermediate commit of this branch, which sends a bare number rather than a record.
+const isComparableVersion = (version?: T.RPCGen.StateVersion): version is T.RPCGen.StateVersion =>
+  !!version && typeof version.counter === 'number' && typeof version.epoch === 'number'
+
 // A different epoch is a different service process: its counter started over, so
 // it is not comparable and its state is by definition the newer one.
 const isNewerVersion = (next: T.RPCGen.StateVersion, applied?: T.RPCGen.StateVersion) =>
@@ -140,16 +148,18 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
   const applied: {http?: T.RPCGen.StateVersion; session?: T.RPCGen.StateVersion} = {}
   const acceptVersion = (kind: 'http' | 'session', version?: T.RPCGen.StateVersion) => {
     // a service too old to send a version gives us nothing to order by, so everything it sends is
-    // applied in the order it arrives, as it was before versions existed. A service built from an
-    // intermediate commit of this branch sends a bare number, which is the same thing: an
-    // ordering we cannot compare against one that carries an epoch.
-    if (!version || typeof version.counter !== 'number' || typeof version.epoch !== 'number') {
-      return true
-    }
+    // applied in the order it arrives, as it was before versions existed
+    if (!isComparableVersion(version)) return true
     if (!isNewerVersion(version, applied[kind])) return false
     applied[kind] = version
     return true
   }
+  // Set by the init layer from each setNotifications reply: true while the connected service has
+  // said it cannot settle the session, which is the only time the unversioned bootstrap status may
+  // own it. Cleared here rather than there, the moment a real session version is accepted, because
+  // that is the service settling it after all -- an account that is genuinely logged out announces
+  // nothing, so the status stays authoritative for it.
+  let sessionIsUnversioned = false
 
   const _checkForUpdate = async () => {
     try {
@@ -201,7 +211,13 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
   }
 
   const dispatch: State['dispatch'] = {
-    acceptSessionVersion: version => acceptVersion('session', version),
+    acceptSessionVersion: version => {
+      const accepted = acceptVersion('session', version)
+      if (accepted && isComparableVersion(version)) {
+        sessionIsUnversioned = false
+      }
+      return accepted
+    },
     checkForUpdate: () => {
       const f = async () => {
         await _checkForUpdate()
@@ -545,6 +561,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         s.httpSrv.token = token
       })
     },
+    sessionIsUnversioned: () => sessionIsUnversioned,
     setJustDeletedSelf: self => {
       set(s => {
         s.justDeletedSelf = self
@@ -558,6 +575,9 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       if (changed && !loggedIn) {
         Z.resetAllStores()
       }
+    },
+    setSessionIsUnversioned: unversioned => {
+      sessionIsUnversioned = unversioned
     },
     setLoginError: error => {
       set(s => {
