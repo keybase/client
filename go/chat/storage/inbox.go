@@ -180,8 +180,8 @@ func (i *Inbox) dbConvKey(uid gregor1.UID, convID chat1.ConversationID) libkb.Db
 }
 
 func (i *Inbox) diskReadError(ctx context.Context, uid gregor1.UID, err error) Error {
-	if mapped := mapEncryptedDBError(err); mapped != nil {
-		return mapped
+	if _, ok := err.(libkb.LoginRequiredError); ok {
+		return MiscError{Msg: err.Error()}
 	}
 	return NewInternalError(ctx, i.DebugLabeler, "failed to read inbox: uid: %s err: %s", uid, err)
 }
@@ -200,6 +200,9 @@ func (i *Inbox) readDiskVersions(ctx context.Context, uid gregor1.UID, useInMemo
 	var ibox inboxDiskVersions
 	// Check context for an aborted request
 	if err := isAbortedRequest(ctx); err != nil {
+		return ibox, err
+	}
+	if err := i.missIfWrongSessionUID(uid); err != nil {
 		return ibox, err
 	}
 	// Check in memory cache first
@@ -244,6 +247,9 @@ func (i *Inbox) readDiskVersions(ctx context.Context, uid gregor1.UID, useInMemo
 }
 
 func (i *Inbox) writeDiskVersions(ctx context.Context, uid gregor1.UID, ibox inboxDiskVersions) Error {
+	if err := i.missIfWrongSessionUID(uid); err != nil {
+		return err
+	}
 	// Get latest server version
 	vers, err := i.G().ServerCacheVersions.Fetch(ctx)
 	if err != nil {
@@ -264,6 +270,9 @@ func (i *Inbox) readDiskIndex(ctx context.Context, uid gregor1.UID, useInMemory 
 	var ibox inboxDiskIndex
 	// Check context for an aborted request
 	if err := isAbortedRequest(ctx); err != nil {
+		return ibox, err
+	}
+	if err := i.missIfWrongSessionUID(uid); err != nil {
 		return ibox, err
 	}
 	// Check in memory cache first
@@ -287,6 +296,9 @@ func (i *Inbox) readDiskIndex(ctx context.Context, uid gregor1.UID, useInMemory 
 }
 
 func (i *Inbox) writeDiskIndex(ctx context.Context, uid gregor1.UID, ibox inboxDiskIndex) Error {
+	if err := i.missIfWrongSessionUID(uid); err != nil {
+		return err
+	}
 	i.Debug(ctx, "writeDiskIndex: convs: %d queries: %d", len(ibox.ConversationIDs), len(ibox.Queries))
 	inboxMemCache.PutIndex(uid, &ibox)
 	if err := i.writeDiskBox(ctx, i.dbIndexKey(uid), ibox); err != nil {
@@ -296,6 +308,9 @@ func (i *Inbox) writeDiskIndex(ctx context.Context, uid gregor1.UID, ibox inboxD
 }
 
 func (i *Inbox) readConvs(ctx context.Context, uid gregor1.UID, convIDs []chat1.ConversationID) (res []types.RemoteConversation, err Error) {
+	if err := i.missIfWrongSessionUID(uid); err != nil {
+		return res, err
+	}
 	res = make([]types.RemoteConversation, 0, len(convIDs))
 	memHits := make(map[chat1.ConvIDStr]bool, len(convIDs))
 	for _, convID := range convIDs {
@@ -344,6 +359,9 @@ func (i *Inbox) readConv(ctx context.Context, uid gregor1.UID, convID chat1.Conv
 func (i *Inbox) writeConvs(ctx context.Context, uid gregor1.UID, convs []types.RemoteConversation,
 	withVersionCheck bool,
 ) Error {
+	if err := i.missIfWrongSessionUID(uid); err != nil {
+		return err
+	}
 	i.summarizeConvs(convs)
 	for _, conv := range convs {
 		if withVersionCheck {
