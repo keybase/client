@@ -10,7 +10,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
-import android.provider.Settings
 import android.util.Log
 import android.view.KeyEvent
 import androidx.core.content.IntentCompat
@@ -18,10 +17,8 @@ import android.webkit.MimeTypeMap
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.ReactContext
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
-import com.facebook.react.modules.core.PermissionListener
 import com.reactnativekb.DarkModePreference
 import com.reactnativekb.IncomingShareCache
 import com.reactnativekb.KbModule
@@ -39,7 +36,6 @@ import java.security.cert.CertificateException
 import java.util.UUID
 
 class MainActivity : ReactActivity() {
-    private val listener: PermissionListener? = null
     private var isUsingHardwareKeyboard = false
 
     override fun invokeDefaultOnBackPressed() {
@@ -74,19 +70,12 @@ class MainActivity : ReactActivity() {
         super.onCreate(null)
         KeybasePushNotificationListenerService.createNotificationChannel(this)
         updateIsUsingHardwareKeyboard()
-
-        scheduleHandleIntent()
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
         return if (BuildConfig.DEBUG && keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
             super.onKeyUp(KeyEvent.KEYCODE_MENU, null)
         } else super.onKeyUp(keyCode, event)
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        listener?.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
     override fun onPause() {
@@ -110,10 +99,10 @@ class MainActivity : ReactActivity() {
         return filename
     }
 
-    private fun saveFileToCache(reactContext: ReactContext?, uri: Uri, filename: String): File {
-        val file = IncomingShareCache.file(reactContext!!, filename)
+    private fun saveFileToCache(context: Context, uri: Uri, filename: String): File {
+        val file = IncomingShareCache.file(context, filename)
         try {
-            reactContext.contentResolver.openInputStream(uri).use { istream ->
+            context.contentResolver.openInputStream(uri).use { istream ->
                 FileOutputStream(file).use { ostream ->
                     val buf = ByteArray(64 * 1024)
                     var len: Int
@@ -128,11 +117,11 @@ class MainActivity : ReactActivity() {
         return file
     }
 
-    private fun readFileFromUri(reactContext: ReactContext?, uri: Uri?): String? {
+    private fun readFileFromUri(context: Context, uri: Uri?): String? {
         if (uri == null) return null
         var filePath: String?
         filePath = if (uri.scheme == "content") {
-            val resolver = reactContext!!.contentResolver
+            val resolver = context.contentResolver
             val mimeType = resolver.getType(uri)
             val extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)
 
@@ -140,7 +129,7 @@ class MainActivity : ReactActivity() {
             val filename = getFileNameFromResolver(resolver, uri, extension)
 
             // Now load the file itself.
-            val file = saveFileToCache(reactContext, uri, filename)
+            val file = saveFileToCache(context, uri, filename)
             file.path
         } else {
             uri.path
@@ -165,6 +154,9 @@ class MainActivity : ReactActivity() {
         (application as MainApplication).lifecycleReporter.onMainActivityDestroy(isFinishing, isChangingConfigurations)
     }
 
+    // A share intent parks here until JS asks for it. Nothing else is parked: deep links go
+    // through super.onNewIntent -> RCTLinkingManager, and a notification tap goes to the
+    // service, so a plain launch leaves this null.
     private var cachedIntent: Intent? = null
 
     private var pendingShareUris: List<Uri>? = null
@@ -172,15 +164,16 @@ class MainActivity : ReactActivity() {
     private var pendingShareText: String? = null
 
     // Snapshot share data out of the intent right away: share URI permission grants and clip
-    // data are tied to the delivered intent, and JS may not be ready to consume them until much
-    // later (see tryHandleIntentWithRetry).
+    // data are tied to the delivered intent, and JS may not be ready to route them until much
+    // later (see shareListenersRegistered).
     private fun captureIntent(intent: Intent) {
-        cachedIntent = intent
-        if (Intent.ACTION_SEND == intent.action || Intent.ACTION_SEND_MULTIPLE == intent.action) {
-            pendingShareUris = extractSharedUris(intent)
-            pendingShareSubject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
-            pendingShareText = intent.getStringExtra(Intent.EXTRA_TEXT)
+        if (Intent.ACTION_SEND != intent.action && Intent.ACTION_SEND_MULTIPLE != intent.action) {
+            return
         }
+        cachedIntent = intent
+        pendingShareUris = extractSharedUris(intent)
+        pendingShareSubject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
+        pendingShareText = intent.getStringExtra(Intent.EXTRA_TEXT)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -192,9 +185,11 @@ class MainActivity : ReactActivity() {
 
     private var jsIsListening = false
 
+    // JS calls this once it is ready to route a share. That is the only signal the parked
+    // intent waits on, so it replaces any native-side polling for a live JS runtime.
     public fun shareListenersRegistered() {
         jsIsListening = true
-        tryHandleIntentWithRetry()
+        handleIntent()
     }
 
     private fun extractSharedUris(intent: Intent): List<Uri> {
@@ -228,87 +223,56 @@ class MainActivity : ReactActivity() {
         return uris.distinct()
     }
 
-    private var handleIntentRetryCount = 0
-    private val maxHandleIntentRetries = 20 // 20 * 500ms = 10s max
-
-    private fun scheduleHandleIntent() {
-        if (cachedIntent == null) return
-        handleIntentRetryCount = 0
-        tryHandleIntentWithRetry()
-    }
-
-    private fun tryHandleIntentWithRetry() {
-        if (cachedIntent == null) return
-        if (handleIntent()) return
-        handleIntentRetryCount++
-        if (handleIntentRetryCount >= maxHandleIntentRetries) {
-            NativeLogger.info("MainActivity: giving up on handleIntent after $maxHandleIntentRetries retries")
-            return
-        }
-        NativeLogger.info("MainActivity: scheduling handleIntent retry #$handleIntentRetryCount")
-        Handler(Looper.getMainLooper()).postDelayed({ tryHandleIntentWithRetry() }, 500)
-    }
-
-    private fun handleIntent(): Boolean {
-        val intent = cachedIntent ?: return true
-        val rc = reactActivityDelegate?.getCurrentReactContext() ?: run {
-            NativeLogger.info("MainActivity.handleIntent: no react context, will retry")
-            return false
-        }
-        if (!jsIsListening) {
-            NativeLogger.info("MainActivity.handleIntent: JS not listening yet, will retry")
-            return false
-        }
+    private fun handleIntent() {
+        val intent = cachedIntent ?: return
+        if (!jsIsListening) return
         NativeLogger.info("MainActivity.handleIntent: processing intent action=${intent.action}")
 
-        val action = intent.action
-        if (Intent.ACTION_SEND == action || Intent.ACTION_SEND_MULTIPLE == action) {
-            val uris = pendingShareUris.orEmpty().also { pendingShareUris = null }
-            val subject = pendingShareSubject.also { pendingShareSubject = null }
-            val text = pendingShareText.also { pendingShareText = null }
+        val uris = pendingShareUris.orEmpty().also { pendingShareUris = null }
+        val subject = pendingShareSubject.also { pendingShareSubject = null }
+        val text = pendingShareText.also { pendingShareText = null }
 
-            // Strip consumed extras so an activity recreation (which redelivers this
-            // same intent instance) doesn't re-share.
-            intent.removeExtra(Intent.EXTRA_STREAM)
-            intent.removeExtra(Intent.EXTRA_SUBJECT)
-            intent.removeExtra(Intent.EXTRA_TEXT)
-            intent.setClipData(null)
+        // Strip consumed extras so an activity recreation (which redelivers this
+        // same intent instance) doesn't re-share.
+        intent.removeExtra(Intent.EXTRA_STREAM)
+        intent.removeExtra(Intent.EXTRA_SUBJECT)
+        intent.removeExtra(Intent.EXTRA_TEXT)
+        intent.setClipData(null)
 
-            val textPayload = listOfNotNull(subject, text).joinToString(" ")
-            val isTextMime = intent.type?.startsWith("text/") == true
+        val textPayload = listOfNotNull(subject, text).joinToString(" ")
+        val isTextMime = intent.type?.startsWith("text/") == true
 
-            if (isTextMime && textPayload.isNotEmpty()) {
-                // Text-type intent (e.g. URL from Chrome): prefer text over any preview images
-                emitShareText(text ?: textPayload)
-            } else if (uris.isEmpty()) {
-                if (textPayload.isNotEmpty()) {
-                    emitShareText(textPayload)
-                }
-            } else {
-                // Copying out of the content providers can be slow for big files; don't
-                // block the main thread on it.
-                Thread {
-                    val filePaths = uris.mapNotNull { uri ->
-                        try {
-                            readFileFromUri(rc, uri)
-                        } catch (e: SecurityException) {
-                            null
-                        }
-                    }
-                    if (filePaths.isNotEmpty()) {
-                        emitShareFiles(filePaths)
-                    } else if (textPayload.isNotEmpty()) {
-                        // Fallback: non-text MIME but no files resolved, send text
-                        emitShareText(textPayload)
-                    } else {
-                        emitShareFiles(emptyList())
-                    }
-                }.start()
+        if (isTextMime && textPayload.isNotEmpty()) {
+            // Text-type intent (e.g. URL from Chrome): prefer text over any preview images
+            emitShareText(text ?: textPayload)
+        } else if (uris.isEmpty()) {
+            if (textPayload.isNotEmpty()) {
+                emitShareText(textPayload)
             }
+        } else {
+            // Copying out of the content providers can be slow for big files; don't
+            // block the main thread on it.
+            val context: Context = this
+            Thread {
+                val filePaths = uris.mapNotNull { uri ->
+                    try {
+                        readFileFromUri(context, uri)
+                    } catch (e: SecurityException) {
+                        null
+                    }
+                }
+                if (filePaths.isNotEmpty()) {
+                    emitShareFiles(filePaths)
+                } else if (textPayload.isNotEmpty()) {
+                    // Fallback: non-text MIME but no files resolved, send text
+                    emitShareText(textPayload)
+                } else {
+                    emitShareFiles(emptyList())
+                }
+            }.start()
         }
 
         cachedIntent = null
-        return true
     }
 
     private fun emitShareText(text: String) {
@@ -402,12 +366,6 @@ class MainActivity : ReactActivity() {
             } catch (e: Exception) {
                 NativeLogger.error("Exception in createDummyFile", e)
             }
-        }
-
-        // Is this a robot controlled test device? (i.e. pre-launch report?)
-        fun isTestDevice(context: Context): Boolean {
-            val testLabSetting = Settings.System.getString(context.contentResolver, "firebase.test.lab")
-            return "true" == testLabSetting
         }
 
         @JvmStatic
