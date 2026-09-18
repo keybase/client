@@ -7,7 +7,6 @@ import android.os.Build
 import android.os.Bundle
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.app.Person
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import io.keybase.ossifrage.MainActivity.Companion.setupKBRuntime
@@ -24,17 +23,6 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
     private val seenChatNotifications = HashSet<String>()
     private fun isOtherAccountPushError(ex: Exception): Boolean {
         return ex.message?.contains("different account") == true
-    }
-
-    private fun buildStyle(convID: String, person: Person): NotificationCompat.Style {
-        val style = NotificationCompat.MessagingStyle(person)
-        val buf = msgCache[convID]
-        if (buf != null) {
-            for (msg in buf.summary()) {
-                style.addMessage(msg)
-            }
-        }
-        return style
     }
 
     private val lifecycleReporter get() = (application as MainApplication).lifecycleReporter
@@ -128,9 +116,6 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                                         n.badgeCount.toLong(), n.unixTime, n.soundName, if (dontNotify) null else notifier, true,
                                         targetUID)
                                 goProcessingSucceeded = true
-                                if (!dontNotify) {
-                                    seenChatNotifications.add(n.convID + n.messageId)
-                                }
                             } catch (ex: Exception) {
                                 if (isOtherAccountPushError(ex)) {
                                     NativeLogger.info("Go skipped notification for a different active account: " + ex.message)
@@ -158,14 +143,9 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                     }
                     NativeLogger.info("KeybasePushNotificationListenerService isForeground: $isForeground")
 
-                    // Don't show notifications if app is foreground - user is already looking at the app
-                    if (isForeground) {
-
-                    } else if (dontNotify) {
-                        // Silent notifications should never display - they're processed by Go but no notification shown
-                    } else if (!goProcessingSucceeded && type == "chat.newmessage") {
-                        // Only show fallback if Go processing failed AND it's a non-silent notification
-                        // If Go succeeded, it already displayed the notification (via notifier parameter)
+                    // In the foreground the app already has the message. A silent push never
+                    // displays. Otherwise fall back only if Go failed to display it itself.
+                    if (!isForeground && !dontNotify && !goProcessingSucceeded) {
                         NativeLogger.info("KeybasePushNotificationListenerService attempting fallback notification display")
                         try {
                             val chatNotif = keybase.ChatNotification()
@@ -191,13 +171,10 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                             chatNotif.uid = targetUID
 
                             notifier.displayChatNotification(chatNotif)
-                            seenChatNotifications.add(n.convID + n.messageId)
                             NativeLogger.info("KeybasePushNotificationListenerService fallback notification displayed successfully")
                         } catch (e: Exception) {
                             NativeLogger.error("Failed to display notification fallback: " + e.message)
                         }
-                    } else if (dontNotify) {
-
                     }
 
                 }
@@ -207,7 +184,6 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                     val m = bundle.getString("message")
                     if (username != null && m != null) {
                         notifier.followNotification(username, m)
-                    } else {
                     }
                 }
 

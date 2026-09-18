@@ -43,11 +43,9 @@ internal class AppLifecycleReporter(
     private val log: (String) -> Unit,
 ) : DefaultLifecycleObserver {
     private var reported = false
-    private var started = false
 
     @Synchronized
     override fun onStart(owner: LifecycleOwner) {
-        started = true
         reported = true
         enqueue("uiInactive") { bind.uiInactive() }
     }
@@ -59,7 +57,6 @@ internal class AppLifecycleReporter(
 
     @Synchronized
     override fun onStop(owner: LifecycleOwner) {
-        started = false
         reportBackground("process stop")
     }
 
@@ -77,7 +74,7 @@ internal class AppLifecycleReporter(
     // nothing to end it; report the background, unless the UI got there first.
     @Synchronized
     fun reportHeadlessStart() {
-        if (!reported && !started) {
+        if (!reported) {
             reportBackground("started without UI")
         }
     }

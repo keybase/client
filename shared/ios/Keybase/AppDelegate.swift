@@ -362,7 +362,9 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
   // opens, and nothing here or in JS parses a push.
   public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
     let userInfo = response.notification.request.content.userInfo
-    let payload = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
+    // uniquingKeysWith, not uniqueKeysWithValues: the latter traps on a duplicate key, and
+    // String(describing:) over [AnyHashable: Any] can in principle produce one.
+    let payload = Dictionary(userInfo.map { (String(describing: $0.key), $0.value) }, uniquingKeysWith: { first, _ in first })
     if JSONSerialization.isValidJSONObject(payload),
        let data = try? JSONSerialization.data(withJSONObject: payload),
        let json = String(data: data, encoding: .utf8) {
