@@ -238,10 +238,9 @@ func TestLevelDb(t *testing.T) {
 			},
 		},
 		{
-			// TestConcurrentFlushes: 8 goroutines call Flush with writes
-			// interleaved. Flush no longer coalesces concurrent callers, so this
-			// exercises goleveldb's own write-lock serialization of the memtable
-			// rotation instead.
+			// 8 goroutines call Flush with writes interleaved: every call
+			// returns nil, and every writer's last write is durable and
+			// readable once all goroutines finish.
 			name: "flush-concurrent", testBody: func(t *testing.T) {
 				tc := SetupTest(t, "LevelDb-flush-concurrent", 0)
 				defer tc.Cleanup()

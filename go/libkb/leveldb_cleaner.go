@@ -190,6 +190,16 @@ func (c *levelDbCleaner) clean(force bool) (err error) {
 	c.running = true
 	key := c.lastKey
 	stopCh := c.stopCh
+	// Sample the app state in the same critical section as running=true, so
+	// a transition that lands between here and the batch loop (during
+	// getDbSize, logging, etc.) is not missed: any caller who observes
+	// running via c.Lock() only does so after this sample is already taken.
+	// A clean gives way to the foreground: it keeps running only while the
+	// app state stays BACKGROUNDACTIVE (or never changes at all, as on
+	// desktop). NextUpdate collapses intermediate transitions, so a wake
+	// re-reads the current state rather than assuming what it changed to.
+	state := c.G().MobileAppState.State()
+	appCh := c.G().MobileAppState.NextUpdate(state)
 	c.Unlock()
 
 	defer c.M().Trace(fmt.Sprintf("levelDbCleaner(%s) clean, config: %v", c.dbName, c.config), &err)()
@@ -212,13 +222,6 @@ func (c *levelDbCleaner) clean(force bool) (err error) {
 	if !force && dbSize < c.config.MaxSize {
 		return nil
 	}
-
-	// A clean gives way to the foreground: it keeps running only while the
-	// app state stays BACKGROUNDACTIVE (or never changes at all, as on
-	// desktop). NextUpdate collapses intermediate transitions, so a wake
-	// re-reads the current state rather than assuming what it changed to.
-	state := c.G().MobileAppState.State()
-	appCh := c.G().MobileAppState.NextUpdate(state)
 
 	var totalNumPurged, numPurged int
 	for i := range 100 {
