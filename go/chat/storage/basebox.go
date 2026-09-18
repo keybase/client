@@ -1,13 +1,14 @@
 package storage
 
 import (
+	"bytes"
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -43,15 +44,10 @@ func (i *baseBox) writeDiskBox(ctx context.Context, key libkb.DbKey, data any) e
 	return i.encryptedDB.Put(ctx, key, data)
 }
 
-func mapEncryptedDBError(err error) Error {
-	if err == nil {
-		return nil
-	}
-	if _, ok := err.(libkb.LoginRequiredError); ok {
-		return MiscError{Msg: err.Error()}
-	}
-	if errors.Is(err, encrypteddb.ErrDecryptionFailed) {
-		return MissError{Msg: "decryption failed"}
+func (i *baseBox) missIfWrongSessionUID(uid gregor1.UID) Error {
+	me := i.G().ExternalG().GetMyUID()
+	if uid.IsNil() || !me.Exists() || !bytes.Equal(me.ToBytes(), uid) {
+		return MissError{Msg: "uid mismatch"}
 	}
 	return nil
 }

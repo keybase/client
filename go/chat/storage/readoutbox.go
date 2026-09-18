@@ -59,16 +59,18 @@ func (o *ReadOutbox) clear(ctx context.Context) Error {
 }
 
 func (o *ReadOutbox) readStorage(ctx context.Context) (res diskReadOutbox) {
+	if err := o.missIfWrongSessionUID(o.uid); err != nil {
+		return diskReadOutbox{Version: readOutboxVersion}
+	}
 	if memobox := readOutboxMemCache.Get(o.uid); memobox != nil {
 		o.Debug(ctx, "hit in memory cache")
 		res = *memobox
 	} else {
 		found, ierr := o.readDiskBox(ctx, o.dbKey(), &res)
 		if ierr != nil {
-			if mapped := mapEncryptedDBError(ierr); mapped != nil {
-				return diskReadOutbox{Version: readOutboxVersion}
+			if _, ok := ierr.(libkb.LoginRequiredError); !ok {
+				o.maybeNuke(NewInternalError(ctx, o.DebugLabeler, "%s", ierr.Error()), o.dbKey())
 			}
-			o.maybeNuke(NewInternalError(ctx, o.DebugLabeler, "%s", ierr.Error()), o.dbKey())
 			return diskReadOutbox{Version: readOutboxVersion}
 		}
 		if !found {
@@ -88,6 +90,9 @@ func (o *ReadOutbox) readStorage(ctx context.Context) (res diskReadOutbox) {
 }
 
 func (o *ReadOutbox) writeStorage(ctx context.Context, obox diskReadOutbox) (err Error) {
+	if err := o.missIfWrongSessionUID(o.uid); err != nil {
+		return err
+	}
 	if ierr := o.writeDiskBox(ctx, o.dbKey(), obox); ierr != nil {
 		return NewInternalError(ctx, o.DebugLabeler, "error writing outbox: err: %s", ierr)
 	}
