@@ -257,8 +257,8 @@ function createClient(
             // from a session cancel handler inside disconnectCallback must
             // not strand the UI on the disconnect banner by skipping
             // connectCallback (which synchronously clears the daemon error
-            // via startHandshake(); only that handshake's bootstrap read is
-            // deferred, so nothing here may be moved behind an await).
+            // via startHandshake(), so nothing here may be moved behind an
+            // await).
             client.transport.reset()
             try {
               disconnectCallback()

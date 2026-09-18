@@ -320,8 +320,14 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.Identify3State = NewIdentify3State(g)
 	g.GregorState = newNullGregorState()
 	// Any value distinct from every other service process will do: a client only
-	// ever asks whether two epochs differ, never which is greater.
-	g.stateEpoch = time.Now().UnixNano()
+	// ever asks whether two epochs differ, never which is greater. Kept under
+	// 2^32 because a JS client decodes an int64 into a float64, which is exact
+	// only below 2^53.
+	if epoch, err := RandInt64(); err == nil {
+		g.stateEpoch = epoch & 0xFFFFFFFF
+	} else {
+		g.stateEpoch = time.Now().UnixMilli() & 0xFFFFFFFF
+	}
 	g.LocalNetworkInstrumenterStorage = NewDiskInstrumentationStorage(g, keybase1.NetworkSource_LOCAL)
 	g.RemoteNetworkInstrumenterStorage = NewDiskInstrumentationStorage(g, keybase1.NetworkSource_REMOTE)
 

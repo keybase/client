@@ -3,7 +3,7 @@ import type * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '../config'
 import {useCurrentUserState} from '../current-user'
-import {applyClientState} from '@/constants/init/shared'
+import {applyClientState, onBootstrapStatusChanged} from '@/constants/init/shared'
 
 const epoch = 1000
 const version = (counter: number, e = epoch): T.RPCGen.StateVersion => ({counter, epoch: e})
@@ -89,10 +89,16 @@ describe('the setNotifications snapshot', () => {
 
   test('is ignored during an account switch when it says logged out', () => {
     useConfigState.setState({loggedIn: true, userSwitching: true})
+    useCurrentUserState.setState({username: 'testuser'})
 
-    applyClientState(clientState({loggedIn: false, version: version(1, testEpoch)}))
+    applyClientState(
+      clientState({loggedIn: false, uid: '', username: '', version: version(1, testEpoch)})
+    )
 
     expect(useConfigState.getState().loggedIn).toBe(true)
+    // a logged-out snapshot carries an empty identity; applying it would blank the user the
+    // guard just decided to keep
+    expect(useCurrentUserState.getState().username).toBe('testuser')
   })
 })
 
@@ -135,5 +141,45 @@ describe('notification ordering', () => {
     notifyHTTP('127.0.0.1:2', version(1, testEpoch))
     useConfigState.getState().dispatch.resetState()
     expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:2')
+  })
+})
+
+describe('the bootstrap status identity', () => {
+  test('is not applied when the status disagrees with the session we are in', () => {
+    // the read can span a logout: GetBootstrapStatus waits out the startup login attempt, and a
+    // logout announced meanwhile has already reset the stores
+    applyClientState(
+      clientState({loggedIn: false, uid: '', username: '', version: version(1, testEpoch)})
+    )
+    expect(useConfigState.getState().loggedIn).toBe(false)
+
+    onBootstrapStatusChanged({
+      deviceID: 'd1',
+      deviceName: 'testuser-mac',
+      loggedIn: true,
+      registered: true,
+      uid: 'u1',
+      username: 'testuser',
+    } as never)
+
+    expect(useCurrentUserState.getState().username).toBe('')
+    expect(useCurrentUserState.getState().uid).toBe('')
+  })
+
+  test('is applied when it agrees', () => {
+    applyClientState(
+      clientState({loggedIn: true, uid: 'u1', username: 'testuser', version: version(1, testEpoch)})
+    )
+
+    onBootstrapStatusChanged({
+      deviceID: 'd1',
+      deviceName: 'testuser-mac',
+      loggedIn: true,
+      registered: true,
+      uid: 'u1',
+      username: 'testuser',
+    } as never)
+
+    expect(useCurrentUserState.getState().username).toBe('testuser')
   })
 })

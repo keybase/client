@@ -361,9 +361,12 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (r
 		return res, err
 	}
 	res = eng.Status()
-	// Not waited on: a client that understands setNotifications already has the
-	// address from the subscription reply and from HTTPSrvInfoUpdate, which the
-	// server sends on every start. This is only here for a client too old to.
+	// Not waited on: a client that understands setNotifications gets the address
+	// from the subscription reply and from HTTPSrvInfoUpdate, which the server
+	// sends on every start, so it never needed this one to block. A client old
+	// enough to need it cannot decode those notifications either -- the version
+	// on them is a record now -- so for that client this is best effort and it
+	// gets nothing here until the next read.
 	if info, infoErr := h.svc.httpSrv.Info(); infoErr != nil {
 		m.Debug("GetBootstrapStatus: no HTTP server address: %s", infoErr)
 	} else {

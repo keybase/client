@@ -175,8 +175,11 @@ export const onNetworkOnlineChanged = (online?: boolean, previous?: boolean) => 
   }
 }
 
-const onLoggedInChanged = (loggedIn: ConfigState['loggedIn']) => {
+export const onLoggedInChanged = (loggedIn: ConfigState['loggedIn']) => {
   if (loggedIn) {
+    // a status read before we knew we were logged in was held back then; a status identical to
+    // the stored one does not notify again, so apply its identity from here
+    applyStatusIdentity(useDaemonState.getState().bootstrapStatus)
     // runtime login: refresh bootstrap status. During the handshake this is already in
     // flight, and the store dedupes it.
     ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
@@ -203,27 +206,34 @@ const onConfiguredAccountsChanged = (configuredAccounts: ConfigState['configured
   }
 }
 
-export const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus']) => {
-  if (!bootstrap) {
+// True only while the connected service answered setNotifications with no snapshot at all. That
+// is the one case in which the bootstrap status, which carries no version, still owns the session
+// and the http address. Keyed on the reply rather than on "nothing versioned has landed yet", so
+// a status can never win by merely arriving before a snapshot that is on its way, and so a
+// downgrade to an older service hands the fallback back.
+let serviceHasNoSnapshot = false
+
+// Only a status that agrees with the session we are in describes the current user: a read that
+// spans a logout describes the previous one, and resetAllStores has already cleared them.
+const applyStatusIdentity = (bootstrap: DaemonState['bootstrapStatus']) => {
+  if (!bootstrap?.loggedIn || !useConfigState.getState().loggedIn) {
     return
   }
-
-  const {deviceID, deviceName, httpSrvInfo, loggedIn, uid, username} = bootstrap
+  const {deviceID, deviceName, uid, username} = bootstrap
   useCurrentUserState.getState().dispatch.setBootstrap({deviceID, deviceName, uid, username})
-
-  const configDispatch = useConfigState.getState().dispatch
   if (username) {
-    configDispatch.setDefaultUsername(username)
+    useConfigState.getState().dispatch.setDefaultUsername(username)
   }
-  // The session and the http address belong to the setNotifications snapshot and its
-  // notifications, which carry a version this status does not. A service too old to answer
-  // setNotifications sends no version anywhere, and then this status is the only place they come
-  // from -- so apply them here only while nothing versioned has landed, and never after.
-  if (httpSrvInfo && configDispatch.canAcceptUnversioned('http')) {
-    configDispatch.setHTTPSrvInfo(httpSrvInfo.address, httpSrvInfo.token)
-  }
-  if (!configDispatch.canAcceptUnversioned('session')) {
+}
+
+const applyUnversionedStatusSession = (bootstrap: NonNullable<DaemonState['bootstrapStatus']>) => {
+  if (!serviceHasNoSnapshot) {
     return
+  }
+  const {httpSrvInfo, loggedIn} = bootstrap
+  const configDispatch = useConfigState.getState().dispatch
+  if (httpSrvInfo) {
+    configDispatch.setHTTPSrvInfo(httpSrvInfo.address, httpSrvInfo.token)
   }
   if (!loggedIn && useConfigState.getState().userSwitching) {
     logger.info('[Bootstrap] ignoring loggedIn=false result during account switch')
@@ -232,12 +242,25 @@ export const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus
   configDispatch.setLoggedIn(loggedIn)
 }
 
+export const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus']) => {
+  if (!bootstrap) {
+    return
+  }
+  // the session first: the identity below is applied only if it agrees with it
+  applyUnversionedStatusSession(bootstrap)
+  applyStatusIdentity(bootstrap)
+}
+
 // The reply to setNotifications: the state as of the moment this connection subscribed, so there
 // is no read to order against the subscription. An old service returns nothing here and the
-// bootstrap status keeps that job -- see onBootstrapStatusChanged.
+// bootstrap status keeps that job -- see applyUnversionedStatusSession.
 export const applyClientState = (clientState?: T.RPCGen.ClientState) => {
+  serviceHasNoSnapshot = !clientState
   if (!clientState) {
     logger.info('[Bootstrap] no client state from setNotifications; this service predates it')
+    // the status may already be in the store from before we knew that, and a status identical to
+    // the stored one does not notify again
+    onBootstrapStatusChanged(useDaemonState.getState().bootstrapStatus)
     return
   }
   const {deviceID, deviceName, httpSrvInfo, loggedIn, uid, username, version} = clientState
@@ -249,15 +272,17 @@ export const applyClientState = (clientState?: T.RPCGen.ClientState) => {
     logger.info('[Bootstrap] a login or logout is newer than this snapshot, ignoring')
     return
   }
-  useCurrentUserState.getState().dispatch.setBootstrap({deviceID, deviceName, uid, username})
-  if (username) {
-    configDispatch.setDefaultUsername(username)
-  }
   if (!loggedIn && useConfigState.getState().userSwitching) {
+    // policy, not ordering: keep the session and the user we have until the switch lands. The
+    // snapshot's identity is empty when it says logged out, so it must not be applied either.
     logger.info('[Bootstrap] ignoring loggedIn=false snapshot during account switch')
     return
   }
   configDispatch.setLoggedIn(loggedIn)
+  useCurrentUserState.getState().dispatch.setBootstrap({deviceID, deviceName, uid, username})
+  if (username) {
+    configDispatch.setDefaultUsername(username)
+  }
 }
 
 const onNavStateChanged =(nextNavState: RouterState['navState'], previousNavState: RouterState['navState']) => {

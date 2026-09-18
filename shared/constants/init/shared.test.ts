@@ -3,7 +3,8 @@ import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
-import {loadAccountsStep, onEngineConnected, onNetworkOnlineChanged} from './shared'
+import {useCurrentUserState} from '@/stores/current-user'
+import {loadAccountsStep, onEngineConnected, onLoggedInChanged, onNetworkOnlineChanged} from './shared'
 
 describe('loadAccountsStep', () => {
   const originalDispatch = useConfigState.getState().dispatch
@@ -208,5 +209,39 @@ describe('onNetworkOnlineChanged', () => {
     useDaemonState.setState({handshakeState: 'loading'})
     onNetworkOnlineChanged(true, false)
     expect(reRead).not.toHaveBeenCalled()
+  })
+})
+
+describe('onLoggedInChanged', () => {
+  beforeEach(() => {
+    jest.useFakeTimers()
+  })
+  afterEach(() => {
+    jest.useRealTimers()
+    jest.restoreAllMocks()
+    resetAllStores()
+  })
+
+  test('applies the stored status identity when the session catches up with it', () => {
+    // the status is read before the login notification lands, so its identity is held back; a
+    // status identical to the stored one never notifies again, so the login has to apply it
+    jest.spyOn(T.RPCGen, 'loginGetConfiguredAccountsRpcPromise').mockResolvedValue([])
+    jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue({} as never)
+    useDaemonState.setState({
+      bootstrapStatus: {
+        deviceID: 'd1',
+        deviceName: 'testuser-mac',
+        loggedIn: true,
+        registered: true,
+        uid: 'u1',
+        username: 'testuser',
+      } as never,
+    })
+    useConfigState.setState({loggedIn: true})
+
+    onLoggedInChanged(true)
+
+    expect(useCurrentUserState.getState().username).toBe('testuser')
+    expect(useCurrentUserState.getState().uid).toBe('u1')
   })
 })

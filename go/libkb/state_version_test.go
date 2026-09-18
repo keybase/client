@@ -24,7 +24,7 @@ func TestNotifyRouterStampsEachAnnouncedChange(t *testing.T) {
 	ctx := context.Background()
 
 	epoch := g.StateVersion().Epoch
-	require.NotZero(t, epoch, "the epoch identifies this service process")
+	require.Less(t, epoch, int64(1)<<53, "a JS client decodes this into a float64")
 	require.EqualValues(t, 0, g.StateVersion().Counter, "nothing announced yet")
 
 	g.NotifyRouter.HandleHTTPSrvInfoUpdate(ctx, keybase1.HttpSrvInfo{Address: "127.0.0.1:1", Token: "token"})

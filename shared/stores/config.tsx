@@ -91,9 +91,6 @@ export type State = Store & {
   dispatch: {
     // a login or logout notification: applied only if it is newer than the last applied one
     acceptSessionVersion: (version?: T.RPCGen.StateVersion) => boolean
-    // true while nothing versioned has landed: the only window in which an unversioned payload
-    // (a bootstrap status from a service too old to answer setNotifications) may own this field
-    canAcceptUnversioned: (kind: 'http' | 'session') => boolean
     checkForUpdate: () => void
     initAppUpdateLoop: () => void
     installerRan: () => void
@@ -201,7 +198,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
 
   const dispatch: State['dispatch'] = {
     acceptSessionVersion: version => acceptVersion('session', version),
-    canAcceptUnversioned: kind => applied[kind] === undefined,
     checkForUpdate: () => {
       const f = async () => {
         await _checkForUpdate()
