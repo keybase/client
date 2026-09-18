@@ -1,0 +1,56 @@
+go/chat/maps/livelocation.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 72
+go/chat/ephemeral_purger.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 176
+go/chat/ephemeral_purger_test.go
+  s_600526a2407b46::t_9193808cc0ba79 381,383
+go/chat/localizer.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 289-290,343-346,350-351,353-354,361-364,369-378,380,515,518,523
+  s_594e5b2252b638::t_905969f842be76 522,524
+go/chat/retry.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 394
+go/chat/convloader.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 238
+go/chat/search/indexer.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 238,259,263,267,270,272-274,307,309,311
+go/chat/bots/commands.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 125
+go/chat/archive.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 286
+go/chat/uiinboxloader.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 78-81,88-94,101-104,109-110,121,672
+go/chat/inboxsource.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 668-671,687-690,695
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "2fb55a642b826716b950c6d254a9dda4f9e2dae7",
+  "prompts": {},
+  "sessions": {
+    "s_594e5b2252b638": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "7b0fa23c-993b-4069-be8e-e93101e8a296",
+        "model": "auto-smart"
+      },
+      "human_author": null
+    },
+    "s_600526a2407b46": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "12fe8bef-5cdd-4b68-a71f-0aee1554e601",
+        "model": "auto-smart"
+      },
+      "human_author": null
+    },
+    "s_853e2d28c2e344": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d5a3add1-5cdb-47ca-a334-54991bf7ad5e",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
