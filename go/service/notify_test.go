@@ -46,12 +46,10 @@ func TestSetNotificationsHoldsBackAnUnsettledSession(t *testing.T) {
 // change strictly newer than that label -- which together are what let a client
 // keep a notification over the reply.
 //
-// The order of the two statements INSIDE SetNotifications is not observable from
-// here and this test does not pin it: AddConnection has already registered empty
-// channels, so the pre-call assertion is trivially true, and swapping register
-// and read still satisfies everything below. That ordering is held by the comment
-// on SetNotifications; pinning it would need a recording transport and a send
-// that blocks until the channels are set.
+// The register-before-read order inside SetNotifications is not observable from
+// here and is not pinned here: it is pinned by the compiler instead, because the
+// version labelling the reply is SetChannels' return value and there is no reply
+// to build without first having called it.
 func TestSetNotificationsRegistersChannelsAndLabelsTheRead(t *testing.T) {
 	tc := libkb.SetupTest(t, "notify", 0)
 	defer tc.Cleanup()

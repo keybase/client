@@ -31,17 +31,17 @@ func NewNotifyCtlHandler(xp rpc.Transporter, id libkb.ConnectionID, g *libkb.Glo
 	}
 }
 
-// SetNotifications registers the channels and then reads the client state, in
-// that order: a change from here on is announced to this connection, so the
-// reply can only miss something the client is about to be told about anyway.
-// That is what removes the ordering problem between a subscription and a
-// separate read of the same state.
+// SetNotifications registers the channels and then reads the client state. The
+// order is not a convention here: the version that labels the reply is what
+// SetChannels returns, so the state below cannot be read before the connection is
+// subscribed. A change from here on is announced to this connection, so the reply
+// can only miss something the client is about to be told about anyway.
 func (h *NotifyCtlHandler) SetNotifications(ctx context.Context, n keybase1.NotificationChannels) (keybase1.ClientState, error) {
-	h.G().NotifyRouter.SetChannels(h.id, n)
-	// Read the version before the state it describes. NextStateVersion is stamped
-	// after a change is readable, so this snapshot is never newer than its label
-	// and a client can drop it on a tie without losing anything.
-	res := keybase1.ClientState{Version: h.G().StateVersion(), AppState: h.G().MobileAppState.State()}
+	// The version is read before the state it describes. NextStateVersion is
+	// stamped after a change is readable, so this snapshot is never newer than its
+	// label and a client can drop it on a tie without losing anything.
+	version := h.G().NotifyRouter.SetChannels(h.id, n)
+	res := keybase1.ClientState{Version: version, AppState: h.G().MobileAppState.State()}
 	// The session is left out until the startup login attempt has settled: before
 	// that there is no session to describe, and reporting a logged-out one would
 	// be a lie the client would have to be corrected out of by a notification it

@@ -350,10 +350,15 @@ func (n *NotifyRouter) RemoveListener(id NotifyListenerID) {
 
 func (n *NotifyRouter) Shutdown() {}
 
-func (n *NotifyRouter) setNotificationChannels(id ConnectionID, val keybase1.NotificationChannels) {
+// setNotificationChannels registers the connection's filter and returns the
+// version labelling it. The version is read under the same lock announce takes to
+// decide whether this connection is registered, so the registration and its label
+// are one step and neither can be taken without the other.
+func (n *NotifyRouter) setNotificationChannels(id ConnectionID, val keybase1.NotificationChannels) keybase1.StateVersion {
 	n.Lock()
 	defer n.Unlock()
 	n.state[id] = val
+	return n.G().StateVersion()
 }
 
 func (n *NotifyRouter) getNotificationChannels(id ConnectionID) keybase1.NotificationChannels {
@@ -393,9 +398,14 @@ func (n *NotifyRouter) AddConnection(xp rpc.Transporter, ch chan error) Connecti
 }
 
 // SetChannels sets which notification channels are interested for the connection
-// with the given connection ID.
-func (n *NotifyRouter) SetChannels(i ConnectionID, nc keybase1.NotificationChannels) {
-	n.setNotificationChannels(i, nc)
+// with the given connection ID, and returns the version that labels a state read
+// made from here on. The version comes back from the registration rather than
+// from a separate StateVersion call so that a reply describing the state cannot
+// be built before the connection is subscribed: a change landing in that window
+// would be announced to nobody and reported stale, and the client keeps whichever
+// version is newer, so it would keep the stale one for good.
+func (n *NotifyRouter) SetChannels(i ConnectionID, nc keybase1.NotificationChannels) keybase1.StateVersion {
+	return n.setNotificationChannels(i, nc)
 }
 
 // announce stamps one state version and fans a notification out to every
