@@ -1161,6 +1161,18 @@ func (o UserReacjis) DeepCopy() UserReacjis {
 	}
 }
 
+type StateVersion struct {
+	Epoch   int64 `codec:"epoch" json:"epoch"`
+	Counter int64 `codec:"counter" json:"counter"`
+}
+
+func (o StateVersion) DeepCopy() StateVersion {
+	return StateVersion{
+		Epoch:   o.Epoch,
+		Counter: o.Counter,
+	}
+}
+
 type CommonInterface interface {
 }
 

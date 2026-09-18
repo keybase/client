@@ -1,11 +1,10 @@
-import {
-  type NavigationIntentOptions,
-  useNavigationIntentsState,
-} from '@/stores/navigation-intents'
+import logger from '@/logger'
+import {useNavigationIntentsState} from '@/stores/navigation-intents'
 
-// Deep-link emission + URL normalization. Kept separate from './linking'
-// (which imports the config/push/current-user stores) so stores/push can enqueue
-// navigation without importing the router's linking config.
+// Deep-link emission + URL normalization. Kept separate from './linking' so
+// stores/push can enqueue navigation without importing the router's linking config
+// (which pulls in the config/push/current-user stores and the route tables). This
+// leaf depends on the navigation-intents store and nothing else.
 
 // ---- URL normalization ----
 
@@ -40,6 +39,15 @@ const normalizeHttpUrl = (url: string): string | undefined => {
       : `keybase://team-page/${teamName}`
   }
 
+  // /phone-app — the install link our own chat invite banner texts to an unresolved @phone
+  // participant (chat/conversation/bottom-banner.tsx). It is not a username, so it has to be
+  // carved out ahead of the single-segment rule below, which would otherwise open a profile
+  // for a user that does not exist. It always opens Add Phone Number: the invitee's inviter
+  // wrote to a number, and nothing here knows (or waits to learn) whether they have one.
+  if (pathname === '/phone-app' || pathname === '/phone-app/') {
+    return 'keybase://settingsAddPhone'
+  }
+
   // /username (single path segment)
   const userMatch = pathname.match(/^\/((?:[a-zA-Z0-9][a-zA-Z0-9_-]?)+)\/?$/)
   if (userMatch?.[1]) {
@@ -66,8 +74,24 @@ export const setInitialURLOnce = (url: string) => {
 
 // Producers only enqueue navigation intent. The active router consumes it once
 // the intended account is active and its NavigationContainer is ready.
-export const emitDeepLink = (url: string, options?: NavigationIntentOptions) => {
+//
+// A link here can come from any app, web page or typed URL, so it never carries
+// a targetUid: only enqueuePushTapRoute may target (and so switch) an account.
+export const emitDeepLink = (url: string) => {
   const normalized = normalizeUrl(url)
   if (!normalized) return
-  useNavigationIntentsState.getState().dispatch.enqueue(normalized, options)
+  useNavigationIntentsState.getState().dispatch.enqueue(normalized)
+}
+
+// ---- Notification taps ----
+
+// For routes read from the service's pending-tap holder only (see
+// constants/init/shared). The service fills that holder from its push-tap bind
+// verb and nothing else, so a targetUID here can only have come from a real
+// notification tap, and no link another app opens can switch accounts.
+export const enqueuePushTapRoute = (route: {url: string; targetUID: string}) => {
+  logger.info('[PushTap] queued a tap link:', route.url)
+  useNavigationIntentsState
+    .getState()
+    .dispatch.enqueue(route.url, {targetUid: route.targetUID || undefined})
 }

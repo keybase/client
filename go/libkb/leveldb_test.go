@@ -9,9 +9,11 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/syndtr/goleveldb/leveldb"
 )
@@ -69,6 +71,34 @@ func doSomeIO() error {
 	return os.WriteFile(filepath.Join(dir, "some-io"), []byte("O_O"), 0o600)
 }
 
+func levelDbStats(t *testing.T, db *LevelDb) (stats leveldb.DBStats) {
+	require.NoError(t, db.doWhileOpenAndNukeIfCorrupted(func() error {
+		return db.db.Stats(&stats)
+	}))
+	return stats
+}
+
+func levelDbTableCount(t *testing.T, db *LevelDb) (count int) {
+	for _, n := range levelDbStats(t, db).LevelTablesCounts {
+		count += n
+	}
+	return count
+}
+
+// levelDbJournalSize returns the size of the journal (*.log) files, which
+// hold writes not yet flushed to a table.
+func levelDbJournalSize(t *testing.T, db *LevelDb) (size int64) {
+	journals, err := filepath.Glob(filepath.Join(db.GetFilename(), "*.log"))
+	require.NoError(t, err)
+	require.NotEmpty(t, journals)
+	for _, j := range journals {
+		fi, err := os.Stat(j)
+		require.NoError(t, err)
+		size += fi.Size()
+	}
+	return size
+}
+
 func testLevelDbPut(db *LevelDb) (key DbKey, err error) {
 	key = DbKey{Key: "test-key", Typ: 0}
 	v := []byte{1, 2, 3, 4}
@@ -123,21 +153,188 @@ func TestLevelDb(t *testing.T) {
 
 				key, err := testLevelDbPut(db)
 				require.NoError(t, err)
+				require.Zero(t, levelDbTableCount(t, db), "the put should still be in the memtable")
 
 				require.NoError(t, db.Flush())
+				require.NotZero(t, levelDbTableCount(t, db), "flush should write the memtable to a table")
 				require.NoError(t, db.Flush())
 
-				// Data survives the flush and the sentinel is cleaned up.
+				// Data survives the flush.
 				val, found, err := db.Get(key)
 				require.NoError(t, err)
 				require.True(t, found)
 				require.Equal(t, []byte{1, 2, 3, 4}, val)
-				_, err = db.db.Get(levelDbFlushSentinelKey, nil)
-				require.Equal(t, leveldb.ErrNotFound, err)
 
 				// Writes still work after a flush.
 				_, err = testLevelDbPut(db)
 				require.NoError(t, err)
+			},
+		},
+		{
+			name: "flush-memtable-only", testBody: func(t *testing.T) {
+				tc := SetupTest(t, "LevelDb-flush-memtable-only", 0)
+				defer tc.Cleanup()
+				db, err := createTempLevelDbForTest(&tc, &td)
+				require.NoError(t, err)
+				require.NoError(t, db.ForceOpen())
+
+				putAcrossPrefixes := func(round int) {
+					for _, prefix := range []string{"aa", "kv", "lo", "pm", "zz"} {
+						for i := 0; i < 20; i++ {
+							key := []byte(fmt.Sprintf("%s:%d:%d", prefix, round, i))
+							require.NoError(t, db.db.Put(key, bytes.Repeat([]byte{byte(i)}, 100), nil))
+						}
+					}
+				}
+				// Existing tables spanning the whole key space, so a table
+				// compaction of the flushed memtable would have inputs.
+				for round := 0; round < 2; round++ {
+					putAcrossPrefixes(round)
+					tr, err := db.db.OpenTransaction()
+					require.NoError(t, err)
+					tr.Discard()
+				}
+				putAcrossPrefixes(2)
+				require.NotZero(t, levelDbJournalSize(t, db))
+				before := levelDbStats(t, db).LevelTablesCounts
+				beforeTotal := levelDbTableCount(t, db)
+
+				require.NoError(t, db.Flush())
+
+				after := levelDbStats(t, db).LevelTablesCounts
+				for level, n := range before {
+					require.GreaterOrEqual(t, after[level], n, "no table should be compacted away (level %d)", level)
+				}
+				require.Equal(t, beforeTotal+1, levelDbTableCount(t, db), "flush should add exactly one table")
+				require.Zero(t, levelDbJournalSize(t, db), "the flushed memtable's journal should be gone")
+				val, err := db.db.Get([]byte("zz:2:19"), nil)
+				require.NoError(t, err)
+				require.Equal(t, bytes.Repeat([]byte{19}, 100), val)
+			},
+		},
+		{
+			name: "flush-coalesces", testBody: func(t *testing.T) {
+				tc := SetupTest(t, "LevelDb-flush-coalesces", 0)
+				defer tc.Cleanup()
+				db, err := createTempLevelDbForTest(&tc, &td)
+				require.NoError(t, err)
+				_, err = testLevelDbPut(db)
+				require.NoError(t, err)
+
+				// A write and a Flush request that land after the running flush
+				// rotated the memtable must still be flushed before it returns.
+				rotations := 0
+				db.flushHook = func() {
+					rotations++
+					if rotations == 1 {
+						require.NoError(t, db.db.Put([]byte("kv:late"), []byte{1}, nil))
+						require.NoError(t, db.Flush())
+					}
+				}
+				require.NoError(t, db.Flush())
+				require.Equal(t, 2, rotations)
+				require.Zero(t, levelDbJournalSize(t, db))
+			},
+		},
+		{
+			name: "flush-concurrent", testBody: func(t *testing.T) {
+				tc := SetupTest(t, "LevelDb-flush-concurrent", 0)
+				defer tc.Cleanup()
+				db, err := createTempLevelDbForTest(&tc, &td)
+				require.NoError(t, err)
+				require.NoError(t, db.ForceOpen())
+
+				var active, maxActive atomic.Int32
+				db.flushHook = func() {
+					n := active.Add(1)
+					for {
+						m := maxActive.Load()
+						if n <= m || maxActive.CompareAndSwap(m, n) {
+							break
+						}
+					}
+					time.Sleep(time.Millisecond)
+					active.Add(-1)
+				}
+
+				const writers, iterations = 8, 25
+				var wg sync.WaitGroup
+				for w := 0; w < writers; w++ {
+					wg.Add(1)
+					go func(w int) {
+						defer wg.Done()
+						for i := 0; i < iterations; i++ {
+							key := DbKey{Key: fmt.Sprintf("%d-%d", w, i), Typ: 0}
+							assert.NoError(t, db.Put(key, nil, []byte{byte(i)}))
+							assert.NoError(t, db.Flush())
+						}
+					}(w)
+				}
+				wg.Wait()
+
+				require.Equal(t, int32(1), maxActive.Load(), "flushes must not overlap")
+				require.Zero(t, levelDbJournalSize(t, db), "the last writes must be flushed")
+				for w := 0; w < writers; w++ {
+					_, found, err := db.Get(DbKey{Key: fmt.Sprintf("%d-%d", w, iterations-1), Typ: 0})
+					require.NoError(t, err)
+					require.True(t, found)
+				}
+			},
+		},
+		{
+			name: "open-transaction-after-close", testBody: func(t *testing.T) {
+				tc := SetupTest(t, "LevelDb-transaction-closed", 0)
+				defer tc.Cleanup()
+				db, err := createTempLevelDbForTest(&tc, &td)
+				require.NoError(t, err)
+
+				require.NoError(t, db.ForceOpen())
+				require.NoError(t, db.Close())
+				_, err = db.OpenTransaction()
+				require.ErrorAs(t, err, &LevelDBOpenClosedError{})
+			},
+		},
+		{
+			name: "concurrent-open", testBody: func(t *testing.T) {
+				tc := SetupTest(t, "LevelDb-concurrent-open", 0)
+				defer tc.Cleanup()
+				db, err := createTempLevelDbForTest(&tc, &td)
+				require.NoError(t, err)
+
+				// Under -race, this catches the lazy open assigning db.db while
+				// Flush reads it.
+				var wg sync.WaitGroup
+				for i := 0; i < 8; i++ {
+					wg.Add(2)
+					go func() {
+						defer wg.Done()
+						_, _, err := db.Get(DbKey{Key: "test-key", Typ: 0})
+						assert.NoError(t, err)
+					}()
+					go func() {
+						defer wg.Done()
+						assert.NoError(t, db.Flush())
+					}()
+				}
+				wg.Wait()
+
+				// A lazy open racing a Nuke reopens rather than reporting closed.
+				for i := 0; i < 8; i++ {
+					wg.Add(2)
+					go func() {
+						defer wg.Done()
+						key := DbKey{Key: "test-key", Typ: 0}
+						assert.NoError(t, db.Put(key, nil, []byte{1}))
+						_, _, err := db.Get(key)
+						assert.NoError(t, err)
+					}()
+					go func() {
+						defer wg.Done()
+						_, err := db.Nuke()
+						assert.NoError(t, err)
+					}()
+				}
+				wg.Wait()
 			},
 		},
 		{

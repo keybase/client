@@ -3,6 +3,8 @@
 
 protocol notifyCtl {
   import idl "common.avdl";
+  import idl "notify_service.avdl";
+  import idl "appstate.avdl";
 
   record NotificationChannels {
     boolean session;
@@ -45,5 +47,36 @@ protocol notifyCtl {
     boolean devicehistory;
   }
 
-  void setNotifications(NotificationChannels channels);
+  record ClientSession {
+    boolean loggedIn;
+    UID uid;
+    string username;
+    DeviceID deviceID;
+    string deviceName;
+  }
+
+  // ClientState is the state a client needs before it can render anything, read
+  // as the reply to setNotifications so there is no read to order against the
+  // subscription. It carries only what is available with nothing to wait on;
+  // the slower derived fields stay on getBootstrapStatus.
+  record ClientState {
+    StateVersion version;   // labels this read: compare against the versions on the notifications
+    // Null until the service's own startup login attempt has settled, because
+    // until then there is no session to describe -- not a logged-out one. A
+    // client must fall back to getBootstrapStatus, which waits for that attempt,
+    // rather than read a null as logged out.
+    union { null, ClientSession } session;
+    union { null, HttpSrvInfo } httpSrvInfo;
+    // The app's lifecycle state, derived here from the UI reports native makes.
+    // A client never derives it for itself: on iOS it would have to read a
+    // different OS notification stream than the one this is derived from, with
+    // no ordering between the two. On a platform with no lifecycle to report
+    // this is a constant FOREGROUND and means nothing.
+    MobileAppState appState;
+  }
+
+  // Registers the channels, then returns the state, so anything that changes
+  // from here on is announced to this connection rather than falling in a gap
+  // between the subscription and a separate read.
+  ClientState setNotifications(NotificationChannels channels);
 }

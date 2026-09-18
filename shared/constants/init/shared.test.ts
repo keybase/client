@@ -3,7 +3,14 @@ import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
-import {loadAccountsStep} from './shared'
+import {useCurrentUserState} from '@/stores/current-user'
+import {
+  loadAccountsStep,
+  onBootstrapStatusChanged,
+  onEngineConnected,
+  onLoggedInChanged,
+  onNetworkOnlineChanged,
+} from './shared'
 
 describe('loadAccountsStep', () => {
   const originalDispatch = useConfigState.getState().dispatch
@@ -33,7 +40,7 @@ describe('loadAccountsStep', () => {
     withDeferredRefreshAccounts()
     useConfigState.getState().dispatch.setUserSwitching(true)
     useDaemonState.setState(s => {
-      s.bootstrapStatus = {loggedIn: false} as any
+      s.bootstrapStatus = {loggedIn: false} as never
     })
 
     await expect(loadAccountsStep()).resolves.toBeUndefined()
@@ -42,7 +49,7 @@ describe('loadAccountsStep', () => {
   test('does not wait for accounts when already logged in', async () => {
     withDeferredRefreshAccounts()
     useDaemonState.setState(s => {
-      s.bootstrapStatus = {loggedIn: true} as any
+      s.bootstrapStatus = {loggedIn: true} as never
     })
 
     await expect(loadAccountsStep()).resolves.toBeUndefined()
@@ -63,5 +70,314 @@ describe('loadAccountsStep', () => {
 
     expect(spy).toHaveBeenCalled()
     expect(useConfigState.getState().configuredAccounts.map(a => a.username)).toEqual(['testuser'])
+  })
+})
+
+describe('onEngineConnected', () => {
+  const originalConfigDispatch = useConfigState.getState().dispatch
+  const originalDaemonDispatch = useDaemonState.getState().dispatch
+
+  afterEach(() => {
+    jest.restoreAllMocks()
+    useConfigState.setState({dispatch: originalConfigDispatch})
+    useDaemonState.setState({dispatch: originalDaemonDispatch})
+    resetAllStores()
+  })
+
+  const stubRegistrations = () => {
+    for (const rpc of [
+      'delegateUiCtlRegisterChatUIRpcPromise',
+      'delegateUiCtlRegisterLogUIRpcPromise',
+      'delegateUiCtlRegisterHomeUIRpcPromise',
+      'delegateUiCtlRegisterSecretUIRpcPromise',
+      'delegateUiCtlRegisterIdentify3UIRpcPromise',
+      'delegateUiCtlRegisterRekeyUIRpcPromise',
+    ] as const) {
+      jest.spyOn(T.RPCGen, rpc).mockResolvedValue(undefined)
+    }
+    useConfigState.setState(s => {
+      s.dispatch = {...originalConfigDispatch, onEngineConnected: () => {}}
+    })
+  }
+
+  const deferredSubscription = () => {
+    let subscribed!: (cs: T.RPCGen.ClientState) => void
+    jest.spyOn(T.RPCGen, 'notifyCtlSetNotificationsRpcPromise').mockReturnValue(
+      new Promise<T.RPCGen.ClientState>(resolve => {
+        subscribed = resolve
+      })
+    )
+    return subscribed
+  }
+  const spyOnBootstrap = () =>
+    jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue({
+      loggedIn: true,
+    } as T.RPCGen.BootstrapStatus)
+
+  test('a reconnect clears the disconnect state at once, before the subscription resolves', () => {
+    stubRegistrations()
+    useDaemonState.setState({error: new Error('Disconnected'), handshakeState: 'failed'})
+    deferredSubscription()
+    spyOnBootstrap()
+
+    onEngineConnected()
+
+    expect(useDaemonState.getState().error).toBe(undefined)
+    expect(useDaemonState.getState().handshakeState).toBe('loading')
+  })
+
+  test('the bootstrap read does not wait for the subscription', async () => {
+    stubRegistrations()
+    const subscribed = deferredSubscription()
+    const bootstrap = spyOnBootstrap()
+
+    onEngineConnected()
+    await new Promise(resolve => setImmediate(resolve))
+
+    expect(bootstrap).toHaveBeenCalledTimes(1)
+
+    subscribed({
+      appState: T.RPCGen.MobileAppState.foreground,
+      httpSrvInfo: {address: '127.0.0.1:2000', token: 'token'},
+      session: {deviceID: 'd1', deviceName: 'testuser-mac', loggedIn: true, uid: 'u1', username: 'testuser'},
+      version: {counter: 1, epoch: 7},
+    })
+    await new Promise(resolve => setImmediate(resolve))
+
+    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:2000')
+  })
+
+  test('the bootstrap read still runs when the subscription fails', async () => {
+    stubRegistrations()
+    jest
+      .spyOn(T.RPCGen, 'notifyCtlSetNotificationsRpcPromise')
+      .mockRejectedValue(new Error('no notifications'))
+    const bootstrap = spyOnBootstrap()
+
+    onEngineConnected()
+    await new Promise(resolve => setImmediate(resolve))
+
+    expect(bootstrap).toHaveBeenCalledTimes(1)
+  })
+
+  test('a new connection does not inherit the previous one\'s fallback', async () => {
+    // the old service left the flag set; while this connection's reply is still in flight it has
+    // told us nothing, so the status must not own the session on its behalf
+    stubRegistrations()
+    jest
+      .spyOn(T.RPCGen, 'notifyCtlSetNotificationsRpcPromise')
+      .mockRejectedValue(new Error('no notifications'))
+    spyOnBootstrap()
+    onEngineConnected()
+    await new Promise(resolve => setImmediate(resolve))
+
+    expect(useConfigState.getState().dispatch.sessionIsUnversioned()).toBe(true)
+
+    deferredSubscription()
+    onEngineConnected()
+
+    expect(useConfigState.getState().dispatch.sessionIsUnversioned()).toBe(false)
+
+    // the first connection's fallback logged us in; this connection has said nothing yet, so a
+    // status arriving now must not be the one to decide the session again
+    useConfigState.setState({loggedIn: false})
+    onBootstrapStatusChanged({
+      deviceID: 'd1',
+      deviceName: 'testuser-mac',
+      loggedIn: true,
+      registered: true,
+      uid: 'u1',
+      username: 'testuser',
+    } as never)
+
+    expect(useConfigState.getState().loggedIn).toBe(false)
+  })
+
+  test('a throw while applying a good reply is not read as a failed subscribe', async () => {
+    // otherwise the catch flips this connection to the unversioned fallback and re-applies the
+    // status on top of half-applied versioned state
+    stubRegistrations()
+    jest.spyOn(T.RPCGen, 'notifyCtlSetNotificationsRpcPromise').mockResolvedValue({
+      httpSrvInfo: {address: '127.0.0.1:4242', token: 'token'},
+      session: {deviceID: 'd1', deviceName: 'testuser-mac', loggedIn: true, uid: 'u1', username: 'testuser'},
+      version: {counter: 1, epoch: 4242},
+    } as never)
+    jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue({
+      httpSrvInfo: {address: '127.0.0.1:1', token: 'token'},
+      loggedIn: true,
+    } as never)
+    const originalCurrentUser = useCurrentUserState.getState().dispatch
+    useCurrentUserState.setState({
+      dispatch: {
+        ...originalCurrentUser,
+        setBootstrap: () => {
+          throw new Error('boom')
+        },
+      },
+    })
+
+    onEngineConnected()
+    await new Promise(resolve => setImmediate(resolve))
+    useCurrentUserState.setState({dispatch: originalCurrentUser})
+
+    expect(useConfigState.getState().dispatch.sessionIsUnversioned()).toBe(false)
+    // and what the reply had already applied before the throw is left alone, rather than
+    // re-decided by the status the fallback would have replayed
+    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:4242')
+  })
+
+  test('a reply from a connection a later handshake replaced writes nothing', async () => {
+    stubRegistrations()
+    const subscribed = deferredSubscription()
+    spyOnBootstrap()
+
+    onEngineConnected()
+    // a reconnect before the first reply lands
+    deferredSubscription()
+    onEngineConnected()
+    useConfigState.setState({loggedIn: false})
+
+    subscribed({
+      appState: T.RPCGen.MobileAppState.foreground,
+      session: {deviceID: 'd1', deviceName: 'testuser-mac', loggedIn: true, uid: 'u1', username: 'testuser'},
+      version: {counter: 1, epoch: 4243},
+    })
+    await new Promise(resolve => setImmediate(resolve))
+
+    expect(useConfigState.getState().loggedIn).toBe(false)
+  })
+
+  test('a logout during the subscribe window does not discard the live reply', async () => {
+    // resetAllStores zeroes the store's copy of handshakeGeneration while the daemon's closure
+    // counter keeps climbing, so a logout under an in-flight subscribe must not make that
+    // connection's own reply look like it came from a replaced one
+    stubRegistrations()
+    const subscribed = deferredSubscription()
+    spyOnBootstrap()
+
+    onEngineConnected()
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    useConfigState.getState().dispatch.setLoggedIn(false) // resetAllStores runs here
+
+    subscribed({
+      appState: T.RPCGen.MobileAppState.foreground,
+      session: {deviceID: 'd1', deviceName: 'testuser-mac', loggedIn: true, uid: 'u1', username: 'testuser'},
+      version: {counter: 1, epoch: 4244},
+    })
+    await new Promise(resolve => setImmediate(resolve))
+
+    expect(useConfigState.getState().loggedIn).toBe(true)
+    expect(useCurrentUserState.getState().username).toBe('testuser')
+  })
+
+  test('a failed subscription leaves the session to the bootstrap status', async () => {
+    // no reply and no channels either: if the status cannot own the session here, a provisioned
+    // user lands on the login screen with nothing left that could put them back
+    stubRegistrations()
+    jest
+      .spyOn(T.RPCGen, 'notifyCtlSetNotificationsRpcPromise')
+      .mockRejectedValue(new Error('no notifications'))
+    spyOnBootstrap()
+
+    onEngineConnected()
+    await new Promise(resolve => setImmediate(resolve))
+    onBootstrapStatusChanged({
+      deviceID: 'd1',
+      deviceName: 'testuser-mac',
+      loggedIn: true,
+      registered: true,
+      uid: 'u1',
+      username: 'testuser',
+    } as never)
+
+    expect(useConfigState.getState().loggedIn).toBe(true)
+    expect(useCurrentUserState.getState().username).toBe('testuser')
+  })
+})
+
+describe('onNetworkOnlineChanged', () => {
+  // replaces the gregor-reachability trigger: re-read the bootstrap status after an offline stretch
+  afterEach(() => {
+    jest.restoreAllMocks()
+    useDaemonState.setState({dispatch: originalDaemonDispatch})
+    resetAllStores()
+  })
+
+  const originalDaemonDispatch = useDaemonState.getState().dispatch
+  const spyOnReRead = () => {
+    // userSwitching survives resetAllStores on purpose, and an earlier test in this file sets it
+    useConfigState.getState().dispatch.setUserSwitching(false)
+    const reRead = jest.fn(async () => {})
+    useDaemonState.setState({
+      dispatch: {...originalDaemonDispatch, loadDaemonBootstrapStatus: reRead},
+      handshakeState: 'done',
+    })
+    return reRead
+  }
+
+  test('re-reads the bootstrap status when the network comes back', () => {
+    const reRead = spyOnReRead()
+    onNetworkOnlineChanged(true, false)
+    expect(reRead).toHaveBeenCalledTimes(1)
+  })
+
+  test('does not re-read on the first reading of the network at startup', () => {
+    const reRead = spyOnReRead()
+    onNetworkOnlineChanged(true, undefined)
+    expect(reRead).not.toHaveBeenCalled()
+  })
+
+  test('does not re-read when going offline', () => {
+    const reRead = spyOnReRead()
+    onNetworkOnlineChanged(false, true)
+    expect(reRead).not.toHaveBeenCalled()
+  })
+
+  test('does not re-read during an account switch', () => {
+    const reRead = spyOnReRead()
+    useConfigState.getState().dispatch.setUserSwitching(true)
+    onNetworkOnlineChanged(true, false)
+    expect(reRead).not.toHaveBeenCalled()
+  })
+
+  test('does not re-read before the handshake is done', () => {
+    const reRead = spyOnReRead()
+    useDaemonState.setState({handshakeState: 'loading'})
+    onNetworkOnlineChanged(true, false)
+    expect(reRead).not.toHaveBeenCalled()
+  })
+})
+
+describe('onLoggedInChanged', () => {
+  beforeEach(() => {
+    jest.useFakeTimers()
+  })
+  afterEach(() => {
+    jest.useRealTimers()
+    jest.restoreAllMocks()
+    resetAllStores()
+  })
+
+  test('applies the stored status identity when the session catches up with it', () => {
+    // the status is read before the login notification lands, so its identity is held back; a
+    // status identical to the stored one never notifies again, so the login has to apply it
+    jest.spyOn(T.RPCGen, 'loginGetConfiguredAccountsRpcPromise').mockResolvedValue([])
+    jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue({} as never)
+    useDaemonState.setState({
+      bootstrapStatus: {
+        deviceID: 'd1',
+        deviceName: 'testuser-mac',
+        loggedIn: true,
+        registered: true,
+        uid: 'u1',
+        username: 'testuser',
+      } as never,
+    })
+    useConfigState.setState({loggedIn: true})
+
+    onLoggedInChanged(true)
+
+    expect(useCurrentUserState.getState().username).toBe('testuser')
+    expect(useCurrentUserState.getState().uid).toBe('u1')
   })
 })

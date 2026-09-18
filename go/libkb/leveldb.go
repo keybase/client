@@ -120,7 +120,16 @@ type LevelDb struct {
 	sync.RWMutex
 	db           *leveldb.DB
 	dbOpenerOnce *sync.Once
-	cleaner      *levelDbCleaner
+	// dbMu guards the lazy open's assignment of db, which runs under the read
+	// lock, against readers that don't go through dbOpenerOnce.
+	dbMu    sync.Mutex
+	cleaner *levelDbCleaner
+
+	flushMu      sync.Mutex
+	flushRunning bool
+	flushRerun   bool
+	// flushHook, if set, runs after each memtable rotation. Tests only.
+	flushHook func()
 
 	filename string
 	Contextified
@@ -163,13 +172,14 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 		l.dbOpenerOnce.Do(func() {
 			l.G().Log.Debug("+ LevelDb.open")
 			fn := l.GetFilename()
-			l.G().Log.Debug("| Opening LevelDB for local cache: %v %s", l, fn)
+			l.G().Log.Debug("| Opening LevelDB for local cache: %s", fn)
 			l.G().Log.Debug("| Opening LevelDB options: %+v", l.Opts())
-			l.db, err = leveldb.OpenFile(fn, l.Opts())
+			db, openErr := leveldb.OpenFile(fn, l.Opts())
+			err = openErr
 			if _, ok := err.(*errors.ErrCorrupted); ok {
 				l.G().Log.Debug("| LevelDb was corrupted; attempting recovery (%v)", err)
 				var recoveryError error
-				l.db, recoveryError = leveldb.RecoverFile(fn, nil)
+				db, recoveryError = leveldb.RecoverFile(fn, nil)
 				if recoveryError != nil {
 					l.G().Log.Debug("| Recovery failed: %v", recoveryError)
 				} else {
@@ -179,8 +189,11 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 				}
 			}
 			l.G().Log.Debug("- LevelDb.open -> %s", ErrToOk(err))
-			if l.db != nil {
-				l.cleaner.setDb(l.db)
+			l.dbMu.Lock()
+			l.db = db
+			l.dbMu.Unlock()
+			if db != nil {
+				l.cleaner.start(db)
 			}
 		})
 
@@ -230,37 +243,69 @@ func (l *LevelDb) ForceOpen() error {
 	return l.doWhileOpenAndNukeIfCorrupted(func() error { return nil })
 }
 
-// levelDbFlushSentinelKey lives in the "pm" table so the db cleaner ignores
-// it. Written before CompactRange so the memtable contains at least one key
-// and isMemOverlaps returns true for the full-range compaction.
-var levelDbFlushSentinelKey = []byte(levelDbTablePerm + ":ff:flush-sentinel")
-
-// Flush writes the current memtable to disk and rotates the journal. An
+// Flush writes the current memtable to disk and starts an empty journal. An
 // unclean process kill (routine on iOS) with a non-empty journal forces a
 // journal replay on the next open, or worse a whole-DB recovery if the
 // journal tail is corrupt — both of which block startup. Flushing while
-// entering the background leaves a near-empty journal so the next cold start
+// entering the background leaves an empty journal so the next cold start
 // opens fast. No-op if the DB is not currently open; does not trigger a lazy
 // open.
+//
+// Flushes of one DB never overlap. A call that arrives while a flush is
+// running returns immediately and makes the running flush go around once
+// more, so writes made before that call still get flushed.
 func (l *LevelDb) Flush() (err error) {
+	l.flushMu.Lock()
+	if l.flushRunning {
+		l.flushRerun = true
+		l.flushMu.Unlock()
+		return nil
+	}
+	l.flushRunning = true
+	l.flushMu.Unlock()
+
+	for {
+		err = l.flushMemtable()
+		l.flushMu.Lock()
+		if err != nil || !l.flushRerun {
+			l.flushRunning = false
+			l.flushRerun = false
+			l.flushMu.Unlock()
+			return err
+		}
+		l.flushRerun = false
+		l.flushMu.Unlock()
+	}
+}
+
+// openedDb returns the DB without triggering a lazy open, or nil if it isn't
+// open. Callers must hold the read lock.
+func (l *LevelDb) openedDb() *leveldb.DB {
+	l.dbMu.Lock()
+	defer l.dbMu.Unlock()
+	return l.db
+}
+
+func (l *LevelDb) flushMemtable() (err error) {
 	defer convertNoSpaceError(&err)
 	l.RLock()
 	defer l.RUnlock()
-	if l.db == nil {
+	db := l.openedDb()
+	if db == nil {
 		return nil
 	}
-	// Write the sentinel so the memtable is non-empty; then compact the full
-	// key space (util.Range{} with nil Start/Limit) so isMemOverlaps always
-	// returns true regardless of what other keys are live. A narrow range
-	// keyed only on the sentinel could miss the memtable flush if a concurrent
-	// write rotated the memtable between the Put and CompactRange.
-	if err = l.db.Put(levelDbFlushSentinelKey, nil, nil); err != nil {
+	// Opening a transaction rotates a non-empty memtable and waits until it
+	// is written to a table, without compacting any tables. The
+	// transaction itself is not needed.
+	tr, err := db.OpenTransaction()
+	if err != nil {
 		return err
 	}
-	if err = l.db.CompactRange(util.Range{}); err != nil {
-		return err
+	tr.Discard()
+	if l.flushHook != nil {
+		l.flushHook()
 	}
-	return l.db.Delete(levelDbFlushSentinelKey, nil)
+	return nil
 }
 
 func (l *LevelDb) Stats() (stats string) {
@@ -407,7 +452,13 @@ func (l *LevelDb) OpenTransaction() (LocalDbTransaction, error) {
 		ltr LevelDbTransaction
 		err error
 	)
-	if ltr.tr, err = l.db.OpenTransaction(); err != nil {
+	l.RLock()
+	db := l.openedDb()
+	l.RUnlock()
+	if db == nil {
+		return LevelDbTransaction{}, LevelDBOpenClosedError{}
+	}
+	if ltr.tr, err = db.OpenTransaction(); err != nil {
 		return LevelDbTransaction{}, err
 	}
 	ltr.cleaner = l.cleaner

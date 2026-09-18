@@ -7,6 +7,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
 import {usePushState} from '@/stores/push'
 import {createLinkingConfig} from './linking'
+import {enqueuePushTapRoute} from './deep-link-emitter'
 
 const setCurrentUser = (uid: string) => {
   useCurrentUserState.getState().dispatch.setBootstrap({
@@ -20,8 +21,6 @@ const setCurrentUser = (uid: string) => {
 type Startup = {
   conversation: T.Chat.ConversationIDKey
   conversationUid?: string
-  followUser: string
-  link: string
   tab?: Tabs.Tab
 }
 
@@ -31,8 +30,6 @@ const setStartup = (st: Partial<Startup>) => {
   useConfigState.setState({
     startup: {
       conversation: T.Chat.noConversationIDKey,
-      followUser: '',
-      link: '',
       loaded: true,
       ...st,
     },
@@ -53,6 +50,9 @@ beforeEach(() => {
 
 afterEach(() => {
   handleAppLink.mockReset()
+  // resetAllStores deliberately keeps account-targeted intents; drop them here.
+  const {intent, dispatch} = useNavigationIntentsState.getState()
+  if (intent) dispatch.acknowledge(intent.id)
   resetAllStores()
 })
 
@@ -93,16 +93,20 @@ test('a conversation persisted by this account is kept', async () => {
   await expect(getInitialURL()).resolves.toBe('keybase://convid/conv-1')
 })
 
-test('a follow-user startup opens their profile when there is no conversation', async () => {
-  setStartup({followUser: 'testuser'})
+test('a cold tap for the current account is the startup route, ahead of saved state', async () => {
+  setStartup({conversation: 'conv-1'})
+  enqueuePushTapRoute({targetUID: 'current-uid', url: 'keybase://convid/0000ab'})
 
-  await expect(getInitialURL()).resolves.toBe('keybase://profile/show/testuser')
+  await expect(getInitialURL()).resolves.toBe('keybase://convid/0000ab')
+  expect(useNavigationIntentsState.getState().intent).toBeUndefined()
 })
 
-test('a saved conversation wins over a follow-user startup', async () => {
-  setStartup({conversation: 'conv-1', followUser: 'testuser'})
+test('a cold tap for another account opens saved state and waits for the switch', async () => {
+  setStartup({conversation: 'conv-1'})
+  enqueuePushTapRoute({targetUID: 'other-uid', url: 'keybase://convid/0000ab'})
 
   await expect(getInitialURL()).resolves.toBe('keybase://convid/conv-1')
+  expect(useNavigationIntentsState.getState().intent?.targetUid).toBe('other-uid')
 })
 
 test('the push prompt wins when there is nothing saved to restore', async () => {
@@ -156,4 +160,13 @@ test('the returned initial url is recorded so the same deep link is not re-enque
   await getInitialURL()
 
   expect(useNavigationIntentsState.getState().lastHandledIntent?.url).toBe(`keybase://${Tabs.chatTab}`)
+})
+
+test('a queued tap older than the intent lifetime is not the startup route', async () => {
+  setStartup({conversation: 'conv-1'})
+  enqueuePushTapRoute({targetUID: 'current-uid', url: 'keybase://convid/0000ab'})
+  const intent = useNavigationIntentsState.getState().intent
+  useNavigationIntentsState.setState({intent: {...intent!, createdAt: Date.now() - 6 * 60_000}})
+
+  await expect(getInitialURL()).resolves.toBe('keybase://convid/conv-1')
 })

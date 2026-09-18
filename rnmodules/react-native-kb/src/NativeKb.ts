@@ -1,11 +1,10 @@
 import {TurboModuleRegistry, type TurboModule} from 'react-native'
-import type {EventEmitter, UnsafeObject} from 'react-native/Libraries/Types/CodegenTypes'
+import type {EventEmitter} from 'react-native/Libraries/Types/CodegenTypes'
 
 export interface Spec extends TurboModule {
   readonly onMetaEvent: EventEmitter<string>
   readonly onHardwareKeyPressed: EventEmitter<string>
   readonly onPasteImage: EventEmitter<Array<string>>
-  readonly onPushNotification: EventEmitter<UnsafeObject>
   readonly onPushToken: EventEmitter<string>
   readonly onShareData: EventEmitter<{text?: string; localPaths?: Array<string>}>
   getTypedConstants(): {
@@ -60,10 +59,8 @@ export interface Spec extends TurboModule {
   requestPushPermissions(): Promise<boolean>
   getRegistrationToken(): Promise<string>
   setApplicationIconBadgeNumber(n: number): void
-  getInitialNotification(): Promise<object | null>
   removeAllPendingNotificationRequests(): void
   addNotificationRequest(config: {body: string; id: string}): Promise<void>
-  engineReset(): void
   notifyJSReady(): void
   shareListenersRegistered(): void
   setEnablePasteImage(enabled: boolean): void

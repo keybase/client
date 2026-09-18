@@ -11,11 +11,13 @@ import (
 )
 
 type LoggedOutArg struct {
+	Version StateVersion `codec:"version" json:"version"`
 }
 
 type LoggedInArg struct {
-	Username string `codec:"username" json:"username"`
-	SignedUp bool   `codec:"signedUp" json:"signedUp"`
+	Username string       `codec:"username" json:"username"`
+	SignedUp bool         `codec:"signedUp" json:"signedUp"`
+	Version  StateVersion `codec:"version" json:"version"`
 }
 
 type ClientOutOfDateArg struct {
@@ -25,7 +27,7 @@ type ClientOutOfDateArg struct {
 }
 
 type NotifySessionInterface interface {
-	LoggedOut(context.Context) error
+	LoggedOut(context.Context, StateVersion) error
 	LoggedIn(context.Context, LoggedInArg) error
 	ClientOutOfDate(context.Context, ClientOutOfDateArg) error
 }
@@ -40,7 +42,12 @@ func NotifySessionProtocol(i NotifySessionInterface) rpc.Protocol {
 					return &ret
 				},
 				Handler: func(ctx context.Context, args any) (ret any, err error) {
-					err = i.LoggedOut(ctx)
+					typedArgs, ok := args.(*[1]LoggedOutArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]LoggedOutArg)(nil), args)
+						return
+					}
+					err = i.LoggedOut(ctx, typedArgs[0].Version)
 					return
 				},
 			},
@@ -82,8 +89,9 @@ type NotifySessionClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c NotifySessionClient) LoggedOut(ctx context.Context) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifySession.loggedOut", []any{LoggedOutArg{}}, 0*time.Millisecond)
+func (c NotifySessionClient) LoggedOut(ctx context.Context, version StateVersion) (err error) {
+	__arg := LoggedOutArg{Version: version}
+	err = c.Cli.Notify(ctx, "keybase.1.NotifySession.loggedOut", []any{__arg}, 0*time.Millisecond)
 	return
 }
 

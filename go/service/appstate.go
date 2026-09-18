@@ -5,7 +5,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
@@ -23,14 +22,6 @@ func newAppStateHandler(xp rpc.Transporter, g *libkb.GlobalContext) *appStateHan
 		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
-}
-
-func (a *appStateHandler) UpdateAppState(ctx context.Context, state keybase1.MobileAppState) (err error) {
-	a.G().Trace(fmt.Sprintf("UpdateAppState(%v)", state), &err)()
-
-	// Update app state
-	a.G().MobileAppState.Update(state)
-	return nil
 }
 
 func (a *appStateHandler) UpdateMobileNetState(ctx context.Context, stateStr string) (err error) {
@@ -51,6 +42,26 @@ func (a *appStateHandler) UpdateMobileNetState(ctx context.Context, stateStr str
 		state = keybase1.MobileNetworkState_UNKNOWN
 	}
 	a.G().MobileNetState.Update(state)
+	return nil
+}
+
+// PeekPushTapRoute reports the route a tapped notification resolved to, and
+// leaves it armed until the client acks. It is its own call rather than a field
+// in setNotifications' snapshot: that reply goes to every subscriber, kbfs
+// inside this same process among them, and a tap carried there would be read by
+// whichever one subscribed first.
+func (a *appStateHandler) PeekPushTapRoute(ctx context.Context) (*keybase1.PushTapRoute, error) {
+	route := a.G().PendingPushTap.Peek()
+	a.G().Log.CDebugf(ctx, "PeekPushTapRoute: waiting tap: %v", route != nil)
+	return route, nil
+}
+
+// AckPushTapRoute retires the tap the client has acted on. Until this call the
+// route stays armed, so a peek whose reply never arrived costs a repeat rather
+// than the tap.
+func (a *appStateHandler) AckPushTapRoute(ctx context.Context, id int) error {
+	retired := a.G().PendingPushTap.Ack(id)
+	a.G().Log.CDebugf(ctx, "AckPushTapRoute(%d): retired: %v", id, retired)
 	return nil
 }
 

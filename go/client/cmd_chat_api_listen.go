@@ -184,7 +184,7 @@ func (c *CmdChatAPIListen) Run() error {
 		Chatdev: c.subscribeDev,
 		Wallet:  c.subscribeWallet,
 	}
-	if err := cli.SetNotifications(context.TODO(), channels); err != nil {
+	if _, err := cli.SetNotifications(context.TODO(), channels); err != nil {
 		return err
 	}
 	errWriter := c.G().UI.GetTerminalUI().ErrorWriter()

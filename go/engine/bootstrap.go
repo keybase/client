@@ -62,28 +62,41 @@ func (e *Bootstrap) lookupFullname(m libkb.MetaContext, uv keybase1.UserVersion)
 	e.status.Fullname = pkg.FullName.FullName
 }
 
+// SessionState reads the session fields that are available with nothing to wait
+// on: the active device. Bootstrap fills the same fields plus the slower derived
+// ones, so the two cannot drift. The returned UserVersion is the active device's,
+// empty when logged out.
+func SessionState(m libkb.MetaContext) (res keybase1.ClientSession, uv keybase1.UserVersion) {
+	// if any Login engine worked previously, then ActiveDevice will
+	// be valid; the only way for it to be valid is to be logged in
+	// (and provisioned)
+	res.LoggedIn = m.G().ActiveDevice.Valid()
+	if !res.LoggedIn {
+		return res, uv
+	}
+
+	uv, res.DeviceID, res.DeviceName, _, _ = m.G().ActiveDevice.AllFields()
+	res.Uid = uv.Uid
+	res.Username = m.G().ActiveDevice.Username(m).String()
+	return res, uv
+}
+
 // Run starts the engine.
 func (e *Bootstrap) Run(m libkb.MetaContext) (err error) {
 	defer m.Trace("Bootstrap.Run", &err)()
-	e.status.Registered = e.signedUp(m)
+	session, uv := SessionState(m)
+	e.status.Registered = signedUp(m)
+	e.status.LoggedIn = session.LoggedIn
+	e.status.Uid = session.Uid
+	e.status.Username = session.Username
+	e.status.DeviceID = session.DeviceID
+	e.status.DeviceName = session.DeviceName
 
-	// if any Login engine worked previously, then ActiveDevice will
-	// be valid:
-	validActiveDevice := m.G().ActiveDevice.Valid()
-
-	// the only way for ActiveDevice to be valid is to be logged in
-	// (and provisioned)
-	e.status.LoggedIn = validActiveDevice
 	if !e.status.LoggedIn {
 		m.Debug("Bootstrap: not logged in")
 		return nil
 	}
 	m.Debug("Bootstrap: logged in (valid active device)")
-
-	var uv keybase1.UserVersion
-	uv, e.status.DeviceID, e.status.DeviceName, _, _ = e.G().ActiveDevice.AllFields()
-	e.status.Uid = uv.Uid
-	e.status.Username = e.G().ActiveDevice.Username(m).String()
 	m.Debug("Bootstrap status: uid=%s, username=%s, deviceID=%s, deviceName=%s", e.status.Uid, e.status.Username, e.status.DeviceID, e.status.DeviceName)
 
 	if chatHelper := e.G().ChatHelper; chatHelper != nil {
@@ -96,7 +109,7 @@ func (e *Bootstrap) Run(m libkb.MetaContext) (err error) {
 }
 
 // signedUp is true if there's a uid in config.json.
-func (e *Bootstrap) signedUp(m libkb.MetaContext) bool {
+func signedUp(m libkb.MetaContext) bool {
 	cr := m.G().Env.GetConfig()
 	if cr == nil {
 		return false

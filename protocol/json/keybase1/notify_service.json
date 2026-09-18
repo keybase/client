@@ -28,6 +28,10 @@
         {
           "name": "info",
           "type": "HttpSrvInfo"
+        },
+        {
+          "name": "version",
+          "type": "StateVersion"
         }
       ],
       "response": null,

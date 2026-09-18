@@ -135,14 +135,18 @@ func TestConvLoaderAppState(t *testing.T) {
 
 	clock := clockwork.NewFakeClock()
 	appStateCh := make(chan struct{})
-	tc.ChatG.ConvLoader.(*BackgroundConvLoader).loadWait = 0
-	tc.ChatG.ConvLoader.(*BackgroundConvLoader).clock = clock
-	tc.ChatG.ConvLoader.(*BackgroundConvLoader).appStateCh = appStateCh
+	uid := gregor1.UID(tc.G.Env.GetUID().ToBytes())
+	// The loops read these, so set them while the loader is stopped.
+	loader := tc.ChatG.ConvLoader.(*BackgroundConvLoader)
+	<-loader.Stop(context.TODO())
+	loader.loadWait = 0
+	loader.clock = clock
+	loader.appStateCh = appStateCh
+	loader.Start(context.TODO(), uid)
 	ri := tc.ChatG.ConvSource.(*HybridConversationSource).ri
 	_ = ri
 	slowRi := makeSlowestRemote()
 	failDuration := 2 * time.Second
-	uid := gregor1.UID(tc.G.Env.GetUID().ToBytes())
 	// Test that a foreground with no background doesnt do anything
 	tc.ChatG.ConvSource.(*HybridConversationSource).ri = func() chat1.RemoteInterface {
 		return slowRi

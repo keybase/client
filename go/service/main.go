@@ -154,7 +154,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.KvstoreProtocol(NewKVStoreHandler(xp, g)),
 		keybase1.LogProtocol(NewLogHandler(xp, logReg, g)),
 		keybase1.LoginProtocol(NewLoginHandler(xp, g)),
-		keybase1.NotifyCtlProtocol(NewNotifyCtlHandler(xp, connID, g)),
+		keybase1.NotifyCtlProtocol(NewNotifyCtlHandler(xp, connID, g, d)),
 		keybase1.PGPProtocol(NewPGPHandler(xp, connID, g)),
 		keybase1.PprofProtocol(NewPprofHandler(xp, g)),
 		keybase1.ReachabilityProtocol(newReachabilityHandler(xp, g, d)),
@@ -331,6 +331,12 @@ func (d *Service) Run() (err error) {
 
 	d.SetupChatModules(nil)
 
+	// Before the listen loop on purpose: this runs the startup login attempt, so a
+	// client that connects once we are listening finds it already settled and gets
+	// a session in its setNotifications reply rather than "not known yet". Mobile
+	// cannot do this -- go/bind/keybase.go runs the attempt off the Init thread,
+	// after the loopback listener -- which is why the reply says so explicitly
+	// instead of relying on this ordering.
 	d.RunBackgroundOperations(uir)
 
 	// At this point initialization is complete, and we're about to start the
@@ -1032,7 +1038,7 @@ func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 
 	log("shutting down gregor")
 	if d.gregor != nil {
-		_ = d.gregor.Reset()
+		_ = d.gregor.Disconnect()
 	}
 
 	log("shutting down rekeyMaster")
@@ -1071,16 +1077,9 @@ func (d *Service) gregordConnect() (err error) {
 	}
 	d.G().Log.Debug("| gregor URI: %s", uri)
 
-	// If we are already connected, then shutdown and reset the gregor
-	// handler
-	if d.gregor.IsConnected() {
-		if err := d.gregor.Reset(); err != nil {
-			return err
-		}
-	}
-
-	// Connect to gregord
-	return d.gregor.Connect(uri)
+	// Reset a live connection so it authenticates again. Nothing connects
+	// while the app is in BACKGROUND.
+	return d.gregor.ConnectFresh(uri)
 }
 
 // ReleaseLock releases the locking pidfile by closing, unlocking and
@@ -1393,12 +1392,19 @@ func (d *Service) configurePath() {
 	}
 }
 
-// tryLogin runs LoginOffline which will load the local session file and unlock the
-// local device keys without making any network requests.
-//
-// If that fails for any reason, LoginProvisionedDevice is used, which should get
-// around any issue where the session.json file is out of date or missing since the
-// last time the service started.
+// initialLoginAttemptSettled reports whether the first startup login attempt has
+// finished, without waiting for it. A caller that must not block uses this to say
+// "I do not know yet" instead of reporting a logged-out session that no attempt
+// has been made for.
+func (d *Service) initialLoginAttemptSettled() bool {
+	select {
+	case <-d.initialLoginAttemptDone:
+		return true
+	default:
+		return false
+	}
+}
+
 // awaitInitialLoginAttempt blocks until the first startup login attempt has
 // finished (however it went), the context is done, or maxWait elapses. Used
 // by RPCs whose answer depends on login state so they don't race the login
@@ -1413,6 +1419,12 @@ func (d *Service) awaitInitialLoginAttempt(m libkb.MetaContext, maxWait time.Dur
 	}
 }
 
+// tryLogin runs LoginOffline which will load the local session file and unlock the
+// local device keys without making any network requests.
+//
+// If that fails for any reason, LoginProvisionedDevice is used, which should get
+// around any issue where the session.json file is out of date or missing since the
+// last time the service started.
 func (d *Service) tryLogin(ctx context.Context, mode libkb.LoginAttempt) {
 	if mode != libkb.LoginAttemptNone {
 		// Signal on every exit path; sync.Once makes repeat calls no-ops.

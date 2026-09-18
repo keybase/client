@@ -273,7 +273,7 @@ func TestResetIfCurrent_DoubleResetSameEpochIsHarmless(t *testing.T) {
 }
 
 // Test 4: Reset is the unconditional escape hatch used by invalidate/
-// destroy/engineReset. It must close whatever connection is current
+// destroy. It must close whatever connection is current
 // regardless of any epoch bookkeeping.
 func TestReset_UnconditionallyClosesCurrentConnection(t *testing.T) {
 	resetConnStateForTest(t)
@@ -528,7 +528,7 @@ func TestConcurrentReadWriteAndResetsThroughRealEntryPoints(t *testing.T) {
 		})
 	}
 
-	// Unconditional resetters: e.g. concurrent invalidate/engineReset.
+	// Unconditional resetters: e.g. concurrent invalidate/destroy.
 	for range resetters {
 		wg.Go(func() {
 			for range iterations {

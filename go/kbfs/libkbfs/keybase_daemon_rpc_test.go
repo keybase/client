@@ -251,7 +251,7 @@ func TestKeybaseDaemonSessionCache(t *testing.T) {
 	testCurrentSession(t, client, c, session, expectCached)
 
 	// Should invalidate cache.
-	err := c.LoggedOut(context.Background())
+	err := c.LoggedOut(context.Background(), keybase1.StateVersion{})
 	require.NoError(t, err)
 
 	// Should fill cache again.

@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"context"
 	"fmt"
 	"runtime"
 	"sync"
@@ -38,15 +39,25 @@ type MobileAppState struct {
 }
 
 func NewMobileAppState(g *GlobalContext) *MobileAppState {
-	state := keybase1.MobileAppState_FOREGROUND
-	if runtime.GOOS == "android" {
-		// we need this so cold notifications work on android
-		state = keybase1.MobileAppState_BACKGROUNDACTIVE
-	}
 	return &MobileAppState{
 		Contextified: NewContextified(g),
-		state:        state,
+		state:        initialMobileAppState(runtime.GOOS),
 		changed:      make(chan struct{}),
+	}
+}
+
+func initialMobileAppState(goos string) keybase1.MobileAppState {
+	switch goos {
+	case "android":
+		// we need this so cold notifications work on android
+		return keybase1.MobileAppState_BACKGROUNDACTIVE
+	case "ios":
+		// iOS launches the process in the background for silent pushes and
+		// background refresh; the scene life cycle reports foreground once
+		// the app is actually on screen.
+		return keybase1.MobileAppState_BACKGROUND
+	default:
+		return keybase1.MobileAppState_FOREGROUND
 	}
 }
 
@@ -68,50 +79,56 @@ func (a *MobileAppState) NextUpdate(lastState keybase1.MobileAppState) <-chan st
 	return a.changed
 }
 
-func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) {
-	if a.state != state {
-		a.G().Log.Debug("MobileAppState.Update: useful update: %v, we are currently in state: %v",
-			state, a.state)
-		a.G().PerfLog.Debug("MobileAppState.Update: useful update: %v, we are currently in state: %v",
-			state, a.state)
-		a.state = state
-		t := time.Now()
-		a.mtime = &t // only update mtime if we're changing state
-		close(a.changed)
-		a.changed = make(chan struct{})
-
-		// cancel RPCs if we go into the background
-		switch a.state {
-		case keybase1.MobileAppState_BACKGROUND:
-			a.G().RPCCanceler.CancelLiveContexts(RPCCancelerReasonBackground)
-		default:
-			// Nothing to do for other states.
-		}
-	} else {
-		a.G().Log.Debug("MobileAppState.Update: ignoring update: %v, we are currently in state: %v",
-			state, a.state)
+func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) (changed bool) {
+	if a.state == state {
+		a.G().Log.Debug("MobileAppState.Update: same-value update: %v", state)
+		return false
 	}
+	a.G().Log.Debug("MobileAppState.Update: useful update: %v, we are currently in state: %v",
+		state, a.state)
+	a.G().PerfLog.Debug("MobileAppState.Update: useful update: %v, we are currently in state: %v",
+		state, a.state)
+	a.state = state
+	t := time.Now()
+	a.mtime = &t // only update mtime if we're changing state
+	close(a.changed)
+	a.changed = make(chan struct{})
+
+	// cancel RPCs if we go into the background
+	switch a.state {
+	case keybase1.MobileAppState_BACKGROUND:
+		a.G().RPCCanceler.CancelLiveContexts(RPCCancelerReasonBackground)
+	default:
+		// Nothing to do for other states.
+	}
+
+	// Tell connected clients, still under the lock, so the state version is
+	// stamped in the same critical section that wrote the state. Two concurrent
+	// Updates then publish in the order they wrote, and a client's
+	// accept-if-newer gate can never be handed an older state last and keep it
+	// forever. Cheap to hold: the fan-out reads the connection table and starts
+	// one goroutine per connection, and every send happens on those goroutines.
+	// Nothing it touches reads app state, so it cannot re-enter this lock.
+	a.G().NotifyRouter.HandleMobileAppState(context.Background(), state)
+	return true
 }
 
-func (a *MobileAppState) UpdateWithCheck(state keybase1.MobileAppState,
-	check func(keybase1.MobileAppState) bool,
-) {
-	defer a.G().Trace(fmt.Sprintf("MobileAppState.UpdateWithCheck(%v)", state), nil)()
-	a.Lock()
-	defer a.Unlock()
-	if check(a.state) {
-		a.updateLocked(state)
-	} else {
-		a.G().Log.Debug("MobileAppState.UpdateWithCheck: skipping update, failed check")
-	}
-}
-
-// Update updates the current app state, and notifies any waiting calls from NextUpdate
-func (a *MobileAppState) Update(state keybase1.MobileAppState) {
+// Update sets the current app state and returns whether the value changed;
+// only a change wakes NextUpdate callers and has side effects.
+//
+// Connected clients are told from here, the one place the value changes, which
+// is also before lifecycle's Flush hook runs. On iOS that is as early as a
+// client can be told, but it is not a guarantee of delivery before suspension:
+// native only keeps the app alive past this call when Go asked it to
+// (AppDelegate.swift ends the background task as soon as AppUIBackground
+// returns 0, which is the ordinary backgrounding). A client acting on the
+// notification is racing the OS, and what it can lose is bounded by whatever it
+// last wrote of its own accord.
+func (a *MobileAppState) Update(state keybase1.MobileAppState) (changed bool) {
 	defer a.G().Trace(fmt.Sprintf("MobileAppState.Update(%v)", state), nil)()
 	a.Lock()
 	defer a.Unlock()
-	a.updateLocked(state)
+	return a.updateLocked(state)
 }
 
 // State returns the current app state
@@ -125,6 +142,70 @@ func (a *MobileAppState) StateAndMtime() (keybase1.MobileAppState, *time.Time) {
 	a.Lock()
 	defer a.Unlock()
 	return a.state, a.mtime
+}
+
+// AppStateWatcher is the loop shared by the background workers that do nothing
+// but watch the app state: wait for the next change, act on the new state,
+// repeat. The caller runs it on a goroutine of its own, since the workers hang
+// that goroutine off their own errgroup or done channel and do their own
+// accounting when it returns.
+type AppStateWatcher struct {
+	a  *MobileAppState
+	mu sync.Mutex
+	// state is what Run last acted on and wait the change channel it waits on
+	// for that state; CaughtUp reports them.
+	state keybase1.MobileAppState
+	wait  <-chan struct{}
+	done  chan struct{}
+}
+
+func (a *MobileAppState) NewWatcher() *AppStateWatcher {
+	return &AppStateWatcher{a: a, done: make(chan struct{})}
+}
+
+// Run calls onChange with each new app state, starting from state, until
+// stopCh closes or onChange returns false. onChange runs on Run's goroutine
+// and does its own locking.
+func (w *AppStateWatcher) Run(state keybase1.MobileAppState, stopCh <-chan struct{},
+	onChange func(keybase1.MobileAppState) bool,
+) {
+	defer close(w.done)
+	for {
+		next := w.a.NextUpdate(state)
+		w.mu.Lock()
+		w.state, w.wait = state, next
+		w.mu.Unlock()
+		select {
+		case <-next:
+		case <-stopCh:
+			return
+		}
+		state = w.a.State()
+		if !onChange(state) {
+			return
+		}
+	}
+}
+
+// Wait blocks until Run has returned.
+func (w *AppStateWatcher) Wait() { <-w.done }
+
+// CaughtUp reports the state Run last acted on, and whether it has acted on
+// the current state and is waiting for the next change. Tests use it to wait
+// until a watcher has caught up.
+func (w *AppStateWatcher) CaughtUp() (keybase1.MobileAppState, bool) {
+	w.mu.Lock()
+	state, wait := w.state, w.wait
+	w.mu.Unlock()
+	if wait == nil || wait != w.a.NextUpdate(state) {
+		return state, false
+	}
+	select {
+	case <-wait:
+		return state, false
+	default:
+		return state, true
+	}
 }
 
 // --------------------------------------------------
@@ -355,4 +436,29 @@ func (a *DesktopAppState) resetLocked() {
 		close(a.suspendChanged)
 		a.suspendChanged = make(chan struct{})
 	}
+}
+
+// flushLocalDbs flushes the leveldb memtables in the background. An unclean
+// kill while suspended (routine on iOS) with a non-empty journal forces a
+// journal replay — or a whole-DB recovery — during the next launch, which is
+// the main cold-start cost. Called when the app heads to the background so
+// the journals are empty if the OS kills the process.
+func (g *GlobalContext) flushLocalDbs() {
+	flush := func(name string, db *JSONLocalDb) {
+		if db == nil {
+			return
+		}
+		ldb, ok := db.GetEngine().(*LevelDb)
+		if !ok {
+			return
+		}
+		begin := time.Now()
+		if err := ldb.Flush(); err != nil {
+			g.Log.Info("flushLocalDbs: %s flush error: %v", name, err)
+			return
+		}
+		g.Log.Info("flushLocalDbs: %s flushed in %s", name, time.Since(begin))
+	}
+	go flush("LocalDb", g.LocalDb)
+	go flush("LocalChatDb", g.LocalChatDb)
 }

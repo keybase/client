@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb/lifecycle"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -32,6 +33,13 @@ type LiveLocationTracker struct {
 	trackers       map[types.LiveLocationKey]*locationTrack
 	lastCoord      chat1.Coordinate
 	maxCoords      int
+	// bgHold keeps the app running while tracking; guarded by the tracker's
+	// mutex and changed only by releaseHoldIfIdleLocked and
+	// ensureHoldOnFixLocked.
+	bgHold *lifecycle.Hold
+
+	nativeWatchMu   sync.Mutex
+	nativeWatchRefs int
 
 	// testing only
 	TestingCoordsAddedCh chan struct{}
@@ -92,6 +100,35 @@ func (l *LiveLocationTracker) saveLocked(ctx context.Context) {
 	}
 }
 
+func (l *LiveLocationTracker) removeTrackerLocked(ctx context.Context, t *locationTrack) {
+	delete(l.trackers, t.Key())
+	l.saveLocked(ctx)
+	l.releaseHoldIfIdleLocked()
+}
+
+// releaseHoldIfIdleLocked ends the hold once nothing is tracked. Every removal
+// from the trackers map calls it.
+func (l *LiveLocationTracker) releaseHoldIfIdleLocked() {
+	if len(l.trackers) == 0 && l.bgHold != nil {
+		l.bgHold.Release()
+		l.bgHold = nil
+	}
+}
+
+// ensureHoldOnFixLocked opens a hold for a location fix, since the fix can
+// wake a backgrounded app and the hold keeps it up until the update gets out.
+// A hold the controller ended -- WillTerminate does, and nothing else -- is
+// replaced, so a fix after one still gets the app held up.
+func (l *LiveLocationTracker) ensureHoldOnFixLocked() {
+	l.releaseHoldIfIdleLocked()
+	if len(l.trackers) == 0 || !l.G().IsMobileAppType() {
+		return
+	}
+	if l.bgHold == nil || l.bgHold.Released() {
+		l.bgHold = l.G().MobileLifecycle.AcquireBackgroundWork()
+	}
+}
+
 func (l *LiveLocationTracker) restoreLocked(ctx context.Context) {
 	trackers, err := l.storage.Restore(ctx)
 	if err != nil {
@@ -102,6 +139,10 @@ func (l *LiveLocationTracker) restoreLocked(ctx context.Context) {
 		return
 	}
 	l.Debug(ctx, "restoreLocked: restored %d trackers", len(trackers))
+	l.runRestoredLocked(trackers)
+}
+
+func (l *LiveLocationTracker) runRestoredLocked(trackers []*locationTrack) {
 	l.trackers = make(map[types.LiveLocationKey]*locationTrack)
 	for _, t := range trackers {
 		if t.IsStopped() {
@@ -113,6 +154,12 @@ func (l *LiveLocationTracker) restoreLocked(ctx context.Context) {
 			return l.tracker(myT)
 		})
 	}
+}
+
+func (l *LiveLocationTracker) getLastCoord() chat1.Coordinate {
+	l.Lock()
+	defer l.Unlock()
+	return l.lastCoord
 }
 
 func (l *LiveLocationTracker) getChatUI(ctx context.Context) libkb.ChatUI {
@@ -185,8 +232,8 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTr
 	var coords []chat1.Coordinate
 	trackerCoords := t.GetCoords()
 	if len(trackerCoords) == 0 {
-		if !l.lastCoord.IsZero() {
-			coords = []chat1.Coordinate{l.lastCoord}
+		if lastCoord := l.getLastCoord(); !lastCoord.IsZero() {
+			coords = []chat1.Coordinate{lastCoord}
 		} else {
 			return errors.New("no coordinates")
 		}
@@ -235,58 +282,98 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTr
 	return nil
 }
 
-func (l *LiveLocationTracker) startWatch(ctx context.Context, t *locationTrack) (watchID chat1.LocationWatchID, err error) {
+// startWatch starts OS location updates for t and returns the function that
+// ends them.
+func (l *LiveLocationTracker) startWatch(ctx context.Context, t *locationTrack) (watchID chat1.LocationWatchID, stop func(), err error) {
+	if w := l.G().LocationWatcher; w != nil {
+		l.acquireNativeWatch(w)
+		// The native watcher only checks authorization, it can't prompt. The chat
+		// UI, when there is one, asks for permission and reports a failure in the
+		// conversation; with no UI this does nothing.
+		if _, err := l.getChatUI(ctx).ChatWatchPosition(ctx, t.convID, t.perm); err != nil {
+			l.Debug(ctx, "startWatch: unable to request location permission: %s", err)
+		}
+		return 0, func() { l.releaseNativeWatch(w) }, nil
+	}
+	watchID, err = l.startChatUIWatch(ctx, t)
+	if err != nil {
+		return 0, nil, err
+	}
+	return watchID, func() {
+		if err := l.getChatUI(ctx).ChatClearWatch(ctx, watchID); err != nil {
+			l.Debug(ctx, "tracker[%v]: error clearing watch: %+v", watchID, err)
+		}
+	}, nil
+}
+
+// acquireNativeWatch and releaseNativeWatch share one native watch among all
+// trackers. The watcher is called under the lock so it sees starts and stops
+// in order.
+func (l *LiveLocationTracker) acquireNativeWatch(w types.LocationWatcher) {
+	l.nativeWatchMu.Lock()
+	defer l.nativeWatchMu.Unlock()
+	l.nativeWatchRefs++
+	if l.nativeWatchRefs == 1 {
+		w.StartWatching()
+	}
+}
+
+func (l *LiveLocationTracker) releaseNativeWatch(w types.LocationWatcher) {
+	l.nativeWatchMu.Lock()
+	defer l.nativeWatchMu.Unlock()
+	l.nativeWatchRefs--
+	if l.nativeWatchRefs == 0 {
+		w.StopWatching()
+	}
+}
+
+func (l *LiveLocationTracker) startChatUIWatch(ctx context.Context, t *locationTrack) (watchID chat1.LocationWatchID, err error) {
 	// try this a couple times in case we are starting fresh and the UI isn't ready yet
 	maxWatchAttempts := 20
 	watchAttempts := 0
 	for {
 		if watchID, err = l.getChatUI(ctx).ChatWatchPosition(ctx, t.convID, t.perm); err != nil {
-			l.Debug(ctx, "startWatch: unable to watch position: attempt: %d msg: %s", watchAttempts, err)
+			l.Debug(ctx, "startChatUIWatch: unable to watch position: attempt: %d msg: %s", watchAttempts, err)
 			if watchAttempts > maxWatchAttempts {
 				return 0, err
 			}
 		} else {
 			break
 		}
-		maxWatchAttempts++
-		time.Sleep(time.Second)
+		watchAttempts++
+		l.clock.Sleep(time.Second)
 	}
 	return watchID, nil
 }
 
 func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 	ctx := context.Background()
-	// check to see if we are being asked to start a tracker that is already expired
-	if t.endTime.Before(l.clock.Now()) {
+	// Every exit removes the tracker, which also ends the background-work hold
+	// once no tracker remains.
+	defer func() {
 		l.Lock()
 		defer l.Unlock()
-		delete(l.trackers, t.Key())
-		l.saveLocked(ctx)
+		l.removeTrackerLocked(ctx, t)
+	}()
+	// check to see if we are being asked to start a tracker that is already expired
+	if t.endTime.Before(l.clock.Now()) {
 		l.Debug(ctx, "tracker: old tracker, not running and clearing")
 		return errors.New("tracker from the past")
 	}
 
 	// start up the OS watch routine
-	watchID, err := l.startWatch(ctx, t)
+	watchID, stopWatch, err := l.startWatch(ctx, t)
 	if err != nil {
+		l.Debug(ctx, "tracker: unable to start watching, clearing: %s", err)
 		return err
 	}
-	defer func() {
-		// drop everything when our live location ends
-		err := l.getChatUI(ctx).ChatClearWatch(ctx, watchID)
-		if err != nil {
-			l.Debug(ctx, "tracker[%v]: error clearing watch: %+v", watchID, err)
-		}
-		l.Lock()
-		defer l.Unlock()
-		delete(l.trackers, t.Key())
-		l.saveLocked(ctx)
-	}()
+	// Deferred after the removal, so it runs first: stop watching, then remove.
+	defer stopWatch()
 	// if this is a live location request, just put whatever the last coord is on the screen, makes it
 	// feel more live
-	if !l.lastCoord.IsZero() {
+	if lastCoord := l.getLastCoord(); !lastCoord.IsZero() {
 		l.Debug(ctx, "tracker[%v]: updating with last coord", watchID)
-		t.updateCh <- l.lastCoord
+		t.updateCh <- lastCoord
 	}
 	firstUpdate := true
 	shouldUpdate := false
@@ -373,15 +460,7 @@ func (l *LiveLocationTracker) LocationUpdate(ctx context.Context, coord chat1.Co
 	defer l.Trace(ctx, nil, "LocationUpdate")()
 	l.Lock()
 	defer l.Unlock()
-	if l.G().IsMobileAppType() {
-		// if the app is woken up as the result of a location update, and we think we are currently
-		// backgrounded, then go ahead and mark us as background active so that we can get
-		// location updates out
-		l.G().MobileAppState.UpdateWithCheck(keybase1.MobileAppState_BACKGROUNDACTIVE,
-			func(curState keybase1.MobileAppState) bool {
-				return curState == keybase1.MobileAppState_BACKGROUND
-			})
-	}
+	l.ensureHoldOnFixLocked()
 	if l.lastCoord.Eq(coord) {
 		l.Debug(ctx, "LocationUpdate: ignoring dup coordinate")
 		return

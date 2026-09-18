@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"net"
+	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -11,7 +12,11 @@ import (
 // connTransport implements rpc.ConnectionTransport
 type connTransport struct {
 	libkb.Contextified
-	host            string
+	host string
+
+	// mu guards the fields below: the connection dials on its own goroutine
+	// while Shutdown closes the transport.
+	mu              sync.Mutex
 	conn            net.Conn
 	transport       rpc.Transporter
 	stagedTransport rpc.Transporter
@@ -27,44 +32,60 @@ func newConnTransport(g *libkb.GlobalContext, host string) *connTransport {
 }
 
 func (t *connTransport) Dial(context.Context) (rpc.Transporter, error) {
-	var err error
-	t.conn, err = libkb.ProxyDial(t.G().Env, "tcp", t.host)
+	conn, err := libkb.ProxyDial(t.G().Env, "tcp", t.host)
 	if err != nil {
 		return nil, err
 	}
-	t.stagedTransport = rpc.NewTransport(t.conn, libkb.NewRPCLogFactory(t.G()),
+	transport := rpc.NewTransport(conn, libkb.NewRPCLogFactory(t.G()),
 		t.G().RemoteNetworkInstrumenterStorage,
 		libkb.MakeWrapError(t.G()), rpc.DefaultMaxFrameLength)
-	return t.stagedTransport, nil
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	t.conn = conn
+	t.stagedTransport = transport
+	return transport, nil
 }
 
 func (t *connTransport) IsConnected() bool {
-	return t.transport != nil && t.transport.IsConnected()
+	t.mu.Lock()
+	transport := t.transport
+	t.mu.Unlock()
+	return transport != nil && transport.IsConnected()
 }
 
+// Finalize and Close close transports outside mu, because closing blocks until
+// the transport's loops stop and IsConnected should not wait on that.
 func (t *connTransport) Finalize() {
-	if t.transport != nil {
-		t.transport.Close()
-	}
+	t.mu.Lock()
+	old := t.transport
 	t.transport = t.stagedTransport
 	t.stagedTransport = nil
+	t.mu.Unlock()
+	if old != nil {
+		old.Close()
+	}
 }
 
 func (t *connTransport) Close() {
-	if t.conn != nil {
-		t.conn.Close()
-	}
-	if t.transport != nil {
-		t.transport.Close()
-	}
+	t.mu.Lock()
+	conn, transport, staged := t.conn, t.transport, t.stagedTransport
 	t.transport = nil
-	if t.stagedTransport != nil {
-		t.stagedTransport.Close()
-	}
 	t.stagedTransport = nil
+	t.mu.Unlock()
+	if conn != nil {
+		conn.Close()
+	}
+	if transport != nil {
+		transport.Close()
+	}
+	if staged != nil {
+		staged.Close()
+	}
 }
 
 func (t *connTransport) Reset() {
+	t.mu.Lock()
+	defer t.mu.Unlock()
 	t.transport = nil
 	t.stagedTransport = nil
 }

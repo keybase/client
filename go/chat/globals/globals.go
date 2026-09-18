@@ -34,6 +34,7 @@ type ChatContext struct {
 	AttachmentUploader   types.AttachmentUploader  // upload attachments
 	NativeVideoHelper    types.NativeVideoHelper   // connection to native for doing things with video
 	ShareIntentDonator   types.ShareIntentDonator  // donate share sheet suggestions (iOS only)
+	LocationWatcher      types.LocationWatcher     // native location service for live location (iOS only)
 	StellarLoader        types.StellarLoader       // stellar payment/request loader
 	StellarSender        types.StellarSender       // stellar in-chat payment sender
 	StellarPushHandler   types.OobmHandler

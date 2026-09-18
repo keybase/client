@@ -247,7 +247,7 @@ func newNotifyHandler() *notifyHandler {
 	}
 }
 
-func (h *notifyHandler) LoggedOut(_ context.Context) error {
+func (h *notifyHandler) LoggedOut(_ context.Context, _ keybase1.StateVersion) error {
 	h.logoutCh <- struct{}{}
 	return nil
 }
@@ -330,10 +330,11 @@ func TestSignupLogout(t *testing.T) {
 			return err
 		}
 		ncli := keybase1.NotifyCtlClient{Cli: cli}
-		return ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{
+		_, err = ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{
 			Session: true,
 			Users:   true,
 		})
+		return err
 	}
 
 	// Actually launch it in the background

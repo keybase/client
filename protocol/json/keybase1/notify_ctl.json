@@ -4,6 +4,14 @@
     {
       "path": "common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "notify_service.avdl",
+      "type": "idl"
+    },
+    {
+      "path": "appstate.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -152,6 +160,60 @@
           "name": "devicehistory"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "ClientSession",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "loggedIn"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "DeviceID",
+          "name": "deviceID"
+        },
+        {
+          "type": "string",
+          "name": "deviceName"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ClientState",
+      "fields": [
+        {
+          "type": "StateVersion",
+          "name": "version"
+        },
+        {
+          "type": [
+            null,
+            "ClientSession"
+          ],
+          "name": "session"
+        },
+        {
+          "type": [
+            null,
+            "HttpSrvInfo"
+          ],
+          "name": "httpSrvInfo"
+        },
+        {
+          "type": "MobileAppState",
+          "name": "appState"
+        }
+      ]
     }
   ],
   "messages": {
@@ -162,7 +224,7 @@
           "type": "NotificationChannels"
         }
       ],
-      "response": null
+      "response": "ClientState"
     }
   },
   "namespace": "keybase.1"

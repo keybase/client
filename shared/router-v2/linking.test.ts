@@ -2,8 +2,10 @@
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
-import {emitDeepLink} from './deep-link-emitter'
-import {subscribeNavigationIntents} from './linking'
+import {emitDeepLink, enqueuePushTapRoute} from './deep-link-emitter'
+import * as Settings from '@/constants/settings'
+import * as Tabs from '@/constants/tabs'
+import {createLinkingConfig, isHandledByLinkingConfig, subscribeNavigationIntents} from './linking'
 
 const setCurrentUser = (uid: string) => {
   useCurrentUserState.getState().dispatch.setBootstrap({
@@ -64,7 +66,7 @@ test('waits until the intended account is active', () => {
   const listener = jest.fn()
   const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
 
-  emitDeepLink('keybase://convid/target-account-conversation', {targetUid: 'target-uid'})
+  enqueuePushTapRoute({targetUID: 'target-uid', url: 'keybase://convid/target-account-conversation'})
   expect(listener).not.toHaveBeenCalled()
 
   setCurrentUser('target-uid')
@@ -84,7 +86,7 @@ test('waits for an account switch to finish', () => {
   const listener = jest.fn()
   const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
 
-  emitDeepLink('keybase://convid/account-switch-conversation', {targetUid: 'current-uid'})
+  enqueuePushTapRoute({targetUID: 'current-uid', url: 'keybase://convid/account-switch-conversation'})
   expect(listener).not.toHaveBeenCalled()
 
   useConfigState.getState().dispatch.setUserSwitching(false)
@@ -100,9 +102,7 @@ test('waits for the replacement router after the current account changes', () =>
   const listener = jest.fn()
   const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
 
-  emitDeepLink('keybase://convid/replacement-router-conversation', {
-    targetUid: 'target-uid',
-  })
+  enqueuePushTapRoute({targetUID: 'target-uid', url: 'keybase://convid/replacement-router-conversation'})
   setCurrentUser('target-uid')
 
   // The bootstrap UID can change before React commits the keyed router remount.
@@ -147,4 +147,57 @@ test('consumes an intent after bootstrap fills in the uid the router readied wit
   expect(listener).toHaveBeenCalledTimes(1)
   expect(listener).toHaveBeenCalledWith('keybase://convid/post-bootstrap-conversation')
   unsubscribe()
+})
+
+const getStateFromPath = (path: string) =>
+  (createLinkingConfig(jest.fn()).getStateFromPath as (p: string) => unknown)(path)
+
+test('a devices link is consumed by the linking config, not by handleAppLink', () => {
+  useNavigationIntentsState.getState().dispatch.setNavigationReady(true, 'current-uid')
+  const listener = jest.fn()
+  const handleAppLink = jest.fn()
+  const unsubscribe = subscribeNavigationIntents(listener, handleAppLink)
+
+  emitDeepLink('keybase://devices')
+
+  expect(isHandledByLinkingConfig('keybase://devices')).toBe(true)
+  expect(listener).toHaveBeenCalledWith('keybase://devices')
+  expect(handleAppLink).not.toHaveBeenCalled()
+  unsubscribe()
+})
+
+test('a devices link opens the devices screen in the settings tab on mobile', () => {
+  const wasMobile = global.isMobile
+  global.isMobile = true
+  try {
+    expect(getStateFromPath('devices')).toEqual({
+      index: 0,
+      routes: [
+        {
+          name: 'loggedIn',
+          state: {
+            index: 0,
+            routes: [
+              {
+                name: Tabs.settingsTab,
+                state: {
+                  index: 1,
+                  routes: [{name: 'settingsRoot'}, {name: Settings.settingsDevicesTab}],
+                },
+              },
+            ],
+          },
+        },
+      ],
+    })
+  } finally {
+    global.isMobile = wasMobile
+  }
+})
+
+test('a devices link opens the devices tab on desktop', () => {
+  expect(getStateFromPath('devices')).toEqual({
+    index: 0,
+    routes: [{name: 'loggedIn', state: {index: 0, routes: [{name: Tabs.devicesTab}]}}],
+  })
 })

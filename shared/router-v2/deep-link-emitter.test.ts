@@ -1,6 +1,6 @@
 /// <reference types="jest" />
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
-import {emitDeepLink, setInitialURLOnce} from './deep-link-emitter'
+import {emitDeepLink, enqueuePushTapRoute, setInitialURLOnce} from './deep-link-emitter'
 
 const resetNavigationIntents = () => {
   const {intent, dispatch} = useNavigationIntentsState.getState()
@@ -53,4 +53,37 @@ test('removes a queued deep link when the initial URL handles it', () => {
   setInitialURLOnce('keybase://convid/queued-initial-conversation')
 
   expect(useNavigationIntentsState.getState().intent).toBeUndefined()
+})
+
+test('a foreign link never targets an account', () => {
+  emitDeepLink('keybase://convid/0000ab')
+
+  const {intent} = useNavigationIntentsState.getState()
+  expect(intent?.url).toBe('keybase://convid/0000ab')
+  expect(intent?.targetUid).toBeUndefined()
+})
+
+test('a tap targets its account', () => {
+  enqueuePushTapRoute({targetUID: 'uid-other', url: 'keybase://convid/0000ab'})
+
+  const {intent} = useNavigationIntentsState.getState()
+  expect(intent?.url).toBe('keybase://convid/0000ab')
+  expect(intent?.targetUid).toBe('uid-other')
+})
+
+test('a tap for a link a foreign open already queued upgrades that intent', () => {
+  emitDeepLink('keybase://convid/0000ab')
+  enqueuePushTapRoute({targetUID: 'uid-other', url: 'keybase://convid/0000ab'})
+
+  expect(useNavigationIntentsState.getState().intent?.targetUid).toBe('uid-other')
+})
+
+// The service leaves targetUID empty for a route no account owns, and an empty one must not
+// read as a target: an intent with one is what account-link-switch acts on.
+test('a tap with no account is not a targeted intent', () => {
+  enqueuePushTapRoute({targetUID: '', url: 'keybase://tabs.peopleTab'})
+
+  const {intent} = useNavigationIntentsState.getState()
+  expect(intent?.url).toBe('keybase://tabs.peopleTab')
+  expect(intent?.targetUid).toBeUndefined()
 })

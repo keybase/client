@@ -419,4 +419,15 @@ protocol Common {
     ReacjiSkinTone skinTone;
   }
 
+
+  // StateVersion labels a change the service announced (a login, a logout, the
+  // http server address). Epoch identifies the service process, so a client can
+  // tell a restarted service's counter from a continuing one; counter strictly
+  // increases within one epoch. A service too old to send one leaves it unset,
+  // and a client with nothing to order by applies what it gets in arrival order.
+  record StateVersion {
+    long epoch;
+    long counter;
+  }
+
 }

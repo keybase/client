@@ -5,7 +5,7 @@ import * as React from 'react'
 import Main from './main'
 import {KeyboardProvider} from 'react-native-keyboard-controller'
 import {ReducedMotionConfig, ReduceMotion} from 'react-native-reanimated'
-import {AppRegistry, AppState, Appearance, Platform} from 'react-native'
+import {AppRegistry, Appearance, Platform} from 'react-native'
 import {PortalProvider} from '@/common-adapters/portal.native'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {makeEngine} from '../engine'
@@ -57,18 +57,18 @@ const initDarkMode = () => {
 }
 
 const useDarkHookup = () => {
+  // The store starts at 'unknown' and only the service can move it off that, which is later than
+  // this mounts, so assume on screen until told otherwise rather than dropping an early theme
+  // change. Being wrong costs at most one system theme change applied off screen -- which is what
+  // the gate exists to avoid, and which the next 'active' re-reads anyway.
   const appStateRef = React.useRef('active')
   const setSystemDarkMode = DarkMode.useDarkModeState(s => s.dispatch.setSystemDarkMode)
-  const setMobileAppState = useShellState(s => s.dispatch.setMobileAppState)
 
   React.useEffect(() => {
-    const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
-      appStateRef.current = nextAppState
-      if (nextAppState !== 'unknown' && nextAppState !== 'extension') {
-        setMobileAppState(nextAppState)
-      }
-
-      if (nextAppState === 'active') {
+    const stopWatchingAppState = useShellState.subscribe((s, old) => {
+      if (s.mobileAppState === old.mobileAppState) return
+      appStateRef.current = s.mobileAppState
+      if (s.mobileAppState === 'active') {
         setSystemDarkMode(Appearance.getColorScheme() === 'dark')
       }
     })
@@ -81,10 +81,10 @@ const useDarkHookup = () => {
     })
 
     return () => {
-      appStateChangeSub.remove()
+      stopWatchingAppState()
       darkSub.remove()
     }
-  }, [setSystemDarkMode, setMobileAppState])
+  }, [setSystemDarkMode])
 }
 
 const StoreHelper = (p: {children: React.ReactNode}): React.ReactNode => {

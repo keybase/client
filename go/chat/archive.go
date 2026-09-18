@@ -42,14 +42,35 @@ type ChatArchiveRegistry struct {
 	flushDelay      time.Duration
 	stopCh          chan struct{}
 	clock           clockwork.Clock
-	eg              errgroup.Group
+	// eg holds the current run's goroutines. Each run gets its own, since
+	// Stop waits on it from a goroutine and a Group cannot be added to
+	// while somebody waits on it.
+	eg *errgroup.Group
 	// Changes to flush to disk?
 	dirty        bool
 	remoteClient func() chat1.RemoteInterface
 	runningJobs  map[chat1.ArchiveJobID]types.PauseArchiveFn
+	// launching holds jobs started by a resume that have not registered as
+	// running yet, so an overlapping resume does not start them again.
+	launching map[chat1.ArchiveJobID]*archiveLaunch
+	// pauseEpoch counts background pauses. A launched job that registers
+	// after one is paused right away, since the pause could not reach it.
+	pauseEpoch uint64
+	// watcher is the current run's app-state watcher, nil between runs.
+	watcher *libkb.AppStateWatcher
+	// runJob, if set, runs a launched job in place of a ChatArchiver. Tests
+	// only.
+	runJob func(ctx context.Context, uid gregor1.UID, req chat1.ArchiveChatJobRequest) error
+	// beforeResumeDecision, if set, runs in resumeAllBgJobs after its delay
+	// and before it takes the lock. Tests only.
+	beforeResumeDecision func()
 
 	edb        *encrypteddb.EncryptedDB
 	jobHistory chat1.ArchiveChatHistory
+}
+
+type archiveLaunch struct {
+	pauseEpoch uint64
 }
 
 type ArchiveJobNotFoundError struct {
@@ -80,6 +101,7 @@ func NewChatArchiveRegistry(g *globals.Context, remoteClient func() chat1.Remote
 		clock:        clockwork.NewRealClock(),
 		flushDelay:   15 * time.Second,
 		runningJobs:  make(map[chat1.ArchiveJobID]types.PauseArchiveFn),
+		launching:    make(map[chat1.ArchiveJobID]*archiveLaunch),
 		jobHistory:   chat1.ArchiveChatHistory{JobHistory: make(map[chat1.ArchiveJobID]chat1.ArchiveChatJob)},
 		edb:          encrypteddb.New(g.ExternalG(), dbFn, keyFn),
 	}
@@ -167,62 +189,101 @@ func (r *ChatArchiveRegistry) resumeAllBgJobs(ctx context.Context, stopCh chan s
 		return ctx.Err()
 	case <-time.After(r.resumeJobsDelay):
 	}
+	if r.beforeResumeDecision != nil {
+		r.beforeResumeDecision()
+	}
 	r.Lock()
 	defer r.Unlock()
+	// The delay can win over a closed stopCh, and a later Start (possibly for
+	// another user) can run before the lock is taken.
+	if r.stopCh != stopCh {
+		return nil
+	}
+	// Decide under the lock the monitor pauses under: a pause either comes
+	// first and is seen here, or bumps pauseEpoch and pauses what launches.
+	if state := r.G().MobileAppState.State(); state != keybase1.MobileAppState_FOREGROUND {
+		r.Debug(ctx, "resumeAllBgJobs: not resuming in %v", state)
+		return nil
+	}
 	err = r.initLocked(ctx)
 	if err != nil {
 		return err
 	}
 	for _, job := range r.jobHistory.JobHistory {
 		if job.Status == chat1.ArchiveChatJobStatus_BACKGROUND_PAUSED {
-			go func(job chat1.ArchiveChatJob) {
-				ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewSimpleIdentifyNotifier(r.G()))
-				_, err := NewChatArchiver(r.G(), r.uid, r.remoteClient).ArchiveChat(ctx, job.Request)
-				if err != nil {
-					r.Debug(ctx, err.Error())
-				}
-			}(job)
+			r.launchLocked(ctx, job.Request)
 		}
 	}
 	return nil
 }
 
-func (r *ChatArchiveRegistry) monitorAppState(stopCh chan struct{}) error {
-	appState := keybase1.MobileAppState_FOREGROUND
-	ctx, cancel := context.WithCancel(context.Background())
-	for {
-		select {
-		case <-stopCh:
-			cancel()
-			return nil
-		case <-r.G().MobileAppState.NextUpdate(appState):
-			appState = r.G().MobileAppState.State()
-			r.Debug(ctx, "monitorAppState: next state -> %v", appState)
-			switch appState {
-			case keybase1.MobileAppState_FOREGROUND:
-				go func() {
-					ierr := r.resumeAllBgJobs(ctx, stopCh)
-					if ierr != nil {
-						r.Debug(ctx, ierr.Error())
-					}
-				}()
-			default:
-				cancel()
-				ctx, cancel = context.WithCancel(context.Background())
-
-				func() {
-					var err error
-					defer r.Trace(ctx, &err, "monitorAppState")()
-					r.Lock()
-					defer r.Unlock()
-					err = r.bgPauseAllJobsLocked(ctx)
-				}()
-			}
-		}
+// launchLocked runs a job in the background unless an earlier launch of it
+// has not registered yet. The job registers itself as running through Set.
+func (r *ChatArchiveRegistry) launchLocked(ctx context.Context, req chat1.ArchiveChatJobRequest) {
+	jobID := req.JobID
+	if _, ok := r.launching[jobID]; ok {
+		r.Debug(ctx, "launch: %v is already starting", jobID)
+		return
 	}
+	launch := &archiveLaunch{pauseEpoch: r.pauseEpoch}
+	r.launching[jobID] = launch
+	uid, runJob := r.uid, r.runJob
+	go func() {
+		ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewSimpleIdentifyNotifier(r.G()))
+		var err error
+		if runJob != nil {
+			err = runJob(ctx, uid, req)
+		} else {
+			_, err = NewChatArchiver(r.G(), uid, r.remoteClient).ArchiveChat(ctx, req)
+		}
+		if err != nil {
+			r.Debug(ctx, err.Error())
+		}
+		r.Lock()
+		defer r.Unlock()
+		if r.launching[jobID] == launch {
+			delete(r.launching, jobID)
+		}
+	}()
 }
 
-// Resumes previously BACKGROUND_PAUSED jobs, after a delay.
+func (r *ChatArchiveRegistry) monitorAppState(w *libkb.AppStateWatcher, stopCh chan struct{},
+	eg *errgroup.Group, state keybase1.MobileAppState, cancelInitialResume context.CancelFunc,
+) error {
+	// cancelResume cancels the resume scheduled for the last FOREGROUND.
+	cancelResume := cancelInitialResume
+	defer func() { cancelResume() }()
+	w.Run(state, stopCh, func(state keybase1.MobileAppState) bool {
+		r.Debug(context.Background(), "monitorAppState: next state -> %v", state)
+		cancelResume()
+		switch state {
+		case keybase1.MobileAppState_FOREGROUND:
+			ctx, cancel := context.WithCancel(context.Background())
+			cancelResume = cancel
+			eg.Go(func() error {
+				if err := r.resumeAllBgJobs(ctx, stopCh); err != nil {
+					r.Debug(ctx, err.Error())
+				}
+				return nil
+			})
+		default:
+			cancelResume = func() {}
+			func() {
+				ctx := context.Background()
+				var err error
+				defer r.Trace(ctx, &err, "monitorAppState")()
+				r.Lock()
+				defer r.Unlock()
+				err = r.bgPauseAllJobsLocked(ctx)
+			}()
+		}
+		return true
+	})
+	return nil
+}
+
+// Resumes previously BACKGROUND_PAUSED jobs, after a delay, if the app is in
+// the foreground by then.
 func (r *ChatArchiveRegistry) Start(ctx context.Context, uid gregor1.UID) {
 	defer r.Trace(ctx, nil, "Start")()
 	r.Lock()
@@ -233,20 +294,26 @@ func (r *ChatArchiveRegistry) Start(ctx context.Context, uid gregor1.UID) {
 	r.uid = uid
 	r.started = true
 	r.stopCh = make(chan struct{})
-	stopCh := r.stopCh
-	r.eg.Go(func() error {
+	r.eg = new(errgroup.Group)
+	stopCh, eg := r.stopCh, r.eg
+	state := r.G().MobileAppState.State()
+	r.watcher = r.G().MobileAppState.NewWatcher()
+	w := r.watcher
+	resumeCtx, cancelResume := context.WithCancel(context.Background())
+	eg.Go(func() error {
 		return r.flushLoop(stopCh)
 	})
-	r.eg.Go(func() error {
-		return r.resumeAllBgJobs(context.Background(), stopCh)
+	eg.Go(func() error {
+		return r.resumeAllBgJobs(resumeCtx, stopCh)
 	})
-	r.eg.Go(func() error {
-		return r.monitorAppState(stopCh)
+	eg.Go(func() error {
+		return r.monitorAppState(w, stopCh, eg, state, cancelResume)
 	})
 }
 
 func (r *ChatArchiveRegistry) bgPauseAllJobsLocked(ctx context.Context) (err error) {
 	defer r.Trace(ctx, &err, "bgPauseAllJobsLocked")()
+	r.pauseEpoch++
 	err = r.initLocked(ctx)
 	if err != nil {
 		return err
@@ -284,9 +351,11 @@ func (r *ChatArchiveRegistry) Stop(ctx context.Context) chan struct{} {
 		}
 		r.started = false
 		close(r.stopCh)
+		r.watcher = nil
+		eg := r.eg
 		go func() {
 			r.Debug(context.Background(), "Stop: waiting for shutdown")
-			_ = r.eg.Wait()
+			_ = eg.Wait()
 			r.Debug(context.Background(), "Stop: shutdown complete")
 			close(ch)
 		}()
@@ -395,9 +464,19 @@ func (r *ChatArchiveRegistry) Set(ctx context.Context, cancel types.PauseArchive
 	case chat1.ArchiveChatJobStatus_COMPLETE, chat1.ArchiveChatJobStatus_ERROR:
 		delete(r.runningJobs, jobID)
 	case chat1.ArchiveChatJobStatus_RUNNING:
-		if cancel != nil {
-			r.runningJobs[jobID] = cancel
+		if cancel == nil {
+			break
 		}
+		if launch, ok := r.launching[jobID]; ok {
+			delete(r.launching, jobID)
+			if launch.pauseEpoch != r.pauseEpoch {
+				r.Debug(ctx, "Set: %v was paused while starting", jobID)
+				cancel()
+				job.Status = chat1.ArchiveChatJobStatus_BACKGROUND_PAUSED
+				break
+			}
+		}
+		r.runningJobs[jobID] = cancel
 	}
 
 	r.jobHistory.JobHistory[jobID] = job.DeepCopy()
@@ -463,14 +542,7 @@ func (r *ChatArchiveRegistry) Resume(ctx context.Context, jobID chat1.ArchiveJob
 		return fmt.Errorf("Cannot resume a non-paused job. Found status %v", job.Status)
 	}
 
-	// Resume the job in the background, the job will register itself as running
-	go func() {
-		ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewSimpleIdentifyNotifier(r.G()))
-		_, err := NewChatArchiver(r.G(), r.uid, r.remoteClient).ArchiveChat(ctx, job.Request)
-		if err != nil {
-			r.Debug(ctx, err.Error())
-		}
-	}()
+	r.launchLocked(ctx, job.Request)
 	return nil
 }
 

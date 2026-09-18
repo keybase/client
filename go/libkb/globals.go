@@ -25,8 +25,10 @@ import (
 	"os"
 	"runtime"
 	"sync"
+	"sync/atomic"
 	"time"
 
+	"github.com/keybase/client/go/libkb/lifecycle"
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	clockwork "github.com/keybase/clockwork"
@@ -69,6 +71,8 @@ type GlobalContext struct {
 	DNSNSFetcher                     DNSNameServerFetcher        // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
 	MobileNetState                   *MobileNetState             // The kind of network connection for the currently running instance of the app
 	MobileAppState                   *MobileAppState             // The state of focus for the currently running instance of the app
+	MobileLifecycle                  *lifecycle.Controller       // Derives MobileAppState from native UI reports and background-work holds
+	PendingPushTap                   *PendingPushTap             // Holds the route a tapped notification resolved to until a client takes it
 	DesktopAppState                  *DesktopAppState            // The state of focus for the currently running instance of the app
 	ChatHelper                       ChatHelper                  // conveniently send chat messages
 	RPCCanceler                      *RPCCanceler                // register live RPCs so they can be cancelleed en masse
@@ -76,6 +80,8 @@ type GlobalContext struct {
 	Identify3State                   *Identify3State             // keep track of Identify3 sessions
 	vidMu                            *sync.Mutex                 // protect VID
 	RuntimeStats                     RuntimeStats                // performance runtime stats
+	stateEpoch                       int64                       // see StateVersion
+	stateCounter                     atomic.Int64                // see StateVersion
 
 	cacheMu                *sync.RWMutex   // protects all caches
 	ProofCache             *ProofCache     // where to cache proof results
@@ -305,11 +311,25 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.localSigchainGuard = NewLocalSigchainGuard(g)
 	g.MobileNetState = NewMobileNetState(g)
 	g.MobileAppState = NewMobileAppState(g)
+	g.MobileLifecycle = lifecycle.New(g.MobileAppState, lifecycle.Config{
+		Flush: g.flushLocalDbs,
+		Debug: func(format string, args ...interface{}) { g.Log.Debug(format, args...) },
+	})
+	g.PendingPushTap = NewPendingPushTap(g)
 	g.DesktopAppState = NewDesktopAppState(g)
 	g.RPCCanceler = NewRPCCanceler()
 	g.IdentifyDispatch = NewIdentifyDispatch()
 	g.Identify3State = NewIdentify3State(g)
 	g.GregorState = newNullGregorState()
+	// Any value distinct from every other service process will do: a client only
+	// ever asks whether two epochs differ, never which is greater. Kept under
+	// 2^32 because a JS client decodes an int64 into a float64, which is exact
+	// only below 2^53.
+	if epoch, err := RandInt64(); err == nil {
+		g.stateEpoch = epoch & 0xFFFFFFFF
+	} else {
+		g.stateEpoch = time.Now().UnixMilli() & 0xFFFFFFFF
+	}
 	g.LocalNetworkInstrumenterStorage = NewDiskInstrumentationStorage(g, keybase1.NetworkSource_LOCAL)
 	g.RemoteNetworkInstrumenterStorage = NewDiskInstrumentationStorage(g, keybase1.NetworkSource_REMOTE)
 
@@ -320,6 +340,22 @@ func (g *GlobalContext) Init() *GlobalContext {
 
 func NewGlobalContextInit() *GlobalContext {
 	return NewGlobalContext().Init()
+}
+
+// StateVersion labels the last change a notification announced (the http server
+// address, login, logout). Epoch identifies this service process, so a client
+// that reconnects to a restarted service sees a different epoch instead of a
+// counter that looks stale; counter strictly increases within one epoch.
+func (g *GlobalContext) StateVersion() keybase1.StateVersion {
+	return keybase1.StateVersion{Epoch: g.stateEpoch, Counter: g.stateCounter.Load()}
+}
+
+// NextStateVersion stamps a change about to be announced. NotifyRouter calls it
+// after the change is readable, so nothing carrying this version is still
+// invisible, which makes a snapshot labelled with StateVersion never newer than
+// its label.
+func (g *GlobalContext) NextStateVersion() keybase1.StateVersion {
+	return keybase1.StateVersion{Epoch: g.stateEpoch, Counter: g.stateCounter.Add(1)}
 }
 
 func (g *GlobalContext) SetService() {
@@ -834,6 +870,12 @@ func (g *GlobalContext) Shutdown(mctx MetaContext) error {
 
 		if g.hiddenTeamChainManager != nil {
 			g.hiddenTeamChainManager.Shutdown(mctx)
+		}
+
+		// Ends the background tasks the controller runs before the chat
+		// services they poll go away.
+		if g.MobileLifecycle != nil {
+			g.MobileLifecycle.Close()
 		}
 
 		if g.NotifyRouter != nil {

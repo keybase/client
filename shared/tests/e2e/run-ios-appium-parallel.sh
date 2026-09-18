@@ -47,7 +47,8 @@ for NAME in "${DEVICES[@]}"; do xcrun simctl boot "$NAME" 2>/dev/null || true; d
 for NAME in "${DEVICES[@]}"; do
   xcrun simctl bootstatus "$NAME" -b >/dev/null 2>&1 || echo "⚠️  $NAME failed to boot"
 done
-open -a Simulator >/dev/null 2>&1 || true
+# Xcode 27 shows simulators in DeviceHub; older Xcodes in Simulator.
+open -a Simulator >/dev/null 2>&1 || open -a DeviceHub >/dev/null 2>&1 || true
 
 BASE_PORT=4723
 PIDS=()

@@ -1,7 +1,25 @@
 
 @namespace("keybase.1")
 protocol NotifyApp {
+  import idl "common.avdl";
+  import idl "appstate.avdl";
 
   void exit() oneway;
+
+  // The app's lifecycle state changed. The service derives it from the UI
+  // reports native makes, so this and the appState in setNotifications' reply
+  // are the only places a client learns it -- deriving it a second time from
+  // the OS would mean two answers with no ordering between them. Versioned
+  // because the fan-out is one goroutine per connection, so two of these can
+  // arrive in either order.
+  void mobileAppStateChanged(MobileAppState state, StateVersion version) oneway;
+
+  // A notification tap resolved to a route and it is waiting to be acted on. A
+  // nudge, not a delivery: the route rides peekPushTapRoute's reply, so the
+  // reader is the same one whether the tap happened before this client existed
+  // or while it was connected. Carries nothing for that reason -- acting on
+  // this rather than on what the peek reports would be a second delivery path,
+  // and the two could then act on one tap twice.
+  void pushTapRouteAvailable() oneway;
 
 }

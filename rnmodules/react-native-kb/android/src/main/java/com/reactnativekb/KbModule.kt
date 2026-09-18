@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
 import android.text.format.DateFormat
@@ -376,37 +375,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         // Android manages badge counts automatically via notification channels.
     }
 
-    @ReactMethod
-    override fun getInitialNotification(promise: Promise) {
-        // Clear on read so it behaves as a one-shot, matching iOS.
-        val bundle = KbModule.initialNotificationBundle
-        KbModule.initialNotificationBundle = null
-        if (bundle != null) {
-            try {
-                @Suppress("UNCHECKED_CAST")
-                val payload: WritableMap = Arguments.fromBundle(bundle) as WritableMap
-                promise.resolve(payload)
-            } catch (e: Exception) {
-                promise.resolve(null)
-            }
-        } else {
-            promise.resolve(null)
-        }
-    }
-
-    private fun emitPushNotificationInternal(notification: Bundle) {
-        if (reactContext.hasActiveReactInstance() && canEmit()) {
-            try {
-                val payload = Arguments.fromBundle(notification)
-                emitOnPushNotification(payload)
-            } catch (e: Exception) {
-                NativeLogger.error("emitPushNotificationInternal failed to emit: " + e.message)
-            }
-        } else {
-            NativeLogger.warn("emitPushNotificationInternal no active react instance")
-        }
-    }
-
     internal fun emitShareDataInternal(data: WritableMap) {
         if (reactContext.hasActiveReactInstance() && canEmit()) {
             try {
@@ -466,18 +434,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     // from the reader thread: lets a caller decide whether an emit has any
     // chance of being delivered before committing to it.
     internal fun canDeliverReset(): Boolean = reactContext.hasActiveReactInstance() && canEmit()
-
-    // No current caller (kept for future use).
-    @ReactMethod
-    override fun engineReset() {
-        try {
-            Keybase.reset()
-            nativeResetRecv()
-            relayReset()
-        } catch (e: Exception) {
-            NativeLogger.error("Exception in engineReset", e)
-        }
-    }
 
     @ReactMethod
     override fun notifyJSReady() {
@@ -781,32 +737,8 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         @Volatile
         var instance: KbModule? = null
         @JvmStatic
-        internal var initialNotificationBundle: Bundle? = null
-
-        @JvmStatic
         fun keyPressed(keyName: String) {
             instance?.sendHardwareKeyEvent(keyName)
-        }
-
-        @JvmStatic
-        fun setInitialNotification(bundle: Bundle?) {
-            initialNotificationBundle = bundle
-        }
-
-        @JvmStatic
-        fun isReactNativeRunning(): Boolean {
-            return instance != null
-        }
-
-        @JvmStatic
-        fun emitPushNotification(notification: Bundle) {
-            val module = instance
-            if (module == null) {
-                // NativeLogger writes to the Go service, which may not be up here.
-                android.util.Log.w("KbModule", "emitPushNotification called but instance is null (app may not be running)")
-                return
-            }
-            module.emitPushNotificationInternal(notification)
         }
 
         @JvmStatic

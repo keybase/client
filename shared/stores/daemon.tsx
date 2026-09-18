@@ -66,7 +66,10 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
           `[Bootstrap] loggedIn: ${bs.loggedIn ? 1 : 0} http: ${bs.httpSrvInfo ? bs.httpSrvInfo.address : 'none'}`
         )
         // a newer handshake owns the store now; don't write a potentially older status over its load
-        if (gen !== generation || isEqual(bs, get().bootstrapStatus)) {
+        if (gen !== generation) {
+          return
+        }
+        if (isEqual(bs, get().bootstrapStatus)) {
           return
         }
         set(s => {
@@ -88,6 +91,10 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
         ...s,
         ...initialStore,
         dispatch: s.dispatch,
+        // Both track the connection, not the account, and the closure counter behind the
+        // generation keeps climbing across a reset: zeroing the copy here would make the live
+        // connection's own in-flight work look superseded by a logout that happened under it.
+        handshakeGeneration: s.handshakeGeneration,
         handshakeState: s.handshakeState,
       }))
     },

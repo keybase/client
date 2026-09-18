@@ -1,9 +1,37 @@
 {
   "protocol": "NotifyApp",
-  "imports": [],
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    },
+    {
+      "path": "appstate.avdl",
+      "type": "idl"
+    }
+  ],
   "types": [],
   "messages": {
     "exit": {
+      "request": [],
+      "response": null,
+      "oneway": true
+    },
+    "mobileAppStateChanged": {
+      "request": [
+        {
+          "name": "state",
+          "type": "MobileAppState"
+        },
+        {
+          "name": "version",
+          "type": "StateVersion"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "pushTapRouteAvailable": {
       "request": [],
       "response": null,
       "oneway": true

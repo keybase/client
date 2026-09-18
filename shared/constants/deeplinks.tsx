@@ -1,7 +1,15 @@
 import logger from '@/logger'
 import * as T from '@/constants/types'
-import {navigateAppend, navigateToThread, navToProfile, previewConversation, switchTab} from './router'
+import {
+  navigateAppend,
+  navigateToThread,
+  navToProfile,
+  navUpToScreen,
+  previewConversation,
+  switchTab,
+} from './router'
 import * as Tabs from './tabs'
+import {settingsDevicesTab} from './settings'
 import {showTeamByName} from '@/teams/team-page-actions'
 
 const prefix = 'keybase://'
@@ -75,6 +83,17 @@ const handleKeybaseLink = (link: string) => {
         return
       }
       break
+    case 'devices':
+      // Devices live under Settings on phone/tablet and in their own tab on desktop.
+      switchTab(isMobile ? Tabs.settingsTab : Tabs.devicesTab)
+      navUpToScreen(isMobile ? settingsDevicesTab : 'devicesRoot')
+      return
+    case 'settingsAddPhone':
+      // Where the invite install link (https://keybase.io/phone-app) lands. The linking config
+      // also handles it; desktop routes every URL here, so this must agree with it.
+      switchTab(Tabs.settingsTab)
+      navigateAppend({name: 'settingsAddPhone', params: {}})
+      return
     case 'private':
     case 'public':
       try {

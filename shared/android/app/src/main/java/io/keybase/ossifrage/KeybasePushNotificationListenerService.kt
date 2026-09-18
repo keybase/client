@@ -5,17 +5,13 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.app.Person
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import io.keybase.ossifrage.MainActivity.Companion.setupKBRuntime
 import io.keybase.ossifrage.modules.NativeLogger
 import keybase.Keybase
-import com.reactnativekb.KbModule
 import org.json.JSONObject
 
 class KeybasePushNotificationListenerService : FirebaseMessagingService() {
@@ -29,19 +25,11 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
         return ex.message?.contains("different account") == true
     }
 
-    private fun buildStyle(convID: String, person: Person): NotificationCompat.Style {
-        val style = NotificationCompat.MessagingStyle(person)
-        val buf = msgCache[convID]
-        if (buf != null) {
-            for (msg in buf.summary()) {
-                style.addMessage(msg)
-            }
-        }
-        return style
-    }
+    private val lifecycleReporter get() = (application as MainApplication).lifecycleReporter
 
     override fun onCreate() {
         setupKBRuntime(this, false)
+        lifecycleReporter.reportHeadlessStart()
         NativeLogger.info("KeybasePushNotificationListenerService created")
         createNotificationChannel(this)
     }
@@ -116,28 +104,27 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
 
                     var goProcessingSucceeded = false
                     try {
-                        val withBackgroundActive: WithBackgroundActive = object : WithBackgroundActive {
-                            override fun task() {
-                                try {
-                                    Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
-                                            n.membersType.toLong(), n.displayPlaintext, n.messageId.toLong(), n.pushId,
-                                            n.badgeCount.toLong(), n.unixTime, n.soundName, if (dontNotify) null else notifier, true,
-                                            targetUID)
-                                    goProcessingSucceeded = true
-                                    if (!dontNotify) {
-                                        seenChatNotifications.add(n.convID + n.messageId)
-                                    }
-                                } catch (ex: Exception) {
-                                    if (isOtherAccountPushError(ex)) {
-                                        NativeLogger.info("Go skipped notification for a different active account: " + ex.message)
-                                    } else {
-                                        NativeLogger.error("Go Couldn't handle background notification2: " + ex.message)
-                                    }
-                                    throw ex
+                        // The push window must see the state after the process
+                        // start or stop that came before this push.
+                        lifecycleReporter.awaitReported(5000)
+                        // In the foreground the app already has the message, and
+                        // must not show a notification for it.
+                        runPushWindow(KeybaseLifecycleBind(applicationContext), { NativeLogger.info(it) }, InForeground.SKIP) {
+                            try {
+                                Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
+                                        n.membersType.toLong(), n.displayPlaintext, n.messageId.toLong(), n.pushId,
+                                        n.badgeCount.toLong(), n.unixTime, n.soundName, if (dontNotify) null else notifier, true,
+                                        targetUID)
+                                goProcessingSucceeded = true
+                            } catch (ex: Exception) {
+                                if (isOtherAccountPushError(ex)) {
+                                    NativeLogger.info("Go skipped notification for a different active account: " + ex.message)
+                                } else {
+                                    NativeLogger.error("Go Couldn't handle background notification2: " + ex.message)
                                 }
+                                throw ex
                             }
                         }
-                        withBackgroundActive.whileActive(applicationContext)
                     } catch (ex: Exception) {
                         if (isOtherAccountPushError(ex)) {
                             NativeLogger.info("Skipping active-account processing for different-account push")
@@ -148,14 +135,6 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                     }
 
 
-                    val isReactNativeRunning = try {
-                        com.reactnativekb.KbModule.isReactNativeRunning()
-                    } catch (e: Exception) {
-                        NativeLogger.info("KeybasePushNotificationListenerService couldn't check if React Native is running: ${e.message}, assuming not")
-                        false
-                    }
-                    NativeLogger.info("KeybasePushNotificationListenerService isReactNativeRunning: $isReactNativeRunning")
-
                     val isForeground = try {
                         Keybase.isAppStateForeground()
                     } catch (e: Exception) {
@@ -164,14 +143,9 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                     }
                     NativeLogger.info("KeybasePushNotificationListenerService isForeground: $isForeground")
 
-                    // Don't show notifications if app is foreground - user is already looking at the app
-                    if (isForeground) {
-
-                    } else if (dontNotify) {
-                        // Silent notifications should never display - they're processed by Go but no notification shown
-                    } else if (!goProcessingSucceeded && type == "chat.newmessage") {
-                        // Only show fallback if Go processing failed AND it's a non-silent notification
-                        // If Go succeeded, it already displayed the notification (via notifier parameter)
+                    // In the foreground the app already has the message. A silent push never
+                    // displays. Otherwise fall back only if Go failed to display it itself.
+                    if (!isForeground && !dontNotify && !goProcessingSucceeded) {
                         NativeLogger.info("KeybasePushNotificationListenerService attempting fallback notification display")
                         try {
                             val chatNotif = keybase.ChatNotification()
@@ -197,20 +171,12 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                             chatNotif.uid = targetUID
 
                             notifier.displayChatNotification(chatNotif)
-                            seenChatNotifications.add(n.convID + n.messageId)
                             NativeLogger.info("KeybasePushNotificationListenerService fallback notification displayed successfully")
                         } catch (e: Exception) {
                             NativeLogger.error("Failed to display notification fallback: " + e.message)
                         }
-                    } else if (dontNotify) {
-
                     }
 
-                    if (type == "chat.newmessage") {
-                        val emitBundle = bundle.clone() as Bundle
-                        emitBundle.putBoolean("userInteraction", false)
-                        KbModule.emitPushNotification(emitBundle)
-                    }
                 }
 
                 "follow" -> {
@@ -218,18 +184,11 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                     val m = bundle.getString("message")
                     if (username != null && m != null) {
                         notifier.followNotification(username, m)
-                        val emitBundle = bundle.clone() as Bundle
-                        emitBundle.putBoolean("userInteraction", false)
-                        KbModule.emitPushNotification(emitBundle)
-                    } else {
                     }
                 }
 
                 "device.revoked", "device.new" -> {
                     notifier.deviceNotification()
-                    val emitBundle = bundle.clone() as Bundle
-                    emitBundle.putBoolean("userInteraction", false)
-                    KbModule.emitPushNotification(emitBundle)
                 }
 
                 "chat.readmessage" -> {
@@ -246,15 +205,10 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                         val notificationManager = NotificationManagerCompat.from(applicationContext)
                         notificationManager.cancelAll()
                     }
-                    val emitBundle = bundle.clone() as Bundle
-                    KbModule.emitPushNotification(emitBundle)
                 }
 
                 else -> {
                     notifier.generalNotification()
-                    val emitBundle = bundle.clone() as Bundle
-                    emitBundle.putBoolean("userInteraction", false)
-                    KbModule.emitPushNotification(emitBundle)
                 }
             }
         } catch (ex: Exception) {
@@ -385,53 +339,6 @@ internal class NotificationData(type: String, bundle: Bundle) {
             pushId = ""
         } else {
             throw Error("Tried to parse notification of unhandled type: $type")
-        }
-    }
-}
-
-// Interface to run some task while in backgroundActive.
-// If already foreground, ignore
-internal interface WithBackgroundActive {
-    @Throws(Exception::class)
-    fun task()
-
-    @Throws(Exception::class)
-    fun whileActive(context: Context?) {
-        try {
-            // We are foreground don't show anything
-            val isForeground = Keybase.isAppStateForeground()
-            NativeLogger.info("WithBackgroundActive.whileActive isForeground: $isForeground")
-            if (isForeground) {
-                NativeLogger.info("WithBackgroundActive.whileActive app is foreground, returning early")
-                return
-            } else {
-                NativeLogger.info("WithBackgroundActive.whileActive setting background active and calling task")
-                Keybase.setAppStateBackgroundActive()
-                task()
-                NativeLogger.info("WithBackgroundActive.whileActive task completed")
-
-                // Check if we are foreground now for some reason. In that case we don't want to go background again
-                val isForegroundNow = Keybase.isAppStateForeground()
-                NativeLogger.info("WithBackgroundActive.whileActive isForegroundNow: $isForegroundNow")
-                if (isForegroundNow) {
-                    NativeLogger.info("WithBackgroundActive.whileActive app became foreground, returning")
-                    return
-                }
-                val didEnterBackground = Keybase.appDidEnterBackground()
-                NativeLogger.info("WithBackgroundActive.whileActive didEnterBackground: $didEnterBackground")
-                if (didEnterBackground) {
-                    if (context != null) {
-                        NativeLogger.info("WithBackgroundActive.whileActive beginning background task")
-                        Keybase.appBeginBackgroundTaskNonblock(KBPushNotifier(context, Bundle()))
-                    }
-                } else {
-                    NativeLogger.info("WithBackgroundActive.whileActive setting app state to background")
-                    Keybase.setAppStateBackground()
-                }
-            }
-        } catch (ex: Exception) {
-            NativeLogger.error("WithBackgroundActive.whileActive exception: " + ex.message)
-            throw ex
         }
     }
 }

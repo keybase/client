@@ -1,4 +1,6 @@
 import {execSync} from 'child_process'
+import {existsSync} from 'fs'
+import * as path from 'path'
 
 export function udidForName(name: string): string {
   const json = execSync('xcrun simctl list devices available -j', {encoding: 'utf8'})
@@ -64,6 +66,21 @@ export function androidCapabilities(serial: string) {
   }
 }
 
+// Xcode 27 replaced Simulator.app with DeviceHub.app. With a simulator running and no
+// Simulator.app window, the xcuitest driver (appium-ios-simulator run()) shuts the simulator
+// down and tries to open Simulator.app to show it, which fails the session. isHeadless makes it
+// accept the booted simulator as is instead. It must stay off wherever Simulator.app exists: in
+// headless mode the driver kills the Simulator.app window and reboots the device without one.
+// It never touches DeviceHub, which the runners open, so the window stays up either way.
+function hasSimulatorApp(): boolean {
+  try {
+    const developerDir = execSync('xcode-select -p', {encoding: 'utf8'}).trim()
+    return existsSync(path.join(developerDir, 'Applications', 'Simulator.app'))
+  } catch {
+    return true
+  }
+}
+
 interface IosCapsOpts {
   wdaLocalPort?: number
   // false for old-iOS sims (e.g. iOS 16.4): the single prebuilt WDA is built
@@ -85,6 +102,7 @@ export function iosCapabilities(udid: string, opts: IosCapsOpts = {}) {
     'appium:bundleId': 'keybase.ios',
     'appium:noReset': true,
     'appium:newCommandTimeout': 120,
+    ...(hasSimulatorApp() ? {} : {'appium:isHeadless': true}),
     // A fresh WDA build (prebuilt: false) runs xcodebuild and can take minutes
     // the first time; the prebuilt path launches in seconds.
     'appium:wdaLaunchTimeout': prebuilt ? 120000 : 600000,

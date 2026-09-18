@@ -118,34 +118,40 @@ func HandlePostTextReply(strConvID, tlfName string, intMessageID int, body strin
 	ctx := context.Background()
 	defer kbCtx.CTrace(ctx, "HandlePostTextReply", &err)()
 	defer func() { err = flattenError(err) }()
-	outboxID, err := storage.NewOutboxID()
-	if err != nil {
-		return err
-	}
+	return postTextReply(ctx, globals.NewContext(kbCtx, kbChatCtx), strConvID, tlfName, intMessageID, body)
+}
+
+// postTextReply sends a notification quick reply and marks the conversation
+// read. The send is nonblocking: an error means the message couldn't be
+// queued, not that delivery failed.
+func postTextReply(ctx context.Context, gc *globals.Context, strConvID, tlfName string, intMessageID int,
+	body string,
+) error {
 	convID, err := chat1.MakeConvID(strConvID)
 	if err != nil {
 		return err
 	}
-	_, err = kbCtx.ChatHelper.SendTextByIDNonblock(context.Background(), convID, tlfName, body, &outboxID, nil)
-
-	kbCtx.Log.CDebugf(ctx, "Marking as read from QuickReply: convID: %s", strConvID)
-	gc := globals.NewContext(kbCtx, kbChatCtx)
+	if intMessageID < 0 {
+		return fmt.Errorf("invalid message ID: %d", intMessageID)
+	}
 	uid, err := utils.AssertLoggedInUID(ctx, gc)
 	if err != nil {
 		return err
 	}
-
-	if intMessageID < 0 {
-		return fmt.Errorf("invalid message ID: %d", intMessageID)
+	outboxID, err := storage.NewOutboxID()
+	if err != nil {
+		return err
+	}
+	if _, err := gc.ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, body, &outboxID, nil); err != nil {
+		return err
 	}
 
+	gc.Log.CDebugf(ctx, "Marking as read from QuickReply: convID: %s", strConvID)
 	msgID := chat1.MessageID(intMessageID)
-	if err = kbChatCtx.InboxSource.MarkAsRead(context.Background(), convID, uid, &msgID, false /* forceUnread */); err != nil {
-		kbCtx.Log.CDebugf(ctx, "Failed to mark as read from QuickReply: convID: %s. Err: %s", strConvID, err)
-		// We don't want to fail this method call just because we couldn't mark it as aread
-		err = nil
+	if err := gc.InboxSource.MarkAsRead(ctx, convID, uid, &msgID, false /* forceUnread */); err != nil {
+		// The reply went out; failing to mark it read doesn't fail the reply.
+		gc.Log.CDebugf(ctx, "Failed to mark as read from QuickReply: convID: %s. Err: %s", strConvID, err)
 	}
-
 	return nil
 }
 

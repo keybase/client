@@ -78,8 +78,29 @@ func (o MobileNetworkState) String() string {
 	return fmt.Sprintf("%v", int(o))
 }
 
+type PushTapRoute struct {
+	Url       string `codec:"url" json:"url"`
+	TargetUID string `codec:"targetUID" json:"targetUID"`
+	Id        int    `codec:"id" json:"id"`
+}
+
+func (o PushTapRoute) DeepCopy() PushTapRoute {
+	return PushTapRoute{
+		Url:       o.Url,
+		TargetUID: o.TargetUID,
+		Id:        o.Id,
+	}
+}
+
 type UpdateMobileNetStateArg struct {
 	State string `codec:"state" json:"state"`
+}
+
+type PeekPushTapRouteArg struct {
+}
+
+type AckPushTapRouteArg struct {
+	Id int `codec:"id" json:"id"`
 }
 
 type PowerMonitorEventArg struct {
@@ -88,6 +109,8 @@ type PowerMonitorEventArg struct {
 
 type AppStateInterface interface {
 	UpdateMobileNetState(context.Context, string) error
+	PeekPushTapRoute(context.Context) (*PushTapRoute, error)
+	AckPushTapRoute(context.Context, int) error
 	PowerMonitorEvent(context.Context, string) error
 }
 
@@ -107,6 +130,31 @@ func AppStateProtocol(i AppStateInterface) rpc.Protocol {
 						return
 					}
 					err = i.UpdateMobileNetState(ctx, typedArgs[0].State)
+					return
+				},
+			},
+			"peekPushTapRoute": {
+				MakeArg: func() any {
+					var ret [1]PeekPushTapRouteArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
+					ret, err = i.PeekPushTapRoute(ctx)
+					return
+				},
+			},
+			"ackPushTapRoute": {
+				MakeArg: func() any {
+					var ret [1]AckPushTapRouteArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
+					typedArgs, ok := args.(*[1]AckPushTapRouteArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]AckPushTapRouteArg)(nil), args)
+						return
+					}
+					err = i.AckPushTapRoute(ctx, typedArgs[0].Id)
 					return
 				},
 			},
@@ -136,6 +184,17 @@ type AppStateClient struct {
 func (c AppStateClient) UpdateMobileNetState(ctx context.Context, state string) (err error) {
 	__arg := UpdateMobileNetStateArg{State: state}
 	err = c.Cli.Call(ctx, "keybase.1.appState.updateMobileNetState", []any{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c AppStateClient) PeekPushTapRoute(ctx context.Context) (res *PushTapRoute, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.appState.peekPushTapRoute", []any{PeekPushTapRouteArg{}}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c AppStateClient) AckPushTapRoute(ctx context.Context, id int) (err error) {
+	__arg := AckPushTapRouteArg{Id: id}
+	err = c.Cli.Call(ctx, "keybase.1.appState.ackPushTapRoute", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

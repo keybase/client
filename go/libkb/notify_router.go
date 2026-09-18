@@ -350,10 +350,15 @@ func (n *NotifyRouter) RemoveListener(id NotifyListenerID) {
 
 func (n *NotifyRouter) Shutdown() {}
 
-func (n *NotifyRouter) setNotificationChannels(id ConnectionID, val keybase1.NotificationChannels) {
+// setNotificationChannels registers the connection's filter and returns the
+// version labelling it. The version is read under the same lock announce takes to
+// decide whether this connection is registered, so the registration and its label
+// are one step and neither can be taken without the other.
+func (n *NotifyRouter) setNotificationChannels(id ConnectionID, val keybase1.NotificationChannels) keybase1.StateVersion {
 	n.Lock()
 	defer n.Unlock()
 	n.state[id] = val
+	return n.G().StateVersion()
 }
 
 func (n *NotifyRouter) getNotificationChannels(id ConnectionID) keybase1.NotificationChannels {
@@ -393,9 +398,37 @@ func (n *NotifyRouter) AddConnection(xp rpc.Transporter, ch chan error) Connecti
 }
 
 // SetChannels sets which notification channels are interested for the connection
-// with the given connection ID.
-func (n *NotifyRouter) SetChannels(i ConnectionID, nc keybase1.NotificationChannels) {
-	n.setNotificationChannels(i, nc)
+// with the given connection ID, and returns the version that labels a state read
+// made from here on. The version comes back from the registration rather than
+// from a separate StateVersion call so that a reply describing the state cannot
+// be built before the connection is subscribed: a change landing in that window
+// would be announced to nobody and reported stale, and the client keeps whichever
+// version is newer, so it would keep the stale one for good.
+func (n *NotifyRouter) SetChannels(i ConnectionID, nc keybase1.NotificationChannels) keybase1.StateVersion {
+	return n.setNotificationChannels(i, nc)
+}
+
+// announce stamps one state version and fans a notification out to every
+// connection whose channel filter wants it. Stamping here rather than at each
+// call site is what makes the version the default for an announced change: the
+// stamp happens after the change is readable and before any send.
+func (n *NotifyRouter) announce(ctx context.Context, name string,
+	wants func(keybase1.NotificationChannels) bool,
+	send func(rpc.Transporter, keybase1.StateVersion),
+) {
+	version := n.G().NextStateVersion()
+	n.cm.ApplyAllDetails(func(id ConnectionID, xp rpc.Transporter, d *keybase1.ClientDetails) bool {
+		registered := wants(n.getNotificationChannels(id))
+		if registered {
+			go send(xp, version)
+		}
+		desc := "<nil>"
+		if d != nil {
+			desc = fmt.Sprintf("%+v", *d)
+		}
+		n.G().Log.CDebugf(ctx, "| NotifyRouter#%s: client %s (sent=%v)", name, desc, registered)
+		return true
+	})
 }
 
 // HandleLogout is called whenever the current user logged out. It will broadcast
@@ -406,27 +439,13 @@ func (n *NotifyRouter) HandleLogout(ctx context.Context) {
 	}
 	defer n.G().CTrace(ctx, "NotifyRouter#HandleLogout", nil)()
 	ctx = CopyTagsToBackground(ctx)
-	// For all connections we currently have open...
-	n.cm.ApplyAllDetails(func(id ConnectionID, xp rpc.Transporter, d *keybase1.ClientDetails) bool {
-		// If the connection wants the `Session` notification type
-		registered := false
-		if n.getNotificationChannels(id).Session {
-			registered = true
-			// In the background do...
-			go func() {
-				// A send of a `LoggedOut` RPC
-				_ = (keybase1.NotifySessionClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).LoggedOut(ctx)
-			}()
-		}
-		desc := "<nil>"
-		if d != nil {
-			desc = fmt.Sprintf("%+v", *d)
-		}
-		n.G().Log.CDebugf(ctx, "| NotifyRouter#HandleLogout: client %s (sent=%v)", desc, registered)
-		return true
-	})
+	n.announce(ctx, "HandleLogout",
+		func(ch keybase1.NotificationChannels) bool { return ch.Session },
+		func(xp rpc.Transporter, version keybase1.StateVersion) {
+			_ = (keybase1.NotifySessionClient{
+				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+			}).LoggedOut(ctx, version)
+		})
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.Logout()
@@ -459,24 +478,18 @@ func (n *NotifyRouter) SendLogin(ctx context.Context, u string, signedUp bool) {
 		return
 	}
 	n.G().Log.CDebugf(ctx, "+ Sending login notification, as user %q, signedUp %t", u, signedUp)
-	// For all connections we currently have open...
 	ctx = CopyTagsToBackground(ctx)
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Session` notification type
-		if n.getNotificationChannels(id).Session {
-			// In the background do...
-			go func() {
-				// A send of a `LoggedIn` RPC
-				_ = (keybase1.NotifySessionClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).LoggedIn(ctx, keybase1.LoggedInArg{
-					Username: u,
-					SignedUp: signedUp,
-				})
-			}()
-		}
-		return true
-	})
+	n.announce(ctx, "SendLogin",
+		func(ch keybase1.NotificationChannels) bool { return ch.Session },
+		func(xp rpc.Transporter, version keybase1.StateVersion) {
+			_ = (keybase1.NotifySessionClient{
+				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+			}).LoggedIn(ctx, keybase1.LoggedInArg{
+				Username: u,
+				SignedUp: signedUp,
+				Version:  version,
+			})
+		})
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.Login(u)
@@ -2823,19 +2836,57 @@ func (n *NotifyRouter) HandleHTTPSrvInfoUpdate(ctx context.Context, info keybase
 	if n == nil {
 		return
 	}
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Service {
-			go func() {
-				_ = (keybase1.NotifyServiceClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).HTTPSrvInfoUpdate(ctx, info)
-			}()
-		}
-		return true
-	})
+	n.announce(ctx, "HandleHTTPSrvInfoUpdate",
+		func(ch keybase1.NotificationChannels) bool { return ch.Service },
+		func(xp rpc.Transporter, version keybase1.StateVersion) {
+			_ = (keybase1.NotifyServiceClient{
+				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+			}).HTTPSrvInfoUpdate(ctx, keybase1.HTTPSrvInfoUpdateArg{Info: info, Version: version})
+		})
 	n.runListeners(func(listener NotifyListener) {
 		listener.HTTPSrvInfoUpdate(info)
 	})
+}
+
+// HandleMobileAppState announces the app lifecycle state the service derived
+// from native's UI reports. It is the client's only source for it: deriving it
+// a second time from the OS would mean two answers -- on iOS from two different
+// notification streams -- with nothing ordering them against each other.
+//
+// No runListeners, unlike the announces above it: there is no in-process
+// listener for this. The in-process consumers (kbhttp/manager, kbfs) watch
+// MobileAppState.NextUpdate directly, which is the earlier and cheaper signal.
+//
+// Called with MobileAppState's lock held, so nothing below may read app state.
+func (n *NotifyRouter) HandleMobileAppState(ctx context.Context, state keybase1.MobileAppState) {
+	if n == nil {
+		return
+	}
+	n.announce(ctx, "HandleMobileAppState",
+		func(ch keybase1.NotificationChannels) bool { return ch.App },
+		func(xp rpc.Transporter, version keybase1.StateVersion) {
+			_ = (keybase1.NotifyAppClient{
+				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+			}).MobileAppStateChanged(ctx, keybase1.MobileAppStateChangedArg{State: state, Version: version})
+		})
+}
+
+// HandlePushTapRouteAvailable nudges clients that a notification tap resolved
+// to a route. It carries nothing: the route rides peekPushTapRoute's reply, so
+// the reader is the same one whether the tap happened before a client existed
+// or while it was connected, and the route is retired by an ack from whoever
+// acted on it rather than by having been read.
+func (n *NotifyRouter) HandlePushTapRouteAvailable(ctx context.Context) {
+	if n == nil {
+		return
+	}
+	n.announce(ctx, "HandlePushTapRouteAvailable",
+		func(ch keybase1.NotificationChannels) bool { return ch.App },
+		func(xp rpc.Transporter, version keybase1.StateVersion) {
+			_ = (keybase1.NotifyAppClient{
+				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+			}).PushTapRouteAvailable(ctx)
+		})
 }
 
 func (n *NotifyRouter) HandleHandleKeybaseLink(ctx context.Context, link string, deferred bool) {

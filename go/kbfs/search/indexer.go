@@ -1410,7 +1410,14 @@ outerLoop:
 					i.log.CDebugf(ctx,
 						"Pausing indexing while not foregrounded: state=%s",
 						state)
-					<-kbCtx.NextAppStateUpdate(state)
+					select {
+					case <-kbCtx.NextAppStateUpdate(state):
+					case <-ctx.Done():
+						return
+					case <-i.shutdownCh:
+						i.cancelLoop()
+						return
+					}
 					state = kbCtx.AppState()
 				}
 				i.log.CDebugf(ctx, "Resuming indexing while foregrounded")

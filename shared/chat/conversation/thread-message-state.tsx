@@ -1,6 +1,7 @@
 import * as Message from '@/constants/chat/message'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
+import {localServerURLKeys, shouldKeepEmojiURLs, unfurlKeepingLocalServerURLs} from './local-server-urls'
 import type {WritableDraft} from '@/util/zustand'
 
 type MessageLookup = Pick<T.Chat.Message, 'id' | 'ordinal'>
@@ -143,6 +144,11 @@ const maybeGetOrdinalByMessageID = (
 ) =>
   getOrdinalForMessageID(state.messageMap, state.pendingOutboxToOrdinal, messageID, state.messageIDToOrdinal)
 
+const reactionKeepingEmojiURLs = (existing: T.Chat.ReactionDesc | undefined, incoming: T.Chat.ReactionDesc) =>
+  existing && shouldKeepEmojiURLs(existing.decorated, incoming.decorated)
+    ? {...incoming, decorated: existing.decorated}
+    : incoming
+
 const mergeMessage = (
   existing: WritableDraft<T.Chat.Message>,
   incoming: WritableDraft<T.Chat.Message>
@@ -154,6 +160,9 @@ const mergeMessage = (
     const val = incomingRecord[key]
     const cur = existingRecord[key]
     if (val instanceof HiddenString) {
+      if (cur instanceof HiddenString && shouldKeepEmojiURLs(cur.stringValue(), val.stringValue())) {
+        continue
+      }
       if (!(cur instanceof HiddenString) || !val.equals(cur)) {
         existingRecord[key] = val
       }
@@ -165,11 +174,24 @@ const mergeMessage = (
           }
         }
         for (const [k, v] of val as Map<unknown, unknown>) {
-          ;(cur as Map<unknown, unknown>).set(k, v)
+          if (key === 'reactions') {
+            const old = (cur as Map<unknown, T.Chat.ReactionDesc>).get(k)
+            ;(cur as Map<unknown, unknown>).set(k, reactionKeepingEmojiURLs(old, v as T.Chat.ReactionDesc))
+          } else if (key === 'unfurls') {
+            const old = (cur as Map<unknown, T.RPCChat.UIMessageUnfurlInfo>).get(k)
+            ;(cur as Map<unknown, unknown>).set(
+              k,
+              unfurlKeepingLocalServerURLs(old, v as T.RPCChat.UIMessageUnfurlInfo)
+            )
+          } else {
+            ;(cur as Map<unknown, unknown>).set(k, v)
+          }
         }
       } else {
         existingRecord[key] = val
       }
+    } else if (localServerURLKeys.has(key) && val === '' && typeof cur === 'string' && cur) {
+      continue
     } else if (cur !== val) {
       existingRecord[key] = val
     }
@@ -573,8 +595,9 @@ export const updateReactionsInThreadState = (
         )
         const newReactions = new Map<string, T.Chat.ReactionDesc>()
         for (const emoji of existingOrder) {
-          if (reactions.has(emoji)) {
-            newReactions.set(emoji, reactions.get(emoji)!)
+          const incoming = reactions.get(emoji)
+          if (incoming) {
+            newReactions.set(emoji, reactionKeepingEmojiURLs(m.reactions.get(emoji), incoming))
           }
         }
         const remainingEmojis = [...reactions.keys()].filter(emoji => !newReactions.has(emoji))

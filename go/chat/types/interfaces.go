@@ -293,11 +293,6 @@ type PushHandler interface {
 	OobmHandler
 }
 
-type MobileAppState interface {
-	State() keybase1.MobileAppState
-	NextUpdate() chan keybase1.MobileAppState
-}
-
 type TeamChannelSource interface {
 	GetLastActiveForTLF(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) (gregor1.Time, error)
 	GetLastActiveForTeams(context.Context, gregor1.UID, chat1.TopicType) (chat1.LastActiveTimeAll, error)
@@ -467,6 +462,14 @@ type ShareIntentDonator interface {
 	// DeleteDonation removes the donated intent for the given conversation ID
 	// (the same identifier used when donating). Call when a conversation is blocked.
 	DeleteDonation(conversationID string)
+}
+
+// LocationWatcher runs the OS location service natively (iOS), so live
+// location keeps working without the UI. Fixes come back through
+// LiveLocationTracker.LocationUpdate. When nil, the chat UI watches position.
+type LocationWatcher interface {
+	StartWatching()
+	StopWatching()
 }
 
 type StellarLoader interface {

@@ -1,4 +1,5 @@
 /// <reference types="jest" />
+import * as Tabs from '../../constants/tabs'
 import {noConversationIDKey} from '../../constants/types/chat/common'
 import {useConfigState} from '../config'
 
@@ -16,8 +17,6 @@ const resetConfigState = () => {
     },
     startup: {
       conversation: noConversationIDKey,
-      followUser: '',
-      link: '',
       loaded: false,
     },
     userSwitching: false,
@@ -38,23 +37,17 @@ test('setStartupDetails only records the first startup payload', () => {
 
   dispatch.setStartupDetails({
     conversation: 'first-convo' as any,
-    followUser: 'alice',
-    link: 'keybase://first',
-    tab: undefined,
+    tab: Tabs.chatTab,
   })
   dispatch.setStartupDetails({
     conversation: 'second-convo' as any,
-    followUser: 'bob',
-    link: 'keybase://second',
-    tab: undefined,
+    tab: Tabs.peopleTab,
   })
 
   expect(useConfigState.getState().startup).toEqual({
     conversation: 'first-convo',
-    followUser: 'alice',
-    link: 'keybase://first',
     loaded: true,
-    tab: undefined,
+    tab: Tabs.chatTab,
   })
 })
 

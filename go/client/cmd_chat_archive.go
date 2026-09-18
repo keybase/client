@@ -101,7 +101,7 @@ func (c *CmdChatArchive) Run() error {
 	channels := keybase1.NotificationChannels{
 		Chatarchive: true,
 	}
-	if err := cli.SetNotifications(context.TODO(), channels); err != nil {
+	if _, err := cli.SetNotifications(context.TODO(), channels); err != nil {
 		return err
 	}
 
