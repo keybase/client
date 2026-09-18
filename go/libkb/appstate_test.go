@@ -97,3 +97,25 @@ func TestMobileAppStateAnnouncesOnlyOnChange(t *testing.T) {
 	require.True(t, a.Update(keybase1.MobileAppState_FOREGROUND))
 	require.Equal(t, announced.Counter+1, tc.G.StateVersion().Counter)
 }
+
+// The stamp lands in the same critical section as the state write, so two
+// concurrent Updates publish in the order they wrote rather than in whatever
+// order they reached the router. Checked white-box: holding the lock across
+// updateLocked is the only way to observe "has the version been stamped yet",
+// and the answer must be yes before the lock is released.
+func TestMobileAppStateStampsUnderTheLock(t *testing.T) {
+	tc := SetupTest(t, "MobileAppStateStamp", 0)
+	defer tc.Cleanup()
+	tc.G.SetService()
+	a := NewMobileAppState(tc.G)
+
+	before := tc.G.StateVersion().Counter
+	a.Lock()
+	changed := a.updateLocked(keybase1.MobileAppState_BACKGROUND)
+	stamped := tc.G.StateVersion().Counter
+	a.Unlock()
+
+	require.True(t, changed)
+	require.Equal(t, before+1, stamped,
+		"the change was announced before the lock that wrote it was released")
+}

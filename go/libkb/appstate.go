@@ -101,26 +101,34 @@ func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) (changed bo
 	default:
 		// Nothing to do for other states.
 	}
+
+	// Tell connected clients, still under the lock, so the state version is
+	// stamped in the same critical section that wrote the state. Two concurrent
+	// Updates then publish in the order they wrote, and a client's
+	// accept-if-newer gate can never be handed an older state last and keep it
+	// forever. Cheap to hold: the fan-out reads the connection table and starts
+	// one goroutine per connection, and every send happens on those goroutines.
+	// Nothing it touches reads app state, so it cannot re-enter this lock.
+	a.G().NotifyRouter.HandleMobileAppState(context.Background(), state)
 	return true
 }
 
 // Update sets the current app state and returns whether the value changed;
 // only a change wakes NextUpdate callers and has side effects.
 //
-// Connected clients are told from here, the one place the value changes, and
-// before lifecycle's Flush hook runs: on iOS the whole background transition
-// happens inside a UIBackgroundTask native holds open across the bind call, so
-// a client still has time to act on the notification. The announce is outside
-// the lock because it fans out to every connection.
+// Connected clients are told from here, the one place the value changes, which
+// is also before lifecycle's Flush hook runs. On iOS that is as early as a
+// client can be told, but it is not a guarantee of delivery before suspension:
+// native only keeps the app alive past this call when Go asked it to
+// (AppDelegate.swift ends the background task as soon as AppUIBackground
+// returns 0, which is the ordinary backgrounding). A client acting on the
+// notification is racing the OS, and what it can lose is bounded by whatever it
+// last wrote of its own accord.
 func (a *MobileAppState) Update(state keybase1.MobileAppState) (changed bool) {
 	defer a.G().Trace(fmt.Sprintf("MobileAppState.Update(%v)", state), nil)()
 	a.Lock()
-	changed = a.updateLocked(state)
-	a.Unlock()
-	if changed {
-		a.G().NotifyRouter.HandleMobileAppState(context.Background(), state)
-	}
-	return changed
+	defer a.Unlock()
+	return a.updateLocked(state)
 }
 
 // State returns the current app state

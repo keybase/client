@@ -58,7 +58,9 @@ const initDarkMode = () => {
 
 const useDarkHookup = () => {
   // The store starts at 'unknown' and only the service can move it off that, which is later than
-  // this mounts; assume active until told otherwise so an early theme change is not dropped.
+  // this mounts, so assume on screen until told otherwise rather than dropping an early theme
+  // change. Being wrong costs at most one system theme change applied off screen -- which is what
+  // the gate exists to avoid, and which the next 'active' re-reads anyway.
   const appStateRef = React.useRef('active')
   const setSystemDarkMode = DarkMode.useDarkModeState(s => s.dispatch.setSystemDarkMode)
 

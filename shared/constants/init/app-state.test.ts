@@ -64,6 +64,12 @@ describe('the app state the service derives', () => {
     expect(useShellState.getState().mobileAppState).toBe('background')
   })
 
+  test('a state we do not map leaves the app state alone rather than guessing', () => {
+    applyMobileAppState(T.RPCGen.MobileAppState.background, version(1))
+    applyMobileAppState(99 as T.RPCGen.MobileAppState, version(2))
+    expect(useShellState.getState().mobileAppState).toBe('background')
+  })
+
   test('a service too old to send one leaves the state unknown and burns no version', () => {
     applyMobileAppState(undefined, version(1))
     expect(useShellState.getState().mobileAppState).toBe('unknown')

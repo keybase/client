@@ -281,6 +281,9 @@ export const applyMobileAppState = (state?: T.RPCGen.MobileAppState, version?: T
       useShellState.getState().dispatch.setMobileAppState('background')
       break
     default:
+      // a fifth state the service grew and we have not mapped: it has already taken the version,
+      // so say so rather than leaving the store silently stuck on the one before it
+      logger.warn(`[AppState] unmapped state ${String(state)}, leaving the app state as it was`)
   }
 }
 
@@ -313,6 +316,8 @@ export const applyClientState = (clientState?: T.RPCGen.ClientState, generation?
   const {appState, httpSrvInfo, version} = clientState
   // On iOS JS never starts on a background launch, so it can have missed every change since the
   // process started: this is what catches it up, and there is no earlier reading to order against.
+  // appState is generated as required, but a service older than it omits the field, so it really
+  // can be undefined here -- applyMobileAppState is what treats that as "nothing was said".
   applyMobileAppState(appState, version)
   const configDispatch = useConfigState.getState().dispatch
   if (httpSrvInfo) {
