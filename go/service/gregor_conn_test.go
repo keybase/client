@@ -416,6 +416,38 @@ func TestGregorConnDesktopSuspend(t *testing.T) {
 	require.Equal(t, fakeGregorCounts{up: true, connects: 2, shutdowns: 1}, c.conn.counts())
 }
 
+// A ping timeout that reconnects while the machine is suspended must not
+// dial, and neither must a connect; resuming connects.
+func TestGregorReconnectWhileSuspendedDoesNotConnect(t *testing.T) {
+	c := setupGregorConn(t, keybase1.MobileAppState_FOREGROUND)
+	c.waitMonitor(t)
+	uri := testGregorURI(t, "gregord.test")
+	require.NoError(t, c.gate.connect(context.Background(), uri, false))
+
+	// A connection left up while the suspend lands, as when a ping times out
+	// before the monitor has acted.
+	mctx := libkb.NewMetaContextForTest(c.tc)
+	c.gate.mu.Lock()
+	c.tc.G.DesktopAppState.Update(mctx, "suspend", nil)
+	c.gate.mu.Unlock()
+	c.waitMonitor(t)
+	require.NoError(t, c.conn.connectNow(uri))
+	didShutdown, err := c.gate.reconnect(context.Background())
+	require.NoError(t, err)
+	require.True(t, didShutdown)
+	c.requireUp(t, false, "reconnect connected while suspended")
+	require.Equal(t, fakeGregorCounts{connects: 2, shutdowns: 2}, c.conn.counts())
+
+	require.NoError(t, c.gate.connect(context.Background(), uri, false))
+	c.requireUp(t, false, "connect connected while suspended")
+	require.Equal(t, 2, c.conn.counts().connects)
+
+	c.tc.G.DesktopAppState.Update(mctx, "resume", nil)
+	c.waitMonitor(t)
+	c.requireUp(t, true, "did not connect on resume")
+	require.Equal(t, 3, c.conn.counts().connects)
+}
+
 // TestGregorConnScenarioReplay replays every lifecycle scenario from the
 // service's startup connect: gregor is connected after each step exactly
 // when the app is not in BACKGROUND, and a login at that point doesn't
@@ -587,7 +619,7 @@ func TestGregorHandlerConnectRaces(t *testing.T) {
 				return
 			default:
 			}
-			_ = h.GetURI()
+			_ = gateURI(h)
 			runtime.Gosched()
 		}
 	}()
@@ -599,7 +631,13 @@ func TestGregorHandlerConnectRaces(t *testing.T) {
 	}
 	close(stop)
 	<-readerDone
-	require.Equal(t, uri, h.GetURI())
+	require.Equal(t, uri, gateURI(h))
+}
+
+func gateURI(h *gregorHandler) *rpc.FMPURI {
+	h.connGate.mu.Lock()
+	defer h.connGate.mu.Unlock()
+	return h.connGate.uri
 }
 
 // closedPortURI points at a closed port, so a connection only retries until
@@ -1163,4 +1201,50 @@ func TestGregorOnConnectAfterShutdownInstallsNothing(t *testing.T) {
 			require.Zero(t, syncer.connectCalls(), "chat sync ran for a connection that is not current")
 		})
 	}
+}
+
+// syncAllRecorder fails every call, recording the host of each SyncAll.
+type syncAllRecorder struct {
+	failingRPCClient
+	mu    sync.Mutex
+	hosts []string
+}
+
+func (r *syncAllRecorder) CallCompressed(_ context.Context, _ string, arg any, _ any, _ rpc.CompressionType, _ time.Duration) error {
+	if args, ok := arg.([]any); ok && len(args) == 1 {
+		if sa, ok := args[0].(chat1.SyncAllArg); ok {
+			r.mu.Lock()
+			r.hosts = append(r.hosts, sa.HostName)
+			r.mu.Unlock()
+		}
+	}
+	return errors.New("no server")
+}
+
+// OnConnect sends the host of the uri the gate connected to.
+func TestGregorOnConnectSyncAllHost(t *testing.T) {
+	tc, g := setupGregorTest(t)
+	defer tc.Cleanup()
+	g.Syncer = &fakeSyncer{}
+	h := newGregorHandler(g)
+	uri := closedPortURI(t)
+	require.NoError(t, h.Connect(uri))
+	defer h.Shutdown(context.Background())
+	h.authParamsForTest = func(context.Context) (gregor1.UID, gregor1.DeviceID, gregor1.SessionToken, *libkb.NIST, error) {
+		return gregor1.UID(make([]byte, 16)), gregor1.DeviceID(make([]byte, 16)), "", nil, nil
+	}
+
+	local, remote := net.Pipe()
+	defer remote.Close()
+	xp := rpc.NewTransport(local, libkb.NewRPCLogFactory(tc.G), tc.G.RemoteNetworkInstrumenterStorage,
+		libkb.MakeWrapError(tc.G), rpc.DefaultMaxFrameLength)
+	defer xp.Close()
+	srv := rpc.NewServer(xp, libkb.MakeWrapError(tc.G))
+
+	rec := &syncAllRecorder{}
+	err := h.OnConnect(context.Background(), currentConn(h), rec, srv)
+	require.ErrorContains(t, err, "error running SyncAll")
+	rec.mu.Lock()
+	defer rec.mu.Unlock()
+	require.Equal(t, []string{uri.Host}, rec.hosts)
 }

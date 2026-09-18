@@ -35,7 +35,8 @@ type gregorAppState interface {
 // A BACKGROUND that lands after a connect read the state wakes the monitor,
 // which then waits for that connect before taking the connection down. mu
 // also runs the steps OnConnect applies after syncing (the handler takes it in
-// onGateIfCurrent), so none of them interleaves with a disconnect.
+// onGateIfCurrent), so none of them interleaves with a disconnect, and guards
+// the uri OnConnect reads.
 //
 // This is a mutex gate rather than a single owning goroutine like
 // kbhttp/manager's Srv: every operation here is synchronous with a result its
@@ -53,8 +54,8 @@ type gregorConnGate struct {
 
 	mu sync.Mutex
 	// uri is the last URI a connect asked for. It is kept when the connect is
-	// held back in BACKGROUND, so the monitor connects once the app leaves
-	// BACKGROUND.
+	// held back by BACKGROUND or a desktop suspend, so the monitor connects
+	// once that ends.
 	uri *rpc.FMPURI
 	// The monitor's last seen states and the change channels it waits on for
 	// them; tests use them to wait until the monitor has caught up.
@@ -83,10 +84,6 @@ func newGregorConnGate(mobile gregorAppState, desktop *libkb.DesktopAppState, co
 	}
 }
 
-func (c *gregorConnGate) canConnect(state keybase1.MobileAppState) bool {
-	return state != keybase1.MobileAppState_BACKGROUND
-}
-
 // start reconciles against the current state and starts the monitor.
 func (c *gregorConnGate) start() {
 	c.startOnce.Do(func() {
@@ -104,10 +101,10 @@ func (c *gregorConnGate) stop() {
 	c.stopOnce.Do(func() { close(c.stopCh) })
 }
 
-// connect connects to uri unless the app is in BACKGROUND. With reset, any
-// existing connection is reset first so it authenticates again; that
-// includes one that is not connected, such as one whose auth failed while
-// logged out, which would otherwise keep connectNow from dialing.
+// connect connects to uri when reconcile allows it. With reset, any existing
+// connection is reset first so it authenticates again; that includes one that
+// is not connected, such as one whose auth failed while logged out, which
+// would otherwise keep connectNow from dialing.
 func (c *gregorConnGate) connect(ctx context.Context, uri *rpc.FMPURI, reset bool) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -117,12 +114,7 @@ func (c *gregorConnGate) connect(ctx context.Context, uri *rpc.FMPURI, reset boo
 			return err
 		}
 	}
-	state := c.mobile.State()
-	if !c.canConnect(state) {
-		c.debug(ctx, "connect: not connecting in %v", state)
-		return nil
-	}
-	return c.conn.connectNow(uri)
+	return c.reconcileLocked(ctx)
 }
 
 // forget resets the connection and drops the uri, so nothing reconnects until
@@ -135,8 +127,8 @@ func (c *gregorConnGate) forget(ctx context.Context) error {
 	return c.conn.Reset()
 }
 
-// reconnect drops a live connection and connects again, unless the app is
-// now in BACKGROUND. didShutdown reports whether a connection was dropped.
+// reconnect drops a live connection and connects again when reconcile allows
+// it. didShutdown reports whether a connection was dropped.
 func (c *gregorConnGate) reconnect(ctx context.Context) (didShutdown bool, err error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -146,30 +138,33 @@ func (c *gregorConnGate) reconnect(ctx context.Context) (didShutdown bool, err e
 	}
 	c.debug(ctx, "Reconnect: reconnecting to server")
 	c.conn.Shutdown(ctx)
-	if state := c.mobile.State(); !c.canConnect(state) {
-		c.debug(ctx, "Reconnect: not connecting in %v", state)
-		return true, nil
-	}
-	return true, c.conn.connectNow(c.uri)
+	return true, c.reconcileLocked(ctx)
 }
 
 func (c *gregorConnGate) reconcile(ctx context.Context) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	if err := c.reconcileLocked(ctx); err != nil {
+		c.debug(ctx, "reconcile: error connecting: %s", err)
+	}
+}
+
+// reconcileLocked is the only place that decides whether a connection may
+// exist: none in BACKGROUND or while the desktop is suspended, otherwise one
+// to the uri, if any. c.mu must be held.
+func (c *gregorConnGate) reconcileLocked(ctx context.Context) error {
 	state, suspended := c.mobile.State(), c.desktop.Suspended()
-	if !c.canConnect(state) || suspended {
+	if state == keybase1.MobileAppState_BACKGROUND || suspended {
 		c.debug(ctx, "reconcile: disconnecting in %v (suspended: %v)", state, suspended)
 		c.conn.Shutdown(ctx)
-		return
+		return nil
 	}
 	// Nothing asked to connect yet, for example before login.
 	if c.uri == nil {
-		return
+		return nil
 	}
 	c.debug(ctx, "reconcile: connecting in %v", state)
-	if err := c.conn.connectNow(c.uri); err != nil {
-		c.debug(ctx, "reconcile: error connecting: %s", err)
-	}
+	return c.conn.connectNow(c.uri)
 }
 
 func (c *gregorConnGate) monitor(ctx context.Context, state keybase1.MobileAppState, suspended bool) {

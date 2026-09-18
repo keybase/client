@@ -208,7 +208,6 @@ type gregorHandler struct {
 	// This mutex protects the con object
 	connMutex sync.Mutex
 	conn      *rpc.Connection
-	uri       *rpc.FMPURI
 	// connCtx lives as long as conn: Shutdown cancels it under connMutex.
 	// OnConnect runs under a ctx derived from it.
 	connCtx    context.Context
@@ -286,12 +285,6 @@ func (g *gregorHandler) Init() {
 	})
 	// Start replay thread
 	go g.syncReplayThread()
-}
-
-func (g *gregorHandler) GetURI() *rpc.FMPURI {
-	g.connMutex.Lock()
-	defer g.connMutex.Unlock()
-	return g.uri
 }
 
 func (g *gregorHandler) GetIncomingClient() gregor1.IncomingInterface {
@@ -426,8 +419,8 @@ func (g *gregorHandler) setReachability(r *reachability) {
 	g.reachability = r
 }
 
-// Connect connects to uri unless the app is in BACKGROUND, in which case it
-// connects once the app leaves BACKGROUND.
+// Connect connects to uri unless the app is in BACKGROUND or the desktop is
+// suspended, in which case it connects once that ends.
 func (g *gregorHandler) Connect(uri *rpc.FMPURI) error {
 	return g.connGate.connect(libkb.WithLogTag(context.Background(), "GRGRCONN"), uri, false)
 }
@@ -457,12 +450,11 @@ func (g *gregorHandler) connectNow(uri *rpc.FMPURI) (err error) {
 	// set up this channel.
 	g.shutdownCh = make(chan struct{})
 	g.connCtx, g.connCancel = context.WithCancel(context.Background())
-	g.uri = uri
 	go g.pushStateNewDataDebouncer(g.shutdownCh)
 	if uri.UseTLS() {
-		err = g.connectTLS(ctx)
+		err = g.connectTLS(ctx, uri)
 	} else {
-		err = g.connectNoTLS(ctx)
+		err = g.connectNoTLS(ctx, uri)
 	}
 
 	return err
@@ -834,6 +826,12 @@ func (g *gregorHandler) OnConnect(rpcCtx context.Context, conn *rpc.Connection,
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		chat.NewCachingIdentifyNotifier(g.G()))
+	// Every connect sets the gate's uri before connecting and a logout cancels
+	// ctx as it clears it, so the uri is set while ctx is live.
+	var uri *rpc.FMPURI
+	if !g.onGateIfCurrent(ctx, func() { uri = g.connGate.uri }) {
+		return chat.ErrDuplicateConnection
+	}
 	g.chatLog.Debug(ctx, "OnConnect begin")
 	syncAllRes, err := chatCli.SyncAll(ctx, chat1.SyncAllArg{
 		Uid:              uid,
@@ -843,7 +841,7 @@ func (g *gregorHandler) OnConnect(rpcCtx context.Context, conn *rpc.Connection,
 		Ctime:            latestCtime,
 		Fresh:            g.isFirstConnect(),
 		ProtVers:         chat1.SyncAllProtVers_V1,
-		HostName:         g.GetURI().Host,
+		HostName:         uri.Host,
 		SummarizeMaxMsgs: true,
 		ParticipantsMode: chat1.InboxParticipantsMode_SKIP_TEAMS,
 	})
@@ -1664,13 +1662,12 @@ func (g *gregorHandler) pingLoop(ctx context.Context, shutdownCh chan struct{}) 
 }
 
 // connMutex must be locked before calling this
-func (g *gregorHandler) connectTLS(ctx context.Context) error {
+func (g *gregorHandler) connectTLS(ctx context.Context, uri *rpc.FMPURI) error {
 	if g.conn != nil {
 		g.chatLog.Debug(ctx, "skipping connect, conn is not nil")
 		return nil
 	}
 
-	uri := g.uri
 	g.chatLog.Debug(ctx, "connecting to gregord via TLS at %s", uri)
 	rawCA := g.G().Env.GetBundledCA(uri.Host)
 	if len(rawCA) == 0 {
@@ -1716,12 +1713,11 @@ func (g *gregorHandler) connectTLS(ctx context.Context) error {
 }
 
 // connMutex must be locked before calling this
-func (g *gregorHandler) connectNoTLS(ctx context.Context) error {
+func (g *gregorHandler) connectNoTLS(ctx context.Context, uri *rpc.FMPURI) error {
 	if g.conn != nil {
 		g.chatLog.Debug(ctx, "skipping connect, conn is not nil")
 		return nil
 	}
-	uri := g.uri
 	g.chatLog.Debug(ctx, "connecting to gregord without TLS at %s", uri)
 	t := newConnTransport(g.G().ExternalG(), uri.HostPort)
 	g.transportForTesting = t
