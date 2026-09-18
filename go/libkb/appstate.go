@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"context"
 	"fmt"
 	"runtime"
 	"sync"
@@ -105,11 +106,21 @@ func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) (changed bo
 
 // Update sets the current app state and returns whether the value changed;
 // only a change wakes NextUpdate callers and has side effects.
+//
+// Connected clients are told from here, the one place the value changes, and
+// before lifecycle's Flush hook runs: on iOS the whole background transition
+// happens inside a UIBackgroundTask native holds open across the bind call, so
+// a client still has time to act on the notification. The announce is outside
+// the lock because it fans out to every connection.
 func (a *MobileAppState) Update(state keybase1.MobileAppState) (changed bool) {
 	defer a.G().Trace(fmt.Sprintf("MobileAppState.Update(%v)", state), nil)()
 	a.Lock()
-	defer a.Unlock()
-	return a.updateLocked(state)
+	changed = a.updateLocked(state)
+	a.Unlock()
+	if changed {
+		a.G().NotifyRouter.HandleMobileAppState(context.Background(), state)
+	}
+	return changed
 }
 
 // State returns the current app state

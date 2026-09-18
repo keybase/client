@@ -1,5 +1,5 @@
 /// <reference types="jest" />
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '../config'
 import {useCurrentUserState} from '../current-user'
@@ -33,6 +33,7 @@ const status = (over: Partial<T.RPCGen.BootstrapStatus> = {}) =>
 let testEpoch = 1000
 
 const snapshot = (over: Partial<T.RPCGen.ClientState> = {}): T.RPCGen.ClientState => ({
+  appState: T.RPCGen.MobileAppState.foreground,
   session: {deviceID: 'd2', deviceName: 'testuser-other', loggedIn: true, uid: 'u2', username: 'testuser-mac'},
   version: {counter: 1, epoch: testEpoch},
   ...over,
@@ -109,7 +110,7 @@ describe('a service that cannot settle the session', () => {
     // can subscribe before there is any session to report. A reply that said "logged out" there
     // would bar the settled status for the life of the process, repairable only by a notification
     // whose send is fire-and-forget.
-    applyClientState({version: {counter: 4, epoch: 1000}})
+    applyClientState({appState: T.RPCGen.MobileAppState.foreground, version: {counter: 4, epoch: 1000}})
 
     onBootstrapStatusChanged(status())
 
@@ -119,6 +120,7 @@ describe('a service that cannot settle the session', () => {
 
   test('still takes the http address from an unsettled reply', () => {
     applyClientState({
+      appState: T.RPCGen.MobileAppState.foreground,
       httpSrvInfo: {address: '127.0.0.1:3', token: 'token'},
       version: {counter: 4, epoch: 1000},
     })
@@ -130,7 +132,7 @@ describe('a service that cannot settle the session', () => {
     // login notification arrives the service has settled it, and the versioned stream owns the
     // session from there -- otherwise an unversioned write outranks every notification for the
     // life of the connection.
-    applyClientState({version: {counter: 4, epoch: testEpoch}})
+    applyClientState({appState: T.RPCGen.MobileAppState.foreground, version: {counter: 4, epoch: testEpoch}})
     expect(useConfigState.getState().dispatch.sessionIsUnversioned()).toBe(true)
 
     notifySession('loggedIn', {counter: 5, epoch: testEpoch})
@@ -142,7 +144,7 @@ describe('a service that cannot settle the session', () => {
   test('a status spanning a logout cannot resurrect the session it retired', () => {
     // GetBootstrapStatus does network work after a wait of up to 30s, and no generation is
     // bumped by a logout, so a read started before it resolves afterwards saying loggedIn:true
-    applyClientState({version: {counter: 4, epoch: testEpoch}})
+    applyClientState({appState: T.RPCGen.MobileAppState.foreground, version: {counter: 4, epoch: testEpoch}})
     notifySession('loggedIn', {counter: 5, epoch: testEpoch})
     notifySession('loggedOut', {counter: 6, epoch: testEpoch})
     expect(useConfigState.getState().loggedIn).toBe(false)

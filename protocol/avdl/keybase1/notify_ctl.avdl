@@ -4,6 +4,7 @@
 protocol notifyCtl {
   import idl "common.avdl";
   import idl "notify_service.avdl";
+  import idl "appstate.avdl";
 
   record NotificationChannels {
     boolean session;
@@ -66,6 +67,12 @@ protocol notifyCtl {
     // rather than read a null as logged out.
     union { null, ClientSession } session;
     union { null, HttpSrvInfo } httpSrvInfo;
+    // The app's lifecycle state, derived here from the UI reports native makes.
+    // A client never derives it for itself: on iOS it would have to read a
+    // different OS notification stream than the one this is derived from, with
+    // no ordering between the two. On a platform with no lifecycle to report
+    // this is a constant FOREGROUND and means nothing.
+    MobileAppState appState;
   }
 
   // Registers the channels, then returns the state, so anything that changes

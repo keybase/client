@@ -79,3 +79,26 @@ func TestSetNotificationsRegistersChannelsAndLabelsTheRead(t *testing.T) {
 	g.NotifyRouter.HandleHTTPSrvInfoUpdate(context.Background(), keybase1.HttpSrvInfo{Address: "127.0.0.1:1", Token: "t"})
 	require.Greater(t, g.StateVersion().Counter, res.Version.Counter)
 }
+
+// The app state is derived here and nowhere else, so a client that started late
+// -- on iOS JS never starts on a background launch -- has no earlier reading to
+// order against: the reply is its first and only catch-up.
+func TestSetNotificationsCarriesTheAppState(t *testing.T) {
+	tc := libkb.SetupTest(t, "notify", 0)
+	defer tc.Cleanup()
+	g := tc.G
+	g.SetService()
+
+	h, _, _ := newTestNotifyCtlHandler(t, g)
+
+	res, err := h.SetNotifications(context.Background(), keybase1.NotificationChannels{Session: true})
+	require.NoError(t, err)
+	require.Equal(t, g.MobileAppState.State(), res.AppState)
+
+	g.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
+	res, err = h.SetNotifications(context.Background(), keybase1.NotificationChannels{Session: true})
+	require.NoError(t, err)
+	require.Equal(t, keybase1.MobileAppState_BACKGROUND, res.AppState)
+	require.GreaterOrEqual(t, res.Version.Counter, g.StateVersion().Counter-1,
+		"labelled no earlier than the change it reports")
+}

@@ -76,3 +76,24 @@ func TestMobileAppStateBackgroundCancelsRPCsOnlyOnChange(t *testing.T) {
 	require.False(t, a.Update(keybase1.MobileAppState_BACKGROUND))
 	requireOpen(t, second.Done())
 }
+
+// Clients are told from the one place the value changes, so no writer can add a
+// path that moves the state without announcing it. The announce is observable
+// from here as the state version it stamps.
+func TestMobileAppStateAnnouncesOnlyOnChange(t *testing.T) {
+	tc := SetupTest(t, "MobileAppStateAnnounce", 0)
+	defer tc.Cleanup()
+	tc.G.SetService()
+	a := NewMobileAppState(tc.G)
+
+	before := tc.G.StateVersion()
+	require.True(t, a.Update(keybase1.MobileAppState_BACKGROUND))
+	announced := tc.G.StateVersion()
+	require.Equal(t, before.Counter+1, announced.Counter, "one stamp for the change")
+
+	require.False(t, a.Update(keybase1.MobileAppState_BACKGROUND))
+	require.Equal(t, announced.Counter, tc.G.StateVersion().Counter, "nothing announced for a same-value update")
+
+	require.True(t, a.Update(keybase1.MobileAppState_FOREGROUND))
+	require.Equal(t, announced.Counter+1, tc.G.StateVersion().Counter)
+}

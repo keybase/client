@@ -137,6 +137,7 @@ describe('onEngineConnected', () => {
     expect(bootstrap).toHaveBeenCalledTimes(1)
 
     subscribed({
+      appState: T.RPCGen.MobileAppState.foreground,
       httpSrvInfo: {address: '127.0.0.1:2000', token: 'token'},
       session: {deviceID: 'd1', deviceName: 'testuser-mac', loggedIn: true, uid: 'u1', username: 'testuser'},
       version: {counter: 1, epoch: 7},
@@ -237,6 +238,7 @@ describe('onEngineConnected', () => {
     useConfigState.setState({loggedIn: false})
 
     subscribed({
+      appState: T.RPCGen.MobileAppState.foreground,
       session: {deviceID: 'd1', deviceName: 'testuser-mac', loggedIn: true, uid: 'u1', username: 'testuser'},
       version: {counter: 1, epoch: 4243},
     })
@@ -258,6 +260,7 @@ describe('onEngineConnected', () => {
     useConfigState.getState().dispatch.setLoggedIn(false) // resetAllStores runs here
 
     subscribed({
+      appState: T.RPCGen.MobileAppState.foreground,
       session: {deviceID: 'd1', deviceName: 'testuser-mac', loggedIn: true, uid: 'u1', username: 'testuser'},
       version: {counter: 1, epoch: 4244},
     })

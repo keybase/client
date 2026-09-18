@@ -41,7 +41,7 @@ func (h *NotifyCtlHandler) SetNotifications(ctx context.Context, n keybase1.Noti
 	// Read the version before the state it describes. NextStateVersion is stamped
 	// after a change is readable, so this snapshot is never newer than its label
 	// and a client can drop it on a tie without losing anything.
-	res := keybase1.ClientState{Version: h.G().StateVersion()}
+	res := keybase1.ClientState{Version: h.G().StateVersion(), AppState: h.G().MobileAppState.State()}
 	// The session is left out until the startup login attempt has settled: before
 	// that there is no session to describe, and reporting a logged-out one would
 	// be a lie the client would have to be corrected out of by a notification it

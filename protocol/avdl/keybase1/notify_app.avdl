@@ -1,7 +1,17 @@
 
 @namespace("keybase.1")
 protocol NotifyApp {
+  import idl "common.avdl";
+  import idl "appstate.avdl";
 
   void exit() oneway;
+
+  // The app's lifecycle state changed. The service derives it from the UI
+  // reports native makes, so this and the appState in setNotifications' reply
+  // are the only places a client learns it -- deriving it a second time from
+  // the OS would mean two answers with no ordering between them. Versioned
+  // because the fan-out is one goroutine per connection, so two of these can
+  // arrive in either order.
+  void mobileAppStateChanged(MobileAppState state, StateVersion version) oneway;
 
 }

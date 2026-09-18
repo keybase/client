@@ -1,5 +1,5 @@
 /// <reference types="jest" />
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '../config'
 import {useCurrentUserState} from '../current-user'
@@ -12,6 +12,7 @@ const clientState = (
   session: Partial<T.RPCGen.ClientSession> = {},
   over: Partial<T.RPCGen.ClientState> = {}
 ): T.RPCGen.ClientState => ({
+  appState: T.RPCGen.MobileAppState.foreground,
   session: {deviceID: 'd1', deviceName: 'testuser-mac', loggedIn: true, uid: 'u1', username: 'testuser', ...session},
   version: version(1),
   ...over,

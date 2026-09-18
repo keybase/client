@@ -8,6 +8,10 @@
     {
       "path": "notify_service.avdl",
       "type": "idl"
+    },
+    {
+      "path": "appstate.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -204,6 +208,10 @@
             "HttpSrvInfo"
           ],
           "name": "httpSrvInfo"
+        },
+        {
+          "type": "MobileAppState",
+          "name": "appState"
         }
       ]
     }

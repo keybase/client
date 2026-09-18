@@ -71,6 +71,7 @@ type Chat1ResponseActionMap<K extends chat1Types.MessageKey> = {
 }
 
 type Keybase1IncomingAction =
+  'keybase.1.NotifyApp.mobileAppStateChanged' |
   'keybase.1.NotifyAudit.boxAuditError' |
   'keybase.1.NotifyAudit.rootAuditError' |
   'keybase.1.NotifyBadges.badgeState' |

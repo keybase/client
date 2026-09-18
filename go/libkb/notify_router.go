@@ -2838,6 +2838,23 @@ func (n *NotifyRouter) HandleHTTPSrvInfoUpdate(ctx context.Context, info keybase
 	})
 }
 
+// HandleMobileAppState announces the app lifecycle state the service derived
+// from native's UI reports. It is the client's only source for it: deriving it
+// a second time from the OS would mean two answers -- on iOS from two different
+// notification streams -- with nothing ordering them against each other.
+func (n *NotifyRouter) HandleMobileAppState(ctx context.Context, state keybase1.MobileAppState) {
+	if n == nil {
+		return
+	}
+	n.announce(ctx, "HandleMobileAppState",
+		func(ch keybase1.NotificationChannels) bool { return ch.App },
+		func(xp rpc.Transporter, version keybase1.StateVersion) {
+			_ = (keybase1.NotifyAppClient{
+				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+			}).MobileAppStateChanged(ctx, keybase1.MobileAppStateChangedArg{State: state, Version: version})
+		})
+}
+
 func (n *NotifyRouter) HandleHandleKeybaseLink(ctx context.Context, link string, deferred bool) {
 	if n == nil {
 		return

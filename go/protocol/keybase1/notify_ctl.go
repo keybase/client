@@ -110,6 +110,7 @@ type ClientState struct {
 	Version     StateVersion   `codec:"version" json:"version"`
 	Session     *ClientSession `codec:"session,omitempty" json:"session,omitempty"`
 	HttpSrvInfo *HttpSrvInfo   `codec:"httpSrvInfo,omitempty" json:"httpSrvInfo,omitempty"`
+	AppState    MobileAppState `codec:"appState" json:"appState"`
 }
 
 func (o ClientState) DeepCopy() ClientState {
@@ -129,6 +130,7 @@ func (o ClientState) DeepCopy() ClientState {
 			tmp := x.DeepCopy()
 			return &tmp
 		})(o.HttpSrvInfo),
+		AppState: o.AppState.DeepCopy(),
 	}
 }
 
