@@ -1,0 +1,70 @@
+go/chat/storage/basebox.go
+  s_853e2d28c2e344::t_923256bfd55352 51-54
+go/chat/storage/inbox.go
+  s_853e2d28c2e344::t_2f143de1da0b29 182,185-188,218,291,343,738
+  s_853e2d28c2e344::t_d628a2707ffa95 205-207,278-280
+go/chat/storage/inbox_memcache.go
+  s_853e2d28c2e344::t_d5e72682956646 4,85-90
+go/chat/storage/inbox_test.go
+  s_853e2d28c2e344::t_a413a577730640 927,929-938,945-947,948,950-952,954-984
+go/chat/localizer.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 289-290,347-350,354-355,357-358,365-368,373-382,384,519,522,527
+  s_853e2d28c2e344::t_d628a2707ffa95 329-332,555-557
+go/chat/ephemeral_purger.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 176
+go/chat/convloader.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 238
+go/chat/retry.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 394
+  s_853e2d28c2e344::t_d628a2707ffa95 302
+go/chat/inboxsource.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 668-671,687-690,695
+go/chat/uiinboxloader.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 79-82,89-95,102-105,110-111,122,714
+  s_853e2d28c2e344::t_d628a2707ffa95 16,126-135,151,160,186,193-195,201-205,208-211,216,236-239,243-245,249,279-282,288,295-298,336-340,352-357,723-726,732,741-744,859-862,896-898
+go/chat/bots/commands.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 125
+go/chat/archive.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 286
+go/chat/maps/livelocation.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 72
+go/chat/search/indexer.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 238,259,263,267,270,272-274,307,309,311
+go/service/main.go
+  s_853e2d28c2e344::t_d628a2707ffa95 178-179,487,1026-1027
+  s_853e2d28c2e344::t_258ad0d2916d3c 1028
+go/chat/session_rpc_test.go
+  s_853e2d28c2e344::t_d628a2707ffa95 1-35
+go/service/chat_session_protocol_test.go
+  s_853e2d28c2e344::t_d628a2707ffa95 1-41
+go/service/canceling.go
+  s_853e2d28c2e344::t_d628a2707ffa95 6,11-29
+  s_853e2d28c2e344::t_e082e6224c9fba 30
+go/chat/globals/session.go
+  s_853e2d28c2e344::t_d628a2707ffa95 1-77
+go/chat/globals/session_test.go
+  s_853e2d28c2e344::t_d628a2707ffa95 1-32
+go/chat/globals/context.go
+  s_853e2d28c2e344::t_d628a2707ffa95 255-257,287-289
+go/chat/globals/globals.go
+  s_853e2d28c2e344::t_d628a2707ffa95 7,56-59
+go/chat/uiinboxloader_test.go
+  s_853e2d28c2e344::t_d628a2707ffa95 10,535-555
+  s_853e2d28c2e344::t_4d62e60a844bf3 556
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "fa700c7efff7d0395464bc00927d013dd934e81c",
+  "prompts": {},
+  "sessions": {
+    "s_853e2d28c2e344": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d5a3add1-5cdb-47ca-a334-54991bf7ad5e",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
