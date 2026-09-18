@@ -34,14 +34,14 @@ type gregorAppState interface {
 // Every connect and the monitor read the app state and act on it under mu.
 // A BACKGROUND that lands after a connect read the state wakes the monitor,
 // which then waits for that connect before taking the connection down. mu
-// also runs the steps OnConnect applies after syncing (see do), so none of
-// them interleaves with a disconnect.
+// also runs the steps OnConnect applies after syncing (the handler takes it in
+// onGateIfCurrent), so none of them interleaves with a disconnect.
 //
 // This is a mutex gate rather than a single owning goroutine like
 // kbhttp/manager's Srv: every operation here is synchronous with a result its
 // caller needs (connect/reconnect return errors, reconnect also didShutdown),
-// and do's OnConnect steps must report "no longer current" back on the
-// caller's goroutine so onConnectSynced can return ErrDuplicateConnection. A
+// and the OnConnect steps must report "no longer current" back on the caller's
+// goroutine so onConnectSynced can return ErrDuplicateConnection. A
 // request-channel loop would need a reply channel per request -- more code and
 // more states -- so do not harmonise the two shapes.
 type gregorConnGate struct {
