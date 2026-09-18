@@ -1,0 +1,64 @@
+go/chat/globals/session_test.go
+  s_600526a2407b46::t_93f4b842c38e3c 31-32
+  s_600526a2407b46::t_ae5d50b8691c46 23-24
+  s_853e2d28c2e344::t_d628a2707ffa95 1-22,25-30,33-35
+go/chat/globals/context.go
+  s_600526a2407b46::t_d51dcb20b8f3e4 263-265
+  s_853e2d28c2e344::t_d628a2707ffa95 255-257
+go/service/main.go
+  s_853e2d28c2e344::t_258ad0d2916d3c 1028
+  s_853e2d28c2e344::t_d628a2707ffa95 178-179,487,1026-1027
+go/chat/localizer.go
+  s_853e2d28c2e344::t_d628a2707ffa95 551-553
+go/chat/session_rpc_test.go
+  s_853e2d28c2e344::t_d628a2707ffa95 1-35
+go/chat/storage/inbox.go
+  s_853e2d28c2e344::t_d628a2707ffa95 205-207,278-280
+go/chat/uiinboxloader.go
+  s_600526a2407b46::t_a3eaf89d182e56 198-200,205
+  s_600526a2407b46::t_97031d2e752e52 293-294
+  s_600526a2407b46::t_f87db00bf7ef1c 241-242
+  s_600526a2407b46::t_fc560664e7b84a 736-739,743,745
+  s_853e2d28c2e344::t_d628a2707ffa95 16,126-135,151,160,186,193-195,209,214,234-237,243,247,277-280,286,295-296,334-338,350-355,721-724,730,744,746,861-864,898-900
+go/chat/globals/session.go
+  s_600526a2407b46::t_108678ac04ad66 15-18,20-22,26,30,34,40,44-45,52,58-65
+  s_853e2d28c2e344::t_d628a2707ffa95 1-14,19,23-25,27-29,31-33,35-39,41-43,46-51,53-57,66-80
+go/service/chat_session_protocol_test.go
+  s_853e2d28c2e344::t_d628a2707ffa95 1-41
+go/service/canceling.go
+  s_853e2d28c2e344::t_e082e6224c9fba 30
+  s_853e2d28c2e344::t_d628a2707ffa95 6,11-19,22-29
+  s_600526a2407b46::t_d12c3b05cfa2f3 20-21
+go/chat/retry.go
+  s_853e2d28c2e344::t_d628a2707ffa95 302
+go/chat/globals/globals.go
+  s_600526a2407b46::t_1acfe7d0687170 57-59
+  s_853e2d28c2e344::t_d628a2707ffa95 7,56
+go/chat/uiinboxloader_test.go
+  s_853e2d28c2e344::t_d628a2707ffa95 10,535-555
+  s_853e2d28c2e344::t_4d62e60a844bf3 556
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "50baa89d0040b5448a49ad5732e8082763fab8dd",
+  "prompts": {},
+  "sessions": {
+    "s_600526a2407b46": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "12fe8bef-5cdd-4b68-a71f-0aee1554e601",
+        "model": "auto-smart"
+      },
+      "human_author": null
+    },
+    "s_853e2d28c2e344": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d5a3add1-5cdb-47ca-a334-54991bf7ad5e",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
