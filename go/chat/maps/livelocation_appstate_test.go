@@ -60,3 +60,32 @@ func TestLiveLocationTrackerBackgroundActive(t *testing.T) {
 	removeTracker(third)
 	require.Equal(t, keybase1.MobileAppState_BACKGROUND, appState.State())
 }
+
+// WillTerminate is the one controller event that ends a live location hold. A
+// fix after it opens a new one, rather than counting on the ended hold.
+func TestLiveLocationTrackerHoldSurvivesWillTerminate(t *testing.T) {
+	t.Setenv("KEYBASE_APP_TYPE", string(libkb.MobileAppType))
+	tc := libkb.SetupTest(t, "LiveLocationTrackerWillTerminate", 0)
+	defer tc.Cleanup()
+	appState := tc.G.MobileAppState
+	l := NewLiveLocationTracker(globals.NewContext(tc.G, &globals.ChatContext{}))
+	ctx := context.Background()
+	coord := func(lat float64) chat1.Coordinate { return chat1.Coordinate{Lat: lat, Lon: 1} }
+
+	track := newLocationTrack(chat1.ConversationID("conv"), 1, time.Now().Add(time.Hour), false, 10, false)
+	l.Lock()
+	l.trackers[track.Key()] = track
+	l.Unlock()
+
+	lc := tc.G.MobileLifecycle
+	require.Zero(t, lc.UIBackground(false, lifecycle.BackgroundTaskDeps{}))
+	l.LocationUpdate(ctx, coord(1))
+	require.Equal(t, keybase1.MobileAppState_BACKGROUNDACTIVE, appState.State())
+
+	lc.WillTerminate(func() {})
+	require.Equal(t, keybase1.MobileAppState_BACKGROUND, appState.State(), "WillTerminate left a hold open")
+
+	l.LocationUpdate(ctx, coord(2))
+	require.Equal(t, keybase1.MobileAppState_BACKGROUNDACTIVE, appState.State(),
+		"a fix after WillTerminate did not open a new hold")
+}

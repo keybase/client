@@ -117,9 +117,14 @@ func (l *LiveLocationTracker) releaseHoldIfIdleLocked() {
 
 // ensureHoldOnFixLocked opens a hold for a location fix, since the fix can
 // wake a backgrounded app and the hold keeps it up until the update gets out.
+// A hold the controller ended -- WillTerminate does, and nothing else -- is
+// replaced, so a fix after one still gets the app held up.
 func (l *LiveLocationTracker) ensureHoldOnFixLocked() {
 	l.releaseHoldIfIdleLocked()
-	if len(l.trackers) > 0 && l.G().IsMobileAppType() && l.bgHold == nil {
+	if len(l.trackers) == 0 || !l.G().IsMobileAppType() {
+		return
+	}
+	if l.bgHold == nil || l.bgHold.Released() {
 		l.bgHold = l.G().MobileLifecycle.AcquireBackgroundWork()
 	}
 }

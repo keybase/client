@@ -86,6 +86,18 @@ type Hold struct {
 	done chan struct{}
 }
 
+// Released reports whether the hold has ended, by Release or by the
+// controller. Release cannot stand in for it: on a hold that is still open,
+// asking that way would end it.
+func (h *Hold) Released() bool {
+	select {
+	case <-h.done:
+		return true
+	default:
+		return false
+	}
+}
+
 // Release ends the hold. It reports whether this call ended it; ending a hold
 // again, or one the controller already ended, does nothing.
 func (h *Hold) Release() bool { return h.c.release(h) }
@@ -232,8 +244,10 @@ func (c *Controller) startTaskLocked(deps BackgroundTaskDeps) int64 {
 }
 
 // AcquireBackgroundWork opens a live location hold, which keeps a backgrounded
-// app BACKGROUNDACTIVE until it is released. It is the only hold no controller
-// event ends, so it is the only one callers may open for themselves.
+// app BACKGROUNDACTIVE until it is released. Of the controller's events only
+// WillTerminate ends it, which is why it is the one hold callers may open for
+// themselves -- and why a caller holding one past a WillTerminate must check
+// Released before it counts on it.
 func (c *Controller) AcquireBackgroundWork() *Hold {
 	c.mu.Lock()
 	defer c.mu.Unlock()
