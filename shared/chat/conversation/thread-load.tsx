@@ -448,7 +448,7 @@ export const loadConversationThreadMessages = (
         reason: threadLoadReasonToRPCReason(reason),
         waitingKey: loadingKey,
       })
-      if (!isCurrentThreadLoad()) {
+      if (!isCurrentThreadLoad() || !results) {
         return
       }
       updateInboxConversationMeta(conversationIDKey, {offline: results.offline})

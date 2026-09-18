@@ -3,6 +3,7 @@ import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
 import {
   ensureConversationMetaLoaded,
   forceUnboxRowsForService,
@@ -23,7 +24,8 @@ const flushPromises = async () => {
 }
 
 beforeEach(() => {
-  useConfigState.setState({loggedIn: true})
+  useConfigState.setState({loggedIn: true, userSwitching: false})
+  useCurrentUserState.setState({username: 'testuser'})
 })
 
 afterEach(() => {
@@ -301,4 +303,38 @@ test('ensure does not run while logged out and can re-arm after login', async ()
   ensureConversationMetaLoaded(convID)
   await jest.advanceTimersByTimeAsync(0)
   expect(rpc).toHaveBeenCalledTimes(1)
+})
+
+test('userSwitching skips inbox unbox', async () => {
+  jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
+  useConfigState.setState({loggedIn: true, userSwitching: true})
+
+  unboxRows([convID])
+  await flushPromises()
+
+  expect(T.RPCChat.localRequestInboxUnboxRpcPromise).not.toHaveBeenCalled()
+})
+
+test('setUserSwitching abandons further unbox until switch completes', async () => {
+  const resolvers = new Array<() => void>()
+  jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockImplementation(
+    async () =>
+      new Promise(resolve => {
+        resolvers.push(() => {
+          resolve(undefined)
+        })
+      })
+  )
+
+  unboxRows([convID])
+  await flushPromises()
+  expect(T.RPCChat.localRequestInboxUnboxRpcPromise).toHaveBeenCalledTimes(1)
+
+  useConfigState.getState().dispatch.setUserSwitching(true)
+  resolvers[0]?.()
+  await flushPromises()
+
+  unboxRows([convID])
+  await flushPromises()
+  expect(T.RPCChat.localRequestInboxUnboxRpcPromise).toHaveBeenCalledTimes(1)
 })

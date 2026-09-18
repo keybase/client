@@ -1,5 +1,6 @@
 import * as T from '@/constants/types'
 import {enumKeys} from '@/constants/utils'
+import {isChatSessionReady} from '@/stores/config'
 
 type WaitingKey = string | ReadonlyArray<string>
 
@@ -54,6 +55,9 @@ export const loadThreadNonblock = async (p: {
   reason?: T.RPCChat.GetThreadReason
   waitingKey?: WaitingKey
 }) => {
+  if (!isChatSessionReady()) {
+    return
+  }
   const incomingCallMap: T.RPCChat.IncomingCallMapType = {}
   if (p.onCachedThread) {
     incomingCallMap['chat.1.chatUi.chatThreadCached'] = params => p.onCachedThread?.(params.thread || '')
