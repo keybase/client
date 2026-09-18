@@ -1,0 +1,41 @@
+shared/chat/conversation/thread-load.tsx
+  s_600526a2407b46::t_b058db9e92850e 451
+shared/chat/conversation/thread-rpc.tsx
+  s_600526a2407b46::t_02a317814cdf0a 3,58-60
+shared/chat/inbox/layout-state.test.ts
+  s_600526a2407b46::t_630b2f027f2b0b 5-6,26,30,45,62-63,73,173-186
+shared/chat/inbox/layout-state.tsx
+  s_600526a2407b46::t_ca6d4b54340a24 6,10,69,77-79
+shared/chat/inbox/metadata.test.tsx
+  s_600526a2407b46::t_8ab46f654d5d78 6-7,28-29,308-355
+shared/chat/inbox/metadata.tsx
+  s_600526a2407b46::t_99d03d212eafe7 18-19,409,435-439
+shared/chat/inbox/session-rpc.test.tsx
+  s_600526a2407b46::t_417e5d86fa6713 1-70
+shared/chat/inbox/session-rpc.tsx
+  s_600526a2407b46::t_56e71994d9769e 1-33
+shared/constants/init/shared.tsx
+  s_600526a2407b46::t_eca1a1bd63bb54 211-212,221-224
+shared/engine/index.tsx
+  s_600526a2407b46::t_b2047df6ff7d70 304-307
+shared/router-v2/router.tsx
+  s_600526a2407b46::t_aa9e96ad979dd4 661
+shared/stores/config.tsx
+  s_600526a2407b46::t_8de582ef7742f8 15,299,585-592,621-625
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "c8940053fc30351ae5d549be95828a70cbb1a71f",
+  "prompts": {},
+  "sessions": {
+    "s_600526a2407b46": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "12fe8bef-5cdd-4b68-a71f-0aee1554e601",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
