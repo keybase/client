@@ -45,7 +45,7 @@ func (i *baseBox) writeDiskBox(ctx context.Context, key libkb.DbKey, data any) e
 }
 
 func (i *baseBox) missIfWrongSessionUID(uid gregor1.UID) Error {
-	me := i.G().ExternalG().GetMyUID()
+	me := i.G().ExternalG().ActiveDevice.UID()
 	if uid.IsNil() || !me.Exists() || !bytes.Equal(me.ToBytes(), uid) {
 		return MissError{Msg: "uid mismatch"}
 	}
