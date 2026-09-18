@@ -117,17 +117,20 @@ type BackgroundConvLoader struct {
 
 	uid     gregor1.UID
 	started bool
-	queue   *jobQueue
-	stopCh  chan struct{}
-	// suspendCh belongs to the current run, so a loop of a stopped run
-	// cannot take a suspension meant for its successor.
-	suspendCh     chan chan struct{}
+	// gen counts Start and Stop calls, so a Start that waited for the
+	// previous run can tell whether a later call overtook it.
+	gen    uint64
+	queue  *jobQueue
+	stopCh chan struct{}
+	// suspendCh wakes the loop when Suspend takes hold; the loop reads the
+	// suspension itself.
+	suspendCh     chan struct{}
 	resumeCh      chan struct{}
 	loadCh        chan *clTask
 	identNotifier types.IdentifyNotifier
-	// eg holds the current run's goroutines. Each run gets its own, since
-	// Stop waits on it from a goroutine and a Group cannot be added to
-	// while somebody waits on it.
+	// eg holds the last run's goroutines, which may still be exiting. Each
+	// run gets its own, since a Group cannot be added to while somebody
+	// waits on it.
 	eg *errgroup.Group
 
 	clock      clockwork.Clock
@@ -136,16 +139,10 @@ type BackgroundConvLoader struct {
 
 	activeLoads  map[string]activeLoad
 	suspendCount int
-	// appSuspended is the app-state monitor's own suspension, kept apart
-	// from suspendCount so an unbalanced Resume cannot release it.
-	appSuspended bool
-	// watcher is the current run's app-state watcher, nil between runs.
-	watcher *libkb.AppStateWatcher
 
 	// for testing, make this and can check conv load successes
 	loads                 chan chat1.ConversationID
 	testingNameInfoSource types.NameInfoSource
-	appStateCh            chan struct{}
 }
 
 var _ types.ConvLoader = (*BackgroundConvLoader)(nil)
@@ -155,6 +152,7 @@ func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
 		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g.ExternalG(), "BackgroundConvLoader", false),
 		stopCh:        make(chan struct{}),
+		suspendCh:     make(chan struct{}, 1),
 		eg:            new(errgroup.Group),
 		identNotifier: NewCachingIdentifyNotifier(g),
 		clock:         clockwork.NewRealClock(),
@@ -183,117 +181,62 @@ func suspendInAppState(state keybase1.MobileAppState) bool {
 	return state == keybase1.MobileAppState_BACKGROUND
 }
 
-func (b *BackgroundConvLoader) setAppStateLocked(ctx context.Context, state keybase1.MobileAppState) {
-	suspend := suspendInAppState(state)
-	if suspend == b.appSuspended {
-		return
-	}
-	wasSuspended := b.suspendedLocked()
-	b.appSuspended = suspend
-	if suspend {
-		b.Debug(ctx, "setAppState: suspending load thread in %v", state)
-		b.cancelActiveLoadsLocked()
-	} else {
-		b.Debug(ctx, "setAppState: resuming load thread in %v", state)
-	}
-	b.signalSuspendLocked(ctx, wasSuspended)
-}
-
-func (b *BackgroundConvLoader) monitorAppState(w *libkb.AppStateWatcher, stopCh chan struct{},
-	state keybase1.MobileAppState,
-) error {
-	ctx := context.Background()
-	b.Debug(ctx, "monitorAppState: starting up in %v", state)
-	w.Run(state, stopCh, func(keybase1.MobileAppState) bool {
-		b.Lock()
-		// Stop closes stopCh under this lock, so a closed channel here means
-		// this run is over.
-		select {
-		case <-stopCh:
-			b.Unlock()
-			return false
-		default:
-		}
-		// Read and apply under the lock, so Start and Stop never interleave
-		// with a decision made on a stale state.
-		b.setAppStateLocked(ctx, b.G().MobileAppState.State())
-		b.Unlock()
-		if b.appStateCh != nil {
-			select {
-			case b.appStateCh <- struct{}{}:
-			case <-stopCh:
-				return false
-			}
-		}
-		return true
-	})
-	b.Debug(ctx, "monitorAppState: shutting down")
-	return nil
-}
-
+// Start replaces any current run with one for uid, once the previous run's
+// goroutines have exited. The last Start or Stop wins: a Start that a later
+// Start or Stop overtook while it waited returns without starting a run.
 func (b *BackgroundConvLoader) Start(ctx context.Context, uid gregor1.UID) {
-	b.Lock()
-	defer b.Unlock()
-
 	if b.G().GetEnv().GetDisableBgConvLoader() {
 		b.Debug(ctx, "BackgroundConvLoader disabled, aborting Start")
 		return
 	}
 	b.Debug(ctx, "Start")
-	var prevRun *errgroup.Group
-	if b.started {
-		prevRun = b.endRunLocked()
+	b.Lock()
+	b.gen++
+	gen := b.gen
+	prevRun := b.endRunLocked()
+	b.Unlock()
+
+	// The previous run's goroutines take b's lock, so wait for them outside it.
+	_ = prevRun.Wait()
+
+	b.Lock()
+	defer b.Unlock()
+	if b.gen != gen {
+		b.Debug(ctx, "Start: overtaken by a later Start or Stop")
+		return
 	}
 	b.newQueue()
 	b.started = true
 	b.uid = uid
+	b.eg = new(errgroup.Group)
 	stopCh, eg, queue, loadCh := b.stopCh, b.eg, b.queue, b.loadCh
-	if prevRun != nil {
-		// Stop waits for the replaced run too.
-		eg.Go(prevRun.Wait)
-	}
-	b.suspendCh = make(chan chan struct{}, 10)
-	suspendCh := b.suspendCh
-	// Hand a suspension that outlived the last run to this run's loop.
-	if b.suspendedLocked() && b.resumeCh != nil {
-		suspendCh <- b.resumeCh
-	}
-	state := b.G().MobileAppState.State()
-	b.setAppStateLocked(ctx, state)
-	b.watcher = b.G().MobileAppState.NewWatcher()
-	w := b.watcher
-	eg.Go(func() error { return b.loop(uid, stopCh, suspendCh, queue, loadCh) })
+	eg.Go(func() error { return b.loop(uid, stopCh, queue, loadCh) })
 	eg.Go(func() error { return b.loadLoop(uid, stopCh, queue, loadCh) })
-	eg.Go(func() error { return b.monitorAppState(w, stopCh, state) })
 }
 
-// endRunLocked stops the current run's goroutines and returns their group.
-// The app-state suspension is left as is; the next Start seeds it again.
+// endRunLocked ends the current run, if there is one, and returns the group of
+// the last run's goroutines.
 func (b *BackgroundConvLoader) endRunLocked() *errgroup.Group {
-	eg := b.eg
-	b.started = false
-	close(b.stopCh)
-	b.stopCh = make(chan struct{})
-	b.eg = new(errgroup.Group)
-	b.watcher = nil
-	return eg
+	if b.started {
+		b.started = false
+		b.cancelActiveLoadsLocked()
+		close(b.stopCh)
+		b.stopCh = make(chan struct{})
+	}
+	return b.eg
 }
 
 func (b *BackgroundConvLoader) Stop(ctx context.Context) chan struct{} {
 	b.Lock()
 	defer b.Unlock()
 	b.Debug(ctx, "Stop")
-	b.cancelActiveLoadsLocked()
+	b.gen++
+	eg := b.endRunLocked()
 	ch := make(chan struct{})
-	if b.started {
-		eg := b.endRunLocked()
-		go func() {
-			_ = eg.Wait()
-			close(ch)
-		}()
-	} else {
+	go func() {
+		_ = eg.Wait()
 		close(ch)
-	}
+	}()
 	return ch
 }
 
@@ -326,30 +269,6 @@ func (b *BackgroundConvLoader) cancelActiveLoadsLocked() (canceled bool) {
 	return canceled
 }
 
-func (b *BackgroundConvLoader) suspendedLocked() bool {
-	return b.suspendCount > 0 || b.appSuspended
-}
-
-// signalSuspendLocked tells the loop about a change in suspension, given
-// whether it was suspended before the change.
-func (b *BackgroundConvLoader) signalSuspendLocked(ctx context.Context, wasSuspended bool) {
-	suspended := b.suspendedLocked()
-	switch {
-	case suspended && !wasSuspended:
-		b.Debug(ctx, "Suspend: sending on suspendCh")
-		b.resumeCh = make(chan struct{})
-		select {
-		case b.suspendCh <- b.resumeCh:
-		default:
-			b.Debug(ctx, "Suspend: failed to suspend loop")
-		}
-	case !suspended && wasSuspended && b.resumeCh != nil:
-		b.Debug(ctx, "Resume: closing resumeCh")
-		close(b.resumeCh)
-		b.resumeCh = nil
-	}
-}
-
 func (b *BackgroundConvLoader) Suspend(ctx context.Context) (canceled bool) {
 	defer b.Trace(ctx, nil, "Suspend")()
 	b.Lock()
@@ -357,9 +276,15 @@ func (b *BackgroundConvLoader) Suspend(ctx context.Context) (canceled bool) {
 	if !b.started {
 		return false
 	}
-	wasSuspended := b.suspendedLocked()
+	if b.suspendCount == 0 {
+		b.Debug(ctx, "Suspend: waking loop")
+		b.resumeCh = make(chan struct{})
+		select {
+		case b.suspendCh <- struct{}{}:
+		default:
+		}
+	}
 	b.suspendCount++
-	b.signalSuspendLocked(ctx, wasSuspended)
 	return b.cancelActiveLoadsLocked()
 }
 
@@ -370,10 +295,17 @@ func (b *BackgroundConvLoader) Resume(ctx context.Context) bool {
 	if b.suspendCount == 0 {
 		return false
 	}
-	wasSuspended := b.suspendedLocked()
 	b.suspendCount--
-	b.signalSuspendLocked(ctx, wasSuspended)
-	return b.suspendCount == 0
+	if b.suspendCount > 0 {
+		return false
+	}
+	b.Debug(ctx, "Resume: closing resumeCh")
+	close(b.resumeCh)
+	return true
+}
+
+func (b *BackgroundConvLoader) suspendedLocked() bool {
+	return b.suspendCount > 0 || suspendInAppState(b.G().MobileAppState.State())
 }
 
 func (b *BackgroundConvLoader) isSuspended() bool {
@@ -394,15 +326,9 @@ func (b *BackgroundConvLoader) enqueue(ctx context.Context, task clTask) error {
 	return b.push(ctx, b.queue, task)
 }
 
-// requeue puts a task back on the queue of the run that loaded it, and drops
-// it once that run has stopped, so it never reaches a later run (or user).
-func (b *BackgroundConvLoader) requeue(ctx context.Context, stopCh chan struct{}, queue *jobQueue, task clTask) {
-	select {
-	case <-stopCh:
-		b.Debug(ctx, "requeue: run stopped, dropping task: %s", task.job)
-		return
-	default:
-	}
+// requeue puts a task back on the queue of the run that loaded it. Once that
+// run has stopped, nobody reads its queue.
+func (b *BackgroundConvLoader) requeue(ctx context.Context, queue *jobQueue, task clTask) {
 	if err := b.push(ctx, queue, task); err != nil {
 		b.Debug(ctx, "enqueue error %s", err)
 	}
@@ -420,29 +346,71 @@ func (b *BackgroundConvLoader) push(ctx context.Context, queue *jobQueue, task c
 	return nil
 }
 
-func (b *BackgroundConvLoader) loop(uid gregor1.UID, stopCh chan struct{}, suspendCh chan chan struct{},
-	queue *jobQueue, loadCh chan *clTask,
+func (b *BackgroundConvLoader) loop(uid gregor1.UID, stopCh chan struct{}, queue *jobQueue,
+	loadCh chan *clTask,
 ) error {
 	bgctx := context.Background()
 	b.Debug(bgctx, "loop: starting conv loader loop for %s", uid)
+	appState := b.G().MobileAppState
+	state := appState.State()
 
-	// waitForResume is called on suspend. It will wait for a resume event, and then pause
-	// for b.resumeWait amount of time. Returns false if the outer loop should shutdown.
-	waitForResume := func(ch chan struct{}) bool {
-		b.Debug(bgctx, "waitForResume: suspending loop")
-		select {
-		case <-ch:
-		case <-stopCh:
+	// appStateChanged reads the new app state and reports whether it suspends
+	// the loop. Nothing else watches the app state, so going to BACKGROUND
+	// cancels active loads here, at once.
+	appStateChanged := func() (suspended bool) {
+		state = appState.State()
+		if !suspendInAppState(state) {
 			return false
 		}
-		b.clock.Sleep(libkb.RandomJitter(b.resumeWait))
-		b.Debug(bgctx, "waitForResume: resuming loop")
+		b.Debug(bgctx, "loop: suspending in %v", state)
+		b.Lock()
+		b.cancelActiveLoadsLocked()
+		b.Unlock()
 		return true
 	}
-	// On mobile fresh start, apply the foreground wait
-	if b.G().IsMobileAppType() {
-		b.Debug(bgctx, "loop: delaying startup since on mobile")
-		b.clock.Sleep(libkb.RandomJitter(b.resumeWait))
+	// suspension reports whether the loop is held, with the channel Resume
+	// closes when a Suspend holds it.
+	suspension := func() (held bool, resumeCh chan struct{}) {
+		b.Lock()
+		defer b.Unlock()
+		if b.suspendCount > 0 {
+			return true, b.resumeCh
+		}
+		return suspendInAppState(state), nil
+	}
+	// waitForResume parks the loop until neither Suspend nor the app state
+	// holds it, then waits for b.resumeWait with jitter. Returns false if the
+	// run stopped.
+	waitForResume := func() bool {
+		b.Debug(bgctx, "waitForResume: suspending loop")
+		var resumeDelay <-chan time.Time
+		for {
+			held, resumeCh := suspension()
+			switch {
+			case held:
+				resumeDelay = nil
+			case resumeDelay == nil:
+				resumeDelay = b.clock.After(libkb.RandomJitter(b.resumeWait))
+			}
+			select {
+			case <-resumeCh:
+			case <-b.suspendCh:
+			case <-resumeDelay:
+				b.Debug(bgctx, "waitForResume: resuming loop")
+				return true
+			case <-appState.NextUpdate(state):
+				appStateChanged()
+			case <-stopCh:
+				return false
+			}
+		}
+	}
+	// Park if already suspended, and on a mobile fresh start apply the
+	// foreground wait.
+	if held, _ := suspension(); held || b.G().IsMobileAppType() {
+		if !waitForResume() {
+			return nil
+		}
 	}
 
 	// Main loop
@@ -468,11 +436,18 @@ func (b *BackgroundConvLoader) loop(uid gregor1.UID, stopCh chan struct{}, suspe
 			// neither have any data on them.
 			select {
 			case <-b.clock.After(duration):
-			case ch := <-suspendCh:
+			case <-b.suspendCh:
 				b.Debug(bgctx, "loop: pulled queue task, but suspended, so waiting")
-				if !waitForResume(ch) {
+				if !waitForResume() {
 					return nil
 				}
+			case <-appState.NextUpdate(state):
+				if appStateChanged() && !waitForResume() {
+					return nil
+				}
+			case <-stopCh:
+				b.Debug(bgctx, "loop: shutting down for %s", uid)
+				return nil
 			}
 			b.Debug(bgctx, "loop: pulled queued task: %s", task.job)
 			select {
@@ -480,9 +455,13 @@ func (b *BackgroundConvLoader) loop(uid gregor1.UID, stopCh chan struct{}, suspe
 			default:
 				b.Debug(bgctx, "loop: failed to dispatch load, queue full")
 			}
-		case ch := <-suspendCh:
+		case <-b.suspendCh:
 			b.Debug(bgctx, "loop: received suspend")
-			if !waitForResume(ch) {
+			if !waitForResume() {
+				return nil
+			}
+		case <-appState.NextUpdate(state):
+			if appStateChanged() && !waitForResume() {
 				return nil
 			}
 		case <-stopCh:
@@ -500,22 +479,15 @@ func (b *BackgroundConvLoader) loadLoop(uid gregor1.UID, stopCh chan struct{}, q
 	for {
 		select {
 		case task := <-loadCh:
+			if nextTask := b.load(bgctx, stopCh, *task, uid); nextTask != nil {
+				b.requeue(bgctx, queue, *nextTask)
+			}
 			select {
+			case <-b.clock.After(b.loadWait):
 			case <-stopCh:
 				b.Debug(bgctx, "loadLoop: shutting down for %s", uid)
 				return nil
-			default:
 			}
-			if b.isSuspended() {
-				b.Debug(bgctx, "loadLoop: suspended, re-enqueueing task: %s", task.job)
-				b.requeue(bgctx, stopCh, queue, *task)
-			} else {
-				b.Debug(bgctx, "loadLoop: running task: %s", task.job)
-				if nextTask := b.load(bgctx, *task, uid); nextTask != nil {
-					b.requeue(bgctx, stopCh, queue, *nextTask)
-				}
-			}
-			b.clock.Sleep(b.loadWait)
 		case <-stopCh:
 			b.Debug(bgctx, "loadLoop: shutting down for %s", uid)
 			return nil
@@ -549,10 +521,28 @@ func (b *BackgroundConvLoader) IsBackgroundActive() bool {
 	return len(b.activeLoads) > 0
 }
 
-func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid gregor1.UID) *clTask {
+// load runs task unless its run has stopped, and returns a task to requeue:
+// task itself while suspended, or its retry.
+func (b *BackgroundConvLoader) load(ictx context.Context, stopCh chan struct{}, task clTask,
+	uid gregor1.UID,
+) *clTask {
+	b.Lock()
+	// Checked under the lock that cancels active loads, so a load either sees
+	// the stop or the suspension here, or is registered in time to be canceled.
+	select {
+	case <-stopCh:
+		b.Unlock()
+		b.Debug(ictx, "load: run stopped, dropping task: %s", task.job)
+		return nil
+	default:
+	}
+	if b.suspendedLocked() {
+		b.Unlock()
+		b.Debug(ictx, "load: suspended, re-enqueueing task: %s", task.job)
+		return &task
+	}
 	defer b.Trace(ictx, nil, "load: %s", task.job)()
 	defer b.PerfTrace(ictx, nil, "load: %s", task.job)()
-	b.Lock()
 	var al activeLoad
 	al.Ctx, al.CancelFn = context.WithCancel(
 		globals.ChatCtx(utils.MakeConvLoaderContext(ictx), b.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,

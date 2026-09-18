@@ -58,20 +58,6 @@ func setupAppStateConvLoader(t *testing.T) (*BackgroundConvLoader, *pullRecorder
 	return b, pulls, tc
 }
 
-func waitConvLoaderMonitor(t *testing.T, b *BackgroundConvLoader) {
-	t.Helper()
-	require.Eventually(t, func() bool {
-		b.Lock()
-		w := b.watcher
-		b.Unlock()
-		if w == nil {
-			return false
-		}
-		_, caughtUp := w.CaughtUp()
-		return caughtUp
-	}, 10*time.Second, time.Millisecond, "monitor did not catch up")
-}
-
 func requireConvLoaderStopped(t *testing.T, b *BackgroundConvLoader) {
 	t.Helper()
 	select {
@@ -88,36 +74,120 @@ func convLoaderTestJob() types.ConvLoaderJob {
 		types.ConvLoaderPriorityHigh, types.ConvLoaderGeneric, nil)
 }
 
-func TestConvLoaderMonitorSurvivesStopStart(t *testing.T) {
+// A load checks for a stop and a suspension under the lock that cancels
+// active loads, so it never starts after either.
+func TestConvLoaderLoadChecksStopAndSuspension(t *testing.T) {
+	b, pulls, tc := setupAppStateConvLoader(t)
+	uid := gregor1.UID([]byte{1, 2, 3, 4})
+	task := clTask{job: convLoaderTestJob()}
+
+	stopped := make(chan struct{})
+	close(stopped)
+	require.Nil(t, b.load(context.TODO(), stopped, task, uid))
+
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
+	next := b.load(context.TODO(), make(chan struct{}), task, uid)
+	require.NotNil(t, next)
+	require.Equal(t, task.job.ConvID, next.job.ConvID)
+	require.Zero(t, next.attempt)
+
+	select {
+	case <-pulls.pulls:
+		require.FailNow(t, "loaded after a stop or in BACKGROUND")
+	default:
+	}
+}
+
+// Stop does not wait for the loop's delay before dispatching a job.
+func TestConvLoaderStopDuringLoadDelay(t *testing.T) {
+	b, _, _ := setupAppStateConvLoader(t)
+	clock := clockwork.NewFakeClock()
+	b.clock = clock
+	b.Start(context.TODO(), gregor1.UID([]byte{1, 2, 3, 4}))
+	require.NoError(t, b.Queue(context.TODO(), convLoaderTestJob()))
+	clock.BlockUntil(1)
+	requireConvLoaderStopped(t, b)
+}
+
+// The loop also watches the app state while it waits out the delay before
+// dispatching the next job, with the previous job still loading.
+func TestConvLoaderBackgroundCancelsDuringLoadDelay(t *testing.T) {
 	b, _, tc := setupAppStateConvLoader(t)
+	pulls := newCtxPuller(false)
+	b.G().ConvSource = pulls
+	clock := clockwork.NewFakeClock()
+	b.clock = clock
+	b.Start(context.TODO(), gregor1.UID([]byte{1, 2, 3, 4}))
+	defer requireConvLoaderStopped(t, b)
+	defer close(pulls.release)
+	require.NoError(t, b.Queue(context.TODO(), convLoaderTestJob()))
+	clock.BlockUntil(1)
+	clock.Advance(bgLoaderInitDelay)
+	load := requirePull(t, pulls)
+
+	otherConvID := chat1.ConversationID([]byte{16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1})
+	require.NoError(t, b.Queue(context.TODO(), types.NewConvLoaderJob(otherConvID, &chat1.Pagination{Num: 1},
+		types.ConvLoaderPriorityHigh, types.ConvLoaderGeneric, nil)))
+	// the loop has pulled the second job and waits out its delay
+	clock.BlockUntil(1)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
+	select {
+	case <-load.ctx.Done():
+	case <-time.After(100 * time.Millisecond):
+		require.FailNow(t, "active load not canceled on BACKGROUND")
+	}
+}
+
+// Each run's loop watches the app state: BACKGROUND cancels its active load
+// and parks it, and leaving BACKGROUND loads the retry.
+func TestConvLoaderAppStateAcrossRuns(t *testing.T) {
+	b, _, tc := setupAppStateConvLoader(t)
+	pulls := newCtxPuller(false)
+	b.G().ConvSource = pulls
+	defer close(pulls.release)
 	uid := gregor1.UID([]byte{1, 2, 3, 4})
 	appState := tc.G.MobileAppState
+	requireCanceled := func(i int, load pullCall) {
+		t.Helper()
+		select {
+		case <-load.ctx.Done():
+		case <-time.After(10 * time.Second):
+			require.FailNow(t, "load not canceled in BACKGROUND", "run %d", i)
+		}
+	}
 	for i := range 3 {
 		appState.Update(keybase1.MobileAppState_FOREGROUND)
 		b.Start(context.TODO(), uid)
 		require.False(t, b.isSuspended(), "run %d: suspended at a foreground Start", i)
-		waitConvLoaderMonitor(t, b)
+		require.NoError(t, b.Queue(context.TODO(), convLoaderTestJob()))
+		load := requirePull(t, pulls)
 
 		appState.Update(keybase1.MobileAppState_BACKGROUND)
-		waitConvLoaderMonitor(t, b)
 		require.True(t, b.isSuspended(), "run %d: not suspended in BACKGROUND", i)
+		requireCanceled(i, load)
 
 		appState.Update(keybase1.MobileAppState_INACTIVE)
-		waitConvLoaderMonitor(t, b)
 		require.False(t, b.isSuspended(), "run %d: suspended in INACTIVE", i)
+		load = requirePull(t, pulls)
 
 		appState.Update(keybase1.MobileAppState_BACKGROUND)
-		waitConvLoaderMonitor(t, b)
-		require.True(t, b.isSuspended(), "run %d: not suspended in BACKGROUND", i)
+		requireCanceled(i, load)
 		requireConvLoaderStopped(t, b)
 
-		// A Start in BACKGROUND seeds its suspension before any change.
+		// A run started in BACKGROUND loads nothing until the app leaves it.
 		b.Start(context.TODO(), uid)
 		require.True(t, b.isSuspended(), "run %d: not suspended at a background Start", i)
-		waitConvLoaderMonitor(t, b)
+		require.NoError(t, b.Queue(context.TODO(), convLoaderTestJob()))
+		select {
+		case <-pulls.calls:
+			require.FailNow(t, "loaded in BACKGROUND", "run %d", i)
+		case <-time.After(300 * time.Millisecond):
+		}
 		appState.Update(keybase1.MobileAppState_BACKGROUNDACTIVE)
-		waitConvLoaderMonitor(t, b)
 		require.False(t, b.isSuspended(), "run %d: suspended in BACKGROUNDACTIVE", i)
+		load = requirePull(t, pulls)
+		appState.Update(keybase1.MobileAppState_BACKGROUND)
+		requireCanceled(i, load)
 		requireConvLoaderStopped(t, b)
 	}
 }
@@ -161,67 +231,117 @@ func TestConvLoaderResumeKeepsAppStateSuspension(t *testing.T) {
 	require.True(t, b.isSuspended())
 }
 
-// A Start over a running loader replaces its run; Stop still waits for the
-// replaced run's goroutines.
-func TestConvLoaderStopWaitsForReplacedRun(t *testing.T) {
+// A Stop that comes while a Start waits for the previous run wins: it waits
+// for that run too, and the Start does not start a new one.
+func TestConvLoaderStopOvertakesWaitingStart(t *testing.T) {
 	b, _, _ := setupAppStateConvLoader(t)
-	clock := clockwork.NewFakeClock()
-	b.clock = clock
+	pulls := newCtxPuller(true)
+	b.G().ConvSource = pulls
 	uid := gregor1.UID([]byte{1, 2, 3, 4})
 	b.Start(context.TODO(), uid)
 	require.NoError(t, b.Queue(context.TODO(), convLoaderTestJob()))
-	// the first run's loop has pulled the job and waits out its delay
-	clock.BlockUntil(1)
-	b.Start(context.TODO(), uid)
+	requirePull(t, pulls)
+
+	started := make(chan struct{})
+	go func() {
+		b.Start(context.TODO(), uid)
+		close(started)
+	}()
+	// the waiting Start has ended the previous run
+	require.Eventually(t, func() bool { return !b.isRunning() }, 10*time.Second, time.Millisecond)
 	stopped := b.Stop(context.TODO())
 	select {
 	case <-stopped:
-		require.FailNow(t, "Stop finished while the replaced run was still running")
+		require.FailNow(t, "Stop finished while the previous run was still running")
 	case <-time.After(200 * time.Millisecond):
 	}
-	clock.Advance(time.Second)
-	select {
-	case <-stopped:
-	case <-time.After(10 * time.Second):
-		require.FailNow(t, "Stop did not finish")
+	close(pulls.release)
+	for _, ch := range []chan struct{}{started, stopped} {
+		select {
+		case <-ch:
+		case <-time.After(10 * time.Second):
+			require.FailNow(t, "Start or Stop did not return")
+		}
 	}
+	require.False(t, b.isRunning(), "an overtaken Start started a run")
+}
+
+// Of two Starts waiting for the previous run, the later one's run is the one
+// that starts.
+func TestConvLoaderLastWaitingStartWins(t *testing.T) {
+	b, _, _ := setupAppStateConvLoader(t)
+	pulls := newCtxPuller(true)
+	b.G().ConvSource = pulls
+	baseline := runtime.NumGoroutine()
+	oldUID := gregor1.UID([]byte{1, 2, 3, 4})
+	uids := []gregor1.UID{{5, 6, 7, 8}, {9, 10, 11, 12}}
+	b.Start(context.TODO(), oldUID)
+	require.NoError(t, b.Queue(context.TODO(), convLoaderTestJob()))
+	requirePull(t, pulls)
+
+	var wg sync.WaitGroup
+	for i, uid := range uids {
+		wg.Go(func() { b.Start(context.TODO(), uid) })
+		require.Eventually(t, func() bool {
+			b.Lock()
+			defer b.Unlock()
+			return b.gen == uint64(i+2)
+		}, 10*time.Second, time.Millisecond, "Start %d did not begin waiting", i)
+	}
+	close(pulls.release)
+	wg.Wait()
+	require.True(t, b.isRunning())
+	require.NoError(t, b.Queue(context.TODO(), convLoaderTestJob()))
+	require.Equal(t, uids[1], requirePull(t, pulls).uid)
+	// the overtaken Start left no run of its own behind
+	requireConvLoaderStopped(t, b)
+	requireNoGoroutineLeak(t, baseline)
 }
 
 // A suspension that outlives a run parks the next run's loop before it
 // takes anything off the queue.
 func TestConvLoaderSuspensionCarriesIntoNextRun(t *testing.T) {
-	b, _, tc := setupAppStateConvLoader(t)
-	clock := clockwork.NewFakeClock()
-	b.clock = clock
 	uid := gregor1.UID([]byte{1, 2, 3, 4})
-	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
-	b.Start(context.TODO(), uid)
-	requireConvLoaderStopped(t, b)
-	b.Start(context.TODO(), uid)
-	defer requireConvLoaderStopped(t, b)
-	require.Eventually(t, func() bool {
-		b.Lock()
-		defer b.Unlock()
-		return len(b.suspendCh) == 0
-	}, 10*time.Second, time.Millisecond, "loop did not take the suspension")
+	for _, tt := range []struct {
+		name    string
+		suspend func(*BackgroundConvLoader, libkb.TestContext)
+	}{
+		{"background", func(_ *BackgroundConvLoader, tc libkb.TestContext) {
+			tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
+		}},
+		{"suspend", func(b *BackgroundConvLoader, _ libkb.TestContext) {
+			require.False(t, b.Suspend(context.TODO()))
+		}},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			b, _, tc := setupAppStateConvLoader(t)
+			clock := clockwork.NewFakeClock()
+			b.clock = clock
+			b.Start(context.TODO(), uid)
+			tt.suspend(b, tc)
+			requireConvLoaderStopped(t, b)
+			b.Start(context.TODO(), uid)
+			defer requireConvLoaderStopped(t, b)
 
-	require.NoError(t, b.Queue(context.TODO(), convLoaderTestJob()))
-	// A loop that pulls the job waits out its delay on the clock.
-	blocked := make(chan struct{})
-	go func() {
-		clock.BlockUntil(1)
-		close(blocked)
-	}()
-	defer clock.After(time.Hour)
-	select {
-	case <-blocked:
-		require.FailNow(t, "loop pulled a job while suspended")
-	case <-time.After(300 * time.Millisecond):
+			require.NoError(t, b.Queue(context.TODO(), convLoaderTestJob()))
+			// A loop that pulls the job waits out its delay on the clock.
+			blocked := make(chan struct{})
+			go func() {
+				clock.BlockUntil(1)
+				close(blocked)
+			}()
+			defer clock.After(time.Hour)
+			select {
+			case <-blocked:
+				require.FailNow(t, "loop pulled a job while suspended")
+			case <-time.After(300 * time.Millisecond):
+			}
+			b.Lock()
+			queued := b.queue.queue.Len()
+			b.Unlock()
+			require.Equal(t, 1, queued, "queue drained while suspended")
+		})
 	}
-	b.Lock()
-	queued := b.queue.queue.Len()
-	b.Unlock()
-	require.Equal(t, 1, queued, "queue drained while suspended")
 }
 
 // pullBlocker fails the first load of the old user's conversation once
@@ -263,9 +383,18 @@ func TestConvLoaderReplacedRunRetryStaysInItsRun(t *testing.T) {
 	case <-time.After(10 * time.Second):
 		require.FailNow(t, "old run did not load")
 	}
-	b.Start(context.TODO(), newUID)
+	started := make(chan struct{})
+	go func() {
+		b.Start(context.TODO(), newUID)
+		close(started)
+	}()
 	defer requireConvLoaderStopped(t, b)
 	close(pulls.release)
+	select {
+	case <-started:
+	case <-time.After(10 * time.Second):
+		require.FailNow(t, "Start did not return")
+	}
 
 	// past the retry delay and the new run's load delays
 	time.Sleep(time.Second)
@@ -285,7 +414,6 @@ func TestConvLoaderScenarioReplay(t *testing.T) {
 			b.Start(context.TODO(), gregor1.UID([]byte{1, 2, 3, 4}))
 			defer requireConvLoaderStopped(t, b)
 			lifecycletest.Play(t, tc.G.MobileAppState, sc, func(h *lifecycletest.Harness, i int, step lifecycletest.Step) {
-				waitConvLoaderMonitor(t, b)
 				if got, want := b.isSuspended(), step.Want == keybase1.MobileAppState_BACKGROUND; got != want {
 					t.Fatalf("step %d %v: suspended %v in %v", i, step.Do, got, step.Want)
 				}
@@ -295,7 +423,7 @@ func TestConvLoaderScenarioReplay(t *testing.T) {
 }
 
 func TestConvLoaderAppStateStress(t *testing.T) {
-	b, _, tc := setupAppStateConvLoader(t)
+	b, pulls, tc := setupAppStateConvLoader(t)
 	baseline := runtime.NumGoroutine()
 	uid := gregor1.UID([]byte{1, 2, 3, 4})
 	states := []keybase1.MobileAppState{
@@ -345,11 +473,17 @@ func TestConvLoaderAppStateStress(t *testing.T) {
 	for _, state := range states {
 		tc.G.MobileAppState.Update(state)
 		b.Start(context.TODO(), uid)
-		waitConvLoaderMonitor(t, b)
-		b.Lock()
-		appSuspended := b.appSuspended
-		b.Unlock()
-		require.Equal(t, state == keybase1.MobileAppState_BACKGROUND, appSuspended, "in %v", state)
+		require.Equal(t, state == keybase1.MobileAppState_BACKGROUND, b.isSuspended(), "in %v", state)
+	}
+	// the loader still loads once the churn is over
+	for len(pulls.pulls) > 0 {
+		<-pulls.pulls
+	}
+	require.NoError(t, b.Queue(context.TODO(), convLoaderTestJob()))
+	select {
+	case <-pulls.pulls:
+	case <-time.After(10 * time.Second):
+		require.FailNow(t, "no load after the churn")
 	}
 	requireConvLoaderStopped(t, b)
 	requireNoGoroutineLeak(t, baseline)
@@ -364,4 +498,102 @@ func requireNoGoroutineLeak(t *testing.T, baseline int) {
 		time.Sleep(10 * time.Millisecond)
 	}
 	require.LessOrEqual(t, runtime.NumGoroutine(), baseline, "leaked goroutines")
+}
+
+type pullCall struct {
+	ctx context.Context
+	uid gregor1.UID
+}
+
+// ctxPuller hands each load to the test and holds it until release closes,
+// or until its ctx is canceled unless ignoreCancel is set.
+type ctxPuller struct {
+	types.ConversationSource
+	calls        chan pullCall
+	release      chan struct{}
+	ignoreCancel bool
+}
+
+func newCtxPuller(ignoreCancel bool) *ctxPuller {
+	return &ctxPuller{
+		calls:        make(chan pullCall, 100),
+		release:      make(chan struct{}),
+		ignoreCancel: ignoreCancel,
+	}
+}
+
+func (p *ctxPuller) Pull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	reason chat1.GetThreadReason, customRi func() chat1.RemoteInterface, query *chat1.GetThreadQuery,
+	pagination *chat1.Pagination,
+) (chat1.ThreadView, error) {
+	p.calls <- pullCall{ctx: ctx, uid: uid}
+	done := ctx.Done()
+	if p.ignoreCancel {
+		done = nil
+	}
+	select {
+	case <-p.release:
+	case <-done:
+	}
+	return chat1.ThreadView{}, ctx.Err()
+}
+
+func requirePull(t *testing.T, p *ctxPuller) pullCall {
+	t.Helper()
+	select {
+	case call := <-p.calls:
+		return call
+	case <-time.After(10 * time.Second):
+		require.FailNow(t, "no load")
+		return pullCall{}
+	}
+}
+
+func TestConvLoaderStartWaitsForPreviousRun(t *testing.T) {
+	b, _, _ := setupAppStateConvLoader(t)
+	pulls := newCtxPuller(true)
+	b.G().ConvSource = pulls
+	uid := gregor1.UID([]byte{1, 2, 3, 4})
+	b.Start(context.TODO(), uid)
+	defer requireConvLoaderStopped(t, b)
+	require.NoError(t, b.Queue(context.TODO(), convLoaderTestJob()))
+	load := requirePull(t, pulls)
+
+	started := make(chan struct{})
+	go func() {
+		b.Start(context.TODO(), uid)
+		close(started)
+	}()
+	select {
+	case <-started:
+		require.FailNow(t, "Start returned while the previous run's load was still running")
+	case <-time.After(200 * time.Millisecond):
+	}
+	require.Error(t, load.ctx.Err(), "Start did not cancel the previous run's load")
+	close(pulls.release)
+	select {
+	case <-started:
+	case <-time.After(10 * time.Second):
+		require.FailNow(t, "Start did not return after the previous run exited")
+	}
+	require.True(t, b.isRunning())
+}
+
+func TestConvLoaderBackgroundCancelsActiveLoadImmediately(t *testing.T) {
+	b, _, tc := setupAppStateConvLoader(t)
+	pulls := newCtxPuller(false)
+	b.G().ConvSource = pulls
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
+	b.Start(context.TODO(), gregor1.UID([]byte{1, 2, 3, 4}))
+	defer requireConvLoaderStopped(t, b)
+	defer close(pulls.release)
+	require.NoError(t, b.Queue(context.TODO(), convLoaderTestJob()))
+	load := requirePull(t, pulls)
+
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
+	select {
+	case <-load.ctx.Done():
+	case <-time.After(100 * time.Millisecond):
+		require.FailNow(t, "active load not canceled on BACKGROUND")
+	}
 }
