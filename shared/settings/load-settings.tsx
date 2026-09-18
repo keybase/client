@@ -1,40 +1,30 @@
-import * as Tabs from '@/constants/tabs'
 import * as S from '@/constants/strings'
 import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
 import logger from '@/logger'
-import {navigateAppend, switchTab} from '@/constants/router'
 import {RPCError} from '@/util/errors'
 import {useConfigState} from '@/stores/config'
 import {useSettingsEmailState} from '@/stores/settings-email'
 import {useSettingsPhoneState} from '@/stores/settings-phone'
 
-let maybeLoadAppLinkOnce = false
-
 export const loadSettings = () => {
-  const maybeLoadAppLink = () => {
-    const phones = useSettingsPhoneState.getState().phones
-    if (!phones || phones.size > 0) {
-      return
-    }
-
-    if (maybeLoadAppLinkOnce || !useConfigState.getState().startup.link.endsWith('/phone-app')) {
-      return
-    }
-    maybeLoadAppLinkOnce = true
-    switchTab(Tabs.settingsTab)
-    navigateAppend({name: 'settingsAddPhone', params: {}})
-  }
-
   const f = async () => {
     if (!useConfigState.getState().loggedIn) {
       return
     }
+    // An emailsChanged/phoneNumbersChanged notification can land while this RPC is in
+    // flight, and it carries the newer list. Apply the reply only to the value it was read
+    // against, the same rule the versioned session write follows.
+    const emailsBefore = useSettingsEmailState.getState().emails
+    const phonesBefore = useSettingsPhoneState.getState().phones
     try {
       const settings = await T.RPCGen.userLoadMySettingsRpcPromise(undefined, S.waitingKeySettingsLoadSettings)
-      useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(settings.emails ?? [])
-      useSettingsPhoneState.getState().dispatch.setNumbers(settings.phoneNumbers ?? undefined)
-      maybeLoadAppLink()
+      if (useSettingsEmailState.getState().emails === emailsBefore) {
+        useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(settings.emails ?? [])
+      }
+      if (useSettingsPhoneState.getState().phones === phonesBefore) {
+        useSettingsPhoneState.getState().dispatch.setNumbers(settings.phoneNumbers ?? undefined)
+      }
     } catch (error) {
       if (!(error instanceof RPCError)) {
         return

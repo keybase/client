@@ -1,10 +1,4 @@
 /// <reference types="jest" />
-jest.mock('../../constants/router', () => ({
-  clearModals: jest.fn(),
-  navigateAppend: jest.fn(),
-  switchTab: jest.fn(),
-}))
-
 import * as T from '../../constants/types'
 import {loadSettings} from '../../settings/load-settings'
 import {resetAllStores} from '../../util/zustand'
@@ -50,5 +44,27 @@ describe('settings loading', () => {
 
     expect(emailHandler).toHaveBeenCalledWith(emails)
     expect(phoneHandler).toHaveBeenCalledWith(phoneNumbers)
+  })
+
+  test('a notification that lands while the settings load is in flight is not overwritten', async () => {
+    const stale = [{phoneNumber: '+15550000000', superseded: false, verified: true, visibility: 0}]
+    const notified = [{phoneNumber: '+15551111111', superseded: false, verified: true, visibility: 0}]
+    const staleEmails = [{email: 'stale@example.com', isPrimary: true, isVerified: true, visibility: 0}]
+    const notifiedEmails = [{email: 'fresh@example.com', isPrimary: true, isVerified: true, visibility: 0}]
+
+    useConfigState.setState({loggedIn: true})
+    jest.spyOn(T.RPCGen, 'userLoadMySettingsRpcPromise').mockImplementation((async () => {
+      // the notifications win the race: they carry the newer server state
+      useSettingsPhoneState.getState().dispatch.notifyPhoneNumberPhoneNumbersChanged(notified)
+      useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(notifiedEmails)
+      return {emails: staleEmails, phoneNumbers: stale}
+    }) as never)
+
+    loadSettings()
+    await Promise.resolve()
+    await Promise.resolve()
+
+    expect([...useSettingsPhoneState.getState().phones!.keys()]).toEqual(['+15551111111'])
+    expect([...useSettingsEmailState.getState().emails.keys()]).toEqual(['fresh@example.com'])
   })
 })
