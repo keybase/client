@@ -36,6 +36,9 @@ func NewPendingPushTap(g *GlobalContext) *PendingPushTap {
 // Set stores the route a tap resolved to, gives it a fresh id, and nudges
 // connected clients. A tap not yet acked is replaced: the newest tap is the one
 // the user just made, and queueing them would navigate through a backlog.
+//
+// Ids count the taps of this process and start at 1, so 0 is never a route a
+// client has seen and is safe as a client-side sentinel.
 func (p *PendingPushTap) Set(ctx context.Context, route keybase1.PushTapRoute) {
 	p.Lock()
 	p.lastID++
@@ -46,11 +49,16 @@ func (p *PendingPushTap) Set(ctx context.Context, route keybase1.PushTapRoute) {
 }
 
 // Peek returns the waiting route without retiring it, or nil when none is
-// waiting. It stays armed for the next reader until it is acked.
+// waiting. It stays armed for the next reader until it is acked. The result is
+// a copy, so the holder's own route is never reachable through a reader.
 func (p *PendingPushTap) Peek() *keybase1.PushTapRoute {
 	p.Lock()
 	defer p.Unlock()
-	return p.route
+	if p.route == nil {
+		return nil
+	}
+	route := *p.route
+	return &route
 }
 
 // Ack retires the waiting route if it is still the one with this id, and

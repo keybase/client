@@ -47,6 +47,24 @@ const serviceHolding = (route?: T.RPCGen.PushTapRoute) => {
 
 const settle = async () => new Promise(resolve => setImmediate(resolve))
 
+// Wedges the store the route is queued into, which is the one thing between the peek and the ack
+// that can throw.
+const withEnqueueThrowing = () => {
+  const original = useNavigationIntentsState.getState().dispatch
+  useNavigationIntentsState.setState(state => {
+    state.dispatch = {
+      ...original,
+      enqueue: () => {
+        throw new Error('the store is wedged')
+      },
+    }
+  })
+  return () =>
+    useNavigationIntentsState.setState(state => {
+      state.dispatch = original
+    })
+}
+
 const originalConfigDispatch = useConfigState.getState().dispatch
 
 // onEngineConnected's other work is not what is under test here; this is the same stubbing
@@ -160,6 +178,31 @@ test('a lost ack retries the ack without navigating again', async () => {
 
   expect(useNavigationIntentsState.getState().intent).toBeUndefined()
   expect(service.ack).toHaveBeenCalledTimes(2)
+  expect(service.isArmed()).toBe(false)
+})
+
+// The id must be recorded only once the queue has taken the route. Recording it first would leave
+// a throw here with the route armed AND marked as queued, so the next peek would skip the queue
+// and ack anyway -- retiring a tap that never reached the router, which is the silent loss this
+// whole split exists to prevent.
+test('an enqueue that throws does not let the next peek retire the route', async () => {
+  const route = chatRoute()
+  const service = serviceHolding(route)
+  const restore = withEnqueueThrowing()
+
+  nudge()
+  await settle()
+
+  expect(service.ack).not.toHaveBeenCalled()
+  expect(service.isArmed()).toBe(true)
+  expect(useNavigationIntentsState.getState().intent).toBeUndefined()
+
+  restore()
+  nudge()
+  await settle()
+
+  expect(useNavigationIntentsState.getState().intent?.url).toBe('keybase://convid/0000ab')
+  expect(service.ack).toHaveBeenCalledWith({id: route.id})
   expect(service.isArmed()).toBe(false)
 })
 

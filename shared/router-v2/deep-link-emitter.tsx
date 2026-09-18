@@ -75,12 +75,12 @@ export const emitDeepLink = (url: string) => {
 
 // ---- Notification taps ----
 
-// For routes taken from the service's pending-tap holder only (see
+// For routes read from the service's pending-tap holder only (see
 // constants/init/shared). The service fills that holder from its push-tap bind
 // verb and nothing else, so a targetUID here can only have come from a real
 // notification tap, and no link another app opens can switch accounts.
 export const enqueuePushTapRoute = (route: {url: string; targetUID: string}) => {
-  logger.info('[PushTap] took a tap link:', route.url)
+  logger.info('[PushTap] queued a tap link:', route.url)
   useNavigationIntentsState
     .getState()
     .dispatch.enqueue(route.url, {targetUid: route.targetUID || undefined})
