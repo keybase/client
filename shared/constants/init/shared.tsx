@@ -160,10 +160,14 @@ const scheduleStartupOrReloginWork = () => {
   ignorePromise(f())
 }
 
-const onGregorReachableChanged = (gregorReachable: ConfigState['gregorReachable']) => {
-  // Re-get info about our account if you log in/we're done handshaking/became reachable
+// The bootstrap read the old gregor-reachability trigger did: after an offline stretch, pick up
+// what the service learned while we could not reach it. `previous === undefined` is the first
+// reading of the network at startup, which the handshake's own read already covers.
+export const onNetworkOnlineChanged = (online?: boolean, previous?: boolean) => {
+  if (!online || previous !== false) {
+    return
+  }
   if (
-    gregorReachable === T.RPCGen.Reachable.yes &&
     useDaemonState.getState().handshakeState === 'done' &&
     !useConfigState.getState().userSwitching
   ) {
@@ -199,20 +203,58 @@ const onConfiguredAccountsChanged = (configuredAccounts: ConfigState['configured
   }
 }
 
-const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus']) => {
+export const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus']) => {
   if (!bootstrap) {
     return
   }
 
-  const {deviceID, deviceName, loggedIn, uid, username} = bootstrap
+  const {deviceID, deviceName, httpSrvInfo, loggedIn, uid, username} = bootstrap
   useCurrentUserState.getState().dispatch.setBootstrap({deviceID, deviceName, uid, username})
 
   const configDispatch = useConfigState.getState().dispatch
   if (username) {
     configDispatch.setDefaultUsername(username)
   }
+  // The session and the http address belong to the setNotifications snapshot and its
+  // notifications, which carry a version this status does not. A service too old to answer
+  // setNotifications sends no version anywhere, and then this status is the only place they come
+  // from -- so apply them here only while nothing versioned has landed, and never after.
+  if (httpSrvInfo && configDispatch.canAcceptUnversioned('http')) {
+    configDispatch.setHTTPSrvInfo(httpSrvInfo.address, httpSrvInfo.token)
+  }
+  if (!configDispatch.canAcceptUnversioned('session')) {
+    return
+  }
   if (!loggedIn && useConfigState.getState().userSwitching) {
     logger.info('[Bootstrap] ignoring loggedIn=false result during account switch')
+    return
+  }
+  configDispatch.setLoggedIn(loggedIn)
+}
+
+// The reply to setNotifications: the state as of the moment this connection subscribed, so there
+// is no read to order against the subscription. An old service returns nothing here and the
+// bootstrap status keeps that job -- see onBootstrapStatusChanged.
+export const applyClientState = (clientState?: T.RPCGen.ClientState) => {
+  if (!clientState) {
+    logger.info('[Bootstrap] no client state from setNotifications; this service predates it')
+    return
+  }
+  const {deviceID, deviceName, httpSrvInfo, loggedIn, uid, username, version} = clientState
+  const configDispatch = useConfigState.getState().dispatch
+  if (httpSrvInfo) {
+    configDispatch.setHTTPSrvInfo(httpSrvInfo.address, httpSrvInfo.token, version)
+  }
+  if (!configDispatch.acceptSessionVersion(version)) {
+    logger.info('[Bootstrap] a login or logout is newer than this snapshot, ignoring')
+    return
+  }
+  useCurrentUserState.getState().dispatch.setBootstrap({deviceID, deviceName, uid, username})
+  if (username) {
+    configDispatch.setDefaultUsername(username)
+  }
+  if (!loggedIn && useConfigState.getState().userSwitching) {
+    logger.info('[Bootstrap] ignoring loggedIn=false snapshot during account switch')
     return
   }
   configDispatch.setLoggedIn(loggedIn)
@@ -268,26 +310,27 @@ export const onEngineConnected = () => {
     const subscribe = async () => {
       try {
         // prettier-ignore
-        await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
+        const clientState = await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
           channels: {
             allowChatNotifySkips: true, app: true, audit: true, badges: true, chat: true, chatarchive: true,
             chatattachments: true, chatdev: false, chatemoji: false, chatemojicross: false, chatkbfsedits: false,
             deviceclone: false, ephemeral: false, favorites: false, featuredBots: false, kbfs: true, kbfsdesktop: !isMobile,
             devicehistory: true, kbfslegacy: false, kbfsrequest: false, kbfssubscription: true, keyfamily: false, notifysimplefs: true,
-            paperkeys: false, pgp: true, reachability: true, runtimestats: true, saltpack: true, service: true, session: true,
+            paperkeys: false, pgp: true, reachability: false, runtimestats: true, saltpack: true, service: true, session: true,
             team: true, teambot: false, tracking: true, users: true, wallet: false,
           },
         })
+        applyClientState(clientState)
       } catch (error) {
         if (error) {
           logger.warn('error in toggling notifications: ', error)
         }
       }
     }
-    // The handshake starts now, so the reconnect clears the disconnect state at once, but its
-    // bootstrap read waits for the subscription: a login, logout or http server change announced
-    // between the read and the subscription would reach nobody.
-    useDaemonState.getState().dispatch.startHandshake(subscribe())
+    ignorePromise(subscribe())
+    // Nothing orders these two any more: the subscription reply is what carries the session and
+    // the http address, so the bootstrap read has nothing left to race with.
+    useDaemonState.getState().dispatch.startHandshake()
   }
 }
 
@@ -313,13 +356,14 @@ export const initSharedSubscriptions = (platformBootstrapSteps: Array<BootstrapS
   for (const unsub of _sharedUnsubs) unsub()
   _sharedUnsubs.length = 0
   _sharedUnsubs.push(
-    subscribeValue(useConfigState, s => s.gregorReachable, onGregorReachableChanged),
     subscribeValue(useConfigState, s => s.loggedIn, onLoggedInChanged),
     subscribeValue(useConfigState, s => s.revokedTrigger, onRevokedTriggerChanged),
     subscribeValue(useConfigState, s => s.configuredAccounts, onConfiguredAccountsChanged)
   )
 
   _sharedUnsubs.push(subscribeValue(useDaemonState, s => s.bootstrapStatus, onBootstrapStatusChanged))
+
+  _sharedUnsubs.push(subscribeValue(useShellState, s => s.networkStatus?.online, onNetworkOnlineChanged))
 
   _sharedUnsubs.push(
     subscribeValue(useRouterState, s => s.navState, onNavStateChanged)

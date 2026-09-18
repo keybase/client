@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
-import {loadAccountsStep, onEngineConnected} from './shared'
+import {loadAccountsStep, onEngineConnected, onNetworkOnlineChanged} from './shared'
 
 describe('loadAccountsStep', () => {
   const originalDispatch = useConfigState.getState().dispatch
@@ -33,7 +33,7 @@ describe('loadAccountsStep', () => {
     withDeferredRefreshAccounts()
     useConfigState.getState().dispatch.setUserSwitching(true)
     useDaemonState.setState(s => {
-      s.bootstrapStatus = {loggedIn: false} as any
+      s.bootstrapStatus = {loggedIn: false} as never
     })
 
     await expect(loadAccountsStep()).resolves.toBeUndefined()
@@ -42,7 +42,7 @@ describe('loadAccountsStep', () => {
   test('does not wait for accounts when already logged in', async () => {
     withDeferredRefreshAccounts()
     useDaemonState.setState(s => {
-      s.bootstrapStatus = {loggedIn: true} as any
+      s.bootstrapStatus = {loggedIn: true} as never
     })
 
     await expect(loadAccountsStep()).resolves.toBeUndefined()
@@ -94,22 +94,17 @@ describe('onEngineConnected', () => {
   }
 
   const deferredSubscription = () => {
-    let subscribed!: () => void
+    let subscribed!: (cs: T.RPCGen.ClientState) => void
     jest.spyOn(T.RPCGen, 'notifyCtlSetNotificationsRpcPromise').mockReturnValue(
-      new Promise<void>(resolve => {
+      new Promise<T.RPCGen.ClientState>(resolve => {
         subscribed = resolve
       })
     )
-    return () => subscribed()
+    return subscribed
   }
-  // config's onEngineConnected, which resets the applied versions, is stubbed out here, so each
-  // test reads a version newer than the last one applied
-  let version = 0
   const spyOnBootstrap = () =>
     jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue({
-      httpSrvInfo: {address: '127.0.0.1:2000', token: 'token'},
       loggedIn: true,
-      version: ++version,
     } as T.RPCGen.BootstrapStatus)
 
   test('a reconnect clears the disconnect state at once, before the subscription resolves', () => {
@@ -124,19 +119,28 @@ describe('onEngineConnected', () => {
     expect(useDaemonState.getState().handshakeState).toBe('loading')
   })
 
-  test('the bootstrap read starts only once the notification subscription resolves', async () => {
+  test('the bootstrap read does not wait for the subscription', async () => {
     stubRegistrations()
     const subscribed = deferredSubscription()
     const bootstrap = spyOnBootstrap()
 
     onEngineConnected()
-    await Promise.resolve()
-    expect(bootstrap).not.toHaveBeenCalled()
-
-    subscribed()
     await new Promise(resolve => setImmediate(resolve))
 
     expect(bootstrap).toHaveBeenCalledTimes(1)
+
+    subscribed({
+      deviceID: 'd1',
+      deviceName: 'testuser-mac',
+      httpSrvInfo: {address: '127.0.0.1:2000', token: 'token'},
+      loggedIn: true,
+      registered: true,
+      uid: 'u1',
+      username: 'testuser',
+      version: {counter: 1, epoch: 7},
+    })
+    await new Promise(resolve => setImmediate(resolve))
+
     expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:2000')
   })
 
@@ -151,5 +155,58 @@ describe('onEngineConnected', () => {
     await new Promise(resolve => setImmediate(resolve))
 
     expect(bootstrap).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('onNetworkOnlineChanged', () => {
+  // replaces the gregor-reachability trigger: re-read the bootstrap status after an offline stretch
+  afterEach(() => {
+    jest.restoreAllMocks()
+    useDaemonState.setState({dispatch: originalDaemonDispatch})
+    resetAllStores()
+  })
+
+  const originalDaemonDispatch = useDaemonState.getState().dispatch
+  const spyOnReRead = () => {
+    // userSwitching survives resetAllStores on purpose, and an earlier test in this file sets it
+    useConfigState.getState().dispatch.setUserSwitching(false)
+    const reRead = jest.fn(async () => {})
+    useDaemonState.setState({
+      dispatch: {...originalDaemonDispatch, loadDaemonBootstrapStatus: reRead},
+      handshakeState: 'done',
+    })
+    return reRead
+  }
+
+  test('re-reads the bootstrap status when the network comes back', () => {
+    const reRead = spyOnReRead()
+    onNetworkOnlineChanged(true, false)
+    expect(reRead).toHaveBeenCalledTimes(1)
+  })
+
+  test('does not re-read on the first reading of the network at startup', () => {
+    const reRead = spyOnReRead()
+    onNetworkOnlineChanged(true, undefined)
+    expect(reRead).not.toHaveBeenCalled()
+  })
+
+  test('does not re-read when going offline', () => {
+    const reRead = spyOnReRead()
+    onNetworkOnlineChanged(false, true)
+    expect(reRead).not.toHaveBeenCalled()
+  })
+
+  test('does not re-read during an account switch', () => {
+    const reRead = spyOnReRead()
+    useConfigState.getState().dispatch.setUserSwitching(true)
+    onNetworkOnlineChanged(true, false)
+    expect(reRead).not.toHaveBeenCalled()
+  })
+
+  test('does not re-read before the handshake is done', () => {
+    const reRead = spyOnReRead()
+    useDaemonState.setState({handshakeState: 'loading'})
+    onNetworkOnlineChanged(true, false)
+    expect(reRead).not.toHaveBeenCalled()
   })
 })

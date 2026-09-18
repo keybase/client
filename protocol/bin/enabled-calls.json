@@ -389,8 +389,6 @@
   "keybase.1.provisionUi.chooseGPGMethod": {"custom":true},
   "keybase.1.provisionUi.switchToGPGSignOK": {"custom":true},
   "keybase.1.reachability.checkReachability": {"promise":true},
-  "keybase.1.reachability.reachabilityChanged": {"incoming":true},
-  "keybase.1.reachability.startReachability": {"promise":true},
   "keybase.1.rekey.getRevokeWarning": {"promise":true},
   "keybase.1.rekey.rekeyStatusFinish": {"promise":true},
   "keybase.1.rekey.showPendingRekeyStatus": {"promise":true},

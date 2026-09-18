@@ -4,7 +4,6 @@ import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import {maxHandshakeTries} from '@/constants/values'
-import {useConfigState} from '@/stores/config'
 
 // A bootstrap step gates the handshake: the app stays on the splash screen until every step
 // resolves. Throwing fails the whole attempt (FatalHandshakeError skips the remaining retries).
@@ -14,9 +13,7 @@ export type BootstrapStep = () => Promise<void>
 export class FatalHandshakeError extends Error {}
 
 type Store = T.Immutable<{
-  // without the version: that only orders this read against the login, logout and http server
-  // notifications, and keeping it would make every read after one of those look like a change
-  bootstrapStatus?: Omit<T.RPCGen.BootstrapStatus, 'version'>
+  bootstrapStatus?: T.RPCGen.BootstrapStatus
   error?: Error
   handshakeFailedReason: string
   /** counts handshakes, so consumers can tell one reconnect from the next */
@@ -40,21 +37,12 @@ export type State = Store & {
     loadDaemonBootstrapStatus: () => Promise<void>
     resetState: () => void
     setError: (e?: Error) => void
-    // readAfter: the bootstrap read must not start before the notification subscription is in
-    // place, or a login, logout or http server change announced between them reaches nobody.
-    // Everything else -- clearing the disconnect state, invalidating the previous handshake --
-    // happens synchronously, so a reconnect is visible without waiting on an RPC.
-    startHandshake: (readAfter?: Promise<void>) => void
+    startHandshake: () => void
     updateUserReacjis: (userReacjis: T.RPCGen.UserReacjis) => void
   }
 }
 
 const retryDelayMs = 1000
-// The version is missing when the service predates it; the version gates then have nothing to
-// order by and apply everything, as we did before versions existed.
-type MaybeVersionedStatus = Omit<T.RPCGen.BootstrapStatus, 'version'> & {version?: number}
-// the initial read plus two retries; a status that keeps losing to newer logins or logouts is dropped
-const maxStaleSnapshotReads = 3
 
 export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
   let bootstrapSteps: Array<BootstrapStep> = []
@@ -73,38 +61,20 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
       }
       const gen = generation
       const f = async () => {
-        const configDispatch = useConfigState.getState().dispatch
-        for (let read = 1; read <= maxStaleSnapshotReads; read++) {
-          const {version, ...bs}: MaybeVersionedStatus =
-            await T.RPCGen.configGetBootstrapStatusRpcPromise()
-          logger.info(
-            `[Bootstrap] loggedIn: ${bs.loggedIn ? 1 : 0} http: ${bs.httpSrvInfo ? bs.httpSrvInfo.address : 'none'} version: ${version}`
-          )
-          // applied here rather than from bootstrapStatus: the address has its own ordering, and a
-          // status that is skipped below or later edited in place must not skip or replay it
-          if (bs.httpSrvInfo) {
-            configDispatch.setHTTPSrvInfo(bs.httpSrvInfo.address, bs.httpSrvInfo.token, version)
-          }
-          // a newer handshake owns the store now; don't write a potentially older status over its
-          // load, and don't consume the session version it needs
-          if (gen !== generation) {
-            return
-          }
-          if (!configDispatch.acceptSessionSnapshot(version)) {
-            logger.info('[Bootstrap] a login or logout is newer than this status, reading it again')
-            continue
-          }
-          if (isEqual(bs, get().bootstrapStatus)) {
-            return
-          }
-          set(s => {
-            s.bootstrapStatus = T.castDraft(bs)
-          })
+        const bs = await T.RPCGen.configGetBootstrapStatusRpcPromise()
+        logger.info(
+          `[Bootstrap] loggedIn: ${bs.loggedIn ? 1 : 0} http: ${bs.httpSrvInfo ? bs.httpSrvInfo.address : 'none'}`
+        )
+        // a newer handshake owns the store now; don't write a potentially older status over its load
+        if (gen !== generation) {
           return
         }
-        logger.warn(
-          '[Bootstrap] the status kept losing to newer logins or logouts; the session is whatever the last notification said and the current user stays as it was'
-        )
+        if (isEqual(bs, get().bootstrapStatus)) {
+          return
+        }
+        set(s => {
+          s.bootstrapStatus = T.castDraft(bs)
+        })
       }
       const p = f()
       inflightBootstrapStatus = p
@@ -132,7 +102,7 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
         s.error = e
       })
     },
-    startHandshake: readAfter => {
+    startHandshake: () => {
       const gen = ++generation
       // startHandshake follows an engine reset, which drops in-flight RPCs without settling
       // their promises; reusing one here would stall the handshake forever
@@ -145,9 +115,6 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
         s.handshakeState = 'loading'
       })
       const run = async () => {
-        // readAfter only orders the read behind the subscription; if it rejects the handshake
-        // must still run, or the app sits on the splash with no retry and no Reload.
-        await readAfter?.catch(() => {})
         while (gen === generation) {
           try {
             await get().dispatch.loadDaemonBootstrapStatus()

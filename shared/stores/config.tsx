@@ -24,7 +24,6 @@ type Store = T.Immutable<{
   configuredAccounts: Array<T.Config.ConfiguredAccount>
   defaultUsername: string
   globalError?: Error | RPCError
-  gregorReachable?: T.RPCGen.Reachable
   gregorPushState: Array<{md: T.RPCGregor.Metadata; item: T.RPCGregor.Item}>
   loginError?: RPCError
   httpSrv: {
@@ -62,7 +61,6 @@ const initialStore: Store = {
   defaultUsername: '',
   globalError: undefined,
   gregorPushState: [],
-  gregorReachable: undefined,
   httpSrv: {
     address: '',
     token: '',
@@ -92,9 +90,10 @@ const initialStore: Store = {
 export type State = Store & {
   dispatch: {
     // a login or logout notification: applied only if it is newer than the last applied one
-    acceptSessionVersion: (version: number | undefined) => boolean
-    // a bootstrap status: applied unless a login or logout notification is newer
-    acceptSessionSnapshot: (version: number | undefined) => boolean
+    acceptSessionVersion: (version?: T.RPCGen.StateVersion) => boolean
+    // true while nothing versioned has landed: the only window in which an unversioned payload
+    // (a bootstrap status from a service too old to answer setNotifications) may own this field
+    canAcceptUnversioned: (kind: 'http' | 'session') => boolean
     checkForUpdate: () => void
     initAppUpdateLoop: () => void
     installerRan: () => void
@@ -116,8 +115,7 @@ export type State = Store & {
     setChatStaticConfig: (s: T.Chat.StaticConfig) => void
     setDefaultUsername: (u: string) => void
     setGlobalError: (e?: unknown) => void
-    setGregorReachable: (r: Store['gregorReachable']) => void
-    setHTTPSrvInfo: (address: string, token: string, version: number | undefined) => void
+    setHTTPSrvInfo: (address: string, token: string, version?: T.RPCGen.StateVersion) => void
     setJustDeletedSelf: (s: string) => void
     setLoggedIn: (l: boolean) => void
     setStartupDetails: (st: Omit<Store['startup'], 'loaded'>) => void
@@ -129,28 +127,25 @@ export type State = Store & {
   }
 }
 
-// Below every version the service can hand out: it can hand out 0, because the http server
-// starts before the notify router exists and its first update stamps nothing.
-const noVersionApplied = -1
-const nothingApplied = () => ({http: noVersionApplied, session: noVersionApplied})
+// A different epoch is a different service process: its counter started over, so
+// it is not comparable and its state is by definition the newer one.
+const isNewerVersion = (next: T.RPCGen.StateVersion, applied?: T.RPCGen.StateVersion) =>
+  next.epoch !== applied?.epoch || next.counter > applied.counter
 
 export const useConfigState = Z.createZustand<State>('config', (set, get) => {
   let inflightRefreshAccounts: Promise<void> | undefined
   // The http server address and the session change at any time and say so with versioned
-  // notifications, while a bootstrap status read can take seconds. The service stamps both from
-  // one counter, so only a newer version wins.
-  let applied = nothingApplied()
-  // A notification must be strictly newer than what we applied. A bootstrap status may carry the
-  // version of a notification we already applied, since that is the same state read again.
-  const acceptVersion = (
-    kind: 'http' | 'session',
-    version: number | undefined,
-    source: 'notification' | 'status'
-  ) => {
+  // notifications; the setNotifications reply carries both under one version. The service stamps
+  // every one of them from one counter, so only a strictly newer version wins. The reply is
+  // labelled before the state it carries, so it is never newer than its label: dropping it on a
+  // tie loses nothing, because anything it holds beyond its label is a change already on its way
+  // as its own notification.
+  const applied: {http?: T.RPCGen.StateVersion; session?: T.RPCGen.StateVersion} = {}
+  const acceptVersion = (kind: 'http' | 'session', version?: T.RPCGen.StateVersion) => {
     // a service too old to send a version gives us nothing to order by, so everything it sends is
     // applied in the order it arrives, as it was before versions existed
-    if (version === undefined) return true
-    if (source === 'status' ? version < applied[kind] : version <= applied[kind]) return false
+    if (!version) return true
+    if (!isNewerVersion(version, applied[kind])) return false
     applied[kind] = version
     return true
   }
@@ -176,14 +171,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
     } catch (err) {
       logger.warn('error getting update info: ', err)
     }
-  }
-
-  const setGregorReachable = (r: Store['gregorReachable']) => {
-    const old = get().gregorReachable
-    if (old === r) return
-    set(s => {
-      s.gregorReachable = r
-    })
   }
 
   const setGregorPushState = (state: T.RPCGen.Gregor1.State) => {
@@ -213,8 +200,8 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
   }
 
   const dispatch: State['dispatch'] = {
-    acceptSessionSnapshot: version => acceptVersion('session', version, 'status'),
-    acceptSessionVersion: version => acceptVersion('session', version, 'notification'),
+    acceptSessionVersion: version => acceptVersion('session', version),
+    canAcceptUnversioned: kind => applied[kind] === undefined,
     checkForUpdate: () => {
       const f = async () => {
         await _checkForUpdate()
@@ -345,23 +332,11 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       ignorePromise(f())
     },
     onEngineConnected: () => {
-      // this may be a restarted service, whose versions start over
-      applied = nothingApplied()
+      // The applied versions are kept: a restarted service announces a different epoch, which is
+      // always newer, and a service that is still the same one kept counting across the reconnect.
       // An engine reset drops in-flight RPCs without settling their promises; a refresh
       // caught by that would poison the dedupe cache forever
       inflightRefreshAccounts = undefined
-      // The startReachability RPC call both starts and returns the current
-      // reachability state. Then we'll get updates of changes from this state via reachabilityChanged.
-      // This should be run on app start and service re-connect in case the service somehow crashed or was restarted manually.
-      const startReachability = async () => {
-        try {
-          const reachability = await T.RPCGen.reachabilityStartReachabilityRpcPromise()
-          get().dispatch.setGregorReachable(reachability.reachable)
-        } catch (err) {
-          logger.warn('error bootstrapping reachability: ', err)
-        }
-      }
-      ignorePromise(startReachability())
 
       // If ever you want to get OOBMs for a different system, then you need to enter it here.
       const registerForGregorNotifications = async () => {
@@ -433,11 +408,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
           }
           break
         }
-        case 'keybase.1.reachability.reachabilityChanged':
-          if (get().loggedIn) {
-            get().dispatch.setGregorReachable(action.payload.params.reachability.reachable)
-          }
-          break
         default:
       }
     },
@@ -565,14 +535,9 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         })
       }
     },
-    setGregorReachable: r => {
-      setGregorReachable(r)
-    },
     setHTTPSrvInfo: (address, token, version) => {
-      // the notification rule, for the status too: a status whose version ties the notification we
-      // applied carries that notification's address, so nothing is lost by ignoring it
-      if (!acceptVersion('http', version, 'notification')) {
-        logger.info(`[HTTPSrv] ignoring ${address}: version ${version} is not newer`)
+      if (!acceptVersion('http', version)) {
+        logger.info(`[HTTPSrv] ignoring ${address}: version ${JSON.stringify(version)} is not newer`)
         return
       }
       set(s => {

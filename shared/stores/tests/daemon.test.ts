@@ -3,7 +3,6 @@ import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
 import {maxHandshakeTries} from '@/constants/values'
 import {resetAllStores} from '@/util/zustand'
-import {useConfigState} from '../config'
 import {FatalHandshakeError, useDaemonState} from '../daemon'
 
 const bootstrapStatus = {
@@ -14,7 +13,6 @@ const bootstrapStatus = {
   registered: true,
   uid: 'u1',
   username: 'testuser',
-  version: 1,
 } as unknown as T.RPCGen.BootstrapStatus
 
 describe('daemon store', () => {
@@ -39,19 +37,6 @@ describe('daemon store', () => {
     expect(step).toHaveBeenCalledTimes(1)
     expect(store.getState().handshakeState).toBe('done')
     expect(store.getState().bootstrapStatus?.username).toBe('testuser')
-  })
-
-  test('a rejecting readAfter still starts the handshake', async () => {
-    jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue(bootstrapStatus)
-    const step = jest.fn(async () => {})
-    const store = useDaemonState
-    store.getState().dispatch.initBootstrapSteps([step])
-
-    store.getState().dispatch.startHandshake(Promise.reject(new Error('subscribe failed')))
-    await jest.advanceTimersByTimeAsync(0)
-
-    expect(step).toHaveBeenCalledTimes(1)
-    expect(store.getState().handshakeState).toBe('done')
   })
 
   test('a failing step retries and can recover', async () => {
@@ -163,25 +148,9 @@ describe('daemon store', () => {
   })
 })
 
-describe('httpSrvInfo ordering', () => {
-  const withHTTP = (address: string, version: number): T.RPCGen.BootstrapStatus => ({
-    ...bootstrapStatus,
-    httpSrvInfo: {address, token: 'token'},
-    version,
-  })
-  const notify = (address: string, version: number) =>
-    useConfigState.getState().dispatch.onEngineIncoming({
-      payload: {params: {info: {address, token: 'token'}, version}},
-      type: 'keybase.1.NotifyService.HTTPSrvInfoUpdate',
-    } as any)
-
+describe('a superseded read', () => {
   beforeEach(() => {
     jest.useFakeTimers()
-    // the applied versions live outside the store; a fresh engine connection is what clears them
-    useConfigState.getState().dispatch.onEngineConnected()
-    useConfigState.setState(s => {
-      s.httpSrv = {address: '', token: ''}
-    })
   })
   afterEach(() => {
     jest.useRealTimers()
@@ -189,223 +158,28 @@ describe('httpSrvInfo ordering', () => {
     resetAllStores()
   })
 
-  test('a status older than an http server notification does not overwrite it', async () => {
-    notify('127.0.0.1:2', 5)
-    jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue(withHTTP('127.0.0.1:1', 4))
-
-    await useDaemonState.getState().dispatch.loadDaemonBootstrapStatus()
-
-    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:2')
-    expect(useDaemonState.getState().bootstrapStatus?.username).toBe('testuser')
-  })
-
-  test('a status newer than a notification is applied', async () => {
-    notify('127.0.0.1:2', 3)
-    jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue(withHTTP('127.0.0.1:1', 4))
-
-    await useDaemonState.getState().dispatch.loadDaemonBootstrapStatus()
-
-    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:1')
-  })
-
-  test('an older notification landing after a newer status is ignored', async () => {
-    jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue(withHTTP('127.0.0.1:1', 6))
-
-    await useDaemonState.getState().dispatch.loadDaemonBootstrapStatus()
-    notify('127.0.0.1:2', 5)
-
-    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:1')
-  })
-
-  test('a version-0 address from a service that never stamped one is applied', async () => {
-    // the http server starts before the notify router exists, so its first update stamps nothing
-    jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue(withHTTP('127.0.0.1:1', 0))
-
-    await useDaemonState.getState().dispatch.loadDaemonBootstrapStatus()
-
-    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:1')
-  })
-
-  test('a status equal to the stored one still applies its newer address', async () => {
+  test('does not write its status over the newer load', async () => {
+    // a reconnect invalidates in-flight reads whatever any version says: the generation orders
+    // client attempts, which the service's counter knows nothing about
+    let resolveLosing!: (bs: T.RPCGen.BootstrapStatus) => void
     jest
       .spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise')
-      .mockResolvedValueOnce(withHTTP('127.0.0.1:1', 1))
-      .mockResolvedValueOnce(withHTTP('127.0.0.1:1', 3))
-    const {dispatch} = useDaemonState.getState()
-
-    await dispatch.loadDaemonBootstrapStatus()
-    notify('127.0.0.1:2', 2)
-    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:2')
-
-    // the second status is identical to the stored one, so nothing is written, but its
-    // address is newer than the notification's and still has to be applied
-    await dispatch.loadDaemonBootstrapStatus()
-    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:1')
-  })
-
-  test('a notification with the version already applied is ignored', () => {
-    notify('127.0.0.1:2', 5)
-    notify('127.0.0.1:3', 5)
-    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:2')
-  })
-
-  test('logging out keeps the http server address', () => {
-    notify('127.0.0.1:2', 1)
-    useConfigState.getState().dispatch.resetState()
-    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:2')
-  })
-
-  test("a reconnect accepts a restarted service's lower versions", () => {
-    notify('127.0.0.1:2', 9)
-    useConfigState.getState().dispatch.onEngineConnected()
-    notify('127.0.0.1:3', 1)
-    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:3')
-  })
-})
-
-describe('session ordering', () => {
-  const deferredBootstrap = () => {
-    let resolve!: (bs: T.RPCGen.BootstrapStatus) => void
-    const promise = new Promise<T.RPCGen.BootstrapStatus>(_resolve => {
-      resolve = _resolve
-    })
-    return {promise, resolve}
-  }
-  const notifySession = (kind: 'loggedIn' | 'loggedOut', version: number) =>
-    useConfigState.getState().dispatch.onEngineIncoming({
-      payload: {
-        params: kind === 'loggedIn' ? {signedUp: false, username: 'testuser', version} : {version},
-      },
-      type: `keybase.1.NotifySession.${kind}`,
-    } as any)
-
-  beforeEach(() => {
-    jest.useFakeTimers()
-    // the applied versions live outside the store; a fresh engine connection is what clears them
-    useConfigState.getState().dispatch.onEngineConnected()
-  })
-  afterEach(() => {
-    jest.useRealTimers()
-    jest.restoreAllMocks()
-    resetAllStores()
-  })
-
-  test('a status older than a session notification is read again', async () => {
-    notifySession('loggedIn', 7)
-    const spy = jest
-      .spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise')
-      .mockResolvedValueOnce({...bootstrapStatus, username: 'stale', version: 6})
-      .mockResolvedValueOnce({...bootstrapStatus, username: 'testuser', version: 7})
-
-    await useDaemonState.getState().dispatch.loadDaemonBootstrapStatus()
-
-    expect(spy).toHaveBeenCalledTimes(2)
-    expect(useDaemonState.getState().bootstrapStatus?.username).toBe('testuser')
-  })
-
-  test('a status that keeps losing is not applied', async () => {
-    notifySession('loggedOut', 9)
-    const spy = jest
-      .spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise')
-      .mockResolvedValueOnce({...bootstrapStatus, version: 1})
-      .mockResolvedValueOnce({...bootstrapStatus, version: 2})
-      .mockResolvedValueOnce({...bootstrapStatus, version: 3})
-
-    await useDaemonState.getState().dispatch.loadDaemonBootstrapStatus()
-
-    expect(spy).toHaveBeenCalledTimes(3)
-    expect(useDaemonState.getState().bootstrapStatus).toBe(undefined)
-  })
-
-  test('a status whose only change is its version does not rewrite the store', async () => {
-    // a login, logout or http server change bumps the version without changing this status
-    jest
-      .spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise')
-      .mockResolvedValueOnce({...bootstrapStatus, version: 1})
-      .mockResolvedValueOnce({...bootstrapStatus, version: 2})
-    const {dispatch} = useDaemonState.getState()
-
-    await dispatch.loadDaemonBootstrapStatus()
-    const stored = useDaemonState.getState().bootstrapStatus
-    await dispatch.loadDaemonBootstrapStatus()
-
-    expect(useDaemonState.getState().bootstrapStatus).toBe(stored)
-  })
-
-  test('a status whose version ties the applied notification is applied', async () => {
-    notifySession('loggedOut', 4)
-    const spy = jest
-      .spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise')
-      .mockResolvedValue({...bootstrapStatus, version: 4})
-
-    await useDaemonState.getState().dispatch.loadDaemonBootstrapStatus()
-
-    expect(spy).toHaveBeenCalledTimes(1)
-    expect(useDaemonState.getState().bootstrapStatus?.username).toBe('testuser')
-  })
-
-  test('a session notification older than the applied one is ignored', () => {
-    useConfigState.setState({loggedIn: true})
-
-    notifySession('loggedOut', 5)
-    expect(useConfigState.getState().loggedIn).toBe(false)
-
-    notifySession('loggedIn', 4)
-    expect(useConfigState.getState().loggedIn).toBe(false)
-  })
-
-  test('a notification with the version already applied is ignored', () => {
-    useConfigState.setState({loggedIn: false})
-
-    notifySession('loggedIn', 5)
-    expect(useConfigState.getState().loggedIn).toBe(true)
-
-    notifySession('loggedOut', 5)
-    expect(useConfigState.getState().loggedIn).toBe(true)
-  })
-
-  test('a service too old to send a version still applies its status and its notifications', async () => {
-    useConfigState.setState({loggedIn: true})
-    jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue({
-      ...bootstrapStatus,
-      httpSrvInfo: {address: '127.0.0.1:1', token: 'token'},
-      version: undefined,
-    } as unknown as T.RPCGen.BootstrapStatus)
-
-    await useDaemonState.getState().dispatch.loadDaemonBootstrapStatus()
-
-    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:1')
-    expect(useDaemonState.getState().bootstrapStatus?.username).toBe('testuser')
-
-    useConfigState.getState().dispatch.onEngineIncoming({
-      payload: {params: {}},
-      type: 'keybase.1.NotifySession.loggedOut',
-    } as any)
-    expect(useConfigState.getState().loggedIn).toBe(false)
-  })
-
-  test('a superseded read does not swallow a later session notification', async () => {
-    // it can read a version at least as new as the winner's; consuming it and then throwing the
-    // status away would leave nothing to apply that version's state
-    useConfigState.setState({loggedIn: true})
-    const superseded = deferredBootstrap()
-    jest
-      .spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise')
-      .mockReturnValueOnce(superseded.promise)
-      .mockResolvedValue({...bootstrapStatus, version: 5})
+      .mockReturnValueOnce(
+        new Promise<T.RPCGen.BootstrapStatus>(resolve => {
+          resolveLosing = resolve
+        })
+      )
+      .mockResolvedValue(bootstrapStatus)
     const {dispatch} = useDaemonState.getState()
     dispatch.initBootstrapSteps([])
 
     const losing = dispatch.loadDaemonBootstrapStatus()
-    // a new handshake starts its own load instead of reusing the in-flight one
     dispatch.startHandshake()
     await jest.advanceTimersByTimeAsync(0)
-    superseded.resolve({...bootstrapStatus, username: 'stale', version: 9})
+    resolveLosing({...bootstrapStatus, username: 'stale'})
     await losing
     await jest.advanceTimersByTimeAsync(0)
-    expect(useDaemonState.getState().bootstrapStatus?.username).toBe('testuser')
 
-    notifySession('loggedOut', 9)
-    expect(useConfigState.getState().loggedIn).toBe(false)
+    expect(useDaemonState.getState().bootstrapStatus?.username).toBe('testuser')
   })
 })
