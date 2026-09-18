@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -436,6 +437,20 @@ func TestSyncerMembersTypeChanged(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no inbox synced received")
 	}
+}
+
+// Connected with a ctx its connection's Shutdown has already cancelled must
+// not mark the syncer connected: the Disconnected that follows the cancel may
+// already have run.
+func TestSyncerConnectedAfterCancelIsIgnored(t *testing.T) {
+	tc := externalstest.SetupTest(t, "syncer-connected-cancel", 0)
+	defer tc.Cleanup()
+	syncer := NewSyncer(globals.NewContext(tc.G, &globals.ChatContext{}))
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	err := syncer.Connected(ctx, nil, gregor1.UID(make([]byte, 16)), &chat1.SyncChatRes{})
+	require.False(t, syncer.IsConnected(context.Background()))
+	require.ErrorIs(t, err, context.Canceled)
 }
 
 func TestSyncerAppState(t *testing.T) {

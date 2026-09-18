@@ -177,6 +177,13 @@ func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid g
 	ctx = globals.CtxAddLogTags(ctx, s.G())
 	defer s.Trace(ctx, &err, "Connected")()
 	s.Lock()
+	// ctx is the connection's: the caller cancels it before it calls
+	// Disconnected, so a Connected that sees the cancel here must not mark
+	// the syncer connected after that Disconnected.
+	if err := ctx.Err(); err != nil {
+		s.Unlock()
+		return err
+	}
 	s.isConnected = true
 	// Let the Offlinables know that we are back online
 	for _, o := range s.offlinables {

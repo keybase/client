@@ -205,10 +205,6 @@ type gregorHandler struct {
 	// none of them lands after a Shutdown for the connection it came from.
 	connGate *gregorConnGate
 
-	// syncerConn is the connection that last marked the chat syncer
-	// connected, under connMutex.
-	syncerConn *rpc.Connection
-
 	// This mutex protects the con object
 	connMutex sync.Mutex
 	conn      *rpc.Connection
@@ -238,13 +234,8 @@ type gregorHandler struct {
 
 	// Testing
 	testingEvents *testingEvents
-	// beforeGregorClientInstall, if set, runs in resetGregorClientFor after
-	// the client is built and before it is installed.
-	beforeGregorClientInstall func()
 	// authParamsForTest, if set, replaces authParams in OnConnect.
-	authParamsForTest func(ctx context.Context) (gregor1.UID, gregor1.DeviceID, gregor1.SessionToken, *libkb.NIST, error)
-	// onConnectStep, if set, runs before each step of onConnectSynced.
-	onConnectStep       func(step onConnectStep)
+	authParamsForTest   func(ctx context.Context) (gregor1.UID, gregor1.DeviceID, gregor1.SessionToken, *libkb.NIST, error)
 	transportForTesting *connTransport
 }
 
@@ -255,16 +246,6 @@ type gregorBadger interface {
 }
 
 var _ gregorBadger = (*badges.Badger)(nil)
-
-type onConnectStep int
-
-const (
-	onConnectStepChatBadges onConnectStep = iota
-	onConnectStepSyncer
-	onConnectStepServerSync
-	onConnectStepGregorBadges
-	onConnectStepConnected
-)
 
 var (
 	_ libkb.GregorState    = (*gregorHandler)(nil)
@@ -362,17 +343,11 @@ func (g *gregorHandler) shutdownGregorClient(ctx context.Context) {
 	}
 }
 
+// resetGregorClient installs a new client for uid unless ctx is cancelled.
+// OnConnect passes its connection's ctx, which Shutdown cancels under
+// connMutex; checking and installing under connMutex too means Reset, which
+// drops the client after its Shutdown, never runs between the two.
 func (g *gregorHandler) resetGregorClient(ctx context.Context, uid gregor1.UID, deviceID gregor1.DeviceID) (gcli *grclient.Client, err error) {
-	return g.resetGregorClientFor(ctx, nil, uid, deviceID)
-}
-
-// resetGregorClientFor installs a new client for uid. With conn set, it
-// installs only while conn is still the current connection, checked under
-// the lock Shutdown takes, so an OnConnect that loses a race with a logout
-// or a reconnect doesn't install a client for the old connection.
-func (g *gregorHandler) resetGregorClientFor(ctx context.Context, conn *rpc.Connection,
-	uid gregor1.UID, deviceID gregor1.DeviceID,
-) (gcli *grclient.Client, err error) {
 	defer g.chatLog.Trace(ctx, &err, "resetGregorClient")()
 	// Create client object if we are logged in
 	if uid != nil && deviceID != nil {
@@ -387,18 +362,13 @@ func (g *gregorHandler) resetGregorClientFor(ctx context.Context, conn *rpc.Conn
 			g.Debug(ctx, "restore local state failed: %s", err)
 		}
 	}
-	if g.beforeGregorClientInstall != nil {
-		g.beforeGregorClientInstall()
-	}
-	if conn != nil {
-		g.connMutex.Lock()
-		defer g.connMutex.Unlock()
-		if conn != g.conn {
-			if gcli != nil {
-				gcli.Stop()
-			}
-			return nil, chat.ErrDuplicateConnection
+	g.connMutex.Lock()
+	defer g.connMutex.Unlock()
+	if ctx.Err() != nil {
+		if gcli != nil {
+			gcli.Stop()
 		}
+		return nil, chat.ErrDuplicateConnection
 	}
 	g.gregorCliMu.Lock()
 	gcliOld := g.gregorCli
@@ -795,23 +765,19 @@ func (g *gregorHandler) notificationParams(ctx context.Context, gcli *grclient.C
 }
 
 // OnConnect is called by the rpc library to indicate we have connected to
-// gregord
-func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
+// gregord. The library cancels ctx when it shuts the connection down, so ctx
+// is live exactly while the connection is still g.conn.
+func (g *gregorHandler) OnConnect(ctx context.Context, _ *rpc.Connection,
 	cli rpc.GenericClient, srv *rpc.Server,
 ) (err error) {
 	ctx = libkb.WithLogTag(ctx, "GRGRONCONN")
 
 	defer g.chatLog.Trace(ctx, &err, "OnConnect")()
 
-	// If we get a random OnConnect on some other connection that is not g.conn, then
-	// just reject it.
-	g.connMutex.Lock()
-	if conn != g.conn {
-		g.connMutex.Unlock()
-		g.chatLog.Debug(ctx, "aborting on dup connection")
+	if ctx.Err() != nil {
+		g.chatLog.Debug(ctx, "aborting, connection shut down")
 		return chat.ErrDuplicateConnection
 	}
-	g.connMutex.Unlock()
 
 	g.chatLog.Debug(ctx, "connected")
 	timeoutCli := WrapGenericClientWithTimeout(cli, GregorRequestTimeout, chat.ErrChatServerTimeout)
@@ -828,7 +794,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	if err != nil {
 		return err
 	}
-	gcli, err := g.resetGregorClientFor(ctx, conn, uid, deviceID)
+	gcli, err := g.resetGregorClient(ctx, uid, deviceID)
 	if err != nil {
 		// %w keeps ErrDuplicateConnection visible to ShouldRetryOnConnect.
 		return fmt.Errorf("failed to get gregor client: %w", err)
@@ -872,74 +838,29 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		return fmt.Errorf("error authenticating: %s", err)
 	}
 
-	return g.onConnectSynced(ctx, conn, chatCli, timeoutCli, uid, gcli, syncAllRes)
+	return g.onConnectSynced(ctx, chatCli, timeoutCli, uid, gcli, syncAllRes)
 }
 
-func (g *gregorHandler) runOnConnectStep(step onConnectStep) {
-	if g.onConnectStep != nil {
-		g.onConnectStep(step)
-	}
-}
-
-func (g *gregorHandler) isCurrentConn(conn *rpc.Connection) bool {
-	g.connMutex.Lock()
-	defer g.connMutex.Unlock()
-	return conn == g.conn
-}
-
-// onGateIfCurrent runs f under the connection gate if conn is still the
-// current connection, and reports whether it ran. Every Shutdown and Reset is
-// made under the gate too, so a disconnect lands entirely before f, and f is
-// then skipped, or entirely after it. f must not call back into the gate: its
-// mutex is not reentrant. The lock order is the gate's mu, then connMutex.
-func (g *gregorHandler) onGateIfCurrent(conn *rpc.Connection, f func()) bool {
+// onGateIfCurrent runs f under the connection gate if OnConnect's ctx is
+// still live, and reports whether it ran. Every Shutdown and Reset is made
+// under the gate too, and Shutdown cancels ctx, so a disconnect lands entirely
+// before f, and f is then skipped, or entirely after it. f must not call back
+// into the gate: its mutex is not reentrant.
+func (g *gregorHandler) onGateIfCurrent(ctx context.Context, f func()) bool {
 	g.connGate.mu.Lock()
 	defer g.connGate.mu.Unlock()
-	if !g.isCurrentConn(conn) {
+	if ctx.Err() != nil {
 		return false
 	}
 	f()
 	return true
 }
 
-// connectSyncer marks the chat syncer connected for conn and syncs it.
-// Syncer.Connected can't run under the connection gate, since the sync calls
-// the server through this handler and may ask the gate to reconnect, so a
-// Shutdown can land while it runs; conn then undoes its own mark, unless a
-// newer connection has marked the syncer since.
-func (g *gregorHandler) connectSyncer(ctx context.Context, conn *rpc.Connection, chatCli chat1.RemoteInterface,
-	uid gregor1.UID, syncRes *chat1.SyncChatRes,
-) error {
-	g.connMutex.Lock()
-	if conn != g.conn {
-		g.connMutex.Unlock()
-		return chat.ErrDuplicateConnection
-	}
-	g.syncerConn = conn
-	g.connMutex.Unlock()
-
-	err := g.G().Syncer.Connected(ctx, chatCli, uid, syncRes)
-
-	g.connMutex.Lock()
-	defer g.connMutex.Unlock()
-	if conn != g.conn {
-		if g.syncerConn == conn {
-			g.chatLog.Debug(ctx, "connection dropped during chat sync, marking the syncer disconnected")
-			g.G().Syncer.Disconnected(ctx)
-			g.syncerConn = nil
-		}
-		return chat.ErrDuplicateConnection
-	}
-	if err != nil {
-		return fmt.Errorf("error running chat sync: %s", err)
-	}
-	return nil
-}
-
-// onConnectSynced applies a SyncAll result for conn. A logout or reconnect
-// can drop conn at any point, so each step applies only while conn is still
-// current, and OnConnect then fails with ErrDuplicateConnection.
-func (g *gregorHandler) onConnectSynced(ctx context.Context, conn *rpc.Connection, chatCli chat1.RemoteInterface,
+// onConnectSynced applies a SyncAll result for OnConnect's connection. A
+// logout or reconnect can shut the connection down at any point, so each
+// step applies only while ctx is live, and OnConnect then fails with
+// ErrDuplicateConnection.
+func (g *gregorHandler) onConnectSynced(ctx context.Context, chatCli chat1.RemoteInterface,
 	timeoutCli rpc.GenericClient, uid gregor1.UID, gcli *grclient.Client, syncAllRes chat1.SyncAllResult,
 ) error {
 	// Update badging for chat.
@@ -949,8 +870,7 @@ func (g *gregorHandler) onConnectSynced(ctx context.Context, conn *rpc.Connectio
 	// badging update (7->8) then on reconnect an incomplete chat badge update (8->9)
 	// could be received.
 	// See: https://github.com/keybase/client/pull/12651
-	g.runOnConnectStep(onConnectStepChatBadges)
-	if !g.onGateIfCurrent(conn, func() {
+	if !g.onGateIfCurrent(ctx, func() {
 		if g.badger != nil {
 			g.badger.PushChatFullUpdate(ctx, syncAllRes.Badge)
 		}
@@ -960,16 +880,17 @@ func (g *gregorHandler) onConnectSynced(ctx context.Context, conn *rpc.Connectio
 
 	// Sync chat data using a Syncer object
 	// This commits the new inbox version to persistent storage.
-	g.runOnConnectStep(onConnectStepSyncer)
-	if err := g.connectSyncer(ctx, conn, chatCli, uid, &syncAllRes.Chat); err != nil {
-		return err
+	// It can't run under the gate, since the sync calls the server through
+	// this handler and may ask the gate to reconnect. The Syncer ignores a
+	// cancelled ctx, and Shutdown marks it disconnected after cancelling.
+	if err := g.G().Syncer.Connected(ctx, chatCli, uid, &syncAllRes.Chat); err != nil && ctx.Err() == nil {
+		return fmt.Errorf("error running chat sync: %s", err)
 	}
 
 	// Sync down events since we have been dead
-	// TODO: unlike the badge steps around it, serverSync is check-then-act: conn can stop being
-	// current between this check and the sync. Gating it means running an RPC under the gate.
-	g.runOnConnectStep(onConnectStepServerSync)
-	if !g.isCurrentConn(conn) {
+	// TODO: unlike the badge steps around it, serverSync is check-then-act: the connection can
+	// shut down between this check and the sync. Gating it means running an RPC under the gate.
+	if ctx.Err() != nil {
 		return chat.ErrDuplicateConnection
 	}
 	if _, err := g.serverSync(ctx, gregor1.IncomingClient{Cli: timeoutCli}, gcli,
@@ -980,8 +901,7 @@ func (g *gregorHandler) onConnectSynced(ctx context.Context, conn *rpc.Connectio
 
 	// Update badging from gregor, and call out to reachability module if we
 	// have one.
-	g.runOnConnectStep(onConnectStepGregorBadges)
-	if !g.onGateIfCurrent(conn, func() {
+	if !g.onGateIfCurrent(ctx, func() {
 		if g.badger != nil {
 			state, err := gcli.StateMachineState(ctx, nil, false)
 			if err != nil {
@@ -1013,8 +933,7 @@ func (g *gregorHandler) onConnectSynced(ctx context.Context, conn *rpc.Connectio
 	}(g.makeReconnectOobm())
 
 	// No longer first connect if we are now connected.
-	g.runOnConnectStep(onConnectStepConnected)
-	if !g.onGateIfCurrent(conn, func() {
+	if !g.onGateIfCurrent(ctx, func() {
 		g.chatLog.Debug(ctx, "setting first connect to false")
 		g.setFirstConnect(false)
 		g.setConnectedAt(time.Now())
@@ -1489,11 +1408,12 @@ func (g *gregorHandler) Shutdown(ctx context.Context) {
 		return
 	}
 
-	// Alert chat syncer that we are now disconnected
-	g.G().Syncer.Disconnected(ctx)
-
 	close(g.shutdownCh)
 	g.conn.Shutdown()
+	// After the Shutdown, which cancels the ctx of an OnConnect in flight, so
+	// a Syncer.Connected from it either lands before this and is overwritten,
+	// or sees the cancel and is skipped.
+	g.G().Syncer.Disconnected(ctx)
 	g.conn = nil
 	g.cli = nil
 	g.setConnectedAt(time.Time{})

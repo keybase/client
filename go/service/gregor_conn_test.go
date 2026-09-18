@@ -775,46 +775,18 @@ func TestGregorHandlerTerminalFailureRedialsOnForeground(t *testing.T) {
 	require.True(t, hasConn(h), "failed connection was torn down")
 }
 
-// An OnConnect that passed its connection check before a logout must not
-// install a gregor client for the dropped connection.
-func TestGregorClientInstallRacingLogout(t *testing.T) {
-	tc, g := setupGregorTest(t)
-	defer tc.Cleanup()
-	g.Syncer = chat.NewSyncer(g)
-	ctx := context.Background()
-
-	h := newGregorHandler(g)
-	require.NoError(t, h.Connect(closedPortURI(t)))
-	h.connMutex.Lock()
-	conn := h.conn
-	h.connMutex.Unlock()
-	uid := gregor1.UID(make([]byte, 16))
-	deviceID := gregor1.DeviceID(make([]byte, 16))
-
-	gcli, err := h.resetGregorClientFor(ctx, conn, uid, deviceID)
-	require.NoError(t, err)
-	require.NotNil(t, gcli)
-	_, err = h.getGregorCli()
-	require.NoError(t, err, "current connection did not install its client")
-
-	h.beforeGregorClientInstall = func() { require.NoError(t, h.Disconnect()) }
-	_, err = h.resetGregorClientFor(ctx, conn, uid, deviceID)
-	require.ErrorIs(t, err, chat.ErrDuplicateConnection)
-	_, err = h.getGregorCli()
-	require.Error(t, err, "installed a client for a connection logout dropped")
-}
-
+// fakeSyncer ignores a Connected whose ctx is cancelled, as chat.Syncer does.
 type fakeSyncer struct {
 	types.Syncer
 	mu        sync.Mutex
 	connected bool
 	connects  int
-	// beforeMark, if set, runs once inside Connected before the syncer is
-	// marked connected, as a logout landing just before the mark would.
-	beforeMark func()
 	// onConnected, if set, runs once inside Connected, after the syncer is
 	// marked connected, as a logout landing during the sync would.
 	onConnected func()
+	// onDisconnected, if set, runs once inside Disconnected, after the
+	// syncer is marked disconnected.
+	onDisconnected func()
 }
 
 func (s *fakeSyncer) IsConnected(context.Context) bool {
@@ -823,15 +795,12 @@ func (s *fakeSyncer) IsConnected(context.Context) bool {
 	return s.connected
 }
 
-func (s *fakeSyncer) Connected(context.Context, chat1.RemoteInterface, gregor1.UID, *chat1.SyncChatRes) error {
+func (s *fakeSyncer) Connected(ctx context.Context, _ chat1.RemoteInterface, _ gregor1.UID, _ *chat1.SyncChatRes) error {
 	s.mu.Lock()
-	before := s.beforeMark
-	s.beforeMark = nil
-	s.mu.Unlock()
-	if before != nil {
-		before()
+	if err := ctx.Err(); err != nil {
+		s.mu.Unlock()
+		return err
 	}
-	s.mu.Lock()
 	s.connected = true
 	s.connects++
 	f := s.onConnected
@@ -845,8 +814,13 @@ func (s *fakeSyncer) Connected(context.Context, chat1.RemoteInterface, gregor1.U
 
 func (s *fakeSyncer) Disconnected(context.Context) {
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	s.connected = false
+	f := s.onDisconnected
+	s.onDisconnected = nil
+	s.mu.Unlock()
+	if f != nil {
+		f()
+	}
 }
 
 func (s *fakeSyncer) connectCalls() int {
@@ -856,10 +830,8 @@ func (s *fakeSyncer) connectCalls() int {
 }
 
 type fakeBadger struct {
-	mu                sync.Mutex
-	loggedOut         bool
-	pushes            int
-	pushesAfterLogout int
+	mu     sync.Mutex
+	pushes int
 	// onPush, if set, runs once inside a push.
 	onPush func()
 }
@@ -867,9 +839,6 @@ type fakeBadger struct {
 func (b *fakeBadger) push() {
 	b.mu.Lock()
 	b.pushes++
-	if b.loggedOut {
-		b.pushesAfterLogout++
-	}
 	f := b.onPush
 	b.onPush = nil
 	b.mu.Unlock()
@@ -881,16 +850,10 @@ func (b *fakeBadger) push() {
 func (b *fakeBadger) PushState(context.Context, gregor.State)                    { b.push() }
 func (b *fakeBadger) PushChatFullUpdate(context.Context, chat1.UnreadUpdateFull) { b.push() }
 
-func (b *fakeBadger) logout() {
+func (b *fakeBadger) count() int {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	b.loggedOut = true
-}
-
-func (b *fakeBadger) counts() (pushes, afterLogout int) {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	return b.pushes, b.pushesAfterLogout
+	return b.pushes
 }
 
 func currentConn(h *gregorHandler) *rpc.Connection {
@@ -899,9 +862,36 @@ func currentConn(h *gregorHandler) *rpc.Connection {
 	return h.conn
 }
 
+// shutdownCtx stands in for the ctx the rpc library hands OnConnect, which
+// the connection's Shutdown cancels. It is done once the handler's shutdown
+// channel for that connection closes, which Shutdown does under the same
+// locks as it shuts the connection down.
+type shutdownCtx struct {
+	context.Context
+	done chan struct{}
+}
+
+func (c shutdownCtx) Done() <-chan struct{} { return c.done }
+
+func (c shutdownCtx) Err() error {
+	select {
+	case <-c.done:
+		return context.Canceled
+	default:
+		return nil
+	}
+}
+
+// connCtx returns the OnConnect ctx for h's current connection.
+func connCtx(h *gregorHandler) context.Context {
+	h.connMutex.Lock()
+	defer h.connMutex.Unlock()
+	return shutdownCtx{Context: context.Background(), done: h.shutdownCh}
+}
+
 type onConnectTailTest struct {
 	h       *gregorHandler
-	conn    *rpc.Connection
+	ctx     context.Context
 	gcli    *grclient.Client
 	syncer  *fakeSyncer
 	badger  *fakeBadger
@@ -921,106 +911,65 @@ func setupOnConnectTail(t *testing.T) *onConnectTailTest {
 	h.badger = badger
 	require.NoError(t, h.Connect(closedPortURI(t)))
 	t.Cleanup(func() { h.Shutdown(context.Background()) })
-	conn := currentConn(h)
+	ctx := connCtx(h)
 	uid := gregor1.UID(make([]byte, 16))
-	gcli, err := h.resetGregorClientFor(context.Background(), conn, uid, gregor1.DeviceID(make([]byte, 16)))
+	gcli, err := h.resetGregorClient(ctx, uid, gregor1.DeviceID(make([]byte, 16)))
 	require.NoError(t, err)
 	return &onConnectTailTest{
-		h: h, conn: conn, gcli: gcli, syncer: syncer, badger: badger, uid: uid,
+		h: h, ctx: ctx, gcli: gcli, syncer: syncer, badger: badger, uid: uid,
 		syncRes: chat1.SyncAllResult{Notification: chat1.NewSyncAllNotificationResWithState(gregor1.State{})},
 	}
 }
 
-func (c *onConnectTailTest) run() error {
-	return c.h.onConnectSynced(context.Background(), c.conn, chat1.RemoteClient{}, nil, c.uid, c.gcli, c.syncRes)
-}
-
-// logout does what Service.OnLogout does to gregor, and marks every badge
-// push from then on as leaked.
-func (c *onConnectTailTest) logout(t *testing.T) {
-	require.NoError(t, c.h.Disconnect())
-	c.badger.logout()
+func (c *onConnectTailTest) run(ctx context.Context) error {
+	return c.h.onConnectSynced(ctx, chat1.RemoteClient{}, nil, c.uid, c.gcli, c.syncRes)
 }
 
 func TestGregorOnConnectTailApplies(t *testing.T) {
 	c := setupOnConnectTail(t)
-	require.NoError(t, c.run())
-	pushes, _ := c.badger.counts()
-	require.Equal(t, 2, pushes)
+	require.NoError(t, c.run(c.ctx))
+	require.Equal(t, 2, c.badger.count())
 	require.Len(t, c.h.replayCh, 1)
 	require.True(t, c.syncer.IsConnected(context.Background()))
 	require.False(t, c.h.isFirstConnect())
 	require.False(t, c.h.connectedSince().IsZero())
 }
 
-// A logout landing before any step of OnConnect's tail leaves no trace of
-// the old connection.
-func TestGregorOnConnectTailRacingLogout(t *testing.T) {
-	for _, tt := range []struct {
-		name          string
-		step          onConnectStep
-		syncerConnect int
-		stateSyncs    int
-	}{
-		{"chat badges", onConnectStepChatBadges, 0, 0},
-		{"syncer", onConnectStepSyncer, 0, 0},
-		{"server sync", onConnectStepServerSync, 1, 0},
-		{"gregor badges", onConnectStepGregorBadges, 1, 1},
-		{"connected", onConnectStepConnected, 1, 1},
-	} {
-		t.Run(tt.name, func(t *testing.T) {
-			c := setupOnConnectTail(t)
-			c.h.onConnectStep = func(step onConnectStep) {
-				if step == tt.step {
-					c.logout(t)
-				}
-			}
-			require.ErrorIs(t, c.run(), chat.ErrDuplicateConnection)
-			_, afterLogout := c.badger.counts()
-			require.Zero(t, afterLogout, "badges pushed after logout")
-			require.False(t, c.syncer.IsConnected(context.Background()), "syncer left connected after logout")
-			require.Equal(t, tt.syncerConnect, c.syncer.connectCalls(), "chat sync ran after logout")
-			require.Len(t, c.h.replayCh, tt.stateSyncs, "gregor state sync ran after logout")
-			require.True(t, c.h.isFirstConnect(), "first connect cleared after logout")
-			require.True(t, c.h.connectedSince().IsZero(), "connected time set after logout")
-		})
-	}
-}
-
-// A logout during the chat sync, before or after the syncer marks itself
-// connected, leaves the syncer disconnected.
-func TestGregorOnConnectLogoutDuringChatSync(t *testing.T) {
-	for _, beforeMark := range []bool{true, false} {
-		t.Run(fmt.Sprintf("before mark %v", beforeMark), func(t *testing.T) {
-			c := setupOnConnectTail(t)
-			if beforeMark {
-				c.syncer.beforeMark = func() { c.logout(t) }
-			} else {
-				c.syncer.onConnected = func() { c.logout(t) }
-			}
-			require.ErrorIs(t, c.run(), chat.ErrDuplicateConnection)
-			require.False(t, c.syncer.IsConnected(context.Background()), "syncer left connected after logout")
-			require.True(t, c.h.isFirstConnect())
-		})
-	}
-}
-
-// The undo leaves alone a syncer that a newer connection has marked since.
-func TestGregorOnConnectLogoutDuringChatSyncKeepsNewerConn(t *testing.T) {
+// A tail whose connection a logout has shut down applies nothing.
+func TestGregorOnConnectTailAfterLogout(t *testing.T) {
 	c := setupOnConnectTail(t)
-	c.syncer.onConnected = func() {
-		c.logout(t)
-		// A newer connection, installed by hand so no dial's callbacks
-		// touch the syncer.
-		newer := &rpc.Connection{}
-		c.h.connMutex.Lock()
-		c.h.conn = newer
-		c.h.shutdownCh = make(chan struct{})
-		c.h.connMutex.Unlock()
-		require.NoError(t, c.h.connectSyncer(context.Background(), newer, chat1.RemoteClient{}, c.uid, &chat1.SyncChatRes{}))
+	require.NoError(t, c.h.Disconnect())
+	require.ErrorIs(t, c.run(c.ctx), chat.ErrDuplicateConnection)
+	require.Zero(t, c.badger.count(), "badges pushed after logout")
+	require.Zero(t, c.syncer.connectCalls(), "chat sync ran after logout")
+	require.Empty(t, c.h.replayCh, "gregor state sync ran after logout")
+	require.True(t, c.h.isFirstConnect(), "first connect cleared after logout")
+	require.True(t, c.h.connectedSince().IsZero(), "connected time set after logout")
+}
+
+// A logout during the chat sync leaves the syncer disconnected and stops the
+// rest of the tail.
+func TestGregorOnConnectLogoutDuringChatSync(t *testing.T) {
+	c := setupOnConnectTail(t)
+	c.syncer.onConnected = func() { require.NoError(t, c.h.Disconnect()) }
+	require.ErrorIs(t, c.run(c.ctx), chat.ErrDuplicateConnection)
+	require.False(t, c.syncer.IsConnected(context.Background()), "syncer left connected after logout")
+	require.Equal(t, 1, c.badger.count(), "badges pushed after logout")
+	require.Empty(t, c.h.replayCh, "gregor state sync ran after logout")
+	require.True(t, c.h.isFirstConnect(), "first connect cleared after logout")
+	require.True(t, c.h.connectedSince().IsZero(), "connected time set after logout")
+}
+
+// Shutdown cancels OnConnect's ctx before it marks the syncer disconnected,
+// so a Syncer.Connected from that OnConnect landing just after the mark is
+// ignored rather than leaving the syncer connected.
+func TestGregorShutdownCancelsBeforeSyncerDisconnected(t *testing.T) {
+	c := setupOnConnectTail(t)
+	c.syncer.onDisconnected = func() {
+		_ = c.syncer.Connected(c.ctx, chat1.RemoteClient{}, c.uid, &chat1.SyncChatRes{})
 	}
-	require.ErrorIs(t, c.run(), chat.ErrDuplicateConnection)
-	require.True(t, c.syncer.IsConnected(context.Background()), "undo disconnected the newer connection's syncer")
+	require.NoError(t, c.h.Disconnect())
+	require.False(t, c.syncer.IsConnected(context.Background()), "syncer connected after shutdown")
 }
 
 // A logout can't finish while a badge push for the old connection is in
@@ -1039,20 +988,20 @@ func TestGregorOnConnectBadgePushHoldsOffLogout(t *testing.T) {
 		case <-time.After(100 * time.Millisecond):
 		}
 	}
-	require.ErrorIs(t, c.run(), chat.ErrDuplicateConnection)
+	require.ErrorIs(t, c.run(c.ctx), chat.ErrDuplicateConnection)
 	<-logoutDone
-	pushes, _ := c.badger.counts()
-	require.Equal(t, 1, pushes)
+	require.Equal(t, 1, c.badger.count())
 }
 
-// reinstall makes conn the current connection again, so the next tail run is
-// not short-circuited by the logout before it. No dial is involved, so no
-// connection callback races this.
-func (c *onConnectTailTest) reinstall() {
+// reinstall makes conn the current connection again, and returns its
+// OnConnect ctx, so the next tail run is not short-circuited by the logout
+// before it. No dial is involved, so no connection callback races this.
+func (c *onConnectTailTest) reinstall(conn *rpc.Connection) context.Context {
 	c.h.connMutex.Lock()
-	defer c.h.connMutex.Unlock()
-	c.h.conn = c.conn
+	c.h.conn = conn
 	c.h.shutdownCh = make(chan struct{})
+	c.h.connMutex.Unlock()
+	return connCtx(c.h)
 }
 
 // OnConnect's tail, a logout and app state transitions all run under the
@@ -1064,8 +1013,8 @@ func TestGregorOnConnectTailStress(t *testing.T) {
 	// connection back after each logout, and a dialing one would reconnect
 	// behind it and outlive the test.
 	require.NoError(t, c.h.Disconnect())
-	c.conn = &rpc.Connection{}
-	c.reinstall()
+	conn := &rpc.Connection{}
+	c.reinstall(conn)
 	c.h.connGate.start()
 	t.Cleanup(c.h.connGate.stop)
 
@@ -1081,8 +1030,7 @@ func TestGregorOnConnectTailStress(t *testing.T) {
 					return
 				default:
 				}
-				c.reinstall()
-				_ = c.run()
+				_ = c.run(c.reinstall(conn))
 				// A run queues at most one replay, and Init's replay thread
 				// is not running here to take it off.
 				select {
@@ -1149,32 +1097,45 @@ func (failingRPCClient) Notify(context.Context, string, any, time.Duration) erro
 	return errors.New("no server")
 }
 
-// An OnConnect that loses the client install to a logout fails with an error
-// the connection does not retry.
-func TestGregorOnConnectRacingLogoutIsNotRetried(t *testing.T) {
-	tc, g := setupGregorTest(t)
-	defer tc.Cleanup()
-	g.Syncer = chat.NewSyncer(g)
-	h := newGregorHandler(g)
-	require.NoError(t, h.Connect(closedPortURI(t)))
-	defer h.Shutdown(context.Background())
-	conn := currentConn(h)
+// An OnConnect whose connection shuts down, before it starts or while it
+// runs, installs no gregor client, leaves the chat syncer alone, and fails
+// with an error the connection does not retry.
+func TestGregorOnConnectAfterShutdownInstallsNothing(t *testing.T) {
+	for _, during := range []bool{false, true} {
+		t.Run(fmt.Sprintf("during %v", during), func(t *testing.T) {
+			tc, g := setupGregorTest(t)
+			defer tc.Cleanup()
+			syncer := &fakeSyncer{}
+			g.Syncer = syncer
+			h := newGregorHandler(g)
+			require.NoError(t, h.Connect(closedPortURI(t)))
+			defer h.Shutdown(context.Background())
+			conn := currentConn(h)
+			ctx := connCtx(h)
 
-	h.authParamsForTest = func(context.Context) (gregor1.UID, gregor1.DeviceID, gregor1.SessionToken, *libkb.NIST, error) {
-		return gregor1.UID(make([]byte, 16)), gregor1.DeviceID(make([]byte, 16)), "", nil, nil
+			h.authParamsForTest = func(context.Context) (gregor1.UID, gregor1.DeviceID, gregor1.SessionToken, *libkb.NIST, error) {
+				if during {
+					require.NoError(t, h.Disconnect())
+				}
+				return gregor1.UID(make([]byte, 16)), gregor1.DeviceID(make([]byte, 16)), "", nil, nil
+			}
+			if !during {
+				require.NoError(t, h.Disconnect())
+			}
+
+			local, remote := net.Pipe()
+			defer remote.Close()
+			xp := rpc.NewTransport(local, libkb.NewRPCLogFactory(tc.G), tc.G.RemoteNetworkInstrumenterStorage,
+				libkb.MakeWrapError(tc.G), rpc.DefaultMaxFrameLength)
+			defer xp.Close()
+			srv := rpc.NewServer(xp, libkb.MakeWrapError(tc.G))
+
+			err := h.OnConnect(ctx, conn, failingRPCClient{}, srv)
+			require.ErrorIs(t, err, chat.ErrDuplicateConnection)
+			require.False(t, h.ShouldRetryOnConnect(err), "retrying a connection that shut down")
+			_, err = h.getGregorCli()
+			require.Error(t, err, "installed a client for a connection that shut down")
+			require.Zero(t, syncer.connectCalls(), "chat sync ran for a connection that shut down")
+		})
 	}
-	h.beforeGregorClientInstall = func() { require.NoError(t, h.Disconnect()) }
-
-	local, remote := net.Pipe()
-	defer remote.Close()
-	xp := rpc.NewTransport(local, libkb.NewRPCLogFactory(tc.G), tc.G.RemoteNetworkInstrumenterStorage,
-		libkb.MakeWrapError(tc.G), rpc.DefaultMaxFrameLength)
-	defer xp.Close()
-	srv := rpc.NewServer(xp, libkb.MakeWrapError(tc.G))
-
-	err := h.OnConnect(context.Background(), conn, failingRPCClient{}, srv)
-	require.ErrorIs(t, err, chat.ErrDuplicateConnection)
-	require.False(t, h.ShouldRetryOnConnect(err), "retrying a connection logout dropped")
-	_, err = h.getGregorCli()
-	require.Error(t, err, "installed a client for a connection logout dropped")
 }
