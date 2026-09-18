@@ -61,7 +61,6 @@ export interface Spec extends TurboModule {
   setApplicationIconBadgeNumber(n: number): void
   removeAllPendingNotificationRequests(): void
   addNotificationRequest(config: {body: string; id: string}): Promise<void>
-  engineReset(): void
   notifyJSReady(): void
   shareListenersRegistered(): void
   setEnablePasteImage(enabled: boolean): void

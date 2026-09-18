@@ -435,18 +435,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     // chance of being delivered before committing to it.
     internal fun canDeliverReset(): Boolean = reactContext.hasActiveReactInstance() && canEmit()
 
-    // No current caller (kept for future use).
-    @ReactMethod
-    override fun engineReset() {
-        try {
-            Keybase.reset()
-            nativeResetRecv()
-            relayReset()
-        } catch (e: Exception) {
-            NativeLogger.error("Exception in engineReset", e)
-        }
-    }
-
     @ReactMethod
     override fun notifyJSReady() {
         NativeLogger.info("JS signaled ready, starting ReadFromKBLib loop")

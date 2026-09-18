@@ -151,9 +151,6 @@ export const onShareData = (
   return Kb.onShareData(callback)
 }
 
-export const engineReset = (): void => {
-  return Kb.engineReset()
-}
 export const notifyJSReady = (): void => {
   return Kb.notifyJSReady()
 }

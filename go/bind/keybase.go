@@ -749,7 +749,7 @@ func ensureConnection() error {
 
 // Reset unconditionally resets the socket connection. Use this only when the
 // caller genuinely means "tear down whatever connection is current" (e.g.
-// iOS invalidate, Android destroy/engineReset) — it will happily close a
+// iOS invalidate, Android destroy) — it will happily close a
 // connection some concurrent failure-driven caller never saw fail. Callers
 // reacting to a failure on a specific connection should use ResetIfCurrent
 // instead so a stale complaint can't clobber a connection that has already

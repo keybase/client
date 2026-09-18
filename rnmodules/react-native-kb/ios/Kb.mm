@@ -495,21 +495,6 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getTypedConstants) {
 RCT_EXPORT_METHOD(shareListenersRegistered) {
 }
 
-// No current caller (kept for future use).
-RCT_EXPORT_METHOD(engineReset) {
-  NSError *error = nil;
-  KeybaseReset(&error);
-  if (auto bridge = kbGetBridge()) {
-    bridge->resetRecv();
-  }
-  if ([self canEmit]) {
-    [self emitOnMetaEvent:metaEventEngineReset];
-  }
-  if (error) {
-    NSLog(@"Error in reset: %@", error);
-  }
-}
-
 RCT_EXPORT_METHOD(notifyJSReady) {
   // KeybaseNotifyJSReady is a sync.Once on the Go side, so repeat calls after
   // a reload are free. It must not run on the JS thread — do it on the reader
