@@ -88,6 +88,12 @@ const handleKeybaseLink = (link: string) => {
       switchTab(isMobile ? Tabs.settingsTab : Tabs.devicesTab)
       navUpToScreen(isMobile ? settingsDevicesTab : 'devicesRoot')
       return
+    case 'settingsAddPhone':
+      // Where the invite install link (https://keybase.io/phone-app) lands. The linking config
+      // also handles it; desktop routes every URL here, so this must agree with it.
+      switchTab(Tabs.settingsTab)
+      navigateAppend({name: 'settingsAddPhone', params: {}})
+      return
     case 'private':
     case 'public':
       try {

@@ -12,9 +12,12 @@ export const loadSettings = () => {
     if (!useConfigState.getState().loggedIn) {
       return
     }
-    // An emailsChanged/phoneNumbersChanged notification can land while this RPC is in
-    // flight, and it carries the newer list. Apply the reply only to the value it was read
-    // against, the same rule the versioned session write follows.
+    // Anything that writes these two stores while this RPC is in flight knows something the
+    // reply does not, so the reply must not land on top of it. Apply each half only to the
+    // value it was read against, the same rule the versioned session write follows. The
+    // racing writer is usually an emailsChanged/phoneNumbersChanged notification, but it is
+    // also resetState (a logout), notifyEmailVerified, and sentVerificationEmail -- so a
+    // resend-verification click mid-load drops that round's server list too, by design.
     const emailsBefore = useSettingsEmailState.getState().emails
     const phonesBefore = useSettingsPhoneState.getState().phones
     try {

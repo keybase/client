@@ -17,6 +17,7 @@ import {logState, setThreadInputCommandStatus} from '@/constants/router'
 import {initSharedSubscriptions, _onEngineIncoming, onEngineConnected as onSharedEngineConnected} from './shared'
 import {noConversationIDKey} from '../types/chat/common'
 import {dumpLogs, persistRoute} from '@/util/storeless-actions'
+import {emitDeepLink} from '@/router-v2/deep-link-emitter'
 
 // ─── Platform-specific init helpers (resolved per platform: platform.desktop /
 // platform.native — native keeps require() for Metro importAll ordering) ─────
@@ -149,7 +150,29 @@ const onChatClearWatch = async () => {
 
 // ─── Startup details (native only) ───────────────────────────────────────────
 
-const loadStartupDetails = async () => {
+// A launch URL that arrived while logged out. Module-level, not a store field: it must
+// outlive the logout reset that a signup does not perform but an account switch does, and
+// nothing else may read it.
+let _launchLinkAwaitingLogin = ''
+
+// The invite install link (https://keybase.io/phone-app) is aimed at someone who has no account
+// yet, so the app it launches starts logged out with the linking config off. Replay the held URL
+// once, on the first login. The intent's 5-minute lifetime runs from here, not from launch, so
+// however long the signup took does not eat into it -- all it has to survive is the router
+// registering its intent subscriber, which happens in the same commit.
+// Exported for startup-link.test.ts; the only production caller is initPlatformListener.
+export const _replayLaunchLinkAfterLogin = () =>
+  useConfigState.subscribe((s, old) => {
+    if (!s.loggedIn || old.loggedIn) return
+    const link = _launchLinkAwaitingLogin
+    _launchLinkAwaitingLogin = ''
+    if (!link) return
+    logger.info('[Startup] replaying the launch link held across login:', link)
+    emitDeepLink(link)
+  })
+
+// Exported for startup-link.test.ts; the only production caller is initPlatformListener.
+export const loadStartupDetails = async () => {
   logger.info('[Startup] loadStartupDetails: starting')
   const {guiConfig, Linking} = _getNative()
 
@@ -173,6 +196,16 @@ const loadStartupDetails = async () => {
     }
     return url
   })
+
+  // router.tsx disables the linking config while logged out, and React Navigation reads
+  // getInitialURL exactly once, when the NavigationContainer mounts -- it is not retried when
+  // loggedIn flips, and login does not remount the container (useUserSwitchNavKey ignores
+  // '' -> username). So a URL that launched the app before a signup would never reach the
+  // router. Hold it and replay it on the first login instead; see _replayLaunchLinkAfterLogin.
+  // Logged in already: the linking config's own read owns it and this stays empty.
+  if (initialUrl && !useConfigState.getState().loggedIn) {
+    _launchLinkAwaitingLogin = initialUrl
+  }
 
   let conversation: T.Chat.ConversationIDKey | undefined
   let conversationUid = ''
@@ -393,6 +426,8 @@ const _initNativePlatformListener = () => {
       )
     }
   }
+
+  _platformUnsubs.push(_replayLaunchLinkAfterLogin())
 
   _platformUnsubs.push(useConfigState.subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return

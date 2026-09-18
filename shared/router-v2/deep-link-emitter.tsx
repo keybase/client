@@ -1,10 +1,10 @@
 import logger from '@/logger'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
-import {useSettingsPhoneState} from '@/stores/settings-phone'
 
-// Deep-link emission + URL normalization. Kept separate from './linking'
-// (which imports the config/push/current-user stores) so stores/push can enqueue
-// navigation without importing the router's linking config.
+// Deep-link emission + URL normalization. Kept separate from './linking' so
+// stores/push can enqueue navigation without importing the router's linking config
+// (which pulls in the config/push/current-user stores and the route tables). This
+// leaf depends on the navigation-intents store and nothing else.
 
 // ---- URL normalization ----
 
@@ -42,11 +42,10 @@ const normalizeHttpUrl = (url: string): string | undefined => {
   // /phone-app — the install link our own chat invite banner texts to an unresolved @phone
   // participant (chat/conversation/bottom-banner.tsx). It is not a username, so it has to be
   // carved out ahead of the single-segment rule below, which would otherwise open a profile
-  // for a user that does not exist. Nudge the invitee to add the number their inviter wrote
-  // to; skip the nudge once we know they already have one.
+  // for a user that does not exist. It always opens Add Phone Number: the invitee's inviter
+  // wrote to a number, and nothing here knows (or waits to learn) whether they have one.
   if (pathname === '/phone-app' || pathname === '/phone-app/') {
-    const phones = useSettingsPhoneState.getState().phones
-    return phones && phones.size > 0 ? undefined : 'keybase://settingsAddPhone'
+    return 'keybase://settingsAddPhone'
   }
 
   // /username (single path segment)

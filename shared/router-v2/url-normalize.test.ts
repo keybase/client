@@ -82,14 +82,13 @@ test('a slash-separated subteam path is not a team-page link', () => {
 })
 
 test('the invite install link opens add-phone, not a profile for a user named phone-app', () => {
-  useSettingsPhoneState.getState().dispatch.resetState()
   expect(normalizeUrl('https://keybase.io/phone-app')).toBe('keybase://settingsAddPhone')
   expect(normalizeUrl('https://keybase.io/phone-app/')).toBe('keybase://settingsAddPhone')
   expect(normalizeUrl('https://keybase.io/phone-app?utm=x')).toBe('keybase://settingsAddPhone')
 })
 
-test('the invite install link is ignored once the user has a phone number', () => {
+test('the invite install link opens add-phone even when the user already has a number', () => {
   useSettingsPhoneState.setState({phones: new Map([['+15555555555', {} as never]])})
-  expect(normalizeUrl('https://keybase.io/phone-app')).toBeUndefined()
+  expect(normalizeUrl('https://keybase.io/phone-app')).toBe('keybase://settingsAddPhone')
   useSettingsPhoneState.getState().dispatch.resetState()
 })

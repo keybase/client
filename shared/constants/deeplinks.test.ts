@@ -48,3 +48,14 @@ test('a devices link opens the devices screen under settings on mobile', () => {
     expect(Router.navigateAppend).not.toHaveBeenCalled()
   })
 })
+
+// The invite install link normalizes to this; the linking config handles it on mobile, but
+// desktop routes every URL through here, so both have to agree on where it goes.
+test('an add-phone link opens the add-phone modal over settings', () => {
+  withIsMobile(false, () => {
+    handleAppLink('keybase://settingsAddPhone')
+
+    expect(Router.switchTab).toHaveBeenCalledWith(Tabs.settingsTab)
+    expect(Router.navigateAppend).toHaveBeenCalledWith({name: 'settingsAddPhone', params: {}})
+  })
+})
