@@ -17,9 +17,27 @@ protocol appState {
     NOTAVAILABLE_4
   }
 
+  // Where a tapped notification opens. The service resolves this from the push
+  // payload native hands it, so no client parses a push payload.
+  record PushTapRoute {
+    // A keybase:// URL.
+    string url;
+    // The account the notification belongs to, or empty. Only a route resolved
+    // from a real notification tap can name one, which is what keeps a link
+    // opened by another app from switching accounts.
+    string targetUID;
+  }
+
   // gui -> service
   // mobile only
   void updateMobileNetState(string state);
+
+  // gui -> service
+  // mobile only
+  // Returns the route a tapped notification resolved to and clears it, or null
+  // when no tap is waiting. Destructive on purpose: this is the only taker, so
+  // a tap is delivered exactly once however many times a client reconnects.
+  union { null, PushTapRoute } takePushTapRoute();
 
   // gui -> service
   // desktop only

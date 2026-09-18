@@ -78,8 +78,23 @@ func (o MobileNetworkState) String() string {
 	return fmt.Sprintf("%v", int(o))
 }
 
+type PushTapRoute struct {
+	Url       string `codec:"url" json:"url"`
+	TargetUID string `codec:"targetUID" json:"targetUID"`
+}
+
+func (o PushTapRoute) DeepCopy() PushTapRoute {
+	return PushTapRoute{
+		Url:       o.Url,
+		TargetUID: o.TargetUID,
+	}
+}
+
 type UpdateMobileNetStateArg struct {
 	State string `codec:"state" json:"state"`
+}
+
+type TakePushTapRouteArg struct {
 }
 
 type PowerMonitorEventArg struct {
@@ -88,6 +103,7 @@ type PowerMonitorEventArg struct {
 
 type AppStateInterface interface {
 	UpdateMobileNetState(context.Context, string) error
+	TakePushTapRoute(context.Context) (*PushTapRoute, error)
 	PowerMonitorEvent(context.Context, string) error
 }
 
@@ -107,6 +123,16 @@ func AppStateProtocol(i AppStateInterface) rpc.Protocol {
 						return
 					}
 					err = i.UpdateMobileNetState(ctx, typedArgs[0].State)
+					return
+				},
+			},
+			"takePushTapRoute": {
+				MakeArg: func() any {
+					var ret [1]TakePushTapRouteArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
+					ret, err = i.TakePushTapRoute(ctx)
 					return
 				},
 			},
@@ -136,6 +162,11 @@ type AppStateClient struct {
 func (c AppStateClient) UpdateMobileNetState(ctx context.Context, state string) (err error) {
 	__arg := UpdateMobileNetStateArg{State: state}
 	err = c.Cli.Call(ctx, "keybase.1.appState.updateMobileNetState", []any{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c AppStateClient) TakePushTapRoute(ctx context.Context) (res *PushTapRoute, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.appState.takePushTapRoute", []any{TakePushTapRouteArg{}}, &res, 0*time.Millisecond)
 	return
 }
 

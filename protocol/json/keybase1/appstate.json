@@ -22,6 +22,20 @@
         "UNKNOWN_3",
         "NOTAVAILABLE_4"
       ]
+    },
+    {
+      "type": "record",
+      "name": "PushTapRoute",
+      "fields": [
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "targetUID"
+        }
+      ]
     }
   ],
   "messages": {
@@ -33,6 +47,13 @@
         }
       ],
       "response": null
+    },
+    "takePushTapRoute": {
+      "request": [],
+      "response": [
+        null,
+        "PushTapRoute"
+      ]
     },
     "powerMonitorEvent": {
       "request": [
