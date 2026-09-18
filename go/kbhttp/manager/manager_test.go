@@ -141,7 +141,23 @@ func (a *appState) NextUpdate(last keybase1.MobileAppState) <-chan struct{} {
 	return wait
 }
 
-func app(srv *Srv) *appState { return srv.appState.(*appState) }
+// apps holds each test server's app state, since Srv now takes its two
+// functions rather than an interface it could be read back off.
+var apps sync.Map
+
+func app(srv *Srv) *appState {
+	a, ok := apps.Load(srv)
+	if !ok {
+		return nil
+	}
+	return a.(*appState)
+}
+
+// active reports whether srv has an address to hand out.
+func active(srv *Srv) bool {
+	_, err := srv.Addr()
+	return err == nil
+}
 
 func setup(t *testing.T, state keybase1.MobileAppState, stopInBackground bool) (*Srv, *listeners) {
 	return setupWithNotify(t, state, stopInBackground, func(context.Context, keybase1.HttpSrvInfo) {})
@@ -154,11 +170,13 @@ func setupWithNotify(t *testing.T, state keybase1.MobileAppState, stopInBackgrou
 	t.Cleanup(tc.Cleanup)
 	tc.G.MobileAppState.Update(state)
 	l := &listeners{}
-	srv, err := New("Srv", tc.G.Log, &appState{MobileAppState: tc.G.MobileAppState}, l.source, stopInBackground, notify)
-	require.NoError(t, err)
+	as := &appState{MobileAppState: tc.G.MobileAppState}
+	srv := New("Srv", tc.G.Log, as.State, as.NextUpdate, l.source, stopInBackground, notify)
+	apps.Store(srv, as)
+	t.Cleanup(func() { apps.Delete(srv) })
 	t.Cleanup(srv.Shutdown)
 	// New returns having acted on the launch state; HandleFunc below would wait for run anyway.
-	require.Equal(t, srv.wantUp(state), srv.Active(), "launch state not applied when New returned")
+	require.Equal(t, srv.wantUp(state), active(srv), "launch state not applied when New returned")
 	srv.HandleFunc("test", SrvTokenModeDefault, func(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprint(w, "ok")
 	})
@@ -232,7 +250,7 @@ func killUntilDown(t *testing.T, srv *Srv, l *listeners) {
 		n := turns(srv)
 		l.kill(t)
 		waitTurns(t, srv, n+1)
-		if !srv.Active() {
+		if !active(srv) {
 			return
 		}
 	}
@@ -241,7 +259,7 @@ func killUntilDown(t *testing.T, srv *Srv, l *listeners) {
 
 func requireServing(t *testing.T, srv *Srv) keybase1.HttpSrvInfo {
 	t.Helper()
-	require.True(t, srv.Active(), "server not active")
+	require.True(t, active(srv), "server not active")
 	info, err := srv.Info()
 	require.NoError(t, err)
 	_, err = fetch(info)
@@ -251,7 +269,7 @@ func requireServing(t *testing.T, srv *Srv) keybase1.HttpSrvInfo {
 
 func requireStopped(t *testing.T, srv *Srv) {
 	t.Helper()
-	require.False(t, srv.Active(), "server still active")
+	require.False(t, active(srv), "server still active")
 	_, err := srv.Info()
 	require.Error(t, err)
 }
@@ -350,7 +368,7 @@ func TestNothingStartsAfterShutdown(t *testing.T) {
 	case <-time.After(10 * time.Second):
 		require.Fail(t, "HandleFunc hung after Shutdown")
 	}
-	require.Never(t, func() bool { return srv.Active() || l.Calls() != calls }, 200*time.Millisecond, 10*time.Millisecond)
+	require.Never(t, func() bool { return active(srv) || l.Calls() != calls }, 200*time.Millisecond, 10*time.Millisecond)
 }
 
 // notify must see the address it announces, so a client reading Info right away gets it.
@@ -524,22 +542,38 @@ func TestNotStoppingInBackgroundStaysUp(t *testing.T) {
 	}
 }
 
-type failingSource struct{}
-
-func (failingSource) GetListener() (net.Listener, string, error) {
-	return nil, "", errors.New("no listener")
+// brokenSource makes no listener while it is broken.
+type brokenSource struct {
+	broken *atomic.Bool
+	src    kbhttp.ListenerSource
 }
 
-// New reports a failed first start, which kbfs treats as fatal.
-func TestNewReturnsFirstStartError(t *testing.T) {
+func (s brokenSource) GetListener() (net.Listener, string, error) {
+	if s.broken.Load() {
+		return nil, "", errors.New("no listener")
+	}
+	return s.src.GetListener()
+}
+
+// A failed first start is not fatal: New returns a server that is not serving,
+// and the next app state change starts it.
+func TestNewSurvivesFirstStartFailure(t *testing.T) {
 	tc := libkb.SetupTest(t, "kbhttp", 2)
 	defer tc.Cleanup()
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
-	srv, err := New("Srv", tc.G.Log, tc.G.MobileAppState, func() kbhttp.ListenerSource { return failingSource{} }, true,
-		func(context.Context, keybase1.HttpSrvInfo) {})
-	require.Error(t, err)
+	broken := &atomic.Bool{}
+	broken.Store(true)
+	srv := New("Srv", tc.G.Log, tc.G.MobileAppState.State, tc.G.MobileAppState.NextUpdate,
+		func() kbhttp.ListenerSource {
+			return brokenSource{broken: broken, src: kbhttp.NewRandomPortRangeListenerSource(20000, 60000)}
+		}, true, func(context.Context, keybase1.HttpSrvInfo) {})
+	t.Cleanup(srv.Shutdown)
 	requireStopped(t, srv)
-	srv.Shutdown()
+
+	broken.Store(false)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_INACTIVE)
+	require.Eventually(t, func() bool { return active(srv) }, 10*time.Second, time.Millisecond,
+		"server did not start on the next app state change")
 }
 
 func TestScenarioReplay(t *testing.T) {
@@ -550,12 +584,12 @@ func TestScenarioReplay(t *testing.T) {
 			lifecycletest.Play(t, app(srv).MobileAppState, sc, func(h *lifecycletest.Harness, i int, step lifecycletest.Step) {
 				waitLoop(t, srv)
 				if !srv.wantUp(step.Want) {
-					if srv.Active() {
+					if active(srv) {
 						t.Fatalf("step %d %v: server up in BACKGROUND", i, step.Do)
 					}
 					return
 				}
-				if !srv.Active() {
+				if !active(srv) {
 					t.Fatalf("step %d %v: server down in %v", i, step.Do, step.Want)
 				}
 				info, err := srv.Info()
@@ -585,7 +619,7 @@ func TestPinnedPortTakenPicksNewAddress(t *testing.T) {
 	stop := make(chan struct{})
 	var readers sync.WaitGroup
 	for _, read := range []func(){
-		func() { _ = srv.Active() },
+		func() { _ = active(srv) },
 		func() { _, _ = srv.Addr() },
 		func() { _, _ = srv.Info() },
 	} {
@@ -704,9 +738,11 @@ func TestStressTransitionsAndRequests(t *testing.T) {
 	baseline := runtime.NumGoroutine()
 
 	l := &listeners{}
-	srv, err := New("Srv", tc.G.Log, &appState{MobileAppState: tc.G.MobileAppState}, l.source, true,
+	as := &appState{MobileAppState: tc.G.MobileAppState}
+	srv := New("Srv", tc.G.Log, as.State, as.NextUpdate, l.source, true,
 		func(context.Context, keybase1.HttpSrvInfo) {})
-	require.NoError(t, err)
+	apps.Store(srv, as)
+	t.Cleanup(func() { apps.Delete(srv) })
 	srv.HandleFunc("test", SrvTokenModeDefault, func(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprint(w, "ok")
 	})
@@ -743,7 +779,7 @@ func TestStressTransitionsAndRequests(t *testing.T) {
 			if i < 200 {
 				srv.HandleFunc(fmt.Sprintf("extra%d", i), SrvTokenModeUnchecked, func(http.ResponseWriter, *http.Request) {})
 			}
-			_ = srv.Active()
+			_ = active(srv)
 			_, _ = srv.Addr()
 			if info, err := srv.Info(); err == nil && info.Token != token {
 				select {

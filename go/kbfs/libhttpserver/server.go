@@ -219,17 +219,6 @@ const (
 	requestPathRoot = "/files/"
 )
 
-// appState adapts env.AppStateUpdater to manager.AppState.
-type appState struct {
-	env.AppStateUpdater
-}
-
-func (a appState) State() keybase1.MobileAppState { return a.AppState() }
-
-func (a appState) NextUpdate(last keybase1.MobileAppState) <-chan struct{} {
-	return a.NextAppStateUpdate(last)
-}
-
 // New creates and starts a new server.
 func New(appStateUpdater env.AppStateUpdater, config libkbfs.Config) (
 	s *Server, err error,
@@ -248,14 +237,11 @@ func New(appStateUpdater env.AppStateUpdater, config libkbfs.Config) (
 	if err != nil {
 		return nil, err
 	}
-	s.server, err = manager.New("kbfsHTTP", logger, appState{appStateUpdater},
+	// A failed first start is logged and the next app state change tries again.
+	s.server = manager.New("kbfsHTTP", logger, appStateUpdater.AppState, appStateUpdater.NextAppStateUpdate,
 		func() kbhttp.ListenerSource {
 			return kbhttp.NewRandomPortRangeListenerSource(portStart, portEnd)
 		}, runtime.GOOS != "android", func(context.Context, keybase1.HttpSrvInfo) {})
-	if err != nil {
-		s.server.Shutdown()
-		return nil, err
-	}
 	// The token is checked in serve. No one has the address before New
 	// returns, so registering after the first start answers no request with a 404.
 	s.server.HandleFunc(strings.TrimPrefix(requestPathRoot, "/"), manager.SrvTokenModeUnchecked,

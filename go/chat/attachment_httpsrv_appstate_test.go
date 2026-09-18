@@ -22,6 +22,16 @@ type startOnlyAttachmentFetcher struct {
 
 func (startOnlyAttachmentFetcher) OnStart(libkb.MetaContext) {}
 
+// requireSrvServing waits until the server does or does not have an address to
+// hand out, which is what decides whether a URL can be built.
+func requireSrvServing(t *testing.T, srv *manager.Srv, serving bool) {
+	t.Helper()
+	require.Eventually(t, func() bool {
+		_, err := srv.Addr()
+		return (err == nil) == serving
+	}, 10*time.Second, time.Millisecond, "server serving != %v", serving)
+}
+
 func TestAttachmentURLsEmptyWhileServerStopped(t *testing.T) {
 	tc := externalstest.SetupTest(t, "attachment-url-stopped", 0)
 	defer tc.Cleanup()
@@ -51,7 +61,7 @@ func TestAttachmentURLsEmptyWhileServerStopped(t *testing.T) {
 		return res
 	}
 
-	require.Eventually(t, httpSrv.Active, 10*time.Second, time.Millisecond)
+	requireSrvServing(t, httpSrv, true)
 	up := get()
 	for _, url := range []string{up.full, up.preview, up.emoji, up.emojiNoAnim, up.emojiNoAnimOnly} {
 		require.True(t, strings.HasPrefix(url, "http://"), "url %q while serving", url)
@@ -59,10 +69,10 @@ func TestAttachmentURLsEmptyWhileServerStopped(t *testing.T) {
 	require.Contains(t, up.preview, "&prev=true")
 
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
-	require.Eventually(t, func() bool { return !httpSrv.Active() }, 10*time.Second, time.Millisecond)
+	requireSrvServing(t, httpSrv, false)
 	require.Equal(t, urls{}, get())
 
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
-	require.Eventually(t, httpSrv.Active, 10*time.Second, time.Millisecond)
+	requireSrvServing(t, httpSrv, true)
 	require.True(t, strings.HasPrefix(get().full, "http://"))
 }
