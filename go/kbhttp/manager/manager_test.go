@@ -148,7 +148,8 @@ var apps sync.Map
 func app(srv *Srv) *appState {
 	a, ok := apps.Load(srv)
 	if !ok {
-		return nil
+		// Not t.Fatal: some callers are on worker goroutines.
+		panic("no appState registered for this Srv")
 	}
 	return a.(*appState)
 }
@@ -171,7 +172,8 @@ func setupWithNotify(t *testing.T, state keybase1.MobileAppState, stopInBackgrou
 	tc.G.MobileAppState.Update(state)
 	l := &listeners{}
 	as := &appState{MobileAppState: tc.G.MobileAppState}
-	srv := New("Srv", tc.G.Log, as.State, as.NextUpdate, l.source, stopInBackground, notify)
+	srv, err := New("Srv", tc.G.Log, as.State, as.NextUpdate, l.source, stopInBackground, notify)
+	require.NoError(t, err)
 	apps.Store(srv, as)
 	t.Cleanup(func() { apps.Delete(srv) })
 	t.Cleanup(srv.Shutdown)
@@ -555,18 +557,20 @@ func (s brokenSource) GetListener() (net.Listener, string, error) {
 	return s.src.GetListener()
 }
 
-// A failed first start is not fatal: New returns a server that is not serving,
-// and the next app state change starts it.
-func TestNewSurvivesFirstStartFailure(t *testing.T) {
+// New reports a failed first start, which kbfs treats as fatal since desktop
+// has no app state change to retry on. The server is left running, and where
+// the app state does move it comes up at the next change.
+func TestNewReportsFirstStartErrorAndRetries(t *testing.T) {
 	tc := libkb.SetupTest(t, "kbhttp", 2)
 	defer tc.Cleanup()
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	broken := &atomic.Bool{}
 	broken.Store(true)
-	srv := New("Srv", tc.G.Log, tc.G.MobileAppState.State, tc.G.MobileAppState.NextUpdate,
+	srv, err := New("Srv", tc.G.Log, tc.G.MobileAppState.State, tc.G.MobileAppState.NextUpdate,
 		func() kbhttp.ListenerSource {
 			return brokenSource{broken: broken, src: kbhttp.NewRandomPortRangeListenerSource(20000, 60000)}
 		}, true, func(context.Context, keybase1.HttpSrvInfo) {})
+	require.Error(t, err)
 	t.Cleanup(srv.Shutdown)
 	requireStopped(t, srv)
 
@@ -739,8 +743,9 @@ func TestStressTransitionsAndRequests(t *testing.T) {
 
 	l := &listeners{}
 	as := &appState{MobileAppState: tc.G.MobileAppState}
-	srv := New("Srv", tc.G.Log, as.State, as.NextUpdate, l.source, true,
+	srv, err := New("Srv", tc.G.Log, as.State, as.NextUpdate, l.source, true,
 		func(context.Context, keybase1.HttpSrvInfo) {})
+	require.NoError(t, err)
 	apps.Store(srv, as)
 	t.Cleanup(func() { apps.Delete(srv) })
 	srv.HandleFunc("test", SrvTokenModeDefault, func(w http.ResponseWriter, req *http.Request) {

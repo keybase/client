@@ -237,11 +237,16 @@ func New(appStateUpdater env.AppStateUpdater, config libkbfs.Config) (
 	if err != nil {
 		return nil, err
 	}
-	// A failed first start is logged and the next app state change tries again.
-	s.server = manager.New("kbfsHTTP", logger, appStateUpdater.AppState, appStateUpdater.NextAppStateUpdate,
+	// A failed first start is fatal here: the retry rides on app state changes,
+	// and on desktop -- which runs this server too -- the app state never moves.
+	s.server, err = manager.New("kbfsHTTP", logger, appStateUpdater.AppState, appStateUpdater.NextAppStateUpdate,
 		func() kbhttp.ListenerSource {
 			return kbhttp.NewRandomPortRangeListenerSource(portStart, portEnd)
 		}, runtime.GOOS != "android", func(context.Context, keybase1.HttpSrvInfo) {})
+	if err != nil {
+		s.server.Shutdown()
+		return nil, err
+	}
 	// The token is checked in serve. No one has the address before New
 	// returns, so registering after the first start answers no request with a 404.
 	s.server.HandleFunc(strings.TrimPrefix(requestPathRoot, "/"), manager.SrvTokenModeUnchecked,
