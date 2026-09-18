@@ -71,4 +71,28 @@ describe('settings loading', () => {
     expect([...useSettingsPhoneState.getState().phones!.keys()]).toEqual(['+15551111111'])
     expect([...useSettingsEmailState.getState().emails.keys()]).toEqual(['fresh@example.com'])
   })
+
+  test('a logout while the settings load is in flight drops the reply', async () => {
+    const emails = [
+      {email: 'a@example.com', isPrimary: true, isVerified: true, lastVerifyEmailDate: 0, visibility: 0},
+    ]
+    const phoneNumbers = [
+      {ctime: 0, phoneNumber: '+15555555555', superseded: false, verified: true, visibility: 0},
+    ]
+
+    useConfigState.setState({loggedIn: true})
+    jest.spyOn(T.RPCGen, 'userLoadMySettingsRpcPromise').mockImplementation((async () => {
+      // Z.defaultReset restores the identities captured at store creation, so the reference
+      // checks cannot see this; only the loggedIn re-read can.
+      await Promise.resolve()
+      useConfigState.getState().dispatch.setLoggedIn(false)
+      return {emails, phoneNumbers}
+    }) as never)
+
+    loadSettings()
+    for (let i = 0; i < 10; ++i) await Promise.resolve()
+
+    expect(useSettingsPhoneState.getState().phones).toBeUndefined()
+    expect([...useSettingsEmailState.getState().emails.keys()]).toEqual([])
+  })
 })
