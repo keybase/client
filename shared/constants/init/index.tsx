@@ -375,7 +375,8 @@ const _initNativePlatformListener = () => {
         appFocused = false
     }
 
-    // Native KeybaseSetAppState* is the only writer of Go MobileAppState.
+    // mobileAppState is the service's derived state, applied in constants/init/shared.tsx;
+    // nothing in JS derives it, so this only translates it into focus.
     logger.info(`app focus changed: ${s.mobileAppState}`)
     s.dispatch.changedFocus(appFocused)
   }))

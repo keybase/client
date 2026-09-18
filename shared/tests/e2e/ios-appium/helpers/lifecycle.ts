@@ -162,38 +162,34 @@ export const jsEval = async <R>(body: string, device = deviceName()): Promise<R>
 export type AppSnapshot = {
   loggedIn: boolean
   mobileAppState: string
-  nativeAppState: string
   httpSrv: {address: string; token: string}
   screen?: {name?: string; params?: Record<string, unknown>}
 }
 
-// JS app state (shell store, fed by native scene notifications), the native value it
-// was fed from, the http server address JS uses for images, and the visible screen.
+// JS app state (shell store, fed by the service's appState notification), the http
+// server address JS uses for images, and the visible screen.
 export const appSnapshot = async (device = deviceName()) =>
   jsEval<AppSnapshot>(
     `const shell = kbModule('stores/shell.tsx').useShellState.getState()
      const config = kbModule('stores/config.tsx').useConfigState.getState()
-     const kb = kbModule('node_modules/react-native-kb/src/index.tsx')
      const screen = kbModule('constants/router.tsx').getVisibleScreen()
      return {
        httpSrv: config.httpSrv,
        loggedIn: config.loggedIn,
        mobileAppState: shell.mobileAppState,
-       nativeAppState: kb.iosGetAppState(),
        screen: screen ? {name: screen.name, params: screen.params} : undefined,
      }`,
     device
   )
 
-// Waits for a relaunched JS runtime to be logged in and report `state` from both JS and native.
+// Waits for a relaunched JS runtime to be logged in and report `state`. There is only one
+// derivation of it now, so there is no second value to agree with.
 export const waitForAppState = async (state: string, device = deviceName(), timeout = 60000) =>
   waitFor(
     `JS app state ${state}`,
     async () => {
       const s = await appSnapshot(device)
-      return s.loggedIn && s.mobileAppState === state && s.nativeAppState === state && s.httpSrv.address
-        ? s
-        : undefined
+      return s.loggedIn && s.mobileAppState === state && s.httpSrv.address ? s : undefined
     },
     {interval: 500, timeout}
   )

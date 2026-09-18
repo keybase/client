@@ -253,6 +253,37 @@ export const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus
   applyStatusIdentity(bootstrap)
 }
 
+// The service derives the app's lifecycle state from the UI reports native makes and is the only
+// party that derives it; this is the whole of JS's model of it. Go's two background states are one
+// state here: nothing in the UI distinguishes "backgrounded with work still running" from
+// "backgrounded".
+//
+// Applied only on mobile. Desktop has no lifecycle to report, so the service's value there is a
+// constant FOREGROUND that describes nothing -- desktop's window focus is a separate fact, written
+// straight to `appFocused` by the window listeners.
+export const applyMobileAppState = (state?: T.RPCGen.MobileAppState, version?: T.RPCGen.StateVersion) => {
+  if (!isMobile || state === undefined) {
+    return
+  }
+  if (!useConfigState.getState().dispatch.acceptAppStateVersion(version)) {
+    logger.info('[AppState] older than the applied state, ignoring')
+    return
+  }
+  switch (state) {
+    case T.RPCGen.MobileAppState.foreground:
+      useShellState.getState().dispatch.setMobileAppState('active')
+      break
+    case T.RPCGen.MobileAppState.inactive:
+      useShellState.getState().dispatch.setMobileAppState('inactive')
+      break
+    case T.RPCGen.MobileAppState.background:
+    case T.RPCGen.MobileAppState.backgroundactive:
+      useShellState.getState().dispatch.setMobileAppState('background')
+      break
+    default:
+  }
+}
+
 // The reply to setNotifications: the state as of the moment this connection subscribed, so there
 // is no read to order against the subscription. An old service returns nothing here and the
 // bootstrap status keeps that job -- see applyUnversionedStatusSession.
@@ -279,7 +310,10 @@ export const applyClientState = (clientState?: T.RPCGen.ClientState, generation?
   if (!clientState) {
     return
   }
-  const {httpSrvInfo, version} = clientState
+  const {appState, httpSrvInfo, version} = clientState
+  // On iOS JS never starts on a background launch, so it can have missed every change since the
+  // process started: this is what catches it up, and there is no earlier reading to order against.
+  applyMobileAppState(appState, version)
   const configDispatch = useConfigState.getState().dispatch
   if (httpSrvInfo) {
     configDispatch.setHTTPSrvInfo(httpSrvInfo.address, httpSrvInfo.token, version)
@@ -439,6 +473,11 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
   }
 
   switch (action.type) {
+    case 'keybase.1.NotifyApp.mobileAppStateChanged': {
+      const {state, version} = action.payload.params
+      applyMobileAppState(state, version)
+      break
+    }
     case 'keybase.1.NotifyBadges.badgeState':
       {
         const {badgeState} = action.payload.params

@@ -89,6 +89,10 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
+    // an app lifecycle state notification or snapshot: applied only if it is newer than the last
+    // applied one. The fan-out is one goroutine per connection, so two of these can arrive in
+    // either order, and applying the older one last would leave us permanently wrong.
+    acceptAppStateVersion: (version?: T.RPCGen.StateVersion) => boolean
     // a login or logout notification: applied only if it is newer than the last applied one
     acceptSessionVersion: (version?: T.RPCGen.StateVersion) => boolean
     // whether the connected service has told us it cannot settle the session -- see the closure
@@ -145,8 +149,12 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
   // labelled before the state it carries, so it is never newer than its label: dropping it on a
   // tie loses nothing, because anything it holds beyond its label is a change already on its way
   // as its own notification.
-  const applied: {http?: T.RPCGen.StateVersion; session?: T.RPCGen.StateVersion} = {}
-  const acceptVersion = (kind: 'http' | 'session', version?: T.RPCGen.StateVersion) => {
+  const applied: {
+    appState?: T.RPCGen.StateVersion
+    http?: T.RPCGen.StateVersion
+    session?: T.RPCGen.StateVersion
+  } = {}
+  const acceptVersion = (kind: 'appState' | 'http' | 'session', version?: T.RPCGen.StateVersion) => {
     // a service too old to send a version gives us nothing to order by, so everything it sends is
     // applied in the order it arrives, as it was before versions existed
     if (!isComparableVersion(version)) return true
@@ -211,6 +219,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
   }
 
   const dispatch: State['dispatch'] = {
+    acceptAppStateVersion: version => acceptVersion('appState', version),
     acceptSessionVersion: version => {
       const accepted = acceptVersion('session', version)
       if (accepted && isComparableVersion(version)) {

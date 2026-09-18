@@ -9,8 +9,6 @@ export interface Spec extends TurboModule {
   readonly onPushTap: EventEmitter<string>
   readonly onPushToken: EventEmitter<string>
   readonly onShareData: EventEmitter<{text?: string; localPaths?: Array<string>}>
-  // iOS only: 'active' | 'inactive' | 'background', from the scene activation notifications
-  readonly onAppStateChange: EventEmitter<string>
   getTypedConstants(): {
     androidIsDeviceSecure: boolean
     androidIsTestDevice: boolean
@@ -70,8 +68,6 @@ export interface Spec extends TurboModule {
   engineReset(): void
   notifyJSReady(): void
   shareListenersRegistered(): void
-  // iOS only: the current value onAppStateChange reports; '' on Android
-  getAppState(): string
   setEnablePasteImage(enabled: boolean): void
   clearLocalLogs(): Promise<void>
 }

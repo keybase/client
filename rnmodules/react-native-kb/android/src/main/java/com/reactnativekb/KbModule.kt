@@ -187,10 +187,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
     }
 
-    // Only iOS needs a scene-based app state; JS uses RN's AppState on Android.
-    @ReactMethod(isBlockingSynchronousMethod = true)
-    override fun getAppState(): String = ""
-
     // Sharing
     @ReactMethod
     override fun androidShare(uriPath: String, mimeType: String, promise: Promise) {

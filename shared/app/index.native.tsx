@@ -5,7 +5,7 @@ import * as React from 'react'
 import Main from './main'
 import {KeyboardProvider} from 'react-native-keyboard-controller'
 import {ReducedMotionConfig, ReduceMotion} from 'react-native-reanimated'
-import {AppRegistry, AppState, Appearance, Platform} from 'react-native'
+import {AppRegistry, Appearance, Platform} from 'react-native'
 import {PortalProvider} from '@/common-adapters/portal.native'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {makeEngine} from '../engine'
@@ -15,12 +15,11 @@ import {Image as ExpoImage} from 'expo-image'
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
 import {useUnmountAll} from '@/util/debug-react'
-import {darkModeSupported, guiConfig, iosGetAppState, iosOnAppStateChange} from 'react-native-kb'
+import {darkModeSupported, guiConfig} from 'react-native-kb'
 import * as DarkMode from '@/stores/darkmode'
 import {colors, darkColors} from '@/styles/colors'
 import {initPlatformListener, onEngineConnected, onEngineDisconnected, onEngineIncoming} from '@/constants/init/index'
 import logger from '@/logger'
-import {watchAppState, type AppStateSource} from './watch-app-state'
 
 logger.info('INIT App index module load')
 
@@ -57,34 +56,17 @@ const initDarkMode = () => {
   } catch {}
 }
 
-// UIApplication.applicationState lags under iOS scenes, so RN's AppState can sit at inactive while
-// the app is active; iOS reports the scene state itself. Android has no such lag.
-const appStateSource: AppStateSource = isIOS
-  ? {
-      current: iosGetAppState,
-      subscribe: listener => {
-        const sub = iosOnAppStateChange(listener)
-        return () => sub.remove()
-      },
-    }
-  : {
-      current: () => AppState.currentState,
-      subscribe: listener => {
-        const sub = AppState.addEventListener('change', listener)
-        return () => sub.remove()
-      },
-    }
-
 const useDarkHookup = () => {
+  // The store starts at 'unknown' and only the service can move it off that, which is later than
+  // this mounts; assume active until told otherwise so an early theme change is not dropped.
   const appStateRef = React.useRef('active')
   const setSystemDarkMode = DarkMode.useDarkModeState(s => s.dispatch.setSystemDarkMode)
-  const setMobileAppState = useShellState(s => s.dispatch.setMobileAppState)
 
   React.useEffect(() => {
-    const stopWatchingAppState = watchAppState(appStateSource, nextAppState => {
-      appStateRef.current = nextAppState
-      setMobileAppState(nextAppState)
-      if (nextAppState === 'active') {
+    const stopWatchingAppState = useShellState.subscribe((s, old) => {
+      if (s.mobileAppState === old.mobileAppState) return
+      appStateRef.current = s.mobileAppState
+      if (s.mobileAppState === 'active') {
         setSystemDarkMode(Appearance.getColorScheme() === 'dark')
       }
     })
@@ -100,7 +82,7 @@ const useDarkHookup = () => {
       stopWatchingAppState()
       darkSub.remove()
     }
-  }, [setSystemDarkMode, setMobileAppState])
+  }, [setSystemDarkMode])
 }
 
 const StoreHelper = (p: {children: React.ReactNode}): React.ReactNode => {
