@@ -665,12 +665,13 @@ func (s *HybridInboxSource) Connected(ctx context.Context) {
 
 func (s *HybridInboxSource) Start(ctx context.Context, uid gregor1.UID) {
 	defer s.Trace(ctx, nil, "Start")()
+	s.Lock()
+	waitCh := s.doStopLocked()
+	s.Unlock()
+	<-waitCh
 	s.baseInboxSource.Start(ctx, uid)
 	s.Lock()
 	defer s.Unlock()
-	if s.started {
-		return
-	}
 	s.stopCh = make(chan struct{})
 	s.started = true
 	s.uid = uid
@@ -683,10 +684,15 @@ func (s *HybridInboxSource) Stop(ctx context.Context) chan struct{} {
 	<-s.baseInboxSource.Stop(ctx)
 	s.Lock()
 	defer s.Unlock()
+	return s.doStopLocked()
+}
+
+func (s *HybridInboxSource) doStopLocked() chan struct{} {
 	ch := make(chan struct{})
 	if s.started {
 		close(s.stopCh)
 		s.started = false
+		s.uid = nil
 		go func() {
 			_ = s.eg.Wait()
 			close(ch)

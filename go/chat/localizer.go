@@ -286,6 +286,8 @@ type localizerPipeline struct {
 	suspendCount   int
 	suspendWaiters []chan struct{}
 	jobQueue       chan *localizerPipelineJob
+	loopDone       chan struct{}
+	jobWG          sync.WaitGroup
 
 	// testing
 	useGateCh   bool
@@ -338,28 +340,44 @@ func (s *localizerPipeline) clearQueue() {
 func (s *localizerPipeline) start(ctx context.Context) {
 	defer s.Trace(ctx, nil, "start")()
 	s.Lock()
+	waitCh := s.doStopLocked()
+	s.Unlock()
+	<-waitCh
+	s.Lock()
 	defer s.Unlock()
-	if s.started {
-		close(s.stopCh)
-		s.stopCh = make(chan struct{})
-	}
 	s.clearQueue()
 	s.started = true
+	s.stopCh = make(chan struct{})
+	s.loopDone = make(chan struct{})
 	stopCh := s.stopCh
-	go s.localizeLoop(stopCh)
+	loopDone := s.loopDone
+	go s.localizeLoop(stopCh, loopDone)
 }
 
 func (s *localizerPipeline) stop(ctx context.Context) chan struct{} {
 	defer s.Trace(ctx, nil, "stop")()
 	s.Lock()
 	defer s.Unlock()
+	return s.doStopLocked()
+}
+
+func (s *localizerPipeline) doStopLocked() chan struct{} {
 	ch := make(chan struct{})
 	if s.started {
 		close(s.stopCh)
-		s.stopCh = make(chan struct{})
 		s.started = false
+		loopDone := s.loopDone
+		go func() {
+			if loopDone != nil {
+				<-loopDone
+			}
+			s.jobWG.Wait()
+			close(ch)
+		}()
+	} else {
+		close(ch)
 	}
-	close(ch)
+	s.clearQueue()
 	return ch
 }
 
@@ -494,13 +512,16 @@ func (s *localizerPipeline) localizeJobPulled(job *localizerPipelineJob, stopCh 
 	s.Debug(job.ctx, "localizeJobPulled[%s]: job pass complete", id)
 }
 
-func (s *localizerPipeline) localizeLoop(stopCh chan struct{}) {
+func (s *localizerPipeline) localizeLoop(stopCh chan struct{}, loopDone chan struct{}) {
 	ctx := context.Background()
 	s.Debug(ctx, "localizeLoop: starting up")
+	defer close(loopDone)
 	for {
 		select {
 		case job := <-s.jobQueue:
-			go s.localizeJobPulled(job, stopCh)
+			s.jobWG.Go(func() {
+				s.localizeJobPulled(job, stopCh)
+			})
 		case <-stopCh:
 			s.Debug(ctx, "localizeLoop: shutting down")
 			return

@@ -69,6 +69,7 @@ func (l *LiveLocationTracker) Stop(ctx context.Context) chan struct{} {
 	for _, t := range l.trackers {
 		t.Stop()
 	}
+	l.uid = nil
 	go func() {
 		_ = l.eg.Wait()
 		close(ch)
