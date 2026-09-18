@@ -415,63 +415,59 @@ const onNavStateChanged =(nextNavState: RouterState['navState'], previousNavStat
 }
 
 export const onEngineConnected = () => {
-  {
-    const registerUIs = async () => {
-      try {
-        await T.RPCGen.delegateUiCtlRegisterChatUIRpcPromise()
-        await T.RPCGen.delegateUiCtlRegisterLogUIRpcPromise()
-        logger.info('Registered Chat UI')
-        await T.RPCGen.delegateUiCtlRegisterHomeUIRpcPromise()
-        logger.info('Registered home UI')
-        await T.RPCGen.delegateUiCtlRegisterSecretUIRpcPromise()
-        logger.info('Registered secret ui')
-        await T.RPCGen.delegateUiCtlRegisterIdentify3UIRpcPromise()
-        logger.info('Registered identify ui')
-        await T.RPCGen.delegateUiCtlRegisterRekeyUIRpcPromise()
-        logger.info('Registered rekey ui')
-      } catch (error) {
-        logger.error('Error in registering UIs:', error)
-      }
+  const registerUIs = async () => {
+    try {
+      await T.RPCGen.delegateUiCtlRegisterChatUIRpcPromise()
+      await T.RPCGen.delegateUiCtlRegisterLogUIRpcPromise()
+      logger.info('Registered Chat UI')
+      await T.RPCGen.delegateUiCtlRegisterHomeUIRpcPromise()
+      logger.info('Registered home UI')
+      await T.RPCGen.delegateUiCtlRegisterSecretUIRpcPromise()
+      logger.info('Registered secret ui')
+      await T.RPCGen.delegateUiCtlRegisterIdentify3UIRpcPromise()
+      logger.info('Registered identify ui')
+      await T.RPCGen.delegateUiCtlRegisterRekeyUIRpcPromise()
+      logger.info('Registered rekey ui')
+    } catch (error) {
+      logger.error('Error in registering UIs:', error)
     }
-    ignorePromise(registerUIs())
   }
+  ignorePromise(registerUIs())
+
   useConfigState.getState().dispatch.onEngineConnected()
-  {
-    const subscribe = async (generation: number) => {
-      let clientState: T.RPCGen.ClientState | undefined
-      try {
-        // prettier-ignore
-        clientState = await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
-          channels: {
-            allowChatNotifySkips: true, app: true, audit: true, badges: true, chat: true, chatarchive: true,
-            chatattachments: true, chatdev: false, chatemoji: false, chatemojicross: false, chatkbfsedits: false,
-            deviceclone: false, ephemeral: false, favorites: false, featuredBots: false, kbfs: true, kbfsdesktop: !isMobile,
-            devicehistory: true, kbfslegacy: false, kbfsrequest: false, kbfssubscription: true, keyfamily: false, notifysimplefs: true,
-            paperkeys: false, pgp: true, reachability: false, runtimestats: true, saltpack: true, service: true, session: true,
-            team: true, teambot: false, tracking: true, users: true, wallet: false,
-          },
-        })
-      } catch (error) {
-        if (error) {
-          logger.warn('error in toggling notifications: ', error)
-        }
-        // clientState stays undefined: no reply and no channels either, so nothing versioned will
-        // reach this connection and the bootstrap status is all we have, exactly as for a service
-        // too old to answer at all
-      }
-      // outside the try on purpose: a throw from applying a good reply must not be read as a
-      // failed subscribe and re-run the unversioned fallback over half-applied versioned state
-      applyClientState(clientState, generation)
+
+  const subscribe = async (generation: number) => {
+    let clientState: T.RPCGen.ClientState | undefined
+    try {
+      // prettier-ignore
+      clientState = await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
+        channels: {
+          allowChatNotifySkips: true, app: true, audit: true, badges: true, chat: true, chatarchive: true,
+          chatattachments: true, chatdev: false, chatemoji: false, chatemojicross: false, chatkbfsedits: false,
+          deviceclone: false, ephemeral: false, favorites: false, featuredBots: false, kbfs: true, kbfsdesktop: !isMobile,
+          devicehistory: true, kbfslegacy: false, kbfsrequest: false, kbfssubscription: true, keyfamily: false, notifysimplefs: true,
+          paperkeys: false, pgp: true, reachability: false, runtimestats: true, saltpack: true, service: true, session: true,
+          team: true, teambot: false, tracking: true, users: true, wallet: false,
+        },
+      })
+    } catch (error) {
+      logger.warn('error in toggling notifications: ', error)
+      // clientState stays undefined: no reply and no channels either, so nothing versioned will
+      // reach this connection and the bootstrap status is all we have, exactly as for a service
+      // too old to answer at all
     }
-    // a new connection has told us nothing yet; the reply is what settles it
-    useConfigState.getState().dispatch.setSessionIsUnversioned(false)
-    ignorePromise(drainPushTapRoute())
-    // startHandshake first so this connection has its generation before the subscribe goes out.
-    // Nothing orders the two RPCs any more: the subscription reply is what carries the session and
-    // the http address, so the bootstrap read has nothing left to race with.
-    useDaemonState.getState().dispatch.startHandshake()
-    ignorePromise(subscribe(useDaemonState.getState().handshakeGeneration))
+    // outside the try on purpose: a throw from applying a good reply must not be read as a
+    // failed subscribe and re-run the unversioned fallback over half-applied versioned state
+    applyClientState(clientState, generation)
   }
+  // a new connection has told us nothing yet; the reply is what settles it
+  useConfigState.getState().dispatch.setSessionIsUnversioned(false)
+  ignorePromise(drainPushTapRoute())
+  // startHandshake first so this connection has its generation before the subscribe goes out.
+  // Nothing orders the two RPCs any more: the subscription reply is what carries the session and
+  // the http address, so the bootstrap read has nothing left to race with.
+  useDaemonState.getState().dispatch.startHandshake()
+  ignorePromise(subscribe(useDaemonState.getState().handshakeGeneration))
 }
 
 export const onEngineDisconnected = () => {

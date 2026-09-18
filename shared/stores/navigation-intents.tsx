@@ -33,15 +33,6 @@ type Store = {
 
 const duplicateWindowMs = 1500
 
-const targetsCouldMatch = (first?: string, second?: string) =>
-  !first || !second || first === second
-
-// Once an unscoped URL has been handled, a later targeted URL carries new
-// account-routing information and must not be discarded. The reverse ordering
-// is safe: an unscoped event after a targeted one can be the duplicate source.
-const handledTargetMatches = (handled?: string, incoming?: string) =>
-  !incoming || handled === incoming
-
 export const useNavigationIntentsState = Z.createZustand<Store>(
   'navigation-intents',
   (set, get) => {
@@ -63,7 +54,10 @@ export const useNavigationIntentsState = Z.createZustand<Store>(
         const now = Date.now()
         const targetUid = options?.targetUid
         const {intent: pending, lastHandledIntent} = get()
-        if (pending?.url === url && targetsCouldMatch(pending.targetUid, targetUid)) {
+        if (
+          pending?.url === url &&
+          (!pending.targetUid || !targetUid || pending.targetUid === targetUid)
+        ) {
           if (!pending.targetUid && targetUid) {
             set(s => {
               if (s.intent?.id === pending.id) {
@@ -73,10 +67,13 @@ export const useNavigationIntentsState = Z.createZustand<Store>(
           }
           return
         }
+        // Once an unscoped URL has been handled, a later targeted URL carries new
+        // account-routing information and must not be discarded. The reverse ordering
+        // is safe: an unscoped event after a targeted one can be the duplicate source.
         if (
           lastHandledIntent?.url === url &&
           now - lastHandledIntent.handledAt < duplicateWindowMs &&
-          handledTargetMatches(lastHandledIntent.targetUid, targetUid)
+          (!targetUid || lastHandledIntent.targetUid === targetUid)
         ) {
           return
         }

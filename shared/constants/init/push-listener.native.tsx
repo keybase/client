@@ -50,9 +50,10 @@ export const initPushListener = () => {
     })
   )
 
-  // Retry token upload when user state becomes available.
-  // The FCM token often arrives before username/deviceID are loaded,
-  // so the initial upload silently bails. This retries once user state is ready.
+  // Not a native-readiness retry: native parks the token and getRegistrationToken reads it
+  // back, so the token itself is never lost. What the upload waits on is username/deviceID,
+  // which the token routinely beats, so setPushToken's upload bails. Re-run it once the
+  // account it has to be filed under exists.
   unsubs.push(
     useCurrentUserState.subscribe((s, old) => {
       if (s.username === old.username && s.deviceID === old.deviceID) return
@@ -96,8 +97,9 @@ export const initPushListener = () => {
         emitDeepLink('keybase://incoming-share')
       })
       unsubs.push(() => shareSub.remove())
-      // shareListenersRegistered() is deliberately NOT called here: the init/index.tsx
-      // router subscriber controls when native flushes pending share intents.
+      // shareListenersRegistered() is deliberately NOT called here: a parked share intent
+      // waits for JS to be able to route it, which is the router subscriber in init/index.tsx,
+      // not merely for this listener to exist.
     }
   } catch (e) {
     logger.error('[Push] failed to set up listeners: ', e)

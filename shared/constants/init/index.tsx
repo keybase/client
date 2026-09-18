@@ -358,26 +358,19 @@ const _initNativePlatformListener = () => {
 
   _platformUnsubs.push(useShellState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
-    let appFocused: boolean
-    switch (s.mobileAppState) {
-      case 'active':
-        appFocused = true
-        break
-      case 'background':
-        appFocused = false
-        persistRoute(false, true, () => useConfigState.getState().startup.loaded)
-        break
-      case 'inactive':
-        appFocused = false
-        break
-      default:
-        appFocused = false
+    if (s.mobileAppState === 'background') {
+      persistRoute(false, true, () => useConfigState.getState().startup.loaded)
     }
 
     // mobileAppState is the service's derived state, applied in constants/init/shared.tsx;
     // nothing in JS derives it, so this only translates it into focus.
     logger.info(`app focus changed: ${s.mobileAppState}`)
-    s.dispatch.changedFocus(appFocused)
+    s.dispatch.changedFocus(s.mobileAppState === 'active')
+
+    if (s.mobileAppState === 'active') {
+      // only reload on foreground
+      useSettingsContactsState.getState().dispatch.loadContactPermissions()
+    }
   }))
 
   const configureAndroidCacheDir = () => {
@@ -427,14 +420,6 @@ const _initNativePlatformListener = () => {
       }
     }
     ignorePromise(f())
-  }))
-
-  _platformUnsubs.push(useShellState.subscribe((s, old) => {
-    if (s.mobileAppState === old.mobileAppState) return
-    if (s.mobileAppState === 'active') {
-      // only reload on foreground
-      useSettingsContactsState.getState().dispatch.loadContactPermissions()
-    }
   }))
 
   if (isAndroid) {
