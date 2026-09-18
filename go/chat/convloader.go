@@ -206,9 +206,13 @@ func (b *BackgroundConvLoader) monitorAppState(w *libkb.AppStateWatcher, stopCh 
 	b.Debug(ctx, "monitorAppState: starting up in %v", state)
 	w.Run(state, stopCh, func(keybase1.MobileAppState) bool {
 		b.Lock()
-		if b.stopCh != stopCh {
+		// Stop closes stopCh under this lock, so a closed channel here means
+		// this run is over.
+		select {
+		case <-stopCh:
 			b.Unlock()
 			return false
+		default:
 		}
 		// Read and apply under the lock, so Start and Stop never interleave
 		// with a decision made on a stale state.

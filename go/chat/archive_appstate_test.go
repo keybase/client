@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sync/errgroup"
 )
 
 // archiveJobRunner stands in for ChatArchiver: a launched job waits for
@@ -246,6 +247,64 @@ func TestArchiveStaleResumeAfterRestart(t *testing.T) {
 	case id := <-runner.launched:
 		require.FailNow(t, fmt.Sprintf("stale resume launched %v", id))
 	case <-time.After(300 * time.Millisecond):
+	}
+}
+
+// A resume whose delay fires just as a plain Stop, with no Start following
+// it, takes the lock must not launch jobs: there is no live run left to
+// launch them into.
+func TestArchiveResumeAfterPlainStopLaunchesNothing(t *testing.T) {
+	r, runner, _ := setupAppStateArchive(t, true)
+	stopCh := make(chan struct{})
+	r.Lock()
+	r.started = true
+	r.stopCh = stopCh
+	r.eg = new(errgroup.Group)
+	r.Unlock()
+
+	reached := make(chan struct{})
+	release := make(chan struct{})
+	r.beforeResumeDecision = func() {
+		close(reached)
+		<-release
+	}
+
+	resumeDone := make(chan error, 1)
+	go func() {
+		resumeDone <- r.resumeAllBgJobs(context.Background(), stopCh)
+	}()
+
+	<-reached
+	// Stop takes the lock first, because the resume goroutine is parked in
+	// beforeResumeDecision, not yet at r.Lock().
+	stopDone := make(chan struct{})
+	go func() {
+		<-r.Stop(context.Background())
+		close(stopDone)
+	}()
+	select {
+	case <-stopDone:
+	case <-time.After(10 * time.Second):
+		require.FailNow(t, "Stop did not finish")
+	}
+	close(release)
+
+	// Before the fix, this check's identity comparison can't tell a plain
+	// Stop apart from a still-live run (Stop closes stopCh but never
+	// replaces it), so resumeAllBgJobs falls through to initLocked and gets
+	// a spurious "not started" error instead of cleanly recognizing the run
+	// is over.
+	select {
+	case err := <-resumeDone:
+		require.NoError(t, err)
+	case <-time.After(10 * time.Second):
+		require.FailNow(t, "resumeAllBgJobs did not return")
+	}
+
+	select {
+	case id := <-runner.launched:
+		require.FailNow(t, fmt.Sprintf("resumed %v after a plain Stop", id))
+	case <-time.After(500 * time.Millisecond):
 	}
 }
 

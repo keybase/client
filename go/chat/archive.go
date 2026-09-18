@@ -194,10 +194,13 @@ func (r *ChatArchiveRegistry) resumeAllBgJobs(ctx context.Context, stopCh chan s
 	}
 	r.Lock()
 	defer r.Unlock()
-	// The delay can win over a closed stopCh, and a later Start (possibly for
-	// another user) can run before the lock is taken.
-	if r.stopCh != stopCh {
+	// Stop closes stopCh under this lock, so a closed channel here means this
+	// run is over, whether or not a later Start (possibly for another user)
+	// has since replaced r.stopCh.
+	select {
+	case <-stopCh:
 		return nil
+	default:
 	}
 	// Decide under the lock the monitor pauses under: a pause either comes
 	// first and is seen here, or bumps pauseEpoch and pauses what launches.

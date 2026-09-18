@@ -174,8 +174,12 @@ func (c *levelDbCleaner) monitorAppState(w *AppStateWatcher, stopCh chan struct{
 		c.log("monitorAppState: attempting cancel, state: %v", state)
 		c.Lock()
 		defer c.Unlock()
-		if c.stopCh != stopCh {
+		// Stop closes stopCh under this lock, so a closed channel here means
+		// this run is over.
+		select {
+		case <-stopCh:
 			return false
+		default:
 		}
 		close(c.cancelCh)
 		c.cancelCh = make(chan struct{})
