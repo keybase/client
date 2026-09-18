@@ -1,0 +1,37 @@
+go/chat/bots/commands.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 125
+go/chat/uiinboxloader.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 78-81,88-94,101-104,109-110,121,672
+go/chat/convloader.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 238
+go/chat/archive.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 286
+go/chat/ephemeral_purger.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 176
+go/chat/localizer.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 289-290,343-346,350-351,353-354,361-364,369-378,380,515,518,522-526
+go/chat/retry.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 394
+go/chat/search/indexer.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 238,259,263,267,270,272-274,307,309,311
+go/chat/maps/livelocation.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 72
+go/chat/inboxsource.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 668-671,687-690,695
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "bb4bfce78fb7a97befa89f378966e9a6133f4a57",
+  "prompts": {},
+  "sessions": {
+    "s_853e2d28c2e344": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d5a3add1-5cdb-47ca-a334-54991bf7ad5e",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
