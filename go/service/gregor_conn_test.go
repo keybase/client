@@ -600,7 +600,7 @@ func TestGregorConnStress(t *testing.T) {
 }
 
 // Connects and shutdowns race the connection's own goroutines: OnConnect
-// reads the URI, the ping loop watches its shutdown channel, and the
+// reads the URI, the ping loop watches its connection's ctx, and the
 // transport dials.
 func TestGregorHandlerConnectRaces(t *testing.T) {
 	tc, g := setupGregorTest(t)
@@ -638,6 +638,70 @@ func gateURI(h *gregorHandler) *rpc.FMPURI {
 	h.connGate.mu.Lock()
 	defer h.connGate.mu.Unlock()
 	return h.connGate.uri
+}
+
+// A connect that fails before it creates a connection, as with no bundled CA
+// for the host, leaves nothing running for it, however often it is retried.
+func TestGregorHandlerFailedConnectLeavesNothingRunning(t *testing.T) {
+	tc, g := setupGregorTest(t)
+	defer tc.Cleanup()
+	g.Syncer = chat.NewSyncer(g)
+	h := newGregorHandler(g)
+	uri, err := rpc.ParseFMPURI("fmprpc+tls://no-bundled-ca.test:443")
+	require.NoError(t, err)
+
+	baseline := runtime.NumGoroutine()
+	for range 20 {
+		require.ErrorContains(t, h.Connect(uri), "No bundled CA")
+		h.connGate.reconcile(context.Background())
+	}
+	require.False(t, hasConn(h))
+	deadline := time.Now().Add(10 * time.Second)
+	for runtime.NumGoroutine() > baseline && time.Now().Before(deadline) {
+		time.Sleep(10 * time.Millisecond)
+	}
+	require.LessOrEqual(t, runtime.NumGoroutine(), baseline, "a failed connect leaked goroutines")
+}
+
+// Everything a connection starts, its ping loop and push state debouncer
+// included, exits when it is shut down.
+func TestGregorHandlerShutdownStopsConnGoroutines(t *testing.T) {
+	tc, g := setupGregorTest(t)
+	defer tc.Cleanup()
+	g.Syncer = chat.NewSyncer(g)
+	h := newGregorHandler(g)
+	uri := closedPortURI(t)
+
+	baseline := runtime.NumGoroutine()
+	for range 10 {
+		require.NoError(t, h.Connect(uri))
+		require.True(t, hasConn(h))
+		h.Shutdown(context.Background())
+	}
+	deadline := time.Now().Add(10 * time.Second)
+	for runtime.NumGoroutine() > baseline && time.Now().Before(deadline) {
+		time.Sleep(10 * time.Millisecond)
+	}
+	require.LessOrEqual(t, runtime.NumGoroutine(), baseline, "a shut down connection left goroutines running")
+}
+
+// A shut down connection's auth reports loggedInMaybe instead of checking the
+// login.
+func TestGregorHandlerLoggedInAfterShutdown(t *testing.T) {
+	tc, g := setupGregorTest(t)
+	defer tc.Cleanup()
+	g.Syncer = chat.NewSyncer(g)
+	h := newGregorHandler(g)
+	ctx := context.Background()
+
+	_, _, _, _, res := h.loggedIn(ctx)
+	require.Equal(t, loggedInNo, res)
+	require.NoError(t, h.Connect(closedPortURI(t)))
+	_, _, _, _, res = h.loggedIn(ctx)
+	require.Equal(t, loggedInNo, res)
+	h.Shutdown(ctx)
+	_, _, _, _, res = h.loggedIn(ctx)
+	require.Equal(t, loggedInMaybe, res)
 }
 
 // closedPortURI points at a closed port, so a connection only retries until
@@ -1040,7 +1104,6 @@ func (c *onConnectTailTest) reinstall(conn *rpc.Connection) {
 	c.h.connMutex.Lock()
 	defer c.h.connMutex.Unlock()
 	c.h.conn = conn
-	c.h.shutdownCh = make(chan struct{})
 	c.h.connCtx, c.h.connCancel = context.WithCancel(context.Background())
 }
 
