@@ -398,6 +398,29 @@ func (n *NotifyRouter) SetChannels(i ConnectionID, nc keybase1.NotificationChann
 	n.setNotificationChannels(i, nc)
 }
 
+// announce stamps one state version and fans a notification out to every
+// connection whose channel filter wants it. Stamping here rather than at each
+// call site is what makes the version the default for an announced change: the
+// stamp happens after the change is readable and before any send.
+func (n *NotifyRouter) announce(ctx context.Context, name string,
+	wants func(keybase1.NotificationChannels) bool,
+	send func(rpc.Transporter, keybase1.StateVersion),
+) {
+	version := n.G().NextStateVersion()
+	n.cm.ApplyAllDetails(func(id ConnectionID, xp rpc.Transporter, d *keybase1.ClientDetails) bool {
+		registered := wants(n.getNotificationChannels(id))
+		if registered {
+			go send(xp, version)
+		}
+		desc := "<nil>"
+		if d != nil {
+			desc = fmt.Sprintf("%+v", *d)
+		}
+		n.G().Log.CDebugf(ctx, "| NotifyRouter#%s: client %s (sent=%v)", name, desc, registered)
+		return true
+	})
+}
+
 // HandleLogout is called whenever the current user logged out. It will broadcast
 // the message to all connections who care about such a message.
 func (n *NotifyRouter) HandleLogout(ctx context.Context) {
@@ -406,28 +429,13 @@ func (n *NotifyRouter) HandleLogout(ctx context.Context) {
 	}
 	defer n.G().CTrace(ctx, "NotifyRouter#HandleLogout", nil)()
 	ctx = CopyTagsToBackground(ctx)
-	version := n.G().NextStateVersion()
-	// For all connections we currently have open...
-	n.cm.ApplyAllDetails(func(id ConnectionID, xp rpc.Transporter, d *keybase1.ClientDetails) bool {
-		// If the connection wants the `Session` notification type
-		registered := false
-		if n.getNotificationChannels(id).Session {
-			registered = true
-			// In the background do...
-			go func() {
-				// A send of a `LoggedOut` RPC
-				_ = (keybase1.NotifySessionClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).LoggedOut(ctx, version)
-			}()
-		}
-		desc := "<nil>"
-		if d != nil {
-			desc = fmt.Sprintf("%+v", *d)
-		}
-		n.G().Log.CDebugf(ctx, "| NotifyRouter#HandleLogout: client %s (sent=%v)", desc, registered)
-		return true
-	})
+	n.announce(ctx, "HandleLogout",
+		func(ch keybase1.NotificationChannels) bool { return ch.Session },
+		func(xp rpc.Transporter, version keybase1.StateVersion) {
+			_ = (keybase1.NotifySessionClient{
+				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+			}).LoggedOut(ctx, version)
+		})
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.Logout()
@@ -460,26 +468,18 @@ func (n *NotifyRouter) SendLogin(ctx context.Context, u string, signedUp bool) {
 		return
 	}
 	n.G().Log.CDebugf(ctx, "+ Sending login notification, as user %q, signedUp %t", u, signedUp)
-	// For all connections we currently have open...
 	ctx = CopyTagsToBackground(ctx)
-	version := n.G().NextStateVersion()
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Session` notification type
-		if n.getNotificationChannels(id).Session {
-			// In the background do...
-			go func() {
-				// A send of a `LoggedIn` RPC
-				_ = (keybase1.NotifySessionClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).LoggedIn(ctx, keybase1.LoggedInArg{
-					Username: u,
-					SignedUp: signedUp,
-					Version:  version,
-				})
-			}()
-		}
-		return true
-	})
+	n.announce(ctx, "SendLogin",
+		func(ch keybase1.NotificationChannels) bool { return ch.Session },
+		func(xp rpc.Transporter, version keybase1.StateVersion) {
+			_ = (keybase1.NotifySessionClient{
+				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+			}).LoggedIn(ctx, keybase1.LoggedInArg{
+				Username: u,
+				SignedUp: signedUp,
+				Version:  version,
+			})
+		})
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.Login(u)
@@ -2826,17 +2826,13 @@ func (n *NotifyRouter) HandleHTTPSrvInfoUpdate(ctx context.Context, info keybase
 	if n == nil {
 		return
 	}
-	version := n.G().NextStateVersion()
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Service {
-			go func() {
-				_ = (keybase1.NotifyServiceClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).HTTPSrvInfoUpdate(ctx, keybase1.HTTPSrvInfoUpdateArg{Info: info, Version: version})
-			}()
-		}
-		return true
-	})
+	n.announce(ctx, "HandleHTTPSrvInfoUpdate",
+		func(ch keybase1.NotificationChannels) bool { return ch.Service },
+		func(xp rpc.Transporter, version keybase1.StateVersion) {
+			_ = (keybase1.NotifyServiceClient{
+				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+			}).HTTPSrvInfoUpdate(ctx, keybase1.HTTPSrvInfoUpdateArg{Info: info, Version: version})
+		})
 	n.runListeners(func(listener NotifyListener) {
 		listener.HTTPSrvInfoUpdate(info)
 	})

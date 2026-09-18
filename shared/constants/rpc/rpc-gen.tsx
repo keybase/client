@@ -72,7 +72,7 @@ export type MessageTypes = {
     outParam: void,
   },
   'keybase.1.NotifyService.HTTPSrvInfoUpdate': {
-    inParam: {readonly info: HttpSrvInfo,readonly version: number},
+    inParam: {readonly info: HttpSrvInfo,readonly version: StateVersion},
     outParam: void,
   },
   'keybase.1.NotifyService.handleKeybaseLink': {
@@ -88,11 +88,11 @@ export type MessageTypes = {
     outParam: void,
   },
   'keybase.1.NotifySession.loggedIn': {
-    inParam: {readonly username: string,readonly signedUp: boolean,readonly version: number},
+    inParam: {readonly username: string,readonly signedUp: boolean,readonly version: StateVersion},
     outParam: void,
   },
   'keybase.1.NotifySession.loggedOut': {
-    inParam: {readonly version: number},
+    inParam: {readonly version: StateVersion},
     outParam: void,
   },
   'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged': {
@@ -829,7 +829,7 @@ export type MessageTypes = {
   },
   'keybase.1.notifyCtl.setNotifications': {
     inParam: {readonly channels: NotificationChannels},
-    outParam: void,
+    outParam: ClientState,
   },
   'keybase.1.pgp.pgpKeyGenDefault': {
     inParam: {readonly createUids: PGPCreateUids},
@@ -2527,7 +2527,7 @@ export type BlockQuotaInfo = {readonly folders?: ReadonlyArray<FolderUsageStat> 
 export type BlockRefNonce = string | null
 export type BlockReference = {readonly bid: BlockIdCombo,readonly nonce: BlockRefNonce,readonly chargedTo: UserOrTeamID,}
 export type BlockReferenceCount = {readonly ref: BlockReference,readonly liveCount: number,}
-export type BootstrapStatus = {readonly registered: boolean,readonly loggedIn: boolean,readonly uid: UID,readonly username: string,readonly deviceID: DeviceID,readonly deviceName: string,readonly fullname: FullName,readonly userReacjis: UserReacjis,readonly httpSrvInfo?: HttpSrvInfo | null,readonly version: number,}
+export type BootstrapStatus = {readonly registered: boolean,readonly loggedIn: boolean,readonly uid: UID,readonly username: string,readonly deviceID: DeviceID,readonly deviceName: string,readonly fullname: FullName,readonly userReacjis: UserReacjis,readonly httpSrvInfo?: HttpSrvInfo | null,}
 export type BotToken = string
 export type BotTokenInfo = {readonly token: BotToken,readonly ctime: Time,}
 export type BoxAuditAttempt = {readonly ctime: UnixTime,readonly error?: string | null,readonly result: BoxAuditAttemptResult,readonly generation?: PerTeamKeyGeneration | null,readonly rotated: boolean,}
@@ -2545,6 +2545,7 @@ export type CheckProofStatus = {readonly found: boolean,readonly status: ProofSt
 export type CheckResult = {readonly proofResult: ProofResult,readonly time: Time,readonly freshness: CheckResultFreshness,}
 export type CiphertextBundle = {readonly kid: KID,readonly ciphertext: EncryptedBytes32,readonly nonce: BoxNonce,readonly publicKey: BoxPublicKey,}
 export type ClientDetails = {readonly pid: number,readonly clientType: ClientType,readonly argv?: ReadonlyArray<string> | null,readonly desc: string,readonly version: string,}
+export type ClientState = {readonly version: StateVersion,readonly registered: boolean,readonly loggedIn: boolean,readonly uid: UID,readonly username: string,readonly deviceID: DeviceID,readonly deviceName: string,readonly httpSrvInfo?: HttpSrvInfo | null,}
 export type ClientStatus = {readonly details: ClientDetails,readonly connectionID: number,readonly notificationChannels: NotificationChannels,}
 export type CompatibilityTeamID ={ typ: TeamType.legacy, legacy: TLFID } | { typ: TeamType.modern, modern: TeamID } | { typ: TeamType.none}
 export type ComponentResult = {readonly name: string,readonly status: Status,readonly exitCode: number,}
@@ -2943,6 +2944,7 @@ export type SocialAssertion = {readonly user: string,readonly service: SocialAss
 export type SocialAssertionService = string
 export type StartProofResult = {readonly sigID: SigID,}
 export type StartStatus = {readonly log: string,}
+export type StateVersion = {readonly epoch: number,readonly counter: number,}
 export type Status = {readonly code: number,readonly name: string,readonly desc: string,readonly fields?: ReadonlyArray<StringKVPair> | null,}
 export type StellarAccount = {readonly accountID: string,readonly federationAddress: string,readonly sigID: SigID,readonly hidden: boolean,}
 export type Stream = {readonly fd: number,}

@@ -384,7 +384,7 @@ func (k *KeybaseServiceBase) LoggedIn(ctx context.Context, arg keybase1.LoggedIn
 }
 
 // LoggedOut implements keybase1.NotifySessionInterface.
-func (k *KeybaseServiceBase) LoggedOut(ctx context.Context, _ int64) error {
+func (k *KeybaseServiceBase) LoggedOut(ctx context.Context, _ keybase1.StateVersion) error {
 	k.log.CDebugf(ctx, "Current session logged out")
 	k.setCachedCurrentSession(idutil.SessionInfo{})
 	if k.config != nil {

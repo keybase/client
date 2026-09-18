@@ -904,6 +904,20 @@
           "name": "skinTone"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "StateVersion",
+      "fields": [
+        {
+          "type": "long",
+          "name": "epoch"
+        },
+        {
+          "type": "long",
+          "name": "counter"
+        }
+      ]
     }
   ],
   "messages": {},

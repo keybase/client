@@ -31,7 +31,7 @@
         },
         {
           "name": "version",
-          "type": "long"
+          "type": "StateVersion"
         }
       ],
       "response": null,

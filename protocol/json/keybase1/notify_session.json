@@ -1,13 +1,18 @@
 {
   "protocol": "NotifySession",
-  "imports": [],
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
   "types": [],
   "messages": {
     "loggedOut": {
       "request": [
         {
           "name": "version",
-          "type": "long"
+          "type": "StateVersion"
         }
       ],
       "response": null,
@@ -25,7 +30,7 @@
         },
         {
           "name": "version",
-          "type": "long"
+          "type": "StateVersion"
         }
       ],
       "response": null

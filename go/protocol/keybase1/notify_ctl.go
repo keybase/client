@@ -88,12 +88,42 @@ func (o NotificationChannels) DeepCopy() NotificationChannels {
 	}
 }
 
+type ClientState struct {
+	Version     StateVersion `codec:"version" json:"version"`
+	Registered  bool         `codec:"registered" json:"registered"`
+	LoggedIn    bool         `codec:"loggedIn" json:"loggedIn"`
+	Uid         UID          `codec:"uid" json:"uid"`
+	Username    string       `codec:"username" json:"username"`
+	DeviceID    DeviceID     `codec:"deviceID" json:"deviceID"`
+	DeviceName  string       `codec:"deviceName" json:"deviceName"`
+	HttpSrvInfo *HttpSrvInfo `codec:"httpSrvInfo,omitempty" json:"httpSrvInfo,omitempty"`
+}
+
+func (o ClientState) DeepCopy() ClientState {
+	return ClientState{
+		Version:    o.Version.DeepCopy(),
+		Registered: o.Registered,
+		LoggedIn:   o.LoggedIn,
+		Uid:        o.Uid.DeepCopy(),
+		Username:   o.Username,
+		DeviceID:   o.DeviceID.DeepCopy(),
+		DeviceName: o.DeviceName,
+		HttpSrvInfo: (func(x *HttpSrvInfo) *HttpSrvInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := x.DeepCopy()
+			return &tmp
+		})(o.HttpSrvInfo),
+	}
+}
+
 type SetNotificationsArg struct {
 	Channels NotificationChannels `codec:"channels" json:"channels"`
 }
 
 type NotifyCtlInterface interface {
-	SetNotifications(context.Context, NotificationChannels) error
+	SetNotifications(context.Context, NotificationChannels) (ClientState, error)
 }
 
 func NotifyCtlProtocol(i NotifyCtlInterface) rpc.Protocol {
@@ -111,7 +141,7 @@ func NotifyCtlProtocol(i NotifyCtlInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]SetNotificationsArg)(nil), args)
 						return
 					}
-					err = i.SetNotifications(ctx, typedArgs[0].Channels)
+					ret, err = i.SetNotifications(ctx, typedArgs[0].Channels)
 					return
 				},
 			},
@@ -123,8 +153,8 @@ type NotifyCtlClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c NotifyCtlClient) SetNotifications(ctx context.Context, channels NotificationChannels) (err error) {
+func (c NotifyCtlClient) SetNotifications(ctx context.Context, channels NotificationChannels) (res ClientState, err error) {
 	__arg := SetNotificationsArg{Channels: channels}
-	err = c.Cli.Call(ctx, "keybase.1.notifyCtl.setNotifications", []any{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.notifyCtl.setNotifications", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

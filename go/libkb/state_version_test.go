@@ -13,9 +13,9 @@ import (
 
 // Every announced change gets its own version, and the version is readable
 // through StateVersion by the time the notification is on its way out. A client
-// compares the version on a bootstrap status against the versions on the
-// notifications it got, so a change that stamped nothing would look older than a
-// status read before it and be dropped.
+// compares the version on the snapshot it got from setNotifications against the
+// versions on the notifications it got, so a change that stamped nothing would
+// look older than a snapshot read before it and be dropped.
 func TestNotifyRouterStampsEachAnnouncedChange(t *testing.T) {
 	tc := SetupTest(t, "StateVersion", 0)
 	defer tc.Cleanup()
@@ -23,16 +23,32 @@ func TestNotifyRouterStampsEachAnnouncedChange(t *testing.T) {
 	g.SetService()
 	ctx := context.Background()
 
-	require.EqualValues(t, 0, g.StateVersion(), "nothing announced yet")
+	epoch := g.StateVersion().Epoch
+	require.NotZero(t, epoch, "the epoch identifies this service process")
+	require.EqualValues(t, 0, g.StateVersion().Counter, "nothing announced yet")
 
 	g.NotifyRouter.HandleHTTPSrvInfoUpdate(ctx, keybase1.HttpSrvInfo{Address: "127.0.0.1:1", Token: "token"})
 	afterHTTP := g.StateVersion()
-	require.EqualValues(t, 1, afterHTTP)
+	require.EqualValues(t, 1, afterHTTP.Counter)
 
 	g.NotifyRouter.SendLogin(ctx, "testuser", false)
 	afterLogin := g.StateVersion()
-	require.Greater(t, afterLogin, afterHTTP)
+	require.Greater(t, afterLogin.Counter, afterHTTP.Counter)
 
 	g.NotifyRouter.HandleLogout(ctx)
-	require.Greater(t, g.StateVersion(), afterLogin)
+	require.Greater(t, g.StateVersion().Counter, afterLogin.Counter)
+
+	require.Equal(t, epoch, g.StateVersion().Epoch, "the epoch never moves within a process")
+}
+
+// A client keeps the versions it applied across a reconnect and tells a
+// restarted service from a continuing one by the epoch, so two services must
+// never share one.
+func TestStateVersionEpochsDiffer(t *testing.T) {
+	first := SetupTest(t, "StateVersionA", 0)
+	defer first.Cleanup()
+	second := SetupTest(t, "StateVersionB", 0)
+	defer second.Cleanup()
+
+	require.NotEqual(t, first.G.StateVersion().Epoch, second.G.StateVersion().Epoch)
 }

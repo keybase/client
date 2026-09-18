@@ -154,7 +154,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.KvstoreProtocol(NewKVStoreHandler(xp, g)),
 		keybase1.LogProtocol(NewLogHandler(xp, logReg, g)),
 		keybase1.LoginProtocol(NewLoginHandler(xp, g)),
-		keybase1.NotifyCtlProtocol(NewNotifyCtlHandler(xp, connID, g)),
+		keybase1.NotifyCtlProtocol(NewNotifyCtlHandler(xp, connID, g, d)),
 		keybase1.PGPProtocol(NewPGPHandler(xp, connID, g)),
 		keybase1.PprofProtocol(NewPprofHandler(xp, g)),
 		keybase1.ReachabilityProtocol(newReachabilityHandler(xp, g, d)),

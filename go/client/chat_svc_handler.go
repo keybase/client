@@ -868,7 +868,7 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1,
 	channels := keybase1.NotificationChannels{
 		Chatattachments: true,
 	}
-	if err := cli.SetNotifications(context.TODO(), channels); err != nil {
+	if _, err := cli.SetNotifications(context.TODO(), channels); err != nil {
 		return c.errReply(err)
 	}
 
@@ -928,7 +928,7 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 	channels := keybase1.NotificationChannels{
 		Chatattachments: true,
 	}
-	if err := cli.SetNotifications(context.TODO(), channels); err != nil {
+	if _, err := cli.SetNotifications(context.TODO(), channels); err != nil {
 		return c.errReply(err)
 	}
 
@@ -991,7 +991,7 @@ func (c *chatServiceHandler) downloadV1NoStream(ctx context.Context, opts downlo
 	channels := keybase1.NotificationChannels{
 		Chatattachments: true,
 	}
-	if err := cli.SetNotifications(context.TODO(), channels); err != nil {
+	if _, err := cli.SetNotifications(context.TODO(), channels); err != nil {
 		return c.errReply(err)
 	}
 

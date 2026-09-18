@@ -79,7 +79,8 @@ type GlobalContext struct {
 	Identify3State                   *Identify3State             // keep track of Identify3 sessions
 	vidMu                            *sync.Mutex                 // protect VID
 	RuntimeStats                     RuntimeStats                // performance runtime stats
-	stateVersion                     atomic.Int64                // see StateVersion
+	stateEpoch                       int64                       // see StateVersion
+	stateCounter                     atomic.Int64                // see StateVersion
 
 	cacheMu                *sync.RWMutex   // protects all caches
 	ProofCache             *ProofCache     // where to cache proof results
@@ -318,6 +319,9 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.IdentifyDispatch = NewIdentifyDispatch()
 	g.Identify3State = NewIdentify3State(g)
 	g.GregorState = newNullGregorState()
+	// Any value distinct from every other service process will do: a client only
+	// ever asks whether two epochs differ, never which is greater.
+	g.stateEpoch = time.Now().UnixNano()
 	g.LocalNetworkInstrumenterStorage = NewDiskInstrumentationStorage(g, keybase1.NetworkSource_LOCAL)
 	g.RemoteNetworkInstrumenterStorage = NewDiskInstrumentationStorage(g, keybase1.NetworkSource_REMOTE)
 
@@ -330,14 +334,21 @@ func NewGlobalContextInit() *GlobalContext {
 	return NewGlobalContext().Init()
 }
 
-// StateVersion is the version of the last change a notification announced (the
-// http server address, login, logout). The bootstrap status reads it before the
-// state, so a client can tell whether the status or a notification is newer.
-func (g *GlobalContext) StateVersion() int64 { return g.stateVersion.Load() }
+// StateVersion labels the last change a notification announced (the http server
+// address, login, logout). Epoch identifies this service process, so a client
+// that reconnects to a restarted service sees a different epoch instead of a
+// counter that looks stale; counter strictly increases within one epoch.
+func (g *GlobalContext) StateVersion() keybase1.StateVersion {
+	return keybase1.StateVersion{Epoch: g.stateEpoch, Counter: g.stateCounter.Load()}
+}
 
-// NextStateVersion stamps a change about to be announced. Call it after the
-// change is readable, so nothing carrying this version is still invisible.
-func (g *GlobalContext) NextStateVersion() int64 { return g.stateVersion.Add(1) }
+// NextStateVersion stamps a change about to be announced. NotifyRouter calls it
+// after the change is readable, so nothing carrying this version is still
+// invisible, which makes a snapshot labelled with StateVersion never newer than
+// its label.
+func (g *GlobalContext) NextStateVersion() keybase1.StateVersion {
+	return keybase1.StateVersion{Epoch: g.stateEpoch, Counter: g.stateCounter.Add(1)}
+}
 
 func (g *GlobalContext) SetService() {
 	g.Service = true

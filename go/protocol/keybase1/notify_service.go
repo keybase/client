@@ -23,8 +23,8 @@ func (o HttpSrvInfo) DeepCopy() HttpSrvInfo {
 }
 
 type HTTPSrvInfoUpdateArg struct {
-	Info    HttpSrvInfo `codec:"info" json:"info"`
-	Version int64       `codec:"version" json:"version"`
+	Info    HttpSrvInfo  `codec:"info" json:"info"`
+	Version StateVersion `codec:"version" json:"version"`
 }
 
 type HandleKeybaseLinkArg struct {

@@ -356,30 +356,19 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (r
 	// attempt (which can be slow: leveldb open/recovery, keychain reads) so
 	// we don't report loggedIn=false while it is still in flight.
 	h.svc.awaitInitialLoginAttempt(m, 30*time.Second)
-	// Read the version after that wait but before the state it describes. A login,
-	// logout or http server change that lands from here on stamps its notification
-	// with a newer version, so the client keeps the notification over this status.
-	version := h.G().StateVersion()
 	eng := engine.NewBootstrap(h.G())
 	if err = engine.RunEngine2(m, eng); err != nil {
 		return res, err
 	}
 	res = eng.Status()
-	res.Version = version
-	m.Debug("GetBootstrapStatus: attempting to get HTTP server address")
-	for range 40 { // wait at most 2 seconds
-		info, infoErr := h.svc.httpSrv.Info()
-		if infoErr != nil {
-			m.Debug("GetBootstrapStatus: failed to get HTTP server address: %s", infoErr)
-		} else {
-			m.Debug("GetBootstrapStatus: http server: addr: %s token: %s", info.Address, manager.TokenPrefix(info.Token))
-			res.HttpSrvInfo = &info
-			break
-		}
-		time.Sleep(50 * time.Millisecond)
-	}
-	if res.HttpSrvInfo == nil {
-		m.Debug("GetBootstrapStatus: failed to get HTTP srv info after max attempts")
+	// Not waited on: a client that understands setNotifications already has the
+	// address from the subscription reply and from HTTPSrvInfoUpdate, which the
+	// server sends on every start. This is only here for a client too old to.
+	if info, infoErr := h.svc.httpSrv.Info(); infoErr != nil {
+		m.Debug("GetBootstrapStatus: no HTTP server address: %s", infoErr)
+	} else {
+		m.Debug("GetBootstrapStatus: http server: addr: %s token: %s", info.Address, manager.TokenPrefix(info.Token))
+		res.HttpSrvInfo = &info
 	}
 	return res, nil
 }
