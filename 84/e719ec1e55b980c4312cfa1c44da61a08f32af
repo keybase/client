@@ -1,0 +1,45 @@
+go/chat/storage/basebox.go
+  s_853e2d28c2e344::t_923256bfd55352 51-54
+go/chat/storage/inbox.go
+  s_853e2d28c2e344::t_2f143de1da0b29 182,185-188,215,285,337,732
+go/chat/storage/inbox_memcache.go
+  s_853e2d28c2e344::t_d5e72682956646 4,85-90
+go/chat/storage/inbox_test.go
+  s_853e2d28c2e344::t_a413a577730640 927,929-938,945-947,948,950-952,954-984
+go/chat/localizer.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 289-290,343-346,350-351,353-354,361-364,369-378,380,515,518,522-526
+go/chat/ephemeral_purger.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 176
+go/chat/convloader.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 238
+go/chat/retry.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 394
+go/chat/inboxsource.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 668-671,687-690,695
+go/chat/uiinboxloader.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 78-81,88-94,101-104,109-110,121,672
+go/chat/bots/commands.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 125
+go/chat/archive.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 286
+go/chat/maps/livelocation.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 72
+go/chat/search/indexer.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 238,259,263,267,270,272-274,307,309,311
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "84e719ec1e55b980c4312cfa1c44da61a08f32af",
+  "prompts": {},
+  "sessions": {
+    "s_853e2d28c2e344": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d5a3add1-5cdb-47ca-a334-54991bf7ad5e",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
