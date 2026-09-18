@@ -28,15 +28,16 @@ const status = (over: Partial<T.RPCGen.BootstrapStatus> = {}) =>
     ...over,
   }) as T.RPCGen.BootstrapStatus
 
-const snapshot = (over: Partial<T.RPCGen.ClientState> = {}): T.RPCGen.ClientState => ({
-  session: {deviceID: 'd2', deviceName: 'testuser-other', loggedIn: true, uid: 'u2', username: 'testuser-mac'},
-  version: {counter: 1, epoch: 1000},
-  ...over,
-})
-
 // the applied versions live outside the store and survive resetAllStores on purpose, so each
 // test gets its own epoch rather than a counter that has to beat every earlier test's
 let testEpoch = 1000
+
+const snapshot = (over: Partial<T.RPCGen.ClientState> = {}): T.RPCGen.ClientState => ({
+  session: {deviceID: 'd2', deviceName: 'testuser-other', loggedIn: true, uid: 'u2', username: 'testuser-mac'},
+  version: {counter: 1, epoch: testEpoch},
+  ...over,
+})
+
 beforeEach(() => {
   testEpoch++
   useConfigState.setState(st => {
@@ -92,7 +93,7 @@ describe('a service that cannot settle the session', () => {
   })
 
   test('owns the session again after a downgrade under a live client', () => {
-    applyClientState(snapshot({version: {counter: 9, epoch: 1000}}))
+    applyClientState(snapshot({version: {counter: 9, epoch: testEpoch}}))
     expect(useConfigState.getState().loggedIn).toBe(true)
 
     // the service is stopped and an older one starts; the reconnect answers with no snapshot

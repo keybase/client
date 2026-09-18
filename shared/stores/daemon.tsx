@@ -91,6 +91,10 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
         ...s,
         ...initialStore,
         dispatch: s.dispatch,
+        // Both track the connection, not the account, and the closure counter behind the
+        // generation keeps climbing across a reset: zeroing the copy here would make the live
+        // connection's own in-flight work look superseded by a logout that happened under it.
+        handshakeGeneration: s.handshakeGeneration,
         handshakeState: s.handshakeState,
       }))
     },

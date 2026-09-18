@@ -576,9 +576,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         Z.resetAllStores()
       }
     },
-    setSessionIsUnversioned: unversioned => {
-      sessionIsUnversioned = unversioned
-    },
     setLoginError: error => {
       set(s => {
         s.loginError = error
@@ -591,6 +588,9 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       set(s => {
         Object.assign(s.outOfDate, outOfDate)
       })
+    },
+    setSessionIsUnversioned: unversioned => {
+      sessionIsUnversioned = unversioned
     },
     setStartupDetails: st => {
       set(s => {

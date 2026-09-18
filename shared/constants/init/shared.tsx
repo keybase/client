@@ -245,9 +245,10 @@ export const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus
   if (!bootstrap) {
     return
   }
-  // The session first: the identity below is applied only if it agrees with it. That holds
-  // because onLoggedInChanged is registered first on useConfigState in initSharedSubscriptions,
-  // so setLoggedIn's fan-out has already run by the time applyStatusIdentity reads the session.
+  // The session first, then the identity, which is applied only if it agrees with the session:
+  // the line below may set the session this status describes, and setLoggedIn writes the store
+  // synchronously, so the read inside applyStatusIdentity sees it. Nothing outside this function
+  // is involved -- swapping these two lines is what would break it.
   applyUnversionedStatusSession(bootstrap)
   applyStatusIdentity(bootstrap)
 }
@@ -411,8 +412,6 @@ export const initSharedSubscriptions = (platformBootstrapSteps: Array<BootstrapS
   for (const unsub of _sharedUnsubs) unsub()
   _sharedUnsubs.length = 0
   _sharedUnsubs.push(
-    // onLoggedInChanged first: onBootstrapStatusChanged sets the session and then reads it back
-    // through applyStatusIdentity, which only works if this subscriber has already run
     subscribeValue(useConfigState, s => s.loggedIn, onLoggedInChanged),
     subscribeValue(useConfigState, s => s.revokedTrigger, onRevokedTriggerChanged),
     subscribeValue(useConfigState, s => s.configuredAccounts, onConfiguredAccountsChanged)

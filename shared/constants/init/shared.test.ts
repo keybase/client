@@ -197,10 +197,14 @@ describe('onEngineConnected', () => {
     // status on top of half-applied versioned state
     stubRegistrations()
     jest.spyOn(T.RPCGen, 'notifyCtlSetNotificationsRpcPromise').mockResolvedValue({
+      httpSrvInfo: {address: '127.0.0.1:4242', token: 'token'},
       session: {deviceID: 'd1', deviceName: 'testuser-mac', loggedIn: true, uid: 'u1', username: 'testuser'},
       version: {counter: 1, epoch: 4242},
     } as never)
-    spyOnBootstrap()
+    jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue({
+      httpSrvInfo: {address: '127.0.0.1:1', token: 'token'},
+      loggedIn: true,
+    } as never)
     const originalCurrentUser = useCurrentUserState.getState().dispatch
     useCurrentUserState.setState({
       dispatch: {
@@ -216,6 +220,9 @@ describe('onEngineConnected', () => {
     useCurrentUserState.setState({dispatch: originalCurrentUser})
 
     expect(useConfigState.getState().dispatch.sessionIsUnversioned()).toBe(false)
+    // and what the reply had already applied before the throw is left alone, rather than
+    // re-decided by the status the fallback would have replayed
+    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:4242')
   })
 
   test('a reply from a connection a later handshake replaced writes nothing', async () => {
@@ -236,6 +243,28 @@ describe('onEngineConnected', () => {
     await new Promise(resolve => setImmediate(resolve))
 
     expect(useConfigState.getState().loggedIn).toBe(false)
+  })
+
+  test('a logout during the subscribe window does not discard the live reply', async () => {
+    // resetAllStores zeroes the store's copy of handshakeGeneration while the daemon's closure
+    // counter keeps climbing, so a logout under an in-flight subscribe must not make that
+    // connection's own reply look like it came from a replaced one
+    stubRegistrations()
+    const subscribed = deferredSubscription()
+    spyOnBootstrap()
+
+    onEngineConnected()
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    useConfigState.getState().dispatch.setLoggedIn(false) // resetAllStores runs here
+
+    subscribed({
+      session: {deviceID: 'd1', deviceName: 'testuser-mac', loggedIn: true, uid: 'u1', username: 'testuser'},
+      version: {counter: 1, epoch: 4244},
+    })
+    await new Promise(resolve => setImmediate(resolve))
+
+    expect(useConfigState.getState().loggedIn).toBe(true)
+    expect(useCurrentUserState.getState().username).toBe('testuser')
   })
 
   test('a failed subscription leaves the session to the bootstrap status', async () => {
