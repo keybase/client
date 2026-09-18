@@ -177,9 +177,9 @@ func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid g
 	ctx = globals.CtxAddLogTags(ctx, s.G())
 	defer s.Trace(ctx, &err, "Connected")()
 	s.Lock()
-	// ctx is the connection's: the caller cancels it before it calls
-	// Disconnected, so a Connected that sees the cancel here must not mark
-	// the syncer connected after that Disconnected.
+	// The caller cancels ctx when the connection it was made for shuts
+	// down, before it calls Disconnected, so a Connected that sees the cancel
+	// here must not mark the syncer connected after that Disconnected.
 	if err := ctx.Err(); err != nil {
 		s.Unlock()
 		return err

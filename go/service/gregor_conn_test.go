@@ -862,31 +862,12 @@ func currentConn(h *gregorHandler) *rpc.Connection {
 	return h.conn
 }
 
-// shutdownCtx stands in for the ctx the rpc library hands OnConnect, which
-// the connection's Shutdown cancels. It is done once the handler's shutdown
-// channel for that connection closes, which Shutdown does under the same
-// locks as it shuts the connection down.
-type shutdownCtx struct {
-	context.Context
-	done chan struct{}
-}
-
-func (c shutdownCtx) Done() <-chan struct{} { return c.done }
-
-func (c shutdownCtx) Err() error {
-	select {
-	case <-c.done:
-		return context.Canceled
-	default:
-		return nil
-	}
-}
-
-// connCtx returns the OnConnect ctx for h's current connection.
-func connCtx(h *gregorHandler) context.Context {
-	h.connMutex.Lock()
-	defer h.connMutex.Unlock()
-	return shutdownCtx{Context: context.Background(), done: h.shutdownCh}
+// onConnectCtx returns the ctx OnConnect derives for h's current connection.
+func onConnectCtx(t *testing.T, h *gregorHandler) context.Context {
+	ctx, cancel, err := h.onConnectCtx(context.Background(), currentConn(h))
+	require.NoError(t, err)
+	t.Cleanup(cancel)
+	return ctx
 }
 
 type onConnectTailTest struct {
@@ -911,7 +892,7 @@ func setupOnConnectTail(t *testing.T) *onConnectTailTest {
 	h.badger = badger
 	require.NoError(t, h.Connect(closedPortURI(t)))
 	t.Cleanup(func() { h.Shutdown(context.Background()) })
-	ctx := connCtx(h)
+	ctx := onConnectCtx(t, h)
 	uid := gregor1.UID(make([]byte, 16))
 	gcli, err := h.resetGregorClient(ctx, uid, gregor1.DeviceID(make([]byte, 16)))
 	require.NoError(t, err)
@@ -960,6 +941,27 @@ func TestGregorOnConnectLogoutDuringChatSync(t *testing.T) {
 	require.True(t, c.h.connectedSince().IsZero(), "connected time set after logout")
 }
 
+// A Shutdown that lands between the gregor badge push and the connected
+// step leaves first connect and the connected time alone. A real Shutdown
+// can't land during the push, which holds the gate, so the push cancels the
+// connection's ctx as that Shutdown would.
+func TestGregorOnConnectShutdownBeforeConnectedStep(t *testing.T) {
+	c := setupOnConnectTail(t)
+	c.badger.onPush = func() {
+		c.badger.mu.Lock()
+		defer c.badger.mu.Unlock()
+		c.badger.onPush = func() {
+			c.h.connMutex.Lock()
+			defer c.h.connMutex.Unlock()
+			c.h.connCancel()
+		}
+	}
+	require.ErrorIs(t, c.run(c.ctx), chat.ErrDuplicateConnection)
+	require.Equal(t, 2, c.badger.count())
+	require.True(t, c.h.isFirstConnect(), "first connect cleared after shutdown")
+	require.True(t, c.h.connectedSince().IsZero(), "connected time set after shutdown")
+}
+
 // Shutdown cancels OnConnect's ctx before it marks the syncer disconnected,
 // so a Syncer.Connected from that OnConnect landing just after the mark is
 // ignored rather than leaving the syncer connected.
@@ -993,15 +995,15 @@ func TestGregorOnConnectBadgePushHoldsOffLogout(t *testing.T) {
 	require.Equal(t, 1, c.badger.count())
 }
 
-// reinstall makes conn the current connection again, and returns its
-// OnConnect ctx, so the next tail run is not short-circuited by the logout
-// before it. No dial is involved, so no connection callback races this.
-func (c *onConnectTailTest) reinstall(conn *rpc.Connection) context.Context {
+// reinstall makes conn the current connection again, as connectNow would,
+// so the next tail run is not short-circuited by the logout before it. No
+// dial is involved, so no connection callback races this.
+func (c *onConnectTailTest) reinstall(conn *rpc.Connection) {
 	c.h.connMutex.Lock()
+	defer c.h.connMutex.Unlock()
 	c.h.conn = conn
 	c.h.shutdownCh = make(chan struct{})
-	c.h.connMutex.Unlock()
-	return connCtx(c.h)
+	c.h.connCtx, c.h.connCancel = context.WithCancel(context.Background())
 }
 
 // OnConnect's tail, a logout and app state transitions all run under the
@@ -1030,7 +1032,12 @@ func TestGregorOnConnectTailStress(t *testing.T) {
 					return
 				default:
 				}
-				_ = c.run(c.reinstall(conn))
+				c.reinstall(conn)
+				// Another tail's logout can land before the ctx is derived.
+				if ctx, cancel, err := c.h.onConnectCtx(context.Background(), conn); err == nil {
+					_ = c.run(ctx)
+					cancel()
+				}
 				// A run queues at most one replay, and Init's replay thread
 				// is not running here to take it off.
 				select {
@@ -1097,30 +1104,48 @@ func (failingRPCClient) Notify(context.Context, string, any, time.Duration) erro
 	return errors.New("no server")
 }
 
-// An OnConnect whose connection shuts down, before it starts or while it
-// runs, installs no gregor client, leaves the chat syncer alone, and fails
-// with an error the connection does not retry.
+// An OnConnect for a connection that is no longer current, because it shut
+// down before OnConnect started or while it ran, or because a newer
+// connection replaced it, installs no gregor client, leaves the chat syncer
+// alone, and fails with an error the connection does not retry. The rpc
+// library hands a replaced connection's OnConnect a live ctx.
 func TestGregorOnConnectAfterShutdownInstallsNothing(t *testing.T) {
-	for _, during := range []bool{false, true} {
-		t.Run(fmt.Sprintf("during %v", during), func(t *testing.T) {
+	for _, tt := range []struct {
+		name string
+		// before runs before OnConnect, during inside it, after the
+		// connection check.
+		before, during func(t *testing.T, h *gregorHandler, uri *rpc.FMPURI)
+	}{
+		{name: "before", before: func(t *testing.T, h *gregorHandler, _ *rpc.FMPURI) {
+			require.NoError(t, h.Disconnect())
+		}},
+		{name: "during", during: func(t *testing.T, h *gregorHandler, _ *rpc.FMPURI) {
+			require.NoError(t, h.Disconnect())
+		}},
+		{name: "replaced", before: func(t *testing.T, h *gregorHandler, uri *rpc.FMPURI) {
+			require.NoError(t, h.Disconnect())
+			require.NoError(t, h.Connect(uri))
+		}},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
 			tc, g := setupGregorTest(t)
 			defer tc.Cleanup()
 			syncer := &fakeSyncer{}
 			g.Syncer = syncer
 			h := newGregorHandler(g)
-			require.NoError(t, h.Connect(closedPortURI(t)))
+			uri := closedPortURI(t)
+			require.NoError(t, h.Connect(uri))
 			defer h.Shutdown(context.Background())
 			conn := currentConn(h)
-			ctx := connCtx(h)
 
 			h.authParamsForTest = func(context.Context) (gregor1.UID, gregor1.DeviceID, gregor1.SessionToken, *libkb.NIST, error) {
-				if during {
-					require.NoError(t, h.Disconnect())
+				if tt.during != nil {
+					tt.during(t, h, uri)
 				}
 				return gregor1.UID(make([]byte, 16)), gregor1.DeviceID(make([]byte, 16)), "", nil, nil
 			}
-			if !during {
-				require.NoError(t, h.Disconnect())
+			if tt.before != nil {
+				tt.before(t, h, uri)
 			}
 
 			local, remote := net.Pipe()
@@ -1130,12 +1155,12 @@ func TestGregorOnConnectAfterShutdownInstallsNothing(t *testing.T) {
 			defer xp.Close()
 			srv := rpc.NewServer(xp, libkb.MakeWrapError(tc.G))
 
-			err := h.OnConnect(ctx, conn, failingRPCClient{}, srv)
+			err := h.OnConnect(context.Background(), conn, failingRPCClient{}, srv)
 			require.ErrorIs(t, err, chat.ErrDuplicateConnection)
-			require.False(t, h.ShouldRetryOnConnect(err), "retrying a connection that shut down")
+			require.False(t, h.ShouldRetryOnConnect(err), "retrying a connection that is not current")
 			_, err = h.getGregorCli()
-			require.Error(t, err, "installed a client for a connection that shut down")
-			require.Zero(t, syncer.connectCalls(), "chat sync ran for a connection that shut down")
+			require.Error(t, err, "installed a client for a connection that is not current")
+			require.Zero(t, syncer.connectCalls(), "chat sync ran for a connection that is not current")
 		})
 	}
 }

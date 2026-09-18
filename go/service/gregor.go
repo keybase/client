@@ -209,6 +209,10 @@ type gregorHandler struct {
 	connMutex sync.Mutex
 	conn      *rpc.Connection
 	uri       *rpc.FMPURI
+	// connCtx lives as long as conn: Shutdown cancels it under connMutex.
+	// OnConnect runs under a ctx derived from it.
+	connCtx    context.Context
+	connCancel context.CancelFunc
 
 	// connectHappened will be closed after gregor connection established
 	connectHappened chan struct{}
@@ -344,9 +348,10 @@ func (g *gregorHandler) shutdownGregorClient(ctx context.Context) {
 }
 
 // resetGregorClient installs a new client for uid unless ctx is cancelled.
-// OnConnect passes its connection's ctx, which Shutdown cancels under
-// connMutex; checking and installing under connMutex too means Reset, which
-// drops the client after its Shutdown, never runs between the two.
+// OnConnect passes the ctx it derives for its connection, which Shutdown
+// cancels under connMutex; checking and installing under connMutex too means
+// Reset, which drops the client after its Shutdown, never runs between the
+// two.
 func (g *gregorHandler) resetGregorClient(ctx context.Context, uid gregor1.UID, deviceID gregor1.DeviceID) (gcli *grclient.Client, err error) {
 	defer g.chatLog.Trace(ctx, &err, "resetGregorClient")()
 	// Create client object if we are logged in
@@ -451,6 +456,7 @@ func (g *gregorHandler) connectNow(uri *rpc.FMPURI) (err error) {
 	// In case we need to interrupt auth'ing or the ping loop,
 	// set up this channel.
 	g.shutdownCh = make(chan struct{})
+	g.connCtx, g.connCancel = context.WithCancel(context.Background())
 	g.uri = uri
 	go g.pushStateNewDataDebouncer(g.shutdownCh)
 	if uri.UseTLS() {
@@ -764,20 +770,41 @@ func (g *gregorHandler) notificationParams(ctx context.Context, gcli *grclient.C
 	return t
 }
 
+// onConnectCtx returns the ctx OnConnect runs under, or ErrDuplicateConnection
+// if conn is not the current connection. The rpc library's own ctx is not
+// enough: it cancels only the reconnect loop running when the connection is
+// shut down, and any later call on that connection starts a new loop, and so
+// a new OnConnect, under a ctx nothing cancels. The returned ctx is cancelled
+// by conn's Shutdown, synchronously under connMutex, as well as by the rpc
+// library. The rpc library's ctx carries no values, so none are lost.
+func (g *gregorHandler) onConnectCtx(ctx context.Context, conn *rpc.Connection) (context.Context, context.CancelFunc, error) {
+	g.connMutex.Lock()
+	defer g.connMutex.Unlock()
+	if conn == nil || conn != g.conn {
+		return nil, nil, chat.ErrDuplicateConnection
+	}
+	res, cancel := context.WithCancel(g.connCtx)
+	stop := context.AfterFunc(ctx, cancel)
+	return res, func() {
+		stop()
+		cancel()
+	}, nil
+}
+
 // OnConnect is called by the rpc library to indicate we have connected to
-// gregord. The library cancels ctx when it shuts the connection down, so ctx
-// is live exactly while the connection is still g.conn.
-func (g *gregorHandler) OnConnect(ctx context.Context, _ *rpc.Connection,
+// gregord
+func (g *gregorHandler) OnConnect(rpcCtx context.Context, conn *rpc.Connection,
 	cli rpc.GenericClient, srv *rpc.Server,
 ) (err error) {
+	ctx, cancel, err := g.onConnectCtx(rpcCtx, conn)
+	if err != nil {
+		g.chatLog.Debug(libkb.WithLogTag(rpcCtx, "GRGRONCONN"), "aborting, not the current connection")
+		return err
+	}
+	defer cancel()
 	ctx = libkb.WithLogTag(ctx, "GRGRONCONN")
 
 	defer g.chatLog.Trace(ctx, &err, "OnConnect")()
-
-	if ctx.Err() != nil {
-		g.chatLog.Debug(ctx, "aborting, connection shut down")
-		return chat.ErrDuplicateConnection
-	}
 
 	g.chatLog.Debug(ctx, "connected")
 	timeoutCli := WrapGenericClientWithTimeout(cli, GregorRequestTimeout, chat.ErrChatServerTimeout)
@@ -1409,13 +1436,15 @@ func (g *gregorHandler) Shutdown(ctx context.Context) {
 	}
 
 	close(g.shutdownCh)
+	g.connCancel()
 	g.conn.Shutdown()
-	// After the Shutdown, which cancels the ctx of an OnConnect in flight, so
-	// a Syncer.Connected from it either lands before this and is overwritten,
+	// After connCancel, which cancels the ctx of an OnConnect in flight, so a
+	// Syncer.Connected from it either lands before this and is overwritten,
 	// or sees the cancel and is skipped.
 	g.G().Syncer.Disconnected(ctx)
 	g.conn = nil
 	g.cli = nil
+	g.pingCli = nil
 	g.setConnectedAt(time.Time{})
 }
 
@@ -1539,6 +1568,13 @@ func (g *gregorHandler) forcePing(ctx context.Context) {
 }
 
 func (g *gregorHandler) pingOnce(ctx context.Context, id []byte, shutdownCh chan struct{}, shutdownCancel context.CancelFunc) {
+	g.connMutex.Lock()
+	pingCli := g.pingCli
+	g.connMutex.Unlock()
+	if pingCli == nil {
+		g.chatLog.Debug(ctx, "ping loop: id: %x no connection, skipping ping", id)
+		return
+	}
 	var err error
 	doneCh := make(chan error)
 	timeout := g.G().Env.GetGregorPingTimeout()
@@ -1550,14 +1586,14 @@ func (g *gregorHandler) pingOnce(ctx context.Context, id []byte, shutdownCh chan
 			var timeoutCancel context.CancelFunc
 			var timeoutCtx context.Context
 			timeoutCtx, timeoutCancel = context.WithTimeout(ctx, timeout)
-			_, err = gregor1.IncomingClient{Cli: g.pingCli}.Ping(timeoutCtx)
+			_, err = gregor1.IncomingClient{Cli: pingCli}.Ping(timeoutCtx)
 			timeoutCancel()
 		} else {
 			// If we are not connected, we don't want to timeout anything
 			// Just hook into the normal reconnect chan stuff in the RPC
 			// library
 			g.chatLog.Debug(ctx, "ping loop: id: %x normal ping, not connected", id)
-			_, err = gregor1.IncomingClient{Cli: g.pingCli}.Ping(ctx)
+			_, err = gregor1.IncomingClient{Cli: pingCli}.Ping(ctx)
 			g.chatLog.Debug(ctx, "ping loop: id: %x normal ping success", id)
 		}
 		select {
