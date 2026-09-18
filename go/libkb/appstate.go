@@ -103,12 +103,14 @@ func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) (changed bo
 	}
 
 	// Tell connected clients, still under the lock, so the state version is
-	// stamped in the same critical section that wrote the state. Two concurrent
-	// Updates then publish in the order they wrote, and a client's
-	// accept-if-newer gate can never be handed an older state last and keep it
-	// forever. Cheap to hold: the fan-out reads the connection table and starts
-	// one goroutine per connection, and every send happens on those goroutines.
-	// Nothing it touches reads app state, so it cannot re-enter this lock.
+	// stamped in the same critical section that wrote the state. Update has
+	// one writer, lifecycle.Controller.applyLocked under Controller.mu, so
+	// this notify call publishes that single writer's announcements in the
+	// same order it wrote them, and a client's accept-if-newer gate can never
+	// be handed an older state last and keep it forever. Cheap to hold: the
+	// fan-out reads the connection table and starts one goroutine per
+	// connection, and every send happens on those goroutines. Nothing it
+	// touches reads app state, so it cannot re-enter this lock.
 	a.G().NotifyRouter.HandleMobileAppState(context.Background(), state)
 	return true
 }
@@ -142,70 +144,6 @@ func (a *MobileAppState) StateAndMtime() (keybase1.MobileAppState, *time.Time) {
 	a.Lock()
 	defer a.Unlock()
 	return a.state, a.mtime
-}
-
-// AppStateWatcher is the loop shared by the background workers that do nothing
-// but watch the app state: wait for the next change, act on the new state,
-// repeat. The caller runs it on a goroutine of its own, since the workers hang
-// that goroutine off their own errgroup or done channel and do their own
-// accounting when it returns.
-type AppStateWatcher struct {
-	a  *MobileAppState
-	mu sync.Mutex
-	// state is what Run last acted on and wait the change channel it waits on
-	// for that state; CaughtUp reports them.
-	state keybase1.MobileAppState
-	wait  <-chan struct{}
-	done  chan struct{}
-}
-
-func (a *MobileAppState) NewWatcher() *AppStateWatcher {
-	return &AppStateWatcher{a: a, done: make(chan struct{})}
-}
-
-// Run calls onChange with each new app state, starting from state, until
-// stopCh closes or onChange returns false. onChange runs on Run's goroutine
-// and does its own locking.
-func (w *AppStateWatcher) Run(state keybase1.MobileAppState, stopCh <-chan struct{},
-	onChange func(keybase1.MobileAppState) bool,
-) {
-	defer close(w.done)
-	for {
-		next := w.a.NextUpdate(state)
-		w.mu.Lock()
-		w.state, w.wait = state, next
-		w.mu.Unlock()
-		select {
-		case <-next:
-		case <-stopCh:
-			return
-		}
-		state = w.a.State()
-		if !onChange(state) {
-			return
-		}
-	}
-}
-
-// Wait blocks until Run has returned.
-func (w *AppStateWatcher) Wait() { <-w.done }
-
-// CaughtUp reports the state Run last acted on, and whether it has acted on
-// the current state and is waiting for the next change. Tests use it to wait
-// until a watcher has caught up.
-func (w *AppStateWatcher) CaughtUp() (keybase1.MobileAppState, bool) {
-	w.mu.Lock()
-	state, wait := w.state, w.wait
-	w.mu.Unlock()
-	if wait == nil || wait != w.a.NextUpdate(state) {
-		return state, false
-	}
-	select {
-	case <-wait:
-		return state, false
-	default:
-		return state, true
-	}
 }
 
 // --------------------------------------------------

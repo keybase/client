@@ -10,20 +10,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// waitFlusher waits until f's watcher has acted on the current state and is
-// waiting for the next change.
-func waitFlusher(t *testing.T, f *backgroundFlusher) {
+// waitFlushes waits until f has flushed at least want times.
+func waitFlushes(t *testing.T, f *backgroundFlusher, want int) {
 	t.Helper()
 	require.Eventually(t, func() bool {
-		f.mu.Lock()
-		w := f.watcher
-		f.mu.Unlock()
-		if w == nil {
-			return false
-		}
-		_, caughtUp := w.CaughtUp()
-		return caughtUp
-	}, 10*time.Second, time.Millisecond, "watcher did not catch up")
+		return flushes(f) >= want
+	}, 10*time.Second, time.Millisecond, "did not reach %d flushes", want)
 }
 
 func flushes(f *backgroundFlusher) int {
@@ -66,8 +58,6 @@ func TestAvatarsFlushSeedsFromState(t *testing.T) {
 		tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 		s.StartBackgroundTasks(m)
 		defer s.StopBackgroundTasks(m)
-		waitFlusher(t, s.flusher())
-		require.Equal(t, 0, flushes(s.flusher()), "flushed without a transition into BACKGROUND")
 
 		for _, next := range []keybase1.MobileAppState{
 			keybase1.MobileAppState_FOREGROUND,
@@ -75,9 +65,10 @@ func TestAvatarsFlushSeedsFromState(t *testing.T) {
 			keybase1.MobileAppState_BACKGROUND,
 		} {
 			tc.G.MobileAppState.Update(next)
-			waitFlusher(t, s.flusher())
 		}
-		require.Equal(t, 1, flushes(s.flusher()))
+		waitFlushes(t, s.flusher(), 1)
+		require.Equal(t, 1, flushes(s.flusher()),
+			"flushed on start already being in BACKGROUND, or flushed more than once for one transition into it")
 	})
 }
 
@@ -92,7 +83,6 @@ func TestAvatarsMonitorExitsOnStop(t *testing.T) {
 		const cycles = 50
 		for range cycles {
 			s.StartBackgroundTasks(m)
-			waitFlusher(t, s.flusher())
 			s.StopBackgroundTasks(m)
 		}
 		require.Eventually(t, func() bool {

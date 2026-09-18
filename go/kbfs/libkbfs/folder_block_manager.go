@@ -1284,6 +1284,21 @@ func isPermanentQRError(err error) bool {
 	}
 }
 
+// WaitForeground blocks until u reports the app state as FOREGROUND, and
+// reports false if stop closes first.
+func WaitForeground(u env.AppStateUpdater, stop <-chan struct{}) bool {
+	state := u.AppState()
+	for state != keybase1.MobileAppState_FOREGROUND {
+		select {
+		case <-u.NextAppStateUpdate(state):
+		case <-stop:
+			return false
+		}
+		state = u.AppState()
+	}
+	return true
+}
+
 func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 	autoQR := true
 	timer := time.NewTimer(fbm.config.Mode().QuotaReclamationPeriod())
@@ -1314,19 +1329,15 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 		case <-fbm.shutdownChan:
 			return
 		case <-fbm.appStateUpdater.NextAppStateUpdate(state):
-			state = fbm.appStateUpdater.AppState()
-			for state != keybase1.MobileAppState_FOREGROUND {
+			if s := fbm.appStateUpdater.AppState(); s != keybase1.MobileAppState_FOREGROUND {
 				fbm.log.CDebugf(context.Background(),
-					"Pausing QR while not foregrounded: state=%s", state)
-				select {
-				case <-fbm.appStateUpdater.NextAppStateUpdate(state):
-				case <-fbm.shutdownChan:
+					"Pausing QR while not foregrounded: state=%s", s)
+				if !WaitForeground(fbm.appStateUpdater, fbm.shutdownChan) {
 					return
 				}
-				state = fbm.appStateUpdater.AppState()
+				fbm.log.CDebugf(
+					context.Background(), "Resuming QR while foregrounded")
 			}
-			fbm.log.CDebugf(
-				context.Background(), "Resuming QR while foregrounded")
 			continue
 		case <-timerChan:
 			fbm.reclamationGroup.Add(1)
@@ -1593,20 +1604,15 @@ func (fbm *folderBlockManager) cleanDiskCachesInBackground() {
 		case <-fbm.shutdownChan:
 			return
 		case <-fbm.appStateUpdater.NextAppStateUpdate(state):
-			state = fbm.appStateUpdater.AppState()
-			for state != keybase1.MobileAppState_FOREGROUND {
+			if s := fbm.appStateUpdater.AppState(); s != keybase1.MobileAppState_FOREGROUND {
 				fbm.log.CDebugf(context.Background(),
-					"Pausing sync-cache cleaning while not foregrounded: "+
-						"state=%s", state)
-				select {
-				case <-fbm.appStateUpdater.NextAppStateUpdate(state):
-				case <-fbm.shutdownChan:
+					"Pausing sync-cache cleaning while not foregrounded: state=%s", s)
+				if !WaitForeground(fbm.appStateUpdater, fbm.shutdownChan) {
 					return
 				}
-				state = fbm.appStateUpdater.AppState()
+				fbm.log.CDebugf(context.Background(),
+					"Resuming sync-cache cleaning while foregrounded")
 			}
-			fbm.log.CDebugf(context.Background(),
-				"Resuming sync-cache cleaning while foregrounded")
 			continue
 		}
 

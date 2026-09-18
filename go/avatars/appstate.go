@@ -10,9 +10,9 @@ import (
 // backgroundFlusher runs flush each time the app enters BACKGROUND, from
 // start until stop.
 type backgroundFlusher struct {
-	mu      sync.Mutex
-	stopCh  chan struct{}
-	watcher *libkb.AppStateWatcher
+	mu     sync.Mutex
+	stopCh chan struct{}
+	doneCh chan struct{}
 	// flushes counts flushes; tests use it.
 	flushes int
 }
@@ -24,28 +24,37 @@ func (f *backgroundFlusher) start(m libkb.MetaContext, flush func(libkb.MetaCont
 		return
 	}
 	f.stopCh = make(chan struct{})
-	f.watcher = m.G().MobileAppState.NewWatcher()
-	stopCh, w := f.stopCh, f.watcher
-	go w.Run(m.G().MobileAppState.State(), stopCh, func(state keybase1.MobileAppState) bool {
-		if state == keybase1.MobileAppState_BACKGROUND {
-			flush(m)
-			f.mu.Lock()
-			f.flushes++
-			f.mu.Unlock()
+	f.doneCh = make(chan struct{})
+	stopCh, doneCh := f.stopCh, f.doneCh
+	state := m.G().MobileAppState.State()
+	go func() {
+		defer close(doneCh)
+		for {
+			select {
+			case <-m.G().MobileAppState.NextUpdate(state):
+			case <-stopCh:
+				return
+			}
+			state = m.G().MobileAppState.State()
+			if state == keybase1.MobileAppState_BACKGROUND {
+				flush(m)
+				f.mu.Lock()
+				f.flushes++
+				f.mu.Unlock()
+			}
 		}
-		return true
-	})
+	}()
 }
 
-// stop ends the watcher and waits for it to exit.
+// stop ends the watcher goroutine and waits for it to exit.
 func (f *backgroundFlusher) stop() {
 	f.mu.Lock()
-	stopCh, w := f.stopCh, f.watcher
-	f.stopCh, f.watcher = nil, nil
+	stopCh, doneCh := f.stopCh, f.doneCh
+	f.stopCh, f.doneCh = nil, nil
 	f.mu.Unlock()
 	if stopCh == nil {
 		return
 	}
 	close(stopCh)
-	w.Wait()
+	<-doneCh
 }

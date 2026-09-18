@@ -89,3 +89,34 @@ func TestLiveLocationTrackerHoldSurvivesWillTerminate(t *testing.T) {
 	require.Equal(t, keybase1.MobileAppState_BACKGROUNDACTIVE, appState.State(),
 		"a fix after WillTerminate did not open a new hold")
 }
+
+// A Start whose restored trackers are all gone (stopped, or none at all)
+// still finds an outstanding hold from before the restore -- runRestoredLocked
+// replaces the tracker map wholesale, so it never runs removeTrackerLocked for
+// whatever was tracked previously.
+func TestRestoredTrackersReleaseHoldWhenEmpty(t *testing.T) {
+	t.Setenv("KEYBASE_APP_TYPE", string(libkb.MobileAppType))
+	tc := libkb.SetupTest(t, "LiveLocationRestoredReleasesHold", 0)
+	defer tc.Cleanup()
+	appState := tc.G.MobileAppState
+	l := NewLiveLocationTracker(globals.NewContext(tc.G, &globals.ChatContext{}))
+	ctx := context.Background()
+
+	track := newLocationTrack(chat1.ConversationID("conv"), 1, time.Now().Add(time.Hour), false, 10, false)
+	l.Lock()
+	l.trackers[track.Key()] = track
+	l.Unlock()
+
+	lc := tc.G.MobileLifecycle
+	require.Zero(t, lc.UIBackground(false, lifecycle.BackgroundTaskDeps{}))
+	l.LocationUpdate(ctx, chat1.Coordinate{Lat: 1, Lon: 1})
+	require.Equal(t, keybase1.MobileAppState_BACKGROUNDACTIVE, appState.State(), "the fix opened a hold")
+
+	stopped := newLocationTrack(chat1.ConversationID("conv"), 2, time.Now().Add(time.Hour), false, 10, true)
+	l.Lock()
+	l.runRestoredLocked([]*locationTrack{stopped})
+	l.Unlock()
+
+	require.Equal(t, keybase1.MobileAppState_BACKGROUND, appState.State(),
+		"a restore with nothing live left the old hold open")
+}

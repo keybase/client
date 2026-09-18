@@ -1386,6 +1386,17 @@ func (i *Indexer) loop(ctx context.Context) {
 			ctx, "Couldn't register for synced TLF updates: %+v", err)
 	}
 
+	// stopped closes when either ctx or i.shutdownCh ends the loop, so the
+	// foreground wait below can watch both through one channel.
+	stopped := make(chan struct{})
+	go func() {
+		select {
+		case <-ctx.Done():
+		case <-i.shutdownCh:
+		}
+		close(stopped)
+	}()
+
 outerLoop:
 	for {
 		err := i.loadIndex(ctx)
@@ -1402,25 +1413,21 @@ outerLoop:
 				i.log.CDebugf(ctx, "User changed")
 				continue outerLoop
 			case <-kbCtx.NextAppStateUpdate(state):
-				state = kbCtx.AppState()
 				// TODO(HOTPOT-1494): once we are doing actual
 				// indexing in a separate goroutine, pause/unpause it
 				// via a channel send from here.
-				for state != keybase1.MobileAppState_FOREGROUND {
+				if s := kbCtx.AppState(); s != keybase1.MobileAppState_FOREGROUND {
 					i.log.CDebugf(ctx,
-						"Pausing indexing while not foregrounded: state=%s",
-						state)
-					select {
-					case <-kbCtx.NextAppStateUpdate(state):
-					case <-ctx.Done():
-						return
-					case <-i.shutdownCh:
-						i.cancelLoop()
+						"Pausing indexing while not foregrounded: state=%s", s)
+					if !libkbfs.WaitForeground(kbCtx, stopped) {
+						if ctx.Err() == nil {
+							i.cancelLoop()
+						}
 						return
 					}
-					state = kbCtx.AppState()
+					i.log.CDebugf(ctx, "Resuming indexing while foregrounded")
 				}
-				i.log.CDebugf(ctx, "Resuming indexing while foregrounded")
+				state = keybase1.MobileAppState_FOREGROUND
 				continue
 			case m := <-i.tlfCh:
 				ctx := i.makeContext(ctx)

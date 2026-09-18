@@ -120,7 +120,6 @@ func (l *LiveLocationTracker) releaseHoldIfIdleLocked() {
 // A hold the controller ended -- WillTerminate does, and nothing else -- is
 // replaced, so a fix after one still gets the app held up.
 func (l *LiveLocationTracker) ensureHoldOnFixLocked() {
-	l.releaseHoldIfIdleLocked()
 	if len(l.trackers) == 0 || !l.G().IsMobileAppType() {
 		return
 	}
@@ -154,6 +153,10 @@ func (l *LiveLocationTracker) runRestoredLocked(trackers []*locationTrack) {
 			return l.tracker(myT)
 		})
 	}
+	// The replacement above can drop a hold's only tracker without ever
+	// running removeTrackerLocked for it, so release directly here rather
+	// than leaving the app held until some later fix notices.
+	l.releaseHoldIfIdleLocked()
 }
 
 func (l *LiveLocationTracker) getLastCoord() chat1.Coordinate {
