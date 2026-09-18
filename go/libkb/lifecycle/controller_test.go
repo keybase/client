@@ -45,15 +45,16 @@ func TestHoldReleaseIsIdempotent(t *testing.T) {
 	require.Zero(t, c.UIBackground(false, noDeliveries()))
 	require.Equal(t, background, appState.State())
 	require.Equal(t, 1, flushes)
-	first := c.AcquireBackgroundWork(lifecycle.ReasonPushWindow)
+	first := c.AcquireBackgroundWork()
 	require.Equal(t, backgroundActive, appState.State())
 	require.True(t, first.Release())
-	require.True(t, first.Released())
+	require.Zero(t, lifecycle.Holds(c))
 	require.Equal(t, background, appState.State())
 	require.Equal(t, 2, flushes)
-	second := c.AcquireBackgroundWork(lifecycle.ReasonPushWindow)
+	second := c.AcquireBackgroundWork()
 	require.False(t, first.Release())
-	require.False(t, second.Released())
+	// The stale Release left the newer hold alone.
+	require.Equal(t, 1, lifecycle.Holds(c))
 	require.Equal(t, backgroundActive, appState.State())
 	require.True(t, second.Release())
 	require.Equal(t, background, appState.State())
@@ -67,7 +68,7 @@ func TestExpirationEndsOnlyBackgroundTaskHolds(t *testing.T) {
 	defer c.Close()
 	require.Positive(t, c.UIBackground(true, noDeliveries()))
 	push := c.PushWindowBegin()
-	live := c.AcquireBackgroundWork(lifecycle.ReasonLiveLocation)
+	live := c.AcquireBackgroundWork()
 	notified := 0
 	c.BackgroundTaskExpired(func() { notified++ })
 	require.Equal(t, 1, notified)
@@ -159,7 +160,7 @@ func TestHoldsStress(t *testing.T) {
 			runOwner(func(*rand.Rand) { c.BackgroundSync() })
 			runOwner(func(*rand.Rand) { c.BackgroundTaskExpired(noop) })
 			runOwner(func(r *rand.Rand) {
-				h := c.AcquireBackgroundWork(lifecycle.ReasonLiveLocation)
+				h := c.AcquireBackgroundWork()
 				time.Sleep(time.Duration(r.Intn(100)) * time.Microsecond)
 				h.Release()
 			})
@@ -210,7 +211,7 @@ func TestHoldsStress(t *testing.T) {
 				holders.Add(1)
 				go func() {
 					defer holders.Done()
-					c.AcquireBackgroundWork(lifecycle.ReasonPushWindow).Release()
+					c.AcquireBackgroundWork().Release()
 				}()
 			}
 			waitGroupWithin(t, &holders, "holders deadlocked")

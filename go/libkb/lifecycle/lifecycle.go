@@ -14,8 +14,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"maps"
-	"slices"
 	"sync"
 	"time"
 
@@ -88,15 +86,6 @@ type Hold struct {
 	done chan struct{}
 }
 
-func (h *Hold) Released() bool {
-	select {
-	case <-h.done:
-		return true
-	default:
-		return false
-	}
-}
-
 // Release ends the hold. It reports whether this call ended it; ending a hold
 // again, or one the controller already ended, does nothing.
 func (h *Hold) Release() bool { return h.c.release(h) }
@@ -108,14 +97,17 @@ type Controller struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
+	// wg counts the background task goroutines Close waits for.
+	wg sync.WaitGroup
+
 	// mu serializes every UI report and hold change with the state it writes.
 	mu     sync.Mutex
 	ui     UIState
 	nextID int64
 	holds  map[int64]*Hold
-	// tasks maps each running background task's hold id to a channel closed
-	// when its goroutine returns.
-	tasks map[int64]chan struct{}
+	// closed stops new tasks once Close is waiting for the running ones, so
+	// nothing joins wg while Close waits on it.
+	closed bool
 }
 
 func New(appState AppState, cfg Config) *Controller {
@@ -137,7 +129,7 @@ func New(appState AppState, cfg Config) *Controller {
 	if cfg.Debug == nil {
 		cfg.Debug = func(string, ...interface{}) {}
 	}
-	c := &Controller{appState: appState, cfg: cfg, holds: make(map[int64]*Hold), tasks: make(map[int64]chan struct{})}
+	c := &Controller{appState: appState, cfg: cfg, holds: make(map[int64]*Hold)}
 	c.ctx, c.cancel = context.WithCancel(context.Background())
 	switch appState.State() {
 	case keybase1.MobileAppState_FOREGROUND:
@@ -155,15 +147,13 @@ func New(appState AppState, cfg Config) *Controller {
 }
 
 // Close ends the background tasks the controller runs and waits for them to
-// return. Tasks started later end at once.
+// return. No task starts after it.
 func (c *Controller) Close() {
 	c.cancel()
 	c.mu.Lock()
-	tasks := slices.Collect(maps.Values(c.tasks))
+	c.closed = true
 	c.mu.Unlock()
-	for _, done := range tasks {
-		<-done
-	}
+	c.wg.Wait()
 }
 
 func derive(ui UIState, holds int) keybase1.MobileAppState {
@@ -229,27 +219,27 @@ func (c *Controller) setUILocked(ui UIState) {
 // startTaskLocked opens a background task hold and runs the task that keeps
 // it until the work is done.
 func (c *Controller) startTaskLocked(deps BackgroundTaskDeps) int64 {
+	if c.closed {
+		return 0
+	}
 	h := c.acquireLocked(ReasonBackgroundTask)
-	done := make(chan struct{})
-	c.tasks[h.id] = done
+	c.wg.Add(1)
 	go func() {
+		defer c.wg.Done()
 		c.runBackgroundTask(h, deps)
-		c.mu.Lock()
-		delete(c.tasks, h.id)
-		c.mu.Unlock()
-		close(done)
 	}()
 	return h.id
 }
 
-// AcquireBackgroundWork opens a hold that keeps a backgrounded app
-// BACKGROUNDACTIVE until it is released.
-func (c *Controller) AcquireBackgroundWork(reason Reason) *Hold {
+// AcquireBackgroundWork opens a live location hold, which keeps a backgrounded
+// app BACKGROUNDACTIVE until it is released. It is the only hold no controller
+// event ends, so it is the only one callers may open for themselves.
+func (c *Controller) AcquireBackgroundWork() *Hold {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	h := c.acquireLocked(reason)
+	h := c.acquireLocked(ReasonLiveLocation)
 	c.applyLocked()
-	c.debugLocked("acquire", "%v hold %d", reason, h.id)
+	c.debugLocked("acquire", "%v hold %d", h.reason, h.id)
 	return h
 }
 
@@ -299,14 +289,23 @@ func (c *Controller) UIBackground(stay bool, deps BackgroundTaskDeps) int64 {
 	return token
 }
 
-// WaitBackgroundTask returns once the background task at token has returned.
+// WaitBackgroundTask returns once the hold at token has ended, which is what
+// native is asking about: whether Go still needs background time. Ids are
+// never reused, so no entry means the hold has already ended.
 func (c *Controller) WaitBackgroundTask(token int64) {
 	c.mu.Lock()
-	done, ok := c.tasks[token]
+	h := c.holds[token]
 	c.mu.Unlock()
-	if ok {
-		<-done
+	if h == nil {
+		return
 	}
+	<-h.done
+	// A hold's done closes under the lock, before the state its end derives is
+	// written; taking the lock again waits for that write, so a caller that
+	// gives up its background time never leaves a stale state behind.
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.debugLocked("waitBackgroundTask", "hold %d ended", token)
 }
 
 // WillTerminate ends every hold: the process is about to die. notifyPending

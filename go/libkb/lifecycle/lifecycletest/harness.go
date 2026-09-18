@@ -304,7 +304,7 @@ func (h *Harness) perform(step Step) bool {
 	case PushWindowEnd:
 		return h.startsTask(func() int64 { return c.PushWindowEnd(h.tokens[step.Slot], h.stay.Load(), h.deps()) })
 	case LiveLocationAcquire:
-		h.liveLocation = c.AcquireBackgroundWork(lifecycle.ReasonLiveLocation)
+		h.liveLocation = c.AcquireBackgroundWork()
 	case LiveLocationRelease:
 		require.NotNil(h.T, h.liveLocation, "LiveLocationRelease without LiveLocationAcquire")
 		h.liveLocation.Release()

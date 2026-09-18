@@ -34,7 +34,8 @@ type LiveLocationTracker struct {
 	lastCoord      chat1.Coordinate
 	maxCoords      int
 	// bgHold keeps the app running while tracking; guarded by the tracker's
-	// mutex and changed only by syncHoldLocked.
+	// mutex and changed only by releaseHoldIfIdleLocked and
+	// ensureHoldOnFixLocked.
 	bgHold *lifecycle.Hold
 
 	nativeWatchMu   sync.Mutex
@@ -102,22 +103,24 @@ func (l *LiveLocationTracker) saveLocked(ctx context.Context) {
 func (l *LiveLocationTracker) removeTrackerLocked(ctx context.Context, t *locationTrack) {
 	delete(l.trackers, t.Key())
 	l.saveLocked(ctx)
-	l.syncHoldLocked(false)
+	l.releaseHoldIfIdleLocked()
 }
 
-// syncHoldLocked ties bgHold to the trackers map: no trackers means no hold,
-// and a fix while tracking opens one if none is open (the controller may have
-// ended it). Every removal from the map and every fix calls it.
-func (l *LiveLocationTracker) syncHoldLocked(fix bool) {
-	switch {
-	case len(l.trackers) == 0:
-		if l.bgHold != nil {
-			l.bgHold.Release()
-			l.bgHold = nil
-		}
-	case fix && l.G().IsMobileAppType() && (l.bgHold == nil || l.bgHold.Released()):
-		// A location update can wake a backgrounded app; hold it up so the update gets out.
-		l.bgHold = l.G().MobileLifecycle.AcquireBackgroundWork(lifecycle.ReasonLiveLocation)
+// releaseHoldIfIdleLocked ends the hold once nothing is tracked. Every removal
+// from the trackers map calls it.
+func (l *LiveLocationTracker) releaseHoldIfIdleLocked() {
+	if len(l.trackers) == 0 && l.bgHold != nil {
+		l.bgHold.Release()
+		l.bgHold = nil
+	}
+}
+
+// ensureHoldOnFixLocked opens a hold for a location fix, since the fix can
+// wake a backgrounded app and the hold keeps it up until the update gets out.
+func (l *LiveLocationTracker) ensureHoldOnFixLocked() {
+	l.releaseHoldIfIdleLocked()
+	if len(l.trackers) > 0 && l.G().IsMobileAppType() && l.bgHold == nil {
+		l.bgHold = l.G().MobileLifecycle.AcquireBackgroundWork()
 	}
 }
 
@@ -146,7 +149,6 @@ func (l *LiveLocationTracker) runRestoredLocked(trackers []*locationTrack) {
 			return l.tracker(myT)
 		})
 	}
-	l.syncHoldLocked(false)
 }
 
 func (l *LiveLocationTracker) getLastCoord() chat1.Coordinate {
@@ -453,7 +455,7 @@ func (l *LiveLocationTracker) LocationUpdate(ctx context.Context, coord chat1.Co
 	defer l.Trace(ctx, nil, "LocationUpdate")()
 	l.Lock()
 	defer l.Unlock()
-	l.syncHoldLocked(true)
+	l.ensureHoldOnFixLocked()
 	if l.lastCoord.Eq(coord) {
 		l.Debug(ctx, "LocationUpdate: ignoring dup coordinate")
 		return
