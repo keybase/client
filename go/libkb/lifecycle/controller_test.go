@@ -61,6 +61,28 @@ func TestHoldReleaseIsIdempotent(t *testing.T) {
 	require.Equal(t, 3, flushes)
 }
 
+// Close waits for the running background tasks, so no later call may start
+// one: a task that joined the wait afterwards would be a WaitGroup misuse.
+func TestNoTaskStartsAfterClose(t *testing.T) {
+	appState, _ := newAppState(t)
+	appState.Update(background)
+	c := lifecycle.New(appState, lifecycle.Config{})
+	c.Close()
+
+	require.Zero(t, c.UIBackground(true, noDeliveries()), "UIBackground started a task after Close")
+	require.Zero(t, lifecycle.Holds(c))
+	require.Equal(t, background, appState.State())
+
+	// PushWindowEnd's hand-over to a task is gated the same way; the push
+	// window's own hold is not.
+	push := c.PushWindowBegin()
+	require.Positive(t, push)
+	require.Equal(t, backgroundActive, appState.State())
+	require.Zero(t, c.PushWindowEnd(push, true, noDeliveries()), "PushWindowEnd started a task after Close")
+	require.Zero(t, lifecycle.Holds(c))
+	require.Equal(t, background, appState.State())
+}
+
 func TestExpirationEndsOnlyBackgroundTaskHolds(t *testing.T) {
 	appState, _ := newAppState(t)
 	appState.Update(background)
