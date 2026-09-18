@@ -35,23 +35,28 @@ func (c *levelDbCleaner) snapshot() (cancelCh chan struct{}, monitors int) {
 	return c.cancelCh, c.monitors
 }
 
+// cleanerWatcher returns the watcher of the cleaner's current monitor, and
+// nil unless exactly one monitor runs.
+func (c *levelDbCleaner) cleanerWatcher() *AppStateWatcher {
+	c.Lock()
+	defer c.Unlock()
+	if c.monitors != 1 {
+		return nil
+	}
+	return c.watcher
+}
+
 // waitCleanerMonitor waits until the cleaner's monitor has acted on the
 // current state and is waiting for the next change.
 func waitCleanerMonitor(t *testing.T, c *levelDbCleaner) {
 	t.Helper()
 	require.Eventually(t, func() bool {
-		c.Lock()
-		state, wait, monitors := c.monitorState, c.monitorWait, c.monitors
-		c.Unlock()
-		if monitors != 1 || wait == nil || wait != c.G().MobileAppState.NextUpdate(state) {
+		w := c.cleanerWatcher()
+		if w == nil {
 			return false
 		}
-		select {
-		case <-wait:
-			return false
-		default:
-			return true
-		}
+		_, caughtUp := w.CaughtUp()
+		return caughtUp
 	}, 10*time.Second, time.Millisecond, "cleaner monitor did not catch up")
 }
 
@@ -218,10 +223,10 @@ func TestLevelDbCleanerScenarioReplay(t *testing.T) {
 				cancelCh, _ := db.cleaner.snapshot()
 				h.Do(step)
 				waitCleanerMonitor(t, db.cleaner)
-				db.cleaner.Lock()
-				monitorState := db.cleaner.monitorState
-				db.cleaner.Unlock()
-				require.Equal(t, step.Want, monitorState, "step %d %v", i, step.Do)
+				w := db.cleaner.cleanerWatcher()
+				require.NotNil(t, w, "step %d %v", i, step.Do)
+				acted, _ := w.CaughtUp()
+				require.Equal(t, step.Want, acted, "step %d %v", i, step.Do)
 				canceled := isClosed(cancelCh)
 				switch {
 				case step.Want != prev && step.Want != keybase1.MobileAppState_BACKGROUNDACTIVE:

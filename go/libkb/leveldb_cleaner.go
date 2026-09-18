@@ -71,14 +71,12 @@ type levelDbCleaner struct {
 	db       *leveldb.DB
 	stopCh   chan struct{}
 	cancelCh chan struct{}
-	// monitoring is whether an app-state monitor runs for the current stopCh.
+	// monitoring is whether an app-state monitor runs for the current stopCh,
+	// and watcher is that monitor's watcher.
 	monitoring bool
-	// monitors counts running monitor goroutines, and monitorState and
-	// monitorWait record the state the monitor last acted on and the change
-	// channel it waits on for that state; tests use them.
-	monitors     int
-	monitorState keybase1.MobileAppState
-	monitorWait  <-chan struct{}
+	watcher    *AppStateWatcher
+	// monitors counts running monitor goroutines; tests use it.
+	monitors int
 
 	isShutdown bool
 }
@@ -131,6 +129,7 @@ func (c *levelDbCleaner) Stop() {
 		c.stopCh = make(chan struct{})
 	}
 	c.monitoring = false
+	c.watcher = nil
 }
 
 // start attaches the cleaner to a newly opened db, undoing a previous
@@ -152,45 +151,36 @@ func (c *levelDbCleaner) start(db *leveldb.DB) {
 	}
 	c.monitoring = true
 	c.monitors++
-	go c.monitorAppState(c.stopCh, c.G().MobileAppState.State())
+	c.watcher = c.G().MobileAppState.NewWatcher()
+	go c.monitorAppState(c.watcher, c.stopCh, c.G().MobileAppState.State())
 }
 
 // monitorAppState cancels a running clean whenever the app moves to any state
 // other than BACKGROUNDACTIVE. A clean may start in any state; it keeps
 // running only across a transition into BACKGROUNDACTIVE, so it gives way
 // when the app comes to the foreground and before it is suspended.
-func (c *levelDbCleaner) monitorAppState(stopCh chan struct{}, state keybase1.MobileAppState) {
+func (c *levelDbCleaner) monitorAppState(w *AppStateWatcher, stopCh chan struct{}, state keybase1.MobileAppState) {
 	c.log("monitorAppState: starting in %v", state)
 	defer func() {
+		c.log("monitorAppState: stop")
 		c.Lock()
 		defer c.Unlock()
 		c.monitors--
 	}()
-	for {
-		next := c.G().MobileAppState.NextUpdate(state)
-		c.Lock()
-		c.monitorState, c.monitorWait = state, next
-		c.Unlock()
-		select {
-		case <-next:
-		case <-stopCh:
-			c.log("monitorAppState: stop")
-			return
-		}
-		state = c.G().MobileAppState.State()
+	w.Run(state, stopCh, func(state keybase1.MobileAppState) bool {
 		if state == keybase1.MobileAppState_BACKGROUNDACTIVE {
-			continue
+			return true
 		}
 		c.log("monitorAppState: attempting cancel, state: %v", state)
 		c.Lock()
+		defer c.Unlock()
 		if c.stopCh != stopCh {
-			c.Unlock()
-			return
+			return false
 		}
 		close(c.cancelCh)
 		c.cancelCh = make(chan struct{})
-		c.Unlock()
-	}
+		return true
+	})
 }
 
 func (c *levelDbCleaner) log(format string, args ...any) {

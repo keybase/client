@@ -116,17 +116,13 @@ func waitArchiveMonitor(t *testing.T, r *ChatArchiveRegistry) {
 	t.Helper()
 	require.Eventually(t, func() bool {
 		r.Lock()
-		state, wait := r.monitorState, r.monitorWait
+		w := r.watcher
 		r.Unlock()
-		if wait == nil || wait != r.G().MobileAppState.NextUpdate(state) {
+		if w == nil {
 			return false
 		}
-		select {
-		case <-wait:
-			return false
-		default:
-			return true
-		}
+		_, caughtUp := w.CaughtUp()
+		return caughtUp
 	}, 10*time.Second, time.Millisecond, "monitor did not catch up")
 }
 

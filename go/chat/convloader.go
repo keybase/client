@@ -139,11 +139,8 @@ type BackgroundConvLoader struct {
 	// appSuspended is the app-state monitor's own suspension, kept apart
 	// from suspendCount so an unbalanced Resume cannot release it.
 	appSuspended bool
-	// monitorState is the state the current run's monitor last acted on,
-	// and monitorWait the change channel it waits on for that state; tests
-	// use them to wait until the monitor has caught up.
-	monitorState keybase1.MobileAppState
-	monitorWait  <-chan struct{}
+	// watcher is the current run's app-state watcher, nil between runs.
+	watcher *libkb.AppStateWatcher
 
 	// for testing, make this and can check conv load successes
 	loads                 chan chat1.ConversationID
@@ -202,40 +199,32 @@ func (b *BackgroundConvLoader) setAppStateLocked(ctx context.Context, state keyb
 	b.signalSuspendLocked(ctx, wasSuspended)
 }
 
-func (b *BackgroundConvLoader) monitorAppState(stopCh chan struct{}, state keybase1.MobileAppState) error {
+func (b *BackgroundConvLoader) monitorAppState(w *libkb.AppStateWatcher, stopCh chan struct{},
+	state keybase1.MobileAppState,
+) error {
 	ctx := context.Background()
 	b.Debug(ctx, "monitorAppState: starting up in %v", state)
-	for {
-		next := b.G().MobileAppState.NextUpdate(state)
-		b.Lock()
-		if b.stopCh == stopCh {
-			b.monitorState, b.monitorWait = state, next
-		}
-		b.Unlock()
-		select {
-		case <-next:
-		case <-stopCh:
-			b.Debug(ctx, "monitorAppState: shutting down")
-			return nil
-		}
+	w.Run(state, stopCh, func(keybase1.MobileAppState) bool {
 		b.Lock()
 		if b.stopCh != stopCh {
 			b.Unlock()
-			return nil
+			return false
 		}
 		// Read and apply under the lock, so Start and Stop never interleave
 		// with a decision made on a stale state.
-		state = b.G().MobileAppState.State()
-		b.setAppStateLocked(ctx, state)
+		b.setAppStateLocked(ctx, b.G().MobileAppState.State())
 		b.Unlock()
 		if b.appStateCh != nil {
 			select {
 			case b.appStateCh <- struct{}{}:
 			case <-stopCh:
-				return nil
+				return false
 			}
 		}
-	}
+		return true
+	})
+	b.Debug(ctx, "monitorAppState: shutting down")
+	return nil
 }
 
 func (b *BackgroundConvLoader) Start(ctx context.Context, uid gregor1.UID) {
@@ -267,9 +256,11 @@ func (b *BackgroundConvLoader) Start(ctx context.Context, uid gregor1.UID) {
 	}
 	state := b.G().MobileAppState.State()
 	b.setAppStateLocked(ctx, state)
+	b.watcher = b.G().MobileAppState.NewWatcher()
+	w := b.watcher
 	eg.Go(func() error { return b.loop(uid, stopCh, suspendCh, queue, loadCh) })
 	eg.Go(func() error { return b.loadLoop(uid, stopCh, queue, loadCh) })
-	eg.Go(func() error { return b.monitorAppState(stopCh, state) })
+	eg.Go(func() error { return b.monitorAppState(w, stopCh, state) })
 }
 
 // endRunLocked stops the current run's goroutines and returns their group.
@@ -280,7 +271,7 @@ func (b *BackgroundConvLoader) endRunLocked() *errgroup.Group {
 	close(b.stopCh)
 	b.stopCh = make(chan struct{})
 	b.eg = new(errgroup.Group)
-	b.monitorWait = nil
+	b.watcher = nil
 	return eg
 }
 

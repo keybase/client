@@ -56,11 +56,8 @@ type ChatArchiveRegistry struct {
 	// pauseEpoch counts background pauses. A launched job that registers
 	// after one is paused right away, since the pause could not reach it.
 	pauseEpoch uint64
-	// monitorState is the state the current run's monitor last acted on,
-	// and monitorWait the change channel it waits on for that state; tests
-	// use them to wait until the monitor has caught up.
-	monitorState keybase1.MobileAppState
-	monitorWait  <-chan struct{}
+	// watcher is the current run's app-state watcher, nil between runs.
+	watcher *libkb.AppStateWatcher
 	// runJob, if set, runs a launched job in place of a ChatArchiver. Tests
 	// only.
 	runJob func(ctx context.Context, uid gregor1.UID, req chat1.ArchiveChatJobRequest) error
@@ -250,25 +247,13 @@ func (r *ChatArchiveRegistry) launchLocked(ctx context.Context, req chat1.Archiv
 	}()
 }
 
-func (r *ChatArchiveRegistry) monitorAppState(stopCh chan struct{}, eg *errgroup.Group,
-	state keybase1.MobileAppState, cancelInitialResume context.CancelFunc,
+func (r *ChatArchiveRegistry) monitorAppState(w *libkb.AppStateWatcher, stopCh chan struct{},
+	eg *errgroup.Group, state keybase1.MobileAppState, cancelInitialResume context.CancelFunc,
 ) error {
 	// cancelResume cancels the resume scheduled for the last FOREGROUND.
 	cancelResume := cancelInitialResume
 	defer func() { cancelResume() }()
-	for {
-		next := r.G().MobileAppState.NextUpdate(state)
-		r.Lock()
-		if r.stopCh == stopCh {
-			r.monitorState, r.monitorWait = state, next
-		}
-		r.Unlock()
-		select {
-		case <-stopCh:
-			return nil
-		case <-next:
-		}
-		state = r.G().MobileAppState.State()
+	w.Run(state, stopCh, func(state keybase1.MobileAppState) bool {
 		r.Debug(context.Background(), "monitorAppState: next state -> %v", state)
 		cancelResume()
 		switch state {
@@ -292,7 +277,9 @@ func (r *ChatArchiveRegistry) monitorAppState(stopCh chan struct{}, eg *errgroup
 				err = r.bgPauseAllJobsLocked(ctx)
 			}()
 		}
-	}
+		return true
+	})
+	return nil
 }
 
 // Resumes previously BACKGROUND_PAUSED jobs, after a delay, if the app is in
@@ -310,6 +297,8 @@ func (r *ChatArchiveRegistry) Start(ctx context.Context, uid gregor1.UID) {
 	r.eg = new(errgroup.Group)
 	stopCh, eg := r.stopCh, r.eg
 	state := r.G().MobileAppState.State()
+	r.watcher = r.G().MobileAppState.NewWatcher()
+	w := r.watcher
 	resumeCtx, cancelResume := context.WithCancel(context.Background())
 	eg.Go(func() error {
 		return r.flushLoop(stopCh)
@@ -318,7 +307,7 @@ func (r *ChatArchiveRegistry) Start(ctx context.Context, uid gregor1.UID) {
 		return r.resumeAllBgJobs(resumeCtx, stopCh)
 	})
 	eg.Go(func() error {
-		return r.monitorAppState(stopCh, eg, state, cancelResume)
+		return r.monitorAppState(w, stopCh, eg, state, cancelResume)
 	})
 }
 
@@ -362,7 +351,7 @@ func (r *ChatArchiveRegistry) Stop(ctx context.Context) chan struct{} {
 		}
 		r.started = false
 		close(r.stopCh)
-		r.monitorWait = nil
+		r.watcher = nil
 		eg := r.eg
 		go func() {
 			r.Debug(context.Background(), "Stop: waiting for shutdown")

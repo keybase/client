@@ -62,17 +62,13 @@ func waitConvLoaderMonitor(t *testing.T, b *BackgroundConvLoader) {
 	t.Helper()
 	require.Eventually(t, func() bool {
 		b.Lock()
-		state, wait := b.monitorState, b.monitorWait
+		w := b.watcher
 		b.Unlock()
-		if wait == nil || wait != b.G().MobileAppState.NextUpdate(state) {
+		if w == nil {
 			return false
 		}
-		select {
-		case <-wait:
-			return false
-		default:
-			return true
-		}
+		_, caughtUp := w.CaughtUp()
+		return caughtUp
 	}, 10*time.Second, time.Millisecond, "monitor did not catch up")
 }
 
