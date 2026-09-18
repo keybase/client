@@ -159,16 +159,8 @@
     },
     {
       "type": "record",
-      "name": "ClientState",
+      "name": "ClientSession",
       "fields": [
-        {
-          "type": "StateVersion",
-          "name": "version"
-        },
-        {
-          "type": "boolean",
-          "name": "registered"
-        },
         {
           "type": "boolean",
           "name": "loggedIn"
@@ -188,6 +180,23 @@
         {
           "type": "string",
           "name": "deviceName"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ClientState",
+      "fields": [
+        {
+          "type": "StateVersion",
+          "name": "version"
+        },
+        {
+          "type": [
+            null,
+            "ClientSession"
+          ],
+          "name": "session"
         },
         {
           "type": [

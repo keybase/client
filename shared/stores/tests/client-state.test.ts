@@ -8,13 +8,11 @@ import {applyClientState, onBootstrapStatusChanged} from '@/constants/init/share
 const epoch = 1000
 const version = (counter: number, e = epoch): T.RPCGen.StateVersion => ({counter, epoch: e})
 
-const clientState = (over: Partial<T.RPCGen.ClientState> = {}): T.RPCGen.ClientState => ({
-  deviceID: 'd1',
-  deviceName: 'testuser-mac',
-  loggedIn: true,
-  registered: true,
-  uid: 'u1',
-  username: 'testuser',
+const clientState = (
+  session: Partial<T.RPCGen.ClientSession> = {},
+  over: Partial<T.RPCGen.ClientState> = {}
+): T.RPCGen.ClientState => ({
+  session: {deviceID: 'd1', deviceName: 'testuser-mac', loggedIn: true, uid: 'u1', username: 'testuser', ...session},
   version: version(1),
   ...over,
 })
@@ -47,10 +45,7 @@ afterEach(() => {
 describe('the setNotifications snapshot', () => {
   test('applies the session, the current user and the http address', () => {
     applyClientState(
-      clientState({
-        httpSrvInfo: {address: '127.0.0.1:1', token: 'token'},
-        version: version(1, testEpoch),
-      })
+      clientState({}, {httpSrvInfo: {address: '127.0.0.1:1', token: 'token'}, version: version(1, testEpoch)})
     )
 
     expect(useConfigState.getState().loggedIn).toBe(true)
@@ -63,7 +58,7 @@ describe('the setNotifications snapshot', () => {
     notifySession('loggedOut', version(7, testEpoch))
     useConfigState.setState({loggedIn: false})
 
-    applyClientState(clientState({loggedIn: true, version: version(6, testEpoch)}))
+    applyClientState(clientState({loggedIn: true}, {version: version(6, testEpoch)}))
 
     expect(useConfigState.getState().loggedIn).toBe(false)
     expect(useCurrentUserState.getState().username).toBe('')
@@ -73,7 +68,7 @@ describe('the setNotifications snapshot', () => {
     notifySession('loggedOut', version(4, testEpoch))
     useConfigState.setState({loggedIn: false})
 
-    applyClientState(clientState({loggedIn: true, version: version(4, testEpoch)}))
+    applyClientState(clientState({loggedIn: true}, {version: version(4, testEpoch)}))
 
     expect(useConfigState.getState().loggedIn).toBe(false)
   })
@@ -82,7 +77,7 @@ describe('the setNotifications snapshot', () => {
     notifySession('loggedOut', version(9, testEpoch))
     useConfigState.setState({loggedIn: false})
 
-    applyClientState(clientState({loggedIn: true, version: version(1, testEpoch + 500)}))
+    applyClientState(clientState({loggedIn: true}, {version: version(1, testEpoch + 500)}))
 
     expect(useConfigState.getState().loggedIn).toBe(true)
   })
@@ -92,7 +87,7 @@ describe('the setNotifications snapshot', () => {
     useCurrentUserState.setState({username: 'testuser'})
 
     applyClientState(
-      clientState({loggedIn: false, uid: '', username: '', version: version(1, testEpoch)})
+      clientState({loggedIn: false, uid: '', username: ''}, {version: version(1, testEpoch)})
     )
 
     expect(useConfigState.getState().loggedIn).toBe(true)
@@ -137,6 +132,34 @@ describe('notification ordering', () => {
     expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:2')
   })
 
+  test('has the current user in place before anything reacts to the login', () => {
+    // setLoggedIn fans out synchronously; every subscriber of a login has always been able to
+    // read the current user by the time it runs
+    let seen = 'not called'
+    const unsub = useConfigState.subscribe((st, prev) => {
+      if (st.loggedIn && !prev.loggedIn) {
+        seen = useCurrentUserState.getState().username
+      }
+    })
+
+    applyClientState(clientState({loggedIn: true}, {version: version(1, testEpoch)}))
+    unsub()
+
+    expect(seen).toBe('testuser')
+  })
+
+  test('an address stamped with counter 0 is applied', () => {
+    // the http server can start before NotifyRouter exists, so its first update returns early and
+    // the reply carries a live address labelled 0; the epoch is what makes that newer than nothing
+    applyClientState(
+      clientState(
+        {},
+        {httpSrvInfo: {address: '127.0.0.1:7', token: 'token'}, version: version(0, testEpoch)}
+      )
+    )
+    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:7')
+  })
+
   test('logging out keeps the http server address', () => {
     notifyHTTP('127.0.0.1:2', version(1, testEpoch))
     useConfigState.getState().dispatch.resetState()
@@ -149,7 +172,7 @@ describe('the bootstrap status identity', () => {
     // the read can span a logout: GetBootstrapStatus waits out the startup login attempt, and a
     // logout announced meanwhile has already reset the stores
     applyClientState(
-      clientState({loggedIn: false, uid: '', username: '', version: version(1, testEpoch)})
+      clientState({loggedIn: false, uid: '', username: ''}, {version: version(1, testEpoch)})
     )
     expect(useConfigState.getState().loggedIn).toBe(false)
 
@@ -168,7 +191,7 @@ describe('the bootstrap status identity', () => {
 
   test('is applied when it agrees', () => {
     applyClientState(
-      clientState({loggedIn: true, uid: 'u1', username: 'testuser', version: version(1, testEpoch)})
+      clientState({loggedIn: true, uid: 'u1', username: 'testuser'}, {version: version(1, testEpoch)})
     )
 
     onBootstrapStatusChanged({

@@ -331,6 +331,12 @@ func (d *Service) Run() (err error) {
 
 	d.SetupChatModules(nil)
 
+	// Before the listen loop on purpose: this runs the startup login attempt, so a
+	// client that connects once we are listening finds it already settled and gets
+	// a session in its setNotifications reply rather than "not known yet". Mobile
+	// cannot do this -- go/bind/keybase.go runs the attempt off the Init thread,
+	// after the loopback listener -- which is why the reply says so explicitly
+	// instead of relying on this ordering.
 	d.RunBackgroundOperations(uir)
 
 	// At this point initialization is complete, and we're about to start the
@@ -1396,6 +1402,19 @@ func (d *Service) configurePath() {
 // finished (however it went), the context is done, or maxWait elapses. Used
 // by RPCs whose answer depends on login state so they don't race the login
 // that runs off the Init path on mobile.
+// initialLoginAttemptSettled reports whether the first startup login attempt has
+// finished, without waiting for it. A caller that must not block uses this to say
+// "I do not know yet" instead of reporting a logged-out session that no attempt
+// has been made for.
+func (d *Service) initialLoginAttemptSettled() bool {
+	select {
+	case <-d.initialLoginAttemptDone:
+		return true
+	default:
+		return false
+	}
+}
+
 func (d *Service) awaitInitialLoginAttempt(m libkb.MetaContext, maxWait time.Duration) {
 	select {
 	case <-d.initialLoginAttemptDone:

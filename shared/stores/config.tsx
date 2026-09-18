@@ -140,8 +140,12 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
   const applied: {http?: T.RPCGen.StateVersion; session?: T.RPCGen.StateVersion} = {}
   const acceptVersion = (kind: 'http' | 'session', version?: T.RPCGen.StateVersion) => {
     // a service too old to send a version gives us nothing to order by, so everything it sends is
-    // applied in the order it arrives, as it was before versions existed
-    if (!version) return true
+    // applied in the order it arrives, as it was before versions existed. A service built from an
+    // intermediate commit of this branch sends a bare number, which is the same thing: an
+    // ordering we cannot compare against one that carries an epoch.
+    if (!version || typeof version.counter !== 'number' || typeof version.epoch !== 'number') {
+      return true
+    }
     if (!isNewerVersion(version, applied[kind])) return false
     applied[kind] = version
     return true

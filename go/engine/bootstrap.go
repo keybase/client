@@ -63,12 +63,10 @@ func (e *Bootstrap) lookupFullname(m libkb.MetaContext, uv keybase1.UserVersion)
 }
 
 // SessionState reads the session fields that are available with nothing to wait
-// on: config.json and the active device. Bootstrap fills the same fields plus
-// the slower derived ones, so the two cannot drift. The returned UserVersion is
-// the active device's, empty when logged out.
-func SessionState(m libkb.MetaContext) (res keybase1.ClientState, uv keybase1.UserVersion) {
-	res.Registered = signedUp(m)
-
+// on: the active device. Bootstrap fills the same fields plus the slower derived
+// ones, so the two cannot drift. The returned UserVersion is the active device's,
+// empty when logged out.
+func SessionState(m libkb.MetaContext) (res keybase1.ClientSession, uv keybase1.UserVersion) {
 	// if any Login engine worked previously, then ActiveDevice will
 	// be valid; the only way for it to be valid is to be logged in
 	// (and provisioned)
@@ -87,7 +85,7 @@ func SessionState(m libkb.MetaContext) (res keybase1.ClientState, uv keybase1.Us
 func (e *Bootstrap) Run(m libkb.MetaContext) (err error) {
 	defer m.Trace("Bootstrap.Run", &err)()
 	session, uv := SessionState(m)
-	e.status.Registered = session.Registered
+	e.status.Registered = signedUp(m)
 	e.status.LoggedIn = session.LoggedIn
 	e.status.Uid = session.Uid
 	e.status.Username = session.Username

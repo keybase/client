@@ -41,9 +41,15 @@ func (h *NotifyCtlHandler) SetNotifications(ctx context.Context, n keybase1.Noti
 	// Read the version before the state it describes. NextStateVersion is stamped
 	// after a change is readable, so this snapshot is never newer than its label
 	// and a client can drop it on a tie without losing anything.
-	version := h.G().StateVersion()
-	res, _ := engine.SessionState(libkb.NewMetaContext(ctx, h.G()))
-	res.Version = version
+	res := keybase1.ClientState{Version: h.G().StateVersion()}
+	// The session is left out until the startup login attempt has settled: before
+	// that there is no session to describe, and reporting a logged-out one would
+	// be a lie the client would have to be corrected out of by a notification it
+	// might never get. The client falls back to getBootstrapStatus, which waits.
+	if h.svc.initialLoginAttemptSettled() {
+		session, _ := engine.SessionState(libkb.NewMetaContext(ctx, h.G()))
+		res.Session = &session
+	}
 	if info, err := h.svc.httpSrv.Info(); err == nil {
 		res.HttpSrvInfo = &info
 	}

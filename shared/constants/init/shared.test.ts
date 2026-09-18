@@ -4,7 +4,13 @@ import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
 import {useCurrentUserState} from '@/stores/current-user'
-import {loadAccountsStep, onEngineConnected, onLoggedInChanged, onNetworkOnlineChanged} from './shared'
+import {
+  loadAccountsStep,
+  onBootstrapStatusChanged,
+  onEngineConnected,
+  onLoggedInChanged,
+  onNetworkOnlineChanged,
+} from './shared'
 
 describe('loadAccountsStep', () => {
   const originalDispatch = useConfigState.getState().dispatch
@@ -131,13 +137,8 @@ describe('onEngineConnected', () => {
     expect(bootstrap).toHaveBeenCalledTimes(1)
 
     subscribed({
-      deviceID: 'd1',
-      deviceName: 'testuser-mac',
       httpSrvInfo: {address: '127.0.0.1:2000', token: 'token'},
-      loggedIn: true,
-      registered: true,
-      uid: 'u1',
-      username: 'testuser',
+      session: {deviceID: 'd1', deviceName: 'testuser-mac', loggedIn: true, uid: 'u1', username: 'testuser'},
       version: {counter: 1, epoch: 7},
     })
     await new Promise(resolve => setImmediate(resolve))
@@ -156,6 +157,55 @@ describe('onEngineConnected', () => {
     await new Promise(resolve => setImmediate(resolve))
 
     expect(bootstrap).toHaveBeenCalledTimes(1)
+  })
+
+  test('a new connection does not inherit the previous one\'s fallback', async () => {
+    // the old service left the flag set; while this connection's reply is still in flight it has
+    // told us nothing, so the status must not own the session on its behalf
+    stubRegistrations()
+    jest
+      .spyOn(T.RPCGen, 'notifyCtlSetNotificationsRpcPromise')
+      .mockRejectedValue(new Error('no notifications'))
+    spyOnBootstrap()
+    onEngineConnected()
+    await new Promise(resolve => setImmediate(resolve))
+
+    deferredSubscription()
+    onEngineConnected()
+    onBootstrapStatusChanged({
+      deviceID: 'd1',
+      deviceName: 'testuser-mac',
+      loggedIn: true,
+      registered: true,
+      uid: 'u1',
+      username: 'testuser',
+    } as never)
+
+    expect(useConfigState.getState().loggedIn).toBe(false)
+  })
+
+  test('a failed subscription leaves the session to the bootstrap status', async () => {
+    // no reply and no channels either: if the status cannot own the session here, a provisioned
+    // user lands on the login screen with nothing left that could put them back
+    stubRegistrations()
+    jest
+      .spyOn(T.RPCGen, 'notifyCtlSetNotificationsRpcPromise')
+      .mockRejectedValue(new Error('no notifications'))
+    spyOnBootstrap()
+
+    onEngineConnected()
+    await new Promise(resolve => setImmediate(resolve))
+    onBootstrapStatusChanged({
+      deviceID: 'd1',
+      deviceName: 'testuser-mac',
+      loggedIn: true,
+      registered: true,
+      uid: 'u1',
+      username: 'testuser',
+    } as never)
+
+    expect(useConfigState.getState().loggedIn).toBe(true)
+    expect(useCurrentUserState.getState().username).toBe('testuser')
   })
 })
 

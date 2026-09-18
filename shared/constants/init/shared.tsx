@@ -206,12 +206,15 @@ const onConfiguredAccountsChanged = (configuredAccounts: ConfigState['configured
   }
 }
 
-// True only while the connected service answered setNotifications with no snapshot at all. That
-// is the one case in which the bootstrap status, which carries no version, still owns the session
-// and the http address. Keyed on the reply rather than on "nothing versioned has landed yet", so
-// a status can never win by merely arriving before a snapshot that is on its way, and so a
-// downgrade to an older service hands the fallback back.
-let serviceHasNoSnapshot = false
+// True while this connection has told us it cannot settle the session: no setNotifications reply
+// at all (a service too old for it, or a subscribe that failed and left us with no channels
+// either), or a reply taken before the service's startup login attempt had settled, which carries
+// no session because there is none to describe yet. Only then does the bootstrap status -- which
+// the service holds back until that attempt settles, and which carries no version -- own the
+// session. Keyed on the reply rather than on "nothing versioned has landed yet", so a status
+// cannot win by merely arriving before a reply that is on its way, and cleared per connection so
+// a downgrade to an older service hands the fallback back.
+let snapshotCannotSettleSession = false
 
 // Only a status that agrees with the session we are in describes the current user: a read that
 // spans a logout describes the previous one, and resetAllStores has already cleared them.
@@ -227,7 +230,7 @@ const applyStatusIdentity = (bootstrap: DaemonState['bootstrapStatus']) => {
 }
 
 const applyUnversionedStatusSession = (bootstrap: NonNullable<DaemonState['bootstrapStatus']>) => {
-  if (!serviceHasNoSnapshot) {
+  if (!snapshotCannotSettleSession) {
     return
   }
   const {httpSrvInfo, loggedIn} = bootstrap
@@ -255,34 +258,47 @@ export const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus
 // is no read to order against the subscription. An old service returns nothing here and the
 // bootstrap status keeps that job -- see applyUnversionedStatusSession.
 export const applyClientState = (clientState?: T.RPCGen.ClientState) => {
-  serviceHasNoSnapshot = !clientState
-  if (!clientState) {
-    logger.info('[Bootstrap] no client state from setNotifications; this service predates it')
+  const session = clientState?.session
+  snapshotCannotSettleSession = !session
+  if (!clientState || !session) {
+    logger.info(
+      clientState
+        ? '[Bootstrap] setNotifications answered before the login attempt settled; the status owns the session'
+        : '[Bootstrap] no client state from setNotifications; this service predates it'
+    )
     // the status may already be in the store from before we knew that, and a status identical to
     // the stored one does not notify again
     onBootstrapStatusChanged(useDaemonState.getState().bootstrapStatus)
+  }
+  if (!clientState) {
     return
   }
-  const {deviceID, deviceName, httpSrvInfo, loggedIn, uid, username, version} = clientState
+  const {httpSrvInfo, version} = clientState
   const configDispatch = useConfigState.getState().dispatch
   if (httpSrvInfo) {
     configDispatch.setHTTPSrvInfo(httpSrvInfo.address, httpSrvInfo.token, version)
+  }
+  if (!session) {
+    return
   }
   if (!configDispatch.acceptSessionVersion(version)) {
     logger.info('[Bootstrap] a login or logout is newer than this snapshot, ignoring')
     return
   }
+  const {deviceID, deviceName, loggedIn, uid, username} = session
   if (!loggedIn && useConfigState.getState().userSwitching) {
     // policy, not ordering: keep the session and the user we have until the switch lands. The
     // snapshot's identity is empty when it says logged out, so it must not be applied either.
     logger.info('[Bootstrap] ignoring loggedIn=false snapshot during account switch')
     return
   }
-  configDispatch.setLoggedIn(loggedIn)
+  // identity before the session: setLoggedIn fans out synchronously, and every subscriber of a
+  // login has always been able to read the current user by the time it runs
   useCurrentUserState.getState().dispatch.setBootstrap({deviceID, deviceName, uid, username})
   if (username) {
     configDispatch.setDefaultUsername(username)
   }
+  configDispatch.setLoggedIn(loggedIn)
 }
 
 const onNavStateChanged =(nextNavState: RouterState['navState'], previousNavState: RouterState['navState']) => {
@@ -350,8 +366,13 @@ export const onEngineConnected = () => {
         if (error) {
           logger.warn('error in toggling notifications: ', error)
         }
+        // no reply and no channels either, so nothing versioned will reach this connection: the
+        // bootstrap status is all we have, exactly as for a service too old to answer at all
+        applyClientState(undefined)
       }
     }
+    // a new connection has told us nothing yet; the reply below is what settles it
+    snapshotCannotSettleSession = false
     ignorePromise(subscribe())
     // Nothing orders these two any more: the subscription reply is what carries the session and
     // the http address, so the bootstrap read has nothing left to race with.

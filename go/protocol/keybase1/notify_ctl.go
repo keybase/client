@@ -88,26 +88,40 @@ func (o NotificationChannels) DeepCopy() NotificationChannels {
 	}
 }
 
-type ClientState struct {
-	Version     StateVersion `codec:"version" json:"version"`
-	Registered  bool         `codec:"registered" json:"registered"`
-	LoggedIn    bool         `codec:"loggedIn" json:"loggedIn"`
-	Uid         UID          `codec:"uid" json:"uid"`
-	Username    string       `codec:"username" json:"username"`
-	DeviceID    DeviceID     `codec:"deviceID" json:"deviceID"`
-	DeviceName  string       `codec:"deviceName" json:"deviceName"`
-	HttpSrvInfo *HttpSrvInfo `codec:"httpSrvInfo,omitempty" json:"httpSrvInfo,omitempty"`
+type ClientSession struct {
+	LoggedIn   bool     `codec:"loggedIn" json:"loggedIn"`
+	Uid        UID      `codec:"uid" json:"uid"`
+	Username   string   `codec:"username" json:"username"`
+	DeviceID   DeviceID `codec:"deviceID" json:"deviceID"`
+	DeviceName string   `codec:"deviceName" json:"deviceName"`
 }
 
-func (o ClientState) DeepCopy() ClientState {
-	return ClientState{
-		Version:    o.Version.DeepCopy(),
-		Registered: o.Registered,
+func (o ClientSession) DeepCopy() ClientSession {
+	return ClientSession{
 		LoggedIn:   o.LoggedIn,
 		Uid:        o.Uid.DeepCopy(),
 		Username:   o.Username,
 		DeviceID:   o.DeviceID.DeepCopy(),
 		DeviceName: o.DeviceName,
+	}
+}
+
+type ClientState struct {
+	Version     StateVersion   `codec:"version" json:"version"`
+	Session     *ClientSession `codec:"session,omitempty" json:"session,omitempty"`
+	HttpSrvInfo *HttpSrvInfo   `codec:"httpSrvInfo,omitempty" json:"httpSrvInfo,omitempty"`
+}
+
+func (o ClientState) DeepCopy() ClientState {
+	return ClientState{
+		Version: o.Version.DeepCopy(),
+		Session: (func(x *ClientSession) *ClientSession {
+			if x == nil {
+				return nil
+			}
+			tmp := x.DeepCopy()
+			return &tmp
+		})(o.Session),
 		HttpSrvInfo: (func(x *HttpSrvInfo) *HttpSrvInfo {
 			if x == nil {
 				return nil

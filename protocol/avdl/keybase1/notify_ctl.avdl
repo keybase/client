@@ -46,18 +46,25 @@ protocol notifyCtl {
     boolean devicehistory;
   }
 
-  // ClientState is the state a client needs before it can render anything, read
-  // as the reply to setNotifications so there is no read to order against the
-  // subscription. It carries only what is available with nothing to wait on;
-  // the slower derived fields stay on getBootstrapStatus.
-  record ClientState {
-    StateVersion version;
-    boolean registered;     // true if signed up at some point
+  record ClientSession {
     boolean loggedIn;
     UID uid;
     string username;
     DeviceID deviceID;
     string deviceName;
+  }
+
+  // ClientState is the state a client needs before it can render anything, read
+  // as the reply to setNotifications so there is no read to order against the
+  // subscription. It carries only what is available with nothing to wait on;
+  // the slower derived fields stay on getBootstrapStatus.
+  record ClientState {
+    StateVersion version;   // labels this read: compare against the versions on the notifications
+    // Null until the service's own startup login attempt has settled, because
+    // until then there is no session to describe -- not a logged-out one. A
+    // client must fall back to getBootstrapStatus, which waits for that attempt,
+    // rather than read a null as logged out.
+    union { null, ClientSession } session;
     union { null, HttpSrvInfo } httpSrvInfo;
   }
 

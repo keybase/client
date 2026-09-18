@@ -6,9 +6,8 @@ import {useCurrentUserState} from '../current-user'
 import {useDaemonState} from '../daemon'
 import {applyClientState, onBootstrapStatusChanged} from '@/constants/init/shared'
 
-// Its own file: whether the connected service answers setNotifications with a snapshot is
-// module state in the init layer that outlives resetAllStores, and jest gives each file a
-// fresh module registry.
+// Its own file: whether the connected service can settle the session is module state in the init
+// layer that outlives resetAllStores, and jest gives each file a fresh module registry.
 
 const notifySession = (kind: 'loggedIn' | 'loggedOut') =>
   useConfigState.getState().dispatch.onEngineIncoming({
@@ -28,12 +27,7 @@ const status = (over: Partial<T.RPCGen.BootstrapStatus> = {}) =>
   }) as T.RPCGen.BootstrapStatus
 
 const snapshot = (over: Partial<T.RPCGen.ClientState> = {}): T.RPCGen.ClientState => ({
-  deviceID: 'd2',
-  deviceName: 'testuser-other',
-  loggedIn: true,
-  registered: true,
-  uid: 'u2',
-  username: 'testuser-mac',
+  session: {deviceID: 'd2', deviceName: 'testuser-other', loggedIn: true, uid: 'u2', username: 'testuser-mac'},
   version: {counter: 1, epoch: 1000},
   ...over,
 })
@@ -49,7 +43,7 @@ afterEach(() => {
   resetAllStores()
 })
 
-describe('a service too old for the snapshot', () => {
+describe('a service that cannot settle the session', () => {
   test('has its bootstrap status own the session and the http address', () => {
     applyClientState(undefined)
     onBootstrapStatusChanged(status({httpSrvInfo: {address: '127.0.0.1:1', token: 'token'}}))
@@ -81,7 +75,7 @@ describe('a service too old for the snapshot', () => {
   })
 
   test('stops owning the session the moment a service does answer with a snapshot', () => {
-    applyClientState(snapshot({loggedIn: true}))
+    applyClientState(snapshot())
     expect(useCurrentUserState.getState().username).toBe('testuser-mac')
 
     onBootstrapStatusChanged(status({httpSrvInfo: {address: '127.0.0.1:9', token: 'token'}}))
@@ -92,7 +86,7 @@ describe('a service too old for the snapshot', () => {
   })
 
   test('owns the session again after a downgrade under a live client', () => {
-    applyClientState(snapshot({loggedIn: true, version: {counter: 9, epoch: 1000}}))
+    applyClientState(snapshot({version: {counter: 9, epoch: 1000}}))
     expect(useConfigState.getState().loggedIn).toBe(true)
 
     // the service is stopped and an older one starts; the reconnect answers with no snapshot
@@ -101,5 +95,26 @@ describe('a service too old for the snapshot', () => {
 
     expect(useConfigState.getState().loggedIn).toBe(false)
     expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:9')
+  })
+
+  test('leaves the session to the status while its startup login attempt has not settled', () => {
+    // mobile runs the attempt off the Init thread, after the loopback listener is up, so a client
+    // can subscribe before there is any session to report. A reply that said "logged out" there
+    // would bar the settled status for the life of the process, repairable only by a notification
+    // whose send is fire-and-forget.
+    applyClientState({version: {counter: 4, epoch: 1000}})
+
+    onBootstrapStatusChanged(status())
+
+    expect(useConfigState.getState().loggedIn).toBe(true)
+    expect(useCurrentUserState.getState().username).toBe('testuser')
+  })
+
+  test('still takes the http address from an unsettled reply', () => {
+    applyClientState({
+      httpSrvInfo: {address: '127.0.0.1:3', token: 'token'},
+      version: {counter: 4, epoch: 1000},
+    })
+    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:3')
   })
 })
