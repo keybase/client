@@ -531,3 +531,40 @@ func TestPrepareShareConversations(t *testing.T) {
 		require.Equal(t, "id2", calls[1][0].ConvID)
 	})
 }
+
+func TestOrderSmallTeamRows(t *testing.T) {
+	row := func(id string, secs int64) chat1.UIInboxSmallTeamRow {
+		return chat1.UIInboxSmallTeamRow{ConvID: chat1.ConvIDStr(id), Time: gregor1.Time(secs * 1000)}
+	}
+	ids := func(rows []chat1.UIInboxSmallTeamRow) (res []string) {
+		for _, r := range rows {
+			res = append(res, string(r.ConvID))
+		}
+		return res
+	}
+	rows := []chat1.UIInboxSmallTeamRow{row("a", 1), row("b", 5), row("c", 3), row("d", 4)}
+	// "zz" is not a small row and must be ignored
+	orderSmallTeamRows(rows, []chat1.ConvIDStr{"c", "zz", "a"})
+	require.Equal(t, []string{"c", "a", "b", "d"}, ids(rows))
+	require.True(t, rows[0].IsPinned)
+	require.True(t, rows[1].IsPinned)
+	require.False(t, rows[2].IsPinned)
+	require.False(t, rows[3].IsPinned)
+
+	rows = []chat1.UIInboxSmallTeamRow{row("a", 1), row("b", 5)}
+	orderSmallTeamRows(rows, nil)
+	require.Equal(t, []string{"b", "a"}, ids(rows))
+}
+
+func TestIsTopUnpinnedSmallTeamInLastLayout(t *testing.T) {
+	h := &UIInboxLoader{}
+	convA := chat1.ConversationID([]byte{0xa})
+	convB := chat1.ConversationID([]byte{0xb})
+	require.False(t, h.isTopUnpinnedSmallTeamInLastLayout(convA))
+	h.setLastLayout(&chat1.UIInboxLayout{SmallTeams: []chat1.UIInboxSmallTeamRow{
+		{ConvID: convA.ConvIDStr(), IsPinned: true},
+		{ConvID: convB.ConvIDStr()},
+	}})
+	require.False(t, h.isTopUnpinnedSmallTeamInLastLayout(convA))
+	require.True(t, h.isTopUnpinnedSmallTeamInLastLayout(convB))
+}
