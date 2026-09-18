@@ -918,6 +918,31 @@ func locationUpdate(tracker types.LiveLocationTracker, lat, lon float64, accurac
 	tracker.LocationUpdate(context.Background(), chat1.Coordinate{Lat: lat, Lon: lon, Accuracy: float64(accuracy)})
 }
 
+// DeliverPushTap resolves a tapped notification's payload to the route it opens
+// and parks it for the client to take.
+//
+// The one door a tap comes through, and the only thing anywhere that may name
+// an account to switch to. Native calls it from its notification-tap handler
+// and nowhere else -- on iOS UNUserNotificationCenter's didReceive, on Android
+// the unexported PushTapActivity -- so a URL another app, a web page or a
+// universal link opens cannot reach it, and cannot switch accounts. A silent or
+// background push does not come through here at all: those are
+// HandleBackgroundNotification, which never routes.
+func DeliverPushTap(payloadJSON string) {
+	if !isInited() {
+		log("DeliverPushTap: dropping a tap taken before Init")
+		return
+	}
+	ctx := context.Background()
+	route, ok := libkb.ResolvePushTap(payloadJSON)
+	if !ok {
+		kbCtx.Log.CDebugf(ctx, "DeliverPushTap: a tap with nothing to open")
+		return
+	}
+	kbCtx.Log.CDebugf(ctx, "DeliverPushTap: %s (for another account: %v)", route.Url, route.TargetUID != "")
+	kbCtx.PendingPushTap.Set(ctx, route)
+}
+
 func waitForInit(maxDur time.Duration) error {
 	if isInited() {
 		return nil

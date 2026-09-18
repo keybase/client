@@ -45,6 +45,16 @@ func (a *appStateHandler) UpdateMobileNetState(ctx context.Context, stateStr str
 	return nil
 }
 
+// TakePushTapRoute hands over the route a tapped notification resolved to, and
+// clears it. Deliberately not folded into setNotifications' snapshot: that
+// reply goes to every subscriber, including kbfs inside this same process, and
+// a destructive read there would let the wrong one consume the tap.
+func (a *appStateHandler) TakePushTapRoute(ctx context.Context) (*keybase1.PushTapRoute, error) {
+	route := a.G().PendingPushTap.Take()
+	a.G().Log.CDebugf(ctx, "TakePushTapRoute: waiting tap: %v", route != nil)
+	return route, nil
+}
+
 func (a *appStateHandler) PowerMonitorEvent(ctx context.Context, event string) (err error) {
 	a.G().Log.CDebugf(ctx, "PowerMonitorEvent(%v)", event)
 	a.G().DesktopAppState.Update(a.MetaContext(ctx), event, a.xp)

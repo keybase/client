@@ -2861,6 +2861,23 @@ func (n *NotifyRouter) HandleMobileAppState(ctx context.Context, state keybase1.
 		})
 }
 
+// HandlePushTapRouteAvailable nudges clients that a notification tap resolved
+// to a route. It carries nothing: the route rides takePushTapRoute's reply, so
+// the taker is the same one whether the tap happened before a client existed or
+// while it was connected, and a tap can be handed out only once.
+func (n *NotifyRouter) HandlePushTapRouteAvailable(ctx context.Context) {
+	if n == nil {
+		return
+	}
+	n.announce(ctx, "HandlePushTapRouteAvailable",
+		func(ch keybase1.NotificationChannels) bool { return ch.App },
+		func(xp rpc.Transporter, version keybase1.StateVersion) {
+			_ = (keybase1.NotifyAppClient{
+				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+			}).PushTapRouteAvailable(ctx)
+		})
+}
+
 func (n *NotifyRouter) HandleHandleKeybaseLink(ctx context.Context, link string, deferred bool) {
 	if n == nil {
 		return
