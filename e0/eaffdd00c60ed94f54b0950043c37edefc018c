@@ -1,0 +1,19 @@
+go/chat/storage/storage_blockengine.go
+  s_853e2d28c2e344::t_9cdd24d8cf8004 267
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "e0eaffdd00c60ed94f54b0950043c37edefc018c",
+  "prompts": {},
+  "sessions": {
+    "s_853e2d28c2e344": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d5a3add1-5cdb-47ca-a334-54991bf7ad5e",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
