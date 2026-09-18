@@ -175,8 +175,8 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.RekeyProtocol(NewRekeyHandler2(xp, g, d.rekeyMaster)),
 		keybase1.NotifyFSRequestProtocol(newNotifyFSRequestHandler(xp, g)),
 		keybase1.GregorProtocol(newGregorRPCHandler(xp, g, d.gregor)),
-		CancelingProtocol(g, chat1.LocalProtocol(newChatLocalHandler(xp, cg, d.gregor)),
-			libkb.RPCCancelerReasonAll),
+		ChatSessionGatingProtocol(cg, CancelingProtocol(g, chat1.LocalProtocol(newChatLocalHandler(xp, cg, d.gregor)),
+			libkb.RPCCancelerReasonAll)),
 		keybase1.SimpleFSProtocol(NewSimpleFSHandler(xp, g)),
 		keybase1.LogsendProtocol(NewLogsendHandler(xp, g)),
 		CancelingProtocol(g, keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, cg, d)),
@@ -484,6 +484,7 @@ func (d *Service) startChatModules() {
 		g.LiveLocationTracker.Start(context.Background(), uid)
 		g.BotCommandManager.Start(context.Background(), uid)
 		g.UIInboxLoader.Start(context.Background(), uid)
+		g.MarkChatReady()
 		g.PushShutdownHook(d.stopChatModules)
 	}
 	d.purgeOldChatAttachmentData()
@@ -1021,6 +1022,9 @@ func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 	log := func(s string) {
 		m.Debug("Service#OnLogout: %s", s)
 	}
+
+	log("gating chat session")
+	d.ChatG().BeginChatLogout()
 
 	log("canceling live RPCs")
 	d.G().RPCCanceler.CancelLiveContexts(libkb.RPCCancelerReasonLogout)

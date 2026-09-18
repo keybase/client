@@ -548,6 +548,9 @@ func (s *localizerPipeline) jobPulled(ctx context.Context, job *localizerPipelin
 func (s *localizerPipeline) localizeConversations(localizeJob *localizerPipelineJob) (err error) {
 	ctx := localizeJob.ctx
 	uid := localizeJob.uid
+	if globals.ChatSessionStale(ctx, s.G()) {
+		return storage.NewAbortedError()
+	}
 	defer s.Trace(ctx, &err, "localizeConversations")()
 
 	// Fetch conversation local information in parallel

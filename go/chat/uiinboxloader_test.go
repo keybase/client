@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -530,4 +531,26 @@ func TestPrepareShareConversations(t *testing.T) {
 		require.Len(t, calls[1], 1)
 		require.Equal(t, "id2", calls[1][0].ConvID)
 	})
+}
+
+func TestUIInboxLoaderStopRejectsUnbox(t *testing.T) {
+	ctc := makeChatTestContext(t, "TestUIInboxLoaderStopRejectsUnbox", 1)
+	defer ctc.cleanup()
+	users := ctc.users()
+	ctx := ctc.as(t, users[0]).startCtx
+	tc := ctc.world.Tcs[users[0].Username]
+	uidA := gregor1.UID(users[0].GetUID().ToBytes())
+	uidB := gregor1.UID([]byte("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"))
+	loader := NewUIInboxLoader(tc.Context())
+	tc.ChatG.UIInboxLoader = loader
+	loader.Start(ctx, uidA)
+	<-loader.Stop(ctx)
+	err := loader.UpdateConvs(ctx, []chat1.ConversationID{{0x01}})
+	require.Error(t, err)
+	require.ErrorAs(t, err, new(storage.AbortedError))
+
+	loader.Start(ctx, uidB)
+	defer func() { <-loader.Stop(ctx) }()
+	require.True(t, loader.uid.Eq(uidB))
+	require.False(t, loader.uid.Eq(uidA))
 }
