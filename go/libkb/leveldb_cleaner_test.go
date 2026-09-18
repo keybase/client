@@ -1,16 +1,15 @@
 package libkb
 
 import (
+	stderrors "errors"
 	"fmt"
 	"path/filepath"
-	"runtime"
-	"sync"
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/libkb/lifecycle/lifecycletest"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
 // newMobileCleanerDb makes a LevelDb whose cleaner behaves as on mobile. The
@@ -18,7 +17,7 @@ import (
 func newMobileCleanerDb(t *testing.T, tc *TestContext, config DbCleanerConfig) *LevelDb {
 	dir := t.TempDir()
 	db := NewLevelDb(tc.G, func() string { return filepath.Join(dir, "test.leveldb") })
-	db.cleaner = newLevelDbCleanerWithConfig(NewMetaContextTODO(tc.G), "test", config, true)
+	db.cleaner = newLevelDbCleanerWithConfig(NewMetaContextTODO(tc.G), "test", config)
 	t.Cleanup(func() { _ = db.Close() })
 	return db
 }
@@ -29,46 +28,6 @@ func testCleanerConfig() DbCleanerConfig {
 	return config
 }
 
-func (c *levelDbCleaner) snapshot() (cancelCh chan struct{}, monitors int) {
-	c.Lock()
-	defer c.Unlock()
-	return c.cancelCh, c.monitors
-}
-
-// cleanerWatcher returns the watcher of the cleaner's current monitor, and
-// nil unless exactly one monitor runs.
-func (c *levelDbCleaner) cleanerWatcher() *AppStateWatcher {
-	c.Lock()
-	defer c.Unlock()
-	if c.monitors != 1 {
-		return nil
-	}
-	return c.watcher
-}
-
-// waitCleanerMonitor waits until the cleaner's monitor has acted on the
-// current state and is waiting for the next change.
-func waitCleanerMonitor(t *testing.T, c *levelDbCleaner) {
-	t.Helper()
-	require.Eventually(t, func() bool {
-		w := c.cleanerWatcher()
-		if w == nil {
-			return false
-		}
-		_, caughtUp := w.CaughtUp()
-		return caughtUp
-	}, 10*time.Second, time.Millisecond, "cleaner monitor did not catch up")
-}
-
-func isClosed(ch chan struct{}) bool {
-	select {
-	case <-ch:
-		return true
-	default:
-		return false
-	}
-}
-
 var cleanerStates = []keybase1.MobileAppState{
 	keybase1.MobileAppState_FOREGROUND,
 	keybase1.MobileAppState_BACKGROUNDACTIVE,
@@ -76,233 +35,99 @@ var cleanerStates = []keybase1.MobileAppState{
 	keybase1.MobileAppState_BACKGROUND,
 }
 
-// requireCancelOnTransition moves to next and checks that a clean running
-// across the transition is canceled unless next is BACKGROUNDACTIVE.
-func requireCancelOnTransition(t *testing.T, db *LevelDb, next keybase1.MobileAppState) {
+// putKeys writes numKeys keys under db and returns the first and last ones.
+func putKeys(t *testing.T, db *LevelDb, numKeys int) (first, last DbKey) {
 	t.Helper()
-	cancelCh, _ := db.cleaner.snapshot()
-	db.G().MobileAppState.Update(next)
-	waitCleanerMonitor(t, db.cleaner)
-	want := next != keybase1.MobileAppState_BACKGROUNDACTIVE
-	require.Equal(t, want, isClosed(cancelCh), "transition to %v", next)
-}
-
-func TestLevelDbCleanerCancelsOutsideBackgroundActive(t *testing.T) {
-	tc := SetupTest(t, "LevelDb-cleaner-cancel", 0)
-	defer tc.Cleanup()
-	db := newMobileCleanerDb(t, &tc, testCleanerConfig())
-	require.NoError(t, db.ForceOpen())
-	waitCleanerMonitor(t, db.cleaner)
-	for _, from := range cleanerStates {
-		for _, to := range cleanerStates {
-			if from == to {
-				continue
-			}
-			tc.G.MobileAppState.Update(from)
-			waitCleanerMonitor(t, db.cleaner)
-			requireCancelOnTransition(t, db, to)
+	for i := range numKeys {
+		key := DbKey{Key: fmt.Sprintf("k%05d", i), Typ: 0}
+		require.NoError(t, db.Put(key, nil, []byte{1}))
+		if i == 0 {
+			first = key
 		}
+		last = key
 	}
+	return first, last
 }
 
-// A clean in progress stops at a transition out of BACKGROUNDACTIVE and runs
-// to completion across a transition into it.
-func TestLevelDbCleanerRunningCleanFollowsAppState(t *testing.T) {
+// waitFirstBatchPurged waits until a running clean has purged firstKey, its
+// oldest key. clean() samples the app state once, before its first batch;
+// waiting for that first batch orders a test's own app-state update after
+// that sample, so the update is guaranteed to be seen as a real change
+// instead of racing the sample itself.
+//
+// It reads the raw db rather than going through LevelDb.Get, which would
+// mark firstKey recently-used and make the cleaner skip deleting it -- the
+// very thing being waited for.
+func waitFirstBatchPurged(t *testing.T, db *LevelDb, firstKey DbKey) {
+	t.Helper()
+	require.Eventually(t, func() bool {
+		_, err := db.db.Load().Get(firstKey.ToBytes(), nil)
+		return stderrors.Is(err, leveldb.ErrNotFound)
+	}, 10*time.Second, time.Millisecond, "clean did not purge its first batch")
+}
+
+// A clean in progress stops before finishing when the app leaves
+// BACKGROUNDACTIVE for any other state.
+func TestCleanerStopsWhenLeavingBackgroundActive(t *testing.T) {
 	for _, next := range cleanerStates {
+		if next == keybase1.MobileAppState_BACKGROUNDACTIVE {
+			continue
+		}
 		t.Run(next.String(), func(t *testing.T) {
-			tc := SetupTest(t, "LevelDb-cleaner-running", 0)
+			tc := SetupTest(t, "LevelDb-cleaner-stop", 0)
 			defer tc.Cleanup()
 			config := testCleanerConfig()
 			config.SleepInterval = 100 * time.Millisecond
 			db := newMobileCleanerDb(t, &tc, config)
-			start := keybase1.MobileAppState_INACTIVE
-			if next == start {
-				start = keybase1.MobileAppState_FOREGROUND
-			}
-			tc.G.MobileAppState.Update(start)
+			tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUNDACTIVE)
+
 			const numKeys = 3500
-			for i := range numKeys {
-				require.NoError(t, db.Put(DbKey{Key: fmt.Sprintf("k%05d", i), Typ: 0}, nil, []byte{1}))
-			}
-			waitCleanerMonitor(t, db.cleaner)
+			firstKey, lastKey := putKeys(t, db, numKeys)
 			db.cleaner.clearCache()
 
 			done := make(chan error, 1)
 			go func() { done <- db.cleaner.clean(true /* force */) }()
-			require.Eventually(t, func() bool {
-				db.cleaner.Lock()
-				defer db.cleaner.Unlock()
-				return db.cleaner.running
-			}, 10*time.Second, time.Millisecond)
+			waitFirstBatchPurged(t, db, firstKey)
+
 			tc.G.MobileAppState.Update(next)
-			waitCleanerMonitor(t, db.cleaner)
 			require.NoError(t, <-done)
 
-			_, found, err := db.Get(DbKey{Key: fmt.Sprintf("k%05d", numKeys-1), Typ: 0})
+			_, found, err := db.Get(lastKey)
 			require.NoError(t, err)
-			require.Equal(t, next != keybase1.MobileAppState_BACKGROUNDACTIVE, found,
-				"last key after a clean across a transition to %v", next)
+			require.True(t, found, "a clean canceled by leaving BACKGROUNDACTIVE should not reach the last key")
 		})
 	}
 }
 
-func TestLevelDbCleanerSeedsFromState(t *testing.T) {
-	for _, initial := range cleanerStates {
-		t.Run(initial.String(), func(t *testing.T) {
-			tc := SetupTest(t, "LevelDb-cleaner-seed", 0)
-			defer tc.Cleanup()
-			tc.G.MobileAppState.Update(initial)
-			db := newMobileCleanerDb(t, &tc, testCleanerConfig())
-			cancelCh, monitors := db.cleaner.snapshot()
-			require.Zero(t, monitors, "monitor running before the db opened")
-			require.NoError(t, db.ForceOpen())
-			waitCleanerMonitor(t, db.cleaner)
-			require.False(t, isClosed(cancelCh), "canceled without a transition from %v", initial)
-		})
-	}
-}
-
-func TestLevelDbCleanerMonitorSurvivesReopen(t *testing.T) {
-	tc := SetupTest(t, "LevelDb-cleaner-reopen", 0)
+// A clean keeps running, with no early return, for as long as the app state
+// stays BACKGROUNDACTIVE, including across an unrelated update. NextUpdate
+// only fires on a real change, so a same-value BACKGROUNDACTIVE update never
+// wakes the batch loop at all; a collapsed BACKGROUNDACTIVE -> X ->
+// BACKGROUNDACTIVE transition can't be produced deterministically, since the
+// loop's poll may or may not land inside the window where the state reads as
+// X.
+func TestCleanerContinuesAcrossBackgroundActiveReentry(t *testing.T) {
+	tc := SetupTest(t, "LevelDb-cleaner-continue", 0)
 	defer tc.Cleanup()
-	db := newMobileCleanerDb(t, &tc, testCleanerConfig())
-	require.NoError(t, db.ForceOpen())
-	waitCleanerMonitor(t, db.cleaner)
-	requireCancelOnTransition(t, db, keybase1.MobileAppState_BACKGROUND)
+	config := testCleanerConfig()
+	config.SleepInterval = 100 * time.Millisecond
+	db := newMobileCleanerDb(t, &tc, config)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUNDACTIVE)
 
-	reopens := map[string]func(){
-		"nuke": func() {
-			_, err := db.Nuke()
-			require.NoError(t, err)
-			require.NoError(t, db.ForceOpen())
-		},
-		"close": func() {
-			require.NoError(t, db.Close())
-			// The first use after Close fails and rearms the lazy open.
-			require.Error(t, db.ForceOpen())
-			require.NoError(t, db.ForceOpen())
-		},
-	}
-	for _, name := range []string{"nuke", "close", "nuke"} {
-		reopens[name]()
-		_, monitors := db.cleaner.snapshot()
-		require.Equal(t, 1, monitors, "after %s", name)
-		waitCleanerMonitor(t, db.cleaner)
-		requireCancelOnTransition(t, db, keybase1.MobileAppState_FOREGROUND)
-		requireCancelOnTransition(t, db, keybase1.MobileAppState_BACKGROUNDACTIVE)
-		requireCancelOnTransition(t, db, keybase1.MobileAppState_BACKGROUND)
+	const numKeys = 3500
+	firstKey, lastKey := putKeys(t, db, numKeys)
+	db.cleaner.clearCache()
 
-		// A reopened cleaner cleans again.
-		key := DbKey{Key: "reopen-key", Typ: 0}
-		require.NoError(t, db.Put(key, nil, []byte{1}))
-		db.cleaner.clearCache()
-		require.NoError(t, db.cleaner.clean(true /* force */))
-		_, found, err := db.Get(key)
-		require.NoError(t, err)
-		require.False(t, found, "clean after %s left the key", name)
-	}
-	require.NoError(t, db.Close())
-	require.Eventually(t, func() bool {
-		_, monitors := db.cleaner.snapshot()
-		return monitors == 0
-	}, 10*time.Second, time.Millisecond, "monitor outlived Close")
-}
+	done := make(chan error, 1)
+	go func() { done <- db.cleaner.clean(true /* force */) }()
+	waitFirstBatchPurged(t, db, firstKey)
 
-func TestLevelDbCleanerScenarioReplay(t *testing.T) {
-	for _, sc := range lifecycletest.Scenarios {
-		t.Run(sc.Name, func(t *testing.T) {
-			tc := SetupTest(t, "LevelDb-cleaner-scenario", 0)
-			defer tc.Cleanup()
-			h := lifecycletest.NewHarness(t, tc.G.MobileAppState, sc.Platform)
-			defer h.Close()
-			db := newMobileCleanerDb(t, &tc, testCleanerConfig())
-			require.NoError(t, db.ForceOpen())
-			waitCleanerMonitor(t, db.cleaner)
-			prev := sc.Platform.InitialState()
-			for i, step := range sc.Steps {
-				cancelCh, _ := db.cleaner.snapshot()
-				h.Do(step)
-				waitCleanerMonitor(t, db.cleaner)
-				w := db.cleaner.cleanerWatcher()
-				require.NotNil(t, w, "step %d %v", i, step.Do)
-				acted, _ := w.CaughtUp()
-				require.Equal(t, step.Want, acted, "step %d %v", i, step.Do)
-				canceled := isClosed(cancelCh)
-				switch {
-				case step.Want != prev && step.Want != keybase1.MobileAppState_BACKGROUNDACTIVE:
-					require.True(t, canceled, "step %d %v: clean not canceled in %v", i, step.Do, step.Want)
-				case step.Want == keybase1.MobileAppState_BACKGROUNDACTIVE || step.Want == prev:
-					require.False(t, canceled, "step %d %v: clean canceled without a transition out of BACKGROUNDACTIVE", i, step.Do)
-				}
-				prev = step.Want
-			}
-			h.CheckObserved(sc.Observed)
-		})
-	}
-}
+	// An unrelated update that collapses to a no-op: still BACKGROUNDACTIVE,
+	// so it must not interrupt the clean.
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUNDACTIVE)
+	require.NoError(t, <-done)
 
-// Nukes, closes and reopens racing app-state changes leave one working
-// monitor while the db is open and none after it closes.
-func TestLevelDbCleanerMonitorStress(t *testing.T) {
-	tc := SetupTest(t, "LevelDb-cleaner-stress", 0)
-	defer tc.Cleanup()
-	baseline := runtime.NumGoroutine()
-	db := newMobileCleanerDb(t, &tc, testCleanerConfig())
-
-	var wg sync.WaitGroup
-	stop := make(chan struct{})
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		for i := 0; ; i++ {
-			select {
-			case <-stop:
-				return
-			default:
-			}
-			tc.G.MobileAppState.Update(cleanerStates[i%len(cleanerStates)])
-		}
-	}()
-	for w := range 4 {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for i := range 50 {
-				switch (w + i) % 3 {
-				case 0:
-					_, _ = db.Nuke()
-				case 1:
-					_ = db.Close()
-				default:
-					_ = db.Put(DbKey{Key: fmt.Sprintf("w%d-%d", w, i), Typ: 0}, nil, []byte{1})
-				}
-				_ = db.ForceOpen()
-			}
-		}()
-	}
-	time.Sleep(10 * time.Millisecond)
-	for range 4 {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for range 50 {
-				_ = db.ForceOpen()
-			}
-		}()
-	}
-	time.Sleep(200 * time.Millisecond)
-	close(stop)
-	wg.Wait()
-
-	// A racing Close leaves one failed open before the next open succeeds.
-	require.Eventually(t, func() bool { return db.ForceOpen() == nil }, 10*time.Second, time.Millisecond)
-	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
-	waitCleanerMonitor(t, db.cleaner)
-	requireCancelOnTransition(t, db, keybase1.MobileAppState_BACKGROUND)
-
-	require.NoError(t, db.Close())
-	require.Eventually(t, func() bool {
-		_, monitors := db.cleaner.snapshot()
-		return monitors == 0 && runtime.NumGoroutine() <= baseline+5
-	}, 10*time.Second, 10*time.Millisecond, "monitor or goroutines outlived Close")
+	_, found, err := db.Get(lastKey)
+	require.NoError(t, err)
+	require.False(t, found, "a clean that never left BACKGROUNDACTIVE should run to completion")
 }

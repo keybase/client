@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -73,7 +72,7 @@ func doSomeIO() error {
 
 func levelDbStats(t *testing.T, db *LevelDb) (stats leveldb.DBStats) {
 	require.NoError(t, db.doWhileOpenAndNukeIfCorrupted(func() error {
-		return db.db.Stats(&stats)
+		return db.db.Load().Stats(&stats)
 	}))
 	return stats
 }
@@ -182,7 +181,7 @@ func TestLevelDb(t *testing.T) {
 					for _, prefix := range []string{"aa", "kv", "lo", "pm", "zz"} {
 						for i := 0; i < 20; i++ {
 							key := []byte(fmt.Sprintf("%s:%d:%d", prefix, round, i))
-							require.NoError(t, db.db.Put(key, bytes.Repeat([]byte{byte(i)}, 100), nil))
+							require.NoError(t, db.db.Load().Put(key, bytes.Repeat([]byte{byte(i)}, 100), nil))
 						}
 					}
 				}
@@ -190,7 +189,7 @@ func TestLevelDb(t *testing.T) {
 				// compaction of the flushed memtable would have inputs.
 				for round := 0; round < 2; round++ {
 					putAcrossPrefixes(round)
-					tr, err := db.db.OpenTransaction()
+					tr, err := db.db.Load().OpenTransaction()
 					require.NoError(t, err)
 					tr.Discard()
 				}
@@ -207,27 +206,29 @@ func TestLevelDb(t *testing.T) {
 				}
 				require.Equal(t, beforeTotal+1, levelDbTableCount(t, db), "flush should add exactly one table")
 				require.Zero(t, levelDbJournalSize(t, db), "the flushed memtable's journal should be gone")
-				val, err := db.db.Get([]byte("zz:2:19"), nil)
+				val, err := db.db.Load().Get([]byte("zz:2:19"), nil)
 				require.NoError(t, err)
 				require.Equal(t, bytes.Repeat([]byte{19}, 100), val)
 			},
 		},
 		{
-			name: "flush-coalesces", testBody: func(t *testing.T) {
-				tc := SetupTest(t, "LevelDb-flush-coalesces", 0)
+			// A write and a Flush call that a flush's own hook makes reentrantly
+			// must still be flushed before the outer call returns: the hook runs
+			// after the transaction is discarded, so goleveldb's write lock is
+			// already free and the nested call is a plain second flush.
+			name: "flush-reentrant", testBody: func(t *testing.T) {
+				tc := SetupTest(t, "LevelDb-flush-reentrant", 0)
 				defer tc.Cleanup()
 				db, err := createTempLevelDbForTest(&tc, &td)
 				require.NoError(t, err)
 				_, err = testLevelDbPut(db)
 				require.NoError(t, err)
 
-				// A write and a Flush request that land after the running flush
-				// rotated the memtable must still be flushed before it returns.
 				rotations := 0
 				db.flushHook = func() {
 					rotations++
 					if rotations == 1 {
-						require.NoError(t, db.db.Put([]byte("kv:late"), []byte{1}, nil))
+						require.NoError(t, db.db.Load().Put([]byte("kv:late"), []byte{1}, nil))
 						require.NoError(t, db.Flush())
 					}
 				}
@@ -237,25 +238,16 @@ func TestLevelDb(t *testing.T) {
 			},
 		},
 		{
+			// TestConcurrentFlushes: 8 goroutines call Flush with writes
+			// interleaved. Flush no longer coalesces concurrent callers, so this
+			// exercises goleveldb's own write-lock serialization of the memtable
+			// rotation instead.
 			name: "flush-concurrent", testBody: func(t *testing.T) {
 				tc := SetupTest(t, "LevelDb-flush-concurrent", 0)
 				defer tc.Cleanup()
 				db, err := createTempLevelDbForTest(&tc, &td)
 				require.NoError(t, err)
 				require.NoError(t, db.ForceOpen())
-
-				var active, maxActive atomic.Int32
-				db.flushHook = func() {
-					n := active.Add(1)
-					for {
-						m := maxActive.Load()
-						if n <= m || maxActive.CompareAndSwap(m, n) {
-							break
-						}
-					}
-					time.Sleep(time.Millisecond)
-					active.Add(-1)
-				}
 
 				const writers, iterations = 8, 25
 				var wg sync.WaitGroup
@@ -272,7 +264,6 @@ func TestLevelDb(t *testing.T) {
 				}
 				wg.Wait()
 
-				require.Equal(t, int32(1), maxActive.Load(), "flushes must not overlap")
 				require.Zero(t, levelDbJournalSize(t, db), "the last writes must be flushed")
 				for w := 0; w < writers; w++ {
 					_, found, err := db.Get(DbKey{Key: fmt.Sprintf("%d-%d", w, iterations-1), Typ: 0})

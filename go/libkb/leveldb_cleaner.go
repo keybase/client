@@ -60,37 +60,28 @@ type levelDbCleaner struct {
 	MetaContextified
 	sync.Mutex
 
-	running  bool
-	lastKey  []byte
-	lastRun  time.Time
-	dbName   string
-	config   DbCleanerConfig
-	cache    *lru.Cache
-	cacheMu  sync.Mutex // protects the pointer to the cache
-	isMobile bool
-	db       *leveldb.DB
-	stopCh   chan struct{}
-	cancelCh chan struct{}
-	// monitoring is whether an app-state monitor runs for the current stopCh,
-	// and watcher is that monitor's watcher.
-	monitoring bool
-	watcher    *AppStateWatcher
-	// monitors counts running monitor goroutines; tests use it.
-	monitors int
+	running bool
+	lastKey []byte
+	lastRun time.Time
+	dbName  string
+	config  DbCleanerConfig
+	cache   *lru.Cache
+	cacheMu sync.Mutex // protects the pointer to the cache
+	db      *leveldb.DB
+	stopCh  chan struct{}
 
 	isShutdown bool
 }
 
 func newLevelDbCleaner(mctx MetaContext, dbName string) *levelDbCleaner {
 	config := DefaultDesktopDbCleanerConfig
-	isMobile := mctx.G().IsMobileAppType()
-	if isMobile {
+	if mctx.G().IsMobileAppType() {
 		config = DefaultMobileDbCleanerConfig
 	}
-	return newLevelDbCleanerWithConfig(mctx, dbName, config, isMobile)
+	return newLevelDbCleanerWithConfig(mctx, dbName, config)
 }
 
-func newLevelDbCleanerWithConfig(mctx MetaContext, dbName string, config DbCleanerConfig, isMobile bool) *levelDbCleaner {
+func newLevelDbCleanerWithConfig(mctx MetaContext, dbName string, config DbCleanerConfig) *levelDbCleaner {
 	cache, err := lru.New(config.CacheCapacity)
 	if err != nil {
 		panic(err)
@@ -99,13 +90,11 @@ func newLevelDbCleanerWithConfig(mctx MetaContext, dbName string, config DbClean
 	return &levelDbCleaner{
 		MetaContextified: NewMetaContextified(mctx),
 		// Start the run shortly after starting but not immediately
-		lastRun:  mctx.G().GetClock().Now().Add(-(config.CleanInterval - config.CleanInterval/10)),
-		dbName:   dbName,
-		config:   config,
-		cache:    cache,
-		isMobile: isMobile,
-		stopCh:   make(chan struct{}),
-		cancelCh: make(chan struct{}),
+		lastRun: mctx.G().GetClock().Now().Add(-(config.CleanInterval - config.CleanInterval/10)),
+		dbName:  dbName,
+		config:  config,
+		cache:   cache,
+		stopCh:  make(chan struct{}),
 	}
 }
 
@@ -128,63 +117,22 @@ func (c *levelDbCleaner) Stop() {
 		close(c.stopCh)
 		c.stopCh = make(chan struct{})
 	}
-	c.monitoring = false
-	c.watcher = nil
 }
 
 // start attaches the cleaner to a newly opened db, undoing a previous
-// Stop/Shutdown from closing it, and on mobile starts the app-state monitor.
+// Stop/Shutdown from closing it.
 func (c *levelDbCleaner) start(db *leveldb.DB) {
 	c.Lock()
 	defer c.Unlock()
 	c.db = db
 	c.cacheMu.Lock()
+	defer c.cacheMu.Unlock()
 	if c.isShutdown {
 		if cache, err := lru.New(c.config.CacheCapacity); err == nil {
 			c.cache = cache
 			c.isShutdown = false
 		}
 	}
-	c.cacheMu.Unlock()
-	if !c.isMobile || c.monitoring {
-		return
-	}
-	c.monitoring = true
-	c.monitors++
-	c.watcher = c.G().MobileAppState.NewWatcher()
-	go c.monitorAppState(c.watcher, c.stopCh, c.G().MobileAppState.State())
-}
-
-// monitorAppState cancels a running clean whenever the app moves to any state
-// other than BACKGROUNDACTIVE. A clean may start in any state; it keeps
-// running only across a transition into BACKGROUNDACTIVE, so it gives way
-// when the app comes to the foreground and before it is suspended.
-func (c *levelDbCleaner) monitorAppState(w *AppStateWatcher, stopCh chan struct{}, state keybase1.MobileAppState) {
-	c.log("monitorAppState: starting in %v", state)
-	defer func() {
-		c.log("monitorAppState: stop")
-		c.Lock()
-		defer c.Unlock()
-		c.monitors--
-	}()
-	w.Run(state, stopCh, func(state keybase1.MobileAppState) bool {
-		if state == keybase1.MobileAppState_BACKGROUNDACTIVE {
-			return true
-		}
-		c.log("monitorAppState: attempting cancel, state: %v", state)
-		c.Lock()
-		defer c.Unlock()
-		// Stop closes stopCh under this lock, so a closed channel here means
-		// this run is over.
-		select {
-		case <-stopCh:
-			return false
-		default:
-		}
-		close(c.cancelCh)
-		c.cancelCh = make(chan struct{})
-		return true
-	})
 }
 
 func (c *levelDbCleaner) log(format string, args ...any) {
@@ -242,7 +190,6 @@ func (c *levelDbCleaner) clean(force bool) (err error) {
 	c.running = true
 	key := c.lastKey
 	stopCh := c.stopCh
-	cancelCh := c.cancelCh
 	c.Unlock()
 
 	defer c.M().Trace(fmt.Sprintf("levelDbCleaner(%s) clean, config: %v", c.dbName, c.config), &err)()
@@ -266,15 +213,26 @@ func (c *levelDbCleaner) clean(force bool) (err error) {
 		return nil
 	}
 
+	// A clean gives way to the foreground: it keeps running only while the
+	// app state stays BACKGROUNDACTIVE (or never changes at all, as on
+	// desktop). NextUpdate collapses intermediate transitions, so a wake
+	// re-reads the current state rather than assuming what it changed to.
+	state := c.G().MobileAppState.State()
+	appCh := c.G().MobileAppState.NextUpdate(state)
+
 	var totalNumPurged, numPurged int
 	for i := range 100 {
 		select {
-		case <-cancelCh:
-			c.log("aborting clean, %d runs, canceled", i)
-			return nil
 		case <-stopCh:
 			c.log("aborting clean %d runs, stopped", i)
 			return nil
+		case <-appCh:
+			state = c.G().MobileAppState.State()
+			if state != keybase1.MobileAppState_BACKGROUNDACTIVE {
+				c.log("aborting clean, %d runs, left BACKGROUNDACTIVE for %v", i, state)
+				return nil
+			}
+			appCh = c.G().MobileAppState.NextUpdate(state)
 		default:
 		}
 
