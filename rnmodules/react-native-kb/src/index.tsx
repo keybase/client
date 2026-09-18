@@ -140,16 +140,6 @@ export const onMetaEvent = (callback: (payload: string) => void): EventSubscript
 
 // Push events
 
-// A tapped notification's payload waits in native until takePushTap reads it; subscribe first,
-// then take, and take again on every event.
-export const onPushTap = (callback: () => void): EventSubscription => {
-  return Kb.onPushTap(() => callback())
-}
-
-export const takePushTap = (): string => {
-  return Kb.takePushTap()
-}
-
 export const onPushToken = (callback: (token: string) => void): EventSubscription => {
   return Kb.onPushToken(callback)
 }

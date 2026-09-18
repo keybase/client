@@ -3,7 +3,7 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
 import {resetAllStores} from '@/util/zustand'
-import {emitDeepLink, enqueuePushTap} from './deep-link-emitter'
+import {emitDeepLink, enqueuePushTapRoute} from './deep-link-emitter'
 import {subscribeNavigationIntents} from './linking'
 
 const setCurrentUser = (uid: string) => {
@@ -139,7 +139,7 @@ test('an account-targeted intent survives the store reset an account switch perf
   const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
 
   useConfigState.getState().dispatch.setUserSwitching(true)
-  enqueuePushTap('{"type":"chat.newmessage","convID":"switch-target-conversation","uid":"target-uid"}')
+  enqueuePushTapRoute({targetUID: 'target-uid', url: 'keybase://convid/switch-target-conversation'})
   expect(listener).not.toHaveBeenCalled()
 
   // the service's loggedOut notification lands mid-switch and resets every store

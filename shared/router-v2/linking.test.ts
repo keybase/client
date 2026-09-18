@@ -2,7 +2,7 @@
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
-import {emitDeepLink, enqueuePushTap} from './deep-link-emitter'
+import {emitDeepLink, enqueuePushTapRoute} from './deep-link-emitter'
 import * as Settings from '@/constants/settings'
 import * as Tabs from '@/constants/tabs'
 import {createLinkingConfig, isHandledByLinkingConfig, subscribeNavigationIntents} from './linking'
@@ -66,7 +66,7 @@ test('waits until the intended account is active', () => {
   const listener = jest.fn()
   const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
 
-  enqueuePushTap('{"type":"chat.newmessage","convID":"target-account-conversation","uid":"target-uid"}')
+  enqueuePushTapRoute({targetUID: 'target-uid', url: 'keybase://convid/target-account-conversation'})
   expect(listener).not.toHaveBeenCalled()
 
   setCurrentUser('target-uid')
@@ -86,7 +86,7 @@ test('waits for an account switch to finish', () => {
   const listener = jest.fn()
   const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
 
-  enqueuePushTap('{"type":"chat.newmessage","convID":"account-switch-conversation","uid":"current-uid"}')
+  enqueuePushTapRoute({targetUID: 'current-uid', url: 'keybase://convid/account-switch-conversation'})
   expect(listener).not.toHaveBeenCalled()
 
   useConfigState.getState().dispatch.setUserSwitching(false)
@@ -102,7 +102,7 @@ test('waits for the replacement router after the current account changes', () =>
   const listener = jest.fn()
   const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
 
-  enqueuePushTap('{"type":"chat.newmessage","convID":"replacement-router-conversation","uid":"target-uid"}')
+  enqueuePushTapRoute({targetUID: 'target-uid', url: 'keybase://convid/replacement-router-conversation'})
   setCurrentUser('target-uid')
 
   // The bootstrap UID can change before React commits the keyed router remount.

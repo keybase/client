@@ -18,6 +18,7 @@ import {useNotifState} from '@/stores/notifications'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {serviceStaticConfigToStaticConfig} from '@/constants/chat/static-config'
 import {emitDeepLink} from '@/router-v2/linking'
+import {enqueuePushTapRoute} from '@/router-v2/deep-link-emitter'
 import {ignorePromise, timeoutPromise} from '../utils'
 import {isPhone, serverConfigFileName} from '../platform'
 import {useAvatarState} from '@/common-adapters/avatar/store'
@@ -287,6 +288,26 @@ export const applyMobileAppState = (state?: T.RPCGen.MobileAppState, version?: T
   }
 }
 
+// A tapped notification's route waits in the service until it is taken, and the take clears it.
+// That is the whole of the exactly-once property: a tap survives a client that is not running
+// yet (on iOS, a background launch never starts one at all), and a reconnect or a reload finds
+// nothing left to act on again. Taken here on connect for a tap from before this connection, and
+// on pushTapRouteAvailable for one during it -- one taker either way, so neither path can hand
+// out a tap the other already did.
+const takePushTapRoute = async () => {
+  if (!isMobile) {
+    return
+  }
+  try {
+    const route = await T.RPCGen.appStateTakePushTapRouteRpcPromise()
+    if (route) {
+      enqueuePushTapRoute(route)
+    }
+  } catch (error) {
+    logger.warn('[PushTap] failed to take a tap route: ', error)
+  }
+}
+
 // The reply to setNotifications: the state as of the moment this connection subscribed, so there
 // is no read to order against the subscription. An old service returns nothing here and the
 // bootstrap status keeps that job -- see applyUnversionedStatusSession.
@@ -421,6 +442,7 @@ export const onEngineConnected = () => {
     }
     // a new connection has told us nothing yet; the reply is what settles it
     useConfigState.getState().dispatch.setSessionIsUnversioned(false)
+    ignorePromise(takePushTapRoute())
     // startHandshake first so this connection has its generation before the subscribe goes out.
     // Nothing orders the two RPCs any more: the subscription reply is what carries the session and
     // the http address, so the bootstrap read has nothing left to race with.
@@ -478,6 +500,9 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
   }
 
   switch (action.type) {
+    case 'keybase.1.NotifyApp.pushTapRouteAvailable':
+      ignorePromise(takePushTapRoute())
+      break
     case 'keybase.1.NotifyApp.mobileAppStateChanged': {
       const {state, version} = action.payload.params
       applyMobileAppState(state, version)

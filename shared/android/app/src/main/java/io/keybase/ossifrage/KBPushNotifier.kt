@@ -22,6 +22,7 @@ import keybase.PushNotifier
 import java.io.BufferedInputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.security.MessageDigest
 
 class KBPushNotifier internal constructor(private val context: Context, private val bundle: Bundle) : PushNotifier {
     private var convMsgCache: SmallMsgRingBuffer? = null
@@ -35,14 +36,30 @@ class KBPushNotifier internal constructor(private val context: Context, private 
         this.convMsgCache = convMsgCache
     }
 
-    // A tap goes through PushTapActivity, which hands the push's payload to JS. The payload must
-    // be the Intent's data for each notification to get its own PendingIntent (see PushTapData),
-    // so the Intent is never built without it. Immutable, so whoever holds this PendingIntent
-    // can't substitute another payload.
+    // A tap goes through PushTapActivity, which hands the push to the service. The payload rides
+    // in the extras, and the data is a digest of it: PendingIntent.getActivity hands back an
+    // existing PendingIntent for any Intent that filterEquals the new one, and extras are not part
+    // of filterEquals, so two notifications with different payloads must differ in the data or the
+    // second tap would open the first one's target. A digest rather than the payload itself
+    // because a data URI is printed by `dumpsys activity`, where an extra is not. Immutable, so
+    // whoever holds this PendingIntent can't substitute another payload.
     private fun tapIntent(bundle: Bundle): Intent =
         Intent(context, PushTapActivity::class.java)
-            .setData(Uri.parse(PushTapData.tapIntentData(bundleTapFields(bundle))))
+            .setData(Uri.parse("kbpushtap:" + payloadDigest(bundle)))
+            .putExtras(bundle)
             .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+    private fun payloadDigest(bundle: Bundle): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        for (key in bundle.keySet().sorted()) {
+            @Suppress("DEPRECATION")
+            val value = bundle.get(key)?.toString() ?: ""
+            // Length-prefixed so no pair of keys and values can run together into the same digest
+            // input as a different pair would.
+            digest.update("${key.length}:$key${value.length}:$value".toByteArray())
+        }
+        return digest.digest().joinToString("") { "%02x".format(it) }
+    }
 
     private fun buildPendingIntent(bundle: Bundle): PendingIntent =
         PendingIntent.getActivity(context, 0, tapIntent(bundle), PendingIntent.FLAG_IMMUTABLE)

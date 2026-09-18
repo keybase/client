@@ -33,7 +33,6 @@ import java.io.FileReader
 import java.io.IOException
 import java.lang.reflect.Method
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicReference
 import keybase.Keybase
 import keybase.Keybase.readArr
 import keybase.Keybase.version
@@ -374,15 +373,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     @ReactMethod
     override fun setApplicationIconBadgeNumber(badge: Double) {
         // Android manages badge counts automatically via notification channels.
-    }
-
-    @ReactMethod(isBlockingSynchronousMethod = true)
-    override fun takePushTap(): String = pushTapSlot.getAndSet(null) ?: ""
-
-    private fun emitPushTapInternal() {
-        if (reactContext.hasActiveReactInstance() && canEmit()) {
-            emitOnPushTap("")
-        }
     }
 
     internal fun emitShareDataInternal(data: WritableMap) {
@@ -758,21 +748,9 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         // visibility guarantee so the reader never sees a stale instance.
         @Volatile
         var instance: KbModule? = null
-        // The payload of the last tapped notification, until JS takes it. Only
-        // io.keybase.ossifrage.PushTapActivity, which is not exported, fills it, so it alone
-        // may carry an account switch.
-        private val pushTapSlot = AtomicReference<String?>(null)
-
         @JvmStatic
         fun keyPressed(keyName: String) {
             instance?.sendHardwareKeyEvent(keyName)
-        }
-
-        // Called only by io.keybase.ossifrage.PushTapActivity.
-        @JvmStatic
-        fun deliverPushTap(payload: String) {
-            pushTapSlot.set(payload)
-            instance?.emitPushTapInternal()
         }
 
         @JvmStatic

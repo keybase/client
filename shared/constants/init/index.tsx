@@ -159,7 +159,8 @@ const loadStartupDetails = async () => {
     routeState = config?.ui?.routeState2 ?? ''
   } catch {}
 
-  // A tapped push doesn't pass through here: subscribePushTaps queues it as a navigation intent.
+  // A tapped push doesn't pass through here: the service resolves it and constants/init/shared
+  // takes it, queuing it as a navigation intent.
   const initialUrl = await neverThrowPromiseFunc(async () => {
     const linkingStart = Date.now()
     logger.info('[Startup] loadStartupDetails: calling Linking.getInitialURL')

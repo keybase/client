@@ -13,8 +13,9 @@ const tapForOtherAccount = () => {
 
 // A tapped push for another account waits in the intent store until that account is current. This
 // switches to it: to a stored account once, never to one without a stored secret, and it drops the
-// tap when the switch fails or the user logs out. Only enqueuePushTap sets targetUid, so no link
-// another app opens can switch accounts.
+// tap when the switch fails or the user logs out. Only enqueuePushTapRoute sets targetUid, and only
+// a route the service resolved from a real notification tap reaches it, so no link another app
+// opens can switch accounts.
 export const subscribeIntentAccountSwitch = () => {
   // userSwitching already gates a second login, but it is cleared by the replacement router's
   // onReady, which can run before the new uid lands; keying on the intent makes the switch

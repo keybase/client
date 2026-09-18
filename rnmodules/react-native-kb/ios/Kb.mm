@@ -49,11 +49,6 @@ static __weak Kb *kbSharedInstance = nil;
 static std::mutex kbSharedInstanceMutex;
 static BOOL kbPasteImageEnabled = NO;
 static NSString *kbStoredDeviceToken = nil;
-// The payload of the last tapped notification, until JS takes it. Only the native
-// notification-tap handler writes it (never a URL another app opens), so it alone may
-// carry an account switch.
-static std::mutex kbPushTapMutex;
-static NSString *kbPushTapPayload = nil;
 
 // The bridge is created on the JS thread and consumed by the reader thread,
 // so every access goes through this lock — a plain shared_ptr member would be
@@ -244,13 +239,6 @@ static NSDictionary *kbConstants(void) {
 }
 
 RCT_EXPORT_MODULE()
-
-- (NSString *)takePushTap {
-  std::lock_guard<std::mutex> lock(kbPushTapMutex);
-  NSString *payload = kbPushTapPayload ?: @"";
-  kbPushTapPayload = nil;
-  return payload;
-}
 
 + (BOOL)requiresMainQueueSetup {
   return YES;
@@ -893,22 +881,6 @@ RCT_EXPORT_METHOD(addNotificationRequest: (JS::NativeKb::SpecAddNotificationRequ
   });
 }
 
-// Keeps the latest tap for JS and tells JS if it is listening. The event carries nothing:
-// JS takes the payload from the slot, at startup and on the event, so a tap is taken
-// exactly once.
-+ (void)deliverPushTap:(NSString *)payload {
-  {
-    std::lock_guard<std::mutex> lock(kbPushTapMutex);
-    kbPushTapPayload = payload;
-  }
-  dispatch_async(dispatch_get_main_queue(), ^{
-    Kb *instance = kbSharedInstance;
-    if (instance && [instance canEmit]) {
-      [instance emitOnPushTap:@""];
-    }
-  });
-}
-
 - (void)handleHardwareKeyPressed:(NSNotification *)notification {
   NSString *keyName = notification.userInfo[@"pressedKey"];
   if (keyName && [self canEmit]) {
@@ -953,8 +925,4 @@ RCT_EXPORT_METHOD(addNotificationRequest: (JS::NativeKb::SpecAddNotificationRequ
 
 void KbSetDeviceToken(NSString *token) {
   [Kb setDeviceToken:token];
-}
-
-void KbDeliverPushTap(NSString *payload) {
-  [Kb deliverPushTap:payload];
 }

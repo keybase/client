@@ -2,7 +2,7 @@
 import RPCError from '@/util/rpcerror'
 import {resetAllStores} from '@/util/zustand'
 import {subscribeIntentAccountSwitch} from './account-link-switch'
-import {enqueuePushTap, emitDeepLink} from './deep-link-emitter'
+import {enqueuePushTapRoute, emitDeepLink} from './deep-link-emitter'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
@@ -13,7 +13,8 @@ const otherAccount = {hasStoredSecret: true, uid: 'uid-other', username: 'testus
 const noSecretAccount = {hasStoredSecret: false, uid: 'uid-nosecret', username: 'testuser-nosecret'}
 const allAccounts = [currentAccount, otherAccount, noSecretAccount]
 
-const tapFor = (uid: string) => enqueuePushTap(`{"type":"chat.newmessage","convID":"0000ab","uid":"${uid}"}`)
+const tapFor = (uid: string) =>
+  enqueuePushTapRoute({targetUID: uid, url: 'keybase://convid/0000ab'})
 
 let login = jest.fn()
 let unsub: (() => void) | undefined

@@ -356,16 +356,17 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     }
   }
 
-  // The only way a tap reaches JS. UIKit calls this only for a notification delivered to
-  // this app; URLs other apps open go through Linking instead, so only real taps can carry
-  // an account.
+  // The only way a tap reaches the service. UIKit calls this only for a notification
+  // delivered to this app; URLs other apps open go through Linking instead, so only real
+  // taps can carry an account. The payload goes over unread: the service resolves where it
+  // opens, and nothing here or in JS parses a push.
   public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
     let userInfo = response.notification.request.content.userInfo
     let payload = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
     if JSONSerialization.isValidJSONObject(payload),
        let data = try? JSONSerialization.data(withJSONObject: payload),
        let json = String(data: data, encoding: .utf8) {
-      KbDeliverPushTap(json)
+      Keybasego.KeybaseDeliverPushTap(json)
     } else {
       log.error("Dropped a notification tap: its payload could not be serialized")
     }

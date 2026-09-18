@@ -1,35 +1,19 @@
 import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
 import logger from '@/logger'
-import {emitDeepLink, enqueuePushTap} from '@/router-v2/deep-link-emitter'
+import {emitDeepLink} from '@/router-v2/deep-link-emitter'
 import {subscribeIntentAccountSwitch} from '@/router-v2/account-link-switch'
 import {
   getRegistrationToken,
   setApplicationIconBadgeNumber,
-  onPushTap,
   onPushToken,
   onShareData,
   removeAllPendingNotificationRequests,
-  takePushTap,
 } from 'react-native-kb'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {usePushState} from '@/stores/push'
 import {useShellState} from '@/stores/shell'
-
-// Native keeps a tapped notification's payload in a slot until it is taken. Subscribe first, then
-// take: a tap from before the subscription is read now, a later one on its event, and the slot's
-// clear-on-read keeps one tap from being taken twice.
-export const subscribePushTaps = () => {
-  const take = () => {
-    const payload = takePushTap()
-    if (!payload) return
-    enqueuePushTap(payload)
-  }
-  const sub = onPushTap(take)
-  take()
-  return () => sub.remove()
-}
 
 export const initPushListener = () => {
   const unsubs: Array<() => void> = []
@@ -81,8 +65,9 @@ export const initPushListener = () => {
 
   usePushState.getState().dispatch.initialPermissionsCheck()
 
-  // The switch subscriber goes first, so a tap taken right below already sees it.
-  unsubs.push(subscribeIntentAccountSwitch(), subscribePushTaps())
+  // Taps are taken from the service in constants/init/shared; this only has to be watching the
+  // intent store by the time one lands, and its own first check covers anything already queued.
+  unsubs.push(subscribeIntentAccountSwitch())
 
   try {
     // Token and share listeners
