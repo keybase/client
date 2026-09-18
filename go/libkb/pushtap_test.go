@@ -106,24 +106,53 @@ func TestEncodeURIComponent(t *testing.T) {
 	require.Empty(t, encodeURIComponent(""))
 }
 
-func TestPendingPushTapTakeClears(t *testing.T) {
+func TestPendingPushTapPeekIsNotDestructive(t *testing.T) {
 	tc := SetupTest(t, "pushtap", 1)
 	defer tc.Cleanup()
 	g := tc.G
+	ctx := context.Background()
 
-	require.Nil(t, g.PendingPushTap.Take())
+	require.Nil(t, g.PendingPushTap.Peek())
 
-	first := keybase1.PushTapRoute{Url: "keybase://convid/0000ab", TargetUID: "u1"}
-	g.PendingPushTap.Set(context.Background(), first)
-	require.Equal(t, &first, g.PendingPushTap.Take())
-	// A second taker gets nothing: this is what keeps a reconnect, or a fresh
-	// client after a reload, from acting on the same tap again.
-	require.Nil(t, g.PendingPushTap.Take())
+	g.PendingPushTap.Set(ctx, keybase1.PushTapRoute{Url: "keybase://convid/0000ab", TargetUID: "u1"})
+	first := g.PendingPushTap.Peek()
+	require.NotNil(t, first)
+	require.Equal(t, "keybase://convid/0000ab", first.Url)
+	require.NotZero(t, first.Id, "Set stamps an id")
 
-	// An untaken tap is replaced rather than queued.
-	g.PendingPushTap.Set(context.Background(), first)
-	second := keybase1.PushTapRoute{Url: "keybase://devices", TargetUID: "u2"}
-	g.PendingPushTap.Set(context.Background(), second)
-	require.Equal(t, &second, g.PendingPushTap.Take())
-	require.Nil(t, g.PendingPushTap.Take())
+	// The peek that never reached the client -- or whose reply did not come back --
+	// must leave the tap where it was, or the tap is gone with nothing to say so.
+	again := g.PendingPushTap.Peek()
+	require.Equal(t, first, again)
+
+	require.True(t, g.PendingPushTap.Ack(first.Id))
+	require.Nil(t, g.PendingPushTap.Peek(), "the ack retired it")
+	require.False(t, g.PendingPushTap.Ack(first.Id), "nothing left to retire")
+}
+
+func TestPendingPushTapAckDoesNotRetireANewerTap(t *testing.T) {
+	tc := SetupTest(t, "pushtap", 1)
+	defer tc.Cleanup()
+	g := tc.G
+	ctx := context.Background()
+
+	g.PendingPushTap.Set(ctx, keybase1.PushTapRoute{Url: "keybase://convid/0000ab"})
+	stale := g.PendingPushTap.Peek()
+	require.NotNil(t, stale)
+
+	// A tap not yet acked is replaced rather than queued: the newest tap is the
+	// one the user just made.
+	g.PendingPushTap.Set(ctx, keybase1.PushTapRoute{Url: "keybase://devices", TargetUID: "u2"})
+	newer := g.PendingPushTap.Peek()
+	require.NotNil(t, newer)
+	require.Equal(t, "keybase://devices", newer.Url)
+	require.NotEqual(t, stale.Id, newer.Id)
+
+	// The ack for the tap it replaced was already in flight; it must not take the
+	// newer one with it.
+	require.False(t, g.PendingPushTap.Ack(stale.Id))
+	require.Equal(t, newer, g.PendingPushTap.Peek())
+
+	require.True(t, g.PendingPushTap.Ack(newer.Id))
+	require.Nil(t, g.PendingPushTap.Peek())
 }

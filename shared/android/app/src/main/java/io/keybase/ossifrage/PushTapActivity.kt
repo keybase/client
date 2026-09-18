@@ -6,6 +6,7 @@ import android.os.Bundle
 import io.keybase.ossifrage.MainActivity.Companion.setupKBRuntime
 import io.keybase.ossifrage.modules.NativeLogger
 import keybase.Keybase
+import kotlin.concurrent.thread
 import org.json.JSONObject
 
 // Opens the app for a tapped notification. Not exported, so only this app's own notification
@@ -14,18 +15,23 @@ import org.json.JSONObject
 class PushTapActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // A tap can be what starts this process, so the service may not be running yet. initOnce
-        // is the same call MainActivity makes below and runs at most once, so the cost is moved
-        // rather than added.
-        runCatching {
-            setupKBRuntime(this, false)
-            Keybase.deliverPushTap(payloadJSON(intent.extras))
-        }.onFailure { NativeLogger.error("PushTapActivity: failed to deliver a tap", it) }
+        // Read the Intent here and deliver off the main thread: a tap can be what starts this
+        // process, and the initOnce below is a known slow path (leveldb, keychain) while this
+        // activity is Theme.NoDisplay and must finish before onResume. Nothing is racing the app
+        // coming up: a delivery that lands after the client connected is picked up by the service's
+        // nudge, one that lands before it by the peek the client does on connect.
+        val payload = runCatching { payloadJSON(intent.extras) }.getOrDefault("{}")
+        val context = applicationContext
+        thread(start = true) {
+            runCatching {
+                setupKBRuntime(context, false)
+                Keybase.deliverPushTap(payload)
+            }.onFailure { NativeLogger.error("PushTapActivity: failed to deliver a tap", it) }
+        }
         startActivity(
             Intent(this, MainActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         )
-        // Theme.NoDisplay requires finishing before onResume.
         finish()
     }
 

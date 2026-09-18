@@ -43,6 +43,11 @@ class KBPushNotifier internal constructor(private val context: Context, private 
     // second tap would open the first one's target. A digest rather than the payload itself
     // because a data URI is printed by `dumpsys activity`, where an extra is not. Immutable, so
     // whoever holds this PendingIntent can't substitute another payload.
+    //
+    // The whole push goes in rather than a projection of it, since which fields matter is the
+    // service's business. A push is a few hundred bytes against the ~1MB a Binder transaction
+    // allows, but it is the sender who decides how big, so a payload that grows without bound is
+    // the thing that would break this.
     private fun tapIntent(bundle: Bundle): Intent =
         Intent(context, PushTapActivity::class.java)
             .setData(Uri.parse("kbpushtap:" + payloadDigest(bundle)))

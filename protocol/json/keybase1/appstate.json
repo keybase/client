@@ -34,6 +34,10 @@
         {
           "type": "string",
           "name": "targetUID"
+        },
+        {
+          "type": "int",
+          "name": "id"
         }
       ]
     }
@@ -48,12 +52,21 @@
       ],
       "response": null
     },
-    "takePushTapRoute": {
+    "peekPushTapRoute": {
       "request": [],
       "response": [
         null,
         "PushTapRoute"
       ]
+    },
+    "ackPushTapRoute": {
+      "request": [
+        {
+          "name": "id",
+          "type": "int"
+        }
+      ],
+      "response": null
     },
     "powerMonitorEvent": {
       "request": [

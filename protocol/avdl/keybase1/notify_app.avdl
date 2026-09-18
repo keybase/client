@@ -14,12 +14,12 @@ protocol NotifyApp {
   // arrive in either order.
   void mobileAppStateChanged(MobileAppState state, StateVersion version) oneway;
 
-  // A notification tap resolved to a route and it is waiting to be taken. A
-  // nudge, not a delivery: the route rides takePushTapRoute's reply, so the
-  // taker is the same one whether the tap happened before this client existed
-  // or while it was connected, and neither path can hand out the same tap
-  // twice. Carries nothing for that reason -- acting on this without taking
-  // would be a second delivery path.
+  // A notification tap resolved to a route and it is waiting to be acted on. A
+  // nudge, not a delivery: the route rides peekPushTapRoute's reply, so the
+  // reader is the same one whether the tap happened before this client existed
+  // or while it was connected. Carries nothing for that reason -- acting on
+  // this rather than on what the peek reports would be a second delivery path,
+  // and the two could then act on one tap twice.
   void pushTapRouteAvailable() oneway;
 
 }

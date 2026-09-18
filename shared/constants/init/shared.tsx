@@ -288,23 +288,37 @@ export const applyMobileAppState = (state?: T.RPCGen.MobileAppState, version?: T
   }
 }
 
-// A tapped notification's route waits in the service until it is taken, and the take clears it.
-// That is the whole of the exactly-once property: a tap survives a client that is not running
-// yet (on iOS, a background launch never starts one at all), and a reconnect or a reload finds
-// nothing left to act on again. Taken here on connect for a tap from before this connection, and
-// on pushTapRouteAvailable for one during it -- one taker either way, so neither path can hand
-// out a tap the other already did.
+// A tapped notification's route waits in the service until this says it has been acted on, which
+// is what makes a tap exactly-once. Reading it does not retire it: the peek's reply can be lost on
+// the way here, and losing it would lose the tap with nothing anywhere to say so -- the app would
+// simply open on the wrong screen. So queue first, then ack, and a peek that never came back
+// leaves the route armed for the next one.
+//
+// Run on connect, for a tap from before this connection (on iOS a background launch never starts a
+// client at all, so a tap can be arbitrarily older than the socket), and on pushTapRouteAvailable
+// for a tap during it. Both reach the same armed route, so neither can act on a tap the other
+// already did.
+let enqueuedPushTapID = 0
 const takePushTapRoute = async () => {
   if (!isMobile) {
     return
   }
   try {
-    const route = await T.RPCGen.appStateTakePushTapRouteRpcPromise()
-    if (route) {
+    const route = await T.RPCGen.appStatePeekPushTapRouteRpcPromise()
+    if (!route) {
+      return
+    }
+    // A repeat of a tap this run already queued means only that the ack did not land; re-queueing
+    // would navigate a second time, long after the intent store's own duplicate window has passed.
+    // A reload resets this, which is right: the intent store was reset with it.
+    if (route.id !== enqueuedPushTapID) {
+      enqueuedPushTapID = route.id
       enqueuePushTapRoute(route)
     }
+    await T.RPCGen.appStateAckPushTapRouteRpcPromise({id: route.id})
   } catch (error) {
-    logger.warn('[PushTap] failed to take a tap route: ', error)
+    // Nothing is lost by failing here: the route is retired only by an ack that arrived.
+    logger.warn('[PushTap] failed to take a tap route, leaving it armed: ', error)
   }
 }
 

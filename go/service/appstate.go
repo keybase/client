@@ -45,14 +45,24 @@ func (a *appStateHandler) UpdateMobileNetState(ctx context.Context, stateStr str
 	return nil
 }
 
-// TakePushTapRoute hands over the route a tapped notification resolved to, and
-// clears it. Deliberately not folded into setNotifications' snapshot: that
-// reply goes to every subscriber, including kbfs inside this same process, and
-// a destructive read there would let the wrong one consume the tap.
-func (a *appStateHandler) TakePushTapRoute(ctx context.Context) (*keybase1.PushTapRoute, error) {
-	route := a.G().PendingPushTap.Take()
-	a.G().Log.CDebugf(ctx, "TakePushTapRoute: waiting tap: %v", route != nil)
+// PeekPushTapRoute reports the route a tapped notification resolved to, and
+// leaves it armed until the client acks. It is its own call rather than a field
+// in setNotifications' snapshot: that reply goes to every subscriber, kbfs
+// inside this same process among them, and a tap carried there would be read by
+// whichever one subscribed first.
+func (a *appStateHandler) PeekPushTapRoute(ctx context.Context) (*keybase1.PushTapRoute, error) {
+	route := a.G().PendingPushTap.Peek()
+	a.G().Log.CDebugf(ctx, "PeekPushTapRoute: waiting tap: %v", route != nil)
 	return route, nil
+}
+
+// AckPushTapRoute retires the tap the client has acted on. Until this call the
+// route stays armed, so a peek whose reply never arrived costs a repeat rather
+// than the tap.
+func (a *appStateHandler) AckPushTapRoute(ctx context.Context, id int) error {
+	retired := a.G().PendingPushTap.Ack(id)
+	a.G().Log.CDebugf(ctx, "AckPushTapRoute(%d): retired: %v", id, retired)
+	return nil
 }
 
 func (a *appStateHandler) PowerMonitorEvent(ctx context.Context, event string) (err error) {

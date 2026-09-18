@@ -9,10 +9,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// The take is what makes a tap exactly-once: it is the only reader of the
-// pending tap, and it clears. A client that reconnects, or a fresh one after a
-// reload, gets nothing rather than the tap it already acted on.
-func TestTakePushTapRouteClearsTheTap(t *testing.T) {
+// A peek is not a take. The reply can be lost on the way to the client, and the
+// client is the only party that knows whether it acted, so the route stays armed
+// until the client says so -- a lost reply then costs a repeat, not the tap.
+func TestPeekPushTapRouteLeavesTheTapArmed(t *testing.T) {
 	tc := libkb.SetupTest(t, "appstate", 0)
 	defer tc.Cleanup()
 	g := tc.G
@@ -21,20 +21,52 @@ func TestTakePushTapRouteClearsTheTap(t *testing.T) {
 	h := newAppStateHandler(nil, g)
 	ctx := context.Background()
 
-	got, err := h.TakePushTapRoute(ctx)
+	got, err := h.PeekPushTapRoute(ctx)
 	require.NoError(t, err)
 	require.Nil(t, got, "no tap has happened")
 
-	route := keybase1.PushTapRoute{Url: "keybase://convid/0000ab", TargetUID: "u1"}
-	g.PendingPushTap.Set(ctx, route)
+	g.PendingPushTap.Set(ctx, keybase1.PushTapRoute{Url: "keybase://convid/0000ab", TargetUID: "u1"})
 
-	got, err = h.TakePushTapRoute(ctx)
+	first, err := h.PeekPushTapRoute(ctx)
 	require.NoError(t, err)
-	require.Equal(t, &route, got)
+	require.NotNil(t, first)
+	require.Equal(t, "keybase://convid/0000ab", first.Url)
 
-	got, err = h.TakePushTapRoute(ctx)
+	again, err := h.PeekPushTapRoute(ctx)
 	require.NoError(t, err)
-	require.Nil(t, got, "the tap was already handed out")
+	require.Equal(t, first, again, "still armed for a client that never got the first reply")
+
+	require.NoError(t, h.AckPushTapRoute(ctx, first.Id))
+
+	got, err = h.PeekPushTapRoute(ctx)
+	require.NoError(t, err)
+	require.Nil(t, got, "the client said it acted")
+}
+
+// An ack that crosses a newer tap must retire nothing: the user tapped again,
+// and that tap has not been acted on.
+func TestAckPushTapRouteIgnoresAStaleID(t *testing.T) {
+	tc := libkb.SetupTest(t, "appstate", 0)
+	defer tc.Cleanup()
+	g := tc.G
+	g.SetService()
+
+	h := newAppStateHandler(nil, g)
+	ctx := context.Background()
+
+	g.PendingPushTap.Set(ctx, keybase1.PushTapRoute{Url: "keybase://convid/0000ab"})
+	stale, err := h.PeekPushTapRoute(ctx)
+	require.NoError(t, err)
+	require.NotNil(t, stale)
+
+	g.PendingPushTap.Set(ctx, keybase1.PushTapRoute{Url: "keybase://devices", TargetUID: "u2"})
+
+	require.NoError(t, h.AckPushTapRoute(ctx, stale.Id))
+
+	survived, err := h.PeekPushTapRoute(ctx)
+	require.NoError(t, err)
+	require.NotNil(t, survived)
+	require.Equal(t, "keybase://devices", survived.Url)
 }
 
 // A tap must ride its own call and nothing else. setNotifications answers every
@@ -55,7 +87,8 @@ func TestSetNotificationsLeavesTheTapAlone(t *testing.T) {
 	_, err := n.SetNotifications(ctx, keybase1.NotificationChannels{App: true})
 	require.NoError(t, err)
 
-	got, err := newAppStateHandler(nil, g).TakePushTapRoute(ctx)
+	got, err := newAppStateHandler(nil, g).PeekPushTapRoute(ctx)
 	require.NoError(t, err)
-	require.Equal(t, &route, got, "the subscribe did not consume the tap")
+	require.NotNil(t, got, "the subscribe did not consume the tap")
+	require.Equal(t, route.Url, got.Url)
 }

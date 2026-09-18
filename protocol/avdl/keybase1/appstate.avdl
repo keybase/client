@@ -26,6 +26,9 @@ protocol appState {
     // from a real notification tap can name one, which is what keeps a link
     // opened by another app from switching accounts.
     string targetUID;
+    // Identifies this tap, so an ack cannot clear a newer one. Rises with each
+    // tap and is meaningless across a restart of the service.
+    int id;
   }
 
   // gui -> service
@@ -34,10 +37,18 @@ protocol appState {
 
   // gui -> service
   // mobile only
-  // Returns the route a tapped notification resolved to and clears it, or null
-  // when no tap is waiting. Destructive on purpose: this is the only taker, so
-  // a tap is delivered exactly once however many times a client reconnects.
-  union { null, PushTapRoute } takePushTapRoute();
+  // Returns the route a tapped notification resolved to, or null when no tap is
+  // waiting. Reading does NOT clear it: a reply lost on the way to the client
+  // would take the tap with it, and the client is what knows whether it acted.
+  // The route stays armed until ackPushTapRoute.
+  union { null, PushTapRoute } peekPushTapRoute();
+
+  // gui -> service
+  // mobile only
+  // Says the client has acted on the route with this id, which clears it. A
+  // stale id -- the tap was replaced by a newer one while this was in flight --
+  // clears nothing.
+  void ackPushTapRoute(int id);
 
   // gui -> service
   // desktop only

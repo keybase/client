@@ -2862,9 +2862,10 @@ func (n *NotifyRouter) HandleMobileAppState(ctx context.Context, state keybase1.
 }
 
 // HandlePushTapRouteAvailable nudges clients that a notification tap resolved
-// to a route. It carries nothing: the route rides takePushTapRoute's reply, so
-// the taker is the same one whether the tap happened before a client existed or
-// while it was connected, and a tap can be handed out only once.
+// to a route. It carries nothing: the route rides peekPushTapRoute's reply, so
+// the reader is the same one whether the tap happened before a client existed
+// or while it was connected, and the route is retired by an ack from whoever
+// acted on it rather than by having been read.
 func (n *NotifyRouter) HandlePushTapRouteAvailable(ctx context.Context) {
 	if n == nil {
 		return

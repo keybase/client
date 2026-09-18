@@ -10,41 +10,60 @@ import (
 )
 
 // PendingPushTap holds the route a tapped notification resolved to until a
-// client takes it.
+// client says it has acted on it.
 //
 // It is the whole of the exactly-once guarantee for a tap. A tap can arrive
 // when no client exists -- on iOS a tap that launches the process, on Android a
 // tap that starts PushTapActivity before the RN host -- so it has to wait
-// somewhere that outlives the client, which is here. Take is the only reader
-// and it clears, so a client that reconnects, or a fresh one after a reload,
-// finds nothing left to act on a second time.
+// somewhere that outlives the client, which is here.
+//
+// Reading does not clear, because a reply lost on the way out would take the
+// tap with it and nothing would be left to say a tap had ever happened. The
+// client is the only party that knows it acted, so the client says so: Peek
+// leaves the route armed and Ack retires it. Each route carries an id, so an
+// ack that crosses a newer tap retires nothing.
 type PendingPushTap struct {
 	Contextified
 	sync.Mutex
-	route *keybase1.PushTapRoute
+	route  *keybase1.PushTapRoute
+	lastID int
 }
 
 func NewPendingPushTap(g *GlobalContext) *PendingPushTap {
 	return &PendingPushTap{Contextified: NewContextified(g)}
 }
 
-// Set stores the route a tap resolved to and nudges connected clients. A tap
-// that has not been taken yet is replaced: the newest tap is the one the user
-// just made, and queueing them would navigate through a backlog.
+// Set stores the route a tap resolved to, gives it a fresh id, and nudges
+// connected clients. A tap not yet acked is replaced: the newest tap is the one
+// the user just made, and queueing them would navigate through a backlog.
 func (p *PendingPushTap) Set(ctx context.Context, route keybase1.PushTapRoute) {
 	p.Lock()
+	p.lastID++
+	route.Id = p.lastID
 	p.route = &route
 	p.Unlock()
 	p.G().NotifyRouter.HandlePushTapRouteAvailable(ctx)
 }
 
-// Take returns the waiting route and clears it, or nil when no tap is waiting.
-func (p *PendingPushTap) Take() *keybase1.PushTapRoute {
+// Peek returns the waiting route without retiring it, or nil when none is
+// waiting. It stays armed for the next reader until it is acked.
+func (p *PendingPushTap) Peek() *keybase1.PushTapRoute {
 	p.Lock()
 	defer p.Unlock()
-	route := p.route
+	return p.route
+}
+
+// Ack retires the waiting route if it is still the one with this id, and
+// reports whether it did. A stale id means a newer tap arrived while the ack
+// was in flight, and that one must survive to be acted on.
+func (p *PendingPushTap) Ack(id int) bool {
+	p.Lock()
+	defer p.Unlock()
+	if p.route == nil || p.route.Id != id {
+		return false
+	}
 	p.route = nil
-	return route
+	return true
 }
 
 // pushTapNoRouteTypes are the push types a tap never opens anything for: they
