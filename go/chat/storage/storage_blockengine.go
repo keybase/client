@@ -264,7 +264,7 @@ func (be *blockEngine) readBlock(ctx context.Context, bi blockIndex, id int) (re
 	}
 	pt, ok := secretbox.Open(nil, b.E, &b.N, &fkey)
 	if !ok {
-		return res, MissError{Msg: "failed to decrypt block"}
+		return res, NewInternalError(ctx, be.DebugLabeler, "readBlock: failed to decrypt block: %d", id)
 	}
 
 	// Decode payload
