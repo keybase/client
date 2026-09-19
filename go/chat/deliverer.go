@@ -355,9 +355,7 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 		return 0, err, false
 	case net.Error:
 		s.Debug(ctx, "doNotRetryFailure: generic net error, reconnecting to the server: %s(%T)", berr, berr)
-		if _, rerr := s.serverConn.Reconnect(ctx); rerr != nil {
-			s.Debug(ctx, "doNotRetryFailure: failed to reconnect: %s", rerr)
-		}
+		s.serverConn.Reconnect(ctx)
 		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary() //nolint
 	}
 	if errors.Is(err, ErrChatServerTimeout) || errors.Is(err, ErrDuplicateConnection) ||

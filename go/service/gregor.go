@@ -200,17 +200,18 @@ type gregorHandler struct {
 	reachability     *reachability
 	chatLog          utils.DebugLabeler
 
-	// connGate decides when to connect and disconnect, and runs the steps
-	// OnConnect applies after syncing that can't be undone (badge pushes), so
-	// none of them lands after a Shutdown for the connection it came from.
+	// connGate decides when to connect and disconnect, and runs everything
+	// OnConnect applies after SyncAll, so none of it lands after a Shutdown
+	// for the connection it came from.
 	connGate *gregorConnGate
 
 	// This mutex protects the con object
 	connMutex sync.Mutex
 	conn      *rpc.Connection
-	// connCtx lives as long as conn: Shutdown cancels it under connMutex.
-	// OnConnect runs under a ctx derived from it, and the connection's ping
-	// loop and push state debouncer exit when it is done.
+	// connCtx lives as long as conn: Shutdown cancels it under connMutex, and
+	// so does cancel, ahead of a Shutdown. OnConnect runs under a ctx derived
+	// from it, and the connection's ping loop and push state debouncer exit
+	// when it is done.
 	connCtx    context.Context
 	connCancel context.CancelFunc
 
@@ -438,8 +439,12 @@ func (g *gregorHandler) connectNow(uri *rpc.FMPURI) (err error) {
 	g.connMutex.Lock()
 	defer g.connMutex.Unlock()
 	if g.conn != nil {
-		g.chatLog.Debug(ctx, "skipping connect, conn is not nil")
-		return nil
+		if g.connCtx.Err() == nil {
+			g.chatLog.Debug(ctx, "skipping connect, conn is not nil")
+			return nil
+		}
+		g.chatLog.Debug(ctx, "replacing a cancelled conn")
+		g.shutdownLocked(ctx)
 	}
 	defer func() {
 		close(g.connectHappened)
@@ -895,13 +900,20 @@ func (g *gregorHandler) onGateIfCurrent(ctx context.Context, f func()) bool {
 	return true
 }
 
-// onConnectSynced applies a SyncAll result for OnConnect's connection. A
-// logout or reconnect can shut the connection down at any point, so each
-// step applies only while ctx is live, and OnConnect then fails with
-// ErrDuplicateConnection.
+// onConnectSynced applies a SyncAll result for OnConnect's connection. It
+// holds the connection gate throughout, so no Shutdown lands during it, and
+// nothing it calls may call back into the gate. A disconnect cancels ctx
+// before it takes the gate, so each step applies only while ctx is live, and
+// OnConnect then fails with ErrDuplicateConnection.
 func (g *gregorHandler) onConnectSynced(ctx context.Context, chatCli chat1.RemoteInterface,
 	timeoutCli rpc.GenericClient, uid gregor1.UID, gcli *grclient.Client, syncAllRes chat1.SyncAllResult,
 ) error {
+	g.connGate.mu.Lock()
+	defer g.connGate.mu.Unlock()
+	if ctx.Err() != nil {
+		return chat.ErrDuplicateConnection
+	}
+
 	// Update badging for chat.
 	// This happens before Syncer.Connected for a reason.
 	// If the new inbox version (e.g. 8) were committed to disk and then the
@@ -909,26 +921,18 @@ func (g *gregorHandler) onConnectSynced(ctx context.Context, chatCli chat1.Remot
 	// badging update (7->8) then on reconnect an incomplete chat badge update (8->9)
 	// could be received.
 	// See: https://github.com/keybase/client/pull/12651
-	if !g.onGateIfCurrent(ctx, func() {
-		if g.badger != nil {
-			g.badger.PushChatFullUpdate(ctx, syncAllRes.Badge)
-		}
-	}) {
-		return chat.ErrDuplicateConnection
+	if g.badger != nil {
+		g.badger.PushChatFullUpdate(ctx, syncAllRes.Badge)
 	}
 
 	// Sync chat data using a Syncer object
 	// This commits the new inbox version to persistent storage.
-	// It can't run under the gate, since the sync calls the server through
-	// this handler and may ask the gate to reconnect. The Syncer ignores a
-	// cancelled ctx, and Shutdown marks it disconnected after cancelling.
+	// The Syncer ignores a cancelled ctx.
 	if err := g.G().Syncer.Connected(ctx, chatCli, uid, &syncAllRes.Chat); err != nil && ctx.Err() == nil {
 		return fmt.Errorf("error running chat sync: %s", err)
 	}
 
 	// Sync down events since we have been dead
-	// TODO: unlike the badge steps around it, serverSync is check-then-act: the connection can
-	// shut down between this check and the sync. Gating it means running an RPC under the gate.
 	if ctx.Err() != nil {
 		return chat.ErrDuplicateConnection
 	}
@@ -940,24 +944,23 @@ func (g *gregorHandler) onConnectSynced(ctx context.Context, chatCli chat1.Remot
 
 	// Update badging from gregor, and call out to reachability module if we
 	// have one.
-	if !g.onGateIfCurrent(ctx, func() {
-		if g.badger != nil {
-			state, err := gcli.StateMachineState(ctx, nil, false)
-			if err != nil {
-				g.chatLog.Debug(ctx, "unable to get gregor state for badging: %v", err)
-				g.badger.PushState(ctx, gregor1.State{})
-			} else {
-				g.badger.PushState(ctx, state)
-			}
-		}
-		if g.reachability != nil {
-			g.chatLog.Debug(ctx, "setting reachability")
-			g.reachability.setReachability(keybase1.Reachability{
-				Reachable: keybase1.Reachable_YES,
-			})
-		}
-	}) {
+	if ctx.Err() != nil {
 		return chat.ErrDuplicateConnection
+	}
+	if g.badger != nil {
+		state, err := gcli.StateMachineState(ctx, nil, false)
+		if err != nil {
+			g.chatLog.Debug(ctx, "unable to get gregor state for badging: %v", err)
+			g.badger.PushState(ctx, gregor1.State{})
+		} else {
+			g.badger.PushState(ctx, state)
+		}
+	}
+	if g.reachability != nil {
+		g.chatLog.Debug(ctx, "setting reachability")
+		g.reachability.setReachability(keybase1.Reachability{
+			Reachable: keybase1.Reachable_YES,
+		})
 	}
 
 	// Broadcast reconnect oobm. Spawn this off into a goroutine so that we don't delay
@@ -972,13 +975,12 @@ func (g *gregorHandler) onConnectSynced(ctx context.Context, chatCli chat1.Remot
 	}(g.makeReconnectOobm())
 
 	// No longer first connect if we are now connected.
-	if !g.onGateIfCurrent(ctx, func() {
-		g.chatLog.Debug(ctx, "setting first connect to false")
-		g.setFirstConnect(false)
-		g.setConnectedAt(time.Now())
-	}) {
+	if ctx.Err() != nil {
 		return chat.ErrDuplicateConnection
 	}
+	g.chatLog.Debug(ctx, "setting first connect to false")
+	g.setFirstConnect(false)
+	g.setConnectedAt(time.Now())
 	g.chatLog.Debug(ctx, "OnConnect complete")
 	return nil
 }
@@ -1434,6 +1436,16 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 	}
 }
 
+// cancel cancels the current connection's ctx, and so the OnConnect running
+// for it, without shutting it down.
+func (g *gregorHandler) cancel() {
+	g.connMutex.Lock()
+	defer g.connMutex.Unlock()
+	if g.conn != nil {
+		g.connCancel()
+	}
+}
+
 // Shutdown disconnects. In production it is only ever called under the
 // connection gate, from reconcile, reconnect or Reset, which is what keeps it
 // from interleaving with the steps OnConnect applies after syncing. Tests
@@ -1442,7 +1454,11 @@ func (g *gregorHandler) Shutdown(ctx context.Context) {
 	defer g.chatLog.Trace(ctx, nil, "Shutdown")()
 	g.connMutex.Lock()
 	defer g.connMutex.Unlock()
+	g.shutdownLocked(ctx)
+}
 
+// shutdownLocked is Shutdown with connMutex held.
+func (g *gregorHandler) shutdownLocked(ctx context.Context) {
 	if g.conn == nil {
 		return
 	}
@@ -1554,17 +1570,17 @@ func (g *gregorHandler) isReachable(ctx context.Context) bool {
 	}
 	if err != nil {
 		g.chatLog.Debug(ctx, "isReachable: error: terminating connection: %s", err.Error())
-		if _, err := g.Reconnect(ctx); err != nil {
-			g.chatLog.Debug(ctx, "isReachable: error reconnecting: %s", err.Error())
-		}
+		g.Reconnect(ctx)
 		return false
 	}
 
 	return true
 }
 
-func (g *gregorHandler) Reconnect(ctx context.Context) (didShutdown bool, err error) {
-	return g.connGate.reconnect(ctx)
+// Reconnect drops a live connection and connects again when the app state
+// allows it, without waiting for either.
+func (g *gregorHandler) Reconnect(ctx context.Context) {
+	g.connGate.requestReconnect(ctx)
 }
 
 func (g *gregorHandler) forcePing(ctx context.Context) {
@@ -1575,7 +1591,7 @@ func (g *gregorHandler) forcePing(ctx context.Context) {
 	}
 }
 
-func (g *gregorHandler) pingOnce(ctx context.Context, id []byte, done <-chan struct{}, shutdownCancel context.CancelFunc) {
+func (g *gregorHandler) pingOnce(ctx context.Context, id []byte, done <-chan struct{}) {
 	g.connMutex.Lock()
 	pingCli := g.pingCli
 	g.connMutex.Unlock()
@@ -1616,25 +1632,13 @@ func (g *gregorHandler) pingOnce(ctx context.Context, id []byte, done <-chan str
 	case err = <-doneCh:
 	case <-done:
 		g.chatLog.Debug(ctx, "ping loop: id: %x shutdown received", id)
-		shutdownCancel()
 		return
 	}
 	if err != nil {
 		g.Debug(ctx, "ping loop: id: %x error: %s", id, err)
 		if errors.Is(err, context.DeadlineExceeded) {
 			g.chatLog.Debug(ctx, "ping loop: timeout: terminating connection")
-			var didShutdown bool
-			var err error
-			if didShutdown, err = g.Reconnect(ctx); err != nil {
-				g.chatLog.Debug(ctx, "ping loop: id: %x error reconnecting: %s", id, err)
-			}
-			// It is possible that we have already reconnected by the time we call Reconnect
-			// above. If that is the case, we don't want to terminate the ping loop. Only
-			// if Reconnect has actually reset the connection do we stop this ping loop.
-			if didShutdown {
-				shutdownCancel()
-				return
-			}
+			g.Reconnect(ctx)
 		}
 	}
 }
@@ -1659,9 +1663,9 @@ func (g *gregorHandler) pingLoop(ctx context.Context, done <-chan struct{}) {
 		select {
 		case <-g.forcePingCh:
 			g.chatLog.Debug(pingCtx, "ping loop: forced attempt")
-			g.pingOnce(pingCtx, id, done, shutdownCancel)
+			g.pingOnce(pingCtx, id, done)
 		case <-ticker.C:
-			g.pingOnce(pingCtx, id, done, shutdownCancel)
+			g.pingOnce(pingCtx, id, done)
 		case <-done:
 			g.chatLog.Debug(pingCtx, "ping loop: id: %x shutdown received", id)
 			shutdownCancel()

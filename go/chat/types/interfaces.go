@@ -700,7 +700,8 @@ type (
 )
 
 type ServerConnection interface {
-	Reconnect(context.Context) (bool, error)
+	// Reconnect reconnects to the server without waiting for it.
+	Reconnect(context.Context)
 	GetClient() chat1.RemoteInterface
 }
 

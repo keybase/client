@@ -133,11 +133,7 @@ func (h *Server) handleOfflineError(ctx context.Context, err error,
 		case OfflineErrorKindOfflineReconnect:
 			// Reconnect Gregor if we think we are offline (and told to reconnect)
 			h.Debug(ctx, "handleOfflineError: reconnecting to gregor")
-			if _, err := h.serverConn.Reconnect(ctx); err != nil {
-				h.Debug(ctx, "handleOfflineError: error reconnecting: %s", err)
-			} else {
-				h.Debug(ctx, "handleOfflineError: success reconnecting")
-			}
+			h.serverConn.Reconnect(ctx)
 		default:
 			// Nothing to do for other errors.
 		}
