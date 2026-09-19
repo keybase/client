@@ -357,7 +357,9 @@ func (d *Service) SetupCriticalSubServices() error {
 	allG := globals.NewContext(d.G(), d.ChatG())
 	mctx := d.MetaContext(context.TODO())
 	// Not in NewService: the service sets up NotifyRouter after that, and the
-	// server reads it once, when created.
+	// server reads it once, when created. A standalone client never sets one
+	// up, so both see a nil router, which announces nothing -- and nothing
+	// subscribes to it anyway.
 	d.httpSrv = manager.NewSrv(d.G())
 	d.G().NotifyRouter.SetClientStateReader(d.readClientState)
 	d.G().RuntimeStats = runtimestats.NewRunner(allG)
@@ -1083,7 +1085,7 @@ func (d *Service) gregordConnect() (err error) {
 	d.G().Log.Debug("| gregor URI: %s", uri)
 
 	// Reset a live connection so it authenticates again. Nothing connects
-	// while the app is in BACKGROUND.
+	// while the app is in BACKGROUND or the desktop is suspended.
 	return d.gregor.ConnectFresh(uri)
 }
 

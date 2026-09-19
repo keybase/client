@@ -290,3 +290,45 @@ func TestSetChannelsAfterCloseRegistersNothing(t *testing.T) {
 	n.Unlock()
 	require.False(t, registered)
 }
+
+// A oneshot device is a login still in progress, like a provisioning write:
+// clients must not see it logged in until the login completes and says so.
+func TestOneshotDeviceQueuesNoClientState(t *testing.T) {
+	tc := SetupTest(t, "NotifyRouter", 0)
+	defer tc.Cleanup()
+	g := tc.G
+	g.SetService()
+	g.NotifyRouter.SetClientStateReader(readSessionOnly(g))
+	m := NewMetaContextForTest(tc)
+
+	rec := NewNotifyRecorder(g, keybase1.NotificationChannels{App: true, Session: true})
+	defer rec.Close()
+	rec.Flush()
+	require.Len(t, clientStates(t, rec), 1, "the one queued on subscribing")
+
+	sig, err := GenerateNaclSigningKeyPair()
+	require.NoError(t, err)
+	enc, err := GenerateNaclDHKeyPair()
+	require.NoError(t, err)
+	deviceID, err := NewDeviceID()
+	require.NoError(t, err)
+	uv := keybase1.UserVersion{Uid: testUID(0), EldestSeqno: 1}
+	require.NoError(t, m.SwitchUserToActiveOneshotDevice(uv, NewNormalizedUsername("testuser"),
+		NewDeviceWithKeys(sig, enc, deviceID, "testdevice", KeychainModeNone)))
+	require.True(t, g.ActiveDevice.Valid())
+	rec.Flush()
+	require.Len(t, clientStates(t, rec), 1, "nothing for a login that has not completed")
+
+	g.NotifyRouter.SendLogin(context.Background(), "testuser", false)
+	rec.Flush()
+	states := clientStates(t, rec)
+	require.Len(t, states, 2, "the completed login queues one")
+	require.True(t, states[1].Session.LoggedIn)
+}
+
+// A standalone client runs the service without ever setting up a router.
+func TestNilRouterSettersAreNoOps(t *testing.T) {
+	var n *NotifyRouter
+	n.SetClientStateReader(func(context.Context) keybase1.ClientState { return keybase1.ClientState{} })
+	n.SetChannels(ConnectionID(1), keybase1.NotificationChannels{App: true})
+}

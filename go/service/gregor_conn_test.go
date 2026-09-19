@@ -634,9 +634,9 @@ func TestGregorConnStress(t *testing.T) {
 	require.LessOrEqual(t, runtime.NumGoroutine(), baseline, "leaked goroutines")
 }
 
-// Connects and shutdowns race the connection's own goroutines: OnConnect
-// reads the URI, the ping loop watches its connection's ctx, and the
-// transport dials.
+// Connects and shutdowns race a reader of the gate's URI and the transport's
+// dial. Nothing listens on the port, so OnConnect never runs; this covers the
+// gate under -race, not a live connection.
 func TestGregorHandlerConnectRaces(t *testing.T) {
 	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()

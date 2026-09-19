@@ -464,6 +464,9 @@ func (n *NotifyRouter) Shutdown() {
 // clientState dequeued before there is a reader sends nothing, so every
 // connection that wants one gets one queued here.
 func (n *NotifyRouter) SetClientStateReader(read func(context.Context) keybase1.ClientState) {
+	if n == nil {
+		return
+	}
 	n.Lock()
 	defer n.Unlock()
 	n.readClientState = read
@@ -534,6 +537,9 @@ func (n *NotifyRouter) removeConnection(id ConnectionID) {
 // connection with the given connection ID. A connection that wants clientState
 // gets one queued here, ahead of every change announced after this returns.
 func (n *NotifyRouter) SetChannels(i ConnectionID, nc keybase1.NotificationChannels) {
+	if n == nil {
+		return
+	}
 	n.Lock()
 	defer n.Unlock()
 	s := n.senders[i]
