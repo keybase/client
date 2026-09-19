@@ -3,7 +3,9 @@ package keybase
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
@@ -105,6 +107,7 @@ func TestPostTextReply(t *testing.T) {
 // may hand over to a background task does.
 func pendingDeliveryDeps() lifecycle.BackgroundTaskDeps {
 	return lifecycle.BackgroundTaskDeps{
+		Stay: func() bool { return true },
 		ActiveDeliveries: func(context.Context) ([]chat1.OutboxRecord, error) {
 			return make([]chat1.OutboxRecord, 1), nil
 		},
@@ -119,19 +122,18 @@ func TestBackgroundNotificationOpensAndClosesPushWindow(t *testing.T) {
 		bg  = keybase1.MobileAppState_BACKGROUND
 		bga = keybase1.MobileAppState_BACKGROUNDACTIVE
 	)
-	stay := func() bool { return true }
 	for _, platform := range []lifecycletest.Platform{lifecycletest.IOS, lifecycletest.Android} {
 		t.Run(platform.String(), func(t *testing.T) {
 			tc := libkb.SetupTest(t, "PushWindow", 0)
 			defer tc.Cleanup()
 			h := lifecycletest.NewHarness(t, libkb.NewMobileAppState(tc.G), platform)
 			defer h.Close()
-			require.Zero(t, h.Controller.UIBackground(false, lifecycle.BackgroundTaskDeps{}))
+			lifecycletest.ToBackground(h.Controller)
 			require.Equal(t, bg, h.AppState.State())
 
 			unboxFailed := errors.New("unbox failed")
 			var during keybase1.MobileAppState
-			err := runPushWindow(h.Controller, platform.String(), stay, pendingDeliveryDeps(), func(uiActive bool) error {
+			err := runPushWindow(h.Controller, platform.String(), pendingDeliveryDeps(), func(uiActive bool) error {
 				require.False(t, uiActive)
 				during = h.AppState.State()
 				return unboxFailed
@@ -148,7 +150,7 @@ func TestBackgroundNotificationOpensAndClosesPushWindow(t *testing.T) {
 
 			h.Controller.UIActive()
 			ran := false
-			require.NoError(t, runPushWindow(h.Controller, platform.String(), stay, pendingDeliveryDeps(), func(uiActive bool) error {
+			require.NoError(t, runPushWindow(h.Controller, platform.String(), pendingDeliveryDeps(), func(uiActive bool) error {
 				require.True(t, uiActive)
 				ran = true
 				return nil
@@ -177,7 +179,9 @@ func TestBackgroundNotificationActiveSkipsDisplayButAcks(t *testing.T) {
 			show := func(convID string, uiActive bool) bool {
 				return displayOnce(convID+"||1", &ChatNotification{ConvID: convID}, pusher, goos, uiActive, ack)
 			}
-			active := t.Name() + "active"
+			// The seen cache is global, so each run needs its own push ids.
+			run := fmt.Sprintf("%s/%d/", t.Name(), time.Now().UnixNano())
+			active := run + "active"
 			require.False(t, show(active, true))
 			if goos == "android" {
 				require.Empty(t, pusher.displayed, "the app already shows the message")
@@ -192,7 +196,7 @@ func TestBackgroundNotificationActiveSkipsDisplayButAcks(t *testing.T) {
 			require.Len(t, pusher.displayed, displayed)
 			require.Equal(t, 2, acks)
 
-			background := t.Name() + "background"
+			background := run + "background"
 			require.False(t, show(background, false))
 			require.Equal(t, background, pusher.displayed[len(pusher.displayed)-1])
 			require.Len(t, pusher.displayed, displayed+1)

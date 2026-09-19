@@ -50,8 +50,9 @@ const (
 	// willResignActive are UIInactive, didBecomeActive is UIActive,
 	// didEnterBackground is UIBackground. PushWindowBegin and PushWindowEnd
 	// bracket a push or notification action, as the bind layer handles one.
-	// When DidEnterBackground or PushWindowEnd starts a background task, they
-	// wait until it is polling and return true.
+	// DidEnterBackground, and PushWindowEnd when it hands over, start a
+	// background task: they wait until it is polling and return true, or until
+	// it has ended at once, with nothing to keep running, and return false.
 	WillEnterForeground
 	DidBecomeActive
 	WillResignActive
@@ -136,8 +137,8 @@ type Step struct {
 	// Slot names the push window for PushWindowBegin/End.
 	Slot int
 	Want keybase1.MobileAppState
-	// Flush: local DBs were flushed.
-	Flush bool
+	// Flushes: how many times local DBs were flushed.
+	Flushes int
 	// Warn: the user was warned about messages that won't send.
 	Warn    bool
 	Returns Return
@@ -170,6 +171,11 @@ type Harness struct {
 	tokens       map[int]int64
 	liveLocation *lifecycle.Hold
 
+	// A new background task asks Stay only once stayGate lets it, so the
+	// recorder sees the BACKGROUNDACTIVE the task may leave at once.
+	stayGate chan struct{}
+	closing  chan struct{}
+	task     int64
 	syncDone chan struct{}
 	taskDone chan struct{}
 	running  sync.WaitGroup
@@ -192,6 +198,8 @@ func NewHarness(t testing.TB, appState lifecycle.AppState, platform Platform) *H
 		Clock:    NewFakeClock(),
 		failures: make(chan []chat1.OutboxRecord, 1),
 		tokens:   make(map[int]int64),
+		stayGate: make(chan struct{}),
+		closing:  make(chan struct{}),
 		syncDone: closedChan(),
 		taskDone: closedChan(),
 	}
@@ -215,6 +223,7 @@ func closedChan() chan struct{} {
 
 // Close ends any background task or sync still running, and the recorder.
 func (h *Harness) Close() {
+	close(h.closing)
 	h.Controller.Close()
 	h.Clock.Advance(maxDuration)
 	h.running.Wait()
@@ -228,6 +237,13 @@ func (h *Harness) warn() { h.warnings.Add(1) }
 
 func (h *Harness) deps() lifecycle.BackgroundTaskDeps {
 	return lifecycle.BackgroundTaskDeps{
+		Stay: func() bool {
+			select {
+			case <-h.stayGate:
+			case <-h.closing:
+			}
+			return h.stay.Load()
+		},
 		ActiveDeliveries: func(context.Context) ([]chat1.OutboxRecord, error) {
 			return make([]chat1.OutboxRecord, h.pending.Load()), nil
 		},
@@ -267,8 +283,8 @@ func (h *Harness) Do(step Step) {
 	if state != step.Want {
 		t.Fatalf("%v: state %v, want %v", step.Do, state, step.Want)
 	}
-	if got := h.Flushes() - flushes; got != boolInt(step.Flush) {
-		t.Fatalf("%v: %d flushes, want %d", step.Do, got, boolInt(step.Flush))
+	if got := h.Flushes() - flushes; got != step.Flushes {
+		t.Fatalf("%v: %d flushes, want %d", step.Do, got, step.Flushes)
 	}
 	if got := h.Warnings() - warnings; got != boolInt(step.Warn) {
 		t.Fatalf("%v: %d pending-message warnings, want %d", step.Do, got, boolInt(step.Warn))
@@ -295,7 +311,11 @@ func (h *Harness) perform(step Step) bool {
 	case DidBecomeActive:
 		c.UIActive()
 	case DidEnterBackground:
-		return h.startsTask(func() int64 { return c.UIBackground(h.stay.Load(), h.deps()) })
+		return h.startsTask(func() int64 {
+			token := c.UIBackground(h.deps())
+			require.NotZero(h.T, token, "UIBackground always starts a background task")
+			return token
+		})
 	case WillTerminate:
 		c.WillTerminate(h.warn)
 	case BackgroundTaskExpired:
@@ -306,8 +326,8 @@ func (h *Harness) perform(step Step) bool {
 	case PushWindowEnd:
 		// The bind layer never hands a push window over to a background task
 		// on iOS.
-		stay := h.Platform == Android && h.stay.Load()
-		return h.startsTask(func() int64 { return c.PushWindowEnd(h.tokens[step.Slot], stay, h.deps()) })
+		allowTask := h.Platform == Android
+		return h.startsTask(func() int64 { return c.PushWindowEnd(h.tokens[step.Slot], allowTask, h.deps()) })
 	case LiveLocationAcquire:
 		h.liveLocation = c.AcquireBackgroundWork()
 	case LiveLocationRelease:
@@ -352,14 +372,32 @@ func (h *Harness) perform(step Step) bool {
 }
 
 // startsTask runs a call that may start a background task and, if it did,
-// waits until the task is polling. It reports whether the task is running.
+// waits until the task is polling or has ended. It reports whether the task
+// is running.
 func (h *Harness) startsTask(call func() int64) bool {
+	h.T.Helper()
 	h.Clock.ForgetAfters()
 	token := call()
 	if token == 0 {
 		return false
 	}
+	if token == h.task {
+		// The call reused the running task's hold; that task is past Stay.
+		select {
+		case <-h.taskDone:
+			return false
+		default:
+			return true
+		}
+	}
+	h.task = token
 	h.taskDone = h.goRun(func() { h.Controller.WaitBackgroundTask(token) })
+	h.Recorder.Sync(h.T)
+	select {
+	case h.stayGate <- struct{}{}:
+	case <-time.After(5 * time.Second):
+		h.T.Fatalf("background task %d never asked whether to stay", token)
+	}
 	return h.Clock.WaitForAfter(h.T, pollInterval, h.taskDone)
 }
 
@@ -385,4 +423,16 @@ func (h *Harness) CheckObserved(want []keybase1.MobileAppState) {
 	if fmt.Sprint(got) != fmt.Sprint(want) {
 		h.T.Fatalf("observed states %v, want %v", got, want)
 	}
+}
+
+// NoWork is what a background task sees when nothing must keep a backgrounded
+// app running: it ends at once.
+func NoWork() lifecycle.BackgroundTaskDeps {
+	return lifecycle.BackgroundTaskDeps{Stay: func() bool { return false }}
+}
+
+// ToBackground reports the UI in the background with nothing to keep running,
+// and returns once the background task that starts has ended.
+func ToBackground(c *lifecycle.Controller) {
+	c.WaitBackgroundTask(c.UIBackground(NoWork()))
 }

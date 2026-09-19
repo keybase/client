@@ -4,53 +4,29 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import java.util.Collections
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Future
-import java.util.concurrent.FutureTask
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 private class FakeBind : LifecycleBind {
     val calls: MutableList<String> = Collections.synchronizedList(mutableListOf())
-    var onUiBackground: () -> Unit = {}
+    val threads: MutableSet<Thread> = Collections.synchronizedSet(mutableSetOf())
 
-    override fun uiActive() {
-        calls.add("uiActive")
+    private fun record(call: String) {
+        threads.add(Thread.currentThread())
+        calls.add(call)
     }
 
-    override fun uiInactive() {
-        calls.add("uiInactive")
-    }
+    override fun uiActive() = record("uiActive")
 
-    override fun uiBackground() {
-        onUiBackground()
-        calls.add("uiBackground")
-    }
+    override fun uiInactive() = record("uiInactive")
 
-    override fun willExit() {
-        calls.add("willExit")
-    }
-}
+    override fun uiBackground() = record("uiBackground")
 
-// Runs nothing until told to, so tests see what was queued and in what order.
-private class ManualExecutor : LifecycleExecutor {
-    val queue = mutableListOf<Runnable>()
-
-    override fun submit(task: Runnable): Future<*> {
-        val future = FutureTask<Unit>(task, Unit)
-        queue.add(future)
-        return future
-    }
-
-    fun runAll() {
-        while (queue.isNotEmpty()) {
-            queue.removeAt(0).run()
-        }
-    }
+    override fun willExit() = record("willExit")
 }
 
 private object Owner : LifecycleOwner {
@@ -60,8 +36,7 @@ private object Owner : LifecycleOwner {
 
 class AppLifecycleReporterTest {
     private val bind = FakeBind()
-    private val executor = ManualExecutor()
-    private val reporter = AppLifecycleReporter(bind, executor) {}
+    private val reporter = AppLifecycleReporter(bind) {}
 
     private fun launch() {
         reporter.onCreate(Owner)
@@ -74,10 +49,7 @@ class AppLifecycleReporterTest {
         reporter.onStop(Owner)
     }
 
-    private fun calls(): List<String> {
-        executor.runAll()
-        return bind.calls.toList()
-    }
+    private fun calls(): List<String> = bind.calls.toList()
 
     @Test
     fun processStartAndStopReportEventsInOrder() {
@@ -85,7 +57,6 @@ class AppLifecycleReporterTest {
         stop()
         reporter.onStart(Owner)
         reporter.onResume(Owner)
-        assertTrue("nothing reaches Go on the calling thread", bind.calls.isEmpty())
         assertEquals(
             listOf(
                 "uiInactive", "uiActive",
@@ -94,6 +65,17 @@ class AppLifecycleReporterTest {
             ),
             calls(),
         )
+    }
+
+    @Test
+    fun eventsReachGoOnTheCallingThreadBeforeTheCallbackReturns() {
+        reporter.onStart(Owner)
+        assertEquals(listOf("uiInactive"), calls())
+        reporter.onResume(Owner)
+        assertEquals(listOf("uiInactive", "uiActive"), calls())
+        reporter.onStop(Owner)
+        assertEquals(listOf("uiInactive", "uiActive", "uiBackground"), calls())
+        assertEquals(setOf(Thread.currentThread()), bind.threads.toSet())
     }
 
     @Test
@@ -145,16 +127,6 @@ class AppLifecycleReporterTest {
     }
 
     @Test
-    fun awaitReportedWaitsForQueuedEvents() {
-        val executor = SingleThreadLifecycleExecutor()
-        val reporter = AppLifecycleReporter(bind, executor) {}
-        bind.onUiBackground = { Thread.sleep(100) }
-        reporter.reportHeadlessStart()
-        reporter.awaitReported(5000)
-        assertEquals(listOf("uiBackground"), bind.calls.toList())
-    }
-
-    @Test
     fun onlyAFinishingActivityExits() {
         launch()
         reporter.onMainActivityDestroy(isFinishing = false, isChangingConfigurations = false)
@@ -172,41 +144,6 @@ class AppLifecycleReporterTest {
             ),
             calls(),
         )
-    }
-
-    @Test
-    fun eventsReachGoInOrderOnOneBackgroundThread() {
-        val threads = Collections.synchronizedSet(mutableSetOf<Thread>())
-        val record = object : LifecycleBind by bind {
-            override fun uiInactive() {
-                threads.add(Thread.currentThread())
-                bind.uiInactive()
-            }
-
-            override fun uiActive() {
-                threads.add(Thread.currentThread())
-                bind.uiActive()
-            }
-
-            override fun uiBackground() {
-                threads.add(Thread.currentThread())
-                // Slow, like the outbox query, so later events queue behind it.
-                Thread.sleep(5)
-                bind.uiBackground()
-            }
-        }
-        val ordered = AppLifecycleReporter(record, SingleThreadLifecycleExecutor()) {}
-        val expected = mutableListOf<String>()
-        repeat(20) {
-            ordered.onStart(Owner)
-            ordered.onResume(Owner)
-            ordered.onStop(Owner)
-            expected += listOf("uiInactive", "uiActive", "uiBackground")
-        }
-        ordered.awaitReported(10_000)
-        assertEquals(expected, bind.calls.toList())
-        assertEquals(1, threads.size)
-        assertFalse(threads.contains(Thread.currentThread()))
     }
 }
 

@@ -5,6 +5,7 @@ package lifecycle_test
 
 import (
 	"context"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -31,12 +32,12 @@ func TestScenarios(t *testing.T) {
 			h := lifecycletest.NewHarness(t, appState, sc.Platform)
 			defer h.Close()
 			for _, step := range sc.Steps {
-				before := appState.State()
+				seen := len(h.Recorder.States())
 				ctx, key := g.RPCCanceler.RegisterContext(context.Background(), libkb.RPCCancelerReasonBackground)
 				h.Do(step)
 				canceled := ctx.Err() != nil
 				g.RPCCanceler.UnregisterContext(key)
-				wantCancel := step.Want == keybase1.MobileAppState_BACKGROUND && before != keybase1.MobileAppState_BACKGROUND
+				wantCancel := slices.Contains(h.Recorder.States()[seen:], keybase1.MobileAppState_BACKGROUND)
 				require.Equal(t, wantCancel, canceled, "%v: RPC cancel", step.Do)
 			}
 			h.CheckObserved(sc.Observed)

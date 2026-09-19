@@ -9,7 +9,7 @@ import (
 	"github.com/keybase/client/go/kbhttp"
 	"github.com/keybase/client/go/kbhttp/manager"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/libkb/lifecycle"
+	"github.com/keybase/client/go/libkb/lifecycle/lifecycletest"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
@@ -135,7 +135,7 @@ func TestLastMessagePerFieldIsLatest(t *testing.T) {
 				case 1:
 					g.MobileLifecycle.UIInactive()
 				default:
-					g.MobileLifecycle.UIBackground(false, lifecycle.BackgroundTaskDeps{})
+					lifecycletest.ToBackground(g.MobileLifecycle)
 				}
 			}
 		}()

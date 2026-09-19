@@ -61,7 +61,7 @@ class MainApplication : Application(), ReactApplication {
 
 
     internal val lifecycleReporter by lazy {
-        AppLifecycleReporter(KeybaseLifecycleBind(this), SingleThreadLifecycleExecutor()) { NativeLogger.info(it) }
+        AppLifecycleReporter(KeybaseLifecycleBind(this)) { NativeLogger.info(it) }
     }
 
     override fun onCreate() {

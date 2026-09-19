@@ -9,7 +9,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/libkb/lifecycle"
+	"github.com/keybase/client/go/libkb/lifecycle/lifecycletest"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
@@ -36,7 +36,7 @@ func TestLiveLocationTrackerBackgroundActive(t *testing.T) {
 	}
 
 	lc := tc.G.MobileLifecycle
-	require.Zero(t, lc.UIBackground(false, lifecycle.BackgroundTaskDeps{}))
+	lifecycletest.ToBackground(lc)
 	require.Equal(t, keybase1.MobileAppState_BACKGROUND, appState.State())
 	l.LocationUpdate(ctx, coord(1))
 	require.Equal(t, keybase1.MobileAppState_BACKGROUND, appState.State(), "no trackers, no hold")
@@ -55,7 +55,7 @@ func TestLiveLocationTrackerBackgroundActive(t *testing.T) {
 	third := addTracker(3)
 	l.LocationUpdate(ctx, coord(3))
 	require.Equal(t, keybase1.MobileAppState_FOREGROUND, appState.State())
-	require.Zero(t, lc.UIBackground(false, lifecycle.BackgroundTaskDeps{}))
+	lifecycletest.ToBackground(lc)
 	require.Equal(t, keybase1.MobileAppState_BACKGROUNDACTIVE, appState.State())
 	removeTracker(third)
 	require.Equal(t, keybase1.MobileAppState_BACKGROUND, appState.State())
@@ -78,7 +78,7 @@ func TestLiveLocationTrackerHoldSurvivesWillTerminate(t *testing.T) {
 	l.Unlock()
 
 	lc := tc.G.MobileLifecycle
-	require.Zero(t, lc.UIBackground(false, lifecycle.BackgroundTaskDeps{}))
+	lifecycletest.ToBackground(lc)
 	l.LocationUpdate(ctx, coord(1))
 	require.Equal(t, keybase1.MobileAppState_BACKGROUNDACTIVE, appState.State())
 
@@ -108,7 +108,7 @@ func TestRestoredTrackersReleaseHoldWhenEmpty(t *testing.T) {
 	l.Unlock()
 
 	lc := tc.G.MobileLifecycle
-	require.Zero(t, lc.UIBackground(false, lifecycle.BackgroundTaskDeps{}))
+	lifecycletest.ToBackground(lc)
 	l.LocationUpdate(ctx, chat1.Coordinate{Lat: 1, Lon: 1})
 	require.Equal(t, keybase1.MobileAppState_BACKGROUNDACTIVE, appState.State(), "the fix opened a hold")
 

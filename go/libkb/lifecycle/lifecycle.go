@@ -71,6 +71,10 @@ type Config struct {
 }
 
 type BackgroundTaskDeps struct {
+	// Stay reports whether any work must keep a backgrounded app running. A
+	// task asks it first, off the controller's lock: answering reads the
+	// outbox.
+	Stay             func() bool
 	ActiveDeliveries func(context.Context) ([]chat1.OutboxRecord, error)
 	NextFailure      func() (chan []chat1.OutboxRecord, func())
 	NotifyFailure    func([]chat1.OutboxRecord)
@@ -229,10 +233,17 @@ func (c *Controller) setUILocked(ui UIState) {
 }
 
 // startTaskLocked opens a background task hold and runs the task that keeps
-// it until the work is done.
+// it until the work is done. A background task hold that is already open is
+// reused instead, so one task at a time keeps the app up and warns about
+// failures, and a later start doesn't extend its maximum duration.
 func (c *Controller) startTaskLocked(deps BackgroundTaskDeps) int64 {
 	if c.closed {
 		return 0
+	}
+	for id, h := range c.holds {
+		if h.reason == ReasonBackgroundTask {
+			return id
+		}
 	}
 	h := c.acquireLocked(ReasonBackgroundTask)
 	c.wg.Add(1)
@@ -287,17 +298,15 @@ func (c *Controller) UIInactive() {
 	c.debugLocked("uiInactive", "applied")
 }
 
-// UIBackground records the UI leaving the screen. When stay says work must
-// keep going it starts a background task and returns its hold's token for
-// WaitBackgroundTask; otherwise it returns 0.
-func (c *Controller) UIBackground(stay bool, deps BackgroundTaskDeps) int64 {
+// UIBackground records the UI leaving the screen and starts a background task,
+// which keeps the app BACKGROUNDACTIVE while work must keep going and ends at
+// once when none does. It returns the task hold's token for
+// WaitBackgroundTask, or 0 once the controller is closed.
+func (c *Controller) UIBackground(deps BackgroundTaskDeps) int64 {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.setUILocked(UIBackground)
-	var token int64
-	if stay {
-		token = c.startTaskLocked(deps)
-	}
+	token := c.startTaskLocked(deps)
 	c.applyLocked()
 	c.debugLocked("uiBackground", "background task hold %d", token)
 	return token
@@ -365,15 +374,16 @@ func (c *Controller) PushWindowBegin() int64 {
 	return h.id
 }
 
-// PushWindowEnd ends the push window's hold. If the UI is still in the
-// background and stay says work must keep going, it first starts a background
-// task. The token it returns is for the test harness; native ignores it.
-func (c *Controller) PushWindowEnd(token int64, stay bool, deps BackgroundTaskDeps) int64 {
+// PushWindowEnd ends the push window's hold. If allowTask and the UI is still
+// in the background, it first hands over to a background task, which keeps the
+// app up while work must keep going. The token it returns is for the test
+// harness; native ignores it.
+func (c *Controller) PushWindowEnd(token int64, allowTask bool, deps BackgroundTaskDeps) int64 {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	var task int64
 	if h, ok := c.holds[token]; ok && h.reason == ReasonPushWindow {
-		if stay && c.ui == UIBackground {
+		if allowTask && c.ui == UIBackground {
 			task = c.startTaskLocked(deps)
 		}
 		c.dropLocked(func(o *Hold) bool { return o == h })
@@ -409,10 +419,17 @@ func (c *Controller) BackgroundSync() string {
 	return msg
 }
 
-// runBackgroundTask keeps the background task hold h until outgoing messages
-// are delivered, one fails, time runs out, the hold is ended (the UI left the
-// background, expiration, termination) or the controller is closed.
+// runBackgroundTask keeps the background task hold h while work must keep
+// going: until outgoing messages are delivered, one fails, time runs out, the
+// hold is ended (the UI left the background, expiration, termination) or the
+// controller is closed.
 func (c *Controller) runBackgroundTask(h *Hold, deps BackgroundTaskDeps) {
+	if !deps.Stay() {
+		released := h.Release()
+		c.cfg.Debug("lifecycle: backgroundTaskEnd: hold %d done because: nothing to keep running, released: %v",
+			h.id, released)
+		return
+	}
 	clock := c.cfg.Clock
 	// Round(0) drops the monotonic reading, so time the device spends asleep
 	// counts toward the maximum.
@@ -438,29 +455,33 @@ func (c *Controller) runBackgroundTask(h *Hold, deps BackgroundTaskDeps) {
 		}
 	})
 	g.Go(func() error {
-		successCount := 0
+		// An empty outbox can race a failure, so it takes three empty polls in
+		// a row to count as delivered.
+		emptyPolls := 0
+		var pending []chat1.OutboxRecord
 		for {
 			select {
 			case <-clock.After(c.cfg.BackgroundTaskPollInterval):
-				obrs, err := deps.ActiveDeliveries(ctx)
-				if err != nil {
-					c.cfg.Debug("lifecycle: failed to query active deliveries: %s", err)
-					continue
-				}
-				if len(obrs) == 0 {
-					// We can race the failure case here, so lets go a couple passes of no pending
-					// convs before we abort due to ths condition.
-					if successCount > 1 {
-						return errors.New("delivered everything")
-					}
-					successCount++
-				}
-				if clock.Now().Round(0).Sub(beginTime) >= c.cfg.BackgroundTaskMaxDuration {
-					deps.NotifyFailure(obrs)
-					return errors.New("time expired")
-				}
 			case <-ctx.Done():
 				return ctx.Err()
+			}
+			obrs, err := deps.ActiveDeliveries(ctx)
+			switch {
+			case err != nil:
+				c.cfg.Debug("lifecycle: failed to query active deliveries: %s", err)
+			case len(obrs) == 0:
+				pending = nil
+				emptyPolls++
+				if emptyPolls > 2 {
+					return errors.New("delivered everything")
+				}
+			default:
+				pending = obrs
+				emptyPolls = 0
+			}
+			if clock.Now().Round(0).Sub(beginTime) >= c.cfg.BackgroundTaskMaxDuration {
+				deps.NotifyFailure(pending)
+				return errors.New("time expired")
 			}
 		}
 	})

@@ -108,9 +108,6 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
 
                     var goProcessingSucceeded = false
                     try {
-                        // Go's push window must see the state after the process
-                        // start or stop that came before this push.
-                        lifecycleReporter.awaitReported(5000)
                         // Go holds the app up while it handles the push, and in the
                         // foreground acks it without displaying it.
                         Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,

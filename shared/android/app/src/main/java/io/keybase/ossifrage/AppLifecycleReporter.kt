@@ -3,8 +3,6 @@ package io.keybase.ossifrage
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executors
-import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 
 // The Go lifecycle entry points. Kept free of Android and gomobile types so
@@ -16,28 +14,22 @@ internal interface LifecycleBind {
     fun willExit()
 }
 
-internal interface LifecycleExecutor {
-    fun submit(task: Runnable): Future<*>
-}
-
-internal class SingleThreadLifecycleExecutor : LifecycleExecutor {
-    private val executor = Executors.newSingleThreadExecutor { r -> Thread(r, "kb-app-lifecycle") }
-
-    override fun submit(task: Runnable): Future<*> = executor.submit(task)
-}
-
 // Reports the app's process lifecycle to Go as events; Go decides the state.
 //
-// Events reach Go in the order they happen, on one background thread:
-// uiBackground queries the outbox, so it can't run on the main thread.
+// Events reach Go on the calling thread, before the callback returns: every Go
+// lifecycle call returns at once, except willExit, whose warning about
+// messages still sending reads the outbox.
 //
 // Only the process lifecycle counts. Activity pauses (dialogs, permission
 // prompts, choosers, the photo picker sheet) report nothing, not even
 // UIInactive: only the process lifecycle decides what Go sees. A full-screen
 // picker or camera stops the process like any other exit.
+//
+// reportHeadlessStart can run off the main thread (a quick reply's worker), so
+// every report holds the lock: its check and report stay atomic, and in order
+// with the main thread's events.
 internal class AppLifecycleReporter(
     private val bind: LifecycleBind,
-    private val executor: LifecycleExecutor,
     private val log: (String) -> Unit,
 ) : DefaultLifecycleObserver {
     private var reported = false
@@ -45,12 +37,12 @@ internal class AppLifecycleReporter(
     @Synchronized
     override fun onStart(owner: LifecycleOwner) {
         reported = true
-        enqueue("uiInactive") { bind.uiInactive() }
+        report("uiInactive") { bind.uiInactive() }
     }
 
     @Synchronized
     override fun onResume(owner: LifecycleOwner) {
-        enqueue("uiActive") { bind.uiActive() }
+        report("uiActive") { bind.uiActive() }
     }
 
     @Synchronized
@@ -65,7 +57,7 @@ internal class AppLifecycleReporter(
             return
         }
         reported = true
-        enqueue("willExit") { bind.willExit() }
+        report("willExit") { bind.willExit() }
     }
 
     // A process started without UI (a push) starts Go in BACKGROUNDACTIVE with
@@ -77,30 +69,18 @@ internal class AppLifecycleReporter(
         }
     }
 
-    // Waits until every event reported so far has reached Go.
-    fun awaitReported(timeoutMs: Long) {
-        try {
-            executor.submit(Runnable {}).get(timeoutMs, TimeUnit.MILLISECONDS)
-        } catch (e: Exception) {
-            log("AppLifecycleReporter: gave up waiting for events to reach Go: $e")
-        }
-    }
-
     private fun reportBackground(why: String) {
         reported = true
-        enqueue("uiBackground: $why") { bind.uiBackground() }
+        report("uiBackground: $why") { bind.uiBackground() }
     }
 
-    // Callers hold the lock, so tasks are queued in the order events happen.
-    private fun enqueue(event: String, call: () -> Unit) {
-        executor.submit(Runnable {
-            log("AppLifecycleReporter: $event")
-            try {
-                call()
-            } catch (e: Exception) {
-                log("AppLifecycleReporter: $event failed: $e")
-            }
-        })
+    private fun report(event: String, call: () -> Unit) {
+        log("AppLifecycleReporter: $event")
+        try {
+            call()
+        } catch (e: Exception) {
+            log("AppLifecycleReporter: $event failed: $e")
+        }
     }
 }
 

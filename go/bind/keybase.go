@@ -1040,15 +1040,15 @@ func shouldStayRunningInBackground() bool {
 	return false
 }
 
-// AppUIBackground reports the app off screen. When work must keep running it
-// starts a background task and returns its token for AppWaitBackgroundTask,
-// 0 otherwise.
+// AppUIBackground reports the app off screen. It returns at once, with a
+// token for AppWaitBackgroundTask, which returns once Go needs no more time
+// in the background; 0 before Init.
 func AppUIBackground(pusher PushNotifier) int64 {
 	if !isInited() {
 		return 0
 	}
 	defer kbCtx.Trace("AppUIBackground", nil)()
-	return kbCtx.MobileLifecycle.UIBackground(shouldStayRunningInBackground(), backgroundTaskDeps(pusher))
+	return kbCtx.MobileLifecycle.UIBackground(backgroundTaskDeps(pusher))
 }
 
 // inPushWindow runs work, which handles a push or a notification action,
@@ -1059,11 +1059,10 @@ func inPushWindow(pusher PushNotifier, work func(uiActive bool) error) error {
 	if !isInited() {
 		return work(false)
 	}
-	return runPushWindow(kbCtx.MobileLifecycle, runtime.GOOS, shouldStayRunningInBackground,
-		backgroundTaskDeps(pusher), work)
+	return runPushWindow(kbCtx.MobileLifecycle, runtime.GOOS, backgroundTaskDeps(pusher), work)
 }
 
-func runPushWindow(lc *lifecycle.Controller, goos string, stay func() bool, deps lifecycle.BackgroundTaskDeps,
+func runPushWindow(lc *lifecycle.Controller, goos string, deps lifecycle.BackgroundTaskDeps,
 	work func(uiActive bool) error,
 ) error {
 	token := lc.PushWindowBegin()
@@ -1074,7 +1073,7 @@ func runPushWindow(lc *lifecycle.Controller, goos string, stay func() bool, deps
 		// iOS suspends the app once native calls the push's completion handler,
 		// right after this returns, so a background task started here would
 		// leave it suspended in BACKGROUNDACTIVE.
-		lc.PushWindowEnd(token, goos == "android" && stay(), deps)
+		lc.PushWindowEnd(token, goos == "android", deps)
 	}()
 	return work(false)
 }
@@ -1091,6 +1090,7 @@ func AppWaitBackgroundTask(token int64) {
 
 func backgroundTaskDeps(pusher PushNotifier) lifecycle.BackgroundTaskDeps {
 	return lifecycle.BackgroundTaskDeps{
+		Stay:             shouldStayRunningInBackground,
 		ActiveDeliveries: kbChatCtx.MessageDeliverer.ActiveDeliveries,
 		NextFailure:      kbChatCtx.MessageDeliverer.NextFailure,
 		NotifyFailure:    func(obrs []chat1.OutboxRecord) { pushPendingMessageFailure(obrs, pusher) },

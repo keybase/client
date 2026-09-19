@@ -32,9 +32,6 @@ class ChatBroadcastReceiver : BroadcastReceiver() {
                 setupKBRuntime(context, false)
                 val lifecycleReporter = (context.applicationContext as MainApplication).lifecycleReporter
                 lifecycleReporter.reportHeadlessStart()
-                // Go's push window must see the state after the process start
-                // or stop that came before this reply.
-                lifecycleReporter.awaitReported(2000)
                 sendQuickReply({ msg, e -> NativeLogger.error(msg, e) }) {
                     Keybase.handlePostTextReply(convData.convID, convData.tlfName, convData.lastMsgId, messageBody,
                             KBPushNotifier(context, Bundle()))
