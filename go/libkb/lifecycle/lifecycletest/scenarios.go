@@ -68,10 +68,36 @@ var iosToBackgroundTask = []Step{
 var Scenarios = []Scenario{
 	{Name: "ios cold foreground launch", Platform: IOS, Steps: toForeground, Observed: states(bg, ina, fg)},
 	{
-		Name:     "ios background launch by silent push stays in the background, then foreground",
+		Name:     "ios background launch by silent push holds the app up for the push, then foreground",
 		Platform: IOS,
-		Steps:    steps([]Step{step(Nothing, bg), step(BackgroundTaskExpired, bg)}, toForeground),
+		Steps: steps([]Step{
+			step(PushWindowBegin, bga).returns(true),
+			step(PushWindowEnd, bg).flush().returns(false),
+			step(BackgroundTaskExpired, bg),
+		}, toForeground),
+		Observed: states(bg, bga, bg, ina, fg),
+	},
+	{
+		Name:     "ios silent push while active holds nothing",
+		Platform: IOS,
+		Steps: steps(toForeground, []Step{
+			step(PushWindowBegin, fg).returns(false),
+			step(PushWindowEnd, fg).returns(false),
+		}),
 		Observed: states(bg, ina, fg),
+	},
+	{
+		// iOS suspends the app once the push's completion handler runs.
+		Name:     "ios silent push with a message still sending starts no background task",
+		Platform: IOS,
+		Steps: steps(toForeground, []Step{
+			step(WillResignActive, ina),
+			step(DidEnterBackground, bg).flush().returns(false),
+			step(WorkStarts, bg),
+			step(PushWindowBegin, bga).returns(true),
+			step(PushWindowEnd, bg).flush().returns(false),
+		}),
+		Observed: states(bg, ina, fg, ina, bg, bga, bg),
 	},
 	{
 		Name:     "ios background launch by BGAppRefresh, then foreground",

@@ -12,12 +12,10 @@ import java.util.concurrent.atomic.AtomicReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
 import org.junit.Test
 
 private class FakeBind : LifecycleBind {
     val calls: MutableList<String> = Collections.synchronizedList(mutableListOf())
-    var token = 7L
     var onUiBackground: () -> Unit = {}
 
     override fun uiActive() {
@@ -35,15 +33,6 @@ private class FakeBind : LifecycleBind {
 
     override fun willExit() {
         calls.add("willExit")
-    }
-
-    override fun pushWindowBegin(): Long {
-        calls.add("pushWindowBegin")
-        return token
-    }
-
-    override fun pushWindowEnd(token: Long) {
-        calls.add("pushWindowEnd($token)")
     }
 }
 
@@ -221,80 +210,24 @@ class AppLifecycleReporterTest {
     }
 }
 
-class RunPushWindowTest {
-    private val bind = FakeBind()
-
-    private fun run(inForeground: InForeground = InForeground.SKIP, task: () -> Unit = { bind.calls.add("task") }) =
-        runPushWindow(bind, {}, inForeground, task)
-
-    @Test
-    fun foregroundSkipsTheTask() {
-        bind.token = 0
-        assertFalse(run())
-        assertEquals(listOf("pushWindowBegin"), bind.calls)
-    }
-
-    @Test
-    fun foregroundRunsATaskThatMustRunWithoutAWindow() {
-        bind.token = 0
-        assertTrue(run(InForeground.RUN))
-        assertEquals(listOf("pushWindowBegin", "task"), bind.calls)
-    }
-
-    @Test
-    fun notInitializedRunsTheTaskWithoutAWindow() {
-        bind.token = -1
-        assertTrue(run())
-        assertEquals(listOf("pushWindowBegin", "task"), bind.calls)
-    }
-
-    @Test
-    fun windowEndsAfterTheTask() {
-        assertTrue(run())
-        assertEquals(listOf("pushWindowBegin", "task", "pushWindowEnd(7)"), bind.calls)
-    }
-
-    @Test
-    fun windowEndsWhenTheTaskThrows() {
-        try {
-            run { throw IllegalStateException("boom") }
-            fail("the task's exception propagates")
-        } catch (e: IllegalStateException) {
-            assertEquals("boom", e.message)
-        }
-        assertEquals(listOf("pushWindowBegin", "pushWindowEnd(7)"), bind.calls)
-    }
-}
-
 class SendQuickReplyTest {
-    private val bind = FakeBind()
-    private val infos = mutableListOf<String>()
     private val errors = mutableListOf<Pair<String, Throwable>>()
 
-    private fun send(send: () -> Unit = { bind.calls.add("send") }) =
-        sendQuickReply(bind, { infos.add(it) }, { msg, e -> errors.add(msg to e) }, send)
+    private fun send(send: () -> Unit) = sendQuickReply({ msg, e -> errors.add(msg to e) }, send)
 
     @Test
-    fun foregroundReplySends() {
-        bind.token = 0
-        assertEquals(QUICK_REPLY_SENT, send())
-        assertEquals(listOf("pushWindowBegin", "send"), bind.calls)
+    fun replySends() {
+        var sent = false
+        assertEquals(QUICK_REPLY_SENT, send { sent = true })
+        assertTrue(sent)
         assertTrue(errors.isEmpty())
-    }
-
-    @Test
-    fun backgroundReplySendsInAWindow() {
-        assertEquals(QUICK_REPLY_SENT, send())
-        assertEquals(listOf("pushWindowBegin", "send", "pushWindowEnd(7)"), bind.calls)
     }
 
     @Test
     fun failedReplyIsNotReportedAsRepliedAndLogsTheException() {
         val failure = IllegalStateException("outbox full")
         assertEquals(QUICK_REPLY_FAILED, send { throw failure })
-        assertEquals(listOf("pushWindowBegin", "pushWindowEnd(7)"), bind.calls)
         assertEquals(listOf("Failed to send quick reply" to failure), errors.toList())
-        assertTrue(infos.isEmpty())
     }
 }
 

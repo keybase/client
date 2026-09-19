@@ -331,7 +331,7 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
         var err: NSError?
         Keybasego.KeybaseHandleBackgroundNotification(
           convID, body, "", sender, membersType, displayPlaintext, messageID, pushID, badgeCount,
-          unixTime, soundName, pusher, false, targetUID, &err)
+          unixTime, soundName, pusher, false, targetUID, pusher, &err)
         if let err { log.error("Failed to handle in engine: \(err.localizedDescription, privacy: .public)") }
         completionHandler(.newData)
         log.info("Remote notification handle finished...")

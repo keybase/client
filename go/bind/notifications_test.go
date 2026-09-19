@@ -8,6 +8,8 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb/lifecycle"
+	"github.com/keybase/client/go/libkb/lifecycle/lifecycletest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -97,4 +99,91 @@ func TestPostTextReply(t *testing.T) {
 		require.Error(t, postTextReply(ctx, gc, convID, "testuser", -1, "hi"))
 		require.Empty(t, helper.sent)
 	})
+}
+
+// pendingDeliveryDeps reports a message still sending, so a push window that
+// may hand over to a background task does.
+func pendingDeliveryDeps() lifecycle.BackgroundTaskDeps {
+	return lifecycle.BackgroundTaskDeps{
+		ActiveDeliveries: func(context.Context) ([]chat1.OutboxRecord, error) {
+			return make([]chat1.OutboxRecord, 1), nil
+		},
+		NextFailure:   func() (chan []chat1.OutboxRecord, func()) { return make(chan []chat1.OutboxRecord), func() {} },
+		NotifyFailure: func([]chat1.OutboxRecord) {},
+	}
+}
+
+func TestBackgroundNotificationOpensAndClosesPushWindow(t *testing.T) {
+	const (
+		fg  = keybase1.MobileAppState_FOREGROUND
+		bg  = keybase1.MobileAppState_BACKGROUND
+		bga = keybase1.MobileAppState_BACKGROUNDACTIVE
+	)
+	stay := func() bool { return true }
+	for _, platform := range []lifecycletest.Platform{lifecycletest.IOS, lifecycletest.Android} {
+		t.Run(platform.String(), func(t *testing.T) {
+			tc := libkb.SetupTest(t, "PushWindow", 0)
+			defer tc.Cleanup()
+			h := lifecycletest.NewHarness(t, libkb.NewMobileAppState(tc.G), platform)
+			defer h.Close()
+			require.Zero(t, h.Controller.UIBackground(false, lifecycle.BackgroundTaskDeps{}))
+			require.Equal(t, bg, h.AppState.State())
+
+			unboxFailed := errors.New("unbox failed")
+			var during keybase1.MobileAppState
+			err := runPushWindow(h.Controller, platform.String(), stay, pendingDeliveryDeps(), func(uiActive bool) error {
+				require.False(t, uiActive)
+				during = h.AppState.State()
+				return unboxFailed
+			})
+			require.ErrorIs(t, err, unboxFailed)
+			require.Equal(t, bga, during, "the push is handled in BACKGROUNDACTIVE")
+			if platform == lifecycletest.IOS {
+				require.Equal(t, bg, h.AppState.State(), "iOS suspends at the completion handler; nothing stays up")
+			} else {
+				require.Equal(t, bga, h.AppState.State(), "a background task keeps sending")
+				h.Controller.BackgroundTaskExpired(func() {})
+				require.Equal(t, bg, h.AppState.State(), "the background task held the app, not the push window")
+			}
+
+			h.Controller.UIActive()
+			ran := false
+			require.NoError(t, runPushWindow(h.Controller, platform.String(), stay, pendingDeliveryDeps(), func(uiActive bool) error {
+				require.True(t, uiActive)
+				ran = true
+				return nil
+			}))
+			require.True(t, ran, "the work runs while the UI is active")
+			require.Equal(t, fg, h.AppState.State())
+		})
+	}
+}
+
+type recordingPusher struct {
+	PushNotifier
+	displayed []string
+}
+
+func (p *recordingPusher) DisplayChatNotification(n *ChatNotification) {
+	p.displayed = append(p.displayed, n.ConvID)
+}
+
+func TestBackgroundNotificationActiveSkipsDisplayButAcks(t *testing.T) {
+	pusher := &recordingPusher{}
+	acks := 0
+	ack := func() { acks++ }
+	show := func(convID string, uiActive bool) bool {
+		return displayOnce(convID+"||1", &ChatNotification{ConvID: convID}, pusher, uiActive, ack)
+	}
+	require.False(t, show(t.Name()+"active", true))
+	require.Empty(t, pusher.displayed, "the app already shows the message")
+	require.Equal(t, 1, acks, "the push is acked so the server's fallback doesn't show it")
+
+	require.True(t, show(t.Name()+"active", false), "a push handled while active isn't shown later")
+	require.Empty(t, pusher.displayed)
+	require.Equal(t, 2, acks)
+
+	require.False(t, show(t.Name()+"background", false))
+	require.Equal(t, []string{t.Name() + "background"}, pusher.displayed)
+	require.Equal(t, 3, acks)
 }

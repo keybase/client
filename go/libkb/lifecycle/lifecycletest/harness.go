@@ -42,16 +42,16 @@ func (p Platform) InitialState() keybase1.MobileAppState {
 type Action int
 
 const (
-	// Nothing reports no event, as when a silent push launches the app
-	// without a scene, or an Android dialog, permission prompt or picker
-	// pauses the activity.
+	// Nothing reports no event, as when an Android dialog, permission prompt
+	// or picker pauses the activity.
 	Nothing Action = iota + 1
 
 	// Native lifecycle events, as native reports them: willEnterForeground and
 	// willResignActive are UIInactive, didBecomeActive is UIActive,
-	// didEnterBackground is UIBackground. When DidEnterBackground or
-	// PushWindowEnd starts a background task, they wait until it is polling
-	// and return true.
+	// didEnterBackground is UIBackground. PushWindowBegin and PushWindowEnd
+	// bracket a push or notification action, as the bind layer handles one.
+	// When DidEnterBackground or PushWindowEnd starts a background task, they
+	// wait until it is polling and return true.
 	WillEnterForeground
 	DidBecomeActive
 	WillResignActive
@@ -156,6 +156,7 @@ type Scenario struct {
 // records what consumers of the app state observe.
 type Harness struct {
 	T          testing.TB
+	Platform   Platform
 	AppState   lifecycle.AppState
 	Clock      *FakeClock
 	Controller *lifecycle.Controller
@@ -186,6 +187,7 @@ func NewHarness(t testing.TB, appState lifecycle.AppState, platform Platform) *H
 	appState.Update(platform.InitialState())
 	h := &Harness{
 		T:        t,
+		Platform: platform,
 		AppState: appState,
 		Clock:    NewFakeClock(),
 		failures: make(chan []chat1.OutboxRecord, 1),
@@ -302,7 +304,10 @@ func (h *Harness) perform(step Step) bool {
 		h.tokens[step.Slot] = c.PushWindowBegin()
 		return h.tokens[step.Slot] > 0
 	case PushWindowEnd:
-		return h.startsTask(func() int64 { return c.PushWindowEnd(h.tokens[step.Slot], h.stay.Load(), h.deps()) })
+		// The bind layer never hands a push window over to a background task
+		// on iOS.
+		stay := h.Platform == Android && h.stay.Load()
+		return h.startsTask(func() int64 { return c.PushWindowEnd(h.tokens[step.Slot], stay, h.deps()) })
 	case LiveLocationAcquire:
 		h.liveLocation = c.AcquireBackgroundWork()
 	case LiveLocationRelease:

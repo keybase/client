@@ -1051,26 +1051,32 @@ func AppUIBackground(pusher PushNotifier) int64 {
 	return kbCtx.MobileLifecycle.UIBackground(shouldStayRunningInBackground(), backgroundTaskDeps(pusher))
 }
 
-// AppPushWindowBegin holds the app up while a push notification is handled,
-// unless the app is active. It returns a token for AppPushWindowEnd: positive
-// when the hold opened, 0 when the app is active (skip the work), and -1 when
-// the service isn't initialized (no hold, but the work may still run).
-func AppPushWindowBegin() int64 {
+// inPushWindow runs work, which handles a push or a notification action,
+// holding a backgrounded app up while it runs. work learns whether the UI is
+// active, in which case nothing is held. pusher warns about messages that
+// won't send if the window hands over to a background task.
+func inPushWindow(pusher PushNotifier, work func(uiActive bool) error) error {
 	if !isInited() {
-		return -1
+		return work(false)
 	}
-	defer kbCtx.Trace("AppPushWindowBegin", nil)()
-	return kbCtx.MobileLifecycle.PushWindowBegin()
+	return runPushWindow(kbCtx.MobileLifecycle, runtime.GOOS, shouldStayRunningInBackground,
+		backgroundTaskDeps(pusher), work)
 }
 
-// AppPushWindowEnd ends the hold opened by AppPushWindowBegin, first starting
-// a background task when work must keep running.
-func AppPushWindowEnd(token int64, pusher PushNotifier) {
-	if !isInited() {
-		return
+func runPushWindow(lc *lifecycle.Controller, goos string, stay func() bool, deps lifecycle.BackgroundTaskDeps,
+	work func(uiActive bool) error,
+) error {
+	token := lc.PushWindowBegin()
+	if token == 0 {
+		return work(true)
 	}
-	defer kbCtx.Trace("AppPushWindowEnd", nil)()
-	kbCtx.MobileLifecycle.PushWindowEnd(token, shouldStayRunningInBackground(), backgroundTaskDeps(pusher))
+	defer func() {
+		// iOS suspends the app once native calls the push's completion handler,
+		// right after this returns, so a background task started here would
+		// leave it suspended in BACKGROUNDACTIVE.
+		lc.PushWindowEnd(token, goos == "android" && stay(), deps)
+	}()
+	return work(false)
 }
 
 // AppWaitBackgroundTask returns once the background task whose token

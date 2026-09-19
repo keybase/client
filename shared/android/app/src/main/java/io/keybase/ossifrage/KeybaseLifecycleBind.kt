@@ -14,8 +14,4 @@ internal class KeybaseLifecycleBind(private val context: Context) : LifecycleBin
     }
 
     override fun willExit() = Keybase.appWillExit(KBPushNotifier(context, Bundle()))
-
-    override fun pushWindowBegin(): Long = Keybase.appPushWindowBegin()
-
-    override fun pushWindowEnd(token: Long) = Keybase.appPushWindowEnd(token, KBPushNotifier(context, Bundle()))
 }

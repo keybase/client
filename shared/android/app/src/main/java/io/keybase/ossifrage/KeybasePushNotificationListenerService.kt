@@ -19,8 +19,12 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
     // was notified about to give context to future notifications.
     private val msgCache = HashMap<String?, SmallMsgRingBuffer>()
 
-    // Avoid ever showing doubles
-    private val seenChatNotifications = HashSet<String>()
+    // Go's seen cache dedupes what Go displays, but not the fallback below: a
+    // redelivered push that Go fails on again would show the fallback twice,
+    // and each display adds the message to msgCache's history again.
+    private val seenChatNotifications = object : LinkedHashMap<String, Unit>(16, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Unit>?) = size > SEEN_CHAT_NOTIFICATIONS_MAX
+    }
     private fun isOtherAccountPushError(ex: Exception): Boolean {
         return ex.message?.contains("different account") == true
     }
@@ -82,12 +86,12 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                     // Silent notifications are processed but not marked as seen, allowing the non-silent one to display
                     if (!dontNotify) {
                         val notificationKey = n.convID + n.messageId
-                        if (seenChatNotifications.contains(notificationKey)) {
+                        if (seenChatNotifications.containsKey(notificationKey)) {
                             NativeLogger.info("KeybasePushNotificationListenerService skipping duplicate notification: $notificationKey")
                             return
                         }
                         // Mark as seen immediately to prevent duplicate processing
-                        seenChatNotifications.add(notificationKey)
+                        seenChatNotifications[notificationKey] = Unit
                         NativeLogger.info("KeybasePushNotificationListenerService marked notification as seen: $notificationKey")
                     }
 
@@ -104,34 +108,22 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
 
                     var goProcessingSucceeded = false
                     try {
-                        // The push window must see the state after the process
+                        // Go's push window must see the state after the process
                         // start or stop that came before this push.
                         lifecycleReporter.awaitReported(5000)
-                        // In the foreground the app already has the message, and
-                        // must not show a notification for it.
-                        runPushWindow(KeybaseLifecycleBind(applicationContext), { NativeLogger.info(it) }, InForeground.SKIP) {
-                            try {
-                                Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
-                                        n.membersType.toLong(), n.displayPlaintext, n.messageId.toLong(), n.pushId,
-                                        n.badgeCount.toLong(), n.unixTime, n.soundName, if (dontNotify) null else notifier, true,
-                                        targetUID)
-                                goProcessingSucceeded = true
-                            } catch (ex: Exception) {
-                                if (isOtherAccountPushError(ex)) {
-                                    NativeLogger.info("Go skipped notification for a different active account: " + ex.message)
-                                } else {
-                                    NativeLogger.error("Go Couldn't handle background notification2: " + ex.message)
-                                }
-                                throw ex
-                            }
-                        }
+                        // Go holds the app up while it handles the push, and in the
+                        // foreground acks it without displaying it.
+                        Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
+                                n.membersType.toLong(), n.displayPlaintext, n.messageId.toLong(), n.pushId,
+                                n.badgeCount.toLong(), n.unixTime, n.soundName, if (dontNotify) null else notifier, true,
+                                targetUID, KBPushNotifier(applicationContext, Bundle()))
+                        goProcessingSucceeded = true
                     } catch (ex: Exception) {
                         if (isOtherAccountPushError(ex)) {
-                            NativeLogger.info("Skipping active-account processing for different-account push")
+                            NativeLogger.info("Go skipped notification for a different active account: " + ex.message)
                         } else {
-                            NativeLogger.error("Failed to process notification (app may not be running): " + ex.message)
+                            NativeLogger.error("Go couldn't handle background notification: " + ex.message)
                         }
-                        goProcessingSucceeded = false
                     }
 
 
@@ -229,6 +221,7 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
     }
 
     companion object {
+        private const val SEEN_CHAT_NOTIFICATIONS_MAX = 100
         const val CHAT_CHANNEL_ID = "kb_chat_channel"
         const val FOLLOW_CHANNEL_ID = "kb_follow_channel"
         const val DEVICE_CHANNEL_ID = "kb_device_channel"
