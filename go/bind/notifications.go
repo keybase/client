@@ -359,9 +359,9 @@ func handleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 
 // displayOnce displays n unless its push was already handled, then acks the
 // push. On Android, while the UI is active it only acks: the app already shows
-// the message. iOS still displays, because its display also removes the
-// server's generic notification for this message, which can have landed while
-// the push was held; a local notification never shows while active.
+// the message. iOS always displays, because its display also removes the
+// server's generic notification for this message, which can land while the
+// push is being handled; a local notification never shows while active.
 func displayOnce(dupKey string, n *ChatNotification, pusher PushNotifier, goos string, uiActive bool,
 	ack func(),
 ) (dup bool) {
