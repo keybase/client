@@ -162,8 +162,9 @@ func postTextReply(ctx context.Context, gc *globals.Context, strConvID, tlfName 
 var spoileRegexp = regexp.MustCompile(`!>(.*?)<!`)
 
 // HandleBackgroundNotification unboxes a chat push, displays it through
-// pusher and acks it. A nil pusher displays nothing. While the UI is active it
-// acks without displaying, since the app already shows the message.
+// pusher and acks it. A nil pusher displays nothing. On Android, while the UI
+// is active it acks without displaying, since the app already shows the
+// message.
 // taskPusher warns about messages that won't send if the push window hands
 // over to a background task.
 func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender string, intMembersType int,
@@ -349,7 +350,7 @@ func handleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 				ack.Ack(ctx, []string{pushID})
 			}
 		}
-		if displayOnce(dupKey, &chatNotification, pusher, uiActive, ackPush) {
+		if displayOnce(dupKey, &chatNotification, pusher, runtime.GOOS, uiActive, ackPush) {
 			kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: duplicate notification convID=%s msgID=%d", strConvID, intMessageID)
 		}
 	}
@@ -357,9 +358,13 @@ func handleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 }
 
 // displayOnce displays n unless its push was already handled, then acks the
-// push. While the UI is active it only acks: the app already shows the
-// message. It reports whether the push was a duplicate.
-func displayOnce(dupKey string, n *ChatNotification, pusher PushNotifier, uiActive bool, ack func()) (dup bool) {
+// push. On Android, while the UI is active it only acks: the app already shows
+// the message. iOS still displays, because its display also removes the
+// server's generic notification for this message, which can have landed while
+// the push was held; a local notification never shows while active.
+func displayOnce(dupKey string, n *ChatNotification, pusher PushNotifier, goos string, uiActive bool,
+	ack func(),
+) (dup bool) {
 	seenNotificationsMtx.Lock()
 	defer seenNotificationsMtx.Unlock()
 	if _, ok := getSeenNotificationsCache().Get(dupKey); ok {
@@ -371,7 +376,7 @@ func displayOnce(dupKey string, n *ChatNotification, pusher PushNotifier, uiActi
 	// reaches the check while DisplayChatNotification is running sees the
 	// entry and bails out rather than displaying a duplicate.
 	getSeenNotificationsCache().Add(dupKey, struct{}{})
-	if !uiActive {
+	if !uiActive || goos != "android" {
 		pusher.DisplayChatNotification(n)
 	}
 	ack()

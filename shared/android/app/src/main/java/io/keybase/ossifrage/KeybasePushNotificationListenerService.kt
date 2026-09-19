@@ -22,7 +22,7 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
     // Go's seen cache dedupes what Go displays, but not the fallback below: a
     // redelivered push that Go fails on again would show the fallback twice,
     // and each display adds the message to msgCache's history again.
-    private val seenChatNotifications = object : LinkedHashMap<String, Unit>(16, 0.75f, true) {
+    private val seenChatNotifications = object : LinkedHashMap<String, Unit>(16, 0.75f, false) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Unit>?) = size > SEEN_CHAT_NOTIFICATIONS_MAX
     }
     private fun isOtherAccountPushError(ex: Exception): Boolean {

@@ -169,21 +169,34 @@ func (p *recordingPusher) DisplayChatNotification(n *ChatNotification) {
 }
 
 func TestBackgroundNotificationActiveSkipsDisplayButAcks(t *testing.T) {
-	pusher := &recordingPusher{}
-	acks := 0
-	ack := func() { acks++ }
-	show := func(convID string, uiActive bool) bool {
-		return displayOnce(convID+"||1", &ChatNotification{ConvID: convID}, pusher, uiActive, ack)
+	for _, goos := range []string{"android", "ios"} {
+		t.Run(goos, func(t *testing.T) {
+			pusher := &recordingPusher{}
+			acks := 0
+			ack := func() { acks++ }
+			show := func(convID string, uiActive bool) bool {
+				return displayOnce(convID+"||1", &ChatNotification{ConvID: convID}, pusher, goos, uiActive, ack)
+			}
+			active := t.Name() + "active"
+			require.False(t, show(active, true))
+			if goos == "android" {
+				require.Empty(t, pusher.displayed, "the app already shows the message")
+			} else {
+				require.Equal(t, []string{active}, pusher.displayed,
+					"iOS displays to remove the server's generic notification; the local one never shows while active")
+			}
+			require.Equal(t, 1, acks, "the push is acked so the server's fallback doesn't show it")
+			displayed := len(pusher.displayed)
+
+			require.True(t, show(active, false), "a push handled while active isn't shown later")
+			require.Len(t, pusher.displayed, displayed)
+			require.Equal(t, 2, acks)
+
+			background := t.Name() + "background"
+			require.False(t, show(background, false))
+			require.Equal(t, background, pusher.displayed[len(pusher.displayed)-1])
+			require.Len(t, pusher.displayed, displayed+1)
+			require.Equal(t, 3, acks)
+		})
 	}
-	require.False(t, show(t.Name()+"active", true))
-	require.Empty(t, pusher.displayed, "the app already shows the message")
-	require.Equal(t, 1, acks, "the push is acked so the server's fallback doesn't show it")
-
-	require.True(t, show(t.Name()+"active", false), "a push handled while active isn't shown later")
-	require.Empty(t, pusher.displayed)
-	require.Equal(t, 2, acks)
-
-	require.False(t, show(t.Name()+"background", false))
-	require.Equal(t, []string{t.Name() + "background"}, pusher.displayed)
-	require.Equal(t, 3, acks)
 }
