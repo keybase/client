@@ -16,11 +16,12 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-// NotifyRecorder is a connection registered with a NotifyRouter, for tests. It
-// records the notifications and calls sent to it in the order they were
+// NotifyRecorder is a connection registered with a NotifyRouter, for tests.
+// It records the notifications and calls sent to it in the order they were
 // written: each is decoded inside the transport's Write, so it is recorded
-// before the send returns. It never answers a call. A Go rpc.Server on the far end would serve each notification on its
-// own goroutine and lose that order.
+// before the send returns. It never answers a call. A Go rpc.Server on the
+// far end would serve each notification on its own goroutine and lose that
+// order.
 type NotifyRecorder struct {
 	ID     ConnectionID
 	router *NotifyRouter

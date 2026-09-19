@@ -6,6 +6,7 @@ import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
 import {
   applyClientState,
+  initSharedSubscriptions,
   loadAccountsStep,
   onEngineConnected,
   onNetworkOnlineChanged,
@@ -250,6 +251,25 @@ describe('sessionSettledStep', () => {
 
     applyClientState({appState: T.RPCGen.MobileAppState.foreground, session})
     await expect(step).resolves.toBeUndefined()
+  })
+
+  test('is one of the handshake steps', () => {
+    const originalDaemonDispatch = useDaemonState.getState().dispatch
+    let steps: ReadonlyArray<unknown> = []
+    useDaemonState.setState({
+      dispatch: {
+        ...originalDaemonDispatch,
+        initBootstrapSteps: s => {
+          steps = s
+        },
+      },
+    })
+    try {
+      initSharedSubscriptions()
+    } finally {
+      useDaemonState.setState({dispatch: originalDaemonDispatch})
+    }
+    expect(steps).toContain(sessionSettledStep)
   })
 
   test('fails the handshake attempt when the session never comes', async () => {

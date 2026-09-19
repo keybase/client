@@ -30,7 +30,7 @@ func (mctx MetaContext) LogoutUsernameWithOptions(username NormalizedUsername, o
 	defer mctx.Trace(fmt.Sprintf("MetaContext#LogoutWithOptions(%#v)", options), &err)()
 
 	g := mctx.G()
-	defer g.lockSwitchUser(mctx, "Logout")()
+	defer g.lockSwitchUser(mctx, false, "Logout")()
 
 	mctx.Debug("MetaContext#logoutWithSecretKill: after switchUserMu acquisition (username: %s, options: %#v)",
 		username, options)

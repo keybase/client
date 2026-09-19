@@ -361,16 +361,33 @@ func (g *GlobalContext) SetAvatarLoader(a AvatarLoaderSource) {
 	g.avatarLoader = a
 }
 
+type sessionIdentity struct {
+	valid    bool
+	uid      keybase1.UID
+	deviceID keybase1.DeviceID
+}
+
+func (g *GlobalContext) sessionIdentity() sessionIdentity {
+	return sessionIdentity{valid: g.ActiveDevice.Valid(), uid: g.ActiveDevice.UID(), deviceID: g.ActiveDevice.DeviceID()}
+}
+
 // lockSwitchUser takes switchUserMu, which every session write (the active
-// device, the config's current user) is made under. A release that leaves no
-// valid session queues a clientState to connected clients, after unlocking; a
-// release that leaves a valid one queues nothing, because the login it belongs
-// to announces itself when it completes. See connSender for why that is enough.
-func (g *GlobalContext) lockSwitchUser(mctx MetaContext, reasonFormat string, args ...any) (release func()) {
+// device, the config's current user) is made under. A release that changed the
+// session queues a clientState to connected clients, after unlocking.
+//
+// promotion marks the write a provisioning, signup or oneshot flow makes before
+// it completes: if it leaves a valid session it queues nothing, so clients do
+// not see the login early -- the flow completes with SendLogin, which queues
+// one. A promotion that leaves no valid session is a clear and queues one like
+// any other. See connSender for why that is enough.
+func (g *GlobalContext) lockSwitchUser(mctx MetaContext, promotion bool, reasonFormat string, args ...any) (release func()) {
 	unlock := g.switchUserMu.Acquire(mctx, reasonFormat, args...)
+	before := g.sessionIdentity()
 	return func() {
+		after := g.sessionIdentity()
 		unlock()
-		if !g.ActiveDevice.Valid() {
+		earlyLogin := promotion && after.valid
+		if after != before && !earlyLogin {
 			g.NotifyRouter.AnnounceClientState(mctx.Ctx())
 		}
 	}
@@ -379,7 +396,7 @@ func (g *GlobalContext) lockSwitchUser(mctx MetaContext, reasonFormat string, ar
 // simulateServiceRestart simulates what happens when a service restarts for the
 // purposes of testing.
 func (g *GlobalContext) simulateServiceRestart() {
-	defer g.lockSwitchUser(NewMetaContext(context.TODO(), g), "simulateServiceRestart")()
+	defer g.lockSwitchUser(NewMetaContext(context.TODO(), g), false, "simulateServiceRestart")()
 	_ = g.ActiveDevice.Clear()
 }
 

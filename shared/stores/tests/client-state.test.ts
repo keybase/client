@@ -177,6 +177,22 @@ describe('an account switch', () => {
     expect(useCurrentUserState.getState().username).toBe('')
   })
 
+  test('a logout never shows a logged-in session with no user', () => {
+    applyClientState(clientState())
+    const seen: Array<{loggedIn: boolean; uid: string}> = []
+    const record = () =>
+      seen.push({loggedIn: useConfigState.getState().loggedIn, uid: useCurrentUserState.getState().uid})
+    const unsubs = [useConfigState.subscribe(record), useCurrentUserState.subscribe(record)]
+
+    applyClientState(clientState({session: loggedOut}))
+    unsubs.forEach(u => u())
+
+    expect(seen.length).toBeGreaterThan(0)
+    expect(seen.filter(s => s.loggedIn && !s.uid)).toEqual([])
+    expect(useConfigState.getState().loggedIn).toBe(false)
+    expect(useCurrentUserState.getState().uid).toBe('')
+  })
+
   test('the same user again is not a switch', () => {
     applyClientState(clientState())
     markAccountState()

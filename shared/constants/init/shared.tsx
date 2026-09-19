@@ -311,11 +311,16 @@ export const applyClientState = (clientState: T.RPCGen.ClientState) => {
   }
   settleSession()
   const {deviceID, deviceName, loggedIn, uid, username} = session
-  // Another user than the one we are logged in as is a logout and then a login, whether or not the
-  // logged-out clientState between them reached us: on desktop an account switch resets the engine
-  // on the loggedOut event, which can drop the clientState right behind it. Logging out is what
-  // clears the previous account's stores.
-  if (loggedIn && useConfigState.getState().loggedIn && uid !== useCurrentUserState.getState().uid) {
+  if (!loggedIn) {
+    // Session first: logging out resets the stores, the current user among them. Writing the empty
+    // identity first would leave a moment where we are logged in with no user.
+    configDispatch.setLoggedIn(false)
+    return
+  }
+  // A logged-in clientState for another user than the one we are logged in as is a logout and then
+  // a login, however it reached us -- with or without a logged-out clientState before it. Logging
+  // out is what clears the previous account's stores.
+  if (useConfigState.getState().loggedIn && uid !== useCurrentUserState.getState().uid) {
     configDispatch.setLoggedIn(false)
   }
   // identity before the session: setLoggedIn fans out synchronously, and every subscriber of a
@@ -324,7 +329,7 @@ export const applyClientState = (clientState: T.RPCGen.ClientState) => {
   if (username) {
     configDispatch.setDefaultUsername(username)
   }
-  configDispatch.setLoggedIn(loggedIn)
+  configDispatch.setLoggedIn(true)
 }
 
 const subscribe = async () => {

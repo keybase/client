@@ -9,6 +9,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/assert"
@@ -88,6 +89,60 @@ func TestProvisionalValidWriteQueuesNoClientState(t *testing.T) {
 	states := clientStates(t, rec)
 	require.Len(t, states, 2, "the completed login queues one")
 	require.True(t, states[1].Session.LoggedIn)
+}
+
+// A write that makes the session valid outside any login flow -- a Device
+// prereq bootstrapping the active device from the secret store, say -- has no
+// SendLogin behind it, so the write itself has to reach clients.
+func TestBootstrapStyleWriteQueuesClientState(t *testing.T) {
+	tc := SetupTest(t, "NotifyRouter", 0)
+	defer tc.Cleanup()
+	g := tc.G
+	g.SetService()
+	g.NotifyRouter.SetClientStateReader(readSessionOnly(g))
+	m := NewMetaContextForTest(tc)
+
+	uid := testUID(0)
+	deviceID, err := NewDeviceID()
+	require.NoError(t, err)
+	require.NoError(t, m.SwitchUserNewConfig(uid, NewNormalizedUsername("testuser"), nil, deviceID))
+
+	rec := NewNotifyRecorder(g, keybase1.NotificationChannels{App: true, Session: true})
+	defer rec.Close()
+	rec.Flush()
+	require.Len(t, clientStates(t, rec), 1, "the one queued on subscribing")
+
+	sig, err := GenerateNaclSigningKeyPair()
+	require.NoError(t, err)
+	enc, err := GenerateNaclDHKeyPair()
+	require.NoError(t, err)
+	require.NoError(t, m.SetActiveDevice(keybase1.UserVersion{Uid: uid, EldestSeqno: 1}, deviceID,
+		sig, enc, "testdevice", KeychainModeNone))
+	require.True(t, g.ActiveDevice.Valid())
+	rec.Flush()
+	states := clientStates(t, rec)
+	require.Len(t, states, 2, "the write that made the session valid queued one")
+	require.True(t, states[1].Session.LoggedIn)
+}
+
+// A release that changes nothing about the session has nothing to tell.
+func TestUnchangedSessionQueuesNoClientState(t *testing.T) {
+	tc := SetupTest(t, "NotifyRouter", 0)
+	defer tc.Cleanup()
+	g := tc.G
+	g.SetService()
+	g.NotifyRouter.SetClientStateReader(readSessionOnly(g))
+	m := NewMetaContextForTest(tc)
+
+	rec := NewNotifyRecorder(g, keybase1.NotificationChannels{App: true, Session: true})
+	defer rec.Close()
+	rec.Flush()
+	require.Len(t, clientStates(t, rec), 1, "the one queued on subscribing")
+
+	require.False(t, g.ActiveDevice.Valid())
+	require.NoError(t, m.SwitchUserLoggedOut())
+	rec.Flush()
+	require.Len(t, clientStates(t, rec), 1, "logged out before and after")
 }
 
 // A clear needs no announce to reach clients: a flow that fails and clears
@@ -210,4 +265,28 @@ func TestClientStateReadsWhenSent(t *testing.T) {
 	states := clientStates(t, rec)
 	require.Len(t, states, 2)
 	require.True(t, states[1].Session.LoggedIn, "queued before the change, read after it")
+}
+
+// A late SetChannels for a connection that has already closed must not bring
+// its entry back: nothing would ever remove it again.
+func TestSetChannelsAfterCloseRegistersNothing(t *testing.T) {
+	tc := SetupTest(t, "NotifyRouter", 0)
+	defer tc.Cleanup()
+	g := tc.G
+	g.SetService()
+	n := g.NotifyRouter
+
+	rec := NewNotifyRecorder(g, keybase1.NotificationChannels{App: true})
+	rec.Close()
+	require.Eventually(t, func() bool {
+		n.Lock()
+		defer n.Unlock()
+		return n.senders[rec.ID] == nil
+	}, 5*time.Second, time.Millisecond)
+
+	n.SetChannels(rec.ID, keybase1.NotificationChannels{App: true})
+	n.Lock()
+	_, registered := n.state[rec.ID]
+	n.Unlock()
+	require.False(t, registered)
 }

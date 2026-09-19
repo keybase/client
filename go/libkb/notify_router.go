@@ -343,9 +343,9 @@ func NewNotifyRouter(g *GlobalContext) *NotifyRouter {
 // One goroutine per connection drains an unbounded FIFO, so queueing never
 // blocks, and the rpc library writes one goroutine's Notify calls in the order
 // they are made (each hands its frame to a single writer over an unbuffered
-// channel). loggedIn and loggedOut are calls rather than notifications, and
-// callInOrder gives them the same place in line without waiting for a reply.
-// A connection therefore receives its jobs in the order they were queued.
+// channel). loggedIn is a call rather than a notification, and callInOrder
+// gives it the same place in line without waiting for a reply. A connection
+// therefore receives its jobs in the order they were queued.
 //
 // A clientState job carries no state. It reads the session, the http server
 // address and the app state when it is dequeued, on this goroutine and outside
@@ -363,21 +363,21 @@ func NewNotifyRouter(g *GlobalContext) *NotifyRouter {
 //     so there was none, and it carries the latest value. Say instead it is a
 //     clientState. A write after that clientState read the field would have
 //     queued a notification behind it, so there was none either.
-//   - The session: a clientState is queued after every completed login and
-//     logout (SendLogin, HandleLogout), and after every switchUserMu release
-//     that leaves no valid session (GlobalContext.lockSwitchUser). So the last
-//     session write is either a clear, with a clientState queued right after
-//     it, or a valid write, which its login completes with SendLogin and so a
-//     clientState queued after that. clientState jobs read the session when
-//     dequeued, so for every connection the last clientState carries the
-//     latest session, whatever order the loggedIn/loggedOut events arrive in
-//     -- those carry no session state a client may apply. A valid write made
-//     partway through provisioning or signup queues nothing, so a client does
-//     not see a login before it completes. What this leaves: a flow that fails
-//     and leaves a valid session it never announces is not pushed until the
-//     next clientState, and a clientState dequeued partway through a flow reads
-//     its provisional session. The startup login attempt settling, which turns
-//     a null session into a real one, queues a clientState too.
+//   - The session: every change to it -- valid or not, which user, which
+//     device -- queues a clientState once switchUserMu is released after the
+//     write (GlobalContext.lockSwitchUser), and clientState jobs read the
+//     session when dequeued. So for every connection the last clientState
+//     carries the latest session, whatever order the loggedIn/loggedOut events
+//     arrive in -- those carry no session state a client may apply. The only
+//     writes that queue nothing are the promotions a provisioning, signup or
+//     oneshot flow makes before it completes, so that a client does not see a
+//     login early; the flow completes with SendLogin, which queues one after
+//     it. What this leaves: a flow that fails and leaves the promoted session
+//     in place without clearing it is not pushed until the next clientState,
+//     and a clientState dequeued partway through such a flow reads its
+//     promoted session. SendLogin and HandleLogout queue one too, and so does
+//     the startup login attempt settling, which turns a null session into a
+//     real one.
 //   - Registration: SetChannels sets the filter and queues the first
 //     clientState under the router's lock, which announce takes to pick its
 //     recipients. A change announced after that is queued behind the
@@ -536,8 +536,13 @@ func (n *NotifyRouter) removeConnection(id ConnectionID) {
 func (n *NotifyRouter) SetChannels(i ConnectionID, nc keybase1.NotificationChannels) {
 	n.Lock()
 	defer n.Unlock()
+	s := n.senders[i]
+	if s == nil {
+		// the connection is gone; registering it now would leak its entry
+		return
+	}
 	n.state[i] = nc
-	if s := n.senders[i]; s != nil && wantsClientState(nc) {
+	if wantsClientState(nc) {
 		s.enqueue(n.sendClientState(context.Background()))
 	}
 }
@@ -619,9 +624,9 @@ func (n *NotifyRouter) HandleLogout(ctx context.Context) {
 	n.announce(ctx, "HandleLogout",
 		func(ch keybase1.NotificationChannels) bool { return ch.Session },
 		func(ctx context.Context, xp rpc.Transporter) {
-			n.callInOrder(xp, func(cli *rpc.Client) error {
-				return (keybase1.NotifySessionClient{Cli: cli}).LoggedOut(ctx)
-			})
+			_ = (keybase1.NotifySessionClient{
+				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+			}).LoggedOut(ctx)
 		})
 	n.AnnounceClientState(ctx)
 
