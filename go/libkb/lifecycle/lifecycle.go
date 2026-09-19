@@ -339,9 +339,9 @@ func (c *Controller) WillTerminate(notifyPending func()) {
 }
 
 // BackgroundTaskExpired ends every background task hold: iOS is ending the
-// app's background time. Native drops stale expirations, so these are the
-// current entry's holds and any older ones still running. Live location,
-// push window and sync holds keep their own lifetimes.
+// app's background time, which is per app, so every UIKit task still open
+// expires with it. Live location, push window and sync holds keep their own
+// lifetimes.
 func (c *Controller) BackgroundTaskExpired(notifyPending func()) {
 	c.mu.Lock()
 	ended := c.dropLocked(func(h *Hold) bool { return h.reason == ReasonBackgroundTask })

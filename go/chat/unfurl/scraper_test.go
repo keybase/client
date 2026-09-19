@@ -387,6 +387,10 @@ func (t *testingLiveLocationTracker) LocationUpdate(ctx context.Context, coord c
 	t.coords = append(t.coords, coord)
 }
 
+func (t *testingLiveLocationTracker) NativeLocationUpdate(ctx context.Context, coord chat1.Coordinate) {
+	t.LocationUpdate(ctx, coord)
+}
+
 func (t *testingLiveLocationTracker) GetCoordinates(ctx context.Context, key types.LiveLocationKey) []chat1.Coordinate {
 	return t.coords
 }

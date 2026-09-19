@@ -906,7 +906,8 @@ func AppUIInactive() {
 	kbCtx.MobileLifecycle.UIInactive()
 }
 
-// LocationUpdate reports a location fix from the native location service.
+// LocationUpdate reports every location fix from the native location service;
+// the tracker decides which ones to record.
 func LocationUpdate(lat, lon float64, accuracy int) {
 	if !isInited() || !kbCtx.ActiveDevice.HaveKeys() {
 		return
@@ -915,7 +916,7 @@ func LocationUpdate(lat, lon float64, accuracy int) {
 }
 
 func locationUpdate(tracker types.LiveLocationTracker, lat, lon float64, accuracy int) {
-	tracker.LocationUpdate(context.Background(), chat1.Coordinate{Lat: lat, Lon: lon, Accuracy: float64(accuracy)})
+	tracker.NativeLocationUpdate(context.Background(), chat1.Coordinate{Lat: lat, Lon: lon, Accuracy: float64(accuracy)})
 }
 
 // DeliverPushTap resolves a tapped notification's payload to the route it opens

@@ -1,29 +1,22 @@
 import CoreLocation
 import Keybasego
-import UIKit
 import os
 
 private let log = Logger(subsystem: "com.keybase.app", category: "location")
 
 // Runs the OS location service for live location (go/chat/maps) without JS. Go
-// starts and stops watching; each fix goes back to Go. Created in
-// didFinishLaunching, before Go restores its trackers, so an app relaunched by
-// significant-change monitoring starts watching again. Its CLLocationManager
-// options match expo-location's background task, which Android still uses.
+// starts and stops watching; every fix goes back to Go, which decides which to
+// record. Created in didFinishLaunching, before Go restores its trackers, so an
+// app relaunched by significant-change monitoring starts watching again. Its
+// CLLocationManager options match expo-location's background task, which
+// Android still uses.
 final class LocationWatcher: NSObject, Keybasego.KeybaseNativeLocationWatcherProtocol, CLLocationManagerDelegate {
-  // In the background a fix is only reported once the device has moved this far
-  // since the last one reported. The first fix after starting is reported right
-  // away, so the move that relaunched the app gets posted.
-  private static let deferredUpdatesDistance: CLLocationDistance = 65
-
   // Everything below is main thread only.
   private let manager = CLLocationManager()
   private var wanted = false
   private var running = false
-  private var lastReported: CLLocation?
-  private var pending: CLLocation?
-  private var pendingDistance: CLLocationDistance = 0
 
+  // Go records a fix to disk, so fixes go to it off the main thread, in order.
   private let goQueue = DispatchQueue(label: "com.keybase.app.location", qos: .utility)
 
   override init() {
@@ -54,23 +47,13 @@ final class LocationWatcher: NSObject, Keybasego.KeybaseNativeLocationWatcherPro
 
   func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
     guard running else { return }
-    for location in locations where location.horizontalAccuracy >= 0 {
-      if let previous = pending ?? lastReported {
-        pendingDistance += location.distance(from: previous)
-      }
-      pending = location
+    let fixes = locations.filter { $0.horizontalAccuracy >= 0 }.map {
+      (coordinate: $0.coordinate, accuracy: Int($0.horizontalAccuracy))
     }
-    guard let location = pending,
-          lastReported == nil || UIApplication.shared.applicationState == .active
-            || pendingDistance >= Self.deferredUpdatesDistance
-    else { return }
-    lastReported = location
-    pending = nil
-    pendingDistance = 0
-    let coordinate = location.coordinate
-    let accuracy = Int(location.horizontalAccuracy)
     goQueue.async {
-      Keybasego.KeybaseLocationUpdate(coordinate.latitude, coordinate.longitude, accuracy)
+      for fix in fixes {
+        Keybasego.KeybaseLocationUpdate(fix.coordinate.latitude, fix.coordinate.longitude, fix.accuracy)
+      }
     }
   }
 
@@ -100,9 +83,6 @@ final class LocationWatcher: NSObject, Keybasego.KeybaseNativeLocationWatcherPro
       running = false
       manager.stopUpdatingLocation()
       manager.stopMonitoringSignificantLocationChanges()
-      lastReported = nil
-      pending = nil
-      pendingDistance = 0
     }
   }
 }

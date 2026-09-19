@@ -435,7 +435,7 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
 
 // Hands lifecycle events to Go on the main thread, in callback order: every Go
 // lifecycle call returns at once, except the exit work, which runBounded caps.
-// Also owns the UIKit background task that keeps the app alive while Go does
+// Also owns the UIKit background tasks that keep the app alive while Go does
 // its background work. Main thread only.
 //
 // Native reports only UI state; Go derives the app state (go/libkb/lifecycle).
@@ -446,8 +446,6 @@ final class AppLifecycleForwarder {
   // main thread for Go's last work (flush, a pending-message warning).
   private static let exitWorkTimeout: TimeInterval = 1
 
-  private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
-
   // willEnterForeground and willResignActive.
   func uiInactive() { Keybasego.KeybaseAppUIInactive() }
   func didBecomeActive() { Keybasego.KeybaseAppUIActive() }
@@ -457,43 +455,32 @@ final class AppLifecycleForwarder {
   }
 
   // Every background entry starts its own task, which lasts until Go's
-  // background task has ended, and takes over from a task an earlier entry left
-  // running: that task's pending end or expiration then finds it no longer
-  // current and does nothing.
+  // background task has ended. Background time is per app, so every task still
+  // open expires together, and Go ends all of its background tasks at once.
   func didEnterBackground(_ application: UIApplication) {
-    let owner = BackgroundTaskOwner()
-    let task = application.beginBackgroundTask(withName: "kb.didEnterBackground") { [weak self] in
-      self?.backgroundTaskExpired(owner.task)
+    // The task's id, or .invalid once it has ended.
+    var task = UIBackgroundTaskIdentifier.invalid
+    func end() {
+      guard task != .invalid else { return }
+      application.endBackgroundTask(task)
+      task = .invalid
     }
-    owner.task = task
-    let previous = backgroundTask
-    backgroundTask = task
-    if previous != .invalid {
-      application.endBackgroundTask(previous)
+    task = application.beginBackgroundTask(withName: "kb.didEnterBackground") {
+      guard task != .invalid else { return }
+      log.info("background task expired")
+      self.runBounded { Keybasego.KeybaseAppBackgroundTaskExpired(PushNotifier()) }
+      end()
     }
     // 0 only while Go isn't running (before Init, after shutdown).
     let token = Keybasego.KeybaseAppUIBackground(PushNotifier())
     guard token > 0 else {
-      endBackgroundTask(task)
+      end()
       return
     }
     DispatchQueue.global(qos: .default).async {
       Keybasego.KeybaseAppWaitBackgroundTask(token)
-      DispatchQueue.main.async { self.endBackgroundTask(task) }
+      DispatchQueue.main.async { end() }
     }
-  }
-
-  private func backgroundTaskExpired(_ task: UIBackgroundTaskIdentifier) {
-    guard task != .invalid, task == backgroundTask else { return }
-    log.info("background task expired")
-    runBounded { Keybasego.KeybaseAppBackgroundTaskExpired(PushNotifier()) }
-    endBackgroundTask(task)
-  }
-
-  private func endBackgroundTask(_ task: UIBackgroundTaskIdentifier) {
-    guard task != .invalid, task == backgroundTask else { return }
-    backgroundTask = .invalid
-    UIApplication.shared.endBackgroundTask(task)
   }
 
   // Every earlier event has already reached Go, so this keeps the order; the
@@ -506,12 +493,6 @@ final class AppLifecycleForwarder {
     }
     _ = done.wait(timeout: .now() + Self.exitWorkTimeout)
   }
-}
-
-// The expiration handler is created before beginBackgroundTask returns the id
-// it needs.
-private final class BackgroundTaskOwner {
-  var task: UIBackgroundTaskIdentifier = .invalid
 }
 
 class ReactNativeDelegate: ExpoReactNativeFactoryDelegate {

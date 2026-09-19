@@ -29,7 +29,7 @@ import {
 // straight to Go, and Go posts it to the conversation as a map unfurl. These flows move the
 // simulated location and follow that in the Go log (ios.log):
 // - "LiveLocationTracker: StartTracking" / "StopAllTracking" when sharing starts and stops,
-// - "+ LiveLocationTracker: LocationUpdate" for each fix native hands to Go,
+// - "+ LiveLocationTracker: LocationUpdate" for each fix Go records (native hands it every fix),
 // - "LiveLocationTracker: tracker[<id>]: got coords" when the tracker takes it,
 // - "+ LiveLocationTracker: updateMapUnfurl" when Go posts the location to the conversation,
 // - "LiveLocationTracker: restoreLocked: restored <n> trackers" when a relaunch restores sharing,
@@ -47,7 +47,7 @@ import {
 // The simulator reports no fix when the watcher starts at the location it already has, so
 // each run starts somewhere new.
 const start = {lat: 37.7749 + Math.random() * 0.01, lon: -122.4194}
-// Far enough apart that a backgrounded watcher, which waits for real movement, reports them,
+// Far enough apart that Go, which in the background waits for real movement, records them,
 // and the last far enough for iOS to count it as a significant change.
 const moves = [
   {lat: start.lat + 0.01, lon: start.lon},

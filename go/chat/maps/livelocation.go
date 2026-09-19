@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"sync"
 	"time"
 
@@ -40,6 +41,7 @@ type LiveLocationTracker struct {
 
 	nativeWatchMu   sync.Mutex
 	nativeWatchRefs int
+	fixThrottle     fixThrottle
 
 	// testing only
 	TestingCoordsAddedCh chan struct{}
@@ -317,6 +319,7 @@ func (l *LiveLocationTracker) acquireNativeWatch(w types.LocationWatcher) {
 	defer l.nativeWatchMu.Unlock()
 	l.nativeWatchRefs++
 	if l.nativeWatchRefs == 1 {
+		l.fixThrottle = fixThrottle{}
 		w.StartWatching()
 	}
 }
@@ -457,6 +460,63 @@ func (l *LiveLocationTracker) StartTracking(ctx context.Context, convID chat1.Co
 	l.trackers[t.Key()] = t
 	l.saveLocked(ctx)
 	l.eg.Go(func() error { return l.tracker(t) })
+}
+
+// backgroundFixDistance is how far, in meters, the device must move before a
+// native fix is recorded while the app is not in the foreground.
+const backgroundFixDistance = 65
+
+// earthRadiusMeters is the mean radius of the Earth.
+const earthRadiusMeters = 6371008.8
+
+// fixThrottle is what shouldRecordFix knows of the fixes since the native
+// watch started.
+type fixThrottle struct {
+	// prev is the latest fix, recorded or not; nil until the first one.
+	prev *chat1.Coordinate
+	// pendingDistance is how far the device has moved, fix to fix, since the
+	// last recorded fix.
+	pendingDistance float64
+}
+
+// shouldRecordFix decides whether a native fix gets recorded, and returns the
+// throttle to use for the next one. Out of the foreground a fix is recorded
+// only once the device has moved backgroundFixDistance since the last one
+// recorded. The first fix after the watch starts is recorded right away, so the
+// move that relaunched the app gets posted.
+func shouldRecordFix(state keybase1.MobileAppState, last fixThrottle, next chat1.Coordinate) (bool, fixThrottle) {
+	if last.prev != nil {
+		last.pendingDistance += distanceMeters(*last.prev, next)
+	}
+	record := last.prev == nil || state == keybase1.MobileAppState_FOREGROUND ||
+		last.pendingDistance >= backgroundFixDistance
+	last.prev = &next
+	if record {
+		last.pendingDistance = 0
+	}
+	return record, last
+}
+
+// distanceMeters is the great-circle distance between a and b.
+func distanceMeters(a, b chat1.Coordinate) float64 {
+	rad := func(deg float64) float64 { return deg * math.Pi / 180 }
+	dLat := rad(b.Lat - a.Lat)
+	dLon := rad(b.Lon - a.Lon)
+	h := math.Sin(dLat/2)*math.Sin(dLat/2) +
+		math.Cos(rad(a.Lat))*math.Cos(rad(b.Lat))*math.Sin(dLon/2)*math.Sin(dLon/2)
+	return 2 * earthRadiusMeters * math.Asin(math.Min(1, math.Sqrt(h)))
+}
+
+// NativeLocationUpdate takes a fix from the native location watcher, which
+// reports every fix, and records the ones shouldRecordFix lets through.
+func (l *LiveLocationTracker) NativeLocationUpdate(ctx context.Context, coord chat1.Coordinate) {
+	l.nativeWatchMu.Lock()
+	record, throttle := shouldRecordFix(l.G().MobileAppState.State(), l.fixThrottle, coord)
+	l.fixThrottle = throttle
+	l.nativeWatchMu.Unlock()
+	if record {
+		l.LocationUpdate(ctx, coord)
+	}
 }
 
 func (l *LiveLocationTracker) LocationUpdate(ctx context.Context, coord chat1.Coordinate) {
