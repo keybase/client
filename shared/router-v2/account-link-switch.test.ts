@@ -1,4 +1,5 @@
 /// <reference types="jest" />
+import * as T from '@/constants/types'
 import RPCError from '@/util/rpcerror'
 import {resetAllStores} from '@/util/zustand'
 import {subscribeIntentAccountSwitch} from './account-link-switch'
@@ -43,6 +44,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  jest.restoreAllMocks()
   unsub?.()
   unsub = undefined
   resetAllStores()
@@ -85,6 +87,16 @@ test('a tap for an account without a stored secret is dropped', () => {
   expect(useNavigationIntentsState.getState().intent).toBeUndefined()
 })
 
+// Dropped here means no navigation is ever coming for it, so this is where the tap's route must
+// be acked -- there is no other consumption point left to do it.
+test('a tap dropped for a missing stored secret acks its route', () => {
+  const ack = jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
+
+  enqueuePushTapRoute({id: 6161, targetUID: noSecretAccount.uid, url: 'keybase://convid/0000ab'})
+
+  expect(ack).toHaveBeenCalledWith({id: 6161})
+})
+
 test('nothing switches before the handshake is done', () => {
   useDaemonState.setState({handshakeState: 'loading'})
   tapFor(otherAccount.uid)
@@ -103,6 +115,16 @@ test('a login error drops the tap', () => {
   useConfigState.setState({loginError: new RPCError('bad', 1), userSwitching: false})
 
   expect(useNavigationIntentsState.getState().intent).toBeUndefined()
+})
+
+test('a login error dropping the tap acks its route', () => {
+  const ack = jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
+  enqueuePushTapRoute({id: 6262, targetUID: otherAccount.uid, url: 'keybase://convid/0000ab'})
+  expect(ack).not.toHaveBeenCalled()
+
+  useConfigState.setState({loginError: new RPCError('bad', 1), userSwitching: false})
+
+  expect(ack).toHaveBeenCalledWith({id: 6262})
 })
 
 test('logging out drops a tap for another account', () => {

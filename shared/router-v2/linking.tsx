@@ -97,6 +97,8 @@ const navigationIntentLifetimeMs = 5 * 60_000
 
 // The router owns consumption. Producers can enqueue before this subscription
 // exists, during an account switch, or before NavigationContainer is ready.
+// Every dispatch.acknowledge below -- whether the intent is actually navigated or given up on as
+// stale -- is also what acks a tap's route with the service, if the intent carries one.
 export const subscribeNavigationIntents = (
   listener: (url: string) => void,
   handleAppLink: (link: string) => void
@@ -266,7 +268,8 @@ const customGetStateFromPath = (
 
 // Known URLs become launch state; the rest open imperatively once the router is up.
 // setInitialURLOnce also consumes: markInitialURLHandled clears a pending intent with the
-// same URL, so subscribeNavigationIntents won't navigate to it a second time.
+// same URL, so subscribeNavigationIntents won't navigate to it a second time, and acks the
+// intent's tap route with the service if it carried one.
 const openInitialLink = (link: string, handleAppLink: (link: string) => void) => {
   if (isHandledByLinkingConfig(link)) return setInitialURLOnce(link)
   setInitialURLOnce(link)

@@ -1,4 +1,5 @@
 /// <reference types="jest" />
+import * as T from '@/constants/types'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
@@ -37,6 +38,37 @@ afterEach(() => {
   jest.restoreAllMocks()
   clearIntent()
   resetAllStores()
+})
+
+test('consuming an intent acks the tap route it carries', () => {
+  const ack = jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
+  const listener = jest.fn()
+  // The store notifies subscribers synchronously, so a ready router consumes (and acks) an
+  // enqueued intent before enqueuePushTapRoute below returns.
+  const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
+
+  enqueuePushTapRoute({id: 4242, targetUID: 'current-uid', url: 'keybase://convid/tap-conversation'})
+
+  expect(listener).toHaveBeenCalledWith('keybase://convid/tap-conversation')
+  expect(ack).toHaveBeenCalledWith({id: 4242})
+  unsubscribe()
+})
+
+test('a stale intent that is dropped without navigating still acks its tap route', () => {
+  const ack = jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
+  const now = jest.spyOn(Date, 'now')
+  now.mockReturnValue(1_000)
+  useConfigState.getState().dispatch.setUserSwitching(true)
+  const listener = jest.fn()
+  const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
+
+  enqueuePushTapRoute({id: 4343, targetUID: 'current-uid', url: 'keybase://convid/stale-tap'})
+  now.mockReturnValue(1_000 + 5 * 60_000 + 1)
+  useConfigState.getState().dispatch.setUserSwitching(false)
+
+  expect(listener).not.toHaveBeenCalled()
+  expect(ack).toHaveBeenCalledWith({id: 4343})
+  unsubscribe()
 })
 
 test('profile links route imperatively so their back stack is built', () => {

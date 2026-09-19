@@ -89,9 +89,12 @@ export const emitDeepLink = (url: string) => {
 // constants/init/shared). The service fills that holder from its push-tap bind
 // verb and nothing else, so a targetUID here can only have come from a real
 // notification tap, and no link another app opens can switch accounts.
-export const enqueuePushTapRoute = (route: {url: string; targetUID: string}) => {
+//
+// id is the Go route id: carried on the intent so whoever consumes it (or drops it for good) can
+// ack it there instead of here, since here the tap isn't queued yet, let alone acted on.
+export const enqueuePushTapRoute = (route: {url: string; targetUID: string; id?: number}) => {
   logger.info('[PushTap] queued a tap link:', route.url)
   useNavigationIntentsState
     .getState()
-    .dispatch.enqueue(route.url, {targetUid: route.targetUID || undefined})
+    .dispatch.enqueue(route.url, {pushTapID: route.id, targetUid: route.targetUID || undefined})
 }

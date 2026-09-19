@@ -16,6 +16,9 @@ const tapForOtherAccount = () => {
 // tap when the switch fails or the user logs out. Only enqueuePushTapRoute sets targetUid, and only
 // a route the service resolved from a real notification tap reaches it, so no link another app
 // opens can switch accounts.
+//
+// Both drops below go through dispatch.acknowledge, which also acks the tap's route with the
+// service -- there is no navigation coming for it, so this is where it is given up on for good.
 export const subscribeIntentAccountSwitch = () => {
   // userSwitching already gates a second login, but it is cleared by the replacement router's
   // onReady, which can run before the new uid lands; keying on the intent makes the switch

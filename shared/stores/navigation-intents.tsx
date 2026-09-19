@@ -1,12 +1,16 @@
+import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
+import logger from '@/logger'
 
 export type NavigationIntentOptions = {
+  pushTapID?: number
   targetUid?: string
 }
 
 type NavigationIntent = {
   createdAt: number
   id: number
+  pushTapID?: number
   targetUid?: string
   url: string
 }
@@ -33,15 +37,31 @@ type Store = {
 
 const duplicateWindowMs = 1500
 
+// A push tap's Go-side route is retired by an explicit ack, not by anything here clearing the
+// intent. Once an id has been queued, remembering it for the rest of the process is what keeps a
+// lost-ack redelivery (the route stays armed; see constants/init/shared's drainPushTapRoute) from
+// enqueuing -- and so navigating -- a second time. Module state, not store state: it must survive
+// resetState, which runs on every account switch this process makes.
+const seenPushTapIDs = new Set<number>()
+
+// Fires the ack once per id, regardless of how many times consumption is reported for it.
+const ackPushTap = (pushTapID: number | undefined) => {
+  if (pushTapID === undefined || seenPushTapIDs.has(pushTapID)) return
+  seenPushTapIDs.add(pushTapID)
+  T.RPCGen.appStateAckPushTapRouteRpcPromise({id: pushTapID}).catch((error: unknown) => {
+    logger.warn('[PushTap] failed to ack a consumed tap route: ', error)
+  })
+}
+
 export const useNavigationIntentsState = Z.createZustand<Store>(
   'navigation-intents',
   (set, get) => {
     let nextIntentID = 0
     const dispatch: Store['dispatch'] = {
       acknowledge: id => {
+        const intent = get().intent
+        if (intent?.id !== id) return
         set(s => {
-          const intent = s.intent
-          if (intent?.id !== id) return
           s.lastHandledIntent = {
             handledAt: Date.now(),
             targetUid: intent.targetUid,
@@ -49,11 +69,15 @@ export const useNavigationIntentsState = Z.createZustand<Store>(
           }
           s.intent = undefined
         })
+        ackPushTap(intent.pushTapID)
       },
       enqueue: (url, options) => {
         const now = Date.now()
-        const targetUid = options?.targetUid
+        const {pushTapID, targetUid} = options ?? {}
         const {intent: pending, lastHandledIntent} = get()
+        if (pushTapID !== undefined && (pending?.pushTapID === pushTapID || seenPushTapIDs.has(pushTapID))) {
+          return
+        }
         if (
           pending?.url === url &&
           (!pending.targetUid || !targetUid || pending.targetUid === targetUid)
@@ -82,15 +106,16 @@ export const useNavigationIntentsState = Z.createZustand<Store>(
           s.intent = {
             createdAt: now,
             id,
+            pushTapID,
             targetUid,
             url,
           }
         })
       },
       markInitialURLHandled: url => {
+        const pending = get().intent
+        const matchingPending = pending?.url === url ? pending : undefined
         set(s => {
-          const pending = s.intent
-          const matchingPending = pending?.url === url ? pending : undefined
           if (matchingPending) {
             s.intent = undefined
           }
@@ -100,6 +125,7 @@ export const useNavigationIntentsState = Z.createZustand<Store>(
             url,
           }
         })
+        ackPushTap(matchingPending?.pushTapID)
       },
       // Account changes call resetAllStores. Keep account-targeted navigation
       // across the reset, but discard unscoped work from the previous session.

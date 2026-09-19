@@ -234,21 +234,16 @@ export const applyMobileAppState = (state: T.RPCGen.MobileAppState) => {
   }
 }
 
-// Peek, queue, ack. A tapped notification's route waits in the service until the ack says it has
-// been queued, which is what makes a tap exactly-once. Reading it does not retire it: the peek's
-// reply can be lost on the way here, and losing it would lose the tap with nothing anywhere to say
-// so -- the app would simply open on the wrong screen. So queue first, then ack, and a peek that
-// never came back leaves the route armed for the next one.
+// Peek and queue. Reading the route does not retire it: the service acks only when navigation (or
+// account-link-switch, dropping a tap it cannot act on) has actually consumed the intent this
+// enqueues, which is what makes a tap exactly-once end to end. A peek whose reply is lost, or one
+// that repeats a tap already queued or consumed this run, is handled by enqueuePushTapRoute/the
+// intent store and costs nothing here.
 //
 // Run on connect, for a tap from before this connection (on iOS a background launch never starts a
 // client at all, so a tap can be arbitrarily older than the socket), and on pushTapRouteAvailable
 // for a tap during it. Both reach the same armed route, so neither can act on a tap the other
 // already did.
-// Ids number the taps of one service process, and on mobile the service is this process, so an id
-// means nothing across a restart of either side. That is why the sentinel is 0, which the service
-// never assigns, and why this is module state rather than anything durable: it must be forgotten
-// exactly when the ids it refers to stop meaning anything.
-let enqueuedPushTapID = 0
 const drainPushTapRoute = async () => {
   if (!isMobile) {
     return
@@ -258,22 +253,9 @@ const drainPushTapRoute = async () => {
     if (!route) {
       return
     }
-    // A repeat of a tap this run already queued means only that the ack did not land; re-queueing
-    // would navigate a second time, long after the intent store's own duplicate window has passed.
-    // A reload resets this, which is right: the intent store was reset with it.
-    if (route.id !== enqueuedPushTapID) {
-      // Recorded only once the queue actually took it. Recording first would mean a throw here
-      // left the route armed AND marked as queued, so the next peek would skip the queue and ack
-      // anyway -- retiring a tap that never reached the router, which is the loss this whole
-      // split exists to prevent. Both statements run before the await below, so two peeks in
-      // flight are still ordered by it.
-      enqueuePushTapRoute(route)
-      enqueuedPushTapID = route.id
-    }
-    await T.RPCGen.appStateAckPushTapRouteRpcPromise({id: route.id})
+    enqueuePushTapRoute(route)
   } catch (error) {
-    // Nothing is lost by failing here: the route is retired only by an ack that arrived.
-    logger.warn('[PushTap] failed to drain a tap route, leaving it armed: ', error)
+    logger.warn('[PushTap] failed to peek a tap route, leaving it armed: ', error)
   }
 }
 

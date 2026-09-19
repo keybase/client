@@ -49,6 +49,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  jest.restoreAllMocks()
   handleAppLink.mockReset()
   // resetAllStores deliberately keeps account-targeted intents; drop them here.
   const {intent, dispatch} = useNavigationIntentsState.getState()
@@ -99,6 +100,17 @@ test('a cold tap for the current account is the startup route, ahead of saved st
 
   await expect(getInitialURL()).resolves.toBe('keybase://convid/0000ab')
   expect(useNavigationIntentsState.getState().intent).toBeUndefined()
+})
+
+test('getInitialURL taking a cold tap acks its route', async () => {
+  const ack = jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
+  setStartup({conversation: 'conv-1'})
+  enqueuePushTapRoute({id: 5151, targetUID: 'current-uid', url: 'keybase://convid/0000ab'})
+  expect(ack).not.toHaveBeenCalled()
+
+  await expect(getInitialURL()).resolves.toBe('keybase://convid/0000ab')
+
+  expect(ack).toHaveBeenCalledWith({id: 5151})
 })
 
 test('a cold tap for another account opens saved state and waits for the switch', async () => {
