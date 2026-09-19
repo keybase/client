@@ -226,6 +226,16 @@ func (c *Controller) setUILocked(ui UIState) {
 	c.ui = ui
 }
 
+// runningTaskLocked returns the open background task hold's id, or 0.
+func (c *Controller) runningTaskLocked() int64 {
+	for id, h := range c.holds {
+		if h.reason == ReasonBackgroundTask {
+			return id
+		}
+	}
+	return 0
+}
+
 // startTaskLocked opens a background task hold and runs the task that keeps
 // it until the work is done. A background task hold that is already open is
 // reused instead, so one task at a time keeps the app up and warns about
@@ -234,10 +244,8 @@ func (c *Controller) startTaskLocked(deps BackgroundTaskDeps) int64 {
 	if c.closed {
 		return 0
 	}
-	for id, h := range c.holds {
-		if h.reason == ReasonBackgroundTask {
-			return id
-		}
+	if id := c.runningTaskLocked(); id != 0 {
+		return id
 	}
 	h := c.acquireLocked(ReasonBackgroundTask)
 	c.wg.Add(1)
@@ -296,9 +304,19 @@ func (c *Controller) UIInactive() {
 // which keeps the app BACKGROUNDACTIVE while work must keep going and ends at
 // once when none does. It returns the task hold's token for
 // WaitBackgroundTask, or 0 once the controller is closed.
+//
+// A report while the UI is already in the background starts nothing -- a new
+// task would take the app through BACKGROUNDACTIVE and back for no reason. It
+// returns the running task's token, or 0. Android reports this after a
+// finishing activity's willExit, once the process stops.
 func (c *Controller) UIBackground(deps BackgroundTaskDeps) int64 {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	if c.ui == UIBackground {
+		token := c.runningTaskLocked()
+		c.debugLocked("uiBackground", "already in the background, background task hold %d", token)
+		return token
+	}
 	c.setUILocked(UIBackground)
 	token := c.startTaskLocked(deps)
 	c.applyLocked()
@@ -368,16 +386,16 @@ func (c *Controller) PushWindowBegin() int64 {
 	return h.id
 }
 
-// PushWindowEnd ends the push window's hold. If allowTask and the UI is still
-// in the background, it first hands over to a background task, which keeps the
-// app up while work must keep going. The token it returns is for the test
-// harness; native ignores it.
-func (c *Controller) PushWindowEnd(token int64, allowTask bool, deps BackgroundTaskDeps) int64 {
+// PushWindowEnd ends the push window's hold. If the UI is still in the
+// background, it first hands over to a background task, which keeps the app
+// up while work must keep going. The token it returns is for the test harness;
+// native ignores it.
+func (c *Controller) PushWindowEnd(token int64, deps BackgroundTaskDeps) int64 {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	var task int64
 	if h, ok := c.holds[token]; ok && h.reason == ReasonPushWindow {
-		if allowTask && c.ui == UIBackground {
+		if c.ui == UIBackground {
 			task = c.startTaskLocked(deps)
 		}
 		c.dropLocked(func(o *Hold) bool { return o == h })

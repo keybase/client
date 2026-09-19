@@ -1043,7 +1043,8 @@ func shouldStayRunningInBackground() bool {
 
 // AppUIBackground reports the app off screen. It returns at once, with a
 // token for AppWaitBackgroundTask, which returns once Go needs no more time
-// in the background; 0 before Init.
+// in the background. It is 0 before Init, and when the UI was already in the
+// background with no background task running.
 func AppUIBackground(pusher PushNotifier) int64 {
 	if !isInited() {
 		return 0
@@ -1052,10 +1053,10 @@ func AppUIBackground(pusher PushNotifier) int64 {
 	return kbCtx.MobileLifecycle.UIBackground(backgroundTaskDeps(pusher))
 }
 
-// inPushWindow runs work, which handles a push or a notification action,
-// holding a backgrounded app up while it runs. work learns whether the UI is
-// active, in which case nothing is held. pusher warns about messages that
-// won't send if the window hands over to a background task.
+// inPushWindow runs work, which handles a push or a notification action. On
+// Android it holds a backgrounded app up while work runs, and work learns
+// whether the UI is active, in which case nothing is held. pusher warns about
+// messages that won't send if the window hands over to a background task.
 func inPushWindow(pusher PushNotifier, work func(uiActive bool) error) error {
 	if !isInited() {
 		return work(false)
@@ -1066,16 +1067,18 @@ func inPushWindow(pusher PushNotifier, work func(uiActive bool) error) error {
 func runPushWindow(lc *lifecycle.Controller, goos string, deps lifecycle.BackgroundTaskDeps,
 	work func(uiActive bool) error,
 ) error {
+	if goos != "android" {
+		// iOS handles a push within the time it grants for it and suspends the
+		// app at the completion handler, so nothing needs holding up; a window
+		// would only take the app through BACKGROUNDACTIVE and back. work only
+		// uses uiActive on Android.
+		return work(false)
+	}
 	token := lc.PushWindowBegin()
 	if token == 0 {
 		return work(true)
 	}
-	defer func() {
-		// iOS suspends the app once native calls the push's completion handler,
-		// right after this returns, so a background task started here would
-		// leave it suspended in BACKGROUNDACTIVE.
-		lc.PushWindowEnd(token, goos == "android", deps)
-	}()
+	defer lc.PushWindowEnd(token, deps)
 	return work(false)
 }
 

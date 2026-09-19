@@ -44,10 +44,13 @@ const (
 	// Native lifecycle events, as native reports them: willEnterForeground and
 	// willResignActive are UIInactive, didBecomeActive is UIActive,
 	// didEnterBackground is UIBackground. PushWindowBegin and PushWindowEnd
-	// bracket a push or notification action, as the bind layer handles one.
+	// bracket a push or notification action, as the bind layer handles one:
+	// on iOS they don't reach the controller and return false.
 	// DidEnterBackground, and PushWindowEnd when it hands over, start a
 	// background task: they wait until it is polling and return true, or until
-	// it has ended at once, with nothing to keep running, and return false.
+	// it has ended at once, with nothing to keep running, and return false. A
+	// DidEnterBackground while the UI is already in the background starts
+	// nothing: it returns true if it joined a running task, false otherwise.
 	WillEnterForeground
 	DidBecomeActive
 	WillResignActive
@@ -306,23 +309,22 @@ func (h *Harness) perform(step Step) bool {
 	case DidBecomeActive:
 		c.UIActive()
 	case DidEnterBackground:
-		return h.startsTask(func() int64 {
-			token := c.UIBackground(h.deps())
-			require.NotZero(h.T, token, "UIBackground always starts a background task")
-			return token
-		})
+		return h.startsTask(func() int64 { return c.UIBackground(h.deps()) })
 	case WillTerminate:
 		c.WillTerminate(h.warn)
 	case BackgroundTaskExpired:
 		c.BackgroundTaskExpired(h.warn)
 	case PushWindowBegin:
+		if h.Platform != Android {
+			return false
+		}
 		h.tokens[step.Slot] = c.PushWindowBegin()
 		return h.tokens[step.Slot] > 0
 	case PushWindowEnd:
-		// The bind layer never hands a push window over to a background task
-		// on iOS.
-		allowTask := h.Platform == Android
-		return h.startsTask(func() int64 { return c.PushWindowEnd(h.tokens[step.Slot], allowTask, h.deps()) })
+		if h.Platform != Android {
+			return false
+		}
+		return h.startsTask(func() int64 { return c.PushWindowEnd(h.tokens[step.Slot], h.deps()) })
 	case LiveLocationAcquire:
 		h.liveLocation = c.AcquireBackgroundWork()
 	case LiveLocationRelease:
@@ -427,7 +429,7 @@ func NoWork() lifecycle.BackgroundTaskDeps {
 }
 
 // ToBackground reports the UI in the background with nothing to keep running,
-// and returns once the background task that starts has ended.
+// and returns once the background task that starts, if any, has ended.
 func ToBackground(c *lifecycle.Controller) {
 	c.WaitBackgroundTask(c.UIBackground(NoWork()))
 }

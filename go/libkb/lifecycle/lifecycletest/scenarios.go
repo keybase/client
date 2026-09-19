@@ -70,14 +70,14 @@ var iosToBackgroundTask = []Step{
 var Scenarios = []Scenario{
 	{Name: "ios cold foreground launch", Platform: IOS, Steps: toForeground, Observed: states(bg, ina, fg)},
 	{
-		Name:     "ios background launch by silent push holds the app up for the push, then foreground",
+		// iOS handles a push within the time it grants for it, so nothing is held.
+		Name:     "ios background launch by silent push stays in BACKGROUND, then foreground",
 		Platform: IOS,
 		Steps: steps([]Step{
-			step(PushWindowBegin, bga).returns(true),
-			step(PushWindowEnd, bg).flush().returns(false),
-			step(BackgroundTaskExpired, bg),
+			step(PushWindowBegin, bg).returns(false),
+			step(PushWindowEnd, bg).returns(false),
 		}, toForeground),
-		Observed: states(bg, bga, bg, ina, fg),
+		Observed: states(bg, ina, fg),
 	},
 	{
 		Name:     "ios silent push while active holds nothing",
@@ -96,10 +96,10 @@ var Scenarios = []Scenario{
 			step(WillResignActive, ina),
 			step(DidEnterBackground, bg).flushes(2).returns(false),
 			step(WorkStarts, bg),
-			step(PushWindowBegin, bga).returns(true),
-			step(PushWindowEnd, bg).flush().returns(false),
+			step(PushWindowBegin, bg).returns(false),
+			step(PushWindowEnd, bg).returns(false),
 		}),
-		Observed: states(bg, ina, fg, ina, bga, bg, bga, bg),
+		Observed: states(bg, ina, fg, ina, bga, bg),
 	},
 	{
 		Name:     "ios background launch by BGAppRefresh, then foreground",
@@ -128,7 +128,7 @@ var Scenarios = []Scenario{
 			step(WillResignActive, ina),
 			step(WillResignActive, ina),
 			step(DidEnterBackground, bg).flushes(2).returns(false),
-			step(DidEnterBackground, bg).flush().returns(false),
+			step(DidEnterBackground, bg).returns(false),
 			step(WillEnterForeground, ina),
 			step(WillEnterForeground, ina),
 			step(DidBecomeActive, fg),
@@ -141,7 +141,7 @@ var Scenarios = []Scenario{
 			step(WillEnterForeground, ina),
 			step(DidBecomeActive, fg),
 		}),
-		Observed: states(bg, ina, fg, ina, bga, bg, bga, bg, ina, fg, ina, fg, ina, bga, bg, ina, fg),
+		Observed: states(bg, ina, fg, ina, bga, bg, ina, fg, ina, fg, ina, bga, bg, ina, fg),
 	},
 	{
 		Name:     "ios control center or system alert keeps things up",
@@ -292,8 +292,9 @@ var Scenarios = []Scenario{
 		Observed: states(bg, ina, fg, ina, bga, bg, bga, bg, bga, ina, fg, ina, bga, bg),
 	},
 	{
-		// iOS can report didEnterBackground twice; the second report joins the
-		// running task instead of starting another that would warn again.
+		// A repeat didEnterBackground is defensive: a single-scene iOS app
+		// doesn't report twice. It joins the running task instead of starting
+		// another that would warn again.
 		Name:     "ios duplicate didEnterBackground keeps one background task",
 		Platform: IOS,
 		Steps: steps(toForeground, iosToBackgroundTask, []Step{
@@ -364,6 +365,18 @@ var Scenarios = []Scenario{
 			step(BackgroundTaskWait, fg),
 		}),
 		Observed: states(bg, ina, fg, bga, bg, ina, fg, bga, ina, fg),
+	},
+	{
+		// A finishing activity reports willExit while visible; the process stop
+		// that follows reports the background again, which starts nothing.
+		Name:     "android willExit then process stop",
+		Platform: Android,
+		Steps: steps(toForeground, []Step{
+			step(WillTerminate, bg).flush().warn(),
+			step(WorkStarts, bg),
+			step(DidEnterBackground, bg).returns(false),
+		}),
+		Observed: states(bg, ina, fg, bg),
 	},
 	{
 		Name:     "android dialog, permission prompt or picker pause keeps the foreground",

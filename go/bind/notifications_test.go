@@ -128,8 +128,10 @@ func TestBackgroundNotificationOpensAndClosesPushWindow(t *testing.T) {
 			defer tc.Cleanup()
 			h := lifecycletest.NewHarness(t, libkb.NewMobileAppState(tc.G), platform)
 			defer h.Close()
+			h.Controller.UIInactive()
 			lifecycletest.ToBackground(h.Controller)
 			require.Equal(t, bg, h.AppState.State())
+			seen := len(h.Recorder.States())
 
 			unboxFailed := errors.New("unbox failed")
 			var during keybase1.MobileAppState
@@ -139,10 +141,13 @@ func TestBackgroundNotificationOpensAndClosesPushWindow(t *testing.T) {
 				return unboxFailed
 			})
 			require.ErrorIs(t, err, unboxFailed)
-			require.Equal(t, bga, during, "the push is handled in BACKGROUNDACTIVE")
 			if platform == lifecycletest.IOS {
-				require.Equal(t, bg, h.AppState.State(), "iOS suspends at the completion handler; nothing stays up")
+				require.Equal(t, bg, during, "iOS handles the push without holding the app up")
+				require.Equal(t, bg, h.AppState.State())
+				h.Recorder.Sync(t)
+				require.Len(t, h.Recorder.States(), seen, "the push never reached the controller")
 			} else {
+				require.Equal(t, bga, during, "the push is handled in BACKGROUNDACTIVE")
 				require.Equal(t, bga, h.AppState.State(), "a background task keeps sending")
 				h.Controller.BackgroundTaskExpired(func() {})
 				require.Equal(t, bg, h.AppState.State(), "the background task held the app, not the push window")
@@ -151,7 +156,7 @@ func TestBackgroundNotificationOpensAndClosesPushWindow(t *testing.T) {
 			h.Controller.UIActive()
 			ran := false
 			require.NoError(t, runPushWindow(h.Controller, platform.String(), pendingDeliveryDeps(), func(uiActive bool) error {
-				require.True(t, uiActive)
+				require.Equal(t, platform == lifecycletest.Android, uiActive, "only Android's work asks")
 				ran = true
 				return nil
 			}))

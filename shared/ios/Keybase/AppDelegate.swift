@@ -471,7 +471,8 @@ final class AppLifecycleForwarder {
       self.runBounded { Keybasego.KeybaseAppBackgroundTaskExpired(PushNotifier()) }
       end()
     }
-    // 0 only while Go isn't running (before Init, after shutdown).
+    // 0 while Go isn't running (before Init, after shutdown), and when the UI
+    // was already in the background with no Go background task running.
     let token = Keybasego.KeybaseAppUIBackground(PushNotifier())
     guard token > 0 else {
       end()

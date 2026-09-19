@@ -78,6 +78,7 @@ func TestNoTaskStartsAfterClose(t *testing.T) {
 	c := lifecycle.New(appState, lifecycle.Config{})
 	c.Close()
 
+	c.UIInactive()
 	require.Zero(t, c.UIBackground(noDeliveries(true)), "UIBackground started a task after Close")
 	require.Zero(t, lifecycle.Holds(c))
 	require.Equal(t, background, appState.State())
@@ -87,7 +88,7 @@ func TestNoTaskStartsAfterClose(t *testing.T) {
 	push := c.PushWindowBegin()
 	require.Positive(t, push)
 	require.Equal(t, backgroundActive, appState.State())
-	require.Zero(t, c.PushWindowEnd(push, true, noDeliveries(true)), "PushWindowEnd started a task after Close")
+	require.Zero(t, c.PushWindowEnd(push, noDeliveries(true)), "PushWindowEnd started a task after Close")
 	require.Zero(t, lifecycle.Holds(c))
 	require.Equal(t, background, appState.State())
 }
@@ -97,6 +98,7 @@ func TestExpirationEndsOnlyBackgroundTaskHolds(t *testing.T) {
 	appState.Update(background)
 	c := lifecycle.New(appState, lifecycle.Config{})
 	defer c.Close()
+	c.UIInactive()
 	require.Positive(t, c.UIBackground(noDeliveries(true)))
 	push := c.PushWindowBegin()
 	live := c.AcquireBackgroundWork()
@@ -107,7 +109,7 @@ func TestExpirationEndsOnlyBackgroundTaskHolds(t *testing.T) {
 	require.Equal(t, backgroundActive, appState.State())
 	c.BackgroundTaskExpired(func() { notified++ })
 	require.Equal(t, 1, notified, "nothing was left to expire")
-	require.Zero(t, c.PushWindowEnd(push, false, noDeliveries(true)))
+	c.WaitBackgroundTask(c.PushWindowEnd(push, noDeliveries(false)))
 	require.True(t, live.Release())
 	require.Equal(t, background, appState.State())
 }
@@ -135,6 +137,7 @@ func TestBackgroundTaskStartsJoinTheRunningTask(t *testing.T) {
 	}
 	deps.NotifyFailure = func([]chat1.OutboxRecord) { notified.Add(1) }
 
+	c.UIInactive()
 	first := c.UIBackground(deps)
 	require.Positive(t, first)
 	select {
@@ -144,7 +147,7 @@ func TestBackgroundTaskStartsJoinTheRunningTask(t *testing.T) {
 	}
 	require.Equal(t, first, c.UIBackground(deps), "a duplicate didEnterBackground")
 	push := c.PushWindowBegin()
-	require.Equal(t, first, c.PushWindowEnd(push, true, deps), "a push window's end")
+	require.Equal(t, first, c.PushWindowEnd(push, deps), "a push window's end")
 	require.Equal(t, 1, lifecycle.Holds(c))
 
 	// The outbox tells every watcher about a failure.
@@ -172,6 +175,7 @@ func startPolledTask(t *testing.T, maxDuration time.Duration, deps lifecycle.Bac
 		BackgroundTaskMaxDuration:  maxDuration,
 	})
 	t.Cleanup(c.Close)
+	c.UIInactive()
 	token := c.UIBackground(deps)
 	require.Positive(t, token)
 	done = make(chan struct{})
@@ -303,7 +307,7 @@ func TestHoldsStress(t *testing.T) {
 				if r.Intn(2) == 0 {
 					time.Sleep(time.Duration(r.Intn(100)) * time.Microsecond)
 				}
-				c.PushWindowEnd(token, r.Intn(2) == 0, noDeliveries(r.Intn(3) == 0))
+				c.PushWindowEnd(token, noDeliveries(r.Intn(3) == 0))
 			})
 			runOwner(func(*rand.Rand) { c.BackgroundSync() })
 			runOwner(func(*rand.Rand) { c.BackgroundTaskExpired(noop) })
