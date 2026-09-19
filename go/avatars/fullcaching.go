@@ -214,9 +214,9 @@ func (c *FullCachingSource) StartBackgroundTasks(mctx libkb.MetaContext) {
 	}
 	c.started = true
 	c.bgFlusher.start(mctx, func(m libkb.MetaContext) {
-		c.debug(m, "monitorAppState: backgrounded")
+		c.debug(m, "backgroundFlusher: flushing diskLRU")
 		if err := c.diskLRU.Flush(m.Ctx(), m.G()); err != nil {
-			c.debug(m, "monitorAppState: unable to flush diskLRU %v", err)
+			c.debug(m, "backgroundFlusher: unable to flush diskLRU %v", err)
 		}
 	})
 	c.populateCacheCh = make(chan populateArg, 100)

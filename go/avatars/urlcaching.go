@@ -32,7 +32,7 @@ func NewURLCachingSource(staleThreshold time.Duration, size int) *URLCachingSour
 
 func (c *URLCachingSource) StartBackgroundTasks(m libkb.MetaContext) {
 	c.bgFlusher.start(m, func(m libkb.MetaContext) {
-		c.debug(m, "monitorAppState: backgrounded")
+		c.debug(m, "backgroundFlusher: flushing diskLRU")
 		c.diskLRU.Flush(m.Ctx(), m.G())
 	})
 }

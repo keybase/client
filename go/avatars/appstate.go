@@ -26,16 +26,20 @@ func (f *backgroundFlusher) start(m libkb.MetaContext, flush func(libkb.MetaCont
 	f.stopCh = make(chan struct{})
 	f.doneCh = make(chan struct{})
 	stopCh, doneCh := f.stopCh, f.doneCh
+	// Armed here, not in the goroutine, so a change made before the goroutine
+	// first runs still wakes it.
 	state := m.G().MobileAppState.State()
+	changed := m.G().MobileAppState.NextUpdate(state)
 	go func() {
 		defer close(doneCh)
 		for {
 			select {
-			case <-m.G().MobileAppState.NextUpdate(state):
+			case <-changed:
 			case <-stopCh:
 				return
 			}
 			state = m.G().MobileAppState.State()
+			changed = m.G().MobileAppState.NextUpdate(state)
 			if state == keybase1.MobileAppState_BACKGROUND {
 				flush(m)
 				f.mu.Lock()
