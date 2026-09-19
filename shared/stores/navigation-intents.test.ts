@@ -11,6 +11,11 @@ const clearIntent = () => {
   dispatch.resetState()
 }
 
+let ack: jest.SpyInstance
+beforeEach(() => {
+  ack = jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
+})
+
 afterEach(() => {
   clearIntent()
   jest.restoreAllMocks()
@@ -118,7 +123,6 @@ test('clears duplicate history across the account store reset', () => {
 // locally while the service still thinks the route is armed, so acking it is a distinct, explicit
 // step -- never implied by enqueuing.
 test('enqueuing a tap does not ack its route', () => {
-  const ack = jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
   const dispatch = useNavigationIntentsState.getState().dispatch
   const id = pushTapID()
 
@@ -128,7 +132,6 @@ test('enqueuing a tap does not ack its route', () => {
 })
 
 test('acknowledging a tapped intent acks its route', () => {
-  const ack = jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
   const dispatch = useNavigationIntentsState.getState().dispatch
   const id = pushTapID()
   dispatch.enqueue('keybase://convid/tap-target', {pushTapID: id})
@@ -139,7 +142,6 @@ test('acknowledging a tapped intent acks its route', () => {
 })
 
 test('acknowledging a plain deep link never calls the tap ack', () => {
-  const ack = jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
   const dispatch = useNavigationIntentsState.getState().dispatch
   dispatch.enqueue('keybase://convid/no-tap')
 
@@ -149,7 +151,6 @@ test('acknowledging a plain deep link never calls the tap ack', () => {
 })
 
 test('markInitialURLHandled acks the tapped route it clears', () => {
-  const ack = jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
   const dispatch = useNavigationIntentsState.getState().dispatch
   const id = pushTapID()
   dispatch.enqueue('keybase://convid/cold-start-tap', {pushTapID: id})
@@ -177,7 +178,6 @@ test('re-enqueuing a still-pending tap id does not replace or duplicate the inte
 // service never retired it -- must not navigate a second time, however long ago that was, but the
 // ack itself is retried: nothing else will ever ask the service to retire that route again.
 test('re-enqueuing an already-consumed tap id retries the ack without navigating again', () => {
-  const ack = jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
   const dispatch = useNavigationIntentsState.getState().dispatch
   const id = pushTapID()
   dispatch.enqueue('keybase://convid/tap-target', {pushTapID: id})
@@ -197,7 +197,6 @@ test('re-enqueuing an already-consumed tap id retries the ack without navigating
 // ones enqueue and resetState can take that acknowledge/markInitialURLHandled do not cover.
 
 test('merging a newer tap into the same-URL pending intent adopts its id instead of acking the old one', () => {
-  const ack = jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
   const dispatch = useNavigationIntentsState.getState().dispatch
   const older = pushTapID()
   const newer = pushTapID()
@@ -217,7 +216,6 @@ test('merging a newer tap into the same-URL pending intent adopts its id instead
 })
 
 test('a tap enqueued again inside the duplicate window of its own navigation acks immediately', () => {
-  const ack = jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
   const dispatch = useNavigationIntentsState.getState().dispatch
   const first = pushTapID()
   dispatch.enqueue('keybase://convid/duplicate-window', {pushTapID: first})
@@ -236,7 +234,6 @@ test('a tap enqueued again inside the duplicate window of its own navigation ack
 })
 
 test('a pending tap superseded by an unrelated enqueue acks the route it loses', () => {
-  const ack = jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
   const dispatch = useNavigationIntentsState.getState().dispatch
   const id = pushTapID()
   dispatch.enqueue('keybase://convid/superseded-tap', {pushTapID: id})
@@ -250,7 +247,6 @@ test('a pending tap superseded by an unrelated enqueue acks the route it loses',
 })
 
 test('resetState acks the tap route of an unscoped intent it discards', () => {
-  const ack = jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
   const dispatch = useNavigationIntentsState.getState().dispatch
   const id = pushTapID()
   // No targetUid: a contact-joined push tap, which never carries an account.
@@ -263,7 +259,6 @@ test('resetState acks the tap route of an unscoped intent it discards', () => {
 })
 
 test('resetState does not ack a targeted intent it keeps', () => {
-  const ack = jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
   const dispatch = useNavigationIntentsState.getState().dispatch
   const id = pushTapID()
   dispatch.enqueue('keybase://convid/kept-across-reset', {pushTapID: id, targetUid: 'target-uid'})

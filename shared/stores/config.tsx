@@ -264,16 +264,14 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
             },
             waitingKey: waitingKeyConfigLogin,
           })
+          // The session arrives as a clientState, which can come before or after this reply.
           logger.info('login call succeeded')
-          get().dispatch.setLoggedIn(true)
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return
           }
-          if (error.code === T.RPCGen.StatusCode.scalreadyloggedin) {
-            get().dispatch.setLoggedIn(true)
-          } else if (error.desc !== cancelDesc) {
-            // If we're canceling then ignore the error
+          // Already logged in: a clientState has said so, or will. Canceling: nothing to report.
+          if (error.code !== T.RPCGen.StatusCode.scalreadyloggedin && error.desc !== cancelDesc) {
             error.desc = niceError(error)
             get().dispatch.setLoginError(error)
           }

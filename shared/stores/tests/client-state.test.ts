@@ -193,6 +193,19 @@ describe('an account switch', () => {
     expect(useCurrentUserState.getState().uid).toBe('')
   })
 
+  test('logged in with no current user yet is not a switch', () => {
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    markAccountState()
+    const {changes, unsub} = loginChanges()
+
+    applyClientState(clientState())
+    unsub()
+
+    expect(changes).toEqual([])
+    expect(accountStateCleared()).toBe(false)
+    expect(useCurrentUserState.getState().uid).toBe('u1')
+  })
+
   test('the same user again is not a switch', () => {
     applyClientState(clientState())
     markAccountState()

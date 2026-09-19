@@ -15,8 +15,8 @@ const noSecretAccount = {hasStoredSecret: false, uid: 'uid-nosecret', username: 
 const allAccounts = [currentAccount, otherAccount, noSecretAccount]
 
 // A push tap's id must not repeat across tests any more than it does across taps, so every call
-// here gets a fresh one; the ack RPC is mocked below so a leftover, still-pending intent from a
-// previous test can be acknowledged in cleanup without an unmocked RPC call.
+// here gets a fresh one; the ack RPC stays mocked until cleanup has acknowledged a still-pending
+// intent, so that acknowledgement makes no real RPC call.
 let nextTapID = 9000
 const tapFor = (uid: string) =>
   enqueuePushTapRoute({id: ++nextTapID, targetUID: uid, url: 'keybase://convid/0000ab'})
@@ -28,12 +28,15 @@ const setAccounts = (configuredAccounts: typeof allAccounts) => {
   useConfigState.setState({configuredAccounts})
 }
 
+// navigation-intents' resetState deliberately keeps account-targeted intents.
+const clearIntent = () => {
+  const {intent, dispatch} = useNavigationIntentsState.getState()
+  if (intent) dispatch.acknowledge(intent.id)
+}
+
 beforeEach(() => {
   jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
   login = jest.fn()
-  // navigation-intents' resetState deliberately keeps account-targeted intents.
-  const {intent, dispatch} = useNavigationIntentsState.getState()
-  if (intent) dispatch.acknowledge(intent.id)
   useNavigationIntentsState.setState({lastHandledIntent: undefined})
   useDaemonState.setState({handshakeState: 'done'})
   useCurrentUserState.setState({uid: currentAccount.uid, username: currentAccount.username})
@@ -49,10 +52,11 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  jest.restoreAllMocks()
   unsub?.()
   unsub = undefined
+  clearIntent()
   resetAllStores()
+  jest.restoreAllMocks()
 })
 
 test('a tap for the current account does not switch', () => {

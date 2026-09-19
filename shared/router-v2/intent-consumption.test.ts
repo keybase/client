@@ -36,9 +36,9 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  jest.restoreAllMocks()
   clearIntent()
   resetAllStores()
+  jest.restoreAllMocks()
 })
 
 test('consuming an intent acks the tap route it carries', () => {

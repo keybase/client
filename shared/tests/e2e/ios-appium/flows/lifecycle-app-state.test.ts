@@ -28,11 +28,13 @@ import {
 // Log lines these flows rely on:
 // - Go (ios.log): "lifecycle: <uiActive|uiInactive|uiBackground|…>: …" per native UI report,
 //   "MobileAppState.Update: useful update: <STATE>" per Go app state change,
-//   "Srv: start: addr: <address>" when the image server (re)starts.
+//   "Srv: start: addr: <address>" when the image server starts on a new address,
+//   "kbhttp.Srv: server starting on: <address>" on every start of a Go http server.
 // - Metro (JS): "app focus changed: <state>" when the shell store's app state changes.
-// The cold launch test requires a match, so an empty result in the Notification Center test
-// means no restart, not a pattern that no longer matches Go's log.
+// The cold launch test requires a match of each server line, so an empty result in the
+// Notification Center test means no restart, not a pattern that no longer matches Go's log.
 const httpSrvStarted = /Srv: start: addr: /
+const httpSrvStartedAny = /kbhttp\.Srv: server starting on: /
 describe('app lifecycle: app state', () => {
   it('cold launch reaches active under scenes and serves images', async () => {
     const user = requireSmokeUser()
@@ -52,6 +54,7 @@ describe('app lifecycle: app state', () => {
     // JS must hold the address of the server Go started, not a stale one.
     const started = findLines(goLogSince(goMark), httpSrvStarted).at(-1) ?? ''
     expect(started).toContain(`addr: ${snap.httpSrv.address} `)
+    expect(findLines(goLogSince(goMark), httpSrvStartedAny).length).toBeGreaterThanOrEqual(1)
 
     const avatar = await waitForAvatar200(user)
     expect(avatar.status).toBe(200)
@@ -175,7 +178,7 @@ describe('app lifecycle: app state', () => {
       expect.stringMatching(/app focus changed: inactive$/),
       expect.stringMatching(/app focus changed: active$/),
     ])
-    expect(findLines(goLogSince(goMark), httpSrvStarted)).toEqual([])
+    expect(findLines(goLogSince(goMark), httpSrvStartedAny)).toEqual([])
     expect((await appSnapshot()).httpSrv.address).toBe(before.httpSrv.address)
   })
 })

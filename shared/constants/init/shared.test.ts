@@ -4,6 +4,8 @@ import {resetAllStores} from '@/util/zustand'
 import {ignorePromise} from '@/constants/utils'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
+import {useRouterState} from '@/stores/router'
+import {useShellState} from '@/stores/shell'
 import {
   applyClientState,
   initSharedSubscriptions,
@@ -254,6 +256,10 @@ describe('sessionSettledStep', () => {
   })
 
   test('is one of the handshake steps', () => {
+    // Nothing here tears the subscriptions down, so none may outlive the test.
+    for (const store of [useConfigState, useShellState, useRouterState]) {
+      jest.spyOn(store, 'subscribe').mockReturnValue(() => {})
+    }
     const originalDaemonDispatch = useDaemonState.getState().dispatch
     let steps: ReadonlyArray<unknown> = []
     useDaemonState.setState({

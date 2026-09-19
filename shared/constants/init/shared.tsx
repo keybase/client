@@ -276,8 +276,8 @@ const awaitSessionAgain = () => {
 // The service's clientState: the session, the http server address and the app state, read when it
 // was sent. It rides the same ordered stream as every notification that changes them, and for each
 // of them the last message to arrive carries the latest value, so everything is applied in arrival
-// order. It comes first on subscribing, after every completed login and logout and every cleared
-// session, and once the service's startup login attempt settles.
+// order. It comes first on subscribing, after every session change, and once the service's startup
+// login attempt settles.
 export const applyClientState = (clientState: T.RPCGen.ClientState) => {
   const {appState, httpSrvInfo, session} = clientState
   // On iOS JS never starts on a background launch, so it can have missed every change since the
@@ -301,8 +301,9 @@ export const applyClientState = (clientState: T.RPCGen.ClientState) => {
   }
   // A logged-in clientState for another user than the one we are logged in as is a logout and then
   // a login, however it reached us -- with or without a logged-out clientState before it. Logging
-  // out is what clears the previous account's stores.
-  if (useConfigState.getState().loggedIn && uid !== useCurrentUserState.getState().uid) {
+  // out is what clears the previous account's stores. Logged in with no current user is no switch.
+  const currentUid = useCurrentUserState.getState().uid
+  if (useConfigState.getState().loggedIn && currentUid && uid !== currentUid) {
     configDispatch.setLoggedIn(false)
   }
   // identity before the session: setLoggedIn fans out synchronously, and every subscriber of a

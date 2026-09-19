@@ -674,9 +674,8 @@ describe('addMessagesToThreadState', () => {
   })
 })
 
-// The service keeps its last-bound address in Info()/getURL forever once it has bound once (see
-// go/kbhttp/manager.Srv.Info), so a message update can no longer carry a URL that regresses a
-// good one to empty: an update now always simply takes whatever the service sent.
+// The service keeps its last-bound address in Info()/getURL once it has bound (go/kbhttp/manager
+// Srv.Info), so an update takes whatever URL the service sent.
 describe('local server urls', () => {
   const textAt = (ord: number, override?: Omit<Partial<T.Chat.MessageText>, 'text'>) =>
     makeTextMessage({
@@ -696,7 +695,7 @@ describe('local server urls', () => {
     )
   })
 
-  test('an empty url in an update now overwrites an existing one', () => {
+  test('an empty url in an update overwrites an existing one', () => {
     const state = makeThreadState([])
     addMessagesToThreadState(
       state,

@@ -14,8 +14,7 @@ export const loadSettings = () => {
     }
     // Anything that writes these two stores while this RPC is in flight knows something the
     // reply does not, so the reply must not land on top of it. Apply each half only to the
-    // value it was read against, the same rule the versioned session write follows. The
-    // racing writer is usually an emailsChanged/phoneNumbersChanged notification, but
+    // value it was read against. The racing writer is usually an emailsChanged/phoneNumbersChanged notification, but
     // notifyEmailVerified and sentVerificationEmail trip it too -- so a resend-verification
     // click mid-load drops that round's server list, by design.
     const emailsBefore = useSettingsEmailState.getState().emails

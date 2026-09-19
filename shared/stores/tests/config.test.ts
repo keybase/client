@@ -1,5 +1,7 @@
 /// <reference types="jest" />
+import * as T from '../../constants/types'
 import * as Tabs from '../../constants/tabs'
+import {RPCError} from '../../util/errors'
 import {noConversationIDKey} from '../../constants/types/chat/common'
 import {useConfigState} from '../config'
 
@@ -112,4 +114,32 @@ test('custom resetState preserves the fields config intentionally carries across
   expect(state.defaultUsername).toBe('alice')
   expect(state.userSwitching).toBe(true)
   expect(state.globalError).toBeUndefined()
+})
+
+describe('login', () => {
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
+  const flush = async () => new Promise(resolve => setImmediate(resolve))
+
+  test('leaves the session to the clientState when the login succeeds', async () => {
+    jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockResolvedValue(undefined)
+    useConfigState.getState().dispatch.login('testuser', 'password')
+    await flush()
+
+    expect(useConfigState.getState().loggedIn).toBe(false)
+    expect(useConfigState.getState().loginError).toBeUndefined()
+  })
+
+  test('leaves the session to the clientState when already logged in', async () => {
+    jest
+      .spyOn(T.RPCGen, 'loginLoginRpcListener')
+      .mockRejectedValue(new RPCError('already logged in', T.RPCGen.StatusCode.scalreadyloggedin))
+    useConfigState.getState().dispatch.login('testuser', 'password')
+    await flush()
+
+    expect(useConfigState.getState().loggedIn).toBe(false)
+    expect(useConfigState.getState().loginError).toBeUndefined()
+  })
 })
