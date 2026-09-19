@@ -532,7 +532,7 @@ func TestScenarioReplay(t *testing.T) {
 	for _, sc := range lifecycletest.Scenarios {
 		t.Run(sc.Name, func(t *testing.T) {
 			stopInBackground := sc.Platform == lifecycletest.IOS
-			srv, l := setup(t, sc.Platform.InitialState(), stopInBackground)
+			srv, l := setup(t, lifecycletest.InitialState, stopInBackground)
 			lifecycletest.Play(t, app(srv).MobileAppState, sc, func(h *lifecycletest.Harness, i int, step lifecycletest.Step) {
 				waitLoop(t, srv)
 				if !srv.wantUp(step.Want) {

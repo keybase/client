@@ -490,7 +490,7 @@ func TestGregorReconnectWhileSuspendedDoesNotConnect(t *testing.T) {
 func TestGregorConnScenarioReplay(t *testing.T) {
 	for _, sc := range lifecycletest.Scenarios {
 		t.Run(sc.Name, func(t *testing.T) {
-			c := setupGregorConn(t, sc.Platform.InitialState())
+			c := setupGregorConn(t, lifecycletest.InitialState)
 			uri := testGregorURI(t, "gregord.test")
 			require.NoError(t, c.gate.connect(context.Background(), uri, false))
 			lifecycletest.Play(t, c.tc.G.MobileAppState, sc, func(h *lifecycletest.Harness, i int, step lifecycletest.Step) {

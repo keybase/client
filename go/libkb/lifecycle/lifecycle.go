@@ -35,7 +35,6 @@ const (
 type Reason string
 
 const (
-	ReasonLaunch         Reason = "launch"
 	ReasonBackgroundTask Reason = "backgroundTask"
 	ReasonBackgroundSync Reason = "backgroundSync"
 	ReasonPushWindow     Reason = "pushWindow"
@@ -152,10 +151,6 @@ func New(appState AppState, cfg Config) *Controller {
 		c.ui = UIActive
 	case keybase1.MobileAppState_INACTIVE:
 		c.ui = UIInactive
-	case keybase1.MobileAppState_BACKGROUNDACTIVE:
-		// Android starts its process up; the first UI report ends this.
-		c.ui = UIBackground
-		c.acquireLocked(ReasonLaunch)
 	default:
 		c.ui = UIBackground
 	}
@@ -222,10 +217,9 @@ func (c *Controller) dropLocked(match func(*Hold) bool) (dropped int) {
 	return dropped
 }
 
-// setUILocked records a UI report. Any report ends the launch hold; leaving
-// the background ends the holds that only keep a backgrounded app alive.
+// setUILocked records a UI report. Leaving the background ends the holds that
+// only keep a backgrounded app alive.
 func (c *Controller) setUILocked(ui UIState) {
-	c.dropLocked(func(h *Hold) bool { return h.reason == ReasonLaunch })
 	if c.ui == UIBackground && ui != UIBackground {
 		c.dropLocked(func(h *Hold) bool { return h.reason == ReasonBackgroundTask || h.reason == ReasonBackgroundSync })
 	}

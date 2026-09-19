@@ -105,28 +105,6 @@ class AppLifecycleReporterTest {
     }
 
     @Test
-    fun startWithoutUiReportsTheBackgroundOnce() {
-        reporter.onCreate(Owner)
-        reporter.reportHeadlessStart()
-        reporter.reportHeadlessStart()
-        assertEquals(listOf("uiBackground"), calls())
-        reporter.onStart(Owner)
-        reporter.onResume(Owner)
-        reporter.reportHeadlessStart()
-        assertEquals(listOf("uiBackground", "uiInactive", "uiActive"), calls())
-    }
-
-    @Test
-    fun startWithoutUiAfterTheUiReportsNothing() {
-        reporter.onStart(Owner)
-        reporter.reportHeadlessStart()
-        reporter.onResume(Owner)
-        stop()
-        reporter.reportHeadlessStart()
-        assertEquals(listOf("uiInactive", "uiActive", "uiBackground"), calls())
-    }
-
-    @Test
     fun onlyAFinishingActivityExits() {
         launch()
         reporter.onMainActivityDestroy(isFinishing = false, isChangingConfigurations = false)

@@ -30,8 +30,6 @@ class ChatBroadcastReceiver : BroadcastReceiver() {
                 "Couldn't send reply - Failed to read input."
             } else {
                 setupKBRuntime(context, false)
-                val lifecycleReporter = (context.applicationContext as MainApplication).lifecycleReporter
-                lifecycleReporter.reportHeadlessStart()
                 sendQuickReply({ msg, e -> NativeLogger.error(msg, e) }) {
                     Keybase.handlePostTextReply(convData.convID, convData.tlfName, convData.lastMsgId, messageBody,
                             KBPushNotifier(context, Bundle()))

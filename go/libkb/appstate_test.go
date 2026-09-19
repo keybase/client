@@ -31,7 +31,7 @@ func requireOpen(t *testing.T, ch <-chan struct{}) {
 
 func TestMobileAppStateInitialState(t *testing.T) {
 	require.Equal(t, keybase1.MobileAppState_BACKGROUND, initialMobileAppState("ios"))
-	require.Equal(t, keybase1.MobileAppState_BACKGROUNDACTIVE, initialMobileAppState("android"))
+	require.Equal(t, keybase1.MobileAppState_BACKGROUND, initialMobileAppState("android"))
 	require.Equal(t, keybase1.MobileAppState_FOREGROUND, initialMobileAppState("darwin"))
 	require.Equal(t, keybase1.MobileAppState_FOREGROUND, initialMobileAppState("linux"))
 }

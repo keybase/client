@@ -31,13 +31,8 @@ func (p Platform) String() string {
 	return "ios"
 }
 
-// InitialState is the state the service starts in on each platform.
-func (p Platform) InitialState() keybase1.MobileAppState {
-	if p == Android {
-		return keybase1.MobileAppState_BACKGROUNDACTIVE
-	}
-	return keybase1.MobileAppState_BACKGROUND
-}
+// InitialState is the state the service starts in on both platforms.
+const InitialState = keybase1.MobileAppState_BACKGROUND
 
 type Action int
 
@@ -187,10 +182,10 @@ const (
 	maxDuration  = 10 * time.Minute
 )
 
-// NewHarness moves appState to the platform's initial state and starts
+// NewHarness moves appState to the initial state and starts
 // recording. Close it when done.
 func NewHarness(t testing.TB, appState lifecycle.AppState, platform Platform) *Harness {
-	appState.Update(platform.InitialState())
+	appState.Update(InitialState)
 	h := &Harness{
 		T:        t,
 		Platform: platform,

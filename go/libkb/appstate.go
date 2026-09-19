@@ -48,13 +48,10 @@ func NewMobileAppState(g *GlobalContext) *MobileAppState {
 
 func initialMobileAppState(goos string) keybase1.MobileAppState {
 	switch goos {
-	case "android":
-		// we need this so cold notifications work on android
-		return keybase1.MobileAppState_BACKGROUNDACTIVE
-	case "ios":
-		// iOS launches the process in the background for silent pushes and
-		// background refresh; the scene life cycle reports foreground once
-		// the app is actually on screen.
+	case "android", "ios":
+		// The OS starts the process without UI for pushes, notification
+		// actions and background refresh; the first UI report, or a push
+		// window, moves it out of BACKGROUND.
 		return keybase1.MobileAppState_BACKGROUND
 	default:
 		return keybase1.MobileAppState_FOREGROUND

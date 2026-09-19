@@ -350,14 +350,7 @@ var Scenarios = []Scenario{
 		}),
 		Observed: states(bg, ina, fg, ina, bga, bg),
 	},
-	{Name: "android cold launch", Platform: Android, Steps: toForeground, Observed: states(bga, ina, fg)},
-	{
-		// Any first UI report ends the launch hold.
-		Name:     "android cold launch straight to active",
-		Platform: Android,
-		Steps:    []Step{step(DidBecomeActive, fg)},
-		Observed: states(bga, fg),
-	},
+	{Name: "android cold launch", Platform: Android, Steps: toForeground, Observed: states(bg, ina, fg)},
 	{
 		Name:     "android process stop and start",
 		Platform: Android,
@@ -370,7 +363,7 @@ var Scenarios = []Scenario{
 			step(DidBecomeActive, fg),
 			step(BackgroundTaskWait, fg),
 		}),
-		Observed: states(bga, ina, fg, bga, bg, ina, fg, bga, ina, fg),
+		Observed: states(bg, ina, fg, bga, bg, ina, fg, bga, ina, fg),
 	},
 	{
 		Name:     "android dialog, permission prompt or picker pause keeps the foreground",
@@ -382,7 +375,7 @@ var Scenarios = []Scenario{
 			// Back from the prompt: the process resumes without a start.
 			step(DidBecomeActive, fg),
 		}),
-		Observed: states(bga, ina, fg),
+		Observed: states(bg, ina, fg),
 	},
 	{
 		Name:     "android push window in the background",
@@ -392,18 +385,28 @@ var Scenarios = []Scenario{
 			step(PushWindowBegin, bga).returns(true),
 			step(PushWindowEnd, bg).flush().returns(false),
 		}),
-		Observed: states(bga, ina, fg, bga, bg, bga, bg),
+		Observed: states(bg, ina, fg, bga, bg, bga, bg),
 	},
 	{
-		// A process started without UI reports the background before the push window opens.
+		// A process started without UI stays in BACKGROUND until the push window opens.
 		Name:     "android push at cold start",
 		Platform: Android,
 		Steps: []Step{
-			step(DidEnterBackground, bg).flush().returns(false),
 			step(PushWindowBegin, bga).returns(true),
 			step(PushWindowEnd, bg).flush().returns(false),
 		},
-		Observed: states(bga, bg, bga, bg),
+		Observed: states(bg, bga, bg),
+	},
+	{
+		Name:     "android quick reply at cold start hands the sending reply over to a background task",
+		Platform: Android,
+		Steps: []Step{
+			step(PushWindowBegin, bga).returns(true),
+			step(WorkStarts, bga),
+			step(PushWindowEnd, bga).returns(true),
+			step(BackgroundTaskDelivered, bg).flush(),
+		},
+		Observed: states(bg, bga, bg),
 	},
 	{
 		// The push window's hold lasts until its own end, whatever the process does meanwhile.
@@ -426,7 +429,7 @@ var Scenarios = []Scenario{
 			step(DidEnterBackground, bga).flush().returns(false),
 			step(PushWindowEnd, bg).flush().returns(false),
 		}),
-		Observed: states(bga, ina, fg, bga, bg, bga, ina, fg, bga, bg, bga, ina, fg, bga, bg),
+		Observed: states(bg, ina, fg, bga, bg, bga, ina, fg, bga, bg, bga, ina, fg, bga, bg),
 	},
 	{
 		Name:     "android push window hands over to a background task",
@@ -438,7 +441,7 @@ var Scenarios = []Scenario{
 			step(PushWindowEnd, bga).returns(true),
 			step(BackgroundTaskDelivered, bg).flush(),
 		}),
-		Observed: states(bga, ina, fg, bga, bg, bga, bg),
+		Observed: states(bg, ina, fg, bga, bg, bga, bg),
 	},
 	{
 		Name:     "android push window ending during a background task joins it",
@@ -450,7 +453,7 @@ var Scenarios = []Scenario{
 			step(PushWindowEnd, bga).returns(true),
 			step(BackgroundTaskFails, bg).flush().warn(),
 		}),
-		Observed: states(bga, ina, fg, bga, bg),
+		Observed: states(bg, ina, fg, bga, bg),
 	},
 	{
 		Name:     "android overlapping push windows",
@@ -462,28 +465,25 @@ var Scenarios = []Scenario{
 			step(PushWindowEnd, bga).slot(0).returns(false),
 			step(PushWindowEnd, bg).slot(1).flush().returns(false),
 		}),
-		Observed: states(bga, ina, fg, bga, bg, bga, bg),
+		Observed: states(bg, ina, fg, bga, bg, bga, bg),
 	},
 	{
 		// BackgroundSyncWorker doesn't init Go, so it only syncs in a process where
-		// something else did; a push (or quick reply) cold start already reported
-		// the background.
+		// something else did, such as a push at cold start.
 		Name:     "android WorkManager BackgroundSync after a push cold start",
 		Platform: Android,
 		Steps: []Step{
-			step(DidEnterBackground, bg).flush().returns(false),
 			step(PushWindowBegin, bga).returns(true),
 			step(PushWindowEnd, bg).flush().returns(false),
 			step(BackgroundSyncStart, bga).returns(true),
 			step(BackgroundSyncTimerFires, bg).flush(),
 		},
-		Observed: states(bga, bg, bga, bg, bga, bg),
+		Observed: states(bg, bga, bg, bga, bg),
 	},
 	{
 		Name:     "android UI starts during a WorkManager sync after a push cold start",
 		Platform: Android,
 		Steps: []Step{
-			step(DidEnterBackground, bg).flush().returns(false),
 			step(PushWindowBegin, bga).returns(true),
 			step(PushWindowEnd, bg).flush().returns(false),
 			step(BackgroundSyncStart, bga).returns(true),
@@ -491,7 +491,7 @@ var Scenarios = []Scenario{
 			step(DidBecomeActive, fg),
 			step(BackgroundSyncWait, fg),
 		},
-		Observed: states(bga, bg, bga, bg, bga, ina, fg),
+		Observed: states(bg, bga, bg, bga, ina, fg),
 	},
 	{
 		// The sync keeps its hold after the push window ends.
@@ -504,7 +504,7 @@ var Scenarios = []Scenario{
 			step(PushWindowEnd, bga).returns(false),
 			step(BackgroundSyncTimerFires, bg).flush(),
 		}),
-		Observed: states(bga, ina, fg, bga, bg, bga, bg),
+		Observed: states(bg, ina, fg, bga, bg, bga, bg),
 	},
 	{
 		// A finishing activity reports willExit while the process lives on, so a
@@ -519,6 +519,6 @@ var Scenarios = []Scenario{
 			step(WorkStarts, bg),
 			step(PushWindowEnd, bg).returns(false),
 		}),
-		Observed: states(bga, ina, fg, bg, bga, bg),
+		Observed: states(bg, ina, fg, bg, bga, bg),
 	},
 }

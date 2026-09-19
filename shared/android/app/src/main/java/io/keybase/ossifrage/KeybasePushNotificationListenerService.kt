@@ -29,11 +29,8 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
         return ex.message?.contains("different account") == true
     }
 
-    private val lifecycleReporter get() = (application as MainApplication).lifecycleReporter
-
     override fun onCreate() {
         setupKBRuntime(this, false)
-        lifecycleReporter.reportHeadlessStart()
         NativeLogger.info("KeybasePushNotificationListenerService created")
         createNotificationChannel(this)
     }
