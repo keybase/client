@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"net"
 	"strings"
 	"testing"
 	"time"
@@ -22,17 +23,24 @@ type startOnlyAttachmentFetcher struct {
 
 func (startOnlyAttachmentFetcher) OnStart(libkb.MetaContext) {}
 
-// requireSrvServing waits until the server does or does not have an address to
-// hand out, which is what decides whether a URL can be built.
+// requireSrvServing waits until the server does or does not accept connections
+// at the address it hands out.
 func requireSrvServing(t *testing.T, srv *manager.Srv, serving bool) {
 	t.Helper()
 	require.Eventually(t, func() bool {
-		_, err := srv.Addr()
+		addr, err := srv.Addr()
+		if err != nil {
+			return false
+		}
+		conn, err := net.DialTimeout("tcp", addr, time.Second)
+		if err == nil {
+			conn.Close()
+		}
 		return (err == nil) == serving
 	}, 10*time.Second, time.Millisecond, "server serving != %v", serving)
 }
 
-func TestAttachmentURLsEmptyWhileServerStopped(t *testing.T) {
+func TestGetURLWhileStoppedUsesLastAddress(t *testing.T) {
 	tc := externalstest.SetupTest(t, "attachment-url-stopped", 0)
 	defer tc.Cleanup()
 	tc.G.ConnectionManager = libkb.NewConnectionManager()
@@ -62,17 +70,20 @@ func TestAttachmentURLsEmptyWhileServerStopped(t *testing.T) {
 	}
 
 	requireSrvServing(t, httpSrv, true)
+	addr, err := httpSrv.Addr()
+	require.NoError(t, err)
+	prefix := "http://" + addr + "/"
 	up := get()
 	for _, url := range []string{up.full, up.preview, up.emoji, up.emojiNoAnim, up.emojiNoAnimOnly} {
-		require.True(t, strings.HasPrefix(url, "http://"), "url %q while serving", url)
+		require.True(t, strings.HasPrefix(url, prefix), "url %q while serving", url)
 	}
 	require.Contains(t, up.preview, "&prev=true")
 
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 	requireSrvServing(t, httpSrv, false)
-	require.Equal(t, urls{}, get())
+	require.Equal(t, up, get())
 
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	requireSrvServing(t, httpSrv, true)
-	require.True(t, strings.HasPrefix(get().full, "http://"))
+	require.Equal(t, up, get())
 }

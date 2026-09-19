@@ -22,28 +22,12 @@ import (
 )
 
 // listeners hands out pinned random-port listener sources, as NewSrv does,
-// and remembers the last listener so a test can kill it underneath the
-// server.
+// counts the listeners made, and remembers the last one so a test can kill it
+// underneath the server.
 type listeners struct {
 	sync.Mutex
 	calls int
 	last  net.Listener
-	// failing makes new listeners fail on their first Accept, so Serve
-	// returns right away.
-	failing atomic.Bool
-	// armed makes the next GetListener close blocked and wait on block,
-	// which release closes.
-	armed   bool
-	block   chan struct{}
-	blocked chan struct{}
-}
-
-type failingListener struct {
-	net.Listener
-}
-
-func (failingListener) Accept() (net.Conn, error) {
-	return nil, errors.New("listener failed")
 }
 
 type trackedSource struct {
@@ -52,24 +36,12 @@ type trackedSource struct {
 }
 
 func (s trackedSource) GetListener() (net.Listener, string, error) {
-	s.l.Lock()
-	armed := s.l.armed
-	s.l.armed = false
-	block, blocked := s.l.block, s.l.blocked
-	s.l.Unlock()
-	if armed {
-		close(blocked)
-		<-block
-	}
 	listener, address, err := s.src.GetListener()
 	s.l.Lock()
 	defer s.l.Unlock()
 	s.l.calls++
 	if err == nil {
 		s.l.last = listener
-		if s.l.failing.Load() {
-			listener = failingListener{listener}
-		}
 	}
 	return listener, address, err
 }
@@ -84,34 +56,6 @@ func (l *listeners) Calls() int {
 	return l.calls
 }
 
-// blockNext makes the next GetListener wait for release.
-func (l *listeners) blockNext() {
-	l.Lock()
-	defer l.Unlock()
-	l.armed = true
-	l.block = make(chan struct{})
-	l.blocked = make(chan struct{})
-}
-
-// waitBlocked waits until a GetListener is held by blockNext.
-func (l *listeners) waitBlocked(t *testing.T) {
-	t.Helper()
-	l.Lock()
-	blocked := l.blocked
-	l.Unlock()
-	select {
-	case <-blocked:
-	case <-time.After(10 * time.Second):
-		require.Fail(t, "no GetListener reached the block")
-	}
-}
-
-func (l *listeners) release() {
-	l.Lock()
-	defer l.Unlock()
-	close(l.block)
-}
-
 func (l *listeners) kill(t *testing.T) {
 	l.Lock()
 	defer l.Unlock()
@@ -123,20 +67,18 @@ var client = &http.Client{
 	Transport: &http.Transport{DisableKeepAlives: true},
 }
 
-// appState records each turn of run, which asks for the next update once
-// per turn, after publishing.
+// appState records the wait run asks for once per turn, after acting on the
+// state it read.
 type appState struct {
 	*libkb.MobileAppState
-	mu    sync.Mutex
-	turns int
-	wait  <-chan struct{}
+	mu   sync.Mutex
+	wait <-chan struct{}
 }
 
 func (a *appState) NextUpdate(last keybase1.MobileAppState) <-chan struct{} {
 	wait := a.MobileAppState.NextUpdate(last)
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	a.turns++
 	a.wait = wait
 	return wait
 }
@@ -154,10 +96,14 @@ func app(srv *Srv) *appState {
 	return a.(*appState)
 }
 
-// active reports whether srv has an address to hand out.
-func active(srv *Srv) bool {
-	_, err := srv.Addr()
-	return err == nil
+// serving reports whether anything answers HTTP at the address srv hands out.
+func serving(srv *Srv) bool {
+	info, err := srv.Info()
+	if err != nil {
+		return false
+	}
+	status, _ := fetch(info)
+	return status != 0
 }
 
 func setup(t *testing.T, state keybase1.MobileAppState, stopInBackground bool) (*Srv, *listeners) {
@@ -178,7 +124,7 @@ func setupWithNotify(t *testing.T, state keybase1.MobileAppState, stopInBackgrou
 	t.Cleanup(func() { apps.Delete(srv) })
 	t.Cleanup(srv.Shutdown)
 	// New returns having acted on the launch state; HandleFunc below would wait for run anyway.
-	require.Equal(t, srv.wantUp(state), active(srv), "launch state not applied when New returned")
+	require.Equal(t, srv.wantUp(state), serving(srv), "launch state not applied when New returned")
 	srv.HandleFunc("test", SrvTokenModeDefault, func(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprint(w, "ok")
 	})
@@ -207,9 +153,9 @@ func fetchPath(info keybase1.HttpSrvInfo, endpoint string) (int, error) {
 	return resp.StatusCode, nil
 }
 
-// waitLoop waits until run has published for the current app state and
-// waits for its next change. Handler requests are synchronous, and exits are
-// awaited with waitTurns, so no event a caller made is still pending.
+// waitLoop waits until run has acted on the current app state and waits for
+// its next change. Handler requests are synchronous, so no event a caller made
+// is still pending.
 func waitLoop(t *testing.T, srv *Srv) {
 	t.Helper()
 	require.Eventually(t, func() bool {
@@ -229,39 +175,8 @@ func waitLoop(t *testing.T, srv *Srv) {
 	}, 10*time.Second, time.Millisecond, "run did not catch up")
 }
 
-func turns(srv *Srv) int {
-	a := app(srv)
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	return a.turns
-}
-
-// waitTurns waits until run has handled events up to turn n, and no more.
-func waitTurns(t *testing.T, srv *Srv, n int) {
-	t.Helper()
-	require.Eventually(t, func() bool { return turns(srv) >= n }, 10*time.Second, time.Millisecond,
-		"run did not reach turn %d", n)
-	require.Equal(t, n, turns(srv))
-}
-
-// killUntilDown kills the listener until an unexpected exit is not
-// restarted, because this app state change already had its restart.
-func killUntilDown(t *testing.T, srv *Srv, l *listeners) {
-	t.Helper()
-	for range 2 {
-		n := turns(srv)
-		l.kill(t)
-		waitTurns(t, srv, n+1)
-		if !active(srv) {
-			return
-		}
-	}
-	t.Fatal("server kept restarting after unexpected exits")
-}
-
 func requireServing(t *testing.T, srv *Srv) keybase1.HttpSrvInfo {
 	t.Helper()
-	require.True(t, active(srv), "server not active")
 	info, err := srv.Info()
 	require.NoError(t, err)
 	_, err = fetch(info)
@@ -271,80 +186,125 @@ func requireServing(t *testing.T, srv *Srv) keybase1.HttpSrvInfo {
 
 func requireStopped(t *testing.T, srv *Srv) {
 	t.Helper()
-	require.False(t, active(srv), "server still active")
+	require.False(t, serving(srv), "server still serving")
+}
+
+func requireNeverBound(t *testing.T, srv *Srv) {
+	t.Helper()
 	_, err := srv.Info()
 	require.Error(t, err)
 }
 
-func TestDeadListenerRestartsOnTransition(t *testing.T) {
-	srv, l := setup(t, keybase1.MobileAppState_FOREGROUND, true)
-	waitLoop(t, srv)
-	requireServing(t, srv)
-	for _, next := range []keybase1.MobileAppState{
-		keybase1.MobileAppState_INACTIVE,
-		keybase1.MobileAppState_FOREGROUND,
-		keybase1.MobileAppState_BACKGROUNDACTIVE,
-	} {
-		killUntilDown(t, srv, l)
-		app(srv).Update(next)
-		waitLoop(t, srv)
-		requireServing(t, srv)
-	}
+// leavesBackground is a move the server rebinds on where it stops in the
+// background.
+func leavesBackground(from, to keybase1.MobileAppState) bool {
+	return (from == keybase1.MobileAppState_BACKGROUND || from == keybase1.MobileAppState_BACKGROUNDACTIVE) &&
+		(to == keybase1.MobileAppState_FOREGROUND || to == keybase1.MobileAppState_INACTIVE)
 }
 
-func TestDeadListenerRestartsWithoutTransition(t *testing.T) {
-	srv, l := setup(t, keybase1.MobileAppState_FOREGROUND, true)
+// A stopped server keeps handing out where it last bound, so URLs built while
+// it is down point where it comes back.
+func TestInfoKeepsLastAddressWhileStopped(t *testing.T) {
+	srv, _ := setup(t, keybase1.MobileAppState_FOREGROUND, true)
 	waitLoop(t, srv)
 	first := requireServing(t, srv)
-	n := turns(srv)
-	l.kill(t)
-	waitTurns(t, srv, n+1)
-	again := requireServing(t, srv)
-	require.Equal(t, first.Token, again.Token)
-	require.Equal(t, 2, l.Calls())
-}
 
-func TestUnexpectedExitRestartsOncePerStateChange(t *testing.T) {
-	srv, l := setup(t, keybase1.MobileAppState_FOREGROUND, true)
+	app(srv).Update(keybase1.MobileAppState_BACKGROUND)
 	waitLoop(t, srv)
-	requireServing(t, srv)
-
-	n := turns(srv)
-	l.failing.Store(true)
-	l.kill(t)
-	// The restart's listener fails at once; its exit must not restart again.
-	// run handles each exit before the next start, so once both exits are
-	// handled the listener count is final.
-	waitTurns(t, srv, n+2)
-	require.Equal(t, 2, l.Calls(), "restart loop on a failing listener")
 	requireStopped(t, srv)
+	info, err := srv.Info()
+	require.NoError(t, err)
+	require.Equal(t, first, info)
+	addr, err := srv.Addr()
+	require.NoError(t, err)
+	require.Equal(t, first.Address, addr)
 
-	// A new app state change allows one more restart after run's own start:
-	// turns for the change, the start's exit and the restart's exit.
-	n = turns(srv)
-	app(srv).Update(keybase1.MobileAppState_INACTIVE)
-	waitTurns(t, srv, n+3)
-	require.Equal(t, 4, l.Calls(), "restart loop on a failing listener")
-
-	l.failing.Store(false)
 	app(srv).Update(keybase1.MobileAppState_FOREGROUND)
 	waitLoop(t, srv)
-	requireServing(t, srv)
+	require.Equal(t, first, requireServing(t, srv))
 }
 
-// A BACKGROUND that lands while an exit-restart is starting must leave the server stopped.
-func TestUnexpectedExitRacingBackground(t *testing.T) {
-	srv, l := setup(t, keybase1.MobileAppState_FOREGROUND, true)
+func TestNotifyOnlyOnAddressChange(t *testing.T) {
+	var mu sync.Mutex
+	var notified []keybase1.HttpSrvInfo
+	srv, _ := setupWithNotify(t, keybase1.MobileAppState_FOREGROUND, true, func(_ context.Context, info keybase1.HttpSrvInfo) {
+		mu.Lock()
+		defer mu.Unlock()
+		notified = append(notified, info)
+	})
+	sent := func() []keybase1.HttpSrvInfo {
+		mu.Lock()
+		defer mu.Unlock()
+		return append([]keybase1.HttpSrvInfo(nil), notified...)
+	}
 	waitLoop(t, srv)
-	requireServing(t, srv)
-	l.blockNext()
-	l.kill(t)
-	l.waitBlocked(t) // run is inside start, waiting for a listener
+	first := requireServing(t, srv)
+	require.Equal(t, []keybase1.HttpSrvInfo{first}, sent(), "first bind not announced once")
+
+	// Every way back up on the pinned port binds the same address.
+	for _, next := range []keybase1.MobileAppState{
+		keybase1.MobileAppState_BACKGROUND,
+		keybase1.MobileAppState_FOREGROUND,
+		keybase1.MobileAppState_BACKGROUNDACTIVE,
+		keybase1.MobileAppState_INACTIVE,
+		keybase1.MobileAppState_BACKGROUND,
+		keybase1.MobileAppState_BACKGROUNDACTIVE,
+		keybase1.MobileAppState_FOREGROUND,
+	} {
+		app(srv).Update(next)
+		waitLoop(t, srv)
+	}
+	require.Equal(t, first, requireServing(t, srv))
+	require.Equal(t, []keybase1.HttpSrvInfo{first}, sent(), "same address announced again")
+
 	app(srv).Update(keybase1.MobileAppState_BACKGROUND)
-	l.release()
 	waitLoop(t, srv)
-	require.Equal(t, keybase1.MobileAppState_BACKGROUND, app(srv).State())
-	requireStopped(t, srv)
+	squatter, err := net.Listen("tcp", first.Address)
+	require.NoError(t, err)
+	defer squatter.Close()
+	app(srv).Update(keybase1.MobileAppState_FOREGROUND)
+	waitLoop(t, srv)
+	again := requireServing(t, srv)
+	require.NotEqual(t, first.Address, again.Address)
+	require.Equal(t, []keybase1.HttpSrvInfo{first, again}, sent(), "new address not announced once")
+}
+
+// Leaving BACKGROUNDACTIVE stops and starts the server on its pinned port, so a
+// listener the OS reclaimed while the app was suspended comes back.
+func TestRebindOnLeavingBackground(t *testing.T) {
+	for _, to := range []keybase1.MobileAppState{
+		keybase1.MobileAppState_FOREGROUND,
+		keybase1.MobileAppState_INACTIVE,
+	} {
+		t.Run(to.String(), func(t *testing.T) {
+			srv, l := setup(t, keybase1.MobileAppState_FOREGROUND, true)
+			waitLoop(t, srv)
+			first := requireServing(t, srv)
+
+			app(srv).Update(keybase1.MobileAppState_BACKGROUNDACTIVE)
+			waitLoop(t, srv)
+			require.Equal(t, first, requireServing(t, srv))
+			require.Equal(t, 1, l.Calls(), "BACKGROUNDACTIVE restarted the server")
+
+			l.kill(t)
+			requireStopped(t, srv)
+			app(srv).Update(to)
+			waitLoop(t, srv)
+			require.Equal(t, 2, l.Calls(), "leaving BACKGROUNDACTIVE did not rebind")
+			require.Equal(t, first, requireServing(t, srv))
+
+			// Moving between up states is not leaving the background.
+			for _, next := range []keybase1.MobileAppState{
+				keybase1.MobileAppState_FOREGROUND,
+				keybase1.MobileAppState_INACTIVE,
+				keybase1.MobileAppState_FOREGROUND,
+			} {
+				app(srv).Update(next)
+				waitLoop(t, srv)
+			}
+			require.Equal(t, 2, l.Calls(), "server rebound without leaving the background")
+		})
+	}
 }
 
 func TestNothingStartsAfterShutdown(t *testing.T) {
@@ -356,10 +316,6 @@ func TestNothingStartsAfterShutdown(t *testing.T) {
 	calls := l.Calls()
 	app(srv).Update(keybase1.MobileAppState_BACKGROUND)
 	app(srv).Update(keybase1.MobileAppState_FOREGROUND)
-	select { // an exit signal nobody handles
-	case srv.exited <- struct{}{}:
-	default:
-	}
 	registered := make(chan struct{})
 	go func() {
 		srv.HandleFunc("late", SrvTokenModeDefault, func(http.ResponseWriter, *http.Request) {})
@@ -370,7 +326,7 @@ func TestNothingStartsAfterShutdown(t *testing.T) {
 	case <-time.After(10 * time.Second):
 		require.Fail(t, "HandleFunc hung after Shutdown")
 	}
-	require.Never(t, func() bool { return active(srv) || l.Calls() != calls }, 200*time.Millisecond, 10*time.Millisecond)
+	require.Never(t, func() bool { return serving(srv) || l.Calls() != calls }, 200*time.Millisecond, 10*time.Millisecond)
 }
 
 // notify must see the address it announces, so a client reading Info right away gets it.
@@ -436,7 +392,7 @@ func TestInactiveKeepsServingBackgroundStops(t *testing.T) {
 func TestBackgroundLaunchStartsOnlyWhenLeavingBackground(t *testing.T) {
 	srv, l := setup(t, keybase1.MobileAppState_BACKGROUND, true)
 	require.Equal(t, 0, l.Calls(), "server started during a background launch")
-	requireStopped(t, srv)
+	requireNeverBound(t, srv)
 	waitLoop(t, srv)
 	require.Equal(t, 0, l.Calls())
 
@@ -471,15 +427,21 @@ func TestUpUnlessBackground(t *testing.T) {
 	}
 }
 
-// An INACTIVE or BACKGROUNDACTIVE blip neither restarts the server nor breaks
-// a request in flight.
+// An INACTIVE blip neither restarts the server nor breaks a request in flight,
+// and neither does a BACKGROUNDACTIVE one where the server stays up in the
+// background.
 func TestBlipKeepsRequestInFlight(t *testing.T) {
-	for _, blip := range []keybase1.MobileAppState{
-		keybase1.MobileAppState_INACTIVE,
-		keybase1.MobileAppState_BACKGROUNDACTIVE,
+	for _, c := range []struct {
+		blip             keybase1.MobileAppState
+		stopInBackground bool
+	}{
+		{keybase1.MobileAppState_INACTIVE, true},
+		{keybase1.MobileAppState_INACTIVE, false},
+		{keybase1.MobileAppState_BACKGROUNDACTIVE, false},
 	} {
-		t.Run(blip.String(), func(t *testing.T) {
-			srv, l := setup(t, keybase1.MobileAppState_FOREGROUND, true)
+		blip := c.blip
+		t.Run(fmt.Sprintf("%v-stopInBackground=%v", blip, c.stopInBackground), func(t *testing.T) {
+			srv, l := setup(t, keybase1.MobileAppState_FOREGROUND, c.stopInBackground)
 			entered, hold := make(chan struct{}), make(chan struct{})
 			srv.HandleFunc("hold", SrvTokenModeDefault, func(w http.ResponseWriter, _ *http.Request) {
 				close(entered)
@@ -511,7 +473,7 @@ func TestBlipKeepsRequestInFlight(t *testing.T) {
 }
 
 // Without stopping in the background (Android), the server serves in every
-// state, and a dead one comes back on any transition or once after it exits.
+// state and is never rebound.
 func TestNotStoppingInBackgroundStaysUp(t *testing.T) {
 	srv, l := setup(t, keybase1.MobileAppState_BACKGROUND, false)
 	waitLoop(t, srv)
@@ -527,21 +489,7 @@ func TestNotStoppingInBackgroundStaysUp(t *testing.T) {
 		waitLoop(t, srv)
 		requireServing(t, srv)
 	}
-
-	n := turns(srv)
-	l.kill(t)
-	waitTurns(t, srv, n+1)
-	requireServing(t, srv)
-
-	for _, next := range []keybase1.MobileAppState{
-		keybase1.MobileAppState_BACKGROUNDACTIVE,
-		keybase1.MobileAppState_BACKGROUND,
-	} {
-		killUntilDown(t, srv, l)
-		app(srv).Update(next)
-		waitLoop(t, srv)
-		requireServing(t, srv)
-	}
+	require.Equal(t, 1, l.Calls(), "server restarted")
 }
 
 // brokenSource makes no listener while it is broken.
@@ -572,11 +520,11 @@ func TestNewReportsFirstStartErrorAndRetries(t *testing.T) {
 		}, true, func(context.Context, keybase1.HttpSrvInfo) {})
 	require.Error(t, err)
 	t.Cleanup(srv.Shutdown)
-	requireStopped(t, srv)
+	requireNeverBound(t, srv)
 
 	broken.Store(false)
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_INACTIVE)
-	require.Eventually(t, func() bool { return active(srv) }, 10*time.Second, time.Millisecond,
+	require.Eventually(t, func() bool { return serving(srv) }, 10*time.Second, time.Millisecond,
 		"server did not start on the next app state change")
 }
 
@@ -588,26 +536,20 @@ func TestScenarioReplay(t *testing.T) {
 			lifecycletest.Play(t, app(srv).MobileAppState, sc, func(h *lifecycletest.Harness, i int, step lifecycletest.Step) {
 				waitLoop(t, srv)
 				if !srv.wantUp(step.Want) {
-					if active(srv) {
+					if serving(srv) {
 						t.Fatalf("step %d %v: server up in BACKGROUND", i, step.Do)
 					}
 					return
 				}
-				if !active(srv) {
-					t.Fatalf("step %d %v: server down in %v", i, step.Do, step.Want)
-				}
 				info, err := srv.Info()
 				require.NoError(t, err)
 				if _, err := fetch(info); err != nil {
-					t.Fatalf("step %d %v: %v", i, step.Do, err)
+					t.Fatalf("step %d %v: server down in %v: %v", i, step.Do, step.Want, err)
 				}
-				// Leave the server dead before a step that moves to another
-				// up state, which must bring it back.
-				if i+1 < len(sc.Steps) {
-					next := sc.Steps[i+1].Want
-					if next != step.Want && srv.wantUp(next) {
-						killUntilDown(t, srv, l)
-					}
+				// Leave the server dead before a step that leaves the
+				// background, whose rebind must bring it back.
+				if stopInBackground && i+1 < len(sc.Steps) && leavesBackground(step.Want, sc.Steps[i+1].Want) {
+					l.kill(t)
 				}
 			})
 		})
@@ -623,7 +565,6 @@ func TestPinnedPortTakenPicksNewAddress(t *testing.T) {
 	stop := make(chan struct{})
 	var readers sync.WaitGroup
 	for _, read := range []func(){
-		func() { _ = active(srv) },
 		func() { _, _ = srv.Addr() },
 		func() { _, _ = srv.Info() },
 	} {
@@ -784,7 +725,6 @@ func TestStressTransitionsAndRequests(t *testing.T) {
 			if i < 200 {
 				srv.HandleFunc(fmt.Sprintf("extra%d", i), SrvTokenModeUnchecked, func(http.ResponseWriter, *http.Request) {})
 			}
-			_ = active(srv)
 			_, _ = srv.Addr()
 			if info, err := srv.Info(); err == nil && info.Token != token {
 				select {
@@ -843,8 +783,7 @@ func TestStressTransitionsAndRequests(t *testing.T) {
 	default:
 	}
 
-	// BACKGROUND stops every server, so no exit from a killed listener can
-	// restart one later; leaving it is a real change run must wake for.
+	// Leaving BACKGROUND rebinds whatever listener the killer left dead.
 	for _, state := range []keybase1.MobileAppState{
 		keybase1.MobileAppState_BACKGROUND,
 		keybase1.MobileAppState_FOREGROUND,

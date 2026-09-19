@@ -121,6 +121,8 @@ func (r *AttachmentHTTPSrv) genURLKey(prefix string, payload any) (string, error
 }
 
 func (r *AttachmentHTTPSrv) getURL(ctx context.Context, prefix string, payload any) string {
+	// Addr fails only before the server first binds; while it is stopped it
+	// returns where the server comes back.
 	addr, err := r.httpSrv.Addr()
 	if err != nil {
 		r.Debug(ctx, "getURL: no HTTP server address: %s", err)

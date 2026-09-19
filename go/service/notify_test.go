@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/keybase/client/go/kbhttp/manager"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -12,6 +13,7 @@ import (
 func newTestNotifyCtlHandler(t *testing.T, g *libkb.GlobalContext) (*NotifyCtlHandler, *Service, libkb.ConnectionID) {
 	t.Helper()
 	svc := NewService(g, false)
+	svc.httpSrv = manager.NewSrv(g)
 	connID := g.NotifyRouter.AddConnection(nil, nil)
 	return NewNotifyCtlHandler(nil, connID, g, svc), svc, connID
 }

@@ -9,9 +9,7 @@ import (
 	"net"
 	"net/http"
 	"sync"
-	"sync/atomic"
 	"testing"
-	"time"
 
 	"github.com/keybase/client/go/logger"
 	"github.com/stretchr/testify/require"
@@ -61,15 +59,18 @@ func (c *capturingListenerSource) kill() {
 	_ = c.listener.Close()
 }
 
-func TestSrvRestartsAfterListenerDies(t *testing.T) {
+// A server whose listener died underneath it still counts as running, so the
+// manager rebinds it with Stop and then Start.
+func TestSrvStopStartAfterListenerDies(t *testing.T) {
 	source := &capturingListenerSource{}
 	srv := NewSrv(logger.NewTestLogger(t), source)
+	client := &http.Client{Transport: &http.Transport{DisableKeepAlives: true}}
 	get := func() error {
 		addr, err := srv.Addr()
 		if err != nil {
 			return err
 		}
-		resp, err := http.Get(fmt.Sprintf("http://%s/test", addr)) //nolint:gosec // G107: Test code making request to own test server
+		resp, err := client.Get(fmt.Sprintf("http://%s/test", addr))
 		if err != nil {
 			return err
 		}
@@ -93,44 +94,10 @@ func TestSrvRestartsAfterListenerDies(t *testing.T) {
 	require.NoError(t, get())
 
 	source.kill()
-	require.Eventually(t, func() bool { return !srv.Active() }, 5*time.Second, 10*time.Millisecond,
-		"server still reports active after its listener died")
-	_, err := srv.Addr()
-	require.Error(t, err)
-
+	require.Error(t, get())
+	<-srv.Stop()
 	require.NoError(t, srv.StartWithHandlers(register))
 	require.NoError(t, get())
 	<-srv.Stop()
 	require.False(t, srv.Active())
-}
-
-// The old Serve goroutine exiting after a Stop and a newer Start must not
-// forget the new server.
-func TestSrvOldServeExitKeepsNewServer(t *testing.T) {
-	srv := NewSrv(logger.NewTestLogger(t), NewAutoPortListenerSource())
-	require.NoError(t, srv.Start())
-	oldDone := srv.Stop()
-	require.NoError(t, srv.Start())
-	<-oldDone
-	require.True(t, srv.Active())
-	<-srv.Stop()
-}
-
-func TestSrvOnUnexpectedExit(t *testing.T) {
-	source := &capturingListenerSource{}
-	srv := NewSrv(logger.NewTestLogger(t), source)
-	var exits atomic.Int32
-	srv.OnUnexpectedExit(func() {
-		// Must not deadlock: the callback runs without the server's lock.
-		_ = srv.Active()
-		exits.Add(1)
-	})
-
-	require.NoError(t, srv.Start())
-	// The done channel closes only after any exit callback has run.
-	<-srv.Stop()
-	require.Equal(t, int32(0), exits.Load(), "Stop reported as an unexpected exit")
-	require.NoError(t, srv.Start())
-	source.kill()
-	require.Eventually(t, func() bool { return exits.Load() == 1 }, 5*time.Second, time.Millisecond)
 }
