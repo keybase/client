@@ -30,10 +30,13 @@ type LiveLocationTracker struct {
 	storage        *trackStorage
 	updateInterval time.Duration
 	uid            gregor1.UID
-	eg             errgroup.Group
 	trackers       map[types.LiveLocationKey]*locationTrack
 	lastCoord      chat1.Coordinate
 	maxCoords      int
+	// eg runs the trackers started since the last Stop, which replaces it and
+	// waits on the old one: a tracker can start at any time, even before Start,
+	// and must not join a group that a Stop is already waiting on.
+	eg *errgroup.Group
 	// bgHold keeps the app running while tracking; guarded by the tracker's
 	// mutex and changed only by releaseHoldIfIdleLocked and
 	// ensureHoldOnFixLocked.
@@ -57,6 +60,7 @@ func NewLiveLocationTracker(g *globals.Context) *LiveLocationTracker {
 		updateInterval: 30 * time.Second,
 		maxCoords:      500,
 		clock:          clockwork.NewRealClock(),
+		eg:             new(errgroup.Group),
 	}
 }
 
@@ -79,8 +83,10 @@ func (l *LiveLocationTracker) Stop(ctx context.Context) chan struct{} {
 	for _, t := range l.trackers {
 		t.Stop()
 	}
+	eg := l.eg
+	l.eg = new(errgroup.Group)
 	go func() {
-		_ = l.eg.Wait()
+		_ = eg.Wait()
 		close(ch)
 	}()
 	return ch

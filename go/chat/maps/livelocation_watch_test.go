@@ -301,3 +301,43 @@ func TestLiveLocationTrackerFailedWatchLeavesNoHold(t *testing.T) {
 	lifecycletest.ToBackground(tc.G.MobileLifecycle)
 	require.Equal(t, keybase1.MobileAppState_BACKGROUND, appState.State())
 }
+
+// gatedClearChatUI holds the first watch's clear until gate closes.
+type gatedClearChatUI struct {
+	fakeWatchChatUI
+	clearing chan struct{}
+	gate     chan struct{}
+}
+
+func (u *gatedClearChatUI) ChatClearWatch(ctx context.Context, id chat1.LocationWatchID) error {
+	if id == 1 {
+		close(u.clearing)
+		<-u.gate
+	}
+	return u.fakeWatchChatUI.ChatClearWatch(ctx, id)
+}
+
+// Stop waits for the trackers it stops, not for one started after it.
+func TestLiveLocationTrackerStopWaitsOnlyForItsTrackers(t *testing.T) {
+	tc := libkb.SetupTest(t, "LiveLocationTrackerStopWaitsOnlyForItsTrackers", 0)
+	t.Cleanup(tc.Cleanup)
+	ui := &gatedClearChatUI{clearing: make(chan struct{}), gate: make(chan struct{})}
+	l := newWatchTestTracker(t, tc, nil, ui)
+
+	require.NotNil(t, startTestTracker(l, 1))
+	require.Eventually(t, func() bool { return len(ui.Watches()) == 1 }, 10*time.Second, 5*time.Millisecond)
+	stopped := l.Stop(context.Background())
+	select {
+	case <-ui.clearing:
+	case <-time.After(10 * time.Second):
+		require.FailNow(t, "the stopped tracker did not exit")
+	}
+	// The stopped tracker is still exiting when the next one starts.
+	require.NotNil(t, startTestTracker(l, 2))
+	close(ui.gate)
+	select {
+	case <-stopped:
+	case <-time.After(10 * time.Second):
+		require.FailNow(t, "Stop waited for a tracker started after it")
+	}
+}

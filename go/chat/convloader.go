@@ -205,6 +205,12 @@ func (b *BackgroundConvLoader) Start(ctx context.Context, uid gregor1.UID) {
 		b.Debug(ctx, "Start: overtaken by a later Start or Stop")
 		return
 	}
+	// A wake-up the previous run never read would park this run's loop; a
+	// suspension still in force parks it anyway, through suspendCount.
+	select {
+	case <-b.suspendCh:
+	default:
+	}
 	b.newQueue()
 	b.started = true
 	b.uid = uid
@@ -306,12 +312,6 @@ func (b *BackgroundConvLoader) Resume(ctx context.Context) bool {
 
 func (b *BackgroundConvLoader) suspendedLocked() bool {
 	return b.suspendCount > 0 || suspendInAppState(b.G().MobileAppState.State())
-}
-
-func (b *BackgroundConvLoader) isSuspended() bool {
-	b.Lock()
-	defer b.Unlock()
-	return b.suspendedLocked()
 }
 
 func (b *BackgroundConvLoader) isRunning() bool {

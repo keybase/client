@@ -148,17 +148,41 @@ func (r *ChatArchiveRegistry) flushLocked(ctx context.Context) error {
 	return nil
 }
 
-func (r *ChatArchiveRegistry) flush(ctx context.Context) {
+// archiveRunsIn is whether jobs run in state; they pause in every other.
+func archiveRunsIn(state keybase1.MobileAppState) bool {
+	return state == keybase1.MobileAppState_FOREGROUND
+}
+
+// runEnded reports whether the run stopCh belongs to is over. Stop closes
+// stopCh under r's lock, so under that lock a closed channel means the run is
+// over, whether or not a later Start (possibly for another user) has since
+// replaced r.stopCh.
+func runEnded(stopCh chan struct{}) bool {
+	select {
+	case <-stopCh:
+		return true
+	default:
+		return false
+	}
+}
+
+func (r *ChatArchiveRegistry) flush(ctx context.Context, stopCh chan struct{}) {
 	var err error
 	defer r.Trace(ctx, &err, "flush")()
 	r.Lock()
 	defer r.Unlock()
+	if runEnded(stopCh) {
+		return
+	}
 	err = r.flushLocked(ctx)
 }
 
-func (r *ChatArchiveRegistry) bgPauseAllJobs(ctx context.Context) {
+func (r *ChatArchiveRegistry) bgPauseAllJobs(ctx context.Context, stopCh chan struct{}) {
 	r.Lock()
 	defer r.Unlock()
+	if runEnded(stopCh) {
+		return
+	}
 	_ = r.bgPauseAllJobsLocked(ctx)
 }
 
@@ -172,7 +196,7 @@ func (r *ChatArchiveRegistry) loop(stopCh chan struct{}, state keybase1.MobileAp
 	defer r.Debug(ctx, "loop: shutting down")
 	flushCh := r.clock.After(r.flushDelay)
 	resume := time.NewTimer(r.resumeJobsDelay)
-	if state != keybase1.MobileAppState_FOREGROUND {
+	if !archiveRunsIn(state) {
 		resume.Stop()
 	}
 	// changed is refreshed only when the loop reads a new state: a resume
@@ -184,17 +208,17 @@ func (r *ChatArchiveRegistry) loop(stopCh chan struct{}, state keybase1.MobileAp
 		case <-stopCh:
 			return nil
 		case <-flushCh:
-			r.flush(ctx)
+			r.flush(ctx, stopCh)
 			flushCh = r.clock.After(r.flushDelay)
 		case <-changed:
 			state = r.G().MobileAppState.State()
 			changed = r.G().MobileAppState.NextUpdate(state)
 			r.Debug(ctx, "loop: next state -> %v", state)
-			if state == keybase1.MobileAppState_FOREGROUND {
+			if archiveRunsIn(state) {
 				resume.Reset(r.resumeJobsDelay)
 			} else {
 				resume.Stop()
-				r.bgPauseAllJobs(ctx)
+				r.bgPauseAllJobs(ctx, stopCh)
 			}
 		case <-resume.C:
 			if err := r.resumeAllBgJobs(ctx, stopCh); err != nil {
@@ -208,15 +232,10 @@ func (r *ChatArchiveRegistry) resumeAllBgJobs(ctx context.Context, stopCh chan s
 	defer r.Trace(ctx, &err, "resumeAllBgJobs")()
 	r.Lock()
 	defer r.Unlock()
-	// Stop closes stopCh under this lock, so a closed channel here means this
-	// run is over, whether or not a later Start (possibly for another user)
-	// has since replaced r.stopCh.
-	select {
-	case <-stopCh:
+	if runEnded(stopCh) {
 		return nil
-	default:
 	}
-	if state := r.G().MobileAppState.State(); state != keybase1.MobileAppState_FOREGROUND {
+	if state := r.G().MobileAppState.State(); !archiveRunsIn(state) {
 		r.Debug(ctx, "resumeAllBgJobs: not resuming in %v", state)
 		return nil
 	}
@@ -441,7 +460,7 @@ func (r *ChatArchiveRegistry) Set(ctx context.Context, cancel types.PauseArchive
 		// The loop pauses running jobs under this lock when the app leaves
 		// the foreground. A job registering while the app is out of it came
 		// after that pause, so it is paused here.
-		if state := r.G().MobileAppState.State(); state != keybase1.MobileAppState_FOREGROUND {
+		if state := r.G().MobileAppState.State(); !archiveRunsIn(state) {
 			r.Debug(ctx, "Set: pausing %v in %v", jobID, state)
 			cancel()
 			job.Status = chat1.ArchiveChatJobStatus_BACKGROUND_PAUSED

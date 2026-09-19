@@ -164,6 +164,13 @@ func TestArchiveConcurrentResumesLaunchOnce(t *testing.T) {
 		})
 	}
 	wg.Wait()
+	for range archiveTestJobIDs {
+		select {
+		case <-runner.launched:
+		case <-time.After(10 * time.Second):
+			require.FailNow(t, "jobs did not launch")
+		}
+	}
 	launches, _ := runner.counts()
 	for _, id := range archiveTestJobIDs {
 		require.Equal(t, 1, launches[id], "launches of %v before it registered", id)
@@ -182,6 +189,33 @@ func TestArchiveConcurrentResumesLaunchOnce(t *testing.T) {
 	require.NoError(t, r.bgPauseAllJobsLocked(context.Background()))
 	r.Unlock()
 	requireArchiveJobsPaused(t, r, runner)
+}
+
+// A run's loop that is still going after Stop neither pauses the jobs nor
+// flushes the history of whatever run comes next.
+func TestArchiveEndedRunLoopTouchesNothing(t *testing.T) {
+	r, _, _ := setupAppStateArchive(t, true)
+	ctx := context.Background()
+	r.Start(ctx, gregor1.UID([]byte{1, 2, 3, 4}))
+	defer requireArchiveStopped(t, r)
+	requireArchiveJobsRunning(t, r)
+
+	ended := make(chan struct{})
+	close(ended)
+	r.bgPauseAllJobs(ctx, ended)
+	statuses, running := archiveStatuses(r)
+	require.Equal(t, len(archiveTestJobIDs), running, "an ended run paused jobs")
+	for id, status := range statuses {
+		require.Equal(t, chat1.ArchiveChatJobStatus_RUNNING, status, "%v", id)
+	}
+
+	r.Lock()
+	r.dirty = true
+	r.Unlock()
+	r.flush(ctx, ended)
+	r.Lock()
+	defer r.Unlock()
+	require.True(t, r.dirty, "an ended run flushed")
 }
 
 // A job launched by one resume, passed over by a pause because it had not
