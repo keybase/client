@@ -23,9 +23,9 @@ const nudge = () =>
   } as never)
 
 // The service's holder, as far as these tests are concerned: a peek reports what is armed, an ack
-// retires it only if it is still the same tap. Nothing in constants/init calls the ack any more --
-// that happens only once navigation (or account-link-switch) consumes the intent -- so these tests
-// exercise it only to prove that absence.
+// retires it only if it is still the same tap. drainPushTapRoute only peeks and enqueues; the ack
+// belongs to whichever consumer -- navigation, or account-link-switch dropping a tap it cannot act
+// on -- actually resolves the intent. These tests exercise the service holder only to confirm that.
 const serviceHolding = (route?: T.RPCGen.PushTapRoute) => {
   let armed = route
   // Both answer a microtask late, as a real RPC would: nothing here should depend on a reply
@@ -98,14 +98,16 @@ beforeEach(() => {
 
 afterEach(() => {
   g.isMobile = false
-  jest.restoreAllMocks()
   useConfigState.setState({dispatch: originalConfigDispatch})
+  // Acknowledge any leftover intent while the service mock is still installed, so cleanup's own
+  // ack (if the intent carries one) hits the mock instead of a real, unmocked RPC call.
   const {intent, dispatch} = useNavigationIntentsState.getState()
   if (intent) dispatch.acknowledge(intent.id)
+  jest.restoreAllMocks()
   resetAllStores()
 })
 
-test('the nudge queues the armed route and does not ack it', async () => {
+test('the nudge queues the armed route without acking it', async () => {
   const route = chatRoute()
   const service = serviceHolding(route)
 
@@ -153,9 +155,9 @@ test('a peek whose reply is lost leaves the route armed for the next one', async
   expect(useNavigationIntentsState.getState().intent?.url).toBe('keybase://convid/0000ab')
 })
 
-// The store, not this layer, is what stops a repeat: nothing here retires the route on read any
-// more, so a second peek of the same still-armed id must be turned away by the intent it already
-// queued, never by anything drainPushTapRoute tracks itself.
+// Reading a route never retires it, so a second peek of the same still-armed id reaches enqueue
+// again; the intent store, not this layer, turns it away because that id is already queued.
+// drainPushTapRoute itself tracks nothing about what it has already seen.
 test('a second peek of the same still-armed id does not enqueue a second intent', async () => {
   const service = serviceHolding(chatRoute())
 
@@ -169,8 +171,12 @@ test('a second peek of the same still-armed id does not enqueue a second intent'
   expect(useNavigationIntentsState.getState().intent).toBe(first)
 })
 
+// The older tap is replaced outright, not merged (a different URL), so it is given up on for
+// good here: the store acks it even though the service already discarded that route itself when
+// it armed the newer one. Acking a route the service no longer holds is a harmless no-op there.
 test('a newer tap queued while the older one is still pending upgrades nothing away', async () => {
-  const service = serviceHolding(chatRoute())
+  const route = chatRoute()
+  const service = serviceHolding(route)
 
   nudge()
   await settle()
@@ -180,7 +186,36 @@ test('a newer tap queued while the older one is still pending upgrades nothing a
   await settle()
 
   expect(useNavigationIntentsState.getState().intent?.url).toBe('keybase://devices')
-  expect(service.ack).not.toHaveBeenCalled()
+  expect(service.ack).toHaveBeenCalledWith({id: route.id})
+  expect(service.isArmed()).toBe(true)
+})
+
+// Leaving the route armed is what saves a lost peek, but it means a lost ack shows the same tap
+// again. The intent store absorbs that by retrying only the ack, never the navigation, once the
+// duplicate window has passed and the router has already consumed the intent.
+test('a lost ack retries the ack without navigating again', async () => {
+  const route = chatRoute()
+  const service = serviceHolding(route)
+  service.ack.mockRejectedValueOnce(new Error('disconnected'))
+
+  nudge()
+  await settle()
+  const first = useNavigationIntentsState.getState().intent
+  expect(first?.url).toBe('keybase://convid/0000ab')
+  expect(service.isArmed()).toBe(true)
+
+  // the router consumes it and navigates, and time moves past the store's duplicate window
+  useNavigationIntentsState.getState().dispatch.acknowledge(first!.id)
+  const realNow = Date.now()
+  jest.spyOn(Date, 'now').mockReturnValue(realNow + 60_000)
+
+  // the route is still armed, so the next peek sees it again
+  nudge()
+  await settle()
+
+  expect(useNavigationIntentsState.getState().intent).toBeUndefined()
+  expect(service.ack).toHaveBeenCalledTimes(2)
+  expect(service.isArmed()).toBe(false)
 })
 
 test('no waiting tap queues nothing', async () => {

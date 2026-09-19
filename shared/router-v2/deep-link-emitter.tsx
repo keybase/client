@@ -92,7 +92,7 @@ export const emitDeepLink = (url: string) => {
 //
 // id is the Go route id: carried on the intent so whoever consumes it (or drops it for good) can
 // ack it there instead of here, since here the tap isn't queued yet, let alone acted on.
-export const enqueuePushTapRoute = (route: {url: string; targetUID: string; id?: number}) => {
+export const enqueuePushTapRoute = (route: {url: string; targetUID: string; id: number}) => {
   logger.info('[PushTap] queued a tap link:', route.url)
   useNavigationIntentsState
     .getState()

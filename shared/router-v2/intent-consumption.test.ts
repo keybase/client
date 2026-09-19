@@ -28,6 +28,7 @@ const clearIntent = () => {
 }
 
 beforeEach(() => {
+  jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
   useConfigState.getState().dispatch.setLoggedIn(true)
   useConfigState.getState().dispatch.setUserSwitching(false)
   setCurrentUser('current-uid')
@@ -41,7 +42,7 @@ afterEach(() => {
 })
 
 test('consuming an intent acks the tap route it carries', () => {
-  const ack = jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
+  const ack = T.RPCGen.appStateAckPushTapRouteRpcPromise as jest.Mock
   const listener = jest.fn()
   // The store notifies subscribers synchronously, so a ready router consumes (and acks) an
   // enqueued intent before enqueuePushTapRoute below returns.
@@ -55,7 +56,7 @@ test('consuming an intent acks the tap route it carries', () => {
 })
 
 test('a stale intent that is dropped without navigating still acks its tap route', () => {
-  const ack = jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
+  const ack = T.RPCGen.appStateAckPushTapRouteRpcPromise as jest.Mock
   const now = jest.spyOn(Date, 'now')
   now.mockReturnValue(1_000)
   useConfigState.getState().dispatch.setUserSwitching(true)
@@ -171,7 +172,7 @@ test('an account-targeted intent survives the store reset an account switch perf
   const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
 
   useConfigState.getState().dispatch.setUserSwitching(true)
-  enqueuePushTapRoute({targetUID: 'target-uid', url: 'keybase://convid/switch-target-conversation'})
+  enqueuePushTapRoute({id: 4444, targetUID: 'target-uid', url: 'keybase://convid/switch-target-conversation'})
   expect(listener).not.toHaveBeenCalled()
 
   // the service's loggedOut notification lands mid-switch and resets every store

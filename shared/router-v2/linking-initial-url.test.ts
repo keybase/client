@@ -43,17 +43,22 @@ const getInitialURL = async () => {
 
 const handleAppLink = jest.fn()
 
+// A push tap's id must not repeat across tests any more than it does across taps.
+let nextTapID = 5000
+const tapID = () => ++nextTapID
+
 beforeEach(() => {
+  jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
   useConfigState.getState().dispatch.setLoggedIn(true)
   setCurrentUser('current-uid')
 })
 
 afterEach(() => {
-  jest.restoreAllMocks()
   handleAppLink.mockReset()
   // resetAllStores deliberately keeps account-targeted intents; drop them here.
   const {intent, dispatch} = useNavigationIntentsState.getState()
   if (intent) dispatch.acknowledge(intent.id)
+  jest.restoreAllMocks()
   resetAllStores()
 })
 
@@ -96,26 +101,27 @@ test('a conversation persisted by this account is kept', async () => {
 
 test('a cold tap for the current account is the startup route, ahead of saved state', async () => {
   setStartup({conversation: 'conv-1'})
-  enqueuePushTapRoute({targetUID: 'current-uid', url: 'keybase://convid/0000ab'})
+  enqueuePushTapRoute({id: tapID(), targetUID: 'current-uid', url: 'keybase://convid/0000ab'})
 
   await expect(getInitialURL()).resolves.toBe('keybase://convid/0000ab')
   expect(useNavigationIntentsState.getState().intent).toBeUndefined()
 })
 
 test('getInitialURL taking a cold tap acks its route', async () => {
-  const ack = jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
+  const ack = T.RPCGen.appStateAckPushTapRouteRpcPromise as jest.Mock
+  const id = tapID()
   setStartup({conversation: 'conv-1'})
-  enqueuePushTapRoute({id: 5151, targetUID: 'current-uid', url: 'keybase://convid/0000ab'})
+  enqueuePushTapRoute({id, targetUID: 'current-uid', url: 'keybase://convid/0000ab'})
   expect(ack).not.toHaveBeenCalled()
 
   await expect(getInitialURL()).resolves.toBe('keybase://convid/0000ab')
 
-  expect(ack).toHaveBeenCalledWith({id: 5151})
+  expect(ack).toHaveBeenCalledWith({id})
 })
 
 test('a cold tap for another account opens saved state and waits for the switch', async () => {
   setStartup({conversation: 'conv-1'})
-  enqueuePushTapRoute({targetUID: 'other-uid', url: 'keybase://convid/0000ab'})
+  enqueuePushTapRoute({id: tapID(), targetUID: 'other-uid', url: 'keybase://convid/0000ab'})
 
   await expect(getInitialURL()).resolves.toBe('keybase://convid/conv-1')
   expect(useNavigationIntentsState.getState().intent?.targetUid).toBe('other-uid')
@@ -176,7 +182,7 @@ test('the returned initial url is recorded so the same deep link is not re-enque
 
 test('a queued tap older than the intent lifetime is not the startup route', async () => {
   setStartup({conversation: 'conv-1'})
-  enqueuePushTapRoute({targetUID: 'current-uid', url: 'keybase://convid/0000ab'})
+  enqueuePushTapRoute({id: tapID(), targetUID: 'current-uid', url: 'keybase://convid/0000ab'})
   const intent = useNavigationIntentsState.getState().intent
   useNavigationIntentsState.setState({intent: {...intent!, createdAt: Date.now() - 6 * 60_000}})
 

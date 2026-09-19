@@ -14,8 +14,12 @@ const otherAccount = {hasStoredSecret: true, uid: 'uid-other', username: 'testus
 const noSecretAccount = {hasStoredSecret: false, uid: 'uid-nosecret', username: 'testuser-nosecret'}
 const allAccounts = [currentAccount, otherAccount, noSecretAccount]
 
+// A push tap's id must not repeat across tests any more than it does across taps, so every call
+// here gets a fresh one; the ack RPC is mocked below so a leftover, still-pending intent from a
+// previous test can be acknowledged in cleanup without an unmocked RPC call.
+let nextTapID = 9000
 const tapFor = (uid: string) =>
-  enqueuePushTapRoute({targetUID: uid, url: 'keybase://convid/0000ab'})
+  enqueuePushTapRoute({id: ++nextTapID, targetUID: uid, url: 'keybase://convid/0000ab'})
 
 let login = jest.fn()
 let unsub: (() => void) | undefined
@@ -25,6 +29,7 @@ const setAccounts = (configuredAccounts: typeof allAccounts) => {
 }
 
 beforeEach(() => {
+  jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
   login = jest.fn()
   // navigation-intents' resetState deliberately keeps account-targeted intents.
   const {intent, dispatch} = useNavigationIntentsState.getState()
@@ -90,11 +95,12 @@ test('a tap for an account without a stored secret is dropped', () => {
 // Dropped here means no navigation is ever coming for it, so this is where the tap's route must
 // be acked -- there is no other consumption point left to do it.
 test('a tap dropped for a missing stored secret acks its route', () => {
-  const ack = jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
+  const ack = T.RPCGen.appStateAckPushTapRouteRpcPromise as jest.Mock
+  const id = ++nextTapID
 
-  enqueuePushTapRoute({id: 6161, targetUID: noSecretAccount.uid, url: 'keybase://convid/0000ab'})
+  enqueuePushTapRoute({id, targetUID: noSecretAccount.uid, url: 'keybase://convid/0000ab'})
 
-  expect(ack).toHaveBeenCalledWith({id: 6161})
+  expect(ack).toHaveBeenCalledWith({id})
 })
 
 test('nothing switches before the handshake is done', () => {
@@ -118,13 +124,14 @@ test('a login error drops the tap', () => {
 })
 
 test('a login error dropping the tap acks its route', () => {
-  const ack = jest.spyOn(T.RPCGen, 'appStateAckPushTapRouteRpcPromise').mockResolvedValue(undefined)
-  enqueuePushTapRoute({id: 6262, targetUID: otherAccount.uid, url: 'keybase://convid/0000ab'})
+  const ack = T.RPCGen.appStateAckPushTapRouteRpcPromise as jest.Mock
+  const id = ++nextTapID
+  enqueuePushTapRoute({id, targetUID: otherAccount.uid, url: 'keybase://convid/0000ab'})
   expect(ack).not.toHaveBeenCalled()
 
   useConfigState.setState({loginError: new RPCError('bad', 1), userSwitching: false})
 
-  expect(ack).toHaveBeenCalledWith({id: 6262})
+  expect(ack).toHaveBeenCalledWith({id})
 })
 
 test('logging out drops a tap for another account', () => {
