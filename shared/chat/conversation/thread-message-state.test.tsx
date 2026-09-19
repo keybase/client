@@ -674,7 +674,10 @@ describe('addMessagesToThreadState', () => {
   })
 })
 
-describe('local server urls that went empty', () => {
+// The service keeps its last-bound address in Info()/getURL forever once it has bound once (see
+// go/kbhttp/manager.Srv.Info), so a message update can no longer carry a URL that regresses a
+// good one to empty: an update now always simply takes whatever the service sent.
+describe('local server urls', () => {
   const textAt = (ord: number, override?: Omit<Partial<T.Chat.MessageText>, 'text'>) =>
     makeTextMessage({
       id: T.Chat.numberToMessageID(ord),
@@ -682,29 +685,18 @@ describe('local server urls that went empty', () => {
       outboxID: undefined,
       ...override,
     })
-  const emojiDecoration = (url: string) => {
-    const decoration: T.RPCChat.UITextDecoration = {
-      emoji: {
-        alias: 'party',
-        isAlias: false,
-        isBig: false,
-        isCrossTeam: false,
-        isReacji: false,
-        noAnimSource: {httpsrv: url && `${url}&noanim=true`, typ: T.RPCChat.EmojiLoadSourceTyp.httpsrv},
-        remoteSource: {
-          message: {convID: new Uint8Array([1]), isAlias: false, msgID: 5},
-          typ: T.RPCChat.EmojiRemoteSourceTyp.message,
-        },
-        source: {httpsrv: url, typ: T.RPCChat.EmojiLoadSourceTyp.httpsrv},
-      },
-      typ: T.RPCChat.UITextDecorationTyp.emoji,
-    }
-    return `$>kb$${Buffer.from(JSON.stringify(decoration)).toString('base64')}$<kb$`
-  }
-  const emojiURL = 'http://127.0.0.1:5000/att?key=abc&prev=false&noanim=false&isemoji=true'
   const attachmentOrdinal = T.Chat.numberToOrdinal(201)
 
-  test('an attachment keeps its file and preview urls when an update carries empty ones', () => {
+  test('a new non-empty url replaces the old one', () => {
+    const state = makeThreadState([])
+    addMessagesToThreadState(state, [makeAttachmentMessage({fileURL: 'http://127.0.0.1:5000/f'})], {})
+    addMessagesToThreadState(state, [makeAttachmentMessage({fileURL: 'http://127.0.0.1:6000/f'})], {})
+    expect((state.messageMap.get(attachmentOrdinal) as T.Chat.MessageAttachment).fileURL).toBe(
+      'http://127.0.0.1:6000/f'
+    )
+  })
+
+  test('an empty url in an update now overwrites an existing one', () => {
     const state = makeThreadState([])
     addMessagesToThreadState(
       state,
@@ -717,142 +709,39 @@ describe('local server urls that went empty', () => {
       {}
     )
     const m = state.messageMap.get(attachmentOrdinal) as T.Chat.MessageAttachment
-    expect(m.fileURL).toBe('http://127.0.0.1:5000/f')
-    expect(m.previewURL).toBe('http://127.0.0.1:5000/p')
+    expect(m.fileURL).toBe('')
+    expect(m.previewURL).toBe('')
     expect(m.title).toBe('renamed')
   })
 
-  test('a new non-empty url still replaces the old one', () => {
-    const state = makeThreadState([])
-    addMessagesToThreadState(state, [makeAttachmentMessage({fileURL: 'http://127.0.0.1:5000/f'})], {})
-    addMessagesToThreadState(state, [makeAttachmentMessage({fileURL: 'http://127.0.0.1:6000/f'})], {})
-    expect((state.messageMap.get(attachmentOrdinal) as T.Chat.MessageAttachment).fileURL).toBe(
-      'http://127.0.0.1:6000/f'
-    )
-  })
-
-  test('decorated text keeps its emoji urls when only they went empty', () => {
-    const state = makeThreadState([])
-    const good = `hi ${emojiDecoration(emojiURL)}`
-    addMessagesToThreadState(state, [textAt(10, {decoratedText: new HiddenString(good)})], {})
-    addMessagesToThreadState(
-      state,
-      [textAt(10, {decoratedText: new HiddenString(`hi ${emojiDecoration('')}`)})],
-      {}
-    )
-    expect(
-      (state.messageMap.get(T.Chat.numberToOrdinal(10)) as T.Chat.MessageText).decoratedText?.stringValue()
-    ).toBe(good)
-  })
-
-  test('decorated text that changed otherwise is taken even with empty emoji urls', () => {
-    const state = makeThreadState([])
-    addMessagesToThreadState(
-      state,
-      [textAt(10, {decoratedText: new HiddenString(`hi ${emojiDecoration(emojiURL)}`)})],
-      {}
-    )
-    const edited = `bye ${emojiDecoration('')}`
-    addMessagesToThreadState(state, [textAt(10, {decoratedText: new HiddenString(edited)})], {})
-    expect(
-      (state.messageMap.get(T.Chat.numberToOrdinal(10)) as T.Chat.MessageText).decoratedText?.stringValue()
-    ).toBe(edited)
-  })
-
-  test('unfurls keep their image, favicon and video urls when an update carries empty ones', () => {
-    const image = (url: string): T.RPCChat.UnfurlImageDisplay => ({height: 10, isVideo: false, url, width: 10})
-    const generic = (url: string, title: string): T.RPCChat.UIMessageUnfurlInfo => ({
-      isCollapsed: false,
-      unfurl: {
-        generic: {
-          favicon: image(url && `${url}/favicon`),
-          media: image(url && `${url}/media`),
-          siteName: 'site',
-          title,
-          url: 'https://keybase.io',
-        },
-        unfurlType: T.RPCChat.UnfurlType.generic,
-      },
-      unfurlMessageID: T.Chat.numberToMessageID(11),
-      url: 'https://keybase.io',
-    })
-    const giphy = (url: string): T.RPCChat.UIMessageUnfurlInfo => ({
-      isCollapsed: false,
-      unfurl: {
-        giphy: {
-          favicon: image(url && `${url}/favicon`),
-          image: image(url && `${url}/image`),
-          video: {...image(url && `${url}/video`), isVideo: true},
-        },
-        unfurlType: T.RPCChat.UnfurlType.giphy,
-      },
-      unfurlMessageID: T.Chat.numberToMessageID(12),
-      url: 'https://giphy.com/x',
-    })
-    const local = 'http://127.0.0.1:5000'
-    const state = makeThreadState([])
-    addMessagesToThreadState(
-      state,
-      [
-        textAt(10, {
-          unfurls: new Map([
-            ['https://keybase.io', generic(local, 'first')],
-            ['https://giphy.com/x', giphy(local)],
-          ]),
-        }),
-      ],
-      {}
-    )
-    addMessagesToThreadState(
-      state,
-      [
-        textAt(10, {
-          unfurls: new Map([
-            ['https://keybase.io', generic('', 'second')],
-            ['https://giphy.com/x', giphy('')],
-          ]),
-        }),
-      ],
-      {}
-    )
-    const unfurls = (state.messageMap.get(T.Chat.numberToOrdinal(10)) as T.Chat.MessageText).unfurls
-    const g = unfurls?.get('https://keybase.io')?.unfurl
-    expect(g?.unfurlType === T.RPCChat.UnfurlType.generic && g.generic.title).toBe('second')
-    expect(g?.unfurlType === T.RPCChat.UnfurlType.generic && [g.generic.favicon?.url, g.generic.media?.url]).toEqual([
-      `${local}/favicon`,
-      `${local}/media`,
-    ])
-    const gi = unfurls?.get('https://giphy.com/x')?.unfurl
-    expect(
-      gi?.unfurlType === T.RPCChat.UnfurlType.giphy && [gi.giphy.favicon?.url, gi.giphy.image?.url, gi.giphy.video?.url]
-    ).toEqual([`${local}/favicon`, `${local}/image`, `${local}/video`])
-  })
-
-  test('reactions keep their emoji urls on a merge and on a reaction update', () => {
-    const good = emojiDecoration(emojiURL)
+  test('reactions take the incoming decoration on a merge and on a reaction update', () => {
     const reaction = (decorated: string, users: Array<string>): T.Chat.ReactionDesc => ({
       decorated,
       users: users.map((username, i) => ({timestamp: i + 1, username})),
     })
     const state = makeThreadState([])
-    addMessagesToThreadState(state, [textAt(10, {reactions: new Map([[':party:', reaction(good, ['testuser'])]])})], {})
     addMessagesToThreadState(
       state,
-      [textAt(10, {reactions: new Map([[':party:', reaction(emojiDecoration(''), ['testuser', 'testuser-mac'])]])})],
+      [textAt(10, {reactions: new Map([[':party:', reaction(':party:', ['testuser'])]])})],
+      {}
+    )
+    addMessagesToThreadState(
+      state,
+      [textAt(10, {reactions: new Map([[':party:', reaction('', ['testuser', 'testuser-mac'])]])})],
       {}
     )
     const merged = (state.messageMap.get(T.Chat.numberToOrdinal(10)) as T.Chat.MessageText).reactions?.get(':party:')
-    expect(merged?.decorated).toBe(good)
+    expect(merged?.decorated).toBe('')
     expect(merged?.users.map(u => u.username)).toEqual(['testuser', 'testuser-mac'])
 
     updateReactionsInThreadState(state, [
       {
-        reactions: new Map([[':party:', reaction(emojiDecoration(''), ['testuser'])]]),
+        reactions: new Map([[':party:', reaction(':party:', ['testuser'])]]),
         targetMsgID: T.Chat.numberToMessageID(10),
       },
     ])
     const updated = (state.messageMap.get(T.Chat.numberToOrdinal(10)) as T.Chat.MessageText).reactions?.get(':party:')
-    expect(updated?.decorated).toBe(good)
+    expect(updated?.decorated).toBe(':party:')
     expect(updated?.users.map(u => u.username)).toEqual(['testuser'])
   })
 })
