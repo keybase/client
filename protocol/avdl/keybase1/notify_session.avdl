@@ -4,7 +4,7 @@ protocol NotifySession {
   import idl "common.avdl";
 
   @notify("")
-  void loggedOut(StateVersion version);
-  void loggedIn(string username, boolean signedUp, StateVersion version); // signedUp if this is due to a signup
+  void loggedOut();
+  void loggedIn(string username, boolean signedUp); // signedUp if this is due to a signup
   void clientOutOfDate(string upgradeTo, string upgradeURI, string upgradeMsg);
 }

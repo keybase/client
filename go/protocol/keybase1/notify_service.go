@@ -23,8 +23,7 @@ func (o HttpSrvInfo) DeepCopy() HttpSrvInfo {
 }
 
 type HTTPSrvInfoUpdateArg struct {
-	Info    HttpSrvInfo  `codec:"info" json:"info"`
-	Version StateVersion `codec:"version" json:"version"`
+	Info HttpSrvInfo `codec:"info" json:"info"`
 }
 
 type HandleKeybaseLinkArg struct {
@@ -37,7 +36,7 @@ type ShutdownArg struct {
 }
 
 type NotifyServiceInterface interface {
-	HTTPSrvInfoUpdate(context.Context, HTTPSrvInfoUpdateArg) error
+	HTTPSrvInfoUpdate(context.Context, HttpSrvInfo) error
 	HandleKeybaseLink(context.Context, HandleKeybaseLinkArg) error
 	Shutdown(context.Context, int) error
 }
@@ -57,7 +56,7 @@ func NotifyServiceProtocol(i NotifyServiceInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]HTTPSrvInfoUpdateArg)(nil), args)
 						return
 					}
-					err = i.HTTPSrvInfoUpdate(ctx, typedArgs[0])
+					err = i.HTTPSrvInfoUpdate(ctx, typedArgs[0].Info)
 					return
 				},
 			},
@@ -99,7 +98,8 @@ type NotifyServiceClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c NotifyServiceClient) HTTPSrvInfoUpdate(ctx context.Context, __arg HTTPSrvInfoUpdateArg) (err error) {
+func (c NotifyServiceClient) HTTPSrvInfoUpdate(ctx context.Context, info HttpSrvInfo) (err error) {
+	__arg := HTTPSrvInfoUpdateArg{Info: info}
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyService.HTTPSrvInfoUpdate", []any{__arg}, 0*time.Millisecond)
 	return
 }

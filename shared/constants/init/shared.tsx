@@ -70,7 +70,6 @@ const subscribeValue = <State, Value>(
   })
 
 type ConfigState = ReturnType<typeof useConfigState.getState>
-type DaemonState = ReturnType<typeof useDaemonState.getState>
 type RouterState = ReturnType<typeof useRouterState.getState>
 
 // ─── Bootstrap steps ──────────────────────────────────────────────────────────
@@ -178,9 +177,6 @@ export const onNetworkOnlineChanged = (online?: boolean, previous?: boolean) => 
 
 export const onLoggedInChanged = (loggedIn: ConfigState['loggedIn']) => {
   if (loggedIn) {
-    // a status read before we knew we were logged in was held back then; a status identical to
-    // the stored one does not notify again, so apply its identity from here
-    applyStatusIdentity(useDaemonState.getState().bootstrapStatus)
     // runtime login: refresh bootstrap status. During the handshake this is already in
     // flight, and the store dedupes it.
     ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
@@ -208,52 +204,6 @@ const onConfiguredAccountsChanged = (configuredAccounts: ConfigState['configured
 }
 
 
-// Only a status that agrees with the session we are in describes the current user: a read that
-// spans a logout describes the previous one, and resetAllStores has already cleared them.
-const applyStatusIdentity = (bootstrap: DaemonState['bootstrapStatus']) => {
-  if (!bootstrap?.loggedIn || !useConfigState.getState().loggedIn) {
-    return
-  }
-  const {deviceID, deviceName, uid, username} = bootstrap
-  useCurrentUserState.getState().dispatch.setBootstrap({deviceID, deviceName, uid, username})
-  if (username) {
-    useConfigState.getState().dispatch.setDefaultUsername(username)
-  }
-}
-
-const applyUnversionedStatusSession = (bootstrap: NonNullable<DaemonState['bootstrapStatus']>) => {
-  // Only while the connected service has said it cannot settle the session: no setNotifications
-  // reply at all (a service too old for it, or a subscribe that failed and left us with no
-  // channels either), or a reply taken before the service's startup login attempt had settled.
-  // The config store clears this the moment a real session version is accepted, so the fallback
-  // hands back to the versioned stream as soon as there is one.
-  if (!useConfigState.getState().dispatch.sessionIsUnversioned()) {
-    return
-  }
-  const {httpSrvInfo, loggedIn} = bootstrap
-  const configDispatch = useConfigState.getState().dispatch
-  if (httpSrvInfo) {
-    configDispatch.setHTTPSrvInfo(httpSrvInfo.address, httpSrvInfo.token)
-  }
-  if (!loggedIn && useConfigState.getState().userSwitching) {
-    logger.info('[Bootstrap] ignoring loggedIn=false result during account switch')
-    return
-  }
-  configDispatch.setLoggedIn(loggedIn)
-}
-
-export const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus']) => {
-  if (!bootstrap) {
-    return
-  }
-  // The session first, then the identity, which is applied only if it agrees with the session:
-  // the line below may set the session this status describes, and setLoggedIn writes the store
-  // synchronously, so the read inside applyStatusIdentity sees it. Nothing outside this function
-  // is involved -- swapping these two lines is what would break it.
-  applyUnversionedStatusSession(bootstrap)
-  applyStatusIdentity(bootstrap)
-}
-
 // The service derives the app's lifecycle state from the UI reports native makes and is the only
 // party that derives it; this is the whole of JS's model of it. Go's two background states are one
 // state here: nothing in the UI distinguishes "backgrounded with work still running" from
@@ -262,12 +212,8 @@ export const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus
 // Applied only on mobile. Desktop has no lifecycle to report, so the service's value there is a
 // constant FOREGROUND that describes nothing -- desktop's window focus is a separate fact, written
 // straight to `appFocused` by the window listeners.
-export const applyMobileAppState = (state?: T.RPCGen.MobileAppState, version?: T.RPCGen.StateVersion) => {
-  if (!isMobile || state === undefined) {
-    return
-  }
-  if (!useConfigState.getState().dispatch.acceptAppStateVersion(version)) {
-    logger.info('[AppState] older than the applied state, ignoring')
+export const applyMobileAppState = (state: T.RPCGen.MobileAppState) => {
+  if (!isMobile) {
     return
   }
   switch (state) {
@@ -282,8 +228,8 @@ export const applyMobileAppState = (state?: T.RPCGen.MobileAppState, version?: T
       useShellState.getState().dispatch.setMobileAppState('background')
       break
     default:
-      // a fifth state the service grew and we have not mapped: it has already taken the version,
-      // so say so rather than leaving the store silently stuck on the one before it
+      // a fifth state the service grew and we have not mapped: say so rather than leaving the store
+      // silently stuck on the one before it
       logger.warn(`[AppState] unmapped state ${String(state)}, leaving the app state as it was`)
   }
 }
@@ -331,55 +277,46 @@ const drainPushTapRoute = async () => {
   }
 }
 
-// The reply to setNotifications: the state as of the moment this connection subscribed, so there
-// is no read to order against the subscription. An old service returns nothing here and the
-// bootstrap status keeps that job -- see applyUnversionedStatusSession.
-export const applyClientState = (clientState?: T.RPCGen.ClientState, generation?: number) => {
-  // A reply from a connection a later handshake has already replaced must not write anything:
-  // the flag below has no connection identity of its own, and a rejection delivered a microtask
-  // after the reconnect would otherwise re-arm the fallback on the new connection.
-  if (generation !== undefined && generation !== useDaemonState.getState().handshakeGeneration) {
-    logger.info('[Bootstrap] dropping a subscription reply from a replaced connection')
-    return
-  }
-  const session = clientState?.session
-  useConfigState.getState().dispatch.setSessionIsUnversioned(!session)
-  if (!clientState || !session) {
-    logger.info(
-      clientState
-        ? '[Bootstrap] setNotifications answered before the login attempt settled; the status owns the session'
-        : '[Bootstrap] no client state from setNotifications; this service predates it'
-    )
-    // the status may already be in the store from before we knew that, and a status identical to
-    // the stored one does not notify again
-    onBootstrapStatusChanged(useDaemonState.getState().bootstrapStatus)
-  }
-  if (!clientState) {
-    return
-  }
-  const {appState, httpSrvInfo, version} = clientState
+// The splash waits for the service to say who is logged in. A clientState with no session means
+// its startup login attempt has not settled yet -- not known, rather than logged out -- and the
+// attempt settling sends another that has one. Each connection waits afresh.
+const sessionWaitMs = 30_000
+let settleSession = () => {}
+let sessionSettled = new Promise<void>(resolve => {
+  settleSession = resolve
+})
+const awaitSessionAgain = () => {
+  sessionSettled = new Promise<void>(resolve => {
+    settleSession = resolve
+  })
+}
+
+// The service's clientState: the session, the http server address and the app state, read when it
+// was sent. It rides the same ordered stream as every notification that changes them, and for each
+// of them the last message to arrive carries the latest value, so everything is applied in arrival
+// order. It comes first on subscribing, after every completed login and logout and every cleared
+// session, and once the service's startup login attempt settles.
+export const applyClientState = (clientState: T.RPCGen.ClientState) => {
+  const {appState, httpSrvInfo, session} = clientState
   // On iOS JS never starts on a background launch, so it can have missed every change since the
-  // process started: this is what catches it up, and there is no earlier reading to order against.
-  // appState is generated as required, but a service older than it omits the field, so it really
-  // can be undefined here -- applyMobileAppState is what treats that as "nothing was said".
-  applyMobileAppState(appState, version)
+  // process started: this is what catches it up.
+  applyMobileAppState(appState)
   const configDispatch = useConfigState.getState().dispatch
   if (httpSrvInfo) {
-    configDispatch.setHTTPSrvInfo(httpSrvInfo.address, httpSrvInfo.token, version)
+    configDispatch.setHTTPSrvInfo(httpSrvInfo.address, httpSrvInfo.token)
   }
   if (!session) {
+    logger.info('[Bootstrap] the service has not settled its startup login yet')
     return
   }
-  if (!configDispatch.acceptSessionVersion(version)) {
-    logger.info('[Bootstrap] a login or logout is newer than this snapshot, ignoring')
-    return
-  }
+  settleSession()
   const {deviceID, deviceName, loggedIn, uid, username} = session
-  if (!loggedIn && useConfigState.getState().userSwitching) {
-    // policy, not ordering: keep the session and the user we have until the switch lands. The
-    // snapshot's identity is empty when it says logged out, so it must not be applied either.
-    logger.info('[Bootstrap] ignoring loggedIn=false snapshot during account switch')
-    return
+  // Another user than the one we are logged in as is a logout and then a login, whether or not the
+  // logged-out clientState between them reached us: on desktop an account switch resets the engine
+  // on the loggedOut event, which can drop the clientState right behind it. Logging out is what
+  // clears the previous account's stores.
+  if (loggedIn && useConfigState.getState().loggedIn && uid !== useCurrentUserState.getState().uid) {
+    configDispatch.setLoggedIn(false)
   }
   // identity before the session: setLoggedIn fans out synchronously, and every subscriber of a
   // login has always been able to read the current user by the time it runs
@@ -388,6 +325,47 @@ export const applyClientState = (clientState?: T.RPCGen.ClientState, generation?
     configDispatch.setDefaultUsername(username)
   }
   configDispatch.setLoggedIn(loggedIn)
+}
+
+const subscribe = async () => {
+  try {
+    // prettier-ignore
+    await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
+      channels: {
+        allowChatNotifySkips: true, app: true, audit: true, badges: true, chat: true, chatarchive: true,
+        chatattachments: true, chatdev: false, chatemoji: false, chatemojicross: false, chatkbfsedits: false,
+        deviceclone: false, ephemeral: false, favorites: false, featuredBots: false, kbfs: true, kbfsdesktop: !isMobile,
+        devicehistory: true, kbfslegacy: false, kbfsrequest: false, kbfssubscription: true, keyfamily: false, notifysimplefs: true,
+        paperkeys: false, pgp: true, reachability: false, runtimestats: true, saltpack: true, service: true, session: true,
+        team: true, teambot: false, tracking: true, users: true, wallet: false,
+      },
+    })
+    return true
+  } catch (error) {
+    logger.warn('error in toggling notifications: ', error)
+    return false
+  }
+}
+let subscription = Promise.resolve(false)
+
+// A handshake step: the session is what decides between the login screen and the app. A failed
+// subscribe is retried here, since without it no clientState is coming.
+export const sessionSettledStep = async () => {
+  if (!(await subscription)) {
+    subscription = subscribe()
+    if (!(await subscription)) {
+      throw new Error("Can't subscribe to the service's notifications")
+    }
+  }
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const timedOut = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => reject(new Error("The service hasn't said who is logged in")), sessionWaitMs)
+  })
+  try {
+    await Promise.race([sessionSettled, timedOut])
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 const onNavStateChanged =(nextNavState: RouterState['navState'], previousNavState: RouterState['navState']) => {
@@ -436,38 +414,10 @@ export const onEngineConnected = () => {
 
   useConfigState.getState().dispatch.onEngineConnected()
 
-  const subscribe = async (generation: number) => {
-    let clientState: T.RPCGen.ClientState | undefined
-    try {
-      // prettier-ignore
-      clientState = await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
-        channels: {
-          allowChatNotifySkips: true, app: true, audit: true, badges: true, chat: true, chatarchive: true,
-          chatattachments: true, chatdev: false, chatemoji: false, chatemojicross: false, chatkbfsedits: false,
-          deviceclone: false, ephemeral: false, favorites: false, featuredBots: false, kbfs: true, kbfsdesktop: !isMobile,
-          devicehistory: true, kbfslegacy: false, kbfsrequest: false, kbfssubscription: true, keyfamily: false, notifysimplefs: true,
-          paperkeys: false, pgp: true, reachability: false, runtimestats: true, saltpack: true, service: true, session: true,
-          team: true, teambot: false, tracking: true, users: true, wallet: false,
-        },
-      })
-    } catch (error) {
-      logger.warn('error in toggling notifications: ', error)
-      // clientState stays undefined: no reply and no channels either, so nothing versioned will
-      // reach this connection and the bootstrap status is all we have, exactly as for a service
-      // too old to answer at all
-    }
-    // outside the try on purpose: a throw from applying a good reply must not be read as a
-    // failed subscribe and re-run the unversioned fallback over half-applied versioned state
-    applyClientState(clientState, generation)
-  }
-  // a new connection has told us nothing yet; the reply is what settles it
-  useConfigState.getState().dispatch.setSessionIsUnversioned(false)
+  awaitSessionAgain()
+  subscription = subscribe()
   ignorePromise(drainPushTapRoute())
-  // startHandshake first so this connection has its generation before the subscribe goes out.
-  // Nothing orders the two RPCs any more: the subscription reply is what carries the session and
-  // the http address, so the bootstrap read has nothing left to race with.
   useDaemonState.getState().dispatch.startHandshake()
-  ignorePromise(subscribe(useDaemonState.getState().handshakeGeneration))
 }
 
 export const onEngineDisconnected = () => {
@@ -485,6 +435,7 @@ export const initSharedSubscriptions = (platformBootstrapSteps: Array<BootstrapS
       loadDarkPrefsStep,
       loadChatStaticConfigStep,
       loadAccountsStep,
+      sessionSettledStep,
       ...platformBootstrapSteps,
     ])
 
@@ -496,8 +447,6 @@ export const initSharedSubscriptions = (platformBootstrapSteps: Array<BootstrapS
     subscribeValue(useConfigState, s => s.revokedTrigger, onRevokedTriggerChanged),
     subscribeValue(useConfigState, s => s.configuredAccounts, onConfiguredAccountsChanged)
   )
-
-  _sharedUnsubs.push(subscribeValue(useDaemonState, s => s.bootstrapStatus, onBootstrapStatusChanged))
 
   _sharedUnsubs.push(subscribeValue(useShellState, s => s.networkStatus?.online, onNetworkOnlineChanged))
 
@@ -522,11 +471,12 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'keybase.1.NotifyApp.pushTapRouteAvailable':
       ignorePromise(drainPushTapRoute())
       break
-    case 'keybase.1.NotifyApp.mobileAppStateChanged': {
-      const {state, version} = action.payload.params
-      applyMobileAppState(state, version)
+    case 'keybase.1.NotifyApp.mobileAppStateChanged':
+      applyMobileAppState(action.payload.params.state)
       break
-    }
+    case 'keybase.1.NotifyApp.clientState':
+      applyClientState(action.payload.params.state)
+      break
     case 'keybase.1.NotifyBadges.badgeState':
       {
         const {badgeState} = action.payload.params

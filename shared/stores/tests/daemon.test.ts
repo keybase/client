@@ -159,8 +159,7 @@ describe('a superseded read', () => {
   })
 
   test('does not write its status over the newer load', async () => {
-    // a reconnect invalidates in-flight reads whatever any version says: the generation orders
-    // client attempts, which the service's counter knows nothing about
+    // a reconnect invalidates in-flight reads: the generation orders client attempts
     let resolveLosing!: (bs: T.RPCGen.BootstrapStatus) => void
     jest
       .spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise')

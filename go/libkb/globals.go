@@ -25,7 +25,6 @@ import (
 	"os"
 	"runtime"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/keybase/client/go/libkb/lifecycle"
@@ -80,8 +79,6 @@ type GlobalContext struct {
 	Identify3State                   *Identify3State             // keep track of Identify3 sessions
 	vidMu                            *sync.Mutex                 // protect VID
 	RuntimeStats                     RuntimeStats                // performance runtime stats
-	stateEpoch                       int64                       // see StateVersion
-	stateCounter                     atomic.Int64                // see StateVersion
 
 	cacheMu                *sync.RWMutex   // protects all caches
 	ProofCache             *ProofCache     // where to cache proof results
@@ -173,7 +170,8 @@ type GlobalContext struct {
 
 	// It is threadsafe to call methods on ActiveDevice which will always be non-nil.
 	// But don't access its members directly. If you're going to be changing out the
-	// user (and resetting the ActiveDevice), then you should hold the switchUserMu
+	// user (and resetting the ActiveDevice), then you should hold the switchUserMu,
+	// through lockSwitchUser
 	switchUserMu  *VerboseLock
 	ActiveDevice  *ActiveDevice
 	switchedUsers map[NormalizedUsername]bool // bookkeep users who have been switched over (and are still in secret store)
@@ -321,15 +319,6 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.IdentifyDispatch = NewIdentifyDispatch()
 	g.Identify3State = NewIdentify3State(g)
 	g.GregorState = newNullGregorState()
-	// Any value distinct from every other service process will do: a client only
-	// ever asks whether two epochs differ, never which is greater. Kept under
-	// 2^32 because a JS client decodes an int64 into a float64, which is exact
-	// only below 2^53.
-	if epoch, err := RandInt64(); err == nil {
-		g.stateEpoch = epoch & 0xFFFFFFFF
-	} else {
-		g.stateEpoch = time.Now().UnixMilli() & 0xFFFFFFFF
-	}
 	g.LocalNetworkInstrumenterStorage = NewDiskInstrumentationStorage(g, keybase1.NetworkSource_LOCAL)
 	g.RemoteNetworkInstrumenterStorage = NewDiskInstrumentationStorage(g, keybase1.NetworkSource_REMOTE)
 
@@ -340,22 +329,6 @@ func (g *GlobalContext) Init() *GlobalContext {
 
 func NewGlobalContextInit() *GlobalContext {
 	return NewGlobalContext().Init()
-}
-
-// StateVersion labels the last change a notification announced (the http server
-// address, login, logout). Epoch identifies this service process, so a client
-// that reconnects to a restarted service sees a different epoch instead of a
-// counter that looks stale; counter strictly increases within one epoch.
-func (g *GlobalContext) StateVersion() keybase1.StateVersion {
-	return keybase1.StateVersion{Epoch: g.stateEpoch, Counter: g.stateCounter.Load()}
-}
-
-// NextStateVersion stamps a change about to be announced. NotifyRouter calls it
-// after the change is readable, so nothing carrying this version is still
-// invisible, which makes a snapshot labelled with StateVersion never newer than
-// its label.
-func (g *GlobalContext) NextStateVersion() keybase1.StateVersion {
-	return keybase1.StateVersion{Epoch: g.stateEpoch, Counter: g.stateCounter.Add(1)}
 }
 
 func (g *GlobalContext) SetService() {
@@ -388,10 +361,25 @@ func (g *GlobalContext) SetAvatarLoader(a AvatarLoaderSource) {
 	g.avatarLoader = a
 }
 
+// lockSwitchUser takes switchUserMu, which every session write (the active
+// device, the config's current user) is made under. A release that leaves no
+// valid session queues a clientState to connected clients, after unlocking; a
+// release that leaves a valid one queues nothing, because the login it belongs
+// to announces itself when it completes. See connSender for why that is enough.
+func (g *GlobalContext) lockSwitchUser(mctx MetaContext, reasonFormat string, args ...any) (release func()) {
+	unlock := g.switchUserMu.Acquire(mctx, reasonFormat, args...)
+	return func() {
+		unlock()
+		if !g.ActiveDevice.Valid() {
+			g.NotifyRouter.AnnounceClientState(mctx.Ctx())
+		}
+	}
+}
+
 // simulateServiceRestart simulates what happens when a service restarts for the
 // purposes of testing.
 func (g *GlobalContext) simulateServiceRestart() {
-	defer g.switchUserMu.Acquire(NewMetaContext(context.TODO(), g), "simulateServiceRestart")()
+	defer g.lockSwitchUser(NewMetaContext(context.TODO(), g), "simulateServiceRestart")()
 	_ = g.ActiveDevice.Clear()
 }
 

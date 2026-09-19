@@ -77,45 +77,62 @@ func TestMobileAppStateBackgroundCancelsRPCsOnlyOnChange(t *testing.T) {
 	requireOpen(t, second.Done())
 }
 
+func appStateChanges(t *testing.T, rec *NotifyRecorder) []keybase1.MobileAppState {
+	t.Helper()
+	var ret []keybase1.MobileAppState
+	for _, m := range rec.Messages() {
+		if m.Method != "keybase.1.NotifyApp.mobileAppStateChanged" {
+			continue
+		}
+		var arg keybase1.MobileAppStateChangedArg
+		require.NoError(t, m.Decode(&arg))
+		ret = append(ret, arg.State)
+	}
+	return ret
+}
+
 // Clients are told from the one place the value changes, so no writer can add a
-// path that moves the state without announcing it. The announce is observable
-// from here as the state version it stamps.
+// path that moves the state without announcing it.
 func TestMobileAppStateAnnouncesOnlyOnChange(t *testing.T) {
 	tc := SetupTest(t, "MobileAppStateAnnounce", 0)
 	defer tc.Cleanup()
 	tc.G.SetService()
 	a := NewMobileAppState(tc.G)
+	rec := NewNotifyRecorder(tc.G, keybase1.NotificationChannels{App: true})
+	defer rec.Close()
 
-	before := tc.G.StateVersion()
 	require.True(t, a.Update(keybase1.MobileAppState_BACKGROUND))
-	announced := tc.G.StateVersion()
-	require.Equal(t, before.Counter+1, announced.Counter, "one stamp for the change")
-
 	require.False(t, a.Update(keybase1.MobileAppState_BACKGROUND))
-	require.Equal(t, announced.Counter, tc.G.StateVersion().Counter, "nothing announced for a same-value update")
-
 	require.True(t, a.Update(keybase1.MobileAppState_FOREGROUND))
-	require.Equal(t, announced.Counter+1, tc.G.StateVersion().Counter)
+	rec.Flush()
+	require.Equal(t, []keybase1.MobileAppState{
+		keybase1.MobileAppState_BACKGROUND,
+		keybase1.MobileAppState_FOREGROUND,
+	}, appStateChanges(t, rec), "one notification per change, none for a same-value update")
 }
 
-// The stamp lands in the same critical section as the state write, so two
-// concurrent Updates publish in the order they wrote rather than in whatever
-// order they reached the router. Checked white-box: holding the lock across
-// updateLocked is the only way to observe "has the version been stamped yet",
-// and the answer must be yes before the lock is released.
-func TestMobileAppStateStampsUnderTheLock(t *testing.T) {
-	tc := SetupTest(t, "MobileAppStateStamp", 0)
+// The notification is queued in the same critical section that wrote the
+// state, so two concurrent Updates queue in the order they wrote rather than in
+// whatever order they reached the router. Checked white-box: holding the lock
+// across updateLocked is the only way to observe "has it been queued yet", and
+// the answer must be yes before the lock is released.
+func TestMobileAppStateQueuesUnderTheLock(t *testing.T) {
+	tc := SetupTest(t, "MobileAppStateQueue", 0)
 	defer tc.Cleanup()
 	tc.G.SetService()
 	a := NewMobileAppState(tc.G)
+	rec := NewNotifyRecorder(tc.G, keybase1.NotificationChannels{App: true})
+	defer rec.Close()
 
-	before := tc.G.StateVersion().Counter
 	a.Lock()
 	changed := a.updateLocked(keybase1.MobileAppState_BACKGROUND)
-	stamped := tc.G.StateVersion().Counter
+	// nothing queued reads app state (there is no clientState reader here), so
+	// flushing under the lock cannot deadlock
+	rec.Flush()
+	queued := appStateChanges(t, rec)
 	a.Unlock()
 
 	require.True(t, changed)
-	require.Equal(t, before+1, stamped,
-		"the change was announced before the lock that wrote it was released")
+	require.Equal(t, []keybase1.MobileAppState{keybase1.MobileAppState_BACKGROUND}, queued,
+		"the change was queued before the lock that wrote it was released")
 }

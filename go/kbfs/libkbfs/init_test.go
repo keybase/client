@@ -155,7 +155,7 @@ func (c *initOrderCn) callIntoKBFS() {
 	require.NoError(t, err)
 	require.NoError(t, c.daemon.PaperKeyCached(
 		ctx, keybase1.PaperKeyCachedArg{Uid: session.UID}))
-	require.NoError(t, c.daemon.LoggedOut(ctx, keybase1.StateVersion{}))
+	require.NoError(t, c.daemon.LoggedOut(ctx))
 
 	// Until init is ready, requests get an error or wait.
 	_, err = c.daemon.GetTLFCryptKeys(ctx, keybase1.TLFQuery{TlfName: "testuser"})

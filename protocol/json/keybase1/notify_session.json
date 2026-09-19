@@ -9,12 +9,7 @@
   "types": [],
   "messages": {
     "loggedOut": {
-      "request": [
-        {
-          "name": "version",
-          "type": "StateVersion"
-        }
-      ],
+      "request": [],
       "response": null,
       "notify": ""
     },
@@ -27,10 +22,6 @@
         {
           "name": "signedUp",
           "type": "boolean"
-        },
-        {
-          "name": "version",
-          "type": "StateVersion"
         }
       ],
       "response": null

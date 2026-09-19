@@ -11,12 +11,16 @@ export type IncomingErrorCallback = (err?: SimpleError | null) => void
 
 
 export type MessageTypes = {
+  'keybase.1.NotifyApp.clientState': {
+    inParam: {readonly state: ClientState},
+    outParam: void,
+  },
   'keybase.1.NotifyApp.exit': {
     inParam: undefined,
     outParam: void,
   },
   'keybase.1.NotifyApp.mobileAppStateChanged': {
-    inParam: {readonly state: MobileAppState,readonly version: StateVersion},
+    inParam: {readonly state: MobileAppState},
     outParam: void,
   },
   'keybase.1.NotifyApp.pushTapRouteAvailable': {
@@ -80,7 +84,7 @@ export type MessageTypes = {
     outParam: void,
   },
   'keybase.1.NotifyService.HTTPSrvInfoUpdate': {
-    inParam: {readonly info: HttpSrvInfo,readonly version: StateVersion},
+    inParam: {readonly info: HttpSrvInfo},
     outParam: void,
   },
   'keybase.1.NotifyService.handleKeybaseLink': {
@@ -96,11 +100,11 @@ export type MessageTypes = {
     outParam: void,
   },
   'keybase.1.NotifySession.loggedIn': {
-    inParam: {readonly username: string,readonly signedUp: boolean,readonly version: StateVersion},
+    inParam: {readonly username: string,readonly signedUp: boolean},
     outParam: void,
   },
   'keybase.1.NotifySession.loggedOut': {
-    inParam: {readonly version: StateVersion},
+    inParam: undefined,
     outParam: void,
   },
   'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged': {
@@ -845,7 +849,7 @@ export type MessageTypes = {
   },
   'keybase.1.notifyCtl.setNotifications': {
     inParam: {readonly channels: NotificationChannels},
-    outParam: ClientState,
+    outParam: void,
   },
   'keybase.1.pgp.pgpKeyGenDefault': {
     inParam: {readonly createUids: PGPCreateUids},
@@ -2554,7 +2558,7 @@ export type CheckResult = {readonly proofResult: ProofResult,readonly time: Time
 export type CiphertextBundle = {readonly kid: KID,readonly ciphertext: EncryptedBytes32,readonly nonce: BoxNonce,readonly publicKey: BoxPublicKey,}
 export type ClientDetails = {readonly pid: number,readonly clientType: ClientType,readonly argv?: ReadonlyArray<string> | null,readonly desc: string,readonly version: string,}
 export type ClientSession = {readonly loggedIn: boolean,readonly uid: UID,readonly username: string,readonly deviceID: DeviceID,readonly deviceName: string,}
-export type ClientState = {readonly version: StateVersion,readonly session?: ClientSession | null,readonly httpSrvInfo?: HttpSrvInfo | null,readonly appState: MobileAppState,}
+export type ClientState = {readonly session?: ClientSession | null,readonly httpSrvInfo?: HttpSrvInfo | null,readonly appState: MobileAppState,}
 export type ClientStatus = {readonly details: ClientDetails,readonly connectionID: number,readonly notificationChannels: NotificationChannels,}
 export type CompatibilityTeamID ={ typ: TeamType.legacy, legacy: TLFID } | { typ: TeamType.modern, modern: TeamID } | { typ: TeamType.none}
 export type ComponentResult = {readonly name: string,readonly status: Status,readonly exitCode: number,}
@@ -2954,7 +2958,6 @@ export type SocialAssertion = {readonly user: string,readonly service: SocialAss
 export type SocialAssertionService = string
 export type StartProofResult = {readonly sigID: SigID,}
 export type StartStatus = {readonly log: string,}
-export type StateVersion = {readonly epoch: number,readonly counter: number,}
 export type Status = {readonly code: number,readonly name: string,readonly desc: string,readonly fields?: ReadonlyArray<StringKVPair> | null,}
 export type StellarAccount = {readonly accountID: string,readonly federationAddress: string,readonly sigID: SigID,readonly hidden: boolean,}
 export type Stream = {readonly fd: number,}
@@ -3137,7 +3140,7 @@ export type WalletAccountInfo = {readonly accountID: string,readonly numUnread: 
 export type WebProof = {readonly hostname: string,readonly protocols?: ReadonlyArray<string> | null,}
 export type WriteArgs = {readonly opID: OpID,readonly path: Path,readonly offset: number,}
 
-type IncomingMethod = 'keybase.1.NotifyApp.mobileAppStateChanged' | 'keybase.1.NotifyApp.pushTapRouteAvailable' | 'keybase.1.NotifyAudit.boxAuditError' | 'keybase.1.NotifyAudit.rootAuditError' | 'keybase.1.NotifyBadges.badgeState' | 'keybase.1.NotifyDeviceHistory.deviceHistoryChanged' | 'keybase.1.NotifyFS.FSActivity' | 'keybase.1.NotifySession.loggedOut' | 'keybase.1.NotifyTracking.trackingChanged' | 'keybase.1.NotifyUsers.userChanged' | 'keybase.1.loginUi.displayPaperKeyPhrase' | 'keybase.1.loginUi.displayPrimaryPaperKey' | 'keybase.1.loginUi.displayResetProgress' | 'keybase.1.loginUi.explainDeviceRecovery' | 'keybase.1.pgpUi.finished' | 'keybase.1.proveUi.displayRecheckWarning' | 'keybase.1.proveUi.outputPrechecks' | 'keybase.1.provisionUi.DisplaySecretExchanged' | 'keybase.1.provisionUi.ProvisioneeSuccess' | 'keybase.1.provisionUi.ProvisionerSuccess' | 'keybase.1.rekeyUI.refresh' | 'keybase.1.rekeyUI.rekeySendEvent'
+type IncomingMethod = 'keybase.1.NotifyApp.clientState' | 'keybase.1.NotifyApp.mobileAppStateChanged' | 'keybase.1.NotifyApp.pushTapRouteAvailable' | 'keybase.1.NotifyAudit.boxAuditError' | 'keybase.1.NotifyAudit.rootAuditError' | 'keybase.1.NotifyBadges.badgeState' | 'keybase.1.NotifyDeviceHistory.deviceHistoryChanged' | 'keybase.1.NotifyFS.FSActivity' | 'keybase.1.NotifySession.loggedOut' | 'keybase.1.NotifyTracking.trackingChanged' | 'keybase.1.NotifyUsers.userChanged' | 'keybase.1.loginUi.displayPaperKeyPhrase' | 'keybase.1.loginUi.displayPrimaryPaperKey' | 'keybase.1.loginUi.displayResetProgress' | 'keybase.1.loginUi.explainDeviceRecovery' | 'keybase.1.pgpUi.finished' | 'keybase.1.proveUi.displayRecheckWarning' | 'keybase.1.proveUi.outputPrechecks' | 'keybase.1.provisionUi.DisplaySecretExchanged' | 'keybase.1.provisionUi.ProvisioneeSuccess' | 'keybase.1.provisionUi.ProvisionerSuccess' | 'keybase.1.rekeyUI.refresh' | 'keybase.1.rekeyUI.rekeySendEvent'
 export type IncomingCallMapType = Partial<{[M in IncomingMethod]: (params: RpcIn<M>) => void}>
 
 type CustomIncomingMethod = 'keybase.1.NotifyApp.exit' | 'keybase.1.NotifyEmailAddress.emailAddressVerified' | 'keybase.1.NotifyEmailAddress.emailsChanged' | 'keybase.1.NotifyFS.FSOverallSyncStatusChanged' | 'keybase.1.NotifyFS.FSSubscriptionNotify' | 'keybase.1.NotifyFS.FSSubscriptionNotifyPath' | 'keybase.1.NotifyFeaturedBots.featuredBotsUpdate' | 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile' | 'keybase.1.NotifyPhoneNumber.phoneNumbersChanged' | 'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate' | 'keybase.1.NotifyService.HTTPSrvInfoUpdate' | 'keybase.1.NotifyService.handleKeybaseLink' | 'keybase.1.NotifyService.shutdown' | 'keybase.1.NotifySession.clientOutOfDate' | 'keybase.1.NotifySession.loggedIn' | 'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged' | 'keybase.1.NotifyTeam.avatarUpdated' | 'keybase.1.NotifyTeam.teamChangedByID' | 'keybase.1.NotifyTeam.teamDeleted' | 'keybase.1.NotifyTeam.teamExit' | 'keybase.1.NotifyTeam.teamMetadataUpdate' | 'keybase.1.NotifyTeam.teamRoleMapChanged' | 'keybase.1.NotifyTeam.teamTreeMembershipsDone' | 'keybase.1.NotifyTeam.teamTreeMembershipsPartial' | 'keybase.1.NotifyTracking.notifyUserBlocked' | 'keybase.1.NotifyTracking.trackingInfo' | 'keybase.1.NotifyUsers.identifyUpdate' | 'keybase.1.NotifyUsers.passwordChanged' | 'keybase.1.gpgUi.selectKey' | 'keybase.1.gpgUi.wantToAddGPGKey' | 'keybase.1.gregorUI.pushState' | 'keybase.1.homeUI.homeUIRefresh' | 'keybase.1.identify3Ui.identify3Result' | 'keybase.1.identify3Ui.identify3ShowTracker' | 'keybase.1.identify3Ui.identify3Summary' | 'keybase.1.identify3Ui.identify3UpdateRow' | 'keybase.1.identify3Ui.identify3UpdateUserCard' | 'keybase.1.identify3Ui.identify3UserReset' | 'keybase.1.logUi.log' | 'keybase.1.loginUi.chooseDeviceToRecoverWith' | 'keybase.1.loginUi.displayPaperKeyPhrase' | 'keybase.1.loginUi.displayPrimaryPaperKey' | 'keybase.1.loginUi.displayResetProgress' | 'keybase.1.loginUi.explainDeviceRecovery' | 'keybase.1.loginUi.getEmailOrUsername' | 'keybase.1.loginUi.promptPassphraseRecovery' | 'keybase.1.loginUi.promptResetAccount' | 'keybase.1.loginUi.promptRevokePaperKeys' | 'keybase.1.logsend.prepareLogsend' | 'keybase.1.pgpUi.finished' | 'keybase.1.pgpUi.keyGenerated' | 'keybase.1.pgpUi.shouldPushPrivate' | 'keybase.1.proveUi.checking' | 'keybase.1.proveUi.continueChecking' | 'keybase.1.proveUi.displayRecheckWarning' | 'keybase.1.proveUi.okToCheck' | 'keybase.1.proveUi.outputInstructions' | 'keybase.1.proveUi.outputPrechecks' | 'keybase.1.proveUi.preProofWarning' | 'keybase.1.proveUi.promptOverwrite' | 'keybase.1.proveUi.promptUsername' | 'keybase.1.provisionUi.DisplayAndPromptSecret' | 'keybase.1.provisionUi.DisplaySecretExchanged' | 'keybase.1.provisionUi.PromptNewDeviceName' | 'keybase.1.provisionUi.ProvisioneeSuccess' | 'keybase.1.provisionUi.ProvisionerSuccess' | 'keybase.1.provisionUi.chooseDevice' | 'keybase.1.provisionUi.chooseDeviceType' | 'keybase.1.provisionUi.chooseGPGMethod' | 'keybase.1.provisionUi.switchToGPGSignOK' | 'keybase.1.rekeyUI.delegateRekeyUI' | 'keybase.1.rekeyUI.refresh' | 'keybase.1.rekeyUI.rekeySendEvent' | 'keybase.1.secretUi.getPassphrase' | 'keybase.1.teamsUi.confirmInviteLinkAccept' | 'keybase.1.teamsUi.confirmRootTeamDelete' | 'keybase.1.teamsUi.confirmSubteamDelete'

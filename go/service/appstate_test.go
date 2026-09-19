@@ -69,9 +69,9 @@ func TestAckPushTapRouteIgnoresAStaleID(t *testing.T) {
 	require.Equal(t, "keybase://devices", survived.Url)
 }
 
-// A tap must ride its own call and nothing else. setNotifications answers every
-// subscriber -- kbfs subscribes from inside this same process -- so a tap
-// carried in that reply would be consumed by whichever one subscribed first.
+// A tap must ride its own call and nothing else. Every app subscriber gets a
+// clientState, so a tap carried there would be consumed by whichever one got
+// it first.
 func TestSetNotificationsLeavesTheTapAlone(t *testing.T) {
 	tc := libkb.SetupTest(t, "appstate", 0)
 	defer tc.Cleanup()
@@ -82,10 +82,12 @@ func TestSetNotificationsLeavesTheTapAlone(t *testing.T) {
 	route := keybase1.PushTapRoute{Url: "keybase://devices", TargetUID: "u1"}
 	g.PendingPushTap.Set(ctx, route)
 
-	n, svc, _ := newTestNotifyCtlHandler(t, g)
-	svc.initialLoginAttemptOnce.Do(func() { close(svc.initialLoginAttemptDone) })
-	_, err := n.SetNotifications(ctx, keybase1.NotificationChannels{App: true})
-	require.NoError(t, err)
+	svc := newTestClientStateService(t, g)
+	svc.settleInitialLoginAttempt(ctx)
+	rec := libkb.NewNotifyRecorder(g, keybase1.NotificationChannels{})
+	defer rec.Close()
+	require.NoError(t, NewNotifyCtlHandler(nil, rec.ID, g).SetNotifications(ctx, keybase1.NotificationChannels{App: true}))
+	rec.Flush()
 
 	got, err := newAppStateHandler(nil, g).PeekPushTapRoute(ctx)
 	require.NoError(t, err)

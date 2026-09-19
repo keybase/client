@@ -108,8 +108,8 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
     },
     startHandshake: () => {
       const gen = ++generation
-      // startHandshake follows an engine reset, which drops in-flight RPCs without settling
-      // their promises; reusing one here would stall the handshake forever
+      // startHandshake follows an engine reset, which fails the old connection's in-flight RPCs;
+      // reusing one here would fail this handshake's first attempt with the old connection's error
       inflightBootstrapStatus = undefined
       set(s => {
         s.error = undefined

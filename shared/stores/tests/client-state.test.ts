@@ -3,134 +3,80 @@ import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '../config'
 import {useCurrentUserState} from '../current-user'
-import {applyClientState, onBootstrapStatusChanged} from '@/constants/init/shared'
+import {useShellState} from '../shell'
+import {_onEngineIncoming, applyClientState} from '@/constants/init/shared'
 
-const epoch = 1000
-const version = (counter: number, e = epoch): T.RPCGen.StateVersion => ({counter, epoch: e})
+const g = globalThis as unknown as {isMobile: boolean}
 
-const clientState = (
-  session: Partial<T.RPCGen.ClientSession> = {},
-  over: Partial<T.RPCGen.ClientState> = {}
-): T.RPCGen.ClientState => ({
-  appState: T.RPCGen.MobileAppState.foreground,
-  session: {deviceID: 'd1', deviceName: 'testuser-mac', loggedIn: true, uid: 'u1', username: 'testuser', ...session},
-  version: version(1),
+const session = (over: Partial<T.RPCGen.ClientSession> = {}): T.RPCGen.ClientSession => ({
+  deviceID: 'd1',
+  deviceName: 'testuser-mac',
+  loggedIn: true,
+  uid: 'u1',
+  username: 'testuser',
   ...over,
 })
 
-const notifyHTTP = (address: string, v?: T.RPCGen.StateVersion) =>
+const loggedOut = session({deviceID: '', deviceName: '', loggedIn: false, uid: '', username: ''})
+
+const clientState = (over: Partial<T.RPCGen.ClientState> = {}): T.RPCGen.ClientState => ({
+  appState: T.RPCGen.MobileAppState.foreground,
+  session: session(),
+  ...over,
+})
+
+const notifyClientState = (state: T.RPCGen.ClientState) =>
+  _onEngineIncoming({payload: {params: {state}}, type: 'keybase.1.NotifyApp.clientState'} as never)
+
+const notifyHTTP = (address: string) =>
   useConfigState.getState().dispatch.onEngineIncoming({
-    payload: {params: {info: {address, token: 'token'}, version: v}},
+    payload: {params: {info: {address, token: 'token'}}},
     type: 'keybase.1.NotifyService.HTTPSrvInfoUpdate',
   } as never)
 
-const notifySession = (kind: 'loggedIn' | 'loggedOut', v?: T.RPCGen.StateVersion) =>
-  useConfigState.getState().dispatch.onEngineIncoming({
-    payload: {
-      params: kind === 'loggedIn' ? {signedUp: false, username: 'testuser', version: v} : {version: v},
-    },
-    type: `keybase.1.NotifySession.${kind}`,
-  } as never)
-
-// The applied versions live outside the store and deliberately survive resetAllStores, so each
-// test gets its own epoch instead of relying on a reset that no longer exists.
-let testEpoch = epoch
-beforeEach(() => {
-  testEpoch++
-})
 afterEach(() => {
+  g.isMobile = false
   jest.restoreAllMocks()
   resetAllStores()
 })
 
-describe('the setNotifications snapshot', () => {
-  test('applies the session, the current user and the http address', () => {
-    applyClientState(
-      clientState({}, {httpSrvInfo: {address: '127.0.0.1:1', token: 'token'}, version: version(1, testEpoch)})
+describe('a clientState', () => {
+  test('replaces the session, the current user, the http address and the app state', () => {
+    g.isMobile = true
+    notifyClientState(
+      clientState({
+        appState: T.RPCGen.MobileAppState.background,
+        httpSrvInfo: {address: '127.0.0.1:1', token: 'token'},
+      })
     )
 
     expect(useConfigState.getState().loggedIn).toBe(true)
     expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:1')
     expect(useCurrentUserState.getState().username).toBe('testuser')
     expect(useCurrentUserState.getState().deviceID).toBe('d1')
+    expect(useShellState.getState().mobileAppState).toBe('background')
   })
 
-  test('loses to a session notification that is already newer', () => {
-    notifySession('loggedOut', version(7, testEpoch))
-    useConfigState.setState({loggedIn: false})
+  test('is applied in arrival order, with no versions: the last one wins', () => {
+    applyClientState(clientState({httpSrvInfo: {address: '127.0.0.1:1', token: 'token'}}))
+    notifyHTTP('127.0.0.1:2')
+    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:2')
 
-    applyClientState(clientState({loggedIn: true}, {version: version(6, testEpoch)}))
+    applyClientState(clientState({httpSrvInfo: {address: '127.0.0.1:3', token: 'token'}, session: loggedOut}))
+    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:3')
+    expect(useConfigState.getState().loggedIn).toBe(false)
+  })
 
+  test('with no session leaves the session as it was: the service does not know it yet', () => {
+    applyClientState(clientState({session: undefined}))
     expect(useConfigState.getState().loggedIn).toBe(false)
     expect(useCurrentUserState.getState().username).toBe('')
-  })
 
-  test('is dropped on a tie, which costs nothing: it is labelled before the state it carries', () => {
-    notifySession('loggedOut', version(4, testEpoch))
-    useConfigState.setState({loggedIn: false})
-
-    applyClientState(clientState({loggedIn: true}, {version: version(4, testEpoch)}))
-
-    expect(useConfigState.getState().loggedIn).toBe(false)
-  })
-
-  test('from a restarted service wins although its counter started over', () => {
-    notifySession('loggedOut', version(9, testEpoch))
-    useConfigState.setState({loggedIn: false})
-
-    applyClientState(clientState({loggedIn: true}, {version: version(1, testEpoch + 500)}))
-
-    expect(useConfigState.getState().loggedIn).toBe(true)
-  })
-
-  test('is ignored during an account switch when it says logged out', () => {
-    useConfigState.setState({loggedIn: true, userSwitching: true})
-    useCurrentUserState.setState({username: 'testuser'})
-
-    applyClientState(
-      clientState({loggedIn: false, uid: '', username: ''}, {version: version(1, testEpoch)})
-    )
-
-    expect(useConfigState.getState().loggedIn).toBe(true)
-    // a logged-out snapshot carries an empty identity; applying it would blank the user the
-    // guard just decided to keep
-    expect(useCurrentUserState.getState().username).toBe('testuser')
-  })
-})
-
-describe('notification ordering', () => {
-  test('a notification older than the applied one is ignored', () => {
-    notifySession('loggedOut', version(5, testEpoch))
-    expect(useConfigState.getState().loggedIn).toBe(false)
-
-    useConfigState.setState({loggedIn: false})
-    notifySession('loggedIn', version(4, testEpoch))
-    expect(useConfigState.getState().loggedIn).toBe(false)
-  })
-
-  test('a notification with the version already applied is ignored', () => {
-    notifySession('loggedIn', version(5, testEpoch))
+    applyClientState(clientState())
     expect(useConfigState.getState().loggedIn).toBe(true)
 
-    notifySession('loggedOut', version(5, testEpoch))
+    applyClientState(clientState({session: null}))
     expect(useConfigState.getState().loggedIn).toBe(true)
-  })
-
-  test('the http address and the session are ordered separately off one counter', () => {
-    notifyHTTP('127.0.0.1:2', version(3, testEpoch))
-    notifySession('loggedIn', version(5, testEpoch))
-    // stamped before the login, so a single applied version would reject it, but it is newer than
-    // the address we have and the address is what it describes
-    notifyHTTP('127.0.0.1:3', version(4, testEpoch))
-
-    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:3')
-  })
-
-  test('the applied versions survive an engine reconnect to the same service', () => {
-    notifyHTTP('127.0.0.1:2', version(9, testEpoch))
-    useConfigState.getState().dispatch.onEngineConnected()
-    notifyHTTP('127.0.0.1:3', version(8, testEpoch))
-    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:2')
   })
 
   test('has the current user in place before anything reacts to the login', () => {
@@ -143,67 +89,103 @@ describe('notification ordering', () => {
       }
     })
 
-    applyClientState(clientState({loggedIn: true}, {version: version(1, testEpoch)}))
+    applyClientState(clientState())
     unsub()
 
     expect(seen).toBe('testuser')
   })
 
-  test('an address stamped with counter 0 is applied', () => {
-    // the http server can start before NotifyRouter exists, so its first update returns early and
-    // the reply carries a live address labelled 0; the epoch is what makes that newer than nothing
-    applyClientState(
-      clientState(
-        {},
-        {httpSrvInfo: {address: '127.0.0.1:7', token: 'token'}, version: version(0, testEpoch)}
-      )
-    )
-    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:7')
-  })
-
   test('logging out keeps the http server address', () => {
-    notifyHTTP('127.0.0.1:2', version(1, testEpoch))
+    notifyHTTP('127.0.0.1:2')
     useConfigState.getState().dispatch.resetState()
     expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:2')
   })
-})
 
-describe('the bootstrap status identity', () => {
-  test('is not applied when the status disagrees with the session we are in', () => {
-    // the read can span a logout: GetBootstrapStatus waits out the startup login attempt, and a
-    // logout announced meanwhile has already reset the stores
-    applyClientState(
-      clientState({loggedIn: false, uid: '', username: ''}, {version: version(1, testEpoch)})
-    )
+  test('loggedIn and loggedOut change nothing about the session: clientState owns it', () => {
+    useConfigState.getState().dispatch.onEngineIncoming({
+      payload: {params: {signedUp: false, username: 'testuser'}},
+      type: 'keybase.1.NotifySession.loggedIn',
+    } as never)
     expect(useConfigState.getState().loggedIn).toBe(false)
 
-    onBootstrapStatusChanged({
-      deviceID: 'd1',
-      deviceName: 'testuser-mac',
-      loggedIn: true,
-      registered: true,
-      uid: 'u1',
-      username: 'testuser',
+    applyClientState(clientState())
+    useConfigState.getState().dispatch.onEngineIncoming({
+      payload: {params: undefined},
+      type: 'keybase.1.NotifySession.loggedOut',
     } as never)
+    expect(useConfigState.getState().loggedIn).toBe(true)
+  })
+})
 
-    expect(useCurrentUserState.getState().username).toBe('')
-    expect(useCurrentUserState.getState().uid).toBe('')
+describe('an account switch', () => {
+  const userB = session({deviceID: 'd2', uid: 'u2', username: 'testuser2'})
+
+  // what resetAllStores clears, standing in for the previous account's state
+  const markAccountState = () => useConfigState.setState({justDeletedSelf: 'testuser'})
+  const accountStateCleared = () => useConfigState.getState().justDeletedSelf === ''
+
+  const loginChanges = () => {
+    const changes: Array<boolean> = []
+    const unsub = useConfigState.subscribe((st, prev) => {
+      if (st.loggedIn !== prev.loggedIn) {
+        changes.push(st.loggedIn)
+      }
+    })
+    return {changes, unsub}
+  }
+
+  test('with both clientStates logs out, clearing the old account, then logs in as the new one', () => {
+    applyClientState(clientState())
+    markAccountState()
+    useConfigState.getState().dispatch.setUserSwitching(true)
+    const {changes, unsub} = loginChanges()
+
+    applyClientState(clientState({session: loggedOut}))
+    expect(accountStateCleared()).toBe(true)
+    applyClientState(clientState({session: userB}))
+    unsub()
+
+    expect(changes).toEqual([false, true])
+    expect(useCurrentUserState.getState().username).toBe('testuser2')
+    expect(useConfigState.getState().loggedIn).toBe(true)
   })
 
-  test('is applied when it agrees', () => {
-    applyClientState(
-      clientState({loggedIn: true, uid: 'u1', username: 'testuser'}, {version: version(1, testEpoch)})
-    )
+  test('whose logged-out clientState never arrived still clears the old account', () => {
+    applyClientState(clientState())
+    markAccountState()
+    useConfigState.getState().dispatch.setUserSwitching(true)
+    const {changes, unsub} = loginChanges()
 
-    onBootstrapStatusChanged({
-      deviceID: 'd1',
-      deviceName: 'testuser-mac',
-      loggedIn: true,
-      registered: true,
-      uid: 'u1',
-      username: 'testuser',
-    } as never)
+    applyClientState(clientState({session: userB}))
+    unsub()
 
-    expect(useCurrentUserState.getState().username).toBe('testuser')
+    expect(changes).toEqual([false, true])
+    expect(accountStateCleared()).toBe(true)
+    expect(useCurrentUserState.getState().username).toBe('testuser2')
+    expect(useCurrentUserState.getState().uid).toBe('u2')
+  })
+
+  test('whose login fails after the logout ends logged out, no longer switching', () => {
+    applyClientState(clientState())
+    useConfigState.getState().dispatch.setUserSwitching(true)
+
+    applyClientState(clientState({session: loggedOut}))
+    useConfigState.getState().dispatch.setLoginError(new Error('bad password') as never)
+
+    expect(useConfigState.getState().loggedIn).toBe(false)
+    expect(useConfigState.getState().userSwitching).toBe(false)
+    expect(useCurrentUserState.getState().username).toBe('')
+  })
+
+  test('the same user again is not a switch', () => {
+    applyClientState(clientState())
+    markAccountState()
+    const {changes, unsub} = loginChanges()
+
+    applyClientState(clientState())
+    unsub()
+
+    expect(changes).toEqual([])
+    expect(accountStateCleared()).toBe(false)
   })
 })

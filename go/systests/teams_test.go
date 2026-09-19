@@ -244,7 +244,7 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 	err = srv.Register(keybase1.NotifyTeambotProtocol(u.notifications))
 	require.NoError(tt.t, err)
 	ncli := keybase1.NotifyCtlClient{Cli: cli}
-	_, err = ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{
+	err = ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{
 		Team:      true,
 		Badges:    true,
 		Ephemeral: true,

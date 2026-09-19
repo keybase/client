@@ -87,15 +87,6 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
-    // an app lifecycle state notification or snapshot: applied only if it is newer than the last
-    // applied one. The fan-out is one goroutine per connection, so two of these can arrive in
-    // either order, and applying the older one last would leave us permanently wrong.
-    acceptAppStateVersion: (version?: T.RPCGen.StateVersion) => boolean
-    // a login or logout notification: applied only if it is newer than the last applied one
-    acceptSessionVersion: (version?: T.RPCGen.StateVersion) => boolean
-    // whether the connected service has told us it cannot settle the session -- see the closure
-    sessionIsUnversioned: () => boolean
-    setSessionIsUnversioned: (unversioned: boolean) => void
     checkForUpdate: () => void
     initAppUpdateLoop: () => void
     installerRan: () => void
@@ -117,7 +108,7 @@ export type State = Store & {
     setChatStaticConfig: (s: T.Chat.StaticConfig) => void
     setDefaultUsername: (u: string) => void
     setGlobalError: (e?: unknown) => void
-    setHTTPSrvInfo: (address: string, token: string, version?: T.RPCGen.StateVersion) => void
+    setHTTPSrvInfo: (address: string, token: string) => void
     setJustDeletedSelf: (s: string) => void
     setLoggedIn: (l: boolean) => void
     setStartupDetails: (st: Omit<Store['startup'], 'loaded'>) => void
@@ -129,43 +120,8 @@ export type State = Store & {
   }
 }
 
-// A version we cannot compare is no ordering at all: a service too old to send one, or one built
-// from an intermediate commit of this branch, which sends a bare number rather than a record.
-const isComparableVersion = (version?: T.RPCGen.StateVersion): version is T.RPCGen.StateVersion =>
-  !!version && typeof version.counter === 'number' && typeof version.epoch === 'number'
-
-// A different epoch is a different service process: its counter started over, so
-// it is not comparable and its state is by definition the newer one.
-const isNewerVersion = (next: T.RPCGen.StateVersion, applied?: T.RPCGen.StateVersion) =>
-  next.epoch !== applied?.epoch || next.counter > applied.counter
-
 export const useConfigState = Z.createZustand<State>('config', (set, get) => {
   let inflightRefreshAccounts: Promise<void> | undefined
-  // The http server address and the session change at any time and say so with versioned
-  // notifications; the setNotifications reply carries both under one version. The service stamps
-  // every one of them from one counter, so only a strictly newer version wins. The reply is
-  // labelled before the state it carries, so it is never newer than its label: dropping it on a
-  // tie loses nothing, because anything it holds beyond its label is a change already on its way
-  // as its own notification.
-  const applied: {
-    appState?: T.RPCGen.StateVersion
-    http?: T.RPCGen.StateVersion
-    session?: T.RPCGen.StateVersion
-  } = {}
-  const acceptVersion = (kind: 'appState' | 'http' | 'session', version?: T.RPCGen.StateVersion) => {
-    // a service too old to send a version gives us nothing to order by, so everything it sends is
-    // applied in the order it arrives, as it was before versions existed
-    if (!isComparableVersion(version)) return true
-    if (!isNewerVersion(version, applied[kind])) return false
-    applied[kind] = version
-    return true
-  }
-  // Set by the init layer from each setNotifications reply: true while the connected service has
-  // said it cannot settle the session, which is the only time the unversioned bootstrap status may
-  // own it. Cleared here rather than there, the moment a real session version is accepted, because
-  // that is the service settling it after all -- an account that is genuinely logged out announces
-  // nothing, so the status stays authoritative for it.
-  let sessionIsUnversioned = false
 
   const _checkForUpdate = async () => {
     try {
@@ -217,14 +173,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
   }
 
   const dispatch: State['dispatch'] = {
-    acceptAppStateVersion: version => acceptVersion('appState', version),
-    acceptSessionVersion: version => {
-      const accepted = acceptVersion('session', version)
-      if (accepted && isComparableVersion(version)) {
-        sessionIsUnversioned = false
-      }
-      return accepted
-    },
     checkForUpdate: () => {
       const f = async () => {
         await _checkForUpdate()
@@ -355,10 +303,8 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       ignorePromise(f())
     },
     onEngineConnected: () => {
-      // The applied versions are kept: a restarted service announces a different epoch, which is
-      // always newer, and a service that is still the same one kept counting across the reconnect.
-      // An engine reset drops in-flight RPCs without settling their promises; a refresh
-      // caught by that would poison the dedupe cache forever
+      // An engine reset fails the old connection's in-flight RPCs, but that failure reaches the
+      // dedupe cache a few microtasks later: a refresh started before then would join the dead one
       inflightRefreshAccounts = undefined
 
       // If ever you want to get OOBMs for a different system, then you need to enter it here.
@@ -401,34 +347,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
           break
         }
         case 'keybase.1.NotifyService.HTTPSrvInfoUpdate': {
-          const {info, version} = action.payload.params
-          get().dispatch.setHTTPSrvInfo(info.address, info.token, version)
-          break
-        }
-        case 'keybase.1.NotifySession.loggedIn': {
-          logger.info('keybase.1.NotifySession.loggedIn')
-          const {loggedIn, dispatch} = get()
-          if (!dispatch.acceptSessionVersion(action.payload.params.version)) {
-            logger.info('keybase.1.NotifySession.loggedIn: older than the applied session, ignoring')
-            break
-          }
-          // only send this if we think we're not logged in
-          if (!loggedIn) {
-            dispatch.setLoggedIn(true)
-          }
-          break
-        }
-        case 'keybase.1.NotifySession.loggedOut': {
-          logger.info('keybase.1.NotifySession.loggedOut')
-          const {loggedIn, dispatch} = get()
-          if (!dispatch.acceptSessionVersion(action.payload.params.version)) {
-            logger.info('keybase.1.NotifySession.loggedOut: older than the applied session, ignoring')
-            break
-          }
-          // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
-          if (loggedIn) {
-            dispatch.setLoggedIn(false)
-          }
+          get().dispatch.setHTTPSrvInfo(action.payload.params.info.address, action.payload.params.info.token)
           break
         }
         default:
@@ -558,17 +477,12 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         })
       }
     },
-    setHTTPSrvInfo: (address, token, version) => {
-      if (!acceptVersion('http', version)) {
-        logger.info(`[HTTPSrv] ignoring ${address}: version ${JSON.stringify(version)} is not newer`)
-        return
-      }
+    setHTTPSrvInfo: (address, token) => {
       set(s => {
         s.httpSrv.address = address
         s.httpSrv.token = token
       })
     },
-    sessionIsUnversioned: () => sessionIsUnversioned,
     setJustDeletedSelf: self => {
       set(s => {
         s.justDeletedSelf = self
@@ -595,9 +509,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       set(s => {
         Object.assign(s.outOfDate, outOfDate)
       })
-    },
-    setSessionIsUnversioned: unversioned => {
-      sessionIsUnversioned = unversioned
     },
     setStartupDetails: st => {
       set(s => {

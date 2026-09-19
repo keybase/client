@@ -8,6 +8,10 @@
     {
       "path": "appstate.avdl",
       "type": "idl"
+    },
+    {
+      "path": "notify_ctl.avdl",
+      "type": "idl"
     }
   ],
   "types": [],
@@ -22,10 +26,16 @@
         {
           "name": "state",
           "type": "MobileAppState"
-        },
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "clientState": {
+      "request": [
         {
-          "name": "version",
-          "type": "StateVersion"
+          "name": "state",
+          "type": "ClientState"
         }
       ],
       "response": null,

@@ -361,12 +361,10 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (r
 		return res, err
 	}
 	res = eng.Status()
-	// Not waited on: every client learns the address from HTTPSrvInfoUpdate, which
-	// the server sends whenever its address changes, and a client new enough for
-	// setNotifications also gets it in the subscription reply. An older client
-	// still decodes that notification -- the rpc codec ignores map keys it has no
-	// field for, so the version it does not know about costs it nothing. This
-	// field is left as a convenience for a status read once the server has bound.
+	// Not waited on: a client learns the address from clientState and from
+	// HTTPSrvInfoUpdate, which the server sends whenever its address changes.
+	// This field is left as a convenience for a status read once the server has
+	// bound.
 	if info, infoErr := h.svc.httpSrv.Info(); infoErr != nil {
 		m.Debug("GetBootstrapStatus: no HTTP server address: %s", infoErr)
 	} else {

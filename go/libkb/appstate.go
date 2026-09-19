@@ -102,15 +102,14 @@ func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) (changed bo
 		// Nothing to do for other states.
 	}
 
-	// Tell connected clients, still under the lock, so the state version is
-	// stamped in the same critical section that wrote the state. Update has
-	// one writer, lifecycle.Controller.applyLocked under Controller.mu, so
-	// this notify call publishes that single writer's announcements in the
-	// same order it wrote them, and a client's accept-if-newer gate can never
-	// be handed an older state last and keep it forever. Cheap to hold: the
-	// fan-out reads the connection table and starts one goroutine per
-	// connection, and every send happens on those goroutines. Nothing it
-	// touches reads app state, so it cannot re-enter this lock.
+	// Tell connected clients, still under the lock, so the notification is
+	// queued in the same critical section that wrote the state. Update has one
+	// writer, lifecycle.Controller.applyLocked under Controller.mu, so each
+	// connection's queue holds this writer's notifications in the order it wrote
+	// them, and the last one a client gets carries the latest state (see
+	// connSender). Cheap to hold: queueing never blocks, and every send happens
+	// on the connections' sender goroutines. Nothing it touches reads app state,
+	// so it cannot re-enter this lock.
 	a.G().NotifyRouter.HandleMobileAppState(context.Background(), state)
 	return true
 }

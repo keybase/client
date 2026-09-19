@@ -192,10 +192,6 @@
       "name": "ClientState",
       "fields": [
         {
-          "type": "StateVersion",
-          "name": "version"
-        },
-        {
           "type": [
             null,
             "ClientSession"
@@ -224,7 +220,7 @@
           "type": "NotificationChannels"
         }
       ],
-      "response": "ClientState"
+      "response": null
     }
   },
   "namespace": "keybase.1"

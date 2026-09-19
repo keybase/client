@@ -362,7 +362,7 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 	// Using conn.GetClient() here would cause problematic
 	// recursion.
 	c := keybase1.NotifyCtlClient{Cli: rawClient}
-	_, err = c.SetNotifications(ctx, keybase1.NotificationChannels{
+	err = c.SetNotifications(ctx, keybase1.NotificationChannels{
 		Session:       true,
 		Paperkeys:     true,
 		Keyfamily:     true,
@@ -492,7 +492,7 @@ func (s *notifyServiceHandler) Shutdown(_ context.Context, code int) error {
 	return nil
 }
 
-func (s *notifyServiceHandler) HTTPSrvInfoUpdate(_ context.Context, _ keybase1.HTTPSrvInfoUpdateArg) error {
+func (s *notifyServiceHandler) HTTPSrvInfoUpdate(_ context.Context, info keybase1.HttpSrvInfo) error {
 	return nil
 }
 

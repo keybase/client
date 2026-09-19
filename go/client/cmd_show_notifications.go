@@ -57,7 +57,7 @@ func (c *CmdShowNotifications) Run() error {
 	if err != nil {
 		return err
 	}
-	if _, err := cli.SetNotifications(context.TODO(), channels); err != nil {
+	if err := cli.SetNotifications(context.TODO(), channels); err != nil {
 		return err
 	}
 
@@ -99,7 +99,7 @@ func (d *notificationDisplay) printf(fmt string, args ...any) error {
 	return err
 }
 
-func (d *notificationDisplay) LoggedOut(_ context.Context, _ keybase1.StateVersion) error {
+func (d *notificationDisplay) LoggedOut(_ context.Context) error {
 	return d.printf("Logged out\n")
 }
 

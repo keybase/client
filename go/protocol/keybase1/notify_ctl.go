@@ -107,7 +107,6 @@ func (o ClientSession) DeepCopy() ClientSession {
 }
 
 type ClientState struct {
-	Version     StateVersion   `codec:"version" json:"version"`
 	Session     *ClientSession `codec:"session,omitempty" json:"session,omitempty"`
 	HttpSrvInfo *HttpSrvInfo   `codec:"httpSrvInfo,omitempty" json:"httpSrvInfo,omitempty"`
 	AppState    MobileAppState `codec:"appState" json:"appState"`
@@ -115,7 +114,6 @@ type ClientState struct {
 
 func (o ClientState) DeepCopy() ClientState {
 	return ClientState{
-		Version: o.Version.DeepCopy(),
 		Session: (func(x *ClientSession) *ClientSession {
 			if x == nil {
 				return nil
@@ -139,7 +137,7 @@ type SetNotificationsArg struct {
 }
 
 type NotifyCtlInterface interface {
-	SetNotifications(context.Context, NotificationChannels) (ClientState, error)
+	SetNotifications(context.Context, NotificationChannels) error
 }
 
 func NotifyCtlProtocol(i NotifyCtlInterface) rpc.Protocol {
@@ -157,7 +155,7 @@ func NotifyCtlProtocol(i NotifyCtlInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]SetNotificationsArg)(nil), args)
 						return
 					}
-					ret, err = i.SetNotifications(ctx, typedArgs[0].Channels)
+					err = i.SetNotifications(ctx, typedArgs[0].Channels)
 					return
 				},
 			},
@@ -169,8 +167,8 @@ type NotifyCtlClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c NotifyCtlClient) SetNotifications(ctx context.Context, channels NotificationChannels) (res ClientState, err error) {
+func (c NotifyCtlClient) SetNotifications(ctx context.Context, channels NotificationChannels) (err error) {
 	__arg := SetNotificationsArg{Channels: channels}
-	err = c.Cli.Call(ctx, "keybase.1.notifyCtl.setNotifications", []any{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.notifyCtl.setNotifications", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

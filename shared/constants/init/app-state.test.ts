@@ -6,13 +6,7 @@ import {applyClientState, applyMobileAppState, _onEngineIncoming} from './shared
 
 const g = globalThis as unknown as {isMobile: boolean}
 
-// The applied versions live outside the store and survive resetAllStores on purpose, so each test
-// gets its own epoch rather than a counter that has to beat every earlier test's.
-let testEpoch = 500
-const version = (counter: number, epoch = testEpoch): T.RPCGen.StateVersion => ({counter, epoch})
-
 beforeEach(() => {
-  testEpoch++
   g.isMobile = true
   resetAllStores()
   // the shell store keeps its state across an account-level reset on purpose
@@ -31,55 +25,47 @@ describe('the app state the service derives', () => {
     // nothing in the UI distinguishes "backgrounded with work still running" from "backgrounded"
     [T.RPCGen.MobileAppState.backgroundactive, 'background'],
   ])('%s becomes %s', (state, expected) => {
-    applyMobileAppState(state, version(1))
+    applyMobileAppState(state)
     expect(useShellState.getState().mobileAppState).toBe(expected)
   })
 
   test('arrives through the notification', () => {
     _onEngineIncoming({
-      payload: {params: {state: T.RPCGen.MobileAppState.background, version: version(1)}},
+      payload: {params: {state: T.RPCGen.MobileAppState.background}},
       type: 'keybase.1.NotifyApp.mobileAppStateChanged',
     } as never)
     expect(useShellState.getState().mobileAppState).toBe('background')
   })
 
-  test('an older notification than the one applied is dropped', () => {
-    applyMobileAppState(T.RPCGen.MobileAppState.background, version(5))
-    // the fan-out is one goroutine per connection, so this can land after the one above
-    applyMobileAppState(T.RPCGen.MobileAppState.foreground, version(4))
-    expect(useShellState.getState().mobileAppState).toBe('background')
-
-    applyMobileAppState(T.RPCGen.MobileAppState.foreground, version(6))
+  test('is applied in arrival order: the service sends it on one ordered stream', () => {
+    applyMobileAppState(T.RPCGen.MobileAppState.background)
+    applyMobileAppState(T.RPCGen.MobileAppState.foreground)
     expect(useShellState.getState().mobileAppState).toBe('active')
   })
 
-  test('a new service process wins whatever its counter says', () => {
-    applyMobileAppState(T.RPCGen.MobileAppState.background, version(9))
-    applyMobileAppState(T.RPCGen.MobileAppState.foreground, version(1, testEpoch + 1000))
-    expect(useShellState.getState().mobileAppState).toBe('active')
+  test('arrives in the clientState, which is what catches a late-started JS up', () => {
+    _onEngineIncoming({
+      payload: {params: {state: {appState: T.RPCGen.MobileAppState.background}}},
+      type: 'keybase.1.NotifyApp.clientState',
+    } as never)
+    expect(useShellState.getState().mobileAppState).toBe('background')
   })
 
-  test('arrives in the subscribe snapshot, which is what catches a late-started JS up', () => {
-    applyClientState({appState: T.RPCGen.MobileAppState.background, version: version(1)})
-    expect(useShellState.getState().mobileAppState).toBe('background')
+  test('a notification after the clientState replaces it', () => {
+    applyClientState({appState: T.RPCGen.MobileAppState.background})
+    applyMobileAppState(T.RPCGen.MobileAppState.inactive)
+    expect(useShellState.getState().mobileAppState).toBe('inactive')
   })
 
   test('a state we do not map leaves the app state alone rather than guessing', () => {
-    applyMobileAppState(T.RPCGen.MobileAppState.background, version(1))
-    applyMobileAppState(99 as T.RPCGen.MobileAppState, version(2))
-    expect(useShellState.getState().mobileAppState).toBe('background')
-  })
-
-  test('a service too old to send one leaves the state unknown and burns no version', () => {
-    applyMobileAppState(undefined, version(1))
-    expect(useShellState.getState().mobileAppState).toBe('unknown')
-    applyMobileAppState(T.RPCGen.MobileAppState.background, version(1))
+    applyMobileAppState(T.RPCGen.MobileAppState.background)
+    applyMobileAppState(99 as T.RPCGen.MobileAppState)
     expect(useShellState.getState().mobileAppState).toBe('background')
   })
 
   test('desktop has no lifecycle to learn, so its constant FOREGROUND is ignored', () => {
     g.isMobile = false
-    applyMobileAppState(T.RPCGen.MobileAppState.foreground, version(1))
+    applyMobileAppState(T.RPCGen.MobileAppState.foreground)
     expect(useShellState.getState().mobileAppState).toBe('unknown')
   })
 })

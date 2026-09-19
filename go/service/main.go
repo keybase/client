@@ -153,7 +153,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.KvstoreProtocol(NewKVStoreHandler(xp, g)),
 		keybase1.LogProtocol(NewLogHandler(xp, logReg, g)),
 		keybase1.LoginProtocol(NewLoginHandler(xp, g)),
-		keybase1.NotifyCtlProtocol(NewNotifyCtlHandler(xp, connID, g, d)),
+		keybase1.NotifyCtlProtocol(NewNotifyCtlHandler(xp, connID, g)),
 		keybase1.PGPProtocol(NewPGPHandler(xp, connID, g)),
 		keybase1.PprofProtocol(NewPprofHandler(xp, g)),
 		keybase1.ReachabilityProtocol(newReachabilityHandler(xp, g, d)),
@@ -232,6 +232,8 @@ func (d *Service) Handle(c net.Conn) {
 	}
 	if err := d.RegisterProtocols(server, xp, connID, logReg); err != nil {
 		d.G().Log.Warning("RegisterProtocols error: %s", err)
+		// frees the connection's slot and its notification sender
+		cl <- err
 		return
 	}
 
@@ -331,11 +333,11 @@ func (d *Service) Run() (err error) {
 	d.SetupChatModules(nil)
 
 	// Before the listen loop on purpose: this runs the startup login attempt, so a
-	// client that connects once we are listening finds it already settled and gets
-	// a session in its setNotifications reply rather than "not known yet". Mobile
+	// client that connects once we are listening finds it already settled and its
+	// first clientState carries a session rather than "not known yet". Mobile
 	// cannot do this -- go/bind/keybase.go runs the attempt off the Init thread,
-	// after the loopback listener -- which is why the reply says so explicitly
-	// instead of relying on this ordering.
+	// after the loopback listener -- so a clientState says so explicitly, and
+	// another follows once the attempt settles.
 	d.RunBackgroundOperations(uir)
 
 	// At this point initialization is complete, and we're about to start the
@@ -357,6 +359,7 @@ func (d *Service) SetupCriticalSubServices() error {
 	// Not in NewService: the service sets up NotifyRouter after that, and the
 	// server reads it once, when created.
 	d.httpSrv = manager.NewSrv(d.G())
+	d.G().NotifyRouter.SetClientStateReader(d.readClientState)
 	d.G().RuntimeStats = runtimestats.NewRunner(allG)
 	teams.ServiceInit(d.G())
 	stellar.ServiceInit(d.G(), d.walletState, d.badger)
@@ -1421,6 +1424,31 @@ func (d *Service) awaitInitialLoginAttempt(m libkb.MetaContext, maxWait time.Dur
 	}
 }
 
+// settleInitialLoginAttempt marks the first startup login attempt finished and
+// then sends connected clients a clientState, which now carries the session.
+func (d *Service) settleInitialLoginAttempt(ctx context.Context) {
+	d.initialLoginAttemptOnce.Do(func() {
+		close(d.initialLoginAttemptDone)
+		d.G().NotifyRouter.AnnounceClientState(ctx)
+	})
+}
+
+// readClientState reads what a clientState notification carries. The session is
+// left out until the startup login attempt has settled: before that there is no
+// session to describe, and reporting a logged-out one would be a lie. The
+// attempt settling queues another clientState, which carries it.
+func (d *Service) readClientState(ctx context.Context) keybase1.ClientState {
+	res := keybase1.ClientState{AppState: d.G().MobileAppState.State()}
+	if d.initialLoginAttemptSettled() {
+		session, _ := engine.SessionState(libkb.NewMetaContext(ctx, d.G()))
+		res.Session = &session
+	}
+	if info, err := d.httpSrv.Info(); err == nil {
+		res.HttpSrvInfo = &info
+	}
+	return res
+}
+
 // tryLogin runs LoginOffline which will load the local session file and unlock the
 // local device keys without making any network requests.
 //
@@ -1430,7 +1458,7 @@ func (d *Service) awaitInitialLoginAttempt(m libkb.MetaContext, maxWait time.Dur
 func (d *Service) tryLogin(ctx context.Context, mode libkb.LoginAttempt) {
 	if mode != libkb.LoginAttemptNone {
 		// Signal on every exit path; sync.Once makes repeat calls no-ops.
-		defer d.initialLoginAttemptOnce.Do(func() { close(d.initialLoginAttemptDone) })
+		defer d.settleInitialLoginAttempt(ctx)
 	}
 
 	d.loginAttemptMu.Lock()

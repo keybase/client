@@ -394,7 +394,7 @@ func (u *smuUser) registerForNotifications() {
 		require.NoError(u.ctx.t, err)
 	}
 	ncli := keybase1.NotifyCtlClient{Cli: u.primaryDevice().rpcClient()}
-	if _, err := ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{Team: true}); err != nil {
+	if err := ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{Team: true}); err != nil {
 		require.NoError(u.ctx.t, err)
 	}
 }
