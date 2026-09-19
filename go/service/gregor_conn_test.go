@@ -27,13 +27,11 @@ import (
 )
 
 // fakeGregorConn models the handler's connection: it can exist without being
-// connected (stale), and connectNow does nothing while one exists that is not
-// cancelled.
+// connected (stale), and connectNow does nothing while one exists.
 type fakeGregorConn struct {
 	sync.Mutex
 	exists    bool
 	up        bool
-	cancelled bool
 	uri       *rpc.FMPURI
 	connects  int
 	shutdowns int
@@ -43,9 +41,6 @@ type fakeGregorConn struct {
 func (f *fakeGregorConn) connectNow(uri *rpc.FMPURI) error {
 	f.Lock()
 	defer f.Unlock()
-	if f.exists && f.cancelled {
-		f.shutdownLocked()
-	}
 	if !f.exists {
 		f.exists, f.up = true, true
 		f.uri = uri
@@ -54,21 +49,11 @@ func (f *fakeGregorConn) connectNow(uri *rpc.FMPURI) error {
 	return nil
 }
 
-func (f *fakeGregorConn) cancel() {
-	f.Lock()
-	defer f.Unlock()
-	f.cancelled = f.exists
-}
-
 func (f *fakeGregorConn) Shutdown(context.Context) {
 	f.Lock()
 	defer f.Unlock()
-	f.shutdownLocked()
-}
-
-func (f *fakeGregorConn) shutdownLocked() {
 	if f.exists {
-		f.exists, f.up, f.cancelled = false, false, false
+		f.exists, f.up = false, false
 		f.shutdowns++
 	}
 }
@@ -96,14 +81,14 @@ func (f *fakeGregorConn) IsConnected() bool {
 }
 
 type fakeGregorCounts struct {
-	up, cancelled               bool
+	up                          bool
 	connects, shutdowns, resets int
 }
 
 func (f *fakeGregorConn) counts() fakeGregorCounts {
 	f.Lock()
 	defer f.Unlock()
-	return fakeGregorCounts{up: f.up, cancelled: f.cancelled, connects: f.connects, shutdowns: f.shutdowns, resets: f.resets}
+	return fakeGregorCounts{up: f.up, connects: f.connects, shutdowns: f.shutdowns, resets: f.resets}
 }
 
 func (f *fakeGregorConn) lastURI() *rpc.FMPURI {
@@ -412,17 +397,46 @@ func TestGregorConnReconnectInBackground(t *testing.T) {
 	require.Equal(t, fakeGregorCounts{connects: 3, shutdowns: 3}, c.conn.counts())
 }
 
-// A cancel acting on a BACKGROUND read after the monitor has already
-// connected for the state that followed it does not leave that connection
-// cancelled.
-func TestGregorConnStaleCancelIsReconciled(t *testing.T) {
-	c := setupGregorConn(t, keybase1.MobileAppState_FOREGROUND)
-	c.waitMonitor(t)
-	require.NoError(t, c.gate.connect(context.Background(), testGregorURI(t, "gregord.test"), false))
-	c.gate.cancelAndReconcile()
+// A reconnect request returns without waiting, even while the gate is held,
+// and a burst of requests made before the monitor runs is one reconnect.
+func TestGregorConnReconnectRequestsCoalesce(t *testing.T) {
+	tc := libkb.SetupTest(t, "gregorconn", 1)
+	defer tc.Cleanup()
+	conn := &fakeGregorConn{}
+	mobile := &gregorTestAppState{MobileAppState: tc.G.MobileAppState}
+	gate := newGregorConnGate(mobile, tc.G.DesktopAppState, conn,
+		func(ctx context.Context, format string, args ...any) { t.Logf(format, args...) },
+		func(context.Context) {})
+	c := &gregorConnTest{tc: tc, gate: gate, mobile: mobile, conn: conn}
+	require.NoError(t, gate.connect(context.Background(), testGregorURI(t, "gregord.test"), false))
+
+	gate.mu.Lock()
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		for range 10 {
+			gate.requestReconnect(context.Background())
+		}
+	}()
+	select {
+	case <-done:
+	case <-time.After(10 * time.Second):
+		t.Fatal("a reconnect request waited")
+	}
+	gate.mu.Unlock()
+	require.Equal(t, fakeGregorCounts{up: true, connects: 1}, conn.counts(), "reconnected without the monitor")
+
+	gate.start()
+	defer func() {
+		gate.stop()
+		<-gate.monitorDone
+	}()
 	want := fakeGregorCounts{up: true, connects: 2, shutdowns: 1}
-	require.Eventually(t, func() bool { return c.conn.counts() == want }, 10*time.Second, time.Millisecond,
-		"cancelled connection left in place: %+v", c.conn.counts())
+	require.Eventually(t, func() bool { return conn.counts() == want }, 10*time.Second, time.Millisecond,
+		"did not reconnect exactly once")
+	c.waitMonitor(t)
+	require.Empty(t, gate.reconnectCh, "a request is still pending")
+	require.Equal(t, want, conn.counts(), "reconnected more than once")
 }
 
 func TestGregorConnDesktopSuspend(t *testing.T) {
@@ -548,15 +562,13 @@ func TestGregorConnStress(t *testing.T) {
 					return
 				default:
 				}
-				switch (i + w) % 5 {
+				switch (i + w) % 4 {
 				case 0:
 					_ = gate.connect(ctx, uri, false)
 				case 1:
 					_ = gate.connect(ctx, uri, true)
 				case 2:
 					_ = gate.forget(ctx)
-				case 3:
-					gate.cancelAndReconcile()
 				default:
 					gate.requestReconnect(ctx)
 				}
@@ -800,25 +812,6 @@ func TestGregorHandlerConnectInBackground(t *testing.T) {
 	h.connGate.reconcile(context.Background())
 	require.True(t, hasConn(h), "did not connect on leaving BACKGROUND")
 	h.Shutdown(context.Background())
-}
-
-// A connection a disconnect cancelled but has yet to shut down, as when the
-// app leaves BACKGROUND again before the monitor acts, is replaced by the
-// next connect rather than kept with its ping loop gone.
-func TestGregorHandlerConnectReplacesCancelledConn(t *testing.T) {
-	tc, g := setupGregorTest(t)
-	defer tc.Cleanup()
-	g.Syncer = chat.NewSyncer(g)
-	h := newGregorHandler(g)
-	require.NoError(t, h.Connect(closedPortURI(t)))
-	defer h.Shutdown(context.Background())
-	cancelled := currentConn(h)
-	h.cancel()
-	h.connGate.reconcile(context.Background())
-	require.NotSame(t, cancelled, currentConn(h), "kept a cancelled connection")
-	h.connMutex.Lock()
-	defer h.connMutex.Unlock()
-	require.NoError(t, h.connCtx.Err(), "the connection's ctx is cancelled")
 }
 
 // acceptingListener accepts and holds connections, counting them, so a
@@ -1072,97 +1065,17 @@ func TestGregorOnConnectTailAfterLogout(t *testing.T) {
 	require.True(t, c.h.connectedSince().IsZero(), "connected time set after logout")
 }
 
-// A logout or a BACKGROUND landing during the chat sync, which holds the
-// gate, cancels the sync instead of waiting it out. It leaves the syncer
-// disconnected and stops the rest of the tail.
-func TestGregorDisconnectDuringSyncWaitsForCancelledSyncOnly(t *testing.T) {
-	for _, tt := range []struct {
-		name       string
-		disconnect func(c *onConnectTailTest)
-	}{
-		{name: "logout", disconnect: func(c *onConnectTailTest) { _ = c.h.Disconnect() }},
-		{name: "background", disconnect: func(c *onConnectTailTest) {
-			c.h.G().MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
-			waitNoConn(c.h)
-		}},
-		// The monitor is still waiting for the gate to reconcile INACTIVE
-		// when BACKGROUND lands.
-		{name: "inactive then background", disconnect: func(c *onConnectTailTest) {
-			c.h.G().MobileAppState.Update(keybase1.MobileAppState_INACTIVE)
-			time.Sleep(20 * time.Millisecond)
-			c.h.G().MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
-			waitNoConn(c.h)
-		}},
-	} {
-		t.Run(tt.name, func(t *testing.T) {
-			c := setupOnConnectTail(t)
-			c.h.connGate.start()
-			t.Cleanup(c.h.connGate.stop)
-			syncing := make(chan struct{})
-			// A chat sync that runs until its connection is cancelled.
-			c.syncer.onConnected = func() {
-				close(syncing)
-				<-c.ctx.Done()
-			}
-			runErr := make(chan error, 1)
-			go func() { runErr <- c.run(c.ctx) }()
-			<-syncing
-
-			done := make(chan struct{})
-			go func() {
-				defer close(done)
-				tt.disconnect(c)
-			}()
-			select {
-			case <-done:
-			case <-time.After(200 * time.Millisecond):
-				// Let the sync, and so the disconnect, finish.
-				c.h.cancel()
-				<-done
-				t.Fatal("disconnect waited for the sync instead of cancelling it")
-			}
-			require.ErrorIs(t, <-runErr, chat.ErrDuplicateConnection)
-			require.False(t, hasConn(c.h), "connection left up")
-			require.False(t, c.syncer.IsConnected(context.Background()), "syncer left connected")
-			require.Equal(t, 1, c.badger.count(), "badges pushed after the disconnect")
-			require.Empty(t, c.h.replayCh, "gregor state sync ran after the disconnect")
-			require.True(t, c.h.isFirstConnect(), "first connect cleared after the disconnect")
-			require.True(t, c.h.connectedSince().IsZero(), "connected time set after the disconnect")
-		})
-	}
-}
-
-func waitNoConn(h *gregorHandler) {
-	for deadline := time.Now().Add(10 * time.Second); hasConn(h) && time.Now().Before(deadline); {
-		time.Sleep(time.Millisecond)
-	}
-}
-
-// Reconnect returns without waiting for the gate, which an OnConnect sync can
-// hold, and merges requests made while one waits for it.
-func TestGregorReconnectDoesNotWaitForGate(t *testing.T) {
-	tc, g := setupGregorTest(t)
-	defer tc.Cleanup()
-	g.Syncer = chat.NewSyncer(g)
-	h := newGregorHandler(g)
-
-	h.connGate.mu.Lock()
-	done := make(chan struct{})
-	go func() {
-		defer close(done)
-		h.Reconnect(context.Background())
-		h.Reconnect(context.Background())
-	}()
-	select {
-	case <-done:
-	case <-time.After(10 * time.Second):
-		t.Error("Reconnect waited for the gate")
-	}
-	require.True(t, h.connGate.reconnectPending.Load(), "no reconnect pending")
-	h.connGate.mu.Unlock()
-	<-done
-	require.Eventually(t, func() bool { return !h.connGate.reconnectPending.Load() },
-		10*time.Second, time.Millisecond, "pending reconnect did not run")
+// A logout during the chat sync leaves the syncer disconnected and stops the
+// rest of the tail.
+func TestGregorOnConnectLogoutDuringChatSync(t *testing.T) {
+	c := setupOnConnectTail(t)
+	c.syncer.onConnected = func() { require.NoError(t, c.h.Disconnect()) }
+	require.ErrorIs(t, c.run(c.ctx), chat.ErrDuplicateConnection)
+	require.False(t, c.syncer.IsConnected(context.Background()), "syncer left connected after logout")
+	require.Equal(t, 1, c.badger.count(), "badges pushed after logout")
+	require.Empty(t, c.h.replayCh, "gregor state sync ran after logout")
+	require.True(t, c.h.isFirstConnect(), "first connect cleared after logout")
+	require.True(t, c.h.connectedSince().IsZero(), "connected time set after logout")
 }
 
 // A Shutdown that lands between the gregor badge push and the connected
@@ -1194,7 +1107,7 @@ func TestGregorShutdownCancelsBeforeSyncerDisconnected(t *testing.T) {
 	c.syncer.onDisconnected = func() {
 		_ = c.syncer.Connected(c.ctx, chat1.RemoteClient{}, c.uid, &chat1.SyncChatRes{})
 	}
-	c.h.Shutdown(context.Background())
+	require.NoError(t, c.h.Disconnect())
 	require.False(t, c.syncer.IsConnected(context.Background()), "syncer connected after shutdown")
 }
 

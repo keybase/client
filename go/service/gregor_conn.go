@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"sync"
-	"sync/atomic"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -13,11 +12,8 @@ import (
 // gregorConnector is the connection gregorConnGate drives: the gregor
 // handler, or a fake in tests.
 type gregorConnector interface {
-	// connectNow connects to uri, doing nothing if already connected. A
-	// cancelled connection is replaced.
+	// connectNow connects to uri, doing nothing if already connected.
 	connectNow(uri *rpc.FMPURI) error
-	// cancel cancels the current connection's ctx without shutting it down.
-	cancel()
 	// Shutdown disconnects, doing nothing if not connected.
 	Shutdown(ctx context.Context)
 	Reset() error
@@ -38,18 +34,17 @@ type gregorAppState interface {
 // Every connect and the monitor read the app state and act on it under mu.
 // A BACKGROUND that lands after a connect read the state wakes the monitor,
 // which then waits for that connect before taking the connection down. mu
-// also runs everything OnConnect applies after SyncAll (onConnectSynced holds
-// it throughout), so none of it interleaves with a disconnect, and guards the
-// uri OnConnect reads. A BACKGROUND, a desktop suspend or a logout cancels the
-// connection before taking mu, so it waits only for an OnConnect that is
-// already unwinding.
+// also runs the steps OnConnect applies after syncing (the handler takes it in
+// onGateIfCurrent), so none of them interleaves with a disconnect, and guards
+// the uri OnConnect reads.
 //
 // This is a mutex gate rather than a single owning goroutine like
 // kbhttp/manager's Srv: connect and forget return errors their callers need,
-// and OnConnect must learn on its own goroutine that its connection is no
-// longer current so it can return ErrDuplicateConnection. A request-channel
-// loop would need a reply channel per request -- more code and more states --
-// so do not harmonise the two shapes.
+// and the OnConnect steps must report "no longer current" back on the caller's
+// goroutine so onConnectSynced can return ErrDuplicateConnection. A
+// request-channel loop would need a reply channel per request -- more code and
+// more states -- so do not harmonise the two shapes. Only reconnect, whose
+// callers need no result, is a request the monitor runs.
 type gregorConnGate struct {
 	mobile       gregorAppState
 	desktop      *libkb.DesktopAppState
@@ -69,10 +64,9 @@ type gregorConnGate struct {
 	monitorWait        <-chan struct{}
 	monitorSuspendWait <-chan struct{}
 
-	// reconnectPending is set while a requested reconnect waits for mu.
-	reconnectPending atomic.Bool
-	// reconcileCh has the monitor reconcile.
-	reconcileCh chan struct{}
+	// reconnectCh holds at most one reconnect request for the monitor, so a
+	// burst of requests coalesces.
+	reconnectCh chan struct{}
 
 	startOnce   sync.Once
 	stopOnce    sync.Once
@@ -89,7 +83,7 @@ func newGregorConnGate(mobile gregorAppState, desktop *libkb.DesktopAppState, co
 		conn:         conn,
 		debug:        debug,
 		onForeground: onForeground,
-		reconcileCh:  make(chan struct{}, 1),
+		reconnectCh:  make(chan struct{}, 1),
 		stopCh:       make(chan struct{}),
 		monitorDone:  make(chan struct{}),
 	}
@@ -103,7 +97,6 @@ func (c *gregorConnGate) start() {
 		c.debug(ctx, "monitorAppState: starting up in %v (suspended: %v)", state, suspended)
 		c.reconcile(ctx)
 		go c.monitor(ctx, state, suspended)
-		go c.cancelWhileDown(state, suspended)
 	})
 }
 
@@ -132,7 +125,6 @@ func (c *gregorConnGate) connect(ctx context.Context, uri *rpc.FMPURI, reset boo
 // forget resets the connection and drops the uri, so nothing reconnects until
 // the next connect.
 func (c *gregorConnGate) forget(ctx context.Context) error {
-	c.conn.cancel()
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.debug(ctx, "forget: resetting and forgetting the uri")
@@ -140,14 +132,14 @@ func (c *gregorConnGate) forget(ctx context.Context) error {
 	return c.conn.Reset()
 }
 
-// requestReconnect reconnects without waiting. Requests made while one waits
-// for mu are merged into it.
+// requestReconnect asks the monitor to reconnect and returns without waiting.
 func (c *gregorConnGate) requestReconnect(ctx context.Context) {
-	if !c.reconnectPending.CompareAndSwap(false, true) {
-		c.debug(ctx, "Reconnect: merged into a pending reconnect")
-		return
+	select {
+	case c.reconnectCh <- struct{}{}:
+		c.debug(ctx, "Reconnect: requested")
+	default:
+		c.debug(ctx, "Reconnect: one is already pending")
 	}
-	go c.reconnect(libkb.CopyTagsToBackground(ctx))
 }
 
 // reconnect drops a live connection and connects again when reconcile allows
@@ -155,7 +147,6 @@ func (c *gregorConnGate) requestReconnect(ctx context.Context) {
 func (c *gregorConnGate) reconnect(ctx context.Context) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.reconnectPending.Store(false)
 	if !c.conn.IsConnected() {
 		c.debug(ctx, "Reconnect: skipping reconnect, already disconnected")
 		return
@@ -175,17 +166,12 @@ func (c *gregorConnGate) reconcile(ctx context.Context) {
 	}
 }
 
-// keepsDown reports whether no connection may exist in state.
-func keepsDown(state keybase1.MobileAppState, suspended bool) bool {
-	return state == keybase1.MobileAppState_BACKGROUND || suspended
-}
-
 // reconcileLocked is the only place that decides whether a connection may
 // exist: none in BACKGROUND or while the desktop is suspended, otherwise one
 // to the uri, if any. c.mu must be held.
 func (c *gregorConnGate) reconcileLocked(ctx context.Context) error {
 	state, suspended := c.mobile.State(), c.desktop.Suspended()
-	if keepsDown(state, suspended) {
+	if state == keybase1.MobileAppState_BACKGROUND || suspended {
 		c.debug(ctx, "reconcile: disconnecting in %v (suspended: %v)", state, suspended)
 		c.conn.Shutdown(ctx)
 		return nil
@@ -210,7 +196,9 @@ func (c *gregorConnGate) monitor(ctx context.Context, state keybase1.MobileAppSt
 		select {
 		case <-next:
 		case <-nextSuspend:
-		case <-c.reconcileCh:
+		case <-c.reconnectCh:
+			c.reconnect(ctx)
+			continue
 		case <-c.stopCh:
 			return
 		}
@@ -220,38 +208,5 @@ func (c *gregorConnGate) monitor(ctx context.Context, state keybase1.MobileAppSt
 			c.onForeground(ctx)
 		}
 		c.reconcile(ctx)
-	}
-}
-
-// cancelWhileDown cancels the connection on every change to a state that
-// keeps it down, without mu, so the monitor's reconcile finds any OnConnect
-// holding mu already unwinding. It is not part of the monitor, which may
-// itself be waiting for mu when the change lands.
-func (c *gregorConnGate) cancelWhileDown(state keybase1.MobileAppState, suspended bool) {
-	for {
-		next := c.mobile.NextUpdate(state)
-		nextSuspend := c.desktop.NextSuspendUpdate(suspended)
-		select {
-		case <-next:
-		case <-nextSuspend:
-		case <-c.stopCh:
-			return
-		}
-		state, suspended = c.mobile.State(), c.desktop.Suspended()
-		if keepsDown(state, suspended) {
-			c.cancelAndReconcile()
-		}
-	}
-}
-
-// cancelAndReconcile cancels the connection and has the monitor reconcile
-// after that, which shuts it down or, if the state has come back up since it
-// was read, replaces it. The monitor may already have connected for that
-// later state, and nothing else would follow the cancel.
-func (c *gregorConnGate) cancelAndReconcile() {
-	c.conn.cancel()
-	select {
-	case c.reconcileCh <- struct{}{}:
-	default:
 	}
 }
