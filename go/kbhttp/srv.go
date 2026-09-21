@@ -161,6 +161,13 @@ func NewSrv(log logger.Logger, listenerSource ListenerSource) *Srv {
 
 // Start starts listening on the server's listener source.
 func (h *Srv) Start() (err error) {
+	return h.StartWithHandlers(nil)
+}
+
+// StartWithHandlers starts listening like Start, but first lets register add
+// handlers to the new ServeMux, so no request can reach the server before
+// they exist.
+func (h *Srv) StartWithHandlers(register func(mux *http.ServeMux)) (err error) {
 	h.Lock()
 	defer h.Unlock()
 	if h.server != nil {
@@ -173,6 +180,9 @@ func (h *Srv) Start() (err error) {
 	if err != nil {
 		h.log.Debug("kbhttp.Srv: failed to get a listener: %s", err)
 		return err
+	}
+	if register != nil {
+		register(h.ServeMux)
 	}
 	h.server = &http.Server{
 		Addr:              address,
