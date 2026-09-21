@@ -80,6 +80,49 @@ const resetBrowserEditState = () => {
   browserEditStateListeners.forEach(listener => listener())
 }
 
+// A pending edit is ephemeral screen state: it belongs to the folder the screen
+// is showing, and losing that screen is allowed to drop it. Several providers
+// can be mounted for one screen (the browser and, on iOS, the header menu), so
+// claims are counted, and the last one going releases the folder. Note that
+// react-navigation pauses screens further than one back, which unmounts effects
+// and so releases too -- deliberate: drilling away from a half-typed rename
+// drops it rather than leaving it to resurrect onto whatever later takes the
+// name.
+const editPathOwners = new Map<T.FS.Path, number>()
+
+const claimEditPath = (path: T.FS.Path) => {
+  editPathOwners.set(path, (editPathOwners.get(path) ?? 0) + 1)
+}
+
+const releaseEditPath = (path: T.FS.Path) => {
+  const claimed = editPathOwners.get(path) ?? 0
+  if (!claimed) {
+    // a release with no live claim behind it says nothing about the folder
+    return
+  }
+  const remaining = claimed - 1
+  if (remaining > 0) {
+    editPathOwners.set(path, remaining)
+    return
+  }
+  editPathOwners.delete(path)
+  setBrowserEditState(prevState => {
+    const orphaned = [...prevState.edits]
+      .filter(([, edit]) => edit.parentPath === path)
+      .map(([editID]) => editID)
+    if (!orphaned.length) {
+      return prevState
+    }
+    const nextEdits = new Map(prevState.edits)
+    const nextSubmitting = new Set(prevState.submitting)
+    orphaned.forEach(editID => {
+      nextEdits.delete(editID)
+      nextSubmitting.delete(editID)
+    })
+    return {edits: nextEdits, submitting: nextSubmitting}
+  })
+}
+
 const addBrowserEditProvider = () => {
   ++browserEditProviderCount
 }
@@ -190,7 +233,11 @@ const commitEditRPC = async (
   } catch (error) {
     const conflict = getRenameConflictError(edit, error)
     if (conflict !== undefined) {
-      setBrowserEdits(prevEdits => addOrReplaceEdit(prevEdits, editID, {...edit, error: conflict}))
+      // the edit can be gone by now -- cancelled, swept, or dropped with its
+      // screen -- and reporting the conflict must not bring it back
+      setBrowserEdits(prevEdits =>
+        prevEdits.has(editID) ? addOrReplaceEdit(prevEdits, editID, {...edit, error: conflict}) : prevEdits
+      )
       return
     }
     errorToActionOrThrow(error, edit.parentPath)
@@ -199,24 +246,36 @@ const commitEditRPC = async (
   }
 }
 
+// The edit store is global but every mounted fs screen has its own provider, and
+// on mobile several are mounted at once (the Files tab root plus every pushed
+// fsBrowse folder). Retiring an edit therefore takes two things: the screen must
+// own the folder, and it must hold a complete listing of it. Owning it is not
+// implied by having it loaded -- a recursive listing stamps every direct
+// subfolder Loaded with a point-in-time child set, so a parent screen can hold a
+// stale listing of a folder someone else is browsing. Only the folder's own
+// screen may judge, and only a Loaded listing proves the name is really gone.
 export const getStaleRenameEditIDs = (
   edits: ReadonlyMap<T.FS.EditID, T.FS.Edit>,
-  pathItems: T.FS.PathItems
+  pathItems: T.FS.PathItems,
+  ownedPath: T.FS.Path
 ): ReadonlySet<T.FS.EditID> => {
   const stale = new Set<T.FS.EditID>()
   edits.forEach((edit, editID) => {
-    if (edit.type !== T.FS.EditType.Rename) {
+    if (edit.type !== T.FS.EditType.Rename || edit.parentPath !== ownedPath) {
       return
     }
     const parent = Constants.getPathItem(pathItems, edit.parentPath)
-    if (!(parent.type === T.FS.PathType.Folder && parent.children.has(edit.originalName))) {
+    if (parent.type !== T.FS.PathType.Folder || parent.progress !== T.FS.ProgressType.Loaded) {
+      return
+    }
+    if (!parent.children.has(edit.originalName)) {
       stale.add(editID)
     }
   })
   return stale
 }
 
-export const FsBrowserEditProvider = ({children}: {children: React.ReactNode}) => {
+export const FsBrowserEditProvider = ({children, path}: {children: React.ReactNode; path: T.FS.Path}) => {
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   const {edits, submitting} = React.useSyncExternalStore(
     subscribeBrowserEditState,
@@ -231,7 +290,14 @@ export const FsBrowserEditProvider = ({children}: {children: React.ReactNode}) =
   }, [])
 
   React.useEffect(() => {
-    const staleEditIDs = getStaleRenameEditIDs(edits, pathItems)
+    claimEditPath(path)
+    return () => {
+      releaseEditPath(path)
+    }
+  }, [path])
+
+  React.useEffect(() => {
+    const staleEditIDs = getStaleRenameEditIDs(edits, pathItems, path)
     if (!staleEditIDs.size) {
       return
     }
@@ -247,7 +313,7 @@ export const FsBrowserEditProvider = ({children}: {children: React.ReactNode}) =
         submitting: nextSubmitting,
       }
     })
-  }, [edits, pathItems])
+  }, [edits, path, pathItems])
 
   const commitEdit = (editID: T.FS.EditID) => {
     const edit = edits.get(editID)

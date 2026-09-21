@@ -55,7 +55,7 @@ const FsNavHeaderRightActionsInner = (props: Props) => {
 const FsNavHeaderRightActions = (props: Props) => (
   <Kbfs.FsErrorProvider>
     <Kbfs.FsDataProvider>
-      <FsBrowserEditProvider>
+      <FsBrowserEditProvider path={props.path}>
         <FsNavHeaderRightActionsInner {...props} />
       </FsBrowserEditProvider>
     </Kbfs.FsDataProvider>

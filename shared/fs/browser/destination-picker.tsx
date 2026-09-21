@@ -195,7 +195,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
 const Screen = (props: OwnProps) => (
   <FsCommon.FsErrorProvider>
     <FsCommon.FsDataProvider>
-      <FsBrowserEditProvider>
+      <FsBrowserEditProvider path={props.parentPath}>
         <FsBrowserSortProvider>
           <ConnectedDestinationPicker {...props} />
         </FsBrowserSortProvider>
