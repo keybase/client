@@ -12,8 +12,7 @@ PAYLOAD=$(cat <<EOF
   "type": "chat.newmessage",
   "convID": "$CONV_ID",
   "t": "3",
-  "m": "",
-  "userInteraction": true
+  "m": ""
 }
 EOF
 )
