@@ -1005,14 +1005,33 @@ func AppUIBackground(pusher PushNotifier) int64 {
 	return kbCtx.MobileLifecycle.UIBackground(backgroundTaskDeps(pusher))
 }
 
-// AppWaitBackgroundTask returns once the background task whose token
-// AppUIBackground returned no longer needs any time in the background.
-func AppWaitBackgroundTask(token int64) {
+// inPushWindow runs work, which handles a push or a notification action. On
+// Android it holds a backgrounded app up while work runs, and work learns
+// whether the UI is active, in which case nothing is held. pusher warns about
+// messages that won't send if the window hands over to a background task.
+func inPushWindow(pusher PushNotifier, work func(uiActive bool) error) error {
 	if !isInited() {
-		return
+		return work(false)
 	}
-	defer kbCtx.Trace("AppWaitBackgroundTask", nil)()
-	kbCtx.MobileLifecycle.WaitBackgroundTask(token)
+	return runPushWindow(kbCtx.MobileLifecycle, runtime.GOOS, backgroundTaskDeps(pusher), work)
+}
+
+func runPushWindow(lc *lifecycle.Controller, goos string, deps lifecycle.BackgroundTaskDeps,
+	work func(uiActive bool) error,
+) error {
+	if goos != "android" {
+		// iOS handles a push within the time it grants for it and suspends the
+		// app at the completion handler, so nothing needs holding up; a window
+		// would only take the app through BACKGROUNDACTIVE and back. work only
+		// uses uiActive on Android.
+		return work(false)
+	}
+	token := lc.PushWindowBegin()
+	if token == 0 {
+		return work(true)
+	}
+	defer lc.PushWindowEnd(token, deps)
+	return work(false)
 }
 
 // AppPushWindowBegin holds a backgrounded app up while native handles a push or
@@ -1041,6 +1060,16 @@ func AppPushWindowEnd(token int64, pusher PushNotifier) {
 	}
 	defer kbCtx.Trace("AppPushWindowEnd", nil)()
 	kbCtx.MobileLifecycle.PushWindowEnd(token, backgroundTaskDeps(pusher))
+}
+
+// AppWaitBackgroundTask returns once the background task whose token
+// AppUIBackground returned no longer needs any time in the background.
+func AppWaitBackgroundTask(token int64) {
+	if !isInited() {
+		return
+	}
+	defer kbCtx.Trace("AppWaitBackgroundTask", nil)()
+	kbCtx.MobileLifecycle.WaitBackgroundTask(token)
 }
 
 func backgroundTaskDeps(pusher PushNotifier) lifecycle.BackgroundTaskDeps {

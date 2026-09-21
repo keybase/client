@@ -31,7 +31,8 @@ class ChatBroadcastReceiver : BroadcastReceiver() {
             } else {
                 setupKBRuntime(context, false)
                 sendQuickReply({ msg, e -> NativeLogger.error(msg, e) }) {
-                    postTextReplyInPushWindow(context, convData, messageBody)
+                    Keybase.handlePostTextReply(convData.convID, convData.tlfName, convData.lastMsgId, messageBody,
+                            KBPushNotifier(context, Bundle()))
                 }
             }
             val repliedNotification = NotificationCompat.Builder(context, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID)
@@ -40,24 +41,6 @@ class ChatBroadcastReceiver : BroadcastReceiver() {
                     .setSmallIcon(R.drawable.ic_notif)
                     .setContentText(status)
             NotificationManagerCompat.from(context).notify(convData.convID, 0, repliedNotification.build())
-        }
-    }
-
-    // Transitional: the push window is opened here, for the same reason as
-    // WithBackgroundActive -- it goes away once the bind layer wraps the reply in the
-    // window itself. Unlike WithBackgroundActive this never skips the send while the app
-    // is foreground; a reply typed in the notification shade must go out either way.
-    private fun postTextReplyInPushWindow(context: Context, convData: ConvData, messageBody: String) {
-        // 0 when the app is active and nothing needs holding up.
-        val token = Keybase.appPushWindowBegin()
-        try {
-            Keybase.handlePostTextReply(convData.convID, convData.tlfName, convData.lastMsgId, messageBody)
-        } finally {
-            if (token > 0) {
-                // Hands over to a background task if the UI is still in the background and
-                // work must keep going.
-                Keybase.appPushWindowEnd(token, KBPushNotifier(context, Bundle()))
-            }
         }
     }
 

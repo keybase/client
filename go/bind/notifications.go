@@ -114,11 +114,15 @@ type ChatNotification struct {
 	Uid string
 }
 
-func HandlePostTextReply(strConvID, tlfName string, intMessageID int, body string) (err error) {
+// HandlePostTextReply sends a notification quick reply, in the foreground too.
+// pusher warns about the reply if it won't send.
+func HandlePostTextReply(strConvID, tlfName string, intMessageID int, body string, pusher PushNotifier) (err error) {
 	ctx := context.Background()
 	defer kbCtx.CTrace(ctx, "HandlePostTextReply", &err)()
 	defer func() { err = flattenError(err) }()
-	return postTextReply(ctx, globals.NewContext(kbCtx, kbChatCtx), strConvID, tlfName, intMessageID, body)
+	return inPushWindow(pusher, func(bool) error {
+		return postTextReply(ctx, globals.NewContext(kbCtx, kbChatCtx), strConvID, tlfName, intMessageID, body)
+	})
 }
 
 // postTextReply sends a notification quick reply and marks the conversation
@@ -157,10 +161,16 @@ func postTextReply(ctx context.Context, gc *globals.Context, strConvID, tlfName 
 
 var spoileRegexp = regexp.MustCompile(`!>(.*?)<!`)
 
+// HandleBackgroundNotification unboxes a chat push, displays it through
+// pusher and acks it. A nil pusher displays nothing. On Android, while the UI
+// is active it acks without displaying, since the app already shows the
+// message.
+// taskPusher warns about messages that won't send if the push window hands
+// over to a background task.
 func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender string, intMembersType int,
 	displayPlaintext bool, intMessageID int, pushID string, badgeCount, unixTime int, soundName string,
-	pusher PushNotifier, showIfStale bool, targetUID string,
-) (err error) {
+	pusher PushNotifier, showIfStale bool, targetUID string, taskPusher PushNotifier,
+) error {
 	// iOS gives roughly 30 seconds of background time for a remote
 	// notification; leave enough of that budget for unboxing and acking.
 	start := time.Now()
@@ -168,12 +178,23 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 		return err
 	}
 	initDuration := time.Since(start)
+	return inPushWindow(taskPusher, func(uiActive bool) error {
+		return handleBackgroundNotification(strConvID, body, serverMessageBody, sender, intMembersType,
+			displayPlaintext, intMessageID, pushID, badgeCount, unixTime, soundName, pusher, showIfStale,
+			targetUID, uiActive, initDuration)
+	})
+}
+
+func handleBackgroundNotification(strConvID, body, serverMessageBody, sender string, intMembersType int,
+	displayPlaintext bool, intMessageID int, pushID string, badgeCount, unixTime int, soundName string,
+	pusher PushNotifier, showIfStale bool, targetUID string, uiActive bool, initDuration time.Duration,
+) (err error) {
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := globals.ChatCtx(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 
-	defer kbCtx.CTrace(ctx, fmt.Sprintf("HandleBackgroundNotification(%s,%s,%v,%d,%d,%s,%d,%d)",
-		strConvID, sender, displayPlaintext, intMembersType, intMessageID, pushID, badgeCount, unixTime), &err)()
+	defer kbCtx.CTrace(ctx, fmt.Sprintf("HandleBackgroundNotification(%s,%s,%v,%d,%d,%s,%d,%d,%v)",
+		strConvID, sender, displayPlaintext, intMembersType, intMessageID, pushID, badgeCount, unixTime, uiActive), &err)()
 	defer func() { err = flattenError(err) }()
 	kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: waitForInit took %v", initDuration)
 
@@ -273,7 +294,7 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 
 		if displayPlaintext && !msgUnboxed.Valid().IsEphemeral() {
 			// We show avatars on Android
-			if runtime.GOOS == "android" {
+			if runtime.GOOS == "android" && !uiActive {
 				avatar, err := kbSvc.GetUserAvatar(username)
 
 				if err != nil {
@@ -324,26 +345,40 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 
 	// only display and ack this notification if we actually have something to display
 	if pusher != nil && (len(chatNotification.Message.Plaintext) > 0 || len(chatNotification.Message.ServerMessage) > 0) {
-		// Lock and check if we've already processed this notification.
-		seenNotificationsMtx.Lock()
-		defer seenNotificationsMtx.Unlock()
-		if _, ok := getSeenNotificationsCache().Get(dupKey); ok {
-			// Cancel any duplicate visible notifications
+		ackPush := func() {
 			if ack != nil {
 				ack.Ack(ctx, []string{pushID})
 			}
-			kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: duplicate notification convID=%s msgID=%d", strConvID, intMessageID)
-			// Return nil (not an error) so Android does not treat this as failure and show a fallback notification.
-			return nil
 		}
-		// Add to cache before displaying so that any concurrent goroutine that
-		// reaches the second check while DisplayChatNotification is running will
-		// see the entry and bail out rather than displaying a duplicate.
-		getSeenNotificationsCache().Add(dupKey, struct{}{})
-		pusher.DisplayChatNotification(&chatNotification)
-		if ack != nil {
-			ack.Ack(ctx, []string{pushID})
+		if displayOnce(dupKey, &chatNotification, pusher, runtime.GOOS, uiActive, ackPush) {
+			kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: duplicate notification convID=%s msgID=%d", strConvID, intMessageID)
 		}
 	}
 	return nil
+}
+
+// displayOnce displays n unless its push was already handled, then acks the
+// push. On Android, while the UI is active it only acks: the app already shows
+// the message. iOS always displays, because its display also removes the
+// server's generic notification for this message, which can land while the
+// push is being handled; a local notification never shows while active.
+func displayOnce(dupKey string, n *ChatNotification, pusher PushNotifier, goos string, uiActive bool,
+	ack func(),
+) (dup bool) {
+	seenNotificationsMtx.Lock()
+	defer seenNotificationsMtx.Unlock()
+	if _, ok := getSeenNotificationsCache().Get(dupKey); ok {
+		// Cancel any duplicate visible notifications
+		ack()
+		return true
+	}
+	// Add to cache before displaying so that any concurrent goroutine that
+	// reaches the check while DisplayChatNotification is running sees the
+	// entry and bails out rather than displaying a duplicate.
+	getSeenNotificationsCache().Add(dupKey, struct{}{})
+	if !uiActive || goos != "android" {
+		pusher.DisplayChatNotification(n)
+	}
+	ack()
+	return false
 }

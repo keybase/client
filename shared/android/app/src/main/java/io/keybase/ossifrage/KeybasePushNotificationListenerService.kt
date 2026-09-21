@@ -23,8 +23,12 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
     // was notified about to give context to future notifications.
     private val msgCache = HashMap<String?, SmallMsgRingBuffer>()
 
-    // Avoid ever showing doubles
-    private val seenChatNotifications = HashSet<String>()
+    // Go's seen cache dedupes what Go displays, but not the fallback below: a
+    // redelivered push that Go fails on again would show the fallback twice,
+    // and each display adds the message to msgCache's history again.
+    private val seenChatNotifications = object : LinkedHashMap<String, Unit>(16, 0.75f, false) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Unit>?) = size > SEEN_CHAT_NOTIFICATIONS_MAX
+    }
     private fun chatNotificationKey(convID: String?, messageId: Int, targetUID: String): String {
         return "$targetUID|$convID|$messageId"
     }
@@ -112,12 +116,12 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                     // Key includes UID so two signed-in accounts in the same chat are not treated as duplicates.
                     if (!dontNotify) {
                         val notificationKey = chatNotificationKey(n.convID, n.messageId, targetUID)
-                        if (seenChatNotifications.contains(notificationKey)) {
+                        if (seenChatNotifications.containsKey(notificationKey)) {
                             NativeLogger.info("KeybasePushNotificationListenerService skipping duplicate notification: $notificationKey")
                             return
                         }
                         // Mark as seen immediately to prevent duplicate processing
-                        seenChatNotifications.add(notificationKey)
+                        seenChatNotifications[notificationKey] = Unit
                         NativeLogger.info("KeybasePushNotificationListenerService marked notification as seen: $notificationKey")
                     }
 
@@ -129,27 +133,18 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                         }
                         notifier.setMsgCache(msgCache[n.convID])
                         try {
-                            val withBackgroundActive: WithBackgroundActive = object : WithBackgroundActive {
-                                override fun task() {
-                                    try {
-                                        Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
-                                                n.membersType.toLong(), n.displayPlaintext, n.messageId.toLong(), n.pushId,
-                                                n.badgeCount.toLong(), n.unixTime, n.soundName, if (dontNotify) null else notifier, true,
-                                                targetUID)
-                                        goProcessingSucceeded = true
-                                        if (!dontNotify) {
-                                            seenChatNotifications.add(chatNotificationKey(n.convID, n.messageId, targetUID))
-                                        }
-                                    } catch (ex: Exception) {
-                                        NativeLogger.error("Go Couldn't handle background notification2: " + ex.message)
-                                        throw ex
-                                    }
-                                }
+                            // Go holds the app up while it handles the push, and in the
+                            // foreground acks it without displaying it.
+                            Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
+                                    n.membersType.toLong(), n.displayPlaintext, n.messageId.toLong(), n.pushId,
+                                    n.badgeCount.toLong(), n.unixTime, n.soundName, if (dontNotify) null else notifier, true,
+                                    targetUID, KBPushNotifier(applicationContext, Bundle()))
+                            goProcessingSucceeded = true
+                            if (!dontNotify) {
+                                seenChatNotifications[chatNotificationKey(n.convID, n.messageId, targetUID)] = Unit
                             }
-                            withBackgroundActive.whileActive(applicationContext)
                         } catch (ex: Exception) {
-                            NativeLogger.error("Failed to process notification (app may not be running): " + ex.message)
-                            goProcessingSucceeded = false
+                            NativeLogger.error("Go couldn't handle background notification: " + ex.message)
                         }
                     }
 
@@ -203,7 +198,7 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                             chatNotif.uid = targetUID
 
                             notifier.displayChatNotification(chatNotif)
-                            seenChatNotifications.add(chatNotificationKey(n.convID, n.messageId, targetUID))
+                            seenChatNotifications[chatNotificationKey(n.convID, n.messageId, targetUID)] = Unit
                             NativeLogger.info("KeybasePushNotificationListenerService fallback notification displayed successfully")
                         } catch (e: Exception) {
                             NativeLogger.error("Failed to display notification fallback: " + e.message)
@@ -281,6 +276,7 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
     }
 
     companion object {
+        private const val SEEN_CHAT_NOTIFICATIONS_MAX = 100
         const val CHAT_CHANNEL_ID = "kb_chat_channel"
         const val FOLLOW_CHANNEL_ID = "kb_follow_channel"
         const val DEVICE_CHANNEL_ID = "kb_device_channel"
