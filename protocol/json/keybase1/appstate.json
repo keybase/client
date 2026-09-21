@@ -22,6 +22,24 @@
         "UNKNOWN_3",
         "NOTAVAILABLE_4"
       ]
+    },
+    {
+      "type": "record",
+      "name": "PushTapRoute",
+      "fields": [
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "targetUID"
+        },
+        {
+          "type": "int",
+          "name": "id"
+        }
+      ]
     }
   ],
   "messages": {
@@ -30,6 +48,22 @@
         {
           "name": "state",
           "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "peekPushTapRoute": {
+      "request": [],
+      "response": [
+        null,
+        "PushTapRoute"
+      ]
+    },
+    "ackPushTapRoute": {
+      "request": [
+        {
+          "name": "id",
+          "type": "int"
         }
       ],
       "response": null

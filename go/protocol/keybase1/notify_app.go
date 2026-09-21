@@ -21,10 +21,14 @@ type ClientStateArg struct {
 	State ClientState `codec:"state" json:"state"`
 }
 
+type PushTapRouteAvailableArg struct {
+}
+
 type NotifyAppInterface interface {
 	Exit(context.Context) error
 	MobileAppStateChanged(context.Context, MobileAppState) error
 	ClientState(context.Context, ClientState) error
+	PushTapRouteAvailable(context.Context) error
 }
 
 func NotifyAppProtocol(i NotifyAppInterface) rpc.Protocol {
@@ -71,6 +75,16 @@ func NotifyAppProtocol(i NotifyAppInterface) rpc.Protocol {
 					return
 				},
 			},
+			"pushTapRouteAvailable": {
+				MakeArg: func() any {
+					var ret [1]PushTapRouteAvailableArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
+					err = i.PushTapRouteAvailable(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -93,5 +107,10 @@ func (c NotifyAppClient) MobileAppStateChanged(ctx context.Context, state Mobile
 func (c NotifyAppClient) ClientState(ctx context.Context, state ClientState) (err error) {
 	__arg := ClientStateArg{State: state}
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyApp.clientState", []any{__arg}, 0*time.Millisecond)
+	return
+}
+
+func (c NotifyAppClient) PushTapRouteAvailable(ctx context.Context) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyApp.pushTapRouteAvailable", []any{PushTapRouteAvailableArg{}}, 0*time.Millisecond)
 	return
 }

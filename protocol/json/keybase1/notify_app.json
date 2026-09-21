@@ -40,6 +40,11 @@
       ],
       "response": null,
       "oneway": true
+    },
+    "pushTapRouteAvailable": {
+      "request": [],
+      "response": null,
+      "oneway": true
     }
   },
   "namespace": "keybase.1"
