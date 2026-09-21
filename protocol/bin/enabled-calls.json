@@ -152,6 +152,7 @@
   "chat.1.local.updateTyping": {"promise":true},
   "chat.1.local.updateUnsentText": {"promise":true},
   "chat.1.local.userEmojis": {"promise":true},
+  "keybase.1.NotifyApp.clientState": {"incoming":true},
   "keybase.1.NotifyApp.exit": {"custom":true},
   "keybase.1.NotifyApp.mobileAppStateChanged": {"incoming":true},
   "keybase.1.NotifyAudit.boxAuditError": {"incoming":true},

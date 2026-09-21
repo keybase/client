@@ -1,14 +1,23 @@
 
 @namespace("keybase.1")
 protocol NotifyApp {
+  import idl "common.avdl";
   import idl "appstate.avdl";
+  import idl "notify_ctl.avdl";
 
   void exit() oneway;
 
   // The app's lifecycle state changed. The service derives it from the UI
-  // reports native makes, so this is the only place a client learns it --
-  // deriving it a second time from the OS would mean two answers with no
-  // ordering between them.
+  // reports native makes, so this and clientState's appState are the only
+  // places a client learns it -- deriving it a second time from the OS would
+  // mean two answers with no ordering between them.
   void mobileAppStateChanged(MobileAppState state) oneway;
+
+  // The session, the http server address and the app state, read by the
+  // service when this is sent. Sent first on subscribing, after every session
+  // change and once the startup login attempt settles. It rides the same
+  // ordered stream as the notifications above, so the latest one a client
+  // received is never older than any of them.
+  void clientState(ClientState state) oneway;
 
 }

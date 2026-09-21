@@ -2,7 +2,15 @@
   "protocol": "NotifyApp",
   "imports": [
     {
+      "path": "common.avdl",
+      "type": "idl"
+    },
+    {
       "path": "appstate.avdl",
+      "type": "idl"
+    },
+    {
+      "path": "notify_ctl.avdl",
       "type": "idl"
     }
   ],
@@ -18,6 +26,16 @@
         {
           "name": "state",
           "type": "MobileAppState"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "clientState": {
+      "request": [
+        {
+          "name": "state",
+          "type": "ClientState"
         }
       ],
       "response": null,

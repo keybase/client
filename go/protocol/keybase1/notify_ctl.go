@@ -88,6 +88,50 @@ func (o NotificationChannels) DeepCopy() NotificationChannels {
 	}
 }
 
+type ClientSession struct {
+	LoggedIn   bool     `codec:"loggedIn" json:"loggedIn"`
+	Uid        UID      `codec:"uid" json:"uid"`
+	Username   string   `codec:"username" json:"username"`
+	DeviceID   DeviceID `codec:"deviceID" json:"deviceID"`
+	DeviceName string   `codec:"deviceName" json:"deviceName"`
+}
+
+func (o ClientSession) DeepCopy() ClientSession {
+	return ClientSession{
+		LoggedIn:   o.LoggedIn,
+		Uid:        o.Uid.DeepCopy(),
+		Username:   o.Username,
+		DeviceID:   o.DeviceID.DeepCopy(),
+		DeviceName: o.DeviceName,
+	}
+}
+
+type ClientState struct {
+	Session     *ClientSession `codec:"session,omitempty" json:"session,omitempty"`
+	HttpSrvInfo *HttpSrvInfo   `codec:"httpSrvInfo,omitempty" json:"httpSrvInfo,omitempty"`
+	AppState    MobileAppState `codec:"appState" json:"appState"`
+}
+
+func (o ClientState) DeepCopy() ClientState {
+	return ClientState{
+		Session: (func(x *ClientSession) *ClientSession {
+			if x == nil {
+				return nil
+			}
+			tmp := x.DeepCopy()
+			return &tmp
+		})(o.Session),
+		HttpSrvInfo: (func(x *HttpSrvInfo) *HttpSrvInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := x.DeepCopy()
+			return &tmp
+		})(o.HttpSrvInfo),
+		AppState: o.AppState.DeepCopy(),
+	}
+}
+
 type SetNotificationsArg struct {
 	Channels NotificationChannels `codec:"channels" json:"channels"`
 }

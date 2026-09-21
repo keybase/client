@@ -17,9 +17,14 @@ type MobileAppStateChangedArg struct {
 	State MobileAppState `codec:"state" json:"state"`
 }
 
+type ClientStateArg struct {
+	State ClientState `codec:"state" json:"state"`
+}
+
 type NotifyAppInterface interface {
 	Exit(context.Context) error
 	MobileAppStateChanged(context.Context, MobileAppState) error
+	ClientState(context.Context, ClientState) error
 }
 
 func NotifyAppProtocol(i NotifyAppInterface) rpc.Protocol {
@@ -51,6 +56,21 @@ func NotifyAppProtocol(i NotifyAppInterface) rpc.Protocol {
 					return
 				},
 			},
+			"clientState": {
+				MakeArg: func() any {
+					var ret [1]ClientStateArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
+					typedArgs, ok := args.(*[1]ClientStateArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ClientStateArg)(nil), args)
+						return
+					}
+					err = i.ClientState(ctx, typedArgs[0].State)
+					return
+				},
+			},
 		},
 	}
 }
@@ -67,5 +87,11 @@ func (c NotifyAppClient) Exit(ctx context.Context) (err error) {
 func (c NotifyAppClient) MobileAppStateChanged(ctx context.Context, state MobileAppState) (err error) {
 	__arg := MobileAppStateChangedArg{State: state}
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyApp.mobileAppStateChanged", []any{__arg}, 0*time.Millisecond)
+	return
+}
+
+func (c NotifyAppClient) ClientState(ctx context.Context, state ClientState) (err error) {
+	__arg := ClientStateArg{State: state}
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyApp.clientState", []any{__arg}, 0*time.Millisecond)
 	return
 }

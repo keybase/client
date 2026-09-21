@@ -1,6 +1,11 @@
 {
   "protocol": "NotifySession",
-  "imports": [],
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
   "types": [],
   "messages": {
     "loggedOut": {

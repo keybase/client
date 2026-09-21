@@ -1,6 +1,7 @@
 
 @namespace("keybase.1")
 protocol NotifySession {
+  import idl "common.avdl";
 
   @notify("")
   void loggedOut();
