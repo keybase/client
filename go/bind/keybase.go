@@ -1034,34 +1034,6 @@ func runPushWindow(lc *lifecycle.Controller, goos string, deps lifecycle.Backgro
 	return work(false)
 }
 
-// AppPushWindowBegin holds a backgrounded app up while native handles a push or
-// a notification action. It returns the window's token, or 0 when the app is
-// active and nothing needs holding.
-//
-// Transitional: it exists only because Android still opens the push window from
-// Kotlin. It goes away once the bind layer wraps push handling in the window
-// itself, which is where the decision belongs -- iOS needs no window at all,
-// since it suspends the app at the push's completion handler.
-func AppPushWindowBegin() int64 {
-	if !isInited() {
-		return 0
-	}
-	defer kbCtx.Trace("AppPushWindowBegin", nil)()
-	return kbCtx.MobileLifecycle.PushWindowBegin()
-}
-
-// AppPushWindowEnd ends the window AppPushWindowBegin opened. If the UI is
-// still in the background it first hands over to a background task, which keeps
-// the app up while work must keep going; pusher warns about messages that
-// won't send. Transitional, for the same reason as AppPushWindowBegin.
-func AppPushWindowEnd(token int64, pusher PushNotifier) {
-	if !isInited() {
-		return
-	}
-	defer kbCtx.Trace("AppPushWindowEnd", nil)()
-	kbCtx.MobileLifecycle.PushWindowEnd(token, backgroundTaskDeps(pusher))
-}
-
 // AppWaitBackgroundTask returns once the background task whose token
 // AppUIBackground returned no longer needs any time in the background.
 func AppWaitBackgroundTask(token int64) {
