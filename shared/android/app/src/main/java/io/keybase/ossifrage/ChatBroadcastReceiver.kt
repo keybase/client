@@ -19,37 +19,53 @@ class ChatBroadcastReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        setupKBRuntime(context, false)
         val convData = ConvData.fromIntent(intent)
         val openConv = intent.getParcelableExtra<PendingIntent>("openConvPendingIntent")
-        val repliedNotification = NotificationCompat.Builder(context, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID)
-                .setContentIntent(openConv)
-                .setTimeoutAfter(1000)
-                .setSmallIcon(R.drawable.ic_notif)
-        val notificationManager = NotificationManagerCompat.from(context)
         val messageBody = getMessageText(intent)
-        if (messageBody != null) {
-            try {
-                val withBackgroundActive: WithBackgroundActive = object : WithBackgroundActive {
-                    override fun task() {
-                        Keybase.handlePostTextReply(convData.convID, convData.tlfName, convData.lastMsgId, messageBody)
-                    }
+        val pendingResult = goAsync()
+        runReceiverWork(RECEIVER_BUDGET_MS, { Thread(it).start() }, { NativeLogger.warn(it) }, { msg, e -> NativeLogger.error(msg, e) },
+                { pendingResult.finish() }) {
+            val status = if (messageBody == null) {
+                NativeLogger.error("Message Body in quick reply was null")
+                "Couldn't send reply - Failed to read input."
+            } else {
+                setupKBRuntime(context, false)
+                sendQuickReply({ msg, e -> NativeLogger.error(msg, e) }) {
+                    postTextReplyInPushWindow(context, convData, messageBody)
                 }
-                withBackgroundActive.whileActive(context)
-                repliedNotification.setContentText("Replied")
-            } catch (e: Exception) {
-                repliedNotification.setContentText("Couldn't send reply")
-                NativeLogger.error("Failed to send quick reply", e)
             }
-        } else {
-            repliedNotification.setContentText("Couldn't send reply - Failed to read input.")
-            NativeLogger.error("Message Body in quick reply was null")
+            val repliedNotification = NotificationCompat.Builder(context, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID)
+                    .setContentIntent(openConv)
+                    .setTimeoutAfter(1000)
+                    .setSmallIcon(R.drawable.ic_notif)
+                    .setContentText(status)
+            NotificationManagerCompat.from(context).notify(convData.convID, 0, repliedNotification.build())
         }
-        notificationManager.notify(convData.convID, 0, repliedNotification.build())
+    }
+
+    // Transitional: the push window is opened here, for the same reason as
+    // WithBackgroundActive -- it goes away once the bind layer wraps the reply in the
+    // window itself. Unlike WithBackgroundActive this never skips the send while the app
+    // is foreground; a reply typed in the notification shade must go out either way.
+    private fun postTextReplyInPushWindow(context: Context, convData: ConvData, messageBody: String) {
+        // 0 when the app is active and nothing needs holding up.
+        val token = Keybase.appPushWindowBegin()
+        try {
+            Keybase.handlePostTextReply(convData.convID, convData.tlfName, convData.lastMsgId, messageBody)
+        } finally {
+            if (token > 0) {
+                // Hands over to a background task if the UI is still in the background and
+                // work must keep going.
+                Keybase.appPushWindowEnd(token, KBPushNotifier(context, Bundle()))
+            }
+        }
     }
 
     companion object {
         const val KEY_TEXT_REPLY = "key_text_reply"
+
+        // goAsync gives a broadcast 10s; leave margin.
+        private const val RECEIVER_BUDGET_MS = 9_000L
     }
 }
 
