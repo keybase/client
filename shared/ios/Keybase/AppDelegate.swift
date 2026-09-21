@@ -21,7 +21,7 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
 
   var resignImageView: UIImageView?
   var fsPaths: [String: String] = [:]
-  var shutdownTask: UIBackgroundTaskIdentifier = .invalid
+  private let lifecycle = AppLifecycleForwarder()
   var iph: ItemProviderHelper?
   private var startupLogFileHandle: FileHandle?
   private let logQueue = DispatchQueue(label: "kb.startup.log", qos: .utility)
@@ -36,12 +36,6 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     self.writeStartupTimingLog("didFinishLaunchingWithOptions start")
 
     self.didLaunchSetupBefore()
-
-    // Tell Go the real app state right after init. Go defaults to foreground,
-    // so a background launch (silent push, background fetch) would otherwise
-    // look foregrounded until didLaunchSetupAfter runs — long enough to join
-    // a coin flip it can't finish.
-    self.notifyAppState(application)
 
     if let remoteNotification = launchOptions?[.remoteNotification] as? [AnyHashable: Any] {
       let notificationDict = Dictionary(uniqueKeysWithValues: remoteNotification.map { (String(describing: $0.key), $0.value) })
@@ -74,7 +68,7 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     // Start FPS monitoring if launched with -PERF_FPS_MONITOR
     PerfFPSMonitor.startIfEnabled()
 
-    self.didLaunchSetupAfter(application: application)
+    self.didLaunchSetupAfter()
 
     return true
   }
@@ -202,17 +196,6 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     self.writeStartupTimingLog("After Go init")
   }
 
-  func notifyAppState(_ application: UIApplication) {
-    let state = application.applicationState
-    log.info("notifyAppState: notifying service with new appState: \(state.rawValue)")
-    switch state {
-    case .active: Keybasego.KeybaseSetAppStateForeground()
-    case .background: Keybasego.KeybaseSetAppStateBackground()
-    case .inactive: Keybasego.KeybaseSetAppStateInactive()
-    default: Keybasego.KeybaseSetAppStateForeground()
-    }
-  }
-
   func didLaunchSetupBefore() {
     setupGo()
     try? AVAudioSession.sharedInstance().setCategory(.ambient)
@@ -221,9 +204,7 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
 
   // BGTaskScheduler.register must run before didFinishLaunching returns, so this
   // can't wait for the scene to connect.
-  func didLaunchSetupAfter(application: UIApplication) {
-    notifyAppState(application)
-
+  func didLaunchSetupAfter() {
     BGTaskScheduler.shared.register(forTaskWithIdentifier: "com.keybase.app.refresh", using: nil) { task in
       self.handleAppRefresh(task: task as! BGAppRefreshTask)
     }
@@ -244,12 +225,21 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
       dim = screenBounds.height
     }
     let square = CGRect(origin: screenBounds.origin, size: CGSize(width: dim, height: dim))
+    self.resignImageView?.removeFromSuperview()
     self.resignImageView = UIImageView(frame: square)
     self.resignImageView?.contentMode = .center
     self.resignImageView?.alpha = 0
     self.resignImageView?.backgroundColor = rootView.backgroundColor
     self.resignImageView?.image = UIImage(named: "LaunchImage")
     if let view = self.resignImageView { window.addSubview(view) }
+  }
+
+  // Called by SceneDelegate when the scene goes away; didStartReactNative
+  // rebuilds both if a new scene connects.
+  func didDisconnectScene() {
+    self.window = nil
+    self.resignImageView?.removeFromSuperview()
+    self.resignImageView = nil
   }
 
   func addDrop(_ rootView: UIView) {
@@ -384,7 +374,7 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
 
   override func applicationWillTerminate(_ application: UIApplication) {
     self.window?.rootViewController?.view.isHidden = true
-    Keybasego.KeybaseAppWillExit(PushNotifier())
+    lifecycle.willTerminate()
   }
 
   func hideCover() {
@@ -403,7 +393,7 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     } completion: { finished in
       log.info("applicationWillResignActive: rendered keyz screen. Finished: \(finished)")
     }
-    Keybasego.KeybaseSetAppStateInactive()
+    lifecycle.uiInactive()
   }
 
   override func applicationDidEnterBackground(_ application: UIApplication) {
@@ -414,43 +404,13 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     log.info("applicationDidEnterBackground: setting keyz screen alpha to 1.")
     self.resignImageView?.alpha = 1
 
-    log.info("applicationDidEnterBackground: notifying go.")
-    let requestTime = Keybasego.KeybaseAppDidEnterBackground()
-    log.info("applicationDidEnterBackground: after notifying go.")
-
-    if requestTime && (self.shutdownTask == UIBackgroundTaskIdentifier.invalid) {
-      self.shutdownTask = UIApplication.shared.beginBackgroundTask {
-        // Expiration handler runs on the main thread.
-        log.info("applicationDidEnterBackground: shutdown task run.")
-        Keybasego.KeybaseAppWillExit(PushNotifier())
-        self.endShutdownTask()
-      }
-
-      DispatchQueue.global(qos: .default).async {
-        Keybasego.KeybaseAppBeginBackgroundTask(PushNotifier())
-        DispatchQueue.main.async {
-          self.endShutdownTask()
-        }
-      }
-    }
-  }
-
-  // Main thread only: serializes the expiration handler and the background
-  // work both trying to end the same task.
-  private func endShutdownTask() {
-    let task = self.shutdownTask
-    guard task != .invalid else { return }
-    self.shutdownTask = .invalid
-    UIApplication.shared.endBackgroundTask(task)
+    lifecycle.didEnterBackground(application)
   }
 
   override func applicationDidBecomeActive(_ application: UIApplication) {
     log.info("applicationDidBecomeActive: hiding keyz screen.")
     hideCover()
-    log.info("applicationDidBecomeActive: notifying service.")
-    // Forwarded from sceneDidBecomeActive, where applicationState still reads
-    // .inactive; notifyAppState would stop the http server.
-    Keybasego.KeybaseSetAppStateForeground()
+    lifecycle.didBecomeActive()
 
     // Re-emit a notification the user tapped while React Native wasn't ready yet.
     KbEmitStoredNotificationOnBecomeActive()
@@ -460,18 +420,76 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     log.info("applicationWillEnterForeground: hiding keyz screen.")
     PerfFPSMonitor.appWillEnterForeground()
     hideCover()
-    // HTTP and gregor should come up before React Native resumes painting (image
-    // loads race a stopped http server). BACKGROUNDACTIVE starts those without
-    // claiming the user is on-screen — FOREGROUND waits for didBecomeActive.
-    // Can't use notifyAppState here: applicationState is still .background.
-    Keybasego.KeybaseSetAppStateBackgroundActive()
-    NSLog("applicationWillEnterForeground: done")
+    lifecycle.uiInactive()
   }
 
   func applicationProtectedDataDidBecomeAvailable(_ application: UIApplication) {
     NSLog("[Startup] applicationProtectedDataDidBecomeAvailable")
   }
 
+}
+
+// Hands lifecycle events to Go on the main thread, in callback order: every Go
+// lifecycle call returns at once, except the exit work, which runBounded caps.
+// Also owns the UIKit background tasks that keep the app alive while Go does
+// its background work. Main thread only.
+//
+// Native reports only UI state; Go derives the app state (go/libkb/lifecycle).
+// Nothing here may derive state, and UIApplication.applicationState lags inside
+// the scene-forwarded callbacks anyway.
+final class AppLifecycleForwarder {
+  // Upper bound on how long the expiration handler and willTerminate hold the
+  // main thread for Go's last work (flush, a pending-message warning).
+  private static let exitWorkTimeout: TimeInterval = 1
+
+  // willEnterForeground and willResignActive.
+  func uiInactive() { Keybasego.KeybaseAppUIInactive() }
+  func didBecomeActive() { Keybasego.KeybaseAppUIActive() }
+
+  func willTerminate() {
+    runBounded { Keybasego.KeybaseAppWillExit(PushNotifier()) }
+  }
+
+  // Every background entry starts its own task, which lasts until Go's
+  // background task has ended. Background time is per app, so every task still
+  // open expires together, and Go ends all of its background tasks at once.
+  func didEnterBackground(_ application: UIApplication) {
+    // The task's id, or .invalid once it has ended.
+    var task = UIBackgroundTaskIdentifier.invalid
+    func end() {
+      guard task != .invalid else { return }
+      application.endBackgroundTask(task)
+      task = .invalid
+    }
+    task = application.beginBackgroundTask(withName: "kb.didEnterBackground") {
+      guard task != .invalid else { return }
+      log.info("background task expired")
+      self.runBounded { Keybasego.KeybaseAppBackgroundTaskExpired(PushNotifier()) }
+      end()
+    }
+    // 0 while Go isn't running (before Init, after shutdown), and when the UI
+    // was already in the background with no Go background task running.
+    let token = Keybasego.KeybaseAppUIBackground(PushNotifier())
+    guard token > 0 else {
+      end()
+      return
+    }
+    DispatchQueue.global(qos: .default).async {
+      Keybasego.KeybaseAppWaitBackgroundTask(token)
+      DispatchQueue.main.async { end() }
+    }
+  }
+
+  // Every earlier event has already reached Go, so this keeps the order; the
+  // wait only bounds how long the app stays alive for the work.
+  private func runBounded(_ work: @escaping () -> Void) {
+    let done = DispatchSemaphore(value: 0)
+    DispatchQueue.global(qos: .userInitiated).async {
+      work()
+      done.signal()
+    }
+    _ = done.wait(timeout: .now() + Self.exitWorkTimeout)
+  }
 }
 
 class ReactNativeDelegate: ExpoReactNativeFactoryDelegate {
