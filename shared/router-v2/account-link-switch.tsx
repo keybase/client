@@ -6,9 +6,15 @@ import {useNavigationIntentsState} from '@/stores/navigation-intents'
 
 type ConfigState = ReturnType<typeof useConfigState.getState>
 
-const tapForOtherAccount = () => {
+// Every intent carrying a targetUid, which is every tap and only a tap.
+const pendingTap = () => {
   const {intent} = useNavigationIntentsState.getState()
-  return intent?.targetUid && intent.targetUid !== useCurrentUserState.getState().uid ? intent : undefined
+  return intent?.targetUid ? intent : undefined
+}
+
+const tapForOtherAccount = () => {
+  const intent = pendingTap()
+  return intent && intent.targetUid !== useCurrentUserState.getState().uid ? intent : undefined
 }
 
 // A tapped push for another account waits in the intent store until that account is current. This
@@ -45,9 +51,12 @@ export const subscribeIntentAccountSwitch = () => {
     const loginFailed = !!s.loginError && s.loginError !== old.loginError
     const loggedOut = s.loggedIn !== old.loggedIn && !s.loggedIn && !s.userSwitching
     if (!loginFailed && !loggedOut) return
-    const intent = tapForOtherAccount()
+    // Account-blind, unlike the switch above: a tap for the account being logged out of is not
+    // "for another account" while the uid is still set, but it is read as one the moment the
+    // teardown clears the uid, and check() would then log the user straight back in.
+    const intent = pendingTap()
     if (!intent) return
-    logger.info('[AccountLink] dropping a tap for another account after a failed switch or logout')
+    logger.info('[AccountLink] dropping a tap after a failed switch or logout')
     useNavigationIntentsState.getState().dispatch.acknowledge(intent.id)
   }
   const unsubs = [

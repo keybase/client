@@ -440,7 +440,15 @@ export const onEngineConnected = () => {
 
   awaitSessionAgain()
   subscription = subscribe()
-  ignorePromise(drainPushTapRoute())
+  // Peek only once the subscribe has been answered. pushTapRouteAvailable is filtered per
+  // connection on the App channel, so a tap landing between an earlier peek's reply and the
+  // service applying this subscribe would have no reader left at all: the nudge is dropped for
+  // a connection that has not subscribed yet, and the peek has already answered null.
+  const subscribedThenDrain = async () => {
+    await subscription
+    await drainPushTapRoute()
+  }
+  ignorePromise(subscribedThenDrain())
   useDaemonState.getState().dispatch.startHandshake()
 }
 

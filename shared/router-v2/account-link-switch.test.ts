@@ -147,6 +147,19 @@ test('logging out drops a tap for another account', () => {
   expect(useNavigationIntentsState.getState().intent).toBeUndefined()
 })
 
+// The tap is not "for another account" while the uid being logged out of is still set, so an
+// account-relative drop keeps it -- and the teardown clearing the uid then makes it one, which
+// logs the user straight back into the account they just left.
+test('logging out drops a tap for the account being logged out of', () => {
+  tapFor(currentAccount.uid)
+
+  useConfigState.setState({loggedIn: false, userSwitching: false})
+  useCurrentUserState.setState({uid: '', username: ''})
+
+  expect(login).not.toHaveBeenCalled()
+  expect(useNavigationIntentsState.getState().intent).toBeUndefined()
+})
+
 test('a foreign link naming a stored account never switches', () => {
   emitDeepLink(`keybase://profile/show/${otherAccount.username}`)
 
