@@ -573,8 +573,9 @@ export const updateReactionsInThreadState = (
         )
         const newReactions = new Map<string, T.Chat.ReactionDesc>()
         for (const emoji of existingOrder) {
-          if (reactions.has(emoji)) {
-            newReactions.set(emoji, reactions.get(emoji)!)
+          const incoming = reactions.get(emoji)
+          if (incoming) {
+            newReactions.set(emoji, incoming)
           }
         }
         const remainingEmojis = [...reactions.keys()].filter(emoji => !newReactions.has(emoji))

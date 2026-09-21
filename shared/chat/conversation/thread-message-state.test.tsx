@@ -673,3 +673,74 @@ describe('addMessagesToThreadState', () => {
     expect(merged?.type === 'text' && merged.text.stringValue()).toBe('edited')
   })
 })
+
+// The service keeps its last-bound address in Info()/getURL once it has bound (go/kbhttp/manager
+// Srv.Info), so an update takes whatever URL the service sent.
+describe('local server urls', () => {
+  const textAt = (ord: number, override?: Omit<Partial<T.Chat.MessageText>, 'text'>) =>
+    makeTextMessage({
+      id: T.Chat.numberToMessageID(ord),
+      ordinal: T.Chat.numberToOrdinal(ord),
+      outboxID: undefined,
+      ...override,
+    })
+  const attachmentOrdinal = T.Chat.numberToOrdinal(201)
+
+  test('a new non-empty url replaces the old one', () => {
+    const state = makeThreadState([])
+    addMessagesToThreadState(state, [makeAttachmentMessage({fileURL: 'http://127.0.0.1:5000/f'})], {})
+    addMessagesToThreadState(state, [makeAttachmentMessage({fileURL: 'http://127.0.0.1:6000/f'})], {})
+    expect((state.messageMap.get(attachmentOrdinal) as T.Chat.MessageAttachment).fileURL).toBe(
+      'http://127.0.0.1:6000/f'
+    )
+  })
+
+  test('an empty url in an update overwrites an existing one', () => {
+    const state = makeThreadState([])
+    addMessagesToThreadState(
+      state,
+      [makeAttachmentMessage({fileURL: 'http://127.0.0.1:5000/f', previewURL: 'http://127.0.0.1:5000/p'})],
+      {}
+    )
+    addMessagesToThreadState(
+      state,
+      [makeAttachmentMessage({fileURL: '', previewURL: '', title: 'renamed'})],
+      {}
+    )
+    const m = state.messageMap.get(attachmentOrdinal) as T.Chat.MessageAttachment
+    expect(m.fileURL).toBe('')
+    expect(m.previewURL).toBe('')
+    expect(m.title).toBe('renamed')
+  })
+
+  test('reactions take the incoming decoration on a merge and on a reaction update', () => {
+    const reaction = (decorated: string, users: Array<string>): T.Chat.ReactionDesc => ({
+      decorated,
+      users: users.map((username, i) => ({timestamp: i + 1, username})),
+    })
+    const state = makeThreadState([])
+    addMessagesToThreadState(
+      state,
+      [textAt(10, {reactions: new Map([[':party:', reaction(':party:', ['testuser'])]])})],
+      {}
+    )
+    addMessagesToThreadState(
+      state,
+      [textAt(10, {reactions: new Map([[':party:', reaction('', ['testuser', 'testuser-mac'])]])})],
+      {}
+    )
+    const merged = (state.messageMap.get(T.Chat.numberToOrdinal(10)) as T.Chat.MessageText).reactions?.get(':party:')
+    expect(merged?.decorated).toBe('')
+    expect(merged?.users.map(u => u.username)).toEqual(['testuser', 'testuser-mac'])
+
+    updateReactionsInThreadState(state, [
+      {
+        reactions: new Map([[':party:', reaction(':party:', ['testuser'])]]),
+        targetMsgID: T.Chat.numberToMessageID(10),
+      },
+    ])
+    const updated = (state.messageMap.get(T.Chat.numberToOrdinal(10)) as T.Chat.MessageText).reactions?.get(':party:')
+    expect(updated?.decorated).toBe(':party:')
+    expect(updated?.users.map(u => u.username)).toEqual(['testuser'])
+  })
+})
