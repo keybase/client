@@ -237,6 +237,36 @@ const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus']) => 
   }
 }
 
+// The service derives the app's lifecycle state from the UI reports native makes and is the only
+// party that derives it; this is the whole of JS's model of it. Go's two background states are one
+// state here: nothing in the UI distinguishes "backgrounded with work still running" from
+// "backgrounded".
+//
+// Applied only on mobile. Desktop has no lifecycle to report, so the service's value there is a
+// constant FOREGROUND that describes nothing -- desktop's window focus is a separate fact, written
+// straight to `appFocused` by the window listeners.
+export const applyMobileAppState = (state: T.RPCGen.MobileAppState) => {
+  if (!isMobile) {
+    return
+  }
+  switch (state) {
+    case T.RPCGen.MobileAppState.foreground:
+      useShellState.getState().dispatch.setMobileAppState('active')
+      break
+    case T.RPCGen.MobileAppState.inactive:
+      useShellState.getState().dispatch.setMobileAppState('inactive')
+      break
+    case T.RPCGen.MobileAppState.background:
+    case T.RPCGen.MobileAppState.backgroundactive:
+      useShellState.getState().dispatch.setMobileAppState('background')
+      break
+    default:
+      // a fifth state the service grew and we have not mapped: say so rather than leaving the store
+      // silently stuck on the one before it
+      logger.warn(`[AppState] unmapped state ${String(state)}, leaving the app state as it was`)
+  }
+}
+
 const onNavStateChanged =(nextNavState: RouterState['navState'], previousNavState: RouterState['navState']) => {
   const next = nextNavState as Util.NavState
   const prev = previousNavState as Util.NavState
@@ -357,6 +387,9 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
   }
 
   switch (action.type) {
+    case 'keybase.1.NotifyApp.mobileAppStateChanged':
+      applyMobileAppState(action.payload.params.state)
+      break
     case 'keybase.1.NotifyBadges.badgeState':
       {
         const {badgeState} = action.payload.params
