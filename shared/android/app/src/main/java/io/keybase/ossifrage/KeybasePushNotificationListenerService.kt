@@ -5,17 +5,13 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.app.Person
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import io.keybase.ossifrage.MainActivity.Companion.setupKBRuntime
 import io.keybase.ossifrage.modules.NativeLogger
 import keybase.Keybase
-import com.reactnativekb.KbModule
 import org.json.JSONObject
 
 class KeybasePushNotificationListenerService : FirebaseMessagingService() {
@@ -31,17 +27,6 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
     }
     private fun chatNotificationKey(convID: String?, messageId: Int, targetUID: String): String {
         return "$targetUID|$convID|$messageId"
-    }
-
-    private fun buildStyle(convID: String, person: Person): NotificationCompat.Style {
-        val style = NotificationCompat.MessagingStyle(person)
-        val buf = msgCache[convID]
-        if (buf != null) {
-            for (msg in buf.summary()) {
-                style.addMessage(msg)
-            }
-        }
-        return style
     }
 
     override fun onCreate() {
@@ -140,22 +125,11 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                                     n.badgeCount.toLong(), n.unixTime, n.soundName, if (dontNotify) null else notifier, true,
                                     targetUID, KBPushNotifier(applicationContext, Bundle()))
                             goProcessingSucceeded = true
-                            if (!dontNotify) {
-                                seenChatNotifications[chatNotificationKey(n.convID, n.messageId, targetUID)] = Unit
-                            }
                         } catch (ex: Exception) {
                             NativeLogger.error("Go couldn't handle background notification: " + ex.message)
                         }
                     }
 
-
-                    val isReactNativeRunning = try {
-                        com.reactnativekb.KbModule.isReactNativeRunning()
-                    } catch (e: Exception) {
-                        NativeLogger.info("KeybasePushNotificationListenerService couldn't check if React Native is running: ${e.message}, assuming not")
-                        false
-                    }
-                    NativeLogger.info("KeybasePushNotificationListenerService isReactNativeRunning: $isReactNativeRunning")
 
                     val isForeground = try {
                         Keybase.isAppStateForeground()
@@ -165,14 +139,9 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                     }
                     NativeLogger.info("KeybasePushNotificationListenerService isForeground: $isForeground")
 
-                    // Don't show notifications if app is foreground - user is already looking at the app
-                    if (isForeground) {
-
-                    } else if (dontNotify) {
-                        // Silent notifications should never display - they're processed by Go but no notification shown
-                    } else if (!goProcessingSucceeded && type == "chat.newmessage") {
-                        // Only show fallback if Go processing failed AND it's a non-silent notification
-                        // If Go succeeded, it already displayed the notification (via notifier parameter)
+                    // In the foreground the app already has the message. A silent push never
+                    // displays. Otherwise fall back only if Go failed to display it itself.
+                    if (!isForeground && !dontNotify && !goProcessingSucceeded) {
                         NativeLogger.info("KeybasePushNotificationListenerService attempting fallback notification display")
                         try {
                             val chatNotif = keybase.ChatNotification()
@@ -198,20 +167,12 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                             chatNotif.uid = targetUID
 
                             notifier.displayChatNotification(chatNotif)
-                            seenChatNotifications[chatNotificationKey(n.convID, n.messageId, targetUID)] = Unit
                             NativeLogger.info("KeybasePushNotificationListenerService fallback notification displayed successfully")
                         } catch (e: Exception) {
                             NativeLogger.error("Failed to display notification fallback: " + e.message)
                         }
-                    } else if (dontNotify) {
-
                     }
 
-                    if (type == "chat.newmessage") {
-                        val emitBundle = bundle.clone() as Bundle
-                        emitBundle.putBoolean("userInteraction", false)
-                        KbModule.emitPushNotification(emitBundle)
-                    }
                 }
 
                 "follow" -> {
@@ -219,18 +180,11 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                     val m = bundle.getString("message")
                     if (username != null && m != null) {
                         notifier.followNotification(username, m)
-                        val emitBundle = bundle.clone() as Bundle
-                        emitBundle.putBoolean("userInteraction", false)
-                        KbModule.emitPushNotification(emitBundle)
-                    } else {
                     }
                 }
 
                 "device.revoked", "device.new" -> {
                     notifier.deviceNotification()
-                    val emitBundle = bundle.clone() as Bundle
-                    emitBundle.putBoolean("userInteraction", false)
-                    KbModule.emitPushNotification(emitBundle)
                 }
 
                 "chat.readmessage" -> {
@@ -247,15 +201,10 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                         val notificationManager = NotificationManagerCompat.from(applicationContext)
                         notificationManager.cancelAll()
                     }
-                    val emitBundle = bundle.clone() as Bundle
-                    KbModule.emitPushNotification(emitBundle)
                 }
 
                 else -> {
                     notifier.generalNotification()
-                    val emitBundle = bundle.clone() as Bundle
-                    emitBundle.putBoolean("userInteraction", false)
-                    KbModule.emitPushNotification(emitBundle)
                 }
             }
         } catch (ex: Exception) {
@@ -390,4 +339,3 @@ internal class NotificationData(type: String, bundle: Bundle) {
         }
     }
 }
-

@@ -22,8 +22,3 @@
 
 // Push notification helpers - can be called from AppDelegate
 FOUNDATION_EXPORT void KbSetDeviceToken(NSString *token);
-FOUNDATION_EXPORT void KbSetInitialNotification(NSDictionary *notification);
-FOUNDATION_EXPORT void KbEmitPushNotification(NSDictionary *notification);
-// Re-emits a stored user-interaction notification once when the app becomes
-// active (covers notification taps that arrive before React Native is ready).
-FOUNDATION_EXPORT void KbEmitStoredNotificationOnBecomeActive(void);

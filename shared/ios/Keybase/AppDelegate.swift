@@ -38,11 +38,6 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
 
     self.didLaunchSetupBefore()
 
-    if let remoteNotification = launchOptions?[.remoteNotification] as? [AnyHashable: Any] {
-      let notificationDict = Dictionary(uniqueKeysWithValues: remoteNotification.map { (String(describing: $0.key), $0.value) })
-      KbSetInitialNotification(notificationDict)
-    }
-
     NotificationCenter.default.addObserver(forName: UIApplication.didReceiveMemoryWarningNotification, object: nil, queue: .main) { [weak self] notification in
       log.info("Memory warning received - deferring GC during React Native initialization")
       // see if this helps avoid this crash
@@ -126,20 +121,19 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     logQueue.async { [weak self] in
       guard let self else { return }
       if self.startupLogFileHandle == nil {
-        if !FileManager.default.fileExists(atPath: logFilePath) {
-          FileManager.default.createFile(
-            atPath: logFilePath,
-            contents: nil,
-            attributes: [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication]
-          )
-        }
-        if let fileHandle = FileHandle(forWritingAtPath: logFilePath) {
-          fileHandle.seekToEndOfFile()
-          self.startupLogFileHandle = fileHandle
-        } else {
-          NSLog("Error opening startup timing log file: \(logFilePath)")
+        // Go's logger opens this same file during KeybaseInit, so share it instead of replacing
+        // it: createFile swaps in a new file by renaming, which leaves Go logging the whole
+        // session to an unlinked file, and a non-append handle writes over Go's lines.
+        let fd = open(logFilePath, O_WRONLY | O_CREAT | O_APPEND, 0o600)
+        guard fd >= 0 else {
+          NSLog("Error opening startup timing log file: \(logFilePath) errno=\(errno)")
           return
         }
+        try? FileManager.default.setAttributes(
+          [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
+          ofItemAtPath: logFilePath
+        )
+        self.startupLogFileHandle = FileHandle(fileDescriptor: fd, closeOnDealloc: true)
       }
       guard let fileHandle = self.startupLogFileHandle else { return }
       do {
@@ -318,11 +312,8 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
   }
 
   override func application(_ application: UIApplication, didReceiveRemoteNotification notification: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-    guard let type = notification["type"] as? String else {
-      completionHandler(.noData)
-      return
-    }
-    if type == "chat.newmessageSilent_2" {
+    switch notification["type"] as? String {
+    case "chat.newmessageSilent_2":
       DispatchQueue.global(qos: .default).async {
         let convID = notification["c"] as? String
         let messageID = (notification["d"] as? NSNumber)?.intValue ?? 0
@@ -345,33 +336,46 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
         completionHandler(.newData)
         log.info("Remote notification handle finished...")
       }
-    } else {
-      var notificationDict = Dictionary(uniqueKeysWithValues: notification.map { (String(describing: $0.key), $0.value) })
-      notificationDict["userInteraction"] = false
-      KbEmitPushNotification(notificationDict)
+    case "chat.readmessage":
+      Self.clearPendingNotificationsIfAllRead(notification)
       completionHandler(.newData)
+    default:
+      completionHandler(.noData)
     }
   }
 
+  // A read receipt that leaves this account with nothing unread clears the notification
+  // requests still waiting to show.
+  private static func clearPendingNotificationsIfAllRead(_ notification: [AnyHashable: Any]) {
+    let badge = (notification["b"] as? NSNumber)?.intValue ?? Int(notification["b"] as? String ?? "") ?? -1
+    guard badge == 0 else { return }
+    let target = notification["i"] as? String ?? ""
+    DispatchQueue.global(qos: .default).async {
+      guard target.isEmpty || target == Keybasego.KeybaseCurrentUID() else { return }
+      UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+    }
+  }
+
+  // The only way a tap reaches the service. UIKit calls this only for a notification
+  // delivered to this app; URLs other apps open go through Linking instead, so only real
+  // taps can carry an account. The payload goes over unread: the service resolves where it
+  // opens, and nothing here or in JS parses a push.
   public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
     let userInfo = response.notification.request.content.userInfo
-    var notificationDict = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
-    notificationDict["userInteraction"] = true
-
-    // Store the notification so it can be processed when app becomes active
-    // This ensures navigation works even if React Native isn't ready yet
-    KbSetInitialNotification(notificationDict)
-
-    // Also emit immediately in case React Native is ready
-    KbEmitPushNotification(notificationDict)
+    // uniquingKeysWith, not uniqueKeysWithValues: the latter traps on a duplicate key, and
+    // String(describing:) over [AnyHashable: Any] can in principle produce one.
+    let payload = Dictionary(userInfo.map { (String(describing: $0.key), $0.value) }, uniquingKeysWith: { first, _ in first })
+    if JSONSerialization.isValidJSONObject(payload),
+       let data = try? JSONSerialization.data(withJSONObject: payload),
+       let json = String(data: data, encoding: .utf8) {
+      Keybasego.KeybaseDeliverPushTap(json)
+    } else {
+      log.error("Dropped a notification tap: its payload could not be serialized")
+    }
     completionHandler()
   }
 
   public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-    let userInfo = notification.request.content.userInfo
-    var notificationDict = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
-    notificationDict["userInteraction"] = false
-    KbEmitPushNotification(notificationDict)
     completionHandler([])
   }
 
@@ -414,9 +418,6 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     log.info("applicationDidBecomeActive: hiding keyz screen.")
     hideCover()
     lifecycle.didBecomeActive()
-
-    // Re-emit a notification the user tapped while React Native wasn't ready yet.
-    KbEmitStoredNotificationOnBecomeActive()
   }
 
   override func applicationWillEnterForeground(_ application: UIApplication) {

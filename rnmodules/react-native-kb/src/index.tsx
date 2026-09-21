@@ -97,10 +97,6 @@ export const setApplicationIconBadgeNumber = (n: number): void => {
   Kb.setApplicationIconBadgeNumber(n)
 }
 
-export const getInitialNotification = (): Promise<object | null> => {
-  return Kb.getInitialNotification()
-}
-
 export const removeAllPendingNotificationRequests = (): void => {
   Kb.removeAllPendingNotificationRequests()
 }
@@ -143,9 +139,6 @@ export const onMetaEvent = (callback: (payload: string) => void): EventSubscript
 }
 
 // Push events
-export const onPushNotification = (callback: (notification: object) => void): EventSubscription => {
-  return Kb.onPushNotification(n => callback(n))
-}
 
 export const onPushToken = (callback: (token: string) => void): EventSubscription => {
   return Kb.onPushToken(callback)
@@ -158,16 +151,12 @@ export const onShareData = (
   return Kb.onShareData(callback)
 }
 
-export const engineReset = (): void => {
-  return Kb.engineReset()
-}
 export const notifyJSReady = (): void => {
   return Kb.notifyJSReady()
 }
 export const shareListenersRegistered = (): void => {
   return Kb.shareListenersRegistered()
 }
-
 export const clearLocalLogs = (): Promise<void> => {
   return Kb.clearLocalLogs()
 }

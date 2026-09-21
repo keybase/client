@@ -49,7 +49,6 @@ static __weak Kb *kbSharedInstance = nil;
 static std::mutex kbSharedInstanceMutex;
 static BOOL kbPasteImageEnabled = NO;
 static NSString *kbStoredDeviceToken = nil;
-static NSDictionary *kbInitialNotification = nil;
 
 // The bridge is created on the JS thread and consumed by the reader thread,
 // so every access goes through this lock — a plain shared_ptr member would be
@@ -496,21 +495,6 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getTypedConstants) {
 RCT_EXPORT_METHOD(shareListenersRegistered) {
 }
 
-// No current caller (kept for future use).
-RCT_EXPORT_METHOD(engineReset) {
-  NSError *error = nil;
-  KeybaseReset(&error);
-  if (auto bridge = kbGetBridge()) {
-    bridge->resetRecv();
-  }
-  if ([self canEmit]) {
-    [self emitOnMetaEvent:metaEventEngineReset];
-  }
-  if (error) {
-    NSLog(@"Error in reset: %@", error);
-  }
-}
-
 RCT_EXPORT_METHOD(notifyJSReady) {
   // KeybaseNotifyJSReady is a sync.Once on the Go side, so repeat calls after
   // a reload are free. It must not run on the JS thread — do it on the reader
@@ -798,16 +782,6 @@ RCT_EXPORT_METHOD(setApplicationIconBadgeNumber: (double)badgeNumber) {
   });
 }
 
-RCT_EXPORT_METHOD(getInitialNotification: (RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject) {
-  if (kbInitialNotification) {
-    NSDictionary *notification = kbInitialNotification;
-    kbInitialNotification = nil;
-    resolve(notification);
-  } else {
-    resolve([NSNull null]);
-  }
-}
-
 RCT_EXPORT_METHOD(removeAllPendingNotificationRequests) {
   UNUserNotificationCenter *current = UNUserNotificationCenter.currentNotificationCenter;
   [current removeAllPendingNotificationRequests];
@@ -892,20 +866,6 @@ RCT_EXPORT_METHOD(addNotificationRequest: (JS::NativeKb::SpecAddNotificationRequ
   });
 }
 
-+ (void)setInitialNotification:(NSDictionary *)notification {
-  kbInitialNotification = notification;
-}
-
-+ (void)emitPushNotification:(NSDictionary *)notification {
-  Kb *instance = kbSharedInstance;
-  if (instance && [instance canEmit]) {
-    [instance emitOnPushNotification:notification];
-    NSLog(@"Kb.emitPushNotification: sent event 'onPushNotification' to JS");
-  } else {
-    NSLog(@"Kb.emitPushNotification: WARNING - module not ready, event not sent");
-  }
-}
-
 - (void)handleHardwareKeyPressed:(NSNotification *)notification {
   NSString *keyName = notification.userInfo[@"pressedKey"];
   if (keyName && [self canEmit]) {
@@ -950,34 +910,4 @@ RCT_EXPORT_METHOD(addNotificationRequest: (JS::NativeKb::SpecAddNotificationRequ
 
 void KbSetDeviceToken(NSString *token) {
   [Kb setDeviceToken:token];
-}
-
-void KbSetInitialNotification(NSDictionary *notification) {
-  [Kb setInitialNotification:notification];
-}
-
-void KbEmitPushNotification(NSDictionary *notification) {
-  [Kb emitPushNotification:notification];
-}
-
-void KbEmitStoredNotificationOnBecomeActive(void) {
-  NSDictionary *stored = kbInitialNotification;
-  kbInitialNotification = nil;
-  if (!stored) {
-    NSLog(@"KbEmitStoredNotificationOnBecomeActive: no stored notification");
-    return;
-  }
-  if (![stored[@"userInteraction"] boolValue]) {
-    // Not from a user tap; nothing to re-emit.
-    return;
-  }
-  if ([stored[@"reEmittedInBecomeActive"] boolValue]) {
-    // Already re-emitted once; keep it stored for getInitialNotification.
-    kbInitialNotification = stored;
-    return;
-  }
-  [Kb emitPushNotification:stored];
-  NSMutableDictionary *copy = [stored mutableCopy];
-  copy[@"reEmittedInBecomeActive"] = @YES;
-  kbInitialNotification = copy;
 }
