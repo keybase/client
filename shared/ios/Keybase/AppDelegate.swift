@@ -22,6 +22,7 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
   var resignImageView: UIImageView?
   var fsPaths: [String: String] = [:]
   private let lifecycle = AppLifecycleForwarder()
+  private var locationWatcher: LocationWatcher?
   var iph: ItemProviderHelper?
   private var startupLogFileHandle: FileHandle?
   private let logQueue = DispatchQueue(label: "kb.startup.log", qos: .utility)
@@ -183,7 +184,9 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     log.info("Starting KeybaseInit (synchronous)...")
     var err: NSError?
     let shareIntentDonator = ShareIntentDonatorImpl()
-    Keybasego.KeybaseInit(self.fsPaths["homedir"], self.fsPaths["sharedHome"], self.fsPaths["logFile"], "prod", securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, shareIntentDonator, &err)
+    let locationWatcher = LocationWatcher()
+    self.locationWatcher = locationWatcher
+    Keybasego.KeybaseInit(self.fsPaths["homedir"], self.fsPaths["sharedHome"], self.fsPaths["logFile"], "prod", securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, shareIntentDonator, locationWatcher, &err)
     if let err {
       let initResult = "FAILED: \(err.localizedDescription) (code=\(err.code) domain=\(err.domain))"
       log.error("KeybaseInit FAILED: \(err.localizedDescription, privacy: .public)")
