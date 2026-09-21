@@ -132,7 +132,7 @@ export const FsErrorProvider = ({children}: {children: React.ReactNode}) => {
   })
 
   return (
-    <FsErrorContext.Provider
+    <FsErrorContext
       value={{
         dismissRedbar,
         errorToActionOrThrow: handleError,
@@ -144,7 +144,7 @@ export const FsErrorProvider = ({children}: {children: React.ReactNode}) => {
       }}
     >
       {children}
-    </FsErrorContext.Provider>
+    </FsErrorContext>
   )
 }
 
@@ -160,7 +160,7 @@ export const FsErrorContextBridge = ({
 }: {
   children: React.ReactNode
   value: FsErrorContextType | null
-}) => <FsErrorContext.Provider value={value}>{children}</FsErrorContext.Provider>
+}) => <FsErrorContext value={value}>{children}</FsErrorContext>
 
 export const useFsErrors = () => {
   const routeErrors = React.useContext(FsErrorContext)

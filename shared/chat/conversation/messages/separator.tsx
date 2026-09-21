@@ -124,4 +124,13 @@ const useStyles = Kb.Styles.createStyleHook(
     }) as const
 )
 
+// react-native hands ItemSeparatorComponent {highlighted, leadingItem} and nothing else -- there is
+// no trailingItem on native. The separator belongs to cell i and sits between items i and i+1, and
+// the thread list reverses its data, so item i is the newer of the pair: exactly the message
+// desktop passes as trailingItem.
+export const NativeSeparator = (p: {leadingItem?: T.Chat.Ordinal}) => {
+  const {leadingItem} = p
+  return leadingItem === undefined ? null : <SeparatorConnector trailingItem={leadingItem} />
+}
+
 export default SeparatorConnector

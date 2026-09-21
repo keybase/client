@@ -386,11 +386,11 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
     connected && fsStatusState.generation === currentGeneration ? fsStatusState : emptyFsStatusState
 
   return (
-    <FsOverallSyncStatusContext.Provider value={visibleFsStatusState.overallSyncStatus}>
-      <FsUploadStatusContext.Provider value={visibleFsStatusState.uploads}>
+    <FsOverallSyncStatusContext value={visibleFsStatusState.overallSyncStatus}>
+      <FsUploadStatusContext value={visibleFsStatusState.uploads}>
         {children}
-      </FsUploadStatusContext.Provider>
-    </FsOverallSyncStatusContext.Provider>
+      </FsUploadStatusContext>
+    </FsOverallSyncStatusContext>
   )
 }
 

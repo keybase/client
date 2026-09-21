@@ -33,7 +33,7 @@ const makeNav = () => {
     })
   }
   const wrapper = ({children}: {children: React.ReactNode}) => (
-    <NavigationContext.Provider value={nav as never}>{children}</NavigationContext.Provider>
+    <NavigationContext value={nav as never}>{children}</NavigationContext>
   )
   return {emit, wrapper}
 }

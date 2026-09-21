@@ -107,7 +107,7 @@ export const FsDataContextBridge = ({
 }: {
   children: React.ReactNode
   value: FsDataContextType | null
-}) => <FsDataContext.Provider value={value}>{children}</FsDataContext.Provider>
+}) => <FsDataContext value={value}>{children}</FsDataContext>
 
 type DownloadStartType = 'download' | 'share' | 'saveMedia'
 
@@ -619,7 +619,7 @@ const FsDataProviderForUsername = ({
   }
 
   return (
-    <FsDataContext.Provider
+    <FsDataContext
       value={{
         downloads,
         downloadInfos,
@@ -636,7 +636,7 @@ const FsDataProviderForUsername = ({
       }}
     >
       {children}
-    </FsDataContext.Provider>
+    </FsDataContext>
   )
 }
 

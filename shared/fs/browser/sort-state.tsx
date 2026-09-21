@@ -50,8 +50,8 @@ export const FsBrowserSortProvider = ({children}: {children: React.ReactNode}) =
   }
 
   return (
-    <BrowserSortContext.Provider value={{setSortSetting, sortSettings}}>
+    <BrowserSortContext value={{setSortSetting, sortSettings}}>
       {children}
-    </BrowserSortContext.Provider>
+    </BrowserSortContext>
   )
 }

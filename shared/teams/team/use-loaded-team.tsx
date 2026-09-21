@@ -206,7 +206,7 @@ export const LoadedTeamProvider = (props: React.PropsWithChildren<{teamID: T.Tea
   const {children, teamID} = props
   const loadedTeam = useLoadedTeamRaw(teamID)
   const value = React.useMemo(() => ({...loadedTeam, teamID}), [loadedTeam, teamID])
-  return <LoadedTeamContext.Provider value={value}>{children}</LoadedTeamContext.Provider>
+  return <LoadedTeamContext value={value}>{children}</LoadedTeamContext>
 }
 
 export const useLoadedTeam = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam => {

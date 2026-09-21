@@ -94,7 +94,7 @@ export const TeamSelectionProvider = (props: TeamSelectionProviderProps) => {
     setMemberSelected: members.set,
   }
 
-  return <TeamSelectionContext.Provider value={value}>{props.children}</TeamSelectionContext.Provider>
+  return <TeamSelectionContext value={value}>{props.children}</TeamSelectionContext>
 }
 
 export const useTeamSelectionState = () => {
@@ -114,7 +114,7 @@ export const ChannelSelectionProvider = (props: ChannelSelectionProviderProps) =
     setMemberSelected: members.set,
   }
 
-  return <ChannelSelectionContext.Provider value={value}>{props.children}</ChannelSelectionContext.Provider>
+  return <ChannelSelectionContext value={value}>{props.children}</ChannelSelectionContext>
 }
 
 export const useChannelSelectionState = () => {

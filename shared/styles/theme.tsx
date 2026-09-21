@@ -45,7 +45,7 @@ export const ThemeProvider = (p: {children: React.ReactNode}) => {
   // The selector is constant-false off Android, so the store never notifies there.
   const isDarkMode = useDarkModeState(s => isAndroid && s.isDarkMode())
   return (
-    <ThemeContext.Provider value={isDarkMode ? darkTheme : lightTheme}>{p.children}</ThemeContext.Provider>
+    <ThemeContext value={isDarkMode ? darkTheme : lightTheme}>{p.children}</ThemeContext>
   )
 }
 
