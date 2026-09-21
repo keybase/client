@@ -14,6 +14,7 @@ type URLCachingSource struct {
 	diskLRU        *lru.DiskLRU
 	staleThreshold time.Duration
 	simpleSource   *SimpleSource
+	bgFlusher      backgroundFlusher
 
 	// testing only
 	staleFetchCh chan struct{}
@@ -30,10 +31,14 @@ func NewURLCachingSource(staleThreshold time.Duration, size int) *URLCachingSour
 }
 
 func (c *URLCachingSource) StartBackgroundTasks(m libkb.MetaContext) {
-	go c.monitorAppState(m)
+	c.bgFlusher.start(m, func(m libkb.MetaContext) {
+		c.debug(m, "backgroundFlusher: flushing diskLRU")
+		c.diskLRU.Flush(m.Ctx(), m.G())
+	})
 }
 
 func (c *URLCachingSource) StopBackgroundTasks(m libkb.MetaContext) {
+	c.bgFlusher.stop()
 	c.diskLRU.Flush(m.Ctx(), m.G())
 }
 
@@ -47,19 +52,6 @@ func (c *URLCachingSource) avatarKey(name string, format keybase1.AvatarFormat) 
 
 func (c *URLCachingSource) isStale(m libkb.MetaContext, item lru.DiskLRUEntry) bool {
 	return m.G().GetClock().Now().Sub(item.Ctime) > c.staleThreshold
-}
-
-func (c *URLCachingSource) monitorAppState(m libkb.MetaContext) {
-	c.debug(m, "monitorAppState: starting up")
-	state := keybase1.MobileAppState_FOREGROUND
-	for {
-		<-m.G().MobileAppState.NextUpdate(state)
-		state = m.G().MobileAppState.State()
-		if state == keybase1.MobileAppState_BACKGROUND {
-			c.debug(m, "monitorAppState: backgrounded")
-			c.diskLRU.Flush(m.Ctx(), m.G())
-		}
-	}
 }
 
 func (c *URLCachingSource) specLoad(m libkb.MetaContext, names []string, formats []keybase1.AvatarFormat) (res avatarLoadSpec, err error) {

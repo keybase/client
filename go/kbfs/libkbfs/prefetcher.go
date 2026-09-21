@@ -1339,30 +1339,6 @@ func (p *blockPrefetcher) getPaused() (paused bool, ch <-chan struct{}) {
 	return p.paused, p.pausedCh
 }
 
-func (p *blockPrefetcher) handleAppStateChange(
-	appState *keybase1.MobileAppState,
-) {
-	defer func() {
-		p.setPaused(false)
-	}()
-
-	// Pause the prefetcher when backgrounded.
-	for *appState != keybase1.MobileAppState_FOREGROUND {
-		p.setPaused(true)
-		p.log.CDebugf(
-			context.TODO(), "Pausing prefetcher while backgrounded")
-		select {
-		case <-p.appStateUpdater.NextAppStateUpdate(*appState):
-			*appState = p.appStateUpdater.AppState()
-		case req := <-p.prefetchStatusCh.Out():
-			p.handleStatusRequest(req.(*prefetchStatusRequest))
-			continue
-		case <-p.almostDoneCh:
-			return
-		}
-	}
-}
-
 type prefetcherSubscriber struct {
 	ch       chan<- struct{}
 	clientID SubscriptionManagerClientID
@@ -1392,44 +1368,51 @@ func (ps prefetcherSubscriber) OnNonPathChange(
 	}
 }
 
-func (p *blockPrefetcher) handleNetStateChange(
-	netState *keybase1.MobileNetworkState, subCh <-chan struct{},
-) {
-	for *netState != keybase1.MobileNetworkState_CELLULAR {
-		return
+func (p *blockPrefetcher) syncOnCellular() bool {
+	// Default to not syncing while on a cell network.
+	db := p.config.GetSettingsDB()
+	if db == nil {
+		return false
 	}
+	s, err := db.Settings(context.TODO())
+	return err == nil && s.SyncOnCellular
+}
 
-	defer func() {
-		p.setPaused(false)
-	}()
-
-	for *netState == keybase1.MobileNetworkState_CELLULAR {
-		// Default to not syncing while on a cell network.
-		syncOnCellular := false
-		db := p.config.GetSettingsDB()
-		if db != nil {
-			s, err := db.Settings(context.TODO())
-			if err == nil {
-				syncOnCellular = s.SyncOnCellular
-			}
+// waitWhilePaused pauses the prefetcher while the app is not in the
+// foreground, or while on a cell network without syncing on cellular, and
+// returns once neither holds or the prefetcher is shutting down. It watches
+// both states whichever one paused it, so the end of one reason never
+// unpauses while the other still holds.
+func (p *blockPrefetcher) waitWhilePaused(
+	appState *keybase1.MobileAppState, netState *keybase1.MobileNetworkState,
+	subCh <-chan struct{},
+) {
+	defer p.setPaused(false)
+	for {
+		appPaused := *appState != keybase1.MobileAppState_FOREGROUND
+		netPaused := *netState == keybase1.MobileNetworkState_CELLULAR &&
+			!p.syncOnCellular()
+		if !appPaused && !netPaused {
+			return
 		}
-
-		if syncOnCellular {
-			// Can ignore this network change.
-			break
-		}
-
 		p.setPaused(true)
-		p.log.CDebugf(
-			context.TODO(), "Pausing prefetcher on cell network")
+		if appPaused {
+			p.log.CDebugf(
+				context.TODO(), "Pausing prefetcher while backgrounded")
+		}
+		if netPaused {
+			p.log.CDebugf(
+				context.TODO(), "Pausing prefetcher on cell network")
+		}
 		select {
+		case <-p.appStateUpdater.NextAppStateUpdate(*appState):
+			*appState = p.appStateUpdater.AppState()
 		case <-p.appStateUpdater.NextNetworkStateUpdate(*netState):
 			*netState = p.appStateUpdater.NetworkState()
 		case <-subCh:
 			p.log.CDebugf(context.TODO(), "Settings changed")
 		case req := <-p.prefetchStatusCh.Out():
 			p.handleStatusRequest(req.(*prefetchStatusRequest))
-			continue
 		case <-p.almostDoneCh:
 			return
 		}
@@ -1547,10 +1530,10 @@ func (p *blockPrefetcher) run(
 			<-ch
 		case <-p.appStateUpdater.NextAppStateUpdate(appState):
 			appState = p.appStateUpdater.AppState()
-			p.handleAppStateChange(&appState)
+			p.waitWhilePaused(&appState, &netState, subCh)
 		case <-p.appStateUpdater.NextNetworkStateUpdate(netState):
 			netState = p.appStateUpdater.NetworkState()
-			p.handleNetStateChange(&netState, subCh)
+			p.waitWhilePaused(&appState, &netState, subCh)
 		case <-subCh:
 			// Settings have changed, so recheck the network state.
 			netState = keybase1.MobileNetworkState_NONE

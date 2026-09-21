@@ -134,15 +134,17 @@ func TestConvLoaderAppState(t *testing.T) {
 	defer world.Cleanup()
 
 	clock := clockwork.NewFakeClock()
-	appStateCh := make(chan struct{})
-	tc.ChatG.ConvLoader.(*BackgroundConvLoader).loadWait = 0
-	tc.ChatG.ConvLoader.(*BackgroundConvLoader).clock = clock
-	tc.ChatG.ConvLoader.(*BackgroundConvLoader).appStateCh = appStateCh
+	uid := gregor1.UID(tc.G.Env.GetUID().ToBytes())
+	// The loops read these, so set them while the loader is stopped.
+	loader := tc.ChatG.ConvLoader.(*BackgroundConvLoader)
+	<-loader.Stop(context.TODO())
+	loader.loadWait = 0
+	loader.clock = clock
+	loader.Start(context.TODO(), uid)
 	ri := tc.ChatG.ConvSource.(*HybridConversationSource).ri
 	_ = ri
 	slowRi := makeSlowestRemote()
 	failDuration := 2 * time.Second
-	uid := gregor1.UID(tc.G.Env.GetUID().ToBytes())
 	// Test that a foreground with no background doesnt do anything
 	tc.ChatG.ConvSource.(*HybridConversationSource).ri = func() chat1.RemoteInterface {
 		return slowRi
@@ -159,11 +161,6 @@ func TestConvLoaderAppState(t *testing.T) {
 	}
 	require.True(t, tc.Context().ConvLoader.Suspend(context.TODO()))
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
-	select {
-	case <-appStateCh:
-		require.Fail(t, "no app state")
-	default:
-	}
 	select {
 	case <-listener.bgConvLoads:
 		require.Fail(t, "no load yet")
@@ -199,18 +196,10 @@ func TestConvLoaderAppState(t *testing.T) {
 		require.Fail(t, "no remote call")
 	}
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
-	select {
-	case <-appStateCh:
-	case <-time.After(failDuration):
-		require.Fail(t, "no app state")
-	}
+	// the loop cancels the active load
+	require.Eventually(t, func() bool { return !loader.IsBackgroundActive() }, failDuration, time.Millisecond)
 	tc.ChatG.ConvSource.(*HybridConversationSource).ri = ri
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
-	select {
-	case <-appStateCh:
-	case <-time.After(failDuration):
-		require.Fail(t, "no app state")
-	}
 	// Need to advance clock
 	select {
 	case <-listener.bgConvLoads:
