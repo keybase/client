@@ -373,15 +373,13 @@ func (l *LiveLocationTracker) LocationUpdate(ctx context.Context, coord chat1.Co
 	defer l.Trace(ctx, nil, "LocationUpdate")()
 	l.Lock()
 	defer l.Unlock()
-	if l.G().IsMobileAppType() {
-		// if the app is woken up as the result of a location update, and we think we are currently
-		// backgrounded, then go ahead and mark us as background active so that we can get
-		// location updates out
-		l.G().MobileAppState.UpdateWithCheck(keybase1.MobileAppState_BACKGROUNDACTIVE,
-			func(curState keybase1.MobileAppState) bool {
-				return curState == keybase1.MobileAppState_BACKGROUND
-			})
-	}
+	// A fix that arrives while the app is backgrounded no longer keeps the app
+	// out of BACKGROUND: the service derives its state from the UI reports
+	// native makes and the holds background work opens, and nothing may write
+	// the state directly any more. Tracking does not yet open a hold of its
+	// own, so a long background track can go quiet once the background task
+	// that started when the UI left the screen has ended. Deliberate and
+	// temporary -- the hold arrives with the live-location rework.
 	if l.lastCoord.Eq(coord) {
 		l.Debug(ctx, "LocationUpdate: ignoring dup coordinate")
 		return
