@@ -2,7 +2,7 @@
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useShellState} from '@/stores/shell'
-import {applyMobileAppState, _onEngineIncoming} from './shared'
+import {applyClientState, applyMobileAppState, _onEngineIncoming} from './shared'
 
 const g = globalThis as unknown as {isMobile: boolean}
 
@@ -41,6 +41,20 @@ describe('the app state the service derives', () => {
     applyMobileAppState(T.RPCGen.MobileAppState.background)
     applyMobileAppState(T.RPCGen.MobileAppState.foreground)
     expect(useShellState.getState().mobileAppState).toBe('active')
+  })
+
+  test('arrives in the clientState, which is what catches a late-started JS up', () => {
+    _onEngineIncoming({
+      payload: {params: {state: {appState: T.RPCGen.MobileAppState.background}}},
+      type: 'keybase.1.NotifyApp.clientState',
+    } as never)
+    expect(useShellState.getState().mobileAppState).toBe('background')
+  })
+
+  test('a notification after the clientState replaces it', () => {
+    applyClientState({appState: T.RPCGen.MobileAppState.background})
+    applyMobileAppState(T.RPCGen.MobileAppState.inactive)
+    expect(useShellState.getState().mobileAppState).toBe('inactive')
   })
 
   test('a state we do not map leaves the app state alone rather than guessing', () => {

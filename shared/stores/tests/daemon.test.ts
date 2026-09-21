@@ -147,3 +147,38 @@ describe('daemon store', () => {
     expect(store.getState().handshakeRetriesLeft).toBe(maxHandshakeTries)
   })
 })
+
+describe('a superseded read', () => {
+  beforeEach(() => {
+    jest.useFakeTimers()
+  })
+  afterEach(() => {
+    jest.useRealTimers()
+    jest.restoreAllMocks()
+    resetAllStores()
+  })
+
+  test('does not write its status over the newer load', async () => {
+    // a reconnect invalidates in-flight reads: the generation orders client attempts
+    let resolveLosing!: (bs: T.RPCGen.BootstrapStatus) => void
+    jest
+      .spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise')
+      .mockReturnValueOnce(
+        new Promise<T.RPCGen.BootstrapStatus>(resolve => {
+          resolveLosing = resolve
+        })
+      )
+      .mockResolvedValue(bootstrapStatus)
+    const {dispatch} = useDaemonState.getState()
+    dispatch.initBootstrapSteps([])
+
+    const losing = dispatch.loadDaemonBootstrapStatus()
+    dispatch.startHandshake()
+    await jest.advanceTimersByTimeAsync(0)
+    resolveLosing({...bootstrapStatus, username: 'stale'})
+    await losing
+    await jest.advanceTimersByTimeAsync(0)
+
+    expect(useDaemonState.getState().bootstrapStatus?.username).toBe('testuser')
+  })
+})

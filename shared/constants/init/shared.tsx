@@ -70,7 +70,6 @@ const subscribeValue = <State, Value>(
   })
 
 type ConfigState = ReturnType<typeof useConfigState.getState>
-type DaemonState = ReturnType<typeof useDaemonState.getState>
 type RouterState = ReturnType<typeof useRouterState.getState>
 
 // ─── Bootstrap steps ──────────────────────────────────────────────────────────
@@ -175,10 +174,14 @@ const onGregorPushStateChanged = (
   )
 }
 
-const onGregorReachableChanged = (gregorReachable: ConfigState['gregorReachable']) => {
-  // Re-get info about our account if you log in/we're done handshaking/became reachable
+// The bootstrap read the old gregor-reachability trigger did: after an offline stretch, pick up
+// what the service learned while we could not reach it. `previous === undefined` is the first
+// reading of the network at startup, which the handshake's own read already covers.
+export const onNetworkOnlineChanged = (online?: boolean, previous?: boolean) => {
+  if (!online || previous !== false) {
+    return
+  }
   if (
-    gregorReachable === T.RPCGen.Reachable.yes &&
     useDaemonState.getState().handshakeState === 'done' &&
     !useConfigState.getState().userSwitching
   ) {
@@ -186,7 +189,7 @@ const onGregorReachableChanged = (gregorReachable: ConfigState['gregorReachable'
   }
 }
 
-const onLoggedInChanged = (loggedIn: ConfigState['loggedIn']) => {
+export const onLoggedInChanged = (loggedIn: ConfigState['loggedIn']) => {
   if (loggedIn) {
     // runtime login: refresh bootstrap status. During the handshake this is already in
     // flight, and the store dedupes it.
@@ -214,28 +217,6 @@ const onConfiguredAccountsChanged = (configuredAccounts: ConfigState['configured
   }
 }
 
-const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus']) => {
-  if (!bootstrap) {
-    return
-  }
-
-  const {deviceID, deviceName, loggedIn, uid, username} = bootstrap
-  useCurrentUserState.getState().dispatch.setBootstrap({deviceID, deviceName, uid, username})
-
-  const configDispatch = useConfigState.getState().dispatch
-  if (username) {
-    configDispatch.setDefaultUsername(username)
-  }
-  if (!loggedIn && useConfigState.getState().userSwitching) {
-    logger.info('[Bootstrap] ignoring loggedIn=false result during account switch')
-    return
-  }
-  configDispatch.setLoggedIn(loggedIn)
-
-  if (bootstrap.httpSrvInfo) {
-    configDispatch.setHTTPSrvInfo(bootstrap.httpSrvInfo.address, bootstrap.httpSrvInfo.token)
-  }
-}
 
 // The service derives the app's lifecycle state from the UI reports native makes and is the only
 // party that derives it; this is the whole of JS's model of it. Go's two background states are one
@@ -267,6 +248,103 @@ export const applyMobileAppState = (state: T.RPCGen.MobileAppState) => {
   }
 }
 
+// The splash waits for the service to say who is logged in. A clientState with no session means
+// its startup login attempt has not settled yet -- not known, rather than logged out -- and the
+// attempt settling sends another that has one. Each connection waits afresh.
+const sessionWaitMs = 30_000
+let settleSession = () => {}
+let sessionSettled = new Promise<void>(resolve => {
+  settleSession = resolve
+})
+const awaitSessionAgain = () => {
+  sessionSettled = new Promise<void>(resolve => {
+    settleSession = resolve
+  })
+}
+
+// The service's clientState: the session, the http server address and the app state, read when it
+// was sent. It rides the same ordered stream as every notification that changes them, and for each
+// of them the last message to arrive carries the latest value, so everything is applied in arrival
+// order. It comes first on subscribing, after every session change, and once the service's startup
+// login attempt settles.
+export const applyClientState = (clientState: T.RPCGen.ClientState) => {
+  const {appState, httpSrvInfo, session} = clientState
+  // On iOS JS never starts on a background launch, so it can have missed every change since the
+  // process started: this is what catches it up.
+  applyMobileAppState(appState)
+  const configDispatch = useConfigState.getState().dispatch
+  if (httpSrvInfo) {
+    configDispatch.setHTTPSrvInfo(httpSrvInfo.address, httpSrvInfo.token)
+  }
+  if (!session) {
+    logger.info('[Bootstrap] the service has not settled its startup login yet')
+    return
+  }
+  settleSession()
+  const {deviceID, deviceName, loggedIn, uid, username} = session
+  if (!loggedIn) {
+    // Session first: logging out resets the stores, the current user among them. Writing the empty
+    // identity first would leave a moment where we are logged in with no user.
+    configDispatch.setLoggedIn(false)
+    return
+  }
+  // A logged-in clientState for another user than the one we are logged in as is a logout and then
+  // a login, however it reached us -- with or without a logged-out clientState before it. Logging
+  // out is what clears the previous account's stores. Logged in with no current user is no switch.
+  const currentUid = useCurrentUserState.getState().uid
+  if (useConfigState.getState().loggedIn && currentUid && uid !== currentUid) {
+    configDispatch.setLoggedIn(false)
+  }
+  // identity before the session: setLoggedIn fans out synchronously, and every subscriber of a
+  // login has always been able to read the current user by the time it runs
+  useCurrentUserState.getState().dispatch.setBootstrap({deviceID, deviceName, uid, username})
+  if (username) {
+    configDispatch.setDefaultUsername(username)
+  }
+  configDispatch.setLoggedIn(true)
+}
+
+const subscribe = async () => {
+  try {
+    // prettier-ignore
+    await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
+      channels: {
+        allowChatNotifySkips: true, app: true, audit: true, badges: true, chat: true, chatarchive: true,
+        chatattachments: true, chatdev: false, chatemoji: false, chatemojicross: false, chatkbfsedits: false,
+        deviceclone: false, ephemeral: false, favorites: false, featuredBots: false, kbfs: true, kbfsdesktop: !isMobile,
+        devicehistory: true, kbfslegacy: false, kbfsrequest: false, kbfssubscription: true, keyfamily: false, notifysimplefs: true,
+        paperkeys: false, pgp: true, reachability: false, runtimestats: true, saltpack: true, service: true, session: true,
+        team: true, teambot: false, tracking: true, users: true, wallet: false,
+      },
+    })
+    return true
+  } catch (error) {
+    logger.warn('error in toggling notifications: ', error)
+    return false
+  }
+}
+let subscription = Promise.resolve(false)
+
+// A handshake step: the session is what decides between the login screen and the app. A failed
+// subscribe is retried here, since without it no clientState is coming.
+export const sessionSettledStep = async () => {
+  if (!(await subscription)) {
+    subscription = subscribe()
+    if (!(await subscription)) {
+      throw new Error("Can't subscribe to the service's notifications")
+    }
+  }
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const timedOut = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => reject(new Error("The service hasn't said who is logged in")), sessionWaitMs)
+  })
+  try {
+    await Promise.race([sessionSettled, timedOut])
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 const onNavStateChanged =(nextNavState: RouterState['navState'], previousNavState: RouterState['navState']) => {
   const next = nextNavState as Util.NavState
   const prev = previousNavState as Util.NavState
@@ -292,50 +370,30 @@ const onNavStateChanged =(nextNavState: RouterState['navState'], previousNavStat
 }
 
 export const onEngineConnected = () => {
-  {
-    const registerUIs = async () => {
-      try {
-        await T.RPCGen.delegateUiCtlRegisterChatUIRpcPromise()
-        await T.RPCGen.delegateUiCtlRegisterLogUIRpcPromise()
-        logger.info('Registered Chat UI')
-        await T.RPCGen.delegateUiCtlRegisterHomeUIRpcPromise()
-        logger.info('Registered home UI')
-        await T.RPCGen.delegateUiCtlRegisterSecretUIRpcPromise()
-        logger.info('Registered secret ui')
-        await T.RPCGen.delegateUiCtlRegisterIdentify3UIRpcPromise()
-        logger.info('Registered identify ui')
-        await T.RPCGen.delegateUiCtlRegisterRekeyUIRpcPromise()
-        logger.info('Registered rekey ui')
-      } catch (error) {
-        logger.error('Error in registering UIs:', error)
-      }
+  const registerUIs = async () => {
+    try {
+      await T.RPCGen.delegateUiCtlRegisterChatUIRpcPromise()
+      await T.RPCGen.delegateUiCtlRegisterLogUIRpcPromise()
+      logger.info('Registered Chat UI')
+      await T.RPCGen.delegateUiCtlRegisterHomeUIRpcPromise()
+      logger.info('Registered home UI')
+      await T.RPCGen.delegateUiCtlRegisterSecretUIRpcPromise()
+      logger.info('Registered secret ui')
+      await T.RPCGen.delegateUiCtlRegisterIdentify3UIRpcPromise()
+      logger.info('Registered identify ui')
+      await T.RPCGen.delegateUiCtlRegisterRekeyUIRpcPromise()
+      logger.info('Registered rekey ui')
+    } catch (error) {
+      logger.error('Error in registering UIs:', error)
     }
-    ignorePromise(registerUIs())
   }
+  ignorePromise(registerUIs())
+
   useConfigState.getState().dispatch.onEngineConnected()
+
+  awaitSessionAgain()
+  subscription = subscribe()
   useDaemonState.getState().dispatch.startHandshake()
-  {
-    const notifyCtl = async () => {
-      try {
-        // prettier-ignore
-        await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
-          channels: {
-            allowChatNotifySkips: true, app: true, audit: true, badges: true, chat: true, chatarchive: true,
-            chatattachments: true, chatdev: false, chatemoji: false, chatemojicross: false, chatkbfsedits: false,
-            deviceclone: false, ephemeral: false, favorites: false, featuredBots: false, kbfs: true, kbfsdesktop: !isMobile,
-            devicehistory: true, kbfslegacy: false, kbfsrequest: false, kbfssubscription: true, keyfamily: false, notifysimplefs: true,
-            paperkeys: false, pgp: true, reachability: true, runtimestats: true, saltpack: true, service: true, session: true,
-            team: true, teambot: false, tracking: true, users: true, wallet: false,
-          },
-        })
-      } catch (error) {
-        if (error) {
-          logger.warn('error in toggling notifications: ', error)
-        }
-      }
-    }
-    ignorePromise(notifyCtl())
-  }
 }
 
 export const onEngineDisconnected = () => {
@@ -353,6 +411,7 @@ export const initSharedSubscriptions = (platformBootstrapSteps: Array<BootstrapS
       loadDarkPrefsStep,
       loadChatStaticConfigStep,
       loadAccountsStep,
+      sessionSettledStep,
       ...platformBootstrapSteps,
     ])
 
@@ -360,14 +419,13 @@ export const initSharedSubscriptions = (platformBootstrapSteps: Array<BootstrapS
   for (const unsub of _sharedUnsubs) unsub()
   _sharedUnsubs.length = 0
   _sharedUnsubs.push(
-    subscribeValue(useConfigState, s => s.gregorReachable, onGregorReachableChanged),
     subscribeValue(useConfigState, s => s.gregorPushState, onGregorPushStateChanged),
     subscribeValue(useConfigState, s => s.loggedIn, onLoggedInChanged),
     subscribeValue(useConfigState, s => s.revokedTrigger, onRevokedTriggerChanged),
     subscribeValue(useConfigState, s => s.configuredAccounts, onConfiguredAccountsChanged)
   )
 
-  _sharedUnsubs.push(subscribeValue(useDaemonState, s => s.bootstrapStatus, onBootstrapStatusChanged))
+  _sharedUnsubs.push(subscribeValue(useShellState, s => s.networkStatus?.online, onNetworkOnlineChanged))
 
   _sharedUnsubs.push(
     subscribeValue(useRouterState, s => s.navState, onNavStateChanged)
@@ -389,6 +447,9 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
   switch (action.type) {
     case 'keybase.1.NotifyApp.mobileAppStateChanged':
       applyMobileAppState(action.payload.params.state)
+      break
+    case 'keybase.1.NotifyApp.clientState':
+      applyClientState(action.payload.params.state)
       break
     case 'keybase.1.NotifyBadges.badgeState':
       {
