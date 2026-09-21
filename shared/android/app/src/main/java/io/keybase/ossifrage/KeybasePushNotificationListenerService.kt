@@ -25,8 +25,8 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
 
     // Avoid ever showing doubles
     private val seenChatNotifications = HashSet<String>()
-    private fun isOtherAccountPushError(ex: Exception): Boolean {
-        return ex.message?.contains("different account") == true
+    private fun chatNotificationKey(convID: String?, messageId: Int, targetUID: String): String {
+        return "$targetUID|$convID|$messageId"
     }
 
     private fun buildStyle(convID: String, person: Person): NotificationCompat.Style {
@@ -81,29 +81,9 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                     NativeLogger.info("KeybasePushNotificationListenerService processing chat notification")
                     val n = NotificationData(type, bundle)
 
-                    // Blow the cache if we aren't displaying plaintext
-                    if (!msgCache.containsKey(n.convID) || !n.displayPlaintext) {
-                        msgCache[n.convID] = SmallMsgRingBuffer()
-                    }
-
                     // Silent notifications should never display - we'll get the non-silent version
                     // (chat.newmessage) with a servermessagebody that we can display later.
                     val dontNotify = type == "chat.newmessageSilent_2"
-
-                    // Only check for duplicates on non-silent notifications that will be displayed
-                    // Silent notifications are processed but not marked as seen, allowing the non-silent one to display
-                    if (!dontNotify) {
-                        val notificationKey = n.convID + n.messageId
-                        if (seenChatNotifications.contains(notificationKey)) {
-                            NativeLogger.info("KeybasePushNotificationListenerService skipping duplicate notification: $notificationKey")
-                            return
-                        }
-                        // Mark as seen immediately to prevent duplicate processing
-                        seenChatNotifications.add(notificationKey)
-                        NativeLogger.info("KeybasePushNotificationListenerService marked notification as seen: $notificationKey")
-                    }
-
-                    notifier.setMsgCache(msgCache[n.convID])
 
                     // Both push types include a target UID so Go can reject the notification
                     // early when the push is addressed to a different logged-in account:
@@ -113,38 +93,64 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                         "chat.newmessage" -> bundle.getString("uid", "")
                         else -> bundle.getString("i", "")
                     }
+                    val currentUID = try {
+                        Keybase.currentUID()
+                    } catch (e: Exception) {
+                        NativeLogger.info("KeybasePushNotificationListenerService couldn't read current UID: ${e.message}")
+                        ""
+                    }
+                    // Same gate as iOS/Go: do not unbox, ack, or update badges for another account.
+                    // Android data pushes have no system-delivered alert, so loud pushes still fall
+                    // through to the generic local notification below.
+                    val forOtherAccount = targetUID.isNotEmpty() && currentUID.isNotEmpty() && targetUID != currentUID
+                    if (forOtherAccount) {
+                        NativeLogger.info("KeybasePushNotificationListenerService skipping Go for different account push")
+                    }
+
+                    // Only check for duplicates on non-silent notifications that will be displayed
+                    // Silent notifications are processed but not marked as seen, allowing the non-silent one to display.
+                    // Key includes UID so two signed-in accounts in the same chat are not treated as duplicates.
+                    if (!dontNotify) {
+                        val notificationKey = chatNotificationKey(n.convID, n.messageId, targetUID)
+                        if (seenChatNotifications.contains(notificationKey)) {
+                            NativeLogger.info("KeybasePushNotificationListenerService skipping duplicate notification: $notificationKey")
+                            return
+                        }
+                        // Mark as seen immediately to prevent duplicate processing
+                        seenChatNotifications.add(notificationKey)
+                        NativeLogger.info("KeybasePushNotificationListenerService marked notification as seen: $notificationKey")
+                    }
 
                     var goProcessingSucceeded = false
-                    try {
-                        val withBackgroundActive: WithBackgroundActive = object : WithBackgroundActive {
-                            override fun task() {
-                                try {
-                                    Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
-                                            n.membersType.toLong(), n.displayPlaintext, n.messageId.toLong(), n.pushId,
-                                            n.badgeCount.toLong(), n.unixTime, n.soundName, if (dontNotify) null else notifier, true,
-                                            targetUID)
-                                    goProcessingSucceeded = true
-                                    if (!dontNotify) {
-                                        seenChatNotifications.add(n.convID + n.messageId)
-                                    }
-                                } catch (ex: Exception) {
-                                    if (isOtherAccountPushError(ex)) {
-                                        NativeLogger.info("Go skipped notification for a different active account: " + ex.message)
-                                    } else {
+                    if (!forOtherAccount) {
+                        // Blow the cache if we aren't displaying plaintext
+                        if (!msgCache.containsKey(n.convID) || !n.displayPlaintext) {
+                            msgCache[n.convID] = SmallMsgRingBuffer()
+                        }
+                        notifier.setMsgCache(msgCache[n.convID])
+                        try {
+                            val withBackgroundActive: WithBackgroundActive = object : WithBackgroundActive {
+                                override fun task() {
+                                    try {
+                                        Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
+                                                n.membersType.toLong(), n.displayPlaintext, n.messageId.toLong(), n.pushId,
+                                                n.badgeCount.toLong(), n.unixTime, n.soundName, if (dontNotify) null else notifier, true,
+                                                targetUID)
+                                        goProcessingSucceeded = true
+                                        if (!dontNotify) {
+                                            seenChatNotifications.add(chatNotificationKey(n.convID, n.messageId, targetUID))
+                                        }
+                                    } catch (ex: Exception) {
                                         NativeLogger.error("Go Couldn't handle background notification2: " + ex.message)
+                                        throw ex
                                     }
-                                    throw ex
                                 }
                             }
-                        }
-                        withBackgroundActive.whileActive(applicationContext)
-                    } catch (ex: Exception) {
-                        if (isOtherAccountPushError(ex)) {
-                            NativeLogger.info("Skipping active-account processing for different-account push")
-                        } else {
+                            withBackgroundActive.whileActive(applicationContext)
+                        } catch (ex: Exception) {
                             NativeLogger.error("Failed to process notification (app may not be running): " + ex.message)
+                            goProcessingSucceeded = false
                         }
-                        goProcessingSucceeded = false
                     }
 
 
@@ -197,7 +203,7 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                             chatNotif.uid = targetUID
 
                             notifier.displayChatNotification(chatNotif)
-                            seenChatNotifications.add(n.convID + n.messageId)
+                            seenChatNotifications.add(chatNotificationKey(n.convID, n.messageId, targetUID))
                             NativeLogger.info("KeybasePushNotificationListenerService fallback notification displayed successfully")
                         } catch (e: Exception) {
                             NativeLogger.error("Failed to display notification fallback: " + e.message)
