@@ -1,7 +1,14 @@
 
 @namespace("keybase.1")
 protocol NotifyApp {
+  import idl "appstate.avdl";
 
   void exit() oneway;
+
+  // The app's lifecycle state changed. The service derives it from the UI
+  // reports native makes, so this is the only place a client learns it --
+  // deriving it a second time from the OS would mean two answers with no
+  // ordering between them.
+  void mobileAppStateChanged(MobileAppState state) oneway;
 
 }

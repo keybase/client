@@ -1,10 +1,25 @@
 {
   "protocol": "NotifyApp",
-  "imports": [],
+  "imports": [
+    {
+      "path": "appstate.avdl",
+      "type": "idl"
+    }
+  ],
   "types": [],
   "messages": {
     "exit": {
       "request": [],
+      "response": null,
+      "oneway": true
+    },
+    "mobileAppStateChanged": {
+      "request": [
+        {
+          "name": "state",
+          "type": "MobileAppState"
+        }
+      ],
       "response": null,
       "oneway": true
     }
