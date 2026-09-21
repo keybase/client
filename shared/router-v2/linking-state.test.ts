@@ -144,6 +144,17 @@ test('the push prompt is a modal with no tab parked underneath', () => {
   })
 })
 
+test('add-phone is a modal over the settings tab', () => {
+  expect(isHandledByLinkingConfig('keybase://settingsAddPhone')).toBe(true)
+  expect(getStateFromPath('settingsAddPhone')).toEqual({
+    index: 1,
+    routes: [
+      {name: 'loggedIn', state: {index: 0, routes: [{name: Tabs.settingsTab}]}},
+      {name: 'settingsAddPhone'},
+    ],
+  })
+})
+
 test('every app tab name is a bare tab switch', () => {
   for (const tab of [
     Tabs.chatTab,

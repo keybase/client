@@ -40,6 +40,15 @@ const normalizeHttpUrl = (url: string): string | undefined => {
       : `keybase://team-page/${teamName}`
   }
 
+  // /phone-app — the install link our own chat invite banner texts to an unresolved @phone
+  // participant (chat/conversation/bottom-banner.tsx). It is not a username, so it has to be
+  // carved out ahead of the single-segment rule below, which would otherwise open a profile
+  // for a user that does not exist. It always opens Add Phone Number: the invitee's inviter
+  // wrote to a number, and nothing here knows (or waits to learn) whether they have one.
+  if (pathname === '/phone-app' || pathname === '/phone-app/') {
+    return 'keybase://settingsAddPhone'
+  }
+
   // /username (single path segment)
   const userMatch = pathname.match(/^\/((?:[a-zA-Z0-9][a-zA-Z0-9_-]?)+)\/?$/)
   if (userMatch?.[1]) {

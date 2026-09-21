@@ -1,3 +1,4 @@
+import * as Settings from '@/constants/settings'
 import * as Tabs from '@/constants/tabs'
 import {isSplit} from '@/constants/chat/layout'
 import {isValidConversationIDKey, stringToConversationIDKey} from '@/constants/types/chat/common'
@@ -124,6 +125,9 @@ export const subscribeNavigationIntents = (
     try {
       // Profile links use imperative navigation to build their intermediate
       // back stack. Other known URLs can use React Navigation's linking state.
+      // This split only differs on mobile: desktop passes handleAppLink as both
+      // arguments (router.tsx), so every URL there lands in handleKeybaseLink,
+      // which must therefore stay correct for URLs the config also handles.
       if (intent.url.startsWith('keybase://profile/')) {
         handleAppLink(intent.url)
       } else if (isHandledByLinkingConfig(intent.url)) {
@@ -183,6 +187,13 @@ const customGetStateFromPath = (
       // profile/new-proof is handled by handleAppLink fallback for now
       break
 
+    // keybase://devices — a tap on a device push. Devices live in the Settings tab on phone and
+    // tablet, and in their own tab on desktop.
+    case 'devices':
+      return isMobile
+        ? makeTabState(Tabs.settingsTab, [{name: 'settingsRoot'}, {name: Settings.settingsDevicesTab}])
+        : makeTabState(Tabs.devicesTab)
+
     // KBFS paths: keybase://private/..., keybase://public/...
     case 'private':
     case 'public': {
@@ -227,6 +238,11 @@ const customGetStateFromPath = (
     case 'settingsPushPrompt':
       return makeModalState('settingsPushPrompt')
 
+    // keybase://settingsAddPhone — where https://keybase.io/phone-app lands. Settings sits
+    // under the modal so dismissing it leaves the invitee somewhere they can find it again.
+    case 'settingsAddPhone':
+      return makeModalState('settingsAddPhone', undefined, Tabs.settingsTab)
+
     // Tab switches: keybase://tabs.chatTab, etc.
     case Tabs.chatTab:
     case Tabs.peopleTab:
@@ -246,6 +262,16 @@ const customGetStateFromPath = (
 }
 
 // ---- Linking config ----
+
+// Known URLs become launch state; the rest open imperatively once the router is up.
+// setInitialURLOnce also consumes: markInitialURLHandled clears a pending intent with the
+// same URL, so subscribeNavigationIntents won't navigate to it a second time.
+const openInitialLink = (link: string, handleAppLink: (link: string) => void) => {
+  if (isHandledByLinkingConfig(link)) return setInitialURLOnce(link)
+  setInitialURLOnce(link)
+  setTimeout(() => handleAppLink(link), 1)
+  return null
+}
 
 export const createLinkingConfig = (
   handleAppLink: (link: string) => void
@@ -284,11 +310,7 @@ export const createLinkingConfig = (
       if (deepLinkUrl) {
         const normalized = normalizeUrl(deepLinkUrl)
         if (normalized) {
-          if (isHandledByLinkingConfig(normalized)) return setInitialURLOnce(normalized)
-          // URL not handled by linking config; use imperative navigation as fallback
-          setInitialURLOnce(normalized)
-          setTimeout(() => handleAppLink(normalized), 1)
-          return null
+          return openInitialLink(normalized, handleAppLink)
         }
       }
 
