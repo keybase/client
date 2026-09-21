@@ -22,11 +22,6 @@ type ConnectionID int
 // true to keep going and false to stop.
 type ApplyFn func(i ConnectionID, xp rpc.Transporter) bool
 
-// ApplyDetailsFn can be applied to every connection. It is called with the
-// RPC transporter, and also the connectionID. It should return a bool
-// true to keep going and false to stop.
-type ApplyDetailsFn func(i ConnectionID, xp rpc.Transporter, details *keybase1.ClientDetails) bool
-
 // LabelCb is a callback to be run when a client connects and labels itself.
 type LabelCb func(typ keybase1.ClientType)
 
@@ -44,23 +39,14 @@ type ConnectionManager struct {
 	labelCbs []LabelCb
 }
 
-// AddConnection adds a new connection to the table of Connection object, with a
-// related closeListener. We'll listen for a close on that channel, and when one occurs,
-// we'll remove the connection from the pool.
-func (c *ConnectionManager) AddConnection(xp rpc.Transporter, closeListener chan error) ConnectionID {
+// AddConnection adds a new connection to the table of Connection objects.
+// NotifyRouter.AddConnection removes it when the connection closes.
+func (c *ConnectionManager) AddConnection(xp rpc.Transporter) ConnectionID {
 	c.Lock()
+	defer c.Unlock()
 	c.nxt++ // increment first, since 0 is reserved
 	id := c.nxt
 	c.lookup[id] = &rpcConnection{transporter: xp}
-	c.Unlock()
-
-	if closeListener != nil {
-		go func() {
-			<-closeListener
-			c.removeConnection(id)
-		}()
-	}
-
 	return id
 }
 
@@ -178,24 +164,6 @@ func (c *ConnectionManager) ApplyAll(f ApplyFn) {
 	defer c.Unlock()
 	for k, v := range c.lookup {
 		if !f(k, v.transporter) {
-			break
-		}
-	}
-}
-
-// ApplyAllDetails applies the given function f to all connections in the table.
-// If you're going to do something blocking, please do it in a GoRoutine,
-// since we're holding the lock for all connections as we do this.
-func (c *ConnectionManager) ApplyAllDetails(f ApplyDetailsFn) {
-	c.Lock()
-	defer c.Unlock()
-	for k, v := range c.lookup {
-		status := v.details
-		var details *keybase1.ClientDetails
-		if status != nil {
-			details = &status.Details
-		}
-		if !f(k, v.transporter, details) {
 			break
 		}
 	}

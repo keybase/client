@@ -28,6 +28,9 @@ func NewNotifyCtlHandler(xp rpc.Transporter, id libkb.ConnectionID, g *libkb.Glo
 	}
 }
 
+// SetNotifications registers the channels. A connection that registers app
+// notifications then gets a clientState, ahead of every change announced after
+// this returns; see libkb.connSender.
 func (h *NotifyCtlHandler) SetNotifications(_ context.Context, n keybase1.NotificationChannels) error {
 	h.G().NotifyRouter.SetChannels(h.id, n)
 	return nil

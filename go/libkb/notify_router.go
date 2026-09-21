@@ -5,7 +5,6 @@ package libkb
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
@@ -318,9 +317,11 @@ type NotifyListenerID string
 type NotifyRouter struct {
 	sync.Mutex
 	Contextified
-	cm        *ConnectionManager
-	state     map[ConnectionID]keybase1.NotificationChannels
-	listeners map[NotifyListenerID]NotifyListener
+	cm              *ConnectionManager
+	state           map[ConnectionID]keybase1.NotificationChannels
+	senders         map[ConnectionID]*connSender
+	listeners       map[NotifyListenerID]NotifyListener
+	readClientState func(context.Context) keybase1.ClientState
 }
 
 // NewNotifyRouter makes a new notification router; we should only
@@ -330,7 +331,107 @@ func NewNotifyRouter(g *GlobalContext) *NotifyRouter {
 		Contextified: NewContextified(g),
 		cm:           g.ConnectionManager,
 		state:        make(map[ConnectionID]keybase1.NotificationChannels),
+		senders:      make(map[ConnectionID]*connSender),
 		listeners:    make(map[NotifyListenerID]NotifyListener),
+	}
+}
+
+// connSender sends one connection's client-state stream: loggedIn, loggedOut,
+// HTTPSrvInfoUpdate, mobileAppStateChanged and clientState. Every other
+// notification keeps its own goroutine.
+//
+// One goroutine per connection drains an unbounded FIFO, so queueing never
+// blocks, and the rpc library writes one goroutine's Notify calls in the order
+// they are made (each hands its frame to a single writer over an unbuffered
+// channel). loggedIn is a call rather than a notification, and callInOrder
+// gives it the same place in line without waiting for a reply. A connection
+// therefore receives its jobs in the order they were queued.
+//
+// A clientState job carries no state. It reads the session, the http server
+// address and the app state when it is dequeued, on this goroutine and outside
+// the router's lock: MobileAppState calls the router with its own lock held,
+// so the router must never read app state under its lock.
+//
+// Why a client can apply everything in arrival order, with no versions: for
+// every field, the last message that carries it to a connection subscribed to
+// that field's notification carries the latest value.
+//   - The app state and the http address each have one writer, which queues
+//     its notification after the write and before it writes the next value:
+//     the app state under lifecycle's Controller.mu and then MobileAppState's
+//     lock, the address on kbhttp's run goroutine. Say the last message is a
+//     notification. A later write would queue its own notification behind it,
+//     so there was none, and it carries the latest value. Say instead it is a
+//     clientState. A write after that clientState read the field would have
+//     queued a notification behind it, so there was none either.
+//   - The session: every change to it -- valid or not, which user, which
+//     device -- queues a clientState once switchUserMu is released after the
+//     write (GlobalContext.lockSwitchUser), and clientState jobs read the
+//     session when dequeued. So for every connection the last clientState
+//     carries the latest session, whatever order the loggedIn/loggedOut events
+//     arrive in -- those carry no session state a client may apply. The only
+//     writes that queue nothing are the promotions a provisioning, signup or
+//     oneshot flow makes before it completes, so that a client does not see a
+//     login early; the flow completes with SendLogin, which queues one after
+//     it. What this leaves: a flow that fails and leaves the promoted session
+//     in place without clearing it is not pushed until the next clientState,
+//     and a clientState dequeued partway through such a flow reads its
+//     promoted session. SendLogin and HandleLogout queue one too, and so does
+//     the startup login attempt settling, which turns a null session into a
+//     real one.
+//   - Registration: SetChannels sets the filter and queues the first
+//     clientState under the router's lock, which announce takes to pick its
+//     recipients. A change announced after that is queued behind the
+//     clientState, which may already hold it, and repeating it is harmless
+//     because applying a value replaces the old one. A change announced before
+//     that was written before the clientState was even queued, so the
+//     clientState holds it or something newer.
+type connSender struct {
+	xp   rpc.Transporter
+	mu   sync.Mutex
+	jobs []func(rpc.Transporter)
+	wake chan struct{}
+	stop chan struct{}
+}
+
+func newConnSender(xp rpc.Transporter) *connSender {
+	s := &connSender{
+		xp:   xp,
+		wake: make(chan struct{}, 1),
+		stop: make(chan struct{}),
+	}
+	go s.run()
+	return s
+}
+
+func (s *connSender) enqueue(job func(rpc.Transporter)) {
+	s.mu.Lock()
+	s.jobs = append(s.jobs, job)
+	s.mu.Unlock()
+	select {
+	case s.wake <- struct{}{}:
+	default:
+	}
+}
+
+func (s *connSender) run() {
+	for {
+		select {
+		case <-s.stop:
+			return
+		case <-s.wake:
+		}
+		s.mu.Lock()
+		jobs := s.jobs
+		s.jobs = nil
+		s.mu.Unlock()
+		for _, job := range jobs {
+			select {
+			case <-s.stop:
+				return
+			default:
+			}
+			job(s.xp)
+		}
 	}
 }
 
@@ -348,12 +449,32 @@ func (n *NotifyRouter) RemoveListener(id NotifyListenerID) {
 	delete(n.listeners, id)
 }
 
-func (n *NotifyRouter) Shutdown() {}
-
-func (n *NotifyRouter) setNotificationChannels(id ConnectionID, val keybase1.NotificationChannels) {
+// Shutdown stops every connection's sender; whatever is still queued is dropped.
+func (n *NotifyRouter) Shutdown() {
 	n.Lock()
 	defer n.Unlock()
-	n.state[id] = val
+	for id, s := range n.senders {
+		close(s.stop)
+		delete(n.senders, id)
+	}
+}
+
+// SetClientStateReader sets how a clientState reads the state it sends. It is
+// called on a connection's sender goroutine, with no router lock held. A
+// clientState dequeued before there is a reader sends nothing, so every
+// connection that wants one gets one queued here.
+func (n *NotifyRouter) SetClientStateReader(read func(context.Context) keybase1.ClientState) {
+	if n == nil {
+		return
+	}
+	n.Lock()
+	defer n.Unlock()
+	n.readClientState = read
+	for id, s := range n.senders {
+		if wantsClientState(n.state[id]) {
+			s.enqueue(n.sendClientState(context.Background()))
+		}
+	}
 }
 
 func (n *NotifyRouter) getNotificationChannels(id ConnectionID) keybase1.NotificationChannels {
@@ -387,15 +508,116 @@ func (n *NotifyRouter) AddConnection(xp rpc.Transporter, ch chan error) Connecti
 	if n == nil {
 		return 0
 	}
-	id := n.cm.AddConnection(xp, ch)
-	n.setNotificationChannels(id, keybase1.NotificationChannels{})
+	id := n.cm.AddConnection(xp)
+	n.Lock()
+	n.state[id] = keybase1.NotificationChannels{}
+	n.senders[id] = newConnSender(xp)
+	n.Unlock()
+	if ch != nil {
+		go func() {
+			<-ch
+			n.cm.removeConnection(id)
+			n.removeConnection(id)
+		}()
+	}
 	return id
 }
 
-// SetChannels sets which notification channels are interested for the connection
-// with the given connection ID.
+func (n *NotifyRouter) removeConnection(id ConnectionID) {
+	n.Lock()
+	defer n.Unlock()
+	delete(n.state, id)
+	if s := n.senders[id]; s != nil {
+		close(s.stop)
+		delete(n.senders, id)
+	}
+}
+
+// SetChannels sets which notification channels are interested for the
+// connection with the given connection ID. A connection that wants clientState
+// gets one queued here, ahead of every change announced after this returns.
 func (n *NotifyRouter) SetChannels(i ConnectionID, nc keybase1.NotificationChannels) {
-	n.setNotificationChannels(i, nc)
+	if n == nil {
+		return
+	}
+	n.Lock()
+	defer n.Unlock()
+	s := n.senders[i]
+	if s == nil {
+		// the connection is gone; registering it now would leak its entry
+		return
+	}
+	n.state[i] = nc
+	if wantsClientState(nc) {
+		s.enqueue(n.sendClientState(context.Background()))
+	}
+}
+
+// clientState rides NotifyApp, so it goes to the connections that registered it.
+func wantsClientState(ch keybase1.NotificationChannels) bool { return ch.App }
+
+func (n *NotifyRouter) sendClientState(ctx context.Context) func(rpc.Transporter) {
+	return func(xp rpc.Transporter) {
+		n.Lock()
+		read := n.readClientState
+		n.Unlock()
+		if read == nil {
+			return
+		}
+		_ = (keybase1.NotifyAppClient{
+			Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+		}).ClientState(ctx, read(ctx))
+	}
+}
+
+// announce queues a notification to every connection whose channel filter wants
+// it, on that connection's sender. See connSender for why the order it is
+// queued in is the order it arrives in.
+func (n *NotifyRouter) announce(ctx context.Context, name string,
+	wants func(keybase1.NotificationChannels) bool,
+	send func(ctx context.Context, xp rpc.Transporter),
+) {
+	ctx = CopyTagsToBackground(ctx)
+	var queued []ConnectionID
+	n.Lock()
+	for id, s := range n.senders {
+		if wants(n.state[id]) {
+			s.enqueue(func(xp rpc.Transporter) { send(ctx, xp) })
+			queued = append(queued, id)
+		}
+	}
+	n.Unlock()
+	n.G().Log.CDebugf(ctx, "| NotifyRouter#%s: queued for connections %v", name, queued)
+}
+
+// callInOrder makes a call from a sender job without holding the connection's
+// queue for the reply, which a client may take its time over. The job returns
+// once the call's frame is next in line for the connection's single writer --
+// the send notifier fires there, just before the write -- so everything queued
+// after it is still written after it.
+func (n *NotifyRouter) callInOrder(xp rpc.Transporter, call func(*rpc.Client) error) {
+	released := make(chan struct{})
+	var once sync.Once
+	cli := rpc.NewClientWithSendNotifier(xp, NewContextifiedErrorUnwrapper(n.G()), nil,
+		func(rpc.SeqNumber) { once.Do(func() { close(released) }) })
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		_ = call(cli)
+	}()
+	select {
+	case <-released:
+	case <-done:
+	}
+}
+
+// AnnounceClientState queues a clientState to every connection that wants one.
+func (n *NotifyRouter) AnnounceClientState(ctx context.Context) {
+	if n == nil {
+		return
+	}
+	n.announce(ctx, "AnnounceClientState", wantsClientState,
+		func(ctx context.Context, xp rpc.Transporter) { n.sendClientState(ctx)(xp) })
 }
 
 // HandleLogout is called whenever the current user logged out. It will broadcast
@@ -405,28 +627,14 @@ func (n *NotifyRouter) HandleLogout(ctx context.Context) {
 		return
 	}
 	defer n.G().CTrace(ctx, "NotifyRouter#HandleLogout", nil)()
-	ctx = CopyTagsToBackground(ctx)
-	// For all connections we currently have open...
-	n.cm.ApplyAllDetails(func(id ConnectionID, xp rpc.Transporter, d *keybase1.ClientDetails) bool {
-		// If the connection wants the `Session` notification type
-		registered := false
-		if n.getNotificationChannels(id).Session {
-			registered = true
-			// In the background do...
-			go func() {
-				// A send of a `LoggedOut` RPC
-				_ = (keybase1.NotifySessionClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).LoggedOut(ctx)
-			}()
-		}
-		desc := "<nil>"
-		if d != nil {
-			desc = fmt.Sprintf("%+v", *d)
-		}
-		n.G().Log.CDebugf(ctx, "| NotifyRouter#HandleLogout: client %s (sent=%v)", desc, registered)
-		return true
-	})
+	n.announce(ctx, "HandleLogout",
+		func(ch keybase1.NotificationChannels) bool { return ch.Session },
+		func(ctx context.Context, xp rpc.Transporter) {
+			_ = (keybase1.NotifySessionClient{
+				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+			}).LoggedOut(ctx)
+		})
+	n.AnnounceClientState(ctx)
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.Logout()
@@ -459,24 +667,17 @@ func (n *NotifyRouter) SendLogin(ctx context.Context, u string, signedUp bool) {
 		return
 	}
 	n.G().Log.CDebugf(ctx, "+ Sending login notification, as user %q, signedUp %t", u, signedUp)
-	// For all connections we currently have open...
-	ctx = CopyTagsToBackground(ctx)
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Session` notification type
-		if n.getNotificationChannels(id).Session {
-			// In the background do...
-			go func() {
-				// A send of a `LoggedIn` RPC
-				_ = (keybase1.NotifySessionClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).LoggedIn(ctx, keybase1.LoggedInArg{
+	n.announce(ctx, "SendLogin",
+		func(ch keybase1.NotificationChannels) bool { return ch.Session },
+		func(ctx context.Context, xp rpc.Transporter) {
+			n.callInOrder(xp, func(cli *rpc.Client) error {
+				return (keybase1.NotifySessionClient{Cli: cli}).LoggedIn(ctx, keybase1.LoggedInArg{
 					Username: u,
 					SignedUp: signedUp,
 				})
-			}()
-		}
-		return true
-	})
+			})
+		})
+	n.AnnounceClientState(ctx)
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.Login(u)
@@ -2823,16 +3024,13 @@ func (n *NotifyRouter) HandleHTTPSrvInfoUpdate(ctx context.Context, info keybase
 	if n == nil {
 		return
 	}
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Service {
-			go func() {
-				_ = (keybase1.NotifyServiceClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).HTTPSrvInfoUpdate(ctx, info)
-			}()
-		}
-		return true
-	})
+	n.announce(ctx, "HandleHTTPSrvInfoUpdate",
+		func(ch keybase1.NotificationChannels) bool { return ch.Service },
+		func(ctx context.Context, xp rpc.Transporter) {
+			_ = (keybase1.NotifyServiceClient{
+				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+			}).HTTPSrvInfoUpdate(ctx, info)
+		})
 	n.runListeners(func(listener NotifyListener) {
 		listener.HTTPSrvInfoUpdate(info)
 	})
@@ -2852,17 +3050,13 @@ func (n *NotifyRouter) HandleMobileAppState(ctx context.Context, state keybase1.
 	if n == nil {
 		return
 	}
-	ctx = CopyTagsToBackground(ctx)
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).App {
-			go func() {
-				_ = (keybase1.NotifyAppClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).MobileAppStateChanged(ctx, state)
-			}()
-		}
-		return true
-	})
+	n.announce(ctx, "HandleMobileAppState",
+		func(ch keybase1.NotificationChannels) bool { return ch.App },
+		func(ctx context.Context, xp rpc.Transporter) {
+			_ = (keybase1.NotifyAppClient{
+				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+			}).MobileAppStateChanged(ctx, state)
+		})
 }
 
 func (n *NotifyRouter) HandleHandleKeybaseLink(ctx context.Context, link string, deferred bool) {
