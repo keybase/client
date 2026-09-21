@@ -190,9 +190,32 @@ const customGetStateFromPath = (
     // keybase://devices — a tap on a device push. Devices live in the Settings tab on phone and
     // tablet, and in their own tab on desktop.
     case 'devices':
-      return isMobile
-        ? makeTabState(Tabs.settingsTab, [{name: 'settingsRoot'}, {name: Settings.settingsDevicesTab}])
-        : makeTabState(Tabs.devicesTab)
+      if (!isMobile) {
+        return makeTabState(Tabs.devicesTab)
+      }
+      if (isSplit) {
+        // Tablet: the Settings tab stack holds every settings route, so devices pushes
+        // above the tab root, inside that stack.
+        return makeTabState(Tabs.settingsTab, [{name: 'settingsRoot'}, {name: Settings.settingsDevicesTab}])
+      }
+      // Phone: settingsRoot is the only screen in the Settings tab stack, so a nested devices
+      // route is filtered out on rehydrate and the tap lands on settingsRoot. Devices is
+      // registered on the root stack there, above the tabs.
+      return {
+        index: 1,
+        routes: [
+          {
+            name: 'loggedIn',
+            state: {
+              index: 0,
+              routes: [
+                {name: Tabs.settingsTab, state: {index: 0, routes: [{name: 'settingsRoot'}]}},
+              ],
+            },
+          },
+          {name: Settings.settingsDevicesTab},
+        ],
+      }
 
     // KBFS paths: keybase://private/..., keybase://public/...
     case 'private':

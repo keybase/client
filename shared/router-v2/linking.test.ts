@@ -168,7 +168,9 @@ test('a devices link is consumed by the linking config, not by handleAppLink', (
   unsubscribe()
 })
 
-test('a devices link opens the devices screen in the settings tab on mobile', () => {
+// isSplit is baked in at module load and this suite loads as desktop, so global.isMobile alone
+// gets the tablet shape, not the phone one. Phone coverage lives in linking-phone.test.ts.
+test('a devices link opens the devices screen inside the settings tab on tablet', () => {
   const wasMobile = global.isMobile
   global.isMobile = true
   try {

@@ -85,8 +85,18 @@ const handleKeybaseLink = (link: string) => {
       break
     case 'devices':
       // Devices live under Settings on phone/tablet and in their own tab on desktop.
-      switchTab(isMobile ? Tabs.settingsTab : Tabs.devicesTab)
-      navUpToScreen(isMobile ? settingsDevicesTab : 'devicesRoot')
+      if (!isMobile) {
+        switchTab(Tabs.devicesTab)
+        navUpToScreen('devicesRoot')
+        return
+      }
+      switchTab(Tabs.settingsTab)
+      // navUpToScreen pins its popTo to the deepest active stack, which at a tab root on a
+      // phone is the Settings tab stack -- and that stack knows only settingsRoot there, so
+      // StackRouter returned null and the action was dropped. An untargeted push lands
+      // wherever the route is registered: the root stack above the tabs on a phone, the
+      // Settings tab stack on a tablet. Same call the phone settings list itself makes.
+      navigateAppend({name: settingsDevicesTab, params: {}})
       return
     case 'settingsAddPhone':
       // Where the invite install link (https://keybase.io/phone-app) lands. The linking config
