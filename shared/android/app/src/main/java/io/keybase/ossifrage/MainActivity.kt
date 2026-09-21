@@ -93,11 +93,6 @@ class MainActivity : ReactActivity() {
     override fun onPause() {
         NativeLogger.info("Activity onPause")
         super.onPause()
-        if (Keybase.appDidEnterBackground()) {
-            Keybase.appBeginBackgroundTaskNonblock(KBPushNotifier(this, Bundle()))
-        } else {
-            Keybase.setAppStateBackground()
-        }
     }
 
     private fun getFileNameFromResolver(resolver: ContentResolver, uri: Uri, extension: String?): String {
@@ -154,17 +149,27 @@ class MainActivity : ReactActivity() {
         return filePath
     }
 
+    // Native reports only what the UI is doing; Go derives the app state from
+    // these reports and the holds background work opens (go/libkb/lifecycle).
     override fun onResume() {
         NativeLogger.info("Activity onResume")
         super.onResume()
-        Keybase.setAppStateForeground()
+        Keybase.appUIActive()
         handleIntent()
     }
 
     override fun onStart() {
         NativeLogger.info("Activity onStart")
         super.onStart()
-        Keybase.setAppStateForeground()
+        Keybase.appUIInactive()
+    }
+
+    override fun onStop() {
+        NativeLogger.info("Activity onStop")
+        super.onStop()
+        // The token is for iOS, which has to wait out Go's background task
+        // before the OS suspends it; Android keeps the process running.
+        Keybase.appUIBackground(KBPushNotifier(this, Bundle()))
     }
 
     override fun onDestroy() {

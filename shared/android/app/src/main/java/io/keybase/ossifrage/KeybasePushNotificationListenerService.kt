@@ -395,14 +395,18 @@ internal class NotificationData(type: String, bundle: Bundle) {
     }
 }
 
-// Interface to run some task while in backgroundActive.
-// If already foreground, ignore
+// Runs some task inside a push window, which keeps a backgrounded app running
+// while the task does. If already foreground, ignore.
+//
+// Transitional: it exists only because Android still opens the push window from
+// here. It goes away, with Keybase.appPushWindow*, once the bind layer wraps
+// push handling in the window itself.
 internal interface WithBackgroundActive {
     @Throws(Exception::class)
     fun task()
 
     @Throws(Exception::class)
-    fun whileActive(context: Context?) {
+    fun whileActive(context: Context) {
         try {
             // We are foreground don't show anything
             val isForeground = Keybase.isAppStateForeground()
@@ -410,29 +414,18 @@ internal interface WithBackgroundActive {
             if (isForeground) {
                 NativeLogger.info("WithBackgroundActive.whileActive app is foreground, returning early")
                 return
-            } else {
-                NativeLogger.info("WithBackgroundActive.whileActive setting background active and calling task")
-                Keybase.setAppStateBackgroundActive()
+            }
+            // 0 when the app is active and nothing needs holding up.
+            val token = Keybase.appPushWindowBegin()
+            NativeLogger.info("WithBackgroundActive.whileActive push window $token, calling task")
+            try {
                 task()
                 NativeLogger.info("WithBackgroundActive.whileActive task completed")
-
-                // Check if we are foreground now for some reason. In that case we don't want to go background again
-                val isForegroundNow = Keybase.isAppStateForeground()
-                NativeLogger.info("WithBackgroundActive.whileActive isForegroundNow: $isForegroundNow")
-                if (isForegroundNow) {
-                    NativeLogger.info("WithBackgroundActive.whileActive app became foreground, returning")
-                    return
-                }
-                val didEnterBackground = Keybase.appDidEnterBackground()
-                NativeLogger.info("WithBackgroundActive.whileActive didEnterBackground: $didEnterBackground")
-                if (didEnterBackground) {
-                    if (context != null) {
-                        NativeLogger.info("WithBackgroundActive.whileActive beginning background task")
-                        Keybase.appBeginBackgroundTaskNonblock(KBPushNotifier(context, Bundle()))
-                    }
-                } else {
-                    NativeLogger.info("WithBackgroundActive.whileActive setting app state to background")
-                    Keybase.setAppStateBackground()
+            } finally {
+                if (token > 0) {
+                    // Hands over to a background task if the UI is still in the
+                    // background and work must keep going.
+                    Keybase.appPushWindowEnd(token, KBPushNotifier(context, Bundle()))
                 }
             }
         } catch (ex: Exception) {
