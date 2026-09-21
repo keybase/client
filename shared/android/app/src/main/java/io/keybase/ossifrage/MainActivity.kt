@@ -149,33 +149,21 @@ class MainActivity : ReactActivity() {
         return filePath
     }
 
-    // Native reports only what the UI is doing; Go derives the app state from
-    // these reports and the holds background work opens (go/libkb/lifecycle).
     override fun onResume() {
         NativeLogger.info("Activity onResume")
         super.onResume()
-        Keybase.appUIActive()
         handleIntent()
     }
 
     override fun onStart() {
         NativeLogger.info("Activity onStart")
         super.onStart()
-        Keybase.appUIInactive()
-    }
-
-    override fun onStop() {
-        NativeLogger.info("Activity onStop")
-        super.onStop()
-        // The token is for iOS, which has to wait out Go's background task
-        // before the OS suspends it; Android keeps the process running.
-        Keybase.appUIBackground(KBPushNotifier(this, Bundle()))
     }
 
     override fun onDestroy() {
         NativeLogger.info("Activity onDestroy")
         super.onDestroy()
-        Keybase.appWillExit(KBPushNotifier(this, Bundle()))
+        (application as MainApplication).lifecycleReporter.onMainActivityDestroy(isFinishing, isChangingConfigurations)
     }
 
     private var cachedIntent: Intent? = null
