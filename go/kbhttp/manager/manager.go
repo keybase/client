@@ -119,9 +119,12 @@ func (r *Srv) monitorAppState() {
 		<-r.G().MobileAppState.NextUpdate(state)
 		state = r.G().MobileAppState.State()
 		switch state {
-		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
+		// INACTIVE means the UI is on screen without receiving events, so the
+		// server has to stay up; only BACKGROUND takes it down.
+		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE,
+			keybase1.MobileAppState_INACTIVE:
 			r.startHTTPSrv()
-		case keybase1.MobileAppState_BACKGROUND, keybase1.MobileAppState_INACTIVE:
+		case keybase1.MobileAppState_BACKGROUND:
 			r.httpSrv.Stop()
 		}
 	}
