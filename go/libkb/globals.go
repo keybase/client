@@ -71,6 +71,7 @@ type GlobalContext struct {
 	MobileNetState                   *MobileNetState             // The kind of network connection for the currently running instance of the app
 	MobileAppState                   *MobileAppState             // The state of focus for the currently running instance of the app
 	MobileLifecycle                  *lifecycle.Controller       // Derives MobileAppState from native UI reports and background-work holds
+	PendingPushTap                   *PendingPushTap             // Holds the route a tapped notification resolved to until a client takes it
 	DesktopAppState                  *DesktopAppState            // The state of focus for the currently running instance of the app
 	ChatHelper                       ChatHelper                  // conveniently send chat messages
 	RPCCanceler                      *RPCCanceler                // register live RPCs so they can be cancelleed en masse
@@ -312,6 +313,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 		Flush: g.flushLocalDbs,
 		Debug: func(format string, args ...interface{}) { g.Log.Debug(format, args...) },
 	})
+	g.PendingPushTap = NewPendingPushTap(g)
 	g.DesktopAppState = NewDesktopAppState(g)
 	g.RPCCanceler = NewRPCCanceler()
 	g.IdentifyDispatch = NewIdentifyDispatch()

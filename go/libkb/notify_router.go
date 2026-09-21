@@ -337,8 +337,8 @@ func NewNotifyRouter(g *GlobalContext) *NotifyRouter {
 }
 
 // connSender sends one connection's client-state stream: loggedIn, loggedOut,
-// HTTPSrvInfoUpdate, mobileAppStateChanged and clientState. Every other
-// notification keeps its own goroutine.
+// HTTPSrvInfoUpdate, mobileAppStateChanged, clientState and
+// pushTapRouteAvailable. Every other notification keeps its own goroutine.
 //
 // One goroutine per connection drains an unbounded FIFO, so queueing never
 // blocks, and the rpc library writes one goroutine's Notify calls in the order
@@ -3056,6 +3056,24 @@ func (n *NotifyRouter) HandleMobileAppState(ctx context.Context, state keybase1.
 			_ = (keybase1.NotifyAppClient{
 				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
 			}).MobileAppStateChanged(ctx, state)
+		})
+}
+
+// HandlePushTapRouteAvailable nudges clients that a notification tap resolved
+// to a route. It carries nothing: the route rides peekPushTapRoute's reply, so
+// the reader is the same one whether the tap happened before a client existed
+// or while it was connected, and the route is retired by an ack from whoever
+// acted on it rather than by having been read.
+func (n *NotifyRouter) HandlePushTapRouteAvailable(ctx context.Context) {
+	if n == nil {
+		return
+	}
+	n.announce(ctx, "HandlePushTapRouteAvailable",
+		func(ch keybase1.NotificationChannels) bool { return ch.App },
+		func(ctx context.Context, xp rpc.Transporter) {
+			_ = (keybase1.NotifyAppClient{
+				Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+			}).PushTapRouteAvailable(ctx)
 		})
 }
 
