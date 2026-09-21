@@ -23,7 +23,6 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/status"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbfs/env"
@@ -32,6 +31,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/simplefs"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/libkb/lifecycle"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -875,65 +875,23 @@ func FlushLogs() {
 	logger.FlushLogFile()
 }
 
-func SetAppStateForeground() {
+// AppUIActive reports the app on screen and receiving events: iOS didBecomeActive, Android process resume.
+func AppUIActive() {
 	if !isInited() {
 		return
 	}
-	defer kbCtx.Trace("SetAppStateForeground", nil)()
-	kbCtx.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
+	defer kbCtx.Trace("AppUIActive", nil)()
+	kbCtx.MobileLifecycle.UIActive()
 }
 
-func SetAppStateBackground() {
+// AppUIInactive reports the app on screen but not active: iOS willEnterForeground and
+// willResignActive, Android process start.
+func AppUIInactive() {
 	if !isInited() {
 		return
 	}
-	defer kbCtx.Trace("SetAppStateBackground", nil)()
-	kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
-	flushLocalDbs()
-}
-
-// flushLocalDbs flushes the leveldb memtables in the background. An unclean
-// kill while suspended (routine on iOS) with a non-empty journal forces a
-// journal replay — or a whole-DB recovery — during the next launch, which is
-// the main cold-start cost. Called when the app heads to the background so
-// the journals are empty if the OS kills the process.
-func flushLocalDbs() {
-	if kbCtx == nil {
-		return
-	}
-	flush := func(name string, db *libkb.JSONLocalDb) {
-		if db == nil {
-			return
-		}
-		ldb, ok := db.GetEngine().(*libkb.LevelDb)
-		if !ok {
-			return
-		}
-		begin := time.Now()
-		if err := ldb.Flush(); err != nil {
-			log("Go: flushLocalDbs: %s flush error: %v", name, err)
-			return
-		}
-		log("Go: flushLocalDbs: %s flushed in %s", name, time.Since(begin))
-	}
-	go flush("LocalDb", kbCtx.LocalDb)
-	go flush("LocalChatDb", kbCtx.LocalChatDb)
-}
-
-func SetAppStateInactive() {
-	if !isInited() {
-		return
-	}
-	defer kbCtx.Trace("SetAppStateInactive", nil)()
-	kbCtx.MobileAppState.Update(keybase1.MobileAppState_INACTIVE)
-}
-
-func SetAppStateBackgroundActive() {
-	if !isInited() {
-		return
-	}
-	defer kbCtx.Trace("SetAppStateBackgroundActive", nil)()
-	kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUNDACTIVE)
+	defer kbCtx.Trace("AppUIInactive", nil)()
+	kbCtx.MobileLifecycle.UIInactive()
 }
 
 func waitForInit(maxDur time.Duration) error {
@@ -962,39 +920,7 @@ func BackgroundSync() string {
 		return fmt.Sprintf("waitForInit timeout: %v", err)
 	}
 	defer kbCtx.Trace("BackgroundSync", nil)()
-
-	// Skip the sync if we aren't in the background
-	if state := kbCtx.MobileAppState.State(); state != keybase1.MobileAppState_BACKGROUND {
-		msg := fmt.Sprintf("skipping, app not in background state: %v", state)
-		kbCtx.Log.Debug("BackgroundSync: %s", msg)
-		return msg
-	}
-
-	// Flip to BACKGROUNDACTIVE only if still BACKGROUND, so a foreground
-	// transition that lands after the check above isn't overwritten. If the
-	// check fails, NextUpdate below fires immediately and we bail out.
-	nextState := keybase1.MobileAppState_BACKGROUNDACTIVE
-	kbCtx.MobileAppState.UpdateWithCheck(nextState, func(s keybase1.MobileAppState) bool {
-		return s == keybase1.MobileAppState_BACKGROUND
-	})
-	select {
-	case <-kbCtx.MobileAppState.NextUpdate(nextState):
-		// if literally anything happens, let's get out of here
-		state := kbCtx.MobileAppState.State()
-		msg := fmt.Sprintf("bailing out early, appstate change: %v", state)
-		kbCtx.Log.Debug("BackgroundSync: %s", msg)
-		return msg
-	case <-time.After(10 * time.Second):
-		// Drop back to BACKGROUND only if we still hold BACKGROUNDACTIVE;
-		// the app may have foregrounded between the timer firing and this
-		// update, and clobbering FOREGROUND would cancel live RPCs and
-		// strand the service in BACKGROUND while the user is in the app.
-		kbCtx.MobileAppState.UpdateWithCheck(keybase1.MobileAppState_BACKGROUND,
-			func(s keybase1.MobileAppState) bool {
-				return s == keybase1.MobileAppState_BACKGROUNDACTIVE
-			})
-		return "completed 10s window"
-	}
+	return kbCtx.MobileLifecycle.BackgroundSync()
 }
 
 // pushPendingMessageFailure sends at most one notification that a message
@@ -1020,136 +946,107 @@ func AppWillExit(pusher PushNotifier) {
 		return
 	}
 	defer kbCtx.Trace("AppWillExit", nil)()
-	ctx := context.Background()
-	obrs, err := kbChatCtx.MessageDeliverer.ActiveDeliveries(ctx)
-	if err == nil {
-		// We are about to get killed with messages still to send, let the user
-		// know they will get stuck
-		pushPendingMessageFailure(obrs, pusher)
-	}
-	kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
-	flushLocalDbs()
+	kbCtx.MobileLifecycle.WillTerminate(func() { notifyPendingMessageFailure(pusher) })
 }
 
-// AppDidEnterBackground notifies the service that the app is in the background
-// [iOS] returning true will request about ~3mins from iOS to continue execution
-func AppDidEnterBackground() bool {
+// AppBackgroundTaskExpired is called when the OS is about to suspend the app
+// before the background task started by AppUIBackground finished. It
+// ends every background task hold, and warns about messages still waiting to
+// send if one was open.
+func AppBackgroundTaskExpired(pusher PushNotifier) {
 	if !isInited() {
-		return false
+		return
 	}
-	defer kbCtx.Trace("AppDidEnterBackground", nil)()
+	defer kbCtx.Trace("AppBackgroundTaskExpired", nil)()
+	kbCtx.MobileLifecycle.BackgroundTaskExpired(func() { notifyPendingMessageFailure(pusher) })
+}
+
+// notifyPendingMessageFailure warns the user that messages still waiting to
+// send will get stuck, since we are about to be killed or suspended.
+func notifyPendingMessageFailure(pusher PushNotifier) {
+	obrs, err := kbChatCtx.MessageDeliverer.ActiveDeliveries(context.Background())
+	if err == nil {
+		pushPendingMessageFailure(obrs, pusher)
+	}
+}
+
+func shouldStayRunningInBackground() bool {
 	ctx := context.Background()
 	convs, err := kbChatCtx.MessageDeliverer.ActiveDeliveries(ctx)
 	if err != nil {
-		kbCtx.Log.Debug("AppDidEnterBackground: failed to get active deliveries: %s", err)
+		kbCtx.Log.Debug("shouldStayRunningInBackground: failed to get active deliveries: %s", err)
 		convs = nil
 	}
-	stayRunning := false
 	switch {
 	case len(convs) > 0:
-		kbCtx.Log.Debug("AppDidEnterBackground: active deliveries in progress")
-		stayRunning = true
+		kbCtx.Log.Debug("shouldStayRunningInBackground: active deliveries in progress")
+		return true
 	case kbChatCtx.LiveLocationTracker.ActivelyTracking(ctx):
-		kbCtx.Log.Debug("AppDidEnterBackground: active live location in progress")
-		stayRunning = true
+		kbCtx.Log.Debug("shouldStayRunningInBackground: active live location in progress")
+		return true
 	case kbChatCtx.CoinFlipManager.HasActiveGames(ctx):
-		kbCtx.Log.Debug("AppDidEnterBackground: active coin flip games in progress")
-		stayRunning = true
-	}
-	if stayRunning {
-		kbCtx.Log.Debug("AppDidEnterBackground: setting background active")
-		kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUNDACTIVE)
-		flushLocalDbs()
+		kbCtx.Log.Debug("shouldStayRunningInBackground: active coin flip games in progress")
 		return true
 	}
-	SetAppStateBackground()
 	return false
 }
 
-func AppBeginBackgroundTaskNonblock(pusher PushNotifier) {
+// AppUIBackground reports the app off screen. It returns at once, with a
+// token for AppWaitBackgroundTask, which returns once Go needs no more time
+// in the background. It is 0 before Init, and when the UI was already in the
+// background with no background task running.
+func AppUIBackground(pusher PushNotifier) int64 {
 	if !isInited() {
-		return
+		return 0
 	}
-	defer kbCtx.Trace("AppBeginBackgroundTaskNonblock", nil)()
-	go AppBeginBackgroundTask(pusher)
+	defer kbCtx.Trace("AppUIBackground", nil)()
+	return kbCtx.MobileLifecycle.UIBackground(backgroundTaskDeps(pusher))
 }
 
-// AppBeginBackgroundTask notifies us that an app background task has been started on our behalf. This
-// function will return once we no longer need any time in the background.
-func AppBeginBackgroundTask(pusher PushNotifier) {
+// AppWaitBackgroundTask returns once the background task whose token
+// AppUIBackground returned no longer needs any time in the background.
+func AppWaitBackgroundTask(token int64) {
 	if !isInited() {
 		return
 	}
-	defer kbCtx.Trace("AppBeginBackgroundTask", nil)()
-	ctx := context.Background()
-	// Poll active deliveries in case we can shutdown early
-	beginTime := libkb.ForceWallClock(time.Now())
-	ticker := time.NewTicker(5 * time.Second)
-	defer ticker.Stop()
-	appState := kbCtx.MobileAppState.State()
-	if appState != keybase1.MobileAppState_BACKGROUNDACTIVE {
-		kbCtx.Log.Debug("AppBeginBackgroundTask: not in background mode, early out")
+	defer kbCtx.Trace("AppWaitBackgroundTask", nil)()
+	kbCtx.MobileLifecycle.WaitBackgroundTask(token)
+}
+
+// AppPushWindowBegin holds a backgrounded app up while native handles a push or
+// a notification action. It returns the window's token, or 0 when the app is
+// active and nothing needs holding.
+//
+// Transitional: it exists only because Android still opens the push window from
+// Kotlin. It goes away once the bind layer wraps push handling in the window
+// itself, which is where the decision belongs -- iOS needs no window at all,
+// since it suspends the app at the push's completion handler.
+func AppPushWindowBegin() int64 {
+	if !isInited() {
+		return 0
+	}
+	defer kbCtx.Trace("AppPushWindowBegin", nil)()
+	return kbCtx.MobileLifecycle.PushWindowBegin()
+}
+
+// AppPushWindowEnd ends the window AppPushWindowBegin opened. If the UI is
+// still in the background it first hands over to a background task, which keeps
+// the app up while work must keep going; pusher warns about messages that
+// won't send. Transitional, for the same reason as AppPushWindowBegin.
+func AppPushWindowEnd(token int64, pusher PushNotifier) {
+	if !isInited() {
 		return
 	}
-	var g *errgroup.Group
-	g, ctx = errgroup.WithContext(ctx)
-	g.Go(func() error {
-		select {
-		case <-kbCtx.MobileAppState.NextUpdate(appState):
-			appState = kbCtx.MobileAppState.State()
-			kbCtx.Log.Debug(
-				"AppBeginBackgroundTask: app state change, aborting with no task shutdown: %v", appState)
-			return errors.New("app state change")
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-	})
-	g.Go(func() error {
-		ch, cancel := kbChatCtx.MessageDeliverer.NextFailure()
-		defer cancel()
-		select {
-		case obrs := <-ch:
-			kbCtx.Log.Debug(
-				"AppBeginBackgroundTask: failure received, alerting the user: %d marked", len(obrs))
-			pushPendingMessageFailure(obrs, pusher)
-			return errors.New("failure received")
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-	})
-	g.Go(func() error {
-		successCount := 0
-		for {
-			select {
-			case <-ticker.C:
-				obrs, err := kbChatCtx.MessageDeliverer.ActiveDeliveries(ctx)
-				if err != nil {
-					kbCtx.Log.Debug("AppBeginBackgroundTask: failed to query active deliveries: %s", err)
-					continue
-				}
-				if len(obrs) == 0 {
-					kbCtx.Log.Debug("AppBeginBackgroundTask: delivered everything: successCount: %d",
-						successCount)
-					// We can race the failure case here, so lets go a couple passes of no pending
-					// convs before we abort due to ths condition.
-					if successCount > 1 {
-						return errors.New("delivered everything")
-					}
-					successCount++
-				}
-				curTime := libkb.ForceWallClock(time.Now())
-				if curTime.Sub(beginTime) >= 10*time.Minute {
-					kbCtx.Log.Debug("AppBeginBackgroundTask: failed to deliver and time is up, aborting")
-					pushPendingMessageFailure(obrs, pusher)
-					return errors.New("time expired")
-				}
-			case <-ctx.Done():
-				return ctx.Err()
-			}
-		}
-	})
-	if err := g.Wait(); err != nil {
-		kbCtx.Log.Debug("AppBeginBackgroundTask: dropped out of wait because: %s", err)
+	defer kbCtx.Trace("AppPushWindowEnd", nil)()
+	kbCtx.MobileLifecycle.PushWindowEnd(token, backgroundTaskDeps(pusher))
+}
+
+func backgroundTaskDeps(pusher PushNotifier) lifecycle.BackgroundTaskDeps {
+	return lifecycle.BackgroundTaskDeps{
+		Stay:             shouldStayRunningInBackground,
+		ActiveDeliveries: kbChatCtx.MessageDeliverer.ActiveDeliveries,
+		NextFailure:      kbChatCtx.MessageDeliverer.NextFailure,
+		NotifyFailure:    func(obrs []chat1.OutboxRecord) { pushPendingMessageFailure(obrs, pusher) },
 	}
 }
 

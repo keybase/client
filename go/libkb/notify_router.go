@@ -2838,6 +2838,33 @@ func (n *NotifyRouter) HandleHTTPSrvInfoUpdate(ctx context.Context, info keybase
 	})
 }
 
+// HandleMobileAppState announces the app lifecycle state the service derived
+// from native's UI reports. It is the client's only source for it: deriving it
+// a second time from the OS would mean two answers -- on iOS from two different
+// notification streams -- with nothing ordering them against each other.
+//
+// No runListeners, unlike the announces above it: there is no in-process
+// listener for this. The in-process consumers (kbhttp/manager, kbfs) watch
+// MobileAppState.NextUpdate directly, which is the earlier and cheaper signal.
+//
+// Called with MobileAppState's lock held, so nothing below may read app state.
+func (n *NotifyRouter) HandleMobileAppState(ctx context.Context, state keybase1.MobileAppState) {
+	if n == nil {
+		return
+	}
+	ctx = CopyTagsToBackground(ctx)
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).App {
+			go func() {
+				_ = (keybase1.NotifyAppClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).MobileAppStateChanged(ctx, state)
+			}()
+		}
+		return true
+	})
+}
+
 func (n *NotifyRouter) HandleHandleKeybaseLink(ctx context.Context, link string, deferred bool) {
 	if n == nil {
 		return

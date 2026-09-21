@@ -293,11 +293,6 @@ type PushHandler interface {
 	OobmHandler
 }
 
-type MobileAppState interface {
-	State() keybase1.MobileAppState
-	NextUpdate() chan keybase1.MobileAppState
-}
-
 type TeamChannelSource interface {
 	GetLastActiveForTLF(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) (gregor1.Time, error)
 	GetLastActiveForTeams(context.Context, gregor1.UID, chat1.TopicType) (chat1.LastActiveTimeAll, error)

@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"context"
 	"fmt"
 	"runtime"
 	"sync"
@@ -38,15 +39,22 @@ type MobileAppState struct {
 }
 
 func NewMobileAppState(g *GlobalContext) *MobileAppState {
-	state := keybase1.MobileAppState_FOREGROUND
-	if runtime.GOOS == "android" {
-		// we need this so cold notifications work on android
-		state = keybase1.MobileAppState_BACKGROUNDACTIVE
-	}
 	return &MobileAppState{
 		Contextified: NewContextified(g),
-		state:        state,
+		state:        initialMobileAppState(runtime.GOOS),
 		changed:      make(chan struct{}),
+	}
+}
+
+func initialMobileAppState(goos string) keybase1.MobileAppState {
+	switch goos {
+	case "android", "ios":
+		// The OS starts the process without UI for pushes, notification
+		// actions and background refresh; the first UI report, or a push
+		// window, moves it out of BACKGROUND.
+		return keybase1.MobileAppState_BACKGROUND
+	default:
+		return keybase1.MobileAppState_FOREGROUND
 	}
 }
 
@@ -68,50 +76,62 @@ func (a *MobileAppState) NextUpdate(lastState keybase1.MobileAppState) <-chan st
 	return a.changed
 }
 
-func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) {
-	if a.state != state {
-		a.G().Log.Debug("MobileAppState.Update: useful update: %v, we are currently in state: %v",
-			state, a.state)
-		a.G().PerfLog.Debug("MobileAppState.Update: useful update: %v, we are currently in state: %v",
-			state, a.state)
-		a.state = state
-		t := time.Now()
-		a.mtime = &t // only update mtime if we're changing state
-		close(a.changed)
-		a.changed = make(chan struct{})
-
-		// cancel RPCs if we go into the background
-		switch a.state {
-		case keybase1.MobileAppState_BACKGROUND:
-			a.G().RPCCanceler.CancelLiveContexts(RPCCancelerReasonBackground)
-		default:
-			// Nothing to do for other states.
-		}
-	} else {
-		a.G().Log.Debug("MobileAppState.Update: ignoring update: %v, we are currently in state: %v",
-			state, a.state)
+func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) (changed bool) {
+	if a.state == state {
+		a.G().Log.Debug("MobileAppState.Update: same-value update: %v", state)
+		return false
 	}
+	a.G().Log.Debug("MobileAppState.Update: useful update: %v, we are currently in state: %v",
+		state, a.state)
+	a.G().PerfLog.Debug("MobileAppState.Update: useful update: %v, we are currently in state: %v",
+		state, a.state)
+	a.state = state
+	t := time.Now()
+	a.mtime = &t // only update mtime if we're changing state
+	close(a.changed)
+	a.changed = make(chan struct{})
+
+	// cancel RPCs if we go into the background
+	switch a.state {
+	case keybase1.MobileAppState_BACKGROUND:
+		a.G().RPCCanceler.CancelLiveContexts(RPCCancelerReasonBackground)
+	default:
+		// Nothing to do for other states.
+	}
+
+	// Tell connected clients from here, the one place the value changes, so no
+	// writer can add a path that moves the state without announcing it. Held
+	// under the lock on purpose: the announce is queued in the same critical
+	// section that wrote the state, and nothing it touches reads app state, so
+	// it cannot re-enter this lock.
+	//
+	// What this does not yet give a client is order. The router still hands
+	// each notification to its own goroutine, so two changes in quick
+	// succession can reach a client in either order, and the last one it
+	// applies may not be the latest. Update has a single writer --
+	// lifecycle.Controller.applyLocked, under Controller.mu -- so the queueing
+	// order is already the writing order; what is missing is one ordered
+	// stream per connection to carry it.
+	a.G().NotifyRouter.HandleMobileAppState(context.Background(), state)
+	return true
 }
 
-func (a *MobileAppState) UpdateWithCheck(state keybase1.MobileAppState,
-	check func(keybase1.MobileAppState) bool,
-) {
-	defer a.G().Trace(fmt.Sprintf("MobileAppState.UpdateWithCheck(%v)", state), nil)()
-	a.Lock()
-	defer a.Unlock()
-	if check(a.state) {
-		a.updateLocked(state)
-	} else {
-		a.G().Log.Debug("MobileAppState.UpdateWithCheck: skipping update, failed check")
-	}
-}
-
-// Update updates the current app state, and notifies any waiting calls from NextUpdate
-func (a *MobileAppState) Update(state keybase1.MobileAppState) {
+// Update sets the current app state and returns whether the value changed;
+// only a change wakes NextUpdate callers and has side effects.
+//
+// Connected clients are told from here, the one place the value changes, which
+// is also before lifecycle's Flush hook runs. On iOS that is as early as a
+// client can be told, but it is not a guarantee of delivery before suspension:
+// native keeps the app alive only until Go's background task has ended and its
+// state is written (AppDelegate.swift ends its UIKit background task once
+// AppWaitBackgroundTask returns), not until clients have received it. A client
+// acting on the notification is racing the OS, and what it can lose is bounded
+// by whatever it last wrote of its own accord.
+func (a *MobileAppState) Update(state keybase1.MobileAppState) (changed bool) {
 	defer a.G().Trace(fmt.Sprintf("MobileAppState.Update(%v)", state), nil)()
 	a.Lock()
 	defer a.Unlock()
-	a.updateLocked(state)
+	return a.updateLocked(state)
 }
 
 // State returns the current app state
@@ -355,4 +375,29 @@ func (a *DesktopAppState) resetLocked() {
 		close(a.suspendChanged)
 		a.suspendChanged = make(chan struct{})
 	}
+}
+
+// flushLocalDbs flushes the leveldb memtables in the background. An unclean
+// kill while suspended (routine on iOS) with a non-empty journal forces a
+// journal replay — or a whole-DB recovery — during the next launch, which is
+// the main cold-start cost. Called when the app heads to the background so
+// the journals are empty if the OS kills the process.
+func (g *GlobalContext) flushLocalDbs() {
+	flush := func(name string, db *JSONLocalDb) {
+		if db == nil {
+			return
+		}
+		ldb, ok := db.GetEngine().(*LevelDb)
+		if !ok {
+			return
+		}
+		begin := time.Now()
+		if err := ldb.Flush(); err != nil {
+			g.Log.Info("flushLocalDbs: %s flush error: %v", name, err)
+			return
+		}
+		g.Log.Info("flushLocalDbs: %s flushed in %s", name, time.Since(begin))
+	}
+	go flush("LocalDb", g.LocalDb)
+	go flush("LocalChatDb", g.LocalChatDb)
 }

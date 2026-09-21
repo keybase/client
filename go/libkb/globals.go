@@ -27,6 +27,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/libkb/lifecycle"
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	clockwork "github.com/keybase/clockwork"
@@ -69,6 +70,7 @@ type GlobalContext struct {
 	DNSNSFetcher                     DNSNameServerFetcher        // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
 	MobileNetState                   *MobileNetState             // The kind of network connection for the currently running instance of the app
 	MobileAppState                   *MobileAppState             // The state of focus for the currently running instance of the app
+	MobileLifecycle                  *lifecycle.Controller       // Derives MobileAppState from native UI reports and background-work holds
 	DesktopAppState                  *DesktopAppState            // The state of focus for the currently running instance of the app
 	ChatHelper                       ChatHelper                  // conveniently send chat messages
 	RPCCanceler                      *RPCCanceler                // register live RPCs so they can be cancelleed en masse
@@ -305,6 +307,10 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.localSigchainGuard = NewLocalSigchainGuard(g)
 	g.MobileNetState = NewMobileNetState(g)
 	g.MobileAppState = NewMobileAppState(g)
+	g.MobileLifecycle = lifecycle.New(g.MobileAppState, lifecycle.Config{
+		Flush: g.flushLocalDbs,
+		Debug: func(format string, args ...interface{}) { g.Log.Debug(format, args...) },
+	})
 	g.DesktopAppState = NewDesktopAppState(g)
 	g.RPCCanceler = NewRPCCanceler()
 	g.IdentifyDispatch = NewIdentifyDispatch()
@@ -834,6 +840,12 @@ func (g *GlobalContext) Shutdown(mctx MetaContext) error {
 
 		if g.hiddenTeamChainManager != nil {
 			g.hiddenTeamChainManager.Shutdown(mctx)
+		}
+
+		// Ends the background tasks the controller runs before the chat
+		// services they poll go away.
+		if g.MobileLifecycle != nil {
+			g.MobileLifecycle.Close()
 		}
 
 		if g.NotifyRouter != nil {
