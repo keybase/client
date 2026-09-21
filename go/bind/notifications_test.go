@@ -131,6 +131,10 @@ func TestBackgroundNotificationOpensAndClosesPushWindow(t *testing.T) {
 			h.Controller.UIInactive()
 			lifecycletest.ToBackground(h.Controller)
 			require.Equal(t, bg, h.AppState.State())
+			// The recorder observes the setup transitions from its own
+			// goroutine; without this the baseline can be short by one and the
+			// iOS assertion below reads a late setup state as a push.
+			h.Recorder.Sync(t)
 			seen := len(h.Recorder.States())
 
 			unboxFailed := errors.New("unbox failed")
