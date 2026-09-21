@@ -121,13 +121,11 @@ func (r *AttachmentHTTPSrv) genURLKey(prefix string, payload any) (string, error
 }
 
 func (r *AttachmentHTTPSrv) getURL(ctx context.Context, prefix string, payload any) string {
-	if !r.httpSrv.Active() {
-		r.Debug(ctx, "getURL: http server failed to start earlier")
-		return ""
-	}
+	// Addr fails only before the server first binds; while it is stopped it
+	// returns where the server comes back.
 	addr, err := r.httpSrv.Addr()
 	if err != nil {
-		r.Debug(ctx, "getURL: failed to get HTTP server address: %s", err)
+		r.Debug(ctx, "getURL: no HTTP server address: %s", err)
 		return ""
 	}
 	key, err := r.genURLKey(prefix, payload)
@@ -149,6 +147,10 @@ func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.Conversatio
 		ConvID: convID,
 		MsgID:  msgID,
 	})
+	if url == "" {
+		// Without a server there is no URL; the query alone would be a garbage one.
+		return ""
+	}
 	url += fmt.Sprintf("&prev=%v&noanim=%v&isemoji=%v", preview, noAnim, isEmoji)
 	r.Debug(ctx, "GetURL: handler URL: convID: %s msgID: %d %s", convID, msgID, url)
 	return url

@@ -15,6 +15,7 @@ import (
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/install"
+	"github.com/keybase/client/go/kbhttp/manager"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/status"
@@ -360,23 +361,15 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (r
 		return res, err
 	}
 	res = eng.Status()
-	m.Debug("GetBootstrapStatus: attempting to get HTTP server address")
-	for range 40 { // wait at most 2 seconds
-		addr, addrErr := h.svc.httpSrv.Addr()
-		if addrErr != nil {
-			m.Debug("GetBootstrapStatus: failed to get HTTP server address: %s", addrErr)
-		} else {
-			m.Debug("GetBootstrapStatus: http server: addr: %s token: %s", addr, h.svc.httpSrv.Token())
-			res.HttpSrvInfo = &keybase1.HttpSrvInfo{
-				Address: addr,
-				Token:   h.svc.httpSrv.Token(),
-			}
-			break
-		}
-		time.Sleep(50 * time.Millisecond)
-	}
-	if res.HttpSrvInfo == nil {
-		m.Debug("GetBootstrapStatus: failed to get HTTP srv info after max attempts")
+	// Not waited on: a client learns the address from clientState and from
+	// HTTPSrvInfoUpdate, which the server sends whenever its address changes.
+	// This field is left as a convenience for a status read once the server has
+	// bound.
+	if info, infoErr := h.svc.httpSrv.Info(); infoErr != nil {
+		m.Debug("GetBootstrapStatus: no HTTP server address: %s", infoErr)
+	} else {
+		m.Debug("GetBootstrapStatus: http server: addr: %s token: %s", info.Address, manager.TokenPrefix(info.Token))
+		res.HttpSrvInfo = &info
 	}
 	return res, nil
 }

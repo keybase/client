@@ -119,7 +119,6 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		teamUpgrader:     teams.NewUpgrader(),
 		walletState:      stellar.NewWalletState(g, remote.NewRemoteNet(g)),
 		offlineRPCCache:  offline.NewRPCCache(g),
-		httpSrv:          manager.NewSrv(g),
 
 		initialLoginAttemptDone: make(chan struct{}),
 	}
@@ -349,6 +348,11 @@ func (d *Service) Run() (err error) {
 func (d *Service) SetupCriticalSubServices() error {
 	allG := globals.NewContext(d.G(), d.ChatG())
 	mctx := d.MetaContext(context.TODO())
+	// Not in NewService: the service sets up NotifyRouter after that, and the
+	// server reads it once, when created. A standalone client never sets one
+	// up, so both see a nil router, which announces nothing -- and nothing
+	// subscribes to it anyway.
+	d.httpSrv = manager.NewSrv(d.G())
 	d.G().RuntimeStats = runtimestats.NewRunner(allG)
 	teams.ServiceInit(d.G())
 	stellar.ServiceInit(d.G(), d.walletState, d.badger)
