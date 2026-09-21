@@ -432,9 +432,11 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	kbSvc = service.NewService(kbCtx, false)
 	// LoginAttemptNone: the login attempt happens inside RunBackgroundOperations
 	// below, off the Init path. It can block for seconds (leveldb
-	// open/recovery, keychain reads) and Init runs on the native main thread;
-	// GetBootstrapStatus waits for the attempt so the GUI doesn't see a stale
-	// logged-out state.
+	// open/recovery, keychain reads) and Init runs on the native main thread.
+	// The loopback listener is therefore up while the attempt is still running,
+	// so a client can connect and subscribe before there is any session to
+	// report: its first clientState has no session at all in that window, and
+	// the attempt settling sends another that does.
 	phase := time.Now()
 	if err = kbSvc.StartLoopbackServer(libkb.LoginAttemptNone); err != nil {
 		log("failed to start loopback: %s", err)
