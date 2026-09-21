@@ -106,9 +106,7 @@ func (g *gregorTestConnection) GetClient() chat1.RemoteInterface {
 	return chat1.RemoteClient{Cli: g.cli}
 }
 
-func (g *gregorTestConnection) Reconnect(ctx context.Context) (bool, error) {
-	return false, nil
-}
+func (g *gregorTestConnection) Reconnect(ctx context.Context) {}
 
 func (g *gregorTestConnection) OnConnect(ctx context.Context, _ *rpc.Connection,
 	cli rpc.GenericClient, srv *rpc.Server,

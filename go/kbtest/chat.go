@@ -398,9 +398,7 @@ func (m ChatRemoteMockServerConnection) GetClient() chat1.RemoteInterface {
 	return m.mock
 }
 
-func (m ChatRemoteMockServerConnection) Reconnect(ctx context.Context) (bool, error) {
-	return false, nil
-}
+func (m ChatRemoteMockServerConnection) Reconnect(ctx context.Context) {}
 
 type ChatRemoteMock struct {
 	world     *ChatMockWorld
