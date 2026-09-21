@@ -1,0 +1,22 @@
+shared/android/app/src/main/java/io/keybase/ossifrage/KeybasePushNotificationListenerService.kt
+  s_5951e2f8d531d8::t_b7a538d9149fbe 88-94,108-109,111-112,114
+  s_5951e2f8d531d8::t_82b06e09e55dcb 95-107,125-143,145,149-150,152
+  s_5951e2f8d531d8::t_1e8d1fbce33110 28-29
+  s_5951e2f8d531d8::t_722bde1977f74f 206
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "c170f303589681bb5be84ab02ff5293bb1fe9378",
+  "prompts": {},
+  "sessions": {
+    "s_5951e2f8d531d8": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1cffa390-6dd8-475f-8558-c0041a98a926",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
