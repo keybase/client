@@ -10,9 +10,9 @@ test('only local service srcs are retryable', () => {
 })
 
 test('a retry points a baked attachment url at the current server port', () => {
-  const src = 'http://127.0.0.1:5000/att?key=abc&prev=true&noanim=false&isemoji=false'
+  const src = 'http://127.0.0.1:5000/at?key=abc&prev=true&noanim=false&isemoji=false'
   expect(retryLocalhostSrc(src, 1, httpSrv)).toBe(
-    'http://127.0.0.1:61234/att?key=abc&prev=true&noanim=false&isemoji=false&kbRetry=1'
+    'http://127.0.0.1:61234/at?key=abc&prev=true&noanim=false&isemoji=false&kbRetry=1'
   )
 })
 
@@ -31,8 +31,14 @@ test('a service restart on the same port still carries the new token', () => {
 })
 
 test('a retry keeps the baked address when the current one is unknown', () => {
-  const src = 'http://127.0.0.1:5000/att?key=abc'
-  expect(retryLocalhostSrc(src, 1, {address: '', token: ''})).toBe(
-    'http://127.0.0.1:5000/att?key=abc&kbRetry=1'
+  const src = 'http://127.0.0.1:5000/at?key=abc'
+  expect(retryLocalhostSrc(src, 1, {address: '', token: ''})).toBe('http://127.0.0.1:5000/at?key=abc&kbRetry=1')
+})
+
+test('a kbfs src keeps its own server and token', () => {
+  // kbfs runs a second local server on its own port with its own token
+  const src = 'http://127.0.0.1:7000/files/private/testuser/cat.png?token=kbfstoken&viewTypeInvariance=1'
+  expect(retryLocalhostSrc(src, 1, httpSrv)).toBe(
+    'http://127.0.0.1:7000/files/private/testuser/cat.png?token=kbfstoken&viewTypeInvariance=1&kbRetry=1'
   )
 })
