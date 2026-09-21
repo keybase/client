@@ -14,6 +14,8 @@ export type NetInfoModule = {
 }
 export type ExpoTaskManagerModule = {
   defineTask: (taskName: string, cb: (params: {data: unknown; error: unknown}) => Promise<void>) => void
+  isTaskRegisteredAsync: (taskName: string) => Promise<boolean>
+  unregisterTaskAsync: (taskName: string) => Promise<void>
 }
 
 export type DesktopModules = {
