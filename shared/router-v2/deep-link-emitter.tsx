@@ -1,11 +1,10 @@
-import {
-  type NavigationIntentOptions,
-  useNavigationIntentsState,
-} from '@/stores/navigation-intents'
+import logger from '@/logger'
+import {useNavigationIntentsState} from '@/stores/navigation-intents'
 
-// Deep-link emission + URL normalization. Kept separate from './linking'
-// (which imports the config/push/current-user stores) so stores/push can enqueue
-// navigation without importing the router's linking config.
+// Deep-link emission + URL normalization. Kept separate from './linking' so
+// stores/push can enqueue navigation without importing the router's linking config
+// (which pulls in the config/push/current-user stores and the route tables). This
+// leaf depends on the navigation-intents store and nothing else.
 
 // ---- URL normalization ----
 
@@ -75,8 +74,27 @@ export const setInitialURLOnce = (url: string) => {
 
 // Producers only enqueue navigation intent. The active router consumes it once
 // the intended account is active and its NavigationContainer is ready.
-export const emitDeepLink = (url: string, options?: NavigationIntentOptions) => {
+//
+// A link here can come from any app, web page or typed URL, so it never carries
+// a targetUid: only enqueuePushTapRoute may target (and so switch) an account.
+export const emitDeepLink = (url: string) => {
   const normalized = normalizeUrl(url)
   if (!normalized) return
-  useNavigationIntentsState.getState().dispatch.enqueue(normalized, options)
+  useNavigationIntentsState.getState().dispatch.enqueue(normalized)
+}
+
+// ---- Notification taps ----
+
+// For routes read from the service's pending-tap holder only (see
+// constants/init/shared). The service fills that holder from its push-tap bind
+// verb and nothing else, so a targetUID here can only have come from a real
+// notification tap, and no link another app opens can switch accounts.
+//
+// id is the Go route id: carried on the intent so whoever consumes it (or drops it for good) can
+// ack it there instead of here, since here the tap isn't queued yet, let alone acted on.
+export const enqueuePushTapRoute = (route: {url: string; targetUID: string; id: number}) => {
+  logger.info('[PushTap] queued a tap link:', route.url)
+  useNavigationIntentsState
+    .getState()
+    .dispatch.enqueue(route.url, {pushTapID: route.id, targetUid: route.targetUID || undefined})
 }

@@ -18,6 +18,7 @@ import {useNotifState} from '@/stores/notifications'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {serviceStaticConfigToStaticConfig} from '@/constants/chat/static-config'
 import {emitDeepLink} from '@/router-v2/linking'
+import {enqueuePushTapRoute} from '@/router-v2/deep-link-emitter'
 import {ignorePromise, timeoutPromise} from '../utils'
 import {isLinux, isPhone, serverConfigFileName} from '../platform'
 import {useAvatarState} from '@/common-adapters/avatar/store'
@@ -248,6 +249,31 @@ export const applyMobileAppState = (state: T.RPCGen.MobileAppState) => {
   }
 }
 
+// Peek and queue. Reading the route does not retire it: the service acks only when navigation (or
+// account-link-switch, dropping a tap it cannot act on) has actually consumed the intent this
+// enqueues, which is what makes a tap exactly-once end to end. A peek whose reply is lost, or one
+// that repeats a tap already queued or consumed this run, is handled by enqueuePushTapRoute/the
+// intent store and costs nothing here.
+//
+// Run on connect, for a tap from before this connection (on iOS a background launch never starts a
+// client at all, so a tap can be arbitrarily older than the socket), and on pushTapRouteAvailable
+// for a tap during it. Both reach the same armed route, so neither can act on a tap the other
+// already did.
+const drainPushTapRoute = async () => {
+  if (!isMobile) {
+    return
+  }
+  try {
+    const route = await T.RPCGen.appStatePeekPushTapRouteRpcPromise()
+    if (!route) {
+      return
+    }
+    enqueuePushTapRoute(route)
+  } catch (error) {
+    logger.warn('[PushTap] failed to peek a tap route, leaving it armed: ', error)
+  }
+}
+
 // The splash waits for the service to say who is logged in. A clientState with no session means
 // its startup login attempt has not settled yet -- not known, rather than logged out -- and the
 // attempt settling sends another that has one. Each connection waits afresh.
@@ -414,6 +440,7 @@ export const onEngineConnected = () => {
 
   awaitSessionAgain()
   subscription = subscribe()
+  ignorePromise(drainPushTapRoute())
   useDaemonState.getState().dispatch.startHandshake()
 }
 
@@ -466,6 +493,9 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
   }
 
   switch (action.type) {
+    case 'keybase.1.NotifyApp.pushTapRouteAvailable':
+      ignorePromise(drainPushTapRoute())
+      break
     case 'keybase.1.NotifyApp.mobileAppStateChanged':
       applyMobileAppState(action.payload.params.state)
       break
