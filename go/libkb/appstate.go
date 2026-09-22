@@ -109,7 +109,7 @@ func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) {
 	// each notification to its own goroutine, so two changes in quick
 	// succession can reach a client in either order, and the last one it
 	// applies may not be the latest. Update has a single writer --
-	// lifecycle.Controller.applyLocked, under Controller.mu -- so the queueing
+	// lifecycle.Controller, under Controller.mu -- so the queueing
 	// order is already the writing order; what is missing is one ordered
 	// stream per connection to carry it.
 	a.G().NotifyRouter.HandleMobileAppState(context.Background(), state)
@@ -379,9 +379,11 @@ func (a *DesktopAppState) resetLocked() {
 // flushLocalDbs flushes the leveldb memtables in the background. An unclean
 // kill while suspended (routine on iOS) with a non-empty journal forces a
 // journal replay — or a whole-DB recovery — during the next launch, which is
-// the main cold-start cost. lifecycle calls it when the app leaves the UI and
-// when background work ends, so the journals are empty if the OS kills the
-// process.
+// the main cold-start cost. lifecycle calls it on every move into the
+// background (the UI leaving the screen, every hold's end) and on every exit
+// event, so the journals are empty if the OS kills the process. Flushing that
+// often, never skipping one so every write is covered, relies on
+// LevelDb.Flush being a cheap memtable flush rather than a compaction.
 func (g *GlobalContext) flushLocalDbs() {
 	flush := func(name string, db *JSONLocalDb) {
 		if db == nil {

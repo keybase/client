@@ -68,9 +68,8 @@ var iosToBackgroundTask = []Step{
 // Scenarios replays whole native event sequences. Consumers of the app state
 // can play them with their own checks (see Play).
 //
-// The fake clock moves only when a step waits on it (a sync window, a task's
-// polls or maximum duration), so a hold that ends at the same time as the
-// last flush doesn't flush again.
+// A step that takes the app through BACKGROUNDACTIVE to BACKGROUND, such as a
+// backgrounding whose task ends at once, flushes twice.
 var Scenarios = []Scenario{
 	{Name: "ios cold foreground launch", Platform: IOS, Steps: toForeground, Observed: states(bg, ina, fg)},
 	{
@@ -98,7 +97,7 @@ var Scenarios = []Scenario{
 		Platform: IOS,
 		Steps: steps(toForeground, []Step{
 			step(WillResignActive, ina),
-			step(DidEnterBackground, bg).flush().returns(false),
+			step(DidEnterBackground, bg).flushes(2).returns(false),
 			step(WorkStarts, bg),
 			step(PushWindowBegin, bg).returns(false),
 			step(PushWindowEnd, bg).returns(false),
@@ -119,7 +118,7 @@ var Scenarios = []Scenario{
 		Platform: IOS,
 		Steps: steps(toForeground, []Step{
 			step(WillResignActive, ina),
-			step(DidEnterBackground, bg).flush().returns(false),
+			step(DidEnterBackground, bg).flushes(2).returns(false),
 			step(WillEnterForeground, ina),
 			step(DidBecomeActive, fg),
 		}),
@@ -131,7 +130,7 @@ var Scenarios = []Scenario{
 		Steps: steps(toForeground, []Step{
 			step(WillResignActive, ina),
 			step(WillResignActive, ina),
-			step(DidEnterBackground, bg).flush().returns(false),
+			step(DidEnterBackground, bg).flushes(2).returns(false),
 			step(DidEnterBackground, bg).returns(false),
 			step(WillEnterForeground, ina),
 			step(WillEnterForeground, ina),
@@ -141,7 +140,7 @@ var Scenarios = []Scenario{
 			step(WillResignActive, ina),
 			step(DidBecomeActive, fg),
 			step(WillResignActive, ina),
-			step(DidEnterBackground, bg).flush().returns(false),
+			step(DidEnterBackground, bg).flushes(2).returns(false),
 			step(WillEnterForeground, ina),
 			step(DidBecomeActive, fg),
 		}),
@@ -170,7 +169,7 @@ var Scenarios = []Scenario{
 		Platform: IOS,
 		Steps: steps(toForeground, []Step{
 			step(WillResignActive, ina),
-			step(DidEnterBackground, bg).flush().returns(false),
+			step(DidEnterBackground, bg).flushes(2).returns(false),
 			step(WillEnterForeground, ina),
 			step(DidBecomeActive, fg),
 		}),
@@ -214,14 +213,14 @@ var Scenarios = []Scenario{
 		Platform: IOS,
 		Steps: steps(toForeground, iosToBackgroundTask, []Step{
 			step(BackgroundTaskDelivered, bg).flush(),
-			step(BackgroundTaskExpired, bg),
+			step(BackgroundTaskExpired, bg).flush(),
 		}, toForeground),
 		Observed: states(bg, ina, fg, ina, bga, bg, ina, fg),
 	},
 	{
 		Name:     "ios background task fails",
 		Platform: IOS,
-		Steps:    steps(toForeground, iosToBackgroundTask, []Step{step(BackgroundTaskFails, bg).warn()}),
+		Steps:    steps(toForeground, iosToBackgroundTask, []Step{step(BackgroundTaskFails, bg).flush().warn()}),
 		Observed: states(bg, ina, fg, ina, bga, bg),
 	},
 	{
@@ -234,9 +233,9 @@ var Scenarios = []Scenario{
 		Name:     "ios background task expires",
 		Platform: IOS,
 		Steps: steps(toForeground, iosToBackgroundTask, []Step{
-			step(BackgroundTaskExpired, bg).warn(),
+			step(BackgroundTaskExpired, bg).flush().warn(),
 			step(BackgroundTaskWait, bg),
-			step(BackgroundTaskExpired, bg),
+			step(BackgroundTaskExpired, bg).flush(),
 		}),
 		Observed: states(bg, ina, fg, ina, bga, bg),
 	},
@@ -247,7 +246,7 @@ var Scenarios = []Scenario{
 			step(WillEnterForeground, ina),
 			step(DidBecomeActive, fg),
 			step(BackgroundTaskWait, fg),
-			step(BackgroundTaskExpired, fg),
+			step(BackgroundTaskExpired, fg).flush(),
 		}),
 		Observed: states(bg, ina, fg, ina, bga, ina, fg),
 	},
@@ -256,7 +255,7 @@ var Scenarios = []Scenario{
 		Platform: IOS,
 		Steps: steps(toForeground, iosToBackgroundTask, []Step{
 			step(WillEnterForeground, ina),
-			step(BackgroundTaskExpired, ina),
+			step(BackgroundTaskExpired, ina).flush(),
 			step(BackgroundTaskDelivered, ina),
 			step(DidBecomeActive, fg),
 		}),
@@ -281,7 +280,7 @@ var Scenarios = []Scenario{
 			// A location update wakes the app while tracking.
 			step(LiveLocationAcquire, bga),
 			// Tracking ends.
-			step(LiveLocationRelease, bg),
+			step(LiveLocationRelease, bg).flush(),
 			step(LiveLocationAcquire, bga),
 			step(WillEnterForeground, ina),
 			step(DidBecomeActive, fg),
@@ -291,7 +290,7 @@ var Scenarios = []Scenario{
 			step(WorkStops, fg),
 			step(WillResignActive, ina),
 			step(DidEnterBackground, bga).flush().returns(false),
-			step(LiveLocationRelease, bg),
+			step(LiveLocationRelease, bg).flush(),
 		}),
 		Observed: states(bg, ina, fg, ina, bga, bg, bga, bg, bga, ina, fg, ina, bga, bg),
 	},
@@ -303,7 +302,7 @@ var Scenarios = []Scenario{
 		Platform: IOS,
 		Steps: steps(toForeground, iosToBackgroundTask, []Step{
 			step(DidEnterBackground, bga).returns(true),
-			step(BackgroundTaskFails, bg).warn(),
+			step(BackgroundTaskFails, bg).flush().warn(),
 		}),
 		Observed: states(bg, ina, fg, ina, bga, bg),
 	},
@@ -311,9 +310,9 @@ var Scenarios = []Scenario{
 		Name:     "ios background task expiration keeps live location running",
 		Platform: IOS,
 		Steps: steps(toForeground, []Step{step(LiveLocationAcquire, fg)}, iosToBackgroundTask, []Step{
-			step(BackgroundTaskExpired, bga).warn(),
+			step(BackgroundTaskExpired, bga).flush().warn(),
 			step(BackgroundTaskWait, bga),
-			step(LiveLocationRelease, bg),
+			step(LiveLocationRelease, bg).flush(),
 		}),
 		Observed: states(bg, ina, fg, ina, bga, bg),
 	},
@@ -322,8 +321,8 @@ var Scenarios = []Scenario{
 		Platform: IOS,
 		Steps: steps(toForeground, []Step{
 			step(WillResignActive, ina),
-			step(DidEnterBackground, bg).flush().returns(false),
-			step(WillTerminate, bg).warn(),
+			step(DidEnterBackground, bg).flushes(2).returns(false),
+			step(WillTerminate, bg).flush().warn(),
 		}),
 		Observed: states(bg, ina, fg, ina, bga, bg),
 	},
@@ -337,9 +336,9 @@ var Scenarios = []Scenario{
 		Name:     "ios termination during a background task",
 		Platform: IOS,
 		Steps: steps(toForeground, iosToBackgroundTask, []Step{
-			step(WillTerminate, bg).warn(),
+			step(WillTerminate, bg).flush().warn(),
 			step(BackgroundTaskWait, bg),
-			step(BackgroundTaskExpired, bg),
+			step(BackgroundTaskExpired, bg).flush(),
 		}),
 		Observed: states(bg, ina, fg, ina, bga, bg),
 	},
@@ -350,7 +349,7 @@ var Scenarios = []Scenario{
 			step(LiveLocationAcquire, fg),
 			step(WillResignActive, ina),
 			step(DidEnterBackground, bga).flush().returns(false),
-			step(WillTerminate, bg).warn(),
+			step(WillTerminate, bg).flush().warn(),
 			step(LiveLocationRelease, bg),
 		}),
 		Observed: states(bg, ina, fg, ina, bga, bg),
@@ -360,7 +359,7 @@ var Scenarios = []Scenario{
 		Name:     "android process stop and start",
 		Platform: Android,
 		Steps: steps(toForeground, []Step{
-			step(DidEnterBackground, bg).flush().returns(false),
+			step(DidEnterBackground, bg).flushes(2).returns(false),
 		}, toForeground, []Step{
 			step(WorkStarts, fg),
 			step(DidEnterBackground, bga).flush().returns(true),
@@ -398,9 +397,9 @@ var Scenarios = []Scenario{
 		Name:     "android push window in the background",
 		Platform: Android,
 		Steps: steps(toForeground, []Step{
-			step(DidEnterBackground, bg).flush().returns(false),
+			step(DidEnterBackground, bg).flushes(2).returns(false),
 			step(PushWindowBegin, bga).returns(true),
-			step(PushWindowEnd, bg).returns(false),
+			step(PushWindowEnd, bg).flush().returns(false),
 		}),
 		Observed: states(bg, ina, fg, bga, bg, bga, bg),
 	},
@@ -430,7 +429,7 @@ var Scenarios = []Scenario{
 		Name:     "android push window racing process start",
 		Platform: Android,
 		Steps: steps(toForeground, []Step{
-			step(DidEnterBackground, bg).flush().returns(false),
+			step(DidEnterBackground, bg).flushes(2).returns(false),
 			step(PushWindowBegin, bga).returns(true),
 			step(WillEnterForeground, ina),
 			// No background task outside the background, even with work pending.
@@ -440,11 +439,11 @@ var Scenarios = []Scenario{
 			step(WorkStops, fg),
 			step(PushWindowBegin, fg).returns(false),
 			step(PushWindowEnd, fg).returns(false),
-			step(DidEnterBackground, bg).flush().returns(false),
+			step(DidEnterBackground, bg).flushes(2).returns(false),
 			step(PushWindowBegin, bga).returns(true),
 		}, toForeground, []Step{
 			step(DidEnterBackground, bga).flush().returns(false),
-			step(PushWindowEnd, bg).returns(false),
+			step(PushWindowEnd, bg).flush().returns(false),
 		}),
 		Observed: states(bg, ina, fg, bga, bg, bga, ina, fg, bga, bg, bga, ina, fg, bga, bg),
 	},
@@ -452,7 +451,7 @@ var Scenarios = []Scenario{
 		Name:     "android push window hands over to a background task",
 		Platform: Android,
 		Steps: steps(toForeground, []Step{
-			step(DidEnterBackground, bg).flush().returns(false),
+			step(DidEnterBackground, bg).flushes(2).returns(false),
 			step(PushWindowBegin, bga).returns(true),
 			step(WorkStarts, bga),
 			step(PushWindowEnd, bga).returns(true),
@@ -468,7 +467,7 @@ var Scenarios = []Scenario{
 			step(DidEnterBackground, bga).flush().returns(true),
 			step(PushWindowBegin, bga).returns(true),
 			step(PushWindowEnd, bga).returns(true),
-			step(BackgroundTaskFails, bg).warn(),
+			step(BackgroundTaskFails, bg).flush().warn(),
 		}),
 		Observed: states(bg, ina, fg, bga, bg),
 	},
@@ -476,11 +475,11 @@ var Scenarios = []Scenario{
 		Name:     "android overlapping push windows",
 		Platform: Android,
 		Steps: steps(toForeground, []Step{
-			step(DidEnterBackground, bg).flush().returns(false),
+			step(DidEnterBackground, bg).flushes(2).returns(false),
 			step(PushWindowBegin, bga).slot(0).returns(true),
 			step(PushWindowBegin, bga).slot(1).returns(true),
 			step(PushWindowEnd, bga).slot(0).returns(false),
-			step(PushWindowEnd, bg).slot(1).returns(false),
+			step(PushWindowEnd, bg).slot(1).flush().returns(false),
 		}),
 		Observed: states(bg, ina, fg, bga, bg, bga, bg),
 	},
@@ -515,7 +514,7 @@ var Scenarios = []Scenario{
 		Name:     "android WorkManager BackgroundSync racing a push window",
 		Platform: Android,
 		Steps: steps(toForeground, []Step{
-			step(DidEnterBackground, bg).flush().returns(false),
+			step(DidEnterBackground, bg).flushes(2).returns(false),
 			step(BackgroundSyncStart, bga).returns(true),
 			step(PushWindowBegin, bga).returns(true),
 			step(PushWindowEnd, bga).returns(false),
@@ -532,7 +531,7 @@ var Scenarios = []Scenario{
 		Steps: steps(toForeground, []Step{
 			step(WillTerminate, bg).flush().warn(),
 			step(PushWindowBegin, bga).returns(true),
-			step(WillTerminate, bg).warn(),
+			step(WillTerminate, bg).flush().warn(),
 			step(WorkStarts, bg),
 			step(PushWindowEnd, bg).returns(false),
 		}),

@@ -52,7 +52,6 @@ const (
 	DefaultBackgroundSyncWindow       = 10 * time.Second
 	DefaultBackgroundTaskPollInterval = 5 * time.Second
 	DefaultBackgroundTaskMaxDuration  = 10 * time.Minute
-	DefaultFlushCoalesceInterval      = 10 * time.Second
 )
 
 // Config holds the controller's dependencies. Zero fields get defaults: the
@@ -62,12 +61,10 @@ type Config struct {
 	BackgroundSyncWindow       time.Duration
 	BackgroundTaskPollInterval time.Duration
 	BackgroundTaskMaxDuration  time.Duration
-	// FlushCoalesceInterval is how soon after a flush the end of a hold skips
-	// its own; see applyLocked.
-	FlushCoalesceInterval time.Duration
-	// Flush runs when the app leaves the UI and when the last hold ends after
-	// a while (see applyLocked). It runs under the controller's lock, so it
-	// must not block.
+	// Flush runs on every move into the background and on every exit event
+	// (see applyLocked). It runs under the controller's lock, so it must not
+	// block, and often, so it must be cheap: a memtable flush, not a
+	// compaction.
 	Flush func()
 	Debug func(format string, args ...interface{})
 }
@@ -128,8 +125,6 @@ type Controller struct {
 	// closed stops new tasks once Close is waiting for the running ones, so
 	// nothing joins wg while Close waits on it.
 	closed bool
-	// lastFlush is when the last flush started, zero before the first.
-	lastFlush time.Time
 }
 
 func New(appState AppState, cfg Config) *Controller {
@@ -144,9 +139,6 @@ func New(appState AppState, cfg Config) *Controller {
 	}
 	if cfg.BackgroundTaskMaxDuration == 0 {
 		cfg.BackgroundTaskMaxDuration = DefaultBackgroundTaskMaxDuration
-	}
-	if cfg.FlushCoalesceInterval == 0 {
-		cfg.FlushCoalesceInterval = DefaultFlushCoalesceInterval
 	}
 	if cfg.Flush == nil {
 		cfg.Flush = func() {}
@@ -200,35 +192,32 @@ func isUIState(state keybase1.MobileAppState) bool {
 }
 
 // applyLocked writes the derived state and flushes the local DBs, so an
-// unclean kill doesn't cost a journal replay at the next launch:
+// unclean kill doesn't cost a journal replay at the next launch. It flushes on
+// every change into BACKGROUNDACTIVE or BACKGROUND from anything but
+// BACKGROUND: the UI leaving the screen covers the foreground session's
+// writes, and the end of every hold (BACKGROUNDACTIVE to BACKGROUND) covers
+// the hold's. A hold starting (BACKGROUND to BACKGROUNDACTIVE) has written
+// nothing yet. Leaving the UI flushes even when a hold then keeps the app
+// running, since that hold can last for hours, and the flush starts while the
+// background task still keeps the process running.
 //
-//   - Always when the UI leaves the screen (FOREGROUND/INACTIVE to
-//     BACKGROUNDACTIVE or BACKGROUND). That covers the whole foreground
-//     session's writes, even when a hold such as live location then keeps
-//     the app BACKGROUNDACTIVE for hours, and the flush starts while the
-//     background task still keeps the process running; the fire-and-forget
-//     flush would otherwise race the suspension that follows the task's end.
-//   - When the last hold ends (BACKGROUNDACTIVE to BACKGROUND), to cover the
-//     holds' writes, unless a flush started less than FlushCoalesceInterval
-//     ago. A flush is a full compaction: this keeps a backgrounding whose
-//     task ends at once, or a burst of pushes seconds apart, to one.
+// Every write is covered only because no flush is skipped, which relies on
+// Flush being cheap.
 func (c *Controller) applyLocked() {
 	prev := c.appState.State()
 	state := derive(c.ui, len(c.holds))
 	c.appState.Update(state)
-	leftUI := isUIState(prev) && !isUIState(state)
-	holdsEnded := prev == keybase1.MobileAppState_BACKGROUNDACTIVE && state == keybase1.MobileAppState_BACKGROUND
-	if !leftUI && !holdsEnded {
-		return
+	if state != prev && !isUIState(state) && prev != keybase1.MobileAppState_BACKGROUND {
+		c.cfg.Flush()
 	}
-	// Round(0) drops the monotonic reading, so time the device spends asleep
-	// counts toward the interval.
-	now := c.cfg.Clock.Now().Round(0)
-	if holdsEnded && !c.lastFlush.IsZero() && now.Sub(c.lastFlush) < c.cfg.FlushCoalesceInterval {
-		c.debugLocked("flush", "skipped, the last flush started %v ago", now.Sub(c.lastFlush))
-		return
-	}
-	c.lastFlush = now
+}
+
+// applyExitLocked is applyLocked for an event that precedes the process being
+// killed or suspended. It always flushes, even when the state doesn't change:
+// writes since the last flush, such as those of a hold still open, would
+// otherwise cost a journal replay at the next launch.
+func (c *Controller) applyExitLocked() {
+	c.appState.Update(derive(c.ui, len(c.holds)))
 	c.cfg.Flush()
 }
 
@@ -384,7 +373,7 @@ func (c *Controller) WillTerminate(notifyPending func()) {
 	c.mu.Lock()
 	c.setUILocked(UIBackground)
 	c.dropLocked(func(*Hold) bool { return true })
-	c.applyLocked()
+	c.applyExitLocked()
 	c.debugLocked("willTerminate", "ended every hold")
 	c.mu.Unlock()
 	notifyPending()
@@ -397,7 +386,7 @@ func (c *Controller) WillTerminate(notifyPending func()) {
 func (c *Controller) BackgroundTaskExpired(notifyPending func()) {
 	c.mu.Lock()
 	ended := c.dropLocked(func(h *Hold) bool { return h.reason == ReasonBackgroundTask })
-	c.applyLocked()
+	c.applyExitLocked()
 	c.debugLocked("backgroundTaskExpired", "ended %d background task holds", ended)
 	c.mu.Unlock()
 	if ended > 0 {
