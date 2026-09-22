@@ -36,9 +36,8 @@ type gregorAppState interface {
 // Every connect and the monitor read the app state and act on it under mu.
 // A BACKGROUND that lands after a connect read the state wakes the monitor,
 // which then waits for that connect before taking the connection down. mu
-// also runs the steps OnConnect applies after syncing (the handler takes it in
-// onGateIfCurrent), so none of them interleaves with a disconnect, and guards
-// the uri OnConnect reads.
+// also runs the steps OnConnect applies after syncing (runIfLive), so none of
+// them interleaves with a disconnect, and guards the uri OnConnect reads.
 //
 // This is a mutex gate rather than a single owning goroutine like
 // kbhttp/manager's Srv: connect and forget return errors their callers need,
@@ -138,6 +137,21 @@ func (c *gregorConnGate) forget(ctx context.Context) error {
 	c.debug(ctx, "forget: resetting and forgetting the uri")
 	c.uri = nil
 	return c.conn.Reset()
+}
+
+// runIfLive runs f with the gate's uri, under mu, if ctx, an OnConnect ctx, is
+// still live, and reports whether it ran. Every Shutdown and Reset is made
+// under mu too, and Shutdown cancels ctx, so a disconnect lands entirely
+// before f, and f is then skipped, or entirely after it. f must not call back
+// into the gate: mu is not reentrant.
+func (c *gregorConnGate) runIfLive(ctx context.Context, f func(uri *rpc.FMPURI)) bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if ctx.Err() != nil {
+		return false
+	}
+	f(c.uri)
+	return true
 }
 
 // requestReconnect asks the monitor to reconnect the connection whose ctx is

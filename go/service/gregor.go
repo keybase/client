@@ -201,9 +201,10 @@ type gregorHandler struct {
 	reachability     *reachability
 	chatLog          utils.DebugLabeler
 
-	// connGate decides when to connect and disconnect, and runs the steps
-	// OnConnect applies after syncing that can't be undone (badge pushes), so
-	// none of them lands after a Shutdown for the connection it came from.
+	// connGate decides when to connect and disconnect, and runs (runIfLive)
+	// the steps OnConnect applies after syncing that can't be undone (badge
+	// pushes), so none of them lands after a Shutdown for the connection it
+	// came from.
 	connGate *gregorConnGate
 
 	// This mutex protects the con object
@@ -420,14 +421,9 @@ func (g *gregorHandler) setReachability(r *reachability) {
 	g.reachability = r
 }
 
-// Connect connects to uri unless the app is in BACKGROUND or the desktop is
-// suspended, in which case it connects once that ends.
-func (g *gregorHandler) Connect(uri *rpc.FMPURI) error {
-	return g.connGate.connect(libkb.WithLogTag(context.Background(), "GRGRCONN"), uri, false)
-}
-
-// ConnectFresh is Connect, resetting an existing connection first so it
-// authenticates again.
+// ConnectFresh connects to uri, resetting an existing connection first so it
+// authenticates again. In BACKGROUND or while the desktop is suspended, it
+// connects once that ends.
 func (g *gregorHandler) ConnectFresh(uri *rpc.FMPURI) error {
 	return g.connGate.connect(libkb.WithLogTag(context.Background(), "GRGRCONN"), uri, true)
 }
@@ -862,7 +858,7 @@ func (g *gregorHandler) OnConnect(rpcCtx context.Context, conn *rpc.Connection,
 	// Every connect sets the gate's uri before connecting and a logout cancels
 	// ctx as it clears it, so the uri is set while ctx is live.
 	var uri *rpc.FMPURI
-	if !g.onGateIfCurrent(ctx, func() { uri = g.connGate.uri }) {
+	if !g.connGate.runIfLive(ctx, func(u *rpc.FMPURI) { uri = u }) {
 		return chat.ErrDuplicateConnection
 	}
 	g.chatLog.Debug(ctx, "OnConnect begin")
@@ -899,21 +895,6 @@ func (g *gregorHandler) OnConnect(rpcCtx context.Context, conn *rpc.Connection,
 	return g.onConnectSynced(ctx, chatCli, timeoutCli, uid, gcli, syncAllRes)
 }
 
-// onGateIfCurrent runs f under the connection gate if OnConnect's ctx is
-// still live, and reports whether it ran. Every Shutdown and Reset is made
-// under the gate too, and Shutdown cancels ctx, so a disconnect lands entirely
-// before f, and f is then skipped, or entirely after it. f must not call back
-// into the gate: its mutex is not reentrant.
-func (g *gregorHandler) onGateIfCurrent(ctx context.Context, f func()) bool {
-	g.connGate.mu.Lock()
-	defer g.connGate.mu.Unlock()
-	if ctx.Err() != nil {
-		return false
-	}
-	f()
-	return true
-}
-
 // onConnectSynced applies a SyncAll result for OnConnect's connection. A
 // logout or reconnect can shut the connection down at any point, so each
 // step applies only while ctx is live, and OnConnect then fails with
@@ -928,7 +909,7 @@ func (g *gregorHandler) onConnectSynced(ctx context.Context, chatCli chat1.Remot
 	// badging update (7->8) then on reconnect an incomplete chat badge update (8->9)
 	// could be received.
 	// See: https://github.com/keybase/client/pull/12651
-	if !g.onGateIfCurrent(ctx, func() {
+	if !g.connGate.runIfLive(ctx, func(*rpc.FMPURI) {
 		if g.badger != nil {
 			g.badger.PushChatFullUpdate(ctx, syncAllRes.Badge)
 		}
@@ -960,7 +941,7 @@ func (g *gregorHandler) onConnectSynced(ctx context.Context, chatCli chat1.Remot
 
 	// Update badging from gregor, and call out to reachability module if we
 	// have one.
-	if !g.onGateIfCurrent(ctx, func() {
+	if !g.connGate.runIfLive(ctx, func(*rpc.FMPURI) {
 		if g.badger != nil {
 			state, err := gcli.StateMachineState(ctx, nil, false)
 			if err != nil {
@@ -992,7 +973,7 @@ func (g *gregorHandler) onConnectSynced(ctx context.Context, chatCli chat1.Remot
 	}(g.makeReconnectOobm())
 
 	// No longer first connect if we are now connected.
-	if !g.onGateIfCurrent(ctx, func() {
+	if !g.connGate.runIfLive(ctx, func(*rpc.FMPURI) {
 		g.chatLog.Debug(ctx, "setting first connect to false")
 		g.setFirstConnect(false)
 		g.setConnectedAt(time.Now())

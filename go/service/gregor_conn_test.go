@@ -619,7 +619,7 @@ func TestGregorHandlerConnectRaces(t *testing.T) {
 		}
 	}()
 	for i := range 20 {
-		require.NoError(t, h.Connect(uri))
+		require.NoError(t, h.connGate.connect(context.Background(), uri, false))
 		// Vary how far the dial gets before the shutdown.
 		time.Sleep(time.Duration(i%4) * time.Millisecond)
 		h.Shutdown(context.Background())
@@ -647,7 +647,7 @@ func TestGregorHandlerFailedConnectLeavesNothingRunning(t *testing.T) {
 
 	baseline := runtime.NumGoroutine()
 	for range 20 {
-		require.ErrorContains(t, h.Connect(uri), "No bundled CA")
+		require.ErrorContains(t, h.connGate.connect(context.Background(), uri, false), "No bundled CA")
 		h.connGate.reconcile(context.Background())
 	}
 	require.False(t, hasConn(h))
@@ -669,7 +669,7 @@ func TestGregorHandlerShutdownStopsConnGoroutines(t *testing.T) {
 
 	baseline := runtime.NumGoroutine()
 	for range 10 {
-		require.NoError(t, h.Connect(uri))
+		require.NoError(t, h.connGate.connect(context.Background(), uri, false))
 		require.True(t, hasConn(h))
 		h.Shutdown(context.Background())
 	}
@@ -691,7 +691,7 @@ func TestGregorHandlerLoggedInAfterShutdown(t *testing.T) {
 
 	_, _, _, _, res := h.loggedIn(ctx)
 	require.Equal(t, loggedInNo, res)
-	require.NoError(t, h.Connect(closedPortURI(t)))
+	require.NoError(t, h.connGate.connect(context.Background(), closedPortURI(t), false))
 	_, _, _, _, res = h.loggedIn(ctx)
 	require.Equal(t, loggedInNo, res)
 	h.Shutdown(ctx)
@@ -763,8 +763,8 @@ func TestGregorHandlerConnectInBackground(t *testing.T) {
 
 	h := newGregorHandler(g)
 	uri := closedPortURI(t)
-	require.NoError(t, h.Connect(uri))
-	require.False(t, hasConn(h), "Connect connected in BACKGROUND")
+	require.NoError(t, h.connGate.connect(context.Background(), uri, false))
+	require.False(t, hasConn(h), "a connect connected in BACKGROUND")
 	require.NoError(t, h.ConnectFresh(uri))
 	require.False(t, hasConn(h), "ConnectFresh connected in BACKGROUND")
 
@@ -837,7 +837,7 @@ func TestGregorHandlerTerminalFailureRedialsOnPing(t *testing.T) {
 
 	h := newGregorHandler(g)
 	defer h.Shutdown(context.Background())
-	require.NoError(t, h.Connect(a.uri(t)))
+	require.NoError(t, h.connGate.connect(context.Background(), a.uri(t), false))
 	requireStale(t, h, a, 1)
 	// Bounds on elapsed time rather than on a count in a fixed window, so a
 	// slow machine can only make this take longer.
@@ -863,7 +863,7 @@ func TestGregorHandlerTerminalFailureRedialsOnForeground(t *testing.T) {
 	h := newGregorHandler(g)
 	h.Init()
 	defer h.Shutdown(context.Background())
-	require.NoError(t, h.Connect(a.uri(t)))
+	require.NoError(t, h.connGate.connect(context.Background(), a.uri(t), false))
 	requireStale(t, h, a, 1)
 	time.Sleep(200 * time.Millisecond)
 	require.EqualValues(t, 1, a.accepts.Load())
@@ -989,7 +989,7 @@ func setupOnConnectTail(t *testing.T) *onConnectTailTest {
 	h := newGregorHandler(g)
 	badger := &fakeBadger{}
 	h.badger = badger
-	require.NoError(t, h.Connect(closedPortURI(t)))
+	require.NoError(t, h.connGate.connect(context.Background(), closedPortURI(t), false))
 	t.Cleanup(func() { h.Shutdown(context.Background()) })
 	ctx := onConnectCtx(t, h)
 	uid := gregor1.UID(make([]byte, 16))
@@ -1222,7 +1222,7 @@ func TestGregorOnConnectAfterShutdownInstallsNothing(t *testing.T) {
 		}},
 		{name: "replaced", before: func(t *testing.T, h *gregorHandler, uri *rpc.FMPURI) {
 			require.NoError(t, h.Disconnect())
-			require.NoError(t, h.Connect(uri))
+			require.NoError(t, h.connGate.connect(context.Background(), uri, false))
 		}},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1232,7 +1232,7 @@ func TestGregorOnConnectAfterShutdownInstallsNothing(t *testing.T) {
 			g.Syncer = syncer
 			h := newGregorHandler(g)
 			uri := closedPortURI(t)
-			require.NoError(t, h.Connect(uri))
+			require.NoError(t, h.connGate.connect(context.Background(), uri, false))
 			defer h.Shutdown(context.Background())
 			conn := currentConn(h)
 
@@ -1288,7 +1288,7 @@ func TestGregorOnConnectSyncAllHost(t *testing.T) {
 	g.Syncer = &fakeSyncer{}
 	h := newGregorHandler(g)
 	uri := closedPortURI(t)
-	require.NoError(t, h.Connect(uri))
+	require.NoError(t, h.connGate.connect(context.Background(), uri, false))
 	defer h.Shutdown(context.Background())
 	h.authParamsForTest = func(context.Context) (gregor1.UID, gregor1.DeviceID, gregor1.SessionToken, *libkb.NIST, error) {
 		return gregor1.UID(make([]byte, 16)), gregor1.DeviceID(make([]byte, 16)), "", nil, nil
