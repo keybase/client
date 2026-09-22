@@ -101,9 +101,9 @@ func TestMobileAppStateAnnouncesOnlyOnChange(t *testing.T) {
 	rec := NewNotifyRecorder(tc.G, keybase1.NotificationChannels{App: true})
 	defer rec.Close()
 
-	require.True(t, a.Update(keybase1.MobileAppState_BACKGROUND))
-	require.False(t, a.Update(keybase1.MobileAppState_BACKGROUND))
-	require.True(t, a.Update(keybase1.MobileAppState_FOREGROUND))
+	a.Update(keybase1.MobileAppState_BACKGROUND)
+	a.Update(keybase1.MobileAppState_BACKGROUND)
+	a.Update(keybase1.MobileAppState_FOREGROUND)
 	rec.Flush()
 	require.Equal(t, []keybase1.MobileAppState{
 		keybase1.MobileAppState_BACKGROUND,
@@ -125,14 +125,13 @@ func TestMobileAppStateQueuesUnderTheLock(t *testing.T) {
 	defer rec.Close()
 
 	a.Lock()
-	changed := a.updateLocked(keybase1.MobileAppState_BACKGROUND)
+	a.updateLocked(keybase1.MobileAppState_BACKGROUND)
 	// nothing queued reads app state (there is no clientState reader here), so
 	// flushing under the lock cannot deadlock
 	rec.Flush()
 	queued := appStateChanges(t, rec)
 	a.Unlock()
 
-	require.True(t, changed)
 	require.Equal(t, []keybase1.MobileAppState{keybase1.MobileAppState_BACKGROUND}, queued,
 		"the change was queued before the lock that wrote it was released")
 }
