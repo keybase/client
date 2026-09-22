@@ -32,37 +32,54 @@ const folderWith = (...children: Array<string>): T.FS.PathItem => ({
 const pathItems = (entries: Array<[T.FS.Path, T.FS.PathItem]>): T.FS.PathItems => new Map(entries)
 
 test('empty edits produce an empty set', () => {
-  expect(getStaleRenameEditIDs(new Map(), pathItems([]))).toEqual(new Set())
+  expect(getStaleRenameEditIDs(new Map(), pathItems([]), parentPath)).toEqual(new Set())
 })
 
 test('a rename whose original name still exists in the parent is not stale', () => {
   const edits = new Map([['e1', rename('a.txt')]])
-  const stale = getStaleRenameEditIDs(edits, pathItems([[parentPath, folderWith('a.txt', 'b.txt')]]))
+  const stale = getStaleRenameEditIDs(edits, pathItems([[parentPath, folderWith('a.txt', 'b.txt')]]), parentPath)
   expect(stale).toEqual(new Set())
 })
 
 test('a rename whose original name is gone from the parent is stale', () => {
   const edits = new Map([['e1', rename('a.txt')]])
-  const stale = getStaleRenameEditIDs(edits, pathItems([[parentPath, folderWith('b.txt')]]))
+  const stale = getStaleRenameEditIDs(edits, pathItems([[parentPath, folderWith('b.txt')]]), parentPath)
   expect(stale).toEqual(new Set(['e1']))
 })
 
-test('a rename whose parent is not loaded at all is stale', () => {
+// Every mounted fs screen sweeps the one global edit store against its own
+// pathItems. On mobile the Files tab root stays mounted under each pushed
+// folder, so a screen that never loaded this folder must abstain -- judging it
+// stale deleted the edit out from under the screen that owned it.
+test('a rename whose parent is not loaded at all is left alone', () => {
   const edits = new Map([['e1', rename('a.txt')]])
-  expect(getStaleRenameEditIDs(edits, pathItems([]))).toEqual(new Set(['e1']))
+  expect(getStaleRenameEditIDs(edits, pathItems([]), parentPath)).toEqual(new Set())
 })
 
-test('a rename whose parent is a file rather than a folder is stale', () => {
+test('a rename survives a sweep by a screen that loaded only unrelated folders', () => {
   const edits = new Map([['e1', rename('a.txt')]])
-  const stale = getStaleRenameEditIDs(edits, pathItems([[parentPath, FS.emptyFile]]))
-  expect(stale).toEqual(new Set(['e1']))
+  const otherFolder = p('/keybase/team/keybasefriends')
+  const stale = getStaleRenameEditIDs(edits, pathItems([[otherFolder, folderWith('c.txt')]]), parentPath)
+  expect(stale).toEqual(new Set())
+})
+
+test('a rename whose parent is a file rather than a folder is left alone', () => {
+  const edits = new Map([['e1', rename('a.txt')]])
+  const stale = getStaleRenameEditIDs(edits, pathItems([[parentPath, FS.emptyFile]]), parentPath)
+  expect(stale).toEqual(new Set())
 })
 
 test('a pending (not yet loaded) folder that already lists the child is not stale', () => {
-  // Only type and children membership are consulted; progress is not.
   const edits = new Map([['e1', rename('a.txt')]])
   const item: T.FS.PathItem = {...FS.emptyFolder, children: new Set(['a.txt'])}
-  expect(getStaleRenameEditIDs(edits, pathItems([[parentPath, item]]))).toEqual(new Set())
+  expect(getStaleRenameEditIDs(edits, pathItems([[parentPath, item]]), parentPath)).toEqual(new Set())
+})
+
+test('a pending folder with an incomplete listing cannot retire the edit', () => {
+  // Mid-refresh the listing is empty; that is not proof the file is gone.
+  const edits = new Map([['e1', rename('a.txt')]])
+  const item: T.FS.PathItem = {...FS.emptyFolder, children: new Set<string>()}
+  expect(getStaleRenameEditIDs(edits, pathItems([[parentPath, item]]), parentPath)).toEqual(new Set())
 })
 
 test('new-folder edits are never stale, even with no parent loaded', () => {
@@ -70,10 +87,10 @@ test('new-folder edits are never stale, even with no parent loaded', () => {
     ['e1', newFolder('New Folder')],
     ['e2', newFolder('New Folder (2)', {parentPath: p('/keybase/team/keybasefriends')})],
   ])
-  expect(getStaleRenameEditIDs(edits, pathItems([]))).toEqual(new Set())
+  expect(getStaleRenameEditIDs(edits, pathItems([]), parentPath)).toEqual(new Set())
 })
 
-test('the check is per-edit and uses each edit own parent path', () => {
+test('each screen judges only its own folder, and together they cover both', () => {
   const otherParent = p('/keybase/team/keybasefriends')
   const edits = new Map([
     ['ok', rename('a.txt')],
@@ -82,14 +99,12 @@ test('the check is per-edit and uses each edit own parent path', () => {
     ['otherGone', rename('d.txt', {parentPath: otherParent})],
     ['nf', newFolder('New Folder')],
   ])
-  const stale = getStaleRenameEditIDs(
-    edits,
-    pathItems([
-      [parentPath, folderWith('a.txt')],
-      [otherParent, folderWith('c.txt')],
-    ])
-  )
-  expect(stale).toEqual(new Set(['gone', 'otherGone']))
+  const items = pathItems([
+    [parentPath, folderWith('a.txt')],
+    [otherParent, folderWith('c.txt')],
+  ])
+  expect(getStaleRenameEditIDs(edits, items, parentPath)).toEqual(new Set(['gone']))
+  expect(getStaleRenameEditIDs(edits, items, otherParent)).toEqual(new Set(['otherGone']))
 })
 
 test('child name matching is exact, not case insensitive or prefix based', () => {
@@ -97,7 +112,7 @@ test('child name matching is exact, not case insensitive or prefix based', () =>
     ['case', rename('A.txt')],
     ['prefix', rename('a')],
   ])
-  const stale = getStaleRenameEditIDs(edits, pathItems([[parentPath, folderWith('a.txt')]]))
+  const stale = getStaleRenameEditIDs(edits, pathItems([[parentPath, folderWith('a.txt')]]), parentPath)
   expect(stale).toEqual(new Set(['case', 'prefix']))
 })
 
@@ -106,7 +121,7 @@ test('an empty folder makes every rename under it stale', () => {
     ['e1', rename('a.txt')],
     ['e2', rename('b.txt')],
   ])
-  const stale = getStaleRenameEditIDs(edits, pathItems([[parentPath, folderWith()]]))
+  const stale = getStaleRenameEditIDs(edits, pathItems([[parentPath, folderWith()]]), parentPath)
   expect(stale).toEqual(new Set(['e1', 'e2']))
 })
 
@@ -184,4 +199,25 @@ describe('getRenameConflictError', () => {
       )
     ).toBeUndefined()
   })
+})
+
+test('a screen only judges the folder it owns, even if it has another loaded', () => {
+  // The Files tab root stays mounted under every pushed folder. It has its own
+  // pathItems, so letting it vote deleted renames started one screen up.
+  const sub = p('/keybase/private/testuser/sub')
+  const edits = new Map([['e1', rename('a.txt', {parentPath: sub})]])
+  const rootItems = pathItems([[parentPath, folderWith('sub')]])
+  expect(getStaleRenameEditIDs(edits, rootItems, parentPath)).toEqual(new Set())
+  expect(getStaleRenameEditIDs(edits, rootItems, sub)).toEqual(new Set())
+})
+
+test('a stale Loaded listing of someone else\'s folder cannot retire the edit', () => {
+  // A recursive listing stamps direct subfolders Loaded with the children they
+  // had at that moment, so being Loaded is not proof of ownership.
+  const sub = p('/keybase/private/testuser/sub')
+  const edits = new Map([['e1', rename('new.txt', {parentPath: sub})]])
+  const parentsStaleView = pathItems([[sub, folderWith('old.txt')]])
+  expect(getStaleRenameEditIDs(edits, parentsStaleView, parentPath)).toEqual(new Set())
+  // the folder's own screen, holding the same listing, still retires it
+  expect(getStaleRenameEditIDs(edits, parentsStaleView, sub)).toEqual(new Set(['e1']))
 })

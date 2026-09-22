@@ -176,7 +176,7 @@ const IosHeaderMenuInner = ({path, mayUpload}: MenuProps) => {
 }
 
 export const IosHeaderMenu = (props: MenuProps) => (
-  <FsBrowserEditProvider>
+  <FsBrowserEditProvider path={props.path}>
     <IosHeaderMenuInner {...props} />
   </FsBrowserEditProvider>
 )

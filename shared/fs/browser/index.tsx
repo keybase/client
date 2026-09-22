@@ -162,7 +162,7 @@ function BrowserContent(props: Props) {
 }
 
 const Screen = (props: OwnProps) => (
-  <FsBrowserEditProvider>
+  <FsBrowserEditProvider path={props.path}>
     <FsBrowserSortProvider>
       <Container {...props} />
     </FsBrowserSortProvider>
