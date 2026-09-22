@@ -7,6 +7,7 @@ import tseslint from 'typescript-eslint'
 
 const ignores = [
   '**/*.d.ts',
+  'android/app/build/**',
   'babel.config.js',
   'common-adapters/icon.constants-gen.desktop.tsx',
   'common-adapters/icon.constants-gen.native.tsx',

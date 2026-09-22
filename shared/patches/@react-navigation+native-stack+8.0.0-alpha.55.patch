@@ -1,8 +1,8 @@
 diff --git a/node_modules/@react-navigation/native-stack/lib/module/views/useHeaderConfigProps.js b/node_modules/@react-navigation/native-stack/lib/module/views/useHeaderConfigProps.js
-index efc24fc..a6f8315 100644
+index 2f09d57..e5e11c8 100644
 --- a/node_modules/@react-navigation/native-stack/lib/module/views/useHeaderConfigProps.js
 +++ b/node_modules/@react-navigation/native-stack/lib/module/views/useHeaderConfigProps.js
-@@ -378,7 +378,9 @@ export function useHeaderConfigProps({
+@@ -381,7 +381,9 @@ export function useHeaderConfigProps({
      direction,
      disableBackButtonMenu: headerBackButtonMenuEnabled === false,
      hidden: headerShown === false,
@@ -14,10 +14,10 @@ index efc24fc..a6f8315 100644
      largeTitle: headerLargeTitleEnabled,
      largeTitleBackgroundColor,
 diff --git a/node_modules/@react-navigation/native-stack/src/views/useHeaderConfigProps.tsx b/node_modules/@react-navigation/native-stack/src/views/useHeaderConfigProps.tsx
-index 89bf834..d519445 100644
+index 50ccbc0..71d6742 100644
 --- a/node_modules/@react-navigation/native-stack/src/views/useHeaderConfigProps.tsx
 +++ b/node_modules/@react-navigation/native-stack/src/views/useHeaderConfigProps.tsx
-@@ -534,7 +534,10 @@ export function useHeaderConfigProps({
+@@ -538,7 +538,10 @@ export function useHeaderConfigProps({
      direction,
      disableBackButtonMenu: headerBackButtonMenuEnabled === false,
      hidden: headerShown === false,

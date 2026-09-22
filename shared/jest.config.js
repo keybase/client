@@ -57,9 +57,10 @@ module.exports = {
     '<rootDir>/tests/e2e/',
   ],
   transform: {
-    '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
+    '^.+\\.(js|jsx|mjs|ts|tsx)$': 'babel-jest',
   },
+  // emoji-regex 11 ships only ESM (main: index.mjs), so jest has to transform it to CJS.
   transformIgnorePatterns: [
-    'node_modules/(?!(react-native|@react-native|@react-native-community|@react-navigation|expo(-[a-z-]+)?|lottie-react-native|react-native-safe-area-context|react-native-screens|react-native-webview|react-native-keyboard-controller|react-native-kb|@gorhom|@callstack|@legendapp|sf-symbols-typescript)/)',
+    'node_modules/(?!(react-native|@react-native|@react-native-community|@react-navigation|expo(-[a-z-]+)?|lottie-react-native|react-native-safe-area-context|react-native-screens|react-native-webview|react-native-keyboard-controller|react-native-kb|@gorhom|@callstack|@legendapp|sf-symbols-typescript|emoji-regex)/)',
   ],
 }
