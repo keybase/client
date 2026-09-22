@@ -490,16 +490,17 @@ type fixThrottle struct {
 
 // shouldRecordFix decides whether a native fix gets recorded, and returns the
 // throttle to use for the next one. Out of the foreground a fix is recorded
-// only once it lies, in a straight line from the last one recorded, at least
-// backgroundFixDistance and at least both fixes' accuracies added together,
-// though never more than maxBackgroundFixDistance: closer than that, the two
-// could be the same spot, so a stationary device's jitter never counts as a
-// move, even when the fix it is measured from was itself an outlier. A fix less than half as uncertain as the last recorded
-// one is recorded too, so a coarse cold fix gets replaced once the device
-// locks on instead of holding the throttle wide open; an accuracy of 0 means
-// unknown and never counts as better. The first fix after the watch
-// starts is recorded right away, so the move that relaunched the app gets
-// posted.
+// once it lies, in a straight line from the last one recorded, at least both
+// fixes' accuracies added together: closer than that, the two could be the
+// same spot, so jitter doesn't count as a move, even when the fix it is
+// measured from was itself an outlier. That distance is kept between
+// backgroundFixDistance and maxBackgroundFixDistance, so very coarse fixes
+// (Approximate Location) still record a real move, at the cost of some of
+// their jitter counting too. A fix less than half as uncertain as the last
+// recorded one is recorded as well, so a coarse cold fix gets replaced once the
+// device locks on; an accuracy of 0 means unknown and never counts as better.
+// The first fix after the watch starts is recorded right away, so the move
+// that relaunched the app gets posted.
 func shouldRecordFix(state keybase1.MobileAppState, last fixThrottle, next chat1.Coordinate) (bool, fixThrottle) {
 	record := last.lastRecorded == nil || state == keybase1.MobileAppState_FOREGROUND
 	if !record {
