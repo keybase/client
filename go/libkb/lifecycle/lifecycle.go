@@ -61,10 +61,11 @@ type Config struct {
 	BackgroundSyncWindow       time.Duration
 	BackgroundTaskPollInterval time.Duration
 	BackgroundTaskMaxDuration  time.Duration
-	// Flush runs when the state moves into BACKGROUNDACTIVE or BACKGROUND from
-	// anything but BACKGROUND, where the OS may suspend or kill the process
-	// next. It runs at most once per controller call, under the controller's
-	// lock, so it must not block.
+	// Flush runs once per backgrounding, when the state leaves FOREGROUND or
+	// INACTIVE for BACKGROUNDACTIVE or BACKGROUND, where the OS may suspend or
+	// kill the process next; and after a push window or on termination in the
+	// background. It runs at most once per controller call, under the
+	// controller's lock, so it must not block.
 	Flush func()
 	Debug func(format string, args ...interface{})
 }
@@ -187,15 +188,25 @@ func (c *Controller) debugLocked(event string, format string, args ...interface{
 		c.ui, len(c.holds), c.appState.State())
 }
 
+func inBackground(state keybase1.MobileAppState) bool {
+	return state == keybase1.MobileAppState_BACKGROUND || state == keybase1.MobileAppState_BACKGROUNDACTIVE
+}
+
 // applyLocked writes the derived state. The OS may suspend or kill the
-// process once the UI is in the background or nothing holds it up, so it
-// flushes when the state moves into the background from anything but
-// BACKGROUND.
-func (c *Controller) applyLocked() {
+// process once the UI leaves the screen, so it flushes when the state leaves
+// the UI for the background. A flush is a full compaction, so hold changes
+// in the background don't flush again.
+func (c *Controller) applyLocked() { c.writeStateLocked(false) }
+
+// applyAfterWritesLocked is applyLocked for an event that ends work which
+// wrote to the local DBs; it flushes whenever the state is in the background.
+func (c *Controller) applyAfterWritesLocked() { c.writeStateLocked(true) }
+
+func (c *Controller) writeStateLocked(wrote bool) {
 	prev := c.appState.State()
 	state := derive(c.ui, len(c.holds))
-	if c.appState.Update(state) && prev != keybase1.MobileAppState_BACKGROUND &&
-		(state == keybase1.MobileAppState_BACKGROUND || state == keybase1.MobileAppState_BACKGROUNDACTIVE) {
+	c.appState.Update(state)
+	if inBackground(state) && (wrote || !inBackground(prev)) {
 		c.cfg.Flush()
 	}
 }
@@ -345,14 +356,15 @@ func (c *Controller) WaitBackgroundTask(token int64) {
 	c.debugLocked("waitBackgroundTask", "hold %d ended", token)
 }
 
-// WillTerminate ends every hold: the process is about to die. notifyPending
+// WillTerminate ends every hold and flushes: the process is about to die,
+// maybe with writes since the app was backgrounded. notifyPending
 // warns about messages that won't send; it runs last because it can take
 // seconds and native waits only briefly.
 func (c *Controller) WillTerminate(notifyPending func()) {
 	c.mu.Lock()
 	c.setUILocked(UIBackground)
 	c.dropLocked(func(*Hold) bool { return true })
-	c.applyLocked()
+	c.applyAfterWritesLocked()
 	c.debugLocked("willTerminate", "ended every hold")
 	c.mu.Unlock()
 	notifyPending()
@@ -390,7 +402,8 @@ func (c *Controller) PushWindowBegin() int64 {
 
 // PushWindowEnd ends the push window's hold. If the UI is still in the
 // background, it first hands over to a background task, which keeps the app
-// up while work must keep going. The token it returns is for the test harness;
+// up while work must keep going. Handling the push wrote to the local DBs, so
+// it flushes in the background. The token it returns is for the test harness;
 // native ignores it.
 func (c *Controller) PushWindowEnd(token int64, deps BackgroundTaskDeps) int64 {
 	c.mu.Lock()
@@ -401,8 +414,8 @@ func (c *Controller) PushWindowEnd(token int64, deps BackgroundTaskDeps) int64 {
 			task = c.startTaskLocked(deps)
 		}
 		c.dropLocked(func(o *Hold) bool { return o == h })
+		c.applyAfterWritesLocked()
 	}
-	c.applyLocked()
 	c.debugLocked("pushWindowEnd", "hold %d ended, background task hold %d", token, task)
 	return task
 }
