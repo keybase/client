@@ -194,7 +194,7 @@ class MainActivity : ReactActivity() {
     private var jsIsListening = false
 
     // JS calls this once it is ready to route a share. That is the only signal the parked
-    // intent waits on, so it replaces any native-side polling for a live JS runtime.
+    // intent waits on.
     public fun shareListenersRegistered() {
         jsIsListening = true
         handleIntent()
