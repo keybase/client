@@ -204,7 +204,13 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func(db *leveldb.DB) erro
 
 		return action(db)
 	}()
+	return l.handleOpError(err)
+}
 
+// handleOpError recovers from an error a db operation returned: it nukes a
+// corrupt db, starts a forced clean when the disk is full, and lets a failed
+// lazy open be retried.
+func (l *LevelDb) handleOpError(err error) error {
 	// If the file is corrupt, just nuke and act like we didn't find anything
 	if l.nukeIfCorrupt(err) {
 		err = nil
@@ -249,15 +255,18 @@ func (l *LevelDb) ForceOpen() error {
 // Writers are blocked only while the memtable is swapped out, not while it is
 // written. A call returns once every write made before it is in a table,
 // including a memtable that a concurrent call or a full write buffer rotated.
-func (l *LevelDb) Flush() (err error) {
-	defer convertNoSpaceError(&err)
-	l.RLock()
-	defer l.RUnlock()
-	db := l.db.Load()
-	if db == nil {
-		return nil
-	}
-	return db.FlushMemdb()
+func (l *LevelDb) Flush() error {
+	err := func() (err error) {
+		defer convertNoSpaceError(&err)
+		l.RLock()
+		defer l.RUnlock()
+		db := l.db.Load()
+		if db == nil {
+			return nil
+		}
+		return db.FlushMemdb()
+	}()
+	return l.handleOpError(err)
 }
 
 func (l *LevelDb) Stats() (stats string) {
@@ -298,15 +307,16 @@ func (l *LevelDb) closeLocked() error {
 	var err error
 	if db := l.db.Load(); db != nil {
 		l.G().Log.Debug("Closing LevelDB local cache: %s", l.GetFilename())
+		// Stop any active cleaning job first: goleveldb must not be closed
+		// under an open iterator.
+		l.cleaner.Stop()
+		l.cleaner.Shutdown()
 		err = db.Close()
 		l.db.Store(nil)
 
 		// In case we just nuked DB and reset the dbOpenerOnce, this makes sure it
 		// doesn't open the DB again.
 		l.dbOpenerOnce.Do(func() {})
-		// stop any active cleaning jobs
-		l.cleaner.Stop()
-		l.cleaner.Shutdown()
 	}
 	return err
 }
@@ -353,6 +363,7 @@ func (l *LevelDb) Nuke() (fn string, err error) {
 	if err = os.RemoveAll(fn); err != nil {
 		return fn, err
 	}
+	l.cleaner.forgetPosition()
 	// reset dbOpenerOnce since this is not a explicit close and there might be
 	// more legitimate DB operations coming in
 	l.dbOpenerOnce = new(sync.Once)
@@ -404,10 +415,18 @@ func (l *LevelDb) OpenTransaction() (LocalDbTransaction, error) {
 		ltr LevelDbTransaction
 		err error
 	)
-	if err = l.doWhileOpenAndNukeIfCorrupted(func(db *leveldb.DB) (err error) {
-		ltr.tr, err = db.OpenTransaction()
-		return err
+	// Open the db lazily, but wait on goleveldb's write lock outside our read
+	// lock: a Close or Nuke queued behind a held read lock would block every
+	// new reader, including the current transaction's holder. If the db
+	// closes first, goleveldb returns ErrClosed.
+	var db *leveldb.DB
+	if err = l.doWhileOpenAndNukeIfCorrupted(func(opened *leveldb.DB) error {
+		db = opened
+		return nil
 	}); err != nil {
+		return LevelDbTransaction{}, err
+	}
+	if ltr.tr, err = db.OpenTransaction(); err != nil {
 		return LevelDbTransaction{}, err
 	}
 	ltr.cleaner = l.cleaner

@@ -264,6 +264,50 @@ func TestLevelDb(t *testing.T) {
 			},
 		},
 		{
+			// An OpenTransaction waiting on goleveldb's write lock must not hold
+			// our read lock: a Nuke queued behind it would block the Get that
+			// the transaction holder needs before it can finish.
+			name: "open-transaction-waiting-vs-nuke", testBody: func(t *testing.T) {
+				tc := SetupTest(t, "LevelDb-transaction-nuke", 0)
+				defer tc.Cleanup()
+				db, err := createTempLevelDbForTest(&tc, &td)
+				require.NoError(t, err)
+
+				tr, err := db.OpenTransaction()
+				require.NoError(t, err)
+				waiting := make(chan struct{})
+				go func() {
+					close(waiting)
+					if tr2, err := db.OpenTransaction(); err == nil {
+						tr2.Discard()
+					}
+				}()
+				<-waiting
+				time.Sleep(100 * time.Millisecond)
+				nuked := make(chan struct{})
+				go func() {
+					defer close(nuked)
+					_, err := db.Nuke()
+					assert.NoError(t, err)
+				}()
+				time.Sleep(100 * time.Millisecond)
+
+				got := make(chan struct{})
+				go func() {
+					defer close(got)
+					_, _, _ = db.Get(DbKey{Key: "test-key", Typ: 0})
+				}()
+				select {
+				case <-got:
+				case <-time.After(5 * time.Second):
+					tr.Discard()
+					t.Fatal("Get deadlocked behind a Nuke queued on a waiting OpenTransaction")
+				}
+				tr.Discard()
+				<-nuked
+			},
+		},
+		{
 			name: "open-transaction-after-close", testBody: func(t *testing.T) {
 				tc := SetupTest(t, "LevelDb-transaction-closed", 0)
 				defer tc.Cleanup()

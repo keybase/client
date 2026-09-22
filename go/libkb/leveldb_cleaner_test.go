@@ -182,8 +182,8 @@ func TestCleanerRearmsIntoBackgroundActive(t *testing.T) {
 }
 
 // A cleaner still cleans after its db is reopened (Nuke, or Close +
-// ForceOpen): start() must reset isShutdown so a reopened cleaner's cache
-// isn't stuck discarding everything.
+// ForceOpen): start() must install a working cache, since Shutdown left a
+// one-entry cache that forgets everything.
 func TestCleanerCleansAfterReopen(t *testing.T) {
 	for _, name := range []string{"nuke", "close"} {
 		t.Run(name, func(t *testing.T) {
@@ -268,4 +268,68 @@ func TestCleanerStatusDuringReopen(t *testing.T) {
 	}
 	close(stop)
 	<-done
+}
+
+// Close waits for a running clean to exit before closing the db under it,
+// and a clean that sleeps between batches exits promptly when stopped.
+func TestCleanerCloseWaitsForRunningClean(t *testing.T) {
+	tc := SetupTest(t, "LevelDb-cleaner-close-waits", 0)
+	defer tc.Cleanup()
+	config := testCleanerConfig()
+	config.SleepInterval = time.Minute
+	db := newMobileCleanerDb(t, &tc, config)
+
+	putKeys(t, db, 3500)
+	db.cleaner.clearCache()
+	done := make(chan error, 1)
+	go func() { done <- db.cleaner.clean(true /* force */) }()
+	// Wait for the first batch to land, so the clean is headed for its sleep.
+	require.Eventually(t, func() bool {
+		keys, err := db.KeysWithPrefixes(tablePrefix(levelDbTableKv))
+		require.NoError(t, err)
+		return len(keys) < 3500
+	}, 10*time.Second, time.Millisecond, "the first batch never landed")
+	// The batch's compaction and size check run before the sleep.
+	time.Sleep(500 * time.Millisecond)
+
+	start := time.Now()
+	require.NoError(t, db.Close())
+	require.Less(t, time.Since(start), 10*time.Second, "Close waited out the clean's sleep")
+	db.cleaner.Lock()
+	running := db.cleaner.running
+	db.cleaner.Unlock()
+	require.False(t, running, "Close returned with a clean still running on the closed db")
+	require.NoError(t, <-done)
+}
+
+// A clean that starts after Close has no db to clean.
+func TestCleanerAfterCloseIsNoop(t *testing.T) {
+	tc := SetupTest(t, "LevelDb-cleaner-after-close", 0)
+	defer tc.Cleanup()
+	db := newMobileCleanerDb(t, &tc, testCleanerConfig())
+	require.NoError(t, db.ForceOpen())
+	require.NoError(t, db.Close())
+	require.NoError(t, db.cleaner.clean(true /* force */))
+}
+
+// Close and reopen keeps the same data, so cleaning resumes where it was.
+func TestCleanerKeepsPositionAcrossCloseReopen(t *testing.T) {
+	tc := SetupTest(t, "LevelDb-cleaner-close-reopen-lastkey", 0)
+	defer tc.Cleanup()
+	db := newMobileCleanerDb(t, &tc, testCleanerConfig())
+	require.NoError(t, db.ForceOpen())
+
+	lastKey := DbKey{Key: "mmmm", Typ: 0}.ToBytes()
+	db.cleaner.Lock()
+	db.cleaner.lastKey = lastKey
+	db.cleaner.Unlock()
+
+	require.NoError(t, db.Close())
+	// The first use after Close fails and rearms the lazy open.
+	require.Error(t, db.ForceOpen())
+	require.NoError(t, db.ForceOpen())
+
+	db.cleaner.Lock()
+	defer db.cleaner.Unlock()
+	require.Equal(t, lastKey, db.cleaner.lastKey)
 }

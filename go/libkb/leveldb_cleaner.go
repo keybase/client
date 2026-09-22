@@ -69,6 +69,8 @@ type levelDbCleaner struct {
 	cacheMu sync.Mutex // protects the pointer to the cache
 	db      *leveldb.DB
 	stopCh  chan struct{}
+	// cleanDone is closed when the running clean exits.
+	cleanDone chan struct{}
 }
 
 func newLevelDbCleaner(mctx MetaContext, dbName string) *levelDbCleaner {
@@ -110,19 +112,34 @@ func (c *levelDbCleaner) Status() string {
 		cacheSize, c.lastRun, c.lastKey, c.running, c.config)
 }
 
+// Stop detaches the cleaner from its db and waits for a running clean to
+// exit, so the caller can close the db without an iterator still open on it.
 func (c *levelDbCleaner) Stop() {
 	c.log("Stop")
 	c.Lock()
-	defer c.Unlock()
-	if c.stopCh != nil {
-		close(c.stopCh)
-		c.stopCh = make(chan struct{})
+	close(c.stopCh)
+	c.stopCh = make(chan struct{})
+	c.db = nil
+	var cleanDone chan struct{}
+	if c.running {
+		cleanDone = c.cleanDone
+	}
+	c.Unlock()
+	if cleanDone != nil {
+		<-cleanDone
 	}
 }
 
+// forgetPosition restarts cleaning from the first key, for when the db's
+// contents are gone.
+func (c *levelDbCleaner) forgetPosition() {
+	c.Lock()
+	defer c.Unlock()
+	c.lastKey = nil
+}
+
 // start attaches the cleaner to a newly opened db, undoing a previous
-// Stop/Shutdown from closing it. A reopened db is a new key space, so cleaning
-// starts over from its first key.
+// Stop/Shutdown from closing it.
 func (c *levelDbCleaner) start(db *leveldb.DB) {
 	cache, err := lru.New(c.config.CacheCapacity)
 	if err != nil {
@@ -131,7 +148,6 @@ func (c *levelDbCleaner) start(db *leveldb.DB) {
 	c.Lock()
 	defer c.Unlock()
 	c.db = db
-	c.lastKey = nil
 	c.cacheMu.Lock()
 	defer c.cacheMu.Unlock()
 	c.cache = cache
@@ -186,9 +202,11 @@ func (c *levelDbCleaner) clean(force bool) (err error) {
 		return nil
 	}
 	c.running = true
-	// A clean stays on the db it started with. If that db is closed, Stop
-	// closes stopCh and the clean exits; a reopen attaches a new db for later
-	// cleans without this one ever touching it.
+	cleanDone := make(chan struct{})
+	c.cleanDone = cleanDone
+	// A clean stays on the db it started with. Before that db is closed, Stop
+	// closes stopCh and waits for the clean to exit; a reopen attaches a new
+	// db for later cleans without this one ever touching it.
 	db := c.db
 	key := c.lastKey
 	stopCh := c.stopCh
@@ -213,6 +231,7 @@ func (c *levelDbCleaner) clean(force bool) (err error) {
 		}
 		c.lastRun = c.G().GetClock().Now()
 		c.running = false
+		close(cleanDone)
 	}()
 
 	dbSize, err := c.getDbSize(db)
@@ -245,6 +264,10 @@ func (c *levelDbCleaner) clean(force bool) (err error) {
 
 		start := c.G().GetClock().Now()
 		numPurged, key, err = c.cleanBatch(db, stopCh, key)
+		if err == errCleanStopped {
+			c.log("aborting clean %d runs, stopped", i)
+			return nil
+		}
 		if err != nil {
 			return err
 		}
@@ -266,11 +289,18 @@ func (c *levelDbCleaner) clean(force bool) (err error) {
 		if !force && dbSize < c.config.HaltSize {
 			break
 		}
-		time.Sleep(c.config.SleepInterval)
+		select {
+		case <-stopCh:
+			c.log("aborting clean %d runs, stopped", i)
+			return nil
+		case <-time.After(c.config.SleepInterval):
+		}
 	}
 	c.log("clean complete. purged %d items total, dbSize: %v", totalNumPurged, humanize.Bytes(dbSize))
 	return nil
 }
+
+var errCleanStopped = errors.New("levelDbCleaner: stopped")
 
 func (c *levelDbCleaner) cleanBatch(db *leveldb.DB, stopCh chan struct{}, startKey []byte) (int, []byte, error) {
 	// Start our range from wherever we left off last time, and clean up until
@@ -290,7 +320,7 @@ func (c *levelDbCleaner) cleanBatch(db *leveldb.DB, stopCh chan struct{}, startK
 		select {
 		case <-stopCh:
 			iter.Release()
-			return 0, nil, errors.New("cleanBatch: cancelled due to shutdown")
+			return 0, startKey, errCleanStopped
 		default:
 		}
 		cache := c.getCache()
