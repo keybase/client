@@ -174,8 +174,8 @@ const onGregorPushStateChanged = (
   )
 }
 
-// The bootstrap read the old gregor-reachability trigger did: after an offline stretch, pick up
-// what the service learned while we could not reach it. `previous === undefined` is the first
+// After an offline stretch, reread the bootstrap status to pick up what the service learned while
+// we could not reach it. `previous === undefined` is the first
 // reading of the network at startup, which the handshake's own read already covers.
 export const onNetworkOnlineChanged = (online?: boolean, previous?: boolean) => {
   if (!online || previous !== false) {
@@ -256,7 +256,11 @@ let settleSession = () => {}
 let sessionSettled = new Promise<void>(resolve => {
   settleSession = resolve
 })
+// A service older than clientState never sends one. On Linux the GUI can be upgraded while such a
+// service keeps running, until the user restarts it.
+let clientStateSeen = false
 const awaitSessionAgain = () => {
+  clientStateSeen = false
   sessionSettled = new Promise<void>(resolve => {
     settleSession = resolve
   })
@@ -268,6 +272,7 @@ const awaitSessionAgain = () => {
 // order. It comes first on subscribing, after every session change, and once the service's startup
 // login attempt settles.
 export const applyClientState = (clientState: T.RPCGen.ClientState) => {
+  clientStateSeen = true
   const {appState, httpSrvInfo, session} = clientState
   // On iOS JS never starts on a background launch, so it can have missed every change since the
   // process started: this is what catches it up.
@@ -280,7 +285,12 @@ export const applyClientState = (clientState: T.RPCGen.ClientState) => {
     logger.info('[Bootstrap] the service has not settled its startup login yet')
     return
   }
+  applySession(session)
+}
+
+const applySession = (session: T.RPCGen.ClientSession) => {
   settleSession()
+  const configDispatch = useConfigState.getState().dispatch
   const {deviceID, deviceName, loggedIn, uid, username} = session
   if (!loggedIn) {
     // Session first: logging out resets the stores, the current user among them. Writing the empty
@@ -340,6 +350,20 @@ export const sessionSettledStep = async () => {
   })
   try {
     await Promise.race([sessionSettled, timedOut])
+  } catch (error) {
+    if (clientStateSeen) {
+      throw error
+    }
+    const bootstrapStatus = useDaemonState.getState().bootstrapStatus
+    if (!bootstrapStatus) {
+      throw error
+    }
+    logger.warn('[Bootstrap] the service sent no clientState, using its bootstrap status')
+    const {deviceID, deviceName, httpSrvInfo, loggedIn, uid, username} = bootstrapStatus
+    if (httpSrvInfo) {
+      useConfigState.getState().dispatch.setHTTPSrvInfo(httpSrvInfo.address, httpSrvInfo.token)
+    }
+    applySession({deviceID, deviceName, loggedIn, uid, username})
   } finally {
     clearTimeout(timer)
   }
