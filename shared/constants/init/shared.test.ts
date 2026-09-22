@@ -287,6 +287,7 @@ describe('sessionSettledStep', () => {
     await jest.advanceTimersByTimeAsync(30_000)
     await failed
     await expect(step).rejects.not.toBeInstanceOf(FatalHandshakeError)
+    expect(useConfigState.getState().loggedIn).toBe(false)
   })
 
   test('a service that never sends a clientState is out of date, and retrying will not help', async () => {
@@ -297,6 +298,22 @@ describe('sessionSettledStep', () => {
     await jest.advanceTimersByTimeAsync(30_000)
     await failed
     await expect(step).rejects.toThrow('out of date')
+  })
+
+  test('on mobile no clientState is not an out-of-date service: the in-process service is the same build', async () => {
+    const g = globalThis as unknown as {isMobile: boolean}
+    g.isMobile = true
+    try {
+      jest.useFakeTimers()
+      connect(async () => Promise.resolve())
+      const step = sessionSettledStep()
+      const failed = expect(step).rejects.toThrow("The service hasn't said who is logged in")
+      await jest.advanceTimersByTimeAsync(30_000)
+      await failed
+      await expect(step).rejects.not.toBeInstanceOf(FatalHandshakeError)
+    } finally {
+      g.isMobile = false
+    }
   })
 })
 

@@ -256,8 +256,8 @@ let settleSession = () => {}
 let sessionSettled = new Promise<void>(resolve => {
   settleSession = resolve
 })
-// Subscribing makes the service send a clientState, so none at all means a service older than
-// clientState. On Linux the GUI can be upgraded while such a service keeps running.
+// Subscribing makes the service send a clientState, so on desktop none at all means a service
+// older than clientState. On Linux the GUI can be upgraded while such a service keeps running.
 let clientStateSeen = false
 const awaitSessionAgain = () => {
   clientStateSeen = false
@@ -346,7 +346,8 @@ export const sessionSettledStep = async () => {
   try {
     await Promise.race([sessionSettled, timedOut])
   } catch (error) {
-    if (clientStateSeen) {
+    // the mobile service runs in-process, so it is always the same build
+    if (clientStateSeen || isMobile) {
       throw error
     }
     throw new FatalHandshakeError(
