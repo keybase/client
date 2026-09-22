@@ -19,13 +19,13 @@ import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {serviceStaticConfigToStaticConfig} from '@/constants/chat/static-config'
 import {emitDeepLink} from '@/router-v2/linking'
 import {ignorePromise, timeoutPromise} from '../utils'
-import {isPhone, serverConfigFileName} from '../platform'
+import {isLinux, isPhone, serverConfigFileName} from '../platform'
 import {useAvatarState} from '@/common-adapters/avatar/store'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {getPinnedConvIDs} from '@/chat/inbox/pinned-convs'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useDaemonState, type BootstrapStep} from '@/stores/daemon'
+import {FatalHandshakeError, useDaemonState, type BootstrapStep} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
 import {useFollowerState} from '@/stores/followers'
 import {useShellState} from '@/stores/shell'
@@ -256,8 +256,8 @@ let settleSession = () => {}
 let sessionSettled = new Promise<void>(resolve => {
   settleSession = resolve
 })
-// A service older than clientState never sends one. On Linux the GUI can be upgraded while such a
-// service keeps running, until the user restarts it.
+// Subscribing makes the service send a clientState, so none at all means a service older than
+// clientState. On Linux the GUI can be upgraded while such a service keeps running.
 let clientStateSeen = false
 const awaitSessionAgain = () => {
   clientStateSeen = false
@@ -285,12 +285,7 @@ export const applyClientState = (clientState: T.RPCGen.ClientState) => {
     logger.info('[Bootstrap] the service has not settled its startup login yet')
     return
   }
-  applySession(session)
-}
-
-const applySession = (session: T.RPCGen.ClientSession) => {
   settleSession()
-  const configDispatch = useConfigState.getState().dispatch
   const {deviceID, deviceName, loggedIn, uid, username} = session
   if (!loggedIn) {
     // Session first: logging out resets the stores, the current user among them. Writing the empty
@@ -354,16 +349,11 @@ export const sessionSettledStep = async () => {
     if (clientStateSeen) {
       throw error
     }
-    const bootstrapStatus = useDaemonState.getState().bootstrapStatus
-    if (!bootstrapStatus) {
-      throw error
-    }
-    logger.warn('[Bootstrap] the service sent no clientState, using its bootstrap status')
-    const {deviceID, deviceName, httpSrvInfo, loggedIn, uid, username} = bootstrapStatus
-    if (httpSrvInfo) {
-      useConfigState.getState().dispatch.setHTTPSrvInfo(httpSrvInfo.address, httpSrvInfo.token)
-    }
-    applySession({deviceID, deviceName, loggedIn, uid, username})
+    throw new FatalHandshakeError(
+      isLinux
+        ? 'The Keybase service is out of date. Restart it with run_keybase.'
+        : 'The Keybase service is out of date. Restart Keybase.'
+    )
   } finally {
     clearTimeout(timer)
   }

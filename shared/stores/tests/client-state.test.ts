@@ -6,7 +6,6 @@ import {useCurrentUserState} from '../current-user'
 import {useShellState} from '../shell'
 import {_onEngineIncoming, applyClientState} from '@/constants/init/shared'
 import type * as ConfigModule from '../config'
-import type * as CurrentUserModule from '../current-user'
 import type * as DaemonModule from '../daemon'
 import type * as SharedModule from '@/constants/init/shared'
 import type * as TypesModule from '@/constants/types'
@@ -227,7 +226,6 @@ describe('an account switch', () => {
 describe('waiting for the session', () => {
   type Modules = {
     config: typeof ConfigModule
-    currentUser: typeof CurrentUserModule
     daemon: typeof DaemonModule
     shared: typeof SharedModule
     types: typeof TypesModule
@@ -238,7 +236,6 @@ describe('waiting for the session', () => {
     jest.isolateModules(() => {
       m = {
         config: require('../config') as Modules['config'],
-        currentUser: require('../current-user') as Modules['currentUser'],
         daemon: require('../daemon') as Modules['daemon'],
         shared: require('@/constants/init/shared') as Modules['shared'],
         types: require('@/constants/types') as Modules['types'],
@@ -246,19 +243,6 @@ describe('waiting for the session', () => {
     })
     const modules = m!
     jest.spyOn(modules.types.RPCGen, 'notifyCtlSetNotificationsRpcPromise').mockResolvedValue(undefined)
-    modules.daemon.useDaemonState.setState({
-      bootstrapStatus: {
-        deviceID: 'd1',
-        deviceName: 'testuser-mac',
-        fullname: '',
-        httpSrvInfo: {address: '127.0.0.1:2', token: 'token'},
-        loggedIn: true,
-        registered: true,
-        uid: 'u1',
-        userReacjis: {skinTone: T.RPCGen.ReacjiSkinTone.none, topReacjis: []},
-        username: 'testuser',
-      },
-    })
     return modules
   }
 
@@ -269,24 +253,23 @@ describe('waiting for the session', () => {
     jest.useRealTimers()
   })
 
-  test('a service that never sends a clientState is read from its bootstrap status', async () => {
-    const {config, currentUser, shared} = load()
+  test('a service that never sends a clientState is out of date, and retrying will not help', async () => {
+    const {daemon, shared} = load()
     const settled = shared.sessionSettledStep()
+    const failed = expect(settled).rejects.toBeInstanceOf(daemon.FatalHandshakeError)
     await jest.advanceTimersByTimeAsync(30_000)
-    await settled
-
-    expect(config.useConfigState.getState().loggedIn).toBe(true)
-    expect(config.useConfigState.getState().httpSrv.address).toBe('127.0.0.1:2')
-    expect(currentUser.useCurrentUserState.getState().username).toBe('testuser')
+    await failed
+    await expect(settled).rejects.toThrow('out of date')
   })
 
   test('a service that sent a clientState without a session is still waited on', async () => {
-    const {config, shared} = load()
+    const {config, daemon, shared} = load()
     const settled = shared.sessionSettledStep()
     const failed = expect(settled).rejects.toThrow("The service hasn't said who is logged in")
     shared.applyClientState({appState: T.RPCGen.MobileAppState.foreground})
     await jest.advanceTimersByTimeAsync(30_000)
     await failed
+    await expect(settled).rejects.not.toBeInstanceOf(daemon.FatalHandshakeError)
 
     expect(config.useConfigState.getState().loggedIn).toBe(false)
   })
