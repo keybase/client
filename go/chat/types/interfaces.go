@@ -687,7 +687,8 @@ type (
 		Delete(ctx context.Context, jobID chat1.ArchiveJobID, deleteOutputPath bool) (err error)
 		// Sets (possibly updating) the job to the given state.
 		// cancel stops a running job by cancelling it's context and returns it's current state
-		Set(ctx context.Context, cancel PauseArchiveFn, job chat1.ArchiveChatJob) (err error)
+		// uid is the user the job runs as; a job for any user but the current one is refused.
+		Set(ctx context.Context, uid gregor1.UID, cancel PauseArchiveFn, job chat1.ArchiveChatJob) (err error)
 		// Stop a running job
 		Pause(ctx context.Context, jobID chat1.ArchiveJobID) (err error)
 		// Resume a paused job

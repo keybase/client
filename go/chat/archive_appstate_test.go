@@ -51,7 +51,7 @@ func (a *archiveJobRunner) run(ctx context.Context, uid gregor1.UID, req chat1.A
 	var once sync.Once
 	pause := func() { once.Do(func() { close(pauseCh) }) }
 	job := chat1.ArchiveChatJob{Request: req, Status: chat1.ArchiveChatJobStatus_RUNNING}
-	if err := a.r.Set(ctx, pause, job); err != nil {
+	if err := a.r.Set(ctx, uid, pause, job); err != nil {
 		return err
 	}
 	<-pauseCh
@@ -266,7 +266,8 @@ func TestArchiveSetWhileInactivePauses(t *testing.T) {
 	r, _, tc := setupAppStateArchive(t, true)
 	ctx := context.Background()
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_INACTIVE)
-	r.Start(ctx, gregor1.UID([]byte{1, 2, 3, 4}))
+	uid := gregor1.UID([]byte{1, 2, 3, 4})
+	r.Start(ctx, uid)
 	defer requireArchiveStopped(t, r)
 
 	jobID := chat1.ArchiveJobID("job-manual")
@@ -276,7 +277,7 @@ func TestArchiveSetWhileInactivePauses(t *testing.T) {
 		Request: chat1.ArchiveChatJobRequest{JobID: jobID},
 		Status:  chat1.ArchiveChatJobStatus_RUNNING,
 	}
-	require.ErrorIs(t, r.Set(ctx, func() { once.Do(func() { close(paused) }) }, job), errArchiveJobBackgroundPaused)
+	require.ErrorIs(t, r.Set(ctx, uid, func() { once.Do(func() { close(paused) }) }, job), errArchiveJobBackgroundPaused)
 	select {
 	case <-paused:
 	default:
@@ -331,6 +332,37 @@ func TestArchiveStartForAnotherUserReadsItsOwnHistory(t *testing.T) {
 	defer requireArchiveStopped(t, r)
 	requireLaunches(2)
 	requireArchiveJobsRunning(t, r)
+}
+
+// A job launched in a previous user's run that registers or reports progress
+// after the next user's Start is refused and stopped, and leaves the next
+// user's history alone.
+func TestArchiveSetFromPreviousUserRefused(t *testing.T) {
+	r, _, _ := setupAppStateArchive(t, true)
+	ctx := context.TODO()
+	uidA := gregor1.UID([]byte{1, 2, 3, 4})
+	uidB := gregor1.UID([]byte{5, 6, 7, 8})
+	r.resumeJobsDelay = time.Hour
+	r.Start(ctx, uidA)
+	requireArchiveStopped(t, r)
+	r.Start(ctx, uidB)
+	defer requireArchiveStopped(t, r)
+
+	job := chat1.ArchiveChatJob{
+		Request: chat1.ArchiveChatJobRequest{JobID: "job-late"},
+		Status:  chat1.ArchiveChatJobStatus_RUNNING,
+	}
+	paused := false
+	require.ErrorIs(t, r.Set(ctx, uidA, func() { paused = true }, job), errArchiveJobOtherUser)
+	require.True(t, paused, "refused job kept running")
+	require.ErrorIs(t, r.Set(ctx, uidA, nil, job), errArchiveJobOtherUser)
+	statuses, running := archiveStatuses(r)
+	require.NotContains(t, statuses, job.Request.JobID)
+	require.Zero(t, running)
+
+	require.NoError(t, r.Set(ctx, uidB, nil, job))
+	statuses, _ = archiveStatuses(r)
+	require.Contains(t, statuses, job.Request.JobID)
 }
 
 // A pause that lands while launched jobs have not registered yet leaves them
@@ -416,7 +448,7 @@ func TestArchiveEndedLaunchKeepsLaterLaunch(t *testing.T) {
 		case 1:
 			pauseCh := make(chan struct{})
 			job := chat1.ArchiveChatJob{Request: req, Status: chat1.ArchiveChatJobStatus_RUNNING}
-			if err := r.Set(ctx, func() { close(pauseCh) }, job); err != nil {
+			if err := r.Set(ctx, uid, func() { close(pauseCh) }, job); err != nil {
 				return err
 			}
 			<-pauseCh

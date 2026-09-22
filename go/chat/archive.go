@@ -82,6 +82,11 @@ var _ error = ArchiveJobNotFoundError{}
 // running while the app is out of the foreground, so the job stops at once.
 var errArchiveJobBackgroundPaused = errors.New("archive job paused: app not in foreground")
 
+// errArchiveJobOtherUser is returned by Set for a job of a user other than the
+// one the registry runs for: one launched before a logout, still running into
+// the next user's run.
+var errArchiveJobOtherUser = errors.New("archive job belongs to another user")
+
 func NewChatArchiveRegistry(g *globals.Context, remoteClient func() chat1.RemoteInterface) *ChatArchiveRegistry {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
 		return storage.GetSecretBoxKey(ctx, g.ExternalG())
@@ -448,10 +453,16 @@ func (r *ChatArchiveRegistry) Delete(ctx context.Context, jobID chat1.ArchiveJob
 	return nil
 }
 
-func (r *ChatArchiveRegistry) Set(ctx context.Context, cancel types.PauseArchiveFn, job chat1.ArchiveChatJob) (err error) {
+func (r *ChatArchiveRegistry) Set(ctx context.Context, uid gregor1.UID, cancel types.PauseArchiveFn, job chat1.ArchiveChatJob) (err error) {
 	defer r.Trace(ctx, &err, "Set(%v) -> %v", job.Request.JobID, job.Status)()
 	r.Lock()
 	defer r.Unlock()
+	if !r.uid.Eq(uid) {
+		if cancel != nil {
+			cancel()
+		}
+		return errArchiveJobOtherUser
+	}
 	err = r.initLocked(ctx)
 	if err != nil {
 		return err
@@ -629,7 +640,7 @@ func (c *ChatArchiver) checkpointConv(ctx context.Context, f *os.File, checkpoin
 	// Add this conv's individual progress.
 	job.Checkpoints[convID.DbShortFormString()] = checkpoint
 
-	err = c.G().ArchiveRegistry.Set(ctx, nil, *job)
+	err = c.G().ArchiveRegistry.Set(ctx, c.uid, nil, *job)
 	return job.MessagesComplete, job.MessagesTotal, err
 }
 
@@ -801,7 +812,7 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatJob
 			}
 
 			// Write even if our context was canceled
-			ierr := c.G().ArchiveRegistry.Set(context.TODO(), nil, jobInfo)
+			ierr := c.G().ArchiveRegistry.Set(context.TODO(), c.uid, nil, jobInfo)
 			if ierr != nil {
 				c.Debug(ctx, "ArchiveChat.cleanup %v", ierr)
 			}
@@ -816,7 +827,7 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatJob
 	jobInfo.Err = ""
 
 	// Update the store ASAP, we will update it again once we resolve the inbox query but that may take some time.
-	err = c.G().ArchiveRegistry.Set(ctx, pause, jobInfo)
+	err = c.G().ArchiveRegistry.Set(ctx, c.uid, pause, jobInfo)
 	if err != nil {
 		return "", err
 	}
@@ -851,7 +862,7 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatJob
 
 	jobInfo.MessagesTotal = totalMsgs
 	jobInfo.MatchingConvs = utils.PresentConversationLocals(ctx, c.G(), c.uid, convs, utils.PresentParticipantsModeSkip)
-	err = c.G().ArchiveRegistry.Set(ctx, nil, jobInfo)
+	err = c.G().ArchiveRegistry.Set(ctx, c.uid, nil, jobInfo)
 	if err != nil {
 		return "", err
 	}
