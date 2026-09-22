@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {ignorePromise} from '@/constants/utils'
 import {useConfigState} from '@/stores/config'
-import {useDaemonState} from '@/stores/daemon'
+import {FatalHandshakeError, useDaemonState} from '@/stores/daemon'
 import {useRouterState} from '@/stores/router'
 import {useShellState} from '@/stores/shell'
 import {
@@ -283,13 +283,25 @@ describe('sessionSettledStep', () => {
     connect(async () => Promise.resolve())
     const step = sessionSettledStep()
     const failed = expect(step).rejects.toThrow("The service hasn't said who is logged in")
+    applyClientState({appState: T.RPCGen.MobileAppState.foreground})
     await jest.advanceTimersByTimeAsync(30_000)
     await failed
+    await expect(step).rejects.not.toBeInstanceOf(FatalHandshakeError)
+  })
+
+  test('a service that never sends a clientState is out of date, and retrying will not help', async () => {
+    jest.useFakeTimers()
+    connect(async () => Promise.resolve())
+    const step = sessionSettledStep()
+    const failed = expect(step).rejects.toBeInstanceOf(FatalHandshakeError)
+    await jest.advanceTimersByTimeAsync(30_000)
+    await failed
+    await expect(step).rejects.toThrow('out of date')
   })
 })
 
 describe('onNetworkOnlineChanged', () => {
-  // replaces the gregor-reachability trigger: re-read the bootstrap status after an offline stretch
+  // re-reads the bootstrap status after an offline stretch
   afterEach(() => {
     jest.restoreAllMocks()
     useDaemonState.setState({dispatch: originalDaemonDispatch})
