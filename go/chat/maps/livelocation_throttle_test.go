@@ -26,94 +26,105 @@ func TestShouldRecordFix(t *testing.T) {
 		last   fixThrottle
 		next   chat1.Coordinate
 		record bool
-		after  fixThrottle
 	}{
 		{
 			name:   "first fix since the watch started, in the background",
 			state:  keybase1.MobileAppState_BACKGROUND,
 			next:   origin,
 			record: true,
-			after:  fixThrottle{prev: at(origin)},
 		},
 		{
 			name:   "any move in the foreground",
 			state:  keybase1.MobileAppState_FOREGROUND,
-			last:   fixThrottle{prev: at(origin), pendingDistance: 3},
+			last:   fixThrottle{lastRecorded: at(origin)},
 			next:   north(origin, 1),
 			record: true,
-			after:  fixThrottle{prev: at(north(origin, 1))},
 		},
 		{
 			name:   "short move in the background",
 			state:  keybase1.MobileAppState_BACKGROUND,
-			last:   fixThrottle{prev: at(origin)},
+			last:   fixThrottle{lastRecorded: at(origin)},
 			next:   north(origin, 10),
 			record: false,
-			after:  fixThrottle{prev: at(north(origin, 10)), pendingDistance: 10},
 		},
 		{
 			name:   "short move while background work runs",
 			state:  keybase1.MobileAppState_BACKGROUNDACTIVE,
-			last:   fixThrottle{prev: at(origin)},
+			last:   fixThrottle{lastRecorded: at(origin)},
 			next:   north(origin, 10),
 			record: false,
-			after:  fixThrottle{prev: at(north(origin, 10)), pendingDistance: 10},
 		},
 		{
 			name:   "short move while on screen but not active",
 			state:  keybase1.MobileAppState_INACTIVE,
-			last:   fixThrottle{prev: at(origin)},
+			last:   fixThrottle{lastRecorded: at(origin)},
 			next:   north(origin, 10),
 			record: false,
-			after:  fixThrottle{prev: at(north(origin, 10)), pendingDistance: 10},
 		},
 		{
 			name:   "long move in the background",
 			state:  keybase1.MobileAppState_BACKGROUND,
-			last:   fixThrottle{prev: at(origin)},
+			last:   fixThrottle{lastRecorded: at(origin)},
 			next:   north(origin, 100),
 			record: true,
-			after:  fixThrottle{prev: at(north(origin, 100))},
 		},
 		{
-			name:   "unrecorded moves add up to the distance",
+			name:   "just past the distance",
 			state:  keybase1.MobileAppState_BACKGROUND,
-			last:   fixThrottle{prev: at(origin), pendingDistance: 60},
-			next:   north(origin, 10),
+			last:   fixThrottle{lastRecorded: at(origin)},
+			next:   north(origin, 65.1),
 			record: true,
-			after:  fixThrottle{prev: at(north(origin, 10))},
-		},
-		{
-			name:   "the distance is along the path, not from the last recorded fix",
-			state:  keybase1.MobileAppState_BACKGROUND,
-			last:   fixThrottle{prev: at(north(origin, 40)), pendingDistance: 40},
-			next:   origin,
-			record: true,
-			after:  fixThrottle{prev: at(origin)},
-		},
-		{
-			name:   "exactly the distance",
-			state:  keybase1.MobileAppState_BACKGROUND,
-			last:   fixThrottle{prev: at(origin), pendingDistance: 65},
-			next:   origin,
-			record: true,
-			after:  fixThrottle{prev: at(origin)},
 		},
 		{
 			name:   "just short of the distance",
 			state:  keybase1.MobileAppState_BACKGROUND,
-			last:   fixThrottle{prev: at(origin), pendingDistance: 64.9},
-			next:   origin,
+			last:   fixThrottle{lastRecorded: at(origin)},
+			next:   north(origin, 64.9),
 			record: false,
-			after:  fixThrottle{prev: at(origin), pendingDistance: 64.9},
 		},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			record, after := shouldRecordFix(c.state, c.last, c.next)
 			require.Equal(t, c.record, record)
-			require.Equal(t, c.after.prev, after.prev)
-			require.InDelta(t, c.after.pendingDistance, after.pendingDistance, 1e-6)
+			want := c.last
+			if c.record {
+				want.lastRecorded = at(c.next)
+			}
+			require.Equal(t, want, after)
 		})
 	}
+}
+
+// recordedAt feeds fixes to a fresh throttle in the background and returns the
+// indexes of the ones it records.
+func recordedAt(fixes []chat1.Coordinate) (recorded []int) {
+	var throttle fixThrottle
+	for i, fix := range fixes {
+		var record bool
+		record, throttle = shouldRecordFix(keybase1.MobileAppState_BACKGROUND, throttle, fix)
+		if record {
+			recorded = append(recorded, i)
+		}
+	}
+	return recorded
+}
+
+func TestShouldRecordFixIgnoresJitter(t *testing.T) {
+	origin := chat1.Coordinate{Lat: 37.7749, Lon: -122.4194, Accuracy: 100}
+	fixes := []chat1.Coordinate{origin}
+	for i := 0; i < 20; i++ {
+		fixes = append(fixes, north(origin, 40), north(origin, -40))
+	}
+	require.Equal(t, []int{0}, recordedAt(fixes))
+}
+
+func TestShouldRecordFixSlowDrift(t *testing.T) {
+	origin := chat1.Coordinate{Lat: 37.7749, Lon: -122.4194, Accuracy: 10}
+	var fixes []chat1.Coordinate
+	for i := 0; i <= 14; i++ {
+		fixes = append(fixes, north(origin, float64(10*i)))
+	}
+	// 70m from origin at fix 7, then 70m from that at fix 14.
+	require.Equal(t, []int{0, 7, 14}, recordedAt(fixes))
 }

@@ -478,27 +478,22 @@ const earthRadiusMeters = 6371008.8
 // fixThrottle is what shouldRecordFix knows of the fixes since the native
 // watch started.
 type fixThrottle struct {
-	// prev is the latest fix, recorded or not; nil until the first one.
-	prev *chat1.Coordinate
-	// pendingDistance is how far the device has moved, fix to fix, since the
-	// last recorded fix.
-	pendingDistance float64
+	// lastRecorded is the latest recorded fix; nil until the first one.
+	lastRecorded *chat1.Coordinate
 }
 
 // shouldRecordFix decides whether a native fix gets recorded, and returns the
 // throttle to use for the next one. Out of the foreground a fix is recorded
-// only once the device has moved backgroundFixDistance since the last one
-// recorded. The first fix after the watch starts is recorded right away, so the
-// move that relaunched the app gets posted.
+// only once it lies backgroundFixDistance in a straight line from the last one
+// recorded, so a stationary device's GPS jitter, which wanders back and forth
+// around one spot, never adds up to a move. The first fix after the watch
+// starts is recorded right away, so the move that relaunched the app gets
+// posted.
 func shouldRecordFix(state keybase1.MobileAppState, last fixThrottle, next chat1.Coordinate) (bool, fixThrottle) {
-	if last.prev != nil {
-		last.pendingDistance += distanceMeters(*last.prev, next)
-	}
-	record := last.prev == nil || state == keybase1.MobileAppState_FOREGROUND ||
-		last.pendingDistance >= backgroundFixDistance
-	last.prev = &next
+	record := last.lastRecorded == nil || state == keybase1.MobileAppState_FOREGROUND ||
+		distanceMeters(*last.lastRecorded, next) >= backgroundFixDistance
 	if record {
-		last.pendingDistance = 0
+		last.lastRecorded = &next
 	}
 	return record, last
 }
