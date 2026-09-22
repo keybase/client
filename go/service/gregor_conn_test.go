@@ -298,7 +298,7 @@ func (c *gregorConnTest) requireStaysDown(t *testing.T, why string) {
 	connects := c.conn.counts().connects
 	for _, state := range allAppStates {
 		c.update(t, state)
-		c.gate.reconnect(context.Background())
+		c.gate.reconnect(context.Background(), context.Background())
 		c.requireUp(t, false, fmt.Sprintf("connected in %v %s", state, why))
 	}
 	require.Equal(t, connects, c.conn.counts().connects, "connect attempted "+why)
@@ -377,7 +377,7 @@ func TestGregorConnReconnectInBackground(t *testing.T) {
 	uri := testGregorURI(t, "gregord.test")
 	require.NoError(t, c.gate.connect(context.Background(), uri, false))
 
-	c.gate.reconnect(context.Background())
+	c.gate.reconnect(context.Background(), context.Background())
 	require.Equal(t, fakeGregorCounts{up: true, connects: 2, shutdowns: 1}, c.conn.counts())
 
 	// A connection left up while BACKGROUND lands, as when a ping times out
@@ -387,11 +387,11 @@ func TestGregorConnReconnectInBackground(t *testing.T) {
 	c.gate.mu.Unlock()
 	c.waitMonitor(t)
 	require.NoError(t, c.conn.connectNow(uri))
-	c.gate.reconnect(context.Background())
+	c.gate.reconnect(context.Background(), context.Background())
 	c.requireUp(t, false, "reconnect connected in BACKGROUND")
 	require.Equal(t, fakeGregorCounts{connects: 3, shutdowns: 3}, c.conn.counts())
 
-	c.gate.reconnect(context.Background())
+	c.gate.reconnect(context.Background(), context.Background())
 	c.requireUp(t, false, "reconnect connected while disconnected")
 	require.Equal(t, fakeGregorCounts{connects: 3, shutdowns: 3}, c.conn.counts())
 }
@@ -414,7 +414,7 @@ func TestGregorConnReconnectRequestsCoalesce(t *testing.T) {
 	go func() {
 		defer close(done)
 		for range 10 {
-			gate.requestReconnect(context.Background())
+			gate.requestReconnect(context.Background(), context.Background())
 		}
 	}()
 	select {
@@ -468,7 +468,7 @@ func TestGregorReconnectWhileSuspendedDoesNotConnect(t *testing.T) {
 	c.gate.mu.Unlock()
 	c.waitMonitor(t)
 	require.NoError(t, c.conn.connectNow(uri))
-	c.gate.reconnect(context.Background())
+	c.gate.reconnect(context.Background(), context.Background())
 	c.requireUp(t, false, "reconnect connected while suspended")
 	require.Equal(t, fakeGregorCounts{connects: 2, shutdowns: 2}, c.conn.counts())
 
@@ -522,7 +522,7 @@ func TestGregorConnStress(t *testing.T) {
 				case 2:
 					_ = gate.forget(ctx)
 				default:
-					gate.requestReconnect(ctx)
+					gate.requestReconnect(ctx, ctx)
 				}
 				runtime.Gosched()
 			}
@@ -831,12 +831,14 @@ func TestGregorHandlerTerminalFailureRedialsOnPing(t *testing.T) {
 	defer h.Shutdown(context.Background())
 	require.NoError(t, h.Connect(a.uri(t)))
 	requireStale(t, h, a, 1)
-	start := a.accepts.Load()
-	time.Sleep(time.Second)
-	redials := a.accepts.Load() - start
-	t.Logf("%d redials in 1s", redials)
-	require.GreaterOrEqual(t, redials, int64(3), "ping loop did not redial a failed connection")
-	require.LessOrEqual(t, redials, int64(13), "redialing faster than the ping interval")
+	// Bounds on elapsed time rather than on a count in a fixed window, so a
+	// slow machine can only make this take longer.
+	start, began := a.accepts.Load(), time.Now()
+	require.Eventually(t, func() bool { return a.accepts.Load()-start >= 3 }, 10*time.Second, time.Millisecond,
+		"ping loop did not redial a failed connection")
+	elapsed := time.Since(began)
+	t.Logf("3 redials in %v", elapsed)
+	require.GreaterOrEqual(t, elapsed, 200*time.Millisecond, "redialing faster than the ping interval")
 	require.True(t, hasConn(h), "failed connection was torn down")
 }
 
@@ -1297,4 +1299,90 @@ func TestGregorOnConnectSyncAllHost(t *testing.T) {
 	rec.mu.Lock()
 	defer rec.mu.Unlock()
 	require.Equal(t, []string{uri.Host}, rec.hosts)
+}
+
+// A reconnect for a connection that has since been shut down does nothing:
+// run directly, or queued before the replacement and run by the monitor.
+func TestGregorConnReconnectSkipsReplacedConn(t *testing.T) {
+	c := setupGregorConn(t, keybase1.MobileAppState_FOREGROUND)
+	c.waitMonitor(t)
+	require.NoError(t, c.gate.connect(context.Background(), testGregorURI(t, "gregord.test"), false))
+	want := fakeGregorCounts{up: true, connects: 1}
+
+	replaced, cancel := context.WithCancel(context.Background())
+	cancel()
+	c.gate.reconnect(context.Background(), replaced)
+	c.gate.reconnect(context.Background(), nil)
+	require.Equal(t, want, c.conn.counts(), "reconnected a replaced connection")
+
+	queued, cancelQueued := context.WithCancel(context.Background())
+	c.gate.mu.Lock()
+	c.gate.requestReconnect(context.Background(), queued)
+	cancelQueued()
+	c.gate.mu.Unlock()
+	require.Eventually(t, func() bool { return len(c.gate.reconnectCh) == 0 }, 10*time.Second, time.Millisecond)
+	c.waitMonitor(t)
+	require.Equal(t, want, c.conn.counts(), "a queued reconnect tore down a newer connection")
+
+	// A request for a replaced connection does not displace a pending one
+	// for the live connection.
+	c.gate.mu.Lock()
+	c.gate.requestReconnect(context.Background(), context.Background())
+	c.gate.requestReconnect(context.Background(), replaced)
+	c.gate.mu.Unlock()
+	want = fakeGregorCounts{up: true, connects: 2, shutdowns: 1}
+	require.Eventually(t, func() bool { return c.conn.counts() == want }, 10*time.Second, time.Millisecond,
+		"the live connection's reconnect was dropped")
+}
+
+// OnDisconnected from a connection that has been shut down, as a reconnect
+// loop started on it after Shutdown reports, leaves the current connection's
+// state alone.
+func TestGregorOnDisconnectedIgnoresReplacedConn(t *testing.T) {
+	tc, g := setupGregorTest(t)
+	defer tc.Cleanup()
+	syncer := &fakeSyncer{}
+	g.Syncer = syncer
+	h := newGregorHandler(g)
+	// No real connection, whose own reconnect loop would report too.
+	h.connCtx, h.connCancel = context.WithCancel(context.Background())
+	defer h.connCancel()
+	markConnected := func() {
+		syncer.mu.Lock()
+		syncer.connected = true
+		syncer.mu.Unlock()
+		h.setConnectedAt(time.Now())
+	}
+
+	replaced, cancel := context.WithCancel(context.Background())
+	cancel()
+	markConnected()
+	(&gregorConnHandler{gregorHandler: h, connCtx: replaced}).OnDisconnected(context.Background(),
+		rpc.StartingNonFirstConnection)
+	require.True(t, syncer.IsConnected(context.Background()), "a replaced connection marked the syncer offline")
+	require.False(t, h.connectedSince().IsZero(), "a replaced connection cleared connectedAt")
+
+	(&gregorConnHandler{gregorHandler: h, connCtx: h.currentConnCtx()}).OnDisconnected(context.Background(),
+		rpc.StartingNonFirstConnection)
+	require.False(t, syncer.IsConnected(context.Background()), "the current connection did not mark the syncer offline")
+	require.True(t, h.connectedSince().IsZero(), "the current connection did not clear connectedAt")
+}
+
+// A replay queued for a user who has since logged out does not run.
+func TestGregorReplaySkipsLoggedOutUser(t *testing.T) {
+	tc, g := setupGregorTest(t)
+	defer tc.Cleanup()
+	h := newGregorHandler(g)
+	h.testingEvents = newTestingEvents()
+	go h.syncReplayThread()
+	defer close(h.replayCh)
+
+	h.replayCh <- replayThreadArg{ctx: context.Background(), uid: gregor1.UID(make([]byte, 16))}
+	select {
+	case res := <-h.testingEvents.replayThreadCh:
+		require.NoError(t, res.err, "replayed for a logged-out user")
+		require.Empty(t, res.replayed)
+	case <-time.After(10 * time.Second):
+		t.Fatal("replay thread did not report")
+	}
 }

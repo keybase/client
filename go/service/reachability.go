@@ -80,7 +80,7 @@ func (h *reachability) setReachability(r keybase1.Reachability) {
 }
 
 func (h *reachability) check(ctx context.Context) (k keybase1.Reachability) {
-	reachable := h.gh.isReachable(ctx)
+	reachable := h.gh.isReachable(ctx, h.gh.currentConnCtx())
 	if reachable {
 		k.Reachable = keybase1.Reachable_YES
 	} else {

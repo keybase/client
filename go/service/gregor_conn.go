@@ -64,9 +64,13 @@ type gregorConnGate struct {
 	monitorWait        <-chan struct{}
 	monitorSuspendWait <-chan struct{}
 
-	// reconnectCh holds at most one reconnect request for the monitor, so a
-	// burst of requests coalesces.
-	reconnectCh chan struct{}
+	// reconnectCh holds at most one wakeup for the monitor, so a burst of
+	// reconnect requests coalesces. reconnectFor is the ctx of the connection
+	// the pending request is for; the monitor skips it once that connection
+	// has been shut down, so a request never tears down a newer one.
+	reconnectCh  chan struct{}
+	reconnectMu  sync.Mutex
+	reconnectFor context.Context
 
 	startOnce   sync.Once
 	stopOnce    sync.Once
@@ -132,8 +136,16 @@ func (c *gregorConnGate) forget(ctx context.Context) error {
 	return c.conn.Reset()
 }
 
-// requestReconnect asks the monitor to reconnect and returns without waiting.
-func (c *gregorConnGate) requestReconnect(ctx context.Context) {
+// requestReconnect asks the monitor to reconnect the connection whose ctx is
+// conn, and returns without waiting. A pending request for a connection that
+// is still live is kept over a newer one, which can only be for that
+// connection or for one already shut down.
+func (c *gregorConnGate) requestReconnect(ctx context.Context, conn context.Context) {
+	c.reconnectMu.Lock()
+	if c.reconnectFor == nil || c.reconnectFor.Err() != nil {
+		c.reconnectFor = conn
+	}
+	c.reconnectMu.Unlock()
 	select {
 	case c.reconnectCh <- struct{}{}:
 		c.debug(ctx, "Reconnect: requested")
@@ -142,11 +154,24 @@ func (c *gregorConnGate) requestReconnect(ctx context.Context) {
 	}
 }
 
-// reconnect drops a live connection and connects again when reconcile allows
-// it.
-func (c *gregorConnGate) reconnect(ctx context.Context) {
+func (c *gregorConnGate) takeReconnect() context.Context {
+	c.reconnectMu.Lock()
+	defer c.reconnectMu.Unlock()
+	conn := c.reconnectFor
+	c.reconnectFor = nil
+	return conn
+}
+
+// reconnect drops the connection whose ctx is conn, if it is still the live
+// one, and connects again when reconcile allows it. Shutdown cancels a
+// connection's ctx under mu, so the check holds for the whole reconnect.
+func (c *gregorConnGate) reconnect(ctx context.Context, conn context.Context) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	if conn == nil || conn.Err() != nil {
+		c.debug(ctx, "Reconnect: skipping reconnect, the connection was already replaced")
+		return
+	}
 	if !c.conn.IsConnected() {
 		c.debug(ctx, "Reconnect: skipping reconnect, already disconnected")
 		return
@@ -197,7 +222,7 @@ func (c *gregorConnGate) monitor(ctx context.Context, state keybase1.MobileAppSt
 		case <-next:
 		case <-nextSuspend:
 		case <-c.reconnectCh:
-			c.reconnect(ctx)
+			c.reconnect(ctx, c.takeReconnect())
 			continue
 		case <-c.stopCh:
 			return
