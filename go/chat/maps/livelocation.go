@@ -468,8 +468,8 @@ func (l *LiveLocationTracker) StartTracking(ctx context.Context, convID chat1.Co
 	l.eg.Go(func() error { return l.tracker(t) })
 }
 
-// backgroundFixDistance is how far, in meters, the device must move before a
-// native fix is recorded while the app is not in the foreground.
+// backgroundFixDistance is the least distance, in meters, the device must move
+// before a native fix is recorded while the app is not in the foreground.
 const backgroundFixDistance = 65
 
 // earthRadiusMeters is the mean radius of the Earth.
@@ -484,14 +484,24 @@ type fixThrottle struct {
 
 // shouldRecordFix decides whether a native fix gets recorded, and returns the
 // throttle to use for the next one. Out of the foreground a fix is recorded
-// only once it lies backgroundFixDistance in a straight line from the last one
-// recorded, so a stationary device's GPS jitter, which wanders back and forth
-// around one spot, never adds up to a move. The first fix after the watch
+// only once it lies, in a straight line from the last one recorded, at least
+// backgroundFixDistance and at least both fixes' accuracies added together:
+// closer than that, the two could be the same spot, so a stationary device's
+// jitter never counts as a move, even when the fix it is measured from was
+// itself an outlier. A fix less than half as uncertain as the last recorded
+// one is recorded too, so a coarse cold fix gets replaced once the device
+// locks on instead of holding the throttle wide open; an accuracy of 0 means
+// unknown and never counts as better. The first fix after the watch
 // starts is recorded right away, so the move that relaunched the app gets
 // posted.
 func shouldRecordFix(state keybase1.MobileAppState, last fixThrottle, next chat1.Coordinate) (bool, fixThrottle) {
-	record := last.lastRecorded == nil || state == keybase1.MobileAppState_FOREGROUND ||
-		distanceMeters(*last.lastRecorded, next) >= backgroundFixDistance
+	record := last.lastRecorded == nil || state == keybase1.MobileAppState_FOREGROUND
+	if !record {
+		anchor := *last.lastRecorded
+		minMove := math.Max(backgroundFixDistance, anchor.Accuracy+next.Accuracy)
+		record = distanceMeters(anchor, next) >= minMove ||
+			(next.Accuracy > 0 && next.Accuracy < anchor.Accuracy/2)
+	}
 	if record {
 		last.lastRecorded = &next
 	}

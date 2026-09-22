@@ -16,6 +16,11 @@ func north(c chat1.Coordinate, meters float64) chat1.Coordinate {
 	return c
 }
 
+func withAccuracy(c chat1.Coordinate, accuracy float64) chat1.Coordinate {
+	c.Accuracy = accuracy
+	return c
+}
+
 func TestShouldRecordFix(t *testing.T) {
 	origin := chat1.Coordinate{Lat: 37.7749, Lon: -122.4194, Accuracy: 10}
 	at := func(c chat1.Coordinate) *chat1.Coordinate { return &c }
@@ -76,6 +81,27 @@ func TestShouldRecordFix(t *testing.T) {
 			record: true,
 		},
 		{
+			name:   "long move with a coarse fix",
+			state:  keybase1.MobileAppState_BACKGROUND,
+			last:   fixThrottle{lastRecorded: at(origin)},
+			next:   withAccuracy(north(origin, 100), 100),
+			record: false,
+		},
+		{
+			name:   "move past both accuracies",
+			state:  keybase1.MobileAppState_BACKGROUND,
+			last:   fixThrottle{lastRecorded: at(origin)},
+			next:   withAccuracy(north(origin, 111), 100),
+			record: true,
+		},
+		{
+			name:   "short move with unknown accuracy",
+			state:  keybase1.MobileAppState_BACKGROUND,
+			last:   fixThrottle{lastRecorded: at(origin)},
+			next:   withAccuracy(north(origin, 10), 0),
+			record: false,
+		},
+		{
 			name:   "just short of the distance",
 			state:  keybase1.MobileAppState_BACKGROUND,
 			last:   fixThrottle{lastRecorded: at(origin)},
@@ -127,4 +153,25 @@ func TestShouldRecordFixSlowDrift(t *testing.T) {
 	}
 	// 70m from origin at fix 7, then 70m from that at fix 14.
 	require.Equal(t, []int{0, 7, 14}, recordedAt(fixes))
+}
+
+func TestShouldRecordFixIgnoresJitterAroundOutlierAnchor(t *testing.T) {
+	center := chat1.Coordinate{Lat: 37.7749, Lon: -122.4194}
+	fixes := []chat1.Coordinate{withAccuracy(north(center, 40), 100)}
+	for i := 0; i < 20; i++ {
+		fixes = append(fixes,
+			withAccuracy(north(center, -40), 65),
+			withAccuracy(north(center, 40), 100))
+	}
+	require.Equal(t, []int{0}, recordedAt(fixes))
+}
+
+func TestShouldRecordFixReplacesCoarseAnchor(t *testing.T) {
+	center := chat1.Coordinate{Lat: 37.7749, Lon: -122.4194, Accuracy: 10}
+	coarse := north(center, 300)
+	coarse.Accuracy = 1000
+	fixes := []chat1.Coordinate{coarse, center, north(center, 20), north(center, -20), north(center, 70)}
+	// The locked-on fix replaces the coarse one, jitter around it is ignored,
+	// and a real move from it is recorded.
+	require.Equal(t, []int{0, 1, 4}, recordedAt(fixes))
 }
