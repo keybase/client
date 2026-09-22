@@ -95,6 +95,34 @@ func TestShouldRecordFix(t *testing.T) {
 			record: true,
 		},
 		{
+			name:   "coarse fixes, just short of the cap",
+			state:  keybase1.MobileAppState_BACKGROUND,
+			last:   fixThrottle{lastRecorded: at(withAccuracy(origin, 3000))},
+			next:   withAccuracy(north(origin, 199.9), 3000),
+			record: false,
+		},
+		{
+			name:   "coarse fixes, just past the cap",
+			state:  keybase1.MobileAppState_BACKGROUND,
+			last:   fixThrottle{lastRecorded: at(withAccuracy(origin, 3000))},
+			next:   withAccuracy(north(origin, 200.1), 3000),
+			record: true,
+		},
+		{
+			name:   "accuracies summing to just under the cap",
+			state:  keybase1.MobileAppState_BACKGROUND,
+			last:   fixThrottle{lastRecorded: at(withAccuracy(origin, 90))},
+			next:   withAccuracy(north(origin, 189), 100),
+			record: false,
+		},
+		{
+			name:   "accuracies summing to just under the cap, moved past them",
+			state:  keybase1.MobileAppState_BACKGROUND,
+			last:   fixThrottle{lastRecorded: at(withAccuracy(origin, 90))},
+			next:   withAccuracy(north(origin, 190.1), 100),
+			record: true,
+		},
+		{
 			name:   "short move with unknown accuracy",
 			state:  keybase1.MobileAppState_BACKGROUND,
 			last:   fixThrottle{lastRecorded: at(origin)},
@@ -174,4 +202,15 @@ func TestShouldRecordFixReplacesCoarseAnchor(t *testing.T) {
 	// The locked-on fix replaces the coarse one, jitter around it is ignored,
 	// and a real move from it is recorded.
 	require.Equal(t, []int{0, 1, 4}, recordedAt(fixes))
+}
+
+func TestShouldRecordFixCoarseFixesStillRecordMoves(t *testing.T) {
+	// Approximate Location reports every fix kilometres wide, so the fixes
+	// alone can never tell a move from jitter; a steady drive still records.
+	origin := chat1.Coordinate{Lat: 37.7749, Lon: -122.4194, Accuracy: 3000}
+	var fixes []chat1.Coordinate
+	for i := 0; i <= 4; i++ {
+		fixes = append(fixes, north(origin, float64(250*i)))
+	}
+	require.Equal(t, []int{0, 1, 2, 3, 4}, recordedAt(fixes))
 }
