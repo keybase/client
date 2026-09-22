@@ -1139,3 +1139,14 @@ func badgerResync(ctx context.Context, t testing.TB, b *badges.Badger, chatRemot
 	b.PushChatFullUpdate(ctx, update)
 	b.PushState(ctx, state)
 }
+
+func TestMobileMonitorAction(t *testing.T) {
+	for state, want := range map[keybase1.MobileAppState]int{
+		keybase1.MobileAppState_FOREGROUND:       monitorConnect,
+		keybase1.MobileAppState_INACTIVE:         monitorConnect,
+		keybase1.MobileAppState_BACKGROUNDACTIVE: monitorConnect,
+		keybase1.MobileAppState_BACKGROUND:       monitorDisconnect,
+	} {
+		require.Equal(t, want, mobileMonitorAction(state), "state %v", state)
+	}
+}

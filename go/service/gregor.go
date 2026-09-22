@@ -269,6 +269,22 @@ const (
 	monitorNoop
 )
 
+// mobileMonitorAction keeps gregor connected in every state but BACKGROUND.
+// INACTIVE is also the scene coming to the foreground before it is active, so
+// connecting there has gregor up before React Native resumes painting, and
+// leaves a connection a background hold kept open in place.
+func mobileMonitorAction(state keybase1.MobileAppState) int {
+	switch state {
+	case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE,
+		keybase1.MobileAppState_INACTIVE:
+		return monitorConnect
+	case keybase1.MobileAppState_BACKGROUND:
+		return monitorDisconnect
+	default:
+		return monitorNoop
+	}
+}
+
 func (g *gregorHandler) monitorAppState() {
 	ctx := libkb.WithLogTag(context.Background(), "GRGRMON")
 	// Wait for state updates and react accordingly
@@ -279,15 +295,10 @@ func (g *gregorHandler) monitorAppState() {
 		select {
 		case <-g.G().MobileAppState.NextUpdate(state):
 			state = g.G().MobileAppState.State()
-			switch state {
-			case keybase1.MobileAppState_FOREGROUND:
+			if state == keybase1.MobileAppState_FOREGROUND {
 				g.forcePing(ctx)
-				monitorAction = monitorConnect
-			case keybase1.MobileAppState_BACKGROUNDACTIVE:
-				monitorAction = monitorConnect
-			case keybase1.MobileAppState_BACKGROUND, keybase1.MobileAppState_INACTIVE:
-				monitorAction = monitorDisconnect
 			}
+			monitorAction = mobileMonitorAction(state)
 		case <-g.G().DesktopAppState.NextSuspendUpdate(suspended):
 			suspended = g.G().DesktopAppState.Suspended()
 			if !suspended {
