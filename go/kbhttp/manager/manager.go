@@ -118,10 +118,13 @@ func (r *Srv) monitorAppState() {
 	for {
 		<-r.G().MobileAppState.NextUpdate(state)
 		state = r.G().MobileAppState.State()
+		// Only BACKGROUND stops the server. INACTIVE is transient (control
+		// center, the app switcher, an incoming call), as gregor also treats it.
 		switch state {
-		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
+		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE,
+			keybase1.MobileAppState_INACTIVE:
 			r.startHTTPSrv()
-		case keybase1.MobileAppState_BACKGROUND, keybase1.MobileAppState_INACTIVE:
+		case keybase1.MobileAppState_BACKGROUND:
 			r.httpSrv.Stop()
 		}
 	}
