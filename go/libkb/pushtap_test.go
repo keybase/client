@@ -62,7 +62,6 @@ func TestResolvePushTap(t *testing.T) {
 		},
 		{"read receipt", `{"type":"chat.readmessage","b":0,"message":"Your contact x"}`, nil},
 		{"silent chat", `{"type":"chat.newmessageSilent_2","c":"0000ab"}`, nil},
-		{"extension", `{"type":"chat.extension","convID":"0000ab"}`, nil},
 		{"autoreset", `{"type":"autoreset","uid":"u1"}`, nil},
 		{"failed pending", `{"type":"chat.failedpending","convID":"0000ab","uid":""}`, nil},
 		{"an unknown type opens nothing", `{"type":"something.new","uid":"u1"}`, nil},

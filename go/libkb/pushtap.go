@@ -78,7 +78,6 @@ func (p *PendingPushTap) Ack(id int) bool {
 // are acted on natively and here, and have no screen of their own.
 var pushTapNoRouteTypes = map[string]bool{
 	"autoreset":               true,
-	"chat.extension":          true,
 	"chat.failedpending":      true,
 	"chat.newmessageSilent_2": true,
 	"chat.readmessage":        true,
