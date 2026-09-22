@@ -76,10 +76,10 @@ func (a *MobileAppState) NextUpdate(lastState keybase1.MobileAppState) <-chan st
 	return a.changed
 }
 
-func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) (changed bool) {
+func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) {
 	if a.state == state {
 		a.G().Log.Debug("MobileAppState.Update: same-value update: %v", state)
-		return false
+		return
 	}
 	a.G().Log.Debug("MobileAppState.Update: useful update: %v, we are currently in state: %v",
 		state, a.state)
@@ -113,11 +113,10 @@ func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) (changed bo
 	// order is already the writing order; what is missing is one ordered
 	// stream per connection to carry it.
 	a.G().NotifyRouter.HandleMobileAppState(context.Background(), state)
-	return true
 }
 
-// Update sets the current app state and returns whether the value changed;
-// only a change wakes NextUpdate callers and has side effects.
+// Update sets the current app state; only a change wakes NextUpdate callers
+// and has side effects.
 //
 // Connected clients are told from here, the one place the value changes, which
 // is also before lifecycle's Flush hook runs. On iOS that is as early as a
@@ -127,11 +126,11 @@ func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) (changed bo
 // AppWaitBackgroundTask returns), not until clients have received it. A client
 // acting on the notification is racing the OS, and what it can lose is bounded
 // by whatever it last wrote of its own accord.
-func (a *MobileAppState) Update(state keybase1.MobileAppState) (changed bool) {
+func (a *MobileAppState) Update(state keybase1.MobileAppState) {
 	defer a.G().Trace(fmt.Sprintf("MobileAppState.Update(%v)", state), nil)()
 	a.Lock()
 	defer a.Unlock()
-	return a.updateLocked(state)
+	a.updateLocked(state)
 }
 
 // State returns the current app state

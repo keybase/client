@@ -41,12 +41,12 @@ func TestMobileAppStateSideEffectsOnlyOnChange(t *testing.T) {
 	defer tc.Cleanup()
 	a := NewMobileAppState(tc.G)
 
-	require.True(t, a.Update(keybase1.MobileAppState_BACKGROUND))
+	a.Update(keybase1.MobileAppState_BACKGROUND)
 	_, mtime := a.StateAndMtime()
 	require.NotNil(t, mtime)
 
 	next := a.NextUpdate(keybase1.MobileAppState_BACKGROUND)
-	require.False(t, a.Update(keybase1.MobileAppState_BACKGROUND))
+	a.Update(keybase1.MobileAppState_BACKGROUND)
 	requireOpen(t, next)
 	_, mtime2 := a.StateAndMtime()
 	require.Same(t, mtime, mtime2)
@@ -54,7 +54,7 @@ func TestMobileAppStateSideEffectsOnlyOnChange(t *testing.T) {
 	// A stale lastState wakes immediately.
 	requireClosed(t, a.NextUpdate(keybase1.MobileAppState_FOREGROUND))
 
-	require.True(t, a.Update(keybase1.MobileAppState_FOREGROUND))
+	a.Update(keybase1.MobileAppState_FOREGROUND)
 	requireClosed(t, next)
 }
 
@@ -69,10 +69,10 @@ func TestMobileAppStateBackgroundCancelsRPCsOnlyOnChange(t *testing.T) {
 	}
 
 	first := register()
-	require.True(t, a.Update(keybase1.MobileAppState_BACKGROUND))
+	a.Update(keybase1.MobileAppState_BACKGROUND)
 	requireClosed(t, first.Done())
 
 	second := register()
-	require.False(t, a.Update(keybase1.MobileAppState_BACKGROUND))
+	a.Update(keybase1.MobileAppState_BACKGROUND)
 	requireOpen(t, second.Done())
 }

@@ -44,7 +44,7 @@ const (
 // AppState is the part of libkb.MobileAppState the controller drives.
 type AppState interface {
 	State() keybase1.MobileAppState
-	Update(state keybase1.MobileAppState) (changed bool)
+	Update(state keybase1.MobileAppState)
 	NextUpdate(lastState keybase1.MobileAppState) <-chan struct{}
 }
 
