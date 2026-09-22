@@ -78,7 +78,7 @@ func TestHarnessCloseEndsRunningWork(t *testing.T) {
 		"background task": {
 			{Do: lifecycletest.DidBecomeActive, Want: keybase1.MobileAppState_FOREGROUND},
 			{Do: lifecycletest.WorkStarts, Want: keybase1.MobileAppState_FOREGROUND},
-			{Do: lifecycletest.DidEnterBackground, Want: bga, Flushes: 1, Returns: lifecycletest.ReturnTrue},
+			{Do: lifecycletest.DidEnterBackground, Want: bga, Returns: lifecycletest.ReturnTrue},
 		},
 	}
 	for name, steps := range cases {

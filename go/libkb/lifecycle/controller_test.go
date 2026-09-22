@@ -52,14 +52,15 @@ func TestHoldReleaseIsIdempotent(t *testing.T) {
 	require.Positive(t, token)
 	c.WaitBackgroundTask(token)
 	require.Equal(t, background, appState.State())
-	// Once, on leaving the foreground; hold changes in the background don't
-	// flush again.
 	require.Equal(t, 1, flushes)
+	// Entering BACKGROUNDACTIVE doesn't flush; ending its last hold does.
 	first := c.AcquireBackgroundWork()
 	require.Equal(t, backgroundActive, appState.State())
+	require.Equal(t, 1, flushes)
 	require.True(t, first.Release())
 	require.Zero(t, lifecycle.Holds(c))
 	require.Equal(t, background, appState.State())
+	require.Equal(t, 2, flushes)
 	second := c.AcquireBackgroundWork()
 	require.False(t, first.Release())
 	// The stale Release left the newer hold alone.
@@ -67,7 +68,7 @@ func TestHoldReleaseIsIdempotent(t *testing.T) {
 	require.Equal(t, backgroundActive, appState.State())
 	require.True(t, second.Release())
 	require.Equal(t, background, appState.State())
-	require.Equal(t, 1, flushes)
+	require.Equal(t, 3, flushes)
 }
 
 // Close waits for the running background tasks, so no later call may start
@@ -267,6 +268,7 @@ func TestExitEventsApplyBeforeNotifying(t *testing.T) {
 		"backgroundTaskExpired": {
 			prepare: func(c *lifecycle.Controller) { require.Positive(t, c.UIBackground(noDeliveries(true))) },
 			do:      func(c *lifecycle.Controller, notifyPending func()) { c.BackgroundTaskExpired(notifyPending) },
+			flushes: 1,
 		},
 	}
 	for name, event := range events {
