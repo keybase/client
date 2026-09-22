@@ -304,8 +304,8 @@ github.com/keybase/go-winio v0.4.12-0.20181031203417-0903bf878a72 h1:okCFPNP1a2X
 github.com/keybase/go-winio v0.4.12-0.20181031203417-0903bf878a72/go.mod h1:Rcswqyeiwun4CF+RpzSNllKs3nO8Es5HZIhl+8YCm94=
 github.com/keybase/golang-ico v0.0.0-20181117022008-819cbeb217c9 h1:O4kEXd3yzbpHCRqwjbsBNKlanp52zXjKP6nFh9VSGy0=
 github.com/keybase/golang-ico v0.0.0-20181117022008-819cbeb217c9/go.mod h1:t9Db0X8VAAJTL82huV2G56KTYUeVET8THTLSjyWpE4o=
-github.com/keybase/goleveldb v1.0.1-0.20221007195407-9881c0c26e65 h1:+y5yl2o/36at0ANWlFv7orF19GY1TghEsWRYD3JIT0g=
-github.com/keybase/goleveldb v1.0.1-0.20221007195407-9881c0c26e65/go.mod h1:RRCYJbIwD5jmqPI9XoAFR0OcDxqUctll6zUj/+B4S48=
+github.com/keybase/goleveldb v1.0.1-0.20260922194017-e81a99618c6c h1:R9SY/sdXgYKASxIjuLfeWNXiVBT9ic8nrCzpsT0tx5k=
+github.com/keybase/goleveldb v1.0.1-0.20260922194017-e81a99618c6c/go.mod h1:RRCYJbIwD5jmqPI9XoAFR0OcDxqUctll6zUj/+B4S48=
 github.com/keybase/gomounts v0.0.0-20180302000443-349507f4d353 h1:7+JGi0kc98ugL6PYpihS+nDD+nv/Fj8hGRvlN7595bg=
 github.com/keybase/gomounts v0.0.0-20180302000443-349507f4d353/go.mod h1:LJNWKEO+J6j4hj9xQWPWnNT8344YyuGKiSCjyJAAmbI=
 github.com/keybase/keybase-test-vectors v1.0.12-0.20200309162119-ea1e58fecd5d h1:AuV96cODzV3oEHhMcNr+7t2RxfxkAV6WpCWlKLP4mOo=

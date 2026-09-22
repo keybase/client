@@ -215,3 +215,57 @@ func TestCleanerCleansAfterReopen(t *testing.T) {
 		})
 	}
 }
+
+// A reopened db is a different key space, so a clean on it starts from the
+// beginning rather than where a clean of the old db left off.
+func TestCleanerStartsFromBeginningAfterReopen(t *testing.T) {
+	tc := SetupTest(t, "LevelDb-cleaner-reopen-lastkey", 0)
+	defer tc.Cleanup()
+	db := newMobileCleanerDb(t, &tc, testCleanerConfig())
+	require.NoError(t, db.ForceOpen())
+
+	key := DbKey{Key: "aaaa", Typ: 0}
+	db.cleaner.Lock()
+	db.cleaner.lastKey = DbKey{Key: "zzzz", Typ: 0}.ToBytes()
+	db.cleaner.Unlock()
+
+	_, err := db.Nuke()
+	require.NoError(t, err)
+	require.NoError(t, db.Put(key, nil, []byte{1}))
+	db.cleaner.clearCache()
+	require.NoError(t, db.cleaner.clean(true /* force */))
+
+	_, found, err := db.Get(key)
+	require.NoError(t, err)
+	require.False(t, found, "clean skipped keys below the old db's lastKey")
+}
+
+// Status reads cleaner state that a reopen replaces.
+func TestCleanerStatusDuringReopen(t *testing.T) {
+	tc := SetupTest(t, "LevelDb-cleaner-status-reopen", 0)
+	defer tc.Cleanup()
+	db := newMobileCleanerDb(t, &tc, testCleanerConfig())
+	require.NoError(t, db.ForceOpen())
+
+	stop := make(chan struct{})
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		for {
+			select {
+			case <-stop:
+				return
+			default:
+				_ = db.cleaner.Status()
+				db.cleaner.clearCache()
+			}
+		}
+	}()
+	for range 20 {
+		_, err := db.Nuke()
+		require.NoError(t, err)
+		require.NoError(t, db.ForceOpen())
+	}
+	close(stop)
+	<-done
+}

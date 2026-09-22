@@ -69,8 +69,6 @@ type levelDbCleaner struct {
 	cacheMu sync.Mutex // protects the pointer to the cache
 	db      *leveldb.DB
 	stopCh  chan struct{}
-
-	isShutdown bool
 }
 
 func newLevelDbCleaner(mctx MetaContext, dbName string) *levelDbCleaner {
@@ -105,8 +103,11 @@ func (c *levelDbCleaner) getCache() *lru.Cache {
 }
 
 func (c *levelDbCleaner) Status() string {
+	cacheSize := c.getCache().Len()
+	c.Lock()
+	defer c.Unlock()
 	return fmt.Sprintf("levelDbCleaner{cacheSize: %d, lastRun: %v, lastKey: %v, running: %v}\n%v\n",
-		c.cache.Len(), c.lastRun, c.lastKey, c.running, c.config)
+		cacheSize, c.lastRun, c.lastKey, c.running, c.config)
 }
 
 func (c *levelDbCleaner) Stop() {
@@ -120,19 +121,20 @@ func (c *levelDbCleaner) Stop() {
 }
 
 // start attaches the cleaner to a newly opened db, undoing a previous
-// Stop/Shutdown from closing it.
+// Stop/Shutdown from closing it. A reopened db is a new key space, so cleaning
+// starts over from its first key.
 func (c *levelDbCleaner) start(db *leveldb.DB) {
+	cache, err := lru.New(c.config.CacheCapacity)
+	if err != nil {
+		panic(err)
+	}
 	c.Lock()
 	defer c.Unlock()
 	c.db = db
+	c.lastKey = nil
 	c.cacheMu.Lock()
 	defer c.cacheMu.Unlock()
-	if c.isShutdown {
-		if cache, err := lru.New(c.config.CacheCapacity); err == nil {
-			c.cache = cache
-			c.isShutdown = false
-		}
-	}
+	c.cache = cache
 }
 
 func (c *levelDbCleaner) log(format string, args ...any) {
@@ -144,14 +146,13 @@ func (c *levelDbCleaner) cacheKey(key []byte) string {
 }
 
 func (c *levelDbCleaner) clearCache() {
-	c.cache.Purge()
+	c.getCache().Purge()
 }
 
 func (c *levelDbCleaner) Shutdown() {
 	c.cacheMu.Lock()
 	defer c.cacheMu.Unlock()
 	c.cache, _ = lru.New(1)
-	c.isShutdown = true
 }
 
 func (c *levelDbCleaner) shouldCleanLocked(force bool) bool {
@@ -166,14 +167,11 @@ func (c *levelDbCleaner) shouldCleanLocked(force bool) bool {
 		c.G().GetClock().Now().Sub(c.lastRun) >= c.config.CleanInterval
 }
 
-func (c *levelDbCleaner) getDbSize() (size uint64, err error) {
-	if c.db == nil {
-		return 0, nil
-	}
+func (c *levelDbCleaner) getDbSize(db *leveldb.DB) (size uint64, err error) {
 	// get the size from the start of the kv table to the beginning of the perm
 	// table since that is all we can clean
 	dbRange := util.Range{Start: tablePrefix(levelDbTableKv), Limit: tablePrefix(levelDbTablePerm)}
-	sizes, err := c.db.SizeOf([]util.Range{dbRange})
+	sizes, err := db.SizeOf([]util.Range{dbRange})
 	if err != nil {
 		return 0, err
 	}
@@ -183,11 +181,15 @@ func (c *levelDbCleaner) getDbSize() (size uint64, err error) {
 func (c *levelDbCleaner) clean(force bool) (err error) {
 	c.Lock()
 	// get out without spamming the logs
-	if !c.shouldCleanLocked(force) {
+	if c.db == nil || !c.shouldCleanLocked(force) {
 		c.Unlock()
 		return nil
 	}
 	c.running = true
+	// A clean stays on the db it started with. If that db is closed, Stop
+	// closes stopCh and the clean exits; a reopen attaches a new db for later
+	// cleans without this one ever touching it.
+	db := c.db
 	key := c.lastKey
 	stopCh := c.stopCh
 	// Sample the app state in the same critical section as running=true, so
@@ -206,12 +208,14 @@ func (c *levelDbCleaner) clean(force bool) (err error) {
 	defer func() {
 		c.Lock()
 		defer c.Unlock()
-		c.lastKey = key
+		if c.db == db {
+			c.lastKey = key
+		}
 		c.lastRun = c.G().GetClock().Now()
 		c.running = false
 	}()
 
-	dbSize, err := c.getDbSize()
+	dbSize, err := c.getDbSize(db)
 	if err != nil {
 		return err
 	}
@@ -240,7 +244,7 @@ func (c *levelDbCleaner) clean(force bool) (err error) {
 		}
 
 		start := c.G().GetClock().Now()
-		numPurged, key, err = c.cleanBatch(key)
+		numPurged, key, err = c.cleanBatch(db, stopCh, key)
 		if err != nil {
 			return err
 		}
@@ -254,7 +258,7 @@ func (c *levelDbCleaner) clean(force bool) (err error) {
 				numPurged, humanize.Bytes(dbSize), key, c.G().GetClock().Now().Sub(start))
 		}
 		// check if we are within limits
-		dbSize, err = c.getDbSize()
+		dbSize, err = c.getDbSize(db)
 		if err != nil {
 			return err
 		}
@@ -268,7 +272,7 @@ func (c *levelDbCleaner) clean(force bool) (err error) {
 	return nil
 }
 
-func (c *levelDbCleaner) cleanBatch(startKey []byte) (int, []byte, error) {
+func (c *levelDbCleaner) cleanBatch(db *leveldb.DB, stopCh chan struct{}, startKey []byte) (int, []byte, error) {
 	// Start our range from wherever we left off last time, and clean up until
 	// the permanent entries table begins.
 	iterRange := &util.Range{Start: startKey, Limit: tablePrefix(levelDbTablePerm)}
@@ -278,18 +282,18 @@ func (c *levelDbCleaner) cleanBatch(startKey []byte) (int, []byte, error) {
 	// caching so that the data processed by the bulk read does not end up
 	// displacing most of the cached contents."""
 	opts := &opt.ReadOptions{DontFillCache: true}
-	iter := c.db.NewIterator(iterRange, opts)
+	iter := db.NewIterator(iterRange, opts)
 	batch := new(leveldb.Batch)
 	for batch.Len() < 1000 && iter.Next() {
 		key := iter.Key()
 
-		c.cacheMu.Lock()
-		if c.isShutdown {
-			c.cacheMu.Unlock()
+		select {
+		case <-stopCh:
+			iter.Release()
 			return 0, nil, errors.New("cleanBatch: cancelled due to shutdown")
+		default:
 		}
-		cache := c.cache
-		c.cacheMu.Unlock()
+		cache := c.getCache()
 
 		if _, found := cache.Get(c.cacheKey(key)); !found {
 			cp := make([]byte, len(key))
@@ -312,11 +316,11 @@ func (c *levelDbCleaner) cleanBatch(startKey []byte) (int, []byte, error) {
 	if err := iter.Error(); err != nil {
 		return 0, nil, err
 	}
-	if err := c.db.Write(batch, nil); err != nil {
+	if err := db.Write(batch, nil); err != nil {
 		return 0, nil, err
 	}
 	// Compact the range we just deleted in so the size changes are reflected
-	err := c.db.CompactRange(util.Range{Start: startKey, Limit: key})
+	err := db.CompactRange(util.Range{Start: startKey, Limit: key})
 	return batch.Len(), key, err
 }
 

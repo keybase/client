@@ -71,8 +71,8 @@ func doSomeIO() error {
 }
 
 func levelDbStats(t *testing.T, db *LevelDb) (stats leveldb.DBStats) {
-	require.NoError(t, db.doWhileOpenAndNukeIfCorrupted(func() error {
-		return db.db.Load().Stats(&stats)
+	require.NoError(t, db.doWhileOpenAndNukeIfCorrupted(func(ldb *leveldb.DB) error {
+		return ldb.Stats(&stats)
 	}))
 	return stats
 }
@@ -212,32 +212,6 @@ func TestLevelDb(t *testing.T) {
 			},
 		},
 		{
-			// A write and a Flush call that a flush's own hook makes reentrantly
-			// must still be flushed before the outer call returns: the hook runs
-			// after the transaction is discarded, so goleveldb's write lock is
-			// already free and the nested call is a plain second flush.
-			name: "flush-reentrant", testBody: func(t *testing.T) {
-				tc := SetupTest(t, "LevelDb-flush-reentrant", 0)
-				defer tc.Cleanup()
-				db, err := createTempLevelDbForTest(&tc, &td)
-				require.NoError(t, err)
-				_, err = testLevelDbPut(db)
-				require.NoError(t, err)
-
-				rotations := 0
-				db.flushHook = func() {
-					rotations++
-					if rotations == 1 {
-						require.NoError(t, db.db.Load().Put([]byte("kv:late"), []byte{1}, nil))
-						require.NoError(t, db.Flush())
-					}
-				}
-				require.NoError(t, db.Flush())
-				require.Equal(t, 2, rotations)
-				require.Zero(t, levelDbJournalSize(t, db))
-			},
-		},
-		{
 			// 8 goroutines call Flush with writes interleaved: every call
 			// returns nil, and every writer's last write is durable and
 			// readable once all goroutines finish.
@@ -269,6 +243,24 @@ func TestLevelDb(t *testing.T) {
 					require.NoError(t, err)
 					require.True(t, found)
 				}
+			},
+		},
+		{
+			// OpenTransaction opens the db lazily like every other operation.
+			name: "open-transaction-first", testBody: func(t *testing.T) {
+				tc := SetupTest(t, "LevelDb-transaction-first", 0)
+				defer tc.Cleanup()
+				db, err := createTempLevelDbForTest(&tc, &td)
+				require.NoError(t, err)
+
+				tr, err := db.OpenTransaction()
+				require.NoError(t, err)
+				key := DbKey{Key: "tr-key", Typ: 0}
+				require.NoError(t, tr.Put(key, nil, []byte{1}))
+				require.NoError(t, tr.Commit())
+				_, found, err := db.Get(key)
+				require.NoError(t, err)
+				require.True(t, found)
 			},
 		},
 		{
@@ -381,7 +373,7 @@ func TestLevelDb(t *testing.T) {
 				// for sure they can happen concurrently.
 				ch := make(chan struct{})
 				go func() {
-					_ = db.doWhileOpenAndNukeIfCorrupted(func() error {
+					_ = db.doWhileOpenAndNukeIfCorrupted(func(*leveldb.DB) error {
 						defer wg.Done()
 						select {
 						case <-time.After(8 * time.Second):
@@ -392,7 +384,7 @@ func TestLevelDb(t *testing.T) {
 					})
 				}()
 				go func() {
-					_ = db.doWhileOpenAndNukeIfCorrupted(func() error {
+					_ = db.doWhileOpenAndNukeIfCorrupted(func(*leveldb.DB) error {
 						defer wg.Done()
 						select {
 						case <-time.After(8 * time.Second):

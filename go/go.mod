@@ -205,7 +205,9 @@ replace (
 	// Fork also preserves FetchOptions.PackRefs from the v4 Keybase fork.
 	github.com/go-git/go-git/v5 => github.com/keybase/go-git/v5 v5.19.1-keybase.3
 	github.com/stellar/go => github.com/keybase/stellar-org v0.0.0-20191010205648-0fc3bfe3dfa7
-	github.com/syndtr/goleveldb => github.com/keybase/goleveldb v1.0.1-0.20221007195407-9881c0c26e65
+	// Keybase fork of goleveldb: active-compaction stats, DB.FlushMemdb, and
+	// OpenTransaction releasing the write lock when it fails.
+	github.com/syndtr/goleveldb => github.com/keybase/goleveldb v1.0.1-0.20260922194017-e81a99618c6c
 	mvdan.cc/xurls/v2 => github.com/keybase/xurls/v2 v2.0.1-0.20190725180013-1e015cacd06c
 )
 
