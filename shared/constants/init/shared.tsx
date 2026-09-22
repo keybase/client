@@ -331,7 +331,7 @@ const subscribe = async () => {
 let subscription = Promise.resolve(false)
 
 // A handshake step: the session is what decides between the login screen and the app. A failed
-// subscribe is retried here, since without it no clientState is coming.
+// subscribe, or a wait that timed out, subscribes again here, since that is what sends a clientState.
 export const sessionSettledStep = async () => {
   if (!(await subscription)) {
     subscription = subscribe()
@@ -346,6 +346,9 @@ export const sessionSettledStep = async () => {
   try {
     await Promise.race([sessionSettled, timedOut])
   } catch (error) {
+    // Subscribing again makes the service send a fresh clientState, so the retry isn't waiting
+    // on one that was lost.
+    subscription = Promise.resolve(false)
     // the mobile service runs in-process, so it is always the same build
     if (clientStateSeen || isMobile) {
       throw error

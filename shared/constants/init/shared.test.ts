@@ -300,6 +300,23 @@ describe('sessionSettledStep', () => {
     await expect(step).rejects.toThrow('out of date')
   })
 
+  test('a retry after the wait timed out subscribes again, so a lost clientState is sent afresh', async () => {
+    jest.useFakeTimers()
+    const setNotifications = connect(async () => Promise.resolve())
+    const first = sessionSettledStep()
+    const failed = expect(first).rejects.toThrow("The service hasn't said who is logged in")
+    applyClientState({appState: T.RPCGen.MobileAppState.foreground})
+    await jest.advanceTimersByTimeAsync(30_000)
+    await failed
+    expect(setNotifications).toHaveBeenCalledTimes(1)
+
+    const retry = sessionSettledStep()
+    await jest.advanceTimersByTimeAsync(0)
+    expect(setNotifications).toHaveBeenCalledTimes(2)
+    applyClientState({appState: T.RPCGen.MobileAppState.foreground, session})
+    await expect(retry).resolves.toBeUndefined()
+  })
+
   test('on mobile no clientState is not an out-of-date service: the in-process service is the same build', async () => {
     const g = globalThis as unknown as {isMobile: boolean}
     g.isMobile = true
