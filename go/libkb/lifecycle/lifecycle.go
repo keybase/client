@@ -61,10 +61,10 @@ type Config struct {
 	BackgroundSyncWindow       time.Duration
 	BackgroundTaskPollInterval time.Duration
 	BackgroundTaskMaxDuration  time.Duration
-	// Flush runs on every move into the background and on every exit event
-	// (see applyLocked). It runs under the controller's lock, so it must not
-	// block, and often, so it must be cheap: a memtable flush, not a
-	// compaction.
+	// Flush runs on every move into the background, and on every hold's end
+	// and exit event in the background (see applyLocked). It runs under the
+	// controller's lock, so it must not block, and often, so it must be cheap:
+	// a memtable flush, not a compaction.
 	Flush func()
 	Debug func(format string, args ...interface{})
 }
@@ -125,6 +125,9 @@ type Controller struct {
 	// closed stops new tasks once Close is waiting for the running ones, so
 	// nothing joins wg while Close waits on it.
 	closed bool
+	// holdEnded records that dropLocked ended a hold since the last
+	// applyLocked, which flushes for it.
+	holdEnded bool
 }
 
 func New(appState AppState, cfg Config) *Controller {
@@ -192,33 +195,33 @@ func isUIState(state keybase1.MobileAppState) bool {
 }
 
 // applyLocked writes the derived state and flushes the local DBs, so an
-// unclean kill doesn't cost a journal replay at the next launch. It flushes on
-// every change into BACKGROUNDACTIVE or BACKGROUND from anything but
-// BACKGROUND: the UI leaving the screen covers the foreground session's
-// writes, and the end of every hold (BACKGROUNDACTIVE to BACKGROUND) covers
-// the hold's. A hold starting (BACKGROUND to BACKGROUNDACTIVE) has written
-// nothing yet. Leaving the UI flushes even when a hold then keeps the app
-// running, since that hold can last for hours, and the flush starts while the
-// background task still keeps the process running.
+// unclean kill doesn't cost a journal replay at the next launch. It flushes
+// when the resulting state is BACKGROUNDACTIVE or BACKGROUND and one of these
+// happened: the state changed from anything but BACKGROUND (the UI leaving the
+// screen covers the foreground session's writes), a hold ended (covering the
+// hold's writes, even while another hold keeps the app running, since a live
+// location hold can last for hours), or exit is set (the process is about to
+// be killed or suspended, so writes of holds still open are covered too). One
+// event flushes once, whichever of these apply. A hold starting (BACKGROUND
+// to BACKGROUNDACTIVE) has written nothing yet. In FOREGROUND and INACTIVE
+// nothing flushes: the UI's own departure will.
 //
 // Every write is covered only because no flush is skipped, which relies on
 // Flush being cheap.
-func (c *Controller) applyLocked() {
+func (c *Controller) applyLocked(event string, exit bool) {
 	prev := c.appState.State()
 	state := derive(c.ui, len(c.holds))
 	c.appState.Update(state)
-	if state != prev && !isUIState(state) && prev != keybase1.MobileAppState_BACKGROUND {
+	holdEnded := c.holdEnded
+	c.holdEnded = false
+	if isUIState(state) {
+		return
+	}
+	moved := state != prev && prev != keybase1.MobileAppState_BACKGROUND
+	if moved || holdEnded || exit {
+		c.debugLocked(event, "flushing: %v -> %v, hold ended: %v, exit: %v", prev, state, holdEnded, exit)
 		c.cfg.Flush()
 	}
-}
-
-// applyExitLocked is applyLocked for an event that precedes the process being
-// killed or suspended. It always flushes, even when the state doesn't change:
-// writes since the last flush, such as those of a hold still open, would
-// otherwise cost a journal replay at the next launch.
-func (c *Controller) applyExitLocked() {
-	c.appState.Update(derive(c.ui, len(c.holds)))
-	c.cfg.Flush()
 }
 
 func (c *Controller) acquireLocked(reason Reason) *Hold {
@@ -228,12 +231,14 @@ func (c *Controller) acquireLocked(reason Reason) *Hold {
 	return h
 }
 
-// dropLocked ends every hold match selects and returns how many it ended.
+// dropLocked ends every hold match selects and returns how many it ended. It
+// is the one place holds end; the next applyLocked flushes for them.
 func (c *Controller) dropLocked(match func(*Hold) bool) (dropped int) {
 	for id, h := range c.holds {
 		if match(h) {
 			delete(c.holds, id)
 			close(h.done)
+			c.holdEnded = true
 			dropped++
 		}
 	}
@@ -288,7 +293,7 @@ func (c *Controller) AcquireBackgroundWork() *Hold {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	h := c.acquireLocked(ReasonLiveLocation)
-	c.applyLocked()
+	c.applyLocked("acquire", false)
 	c.debugLocked("acquire", "%v hold %d", h.reason, h.id)
 	return h
 }
@@ -299,7 +304,7 @@ func (c *Controller) release(h *Hold) bool {
 	if c.dropLocked(func(o *Hold) bool { return o == h }) == 0 {
 		return false
 	}
-	c.applyLocked()
+	c.applyLocked("release", false)
 	c.debugLocked("release", "%v hold %d", h.reason, h.id)
 	return true
 }
@@ -308,7 +313,7 @@ func (c *Controller) UIActive() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.setUILocked(UIActive)
-	c.applyLocked()
+	c.applyLocked("uiActive", false)
 	c.debugLocked("uiActive", "applied")
 }
 
@@ -319,7 +324,7 @@ func (c *Controller) UIInactive() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.setUILocked(UIInactive)
-	c.applyLocked()
+	c.applyLocked("uiInactive", false)
 	c.debugLocked("uiInactive", "applied")
 }
 
@@ -342,7 +347,7 @@ func (c *Controller) UIBackground(deps BackgroundTaskDeps) int64 {
 	}
 	c.setUILocked(UIBackground)
 	token := c.startTaskLocked(deps)
-	c.applyLocked()
+	c.applyLocked("uiBackground", false)
 	c.debugLocked("uiBackground", "background task hold %d", token)
 	return token
 }
@@ -373,7 +378,7 @@ func (c *Controller) WillTerminate(notifyPending func()) {
 	c.mu.Lock()
 	c.setUILocked(UIBackground)
 	c.dropLocked(func(*Hold) bool { return true })
-	c.applyExitLocked()
+	c.applyLocked("willTerminate", true)
 	c.debugLocked("willTerminate", "ended every hold")
 	c.mu.Unlock()
 	notifyPending()
@@ -386,7 +391,7 @@ func (c *Controller) WillTerminate(notifyPending func()) {
 func (c *Controller) BackgroundTaskExpired(notifyPending func()) {
 	c.mu.Lock()
 	ended := c.dropLocked(func(h *Hold) bool { return h.reason == ReasonBackgroundTask })
-	c.applyExitLocked()
+	c.applyLocked("backgroundTaskExpired", true)
 	c.debugLocked("backgroundTaskExpired", "ended %d background task holds", ended)
 	c.mu.Unlock()
 	if ended > 0 {
@@ -404,7 +409,7 @@ func (c *Controller) PushWindowBegin() int64 {
 		return 0
 	}
 	h := c.acquireLocked(ReasonPushWindow)
-	c.applyLocked()
+	c.applyLocked("pushWindowBegin", false)
 	c.debugLocked("pushWindowBegin", "hold %d", h.id)
 	return h.id
 }
@@ -422,7 +427,7 @@ func (c *Controller) PushWindowEnd(token int64, deps BackgroundTaskDeps) int64 {
 			task = c.startTaskLocked(deps)
 		}
 		c.dropLocked(func(o *Hold) bool { return o == h })
-		c.applyLocked()
+		c.applyLocked("pushWindowEnd", false)
 	}
 	c.debugLocked("pushWindowEnd", "hold %d ended, background task hold %d", token, task)
 	return task
@@ -439,7 +444,7 @@ func (c *Controller) BackgroundSync() string {
 		return msg
 	}
 	h := c.acquireLocked(ReasonBackgroundSync)
-	c.applyLocked()
+	c.applyLocked("backgroundSyncBegin", false)
 	c.debugLocked("backgroundSyncBegin", "hold %d", h.id)
 	c.mu.Unlock()
 	var msg string

@@ -65,8 +65,9 @@ func TestHoldReleaseIsIdempotent(t *testing.T) {
 	require.Equal(t, background, appState.State())
 }
 
-// Every change into BACKGROUNDACTIVE or BACKGROUND from anything but
-// BACKGROUND flushes, and so does every exit event, whatever the state.
+// With the resulting state BACKGROUNDACTIVE or BACKGROUND, every change from
+// anything but BACKGROUND, every hold's end and every exit event flushes, once
+// per event. Nothing flushes in FOREGROUND or INACTIVE.
 func TestFlushRule(t *testing.T) {
 	appState, _ := newAppState(t)
 	flushes := 0
@@ -85,20 +86,28 @@ func TestFlushRule(t *testing.T) {
 	release := func() { require.True(t, hold.Release()) }
 
 	// The background task finds nothing to keep running and ends at once.
-	flushesAfter("plain backgrounding, through BACKGROUNDACTIVE", func() { lifecycletest.ToBackground(c) }, background, 2)
+	flushesAfter("plain backgrounding, then the task's end", func() { lifecycletest.ToBackground(c) }, background, 2)
 	flushesAfter("a hold starting", acquire, backgroundActive, 0)
 	flushesAfter("a hold's end", release, background, 1)
 	flushesAfter("a hold's end right after the last flush", func() { acquire(); release() }, background, 1)
 	flushesAfter("termination already in the background", func() { c.WillTerminate(noop) }, background, 1)
 	flushesAfter("expiration already in the background", func() { c.BackgroundTaskExpired(noop) }, background, 1)
 
+	outer := c.AcquireBackgroundWork()
+	flushesAfter("a hold starting under another", acquire, backgroundActive, 0)
+	flushesAfter("a hold's end while another stays open", release, backgroundActive, 1)
+	flushesAfter("the last hold's end", func() { require.True(t, outer.Release()) }, background, 1)
+
 	flushesAfter("coming to the foreground", c.UIActive, foreground, 0)
+	flushesAfter("expiration in the foreground", func() { c.BackgroundTaskExpired(noop) }, foreground, 0)
+	flushesAfter("a hold's end in the foreground", func() { acquire(); release() }, foreground, 0)
 	flushesAfter("going inactive", c.UIInactive, inactive, 0)
+	flushesAfter("expiration while inactive", func() { c.BackgroundTaskExpired(noop) }, inactive, 0)
 	flushesAfter("coming back from inactive", c.UIActive, foreground, 0)
-	flushesAfter("leaving the UI while a hold keeps the app running", func() {
+	flushesAfter("leaving the UI while a hold keeps the app running, then the task's end", func() {
 		acquire()
 		lifecycletest.ToBackground(c)
-	}, backgroundActive, 1)
+	}, backgroundActive, 2)
 	flushesAfter("expiration with a hold still open", func() { c.BackgroundTaskExpired(noop) }, backgroundActive, 1)
 	flushesAfter("that hold's end", release, background, 1)
 	c.UIActive()

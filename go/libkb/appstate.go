@@ -379,11 +379,11 @@ func (a *DesktopAppState) resetLocked() {
 // flushLocalDbs flushes the leveldb memtables in the background. An unclean
 // kill while suspended (routine on iOS) with a non-empty journal forces a
 // journal replay — or a whole-DB recovery — during the next launch, which is
-// the main cold-start cost. lifecycle calls it on every move into the
-// background (the UI leaving the screen, every hold's end) and on every exit
-// event, so the journals are empty if the OS kills the process. Flushing that
-// often, never skipping one so every write is covered, relies on
-// LevelDb.Flush being a cheap memtable flush rather than a compaction.
+// the main cold-start cost. lifecycle calls it whenever the UI leaves the
+// screen, a hold ends or an exit event arrives while the app is in the
+// background, so the journals are empty if the OS kills the process.
+// Flushing that often, never skipping one so every write is covered, relies
+// on LevelDb.Flush being a cheap memtable flush rather than a compaction.
 func (g *GlobalContext) flushLocalDbs() {
 	flush := func(name string, db *JSONLocalDb) {
 		if db == nil {

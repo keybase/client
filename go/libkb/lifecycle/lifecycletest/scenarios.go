@@ -68,7 +68,8 @@ var iosToBackgroundTask = []Step{
 // Scenarios replays whole native event sequences. Consumers of the app state
 // can play them with their own checks (see Play).
 //
-// A step that takes the app through BACKGROUNDACTIVE to BACKGROUND, such as a
+// Each move into the background from the UI and each hold's end in the
+// background flushes, so a step that does two of these, such as a
 // backgrounding whose task ends at once, flushes twice.
 var Scenarios = []Scenario{
 	{Name: "ios cold foreground launch", Platform: IOS, Steps: toForeground, Observed: states(bg, ina, fg)},
@@ -246,7 +247,7 @@ var Scenarios = []Scenario{
 			step(WillEnterForeground, ina),
 			step(DidBecomeActive, fg),
 			step(BackgroundTaskWait, fg),
-			step(BackgroundTaskExpired, fg).flush(),
+			step(BackgroundTaskExpired, fg),
 		}),
 		Observed: states(bg, ina, fg, ina, bga, ina, fg),
 	},
@@ -255,7 +256,7 @@ var Scenarios = []Scenario{
 		Platform: IOS,
 		Steps: steps(toForeground, iosToBackgroundTask, []Step{
 			step(WillEnterForeground, ina),
-			step(BackgroundTaskExpired, ina).flush(),
+			step(BackgroundTaskExpired, ina),
 			step(BackgroundTaskDelivered, ina),
 			step(DidBecomeActive, fg),
 		}),
@@ -289,7 +290,7 @@ var Scenarios = []Scenario{
 			step(LiveLocationAcquire, fg),
 			step(WorkStops, fg),
 			step(WillResignActive, ina),
-			step(DidEnterBackground, bga).flush().returns(false),
+			step(DidEnterBackground, bga).flushes(2).returns(false),
 			step(LiveLocationRelease, bg).flush(),
 		}),
 		Observed: states(bg, ina, fg, ina, bga, bg, bga, bg, bga, ina, fg, ina, bga, bg),
@@ -348,7 +349,7 @@ var Scenarios = []Scenario{
 		Steps: steps(toForeground, []Step{
 			step(LiveLocationAcquire, fg),
 			step(WillResignActive, ina),
-			step(DidEnterBackground, bga).flush().returns(false),
+			step(DidEnterBackground, bga).flushes(2).returns(false),
 			step(WillTerminate, bg).flush().warn(),
 			step(LiveLocationRelease, bg),
 		}),
@@ -399,7 +400,7 @@ var Scenarios = []Scenario{
 		Steps: steps(toForeground, []Step{
 			step(DidEnterBackground, bg).flushes(2).returns(false),
 			step(PushWindowBegin, bga).returns(true),
-			step(PushWindowEnd, bg).flush().returns(false),
+			step(PushWindowEnd, bg).flushes(2).returns(false),
 		}),
 		Observed: states(bg, ina, fg, bga, bg, bga, bg),
 	},
@@ -409,7 +410,7 @@ var Scenarios = []Scenario{
 		Platform: Android,
 		Steps: []Step{
 			step(PushWindowBegin, bga).returns(true),
-			step(PushWindowEnd, bg).flush().returns(false),
+			step(PushWindowEnd, bg).flushes(2).returns(false),
 		},
 		Observed: states(bg, bga, bg),
 	},
@@ -419,7 +420,7 @@ var Scenarios = []Scenario{
 		Steps: []Step{
 			step(PushWindowBegin, bga).returns(true),
 			step(WorkStarts, bga),
-			step(PushWindowEnd, bga).returns(true),
+			step(PushWindowEnd, bga).flush().returns(true),
 			step(BackgroundTaskDelivered, bg).flush(),
 		},
 		Observed: states(bg, bga, bg),
@@ -442,8 +443,8 @@ var Scenarios = []Scenario{
 			step(DidEnterBackground, bg).flushes(2).returns(false),
 			step(PushWindowBegin, bga).returns(true),
 		}, toForeground, []Step{
-			step(DidEnterBackground, bga).flush().returns(false),
-			step(PushWindowEnd, bg).flush().returns(false),
+			step(DidEnterBackground, bga).flushes(2).returns(false),
+			step(PushWindowEnd, bg).flushes(2).returns(false),
 		}),
 		Observed: states(bg, ina, fg, bga, bg, bga, ina, fg, bga, bg, bga, ina, fg, bga, bg),
 	},
@@ -454,7 +455,7 @@ var Scenarios = []Scenario{
 			step(DidEnterBackground, bg).flushes(2).returns(false),
 			step(PushWindowBegin, bga).returns(true),
 			step(WorkStarts, bga),
-			step(PushWindowEnd, bga).returns(true),
+			step(PushWindowEnd, bga).flush().returns(true),
 			step(BackgroundTaskDelivered, bg).flush(),
 		}),
 		Observed: states(bg, ina, fg, bga, bg, bga, bg),
@@ -466,7 +467,7 @@ var Scenarios = []Scenario{
 			step(WorkStarts, fg),
 			step(DidEnterBackground, bga).flush().returns(true),
 			step(PushWindowBegin, bga).returns(true),
-			step(PushWindowEnd, bga).returns(true),
+			step(PushWindowEnd, bga).flush().returns(true),
 			step(BackgroundTaskFails, bg).flush().warn(),
 		}),
 		Observed: states(bg, ina, fg, bga, bg),
@@ -478,8 +479,8 @@ var Scenarios = []Scenario{
 			step(DidEnterBackground, bg).flushes(2).returns(false),
 			step(PushWindowBegin, bga).slot(0).returns(true),
 			step(PushWindowBegin, bga).slot(1).returns(true),
-			step(PushWindowEnd, bga).slot(0).returns(false),
-			step(PushWindowEnd, bg).slot(1).flush().returns(false),
+			step(PushWindowEnd, bga).slot(0).flushes(2).returns(false),
+			step(PushWindowEnd, bg).slot(1).flushes(2).returns(false),
 		}),
 		Observed: states(bg, ina, fg, bga, bg, bga, bg),
 	},
@@ -490,7 +491,7 @@ var Scenarios = []Scenario{
 		Platform: Android,
 		Steps: []Step{
 			step(PushWindowBegin, bga).returns(true),
-			step(PushWindowEnd, bg).flush().returns(false),
+			step(PushWindowEnd, bg).flushes(2).returns(false),
 			step(BackgroundSyncStart, bga).returns(true),
 			step(BackgroundSyncTimerFires, bg).flush(),
 		},
@@ -501,7 +502,7 @@ var Scenarios = []Scenario{
 		Platform: Android,
 		Steps: []Step{
 			step(PushWindowBegin, bga).returns(true),
-			step(PushWindowEnd, bg).flush().returns(false),
+			step(PushWindowEnd, bg).flushes(2).returns(false),
 			step(BackgroundSyncStart, bga).returns(true),
 			step(WillEnterForeground, ina),
 			step(DidBecomeActive, fg),
@@ -517,7 +518,7 @@ var Scenarios = []Scenario{
 			step(DidEnterBackground, bg).flushes(2).returns(false),
 			step(BackgroundSyncStart, bga).returns(true),
 			step(PushWindowBegin, bga).returns(true),
-			step(PushWindowEnd, bga).returns(false),
+			step(PushWindowEnd, bga).flushes(2).returns(false),
 			step(BackgroundSyncTimerFires, bg).flush(),
 		}),
 		Observed: states(bg, ina, fg, bga, bg, bga, bg),
