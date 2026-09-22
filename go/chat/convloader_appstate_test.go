@@ -137,6 +137,30 @@ func TestConvLoaderBackgroundCancelsDuringLoadDelay(t *testing.T) {
 	}
 }
 
+// An app-state change that doesn't suspend the loop, like FOREGROUND ->
+// INACTIVE, keeps the loop waiting out the load delay instead of dispatching
+// the job early.
+func TestConvLoaderNonSuspendingStateKeepsLoadDelay(t *testing.T) {
+	b, _, tc := setupAppStateConvLoader(t)
+	pulls := newCtxPuller(false)
+	b.G().ConvSource = pulls
+	clock := clockwork.NewFakeClock()
+	b.clock = clock
+	b.Start(context.TODO(), gregor1.UID([]byte{1, 2, 3, 4}))
+	defer requireConvLoaderStopped(t, b)
+	defer close(pulls.release)
+	require.NoError(t, b.Queue(context.TODO(), convLoaderTestJob()))
+	clock.BlockUntil(1)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_INACTIVE)
+	select {
+	case <-pulls.calls:
+		require.FailNow(t, "dispatched before the load delay ran out")
+	case <-time.After(100 * time.Millisecond):
+	}
+	clock.Advance(bgLoaderInitDelay)
+	requirePull(t, pulls)
+}
+
 // Each run's loop watches the app state: BACKGROUND cancels its active load
 // and parks it, and leaving BACKGROUND loads the retry.
 func TestConvLoaderAppStateAcrossRuns(t *testing.T) {

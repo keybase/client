@@ -433,21 +433,32 @@ func (b *BackgroundConvLoader) loop(uid gregor1.UID, stopCh chan struct{}, queue
 				duration = max(bgLoaderErrDelay-time.Since(task.lastAttemptAt), bgLoaderInitDelay)
 			}
 			// Make sure we aren't suspended (also make sure we don't get shutdown). Charge through if
-			// neither have any data on them.
-			select {
-			case <-b.clock.After(duration):
-			case <-b.suspendCh:
-				b.Debug(bgctx, "loop: pulled queue task, but suspended, so waiting")
-				if !waitForResume() {
+			// neither have any data on them. An app-state change that doesn't suspend keeps waiting
+			// out the delay, so a retry still gets its full backoff.
+			delay := b.clock.After(duration)
+		waitDelay:
+			for {
+				select {
+				case <-delay:
+					break waitDelay
+				case <-b.suspendCh:
+					b.Debug(bgctx, "loop: pulled queue task, but suspended, so waiting")
+					if !waitForResume() {
+						return nil
+					}
+					break waitDelay
+				case <-appState.NextUpdate(state):
+					if !appStateChanged() {
+						continue
+					}
+					if !waitForResume() {
+						return nil
+					}
+					break waitDelay
+				case <-stopCh:
+					b.Debug(bgctx, "loop: shutting down for %s", uid)
 					return nil
 				}
-			case <-appState.NextUpdate(state):
-				if appStateChanged() && !waitForResume() {
-					return nil
-				}
-			case <-stopCh:
-				b.Debug(bgctx, "loop: shutting down for %s", uid)
-				return nil
 			}
 			b.Debug(bgctx, "loop: pulled queued task: %s", task.job)
 			select {

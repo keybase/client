@@ -78,6 +78,10 @@ func NewArchiveJobNotFoundError(jobID chat1.ArchiveJobID) ArchiveJobNotFoundErro
 
 var _ error = ArchiveJobNotFoundError{}
 
+// errArchiveJobBackgroundPaused is returned by Set when a job registers as
+// running while the app is out of the foreground, so the job stops at once.
+var errArchiveJobBackgroundPaused = errors.New("archive job paused: app not in foreground")
+
 func NewChatArchiveRegistry(g *globals.Context, remoteClient func() chat1.RemoteInterface) *ChatArchiveRegistry {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
 		return storage.GetSecretBoxKey(ctx, g.ExternalG())
@@ -340,6 +344,11 @@ func (r *ChatArchiveRegistry) Stop(ctx context.Context) chan struct{} {
 			r.Debug(ctx, err.Error())
 		}
 		r.started = false
+		// The history belongs to this run's user, and the pause above flushed
+		// it. The next Start may be for another user, so it reads its own.
+		r.inited = false
+		r.dirty = false
+		r.jobHistory = chat1.ArchiveChatHistory{JobHistory: make(map[chat1.ArchiveJobID]chat1.ArchiveChatJob)}
 		close(r.stopCh)
 		eg := r.eg
 		go func() {
@@ -449,6 +458,7 @@ func (r *ChatArchiveRegistry) Set(ctx context.Context, cancel types.PauseArchive
 	}
 
 	jobID := job.Request.JobID
+	var pausedErr error
 	switch job.Status {
 	case chat1.ArchiveChatJobStatus_COMPLETE, chat1.ArchiveChatJobStatus_ERROR:
 		delete(r.runningJobs, jobID)
@@ -464,6 +474,7 @@ func (r *ChatArchiveRegistry) Set(ctx context.Context, cancel types.PauseArchive
 			r.Debug(ctx, "Set: pausing %v in %v", jobID, state)
 			cancel()
 			job.Status = chat1.ArchiveChatJobStatus_BACKGROUND_PAUSED
+			pausedErr = errArchiveJobBackgroundPaused
 			break
 		}
 		r.runningJobs[jobID] = cancel
@@ -471,7 +482,7 @@ func (r *ChatArchiveRegistry) Set(ctx context.Context, cancel types.PauseArchive
 
 	r.jobHistory.JobHistory[jobID] = job.DeepCopy()
 	r.dirty = true
-	return nil
+	return pausedErr
 }
 
 func (r *ChatArchiveRegistry) Pause(ctx context.Context, jobID chat1.ArchiveJobID) (err error) {

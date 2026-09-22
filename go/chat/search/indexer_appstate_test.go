@@ -133,6 +133,23 @@ func TestSyncLoopDoesNotSyncOutsideForeground(t *testing.T) {
 	}
 }
 
+// A sync skipped outside FOREGROUND, like the one-shot start sync, runs once
+// the app comes to FOREGROUND, with no poke or tick to trigger it.
+func TestSyncLoopRunsDeferredSyncOnForeground(t *testing.T) {
+	s := startAppStateSyncLoop(t, keybase1.MobileAppState_BACKGROUNDACTIVE)
+	defer s.stop()
+	// The start delay is 0, so the start sync has been skipped once the loop
+	// takes a poke.
+	s.poke()
+	starts, _ := s.syncs.counts()
+	require.Zero(t, starts)
+
+	s.tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
+	s.requireActive(1, "deferred sync did not run on FOREGROUND")
+	starts, _ = s.syncs.counts()
+	require.Equal(t, 1, starts)
+}
+
 func TestSyncLoopBackgroundCancelsSync(t *testing.T) {
 	s := startAppStateSyncLoop(t, keybase1.MobileAppState_FOREGROUND)
 	defer s.stop()

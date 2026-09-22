@@ -129,7 +129,8 @@ func requireArchiveJobsRunning(t *testing.T, r *ChatArchiveRegistry) {
 				return false
 			}
 		}
-		return running == len(statuses)
+		// Empty until a resume has read the history.
+		return len(statuses) > 0 && running == len(statuses)
 	}, 10*time.Second, time.Millisecond, "jobs did not resume")
 }
 
@@ -275,7 +276,7 @@ func TestArchiveSetWhileInactivePauses(t *testing.T) {
 		Request: chat1.ArchiveChatJobRequest{JobID: jobID},
 		Status:  chat1.ArchiveChatJobStatus_RUNNING,
 	}
-	require.NoError(t, r.Set(ctx, func() { once.Do(func() { close(paused) }) }, job))
+	require.ErrorIs(t, r.Set(ctx, func() { once.Do(func() { close(paused) }) }, job), errArchiveJobBackgroundPaused)
 	select {
 	case <-paused:
 	default:
@@ -286,6 +287,49 @@ func TestArchiveSetWhileInactivePauses(t *testing.T) {
 	require.Zero(t, running)
 
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
+	requireArchiveJobsRunning(t, r)
+}
+
+// Stop drops the run's history, so a Start for another user reads that user's
+// own and resumes none of the previous user's paused jobs. The previous
+// user's jobs come back when that user starts again.
+func TestArchiveStartForAnotherUserReadsItsOwnHistory(t *testing.T) {
+	r, runner, _ := setupAppStateArchive(t, true)
+	ctx := context.TODO()
+	uidA := gregor1.UID([]byte{1, 2, 3, 4})
+	uidB := gregor1.UID([]byte{5, 6, 7, 8})
+	requireLaunches := func(want int) {
+		t.Helper()
+		require.Eventually(t, func() bool {
+			launches, _ := runner.counts()
+			for _, id := range archiveTestJobIDs {
+				if launches[id] != want {
+					return false
+				}
+			}
+			return len(launches) == len(archiveTestJobIDs)
+		}, 10*time.Second, time.Millisecond, "jobs not launched %d times", want)
+	}
+
+	r.Start(ctx, uidA)
+	requireLaunches(1)
+	requireArchiveJobsRunning(t, r)
+	requireArchiveStopped(t, r)
+
+	r.Start(ctx, uidB)
+	require.Eventually(t, func() bool {
+		r.Lock()
+		defer r.Unlock()
+		return r.inited
+	}, 10*time.Second, time.Millisecond, "resume did not read the history")
+	statuses, _ := archiveStatuses(r)
+	require.Empty(t, statuses, "another user's jobs carried over")
+	requireLaunches(1)
+	requireArchiveStopped(t, r)
+
+	r.Start(ctx, uidA)
+	defer requireArchiveStopped(t, r)
+	requireLaunches(2)
 	requireArchiveJobsRunning(t, r)
 }
 

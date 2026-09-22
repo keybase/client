@@ -253,6 +253,9 @@ func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
 	var cancelFn context.CancelFunc
 	var l sync.Mutex
 	var syncAttemptWG sync.WaitGroup
+	// syncDeferred is set when an attempt is skipped outside FOREGROUND, so the
+	// next change into FOREGROUND runs it instead of dropping it.
+	syncDeferred := false
 	cancelSync := func() {
 		l.Lock()
 		defer l.Unlock()
@@ -270,8 +273,10 @@ func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
 		}
 		if state := idx.G().MobileAppState.State(); state != keybase1.MobileAppState_FOREGROUND {
 			idx.Debug(ctx, "not running SelectiveSync in %v", state)
+			syncDeferred = true
 			return
 		}
+		syncDeferred = false
 		// The loop may not have woken for the change into FOREGROUND yet. Wait
 		// on changes from FOREGROUND from here on, so leaving it after this
 		// read wakes the loop, which cancels the sync.
@@ -335,6 +340,9 @@ func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
 			appState = idx.G().MobileAppState.State()
 			switch appState {
 			case keybase1.MobileAppState_FOREGROUND:
+				if syncDeferred {
+					attemptSync(ctx)
+				}
 			// if we enter any state besides foreground cancel any running syncs
 			default:
 				cancelSync()

@@ -1332,6 +1332,9 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 			if s := fbm.appStateUpdater.AppState(); s != keybase1.MobileAppState_FOREGROUND {
 				fbm.log.CDebugf(context.Background(),
 					"Pausing QR while not foregrounded: state=%s", s)
+				// forceReclamationChan is not read while paused, so a forced
+				// reclamation blocks its sender until the app is
+				// foregrounded again or shuts down.
 				if !WaitForeground(fbm.appStateUpdater, fbm.shutdownChan) {
 					return
 				}
