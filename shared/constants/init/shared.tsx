@@ -339,6 +339,7 @@ export const sessionSettledStep = async () => {
       throw new Error("Can't subscribe to the service's notifications")
     }
   }
+  const subscribed = subscription
   let timer: ReturnType<typeof setTimeout> | undefined
   const timedOut = new Promise<never>((_resolve, reject) => {
     timer = setTimeout(() => reject(new Error("The service hasn't said who is logged in")), sessionWaitMs)
@@ -347,8 +348,10 @@ export const sessionSettledStep = async () => {
     await Promise.race([sessionSettled, timedOut])
   } catch (error) {
     // Subscribing again makes the service send a fresh clientState, so the retry isn't waiting
-    // on one that was lost.
-    subscription = Promise.resolve(false)
+    // on one that was lost. A newer connection has subscribed on its own, so leave that alone.
+    if (subscription === subscribed) {
+      subscription = Promise.resolve(false)
+    }
     // the mobile service runs in-process, so it is always the same build
     if (clientStateSeen || isMobile) {
       throw error

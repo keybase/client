@@ -317,6 +317,25 @@ describe('sessionSettledStep', () => {
     await expect(retry).resolves.toBeUndefined()
   })
 
+  test("a superseded connection's timeout leaves the new connection's subscription alone", async () => {
+    jest.useFakeTimers()
+    connect(async () => Promise.resolve())
+    const stale = sessionSettledStep()
+    const failed = expect(stale).rejects.toThrow()
+    await jest.advanceTimersByTimeAsync(20_000)
+
+    const setNotifications = connect(async () => Promise.resolve())
+    const subscribes = setNotifications.mock.calls.length
+    await jest.advanceTimersByTimeAsync(10_000)
+    await failed
+
+    const step = sessionSettledStep()
+    await jest.advanceTimersByTimeAsync(0)
+    expect(setNotifications).toHaveBeenCalledTimes(subscribes)
+    applyClientState({appState: T.RPCGen.MobileAppState.foreground, session})
+    await expect(step).resolves.toBeUndefined()
+  })
+
   test('on mobile no clientState is not an out-of-date service: the in-process service is the same build', async () => {
     const g = globalThis as unknown as {isMobile: boolean}
     g.isMobile = true
