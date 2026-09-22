@@ -426,7 +426,7 @@ func (g *gregorHandler) Connect(uri *rpc.FMPURI) error {
 	return g.connGate.connect(libkb.WithLogTag(context.Background(), "GRGRCONN"), uri, false)
 }
 
-// ConnectFresh is Connect, resetting any existing connection first so it
+// ConnectFresh is Connect, resetting an existing connection first so it
 // authenticates again.
 func (g *gregorHandler) ConnectFresh(uri *rpc.FMPURI) error {
 	return g.connGate.connect(libkb.WithLogTag(context.Background(), "GRGRCONN"), uri, true)
@@ -665,6 +665,10 @@ func (g *gregorHandler) IsShutdown() bool {
 	g.connMutex.Lock()
 	defer g.connMutex.Unlock()
 	return g.conn == nil
+}
+
+func (g *gregorHandler) connExists() bool {
+	return !g.IsShutdown()
 }
 
 func (g *gregorHandler) IsConnected() bool {

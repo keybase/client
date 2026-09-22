@@ -73,6 +73,12 @@ func (f *fakeGregorConn) goStale() {
 	f.up = false
 }
 
+func (f *fakeGregorConn) connExists() bool {
+	f.Lock()
+	defer f.Unlock()
+	return f.exists
+}
+
 func (f *fakeGregorConn) IsConnected() bool {
 	f.Lock()
 	defer f.Unlock()
@@ -216,7 +222,7 @@ func TestGregorConnLoginInBackground(t *testing.T) {
 	c.waitMonitor(t)
 	first := testGregorURI(t, "first.test")
 	require.NoError(t, c.gate.connect(context.Background(), first, true))
-	require.Equal(t, fakeGregorCounts{up: true, connects: 1, resets: 1}, c.conn.counts())
+	require.Equal(t, fakeGregorCounts{up: true, connects: 1}, c.conn.counts(), "reset with no connection")
 
 	c.update(t, keybase1.MobileAppState_BACKGROUND)
 	c.requireUp(t, false, "still connected in BACKGROUND")
@@ -224,7 +230,9 @@ func TestGregorConnLoginInBackground(t *testing.T) {
 	second := testGregorURI(t, "second.test")
 	require.NoError(t, c.gate.connect(context.Background(), second, true))
 	c.requireUp(t, false, "login connected in BACKGROUND")
-	require.Equal(t, fakeGregorCounts{connects: 1, shutdowns: 1, resets: 2}, c.conn.counts())
+	// No connection exists in BACKGROUND, so the login resets nothing and
+	// the gregor client survives until the foreground connect.
+	require.Equal(t, fakeGregorCounts{connects: 1, shutdowns: 1}, c.conn.counts(), "reset with no connection")
 
 	c.update(t, keybase1.MobileAppState_FOREGROUND)
 	c.requireUp(t, true, "did not connect on foreground after a background login")
@@ -232,7 +240,7 @@ func TestGregorConnLoginInBackground(t *testing.T) {
 
 	// A login while connected resets the connection before connecting.
 	require.NoError(t, c.gate.connect(context.Background(), first, true))
-	require.Equal(t, fakeGregorCounts{up: true, connects: 3, shutdowns: 2, resets: 3}, c.conn.counts())
+	require.Equal(t, fakeGregorCounts{up: true, connects: 3, shutdowns: 2, resets: 1}, c.conn.counts())
 	require.Equal(t, first, c.conn.lastURI())
 }
 

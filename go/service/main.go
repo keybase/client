@@ -1071,8 +1071,8 @@ func (d *Service) gregordConnect() (err error) {
 	}
 	d.G().Log.Debug("| gregor URI: %s", uri)
 
-	// Reset a live connection so it authenticates again. Nothing connects
-	// while the app is in BACKGROUND or the desktop is suspended.
+	// Reset an existing connection so it authenticates again. Nothing
+	// connects while the app is in BACKGROUND or the desktop is suspended.
 	return d.gregor.ConnectFresh(uri)
 }
 

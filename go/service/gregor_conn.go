@@ -18,6 +18,8 @@ type gregorConnector interface {
 	Shutdown(ctx context.Context)
 	Reset() error
 	IsConnected() bool
+	// connExists reports whether there is a connection, connected or not.
+	connExists() bool
 }
 
 // gregorAppState is the mobile app state the gate follows, as an interface so
@@ -110,15 +112,17 @@ func (c *gregorConnGate) stop() {
 	c.stopOnce.Do(func() { close(c.stopCh) })
 }
 
-// connect connects to uri when reconcile allows it. With reset, any existing
+// connect connects to uri when reconcile allows it. With reset, an existing
 // connection is reset first so it authenticates again; that includes one that
 // is not connected, such as one whose auth failed while logged out, which
-// would otherwise keep connectNow from dialing.
+// would otherwise keep connectNow from dialing. With no connection there is
+// nothing to reset, and resetting would drop the gregor client until the next
+// connect, which BACKGROUND or a suspend can put off.
 func (c *gregorConnGate) connect(ctx context.Context, uri *rpc.FMPURI, reset bool) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.uri = uri
-	if reset {
+	if reset && c.conn.connExists() {
 		if err := c.conn.Reset(); err != nil {
 			return err
 		}
