@@ -71,9 +71,11 @@ type Config struct {
 
 type BackgroundTaskDeps struct {
 	// Stay reports whether any work must keep a backgrounded app running. A
-	// task asks it first, off the controller's lock: answering reads the
-	// outbox.
-	Stay             func() bool
+	// task asks it at the start and on every poll, off the controller's lock:
+	// answering reads the outbox.
+	Stay func() bool
+	// ActiveDeliveries names the messages still sending when the task runs out
+	// of time, for the failure notice.
 	ActiveDeliveries func(context.Context) ([]chat1.OutboxRecord, error)
 	NextFailure      func() (chan []chat1.OutboxRecord, func())
 	NotifyFailure    func([]chat1.OutboxRecord)
@@ -432,7 +434,7 @@ func (c *Controller) BackgroundSync() string {
 }
 
 // runBackgroundTask keeps the background task hold h while work must keep
-// going: until outgoing messages are delivered, one fails, time runs out, the
+// going: until Stay says nothing does, a message fails, time runs out, the
 // hold is ended (the UI left the background, expiration, termination) or the
 // controller is closed.
 func (c *Controller) runBackgroundTask(h *Hold, deps BackgroundTaskDeps) {
@@ -467,31 +469,28 @@ func (c *Controller) runBackgroundTask(h *Hold, deps BackgroundTaskDeps) {
 		}
 	})
 	g.Go(func() error {
-		// An empty outbox can race a failure, so it takes three empty polls in
-		// a row to count as delivered.
-		emptyPolls := 0
-		var pending []chat1.OutboxRecord
+		// An empty outbox can race a failure, so it takes three polls in a row
+		// with nothing to keep running to end the task.
+		idlePolls := 0
 		for {
 			select {
 			case <-clock.After(c.cfg.BackgroundTaskPollInterval):
 			case <-ctx.Done():
 				return ctx.Err()
 			}
-			obrs, err := deps.ActiveDeliveries(ctx)
-			switch {
-			case err != nil:
-				c.cfg.Debug("lifecycle: failed to query active deliveries: %s", err)
-			case len(obrs) == 0:
-				pending = nil
-				emptyPolls++
-				if emptyPolls > 2 {
-					return errors.New("delivered everything")
+			if deps.Stay() {
+				idlePolls = 0
+			} else {
+				idlePolls++
+				if idlePolls > 2 {
+					return errors.New("nothing to keep running")
 				}
-			default:
-				pending = obrs
-				emptyPolls = 0
 			}
 			if clock.Now().Round(0).Sub(beginTime) >= c.cfg.BackgroundTaskMaxDuration {
+				pending, err := deps.ActiveDeliveries(ctx)
+				if err != nil {
+					c.cfg.Debug("lifecycle: failed to query active deliveries: %s", err)
+				}
 				deps.NotifyFailure(pending)
 				return errors.New("time expired")
 			}

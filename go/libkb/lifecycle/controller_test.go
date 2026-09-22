@@ -214,22 +214,35 @@ func TestBackgroundTaskTimesOutWhileDeliveriesFail(t *testing.T) {
 	require.Equal(t, background, appState.State())
 }
 
-// Deliveries that reappear start the count of empty polls over.
-func TestBackgroundTaskNeedsEmptyPollsInARow(t *testing.T) {
-	outbox := [][]chat1.OutboxRecord{nil, nil, make([]chat1.OutboxRecord, 1), nil, nil, nil}
-	var polls atomic.Int32
+// Work that reappears starts the count of idle polls over.
+func TestBackgroundTaskNeedsIdlePollsInARow(t *testing.T) {
+	// The first answer is the task's check before it polls.
+	stay := []bool{true, false, false, true, false, false, false}
+	var asked atomic.Int32
 	var notified atomic.Int32
 	deps := noDeliveries(true)
-	deps.ActiveDeliveries = func(context.Context) ([]chat1.OutboxRecord, error) {
-		if i := int(polls.Add(1)) - 1; i < len(outbox) {
-			return outbox[i], nil
+	deps.Stay = func() bool {
+		if i := int(asked.Add(1)) - 1; i < len(stay) {
+			return stay[i]
 		}
-		return nil, nil
+		return false
 	}
 	deps.NotifyFailure = func([]chat1.OutboxRecord) { notified.Add(1) }
 	appState, clock, done := startPolledTask(t, lifecycle.DefaultBackgroundTaskMaxDuration, deps)
-	require.Equal(t, len(outbox), advancePolls(t, clock, done, 10), "the task ended with a message still sending")
+	require.Equal(t, len(stay)-1, advancePolls(t, clock, done, 10), "the task ended with work still running")
 	require.Zero(t, notified.Load())
+	require.Equal(t, background, appState.State())
+}
+
+// Work other than a delivery, such as a coin flip or live location, keeps the
+// task holding with an empty outbox until its maximum duration.
+func TestBackgroundTaskHoldsWhileStayWithNothingToDeliver(t *testing.T) {
+	var notified atomic.Int32
+	deps := noDeliveries(true)
+	deps.NotifyFailure = func([]chat1.OutboxRecord) { notified.Add(1) }
+	appState, clock, done := startPolledTask(t, 6*pollInterval, deps)
+	require.Equal(t, 6, advancePolls(t, clock, done, 10), "the task ended while work had to keep running")
+	require.EqualValues(t, 1, notified.Load())
 	require.Equal(t, background, appState.State())
 }
 

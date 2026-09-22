@@ -72,8 +72,8 @@ const (
 	// BackgroundSyncWait waits for a BackgroundSync that bails out on its own.
 	BackgroundSyncWait
 
-	// BackgroundTaskDelivered finishes pending deliveries and polls until
-	// the task returns.
+	// BackgroundTaskDelivered finishes the pending work and polls until the
+	// task returns.
 	BackgroundTaskDelivered
 	BackgroundTaskFails
 	// BackgroundTaskTimesUp advances the clock past the task's maximum
@@ -169,8 +169,8 @@ type Harness struct {
 	tokens       map[int]int64
 	liveLocation *lifecycle.Hold
 
-	// A new background task asks Stay only once stayGate lets it, so the
-	// recorder sees the BACKGROUNDACTIVE the task may leave at once.
+	// A new background task asks Stay the first time only once stayGate lets
+	// it, so the recorder sees the BACKGROUNDACTIVE the task may leave at once.
 	stayGate chan struct{}
 	closing  chan struct{}
 	task     int64
@@ -234,12 +234,15 @@ func (h *Harness) Warnings() int { return int(h.warnings.Load()) }
 func (h *Harness) warn() { h.warnings.Add(1) }
 
 func (h *Harness) deps() lifecycle.BackgroundTaskDeps {
+	var gated sync.Once
 	return lifecycle.BackgroundTaskDeps{
 		Stay: func() bool {
-			select {
-			case <-h.stayGate:
-			case <-h.closing:
-			}
+			gated.Do(func() {
+				select {
+				case <-h.stayGate:
+				case <-h.closing:
+				}
+			})
 			return h.stay.Load()
 		},
 		ActiveDeliveries: func(context.Context) ([]chat1.OutboxRecord, error) {
@@ -340,6 +343,7 @@ func (h *Harness) perform(step Step) bool {
 	case BackgroundSyncWait:
 		h.wait(h.syncDone, "BackgroundSync")
 	case BackgroundTaskDelivered:
+		h.stay.Store(false)
 		h.pending.Store(0)
 		for {
 			h.Clock.Advance(pollInterval)
