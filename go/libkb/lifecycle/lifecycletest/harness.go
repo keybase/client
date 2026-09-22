@@ -180,9 +180,10 @@ type Harness struct {
 }
 
 const (
-	syncWindow   = 10 * time.Second
-	pollInterval = 5 * time.Second
-	maxDuration  = 10 * time.Minute
+	syncWindow    = 10 * time.Second
+	pollInterval  = 5 * time.Second
+	maxDuration   = 10 * time.Minute
+	flushCoalesce = 10 * time.Second
 )
 
 // NewHarness moves appState to the initial state and starts
@@ -206,6 +207,7 @@ func NewHarness(t testing.TB, appState lifecycle.AppState, platform Platform) *H
 		BackgroundSyncWindow:       syncWindow,
 		BackgroundTaskPollInterval: pollInterval,
 		BackgroundTaskMaxDuration:  maxDuration,
+		FlushCoalesceInterval:      flushCoalesce,
 		Flush:                      func() { h.flushes.Add(1) },
 		Debug:                      func(format string, args ...interface{}) { t.Logf(format, args...) },
 	})

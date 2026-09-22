@@ -52,6 +52,7 @@ const (
 	DefaultBackgroundSyncWindow       = 10 * time.Second
 	DefaultBackgroundTaskPollInterval = 5 * time.Second
 	DefaultBackgroundTaskMaxDuration  = 10 * time.Minute
+	DefaultFlushCoalesceInterval      = 10 * time.Second
 )
 
 // Config holds the controller's dependencies. Zero fields get defaults: the
@@ -61,9 +62,12 @@ type Config struct {
 	BackgroundSyncWindow       time.Duration
 	BackgroundTaskPollInterval time.Duration
 	BackgroundTaskMaxDuration  time.Duration
-	// Flush runs whenever the state changes into BACKGROUND, where the OS may
-	// suspend or kill the process next. It runs under the controller's lock,
-	// so it must not block.
+	// FlushCoalesceInterval is how soon after a flush the end of a hold skips
+	// its own; see applyLocked.
+	FlushCoalesceInterval time.Duration
+	// Flush runs when the app leaves the UI and when the last hold ends after
+	// a while (see applyLocked). It runs under the controller's lock, so it
+	// must not block.
 	Flush func()
 	Debug func(format string, args ...interface{})
 }
@@ -124,6 +128,8 @@ type Controller struct {
 	// closed stops new tasks once Close is waiting for the running ones, so
 	// nothing joins wg while Close waits on it.
 	closed bool
+	// lastFlush is when the last flush started, zero before the first.
+	lastFlush time.Time
 }
 
 func New(appState AppState, cfg Config) *Controller {
@@ -138,6 +144,9 @@ func New(appState AppState, cfg Config) *Controller {
 	}
 	if cfg.BackgroundTaskMaxDuration == 0 {
 		cfg.BackgroundTaskMaxDuration = DefaultBackgroundTaskMaxDuration
+	}
+	if cfg.FlushCoalesceInterval == 0 {
+		cfg.FlushCoalesceInterval = DefaultFlushCoalesceInterval
 	}
 	if cfg.Flush == nil {
 		cfg.Flush = func() {}
@@ -186,18 +195,41 @@ func (c *Controller) debugLocked(event string, format string, args ...interface{
 		c.ui, len(c.holds), c.appState.State())
 }
 
-// applyLocked writes the derived state, and flushes when it changes into
-// BACKGROUND: the OS may suspend or kill the process from there, and every
-// hold that kept it BACKGROUNDACTIVE may have written to the local DBs. A
-// flush is a full compaction, so entering BACKGROUNDACTIVE doesn't flush; its
-// writes are flushed once the last hold ends.
+func isUIState(state keybase1.MobileAppState) bool {
+	return state == keybase1.MobileAppState_FOREGROUND || state == keybase1.MobileAppState_INACTIVE
+}
+
+// applyLocked writes the derived state and flushes the local DBs, so an
+// unclean kill doesn't cost a journal replay at the next launch:
+//
+//   - Always when the UI leaves the screen (FOREGROUND/INACTIVE to
+//     BACKGROUNDACTIVE or BACKGROUND). That covers the whole foreground
+//     session's writes, even when a hold such as live location then keeps
+//     the app BACKGROUNDACTIVE for hours, and the flush starts while the
+//     background task still keeps the process running; the fire-and-forget
+//     flush would otherwise race the suspension that follows the task's end.
+//   - When the last hold ends (BACKGROUNDACTIVE to BACKGROUND), to cover the
+//     holds' writes, unless a flush started less than FlushCoalesceInterval
+//     ago. A flush is a full compaction: this keeps a backgrounding whose
+//     task ends at once, or a burst of pushes seconds apart, to one.
 func (c *Controller) applyLocked() {
 	prev := c.appState.State()
 	state := derive(c.ui, len(c.holds))
 	c.appState.Update(state)
-	if state == keybase1.MobileAppState_BACKGROUND && prev != keybase1.MobileAppState_BACKGROUND {
-		c.cfg.Flush()
+	leftUI := isUIState(prev) && !isUIState(state)
+	holdsEnded := prev == keybase1.MobileAppState_BACKGROUNDACTIVE && state == keybase1.MobileAppState_BACKGROUND
+	if !leftUI && !holdsEnded {
+		return
 	}
+	// Round(0) drops the monotonic reading, so time the device spends asleep
+	// counts toward the interval.
+	now := c.cfg.Clock.Now().Round(0)
+	if holdsEnded && !c.lastFlush.IsZero() && now.Sub(c.lastFlush) < c.cfg.FlushCoalesceInterval {
+		c.debugLocked("flush", "skipped, the last flush started %v ago", now.Sub(c.lastFlush))
+		return
+	}
+	c.lastFlush = now
+	c.cfg.Flush()
 }
 
 func (c *Controller) acquireLocked(reason Reason) *Hold {

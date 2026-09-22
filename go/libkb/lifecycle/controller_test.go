@@ -46,21 +46,16 @@ func noDeliveries(stay bool) lifecycle.BackgroundTaskDeps {
 // An id is never reused, so releasing an old hold again can't end a newer one.
 func TestHoldReleaseIsIdempotent(t *testing.T) {
 	appState, _ := newAppState(t)
-	flushes := 0
-	c := lifecycle.New(appState, lifecycle.Config{Flush: func() { flushes++ }})
+	c := lifecycle.New(appState, lifecycle.Config{})
 	token := c.UIBackground(noDeliveries(false))
 	require.Positive(t, token)
 	c.WaitBackgroundTask(token)
 	require.Equal(t, background, appState.State())
-	require.Equal(t, 1, flushes)
-	// Entering BACKGROUNDACTIVE doesn't flush; ending its last hold does.
 	first := c.AcquireBackgroundWork()
 	require.Equal(t, backgroundActive, appState.State())
-	require.Equal(t, 1, flushes)
 	require.True(t, first.Release())
 	require.Zero(t, lifecycle.Holds(c))
 	require.Equal(t, background, appState.State())
-	require.Equal(t, 2, flushes)
 	second := c.AcquireBackgroundWork()
 	require.False(t, first.Release())
 	// The stale Release left the newer hold alone.
@@ -68,7 +63,61 @@ func TestHoldReleaseIsIdempotent(t *testing.T) {
 	require.Equal(t, backgroundActive, appState.State())
 	require.True(t, second.Release())
 	require.Equal(t, background, appState.State())
-	require.Equal(t, 3, flushes)
+}
+
+// Leaving the UI always flushes; the end of the last hold flushes unless a
+// flush started less than FlushCoalesceInterval ago.
+func TestFlushRule(t *testing.T) {
+	const interval = 10 * time.Second
+	appState, _ := newAppState(t)
+	appState.Update(background)
+	clock := lifecycletest.NewFakeClock()
+	flushes := 0
+	c := lifecycle.New(appState, lifecycle.Config{
+		Clock:                 clock,
+		FlushCoalesceInterval: interval,
+		Flush:                 func() { flushes++ },
+	})
+	defer c.Close()
+	flushesAfter := func(what string, do func(), want keybase1.MobileAppState, n int) {
+		t.Helper()
+		before := flushes
+		do()
+		require.Equal(t, want, appState.State(), what)
+		require.Equal(t, n, flushes-before, what)
+	}
+	var hold *lifecycle.Hold
+	acquire := func() { hold = c.AcquireBackgroundWork() }
+	release := func() { require.True(t, hold.Release()) }
+
+	flushesAfter("entering BACKGROUNDACTIVE", acquire, backgroundActive, 0)
+	flushesAfter("the first hold's end", release, background, 1)
+	flushesAfter("a hold within the interval", func() { acquire(); release() }, background, 0)
+	clock.Advance(interval - time.Second)
+	flushesAfter("a hold just within the interval", func() { acquire(); release() }, background, 0)
+	clock.Advance(time.Second)
+	flushesAfter("a hold once the interval has passed", func() { acquire(); release() }, background, 1)
+
+	flushesAfter("coming to the foreground", c.UIActive, foreground, 0)
+	flushesAfter("going inactive", c.UIInactive, inactive, 0)
+	flushesAfter("leaving the UI with a hold open, within the interval", func() {
+		acquire()
+		lifecycletest.ToBackground(c)
+	}, backgroundActive, 1)
+	flushesAfter("the hold's end at once", release, background, 0)
+	clock.Advance(interval)
+	flushesAfter("a hold's end once the interval has passed", func() { acquire(); release() }, background, 1)
+
+	c.UIActive()
+	clock.Advance(time.Hour)
+	flushesAfter("leaving the UI while a hold keeps the app running", func() {
+		acquire()
+		lifecycletest.ToBackground(c)
+	}, backgroundActive, 1)
+	clock.Advance(time.Hour)
+	flushesAfter("that hold's end", release, background, 1)
+	c.UIActive()
+	flushesAfter("termination from the foreground", func() { c.WillTerminate(noop) }, background, 1)
 }
 
 // Close waits for the running background tasks, so no later call may start
@@ -250,23 +299,28 @@ func TestBackgroundTaskHoldsWhileStayWithNothingToDeliver(t *testing.T) {
 // Native gives these last events only a short wait, so the state change and
 // any flush must happen before the slow pending-message warning.
 func TestExitEventsApplyBeforeNotifying(t *testing.T) {
+	// A task that has run past the flush coalescing interval, so its end flushes.
+	backgroundTask := func(c *lifecycle.Controller, clock *lifecycletest.FakeClock) {
+		require.Positive(t, c.UIBackground(noDeliveries(true)))
+		clock.Advance(lifecycle.DefaultFlushCoalesceInterval)
+	}
 	events := map[string]struct {
-		prepare func(c *lifecycle.Controller)
+		prepare func(c *lifecycle.Controller, clock *lifecycletest.FakeClock)
 		do      func(c *lifecycle.Controller, notifyPending func())
 		flushes int
 	}{
 		"willTerminate": {
-			prepare: func(c *lifecycle.Controller) { c.UIActive() },
+			prepare: func(c *lifecycle.Controller, _ *lifecycletest.FakeClock) { c.UIActive() },
 			do:      func(c *lifecycle.Controller, notifyPending func()) { c.WillTerminate(notifyPending) },
 			flushes: 1,
 		},
 		"willTerminate in the background": {
-			prepare: func(c *lifecycle.Controller) { require.Positive(t, c.UIBackground(noDeliveries(true))) },
+			prepare: backgroundTask,
 			do:      func(c *lifecycle.Controller, notifyPending func()) { c.WillTerminate(notifyPending) },
 			flushes: 1,
 		},
 		"backgroundTaskExpired": {
-			prepare: func(c *lifecycle.Controller) { require.Positive(t, c.UIBackground(noDeliveries(true))) },
+			prepare: backgroundTask,
 			do:      func(c *lifecycle.Controller, notifyPending func()) { c.BackgroundTaskExpired(notifyPending) },
 			flushes: 1,
 		},
@@ -275,9 +329,10 @@ func TestExitEventsApplyBeforeNotifying(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			appState, _ := newAppState(t)
 			var flushes int
-			c := lifecycle.New(appState, lifecycle.Config{Flush: func() { flushes++ }})
+			clock := lifecycletest.NewFakeClock()
+			c := lifecycle.New(appState, lifecycle.Config{Clock: clock, Flush: func() { flushes++ }})
 			defer c.Close()
-			event.prepare(c)
+			event.prepare(c, clock)
 			flushesBefore := flushes
 			notified := false
 			event.do(c, func() {
