@@ -147,6 +147,20 @@ describe('daemon store', () => {
     expect(store.getState().handshakeFailedReason).toBe('')
     expect(store.getState().handshakeRetriesLeft).toBe(maxHandshakeTries)
   })
+
+  test('resetState keeps the handshake generation: it counts connections, not accounts', () => {
+    jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue(bootstrapStatus)
+    const {dispatch} = useDaemonState.getState()
+    dispatch.initBootstrapSteps([])
+    dispatch.startHandshake()
+    dispatch.startHandshake()
+    const gen = useDaemonState.getState().handshakeGeneration
+
+    dispatch.resetState()
+
+    expect(gen).toBeGreaterThan(0)
+    expect(useDaemonState.getState().handshakeGeneration).toBe(gen)
+  })
 })
 
 describe('reading the session from the daemon', () => {
@@ -299,20 +313,4 @@ describe('a superseded read', () => {
 
     expect(useDaemonState.getState().bootstrapStatus?.username).toBe('testuser')
   })
-})
-
-test('resetState keeps the handshake generation: it counts connections, not accounts', () => {
-  jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue(bootstrapStatus)
-  const {dispatch} = useDaemonState.getState()
-  dispatch.initBootstrapSteps([])
-  dispatch.startHandshake()
-  dispatch.startHandshake()
-  const gen = useDaemonState.getState().handshakeGeneration
-
-  dispatch.resetState()
-
-  expect(gen).toBeGreaterThan(0)
-  expect(useDaemonState.getState().handshakeGeneration).toBe(gen)
-  jest.restoreAllMocks()
-  resetAllStores()
 })
