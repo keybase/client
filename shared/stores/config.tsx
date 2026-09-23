@@ -12,6 +12,7 @@ import {type CommonResponseHandler} from '@/engine/types'
 import {invalidPasswordErrorString} from '@/constants/config'
 import {navigateAppend} from '@/constants/router'
 import {onEngineConnected as onEngineConnectedInPlatform} from '@/util/storeless-actions'
+import {useDaemonState} from '@/stores/daemon'
 
 type Store = T.Immutable<{
   allowAnimatedEmojis: boolean
@@ -24,7 +25,6 @@ type Store = T.Immutable<{
   configuredAccounts: Array<T.Config.ConfiguredAccount>
   defaultUsername: string
   globalError?: Error | RPCError
-  gregorReachable?: T.RPCGen.Reachable
   gregorPushState: Array<{md: T.RPCGregor.Metadata; item: T.RPCGregor.Item}>
   loginError?: RPCError
   httpSrv: {
@@ -62,7 +62,6 @@ const initialStore: Store = {
   defaultUsername: '',
   globalError: undefined,
   gregorPushState: [],
-  gregorReachable: undefined,
   httpSrv: {
     address: '',
     token: '',
@@ -112,7 +111,6 @@ export type State = Store & {
     setChatStaticConfig: (s: T.Chat.StaticConfig) => void
     setDefaultUsername: (u: string) => void
     setGlobalError: (e?: unknown) => void
-    setGregorReachable: (r: Store['gregorReachable']) => void
     setHTTPSrvInfo: (address: string, token: string) => void
     setJustDeletedSelf: (s: string) => void
     setLoggedIn: (l: boolean) => void
@@ -149,14 +147,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
     } catch (err) {
       logger.warn('error getting update info: ', err)
     }
-  }
-
-  const setGregorReachable = (r: Store['gregorReachable']) => {
-    const old = get().gregorReachable
-    if (old === r) return
-    set(s => {
-      s.gregorReachable = r
-    })
   }
 
   const setGregorPushState = (state: T.RPCGen.Gregor1.State) => {
@@ -278,18 +268,18 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
             waitingKey: waitingKeyConfigLogin,
           })
           logger.info('login call succeeded')
-          get().dispatch.setLoggedIn(true)
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return
           }
-          if (error.code === T.RPCGen.StatusCode.scalreadyloggedin) {
-            get().dispatch.setLoggedIn(true)
-          } else if (error.desc !== cancelDesc) {
-            // If we're canceling then ignore the error
+          // Already logged in: the daemon's session says so. Canceling: nothing to report.
+          if (error.code !== T.RPCGen.StatusCode.scalreadyloggedin && error.desc !== cancelDesc) {
             error.desc = niceError(error)
             get().dispatch.setLoginError(error)
           }
+        } finally {
+          // After setLoginError, which ends a switch: a failed switch must apply a logged-out session.
+          useDaemonState.getState().dispatch.refreshSessionFromDaemon('login returned')
         }
       }
       get().dispatch.setLoginError()
@@ -319,19 +309,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       // An engine reset drops in-flight RPCs without settling their promises; a refresh
       // caught by that would poison the dedupe cache forever
       inflightRefreshAccounts = undefined
-      // The startReachability RPC call both starts and returns the current
-      // reachability state. Then we'll get updates of changes from this state via reachabilityChanged.
-      // This should be run on app start and service re-connect in case the service somehow crashed or was restarted manually.
-      const startReachability = async () => {
-        try {
-          const reachability = await T.RPCGen.reachabilityStartReachabilityRpcPromise()
-          get().dispatch.setGregorReachable(reachability.reachable)
-        } catch (err) {
-          logger.warn('error bootstrapping reachability: ', err)
-        }
-      }
-      ignorePromise(startReachability())
-
       // If ever you want to get OOBMs for a different system, then you need to enter it here.
       const registerForGregorNotifications = async () => {
         try {
@@ -375,29 +352,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
           get().dispatch.setHTTPSrvInfo(action.payload.params.info.address, action.payload.params.info.token)
           break
         }
-        case 'keybase.1.NotifySession.loggedIn': {
-          logger.info('keybase.1.NotifySession.loggedIn')
-          // only send this if we think we're not logged in
-          const {loggedIn, dispatch} = get()
-          if (!loggedIn) {
-            dispatch.setLoggedIn(true)
-          }
-          break
-        }
-        case 'keybase.1.NotifySession.loggedOut': {
-          logger.info('keybase.1.NotifySession.loggedOut')
-          const {loggedIn, dispatch} = get()
-          // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
-          if (loggedIn) {
-            dispatch.setLoggedIn(false)
-          }
-          break
-        }
-        case 'keybase.1.reachability.reachabilityChanged':
-          if (get().loggedIn) {
-            get().dispatch.setGregorReachable(action.payload.params.reachability.reachable)
-          }
-          break
         default:
       }
     },
@@ -459,6 +413,8 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         configuredAccounts: s.configuredAccounts,
         defaultUsername: s.defaultUsername,
         dispatch: s.dispatch,
+        // process-wide, not per account; nothing reloads it on logout
+        httpSrv: s.httpSrv,
         startup: {loaded: s.startup.loaded},
         userSwitching: s.userSwitching,
       }))
@@ -522,9 +478,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
           s.globalError = undefined
         })
       }
-    },
-    setGregorReachable: r => {
-      setGregorReachable(r)
     },
     setHTTPSrvInfo: (address, token) => {
       set(s => {

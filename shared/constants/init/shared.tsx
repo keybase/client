@@ -176,14 +176,15 @@ const onGregorPushStateChanged = (
   )
 }
 
-const onGregorReachableChanged = (gregorReachable: ConfigState['gregorReachable']) => {
-  // Re-get info about our account if you log in/we're done handshaking/became reachable
-  if (
-    gregorReachable === T.RPCGen.Reachable.yes &&
-    useDaemonState.getState().handshakeState === 'done' &&
-    !useConfigState.getState().userSwitching
-  ) {
-    ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
+// After an offline stretch, reread the session to pick up what the service learned while we could
+// not reach it. `previous === undefined` is the first reading of the network at startup, which the
+// handshake's own read already covers.
+export const onNetworkOnlineChanged = (online?: boolean, previous?: boolean) => {
+  if (!online || previous !== false) {
+    return
+  }
+  if (useDaemonState.getState().handshakeState === 'done' && !useConfigState.getState().userSwitching) {
+    useDaemonState.getState().dispatch.refreshSessionFromDaemon('back online')
   }
 }
 
@@ -221,20 +222,42 @@ const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus']) => 
   }
 
   const {deviceID, deviceName, loggedIn, uid, username} = bootstrap
-  useCurrentUserState.getState().dispatch.setBootstrap({deviceID, deviceName, uid, username})
-
   const configDispatch = useConfigState.getState().dispatch
-  if (username) {
-    configDispatch.setDefaultUsername(username)
-  }
+
+  // Before the identity: the user we hold is what tells the new account's session from the old.
+  // onUserSwitchingChanged applies the status once the switch ends.
   if (!loggedIn && useConfigState.getState().userSwitching) {
     logger.info('[Bootstrap] ignoring loggedIn=false result during account switch')
     return
+  }
+
+  // Logged in as someone else than the user we hold is a logout and then a login, however the
+  // notifications in between reached us. Logging out clears the previous account's stores, the
+  // daemon's status among them, so put this status back and let that change apply it.
+  const currentUid = useCurrentUserState.getState().uid
+  if (loggedIn && useConfigState.getState().loggedIn && currentUid && uid !== currentUid) {
+    logger.info('[Bootstrap] the session is another user now, logging out the previous one')
+    configDispatch.setLoggedIn(false)
+    useDaemonState.getState().dispatch.setBootstrapStatus(bootstrap)
+    return
+  }
+
+  useCurrentUserState.getState().dispatch.setBootstrap({deviceID, deviceName, uid, username})
+  if (username) {
+    configDispatch.setDefaultUsername(username)
   }
   configDispatch.setLoggedIn(loggedIn)
 
   if (bootstrap.httpSrvInfo) {
     configDispatch.setHTTPSrvInfo(bootstrap.httpSrvInfo.address, bootstrap.httpSrvInfo.token)
+  }
+}
+
+// A switch that failed after the service logged out has a logged-out status nothing applied, and
+// a read after the switch returns the same status, which does not count as a change.
+const onUserSwitchingChanged = (userSwitching: ConfigState['userSwitching']) => {
+  if (!userSwitching) {
+    onBootstrapStatusChanged(useDaemonState.getState().bootstrapStatus)
   }
 }
 
@@ -325,7 +348,7 @@ export const onEngineConnected = () => {
             chatattachments: true, chatdev: false, chatemoji: false, chatemojicross: false, chatkbfsedits: false,
             deviceclone: false, ephemeral: false, favorites: false, featuredBots: false, kbfs: true, kbfsdesktop: !isMobile,
             devicehistory: true, kbfslegacy: false, kbfsrequest: false, kbfssubscription: true, keyfamily: false, notifysimplefs: true,
-            paperkeys: false, pgp: true, reachability: true, runtimestats: true, saltpack: true, service: true, session: true,
+            paperkeys: false, pgp: true, reachability: false, runtimestats: true, saltpack: true, service: true, session: true,
             team: true, teambot: false, tracking: true, users: true, wallet: false,
           },
         })
@@ -361,14 +384,15 @@ export const initSharedSubscriptions = (platformBootstrapSteps: Array<BootstrapS
   for (const unsub of _sharedUnsubs) unsub()
   _sharedUnsubs.length = 0
   _sharedUnsubs.push(
-    subscribeValue(useConfigState, s => s.gregorReachable, onGregorReachableChanged),
     subscribeValue(useConfigState, s => s.gregorPushState, onGregorPushStateChanged),
     subscribeValue(useConfigState, s => s.loggedIn, onLoggedInChanged),
     subscribeValue(useConfigState, s => s.revokedTrigger, onRevokedTriggerChanged),
-    subscribeValue(useConfigState, s => s.configuredAccounts, onConfiguredAccountsChanged)
+    subscribeValue(useConfigState, s => s.configuredAccounts, onConfiguredAccountsChanged),
+    subscribeValue(useConfigState, s => s.userSwitching, onUserSwitchingChanged)
   )
 
   _sharedUnsubs.push(subscribeValue(useDaemonState, s => s.bootstrapStatus, onBootstrapStatusChanged))
+  _sharedUnsubs.push(subscribeValue(useShellState, s => s.networkStatus?.online, onNetworkOnlineChanged))
 
   _sharedUnsubs.push(
     subscribeValue(useRouterState, s => s.navState, onNavStateChanged)
@@ -388,6 +412,13 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
   }
 
   switch (action.type) {
+    // These can reach us out of order with each other, so none of them sets the session: each only
+    // says it changed, and the daemon's reply to the latest read is what applies.
+    case 'keybase.1.NotifySession.loggedIn':
+    case 'keybase.1.NotifySession.loggedOut':
+    case 'keybase.1.NotifyService.HTTPSrvInfoUpdate':
+      useDaemonState.getState().dispatch.refreshSessionFromDaemon(action.type)
+      break
     case 'keybase.1.NotifyBadges.badgeState':
       {
         const {badgeState} = action.payload.params

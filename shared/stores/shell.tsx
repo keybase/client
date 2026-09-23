@@ -6,7 +6,6 @@ import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {defaultUseNativeFrame} from '@/constants/platform'
-import {useConfigState} from '@/stores/config'
 
 export type ConnectionType = NetInfo.NetInfoStateType | 'notavailable'
 
@@ -156,11 +155,16 @@ export const useShellState = Z.createZustand<State>('shell', (set, get) => {
           s.networkStatus.type = type
         }
       })
-      const updateGregor = async () => {
-        const reachability = await T.RPCGen.reachabilityCheckReachabilityRpcPromise()
-        useConfigState.getState().dispatch.setGregorReachable(reachability.reachable)
+      // Not for the result: the service re-dials gregor inside this call and reconnects if the
+      // dial fails, which is what gets it off a dead connection after the network moves.
+      const nudgeGregor = async () => {
+        try {
+          await T.RPCGen.reachabilityCheckReachabilityRpcPromise()
+        } catch (error) {
+          logger.warn('failed to check gregor reachability: ', error)
+        }
       }
-      ignorePromise(updateGregor())
+      ignorePromise(nudgeGregor())
 
       const updateFS = async () => {
         if (isInit) return
