@@ -16,7 +16,6 @@ import androidx.core.content.IntentCompat
 import android.webkit.MimeTypeMap
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
-import com.facebook.react.ReactApplication
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
@@ -156,9 +155,9 @@ class MainActivity : ReactActivity() {
         (application as MainApplication).lifecycleReporter.onMainActivityDestroy(isFinishing, isChangingConfigurations)
     }
 
-    // A share or notification intent parks here until JS asks for it. Nothing else is parked:
-    // deep links go through super.onNewIntent -> RCTLinkingManager, so a plain launch leaves
-    // this null.
+    // A share intent parks here until JS asks for it. Nothing else is parked: deep links go
+    // through super.onNewIntent -> RCTLinkingManager, and a notification tap goes through
+    // PushTapActivity to KbModule, so a plain launch leaves this null.
     private var cachedIntent: Intent? = null
 
     private var pendingShareUris: List<Uri>? = null
@@ -169,27 +168,20 @@ class MainActivity : ReactActivity() {
     // data are tied to the delivered intent, and JS may not be ready to route them until much
     // later (see shareListenersRegistered).
     private fun captureIntent(intent: Intent) {
-        val bundleFromNotification = intent.getBundleExtra("notification")
-        if (bundleFromNotification != null) {
-            KbModule.setInitialNotification(bundleFromNotification.clone() as Bundle)
-        }
-        val isShare = Intent.ACTION_SEND == intent.action || Intent.ACTION_SEND_MULTIPLE == intent.action
-        if (!isShare && bundleFromNotification == null) {
+        if (Intent.ACTION_SEND != intent.action && Intent.ACTION_SEND_MULTIPLE != intent.action) {
             return
         }
         cachedIntent = intent
-        if (isShare) {
-            pendingShareUris = extractSharedUris(intent)
-            pendingShareSubject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
-            pendingShareText = intent.getStringExtra(Intent.EXTRA_TEXT)
-        }
+        pendingShareUris = extractSharedUris(intent)
+        pendingShareSubject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
+        pendingShareText = intent.getStringExtra(Intent.EXTRA_TEXT)
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         captureIntent(intent)
-        NativeLogger.info("MainActivity.onNewIntent: action=${intent.action}, uriCount=${pendingShareUris?.size ?: 0}, hasNotification=${intent.getBundleExtra("notification") != null}")
+        NativeLogger.info("MainActivity.onNewIntent: action=${intent.action}, uriCount=${pendingShareUris?.size ?: 0}")
     }
 
     private var jsIsListening = false
@@ -200,8 +192,6 @@ class MainActivity : ReactActivity() {
         jsIsListening = true
         handleIntent()
     }
-
-    private var handledIntentHash: String? = null
 
     private fun extractSharedUris(intent: Intent): List<Uri> {
         val action = intent.action
@@ -239,72 +229,48 @@ class MainActivity : ReactActivity() {
         if (!jsIsListening) return
         NativeLogger.info("MainActivity.handleIntent: processing intent action=${intent.action}")
 
-        // Here we are just reading from the notification bundle.
-        // If other sources start the app, we can get their intent data the same way.
-        val bundleFromNotification = intent.getBundleExtra("notification")
+        val uris = pendingShareUris.orEmpty().also { pendingShareUris = null }
+        val subject = pendingShareSubject.also { pendingShareSubject = null }
+        val text = pendingShareText.also { pendingShareText = null }
 
-        if (bundleFromNotification != null) {
-            // Prevent duplicate handling of the same notification
-            val convID = bundleFromNotification.getString("convID") ?: bundleFromNotification.getString("c")
-            val messageId = bundleFromNotification.getString("msgID") ?: bundleFromNotification.getString("d") ?: ""
-            val intentHash = "${convID}_${messageId}"
-            if (handledIntentHash == intentHash) {
-                NativeLogger.info("MainActivity.handleIntent skipping duplicate notification: $intentHash")
-            } else {
-                handledIntentHash = intentHash
-                NativeLogger.info("MainActivity.handleIntent processing notification: $intentHash")
+        // Strip consumed extras so an activity recreation (which redelivers this
+        // same intent instance) doesn't re-share.
+        intent.removeExtra(Intent.EXTRA_STREAM)
+        intent.removeExtra(Intent.EXTRA_SUBJECT)
+        intent.removeExtra(Intent.EXTRA_TEXT)
+        intent.setClipData(null)
 
-                KbModule.emitPushNotification(bundleFromNotification)
+        val textPayload = listOfNotNull(subject, text).joinToString(" ")
+        val isTextMime = intent.type?.startsWith("text/") == true
+
+        if (isTextMime && textPayload.isNotEmpty()) {
+            // Text-type intent (e.g. URL from Chrome): prefer text over any preview images
+            emitShareText(text ?: textPayload)
+        } else if (uris.isEmpty()) {
+            if (textPayload.isNotEmpty()) {
+                emitShareText(textPayload)
             }
-
-            intent.removeExtra("notification")
-        }
-
-        val action = intent.action
-        if (Intent.ACTION_SEND == action || Intent.ACTION_SEND_MULTIPLE == action) {
-            val uris = pendingShareUris.orEmpty().also { pendingShareUris = null }
-            val subject = pendingShareSubject.also { pendingShareSubject = null }
-            val text = pendingShareText.also { pendingShareText = null }
-
-            // Strip consumed extras so an activity recreation (which redelivers this
-            // same intent instance) doesn't re-share.
-            intent.removeExtra(Intent.EXTRA_STREAM)
-            intent.removeExtra(Intent.EXTRA_SUBJECT)
-            intent.removeExtra(Intent.EXTRA_TEXT)
-            intent.setClipData(null)
-
-            val textPayload = listOfNotNull(subject, text).joinToString(" ")
-            val isTextMime = intent.type?.startsWith("text/") == true
-
-            if (isTextMime && textPayload.isNotEmpty()) {
-                // Text-type intent (e.g. URL from Chrome): prefer text over any preview images
-                emitShareText(text ?: textPayload)
-            } else if (uris.isEmpty()) {
-                if (textPayload.isNotEmpty()) {
-                    emitShareText(textPayload)
+        } else {
+            // Copying out of the content providers can be slow for big files; don't
+            // block the main thread on it.
+            val context: Context = this
+            Thread {
+                val filePaths = uris.mapNotNull { uri ->
+                    try {
+                        readFileFromUri(context, uri)
+                    } catch (e: SecurityException) {
+                        null
+                    }
                 }
-            } else {
-                // Copying out of the content providers can be slow for big files; don't
-                // block the main thread on it.
-                val context: Context = this
-                Thread {
-                    val filePaths = uris.mapNotNull { uri ->
-                        try {
-                            readFileFromUri(context, uri)
-                        } catch (e: SecurityException) {
-                            null
-                        }
-                    }
-                    if (filePaths.isNotEmpty()) {
-                        emitShareFiles(filePaths)
-                    } else if (textPayload.isNotEmpty()) {
-                        // Fallback: non-text MIME but no files resolved, send text
-                        emitShareText(textPayload)
-                    } else {
-                        emitShareFiles(emptyList())
-                    }
-                }.start()
-            }
+                if (filePaths.isNotEmpty()) {
+                    emitShareFiles(filePaths)
+                } else if (textPayload.isNotEmpty()) {
+                    // Fallback: non-text MIME but no files resolved, send text
+                    emitShareText(textPayload)
+                } else {
+                    emitShareFiles(emptyList())
+                }
+            }.start()
         }
 
         cachedIntent = null

@@ -1,5 +1,6 @@
 import * as Settings from '@/constants/settings'
 import * as Tabs from '@/constants/tabs'
+import logger from '@/logger'
 import {isSplit} from '@/constants/chat/layout'
 import {isValidConversationIDKey, stringToConversationIDKey} from '@/constants/types/chat/common'
 import {useConfigState} from '@/stores/config'
@@ -96,6 +97,8 @@ const navigationIntentLifetimeMs = 5 * 60_000
 
 // The router owns consumption. Producers can enqueue before this subscription
 // exists, during an account switch, or before NavigationContainer is ready.
+// Every dispatch.acknowledge below -- whether the intent is actually navigated or given up on as
+// stale -- is also what acks a tapped notification natively, if the intent carries one.
 export const subscribeNavigationIntents = (
   listener: (url: string) => void,
   handleAppLink: (link: string) => void
@@ -288,7 +291,8 @@ const customGetStateFromPath = (
 
 // Known URLs become launch state; the rest open imperatively once the router is up.
 // setInitialURLOnce also consumes: markInitialURLHandled clears a pending intent with the
-// same URL, so subscribeNavigationIntents won't navigate to it a second time.
+// same URL, so subscribeNavigationIntents won't navigate to it a second time, and acks the
+// intent's tapped notification natively if it carried one.
 const openInitialLink = (link: string, handleAppLink: (link: string) => void) => {
   if (isHandledByLinkingConfig(link)) return setInitialURLOnce(link)
   setInitialURLOnce(link)
@@ -304,7 +308,7 @@ export const createLinkingConfig = (
       const {loggedIn, startup, androidShare} = useConfigState.getState()
       if (!loggedIn) return null
 
-      const {tab: startupTab, followUser: startupFollowUser} = startup
+      const {tab: startupTab} = startup
       let startupConversation = startup.conversation
       if (!isValidConversationIDKey(startupConversation)) {
         startupConversation = ''
@@ -315,6 +319,18 @@ export const createLinkingConfig = (
       const {uid: currentUid} = useCurrentUserState.getState()
       if (startupConversation && startup.conversationUid && startup.conversationUid !== currentUid) {
         startupConversation = ''
+      }
+
+      // A tapped push picks where the app opens, once its account is current. A tap for
+      // another account stays queued until account-link-switch has switched to it. The same
+      // lifetime applies here as in subscribeNavigationIntents.
+      const {intent} = useNavigationIntentsState.getState()
+      if (
+        intent &&
+        Date.now() - intent.createdAt <= navigationIntentLifetimeMs &&
+        (!intent.targetUid || intent.targetUid === currentUid)
+      ) {
+        return openInitialLink(intent.url, handleAppLink)
       }
 
       const pushState = usePushState.getState()
@@ -345,10 +361,6 @@ export const createLinkingConfig = (
         return setInitialURLOnce('keybase://incoming-share')
       }
 
-      if (startupFollowUser && !startupConversation) {
-        return setInitialURLOnce(`keybase://profile/show/${startupFollowUser}`)
-      }
-
       if (startupConversation) {
         return setInitialURLOnce(`keybase://convid/${startupConversation}`)
       }
@@ -375,6 +387,7 @@ export const createLinkingConfig = (
     let removeLinkingSub: (() => void) | undefined
     if (isMobile) {
       const sub = Linking.addEventListener('url', ({url}: {url: string}) => {
+        logger.info('[DeepLink] url event:', url)
         emitDeepLink(url)
       })
       removeLinkingSub = () => sub.remove()

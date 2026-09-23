@@ -201,7 +201,6 @@ const onChatClearWatch = async () => {
 const loadStartupDetails = async () => {
   logger.info('[Startup] loadStartupDetails: starting')
   const {guiConfig, Linking} = _getNative()
-  const {getStartupDetailsFromInitialPush} = await import('./push-listener.native')
 
   let routeState = ''
   try {
@@ -209,33 +208,26 @@ const loadStartupDetails = async () => {
     routeState = config?.ui?.routeState2 ?? ''
   } catch {}
 
-  const [initialUrl, push] = await Promise.all([
-    neverThrowPromiseFunc(async () => {
-      const linkingStart = Date.now()
-      logger.info('[Startup] loadStartupDetails: calling Linking.getInitialURL')
-      const url = await Linking.getInitialURL()
-      const elapsed = Date.now() - linkingStart
-      if (url === null) {
-        logger.warn(`[Startup] loadStartupDetails: Linking.getInitialURL returned null in ${elapsed}ms`)
-      } else {
-        logger.info(`[Startup] loadStartupDetails: Linking.getInitialURL returned in ${elapsed}ms: ${url}`)
-      }
-      return url
-    }),
-    neverThrowPromiseFunc(getStartupDetailsFromInitialPush),
-  ] as const)
+  // A tapped push doesn't pass through here: constants/init/shared takes it from native and
+  // queues it as a navigation intent.
+  const initialUrl = await neverThrowPromiseFunc(async () => {
+    const linkingStart = Date.now()
+    logger.info('[Startup] loadStartupDetails: calling Linking.getInitialURL')
+    const url = await Linking.getInitialURL()
+    const elapsed = Date.now() - linkingStart
+    if (url === null) {
+      logger.warn(`[Startup] loadStartupDetails: Linking.getInitialURL returned null in ${elapsed}ms`)
+    } else {
+      logger.info(`[Startup] loadStartupDetails: Linking.getInitialURL returned in ${elapsed}ms: ${url}`)
+    }
+    return url
+  })
 
   let conversation: T.Chat.ConversationIDKey | undefined
   let conversationUid = ''
-  let followUser = ''
   let tab = ''
 
-  // Top priority, push
-  if (push) {
-    logger.info('initialState: push', push.startupConversation, push.startupFollowUser)
-    conversation = push.startupConversation
-    followUser = push.startupFollowUser ?? ''
-  } else if (!initialUrl && routeState) {
+  if (!initialUrl && routeState) {
     // Last priority, saved from last session. The linking config reads the launch URL
     // itself; this read only decides whether the saved route may be restored, since a
     // launch URL outranks it.
@@ -270,7 +262,6 @@ const loadStartupDetails = async () => {
   useConfigState.getState().dispatch.setStartupDetails({
     conversation: conversation ?? noConversationIDKey,
     conversationUid,
-    followUser,
     tab: tab as Tabs.Tab,
   })
 
@@ -410,6 +401,10 @@ export const initPlatformListener = () => {
 }
 
 const _initNativePlatformListener = () => {
+  // HMR cleanup: unsubscribe old subscriptions before re-subscribing
+  for (const unsub of _platformUnsubs) unsub()
+  _platformUnsubs.length = 0
+
   useShellState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     let appFocused: boolean
@@ -531,7 +526,7 @@ const _initNativePlatformListener = () => {
   // Start this immediately instead of waiting so we can do more things in parallel
   ignorePromise(loadStartupDetails())
 
-  initPushListener()
+  _platformUnsubs.push(...initPushListener())
 
   initIOSLocation()
 
@@ -657,7 +652,6 @@ const _initDesktopPlatformListener = () => {
     if (s.handshakeState !== old.handshakeState && s.handshakeState === 'done') {
       useConfigState.getState().dispatch.setStartupDetails({
         conversation: Chat.noConversationIDKey,
-        followUser: '',
         tab: undefined,
       })
     }

@@ -97,10 +97,6 @@ export const setApplicationIconBadgeNumber = (n: number): void => {
   Kb.setApplicationIconBadgeNumber(n)
 }
 
-export const getInitialNotification = (): Promise<object | null> => {
-  return Kb.getInitialNotification()
-}
-
 export const removeAllPendingNotificationRequests = (): void => {
   Kb.removeAllPendingNotificationRequests()
 }
@@ -143,10 +139,6 @@ export const onMetaEvent = (callback: (payload: string) => void): EventSubscript
 }
 
 // Push events
-export const onPushNotification = (callback: (notification: object) => void): EventSubscription => {
-  return Kb.onPushNotification(n => callback(n))
-}
-
 export const onPushToken = (callback: (token: string) => void): EventSubscription => {
   return Kb.onPushToken(callback)
 }
@@ -189,9 +181,19 @@ export const addLocationFixListener = (
   return () => sub.remove()
 }
 
-export const engineReset = (): void => {
-  return Kb.engineReset()
+export const peekPushTap = (): {payload: string; id: number} | null => {
+  return Kb.peekPushTap()
 }
+
+export const ackPushTap = (id: number): void => {
+  Kb.ackPushTap(id)
+}
+
+export const addPushTapListener = (callback: () => void): (() => void) => {
+  const sub = Kb.onPushTapAvailable(callback)
+  return () => sub.remove()
+}
+
 export const notifyJSReady = (): void => {
   return Kb.notifyJSReady()
 }

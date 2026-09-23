@@ -12,8 +12,6 @@ import android.graphics.PorterDuffXfermode
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
@@ -22,9 +20,9 @@ import androidx.core.graphics.drawable.IconCompat
 import keybase.ChatNotification
 import keybase.PushNotifier
 import java.io.BufferedInputStream
-import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.security.MessageDigest
 
 class KBPushNotifier internal constructor(private val context: Context, private val bundle: Bundle) : PushNotifier {
     private var convMsgCache: SmallMsgRingBuffer? = null
@@ -38,16 +36,38 @@ class KBPushNotifier internal constructor(private val context: Context, private 
         this.convMsgCache = convMsgCache
     }
 
-    // Controls the Intent that gets built
-    private fun buildPendingIntent(bundle: Bundle): PendingIntent {
-        val open_activity_intent = Intent(context, MainActivity::class.java)
-        open_activity_intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-        open_activity_intent.setPackage(context.packageName)
-        open_activity_intent.putExtra("notification", bundle)
+    // A tap goes through PushTapActivity, which hands the push to JS. The payload rides
+    // in the extras, and the data is a digest of it: PendingIntent.getActivity hands back an
+    // existing PendingIntent for any Intent that filterEquals the new one, and extras are not part
+    // of filterEquals, so two notifications with different payloads must differ in the data or the
+    // second tap would open the first one's target. A digest rather than the payload itself
+    // because a data URI is printed by `dumpsys activity`, where an extra is not. Immutable, so
+    // whoever holds this PendingIntent can't substitute another payload.
+    //
+    // The whole push goes in rather than a projection of it, since which fields matter is JS's
+    // business. A push is a few hundred bytes against the ~1MB a Binder transaction
+    // allows, but it is the sender who decides how big, so a payload that grows without bound is
+    // the thing that would break this.
+    private fun tapIntent(bundle: Bundle): Intent =
+        Intent(context, PushTapActivity::class.java)
+            .setData(Uri.parse("kbpushtap:" + payloadDigest(bundle)))
+            .putExtras(bundle)
+            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
-        // unique so our intents are deduped, else it'll reuse old ones
-        return PendingIntent.getActivity(context, (System.currentTimeMillis() / 1000).toInt(), open_activity_intent, PendingIntent.FLAG_MUTABLE)
+    private fun payloadDigest(bundle: Bundle): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        for (key in bundle.keySet().sorted()) {
+            @Suppress("DEPRECATION")
+            val value = bundle.get(key)?.toString() ?: ""
+            // Length-prefixed so no pair of keys and values can run together into the same digest
+            // input as a different pair would.
+            digest.update("${key.length}:$key${value.length}:$value".toByteArray())
+        }
+        return digest.digest().joinToString("") { "%02x".format(it) }
     }
+
+    private fun buildPendingIntent(bundle: Bundle): PendingIntent =
+        PendingIntent.getActivity(context, 0, tapIntent(bundle), PendingIntent.FLAG_IMMUTABLE)
 
     private fun getKeybaseAvatar(avatarUri: String): IconCompat? {
         if (avatarUri.isEmpty()) return null
@@ -105,7 +125,6 @@ class KBPushNotifier internal constructor(private val context: Context, private 
     private fun displayChatNotification2(chatNotification: ChatNotification) {
         try {
             KeybasePushNotificationListenerService.createNotificationChannel(context)
-            bundle.putBoolean("userInteraction", true)
             bundle.putString("type", "chat.newmessage")
             bundle.putString("convID", chatNotification.convID)
             if (chatNotification.uid.isNotEmpty()) {
@@ -179,7 +198,6 @@ class KBPushNotifier internal constructor(private val context: Context, private 
 
     fun followNotification(username: String, notificationMsg: String?) {
         val bundle = bundle.clone() as Bundle
-        bundle.putBoolean("userInteraction", true)
         bundle.putString("type", "follow")
         bundle.putString("username", username)
         val builder = NotificationCompat.Builder(context, KeybasePushNotificationListenerService.FOLLOW_CHANNEL_ID)
@@ -203,7 +221,6 @@ class KBPushNotifier internal constructor(private val context: Context, private 
     }
 
     fun genericNotification(uniqueTag: String?, notificationTitle: String?, notificationMsg: String?, bundle: Bundle, channelID: String?) {
-        bundle.putBoolean("userInteraction", true)
         val builder = NotificationCompat.Builder(context, channelID!!)
                 .setSmallIcon(R.drawable.ic_notif) // Set the intent that will fire when the user taps the notification
                 .setContentIntent(buildPendingIntent(bundle))

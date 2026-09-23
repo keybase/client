@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
 import android.text.format.DateFormat
@@ -398,34 +397,32 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         // Android manages badge counts automatically via notification channels.
     }
 
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    override fun peekPushTap(): WritableMap? {
+        val (payload, id) = synchronized(pushTapLock) { pushTapPayload to pushTapID }
+        if (payload == null) return null
+        val tap = Arguments.createMap()
+        tap.putString("payload", payload)
+        tap.putDouble("id", id.toDouble())
+        return tap
+    }
+
     @ReactMethod
-    override fun getInitialNotification(promise: Promise) {
-        // Clear on read so it behaves as a one-shot, matching iOS.
-        val bundle = KbModule.initialNotificationBundle
-        KbModule.initialNotificationBundle = null
-        if (bundle != null) {
-            try {
-                @Suppress("UNCHECKED_CAST")
-                val payload: WritableMap = Arguments.fromBundle(bundle) as WritableMap
-                promise.resolve(payload)
-            } catch (e: Exception) {
-                promise.resolve(null)
+    override fun ackPushTap(id: Double) {
+        synchronized(pushTapLock) {
+            if (pushTapPayload != null && id.toLong() == pushTapID) {
+                pushTapPayload = null
             }
-        } else {
-            promise.resolve(null)
         }
     }
 
-    private fun emitPushNotificationInternal(notification: Bundle) {
+    private fun emitPushTapAvailableInternal() {
         if (reactContext.hasActiveReactInstance() && canEmit()) {
             try {
-                val payload = Arguments.fromBundle(notification)
-                emitOnPushNotification(payload)
+                emitOnPushTapAvailable()
             } catch (e: Exception) {
-                NativeLogger.error("emitPushNotificationInternal failed to emit: " + e.message)
+                NativeLogger.error("emitPushTapAvailableInternal failed to emit: " + e.message)
             }
-        } else {
-            NativeLogger.warn("emitPushNotificationInternal no active react instance")
         }
     }
 
@@ -488,18 +485,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     // from the reader thread: lets a caller decide whether an emit has any
     // chance of being delivered before committing to it.
     internal fun canDeliverReset(): Boolean = reactContext.hasActiveReactInstance() && canEmit()
-
-    // No current caller (kept for future use).
-    @ReactMethod
-    override fun engineReset() {
-        try {
-            Keybase.reset()
-            nativeResetRecv()
-            relayReset()
-        } catch (e: Exception) {
-            NativeLogger.error("Exception in engineReset", e)
-        }
-    }
 
     @ReactMethod
     override fun notifyJSReady() {
@@ -802,33 +787,27 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         // visibility guarantee so the reader never sees a stale instance.
         @Volatile
         var instance: KbModule? = null
-        @JvmStatic
-        internal var initialNotificationBundle: Bundle? = null
 
         @JvmStatic
         fun keyPressed(keyName: String) {
             instance?.sendHardwareKeyEvent(keyName)
         }
 
-        @JvmStatic
-        fun setInitialNotification(bundle: Bundle?) {
-            initialNotificationBundle = bundle
-        }
+        // The last tapped notification, held until JS acks its id. Written on the
+        // main thread by PushTapActivity, read and cleared on the JS thread.
+        private val pushTapLock = Any()
+        private var pushTapPayload: String? = null
+        private var pushTapID = 0L
 
+        // Holds a tapped notification's data as JSON for peekPushTap, replacing
+        // any tap JS has not acked, and tells JS.
         @JvmStatic
-        fun isReactNativeRunning(): Boolean {
-            return instance != null
-        }
-
-        @JvmStatic
-        fun emitPushNotification(notification: Bundle) {
-            val module = instance
-            if (module == null) {
-                // NativeLogger writes to the Go service, which may not be up here.
-                android.util.Log.w("KbModule", "emitPushNotification called but instance is null (app may not be running)")
-                return
+        fun setPushTap(payloadJSON: String) {
+            synchronized(pushTapLock) {
+                pushTapPayload = payloadJSON
+                pushTapID++
             }
-            module.emitPushNotificationInternal(notification)
+            instance?.emitPushTapAvailableInternal()
         }
 
         // Written on the main thread by the process lifecycle observer, read on

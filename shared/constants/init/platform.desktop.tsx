@@ -17,7 +17,7 @@ export const getDesktop = (): DesktopModules =>
 
 export {maybePauseVideos, setupWindowEventListeners} from './desktop-dom-helpers.desktop'
 // push notifications are native-only.
-export const initPushListener = (): void => {}
+export const initPushListener = (): Array<() => void> => []
 
 const notOnDesktop = (name: string): never => {
   throw new Error(`init/${name} called on desktop`)
