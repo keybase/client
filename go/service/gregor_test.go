@@ -5,12 +5,17 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"net"
+	"runtime"
+	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/gregor"
 	grclient "github.com/keybase/client/go/gregor/client"
 	"github.com/keybase/client/go/gregor/storage"
@@ -22,6 +27,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -1138,4 +1144,350 @@ func badgerResync(ctx context.Context, t testing.TB, b *badges.Badger, chatRemot
 
 	b.PushChatFullUpdate(ctx, update)
 	b.PushState(ctx, state)
+}
+
+// closedPortURI points at a closed port, so a connection to it only retries
+// until shut down.
+func closedPortURI(t *testing.T) *rpc.FMPURI {
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	addr := l.Addr().String()
+	require.NoError(t, l.Close())
+	uri, err := rpc.ParseFMPURI("fmprpc://" + addr)
+	require.NoError(t, err)
+	return uri
+}
+
+func hasConn(h *gregorHandler) bool {
+	h.connMutex.Lock()
+	defer h.connMutex.Unlock()
+	return h.conn != nil
+}
+
+func currentConn(h *gregorHandler) *rpc.Connection {
+	h.connMutex.Lock()
+	defer h.connMutex.Unlock()
+	return h.conn
+}
+
+type fakeSyncer struct {
+	types.Syncer
+	mu             sync.Mutex
+	connected      bool
+	connects       int
+	disconnects    int
+	lastDisconnect time.Time
+	// onConnected, if set, runs once inside Connected, after the syncer is
+	// marked connected.
+	onConnected func()
+}
+
+func (s *fakeSyncer) IsConnected(context.Context) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.connected
+}
+
+func (s *fakeSyncer) setConnected(v bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.connected = v
+}
+
+func (s *fakeSyncer) Connected(context.Context, chat1.RemoteInterface, gregor1.UID, *chat1.SyncChatRes) error {
+	s.mu.Lock()
+	s.connected = true
+	s.connects++
+	f := s.onConnected
+	s.onConnected = nil
+	s.mu.Unlock()
+	if f != nil {
+		f()
+	}
+	return nil
+}
+
+func (s *fakeSyncer) Disconnected(context.Context) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.connected = false
+	s.disconnects++
+	s.lastDisconnect = time.Now()
+}
+
+// settled reports whether at least n Disconnected calls have landed and none
+// in the last 100ms.
+func (s *fakeSyncer) settled(n int) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.disconnects >= n && time.Since(s.lastDisconnect) > 100*time.Millisecond
+}
+
+func (s *fakeSyncer) connectCalls() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.connects
+}
+
+// INACTIVE is transient on iOS (control center, the app switcher, an
+// incoming call); only BACKGROUND takes the gregor connection down.
+func TestGregorStaysConnectedOnInactive(t *testing.T) {
+	tc, g := setupGregorTest(t)
+	defer tc.Cleanup()
+	g.Syncer = chat.NewSyncer(g)
+
+	h := newGregorHandler(g)
+	h.Init()
+	require.NoError(t, h.Connect(closedPortURI(t)))
+	defer h.Shutdown(context.Background())
+	require.True(t, hasConn(h), "did not connect")
+
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_INACTIVE)
+	require.Never(t, func() bool { return !hasConn(h) }, 500*time.Millisecond, 20*time.Millisecond,
+		"INACTIVE tore down the gregor connection")
+}
+
+// A connect while the app is in BACKGROUND does not bring the connection up.
+// The handler's app-state monitor is not started, so only the connect itself
+// can keep the connection down.
+func TestGregorConnectInBackgroundStaysDown(t *testing.T) {
+	tc, g := setupGregorTest(t)
+	defer tc.Cleanup()
+	g.Syncer = chat.NewSyncer(g)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
+
+	h := newGregorHandler(g)
+	require.NoError(t, h.Connect(closedPortURI(t)))
+	defer h.Shutdown(context.Background())
+	require.Never(t, func() bool { return hasConn(h) }, 200*time.Millisecond, 10*time.Millisecond,
+		"connected while in BACKGROUND")
+}
+
+// A call on a connection that has been shut down starts a reconnect loop on
+// it, which reports OnDisconnected. That must not mark chat offline while a
+// newer connection is current.
+func TestGregorReplacedConnDoesNotMarkOffline(t *testing.T) {
+	tc, g := setupGregorTest(t)
+	defer tc.Cleanup()
+	syncer := &fakeSyncer{}
+	g.Syncer = syncer
+
+	h := newGregorHandler(g)
+	uri := closedPortURI(t)
+	require.NoError(t, h.Connect(uri))
+	conn1 := currentConn(h)
+	h.Shutdown(context.Background())
+	require.NoError(t, h.Connect(uri))
+	defer h.Shutdown(context.Background())
+	defer conn1.Shutdown()
+	require.NotSame(t, conn1, currentConn(h))
+	// Each connection starts a connect loop on creation, which reports
+	// OnDisconnected; wait for those and Shutdown's Disconnected to land.
+	require.Eventually(t, func() bool { return syncer.settled(2) }, 10*time.Second, 10*time.Millisecond)
+
+	syncer.setConnected(true)
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	defer cancel()
+	_, _ = gregor1.IncomingClient{Cli: conn1.GetClient()}.Ping(ctx)
+	require.Never(t, func() bool { return !syncer.IsConnected(context.Background()) },
+		500*time.Millisecond, 10*time.Millisecond, "a replaced connection marked chat offline")
+}
+
+type countingIBMHandler struct {
+	mu      sync.Mutex
+	creates int
+}
+
+func (c *countingIBMHandler) IsAlive() bool { return true }
+func (c *countingIBMHandler) Name() string  { return "counting" }
+func (c *countingIBMHandler) Create(context.Context, gregor1.IncomingInterface, string, gregor.Item) (bool, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.creates++
+	return true, nil
+}
+
+func (c *countingIBMHandler) Dismiss(context.Context, gregor1.IncomingInterface, string, gregor.Item) (bool, error) {
+	return true, nil
+}
+
+func (c *countingIBMHandler) count() int {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.creates
+}
+
+// A replay that serverSync queued runs after its user has logged out: the
+// replay's ctx is not cancelled by the logout. Nobody is logged in here, as
+// after a logout; the replay must not run the in-band handlers.
+func TestGregorReplayAfterLogoutRunsNoHandlers(t *testing.T) {
+	tc, g := setupGregorTest(t)
+	defer tc.Cleanup()
+	h := newGregorHandler(g)
+	go h.syncReplayThread()
+	defer close(h.replayCh)
+
+	server := newGregordMock(tc.G.Log)
+	uid := gregor1.UID(make([]byte, 16))
+	gcli, err := h.resetGregorClient(context.Background(), uid, gregor1.DeviceID(make([]byte, 16)))
+	require.NoError(t, err)
+	require.NoError(t, gcli.StateMachineConsumeMessage(context.Background(), server.newIbm(uid)))
+	handler := &countingIBMHandler{}
+	h.PushHandler(handler)
+	require.False(t, tc.G.ActiveDevice.Valid(), "someone is logged in")
+
+	h.replayCh <- replayThreadArg{ctx: context.Background(), cli: server, t: time.Time{}}
+	require.Never(t, func() bool { return handler.count() > 0 }, 500*time.Millisecond, 10*time.Millisecond,
+		"replayed in-band messages for a user who is not logged in")
+}
+
+func countStacksContaining(substr string) int {
+	buf := make([]byte, 1<<22)
+	buf = buf[:runtime.Stack(buf, true)]
+	n := 0
+	for _, stack := range strings.Split(string(buf), "\n\n") {
+		if strings.Contains(stack, substr) {
+			n++
+		}
+	}
+	return n
+}
+
+// A connect that fails before it creates a connection, as with no bundled CA
+// for the host, leaves nothing running for it, however often it is retried.
+func TestGregorFailedConnectLeaksNoDebouncer(t *testing.T) {
+	tc, g := setupGregorTest(t)
+	defer tc.Cleanup()
+	g.Syncer = chat.NewSyncer(g)
+	h := newGregorHandler(g)
+	defer h.Shutdown(context.Background())
+	uri, err := rpc.ParseFMPURI("fmprpc+tls://no-bundled-ca.test:443")
+	require.NoError(t, err)
+
+	for range 20 {
+		require.ErrorContains(t, h.Connect(uri), "No bundled CA")
+	}
+	require.False(t, hasConn(h))
+	require.LessOrEqual(t, countStacksContaining("pushStateNewDataDebouncer"), 1,
+		"failed connects left push state debouncers running")
+}
+
+// The connection dials on its own goroutine while Shutdown closes the
+// transport.
+func TestGregorConnTransportRace(t *testing.T) {
+	if !raceEnabled {
+		t.Skip("needs -race")
+	}
+	tc, _ := setupGregorTest(t)
+	defer tc.Cleanup()
+	uri := closedPortURI(t)
+	for range 50 {
+		ct := newConnTransport(tc.G, uri.HostPort)
+		var wg sync.WaitGroup
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			_, _ = ct.Dial(context.Background())
+		}()
+		go func() {
+			defer wg.Done()
+			ct.Close()
+		}()
+		wg.Wait()
+	}
+}
+
+// The monitor and the ping loop read the handler's uri while connects write
+// it.
+func TestGregorURIRace(t *testing.T) {
+	if !raceEnabled {
+		t.Skip("needs -race")
+	}
+	tc, g := setupGregorTest(t)
+	defer tc.Cleanup()
+	g.Syncer = chat.NewSyncer(g)
+	h := newGregorHandler(g)
+	uri := closedPortURI(t)
+
+	stop := make(chan struct{})
+	readerDone := make(chan struct{})
+	go func() {
+		defer close(readerDone)
+		for {
+			select {
+			case <-stop:
+				return
+			default:
+			}
+			_ = h.GetURI()
+			runtime.Gosched()
+		}
+	}()
+	for range 20 {
+		require.NoError(t, h.Connect(uri))
+		h.Shutdown(context.Background())
+	}
+	close(stop)
+	<-readerDone
+}
+
+// syncAllClient answers SyncAll with a valid result for uid and fails every
+// other call.
+type syncAllClient struct {
+	uid gregor1.UID
+}
+
+func (c syncAllClient) Call(context.Context, string, any, any, time.Duration) error {
+	return errors.New("no server")
+}
+
+func (c syncAllClient) CallCompressed(_ context.Context, method string, _ any, res any, _ rpc.CompressionType, _ time.Duration) error {
+	if method != "chat.1.remote.syncAll" {
+		return errors.New("no server")
+	}
+	*res.(*chat1.SyncAllResult) = chat1.SyncAllResult{
+		Auth:         gregor1.AuthResult{Uid: c.uid},
+		Notification: chat1.NewSyncAllNotificationResWithState(gregor1.State{}),
+	}
+	return nil
+}
+
+func (c syncAllClient) Notify(context.Context, string, any, time.Duration) error {
+	return errors.New("no server")
+}
+
+// A logout (Reset) that lands inside OnConnect, after its auth check, leaves
+// the handler as a logout does: the next connect is a fresh one and nothing
+// is marked connected. Needs kbweb for the signup.
+func TestGregorLogoutDuringOnConnect(t *testing.T) {
+	tc, g := setupGregorTest(t)
+	defer tc.Cleanup()
+	tc.G.SetService()
+	user, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
+	require.NoError(t, err)
+	syncer := &fakeSyncer{}
+	g.Syncer = syncer
+
+	h := newGregorHandler(g)
+	require.NoError(t, h.Connect(closedPortURI(t)))
+	defer h.Shutdown(context.Background())
+	conn := currentConn(h)
+	syncer.onConnected = func() { require.NoError(t, h.Reset()) }
+
+	local, remote := net.Pipe()
+	defer remote.Close()
+	xp := rpc.NewTransport(local, libkb.NewRPCLogFactory(tc.G), tc.G.RemoteNetworkInstrumenterStorage,
+		libkb.MakeWrapError(tc.G), rpc.DefaultMaxFrameLength)
+	defer xp.Close()
+	srv := rpc.NewServer(xp, libkb.MakeWrapError(tc.G))
+
+	err = h.OnConnect(context.Background(), conn,
+		syncAllClient{uid: gregor1.UID(user.User.GetUID().ToBytes())}, srv)
+	require.Equal(t, 1, syncer.connectCalls(), "OnConnect did not reach chat sync")
+	require.Error(t, err, "OnConnect completed for a connection a logout shut down")
+	require.True(t, h.isFirstConnect(), "a logout during OnConnect left the next connect non-fresh")
+	require.True(t, h.connectedSince().IsZero(), "a logout during OnConnect left connectedAt set")
+	_, err = h.getGregorCli()
+	require.Error(t, err, "a logout during OnConnect left a gregor client installed")
+	require.False(t, syncer.IsConnected(context.Background()))
 }
