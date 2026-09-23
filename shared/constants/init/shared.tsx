@@ -190,9 +190,6 @@ export const onNetworkOnlineChanged = (online?: boolean, previous?: boolean) => 
 
 const onLoggedInChanged = (loggedIn: ConfigState['loggedIn']) => {
   if (loggedIn) {
-    // runtime login: refresh bootstrap status. During the handshake this is already in
-    // flight, and the store dedupes it.
-    ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
     scheduleStartupOrReloginWork()
   } else {
     clearSignupEmail()

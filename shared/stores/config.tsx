@@ -269,6 +269,10 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
           })
           logger.info('login call succeeded')
         } catch (error) {
+          // Nothing else ends a cancelled switch, and the logged-out status it withheld applies only then
+          if (!(error instanceof RPCError) || error.desc === cancelDesc) {
+            get().dispatch.setUserSwitching(false)
+          }
           if (!(error instanceof RPCError)) {
             return
           }
@@ -278,7 +282,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
             get().dispatch.setLoginError(error)
           }
         } finally {
-          // After setLoginError, which ends a switch: a failed switch must apply a logged-out session.
+          // After the switch ends: a failed switch must apply a logged-out session.
           useDaemonState.getState().dispatch.refreshSessionFromDaemon('login returned')
         }
       }
