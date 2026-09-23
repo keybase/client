@@ -133,7 +133,7 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                         }
                         notifier.setMsgCache(msgCache[n.convID])
                         try {
-                            withBackgroundActive(KeybaseLifecycleBind(applicationContext), if (dontNotify) null else notifier,
+                            handleChatPush(KeybaseLifecycleBind(applicationContext), notifier, dontNotify,
                                     { NativeLogger.info(it) }) { pusher ->
                                 Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
                                         n.membersType.toLong(), n.displayPlaintext, n.messageId.toLong(), n.pushId,
@@ -389,6 +389,27 @@ internal class NotificationData(type: String, bundle: Bundle) {
             throw Error("Tried to parse notification of unhandled type: $type")
         }
     }
+}
+
+// A silent push gets no notifier, and Go only acks a push it can display, so in
+// the foreground Go would unbox it for nothing: the loud push that follows is
+// the one Go handles.
+internal fun handleChatPush(
+    bind: LifecycleBind,
+    notifier: PushNotifier,
+    silent: Boolean,
+    log: (String) -> Unit,
+    work: (PushNotifier?) -> Unit,
+) {
+    if (!silent) {
+        withBackgroundActive(bind, notifier, log, work)
+        return
+    }
+    if (bind.isAppStateForeground()) {
+        log("handleChatPush: silent push in the foreground, skipping Go")
+        return
+    }
+    withBackgroundActive(bind, null, log, work)
 }
 
 // Hands Go the work a push or a quick reply started. In the foreground Go

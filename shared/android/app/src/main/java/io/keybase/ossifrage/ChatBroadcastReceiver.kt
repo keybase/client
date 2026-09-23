@@ -30,7 +30,7 @@ class ChatBroadcastReceiver : BroadcastReceiver() {
                 "Couldn't send reply - Failed to read input."
             } else {
                 setupKBRuntime(context, false)
-                sendQuickReply(Keybase.currentUID(), convData.lastMsgId, { msg, e -> NativeLogger.error(msg, e) }) {
+                sendQuickReply({ Keybase.currentUID() }, convData.lastMsgId, { msg, e -> NativeLogger.error(msg, e) }) {
                     withBackgroundActive(KeybaseLifecycleBind(context), null, { NativeLogger.info(it) }) {
                         Keybase.handlePostTextReply(convData.convID, convData.tlfName, convData.lastMsgId, messageBody)
                     }

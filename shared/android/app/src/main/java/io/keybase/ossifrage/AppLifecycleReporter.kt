@@ -71,13 +71,19 @@ internal class AppLifecycleReporter(
 // Sends a notification quick reply. Returns the text for the replied
 // notification.
 internal fun sendQuickReply(
-    currentUID: String,
+    currentUID: () -> String,
     msgId: Long,
     error: (String, Throwable?) -> Unit,
     send: () -> Unit,
 ): String {
+    val uid = try {
+        currentUID()
+    } catch (e: Exception) {
+        error("Quick reply couldn't read the current uid", e)
+        return QUICK_REPLY_FAILED
+    }
     // Go sends before it checks either, and swallows the send's error.
-    if (currentUID.isEmpty()) {
+    if (uid.isEmpty()) {
         error("Quick reply while logged out", null)
         return QUICK_REPLY_FAILED
     }

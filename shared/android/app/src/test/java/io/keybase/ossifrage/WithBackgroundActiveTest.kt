@@ -8,6 +8,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 // Mirrors Go's MobileAppState for the calls the push window makes.
@@ -142,12 +143,53 @@ class WithBackgroundActiveTest {
         assertEquals(0, notifier.displays)
     }
 
+    // A quick reply has no notifier and must still send in the foreground.
     @Test
-    fun silentPushGetsNoNotifier() {
+    fun foregroundWorkWithoutANotifierStillRuns() {
         val bind = StateBind(foreground = true)
         var handed: PushNotifier? = notifier
-        withBackgroundActive(bind, null, {}) { handed = it }
+        withBackgroundActive(bind, null, {}) {
+            bind.calls.add("handlePostTextReply")
+            handed = it
+        }
         assertNull(handed)
-        assertFalse(bind.calls.contains("setAppStateBackgroundActive"))
+        assertEquals(listOf("handlePostTextReply"), bind.calls)
+    }
+
+    private fun handleSilentPush(bind: StateBind): Boolean {
+        var ran = false
+        handleChatPush(bind, notifier, silent = true, {}) { n ->
+            bind.calls.add("handleBackgroundNotification")
+            ran = true
+            assertNull(n)
+        }
+        return ran
+    }
+
+    // Go only acks a push it is handed a notifier for, so a silent push in the
+    // foreground would be unboxed for nothing.
+    @Test
+    fun foregroundSilentPushSkipsGo() {
+        val bind = StateBind(foreground = true)
+        assertFalse(handleSilentPush(bind))
+        assertEquals(listOf<String>(), bind.calls)
+    }
+
+    @Test
+    fun backgroundSilentPushIsHandledWithoutANotifier() {
+        val bind = StateBind(foreground = false)
+        assertTrue(handleSilentPush(bind))
+        assertEquals(
+            listOf("setAppStateBackgroundActive", "handleBackgroundNotification", "appDidEnterBackground"),
+            bind.calls,
+        )
+    }
+
+    @Test
+    fun loudPushIsHandedTheNotifier() {
+        val bind = StateBind(foreground = true)
+        var handed: PushNotifier? = null
+        handleChatPush(bind, notifier, silent = false, {}) { handed = it }
+        assertNotNull(handed)
     }
 }

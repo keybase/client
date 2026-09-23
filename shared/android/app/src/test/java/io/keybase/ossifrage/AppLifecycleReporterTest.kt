@@ -61,6 +61,7 @@ class AppLifecycleReporterTest {
 
     private fun calls(): List<String> = bind.calls.toList()
 
+    // A full-screen picker or camera stops the process like any other exit.
     @Test
     fun processStartAndStopReportEventsInOrder() {
         launch()
@@ -97,23 +98,6 @@ class AppLifecycleReporterTest {
         assertEquals(listOf("setAppStateForeground", "setAppStateForeground", "setAppStateForeground"), calls())
     }
 
-    // A full-screen picker or camera stops the process like any other exit.
-    @Test
-    fun fullScreenPickerBackgroundsAndReturningForegrounds() {
-        launch()
-        stop()
-        reporter.onStart(Owner)
-        reporter.onResume(Owner)
-        assertEquals(
-            listOf(
-                "setAppStateForeground", "setAppStateForeground",
-                "appDidEnterBackground",
-                "setAppStateForeground", "setAppStateForeground",
-            ),
-            calls(),
-        )
-    }
-
     @Test
     fun onlyAFinishingActivityExits() {
         launch()
@@ -139,7 +123,7 @@ class SendQuickReplyTest {
     private val errors = mutableListOf<Pair<String, Throwable?>>()
     private var sent = false
 
-    private fun send(currentUID: String = "uid", msgId: Long = 1, send: () -> Unit = { sent = true }) =
+    private fun send(currentUID: () -> String = { "uid" }, msgId: Long = 1, send: () -> Unit = { sent = true }) =
         sendQuickReply(currentUID, msgId, { msg, e -> errors.add(msg to e) }, send)
 
     @Test
@@ -159,9 +143,17 @@ class SendQuickReplyTest {
     // Go sends before it checks either, and swallows the send's error.
     @Test
     fun loggedOutReplyIsNotSent() {
-        assertEquals(QUICK_REPLY_FAILED, send(currentUID = ""))
+        assertEquals(QUICK_REPLY_FAILED, send(currentUID = { "" }))
         assertFalse(sent)
         assertEquals(1, errors.size)
+    }
+
+    @Test
+    fun unreadableUidFailsTheReply() {
+        val failure = IllegalStateException("go not ready")
+        assertEquals(QUICK_REPLY_FAILED, send(currentUID = { throw failure }))
+        assertFalse(sent)
+        assertEquals(listOf<Throwable?>(failure), errors.map { it.second })
     }
 
     @Test
