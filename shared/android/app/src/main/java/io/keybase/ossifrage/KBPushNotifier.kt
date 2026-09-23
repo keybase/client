@@ -112,7 +112,7 @@ class KBPushNotifier internal constructor(private val context: Context, private 
                 bundle.putString("uid", chatNotification.uid)
             }
             val pending_intent = buildPendingIntent(bundle)
-            val convData = ConvData(chatNotification.convID, chatNotification.tlfName ?: "", chatNotification.message.id)
+            val convData = ConvData(chatNotification.convID, chatNotification.tlfName ?: "", chatNotification.message.id, chatNotification.uid ?: "")
             val builder = NotificationCompat.Builder(context, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notif)
                 .setContentTitle(chatNotification.title ?: "")
