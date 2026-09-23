@@ -69,9 +69,12 @@ internal class AppLifecycleReporter(
 }
 
 // Sends a notification quick reply. Returns the text for the replied
-// notification.
+// notification. notificationUID is the account the notification was shown for;
+// Go posts as whichever account is current, so a reply from another account's
+// notification is refused.
 internal fun sendQuickReply(
     currentUID: () -> String,
+    notificationUID: String,
     msgId: Long,
     error: (String, Throwable?) -> Unit,
     send: () -> Unit,
@@ -85,6 +88,10 @@ internal fun sendQuickReply(
     // Go sends before it checks either, and swallows the send's error.
     if (uid.isEmpty()) {
         error("Quick reply while logged out", null)
+        return QUICK_REPLY_FAILED
+    }
+    if (uid != notificationUID) {
+        error("Quick reply from another account's notification", null)
         return QUICK_REPLY_FAILED
     }
     if (msgId < 0) {

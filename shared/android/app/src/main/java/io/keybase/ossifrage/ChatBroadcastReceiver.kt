@@ -30,7 +30,7 @@ class ChatBroadcastReceiver : BroadcastReceiver() {
                 "Couldn't send reply - Failed to read input."
             } else {
                 setupKBRuntime(context, false)
-                sendQuickReply({ Keybase.currentUID() }, convData.lastMsgId, { msg, e -> NativeLogger.error(msg, e) }) {
+                sendQuickReply({ Keybase.currentUID() }, convData.uid, convData.lastMsgId, { msg, e -> NativeLogger.error(msg, e) }) {
                     withBackgroundActive(KeybaseLifecycleBind(context), null, { NativeLogger.info(it) }) {
                         Keybase.handlePostTextReply(convData.convID, convData.tlfName, convData.lastMsgId, messageBody)
                     }
@@ -56,13 +56,16 @@ class ChatBroadcastReceiver : BroadcastReceiver() {
 internal data class ConvData(
     @JvmField val convID: String?,
     val tlfName: String?,
-    val lastMsgId: Long
+    val lastMsgId: Long,
+    // The account the notification belongs to.
+    val uid: String,
 ) {
     fun intoIntent(context: Context?): Intent {
         val data = Bundle()
         data.putString("convID", convID)
         data.putString("tlfName", tlfName)
         data.putLong("lastMsgId", lastMsgId)
+        data.putString("uid", uid)
         val intent = Intent(context, ChatBroadcastReceiver::class.java)
         intent.putExtra("ConvData", data)
         return intent
@@ -74,7 +77,8 @@ internal data class ConvData(
             return ConvData(
                 convID = data.getString("convID"),
                 tlfName = data.getString("tlfName"),
-                lastMsgId = data.getLong("lastMsgId")
+                lastMsgId = data.getLong("lastMsgId"),
+                uid = data.getString("uid") ?: "",
             )
         }
     }

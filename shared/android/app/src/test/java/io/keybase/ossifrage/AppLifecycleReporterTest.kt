@@ -123,8 +123,12 @@ class SendQuickReplyTest {
     private val errors = mutableListOf<Pair<String, Throwable?>>()
     private var sent = false
 
-    private fun send(currentUID: () -> String = { "uid" }, msgId: Long = 1, send: () -> Unit = { sent = true }) =
-        sendQuickReply(currentUID, msgId, { msg, e -> errors.add(msg to e) }, send)
+    private fun send(
+        currentUID: () -> String = { "uid" },
+        notificationUID: String = "uid",
+        msgId: Long = 1,
+        send: () -> Unit = { sent = true },
+    ) = sendQuickReply(currentUID, notificationUID, msgId, { msg, e -> errors.add(msg to e) }, send)
 
     @Test
     fun replySends() {
@@ -154,6 +158,20 @@ class SendQuickReplyTest {
         assertEquals(QUICK_REPLY_FAILED, send(currentUID = { throw failure }))
         assertFalse(sent)
         assertEquals(listOf<Throwable?>(failure), errors.map { it.second })
+    }
+
+    // Go would post it as the current account.
+    @Test
+    fun replyFromAnotherAccountsNotificationIsNotSent() {
+        assertEquals(QUICK_REPLY_FAILED, send(currentUID = { "uid" }, notificationUID = "other-uid"))
+        assertFalse(sent)
+        assertEquals(1, errors.size)
+    }
+
+    @Test
+    fun replyFromANotificationWithoutAnAccountIsNotSent() {
+        assertEquals(QUICK_REPLY_FAILED, send(notificationUID = ""))
+        assertFalse(sent)
     }
 
     @Test

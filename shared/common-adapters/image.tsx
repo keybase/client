@@ -59,9 +59,9 @@ const NativeImage = (p: Props) => {
   const {showLoadingStateUntilLoaded, src, onLoad, onError, style, contentFit = 'contain', allowDownscaling} = p
   const [loading, setLoading] = React.useState(!showLoadingStateUntilLoaded)
   const [lastSrc, setLastSrc] = React.useState(src)
-  const [attempt, setAttempt] = React.useState(0)
+  // the retried src is resolved against the http server when the retry is scheduled
+  const [retry, setRetry] = React.useState<{attempt: number; src?: string}>({attempt: 0})
   const retryable = isLocalhostSrc(src)
-  const httpSrv = useConfigState(s => s.httpSrv)
   const failedRef = React.useRef(false)
   const triesRef = React.useRef(0)
   const timerRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -75,8 +75,17 @@ const NativeImage = (p: Props) => {
   if (lastSrc !== src) {
     setLastSrc(src)
     setLoading(true)
-    setAttempt(0)
+    setRetry({attempt: 0})
   }
+
+  const scheduleRetry = () => {
+    if (!isLocalhostSrc(src)) return
+    setRetry(r => ({
+      attempt: r.attempt + 1,
+      src: retryLocalhostSrc(src, r.attempt + 1, useConfigState.getState().httpSrv),
+    }))
+  }
+  const scheduleRetryEvent = React.useEffectEvent(scheduleRetry)
 
   React.useEffect(() => {
     triesRef.current = 0
@@ -89,9 +98,7 @@ const NativeImage = (p: Props) => {
     if (retryable && triesRef.current < maxRetries) {
       triesRef.current++
       clearTimeout(timerRef.current)
-      timerRef.current = setTimeout(() => {
-        setAttempt(a => a + 1)
-      }, 1000 * 2 ** (triesRef.current - 1))
+      timerRef.current = setTimeout(scheduleRetry, 1000 * 2 ** (triesRef.current - 1))
       return
     }
     setLoading(false)
@@ -110,7 +117,7 @@ const NativeImage = (p: Props) => {
       failedRef.current = false
       triesRef.current = 0
       setLoading(true)
-      setAttempt(a => a + 1)
+      scheduleRetryEvent()
     }
     const unsubConfig = useConfigState.subscribe((s, prev) => {
       if (s.httpSrv.address !== prev.httpSrv.address || s.httpSrv.token !== prev.httpSrv.token) {
@@ -130,7 +137,7 @@ const NativeImage = (p: Props) => {
   }, [retryable])
 
   // recyclingKey stays on the original src so the view isn't blanked by retries
-  const srcToUse = retryable && attempt > 0 ? retryLocalhostSrc(src, attempt, httpSrv) : src
+  const srcToUse = retry.src ?? src
   const recyclingKey = typeof src === 'string' ? src : Array.isArray(src) ? src[0]?.uri : String(src)
 
   return (

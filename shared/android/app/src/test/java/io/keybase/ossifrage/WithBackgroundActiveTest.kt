@@ -8,6 +8,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -141,6 +142,25 @@ class WithBackgroundActiveTest {
             bind.calls,
         )
         assertEquals(0, notifier.displays)
+    }
+
+    @Test
+    fun throwingWorkStillGoesBackToTheBackground() {
+        val bind = StateBind(foreground = false, keepRunning = true)
+        val thrown = assertThrows(IllegalStateException::class.java) {
+            withBackgroundActive(bind, notifier, {}) {
+                bind.calls.add("handleBackgroundNotification")
+                throw IllegalStateException("go failed")
+            }
+        }
+        assertEquals("go failed", thrown.message)
+        assertEquals(
+            listOf(
+                "setAppStateBackgroundActive", "handleBackgroundNotification",
+                "appDidEnterBackground", "appBeginBackgroundTaskNonblock",
+            ),
+            bind.calls,
+        )
     }
 
     // A quick reply has no notifier and must still send in the foreground.
