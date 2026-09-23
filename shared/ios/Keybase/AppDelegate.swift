@@ -11,36 +11,13 @@ import os
 
 private let log = Logger(subsystem: "com.keybase.app", category: "delegate")
 
-class KeyboardWindow: UIWindow {
-  override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
-    guard let key = presses.first?.key else {
-      super.pressesBegan(presses, with: event)
-      return
-    }
-
-    if key.keyCode == .keyboardReturnOrEnter {
-      if key.modifierFlags.contains(.shift) {
-        NotificationCenter.default.post(name: NSNotification.Name("hardwareKeyPressed"),
-                                      object: nil,
-                                      userInfo: ["pressedKey": "shift-enter"])
-      } else {
-        NotificationCenter.default.post(name: NSNotification.Name("hardwareKeyPressed"),
-                                      object: nil,
-                                      userInfo: ["pressedKey": "enter"])
-      }
-      return
-    }
-
-    super.pressesBegan(presses, with: event)
-  }
-}
-
 @main
-class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInteractionDelegate {
+class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotificationCenterDelegate, UIDropInteractionDelegate {
   var window: UIWindow?
 
   var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
   var reactNativeFactory: RCTReactNativeFactory?
+  var reactNativeFactoryModuleName: String { "Keybase" }
 
   var resignImageView: UIImageView?
   var fsPaths: [String: String] = [:]
@@ -89,15 +66,6 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     reactNativeDelegate = delegate
     reactNativeFactory = factory
 
-#if os(iOS) || os(tvOS)
-    let screenBounds = (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.screen.bounds ?? UIScreen.main.bounds
-    window = KeyboardWindow(frame: screenBounds)
-    factory.startReactNative(
-      withModuleName: "Keybase",
-      in: window,
-      launchOptions: launchOptions)
-#endif
-
     self.writeStartupTimingLog("After RN init")
     self.closeStartupLogFile()
 
@@ -106,31 +74,33 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     // Start FPS monitoring if launched with -PERF_FPS_MONITOR
     PerfFPSMonitor.startIfEnabled()
 
-    if let rootView = self.window?.rootViewController?.view {
-      self.addDrop(rootView)
-      self.didLaunchSetupAfter(application: application, rootView: rootView)
-    }
+    self.didLaunchSetupAfter(application: application)
 
     return true
   }
 
-  // Linking API
-  override func application(
-    _ app: UIApplication,
-    open url: URL,
-    options: [UIApplication.OpenURLOptionsKey: Any] = [:]
-  ) -> Bool {
-    return super.application(app, open: url, options: options) || RCTLinkingManager.application(app, open: url, options: options)
-  }
+  // Hardware keyboard enter/shift-enter reaches the app delegate at the end of the
+  // responder chain (window -> scene -> application -> delegate).
+  override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+    guard let key = presses.first?.key else {
+      super.pressesBegan(presses, with: event)
+      return
+    }
 
-  // Universal Links
-  override func application(
-    _ application: UIApplication,
-    continue userActivity: NSUserActivity,
-    restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
-  ) -> Bool {
-    let result = RCTLinkingManager.application(application, continue: userActivity, restorationHandler: restorationHandler)
-    return super.application(application, continue: userActivity, restorationHandler: restorationHandler) || result
+    if key.keyCode == .keyboardReturnOrEnter {
+      if key.modifierFlags.contains(.shift) {
+        NotificationCenter.default.post(name: NSNotification.Name("hardwareKeyPressed"),
+                                      object: nil,
+                                      userInfo: ["pressedKey": "shift-enter"])
+      } else {
+        NotificationCenter.default.post(name: NSNotification.Name("hardwareKeyPressed"),
+                                      object: nil,
+                                      userInfo: ["pressedKey": "enter"])
+      }
+      return
+    }
+
+    super.pressesBegan(presses, with: event)
   }
 
   /////// KB specific
@@ -249,13 +219,26 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     UNUserNotificationCenter.current().delegate = self
   }
 
-  func didLaunchSetupAfter(application: UIApplication, rootView: UIView) {
+  // BGTaskScheduler.register must run before didFinishLaunching returns, so this
+  // can't wait for the scene to connect.
+  func didLaunchSetupAfter(application: UIApplication) {
     notifyAppState(application)
+
+    BGTaskScheduler.shared.register(forTaskWithIdentifier: "com.keybase.app.refresh", using: nil) { task in
+      self.handleAppRefresh(task: task as! BGAppRefreshTask)
+    }
+    scheduleAppRefresh()
+  }
+
+  // Called by SceneDelegate once the window exists and React Native has started in it.
+  func didStartReactNative(in window: UIWindow) {
+    guard let rootView = window.rootViewController?.view else { return }
+    addDrop(rootView)
 
     rootView.backgroundColor = .systemBackground
 
     // Snapshot resizing workaround for iPad
-    let screenBounds = self.window?.windowScene?.screen.bounds ?? UIScreen.main.bounds
+    let screenBounds = window.windowScene?.screen.bounds ?? window.bounds
     var dim = screenBounds.width
     if screenBounds.height > dim {
       dim = screenBounds.height
@@ -266,12 +249,7 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     self.resignImageView?.alpha = 0
     self.resignImageView?.backgroundColor = rootView.backgroundColor
     self.resignImageView?.image = UIImage(named: "LaunchImage")
-    if let view = self.resignImageView { self.window?.addSubview(view) }
-
-    BGTaskScheduler.shared.register(forTaskWithIdentifier: "com.keybase.app.refresh", using: nil) { task in
-      self.handleAppRefresh(task: task as! BGAppRefreshTask)
-    }
-    scheduleAppRefresh()
+    if let view = self.resignImageView { window.addSubview(view) }
   }
 
   func addDrop(_ rootView: UIView) {
@@ -295,7 +273,8 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     self.iph = ItemProviderHelper(forShare: false, withItems: [items]) { [weak self] in
       guard let self else { return }
       let url = URL(string: "keybase://incoming-share")!
-      _ = self.application(UIApplication.shared, open: url, options: [:])
+      let app = UIApplication.shared
+      _ = self.application(app, open: url, options: [:]) || RCTLinkingManager.application(app, open: url, options: [:])
       self.iph = nil
     }
     self.iph?.startProcessing()
@@ -469,7 +448,9 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     log.info("applicationDidBecomeActive: hiding keyz screen.")
     hideCover()
     log.info("applicationDidBecomeActive: notifying service.")
-    notifyAppState(application)
+    // Forwarded from sceneDidBecomeActive, where applicationState still reads
+    // .inactive; notifyAppState would stop the http server.
+    Keybasego.KeybaseSetAppStateForeground()
 
     // Re-emit a notification the user tapped while React Native wasn't ready yet.
     KbEmitStoredNotificationOnBecomeActive()
