@@ -431,13 +431,16 @@ internal fun withBackgroundActive(
         return
     }
     bind.setAppStateBackgroundActive()
-    work(pusher)
-    if (bind.isAppStateForeground()) {
-        log("withBackgroundActive: foregrounded during the work")
-        return
-    }
-    if (bind.appDidEnterBackground()) {
-        bind.appBeginBackgroundTaskNonblock()
+    // Work that throws still hands Go back to the background, or it would stay
+    // in BACKGROUNDACTIVE until the next lifecycle event.
+    try {
+        work(pusher)
+    } finally {
+        if (bind.isAppStateForeground()) {
+            log("withBackgroundActive: foregrounded during the work")
+        } else if (bind.appDidEnterBackground()) {
+            bind.appBeginBackgroundTaskNonblock()
+        }
     }
 }
 
