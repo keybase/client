@@ -1,4 +1,5 @@
 /// <reference types="jest" />
+import * as Tabs from '@/constants/tabs'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
@@ -195,11 +196,16 @@ test('an account-targeted intent survives the store reset an account switch perf
   unsubscribe()
 })
 
-// The phone's root stack with a conversation pushed on top of the tabs.
+// This suite loads as desktop, so isSplit is true: the open conversation is chatRoot's param in
+// the chat tab (intent-consumption-phone.test.ts covers the phone shape).
+const chatTabState = (conversationIDKey: string) => ({
+  index: 0,
+  routes: [{name: Tabs.chatTab, state: {index: 0, routes: [{name: 'chatRoot', params: {conversationIDKey}}]}}],
+})
 const openConversation = (conversationIDKey: string) =>
   useRouterState.setState({
-    navState: {routes: [{name: 'loggedIn'}, {name: 'chatConversation', params: {conversationIDKey}}]},
-  })
+    navState: {index: 0, routes: [{name: 'loggedIn', state: chatTabState(conversationIDKey)}]},
+  } as never)
 
 test('a tap for the conversation already open acks without navigating', () => {
   openConversation('0000ab')
@@ -225,6 +231,46 @@ test('a tap for a different conversation still navigates', () => {
 
   expect(listener).toHaveBeenCalledWith('keybase://convid/0000cd')
   expect(mockAckPushTap).toHaveBeenCalledWith(4646)
+  unsubscribe()
+})
+
+test('a tap for the split conversation under a modal still navigates', () => {
+  useRouterState.setState({
+    navState: {
+      index: 1,
+      routes: [{name: 'loggedIn', state: chatTabState('0000ab')}, {name: 'settingsTabs.devicesTab'}],
+    },
+  } as never)
+  const listener = jest.fn()
+  const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
+
+  enqueuePushTapRoute({id: 4747, targetUid: 'current-uid', url: 'keybase://convid/0000ab'})
+
+  expect(listener).toHaveBeenCalledWith('keybase://convid/0000ab')
+  unsubscribe()
+})
+
+test('a tap for the split conversation while another tab is focused still navigates', () => {
+  useRouterState.setState({
+    navState: {
+      index: 0,
+      routes: [
+        {
+          name: 'loggedIn',
+          state: {
+            index: 1,
+            routes: [chatTabState('0000ab').routes[0], {name: Tabs.peopleTab}],
+          },
+        },
+      ],
+    },
+  } as never)
+  const listener = jest.fn()
+  const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
+
+  enqueuePushTapRoute({id: 4848, targetUid: 'current-uid', url: 'keybase://convid/0000ab'})
+
+  expect(listener).toHaveBeenCalledWith('keybase://convid/0000ab')
   unsubscribe()
 })
 
