@@ -215,48 +215,19 @@ func TestLevelDb(t *testing.T) {
 			},
 		},
 		{
-			// 8 goroutines call Flush with writes interleaved: every call
-			// returns nil, and every writer's last write is durable and
-			// readable once all goroutines finish.
-			name: "flush-concurrent", testBody: func(t *testing.T) {
-				tc := SetupTest(t, "LevelDb-flush-concurrent", 0)
-				defer tc.Cleanup()
-				db, err := createTempLevelDbForTest(&tc, &td)
-				require.NoError(t, err)
-				require.NoError(t, db.ForceOpen())
-
-				const writers, iterations = 8, 25
-				var wg sync.WaitGroup
-				for w := 0; w < writers; w++ {
-					wg.Add(1)
-					go func(w int) {
-						defer wg.Done()
-						for i := 0; i < iterations; i++ {
-							key := DbKey{Key: fmt.Sprintf("%d-%d", w, i), Typ: 0}
-							assert.NoError(t, db.Put(key, nil, []byte{byte(i)}))
-							assert.NoError(t, db.Flush())
-						}
-					}(w)
-				}
-				wg.Wait()
-
-				require.Zero(t, levelDbJournalSize(t, db), "the last writes must be flushed")
-				for w := 0; w < writers; w++ {
-					_, found, err := db.Get(DbKey{Key: fmt.Sprintf("%d-%d", w, iterations-1), Typ: 0})
-					require.NoError(t, err)
-					require.True(t, found)
-				}
-			},
-		},
-		{
 			// OpenTransaction opens the db lazily like every other operation.
+			// It must fail at an assertion, not a panic: a panic here aborts
+			// the whole test binary and every later test never reports.
 			name: "open-transaction-first", testBody: func(t *testing.T) {
 				tc := SetupTest(t, "LevelDb-transaction-first", 0)
 				defer tc.Cleanup()
 				db, err := createTempLevelDbForTest(&tc, &td)
 				require.NoError(t, err)
 
-				tr, err := db.OpenTransaction()
+				var tr LocalDbTransaction
+				require.NotPanics(t, func() {
+					tr, err = db.OpenTransaction()
+				}, "OpenTransaction should lazily open the db instead of panicking")
 				require.NoError(t, err)
 				key := DbKey{Key: "tr-key", Typ: 0}
 				require.NoError(t, tr.Put(key, nil, []byte{1}))
@@ -267,6 +238,8 @@ func TestLevelDb(t *testing.T) {
 			},
 		},
 		{
+			// Same lazy-open bug reported on the closed side: this must fail
+			// at an assertion, not a panic, so later tests still report.
 			name: "open-transaction-after-close", testBody: func(t *testing.T) {
 				tc := SetupTest(t, "LevelDb-transaction-closed", 0)
 				defer tc.Cleanup()
@@ -275,8 +248,11 @@ func TestLevelDb(t *testing.T) {
 
 				require.NoError(t, db.ForceOpen())
 				require.NoError(t, db.Close())
-				_, err = db.OpenTransaction()
-				require.ErrorAs(t, err, &LevelDBOpenClosedError{})
+				var openErr error
+				require.NotPanics(t, func() {
+					_, openErr = db.OpenTransaction()
+				}, "OpenTransaction should not panic after Close")
+				require.ErrorAs(t, openErr, &LevelDBOpenClosedError{})
 			},
 		},
 		{

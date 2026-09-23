@@ -69,6 +69,10 @@ func TestCleanerCleansAfterReopen(t *testing.T) {
 			case "close":
 				require.NoError(t, db.Close())
 				// The first use after Close fails and rearms the lazy open.
+				// require.Error here pins that existing open-after-close
+				// semantics (not itself the bug under test), so the "close"
+				// case reaches the same reopened state as "nuke" before the
+				// two share the clean() assertion below.
 				require.Error(t, db.ForceOpen())
 				require.NoError(t, db.ForceOpen())
 			}
@@ -166,12 +170,16 @@ func TestCleanerCloseWaitsForRunningClean(t *testing.T) {
 		return len(keys) < 3500
 	}, 10*time.Second, time.Millisecond, "the first batch never landed")
 
-	// Poll until the key count has been unchanged across many consecutive
-	// reads: the batch's write, its compaction, and the size check that
-	// follows all still touch the db, so a short stable streak can land
-	// inside that window rather than past it. A long streak (~150ms) pushes
-	// past that window into clean()'s minute-long SleepInterval.
-	const stableReadsNeeded = 30
+	// Once the first batch lands, wait out a settle delay before Close: the
+	// batch's write, its compaction, and the size check that follows still
+	// touch the db briefly after the key count stops moving, so Close could
+	// otherwise race an in-flight db operation instead of the intended
+	// target, clean() blocked in its minute-long SleepInterval. Implemented
+	// as a streak of unchanged polls (a poll-based sleep) rather than a flat
+	// time.Sleep, since it still bails out via require.Eventually's overall
+	// timeout instead of hanging if the count never stabilizes. 60 reads
+	// 5ms apart is ~300ms of margin, widened for slow/-race runners.
+	const stableReadsNeeded = 60
 	stableCount, streak := -1, 0
 	require.Eventually(t, func() bool {
 		keys, err := db.KeysWithPrefixes(tablePrefix(levelDbTableKv))
