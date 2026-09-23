@@ -205,8 +205,8 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
       Keybasego.KeybaseSetAppStateBackground()
       KbEmitAppLifecycle("background")
     case .inactive:
-      // Master's gregor and kbhttp tear down on INACTIVE; BGACTIVE keeps them
-      // up while the UI is merely inactive.
+      // gregor and the kbhttp server tear down on INACTIVE; report BGACTIVE so
+      // they stay up while the UI is only inactive.
       Keybasego.KeybaseSetAppStateBackgroundActive()
       KbEmitAppLifecycle("inactive")
     default:
@@ -414,8 +414,8 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     } completion: { finished in
       log.info("applicationWillResignActive: rendered keyz screen. Finished: \(finished)")
     }
-    // Master's gregor and kbhttp tear down on INACTIVE; BGACTIVE keeps them up
-    // while the UI is merely inactive.
+    // gregor and the kbhttp server tear down on INACTIVE; report BGACTIVE so
+    // they stay up while the UI is only inactive.
     Keybasego.KeybaseSetAppStateBackgroundActive()
     KbEmitAppLifecycle("inactive")
   }

@@ -1,8 +1,5 @@
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
-import {useConfigState} from '@/stores/config'
-import {useCurrentUserState} from '@/stores/current-user'
-import {ackPushTap as nativeAckPushTap} from 'react-native-kb'
 
 export type NavigationIntentOptions = {
   pushTapID?: number
@@ -48,6 +45,20 @@ export const navigationIntentLifetimeMs = 5 * 60_000
 // this JS runtime so a tap that is peeked again never navigates twice; module state, not store
 // state, because it must survive resetState, which runs on every account switch.
 const ackedPushTapIDs = new Set<number>()
+
+// This store stays free of react-native-kb and the account stores, since the deep-link-emitter leaf
+// depends on it; the native ack and the account-switch check are handed in by their owners.
+let nativeAckPushTap: (pushTapID: number) => void = () => {}
+export const setPushTapAck = (ack: (pushTapID: number) => void) => {
+  nativeAckPushTap = ack
+}
+
+// Whether a tap for targetUid is waiting on an account switch that is under way.
+const notSwitching = () => false
+let isSwitchingForTap: (targetUid: string) => boolean = notSwitching
+export const setTapSwitchCheck = (check: ((targetUid: string) => boolean) | undefined) => {
+  isSwitchingForTap = check ?? notSwitching
+}
 
 const ackPushTap = (pushTapID: number | undefined) => {
   if (pushTapID === undefined || ackedPushTapIDs.has(pushTapID)) return
@@ -129,16 +140,15 @@ export const useNavigationIntentsState = Z.createZustand<Store>(
         }
 
         // A tap for another account waits here while account-link-switch switches to it. A
-        // plain link arriving during that switch is dropped rather than superseding the tap, as
-        // the tap replayed after the switch used to replace it. Another tap still supersedes it,
-        // and so does anything once the tap has outlived the router's intent lifetime.
+        // plain link arriving during that switch is dropped rather than superseding the tap, since
+        // superseding acks the tap and native never hands it back. Another tap still supersedes
+        // it, and so does anything once the tap has outlived the router's intent lifetime.
         if (
           !targetUid &&
           pushTapID === undefined &&
           pending?.pushTapID !== undefined &&
           pending.targetUid &&
-          pending.targetUid !== useCurrentUserState.getState().uid &&
-          useConfigState.getState().userSwitching &&
+          isSwitchingForTap(pending.targetUid) &&
           now - pending.createdAt <= navigationIntentLifetimeMs
         ) {
           logger.info('[PushTap] dropping a link while a tap waits for its account:', url)

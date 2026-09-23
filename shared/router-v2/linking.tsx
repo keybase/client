@@ -94,7 +94,24 @@ export const isHandledByLinkingConfig = (url: string): boolean => {
   return customGetStateFromPath(url.substring(prefix.length)) !== undefined
 }
 
-type TopRoute = {name?: string; params?: {conversationIDKey?: string}}
+type NavRoute = {name?: string; params?: {conversationIDKey?: string}; state?: NavRouteState}
+type NavRouteState = {index?: number; routes?: ReadonlyArray<NavRoute>}
+
+const focusedRoute = (s?: NavRouteState) => s?.routes?.[s.index ?? s.routes.length - 1]
+
+// The conversation on screen: a phone pushes chatConversation onto the root stack above the tabs;
+// the split layout shows it as chatRoot's param inside the chat tab, with nothing above loggedIn.
+const openConversationIDKey = (navState?: NavRouteState) => {
+  const top = navState?.routes?.at(-1)
+  if (!isSplit) {
+    return top?.name === 'chatConversation' ? top.params?.conversationIDKey : undefined
+  }
+  if (top?.name !== 'loggedIn') return undefined
+  const tab = focusedRoute(top.state)
+  if (tab?.name !== Tabs.chatTab) return undefined
+  const chat = focusedRoute(tab.state)
+  return chat?.name === 'chatRoot' ? chat.params?.conversationIDKey : undefined
+}
 
 // A tapped chat push for the conversation already on top has nowhere to go: navigating resets the
 // root state, remounting the thread and every tab stack.
@@ -102,9 +119,8 @@ const isTapForOpenConversation = (intent: {pushTapID?: number; url: string}) => 
   const prefix = 'keybase://convid/'
   if (intent.pushTapID === undefined || !intent.url.startsWith(prefix)) return false
   const conversationIDKey = intent.url.slice(prefix.length).split('/')[0]
-  const navState = useRouterState.getState().navState as {routes?: ReadonlyArray<TopRoute>} | undefined
-  const top = navState?.routes?.at(-1)
-  return top?.name === 'chatConversation' && top.params?.conversationIDKey === conversationIDKey
+  const open = openConversationIDKey(useRouterState.getState().navState as NavRouteState | undefined)
+  return !!conversationIDKey && open === conversationIDKey
 }
 
 // The router owns consumption. Producers can enqueue before this subscription

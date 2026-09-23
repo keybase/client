@@ -1,15 +1,15 @@
 /// <reference types="jest" />
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useNavigationIntentsState} from '@/stores/navigation-intents'
+import {setPushTapAck, useNavigationIntentsState} from '@/stores/navigation-intents'
 import {emitDeepLink, enqueuePushTapRoute} from './deep-link-emitter'
 import * as Settings from '@/constants/settings'
 import * as Tabs from '@/constants/tabs'
 import {createLinkingConfig, isHandledByLinkingConfig, subscribeNavigationIntents} from './linking'
 
-// react-native-kb's native tap slot; only its ack is reached from here.
+// Stands in for react-native-kb's native tap slot; only its ack is reached from here.
 const mockAckPushTap = jest.fn()
-jest.mock('react-native-kb', () => ({ackPushTap: (id: number) => mockAckPushTap(id)}))
+setPushTapAck(id => mockAckPushTap(id))
 
 const setCurrentUser = (uid: string) => {
   useCurrentUserState.getState().dispatch.setBootstrap({

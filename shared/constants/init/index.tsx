@@ -405,7 +405,7 @@ const _initNativePlatformListener = () => {
   for (const unsub of _platformUnsubs) unsub()
   _platformUnsubs.length = 0
 
-  useShellState.subscribe((s, old) => {
+  _platformUnsubs.push(useShellState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     let appFocused: boolean
     switch (s.mobileAppState) {
@@ -431,7 +431,7 @@ const _initNativePlatformListener = () => {
       // only reload on foreground
       useSettingsContactsState.getState().dispatch.loadContactPermissions()
     }
-  })
+  }))
 
   const configureAndroidCacheDir = () => {
     const {fsCacheDir, fsDownloadDir} = _getNativeSync()
@@ -454,7 +454,7 @@ const _initNativePlatformListener = () => {
     }
   }
 
-  useConfigState.subscribe((s, old) => {
+  _platformUnsubs.push(useConfigState.subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return
     const f = async () => {
       const {NetInfo} = _getNative()
@@ -466,9 +466,9 @@ const _initNativePlatformListener = () => {
       )
     }
     ignorePromise(f())
-  })
+  }))
 
-  useShellState.subscribe((s, old) => {
+  _platformUnsubs.push(useShellState.subscribe((s, old) => {
     if (s.networkStatus === old.networkStatus) return
     const type = s.networkStatus?.type
     if (!type) return
@@ -480,19 +480,19 @@ const _initNativePlatformListener = () => {
       }
     }
     ignorePromise(f())
-  })
+  }))
 
   if (isAndroid) {
-    useDarkModeState.subscribe((s, old) => {
+    _platformUnsubs.push(useDarkModeState.subscribe((s, old) => {
       if (s.darkModePreference === old.darkModePreference) return
       const {androidAppColorSchemeChanged} = _getNativeSync()
       androidAppColorSchemeChanged(s.darkModePreference)
-    })
+    }))
   }
 
   // we call this when we're logged in.
   let calledShareListenersRegistered = false
-  useRouterState.subscribe((s, old) => {
+  _platformUnsubs.push(useRouterState.subscribe((s, old) => {
     const next = s.navState
     const prev = old.navState
     if (next === prev) return
@@ -503,13 +503,13 @@ const _initNativePlatformListener = () => {
       const {shareListenersRegistered} = _getNativeSync()
       shareListenersRegistered()
     }
-  })
+  }))
 
   // Default to screen capture prevention on Android (matches native default of secure).
   // Once daemon is ready, sync with the user's saved preference.
   if (isAndroid) {
     ignorePromise(ScreenCapture.preventScreenCaptureAsync('screenprotector'))
-    useDaemonState.subscribe((s, old) => {
+    _platformUnsubs.push(useDaemonState.subscribe((s, old) => {
       if (s.handshakeState !== 'done' || old.handshakeState === 'done') return
       const f = async () => {
         const {getSecureFlagSetting} = await import('@/constants/platform')
@@ -520,7 +520,7 @@ const _initNativePlatformListener = () => {
         }
       }
       ignorePromise(f())
-    })
+    }))
   }
 
   // Start this immediately instead of waiting so we can do more things in parallel
@@ -531,9 +531,9 @@ const _initNativePlatformListener = () => {
   initIOSLocation()
 
   const {NetInfo} = _getNative()
-  NetInfo.addEventListener(({type}) => {
+  _platformUnsubs.push(NetInfo.addEventListener(({type}) => {
     useShellState.getState().dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type)
-  })
+  }))
 
   const {setupAudioMode} = _getNative()
   ignorePromise(setupAudioMode(false))

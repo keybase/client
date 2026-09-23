@@ -214,6 +214,44 @@ describe('unboxing a tapped chat push', () => {
     expect(unbox).toHaveBeenCalledTimes(1)
   })
 
+  test('a tap dropped before its account is current never unboxes', () => {
+    stopListening = listenForPushTaps()
+    nativeTap(chatTap('uid-other'))
+    const {intent, dispatch} = useNavigationIntentsState.getState()
+    // the switch failed or the user logged out, and account-link-switch gave the tap up
+    dispatch.acknowledge(intent!.id)
+
+    setCurrentUid('uid-other')
+
+    expect(unbox).not.toHaveBeenCalled()
+  })
+
+  test('a tap superseded before its account is current never unboxes', () => {
+    stopListening = listenForPushTaps()
+    nativeTap(chatTap('uid-other'))
+    nativeTap({type: 'device.new', uid: 'uid-current'})
+
+    setCurrentUid('uid-other')
+
+    expect(unbox).not.toHaveBeenCalled()
+  })
+
+  test('a tap consumed as its account becomes current still unboxes', () => {
+    // the router, subscribed first, consumes the intent the moment its account is current
+    const stopRouter = useCurrentUserState.subscribe(s => {
+      const {intent, dispatch} = useNavigationIntentsState.getState()
+      if (intent?.targetUid === s.uid) dispatch.acknowledge(intent.id)
+    })
+    stopListening = listenForPushTaps()
+    nativeTap(chatTap('uid-other'))
+
+    setCurrentUid('uid-other')
+    stopRouter()
+
+    expect(useNavigationIntentsState.getState().intent).toBeUndefined()
+    expect(unbox).toHaveBeenCalledTimes(1)
+  })
+
   test('a cold Android tap waits for a logged-in account before unboxing', () => {
     setCurrentUid('')
     nativeTap({convID: '0000ab', m: 'boxed-payload', t: '2', type: 'chat.newmessage'})

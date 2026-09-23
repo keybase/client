@@ -1,10 +1,10 @@
 /// <reference types="jest" />
-import {useNavigationIntentsState} from '@/stores/navigation-intents'
+import {setPushTapAck, useNavigationIntentsState} from '@/stores/navigation-intents'
 import {emitDeepLink, enqueuePushTapRoute, setInitialURLOnce} from './deep-link-emitter'
 
-// react-native-kb's native tap slot; only its ack is reached from here.
+// Stands in for react-native-kb's native tap slot; only its ack is reached from here.
 const mockAckPushTap = jest.fn()
-jest.mock('react-native-kb', () => ({ackPushTap: (id: number) => mockAckPushTap(id)}))
+setPushTapAck(id => mockAckPushTap(id))
 
 // A push tap's id must not repeat across tests any more than it does across taps.
 let nextTapID = 8000
