@@ -1479,13 +1479,21 @@ func (c syncAllClient) Notify(context.Context, string, any, time.Duration) error
 
 // A logout (Reset) that lands inside OnConnect, after its auth check, leaves
 // the handler as a logout does: the next connect is a fresh one and nothing
-// is marked connected. Needs kbweb for the signup.
+// is marked connected. OnConnect's auth only needs a NIST from the active
+// device and a SyncAll auth result for the same uid, so a locally generated
+// device stands in for a signed-up user.
 func TestGregorLogoutDuringOnConnect(t *testing.T) {
 	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
-	user, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
+	uid := keybase1.MakeTestUID(1)
+	sigKey, err := libkb.GenerateNaclSigningKeyPair()
 	require.NoError(t, err)
+	encKey, err := libkb.GenerateNaclDHKeyPair()
+	require.NoError(t, err)
+	require.NoError(t, tc.G.ActiveDevice.Set(libkb.NewMetaContextForTest(tc),
+		keybase1.UserVersion{Uid: uid, EldestSeqno: 1}, keybase1.DeviceID("00000000000000000000000000000018"),
+		sigKey, encKey, "testuser-device", 0, libkb.KeychainModeNone))
 	syncer := &fakeSyncer{}
 	g.Syncer = syncer
 
@@ -1503,7 +1511,7 @@ func TestGregorLogoutDuringOnConnect(t *testing.T) {
 	srv := rpc.NewServer(xp, libkb.MakeWrapError(tc.G))
 
 	err = h.OnConnect(context.Background(), conn,
-		syncAllClient{uid: gregor1.UID(user.User.GetUID().ToBytes())}, srv)
+		syncAllClient{uid: gregor1.UID(uid.ToBytes())}, srv)
 	require.Equal(t, 1, syncer.connectCalls(), "OnConnect did not reach chat sync")
 	require.Error(t, err, "OnConnect completed for a connection a logout shut down")
 	require.True(t, h.isFirstConnect(), "a logout during OnConnect left the next connect non-fresh")
