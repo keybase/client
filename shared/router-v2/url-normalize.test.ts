@@ -1,5 +1,6 @@
 /// <reference types="jest" />
 import {normalizeUrl} from './deep-link-emitter'
+import {useSettingsPhoneState} from '@/stores/settings-phone'
 
 test('keybase urls pass through untouched', () => {
   expect(normalizeUrl('keybase://convid/conv-1')).toBe('keybase://convid/conv-1')
@@ -78,4 +79,16 @@ test('a slash-separated subteam path is not a team-page link', () => {
   // '/' is not in the team name character class, so the pattern stops at the
   // second segment and nothing matches
   expect(normalizeUrl('https://keybase.io/team/keybase/sub')).toBeUndefined()
+})
+
+test('the invite install link opens add-phone, not a profile for a user named phone-app', () => {
+  expect(normalizeUrl('https://keybase.io/phone-app')).toBe('keybase://settingsAddPhone')
+  expect(normalizeUrl('https://keybase.io/phone-app/')).toBe('keybase://settingsAddPhone')
+  expect(normalizeUrl('https://keybase.io/phone-app?utm=x')).toBe('keybase://settingsAddPhone')
+})
+
+test('the invite install link opens add-phone even when the user already has a number', () => {
+  useSettingsPhoneState.setState({phones: new Map([['+15555555555', {} as never]])})
+  expect(normalizeUrl('https://keybase.io/phone-app')).toBe('keybase://settingsAddPhone')
+  useSettingsPhoneState.getState().dispatch.resetState()
 })

@@ -21,7 +21,6 @@ type Startup = {
   conversation: T.Chat.ConversationIDKey
   conversationUid?: string
   followUser: string
-  link: string
   tab?: Tabs.Tab
 }
 
@@ -32,7 +31,6 @@ const setStartup = (st: Partial<Startup>) => {
     startup: {
       conversation: T.Chat.noConversationIDKey,
       followUser: '',
-      link: '',
       loaded: true,
       ...st,
     },

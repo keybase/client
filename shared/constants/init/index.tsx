@@ -158,7 +158,6 @@ const loadStartupDetails = async () => {
   let conversation: T.Chat.ConversationIDKey | undefined
   let conversationUid = ''
   let followUser = ''
-  let link = ''
   let tab = ''
 
   // Top priority, push
@@ -166,11 +165,10 @@ const loadStartupDetails = async () => {
     logger.info('initialState: push', push.startupConversation, push.startupFollowUser)
     conversation = push.startupConversation
     followUser = push.startupFollowUser ?? ''
-  } else if (initialUrl) {
-    // Second priority, deep link
-    link = initialUrl
-  } else if (routeState) {
-    // Last priority, saved from last session
+  } else if (!initialUrl && routeState) {
+    // Last priority, saved from last session. The linking config reads the launch URL
+    // itself; this read only decides whether the saved route may be restored, since a
+    // launch URL outranks it.
     try {
       const item = JSON.parse(routeState) as
         | undefined
@@ -203,7 +201,6 @@ const loadStartupDetails = async () => {
     conversation: conversation ?? noConversationIDKey,
     conversationUid,
     followUser,
-    link,
     tab: tab as Tabs.Tab,
   })
 
@@ -592,7 +589,6 @@ const _initDesktopPlatformListener = () => {
       useConfigState.getState().dispatch.setStartupDetails({
         conversation: Chat.noConversationIDKey,
         followUser: '',
-        link: '',
         tab: undefined,
       })
     }

@@ -3,7 +3,9 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
 import {emitDeepLink} from './deep-link-emitter'
-import {subscribeNavigationIntents} from './linking'
+import * as Settings from '@/constants/settings'
+import * as Tabs from '@/constants/tabs'
+import {createLinkingConfig, isHandledByLinkingConfig, subscribeNavigationIntents} from './linking'
 
 const setCurrentUser = (uid: string) => {
   useCurrentUserState.getState().dispatch.setBootstrap({
@@ -147,4 +149,59 @@ test('consumes an intent after bootstrap fills in the uid the router readied wit
   expect(listener).toHaveBeenCalledTimes(1)
   expect(listener).toHaveBeenCalledWith('keybase://convid/post-bootstrap-conversation')
   unsubscribe()
+})
+
+const getStateFromPath = (path: string) =>
+  (createLinkingConfig(jest.fn()).getStateFromPath as (p: string) => unknown)(path)
+
+test('a devices link is consumed by the linking config, not by handleAppLink', () => {
+  useNavigationIntentsState.getState().dispatch.setNavigationReady(true, 'current-uid')
+  const listener = jest.fn()
+  const handleAppLink = jest.fn()
+  const unsubscribe = subscribeNavigationIntents(listener, handleAppLink)
+
+  emitDeepLink('keybase://devices')
+
+  expect(isHandledByLinkingConfig('keybase://devices')).toBe(true)
+  expect(listener).toHaveBeenCalledWith('keybase://devices')
+  expect(handleAppLink).not.toHaveBeenCalled()
+  unsubscribe()
+})
+
+// isSplit is baked in at module load and this suite loads as desktop, so global.isMobile alone
+// gets the tablet shape, not the phone one. Phone coverage lives in linking-phone.test.ts.
+test('a devices link opens the devices screen inside the settings tab on tablet', () => {
+  const wasMobile = global.isMobile
+  global.isMobile = true
+  try {
+    expect(getStateFromPath('devices')).toEqual({
+      index: 0,
+      routes: [
+        {
+          name: 'loggedIn',
+          state: {
+            index: 0,
+            routes: [
+              {
+                name: Tabs.settingsTab,
+                state: {
+                  index: 1,
+                  routes: [{name: 'settingsRoot'}, {name: Settings.settingsDevicesTab}],
+                },
+              },
+            ],
+          },
+        },
+      ],
+    })
+  } finally {
+    global.isMobile = wasMobile
+  }
+})
+
+test('a devices link opens the devices tab on desktop', () => {
+  expect(getStateFromPath('devices')).toEqual({
+    index: 0,
+    routes: [{name: 'loggedIn', state: {index: 0, routes: [{name: Tabs.devicesTab}]}}],
+  })
 })

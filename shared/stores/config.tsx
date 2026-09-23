@@ -46,7 +46,6 @@ type Store = T.Immutable<{
     // Used to avoid replaying a conversation under a different account.
     conversationUid?: string
     followUser: string
-    link: string
     tab?: Tab
   }
   userSwitching: boolean
@@ -84,7 +83,6 @@ const initialStore: Store = {
   startup: {
     conversation: noConversationIDKey,
     followUser: '',
-    link: '',
     loaded: false,
   },
   userSwitching: false,
