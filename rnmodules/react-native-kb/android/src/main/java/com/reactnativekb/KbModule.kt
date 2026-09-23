@@ -61,7 +61,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     private fun canEmit(): Boolean = mEventEmitterCallback != null
 
     @ReactMethod(isBlockingSynchronousMethod = true)
-    override fun getAppLifecycleState(): String = appLifecycleState
+    override fun getAppLifecycleState(): String = KbModule.lastAppLifecycleState
 
     private fun emitAppLifecycleInternal(state: String) {
         if (reactContext.hasActiveReactInstance() && canEmit()) {
@@ -799,16 +799,18 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
 
         // Written on the main thread by the process lifecycle observer, read on
-        // the JS thread by getAppLifecycleState.
+        // the JS thread by getAppLifecycleState. Read it qualified: inside the
+        // class, a bare name matching a spec getter (appLifecycleState) resolves
+        // to that Java getter, not to a companion field.
         @Volatile
-        private var appLifecycleState: String = "background"
+        private var lastAppLifecycleState: String = "background"
 
         // Main thread only. Call next to each Go SetAppState* report with
         // "active", "inactive" or "background"; the latest value is kept so JS
         // can read what it missed before it listened.
         @JvmStatic
         fun emitAppLifecycle(state: String) {
-            appLifecycleState = state
+            lastAppLifecycleState = state
             instance?.emitAppLifecycleInternal(state)
         }
 

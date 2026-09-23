@@ -69,7 +69,8 @@ for NAME in "${DEVICES[@]}"; do
     OVERALL=1
     continue
   fi
-  open -a Simulator >/dev/null 2>&1 || true
+  # Xcode 27 shows simulators in DeviceHub; older Xcodes in Simulator.
+  open -a Simulator >/dev/null 2>&1 || open -a DeviceHub >/dev/null 2>&1 || true
 
   # iPad runs in landscape; phones stay portrait.
   ORIENT=""; case "$NAME" in *[Pp]ad*) ORIENT="LANDSCAPE";; esac
