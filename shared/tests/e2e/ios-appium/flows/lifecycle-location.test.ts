@@ -15,7 +15,7 @@ import {
   metroBundlingStartedSince,
   metroClientLogSince,
   metroLogMark,
-  nativeLogSince,
+  nsLogSince,
   openSelfConversation,
   setLocation,
   simctl,
@@ -26,24 +26,29 @@ import {
   BUNDLE_ID,
 } from '../helpers/lifecycle'
 
-// Live location on iOS runs natively: Go asks the Swift watcher to start, each fix goes
-// straight to Go, and Go posts it to the conversation as a map unfurl. These flows move the
-// simulated location and follow that in the Go log (ios.log):
+// Live location on iOS: Go asks JS to watch (chatWatchPosition), JS starts react-native-kb's
+// native watcher, and each fix goes native -> JS -> localLocationUpdate -> Go, which posts it to
+// the conversation as a map unfurl. These flows move the simulated location and follow that in
+// the Go log (ios.log):
 // - "LiveLocationTracker: StartTracking" / "StopAllTracking" when sharing starts and stops,
-// - "+ LiveLocationTracker: LocationUpdate" for each fix Go records (native hands it every fix),
+// - "+ LiveLocationTracker: LocationUpdate" for each fix JS hands Go,
 // - "LiveLocationTracker: tracker[<id>]: got coords" when the tracker takes it,
 // - "+ LiveLocationTracker: updateMapUnfurl" when Go posts the location to the conversation,
-// - "LiveLocationTracker: restoreLocked: restored <n> trackers" when a relaunch restores sharing.
-// A background-only relaunch (iOS waking the process for a significant location change, no
-// scene connecting) is told apart from a real foreground open by Go's own MobileAppState: a fix
-// arriving while backgrounded legitimately flips it BACKGROUND -> BACKGROUNDACTIVE so Go can
-// relay it (LiveLocationTracker.LocationUpdate, go/chat/maps/livelocation.go:372-380), but only
-// a connecting scene ever reports FOREGROUND (see goAppStateUpdates in helpers/lifecycle.ts).
-// The relaunch flow also reads Metro's start.log: a background launch must start no JS at all, so
-// neither a bundle request nor a JS log line may appear while it runs, and activating the app
-// afterwards must make both appear from the same mark.
-// And in the app's unified log (com.keybase.app, category location): "starting location updates"
-// and "stopping location updates" when the Swift watcher turns the OS service on and off.
+// - "LiveLocationTracker: restoreLocked: restored <n> trackers" when a relaunch restores sharing,
+// - "AppDidEnterBackground: setting background active" when the app backgrounds while sharing:
+//   Go keeps running for the share, so resign-active and the background both report
+//   BACKGROUNDACTIVE and Go never goes to BACKGROUND. Only a connecting scene reports FOREGROUND
+//   (see goAppStateUpdates in helpers/lifecycle.ts).
+// And in the app's NSLog lines: "KbLocationWatcher: starting location updates" and
+// "KbLocationWatcher: stopping location updates" when the native watcher turns the OS service on
+// and off.
+// A kill while sharing leaves significant-change monitoring on, so a move relaunches the app in
+// the background. No scene connects there, so no JS runs (Metro's start.log sees neither a bundle
+// request nor a JS log line), and since every fix reaches Go through JS, none does. Go restores
+// the share on that launch, but its watch request finds no chat UI (NullChatUI), so nothing
+// starts a watch; once the user opens the app, JS init stops the leftover OS monitoring
+// (initIOSLocation). Not ported from the native-Go branch: a fix posted by the background
+// relaunch itself, which needed Go to own the watcher.
 // The posted map itself never renders here: the maps server rejects the render request, so the
 // unfurl fails after Go posts it. The flows stop at the post.
 //
@@ -97,7 +102,7 @@ describe('app lifecycle: live location', () => {
     await sendCommand('/location live 15m')
     sharing = true
     await waitForLinesInOrder('Go to start tracking', () => goLogSince(goMark), [/LiveLocationTracker: StartTracking/], 30000)
-    await waitForLinesInOrder('the native watcher to start', () => nativeLogSince('location', since), [
+    await waitForLinesInOrder('the native watcher to start', () => nsLogSince('KbLocationWatcher: ', since), [
       /starting location updates/,
     ])
 
@@ -117,9 +122,10 @@ describe('app lifecycle: live location', () => {
     const goMark = goLogMark()
     await backgroundApp()
     await waitForLinesInOrder('the app to enter the background', () => goLogSince(goMark), [
-      /MobileAppState\.Update: useful update: BACKGROUND,/,
+      /MobileAppState\.Update: useful update: BACKGROUNDACTIVE,/,
+      /AppDidEnterBackground: setting background active/,
     ])
-    // JS doesn't run in the background, so anything after this comes from native.
+    // JS keeps running in the background while the watcher is on, and relays the fix.
     const moveMark = goLogMark()
     setLocation(moves[1]!.lat, moves[1]!.lon)
     await waitForLinesInOrder(
@@ -128,57 +134,9 @@ describe('app lifecycle: live location', () => {
       [/\+ LiveLocationTracker: LocationUpdate/, /tracker\[\d+\]: got coords/, /\+ LiveLocationTracker: updateMapUnfurl/],
       180000
     )
-    // The fix legitimately flips Go BACKGROUND -> BACKGROUNDACTIVE so it can relay it (see the
-    // top-of-file comment); the invariant that matters is that no scene reconnected to take it
-    // all the way to FOREGROUND while the post above (already proven to have happened) ran.
-    expect(goAppStateUpdates(moveMark)).not.toContain('FOREGROUND')
+    expect(goAppStateUpdates(goMark)).not.toContain('FOREGROUND')
     await activateApp()
     await waitForAppState('active')
-  })
-
-  it('a move relaunches the app after it was killed and posts from the background', async function () {
-    // iOS delivers significant location changes on its own schedule: seconds to minutes. The
-    // budget covers all three waits below: the relaunch, the Go log, and the control's activation.
-    this.timeout(510000)
-    await terminateApp()
-    const goMark = goLogMark()
-    // start.log is shared by every device attached to Metro, so this device must be the only
-    // one running while the relaunch is watched.
-    const metroMark = metroLogMark()
-    setLocation(moves[2]!.lat, moves[2]!.lon)
-
-    // iOS relaunches the app in the background for the significant location change.
-    const pid = await waitFor('iOS to relaunch the app for the move', () => appPid(), {interval: 1000, timeout: 300000})
-    const lines = await waitForLinesInOrder(
-      'the relaunched app to restore sharing and post the move',
-      () => goLogSince(goMark),
-      [
-        /LiveLocationTracker: restoreLocked: restored [1-9]\d* trackers/,
-        /\+ LiveLocationTracker: LocationUpdate/,
-        /tracker\[\d+\]: got coords/,
-        /\+ LiveLocationTracker: updateMapUnfurl/,
-      ],
-      120000
-    )
-    expect(lines).toHaveLength(4)
-    // Launched for location, not by the user: no scene came to the foreground. didFinishLaunching
-    // still reports the real (background) state to Go, and the move itself flips Go BACKGROUND
-    // -> BACKGROUNDACTIVE the same way the foreground-post test above does, so both may appear;
-    // only FOREGROUND (a connecting scene) would mean this was actually a user-visible launch.
-    const relaunchUpdates = goAppStateUpdates(goMark)
-    expect(relaunchUpdates.length).toBeGreaterThan(0)
-    expect(relaunchUpdates).not.toContain('FOREGROUND')
-    expect(appPid()).toBe(pid)
-    // No scene connected, so React Native never started: no bundle request and no JS logging.
-    expect(metroBundlingStartedSince(metroMark)).toEqual([])
-    expect(metroClientLogSince(metroMark)).toEqual([])
-
-    // Control: starting a scene makes both readers, from that same mark, see the JS start they
-    // just reported absent, so neither can go quietly blind.
-    await activateApp()
-    await waitForAppState('active', undefined, 90000)
-    expect(metroBundlingStartedSince(metroMark).length).toBeGreaterThan(0)
-    expect(metroClientLogSince(metroMark).length).toBeGreaterThan(0)
   })
 
   it('stops sharing, stops the OS location service, and a move no longer relaunches the app', async function () {
@@ -203,7 +161,7 @@ describe('app lifecycle: live location', () => {
       150000
     )
     sharing = false
-    await waitForLinesInOrder('the native watcher to stop', () => nativeLogSince('location', since), [
+    await waitForLinesInOrder('the native watcher to stop', () => nsLogSince('KbLocationWatcher: ', since), [
       /stopping location updates/,
     ])
 
@@ -220,5 +178,53 @@ describe('app lifecycle: live location', () => {
     expect(appPid()).toBeUndefined()
     await activateApp()
     await waitForAppState('active', undefined, 90000)
+  })
+
+  it('a move relaunches the killed app in the background, where no JS runs to relay it', async function () {
+    // iOS delivers significant location changes on its own schedule: seconds to minutes. The
+    // budget covers sharing again, the relaunch, the Go log, the quiet wait and the activation.
+    this.timeout(600000)
+    const user = requireSmokeUser()
+    await activateApp()
+    await waitForAppState('active', undefined, 90000)
+    await openSelfConversation(user)
+    const shareMark = goLogMark()
+    const since = new Date(Date.now() - 1000)
+    await sendCommand('/location live 15m')
+    sharing = true
+    await waitForLinesInOrder('Go to start tracking', () => goLogSince(shareMark), [/LiveLocationTracker: StartTracking/], 30000)
+    await waitForLinesInOrder('the native watcher to start', () => nsLogSince('KbLocationWatcher: ', since), [
+      /starting location updates/,
+    ])
+
+    await terminateApp()
+    const goMark = goLogMark()
+    // start.log is shared by every device attached to Metro, so this device must be the only
+    // one running while the relaunch is watched.
+    const metroMark = metroLogMark()
+    setLocation(start.lat, start.lon)
+
+    const pid = await waitFor('iOS to relaunch the app for the move', () => appPid(), {interval: 1000, timeout: 300000})
+    await waitForLinesInOrder(
+      'the relaunched service to restore sharing',
+      () => goLogSince(goMark),
+      [/LiveLocationTracker: restoreLocked: restored [1-9]\d* trackers/],
+      120000
+    )
+    // Long enough for a fix the relaunch was for to have reached Go, had anything relayed it.
+    await browser.pause(30000)
+    expect(appPid()).toBe(pid)
+    expect(locationUpdates(goLogSince(goMark))).toEqual([])
+    // Launched for location, not by the user: no scene came to the foreground.
+    expect(goAppStateUpdates(goMark)).not.toContain('FOREGROUND')
+    expect(metroBundlingStartedSince(metroMark)).toEqual([])
+    expect(metroClientLogSince(metroMark)).toEqual([])
+
+    // Control: starting a scene makes both readers, from that same mark, see the JS start they
+    // just reported absent, so neither can go quietly blind.
+    await activateApp()
+    await waitForAppState('active', undefined, 90000)
+    expect(metroBundlingStartedSince(metroMark).length).toBeGreaterThan(0)
+    expect(metroClientLogSince(metroMark).length).toBeGreaterThan(0)
   })
 })

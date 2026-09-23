@@ -535,9 +535,9 @@ export const startSenderDevice = async (username: string) => {
   return {send, stop}
 }
 
-// The app's own os_log lines for a category (subsystem com.keybase.app) since a time, read from
-// the simulator's unified log.
-export const nativeLogSince = (category: string, since: Date, udid = deviceUdid()) => {
+// The app's NSLog lines starting with a prefix since a time, read from the simulator's unified
+// log. NSLog lines carry no subsystem, so the prefix is what picks them out.
+export const nsLogSince = (prefix: string, since: Date, udid = deviceUdid()) => {
   const pad = (n: number) => String(n).padStart(2, '0')
   const start = `${since.getFullYear()}-${pad(since.getMonth() + 1)}-${pad(since.getDate())} ${pad(since.getHours())}:${pad(since.getMinutes())}:${pad(since.getSeconds())}`
   return simctl(
@@ -551,8 +551,8 @@ export const nativeLogSince = (category: string, since: Date, udid = deviceUdid(
     '--style',
     'compact',
     '--predicate',
-    `subsystem == "com.keybase.app" AND category == "${category}"`
+    `eventMessage BEGINSWITH "${prefix}"`
   )
     .split('\n')
-    .filter(l => l.includes(`[com.keybase.app:${category}]`))
+    .filter(l => l.includes(prefix))
 }
