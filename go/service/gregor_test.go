@@ -1341,12 +1341,25 @@ func TestGregorReplayAfterLogoutRunsNoHandlers(t *testing.T) {
 		"replayed in-band messages for a user who is not logged in")
 }
 
-func countStacksContaining(substr string) int {
+// countHandlerGoroutines counts goroutines, other than test goroutines, that
+// are running inside a gregorHandler method. "created by" lines do not count:
+// only a live call frame does.
+func countHandlerGoroutines() int {
+	const frame = "github.com/keybase/client/go/service.(*gregorHandler)"
 	buf := make([]byte, 1<<22)
 	buf = buf[:runtime.Stack(buf, true)]
 	n := 0
 	for _, stack := range strings.Split(string(buf), "\n\n") {
-		if strings.Contains(stack, substr) {
+		live, test := false, false
+		for _, line := range strings.Split(stack, "\n") {
+			if strings.HasPrefix(line, frame) {
+				live = true
+			}
+			if strings.HasPrefix(line, "testing.tRunner") {
+				test = true
+			}
+		}
+		if live && !test {
 			n++
 		}
 	}
@@ -1364,12 +1377,20 @@ func TestGregorFailedConnectLeaksNoDebouncer(t *testing.T) {
 	uri, err := rpc.ParseFMPURI("fmprpc+tls://no-bundled-ca.test:443")
 	require.NoError(t, err)
 
+	baseline := countHandlerGoroutines()
 	for range 20 {
 		require.ErrorContains(t, h.Connect(uri), "No bundled CA")
 	}
 	require.False(t, hasConn(h))
-	require.LessOrEqual(t, countStacksContaining("pushStateNewDataDebouncer"), 1,
-		"failed connects left push state debouncers running")
+	var n int
+	for deadline := time.Now().Add(5 * time.Second); ; time.Sleep(20 * time.Millisecond) {
+		n = countHandlerGoroutines()
+		if n <= baseline+1 || time.Now().After(deadline) {
+			break
+		}
+	}
+	require.LessOrEqual(t, n, baseline+1,
+		"failed connects left handler goroutines running (baseline %d)", baseline)
 }
 
 // The connection dials on its own goroutine while Shutdown closes the
