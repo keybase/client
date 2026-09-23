@@ -78,7 +78,16 @@ func TestConvLoaderStopDuringLoadDelay(t *testing.T) {
 	b.clock = clock
 	b.Start(context.TODO(), gregor1.UID([]byte{1, 2, 3, 4}))
 	require.NoError(t, b.Queue(context.TODO(), convLoaderTestJob()))
-	clock.BlockUntil(1)
+	waited := make(chan struct{})
+	go func() {
+		clock.BlockUntil(1)
+		close(waited)
+	}()
+	select {
+	case <-waited:
+	case <-time.After(10 * time.Second):
+		require.FailNow(t, "the loader never slept on the clock before dispatching the job")
+	}
 	requireConvLoaderStopped(t, b)
 }
 
