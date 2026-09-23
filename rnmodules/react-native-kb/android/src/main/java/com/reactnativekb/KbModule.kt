@@ -61,6 +61,21 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     // the generated emit helpers would NPE before then.
     private fun canEmit(): Boolean = mEventEmitterCallback != null
 
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    override fun getAppLifecycleState(): String = appLifecycleState
+
+    private fun emitAppLifecycleInternal(state: String) {
+        if (reactContext.hasActiveReactInstance() && canEmit()) {
+            try {
+                val payload = Arguments.createMap()
+                payload.putString("state", state)
+                emitOnAppLifecycle(payload)
+            } catch (e: Exception) {
+                NativeLogger.error("emitAppLifecycleInternal failed to emit: " + e.message)
+            }
+        }
+    }
+
     @ReactMethod
     override fun clearLocalLogs(promise: Promise) {
         promise.resolve(null)
@@ -807,6 +822,20 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
                 return
             }
             module.emitPushNotificationInternal(notification)
+        }
+
+        // Written on the main thread by the process lifecycle observer, read on
+        // the JS thread by getAppLifecycleState.
+        @Volatile
+        private var appLifecycleState: String = "background"
+
+        // Main thread only. Call next to each Go SetAppState* report with
+        // "active", "inactive" or "background"; the latest value is kept so JS
+        // can read what it missed before it listened.
+        @JvmStatic
+        fun emitAppLifecycle(state: String) {
+            appLifecycleState = state
+            instance?.emitAppLifecycleInternal(state)
         }
 
         @JvmStatic

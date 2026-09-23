@@ -50,6 +50,10 @@ static std::mutex kbSharedInstanceMutex;
 static BOOL kbPasteImageEnabled = NO;
 static NSString *kbStoredDeviceToken = nil;
 static NSDictionary *kbInitialNotification = nil;
+// Written on the main thread by the app delegate, read on the JS thread by
+// getAppLifecycleState.
+static std::mutex kbAppLifecycleMutex;
+static NSString *kbAppLifecycleState = @"background";
 
 // The bridge is created on the JS thread and consumed by the reader thread,
 // so every access goes through this lock — a plain shared_ptr member would be
@@ -896,6 +900,22 @@ RCT_EXPORT_METHOD(addNotificationRequest: (JS::NativeKb::SpecAddNotificationRequ
   kbInitialNotification = notification;
 }
 
++ (void)emitAppLifecycle:(NSString *)state {
+  {
+    std::lock_guard<std::mutex> lock(kbAppLifecycleMutex);
+    kbAppLifecycleState = [state copy];
+  }
+  Kb *instance = kbSharedInstance;
+  if (instance && [instance canEmit]) {
+    [instance emitOnAppLifecycle:@{@"state" : state}];
+  }
+}
+
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getAppLifecycleState) {
+  std::lock_guard<std::mutex> lock(kbAppLifecycleMutex);
+  return kbAppLifecycleState;
+}
+
 + (void)emitPushNotification:(NSDictionary *)notification {
   Kb *instance = kbSharedInstance;
   if (instance && [instance canEmit]) {
@@ -958,6 +978,10 @@ void KbSetInitialNotification(NSDictionary *notification) {
 
 void KbEmitPushNotification(NSDictionary *notification) {
   [Kb emitPushNotification:notification];
+}
+
+void KbEmitAppLifecycle(NSString *state) {
+  [Kb emitAppLifecycle:state];
 }
 
 void KbEmitStoredNotificationOnBecomeActive(void) {

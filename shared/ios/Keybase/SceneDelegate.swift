@@ -15,4 +15,9 @@ class SceneDelegate: ExpoAppSceneDelegate {
     else { return }
     appDelegate.didStartReactNative(in: window)
   }
+
+  override func sceneDidDisconnect(_ scene: UIScene) {
+    super.sceneDidDisconnect(scene)
+    (UIApplication.shared.delegate as? AppDelegate)?.didDisconnectScene()
+  }
 }

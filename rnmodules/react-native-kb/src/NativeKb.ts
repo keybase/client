@@ -8,6 +8,8 @@ export interface Spec extends TurboModule {
   readonly onPushNotification: EventEmitter<UnsafeObject>
   readonly onPushToken: EventEmitter<string>
   readonly onShareData: EventEmitter<{text?: string; localPaths?: Array<string>}>
+  // 'active' | 'inactive' | 'background', sent from the callbacks that report the state to Go
+  readonly onAppLifecycle: EventEmitter<{state: string}>
   getTypedConstants(): {
     androidIsDeviceSecure: boolean
     androidIsTestDevice: boolean
@@ -68,6 +70,8 @@ export interface Spec extends TurboModule {
   shareListenersRegistered(): void
   setEnablePasteImage(enabled: boolean): void
   clearLocalLogs(): Promise<void>
+  // the last state onAppLifecycle carried, including one sent before JS listened
+  getAppLifecycleState(): string
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('Kb')

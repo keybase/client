@@ -206,10 +206,18 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     let state = application.applicationState
     log.info("notifyAppState: notifying service with new appState: \(state.rawValue)")
     switch state {
-    case .active: Keybasego.KeybaseSetAppStateForeground()
-    case .background: Keybasego.KeybaseSetAppStateBackground()
-    case .inactive: Keybasego.KeybaseSetAppStateInactive()
-    default: Keybasego.KeybaseSetAppStateForeground()
+    case .background:
+      Keybasego.KeybaseSetAppStateBackground()
+      KbEmitAppLifecycle("background")
+    case .inactive:
+      // INACTIVE disconnects gregor (#29664) and stops the kbhttp server
+      // (#29665): chat drops and images fail to load until the next FOREGROUND
+      // or BACKGROUNDACTIVE. Keep reporting the true state until Go is fixed.
+      Keybasego.KeybaseSetAppStateInactive()
+      KbEmitAppLifecycle("inactive")
+    default:
+      Keybasego.KeybaseSetAppStateForeground()
+      KbEmitAppLifecycle("active")
     }
   }
 
@@ -244,12 +252,21 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
       dim = screenBounds.height
     }
     let square = CGRect(origin: screenBounds.origin, size: CGSize(width: dim, height: dim))
+    self.resignImageView?.removeFromSuperview()
     self.resignImageView = UIImageView(frame: square)
     self.resignImageView?.contentMode = .center
     self.resignImageView?.alpha = 0
     self.resignImageView?.backgroundColor = rootView.backgroundColor
     self.resignImageView?.image = UIImage(named: "LaunchImage")
     if let view = self.resignImageView { window.addSubview(view) }
+  }
+
+  // Called by SceneDelegate when the scene goes away; didStartReactNative
+  // rebuilds both if a new scene connects.
+  func didDisconnectScene() {
+    self.window = nil
+    self.resignImageView?.removeFromSuperview()
+    self.resignImageView = nil
   }
 
   func addDrop(_ rootView: UIView) {
@@ -385,6 +402,7 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
   override func applicationWillTerminate(_ application: UIApplication) {
     self.window?.rootViewController?.view.isHidden = true
     Keybasego.KeybaseAppWillExit(PushNotifier())
+    KbEmitAppLifecycle("background")
   }
 
   func hideCover() {
@@ -403,7 +421,11 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     } completion: { finished in
       log.info("applicationWillResignActive: rendered keyz screen. Finished: \(finished)")
     }
+    // INACTIVE disconnects gregor (#29664) and stops the kbhttp server
+    // (#29665): chat drops and images fail to load until the next FOREGROUND
+    // or BACKGROUNDACTIVE. Keep reporting the true state until Go is fixed.
     Keybasego.KeybaseSetAppStateInactive()
+    KbEmitAppLifecycle("inactive")
   }
 
   override func applicationDidEnterBackground(_ application: UIApplication) {
@@ -417,6 +439,7 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     log.info("applicationDidEnterBackground: notifying go.")
     let requestTime = Keybasego.KeybaseAppDidEnterBackground()
     log.info("applicationDidEnterBackground: after notifying go.")
+    KbEmitAppLifecycle("background")
 
     if requestTime && (self.shutdownTask == UIBackgroundTaskIdentifier.invalid) {
       self.shutdownTask = UIApplication.shared.beginBackgroundTask {
@@ -451,6 +474,7 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     // Forwarded from sceneDidBecomeActive, where applicationState still reads
     // .inactive; notifyAppState would stop the http server.
     Keybasego.KeybaseSetAppStateForeground()
+    KbEmitAppLifecycle("active")
 
     // Re-emit a notification the user tapped while React Native wasn't ready yet.
     KbEmitStoredNotificationOnBecomeActive()
@@ -465,6 +489,7 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     // claiming the user is on-screen — FOREGROUND waits for didBecomeActive.
     // Can't use notifyAppState here: applicationState is still .background.
     Keybasego.KeybaseSetAppStateBackgroundActive()
+    KbEmitAppLifecycle("inactive")
     NSLog("applicationWillEnterForeground: done")
   }
 
