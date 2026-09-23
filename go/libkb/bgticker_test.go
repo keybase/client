@@ -30,13 +30,13 @@ func TestBgTicker(t *testing.T) {
 	}
 }
 
-// bgTickerFramePrefix is matched against goroutine-dump call frames, not
-// "created by" lines, so only goroutines currently executing a BgTicker
-// method are counted.
-const bgTickerFramePrefix = "github.com/keybase/client/go/libkb.(*BgTicker)."
+// libkbFramePrefix is matched against goroutine-dump call frames, not
+// "created by" lines, so only goroutines currently executing BgTicker code
+// (a BgTicker method, or a closure inside its constructors) are counted.
+const libkbFramePrefix = "github.com/keybase/client/go/libkb."
 
 // countBgTickerGoroutines returns the number of goroutines with a live call
-// frame in a BgTicker method, excluding the goroutine running the test
+// frame in BgTicker code, excluding the goroutine running the test
 // itself (identified by a testing.tRunner frame). Unlike
 // runtime.NumGoroutine, it isn't moved by unrelated goroutines elsewhere in
 // the process.
@@ -64,7 +64,7 @@ func parseBgTickerGoroutines(dump string) int {
 			if strings.HasPrefix(line, "\t") || strings.HasPrefix(line, "created by ") || line == "" {
 				continue
 			}
-			if strings.HasPrefix(line, bgTickerFramePrefix) {
+			if strings.HasPrefix(line, libkbFramePrefix) && strings.Contains(line, "BgTicker") {
 				count++
 				break
 			}
