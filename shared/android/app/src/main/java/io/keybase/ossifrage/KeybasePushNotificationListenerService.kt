@@ -5,8 +5,6 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
@@ -14,7 +12,9 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import io.keybase.ossifrage.MainActivity.Companion.setupKBRuntime
 import io.keybase.ossifrage.modules.NativeLogger
+import keybase.ChatNotification
 import keybase.Keybase
+import keybase.PushNotifier
 import com.reactnativekb.KbModule
 import org.json.JSONObject
 
@@ -23,8 +23,12 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
     // was notified about to give context to future notifications.
     private val msgCache = HashMap<String?, SmallMsgRingBuffer>()
 
-    // Avoid ever showing doubles
-    private val seenChatNotifications = HashSet<String>()
+    // Go's seen cache dedupes what Go displays, but not the fallback below: a
+    // redelivered push that Go fails on again would show the fallback twice,
+    // and each display adds the message to msgCache's history again.
+    private val seenChatNotifications = object : LinkedHashMap<String, Unit>(16, 0.75f, false) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Unit>?) = size > SEEN_CHAT_NOTIFICATIONS_MAX
+    }
     private fun chatNotificationKey(convID: String?, messageId: Int, targetUID: String): String {
         return "$targetUID|$convID|$messageId"
     }
@@ -112,12 +116,12 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                     // Key includes UID so two signed-in accounts in the same chat are not treated as duplicates.
                     if (!dontNotify) {
                         val notificationKey = chatNotificationKey(n.convID, n.messageId, targetUID)
-                        if (seenChatNotifications.contains(notificationKey)) {
+                        if (seenChatNotifications.containsKey(notificationKey)) {
                             NativeLogger.info("KeybasePushNotificationListenerService skipping duplicate notification: $notificationKey")
                             return
                         }
                         // Mark as seen immediately to prevent duplicate processing
-                        seenChatNotifications.add(notificationKey)
+                        seenChatNotifications[notificationKey] = Unit
                         NativeLogger.info("KeybasePushNotificationListenerService marked notification as seen: $notificationKey")
                     }
 
@@ -129,27 +133,18 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                         }
                         notifier.setMsgCache(msgCache[n.convID])
                         try {
-                            val withBackgroundActive: WithBackgroundActive = object : WithBackgroundActive {
-                                override fun task() {
-                                    try {
-                                        Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
-                                                n.membersType.toLong(), n.displayPlaintext, n.messageId.toLong(), n.pushId,
-                                                n.badgeCount.toLong(), n.unixTime, n.soundName, if (dontNotify) null else notifier, true,
-                                                targetUID)
-                                        goProcessingSucceeded = true
-                                        if (!dontNotify) {
-                                            seenChatNotifications.add(chatNotificationKey(n.convID, n.messageId, targetUID))
-                                        }
-                                    } catch (ex: Exception) {
-                                        NativeLogger.error("Go Couldn't handle background notification2: " + ex.message)
-                                        throw ex
-                                    }
-                                }
+                            handleChatPush(KeybaseLifecycleBind(applicationContext), notifier, dontNotify,
+                                    { NativeLogger.info(it) }) { pusher ->
+                                Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
+                                        n.membersType.toLong(), n.displayPlaintext, n.messageId.toLong(), n.pushId,
+                                        n.badgeCount.toLong(), n.unixTime, n.soundName, pusher, true, targetUID)
                             }
-                            withBackgroundActive.whileActive(applicationContext)
+                            goProcessingSucceeded = true
+                            if (!dontNotify) {
+                                seenChatNotifications[chatNotificationKey(n.convID, n.messageId, targetUID)] = Unit
+                            }
                         } catch (ex: Exception) {
-                            NativeLogger.error("Failed to process notification (app may not be running): " + ex.message)
-                            goProcessingSucceeded = false
+                            NativeLogger.error("Go couldn't handle background notification: " + ex.message)
                         }
                     }
 
@@ -203,7 +198,7 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                             chatNotif.uid = targetUID
 
                             notifier.displayChatNotification(chatNotif)
-                            seenChatNotifications.add(chatNotificationKey(n.convID, n.messageId, targetUID))
+                            seenChatNotifications[chatNotificationKey(n.convID, n.messageId, targetUID)] = Unit
                             NativeLogger.info("KeybasePushNotificationListenerService fallback notification displayed successfully")
                         } catch (e: Exception) {
                             NativeLogger.error("Failed to display notification fallback: " + e.message)
@@ -281,6 +276,7 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
     }
 
     companion object {
+        private const val SEEN_CHAT_NOTIFICATIONS_MAX = 100
         const val CHAT_CHANNEL_ID = "kb_chat_channel"
         const val FOLLOW_CHANNEL_ID = "kb_follow_channel"
         const val DEVICE_CHANNEL_ID = "kb_device_channel"
@@ -395,49 +391,73 @@ internal class NotificationData(type: String, bundle: Bundle) {
     }
 }
 
-// Interface to run some task while in backgroundActive.
-// If already foreground, ignore
-internal interface WithBackgroundActive {
-    @Throws(Exception::class)
-    fun task()
+// A silent push gets no notifier, and Go only acks a push it can display, so in
+// the foreground Go would unbox it for nothing: the loud push that follows is
+// the one Go handles.
+internal fun handleChatPush(
+    bind: LifecycleBind,
+    notifier: PushNotifier,
+    silent: Boolean,
+    log: (String) -> Unit,
+    work: (PushNotifier?) -> Unit,
+) {
+    if (!silent) {
+        withBackgroundActive(bind, notifier, log, work)
+        return
+    }
+    if (bind.isAppStateForeground()) {
+        log("handleChatPush: silent push in the foreground, skipping Go")
+        return
+    }
+    withBackgroundActive(bind, null, log, work)
+}
 
-    @Throws(Exception::class)
-    fun whileActive(context: Context?) {
-        try {
-            // We are foreground don't show anything
-            val isForeground = Keybase.isAppStateForeground()
-            NativeLogger.info("WithBackgroundActive.whileActive isForeground: $isForeground")
-            if (isForeground) {
-                NativeLogger.info("WithBackgroundActive.whileActive app is foreground, returning early")
-                return
-            } else {
-                NativeLogger.info("WithBackgroundActive.whileActive setting background active and calling task")
-                Keybase.setAppStateBackgroundActive()
-                task()
-                NativeLogger.info("WithBackgroundActive.whileActive task completed")
-
-                // Check if we are foreground now for some reason. In that case we don't want to go background again
-                val isForegroundNow = Keybase.isAppStateForeground()
-                NativeLogger.info("WithBackgroundActive.whileActive isForegroundNow: $isForegroundNow")
-                if (isForegroundNow) {
-                    NativeLogger.info("WithBackgroundActive.whileActive app became foreground, returning")
-                    return
-                }
-                val didEnterBackground = Keybase.appDidEnterBackground()
-                NativeLogger.info("WithBackgroundActive.whileActive didEnterBackground: $didEnterBackground")
-                if (didEnterBackground) {
-                    if (context != null) {
-                        NativeLogger.info("WithBackgroundActive.whileActive beginning background task")
-                        Keybase.appBeginBackgroundTaskNonblock(KBPushNotifier(context, Bundle()))
-                    }
-                } else {
-                    NativeLogger.info("WithBackgroundActive.whileActive setting app state to background")
-                    Keybase.setAppStateBackground()
-                }
-            }
-        } catch (ex: Exception) {
-            NativeLogger.error("WithBackgroundActive.whileActive exception: " + ex.message)
-            throw ex
+// Hands Go the work a push or a quick reply started. In the foreground Go
+// handles it as is, so the push is still unboxed and acked, but nothing is
+// displayed. Otherwise Go is held in BACKGROUNDACTIVE while the work runs and
+// then decides whether it must keep running; appDidEnterBackground reports
+// BACKGROUND itself (and flushes) when it returns false, so there is no
+// setAppStateBackground here.
+internal fun withBackgroundActive(
+    bind: LifecycleBind,
+    notifier: PushNotifier?,
+    log: (String) -> Unit,
+    work: (PushNotifier?) -> Unit,
+) {
+    val pusher = notifier?.let { ForegroundSuppressingNotifier(it, bind) }
+    if (bind.isAppStateForeground()) {
+        log("withBackgroundActive: foreground")
+        work(pusher)
+        return
+    }
+    bind.setAppStateBackgroundActive()
+    // Work that throws still hands Go back to the background, or it would stay
+    // in BACKGROUNDACTIVE until the next lifecycle event.
+    try {
+        work(pusher)
+    } finally {
+        if (bind.isAppStateForeground()) {
+            log("withBackgroundActive: foregrounded during the work")
+        } else if (bind.appDidEnterBackground()) {
+            bind.appBeginBackgroundTaskNonblock()
         }
     }
+}
+
+// Checked at display time: the app can come to the foreground while Go works.
+private class ForegroundSuppressingNotifier(
+    private val inner: PushNotifier,
+    private val bind: LifecycleBind,
+) : PushNotifier {
+    override fun displayChatNotification(notification: ChatNotification?) {
+        if (bind.isAppStateForeground()) {
+            return
+        }
+        inner.displayChatNotification(notification)
+    }
+
+    override fun localNotification(
+        ident: String?, title: String?, msg: String?, badgeCount: Long, soundName: String?,
+        convID: String?, typ: String?, uid: String?,
+    ) = inner.localNotification(ident, title, msg, badgeCount, soundName, convID, typ, uid)
 }
