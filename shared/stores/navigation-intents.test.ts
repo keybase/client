@@ -1,7 +1,8 @@
 /// <reference types="jest" />
 import {resetAllStores} from '@/util/zustand'
+import {useConfigState} from './config'
 import {useCurrentUserState} from './current-user'
-import {useNavigationIntentsState} from './navigation-intents'
+import {navigationIntentLifetimeMs, useNavigationIntentsState} from './navigation-intents'
 
 // react-native-kb's native tap slot; only its ack is reached from here.
 const mockAckPushTap = jest.fn()
@@ -273,17 +274,61 @@ test('resetState does not ack a targeted intent it keeps', () => {
   expect(ack).not.toHaveBeenCalled()
 })
 
-test('a plain link does not supersede a tap waiting for its account switch', () => {
-  useCurrentUserState.setState({uid: 'current-uid'})
-  const dispatch = useNavigationIntentsState.getState().dispatch
-  const id = pushTapID()
-  dispatch.enqueue('keybase://convid/other-account-tap', {pushTapID: id, targetUid: 'target-uid'})
-  const tap = useNavigationIntentsState.getState().intent
+describe('a tap waiting for its account switch', () => {
+  let id: number
+  beforeEach(() => {
+    useCurrentUserState.setState({uid: 'current-uid'})
+    useConfigState.getState().dispatch.setUserSwitching(true)
+    id = pushTapID()
+    useNavigationIntentsState
+      .getState()
+      .dispatch.enqueue('keybase://convid/other-account-tap', {pushTapID: id, targetUid: 'target-uid'})
+  })
+  afterEach(() => {
+    useConfigState.getState().dispatch.setUserSwitching(false)
+  })
 
-  dispatch.enqueue('keybase://incoming-share')
+  test('is not superseded by a plain link', () => {
+    const tap = useNavigationIntentsState.getState().intent
 
-  expect(useNavigationIntentsState.getState().intent).toBe(tap)
-  expect(ack).not.toHaveBeenCalled()
+    useNavigationIntentsState.getState().dispatch.enqueue('keybase://incoming-share')
+
+    expect(useNavigationIntentsState.getState().intent).toBe(tap)
+    expect(ack).not.toHaveBeenCalled()
+  })
+
+  test('is superseded by an untargeted tap, and acked', () => {
+    const newer = pushTapID()
+
+    useNavigationIntentsState.getState().dispatch.enqueue('keybase://convid/untargeted-tap', {pushTapID: newer})
+
+    expect(useNavigationIntentsState.getState().intent).toMatchObject({
+      pushTapID: newer,
+      url: 'keybase://convid/untargeted-tap',
+    })
+    expect(ack).toHaveBeenCalledWith(id)
+  })
+
+  test('is superseded by a plain link when no switch is in progress', () => {
+    useConfigState.getState().dispatch.setUserSwitching(false)
+
+    useNavigationIntentsState.getState().dispatch.enqueue('keybase://incoming-share')
+
+    expect(useNavigationIntentsState.getState().intent).toMatchObject({url: 'keybase://incoming-share'})
+    expect(ack).toHaveBeenCalledWith(id)
+  })
+
+  test('is superseded by a plain link once it is older than the intent lifetime', () => {
+    const tap = useNavigationIntentsState.getState().intent!
+    useNavigationIntentsState.setState({
+      intent: {...tap, createdAt: Date.now() - navigationIntentLifetimeMs - 1},
+    })
+
+    useNavigationIntentsState.getState().dispatch.enqueue('keybase://incoming-share')
+
+    expect(useNavigationIntentsState.getState().intent).toMatchObject({url: 'keybase://incoming-share'})
+    expect(ack).toHaveBeenCalledWith(id)
+  })
 })
 
 test('once the tap account is current a plain link supersedes it as before', () => {

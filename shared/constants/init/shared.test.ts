@@ -1,6 +1,7 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
+import {RPCError} from '@/util/errors'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
@@ -281,5 +282,26 @@ describe('the session comes from the daemon; notifications only say to read it',
 
     expect(useConfigState.getState().loggedIn).toBe(false)
     expect(useConfigState.getState().userSwitching).toBe(false)
+  })
+
+  test.each([
+    ['cancelled', new RPCError('Canceling RPC', T.RPCGen.StatusCode.scgeneric)],
+    ['ended by a non-RPC error', new Error('engine reset')],
+  ])('a switch whose login is %s ends logged out, no longer switching', async (_, error) => {
+    await readReplying(userA)
+    useConfigState.getState().dispatch.setUserSwitching(true)
+    await readReplying(loggedOut)
+    expect(useConfigState.getState().loggedIn).toBe(true)
+
+    jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockRejectedValue(error)
+    useConfigState.getState().dispatch.login('testuser2', 'password')
+    await flush()
+
+    expect(useConfigState.getState().userSwitching).toBe(false)
+    expect(useConfigState.getState().loggedIn).toBe(false)
+    replies[replies.length - 1]?.(loggedOut)
+    await flush()
+    expect(useConfigState.getState().loggedIn).toBe(false)
+    expect(useConfigState.getState().loginError).toBeUndefined()
   })
 })

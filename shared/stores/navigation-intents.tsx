@@ -1,5 +1,6 @@
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
+import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {ackPushTap as nativeAckPushTap} from 'react-native-kb'
 
@@ -37,6 +38,8 @@ type Store = {
 }
 
 const duplicateWindowMs = 1500
+// A queued intent older than this is stale and is acknowledged without navigating.
+export const navigationIntentLifetimeMs = 5 * 60_000
 
 // A tapped notification stays held in react-native-kb until it is acked by id (see
 // constants/init/shared's listenForPushTaps), so every pushTapID that leaves s.intent -- consumed,
@@ -126,13 +129,17 @@ export const useNavigationIntentsState = Z.createZustand<Store>(
         }
 
         // A tap for another account waits here while account-link-switch switches to it. A
-        // plain link arriving meanwhile is dropped rather than superseding the tap, as the tap
-        // replayed after the switch used to replace it.
+        // plain link arriving during that switch is dropped rather than superseding the tap, as
+        // the tap replayed after the switch used to replace it. Another tap still supersedes it,
+        // and so does anything once the tap has outlived the router's intent lifetime.
         if (
           !targetUid &&
+          pushTapID === undefined &&
           pending?.pushTapID !== undefined &&
           pending.targetUid &&
-          pending.targetUid !== useCurrentUserState.getState().uid
+          pending.targetUid !== useCurrentUserState.getState().uid &&
+          useConfigState.getState().userSwitching &&
+          now - pending.createdAt <= navigationIntentLifetimeMs
         ) {
           logger.info('[PushTap] dropping a link while a tap waits for its account:', url)
           return

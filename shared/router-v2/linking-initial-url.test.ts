@@ -138,6 +138,15 @@ test('the push prompt wins when there is nothing saved to restore', async () => 
   await expect(getInitialURL()).resolves.toBe('keybase://settingsPushPrompt')
 })
 
+test('the push prompt wins over a cold tap, which stays queued for the router', async () => {
+  usePushState.setState({hasPermissions: false, justSignedUp: false, showPushPrompt: true})
+  setStartup({})
+  enqueuePushTapRoute({id: tapID(), targetUid: 'current-uid', url: 'keybase://convid/0000ab'})
+
+  await expect(getInitialURL()).resolves.toBe('keybase://settingsPushPrompt')
+  expect(useNavigationIntentsState.getState().intent?.url).toBe('keybase://convid/0000ab')
+})
+
 test('the push prompt does not preempt a restored tab', async () => {
   usePushState.setState({hasPermissions: false, justSignedUp: false, showPushPrompt: true})
   setStartup({tab: Tabs.chatTab})
