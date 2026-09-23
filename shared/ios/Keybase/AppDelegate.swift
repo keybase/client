@@ -205,9 +205,10 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
       Keybasego.KeybaseSetAppStateBackground()
       KbEmitAppLifecycle("background")
     case .inactive:
-      // gregor and the kbhttp server tear down on INACTIVE; report BGACTIVE so
-      // they stay up while the UI is only inactive.
-      Keybasego.KeybaseSetAppStateBackgroundActive()
+      // INACTIVE disconnects gregor (#29664) and stops the kbhttp server
+      // (#29665): chat drops and images fail to load until the next FOREGROUND
+      // or BACKGROUNDACTIVE. Keep reporting the true state until Go is fixed.
+      Keybasego.KeybaseSetAppStateInactive()
       KbEmitAppLifecycle("inactive")
     default:
       Keybasego.KeybaseSetAppStateForeground()
@@ -414,9 +415,10 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     } completion: { finished in
       log.info("applicationWillResignActive: rendered keyz screen. Finished: \(finished)")
     }
-    // gregor and the kbhttp server tear down on INACTIVE; report BGACTIVE so
-    // they stay up while the UI is only inactive.
-    Keybasego.KeybaseSetAppStateBackgroundActive()
+    // INACTIVE disconnects gregor (#29664) and stops the kbhttp server
+    // (#29665): chat drops and images fail to load until the next FOREGROUND
+    // or BACKGROUNDACTIVE. Keep reporting the true state until Go is fixed.
+    Keybasego.KeybaseSetAppStateInactive()
     KbEmitAppLifecycle("inactive")
   }
 
