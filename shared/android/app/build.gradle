@@ -171,6 +171,8 @@ dependencies {
     implementation 'com.android.installreferrer:installreferrer:2.2'
     implementation "androidx.lifecycle:lifecycle-common-java8:2.10.0"
     implementation "androidx.lifecycle:lifecycle-process:2.10.0"
+
+    testImplementation "junit:junit:4.13.2"
 }
 
 // This requires a google-services.json file locally.  Drop it in

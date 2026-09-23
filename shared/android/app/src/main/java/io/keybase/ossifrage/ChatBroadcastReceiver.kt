@@ -19,37 +19,37 @@ class ChatBroadcastReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        setupKBRuntime(context, false)
         val convData = ConvData.fromIntent(intent)
         val openConv = intent.getParcelableExtra<PendingIntent>("openConvPendingIntent")
-        val repliedNotification = NotificationCompat.Builder(context, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID)
-                .setContentIntent(openConv)
-                .setTimeoutAfter(1000)
-                .setSmallIcon(R.drawable.ic_notif)
-        val notificationManager = NotificationManagerCompat.from(context)
         val messageBody = getMessageText(intent)
-        if (messageBody != null) {
-            try {
-                val withBackgroundActive: WithBackgroundActive = object : WithBackgroundActive {
-                    override fun task() {
+        val pendingResult = goAsync()
+        runReceiverWork(RECEIVER_BUDGET_MS, { Thread(it).start() }, { NativeLogger.warn(it) }, { msg, e -> NativeLogger.error(msg, e) },
+                { pendingResult.finish() }) {
+            val status = if (messageBody == null) {
+                NativeLogger.error("Message Body in quick reply was null")
+                "Couldn't send reply - Failed to read input."
+            } else {
+                setupKBRuntime(context, false)
+                sendQuickReply(Keybase.currentUID(), convData.lastMsgId, { msg, e -> NativeLogger.error(msg, e) }) {
+                    withBackgroundActive(KeybaseLifecycleBind(context), null, { NativeLogger.info(it) }) {
                         Keybase.handlePostTextReply(convData.convID, convData.tlfName, convData.lastMsgId, messageBody)
                     }
                 }
-                withBackgroundActive.whileActive(context)
-                repliedNotification.setContentText("Replied")
-            } catch (e: Exception) {
-                repliedNotification.setContentText("Couldn't send reply")
-                NativeLogger.error("Failed to send quick reply", e)
             }
-        } else {
-            repliedNotification.setContentText("Couldn't send reply - Failed to read input.")
-            NativeLogger.error("Message Body in quick reply was null")
+            val repliedNotification = NotificationCompat.Builder(context, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID)
+                    .setContentIntent(openConv)
+                    .setTimeoutAfter(1000)
+                    .setSmallIcon(R.drawable.ic_notif)
+                    .setContentText(status)
+            NotificationManagerCompat.from(context).notify(convData.convID, 0, repliedNotification.build())
         }
-        notificationManager.notify(convData.convID, 0, repliedNotification.build())
     }
 
     companion object {
         const val KEY_TEXT_REPLY = "key_text_reply"
+
+        // goAsync gives a broadcast 10s; leave margin.
+        private const val RECEIVER_BUDGET_MS = 9_000L
     }
 }
 
