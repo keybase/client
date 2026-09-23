@@ -6,6 +6,7 @@ const smallTeamRow = (convID: string, name = convID): T.RPCChat.UIInboxSmallTeam
   convID: convID as T.RPCChat.ConvIDStr,
   draft: null,
   isMuted: false,
+  isPinned: false,
   isTeam: true,
   lastSendTime: 0,
   name,

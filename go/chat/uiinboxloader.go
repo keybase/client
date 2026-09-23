@@ -448,6 +448,30 @@ func (c *bigTeamCollector) finalize(ctx context.Context) (res []chat1.UIInboxBig
 	return res
 }
 
+// orderSmallTeamRows puts pinned rows first in pinned-list order, then the
+// rest newest first. Pinned IDs with no matching row are ignored.
+func orderSmallTeamRows(rows []chat1.UIInboxSmallTeamRow, pinned []chat1.ConvIDStr) {
+	pinIndex := make(map[chat1.ConvIDStr]int, len(pinned))
+	for i, id := range pinned {
+		pinIndex[id] = i
+	}
+	for i := range rows {
+		_, rows[i].IsPinned = pinIndex[rows[i].ConvID]
+	}
+	sort.SliceStable(rows, func(i, j int) bool {
+		pi, iPinned := pinIndex[rows[i].ConvID]
+		pj, jPinned := pinIndex[rows[j].ConvID]
+		switch {
+		case iPinned && jPinned:
+			return pi < pj
+		case iPinned != jPinned:
+			return iPinned
+		default:
+			return rows[i].Time.After(rows[j].Time)
+		}
+	})
+}
+
 func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 	reselectMode chat1.InboxLayoutReselectMode,
 ) (res chat1.UIInboxLayout) {
@@ -484,9 +508,11 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 		widgetList = append(widgetList, utils.PresentRemoteConversationAsSmallTeamRow(ctx, conv,
 			h.G().GetEnv().GetUsername().String()))
 	}
-	sort.Slice(res.SmallTeams, func(i, j int) bool {
-		return res.SmallTeams[i].Time.After(res.SmallTeams[j].Time)
-	})
+	pinned, err := utils.GetPinnedConvs(ctx, h.G())
+	if err != nil {
+		h.Debug(ctx, "buildLayout: failed to get pinned convs: %s", err)
+	}
+	orderSmallTeamRows(res.SmallTeams, pinned)
 	res.BigTeams = btcollector.finalize(ctx)
 	res.TotalSmallTeams = len(res.SmallTeams)
 	if res.TotalSmallTeams > h.smallTeamBound {
@@ -774,16 +800,20 @@ func (h *UIInboxLoader) layoutLoop(shutdownCh chan struct{}) error {
 	}
 }
 
-func (h *UIInboxLoader) isTopSmallTeamInLastLayout(convID chat1.ConversationID) bool {
+// A new message can't move a pinned row, so compare against the first
+// unpinned row to decide whether the order could change.
+func (h *UIInboxLoader) isTopUnpinnedSmallTeamInLastLayout(convID chat1.ConversationID) bool {
 	h.lastLayoutMu.Lock()
 	defer h.lastLayoutMu.Unlock()
 	if h.lastLayout == nil {
 		return false
 	}
-	if len(h.lastLayout.SmallTeams) == 0 {
-		return false
+	for _, row := range h.lastLayout.SmallTeams {
+		if !row.IsPinned {
+			return row.ConvID == convID.ConvIDStr()
+		}
 	}
-	return h.lastLayout.SmallTeams[0].ConvID == convID.ConvIDStr()
+	return false
 }
 
 func (h *UIInboxLoader) setLastLayout(l *chat1.UIInboxLayout) {
@@ -805,8 +835,8 @@ func (h *UIInboxLoader) UpdateLayout(ctx context.Context, reselectMode chat1.Inb
 
 func (h *UIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv types.RemoteConversation) {
 	defer h.Trace(ctx, nil, "UpdateLayoutFromNewMessage: %s", conv.ConvIDStr)()
-	if h.isTopSmallTeamInLastLayout(conv.GetConvID()) {
-		h.Debug(ctx, "UpdateLayoutFromNewMessage: skipping layout, conv top small team in last layout")
+	if h.isTopUnpinnedSmallTeamInLastLayout(conv.GetConvID()) {
+		h.Debug(ctx, "UpdateLayoutFromNewMessage: skipping layout, conv top unpinned small team in last layout")
 	} else if conv.GetTeamType() == chat1.TeamType_COMPLEX {
 		h.Debug(ctx, "UpdateLayoutFromNewMessage: skipping layout, complex team conv")
 	} else {

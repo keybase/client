@@ -22,6 +22,7 @@ import {ignorePromise, timeoutPromise} from '../utils'
 import {isPhone, serverConfigFileName} from '../platform'
 import {useAvatarState} from '@/common-adapters/avatar/store'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
+import {getPinnedConvIDs} from '@/chat/inbox/pinned-convs'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState, type BootstrapStep} from '@/stores/daemon'
@@ -158,6 +159,20 @@ const scheduleStartupOrReloginWork = () => {
     })
   }
   ignorePromise(f())
+}
+
+// Go reads pins from gregor while building the inbox layout, but gregor state only exists once
+// the service connects, and items that arrive in the connect-time sync don't reach the in-band
+// handlers. The GUI gets the synced state pushed afterwards, so rebuild when the pins in it change.
+const onGregorPushStateChanged = (
+  pushState: ConfigState['gregorPushState'],
+  previous: ConfigState['gregorPushState']
+) => {
+  if (!useConfigState.getState().loggedIn) return
+  if (isEqual(getPinnedConvIDs(pushState), getPinnedConvIDs(previous))) return
+  ignorePromise(
+    T.RPCChat.localRequestInboxLayoutRpcPromise({reselectMode: T.RPCChat.InboxLayoutReselectMode.default})
+  )
 }
 
 const onGregorReachableChanged = (gregorReachable: ConfigState['gregorReachable']) => {
@@ -316,6 +331,7 @@ export const initSharedSubscriptions = (platformBootstrapSteps: Array<BootstrapS
   _sharedUnsubs.length = 0
   _sharedUnsubs.push(
     subscribeValue(useConfigState, s => s.gregorReachable, onGregorReachableChanged),
+    subscribeValue(useConfigState, s => s.gregorPushState, onGregorPushStateChanged),
     subscribeValue(useConfigState, s => s.loggedIn, onLoggedInChanged),
     subscribeValue(useConfigState, s => s.revokedTrigger, onRevokedTriggerChanged),
     subscribeValue(useConfigState, s => s.configuredAccounts, onConfiguredAccountsChanged)
