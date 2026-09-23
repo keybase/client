@@ -21,7 +21,6 @@ import (
 // before the send returns.
 type NotifyRecorder struct {
 	ID     ConnectionID
-	router *NotifyRouter
 	conn   *recorderConn
 	closed chan error
 }
@@ -54,7 +53,7 @@ func NewNotifyRecorder(g *GlobalContext, channels keybase1.NotificationChannels)
 	rpc.NewServer(xp, MakeWrapError(g)).Run()
 	id := g.NotifyRouter.AddConnection(xp, closed)
 	g.NotifyRouter.SetChannels(id, channels)
-	return &NotifyRecorder{ID: id, router: g.NotifyRouter, conn: conn, closed: closed}
+	return &NotifyRecorder{ID: id, conn: conn, closed: closed}
 }
 
 // Messages returns what has been recorded so far, oldest first.
