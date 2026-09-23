@@ -206,12 +206,12 @@ describe('the session comes from the daemon; notifications only say to read it',
     expect(useConfigState.getState().loggedIn).toBe(false)
   })
 
-  test('an http server update applies at once and re-reads the daemon too', async () => {
+  test('an http server update applies at once without re-reading the daemon', async () => {
     const before = replies.length
     notify('keybase.1.NotifyService.HTTPSrvInfoUpdate', {info: {address: '127.0.0.1:2', token: 'token'}})
-    expect(useConfigState.getState().httpSrv.address).toBe('127.0.0.1:2')
+    expect(useConfigState.getState().httpSrv).toEqual({address: '127.0.0.1:2', token: 'token'})
     await flush()
-    expect(replies.length).toBe(before + 1)
+    expect(replies.length).toBe(before)
   })
 
   test('a reply for another user while logged in logs out first, clearing the old account', async () => {
