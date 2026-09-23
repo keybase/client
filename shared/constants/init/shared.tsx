@@ -500,7 +500,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     // says it changed, and the daemon's reply to the latest read is what applies.
     case 'keybase.1.NotifySession.loggedIn':
     case 'keybase.1.NotifySession.loggedOut':
-    case 'keybase.1.NotifyService.HTTPSrvInfoUpdate':
       useDaemonState.getState().dispatch.refreshSessionFromDaemon(action.type)
       break
     case 'keybase.1.NotifyBadges.badgeState':
