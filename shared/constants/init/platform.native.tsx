@@ -5,11 +5,14 @@ import {Linking} from 'react-native'
 import {setupAudioMode} from '@/util/audio.native'
 import {requestLocationPermission} from '@/util/platform-specific'
 import {
+  addLocationFixListener,
   fsCacheDir,
   fsDownloadDir,
   androidAppColorSchemeChanged,
   guiConfig,
   shareListenersRegistered,
+  startLocationWatch,
+  stopLocationWatch,
 } from 'react-native-kb'
 import type {DesktopModules, NativeModules, NativeSyncModules} from './platform-types'
 
@@ -22,6 +25,7 @@ export const getNative = (): NativeModules =>
     // it in so consumers can read NetInfo.NetInfoStateType (default-import under
     // ESM drops named exports that require() used to expose).
     NetInfo: {...NetInfo, NetInfoStateType},
+    addLocationFixListener,
     androidAppColorSchemeChanged,
     fsCacheDir,
     fsDownloadDir,
@@ -29,6 +33,8 @@ export const getNative = (): NativeModules =>
     requestLocationPermission,
     setupAudioMode,
     shareListenersRegistered,
+    startLocationWatch,
+    stopLocationWatch,
   }) as unknown as NativeModules
 
 export const getNativeSync = (): NativeSyncModules =>

@@ -1,4 +1,5 @@
 #import "Kb.h"
+#import "KbLocationWatcher.h"
 #import "Keybasego.h"
 #import "engine-reset-backoff.h"
 #import <Foundation/Foundation.h>
@@ -905,6 +906,7 @@ RCT_EXPORT_METHOD(addNotificationRequest: (JS::NativeKb::SpecAddNotificationRequ
     std::lock_guard<std::mutex> lock(kbAppLifecycleMutex);
     kbAppLifecycleState = [state copy];
   }
+  [[Kb locationWatcher] setAppActive:[state isEqualToString:@"active"]];
   Kb *instance = kbSharedInstance;
   if (instance && [instance canEmit]) {
     [instance emitOnAppLifecycle:@{@"state" : state}];
@@ -914,6 +916,40 @@ RCT_EXPORT_METHOD(addNotificationRequest: (JS::NativeKb::SpecAddNotificationRequ
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getAppLifecycleState) {
   std::lock_guard<std::mutex> lock(kbAppLifecycleMutex);
   return kbAppLifecycleState;
+}
+
+// One per process, so a JS reload does not leak a second CLLocationManager. The watch
+// itself does not survive a reload: JS init stops it, and a share the service restores
+// starts it again.
++ (KbLocationWatcher *)locationWatcher {
+  static KbLocationWatcher *watcher = nil;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    BOOL appActive;
+    {
+      std::lock_guard<std::mutex> lock(kbAppLifecycleMutex);
+      appActive = [kbAppLifecycleState isEqualToString:@"active"];
+    }
+    watcher = [[KbLocationWatcher alloc] initWithAppActive:appActive onFix:^(CLLocation *location) {
+      Kb *instance = kbSharedInstance;
+      if (instance && [instance canEmit]) {
+        [instance emitOnLocationFix:@{
+          @"lat" : @(location.coordinate.latitude),
+          @"lon" : @(location.coordinate.longitude),
+          @"accuracy" : @(location.horizontalAccuracy),
+        }];
+      }
+    }];
+  });
+  return watcher;
+}
+
+RCT_EXPORT_METHOD(startLocationWatch) {
+  [[Kb locationWatcher] start];
+}
+
+RCT_EXPORT_METHOD(stopLocationWatch) {
+  [[Kb locationWatcher] stop];
 }
 
 + (void)emitPushNotification:(NSDictionary *)notification {

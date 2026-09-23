@@ -29,6 +29,7 @@ import {
   setupWindowEventListeners,
 } from './platform'
 import type {ExpoLocationObject, ExpoTaskManagerModule} from './platform-types'
+import {shouldRecordFix, type Fix, type FixThrottle} from './location-throttle'
 import {openAtLoginKey} from '@/stores/shell'
 import {useDarkModeState} from '@/stores/darkmode'
 import * as ScreenCapture from 'expo-screen-capture'
@@ -66,6 +67,67 @@ const ensureBackgroundTask = (ExpoTaskManager: ExpoTaskManagerModule) => {
   })
 }
 
+// Builds from before native iOS location left this expo task registered, and expo restores it
+// into a second CLLocationManager on every launch. JS is early enough to remove it: with no
+// UMAppLoader registered, expo can never start JS for a restored task on a background launch
+// (expo-task-manager EXTaskService.m `_loadAppWithId:appUrl:`).
+export const unregisterLegacyIOSLocationTask = async () => {
+  if (!isIOS) return
+  const {ExpoTaskManager} = _getNative()
+  try {
+    if (await ExpoTaskManager.isTaskRegisteredAsync(locationTaskName)) {
+      await ExpoTaskManager.unregisterTaskAsync(locationTaskName)
+      logger.info('[location] removed the legacy iOS background location task')
+    }
+  } catch (error) {
+    logger.info('[location] failed to remove the legacy iOS background location task: ' + String(error))
+  }
+}
+
+// iOS: the native watcher sends every fix past its 65 m distance filter; the throttle picks the
+// ones worth recording.
+let removeFixListener: (() => void) | undefined
+let fixThrottle: FixThrottle = {}
+
+const onLocationFix = (fix: Fix) => {
+  const {record, throttle} = shouldRecordFix(useShellState.getState().mobileAppState, fixThrottle, fix)
+  fixThrottle = throttle
+  if (!record) return
+  const coord = {accuracy: Math.floor(fix.accuracy), lat: fix.lat, lon: fix.lon}
+  T.RPCChat.localLocationUpdateRpcPromise({coord}).catch((error: unknown) => {
+    logger.info('location update failed: ' + String(error))
+  })
+}
+
+const startIOSLocationWatch = () => {
+  const {addLocationFixListener, startLocationWatch} = _getNative()
+  startLocationWatch()
+  fixThrottle = {}
+  removeFixListener?.()
+  removeFixListener = addLocationFixListener(onLocationFix)
+}
+
+// Significant-change monitoring outlives the process and keeps relaunching the app, and the service
+// drops an expired share without clearing its watch, so each launch stops whatever a previous
+// process left running. Runs before the engine delivers any chatWatchPosition, and native applies
+// start/stop in call order, so a share the service restores still starts it again.
+export const initIOSLocation = () => {
+  if (!isIOS) return
+  try {
+    _getNative().stopLocationWatch()
+  } catch (error) {
+    logger.info('[location] failed to stop a leftover location watch: ' + String(error))
+  }
+  ignorePromise(unregisterLegacyIOSLocationTask())
+}
+
+const stopIOSLocationWatch = () => {
+  const {stopLocationWatch} = _getNative()
+  stopLocationWatch()
+  removeFixListener?.()
+  removeFixListener = undefined
+}
+
 const setPermissionDeniedCommandStatus = (conversationIDKey: T.Chat.ConversationIDKey, text: string) => {
   setThreadInputCommandStatus(conversationIDKey, {
     actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
@@ -97,12 +159,16 @@ const onChatWatchPosition = async (
   if (locationRefs === 1) {
     try {
       logger.info('[location] location watch start due to ', T.Chat.conversationIDToKey(action.payload.params.convID))
-      ensureBackgroundTask(ExpoTaskManager)
-      await ExpoLocation.startLocationUpdatesAsync(locationTaskName, {
-        deferredUpdatesDistance: 65,
-        pausesUpdatesAutomatically: true,
-        showsBackgroundLocationIndicator: true,
-      })
+      if (isIOS) {
+        startIOSLocationWatch()
+      } else {
+        ensureBackgroundTask(ExpoTaskManager)
+        await ExpoLocation.startLocationUpdatesAsync(locationTaskName, {
+          deferredUpdatesDistance: 65,
+          pausesUpdatesAutomatically: true,
+          showsBackgroundLocationIndicator: true,
+        })
+      }
       logger.info('[location] start success')
     } catch {
       logger.info('[location] start failed')
@@ -113,12 +179,16 @@ const onChatWatchPosition = async (
 
 const onChatClearWatch = async () => {
   const {ExpoLocation, ExpoTaskManager} = _getNative()
-  locationRefs--
-  if (locationRefs <= 0) {
+  locationRefs = Math.max(0, locationRefs - 1)
+  if (locationRefs === 0) {
     try {
       logger.info('[location] end start')
-      ensureBackgroundTask(ExpoTaskManager)
-      await ExpoLocation.stopLocationUpdatesAsync(locationTaskName)
+      if (isIOS) {
+        stopIOSLocationWatch()
+      } else {
+        ensureBackgroundTask(ExpoTaskManager)
+        await ExpoLocation.stopLocationUpdatesAsync(locationTaskName)
+      }
       logger.info('[location] end success')
     } catch {
       logger.info('[location] end failed')
@@ -462,6 +532,8 @@ const _initNativePlatformListener = () => {
   ignorePromise(loadStartupDetails())
 
   initPushListener()
+
+  initIOSLocation()
 
   const {NetInfo} = _getNative()
   NetInfo.addEventListener(({type}) => {

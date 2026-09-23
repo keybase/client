@@ -76,6 +76,13 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
     }
 
+    // iOS only: Android watches location through expo-location in JS
+    @ReactMethod
+    override fun startLocationWatch() {}
+
+    @ReactMethod
+    override fun stopLocationWatch() {}
+
     @ReactMethod
     override fun clearLocalLogs(promise: Promise) {
         promise.resolve(null)

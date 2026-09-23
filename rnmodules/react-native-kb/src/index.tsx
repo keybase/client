@@ -169,6 +169,26 @@ export const getAppLifecycleState = (): AppLifecycleState => {
   return Kb.getAppLifecycleState() as AppLifecycleState
 }
 
+// iOS only
+export const startLocationWatch = (): void => {
+  if (Platform.OS === 'ios') {
+    Kb.startLocationWatch()
+  }
+}
+
+export const stopLocationWatch = (): void => {
+  if (Platform.OS === 'ios') {
+    Kb.stopLocationWatch()
+  }
+}
+
+export const addLocationFixListener = (
+  callback: (fix: {lat: number; lon: number; accuracy: number}) => void
+): (() => void) => {
+  const sub = Kb.onLocationFix(callback)
+  return () => sub.remove()
+}
+
 export const engineReset = (): void => {
   return Kb.engineReset()
 }

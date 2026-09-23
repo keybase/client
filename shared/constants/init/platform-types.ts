@@ -14,6 +14,8 @@ export type NetInfoModule = {
 }
 export type ExpoTaskManagerModule = {
   defineTask: (taskName: string, cb: (params: {data: unknown; error: unknown}) => Promise<void>) => void
+  isTaskRegisteredAsync: (taskName: string) => Promise<boolean>
+  unregisterTaskAsync: (taskName: string) => Promise<void>
 }
 
 export type DesktopModules = {
@@ -33,6 +35,8 @@ export type NativeModules = {
   ExpoTaskManager: ExpoTaskManagerModule
   Linking: {getInitialURL: () => Promise<string | null>}
   NetInfo: NetInfoModule
+  // iOS only
+  addLocationFixListener: (cb: (fix: {accuracy: number; lat: number; lon: number}) => void) => () => void
   androidAppColorSchemeChanged: (mode: string) => void
   fsCacheDir: string
   fsDownloadDir: string
@@ -40,6 +44,9 @@ export type NativeModules = {
   requestLocationPermission: (perm?: unknown) => Promise<void>
   setupAudioMode: (allowRecord: boolean) => Promise<void>
   shareListenersRegistered: () => void
+  // iOS only
+  startLocationWatch: () => void
+  stopLocationWatch: () => void
 }
 
 export type NativeSyncModules = {
