@@ -113,7 +113,11 @@ const startIOSLocationWatch = () => {
 // start/stop in call order, so a share the service restores still starts it again.
 export const initIOSLocation = () => {
   if (!isIOS) return
-  _getNative().stopLocationWatch()
+  try {
+    _getNative().stopLocationWatch()
+  } catch (error) {
+    logger.info('[location] failed to stop a leftover location watch: ' + String(error))
+  }
   ignorePromise(unregisterLegacyIOSLocationTask())
 }
 

@@ -226,6 +226,15 @@ test('iOS init stops a watch a previous process left running, ahead of any watch
   expect(calls.filter(c => c.endsWith('LocationWatch'))).toEqual(['stopLocationWatch', 'startLocationWatch'])
 })
 
+test('iOS init survives a failed stop and still removes the legacy task', async () => {
+  stopLocationWatchThrows = true
+  const init = load('ios')
+  expect(() => init.initIOSLocation()).not.toThrow()
+  await flush()
+
+  expect(calls).toEqual(['stopLocationWatch', 'isTaskRegistered', 'unregisterTask'])
+})
+
 test('iOS still starts the native watch after a clear that had no watch', async () => {
   const init = load('ios')
   init.onEngineIncoming(clearWatch())
