@@ -574,14 +574,28 @@ func TestOpenTransactionReleasesWriteLockOnError(t *testing.T) {
 	}
 
 	tc := SetupTest(t, "LevelDb-transaction-lock-leak", 0)
-	defer tc.Cleanup()
-
-	dir, err := os.MkdirTemp("", "level-db-lock-test-")
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.RemoveAll(dir) })
+	// Cleanups run last-registered-first: close the db, then remove its
+	// directory, then tear down tc.
+	t.Cleanup(tc.Cleanup)
+	dir := t.TempDir()
 
 	db := NewLevelDb(tc.G, func() string { return filepath.Join(dir, "test.leveldb") })
 	require.NoError(t, db.ForceOpen())
+	t.Cleanup(func() {
+		// Restore write permission in case the test failed before doing so,
+		// so the directory can be removed.
+		_ = os.Chmod(db.GetFilename(), 0o755)
+		// Close blocks forever behind a leaked write lock, so bound it; the
+		// test has already failed on the leak in that case.
+		closed := make(chan error, 1)
+		go func() { closed <- db.Close() }()
+		select {
+		case err := <-closed:
+			require.NoError(t, err)
+		case <-time.After(5 * time.Second):
+			t.Error("Close blocked behind the leaked write lock")
+		}
+	})
 
 	key := DbKey{Key: "test-key", Typ: 0}
 	require.NoError(t, db.Put(key, nil, []byte{1}))
@@ -590,7 +604,7 @@ func TestOpenTransactionReleasesWriteLockOnError(t *testing.T) {
 	// memtable rotation (it needs a new journal file) fails while it holds
 	// goleveldb's write lock.
 	require.NoError(t, os.Chmod(db.GetFilename(), 0o555))
-	_, err = db.OpenTransaction()
+	_, err := db.OpenTransaction()
 	require.Error(t, err)
 	require.NoError(t, os.Chmod(db.GetFilename(), 0o755))
 
@@ -604,7 +618,4 @@ func TestOpenTransactionReleasesWriteLockOnError(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		t.Fatal("write lock leaked")
 	}
-	// No db.Close() here: on master, goleveldb's Close() itself blocks
-	// acquiring the same write-lock channel, so it hangs forever behind the
-	// leaked lock.
 }
