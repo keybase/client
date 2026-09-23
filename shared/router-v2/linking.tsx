@@ -1,10 +1,12 @@
 import * as Settings from '@/constants/settings'
 import * as Tabs from '@/constants/tabs'
+import logger from '@/logger'
 import {isSplit} from '@/constants/chat/layout'
 import {isValidConversationIDKey, stringToConversationIDKey} from '@/constants/types/chat/common'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useNavigationIntentsState} from '@/stores/navigation-intents'
+import {navigationIntentLifetimeMs, useNavigationIntentsState} from '@/stores/navigation-intents'
+import {useRouterState} from '@/stores/router'
 import {usePushState} from '@/stores/push'
 import type {LinkingOptions} from '@react-navigation/native'
 import type {RootParamList} from './route-params'
@@ -92,10 +94,39 @@ export const isHandledByLinkingConfig = (url: string): boolean => {
   return customGetStateFromPath(url.substring(prefix.length)) !== undefined
 }
 
-const navigationIntentLifetimeMs = 5 * 60_000
+type NavRoute = {name?: string; params?: {conversationIDKey?: string}; state?: NavRouteState}
+type NavRouteState = {index?: number; routes?: ReadonlyArray<NavRoute>}
+
+const focusedRoute = (s?: NavRouteState) => s?.routes?.[s.index ?? s.routes.length - 1]
+
+// The conversation on screen: a phone pushes chatConversation onto the root stack above the tabs;
+// the split layout shows it as chatRoot's param inside the chat tab, with nothing above loggedIn.
+const openConversationIDKey = (navState?: NavRouteState) => {
+  const top = navState?.routes?.at(-1)
+  if (!isSplit) {
+    return top?.name === 'chatConversation' ? top.params?.conversationIDKey : undefined
+  }
+  if (top?.name !== 'loggedIn') return undefined
+  const tab = focusedRoute(top.state)
+  if (tab?.name !== Tabs.chatTab) return undefined
+  const chat = focusedRoute(tab.state)
+  return chat?.name === 'chatRoot' ? chat.params?.conversationIDKey : undefined
+}
+
+// A tapped chat push for the conversation already on top has nowhere to go: navigating resets the
+// root state, remounting the thread and every tab stack.
+const isTapForOpenConversation = (intent: {pushTapID?: number; url: string}) => {
+  const prefix = 'keybase://convid/'
+  if (intent.pushTapID === undefined || !intent.url.startsWith(prefix)) return false
+  const conversationIDKey = intent.url.slice(prefix.length).split('/')[0]
+  const open = openConversationIDKey(useRouterState.getState().navState as NavRouteState | undefined)
+  return !!conversationIDKey && open === conversationIDKey
+}
 
 // The router owns consumption. Producers can enqueue before this subscription
 // exists, during an account switch, or before NavigationContainer is ready.
+// Every dispatch.acknowledge below -- whether the intent is actually navigated or given up on as
+// stale -- is also what acks a tapped notification natively, if the intent carries one.
 export const subscribeNavigationIntents = (
   listener: (url: string) => void,
   handleAppLink: (link: string) => void
@@ -128,7 +159,9 @@ export const subscribeNavigationIntents = (
       // This split only differs on mobile: desktop passes handleAppLink as both
       // arguments (router.tsx), so every URL there lands in handleKeybaseLink,
       // which must therefore stay correct for URLs the config also handles.
-      if (intent.url.startsWith('keybase://profile/')) {
+      if (isTapForOpenConversation(intent)) {
+        logger.info('[PushTap] conversation already open, not navigating')
+      } else if (intent.url.startsWith('keybase://profile/')) {
         handleAppLink(intent.url)
       } else if (isHandledByLinkingConfig(intent.url)) {
         listener(intent.url)
@@ -288,7 +321,8 @@ const customGetStateFromPath = (
 
 // Known URLs become launch state; the rest open imperatively once the router is up.
 // setInitialURLOnce also consumes: markInitialURLHandled clears a pending intent with the
-// same URL, so subscribeNavigationIntents won't navigate to it a second time.
+// same URL, so subscribeNavigationIntents won't navigate to it a second time, and acks the
+// intent's tapped notification natively if it carried one.
 const openInitialLink = (link: string, handleAppLink: (link: string) => void) => {
   if (isHandledByLinkingConfig(link)) return setInitialURLOnce(link)
   setInitialURLOnce(link)
@@ -304,7 +338,7 @@ export const createLinkingConfig = (
       const {loggedIn, startup, androidShare} = useConfigState.getState()
       if (!loggedIn) return null
 
-      const {tab: startupTab, followUser: startupFollowUser} = startup
+      const {tab: startupTab} = startup
       let startupConversation = startup.conversation
       if (!isValidConversationIDKey(startupConversation)) {
         startupConversation = ''
@@ -341,12 +375,21 @@ export const createLinkingConfig = (
         return setInitialURLOnce('keybase://settingsPushPrompt')
       }
 
-      if (androidShare && !haveSavedTab) {
-        return setInitialURLOnce('keybase://incoming-share')
+      // A tapped push picks where the app opens, once its account is current. A tap for
+      // another account stays queued until account-link-switch has switched to it, and one
+      // behind the push prompt is navigated to once the router is ready. The same lifetime
+      // applies here as in subscribeNavigationIntents.
+      const {intent} = useNavigationIntentsState.getState()
+      if (
+        intent &&
+        Date.now() - intent.createdAt <= navigationIntentLifetimeMs &&
+        (!intent.targetUid || intent.targetUid === currentUid)
+      ) {
+        return openInitialLink(intent.url, handleAppLink)
       }
 
-      if (startupFollowUser && !startupConversation) {
-        return setInitialURLOnce(`keybase://profile/show/${startupFollowUser}`)
+      if (androidShare && !haveSavedTab) {
+        return setInitialURLOnce('keybase://incoming-share')
       }
 
       if (startupConversation) {
@@ -375,6 +418,7 @@ export const createLinkingConfig = (
     let removeLinkingSub: (() => void) | undefined
     if (isMobile) {
       const sub = Linking.addEventListener('url', ({url}: {url: string}) => {
+        logger.info('[DeepLink] url event:', url)
         emitDeepLink(url)
       })
       removeLinkingSub = () => sub.remove()

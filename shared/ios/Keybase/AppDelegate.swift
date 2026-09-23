@@ -43,11 +43,6 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     // a coin flip it can't finish.
     self.notifyAppState(application)
 
-    if let remoteNotification = launchOptions?[.remoteNotification] as? [AnyHashable: Any] {
-      let notificationDict = Dictionary(uniqueKeysWithValues: remoteNotification.map { (String(describing: $0.key), $0.value) })
-      KbSetInitialNotification(notificationDict)
-    }
-
     NotificationCenter.default.addObserver(forName: UIApplication.didReceiveMemoryWarningNotification, object: nil, queue: .main) { [weak self] notification in
       log.info("Memory warning received - deferring GC during React Native initialization")
       // see if this helps avoid this crash
@@ -342,11 +337,8 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
   }
 
   override func application(_ application: UIApplication, didReceiveRemoteNotification notification: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-    guard let type = notification["type"] as? String else {
-      completionHandler(.noData)
-      return
-    }
-    if type == "chat.newmessageSilent_2" {
+    switch notification["type"] as? String {
+    case "chat.newmessageSilent_2":
       DispatchQueue.global(qos: .default).async {
         let convID = notification["c"] as? String
         let messageID = (notification["d"] as? NSNumber)?.intValue ?? 0
@@ -369,33 +361,35 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
         completionHandler(.newData)
         log.info("Remote notification handle finished...")
       }
-    } else {
-      var notificationDict = Dictionary(uniqueKeysWithValues: notification.map { (String(describing: $0.key), $0.value) })
-      notificationDict["userInteraction"] = false
-      KbEmitPushNotification(notificationDict)
+    case "chat.readmessage":
+      Self.clearPendingNotificationsIfAllRead(notification)
       completionHandler(.newData)
+    default:
+      completionHandler(.noData)
     }
   }
 
+  // A read receipt that leaves this account with nothing unread clears the notification
+  // requests still waiting to show.
+  private static func clearPendingNotificationsIfAllRead(_ notification: [AnyHashable: Any]) {
+    let badge = (notification["b"] as? NSNumber)?.intValue ?? Int(notification["b"] as? String ?? "") ?? -1
+    guard badge == 0 else { return }
+    let target = notification["i"] as? String ?? ""
+    DispatchQueue.global(qos: .default).async {
+      guard target.isEmpty || target == Keybasego.KeybaseCurrentUID() else { return }
+      UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+    }
+  }
+
+  // UIKit calls this only for a notification delivered to this app; URLs other apps open go
+  // through Linking instead, so only a real tap can carry an account to switch to. The payload
+  // goes over unread: JS resolves where it opens.
   public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-    let userInfo = response.notification.request.content.userInfo
-    var notificationDict = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
-    notificationDict["userInteraction"] = true
-
-    // Store the notification so it can be processed when app becomes active
-    // This ensures navigation works even if React Native isn't ready yet
-    KbSetInitialNotification(notificationDict)
-
-    // Also emit immediately in case React Native is ready
-    KbEmitPushNotification(notificationDict)
+    KbSetPushTap(response.notification.request.content.userInfo)
     completionHandler()
   }
 
   public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-    let userInfo = notification.request.content.userInfo
-    var notificationDict = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
-    notificationDict["userInteraction"] = false
-    KbEmitPushNotification(notificationDict)
     completionHandler([])
   }
 
@@ -475,9 +469,6 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider, UNUserNotifi
     // .inactive; notifyAppState would stop the http server.
     Keybasego.KeybaseSetAppStateForeground()
     KbEmitAppLifecycle("active")
-
-    // Re-emit a notification the user tapped while React Native wasn't ready yet.
-    KbEmitStoredNotificationOnBecomeActive()
   }
 
   override func applicationWillEnterForeground(_ application: UIApplication) {

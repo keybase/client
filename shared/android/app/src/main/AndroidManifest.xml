@@ -74,6 +74,15 @@
                 <data android:scheme="https" android:host="keybase.io" android:pathPrefix="/phone-app" />
             </intent-filter>
         </activity>
+        <!-- Not exported and no intent-filter: only this app's own notification PendingIntents
+             can start it, so a tap payload (which may switch accounts) can't be forged. -->
+        <activity
+            android:name=".PushTapActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.NoDisplay" />
         <receiver android:name="io.keybase.ossifrage.ChatBroadcastReceiver" />
         <meta-data android:name="firebase_analytics_collection_deactivated" android:value="true" />
         <meta-data android:name="google_analytics_adid_collection_enabled" android:value="false" />

@@ -18,6 +18,7 @@ import {useNotifState} from '@/stores/notifications'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {serviceStaticConfigToStaticConfig} from '@/constants/chat/static-config'
 import {emitDeepLink} from '@/router-v2/linking'
+import {enqueuePushTapRoute} from '@/router-v2/deep-link-emitter'
 import {ignorePromise, timeoutPromise} from '../utils'
 import {isPhone, serverConfigFileName} from '../platform'
 import {useAvatarState} from '@/common-adapters/avatar/store'
@@ -25,6 +26,7 @@ import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {getPinnedConvIDs} from '@/chat/inbox/pinned-convs'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
+import {setPushTapAck, useNavigationIntentsState} from '@/stores/navigation-intents'
 import {useDaemonState, type BootstrapStep} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
 import {useFollowerState} from '@/stores/followers'
@@ -49,7 +51,15 @@ import {syncInboxBadgeState} from '@/chat/inbox/badge-state'
 import {clearSignupEmail} from '@/people/signup-email'
 import {clearSignupDeviceNameDraft} from '@/signup/device-name-draft'
 import {clearNavBadges} from '@/teams/actions'
-import {addAppLifecycleListener, getAppLifecycleState, type AppLifecycleState} from 'react-native-kb'
+import {
+  ackPushTap,
+  addAppLifecycleListener,
+  addPushTapListener,
+  getAppLifecycleState,
+  peekPushTap,
+  type AppLifecycleState,
+} from 'react-native-kb'
+import {parsePushTapPayload, pushTapField, resolvePushTap, type PushTapPayload} from './push-tap-resolve'
 
 const _sharedUnsubs: Array<() => void> = __DEV__ ? (globalThis.__hmr_sharedUnsubs ??= []) : []
 
@@ -286,6 +296,98 @@ export const listenForAppLifecycle = (): (() => void) => {
     applyMobileAppState(initial)
   }
   return stop
+}
+
+const membersTypeOf = (t: string): T.RPCChat.ConversationMembersType | undefined => {
+  switch (parseInt(t, 10)) {
+    case T.RPCChat.ConversationMembersType.kbfs:
+      return T.RPCChat.ConversationMembersType.kbfs
+    case T.RPCChat.ConversationMembersType.team:
+      return T.RPCChat.ConversationMembersType.team
+    case T.RPCChat.ConversationMembersType.impteamnative:
+      return T.RPCChat.ConversationMembersType.impteamnative
+    case T.RPCChat.ConversationMembersType.impteamupgrade:
+      return T.RPCChat.ConversationMembersType.impteamupgrade
+    default:
+      return undefined
+  }
+}
+
+// An Android push is a data message Go displayed itself, so a tapped chat push's message is unboxed
+// into the thread here. It waits for the account the push names, which after a cold tap or an
+// account switch is not current yet, and only as long as its tap is still queued: a tap that is
+// dropped (expired, superseded, its switch failed, logged out) never unboxes later.
+let pendingPushTapUnbox:
+  | {
+      params: {convID: string; membersType: T.RPCChat.ConversationMembersType; payload: string}
+      tapID: number
+      uid: string
+    }
+  | undefined
+
+const settlePushTapUnbox = () => {
+  const pending = pendingPushTapUnbox
+  if (!pending) return
+  const {uid} = useCurrentUserState.getState()
+  if (uid && (!pending.uid || pending.uid === uid)) {
+    pendingPushTapUnbox = undefined
+    T.RPCChat.localUnboxMobilePushNotificationRpcPromise(pending.params).catch(() => {
+      logger.info('[PushTap] failed to unbox message from payload')
+    })
+    return
+  }
+  // Checked after the account: a consumed tap leaves the queue as its account becomes current.
+  if (useNavigationIntentsState.getState().intent?.pushTapID !== pending.tapID) {
+    pendingPushTapUnbox = undefined
+  }
+}
+
+const queuePushTapUnbox = (tapID: number, payload: PushTapPayload) => {
+  const get = (key: string) => pushTapField(payload, key)
+  const convID = get('convID')
+  const boxed = get('m')
+  const membersType = membersTypeOf(get('t'))
+  if (get('type') !== 'chat.newmessage' || !convID || !boxed || membersType === undefined) return
+  pendingPushTapUnbox = {params: {convID, membersType, payload: boxed}, tapID, uid: get('uid')}
+  settlePushTapUnbox()
+}
+
+// Native holds a tapped notification until it is acked by id, so a peek never loses one: the
+// same tap peeked again (a repeated event, a JS reload) carries the same id, which the intent
+// store turns away. A tap that opens nothing is acked here; one that does is acked by whatever
+// consumes or drops its intent.
+let lastTakenPushTapID: number | undefined
+const takePushTap = () => {
+  const tap = peekPushTap()
+  if (!tap) return
+  const payload = parsePushTapPayload(tap.payload)
+  const route = payload && resolvePushTap(payload)
+  if (!payload || !route) {
+    logger.info('[PushTap] a tap with no route, only opening the app')
+    ackPushTap(tap.id)
+    return
+  }
+  const firstTake = lastTakenPushTapID !== tap.id
+  lastTakenPushTapID = tap.id
+  enqueuePushTapRoute({id: tap.id, targetUid: route.targetUid, url: route.url})
+  if (firstTake && isAndroid) {
+    queuePushTapUnbox(tap.id, payload)
+  }
+}
+
+// Subscribe before peeking: a tap held before JS listened is only seen by the peek, and one that
+// lands after the peek reaches the listener.
+export const listenForPushTaps = (): (() => void) => {
+  setPushTapAck(ackPushTap)
+  const stopTaps = addPushTapListener(takePushTap)
+  const stopUnboxOnAccount = useCurrentUserState.subscribe(settlePushTapUnbox)
+  const stopUnboxOnIntent = useNavigationIntentsState.subscribe(settlePushTapUnbox)
+  takePushTap()
+  return () => {
+    stopTaps()
+    stopUnboxOnAccount()
+    stopUnboxOnIntent()
+  }
 }
 
 const onNavStateChanged =(nextNavState: RouterState['navState'], previousNavState: RouterState['navState']) => {

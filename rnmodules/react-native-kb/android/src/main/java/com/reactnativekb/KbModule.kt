@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
 import android.text.format.DateFormat
@@ -398,34 +397,27 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         // Android manages badge counts automatically via notification channels.
     }
 
-    @ReactMethod
-    override fun getInitialNotification(promise: Promise) {
-        // Clear on read so it behaves as a one-shot, matching iOS.
-        val bundle = KbModule.initialNotificationBundle
-        KbModule.initialNotificationBundle = null
-        if (bundle != null) {
-            try {
-                @Suppress("UNCHECKED_CAST")
-                val payload: WritableMap = Arguments.fromBundle(bundle) as WritableMap
-                promise.resolve(payload)
-            } catch (e: Exception) {
-                promise.resolve(null)
-            }
-        } else {
-            promise.resolve(null)
-        }
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    override fun peekPushTap(): WritableMap? {
+        val held = pushTap.peek() ?: return null
+        val tap = Arguments.createMap()
+        tap.putString("payload", held.payload)
+        tap.putDouble("id", held.id.toDouble())
+        return tap
     }
 
-    private fun emitPushNotificationInternal(notification: Bundle) {
+    @ReactMethod
+    override fun ackPushTap(id: Double) {
+        pushTap.ack(id.toLong())
+    }
+
+    private fun emitPushTapAvailableInternal() {
         if (reactContext.hasActiveReactInstance() && canEmit()) {
             try {
-                val payload = Arguments.fromBundle(notification)
-                emitOnPushNotification(payload)
+                emitOnPushTapAvailable()
             } catch (e: Exception) {
-                NativeLogger.error("emitPushNotificationInternal failed to emit: " + e.message)
+                NativeLogger.error("emitPushTapAvailableInternal failed to emit: " + e.message)
             }
-        } else {
-            NativeLogger.warn("emitPushNotificationInternal no active react instance")
         }
     }
 
@@ -488,18 +480,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
     // from the reader thread: lets a caller decide whether an emit has any
     // chance of being delivered before committing to it.
     internal fun canDeliverReset(): Boolean = reactContext.hasActiveReactInstance() && canEmit()
-
-    // No current caller (kept for future use).
-    @ReactMethod
-    override fun engineReset() {
-        try {
-            Keybase.reset()
-            nativeResetRecv()
-            relayReset()
-        } catch (e: Exception) {
-            NativeLogger.error("Exception in engineReset", e)
-        }
-    }
 
     @ReactMethod
     override fun notifyJSReady() {
@@ -802,33 +782,20 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         // visibility guarantee so the reader never sees a stale instance.
         @Volatile
         var instance: KbModule? = null
-        @JvmStatic
-        internal var initialNotificationBundle: Bundle? = null
 
         @JvmStatic
         fun keyPressed(keyName: String) {
             instance?.sendHardwareKeyEvent(keyName)
         }
 
-        @JvmStatic
-        fun setInitialNotification(bundle: Bundle?) {
-            initialNotificationBundle = bundle
-        }
+        private val pushTap = PushTapSlot()
 
+        // Holds a tapped notification's data as JSON for peekPushTap, replacing
+        // any tap JS has not acked, and tells JS.
         @JvmStatic
-        fun isReactNativeRunning(): Boolean {
-            return instance != null
-        }
-
-        @JvmStatic
-        fun emitPushNotification(notification: Bundle) {
-            val module = instance
-            if (module == null) {
-                // NativeLogger writes to the Go service, which may not be up here.
-                android.util.Log.w("KbModule", "emitPushNotification called but instance is null (app may not be running)")
-                return
-            }
-            module.emitPushNotificationInternal(notification)
+        fun setPushTap(payloadJSON: String) {
+            pushTap.set(payloadJSON)
+            instance?.emitPushTapAvailableInternal()
         }
 
         // Written on the main thread by the process lifecycle observer, read on

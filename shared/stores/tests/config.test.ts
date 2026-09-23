@@ -1,5 +1,6 @@
 /// <reference types="jest" />
 import * as T from '../../constants/types'
+import * as Tabs from '../../constants/tabs'
 import {RPCError} from '../../util/errors'
 import {useDaemonState} from '../daemon'
 import {noConversationIDKey} from '../../constants/types/chat/common'
@@ -19,7 +20,6 @@ const resetConfigState = () => {
     },
     startup: {
       conversation: noConversationIDKey,
-      followUser: '',
       loaded: false,
     },
     userSwitching: false,
@@ -40,20 +40,17 @@ test('setStartupDetails only records the first startup payload', () => {
 
   dispatch.setStartupDetails({
     conversation: 'first-convo' as any,
-    followUser: 'alice',
-    tab: undefined,
+    tab: Tabs.chatTab,
   })
   dispatch.setStartupDetails({
     conversation: 'second-convo' as any,
-    followUser: 'bob',
-    tab: undefined,
+    tab: Tabs.peopleTab,
   })
 
   expect(useConfigState.getState().startup).toEqual({
     conversation: 'first-convo',
-    followUser: 'alice',
     loaded: true,
-    tab: undefined,
+    tab: Tabs.chatTab,
   })
 })
 

@@ -201,7 +201,6 @@ const onChatClearWatch = async () => {
 const loadStartupDetails = async () => {
   logger.info('[Startup] loadStartupDetails: starting')
   const {guiConfig, Linking} = _getNative()
-  const {getStartupDetailsFromInitialPush} = await import('./push-listener.native')
 
   let routeState = ''
   try {
@@ -209,33 +208,26 @@ const loadStartupDetails = async () => {
     routeState = config?.ui?.routeState2 ?? ''
   } catch {}
 
-  const [initialUrl, push] = await Promise.all([
-    neverThrowPromiseFunc(async () => {
-      const linkingStart = Date.now()
-      logger.info('[Startup] loadStartupDetails: calling Linking.getInitialURL')
-      const url = await Linking.getInitialURL()
-      const elapsed = Date.now() - linkingStart
-      if (url === null) {
-        logger.warn(`[Startup] loadStartupDetails: Linking.getInitialURL returned null in ${elapsed}ms`)
-      } else {
-        logger.info(`[Startup] loadStartupDetails: Linking.getInitialURL returned in ${elapsed}ms: ${url}`)
-      }
-      return url
-    }),
-    neverThrowPromiseFunc(getStartupDetailsFromInitialPush),
-  ] as const)
+  // A tapped push doesn't pass through here: constants/init/shared takes it from native and
+  // queues it as a navigation intent.
+  const initialUrl = await neverThrowPromiseFunc(async () => {
+    const linkingStart = Date.now()
+    logger.info('[Startup] loadStartupDetails: calling Linking.getInitialURL')
+    const url = await Linking.getInitialURL()
+    const elapsed = Date.now() - linkingStart
+    if (url === null) {
+      logger.warn(`[Startup] loadStartupDetails: Linking.getInitialURL returned null in ${elapsed}ms`)
+    } else {
+      logger.info(`[Startup] loadStartupDetails: Linking.getInitialURL returned in ${elapsed}ms: ${url}`)
+    }
+    return url
+  })
 
   let conversation: T.Chat.ConversationIDKey | undefined
   let conversationUid = ''
-  let followUser = ''
   let tab = ''
 
-  // Top priority, push
-  if (push) {
-    logger.info('initialState: push', push.startupConversation, push.startupFollowUser)
-    conversation = push.startupConversation
-    followUser = push.startupFollowUser ?? ''
-  } else if (!initialUrl && routeState) {
+  if (!initialUrl && routeState) {
     // Last priority, saved from last session. The linking config reads the launch URL
     // itself; this read only decides whether the saved route may be restored, since a
     // launch URL outranks it.
@@ -270,7 +262,6 @@ const loadStartupDetails = async () => {
   useConfigState.getState().dispatch.setStartupDetails({
     conversation: conversation ?? noConversationIDKey,
     conversationUid,
-    followUser,
     tab: tab as Tabs.Tab,
   })
 
@@ -410,7 +401,11 @@ export const initPlatformListener = () => {
 }
 
 const _initNativePlatformListener = () => {
-  useShellState.subscribe((s, old) => {
+  // HMR cleanup: unsubscribe old subscriptions before re-subscribing
+  for (const unsub of _platformUnsubs) unsub()
+  _platformUnsubs.length = 0
+
+  _platformUnsubs.push(useShellState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     let appFocused: boolean
     switch (s.mobileAppState) {
@@ -436,7 +431,7 @@ const _initNativePlatformListener = () => {
       // only reload on foreground
       useSettingsContactsState.getState().dispatch.loadContactPermissions()
     }
-  })
+  }))
 
   const configureAndroidCacheDir = () => {
     const {fsCacheDir, fsDownloadDir} = _getNativeSync()
@@ -459,7 +454,7 @@ const _initNativePlatformListener = () => {
     }
   }
 
-  useConfigState.subscribe((s, old) => {
+  _platformUnsubs.push(useConfigState.subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return
     const f = async () => {
       const {NetInfo} = _getNative()
@@ -471,9 +466,9 @@ const _initNativePlatformListener = () => {
       )
     }
     ignorePromise(f())
-  })
+  }))
 
-  useShellState.subscribe((s, old) => {
+  _platformUnsubs.push(useShellState.subscribe((s, old) => {
     if (s.networkStatus === old.networkStatus) return
     const type = s.networkStatus?.type
     if (!type) return
@@ -485,19 +480,19 @@ const _initNativePlatformListener = () => {
       }
     }
     ignorePromise(f())
-  })
+  }))
 
   if (isAndroid) {
-    useDarkModeState.subscribe((s, old) => {
+    _platformUnsubs.push(useDarkModeState.subscribe((s, old) => {
       if (s.darkModePreference === old.darkModePreference) return
       const {androidAppColorSchemeChanged} = _getNativeSync()
       androidAppColorSchemeChanged(s.darkModePreference)
-    })
+    }))
   }
 
   // we call this when we're logged in.
   let calledShareListenersRegistered = false
-  useRouterState.subscribe((s, old) => {
+  _platformUnsubs.push(useRouterState.subscribe((s, old) => {
     const next = s.navState
     const prev = old.navState
     if (next === prev) return
@@ -508,13 +503,13 @@ const _initNativePlatformListener = () => {
       const {shareListenersRegistered} = _getNativeSync()
       shareListenersRegistered()
     }
-  })
+  }))
 
   // Default to screen capture prevention on Android (matches native default of secure).
   // Once daemon is ready, sync with the user's saved preference.
   if (isAndroid) {
     ignorePromise(ScreenCapture.preventScreenCaptureAsync('screenprotector'))
-    useDaemonState.subscribe((s, old) => {
+    _platformUnsubs.push(useDaemonState.subscribe((s, old) => {
       if (s.handshakeState !== 'done' || old.handshakeState === 'done') return
       const f = async () => {
         const {getSecureFlagSetting} = await import('@/constants/platform')
@@ -525,20 +520,20 @@ const _initNativePlatformListener = () => {
         }
       }
       ignorePromise(f())
-    })
+    }))
   }
 
   // Start this immediately instead of waiting so we can do more things in parallel
   ignorePromise(loadStartupDetails())
 
-  initPushListener()
+  _platformUnsubs.push(...initPushListener())
 
   initIOSLocation()
 
   const {NetInfo} = _getNative()
-  NetInfo.addEventListener(({type}) => {
+  _platformUnsubs.push(NetInfo.addEventListener(({type}) => {
     useShellState.getState().dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type)
-  })
+  }))
 
   const {setupAudioMode} = _getNative()
   ignorePromise(setupAudioMode(false))
@@ -657,7 +652,6 @@ const _initDesktopPlatformListener = () => {
     if (s.handshakeState !== old.handshakeState && s.handshakeState === 'done') {
       useConfigState.getState().dispatch.setStartupDetails({
         conversation: Chat.noConversationIDKey,
-        followUser: '',
         tab: undefined,
       })
     }

@@ -1,11 +1,15 @@
 /// <reference types="jest" />
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useNavigationIntentsState} from '@/stores/navigation-intents'
-import {emitDeepLink} from './deep-link-emitter'
+import {setPushTapAck, useNavigationIntentsState} from '@/stores/navigation-intents'
+import {emitDeepLink, enqueuePushTapRoute} from './deep-link-emitter'
 import * as Settings from '@/constants/settings'
 import * as Tabs from '@/constants/tabs'
 import {createLinkingConfig, isHandledByLinkingConfig, subscribeNavigationIntents} from './linking'
+
+// Stands in for react-native-kb's native tap slot; only its ack is reached from here.
+const mockAckPushTap = jest.fn()
+setPushTapAck(id => mockAckPushTap(id))
 
 const setCurrentUser = (uid: string) => {
   useCurrentUserState.getState().dispatch.setBootstrap({
@@ -16,6 +20,10 @@ const setCurrentUser = (uid: string) => {
   })
 }
 
+// A push tap's id must not repeat across tests any more than it does across taps.
+let nextTapID = 10_000
+const tapID = () => ++nextTapID
+
 const clearIntent = () => {
   const {intent, dispatch} = useNavigationIntentsState.getState()
   if (intent) {
@@ -25,6 +33,7 @@ const clearIntent = () => {
 }
 
 beforeEach(() => {
+  mockAckPushTap.mockClear()
   useConfigState.getState().dispatch.setLoggedIn(true)
   useConfigState.getState().dispatch.setUserSwitching(false)
   setCurrentUser('current-uid')
@@ -32,6 +41,7 @@ beforeEach(() => {
 
 afterEach(() => {
   clearIntent()
+  jest.restoreAllMocks()
 })
 
 test('waits for navigation readiness before consuming an intent', () => {
@@ -66,7 +76,7 @@ test('waits until the intended account is active', () => {
   const listener = jest.fn()
   const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
 
-  emitDeepLink('keybase://convid/target-account-conversation', {targetUid: 'target-uid'})
+  enqueuePushTapRoute({id: tapID(), targetUid: 'target-uid', url: 'keybase://convid/target-account-conversation'})
   expect(listener).not.toHaveBeenCalled()
 
   setCurrentUser('target-uid')
@@ -86,7 +96,7 @@ test('waits for an account switch to finish', () => {
   const listener = jest.fn()
   const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
 
-  emitDeepLink('keybase://convid/account-switch-conversation', {targetUid: 'current-uid'})
+  enqueuePushTapRoute({id: tapID(), targetUid: 'current-uid', url: 'keybase://convid/account-switch-conversation'})
   expect(listener).not.toHaveBeenCalled()
 
   useConfigState.getState().dispatch.setUserSwitching(false)
@@ -102,9 +112,7 @@ test('waits for the replacement router after the current account changes', () =>
   const listener = jest.fn()
   const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
 
-  emitDeepLink('keybase://convid/replacement-router-conversation', {
-    targetUid: 'target-uid',
-  })
+  enqueuePushTapRoute({id: tapID(), targetUid: 'target-uid', url: 'keybase://convid/replacement-router-conversation'})
   setCurrentUser('target-uid')
 
   // The bootstrap UID can change before React commits the keyed router remount.

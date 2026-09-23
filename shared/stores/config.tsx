@@ -45,7 +45,6 @@ type Store = T.Immutable<{
     // uid of the account that persisted `conversation` (from ui.routeState2).
     // Used to avoid replaying a conversation under a different account.
     conversationUid?: string
-    followUser: string
     tab?: Tab
   }
   userSwitching: boolean
@@ -81,7 +80,6 @@ const initialStore: Store = {
   revokedTrigger: 0,
   startup: {
     conversation: noConversationIDKey,
-    followUser: '',
     loaded: false,
   },
   userSwitching: false,
@@ -509,8 +507,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       })
       if (error) {
         get().dispatch.setUserSwitching(false)
-        // push store clears its own pendingPushNotification by subscribing to
-        // loginError (see stores/push) — keeps config from importing push.
       }
     },
     setOutOfDate: outOfDate => {

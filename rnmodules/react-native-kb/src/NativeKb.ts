@@ -1,17 +1,18 @@
 import {TurboModuleRegistry, type TurboModule} from 'react-native'
-import type {EventEmitter, UnsafeObject} from 'react-native/Libraries/Types/CodegenTypes'
+import type {EventEmitter} from 'react-native/Libraries/Types/CodegenTypes'
 
 export interface Spec extends TurboModule {
   readonly onMetaEvent: EventEmitter<string>
   readonly onHardwareKeyPressed: EventEmitter<string>
   readonly onPasteImage: EventEmitter<Array<string>>
-  readonly onPushNotification: EventEmitter<UnsafeObject>
   readonly onPushToken: EventEmitter<string>
   readonly onShareData: EventEmitter<{text?: string; localPaths?: Array<string>}>
   // 'active' | 'inactive' | 'background', sent from the callbacks that report the state to Go
   readonly onAppLifecycle: EventEmitter<{state: string}>
   // iOS only: every fix the location watch receives, accuracy in metres
   readonly onLocationFix: EventEmitter<{lat: number; lon: number; accuracy: number}>
+  // a notification was tapped; peekPushTap reads it
+  readonly onPushTapAvailable: EventEmitter<void>
   getTypedConstants(): {
     androidIsDeviceSecure: boolean
     androidIsTestDevice: boolean
@@ -64,10 +65,8 @@ export interface Spec extends TurboModule {
   requestPushPermissions(): Promise<boolean>
   getRegistrationToken(): Promise<string>
   setApplicationIconBadgeNumber(n: number): void
-  getInitialNotification(): Promise<object | null>
   removeAllPendingNotificationRequests(): void
   addNotificationRequest(config: {body: string; id: string}): Promise<void>
-  engineReset(): void
   notifyJSReady(): void
   shareListenersRegistered(): void
   setEnablePasteImage(enabled: boolean): void
@@ -77,6 +76,12 @@ export interface Spec extends TurboModule {
   // iOS only. Idempotent; the watch keeps running in the background until stopped.
   startLocationWatch(): void
   stopLocationWatch(): void
+  // The last tapped notification, held until ackPushTap retires it by id. payload is the push's
+  // userInfo (iOS) or data Bundle (Android) as JSON. Each tap gets a new id and replaces any tap
+  // still held.
+  peekPushTap(): {payload: string; id: number} | null
+  // No-op unless id is the held tap's.
+  ackPushTap(id: number): void
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('Kb')

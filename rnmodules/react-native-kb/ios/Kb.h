@@ -22,12 +22,10 @@
 
 // Push notification helpers - can be called from AppDelegate
 FOUNDATION_EXPORT void KbSetDeviceToken(NSString *token);
-FOUNDATION_EXPORT void KbSetInitialNotification(NSDictionary *notification);
-FOUNDATION_EXPORT void KbEmitPushNotification(NSDictionary *notification);
+// Main thread only. Holds a tapped notification's userInfo for peekPushTap,
+// replacing any tap JS has not acked, and tells JS.
+FOUNDATION_EXPORT void KbSetPushTap(NSDictionary *userInfo);
 // Main thread only. Call next to each Go SetAppState* report with "active",
 // "inactive" or "background"; the latest value is kept for getAppLifecycleState
 // so JS can read what it missed before it listened.
 FOUNDATION_EXPORT void KbEmitAppLifecycle(NSString *state);
-// Re-emits a stored user-interaction notification once when the app becomes
-// active (covers notification taps that arrive before React Native is ready).
-FOUNDATION_EXPORT void KbEmitStoredNotificationOnBecomeActive(void);
