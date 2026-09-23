@@ -5,7 +5,7 @@ import {isSplit} from '@/constants/chat/layout'
 import {isValidConversationIDKey, stringToConversationIDKey} from '@/constants/types/chat/common'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useNavigationIntentsState} from '@/stores/navigation-intents'
+import {navigationIntentLifetimeMs, useNavigationIntentsState} from '@/stores/navigation-intents'
 import {useRouterState} from '@/stores/router'
 import {usePushState} from '@/stores/push'
 import type {LinkingOptions} from '@react-navigation/native'
@@ -93,8 +93,6 @@ export const isHandledByLinkingConfig = (url: string): boolean => {
   if (!url.startsWith(prefix)) return false
   return customGetStateFromPath(url.substring(prefix.length)) !== undefined
 }
-
-const navigationIntentLifetimeMs = 5 * 60_000
 
 type TopRoute = {name?: string; params?: {conversationIDKey?: string}}
 
@@ -337,18 +335,6 @@ export const createLinkingConfig = (
         startupConversation = ''
       }
 
-      // A tapped push picks where the app opens, once its account is current. A tap for
-      // another account stays queued until account-link-switch has switched to it. The same
-      // lifetime applies here as in subscribeNavigationIntents.
-      const {intent} = useNavigationIntentsState.getState()
-      if (
-        intent &&
-        Date.now() - intent.createdAt <= navigationIntentLifetimeMs &&
-        (!intent.targetUid || intent.targetUid === currentUid)
-      ) {
-        return openInitialLink(intent.url, handleAppLink)
-      }
-
       const pushState = usePushState.getState()
       const showMonster =
         !pushState.justSignedUp && pushState.showPushPrompt && !pushState.hasPermissions
@@ -371,6 +357,19 @@ export const createLinkingConfig = (
 
       if (showMonster && !haveSavedTab) {
         return setInitialURLOnce('keybase://settingsPushPrompt')
+      }
+
+      // A tapped push picks where the app opens, once its account is current. A tap for
+      // another account stays queued until account-link-switch has switched to it, and one
+      // behind the push prompt is navigated to once the router is ready. The same lifetime
+      // applies here as in subscribeNavigationIntents.
+      const {intent} = useNavigationIntentsState.getState()
+      if (
+        intent &&
+        Date.now() - intent.createdAt <= navigationIntentLifetimeMs &&
+        (!intent.targetUid || intent.targetUid === currentUid)
+      ) {
+        return openInitialLink(intent.url, handleAppLink)
       }
 
       if (androidShare && !haveSavedTab) {
