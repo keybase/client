@@ -32,7 +32,11 @@ var watchBugsTestConvID = chat1.ConversationID("conv")
 // UIRouter/chat UI and a mock chat helper (whose GetMessage always returns
 // an invalid message, so any unfurl attempt fails fast without a real chat
 // server) and registers cleanup that stops every tracker started against it.
+// It also owns tc's teardown: t.Cleanup runs last-registered-first, so
+// registering tc.Cleanup before the tracker-stop cleanup tears the test
+// context down only after every tracker has exited, instead of under them.
 func newLiveLocationBugsTestTracker(t *testing.T, tc libkb.TestContext, chatUI libkb.ChatUI) *LiveLocationTracker {
+	t.Cleanup(tc.Cleanup)
 	tc.G.ChatHelper = kbtest.NewMockChatHelper()
 	tc.G.SetUIRouter(kbtest.NewMockUIRouter(chatUI))
 	g := globals.NewContext(tc.G, &globals.ChatContext{CtxFactory: nilCtxFactory{}})
@@ -97,7 +101,6 @@ func (u *fakeWatchChatUI) Watches() int {
 // never returns. The timeout below is the bug.
 func TestStartWatchGivesUp(t *testing.T) {
 	tc := libkb.SetupTest(t, "StartWatchGivesUp", 0)
-	defer tc.Cleanup()
 	ui := &failingWatchChatUI{}
 	l := newLiveLocationBugsTestTracker(t, tc, ui)
 
@@ -115,14 +118,18 @@ func TestStartWatchGivesUp(t *testing.T) {
 	}
 }
 
-// TestFailedWatchLeavesNoTracker exercises the same startWatch bug through
-// the public API: a tracker whose watch never succeeds should eventually
-// remove itself and leave ActivelyTracking false. Since startWatch never
-// gives up (see TestStartWatchGivesUp), the tracker never exits and this
-// never becomes true within the 30s cap.
+// TestFailedWatchLeavesNoTracker: a tracker whose watch never succeeds should
+// eventually remove itself and leave ActivelyTracking false. Two separate
+// bugs keep that from happening, and a fix needs both:
+//  1. startWatch never gives up (see TestStartWatchGivesUp), so the tracker
+//     never gets past its startup.
+//  2. Even once startWatch returns its error, tracker() returns straight
+//     away, before it sets up the deferred delete from l.trackers; only the
+//     success path removes the entry, so the failed tracker stays in the map.
+//
+// Either way the condition below never becomes true within the 30s cap.
 func TestFailedWatchLeavesNoTracker(t *testing.T) {
 	tc := libkb.SetupTest(t, "FailedWatchLeavesNoTracker", 0)
-	defer tc.Cleanup()
 	ui := &failingWatchChatUI{}
 	l := newLiveLocationBugsTestTracker(t, tc, ui)
 
@@ -148,7 +155,6 @@ func TestLastCoordRace(t *testing.T) {
 		t.Skip("race detector required; run `go test -race`")
 	}
 	tc := libkb.SetupTest(t, "LastCoordRace", 0)
-	defer tc.Cleanup()
 	ui := &fakeWatchChatUI{}
 	l := newLiveLocationBugsTestTracker(t, tc, ui)
 
@@ -189,15 +195,15 @@ func TestLastCoordRace(t *testing.T) {
 // land within a few iterations; the per-iteration 5s cap catches the hang.
 func TestStopDuringStartTracking(t *testing.T) {
 	tc := libkb.SetupTest(t, "StopDuringStartTracking", 0)
-	defer tc.Cleanup()
 	ui := &fakeWatchChatUI{}
 	l := newLiveLocationBugsTestTracker(t, tc, ui)
 
 	for i := 0; i < 200; i++ {
 		firstID := chat1.MessageID(2*i + 1)
 		secondID := chat1.MessageID(2*i + 2)
+		watchesBefore := ui.Watches()
 		l.StartTracking(context.Background(), watchBugsTestConvID, firstID, time.Now().Add(time.Hour))
-		require.Eventually(t, func() bool { return ui.Watches() > 0 }, 2*time.Second, time.Millisecond,
+		require.Eventually(t, func() bool { return ui.Watches() > watchesBefore }, 2*time.Second, time.Millisecond,
 			"first tracker's watch never started")
 
 		var wg sync.WaitGroup
