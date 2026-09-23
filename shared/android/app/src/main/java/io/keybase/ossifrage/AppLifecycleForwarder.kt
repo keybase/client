@@ -19,10 +19,10 @@ internal class AppLifecycleForwarder(private val context: Context) : DefaultLife
 
     override fun onStop(owner: LifecycleOwner) {
         NativeLogger.info("AppLifecycleForwarder: process onStop")
+        // appDidEnterBackground already reports BACKGROUND (and flushes) when it
+        // returns false; calling setAppStateBackground too would flush twice.
         if (Keybase.appDidEnterBackground()) {
             Keybase.appBeginBackgroundTaskNonblock(KBPushNotifier(context, Bundle()))
-        } else {
-            Keybase.setAppStateBackground()
         }
         KbModule.emitAppLifecycle("background")
     }

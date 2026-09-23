@@ -75,7 +75,7 @@ describe('the app state native reports', () => {
     expect(useShellState.getState().mobileAppState).toBe('active')
   })
 
-  test('each event is logged where Metro shows it', () => {
+  test('each event is logged with logger.info as [AppState] native: <state>', () => {
     const log = jest.spyOn(logger, 'info').mockImplementation(() => {})
     stopListening = listenForAppLifecycle()
     nativeSays('background')
