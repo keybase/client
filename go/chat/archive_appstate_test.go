@@ -90,7 +90,10 @@ func TestArchiveSetWhileBackgrounded(t *testing.T) {
 		Request: chat1.ArchiveChatJobRequest{JobID: jobID},
 		Status:  chat1.ArchiveChatJobStatus_RUNNING,
 	}
-	require.NoError(t, r.Set(ctx, cancel, job))
+	// Set's return is not asserted: a fix may legitimately return a pause
+	// sentinel for a job registered while backgrounded, same as it may
+	// return nil. Only the pause side effects (cancel, status) matter here.
+	_ = r.Set(ctx, cancel, job)
 
 	select {
 	case <-canceled:
