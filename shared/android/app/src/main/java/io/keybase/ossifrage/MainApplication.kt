@@ -55,6 +55,8 @@ class MainApplication : Application(), ReactApplication {
     override fun onCreate() {
         NativeLogger.info("MainApplication created")
         super.onCreate()
+        // Before any activity starts, so the first process ON_START is seen.
+        ProcessLifecycleOwner.get().lifecycle.addObserver(AppLifecycleForwarder(this))
         try {
             DefaultNewArchitectureEntryPoint.releaseLevel = ReleaseLevel.valueOf(BuildConfig.REACT_NATIVE_RELEASE_LEVEL.uppercase())
         } catch (e: IllegalArgumentException) {

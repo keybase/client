@@ -358,9 +358,14 @@ const _initNativePlatformListener = () => {
         appFocused = false
     }
 
-    // Native KeybaseSetAppState* is the only writer of Go MobileAppState.
+    // Native reports the app state to Go and to JS from the same callbacks; JS only mirrors it.
     logger.info(`app focus changed: ${s.mobileAppState}`)
     s.dispatch.changedFocus(appFocused)
+
+    if (s.mobileAppState === 'active') {
+      // only reload on foreground
+      useSettingsContactsState.getState().dispatch.loadContactPermissions()
+    }
   })
 
   const configureAndroidCacheDir = () => {
@@ -410,14 +415,6 @@ const _initNativePlatformListener = () => {
       }
     }
     ignorePromise(f())
-  })
-
-  useShellState.subscribe((s, old) => {
-    if (s.mobileAppState === old.mobileAppState) return
-    if (s.mobileAppState === 'active') {
-      // only reload on foreground
-      useSettingsContactsState.getState().dispatch.loadContactPermissions()
-    }
   })
 
   if (isAndroid) {

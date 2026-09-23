@@ -49,6 +49,7 @@ import {syncInboxBadgeState} from '@/chat/inbox/badge-state'
 import {clearSignupEmail} from '@/people/signup-email'
 import {clearSignupDeviceNameDraft} from '@/signup/device-name-draft'
 import {clearNavBadges} from '@/teams/actions'
+import {addAppLifecycleListener, getAppLifecycleState, type AppLifecycleState} from 'react-native-kb'
 
 const _sharedUnsubs: Array<() => void> = __DEV__ ? (globalThis.__hmr_sharedUnsubs ??= []) : []
 
@@ -235,6 +236,36 @@ const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus']) => 
   if (bootstrap.httpSrvInfo) {
     configDispatch.setHTTPSrvInfo(bootstrap.httpSrvInfo.address, bootstrap.httpSrvInfo.token)
   }
+}
+
+// Native reports the app state from the same callbacks that report it to Go, and this is the only
+// writer of mobileAppState. Desktop has no lifecycle; its window focus goes straight to appFocused.
+export const applyMobileAppState = (state: AppLifecycleState) => {
+  if (!isMobile) return
+  useShellState.getState().dispatch.setMobileAppState(state)
+}
+
+const isMobileAppState = (s: string): s is AppLifecycleState =>
+  s === 'active' || s === 'inactive' || s === 'background'
+
+const onNativeAppLifecycle = (state: string) => {
+  logger.info(`[AppState] native: ${state}`)
+  if (isMobileAppState(state)) {
+    applyMobileAppState(state)
+  } else {
+    logger.warn(`[AppState] unmapped state ${state}, leaving the app state as it was`)
+  }
+}
+
+// Subscribe before seeding: events emitted while no listener existed are only in the seed, and one
+// emitted after the seed read reaches the listener later on this thread.
+export const listenForAppLifecycle = (): (() => void) => {
+  const stop = addAppLifecycleListener(onNativeAppLifecycle)
+  const initial: string = getAppLifecycleState()
+  if (isMobileAppState(initial)) {
+    applyMobileAppState(initial)
+  }
+  return stop
 }
 
 const onNavStateChanged =(nextNavState: RouterState['navState'], previousNavState: RouterState['navState']) => {

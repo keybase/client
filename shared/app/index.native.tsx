@@ -5,7 +5,7 @@ import * as React from 'react'
 import Main from './main'
 import {KeyboardProvider} from 'react-native-keyboard-controller'
 import {ReducedMotionConfig, ReduceMotion} from 'react-native-reanimated'
-import {AppRegistry, AppState, Appearance, Platform} from 'react-native'
+import {AppRegistry, Appearance, Platform} from 'react-native'
 import {PortalProvider} from '@/common-adapters/portal.native'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {makeEngine} from '../engine'
@@ -19,6 +19,7 @@ import {darkModeSupported, guiConfig} from 'react-native-kb'
 import * as DarkMode from '@/stores/darkmode'
 import {colors, darkColors} from '@/styles/colors'
 import {initPlatformListener, onEngineConnected, onEngineDisconnected, onEngineIncoming} from '@/constants/init/index'
+import {listenForAppLifecycle} from '@/constants/init/shared'
 import logger from '@/logger'
 
 logger.info('INIT App index module load')
@@ -57,38 +58,37 @@ const initDarkMode = () => {
 }
 
 const useDarkHookup = () => {
-  const appStateRef = React.useRef('active')
   const setSystemDarkMode = DarkMode.useDarkModeState(s => s.dispatch.setSystemDarkMode)
-  const setMobileAppState = useShellState(s => s.dispatch.setMobileAppState)
 
   React.useEffect(() => {
-    const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
-      appStateRef.current = nextAppState
-      if (nextAppState !== 'unknown' && nextAppState !== 'extension') {
-        setMobileAppState(nextAppState)
-      }
-
-      if (nextAppState === 'active') {
+    const stopWatchingAppState = useShellState.subscribe((s, old) => {
+      if (s.mobileAppState === old.mobileAppState) return
+      if (s.mobileAppState === 'active') {
         setSystemDarkMode(Appearance.getColorScheme() === 'dark')
       }
     })
 
     // only watch dark changes if in foreground due to ios calling this to take snapshots
     const darkSub = Appearance.addChangeListener(() => {
-      if (appStateRef.current === 'active') {
+      if (useShellState.getState().mobileAppState === 'active') {
         setSystemDarkMode(Appearance.getColorScheme() === 'dark')
       }
     })
 
     return () => {
-      appStateChangeSub.remove()
+      stopWatchingAppState()
       darkSub.remove()
     }
-  }, [setSystemDarkMode, setMobileAppState])
+  }, [setSystemDarkMode])
+}
+
+const useAppLifecycle = () => {
+  React.useEffect(() => listenForAppLifecycle(), [])
 }
 
 const StoreHelper = (p: {children: React.ReactNode}): React.ReactNode => {
   const {children} = p
+  useAppLifecycle()
   useDarkHookup()
 
   return children

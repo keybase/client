@@ -158,6 +158,17 @@ export const onShareData = (
   return Kb.onShareData(callback)
 }
 
+export type AppLifecycleState = 'active' | 'inactive' | 'background'
+
+export const addAppLifecycleListener = (callback: (state: AppLifecycleState) => void): (() => void) => {
+  const sub = Kb.onAppLifecycle(e => callback(e.state as AppLifecycleState))
+  return () => sub.remove()
+}
+
+export const getAppLifecycleState = (): AppLifecycleState => {
+  return Kb.getAppLifecycleState() as AppLifecycleState
+}
+
 export const engineReset = (): void => {
   return Kb.engineReset()
 }

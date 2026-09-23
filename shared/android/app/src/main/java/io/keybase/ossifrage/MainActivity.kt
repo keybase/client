@@ -93,11 +93,6 @@ class MainActivity : ReactActivity() {
     override fun onPause() {
         NativeLogger.info("Activity onPause")
         super.onPause()
-        if (Keybase.appDidEnterBackground()) {
-            Keybase.appBeginBackgroundTaskNonblock(KBPushNotifier(this, Bundle()))
-        } else {
-            Keybase.setAppStateBackground()
-        }
     }
 
     private fun getFileNameFromResolver(resolver: ContentResolver, uri: Uri, extension: String?): String {
@@ -158,19 +153,24 @@ class MainActivity : ReactActivity() {
         NativeLogger.info("Activity onResume")
         super.onResume()
         Keybase.setAppStateForeground()
+        KbModule.emitAppLifecycle("active")
         handleIntent()
     }
 
     override fun onStart() {
         NativeLogger.info("Activity onStart")
         super.onStart()
-        Keybase.setAppStateForeground()
     }
 
     override fun onDestroy() {
         NativeLogger.info("Activity onDestroy")
         super.onDestroy()
-        Keybase.appWillExit(KBPushNotifier(this, Bundle()))
+        // A configuration change destroys and recreates the activity; only a
+        // real finish is the app going away.
+        if (isFinishing) {
+            Keybase.appWillExit(KBPushNotifier(this, Bundle()))
+            KbModule.emitAppLifecycle("background")
+        }
     }
 
     private var cachedIntent: Intent? = null
