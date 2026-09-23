@@ -36,8 +36,8 @@ import {
 // - "+ LiveLocationTracker: updateMapUnfurl" when Go posts the location to the conversation,
 // - "LiveLocationTracker: restoreLocked: restored <n> trackers" when a relaunch restores sharing,
 // - "AppDidEnterBackground: setting background active" when the app backgrounds while sharing:
-//   Go keeps running for the share, so resign-active and the background both report
-//   BACKGROUNDACTIVE and Go never goes to BACKGROUND. Only a connecting scene reports FOREGROUND
+//   Go keeps running for the share, so resign-active reports INACTIVE, the background reports
+//   BACKGROUNDACTIVE, and Go never goes to BACKGROUND. Only a connecting scene reports FOREGROUND
 //   (see goAppStateUpdates in helpers/lifecycle.ts).
 // And in the app's NSLog lines: "KbLocationWatcher: starting location updates" and
 // "KbLocationWatcher: stopping location updates" when the native watcher turns the OS service on
@@ -122,8 +122,9 @@ describe('app lifecycle: live location', () => {
     const goMark = goLogMark()
     await backgroundApp()
     await waitForLinesInOrder('the app to enter the background', () => goLogSince(goMark), [
-      /MobileAppState\.Update: useful update: BACKGROUNDACTIVE,/,
+      /MobileAppState\.Update: useful update: INACTIVE,/,
       /AppDidEnterBackground: setting background active/,
+      /MobileAppState\.Update: useful update: BACKGROUNDACTIVE,/,
     ])
     // JS keeps running in the background while the watcher is on, and relays the fix.
     const moveMark = goLogMark()

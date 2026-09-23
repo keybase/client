@@ -28,22 +28,22 @@ import {
 // Log lines these flows rely on:
 // - Go (ios.log): "MobileAppState.Update: useful update: <FOREGROUND|BACKGROUND|BACKGROUNDACTIVE|
 //   INACTIVE>, …" per Go app state transition (deduped: only logged when the state actually
-//   changes — iOS resign-active reports BACKGROUNDACTIVE, not INACTIVE, so gregor/the image
-//   server stay up through it), "startHTTPSrv: start success: addr: <address>" when the image
+//   changes), "startHTTPSrv: start success: addr: <address>" when the image
 //   server starts on a new address, "kbhttp.Srv: server starting on: <address>" on every start
 //   of a Go http server.
 // - Metro (JS): "[AppState] native: <active|inactive|background>" for every native lifecycle
 //   report JS's listener takes (onNativeAppLifecycle in constants/init/shared.tsx) once
 //   subscribed, and "app focus changed: <state>" when the shell store's app state changes.
-// The cold launch test requires a match of each server line, so an empty result in the
-// Notification Center test means no restart, not a pattern that no longer matches Go's log.
 const httpSrvStarted = /startHTTPSrv: start success: addr: /
 const httpSrvStartedAny = /kbhttp\.Srv: server starting on: /
 // Go dedupes state transitions, so "BACKGROUND" alone would also match "BACKGROUNDACTIVE"; the
 // trailing comma from "useful update: %v, we are currently in state: %v" disambiguates them.
 const goForeground = /useful update: FOREGROUND,/
 const goBackground = /useful update: BACKGROUND,/
-const goBackgroundActive = /useful update: BACKGROUNDACTIVE,/
+const goInactive = /useful update: INACTIVE,/
+// Before the app is active, iOS reports INACTIVE or BACKGROUNDACTIVE depending on which
+// launch callback lands first.
+const goNotYetActive = /useful update: (INACTIVE|BACKGROUNDACTIVE),/
 describe('app lifecycle: app state', () => {
   it('cold launch reaches active under scenes and serves images', async () => {
     const user = requireSmokeUser()
@@ -60,7 +60,7 @@ describe('app lifecycle: app state', () => {
     // cold launch, so the launch is proven from Go's deterministic two-step transition instead
     // of a JS log line.
     const goLines = await waitForLinesInOrder('Go to report the launch', () => goLogSince(goMark), [
-      goBackgroundActive,
+      goNotYetActive,
       goForeground,
     ])
     expect(goLines).toHaveLength(2)
@@ -89,9 +89,9 @@ describe('app lifecycle: app state', () => {
       const goMark = goLogMark()
       const metroMark = metroLogMark()
       await backgroundApp()
-      // resignActive reports BACKGROUNDACTIVE before didEnterBackground drops to BACKGROUND.
+      // resignActive reports INACTIVE before didEnterBackground drops to BACKGROUND.
       await waitForLinesInOrder('Go to go to the background', () => goLogSince(goMark), [
-        goBackgroundActive,
+        goInactive,
         goBackground,
       ])
 
@@ -178,19 +178,17 @@ describe('app lifecycle: app state', () => {
     expect(crashReportsSince(since)).toEqual([])
   })
 
-  it('Notification Center makes the app inactive and keeps images served', async () => {
+  it('Notification Center makes the app inactive, then images load once active again', async () => {
     const user = requireSmokeUser()
-    const before = await waitForAppState('active')
+    await waitForAppState('active')
     const goMark = goLogMark()
     const metroMark = metroLogMark()
 
     await openNotificationCenter()
-    const inactive = await waitForAppState('inactive', undefined, 15000)
-    // Notification Center only resigns active; it never backgrounds the app, so iOS reports
-    // BACKGROUNDACTIVE to Go (not INACTIVE), keeping gregor and the image server up.
-    await waitForLinesInOrder('Go to go inactive', () => goLogSince(goMark), [goBackgroundActive])
-    expect(inactive.httpSrv.address).toBe(before.httpSrv.address)
-    await waitForAvatar200(user)
+    await waitForAppState('inactive', undefined, 15000)
+    // Notification Center only resigns active; it never backgrounds the app. Go's INACTIVE
+    // stops the image server (#29665), so images aren't checked until the app is active again.
+    await waitForLinesInOrder('Go to go inactive', () => goLogSince(goMark), [goInactive])
     expect(findLines(goLogSince(goMark), goBackground)).toEqual([])
 
     await closeNotificationCenter()
@@ -201,7 +199,11 @@ describe('app lifecycle: app state', () => {
       expect.stringMatching(/app focus changed: inactive$/),
       expect.stringMatching(/app focus changed: active$/),
     ])
-    expect(findLines(goLogSince(goMark), httpSrvStartedAny)).toEqual([])
-    expect((await appSnapshot()).httpSrv.address).toBe(before.httpSrv.address)
+    // JS must hold the address of the server Go restarted, not a stale one.
+    const restarted = findLines(goLogSince(goMark), httpSrvStarted).at(-1)
+    if (restarted) {
+      expect(restarted).toContain(`addr: ${(await appSnapshot()).httpSrv.address} `)
+    }
+    await waitForAvatar200(user)
   })
 })

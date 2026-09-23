@@ -40,7 +40,7 @@ const waitForScreen = async (what: string, match: (s: Awaited<ReturnType<typeof 
 
 // A push sent before the app is really in the background is handed to the app instead of shown.
 // The trailing comma (from Go's "useful update: %v, we are currently in state: %v") keeps this
-// from also matching the BACKGROUNDACTIVE transition that precedes it.
+// from also matching a BACKGROUNDACTIVE transition.
 const waitForBackground = async (goMark: ReturnType<typeof goLogMark>) =>
   waitForLinesInOrder('the app to enter the background', () => goLogSince(goMark), [/useful update: BACKGROUND,/])
 
