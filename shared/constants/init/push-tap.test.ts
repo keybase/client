@@ -240,7 +240,7 @@ describe('unboxing a tapped chat push', () => {
     // the router, subscribed first, consumes the intent the moment its account is current
     const stopRouter = useCurrentUserState.subscribe(s => {
       const {intent, dispatch} = useNavigationIntentsState.getState()
-      if (intent && intent.targetUid === s.uid) dispatch.acknowledge(intent.id)
+      if (intent?.targetUid === s.uid) dispatch.acknowledge(intent.id)
     })
     stopListening = listenForPushTaps()
     nativeTap(chatTap('uid-other'))
