@@ -26,7 +26,7 @@ import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {getPinnedConvIDs} from '@/chat/inbox/pinned-convs'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {setPushTapAck} from '@/stores/navigation-intents'
+import {setPushTapAck, useNavigationIntentsState} from '@/stores/navigation-intents'
 import {useDaemonState, type BootstrapStep} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
 import {useFollowerState} from '@/stores/followers'
@@ -315,30 +315,41 @@ const membersTypeOf = (t: string): T.RPCChat.ConversationMembersType | undefined
 
 // An Android push is a data message Go displayed itself, so a tapped chat push's message is unboxed
 // into the thread here. It waits for the account the push names, which after a cold tap or an
-// account switch is not current yet.
+// account switch is not current yet, and only as long as its tap is still queued: a tap that is
+// dropped (expired, superseded, its switch failed, logged out) never unboxes later.
 let pendingPushTapUnbox:
-  | {params: {convID: string; membersType: T.RPCChat.ConversationMembersType; payload: string}; uid: string}
+  | {
+      params: {convID: string; membersType: T.RPCChat.ConversationMembersType; payload: string}
+      tapID: number
+      uid: string
+    }
   | undefined
 
-const unboxPushTapIfAccountCurrent = () => {
+const settlePushTapUnbox = () => {
   const pending = pendingPushTapUnbox
   if (!pending) return
   const {uid} = useCurrentUserState.getState()
-  if (!uid || (pending.uid && pending.uid !== uid)) return
-  pendingPushTapUnbox = undefined
-  T.RPCChat.localUnboxMobilePushNotificationRpcPromise(pending.params).catch(() => {
-    logger.info('[PushTap] failed to unbox message from payload')
-  })
+  if (uid && (!pending.uid || pending.uid === uid)) {
+    pendingPushTapUnbox = undefined
+    T.RPCChat.localUnboxMobilePushNotificationRpcPromise(pending.params).catch(() => {
+      logger.info('[PushTap] failed to unbox message from payload')
+    })
+    return
+  }
+  // Checked after the account: a consumed tap leaves the queue as its account becomes current.
+  if (useNavigationIntentsState.getState().intent?.pushTapID !== pending.tapID) {
+    pendingPushTapUnbox = undefined
+  }
 }
 
-const queuePushTapUnbox = (payload: PushTapPayload) => {
+const queuePushTapUnbox = (tapID: number, payload: PushTapPayload) => {
   const get = (key: string) => pushTapField(payload, key)
   const convID = get('convID')
   const boxed = get('m')
   const membersType = membersTypeOf(get('t'))
   if (get('type') !== 'chat.newmessage' || !convID || !boxed || membersType === undefined) return
-  pendingPushTapUnbox = {params: {convID, membersType, payload: boxed}, uid: get('uid')}
-  unboxPushTapIfAccountCurrent()
+  pendingPushTapUnbox = {params: {convID, membersType, payload: boxed}, tapID, uid: get('uid')}
+  settlePushTapUnbox()
 }
 
 // Native holds a tapped notification until it is acked by id, so a peek never loses one: the
@@ -360,7 +371,7 @@ const takePushTap = () => {
   lastTakenPushTapID = tap.id
   enqueuePushTapRoute({id: tap.id, targetUid: route.targetUid, url: route.url})
   if (firstTake && isAndroid) {
-    queuePushTapUnbox(payload)
+    queuePushTapUnbox(tap.id, payload)
   }
 }
 
@@ -369,11 +380,13 @@ const takePushTap = () => {
 export const listenForPushTaps = (): (() => void) => {
   setPushTapAck(ackPushTap)
   const stopTaps = addPushTapListener(takePushTap)
-  const stopUnbox = useCurrentUserState.subscribe(unboxPushTapIfAccountCurrent)
+  const stopUnboxOnAccount = useCurrentUserState.subscribe(settlePushTapUnbox)
+  const stopUnboxOnIntent = useNavigationIntentsState.subscribe(settlePushTapUnbox)
   takePushTap()
   return () => {
     stopTaps()
-    stopUnbox()
+    stopUnboxOnAccount()
+    stopUnboxOnIntent()
   }
 }
 
