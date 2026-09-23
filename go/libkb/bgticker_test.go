@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -29,10 +30,53 @@ func TestBgTicker(t *testing.T) {
 	}
 }
 
+// bgTickerFramePrefix is matched against goroutine-dump call frames, not
+// "created by" lines, so only goroutines currently executing a BgTicker
+// method are counted.
+const bgTickerFramePrefix = "github.com/keybase/client/go/libkb.(*BgTicker)."
+
+// countBgTickerGoroutines returns the number of goroutines with a live call
+// frame in a BgTicker method, excluding the goroutine running the test
+// itself (identified by a testing.tRunner frame). Unlike
+// runtime.NumGoroutine, it isn't moved by unrelated goroutines elsewhere in
+// the process.
+func countBgTickerGoroutines() int {
+	buf := make([]byte, 1<<20)
+	for {
+		n := runtime.Stack(buf, true)
+		if n < len(buf) {
+			return parseBgTickerGoroutines(string(buf[:n]))
+		}
+		buf = make([]byte, 2*len(buf))
+	}
+}
+
+func parseBgTickerGoroutines(dump string) int {
+	count := 0
+	for _, block := range strings.Split(strings.TrimRight(dump, "\n"), "\n\n") {
+		if !strings.HasPrefix(block, "goroutine ") || strings.Contains(block, "testing.tRunner") {
+			continue
+		}
+		lines := strings.Split(block, "\n")
+		for _, line := range lines[1:] {
+			// Call frames have no leading whitespace; the file:line under
+			// them does, and so does a "created by ..." parent pointer.
+			if strings.HasPrefix(line, "\t") || strings.HasPrefix(line, "created by ") || line == "" {
+				continue
+			}
+			if strings.HasPrefix(line, bgTickerFramePrefix) {
+				count++
+				break
+			}
+		}
+	}
+	return count
+}
+
 // Stop ends the tick goroutine whether it waits for a tick, waits out the
 // resume wait, or is blocked handing a tick to a reader that went away.
 func TestBgTickerStopEndsGoroutine(t *testing.T) {
-	baseline := runtime.NumGoroutine()
+	baseline := countBgTickerGoroutines()
 	var tickers []*BgTicker
 	for i := range 30 {
 		switch i % 3 {
@@ -52,9 +96,9 @@ func TestBgTickerStopEndsGoroutine(t *testing.T) {
 		ticker.Stop()
 		ticker.Stop()
 	}
-	deadline := time.Now().Add(10 * time.Second)
-	for runtime.NumGoroutine() > baseline && time.Now().Before(deadline) {
+	current := countBgTickerGoroutines()
+	for deadline := time.Now().Add(10 * time.Second); current > baseline && time.Now().Before(deadline); current = countBgTickerGoroutines() {
 		time.Sleep(10 * time.Millisecond)
 	}
-	require.LessOrEqual(t, runtime.NumGoroutine(), baseline, "leaked tick goroutines")
+	require.LessOrEqual(t, current, baseline, "leaked tick goroutines: baseline=%d current=%d", baseline, current)
 }
