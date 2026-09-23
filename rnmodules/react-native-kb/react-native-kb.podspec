@@ -25,6 +25,7 @@ Pod::Spec.new do |s|
   s.exclude_files = "cpp/tests/**/*"
 
   s.dependency "KBCommon"
+  s.frameworks = "CoreLocation"
 
   # Kb.mm calls into keybasego.xcframework, which is a gitignored build artifact
   # and so never arrives with a branch. Without this, checking out a branch that

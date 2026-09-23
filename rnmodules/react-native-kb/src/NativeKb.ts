@@ -10,6 +10,8 @@ export interface Spec extends TurboModule {
   readonly onShareData: EventEmitter<{text?: string; localPaths?: Array<string>}>
   // 'active' | 'inactive' | 'background', sent from the callbacks that report the state to Go
   readonly onAppLifecycle: EventEmitter<{state: string}>
+  // iOS only: every fix the location watch receives, accuracy in metres
+  readonly onLocationFix: EventEmitter<{lat: number; lon: number; accuracy: number}>
   getTypedConstants(): {
     androidIsDeviceSecure: boolean
     androidIsTestDevice: boolean
@@ -72,6 +74,9 @@ export interface Spec extends TurboModule {
   clearLocalLogs(): Promise<void>
   // the last state onAppLifecycle carried, including one sent before JS listened
   getAppLifecycleState(): string
+  // iOS only. Idempotent; the watch keeps running in the background until stopped.
+  startLocationWatch(): void
+  stopLocationWatch(): void
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('Kb')

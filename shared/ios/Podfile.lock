@@ -2966,7 +2966,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: e05fcc335c004b3b2a45889244c5c27bbbfad64c
   React-microtasksnativemodule: 27f8495905481c29ac6acd0e37313b3fbfb17cf0
   React-mutationobservernativemodule: 012f3688a7e96d459e5d787264724875939f6f43
-  react-native-kb: a221c7cd69de872ef45bd7e6a127cc721f579ee8
+  react-native-kb: b8be56e56cb9b28679d99e6eedfcba0b848eb2d5
   react-native-keyboard-controller: 3b443a39d5d6f7ad4f836fa51794544a21672851
   react-native-netinfo: a05f9b897e76ad24b53f615fed1cbb731932363d
   react-native-safe-area-context: 678f254e77e69986ae9d9e62721f152e73dbc76b
