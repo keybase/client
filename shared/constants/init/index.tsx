@@ -103,7 +103,18 @@ const startIOSLocationWatch = () => {
   const {addLocationFixListener, startLocationWatch} = _getNative()
   startLocationWatch()
   fixThrottle = {}
+  removeFixListener?.()
   removeFixListener = addLocationFixListener(onLocationFix)
+}
+
+// Significant-change monitoring outlives the process and keeps relaunching the app, and the service
+// drops an expired share without clearing its watch, so each launch stops whatever a previous
+// process left running. Runs before the engine delivers any chatWatchPosition, and native applies
+// start/stop in call order, so a share the service restores still starts it again.
+export const initIOSLocation = () => {
+  if (!isIOS) return
+  _getNative().stopLocationWatch()
+  ignorePromise(unregisterLegacyIOSLocationTask())
 }
 
 const stopIOSLocationWatch = () => {
@@ -164,8 +175,8 @@ const onChatWatchPosition = async (
 
 const onChatClearWatch = async () => {
   const {ExpoLocation, ExpoTaskManager} = _getNative()
-  locationRefs--
-  if (locationRefs <= 0) {
+  locationRefs = Math.max(0, locationRefs - 1)
+  if (locationRefs === 0) {
     try {
       logger.info('[location] end start')
       if (isIOS) {
@@ -518,7 +529,7 @@ const _initNativePlatformListener = () => {
 
   initPushListener()
 
-  ignorePromise(unregisterLegacyIOSLocationTask())
+  initIOSLocation()
 
   const {NetInfo} = _getNative()
   NetInfo.addEventListener(({type}) => {

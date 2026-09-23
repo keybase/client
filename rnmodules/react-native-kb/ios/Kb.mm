@@ -906,6 +906,7 @@ RCT_EXPORT_METHOD(addNotificationRequest: (JS::NativeKb::SpecAddNotificationRequ
     std::lock_guard<std::mutex> lock(kbAppLifecycleMutex);
     kbAppLifecycleState = [state copy];
   }
+  [[Kb locationWatcher] setAppActive:[state isEqualToString:@"active"]];
   Kb *instance = kbSharedInstance;
   if (instance && [instance canEmit]) {
     [instance emitOnAppLifecycle:@{@"state" : state}];
@@ -923,7 +924,12 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getAppLifecycleState) {
   static KbLocationWatcher *watcher = nil;
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
-    watcher = [[KbLocationWatcher alloc] initWithOnFix:^(CLLocation *location) {
+    BOOL appActive;
+    {
+      std::lock_guard<std::mutex> lock(kbAppLifecycleMutex);
+      appActive = [kbAppLifecycleState isEqualToString:@"active"];
+    }
+    watcher = [[KbLocationWatcher alloc] initWithAppActive:appActive onFix:^(CLLocation *location) {
       Kb *instance = kbSharedInstance;
       if (instance && [instance canEmit]) {
         [instance emitOnLocationFix:@{

@@ -1,16 +1,22 @@
 #import "KbLocationWatcher.h"
 
+// The JS throttle's floor for fixes outside the foreground.
+static const CLLocationDistance kbBackgroundDistanceFilter = 65;
+
 @implementation KbLocationWatcher {
-  // Everything below is main thread only; the manager delivers its delegate
-  // callbacks on the run loop of the thread that created it.
+  // Everything below is main thread only once init returns; the manager
+  // delivers its delegate callbacks on the run loop of the thread that created
+  // it.
   CLLocationManager *_manager;
   BOOL _wanted;
   BOOL _running;
+  BOOL _appActive;
   void (^_onFix)(CLLocation *);
 }
 
-- (instancetype)initWithOnFix:(void (^)(CLLocation *))onFix {
+- (instancetype)initWithAppActive:(BOOL)appActive onFix:(void (^)(CLLocation *))onFix {
   self = [super init];
+  _appActive = appActive;
   _onFix = [onFix copy];
   return self;
 }
@@ -27,6 +33,17 @@
     self->_wanted = NO;
     [self apply];
   });
+}
+
+- (void)setAppActive:(BOOL)appActive {
+  _appActive = appActive;
+  if (_manager) {
+    _manager.distanceFilter = [self distanceFilter];
+  }
+}
+
+- (CLLocationDistance)distanceFilter {
+  return _appActive ? kCLDistanceFilterNone : kbBackgroundDistanceFilter;
 }
 
 // JS asks for the permission before starting; once the user answers, this
@@ -50,7 +67,6 @@
 
 - (void)apply {
   if (!_manager) {
-    if (!_wanted) return;
     _manager = [CLLocationManager new];
     _manager.delegate = self;
   }
@@ -60,21 +76,23 @@
   if (_wanted && !authorized) {
     NSLog(@"KbLocationWatcher: not watching location: not authorized (status %d)", (int)status);
   }
-  if (_wanted && authorized && !_running) {
+  if (_wanted && authorized) {
+    if (_running) return;
     NSLog(@"KbLocationWatcher: starting location updates");
     _running = YES;
     // Needs the `location` UIBackgroundModes entry, or this throws.
     _manager.allowsBackgroundLocationUpdates = YES;
     _manager.desiredAccuracy = kCLLocationAccuracyHundredMeters;
-    // The throttle's floor; JS applies the rest of it.
-    _manager.distanceFilter = 65;
+    _manager.distanceFilter = [self distanceFilter];
     _manager.activityType = CLActivityTypeOther;
     _manager.pausesLocationUpdatesAutomatically = YES;
     _manager.showsBackgroundLocationIndicator = YES;
     [_manager startUpdatingLocation];
     [_manager startMonitoringSignificantLocationChanges];
-  } else if (_running && !(_wanted && authorized)) {
-    NSLog(@"KbLocationWatcher: stopping location updates");
+  } else {
+    if (_running) {
+      NSLog(@"KbLocationWatcher: stopping location updates");
+    }
     _running = NO;
     [_manager stopUpdatingLocation];
     [_manager stopMonitoringSignificantLocationChanges];

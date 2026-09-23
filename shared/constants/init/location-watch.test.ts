@@ -11,6 +11,7 @@ type Fix = {accuracy: number; lat: number; lon: number}
 const calls = new Array<string>()
 const fixListeners = new Array<(fix: Fix) => void>()
 let startLocationWatchThrows = false
+let stopLocationWatchThrows = false
 const originalGlobals = {isAndroid: global.isAndroid, isIOS: global.isIOS, isMobile: global.isMobile}
 
 const load = (platform: 'ios' | 'android'): typeof Init => {
@@ -62,6 +63,7 @@ const load = (platform: 'ios' | 'android'): typeof Init => {
       },
       stopLocationWatch: () => {
         calls.push('stopLocationWatch')
+        if (stopLocationWatchThrows) throw new Error('no native module')
       },
     }),
   }))
@@ -112,6 +114,7 @@ afterEach(() => {
   calls.length = 0
   fixListeners.length = 0
   startLocationWatchThrows = false
+  stopLocationWatchThrows = false
   jest.dontMock('./platform')
   jest.dontMock('@/constants/rpc/rpc-chat-gen')
   jest.dontMock('./shared')
@@ -212,6 +215,39 @@ test('iOS answers the watch before starting the native watch, which may throw', 
     'requestPermission:1',
     'startLocationWatch',
   ])
+})
+
+test('iOS init stops a watch a previous process left running, ahead of any watch', async () => {
+  const init = load('ios')
+  init.initIOSLocation()
+  init.onEngineIncoming(watchPosition())
+  await flush()
+
+  expect(calls.filter(c => c.endsWith('LocationWatch'))).toEqual(['stopLocationWatch', 'startLocationWatch'])
+})
+
+test('iOS still starts the native watch after a clear that had no watch', async () => {
+  const init = load('ios')
+  init.onEngineIncoming(clearWatch())
+  await flush()
+  init.onEngineIncoming(watchPosition())
+  await flush()
+
+  expect(calls.filter(c => c.endsWith('LocationWatch'))).toEqual(['stopLocationWatch', 'startLocationWatch'])
+})
+
+test('iOS keeps one fix listener when a failed stop left the last one behind', async () => {
+  const init = load('ios')
+  init.onEngineIncoming(watchPosition())
+  await flush()
+  stopLocationWatchThrows = true
+  init.onEngineIncoming(clearWatch())
+  await flush()
+  stopLocationWatchThrows = false
+  init.onEngineIncoming(watchPosition())
+  await flush()
+
+  expect(fixListeners).toHaveLength(1)
 })
 
 test('Android asks for permission and runs the expo location task', async () => {
