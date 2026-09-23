@@ -1,12 +1,15 @@
 /// <reference types="jest" />
 import {resetAllStores} from '@/util/zustand'
-import {useConfigState} from './config'
-import {useCurrentUserState} from './current-user'
-import {navigationIntentLifetimeMs, useNavigationIntentsState} from './navigation-intents'
+import {
+  navigationIntentLifetimeMs,
+  setPushTapAck,
+  setTapSwitchCheck,
+  useNavigationIntentsState,
+} from './navigation-intents'
 
-// react-native-kb's native tap slot; only its ack is reached from here.
+// Stands in for react-native-kb's native tap slot; only its ack is reached from here.
 const mockAckPushTap = jest.fn()
-jest.mock('react-native-kb', () => ({ackPushTap: (id: number) => mockAckPushTap(id)}))
+setPushTapAck(id => mockAckPushTap(id))
 
 const clearIntent = () => {
   const {intent, dispatch} = useNavigationIntentsState.getState()
@@ -274,18 +277,21 @@ test('resetState does not ack a targeted intent it keeps', () => {
   expect(ack).not.toHaveBeenCalled()
 })
 
+// account-link-switch answers whether a switch is under way for the tap (see its tests); here the
+// answer is a flag.
 describe('a tap waiting for its account switch', () => {
   let id: number
+  let switching: boolean
   beforeEach(() => {
-    useCurrentUserState.setState({uid: 'current-uid'})
-    useConfigState.getState().dispatch.setUserSwitching(true)
+    switching = true
+    setTapSwitchCheck(targetUid => switching && targetUid === 'target-uid')
     id = pushTapID()
     useNavigationIntentsState
       .getState()
       .dispatch.enqueue('keybase://convid/other-account-tap', {pushTapID: id, targetUid: 'target-uid'})
   })
   afterEach(() => {
-    useConfigState.getState().dispatch.setUserSwitching(false)
+    setTapSwitchCheck(undefined)
   })
 
   test('is not superseded by a plain link', () => {
@@ -310,7 +316,7 @@ describe('a tap waiting for its account switch', () => {
   })
 
   test('is superseded by a plain link when no switch is in progress', () => {
-    useConfigState.getState().dispatch.setUserSwitching(false)
+    switching = false
 
     useNavigationIntentsState.getState().dispatch.enqueue('keybase://incoming-share')
 
@@ -329,16 +335,4 @@ describe('a tap waiting for its account switch', () => {
     expect(useNavigationIntentsState.getState().intent).toMatchObject({url: 'keybase://incoming-share'})
     expect(ack).toHaveBeenCalledWith(id)
   })
-})
-
-test('once the tap account is current a plain link supersedes it as before', () => {
-  useCurrentUserState.setState({uid: 'target-uid'})
-  const dispatch = useNavigationIntentsState.getState().dispatch
-  const id = pushTapID()
-  dispatch.enqueue('keybase://convid/switched-tap', {pushTapID: id, targetUid: 'target-uid'})
-
-  dispatch.enqueue('keybase://incoming-share')
-
-  expect(useNavigationIntentsState.getState().intent).toMatchObject({url: 'keybase://incoming-share'})
-  expect(ack).toHaveBeenCalledWith(id)
 })

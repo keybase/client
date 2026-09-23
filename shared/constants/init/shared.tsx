@@ -26,6 +26,7 @@ import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {getPinnedConvIDs} from '@/chat/inbox/pinned-convs'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
+import {setPushTapAck} from '@/stores/navigation-intents'
 import {useDaemonState, type BootstrapStep} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
 import {useFollowerState} from '@/stores/followers'
@@ -366,6 +367,7 @@ const takePushTap = () => {
 // Subscribe before peeking: a tap held before JS listened is only seen by the peek, and one that
 // lands after the peek reaches the listener.
 export const listenForPushTaps = (): (() => void) => {
+  setPushTapAck(ackPushTap)
   const stopTaps = addPushTapListener(takePushTap)
   const stopUnbox = useCurrentUserState.subscribe(unboxPushTapIfAccountCurrent)
   takePushTap()

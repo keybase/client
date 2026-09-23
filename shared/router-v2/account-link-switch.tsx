@@ -2,7 +2,7 @@ import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
-import {useNavigationIntentsState} from '@/stores/navigation-intents'
+import {setTapSwitchCheck, useNavigationIntentsState} from '@/stores/navigation-intents'
 
 type ConfigState = ReturnType<typeof useConfigState.getState>
 
@@ -59,7 +59,12 @@ export const subscribeIntentAccountSwitch = () => {
     logger.info('[AccountLink] dropping a tap after a failed switch or logout')
     useNavigationIntentsState.getState().dispatch.acknowledge(intent.id)
   }
+  // A plain link that lands while the switch runs must not supersede the tap it is for.
+  setTapSwitchCheck(
+    targetUid => useConfigState.getState().userSwitching && targetUid !== useCurrentUserState.getState().uid
+  )
   const unsubs = [
+    () => setTapSwitchCheck(undefined),
     useNavigationIntentsState.subscribe(check),
     useConfigState.subscribe((s, old) => {
       dropOnFailure(s, old)

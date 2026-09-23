@@ -6,14 +6,14 @@ jest.mock('@/constants/chat/layout', () => ({isSplit: false, threadRouteName: 'c
 import * as Tabs from '@/constants/tabs'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useNavigationIntentsState} from '@/stores/navigation-intents'
+import {setPushTapAck, useNavigationIntentsState} from '@/stores/navigation-intents'
 import {useRouterState} from '@/stores/router'
 import {resetAllStores} from '@/util/zustand'
 import {enqueuePushTapRoute} from './deep-link-emitter'
 import {subscribeNavigationIntents} from './linking'
 
 const mockAckPushTap = jest.fn()
-jest.mock('react-native-kb', () => ({ackPushTap: (id: number) => mockAckPushTap(id)}))
+setPushTapAck(id => mockAckPushTap(id))
 
 beforeEach(() => {
   mockAckPushTap.mockClear()

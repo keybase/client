@@ -6,11 +6,11 @@ import {enqueuePushTapRoute, emitDeepLink} from './deep-link-emitter'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
-import {useNavigationIntentsState} from '@/stores/navigation-intents'
+import {setPushTapAck, useNavigationIntentsState} from '@/stores/navigation-intents'
 
-// react-native-kb's native tap slot; only its ack is reached from here.
+// Stands in for react-native-kb's native tap slot; only its ack is reached from here.
 const mockAckPushTap = jest.fn()
-jest.mock('react-native-kb', () => ({ackPushTap: (id: number) => mockAckPushTap(id)}))
+setPushTapAck(id => mockAckPushTap(id))
 
 const currentAccount = {hasStoredSecret: true, uid: 'uid-current', username: 'testuser'}
 const otherAccount = {hasStoredSecret: true, uid: 'uid-other', username: 'testuser-mac'}
@@ -178,4 +178,39 @@ test('a switch already under way is not restarted when userSwitching clears earl
   useConfigState.setState({userSwitching: false})
 
   expect(login).toHaveBeenCalledTimes(1)
+})
+
+describe('a plain link while a tap waits for its account', () => {
+  const tapURL = 'keybase://convid/0000ab'
+
+  test('is dropped while the switch is under way', () => {
+    tapFor(otherAccount.uid)
+    expect(useConfigState.getState().userSwitching).toBe(true)
+
+    emitDeepLink('keybase://incoming-share')
+
+    expect(useNavigationIntentsState.getState().intent?.url).toBe(tapURL)
+    expect(mockAckPushTap).not.toHaveBeenCalled()
+  })
+
+  test('supersedes the tap once its account is current', () => {
+    tapFor(otherAccount.uid)
+    useCurrentUserState.setState({uid: otherAccount.uid})
+
+    emitDeepLink('keybase://incoming-share')
+
+    expect(useNavigationIntentsState.getState().intent?.url).toBe('keybase://incoming-share')
+    expect(mockAckPushTap).toHaveBeenCalledWith(nextTapID)
+  })
+
+  test('supersedes the tap once nothing drives the switch', () => {
+    tapFor(otherAccount.uid)
+    unsub?.()
+    unsub = undefined
+
+    emitDeepLink('keybase://incoming-share')
+
+    expect(useNavigationIntentsState.getState().intent?.url).toBe('keybase://incoming-share')
+    expect(mockAckPushTap).toHaveBeenCalledWith(nextTapID)
+  })
 })
