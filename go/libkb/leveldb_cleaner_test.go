@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -163,12 +164,16 @@ func TestCleanerCloseWaitsForRunningClean(t *testing.T) {
 	waitCleanerRunning(t, db.cleaner)
 
 	// Wait for the first batch to land, so the clean is headed for its long
-	// sleep.
-	require.Eventually(t, func() bool {
+	// sleep. The conditions below run on another goroutine, where require
+	// can't stop the test, so read errors go through the CollectT and are
+	// reported if the wait times out.
+	require.EventuallyWithT(t, func(c *assert.CollectT) {
 		keys, err := db.KeysWithPrefixes(tablePrefix(levelDbTableKv))
-		require.NoError(t, err)
-		return len(keys) < 3500
-	}, 10*time.Second, time.Millisecond, "the first batch never landed")
+		if !assert.NoError(c, err) {
+			return
+		}
+		assert.Less(c, len(keys), 3500, "the first batch never landed")
+	}, 10*time.Second, time.Millisecond)
 
 	// Once the first batch lands, wait out a settle delay before Close: the
 	// batch's write, its compaction, and the size check that follows still
@@ -176,14 +181,17 @@ func TestCleanerCloseWaitsForRunningClean(t *testing.T) {
 	// otherwise race an in-flight db operation instead of the intended
 	// target, clean() blocked in its minute-long SleepInterval. Implemented
 	// as a streak of unchanged polls (a poll-based sleep) rather than a flat
-	// time.Sleep, since it still bails out via require.Eventually's overall
-	// timeout instead of hanging if the count never stabilizes. 60 reads
-	// 5ms apart is ~300ms of margin, widened for slow/-race runners.
+	// time.Sleep, since it still bails out via the wait's overall timeout
+	// instead of hanging if the count never stabilizes. 60 reads 5ms apart
+	// is ~300ms of margin, widened for slow/-race runners.
 	const stableReadsNeeded = 60
 	stableCount, streak := -1, 0
-	require.Eventually(t, func() bool {
+	require.EventuallyWithT(t, func(c *assert.CollectT) {
 		keys, err := db.KeysWithPrefixes(tablePrefix(levelDbTableKv))
-		require.NoError(t, err)
+		if !assert.NoError(c, err) {
+			streak = 0
+			return
+		}
 		count := len(keys)
 		if count == stableCount {
 			streak++
@@ -191,8 +199,8 @@ func TestCleanerCloseWaitsForRunningClean(t *testing.T) {
 			stableCount = count
 			streak = 1
 		}
-		return streak >= stableReadsNeeded
-	}, 10*time.Second, 5*time.Millisecond, "key count never stabilized before the sleep")
+		assert.GreaterOrEqual(c, streak, stableReadsNeeded, "key count never stabilized before the sleep")
+	}, 10*time.Second, 5*time.Millisecond)
 
 	start := time.Now()
 	require.NoError(t, db.Close())
