@@ -673,3 +673,52 @@ describe('addMessagesToThreadState', () => {
     expect(merged?.type === 'text' && merged.text.stringValue()).toBe('edited')
   })
 })
+
+// The http server can be stopped (BACKGROUND) or mid-restart (a fresh port/token) when an update
+// carrying a stale GetURL lands: that comes back as '' or as a base-less URL with only query
+// params appended (e.g. "&prev=false&noanim=true"), never as a garbage http:// value. A url
+// field only ever takes an incoming value that actually looks like one.
+describe('local server urls', () => {
+  const attachmentOrdinal = T.Chat.numberToOrdinal(201)
+  const validUrl = 'http://127.0.0.1:1234/at?key=abc'
+  const garbageUrl = '&prev=false&noanim=true'
+
+  test('a new non-empty url replaces the old one', () => {
+    const state = makeThreadState([])
+    addMessagesToThreadState(state, [makeAttachmentMessage({fileURL: 'http://127.0.0.1:5000/f'})], {})
+    addMessagesToThreadState(state, [makeAttachmentMessage({fileURL: 'http://127.0.0.1:6000/f'})], {})
+    expect((state.messageMap.get(attachmentOrdinal) as T.Chat.MessageAttachment).fileURL).toBe(
+      'http://127.0.0.1:6000/f'
+    )
+  })
+
+  test.each([
+    {
+      field: 'fileURL',
+      make: (url: string) => makeAttachmentMessage({fileURL: url}),
+      read: (state: WritableConversationThreadMessageState) =>
+        (state.messageMap.get(attachmentOrdinal) as T.Chat.MessageAttachment).fileURL,
+    },
+    {
+      field: 'previewURL',
+      make: (url: string) => makeAttachmentMessage({previewURL: url}),
+      read: (state: WritableConversationThreadMessageState) =>
+        (state.messageMap.get(attachmentOrdinal) as T.Chat.MessageAttachment).previewURL,
+    },
+  ])('$field: empty or garbage keeps the existing value, a real url replaces it', ({make, read}) => {
+    const empty = makeThreadState([])
+    addMessagesToThreadState(empty, [make(validUrl)], {})
+    addMessagesToThreadState(empty, [make('')], {})
+    expect(read(empty)).toBe(validUrl)
+
+    const garbage = makeThreadState([])
+    addMessagesToThreadState(garbage, [make(validUrl)], {})
+    addMessagesToThreadState(garbage, [make(garbageUrl)], {})
+    expect(read(garbage)).toBe(validUrl)
+
+    const replaced = makeThreadState([])
+    addMessagesToThreadState(replaced, [make('http://127.0.0.1:5000/f')], {})
+    addMessagesToThreadState(replaced, [make(validUrl)], {})
+    expect(read(replaced)).toBe(validUrl)
+  })
+})

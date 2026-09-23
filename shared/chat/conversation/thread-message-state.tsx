@@ -143,6 +143,13 @@ const maybeGetOrdinalByMessageID = (
 ) =>
   getOrdinalForMessageID(state.messageMap, state.pendingOutboxToOrdinal, messageID, state.messageIDToOrdinal)
 
+// The service's local http server can be stopped or mid-restart when an update carrying a
+// GetURL-derived value lands: that value can come back as '' or as a base-less URL with only
+// query params appended, never as a garbage http:// value. Keep whatever was already rendering
+// until a real replacement arrives.
+const keepUrl = (next: string | undefined, prev: string | undefined) =>
+  next?.startsWith('http://') ? next : prev ?? next
+
 const mergeMessage = (
   existing: WritableDraft<T.Chat.Message>,
   incoming: WritableDraft<T.Chat.Message>
@@ -169,6 +176,11 @@ const mergeMessage = (
         }
       } else {
         existingRecord[key] = val
+      }
+    } else if (key === 'fileURL' || key === 'previewURL') {
+      const next = keepUrl(val as string | undefined, cur as string | undefined)
+      if (cur !== next) {
+        existingRecord[key] = next
       }
     } else if (cur !== val) {
       existingRecord[key] = val
