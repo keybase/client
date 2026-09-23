@@ -1,7 +1,6 @@
 package avatars
 
 import (
-	"bytes"
 	"runtime"
 	"testing"
 	"time"
@@ -10,21 +9,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// countMonitorAppStateGoroutines returns the number of goroutines currently
-// parked inside monitorAppState, read from a full goroutine dump.
-func countMonitorAppStateGoroutines() int {
-	buf := make([]byte, 1<<20)
-	for {
-		n := runtime.Stack(buf, true)
-		if n < len(buf) {
-			return bytes.Count(buf[:n], []byte(".monitorAppState("))
-		}
-		buf = make([]byte, 2*len(buf))
-	}
-}
-
-// StartBackgroundTasks/StopBackgroundTasks should leave no monitorAppState
-// goroutine behind: Stop is supposed to be the mirror image of Start.
+// StartBackgroundTasks/StopBackgroundTasks should leave no goroutine behind:
+// Stop is supposed to be the mirror image of Start. This is checked by
+// goroutine count rather than by naming the leaked goroutine's function, so
+// it can't be defeated by renaming or inlining the monitor loop.
 func TestAvatarMonitorExitsOnStop(t *testing.T) {
 	tc := libkb.SetupTest(t, "avatars", 1)
 	defer tc.Cleanup()
@@ -34,13 +22,22 @@ func TestAvatarMonitorExitsOnStop(t *testing.T) {
 	full.tempDir = t.TempDir()
 	var s libkb.AvatarLoaderSource = full
 
-	for range 5 {
+	// Warm up lazily started goroutines (e.g. one-time package/runtime
+	// initialization) before taking the baseline, so only leaks from
+	// repeated Start/Stop cycles count against it.
+	s.StartBackgroundTasks(m)
+	s.StopBackgroundTasks(m)
+	time.Sleep(100 * time.Millisecond)
+	baseline := runtime.NumGoroutine()
+
+	const cycles = 5
+	for range cycles {
 		s.StartBackgroundTasks(m)
 		s.StopBackgroundTasks(m)
 	}
-	// give the monitorAppState goroutines a beat to actually park on their
-	// blocking receive before we count them.
-	time.Sleep(100 * time.Millisecond)
 
-	require.Zero(t, countMonitorAppStateGoroutines(), "monitorAppState goroutines leaked across Start/Stop")
+	require.Eventually(t, func() bool {
+		return runtime.NumGoroutine() <= baseline
+	}, 10*time.Second, 10*time.Millisecond,
+		"goroutines leaked across %d Start/Stop cycles: baseline=%d current=%d", cycles, baseline, runtime.NumGoroutine())
 }
