@@ -3,6 +3,7 @@ import * as Styles from '@/styles'
 import type {ImageLoadEventData, ImageErrorEventData} from 'expo-image'
 import {Image as ExpoImage} from 'expo-image'
 import LoadingStateView from './loading-state-view'
+import {isLocalhostSrc, retryLocalhostSrc} from './localhost-src'
 import type {StylesCrossPlatform} from '@/styles'
 import {useConfigState} from '@/stores/config'
 import {useShellState} from '@/stores/shell'
@@ -52,9 +53,6 @@ const DesktopImage = (p: Props) => {
 // on background/inactive and restarts it (new token, possibly new port) on foreground, so a
 // load racing the restart gets connection refused. Those are worth retrying; remote srcs keep
 // the old fail-once behavior.
-const isLocalhostSrc = (src: Props['src']): src is string =>
-  typeof src === 'string' && src.startsWith('http://127.0.0.1:')
-
 const maxRetries = 3
 
 const NativeImage = (p: Props) => {
@@ -63,6 +61,7 @@ const NativeImage = (p: Props) => {
   const [lastSrc, setLastSrc] = React.useState(src)
   const [attempt, setAttempt] = React.useState(0)
   const retryable = isLocalhostSrc(src)
+  const httpSrv = useConfigState(s => s.httpSrv)
   const failedRef = React.useRef(false)
   const triesRef = React.useRef(0)
   const timerRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -130,9 +129,8 @@ const NativeImage = (p: Props) => {
     }
   }, [retryable])
 
-  // cache-buster forces expo-image to actually refetch; recyclingKey stays on the original
-  // src so the view isn't blanked by retries
-  const srcToUse = retryable && attempt > 0 ? `${src}${src.includes('?') ? '&' : '?'}kbRetry=${attempt}` : src
+  // recyclingKey stays on the original src so the view isn't blanked by retries
+  const srcToUse = retryable && attempt > 0 ? retryLocalhostSrc(src, attempt, httpSrv) : src
   const recyclingKey = typeof src === 'string' ? src : Array.isArray(src) ? src[0]?.uri : String(src)
 
   return (
