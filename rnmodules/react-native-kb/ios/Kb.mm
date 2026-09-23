@@ -918,8 +918,9 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getAppLifecycleState) {
   return kbAppLifecycleState;
 }
 
-// One per process, so a JS reload neither leaks a second CLLocationManager nor
-// stops a running watch.
+// One per process, so a JS reload does not leak a second CLLocationManager. The watch
+// itself does not survive a reload: JS init stops it, and a share the service restores
+// starts it again.
 + (KbLocationWatcher *)locationWatcher {
   static KbLocationWatcher *watcher = nil;
   static dispatch_once_t onceToken;
