@@ -1,4 +1,6 @@
 import * as Z from '@/util/zustand'
+import logger from '@/logger'
+import {useCurrentUserState} from '@/stores/current-user'
 import {ackPushTap as nativeAckPushTap} from 'react-native-kb'
 
 export type NavigationIntentOptions = {
@@ -120,6 +122,19 @@ export const useNavigationIntentsState = Z.createZustand<Store>(
           // Navigation for this URL just happened; a tap riding along has nothing left to wait
           // for, so it acks immediately instead of waiting on a consumption that isn't coming.
           ackPushTap(pushTapID)
+          return
+        }
+
+        // A tap for another account waits here while account-link-switch switches to it. A
+        // plain link arriving meanwhile is dropped rather than superseding the tap, as the tap
+        // replayed after the switch used to replace it.
+        if (
+          !targetUid &&
+          pending?.pushTapID !== undefined &&
+          pending.targetUid &&
+          pending.targetUid !== useCurrentUserState.getState().uid
+        ) {
+          logger.info('[PushTap] dropping a link while a tap waits for its account:', url)
           return
         }
 

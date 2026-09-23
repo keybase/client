@@ -2,6 +2,7 @@
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
+import {useRouterState} from '@/stores/router'
 import {resetAllStores} from '@/util/zustand'
 import {emitDeepLink, enqueuePushTapRoute} from './deep-link-emitter'
 import {subscribeNavigationIntents} from './linking'
@@ -39,6 +40,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  useRouterState.setState({navState: undefined})
   clearIntent()
   resetAllStores()
   jest.restoreAllMocks()
@@ -190,5 +192,49 @@ test('an account-targeted intent survives the store reset an account switch perf
   useNavigationIntentsState.getState().dispatch.setNavigationReady(true, 'target-uid')
 
   expect(listener).toHaveBeenCalledWith('keybase://convid/switch-target-conversation')
+  unsubscribe()
+})
+
+// The phone's root stack with a conversation pushed on top of the tabs.
+const openConversation = (conversationIDKey: string) =>
+  useRouterState.setState({
+    navState: {routes: [{name: 'loggedIn'}, {name: 'chatConversation', params: {conversationIDKey}}]},
+  })
+
+test('a tap for the conversation already open acks without navigating', () => {
+  openConversation('0000ab')
+  const listener = jest.fn()
+  const handleAppLink = jest.fn()
+  const unsubscribe = subscribeNavigationIntents(listener, handleAppLink)
+
+  enqueuePushTapRoute({id: 4545, targetUid: 'current-uid', url: 'keybase://convid/0000ab'})
+
+  expect(listener).not.toHaveBeenCalled()
+  expect(handleAppLink).not.toHaveBeenCalled()
+  expect(mockAckPushTap).toHaveBeenCalledWith(4545)
+  expect(useNavigationIntentsState.getState().intent).toBeUndefined()
+  unsubscribe()
+})
+
+test('a tap for a different conversation still navigates', () => {
+  openConversation('0000ab')
+  const listener = jest.fn()
+  const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
+
+  enqueuePushTapRoute({id: 4646, targetUid: 'current-uid', url: 'keybase://convid/0000cd'})
+
+  expect(listener).toHaveBeenCalledWith('keybase://convid/0000cd')
+  expect(mockAckPushTap).toHaveBeenCalledWith(4646)
+  unsubscribe()
+})
+
+test('a plain link to the conversation already open still navigates', () => {
+  openConversation('0000ab')
+  const listener = jest.fn()
+  const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
+
+  emitDeepLink('keybase://convid/0000ab')
+
+  expect(listener).toHaveBeenCalledWith('keybase://convid/0000ab')
   unsubscribe()
 })

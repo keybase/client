@@ -399,21 +399,16 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
 
     @ReactMethod(isBlockingSynchronousMethod = true)
     override fun peekPushTap(): WritableMap? {
-        val (payload, id) = synchronized(pushTapLock) { pushTapPayload to pushTapID }
-        if (payload == null) return null
+        val held = pushTap.peek() ?: return null
         val tap = Arguments.createMap()
-        tap.putString("payload", payload)
-        tap.putDouble("id", id.toDouble())
+        tap.putString("payload", held.payload)
+        tap.putDouble("id", held.id.toDouble())
         return tap
     }
 
     @ReactMethod
     override fun ackPushTap(id: Double) {
-        synchronized(pushTapLock) {
-            if (pushTapPayload != null && id.toLong() == pushTapID) {
-                pushTapPayload = null
-            }
-        }
+        pushTap.ack(id.toLong())
     }
 
     private fun emitPushTapAvailableInternal() {
@@ -793,20 +788,13 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
             instance?.sendHardwareKeyEvent(keyName)
         }
 
-        // The last tapped notification, held until JS acks its id. Written on the
-        // main thread by PushTapActivity, read and cleared on the JS thread.
-        private val pushTapLock = Any()
-        private var pushTapPayload: String? = null
-        private var pushTapID = 0L
+        private val pushTap = PushTapSlot()
 
         // Holds a tapped notification's data as JSON for peekPushTap, replacing
         // any tap JS has not acked, and tells JS.
         @JvmStatic
         fun setPushTap(payloadJSON: String) {
-            synchronized(pushTapLock) {
-                pushTapPayload = payloadJSON
-                pushTapID++
-            }
+            pushTap.set(payloadJSON)
             instance?.emitPushTapAvailableInternal()
         }
 

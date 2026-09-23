@@ -1,5 +1,6 @@
 /// <reference types="jest" />
 import {resetAllStores} from '@/util/zustand'
+import {useCurrentUserState} from './current-user'
 import {useNavigationIntentsState} from './navigation-intents'
 
 // react-native-kb's native tap slot; only its ack is reached from here.
@@ -270,4 +271,29 @@ test('resetState does not ack a targeted intent it keeps', () => {
 
   expect(useNavigationIntentsState.getState().intent).toMatchObject({pushTapID: id})
   expect(ack).not.toHaveBeenCalled()
+})
+
+test('a plain link does not supersede a tap waiting for its account switch', () => {
+  useCurrentUserState.setState({uid: 'current-uid'})
+  const dispatch = useNavigationIntentsState.getState().dispatch
+  const id = pushTapID()
+  dispatch.enqueue('keybase://convid/other-account-tap', {pushTapID: id, targetUid: 'target-uid'})
+  const tap = useNavigationIntentsState.getState().intent
+
+  dispatch.enqueue('keybase://incoming-share')
+
+  expect(useNavigationIntentsState.getState().intent).toBe(tap)
+  expect(ack).not.toHaveBeenCalled()
+})
+
+test('once the tap account is current a plain link supersedes it as before', () => {
+  useCurrentUserState.setState({uid: 'target-uid'})
+  const dispatch = useNavigationIntentsState.getState().dispatch
+  const id = pushTapID()
+  dispatch.enqueue('keybase://convid/switched-tap', {pushTapID: id, targetUid: 'target-uid'})
+
+  dispatch.enqueue('keybase://incoming-share')
+
+  expect(useNavigationIntentsState.getState().intent).toMatchObject({url: 'keybase://incoming-share'})
+  expect(ack).toHaveBeenCalledWith(id)
 })

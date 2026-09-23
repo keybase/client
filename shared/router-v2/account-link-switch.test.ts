@@ -18,8 +18,8 @@ const noSecretAccount = {hasStoredSecret: false, uid: 'uid-nosecret', username: 
 const allAccounts = [currentAccount, otherAccount, noSecretAccount]
 
 // A push tap's id must not repeat across tests any more than it does across taps, so every call
-// here gets a fresh one; the ack RPC stays mocked until cleanup has acknowledged a still-pending
-// intent, so that acknowledgement makes no real RPC call.
+// here gets a fresh one. Native ackPushTap is mocked, so cleanup acknowledging a still-pending
+// intent lands on the mock.
 let nextTapID = 9000
 const tapFor = (uid: string) =>
   enqueuePushTapRoute({id: ++nextTapID, targetUid: uid, url: 'keybase://convid/0000ab'})

@@ -6,6 +6,7 @@ import {isValidConversationIDKey, stringToConversationIDKey} from '@/constants/t
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
+import {useRouterState} from '@/stores/router'
 import {usePushState} from '@/stores/push'
 import type {LinkingOptions} from '@react-navigation/native'
 import type {RootParamList} from './route-params'
@@ -95,6 +96,19 @@ export const isHandledByLinkingConfig = (url: string): boolean => {
 
 const navigationIntentLifetimeMs = 5 * 60_000
 
+type TopRoute = {name?: string; params?: {conversationIDKey?: string}}
+
+// A tapped chat push for the conversation already on top has nowhere to go: navigating resets the
+// root state, remounting the thread and every tab stack.
+const isTapForOpenConversation = (intent: {pushTapID?: number; url: string}) => {
+  const prefix = 'keybase://convid/'
+  if (intent.pushTapID === undefined || !intent.url.startsWith(prefix)) return false
+  const conversationIDKey = intent.url.slice(prefix.length).split('/')[0]
+  const navState = useRouterState.getState().navState as {routes?: ReadonlyArray<TopRoute>} | undefined
+  const top = navState?.routes?.at(-1)
+  return top?.name === 'chatConversation' && top.params?.conversationIDKey === conversationIDKey
+}
+
 // The router owns consumption. Producers can enqueue before this subscription
 // exists, during an account switch, or before NavigationContainer is ready.
 // Every dispatch.acknowledge below -- whether the intent is actually navigated or given up on as
@@ -131,7 +145,9 @@ export const subscribeNavigationIntents = (
       // This split only differs on mobile: desktop passes handleAppLink as both
       // arguments (router.tsx), so every URL there lands in handleKeybaseLink,
       // which must therefore stay correct for URLs the config also handles.
-      if (intent.url.startsWith('keybase://profile/')) {
+      if (isTapForOpenConversation(intent)) {
+        logger.info('[PushTap] conversation already open, not navigating')
+      } else if (intent.url.startsWith('keybase://profile/')) {
         handleAppLink(intent.url)
       } else if (isHandledByLinkingConfig(intent.url)) {
         listener(intent.url)
