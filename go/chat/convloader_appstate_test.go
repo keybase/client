@@ -182,7 +182,10 @@ type pullBlocker struct {
 	types.ConversationSource
 	oldUID  gregor1.UID
 	started chan struct{}
-	release chan struct{}
+	// the old user's conversation can be pulled more than once (a retry),
+	// so started is closed only on the first
+	startedOnce sync.Once
+	release     chan struct{}
 
 	mu   sync.Mutex
 	uids []gregor1.UID
@@ -196,7 +199,7 @@ func (p *pullBlocker) Pull(ctx context.Context, convID chat1.ConversationID, uid
 	p.uids = append(p.uids, uid)
 	p.mu.Unlock()
 	if uid.Eq(p.oldUID) {
-		close(p.started)
+		p.startedOnce.Do(func() { close(p.started) })
 		<-p.release
 		return chat1.ThreadView{}, context.Canceled
 	}
