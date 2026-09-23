@@ -102,11 +102,18 @@ describe('app lifecycle: app state', () => {
 
       const snap = await waitForAppState('active')
       expect(snap.screen?.params?.['conversationIDKey']).toBe(convID)
-      // A background-fetch task (go/bind/keybase.go's BackgroundSync, run from a BGAppRefreshTask)
-      // can legitimately flip Go BACKGROUND -> BACKGROUNDACTIVE -> BACKGROUND again during the
-      // 10s window above; drop those extra flips and require only that the app reached
-      // BACKGROUND, then later FOREGROUND, exactly once each and in order.
-      expect(goAppStateUpdates(goMark).filter(s => s !== 'BACKGROUNDACTIVE')).toEqual(['BACKGROUND', 'FOREGROUND'])
+      // A background-fetch task (go/bind/keybase.go:956-998's BackgroundSync, run from a
+      // BGAppRefreshTask) can flip BACKGROUND -> BACKGROUNDACTIVE and, on its own ~10s timer --
+      // the same length as the pause above -- back to BACKGROUND again. So once BACKGROUNDACTIVE
+      // entries are dropped, BACKGROUND can legitimately repeat too (e.g.
+      // ['BACKGROUND', 'BACKGROUND', 'FOREGROUND']), not just appear once. Require only that the
+      // app actually reached BACKGROUND at some point, that the sequence ends at FOREGROUND, and
+      // that no FOREGROUND landed before the last BACKGROUND (so a stray return trip can't hide
+      // inside the tolerance).
+      const updates = goAppStateUpdates(goMark).filter(s => s !== 'BACKGROUNDACTIVE')
+      expect(updates).toContain('BACKGROUND')
+      expect(updates.at(-1)).toBe('FOREGROUND')
+      expect(updates.indexOf('FOREGROUND')).toBeGreaterThan(updates.lastIndexOf('BACKGROUND'))
       // JS's own listener has been mounted since well before this test started, so unlike the
       // cold-launch case there's no race with subscribing: it must see the same round trip
       // directly from native (constants/init/shared.tsx's onNativeAppLifecycle), independent of
