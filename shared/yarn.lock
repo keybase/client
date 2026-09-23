@@ -3585,47 +3585,47 @@
     invariant "^2.2.4"
     nullthrows "^1.1.1"
 
-"@react-navigation/bottom-tabs@8.0.0-alpha.53":
-  version "8.0.0-alpha.53"
-  resolved "https://registry.yarnpkg.com/@react-navigation/bottom-tabs/-/bottom-tabs-8.0.0-alpha.53.tgz#9dc3b2b2b2df748f42b37c662bd2a76ad3039e17"
-  integrity sha512-M4BjOBjcFko3irVbYx31kjujJyVQrWEqfCLaubV3arZRbIfg3PqfAbTWXbW5nIgQBifNR5Z6wG+N4tkmycvEpg==
+"@react-navigation/bottom-tabs@8.0.0-alpha.54":
+  version "8.0.0-alpha.54"
+  resolved "https://registry.yarnpkg.com/@react-navigation/bottom-tabs/-/bottom-tabs-8.0.0-alpha.54.tgz#79893d2acad3c80f07ddab77bdfbd3069a253f9e"
+  integrity sha512-6CsnkcjHZTope3Zio0BbBYj/mGndTiBq4zHhx0dX4GSVLMMMkTbO/ob+2ocDROymdNs6lfxOFT8QDTt4NkbgEw==
   dependencies:
-    "@react-navigation/elements" "^3.0.0-alpha.51"
+    "@react-navigation/elements" "^3.0.0-alpha.52"
 
-"@react-navigation/core@8.0.0-alpha.37", "@react-navigation/core@^8.0.0-alpha.37":
-  version "8.0.0-alpha.37"
-  resolved "https://registry.yarnpkg.com/@react-navigation/core/-/core-8.0.0-alpha.37.tgz#a1bdaa6e36d152418bfb140c667c7584c2369472"
-  integrity sha512-VOypZmf9aPJ0x55KYPrKOvXUc3znEUehcqAmElWKoCE9rZ+z4RJCX6RxLobDdFv/ew2y/vin+d+2gUiTr2nbrQ==
+"@react-navigation/core@8.0.0-alpha.38", "@react-navigation/core@^8.0.0-alpha.38":
+  version "8.0.0-alpha.38"
+  resolved "https://registry.yarnpkg.com/@react-navigation/core/-/core-8.0.0-alpha.38.tgz#8588b92d7bdb6e94e6aa724098d9ae63e970eed0"
+  integrity sha512-9zpboNsxzb8ZMZnPXbzD1fdwzRu/clv3erPDTzjSyGlWLiHrtI8mY+S13iUpQTosJhTdrOo7Vio1YSUCltaK1A==
   dependencies:
-    "@react-navigation/routers" "^8.0.0-alpha.17"
+    "@react-navigation/routers" "^8.0.0-alpha.18"
     fast-deep-equal "^3.1.3"
     react-is "^19.2.6"
     use-latest-callback "^0.3.5"
     warn-once "^0.1.1"
 
-"@react-navigation/elements@^3.0.0-alpha.51":
-  version "3.0.0-alpha.51"
-  resolved "https://registry.yarnpkg.com/@react-navigation/elements/-/elements-3.0.0-alpha.51.tgz#0ea322ddab7e16ac562aa4044734ebd7a0740882"
-  integrity sha512-IYw0cQHmJHRVgtVIWWR3Z6H4tzvR/VfHLUwlDgjqatvT2f7KnGjkp5bLeTCstMnpCpJMu05OhKbr28JF7MW2qw==
+"@react-navigation/elements@^3.0.0-alpha.52":
+  version "3.0.0-alpha.52"
+  resolved "https://registry.yarnpkg.com/@react-navigation/elements/-/elements-3.0.0-alpha.52.tgz#3dc4b65f97dccf67be5e8c1fb0ca68fa60b36ac4"
+  integrity sha512-EuYXByNrIP25rj90V+H2Km5H+yvsxjq9fJA/VJJUzmJWBL6/HLFV09cA46aJ6ehrNEFmOse2FNwiPFch5sA1aw==
   dependencies:
     sf-symbols-typescript "^2.2.0"
     use-latest-callback "^0.3.5"
     use-sync-external-store "^1.6.0"
 
-"@react-navigation/native-stack@8.0.0-alpha.55":
-  version "8.0.0-alpha.55"
-  resolved "https://registry.yarnpkg.com/@react-navigation/native-stack/-/native-stack-8.0.0-alpha.55.tgz#b5945ce3624e2db28e54cdc8c6b570d1b11639e1"
-  integrity sha512-cQFIxaJ2Nur7J83DbK4oCMrOJRoguVI1qks7a8A4e9+i20shaaY4VZTmgTy1m3+Z3hD61Q3T44jY6zB55SmlMw==
+"@react-navigation/native-stack@8.0.0-alpha.56":
+  version "8.0.0-alpha.56"
+  resolved "https://registry.yarnpkg.com/@react-navigation/native-stack/-/native-stack-8.0.0-alpha.56.tgz#5e8226710f013f9eb0b6e95ef418e0d0f0f2f453"
+  integrity sha512-Miu+PPKdon3Z0aIRqZfrShUSo+Vs1loV4PILWo5hDeXg2kRIBXfjdaEPFU5Txt0DHCtBBFKKJ6+tfkWBerfISg==
   dependencies:
-    "@react-navigation/elements" "^3.0.0-alpha.51"
+    "@react-navigation/elements" "^3.0.0-alpha.52"
     warn-once "^0.1.1"
 
-"@react-navigation/native@8.0.0-alpha.47":
-  version "8.0.0-alpha.47"
-  resolved "https://registry.yarnpkg.com/@react-navigation/native/-/native-8.0.0-alpha.47.tgz#c4ceacbaef4fa041a357b2d5e87f736e381f5b86"
-  integrity sha512-8E41dI8BNIxlcDeY6J+lCHU0L/Z8l7NqSxZLhk776XvX+Y9AlJ9bl1AHfKmERxBuX/MUky+UlS/yjLJp/aIGCg==
+"@react-navigation/native@8.0.0-alpha.48":
+  version "8.0.0-alpha.48"
+  resolved "https://registry.yarnpkg.com/@react-navigation/native/-/native-8.0.0-alpha.48.tgz#09ab0463a3f5ca03e059c9577ae111a35523f48c"
+  integrity sha512-oeZOef2wQp/b5zdRYjjdJ14ZOA8acjX57dLiYvv80pcTqAjLcaL3cdDfeokko4UTPKN9BruYbL8o/rBb07BAjQ==
   dependencies:
-    "@react-navigation/core" "^8.0.0-alpha.37"
+    "@react-navigation/core" "^8.0.0-alpha.38"
     escape-string-regexp "^5.0.0"
     fast-deep-equal "^3.1.3"
     nanoid "^5.1.11"
@@ -3634,10 +3634,10 @@
     use-latest-callback "^0.3.5"
     warn-once "^0.1.1"
 
-"@react-navigation/routers@^8.0.0-alpha.17":
-  version "8.0.0-alpha.17"
-  resolved "https://registry.yarnpkg.com/@react-navigation/routers/-/routers-8.0.0-alpha.17.tgz#264330ea424c91864c36e2997a0361da8d75dc7c"
-  integrity sha512-Cj1XAzTOSqNmvK/KdGCa2cjjoW8dO7LWsBtxPgcbIoLs2hlPkEuX1xSWiHnjeBHBpRowm9JXXzqRkQ5/V30N4w==
+"@react-navigation/routers@^8.0.0-alpha.18":
+  version "8.0.0-alpha.18"
+  resolved "https://registry.yarnpkg.com/@react-navigation/routers/-/routers-8.0.0-alpha.18.tgz#13d5bad3172d1def0ba2b22baad3655c14b05643"
+  integrity sha512-uCSInNltzMc7moYlce9km8xw0qk/F7NIMxwsZK7GGNbsiodLSdUCNLWW6nRTYNxiS7YlNV7kHPbRyS/Syncnuw==
   dependencies:
     nanoid "^5.1.11"
 
@@ -6687,10 +6687,10 @@ electron-to-chromium@^1.5.402:
   resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.415.tgz#edd7356bfb4752a12c8293f8e38a00778b13bbb4"
   integrity sha512-958V+Kbhtgz+SxXeEVKBjrlKRBIDAYvUJfwhjxMZ5S6ut9jAl7l9ZKBkBrvjyjZE36PabLUo2L8kEeV5O4vgJg==
 
-electron@44.4.3:
-  version "44.4.3"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-44.4.3.tgz#e4f7be5cb42324b8c08c34b957063cc6dccbe26d"
-  integrity sha512-LTpSFTB40qVCXIX5xMo+cgHI/Jjkbjw7VpB26PccEbroqOn72LBukeaDwPVo1fBYzSzs0c9iPuAucFCO7Tw81Q==
+electron@44.4.5:
+  version "44.4.5"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-44.4.5.tgz#0be094f8e783febba75d591106f5c61c1e511b70"
+  integrity sha512-SjgoaeYsSWZfJzubgQU7juvuXMTvn6/e1gAHdGFA/yuMbpF+I+skYqIJ6DdXBXHeWbkbpNpmwZCTpiivtlWZSw==
   dependencies:
     "@electron-internal/extract-zip" "^1.0.1"
     "@electron/get" "^5.0.0"
@@ -12165,10 +12165,10 @@ serialize-error@^2.1.0:
   resolved "https://registry.yarnpkg.com/serialize-error/-/serialize-error-2.1.0.tgz#50b679d5635cdf84667bdc8e59af4e5b81d5f60a"
   integrity sha512-ghgmKt5o4Tly5yEG/UJp8qTd0AN7Xalw4XBtDEKP655B699qMEtra1WlXeE6WIvdEG481JvRxULKsInq/iNysw==
 
-serialize-javascript@7.1.1, serialize-javascript@^6.0.2:
-  version "7.1.1"
-  resolved "https://registry.yarnpkg.com/serialize-javascript/-/serialize-javascript-7.1.1.tgz#c3b0a7ac13df6cf2fcda71cbb142ba9392a710b9"
-  integrity sha512-k3CMsaIvvdSwm8oLB4MXSl0wH2/cwlH7xGcnRd2DaeRmBkbzYmyT8j0tsX60DwD1eRwHTpNpH8ljKu9oUT1MeQ==
+serialize-javascript@7.1.2, serialize-javascript@^6.0.2:
+  version "7.1.2"
+  resolved "https://registry.yarnpkg.com/serialize-javascript/-/serialize-javascript-7.1.2.tgz#0161010a0815dd7b7e011cbc5a3644850b8c2289"
+  integrity sha512-GL2BWwVa6JydKO6l/ljVgjAZF4QJ3S7dWDWi53s5GZT8PJzD2fNxi67HANQGKAqPrwEpL5ba7gUBGi0Ls/sEoQ==
 
 serve-favicon@2.5.1:
   version "2.5.1"

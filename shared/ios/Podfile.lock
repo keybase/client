@@ -2186,7 +2186,7 @@ PODS:
     - React-utils (= 0.86.3)
     - ReactNativeDependencies
   - ReactNativeDependencies (0.86.3)
-  - ReactNavigation (8.0.0-alpha.47):
+  - ReactNavigation (8.0.0-alpha.48):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -3006,7 +3006,7 @@ SPEC CHECKSUMS:
   ReactCodegen: 64e64ffc25f418a6fc794c307f874da090e20345
   ReactCommon: 02f6a489d5eb4ab79d7deba5cd4434e0ba351a07
   ReactNativeDependencies: 6738e602b46fd24aa453cd58267ec3bb8bf29d27
-  ReactNavigation: d8d1b5c0053bf30ccfaee7ed09cac2afefb824ea
+  ReactNavigation: 7afb89f5086b2c5804e530fa64c3231495523d14
   RNCMaskedView: 8069b4d4e23b3d28b4fcac70bf266be43ffc3d2e
   RNCPicker: a3921be99ae291e420e3e8940e5b2b53e572c543
   RNGestureHandler: 85e32defcf23dd3b023356355c5c1dd1d9d51bde
