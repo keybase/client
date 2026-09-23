@@ -20,9 +20,10 @@ import (
 // written: each is decoded inside the transport's Write, so it is recorded
 // before the send returns.
 type NotifyRecorder struct {
-	ID     ConnectionID
-	conn   *recorderConn
-	closed chan error
+	ID        ConnectionID
+	conn      *recorderConn
+	closed    chan error
+	closeOnce sync.Once
 }
 
 // RecordedNotify is one notification or call a NotifyRecorder saw.
@@ -63,10 +64,13 @@ func (r *NotifyRecorder) Messages() []RecordedNotify {
 	return append([]RecordedNotify(nil), r.conn.msgs...)
 }
 
-// Close closes the connection, which removes it from the router.
+// Close closes the connection, which removes it from the router. It is safe
+// to call more than once.
 func (r *NotifyRecorder) Close() {
-	_ = r.conn.Close()
-	r.closed <- io.EOF
+	r.closeOnce.Do(func() {
+		_ = r.conn.Close()
+		r.closed <- io.EOF
+	})
 }
 
 type recorderConn struct {
