@@ -1,5 +1,6 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
+import logger from '@/logger'
 import {ignorePromise} from '@/constants/utils'
 import {maxHandshakeTries} from '@/constants/values'
 import {resetAllStores} from '@/util/zustand'
@@ -145,5 +146,171 @@ describe('daemon store', () => {
     expect(store.getState().error).toBe(undefined)
     expect(store.getState().handshakeFailedReason).toBe('')
     expect(store.getState().handshakeRetriesLeft).toBe(maxHandshakeTries)
+  })
+
+  test('resetState keeps the handshake generation: it counts connections, not accounts', () => {
+    jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockResolvedValue(bootstrapStatus)
+    const {dispatch} = useDaemonState.getState()
+    dispatch.initBootstrapSteps([])
+    dispatch.startHandshake()
+    dispatch.startHandshake()
+    const gen = useDaemonState.getState().handshakeGeneration
+
+    dispatch.resetState()
+
+    expect(gen).toBeGreaterThan(0)
+    expect(useDaemonState.getState().handshakeGeneration).toBe(gen)
+  })
+})
+
+describe('reading the session from the daemon', () => {
+  beforeEach(() => {
+    jest.useFakeTimers()
+  })
+  afterEach(() => {
+    jest.useRealTimers()
+    jest.restoreAllMocks()
+    resetAllStores()
+  })
+
+  const deferredReads = () => {
+    const replies: Array<(bs: T.RPCGen.BootstrapStatus) => void> = []
+    const spy = jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockImplementation(
+      async () =>
+        new Promise<T.RPCGen.BootstrapStatus>(resolve => {
+          replies.push(resolve)
+        })
+    )
+    return {replies, spy}
+  }
+
+  test('a refresh asks again even while a read is in flight', async () => {
+    const {spy} = deferredReads()
+    const {dispatch} = useDaemonState.getState()
+
+    ignorePromise(dispatch.loadDaemonBootstrapStatus())
+    dispatch.refreshSessionFromDaemon('test')
+    await jest.advanceTimersByTimeAsync(0)
+
+    expect(spy).toHaveBeenCalledTimes(2)
+  })
+
+  test('of two overlapping refreshes, the older reply is dropped', async () => {
+    const {replies} = deferredReads()
+    const {dispatch} = useDaemonState.getState()
+
+    dispatch.refreshSessionFromDaemon('first')
+    dispatch.refreshSessionFromDaemon('second')
+    await jest.advanceTimersByTimeAsync(0)
+    replies[1]?.({...bootstrapStatus, username: 'newer'})
+    await jest.advanceTimersByTimeAsync(0)
+    replies[0]?.({...bootstrapStatus, username: 'older'})
+    await jest.advanceTimersByTimeAsync(0)
+
+    expect(useDaemonState.getState().bootstrapStatus?.username).toBe('newer')
+  })
+
+  test('an older reply that lands first is dropped too, the newer one is coming', async () => {
+    const {replies} = deferredReads()
+    const {dispatch} = useDaemonState.getState()
+
+    dispatch.refreshSessionFromDaemon('first')
+    dispatch.refreshSessionFromDaemon('second')
+    await jest.advanceTimersByTimeAsync(0)
+    replies[0]?.({...bootstrapStatus, username: 'older'})
+    await jest.advanceTimersByTimeAsync(0)
+
+    expect(useDaemonState.getState().bootstrapStatus).toBeUndefined()
+
+    replies[1]?.({...bootstrapStatus, username: 'newer'})
+    await jest.advanceTimersByTimeAsync(0)
+
+    expect(useDaemonState.getState().bootstrapStatus?.username).toBe('newer')
+  })
+
+  test('a load superseded by a refresh settles with the refresh, so the handshake sees the newer status', async () => {
+    const {replies} = deferredReads()
+    const {dispatch} = useDaemonState.getState()
+    const seen: Array<string | undefined> = []
+    dispatch.initBootstrapSteps([
+      async () => {
+        seen.push(useDaemonState.getState().bootstrapStatus?.username)
+        return Promise.resolve()
+      },
+    ])
+
+    dispatch.startHandshake()
+    await jest.advanceTimersByTimeAsync(0)
+    dispatch.refreshSessionFromDaemon('hint')
+    await jest.advanceTimersByTimeAsync(0)
+    replies[0]?.({...bootstrapStatus, username: 'older'})
+    await jest.advanceTimersByTimeAsync(0)
+
+    expect(useDaemonState.getState().handshakeState).toBe('loading')
+
+    replies[1]?.({...bootstrapStatus, username: 'newer'})
+    await jest.advanceTimersByTimeAsync(0)
+
+    expect(seen).toEqual(['newer'])
+    expect(useDaemonState.getState().handshakeState).toBe('done')
+  })
+
+  test('a load started after a refresh joins it instead of asking again', async () => {
+    const {replies, spy} = deferredReads()
+    const {dispatch} = useDaemonState.getState()
+
+    dispatch.refreshSessionFromDaemon('hint')
+    const joined = dispatch.loadDaemonBootstrapStatus()
+    await jest.advanceTimersByTimeAsync(0)
+    replies[0]?.(bootstrapStatus)
+    await joined
+
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(useDaemonState.getState().bootstrapStatus?.username).toBe('testuser')
+  })
+
+  test('a failed refresh is logged, not thrown', async () => {
+    jest.spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise').mockRejectedValue(new Error('down'))
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
+
+    useDaemonState.getState().dispatch.refreshSessionFromDaemon('hint')
+    await jest.advanceTimersByTimeAsync(0)
+
+    expect(warn).toHaveBeenCalled()
+  })
+})
+
+describe('a superseded read', () => {
+  beforeEach(() => {
+    jest.useFakeTimers()
+  })
+  afterEach(() => {
+    jest.useRealTimers()
+    jest.restoreAllMocks()
+    resetAllStores()
+  })
+
+  test('does not write its status over the newer load', async () => {
+    // a reconnect invalidates in-flight reads: the generation orders client attempts
+    let resolveLosing!: (bs: T.RPCGen.BootstrapStatus) => void
+    jest
+      .spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise')
+      .mockReturnValueOnce(
+        new Promise<T.RPCGen.BootstrapStatus>(resolve => {
+          resolveLosing = resolve
+        })
+      )
+      .mockResolvedValue(bootstrapStatus)
+    const {dispatch} = useDaemonState.getState()
+    dispatch.initBootstrapSteps([])
+
+    const losing = dispatch.loadDaemonBootstrapStatus()
+    dispatch.startHandshake()
+    await jest.advanceTimersByTimeAsync(0)
+    resolveLosing({...bootstrapStatus, username: 'stale'})
+    await losing
+    await jest.advanceTimersByTimeAsync(0)
+
+    expect(useDaemonState.getState().bootstrapStatus?.username).toBe('testuser')
   })
 })

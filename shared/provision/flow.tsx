@@ -9,6 +9,7 @@ import {ignorePromise, wrapErrors} from '@/constants/utils'
 import {type CommonResponseHandler} from '@/engine/types'
 import {callNamed, setNamedScoped} from '@/stores/flow-handles'
 import {useConfigState} from '@/stores/config'
+import {useDaemonState} from '@/stores/daemon'
 import {useWaitingState} from '@/stores/waiting'
 import {RPCError} from '@/util/errors'
 
@@ -421,6 +422,7 @@ const runProvision = (initialUsername: string) => {
         pauseRequested = false
         try {
           await runAttempt()
+          useDaemonState.getState().dispatch.refreshSessionFromDaemon('provision login returned')
           break
         } catch (_finalError) {
           if (wasUserCancelled()) {

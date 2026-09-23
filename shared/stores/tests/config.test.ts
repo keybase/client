@@ -1,4 +1,7 @@
 /// <reference types="jest" />
+import * as T from '../../constants/types'
+import {RPCError} from '../../util/errors'
+import {useDaemonState} from '../daemon'
 import {noConversationIDKey} from '../../constants/types/chat/common'
 import {useConfigState} from '../config'
 
@@ -115,4 +118,81 @@ test('custom resetState preserves the fields config intentionally carries across
   expect(state.defaultUsername).toBe('alice')
   expect(state.userSwitching).toBe(true)
   expect(state.globalError).toBeUndefined()
+})
+
+test('logging out keeps the http server address: it belongs to the process, not the account', () => {
+  const {dispatch} = useConfigState.getState()
+  dispatch.onEngineIncoming({
+    payload: {params: {info: {address: '127.0.0.1:2', token: 'token'}}},
+    type: 'keybase.1.NotifyService.HTTPSrvInfoUpdate',
+  } as never)
+
+  dispatch.resetState()
+
+  expect(useConfigState.getState().httpSrv).toEqual({address: '127.0.0.1:2', token: 'token'})
+})
+
+test('loggedIn and loggedOut notifications do not set the session themselves', () => {
+  const {dispatch} = useConfigState.getState()
+  dispatch.onEngineIncoming({
+    payload: {params: {signedUp: false, username: 'testuser'}},
+    type: 'keybase.1.NotifySession.loggedIn',
+  } as never)
+  expect(useConfigState.getState().loggedIn).toBe(false)
+
+  dispatch.setLoggedIn(true)
+  dispatch.onEngineIncoming({payload: {params: undefined}, type: 'keybase.1.NotifySession.loggedOut'} as never)
+  expect(useConfigState.getState().loggedIn).toBe(true)
+  dispatch.setLoggedIn(false)
+})
+
+describe('login', () => {
+  const originalDaemonDispatch = useDaemonState.getState().dispatch
+  let refresh: jest.Mock
+  beforeEach(() => {
+    refresh = jest.fn()
+    useDaemonState.setState({dispatch: {...originalDaemonDispatch, refreshSessionFromDaemon: refresh}})
+  })
+  afterEach(() => {
+    jest.restoreAllMocks()
+    useDaemonState.setState({dispatch: originalDaemonDispatch})
+  })
+
+  const flush = async () => new Promise(resolve => setImmediate(resolve))
+
+  test('reads the session from the daemon when the login succeeds', async () => {
+    jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockResolvedValue(undefined)
+    useConfigState.getState().dispatch.login('testuser', 'password')
+    await flush()
+
+    expect(refresh).toHaveBeenCalledTimes(1)
+    expect(useConfigState.getState().loggedIn).toBe(false)
+    expect(useConfigState.getState().loginError).toBeUndefined()
+  })
+
+  test('reads the session from the daemon when already logged in', async () => {
+    jest
+      .spyOn(T.RPCGen, 'loginLoginRpcListener')
+      .mockRejectedValue(new RPCError('already logged in', T.RPCGen.StatusCode.scalreadyloggedin))
+    useConfigState.getState().dispatch.login('testuser', 'password')
+    await flush()
+
+    expect(refresh).toHaveBeenCalledTimes(1)
+    expect(useConfigState.getState().loggedIn).toBe(false)
+    expect(useConfigState.getState().loginError).toBeUndefined()
+  })
+
+  test('a failed switch stops switching before it reads the session, so a logged-out reply applies', async () => {
+    jest
+      .spyOn(T.RPCGen, 'loginLoginRpcListener')
+      .mockRejectedValue(new RPCError('bad password', T.RPCGen.StatusCode.scgeneric))
+    const switchingWhenRead: Array<boolean> = []
+    refresh.mockImplementation(() => switchingWhenRead.push(useConfigState.getState().userSwitching))
+    useConfigState.getState().dispatch.setUserSwitching(true)
+    useConfigState.getState().dispatch.login('testuser', 'password')
+    await flush()
+
+    expect(switchingWhenRead).toEqual([false])
+    expect(useConfigState.getState().loginError).toBeDefined()
+  })
 })

@@ -35,7 +35,10 @@ export type State = Store & {
   dispatch: {
     initBootstrapSteps: (steps: Array<BootstrapStep>) => void
     loadDaemonBootstrapStatus: () => Promise<void>
+    /** reads the session afresh, superseding any read in flight; for hints that it changed */
+    refreshSessionFromDaemon: (reason: string) => void
     resetState: () => void
+    setBootstrapStatus: (bs: T.RPCGen.BootstrapStatus) => void
     setError: (e?: Error) => void
     startHandshake: () => void
     updateUserReacjis: (userReacjis: T.RPCGen.UserReacjis) => void
@@ -49,47 +52,70 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
   // bumped on every startHandshake (engine reconnect, splash Reload) so a stale in-flight
   // run can't write results over a newer one
   let generation = 0
+  // The latest read in flight. Only the latest read's reply is applied: a read asked for later
+  // reflects every session change the service had made by then.
   let inflightBootstrapStatus: Promise<void> | undefined
+  let readSeq = 0
+
+  const readBootstrapStatus = async () => {
+    const gen = generation
+    const seq = ++readSeq
+    const f = async (): Promise<void> => {
+      const bs = await T.RPCGen.configGetBootstrapStatusRpcPromise()
+      logger.info(
+        `[Bootstrap] loggedIn: ${bs.loggedIn ? 1 : 0} http: ${bs.httpSrvInfo ? bs.httpSrvInfo.address : 'none'}`
+      )
+      // a newer handshake owns the store now; don't write a potentially older status over its load
+      if (gen !== generation) {
+        return
+      }
+      if (seq !== readSeq) {
+        // superseded: settle with the newer read, so a caller awaiting this one sees its status
+        return inflightBootstrapStatus
+      }
+      if (isEqual(bs, get().bootstrapStatus)) {
+        return
+      }
+      set(s => {
+        s.bootstrapStatus = T.castDraft(bs)
+      })
+    }
+    const p = f().finally(() => {
+      if (inflightBootstrapStatus === p) {
+        inflightBootstrapStatus = undefined
+      }
+    })
+    inflightBootstrapStatus = p
+    return p
+  }
 
   const dispatch: State['dispatch'] = {
     initBootstrapSteps: steps => {
       bootstrapSteps = steps
     },
-    loadDaemonBootstrapStatus: async () => {
-      if (inflightBootstrapStatus) {
-        return inflightBootstrapStatus
-      }
-      const gen = generation
-      const f = async () => {
-        const bs = await T.RPCGen.configGetBootstrapStatusRpcPromise()
-        logger.info(
-          `[Bootstrap] loggedIn: ${bs.loggedIn ? 1 : 0} http: ${bs.httpSrvInfo ? bs.httpSrvInfo.address : 'none'}`
-        )
-        // a newer handshake owns the store now; don't write a potentially older status over its load
-        if (gen !== generation || isEqual(bs, get().bootstrapStatus)) {
-          return
-        }
-        set(s => {
-          s.bootstrapStatus = T.castDraft(bs)
-        })
-      }
-      const p = f()
-      inflightBootstrapStatus = p
-      try {
-        await p
-      } finally {
-        if (inflightBootstrapStatus === p) {
-          inflightBootstrapStatus = undefined
-        }
-      }
+    loadDaemonBootstrapStatus: async () => inflightBootstrapStatus ?? readBootstrapStatus(),
+    refreshSessionFromDaemon: reason => {
+      logger.info(`[Bootstrap] reading the session: ${reason}`)
+      readBootstrapStatus().catch((error: unknown) => {
+        logger.warn('[Bootstrap] reading the session failed:', error)
+      })
     },
     resetState: () => {
       set(s => ({
         ...s,
         ...initialStore,
         dispatch: s.dispatch,
+        // Both track the connection, not the account, and the closure counter behind the
+        // generation keeps climbing across a reset: zeroing the copy here would make the live
+        // connection's own in-flight work look superseded by a logout that happened under it.
+        handshakeGeneration: s.handshakeGeneration,
         handshakeState: s.handshakeState,
       }))
+    },
+    setBootstrapStatus: bs => {
+      set(s => {
+        s.bootstrapStatus = T.castDraft(bs)
+      })
     },
     setError: e => {
       if (e) {

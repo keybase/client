@@ -78,8 +78,7 @@ type Keybase1IncomingAction =
   'keybase.1.NotifyFS.FSActivity' |
   'keybase.1.NotifySession.loggedOut' |
   'keybase.1.NotifyTracking.trackingChanged' |
-  'keybase.1.NotifyUsers.userChanged' |
-  'keybase.1.reachability.reachabilityChanged'
+  'keybase.1.NotifyUsers.userChanged'
 
 type Keybase1IncomingActionMap<K extends keybase1Types.MessageKey> = {
   [P in K]: {readonly params: keybase1Types.RpcIn<P>}
