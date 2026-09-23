@@ -135,6 +135,17 @@ describe('app lifecycle: push notifications', () => {
   // Every tap JS took. A push that was not tapped produces none.
   const tapLines = (lines: Array<string>) => findLines(lines, /\[PushTap\] took a tap link: /)
 
+  // An empty tapLines result only proves something if the window it's read from definitely
+  // captured JS's live console output; a quiet Metro socket or a JS runtime that never ran would
+  // pass the same empty check for the wrong reason. console.log goes through the same
+  // remote-console path logger.info does (see shared/logger/ring-logger.tsx), so a marker dropped
+  // this way is captured by metroClientLogSince exactly like any real log line would be.
+  const logMarker = async (): Promise<RegExp> => {
+    const token = `e2e-marker-${Date.now()}-${Math.random().toString(36).slice(2)}`
+    await jsEval(`console.log(${JSON.stringify(token)}); return true`)
+    return new RegExp(token)
+  }
+
   before(async () => {
     const user = requireSmokeUser()
     await waitForAppState('active')
@@ -148,11 +159,16 @@ describe('app lifecycle: push notifications', () => {
     await waitForAppState('active')
     await navigateToPeople()
     const metroMark = metroLogMark()
+    // The app never leaves the foreground in this test, so there's no natural event (like a
+    // background/foreground transition) to prove the log window is live; drop one explicitly.
+    const marker = await logMarker()
     const body = `e2e-push-foreground-${Date.now()}`
     sendPush(pushFor(body))
 
     await browser.pause(5000)
-    expect(tapLines(metroClientLogSince(metroMark))).toEqual([])
+    const lines = metroClientLogSince(metroMark)
+    expect(findLines(lines, marker).length).toBeGreaterThan(0)
+    expect(tapLines(lines)).toEqual([])
     expect((await appSnapshot()).screen?.name).not.toBe('chatConversation')
   })
 
@@ -174,7 +190,12 @@ describe('app lifecycle: push notifications', () => {
     await waitForAppState('active')
     await browser.pause(3000)
     expect((await appSnapshot()).screen?.name).not.toBe('chatConversation')
-    expect(tapLines(metroClientLogSince(metroMark))).toEqual([])
+    const lines = metroClientLogSince(metroMark)
+    // Reactivating always logs "app focus changed: active" (constants/init/index.tsx); requiring
+    // it first proves this window captured JS's live output, so an empty tapLines below means no
+    // tap happened rather than a JS runtime that silently never resumed logging.
+    expect(findLines(lines, /app focus changed: active$/).length).toBeGreaterThan(0)
+    expect(tapLines(lines)).toEqual([])
   })
 
   it('tapping a push shown in the background opens its conversation', async () => {

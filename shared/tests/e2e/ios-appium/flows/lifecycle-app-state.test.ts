@@ -87,6 +87,7 @@ describe('app lifecycle: app state', () => {
     try {
       const pid = appPid()
       const goMark = goLogMark()
+      const metroMark = metroLogMark()
       await backgroundApp()
       // resignActive reports BACKGROUNDACTIVE before didEnterBackground drops to BACKGROUND.
       await waitForLinesInOrder('Go to go to the background', () => goLogSince(goMark), [
@@ -101,9 +102,20 @@ describe('app lifecycle: app state', () => {
 
       const snap = await waitForAppState('active')
       expect(snap.screen?.params?.['conversationIDKey']).toBe(convID)
-      // Go's transitions are deduped, so the two waits above and below can't be told apart by
-      // pattern alone; read the whole ordered sequence back instead of re-matching a live regex.
-      expect(goAppStateUpdates(goMark)).toEqual(['BACKGROUNDACTIVE', 'BACKGROUND', 'BACKGROUNDACTIVE', 'FOREGROUND'])
+      // A background-fetch task (go/bind/keybase.go's BackgroundSync, run from a BGAppRefreshTask)
+      // can legitimately flip Go BACKGROUND -> BACKGROUNDACTIVE -> BACKGROUND again during the
+      // 10s window above; drop those extra flips and require only that the app reached
+      // BACKGROUND, then later FOREGROUND, exactly once each and in order.
+      expect(goAppStateUpdates(goMark).filter(s => s !== 'BACKGROUNDACTIVE')).toEqual(['BACKGROUND', 'FOREGROUND'])
+      // JS's own listener has been mounted since well before this test started, so unlike the
+      // cold-launch case there's no race with subscribing: it must see the same round trip
+      // directly from native (constants/init/shared.tsx's onNativeAppLifecycle), independent of
+      // Go's app-state machine. A second device is attached to the same Metro server for the
+      // send below, so this only checks containment (not an exact sequence) in case its own,
+      // unrelated activity lands in the same shared log window.
+      const jsStates = findLines(metroClientLogSince(metroMark), /\[AppState\] native: /)
+      expect(jsStates.some(l => l.endsWith('background'))).toBe(true)
+      expect(jsStates.at(-1)).toMatch(/\[AppState\] native: active$/)
       await waitForAvatar200(user)
 
       // The message sent from the other device while this one was in the background.
