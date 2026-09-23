@@ -136,6 +136,15 @@ describe('ProvisionWaitingOverlay', () => {
     expect(mockPauseProvision).toHaveBeenCalled()
   })
 
+  test('a native back/swipe dismissal while waiting pauses the flow', () => {
+    render(<ProvisionWaitingOverlay />)
+    expect(beforeRemove).toBeDefined()
+
+    startWaiting()
+    beforeRemove?.({data: {action: {type: 'REMOVE'}}})
+    expect(mockPauseProvision).toHaveBeenCalled()
+  })
+
   test('a non-back removal (e.g. login success unmounting the stack) does not pause', () => {
     render(<ProvisionWaitingOverlay />)
     expect(beforeRemove).toBeDefined()

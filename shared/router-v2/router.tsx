@@ -340,13 +340,10 @@ const tabStackOptions = ({
   navigation: {getState: () => {routes: ReadonlyArray<{key: string}>}}
   route: {key: string}
 }): NativeStackNavigationOptions => {
-  // Ask THIS stack, not canGoBack(): canGoBack delegates to the parent navigators
-  // (@react-navigation/core useNavigationHelpers), and on a phone each tab stack holds
-  // only its root screen, so it always answered about the root stack instead. Anything
-  // pushed above the tabs then made every tab root look pushed, and since options are
-  // only recomputed when the tab stack re-renders, the avatar stayed gone after the
-  // push was popped — until some unrelated re-render (badge, theme) happened to land
-  // at depth 1.
+  // Ask THIS stack, not canGoBack(): canGoBack bubbles up to the parent navigators, so it
+  // answers "can anything go back" rather than "is this the tab root". Options are only
+  // recomputed when the tab stack re-renders, so a wrong answer stranded the avatar
+  // until some unrelated re-render (badge, theme) happened to land at depth 1.
   const isRoot = navigation.getState().routes[0]?.key === route.key
   return {
     ...Common.defaultNavigationOptions,
