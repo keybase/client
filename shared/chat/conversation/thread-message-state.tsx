@@ -150,16 +150,6 @@ const maybeGetOrdinalByMessageID = (
 const keepUrl = (next: string | undefined, prev: string | undefined) =>
   next?.startsWith('http://') ? next : prev ?? next
 
-const mergeReactions = (
-  cur: Map<string, T.Chat.ReactionDesc>,
-  val: Map<string, T.Chat.ReactionDesc>
-) => {
-  for (const [emoji, incoming] of val) {
-    const existing = cur.get(emoji)
-    cur.set(emoji, {...incoming, decorated: keepUrl(incoming.decorated, existing?.decorated) ?? incoming.decorated})
-  }
-}
-
 const mergeMessage = (
   existing: WritableDraft<T.Chat.Message>,
   incoming: WritableDraft<T.Chat.Message>
@@ -181,12 +171,8 @@ const mergeMessage = (
             ;(cur as Map<unknown, unknown>).delete(k)
           }
         }
-        if (key === 'reactions') {
-          mergeReactions(cur as Map<string, T.Chat.ReactionDesc>, val as Map<string, T.Chat.ReactionDesc>)
-        } else {
-          for (const [k, v] of val as Map<unknown, unknown>) {
-            ;(cur as Map<unknown, unknown>).set(k, v)
-          }
+        for (const [k, v] of val as Map<unknown, unknown>) {
+          ;(cur as Map<unknown, unknown>).set(k, v)
         }
       } else {
         existingRecord[key] = val

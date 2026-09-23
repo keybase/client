@@ -680,7 +680,6 @@ describe('addMessagesToThreadState', () => {
 // field only ever takes an incoming value that actually looks like one.
 describe('local server urls', () => {
   const attachmentOrdinal = T.Chat.numberToOrdinal(201)
-  const reactionOrdinal = ordinal
   const validUrl = 'http://127.0.0.1:1234/at?key=abc'
   const garbageUrl = '&prev=false&noanim=true'
 
@@ -705,13 +704,6 @@ describe('local server urls', () => {
       make: (url: string) => makeAttachmentMessage({previewURL: url}),
       read: (state: WritableConversationThreadMessageState) =>
         (state.messageMap.get(attachmentOrdinal) as T.Chat.MessageAttachment).previewURL,
-    },
-    {
-      field: 'emoji src',
-      make: (url: string) =>
-        makeTextMessage({reactions: new Map([[':party:', {decorated: url, users: [{timestamp: 1, username: 'testuser'}]}]])}),
-      read: (state: WritableConversationThreadMessageState) =>
-        (state.messageMap.get(reactionOrdinal) as T.Chat.MessageText).reactions?.get(':party:')?.decorated,
     },
   ])('$field: empty or garbage keeps the existing value, a real url replaces it', ({make, read}) => {
     const empty = makeThreadState([])
