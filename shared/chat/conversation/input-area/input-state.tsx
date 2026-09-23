@@ -12,6 +12,7 @@ import {
   useInputIntentState,
   type InputIntent,
 } from '../input-intent-store'
+import type {SuppressSnapshot} from '../unfurl-preview-state'
 
 type ConversationInputStore = T.Immutable<{
   commandMarkdown?: T.RPCChat.UICommandMarkdown
@@ -27,7 +28,7 @@ type ConversationInputStore = T.Immutable<{
 type ConversationInputDispatch = {
   injectIntoInput: (text?: string, focus?: boolean) => void
   resetState: () => void
-  sendComposerText: (text: string) => void
+  sendComposerText: (text: string, unfurlSuppress?: SuppressSnapshot) => void
   sendGiphyResult: (result: T.RPCChat.GiphySearchResult) => void
   setCommandMarkdown: (md?: T.RPCChat.UICommandMarkdown) => void
   setCommandStatusInfo: (info?: T.Chat.CommandStatusInfo) => void
@@ -198,11 +199,12 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
       logger.error(`[chat] setEditing ignored ordinal ${ordinal}: message is ${message?.type ?? 'missing'}`)
     }
   })
-  const sendComposerText = React.useEffectEvent((text: string) => {
+  const sendComposerText = React.useEffectEvent((text: string, unfurlSuppress?: SuppressSnapshot) => {
     sendMessage(text, {
       editingOrdinal: state.editing,
       onRestoreText: injectIntoInput,
       replyToOrdinal: state.replyTo,
+      unfurlSuppress,
     })
     dispatchState({type: 'afterSend'})
   })

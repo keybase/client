@@ -272,6 +272,9 @@ protocol local {
 
   record SenderSendOptions {
      union { null, ConversationMemberStatus } joinMentionsAs;
+     // urls the sender chose not to unfurl; rides the outbox record so a message that
+     // waits offline still carries them when it finally sends
+     array<string> unfurlSuppress;
   }
 
   enum OutboxStateType {
@@ -829,7 +832,7 @@ protocol local {
 
   OutboxID generateOutboxID();
   @timeout_msec(30000) // 30 seconds
-  PostLocalNonblockRes postLocalNonblock(int sessionID, ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev, union { null, OutboxID } outboxID, union { null, MessageID }  replyTo, keybase1.TLFIdentifyBehavior identifyBehavior, boolean skipInChatPayments);
+  PostLocalNonblockRes postLocalNonblock(int sessionID, ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev, union { null, OutboxID } outboxID, union { null, MessageID }  replyTo, keybase1.TLFIdentifyBehavior identifyBehavior, boolean skipInChatPayments, array<string> unfurlSuppress);
   record PostLocalNonblockRes {
     array<RateLimit> rateLimits;
     OutboxID outboxID;
@@ -841,7 +844,7 @@ protocol local {
   PostLocalNonblockRes forwardMessageNonblock(int sessionID, ConversationID srcConvID, ConversationID dstConvID, MessageID msgID, keybase1.TLFIdentifyBehavior identifyBehavior, string title);
 
   @timeout_msec(30000) // 30 seconds
-  PostLocalNonblockRes postTextNonblock(int sessionID, ConversationID conversationID, string tlfName, boolean tlfPublic, string body, MessageID clientPrev, union { null, MessageID } replyTo, union { null, OutboxID } outboxID, keybase1.TLFIdentifyBehavior identifyBehavior, union {null, gregor1.DurationSec} ephemeralLifetime);
+  PostLocalNonblockRes postTextNonblock(int sessionID, ConversationID conversationID, string tlfName, boolean tlfPublic, string body, MessageID clientPrev, union { null, MessageID } replyTo, union { null, OutboxID } outboxID, keybase1.TLFIdentifyBehavior identifyBehavior, union {null, gregor1.DurationSec} ephemeralLifetime, array<string> unfurlSuppress);
 
   @timeout_msec(30000) // 30 seconds
   PostLocalNonblockRes postDeleteNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic, MessageID supersedes,MessageID clientPrev, union { null, OutboxID } outboxID,  keybase1.TLFIdentifyBehavior identifyBehavior);
@@ -1242,6 +1245,16 @@ protocol local {
   void resolveUnfurlPrompt(ConversationID convID, MessageID msgID, UnfurlPromptResult result, keybase1.TLFIdentifyBehavior identifyBehavior);
   UnfurlSettingsDisplay getUnfurlSettings();
   void saveUnfurlSettings(UnfurlMode mode, array<string> whitelist);
+
+  record UnfurlPreviewInfo {
+    string url;
+    // null when the url could not be scraped or packaged. the client suppresses those
+    // urls on send, so the preview it showed is exactly what the message unfurls
+    union { null, UnfurlDisplay } unfurl;
+  }
+
+  @timeout_msec(15000)
+  array<UnfurlPreviewInfo> unfurlPreviewLocal(ConversationID convID, string text);
 
   void toggleMessageCollapse(ConversationID convID, MessageID msgID, boolean collapse);
 

@@ -4,6 +4,7 @@ import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {ignorePromise} from '@/constants/utils'
 import {getClientPrevFromThread} from './attachment-actions'
+import {removeDismissals, restoreDismissals, suppressedURLsOf, type SuppressSnapshot} from './unfurl-preview-state'
 import {useInboxMetadataState} from '../inbox/metadata-store'
 import {
   useConversationThreadActions,
@@ -16,15 +17,20 @@ type SendTextParams = {
   conversationIDKey: T.Chat.ConversationIDKey
   ephemeralLifetime: number
   onRestoreText?: (text: string) => void
+  onSent?: () => void
   replyTo?: T.Chat.MessageID
   text: string
   tlfName: string
+  unfurlSuppress?: ReadonlyArray<string>
   waitingKey?: string
 }
 
 const sendTextMessageStoreless = (p: SendTextParams) => {
   const f = async () => {
     const ephemeralData = p.ephemeralLifetime !== 0 ? {ephemeralLifetime: p.ephemeralLifetime} : {}
+    // a canceled stellar confirm resolves the rpc normally but posts nothing, so it is
+    // not a send and must not be treated as one
+    const sendState = {stellarCanceled: false}
     try {
       await T.RPCChat.localPostTextNonblockRpcListener({
         customResponseIncomingCallMap: {
@@ -38,6 +44,7 @@ const sendTextMessageStoreless = (p: SendTextParams) => {
         incomingCallMap: {
           'chat.1.chatUi.chatStellarDone': ({canceled}) => {
             if (canceled) {
+              sendState.stellarCanceled = true
               p.onRestoreText?.(p.text)
             }
           },
@@ -53,9 +60,13 @@ const sendTextMessageStoreless = (p: SendTextParams) => {
           replyTo: p.replyTo,
           tlfName: p.tlfName,
           tlfPublic: false,
+          unfurlSuppress: p.unfurlSuppress ? [...p.unfurlSuppress] : [],
         },
         waitingKey: p.waitingKey,
       })
+      if (!sendState.stellarCanceled) {
+        p.onSent?.()
+      }
       logger.info('success')
     } catch {
       logger.info('error')
@@ -127,23 +138,44 @@ export const useConversationSendActions = () => {
       editingOrdinal?: T.Chat.Ordinal
       onRestoreText?: (text: string) => void
       replyToOrdinal?: T.Chat.Ordinal
+      unfurlSuppress?: SuppressSnapshot
     }
   ) => {
     const editOrdinal = context?.editingOrdinal
     if (editOrdinal) {
+      // unfurlSuppress is dropped here on purpose: postEditNonblock has no such param, so
+      // dismissing a preview card while editing cannot reach the service. carrying it
+      // would need the protocol change, not just plumbing on this side.
       editMessage(editOrdinal, text)
       return
     }
     const replyToOrdinal = context?.replyToOrdinal
     const replyTo = threadStore.getState().messageMap.get(replyToOrdinal ?? T.Chat.numberToOrdinal(0))?.id
+    // only what the caller snapshotted. a send that carries no snapshot is not the composer
+    // sending its own text (a coinflip resend, say), and the composer's dismissals have
+    // nothing to do with it
+    const snapshot = context?.unfurlSuppress ?? {dismissed: [], failed: []}
+    const unfurlSuppress = suppressedURLsOf(snapshot)
+    const onRestoreText = context?.onRestoreText
     sendTextMessageStoreless({
       clientPrev: getClientPrev(),
       conversationIDKey,
       ephemeralLifetime: threadStore.getState().explodingMode,
-      onRestoreText: context?.onRestoreText,
+      onRestoreText: onRestoreText
+        ? (restored: string) => {
+            restoreDismissals(conversationIDKey, snapshot.dismissed)
+            onRestoreText(restored)
+          }
+        : undefined,
+      onSent: () => {
+        // the dismissals only: a failure is never in `dismissed`, and the url may have been
+        // dismissed afresh while this send was in flight
+        removeDismissals(conversationIDKey, snapshot.dismissed)
+      },
       replyTo,
       text,
       tlfName: getTlfName(),
+      unfurlSuppress,
     })
   }
 
