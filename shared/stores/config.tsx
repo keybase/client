@@ -1,55 +1,64 @@
-import * as T from '@/constants/types'
-import {ignorePromise, timeoutPromise} from '@/constants/utils'
-import {waitingKeyConfigLogin, waitingKeyConfigLoginAsOther} from '@/constants/strings'
-import type * as EngineGen from '@/constants/rpc'
-import * as Z from '@/util/zustand'
-import {noConversationIDKey} from '@/constants/types/chat/common'
-import isEqual from 'lodash/isEqual'
-import logger from '@/logger'
-import type {Tab} from '@/constants/tabs'
-import {RPCError, convertToError, isErrorTransient, niceError} from '@/util/errors'
-import {type CommonResponseHandler} from '@/engine/types'
-import {invalidPasswordErrorString} from '@/constants/config'
-import {navigateAppend} from '@/constants/router'
-import {onEngineConnected as onEngineConnectedInPlatform} from '@/util/storeless-actions'
-import {useDaemonState} from '@/stores/daemon'
+import * as T from "@/constants/types";
+import { ignorePromise, timeoutPromise } from "@/constants/utils";
+import {
+  waitingKeyConfigLogin,
+  waitingKeyConfigLoginAsOther,
+} from "@/constants/strings";
+import type * as EngineGen from "@/constants/rpc";
+import * as Z from "@/util/zustand";
+import { noConversationIDKey } from "@/constants/types/chat/common";
+import isEqual from "lodash/isEqual";
+import logger from "@/logger";
+import type { Tab } from "@/constants/tabs";
+import {
+  RPCError,
+  convertToError,
+  isErrorTransient,
+  niceError,
+} from "@/util/errors";
+import { type CommonResponseHandler } from "@/engine/types";
+import { invalidPasswordErrorString } from "@/constants/config";
+import { navigateAppend } from "@/constants/router";
+import { onEngineConnected as onEngineConnectedInPlatform } from "@/util/storeless-actions";
+import { useDaemonState } from "@/stores/daemon";
+import { getEngine, hasEngine } from "@/engine/require";
 
 type Store = T.Immutable<{
-  allowAnimatedEmojis: boolean
+  allowAnimatedEmojis: boolean;
   androidShare?:
-    | {type: T.RPCGen.IncomingShareType.file; urls: Array<string>}
-    | {type: T.RPCGen.IncomingShareType.text; text: string}
-  badgeState?: T.RPCGen.BadgeState
-  chatBuiltinCommands?: T.Chat.StaticConfig['builtinCommands']
-  chatDeletableByDeleteHistory?: Set<T.Chat.MessageType>
-  configuredAccounts: Array<T.Config.ConfiguredAccount>
-  defaultUsername: string
-  globalError?: Error | RPCError
-  gregorPushState: Array<{md: T.RPCGregor.Metadata; item: T.RPCGregor.Item}>
-  loginError?: RPCError
+    | { type: T.RPCGen.IncomingShareType.file; urls: Array<string> }
+    | { type: T.RPCGen.IncomingShareType.text; text: string };
+  badgeState?: T.RPCGen.BadgeState;
+  chatBuiltinCommands?: T.Chat.StaticConfig["builtinCommands"];
+  chatDeletableByDeleteHistory?: Set<T.Chat.MessageType>;
+  configuredAccounts: Array<T.Config.ConfiguredAccount>;
+  defaultUsername: string;
+  globalError?: Error | RPCError;
+  gregorPushState: Array<{ md: T.RPCGregor.Metadata; item: T.RPCGregor.Item }>;
+  loginError?: RPCError;
   httpSrv: {
-    address: string
-    token: string
-  }
-  installerRanCount: number
-  isOnline: boolean
-  justDeletedSelf: string
-  justRevokedSelf: string
-  loggedIn: boolean
-  outOfDate: T.Config.OutOfDate
-  revokedTrigger: number
-  runtimeStats?: T.RPCGen.RuntimeStats
+    address: string;
+    token: string;
+  };
+  installerRanCount: number;
+  isOnline: boolean;
+  justDeletedSelf: string;
+  justRevokedSelf: string;
+  loggedIn: boolean;
+  outOfDate: T.Config.OutOfDate;
+  revokedTrigger: number;
+  runtimeStats?: T.RPCGen.RuntimeStats;
   startup: {
-    loaded: boolean
-    conversation: T.Chat.ConversationIDKey
+    loaded: boolean;
+    conversation: T.Chat.ConversationIDKey;
     // uid of the account that persisted `conversation` (from ui.routeState2).
     // Used to avoid replaying a conversation under a different account.
-    conversationUid?: string
-    tab?: Tab
-  }
-  userSwitching: boolean
-  windowShownCount: Map<string, number>
-}>
+    conversationUid?: string;
+    tab?: Tab;
+  };
+  userSwitching: boolean;
+  windowShownCount: Map<string, number>;
+}>;
 
 const initialStore: Store = {
   allowAnimatedEmojis: true,
@@ -58,22 +67,22 @@ const initialStore: Store = {
   chatBuiltinCommands: undefined,
   chatDeletableByDeleteHistory: undefined,
   configuredAccounts: [],
-  defaultUsername: '',
+  defaultUsername: "",
   globalError: undefined,
   gregorPushState: [],
   httpSrv: {
-    address: '',
-    token: '',
+    address: "",
+    token: "",
   },
   installerRanCount: 0,
   isOnline: true,
-  justDeletedSelf: '',
-  justRevokedSelf: '',
+  justDeletedSelf: "",
+  justRevokedSelf: "",
   loggedIn: false,
   loginError: undefined,
   outOfDate: {
     critical: false,
-    message: '',
+    message: "",
     outOfDate: false,
     updating: false,
   },
@@ -84,331 +93,377 @@ const initialStore: Store = {
   },
   userSwitching: false,
   windowShownCount: new Map(),
-}
+};
 
 export type State = Store & {
   dispatch: {
-    checkForUpdate: () => void
-    initAppUpdateLoop: () => void
-    installerRan: () => void
-    loadIsOnline: () => void
-    login: (username: string, password: string) => void
-    setLoginError: (error?: RPCError) => void
-    logoutToLoggedOutFlow: () => void
-    logoutAndTryToLogInAs: (username: string) => void
-    onEngineConnected: () => void
-    onEngineIncoming: (action: EngineGen.Actions) => void
-    powerMonitorEvent: (event: string) => void
-    resetState: (isDebug?: boolean) => void
-    resetRevokedSelf: () => void
-    revoke: (deviceName: string, wasCurrentDevice: boolean) => void
-    refreshAccounts: () => Promise<void>
-    setAccounts: (a: Store['configuredAccounts']) => void
-    setAndroidShare: (s: Store['androidShare']) => void
-    setBadgeState: (b: State['badgeState']) => void
-    setChatStaticConfig: (s: T.Chat.StaticConfig) => void
-    setDefaultUsername: (u: string) => void
-    setGlobalError: (e?: unknown) => void
-    setHTTPSrvInfo: (address: string, token: string) => void
-    setJustDeletedSelf: (s: string) => void
-    setLoggedIn: (l: boolean) => void
-    setStartupDetails: (st: Omit<Store['startup'], 'loaded'>) => void
-    setOutOfDate: (outOfDate: T.Config.OutOfDate) => void
-    setUpdating: () => void
-    setUserSwitching: (sw: boolean) => void
-    toggleRuntimeStats: () => void
-    updateGregorCategory: (category: string, body: string, dtime?: {offset: number; time: number}) => void
-  }
-}
+    checkForUpdate: () => void;
+    initAppUpdateLoop: () => void;
+    installerRan: () => void;
+    loadIsOnline: () => void;
+    login: (username: string, password: string) => void;
+    setLoginError: (error?: RPCError) => void;
+    logoutToLoggedOutFlow: () => void;
+    logoutAndTryToLogInAs: (username: string) => void;
+    onEngineConnected: () => void;
+    onEngineIncoming: (action: EngineGen.Actions) => void;
+    powerMonitorEvent: (event: string) => void;
+    resetState: (isDebug?: boolean) => void;
+    resetRevokedSelf: () => void;
+    revoke: (deviceName: string, wasCurrentDevice: boolean) => void;
+    refreshAccounts: () => Promise<void>;
+    setAccounts: (a: Store["configuredAccounts"]) => void;
+    setAndroidShare: (s: Store["androidShare"]) => void;
+    setBadgeState: (b: State["badgeState"]) => void;
+    setChatStaticConfig: (s: T.Chat.StaticConfig) => void;
+    setDefaultUsername: (u: string) => void;
+    setGlobalError: (e?: unknown) => void;
+    setHTTPSrvInfo: (address: string, token: string) => void;
+    setJustDeletedSelf: (s: string) => void;
+    setLoggedIn: (l: boolean) => void;
+    setStartupDetails: (st: Omit<Store["startup"], "loaded">) => void;
+    setOutOfDate: (outOfDate: T.Config.OutOfDate) => void;
+    setUpdating: () => void;
+    setUserSwitching: (sw: boolean) => void;
+    toggleRuntimeStats: () => void;
+    updateGregorCategory: (
+      category: string,
+      body: string,
+      dtime?: { offset: number; time: number },
+    ) => void;
+  };
+};
 
-export const useConfigState = Z.createZustand<State>('config', (set, get) => {
-  let inflightRefreshAccounts: Promise<void> | undefined
+export const useConfigState = Z.createZustand<State>("config", (set, get) => {
+  let inflightRefreshAccounts: Promise<void> | undefined;
 
   const _checkForUpdate = async () => {
     try {
-      const {status, message} = await T.RPCGen.configGetUpdateInfoRpcPromise()
+      const { status, message } =
+        await T.RPCGen.configGetUpdateInfoRpcPromise();
       get().dispatch.setOutOfDate(
         status !== T.RPCGen.UpdateInfoStatus.upToDate
           ? {
-              critical: status === T.RPCGen.UpdateInfoStatus.criticallyOutOfDate,
+              critical:
+                status === T.RPCGen.UpdateInfoStatus.criticallyOutOfDate,
               message,
               outOfDate: true,
               updating: false,
             }
           : {
               critical: false,
-              message: '',
+              message: "",
               outOfDate: false,
               updating: false,
-            }
-      )
+            },
+      );
     } catch (err) {
-      logger.warn('error getting update info: ', err)
+      logger.warn("error getting update info: ", err);
     }
-  }
+  };
 
   const setGregorPushState = (state: T.RPCGen.Gregor1.State) => {
-    const items = state.items || []
-    const goodState = items.reduce<Array<{md: T.RPCGregor.Metadata; item: T.RPCGregor.Item}>>(
-      (arr, {md, item}) => {
-        if (md && item) {
-          arr.push({item, md})
-        }
-        return arr
-      },
-      []
-    )
+    const items = state.items || [];
+    const goodState = items.reduce<
+      Array<{ md: T.RPCGregor.Metadata; item: T.RPCGregor.Item }>
+    >((arr, { md, item }) => {
+      if (md && item) {
+        arr.push({ item, md });
+      }
+      return arr;
+    }, []);
     if (goodState.length !== items.length) {
-      logger.warn('Lost some messages in filtering out nonNull gregor items')
+      logger.warn("Lost some messages in filtering out nonNull gregor items");
     }
-    set(s => {
-      s.gregorPushState = T.castDraft(goodState)
-      s.allowAnimatedEmojis = !goodState.find(i => i.item.category === 'emojianimations')
-    })
-  }
+    set((s) => {
+      s.gregorPushState = T.castDraft(goodState);
+      s.allowAnimatedEmojis = !goodState.find(
+        (i) => i.item.category === "emojianimations",
+      );
+    });
+  };
 
   const updateRuntimeStats = (stats?: T.RPCGen.RuntimeStats) => {
-    set(s => {
-      s.runtimeStats = stats ? T.castDraft({...s.runtimeStats, ...stats}) : undefined
-    })
-  }
+    set((s) => {
+      s.runtimeStats = stats
+        ? T.castDraft({ ...s.runtimeStats, ...stats })
+        : undefined;
+    });
+  };
 
-  const dispatch: State['dispatch'] = {
+  const dispatch: State["dispatch"] = {
     checkForUpdate: () => {
       const f = async () => {
-        await _checkForUpdate()
-      }
-      ignorePromise(f())
+        await _checkForUpdate();
+      };
+      ignorePromise(f());
     },
     initAppUpdateLoop: () => {
       const f = async () => {
         while (true) {
           try {
-            await _checkForUpdate()
+            await _checkForUpdate();
           } catch {}
-          await timeoutPromise(3_600_000) // 1 hr
+          await timeoutPromise(3_600_000); // 1 hr
         }
-      }
-      ignorePromise(f())
+      };
+      ignorePromise(f());
     },
     installerRan: () => {
-      set(s => {
-        s.installerRanCount++
-      })
+      set((s) => {
+        s.installerRanCount++;
+      });
     },
     loadIsOnline: () => {
       const f = async () => {
         try {
-          const isOnline = await T.RPCGen.loginIsOnlineRpcPromise(undefined)
-          set(s => {
-            s.isOnline = isOnline
-          })
+          const isOnline = await T.RPCGen.loginIsOnlineRpcPromise(undefined);
+          set((s) => {
+            s.isOnline = isOnline;
+          });
         } catch (err) {
-          logger.warn('Error in checking whether we are online', err)
+          logger.warn("Error in checking whether we are online", err);
         }
-      }
-      ignorePromise(f())
+      };
+      ignorePromise(f());
     },
     login: (username, passphrase) => {
-      const cancelDesc = 'Canceling RPC'
-      const cancelOnCallback = (_: unknown, response: CommonResponseHandler) => {
-        response.error({code: T.RPCGen.StatusCode.scgeneric, desc: cancelDesc})
-      }
-      const ignoreCallback = () => {}
+      const cancelDesc = "Canceling RPC";
+      const cancelOnCallback = (
+        _: unknown,
+        response: CommonResponseHandler,
+      ) => {
+        response.error({
+          code: T.RPCGen.StatusCode.scgeneric,
+          desc: cancelDesc,
+        });
+      };
+      const ignoreCallback = () => {};
       const f = async () => {
         try {
           await T.RPCGen.loginLoginRpcListener({
             customResponseIncomingCallMap: {
-              'keybase.1.gpgUi.selectKey': cancelOnCallback,
-              'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
-              'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
-              'keybase.1.provisionUi.PromptNewDeviceName': (_, response) => {
-                cancelOnCallback(undefined, response)
+              "keybase.1.gpgUi.selectKey": cancelOnCallback,
+              "keybase.1.loginUi.getEmailOrUsername": cancelOnCallback,
+              "keybase.1.provisionUi.DisplayAndPromptSecret": cancelOnCallback,
+              "keybase.1.provisionUi.PromptNewDeviceName": (_, response) => {
+                cancelOnCallback(undefined, response);
                 // this account needs provisioning; hand off to the provision flow
-                navigateAppend({name: 'username', params: {autoSubmit: true, username}})
+                navigateAppend({
+                  name: "username",
+                  params: { autoSubmit: true, username },
+                });
               },
-              'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
-              'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
-              'keybase.1.secretUi.getPassphrase': (params, response) => {
-                if (params.pinentry.type === T.RPCGen.PassphraseType.passPhrase) {
+              "keybase.1.provisionUi.chooseDevice": cancelOnCallback,
+              "keybase.1.provisionUi.chooseGPGMethod": cancelOnCallback,
+              "keybase.1.secretUi.getPassphrase": (params, response) => {
+                if (
+                  params.pinentry.type === T.RPCGen.PassphraseType.passPhrase
+                ) {
                   // Service asking us again due to a bad passphrase?
                   if (params.pinentry.retryLabel) {
-                    cancelOnCallback(params, response)
-                    let retryLabel = params.pinentry.retryLabel
+                    cancelOnCallback(params, response);
+                    let retryLabel = params.pinentry.retryLabel;
                     if (retryLabel === invalidPasswordErrorString) {
-                      retryLabel = 'Incorrect password.'
+                      retryLabel = "Incorrect password.";
                     }
-                    const error = new RPCError(retryLabel, T.RPCGen.StatusCode.scinputerror)
-                    get().dispatch.setLoginError(error)
+                    const error = new RPCError(
+                      retryLabel,
+                      T.RPCGen.StatusCode.scinputerror,
+                    );
+                    get().dispatch.setLoginError(error);
                   } else {
-                    response.result({passphrase, storeSecret: false})
+                    response.result({ passphrase, storeSecret: false });
                   }
                 } else {
-                  cancelOnCallback(params, response)
+                  cancelOnCallback(params, response);
                 }
               },
             },
             // cancel if we get any of these callbacks, we're logging in, not provisioning
             incomingCallMap: {
-              'keybase.1.loginUi.displayPrimaryPaperKey': ignoreCallback,
-              'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
-              'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
-              'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
+              "keybase.1.loginUi.displayPrimaryPaperKey": ignoreCallback,
+              "keybase.1.provisionUi.DisplaySecretExchanged": ignoreCallback,
+              "keybase.1.provisionUi.ProvisioneeSuccess": ignoreCallback,
+              "keybase.1.provisionUi.ProvisionerSuccess": ignoreCallback,
             },
             params: {
               clientType: T.RPCGen.ClientType.guiMain,
-              deviceName: '',
-              deviceType: isMobile ? 'mobile' : 'desktop',
+              deviceName: "",
+              deviceType: isMobile ? "mobile" : "desktop",
               doUserSwitch: true,
-              paperKey: '',
+              paperKey: "",
               username,
             },
             waitingKey: waitingKeyConfigLogin,
-          })
-          logger.info('login call succeeded')
+          });
+          logger.info("login call succeeded");
         } catch (error) {
           // Nothing else ends a cancelled switch, and the logged-out status it withheld applies only then
           if (!(error instanceof RPCError) || error.desc === cancelDesc) {
-            get().dispatch.setUserSwitching(false)
+            get().dispatch.setUserSwitching(false);
           }
           if (!(error instanceof RPCError)) {
-            return
+            return;
           }
           // Already logged in: the daemon's session says so. Canceling: nothing to report.
-          if (error.code !== T.RPCGen.StatusCode.scalreadyloggedin && error.desc !== cancelDesc) {
-            error.desc = niceError(error)
-            get().dispatch.setLoginError(error)
+          if (
+            error.code !== T.RPCGen.StatusCode.scalreadyloggedin &&
+            error.desc !== cancelDesc
+          ) {
+            error.desc = niceError(error);
+            get().dispatch.setLoginError(error);
           }
         } finally {
           // After the switch ends: a failed switch must apply a logged-out session.
-          useDaemonState.getState().dispatch.refreshSessionFromDaemon('login returned')
+          useDaemonState
+            .getState()
+            .dispatch.refreshSessionFromDaemon("login returned");
         }
-      }
-      get().dispatch.setLoginError()
-      ignorePromise(f())
+      };
+      get().dispatch.setLoginError();
+      get().dispatch.setDefaultUsername(username);
+      ignorePromise(f());
     },
-    logoutAndTryToLogInAs: username => {
+    logoutAndTryToLogInAs: (username) => {
       const f = async () => {
         if (get().loggedIn) {
-          await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true}, waitingKeyConfigLogin)
+          await T.RPCGen.loginLogoutRpcPromise(
+            { force: false, keepSecrets: true },
+            waitingKeyConfigLogin,
+          );
         }
-        get().dispatch.setDefaultUsername(username)
-      }
-      ignorePromise(f())
+        get().dispatch.setDefaultUsername(username);
+      };
+      ignorePromise(f());
     },
     logoutToLoggedOutFlow: () => {
       const f = async () => {
         if (get().loggedIn) {
           await T.RPCGen.loginLogoutRpcPromise(
-            {force: false, keepSecrets: true},
-            waitingKeyConfigLoginAsOther
-          )
+            { force: false, keepSecrets: true },
+            waitingKeyConfigLoginAsOther,
+          );
         }
-      }
-      ignorePromise(f())
+      };
+      ignorePromise(f());
     },
     onEngineConnected: () => {
       // An engine reset drops in-flight RPCs without settling their promises; a refresh
       // caught by that would poison the dedupe cache forever
-      inflightRefreshAccounts = undefined
+      inflightRefreshAccounts = undefined;
       // If ever you want to get OOBMs for a different system, then you need to enter it here.
       const registerForGregorNotifications = async () => {
         try {
-          await T.RPCGen.delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise({systems: []})
-          logger.info('Registered gregor listener')
+          await T.RPCGen.delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise({
+            systems: [],
+          });
+          logger.info("Registered gregor listener");
         } catch (error) {
-          logger.warn('error in registering gregor listener: ', error)
+          logger.warn("error in registering gregor listener: ", error);
         }
-      }
-      ignorePromise(registerForGregorNotifications())
+      };
+      ignorePromise(registerForGregorNotifications());
 
-      onEngineConnectedInPlatform()
+      onEngineConnectedInPlatform();
     },
-    onEngineIncoming: action => {
+    onEngineIncoming: (action) => {
       switch (action.type) {
-        case 'keybase.1.NotifyAudit.rootAuditError':
-          get().dispatch.setGlobalError(
-            new Error(`Keybase is buggy, please report this: ${action.payload.params.message}`)
-          )
-          break
-        case 'keybase.1.NotifyAudit.boxAuditError':
+        case "keybase.1.NotifyAudit.rootAuditError":
           get().dispatch.setGlobalError(
             new Error(
-              `Keybase had a problem loading a team, please report this with \`keybase log send\`: ${action.payload.params.message}`
-            )
-          )
-          break
-        case 'keybase.1.NotifyBadges.badgeState':
-          get().dispatch.setBadgeState(action.payload.params.badgeState)
-          break
-        case 'keybase.1.gregorUI.pushState': {
-          const {state} = action.payload.params
-          setGregorPushState(state)
-          break
+              `Keybase is buggy, please report this: ${action.payload.params.message}`,
+            ),
+          );
+          break;
+        case "keybase.1.NotifyAudit.boxAuditError":
+          get().dispatch.setGlobalError(
+            new Error(
+              `Keybase had a problem loading a team, please report this with \`keybase log send\`: ${action.payload.params.message}`,
+            ),
+          );
+          break;
+        case "keybase.1.NotifyBadges.badgeState":
+          get().dispatch.setBadgeState(action.payload.params.badgeState);
+          break;
+        case "keybase.1.gregorUI.pushState": {
+          const { state } = action.payload.params;
+          setGregorPushState(state);
+          break;
         }
-        case 'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate': {
-          updateRuntimeStats(action.payload.params.stats ?? undefined)
-          break
+        case "keybase.1.NotifyRuntimeStats.runtimeStatsUpdate": {
+          updateRuntimeStats(action.payload.params.stats ?? undefined);
+          break;
         }
-        case 'keybase.1.NotifyService.HTTPSrvInfoUpdate': {
-          get().dispatch.setHTTPSrvInfo(action.payload.params.info.address, action.payload.params.info.token)
-          break
+        case "keybase.1.NotifyService.HTTPSrvInfoUpdate": {
+          get().dispatch.setHTTPSrvInfo(
+            action.payload.params.info.address,
+            action.payload.params.info.token,
+          );
+          break;
         }
         default:
       }
     },
-    powerMonitorEvent: event => {
+    powerMonitorEvent: (event) => {
       const f = async () => {
-        await T.RPCGen.appStatePowerMonitorEventRpcPromise({event})
-      }
-      ignorePromise(f())
+        await T.RPCGen.appStatePowerMonitorEventRpcPromise({ event });
+      };
+      ignorePromise(f());
     },
     refreshAccounts: async () => {
       if (inflightRefreshAccounts) {
-        return inflightRefreshAccounts
+        return inflightRefreshAccounts;
       }
       const f = async () => {
-        const defaultUsername = get().defaultUsername
-        const configuredAccounts = (await T.RPCGen.loginGetConfiguredAccountsRpcPromise()) ?? []
-        const {setAccounts, setDefaultUsername} = get().dispatch
+        const defaultUsername = get().defaultUsername;
+        const configuredAccounts =
+          (await T.RPCGen.loginGetConfiguredAccountsRpcPromise()) ?? [];
+        const { setAccounts, setDefaultUsername } = get().dispatch;
 
-        let existingDefaultFound = false as boolean
-        let currentName = ''
-        const nextConfiguredAccounts: Array<T.Config.ConfiguredAccount> = []
+        let existingDefaultFound = false as boolean;
+        let currentName = "";
+        const nextConfiguredAccounts: Array<T.Config.ConfiguredAccount> = [];
 
-        configuredAccounts.forEach(account => {
-          const {username, isCurrent, fullname, hasStoredSecret, uid} = account
+        configuredAccounts.forEach((account) => {
+          const { username, isCurrent, fullname, hasStoredSecret, uid } =
+            account;
           if (username === defaultUsername) {
-            existingDefaultFound = true
+            existingDefaultFound = true;
           }
           if (isCurrent) {
-            currentName = account.username
+            currentName = account.username;
           }
-          nextConfiguredAccounts.push({fullname, hasStoredSecret, uid, username})
-        })
+          nextConfiguredAccounts.push({
+            fullname,
+            hasStoredSecret,
+            uid,
+            username,
+          });
+        });
         if (!existingDefaultFound) {
-          setDefaultUsername(currentName)
+          setDefaultUsername(currentName);
         }
-        setAccounts(nextConfiguredAccounts)
-      }
-      const p = f()
-      inflightRefreshAccounts = p
+        setAccounts(nextConfiguredAccounts);
+      };
+      const p = f();
+      inflightRefreshAccounts = p;
       try {
-        await p
+        await p;
       } finally {
         if (inflightRefreshAccounts === p) {
-          inflightRefreshAccounts = undefined
+          inflightRefreshAccounts = undefined;
         }
       }
     },
     resetRevokedSelf: () => {
-      set(s => {
-        s.justRevokedSelf = ''
-      })
+      set((s) => {
+        s.justRevokedSelf = "";
+      });
     },
-    resetState: isDebug => {
-      if (isDebug) return
-      set(s => ({
+    resetState: (isDebug) => {
+      if (isDebug) return;
+      set((s) => ({
         ...initialStore,
         chatBuiltinCommands: s.chatBuiltinCommands,
         chatDeletableByDeleteHistory: s.chatDeletableByDeleteHistory,
@@ -417,129 +472,139 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         dispatch: s.dispatch,
         // process-wide, not per account; nothing reloads it on logout
         httpSrv: s.httpSrv,
-        startup: {loaded: s.startup.loaded},
+        startup: { loaded: s.startup.loaded },
         userSwitching: s.userSwitching,
-      }))
+      }));
     },
     revoke: (name, wasCurrentDevice) => {
       if (wasCurrentDevice) {
-        const {configuredAccounts, defaultUsername} = get()
-        const acc = configuredAccounts.find(n => n.username !== defaultUsername)
-        const du = acc?.username ?? ''
-        set(s => {
-          s.defaultUsername = du
-          s.justRevokedSelf = name
-          s.revokedTrigger++
-        })
+        const { configuredAccounts, defaultUsername } = get();
+        const acc = configuredAccounts.find(
+          (n) => n.username !== defaultUsername,
+        );
+        const du = acc?.username ?? "";
+        set((s) => {
+          s.defaultUsername = du;
+          s.justRevokedSelf = name;
+          s.revokedTrigger++;
+        });
       }
     },
-    setAccounts: a => {
+    setAccounts: (a) => {
       // Compare against committed state, not the draft: immer 11.1.9 sanitizes
       // constructor/prototype access on drafts (prototype-pollution fix), which
       // makes lodash isEqual throw a proxy-invariant TypeError on a draft.
-      if (isEqual(a, get().configuredAccounts)) return
-      set(s => {
-        s.configuredAccounts = T.castDraft(a)
-      })
+      if (isEqual(a, get().configuredAccounts)) return;
+      set((s) => {
+        s.configuredAccounts = T.castDraft(a);
+      });
     },
-    setAndroidShare: share => {
-      set(s => {
-        s.androidShare = T.castDraft(share)
-      })
+    setAndroidShare: (share) => {
+      set((s) => {
+        s.androidShare = T.castDraft(share);
+      });
     },
-    setBadgeState: b => {
-      if (get().badgeState === b) return
-      set(s => {
-        s.badgeState = T.castDraft(b)
-      })
+    setBadgeState: (b) => {
+      if (get().badgeState === b) return;
+      set((s) => {
+        s.badgeState = T.castDraft(b);
+      });
     },
-    setChatStaticConfig: staticConfig => {
-      set(s => {
-        s.chatBuiltinCommands = T.castDraft(staticConfig.builtinCommands)
-        s.chatDeletableByDeleteHistory = new Set(staticConfig.deletableByDeleteHistory)
-      })
+    setChatStaticConfig: (staticConfig) => {
+      set((s) => {
+        s.chatBuiltinCommands = T.castDraft(staticConfig.builtinCommands);
+        s.chatDeletableByDeleteHistory = new Set(
+          staticConfig.deletableByDeleteHistory,
+        );
+      });
     },
-    setDefaultUsername: u => {
-      set(s => {
-        s.defaultUsername = u
-      })
+    setDefaultUsername: (u) => {
+      set((s) => {
+        s.defaultUsername = u;
+      });
     },
-    setGlobalError: _e => {
+    setGlobalError: (_e) => {
       if (_e) {
-        const e = convertToError(_e)
-        set(s => {
-          s.globalError = e
-        })
-        logger.error('Error (global):', e.message, e)
+        const e = convertToError(_e);
+        set((s) => {
+          s.globalError = e;
+        });
+        logger.error("Error (global):", e.message, e);
         if (isErrorTransient(e)) {
-          logger.info('globalError silencing:', e)
-          return
+          logger.info("globalError silencing:", e);
+          return;
         }
       } else {
-        set(s => {
-          s.globalError = undefined
-        })
+        set((s) => {
+          s.globalError = undefined;
+        });
       }
     },
     setHTTPSrvInfo: (address, token) => {
-      set(s => {
-        s.httpSrv.address = address
-        s.httpSrv.token = token
-      })
+      set((s) => {
+        s.httpSrv.address = address;
+        s.httpSrv.token = token;
+      });
     },
-    setJustDeletedSelf: self => {
-      set(s => {
-        s.justDeletedSelf = self
-      })
+    setJustDeletedSelf: (self) => {
+      set((s) => {
+        s.justDeletedSelf = self;
+      });
     },
-    setLoggedIn: loggedIn => {
-      const changed = get().loggedIn !== loggedIn
-      set(s => {
-        s.loggedIn = loggedIn
-      })
+    setLoggedIn: (loggedIn) => {
+      const changed = get().loggedIn !== loggedIn;
+      set((s) => {
+        s.loggedIn = loggedIn;
+      });
       if (changed && !loggedIn) {
-        Z.resetAllStores()
+        Z.resetAllStores();
       }
     },
-    setLoginError: error => {
-      set(s => {
-        s.loginError = error
-      })
+    setLoginError: (error) => {
+      set((s) => {
+        s.loginError = error;
+      });
       if (error) {
-        get().dispatch.setUserSwitching(false)
+        get().dispatch.setUserSwitching(false);
       }
     },
-    setOutOfDate: outOfDate => {
-      set(s => {
-        Object.assign(s.outOfDate, outOfDate)
-      })
+    setOutOfDate: (outOfDate) => {
+      set((s) => {
+        Object.assign(s.outOfDate, outOfDate);
+      });
     },
-    setStartupDetails: st => {
-      set(s => {
+    setStartupDetails: (st) => {
+      set((s) => {
         if (s.startup.loaded) {
-          return
+          return;
         }
         s.startup = {
           ...st,
           loaded: true,
-        }
-      })
+        };
+      });
     },
     setUpdating: () => {
-      set(s => {
-        s.outOfDate.updating = true
-      })
+      set((s) => {
+        s.outOfDate.updating = true;
+      });
     },
-    setUserSwitching: sw => {
-      set(s => {
-        s.userSwitching = sw
-      })
+    setUserSwitching: (sw) => {
+      if (sw && !get().userSwitching) {
+        Z.resetAllStores();
+        if (hasEngine()) {
+          getEngine().cancelOutstandingSessions();
+        }
+      }
+      set((s) => {
+        s.userSwitching = sw;
+      });
     },
     toggleRuntimeStats: () => {
       const f = async () => {
-        await T.RPCGen.configToggleRuntimeStatsRpcPromise()
-      }
-      ignorePromise(f())
+        await T.RPCGen.configToggleRuntimeStatsRpcPromise();
+      };
+      ignorePromise(f());
     },
     updateGregorCategory: (category, body, dtime) => {
       const f = async () => {
@@ -547,15 +612,20 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
           await T.RPCGen.gregorUpdateCategoryRpcPromise({
             body,
             category,
-            dtime: dtime || {offset: 0, time: 0},
-          })
+            dtime: dtime || { offset: 0, time: 0 },
+          });
         } catch {}
-      }
-      ignorePromise(f())
+      };
+      ignorePromise(f());
     },
-  }
+  };
   return {
     ...initialStore,
     dispatch,
-  }
-})
+  };
+});
+
+export const isChatSessionReady = () => {
+  const { loggedIn, userSwitching } = useConfigState.getState();
+  return loggedIn && !userSwitching;
+};

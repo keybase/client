@@ -3,10 +3,10 @@ import * as Z from '@/util/zustand'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import {isPhone} from '@/constants/platform'
-import {useConfigState} from '@/stores/config'
-import {useCurrentUserState} from '@/stores/current-user'
+import {isChatSessionReady} from '@/stores/config'
 import {ignorePromise} from '@/constants/utils'
 import {registerInboxRefresh} from './inbox-refresh'
+import {withChatSessionRetry} from './session-rpc'
 
 type Store = T.Immutable<{
   hasLoaded: boolean
@@ -65,18 +65,17 @@ const recycleLayoutRows = (
 
 export const useInboxLayoutState = Z.createZustand<State>('chat-inbox-layout', (set, get) => {
   const requestInboxLayout = async (reason: T.Chat.RefreshReason) => {
-    const {username} = useCurrentUserState.getState()
-    const {loggedIn} = useConfigState.getState()
-    if (!loggedIn || !username) {
+    if (!isChatSessionReady()) {
       return
     }
-
     logger.info(`Inbox refresh due to ${reason}`)
     const reselectMode =
       get().hasLoaded || isPhone
         ? T.RPCChat.InboxLayoutReselectMode.default
         : T.RPCChat.InboxLayoutReselectMode.force
-    await T.RPCChat.localRequestInboxLayoutRpcPromise({reselectMode})
+    await withChatSessionRetry(async () =>
+      T.RPCChat.localRequestInboxLayoutRpcPromise({reselectMode})
+    )
   }
 
   const dispatch: State['dispatch'] = {
