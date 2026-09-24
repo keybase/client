@@ -33,7 +33,7 @@ import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liqu
 import {Platform, StatusBar, View} from 'react-native'
 import AccountSwitchHeaderAvatar from './account-switch-header-avatar'
 import {clearPendingAccountSwitch, consumePendingAccountSwitchTab} from './account-switch'
-import {LoggedInScreensContext, useLoggedInScreens, useShowLoggedInScreensHeld} from './logged-in-screens'
+import {LoggedInScreensProvider, useLoggedInScreens} from './logged-in-screens'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
 const isLiquidGlassSupported = isMobile ? (_isLiquidGlassSupported as boolean) : false
@@ -269,7 +269,6 @@ function DesktopRouter() {
   )
   const endUserSwitchLandedOn = useConfigState(s => s.dispatch.endUserSwitchLandedOn)
   const setNavigationReady = useNavigationIntentsState(s => s.dispatch.setNavigationReady)
-  const showLoggedIn = useShowLoggedInScreensHeld()
 
   React.useEffect(
     () => subscribeNavigationIntents(handleAppLink, handleAppLink),
@@ -305,11 +304,11 @@ function DesktopRouter() {
       ref={setDesktopNavRef}
       theme={isDarkMode ? darkTheme : lightTheme}
     >
-      <LoggedInScreensContext value={showLoggedIn}>
+      <LoggedInScreensProvider>
         <LoadedTeamsListProvider>
           <DesktopRootComponent />
         </LoadedTeamsListProvider>
-      </LoggedInScreensContext>
+      </LoggedInScreensProvider>
     </NavigationContainer>
   )
 }
@@ -695,7 +694,6 @@ function NativeRouter() {
   const bar = barStyle === 'default' ? null : <StatusBar barStyle={barStyle} />
   const navKey = Common.useUserSwitchNavKey()
   const setNavigationReady = useNavigationIntentsState(s => s.dispatch.setNavigationReady)
-  const showLoggedIn = useShowLoggedInScreensHeld()
   const setNativeNavRef = (ref: typeof C.Router2.navigationRef.current) => {
     setNavRef(ref)
     setNavigationReady(ref?.isReady() ?? false)
@@ -740,11 +738,11 @@ function NativeRouter() {
         ref={setNativeNavRef}
         theme={isDarkMode ? darkTheme : lightTheme}
       >
-        <LoggedInScreensContext value={showLoggedIn}>
+        <LoggedInScreensProvider>
           <LoadedTeamsListProvider>
             <NativeRootComponent />
           </LoadedTeamsListProvider>
-        </LoggedInScreensContext>
+        </LoggedInScreensProvider>
       </NavigationContainer>
     </Kb.Box2>
   )

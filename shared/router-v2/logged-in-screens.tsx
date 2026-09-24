@@ -25,7 +25,11 @@ export const useShowLoggedInScreensHeld = () => {
   return show || held
 }
 
-// The router computes the held value once, above the navigator, so the logged-in and logged-out
-// groups never disagree.
-export const LoggedInScreensContext = React.createContext(false)
+// Computed once, above the navigator, so the logged-in and logged-out groups (and the headers that
+// style themselves by it) never disagree.
+const LoggedInScreensContext = React.createContext(false)
 export const useLoggedInScreens = () => React.useContext(LoggedInScreensContext)
+
+export const LoggedInScreensProvider = ({children}: {children: React.ReactNode}) => (
+  <LoggedInScreensContext value={useShowLoggedInScreensHeld()}>{children}</LoggedInScreensContext>
+)
