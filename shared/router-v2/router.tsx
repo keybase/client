@@ -187,17 +187,17 @@ if (!isMobile) {
 
   const useIsLoadingDesktop = () => !useHandshakeEverDone()
 
-  // During an account switch loggedIn flaps false between the service's loggedOut and
-  // loggedIn notifications; keep the app (and its left nav) mounted through that gap.
+  // Same rule as native: keep the app (and its left nav) mounted through the loggedIn flap of a
+  // switch that started logged in.
   const useIsLoggedInDesktop = () => {
     const loaded = useHandshakeEverDone()
-    const loggedIn = useConfigState(s => s.loggedIn || s.userSwitching)
+    const loggedIn = useConfigState(showLoggedInScreens)
     return loaded && loggedIn
   }
 
   const useIsLoggedOutDesktop = () => {
     const loaded = useHandshakeEverDone()
-    const loggedIn = useConfigState(s => s.loggedIn || s.userSwitching)
+    const loggedIn = useConfigState(showLoggedInScreens)
     return loaded && !loggedIn
   }
 
