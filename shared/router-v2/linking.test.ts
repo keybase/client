@@ -92,7 +92,7 @@ test('waits until the intended account is active', () => {
 
 test('waits for an account switch to finish', () => {
   useNavigationIntentsState.getState().dispatch.setNavigationReady(true, 'current-uid')
-  useConfigState.getState().dispatch.setUserSwitching(true)
+  useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
   const listener = jest.fn()
   const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
 
@@ -108,7 +108,7 @@ test('waits for an account switch to finish', () => {
 test('waits for the replacement router after the current account changes', () => {
   const navigationDispatch = useNavigationIntentsState.getState().dispatch
   navigationDispatch.setNavigationReady(true, 'current-uid')
-  useConfigState.getState().dispatch.setUserSwitching(true)
+  useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
   const listener = jest.fn()
   const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
 

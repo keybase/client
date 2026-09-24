@@ -15,11 +15,10 @@ const openAccountSwitcher = () => {
 const AccountSwitchHeaderAvatar = () => {
   const styles = useStyles()
   const username = useCurrentUserState(s => s.username)
-  const {configuredAccounts, login, setUserSwitching, userSwitching} = useConfigState(
+  const {configuredAccounts, switchToAccount, userSwitching} = useConfigState(
     C.useShallow(s => ({
       configuredAccounts: s.configuredAccounts,
-      login: s.dispatch.login,
-      setUserSwitching: s.dispatch.setUserSwitching,
+      switchToAccount: s.dispatch.switchToAccount,
       userSwitching: s.userSwitching,
     }))
   )
@@ -27,13 +26,13 @@ const AccountSwitchHeaderAvatar = () => {
   const handledLongPressRef = React.useRef(false)
 
   const switchToRecentAccount = () => {
-    if (userSwitching || !recentAccount) return
+    if (!recentAccount) return
+    const tab = C.Router2.getTab()
+    if (!switchToAccount(recentAccount.username)) return
 
     handledLongPressRef.current = true
     C.ignorePromise(Haptics.selectionAsync())
-    rememberAccountSwitchTab(username, recentAccount.username, C.Router2.getTab())
-    setUserSwitching(true, recentAccount.username)
-    login(recentAccount.username, '')
+    rememberAccountSwitchTab(username, recentAccount.username, tab)
   }
 
   const onPressIn = () => {

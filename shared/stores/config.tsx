@@ -57,7 +57,7 @@ type Store = T.Immutable<{
     tab?: Tab;
   };
   userSwitching: boolean;
-  // The account an in-progress switch is logging into ('' when none or not known)
+  // The account an in-progress switch is logging into ('' when none)
   userSwitchingTo: string;
   // Whether the in-progress switch started while logged in
   userSwitchingFromLoggedIn: boolean;
@@ -131,7 +131,10 @@ export type State = Store & {
     setStartupDetails: (st: Omit<Store["startup"], "loaded">) => void;
     setOutOfDate: (outOfDate: T.Config.OutOfDate) => void;
     setUpdating: () => void;
-    setUserSwitching: (sw: boolean, to?: string) => void;
+    // Starting a switch names its target; switchToAccount is the one place that does.
+    setUserSwitching: (...args: [sw: true, to: string] | [sw: false]) => void;
+    // Starts a switch to a stored account unless one is already running. Returns whether it started.
+    switchToAccount: (username: string) => boolean;
     toggleRuntimeStats: () => void;
     updateGregorCategory: (
       category: string,
@@ -143,8 +146,9 @@ export type State = Store & {
 
 export const useConfigState = Z.createZustand<State>("config", (set, get) => {
   let inflightRefreshAccounts: Promise<void> | undefined;
-  // Bumped by every login. A login that fails after a newer one started (e.g. picking a second
-  // account mid-switch) must not end the newer switch or show its own error.
+  // Bumped by every login. A login that fails after a newer one started (e.g. a tapped push for
+  // another account switching while a password login is still running) must not end the newer
+  // switch or show its own error.
   let loginGeneration = 0;
 
   const _checkForUpdate = async () => {
@@ -212,7 +216,7 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
       // A navigator that comes up for an account a newer switch has already moved past (the user
       // picked another account mid-switch) must leave that switch running.
       const { userSwitching, userSwitchingTo } = get();
-      if (userSwitching && (!userSwitchingTo || userSwitchingTo === username)) {
+      if (userSwitching && userSwitchingTo === username) {
         get().dispatch.setUserSwitching(false);
       }
     },
@@ -623,7 +627,10 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
         s.outOfDate.updating = true;
       });
     },
-    setUserSwitching: (sw, to) => {
+    setUserSwitching: (...args) => {
+      const [sw, to] = args;
+      // Read before the reset below, which clears loggedIn
+      const fromLoggedIn = sw && get().loggedIn;
       if (sw && !get().userSwitching) {
         Z.resetAllStores();
         if (hasEngine()) {
@@ -631,13 +638,16 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
         }
       }
       set((s) => {
-        // A second switch that starts after the mid-switch logout would read loggedIn as false, so
-        // keep holding the logged-in screens if the switch already in flight is holding them.
-        s.userSwitchingFromLoggedIn =
-          sw && (s.loggedIn || (s.userSwitching && s.userSwitchingFromLoggedIn));
         s.userSwitching = sw;
-        s.userSwitchingTo = sw ? (to ?? "") : "";
+        s.userSwitchingFromLoggedIn = fromLoggedIn;
+        s.userSwitchingTo = sw ? to : "";
       });
+    },
+    switchToAccount: (username) => {
+      if (get().userSwitching) return false;
+      get().dispatch.setUserSwitching(true, username);
+      get().dispatch.login(username, "");
+      return true;
     },
     toggleRuntimeStats: () => {
       const f = async () => {

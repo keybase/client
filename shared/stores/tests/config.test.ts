@@ -195,7 +195,7 @@ describe('login', () => {
       .mockRejectedValue(new RPCError('bad password', T.RPCGen.StatusCode.scgeneric))
     const switchingWhenRead: Array<boolean> = []
     refresh.mockImplementation(() => switchingWhenRead.push(useConfigState.getState().userSwitching))
-    useConfigState.getState().dispatch.setUserSwitching(true)
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
     useConfigState.getState().dispatch.login('testuser', 'password')
     await flush()
 
@@ -206,7 +206,7 @@ describe('login', () => {
   const switchWithLoginFailure = async (failure: unknown) => {
     jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockRejectedValue(failure)
     const {dispatch} = useConfigState.getState()
-    dispatch.setUserSwitching(true)
+    dispatch.setUserSwitching(true, 'testuser')
     dispatch.login('testuser', '')
     await flush()
   }
@@ -223,7 +223,7 @@ describe('login', () => {
       return cancelled()
     })
     const {dispatch} = useConfigState.getState()
-    dispatch.setUserSwitching(true)
+    dispatch.setUserSwitching(true, 'testuser')
     dispatch.login('testuser', '')
     await flush()
 
@@ -248,17 +248,16 @@ describe('login', () => {
     expect(useConfigState.getState().userSwitching).toBe(false)
   })
 
-  test("a login that fails after a newer one started leaves the newer switch alone, and the newer one's failure still ends it", async () => {
+  test("a login that fails after a switch started leaves the switch alone, and the newer one's failure still ends it", async () => {
     const rejects: Array<(e: unknown) => void> = []
     jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockImplementation(
       async () => new Promise<void>((_resolve, reject) => rejects.push(reject))
     )
     const {dispatch} = useConfigState.getState()
-    dispatch.setUserSwitching(true, 'testuser')
-    dispatch.login('testuser', '')
+    dispatch.login('testuser', 'password')
     await flush()
-    dispatch.setUserSwitching(true, 'testuser-mac')
-    dispatch.login('testuser-mac', '')
+    // e.g. a tapped push for another account while a password login is still running
+    dispatch.switchToAccount('testuser-mac')
     await flush()
 
     rejects[0]?.(new RPCError('bad things', T.RPCGen.StatusCode.scgeneric))
@@ -275,18 +274,17 @@ describe('login', () => {
     expect(state.loginError?.desc).toBeTruthy()
   })
 
-  test('prompts that arrive for a login after a newer one started do not end the newer switch', async () => {
+  test('prompts that arrive for a login after a switch started do not end the switch', async () => {
     const listeners: Array<any> = []
     jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockImplementation(async listener => {
       listeners.push(listener)
       return new Promise<void>(() => {})
     })
     const {dispatch} = useConfigState.getState()
-    dispatch.setUserSwitching(true, 'testuser')
-    dispatch.login('testuser', '')
+    dispatch.login('testuser', 'password')
     await flush()
-    dispatch.setUserSwitching(true, 'testuser-mac')
-    dispatch.login('testuser-mac', '')
+    // e.g. a tapped push for another account while a password login is still running
+    dispatch.switchToAccount('testuser-mac')
     await flush()
 
     const response = () => ({error: jest.fn(), result: jest.fn()})
@@ -350,15 +348,18 @@ test('setUserSwitching records whether the switch started logged in, through the
   expect(useConfigState.getState().userSwitchingFromLoggedIn).toBe(false)
 })
 
-test('a switch started during another switch keeps the first switch\'s logged-in state and takes the new target', () => {
+test('switchToAccount starts a switch to its target and logs in, and refuses while one is running', () => {
+  const loginSpy = jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockReturnValue(new Promise(() => {}))
   const {dispatch} = useConfigState.getState()
 
-  dispatch.setLoggedIn(true)
-  dispatch.setUserSwitching(true, 'testuser')
-  dispatch.setLoggedIn(false)
-  dispatch.setUserSwitching(true, 'testuser-mac')
+  expect(dispatch.switchToAccount('testuser')).toBe(true)
+  expect(useConfigState.getState().userSwitchingTo).toBe('testuser')
+  expect(loginSpy).toHaveBeenCalledTimes(1)
 
-  const state = useConfigState.getState()
-  expect(state.userSwitchingFromLoggedIn).toBe(true)
-  expect(state.userSwitchingTo).toBe('testuser-mac')
+  expect(dispatch.switchToAccount('testuser-mac')).toBe(false)
+  expect(useConfigState.getState().userSwitchingTo).toBe('testuser')
+  expect(loginSpy).toHaveBeenCalledTimes(1)
+
+  loginSpy.mockRestore()
+  dispatch.setUserSwitching(false)
 })

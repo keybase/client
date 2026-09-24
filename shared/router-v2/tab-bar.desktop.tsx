@@ -260,20 +260,14 @@ function Tab(props: TabProps) {
   const isPeopleTab = index === 0
   const {label} = Tabs.desktopTabMeta[tab]
   const current = useCurrentUserState(s => s.username)
-  const {login, setUserSwitching} = useConfigState(
-    C.useShallow(s => ({
-      login: s.dispatch.login,
-      setUserSwitching: s.dispatch.setUserSwitching,
-    }))
-  )
+  const switchToAccount = useConfigState(s => s.dispatch.switchToAccount)
   const onQuickSwitch = isPeopleTab
     ? () => {
         const {configuredAccounts: accountRows, userSwitching} = useConfigState.getState()
         if (userSwitching) return
         const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
         if (row) {
-          setUserSwitching(true, row.username)
-          login(row.username, '')
+          switchToAccount(row.username)
         } else {
           onSelectTab(tab)
         }

@@ -15,18 +15,16 @@ const AccountSwitcher = (p: {onSelected?: () => void}) => {
   const _fullnames = useUsersState(s => s.infoMap)
   const {
     accountRows: _accountRows,
-    login,
     logoutAndTryToLogInAs: onSelectAccountLoggedOut,
     logoutToLoggedOutFlow: onLoginAsAnotherUser,
-    setUserSwitching,
+    switchToAccount,
     userSwitching,
   } = useConfigState(
     C.useShallow(s => ({
       accountRows: s.configuredAccounts,
-      login: s.dispatch.login,
       logoutAndTryToLogInAs: s.dispatch.logoutAndTryToLogInAs,
       logoutToLoggedOutFlow: s.dispatch.logoutToLoggedOutFlow,
-      setUserSwitching: s.dispatch.setUserSwitching,
+      switchToAccount: s.dispatch.switchToAccount,
       userSwitching: s.userSwitching,
     }))
   )
@@ -37,11 +35,10 @@ const AccountSwitcher = (p: {onSelected?: () => void}) => {
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyConfigLogin) || userSwitching
 
   const onSelectAccountLoggedIn = (username: string) => {
-    if (isMobile) {
-      rememberAccountSwitchTab(you, username, C.Router2.getTab())
+    const tab = C.Router2.getTab()
+    if (switchToAccount(username) && isMobile) {
+      rememberAccountSwitchTab(you, username, tab)
     }
-    setUserSwitching(true, username)
-    login(username, '')
   }
 
   const accountRows = _accountRows.filter(account => account.username !== you)

@@ -33,7 +33,7 @@ describe('loadAccountsStep', () => {
 
   test('does not wait for accounts while switching', async () => {
     withDeferredRefreshAccounts()
-    useConfigState.getState().dispatch.setUserSwitching(true)
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
     useDaemonState.setState(s => {
       s.bootstrapStatus = {loggedIn: false} as any
     })
@@ -107,7 +107,7 @@ describe('onNetworkOnlineChanged', () => {
 
   test('does not re-read during an account switch', () => {
     const reRead = spyOnReRead()
-    useConfigState.getState().dispatch.setUserSwitching(true)
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
     onNetworkOnlineChanged(true, false)
     expect(reRead).not.toHaveBeenCalled()
   })
@@ -257,7 +257,7 @@ describe('the session comes from the daemon; notifications only say to read it',
   test('during an account switch a logged-out reply is ignored, and the new user still replaces the old', async () => {
     await readReplying(userA)
     markAccountState()
-    useConfigState.getState().dispatch.setUserSwitching(true)
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
     const {changes, unsub} = loginChanges()
 
     await readReplying(loggedOut)
@@ -274,7 +274,7 @@ describe('the session comes from the daemon; notifications only say to read it',
 
   test('a switch whose login fails ends logged out, no longer switching', async () => {
     await readReplying(userA)
-    useConfigState.getState().dispatch.setUserSwitching(true)
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
     await readReplying(loggedOut)
 
     useConfigState.getState().dispatch.setLoginError(new Error('bad password') as never)
@@ -289,7 +289,7 @@ describe('the session comes from the daemon; notifications only say to read it',
     ['ended by a non-RPC error', new Error('engine reset')],
   ])('a switch whose login is %s ends logged out, no longer switching', async (_, error) => {
     await readReplying(userA)
-    useConfigState.getState().dispatch.setUserSwitching(true)
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
     await readReplying(loggedOut)
     expect(useConfigState.getState().loggedIn).toBe(true)
 

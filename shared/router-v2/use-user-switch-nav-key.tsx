@@ -37,10 +37,7 @@ export const useUserSwitchNavKey = () => {
         .getState()
         .dispatch.setNavigationReady(true, useCurrentUserState.getState().uid)
     }
-    const {dispatch, userSwitching, userSwitchingTo} = useConfigState.getState()
-    if (userSwitching && userSwitchingTo === username) {
-      dispatch.setUserSwitching(false)
-    }
+    useConfigState.getState().dispatch.endUserSwitchLandedOn(username)
   }, [username])
   return navKey
 }
