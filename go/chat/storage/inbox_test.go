@@ -743,17 +743,9 @@ func TestInboxMembershipUpdate(t *testing.T) {
 	ctc, inbox, uid := setupInboxTest(t, "membership")
 	defer ctc.Cleanup()
 
-	u2, err := kbtest.CreateAndSignupFakeUser("ib", ctc.G)
-	require.NoError(t, err)
-	uid2 := gregor1.UID(u2.User.GetUID().ToBytes())
-
-	u3, err := kbtest.CreateAndSignupFakeUser("ib", ctc.G)
-	require.NoError(t, err)
-	uid3 := gregor1.UID(u3.User.GetUID().ToBytes())
-
-	u4, err := kbtest.CreateAndSignupFakeUser("ib", ctc.G)
-	require.NoError(t, err)
-	uid4 := gregor1.UID(u4.User.GetUID().ToBytes())
+	uid2 := makeUID(t)
+	uid3 := makeUID(t)
+	uid4 := makeUID(t)
 
 	t.Logf("uid: %s uid2: %s uid3: %s uid4: %s", uid, uid2, uid3, uid4)
 
@@ -931,4 +923,62 @@ func TestUpdateLocalMtime(t *testing.T) {
 	})
 	require.Equal(t, mtime1, convs[0].GetMtime())
 	require.Equal(t, mtime2, convs[1].GetMtime())
+}
+
+func TestInboxWrongSessionUIDIsMissNotNuke(t *testing.T) {
+	tc, inbox, uidA := setupInboxTest(t, "decmiss")
+	defer tc.Cleanup()
+
+	conv := makeConvo(gregor1.Time(1), 1, 1)
+	require.NoError(t, inbox.Merge(context.TODO(), uidA, 7, []chat1.Conversation{conv.Conv}, nil))
+
+	_, found, err := tc.G.LocalChatDb.GetRaw(inbox.dbVersionsKey(uidA))
+	require.NoError(t, err)
+	require.True(t, found)
+
+	_, _, err = inbox.Read(context.TODO(), nil, nil)
+	require.ErrorAs(t, err, new(MissError))
+	_, found, err = tc.G.LocalChatDb.GetRaw(inbox.dbVersionsKey(uidA))
+	require.NoError(t, err)
+	require.True(t, found, "empty request uid must not delete inbox versions")
+
+	_, err = kbtest.CreateAndSignupFakeUser("ib", tc.G)
+	require.NoError(t, err)
+
+	_, _, err = inbox.Read(context.TODO(), uidA, nil)
+	require.ErrorAs(t, err, new(MissError))
+
+	_, found, err = tc.G.LocalChatDb.GetRaw(inbox.dbVersionsKey(uidA))
+	require.NoError(t, err)
+	require.True(t, found, "wrong-session uid must not delete inbox versions")
+}
+
+func TestInboxMemCacheClearOnlyUID(t *testing.T) {
+	uidA := gregor1.UID([]byte("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"))
+	uidB := gregor1.UID([]byte("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"))
+	convA := makeConvo(gregor1.Time(1), 1, 1)
+	convB := makeConvo(gregor1.Time(2), 1, 1)
+	inboxMemCache.PutConv(uidA, convA)
+	inboxMemCache.PutConv(uidB, convB)
+	inboxMemCache.Clear(uidA)
+	require.Nil(t, inboxMemCache.GetConv(uidA, convA.GetConvID()))
+	require.NotNil(t, inboxMemCache.GetConv(uidB, convB.GetConvID()))
+	inboxMemCache.clearCache()
+}
+
+func TestInboxClearLockedIndexErrorKeepsVersions(t *testing.T) {
+	tc, inbox, uid := setupInboxTest(t, "clridx")
+	defer tc.Cleanup()
+
+	conv := makeConvo(gregor1.Time(1), 1, 1)
+	require.NoError(t, inbox.Merge(context.TODO(), uid, 3, []chat1.Conversation{conv.Conv}, nil))
+	require.NoError(t, tc.G.LocalChatDb.PutRaw(inbox.dbIndexKey(uid), []byte("not-a-box")))
+	inboxMemCache.Clear(uid)
+
+	err := inbox.clearLocked(context.TODO(), uid)
+	require.Error(t, err)
+
+	_, found, gerr := tc.G.LocalChatDb.GetRaw(inbox.dbVersionsKey(uid))
+	require.NoError(t, gerr)
+	require.True(t, found, "clearLocked must not delete versions when the index cannot be read")
 }

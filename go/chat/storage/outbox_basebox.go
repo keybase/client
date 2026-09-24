@@ -45,6 +45,9 @@ func (s *outboxBaseboxStorage) clear(ctx context.Context) Error {
 
 func (s *outboxBaseboxStorage) readStorage(ctx context.Context) (res diskOutbox, err Error) {
 	defer func() { s.maybeNuke(err, s.dbKey()) }()
+	if err := s.missIfWrongSessionUID(s.uid); err != nil {
+		return res, err
+	}
 
 	if memobox := outboxMemCache.Get(s.uid); memobox != nil {
 		s.Debug(ctx, "hit in memory cache")
@@ -76,6 +79,9 @@ func (s *outboxBaseboxStorage) readStorage(ctx context.Context) (res diskOutbox,
 
 func (s *outboxBaseboxStorage) writeStorage(ctx context.Context, obox diskOutbox) (err Error) {
 	defer func() { s.maybeNuke(err, s.dbKey()) }()
+	if err := s.missIfWrongSessionUID(s.uid); err != nil {
+		return err
+	}
 	if ierr := s.writeDiskBox(ctx, s.dbKey(), obox); ierr != nil {
 		return NewInternalError(ctx, s.DebugLabeler, "error writing outbox: err: %s", ierr)
 	}

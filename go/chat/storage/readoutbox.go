@@ -59,6 +59,9 @@ func (o *ReadOutbox) clear(ctx context.Context) Error {
 }
 
 func (o *ReadOutbox) readStorage(ctx context.Context) (res diskReadOutbox) {
+	if err := o.missIfWrongSessionUID(o.uid); err != nil {
+		return diskReadOutbox{Version: readOutboxVersion}
+	}
 	if memobox := readOutboxMemCache.Get(o.uid); memobox != nil {
 		o.Debug(ctx, "hit in memory cache")
 		res = *memobox
@@ -87,6 +90,9 @@ func (o *ReadOutbox) readStorage(ctx context.Context) (res diskReadOutbox) {
 }
 
 func (o *ReadOutbox) writeStorage(ctx context.Context, obox diskReadOutbox) (err Error) {
+	if err := o.missIfWrongSessionUID(o.uid); err != nil {
+		return err
+	}
 	if ierr := o.writeDiskBox(ctx, o.dbKey(), obox); ierr != nil {
 		return NewInternalError(ctx, o.DebugLabeler, "error writing outbox: err: %s", ierr)
 	}
