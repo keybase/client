@@ -468,9 +468,13 @@ export const navigateAppendOnceRootHas = (
   }
   const n = _getNavigator()
   if (!n) {
+    logger.warn(`[Nav] navigateAppendOnceRootHas: no navigator, dropping ${path.name}`)
     return
   }
-  const timer = setTimeout(() => unsub(), timeoutMs)
+  const timer = setTimeout(() => {
+    unsub()
+    logger.warn(`[Nav] navigateAppendOnceRootHas: ${rootRouteName} never mounted, dropping ${path.name}`)
+  }, timeoutMs)
   const unsub = n.addListener('state', () => {
     if (!rootHas()) return
     clearTimeout(timer)

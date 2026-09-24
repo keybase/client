@@ -1,4 +1,5 @@
 /// <reference types="jest" />
+import logger from '@/logger'
 import {navigateAppendOnceRootHas, navigationRef} from '@/constants/router'
 
 const dispatch = jest.fn()
@@ -38,6 +39,7 @@ beforeEach(() => {
 
 afterEach(() => {
   jest.useRealTimers()
+  jest.restoreAllMocks()
 })
 
 // Each test pushes distinct params: navigateAppend's module-private `_pendingAppend` dupe cache
@@ -76,10 +78,25 @@ test('gives up if the root route does not mount before the timeout', () => {
   jest.useFakeTimers()
   setRootRoutes([loggedIn])
 
+  const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
+
   navigateAppendOnceRootHas('loggedOut', {name: 'username', params: {username: 'testuser-c'}} as never, 5000)
   jest.advanceTimersByTime(5000)
+  expect(warn).toHaveBeenCalledWith(expect.stringContaining('loggedOut never mounted, dropping username'))
 
   setRootRoutes([loggedOut])
   emitState()
+  expect(dispatch).not.toHaveBeenCalled()
+})
+
+test('logs the push it drops when there is no navigator', () => {
+  setRootRoutes([loggedIn])
+  const nr = navigationRef as unknown as Record<string, unknown>
+  nr['isReady'] = () => false
+  const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
+
+  navigateAppendOnceRootHas('loggedOut', {name: 'username', params: {username: 'testuser-d'}} as never)
+
+  expect(warn).toHaveBeenCalledWith(expect.stringContaining('no navigator, dropping username'))
   expect(dispatch).not.toHaveBeenCalled()
 })
