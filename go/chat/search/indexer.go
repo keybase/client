@@ -235,7 +235,7 @@ func (idx *Indexer) PokeSync(ctx context.Context) {
 }
 
 func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
-	ctx := globals.ChatCtx(context.Background(), idx.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+	ctx := context.Background()
 	idx.Lock()
 	suspendCh := idx.suspendCh
 	idx.Unlock()
@@ -256,21 +256,22 @@ func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
 			cancelFn = nil
 		}
 	}
-	attemptSync := func(ctx context.Context) {
+	attemptSync := func() {
 		if netState.IsLimited() {
 			return
 		}
+		syncCtx := globals.ChatCtx(context.Background(), idx.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 		l.Lock()
 		defer l.Unlock()
 		if cancelFn != nil {
-			idx.Debug(ctx, "SelectiveSync already running, skipping new sync attempt")
+			idx.Debug(syncCtx, "SelectiveSync already running, skipping new sync attempt")
 			return
 		}
-		ctx, cancelFn = context.WithCancel(ctx)
+		syncCtx, cancelFn = context.WithCancel(syncCtx)
 		syncAttemptWG.Go(func() {
-			idx.Debug(ctx, "running SelectiveSync")
-			if err := idx.SelectiveSync(ctx); err != nil {
-				idx.Debug(ctx, "unable to complete SelectiveSync: %v", err)
+			idx.Debug(syncCtx, "running SelectiveSync")
+			if err := idx.SelectiveSync(syncCtx); err != nil {
+				idx.Debug(syncCtx, "unable to complete SelectiveSync: %v", err)
 				if idx.syncLoopCh != nil {
 					select {
 					case idx.syncLoopCh <- struct{}{}:
@@ -303,11 +304,11 @@ func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
 		case <-idx.cancelSyncCh:
 			cancelSync()
 		case <-idx.pokeSyncCh:
-			attemptSync(ctx)
+			attemptSync()
 		case <-after:
-			attemptSync(ctx)
+			attemptSync()
 		case <-ticker.C:
-			attemptSync(ctx)
+			attemptSync()
 		case <-idx.G().MobileAppState.NextUpdate(appState):
 			appState = idx.G().MobileAppState.State()
 			switch appState {

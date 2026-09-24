@@ -173,6 +173,7 @@ func (b *BackgroundEphemeralPurger) Stop(ctx context.Context) (ch chan struct{})
 	if b.started {
 		close(b.shutdownCh)
 		b.started = false
+		b.uid = nil
 		go func() {
 			if err := b.eg.Wait(); err != nil {
 				b.Debug(ctx, "error stopping background loop: %v", err)
