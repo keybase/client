@@ -33,7 +33,7 @@ import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liqu
 import {Platform, StatusBar, View} from 'react-native'
 import AccountSwitchHeaderAvatar from './account-switch-header-avatar'
 import {clearPendingAccountSwitch, consumePendingAccountSwitchTab} from './account-switch'
-import {LoggedInScreensProvider, useLoggedInScreens} from './logged-in-screens'
+import {useLoggedInScreens} from './logged-in-screens'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
 const isLiquidGlassSupported = isMobile ? (_isLiquidGlassSupported as boolean) : false
@@ -100,7 +100,7 @@ const setNavRef = (ref: typeof C.Router2.navigationRef.current) => {
 // Sticky: once the handshake finishes we never go back to the splash, even if it
 // restarts later (engine reconnect); the disconnected overlay covers that case.
 // Module-level so it survives the navigator remount on user switch (a ref would
-// reset and flash the splash while the post-switch handshake is still running).
+// reset and flash the splash).
 let handshakeEverDone = false
 const useHandshakeEverDone = () => {
   return useDaemonState(s => {
@@ -304,11 +304,9 @@ function DesktopRouter() {
       ref={setDesktopNavRef}
       theme={isDarkMode ? darkTheme : lightTheme}
     >
-      <LoggedInScreensProvider>
-        <LoadedTeamsListProvider>
-          <DesktopRootComponent />
-        </LoadedTeamsListProvider>
-      </LoggedInScreensProvider>
+      <LoadedTeamsListProvider>
+        <DesktopRootComponent />
+      </LoadedTeamsListProvider>
     </NavigationContainer>
   )
 }
@@ -738,11 +736,9 @@ function NativeRouter() {
         ref={setNativeNavRef}
         theme={isDarkMode ? darkTheme : lightTheme}
       >
-        <LoggedInScreensProvider>
-          <LoadedTeamsListProvider>
-            <NativeRootComponent />
-          </LoadedTeamsListProvider>
-        </LoggedInScreensProvider>
+        <LoadedTeamsListProvider>
+          <NativeRootComponent />
+        </LoadedTeamsListProvider>
       </NavigationContainer>
     </Kb.Box2>
   )
