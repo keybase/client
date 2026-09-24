@@ -17,6 +17,7 @@
 - After editing `protocol/avdl/` or `protocol/bin/enabled-calls.json`: from `protocol/`, run `node ./bin/generate-ts.ts && cp ./js/rpc*.tsx ../shared/constants/rpc` and commit the regenerated `shared/constants/rpc/rpc-gen.tsx`.
 - Never hand-edit generated code (rpc-gen, protocol output, mocks, codegen'd files of any kind). Edit the source it's generated from and rerun the generator. CI regenerates and fails on any diff.
 - When updating `electron`: run `shared/desktop/extract-electron-shasums.sh <version>`.
+- Keep an open PR's description in step with its branch. Whenever new commits change what the PR does or how (a new fix, a changed approach, a removed piece, new tests or evidence), rewrite the affected sections with `gh pr edit --body-file`, and the title if the scope moved. It should read as a description of the current diff, not a changelog. Skip it for commits that don't change the story (lint, renames, test placeholders).
 - Never patch `react-native` itself (patch-package or node_modules edits): we use prebuilt RN core and don't compile its source, so native-side patches never take effect. Work around RN core bugs in app code.
 
 ## Working Directory
