@@ -2,7 +2,7 @@
 import Session from './session'
 import {RPCError} from '@/util/errors'
 import * as T from '@/constants/types'
-import {resetAllStores} from '@/util/zustand'
+import {startNewAccountGeneration, survivesAccountChange} from './account-generation'
 
 const mockDispatchWaitingAction = jest.fn()
 jest.mock('./require', () => ({
@@ -85,10 +85,10 @@ describe('a call that outlives its account', () => {
     return {callback, reply, session}
   }
   const logOut = () => {
-    resetAllStores()
+    startNewAccountGeneration()
   }
 
-  test('its reply is refused after a logout, without touching the waiting count', () => {
+  test('its reply is refused after a logout, and still releases its waiting count', () => {
     const {callback, reply} = startCall('keybase.1.user.getUserBlocks')
     logOut()
 
@@ -99,7 +99,7 @@ describe('a call that outlives its account', () => {
     expect(err).toBeInstanceOf(RPCError)
     expect(err.code).toBe(T.RPCGen.StatusCode.sccanceled)
     expect(data).toBeUndefined()
-    expect(mockDispatchWaitingAction).not.toHaveBeenCalled()
+    expect(mockDispatchWaitingAction).toHaveBeenCalledWith('waiting-key', false, undefined)
   })
 
   test('a prompt the service sends on it is answered with an error, not handed to its handler', () => {
@@ -124,6 +124,12 @@ describe('a call that outlives its account', () => {
 
     expect(callback).toHaveBeenCalledWith(undefined, undefined)
     expect(mockDispatchWaitingAction).toHaveBeenCalledWith('waiting-key', false, undefined)
+  })
+
+  test('registering with the service outlives an account', () => {
+    expect(survivesAccountChange('keybase.1.delegateUiCtl.registerChatUI')).toBe(true)
+    expect(survivesAccountChange('keybase.1.notifyCtl.setNotifications')).toBe(true)
+    expect(survivesAccountChange('keybase.1.user.getUserBlocks')).toBe(false)
   })
 
   test('a call started after the logout is answered normally', () => {

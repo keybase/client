@@ -8,6 +8,7 @@ import * as T from '../../constants/types'
 import * as Tabs from '../../constants/tabs'
 import {navigateAppendOnceRootHas} from '../../constants/router'
 import {RPCError} from '../../util/errors'
+import {getAccountGeneration} from '../../engine/account-generation'
 import {useDaemonState} from '../daemon'
 import {noConversationIDKey} from '../../constants/types/chat/common'
 import {useConfigState} from '../config'
@@ -362,4 +363,21 @@ test('switchToAccount starts a switch to its target and logs in, and refuses whi
 
   loginSpy.mockRestore()
   dispatch.setUserSwitching(false)
+})
+
+test('a logout starts a new account generation before anything reacts to it', () => {
+  const {dispatch} = useConfigState.getState()
+  dispatch.setLoggedIn(true)
+  const before = getAccountGeneration()
+  let seenByReaction: number | undefined
+  const unsub = useConfigState.subscribe((s, old) => {
+    if (old.loggedIn && !s.loggedIn) {
+      seenByReaction = getAccountGeneration()
+    }
+  })
+
+  dispatch.setLoggedIn(false)
+  unsub()
+
+  expect(seenByReaction).toBe(before + 1)
 })

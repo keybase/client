@@ -237,6 +237,9 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
         } catch (_error) {
           const error = _error as {message: string}
           logger.error(`error loading contacts: ${error.message}`)
+          if (accountChanged()) {
+            return
+          }
           set(s => {
             s.importedCount = undefined
             s.importError = error.message
@@ -252,9 +255,6 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
           const {newlyResolved, resolved} = await T.RPCGen.contactsSaveContactListRpcPromise({
             contacts: mapped,
           })
-          if (accountChanged()) {
-            return
-          }
           logger.info(`Success`)
           set(s => {
             s.importedCount = mapped.length
@@ -280,6 +280,7 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
         } catch (_error) {
           const error = _error as {message: string}
           logger.error('Error saving contacts list: ', error.message)
+          // includes the engine refusing the reply because a switch landed during the upload
           if (accountChanged()) {
             return
           }

@@ -64,6 +64,8 @@ describe('ProvisionWaitingOverlay', () => {
     mockAddListener.mockReset()
     mockPauseProvision.mockReset()
     mockNavigateUp.mockReset()
+    // a logout keeps in-flight waiting counts, and some tests end mid-wait
+    useWaitingState.getState().dispatch.clear(waitingKeyProvision)
     resetAllStores()
   })
 

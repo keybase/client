@@ -82,9 +82,9 @@ export const persistRoute = (clear: boolean, immediate: boolean, isStartupLoaded
     } catch {}
   }
 
-  // The route being persisted is the one on screen when this was asked for. Across an account switch
-  // the previous account's screens stay up briefly, so persisting them under the next account's uid
-  // would restore a conversation that is not that account's on the next launch.
+  // The account this persist was asked for. Across an account switch the previous account's screens
+  // stay up briefly, so a delayed persist that runs after the switch would save their route under
+  // the next account's uid and restore a conversation that is not that account's on the next launch.
   const uidAtRequest = useCurrentUserState.getState().uid
   const doPersist = async () => {
     if (!isStartupLoaded()) {

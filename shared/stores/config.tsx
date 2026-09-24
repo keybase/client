@@ -17,6 +17,7 @@ import {
   niceError,
 } from "@/util/errors";
 import { type CommonResponseHandler } from "@/engine/types";
+import { startNewAccountGeneration } from "@/engine/account-generation";
 import { invalidPasswordErrorString } from "@/constants/config";
 import { navigateAppendOnceRootHas } from "@/constants/router";
 import { onEngineConnected as onEngineConnectedInPlatform } from "@/util/storeless-actions";
@@ -591,6 +592,9 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
     },
     setLoggedIn: (loggedIn) => {
       const changed = get().loggedIn !== loggedIn;
+      if (changed && !loggedIn) {
+        startNewAccountGeneration();
+      }
       set((s) => {
         s.loggedIn = loggedIn;
       });
@@ -632,6 +636,10 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
       // Read before the reset below, which clears loggedIn
       const fromLoggedIn = sw && get().loggedIn;
       if (sw && !get().userSwitching) {
+        // The reset logs the old account out of our stores without going through setLoggedIn
+        if (fromLoggedIn) {
+          startNewAccountGeneration();
+        }
         Z.resetAllStores();
         if (hasEngine()) {
           getEngine().cancelOutstandingSessions();

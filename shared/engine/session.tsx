@@ -65,8 +65,7 @@ class Session {
     return this._dangling
   }
 
-  // Started for an account that has since logged out. The logout reset already cleared its waiting
-  // count, so nothing it receives may touch waiting state or reach its handlers.
+  // Started for an account that has since logged out, so nothing it receives may reach its handlers.
   _belongsToPreviousAccount() {
     return (
       this._accountGeneration !== undefined &&
@@ -150,6 +149,7 @@ class Session {
     updateWaiting(true)
     this._invoke(method, [wrappedParam], (err: unknown, data: unknown) => {
       if (this._belongsToPreviousAccount()) {
+        updateWaiting(false)
         wrappedCallback(new RPCError('The account changed during this call', StatusCode.sccanceled))
         return
       }
