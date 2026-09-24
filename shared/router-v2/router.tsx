@@ -32,7 +32,8 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liquid-glass'
 import {Platform, StatusBar, View} from 'react-native'
 import AccountSwitchHeaderAvatar from './account-switch-header-avatar'
-import {clearPendingAccountSwitch, consumePendingAccountSwitchTab, showLoggedInScreens} from './account-switch'
+import {clearPendingAccountSwitch, consumePendingAccountSwitchTab} from './account-switch'
+import {LoggedInScreensContext, useLoggedInScreens, useShowLoggedInScreensHeld} from './logged-in-screens'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
 const isLiquidGlassSupported = isMobile ? (_isLiquidGlassSupported as boolean) : false
@@ -187,17 +188,15 @@ if (!isMobile) {
 
   const useIsLoadingDesktop = () => !useHandshakeEverDone()
 
-  // Same rule as native: keep the app (and its left nav) mounted through the loggedIn flap of a
-  // switch that started logged in.
   const useIsLoggedInDesktop = () => {
     const loaded = useHandshakeEverDone()
-    const loggedIn = useConfigState(showLoggedInScreens)
+    const loggedIn = useLoggedInScreens()
     return loaded && loggedIn
   }
 
   const useIsLoggedOutDesktop = () => {
     const loaded = useHandshakeEverDone()
-    const loggedIn = useConfigState(showLoggedInScreens)
+    const loggedIn = useLoggedInScreens()
     return loaded && !loggedIn
   }
 
@@ -270,6 +269,7 @@ function DesktopRouter() {
   )
   const endUserSwitchLandedOn = useConfigState(s => s.dispatch.endUserSwitchLandedOn)
   const setNavigationReady = useNavigationIntentsState(s => s.dispatch.setNavigationReady)
+  const showLoggedIn = useShowLoggedInScreensHeld()
 
   React.useEffect(
     () => subscribeNavigationIntents(handleAppLink, handleAppLink),
@@ -305,9 +305,11 @@ function DesktopRouter() {
       ref={setDesktopNavRef}
       theme={isDarkMode ? darkTheme : lightTheme}
     >
-      <LoadedTeamsListProvider>
-        <DesktopRootComponent />
-      </LoadedTeamsListProvider>
+      <LoggedInScreensContext value={showLoggedIn}>
+        <LoadedTeamsListProvider>
+          <DesktopRootComponent />
+        </LoadedTeamsListProvider>
+      </LoggedInScreensContext>
     </NavigationContainer>
   )
 }
@@ -599,8 +601,8 @@ if (isMobile) {
     }
   }
 
-  const useIsLoggedInNative = () => useConfigState(showLoggedInScreens)
-  const useIsLoggedOutNative = () => !useConfigState(showLoggedInScreens)
+  const useIsLoggedInNative = () => useLoggedInScreens()
+  const useIsLoggedOutNative = () => !useLoggedInScreens()
 
   const nativeModalScreensConfig = routeMapToStaticScreens(modalRoutes, makeLayout, true, false, false)
   const nativePhoneRootScreensConfig = routeMapToStaticScreens(
@@ -693,6 +695,7 @@ function NativeRouter() {
   const bar = barStyle === 'default' ? null : <StatusBar barStyle={barStyle} />
   const navKey = Common.useUserSwitchNavKey()
   const setNavigationReady = useNavigationIntentsState(s => s.dispatch.setNavigationReady)
+  const showLoggedIn = useShowLoggedInScreensHeld()
   const setNativeNavRef = (ref: typeof C.Router2.navigationRef.current) => {
     setNavRef(ref)
     setNavigationReady(ref?.isReady() ?? false)
@@ -737,9 +740,11 @@ function NativeRouter() {
         ref={setNativeNavRef}
         theme={isDarkMode ? darkTheme : lightTheme}
       >
-        <LoadedTeamsListProvider>
-          <NativeRootComponent />
-        </LoadedTeamsListProvider>
+        <LoggedInScreensContext value={showLoggedIn}>
+          <LoadedTeamsListProvider>
+            <NativeRootComponent />
+          </LoadedTeamsListProvider>
+        </LoggedInScreensContext>
       </NavigationContainer>
     </Kb.Box2>
   )
