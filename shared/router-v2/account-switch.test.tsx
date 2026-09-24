@@ -40,47 +40,47 @@ describe('pending account-switch tab', () => {
   })
 
   test('returns the remembered tab after the username changes and consumes it once', () => {
-    rememberAccountSwitchTab('alice', 'bob', Tabs.chatTab)
+    rememberAccountSwitchTab('testuser', 'testuser-mac', Tabs.chatTab)
 
-    expect(consumePendingAccountSwitchTab('bob')).toBe(Tabs.chatTab)
-    expect(consumePendingAccountSwitchTab('bob')).toBeUndefined()
+    expect(consumePendingAccountSwitchTab('testuser-mac')).toBe(Tabs.chatTab)
+    expect(consumePendingAccountSwitchTab('testuser-mac')).toBeUndefined()
   })
 
   test('peeks the remembered tab for the target account without consuming it', () => {
-    rememberAccountSwitchTab('alice', 'bob', Tabs.fsTab)
+    rememberAccountSwitchTab('testuser', 'testuser-mac', Tabs.fsTab)
 
-    expect(peekPendingAccountSwitchTab('alice')).toBeUndefined()
-    expect(peekPendingAccountSwitchTab('bob')).toBe(Tabs.fsTab)
-    expect(consumePendingAccountSwitchTab('bob')).toBe(Tabs.fsTab)
+    expect(peekPendingAccountSwitchTab('testuser')).toBeUndefined()
+    expect(peekPendingAccountSwitchTab('testuser-mac')).toBe(Tabs.fsTab)
+    expect(consumePendingAccountSwitchTab('testuser-mac')).toBe(Tabs.fsTab)
   })
 
   test('does not consume the tab before the account changes', () => {
-    rememberAccountSwitchTab('alice', 'bob', Tabs.fsTab)
+    rememberAccountSwitchTab('testuser', 'testuser-mac', Tabs.fsTab)
 
-    expect(consumePendingAccountSwitchTab('alice')).toBeUndefined()
-    expect(consumePendingAccountSwitchTab('bob')).toBe(Tabs.fsTab)
+    expect(consumePendingAccountSwitchTab('testuser')).toBeUndefined()
+    expect(consumePendingAccountSwitchTab('testuser-mac')).toBe(Tabs.fsTab)
   })
 
   test('keeps the pending tab when switching ends on the target account', () => {
-    rememberAccountSwitchTab('alice', 'bob', Tabs.teamsTab)
+    rememberAccountSwitchTab('testuser', 'testuser-mac', Tabs.teamsTab)
 
-    clearPendingAccountSwitch('bob')
+    clearPendingAccountSwitch('testuser-mac')
 
-    expect(consumePendingAccountSwitchTab('bob')).toBe(Tabs.teamsTab)
+    expect(consumePendingAccountSwitchTab('testuser-mac')).toBe(Tabs.teamsTab)
   })
 
   test('clears the pending tab when switching fails after blanking the username', () => {
-    rememberAccountSwitchTab('alice', 'bob', Tabs.teamsTab)
+    rememberAccountSwitchTab('testuser', 'testuser-mac', Tabs.teamsTab)
 
     clearPendingAccountSwitch('')
 
-    expect(consumePendingAccountSwitchTab('bob')).toBeUndefined()
+    expect(consumePendingAccountSwitchTab('testuser-mac')).toBeUndefined()
   })
 
   test('ignores routes that are not application tabs', () => {
-    rememberAccountSwitchTab('alice', 'bob', Tabs.loginTab)
+    rememberAccountSwitchTab('testuser', 'testuser-mac', Tabs.loginTab)
 
-    expect(consumePendingAccountSwitchTab('bob')).toBeUndefined()
+    expect(consumePendingAccountSwitchTab('testuser-mac')).toBeUndefined()
   })
 })
 
