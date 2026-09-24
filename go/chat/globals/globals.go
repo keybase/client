@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"sync"
 
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat/types"
@@ -52,6 +53,10 @@ type ChatContext struct {
 	EmojiSource          types.EmojiSource                // emoji support
 	EphemeralTracker     types.EphemeralTracker           // tracking of ephemeral msg caches
 	ArchiveRegistry      types.ChatArchiveRegistry        // Metadata store of chat archives
+
+	sessionMu      sync.Mutex
+	sessionEpoch   uint64
+	sessionBlocked bool
 }
 
 func (c *ChatContext) Describe() string {

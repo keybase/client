@@ -202,6 +202,9 @@ func (i *Inbox) readDiskVersions(ctx context.Context, uid gregor1.UID, useInMemo
 	if err := isAbortedRequest(ctx); err != nil {
 		return ibox, err
 	}
+	if globals.ChatSessionStale(ctx, i.G()) {
+		return ibox, NewAbortedError()
+	}
 	if err := i.missIfWrongSessionUID(uid); err != nil {
 		return ibox, err
 	}
@@ -271,6 +274,9 @@ func (i *Inbox) readDiskIndex(ctx context.Context, uid gregor1.UID, useInMemory 
 	// Check context for an aborted request
 	if err := isAbortedRequest(ctx); err != nil {
 		return ibox, err
+	}
+	if globals.ChatSessionStale(ctx, i.G()) {
+		return ibox, NewAbortedError()
 	}
 	if err := i.missIfWrongSessionUID(uid); err != nil {
 		return ibox, err
