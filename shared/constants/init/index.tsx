@@ -14,7 +14,7 @@ import logger from '@/logger'
 import {getEngine} from '@/engine'
 import {afterKbfsDaemonRpcStatusChanged} from '@/fs/common/lifecycle'
 import {logState, setThreadInputCommandStatus} from '@/constants/router'
-import {initSharedSubscriptions, _onEngineIncoming, onEngineConnected as onSharedEngineConnected} from './shared'
+import {initSharedSubscriptions, _onEngineIncoming} from './shared'
 import {noConversationIDKey} from '../types/chat/common'
 import {dumpLogs, persistRoute} from '@/util/storeless-actions'
 
@@ -360,21 +360,6 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
         useConfigState
           .getState()
           .dispatch.setOutOfDate({critical: true, message: upgradeMsg, outOfDate: true, updating: false})
-        break
-      }
-      case 'keybase.1.NotifySession.loggedOut': {
-        if (useConfigState.getState().userSwitching) {
-          logger.info('Resetting renderer engine for account switch logout')
-          getEngine().reset()
-        }
-        break
-      }
-      case 'keybase.1.NotifySession.loggedIn': {
-        if (useConfigState.getState().userSwitching) {
-          logger.info('Refreshing renderer session registration for account switch login')
-          getEngine().reset()
-          onSharedEngineConnected()
-        }
         break
       }
       default:
