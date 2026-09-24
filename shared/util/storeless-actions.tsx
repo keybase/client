@@ -82,8 +82,15 @@ export const persistRoute = (clear: boolean, immediate: boolean, isStartupLoaded
     } catch {}
   }
 
+  // The route being persisted is the one on screen when this was asked for. Across an account switch
+  // the previous account's screens stay up briefly, so persisting them under the next account's uid
+  // would restore a conversation that is not that account's on the next launch.
+  const uidAtRequest = useCurrentUserState.getState().uid
   const doPersist = async () => {
     if (!isStartupLoaded()) {
+      return
+    }
+    if (useCurrentUserState.getState().uid !== uidAtRequest) {
       return
     }
     let param = {}
@@ -101,11 +108,10 @@ export const persistRoute = (clear: boolean, immediate: boolean, isStartupLoaded
       }
       return false
     })
-    // Stamp the persisted route with the current uid. ui.routeState2 is stored
+    // Stamp the persisted route with its account's uid. ui.routeState2 is stored
     // device-globally (not per-account), so on startup we must only restore a
     // conversation that belongs to the account we end up logged in as.
-    const {uid} = useCurrentUserState.getState()
-    const next = JSON.stringify({param, routeName, uid})
+    const next = JSON.stringify({param, routeName, uid: uidAtRequest})
     if (lastPersist === next) {
       return
     }

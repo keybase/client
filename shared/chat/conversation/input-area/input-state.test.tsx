@@ -962,3 +962,45 @@ test('a commandStatus written while the provider is frozen is applied on thaw', 
 
   expect(inputState?.commandStatus).toEqual(commandStatusInfo)
 })
+
+describe('a pending draft save', () => {
+  const typeThenWait = (switchAccount: boolean) => {
+    jest.useFakeTimers()
+    try {
+      const saveDraft = jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+      jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
+      renderComposer()
+      act(() => {
+        mockPlatformInputProps?.onChangeText('a')
+      })
+      // inside the 200ms throttle, so this save waits for its trailing edge
+      act(() => {
+        mockPlatformInputProps?.onChangeText('ab')
+      })
+      if (switchAccount) {
+        act(() => {
+          useCurrentUserState.getState().dispatch.setBootstrap({
+            deviceID: 'device-id-2',
+            deviceName: 'test-device-2',
+            uid: 'uid-2',
+            username: 'testuser-mac',
+          })
+        })
+      }
+      act(() => {
+        jest.advanceTimersByTime(250)
+      })
+      return saveDraft.mock.calls.map(c => c[0].text)
+    } finally {
+      jest.useRealTimers()
+    }
+  }
+
+  test('is saved for the account that typed it', () => {
+    expect(typeThenWait(false)).toContain('ab')
+  })
+
+  test('is not saved for the next account when a switch lands first', () => {
+    expect(typeThenWait(true)).not.toContain('ab')
+  })
+})

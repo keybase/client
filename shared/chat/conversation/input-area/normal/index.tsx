@@ -241,7 +241,13 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   // throttled draft-save path rather than from onChangeText, so the composer does not
   // re-render on every keystroke. The preview debounces another 500ms downstream anyway.
   const [previewText, setPreviewText] = React.useState('')
+  // The account this composer was mounted for. After an account switch the service saves drafts
+  // for the next account, so the unmount flush of a draft typed here must not save it there.
+  const [composerUid] = React.useState(() => useCurrentUserState.getState().uid)
   const updateDraftRaw = (text: string) => {
+    if (useCurrentUserState.getState().uid !== composerUid) {
+      return
+    }
     // Immediately update local meta.draft so switching back to this thread
     // before the async unbox completes won't re-inject the old stale draft.
     // Merges from the current meta (same inbox version), so force past gating.
