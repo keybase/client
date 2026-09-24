@@ -287,3 +287,31 @@ test('useThrottledCallback collapses repeated calls within the wait window to th
   expect(callback).toHaveBeenCalledTimes(2)
   expect(callback).toHaveBeenNthCalledWith(2, 'gamma')
 })
+
+test('useThrottledCallback drops a pending trailing call on unmount by default', () => {
+  const callback = jest.fn((value: string) => value)
+  const {result, unmount} = renderHook(() => useThrottledCallback(callback, 100))
+  act(() => {
+    result.current('alpha')
+    result.current('beta')
+  })
+
+  unmount()
+  advance(100)
+
+  expect(callback.mock.calls).toEqual([['alpha']])
+})
+
+test('useThrottledCallback runs a pending trailing call on unmount with flushOnUnmount', () => {
+  const callback = jest.fn((value: string) => value)
+  const {result, unmount} = renderHook(() => useThrottledCallback(callback, 100, {flushOnUnmount: true}))
+  act(() => {
+    result.current('alpha')
+    result.current('beta')
+  })
+
+  unmount()
+  advance(100)
+
+  expect(callback.mock.calls).toEqual([['alpha'], ['beta']])
+})

@@ -1004,3 +1004,43 @@ describe('a pending draft save', () => {
     expect(typeThenWait(true)).not.toContain('ab')
   })
 })
+
+describe('a draft typed just before leaving the conversation', () => {
+  const typeThenUnmount = (switchAccount: boolean) => {
+    jest.useFakeTimers()
+    try {
+      const saveDraft = jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+      jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
+      const {unmount} = renderComposer()
+      act(() => {
+        mockPlatformInputProps?.onChangeText('a')
+      })
+      // inside the 200ms throttle, so this save is still pending at unmount
+      act(() => {
+        mockPlatformInputProps?.onChangeText('ab')
+      })
+      if (switchAccount) {
+        act(() => {
+          useCurrentUserState.getState().dispatch.setBootstrap({
+            deviceID: 'device-id-2',
+            deviceName: 'test-device-2',
+            uid: 'uid-2',
+            username: 'testuser-mac',
+          })
+        })
+      }
+      unmount()
+      return saveDraft.mock.calls.map(c => c[0].text)
+    } finally {
+      jest.useRealTimers()
+    }
+  }
+
+  test('is saved when the composer unmounts', () => {
+    expect(typeThenUnmount(false)).toContain('ab')
+  })
+
+  test('is not saved for the next account when the unmount comes from a switch', () => {
+    expect(typeThenUnmount(true)).not.toContain('ab')
+  })
+})

@@ -22,6 +22,12 @@ type DebounceOptions = {
   trailing?: boolean
 }
 
+type ThrottleOptions = DebounceOptions & {
+  // Run a pending trailing call on unmount instead of dropping it. A component can't do this in its
+  // own cleanup: React runs cleanups in declaration order, so this hook's cancel would run first.
+  flushOnUnmount?: boolean
+}
+
 const normalizeWait = (wait?: number) => Math.max(0, wait ?? 0)
 
 export function useDebouncedCallback<T extends AnyFunction>(
@@ -149,7 +155,7 @@ export function useDebouncedCallback<T extends AnyFunction>(
 export function useThrottledCallback<T extends AnyFunction>(
   func: T,
   wait: number,
-  options?: DebounceOptions
+  options?: ThrottleOptions
 ): DebouncedState<T> {
   const funcRef = React.useRef(func)
   React.useLayoutEffect(() => {
@@ -165,6 +171,7 @@ export function useThrottledCallback<T extends AnyFunction>(
   const waitMs = normalizeWait(wait)
   const leading = options?.leading ?? true
   const trailing = options?.trailing ?? true
+  const flushOnUnmount = options?.flushOnUnmount ?? false
 
   const throttled = React.useMemo(() => {
     const clearTimer = () => {
@@ -250,9 +257,13 @@ export function useThrottledCallback<T extends AnyFunction>(
   React.useLayoutEffect(() => {
     runtimeRef.current = {}
     return () => {
-      throttled.cancel()
+      if (flushOnUnmount) {
+        throttled.flush()
+      } else {
+        throttled.cancel()
+      }
     }
-  }, [throttled])
+  }, [throttled, flushOnUnmount])
 
   return throttled
 }

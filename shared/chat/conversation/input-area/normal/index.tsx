@@ -265,13 +265,8 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     }
     C.ignorePromise(f())
   }
-  const updateDraft = C.useThrottledCallback(updateDraftRaw, 200, {trailing: true})
-  // Flush any pending draft save before cancel fires on unmount (hooks cleanup runs in reverse order)
-  React.useLayoutEffect(() => {
-    return () => {
-      updateDraft.flush()
-    }
-  }, [updateDraft])
+  // flushOnUnmount: leaving the conversation must still save what was typed in the last 200ms
+  const updateDraft = C.useThrottledCallback(updateDraftRaw, 200, {flushOnUnmount: true, trailing: true})
 
   const textValueRef = React.useRef('')
   const onChangeText = (text: string) => {
