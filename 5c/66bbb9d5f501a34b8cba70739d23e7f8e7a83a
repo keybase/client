@@ -1,0 +1,19 @@
+go/chat/storage/inbox_test.go
+  s_853e2d28c2e344::t_694b28c45e2d33 952
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "5c66bbb9d5f501a34b8cba70739d23e7f8e7a83a",
+  "prompts": {},
+  "sessions": {
+    "s_853e2d28c2e344": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d5a3add1-5cdb-47ca-a334-54991bf7ad5e",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}

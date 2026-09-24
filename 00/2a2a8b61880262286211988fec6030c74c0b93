@@ -1,0 +1,41 @@
+go/chat/storage/basebox.go
+  s_853e2d28c2e344::t_d4e77c025b8bfc 4,11
+  s_853e2d28c2e344::t_1f249e15cac72a 47-48
+  s_853e2d28c2e344::t_047362709f929c 49-50
+go/chat/storage/inbox.go
+  s_853e2d28c2e344::t_f63327f8b37cd1 183-184
+  s_853e2d28c2e344::t_6e048ef985d582 250-252
+  s_853e2d28c2e344::t_fa3c0ee671a5c7 299-301
+  s_853e2d28c2e344::t_277efa476865c4 205-207
+  s_853e2d28c2e344::t_e2b862b1b9de07 311-313
+  s_853e2d28c2e344::t_1913406953331a 275-277
+  s_853e2d28c2e344::t_da12906498e971 362-364
+go/chat/storage/readoutbox.go
+  s_853e2d28c2e344::t_cecf9c76281f4b 93-95
+  s_853e2d28c2e344::t_6b769593cc3e18 62-64
+  s_853e2d28c2e344::t_56cdea43dcc7ae 71-72
+go/chat/storage/inbox_test.go
+  s_853e2d28c2e344::t_ba9de86d44efaf 928,953
+  s_853e2d28c2e344::t_ff36737e0532c5 746-748
+  s_853e2d28c2e344::t_03aae26c42988f 939-944
+go/chat/storage/outbox_basebox.go
+  s_853e2d28c2e344::t_6966457ef96463 48-50
+  s_853e2d28c2e344::t_098d0b0e29d949 58-59
+  s_853e2d28c2e344::t_a4249c7ba7673e 82-84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "002a2a8b61880262286211988fec6030c74c0b93",
+  "prompts": {},
+  "sessions": {
+    "s_853e2d28c2e344": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d5a3add1-5cdb-47ca-a334-54991bf7ad5e",
+        "model": "auto-smart"
+      },
+      "human_author": null
+    }
+  }
+}
