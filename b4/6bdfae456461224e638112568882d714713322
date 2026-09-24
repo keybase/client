@@ -1,0 +1,122 @@
+go/chat/storage/inbox_memcache.go
+  s_853e2d28c2e344::t_d5e72682956646 4,85-90
+go/chat/storage/basebox.go
+  s_853e2d28c2e344::t_923256bfd55352 51-54
+  s_853e2d28c2e344::t_d4e77c025b8bfc 4,11
+  s_853e2d28c2e344::t_1f249e15cac72a 47
+  s_853e2d28c2e344::t_047362709f929c 49-50
+  s_853e2d28c2e344::t_50ef18d88d031d 48
+go/chat/storage/inbox.go
+  s_853e2d28c2e344::t_2f143de1da0b29 182,185-188,218,291,343,738
+  s_853e2d28c2e344::t_f63327f8b37cd1 183-184
+  s_853e2d28c2e344::t_6e048ef985d582 253-255
+  s_853e2d28c2e344::t_fa3c0ee671a5c7 305-307
+  s_853e2d28c2e344::t_277efa476865c4 208-210
+  s_853e2d28c2e344::t_e2b862b1b9de07 317-319
+  s_853e2d28c2e344::t_1913406953331a 281-283
+  s_853e2d28c2e344::t_da12906498e971 368-370
+go/chat/storage/inbox_test.go
+  s_853e2d28c2e344::t_a413a577730640 927,929-938,945-947,948,950-952,954-984
+  s_853e2d28c2e344::t_694b28c45e2d33 949
+  s_853e2d28c2e344::t_ba9de86d44efaf 928,953
+  s_853e2d28c2e344::t_ff36737e0532c5 746-748
+  s_853e2d28c2e344::t_03aae26c42988f 939-944
+go/chat/storage/readoutbox.go
+  s_853e2d28c2e344::t_cecf9c76281f4b 93-95
+  s_853e2d28c2e344::t_6b769593cc3e18 62-64
+  s_853e2d28c2e344::t_56cdea43dcc7ae 71-72
+go/chat/storage/outbox_basebox.go
+  s_853e2d28c2e344::t_6966457ef96463 48-50
+  s_853e2d28c2e344::t_098d0b0e29d949 58-59
+  s_853e2d28c2e344::t_a4249c7ba7673e 82-84
+go/chat/storage/storage_blockengine.go
+  s_853e2d28c2e344::t_9cdd24d8cf8004 267
+go/chat/maps/livelocation.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 72
+go/chat/ephemeral_purger.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 176
+go/chat/ephemeral_purger_test.go
+  s_600526a2407b46::t_9193808cc0ba79 381,383
+go/chat/localizer.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 289-290,343-346,350-351,353-354,361-364,369-378,380,515,518,523
+  s_594e5b2252b638::t_905969f842be76 522,524
+go/chat/retry.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 394
+go/chat/convloader.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 238
+go/chat/search/indexer.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 238,259,263,267,270,272-274,307,309,311
+go/chat/bots/commands.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 125
+go/chat/archive.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 286
+go/chat/uiinboxloader.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 79-82,89-95,102-105,110-111,122,738
+go/chat/inboxsource.go
+  s_853e2d28c2e344::t_499526a0ddb3ff 668-671,687-690,695
+shared/chat/conversation/thread-rpc.tsx
+  s_600526a2407b46::t_02a317814cdf0a 3,58-60
+shared/chat/inbox/metadata.tsx
+  s_600526a2407b46::t_99d03d212eafe7 18-19,409,435-439
+shared/router-v2/router.tsx
+  s_600526a2407b46::t_aa9e96ad979dd4 658
+shared/chat/inbox/session-rpc.tsx
+  s_600526a2407b46::t_681e2e14dc9a07 13-14,21
+  s_600526a2407b46::t_3e89652f7ae1a9 10
+  s_600526a2407b46::t_5dd4c92f986834 33
+  s_600526a2407b46::t_56e71994d9769e 1-9,11-12,15-20,22-32,34
+shared/stores/config.tsx
+  s_600526a2407b46::t_8de582ef7742f8 593,597-598,627-628
+  s_600526a2407b46::t_e2b78f45ec45ef 595
+shared/chat/inbox/session-rpc.test.tsx
+  s_600526a2407b46::t_9e30e8a437cc36 25-29
+  s_600526a2407b46::t_417e5d86fa6713 1-18,30,32-77
+  s_600526a2407b46::t_35767de43236ab 19-24
+  s_600526a2407b46::t_c1d60c3b720551 31
+shared/chat/inbox/layout-state.tsx
+  s_600526a2407b46::t_ca6d4b54340a24 6,9,76-78
+  s_600526a2407b46::t_366c406f60d099 68
+shared/constants/init/shared.tsx
+  s_600526a2407b46::t_641067b1b82264 268,271
+  s_600526a2407b46::t_eca1a1bd63bb54 304,306-307
+shared/engine/index.tsx
+  s_600526a2407b46::t_b2047df6ff7d70 304-307
+shared/chat/inbox/metadata.test.tsx
+  s_600526a2407b46::t_8ab46f654d5d78 6,27-28,307-340
+shared/chat/inbox/layout-state.test.ts
+  s_600526a2407b46::t_630b2f027f2b0b 5-6,26,30,61-62
+shared/chat/conversation/thread-load.tsx
+  s_600526a2407b46::t_b058db9e92850e 451
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "b46bdfae456461224e638112568882d714713322",
+  "prompts": {},
+  "sessions": {
+    "s_594e5b2252b638": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "7b0fa23c-993b-4069-be8e-e93101e8a296",
+        "model": "auto-smart"
+      },
+      "human_author": null
+    },
+    "s_600526a2407b46": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "12fe8bef-5cdd-4b68-a71f-0aee1554e601",
+        "model": "auto-smart"
+      },
+      "human_author": null
+    },
+    "s_853e2d28c2e344": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d5a3add1-5cdb-47ca-a334-54991bf7ad5e",
+        "model": "auto-smart"
+      },
+      "human_author": "Joshua Blum <joshua.blum@zoom.us>"
+    }
+  }
+}
