@@ -635,7 +635,15 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
       const [sw, to] = args;
       // Read before the reset below, which clears loggedIn
       const fromLoggedIn = sw && get().loggedIn;
-      if (sw && !get().userSwitching) {
+      const starting = sw && !get().userSwitching;
+      // Set before the reset, which keeps these: a subscriber that sees loggedIn go false must
+      // already see the switch, or it reads the reset as a logout.
+      set((s) => {
+        s.userSwitching = sw;
+        s.userSwitchingFromLoggedIn = fromLoggedIn;
+        s.userSwitchingTo = sw ? to : "";
+      });
+      if (starting) {
         // The reset logs the old account out of our stores without going through setLoggedIn
         if (fromLoggedIn) {
           startNewAccountGeneration();
@@ -645,11 +653,6 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
           getEngine().cancelOutstandingSessions();
         }
       }
-      set((s) => {
-        s.userSwitching = sw;
-        s.userSwitchingFromLoggedIn = fromLoggedIn;
-        s.userSwitchingTo = sw ? to : "";
-      });
     },
     switchToAccount: (username) => {
       if (get().userSwitching) return false;
