@@ -8,11 +8,10 @@ import * as InputState from '../input-state'
 import type * as Common from './common'
 import type {PlatformInputProps as Props, RefType as InputRef} from '../normal/input.shared'
 import {useConversationThreadID} from '../../thread-context'
-import {KeyboardStickyView, useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller'
+import {KeyboardStickyView} from 'react-native-keyboard-controller'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
-import {ComposerBoxContext} from '@/chat/conversation/composer-viewport-context'
-import {composerStickyOffset, suggestionAreaHeight} from '@/chat/conversation/composer-geometry'
-import {useAnimatedStyle, default as Reanimated} from '@/common-adapters/reanimated'
+import {composerStickyOffset} from '@/chat/conversation/composer-geometry'
+import {default as Reanimated} from '@/common-adapters/reanimated'
 
 const positionFallbacks = ['bottom center'] as const
 
@@ -449,28 +448,16 @@ type PopupProps = {
 const MobileSuggestionArea = (p: {children: React.ReactNode}) => {
   const styles = useStyles()
   // @gorhom/portal renders this at the popup host, a sibling of the router, so
-  // the conversation's contexts never reach it and the insets and the keyboard
-  // animation have to come from hooks here rather than from the viewport
+  // the conversation's contexts never reach it and the inset has to come from
+  // a hook here
   const insets = useSafeAreaInsets()
-  const {visibleHeight} = React.useContext(ComposerBoxContext)
-  const {height: keyboardHeight} = useReanimatedKeyboardAnimation()
   // the input bar sits insets.bottom above the window bottom while the keyboard
   // is closed, so mirror its offset or this list covers the input
   const stickyOffset = React.useMemo(() => composerStickyOffset(insets.bottom), [insets.bottom])
-  // the sticky view only translates, it keeps the full window height, so this is
-  // meant to give the list the same box the conversation has — without it the
-  // list's percentage maxHeight resolves against the whole screen and the
-  // bottom-anchored list runs up over the header. it does not currently do that:
-  // visibleHeight is the context default 0 for the reason above, so the height
-  // stays undefined. left in place because it is the intended clamp and costs
-  // nothing; making it bite means getting the viewport past the portal.
-  const areaStyle = useAnimatedStyle(() => ({
-    height: suggestionAreaHeight(visibleHeight, keyboardHeight.value),
-  }))
 
   return (
     <KeyboardStickyView offset={stickyOffset} pointerEvents="box-none" style={styles.sticky}>
-      <Reanimated.View pointerEvents="box-none" style={[styles.area, areaStyle]}>
+      <Reanimated.View pointerEvents="box-none" style={styles.area}>
         {p.children}
       </Reanimated.View>
     </KeyboardStickyView>

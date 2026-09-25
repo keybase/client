@@ -5,15 +5,12 @@ import {
   expandedInputMaxHeight,
   restingScrollOffset,
   stickyTranslateY,
-  suggestionAreaHeight,
 } from './composer-geometry'
 
 // The numbers below are literal pixel results, not re-derived from the
 // constants: every one of them encodes a shipped fix (the suggestion popup
 // clipping its last row, the list jumping on keyboard dismiss, the giphy popup
 // resizing), so a change to the model has to be spelled out here.
-
-const iphoneish = {headerHeight: 91, measuredHeight: 753, windowHeight: 844}
 
 describe('composerStickyOffset', () => {
   test('lifts by the bottom inset only while the keyboard is closed', () => {
@@ -23,75 +20,45 @@ describe('composerStickyOffset', () => {
 })
 
 describe('computeComposerBox', () => {
-  test('sizes the conversation box as the window minus the header', () => {
-    expect(computeComposerBox(iphoneish).containerHeight).toBe(753)
-    expect(computeComposerBox({...iphoneish, headerHeight: 0}).containerHeight).toBe(844)
-  })
-
-  test('publishes the measured box, not the computed one', () => {
-    // the two agree in practice, but only the measured value tells consumers
-    // that a layout has actually happened
-    expect(computeComposerBox({...iphoneish, measuredHeight: 700}).visibleHeight).toBe(700)
-    expect(computeComposerBox({...iphoneish, measuredHeight: 0}).visibleHeight).toBe(0)
+  test('publishes the measured box, 0 until it has been laid out', () => {
+    expect(computeComposerBox(700).visibleHeight).toBe(700)
+    expect(computeComposerBox(0).visibleHeight).toBe(0)
   })
 
   describe('expandedSuggestionListHeight', () => {
     test('takes 35% of the box, clamped to [120, 240]', () => {
       // 753 * 0.35 = 263.55 -> floored to 263 -> clamped to 240
-      expect(computeComposerBox(iphoneish).expandedSuggestionListHeight).toBe(240)
+      expect(computeComposerBox(753).expandedSuggestionListHeight).toBe(240)
       // 600 * 0.35 = 210, and 600 leaves 416 of reserve, so 210 stands
-      expect(computeComposerBox({...iphoneish, measuredHeight: 600})
-        .expandedSuggestionListHeight).toBe(210)
+      expect(computeComposerBox(600).expandedSuggestionListHeight).toBe(210)
     })
 
     test('never eats the three lines the expanded input keeps for itself', () => {
       // 400 - 91 (bar) - 15 (gap) - 78 (three lines) = 216 of reserve, more than
       // the 400*0.35=140 preference, so the preference still stands
-      expect(computeComposerBox({...iphoneish, measuredHeight: 400})
-        .expandedSuggestionListHeight).toBe(140)
+      expect(computeComposerBox(400).expandedSuggestionListHeight).toBe(140)
       // 200 leaves only 16 of reserve; the 120 floor must not push past it
-      expect(computeComposerBox({...iphoneish, measuredHeight: 200})
-        .expandedSuggestionListHeight).toBe(16)
+      expect(computeComposerBox(200).expandedSuggestionListHeight).toBe(16)
       // and a box smaller than the input itself reserves nothing
-      expect(computeComposerBox({...iphoneish, measuredHeight: 100})
-        .expandedSuggestionListHeight).toBe(0)
+      expect(computeComposerBox(100).expandedSuggestionListHeight).toBe(0)
     })
 
     test('is 0 before the box has been laid out', () => {
-      expect(computeComposerBox({...iphoneish, measuredHeight: 0})
-        .expandedSuggestionListHeight).toBe(0)
+      expect(computeComposerBox(0).expandedSuggestionListHeight).toBe(0)
     })
   })
 
   describe('commandMarkdownMaxHeight', () => {
     test('takes the same 35% of the box, but unclamped', () => {
-      expect(computeComposerBox(iphoneish).commandMarkdownMaxHeight).toBe(263)
+      expect(computeComposerBox(753).commandMarkdownMaxHeight).toBe(263)
       // deliberately below the suggestion list's 120 floor: this panel scrolls
-      expect(computeComposerBox({...iphoneish, measuredHeight: 200})
-        .commandMarkdownMaxHeight).toBe(70)
+      expect(computeComposerBox(200).commandMarkdownMaxHeight).toBe(70)
     })
 
     test('falls back to a fixed backstop before layout', () => {
       // it mounts long after layout, so 0 here means "no measurement yet"
-      expect(computeComposerBox({...iphoneish, measuredHeight: 0})
-        .commandMarkdownMaxHeight).toBe(250)
+      expect(computeComposerBox(0).commandMarkdownMaxHeight).toBe(250)
     })
-  })
-})
-
-describe('suggestionAreaHeight', () => {
-  test('shrinks the popup area by whatever the keyboard covers', () => {
-    expect(suggestionAreaHeight(753, 0)).toBe(753)
-    expect(suggestionAreaHeight(753, -336)).toBe(417)
-  })
-
-  test('never goes negative when the keyboard is taller than the box', () => {
-    expect(suggestionAreaHeight(300, -400)).toBe(0)
-  })
-
-  test('is undefined before layout so the popup stays unconstrained', () => {
-    expect(suggestionAreaHeight(0, 0)).toBeUndefined()
-    expect(suggestionAreaHeight(0, -336)).toBeUndefined()
   })
 })
 

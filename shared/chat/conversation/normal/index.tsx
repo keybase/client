@@ -22,12 +22,8 @@ import ThreadSearch from '../search'
 import '../conversation.css'
 import {PortalHost} from '@/common-adapters/portal.native'
 import {useSafeAreaInsets, useSafeAreaFrame} from 'react-native-safe-area-context'
-import {
-  ComposerAnchorContext,
-  ComposerBoxContext,
-  type ComposerAnchor,
-} from '../composer-viewport-context'
-import {composerStickyOffset, computeComposerBox} from '../composer-geometry'
+import {ComposerProvider} from '../composer-viewport-context'
+import {composerStickyOffset} from '../composer-geometry'
 import {ThreadSearchOverlayContext} from '../thread-search-overlay-context'
 import {KeyboardStickyView, useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller'
 import {useSharedValue} from 'react-native-reanimated'
@@ -145,25 +141,10 @@ const NativeConversation = function NativeConversation() {
   const windowHeight = useSafeAreaFrame().height
   const bottomInset = insets.bottom
   const {height: keyboardHeight, progress: keyboardProgress} = useReanimatedKeyboardAnimation()
-  // memoized apart from the box on purpose: the list reads only this, so it must
-  // not change identity when the box below is re-measured
-  const anchor = React.useMemo<ComposerAnchor>(
-    () => ({
-      bottomInset,
-      keyboardHeight,
-      keyboardProgress,
-      stickyOffset: composerStickyOffset(bottomInset),
-    }),
-    [bottomInset, keyboardHeight, keyboardProgress]
-  )
-  const box = React.useMemo(
-    () => computeComposerBox({headerHeight, measuredHeight, windowHeight}),
-    [headerHeight, measuredHeight, windowHeight]
-  )
-  const {containerHeight} = box
-  const {stickyOffset} = anchor
+  const stickyOffset = React.useMemo(() => composerStickyOffset(bottomInset), [bottomInset])
+  const height = windowHeight - headerHeight
 
-  const safeStyle = {height: containerHeight, maxHeight: containerHeight, minHeight: containerHeight}
+  const safeStyle = {height, maxHeight: height, minHeight: height}
 
   const threadLoadedOffline = useThreadMeta(m => m.offline)
 
@@ -173,43 +154,46 @@ const NativeConversation = function NativeConversation() {
 
   return (
     <PerfProfiler id="Conversation">
-      <ComposerAnchorContext value={anchor}>
-        <ComposerBoxContext value={box}>
-          <ThreadSearchOverlayContext value={searchOverlayHeight}>
+      <ComposerProvider
+        bottomInset={bottomInset}
+        keyboardHeight={keyboardHeight}
+        keyboardProgress={keyboardProgress}
+        measuredHeight={measuredHeight}
+      >
+        <ThreadSearchOverlayContext value={searchOverlayHeight}>
+          <Kb.Box2
+            direction="vertical"
+            fullWidth={true}
+            fullHeight={true}
+            style={safeStyle}
+            relative={true}
+            onLayout={onContentLayout}
+          >
+            {threadLoadedOffline && <Offline />}
             <Kb.Box2
               direction="vertical"
+              flex={1}
               fullWidth={true}
-              fullHeight={true}
-              style={safeStyle}
+              key={conversationIDKey}
               relative={true}
-              onLayout={onContentLayout}
+              style={styles.whiteBackground}
             >
-              {threadLoadedOffline && <Offline />}
-              <Kb.Box2
-                direction="vertical"
-                flex={1}
-                fullWidth={true}
-                key={conversationIDKey}
-                relative={true}
-                style={styles.whiteBackground}
-              >
-                <ThreadLoadStatus />
-                <PinnedMessage />
-                <ListArea />
-                <LoadingLine />
-              </Kb.Box2>
-              <KeyboardStickyView offset={stickyOffset}>
-                <Kb.Box2 direction="vertical" fullWidth={true} style={styles.whiteBackground}>
-                  <InvitationToBlock />
-                  <Banner />
-                  <InputArea />
-                </Kb.Box2>
-              </KeyboardStickyView>
-              <PortalHost name="convOverlay" />
+              <ThreadLoadStatus />
+              <PinnedMessage />
+              <ListArea />
+              <LoadingLine />
             </Kb.Box2>
-          </ThreadSearchOverlayContext>
-        </ComposerBoxContext>
-      </ComposerAnchorContext>
+            <KeyboardStickyView offset={stickyOffset}>
+              <Kb.Box2 direction="vertical" fullWidth={true} style={styles.whiteBackground}>
+                <InvitationToBlock />
+                <Banner />
+                <InputArea />
+              </Kb.Box2>
+            </KeyboardStickyView>
+            <PortalHost name="convOverlay" />
+          </Kb.Box2>
+        </ThreadSearchOverlayContext>
+      </ComposerProvider>
     </PerfProfiler>
   )
 }

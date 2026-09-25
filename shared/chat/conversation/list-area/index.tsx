@@ -37,7 +37,7 @@ import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import {KeyboardChatScrollView, useKeyboardState} from 'react-native-keyboard-controller'
 import Animated, {useAnimatedStyle} from 'react-native-reanimated'
 import {ThreadSearchOverlayContext} from '../thread-search-overlay-context'
-import {ComposerAnchorContext} from '../composer-viewport-context'
+import {useComposerAnchor} from '../composer-viewport-context'
 import {restingScrollOffset, stickyTranslateY} from '../composer-geometry'
 type ItemType = T.Chat.Ordinal
 
@@ -729,7 +729,7 @@ const useNativeScrolling = (p: {
   const loadOlderMessages = useConversationThreadLoadOlderMessagesDueToScroll()
   const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
 
-  const {bottomInset, keyboardHeight} = React.useContext(ComposerAnchorContext)
+  const {bottomInset, keyboardHeight} = useComposerAnchor()
   const scrollToBottom = React.useCallback(() => {
     listRef.current?.scrollToOffset({
       animated: false,
@@ -867,7 +867,7 @@ const NativeConversationList = function NativeConversationList() {
 
   const getItemType = useGetItemType()
 
-  const {bottomInset, keyboardHeight, keyboardProgress} = React.useContext(ComposerAnchorContext)
+  const {bottomInset, keyboardHeight, keyboardProgress} = useComposerAnchor()
   const isKeyboardVisible = useKeyboardState((s: {isVisible: boolean}) => s.isVisible)
 
   // While the thread-search bar is open it overlays the bottom of the list. Reserve

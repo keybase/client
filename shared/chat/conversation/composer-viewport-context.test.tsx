@@ -3,11 +3,12 @@
 import * as React from 'react'
 import {render} from '@testing-library/react'
 import {
-  ComposerAnchorContext,
   ComposerBoxContext,
+  ComposerProvider,
+  useComposerAnchor,
   type ComposerAnchor,
 } from './composer-viewport-context'
-import {composerStickyOffset, computeComposerBox} from './composer-geometry'
+import {computeComposerBox} from './composer-geometry'
 
 // The composer's geometry is published as two contexts so that consumers only
 // re-render for what they read. The message list reads the anchor alone, and the
@@ -36,34 +37,22 @@ type ConversationProps = {
   children: React.ReactNode
 }
 
-// mirrors NativeConversation: two memos, split on whether the value is
-// layout-derived
-const Conversation = ({measuredHeight, bottomInset, children}: ConversationProps) => {
-  const anchor = React.useMemo<ComposerAnchor>(
-    () => ({
-      bottomInset,
-      keyboardHeight: stableShared,
-      keyboardProgress: stableShared,
-      stickyOffset: composerStickyOffset(bottomInset),
-    }),
-    [bottomInset]
-  )
-  const box = React.useMemo(
-    () => computeComposerBox({headerHeight: 91, measuredHeight, windowHeight: 844}),
-    [measuredHeight]
-  )
-  return (
-    <ComposerAnchorContext value={anchor}>
-      <ComposerBoxContext value={box}>{children}</ComposerBoxContext>
-    </ComposerAnchorContext>
-  )
-}
+const Conversation = ({measuredHeight, bottomInset, children}: ConversationProps) => (
+  <ComposerProvider
+    bottomInset={bottomInset}
+    keyboardHeight={stableShared}
+    keyboardProgress={stableShared}
+    measuredHeight={measuredHeight}
+  >
+    {children}
+  </ComposerProvider>
+)
 
 test('measuring the conversation box does not re-render anchor-only consumers', () => {
   let seenBottomInset = -1
   let seenVisibleHeight = -1
   const anchorOnly = makeProbe(() => {
-    seenBottomInset = React.useContext(ComposerAnchorContext).bottomInset
+    seenBottomInset = useComposerAnchor().bottomInset
   })
   const boxOnly = makeProbe(() => {
     seenVisibleHeight = React.useContext(ComposerBoxContext).visibleHeight
@@ -103,7 +92,7 @@ test('measuring the conversation box does not re-render anchor-only consumers', 
   expect(boxOnly.probe.renders).toBe(2)
   expect(anchorOnly.probe.renders).toBe(1)
 
-  // but a real inset change does reach the anchor
+  // but a real inset change does reach the anchor, and only the anchor
   rerender(
     <Conversation bottomInset={0} measuredHeight={753}>
       {probes}
@@ -111,10 +100,11 @@ test('measuring the conversation box does not re-render anchor-only consumers', 
   )
   expect(anchorOnly.probe.renders).toBe(2)
   expect(seenBottomInset).toBe(0)
+  expect(boxOnly.probe.renders).toBe(2)
 })
 
 test('the composer panels see their sizes on first layout and after rotation', () => {
-  let box = computeComposerBox({headerHeight: 0, measuredHeight: 0, windowHeight: 0})
+  let box = computeComposerBox(1)
   const panels = makeProbe(() => {
     box = React.useContext(ComposerBoxContext)
   })
@@ -124,12 +114,9 @@ test('the composer panels see their sizes on first layout and after rotation', (
       <panels.Component />
     </Conversation>
   )
-  // pre-layout the panels get the fallbacks, even though the container is
-  // already sized (that one does not wait on a measurement)
   expect(box.visibleHeight).toBe(0)
   expect(box.commandMarkdownMaxHeight).toBe(250)
   expect(box.expandedSuggestionListHeight).toBe(0)
-  expect(box.containerHeight).toBe(753)
 
   rerender(
     <Conversation bottomInset={34} measuredHeight={753}>
@@ -150,22 +137,23 @@ test('the composer panels see their sizes on first layout and after rotation', (
   expect(box.expandedSuggestionListHeight).toBe(116)
 })
 
-test('the context defaults match the pre-layout box exactly', () => {
-  // MobileSuggestionArea is portaled outside the provider, so its fallbacks are
-  // the defaults; they have to stay identical to the pre-layout values
-  let box = computeComposerBox({headerHeight: 1, measuredHeight: 1, windowHeight: 1})
-  let anchor: ComposerAnchor | undefined
+test('the box default outside a conversation is the pre-layout box', () => {
+  // the desktop command-markdown panel reads the box with no provider above it
+  let box = computeComposerBox(1)
   const outside = makeProbe(() => {
     box = React.useContext(ComposerBoxContext)
-    anchor = React.useContext(ComposerAnchorContext)
   })
   render(<outside.Component />)
 
-  expect(box.visibleHeight).toBe(0)
+  expect(box).toEqual(computeComposerBox(0))
   expect(box.commandMarkdownMaxHeight).toBe(250)
-  expect(box.expandedSuggestionListHeight).toBe(0)
-  expect(box.singleLineHeight).toBe(36)
-  expect(box.threeLineHeight).toBe(78)
-  expect(anchor?.bottomInset).toBe(0)
-  expect(anchor?.stickyOffset).toEqual({closed: -0, opened: 0})
+})
+
+test('reading the anchor outside a conversation throws instead of faking a keyboard', () => {
+  const outside = makeProbe(() => {
+    useComposerAnchor()
+  })
+  const spy = jest.spyOn(console, 'error').mockImplementation(() => {})
+  expect(() => render(<outside.Component />)).toThrow(/inside a ComposerProvider/)
+  spy.mockRestore()
 })

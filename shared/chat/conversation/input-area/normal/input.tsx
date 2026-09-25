@@ -36,8 +36,12 @@ import {filePickerError} from '@/util/storeless-actions'
 import {AudioSendWrapper} from '@/chat/audio/audio-send.native'
 import {standardTransformer} from '../suggestors/common'
 import logger from '@/logger'
-import {ComposerAnchorContext, ComposerBoxContext} from '@/chat/conversation/composer-viewport-context'
-import {expandedInputMaxHeight} from '@/chat/conversation/composer-geometry'
+import {ComposerBoxContext, useComposerAnchor} from '@/chat/conversation/composer-viewport-context'
+import {
+  expandedInputMaxHeight,
+  singleLineHeight,
+  threeLineHeight,
+} from '@/chat/conversation/composer-geometry'
 import MoreMenuPopup from './moremenu-popup.native'
 
 // ==================== DESKTOP LOW-LEVEL INPUT ====================
@@ -1210,8 +1214,8 @@ const NativeAnimatedInput = (() => {
     return function NativeAnimatedInput(p: NativeAnimatedInputProps) {
       'use no memo'
       const nativeStyles = useNativeStyles()
-      const {visibleHeight, singleLineHeight, threeLineHeight} = React.useContext(ComposerBoxContext)
-      const {keyboardHeight} = React.useContext(ComposerAnchorContext)
+      const {visibleHeight} = React.useContext(ComposerBoxContext)
+      const {keyboardHeight} = useComposerAnchor()
       const {expanded, inputRef, reservedHeight = 0, ...rest} = p
       const lastExpandedRef = React.useRef(expanded)
       const offset = useSharedValue(expanded ? 1 : 0)
