@@ -65,6 +65,8 @@ def _line(v):
 RN_CURRENT = deps.get('react-native', '')
 RN_LINE = _line(RN_CURRENT)
 
+UPCOMING = {}
+
 def get_latest(name, current):
     if name in SKIP or current.startswith(('file:', 'link:', 'github:')):
         return name, current, current, 'skip', current
@@ -75,15 +77,33 @@ def get_latest(name, current):
         query_name, current = current[4:].rsplit('@', 1)
     is_pre = _is_prerelease(current)
     try:
-        r = subprocess.run(['yarn', 'info', query_name, 'versions', '--json'],
+        r = subprocess.run(['yarn', 'info', query_name, '--json'],
                           capture_output=True, text=True, timeout=15)
         if r.returncode != 0:
             raise RuntimeError(f'yarn info exited {r.returncode}: {r.stderr.strip() or r.stdout.strip()}')
         raw = r.stdout.strip()
         if not raw:
             raise RuntimeError('yarn info returned empty output')
-        parsed = json.loads(raw)
-        all_versions = parsed.get('data', [])
+        data = json.loads(raw).get('data', {})
+        all_versions = data.get('versions', [])
+        tags = data.get('dist-tags', {})
+        latest_tag = tags.get('latest')
+        if not (latest_tag and _parse_semver(latest_tag)):
+            latest_tag = None
+        # Never suggest past the `latest` dist-tag: expo-* publish plain
+        # 58.0.x versions under `next` while SDK 58 is still in preview, so
+        # max-semver alone would report an unreleased SDK as stable. Skipped
+        # when `latest` is behind us (a backport published without --tag).
+        if latest_tag and not is_pre and semver_key(latest_tag) >= semver_key(current):
+            all_versions = [v for v in all_versions if semver_key(v) <= semver_key(latest_tag)]
+            # Surface unreleased lines separately so they are visible but never
+            # mistaken for upgrades. canary/nightly/dev builds are per-commit noise.
+            UPCOMING[name] = sorted(
+                ((tag, v) for tag, v in tags.items()
+                 if tag != 'latest' and _parse_semver(v)
+                 and not _re.search(r'canary|nightly|insiders|experimental|dev', f'{tag} {_parse_semver(v)[3]}')
+                 and semver_key(v) > semver_key(latest_tag)),
+                key=lambda tv: semver_key(tv[1]))
         cur_major = _parse_semver(current)[0]
         if name in RN_MAJOR_PINNED:
             # Cap at react-native's own line (0.86) — minor bumps only. Follows
@@ -157,6 +177,15 @@ for name, cur, lat, kind, in_major in results:
             print(f'      ↳ MAJOR jump available: -> {lat} (major {label(cur)} -> {label(lat)})')
         else:
             print(f'  {name}: {cur} -> {lat}{pre}')
+
+print('\n=== UPCOMING (unreleased: above the `latest` dist-tag — awareness only, not upgrades) ===')
+for name in sorted(UPCOMING):
+    if name in PINNED or not UPCOMING[name]:
+        continue
+    by_version = {}
+    for tag, v in UPCOMING[name]:
+        by_version.setdefault(v, []).append(tag)
+    print(f'  {name}: ' + ', '.join(f'{v} [{", ".join(t)}]' for v, t in by_version.items()))
 
 print('\n=== UP TO DATE ===')
 for name, cur, lat, kind, in_major in results:
