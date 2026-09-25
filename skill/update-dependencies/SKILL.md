@@ -50,6 +50,8 @@ When the highest stable version is on a **newer major** than the current one, th
 
 Take the `(in-major)` bump as the safe routine upgrade; treat the `↳ MAJOR jump` as an opt-in decision (peer-dep checks, app build to verify). If no in-major upgrade exists (already on the latest minor/patch of the current major), only the single `cur -> latest` line prints — the jump to the next major is then the only available upgrade.
 
+For packages on a stable version, suggestions are **capped at the `latest` dist-tag**, the same rule `npm install` follows. Max-semver alone is wrong here: during an Expo SDK preview, `expo-*` packages publish plain-looking `58.0.x` versions under `next` while `expo@latest` is still 57, so an uncapped check reports the unreleased SDK as a stable upgrade. Anything above `latest` goes in a separate `=== UPCOMING ===` section instead, labelled with the dist-tag(s) pointing at it (`[next]`, `[beta]`, `[alpha]`, `[rc]`; canary/nightly tags are skipped). That section is for awareness only. Tell the user what's there, but never take anything from it on a routine pass, and don't call it released or "available". A `[next]` tag on a stable-looking number (e.g. `expo-asset: 58.0.7 [next]`) still means unreleased.
+
 **Note on `eslint-plugin-react-compiler` rc versions:** npm may have rc.1-hash variants that sort after rc.2 alphabetically but are older. Verify manually if the script suggests downgrading to a hash-tagged rc.
 
 ### 3. Edit package.json with exact versions

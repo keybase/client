@@ -65,6 +65,8 @@ def _line(v):
 RN_CURRENT = deps.get('react-native', '')
 RN_LINE = _line(RN_CURRENT)
 
+UPCOMING = {}
+
 def get_latest(name, current):
     if name in SKIP or current.startswith(('file:', 'link:', 'github:')):
         return name, current, current, 'skip', current
@@ -84,6 +86,27 @@ def get_latest(name, current):
             raise RuntimeError('yarn info returned empty output')
         parsed = json.loads(raw)
         all_versions = parsed.get('data', [])
+        # Never suggest past the `latest` dist-tag: expo-* publish plain
+        # 58.0.x versions under `next` while SDK 58 is still in preview, so
+        # max-semver alone would report an unreleased SDK as stable.
+        t = subprocess.run(['yarn', 'info', query_name, 'dist-tags', '--json'],
+                           capture_output=True, text=True, timeout=15)
+        if t.returncode != 0:
+            raise RuntimeError(f'yarn info dist-tags exited {t.returncode}: {t.stderr.strip() or t.stdout.strip()}')
+        tags = json.loads(t.stdout.strip()).get('data', {})
+        latest_tag = tags.get('latest')
+        # Surface unreleased lines separately so they are visible but never
+        # mistaken for upgrades. canary/nightly are per-commit builds — noise.
+        if latest_tag:
+            UPCOMING[name] = sorted(
+                ((tag, v) for tag, v in tags.items()
+                 if tag != 'latest' and not _re.search(r'canary|nightly', tag)
+                 and _parse_semver(v)
+                 and semver_key(v) > semver_key(latest_tag)
+                 and semver_key(v) > semver_key(current)),
+                key=lambda tv: semver_key(tv[1]))
+        if latest_tag and not is_pre:
+            all_versions = [v for v in all_versions if semver_key(v) <= semver_key(latest_tag)]
         cur_major = _parse_semver(current)[0]
         if name in RN_MAJOR_PINNED:
             # Cap at react-native's own line (0.86) — minor bumps only. Follows
@@ -157,6 +180,15 @@ for name, cur, lat, kind, in_major in results:
             print(f'      ↳ MAJOR jump available: -> {lat} (major {label(cur)} -> {label(lat)})')
         else:
             print(f'  {name}: {cur} -> {lat}{pre}')
+
+print('\n=== UPCOMING (unreleased: above the `latest` dist-tag — awareness only, not upgrades) ===')
+for name in sorted(UPCOMING):
+    if name in PINNED or not UPCOMING[name]:
+        continue
+    by_version = {}
+    for tag, v in UPCOMING[name]:
+        by_version.setdefault(v, []).append(tag)
+    print(f'  {name}: ' + ', '.join(f'{v} [{", ".join(t)}]' for v, t in by_version.items()))
 
 print('\n=== UP TO DATE ===')
 for name, cur, lat, kind, in_major in results:
