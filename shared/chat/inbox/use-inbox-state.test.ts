@@ -12,6 +12,7 @@ type MockInboxLayoutState = {
 }
 
 let mockInboxLayoutState: MockInboxLayoutState
+let mockConfigState = {loggedIn: true, userSwitching: false}
 
 jest.mock('@/constants', () => {
   const React = require('react')
@@ -60,7 +61,7 @@ jest.mock('./metadata', () => ({
 }))
 
 jest.mock('@/stores/config', () => ({
-  useConfigState: <T>(selector: (state: {loggedIn: boolean}) => T) => selector({loggedIn: true}),
+  useConfigState: <T>(selector: (state: typeof mockConfigState) => T) => selector(mockConfigState),
 }))
 
 jest.mock('@/stores/current-user', () => ({
@@ -85,6 +86,7 @@ let mockSetInboxRetriedOnCurrentEmpty: jest.Mock
 beforeEach(() => {
   mockLoadInboxNumSmallRows = jest.fn()
   mockInboxRefresh = jest.fn()
+  mockConfigState = {loggedIn: true, userSwitching: false}
   mockSetInboxRetriedOnCurrentEmpty = jest.fn()
   mockInboxLayoutState = {
     dispatch: {
@@ -139,4 +141,19 @@ test('useInboxState updates inbox row count without persisting when persist is f
 
   expect(result.current.inboxNumSmallRows).toBe(7)
   expect(T.RPCGen.configGuiSetValueRpcPromise).not.toHaveBeenCalled()
+})
+
+// The inbox RPCs refuse to run while a switch is under way, so the first load has to wait for it.
+test('useInboxState loads the inbox once an account switch ends', () => {
+  mockInboxRefresh.mockReturnValue(Promise.resolve())
+  mockInboxLayoutState.hasLoaded = false
+  mockConfigState = {loggedIn: true, userSwitching: true}
+  const {rerender} = renderHook(() => useInboxState())
+  // what fired on mount ran into the switch and was refused
+  mockInboxRefresh.mockClear()
+
+  mockConfigState = {loggedIn: true, userSwitching: false}
+  rerender()
+
+  expect(mockInboxRefresh).toHaveBeenCalledWith('componentNeverLoaded')
 })

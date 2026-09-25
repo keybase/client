@@ -272,6 +272,18 @@ describe('the session comes from the daemon; notifications only say to read it',
     expect(useConfigState.getState().userSwitching).toBe(true)
   })
 
+  // The navigator for the new account ends the switch (endUserSwitchLandedOn), not its bootstrap.
+  test("the switch's target logging in leaves the switch for its navigator to end", async () => {
+    await readReplying(userA)
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+
+    await readReplying(userB)
+
+    expect(useConfigState.getState().loggedIn).toBe(true)
+    expect(useCurrentUserState.getState().username).toBe('testuser2')
+    expect(useConfigState.getState().userSwitching).toBe(true)
+  })
+
   test('a switch whose login fails ends logged out, no longer switching', async () => {
     await readReplying(userA)
     useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')

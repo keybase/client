@@ -62,7 +62,9 @@ export function useInboxState(
   refreshInbox?: T.Chat.ChatRootInboxRefresh
 ) {
   const isFocused = useIsFocused()
-  const loggedIn = useConfigState(s => s.loggedIn)
+  // Matches isChatSessionReady, which gates the inbox RPCs: loads skipped while a switch runs have
+  // to fire again once it ends.
+  const sessionReady = useConfigState(s => s.loggedIn && !s.userSwitching)
   const username = useCurrentUserState(s => s.username)
   const loadInboxNumSmallRows = C.useRPC(T.RPCGen.configGuiGetValueRpcPromise)
 
@@ -130,14 +132,14 @@ export function useInboxState(
   })
 
   React.useEffect(() => {
-    const ready = loggedIn && !!username && (!isMobile || isFocused)
+    const ready = sessionReady && !!username && (!isMobile || isFocused)
     if (!ready || !refreshInbox || handledRefreshNonceRef.current === refreshInbox.nonce) {
       return
     }
     handledRefreshNonceRef.current = refreshInbox.nonce
     C.ignorePromise(inboxRefresh(refreshInbox.reason))
     C.Router2.setChatRootParams({refreshInbox: undefined})
-  }, [inboxRefresh, isFocused, loggedIn, refreshInbox, username])
+  }, [inboxRefresh, isFocused, sessionReady, refreshInbox, username])
 
   C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
@@ -148,15 +150,15 @@ export function useInboxState(
   )
 
   React.useEffect(() => {
-    const ready = loggedIn && !!username
+    const ready = sessionReady && !!username
     const shouldRetry = !inboxHasLoaded && ready && (!isMobile || isFocused)
     if (shouldRetry) {
       C.ignorePromise(inboxRefresh('componentNeverLoaded'))
     }
-  }, [inboxHasLoaded, inboxRefresh, isFocused, loggedIn, username])
+  }, [inboxHasLoaded, inboxRefresh, isFocused, sessionReady, username])
 
   React.useEffect(() => {
-    const ready = loggedIn && !!username
+    const ready = sessionReady && !!username
     if (!ready) {
       return
     }
@@ -200,10 +202,10 @@ export function useInboxState(
         inboxNumSmallRowsLoadVersionRef.current++
       }
     }
-  }, [inboxNumSmallRowsLoaded, loadInboxNumSmallRows, loggedIn, username])
+  }, [inboxNumSmallRowsLoaded, loadInboxNumSmallRows, sessionReady, username])
 
   React.useEffect(() => {
-    const ready = loggedIn && !!username && (!isMobile || isFocused)
+    const ready = sessionReady && !!username && (!isMobile || isFocused)
     if (!ready || isSearching || !inboxHasLoaded || inboxRows.length > 0 || inboxRetriedOnCurrentEmpty) {
       return
     }
@@ -216,7 +218,7 @@ export function useInboxState(
     inboxRows.length,
     isFocused,
     isSearching,
-    loggedIn,
+    sessionReady,
     setRetriedOnCurrentEmpty,
     username,
   ])

@@ -301,10 +301,6 @@ const onBootstrapStatusChanged = (
   }
   configDispatch.setLoggedIn(loggedIn);
 
-  if (loggedIn && username && username === intendedUsername) {
-    configDispatch.setUserSwitching(false);
-  }
-
   if (bootstrap.httpSrvInfo) {
     configDispatch.setHTTPSrvInfo(
       bootstrap.httpSrvInfo.address,
