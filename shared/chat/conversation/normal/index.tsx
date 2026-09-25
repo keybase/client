@@ -22,9 +22,10 @@ import ThreadSearch from '../search'
 import '../conversation.css'
 import {PortalHost} from '@/common-adapters/portal.native'
 import {useSafeAreaInsets, useSafeAreaFrame} from 'react-native-safe-area-context'
-import {MaxInputAreaContext} from '../input-area/normal/max-input-area-context'
+import {ComposerProvider} from '../composer-viewport-context'
+import {composerStickyOffset} from '../composer-geometry'
 import {ThreadSearchOverlayContext} from '../thread-search-overlay-context'
-import {KeyboardStickyView} from 'react-native-keyboard-controller'
+import {KeyboardStickyView, useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller'
 import {useSharedValue} from 'react-native-reanimated'
 import {HeaderHeightContext} from '@react-navigation/elements'
 import logger from '@/logger'
@@ -121,12 +122,12 @@ const NativeConversation = function NativeConversation() {
   const styles = useStyles()
   type LayoutEvent = {nativeEvent: {layout: {height: number}}}
 
-  const [maxInputArea, setMaxInputArea] = React.useState(0)
+  const [measuredHeight, setMeasuredHeight] = React.useState(0)
   // measure the fixed-height outer container, not the flex list area: the list
   // shrinks as the input expands, so measuring it makes the expand animation
   // chase a moving target
   const onContentLayout = (e: LayoutEvent) => {
-    setMaxInputArea(e.nativeEvent.layout.height)
+    setMeasuredHeight(e.nativeEvent.layout.height)
   }
 
   const conversationIDKey = useConversationThreadID()
@@ -138,13 +139,14 @@ const NativeConversation = function NativeConversation() {
   // a gap under the suggestion popup (that popup anchors to the window, not to this box)
   const headerHeight = React.useContext(HeaderHeightContext) ?? insets.top + (Kb.Styles.isTablet ? 115 : 44)
   const windowHeight = useSafeAreaFrame().height
+  const bottomInset = insets.bottom
+  const {height: keyboardHeight, progress: keyboardProgress} = useReanimatedKeyboardAnimation()
+  const stickyOffset = React.useMemo(() => composerStickyOffset(bottomInset), [bottomInset])
   const height = windowHeight - headerHeight
 
   const safeStyle = {height, maxHeight: height, minHeight: height}
 
   const threadLoadedOffline = useThreadMeta(m => m.offline)
-
-  const stickyOffset = React.useMemo(() => ({closed: -insets.bottom, opened: 0}), [insets.bottom])
 
   // Height of the search bar that overlays the list bottom while searching.
   // Shared with ListArea (extra content padding + jump-button lift).
@@ -152,41 +154,46 @@ const NativeConversation = function NativeConversation() {
 
   return (
     <PerfProfiler id="Conversation">
-      <ThreadSearchOverlayContext value={searchOverlayHeight}>
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          fullHeight={true}
-          style={safeStyle}
-          relative={true}
-          onLayout={onContentLayout}
-        >
-          {threadLoadedOffline && <Offline />}
+      <ComposerProvider
+        bottomInset={bottomInset}
+        keyboardHeight={keyboardHeight}
+        keyboardProgress={keyboardProgress}
+        measuredHeight={measuredHeight}
+      >
+        <ThreadSearchOverlayContext value={searchOverlayHeight}>
           <Kb.Box2
             direction="vertical"
-            flex={1}
             fullWidth={true}
-            key={conversationIDKey}
+            fullHeight={true}
+            style={safeStyle}
             relative={true}
-            style={styles.whiteBackground}
+            onLayout={onContentLayout}
           >
-            <ThreadLoadStatus />
-            <PinnedMessage />
-            <ListArea />
-            <LoadingLine />
-          </Kb.Box2>
-          <KeyboardStickyView offset={stickyOffset}>
-            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.whiteBackground}>
-              <InvitationToBlock />
-              <Banner />
-              <MaxInputAreaContext value={maxInputArea}>
-                <InputArea />
-              </MaxInputAreaContext>
+            {threadLoadedOffline && <Offline />}
+            <Kb.Box2
+              direction="vertical"
+              flex={1}
+              fullWidth={true}
+              key={conversationIDKey}
+              relative={true}
+              style={styles.whiteBackground}
+            >
+              <ThreadLoadStatus />
+              <PinnedMessage />
+              <ListArea />
+              <LoadingLine />
             </Kb.Box2>
-          </KeyboardStickyView>
-          <PortalHost name="convOverlay" />
-        </Kb.Box2>
-      </ThreadSearchOverlayContext>
+            <KeyboardStickyView offset={stickyOffset}>
+              <Kb.Box2 direction="vertical" fullWidth={true} style={styles.whiteBackground}>
+                <InvitationToBlock />
+                <Banner />
+                <InputArea />
+              </Kb.Box2>
+            </KeyboardStickyView>
+            <PortalHost name="convOverlay" />
+          </Kb.Box2>
+        </ThreadSearchOverlayContext>
+      </ComposerProvider>
     </PerfProfiler>
   )
 }
