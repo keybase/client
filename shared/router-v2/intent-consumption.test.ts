@@ -65,7 +65,7 @@ test('a stale intent that is dropped without navigating still acks its tap route
   const ack = mockAckPushTap
   const now = jest.spyOn(Date, 'now')
   now.mockReturnValue(1_000)
-  useConfigState.getState().dispatch.setUserSwitching(true)
+  useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
   const listener = jest.fn()
   const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
 
@@ -108,7 +108,7 @@ test('a stale intent is discarded instead of navigating', () => {
   now.mockReturnValue(1_000)
 
   // block consumption so the intent sits in the queue while time passes
-  useConfigState.getState().dispatch.setUserSwitching(true)
+  useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
   const listener = jest.fn()
   const handleAppLink = jest.fn()
   const unsubscribe = subscribeNavigationIntents(listener, handleAppLink)
@@ -129,11 +129,17 @@ test('an intent that is still within its lifetime is consumed after the block cl
   const now = jest.spyOn(Date, 'now')
   now.mockReturnValue(1_000)
 
-  useConfigState.getState().dispatch.setUserSwitching(true)
+  useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
   const listener = jest.fn()
   const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
 
   emitDeepLink('keybase://convid/fresh-conversation')
+
+  // Starting the switch reset every store; the switched-to account logs back in and readies its router
+  setCurrentUser('current-uid')
+  useConfigState.getState().dispatch.setLoggedIn(true)
+  useNavigationIntentsState.getState().dispatch.setNavigationReady(true, 'current-uid')
+  expect(listener).not.toHaveBeenCalled()
 
   now.mockReturnValue(1_000 + 5 * 60_000 - 1)
   useConfigState.getState().dispatch.setUserSwitching(false)
@@ -177,7 +183,7 @@ test('an account-targeted intent survives the store reset an account switch perf
   const listener = jest.fn()
   const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
 
-  useConfigState.getState().dispatch.setUserSwitching(true)
+  useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
   enqueuePushTapRoute({id: 4444, targetUid: 'target-uid', url: 'keybase://convid/switch-target-conversation'})
   expect(listener).not.toHaveBeenCalled()
 

@@ -330,7 +330,7 @@ test('setUserSwitching abandons further unbox until switch completes', async () 
   await flushPromises()
   expect(T.RPCChat.localRequestInboxUnboxRpcPromise).toHaveBeenCalledTimes(1)
 
-  useConfigState.getState().dispatch.setUserSwitching(true)
+  useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
   resolvers[0]?.()
   await flushPromises()
 

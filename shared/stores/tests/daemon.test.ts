@@ -107,8 +107,8 @@ describe('daemon store', () => {
   })
 
   test('startHandshake does not reuse a load orphaned by an engine reset', async () => {
-    // engine.reset() drops in-flight RPCs without settling their promises (user switch does
-    // this twice); a later handshake must start a fresh load instead of awaiting the dead one
+    // engine.reset() drops in-flight RPCs without settling their promises; a later handshake
+    // must start a fresh load instead of awaiting the dead one
     const spy = jest
       .spyOn(T.RPCGen, 'configGetBootstrapStatusRpcPromise')
       .mockImplementationOnce(async () => new Promise<never>(() => {}))

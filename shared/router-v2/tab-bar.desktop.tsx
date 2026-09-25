@@ -53,7 +53,12 @@ const Header = () => {
   const username = useCurrentUserState(s => s.username)
   const fullname = useUsersState(s => s.infoMap.get(username)?.fullname ?? '')
 
-  const logoutToLoggedOutFlow = useConfigState(s => s.dispatch.logoutToLoggedOutFlow)
+  const {logoutToLoggedOutFlow, userSwitching} = useConfigState(
+    C.useShallow(s => ({
+      logoutToLoggedOutFlow: s.dispatch.logoutToLoggedOutFlow,
+      userSwitching: s.userSwitching,
+    }))
+  )
   const onHelp = () => { void openURL('https://book.keybase.io') }
   const onQuit = () => {
     if (!__DEV__) {
@@ -80,7 +85,8 @@ const Header = () => {
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     const menuItems: Kb.MenuItems = [
-      {onClick: onAddAccount, title: 'Log in as another user'},
+      // the desktop menu only styles disabled items, so drop the handler too
+      {disabled: userSwitching, onClick: userSwitching ? undefined : onAddAccount, title: 'Log in as another user'},
       {onClick: onSettings, title: 'Settings'},
       {onClick: onHelp, title: 'Help'},
       {danger: true, onClick: onSignOut, title: 'Sign out'},
@@ -254,19 +260,14 @@ function Tab(props: TabProps) {
   const isPeopleTab = index === 0
   const {label} = Tabs.desktopTabMeta[tab]
   const current = useCurrentUserState(s => s.username)
-  const {login, setUserSwitching} = useConfigState(
-    C.useShallow(s => ({
-      login: s.dispatch.login,
-      setUserSwitching: s.dispatch.setUserSwitching,
-    }))
-  )
+  const switchToAccount = useConfigState(s => s.dispatch.switchToAccount)
   const onQuickSwitch = isPeopleTab
     ? () => {
-        const accountRows = useConfigState.getState().configuredAccounts
+        const {configuredAccounts: accountRows, userSwitching} = useConfigState.getState()
+        if (userSwitching) return
         const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
         if (row) {
-          setUserSwitching(true)
-          login(row.username, '')
+          switchToAccount(row.username)
         } else {
           onSelectTab(tab)
         }

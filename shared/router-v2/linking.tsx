@@ -11,6 +11,7 @@ import {usePushState} from '@/stores/push'
 import type {LinkingOptions} from '@react-navigation/native'
 import type {RootParamList} from './route-params'
 import {Linking} from 'react-native'
+import {peekPendingAccountSwitchTab} from './account-switch'
 import {emitDeepLink, normalizeUrl, setInitialURLOnce} from './deep-link-emitter'
 // Re-exported so existing importers ('@/router-v2/linking') keep working; the
 // definitions live in the dependency-free './deep-link-emitter' leaf.
@@ -337,6 +338,13 @@ export const createLinkingConfig = (
     getInitialURL: async () => {
       const {loggedIn, startup, androidShare} = useConfigState.getState()
       if (!loggedIn) return null
+
+      // An account switch remounts the navigator. Start it on the switcher's tab: switching there
+      // after mount slides the iOS 26 glass tab pill over from the first tab.
+      const accountSwitchTab = peekPendingAccountSwitchTab(useCurrentUserState.getState().username)
+      if (accountSwitchTab) {
+        return setInitialURLOnce(`keybase://${accountSwitchTab}`)
+      }
 
       const {tab: startupTab} = startup
       let startupConversation = startup.conversation

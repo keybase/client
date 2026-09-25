@@ -403,6 +403,9 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
   const lookingAtThread = active && appFocused && routeFocused
   const previousLookingAtThreadRef = React.useRef(lookingAtThread)
   const activeMarkReadEnabledRef = React.useRef(false)
+  // The account this thread was loaded for. Its screen outlives an account switch by a few renders,
+  // and a mark-read sent then would mark the next account's read position.
+  const [threadUid] = React.useState(() => useCurrentUserState.getState().uid)
   const markReadBlockedRef = React.useRef(false)
 
   const getSnapshot = React.useEffectEvent(() => threadStore.getState())
@@ -420,6 +423,10 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
     const f = async () => {
       if (!useConfigState.getState().loggedIn) {
         logger.info('mark read bail on not logged in')
+        return
+      }
+      if (useCurrentUserState.getState().uid !== threadUid) {
+        logger.info('mark read bail on thread loaded for another account')
         return
       }
       if (!T.Chat.isValidConversationIDKey(id)) {

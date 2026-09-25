@@ -81,6 +81,15 @@ test('a tap for a stored account switches to it once', () => {
   expect(login).toHaveBeenCalledTimes(1)
 })
 
+// Starting the switch resets the stores, loggedIn with them; that is not a logout to drop the tap for.
+test('the store reset a switch starts with keeps the tap it is for', () => {
+  tapFor(otherAccount.uid)
+
+  expect(useConfigState.getState().loggedIn).toBe(false)
+  expect(mockAckPushTap).not.toHaveBeenCalled()
+  expect(useNavigationIntentsState.getState().intent?.targetUid).toBe(otherAccount.uid)
+})
+
 test('a tap for an account not listed yet waits for the account list', () => {
   setAccounts([currentAccount])
   tapFor(otherAccount.uid)

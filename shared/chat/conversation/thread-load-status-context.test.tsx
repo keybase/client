@@ -5,6 +5,7 @@ import type * as React from 'react'
 import * as T from '@/constants/types'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
+import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {
   ConversationThreadLoadStatusProvider,
@@ -25,6 +26,7 @@ const flushPromises = async () => {
 
 beforeEach(() => {
   jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
+  useConfigState.setState({loggedIn: true})
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
     deviceName: 'test-device',

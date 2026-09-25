@@ -33,7 +33,7 @@ describe('loadAccountsStep', () => {
 
   test('does not wait for accounts while switching', async () => {
     withDeferredRefreshAccounts()
-    useConfigState.getState().dispatch.setUserSwitching(true)
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
     useDaemonState.setState(s => {
       s.bootstrapStatus = {loggedIn: false} as any
     })
@@ -107,7 +107,7 @@ describe('onNetworkOnlineChanged', () => {
 
   test('does not re-read during an account switch', () => {
     const reRead = spyOnReRead()
-    useConfigState.getState().dispatch.setUserSwitching(true)
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
     onNetworkOnlineChanged(true, false)
     expect(reRead).not.toHaveBeenCalled()
   })
@@ -254,27 +254,61 @@ describe('the session comes from the daemon; notifications only say to read it',
     expect(useCurrentUserState.getState().uid).toBe('u1')
   })
 
-  test('during an account switch a logged-out reply is ignored, and the new user still replaces the old', async () => {
+  test('starting a switch logs the old account out of our stores', async () => {
     await readReplying(userA)
     markAccountState()
-    useConfigState.getState().dispatch.setUserSwitching(true)
-    const {changes, unsub} = loginChanges()
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+
+    expect(useConfigState.getState().loggedIn).toBe(false)
+    expect(accountStateCleared()).toBe(true)
+  })
+
+  test("once the switch's target is logged in, a logged-out reply mid-switch is ignored", async () => {
+    await readReplying(userA)
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+    await readReplying(userB)
+    expect(useConfigState.getState().loggedIn).toBe(true)
 
     await readReplying(loggedOut)
+
     expect(useConfigState.getState().loggedIn).toBe(true)
+    expect(useCurrentUserState.getState().username).toBe('testuser2')
+    expect(useConfigState.getState().userSwitching).toBe(true)
+  })
+
+  // A read of the old account in flight when the switch began replies after the reset.
+  test("mid-switch, the old account's reply is ignored, and the target's still applies", async () => {
+    await readReplying(userA)
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+    const {changes, unsub} = loginChanges()
+
+    await readReplying(userA)
+    expect(useConfigState.getState().loggedIn).toBe(false)
+    expect(useCurrentUserState.getState().uid).toBe('')
 
     await readReplying(userB)
     unsub()
 
-    expect(changes).toEqual([false, true])
-    expect(accountStateCleared()).toBe(true)
+    expect(changes).toEqual([true])
+    expect(useCurrentUserState.getState().username).toBe('testuser2')
+    expect(useConfigState.getState().userSwitching).toBe(true)
+  })
+
+  // The navigator for the new account ends the switch (endUserSwitchLandedOn), not its bootstrap.
+  test("the switch's target logging in leaves the switch for its navigator to end", async () => {
+    await readReplying(userA)
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+
+    await readReplying(userB)
+
+    expect(useConfigState.getState().loggedIn).toBe(true)
     expect(useCurrentUserState.getState().username).toBe('testuser2')
     expect(useConfigState.getState().userSwitching).toBe(true)
   })
 
   test('a switch whose login fails ends logged out, no longer switching', async () => {
     await readReplying(userA)
-    useConfigState.getState().dispatch.setUserSwitching(true)
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
     await readReplying(loggedOut)
 
     useConfigState.getState().dispatch.setLoginError(new Error('bad password') as never)
@@ -289,9 +323,9 @@ describe('the session comes from the daemon; notifications only say to read it',
     ['ended by a non-RPC error', new Error('engine reset')],
   ])('a switch whose login is %s ends logged out, no longer switching', async (_, error) => {
     await readReplying(userA)
-    useConfigState.getState().dispatch.setUserSwitching(true)
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
     await readReplying(loggedOut)
-    expect(useConfigState.getState().loggedIn).toBe(true)
+    expect(useConfigState.getState().userSwitching).toBe(true)
 
     jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockRejectedValue(error)
     useConfigState.getState().dispatch.login('testuser2', 'password')

@@ -189,6 +189,11 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
     },
     manageContactsCache: () => {
       const f = async () => {
+        // The import setting read below is this account's. Reading the address book can take
+        // seconds, and the upload goes to whichever account is logged in when it runs, so an
+        // account switch in between must not upload these contacts to the next account.
+        const uidBefore = useCurrentUserState.getState().uid
+        const accountChanged = () => useCurrentUserState.getState().uid !== uidBefore
         if (get().importEnabled === false) {
           await T.RPCGen.contactsSaveContactListRpcPromise({contacts: []})
           set(s => {
@@ -232,10 +237,17 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
         } catch (_error) {
           const error = _error as {message: string}
           logger.error(`error loading contacts: ${error.message}`)
+          if (accountChanged()) {
+            return
+          }
           set(s => {
             s.importedCount = undefined
             s.importError = error.message
           })
+          return
+        }
+        if (accountChanged()) {
+          logger.info('account changed while reading contacts, not importing')
           return
         }
         logger.info(`Importing ${mapped.length} contacts.`)
@@ -268,6 +280,10 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
         } catch (_error) {
           const error = _error as {message: string}
           logger.error('Error saving contacts list: ', error.message)
+          // includes the engine refusing the reply because a switch landed during the upload
+          if (accountChanged()) {
+            return
+          }
           set(s => {
             s.importedCount = undefined
             s.importError = error.message

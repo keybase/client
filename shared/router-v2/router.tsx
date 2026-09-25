@@ -33,6 +33,7 @@ import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liqu
 import {Platform, StatusBar, View} from 'react-native'
 import AccountSwitchHeaderAvatar from './account-switch-header-avatar'
 import {clearPendingAccountSwitch, consumePendingAccountSwitchTab} from './account-switch'
+import {useLoggedInScreens} from './logged-in-screens'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
 const isLiquidGlassSupported = isMobile ? (_isLiquidGlassSupported as boolean) : false
@@ -99,7 +100,7 @@ const setNavRef = (ref: typeof C.Router2.navigationRef.current) => {
 // Sticky: once the handshake finishes we never go back to the splash, even if it
 // restarts later (engine reconnect); the disconnected overlay covers that case.
 // Module-level so it survives the navigator remount on user switch (a ref would
-// reset and flash the splash while the post-switch handshake is still running).
+// reset and flash the splash).
 let handshakeEverDone = false
 const useHandshakeEverDone = () => {
   return useDaemonState(s => {
@@ -187,17 +188,15 @@ if (!isMobile) {
 
   const useIsLoadingDesktop = () => !useHandshakeEverDone()
 
-  // During an account switch loggedIn flaps false between the service's loggedOut and
-  // loggedIn notifications; keep the app (and its left nav) mounted through that gap.
   const useIsLoggedInDesktop = () => {
     const loaded = useHandshakeEverDone()
-    const loggedIn = useConfigState(s => s.loggedIn || s.userSwitching)
+    const loggedIn = useLoggedInScreens()
     return loaded && loggedIn
   }
 
   const useIsLoggedOutDesktop = () => {
     const loaded = useHandshakeEverDone()
-    const loggedIn = useConfigState(s => s.loggedIn || s.userSwitching)
+    const loggedIn = useLoggedInScreens()
     return loaded && !loggedIn
   }
 
@@ -262,7 +261,13 @@ function DesktopRouter() {
 
   const isDarkMode = useDarkModeState(s => s.isDarkMode())
   const navKey = Common.useUserSwitchNavKey()
-  const currentUid = useCurrentUserState(s => s.uid)
+  const {currentUid, username} = useCurrentUserState(
+    C.useShallow(s => ({
+      currentUid: s.uid,
+      username: s.username,
+    }))
+  )
+  const endUserSwitchLandedOn = useConfigState(s => s.dispatch.endUserSwitchLandedOn)
   const setNavigationReady = useNavigationIntentsState(s => s.dispatch.setNavigationReady)
 
   React.useEffect(
@@ -292,6 +297,7 @@ function DesktopRouter() {
       onReady={() => {
         onStateChange()
         setNavigationReady(true, currentUid)
+        endUserSwitchLandedOn(username)
       }}
       onStateChange={onStateChange}
       onUnhandledAction={onUnhandledAction}
@@ -592,8 +598,8 @@ if (isMobile) {
     }
   }
 
-  const useIsLoggedInNative = () => useConfigState(s => s.loggedIn)
-  const useIsLoggedOutNative = () => !useConfigState(s => s.loggedIn)
+  const useIsLoggedInNative = () => useLoggedInScreens()
+  const useIsLoggedOutNative = () => !useLoggedInScreens()
 
   const nativeModalScreensConfig = routeMapToStaticScreens(modalRoutes, makeLayout, true, false, false)
   const nativePhoneRootScreensConfig = routeMapToStaticScreens(
@@ -655,8 +661,9 @@ function NativeRouter() {
   const theme = Kb.Styles.useTheme()
   const loggedInLoaded = useHandshakeEverDone()
 
-  const {loggedIn, startupLoaded, userSwitching} = useConfigState(
+  const {endUserSwitchLandedOn, loggedIn, startupLoaded, userSwitching} = useConfigState(
     C.useShallow(s => ({
+      endUserSwitchLandedOn: s.dispatch.endUserSwitchLandedOn,
       loggedIn: s.loggedIn,
       startupLoaded: s.startup.loaded,
       userSwitching: s.userSwitching,
@@ -703,6 +710,7 @@ function NativeRouter() {
       C.Router2.switchTab(tab)
     }
     setNavigationReady(true, currentUid)
+    endUserSwitchLandedOn(username)
   }
 
   if (!loggedInLoaded || (loggedIn && !startupLoaded)) {

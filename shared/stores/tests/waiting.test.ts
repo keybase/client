@@ -36,3 +36,17 @@ test('batch applies a mixed waiting update set', () => {
   expect((useWaitingState.getState().counts.get('b') ?? 0) > 0).toBe(true)
   expect((useWaitingState.getState().counts.get('c') ?? 0) > 0).toBe(true)
 })
+
+test('a logout keeps in-flight counts so the calls that end afterwards bring them back to zero', () => {
+  const {dispatch} = useWaitingState.getState()
+  const error = new RPCError('boom', 7)
+  dispatch.increment('load')
+  dispatch.decrement('other', error)
+
+  resetAllStores()
+
+  expect(useWaitingState.getState().errors.get('other')).toBeUndefined()
+  expect(useWaitingState.getState().counts.get('load')).toBe(1)
+  dispatch.decrement('load')
+  expect(useWaitingState.getState().counts.get('load')).toBeUndefined()
+})

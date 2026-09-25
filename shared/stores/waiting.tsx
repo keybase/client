@@ -73,7 +73,14 @@ export const useWaitingState = Z.createZustand<State>('waiting', (set, get) => {
     increment: keys => {
       changeHelper(keys, 1)
     },
-    resetState: Z.defaultReset,
+    // Counts track calls still in flight, and every one of those decrements its count when it
+    // settles, so a logout keeps them: clearing them would send the count negative when those calls
+    // end. Errors belong to the account's screens and go.
+    resetState: () => {
+      set(s => {
+        s.errors.clear()
+      })
+    },
   }
 
   return {

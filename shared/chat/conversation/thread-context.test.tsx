@@ -246,6 +246,7 @@ const separatePlainThreadWrapper = ({children}: {children: React.ReactNode}) => 
 )
 
 beforeEach(() => {
+  useConfigState.setState({loggedIn: true})
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
     deviceName: 'test-device',
@@ -842,6 +843,48 @@ test('active change marks read after an eligible mounted thread load', async () 
     forceUnread: false,
     msgID,
   })
+})
+
+test('a thread still on screen after an account switch does not mark read for the next account', async () => {
+  useConfigState.setState({loggedIn: true})
+  useShellState.getState().dispatch.setActive(false)
+  jest
+    .spyOn(Common, 'isUserActivelyLookingAtThisThread')
+    .mockImplementation(() => useShellState.getState().active)
+  const markAsRead = jest
+    .spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise')
+    .mockResolvedValue({offline: false})
+  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
+    p.incomingCallMap['chat.1.chatUi.chatThreadFull']?.({
+      thread: JSON.stringify({
+        messages: [makeValidTextUIMessage(T.Chat.numberToMessageID(603), 'loaded inactive')],
+        pagination: {last: true, next: '', num: 100, previous: ''},
+      }),
+    })
+    await Promise.resolve()
+    return {offline: false}
+  })
+  const {result} = renderHook(() => useConversationThreadLoadMoreMessages(), {wrapper})
+  act(() => {
+    result.current({reason: 'tab selected'})
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+
+  act(() => {
+    useCurrentUserState.getState().dispatch.setBootstrap({
+      deviceID: 'device-id-2',
+      deviceName: 'test-device-2',
+      uid: 'uid-2',
+      username: 'testuser-mac',
+    })
+    useShellState.getState().dispatch.setActive(true)
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+  expect(markAsRead).not.toHaveBeenCalled()
 })
 
 test('active change does not mark read after a centered thread load', async () => {

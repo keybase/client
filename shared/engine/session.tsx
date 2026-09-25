@@ -7,6 +7,7 @@ import {printRPC} from '@/local-debug'
 import {rpcLog, type InvokeType} from './index.platform'
 import {RPCError} from '@/util/errors'
 import {getEngine} from './require'
+import {getAccountGeneration, survivesAccountChange} from './account-generation'
 import type {SessionID, ResponseType, EndHandlerType, MethodKey, WaitingKey} from './types'
 
 // A session is a series of calls back and forth tied together with a single sessionID
@@ -31,6 +32,8 @@ class Session {
   _startMethod: MethodKey | undefined
   // Start callback so we can cancel our own callback
   _startCallback: ((err?: RPCError, ...args: Array<unknown>) => void) | undefined
+  // The account generation the session started in; undefined until start
+  _accountGeneration: number | undefined
 
   // Allow us to make calls
   _invoke: InvokeType
@@ -60,6 +63,15 @@ class Session {
   }
   getDangling(): boolean {
     return this._dangling
+  }
+
+  // Started for an account that has since logged out, so nothing it receives may reach its handlers.
+  _belongsToPreviousAccount() {
+    return (
+      this._accountGeneration !== undefined &&
+      this._accountGeneration !== getAccountGeneration() &&
+      !survivesAccountChange(this._startMethod ?? '')
+    )
   }
 
   // Make a waiting handler for the request. We add additional data before calling the parent waitingHandler
@@ -110,6 +122,7 @@ class Session {
   start(method: MethodKey, param: object | undefined, callback: (() => void) | undefined) {
     this._startMethod = method
     this._startCallback = callback
+    this._accountGeneration = getAccountGeneration()
 
     // When this request is done the session is done
     const wrappedCallback = (err: RPCError | undefined, ...args: Array<unknown>) => {
@@ -135,6 +148,11 @@ class Session {
     const updateWaiting = this._makeWaitingHandler(method)
     updateWaiting(true)
     this._invoke(method, [wrappedParam], (err: unknown, data: unknown) => {
+      if (this._belongsToPreviousAccount()) {
+        updateWaiting(false)
+        wrappedCallback(new RPCError('The account changed during this call', StatusCode.sccanceled))
+        return
+      }
       updateWaiting(false, err as RPCError | undefined)
       wrappedCallback(err as RPCError | undefined, data)
     })
@@ -166,6 +184,11 @@ class Session {
 
     if (!handler) {
       return false
+    }
+
+    if (this._belongsToPreviousAccount()) {
+      response?.error?.({code: StatusCode.sccanceled, desc: 'The account changed during this call'})
+      return true
     }
 
     if (response?.seqid !== undefined) {

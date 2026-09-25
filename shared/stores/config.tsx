@@ -17,8 +17,9 @@ import {
   niceError,
 } from "@/util/errors";
 import { type CommonResponseHandler } from "@/engine/types";
+import { startNewAccountGeneration } from "@/engine/account-generation";
 import { invalidPasswordErrorString } from "@/constants/config";
-import { navigateAppend } from "@/constants/router";
+import { navigateAppendOnceRootHas } from "@/constants/router";
 import { onEngineConnected as onEngineConnectedInPlatform } from "@/util/storeless-actions";
 import { useDaemonState } from "@/stores/daemon";
 import { getEngine, hasEngine } from "@/engine/require";
@@ -57,6 +58,10 @@ type Store = T.Immutable<{
     tab?: Tab;
   };
   userSwitching: boolean;
+  // The account an in-progress switch is logging into ('' when none)
+  userSwitchingTo: string;
+  // Whether the in-progress switch started while logged in
+  userSwitchingFromLoggedIn: boolean;
   windowShownCount: Map<string, number>;
 }>;
 
@@ -92,12 +97,15 @@ const initialStore: Store = {
     loaded: false,
   },
   userSwitching: false,
+  userSwitchingFromLoggedIn: false,
+  userSwitchingTo: "",
   windowShownCount: new Map(),
 };
 
 export type State = Store & {
   dispatch: {
     checkForUpdate: () => void;
+    endUserSwitchLandedOn: (username: string) => void;
     initAppUpdateLoop: () => void;
     installerRan: () => void;
     loadIsOnline: () => void;
@@ -124,7 +132,10 @@ export type State = Store & {
     setStartupDetails: (st: Omit<Store["startup"], "loaded">) => void;
     setOutOfDate: (outOfDate: T.Config.OutOfDate) => void;
     setUpdating: () => void;
-    setUserSwitching: (sw: boolean) => void;
+    // Starting a switch names its target; switchToAccount is the one place that does.
+    setUserSwitching: (...args: [sw: true, to: string] | [sw: false]) => void;
+    // Starts a switch to a stored account unless one is already running. Returns whether it started.
+    switchToAccount: (username: string) => boolean;
     toggleRuntimeStats: () => void;
     updateGregorCategory: (
       category: string,
@@ -136,6 +147,10 @@ export type State = Store & {
 
 export const useConfigState = Z.createZustand<State>("config", (set, get) => {
   let inflightRefreshAccounts: Promise<void> | undefined;
+  // Bumped by every login. A login that fails after a newer one started (e.g. a tapped push for
+  // another account switching while a password login is still running) must not end the newer
+  // switch or show its own error.
+  let loginGeneration = 0;
 
   const _checkForUpdate = async () => {
     try {
@@ -198,6 +213,14 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
       };
       ignorePromise(f());
     },
+    endUserSwitchLandedOn: (username) => {
+      // A navigator that comes up for an account a newer switch has already moved past (the user
+      // picked another account mid-switch) must leave that switch running.
+      const { userSwitching, userSwitchingTo } = get();
+      if (userSwitching && userSwitchingTo === username) {
+        get().dispatch.setUserSwitching(false);
+      }
+    },
     initAppUpdateLoop: () => {
       const f = async () => {
         while (true) {
@@ -239,6 +262,8 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
         });
       };
       const ignoreCallback = () => {};
+      const generation = ++loginGeneration;
+      const superseded = () => generation !== loginGeneration;
       const f = async () => {
         try {
           await T.RPCGen.loginLoginRpcListener({
@@ -248,8 +273,12 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
               "keybase.1.provisionUi.DisplayAndPromptSecret": cancelOnCallback,
               "keybase.1.provisionUi.PromptNewDeviceName": (_, response) => {
                 cancelOnCallback(undefined, response);
-                // this account needs provisioning; hand off to the provision flow
-                navigateAppend({
+                if (superseded()) return;
+                // This account needs provisioning; hand off to the provision flow. 'username' lives in
+                // the logged-out stack, which the routers keep unmounted while userSwitching is set, so
+                // end the switch and push once that stack is up.
+                get().dispatch.setUserSwitching(false);
+                navigateAppendOnceRootHas("loggedOut", {
                   name: "username",
                   params: { autoSubmit: true, username },
                 });
@@ -263,6 +292,7 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
                   // Service asking us again due to a bad passphrase?
                   if (params.pinentry.retryLabel) {
                     cancelOnCallback(params, response);
+                    if (superseded()) return;
                     let retryLabel = params.pinentry.retryLabel;
                     if (retryLabel === invalidPasswordErrorString) {
                       retryLabel = "Incorrect password.";
@@ -299,6 +329,13 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
           });
           logger.info("login call succeeded");
         } catch (error) {
+          if (superseded()) {
+            logger.info(
+              "login failed after a newer login started, ignoring",
+              error,
+            );
+            return;
+          }
           // Nothing else ends a cancelled switch, and the logged-out status it withheld applies only then
           if (!(error instanceof RPCError) || error.desc === cancelDesc) {
             get().dispatch.setUserSwitching(false);
@@ -474,6 +511,8 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
         httpSrv: s.httpSrv,
         startup: { loaded: s.startup.loaded },
         userSwitching: s.userSwitching,
+        userSwitchingFromLoggedIn: s.userSwitchingFromLoggedIn,
+        userSwitchingTo: s.userSwitchingTo,
       }));
     },
     revoke: (name, wasCurrentDevice) => {
@@ -553,6 +592,9 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
     },
     setLoggedIn: (loggedIn) => {
       const changed = get().loggedIn !== loggedIn;
+      if (changed && !loggedIn) {
+        startNewAccountGeneration();
+      }
       set((s) => {
         s.loggedIn = loggedIn;
       });
@@ -589,16 +631,34 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
         s.outOfDate.updating = true;
       });
     },
-    setUserSwitching: (sw) => {
-      if (sw && !get().userSwitching) {
+    setUserSwitching: (...args) => {
+      const [sw, to] = args;
+      // Read before the reset below, which clears loggedIn
+      const fromLoggedIn = sw && get().loggedIn;
+      const starting = sw && !get().userSwitching;
+      // Set before the reset, which keeps these: a subscriber that sees loggedIn go false must
+      // already see the switch, or it reads the reset as a logout.
+      set((s) => {
+        s.userSwitching = sw;
+        s.userSwitchingFromLoggedIn = fromLoggedIn;
+        s.userSwitchingTo = sw ? to : "";
+      });
+      if (starting) {
+        // The reset logs the old account out of our stores without going through setLoggedIn
+        if (fromLoggedIn) {
+          startNewAccountGeneration();
+        }
         Z.resetAllStores();
         if (hasEngine()) {
           getEngine().cancelOutstandingSessions();
         }
       }
-      set((s) => {
-        s.userSwitching = sw;
-      });
+    },
+    switchToAccount: (username) => {
+      if (get().userSwitching) return false;
+      get().dispatch.setUserSwitching(true, username);
+      get().dispatch.login(username, "");
+      return true;
     },
     toggleRuntimeStats: () => {
       const f = async () => {
