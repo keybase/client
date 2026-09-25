@@ -246,6 +246,7 @@ const separatePlainThreadWrapper = ({children}: {children: React.ReactNode}) => 
 )
 
 beforeEach(() => {
+  useConfigState.setState({loggedIn: true})
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
     deviceName: 'test-device',

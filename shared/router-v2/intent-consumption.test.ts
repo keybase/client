@@ -135,6 +135,12 @@ test('an intent that is still within its lifetime is consumed after the block cl
 
   emitDeepLink('keybase://convid/fresh-conversation')
 
+  // Starting the switch reset every store; the switched-to account logs back in and readies its router
+  setCurrentUser('current-uid')
+  useConfigState.getState().dispatch.setLoggedIn(true)
+  useNavigationIntentsState.getState().dispatch.setNavigationReady(true, 'current-uid')
+  expect(listener).not.toHaveBeenCalled()
+
   now.mockReturnValue(1_000 + 5 * 60_000 - 1)
   useConfigState.getState().dispatch.setUserSwitching(false)
 

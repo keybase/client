@@ -90,6 +90,14 @@ test('waits until the intended account is active', () => {
   unsubscribe()
 })
 
+// Starting a switch resets every store, logging the old account out of them; the switched-to
+// account's bootstrap then logs it back in and its router readies before the switch ends.
+const landSwitchOn = (uid: string) => {
+  setCurrentUser(uid)
+  useConfigState.getState().dispatch.setLoggedIn(true)
+  useNavigationIntentsState.getState().dispatch.setNavigationReady(true, uid)
+}
+
 test('waits for an account switch to finish', () => {
   useNavigationIntentsState.getState().dispatch.setNavigationReady(true, 'current-uid')
   useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
@@ -97,6 +105,7 @@ test('waits for an account switch to finish', () => {
   const unsubscribe = subscribeNavigationIntents(listener, jest.fn())
 
   enqueuePushTapRoute({id: tapID(), targetUid: 'current-uid', url: 'keybase://convid/account-switch-conversation'})
+  landSwitchOn('current-uid')
   expect(listener).not.toHaveBeenCalled()
 
   useConfigState.getState().dispatch.setUserSwitching(false)
@@ -114,6 +123,7 @@ test('waits for the replacement router after the current account changes', () =>
 
   enqueuePushTapRoute({id: tapID(), targetUid: 'target-uid', url: 'keybase://convid/replacement-router-conversation'})
   setCurrentUser('target-uid')
+  useConfigState.getState().dispatch.setLoggedIn(true)
 
   // The bootstrap UID can change before React commits the keyed router remount.
   // Even if switching is cleared early, the old account's ready router must not

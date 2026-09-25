@@ -4,6 +4,7 @@ import {resetAllStores} from '@/util/zustand'
 import {handleConvoEngineIncoming} from './engine'
 import {getInboxConversationMeta, getInboxConversationParticipants} from './metadata'
 import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
 import {updateInboxTyping} from '@/chat/inbox/typing-state'
 
 jest.mock('@/chat/inbox/badge-state', () => ({
@@ -260,6 +261,12 @@ test('global message activity routing preserves returned global data', () => {
 
 test('read message activity without attached inbox item refreshes service-owned metadata', () => {
   useConfigState.setState({loggedIn: true})
+  useCurrentUserState.getState().dispatch.setBootstrap({
+    deviceID: 'device-id',
+    deviceName: 'test-device',
+    uid: 'uid',
+    username: 'alice',
+  })
   const unbox = jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
 
   expect(
