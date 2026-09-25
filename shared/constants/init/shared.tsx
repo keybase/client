@@ -259,22 +259,23 @@ const onBootstrapStatusChanged = (
 
   const {
     dispatch: configDispatch,
-    defaultUsername: intendedUsername,
     userSwitching,
+    userSwitchingTo,
   } = useConfigState.getState();
-  if (username && (!userSwitching || username === intendedUsername)) {
-    configDispatch.setDefaultUsername(username);
-  }
-  if (!loggedIn && userSwitching) {
+  // Mid-switch, only the target's session applies: a logged-out status, or one for the account
+  // being left (a read in flight when the switch began). onUserSwitchingChanged applies the
+  // latest status once the switch ends.
+  if (userSwitching && (!loggedIn || username !== userSwitchingTo)) {
     logger.info(
-      "[Bootstrap] ignoring loggedIn=false result during account switch",
+      "[Bootstrap] ignoring a status other than the switch target's during account switch",
     );
     return;
   }
 
   // Logged in as someone else than the user we hold is a logout and then a login, however the
   // notifications in between reached us. Logging out clears the previous account's stores, the
-  // daemon's status among them, so put this status back and let that change apply it.
+  // daemon's status among them, so put this status back and let that change apply it. Read the
+  // held uid before anything below writes the current user.
   const currentUid = useCurrentUserState.getState().uid;
   if (
     loggedIn &&

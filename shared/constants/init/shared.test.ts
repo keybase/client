@@ -254,22 +254,42 @@ describe('the session comes from the daemon; notifications only say to read it',
     expect(useCurrentUserState.getState().uid).toBe('u1')
   })
 
-  test('during an account switch a logged-out reply is ignored, and the new user still replaces the old', async () => {
+  test('starting a switch logs the old account out of our stores', async () => {
     await readReplying(userA)
     markAccountState()
-    // Starting the switch resets every store, which logs the old account out of them
-    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+
     expect(useConfigState.getState().loggedIn).toBe(false)
-    const {changes, unsub} = loginChanges()
+    expect(accountStateCleared()).toBe(true)
+  })
+
+  test("once the switch's target is logged in, a logged-out reply mid-switch is ignored", async () => {
+    await readReplying(userA)
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+    await readReplying(userB)
+    expect(useConfigState.getState().loggedIn).toBe(true)
 
     await readReplying(loggedOut)
+
+    expect(useConfigState.getState().loggedIn).toBe(true)
+    expect(useCurrentUserState.getState().username).toBe('testuser2')
     expect(useConfigState.getState().userSwitching).toBe(true)
+  })
+
+  // A read of the old account in flight when the switch began replies after the reset.
+  test("mid-switch, the old account's reply is ignored, and the target's still applies", async () => {
+    await readReplying(userA)
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+    const {changes, unsub} = loginChanges()
+
+    await readReplying(userA)
+    expect(useConfigState.getState().loggedIn).toBe(false)
+    expect(useCurrentUserState.getState().uid).toBe('')
 
     await readReplying(userB)
     unsub()
 
     expect(changes).toEqual([true])
-    expect(accountStateCleared()).toBe(true)
     expect(useCurrentUserState.getState().username).toBe('testuser2')
     expect(useConfigState.getState().userSwitching).toBe(true)
   })
