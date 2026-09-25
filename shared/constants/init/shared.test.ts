@@ -257,16 +257,18 @@ describe('the session comes from the daemon; notifications only say to read it',
   test('during an account switch a logged-out reply is ignored, and the new user still replaces the old', async () => {
     await readReplying(userA)
     markAccountState()
+    // Starting the switch resets every store, which logs the old account out of them
     useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
+    expect(useConfigState.getState().loggedIn).toBe(false)
     const {changes, unsub} = loginChanges()
 
     await readReplying(loggedOut)
-    expect(useConfigState.getState().loggedIn).toBe(true)
+    expect(useConfigState.getState().userSwitching).toBe(true)
 
     await readReplying(userB)
     unsub()
 
-    expect(changes).toEqual([false, true])
+    expect(changes).toEqual([true])
     expect(accountStateCleared()).toBe(true)
     expect(useCurrentUserState.getState().username).toBe('testuser2')
     expect(useConfigState.getState().userSwitching).toBe(true)
@@ -303,7 +305,7 @@ describe('the session comes from the daemon; notifications only say to read it',
     await readReplying(userA)
     useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
     await readReplying(loggedOut)
-    expect(useConfigState.getState().loggedIn).toBe(true)
+    expect(useConfigState.getState().userSwitching).toBe(true)
 
     jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockRejectedValue(error)
     useConfigState.getState().dispatch.login('testuser2', 'password')

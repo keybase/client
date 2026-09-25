@@ -256,9 +256,6 @@ const onBootstrapStatusChanged = (
   }
 
   const { deviceID, deviceName, loggedIn, uid, username } = bootstrap;
-  useCurrentUserState
-    .getState()
-    .dispatch.setBootstrap({ deviceID, deviceName, uid, username });
 
   const {
     dispatch: configDispatch,
