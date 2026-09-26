@@ -77,9 +77,9 @@ function FloatingMenu(props: Props) {
 
   return (
     <Popup
+      intent="menu"
       attachTo={props.attachTo}
       onHidden={onHidden}
-      visible={props.visible}
       position={props.position}
       positionFallbacks={props.positionFallbacks}
       propagateOutsideClicks={props.propagateOutsideClicks}

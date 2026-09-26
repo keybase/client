@@ -28,7 +28,7 @@ const EnableContactsPopup = ({noAccess, onClose}: {noAccess: boolean; onClose: (
   }
 
   return showingPopup ? (
-    <Kb.Popup onHidden={onClosePopup}>
+    <Kb.Popup intent="dialog" onHidden={onClosePopup}>
       <Kb.Box2 direction="vertical" gap="small" padding="small" fullWidth={true}>
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Text type="Header" style={styles.header}>

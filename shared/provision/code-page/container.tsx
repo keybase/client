@@ -175,7 +175,7 @@ const CodePageContainer = (op: OwnProps) => {
         </Kb.Box2>
         {!inModal && otherDevice.type === 'desktop' && heyWaitBanner()}
         {!inModal && troubleshooting && (
-          <Kb.Popup onHidden={() => setTroubleshooting(false)} propagateOutsideClicks={true}>
+          <Kb.Popup intent="dialog" onHidden={() => setTroubleshooting(false)}>
             {troubleshootingContent()}
           </Kb.Popup>
         )}

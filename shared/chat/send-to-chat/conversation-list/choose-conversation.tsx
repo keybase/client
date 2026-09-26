@@ -17,11 +17,11 @@ const ChooseConversation = (props: Props) => {
     const {attachTo, hidePopup} = p
     return (
       <Kb.Popup
+        intent="menu"
         attachTo={attachTo}
         onHidden={hidePopup}
         position="center center"
         style={styles.overlay}
-        visible={true}
       >
         <ConversationList onSelect={onSelect} onDone={hidePopup} />
       </Kb.Popup>

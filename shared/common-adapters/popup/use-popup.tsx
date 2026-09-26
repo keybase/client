@@ -14,7 +14,6 @@ export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | nu
   const wasMakePopupRef = React.useRef<(p: Popup2Parms) => React.ReactElement | null>(makePopup)
   const [popup, setPopup] = React.useState<React.ReactNode>(null)
   const popupAnchor = React.useRef<MeasureRef>(null)
-  const attachTo = isMobile ? undefined : popupAnchor
   const lastToggle = React.useRef(0)
 
   const [hidePopup] = React.useState(() => () => {
@@ -38,9 +37,9 @@ export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | nu
   React.useEffect(() => {
     if (makePopup !== wasMakePopupRef.current || showingPopup !== !!popup) {
       wasMakePopupRef.current = makePopup
-      setPopup(showingPopup ? makePopup({attachTo, hidePopup, showPopup}) : null)
+      setPopup(showingPopup ? makePopup({attachTo: popupAnchor, hidePopup, showPopup}) : null)
     }
-  }, [attachTo, hidePopup, makePopup, popup, setPopup, showPopup, showingPopup])
+  }, [hidePopup, makePopup, popup, setPopup, showPopup, showingPopup])
 
   return {hidePopup, popup, popupAnchor, showPopup, showingPopup, togglePopup}
 }
