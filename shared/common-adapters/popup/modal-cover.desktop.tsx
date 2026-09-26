@@ -74,5 +74,3 @@ const useStyles = Styles.createStyleHook(theme => ({
     ...Styles.padding(Styles.globalMargins.large, Styles.globalMargins.large, Styles.globalMargins.small),
   },
 }))
-
-export default ModalCover

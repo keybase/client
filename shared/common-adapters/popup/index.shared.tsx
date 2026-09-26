@@ -8,7 +8,7 @@ import type * as Styles from '@/styles'
 export type AnchoredPopupProps = {
   children: React.ReactNode
   onHidden?: () => void
-  attachTo?: React.RefObject<MeasureRef | null>
+  attachTo: React.RefObject<MeasureRef | null>
   position?: Styles.Position
   positionFallbacks?: ReadonlyArray<Styles.Position>
   propagateOutsideClicks?: boolean
@@ -51,9 +51,8 @@ type SharedPopupProps = {
 
 export type PopupProps = SharedPopupProps &
   (
-    | ({intent: 'menu'} & Pick<
+    | ({intent: 'menu'; attachTo?: AnchoredPopupProps['attachTo']} & Pick<
         AnchoredPopupProps,
-        | 'attachTo'
         | 'containerStyle'
         | 'matchDimension'
         | 'offset'

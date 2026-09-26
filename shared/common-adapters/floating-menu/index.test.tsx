@@ -11,10 +11,7 @@ describe('FloatingMenu visibility', () => {
     cleanup()
   })
 
-  // 'modal' used to skip this guard and rely on Popup dropping an invisible
-  // popup on the way past. Popup no longer takes visible, so the guard is the
-  // only thing keeping a hidden menu off the screen.
-  test.each([undefined, 'bottomsheet', 'modal'] as const)(
+  test.each([undefined, 'bottomsheet'] as const)(
     'renders nothing when hidden in %s mode',
     mode => {
       const {container} = render(
@@ -23,4 +20,12 @@ describe('FloatingMenu visibility', () => {
       expect(container.innerHTML).toBe('')
     }
   )
+
+  // modal callers mount the menu themselves, so visible doesn't gate it
+  test('renders when hidden in modal mode', () => {
+    const {container} = render(
+      <FloatingMenu closeOnSelect={true} items={items} mode="modal" onHidden={() => {}} visible={false} />
+    )
+    expect(container.innerHTML).not.toBe('')
+  })
 })

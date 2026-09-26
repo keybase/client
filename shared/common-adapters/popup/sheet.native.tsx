@@ -123,5 +123,3 @@ const useStyles = Styles.createStyleHook(
       }),
     }) as const
 )
-
-export default Sheet

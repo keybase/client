@@ -52,5 +52,3 @@ const useStyles = Styles.createStyleHook(() => ({
     },
   }),
 }))
-
-export default AnchoredPopup

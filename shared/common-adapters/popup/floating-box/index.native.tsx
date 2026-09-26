@@ -7,13 +7,11 @@ import {Portal} from '../../portal'
 
 const NativeFloatingBox = (p: Props) => {
   const {hideKeyboard, children, containerStyle} = p
-  const [lastHK, setLastHK] = React.useState(hideKeyboard)
-  if (lastHK !== hideKeyboard) {
-    setLastHK(hideKeyboard)
+  React.useEffect(() => {
     if (hideKeyboard) {
       Keyboard.dismiss()
     }
-  }
+  }, [hideKeyboard])
 
   return (
     <Portal hostName="popup-root">

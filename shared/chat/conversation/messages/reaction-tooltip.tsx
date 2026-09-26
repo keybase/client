@@ -11,7 +11,7 @@ import {useConversationThreadID, useConversationThreadMessage, useConversationTh
 const positionFallbacks = ['bottom center', 'left center'] as const
 
 type OwnProps = {
-  attachmentRef?: React.RefObject<Kb.MeasureRef | null>
+  attachmentRef: React.RefObject<Kb.MeasureRef | null>
   emoji?: string
   onHidden: () => void
   onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void

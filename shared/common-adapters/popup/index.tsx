@@ -17,22 +17,8 @@ function Popup(props: PopupProps) {
   }
 
   if (props.intent === 'menu' && props.attachTo) {
-    return (
-      <AnchoredPopup
-        attachTo={props.attachTo}
-        containerStyle={props.containerStyle}
-        matchDimension={props.matchDimension}
-        offset={props.offset}
-        onHidden={props.onHidden}
-        position={props.position}
-        positionFallbacks={props.positionFallbacks}
-        propagateOutsideClicks={props.propagateOutsideClicks}
-        remeasureHint={props.remeasureHint}
-        style={props.style}
-      >
-        {props.children}
-      </AnchoredPopup>
-    )
+    const {attachTo, footer, intent, snapPoints, ...rest} = props
+    return <AnchoredPopup {...rest} attachTo={attachTo} />
   }
 
   // a menu with nothing to anchor to falls back to the cover: the positioner
