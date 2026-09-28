@@ -528,7 +528,7 @@ func (c *ChatArchiver) attachmentName(msg chat1.MessageUnboxedValid) string {
 	}
 	if typ == chat1.MessageType_ATTACHMENT {
 		att := body.Attachment()
-		safeFilename := libkb.GetSafeFilename(att.Object.Filename)
+		safeFilename := attachments.DownloadBasename(att.Object)
 		return fmt.Sprintf("%s (%d) - %s", gregor1.FromTime(msg.ServerHeader.Ctime).Format("2006-01-02 15.04.05"), msg.ServerHeader.MessageID, safeFilename)
 	}
 	return ""
