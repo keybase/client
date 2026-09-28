@@ -153,7 +153,7 @@ describe('threadObserved', () => {
       state({endOwner: 'reader'}),
     ],
     [
-      'leaving a centred target stops centring and leaves the reader, and the end, where they are',
+      'leaving a centred target (closing thread search) stops centring and leaves the reader, and the end, where they are',
       centred(30),
       observed(undefined),
       stopCentering,

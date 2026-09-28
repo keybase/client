@@ -65,7 +65,10 @@ export type ScrollEvent =
   // and growing it never moves the newest.
   | {type: 'headerMeasured'; hasMessages: boolean; size: number}
   // Messages were appended. Only a list whose own anchoring can leave a new message out of view
-  // reports it; anchorHidesNewest says whether it would this time.
+  // reports it; anchorHidesNewest says whether it would this time. That is the native list with the
+  // keyboard up, whose content-position anchor holds the old rows in place and so leaves a new one
+  // behind the keyboard. Nothing covers the desktop list's end, and its maintainScrollAtEnd keeps
+  // the newest message in view whenever the list is at its end.
   | {type: 'appended'; anchorHidesNewest: boolean}
   // Sent whenever the edit or the loaded rows change. rowAboveMiddle says whether the edited row sits
   // above the middle of the viewport, or out of view, as each list measures it: bringing such a row

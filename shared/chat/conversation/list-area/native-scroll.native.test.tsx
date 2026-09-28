@@ -732,8 +732,8 @@ describe('a screen pushed over a centred conversation', () => {
   })
 })
 
-describe('clearing the centre', () => {
-  test('leaves the list where it is', async () => {
+describe('closing thread search (clearing the centre)', () => {
+  test('leaves the list where it is, not at the newest', async () => {
     open({center: 30})
     await tick(1000)
     clearLog()

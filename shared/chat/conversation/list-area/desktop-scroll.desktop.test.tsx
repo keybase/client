@@ -459,8 +459,8 @@ describe('centering on a target', () => {
   })
 })
 
-describe('clearing the centre', () => {
-  test('leaves the reader where they are, holding the end, and re-arms the list anchor', async () => {
+describe('closing thread search (clearing the centre)', () => {
+  test('leaves the reader where they are, not at the newest, holding the end, and re-arms the list anchor', async () => {
     open({center: 30})
     await tick(5000)
     H.log.length = 0
