@@ -5,41 +5,10 @@
 import * as React from 'react'
 import * as T from '@/constants/types'
 import type {ThreadRefsContext} from '../normal/context'
+import {makeStore, useStore} from './list-test-store'
 
 export const rowHeight = 100
 export const viewportHeight = 500
-
-type Store<S> = {
-  get: () => S
-  set: (partial: Partial<S>) => void
-  subscribe: (listener: () => void) => () => void
-}
-
-const makeStore = <S extends object>(initial: S): Store<S> & {reset: (s: S) => void} => {
-  let state = initial
-  const listeners = new Set<() => void>()
-  const emit = () => listeners.forEach(l => l())
-  return {
-    get: () => state,
-    reset: (s: S) => {
-      state = s
-      emit()
-    },
-    set: (partial: Partial<S>) => {
-      state = {...state, ...partial}
-      emit()
-    },
-    subscribe: (listener: () => void) => {
-      listeners.add(listener)
-      return () => {
-        listeners.delete(listener)
-      }
-    },
-  }
-}
-
-const useStore = <S extends object, R>(store: Store<S>, selector: (s: S) => R): R =>
-  React.useSyncExternalStore(store.subscribe, () => selector(store.get()))
 
 // Everything the list does, in the order it did it: imperative scrolls on the list handle and the
 // center/thread actions the list's buttons call.
