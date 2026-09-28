@@ -1,0 +1,519 @@
+/** @jest-environment jsdom */
+/// <reference types="jest" />
+import * as T from '@/constants/types'
+import {act, cleanup, renderHook} from '@testing-library/react'
+import logger from '@/logger'
+import {useDaemonState} from '@/stores/daemon'
+import {useConfigState} from '@/stores/config'
+import {resetAllStores} from '@/util/zustand'
+import {
+  decodeChatNotification,
+  isChatNotification,
+  routeChatNotification,
+  type ChatNotification,
+} from './notification-router'
+import {
+  registerReloadHandler,
+  registerThreadHandler,
+  useReloadTriggers,
+  useThreadNotifications,
+  type ReloadTrigger,
+  type ThreadNotification,
+} from './notification-registry'
+
+const convA = T.Chat.conversationIDToKey(new Uint8Array([1, 1, 1, 1]))
+const convB = T.Chat.conversationIDToKey(new Uint8Array([2, 2, 2, 2]))
+const convC = T.Chat.conversationIDToKey(new Uint8Array([3, 3, 3, 3]))
+const rpcConvID = (id: T.Chat.ConversationIDKey) => T.Chat.keyToConversationID(id)
+const convIDString = (id: T.Chat.ConversationIDKey) => T.Chat.conversationIDKeyToString(id)
+
+const chat = (type: ChatNotification['type'], params: object) => ({payload: {params}, type}) as ChatNotification
+const activity = (a: object) => chat('chat.1.NotifyChat.NewChatActivity', {activity: a})
+const inboxItem = (id: T.Chat.ConversationIDKey) => ({convID: convIDString(id)}) as T.RPCChat.InboxUIItem
+const typingIn = (id: T.Chat.ConversationIDKey, username: string) =>
+  chat('chat.1.NotifyChat.ChatTypingUpdate', {
+    typingUpdates: [{convID: rpcConvID(id), typers: [{deviceID: 'd', uid: 'u', username}]}],
+  })
+
+// flattens a decode into the conversations each stage is told about, and what
+const decoded = (action: ChatNotification) => {
+  const {reloads, thread} = decodeChatNotification(action)
+  return {
+    reloads: reloads.map(d => [d.conversationIDKey, d.notification.type]),
+    thread: thread.map(d => [d.conversationIDKey, d.notification.type]),
+  }
+}
+
+const unregisters: Array<() => void> = []
+const onThread = (id: T.Chat.ConversationIDKey, handler: (n: ThreadNotification) => void) => {
+  unregisters.push(registerThreadHandler(id, handler))
+}
+const onReload = (id: T.Chat.ConversationIDKey, handler: (r: ReloadTrigger) => void) => {
+  unregisters.push(registerReloadHandler(id, handler))
+}
+
+beforeEach(() => {
+  useConfigState.setState({loggedIn: false})
+})
+
+afterEach(() => {
+  unregisters.splice(0).forEach(u => u())
+  cleanup()
+  jest.restoreAllMocks()
+  resetAllStores()
+})
+
+describe('isChatNotification', () => {
+  test.each([
+    'chat.1.NotifyChat.NewChatActivity',
+    'chat.1.NotifyChat.ChatThreadsStale',
+    'chat.1.NotifyChat.ChatInboxSynced',
+    'chat.1.NotifyChat.ChatIdentifyUpdate',
+    'chat.1.chatUi.chatInboxLayout',
+    'chat.1.chatUi.chatCommandStatus',
+    'chat.1.chatUi.chatBotCommandsUpdateStatus',
+  ])('%s is routed', type => {
+    expect(isChatNotification({payload: {params: {}}, type} as never)).toBe(true)
+  })
+
+  // these concern a team, a settings screen or a name, not a conversation, so they stay on the bus
+  test.each([
+    'chat.1.NotifyChat.ChatArchiveComplete',
+    'chat.1.NotifyChat.ChatArchiveProgress',
+    'chat.1.chatUi.chatShowManageChannels',
+    'chat.1.chatUi.chatMaybeMentionUpdate',
+    'keybase.1.gregorUI.pushState',
+    'keybase.1.NotifyTeam.teamChangedByID',
+  ])('%s is not', type => {
+    expect(isChatNotification({payload: {params: {}}, type} as never)).toBe(false)
+  })
+})
+
+describe('decodeChatNotification', () => {
+  test('an incoming message goes to its thread, then reloads its meta and messages', () => {
+    expect(
+      decoded(
+        activity({
+          activityType: T.RPCChat.ChatActivityType.incomingMessage,
+          incomingMessage: {conv: null, convID: rpcConvID(convA)},
+        })
+      )
+    ).toEqual({
+      reloads: [
+        [convA, 'metadata'],
+        [convA, 'messages'],
+      ],
+      thread: [[convA, 'incomingMessage']],
+    })
+  })
+
+  test.each([
+    ['messagesUpdated', {messagesUpdated: {convID: rpcConvID(convA), updates: null}}],
+    ['reactionUpdate', {reactionUpdate: {convID: rpcConvID(convA), reactionUpdates: null}}],
+    ['expunge', {expunge: {convID: rpcConvID(convA), expunge: {basis: 0, upto: 1}}}],
+    ['ephemeralPurge', {ephemeralPurge: {convID: rpcConvID(convA), msgs: null}}],
+  ] as const)('%s goes to its thread and reloads meta and messages', (type, fields) => {
+    expect(decoded(activity({activityType: T.RPCChat.ChatActivityType[type], ...fields}))).toEqual({
+      reloads: [
+        [convA, 'metadata'],
+        [convA, 'messages'],
+      ],
+      thread: [[convA, type]],
+    })
+  })
+
+  test.each([
+    ['setStatus', {setStatus: {conv: inboxItem(convA), convID: rpcConvID(convB)}}],
+    ['newConversation', {newConversation: {conv: inboxItem(convA), convID: rpcConvID(convB)}}],
+    ['readMessage', {readMessage: {conv: inboxItem(convA), convID: rpcConvID(convB), msgID: 1}}],
+  ] as const)('%s reloads the meta of the conversation its inbox item names', (type, fields) => {
+    expect(decoded(activity({activityType: T.RPCChat.ChatActivityType[type], ...fields}))).toEqual({
+      reloads: [[convA, 'metadata']],
+      thread: [],
+    })
+  })
+
+  test('an activity with no inbox item reloads the no-conversation readers', () => {
+    expect(
+      decoded(
+        activity({
+          activityType: T.RPCChat.ChatActivityType.readMessage,
+          readMessage: {conv: null, convID: rpcConvID(convA), msgID: 1},
+        })
+      )
+    ).toEqual({reloads: [[T.Chat.noConversationIDKey, 'metadata']], thread: []})
+  })
+
+  test.each([
+    ['membersUpdate', {membersUpdate: {convID: rpcConvID(convA), members: null}}],
+    [
+      'setAppNotificationSettings',
+      {setAppNotificationSettings: {channelWide: false, convID: rpcConvID(convA), settings: {}}},
+    ],
+  ] as const)('%s reloads its meta only', (type, fields) => {
+    expect(decoded(activity({activityType: T.RPCChat.ChatActivityType[type], ...fields}))).toEqual({
+      reloads: [[convA, 'metadata']],
+      thread: [],
+    })
+  })
+
+  test('a failed message goes once to each conversation its records name, and reloads the inbox item conversation', () => {
+    const record = (id: T.Chat.ConversationIDKey) => ({convID: rpcConvID(id)})
+    expect(
+      decoded(
+        activity({
+          activityType: T.RPCChat.ChatActivityType.failedMessage,
+          failedMessage: {conv: inboxItem(convC), outboxRecords: [record(convB), record(convA), record(convB)]},
+        })
+      )
+    ).toEqual({
+      reloads: [[convC, 'metadata']],
+      thread: [
+        [convB, 'failedMessage'],
+        [convA, 'failedMessage'],
+      ],
+    })
+  })
+
+  test('each typing update is its own delivery, duplicates included', () => {
+    const {thread} = decodeChatNotification(
+      chat('chat.1.NotifyChat.ChatTypingUpdate', {
+        typingUpdates: [
+          {convID: rpcConvID(convA), typers: [{username: 'bob'}]},
+          {convID: rpcConvID(convB), typers: null},
+          {convID: rpcConvID(convA), typers: [{username: 'carol'}]},
+        ],
+      })
+    )
+    expect(thread.map(d => [d.conversationIDKey, d.notification])).toEqual([
+      [convA, {type: 'typing', typers: [{username: 'bob'}]}],
+      [convB, {type: 'typing', typers: null}],
+      [convA, {type: 'typing', typers: [{username: 'carol'}]}],
+    ])
+  })
+
+  test('coin flip statuses are grouped per conversation, in arrival order', () => {
+    const status = (id: T.Chat.ConversationIDKey, gameID: string) => ({convID: convIDString(id), gameID})
+    const {thread} = decodeChatNotification(
+      chat('chat.1.chatUi.chatCoinFlipStatus', {
+        statuses: [status(convB, 'b1'), status(convA, 'a1'), status(convB, 'b2')],
+      })
+    )
+    expect(
+      thread.map(d => [
+        d.conversationIDKey,
+        d.notification.type === 'coinFlipStatuses' ? d.notification.statuses.map(s => s.gameID) : [],
+      ])
+    ).toEqual([
+      [convB, ['b1', 'b2']],
+      [convA, ['a1']],
+    ])
+  })
+
+  test('a stale-threads notice reloads each named thread once', () => {
+    expect(
+      decoded(
+        chat('chat.1.NotifyChat.ChatThreadsStale', {
+          updates: [
+            {convID: rpcConvID(convA), updateType: T.RPCChat.StaleUpdateType.clear},
+            {convID: rpcConvID(convC), updateType: T.RPCChat.StaleUpdateType.newactivity},
+            {convID: rpcConvID(convA), updateType: T.RPCChat.StaleUpdateType.newactivity},
+          ],
+        })
+      )
+    ).toEqual({
+      reloads: [
+        [convA, 'staleThread'],
+        [convC, 'staleThread'],
+      ],
+      thread: [],
+    })
+  })
+
+  test('only an incremental inbox sync reloads threads', () => {
+    const items = [{conv: {convID: convIDString(convA)}}, {conv: {convID: convIDString(convB)}}]
+    expect(
+      decoded(
+        chat('chat.1.NotifyChat.ChatInboxSynced', {
+          syncRes: {incremental: {items}, syncType: T.RPCChat.SyncInboxResType.incremental},
+        })
+      )
+    ).toEqual({
+      reloads: [
+        [convA, 'staleThread'],
+        [convB, 'staleThread'],
+      ],
+      thread: [],
+    })
+    expect(
+      decoded(chat('chat.1.NotifyChat.ChatInboxSynced', {syncRes: {syncType: T.RPCChat.SyncInboxResType.clear}}))
+    ).toEqual({reloads: [], thread: []})
+  })
+
+  test('participants reload the meta of every conversation with a participant list', () => {
+    expect(
+      decoded(
+        chat('chat.1.NotifyChat.ChatParticipantsInfo', {
+          participants: {[convIDString(convA)]: [], [convIDString(convB)]: null, [convIDString(convC)]: [{}]},
+        })
+      )
+    ).toEqual({
+      reloads: [
+        [convA, 'metadata'],
+        [convC, 'metadata'],
+      ],
+      thread: [],
+    })
+  })
+
+  test('team retention reloads each of its conversations once', () => {
+    expect(
+      decoded(
+        chat('chat.1.NotifyChat.ChatSetTeamRetention', {
+          convs: [inboxItem(convA), inboxItem(convB), inboxItem(convA)],
+        })
+      )
+    ).toEqual({
+      reloads: [
+        [convA, 'metadata'],
+        [convB, 'metadata'],
+      ],
+      thread: [],
+    })
+  })
+
+  test.each([
+    ['chat.1.NotifyChat.ChatConvUpdate', {conv: inboxItem(convA), convID: rpcConvID(convB)}],
+    ['chat.1.chatUi.chatInboxFailed', {convID: rpcConvID(convA)}],
+    ['chat.1.NotifyChat.ChatSetConvSettings', {convID: rpcConvID(convA)}],
+    ['chat.1.NotifyChat.ChatSetConvRetention', {convID: rpcConvID(convA)}],
+  ] as const)('%s reloads one meta', (type, params) => {
+    expect(decoded(chat(type, params))).toEqual({reloads: [[convA, 'metadata']], thread: []})
+  })
+
+  test('a conversation update with no inbox item reloads the no-conversation readers', () => {
+    expect(decoded(chat('chat.1.NotifyChat.ChatConvUpdate', {conv: null, convID: rpcConvID(convA)}))).toEqual({
+      reloads: [[T.Chat.noConversationIDKey, 'metadata']],
+      thread: [],
+    })
+  })
+
+  test('a finished download goes to the thread and reloads a reader of that message', () => {
+    const {reloads, thread} = decodeChatNotification(
+      chat('chat.1.NotifyChat.ChatAttachmentDownloadComplete', {convID: rpcConvID(convA), msgID: 7})
+    )
+    expect(thread).toEqual([
+      {conversationIDKey: convA, notification: {msgID: 7, type: 'attachmentDownloadComplete'}},
+    ])
+    expect(reloads).toEqual([
+      {
+        conversationIDKey: convA,
+        notification: {messageID: T.Chat.numberToMessageID(7), type: 'attachmentDownloaded'},
+      },
+    ])
+  })
+
+  test('an upload start is progress with no bytes', () => {
+    const outboxID = new Uint8Array([9])
+    expect(
+      decodeChatNotification(
+        chat('chat.1.NotifyChat.ChatAttachmentUploadStart', {convID: rpcConvID(convA), outboxID})
+      ).thread
+    ).toEqual([{conversationIDKey: convA, notification: {outboxID, type: 'attachmentUploadProgress'}}])
+  })
+
+  test.each([
+    ['chat.1.NotifyChat.ChatRequestInfo', {convID: rpcConvID(convA)}, 'requestInfo'],
+    ['chat.1.NotifyChat.ChatPaymentInfo', {convID: rpcConvID(convA)}, 'paymentInfo'],
+    ['chat.1.NotifyChat.ChatPromptUnfurl', {convID: rpcConvID(convA)}, 'promptUnfurl'],
+    ['chat.1.NotifyChat.ChatAttachmentDownloadProgress', {convID: rpcConvID(convA)}, 'attachmentDownloadProgress'],
+    ['chat.1.NotifyChat.ChatAttachmentUploadProgress', {convID: rpcConvID(convA)}, 'attachmentUploadProgress'],
+    ['chat.1.chatUi.chatCommandStatus', {convID: convIDString(convA)}, 'commandStatus'],
+    ['chat.1.chatUi.chatCommandMarkdown', {convID: convIDString(convA)}, 'commandMarkdown'],
+    ['chat.1.chatUi.chatGiphyToggleResultWindow', {convID: convIDString(convA)}, 'giphyToggleResultWindow'],
+    ['chat.1.chatUi.chatGiphySearchResults', {convID: convIDString(convA)}, 'giphySearchResults'],
+    ['chat.1.chatUi.chatBotCommandsUpdateStatus', {convID: convIDString(convA)}, 'botCommandsUpdateStatus'],
+  ] as const)('%s goes to one thread only', (type, params, notification) => {
+    expect(decoded(chat(type, params))).toEqual({reloads: [], thread: [[convA, notification]]})
+  })
+
+  test.each([
+    'chat.1.NotifyChat.ChatIdentifyUpdate',
+    'chat.1.NotifyChat.ChatInboxStale',
+    'chat.1.NotifyChat.ChatInboxSyncStarted',
+    'chat.1.NotifyChat.ChatSubteamRename',
+    'chat.1.NotifyChat.ChatTLFFinalize',
+    'chat.1.chatUi.chatInboxConversation',
+    'chat.1.chatUi.chatInboxLayout',
+    'chat.1.chatUi.chatInboxUnverified',
+  ] as const)('%s is inbox-only', type => {
+    expect(decoded(chat(type, {}))).toEqual({reloads: [], thread: []})
+  })
+})
+
+describe('routeChatNotification', () => {
+  test('runs the inbox, then every thread handler, then every reload handler', () => {
+    useDaemonState.setState(s => {
+      s.bootstrapStatus = T.castDraft({userReacjis: {skinTone: 0, topReacjis: null}} as T.RPCGen.BootstrapStatus)
+    })
+    const order: Array<string> = []
+    const unsubscribe = useDaemonState.subscribe(() => order.push('inbox:reacjis'))
+    onReload(convA, r => order.push(`reload:A:${r.type}`))
+    onThread(convA, n => order.push(`thread:A:${n.type}`))
+    onReload(convA, r => order.push(`reload2:A:${r.type}`))
+    onThread(convA, n => order.push(`thread2:A:${n.type}`))
+    routeChatNotification(
+      activity({
+        activityType: T.RPCChat.ChatActivityType.reactionUpdate,
+        reactionUpdate: {
+          convID: rpcConvID(convA),
+          reactionUpdates: [{reactions: {reactions: {}}, targetMsgID: 1}],
+          userReacjis: {skinTone: 0, topReacjis: [{name: ':+1:'}]},
+        },
+      })
+    )
+    unsubscribe()
+    expect(order).toEqual([
+      'inbox:reacjis',
+      'thread:A:reactionUpdate',
+      'thread2:A:reactionUpdate',
+      'reload:A:metadata',
+      'reload2:A:metadata',
+      'reload:A:messages',
+      'reload2:A:messages',
+    ])
+  })
+
+  test('deliveries follow the notification, conversation by conversation', () => {
+    const order: Array<string> = []
+    onThread(convB, n => order.push(`B:${n.type === 'typing' ? n.typers?.[0]?.username : ''}`))
+    onThread(convA, n => order.push(`A:${n.type === 'typing' ? n.typers?.[0]?.username : ''}`))
+    routeChatNotification(
+      chat('chat.1.NotifyChat.ChatTypingUpdate', {
+        typingUpdates: [
+          {convID: rpcConvID(convA), typers: [{username: 'bob'}]},
+          {convID: rpcConvID(convB), typers: [{username: 'carol'}]},
+        ],
+      })
+    )
+    expect(order).toEqual(['A:bob', 'B:carol'])
+  })
+
+  test('a conversation nobody registered for reaches nobody', () => {
+    const heard = jest.fn()
+    onThread(convB, heard)
+    onReload(convB, heard)
+    expect(() => routeChatNotification(typingIn(convA, 'bob'))).not.toThrow()
+    expect(heard).not.toHaveBeenCalled()
+  })
+
+  test('a handler that throws is logged and does not stop the rest', () => {
+    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    const heard = jest.fn()
+    onThread(convA, () => {
+      throw new Error('boom')
+    })
+    onThread(convA, heard)
+    routeChatNotification(typingIn(convA, 'bob'))
+    expect(heard).toHaveBeenCalledTimes(1)
+    expect(error).toHaveBeenCalledWith(
+      'Error in chat notification handler for chat.1.NotifyChat.ChatTypingUpdate',
+      expect.any(Error)
+    )
+  })
+
+  test('a handler unregistered mid-delivery still hears the notification in flight', () => {
+    const heard = jest.fn()
+    let unregisterSecond: () => void = () => {}
+    onThread(convA, () => unregisterSecond())
+    unregisterSecond = registerThreadHandler(convA, heard)
+    routeChatNotification(typingIn(convA, 'bob'))
+    routeChatNotification(typingIn(convA, 'carol'))
+    expect(heard).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('registry', () => {
+  test('unregistering stops delivery', () => {
+    const heard = jest.fn()
+    const unregister = registerThreadHandler(convA, heard)
+    routeChatNotification(typingIn(convA, 'bob'))
+    unregister()
+    routeChatNotification(typingIn(convA, 'carol'))
+    expect(heard).toHaveBeenCalledTimes(1)
+  })
+
+  test('registering one handler twice delivers twice, and each unregister removes only its own', () => {
+    const heard = jest.fn()
+    const first = registerThreadHandler(convA, heard)
+    unregisters.push(registerThreadHandler(convA, heard))
+    routeChatNotification(typingIn(convA, 'bob'))
+    expect(heard).toHaveBeenCalledTimes(2)
+    first()
+    first()
+    routeChatNotification(typingIn(convA, 'carol'))
+    expect(heard).toHaveBeenCalledTimes(3)
+  })
+
+  test('a store reset drops every registration', () => {
+    const heard = jest.fn()
+    onThread(convA, heard)
+    onReload(convA, heard)
+    resetAllStores()
+    routeChatNotification(activity({activityType: T.RPCChat.ChatActivityType.expunge, expunge: {convID: rpcConvID(convA), expunge: {basis: 0, upto: 1}}}))
+    expect(heard).not.toHaveBeenCalled()
+  })
+
+  test('an unregister left over from before a reset leaves later registrations alone', () => {
+    const stale = registerThreadHandler(convA, jest.fn())
+    resetAllStores()
+    const heard = jest.fn()
+    onThread(convA, heard)
+    stale()
+    routeChatNotification(typingIn(convA, 'bob'))
+    expect(heard).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('hooks', () => {
+  test('useThreadNotifications hears its conversation while mounted, with its latest handler', () => {
+    const heard: Array<string> = []
+    const {rerender, unmount} = renderHook(
+      ({id, prefix}) =>
+        useThreadNotifications(id, n => {
+          heard.push(`${prefix}:${n.type}`)
+        }),
+      {initialProps: {id: convA, prefix: 'first'}}
+    )
+    act(() => routeChatNotification(typingIn(convA, 'bob')))
+    rerender({id: convA, prefix: 'second'})
+    act(() => routeChatNotification(typingIn(convA, 'bob')))
+    rerender({id: convB, prefix: 'second'})
+    act(() => routeChatNotification(typingIn(convA, 'bob')))
+    act(() => routeChatNotification(typingIn(convB, 'bob')))
+    unmount()
+    act(() => routeChatNotification(typingIn(convB, 'bob')))
+    expect(heard).toEqual(['first:typing', 'second:typing', 'second:typing'])
+  })
+
+  test('useReloadTriggers hears reloads for its conversation while mounted', () => {
+    const heard: Array<string> = []
+    const {unmount} = renderHook(() => useReloadTriggers(convA, r => heard.push(r.type)))
+    act(() =>
+      routeChatNotification(
+        chat('chat.1.NotifyChat.ChatThreadsStale', {
+          updates: [{convID: rpcConvID(convA), updateType: T.RPCChat.StaleUpdateType.newactivity}],
+        })
+      )
+    )
+    unmount()
+    act(() =>
+      routeChatNotification(
+        chat('chat.1.NotifyChat.ChatThreadsStale', {
+          updates: [{convID: rpcConvID(convA), updateType: T.RPCChat.StaleUpdateType.newactivity}],
+        })
+      )
+    )
+    expect(heard).toEqual(['staleThread'])
+  })
+})
