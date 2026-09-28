@@ -453,6 +453,7 @@ const NativeConversationList = function NativeConversationList() {
   const conversationIDKey = useConversationThreadID()
   const listData = useConversationThreadSelector(
     C.useShallow(s => ({
+      clearVersion: s.clearVersion,
       loaded: s.loaded,
       messageOrdinals: s.messageOrdinals,
     }))
@@ -462,7 +463,7 @@ const NativeConversationList = function NativeConversationList() {
   // Ordinals start at 1; this list takes anything else as no centre.
   const centeredTarget = centeredOrdinal !== undefined && centeredOrdinal > 0 ? centeredOrdinal : undefined
   const centeredHighlightOrdinalOrNone = centeredHighlightOrdinal ?? noCenteredOrdinal
-  const {loaded} = listData
+  const {clearVersion, loaded} = listData
 
   const messageOrdinals = useInvertedMessageOrdinals(listData.messageOrdinals)
 
@@ -522,6 +523,7 @@ const NativeConversationList = function NativeConversationList() {
   } = useNativeThreadScroll({
     centeredOrdinal: centeredTarget,
     conversationIDKey,
+    datasetKey: `${conversationIDKey}:${clearVersion}`,
     isKeyboardVisible,
     listRef,
     loaded,

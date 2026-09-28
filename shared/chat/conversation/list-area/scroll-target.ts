@@ -38,11 +38,11 @@ export type ScrollEvent =
       targetInData: boolean
     }
   // The native list's reconcile of the centre request against the loaded rows. Like threadObserved
-  // it centres a target only once the thread has loaded and the target is in the rows. It parts
-  // from it in two ways, each the native list's own: leaving a centred target leaves the reader
-  // where they are, because the list's own anchor takes the end back once it is re-enabled, and
-  // only if they are at it; and every change to the rows under a target still settling asks for
-  // the centring to be refined against them.
+  // it centres a target once per dataset, only once the thread has loaded and the target is in the
+  // rows. It parts from it in two ways, each the native list's own: leaving a centred target leaves
+  // the reader where they are, because the list's own anchor takes the end back once it is
+  // re-enabled, and only if they are at it; and every change to the rows under a target still
+  // settling asks for the centring to be refined against them.
   | {
       type: 'centerTargetObserved'
       centeredOrdinal: T.Chat.Ordinal | undefined
@@ -133,14 +133,8 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
           state: {...state, endOwner: 'list', lastCentered: undefined, settlingCenter: false},
         }
       }
-      if (!loaded) return {directive: leaveAlone, state}
+      if (!loaded || !targetInData) return {directive: leaveAlone, state}
       const newTarget = state.lastCentered !== centeredOrdinal
-      if (!targetInData) {
-        // The rows the reader positioned against are gone (a reload around the same target), so
-        // the target is settled again once it is back.
-        if (newTarget || state.settlingCenter) return {directive: leaveAlone, state}
-        return {directive: leaveAlone, state: {...state, settlingCenter: true}}
-      }
       if (!newTarget && !state.settlingCenter) return {directive: leaveAlone, state}
       return {
         directive: {newTarget, ordinal: centeredOrdinal, type: 'refineCenter'},

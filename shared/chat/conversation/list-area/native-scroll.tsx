@@ -47,11 +47,14 @@ export const useNativeThreadScroll = (p: {
   messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
   centeredOrdinal: T.Chat.Ordinal | undefined
   conversationIDKey: T.Chat.ConversationIDKey
+  // Changes with the conversation and with every clear of its thread (a centred reload, jump to
+  // recent): each is a new list as far as scrolling is concerned.
+  datasetKey: string
   isKeyboardVisible: boolean
   listRef: React.RefObject<NativeListRef | null>
   loaded: boolean
 }) => {
-  const {centeredOrdinal, conversationIDKey, isKeyboardVisible, listRef, loaded, messageOrdinals} = p
+  const {centeredOrdinal, conversationIDKey, datasetKey, isKeyboardVisible, listRef, loaded, messageOrdinals} = p
   const numOrdinals = messageOrdinals.length
 
   const {bottomInset, keyboardHeight} = useComposerAnchor()
@@ -81,9 +84,6 @@ export const useNativeThreadScroll = (p: {
     ordsRef.current = messageOrdinals
   }, [messageOrdinals])
 
-  // Never reset by a datasetChanged: the centred target is remembered for as long as the list is
-  // mounted. A centred reload clears and refills the rows under the same target, which must only be
-  // refined, and a freeze/thaw of this screen re-mounts effects without anything having changed.
   const targetRef = React.useRef(initialScrollTargetState)
   const decide = React.useCallback((event: ScrollEvent) => {
     const {directive, state} = decideScroll(targetRef.current, event)
@@ -204,28 +204,22 @@ export const useNativeThreadScroll = (p: {
     [correctCenter, moveToward, stopCentering]
   )
 
+  // Compared by value, not by the effect re-running: a freeze/thaw of this screen re-mounts effects
+  // with nothing changed. Declared ahead of every effect that dispatches, so they see the new
+  // dataset's state.
+  const datasetRef = React.useRef<string | undefined>(undefined)
+  React.useLayoutEffect(() => {
+    if (datasetRef.current === datasetKey) return
+    datasetRef.current = datasetKey
+    perform(decide({type: 'datasetChanged'}))
+  }, [datasetKey, decide, perform])
+
   // Center on the search hit once it actually appears in the loaded list. Centering
   // on the raw centeredOrdinal change is unreliable: navigating to a hit reloads the
   // thread centered on it, so messageOrdinals is briefly empty (idx -1) when the
   // ordinal changes. Wait for the target to load, then scroll. Every change to the rows or the
   // target restarts the corrector's schedule.
-  // What it last reconciled, compared by value: a freeze/thaw of this screen re-mounts effects with
-  // nothing changed, and reconciling again then would re-arm centring the reader has moved away from.
-  const observedRef = React.useRef<
-    | {centeredOrdinal: T.Chat.Ordinal | undefined; loaded: boolean; messageOrdinals: ReadonlyArray<T.Chat.Ordinal>}
-    | undefined
-  >(undefined)
   React.useEffect(() => {
-    const observed = observedRef.current
-    if (
-      observed &&
-      observed.centeredOrdinal === centeredOrdinal &&
-      observed.loaded === loaded &&
-      observed.messageOrdinals === messageOrdinals
-    ) {
-      return
-    }
-    observedRef.current = {centeredOrdinal, loaded, messageOrdinals}
     stopLadder()
     perform(
       decide({

@@ -473,6 +473,40 @@ describe('a centre requested after opening', () => {
   })
 })
 
+describe('choosing a hit again', () => {
+  test('after dragging away from the same hit, its reload centres it again', async () => {
+    open({center: 30})
+    await tick(1000)
+    scrolled(0, 6000)
+    drag()
+    viewable(0, 9)
+    clearLog()
+    centreOn(30)
+    update(() => loadThread(1, 60))
+    await tick(1000)
+    // Moved toward, and the corrector steps from the range last reported.
+    expect(scrollsOnly().filter(([kind]) => kind === 'scrollToItem')).toEqual([coarse(30), coarse(30)])
+    expect(scrollsOnly()).toContainEqual(toOffset(25.5 * 100 * 0.9))
+  })
+
+  test('in another conversation on the same ordinal, it is centred there too', async () => {
+    open({center: 30})
+    await tick(1000)
+    clearLog()
+    update(() => {
+      H.threadStore.reset({
+        clearVersion: 1,
+        conversationIDKey: T.Chat.stringToConversationIDKey('conv2'),
+        loaded: false,
+        messageOrdinals: undefined,
+      })
+    })
+    update(() => loadThread(1, 60))
+    await tick(1000)
+    expect(H.log).toEqual([markRead, coarse(30), coarse(30)])
+  })
+})
+
 describe('a screen pushed over a centred conversation', () => {
   test('after a drag away from the hit, coming back keeps the position', async () => {
     open({center: 30})

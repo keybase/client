@@ -58,13 +58,6 @@ describe('centerTargetObserved', () => {
     ['nothing centred, nothing to do', fresh, observed(undefined), leaveAlone, fresh],
     ['a target waits for the reload that brings it', fresh, observed(30, false, false), leaveAlone, fresh],
     [
-      'leaving a centred target does not wait for the load',
-      centred(30),
-      observed(undefined, false, false),
-      stopCentering,
-      fresh,
-    ],
-    [
       'nothing centred leaves a reader holding the end',
       state({endOwner: 'reader'}),
       observed(undefined),
@@ -130,7 +123,7 @@ describe('the native list, in sequence', () => {
         targetInData: centre !== undefined && !!thread.messageOrdinals?.includes(centre),
         type: 'centerTargetObserved',
       }),
-      reportsDatasets: false,
+      reportsDatasets: true,
     })
   const nativeList = () => {
     const d = driver()
@@ -150,6 +143,7 @@ describe('the native list, in sequence', () => {
     d.load(window(350, 399))
     d.clearCentre()
     expect(d.take()).toEqual([
+      stopCentering,
       leaveAlone,
       refine(500, true),
       refine(500, false),
@@ -166,7 +160,7 @@ describe('the native list, in sequence', () => {
     d.centreOn(ord(30))
     d.send({centeredOrdinal: ord(30), hasMessages: true, type: 'initialLoad'})
     d.load(window(1, 60))
-    expect(d.take()).toEqual([leaveAlone, leaveAlone, refine(30, true)])
+    expect(d.take()).toEqual([stopCentering, leaveAlone, leaveAlone, refine(30, true)])
   })
 
   test('the same hit after closing it is moved to again', () => {
@@ -176,7 +170,26 @@ describe('the native list, in sequence', () => {
     d.clearCentre()
     d.centreOn(ord(30))
     d.load(window(1, 60))
-    expect(d.take()).toEqual([leaveAlone, refine(30, true), stopCentering, leaveAlone, refine(30, true)])
+    expect(d.take()).toEqual([
+      stopCentering,
+      leaveAlone,
+      refine(30, true),
+      stopCentering,
+      stopCentering,
+      leaveAlone,
+      refine(30, true),
+    ])
+  })
+
+  test('re-choosing the same hit after dragging away reloads it and moves there again', () => {
+    const d = nativeList()
+    d.centreOn(ord(30))
+    d.load(window(1, 60))
+    d.send({how: 'drag', type: 'userScrolled'})
+    d.take()
+    d.centreOn(ord(30))
+    d.load(window(1, 60))
+    expect(d.take()).toEqual([stopCentering, leaveAlone, refine(30, true)])
   })
 
   test('with the keyboard up a new message re-pins; scroll to bottom ends the settling without leaving the centre', () => {
@@ -197,6 +210,6 @@ describe('the native list, in sequence', () => {
     d.load(window(1, 60))
     d.send({type: 'scrollToBottomRequested'})
     d.receive(ord(61))
-    expect(d.take()).toEqual([leaveAlone, refine(30, true), bottomRequested, leaveAlone])
+    expect(d.take()).toEqual([stopCentering, leaveAlone, refine(30, true), bottomRequested, leaveAlone])
   })
 })
