@@ -201,6 +201,8 @@ const reactingUser = (
 const logReactionFailure = (error: unknown) => {
   if (error instanceof RPCError) {
     logger.info(`toggleReaction: failed to post ${error.message}`)
+  } else {
+    logger.error('toggleReaction: failed to post', error)
   }
 }
 

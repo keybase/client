@@ -339,11 +339,12 @@ describe('storeless edges', () => {
     expect(rpc.params('postReaction')).toEqual([expect.objectContaining({emoji: ':+1:'})])
   })
 
-  test('a reaction service failure is logged as info, any other failure is swallowed', async () => {
+  test('a reaction service failure is logged as info, any other failure as an error', async () => {
     const info = jest.spyOn(logger, 'info')
-    const error = jest.spyOn(logger, 'error')
+    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    const bug = new Error('bug')
     rpc.failOnce('postReaction', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
-    rpc.failOnce('postReaction', new Error('bug'))
+    rpc.failOnce('postReaction', bug)
     toggleConversationMessageReactionByID(conversationIDKey, T.Chat.numberToMessageID(10), ':+1:')
     toggleConversationMessageReactionByID(conversationIDKey, T.Chat.numberToMessageID(10), ':-1:')
     await flushPromises()
@@ -351,7 +352,7 @@ describe('storeless edges', () => {
     expect(info.mock.calls.filter(c => String(c[0]).startsWith('toggleReaction'))).toEqual([
       [expect.stringContaining('toggleReaction: failed to post ')],
     ])
-    expect(error).not.toHaveBeenCalled()
+    expect(error.mock.calls).toEqual([['toggleReaction: failed to post', bug]])
   })
 
   test('reply privately with an empty conversation id does not open anything', async () => {

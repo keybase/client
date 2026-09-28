@@ -650,15 +650,14 @@ describe('toggleMessageReaction edges', () => {
     expect(result.current.store.getState().optimisticReactionMap.size).toBe(0)
   })
 
-  test('a non-service failure also drops the reaction and is swallowed', async () => {
-    rpc.fail('postReaction', new Error('bug'))
-    const error = jest.spyOn(logger, 'error')
-    const info = jest.spyOn(logger, 'info')
+  test('a non-service failure also drops the reaction and is logged as an error', async () => {
+    const bug = new Error('bug')
+    rpc.fail('postReaction', bug)
+    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     const {result} = renderThread([textAt(10)])
     await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
     expect(result.current.store.getState().optimisticReactionMap.size).toBe(0)
-    expect(error).not.toHaveBeenCalled()
-    expect(info).not.toHaveBeenCalledWith(expect.stringContaining('toggleReaction'))
+    expect(error).toHaveBeenCalledWith('toggleReaction: failed to post', bug)
   })
 
   test('a service failure is logged as info', async () => {
