@@ -771,9 +771,24 @@ describe('editing', () => {
     expect(H.log).toEqual([['scrollToIndex', {animated: true, index: 14, viewPosition: 0.5}]])
   })
 
-  test('revealing keeps the end pinned', async () => {
+  // At the end, the viewport shows rows 56..60 of 60.
+  const atEnd = () => update(() => H.listStore.set({scroll: 60 * H.rowHeight - H.viewportHeight}))
+
+  test('revealing a message above the middle takes the reader off the end, and header growth leaves them on it', async () => {
     open()
+    atEnd()
     update(() => H.inputStore.set({editing: ord(15)}))
+    H.log.length = 0
+    growHeader()
+    await tick(3000)
+    expect(H.log).toEqual([])
+  })
+
+  test('revealing a message in the lower half leaves the list at the end, and header growth re-pins it', async () => {
+    open()
+    atEnd()
+    update(() => H.inputStore.set({editing: ord(59)}))
+    expect(H.log).toEqual([['scrollToIndex', {animated: true, index: 58, viewPosition: 0.5}]])
     H.log.length = 0
     growHeader()
     await tick(100)

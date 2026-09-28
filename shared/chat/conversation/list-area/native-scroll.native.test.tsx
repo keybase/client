@@ -976,10 +976,22 @@ describe('editing', () => {
     expect(scrollsOnly()).toEqual([revealed(15)])
   })
 
-  test('with the keyboard up, revealing keeps the end with the list', async () => {
+  test('with the keyboard up, revealing a message above the middle leaves the reader on it when a new message arrives', async () => {
     open({keyboard: true})
     await tick(200)
+    viewable(0, 9)
     update(() => H.inputStore.set({editing: ord(15)}))
+    clearLog()
+    setOrdinals(1, 61)
+    await tick(1000)
+    expect(H.log).toEqual([])
+  })
+
+  test('with the keyboard up, revealing one of the newest messages keeps the end, and a new message re-pins', async () => {
+    open({keyboard: true})
+    await tick(200)
+    viewable(0, 9)
+    update(() => H.inputStore.set({editing: ord(59)}))
     clearLog()
     setOrdinals(1, 61)
     await tick(0)

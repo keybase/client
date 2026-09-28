@@ -67,8 +67,16 @@ export type ScrollEvent =
   // Messages were appended. Only a list whose own anchoring can leave a new message out of view
   // reports it; anchorHidesNewest says whether it would this time.
   | {type: 'appended'; anchorHidesNewest: boolean}
-  // Sent whenever the edit or the loaded rows change.
-  | {type: 'editingChanged'; ordinal: T.Chat.Ordinal | undefined; targetInData: boolean}
+  // Sent whenever the edit or the loaded rows change. rowAboveMiddle says whether the edited row sits
+  // above the middle of the viewport, or out of view, as each list measures it: bringing such a row
+  // to the middle moves the list away from its end, while a row in the lower half of a list at its
+  // end stays where it is.
+  | {
+      type: 'editingChanged'
+      ordinal: T.Chat.Ordinal | undefined
+      rowAboveMiddle: boolean
+      targetInData: boolean
+    }
   // The reader asked for the newest messages: the composer, the keyboard or jump to recent.
   // centeredOrdinal is the centre request as it stands.
   | {type: 'scrollToBottomRequested'; centeredOrdinal: T.Chat.Ordinal | undefined}
@@ -83,7 +91,7 @@ export type ScrollDirective =
   // newTarget says it has not been centred in this dataset, so the move toward it is still to make;
   // otherwise the rows changed under a target still settling.
   | {type: 'center'; ordinal: T.Chat.Ordinal; newTarget: boolean}
-  // Bring the ordinal into view without taking the end from the list.
+  // Bring the ordinal to the middle of the viewport.
   | {type: 'reveal'; ordinal: T.Chat.Ordinal}
   | {type: 'leaveAlone'; stopCentering: boolean}
 
@@ -186,12 +194,17 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
         state,
       }
     case 'editingChanged': {
-      const {ordinal, targetInData} = event
+      const {ordinal, rowAboveMiddle, targetInData} = event
       if (state.lastEditing === ordinal) return {directive: leaveAlone, state}
       if (!ordinal) return {directive: leaveAlone, state: {...state, lastEditing: ordinal}}
       // An edit whose row is not loaded waits for it: the list reports again as its rows change.
       if (!targetInData) return {directive: leaveAlone, state}
-      return {directive: {ordinal, type: 'reveal'}, state: {...state, lastEditing: ordinal}}
+      // A reveal that moves the list away from its end leaves the reader on the edited message, as
+      // their own scroll would: nothing may scroll back to the end on the list's account.
+      return {
+        directive: {ordinal, type: 'reveal'},
+        state: {...state, endOwner: rowAboveMiddle ? 'reader' : state.endOwner, lastEditing: ordinal},
+      }
     }
     case 'scrollToBottomRequested':
       // The reader has left the target as surely as with a drag. It stays centred until the thread

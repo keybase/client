@@ -26,6 +26,26 @@ type WrapperLike = {children: ArrayLike<ScrollerLike>}
 const scrollerIn = (wrapper: unknown) =>
   Array.from((wrapper as WrapperLike | null)?.children ?? []).find(c => c.scrollHeight - c.clientHeight > 1)
 
+type RectLike = {height: number; top: number}
+type MeasurableWrapper = {
+  getBoundingClientRect: () => RectLike
+  querySelector: (s: string) => {getBoundingClientRect: () => RectLike} | null
+}
+
+// How far the ordinal's row sits below the middle of the viewport (the wrapper); undefined while the
+// row is not rendered.
+const offsetFromMiddle = (wrapper: unknown, ordinal: T.Chat.Ordinal) => {
+  const w = wrapper as MeasurableWrapper | null
+  const el = w?.querySelector(`[data-ordinal="${ordinal}"]`)
+  if (!w || !el) return undefined
+  const row = el.getBoundingClientRect()
+  const view = w.getBoundingClientRect()
+  return row.top + row.height / 2 - (view.top + view.height / 2)
+}
+
+// A row not rendered is out of view.
+const rowAboveMiddle = (wrapper: unknown, ordinal: T.Chat.Ordinal) => (offsetFromMiddle(wrapper, ordinal) ?? -1) < 0
+
 // Keys a focused scroller scrolls by itself.
 const scrollKeys = new Set(['ArrowDown', 'ArrowUp', 'End', 'Home', 'PageDown', 'PageUp', ' '])
 // Those that scroll toward the end; Space does unless shifted.
@@ -124,12 +144,8 @@ export const useDesktopThreadScroll = (p: {
         let pinnedChecks = 0
         let scrollAtLastRequest: number | undefined
         for (let elapsed = 0; elapsed < 3000; ) {
-          const wrapper = wrapperRef.current as unknown as {
-            getBoundingClientRect: () => {height: number; top: number}
-            querySelector: (s: string) => {getBoundingClientRect: () => {height: number; top: number}} | null
-          } | null
-          const el = wrapper ? wrapper.querySelector(`[data-ordinal="${target}"]`) : null
-          if (!wrapper || !el) {
+          const offBy = offsetFromMiddle(wrapperRef.current, target)
+          if (offBy === undefined) {
             // Target is outside the rendered window; get it mounted first.
             const idx = indexOfOrdinal(messageOrdinalsRef.current, target)
             if (idx >= 0) {
@@ -141,9 +157,6 @@ export const useDesktopThreadScroll = (p: {
             elapsed += 100
             continue
           }
-          const elRect = el.getBoundingClientRect()
-          const wrapRect = wrapper.getBoundingClientRect()
-          const offBy = elRect.top + elRect.height / 2 - (wrapRect.top + wrapRect.height / 2)
           const scroll = listRef.current?.getState().scroll
           // Deadband, not exact centering: below this the row reads as centered, and chasing the
           // remainder only fights maintainVisibleContentPosition's own sub-pixel adjustments.
@@ -244,12 +257,14 @@ export const useDesktopThreadScroll = (p: {
   React.useEffect(() => () => dispatch({type: 'detached'}), [dispatch])
 
   React.useEffect(() => {
+    const targetInData = editingOrdinal !== undefined && indexOfOrdinal(messageOrdinals, editingOrdinal) >= 0
     dispatch({
       ordinal: editingOrdinal,
-      targetInData: editingOrdinal !== undefined && indexOfOrdinal(messageOrdinals, editingOrdinal) >= 0,
+      rowAboveMiddle: targetInData && rowAboveMiddle(wrapperRef.current, editingOrdinal),
+      targetInData,
       type: 'editingChanged',
     })
-  }, [dispatch, editingOrdinal, messageOrdinals])
+  }, [dispatch, editingOrdinal, messageOrdinals, wrapperRef])
 
   const onMetricsChange = React.useCallback(
     (metrics: {headerSize: number}) => {

@@ -37,6 +37,11 @@ const maintainVisibleContentPositionNoAutoscroll = {
   minIndexForVisible: 0,
 }
 
+// Whether the row at this data index sits above the middle of the viewable rows, or out of view.
+// Data is newest first, so a higher index is older and higher up.
+const rowAboveMiddle = (index: number, first: number | null | undefined, last: number | null | undefined) =>
+  first == null || last == null || index > (first + last) / 2
+
 // An offset within this many points of the resting offset is at the end.
 const endTolerance = 8
 
@@ -235,9 +240,11 @@ export const useNativeThreadScroll = (p: {
   }, [centeredOrdinal, dispatch, loaded, messageOrdinals])
 
   React.useEffect(() => {
+    const index = editingOrdinal === undefined ? -1 : messageOrdinals.indexOf(editingOrdinal)
     dispatch({
       ordinal: editingOrdinal,
-      targetInData: editingOrdinal !== undefined && messageOrdinals.includes(editingOrdinal),
+      rowAboveMiddle: index >= 0 && rowAboveMiddle(index, vFirstRef.current, vLastRef.current),
+      targetInData: index >= 0,
       type: 'editingChanged',
     })
   }, [dispatch, editingOrdinal, messageOrdinals])
