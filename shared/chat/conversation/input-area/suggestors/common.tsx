@@ -101,6 +101,9 @@ export function List<T>(p: ListProps<T>) {
   const {items, ItemRenderer, loading, keyExtractor, onSelected, rowHeight} = p
   const {suggestBotCommandsUpdateStatus, listStyle, spinnerStyle, setListHandle} = p
   const [selectedIndex, setSelectedIndex] = React.useState(0)
+  // typing narrows the list under the highlight; one left past the end falls back to the first
+  // item, so Enter and Tab both pick it rather than finding nothing
+  const highlighted = selectedIndex < items.length ? selectedIndex : 0
 
   const onSelectedEvent = React.useEffectEvent((item: T, final: boolean) => onSelected(item, final))
   const renderItem = (idx: number, item: T) => (
@@ -109,12 +112,12 @@ export function List<T>(p: ListProps<T>) {
       ItemRenderer={ItemRenderer}
       item={item}
       onSelected={onSelectedEvent}
-      selected={idx === selectedIndex}
+      selected={idx === highlighted}
     />
   )
 
   const lastSelectedIndex = React.useRef(selectedIndex)
-  const sel = items[selectedIndex]
+  const sel = items[highlighted]
   React.useEffect(() => {
     if (lastSelectedIndex.current !== selectedIndex) {
       lastSelectedIndex.current = selectedIndex
@@ -127,13 +130,13 @@ export function List<T>(p: ListProps<T>) {
   const hasItems = React.useEffectEvent(() => items.length > 0)
   const move = React.useEffectEvent((up: boolean) => {
     const length = items.length
-    const s = (((up ? selectedIndex - 1 : selectedIndex + 1) % length) + length) % length
+    const s = (((up ? highlighted - 1 : highlighted + 1) % length) + length) % length
     if (s !== selectedIndex) {
       setSelectedIndex(s)
     }
   })
   const submit = React.useEffectEvent(() => {
-    const sel = items[selectedIndex]
+    const sel = items[highlighted]
     if (sel) {
       onSelected(sel, true)
     }
@@ -157,7 +160,7 @@ export function List<T>(p: ListProps<T>) {
         keyExtractor={keyExtractor}
         renderItem={renderItem}
         rowHeight={rowHeight}
-        selectedIndex={selectedIndex}
+        selectedIndex={highlighted}
         suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
       />
       {loading && (

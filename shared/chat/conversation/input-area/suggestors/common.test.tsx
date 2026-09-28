@@ -1,9 +1,22 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import {cleanup, render} from '@testing-library/react'
+import type * as React from 'react'
+import {act, cleanup, render} from '@testing-library/react'
 import {List, standardTransformer, type ListHandle, type TransformerData} from './common'
 
-jest.mock('./suggestion-list', () => ({__esModule: true, default: () => null}))
+type MockSuggestionListProps = {
+  items: Array<string>
+  renderItem: (index: number, item: string) => React.ReactElement<{selected: boolean}>
+  selectedIndex: number
+}
+let mockListProps: MockSuggestionListProps | undefined
+jest.mock('./suggestion-list', () => ({
+  __esModule: true,
+  default: (p: MockSuggestionListProps) => {
+    mockListProps = p
+    return null
+  },
+}))
 
 const data = (text: string, start: number | null, end: number | null): TransformerData => ({
   position: {end, start},
@@ -59,6 +72,60 @@ test('does not stack a second space when the following text already leads with o
 describe('List', () => {
   afterEach(() => {
     cleanup()
+    mockListProps = undefined
+  })
+
+  const setup = (items: Array<string>) => {
+    let move: ((up: boolean) => void) | undefined
+    let submit: (() => boolean) | undefined
+    const onSelected = jest.fn()
+    const Item = (p: {selected: boolean; item: string}) => <>{p.item}</>
+    const view = (next: Array<string>) => (
+      <List
+        items={next}
+        ItemRenderer={Item}
+        keyExtractor={item => item}
+        loading={false}
+        listStyle={{}}
+        spinnerStyle={{}}
+        rowHeight={20}
+        onSelected={onSelected}
+        setListHandle={h => {
+          move = h?.move
+          submit = h?.submit
+        }}
+      />
+    )
+    const utils = render(view(items))
+    return {
+      move: (up: boolean) => act(() => move?.(up)),
+      onSelected,
+      rerender: (next: Array<string>) => utils.rerender(view(next)),
+      submit: () => submit?.(),
+    }
+  }
+  const highlighted = () =>
+    mockListProps?.items.filter((item, i) => mockListProps?.renderItem(i, item).props.selected)
+
+  test('picks the first item when the highlight was left past the end of a narrower list', () => {
+    const list = setup(['testuser', 'testuser-mac', 'testuser2', 'testuser3'])
+    list.move(false)
+    list.move(false)
+    list.move(false)
+    list.onSelected.mockClear()
+
+    list.rerender(['testuser', 'testuser-mac'])
+
+    expect(highlighted()).toEqual(['testuser'])
+    expect(list.submit()).toBe(true)
+    expect(list.onSelected).toHaveBeenCalledWith('testuser', true)
+  })
+
+  test('an empty list has nothing to pick', () => {
+    const list = setup([])
+
+    expect(list.submit()).toBe(false)
+    expect(list.onSelected).not.toHaveBeenCalled()
   })
 
   test('tells the composer whether it shows items, and lets go of its handle when it closes', () => {
