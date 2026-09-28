@@ -21,6 +21,7 @@
     "./chat/conversation/messages/separator.test.tsx",
     "./chat/conversation/input-area/unfurl-preview.test.tsx",
     "./chat/conversation/input-area/normal/desktop-composer.test.tsx",
+    "./chat/conversation/input-area/normal/desktop-composer-keys.test.tsx",
     "./chat/conversation/messages/system-users-added-to-conv/container.test.tsx",
     "./chat/conversation/messages/text/coinflip/results.test.tsx",
     "./common-adapters/markdown/index.test.tsx",

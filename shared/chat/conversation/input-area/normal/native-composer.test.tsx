@@ -34,6 +34,7 @@ let mockTextInput: TextInputProps | undefined
 let mockFocused = false
 let mockHWKey: ((e: {pressedKey: string}) => void) | undefined
 let mockPressables: Array<{children?: unknown; onPress?: () => void; testID?: string}> = []
+let mockSuggestionsShowing = false
 
 jest.mock('react-native', () => {
   const actual = jest.requireActual<Record<string, unknown>>('react-native')
@@ -98,7 +99,7 @@ jest.mock('../suggestors', () => ({
     onFocus: () => {},
     onSelectionChange: () => {},
     popup: null,
-    suggestionsShowing: false,
+    suggestionsShowing: mockSuggestionsShowing,
   }),
 }))
 
@@ -241,6 +242,7 @@ afterEach(() => {
   mockTextInput = undefined
   mockPressables = []
   mockFocused = false
+  mockSuggestionsShowing = false
   inputDispatch = undefined
   threadActions = undefined
   composer = undefined
@@ -405,6 +407,99 @@ test('the queued send picks up text that changed inside the 60ms', async () => {
   await flushSend()
 
   expect(post.mock.calls[0]?.[0].params.body).toBe('hello')
+})
+
+// a hardware Enter never consults the suggestion list: with one open it still sends, unlike
+// desktop where Enter picks the highlighted suggestion
+test('hardware enter sends even while suggestions are showing', async () => {
+  const post = jest.spyOn(m.T.RPCChat, 'localPostTextNonblockRpcListener').mockResolvedValue({
+    outboxID: new TextEncoder().encode('posted'),
+  })
+  mockSuggestionsShowing = true
+  renderComposer()
+  type('hi @te')
+
+  act(() => {
+    mockHWKey?.({pressedKey: 'enter'})
+  })
+  act(() => {
+    jest.advanceTimersByTime(60)
+  })
+  await flushSend()
+
+  expect(post.mock.calls[0]?.[0].params.body).toBe('hi @te')
+})
+
+test('hardware shift-enter inserts a newline even while suggestions are showing', () => {
+  mockSuggestionsShowing = true
+  renderComposer()
+  type('hi @te')
+
+  act(() => {
+    mockHWKey?.({pressedKey: 'shift-enter'})
+  })
+
+  expect(input().value).toBe('hi @te\n')
+})
+
+test('an unknown hardware key does nothing', async () => {
+  const post = jest.spyOn(m.T.RPCChat, 'localPostTextNonblockRpcListener')
+  renderComposer()
+  type('abcd', 2)
+
+  act(() => {
+    mockHWKey?.({pressedKey: 'escape'})
+  })
+  act(() => {
+    jest.advanceTimersByTime(100)
+  })
+  await flushSend()
+
+  expect(post).not.toHaveBeenCalled()
+  expect(input().value).toBe('abcd')
+  expect(input().selection).toEqual({end: 2, start: 2})
+})
+
+test('hardware enter while editing sends the edit', async () => {
+  /* eslint-disable @typescript-eslint/no-require-imports */
+  const {makeMessageText} = require('@/constants/chat/message') as typeof MessageModule
+  const HiddenString = (require('@/util/hidden-string') as typeof HiddenStringModule).default
+  /* eslint-enable @typescript-eslint/no-require-imports */
+  const edit = jest.spyOn(m.T.RPCChat, 'localPostEditNonblockRpcPromise').mockResolvedValue({
+    outboxID: new TextEncoder().encode('edited'),
+  })
+  const post = jest.spyOn(m.T.RPCChat, 'localPostTextNonblockRpcListener')
+  renderComposer()
+  act(() => {
+    threadActions?.addMessages(
+      [
+        makeMessageText({
+          author: 'alice',
+          conversationIDKey: convID,
+          id: m.T.Chat.numberToMessageID(101),
+          isEditable: true,
+          ordinal: m.T.Chat.numberToOrdinal(101),
+          text: new HiddenString('fix my typo'),
+        }),
+      ],
+      {markAsRead: false}
+    )
+  })
+  act(() => {
+    inputDispatch?.setEditing(m.T.Chat.numberToOrdinal(101))
+  })
+  type('fixed my typo')
+
+  act(() => {
+    mockHWKey?.({pressedKey: 'enter'})
+  })
+  act(() => {
+    jest.advanceTimersByTime(60)
+  })
+  await flushSend()
+
+  expect(post).not.toHaveBeenCalled()
+  expect(edit).toHaveBeenCalledTimes(1)
 })
 
 test('the send button queues the same send as hardware enter', async () => {
