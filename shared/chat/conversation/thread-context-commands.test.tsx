@@ -11,7 +11,7 @@ import RPCError from '@/util/rpcerror'
 import type * as React from 'react'
 import logger from '@/logger'
 import {act, cleanup, renderHook} from '@testing-library/react'
-import {getInboxConversationMeta, metasReceived} from '@/chat/inbox/metadata'
+import {getInboxConversationMeta, metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {makeMessageAttachment, makeMessageText} from '@/constants/chat/message'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
@@ -68,8 +68,28 @@ const renderThread = (messages: ReadonlyArray<T.Chat.Message> = []) => {
   }
   const result = rendered.result
   const message = (n: number) => result.current.store.getState().messageMap.get(T.Chat.numberToOrdinal(n))
+  cmd = {
+    dismissJourneycard: (cardType, ordinal) => result.current.dismissJourneycard(cardType, ordinal),
+    messageDelete: ordinal => result.current.actions.messageDelete(ordinal),
+    messageReplyPrivately: ordinal => result.current.actions.messageReplyPrivately(ordinal),
+    toggleMessageCollapse: (messageID, ordinal) =>
+      result.current.actions.toggleMessageCollapse(messageID, ordinal),
+    toggleMessageReaction: (ordinal, emoji) => result.current.actions.toggleMessageReaction(ordinal, emoji),
+    unfurlRemove: messageID => result.current.actions.unfurlRemove(messageID),
+  }
   return {message, result}
 }
+
+// The message commands under test, issued against the rendered thread.
+type Commands = {
+  dismissJourneycard: (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) => void
+  messageDelete: (ordinal: T.Chat.Ordinal) => void
+  messageReplyPrivately: (ordinal: T.Chat.Ordinal) => void
+  toggleMessageCollapse: (messageID: T.Chat.MessageID, ordinal: T.Chat.Ordinal) => void
+  toggleMessageReaction: (ordinal: T.Chat.Ordinal, emoji: string) => void
+  unfurlRemove: (messageID: T.Chat.MessageID) => void
+}
+let cmd: Commands
 
 const run = async (f: () => void) => {
   await act(async () => {
@@ -122,10 +142,10 @@ describe('messageDelete', () => {
   test('a sent message is marked deleting and deleted by id', async () => {
     const pending = deferred<undefined>()
     rpc.on('postDelete', async () => pending.promise)
-    const {message, result} = renderThread([textAt(10), textAt(11)])
+    const {message} = renderThread([textAt(10), textAt(11)])
 
     act(() => {
-      result.current.actions.messageDelete(T.Chat.numberToOrdinal(10))
+      cmd.messageDelete(T.Chat.numberToOrdinal(10))
     })
     expect(message(10)?.submitState).toBe('deleting')
     await act(async () => {
@@ -145,50 +165,50 @@ describe('messageDelete', () => {
 
   test('an unsent message cancels its outbox entry and drops the row', async () => {
     const outboxID = T.Chat.stringToOutboxID('0a0b')
-    const {message, result} = renderThread([textAt(10, {id: T.Chat.numberToMessageID(0), outboxID})])
-    await run(() => result.current.actions.messageDelete(T.Chat.numberToOrdinal(10)))
+    const {message} = renderThread([textAt(10, {id: T.Chat.numberToMessageID(0), outboxID})])
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
     expect(rpc.calls('cancelPost')).toEqual([[outboxID]])
     expect(rpc.calls('postDelete')).toEqual([])
     expect(message(10)).toBeUndefined()
   })
 
   test('a message with neither id reverts', async () => {
-    const {message, result} = renderThread([textAt(10, {id: T.Chat.numberToMessageID(0)})])
-    await run(() => result.current.actions.messageDelete(T.Chat.numberToOrdinal(10)))
+    const {message} = renderThread([textAt(10, {id: T.Chat.numberToMessageID(0)})])
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
     expect(rpc.calls('cancelPost')).toEqual([])
     expect(message(10)?.submitState).toBeUndefined()
   })
 
   test('a service failure reverts the deleting state', async () => {
     rpc.fail('postDelete', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
-    const {message, result} = renderThread([textAt(10)])
-    await run(() => result.current.actions.messageDelete(T.Chat.numberToOrdinal(10)))
+    const {message} = renderThread([textAt(10)])
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
     expect(message(10)?.submitState).toBeUndefined()
   })
 
   test('a failed cancel reverts and keeps the row', async () => {
     rpc.fail('cancelPost', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
     const outboxID = T.Chat.stringToOutboxID('0a0b')
-    const {message, result} = renderThread([textAt(10, {id: T.Chat.numberToMessageID(0), outboxID})])
-    await run(() => result.current.actions.messageDelete(T.Chat.numberToOrdinal(10)))
+    const {message} = renderThread([textAt(10, {id: T.Chat.numberToMessageID(0), outboxID})])
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
     expect(message(10)?.submitState).toBeUndefined()
   })
 
   test('a non-service failure reverts and is rethrown to ignorePromise', async () => {
     rpc.fail('postDelete', new Error('bug'))
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
-    const {message, result} = renderThread([textAt(10)])
-    await run(() => result.current.actions.messageDelete(T.Chat.numberToOrdinal(10)))
+    const {message} = renderThread([textAt(10)])
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
     expect(message(10)?.submitState).toBeUndefined()
     expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(Error))
   })
 
   test('without meta nothing is sent and the state reverts', async () => {
-    const {message, result} = renderThread([textAt(10)])
+    const {message} = renderThread([textAt(10)])
     act(() => {
       resetAllStores()
     })
-    await run(() => result.current.actions.messageDelete(T.Chat.numberToOrdinal(10)))
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
     expect(rpc.calls('postDelete')).toEqual([])
     expect(message(10)?.submitState).toBeUndefined()
   })
@@ -196,28 +216,28 @@ describe('messageDelete', () => {
 
 describe('unfurlRemove', () => {
   test('deletes the unfurl message by id', async () => {
-    const {result} = renderThread()
-    await run(() => result.current.actions.unfurlRemove(T.Chat.numberToMessageID(33)))
+    renderThread()
+    await run(() => cmd.unfurlRemove(T.Chat.numberToMessageID(33)))
     expect(rpc.params('postDelete')).toEqual([
       {conversationIDKey, messageID: T.Chat.numberToMessageID(33), tlfName},
     ])
   })
 
   test('without meta nothing is sent', async () => {
-    const {result} = renderThread()
+    renderThread()
     act(() => {
       resetAllStores()
     })
-    await run(() => result.current.actions.unfurlRemove(T.Chat.numberToMessageID(33)))
+    await run(() => cmd.unfurlRemove(T.Chat.numberToMessageID(33)))
     expect(rpc.calls('postDelete')).toEqual([])
   })
 })
 
 describe('toggleMessageCollapse', () => {
   test('a message collapses or expands itself', async () => {
-    const {result} = renderThread([textAt(10), textAt(11, {isCollapsed: true})])
-    await run(() => result.current.actions.toggleMessageCollapse(T.Chat.numberToMessageID(10), T.Chat.numberToOrdinal(10)))
-    await run(() => result.current.actions.toggleMessageCollapse(T.Chat.numberToMessageID(11), T.Chat.numberToOrdinal(11)))
+    renderThread([textAt(10), textAt(11, {isCollapsed: true})])
+    await run(() => cmd.toggleMessageCollapse(T.Chat.numberToMessageID(10), T.Chat.numberToOrdinal(10)))
+    await run(() => cmd.toggleMessageCollapse(T.Chat.numberToMessageID(11), T.Chat.numberToOrdinal(11)))
     expect(rpc.params('toggleCollapse')).toEqual([
       {collapse: true, conversationIDKey, messageID: T.Chat.numberToMessageID(10)},
       {collapse: false, conversationIDKey, messageID: T.Chat.numberToMessageID(11)},
@@ -228,10 +248,10 @@ describe('toggleMessageCollapse', () => {
     const unfurls = new Map([
       ['https://a.com', {isCollapsed: true, unfurlMessageID: T.Chat.numberToMessageID(40)}],
     ]) as unknown as T.Chat.MessageText['unfurls']
-    const {result} = renderThread([textAt(10, {unfurls})])
-    await run(() => result.current.actions.toggleMessageCollapse(T.Chat.numberToMessageID(40), T.Chat.numberToOrdinal(10)))
+    renderThread([textAt(10, {unfurls})])
+    await run(() => cmd.toggleMessageCollapse(T.Chat.numberToMessageID(40), T.Chat.numberToOrdinal(10)))
     // an unfurl id the message does not carry reads as expanded
-    await run(() => result.current.actions.toggleMessageCollapse(T.Chat.numberToMessageID(41), T.Chat.numberToOrdinal(10)))
+    await run(() => cmd.toggleMessageCollapse(T.Chat.numberToMessageID(41), T.Chat.numberToOrdinal(10)))
     expect(rpc.params('toggleCollapse')).toEqual([
       {collapse: false, conversationIDKey, messageID: T.Chat.numberToMessageID(40)},
       {collapse: true, conversationIDKey, messageID: T.Chat.numberToMessageID(41)},
@@ -242,7 +262,7 @@ describe('toggleMessageCollapse', () => {
 describe('toggleMessageReaction', () => {
   test('posts with the thread clientPrev, the meta tlfName and the optimistic outbox id', async () => {
     const {result} = renderThread([textAt(10), textAt(12)])
-    await run(() => result.current.actions.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
+    await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
     expect(rpc.params('postReaction')).toEqual([
       {
         clientPrev: T.Chat.numberToMessageID(12),
@@ -262,14 +282,14 @@ describe('toggleMessageReaction', () => {
   test('a failed post drops the optimistic reaction', async () => {
     rpc.fail('postReaction', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
     const {result} = renderThread([textAt(10)])
-    await run(() => result.current.actions.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
+    await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
     expect(result.current.store.getState().optimisticReactionMap.size).toBe(0)
   })
 
   test('nothing is posted for an unsent or exploded message', async () => {
-    const {result} = renderThread([textAt(10, {id: T.Chat.numberToMessageID(0)}), textAt(11, {exploded: true})])
-    await run(() => result.current.actions.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
-    await run(() => result.current.actions.toggleMessageReaction(T.Chat.numberToOrdinal(11), ':+1:'))
+    renderThread([textAt(10, {id: T.Chat.numberToMessageID(0)}), textAt(11, {exploded: true})])
+    await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
+    await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(11), ':+1:'))
     expect(rpc.calls('postReaction')).toEqual([])
   })
 })
@@ -283,9 +303,9 @@ describe('messageReplyPrivately', () => {
       .spyOn(Meta, 'inboxUIItemToConversationMeta')
       .mockReturnValue({...Meta.makeConversationMeta(), conversationIDKey: newKey, tlfname: tlfName})
     const navigate = jest.spyOn(Router, 'navigateToThread').mockImplementation(() => {})
-    const {result} = renderThread([textAt(10)])
+    renderThread([textAt(10)])
 
-    await run(() => result.current.actions.messageReplyPrivately(T.Chat.numberToOrdinal(10)))
+    await run(() => cmd.messageReplyPrivately(T.Chat.numberToOrdinal(10)))
 
     expect(rpc.calls('createAdhocConversation')).toEqual([
       [['testuser', 'testuser2'], Strings.waitingKeyChatCreating],
@@ -297,8 +317,8 @@ describe('messageReplyPrivately', () => {
   })
 
   test('a missing message creates nothing', async () => {
-    const {result} = renderThread()
-    await run(() => result.current.actions.messageReplyPrivately(T.Chat.numberToOrdinal(10)))
+    renderThread()
+    await run(() => cmd.messageReplyPrivately(T.Chat.numberToOrdinal(10)))
     expect(rpc.calls('createAdhocConversation')).toEqual([])
   })
 })
@@ -364,8 +384,8 @@ describe('setExplodingMode', () => {
 
 describe('journeycards and unfurl prompts', () => {
   test('dismissing a journeycard tells the service and drops the row', async () => {
-    const {message, result} = renderThread([textAt(10)])
-    await run(() => result.current.dismissJourneycard(T.RPCChat.JourneycardType.welcome, T.Chat.numberToOrdinal(10)))
+    const {message} = renderThread([textAt(10)])
+    await run(() => cmd.dismissJourneycard(T.RPCChat.JourneycardType.welcome, T.Chat.numberToOrdinal(10)))
     expect(rpc.calls('dismissJourneycard')).toEqual([[conversationIDKey, T.RPCChat.JourneycardType.welcome]])
     expect(message(10)).toBeUndefined()
   })
@@ -373,8 +393,8 @@ describe('journeycards and unfurl prompts', () => {
   test('the row goes even when the service refuses', async () => {
     rpc.fail('dismissJourneycard', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
     jest.spyOn(logger, 'error').mockImplementation(() => {})
-    const {message, result} = renderThread([textAt(10)])
-    await run(() => result.current.dismissJourneycard(T.RPCChat.JourneycardType.welcome, T.Chat.numberToOrdinal(10)))
+    const {message} = renderThread([textAt(10)])
+    await run(() => cmd.dismissJourneycard(T.RPCChat.JourneycardType.welcome, T.Chat.numberToOrdinal(10)))
     expect(message(10)).toBeUndefined()
   })
 
@@ -397,7 +417,299 @@ test('an attachment on the thread is no different for delete', async () => {
     id: T.Chat.numberToMessageID(10),
     ordinal: T.Chat.numberToOrdinal(10),
   })
-  const {result} = renderThread([attachment])
-  await run(() => result.current.actions.messageDelete(T.Chat.numberToOrdinal(10)))
+  renderThread([attachment])
+  await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
   expect(rpc.params('postDelete')).toEqual([expect.objectContaining({messageID: T.Chat.numberToMessageID(10)})])
+})
+
+describe('messageDelete edges', () => {
+  test('a message missing from the thread sends nothing', async () => {
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    renderThread([textAt(10)])
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(11)))
+    expect(rpc.log).toEqual([])
+    expect(warn).toHaveBeenCalledWith('Deleting invalid message')
+  })
+
+  test('only a text row shows deleting', async () => {
+    const pending = deferred<undefined>()
+    rpc.on('postDelete', async () => pending.promise)
+    const attachment = makeMessageAttachment({
+      conversationIDKey,
+      id: T.Chat.numberToMessageID(10),
+      ordinal: T.Chat.numberToOrdinal(10),
+    })
+    const {message} = renderThread([attachment])
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
+    expect(rpc.calls('postDelete')).toHaveLength(1)
+    expect(message(10)?.submitState).toBeUndefined()
+    await act(async () => {
+      pending.resolve(undefined)
+      await flushPromises()
+    })
+  })
+
+  test('a service failure is logged as a warning', async () => {
+    rpc.fail('postDelete', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    const error = jest.spyOn(logger, 'error')
+    renderThread([textAt(10)])
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('messageDelete: failed to delete: '))
+    expect(error).not.toHaveBeenCalled()
+  })
+
+  test('the revert only undoes its own deleting state', async () => {
+    const pending = deferred<undefined>()
+    rpc.on('postDelete', async () => pending.promise)
+    const {message, result} = renderThread([textAt(10)])
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
+    act(() => {
+      result.current.actions.setMessageSubmitState(T.Chat.numberToOrdinal(10), 'failed')
+    })
+    await act(async () => {
+      pending.reject(new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+      await flushPromises()
+    })
+    expect(message(10)?.submitState).toBe('failed')
+  })
+
+  test('an unsent row stays, deleting, until the cancel lands', async () => {
+    const pending = deferred<undefined>()
+    rpc.on('cancelPost', async () => pending.promise)
+    const outboxID = T.Chat.stringToOutboxID('0a0b')
+    const {message} = renderThread([textAt(10, {id: T.Chat.numberToMessageID(0), outboxID})])
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
+    expect(message(10)?.submitState).toBe('deleting')
+    await act(async () => {
+      pending.resolve(undefined)
+      await flushPromises()
+    })
+    expect(message(10)).toBeUndefined()
+  })
+
+  test('the tlfName is empty when the meta has none', async () => {
+    metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, tlfname: ''}], undefined, {force: true})
+    renderThread([textAt(10)])
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
+    expect(rpc.params('postDelete')).toEqual([expect.objectContaining({tlfName: ''})])
+  })
+})
+
+describe('toggleMessageReaction edges', () => {
+  const reactionsBy = (...usernames: Array<string>): T.Chat.Reactions =>
+    new Map([[':+1:', {decorated: ':+1:', users: usernames.map(username => ({timestamp: 1, username}))}]])
+
+  test('the optimistic reaction records the add, the target and the user', async () => {
+    const {result} = renderThread([textAt(10)])
+    const before = Date.now()
+    await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
+    const [reaction] = [...result.current.store.getState().optimisticReactionMap.values()]
+    expect(reaction!.timestamp).toBeGreaterThanOrEqual(before)
+    expect({...reaction, timestamp: 0}).toEqual({
+      add: true,
+      decorated: ':+1:',
+      emoji: ':+1:',
+      targetOrdinal: T.Chat.numberToOrdinal(10),
+      timestamp: 0,
+      username: 'testuser',
+    })
+  })
+
+  test('an emoji you already reacted with is removed', async () => {
+    const {result} = renderThread([textAt(10, {reactions: reactionsBy('testuser2', 'testuser')})])
+    await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
+    const [reaction] = [...result.current.store.getState().optimisticReactionMap.values()]
+    expect(reaction?.add).toBe(false)
+    expect(rpc.params('postReaction')).toEqual([expect.objectContaining({emoji: ':+1:'})])
+  })
+
+  test('someone else reacting with it is still an add', async () => {
+    const {result} = renderThread([textAt(10, {reactions: reactionsBy('testuser2')})])
+    await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
+    const [reaction] = [...result.current.store.getState().optimisticReactionMap.values()]
+    expect(reaction?.add).toBe(true)
+  })
+
+  test('a second toggle while the first is pending reads the optimistic state', async () => {
+    const pending = deferred<undefined>()
+    rpc.on('postReaction', async () => pending.promise)
+    const {result} = renderThread([textAt(10)])
+    await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
+    await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
+    expect([...result.current.store.getState().optimisticReactionMap.values()].map(r => r.add)).toEqual([
+      true,
+      false,
+    ])
+    const [first, second] = rpc.params('postReaction')
+    expect(first?.outboxID).not.toEqual(second?.outboxID)
+    await act(async () => {
+      pending.resolve(undefined)
+      await flushPromises()
+    })
+  })
+
+  test('the clientPrev skips trailing unsent messages', async () => {
+    renderThread([textAt(10), textAt(12), textAt(13, {id: T.Chat.numberToMessageID(0)})])
+    await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
+    expect(rpc.params('postReaction')).toEqual([
+      expect.objectContaining({clientPrev: T.Chat.numberToMessageID(12)}),
+    ])
+  })
+
+  test('nothing happens for an empty emoji, a missing message or no user', async () => {
+    const {result} = renderThread([textAt(10)])
+    jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ''))
+    await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(11), ':+1:'))
+    act(() => {
+      useCurrentUserState.getState().dispatch.setBootstrap({
+        deviceID: '',
+        deviceName: '',
+        uid: '',
+        username: '',
+      })
+    })
+    await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
+    expect(rpc.calls('postReaction')).toEqual([])
+    expect(result.current.store.getState().optimisticReactionMap.size).toBe(0)
+  })
+
+  test('a non-service failure also drops the reaction and is swallowed', async () => {
+    rpc.fail('postReaction', new Error('bug'))
+    const error = jest.spyOn(logger, 'error')
+    const info = jest.spyOn(logger, 'info')
+    const {result} = renderThread([textAt(10)])
+    await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
+    expect(result.current.store.getState().optimisticReactionMap.size).toBe(0)
+    expect(error).not.toHaveBeenCalled()
+    expect(info).not.toHaveBeenCalledWith(expect.stringContaining('toggleMessageReaction'))
+  })
+
+  test('a service failure is logged as info', async () => {
+    rpc.fail('postReaction', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    const info = jest.spyOn(logger, 'info')
+    renderThread([textAt(10)])
+    await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
+    expect(info).toHaveBeenCalledWith(expect.stringContaining('toggleMessageReaction: failed to post'))
+  })
+
+  test('without meta the tlfName is empty and the post still goes', async () => {
+    renderThread([textAt(10)])
+    act(() => {
+      useInboxMetadataState.setState({metas: new Map()})
+    })
+    await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
+    expect(rpc.params('postReaction')).toEqual([expect.objectContaining({tlfName: ''})])
+  })
+})
+
+describe('messageReplyPrivately edges', () => {
+  const newConvID = new Uint8Array([9, 9, 9, 9])
+  const newKey = T.Chat.conversationIDToKey(newConvID)
+
+  test('a non-text message makes the conversation but does not open it', async () => {
+    rpc.on('createAdhocConversation', () => ({conv: {info: {id: newConvID}}, uiConv: {}}) as never)
+    jest
+      .spyOn(Meta, 'inboxUIItemToConversationMeta')
+      .mockReturnValue({...Meta.makeConversationMeta(), conversationIDKey: newKey})
+    const navigate = jest.spyOn(Router, 'navigateToThread').mockImplementation(() => {})
+    const attachment = makeMessageAttachment({
+      author: 'testuser2',
+      conversationIDKey,
+      id: T.Chat.numberToMessageID(10),
+      ordinal: T.Chat.numberToOrdinal(10),
+    })
+    renderThread([attachment])
+    await run(() => cmd.messageReplyPrivately(T.Chat.numberToOrdinal(10)))
+    expect(rpc.calls('createAdhocConversation')).toHaveLength(1)
+    expect(navigate).not.toHaveBeenCalled()
+    expect(getInboxConversationMeta(newKey)).toBeUndefined()
+  })
+
+  test('no meta for the new conversation, no navigation', async () => {
+    rpc.on('createAdhocConversation', () => ({conv: {info: {id: newConvID}}, uiConv: {}}) as never)
+    jest.spyOn(Meta, 'inboxUIItemToConversationMeta').mockReturnValue(undefined)
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    const navigate = jest.spyOn(Router, 'navigateToThread').mockImplementation(() => {})
+    renderThread([textAt(10)])
+    await run(() => cmd.messageReplyPrivately(T.Chat.numberToOrdinal(10)))
+    expect(navigate).not.toHaveBeenCalled()
+    expect(warn).toHaveBeenCalledWith('messageReplyPrivately: unable to make meta')
+  })
+
+  test('an empty conversation id, no navigation', async () => {
+    rpc.on('createAdhocConversation', () => ({conv: {info: {id: new Uint8Array()}}, uiConv: {}}) as never)
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    const navigate = jest.spyOn(Router, 'navigateToThread').mockImplementation(() => {})
+    renderThread([textAt(10)])
+    await run(() => cmd.messageReplyPrivately(T.Chat.numberToOrdinal(10)))
+    expect(navigate).not.toHaveBeenCalled()
+    expect(warn).toHaveBeenCalledWith("messageReplyPrivately: couldn't make a new conversation?")
+  })
+
+  test('logged out it creates nothing and throws to ignorePromise', async () => {
+    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    renderThread([textAt(10)])
+    act(() => {
+      useCurrentUserState.getState().dispatch.setBootstrap({deviceID: '', deviceName: '', uid: '', username: ''})
+    })
+    await run(() => cmd.messageReplyPrivately(T.Chat.numberToOrdinal(10)))
+    expect(rpc.calls('createAdhocConversation')).toEqual([])
+    expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(Error))
+  })
+})
+
+describe('collapse and unfurl edges', () => {
+  test('a message missing from the thread reads as expanded', async () => {
+    renderThread()
+    await run(() => cmd.toggleMessageCollapse(T.Chat.numberToMessageID(10), T.Chat.numberToOrdinal(10)))
+    expect(rpc.params('toggleCollapse')).toEqual([
+      {collapse: true, conversationIDKey, messageID: T.Chat.numberToMessageID(10)},
+    ])
+  })
+
+  test('a failed collapse goes to ignorePromise', async () => {
+    rpc.fail('toggleCollapse', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    renderThread([textAt(10)])
+    await run(() => cmd.toggleMessageCollapse(T.Chat.numberToMessageID(10), T.Chat.numberToOrdinal(10)))
+    expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(RPCError))
+  })
+
+  test('a failed unfurl remove goes to ignorePromise', async () => {
+    rpc.fail('postDelete', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    renderThread()
+    await run(() => cmd.unfurlRemove(T.Chat.numberToMessageID(33)))
+    expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(RPCError))
+  })
+})
+
+describe('dismissJourneycard edges', () => {
+  test('the row stays until the service answers', async () => {
+    const pending = deferred<undefined>()
+    rpc.on('dismissJourneycard', async () => pending.promise)
+    const {message} = renderThread([textAt(10)])
+    await run(() => cmd.dismissJourneycard(T.RPCChat.JourneycardType.welcome, T.Chat.numberToOrdinal(10)))
+    expect(message(10)).toBeDefined()
+    await act(async () => {
+      pending.resolve(undefined)
+      await flushPromises()
+    })
+    expect(message(10)).toBeUndefined()
+  })
+
+  test('a service refusal is logged; any other failure is swallowed; the row goes either way', async () => {
+    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    rpc.failOnce('dismissJourneycard', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    rpc.failOnce('dismissJourneycard', new Error('bug'))
+    const {message} = renderThread([textAt(10), textAt(11)])
+    await run(() => cmd.dismissJourneycard(T.RPCChat.JourneycardType.welcome, T.Chat.numberToOrdinal(10)))
+    await run(() => cmd.dismissJourneycard(T.RPCChat.JourneycardType.welcome, T.Chat.numberToOrdinal(11)))
+    expect(error).toHaveBeenCalledTimes(1)
+    expect(error).toHaveBeenCalledWith(expect.stringContaining('Failed to dismiss journeycard: '))
+    expect(message(10)).toBeUndefined()
+    expect(message(11)).toBeUndefined()
+  })
 })

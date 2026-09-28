@@ -271,3 +271,103 @@ describe('dismissConversationJourneycard', () => {
     expect(error).toHaveBeenCalledWith(expect.stringContaining('Failed to dismiss journeycard: '))
   })
 })
+
+describe('storeless edges', () => {
+  test('delete with no meta and no tlfName sends an empty tlfName', async () => {
+    resetAllStores()
+    deleteConversationMessage(conversationIDKey, textMessage())
+    await flushPromises()
+    expect(rpc.params('postDelete')).toEqual([expect.objectContaining({tlfName: ''})])
+  })
+
+  test('a failed cancel is left to ignorePromise', async () => {
+    rpc.fail('cancelPost', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    deleteConversationMessage(
+      conversationIDKey,
+      textMessage({id: T.Chat.numberToMessageID(0), outboxID: T.Chat.stringToOutboxID('0a0b')})
+    )
+    await flushPromises()
+    expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(RPCError))
+  })
+
+  test('the missing-id and invalid-conversation cases are logged', async () => {
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    deleteConversationMessage(conversationIDKey, textMessage({id: T.Chat.numberToMessageID(0)}))
+    deleteConversationMessage(T.Chat.noConversationIDKey, textMessage())
+    await flushPromises()
+    expect(warn.mock.calls).toEqual([
+      ['deleteConversationMessage: no message id or outbox id'],
+      ['deleteConversationMessage: no conversation id'],
+    ])
+  })
+
+  test('a reaction to a message with no id yet is not posted', async () => {
+    jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    toggleConversationMessageReaction(conversationIDKey, textMessage({id: T.Chat.numberToMessageID(0)}), ':+1:')
+    await flushPromises()
+    expect(rpc.calls('postReaction')).toEqual([])
+  })
+
+  test('a reaction toggles without looking at existing reactions', async () => {
+    const reactions: T.Chat.Reactions = new Map([
+      [':+1:', {decorated: ':+1:', users: [{timestamp: 1, username: 'testuser'}]}],
+    ])
+    toggleConversationMessageReaction(conversationIDKey, textMessage({reactions}), ':+1:')
+    await flushPromises()
+    expect(rpc.params('postReaction')).toEqual([expect.objectContaining({emoji: ':+1:'})])
+  })
+
+  test('a reaction service failure is logged as info, any other failure is swallowed', async () => {
+    const info = jest.spyOn(logger, 'info')
+    const error = jest.spyOn(logger, 'error')
+    rpc.failOnce('postReaction', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    rpc.failOnce('postReaction', new Error('bug'))
+    toggleConversationMessageReactionByID(conversationIDKey, T.Chat.numberToMessageID(10), ':+1:')
+    toggleConversationMessageReactionByID(conversationIDKey, T.Chat.numberToMessageID(10), ':-1:')
+    await flushPromises()
+    expect(rpc.calls('postReaction')).toHaveLength(2)
+    expect(info.mock.calls.filter(c => String(c[0]).startsWith('toggleConversationMessageReaction'))).toEqual([
+      [expect.stringContaining('toggleConversationMessageReaction: failed to post ')],
+    ])
+    expect(error).not.toHaveBeenCalled()
+  })
+
+  test('reply privately with an empty conversation id does not open anything', async () => {
+    rpc.on('createAdhocConversation', () => ({conv: {info: {id: new Uint8Array()}}, uiConv: {}}) as never)
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    const navigate = jest.spyOn(Router, 'navigateToThread').mockImplementation(() => {})
+    replyPrivatelyToConversationMessage(textMessage())
+    await flushPromises()
+    expect(navigate).not.toHaveBeenCalled()
+    expect(warn).toHaveBeenCalledWith("replyPrivatelyToConversationMessage: couldn't make a new conversation")
+  })
+
+  test('reply privately with no meta warns', async () => {
+    rpc.on('createAdhocConversation', () => ({conv: {info: {id: new Uint8Array([9])}}, uiConv: {}}) as never)
+    jest.spyOn(Meta, 'inboxUIItemToConversationMeta').mockReturnValue(undefined)
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    replyPrivatelyToConversationMessage(textMessage())
+    await flushPromises()
+    expect(warn).toHaveBeenCalledWith('replyPrivatelyToConversationMessage: unable to make meta')
+  })
+
+  test('a failed adhoc create goes to ignorePromise', async () => {
+    rpc.fail('createAdhocConversation', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    replyPrivatelyToConversationMessage(textMessage())
+    await flushPromises()
+    expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(RPCError))
+  })
+
+  test('pin and journeycard failures that are not service errors are swallowed', async () => {
+    rpc.fail('pinMessage', new Error('bug'))
+    rpc.fail('dismissJourneycard', new Error('bug'))
+    const error = jest.spyOn(logger, 'error')
+    pinConversationMessage(conversationIDKey, T.Chat.numberToMessageID(10))
+    dismissConversationJourneycard(conversationIDKey, T.RPCChat.JourneycardType.welcome)
+    await flushPromises()
+    expect(rpc.log.map(c => c.method)).toEqual(['pinMessage', 'dismissJourneycard'])
+    expect(error).not.toHaveBeenCalled()
+  })
+})
