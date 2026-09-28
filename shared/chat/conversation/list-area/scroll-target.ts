@@ -34,6 +34,14 @@ export type ScrollEvent =
       loaded: boolean
       targetInData: boolean
     }
+  // The native list's reconcile of the centre request against the loaded rows. It parts from
+  // threadObserved in three ways, each the native list's own: it does not wait for the load;
+  // leaving a centred target leaves the reader where they are, because the list's own anchor takes
+  // the end back once it is re-enabled, and only if they are at it; and every change to the rows
+  // under a target already centred asks for the centring to be refined against them.
+  | {type: 'centerTargetObserved'; centeredOrdinal: T.Chat.Ordinal | undefined; targetInData: boolean}
+  // The list asks for the current target to be centred now, loaded or not.
+  | {type: 'centerRequested'; centeredOrdinal: T.Chat.Ordinal | undefined}
   // A conversation finished its first load, for a list with no declarative initial position.
   | {type: 'initialLoad'; centeredOrdinal: T.Chat.Ordinal | undefined; hasMessages: boolean}
   | {type: 'userScrolled'; how: 'wheel' | 'drag' | 'pageUp' | 'pageDown'}
@@ -52,6 +60,9 @@ export type ScrollDirective =
   | {type: 'pinEnd'; how: 'now' | 'unlessAtEnd' | 'whenSettled'; stopCentering: boolean}
   // Bring the ordinal to the middle of the viewport, replacing any centring already under way.
   | {type: 'center'; ordinal: T.Chat.Ordinal}
+  // The centred target is in the loaded rows: settle it in the middle against them. newTarget says
+  // it has not been centred before, so the move toward it is still to make.
+  | {type: 'refineCenter'; ordinal: T.Chat.Ordinal; newTarget: boolean}
   // Bring the ordinal into view without taking the end from the list.
   | {type: 'reveal'; ordinal: T.Chat.Ordinal}
   | {type: 'leaveAlone'; stopCentering: boolean}
@@ -66,6 +77,15 @@ export const initialScrollTargetState: ScrollTargetState = {
 }
 
 const leaveAlone: ScrollDirective = {stopCentering: false, type: 'leaveAlone'}
+
+// Centring happens once per target: a target already centred is left alone.
+const requestCenter = (state: ScrollTargetState, centeredOrdinal: T.Chat.Ordinal | undefined): ScrollDecision =>
+  centeredOrdinal === undefined || state.lastCentered === centeredOrdinal
+    ? {directive: leaveAlone, state}
+    : {
+        directive: {ordinal: centeredOrdinal, type: 'center'},
+        state: {...state, endOwner: 'reader', lastCentered: centeredOrdinal},
+      }
 
 export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): ScrollDecision => {
   switch (event.type) {
@@ -101,13 +121,25 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
         state: {...state, endOwner: 'list', lastCentered: undefined},
       }
     }
-    case 'initialLoad':
-      if (event.centeredOrdinal !== undefined) {
+    case 'centerTargetObserved': {
+      const {centeredOrdinal, targetInData} = event
+      if (centeredOrdinal === undefined) {
+        if (state.lastCentered === undefined) return {directive: leaveAlone, state}
         return {
-          directive: {ordinal: event.centeredOrdinal, type: 'center'},
-          state: {...state, endOwner: 'reader', lastCentered: event.centeredOrdinal},
+          directive: {stopCentering: true, type: 'leaveAlone'},
+          state: {...state, endOwner: 'list', lastCentered: undefined},
         }
       }
+      if (!targetInData) return {directive: leaveAlone, state}
+      return {
+        directive: {newTarget: state.lastCentered !== centeredOrdinal, ordinal: centeredOrdinal, type: 'refineCenter'},
+        state: {...state, endOwner: 'reader', lastCentered: centeredOrdinal},
+      }
+    }
+    case 'centerRequested':
+      return requestCenter(state, event.centeredOrdinal)
+    case 'initialLoad':
+      if (event.centeredOrdinal !== undefined) return requestCenter(state, event.centeredOrdinal)
       return {
         directive: event.hasMessages ? {how: 'now', stopCentering: false, type: 'pinEnd'} : leaveAlone,
         state,

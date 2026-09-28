@@ -194,6 +194,10 @@ export const useDesktopThreadScroll = (p: {
         case 'center':
           scrollToCentered(directive.ordinal)
           return
+        // Only the native list reports centerTargetObserved; this list's centring loop measures and
+        // corrects on its own.
+        case 'refineCenter':
+          return
         case 'reveal': {
           const idx = indexOfOrdinal(messageOrdinalsRef.current, directive.ordinal)
           if (idx >= 0) {
