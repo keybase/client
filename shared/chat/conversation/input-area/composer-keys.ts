@@ -66,10 +66,10 @@ const threadKey = (s: ThreadFacts, k: ComposerKey): ComposerKeyResult<ThreadKeyA
     return {actions: [{type: 'editLast'}], preventDefault: true}
   }
   if (k.key === 'Escape' && s.editing) {
-    return {actions: [{type: 'cancelEdit'}], preventDefault: false}
+    return {actions: [{type: 'cancelEdit'}], preventDefault: true}
   }
   if (k.key === 'Escape' && s.replying) {
-    return {actions: [{type: 'cancelReply'}], preventDefault: false}
+    return {actions: [{type: 'cancelReply'}], preventDefault: true}
   }
   if (k.key === 'u' && (k.ctrlKey || k.metaKey)) {
     return {actions: [{type: 'openFilePicker'}], preventDefault: false}
@@ -118,7 +118,11 @@ const inputKey = (s: InputKeyState, k: ComposerKey): ComposerKeyResult<InputKeyA
 
   const thread = threadKey(s, k)
   const actions: Array<InputKeyAction> = [...(thread?.actions ?? [])]
-  let preventDefault = thread?.preventDefault ?? false
+  // an open list's popup closes itself on Escape, so the key did something here too; a list with
+  // no items yet shows nothing to close
+  let preventDefault =
+    (thread?.preventDefault ?? false) ||
+    (k.key === 'Escape' && (s.suggestions === 'unfiltered' || s.suggestions === 'filtered'))
 
   if (k.key === 'ArrowLeft' || k.key === 'ArrowRight') {
     actions.push({type: 'recheckSuggestions'})

@@ -276,11 +276,11 @@ describe('in the composer, no suggestions', () => {
     }
   )
 
-  test('Escape while editing cancels the edit without preventing the default', () => {
+  test('Escape while editing cancels the edit and prevents the default', () => {
     const {getHandles, textarea} = renderComposer()
     startEdit(textarea)
 
-    expect(keyDown(textarea, 'Escape')).toBe(false)
+    expect(keyDown(textarea, 'Escape')).toBe(true)
 
     expect(getHandles().input.editing).toBe(noOrdinal)
     expect(textarea.value).toBe('')
@@ -291,7 +291,7 @@ describe('in the composer, no suggestions', () => {
     startReply(getHandles)
     expect(getHandles().input.replyTo).toBe(lastOrdinal)
 
-    expect(keyDown(textarea, 'Escape')).toBe(false)
+    expect(keyDown(textarea, 'Escape')).toBe(true)
 
     expect(getHandles().input.replyTo).toBe(noOrdinal)
   })
@@ -507,8 +507,21 @@ describe('in the composer, suggestions open', () => {
     startEdit(textarea)
     openSuggestions(textarea, 'hi @te')
 
-    expect(keyDown(textarea, 'Escape')).toBe(false)
+    expect(keyDown(textarea, 'Escape')).toBe(true)
 
+    expect(getHandles().input.editing).toBe(noOrdinal)
+    expect(mockMove).not.toHaveBeenCalled()
+    expect(mockSelect).not.toHaveBeenCalled()
+  })
+
+  // the list's popup closes itself on Escape; the composer only claims the key
+  test('Escape with only a list open prevents the default and does nothing else', () => {
+    const {getHandles, textarea} = renderComposer()
+    openSuggestions(textarea, 'hi @te')
+
+    expect(keyDown(textarea, 'Escape')).toBe(true)
+
+    expect(textarea.value).toBe('hi @te')
     expect(getHandles().input.editing).toBe(noOrdinal)
     expect(mockMove).not.toHaveBeenCalled()
     expect(mockSelect).not.toHaveBeenCalled()
@@ -602,7 +615,7 @@ describe('outside any input (window keys)', () => {
     startEdit(textarea)
     blurAll(textarea)
 
-    keyDown(document.body, 'Escape')
+    expect(keyDown(document.body, 'Escape')).toBe(true)
 
     expect(getHandles().input.editing).toBe(noOrdinal)
     expect(document.activeElement).not.toBe(textarea)
@@ -613,7 +626,7 @@ describe('outside any input (window keys)', () => {
     startReply(getHandles)
     blurAll(textarea)
 
-    keyDown(document.body, 'Escape')
+    expect(keyDown(document.body, 'Escape')).toBe(true)
 
     expect(getHandles().input.replyTo).toBe(noOrdinal)
   })

@@ -146,14 +146,14 @@ describe('the composer textarea', () => {
       true,
     ],
     // Escape
-    ['Escape, editing: cancel the edit', input({editing: true}), k('Escape'), [cancelEdit], false],
-    ['Escape, replying: cancel the reply', input({replying: true}), k('Escape'), [cancelReply], false],
+    ['Escape, editing: cancel the edit', input({editing: true}), k('Escape'), [cancelEdit], true],
+    ['Escape, replying: cancel the reply', input({replying: true}), k('Escape'), [cancelReply], true],
     [
       'Escape, editing a reply: cancel the edit only',
       input({editing: true, replying: true}),
       k('Escape'),
       [cancelEdit],
-      false,
+      true,
     ],
     ['Escape, neither: nothing', input(withText), k('Escape'), [], false],
     [
@@ -161,16 +161,18 @@ describe('the composer textarea', () => {
       input({editing: true, suggestions: open}),
       k('Escape'),
       [cancelEdit],
-      false,
+      true,
     ],
-    ['Escape, list open only: nothing', input({suggestions: open}), k('Escape'), [], false],
+    // the list's popup closes itself on Escape
+    ['Escape, list open only: the list closes', input({suggestions: open}), k('Escape'), [], true],
     [
       'Escape, editing, list open with no items yet: cancel the edit',
       input({editing: true, suggestions: 'empty'}),
       k('Escape'),
       [cancelEdit],
-      false,
+      true,
     ],
+    ['Escape, list open with no items yet only: nothing', input({suggestions: 'empty'}), k('Escape'), [], false],
     // other thread keys
     ['ctrl-U: file picker', input(withText), k('u', {ctrlKey: true}), [openFilePicker], false],
     ['cmd-U: file picker', input(withText), k('u', {metaKey: true}), [openFilePicker], false],
@@ -206,14 +208,14 @@ describe('window keys', () => {
     ['ArrowUp, text: focus the composer', win({textEmpty: false}), k('ArrowUp'), [focusInput], false],
     ['ArrowUp, editing: focus the composer', win({editing: true}), k('ArrowUp'), [focusInput], false],
     ['alt-ArrowUp, empty: focus the composer', win(), k('ArrowUp', {altKey: true}), [focusInput], false],
-    ['Escape, editing: cancel the edit', win({editing: true}), k('Escape'), [cancelEdit], false],
-    ['Escape, replying: cancel the reply', win({replying: true}), k('Escape'), [cancelReply], false],
+    ['Escape, editing: cancel the edit', win({editing: true}), k('Escape'), [cancelEdit], true],
+    ['Escape, replying: cancel the reply', win({replying: true}), k('Escape'), [cancelReply], true],
     [
       'Escape, editing a reply: cancel the edit',
       win({editing: true, replying: true}),
       k('Escape'),
       [cancelEdit],
-      false,
+      true,
     ],
     ['Escape, neither: focus the composer', win(), k('Escape'), [focusInput], false],
     ['ctrl-U: file picker, no focus', win(), k('u', {ctrlKey: true}), [openFilePicker], false],
@@ -401,7 +403,7 @@ describe('across every key and state', () => {
 
   // a list with no items yet still claims the keys that move through it, so a key pressed as it
   // loads never leaves the textarea or moves the caret
-  test("the default is prevented exactly when the key sends, picks, moves, edits or is an open list's", () => {
+  test("the default is prevented exactly when the key sends, picks, moves, edits, cancels, closes the list or is an open list's", () => {
     for (const s of allInputStates) {
       for (const key of allKeys) {
         const {actions, preventDefault} = composerKeyDown(s, key)
@@ -412,10 +414,20 @@ describe('across every key and state', () => {
               a.type === 'submit' ||
               a.type === 'suggestionSelect' ||
               a.type === 'suggestionMove' ||
-              a.type === 'editLast'
-          )
+              a.type === 'editLast' ||
+              a.type === 'cancelEdit' ||
+              a.type === 'cancelReply'
+          ) ||
+          (key.key === 'Escape' && showsItems(s))
         expect(preventDefault).toBe(claims)
       }
+    }
+  })
+
+  test('a window Escape prevents the default exactly when it cancels something', () => {
+    for (const f of threadFacts) {
+      const {preventDefault} = composerKeyDown(win(f), k('Escape'))
+      expect(preventDefault).toBe(f.editing || f.replying)
     }
   })
 
