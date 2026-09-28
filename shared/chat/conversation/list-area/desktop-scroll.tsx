@@ -239,8 +239,7 @@ export const useDesktopThreadScroll = (p: {
     dispatch({
       centeredOrdinal,
       loaded,
-      targetInData:
-        centeredOrdinal !== undefined && indexOfOrdinal(messageOrdinalsRef.current, centeredOrdinal) >= 0,
+      targetInData: centeredOrdinal !== undefined && indexOfOrdinal(messageOrdinals, centeredOrdinal) >= 0,
       type: 'threadObserved',
     })
   }, [centeredOrdinal, dispatch, loaded, messageOrdinals])
