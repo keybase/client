@@ -14,7 +14,9 @@ const ord = T.Chat.numberToOrdinal
 
 const fresh = initialScrollTargetState
 const state = (p: Partial<ScrollTargetState> = {}): ScrollTargetState => ({...fresh, ...p})
-const centred = (n: number) => state({endOwner: 'reader', lastCentered: ord(n)})
+const centred = (n: number) => state({endOwner: 'reader', lastCentered: ord(n), settlingCenter: true})
+// Centred, and then the reader dragged away from it.
+const released = (n: number) => state({endOwner: 'reader', lastCentered: ord(n)})
 
 const leaveAlone: ScrollDirective = {stopCentering: false, type: 'leaveAlone'}
 const stopCentering: ScrollDirective = {stopCentering: true, type: 'leaveAlone'}
@@ -74,12 +76,27 @@ describe('centerTargetObserved', () => {
       centred(30),
     ],
     [
-      'a target still centred after the end was asked back is only refined, and takes the end again',
-      state({lastCentered: ord(30)}),
+      'a target still settling after the end was asked back is only refined, and takes the end again',
+      state({lastCentered: ord(30), settlingCenter: true}),
       observed(30),
       refine(30, false),
       centred(30),
     ],
+    [
+      'once the reader has dragged away, rows changing under the same target leave them there',
+      released(30),
+      observed(30),
+      leaveAlone,
+      released(30),
+    ],
+    [
+      'the same target leaving the rows (a reload around it) is settled again once it is back',
+      released(30),
+      observed(30, false),
+      leaveAlone,
+      centred(30),
+    ],
+    ['a new target is settled even after a drag', released(30), observed(40), refine(40, true), centred(40)],
     ['a new target replaces the old one', centred(30), observed(40), refine(40, true), centred(40)],
     [
       'leaving a centred target stops centring and leaves the reader where they are',
@@ -158,8 +175,8 @@ describe('the native list, in sequence', () => {
       leaveAlone,
       refine(30, false),
       stopCentering,
-      // Rows arriving after a drag refine toward the target again.
-      refine(30, false),
+      // Rows arriving after a drag leave the reader where they are.
+      leaveAlone,
       stopCentering,
     ])
     expect(end).toEqual(fresh)
@@ -189,6 +206,6 @@ describe('the native list, in sequence', () => {
       centred(30)
     )
     expect(directives).toEqual([pinNow, {how: 'unlessAtEnd', stopCentering: false, type: 'pinEnd'}])
-    expect(end).toEqual(state({lastCentered: ord(30)}))
+    expect(end).toEqual(state({lastCentered: ord(30), settlingCenter: true}))
   })
 })

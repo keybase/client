@@ -19,6 +19,9 @@ export type ScrollTargetState = {
   // the reader back to the hit. Per dataset, not per conversation: re-centring on the ordinal we
   // are already parked on still reloads the thread, so the list has to scroll to it again.
   lastCentered: T.Chat.Ordinal | undefined
+  // Whether that target is still being settled in the middle. A wheel or a drag ends it: the reader
+  // owns the position from then on, and rows changing under the target must not pull them back.
+  settlingCenter: boolean
   // The edit already revealed. Deliberately survives a dataset change.
   lastEditing: T.Chat.Ordinal | undefined
 }
@@ -38,7 +41,7 @@ export type ScrollEvent =
   // threadObserved in three ways, each the native list's own: it does not wait for the load;
   // leaving a centred target leaves the reader where they are, because the list's own anchor takes
   // the end back once it is re-enabled, and only if they are at it; and every change to the rows
-  // under a target already centred asks for the centring to be refined against them.
+  // under a target still settling asks for the centring to be refined against them.
   | {type: 'centerTargetObserved'; centeredOrdinal: T.Chat.Ordinal | undefined; targetInData: boolean}
   // The list asks for the current target to be centred now, loaded or not.
   | {type: 'centerRequested'; centeredOrdinal: T.Chat.Ordinal | undefined}
@@ -74,6 +77,7 @@ export const initialScrollTargetState: ScrollTargetState = {
   headerSize: undefined,
   lastCentered: undefined,
   lastEditing: undefined,
+  settlingCenter: false,
 }
 
 const leaveAlone: ScrollDirective = {stopCentering: false, type: 'leaveAlone'}
@@ -84,7 +88,7 @@ const requestCenter = (state: ScrollTargetState, centeredOrdinal: T.Chat.Ordinal
     ? {directive: leaveAlone, state}
     : {
         directive: {ordinal: centeredOrdinal, type: 'center'},
-        state: {...state, endOwner: 'reader', lastCentered: centeredOrdinal},
+        state: {...state, endOwner: 'reader', lastCentered: centeredOrdinal, settlingCenter: true},
       }
 
 export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): ScrollDecision => {
@@ -99,6 +103,7 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
           endOwner: 'list',
           headerSize: undefined,
           lastCentered: undefined,
+          settlingCenter: false,
         },
       }
     case 'threadObserved': {
@@ -108,7 +113,7 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
         if (state.lastCentered === centeredOrdinal || !targetInData) return {directive: leaveAlone, state}
         return {
           directive: {ordinal: centeredOrdinal, type: 'center'},
-          state: {...state, endOwner: 'reader', lastCentered: centeredOrdinal},
+          state: {...state, endOwner: 'reader', lastCentered: centeredOrdinal, settlingCenter: true},
         }
       }
       if (state.lastCentered === undefined) return {directive: leaveAlone, state}
@@ -118,7 +123,7 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
         directive: containsLatestMessage
           ? {how: 'now', stopCentering: true, type: 'pinEnd'}
           : {stopCentering: true, type: 'leaveAlone'},
-        state: {...state, endOwner: 'list', lastCentered: undefined},
+        state: {...state, endOwner: 'list', lastCentered: undefined, settlingCenter: false},
       }
     }
     case 'centerTargetObserved': {
@@ -127,13 +132,20 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
         if (state.lastCentered === undefined) return {directive: leaveAlone, state}
         return {
           directive: {stopCentering: true, type: 'leaveAlone'},
-          state: {...state, endOwner: 'list', lastCentered: undefined},
+          state: {...state, endOwner: 'list', lastCentered: undefined, settlingCenter: false},
         }
       }
-      if (!targetInData) return {directive: leaveAlone, state}
+      const newTarget = state.lastCentered !== centeredOrdinal
+      if (!targetInData) {
+        // The rows the reader positioned against are gone (a reload around the same target), so
+        // the target is settled again once it is back.
+        if (newTarget || state.settlingCenter) return {directive: leaveAlone, state}
+        return {directive: leaveAlone, state: {...state, settlingCenter: true}}
+      }
+      if (!newTarget && !state.settlingCenter) return {directive: leaveAlone, state}
       return {
-        directive: {newTarget: state.lastCentered !== centeredOrdinal, ordinal: centeredOrdinal, type: 'refineCenter'},
-        state: {...state, endOwner: 'reader', lastCentered: centeredOrdinal},
+        directive: {newTarget, ordinal: centeredOrdinal, type: 'refineCenter'},
+        state: {...state, endOwner: 'reader', lastCentered: centeredOrdinal, settlingCenter: true},
       }
     }
     case 'centerRequested':
@@ -149,9 +161,10 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
       if (event.how === 'pageDown') return {directive: leaveAlone, state}
       // A wheel or a drag is the reader taking over, so centring stops rather than pull them back.
       // Paging up hands over the end but leaves a centring under way to finish.
+      if (event.how === 'pageUp') return {directive: leaveAlone, state: {...state, endOwner: 'reader'}}
       return {
-        directive: {stopCentering: event.how !== 'pageUp', type: 'leaveAlone'},
-        state: {...state, endOwner: 'reader'},
+        directive: {stopCentering: true, type: 'leaveAlone'},
+        state: {...state, endOwner: 'reader', settlingCenter: false},
       }
     case 'headerMeasured': {
       const previous = state.headerSize

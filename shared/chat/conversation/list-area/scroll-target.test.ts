@@ -52,6 +52,7 @@ describe('initial state', () => {
       headerSize: undefined,
       lastCentered: undefined,
       lastEditing: undefined,
+      settlingCenter: false,
     })
     expect(ownsEnd(fresh)).toBe(true)
     expect(ownsEnd(state({endOwner: 'reader'}))).toBe(false)
@@ -111,14 +112,14 @@ describe('threadObserved', () => {
       fresh,
       observed({centeredOrdinal: ord(30), targetInData: true}),
       center(30),
-      state({endOwner: 'reader', lastCentered: ord(30)}),
+      state({endOwner: 'reader', lastCentered: ord(30), settlingCenter: true}),
     ],
     [
       'centring does not depend on the newest messages being loaded',
       fresh,
       observed({centeredOrdinal: ord(30), containsLatestMessage: false, targetInData: true}),
       center(30),
-      state({endOwner: 'reader', lastCentered: ord(30)}),
+      state({endOwner: 'reader', lastCentered: ord(30), settlingCenter: true}),
     ],
     [
       'the same target is centred once, however the thread changes around it',
@@ -139,7 +140,7 @@ describe('threadObserved', () => {
       state({endOwner: 'reader', lastCentered: ord(30)}),
       observed({centeredOrdinal: ord(40), targetInData: true}),
       center(40),
-      state({endOwner: 'reader', lastCentered: ord(40)}),
+      state({endOwner: 'reader', lastCentered: ord(40), settlingCenter: true}),
     ],
     [
       'a new target not yet loaded keeps the old one on record',
@@ -153,7 +154,7 @@ describe('threadObserved', () => {
       state({headerSize: 100}),
       observed({centeredOrdinal: ord(30), targetInData: true}),
       center(30),
-      state({endOwner: 'reader', headerSize: 100, lastCentered: ord(30)}),
+      state({endOwner: 'reader', headerSize: 100, lastCentered: ord(30), settlingCenter: true}),
     ],
     [
       'leaving a centred target returns to the end and stops centring',
@@ -193,14 +194,14 @@ describe('initialLoad', () => {
       fresh,
       {centeredOrdinal: ord(30), hasMessages: true, type: 'initialLoad'},
       center(30),
-      state({endOwner: 'reader', lastCentered: ord(30)}),
+      state({endOwner: 'reader', lastCentered: ord(30), settlingCenter: true}),
     ],
     [
       'a centred conversation centres even with no messages',
       fresh,
       {centeredOrdinal: ord(30), hasMessages: false, type: 'initialLoad'},
       center(30),
-      state({endOwner: 'reader', lastCentered: ord(30)}),
+      state({endOwner: 'reader', lastCentered: ord(30), settlingCenter: true}),
     ],
     [
       'otherwise it goes to the end',
@@ -237,6 +238,12 @@ describe('userScrolled', () => {
       [`${label}: paging down changes nothing`, before, {how: 'pageDown', type: 'userScrolled'}, leaveAlone, before]
     )
   }
+  const settling = state({endOwner: 'reader', lastCentered: ord(30), settlingCenter: true})
+  rows.push(
+    ['a wheel ends the settling of a centred target', settling, {how: 'wheel', type: 'userScrolled'}, stopCentering, {...settling, settlingCenter: false}],
+    ['a drag ends the settling of a centred target', settling, {how: 'drag', type: 'userScrolled'}, stopCentering, {...settling, settlingCenter: false}],
+    ['paging up lets a centred target keep settling', settling, {how: 'pageUp', type: 'userScrolled'}, leaveAlone, settling]
+  )
   runTable(rows)
 })
 

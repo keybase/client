@@ -413,16 +413,42 @@ describe('a centre requested after opening', () => {
     open({center: 50, from: 21, to: 80})
     await tick(1000)
     scrolled(0, 6000)
-    drag()
-    viewable(0, 9)
     clearLog()
-    // Scrolling up loads older rows. The target keeps its index in the newest-first data.
+    // More rows arrive around the target while it is still settling. It keeps its index in the
+    // newest-first data.
     setOrdinals(1, 80)
     viewable(0, 9)
     expect(scrollsOnly()).toEqual([toOffset(25.5 * (6000 / 80) * 0.9)])
     await tick(1000)
     expect(scrollsOnly()).toHaveLength(5)
     expect(scrollsOnly().filter(([kind]) => kind === 'scrollToItem')).toEqual([])
+  })
+
+  test('after a drag, older rows loading under a centred target leave the reader where they are', async () => {
+    open({center: 50, from: 21, to: 80})
+    await tick(1000)
+    scrolled(0, 6000)
+    drag()
+    viewable(0, 9)
+    clearLog()
+    // Scrolling up loads older rows.
+    setOrdinals(1, 80)
+    viewable(0, 9)
+    await tick(1000)
+    expect(scrollsOnly()).toEqual([])
+  })
+
+  test('after a drag, a new message under a centred target leaves the reader where they are', async () => {
+    open({center: 50, from: 21, to: 80})
+    await tick(1000)
+    scrolled(0, 6000)
+    drag()
+    viewable(0, 9)
+    clearLog()
+    setOrdinals(21, 81)
+    viewable(0, 9)
+    await tick(1000)
+    expect(scrollsOnly()).toEqual([])
   })
 })
 
