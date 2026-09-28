@@ -7,6 +7,7 @@ import {pluralize} from '@/util/string'
 import {useChatTeamMembers} from '../team-hooks'
 import {useConversationMetadata} from '../data-hooks'
 import {refreshConversationParticipants} from '@/chat/inbox/refresh-participants'
+import {getChatRpc} from '../chat-rpc'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey; teamID: T.Teams.TeamID}
 
@@ -16,10 +17,7 @@ export const addMembersToChannel = async (
   conversationIDKey: T.Chat.ConversationIDKey,
   usernames: ReadonlyArray<string>
 ) => {
-  await T.RPCChat.localBulkAddToConvRpcPromise({
-    convID: T.Chat.keyToConversationID(conversationIDKey),
-    usernames: [...usernames],
-  })
+  await getChatRpc().addToConversation(conversationIDKey, usernames)
   await refreshConversationParticipants([conversationIDKey])
 }
 

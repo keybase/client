@@ -10,7 +10,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
 import {useChatManageChannelsBadge, useChatTeam} from '../team-hooks'
 import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
-import {hexToUint8Array} from '@/util/uint8array'
+import {getChatRpc} from '../chat-rpc'
 import {hideConversation, joinConversation, muteConversation} from '../status-actions'
 import {useConversationMarkAsUnread, useConversationMetadata} from '../data-hooks'
 import {useInboxPinnedCount, useInboxRowIsPinned, useInboxRowIsTopPinned} from '@/chat/inbox/rows-state'
@@ -149,8 +149,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
       if (!loggedIn || !canMarkTLFAsRead) {
         return
       }
-      const tlfID = hexToUint8Array(teamIDString)
-      await T.RPCChat.localMarkTLFAsReadLocalRpcPromise({tlfID})
+      await getChatRpc().markTeamRead(teamID)
     }
     C.ignorePromise(f())
   }

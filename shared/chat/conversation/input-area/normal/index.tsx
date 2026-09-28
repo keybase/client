@@ -9,7 +9,7 @@ import * as InputState from '../input-state'
 import PlatformInput from './input'
 import ReplyPreview from '../../reply-preview'
 import UnfurlPreview from '../unfurl-preview'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import {indefiniteArticle} from '@/util/string'
 import {infoPanelWidthTablet} from '../../info-panel/common'
 import {assertionToDisplay} from '@/common-adapters/usernames'
@@ -29,6 +29,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useRoute} from '@react-navigation/native'
 import {metasReceived, unboxRows, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {takeSuppressSnapshot} from '@/chat/conversation/unfurl-preview-state'
+import {getChatRpc} from '../../chat-rpc'
 
 const useHintText = (p: {
   isExploding: boolean
@@ -163,9 +164,6 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   )
   const setExplodingModeRaw = useConversationThreadSetExplodingMode()
   const {cannotWrite, minWriterRole, tlfname} = meta
-  const convoID = T.Chat.isValidConversationIDKey(conversationIDKey)
-    ? T.Chat.keyToConversationID(conversationIDKey)
-    : new Uint8Array(0)
   const metaGood = meta.conversationIDKey === conversationIDKey
   const storeDraft = metaGood ? meta.draft : undefined
   const convRetention =
@@ -231,7 +229,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
 
   const sendTypingRaw = (typing: boolean) => {
     const f = async () => {
-      await T.RPCChat.localUpdateTypingRpcPromise({conversationID: convoID, typing})
+      await getChatRpc().setTyping(conversationIDKey, typing)
     }
     C.ignorePromise(f())
   }
@@ -257,11 +255,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     }
     setPreviewText(text)
     const f = async () => {
-      await T.RPCChat.localUpdateUnsentTextRpcPromise({
-        conversationID: convoID,
-        text,
-        tlfName: tlfname,
-      })
+      await getChatRpc().saveDraft({conversationIDKey, text, tlfName: tlfname})
     }
     C.ignorePromise(f())
   }

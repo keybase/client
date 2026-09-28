@@ -18,7 +18,6 @@ import {
 } from './status-actions'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
-const convID = T.Chat.keyToConversationID(conversationIDKey)
 
 const flushPromises = async () => {
   for (let i = 0; i < 10; i++) {
@@ -50,24 +49,22 @@ afterEach(() => {
 
 describe('joinConversation', () => {
   test('joining a conversation refreshes its participants', async () => {
-    jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
 
     joinConversation(conversationIDKey)
     await flushPromises()
 
     expect(rpc.calls('joinConversation')).toEqual([[conversationIDKey]])
-    expect(T.RPCChat.localRefreshParticipantsRpcPromise).toHaveBeenCalledWith({convID})
+    expect(rpc.calls('refreshParticipants')).toEqual([[conversationIDKey]])
   })
 
   test('a failed join never claims the participants are fresh', async () => {
     rpc.fail('joinConversation', new Error('cannot join'))
-    jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
 
     joinConversation(conversationIDKey)
     await flushPromises()
 
-    expect(T.RPCChat.localRefreshParticipantsRpcPromise).not.toHaveBeenCalled()
+    expect(rpc.calls('refreshParticipants')).toEqual([])
     // the failure is not handled here; it lands in ignorePromise's catch-all
     expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(Error))
   })

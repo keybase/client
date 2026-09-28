@@ -1,8 +1,9 @@
 import * as React from 'react'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import {ignorePromise} from '@/constants/utils'
 import logger from '@/logger'
+import {getChatRpc} from './chat-rpc'
 
 type State = T.Immutable<{
   dismissed: Map<T.Chat.ConversationIDKey, Set<string>>
@@ -126,12 +127,9 @@ const fetchPreviews = async (
   onSuccess: (conversationIDKey: T.Chat.ConversationIDKey, infos: ReadonlyArray<T.RPCChat.UnfurlPreviewInfo>) => void
 ) => {
   try {
-    const res = await T.RPCChat.localUnfurlPreviewLocalRpcPromise({
-      convID: T.Chat.keyToConversationID(conversationIDKey),
-      text,
-    })
+    const res = await getChatRpc().getUnfurlPreviews(conversationIDKey, text)
     if (requestID !== requestIDRef.current) return
-    onSuccess(conversationIDKey, res ?? [])
+    onSuccess(conversationIDKey, res)
   } catch (e) {
     // best-effort preview: nothing is shown for a url whose fetch failed, since `visible`
     // only surfaces previews whose url is still in the composer text

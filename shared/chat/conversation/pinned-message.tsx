@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import {zoomImage} from '@/constants/chat/helpers'
 import * as React from 'react'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useChatTeam} from './team-hooks'
@@ -10,6 +10,7 @@ import {useConversationCenterActions} from './center-context'
 import {useConversationThreadID, useThreadMeta} from './thread-context'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
+import {getChatRpc} from './chat-rpc'
 
 const PinnedMessage = function PinnedMessage() {
   const styles = useStyles()
@@ -46,10 +47,7 @@ const PinnedMessage = function PinnedMessage() {
   const onUnpin = () => {
     const f = async () => {
       try {
-        await T.RPCChat.localUnpinMessageRpcPromise(
-          {convID: T.Chat.keyToConversationID(conversationIDKey)},
-          C.waitingKeyChatUnpin(conversationIDKey)
-        )
+        await getChatRpc().unpinMessage(conversationIDKey, C.waitingKeyChatUnpin(conversationIDKey))
       } catch (error) {
         if (error instanceof RPCError) {
           logger.error(`pinMessage: ${error.message}`)
@@ -60,9 +58,7 @@ const PinnedMessage = function PinnedMessage() {
   }
   const onIgnore = () => {
     const f = async () => {
-      await T.RPCChat.localIgnorePinnedMessageRpcPromise({
-        convID: T.Chat.keyToConversationID(conversationIDKey),
-      })
+      await getChatRpc().ignorePinnedMessage(conversationIDKey)
     }
     C.ignorePromise(f())
   }

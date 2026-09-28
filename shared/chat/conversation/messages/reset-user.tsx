@@ -1,10 +1,11 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import {navToProfile} from '@/constants/router'
 import {useConversationThreadID, useThreadMeta} from '../thread-context'
 import {useConversationParticipants} from '../data-hooks'
 import {refreshConversationParticipants} from '@/chat/inbox/refresh-participants'
+import {getChatRpc} from '../chat-rpc'
 
 // Letting a reset user back in puts them back in the conversation, and nothing
 // recomputes its participants on its own - see refreshConversationParticipants.
@@ -12,10 +13,7 @@ export const addTeamMemberAfterReset = async (
   conversationIDKey: T.Chat.ConversationIDKey,
   username: string
 ) => {
-  await T.RPCChat.localAddTeamMemberAfterResetRpcPromise({
-    convID: T.Chat.keyToConversationID(conversationIDKey),
-    username,
-  })
+  await getChatRpc().addTeamMemberAfterReset(conversationIDKey, username)
   await refreshConversationParticipants([conversationIDKey])
 }
 

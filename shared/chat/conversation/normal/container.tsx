@@ -17,6 +17,7 @@ import {
 import {ConversationThreadLoadStatusProvider} from '../thread-load-status-context'
 import {MaybeMentionProvider} from '@/common-adapters/markdown/maybe-mention/context'
 import {peekInputIntent} from '../input-intent-store'
+import {getChatRpc} from '../chat-rpc'
 import {useChatThreadRouteParams} from '../thread-search-route'
 
 type OrangeLineState = {
@@ -90,15 +91,8 @@ const useOrangeLine = (
         return
       }
       const f = async () => {
-        const convID = T.Chat.keyToConversationID(conversationIDKey)
-        const unreadlineRes = await T.RPCChat.localGetUnreadlineRpcPromise({
-          convID,
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-          readMsgID,
-        })
-        const nextOrangeLine = T.Chat.numberToOrdinal(
-          unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
-        )
+        const unreadlineID = await getChatRpc().getUnreadline(conversationIDKey, readMsgID)
+        const nextOrangeLine = T.Chat.numberToOrdinal(unreadlineID ?? 0)
         const currentKey = currentOrangeLineKeyRef.current
         if (currentKey.conversationIDKey !== conversationIDKey) {
           return

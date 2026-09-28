@@ -1,12 +1,13 @@
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import upperFirst from 'lodash/upperFirst'
 import {indefiniteArticle} from '@/util/string'
 import {useChatTeam} from '../../team-hooks'
 import {ignorePromise} from '@/constants/utils'
 import {useConversationMeta} from '../../data-hooks'
+import {getChatRpc} from '../../chat-rpc'
 
 const positionFallbacks = ['bottom center'] as const
 
@@ -62,10 +63,7 @@ const MinWriterRole = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => 
   const onSetNewRole = (role: T.Teams.TeamRoleType, saveID: number) => {
     const f = async () => {
       try {
-        await T.RPCChat.localSetConvMinWriterRoleLocalRpcPromise({
-          convID: T.Chat.keyToConversationID(conversationIDKey),
-          role: T.RPCGen.TeamRole[role],
-        })
+        await getChatRpc().setMinWriterRole(conversationIDKey, role)
         finishSave(saveID)
       } catch (error) {
         failSave(saveID, error)

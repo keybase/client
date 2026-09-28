@@ -3,6 +3,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import {useConversationMeta} from './conversation/data-hooks'
 import logger from '@/logger'
+import {getChatRpc} from './conversation/chat-rpc'
 
 type Props = {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -21,13 +22,7 @@ const DeleteHistoryWarning = (props: Props) => {
         logger.warn('Deleting message history for non-existent TLF:')
         return
       }
-      await T.RPCChat.localPostDeleteHistoryByAgeRpcPromise({
-        age: 0,
-        conversationID: T.Chat.keyToConversationID(conversationIDKey),
-        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-        tlfName: tlfname,
-        tlfPublic: false,
-      })
+      await getChatRpc().deleteHistory(conversationIDKey, tlfname)
     }
     C.ignorePromise(f())
   }

@@ -18,8 +18,15 @@ import logger from '@/logger'
 import {useBotSettings} from './settings'
 import {participantInfoReceived} from '@/chat/inbox/metadata'
 import {useConversationMeta} from '../data-hooks'
+import {getChatRpc} from '../chat-rpc'
 
 const RestrictedItem = '---RESTRICTED---'
+
+const previewConversation = async (conversationIDKey: T.Chat.ConversationIDKey) =>
+  getChatRpc().previewConversation(conversationIDKey)
+const getBotTeamRole = async (conversationIDKey: T.Chat.ConversationIDKey, username: string) =>
+  getChatRpc().getBotTeamRole(conversationIDKey, username)
+const listPublicBotCommands = async (username: string) => getChatRpc().listPublicBotCommands(username)
 
 export const useRefreshBotMembershipOnSuccess = (
   conversationIDKey: T.Chat.ConversationIDKey | undefined,
@@ -30,7 +37,7 @@ export const useRefreshBotMembershipOnSuccess = (
 ) => {
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
   const wasWaitingRef = React.useRef(waiting)
-  const previewConversationByID = C.useRPC(T.RPCChat.localPreviewConversationByIDLocalRpcPromise)
+  const previewConversationByID = C.useRPC(previewConversation)
 
   React.useEffect(() => {
     if (!waiting && wasWaitingRef.current && !error) {
@@ -40,11 +47,11 @@ export const useRefreshBotMembershipOnSuccess = (
         onSuccess()
       } else {
         previewConversationByID(
-          [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
-          preview => {
+          [conversationIDKey],
+          conv => {
             participantInfoReceived(
               conversationIDKey,
-              ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? [])
+              ChatCommon.uiParticipantsToParticipantInfo(conv.participants ?? [])
             )
             onSuccess()
           },
@@ -76,13 +83,8 @@ export const useBotTeamRole = (
   botUsername: string
 ) => {
   const {data: teamRole} = useRPCLoad(
-    T.RPCChat.localGetTeamRoleInConversationRpcPromise,
-    [
-      {
-        convID: conversationIDKey ? T.Chat.keyToConversationID(conversationIDKey) : new Uint8Array(),
-        username: botUsername,
-      },
-    ],
+    getBotTeamRole,
+    [conversationIDKey ?? T.Chat.noConversationIDKey, botUsername],
     {
       enabled: !!conversationIDKey,
       key: `${conversationIDKey ?? ''}:${botUsername}`,
@@ -131,17 +133,14 @@ const addBotMember = async (p: {
   const {botUsername, conversationIDKey, installInConvs} = p
   const {installWithCommands, installWithMentions, installWithRestrict} = p
   try {
-    await T.RPCChat.localAddBotMemberRpcPromise(
-      {
-        botSettings: installWithRestrict
-          ? {cmds: installWithCommands, convs: installInConvs, mentions: installWithMentions}
-          : null,
-        convID: T.Chat.keyToConversationID(conversationIDKey),
-        role: installWithRestrict ? T.RPCGen.TeamRole.restrictedbot : T.RPCGen.TeamRole.bot,
-        username: botUsername,
-      },
-      C.waitingKeyChatBotAdd
-    )
+    await getChatRpc().addBotMember({
+      conversationIDKey,
+      settings: installWithRestrict
+        ? {cmds: installWithCommands, convs: installInConvs, mentions: installWithMentions}
+        : undefined,
+      username: botUsername,
+      waitingKey: C.waitingKeyChatBotAdd,
+    })
   } catch (error) {
     if (error instanceof RPCError) {
       logger.info('addBotMember: failed to add bot member: ' + error.message)
@@ -247,14 +246,12 @@ const InstallBotPopup = (props: Props) => {
     setPendingMutation('edit')
     const f = async () => {
       try {
-        await T.RPCChat.localSetBotMemberSettingsRpcPromise(
-          {
-            botSettings: {cmds: installWithCommands, convs: convsToSave, mentions: installWithMentions},
-            convID: T.Chat.keyToConversationID(conversationIDKey),
-            username: botUsername,
-          },
-          C.waitingKeyChatBotAdd
-        )
+        await getChatRpc().setBotSettings({
+          conversationIDKey,
+          settings: {cmds: installWithCommands, convs: convsToSave, mentions: installWithMentions},
+          username: botUsername,
+          waitingKey: C.waitingKeyChatBotAdd,
+        })
       } catch (error) {
         if (error instanceof RPCError) {
           logger.info('addBotMember: failed to edit bot settings: ' + error.message)
@@ -289,7 +286,7 @@ const InstallBotPopup = (props: Props) => {
   )
 
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
-  const loadBotPublicCommands = C.useRPC(T.RPCChat.localListPublicBotCommandsLocalRpcPromise)
+  const loadBotPublicCommands = C.useRPC(listPublicBotCommands)
   const botPublicCommandsRequestIDRef = React.useRef(0)
   const clearedWaitingForBotRef = React.useRef<string | undefined>(undefined)
   React.useEffect(() => {
@@ -305,12 +302,11 @@ const InstallBotPopup = (props: Props) => {
     }
     const requestID = botPublicCommandsRequestIDRef.current
     loadBotPublicCommands(
-      [{username: botUsername}],
-      res => {
+      [botUsername],
+      commands => {
         if (botPublicCommandsRequestIDRef.current !== requestID) {
           return
         }
-        const commands = (res.commands ?? []).map(command => command.name)
         setLoadedBotPublicCommands({botUsername, commands: {commands, loadError: false}})
       },
       () => {

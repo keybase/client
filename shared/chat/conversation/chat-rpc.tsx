@@ -5,6 +5,7 @@ import * as Common from '@/constants/chat/common'
 import * as T from '@/constants/types'
 import {enumKeys} from '@/constants/utils'
 import {isChatSessionReady} from '@/stores/config'
+import {hexToUint8Array} from '@/util/uint8array'
 
 type WaitingKey = string | ReadonlyArray<string>
 
@@ -135,6 +136,85 @@ export type ChatThreadRpc = {
   // the per-conversation exploding lifetime lives in gregor; clearing it means the default
   setExplodingMode: (conversationIDKey: T.Chat.ConversationIDKey, seconds: number) => Promise<void>
   clearExplodingMode: (conversationIDKey: T.Chat.ConversationIDKey) => Promise<void>
+
+  // the service recomputes a conversation's participants only when asked
+  refreshParticipants: (conversationIDKey: T.Chat.ConversationIDKey) => Promise<void>
+  addToConversation: (conversationIDKey: T.Chat.ConversationIDKey, usernames: ReadonlyArray<string>) => Promise<void>
+  // lets a user who reset back into the conversation
+  addTeamMemberAfterReset: (conversationIDKey: T.Chat.ConversationIDKey, username: string) => Promise<void>
+  // the conversation's inbox item, read without joining it
+  previewConversation: (conversationIDKey: T.Chat.ConversationIDKey) => Promise<T.RPCChat.InboxUIItem>
+
+  unpinMessage: (conversationIDKey: T.Chat.ConversationIDKey, waitingKey?: WaitingKey) => Promise<void>
+  // hides the pinned message for you only
+  ignorePinnedMessage: (conversationIDKey: T.Chat.ConversationIDKey) => Promise<void>
+
+  searchForwardDestinations: (term: string) => Promise<ReadonlyArray<T.RPCChat.ConvSearchHit>>
+  forwardMessage: (p: {
+    conversationIDKey: T.Chat.ConversationIDKey
+    destination: T.Chat.ConversationIDKey
+    messageID: T.Chat.MessageID
+    // an attachment's new caption
+    title: string
+  }) => Promise<void>
+
+  getUnfurlPreviews: (
+    conversationIDKey: T.Chat.ConversationIDKey,
+    text: string
+  ) => Promise<ReadonlyArray<T.RPCChat.UnfurlPreviewInfo>>
+  // each hit is streamed through onHit as it arrives
+  loadGallery: (p: {
+    conversationIDKey: T.Chat.ConversationIDKey
+    fromMessageID?: T.Chat.MessageID
+    num: number
+    onHit: (message: T.RPCChat.UIMessage) => void
+    viewType: T.RPCChat.GalleryItemTyp
+  }) => Promise<{last: boolean}>
+  // where the unread line goes for a reader who has read up to readMsgID; undefined is none
+  getUnreadline: (
+    conversationIDKey: T.Chat.ConversationIDKey,
+    readMsgID: T.Chat.MessageID
+  ) => Promise<T.Chat.MessageID | undefined>
+  // every conversation in the team
+  markTeamRead: (teamID: T.Teams.TeamID) => Promise<void>
+  setNotificationSettings: (p: {
+    channelWide: boolean
+    conversationIDKey: T.Chat.ConversationIDKey
+    desktop: T.Chat.NotificationsType
+    mobile: T.Chat.NotificationsType
+  }) => Promise<void>
+  setMinWriterRole: (conversationIDKey: T.Chat.ConversationIDKey, role: T.Teams.TeamRoleType) => Promise<void>
+  // every message, for everyone
+  deleteHistory: (conversationIDKey: T.Chat.ConversationIDKey, tlfName: string) => Promise<void>
+
+  setTyping: (conversationIDKey: T.Chat.ConversationIDKey, typing: boolean) => Promise<void>
+  saveDraft: (p: {conversationIDKey: T.Chat.ConversationIDKey; text: string; tlfName: string}) => Promise<void>
+  // the device's position, for a live location share
+  updateLocation: (coord: T.Chat.Coordinate) => Promise<void>
+
+  searchBotDestinations: (term: string) => Promise<ReadonlyArray<T.RPCChat.ConvSearchHit>>
+  getBotTeamRole: (conversationIDKey: T.Chat.ConversationIDKey, username: string) => Promise<T.RPCGen.TeamRole>
+  // with settings the bot is restricted to what they allow; without, it sees everything
+  addBotMember: (p: {
+    conversationIDKey: T.Chat.ConversationIDKey
+    settings?: T.RPCGen.TeamBotSettings
+    username: string
+    waitingKey?: WaitingKey
+  }) => Promise<void>
+  getBotSettings: (conversationIDKey: T.Chat.ConversationIDKey, username: string) => Promise<T.RPCGen.TeamBotSettings>
+  setBotSettings: (p: {
+    conversationIDKey: T.Chat.ConversationIDKey
+    settings: T.RPCGen.TeamBotSettings
+    username: string
+    waitingKey?: WaitingKey
+  }) => Promise<void>
+  removeBotMember: (p: {
+    conversationIDKey: T.Chat.ConversationIDKey
+    username: string
+    waitingKey?: WaitingKey
+  }) => Promise<void>
+  // the names of the bot's public commands
+  listPublicBotCommands: (username: string) => Promise<ReadonlyArray<string>>
 }
 
 const threadLoadMessageTypes = enumKeys(T.RPCChat.MessageType).reduce<Array<T.RPCChat.MessageType>>(
@@ -168,7 +248,62 @@ const ephemeralDataOf = (ephemeralLifetime: number) =>
 
 const identifyBehavior = T.RPCGen.TLFIdentifyBehavior.chatGui
 
+// the composer's typing and draft updates send an invalid conversation as an empty id
+const composerConversationID = (conversationIDKey: T.Chat.ConversationIDKey) =>
+  T.Chat.isValidConversationIDKey(conversationIDKey)
+    ? T.Chat.keyToConversationID(conversationIDKey)
+    : new Uint8Array(0)
+
+const notificationSettings = (
+  desktop: T.Chat.NotificationsType,
+  mobile: T.Chat.NotificationsType
+): Array<T.RPCChat.AppNotificationSettingLocal> => [
+  {
+    deviceType: T.RPCGen.DeviceType.desktop,
+    enabled: desktop === 'onWhenAtMentioned',
+    kind: T.RPCChat.NotificationKind.atmention,
+  },
+  {
+    deviceType: T.RPCGen.DeviceType.desktop,
+    enabled: desktop === 'onAnyActivity',
+    kind: T.RPCChat.NotificationKind.generic,
+  },
+  {
+    deviceType: T.RPCGen.DeviceType.mobile,
+    enabled: mobile === 'onWhenAtMentioned',
+    kind: T.RPCChat.NotificationKind.atmention,
+  },
+  {
+    deviceType: T.RPCGen.DeviceType.mobile,
+    enabled: mobile === 'onAnyActivity',
+    kind: T.RPCChat.NotificationKind.generic,
+  },
+]
+
 const serviceChatRpc: ChatThreadRpc = {
+  addBotMember: async p => {
+    await T.RPCChat.localAddBotMemberRpcPromise(
+      {
+        botSettings: p.settings ?? null,
+        convID: T.Chat.keyToConversationID(p.conversationIDKey),
+        role: p.settings ? T.RPCGen.TeamRole.restrictedbot : T.RPCGen.TeamRole.bot,
+        username: p.username,
+      },
+      p.waitingKey
+    )
+  },
+  addTeamMemberAfterReset: async (conversationIDKey, username) => {
+    await T.RPCChat.localAddTeamMemberAfterResetRpcPromise({
+      convID: T.Chat.keyToConversationID(conversationIDKey),
+      username,
+    })
+  },
+  addToConversation: async (conversationIDKey, usernames) => {
+    await T.RPCChat.localBulkAddToConvRpcPromise({
+      convID: T.Chat.keyToConversationID(conversationIDKey),
+      usernames: [...usernames],
+    })
+  },
   cancelPost: async outboxID => {
     await T.RPCChat.localCancelPostRpcPromise({outboxID: T.Chat.outboxIDToRpcOutboxID(outboxID)})
   },
@@ -189,6 +324,15 @@ const serviceChatRpc: ChatThreadRpc = {
       },
       waitingKey
     ),
+  deleteHistory: async (conversationIDKey, tlfName) => {
+    await T.RPCChat.localPostDeleteHistoryByAgeRpcPromise({
+      age: 0,
+      conversationID: T.Chat.keyToConversationID(conversationIDKey),
+      identifyBehavior,
+      tlfName,
+      tlfPublic: false,
+    })
+  },
   dismissJourneycard: async (conversationIDKey, cardType) => {
     await T.RPCChat.localDismissJourneycardRpcPromise({
       cardType,
@@ -205,6 +349,25 @@ const serviceChatRpc: ChatThreadRpc = {
     })
     return res.filePath
   },
+  forwardMessage: async p => {
+    await T.RPCChat.localForwardMessageNonblockRpcPromise({
+      dstConvID: T.Chat.keyToConversationID(p.destination),
+      identifyBehavior,
+      msgID: p.messageID,
+      srcConvID: T.Chat.keyToConversationID(p.conversationIDKey),
+      title: p.title,
+    })
+  },
+  getBotSettings: async (conversationIDKey, username) =>
+    T.RPCChat.localGetBotMemberSettingsRpcPromise({
+      convID: T.Chat.keyToConversationID(conversationIDKey),
+      username,
+    }),
+  getBotTeamRole: async (conversationIDKey, username) =>
+    T.RPCChat.localGetTeamRoleInConversationRpcPromise({
+      convID: T.Chat.keyToConversationID(conversationIDKey),
+      username,
+    }),
   getNextAttachment: async p => {
     const res = await T.RPCChat.localGetNextAttachmentMessageLocalRpcPromise({
       assetTypes: [T.RPCChat.AssetMetadataType.image, T.RPCChat.AssetMetadataType.video],
@@ -215,11 +378,45 @@ const serviceChatRpc: ChatThreadRpc = {
     })
     return res.message ?? undefined
   },
+  getUnfurlPreviews: async (conversationIDKey, text) =>
+    (await T.RPCChat.localUnfurlPreviewLocalRpcPromise({
+      convID: T.Chat.keyToConversationID(conversationIDKey),
+      text,
+    })) ?? [],
+  getUnreadline: async (conversationIDKey, readMsgID) => {
+    const res = await T.RPCChat.localGetUnreadlineRpcPromise({
+      convID: T.Chat.keyToConversationID(conversationIDKey),
+      identifyBehavior,
+      readMsgID,
+    })
+    return res.unreadlineID ? T.Chat.numberToMessageID(res.unreadlineID) : undefined
+  },
   getUploadTempFile: async p => T.RPCChat.localGetUploadTempFileRpcPromise(p),
+  ignorePinnedMessage: async conversationIDKey => {
+    await T.RPCChat.localIgnorePinnedMessageRpcPromise({convID: T.Chat.keyToConversationID(conversationIDKey)})
+  },
   joinConversation: async conversationIDKey => {
     await T.RPCChat.localJoinConversationByIDLocalRpcPromise({
       convID: T.Chat.keyToConversationID(conversationIDKey),
     })
+  },
+  listPublicBotCommands: async username => {
+    const res = await T.RPCChat.localListPublicBotCommandsLocalRpcPromise({username})
+    return (res.commands ?? []).map(command => command.name)
+  },
+  loadGallery: async p => {
+    const res = await T.RPCChat.localLoadGalleryRpcListener({
+      incomingCallMap: {
+        'chat.1.chatUi.chatLoadGalleryHit': hit => p.onHit(hit.message),
+      },
+      params: {
+        convID: T.Chat.keyToConversationID(p.conversationIDKey),
+        fromMsgID: p.fromMessageID,
+        num: p.num,
+        typ: p.viewType,
+      },
+    })
+    return {last: !!res.last}
   },
   loadThread: async p => {
     if (!isChatSessionReady()) {
@@ -265,6 +462,9 @@ const serviceChatRpc: ChatThreadRpc = {
       forceUnread: p.forceUnread,
       msgID: p.msgID,
     })
+  },
+  markTeamRead: async teamID => {
+    await T.RPCChat.localMarkTLFAsReadLocalRpcPromise({tlfID: hexToUint8Array(T.Teams.teamIDToString(teamID))})
   },
   pinMessage: async (conversationIDKey, messageID) => {
     await T.RPCChat.localPinMessageRpcPromise({
@@ -360,6 +560,21 @@ const serviceChatRpc: ChatThreadRpc = {
       },
     })
   },
+  previewConversation: async conversationIDKey => {
+    const res = await T.RPCChat.localPreviewConversationByIDLocalRpcPromise({
+      convID: T.Chat.keyToConversationID(conversationIDKey),
+    })
+    return res.conv
+  },
+  refreshParticipants: async conversationIDKey => {
+    await T.RPCChat.localRefreshParticipantsRpcPromise({convID: T.Chat.keyToConversationID(conversationIDKey)})
+  },
+  removeBotMember: async p => {
+    await T.RPCChat.localRemoveBotMemberRpcPromise(
+      {convID: T.Chat.keyToConversationID(p.conversationIDKey), username: p.username},
+      p.waitingKey
+    )
+  },
   resolveUnfurlPrompt: async p => {
     await T.RPCChat.localResolveUnfurlPromptRpcPromise({
       convID: T.Chat.keyToConversationID(p.conversationIDKey),
@@ -370,6 +585,26 @@ const serviceChatRpc: ChatThreadRpc = {
   },
   retryPost: async outboxID => {
     await T.RPCChat.localRetryPostRpcPromise({outboxID: T.Chat.outboxIDToRpcOutboxID(outboxID)})
+  },
+  saveDraft: async p => {
+    await T.RPCChat.localUpdateUnsentTextRpcPromise({
+      conversationID: composerConversationID(p.conversationIDKey),
+      text: p.text,
+      tlfName: p.tlfName,
+    })
+  },
+  searchBotDestinations: async term => (await T.RPCChat.localAddBotConvSearchRpcPromise({term})) ?? [],
+  searchForwardDestinations: async term =>
+    (await T.RPCChat.localForwardMessageConvSearchRpcPromise({term})) ?? [],
+  setBotSettings: async p => {
+    await T.RPCChat.localSetBotMemberSettingsRpcPromise(
+      {
+        botSettings: p.settings,
+        convID: T.Chat.keyToConversationID(p.conversationIDKey),
+        username: p.username,
+      },
+      p.waitingKey
+    )
   },
   setConversationStatus: async (conversationIDKey, status) => {
     await T.RPCChat.localSetConversationStatusLocalRpcPromise({
@@ -385,6 +620,25 @@ const serviceChatRpc: ChatThreadRpc = {
       dtime: {offset: 0, time: 0},
     })
   },
+  setMinWriterRole: async (conversationIDKey, role) => {
+    await T.RPCChat.localSetConvMinWriterRoleLocalRpcPromise({
+      convID: T.Chat.keyToConversationID(conversationIDKey),
+      role: T.RPCGen.TeamRole[role],
+    })
+  },
+  setNotificationSettings: async p => {
+    await T.RPCChat.localSetAppNotificationSettingsLocalRpcPromise({
+      channelWide: p.channelWide,
+      convID: T.Chat.keyToConversationID(p.conversationIDKey),
+      settings: notificationSettings(p.desktop, p.mobile),
+    })
+  },
+  setTyping: async (conversationIDKey, typing) => {
+    await T.RPCChat.localUpdateTypingRpcPromise({
+      conversationID: composerConversationID(conversationIDKey),
+      typing,
+    })
+  },
   toggleCollapse: async p => {
     await T.RPCChat.localToggleMessageCollapseRpcPromise({
       collapse: p.collapse,
@@ -394,6 +648,12 @@ const serviceChatRpc: ChatThreadRpc = {
   },
   trackGiphySelect: async result => {
     await T.RPCChat.localTrackGiphySelectRpcPromise({result})
+  },
+  unpinMessage: async (conversationIDKey, waitingKey) => {
+    await T.RPCChat.localUnpinMessageRpcPromise({convID: T.Chat.keyToConversationID(conversationIDKey)}, waitingKey)
+  },
+  updateLocation: async ({accuracy, lat, lon}) => {
+    await T.RPCChat.localLocationUpdateRpcPromise({coord: {accuracy, lat, lon}})
   },
 }
 

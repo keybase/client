@@ -5,8 +5,11 @@ import * as T from '@/constants/types'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import debounce from 'lodash/debounce'
 import logger from '@/logger'
+import {getChatRpc} from '../chat-rpc'
 
 type Props = {botUsername: string}
+
+const searchDestinations = async (term: string) => getChatRpc().searchBotDestinations(term)
 
 const BotTeamPicker = (props: Props) => {
   const styles = useStyles()
@@ -16,17 +19,17 @@ const BotTeamPicker = (props: Props) => {
   const [results, setResults] = React.useState<ReadonlyArray<T.RPCChat.ConvSearchHit>>([])
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
-  const submit = C.useRPC(T.RPCChat.localAddBotConvSearchRpcPromise)
+  const submit = C.useRPC(searchDestinations)
 
   const [lastTerm, setLastTerm] = React.useState('init')
   if (lastTerm !== term) {
     setLastTerm(term)
     setWaiting(true)
     submit(
-      [{term}],
+      [term],
       result => {
         setWaiting(false)
-        setResults(result ?? [])
+        setResults(result)
       },
       error => {
         setWaiting(false)
