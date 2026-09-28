@@ -101,9 +101,14 @@ export function List<T>(p: ListProps<T>) {
   const {items, ItemRenderer, loading, keyExtractor, onSelected, rowHeight} = p
   const {suggestBotCommandsUpdateStatus, listStyle, spinnerStyle, setListHandle} = p
   const [selectedIndex, setSelectedIndex] = React.useState(0)
-  // typing narrows the list under the highlight; one left past the end falls back to the first
-  // item, so Enter and Tab both pick it rather than finding nothing
-  const highlighted = selectedIndex < items.length ? selectedIndex : 0
+  // Any change to what the list holds (typing narrows or regrows it) starts the highlight again
+  // from the first item, the way a desktop completion list does, so Enter and Tab pick that one.
+  const itemsKey = items.map(keyExtractor).join('\n')
+  const [lastItemsKey, setLastItemsKey] = React.useState(itemsKey)
+  if (lastItemsKey !== itemsKey) {
+    setLastItemsKey(itemsKey)
+    setSelectedIndex(0)
+  }
 
   const onSelectedEvent = React.useEffectEvent((item: T, final: boolean) => onSelected(item, final))
   const renderItem = (idx: number, item: T) => (
@@ -112,31 +117,23 @@ export function List<T>(p: ListProps<T>) {
       ItemRenderer={ItemRenderer}
       item={item}
       onSelected={onSelectedEvent}
-      selected={idx === highlighted}
+      selected={idx === selectedIndex}
     />
   )
 
-  const lastSelectedIndex = React.useRef(selectedIndex)
-  const sel = items[highlighted]
-  React.useEffect(() => {
-    if (lastSelectedIndex.current !== selectedIndex) {
-      lastSelectedIndex.current = selectedIndex
-      if (sel) {
-        onSelected(sel, false)
-      }
-    }
-  }, [onSelected, sel, selectedIndex])
-
   const hasItems = React.useEffectEvent(() => items.length > 0)
+  // only a move previews, so a list that changes under the highlight never writes to the input
   const move = React.useEffectEvent((up: boolean) => {
     const length = items.length
-    const s = (((up ? highlighted - 1 : highlighted + 1) % length) + length) % length
-    if (s !== selectedIndex) {
-      setSelectedIndex(s)
-    }
+    if (!length) return
+    const s = (((up ? selectedIndex - 1 : selectedIndex + 1) % length) + length) % length
+    const item = items[s]
+    if (s === selectedIndex || !item) return
+    setSelectedIndex(s)
+    onSelected(item, false)
   })
   const submit = React.useEffectEvent(() => {
-    const sel = items[highlighted]
+    const sel = items[selectedIndex]
     if (sel) {
       onSelected(sel, true)
     }
@@ -160,7 +157,7 @@ export function List<T>(p: ListProps<T>) {
         keyExtractor={keyExtractor}
         renderItem={renderItem}
         rowHeight={rowHeight}
-        selectedIndex={highlighted}
+        selectedIndex={selectedIndex}
         suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
       />
       {loading && (

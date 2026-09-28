@@ -121,6 +121,47 @@ describe('List', () => {
     expect(list.onSelected).toHaveBeenCalledWith('testuser', true)
   })
 
+  test('moving previews the newly highlighted item, wrapping at the ends', () => {
+    const list = setup(['testuser', 'testuser-mac', 'testuser2'])
+
+    list.move(false)
+    expect(list.onSelected).toHaveBeenLastCalledWith('testuser-mac', false)
+    list.move(true)
+    list.move(true)
+
+    expect(list.onSelected).toHaveBeenLastCalledWith('testuser2', false)
+    expect(highlighted()).toEqual(['testuser2'])
+  })
+
+  test('a list that changes under the highlight starts again from its first item, without a preview', () => {
+    const list = setup(['testuser', 'testuser-mac', 'testuser2', 'testuser3'])
+    list.move(false)
+    list.move(false)
+    list.move(false)
+    list.onSelected.mockClear()
+
+    list.rerender(['testuser', 'testuser-mac'])
+    list.rerender(['testuser', 'testuser-mac', 'testuser2', 'testuser3'])
+
+    expect(highlighted()).toEqual(['testuser'])
+    expect(list.onSelected).not.toHaveBeenCalled()
+    list.move(false)
+    expect(list.onSelected).toHaveBeenLastCalledWith('testuser-mac', false)
+  })
+
+  test('moving on an empty list does nothing, and items that arrive later are not previewed', () => {
+    const list = setup([])
+
+    list.move(false)
+    list.rerender(['testuser', 'testuser-mac'])
+    list.rerender(['testuser', 'testuser-mac', 'testuser2'])
+
+    expect(list.onSelected).not.toHaveBeenCalled()
+    expect(highlighted()).toEqual(['testuser'])
+    expect(list.submit()).toBe(true)
+    expect(list.onSelected).toHaveBeenCalledWith('testuser', true)
+  })
+
   test('an empty list has nothing to pick', () => {
     const list = setup([])
 
