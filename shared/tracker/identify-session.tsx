@@ -326,9 +326,8 @@ export const loadProfileIdentify = (rawUsername: string, options: IdentifyLoadOp
   ignorePromise(loadFollowing(s, generation))
 }
 
-// Registered once for the lifetime of the module. The unsubscribes are dropped
-// on purpose; sign out clears the engine listener registry wholesale and the
-// flag below lets them be re-registered on the next load.
+// Registered once, for the lifetime of the module: each listener looks its session up when an
+// action arrives, and a store reset clears the sessions, not the subscriptions.
 let engineSubscribed = false
 const ensureEngineSubscriptions = () => {
   if (engineSubscribed) {
@@ -435,5 +434,4 @@ export const getProfileNonUserDetails = (username: string) =>
 registerExternalResetter('tracker-identify-sessions', () => {
   sessions.clear()
   lastCompleted.clear()
-  engineSubscribed = false
 })

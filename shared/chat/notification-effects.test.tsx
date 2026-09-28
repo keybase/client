@@ -1118,6 +1118,19 @@ const typingIn = (id: T.Chat.ConversationIDKey, username: string) =>
 
 const typersIn = (tag: string) => [...(mounted.get(tag)?.store.getState().typing ?? [])]
 
+const explodingModeIn = (id: T.Chat.ConversationIDKey, seconds: number) =>
+  engineAction('keybase.1.gregorUI.pushState', {
+    reason: T.RPCGen.PushReason.none,
+    state: {
+      items: [
+        {
+          item: {body: new TextEncoder().encode(String(seconds)), category: `exploding:${id}`},
+          md: {msgID: new Uint8Array([1])},
+        },
+      ],
+    },
+  })
+
 describe('mounted conversation screens', () => {
   test('two screens on the same conversation each get the thread update, in mount order', async () => {
     await mountTree(
@@ -1171,7 +1184,7 @@ describe('mounted conversation screens', () => {
   })
 
   // An account switch resets every store but keeps the logged-in screens mounted; they keep
-  // hearing their conversation.
+  // hearing their conversation, on the chat router and on the engine bus.
   test('a mounted screen keeps getting notifications across a store reset', async () => {
     await mountScreens([convA])
     act(() => {
@@ -1189,6 +1202,8 @@ describe('mounted conversation screens', () => {
       expect.arrayContaining(['thread:A:liveUpdateVersion,messageIDToOrdinal,messageMap,messageOrdinals', 'unboxRows:A'])
     )
     expect(mounted.get('A')?.store.getState().messageOrdinals).toContain(T.Chat.numberToOrdinal(31))
+    await notify(explodingModeIn(convA, 300))
+    expect(mounted.get('A')?.store.getState().explodingMode).toBe(300)
   })
 
   // Every useConversationMetadata reader arms its own reload, so one notification asks for the
