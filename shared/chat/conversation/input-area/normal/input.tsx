@@ -151,7 +151,7 @@ function DesktopInput(p: InputLowLevelProps) {
       },
       isFocused: () =>
         !!i && (globalThis as {document?: {activeElement: unknown}}).document?.activeElement === i,
-      replaceText: (ti: TextInfo, reflectChange: boolean): void => {
+      replaceText: (ti: TextInfo, reflectChange: boolean) => {
         // defer since we can do this in other renders
         setTimeout(() => {
           setValue(ti.text)
@@ -174,6 +174,7 @@ function DesktopInput(p: InputLowLevelProps) {
             }, 100)
           }
         }, 0)
+        return true
       },
     }
   }, [multiline, onChange])
@@ -372,12 +373,13 @@ function NativeInput(p: InputLowLevelProps) {
         return selection
       },
       isFocused: () => !!inputRef.current?.isFocused(),
-      replaceText: (ti: TextInfo, reflectChange: boolean): void => {
+      replaceText: (ti: TextInfo, reflectChange: boolean) => {
         if (!reflectChange) {
-          return
+          return false
         }
         onChangeText(ti.text)
         setSelection(ti.selection)
+        return true
       },
     }
   }, [onChangeText, selection])

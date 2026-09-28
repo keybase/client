@@ -5,6 +5,7 @@ import type * as T from '@/constants/types'
 import type * as RTL from '@testing-library/react'
 import type * as NormalInput from '.'
 import type * as InputStateModule from '../input-state'
+import type * as ComposerModule from '../composer'
 import type * as ThreadContext from '../../thread-context'
 import type * as Zustand from '@/util/zustand'
 import type * as UsePicker from '@/chat/emoji-picker/use-picker'
@@ -100,6 +101,7 @@ jest.mock('../suggestors', () => ({
 
 type Modules = {
   act: typeof RTL.act
+  Composer: typeof ComposerModule
   cleanup: typeof RTL.cleanup
   render: typeof RTL.render
   Input: typeof NormalInput.default
@@ -113,6 +115,7 @@ type Modules = {
 /* eslint-disable @typescript-eslint/no-require-imports */
 const m: Modules = {
   ...(require('@testing-library/react') as Pick<Modules, 'act' | 'cleanup' | 'render'>),
+  Composer: require('../composer') as typeof ComposerModule,
   Input: (require('.') as typeof NormalInput).default,
   InputState: require('../input-state') as Modules['InputState'],
   T: require('@/constants/types') as typeof T,
@@ -130,7 +133,9 @@ const convID = m.T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 type InputDispatch = Parameters<Parameters<typeof m.InputState.useConversationInputDispatch>[0]>[0]
 let inputDispatch: InputDispatch | undefined
 let threadActions: ReturnType<typeof m.Thread.useConversationThreadActions> | undefined
+let composer: ComposerModule.Composer | undefined
 const Probe = () => {
+  composer = m.Composer.useComposer()
   inputDispatch = m.InputState.useConversationInputDispatch(d => d)
   threadActions = m.Thread.useConversationThreadActions()
   return null
@@ -216,6 +221,7 @@ afterEach(() => {
   mockFocused = false
   inputDispatch = undefined
   threadActions = undefined
+  composer = undefined
 })
 
 test('the mention button inserts @ at the caret with no padding', () => {
@@ -266,6 +272,29 @@ test('hardware shift-enter inserts a newline at the caret', () => {
 
   expect(input().value).toBe('ab\ncd')
   expect(input().selection).toEqual({end: 3, start: 3})
+})
+
+// the native input only shows reflected writes, so a suggestion preview never reaches it
+test('a preview write the input does not show is not what the next send sends', async () => {
+  const post = jest.spyOn(m.T.RPCChat, 'localPostTextNonblockRpcListener').mockResolvedValue({
+    outboxID: new TextEncoder().encode('posted'),
+  })
+  renderComposer()
+  type('hi @te')
+
+  act(() => {
+    composer?.replace({selection: {end: 12, start: 12}, text: 'hi @testuser'}, false)
+  })
+  expect(input().value).toBe('hi @te')
+  act(() => {
+    mockHWKey?.({pressedKey: 'enter'})
+  })
+  act(() => {
+    jest.advanceTimersByTime(60)
+  })
+  await flushSend()
+
+  expect(post.mock.calls[0]?.[0].params.body).toBe('hi @te')
 })
 
 test('hardware enter sends the text 60ms later and clears the composer', async () => {

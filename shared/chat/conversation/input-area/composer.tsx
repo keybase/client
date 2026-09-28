@@ -11,8 +11,9 @@ export type ComposerInput = {
   focus: () => void
   getSelection: () => Selection | undefined
   isFocused: () => boolean
-  // reflectChange: echo the new text back through the input's onChangeText, as typing would
-  replaceText: (info: TextInfo, reflectChange: boolean) => void
+  // reflectChange: echo the new text back through the input's onChangeText, as typing would.
+  // False when the input did not show the text (the native input shows only reflected writes).
+  replaceText: (info: TextInfo, reflectChange: boolean) => boolean
 }
 export type ComposerInputRef = {readonly current: ComposerInput | null}
 
@@ -83,8 +84,10 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   const replace = (info: TextInfo, reflectChange: boolean) => {
     const input = current()
     if (!input) return
-    text = info.text
-    input.replaceText(info, reflectChange)
+    // the text is only ever what the input shows, or a send would send a preview nobody saw
+    if (input.replaceText(info, reflectChange)) {
+      text = info.text
+    }
   }
 
   const offerDraft = (draft: string | undefined) => {

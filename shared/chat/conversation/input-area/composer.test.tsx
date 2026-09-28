@@ -326,6 +326,22 @@ describe('replace', () => {
     expect(fake.text).toBe('hi @testuser')
     expect(reports).toEqual([])
   })
+
+  test('a preview the input does not show leaves the text, so a send sends what is shown', () => {
+    jest.useFakeTimers()
+    const {composer, mount, send} = setup()
+    const {fake} = mount()
+    fake.showsPreviews = false
+    fake.type('hi @te')
+
+    composer.replace({selection: {end: 12, start: 12}, text: 'hi @testuser'}, false)
+
+    expect(fake.text).toBe('hi @te')
+    expect(composer.getText()).toBe('hi @te')
+    composer.submit(send)
+    jest.runAllTimers()
+    expect(send).toHaveBeenCalledWith('hi @te', noSnapshot)
+  })
 })
 
 describe('submit', () => {

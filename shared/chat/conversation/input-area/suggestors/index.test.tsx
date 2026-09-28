@@ -38,7 +38,7 @@ const makeInputRef = (getSelection: () => Selection | undefined) => ({
     focus: jest.fn(),
     getSelection,
     isFocused: () => true,
-    replaceText: jest.fn(),
+    replaceText: jest.fn(() => true),
   } as unknown as InputRef,
 })
 

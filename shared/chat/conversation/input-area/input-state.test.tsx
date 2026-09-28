@@ -62,6 +62,7 @@ jest.mock('./normal/input', () => ({
         if (reflectChange) {
           mockPlatformInputProps?.onChangeText(ti.text)
         }
+        return true
       },
     })
     return null

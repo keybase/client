@@ -10,6 +10,8 @@ export type FakeComposerInput = ComposerInput & {
   focusCount: number
   focused: boolean
   selection: Selection | undefined
+  // false: like the native input, a write that is not reflected is not shown
+  showsPreviews: boolean
   text: string
   // what a keystroke or paste does: new text, the caret, then the change report
   type: (text: string, caret?: number) => void
@@ -35,13 +37,16 @@ export const makeFakeComposerInput = (): FakeComposerInput => {
     getSelection: () => fake.selection,
     isFocused: () => fake.focused,
     replaceText: (info, reflectChange) => {
+      if (!reflectChange && !fake.showsPreviews) return false
       fake.text = info.text
       fake.selection = info.selection
       if (reflectChange) {
         onChangeText?.(info.text)
       }
+      return true
     },
     selection: undefined,
+    showsPreviews: true,
     text: '',
     type: (text, caret = text.length) => {
       fake.text = text
