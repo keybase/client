@@ -392,15 +392,11 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
   const {retryMessage} = thread
   const shownCache = React.useContext(ShownUsernameCacheContext)
   const conversationIDKey = useConversationThreadID()
-  // the selector below hands these to every row, so they must keep their identity across renders
-  const messageActions = React.useMemo(
-    () => ({
-      messageDelete: (ordinal: T.Chat.Ordinal) => deleteMessage(conversationIDKey, {ordinal, thread}),
-      toggleMessageReaction: (ordinal: T.Chat.Ordinal, emoji: string) =>
-        toggleReaction(conversationIDKey, {ordinal, thread}, emoji),
-    }),
-    [conversationIDKey, thread]
-  )
+  const messageActions = {
+    messageDelete: (ordinal: T.Chat.Ordinal) => deleteMessage(conversationIDKey, {ordinal, thread}),
+    toggleMessageReaction: (ordinal: T.Chat.Ordinal, emoji: string) =>
+      toggleReaction(conversationIDKey, {ordinal, thread}, emoji),
+  }
   // Reload-free read: avoid useConversationParticipants' per-mount unboxRows + engine
   // listener registration, which is too expensive to pay per message row.
   const participantInfo = useInboxMetadataState(s => s.participants.get(conversationIDKey)) ?? emptyParticipantInfo
