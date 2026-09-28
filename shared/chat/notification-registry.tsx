@@ -52,6 +52,9 @@ export type ReloadTrigger =
   | {type: 'staleThread'}
 
 export type Delivery<N> = {conversationIDKey: T.Chat.ConversationIDKey; notification: N}
+// One notification for every conversation in a set that can name far more conversations than are
+// mounted (a team's channels, an inbox sync), so it is matched against the registrations instead.
+export type FanOut<N> = {conversationIDKeys: ReadonlySet<T.Chat.ConversationIDKey>; notification: N}
 type Handler<N> = (notification: N) => void
 type Registry<N> = Map<T.Chat.ConversationIDKey, Set<Handler<N>>>
 
@@ -111,18 +114,33 @@ const clearRegistrations = () => {
 }
 registerExternalResetter('chat-notification-registry', clearRegistrations)
 
+const runHandlers = <N,>(handlers: ReadonlySet<Handler<N>>, notification: N, type: string) => {
+  for (const handler of [...handlers]) {
+    try {
+      handler(notification)
+    } catch (error) {
+      logger.error(`Error in chat notification handler for ${type}`, error)
+    }
+  }
+}
+
 const deliver = <N,>(registry: Registry<N>, deliveries: ReadonlyArray<Delivery<N>>, type: string) => {
   for (const {conversationIDKey, notification} of deliveries) {
     const handlers = registry.get(conversationIDKey)
-    if (!handlers?.size) {
-      continue
+    if (handlers?.size) {
+      runHandlers(handlers, notification, type)
     }
-    for (const handler of [...handlers]) {
-      try {
-        handler(notification)
-      } catch (error) {
-        logger.error(`Error in chat notification handler for ${type}`, error)
-      }
+  }
+}
+
+const deliverToEach = <N,>(
+  registry: Registry<N>,
+  {conversationIDKeys, notification}: FanOut<N>,
+  type: string
+) => {
+  for (const [conversationIDKey, handlers] of [...registry]) {
+    if (conversationIDKeys.has(conversationIDKey)) {
+      runHandlers(handlers, notification, type)
     }
   }
 }
@@ -134,3 +152,6 @@ export const deliverThreadNotifications = (
 
 export const deliverReloadTriggers = (deliveries: ReadonlyArray<Delivery<ReloadTrigger>>, type: string) =>
   deliver(reloadHandlers, deliveries, type)
+
+export const deliverReloadTriggerToEach = (fanOut: FanOut<ReloadTrigger>, type: string) =>
+  deliverToEach(reloadHandlers, fanOut, type)

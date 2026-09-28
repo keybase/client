@@ -37,9 +37,12 @@ const typingIn = (id: T.Chat.ConversationIDKey, username: string) =>
 
 // flattens a decode into the conversations each stage is told about, and what
 const decoded = (action: ChatNotification) => {
-  const {reloads, thread} = decodeChatNotification(action)
+  const {reloadEach, reloads, thread} = decodeChatNotification(action)
   return {
-    reloads: reloads.map(d => [d.conversationIDKey, d.notification.type]),
+    reloads: [
+      ...reloads.map(d => [d.conversationIDKey, d.notification.type]),
+      ...[...(reloadEach?.conversationIDKeys ?? [])].map(id => [id, reloadEach?.notification.type]),
+    ],
     thread: thread.map(d => [d.conversationIDKey, d.notification.type]),
   }
 }

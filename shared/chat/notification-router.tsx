@@ -25,9 +25,11 @@ import {useDaemonState} from '@/stores/daemon'
 import {useUsersState} from '@/stores/users'
 import {useWaitingState} from '@/stores/waiting'
 import {
+  deliverReloadTriggerToEach,
   deliverReloadTriggers,
   deliverThreadNotifications,
   type Delivery,
+  type FanOut,
   type ReloadTrigger,
   type ThreadNotification,
 } from './notification-registry'
@@ -75,6 +77,8 @@ export const isChatNotification = (action: EngineGen.Actions): action is ChatNot
 
 type Decoded = {
   reloads: Array<Delivery<ReloadTrigger>>
+  // delivered after `reloads`, to mounted readers of any of its conversations
+  reloadEach?: FanOut<ReloadTrigger>
   thread: Array<Delivery<ThreadNotification>>
 }
 
@@ -195,8 +199,10 @@ const one = <N,>(conversationIDKey: T.Chat.ConversationIDKey, notification: N): 
   {conversationIDKey, notification},
 ]
 
-const each = <N,>(ids: Iterable<T.Chat.ConversationIDKey>, notification: N): Array<Delivery<N>> =>
-  [...new Set(ids)].map(conversationIDKey => ({conversationIDKey, notification}))
+const each = <N,>(ids: Iterable<T.Chat.ConversationIDKey>, notification: N): FanOut<N> => ({
+  conversationIDKeys: new Set(ids),
+  notification,
+})
 
 const metadataReload: ReloadTrigger = {type: 'metadata'}
 const staleThread: ReloadTrigger = {type: 'staleThread'}
@@ -216,20 +222,22 @@ export const decodeChatNotification = (action: ChatNotification): Decoded => {
       return {reloads: one(T.Chat.conversationIDToKey(action.payload.params.convID), metadataReload), thread: []}
     case 'chat.1.NotifyChat.ChatSetTeamRetention':
       return {
-        reloads: each((action.payload.params.convs ?? []).map(inboxUIItemConversationIDKey), metadataReload),
+        reloadEach: each((action.payload.params.convs ?? []).map(inboxUIItemConversationIDKey), metadataReload),
+        reloads: [],
         thread: [],
       }
     case 'chat.1.NotifyChat.ChatParticipantsInfo': {
       const participants = action.payload.params.participants ?? {}
       const ids = Object.keys(participants).filter(id => participants[id])
-      return {reloads: each(ids.map(T.Chat.stringToConversationIDKey), metadataReload), thread: []}
+      return {reloadEach: each(ids.map(T.Chat.stringToConversationIDKey), metadataReload), reloads: [], thread: []}
     }
     case 'chat.1.NotifyChat.ChatThreadsStale':
       return {
-        reloads: each(
+        reloadEach: each(
           (action.payload.params.updates ?? []).map(u => T.Chat.conversationIDToKey(u.convID)),
           staleThread
         ),
+        reloads: [],
         thread: [],
       }
     case 'chat.1.NotifyChat.ChatInboxSynced': {
@@ -238,10 +246,11 @@ export const decodeChatNotification = (action: ChatNotification): Decoded => {
         return {reloads: [], thread: []}
       }
       return {
-        reloads: each(
+        reloadEach: each(
           (syncRes.incremental.items ?? []).map(item => T.Chat.stringToConversationIDKey(item.conv.convID)),
           staleThread
         ),
+        reloads: [],
         thread: [],
       }
     }
@@ -418,7 +427,10 @@ const applyToInbox = (action: ChatNotification) => {
 
 export const routeChatNotification = (action: ChatNotification) => {
   applyToInbox(action)
-  const {reloads, thread} = decodeChatNotification(action)
+  const {reloadEach, reloads, thread} = decodeChatNotification(action)
   deliverThreadNotifications(thread, action.type)
   deliverReloadTriggers(reloads, action.type)
+  if (reloadEach) {
+    deliverReloadTriggerToEach(reloadEach, action.type)
+  }
 }
