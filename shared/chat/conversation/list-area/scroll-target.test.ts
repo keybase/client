@@ -14,7 +14,7 @@ import {
 
 const ord = T.Chat.numberToOrdinal
 
-const fresh = initialScrollTargetState('conv:0')
+const fresh = initialScrollTargetState
 const state = (p: Partial<ScrollTargetState> = {}): ScrollTargetState => ({...fresh, ...p})
 // Everything a busy session accumulates: reader holds the end, a target centred, a header measured,
 // an edit revealed.
@@ -48,7 +48,6 @@ const runTable = (rows: Array<Row>) =>
 describe('initial state', () => {
   test('the list owns the end and nothing is centred, measured or revealed', () => {
     expect(fresh).toEqual({
-      datasetKey: 'conv:0',
       endOwner: 'list',
       headerSize: undefined,
       lastCentered: undefined,
@@ -60,30 +59,17 @@ describe('initial state', () => {
 })
 
 describe('datasetChanged', () => {
-  const next = {datasetKey: 'conv:1', type: 'datasetChanged'} as const
+  const next = {type: 'datasetChanged'} as const
   runTable([
-    ['from a fresh state, only the key moves', fresh, next, leaveAlone, state({datasetKey: 'conv:1'})],
+    ['from a fresh state, nothing changes', fresh, next, leaveAlone, fresh],
     [
       'hands the end back and forgets the centred target and header, keeping the revealed edit',
       busy,
       next,
       leaveAlone,
-      state({datasetKey: 'conv:1', lastEditing: ord(15)}),
-    ],
-    [
-      're-announcing the same key resets too',
-      busy,
-      {datasetKey: 'conv:0', type: 'datasetChanged'},
-      leaveAlone,
       state({lastEditing: ord(15)}),
     ],
-    [
-      'does not stop centring already under way',
-      state({lastCentered: ord(30)}),
-      next,
-      leaveAlone,
-      state({datasetKey: 'conv:1'}),
-    ],
+    ['does not stop centring already under way', state({lastCentered: ord(30)}), next, leaveAlone, fresh],
   ])
 })
 
@@ -335,22 +321,19 @@ describe('editingChanged', () => {
   ])
 })
 
-describe('scrollToBottomRequested and jumpToRecent', () => {
-  const rows: Array<Row> = []
-  for (const type of ['scrollToBottomRequested', 'jumpToRecent'] as const) {
-    rows.push(
-      [`${type} from a reader takes back the end`, busy, {type}, pinUnlessAtEnd, {...busy, endOwner: 'list'}],
-      [`${type} with the list at the end changes nothing but asks again`, fresh, {type}, pinUnlessAtEnd, fresh],
-      [
-        `${type} does not stop centring or forget the target`,
-        state({endOwner: 'reader', lastCentered: ord(30)}),
-        {type},
-        pinUnlessAtEnd,
-        state({lastCentered: ord(30)}),
-      ]
-    )
-  }
-  runTable(rows)
+describe('scrollToBottomRequested', () => {
+  const requested = {type: 'scrollToBottomRequested'} as const
+  runTable([
+    ['from a reader takes back the end', busy, requested, pinUnlessAtEnd, {...busy, endOwner: 'list'}],
+    ['with the list at the end changes nothing but asks again', fresh, requested, pinUnlessAtEnd, fresh],
+    [
+      'does not stop centring or forget the target',
+      state({endOwner: 'reader', lastCentered: ord(30)}),
+      requested,
+      pinUnlessAtEnd,
+      state({lastCentered: ord(30)}),
+    ],
+  ])
 })
 
 describe('sequences', () => {
@@ -376,7 +359,7 @@ describe('sequences', () => {
   test('a search hit: clear, reload, centre once, then back to the end', () => {
     const {directives, state: end} = run([
       observed(30),
-      {datasetKey: 'conv:1', type: 'datasetChanged'},
+      {type: 'datasetChanged'},
       observed(30, false),
       observed(30),
       observed(30),
@@ -396,7 +379,7 @@ describe('sequences', () => {
       pinNowStopCentering,
       pinWhenSettled,
     ])
-    expect(end).toEqual(state({datasetKey: 'conv:1', headerSize: 200}))
+    expect(end).toEqual(state({headerSize: 200}))
   })
 
   test('a wheel stops the header re-pin until the reader asks for the bottom', () => {
@@ -411,7 +394,7 @@ describe('sequences', () => {
   })
 
   test('jump to recent from a hit: pin first, then leaving the centre stops centring', () => {
-    const {directives, state: end} = run([observed(30), {type: 'jumpToRecent'}, observed(undefined)])
+    const {directives, state: end} = run([observed(30), {type: 'scrollToBottomRequested'}, observed(undefined)])
     expect(directives).toEqual([center(30), pinUnlessAtEnd, pinNowStopCentering])
     expect(end).toEqual(fresh)
   })
@@ -419,7 +402,7 @@ describe('sequences', () => {
   test('an edit revealed before a reload is not revealed again after it', () => {
     const {directives} = run([
       {ordinal: ord(15), targetInData: true, type: 'editingChanged'},
-      {datasetKey: 'conv:1', type: 'datasetChanged'},
+      {type: 'datasetChanged'},
       {ordinal: ord(15), targetInData: true, type: 'editingChanged'},
     ])
     expect(directives).toEqual([reveal(15), leaveAlone, leaveAlone])

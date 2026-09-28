@@ -214,7 +214,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
 
   const getItemType = useGetItemType()
 
-  const {initialScrollIndex, maintainScrollAtEnd, onMetricsChange, onWheel, scrollToRecent} =
+  const {initialScrollIndex, maintainScrollAtEnd, onMetricsChange, onWheel, scrollToBottom} =
     useDesktopThreadScroll({
       centeredOrdinal,
       containsLatestMessage,
@@ -277,7 +277,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     []
   )
 
-  const jumpToRecent = useJumpToRecent(scrollToRecent, messageOrdinals.length)
+  const jumpToRecent = useJumpToRecent(scrollToBottom, messageOrdinals.length)
 
   const {onCatchUp, onViewableOrdinalsChanged, showCatchUp} = useCatchUp({loaded})
   // Data runs oldest-first here, so the first viewable row is the oldest one on screen.
@@ -382,8 +382,8 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           initialScrollAtEnd={initialScrollIndex === undefined}
           initialScrollIndex={initialScrollIndex}
           // The documented boolean form, which enables every trigger. Naming any trigger in an
-          // {on: {...}} list opts out of the ones left unnamed — that is how the layout trigger went
-          // missing once and a window resize lost the end.
+          // {on: {...}} list opts out of the ones left unnamed, and without the layout trigger a
+          // window resize loses the end.
           maintainScrollAtEnd={maintainScrollAtEnd}
           // Stays on while centered: the full thread response lands after the cached one and
           // re-measures rows above the target, which slides it out of view unless anchored.

@@ -4,10 +4,9 @@
 import type * as T from '@/constants/types'
 import sortedIndexOf from 'lodash/sortedIndexOf'
 
+// The centring and header bookkeeping below belong to the current dataset: a centred load clears the
+// thread and refills it under a new key, and that is a new list as far as scrolling is concerned.
 export type ScrollTargetState = {
-  // The dataset the centring and header bookkeeping below belong to. A centred load clears the thread
-  // and refills it under a new key, and that is a new list as far as scrolling is concerned.
-  datasetKey: string
   // Whether the end still belongs to the list (hold the newest message in view) or to the reader,
   // who took it by scrolling away or by asking for a centred target. Only the header re-pin consults
   // it, and that must not yank a reader who has scrolled away.
@@ -25,7 +24,7 @@ export type ScrollTargetState = {
 }
 
 export type ScrollEvent =
-  | {type: 'datasetChanged'; datasetKey: string}
+  | {type: 'datasetChanged'}
   // The thread or the centre request changed: the level-triggered reconcile that starts and ends
   // centring. targetInData says whether the centred ordinal is in the loaded messages.
   | {
@@ -43,8 +42,8 @@ export type ScrollEvent =
   // new message out of view.
   | {type: 'appended'; anchorHidesNewest: boolean}
   | {type: 'editingChanged'; ordinal: T.Chat.Ordinal | undefined; targetInData: boolean}
+  // The reader asked for the newest messages: the composer, the keyboard or jump to recent.
   | {type: 'scrollToBottomRequested'}
-  | {type: 'jumpToRecent'}
 
 export type ScrollDirective =
   // now: scroll to the end. unlessAtEnd: only if not already there, because scrolling an at-end
@@ -59,13 +58,12 @@ export type ScrollDirective =
 
 export type ScrollDecision = {directive: ScrollDirective; state: ScrollTargetState}
 
-export const initialScrollTargetState = (datasetKey: string): ScrollTargetState => ({
-  datasetKey,
+export const initialScrollTargetState: ScrollTargetState = {
   endOwner: 'list',
   headerSize: undefined,
   lastCentered: undefined,
   lastEditing: undefined,
-})
+}
 
 const leaveAlone: ScrollDirective = {stopCentering: false, type: 'leaveAlone'}
 
@@ -78,7 +76,6 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
         directive: leaveAlone,
         state: {
           ...state,
-          datasetKey: event.datasetKey,
           endOwner: 'list',
           headerSize: undefined,
           lastCentered: undefined,
@@ -145,7 +142,6 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
       return {directive: {ordinal, type: 'reveal'}, state: next}
     }
     case 'scrollToBottomRequested':
-    case 'jumpToRecent':
       return {
         directive: {how: 'unlessAtEnd', stopCentering: false, type: 'pinEnd'},
         state: {...state, endOwner: 'list'},

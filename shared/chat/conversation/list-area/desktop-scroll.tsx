@@ -39,7 +39,7 @@ export const useDesktopThreadScroll = (p: {
     messageOrdinalsRef.current = messageOrdinals
   }, [messageOrdinals])
 
-  const targetRef = React.useRef(initialScrollTargetState(datasetKey))
+  const targetRef = React.useRef(initialScrollTargetState)
 
   // Asks the scroller, not the list's own isAtEnd: that flag comes from the content size and viewport
   // the list has recorded, and both lag a composer collapse, so it reads not-at-end while the scroller
@@ -204,6 +204,10 @@ export const useDesktopThreadScroll = (p: {
         case 'leaveAlone':
           if (directive.stopCentering) abortCentering()
           return
+        default: {
+          const unexpected: never = directive
+          return unexpected
+        }
       }
     },
     [abortCentering, isScrolledToEnd, listRef, scrollToCentered, verifyEndAnchor]
@@ -219,7 +223,7 @@ export const useDesktopThreadScroll = (p: {
   )
 
   React.useLayoutEffect(() => {
-    dispatch({datasetKey, type: 'datasetChanged'})
+    dispatch({type: 'datasetChanged'})
   }, [datasetKey, dispatch])
 
   // Level-triggered on purpose: centring has to start when loaded flips true after the target was
@@ -263,10 +267,6 @@ export const useDesktopThreadScroll = (p: {
     dispatch({type: 'scrollToBottomRequested'})
   }, [dispatch])
 
-  const scrollToRecent = React.useCallback(() => {
-    dispatch({type: 'jumpToRecent'})
-  }, [dispatch])
-
   const scrollUp = React.useCallback(() => {
     const state = listRef.current?.getState()
     if (!state) return
@@ -302,6 +302,6 @@ export const useDesktopThreadScroll = (p: {
     maintainScrollAtEnd: listAnchorsEnd(centeredOrdinal),
     onMetricsChange,
     onWheel,
-    scrollToRecent,
+    scrollToBottom,
   }
 }
