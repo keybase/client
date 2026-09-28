@@ -256,6 +256,27 @@ test('Enter in an empty composer sends nothing', () => {
   expect(post).not.toHaveBeenCalled()
 })
 
+test('a keystroke typed before the send goes out is erased when it goes out', async () => {
+  const post = jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener').mockResolvedValue({
+    outboxID: new TextEncoder().encode('posted'),
+  })
+  const {textarea} = renderComposer()
+  type(textarea, 'hello')
+  act(() => {
+    fireEvent.keyDown(textarea, {key: 'Enter'})
+  })
+  expect(textarea.value).toBe('')
+
+  type(textarea, 'n')
+  await act(async () => {
+    jest.advanceTimersByTime(0)
+    await Promise.resolve()
+  })
+
+  expect(post.mock.calls[0]?.[0].params.body).toBe('hello')
+  expect(textarea.value).toBe('')
+})
+
 // the emoji picker's insert puts the emoji at the caret but appends its trailing space to the
 // very end of the text, and parks the caret one past the emoji
 test('picking an emoji mid-text inserts at the caret with the space appended at the end', () => {
