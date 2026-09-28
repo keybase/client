@@ -219,10 +219,6 @@ const toggleThreadReaction = (
     if (!message || !username) {
       return
     }
-    if (!getInboxConversationMeta(conversationIDKey)) {
-      logger.warn('toggleReaction: no meta')
-      return
-    }
     const displayMessage = applyOptimisticReactionsToMessage(message, snapshot.optimisticReactionMap)
     const add = !displayMessage?.reactions?.get(emoji)?.users.some(reaction => reaction.username === username)
     const outboxID = Common.generateOutboxID()
