@@ -21,6 +21,7 @@ import {
   type NavigationContainerRef,
 } from '@react-navigation/core'
 import logger from '@/logger'
+import {DEBUG_NAV} from './nav-debug'
 import {registerDebugClear} from '@/util/debug-registry'
 import {shallowEqual} from './utils'
 import type {NavigateAppendType, RouteKeys, RootParamList} from '@/router-v2/route-params'
@@ -64,7 +65,6 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
   setRouteParams: (routeKey: string | undefined, params: object) => boolean
 }
 
-export const DEBUG_NAV = __DEV__ && (false as boolean)
 
 export const makeNavigator = (ref: NavigatorRef): Navigator => {
   // A push dispatched this tick isn't in getRootState() until React Navigation commits, so the

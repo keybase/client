@@ -57,9 +57,16 @@ export const tabRoots = {
 // this set. Everything else there (e.g. chatConversation, and any other non-modal screen
 // pushed above the tab bar on phones) is a genuinely-visible screen.
 let modalRouteNames: ReadonlySet<string> | undefined
-// Passing nothing unregisters them again, which tests use to restore the startup guard.
-export const setModalRouteNames = (names?: Iterable<string>) => {
-  modalRouteNames = names ? new Set<string>(names) : undefined
+export const setModalRouteNames = (names: Iterable<string>) => {
+  modalRouteNames = new Set<string>(names)
+}
+// For tests that register their own: returns a function that puts back the registration as
+// it is now, including "not registered".
+export const saveModalRouteNames = () => {
+  const saved = modalRouteNames
+  return () => {
+    modalRouteNames = saved
+  }
 }
 export const isModalRouteName = (name: string) => {
   if (!modalRouteNames) {

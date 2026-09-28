@@ -1,7 +1,7 @@
 import type * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import {castDraft} from 'immer'
-import {DEBUG_NAV} from '@/constants/navigator'
+import {DEBUG_NAV} from '@/constants/nav-debug'
 import type {NavState} from '@/constants/nav-tree'
 
 export {type NavState} from '@/constants/nav-tree'

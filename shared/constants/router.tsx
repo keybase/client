@@ -9,7 +9,8 @@ import {type NavigationContainerRef, NavigationContext} from '@react-navigation/
 import type {StaticScreenProps} from '@react-navigation/core'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import * as NavTree from './nav-tree'
-import {DEBUG_NAV, getNavigator} from './navigator'
+import {DEBUG_NAV} from './nav-debug'
+import {getNavigator} from './navigator'
 import type {GetOptionsRet, RouteDef} from './types/router'
 import {isSplit, threadRouteName} from './chat/layout'
 import {ignorePromise} from './utils'
@@ -52,7 +53,6 @@ export type NavigationRef = NavigationContainerRef<KBRootParamList>
 
 export {setModalRouteNames} from './nav-tree'
 export {navigationRef} from './navigator'
-
 
 const uiParticipantsToParticipantInfo = (
   uiParticipants: ReadonlyArray<T.RPCChat.UIParticipant>

@@ -28,9 +28,7 @@ afterEach(() => {
 })
 
 // The two adapters have to agree about readiness or the fake is not a stand-in: the real one
-// drops dispatches and reports no root state until the container has mounted, and callers rely
-// on that instead of guarding themselves (constants/router's same-conversation retarget
-// dispatches straight through the adapter and only then asks whether it was ready).
+// drops dispatches and reports no root state until the container has mounted.
 describe('readiness', () => {
   test('a not-ready navigator drops raw dispatches and reports no root state', () => {
     nav = installFakeNavigator({ready: false})
@@ -454,10 +452,73 @@ describe('fake navigator', () => {
     expect(nav.modalsCleared()).toBe(false)
   })
 
-  test('restoring leaves the modal route names unregistered, as before startup', () => {
+  test('restoring puts back the modal route registration from before the install', () => {
     installFakeNavigator({modalRouteNames: ['chatInfoPanel']})
     restoreNavigator()
 
     expect(() => NavTree.isModalRouteName('chatInfoPanel')).toThrow('modalRouteNames not registered')
+  })
+
+  test('installing without names keeps the ones already registered', () => {
+    NavTree.setModalRouteNames(['chatInfoPanel'])
+    installFakeNavigator()
+
+    expect(NavTree.isModalRouteName('chatInfoPanel')).toBe(true)
+    restoreNavigator()
+    expect(NavTree.isModalRouteName('chatInfoPanel')).toBe(true)
+  })
+
+  // Modals are registered only on the root stack, so a push of one from inside a tab lands
+  // there, where clearModals can find it.
+  test('a modal pushed from a tab lands in the root stack', () => {
+    nav = installFakeNavigator({modalRouteNames: ['chatInfoPanel']})
+
+    navigateAppend({name: 'chatInfoPanel', params: {}} as never)
+
+    expect(NavTree.modalStack(nav.getRootState()).map(r => r.name)).toEqual(['chatInfoPanel'])
+    clearModals()
+    expect(nav.modalsCleared()).toBe(true)
+  })
+
+  test('popTo a screen that is not in the stack takes the current screen\'s place', () => {
+    nav = installFakeNavigator({
+      rootState: makeRootState({tab: Tabs.teamsTab, tabStack: [{name: 'teamsRoot'}, {name: 'team'}]}),
+    })
+
+    navUpToScreen('teamMember')
+
+    expect(NavTree.activeStack(nav.getRootState())?.routes?.map(r => r.name)).toEqual([
+      'teamsRoot',
+      'teamMember',
+    ])
+  })
+
+  // Without pop, navigate reuses only the current route; an older one of that name is left
+  // alone and a new screen is pushed.
+  test('navigate to a name below the current screen pushes a new one', () => {
+    nav = installFakeNavigator({
+      rootState: makeRootState({tabStack: [{name: 'chatRoot'}, {name: 'profile'}]}),
+    })
+
+    nav.dispatch(CommonActions.navigate('chatRoot', {conversationIDKey: 'C'}))
+
+    expect(NavTree.activeStack(nav.getRootState())?.routes?.map(r => r.name)).toEqual([
+      'chatRoot',
+      'profile',
+      'chatRoot',
+    ])
+  })
+
+  // navigateToThread's params carry undefined-valued keys; dropping them would make the
+  // visible-route dupe check miss on key count and push a second screen.
+  test('params keep their undefined-valued keys, so a repeat push is still a dupe', () => {
+    nav = installFakeNavigator()
+
+    navigateAppend({name: 'profile', params: {username: 'testuser', extra: undefined}} as never)
+    // any later commit copies the tree
+    nav.dispatch(CommonActions.setParams({}))
+    navigateAppend({name: 'profile', params: {username: 'testuser', extra: undefined}} as never)
+
+    expect(nav.pushes()).toHaveLength(1)
   })
 })
