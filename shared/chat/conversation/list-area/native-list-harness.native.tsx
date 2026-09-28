@@ -6,7 +6,7 @@
 import * as React from 'react'
 import * as T from '@/constants/types'
 import type {ThreadRefsContext} from '../normal/context'
-import {makeStore, useStore} from './list-test-store'
+import {emptyThread, makeStore, useStore, type ThreadSnapshot} from './list-test-store'
 
 // Everything the list does, in the order it did it: imperative scrolls on the list handle, thread
 // actions it calls and what it tells catch-up.
@@ -19,15 +19,10 @@ export const range = (from: number, to: number) => {
   return ords(...out)
 }
 
-type ThreadState = {
-  conversationIDKey: T.Chat.ConversationIDKey
-  loaded: boolean
-  messageOrdinals: ReadonlyArray<T.Chat.Ordinal> | undefined
-}
+type ThreadState = ThreadSnapshot & {conversationIDKey: T.Chat.ConversationIDKey}
 const initialThreadState = (): ThreadState => ({
+  ...emptyThread,
   conversationIDKey: T.Chat.stringToConversationIDKey('conv1'),
-  loaded: false,
-  messageOrdinals: undefined,
 })
 export const threadStore = makeStore<ThreadState>(initialThreadState())
 

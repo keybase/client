@@ -11,6 +11,7 @@ import {
   type ScrollEvent,
   type ScrollTargetState,
 } from './scroll-target'
+import {makeScrollDriver} from './list-test-store'
 
 const ord = T.Chat.numberToOrdinal
 
@@ -93,21 +94,14 @@ describe('threadObserved', () => {
   })
   runTable([
     [
-      'nothing happens before the thread loads, even with the target in hand',
+      'nothing happens before the reload brings the target',
       fresh,
-      observed({centeredOrdinal: ord(30), loaded: false, targetInData: true}),
+      observed({centeredOrdinal: ord(30), loaded: false}),
       leaveAlone,
       fresh,
     ],
     [
-      'nor does leaving a centred target before the thread loads',
-      state({endOwner: 'reader', lastCentered: ord(30)}),
-      observed({loaded: false}),
-      leaveAlone,
-      state({endOwner: 'reader', lastCentered: ord(30)}),
-    ],
-    [
-      'a target not yet loaded waits',
+      'a target the load did not bring waits',
       fresh,
       observed({centeredOrdinal: ord(30)}),
       leaveAlone,
@@ -140,20 +134,6 @@ describe('threadObserved', () => {
       observed({centeredOrdinal: ord(30), targetInData: true}),
       leaveAlone,
       state({lastCentered: ord(30)}),
-    ],
-    [
-      'a new target replaces the old one',
-      state({endOwner: 'reader', lastCentered: ord(30)}),
-      observed({centeredOrdinal: ord(40), targetInData: true}),
-      center(40),
-      state({endOwner: 'reader', lastCentered: ord(40), settlingCenter: true}),
-    ],
-    [
-      'a new target not yet loaded keeps the old one on record',
-      state({endOwner: 'reader', lastCentered: ord(30)}),
-      observed({centeredOrdinal: ord(40)}),
-      leaveAlone,
-      state({endOwner: 'reader', lastCentered: ord(30)}),
     ],
     [
       'centring takes the end even from a list that owned it',
@@ -350,39 +330,40 @@ describe('scrollToBottomRequested', () => {
 })
 
 describe('sequences', () => {
-  const run = (events: Array<ScrollEvent>, from = fresh) => {
-    let s = from
-    const directives: Array<ScrollDirective> = []
-    for (const e of events) {
-      const d = decideScroll(s, e)
-      s = d.state
-      directives.push(d.directive)
-    }
-    return {directives, state: s}
+  const window = (from: number, to: number) => {
+    const out: Array<T.Chat.Ordinal> = []
+    for (let i = from; i <= to; i++) out.push(ord(i))
+    return out
   }
-  const observed = (centeredOrdinal: number | undefined, targetInData = true): ScrollEvent => ({
-    centeredOrdinal: centeredOrdinal === undefined ? undefined : ord(centeredOrdinal),
-    containsLatestMessage: true,
-    loaded: true,
-    targetInData,
-    type: 'threadObserved',
-  })
+  // The desktop list, over a conversation already open at its newest messages.
+  const desktopList = () => {
+    const d = makeScrollDriver({
+      observe: (thread, centre) => ({
+        centeredOrdinal: centre,
+        containsLatestMessage: true,
+        loaded: thread.loaded,
+        targetInData: centre !== undefined && !!thread.messageOrdinals?.includes(centre),
+        type: 'threadObserved',
+      }),
+      reportsDatasets: true,
+    })
+    d.send({type: 'datasetChanged'})
+    d.load(window(1, 60))
+    d.take()
+    return d
+  }
   const header = (size: number): ScrollEvent => ({hasMessages: true, size, type: 'headerMeasured'})
 
   test('a search hit: clear, reload, centre once, then back to the end', () => {
-    const {directives, state: end} = run([
-      observed(30),
-      {type: 'datasetChanged'},
-      observed(30, false),
-      observed(30),
-      observed(30),
-      header(100),
-      header(152),
-      observed(undefined),
-      header(200),
-    ])
-    expect(directives).toEqual([
-      center(30),
+    const d = desktopList()
+    d.centreOn(ord(30))
+    d.load(window(1, 60))
+    d.load(window(61, 70))
+    d.send(header(100))
+    d.send(header(152))
+    d.clearCentre()
+    d.send(header(200))
+    expect(d.take()).toEqual([
       stopCentering,
       leaveAlone,
       center(30),
@@ -392,33 +373,55 @@ describe('sequences', () => {
       pinNowStopCentering,
       pinWhenSettled,
     ])
-    expect(end).toEqual(state({headerSize: 200}))
+    expect(d.state).toEqual(state({headerSize: 200}))
+  })
+
+  test('re-choosing the same hit reloads and centres it again', () => {
+    const d = desktopList()
+    d.centreOn(ord(30))
+    d.load(window(1, 60))
+    d.send({how: 'wheel', type: 'userScrolled'})
+    d.centreOn(ord(30))
+    d.load(window(1, 60))
+    expect(d.take()).toEqual([stopCentering, leaveAlone, center(30), stopCentering, stopCentering, leaveAlone, center(30)])
   })
 
   test('a wheel stops the header re-pin until the reader asks for the bottom', () => {
-    const {directives} = run([
-      header(100),
-      {how: 'wheel', type: 'userScrolled'},
-      header(152),
-      {type: 'scrollToBottomRequested'},
-      header(200),
-    ])
-    expect(directives).toEqual([leaveAlone, stopCentering, leaveAlone, pinUnlessAtEndStopCentering, pinWhenSettled])
+    const d = desktopList()
+    d.send(header(100))
+    d.send({how: 'wheel', type: 'userScrolled'})
+    d.send(header(152))
+    d.send({type: 'scrollToBottomRequested'})
+    d.send(header(200))
+    expect(d.take()).toEqual([leaveAlone, stopCentering, leaveAlone, pinUnlessAtEndStopCentering, pinWhenSettled])
   })
 
-  test('jump to recent from a hit: pin first, then leaving the centre stops centring', () => {
-    const {directives, state: end} = run([observed(30), {type: 'scrollToBottomRequested'}, observed(undefined)])
-    expect(directives).toEqual([center(30), pinUnlessAtEndStopCentering, pinNowStopCentering])
-    expect(end).toEqual(fresh)
+  test('jump to recent from a hit: pin first, then the clear hands the end back to the list', () => {
+    const d = desktopList()
+    d.centreOn(ord(30))
+    d.load(window(1, 60))
+    d.send({type: 'scrollToBottomRequested'})
+    d.jumpToRecent()
+    d.load(window(1, 60))
+    expect(d.take()).toEqual([
+      stopCentering,
+      leaveAlone,
+      center(30),
+      pinUnlessAtEndStopCentering,
+      stopCentering,
+      leaveAlone,
+      leaveAlone,
+    ])
+    expect(d.state).toEqual(fresh)
   })
 
   test('an edit revealed before a reload is not revealed again after it', () => {
-    const {directives} = run([
-      {ordinal: ord(15), targetInData: true, type: 'editingChanged'},
-      {type: 'datasetChanged'},
-      {ordinal: ord(15), targetInData: true, type: 'editingChanged'},
-    ])
-    expect(directives).toEqual([reveal(15), stopCentering, leaveAlone])
+    const d = desktopList()
+    d.send({ordinal: ord(15), targetInData: true, type: 'editingChanged'})
+    d.centreOn(ord(30))
+    d.load(window(1, 60))
+    d.send({ordinal: ord(15), targetInData: true, type: 'editingChanged'})
+    expect(d.take()).toEqual([reveal(15), stopCentering, leaveAlone, center(30), leaveAlone])
   })
 })
 

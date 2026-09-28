@@ -9,6 +9,7 @@ import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {OrangeLineContext} from '../orange-line-context'
 import {ThreadRefsContext} from '../normal/context'
 import * as H from './desktop-list-harness.desktop'
+import {threadTransitions} from './list-test-store'
 import ThreadList from '.'
 
 jest.mock('@legendapp/list/react', () => require('./desktop-list-harness.desktop').legendListModule)
@@ -76,14 +77,19 @@ const wheel = () => {
   fireEvent.wheel(screen.getByTestId('chat-message-list'))
 }
 
+// The thread's own transitions; thread-transitions.test.tsx holds them to the real thread store.
+const clearThread = () => H.threadStore.set(threadTransitions.cleared(H.threadStore.get()))
+const loadThread = (from: number, to: number) =>
+  H.threadStore.set(threadTransitions.loaded(H.threadStore.get(), H.range(from, to)))
+
 // Clears the thread the way a centered load does, then refills it.
 const reloadDataset = (count = 60) => {
   update(() => {
-    H.threadStore.set({clearVersion: H.threadStore.get().clearVersion + 1, messageOrdinals: []})
+    clearThread()
     H.listStore.set({isAtEnd: false, scroll: 0})
   })
   update(() => {
-    H.threadStore.set({messageOrdinals: H.range(1, count)})
+    loadThread(1, count)
   })
 }
 
@@ -336,22 +342,14 @@ describe('centering on a target', () => {
     expect(H.log).toHaveLength(1)
   })
 
-  test('waits until the target is in the thread', () => {
-    update(() => H.listStore.set({rendered: undefined}))
-    open({center: 30, count: 10})
-    expect(H.log).toEqual([])
-    update(() => H.threadStore.set({messageOrdinals: H.range(1, 60)}))
-    expect(H.log).toEqual([['scrollToOffset', {animated: false, offset: centredOffset(30)}]])
-  })
-
-  test('waits until the thread has loaded', () => {
+  test('waits until the reload brings the target', () => {
     update(() => {
-      H.threadStore.set({loaded: false, messageOrdinals: H.range(1, 60)})
       H.setCenter(ord(30))
+      clearThread()
     })
     render(<Harness />)
     expect(H.log).toEqual([])
-    update(() => H.threadStore.set({loaded: true}))
+    update(() => loadThread(1, 60))
     expect(H.log).toEqual([['scrollToOffset', {animated: false, offset: centredOffset(30)}]])
   })
 
@@ -366,7 +364,11 @@ describe('centering on a target', () => {
   test('a new target takes over from an in-flight loop', async () => {
     update(() => H.listStore.set({mountsOnScrollToIndex: false, rendered: new Set()}))
     open({center: 30})
-    update(() => H.setCenter(ord(40)))
+    update(() => {
+      H.setCenter(ord(40))
+      clearThread()
+    })
+    update(() => loadThread(1, 60))
     await tick(250)
     expect(H.log).toEqual([
       ['scrollToIndex', {animated: false, index: 29, viewPosition: 0.5}],
@@ -413,11 +415,11 @@ describe('centering on a target', () => {
   test('a reload mid-loop restarts centering, with a fresh budget, once the target is back', async () => {
     update(() => H.listStore.set({mountsOnScrollToIndex: false, rendered: new Set()}))
     open({center: 30})
-    update(() => H.threadStore.set({clearVersion: 1, messageOrdinals: []}))
+    update(() => clearThread())
     await tick(250)
     // The target is gone from the emptied thread, so there is nothing to ask for.
     expect(H.log).toHaveLength(1)
-    update(() => H.threadStore.set({messageOrdinals: H.range(1, 60)}))
+    update(() => loadThread(1, 60))
     expect(H.log).toHaveLength(2)
     await tick(5000)
     expect(H.log).toHaveLength(31)
@@ -482,7 +484,7 @@ describe('clearing the centre', () => {
   test('does nothing after a reload forgot the centred target', async () => {
     open({center: 30})
     await tick(5000)
-    update(() => H.threadStore.set({clearVersion: 1, messageOrdinals: []}))
+    update(() => clearThread())
     H.log.length = 0
     update(() => H.setCenter(undefined))
     expect(H.log).toEqual([])
@@ -497,9 +499,15 @@ describe('jump to recent', () => {
     scrollerNotAtEnd()
     fireEvent.click(screen.getByText('Jump to recent messages'))
     expect(H.log).toEqual([['scrollToEnd', noAnimation], ['jumpToRecent'], ['toggleThreadSearch', true]])
-    // The provider clears the centre, then the newest messages load.
-    update(() => H.setCenter(undefined))
-    update(() => H.threadStore.set({messageOrdinals: H.range(1, 70), moreToLoadForward: false}))
+    // The provider clears the centre and the thread in one commit, then the newest messages load.
+    update(() => {
+      H.setCenter(undefined)
+      clearThread()
+    })
+    update(() => {
+      loadThread(1, 70)
+      H.threadStore.set({moreToLoadForward: false})
+    })
     await tick(3000)
     expect(H.log).toEqual([['scrollToEnd', noAnimation], ['jumpToRecent'], ['toggleThreadSearch', true]])
   })
@@ -528,9 +536,12 @@ describe('jump to recent', () => {
     // The thread's jump clears the centre and the thread in one commit, then loads the newest.
     update(() => {
       H.setCenter(undefined)
-      H.threadStore.set({clearVersion: 1, messageOrdinals: []})
+      clearThread()
     })
-    update(() => H.threadStore.set({messageOrdinals: H.range(1, 70), moreToLoadForward: false}))
+    update(() => {
+      loadThread(1, 70)
+      H.threadStore.set({moreToLoadForward: false})
+    })
     await tick(5000)
     expect(H.log).toEqual([['scrollToIndex', {animated: false, index: 29, viewPosition: 0.5}]])
   })
@@ -732,9 +743,9 @@ describe('catch up', () => {
     // The provider sets the centre and clears the thread in one go, then reloads around it.
     update(() => {
       H.setCenter(ord(10))
-      H.threadStore.set({clearVersion: 1, messageOrdinals: []})
+      clearThread()
     })
-    update(() => H.threadStore.set({messageOrdinals: H.range(1, 60)}))
+    update(() => loadThread(1, 60))
     expect(H.log.at(-1)).toEqual(['scrollToOffset', {animated: false, offset: centredOffset(10)}])
     await tick(5000)
     expect(H.log).toHaveLength(2)

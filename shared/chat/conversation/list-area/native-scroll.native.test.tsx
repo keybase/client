@@ -12,7 +12,7 @@ import * as T from '@/constants/types'
 import {act, cleanup, render} from '@testing-library/react'
 import {ThreadRefsContext} from '../normal/context'
 import * as H from './native-list-harness.native'
-import {makeStore, useStore} from './list-test-store'
+import {makeStore, threadTransitions, useStore} from './list-test-store'
 
 jest.mock('react-native', () => require('./native-list-harness.native').reactNativeModule)
 jest.mock('react-native-keyboard-controller', () => require('./native-list-harness.native').nativeOnlyModule)
@@ -93,13 +93,27 @@ const closeKeyboard = () => {
   H.keyboardStore.set({isVisible: false})
 }
 
-// Opens a conversation holding ordinals from..to, optionally centered and with the keyboard up.
+// The thread's own transitions; thread-transitions.test.tsx holds them to the real thread store.
+const clearThread = () => H.threadStore.set(threadTransitions.cleared(H.threadStore.get()))
+const loadThread = (from: number, to: number) =>
+  H.threadStore.set(threadTransitions.loaded(H.threadStore.get(), H.range(from, to)))
+// Choosing a search hit: the centre is set and the thread cleared together, and the reload around
+// the target follows.
+const centreOn = (n: number) => {
+  update(() => {
+    H.setCenter(ord(n))
+    clearThread()
+  })
+}
+
+// Opens a conversation holding ordinals from..to, optionally centered and with the keyboard up. An
+// unloaded one has no rows yet.
 const open = (
   p: {center?: number; from?: number; keyboard?: boolean; loaded?: boolean; strict?: boolean; to?: number} = {}
 ) => {
   const {center, from = 1, keyboard = false, loaded = true, strict = false, to = 60} = p
   update(() => {
-    H.threadStore.set({loaded, messageOrdinals: to >= from ? H.range(from, to) : []})
+    if (loaded) H.threadStore.set({loaded, messageOrdinals: to >= from ? H.range(from, to) : []})
     if (center !== undefined) H.setCenter(ord(center))
     if (keyboard) openKeyboard()
   })
@@ -209,9 +223,7 @@ describe('opening a conversation', () => {
     open({loaded: false})
     await tick(1000)
     expect(H.log).toEqual([])
-    update(() => {
-      H.threadStore.set({loaded: true})
-    })
+    update(() => loadThread(1, 60))
     expect(H.log).toEqual([markRead, toBottom])
     await tick(100)
     expect(H.log).toEqual([markRead, toBottom, toBottom])
@@ -227,12 +239,8 @@ describe('opening a conversation', () => {
     open()
     await tick(200)
     clearLog()
-    update(() => {
-      H.threadStore.set({loaded: false, messageOrdinals: []})
-    })
-    update(() => {
-      H.threadStore.set({loaded: true, messageOrdinals: H.range(1, 60)})
-    })
+    update(() => clearThread())
+    update(() => loadThread(1, 60))
     await tick(1000)
     expect(H.log).toEqual([])
   })
@@ -258,9 +266,8 @@ describe('opening a conversation', () => {
   test('the 100ms retry is skipped if a centre arrives in between', async () => {
     open()
     await tick(10)
-    update(() => {
-      H.setCenter(ord(30))
-    })
+    centreOn(30)
+    update(() => loadThread(1, 60))
     await tick(1000)
     expect(H.log).toEqual([markRead, toBottom, coarse(30), coarse(30)])
   })
@@ -282,9 +289,7 @@ describe('opening centred on a target', () => {
     open({center: 30, loaded: false})
     await tick(1000)
     expect(H.log).toEqual([])
-    update(() => {
-      H.threadStore.set({loaded: true})
-    })
+    update(() => loadThread(1, 60))
     expect(H.log).toEqual([markRead])
     await tick(50)
     expect(H.log).toEqual([markRead, coarse(30)])
@@ -292,25 +297,14 @@ describe('opening centred on a target', () => {
     expect(H.log).toEqual([markRead, coarse(30), coarse(30)])
   })
 
-  test('a target not in the rows is not scrolled toward until it arrives', async () => {
-    open({center: 500})
-    await tick(1000)
-    expect(H.log).toEqual([markRead])
-    setOrdinals(450, 550)
-    await tick(1000)
-    expect(H.log).toEqual([markRead, coarse(500), coarse(500)])
-  })
-
   test('a target that moves on before it is loaded is centred once it arrives', async () => {
     open({center: 30})
     await tick(10)
-    update(() => {
-      H.setCenter(ord(500))
-    })
+    centreOn(500)
     await tick(1000)
     // The first target's reasserts see the target moved on and skip.
     expect(H.log).toEqual([markRead])
-    setOrdinals(450, 550)
+    update(() => loadThread(450, 550))
     await tick(1000)
     expect(H.log).toEqual([markRead, coarse(500), coarse(500)])
   })
@@ -318,9 +312,8 @@ describe('opening centred on a target', () => {
   test('a newer target that is loaded is centred on its own schedule', async () => {
     open({center: 30})
     await tick(10)
-    update(() => {
-      H.setCenter(ord(40))
-    })
+    centreOn(40)
+    update(() => loadThread(1, 60))
     await tick(1000)
     expect(H.log).toEqual([markRead, coarse(40), coarse(40)])
   })
@@ -412,46 +405,16 @@ describe('the closed-loop corrector', () => {
 })
 
 describe('a centre requested after opening', () => {
-  test('is centred once its target is in the loaded rows', async () => {
+  test('waits for the reload that brings its target', async () => {
     open()
     await tick(200)
     clearLog()
-    update(() => {
-      H.setCenter(ord(30))
-    })
-    expect(H.log).toEqual([])
-    await tick(1000)
-    expect(H.log).toEqual([coarse(30), coarse(30)])
-  })
-
-  test('waits for a target that is not loaded, through the reload that brings it', async () => {
-    open()
-    await tick(200)
-    clearLog()
-    update(() => {
-      H.setCenter(ord(500))
-    })
-    update(() => {
-      H.threadStore.set({loaded: false, messageOrdinals: []})
-    })
+    centreOn(500)
     await tick(1000)
     expect(H.log).toEqual([])
-    update(() => {
-      H.threadStore.set({loaded: true, messageOrdinals: H.range(450, 550)})
-    })
+    update(() => loadThread(450, 550))
     await tick(1000)
     expect(H.log).toEqual([coarse(500), coarse(500)])
-  })
-
-  test('the same target again changes nothing', async () => {
-    open({center: 30})
-    await tick(1000)
-    clearLog()
-    update(() => {
-      H.setCenter(ord(30))
-    })
-    await tick(1000)
-    expect(H.log).toEqual([])
   })
 
   test('rows changing under a centred target re-arm the corrector without a coarse scroll', async () => {
@@ -596,9 +559,8 @@ describe('clearing the centre', () => {
       H.setCenter(undefined)
     })
     clearLog()
-    update(() => {
-      H.setCenter(ord(30))
-    })
+    centreOn(30)
+    update(() => loadThread(1, 60))
     await tick(1000)
     expect(H.log).toEqual([coarse(30), coarse(30)])
   })
@@ -823,9 +785,8 @@ describe('scroll-to-index failures', () => {
     open({center: 30})
     for (let i = 0; i < 6; i++) scrollToIndexFailed()
     await tick(1000)
-    update(() => {
-      H.setCenter(ord(40))
-    })
+    centreOn(40)
+    update(() => loadThread(1, 60))
     await tick(1000)
     clearLog()
     scrollToIndexFailed()
