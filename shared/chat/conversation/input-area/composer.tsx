@@ -15,8 +15,7 @@ export type ComposerInput = {
   insertTyped: (s: string) => boolean
   isFocused: () => boolean
   // reflectChange: echo the new text back through the input's onChangeText, as typing would.
-  // False when the input did not show the text: the native input shows only reflected writes, and
-  // none at all while read-only.
+  // False when the input did not show the text (the native input shows only reflected writes).
   replaceText: (info: TextInfo, reflectChange: boolean) => boolean
 }
 // One mounted composer view: the conversation's composer reads and writes through the input of
@@ -57,6 +56,9 @@ export type Composer = {
   // A replace carries a whole text worked out from its view's text, so it lands only if the same
   // view attaches again; injects, inserts and a send's clear land on whichever input comes next.
   connect: () => ComposerView
+  // Where the user can't post, nothing the app writes reaches the input (an inject, an insert, a
+  // draft), so there is nothing to send; a clear still clears. The saved draft is left alone.
+  setReadOnly: (readOnly: boolean) => void
 }
 
 type ComposerDeps = {
@@ -84,6 +86,7 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   // Effects mount children first (and again when a hidden Activity is shown), so a child's
   // write can come before its composer view attaches the input.
   let pending: Array<(input: ComposerInput) => void> = []
+  let readOnly = false
   // set while the composer writes, so the input's report of that write is not taken as typing
   let writing = false
   // the draft as last loaded or saved
@@ -99,8 +102,7 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     writing = true
     try {
       if (next) {
-        // an input that does not show the text (read-only) keeps the text it had
-        if (target.replaceText({selection: injectedSelection(next), text: next}, true)) {
+        if (!readOnly && target.replaceText({selection: injectedSelection(next), text: next}, true)) {
           text = next
           saveDraft(next)
         }
@@ -127,7 +129,7 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
 
   const replace = (target: ComposerInput, info: TextInfo, reflectChange: boolean) => {
     // the text is only ever what the input shows, or a send would send a preview nobody saw
-    if (!target.replaceText(info, reflectChange)) return false
+    if (readOnly || !target.replaceText(info, reflectChange)) return false
     text = info.text
     return true
   }
@@ -221,6 +223,9 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
       })
       return false
     },
+    setReadOnly: next => {
+      readOnly = next
+    },
     submit: send => {
       const toSend = text
       if (!toSend) return false
@@ -254,7 +259,7 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     },
     typeAtCaret: s => {
       whenAttached(target => {
-        if (!target.insertTyped(s)) {
+        if (!readOnly && !target.insertTyped(s)) {
           insertAtCaret(target, s)
         }
       })
@@ -276,18 +281,24 @@ export const useComposer = (): Composer => {
 // Binds one mounted platform input to the conversation's composer, and gives back the input's
 // ref setter (stable, so React never detaches and re-attaches the input between renders) and the
 // reporter for what the input says was typed.
-export const useComposerInput = <R extends ComposerInput>(draft: string | undefined) => {
+export const useComposerInput = <R extends ComposerInput>(draft: string | undefined, readOnly: boolean) => {
   const composer = useComposer()
   const inputRef = React.useRef<R | null>(null)
-  // read as the ref is set, so the draft loads ahead of the writes waiting for the input
-  const currentDraft = React.useEffectEvent(() => draft)
+  // read as the ref is set, so the draft loads ahead of the writes waiting for the input, and is
+  // kept out if the user can't post
+  const current = React.useEffectEvent(() => ({draft, readOnly}))
+  React.useEffect(() => {
+    composer.setReadOnly(readOnly)
+  }, [composer, readOnly])
   const [{setInput, view}] = React.useState(() => {
     const view = composer.connect()
     return {
       setInput: (input: R | null) => {
         inputRef.current = input
         if (input) {
-          view.offerDraft(currentDraft())
+          const now = current()
+          composer.setReadOnly(now.readOnly)
+          view.offerDraft(now.draft)
         }
         view.setInput(input)
       },

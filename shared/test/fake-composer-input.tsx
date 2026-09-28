@@ -68,9 +68,14 @@ export const makeFakeComposerInput = (): FakeComposerInput => {
 }
 
 // Mounts a fake input on the conversation's composer the way the real composer mounts its input.
-export const FakeComposerInputView = (p: {children?: React.ReactElement; draft?: string; fake: FakeComposerInput}) => {
-  const {children, draft, fake} = p
-  const {setInput, textChanged} = useComposerInput<FakeComposerInput>(draft)
+export const FakeComposerInputView = (p: {
+  children?: React.ReactElement
+  draft?: string
+  fake: FakeComposerInput
+  readOnly?: boolean
+}) => {
+  const {children, draft, fake, readOnly = false} = p
+  const {setInput, textChanged} = useComposerInput<FakeComposerInput>(draft, readOnly)
   React.useImperativeHandle(
     setInput,
     () => {

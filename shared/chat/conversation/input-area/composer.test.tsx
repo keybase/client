@@ -238,7 +238,7 @@ describe('draft', () => {
     const wrapper = (p: {children: React.ReactNode}) => (
       <ComposerContext value={composer}>{p.children}</ComposerContext>
     )
-    const {rerender, result} = renderHook((p: {draft?: string}) => useComposerInput<FakeComposerInput>(p.draft), {
+    const {rerender, result} = renderHook((p: {draft?: string}) => useComposerInput<FakeComposerInput>(p.draft, false), {
       initialProps: {draft: undefined as string | undefined},
       wrapper,
     })
@@ -256,7 +256,7 @@ describe('draft', () => {
     const wrapper = (p: {children: React.ReactNode}) => (
       <ComposerContext value={composer}>{p.children}</ComposerContext>
     )
-    const {result} = renderHook(() => useComposerInput<FakeComposerInput>('saved'), {wrapper})
+    const {result} = renderHook(() => useComposerInput<FakeComposerInput>('saved', false), {wrapper})
     expect(composer.getText()).toBe('')
     const fake = makeFakeComposerInput()
 
@@ -777,5 +777,69 @@ describe('typing and the saved draft', () => {
 
     expect(reports).toEqual([{text: 'a@b', typed: true}])
     expect(drafts).toEqual(['a@b'])
+  })
+})
+
+describe('read-only', () => {
+  test('an inject, an insert and a typed insert reach neither the input nor the text', () => {
+    const {composer, mount} = setup()
+    composer.setReadOnly(true)
+    const {fake} = mount()
+    fake.typesText = true
+
+    composer.inject('shared text', true)
+    composer.insertAtCaret('@')
+    composer.typeAtCaret('\n')
+
+    expect(fake.text).toBe('')
+    expect(composer.getText()).toBe('')
+  })
+
+  test('a waiting inject does not land when the input attaches', () => {
+    const {composer, mount} = setup()
+    composer.setReadOnly(true)
+    composer.inject('intent')
+
+    const {fake} = mount()
+
+    expect(fake.text).toBe('')
+  })
+
+  test('a clear still clears', () => {
+    const {composer, mount} = setup()
+    const {fake} = mount()
+    fake.type('before')
+    composer.setReadOnly(true)
+
+    composer.inject('')
+
+    expect(fake.text).toBe('')
+    expect(composer.getText()).toBe('')
+  })
+
+  test('writes land again once the composer can be written to', () => {
+    const {composer, mount} = setup()
+    composer.setReadOnly(true)
+    const {fake} = mount()
+    composer.setReadOnly(false)
+
+    composer.inject('hello')
+
+    expect(fake.text).toBe('hello')
+    expect(composer.getText()).toBe('hello')
+  })
+
+  test('a mounted read-only input does not get the draft', () => {
+    const {composer} = setup()
+    const fake = makeFakeComposerInput()
+
+    render(
+      <ComposerContext value={composer}>
+        <FakeComposerInputView draft="saved" fake={fake} readOnly={true} />
+      </ComposerContext>
+    )
+
+    expect(fake.text).toBe('')
+    expect(composer.getText()).toBe('')
   })
 })

@@ -569,8 +569,8 @@ test('a stellar send the user cancels puts the text back in the composer', async
   expect(textarea.value).toBe('+1xlm@testuser')
 })
 
-// Desktop's read-only composer: the textarea can't be typed into and the side buttons are gone,
-// but a text the app injects (a share, an edit prefill, a restored stellar send) still lands
+// Desktop's read-only composer: the textarea can't be typed into, the side buttons are gone, and a
+// text the app injects (a share, an edit prefill, a restored stellar send) does not land
 describe('read-only', () => {
   const renderReadOnly = () => {
     act(() => {
@@ -600,13 +600,31 @@ describe('read-only', () => {
     }
   })
 
-  test('an injected text still lands in the read-only textarea', () => {
+  test('an injected text leaves the read-only textarea unchanged', () => {
     const {getHandles, textarea} = renderReadOnly()
 
     act(() => {
       getHandles().input.dispatch.injectIntoInput('shared text', true)
     })
 
-    expect(textarea.value).toBe('shared text')
+    expect(textarea.value).toBe('')
+  })
+
+  test('a saved draft does not load into it, and is kept', () => {
+    const unsent = jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+    act(() => {
+      metasReceived(
+        [{...Meta.makeConversationMeta(), cannotWrite: true, conversationIDKey: convID, draft: 'saved'}],
+        undefined,
+        {force: true}
+      )
+    })
+    const {textarea} = renderComposer()
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(textarea.value).toBe('')
+    expect(unsent).not.toHaveBeenCalled()
   })
 })

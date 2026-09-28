@@ -374,9 +374,8 @@ function NativeInput(p: InputLowLevelProps) {
       },
       insertTyped: () => false,
       isFocused: () => !!inputRef.current?.isFocused(),
-      // a read-only input shows no text the app writes, only what it had
       replaceText: (ti: TextInfo, reflectChange: boolean) => {
-        if (!reflectChange || disabled) {
+        if (!reflectChange) {
           return false
         }
         onChangeText(ti.text)
@@ -384,7 +383,7 @@ function NativeInput(p: InputLowLevelProps) {
         return true
       },
     }
-  }, [disabled, onChangeText, setSelection])
+  }, [onChangeText, setSelection])
 
   const style = (() => {
     let textStyle = getTextStyle(textType, theme)
