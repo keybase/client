@@ -669,13 +669,16 @@ describe('toggleMessageReaction edges', () => {
     expect(info).toHaveBeenCalledWith(expect.stringContaining('toggleReaction: failed to post'))
   })
 
-  test('without meta the tlfName is empty and the post still goes', async () => {
-    renderThread([textAt(10)])
+  test('without meta it warns and neither posts nor shows the reaction', async () => {
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    const {result} = renderThread([textAt(10)])
     act(() => {
       useInboxMetadataState.setState({metas: new Map()})
     })
     await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
-    expect(rpc.params('postReaction')).toEqual([expect.objectContaining({tlfName: ''})])
+    expect(rpc.calls('postReaction')).toEqual([])
+    expect(result.current.store.getState().optimisticReactionMap.size).toBe(0)
+    expect(warn).toHaveBeenCalledWith('toggleReaction: no meta')
   })
 })
 
