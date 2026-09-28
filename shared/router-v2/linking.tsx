@@ -167,31 +167,17 @@ const customGetStateFromPath = (
     // tablet, and in their own tab on desktop.
     case 'devices':
       if (!isMobile) {
-        return makeTabState(Tabs.devicesTab)
+        return NavTree.tabState(Tabs.devicesTab)
       }
       if (isSplit) {
         // Tablet: the Settings tab stack holds every settings route, so devices pushes
         // above the tab root, inside that stack.
-        return makeTabState(Tabs.settingsTab, [{name: 'settingsRoot'}, {name: Settings.settingsDevicesTab}])
+        return NavTree.tabState(Tabs.settingsTab, [{name: 'settingsRoot'}, {name: Settings.settingsDevicesTab}])
       }
       // Phone: settingsRoot is the only screen in the Settings tab stack, so a nested devices
       // route is filtered out on rehydrate and the tap lands on settingsRoot. Devices is
       // registered on the root stack there, above the tabs.
-      return {
-        index: 1,
-        routes: [
-          {
-            name: 'loggedIn',
-            state: {
-              index: 0,
-              routes: [
-                {name: Tabs.settingsTab, state: {index: 0, routes: [{name: 'settingsRoot'}]}},
-              ],
-            },
-          },
-          {name: Settings.settingsDevicesTab},
-        ],
-      }
+      return NavTree.pushedAboveTabs(Tabs.settingsTab, {name: Settings.settingsDevicesTab})
 
     // KBFS paths: keybase://private/..., keybase://public/...
     case 'private':
@@ -228,7 +214,7 @@ const customGetStateFromPath = (
     // keybase://settingsAddPhone — where https://keybase.io/phone-app lands. Settings sits
     // under the modal so dismissing it leaves the invitee somewhere they can find it again.
     case 'settingsAddPhone':
-      return makeModalState('settingsAddPhone', undefined, Tabs.settingsTab)
+      return NavTree.modalState('settingsAddPhone', undefined, Tabs.settingsTab)
 
     // Tab switches: keybase://tabs.chatTab, etc.
     case Tabs.chatTab:
