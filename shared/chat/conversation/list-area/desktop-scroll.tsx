@@ -283,7 +283,7 @@ export const useDesktopThreadScroll = (p: {
   // nothing, so no scroll comes to rest to say it ended at the end: it says so itself.
   const onWheel = React.useCallback(
     (e: {deltaY: number}) => {
-      dispatch({how: 'wheel', type: 'userScrolled'})
+      dispatch({type: 'userScrolled'})
       if (e.deltaY > 0) reportIfAtEnd()
     },
     [dispatch, reportIfAtEnd]
@@ -293,7 +293,7 @@ export const useDesktopThreadScroll = (p: {
     (e: {key: string; shiftKey: boolean; target: unknown}) => {
       const target = e.target as {isContentEditable?: boolean; tagName?: string}
       if (!scrollKeys.has(e.key) || target.isContentEditable || keyTakingTags.has(target.tagName ?? '')) return
-      dispatch({how: 'key', type: 'userScrolled'})
+      dispatch({type: 'userScrolled'})
       if (towardEndKeys.has(e.key) && !(e.key === ' ' && e.shiftKey)) reportIfAtEnd()
     },
     [dispatch, reportIfAtEnd]
@@ -302,7 +302,7 @@ export const useDesktopThreadScroll = (p: {
   const onPointerDown = React.useCallback(
     (e: {target: unknown}) => {
       if (e.target !== scrollerIn(wrapperRef.current)) return
-      dispatch({how: 'scrollbar', type: 'userScrolled'})
+      dispatch({type: 'userScrolled'})
     },
     [dispatch, wrapperRef]
   )
@@ -314,7 +314,7 @@ export const useDesktopThreadScroll = (p: {
   const scrollUp = React.useCallback(() => {
     const state = listRef.current?.getState()
     if (!state) return
-    dispatch({how: 'pageUp', type: 'userScrolled'})
+    dispatch({type: 'userScrolled'})
     void listRef.current?.scrollToOffset({
       animated: false,
       offset: Math.max(0, state.scroll - state.scrollLength),
@@ -324,12 +324,13 @@ export const useDesktopThreadScroll = (p: {
   const scrollDown = React.useCallback(() => {
     const state = listRef.current?.getState()
     if (!state) return
-    dispatch({how: 'pageDown', type: 'userScrolled'})
+    dispatch({type: 'userScrolled'})
+    reportIfAtEnd()
     void listRef.current?.scrollToOffset({
       animated: false,
       offset: state.scroll + state.scrollLength,
     })
-  }, [dispatch, listRef])
+  }, [dispatch, listRef, reportIfAtEnd])
 
   const {setScrollRef} = React.useContext(ThreadRefsContext)
   React.useEffect(() => {

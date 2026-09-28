@@ -652,19 +652,43 @@ describe('thread refs (keyboard and composer scrolling)', () => {
     expect(H.log).toEqual([['scrollToOffset', {animated: false, offset: 0}]])
   })
 
-  test('scrollUp does not stop an in-flight centering loop', async () => {
+  test.each(['scrollUp', 'scrollDown'] as const)('%s stops an in-flight centering loop', async page => {
     update(() => H.listStore.set({mountsOnScrollToIndex: false, rendered: new Set()}))
     open({center: 30})
-    update(() => H.threadRefs.current?.scrollUp())
-    await tick(100)
-    expect(H.log.filter(([name]) => name === 'scrollToIndex')).toHaveLength(2)
+    scrollerNotAtEnd()
+    update(() => H.threadRefs.current?.[page]())
+    await tick(3000)
+    expect(H.log.filter(([name]) => name === 'scrollToIndex')).toHaveLength(1)
   })
 
-  test('scrollDown pages down by one viewport and keeps the end pinned', async () => {
+  test('scrollDown pages down by one viewport, and short of the end hands the end to the reader', async () => {
     open()
+    scrollerNotAtEnd()
     update(() => H.listStore.set({scroll: 1200}))
     update(() => H.threadRefs.current?.scrollDown())
     expect(H.log).toEqual([['scrollToOffset', {animated: false, offset: 1700}]])
+    H.log.length = 0
+    growHeader()
+    await tick(3000)
+    expect(H.log).toEqual([])
+  })
+
+  test('scrollDown that lands on the end hands it back to the list', async () => {
+    open()
+    scrollerNotAtEnd()
+    update(() => H.threadRefs.current?.scrollDown())
+    scrollerAtEnd()
+    fireEvent(screen.getByTestId('fake-scroller'), new Event('scrollend'))
+    H.log.length = 0
+    growHeader()
+    await tick(100)
+    expect(H.log).toEqual([['scrollToEnd', noAnimation]])
+  })
+
+  test('scrollDown at the end, which moves nothing, keeps the end with the list', async () => {
+    open()
+    scrollerAtEnd()
+    update(() => H.threadRefs.current?.scrollDown())
     H.log.length = 0
     growHeader()
     await tick(100)

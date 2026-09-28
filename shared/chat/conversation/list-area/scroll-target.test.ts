@@ -211,23 +211,13 @@ describe('initialLoad', () => {
 })
 
 describe('userScrolled', () => {
-  const rows: Array<Row> = []
-  for (const before of [fresh, busy]) {
-    const label = before === fresh ? 'list-owned' : 'reader-owned'
-    rows.push(
-      [`${label}: a wheel takes the end and stops centring`, before, {how: 'wheel', type: 'userScrolled'}, stopCentering, {...before, endOwner: 'reader'}],
-      [`${label}: a drag takes the end and stops centring`, before, {how: 'drag', type: 'userScrolled'}, stopCentering, {...before, endOwner: 'reader'}],
-      [`${label}: paging up takes the end but lets centring finish`, before, {how: 'pageUp', type: 'userScrolled'}, leaveAlone, {...before, endOwner: 'reader'}],
-      [`${label}: paging down changes nothing`, before, {how: 'pageDown', type: 'userScrolled'}, leaveAlone, before]
-    )
-  }
+  const scrolled: ScrollEvent = {type: 'userScrolled'}
   const settling = state({endOwner: 'reader', lastCentered: ord(30), settlingCenter: true})
-  rows.push(
-    ['a wheel ends the settling of a centred target', settling, {how: 'wheel', type: 'userScrolled'}, stopCentering, {...settling, settlingCenter: false}],
-    ['a drag ends the settling of a centred target', settling, {how: 'drag', type: 'userScrolled'}, stopCentering, {...settling, settlingCenter: false}],
-    ['paging up lets a centred target keep settling', settling, {how: 'pageUp', type: 'userScrolled'}, leaveAlone, settling]
-  )
-  runTable(rows)
+  runTable([
+    ['takes the end from the list and stops centring', fresh, scrolled, stopCentering, state({endOwner: 'reader'})],
+    ['leaves a reader holding the end with it', busy, scrolled, stopCentering, busy],
+    ['ends the settling of a centred target', settling, scrolled, stopCentering, {...settling, settlingCenter: false}],
+  ])
 })
 
 describe('headerMeasured', () => {
@@ -380,7 +370,7 @@ describe('sequences', () => {
     return d
   }
   const header = (size: number): ScrollEvent => ({hasMessages: true, size, type: 'headerMeasured'})
-  const wheel: ScrollEvent = {how: 'wheel', type: 'userScrolled'}
+  const wheel: ScrollEvent = {type: 'userScrolled'}
 
   test('a search hit: clear, reload, centre, refine as rows arrive, settle, then leave it in place', () => {
     const d = openList()

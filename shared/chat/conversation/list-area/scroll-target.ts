@@ -54,8 +54,9 @@ export type ScrollEvent =
   // end or on its target through its own props.
   | {type: 'initialLoad'; hasMessages: boolean}
   // The reader scrolled: by wheel, touch drag, a navigation key or the scrollbar, or by paging through
-  // the composer's page keys.
-  | {type: 'userScrolled'; how: 'wheel' | 'drag' | 'key' | 'scrollbar' | 'pageUp' | 'pageDown'}
+  // the composer's page keys. Only the desktop composer has page keys: the native one takes its keys
+  // from an on-screen keyboard, which has none.
+  | {type: 'userScrolled'}
   // A scroll came to rest at the end, the reader's or the list's own, or an input of the reader's
   // toward the end found the list already there and moved nothing.
   | {type: 'readerAtEnd'}
@@ -159,11 +160,8 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
         state,
       }
     case 'userScrolled':
-      // Paging toward the end does not take the end; arriving there gives it back (readerAtEnd).
-      if (event.how === 'pageDown') return {directive: leaveAlone, state}
-      // Scrolling the list directly is the reader taking over, so centring stops rather than pull them
-      // back. Paging up hands over the end but leaves a centring under way to finish.
-      if (event.how === 'pageUp') return {directive: leaveAlone, state: {...state, endOwner: 'reader'}}
+      // However the reader scrolls, and whichever way, they have taken over: centring stops rather
+      // than pull them back, and the end is theirs until a scroll comes to rest there (readerAtEnd).
       return {
         directive: {stopCentering: true, type: 'leaveAlone'},
         state: {...state, endOwner: 'reader', settlingCenter: false},

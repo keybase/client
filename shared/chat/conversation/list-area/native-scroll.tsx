@@ -342,7 +342,7 @@ export const useNativeThreadScroll = (p: {
   })
   // user touched the list: stop fighting them
   const onScrollBeginDrag = React.useCallback(() => {
-    dispatch({how: 'drag', type: 'userScrolled'})
+    dispatch({type: 'userScrolled'})
   }, [dispatch])
 
   // A scroll coming to rest: the reader letting go, a fling stopping, or (on iOS) an animated scroll
