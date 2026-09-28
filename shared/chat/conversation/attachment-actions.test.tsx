@@ -224,7 +224,7 @@ describe('uploadAttachments', () => {
       ephemeralLifetime: 0,
       paths: [pathA, pathB],
       titles: ['first'],
-      tlfName: 'alice,bob',
+      tlfName: 'testuser,testuser-mac',
       ...over,
     })
 
@@ -241,7 +241,7 @@ describe('uploadAttachments', () => {
       filename: '/a.png',
       outboxID: pathA.outboxID,
       title: 'first',
-      tlfName: 'alice,bob',
+      tlfName: 'testuser,testuser-mac',
     })
     // a path with no outbox id gets a fresh one; a missing title is empty
     expect(posts[1]).toEqual(
@@ -309,7 +309,7 @@ describe('uploadAttachmentsFromDragAndDrop', () => {
       ephemeralLifetime: 0,
       paths: [{outboxID: new Uint8Array([5]), path: '/dropped.png'}],
       titles: ['t'],
-      tlfName: 'alice',
+      tlfName: 'testuser',
     })
     await flushPromises()
     expect(rpc.calls('getUploadTempFile')).toEqual([])
@@ -334,7 +334,7 @@ describe('uploadAttachmentsFromDragAndDrop', () => {
           ephemeralLifetime: 0,
           paths: [{outboxID: new Uint8Array([5]), path: '/dropped.png'}],
           titles: ['t'],
-          tlfName: 'alice',
+          tlfName: 'testuser',
         })
         await flushPromises()
         expect(isolatedRpc.params('getUploadTempFile')).toEqual([
