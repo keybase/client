@@ -150,10 +150,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const isExploding = explodingModeSecondsRaw !== 0
 
   const hintText = useHintText({cannotWrite, isEditing, isExploding, minWriterRole})
-  const {composer, inputRef, textChanged} = useComposerInput<InputRef>(storeDraft)
-  const setLocalInputRef = (r: InputRef | null) => {
-    inputRef.current = r
-  }
+  const {composer, inputRef, setInput, textChanged} = useComposerInput<InputRef>(storeDraft)
   const suggestionOverlayStyle = infoPanelShowing
     ? styles.suggestionOverlayInfoShowing
     : styles.suggestionOverlay
@@ -248,7 +245,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
       hintText={hintText}
       suggestionOverlayStyle={suggestionOverlayStyle}
       onSubmit={onSubmit}
-      setInputRef={setLocalInputRef}
+      setInputRef={setInput}
       onChangeText={onChangeText}
       onCancelEditing={onCancelEditing}
       cannotWrite={cannotWrite}

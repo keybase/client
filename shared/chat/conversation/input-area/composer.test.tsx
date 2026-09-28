@@ -1,6 +1,9 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
+import type * as React from 'react'
+import {act, cleanup, renderHook} from '@testing-library/react'
 import logger from '@/logger'
-import {makeComposer} from './composer'
+import {ComposerContext, makeComposer, useComposerInput} from './composer'
 import {makeFakeComposerInput, type FakeComposerInput} from './composer-fake-input'
 import type {SuppressSnapshot} from '../unfurl-preview-state'
 
@@ -21,6 +24,7 @@ const setup = (opts?: {takeUnfurlSnapshot?: () => SuppressSnapshot}) => {
 }
 
 afterEach(() => {
+  cleanup()
   jest.useRealTimers()
   jest.restoreAllMocks()
 })
@@ -156,31 +160,76 @@ describe('draft', () => {
 
   test('loads once, when it first arrives', () => {
     const {composer, mount} = setup()
-    const {fake} = mount(undefined)
+    const {fake, ref} = mount(undefined)
 
-    composer.offerDraft('arrived')
-    composer.offerDraft('arrived again, changed')
+    composer.offerDraft(ref, 'arrived')
+    composer.offerDraft(ref, 'arrived again, changed')
 
     expect(fake.text).toBe('arrived')
   })
 
   test('does not overwrite text already typed', () => {
     const {composer, mount} = setup()
-    const {fake} = mount(undefined)
+    const {fake, ref} = mount(undefined)
     fake.type('typed')
 
-    composer.offerDraft('stale')
+    composer.offerDraft(ref, 'stale')
 
     expect(fake.text).toBe('typed')
   })
 
   test('an empty draft counts as loaded', () => {
     const {composer, mount} = setup()
-    const {fake} = mount('')
+    const {fake, ref} = mount('')
 
-    composer.offerDraft('later')
+    composer.offerDraft(ref, 'later')
 
     expect(fake.text).toBe('')
+  })
+
+  test('waits while the attached input has no handle, and loads once it has one', () => {
+    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    const {composer, mount} = setup()
+    const {fake, ref} = mount(undefined)
+    ref.current = null
+
+    composer.offerDraft(ref, 'saved')
+    ref.current = fake
+    composer.offerDraft(ref, 'saved')
+
+    expect(fake.text).toBe('saved')
+    expect(composer.getText()).toBe('saved')
+    expect(error).not.toHaveBeenCalled()
+  })
+
+  test('a mounted input whose handle is set late gets the draft when it is set', () => {
+    const {composer} = setup()
+    const wrapper = (p: {children: React.ReactNode}) => (
+      <ComposerContext value={composer}>{p.children}</ComposerContext>
+    )
+    const {result} = renderHook(() => useComposerInput<FakeComposerInput>('saved'), {wrapper})
+    expect(composer.getText()).toBe('')
+    const fake = makeFakeComposerInput()
+
+    act(() => {
+      result.current.setInput(fake)
+    })
+
+    expect(fake.text).toBe('saved')
+    expect(composer.getText()).toBe('saved')
+  })
+
+  test('an offer from an input that is not attached is ignored', () => {
+    const {composer, mount} = setup()
+    const first = mount(undefined)
+    const other = makeFakeComposerInput()
+
+    composer.offerDraft({current: other}, 'saved')
+
+    expect(other.text).toBe('')
+    expect(first.fake.text).toBe('')
+    composer.offerDraft(first.ref, 'saved')
+    expect(first.fake.text).toBe('saved')
   })
 
   test('a waiting inject is applied after the draft, so it wins', () => {

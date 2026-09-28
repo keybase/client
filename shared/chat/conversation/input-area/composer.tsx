@@ -38,7 +38,7 @@ export type Composer = {
   // keeps both.
   attach: (input: ComposerInputRef, draft: string | undefined) => () => void
   // Loads the draft into an untouched composer, once per input.
-  offerDraft: (draft: string | undefined) => void
+  offerDraft: (input: ComposerInputRef, draft: string | undefined) => void
   // What the input reports as typed. Reports from an input other than the attached one are dropped.
   textChanged: (input: ComposerInputRef, text: string) => void
 }
@@ -91,12 +91,17 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     }
   }
 
+  // Loaded only once it is written, so an offer made while the input has no handle is retried
+  // by the next one (the handle being set makes one).
   const offerDraft = (draft: string | undefined) => {
     if (draftLoaded || draft === undefined) return
-    draftLoaded = true
-    if (text === '' && draft) {
-      write(draft, false)
+    if (text !== '' || !draft) {
+      draftLoaded = true
+      return
     }
+    if (!current()) return
+    draftLoaded = true
+    write(draft, false)
   }
 
   return {
@@ -143,7 +148,11 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
       replace({selection: {end: caret, start: caret}, text: inserted.text + pad}, true)
     },
     isFocused: () => !!current()?.isFocused(),
-    offerDraft,
+    offerDraft: (input, draft) => {
+      if (input === session) {
+        offerDraft(draft)
+      }
+    },
     replace,
     submit: send => {
       const toSend = text
@@ -184,17 +193,25 @@ export const useComposer = (): Composer => {
 }
 
 // Binds one mounted platform input to the conversation's composer: attaches it (loading the draft
-// the first time), detaches on unmount, and gives back the reporter for what the input says was typed.
+// the first time), detaches on unmount, and gives back the input's ref setter and the reporter for
+// what the input says was typed.
 export const useComposerInput = <R extends ComposerInput>(draft: string | undefined) => {
   const composer = useComposer()
   const inputRef = React.useRef<R | null>(null)
   const attach = React.useEffectEvent(() => composer.attach(inputRef, draft))
   React.useEffect(() => attach(), [composer])
   React.useEffect(() => {
-    composer.offerDraft(draft)
+    composer.offerDraft(inputRef, draft)
   }, [composer, draft])
   const textChanged = (text: string) => {
     composer.textChanged(inputRef, text)
   }
-  return {composer, inputRef, textChanged}
+  // the input's ref: a draft offered before the handle was set loads once it is
+  const setInput = (input: R | null) => {
+    inputRef.current = input
+    if (input) {
+      composer.offerDraft(inputRef, draft)
+    }
+  }
+  return {composer, inputRef, setInput, textChanged}
 }
