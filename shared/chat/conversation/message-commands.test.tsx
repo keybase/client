@@ -149,12 +149,19 @@ describe('deleteMessage', () => {
     ])
   })
 
-  test('a failed storeless delete has nothing to revert and reaches ignorePromise', async () => {
+  test('a failed delete is logged as a warning on both paths', async () => {
     rpc.fail('postDelete', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    const {thread} = makeThread([textAt(10)])
+    deleteMessage({conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread})
     deleteMessage({conversationIDKey, message: textAt(10)})
     await flushPromises()
-    expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(RPCError))
+    expect(warn.mock.calls.map(c => String(c[0]))).toEqual([
+      expect.stringContaining('messageDelete: failed to delete: '),
+      expect.stringContaining('deleteConversationMessage: failed to delete: '),
+    ])
+    expect(error).not.toHaveBeenCalled()
   })
 
   test('cancelling an unsent message drops the row only on the thread path', async () => {

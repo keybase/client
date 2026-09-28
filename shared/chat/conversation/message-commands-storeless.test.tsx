@@ -122,7 +122,7 @@ describe('deleteConversationMessage', () => {
     expect(rpc.log).toEqual([])
   })
 
-  test('a failed delete is left to ignorePromise', async () => {
+  test('a non-service delete failure is left to ignorePromise', async () => {
     rpc.fail('postDelete', new Error('x'))
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     deleteConversationMessage(conversationIDKey, textMessage())
@@ -299,15 +299,17 @@ describe('storeless edges', () => {
     expect(rpc.params('postDelete')).toEqual([expect.objectContaining({tlfName: ''})])
   })
 
-  test('a failed cancel is left to ignorePromise', async () => {
+  test('a failed cancel is logged as a warning', async () => {
     rpc.fail('cancelPost', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     deleteConversationMessage(
       conversationIDKey,
       textMessage({id: T.Chat.numberToMessageID(0), outboxID: T.Chat.stringToOutboxID('0a0b')})
     )
     await flushPromises()
-    expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(RPCError))
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('deleteConversationMessage: failed to delete: '))
+    expect(error).not.toHaveBeenCalled()
   })
 
   test('the missing-id and invalid-conversation cases are logged', async () => {

@@ -124,19 +124,27 @@ const deleteStorelessMessage = (conversationIDKey: T.Chat.ConversationIDKey, tar
       logger.warn('deleteConversationMessage: no conversation id')
       return
     }
-    if (!message.id) {
-      if (message.outboxID) {
-        await getChatRpc().cancelPost(message.outboxID)
-      } else {
-        logger.warn('deleteConversationMessage: no message id or outbox id')
+    try {
+      if (!message.id) {
+        if (message.outboxID) {
+          await getChatRpc().cancelPost(message.outboxID)
+        } else {
+          logger.warn('deleteConversationMessage: no message id or outbox id')
+        }
+        return
       }
-      return
+      await getChatRpc().postDelete({
+        conversationIDKey,
+        messageID: message.id,
+        tlfName: tlfName || getInboxConversationMeta(conversationIDKey)?.tlfname || '',
+      })
+    } catch (error) {
+      if (error instanceof RPCError) {
+        logger.warn(`deleteConversationMessage: failed to delete: ${error.message}`)
+      } else {
+        throw error
+      }
     }
-    await getChatRpc().postDelete({
-      conversationIDKey,
-      messageID: message.id,
-      tlfName: tlfName || getInboxConversationMeta(conversationIDKey)?.tlfname || '',
-    })
   }
   ignorePromise(f())
 }
