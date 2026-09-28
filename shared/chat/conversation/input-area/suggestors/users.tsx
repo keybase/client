@@ -294,6 +294,7 @@ export const UsersList = (p: ListProps) => {
   return (
     <Common.List
       {...rest}
+      filter={filter}
       keyExtractor={keyExtractor}
       items={items}
       ItemRenderer={ItemRenderer}

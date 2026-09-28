@@ -240,6 +240,7 @@ export const List = (p: ListProps) => {
       <BotCommandConversationContext value={{botCommands, conversationIDKey}}>
         <Common.List
           {...rest}
+          filter={filter}
           keyExtractor={keyExtractor}
           items={items}
           ItemRenderer={ItemRenderer}

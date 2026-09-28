@@ -64,6 +64,8 @@ export type ListHandle = {
   submit: () => boolean
 }
 export type ListProps<L> = {
+  // what the user typed after the marker; a new one starts the highlight again from the first item
+  filter: string
   items: Array<L>
   keyExtractor: (item: L, idx: number) => string
   suggestBotCommandsUpdateStatus?: T.RPCChat.UIBotCommandsUpdateStatusTyp
@@ -98,17 +100,13 @@ const RowImpl = <T,>(p: RowProps<T>) => {
 const Row = React.memo(RowImpl) as typeof RowImpl
 
 export function List<T>(p: ListProps<T>) {
-  const {items, ItemRenderer, loading, keyExtractor, onSelected, rowHeight} = p
+  const {filter, items, ItemRenderer, loading, keyExtractor, onSelected, rowHeight} = p
   const {suggestBotCommandsUpdateStatus, listStyle, spinnerStyle, setListHandle} = p
-  const [selectedIndex, setSelectedIndex] = React.useState(0)
-  // Any change to what the list holds (typing narrows or regrows it) starts the highlight again
-  // from the first item, the way a desktop completion list does, so Enter and Tab pick that one.
-  const itemsKey = items.map(keyExtractor).join('\n')
-  const [lastItemsKey, setLastItemsKey] = React.useState(itemsKey)
-  if (lastItemsKey !== itemsKey) {
-    setLastItemsKey(itemsKey)
-    setSelectedIndex(0)
-  }
+  // Typing a new filter starts the highlight again from the first item, the way a desktop
+  // completion list does, so Enter and Tab pick that one.
+  const [highlight, setHighlight] = React.useState({filter, index: 0})
+  const highlightIndex = highlight.filter === filter ? highlight.index : 0
+  const selectedIndex = highlightIndex < items.length ? highlightIndex : 0
 
   const onSelectedEvent = React.useEffectEvent((item: T, final: boolean) => onSelected(item, final))
   const renderItem = (idx: number, item: T) => (
@@ -129,7 +127,7 @@ export function List<T>(p: ListProps<T>) {
     const s = (((up ? selectedIndex - 1 : selectedIndex + 1) % length) + length) % length
     const item = items[s]
     if (s === selectedIndex || !item) return
-    setSelectedIndex(s)
+    setHighlight({filter, index: s})
     onSelected(item, false)
   })
   const submit = React.useEffectEvent(() => {

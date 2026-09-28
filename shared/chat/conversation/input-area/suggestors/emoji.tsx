@@ -99,6 +99,7 @@ export const List = (p: ListProps) => {
   return (
     <Common.List
       {...rest}
+      filter={filter}
       keyExtractor={keyExtractor}
       items={items}
       ItemRenderer={ItemRenderer}

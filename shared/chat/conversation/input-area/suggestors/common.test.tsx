@@ -75,16 +75,21 @@ describe('List', () => {
     mockListProps = undefined
   })
 
-  const setup = (items: Array<string>) => {
+  const setup = (
+    items: Array<string>,
+    opts?: {filter?: string; keyExtractor?: (item: string, idx: number) => string}
+  ) => {
     let move: ((up: boolean) => void) | undefined
     let submit: (() => boolean) | undefined
     const onSelected = jest.fn()
     const Item = (p: {selected: boolean; item: string}) => <>{p.item}</>
-    const view = (next: Array<string>) => (
+    const keyExtractor = opts?.keyExtractor ?? ((item: string) => item)
+    const view = (next: Array<string>, filter: string) => (
       <List
+        filter={filter}
         items={next}
         ItemRenderer={Item}
-        keyExtractor={item => item}
+        keyExtractor={keyExtractor}
         loading={false}
         listStyle={{}}
         spinnerStyle={{}}
@@ -96,11 +101,11 @@ describe('List', () => {
         }}
       />
     )
-    const utils = render(view(items))
+    const utils = render(view(items, opts?.filter ?? 't'))
     return {
       move: (up: boolean) => act(() => move?.(up)),
       onSelected,
-      rerender: (next: Array<string>) => utils.rerender(view(next)),
+      rerender: (next: Array<string>, filter: string) => utils.rerender(view(next, filter)),
       submit: () => submit?.(),
     }
   }
@@ -114,7 +119,7 @@ describe('List', () => {
     list.move(false)
     list.onSelected.mockClear()
 
-    list.rerender(['testuser', 'testuser-mac'])
+    list.rerender(['testuser', 'testuser-mac'], 't')
 
     expect(highlighted()).toEqual(['testuser'])
     expect(list.submit()).toBe(true)
@@ -133,15 +138,13 @@ describe('List', () => {
     expect(highlighted()).toEqual(['testuser2'])
   })
 
-  test('a list that changes under the highlight starts again from its first item, without a preview', () => {
-    const list = setup(['testuser', 'testuser-mac', 'testuser2', 'testuser3'])
-    list.move(false)
+  test('a new filter starts the highlight again from its first item, without a preview', () => {
+    const list = setup(['testuser', 'testuser-mac', 'testuser2', 'testuser3'], {filter: 't'})
     list.move(false)
     list.move(false)
     list.onSelected.mockClear()
 
-    list.rerender(['testuser', 'testuser-mac'])
-    list.rerender(['testuser', 'testuser-mac', 'testuser2', 'testuser3'])
+    list.rerender(['testuser', 'testuser-mac', 'testuser2', 'testuser3'], 'te')
 
     expect(highlighted()).toEqual(['testuser'])
     expect(list.onSelected).not.toHaveBeenCalled()
@@ -149,12 +152,25 @@ describe('List', () => {
     expect(list.onSelected).toHaveBeenLastCalledWith('testuser-mac', false)
   })
 
+  // the emoji list keys its rows by position, so a new filter that yields as many rows has the same keys
+  test('a new filter starts again from the first item even when the rows are keyed by position', () => {
+    const list = setup([':smile:', ':smiley:', ':smirk:'], {filter: 'sm', keyExtractor: (_, idx) => String(idx)})
+    list.move(false)
+    list.move(false)
+
+    list.rerender([':smile:', ':smiley:', ':smiling_imp:'], 'smi')
+
+    expect(highlighted()).toEqual([':smile:'])
+    expect(list.submit()).toBe(true)
+    expect(list.onSelected).toHaveBeenLastCalledWith(':smile:', true)
+  })
+
   test('moving on an empty list does nothing, and items that arrive later are not previewed', () => {
     const list = setup([])
 
     list.move(false)
-    list.rerender(['testuser', 'testuser-mac'])
-    list.rerender(['testuser', 'testuser-mac', 'testuser2'])
+    list.rerender(['testuser', 'testuser-mac'], 't')
+    list.rerender(['testuser', 'testuser-mac', 'testuser2'], 't')
 
     expect(list.onSelected).not.toHaveBeenCalled()
     expect(highlighted()).toEqual(['testuser'])
@@ -174,6 +190,7 @@ describe('List', () => {
     const Item = (p: {selected: boolean; item: string}) => <>{p.item}</>
     const view = (items: Array<string>) => (
       <List
+        filter="t"
         items={items}
         ItemRenderer={Item}
         keyExtractor={(item: string) => item}
@@ -203,6 +220,7 @@ describe('List', () => {
     // every parent render makes a new items array and new callbacks
     const view = (items: Array<string>) => (
       <List
+        filter="t"
         items={[...items]}
         ItemRenderer={Item}
         keyExtractor={(item: string) => item}
