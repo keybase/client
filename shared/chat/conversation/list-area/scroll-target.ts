@@ -22,8 +22,8 @@ export type ScrollTargetState = {
   // are already parked on still reloads the thread, so the list has to scroll to it again.
   lastCentered: T.Chat.Ordinal | undefined
   // Whether the list's centring of that target is still under way. It ends when the list reports it
-  // settled, and when the reader leaves the target (a wheel, a drag, asking for the bottom): rows
-  // changing under a target no longer settling must not pull the reader back to it.
+  // settled, and when the reader leaves the target (a wheel, a drag, asking for the bottom). A list
+  // hidden while it is under way has its centring cut short, and centres the target afresh.
   settlingCenter: boolean
   // The edit already revealed. Deliberately survives a dataset change.
   lastEditing: T.Chat.Ordinal | undefined
@@ -35,8 +35,8 @@ export type ScrollEvent =
   // The list laid out a dataset other than the one it last saw.
   | {type: 'datasetChanged'}
   // The level-triggered centre reconcile, sent whenever the centre request or the loaded rows change:
-  // it starts centring, refines a target still settling against rows that changed under it, and
-  // ends centring. targetInData says whether the centred ordinal is in the loaded rows.
+  // it starts centring once the target is loaded, and ends it. targetInData says whether the centred
+  // ordinal is in the loaded rows.
   | {
       type: 'threadObserved'
       centeredOrdinal: T.Chat.Ordinal | undefined
@@ -87,10 +87,10 @@ export type ScrollDirective =
   // list displaces its own end anchor. whenSettled: once the list has stopped moving, correct any
   // shortfall for as long as the list still owns the end.
   | {type: 'pinEnd'; how: 'now' | 'unlessAtEnd' | 'whenSettled'; stopCentering: boolean}
-  // Bring the ordinal to the middle of the viewport and settle it there against the loaded rows.
-  // newTarget says it has not been centred in this dataset, so the move toward it is still to make;
-  // otherwise the rows changed under a target still settling.
-  | {type: 'center'; ordinal: T.Chat.Ordinal; newTarget: boolean}
+  // Bring the ordinal to the middle of the viewport and settle it there, measuring the rows as they
+  // are at each step, so rows changing under it need no directive of their own. Its budget (steps,
+  // time) is the target's, however often the rows change.
+  | {type: 'center'; ordinal: T.Chat.Ordinal}
   // Bring the ordinal to the middle of the viewport.
   | {type: 'reveal'; ordinal: T.Chat.Ordinal}
   | {type: 'leaveAlone'; stopCentering: boolean}
@@ -135,8 +135,7 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
           state: {...state, lastCentered: undefined, settlingCenter: false},
         }
       }
-      // Centring happens once per target and dataset; after that only a target still settling is
-      // refined as the rows change under it.
+      // Centring happens once per target and dataset.
       const newTarget = state.lastCentered !== centeredOrdinal
       if (!loaded || !targetInData) {
         // A centre takes the end from the list as soon as it is requested, as it turns the list's own
@@ -144,9 +143,9 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
         // the target is on its way.
         return {directive: leaveAlone, state: newTarget ? {...state, endOwner: 'reader'} : state}
       }
-      if (!newTarget && !state.settlingCenter) return {directive: leaveAlone, state}
+      if (!newTarget) return {directive: leaveAlone, state}
       return {
-        directive: {newTarget, ordinal: centeredOrdinal, type: 'center'},
+        directive: {ordinal: centeredOrdinal, type: 'center'},
         state: {...state, endOwner: 'reader', lastCentered: centeredOrdinal, settlingCenter: true},
       }
     }

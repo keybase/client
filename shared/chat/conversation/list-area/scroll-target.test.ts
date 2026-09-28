@@ -29,7 +29,7 @@ const stopCentering: ScrollDirective = {stopCentering: true, type: 'leaveAlone'}
 const pinNow: ScrollDirective = {how: 'now', stopCentering: false, type: 'pinEnd'}
 const pinUnlessAtEndStopCentering: ScrollDirective = {how: 'unlessAtEnd', stopCentering: true, type: 'pinEnd'}
 const pinWhenSettled: ScrollDirective = {how: 'whenSettled', stopCentering: false, type: 'pinEnd'}
-const center = (n: number, newTarget = true): ScrollDirective => ({newTarget, ordinal: ord(n), type: 'center'})
+const center = (n: number): ScrollDirective => ({ordinal: ord(n), type: 'center'})
 const reveal = (n: number): ScrollDirective => ({ordinal: ord(n), type: 'reveal'})
 
 type Row = [
@@ -125,10 +125,10 @@ describe('threadObserved', () => {
       {...centred(30), headerSize: 100, lastEditing: ord(15)},
     ],
     [
-      'rows changing under a target still settling refine it',
+      'rows changing under a target still settling need no directive: its centring measures them as it goes',
       centred(30),
       observed(30),
-      center(30, false),
+      leaveAlone,
       centred(30),
     ],
     [
@@ -386,7 +386,7 @@ describe('sequences', () => {
   const header = (size: number): ScrollEvent => ({hasMessages: true, size, type: 'headerMeasured'})
   const wheel: ScrollEvent = {type: 'userScrolled'}
 
-  test('a search hit: clear, reload, centre, refine as rows arrive, settle, then leave it in place', () => {
+  test('a search hit: clear, reload, centre, settle as rows arrive, then leave it in place', () => {
     const d = openList()
     d.centreOn(ord(500))
     d.load(window(450, 550))
@@ -401,7 +401,7 @@ describe('sequences', () => {
       stopCentering,
       leaveAlone,
       center(500),
-      center(500, false),
+      leaveAlone,
       leaveAlone,
       // Rows arriving under a settled target leave the reader where they are.
       leaveAlone,
@@ -486,7 +486,7 @@ describe('sequences', () => {
     d.receive(ord(61))
     d.send({anchorHidesNewest: true, type: 'appended'})
     d.requestBottom()
-    expect(d.take()).toEqual([center(30, false), leaveAlone, pinUnlessAtEndStopCentering])
+    expect(d.take()).toEqual([leaveAlone, leaveAlone, pinUnlessAtEndStopCentering])
     expect(d.state).toEqual(state({lastCentered: ord(30)}))
   })
 

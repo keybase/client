@@ -201,9 +201,7 @@ export const useDesktopThreadScroll = (p: {
           void listRef.current?.scrollToEnd({animated: false})
           return
         case 'center':
-          // A target still settling has its loop running, and every step of it measures the rows as
-          // they are now, so rows changing under it need nothing more.
-          if (directive.newTarget) scrollToCentered(directive.ordinal)
+          scrollToCentered(directive.ordinal)
           return
         case 'reveal': {
           const idx = indexOfOrdinal(messageOrdinalsRef.current, directive.ordinal)

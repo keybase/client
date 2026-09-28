@@ -175,8 +175,8 @@ export const useNativeThreadScroll = (p: {
     }
   )
 
-  // The corrector's 50/250/500/900ms schedule, restarted by each center directive. It is the whole
-  // budget: the target settles where the last step leaves it.
+  // The corrector's 50/250/500/900ms schedule, started once per target. With its 13 steps it is the
+  // whole budget: the target settles where the last step leaves it.
   const ladderRef = React.useRef<Array<Scheduled>>([])
 
   const perform = React.useCallback(
@@ -189,10 +189,8 @@ export const useNativeThreadScroll = (p: {
           listRef.current?.scrollToOffset({animated: false, offset: restingOffsetRef.current()})
           return
         case 'center':
-          if (directive.newTarget) {
-            requestItem(directive.ordinal, false)
-            moveToward(directive.ordinal)
-          }
+          requestItem(directive.ordinal, false)
+          moveToward(directive.ordinal)
           correctRef.current = {active: true, iters: 0}
           ladderRef.current.forEach(t => t.cancel())
           ladderRef.current = [50, 250, 500, 900].map((d, i, ladder) =>
@@ -238,8 +236,7 @@ export const useNativeThreadScroll = (p: {
   // Center on the search hit once it actually appears in the loaded list. Centering
   // on the raw centeredOrdinal change is unreliable: navigating to a hit reloads the
   // thread centered on it, so messageOrdinals is briefly empty (idx -1) when the
-  // ordinal changes. Wait for the target to load, then scroll. Every change to the rows under a
-  // target still settling restarts the corrector's schedule. A layout effect ahead of the first
+  // ordinal changes. Wait for the target to load, then scroll. A layout effect ahead of the first
   // load's, which relies on a centre request having taken the end already.
   React.useLayoutEffect(() => {
     dispatch({

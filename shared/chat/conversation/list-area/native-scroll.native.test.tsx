@@ -481,7 +481,7 @@ describe('a centre requested after opening', () => {
     expect(H.log).toEqual([coarse(500), coarse(500)])
   })
 
-  test('rows changing under a centred target re-arm the corrector without a coarse scroll', async () => {
+  test('rows changing under a centred target go on correcting within its schedule, without a coarse scroll', async () => {
     open({center: 50, from: 21, to: 80})
     await tick(300)
     scrolled(0, 6000)
@@ -491,9 +491,21 @@ describe('a centre requested after opening', () => {
     setOrdinals(1, 80)
     viewable(0, 9)
     expect(scrollsOnly()).toEqual([toOffset(25.5 * (6000 / 80) * 0.9)])
+    // The 500ms and 900ms rungs of the schedule the target started with; nothing restarts it.
     await tick(1000)
-    expect(scrollsOnly()).toHaveLength(5)
+    expect(scrollsOnly()).toHaveLength(3)
     expect(scrollsOnly().filter(([kind]) => kind === 'scrollToItem')).toEqual([])
+  })
+
+  test('rows changing under a centred target do not renew its 13 steps', () => {
+    open({center: 50, from: 21, to: 80})
+    scrolled(0, 6000)
+    // New messages keep arriving while it settles, each followed by a viewable change.
+    for (let i = 1; i <= 20; i++) {
+      setOrdinals(21, 80 + i)
+      viewable(0, 9)
+    }
+    expect(scrollsOnly().filter(([kind]) => kind === 'scrollToOffset')).toHaveLength(13)
   })
 
   test('once the corrector has centred the target, older rows loading under it leave the reader there', async () => {
