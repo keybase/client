@@ -54,6 +54,7 @@ type HtmlInputRef = {
   selectionStart: number | null
   selectionEnd: number | null
   click: () => void
+  setSelectionRange: (start: number, end: number) => void
   getBoundingClientRect: () => DOMRect
   files?: HtmlFileList | null
 }
@@ -64,6 +65,7 @@ type HtmlTextAreaRef = {
   selectionStart: number | null
   selectionEnd: number | null
   click: () => void
+  setSelectionRange: (start: number, end: number) => void
   getBoundingClientRect: () => DOMRect
 }
 type HtmlFileList = {
@@ -152,28 +154,19 @@ function DesktopInput(p: InputLowLevelProps) {
       isFocused: () =>
         !!i && (globalThis as {document?: {activeElement: unknown}}).document?.activeElement === i,
       replaceText: (ti: TextInfo, reflectChange: boolean) => {
-        // defer since we can do this in other renders
-        setTimeout(() => {
+        if (!i) return false
+        // Written to the element before React sees it, so the render that follows finds the
+        // value already there and leaves the element (and its caret) alone.
+        i.value = ti.text
+        if (ti.selection) {
+          i.setSelectionRange(ti.selection.start, ti.selection.end ?? ti.selection.start)
+        }
+        if (reflectChange) {
+          onChange({target: i})
+        } else {
+          selectionRef.current = {end: i.selectionEnd ?? 0, start: i.selectionStart ?? 0}
           setValue(ti.text)
-          selectionRef.current = {end: ti.selection?.end ?? 0, start: ti.selection?.start ?? 0}
-          // defer this else we'll get onSelect called and wipe it out
-          setTimeout(() => {
-            if (i && ti.selection) {
-              if (typeof ti.selection.start === 'number') {
-                i.selectionStart = ti.selection.start
-              }
-              if (typeof ti.selection.end === 'number') {
-                i.selectionEnd = ti.selection.end
-              }
-            }
-          }, 10)
-          if (reflectChange) {
-            setTimeout(() => {
-              if (!i) return
-              onChange({target: i})
-            }, 100)
-          }
-        }, 0)
+        }
         return true
       },
     }

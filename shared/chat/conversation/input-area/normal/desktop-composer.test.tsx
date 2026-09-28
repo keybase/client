@@ -89,20 +89,6 @@ const type = (textarea: HTMLTextAreaElement, text: string, caret = text.length) 
   })
 }
 
-// the desktop input writes text on a 0ms timer, the caret 10ms after that, and echoes the
-// change back through onChangeText 100ms after the write
-const settleWrite = () => {
-  act(() => {
-    jest.advanceTimersByTime(0)
-  })
-  act(() => {
-    jest.advanceTimersByTime(10)
-  })
-  act(() => {
-    jest.advanceTimersByTime(100)
-  })
-}
-
 beforeEach(() => {
   jest.useFakeTimers()
   jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
@@ -137,7 +123,6 @@ test('ArrowUp in an empty composer edits your last message and injects its text'
   act(() => {
     fireEvent.keyDown(textarea, {key: 'ArrowUp'})
   })
-  settleWrite()
 
   expect(getHandles().input.editing).toBe(T.Chat.numberToOrdinal(101))
   expect(textarea.value).toBe('last thing I said')
@@ -154,7 +139,6 @@ test('ArrowUp with text in the composer does not start an edit', () => {
   act(() => {
     fireEvent.keyDown(textarea, {key: 'ArrowUp'})
   })
-  settleWrite()
 
   expect(getHandles().input.editing).toBe(T.Chat.numberToOrdinal(0))
   expect(textarea.value).toBe('draft')
@@ -168,12 +152,10 @@ test('Escape while editing cancels the edit and clears the composer', () => {
   act(() => {
     fireEvent.keyDown(textarea, {key: 'ArrowUp'})
   })
-  settleWrite()
 
   act(() => {
     fireEvent.keyDown(textarea, {key: 'Escape'})
   })
-  settleWrite()
 
   expect(getHandles().input.editing).toBe(T.Chat.numberToOrdinal(0))
   expect(textarea.value).toBe('')
@@ -189,11 +171,36 @@ test('injecting with focus writes the text, parks the caret at the end and focus
     getHandles().input.dispatch.injectIntoInput('hello there', true)
   })
   expect(document.activeElement).toBe(textarea)
-  settleWrite()
 
   expect(textarea.value).toBe('hello there')
   expect(textarea.selectionStart).toBe(11)
   expect(textarea.selectionEnd).toBe(11)
+})
+
+test('a write shows in the textarea at once, caret included', () => {
+  const {getHandles, textarea} = renderComposer()
+
+  act(() => {
+    getHandles().input.dispatch.injectIntoInput('hello there')
+  })
+
+  expect(textarea.value).toBe('hello there')
+  expect(textarea.selectionStart).toBe(11)
+  expect(textarea.selectionEnd).toBe(11)
+})
+
+test('a keystroke right after a write is kept', () => {
+  const {getHandles, textarea} = renderComposer()
+
+  act(() => {
+    getHandles().input.dispatch.injectIntoInput('hello', true)
+  })
+  type(textarea, `${textarea.value}!`)
+  act(() => {
+    jest.advanceTimersByTime(500)
+  })
+
+  expect(textarea.value).toBe('hello!')
 })
 
 test('injecting the spoiler markup selects the placeholder between the markers', () => {
@@ -202,7 +209,6 @@ test('injecting the spoiler markup selects the placeholder between the markers',
   act(() => {
     getHandles().input.dispatch.injectIntoInput('!>spoiler<!')
   })
-  settleWrite()
 
   expect(textarea.value).toBe('!>spoiler<!')
   expect(textarea.selectionStart).toBe(2)
@@ -230,7 +236,6 @@ test('Enter sends the composer text and clears it; shift-Enter does not send', a
     jest.advanceTimersByTime(0)
     await Promise.resolve()
   })
-  settleWrite()
 
   expect(post).toHaveBeenCalledTimes(1)
   expect(post.mock.calls[0]?.[0].params.body).toBe('hello')
@@ -264,7 +269,6 @@ test('picking an emoji mid-text inserts at the caret with the space appended at 
   act(() => {
     mockPickEmoji?.(':smile:')
   })
-  settleWrite()
 
   expect(textarea.value).toBe('ab:smile:cd ')
   expect(textarea.selectionStart).toBe(2 + ':smile:'.length + 1)
@@ -281,7 +285,6 @@ test('picking an emoji at the end of the text reads as emoji plus space', () => 
   act(() => {
     mockPickEmoji?.(':wave:')
   })
-  settleWrite()
 
   expect(textarea.value).toBe('hi :wave: ')
   expect(textarea.selectionStart).toBe(textarea.value.length)
@@ -294,7 +297,6 @@ test('the suggestors see text injected into the composer', () => {
     getHandles().input.dispatch.injectIntoInput('hey @te', true)
   })
   expect(document.activeElement).toBe(textarea)
-  settleWrite()
   // the suggestors settle on a 1ms timer after the change lands
   act(() => {
     jest.advanceTimersByTime(5)
@@ -319,7 +321,6 @@ test('picking a suggested user rewrites the word at the caret', () => {
   act(() => {
     onSelected?.({fullName: '', username: 'testuser'}, true)
   })
-  settleWrite()
 
   expect(textarea.value).toBe('hi @testuser and more')
   expect(textarea.selectionStart).toBe('hi @testuser'.length)
@@ -342,14 +343,12 @@ test('a previewed suggestion shows in the input and a later pick replaces the pr
   act(() => {
     onSelected?.({fullName: '', username: 'testuser'}, false)
   })
-  settleWrite()
   expect(textarea.value).toBe('hi @testuser')
   expect(saveDraft).not.toHaveBeenCalled()
 
   act(() => {
     onSelected?.({fullName: '', username: 'testuser-mac'}, true)
   })
-  settleWrite()
   expect(textarea.value).toBe('hi @testuser-mac ')
 })
 
@@ -359,7 +358,6 @@ test('the gif button prefills the giphy command and a second press clears it onc
   act(() => {
     fireEvent.click(utils.container.querySelector('.icon-gen-iconfont-gif') ?? textarea)
   })
-  settleWrite()
   expect(textarea.value).toBe('/giphy ')
 
   act(() => {
@@ -368,7 +366,6 @@ test('the gif button prefills the giphy command and a second press clears it onc
   act(() => {
     fireEvent.click(utils.container.querySelector('.icon-gen-iconfont-gif') ?? textarea)
   })
-  settleWrite()
   expect(textarea.value).toBe('')
 })
 
@@ -382,24 +379,20 @@ describe('drafts', () => {
   test('a draft already in the inbox meta is loaded into the composer on mount', () => {
     receiveDraft('saved draft')
     const {textarea} = renderComposer()
-    settleWrite()
-
+  
     expect(textarea.value).toBe('saved draft')
     expect(textarea.selectionStart).toBe('saved draft'.length)
   })
 
   test('a draft that arrives after mount is loaded once, and later draft updates are not', () => {
     const {textarea} = renderComposer()
-    settleWrite()
-    expect(textarea.value).toBe('')
+      expect(textarea.value).toBe('')
 
     receiveDraft('late draft')
-    settleWrite()
-    expect(textarea.value).toBe('late draft')
+      expect(textarea.value).toBe('late draft')
 
     receiveDraft('newer draft from elsewhere')
-    settleWrite()
-    expect(textarea.value).toBe('late draft')
+      expect(textarea.value).toBe('late draft')
   })
 
   test('a draft arriving after the user already typed does not clobber the text', () => {
@@ -407,19 +400,16 @@ describe('drafts', () => {
     type(textarea, 'typed first')
 
     receiveDraft('stale draft')
-    settleWrite()
-
+  
     expect(textarea.value).toBe('typed first')
   })
 
   test('an empty draft marks the draft loaded without touching the composer', () => {
     receiveDraft('')
     const {textarea} = renderComposer()
-    settleWrite()
-
+  
     receiveDraft('arrives later')
-    settleWrite()
-
+  
     expect(textarea.value).toBe('')
   })
 
@@ -467,13 +457,11 @@ test('a stellar send the user cancels puts the text back in the composer', async
     jest.advanceTimersByTime(0)
     await Promise.resolve()
   })
-  settleWrite()
   expect(textarea.value).toBe('')
 
   act(() => {
     cancel?.()
   })
-  settleWrite()
 
   expect(textarea.value).toBe('+1xlm@testuser')
 })
