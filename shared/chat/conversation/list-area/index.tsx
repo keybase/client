@@ -23,10 +23,10 @@ import {
 import {CatchUp, useCatchUp} from './catch-up'
 import {useJumpToRecent} from './jump-to-recent'
 import {useThreadLoadStatusOptionsGetter} from '../thread-load-status-context'
+import {useDesktopThreadScroll} from './desktop-scroll'
 import {getMessageRowType, getMessageShowUsername} from '../messages/row-metadata'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as InputState from '../input-area/input-state'
-import sortedIndexOf from 'lodash/sortedIndexOf'
 import {copyToClipboard} from '@/util/storeless-actions'
 import noop from 'lodash/noop'
 import {LegendList} from '@legendapp/list/react'
@@ -136,23 +136,6 @@ const usePagination = (p: {
   return {onEndReached, onStartReached}
 }
 
-const centerTolerancePx = 8
-// A scroller within this many pixels of its end counts as at the end.
-const endTolerancePx = 2
-
-// When a centeredOrdinal is set at mount, start there; otherwise start at the end (newest).
-const useInitialScrollIndex = (
-  messageOrdinals: ReadonlyArray<T.Chat.Ordinal>,
-  centeredOrdinal: T.Chat.Ordinal | undefined
-) =>
-  React.useMemo(() => {
-    const idx =
-      centeredOrdinal !== undefined
-        ? sortedIndexOf(messageOrdinals as unknown as number[], centeredOrdinal as unknown as number)
-        : -1
-    return idx >= 0 ? ({index: idx, viewPosition: 0.5} as const) : undefined
-  }, [messageOrdinals, centeredOrdinal])
-
 // ==================== DESKTOP ====================
 
 const HighlightableRow = React.memo(({ordinal}: {ordinal: T.Chat.Ordinal}) => {
@@ -229,132 +212,19 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
 
   const {onStartReached, onEndReached} = usePagination({containsLatestMessage, messageOrdinals})
 
-  // messageOrdinalsRef feeds the imperative scroll-to-center / scroll-to-edit effects below.
-  const messageOrdinalsRef = React.useRef(messageOrdinals)
-  React.useEffect(() => {
-    messageOrdinalsRef.current = messageOrdinals
-  }, [messageOrdinals])
-
   const getItemType = useGetItemType()
 
-  // Asks the scroller, not the list's own isAtEnd: that flag comes from the content size and viewport
-  // the list has recorded, and both lag a composer collapse, so it reads not-at-end while the scroller
-  // is in fact at its end.
-  const isScrolledToEnd = React.useCallback(() => {
-    type ElLike = {children: ArrayLike<ElLike>; clientHeight: number; scrollHeight: number; scrollTop: number}
-    const wrapper = wrapperRef.current as unknown as ElLike | null
-    if (!wrapper) return false
-    for (const child of Array.from(wrapper.children)) {
-      if (child.scrollHeight - child.clientHeight > 1) {
-        return child.scrollHeight - child.clientHeight - child.scrollTop <= endTolerancePx
-      }
-    }
-    return false
-  }, [])
-
-  // Whether the end still belongs to the list rather than to the user. initialScrollAtEnd starts it
-  // ours; a wheel, a keyboard scroll or a centered load hands it over. Only consulted by the header
-  // re-pin below, which must not yank a reader who has scrolled away.
-  const pinnedToEndRef = React.useRef(true)
-  React.useLayoutEffect(() => {
-    pinnedToEndRef.current = true
-  }, [datasetKey])
-
-  // Imperative scroll for ThreadRefsContext: for coming back from somewhere else in the thread, which
-  // is the only case that needs it. While the list is at the end maintainScrollAtEnd owns the position,
-  // and scrolling here only displaces it — the target resolves before the new row has measured, so it
-  // lands short, and while it counts as in flight the list declines its own end anchor and abandons it.
-  const scrollToBottom = React.useCallback(() => {
-    pinnedToEndRef.current = true
-    if (isScrolledToEnd()) return
-    void listRef.current?.scrollToEnd({animated: false})
-  }, [isScrolledToEnd])
-
-  const scrollUp = React.useCallback(() => {
-    const state = listRef.current?.getState()
-    if (!state) return
-    pinnedToEndRef.current = false
-    void listRef.current?.scrollToOffset({
-      animated: false,
-      offset: Math.max(0, state.scroll - state.scrollLength),
+  const {initialScrollIndex, maintainScrollAtEnd, onMetricsChange, onWheel, scrollToRecent} =
+    useDesktopThreadScroll({
+      centeredOrdinal,
+      containsLatestMessage,
+      datasetKey,
+      editingOrdinal,
+      listRef,
+      loaded,
+      messageOrdinals,
+      wrapperRef,
     })
-  }, [])
-
-  const scrollDown = React.useCallback(() => {
-    const state = listRef.current?.getState()
-    if (!state) return
-    void listRef.current?.scrollToOffset({
-      animated: false,
-      offset: state.scroll + state.scrollLength,
-    })
-  }, [])
-
-  // The list resolves its initialScrollAtEnd target from the header size it has measured so far, and
-  // SpecialTopMessage renders at its bare minHeight before the thread's intro content (retention
-  // notice, new-chat card, the "digging" spinner) lands. maintainScrollAtEnd re-pins on a data, item,
-  // footer or viewport layout change but has no header trigger, so a header that grows after the
-  // target resolved leaves the list short by exactly that growth and nothing corrects it.
-  //
-  // Closed loop rather than a correction fired straight from the size change, for the same reason
-  // scrollToBottom keeps out of the way: the header often settles while the thread is still empty,
-  // and a scrollToEnd issued against that near-empty content becomes the target the list then
-  // abandons its own bootstrap for, landing anywhere. Wait for the scroll offset to hold still, so
-  // the list has finished its own initial scroll, and only then correct what it left on the table.
-  const endAnchorLoopRef = React.useRef<{cancelled: boolean} | undefined>(undefined)
-  const stopEndAnchor = React.useCallback(() => {
-    if (endAnchorLoopRef.current) endAnchorLoopRef.current.cancelled = true
-  }, [])
-  React.useEffect(() => stopEndAnchor, [stopEndAnchor])
-  const verifyEndAnchor = React.useCallback(() => {
-    stopEndAnchor()
-    const loop = {cancelled: false}
-    endAnchorLoopRef.current = loop
-    const run = async () => {
-      let previousScroll: number | undefined
-      let corrections = 0
-      for (let elapsed = 0; elapsed < 2000 && !loop.cancelled && pinnedToEndRef.current; ) {
-        await new Promise<void>(resolve => setTimeout(resolve, 50))
-        elapsed += 50
-        const state = listRef.current?.getState()
-        if (!state) continue
-        if (state.isAtEnd) return
-        // Only a scroll offset that held still across two checks means the list is done moving.
-        if (state.scroll === previousScroll) {
-          // Two corrections is the whole budget: one for the header, one for whatever re-measured
-          // alongside it. Past that we would be fighting something that owns the offset.
-          if (++corrections > 2) return
-          void listRef.current?.scrollToEnd({animated: false})
-          previousScroll = undefined
-        } else {
-          previousScroll = state.scroll
-        }
-      }
-    }
-    void run()
-  }, [stopEndAnchor])
-
-  // The header's own size change is the signal, but only once there are messages: the header
-  // frequently settles while the thread is still empty, and there is no end to hold yet.
-  const lastHeaderSizeRef = React.useRef<number | undefined>(undefined)
-  React.useLayoutEffect(() => {
-    lastHeaderSizeRef.current = undefined
-  }, [datasetKey])
-  const onMetricsChange = React.useCallback(
-    (metrics: {headerSize: number}) => {
-      const previous = lastHeaderSizeRef.current
-      lastHeaderSizeRef.current = metrics.headerSize
-      // The first emit is the measurement the target was built from, not a change.
-      if (previous === undefined || previous === metrics.headerSize) return
-      if (!pinnedToEndRef.current || messageOrdinalsRef.current.length === 0) return
-      verifyEndAnchor()
-    },
-    [verifyEndAnchor]
-  )
-
-  const {setScrollRef} = React.useContext(ThreadRefsContext)
-  React.useEffect(() => {
-    setScrollRef({scrollDown, scrollToBottom, scrollUp})
-  }, [scrollDown, scrollToBottom, scrollUp, setScrollRef])
 
   const isScrollingRef = React.useRef(false)
   const scrollStopTimerRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -389,133 +259,6 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     [onScroll]
   )
 
-  // Scroll to centered ordinal when it changes (search / thread navigation).
-  // Use a "last scrolled to" ref rather than a "did it change" ref so we still
-  // scroll when loaded becomes true after centeredOrdinal was already set.
-  // Reset per dataset, not per conversation: re-centering on the ordinal we are already parked
-  // on still reloads the thread, so the list has to scroll to it again.
-  const lastScrolledCenteredRef = React.useRef<T.Chat.Ordinal | undefined>(undefined)
-  React.useLayoutEffect(() => {
-    lastScrolledCenteredRef.current = undefined
-  }, [datasetKey])
-
-  // Owns the in-flight centering loop. It has to outlive re-renders: the messages that make
-  // centering accurate arrive after it starts, so the loop must not be torn down by an effect
-  // cleanup when messageOrdinals changes. Only a new target or unmount stops it.
-  const centerLoopRef = React.useRef<{cancelled: boolean} | undefined>(undefined)
-  // The loop re-centers for up to ~3s; a user scrolling in that window must win.
-  const abortCentering = React.useCallback(() => {
-    if (centerLoopRef.current) centerLoopRef.current.cancelled = true
-  }, [])
-  React.useEffect(() => abortCentering, [abortCentering])
-
-  // Closed loop, not one shot: rows enter at estimatedItemSize and only settle as they measure, so
-  // the first scroll lands off by however wrong the estimates above the target were. Measure the
-  // row's real offset from the viewport center and correct until it holds still, then get out of
-  // the way: maintainVisibleContentPosition owns the offset from then on. Two controllers fighting
-  // over the same scroll offset would oscillate.
-  //
-  // Correct via LegendList's own scrollToOffset, never scrollIntoView: touching scrollTop directly
-  // desyncs LegendList's internal scroll state, and the next time it recomputes item positions it
-  // snaps somewhere unrelated.
-  const scrollToCentered = React.useEffectEvent((target: T.Chat.Ordinal) => {
-    abortCentering()
-    const loop = {cancelled: false}
-    centerLoopRef.current = loop
-    const run = async () => {
-      let settled = 0
-      let pinnedChecks = 0
-      let scrollAtLastRequest: number | undefined
-      for (let elapsed = 0; elapsed < 3000 && !loop.cancelled; ) {
-        const wrapper = wrapperRef.current as unknown as {
-          getBoundingClientRect: () => {height: number; top: number}
-          querySelector: (s: string) => {getBoundingClientRect: () => {height: number; top: number}} | null
-        } | null
-        const el = wrapper ? wrapper.querySelector(`[data-ordinal="${target}"]`) : null
-        if (!wrapper || !el) {
-          // Target is outside the rendered window; get it mounted first.
-          const idx = sortedIndexOf(
-            messageOrdinalsRef.current as unknown as number[],
-            target as unknown as number
-          )
-          if (idx >= 0) {
-            void listRef.current?.scrollToIndex({animated: false, index: idx, viewPosition: 0.5})
-          }
-          settled = 0
-          pinnedChecks = 0
-          await new Promise<void>(resolve => setTimeout(resolve, 100))
-          elapsed += 100
-          continue
-        }
-        const elRect = el.getBoundingClientRect()
-        const wrapRect = wrapper.getBoundingClientRect()
-        const offBy = elRect.top + elRect.height / 2 - (wrapRect.top + wrapRect.height / 2)
-        const scroll = listRef.current?.getState().scroll
-        // Deadband, not exact centering: below this the row reads as centered, and chasing the
-        // remainder only fights maintainVisibleContentPosition's own sub-pixel adjustments.
-        if (Math.abs(offBy) <= centerTolerancePx || scroll === undefined) {
-          pinnedChecks = 0
-          // Only the iteration right after a correction can diagnose a clamp.
-          scrollAtLastRequest = undefined
-          if (++settled >= 3) return
-        } else if (scroll === scrollAtLastRequest) {
-          // A hit near either end of the thread cannot be centered: the offset we ask for gets
-          // clamped and the row never reaches the middle. Our last correction moved the scroll
-          // position not at all, so we are pinned against an edge — stop rather than spin.
-          if (++pinnedChecks >= 3) return
-        } else {
-          pinnedChecks = 0
-          scrollAtLastRequest = scroll
-          void listRef.current?.scrollToOffset({animated: false, offset: scroll + offBy})
-        }
-        await new Promise<void>(resolve => setTimeout(resolve, 50))
-        elapsed += 50
-      }
-    }
-    void run()
-  })
-
-  React.useEffect(() => {
-    if (!loaded) return
-    if (centeredOrdinal !== undefined) {
-      if (lastScrolledCenteredRef.current === centeredOrdinal) return
-      const idx = sortedIndexOf(
-        messageOrdinalsRef.current as unknown as number[],
-        centeredOrdinal as unknown as number
-      )
-      if (idx < 0) return
-      lastScrolledCenteredRef.current = centeredOrdinal
-      pinnedToEndRef.current = false
-      scrollToCentered(centeredOrdinal)
-    } else if (lastScrolledCenteredRef.current !== undefined) {
-      lastScrolledCenteredRef.current = undefined
-      abortCentering()
-      pinnedToEndRef.current = true
-      if (containsLatestMessage) {
-        void listRef.current?.scrollToEnd({animated: false})
-      }
-    }
-  }, [abortCentering, centeredOrdinal, loaded, containsLatestMessage, messageOrdinals])
-
-  // Scroll to the message being edited
-  const lastEditingOrdinalRef = React.useRef<T.Chat.Ordinal | undefined>(undefined)
-  React.useEffect(() => {
-    if (lastEditingOrdinalRef.current === editingOrdinal) return
-    lastEditingOrdinalRef.current = editingOrdinal
-    if (!editingOrdinal) return
-    const idx = sortedIndexOf(
-      messageOrdinalsRef.current as unknown as number[],
-      editingOrdinal as unknown as number
-    )
-    if (idx >= 0) {
-      void listRef.current?.scrollToIndex({
-        animated: true,
-        index: idx,
-        viewPosition: 0.5,
-      })
-    }
-  }, [editingOrdinal])
-
   // Mark thread as read after initial load (once per conversation)
   const markedReadRef = React.useRef(false)
   React.useLayoutEffect(() => {
@@ -534,7 +277,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     []
   )
 
-  const jumpToRecent = useJumpToRecent(scrollToBottom, messageOrdinals.length)
+  const jumpToRecent = useJumpToRecent(scrollToRecent, messageOrdinals.length)
 
   const {onCatchUp, onViewableOrdinalsChanged, showCatchUp} = useCatchUp({loaded})
   // Data runs oldest-first here, so the first viewable row is the oldest one on screen.
@@ -606,15 +349,6 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     tempDiv.remove()
   }
 
-  const initialScrollIndex = useInitialScrollIndex(messageOrdinals, centeredOrdinal)
-
-  // A wheel means the user took over: stop centering so we don't scroll them away from where
-  // they landed, and give up the end anchor.
-  const onWheel = React.useCallback(() => {
-    pinnedToEndRef.current = false
-    abortCentering()
-  }, [abortCentering])
-
   return (
     <Kb.ErrorBoundary>
       <div
@@ -647,14 +381,10 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           alignItemsAtEnd={true}
           initialScrollAtEnd={initialScrollIndex === undefined}
           initialScrollIndex={initialScrollIndex}
-          maintainScrollAtEnd={
-            centeredOrdinal !== undefined
-              ? false
-              : // The documented form, which enables every trigger. It was a narrowed {on: {...}} list
-                // before, and naming any trigger opts out of the ones left unnamed — that is how the
-                // layout trigger went missing and a window resize lost the end.
-                true
-          }
+          // The documented boolean form, which enables every trigger. Naming any trigger in an
+          // {on: {...}} list opts out of the ones left unnamed — that is how the layout trigger went
+          // missing once and a window resize lost the end.
+          maintainScrollAtEnd={maintainScrollAtEnd}
           // Stays on while centered: the full thread response lands after the cached one and
           // re-measures rows above the target, which slides it out of view unless anchored.
           maintainVisibleContentPosition={{data: true}}

@@ -9,14 +9,16 @@ export type ScrollTargetState = {
   // and refills it under a new key, and that is a new list as far as scrolling is concerned.
   datasetKey: string
   // Whether the end still belongs to the list (hold the newest message in view) or to the reader,
-  // who took it by scrolling away or by asking for a centred target.
+  // who took it by scrolling away or by asking for a centred target. Only the header re-pin consults
+  // it, and that must not yank a reader who has scrolled away.
   endOwner: 'list' | 'reader'
   // The last header size reported for this dataset. The first report is the size the list built its
   // initial position from, so only a later, different one counts as growth.
   headerSize: number | undefined
   // The target already centred in this dataset. Centring happens once per target: scrolling up
   // prepends older messages, which moves the target's index, and re-centring on that would pull
-  // the reader back to the hit.
+  // the reader back to the hit. Per dataset, not per conversation: re-centring on the ordinal we
+  // are already parked on still reloads the thread, so the list has to scroll to it again.
   lastCentered: T.Chat.Ordinal | undefined
   // The edit already revealed. Deliberately survives a dataset change.
   lastEditing: T.Chat.Ordinal | undefined
