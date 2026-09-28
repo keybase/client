@@ -4,12 +4,8 @@ import {useInboxMetadataState, metasReceived, participantInfoReceived} from './m
 export {useInboxMetadataState, metasReceived, participantInfoReceived} from './metadata-store'
 import * as T from '@/constants/types'
 import type * as EngineGen from '@/constants/rpc'
-import {
-  getModalStack,
-  getVisibleScreen,
-  navigateToInbox,
-  navigateToThread as routerNavigateToThread,
-} from '@/constants/router'
+import * as NavTree from '@/constants/nav-tree'
+import {navigateToInbox, navigateToThread as routerNavigateToThread} from '@/constants/router'
 import type * as Router2 from '@/constants/router'
 import logger from '@/logger'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
@@ -205,13 +201,13 @@ export const onChatRouteChanged = (
   prev: T.Immutable<Router2.NavState>,
   next: T.Immutable<Router2.NavState>
 ) => {
-  const wasModal = prev && getModalStack(prev).length > 0
-  const isModal = next && getModalStack(next).length > 0
+  const wasModal = prev && NavTree.modalStack(prev).length > 0
+  const isModal = next && NavTree.modalStack(next).length > 0
   if (wasModal || isModal) {
     return
   }
-  const p = getVisibleScreen(prev)
-  const n = getVisibleScreen(next)
+  const p = NavTree.visibleScreen(prev)
+  const n = NavTree.visibleScreen(next)
   const wasChat = p?.name === Common.threadRouteName
   const isChat = n?.name === Common.threadRouteName
   if (!wasChat && !isChat) {
