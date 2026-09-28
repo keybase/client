@@ -11,20 +11,15 @@ jest.mock('@/constants', () => ({
   },
   useRPC: jest.fn(),
 }))
-jest.mock('@/constants/router', () => ({
-  clearModals: jest.fn(),
-  navigateAppend: jest.fn(),
-}))
-
 import {act, cleanup, renderHook} from '@testing-library/react'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import RPCError from '@/util/rpcerror'
 import logger from '@/logger'
-import {clearModals, navigateAppend} from '@/constants/router'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
+import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 import {useDeleteAccount} from './use-delete-account'
 
 type DeleteSubmit = (
@@ -32,6 +27,18 @@ type DeleteSubmit = (
   resolve: () => void,
   reject: (error: RPCError) => void
 ) => void
+
+// The delete flow runs from a confirmation modal, so the fake starts with one open:
+// clearModals only has something to dispatch when a modal is actually on screen.
+const deleteModal = 'settingsDeleteConfirm'
+let nav: FakeNavigator
+
+beforeEach(() => {
+  nav = installFakeNavigator({
+    modalRouteNames: [deleteModal],
+    rootState: makeRootState({above: [{name: deleteModal}]}),
+  })
+})
 
 const mockDeleteRPC = () => {
   const pending = new Array<{reject: (error: RPCError) => void; resolve: () => void}>()
@@ -53,6 +60,7 @@ const mockDeleteRPC = () => {
 }
 
 afterEach(() => {
+  restoreNavigator()
   cleanup()
   mockAndroidIsTestDevice.value = false
   jest.clearAllMocks()
@@ -91,8 +99,12 @@ test('deletes forever, records the deleted self and sends the user to login', ()
   })
 
   expect(setJustDeletedSelf).toHaveBeenCalledWith('testuser')
-  expect(clearModals).toHaveBeenCalled()
-  expect(navigateAppend).toHaveBeenCalledWith({name: C.Tabs.loginTab, params: {}})
+  // clearModals: the confirmation modal is reset away, leaving only the tab navigator
+  const cleared = nav.actions.find(a => a.type === 'RESET')
+  expect((cleared?.payload as {routes: Array<{name: string}>} | undefined)?.routes.map(r => r.name)).toEqual([
+    'loggedIn',
+  ])
+  expect(nav.pushes()).toContainEqual({name: C.Tabs.loginTab, params: {}})
 })
 
 test('passes an undefined passphrase through for accounts without one', () => {
@@ -126,8 +138,7 @@ test('pre-launch test devices never reach the delete rpc', () => {
   })
 
   expect(rpc.submit).not.toHaveBeenCalled()
-  expect(clearModals).not.toHaveBeenCalled()
-  expect(navigateAppend).not.toHaveBeenCalled()
+  expect(nav.actions).toEqual([])
 })
 
 test('logs and stays put when the delete rpc fails', () => {
@@ -151,5 +162,5 @@ test('logs and stays put when the delete rpc fails', () => {
     expect.objectContaining({code: T.RPCGen.StatusCode.scgeneric})
   )
   expect(setJustDeletedSelf).not.toHaveBeenCalled()
-  expect(clearModals).not.toHaveBeenCalled()
+  expect(nav.actions).toEqual([])
 })

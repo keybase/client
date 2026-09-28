@@ -1,66 +1,61 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 
-const mockNavigateAppend = jest.fn()
-jest.mock('@/constants/router', () => ({
-  clearModals: jest.fn(),
-  navUpToScreen: jest.fn(),
-  navigateAppend: (...args: Array<unknown>) => mockNavigateAppend(...args),
-  navigateUp: jest.fn(),
-}))
-
 import {RPCError} from '@/util/errors'
+import {installFakeNavigator, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 import {handleContactSettingsBlock, handleNotAdded} from './actions'
+
+let nav: FakeNavigator
+
+beforeEach(() => {
+  nav = installFakeNavigator()
+})
+
+afterEach(() => {
+  restoreNavigator()
+})
 
 const contactSettingsError = (fields: unknown) =>
   new RPCError('blocked', T.RPCGen.StatusCode.scteamcontactsettingsblock, fields)
 
 describe('handleContactSettingsBlock', () => {
-  beforeEach(() => {
-    mockNavigateAppend.mockClear()
-  })
-
   test('ignores other error codes', () => {
     expect(handleContactSettingsBlock(new RPCError('nope', T.RPCGen.StatusCode.scgeneric))).toBe(false)
-    expect(mockNavigateAppend).not.toHaveBeenCalled()
+    expect(nav.actions).toEqual([])
   })
 
   test('navigates with the blocked usernames', () => {
     expect(
       handleContactSettingsBlock(contactSettingsError([{key: 'usernames', value: 'testuser,testuser-mac'}]))
     ).toBe(true)
-    expect(mockNavigateAppend).toHaveBeenCalledWith({
-      name: 'contactRestricted',
-      params: {source: 'teamAddAllFailed', usernames: ['testuser', 'testuser-mac']},
-    })
+    expect(nav.pushes()).toEqual([
+      {
+        name: 'contactRestricted',
+        params: {source: 'teamAddAllFailed', usernames: ['testuser', 'testuser-mac']},
+      },
+    ])
   })
 
   // '' splits into [''], which used to put a blank row on the contactRestricted screen
   test('has no usernames when the field is empty or missing', () => {
     for (const fields of [[{key: 'usernames', value: ''}], [{key: 'other', value: 'testuser'}], undefined]) {
-      mockNavigateAppend.mockClear()
+      nav.clearActions()
       expect(handleContactSettingsBlock(contactSettingsError(fields))).toBe(true)
-      expect(mockNavigateAppend).toHaveBeenCalledWith({
-        name: 'contactRestricted',
-        params: {source: 'teamAddAllFailed', usernames: []},
-      })
+      expect(nav.pushes()).toEqual([
+        {name: 'contactRestricted', params: {source: 'teamAddAllFailed', usernames: []}},
+      ])
     }
   })
 })
 
 describe('handleNotAdded', () => {
-  beforeEach(() => {
-    mockNavigateAppend.mockClear()
-  })
-
   test('navigates only when somebody was skipped', () => {
     handleNotAdded([])
     handleNotAdded(undefined)
-    expect(mockNavigateAppend).not.toHaveBeenCalled()
+    expect(nav.actions).toEqual([])
     handleNotAdded([{username: 'testuser'}])
-    expect(mockNavigateAppend).toHaveBeenCalledWith({
-      name: 'contactRestricted',
-      params: {source: 'teamAddSomeFailed', usernames: ['testuser']},
-    })
+    expect(nav.pushes()).toEqual([
+      {name: 'contactRestricted', params: {source: 'teamAddSomeFailed', usernames: ['testuser']}},
+    ])
   })
 })

@@ -3,16 +3,6 @@ import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {RPCError} from '@/util/errors'
 
-jest.mock('@/constants/router', () => {
-  const actual = jest.requireActual('@/constants/router')
-  return {
-    ...actual,
-    clearModals: jest.fn(),
-    navigateAppend: jest.fn(),
-    navigateUp: jest.fn(),
-  }
-})
-
 import {
   cancelProvision,
   pauseProvision,
@@ -23,16 +13,26 @@ import {
   startProvision,
 } from './flow'
 
-const {clearModals: mockClearModals, navigateAppend: mockNavigateAppend} = require('@/constants/router') as {
-  clearModals: jest.Mock
-  navigateAppend: jest.Mock
-}
+import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+
+let nav: FakeNavigator
+
+// Provisioning runs from a modal, so the fake starts with one open: clearModals only has
+// something to dispatch when a modal is actually on screen. This one is never a
+// navigation target below, so a replace onto another screen stays a replace.
+const openModal = 'deviceAdd'
+
+beforeEach(() => {
+  nav = installFakeNavigator({
+    modalRouteNames: [openModal],
+    rootState: makeRootState({above: [{name: openModal}]}),
+  })
+})
 
 afterEach(() => {
+  restoreNavigator()
   cancelProvision()
   jest.restoreAllMocks()
-  mockClearModals.mockReset()
-  mockNavigateAppend.mockReset()
   resetAllStores()
 })
 
@@ -73,9 +73,10 @@ const mockLoginAttempts = () => {
 
 test('startProvision navigates to the username screen', () => {
   startProvision('alice', true)
-  expect(mockNavigateAppend).toHaveBeenCalledWith({
+  expect(nav.navigations()).toContainEqual({
     name: 'username',
     params: {fromReset: true, username: 'alice'},
+    replace: false,
   })
 })
 
@@ -92,7 +93,7 @@ test('chooseDevice prompt navigates with devices and the selection resolves once
     response as any
   )
 
-  expect(mockNavigateAppend).toHaveBeenCalledWith({
+  expect(nav.navigations()).toContainEqual({
     name: 'selectOtherDevice',
     params: {
       devices: [
@@ -104,6 +105,7 @@ test('chooseDevice prompt navigates with devices and the selection resolves once
       ],
       username: 'alice',
     },
+    replace: false,
   })
 
   submitProvisionDeviceSelect('phone')
@@ -130,10 +132,11 @@ test('changing an earlier answer restarts the RPC and replays recorded answers',
     {errorMessage: ''} as any,
     nameResponse1 as any
   )
-  expect(mockNavigateAppend).toHaveBeenCalledWith(
-    {name: 'setPublicName', params: {devices: [], error: undefined}},
-    false
-  )
+  expect(nav.navigations()).toContainEqual({
+    name: 'setPublicName',
+    params: {devices: [], error: undefined},
+    replace: false,
+  })
   submitProvisionDeviceName('dev1')
   expect(nameResponse1.result).toHaveBeenCalledWith('dev1')
 
@@ -148,10 +151,11 @@ test('changing an earlier answer restarts the RPC and replays recorded answers',
     {pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.passPhrase}} as any,
     passphraseResponse as any
   )
-  expect(mockNavigateAppend).toHaveBeenCalledWith(
-    {name: 'password', params: {error: undefined, username: 'alice'}},
-    false
-  )
+  expect(nav.navigations()).toContainEqual({
+    name: 'password',
+    params: {error: undefined, username: 'alice'},
+    replace: false,
+  })
 
   // the user goes back and submits a different device name: the pending password
   // prompt is cancelled and the RPC restarts
@@ -162,14 +166,14 @@ test('changing an earlier answer restarts the RPC and replays recorded answers',
   const attempt2 = attempts[1]!
 
   // the device name prompt in the new attempt is auto-submitted with the new answer
-  mockNavigateAppend.mockClear()
+  nav.clearActions()
   const nameResponse2 = {error: jest.fn(), result: jest.fn()}
   attempt2.listener.customResponseIncomingCallMap?.['keybase.1.provisionUi.PromptNewDeviceName']?.(
     {errorMessage: ''} as any,
     nameResponse2 as any
   )
   expect(nameResponse2.result).toHaveBeenCalledWith('dev2')
-  expect(mockNavigateAppend).not.toHaveBeenCalled()
+  expect(nav.actions).toEqual([])
 
   attempt2.resolve()
   await flush()
@@ -204,35 +208,29 @@ test('a cancelled add-device run does not clear modals out from under a retry', 
     {phrase: 'one two three', previousErr: ''} as any,
     response1 as any
   )
-  expect(mockNavigateAppend).toHaveBeenCalledWith(
-    expect.objectContaining({name: 'codePage'}),
-    false
-  )
+  expect(nav.navigations()).toContainEqual(expect.objectContaining({name: 'codePage', replace: false}))
 
   // the user cancels, then tries again: the dead run must not clear modals or eat the new run's UI
   startAddNewDevice('mobile')
   expect(response1.error).toHaveBeenCalled()
   await flush()
-  expect(mockClearModals).not.toHaveBeenCalled()
+  expect(nav.modalsCleared()).toBe(false)
   expect(attempts.length).toBe(2)
   const attempt2 = attempts[1]!
 
-  mockNavigateAppend.mockClear()
+  nav.clearActions()
   const response2 = {error: jest.fn(), result: jest.fn()}
   attempt2.listener.customResponseIncomingCallMap?.['keybase.1.provisionUi.DisplayAndPromptSecret']?.(
     {phrase: 'four five six', previousErr: ''} as any,
     response2 as any
   )
-  expect(mockNavigateAppend).toHaveBeenCalledWith(
-    expect.objectContaining({name: 'codePage'}),
-    false
-  )
+  expect(nav.navigations()).toContainEqual(expect.objectContaining({name: 'codePage', replace: false}))
   expect(response2.error).not.toHaveBeenCalled()
 
   attempt2.resolve()
   await flush()
   // the successful run still clears modals when it finishes
-  expect(mockClearModals).toHaveBeenCalled()
+  expect(nav.modalsCleared()).toBe(true)
 })
 
 test('cancel before any prompt kills the RPC at its first prompt', async () => {
@@ -259,11 +257,11 @@ test('cancel before any prompt kills the RPC at its first prompt', async () => {
     response as any
   )
   expect(response.error).toHaveBeenCalled()
-  expect(mockNavigateAppend).not.toHaveBeenCalledWith(expect.objectContaining({name: 'codePage'}), false)
+  expect(nav.navigations()).not.toContainEqual(expect.objectContaining({name: 'codePage', replace: false}))
 
   finishListener(new RPCError('Input canceled', T.RPCGen.StatusCode.scinputcanceled))
   await flush()
-  expect(mockClearModals).not.toHaveBeenCalled()
+  expect(nav.modalsCleared()).toBe(false)
 })
 
 test('pause during server work cancels the attempt and parks the run', async () => {
@@ -279,7 +277,7 @@ test('pause during server work cancels the attempt and parks the run', async () 
 
   // parked: no restart, no error navigation
   expect(attempts.length).toBe(1)
-  expect(mockNavigateAppend).not.toHaveBeenCalledWith(expect.objectContaining({name: 'error'}), true)
+  expect(nav.navigations()).not.toContainEqual(expect.objectContaining({name: 'error', replace: true}))
 })
 
 test('resubmit while parked restarts and replays recorded answers', async () => {
@@ -308,14 +306,14 @@ test('resubmit while parked restarts and replays recorded answers', async () => 
   expect(attempts.length).toBe(2)
 
   // the new attempt auto-submits the replayed answer without navigating
-  mockNavigateAppend.mockClear()
+  nav.clearActions()
   const nameResponse2 = {error: jest.fn(), result: jest.fn()}
   attempts[1]!.listener.customResponseIncomingCallMap?.['keybase.1.provisionUi.PromptNewDeviceName']?.(
     {errorMessage: ''} as any,
     nameResponse2 as any
   )
   expect(nameResponse2.result).toHaveBeenCalledWith('dev2')
-  expect(mockNavigateAppend).not.toHaveBeenCalled()
+  expect(nav.actions).toEqual([])
 
   attempts[1]!.resolve()
   await flush()
@@ -336,7 +334,7 @@ test('cancel while parked tears the run down', async () => {
   submitProvisionDeviceName('dev1')
   await flush()
   expect(attempts.length).toBe(1)
-  expect(mockNavigateAppend).not.toHaveBeenCalledWith(expect.objectContaining({name: 'error'}), true)
+  expect(nav.navigations()).not.toContainEqual(expect.objectContaining({name: 'error', replace: true}))
 })
 
 test('a prompt arriving after pause is rejected and does not navigate', async () => {
@@ -349,14 +347,14 @@ test('a prompt arriving after pause is rejected and does not navigate', async ()
   pauseProvision()
   await flush()
 
-  mockNavigateAppend.mockClear()
+  nav.clearActions()
   const response = {error: jest.fn(), result: jest.fn()}
   attempt1.listener.customResponseIncomingCallMap?.['keybase.1.secretUi.getPassphrase']?.(
     {pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.passPhrase}} as any,
     response as any
   )
   expect(response.error).toHaveBeenCalled()
-  expect(mockNavigateAppend).not.toHaveBeenCalled()
+  expect(nav.actions).toEqual([])
 })
 
 test('pause with a pending prompt still resumes when the same step is resubmitted', async () => {
@@ -392,7 +390,7 @@ test('pause with a pending prompt still resumes when the same step is resubmitte
   const attempt2 = attempts[1]!
 
   // the new attempt auto-submits the replayed answer without navigating
-  mockNavigateAppend.mockClear()
+  nav.clearActions()
   const nameResponse2 = {error: jest.fn(), result: jest.fn()}
   attempt2.listener.customResponseIncomingCallMap?.['keybase.1.provisionUi.PromptNewDeviceName']?.(
     {errorMessage: ''} as any,

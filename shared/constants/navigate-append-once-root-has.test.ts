@@ -42,8 +42,9 @@ afterEach(() => {
   jest.restoreAllMocks()
 })
 
-// Each test pushes distinct params: navigateAppend's module-private `_pendingAppend` dupe cache
-// would otherwise swallow a same-shaped push from an earlier test.
+// These drive the real container adapter, whose Navigator lives for the whole file. Each test
+// pushes distinct params: its in-flight dupe check would otherwise swallow a same-shaped push
+// from an earlier test.
 const pushOf = (username: string) =>
   expect.objectContaining({payload: {name: 'username', params: {username}}, type: 'PUSH'})
 

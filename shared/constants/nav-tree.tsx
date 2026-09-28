@@ -60,6 +60,14 @@ let modalRouteNames: ReadonlySet<string> | undefined
 export const setModalRouteNames = (names: Iterable<string>) => {
   modalRouteNames = new Set<string>(names)
 }
+// For tests that register their own: returns a function that puts back the registration as
+// it is now, including "not registered".
+export const saveModalRouteNames = () => {
+  const saved = modalRouteNames
+  return () => {
+    modalRouteNames = saved
+  }
+}
 export const isModalRouteName = (name: string) => {
   if (!modalRouteNames) {
     throw new Error('modalRouteNames not registered; call setModalRouteNames at startup')
