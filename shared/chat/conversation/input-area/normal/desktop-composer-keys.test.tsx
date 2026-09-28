@@ -102,12 +102,13 @@ const renderComposer = () => {
     <>
       <Input />
       <Probe onRender={h => (handles = h)} />
-      <input data-testid="elsewhere" />
     </>,
     {wrapper: Wrapper}
   )
   const textarea = utils.getByTestId(TestIDs.CHAT_INPUT) as HTMLTextAreaElement
-  const elsewhere = utils.getByTestId('elsewhere') as HTMLInputElement
+  // some other input on the page; cleanup removes it with the container
+  const elsewhere = document.createElement('input')
+  utils.container.append(elsewhere)
   act(() => {
     handles!.thread.addMessages([makeTextMessage('last thing I said')], {markAsRead: false})
   })
