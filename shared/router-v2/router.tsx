@@ -29,14 +29,13 @@ import {useNotifState} from '@/stores/notifications'
 import {usePushState} from '@/stores/push'
 import {colors, darkColors} from '@/styles/colors'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
-import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liquid-glass'
-import {Platform, StatusBar, View} from 'react-native'
+import {Platform, View} from 'react-native'
+import {StatusBar} from 'expo-status-bar'
 import AccountSwitchHeaderAvatar from './account-switch-header-avatar'
 import {clearPendingAccountSwitch, consumePendingAccountSwitchTab} from './account-switch'
 import {useLoggedInScreens} from './logged-in-screens'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNavigationIntentsState} from '@/stores/navigation-intents'
-const isLiquidGlassSupported = isMobile ? (_isLiquidGlassSupported as boolean) : false
 // `bubble`/`bubble.fill` SF Symbols only exist on iOS 17+; older sims render blank.
 const isIOS17Plus = isIOS && parseInt(Platform.Version as string, 10) >= 17
 
@@ -475,7 +474,7 @@ const appTabsScreenOptions = (
       ? {
           tabBarActiveIndicatorEnabled: false,
           tabBarMinimizeBehavior: Common.tabBarMinimizeBehavior,
-          ...(isLiquidGlassSupported
+          ...(C.isLiquidGlassSupported
             ? {
                 tabBarBlurEffect: Common.tabBarBlurEffect,
               }
@@ -683,13 +682,13 @@ function NativeRouter() {
         s.darkModePreference === 'system'
           ? ('default' as const)
           : isDarkMode
-            ? ('light-content' as const)
-            : ('dark-content' as const)
+            ? ('light' as const)
+            : ('dark' as const)
       return {barStyle, isDarkMode}
     })
   )
 
-  const bar = barStyle === 'default' ? null : <StatusBar barStyle={barStyle} />
+  const bar = barStyle === 'default' ? null : <StatusBar style={barStyle} />
   const navKey = Common.useUserSwitchNavKey()
   const setNavigationReady = useNavigationIntentsState(s => s.dispatch.setNavigationReady)
   const setNativeNavRef = (ref: typeof C.Router2.navigationRef.current) => {

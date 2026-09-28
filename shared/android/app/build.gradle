@@ -165,7 +165,6 @@ dependencies {
     implementation 'androidx.work:work-runtime:2.11.2'
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation "com.google.firebase:firebase-messaging:25.0.2"
-    implementation "com.facebook.fresco:animated-gif:${expoLibs.versions.fresco.get()}"
     implementation 'org.msgpack:msgpack-core:0.9.12'
     implementation project(':keybaselib')
     implementation 'com.android.installreferrer:installreferrer:2.2'

@@ -31,7 +31,6 @@ import {
 import type {ExpoLocationObject, ExpoTaskManagerModule} from './platform-types'
 import {shouldRecordFix, type Fix, type FixThrottle} from './location-throttle'
 import {openAtLoginKey} from '@/stores/shell'
-import {useDarkModeState} from '@/stores/darkmode'
 import * as ScreenCapture from 'expo-screen-capture'
 
 const _getOpenAtLoginKey = () => openAtLoginKey
@@ -442,13 +441,8 @@ const _initNativePlatformListener = () => {
   _platformUnsubs.push(useConfigState.subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return
     const f = async () => {
-      const {NetInfo} = _getNative()
-      const {type} = await NetInfo.fetch()
-      useShellState.getState().dispatch.osNetworkStatusChanged(
-        type !== NetInfo.NetInfoStateType.none,
-        type,
-        true
-      )
+      const type = await _getNative().Network.getConnectionType()
+      useShellState.getState().dispatch.osNetworkStatusChanged(type !== 'none', type, true)
     }
     ignorePromise(f())
   }))
@@ -466,14 +460,6 @@ const _initNativePlatformListener = () => {
     }
     ignorePromise(f())
   }))
-
-  if (isAndroid) {
-    _platformUnsubs.push(useDarkModeState.subscribe((s, old) => {
-      if (s.darkModePreference === old.darkModePreference) return
-      const {androidAppColorSchemeChanged} = _getNativeSync()
-      androidAppColorSchemeChanged(s.darkModePreference)
-    }))
-  }
 
   // we call this when we're logged in.
   let calledShareListenersRegistered = false
@@ -515,9 +501,8 @@ const _initNativePlatformListener = () => {
 
   initIOSLocation()
 
-  const {NetInfo} = _getNative()
-  _platformUnsubs.push(NetInfo.addEventListener(({type}) => {
-    useShellState.getState().dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type)
+  _platformUnsubs.push(_getNative().Network.addConnectionTypeListener(type => {
+    useShellState.getState().dispatch.osNetworkStatusChanged(type !== 'none', type)
   }))
 
   const {setupAudioMode} = _getNative()

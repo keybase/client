@@ -1,4 +1,3 @@
-import type * as NetInfo from '@react-native-community/netinfo'
 import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
 import * as Z from '@/util/zustand'
@@ -6,8 +5,10 @@ import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {defaultUseNativeFrame} from '@/constants/platform'
+import type {NetworkStateType} from 'expo-network'
 
-export type ConnectionType = NetInfo.NetInfoStateType | 'notavailable'
+// Lowercase names are what Go's UpdateMobileNetState expects; 'notavailable' is desktop.
+export type ConnectionType = Lowercase<`${NetworkStateType}`> | 'notavailable'
 
 type WindowState = T.Immutable<{
   dockHidden: boolean

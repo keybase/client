@@ -75,12 +75,6 @@ export const androidAddCompleteDownload = (o: {
   return Promise.reject(new Error('wrong platform'))
 }
 
-export const androidAppColorSchemeChanged = (mode: 'system' | 'alwaysDark' | 'alwaysLight' | ''): void => {
-  if (Platform.OS === 'android') {
-    Kb.androidAppColorSchemeChanged(mode)
-  }
-}
-
 export const checkPushPermissions = (): Promise<boolean> => {
   return Kb.checkPushPermissions()
 }

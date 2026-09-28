@@ -3,6 +3,7 @@ package io.keybase.ossifrage
 import android.app.Application
 import android.content.Context
 import android.content.res.Configuration
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -16,10 +17,11 @@ import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
-import com.facebook.react.ReactPackage
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.common.ReleaseLevel
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint
+import com.reactnativekb.DarkModePreference
+import com.reactnativekb.GuiConfig
 import com.reactnativekb.IncomingShareCache
 import expo.modules.ApplicationLifecycleDispatcher.onApplicationCreate
 import expo.modules.ApplicationLifecycleDispatcher.onConfigurationChanged
@@ -53,9 +55,7 @@ class MainApplication : Application(), ReactApplication {
     override val reactHost: ReactHost by lazy {
         ExpoReactHostFactory.getDefaultReactHost(
             context = applicationContext,
-            packageList = PackageList(this).packages.apply {
-                add(KBReactPackage())
-            }
+            packageList = PackageList(this).packages
         )
     }
 
@@ -74,6 +74,7 @@ class MainApplication : Application(), ReactApplication {
             DefaultNewArchitectureEntryPoint.releaseLevel = ReleaseLevel.STABLE
         }
         loadReactNative(this)
+        applyPersistedDarkMode()
 
         // KB
         onApplicationCreate(this)
@@ -93,6 +94,22 @@ class MainApplication : Application(), ReactApplication {
                 NativeLogger.warn("MainApplication: error scheduling background sync", e)
             }
         }.start()
+    }
+
+    // Before any activity exists, so MainActivity's first frame (and its window background)
+    // resolves against the pref; JS then keeps it in sync through Appearance.setColorScheme.
+    private fun applyPersistedDarkMode() {
+        val mode = try {
+            when (GuiConfig.getInstance(filesDir)?.getDarkMode()) {
+                DarkModePreference.AlwaysDark -> AppCompatDelegate.MODE_NIGHT_YES
+                DarkModePreference.AlwaysLight -> AppCompatDelegate.MODE_NIGHT_NO
+                else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+            }
+        } catch (e: Exception) {
+            NativeLogger.warn("MainApplication: error reading dark mode pref", e)
+            AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+        }
+        AppCompatDelegate.setDefaultNightMode(mode)
     }
 
     fun onReactContextInitialized(context: ReactContext?) {

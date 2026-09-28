@@ -44,9 +44,7 @@ export const useDarkModeState = Z.createZustand<State>('darkmode', (set, get) =>
             case 'system':
             case 'alwaysDark': // fallthrough
             case 'alwaysLight': // fallthrough
-              set(s => {
-                s.darkModePreference = preference
-              })
+              get().dispatch.setDarkModePreference(preference, false)
               break
             default:
           }

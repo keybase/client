@@ -1,5 +1,6 @@
 /// <reference types="jest" />
 import {resetAllStores} from '../../util/zustand'
+import * as T from '@/constants/types'
 import {useDarkModeState} from '../darkmode'
 
 jest.mock('@/util/electron', () => ({
@@ -44,4 +45,20 @@ test('dark mode preference drives isDarkMode and resets with the stored override
     supported: true,
     systemDarkMode: true,
   })
+})
+
+test('loading the stored preference applies it to the native theme without writing it back', async () => {
+  const getValue = jest
+    .spyOn(T.RPCGen, 'configGuiGetValueRpcPromise')
+    .mockResolvedValue({isNull: false, s: 'alwaysDark'} as T.RPCGen.ConfigValue)
+  const setValue = jest.spyOn(T.RPCGen, 'configGuiSetValueRpcPromise').mockResolvedValue(undefined)
+
+  useDarkModeState.getState().dispatch.loadDarkPrefs()
+  await new Promise(resolve => setTimeout(resolve, 0))
+
+  expect(useDarkModeState.getState().darkModePreference).toBe('alwaysDark')
+  expect(mockSetNativeTheme).toHaveBeenCalledWith('dark')
+  expect(setValue).not.toHaveBeenCalled()
+  getValue.mockRestore()
+  setValue.mockRestore()
 })

@@ -7,8 +7,6 @@ import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.provider.MediaStore
 import android.util.Log
 import android.view.KeyEvent
@@ -19,10 +17,8 @@ import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
-import com.reactnativekb.DarkModePreference
 import com.reactnativekb.IncomingShareCache
 import com.reactnativekb.KbModule
-import com.reactnativekb.GuiConfig
 import io.keybase.ossifrage.modules.NativeLogger
 import io.keybase.ossifrage.util.DNSNSFetcher
 import io.keybase.ossifrage.util.VideoHelper
@@ -42,16 +38,10 @@ class MainActivity : ReactActivity() {
         moveTaskToBack(true)
     }
 
-    private fun colorSchemeForCurrentConfiguration(): String {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val currentNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-            when (currentNightMode) {
-                Configuration.UI_MODE_NIGHT_NO -> return "light"
-                Configuration.UI_MODE_NIGHT_YES -> return "dark"
-            }
-        }
-        return "light"
-    }
+    // resources.configuration carries AppCompat's night-mode override (set from the persisted
+    // pref in MainApplication, then by Appearance.setColorScheme), so this matches the pref.
+    private fun isNightForCurrentConfiguration(): Boolean =
+        (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
 
     override fun onCreate(savedInstanceState: Bundle?) {
         NativeLogger.info("Activity onCreate")
@@ -60,12 +50,7 @@ class MainActivity : ReactActivity() {
 
         // Before super.onCreate so the first frame after the splash already has the
         // right background; a delayed call here shows a white flash in dark mode.
-        try {
-            val gc = GuiConfig.getInstance(filesDir)
-            gc?.let { setBackgroundColor(it.getDarkMode()) }
-        } catch (e: Exception) {
-            NativeLogger.warn("Error reading GuiConfig in onCreate", e)
-        }
+        updateWindowBackground()
 
         super.onCreate(null)
         KeybasePushNotificationListenerService.createNotificationChannel(this)
@@ -304,12 +289,7 @@ class MainActivity : ReactActivity() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        try {
-            val gc = GuiConfig.getInstance(filesDir)
-            gc?.let { setBackgroundColor(it.getDarkMode()) }
-        } catch (e: Exception) {
-            NativeLogger.warn("Error reading GuiConfig in onConfigurationChanged", e)
-        }
+        updateWindowBackground()
         if (newConfig.hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_NO) {
             isUsingHardwareKeyboard = true
         } else if (newConfig.hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_YES) {
@@ -317,20 +297,8 @@ class MainActivity : ReactActivity() {
         }
     }
 
-    fun setBackgroundColor(pref: DarkModePreference) {
-        val bgColor = when (pref) {
-            DarkModePreference.System -> {
-                if (colorSchemeForCurrentConfiguration() == "light") R.color.white else R.color.black
-            }
-            DarkModePreference.AlwaysDark -> R.color.black
-            DarkModePreference.AlwaysLight -> R.color.white
-        }
-        val mainWindow = this.window
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            mainWindow.setBackgroundDrawableResource(bgColor)
-        } else {
-            Handler(Looper.getMainLooper()).post { mainWindow.setBackgroundDrawableResource(bgColor) }
-        }
+    private fun updateWindowBackground() {
+        window.setBackgroundDrawableResource(if (isNightForCurrentConfiguration()) R.color.black else R.color.white)
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {

@@ -3,6 +3,7 @@ import KB2 from '@/util/electron'
 // Native-only modules — nulled to empty on desktop (native-only-modules.js), so the
 // isMobile-guarded uses below are dead code there.
 import * as RNKBmod from 'react-native-kb'
+import {isGlassEffectAPIAvailable, isLiquidGlassAvailable} from 'expo-glass-effect'
 import {Platform as RNPlatform, Dimensions as RNDimensions} from 'react-native'
 
 // ─── Mobile runtime imports ────────────────────────────────────────────────
@@ -47,6 +48,8 @@ export const isTablet: boolean = isMobile
   : false
 
 export const isPhone: boolean = isMobile ? !isTablet : false
+// The app renders the Liquid Glass design and the UIGlassEffect API exists (missing on some iOS 26 betas)
+export const isLiquidGlassSupported: boolean = isIOS && isLiquidGlassAvailable() && isGlassEffectAPIAvailable()
 export const isDebuggingInChrome: boolean = isMobile ? typeof location !== 'undefined' : true
 
 export const mobileOsVersion: string | number = isMobile

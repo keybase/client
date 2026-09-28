@@ -1,6 +1,6 @@
 import * as ExpoLocation from 'expo-location'
 import * as ExpoTaskManager from 'expo-task-manager'
-import NetInfo, {NetInfoStateType} from '@react-native-community/netinfo'
+import * as ExpoNetwork from 'expo-network'
 import {Linking} from 'react-native'
 import {setupAudioMode} from '@/util/audio.native'
 import {requestLocationPermission} from '@/util/platform-specific'
@@ -8,25 +8,53 @@ import {
   addLocationFixListener,
   fsCacheDir,
   fsDownloadDir,
-  androidAppColorSchemeChanged,
   guiConfig,
   shareListenersRegistered,
   startLocationWatch,
   stopLocationWatch,
 } from 'react-native-kb'
-import type {DesktopModules, NativeModules, NativeSyncModules} from './platform-types'
+import type {DesktopModules, NativeModules, NativeSyncModules, NetworkModule} from './platform-types'
+import type {ConnectionType} from '@/stores/shell'
+import logger from '@/logger'
+
+// expo-network reports uppercase enum values; Go expects the lowercase names
+const toConnectionType = (type: ExpoNetwork.NetworkStateType | undefined) =>
+  (type ?? ExpoNetwork.NetworkStateType.UNKNOWN).toLowerCase() as Lowercase<`${ExpoNetwork.NetworkStateType}`>
+
+// iOS getNetworkStateAsync reports NONE when its one-off path monitor doesn't answer within 5s, so
+// prefer what the listener last reported and only fetch before it has reported anything.
+let lastType: ConnectionType | undefined
+
+const Network: NetworkModule = {
+  addConnectionTypeListener: cb => {
+    let removed = false
+    const report = (type: ConnectionType) => {
+      lastType = type
+      if (!removed) cb(type)
+    }
+    const sub = ExpoNetwork.addNetworkStateListener(({type}) => report(toConnectionType(type)))
+    // The native listener doesn't always fire on subscribe (Android when offline), so seed it
+    ExpoNetwork.getNetworkStateAsync()
+      .then(({type}) => {
+        if (lastType === undefined) report(toConnectionType(type))
+      })
+      .catch((e: unknown) => logger.warn(`Network state fetch failed: ${String(e)}`))
+    return () => {
+      removed = true
+      sub.remove()
+    }
+  },
+  getConnectionType: async () => lastType ?? toConnectionType((await ExpoNetwork.getNetworkStateAsync()).type),
+}
+
 
 export const getNative = (): NativeModules =>
   ({
     ExpoLocation,
     ExpoTaskManager,
     Linking,
-    // NetInfoStateType is a named export, not part of the default export; merge
-    // it in so consumers can read NetInfo.NetInfoStateType (default-import under
-    // ESM drops named exports that require() used to expose).
-    NetInfo: {...NetInfo, NetInfoStateType},
+    Network,
     addLocationFixListener,
-    androidAppColorSchemeChanged,
     fsCacheDir,
     fsDownloadDir,
     guiConfig,
@@ -39,7 +67,6 @@ export const getNative = (): NativeModules =>
 
 export const getNativeSync = (): NativeSyncModules =>
   ({
-    androidAppColorSchemeChanged,
     fsCacheDir,
     fsDownloadDir,
     guiConfig,

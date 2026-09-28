@@ -105,7 +105,6 @@ const useInit = () => {
   React.useEffect(() => {
     if (inited) return
     inited = true
-    initDarkMode()
     const {batch} = C.useWaitingState.getState().dispatch
     const eng = makeEngine(batch, c => {
       if (c) {
@@ -167,6 +166,8 @@ const useStyles = Kb.Styles.createStyleHook(() => ({
 }))
 
 const load = () => {
+  // Before the first render, or the root paints the light background for a frame
+  initDarkMode()
   AppRegistry.registerComponent('Keybase', () => Keybase)
 }
 

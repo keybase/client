@@ -5,10 +5,9 @@ import {View} from 'react-native'
 import {useNavigation} from '@react-navigation/native'
 import {useIsFocused} from '@react-navigation/core'
 import type {BottomTabNavigationProp} from '@react-navigation/bottom-tabs'
-import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liquid-glass'
 import type {RootParamList} from '@/router-v2/route-params'
 
-const isLiquidGlassActive = (isIOS && C.isPhone && _isLiquidGlassSupported) as boolean
+const isLiquidGlassActive = C.isPhone && C.isLiquidGlassSupported
 
 // True when BottomAccessory hosts its children in the tab bar's accessory row.
 // When false children render inline and must lay themselves out (no row context).

@@ -60,7 +60,6 @@ export interface Spec extends TurboModule {
     showNotification: boolean
     title: string
   }): Promise<void>
-  androidAppColorSchemeChanged(mode: string /*'system' | 'alwaysDark' | 'alwaysLight' | ''*/): void
   checkPushPermissions(): Promise<boolean>
   requestPushPermissions(): Promise<boolean>
   getRegistrationToken(): Promise<string>

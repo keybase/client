@@ -38,6 +38,7 @@ module.exports = {
     '^@/logger$': '<rootDir>/test/mocks/logger.js',
     '^@react-navigation/core$': '<rootDir>/test/mocks/react-navigation-core.js',
     '^@react-navigation/native$': '<rootDir>/test/mocks/react-navigation-native.js',
+    '^expo-glass-effect$': '<rootDir>/test/mocks/expo-glass-effect.js',
     '^lottie-web$': '<rootDir>/test/mocks/lottie-web.js',
     '^react-native$': '<rootDir>/test/mocks/react-native.js',
   },
@@ -61,6 +62,6 @@ module.exports = {
   },
   // emoji-regex 11 ships only ESM (main: index.mjs), so jest has to transform it to CJS.
   transformIgnorePatterns: [
-    'node_modules/(?!(react-native|@react-native|@react-native-community|@react-navigation|expo(-[a-z-]+)?|lottie-react-native|react-native-safe-area-context|react-native-screens|react-native-webview|react-native-keyboard-controller|react-native-kb|@gorhom|@callstack|@legendapp|sf-symbols-typescript|emoji-regex)/)',
+    'node_modules/(?!(react-native|@react-native|@react-native-community|@react-navigation|expo(-[a-z-]+)?|lottie-react-native|react-native-safe-area-context|react-native-screens|react-native-webview|react-native-keyboard-controller|react-native-kb|@gorhom|@legendapp|sf-symbols-typescript|emoji-regex)/)',
   ],
 }
