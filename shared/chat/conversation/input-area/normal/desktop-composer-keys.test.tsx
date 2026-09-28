@@ -120,20 +120,6 @@ const type = (textarea: HTMLTextAreaElement, text: string, caret = text.length) 
   })
 }
 
-// the desktop input writes text on a 0ms timer, the caret 10ms after that, and echoes the
-// change back through onChangeText 100ms after the write
-const settleWrite = () => {
-  act(() => {
-    jest.advanceTimersByTime(0)
-  })
-  act(() => {
-    jest.advanceTimersByTime(10)
-  })
-  act(() => {
-    jest.advanceTimersByTime(100)
-  })
-}
-
 type KeyInit = {altKey?: boolean; ctrlKey?: boolean; metaKey?: boolean; shiftKey?: boolean}
 // returns whether the default was prevented
 const keyDown = (target: Element, key: string, init: KeyInit = {}) => {
@@ -151,12 +137,10 @@ const flushSend = async () => {
     jest.advanceTimersByTime(0)
     await Promise.resolve()
   })
-  settleWrite()
 }
 
 const startEdit = (textarea: HTMLTextAreaElement) => {
   keyDown(textarea, 'ArrowUp')
-  settleWrite()
 }
 
 const startReply = (getHandles: () => Handles) => {
@@ -216,7 +200,6 @@ describe('in the composer, no suggestions', () => {
     const {getHandles, textarea} = renderComposer()
 
     expect(keyDown(textarea, 'ArrowUp')).toBe(true)
-    settleWrite()
 
     expect(getHandles().input.editing).toBe(lastOrdinal)
     expect(textarea.value).toBe('last thing I said')
@@ -294,7 +277,6 @@ describe('in the composer, no suggestions', () => {
     startEdit(textarea)
 
     expect(keyDown(textarea, 'Escape')).toBe(false)
-    settleWrite()
 
     expect(getHandles().input.editing).toBe(noOrdinal)
     expect(textarea.value).toBe('')
