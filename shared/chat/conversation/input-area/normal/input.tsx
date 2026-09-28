@@ -650,26 +650,19 @@ const DesktopFooter = () => {
 type UseDesktopKeysProps = Pick<Props, 'isEditing' | 'onCancelEditing' | 'onSubmit' | 'showReplyPreview'> & {
   focusInput: () => void
   htmlInputRef: HtmlInputRefType
-  inputRef: React.RefObject<RefType | null>
   suggestors: Pick<
     ReturnType<typeof useSuggestors>,
     'moveSuggestion' | 'recheckSuggestions' | 'selectSuggestion' | 'suggestions'
   >
 }
 const useDesktopKeys = (p: UseDesktopKeysProps) => {
-  const {focusInput, htmlInputRef, inputRef, isEditing, onCancelEditing, onSubmit} = p
+  const {focusInput, htmlInputRef, isEditing, onCancelEditing, onSubmit} = p
   const {showReplyPreview, suggestors} = p
   const {moveSuggestion, recheckSuggestions, selectSuggestion, suggestions} = suggestors
   const composer = useComposer()
   const setEditing = InputState.useConversationInputDispatch(s => s.setEditing)
   const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
   const {scrollDown, scrollUp} = React.useContext(ThreadRefsContext)
-
-  const submit = () => {
-    if (inputRef.current) {
-      onSubmit()
-    }
-  }
 
   const run = (a: InputKeyAction | WindowKeyAction) => {
     switch (a.type) {
@@ -702,11 +695,11 @@ const useDesktopKeys = (p: UseDesktopKeysProps) => {
         break
       case 'suggestionSelect':
         if (!selectSuggestion() && a.orSubmit) {
-          submit()
+          onSubmit()
         }
         break
       case 'submit':
-        submit()
+        onSubmit()
         break
     }
   }
@@ -789,7 +782,6 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
   const {globalKeyDownPressHandler, inputKeyDown} = useDesktopKeys({
     focusInput,
     htmlInputRef,
-    inputRef,
     isEditing,
     onCancelEditing,
     onSubmit,
