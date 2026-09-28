@@ -78,11 +78,8 @@ export const useNativeThreadScroll = (p: {
 
   // Read by timers and list callbacks as they fire, so they see the target and rows as they are now.
   const centeredRef = React.useRef(centeredOrdinal)
-  // reset per centered target so each new search hit gets a fresh batch of retries
-  const scrollFailRetryRef = React.useRef(0)
   React.useEffect(() => {
     centeredRef.current = centeredOrdinal
-    scrollFailRetryRef.current = 0
   }, [centeredOrdinal])
   const ordsRef = React.useRef(messageOrdinals)
   React.useEffect(() => {
@@ -127,8 +124,16 @@ export const useNativeThreadScroll = (p: {
   const correctRef = React.useRef({active: false, iters: 0})
   const vFirstRef = React.useRef<number | null | undefined>(undefined)
   const vLastRef = React.useRef<number | null | undefined>(undefined)
+  // The rows asked for by scrollToItem, each asked for by a centre or a reveal, with how many of its
+  // failures have been retried: a row outside the rendered window makes the scroll fail, and the
+  // retry asks for that same row again once more rows have rendered.
+  const itemScrollsRef = React.useRef(new Map<T.Chat.Ordinal, {animated: boolean; retries: number}>())
+  const [requestItem] = React.useState(() => (item: T.Chat.Ordinal, animated: boolean) => {
+    itemScrollsRef.current.set(item, {animated, retries: 0})
+  })
   const [stopCentering] = React.useState(() => () => {
     correctRef.current.active = false
+    itemScrollsRef.current.clear()
     timers.stop()
   })
   const [settleCenter] = React.useState(() => () => {
@@ -182,7 +187,10 @@ export const useNativeThreadScroll = (p: {
           scrollToBottomRef.current()
           return
         case 'center':
-          if (directive.newTarget) moveToward(directive.ordinal)
+          if (directive.newTarget) {
+            requestItem(directive.ordinal, false)
+            moveToward(directive.ordinal)
+          }
           correctRef.current = {active: true, iters: 0}
           ladderRef.current.forEach(t => t.cancel())
           ladderRef.current = [50, 250, 500, 900].map((d, i, ladder) =>
@@ -193,6 +201,7 @@ export const useNativeThreadScroll = (p: {
           )
           return
         case 'reveal':
+          requestItem(directive.ordinal, true)
           listRef.current?.scrollToItem({animated: true, item: directive.ordinal, viewPosition: 0.5})
           return
         case 'leaveAlone':
@@ -204,7 +213,7 @@ export const useNativeThreadScroll = (p: {
         }
       }
     },
-    [correctCenter, listRef, moveToward, settleCenter, stopCentering, timers]
+    [correctCenter, listRef, moveToward, requestItem, settleCenter, stopCentering, timers]
   )
 
   const dispatch = React.useCallback(
@@ -319,18 +328,14 @@ export const useNativeThreadScroll = (p: {
     [dispatch]
   )
 
-  // The centered hit may be outside the rendered window, so scrollToItem fails
-  // silently. Wait for more rows to render and retry centering (capped) until it lands.
-  const [onScrollToIndexFailed] = React.useState(() => () => {
-    if (scrollFailRetryRef.current > 5) {
-      return
-    }
-    scrollFailRetryRef.current += 1
+  // Waits for more rows to render and asks for the failed row again, six times per request.
+  const [onScrollToIndexFailed] = React.useState(() => (info: {index: number}) => {
+    const item = ordsRef.current[info.index]
+    const request = item === undefined ? undefined : itemScrollsRef.current.get(item)
+    if (item === undefined || !request || request.retries > 5) return
+    request.retries += 1
     timers.after(200, () => {
-      const co = centeredRef.current
-      if (co !== undefined) {
-        listRef.current?.scrollToItem({animated: false, item: co, viewPosition: 0.5})
-      }
+      listRef.current?.scrollToItem({animated: request.animated, item, viewPosition: 0.5})
     })
   })
 

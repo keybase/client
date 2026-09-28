@@ -178,9 +178,10 @@ const flingEnded = (y: number) => {
   })
 }
 
-const scrollToIndexFailed = () => {
+// FlatList reporting that a scroll to ordinal n's row failed, by the row's data index.
+const scrollToIndexFailed = (n: number) => {
   update(() => {
-    props().onScrollToIndexFailed({})
+    props().onScrollToIndexFailed({index: props().data.indexOf(ord(n))})
   })
 }
 
@@ -1112,12 +1113,12 @@ describe('scroll-to-index failures', () => {
     open({center: 30})
     await tick(1000)
     clearLog()
-    scrollToIndexFailed()
+    scrollToIndexFailed(30)
     await tick(199)
     expect(H.log).toEqual([])
     await tick(1)
     expect(H.log).toEqual([coarse(30)])
-    for (let i = 0; i < 8; i++) scrollToIndexFailed()
+    for (let i = 0; i < 8; i++) scrollToIndexFailed(30)
     await tick(200)
     expect(H.log).toHaveLength(6)
   })
@@ -1126,7 +1127,7 @@ describe('scroll-to-index failures', () => {
     open({center: 30})
     await tick(1000)
     clearLog()
-    scrollToIndexFailed()
+    scrollToIndexFailed(30)
     drag()
     await tick(1000)
     expect(H.log).toEqual([])
@@ -1134,24 +1135,50 @@ describe('scroll-to-index failures', () => {
 
   test('a new target gets a fresh batch of retries', async () => {
     open({center: 30})
-    for (let i = 0; i < 6; i++) scrollToIndexFailed()
+    for (let i = 0; i < 6; i++) scrollToIndexFailed(30)
     await tick(1000)
     centreOn(40)
     update(() => loadThread(1, 60))
     await tick(1000)
     clearLog()
-    scrollToIndexFailed()
+    scrollToIndexFailed(40)
     await tick(200)
     expect(H.log).toEqual([coarse(40)])
   })
 
-  test('with no target, the retry scrolls nowhere', async () => {
+  test('a row nothing scrolled to is not retried', async () => {
     open()
     await tick(200)
     clearLog()
-    scrollToIndexFailed()
+    scrollToIndexFailed(30)
     await tick(1000)
     expect(H.log).toEqual([])
+  })
+
+  const revealed = (n: number) => ['scrollToItem', {animated: true, item: ord(n), viewPosition: 0.5}]
+
+  test('a failed reveal is retried as the same reveal', async () => {
+    open()
+    await tick(200)
+    clearLog()
+    update(() => H.inputStore.set({editing: ord(15)}))
+    scrollToIndexFailed(15)
+    await tick(200)
+    expect(H.log).toEqual([revealed(15), revealed(15)])
+  })
+
+  test('while centred, a failed reveal retries the reveal on its own budget and leaves the centre its own', async () => {
+    open({center: 30})
+    await tick(1000)
+    clearLog()
+    update(() => H.inputStore.set({editing: ord(15)}))
+    for (let i = 0; i < 8; i++) scrollToIndexFailed(15)
+    await tick(200)
+    expect(H.log).toEqual(Array(7).fill(revealed(15)))
+    clearLog()
+    scrollToIndexFailed(30)
+    await tick(200)
+    expect(H.log).toEqual([coarse(30)])
   })
 })
 
