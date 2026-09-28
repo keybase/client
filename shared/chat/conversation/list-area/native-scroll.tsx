@@ -43,6 +43,9 @@ const maintainVisibleContentPositionNoAutoscroll = {
   minIndexForVisible: 0,
 }
 
+// An offset within this many points of the resting offset is at the end.
+const endTolerance = 8
+
 export const useNativeThreadScroll = (p: {
   // Newest first, as the inverted list holds them.
   messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
@@ -350,6 +353,17 @@ export const useNativeThreadScroll = (p: {
     perform(decide({how: 'drag', type: 'userScrolled'}))
   }, [decide, perform])
 
+  // A scroll coming to rest: the reader letting go, a fling stopping, or (on iOS) an animated scroll
+  // of ours ending. Only coming to rest at the end, over the keyboard as it is now, counts, and that
+  // is true however the list got there: the end goes back to the list.
+  const onScrollSettled = React.useCallback(
+    (e: {nativeEvent: {contentOffset: {y: number}}}) => {
+      if (e.nativeEvent.contentOffset.y > restingScrollOffset(bottomInset, keyboardHeight.value) + endTolerance) return
+      perform(decide({type: 'readerAtEnd'}))
+    },
+    [bottomInset, decide, keyboardHeight, perform]
+  )
+
   // Data indices of the first and last viewable rows; the corrector steps from them.
   const [onViewableRange] = React.useState(
     () => (first: number | null | undefined, last: number | null | undefined) => {
@@ -376,7 +390,9 @@ export const useNativeThreadScroll = (p: {
       : maintainVisibleContentPositionNoAutoscroll,
     onContentSizeChange,
     onScroll,
+    onMomentumScrollEnd: onScrollSettled,
     onScrollBeginDrag,
+    onScrollEndDrag: onScrollSettled,
     onScrollToIndexFailed,
     onViewableRange,
     scrollToBottom: requestBottom,

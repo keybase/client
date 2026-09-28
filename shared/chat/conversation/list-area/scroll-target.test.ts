@@ -273,10 +273,10 @@ describe('appended', () => {
     ['an anchor that keeps the newest in view is left to it', fresh, {anchorHidesNewest: false, type: 'appended'}, leaveAlone, fresh],
     ['an anchor that would hide the newest is overridden', fresh, {anchorHidesNewest: true, type: 'appended'}, pinNow, fresh],
     [
-      'the override applies to a reader who scrolled away from the end',
+      'a reader who scrolled away from the end is left there',
       state({endOwner: 'reader'}),
       {anchorHidesNewest: true, type: 'appended'},
-      pinNow,
+      leaveAlone,
       state({endOwner: 'reader'}),
     ],
     [
@@ -300,6 +300,13 @@ describe('appended', () => {
       pinNow,
       state({lastCentered: ord(30)}),
     ],
+  ])
+})
+
+describe('readerAtEnd', () => {
+  runTable([
+    ['hands the end back to the list', busy, {type: 'readerAtEnd'}, leaveAlone, {...busy, endOwner: 'list'}],
+    ['with the list at the end, changes nothing', fresh, {type: 'readerAtEnd'}, leaveAlone, fresh],
   ])
 })
 

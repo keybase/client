@@ -517,8 +517,10 @@ const NativeConversationList = function NativeConversationList() {
   const {
     maintainVisibleContentPosition,
     onContentSizeChange,
+    onMomentumScrollEnd,
     onScroll,
     onScrollBeginDrag,
+    onScrollEndDrag,
     onScrollToIndexFailed,
     onViewableRange,
     scrollToBottom,
@@ -596,6 +598,8 @@ const NativeConversationList = function NativeConversationList() {
             scrollEventThrottle={16}
             onContentSizeChange={onContentSizeChange}
             onScrollBeginDrag={onScrollBeginDrag}
+            onScrollEndDrag={onScrollEndDrag}
+            onMomentumScrollEnd={onMomentumScrollEnd}
             keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
             keyExtractor={keyExtractor}

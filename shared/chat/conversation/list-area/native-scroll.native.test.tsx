@@ -166,6 +166,18 @@ const drag = () => {
   })
 }
 
+// The reader lifting their finger, and the fling that follows coming to rest, at offset y.
+const dragEnded = (y: number) => {
+  update(() => {
+    props().onScrollEndDrag({nativeEvent: {contentOffset: {y}}})
+  })
+}
+const flingEnded = (y: number) => {
+  update(() => {
+    props().onMomentumScrollEnd({nativeEvent: {contentOffset: {y}}})
+  })
+}
+
 const scrollToIndexFailed = () => {
   update(() => {
     props().onScrollToIndexFailed({})
@@ -740,15 +752,87 @@ describe('appending', () => {
     expect(H.log).toEqual([toBottomOverKeyboard])
   })
 
-  test('with the keyboard up re-pins wherever the reader has scrolled to', async () => {
+  // A drag dismisses the keyboard; the reader reopens it by tapping the composer.
+  test('with the keyboard reopened after dragging into history, a new message leaves the reader there', async () => {
     open({keyboard: true})
     await tick(200)
-    scrolled(3000, 6000)
-    viewable(30, 39)
+    drag()
+    update(closeKeyboard)
+    dragEnded(2000)
+    flingEnded(3000)
+    update(openKeyboard)
+    clearLog()
+    setOrdinals(1, 61)
+    await tick(1000)
+    expect(H.log).toEqual([])
+  })
+
+  test('with the keyboard reopened after flinging back down to the newest, a new message re-pins', async () => {
+    open({keyboard: true})
+    await tick(200)
+    drag()
+    update(closeKeyboard)
+    flingEnded(3000)
+    drag()
+    dragEnded(1000)
+    flingEnded(0)
+    update(openKeyboard)
     clearLog()
     setOrdinals(1, 61)
     await tick(0)
-    expect(scrollsOnly()).toEqual([toBottomOverKeyboard])
+    expect(H.log).toEqual([toBottomOverKeyboard])
+  })
+
+  test('a drag let go at the newest, with no fling, hands the end back too', async () => {
+    open({keyboard: true})
+    await tick(200)
+    drag()
+    update(closeKeyboard)
+    flingEnded(3000)
+    drag()
+    dragEnded(2)
+    update(openKeyboard)
+    clearLog()
+    setOrdinals(1, 61)
+    await tick(0)
+    expect(H.log).toEqual([toBottomOverKeyboard])
+  })
+
+  test('with the keyboard still up, coming to rest over it counts as the newest', async () => {
+    open({keyboard: true})
+    await tick(200)
+    drag()
+    flingEnded(3000)
+    drag()
+    flingEnded(H.bottomInset - keyboardHeight)
+    clearLog()
+    setOrdinals(1, 61)
+    await tick(0)
+    expect(H.log).toEqual([toBottomOverKeyboard])
+  })
+
+  test('with the keyboard still up, coming to rest short of it is not the newest', async () => {
+    open({keyboard: true})
+    await tick(200)
+    drag()
+    flingEnded(H.bottomInset - keyboardHeight + 100)
+    clearLog()
+    setOrdinals(1, 61)
+    await tick(1000)
+    expect(H.log).toEqual([])
+  })
+
+  test('with the keyboard reopened after leaving a centred hit, a new message leaves the reader there', async () => {
+    open({center: 30})
+    await tick(1000)
+    update(() => {
+      H.setCenter(undefined)
+    })
+    update(openKeyboard)
+    clearLog()
+    setOrdinals(1, 61)
+    await tick(1000)
+    expect(H.log).toEqual([])
   })
 
   test('with the keyboard up, older rows arriving are not an append', async () => {

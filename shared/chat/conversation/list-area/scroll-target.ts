@@ -54,6 +54,10 @@ export type ScrollEvent =
   // The reader scrolled: by wheel, touch drag, a navigation key or the scrollbar, or by paging through
   // the composer's page keys.
   | {type: 'userScrolled'; how: 'wheel' | 'drag' | 'key' | 'scrollbar' | 'pageUp' | 'pageDown'}
+  // The reader's own scroll came to rest at the end. Only a list whose end the reader can reach
+  // without the list's own anchor noticing reports it: the desktop list's maintainScrollAtEnd takes the
+  // end back by itself once the reader is there.
+  | {type: 'readerAtEnd'}
   // Only a list whose header comes before its end in scroll order reports it: the native list is
   // inverted, so its header sits at the far, oldest end and growing it never moves the newest.
   | {type: 'headerMeasured'; hasMessages: boolean; size: number}
@@ -161,6 +165,8 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
         directive: {stopCentering: true, type: 'leaveAlone'},
         state: {...state, endOwner: 'reader', settlingCenter: false},
       }
+    case 'readerAtEnd':
+      return {directive: leaveAlone, state: {...state, endOwner: 'list'}}
     case 'headerMeasured': {
       const previous = state.headerSize
       const next = {...state, headerSize: event.size}
@@ -169,17 +175,15 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
       if (state.endOwner !== 'list' || !event.hasMessages) return {directive: leaveAlone, state: next}
       return {directive: {how: 'whenSettled', stopCentering: false, type: 'pinEnd'}, state: next}
     }
-    case 'appended': {
-      // A reader holding a centred target, settling or dragged away from, keeps it. The reader's
-      // end otherwise says nothing here: a drag dismisses the keyboard, and scrolling back down to
-      // the newest message before reopening it does not hand the end back.
-      const onCentredTarget = state.endOwner === 'reader' && state.lastCentered !== undefined
+    case 'appended':
+      // Only an end the list holds is re-pinned: a reader in history, or on a centred target, stays.
       return {
         directive:
-          event.anchorHidesNewest && !onCentredTarget ? {how: 'now', stopCentering: false, type: 'pinEnd'} : leaveAlone,
+          event.anchorHidesNewest && state.endOwner === 'list'
+            ? {how: 'now', stopCentering: false, type: 'pinEnd'}
+            : leaveAlone,
         state,
       }
-    }
     case 'editingChanged': {
       const {ordinal, targetInData} = event
       if (state.lastEditing === ordinal) return {directive: leaveAlone, state}
