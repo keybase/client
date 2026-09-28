@@ -108,14 +108,7 @@ const storeInputIntentTypes = ['commandStatus', 'injectText', 'setEditing', 'set
 
 export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat.ConversationIDKey}>) => {
   const {children, id} = p
-  const [state, dispatchReducer] = React.useReducer(inputReducer, initialConversationInputStore)
-  // The state as of the last dispatch rather than the last render: the giphy prefill has to see a
-  // window opened earlier in the same batch.
-  const dispatchedRef = React.useRef(initialConversationInputStore)
-  const dispatchState = (action: InputAction) => {
-    dispatchedRef.current = inputReducer(dispatchedRef.current, action)
-    dispatchReducer(action)
-  }
+  const [state, dispatchState] = React.useReducer(inputReducer, initialConversationInputStore)
   // Only setEditing reads thread state, so read it lazily instead of subscribing —
   // a subscription here re-renders the whole input subtree on every thread change.
   const threadStore = useConversationThreadStore()
@@ -240,7 +233,7 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
     composer.inject('')
   })
   const toggleGiphyPrefill = React.useEffectEvent(() => {
-    composer.inject(dispatchedRef.current.giphyWindow ? '' : '/giphy ')
+    composer.inject(state.giphyWindow ? '' : '/giphy ')
   })
   const [inputDispatch] = React.useState<ConversationInputDispatch>(() => ({
     injectIntoInput,

@@ -707,8 +707,26 @@ test('toggleGiphyPrefill toggles the slash command text', () => {
 
   act(() => {
     result.current.dispatch.setGiphyWindow(true)
+  })
+  act(() => {
     result.current.dispatch.toggleGiphyPrefill()
   })
+  expect(composerInput.text).toBe('')
+})
+
+// the gif button reads the window it was rendered with, not a change dispatched in the same batch
+test('toggleGiphyPrefill decides from the rendered giphy window', () => {
+  const {composerInput, result} = renderInput()
+  act(() => {
+    result.current.dispatch.injectIntoInput('/giphy cats')
+    result.current.dispatch.setGiphyWindow(true)
+  })
+
+  act(() => {
+    result.current.dispatch.setGiphyWindow(false)
+    result.current.dispatch.toggleGiphyPrefill()
+  })
+
   expect(composerInput.text).toBe('')
 })
 
