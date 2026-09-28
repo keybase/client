@@ -54,12 +54,13 @@ export type ScrollEvent =
   // The reader scrolled: by wheel, touch drag, a navigation key or the scrollbar, or by paging through
   // the composer's page keys.
   | {type: 'userScrolled'; how: 'wheel' | 'drag' | 'key' | 'scrollbar' | 'pageUp' | 'pageDown'}
-  // The reader's own scroll came to rest at the end. Only a list whose end the reader can reach
-  // without the list's own anchor noticing reports it: the desktop list's maintainScrollAtEnd takes the
-  // end back by itself once the reader is there.
+  // A scroll came to rest at the end, the reader's or the list's own. Only a list whose end the
+  // reader can reach without the list's own anchor noticing reports it: the desktop list's
+  // maintainScrollAtEnd takes the end back by itself once the reader is there.
   | {type: 'readerAtEnd'}
-  // Only a list whose header comes before its end in scroll order reports it: the native list is
-  // inverted, so its header sits at the far, oldest end and growing it never moves the newest.
+  // The header's size as the list measured it. Only a list whose header comes before its end in
+  // scroll order reports it: the native list is inverted, so its header sits at the far, oldest end
+  // and growing it never moves the newest.
   | {type: 'headerMeasured'; hasMessages: boolean; size: number}
   // Messages were appended. Only a list whose own anchoring can leave a new message out of view
   // reports it; anchorHidesNewest says whether it would this time.
