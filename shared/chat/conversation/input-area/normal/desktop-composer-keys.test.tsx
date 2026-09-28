@@ -207,6 +207,19 @@ describe('in the composer, no suggestions', () => {
     expect(textarea.value).toBe('last thing I said')
   })
 
+  test.each([['shiftKey'], ['altKey'], ['ctrlKey'], ['metaKey']] as const)(
+    'ArrowUp with %s held does not start an edit',
+    modifier => {
+      const {getHandles, textarea} = renderComposer()
+
+      expect(keyDown(textarea, 'ArrowUp', {[modifier]: true})).toBe(false)
+      expect(keyDown(document.body, 'ArrowUp', {[modifier]: true})).toBe(false)
+
+      expect(getHandles().input.editing).toBe(noOrdinal)
+      expect(textarea.value).toBe('')
+    }
+  )
+
   test('ArrowUp with text does nothing and leaves the caret move to the browser', () => {
     const {getHandles, textarea} = renderComposer()
     type(textarea, 'draft')

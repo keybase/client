@@ -62,7 +62,8 @@ describe('the composer textarea', () => {
     ['ArrowUp, text: the caret moves', input(withText), k('ArrowUp'), [], false],
     ['ArrowUp, empty, editing: the caret moves', input({editing: true}), k('ArrowUp'), [], false],
     ['ArrowUp, empty, replying: still edits', input({replying: true}), k('ArrowUp'), [editLast], true],
-    ['ArrowUp with modifiers still edits', input(), k('ArrowUp', {shiftKey: true}), [editLast], true],
+    ['shift-ArrowUp, empty: nothing', input(), k('ArrowUp', {shiftKey: true}), [], false],
+    ['cmd-ArrowUp, empty: nothing', input(), k('ArrowUp', {metaKey: true}), [], false],
     ['ArrowUp, text, list open: move up', input({...withText, suggestions: open}), k('ArrowUp'), [moveUp], true],
     ['ArrowUp, empty, list open: move up only', input({suggestions: open}), k('ArrowUp'), [moveUp], true],
     [
@@ -204,6 +205,7 @@ describe('window keys', () => {
     ['ArrowUp, empty: edit the last message', win(), k('ArrowUp'), [editLast], true],
     ['ArrowUp, text: focus the composer', win({textEmpty: false}), k('ArrowUp'), [focusInput], false],
     ['ArrowUp, editing: focus the composer', win({editing: true}), k('ArrowUp'), [focusInput], false],
+    ['alt-ArrowUp, empty: focus the composer', win(), k('ArrowUp', {altKey: true}), [focusInput], false],
     ['Escape, editing: cancel the edit', win({editing: true}), k('Escape'), [cancelEdit], false],
     ['Escape, replying: cancel the reply', win({replying: true}), k('Escape'), [cancelReply], false],
     [
@@ -328,6 +330,21 @@ describe('across every key and state', () => {
       for (const key of allKeys) {
         const {actions} = composerKeyDown(s, key)
         expect(actions.filter(a => a.type === 'suggestionMove' || a.type === 'suggestionSelect')).toEqual([])
+      }
+    }
+  })
+
+  test('only a plain ArrowUp edits the last message, in the textarea and the window', () => {
+    const plain = (key: ComposerKey) =>
+      key.key === 'ArrowUp' && !(key.altKey || key.ctrlKey || key.metaKey || key.shiftKey)
+    for (const s of allInputStates) {
+      for (const key of allKeys.filter(k => !plain(k))) {
+        expect(composerKeyDown(s, key).actions).not.toContainEqual(editLast)
+      }
+    }
+    for (const f of threadFacts) {
+      for (const key of allKeys.filter(k => !plain(k))) {
+        expect(composerKeyDown(win(f), key).actions).not.toContainEqual(editLast)
       }
     }
   })

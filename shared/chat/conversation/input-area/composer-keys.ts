@@ -58,8 +58,10 @@ export type ComposerKeyResult<A extends ComposerKeyAction> = {
 
 const ignored = {actions: [], preventDefault: false} as const
 
+const hasModifier = (k: ComposerKey) => k.altKey || k.ctrlKey || k.metaKey || k.shiftKey
+
 const threadKey = (s: ThreadFacts, k: ComposerKey): ComposerKeyResult<ThreadKeyAction> | undefined => {
-  if (k.key === 'ArrowUp' && !s.editing && s.textEmpty) {
+  if (k.key === 'ArrowUp' && !hasModifier(k) && !s.editing && s.textEmpty) {
     return {actions: [{type: 'editLast'}], preventDefault: true}
   }
   if (k.key === 'Escape' && s.editing) {
@@ -80,7 +82,7 @@ const threadKey = (s: ThreadFacts, k: ComposerKey): ComposerKeyResult<ThreadKeyA
   return undefined
 }
 
-const isSendEnter = (k: ComposerKey) => k.key === 'Enter' && !(k.altKey || k.ctrlKey || k.metaKey || k.shiftKey)
+const isSendEnter = (k: ComposerKey) => k.key === 'Enter' && !hasModifier(k)
 
 // The keys an open suggestion list takes, ahead of everything else. It claims the keys that move
 // through it even before it has items, as it always has, so a key pressed while it loads neither
