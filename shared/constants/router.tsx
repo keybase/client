@@ -200,8 +200,8 @@ export const navigateAppendOnceRootHas = (
     navigateAppend(path)
     return
   }
-  const n = _getNavigator()
-  if (!n) {
+  const n = getNavigator()
+  if (!n.isReady()) {
     logger.warn(`[Nav] navigateAppendOnceRootHas: no navigator, dropping ${path.name}`)
     return
   }
