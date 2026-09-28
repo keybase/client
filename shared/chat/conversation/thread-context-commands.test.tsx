@@ -138,8 +138,8 @@ afterEach(() => {
 
 describe('retryMessage', () => {
   test('asks the service to retry the outbox entry', async () => {
-    const {result} = renderThread()
     const outboxID = T.Chat.stringToOutboxID('0a0b')
+    const {result} = renderThread([textAt(10, {id: T.Chat.numberToMessageID(0), outboxID, submitState: 'failed'})])
     await run(() => result.current.actions.retryMessage(outboxID))
     expect(rpc.calls('retryPost')).toEqual([[outboxID]])
   })

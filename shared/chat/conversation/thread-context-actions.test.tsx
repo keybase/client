@@ -8,6 +8,7 @@ import * as Meta from '@/constants/chat/meta'
 import * as Metadata from '@/chat/inbox/metadata'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
+import logger from '@/logger'
 import {act, cleanup, render, renderHook} from '@testing-library/react'
 import {makeMessageAttachment, makeMessageText} from '@/constants/chat/message'
 import {resetAllStores} from '@/util/zustand'
@@ -723,10 +724,12 @@ describe('store writes', () => {
     expect(rpc.calls('retryPost')).toEqual([[outboxID]])
   })
 
-  test('retrying an unknown outbox id still asks the service', async () => {
+  test('retrying an outbox id the thread does not hold warns and asks nothing', async () => {
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
     const {h} = renderThread()
     await run(() => h().actions.retryMessage(T.Chat.stringToOutboxID('nope')))
-    expect(rpc.calls('retryPost')).toHaveLength(1)
+    expect(rpc.calls('retryPost')).toEqual([])
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('retryMessage: no message for outbox id'))
   })
 
   test('setMessageSubmitState writes the row', () => {
