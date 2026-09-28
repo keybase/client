@@ -18,15 +18,9 @@ import logger from '@/logger'
 import {useBotSettings} from './settings'
 import {participantInfoReceived} from '@/chat/inbox/metadata'
 import {useConversationMeta} from '../data-hooks'
-import {getChatRpc} from '../chat-rpc'
+import {chatRpcCall, getChatRpc} from '../chat-rpc'
 
 const RestrictedItem = '---RESTRICTED---'
-
-const previewConversation = async (conversationIDKey: T.Chat.ConversationIDKey) =>
-  getChatRpc().previewConversation(conversationIDKey)
-const getBotTeamRole = async (conversationIDKey: T.Chat.ConversationIDKey, username: string) =>
-  getChatRpc().getBotTeamRole(conversationIDKey, username)
-const listPublicBotCommands = async (username: string) => getChatRpc().listPublicBotCommands(username)
 
 export const useRefreshBotMembershipOnSuccess = (
   conversationIDKey: T.Chat.ConversationIDKey | undefined,
@@ -37,7 +31,7 @@ export const useRefreshBotMembershipOnSuccess = (
 ) => {
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
   const wasWaitingRef = React.useRef(waiting)
-  const previewConversationByID = C.useRPC(previewConversation)
+  const previewConversationByID = C.useRPC(chatRpcCall.previewConversation)
 
   React.useEffect(() => {
     if (!waiting && wasWaitingRef.current && !error) {
@@ -83,7 +77,7 @@ export const useBotTeamRole = (
   botUsername: string
 ) => {
   const {data: teamRole} = useRPCLoad(
-    getBotTeamRole,
+    chatRpcCall.getBotTeamRole,
     [conversationIDKey ?? T.Chat.noConversationIDKey, botUsername],
     {
       enabled: !!conversationIDKey,
@@ -286,7 +280,7 @@ const InstallBotPopup = (props: Props) => {
   )
 
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
-  const loadBotPublicCommands = C.useRPC(listPublicBotCommands)
+  const loadBotPublicCommands = C.useRPC(chatRpcCall.listPublicBotCommands)
   const botPublicCommandsRequestIDRef = React.useRef(0)
   const clearedWaitingForBotRef = React.useRef<string | undefined>(undefined)
   React.useEffect(() => {

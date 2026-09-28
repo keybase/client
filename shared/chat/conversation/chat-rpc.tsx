@@ -661,6 +661,17 @@ let currentChatRpc: ChatThreadRpc = serviceChatRpc
 
 export const getChatRpc = () => currentChatRpc
 
+type ChatRpcMethods = Record<string, (...args: Array<unknown>) => unknown>
+
+// Each method, looked up on the current adapter when it is called, for a caller that holds the
+// function itself (useRPC takes one) and must still reach an adapter swapped in later.
+export const chatRpcCall = Object.fromEntries(
+  Object.keys(serviceChatRpc).map(method => [
+    method,
+    (...args: Array<unknown>) => (currentChatRpc as unknown as ChatRpcMethods)[method]!(...args),
+  ])
+) as unknown as ChatThreadRpc
+
 // Swaps in another adapter - the in-memory fake in tests. Passing nothing restores the service one.
 export const setChatRpc = (rpc?: ChatThreadRpc) => {
   currentChatRpc = rpc ?? serviceChatRpc

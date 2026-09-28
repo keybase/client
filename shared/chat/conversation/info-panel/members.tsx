@@ -10,10 +10,7 @@ import {navToProfile} from '@/constants/router'
 import {useChatTeamMembers} from '../team-hooks'
 import {useConversationMetadata} from '../data-hooks'
 import {useRefreshParticipantsOnTeamMembershipChange} from '@/chat/inbox/refresh-participants'
-import {getChatRpc} from '../chat-rpc'
-
-const refreshConversation = async (conversationIDKey: T.Chat.ConversationIDKey) =>
-  getChatRpc().refreshParticipants(conversationIDKey)
+import {chatRpcCall} from '../chat-rpc'
 
 type Props = {
   commonSections: ReadonlyArray<Section>
@@ -49,7 +46,7 @@ export const useChannelMembers = (conversationIDKey: T.Chat.ConversationIDKey) =
   const {loading: loadingTeamMembers, members: teamMembers} = useChatTeamMembers(teamID)
   const isGeneral = channelname === 'general'
   const showAuditingBanner = isGeneral && loadingTeamMembers
-  const refreshParticipants = C.useRPC(refreshConversation)
+  const refreshParticipants = C.useRPC(chatRpcCall.refreshParticipants)
   const participants = getBotsAndParticipants(meta, participantInfo, teamMembers).participants
   const lastTeamNameRef = React.useRef('')
   React.useEffect(() => {

@@ -7,15 +7,12 @@ import {useNavigation} from '@react-navigation/native'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import logger from '@/logger'
 import {useConversationMessage} from './data-hooks'
-import {getChatRpc, type ChatThreadRpc} from './chat-rpc'
+import {chatRpcCall} from './chat-rpc'
 import {registerExternalResetter} from '@/util/zustand'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey; messageID: T.Chat.MessageID}
 
 type PickerState = 'picker' | 'title'
-
-const searchDestinations = async (term: string) => getChatRpc().searchForwardDestinations(term)
-const forwardMessage = async (p: Parameters<ChatThreadRpc['forwardMessage']>[0]) => getChatRpc().forwardMessage(p)
 
 const forwardMessageHandoff = new Map<string, T.Chat.Message>()
 const forwardMessageKey = (conversationIDKey: T.Chat.ConversationIDKey, messageID: T.Chat.MessageID) =>
@@ -65,8 +62,8 @@ const TeamPickerInner = (props: Props) => {
   const [loadedTerm, setLoadedTerm] = React.useState<string>()
   const [error, setError] = React.useState('')
   const waiting = loadedTerm !== term
-  const fwdMsg = C.useRPC(forwardMessage)
-  const submit = C.useRPC(searchDestinations)
+  const fwdMsg = C.useRPC(chatRpcCall.forwardMessage)
+  const submit = C.useRPC(chatRpcCall.searchForwardDestinations)
 
   React.useEffect(() => {
     forwardMessageHandoff.delete(handoffKey)

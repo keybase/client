@@ -12,11 +12,7 @@ import logger from '@/logger'
 import {useBotSettings} from '../bot/settings'
 import {participantInfoReceived} from '@/chat/inbox/metadata'
 import {useConversationMetadata} from '../data-hooks'
-import {getChatRpc, type ChatThreadRpc} from '../chat-rpc'
-
-const setBotSettings = async (p: Parameters<ChatThreadRpc['setBotSettings']>[0]) => getChatRpc().setBotSettings(p)
-const previewConversation = async (conversationIDKey: T.Chat.ConversationIDKey) =>
-  getChatRpc().previewConversation(conversationIDKey)
+import {chatRpcCall} from '../chat-rpc'
 
 type AddToChannelProps = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -51,8 +47,8 @@ const AddToChannel = (props: AddToChannelProps) => {
   // empty convs means the bot already reads every channel in the team; writing
   // [thisConv] over that would revoke the rest, not add one
   const readsAllChannels = !settings?.convs?.length
-  const editBotSettings = C.useRPC(setBotSettings)
-  const previewConversationByID = C.useRPC(previewConversation)
+  const editBotSettings = C.useRPC(chatRpcCall.setBotSettings)
+  const previewConversationByID = C.useRPC(chatRpcCall.previewConversation)
   return (
     <Kb.WaitingButton
       disabled={!settings || readsAllChannels}
@@ -221,7 +217,7 @@ const BotTab = (props: Props) => {
   const canManageBots = teamname ? yourOperations.manageBots : true
   const adhocTeam = teamType === 'adhoc'
   const {members: teamMembers, reload: reloadTeamMembers} = useChatTeamMembers(teamID)
-  const previewConversationByID = C.useRPC(previewConversation)
+  const previewConversationByID = C.useRPC(chatRpcCall.previewConversation)
   const mutationWaiting = C.Waiting.useAnyWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
   const mutationError = C.Waiting.useAnyErrors([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
   const wasMutationWaitingRef = React.useRef(mutationWaiting)
