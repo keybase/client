@@ -204,7 +204,7 @@ beforeEach(() => {
     deviceID: 'device-id',
     deviceName: 'test-device',
     uid: 'uid',
-    username: 'alice',
+    username: 'testuser',
   })
 })
 
@@ -398,7 +398,7 @@ test('starting an edit fills the input and focuses it', () => {
     threadActions?.addMessages(
       [
         makeMessageText({
-          author: 'alice',
+          author: 'testuser',
           conversationIDKey: convID,
           id: m.T.Chat.numberToMessageID(101),
           isEditable: true,

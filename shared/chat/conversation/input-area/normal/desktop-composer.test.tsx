@@ -45,7 +45,7 @@ const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
 const makeTextMessage = (text: string) =>
   Message.makeMessageText({
-    author: 'alice',
+    author: 'testuser',
     conversationIDKey: convID,
     id: T.Chat.numberToMessageID(101),
     isEditable: true,
@@ -98,7 +98,7 @@ beforeEach(() => {
     deviceID: 'device-id',
     deviceName: 'test-device',
     uid: 'uid',
-    username: 'alice',
+    username: 'testuser',
   })
 })
 
