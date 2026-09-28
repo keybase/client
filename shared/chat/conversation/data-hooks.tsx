@@ -9,7 +9,7 @@ import {
   unboxRows,
   useInboxMetadataState,
 } from '@/chat/inbox/metadata'
-import {useEngineActionListener} from '@/engine/action-listener'
+import {useReloadTriggers} from '@/chat/notification-registry'
 import {ignorePromise} from '@/constants/utils'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
@@ -32,38 +32,6 @@ const reloadConversationMetadata = (conversationIDKey: T.Chat.ConversationIDKey)
   }
 }
 
-const inboxUIItemConversationIDKey = (conv: T.RPCChat.InboxUIItem | null | undefined) =>
-  conv ? T.Chat.stringToConversationIDKey(conv.convID) : T.Chat.noConversationIDKey
-
-const activityConversationIDKey = (activity: T.RPCChat.ChatActivity) => {
-  switch (activity.activityType) {
-    case T.RPCChat.ChatActivityType.incomingMessage:
-      return T.Chat.conversationIDToKey(activity.incomingMessage.convID)
-    case T.RPCChat.ChatActivityType.setStatus:
-      return inboxUIItemConversationIDKey(activity.setStatus.conv)
-    case T.RPCChat.ChatActivityType.readMessage:
-      return inboxUIItemConversationIDKey(activity.readMessage.conv)
-    case T.RPCChat.ChatActivityType.newConversation:
-      return inboxUIItemConversationIDKey(activity.newConversation.conv)
-    case T.RPCChat.ChatActivityType.failedMessage:
-      return inboxUIItemConversationIDKey(activity.failedMessage.conv)
-    case T.RPCChat.ChatActivityType.membersUpdate:
-      return T.Chat.conversationIDToKey(activity.membersUpdate.convID)
-    case T.RPCChat.ChatActivityType.setAppNotificationSettings:
-      return T.Chat.conversationIDToKey(activity.setAppNotificationSettings.convID)
-    case T.RPCChat.ChatActivityType.messagesUpdated:
-      return T.Chat.conversationIDToKey(activity.messagesUpdated.convID)
-    case T.RPCChat.ChatActivityType.reactionUpdate:
-      return T.Chat.conversationIDToKey(activity.reactionUpdate.convID)
-    case T.RPCChat.ChatActivityType.expunge:
-      return T.Chat.conversationIDToKey(activity.expunge.convID)
-    case T.RPCChat.ChatActivityType.ephemeralPurge:
-      return T.Chat.conversationIDToKey(activity.ephemeralPurge.convID)
-    default:
-      return T.Chat.noConversationIDKey
-  }
-}
-
 // Arms the meta/participants reload listeners for a conversation. The conversation
 // screen root (ConversationInner) owns this; narrow readers should use the reload-free
 // selector hooks below instead of useConversationMetadata.
@@ -81,41 +49,8 @@ export const useConversationMetadataReload = (conversationIDKey: T.Chat.Conversa
     }
   }, [conversationIDKey, loggedIn])
 
-  useEngineActionListener('chat.1.NotifyChat.NewChatActivity', action => {
-    if (activityConversationIDKey(action.payload.params.activity) === conversationIDKey) {
-      reload()
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatConvUpdate', action => {
-    if (inboxUIItemConversationIDKey(action.payload.params.conv) === conversationIDKey) {
-      reload()
-    }
-  })
-  useEngineActionListener('chat.1.chatUi.chatInboxFailed', action => {
-    if (T.Chat.conversationIDToKey(action.payload.params.convID) === conversationIDKey) {
-      reload()
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatSetConvSettings', action => {
-    if (T.Chat.conversationIDToKey(action.payload.params.convID) === conversationIDKey) {
-      reload()
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatSetConvRetention', action => {
-    if (T.Chat.conversationIDToKey(action.payload.params.convID) === conversationIDKey) {
-      reload()
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatSetTeamRetention', action => {
-    const hasConversation = (action.payload.params.convs ?? []).some(
-      conv => inboxUIItemConversationIDKey(conv) === conversationIDKey
-    )
-    if (hasConversation) {
-      reload()
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatParticipantsInfo', action => {
-    if (action.payload.params.participants?.[conversationIDKey]) {
+  useReloadTriggers(conversationIDKey, trigger => {
+    if (trigger.type === 'metadata') {
       reload()
     }
   })
@@ -255,27 +190,10 @@ const useConversationMessagesAroundMessageID = (
     }
   }, [conversationIDKey, messageID, num])
 
-  useEngineActionListener('chat.1.NotifyChat.NewChatActivity', action => {
-    const activity = action.payload.params.activity
-    if (activityConversationIDKey(activity) !== conversationIDKey) {
-      return
-    }
-    switch (activity.activityType) {
-      case T.RPCChat.ChatActivityType.incomingMessage:
-      case T.RPCChat.ChatActivityType.messagesUpdated:
-      case T.RPCChat.ChatActivityType.reactionUpdate:
-      case T.RPCChat.ChatActivityType.expunge:
-      case T.RPCChat.ChatActivityType.ephemeralPurge:
-        reload()
-        break
-      default:
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatAttachmentDownloadComplete', action => {
-    const {convID, msgID} = action.payload.params
+  useReloadTriggers(conversationIDKey, trigger => {
     if (
-      T.Chat.conversationIDToKey(convID) === conversationIDKey &&
-      T.Chat.numberToMessageID(msgID) === messageID
+      trigger.type === 'messages' ||
+      (trigger.type === 'attachmentDownloaded' && trigger.messageID === messageID)
     ) {
       reload()
     }

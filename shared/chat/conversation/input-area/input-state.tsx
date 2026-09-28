@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import logger from '@/logger'
 import {findLast} from '@/util/arrays'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useEngineActionListener} from '@/engine/action-listener'
+import {useThreadNotifications} from '@/chat/notification-registry'
 import {useConversationThreadStore} from '../thread-context'
 import {useConversationSendActions} from '../send-actions'
 import {
@@ -112,8 +112,6 @@ const StateContext = React.createContext<ConversationInputStore | undefined>(und
 StateContext.displayName = 'ConversationInputStateContext'
 const DispatchContext = React.createContext<ConversationInputDispatch | undefined>(undefined)
 DispatchContext.displayName = 'ConversationInputDispatchContext'
-
-const actionConversationIDKey = (convID: string) => T.Chat.stringToConversationIDKey(convID)
 
 // 'highlight' belongs to ConversationCenterProvider; claiming it here would let this provider
 // silently eat an intent meant for the other consumer.
@@ -275,40 +273,29 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
     }
   }, [id])
 
-  useEngineActionListener('chat.1.chatUi.chatCommandStatus', action => {
-    const {actions, convID, displayText, typ} = action.payload.params
-    if (actionConversationIDKey(convID) !== id) {
-      return
+  useThreadNotifications(id, notification => {
+    switch (notification.type) {
+      case 'commandStatus':
+        setCommandStatusInfo({
+          actions: T.castDraft(notification.actions) || [],
+          displayText: notification.displayText,
+          displayType: notification.displayType,
+        })
+        return
+      case 'commandMarkdown':
+        setCommandMarkdown(notification.md || undefined)
+        return
+      case 'giphyToggleResultWindow':
+        if (notification.clearInput) {
+          injectIntoInput('')
+        }
+        setGiphyWindow(notification.show)
+        return
+      case 'giphySearchResults':
+        setGiphyResult(notification.results)
+        return
+      default:
     }
-    setCommandStatusInfo({
-      actions: T.castDraft(actions) || [],
-      displayText,
-      displayType: typ,
-    })
-  })
-  useEngineActionListener('chat.1.chatUi.chatCommandMarkdown', action => {
-    const {convID, md} = action.payload.params
-    if (actionConversationIDKey(convID) !== id) {
-      return
-    }
-    setCommandMarkdown(md || undefined)
-  })
-  useEngineActionListener('chat.1.chatUi.chatGiphyToggleResultWindow', action => {
-    const {clearInput, convID, show} = action.payload.params
-    if (actionConversationIDKey(convID) !== id) {
-      return
-    }
-    if (clearInput) {
-      injectIntoInput('')
-    }
-    setGiphyWindow(show)
-  })
-  useEngineActionListener('chat.1.chatUi.chatGiphySearchResults', action => {
-    const {convID, results} = action.payload.params
-    if (actionConversationIDKey(convID) !== id) {
-      return
-    }
-    setGiphyResult(results)
   })
 
   return (

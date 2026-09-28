@@ -5,7 +5,7 @@ import * as OrangeLine from './orange-line-context'
 import * as T from '@/constants/types'
 import {act, cleanup, renderHook} from '@testing-library/react'
 import {metasReceived} from '@/chat/inbox/metadata'
-import {notifyEngineActionListeners} from '@/engine/action-listener'
+import {routeChatNotification} from '@/chat/notification-router'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -275,7 +275,7 @@ describe('useConversationMessage', () => {
     await waitForLoad()
     expect(load()).toHaveLength(1)
     await act(async () => {
-      notifyEngineActionListeners({
+      routeChatNotification({
         payload: {params: {convID: T.Chat.keyToConversationID(conversationIDKey), msgID: 20}},
         type: 'chat.1.NotifyChat.ChatAttachmentDownloadComplete',
       } as never)

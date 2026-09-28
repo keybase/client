@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import {act, cleanup, renderHook} from '@testing-library/react'
-import {notifyEngineActionListeners} from '@/engine/action-listener'
+import {routeChatNotification} from '@/chat/notification-router'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {transformer, useBotCommandsUpdateState} from './commands'
@@ -14,7 +14,7 @@ const notifyBotCommandsStatus = (
   status: T.RPCChat.UIBotCommandsUpdateStatus
 ) => {
   act(() => {
-    notifyEngineActionListeners({
+    routeChatNotification({
       payload: {params: {convID: conversationIDKey, status}},
       type: 'chat.1.chatUi.chatBotCommandsUpdateStatus',
     } as never)

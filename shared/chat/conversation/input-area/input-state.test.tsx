@@ -6,7 +6,7 @@ import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
 import {act, cleanup, render, renderHook} from '@testing-library/react'
 import {Freeze} from 'react-freeze'
-import {notifyEngineActionListeners} from '@/engine/action-listener'
+import {routeChatNotification} from '@/chat/notification-router'
 import {resetAllStores} from '@/util/zustand'
 import {setInputIntent, useInputIntentState} from '../input-intent-store'
 import {setThreadInputCommandStatus, setThreadInputEditing, setThreadInputReplyTo} from '@/constants/router'
@@ -149,9 +149,9 @@ const renderInputWithThreadActions = (id = convID) =>
     {wrapper: wrapperFor(id)}
   )
 
-const notifyInputEngineAction = (action: Parameters<typeof notifyEngineActionListeners>[0]) => {
+const notifyInputEngineAction = (action: Parameters<typeof routeChatNotification>[0]) => {
   act(() => {
-    notifyEngineActionListeners(action)
+    routeChatNotification(action)
   })
 }
 

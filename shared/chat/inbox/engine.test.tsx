@@ -142,7 +142,7 @@ const makeUnverifiedInboxUIItem = (): T.RPCChat.UnverifiedInboxUIItem => ({
   visibility: T.RPCGen.TLFVisibility.private,
 })
 
-test('global coin flip and decorator routing is handled without mounted thread state', () => {
+test('coin flips, unfurl prompts, payments and requests leave the inbox nothing to apply', () => {
   const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([9, 8, 7, 6]))
   const first = makeCoinFlipStatus({gameID: 'flip-1', progressText: 'first'})
   const second = makeCoinFlipStatus({convID: otherConvID, gameID: 'flip-2'})
@@ -151,8 +151,8 @@ test('global coin flip and decorator routing is handled without mounted thread s
     handleConvoEngineIncoming({
       payload: {params: {statuses: [first, second]}},
       type: 'chat.1.chatUi.chatCoinFlipStatus',
-    } as never).handled
-  ).toBe(true)
+    } as never)
+  ).toEqual({})
   ;[
     {
       payload: {
@@ -186,7 +186,7 @@ test('global coin flip and decorator routing is handled without mounted thread s
       },
       type: 'chat.1.NotifyChat.ChatPaymentInfo',
     },
-  ].forEach(action => expect(handleConvoEngineIncoming(action as never).handled).toBe(true))
+  ].forEach(action => expect(handleConvoEngineIncoming(action as never)).toEqual({}))
 })
 
 test('global message activity routing preserves returned global data', () => {
@@ -204,8 +204,8 @@ test('global message activity routing preserves returned global data', () => {
         },
       },
       type: 'chat.1.NotifyChat.NewChatActivity',
-    } as never).handled
-  ).toBe(true)
+    } as never)
+  ).toEqual({})
 
   const inboxUIItem = {convID: T.Chat.conversationIDKeyToString(convID)} as T.RPCChat.InboxUIItem
   const incomingResult = handleConvoEngineIncoming({
@@ -284,15 +284,15 @@ test('read message activity without attached inbox item refreshes service-owned 
         },
       },
       type: 'chat.1.NotifyChat.NewChatActivity',
-    } as never).handled
-  ).toBe(true)
+    } as never)
+  ).toEqual({})
 
   expect(unbox).toHaveBeenCalledWith({
     convIDs: [T.Chat.keyToConversationID(convID)],
   })
 })
 
-test('global failed message and transfer routing is handled without mounted thread state', () => {
+test('a failed message with no inbox item and transfer progress leave the inbox nothing to apply', () => {
   expect(
     handleConvoEngineIncoming({
       payload: {
@@ -324,8 +324,8 @@ test('global failed message and transfer routing is handled without mounted thre
         },
       },
       type: 'chat.1.NotifyChat.NewChatActivity',
-    } as never).handled
-  ).toBe(true)
+    } as never)
+  ).toEqual({})
 
   expect(
     handleConvoEngineIncoming({
@@ -338,8 +338,8 @@ test('global failed message and transfer routing is handled without mounted thre
         },
       },
       type: 'chat.1.NotifyChat.ChatAttachmentDownloadProgress',
-    } as never).handled
-  ).toBe(true)
+    } as never)
+  ).toEqual({})
 
   expect(
     handleConvoEngineIncoming({
@@ -353,8 +353,8 @@ test('global failed message and transfer routing is handled without mounted thre
         },
       },
       type: 'chat.1.NotifyChat.ChatAttachmentUploadProgress',
-    } as never).handled
-  ).toBe(true)
+    } as never)
+  ).toEqual({})
 })
 
 test('global typing and participant updates route to inbox rows', () => {

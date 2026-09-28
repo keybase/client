@@ -466,16 +466,16 @@ const cases: Array<Case> = [
       A: [
         'desktopNotification:bob:hi there',
         'inbox:metas',
+        'thread:A:liveUpdateVersion,messageIDToOrdinal,messageMap,messageOrdinals',
         'unboxRows:A',
         'rpc:loadThread:A:around',
-        'thread:A:liveUpdateVersion,messageIDToOrdinal,messageMap,messageOrdinals',
       ],
       'A+B': [
         'desktopNotification:bob:hi there',
         'inbox:metas',
+        'thread:A:liveUpdateVersion,messageIDToOrdinal,messageMap,messageOrdinals',
         'unboxRows:A',
         'rpc:loadThread:A:around',
-        'thread:A:liveUpdateVersion,messageIDToOrdinal,messageMap,messageOrdinals',
       ],
       none: ['desktopNotification:bob:hi there', 'inbox:metas'],
     },
@@ -486,15 +486,15 @@ const cases: Array<Case> = [
     expected: {
       A: [
         'inbox:metas',
+        'thread:A:liveUpdateVersion,messageIDToOrdinal,messageMap,messageOrdinals',
         'unboxRows:A',
         'rpc:loadThread:A:around',
-        'thread:A:liveUpdateVersion,messageIDToOrdinal,messageMap,messageOrdinals',
       ],
       'A+B': [
         'inbox:metas',
+        'thread:A:liveUpdateVersion,messageIDToOrdinal,messageMap,messageOrdinals',
         'unboxRows:A',
         'rpc:loadThread:A:around',
-        'thread:A:liveUpdateVersion,messageIDToOrdinal,messageMap,messageOrdinals',
       ],
       none: ['inbox:metas'],
     },
@@ -505,14 +505,14 @@ const cases: Array<Case> = [
     action: () => incomingMessage(convA, 31),
     expected: {
       A: [
+        'thread:A:liveUpdateVersion,messageIDToOrdinal,messageMap,messageOrdinals',
         'unboxRows:A',
         'rpc:loadThread:A:around',
-        'thread:A:liveUpdateVersion,messageIDToOrdinal,messageMap,messageOrdinals',
       ],
       'A+B': [
+        'thread:A:liveUpdateVersion,messageIDToOrdinal,messageMap,messageOrdinals',
         'unboxRows:A',
         'rpc:loadThread:A:around',
-        'thread:A:liveUpdateVersion,messageIDToOrdinal,messageMap,messageOrdinals',
       ],
       none: none,
     },
@@ -591,8 +591,8 @@ const cases: Array<Case> = [
       mounted.get('B')?.actions.addMessages([pendingText(convB, '0b0b')])
     },
     expected: {
-      A: ['users', 'inbox:metas', 'unboxRows:A', 'thread:A:messageMap'],
-      'A+B': ['users', 'inbox:metas', 'unboxRows:A', 'thread:A:messageMap', 'thread:B:messageMap'],
+      A: ['users', 'inbox:metas', 'thread:A:messageMap', 'unboxRows:A'],
+      'A+B': ['users', 'inbox:metas', 'thread:A:messageMap', 'thread:B:messageMap', 'unboxRows:A'],
       none: ['users', 'inbox:metas'],
     },
     name: 'failedMessage across two conversations with an identify failure',
@@ -635,14 +635,14 @@ const cases: Array<Case> = [
       }),
     expected: {
       A: [
+        'thread:A:liveUpdateVersion,messageIDToOrdinal,messageMap,messageOrdinals',
         'unboxRows:A',
         'rpc:loadThread:A:around',
-        'thread:A:liveUpdateVersion,messageIDToOrdinal,messageMap,messageOrdinals',
       ],
       'A+B': [
+        'thread:A:liveUpdateVersion,messageIDToOrdinal,messageMap,messageOrdinals',
         'unboxRows:A',
         'rpc:loadThread:A:around',
-        'thread:A:liveUpdateVersion,messageIDToOrdinal,messageMap,messageOrdinals',
       ],
       none: none,
     },
@@ -655,8 +655,8 @@ const cases: Array<Case> = [
         ephemeralPurge: {convID: rpcConvID(convA), msgs: [makeValidText(msgID(10), 'gone')]},
       }),
     expected: {
-      A: ['unboxRows:A', 'rpc:loadThread:A:around', 'thread:A:liveUpdateVersion,messageMap'],
-      'A+B': ['unboxRows:A', 'rpc:loadThread:A:around', 'thread:A:liveUpdateVersion,messageMap'],
+      A: ['thread:A:liveUpdateVersion,messageMap', 'unboxRows:A', 'rpc:loadThread:A:around'],
+      'A+B': ['thread:A:liveUpdateVersion,messageMap', 'unboxRows:A', 'rpc:loadThread:A:around'],
       none: none,
     },
     name: 'ephemeralPurge',
@@ -681,15 +681,15 @@ const cases: Array<Case> = [
     expected: {
       A: [
         'daemon:userReacjis',
+        'thread:A:liveUpdateVersion,messageMap',
         'unboxRows:A',
         'rpc:loadThread:A:around',
-        'thread:A:liveUpdateVersion,messageMap',
       ],
       'A+B': [
         'daemon:userReacjis',
+        'thread:A:liveUpdateVersion,messageMap',
         'unboxRows:A',
         'rpc:loadThread:A:around',
-        'thread:A:liveUpdateVersion,messageMap',
       ],
       none: ['daemon:userReacjis'],
     },
@@ -702,8 +702,8 @@ const cases: Array<Case> = [
         messagesUpdated: {convID: rpcConvID(convA), updates: [makeValidText(msgID(20), 'edited')]},
       }),
     expected: {
-      A: ['unboxRows:A', 'rpc:loadThread:A:around', 'thread:A:liveUpdateVersion,messageMap'],
-      'A+B': ['unboxRows:A', 'rpc:loadThread:A:around', 'thread:A:liveUpdateVersion,messageMap'],
+      A: ['thread:A:liveUpdateVersion,messageMap', 'unboxRows:A', 'rpc:loadThread:A:around'],
+      'A+B': ['thread:A:liveUpdateVersion,messageMap', 'unboxRows:A', 'rpc:loadThread:A:around'],
       none: none,
     },
     name: 'messagesUpdated',

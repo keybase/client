@@ -20,8 +20,8 @@ import {
   unboxRows,
 } from './metadata'
 
+// what the caller applies once this returns: an inbox item to hydrate, the daemon's new reacjis
 type ConvoEngineIncomingResult = {
-  handled: boolean
   inboxUIItem?: T.RPCChat.InboxUIItem
   userReacjis?: T.RPCGen.UserReacjis
 }
@@ -30,11 +30,6 @@ type NewChatActivity =
   EngineGen.EngineAction<'chat.1.NotifyChat.NewChatActivity'>['payload']['params']['activity']
 type ThreadStaleUpdates =
   EngineGen.EngineAction<'chat.1.NotifyChat.ChatThreadsStale'>['payload']['params']['updates']
-
-const handledConvoEngineIncoming = (result: Omit<ConvoEngineIncomingResult, 'handled'> = {}) => ({
-  ...result,
-  handled: true,
-})
 
 const onChatThreadsStale = (updates: ThreadStaleUpdates) => {
   const keys = ['clear', 'newactivity'] as const
@@ -113,30 +108,30 @@ const onNewChatActivity = (activity: NewChatActivity): ConvoEngineIncomingResult
     case T.RPCChat.ChatActivityType.incomingMessage: {
       const {incomingMessage} = activity
       maybeShowIncomingMessageDesktopNotification(incomingMessage)
-      return handledConvoEngineIncoming({inboxUIItem: incomingMessage.conv ?? undefined})
+      return {inboxUIItem: incomingMessage.conv ?? undefined}
     }
     case T.RPCChat.ChatActivityType.setStatus:
-      return handledConvoEngineIncoming({inboxUIItem: activity.setStatus.conv ?? undefined})
+      return {inboxUIItem: activity.setStatus.conv ?? undefined}
     case T.RPCChat.ChatActivityType.readMessage: {
       const {readMessage} = activity
       if (!readMessage.conv) {
         forceUnboxRowsForService([T.Chat.conversationIDToKey(readMessage.convID)])
       }
-      return handledConvoEngineIncoming({inboxUIItem: readMessage.conv ?? undefined})
+      return {inboxUIItem: readMessage.conv ?? undefined}
     }
     case T.RPCChat.ChatActivityType.newConversation:
-      return handledConvoEngineIncoming({inboxUIItem: activity.newConversation.conv ?? undefined})
+      return {inboxUIItem: activity.newConversation.conv ?? undefined}
     case T.RPCChat.ChatActivityType.failedMessage: {
       const {failedMessage} = activity
       const inboxUIItem = failedMessage.conv ?? undefined
       const {outboxRecords} = failedMessage
       if (!outboxRecords) {
-        return handledConvoEngineIncoming({inboxUIItem})
+        return {inboxUIItem}
       }
       for (const outboxRecord of outboxRecords) {
         const s = outboxRecord.state
         if (s.state !== T.RPCChat.OutboxStateType.error) {
-          return handledConvoEngineIncoming({inboxUIItem})
+          return {inboxUIItem}
         }
         const {error} = s
 
@@ -148,11 +143,11 @@ const onNewChatActivity = (activity: NewChatActivity): ConvoEngineIncomingResult
           }
         }
       }
-      return handledConvoEngineIncoming({inboxUIItem})
+      return {inboxUIItem}
     }
     case T.RPCChat.ChatActivityType.membersUpdate:
       forceUnboxRowsForService([T.Chat.conversationIDToKey(activity.membersUpdate.convID)])
-      return handledConvoEngineIncoming()
+      return {}
     case T.RPCChat.ChatActivityType.setAppNotificationSettings: {
       const {setAppNotificationSettings} = activity
       const conversationIDKey = T.Chat.conversationIDToKey(setAppNotificationSettings.convID)
@@ -160,31 +155,22 @@ const onNewChatActivity = (activity: NewChatActivity): ConvoEngineIncomingResult
         conversationIDKey,
         Meta.parseNotificationSettings(setAppNotificationSettings.settings)
       )
-      return handledConvoEngineIncoming()
-    }
-    case T.RPCChat.ChatActivityType.expunge: {
-      return handledConvoEngineIncoming()
-    }
-    case T.RPCChat.ChatActivityType.ephemeralPurge: {
-      return handledConvoEngineIncoming()
+      return {}
     }
     case T.RPCChat.ChatActivityType.reactionUpdate: {
       const {reactionUpdate} = activity
       const conversationIDKey = T.Chat.conversationIDToKey(reactionUpdate.convID)
       if (!reactionUpdate.reactionUpdates || reactionUpdate.reactionUpdates.length === 0) {
         logger.warn(`Got ReactionUpdateNotif with no reactionUpdates for convID=${conversationIDKey}`)
-        return handledConvoEngineIncoming()
+        return {}
       }
       logger.info(
         `Got ${reactionUpdate.reactionUpdates.length} reaction updates for convID=${conversationIDKey}`
       )
-      return handledConvoEngineIncoming({userReacjis: reactionUpdate.userReacjis})
-    }
-    case T.RPCChat.ChatActivityType.messagesUpdated: {
-      return handledConvoEngineIncoming()
+      return {userReacjis: reactionUpdate.userReacjis}
     }
     default:
-      return {handled: false}
+      return {}
   }
 }
 
@@ -198,12 +184,12 @@ export const handleConvoEngineIncoming = (action: EngineGen.Actions): ConvoEngin
           metasReceived([meta])
         }
       }
-      return handledConvoEngineIncoming()
+      return {}
     }
     case 'chat.1.chatUi.chatInboxFailed': {
       const {convID, error} = action.payload.params
       metaReceivedError(T.Chat.conversationIDToKey(convID), error)
-      return handledConvoEngineIncoming()
+      return {}
     }
     case 'chat.1.NotifyChat.ChatSetConvSettings': {
       const conversationIDKey = T.Chat.conversationIDToKey(action.payload.params.convID)
@@ -214,53 +200,42 @@ export const handleConvoEngineIncoming = (action: EngineGen.Actions): ConvoEngin
       if (role) {
         updateInboxConversationMeta(conversationIDKey, {cannotWrite, minWriterRole: role})
       }
-      return handledConvoEngineIncoming()
+      return {}
     }
-    case 'chat.1.NotifyChat.ChatAttachmentUploadStart':
-    case 'chat.1.NotifyChat.ChatAttachmentDownloadProgress':
-    case 'chat.1.NotifyChat.ChatAttachmentDownloadComplete':
-    case 'chat.1.NotifyChat.ChatAttachmentUploadProgress': {
-      return handledConvoEngineIncoming()
-    }
-    case 'chat.1.NotifyChat.ChatPromptUnfurl':
-    case 'chat.1.NotifyChat.ChatPaymentInfo':
-    case 'chat.1.NotifyChat.ChatRequestInfo':
-    case 'chat.1.chatUi.chatCoinFlipStatus':
-      return handledConvoEngineIncoming()
     case 'chat.1.NotifyChat.ChatParticipantsInfo': {
       syncInboxParticipantsFromParticipantMap(action.payload.params.participants)
-      return handledConvoEngineIncoming()
+      return {}
     }
     case 'chat.1.NotifyChat.ChatThreadsStale':
       onChatThreadsStale(action.payload.params.updates)
-      return handledConvoEngineIncoming()
+      return {}
     case 'chat.1.NotifyChat.ChatSubteamRename':
       forceUnboxRowsForService(
         (action.payload.params.convs ?? []).map(c => T.Chat.stringToConversationIDKey(c.convID))
       )
-      return handledConvoEngineIncoming()
+      return {}
     case 'chat.1.NotifyChat.ChatTLFFinalize':
       unboxRows([T.Chat.conversationIDToKey(action.payload.params.convID)])
-      return handledConvoEngineIncoming()
+      return {}
     case 'chat.1.NotifyChat.NewChatActivity':
       return onNewChatActivity(action.payload.params.activity)
     case 'chat.1.NotifyChat.ChatTypingUpdate': {
       updateInboxTyping(action.payload.params.typingUpdates)
-      return handledConvoEngineIncoming()
+      return {}
     }
     case 'chat.1.NotifyChat.ChatSetConvRetention': {
       const {conv, convID} = action.payload.params
       if (!conv) {
         logger.warn('onChatSetConvRetention: no conv given')
-        return handledConvoEngineIncoming()
+        return {}
       }
       const meta = Meta.inboxUIItemToConversationMeta(conv)
       if (!meta) {
         logger.warn(`onChatSetConvRetention: no meta found for ${convID.toString()}`)
-        return handledConvoEngineIncoming()
+        return {}
       }
       metasReceived([meta])
-      return handledConvoEngineIncoming()
+      return {}
     }
     case 'chat.1.NotifyChat.ChatSetTeamRetention': {
       const metas = (action.payload.params.convs ?? []).reduce<Array<T.Chat.ConversationMeta>>((l, c) => {
@@ -274,12 +249,12 @@ export const handleConvoEngineIncoming = (action: EngineGen.Actions): ConvoEngin
         logger.error(
           'got NotifyChat.ChatSetTeamRetention with no attached InboxUIItems. The local version may be out of date'
         )
-        return handledConvoEngineIncoming()
+        return {}
       }
       metasReceived(metas)
-      return handledConvoEngineIncoming()
+      return {}
     }
     default:
-      return {handled: false}
+      return {}
   }
 }
