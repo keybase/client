@@ -1031,7 +1031,7 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
         </>
       )}
       <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexGrow} />
-      {!hasText && (
+      {!hasText && !cannotWrite && (
         <Kb.Box2 direction="horizontal" alignItems="flex-end">
           <Kb.Icon onClick={openFilePicker} padding="tiny" type="iconfont-camera" />
           <AudioRecorder showAudioSend={showAudioSend} setShowAudioSend={setShowAudioSend} />

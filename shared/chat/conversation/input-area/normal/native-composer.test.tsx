@@ -91,7 +91,8 @@ jest.mock('@/common-adapters/reanimated', () => {
     withTiming: (v: unknown) => v,
   }
 })
-jest.mock('@/chat/audio/audio-recorder.native', () => ({__esModule: true, default: () => null}))
+const mockAudioRecorder = jest.fn(() => null)
+jest.mock('@/chat/audio/audio-recorder.native', () => ({__esModule: true, default: () => mockAudioRecorder()}))
 jest.mock('@/chat/audio/audio-send.native', () => ({AudioSendWrapper: () => null}))
 jest.mock('@/util/expo-document-picker.native', () => ({pickDocumentsAsync: jest.fn()}))
 jest.mock('./moremenu-popup.native', () => ({__esModule: true, default: () => null}))
@@ -190,7 +191,7 @@ const press = (pred: (p: {children?: unknown; testID?: string}) => boolean) => {
     target.onPress?.()
   })
 }
-const iconGlyph = (type: 'iconfont-emoji' | 'iconfont-mention') => {
+const iconGlyph = (type: 'iconfont-add' | 'iconfont-camera' | 'iconfont-emoji' | 'iconfont-mention') => {
   const {iconMeta} = require('@/common-adapters/icon.constants-gen') as {
     iconMeta: Record<string, {charCode?: number}>
   }
@@ -200,7 +201,7 @@ const pressIcon = (type: 'iconfont-mention') => {
   const glyph = iconGlyph(type)
   press(p => p.children === glyph)
 }
-const showsIcon = (type: 'iconfont-emoji' | 'iconfont-mention') => {
+const showsIcon = (type: 'iconfont-add' | 'iconfont-camera' | 'iconfont-emoji' | 'iconfont-mention') => {
   const glyph = iconGlyph(type)
   return mockPressables.some(p => p.children === glyph)
 }
@@ -253,6 +254,7 @@ afterEach(() => {
   m.resetAllStores()
   mockTextInput = undefined
   mockPressables = []
+  mockAudioRecorder.mockClear()
   mockFocused = false
   mockSuggestionsShowing = false
   mockListHasSelection = true
@@ -823,6 +825,23 @@ describe('read-only, like desktop', () => {
 
     expect(showsIcon('iconfont-emoji')).toBe(true)
     expect(showsIcon('iconfont-mention')).toBe(true)
+  })
+
+  test('the camera, add and audio buttons are hidden', () => {
+    makeReadOnly()
+    renderComposer()
+
+    expect(showsIcon('iconfont-camera')).toBe(false)
+    expect(showsIcon('iconfont-add')).toBe(false)
+    expect(mockAudioRecorder).not.toHaveBeenCalled()
+  })
+
+  test('the camera, add and audio buttons show where the user can post', () => {
+    renderComposer()
+
+    expect(showsIcon('iconfont-camera')).toBe(true)
+    expect(showsIcon('iconfont-add')).toBe(true)
+    expect(mockAudioRecorder).toHaveBeenCalled()
   })
 
   test('an injected text is not written, so enter has nothing to send', async () => {
