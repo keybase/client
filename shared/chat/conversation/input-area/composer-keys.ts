@@ -80,8 +80,7 @@ const threadKey = (s: ThreadFacts, k: ComposerKey): ComposerKeyResult<ThreadKeyA
   return undefined
 }
 
-// ctrl is not a newline modifier: ctrl-Enter sends (or picks) like a plain Enter
-const isSendEnter = (k: ComposerKey) => k.key === 'Enter' && !(k.altKey || k.shiftKey || k.metaKey)
+const isSendEnter = (k: ComposerKey) => k.key === 'Enter' && !(k.altKey || k.ctrlKey || k.metaKey || k.shiftKey)
 
 const inputKey = (s: InputKeyState, k: ComposerKey): ComposerKeyResult<InputKeyAction> => {
   // the thread keys never stop the suggestion and send handling below, so while the list is

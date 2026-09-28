@@ -249,7 +249,7 @@ describe('in the composer, no suggestions', () => {
     expect(post.mock.calls[0]?.[0].params.body).toBe('hello')
   })
 
-  test.each([['shiftKey'], ['altKey'], ['metaKey']] as const)(
+  test.each([['shiftKey'], ['altKey'], ['metaKey'], ['ctrlKey']] as const)(
     'Enter with %s neither sends nor prevents the default (the browser adds the newline)',
     async modifier => {
       const {textarea} = renderComposer()
@@ -262,17 +262,6 @@ describe('in the composer, no suggestions', () => {
       expect(textarea.value).toBe('hello')
     }
   )
-
-  // unlike shift, alt and meta, ctrl is not excluded, so ctrl-Enter is a plain send
-  test('ctrl-Enter sends', async () => {
-    const {textarea} = renderComposer()
-    type(textarea, 'hello')
-
-    expect(keyDown(textarea, 'Enter', {ctrlKey: true})).toBe(true)
-    await flushSend()
-
-    expect(post).toHaveBeenCalledTimes(1)
-  })
 
   test('Escape while editing cancels the edit without preventing the default', () => {
     const {getHandles, textarea} = renderComposer()
@@ -438,17 +427,6 @@ describe('in the composer, suggestions open', () => {
     expect(post).not.toHaveBeenCalled()
   })
 
-  test('ctrl-Enter picks too', async () => {
-    const {textarea} = renderComposer()
-    openSuggestions(textarea, 'hi @te')
-
-    expect(keyDown(textarea, 'Enter', {ctrlKey: true})).toBe(true)
-    await flushSend()
-
-    expect(mockSelect).toHaveBeenCalledTimes(1)
-    expect(post).not.toHaveBeenCalled()
-  })
-
   test('Enter with nothing highlighted falls through to a send', async () => {
     mockListHasSelection = false
     const {textarea} = renderComposer()
@@ -462,7 +440,7 @@ describe('in the composer, suggestions open', () => {
     expect(post.mock.calls[0]?.[0].params.body).toBe('hi @te')
   })
 
-  test.each([['shiftKey'], ['altKey'], ['metaKey']] as const)(
+  test.each([['shiftKey'], ['altKey'], ['metaKey'], ['ctrlKey']] as const)(
     'Enter with %s neither picks nor sends',
     async modifier => {
       const {textarea} = renderComposer()

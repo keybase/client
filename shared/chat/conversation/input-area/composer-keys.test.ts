@@ -107,17 +107,11 @@ describe('the composer textarea', () => {
     ['Enter, list open with no items yet: send', input({suggestions: 'empty'}), k('Enter'), [submit], true],
     ['Enter, empty: still asks to send', input(), k('Enter'), [submit], true],
     ['Enter, editing: send', input({...withText, editing: true}), k('Enter'), [submit], true],
-    ['ctrl-Enter: send', input(withText), k('Enter', {ctrlKey: true}), [submit], true],
+    ['ctrl-Enter: newline by the browser', input(withText), k('Enter', {ctrlKey: true}), [], false],
     ['shift-Enter: newline by the browser', input(withText), k('Enter', {shiftKey: true}), [], false],
     ['alt-Enter: newline by the browser', input(withText), k('Enter', {altKey: true}), [], false],
     ['meta-Enter: nothing', input(withText), k('Enter', {metaKey: true}), [], false],
-    [
-      'ctrl-shift-Enter: shift wins',
-      input(withText),
-      k('Enter', {ctrlKey: true, shiftKey: true}),
-      [],
-      false,
-    ],
+    ['ctrl-shift-Enter: nothing', input(withText), k('Enter', {ctrlKey: true, shiftKey: true}), [], false],
     ['Enter, list open: pick, else send', input({suggestions: open}), k('Enter'), [pickOrSend], true],
     [
       'Enter, unfiltered list: pick, else send',
@@ -126,13 +120,7 @@ describe('the composer textarea', () => {
       [pickOrSend],
       true,
     ],
-    [
-      'ctrl-Enter, list open: pick, else send',
-      input({suggestions: open}),
-      k('Enter', {ctrlKey: true}),
-      [pickOrSend],
-      true,
-    ],
+    ['ctrl-Enter, list open: nothing', input({suggestions: open}), k('Enter', {ctrlKey: true}), [], false],
     ['shift-Enter, list open: nothing', input({suggestions: open}), k('Enter', {shiftKey: true}), [], false],
     ['alt-Enter, list open: nothing', input({suggestions: open}), k('Enter', {altKey: true}), [], false],
     ['meta-Enter, list open: nothing', input({suggestions: open}), k('Enter', {metaKey: true}), [], false],
@@ -355,6 +343,15 @@ describe('across every key and state', () => {
       for (const key of allKeys.filter(k => k.key === 'Enter')) {
         const {actions} = composerKeyDown(s, key)
         expect(actions.some(a => a.type === 'submit')).toBe(false)
+      }
+    }
+  })
+
+  test('an Enter with any modifier held never sends or picks', () => {
+    for (const s of allInputStates) {
+      for (const key of allKeys.filter(k => k.key === 'Enter' && (k.altKey || k.ctrlKey || k.metaKey || k.shiftKey))) {
+        const {actions} = composerKeyDown(s, key)
+        expect(actions.filter(a => a.type === 'submit' || a.type === 'suggestionSelect')).toEqual([])
       }
     }
   })
