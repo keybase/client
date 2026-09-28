@@ -30,8 +30,8 @@ export type Composer = {
   // the text rather than after the insert, and the caret lands one past the insert
   insertAtCaret: (s: string, opts?: {appendSpaceToText?: boolean}) => void
   replace: (info: TextInfo, reflectChange: boolean) => void
-  // Clears the input now and hands the text to send on the next tick; false when there is
-  // nothing to send.
+  // Clears the input now (with none attached, the next one once it has loaded its draft) and
+  // hands the text to send on the next tick; false when there is nothing to send.
   submit: (send: (text: string, unfurlSuppress: SuppressSnapshot) => void) => boolean
   // An input's text belongs to the input it came from: attaching a different input starts over
   // with no text and a draft still to load. Re-attaching the same one (StrictMode's effect replay)
@@ -158,7 +158,13 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
       const toSend = text
       if (!toSend) return false
       const unfurlSuppress = deps.takeUnfurlSnapshot()
-      write('', true)
+      text = ''
+      if (attached) {
+        write('', true)
+      } else {
+        // the next input loads the draft saved as this one unmounted, the text being sent
+        pending = ''
+      }
       // Clearing the composer shrinks it back to one line, which grows the thread's viewport. Sending in
       // the same tick makes that growth and the new row a single change for the list to resolve its end
       // against, and it lands short — 8 of 8 at one, two and six lines, worse the longer the message. So

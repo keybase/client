@@ -196,7 +196,6 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
       unfurlSuppress,
     })
     dispatchState({type: 'afterSend'})
-    composer.inject('')
   })
   const sendGiphyResult = React.useEffectEvent((result: T.RPCChat.GiphySearchResult) => {
     sendGiphyResultAction(result, state.replyTo)

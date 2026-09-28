@@ -368,7 +368,8 @@ test('sendComposerText sends reply context and clears transient composer state',
   expect(result.current.input.replyTo).toBe(T.Chat.numberToOrdinal(0))
   expect(result.current.input.commandMarkdown).toBeUndefined()
   expect(result.current.input.giphyWindow).toBe(false)
-  expect(composerInput.text).toBe('')
+  // the composer's submit clears the text; the send leaves it to that
+  expect(composerInput.text).toBe('reply text')
   expect(getLastPost()?.params.body).toBe('sent reply')
   expect(getLastPost()?.params.replyTo).toBe(replyMessageID)
 })
@@ -394,7 +395,7 @@ test('sendComposerText edits the selected message and clears edit state', async 
   const editPost = jest.spyOn(T.RPCChat, 'localPostEditNonblockRpcPromise').mockResolvedValue({
     outboxID: makeRpcOutboxID('edit-outbox'),
   })
-  const {composerInput, result} = renderInputWithThreadActions()
+  const {result} = renderInputWithThreadActions()
   act(() => {
     result.current.threadActions.addMessages(
       [
@@ -424,7 +425,6 @@ test('sendComposerText edits the selected message and clears edit state', async 
   expect(result.current.input.replyTo).toBe(T.Chat.numberToOrdinal(0))
   expect(result.current.input.giphyWindow).toBe(false)
   expect(result.current.input.commandMarkdown).toBeUndefined()
-  expect(composerInput.text).toBe('')
   expect(editPost).toHaveBeenCalledWith(
     expect.objectContaining({
       body: 'new text',
@@ -1284,20 +1284,33 @@ describe('the composer text', () => {
     expect(error).toHaveBeenCalledWith('[chat] injectText dropped: input ref is null')
   })
 
-  test('a composer send empties the input once the send goes out', async () => {
-    mockPostText()
-    let handles: InputHandles | undefined
-    renderComposerWithProbe(h => (handles = h))
-    act(() => {
-      handles?.input.dispatch.injectIntoInput('going out')
-    })
+  test('a composer send empties the input once, when it is submitted', async () => {
+    jest.useFakeTimers()
+    try {
+      const getLastPost = mockPostText()
+      let handles: InputHandles | undefined
+      renderComposerWithProbe(h => (handles = h))
+      act(() => {
+        handles?.input.dispatch.injectIntoInput('going out')
+      })
+      const clears: Array<string> = []
+      mockOnClear = () => clears.push(mockInput.text)
 
-    act(() => {
-      handles?.input.dispatch.sendComposerText('going out')
-    })
-    await flushPromises()
+      act(() => {
+        mockPlatformInputProps?.onSubmit()
+      })
+      expect(mockInput.text).toBe('')
+      await act(async () => {
+        jest.advanceTimersByTime(1)
+        await flushPromises()
+      })
 
-    expect(mockInput.text).toBe('')
+      expect(getLastPost()?.params.body).toBe('going out')
+      expect(mockInput.text).toBe('')
+      expect(clears).toEqual(['going out'])
+    } finally {
+      jest.useRealTimers()
+    }
   })
 
   test('a canceled stellar send puts the text back into the input', async () => {

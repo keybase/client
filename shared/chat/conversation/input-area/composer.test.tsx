@@ -450,9 +450,10 @@ describe('submit', () => {
     expect(send).toHaveBeenCalledWith('first', noSnapshot)
   })
 
-  test('after the input detaches still sends, with the clear dropped', () => {
+  // the draft the next input loads is the one saved as the old input unmounted, the text just
+  // sent; the clear waiting for that input is newer, so it wins
+  test('after the input detaches still sends, and the next input starts empty', () => {
     jest.useFakeTimers()
-    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     const {composer, mount, send} = setup()
     const {detach, fake} = mount()
     fake.type('queued before unmount')
@@ -460,9 +461,12 @@ describe('submit', () => {
 
     expect(composer.submit(send)).toBe(true)
     jest.advanceTimersByTime(0)
-
-    expect(error).toHaveBeenCalledWith('[chat] injectText dropped: input ref is null')
     expect(send).toHaveBeenCalledWith('queued before unmount', noSnapshot)
+    expect(composer.getText()).toBe('')
+    const next = mount('queued before unmount')
+
+    expect(next.fake.text).toBe('')
+    expect(composer.getText()).toBe('')
   })
 })
 

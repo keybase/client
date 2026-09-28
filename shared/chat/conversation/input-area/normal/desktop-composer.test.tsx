@@ -256,7 +256,7 @@ test('Enter in an empty composer sends nothing', () => {
   expect(post).not.toHaveBeenCalled()
 })
 
-test('a keystroke typed before the send goes out is erased when it goes out', async () => {
+test('a keystroke typed before the send goes out is kept', async () => {
   const post = jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener').mockResolvedValue({
     outboxID: new TextEncoder().encode('posted'),
   })
@@ -274,7 +274,7 @@ test('a keystroke typed before the send goes out is erased when it goes out', as
   })
 
   expect(post.mock.calls[0]?.[0].params.body).toBe('hello')
-  expect(textarea.value).toBe('')
+  expect(textarea.value).toBe('n')
 })
 
 // the emoji picker's insert puts the emoji at the caret but appends its trailing space to the
