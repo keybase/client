@@ -166,12 +166,14 @@ const drag = () => {
   })
 }
 
-// The reader lifting their finger, and the fling that follows coming to rest, at offset y.
-const dragEnded = (y: number) => {
+// The reader lifting their finger at offset y; a fling follows when they let go moving.
+const dragEnded = (y: number, fling = false) => {
   update(() => {
-    props().onScrollEndDrag({nativeEvent: {contentOffset: {y}}})
+    props().onScrollEndDrag({nativeEvent: {contentOffset: {y}, velocity: {x: 0, y: fling ? 1.5 : 0}}})
   })
 }
+// The fling that follows coming to rest at offset y.
+
 const flingEnded = (y: number) => {
   update(() => {
     props().onMomentumScrollEnd({nativeEvent: {contentOffset: {y}}})
@@ -805,7 +807,7 @@ describe('appending', () => {
     update(closeKeyboard)
     flingEnded(3000)
     drag()
-    dragEnded(1000)
+    dragEnded(1000, true)
     flingEnded(0)
     update(openKeyboard)
     clearLog()
@@ -823,6 +825,42 @@ describe('appending', () => {
     drag()
     dragEnded(2)
     update(openKeyboard)
+    clearLog()
+    setOrdinals(1, 61)
+    await tick(0)
+    expect(H.log).toEqual([toBottomOverKeyboard])
+  })
+
+  // Whose end it is is decided where the list comes to rest, not where the finger lifts.
+  test('a flick from the newest into history leaves the reader there when a new message arrives', async () => {
+    open({keyboard: true})
+    await tick(200)
+    drag()
+    dragEnded(H.bottomInset - keyboardHeight + 2, true)
+    flingEnded(3000)
+    clearLog()
+    setOrdinals(1, 61)
+    await tick(1000)
+    expect(H.log).toEqual([])
+  })
+
+  test('while a flick from the newest is still carrying the list, a new message leaves the reader be', async () => {
+    open({keyboard: true})
+    await tick(200)
+    drag()
+    dragEnded(H.bottomInset - keyboardHeight + 2, true)
+    clearLog()
+    setOrdinals(1, 61)
+    await tick(1000)
+    expect(H.log).toEqual([])
+  })
+
+  test('a flick from history that comes to rest at the newest hands the end back', async () => {
+    open({keyboard: true})
+    await tick(200)
+    drag()
+    dragEnded(2000, true)
+    flingEnded(H.bottomInset - keyboardHeight)
     clearLog()
     setOrdinals(1, 61)
     await tick(0)

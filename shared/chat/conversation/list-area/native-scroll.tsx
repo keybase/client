@@ -372,21 +372,24 @@ export const useNativeThreadScroll = (p: {
     (e: {nativeEvent: {contentOffset: {y: number}}}) => e.nativeEvent.contentOffset.y <= restingOffset() + endTolerance,
     [restingOffset]
   )
-  // The reader letting go at the end hands the end back.
-  const onScrollEndDrag = React.useCallback(
-    (e: {nativeEvent: {contentOffset: {y: number}}}) => {
-      if (atEnd(e)) dispatch({type: 'readerAtEnd'})
-    },
-    [atEnd, dispatch]
-  )
-  // A scroll coming to rest: a fling stopping, or (on iOS) an animated scroll of the list's own ending,
-  // which hands nothing back.
-  const onMomentumScrollEnd = React.useCallback(
+  // The list coming to rest: the reader letting go, a fling stopping, or (on iOS) an animated scroll of
+  // the list's own ending, which hands nothing back.
+  const rested = React.useCallback(
     (e: {nativeEvent: {contentOffset: {y: number}}}) => {
       const handedBack = own.rested(atEnd(e))
       if (handedBack) dispatch(handedBack)
     },
     [atEnd, dispatch, own]
+  )
+  // Letting go is where the list comes to rest only when the finger lifts still; moving, it flings on,
+  // and it comes to rest where the fling ends. On Android a fling's end is reported even after a still
+  // lift, and finds the reader's rest already taken.
+  const onScrollEndDrag = React.useCallback(
+    (e: {nativeEvent: {contentOffset: {y: number}; velocity?: {y: number}}}) => {
+      if (e.nativeEvent.velocity?.y) return
+      rested(e)
+    },
+    [rested]
   )
 
   // Data indices of the first and last viewable rows; the corrector steps from them.
@@ -415,7 +418,7 @@ export const useNativeThreadScroll = (p: {
       : maintainVisibleContentPositionNoAutoscroll,
     onContentSizeChange,
     onScroll,
-    onMomentumScrollEnd,
+    onMomentumScrollEnd: rested,
     onScrollBeginDrag,
     onScrollEndDrag,
     onScrollToIndexFailed,

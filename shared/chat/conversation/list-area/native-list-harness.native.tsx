@@ -63,7 +63,7 @@ type FakeListProps = {
   }) => void
   onMomentumScrollEnd: (e: {nativeEvent: {contentOffset: {y: number}}}) => void
   onScrollBeginDrag: () => void
-  onScrollEndDrag: (e: {nativeEvent: {contentOffset: {y: number}}}) => void
+  onScrollEndDrag: (e: {nativeEvent: {contentOffset: {y: number}; velocity?: {x: number; y: number}}}) => void
   onScrollToIndexFailed: (info: unknown) => void
   onViewableItemsChanged: (info: {viewableItems: Array<ViewToken>}) => void
   ref?: React.Ref<unknown>
