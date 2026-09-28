@@ -950,6 +950,26 @@ describe('the reader reaching the end', () => {
     }
   )
 
+  test('pressing the scrollbar at the end and letting go without dragging leaves the end with the list', async () => {
+    open()
+    scrollerAtEnd()
+    fireEvent.pointerDown(scroller())
+    fireEvent.pointerUp(scroller())
+    growHeader()
+    await tick(100)
+    expect(H.log).toEqual([['scrollToEnd', noAnimation]])
+  })
+
+  test('letting go of the scrollbar short of the end leaves the end with the reader', async () => {
+    open()
+    scrollerNotAtEnd()
+    fireEvent.pointerDown(scroller())
+    fireEvent.pointerUp(scroller())
+    growHeader()
+    await tick(3000)
+    expect(H.log).toEqual([])
+  })
+
   test('keys toward the oldest at the end take it', async () => {
     open()
     scrollerAtEnd()

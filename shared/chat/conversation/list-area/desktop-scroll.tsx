@@ -320,6 +320,16 @@ export const useDesktopThreadScroll = (p: {
     [dispatch, wrapperRef]
   )
 
+  // Letting go of the scrollbar, as a touch list reports a drag let go. A drag of its thumb comes to
+  // rest by itself; a press that moved nothing only ends here.
+  const onPointerUp = React.useCallback(
+    (e: {target: unknown}) => {
+      if (e.target !== scrollerIn(wrapperRef.current)) return
+      reportIfAtEnd()
+    },
+    [reportIfAtEnd, wrapperRef]
+  )
+
   const scrollToBottom = React.useCallback(() => {
     dispatch({centeredOrdinal, type: 'scrollToBottomRequested'})
   }, [centeredOrdinal, dispatch])
@@ -361,6 +371,7 @@ export const useDesktopThreadScroll = (p: {
     onKeyDown,
     onMetricsChange,
     onPointerDown,
+    onPointerUp,
     onWheel,
     scrollToBottom,
   }

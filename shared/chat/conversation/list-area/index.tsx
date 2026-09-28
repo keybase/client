@@ -214,16 +214,24 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
 
   const getItemType = useGetItemType()
 
-  const {initialScrollIndex, maintainScrollAtEnd, onKeyDown, onMetricsChange, onPointerDown, onWheel, scrollToBottom} =
-    useDesktopThreadScroll({
-      centeredOrdinal,
-      datasetKey,
-      editingOrdinal,
-      listRef,
-      loaded,
-      messageOrdinals,
-      wrapperRef,
-    })
+  const {
+    initialScrollIndex,
+    maintainScrollAtEnd,
+    onKeyDown,
+    onMetricsChange,
+    onPointerDown,
+    onPointerUp,
+    onWheel,
+    scrollToBottom,
+  } = useDesktopThreadScroll({
+    centeredOrdinal,
+    datasetKey,
+    editingOrdinal,
+    listRef,
+    loaded,
+    messageOrdinals,
+    wrapperRef,
+  })
 
   const isScrollingRef = React.useRef(false)
   const scrollStopTimerRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -358,6 +366,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
         onCopyCapture={onCopyCapture}
         onKeyDown={onKeyDown}
         onPointerDown={onPointerDown}
+        onPointerUp={onPointerUp}
         onWheel={onWheel}
         ref={wrapperRef}
       >
