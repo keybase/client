@@ -364,14 +364,7 @@ const notify = async (action: never) => {
   await settle()
 }
 
-beforeEach(() => {
-  useConfigState.setState({loggedIn: true})
-  useCurrentUserState.getState().dispatch.setBootstrap({
-    deviceID: 'device-id',
-    deviceName: 'test-device',
-    uid: 'uid',
-    username: 'testuser',
-  })
+const convMetas = () =>
   metasReceived(
     [convA, convB, convC].map(id => ({
       ...Meta.makeConversationMeta(),
@@ -383,6 +376,16 @@ beforeEach(() => {
     undefined,
     {force: true}
   )
+
+beforeEach(() => {
+  useConfigState.setState({loggedIn: true})
+  useCurrentUserState.getState().dispatch.setBootstrap({
+    deviceID: 'device-id',
+    deviceName: 'test-device',
+    uid: 'uid',
+    username: 'testuser',
+  })
+  convMetas()
   useDaemonState.setState(s => {
     s.bootstrapStatus = T.castDraft({
       loggedIn: true,
@@ -1134,6 +1137,43 @@ const explodingModeIn = (id: T.Chat.ConversationIDKey, seconds: number) =>
     },
   })
 
+// The switch as the stores see it: setUserSwitching resets every store, which empties the signed-in
+// uid, and the new account's bootstrap later writes its uid and signs it in.
+const startSwitch = async (username: string) => {
+  act(() => {
+    useConfigState.getState().dispatch.setUserSwitching(true, username)
+  })
+  await settle()
+}
+const finishSwitch = async (uid: string, username: string) => {
+  act(() => {
+    signIn(uid, username)
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    convMetas()
+  })
+  act(() => {
+    useConfigState.getState().dispatch.setUserSwitching(false)
+  })
+  await settle()
+}
+
+describe('an account switch', () => {
+  test('empties the signed-in uid from the reset until the new account signs in', async () => {
+    await mountScreens([convA])
+    const snapshot = () => ({
+      loggedIn: useConfigState.getState().loggedIn,
+      metas: useInboxMetadataState.getState().metas.size,
+      uid: useCurrentUserState.getState().uid,
+      userSwitching: useConfigState.getState().userSwitching,
+    })
+    expect(snapshot()).toEqual({loggedIn: true, metas: 3, uid: 'uid', userSwitching: false})
+    await startSwitch('testuser-mac')
+    expect(snapshot()).toEqual({loggedIn: false, metas: 0, uid: '', userSwitching: true})
+    await finishSwitch('uid2', 'testuser-mac')
+    expect(snapshot()).toEqual({loggedIn: true, metas: 3, uid: 'uid2', userSwitching: false})
+  })
+})
+
 describe('mounted conversation screens', () => {
   test('two screens on the same conversation each get the thread update, in mount order', async () => {
     await mountTree(
@@ -1193,7 +1233,7 @@ describe('mounted conversation screens', () => {
     act(() => {
       resetAllStores()
       useConfigState.setState({loggedIn: true})
-      signIn('uid', 'alice')
+      signIn('uid', 'testuser')
     })
     await settle()
     timeline = []
@@ -1218,11 +1258,11 @@ describe('mounted conversation screens', () => {
     act(() => {
       resetAllStores()
       useConfigState.setState({loggedIn: true})
-      signIn('uid2', 'bob')
+      signIn('uid2', 'testuser-mac')
     })
     await settle()
     timeline = []
-    await notify(typingIn(convA, 'carol'))
+    await notify(typingIn(convA, 'testuser-2'))
     expect(timeline).toEqual(['inbox:typing'])
     expect(typersIn('A')).toEqual([])
     timeline = []
@@ -1236,13 +1276,13 @@ describe('mounted conversation screens', () => {
     await notify(explodingModeIn(convA, 300))
     expect(mounted.get('A')?.store.getState().explodingMode).toBe(0)
 
-    await mountTree(<Screen id={convA} tag="A-bob" />)
+    await mountTree(<Screen id={convA} tag="A-testuser-mac" />)
     timeline = []
-    await notify(typingIn(convA, 'carol'))
-    expect(typersIn('A-bob')).toEqual(['carol'])
+    await notify(typingIn(convA, 'testuser-2'))
+    expect(typersIn('A-testuser-mac')).toEqual(['testuser-2'])
     expect(typersIn('A')).toEqual([])
     await notify(explodingModeIn(convA, 300))
-    expect(mounted.get('A-bob')?.store.getState().explodingMode).toBe(300)
+    expect(mounted.get('A-testuser-mac')?.store.getState().explodingMode).toBe(300)
     expect(mounted.get('A')?.store.getState().explodingMode).toBe(0)
   })
 
