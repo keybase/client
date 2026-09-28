@@ -2,7 +2,8 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import {Box2} from './box'
-import Popup from './popup'
+import {AnchoredPopup} from './popup/anchored'
+import {Portal} from './portal'
 import {Animated as NativeAnimated, Easing as NativeEasing, useColorScheme} from 'react-native'
 import {colors, darkColors} from '@/styles/colors'
 import './toast.css'
@@ -19,8 +20,9 @@ type Props = {
 }
 
 const Kb = {
+  AnchoredPopup,
   Box2,
-  Popup,
+  Portal,
 }
 
 const positionFallbacks = [] as const
@@ -119,31 +121,38 @@ const Toast = (props: Props) => {
   C.Router2.useSafeFocusEffect(isMobile ? onSafeFocusNative : onSafeFocusDesktop)
 
   if (!isMobile) {
-    return (
-      <Popup
-        attachTo={props.attachTo}
+    const {attachTo} = props
+    const toast = (
+      <div
+        className={Styles.classNames({visible: visible && !dismissedOnBlur}, props.className, 'fadeBox')}
+        style={Styles.collapseStyles([desktopStyles.container, props.containerStyle]) as React.CSSProperties}
+      >
+        {props.children}
+      </div>
+    )
+    // with nothing to anchor to the positioner would render an invisible box, so
+    // center it instead. The overlay stays mounted while the toast is faded out,
+    // so it must never take clicks from what's under it.
+    return attachTo ? (
+      <Kb.AnchoredPopup
+        attachTo={attachTo}
         propagateOutsideClicks={true}
         position={props.position}
         containerStyle={desktopStyles.float}
         offset={4}
         positionFallbacks={positionFallbacks}
       >
-        <div
-          className={Styles.classNames(
-            {visible: visible && !dismissedOnBlur},
-            props.className,
-            'fadeBox'
-          )}
-          style={Styles.collapseStyles([desktopStyles.container, props.containerStyle]) as React.CSSProperties}
-        >
-          {props.children}
-        </div>
-      </Popup>
+        {toast}
+      </Kb.AnchoredPopup>
+    ) : (
+      <Kb.Box2 direction="vertical" pointerEvents="none" centerChildren={true} style={Styles.globalStyles.fillAbsolute}>
+        {toast}
+      </Kb.Box2>
     )
   }
 
   return shouldRender ? (
-    <Kb.Popup>
+    <Kb.Portal hostName="popup-root">
       <Kb.Box2 direction="vertical" pointerEvents="none" centerChildren={true} style={Styles.globalStyles.fillAbsolute}>
         <NativeAnimated.View
           style={[
@@ -160,7 +169,7 @@ const Toast = (props: Props) => {
           {props.children}
         </NativeAnimated.View>
       </Kb.Box2>
-    </Kb.Popup>
+    </Kb.Portal>
   ) : null
 }
 

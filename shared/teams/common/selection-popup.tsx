@@ -114,7 +114,7 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
   return isMobile ? (
     <>
       {<Kb.Box2 direction="vertical" style={{height: height > 48 ? height - 48 - bottom : -bottom}} />}
-      <Kb.Popup>{popup}</Kb.Popup>
+      <Kb.Portal hostName="popup-root">{popup}</Kb.Portal>
     </>
   ) : (
     popup

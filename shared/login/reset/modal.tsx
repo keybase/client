@@ -105,11 +105,12 @@ const ResetModalImpl = ({endTime}: {endTime: number}) => {
 
   if (!isMobile) {
     return (
-      <Kb.Popup onHidden={() => {}} style={styles.desktopCover}>
+      // no onHidden: the reset countdown can't be dismissed by escape or a click away
+      <Kb.ModalCover style={styles.desktopCover}>
         <Kb.Box2 direction="vertical" style={styles.desktopModal}>
           {content}
         </Kb.Box2>
-      </Kb.Popup>
+      </Kb.ModalCover>
     )
   }
 

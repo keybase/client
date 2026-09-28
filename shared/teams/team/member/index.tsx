@@ -344,7 +344,7 @@ const NodeInRow = (props: NodeInRowProps) => {
   const canAdminister = yourOperations.manageMembers
   const rolePicker = canAdminister ? (
     <RoleButton
-      containerStyle={Kb.Styles.collapseStyles([styles.roleButton, expanded && styles.roleButtonExpanded])}
+      containerStyle={expanded ? styles.roleButtonExpanded : undefined}
       loading={changingRole}
       onClick={() => setOpen(true)}
       selectedRole={role}
@@ -542,7 +542,6 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
   paddingBottomMobile: Kb.Styles.platformStyles({
     isPhone: {paddingBottom: Kb.Styles.globalMargins.small},
   }),
-  roleButton: {paddingRight: 0},
   roleButtonExpanded: Kb.Styles.platformStyles({
     isElectron: {
       marginTop: 10, // does not exist as an official size

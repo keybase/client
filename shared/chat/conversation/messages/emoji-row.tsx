@@ -193,6 +193,7 @@ function EmojiRowContainer(p: OwnProps) {
       </Kb.Box2>
       {showingPicker && message && hasMessageID && (
         <Kb.Popup
+          intent="menu"
           attachTo={popupAnchor}
           containerStyle={styles.pickerContainer}
           position="top right"

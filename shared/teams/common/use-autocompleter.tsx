@@ -29,6 +29,7 @@ function useAutocompleter<U>(
       const {attachTo, hidePopup} = p
       return (
         <Kb.Popup
+          intent="menu"
           attachTo={attachTo}
           onHidden={hidePopup}
           matchDimension={true}
