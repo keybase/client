@@ -6,11 +6,13 @@ import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {makeConversationMeta} from '@/constants/chat/meta'
 import {resetAllStores} from '@/util/zustand'
 import {metasReceived, participantInfoReceived} from '@/chat/inbox/metadata'
+import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {ConversationThreadProvider} from '../thread-context'
 import ResetUser, {addTeamMemberAfterReset} from './reset-user'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
-const convID = T.Chat.keyToConversationID(conversationIDKey)
+
+let rpc: FakeChatRpc
 
 const flushPromises = async () => {
   for (let i = 0; i < 5; i++) {
@@ -18,38 +20,33 @@ const flushPromises = async () => {
   }
 }
 
+beforeEach(() => {
+  rpc = installFakeChatRpc()
+})
+
 afterEach(() => {
   cleanup()
+  restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
 })
 
 test('letting a reset user back in refreshes the conversation participants', async () => {
-  jest.spyOn(T.RPCChat, 'localAddTeamMemberAfterResetRpcPromise').mockResolvedValue(undefined)
-  jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
-
   await addTeamMemberAfterReset(conversationIDKey, 'testuser')
 
-  expect(T.RPCChat.localAddTeamMemberAfterResetRpcPromise).toHaveBeenCalledWith({
-    convID,
-    username: 'testuser',
-  })
-  expect(T.RPCChat.localRefreshParticipantsRpcPromise).toHaveBeenCalledWith({convID})
+  expect(rpc.calls('addTeamMemberAfterReset')).toContainEqual([conversationIDKey, 'testuser'])
+  expect(rpc.calls('refreshParticipants')).toContainEqual([conversationIDKey])
 })
 
 test('a failed re-add never claims the participants are fresh', async () => {
-  jest
-    .spyOn(T.RPCChat, 'localAddTeamMemberAfterResetRpcPromise')
-    .mockRejectedValue(new Error('still reset'))
-  jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
+  rpc.fail('addTeamMemberAfterReset', new Error('still reset'))
 
   await expect(addTeamMemberAfterReset(conversationIDKey, 'testuser')).rejects.toThrow('still reset')
-  expect(T.RPCChat.localRefreshParticipantsRpcPromise).not.toHaveBeenCalled()
+  expect(rpc.calls('refreshParticipants')).toEqual([])
 })
 
 test('a re-add that lands still resolves when the participant refresh fails', async () => {
-  jest.spyOn(T.RPCChat, 'localAddTeamMemberAfterResetRpcPromise').mockResolvedValue(undefined)
-  jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockRejectedValue(new Error('offline'))
+  rpc.fail('refreshParticipants', new Error('offline'))
   const info = jest.spyOn(logger, 'info').mockImplementation(() => {})
 
   await expect(addTeamMemberAfterReset(conversationIDKey, 'testuser')).resolves.toBeUndefined()
@@ -82,8 +79,6 @@ describe('the Let them in button', () => {
   }
 
   test('re-adds the first reset participant, then refreshes participants', async () => {
-    const add = jest.spyOn(T.RPCChat, 'localAddTeamMemberAfterResetRpcPromise').mockResolvedValue(undefined)
-    const refresh = jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
     renderBanner()
 
     await act(async () => {
@@ -91,14 +86,15 @@ describe('the Let them in button', () => {
       await flushPromises()
     })
 
-    expect(add.mock.calls).toEqual([[{convID, username: 'testuser'}]])
-    expect(refresh.mock.calls).toEqual([[{convID}]])
+    expect(rpc.log).toEqual([
+      {args: [conversationIDKey, 'testuser'], method: 'addTeamMemberAfterReset'},
+      {args: [conversationIDKey], method: 'refreshParticipants'},
+    ])
   })
 
   test('a rejected re-add is only logged and no refresh is sent', async () => {
     const failure = new Error('still reset')
-    jest.spyOn(T.RPCChat, 'localAddTeamMemberAfterResetRpcPromise').mockRejectedValue(failure)
-    const refresh = jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
+    rpc.fail('addTeamMemberAfterReset', failure)
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     renderBanner()
 
@@ -108,7 +104,7 @@ describe('the Let them in button', () => {
     })
 
     expect(error).toHaveBeenCalledWith('ignorePromise error', failure)
-    expect(refresh).not.toHaveBeenCalled()
+    expect(rpc.calls('refreshParticipants')).toEqual([])
     // the banner stays up: nothing about the conversation changed
     expect(screen.getByText('Let them in')).toBeTruthy()
   })

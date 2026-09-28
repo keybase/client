@@ -58,6 +58,7 @@ import {RPCError} from '@/util/errors'
 import {resetAllStores} from '@/util/zustand'
 import {useWaitingState} from '@/stores/waiting'
 import {useInboxMetadataState} from '@/chat/inbox/metadata'
+import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {useBotSettings} from './settings'
 import InstallBotPopup, {useBotTeamRole, useRefreshBotMembershipOnSuccess} from './install'
 
@@ -70,38 +71,37 @@ const flushPromises = async () => {
   }
 }
 
+let rpc: FakeChatRpc
+
+beforeEach(() => {
+  rpc = installFakeChatRpc()
+})
+
 afterEach(() => {
   cleanup()
+  restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
 })
 
 test('useBotTeamRole refreshes role for the selected conversation and ignores stale results', async () => {
   const resolvers = new Map<string, (role: T.RPCGen.TeamRole) => void>()
-  jest.spyOn(T.RPCChat, 'localGetTeamRoleInConversationRpcPromise').mockImplementation(
-    async ({username}) => {
-      const role = await new Promise<T.RPCGen.TeamRole>(resolve => {
-        resolvers.set(username, resolve)
-      })
-      return role
-    }
-  )
+  rpc.on('getBotTeamRole', async (_conversationIDKey, username) => {
+    const role = await new Promise<T.RPCGen.TeamRole>(resolve => {
+      resolvers.set(username, resolve)
+    })
+    return role
+  })
 
   const {rerender, result} = renderHook(
     ({botUsername, id}) => useBotTeamRole(id, botUsername),
     {initialProps: {botUsername: 'helperbot', id: convID}}
   )
 
-  expect(T.RPCChat.localGetTeamRoleInConversationRpcPromise).toHaveBeenCalledWith({
-    convID: T.Chat.keyToConversationID(convID),
-    username: 'helperbot',
-  })
+  expect(rpc.calls('getBotTeamRole')).toContainEqual([convID, 'helperbot'])
 
   rerender({botUsername: 'otherbot', id: convID})
-  expect(T.RPCChat.localGetTeamRoleInConversationRpcPromise).toHaveBeenLastCalledWith({
-    convID: T.Chat.keyToConversationID(convID),
-    username: 'otherbot',
-  })
+  expect(rpc.calls('getBotTeamRole').at(-1)).toEqual([convID, 'otherbot'])
 
   await act(async () => {
     resolvers.get('helperbot')?.(T.RPCGen.TeamRole.bot)
@@ -120,7 +120,7 @@ test('useBotTeamRole refreshes role for the selected conversation and ignores st
 
 test('useBotSettings refreshes only when enabled and hides stale conversation data', async () => {
   const settings = {cmds: true, convs: [convID], mentions: false}
-  jest.spyOn(T.RPCChat, 'localGetBotMemberSettingsRpcPromise').mockResolvedValue(settings)
+  rpc.on('getBotSettings', () => settings)
 
   const {rerender, result} = renderHook(
     ({enabled, id}) => useBotSettings(id, 'helperbot', enabled),
@@ -131,7 +131,7 @@ test('useBotSettings refreshes only when enabled and hides stale conversation da
     await flushPromises()
   })
 
-  expect(T.RPCChat.localGetBotMemberSettingsRpcPromise).not.toHaveBeenCalled()
+  expect(rpc.calls('getBotSettings')).toEqual([])
   expect(result.current.settings).toBeUndefined()
 
   rerender({enabled: true, id: convID})
@@ -139,10 +139,7 @@ test('useBotSettings refreshes only when enabled and hides stale conversation da
     await flushPromises()
   })
 
-  expect(T.RPCChat.localGetBotMemberSettingsRpcPromise).toHaveBeenCalledWith({
-    convID: T.Chat.keyToConversationID(convID),
-    username: 'helperbot',
-  })
+  expect(rpc.calls('getBotSettings')).toContainEqual([convID, 'helperbot'])
   expect(result.current.settings).toEqual(settings)
 
   rerender({enabled: true, id: otherConvID})
@@ -153,18 +150,13 @@ test('useBotSettings refreshes only when enabled and hides stale conversation da
     await flushPromises()
   })
 
-  expect(T.RPCChat.localGetBotMemberSettingsRpcPromise).toHaveBeenLastCalledWith({
-    convID: T.Chat.keyToConversationID(otherConvID),
-    username: 'helperbot',
-  })
+  expect(rpc.calls('getBotSettings').at(-1)).toEqual([otherConvID, 'helperbot'])
   expect(result.current.settings).toEqual(settings)
 })
 
 test('useBotTeamRole logs a failed getTeamRoleInConversation and reports no role', async () => {
   const info = jest.spyOn(logger, 'info').mockImplementation(() => {})
-  jest
-    .spyOn(T.RPCChat, 'localGetTeamRoleInConversationRpcPromise')
-    .mockRejectedValue(new RPCError('no such conv', 6))
+  rpc.fail('getBotTeamRole', new RPCError('no such conv', 6))
 
   const {result} = renderHook(() => useBotTeamRole(convID, 'helperbot'))
   await act(async () => {
@@ -176,9 +168,8 @@ test('useBotTeamRole logs a failed getTeamRoleInConversation and reports no role
 })
 
 test('useBotTeamRole does not call the service without a conversation', () => {
-  const load = jest.spyOn(T.RPCChat, 'localGetTeamRoleInConversationRpcPromise')
   const {result} = renderHook(() => useBotTeamRole(undefined, 'helperbot'))
-  expect(load).not.toHaveBeenCalled()
+  expect(rpc.calls('getBotTeamRole')).toEqual([])
   expect(result.current).toBeUndefined()
 })
 
@@ -217,14 +208,12 @@ const deferred = <R,>() => {
 
 const previewResult = (participants: Array<string>) =>
   ({
-    conv: {
-      participants: participants.map(assertion => ({
-        assertion,
-        inConvName: true,
-        type: T.RPCChat.UIParticipantType.user,
-      })),
-    },
-  }) as unknown as T.RPCChat.PreviewConversationLocalRes
+    participants: participants.map(assertion => ({
+      assertion,
+      inConvName: true,
+      type: T.RPCChat.UIParticipantType.user,
+    })),
+  }) as unknown as T.RPCChat.InboxUIItem
 
 describe('useRefreshBotMembershipOnSuccess', () => {
   const waitingKey = 'test:botMutation'
@@ -250,22 +239,18 @@ describe('useRefreshBotMembershipOnSuccess', () => {
   }
 
   test('does nothing on mount or while nothing was waiting', async () => {
-    const preview = jest.spyOn(T.RPCChat, 'localPreviewConversationByIDLocalRpcPromise')
     const onSuccess = run({conversationIDKey: convID, shouldRefresh: true})
     await settle()
     expect(onSuccess).not.toHaveBeenCalled()
-    expect(preview).not.toHaveBeenCalled()
+    expect(rpc.calls('previewConversation')).toEqual([])
   })
 
   test('previews the conversation, stores its participants, then calls onSuccess', async () => {
-    const preview = jest
-      .spyOn(T.RPCChat, 'localPreviewConversationByIDLocalRpcPromise')
-      .mockResolvedValue(previewResult(['testuser', 'helperbot']))
+    rpc.on('previewConversation', () => previewResult(['testuser', 'helperbot']))
     const onSuccess = run({conversationIDKey: convID, shouldRefresh: true})
     await waitThenFinish()
 
-    expect(preview).toHaveBeenCalledTimes(1)
-    expect(preview.mock.calls[0]).toEqual([{convID: T.Chat.keyToConversationID(convID)}])
+    expect(rpc.calls('previewConversation')).toEqual([[convID]])
     expect(useInboxMetadataState.getState().participants.get(convID)).toEqual({
       all: ['testuser', 'helperbot'],
       contactName: new Map(),
@@ -275,9 +260,7 @@ describe('useRefreshBotMembershipOnSuccess', () => {
   })
 
   test('a failed preview still calls onSuccess and stores nothing', async () => {
-    jest
-      .spyOn(T.RPCChat, 'localPreviewConversationByIDLocalRpcPromise')
-      .mockRejectedValue(new RPCError('offline', 2))
+    rpc.fail('previewConversation', new RPCError('offline', 2))
     const onSuccess = run({conversationIDKey: convID, shouldRefresh: true})
     await waitThenFinish()
 
@@ -286,30 +269,27 @@ describe('useRefreshBotMembershipOnSuccess', () => {
   })
 
   test('skips the preview when no refresh is wanted', async () => {
-    const preview = jest.spyOn(T.RPCChat, 'localPreviewConversationByIDLocalRpcPromise')
     const onSuccess = run({conversationIDKey: convID, shouldRefresh: false})
     await waitThenFinish()
-    expect(preview).not.toHaveBeenCalled()
+    expect(rpc.calls('previewConversation')).toEqual([])
     expect(onSuccess).toHaveBeenCalledTimes(1)
   })
 
   test('skips the preview for a missing or invalid conversation', async () => {
-    const preview = jest.spyOn(T.RPCChat, 'localPreviewConversationByIDLocalRpcPromise')
     const onMissing = run({conversationIDKey: undefined, shouldRefresh: true})
     await waitThenFinish()
     const onInvalid = run({conversationIDKey: T.Chat.noConversationIDKey, shouldRefresh: true})
     await waitThenFinish()
-    expect(preview).not.toHaveBeenCalled()
+    expect(rpc.calls('previewConversation')).toEqual([])
     // the first hook sees both waiting cycles
     expect(onMissing).toHaveBeenCalledTimes(2)
     expect(onInvalid).toHaveBeenCalledTimes(1)
   })
 
   test('does nothing when the mutation ended in an error', async () => {
-    const preview = jest.spyOn(T.RPCChat, 'localPreviewConversationByIDLocalRpcPromise')
     const onSuccess = run({conversationIDKey: convID, error: new RPCError('nope', 1), shouldRefresh: true})
     await waitThenFinish()
-    expect(preview).not.toHaveBeenCalled()
+    expect(rpc.calls('previewConversation')).toEqual([])
     expect(onSuccess).not.toHaveBeenCalled()
   })
 })
@@ -331,18 +311,11 @@ describe('InstallBotPopup service calls', () => {
     }
   }
 
-  const mockRole = (role: T.RPCGen.TeamRole) =>
-    jest.spyOn(T.RPCChat, 'localGetTeamRoleInConversationRpcPromise').mockResolvedValue(role)
+  const mockRole = (role: T.RPCGen.TeamRole) => rpc.on('getBotTeamRole', () => role)
 
-  const mockPublicCommands = (names: Array<string>) =>
-    jest.spyOn(T.RPCChat, 'localListPublicBotCommandsLocalRpcPromise').mockResolvedValue({
-      commands: names.map(name => ({description: '', name, usage: '', username: 'helperbot'})),
-    })
+  const mockPublicCommands = (names: Array<string>) => rpc.on('listPublicBotCommands', () => names)
 
-  const mockPreview = () =>
-    jest
-      .spyOn(T.RPCChat, 'localPreviewConversationByIDLocalRpcPromise')
-      .mockResolvedValue(previewResult(['testuser', 'helperbot']))
+  const mockPreview = () => rpc.on('previewConversation', () => previewResult(['testuser', 'helperbot']))
 
   const renderPopup = async (botUsername = 'helperbot') => {
     const r = render(<InstallBotPopup botUsername={botUsername} conversationIDKey={convID} />)
@@ -366,41 +339,36 @@ describe('InstallBotPopup service calls', () => {
     test('a restricted install sends the chosen read settings as restrictedbot, then refreshes and closes', async () => {
       mockRole(T.RPCGen.TeamRole.none)
       mockPublicCommands([])
-      const settingsLoad = jest.spyOn(T.RPCChat, 'localGetBotMemberSettingsRpcPromise')
-      const add = jest
-        .spyOn(T.RPCChat, 'localAddBotMemberRpcPromise')
-        .mockImplementation(async (_p, waitingKey) => settleWithWaiting({result: undefined}, waitingKey))
-      const preview = mockPreview()
+      rpc.on('addBotMember', async p => settleWithWaiting({result: undefined}, p.waitingKey))
+      mockPreview()
 
       await renderPopup()
       // not in the team yet, so there are no member settings to load
-      expect(settingsLoad).not.toHaveBeenCalled()
+      expect(rpc.calls('getBotSettings')).toEqual([])
       await click('Review')
       await click('Install')
 
-      expect(add).toHaveBeenCalledTimes(1)
-      expect(add).toHaveBeenCalledWith(
-        {
-          botSettings: {cmds: true, convs: [], mentions: true},
-          convID: T.Chat.keyToConversationID(convID),
-          role: T.RPCGen.TeamRole.restrictedbot,
-          username: 'helperbot',
-        },
-        C.waitingKeyChatBotAdd
-      )
+      expect(rpc.calls('addBotMember')).toEqual([
+        [
+          {
+            conversationIDKey: convID,
+            settings: {cmds: true, convs: [], mentions: true},
+            username: 'helperbot',
+            waitingKey: C.waitingKeyChatBotAdd,
+          },
+        ],
+      ])
       expect(C.waitingKeyChatBotAdd).toBe('chat:botAdd')
-      expect(preview).toHaveBeenCalledWith({convID: T.Chat.keyToConversationID(convID)})
+      expect(rpc.calls('previewConversation')).toEqual([[convID]])
       expect(useInboxMetadataState.getState().participants.get(convID)?.all).toEqual(['testuser', 'helperbot'])
       expect(clearModals).toHaveBeenCalledTimes(1)
       expect(info).not.toHaveBeenCalled()
     })
 
-    test('an unrestricted install sends no bot settings and the bot role', async () => {
+    test('an unrestricted install sends no bot settings', async () => {
       mockRole(T.RPCGen.TeamRole.none)
       mockPublicCommands([])
-      const add = jest
-        .spyOn(T.RPCChat, 'localAddBotMemberRpcPromise')
-        .mockImplementation(async (_p, waitingKey) => settleWithWaiting({result: undefined}, waitingKey))
+      rpc.on('addBotMember', async p => settleWithWaiting({result: undefined}, p.waitingKey))
       mockPreview()
 
       await renderPopup()
@@ -408,27 +376,19 @@ describe('InstallBotPopup service calls', () => {
       await click('Review')
       await click('Install')
 
-      expect(add).toHaveBeenCalledWith(
-        {
-          botSettings: null,
-          convID: T.Chat.keyToConversationID(convID),
-          role: T.RPCGen.TeamRole.bot,
-          username: 'helperbot',
-        },
-        'chat:botAdd'
-      )
+      expect(rpc.params('addBotMember')).toEqual([
+        {conversationIDKey: convID, username: 'helperbot', waitingKey: 'chat:botAdd'},
+      ])
+      expect(rpc.params('addBotMember')[0]?.settings).toBeUndefined()
       expect(clearModals).toHaveBeenCalledTimes(1)
     })
 
     test('a failed install is logged, shows the error line, and neither refreshes nor closes', async () => {
       mockRole(T.RPCGen.TeamRole.none)
       mockPublicCommands([])
-      jest
-        .spyOn(T.RPCChat, 'localAddBotMemberRpcPromise')
-        .mockImplementation(async (_p, waitingKey) =>
-          settleWithWaiting({error: new RPCError('team is full', 7)}, waitingKey)
-        )
-      const preview = jest.spyOn(T.RPCChat, 'localPreviewConversationByIDLocalRpcPromise')
+      rpc.on('addBotMember', async p =>
+        settleWithWaiting({error: new RPCError('team is full', 7)}, p.waitingKey)
+      )
 
       await renderPopup()
       await click('Review')
@@ -436,79 +396,64 @@ describe('InstallBotPopup service calls', () => {
 
       expect(info).toHaveBeenCalledWith('addBotMember: failed to add bot member: ERROR CODE 7 - team is full')
       expect(screen.getByText('Something went wrong! Please try again, or send')).toBeTruthy()
-      expect(preview).not.toHaveBeenCalled()
+      expect(rpc.calls('previewConversation')).toEqual([])
       expect(clearModals).not.toHaveBeenCalled()
     })
   })
 
-  describe('edit (setBotMemberSettings)', () => {
+  describe('edit (setBotSettings)', () => {
     const renderInstalled = async (settings: T.RPCGen.TeamBotSettings) => {
       mockRole(T.RPCGen.TeamRole.restrictedbot)
       mockPublicCommands([])
-      const settingsLoad = jest
-        .spyOn(T.RPCChat, 'localGetBotMemberSettingsRpcPromise')
-        .mockResolvedValue(settings)
+      rpc.on('getBotSettings', () => settings)
       await renderPopup()
-      expect(settingsLoad).toHaveBeenCalledWith({
-        convID: T.Chat.keyToConversationID(convID),
-        username: 'helperbot',
-      })
+      expect(rpc.calls('getBotSettings')).toContainEqual([convID, 'helperbot'])
     }
 
     test('saving sends the edited settings with the add waiting key, then refreshes and closes', async () => {
-      const set = jest
-        .spyOn(T.RPCChat, 'localSetBotMemberSettingsRpcPromise')
-        .mockImplementation(async (_p, waitingKey) => settleWithWaiting({result: undefined}, waitingKey))
-      const preview = mockPreview()
+      rpc.on('setBotSettings', async p => settleWithWaiting({result: undefined}, p.waitingKey))
+      mockPreview()
 
       await renderInstalled({cmds: true, convs: [chanA], mentions: false})
       await click('Edit settings')
       await click('Save')
 
-      expect(set).toHaveBeenCalledTimes(1)
-      expect(set).toHaveBeenCalledWith(
-        {
-          botSettings: {cmds: true, convs: [chanA], mentions: false},
-          convID: T.Chat.keyToConversationID(convID),
-          username: 'helperbot',
-        },
-        C.waitingKeyChatBotAdd
-      )
-      expect(preview).toHaveBeenCalledWith({convID: T.Chat.keyToConversationID(convID)})
+      expect(rpc.calls('setBotSettings')).toEqual([
+        [
+          {
+            conversationIDKey: convID,
+            settings: {cmds: true, convs: [chanA], mentions: false},
+            username: 'helperbot',
+            waitingKey: C.waitingKeyChatBotAdd,
+          },
+        ],
+      ])
+      expect(rpc.calls('previewConversation')).toEqual([[convID]])
       expect(clearModals).toHaveBeenCalledTimes(1)
     })
 
     test('channels that no longer exist are dropped from what is saved', async () => {
-      const set = jest
-        .spyOn(T.RPCChat, 'localSetBotMemberSettingsRpcPromise')
-        .mockImplementation(async (_p, waitingKey) => settleWithWaiting({result: undefined}, waitingKey))
+      rpc.on('setBotSettings', async p => settleWithWaiting({result: undefined}, p.waitingKey))
       mockPreview()
 
       await renderInstalled({cmds: false, convs: [chanA, goneChan], mentions: true})
       await click('Edit settings')
       await click('Save')
-      expect(set.mock.calls[0]?.[0].botSettings).toEqual({cmds: false, convs: [chanA], mentions: true})
+      expect(rpc.params('setBotSettings')[0]?.settings).toEqual({cmds: false, convs: [chanA], mentions: true})
     })
 
     test('an all-channels bot saves an empty convs list', async () => {
-      const set = jest
-        .spyOn(T.RPCChat, 'localSetBotMemberSettingsRpcPromise')
-        .mockImplementation(async (_p, waitingKey) => settleWithWaiting({result: undefined}, waitingKey))
+      rpc.on('setBotSettings', async p => settleWithWaiting({result: undefined}, p.waitingKey))
       mockPreview()
 
       await renderInstalled({cmds: true, convs: null, mentions: true})
       await click('Edit settings')
       await click('Save')
-      expect(set.mock.calls[0]?.[0].botSettings).toEqual({cmds: true, convs: [], mentions: true})
+      expect(rpc.params('setBotSettings')[0]?.settings).toEqual({cmds: true, convs: [], mentions: true})
     })
 
     test('a failed save is logged, shows the error line, and neither refreshes nor closes', async () => {
-      jest
-        .spyOn(T.RPCChat, 'localSetBotMemberSettingsRpcPromise')
-        .mockImplementation(async (_p, waitingKey) =>
-          settleWithWaiting({error: new RPCError('denied', 8)}, waitingKey)
-        )
-      const preview = jest.spyOn(T.RPCChat, 'localPreviewConversationByIDLocalRpcPromise')
+      rpc.on('setBotSettings', async p => settleWithWaiting({error: new RPCError('denied', 8)}, p.waitingKey))
 
       await renderInstalled({cmds: true, convs: [chanA], mentions: false})
       await click('Edit settings')
@@ -516,30 +461,27 @@ describe('InstallBotPopup service calls', () => {
 
       expect(info).toHaveBeenCalledWith('addBotMember: failed to edit bot settings: ERROR CODE 8 - denied')
       expect(screen.getByText('Something went wrong! Please try again, or send')).toBeTruthy()
-      expect(preview).not.toHaveBeenCalled()
+      expect(rpc.calls('previewConversation')).toEqual([])
       expect(clearModals).not.toHaveBeenCalled()
     })
   })
 
-  describe('public bot commands (listPublicBotCommandsLocal)', () => {
+  describe('public bot commands (listPublicBotCommands)', () => {
     test('loads the commands by username (no waiting key) when the conversation has none', async () => {
       mockRole(T.RPCGen.TeamRole.none)
-      const list = mockPublicCommands(['help', 'weather'])
+      mockPublicCommands(['help', 'weather'])
 
       await renderPopup()
       await click('Review')
 
-      expect(list).toHaveBeenCalledTimes(1)
-      expect(list.mock.calls[0]).toEqual([{username: 'helperbot'}])
+      expect(rpc.calls('listPublicBotCommands')).toEqual([['helperbot']])
       expect(screen.getByText('• !help')).toBeTruthy()
       expect(screen.getByText('• !weather')).toBeTruthy()
     })
 
     test('a failed load shows the load error, without a log', async () => {
       mockRole(T.RPCGen.TeamRole.none)
-      jest
-        .spyOn(T.RPCChat, 'localListPublicBotCommandsLocalRpcPromise')
-        .mockRejectedValue(new RPCError('unknown bot', 9))
+      rpc.fail('listPublicBotCommands', new RPCError('unknown bot', 9))
 
       await renderPopup()
       await click('Review')
@@ -550,21 +492,19 @@ describe('InstallBotPopup service calls', () => {
 
     test('a late result for the previous bot is dropped', async () => {
       mockRole(T.RPCGen.TeamRole.none)
-      const helper = deferred<T.RPCChat.ListBotCommandsLocalRes>()
-      const other = deferred<T.RPCChat.ListBotCommandsLocalRes>()
-      const list = jest
-        .spyOn(T.RPCChat, 'localListPublicBotCommandsLocalRpcPromise')
-        .mockImplementation(async ({username}) => (username === 'helperbot' ? helper.promise : other.promise))
+      const helper = deferred<ReadonlyArray<string>>()
+      const other = deferred<ReadonlyArray<string>>()
+      rpc.on('listPublicBotCommands', async username => (username === 'helperbot' ? helper.promise : other.promise))
 
       const {rerender} = await renderPopup()
       await click('Review')
       rerender(<InstallBotPopup botUsername="otherbot" conversationIDKey={convID} />)
       await settle()
-      expect(list.mock.calls.map(c => c[0])).toEqual([{username: 'helperbot'}, {username: 'otherbot'}])
+      expect(rpc.calls('listPublicBotCommands')).toEqual([['helperbot'], ['otherbot']])
 
-      other.resolve({commands: [{description: '', name: 'other', usage: '', username: 'otherbot'}]})
+      other.resolve(['other'])
       await settle()
-      helper.resolve({commands: [{description: '', name: 'stale', usage: '', username: 'helperbot'}]})
+      helper.resolve(['stale'])
       await settle()
 
       expect(screen.getByText('• !other')).toBeTruthy()
@@ -582,12 +522,10 @@ describe('InstallBotPopup service calls', () => {
         },
         typ: T.RPCChat.ConversationCommandGroupsTyp.custom,
       })
-      const list = jest.spyOn(T.RPCChat, 'localListPublicBotCommandsLocalRpcPromise')
-
       await renderPopup()
       await click('Review')
 
-      expect(list).not.toHaveBeenCalled()
+      expect(rpc.calls('listPublicBotCommands')).toEqual([])
       expect(screen.getByText('• !fromMeta')).toBeTruthy()
       expect(screen.queryByText('• !someoneElse')).toBeNull()
     })

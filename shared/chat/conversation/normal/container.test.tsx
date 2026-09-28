@@ -8,6 +8,7 @@ import logger from '@/logger'
 import * as React from 'react'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
+import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {useShellState} from '@/stores/shell'
 import {OrangeLineContext, SetOrangeLineContext, setConversationOrangeLine} from '../orange-line-context'
 import {consumeInputIntent, setInputIntent, useInputIntentState} from '../input-intent-store'
@@ -125,7 +126,17 @@ jest.mock('../thread-search-route', () => ({
   useChatThreadRouteParams: () => mockRouteParams,
 }))
 
-const getUnreadlineRpc = () => jest.spyOn(T.RPCChat, 'localGetUnreadlineRpcPromise')
+let rpc: FakeChatRpc
+
+const unreadlineAnswers = (...ids: ReadonlyArray<number>) => {
+  for (const id of ids) {
+    rpc.once('getUnreadline', () => T.Chat.numberToMessageID(id))
+  }
+}
+const unreadlineAnswer = (id: number | undefined) => {
+  rpc.on('getUnreadline', () => (id === undefined ? undefined : T.Chat.numberToMessageID(id)))
+}
+const unreadlineCalls = () => rpc.calls('getUnreadline')
 
 const getNavigateAppend = () => C.Router2.navigateAppend as jest.Mock
 
@@ -154,18 +165,13 @@ const getManageChannelsListener = (): ((action: ManageChannelsAction) => void) =
   return listener
 }
 
-const expectUnreadlineRpcReadMsgID = (unreadlineRpc: jest.SpyInstance, readMsgID: number) => {
-  expect(unreadlineRpc).toHaveBeenLastCalledWith(
-    expect.objectContaining({
-      convID: T.Chat.keyToConversationID(convID),
-      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-      readMsgID,
-    })
-  )
+const expectUnreadlineReadMsgID = (readMsgID: number) => {
+  expect(unreadlineCalls().at(-1)).toEqual([convID, T.Chat.numberToMessageID(readMsgID)])
 }
 
 beforeEach(() => {
   jest.clearAllMocks()
+  rpc = installFakeChatRpc()
   mockConversationIDKey = convID
   mockLoaded = true
   mockMeta = makeMeta(convID)
@@ -177,17 +183,15 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
+  restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
 })
 
 test('orange line stays fixed across unreadline refreshes while the thread stays mounted', async () => {
   const initialOrangeLine = T.Chat.numberToOrdinal(10)
-  getUnreadlineRpc()
-    .mockResolvedValueOnce({offline: false, unreadlineID: T.Chat.numberToMessageID(10)})
-    .mockResolvedValueOnce({offline: false, unreadlineID: T.Chat.numberToMessageID(20)})
-    .mockResolvedValueOnce({offline: false, unreadlineID: T.Chat.numberToMessageID(30)})
-    .mockResolvedValue({offline: false, unreadlineID: T.Chat.numberToMessageID(30)})
+  unreadlineAnswers(10, 20, 30)
+  unreadlineAnswer(30)
 
   const {rerender} = render(<NormalWrapper />)
   await flushOrangeLine()
@@ -210,7 +214,7 @@ test('orange line stays fixed across unreadline refreshes while the thread stays
 
 test('manual orange line updates move an existing orange line', async () => {
   const initialOrangeLine = T.Chat.numberToOrdinal(10)
-  getUnreadlineRpc().mockResolvedValue({offline: false, unreadlineID: T.Chat.numberToMessageID(10)})
+  unreadlineAnswer(10)
 
   render(<NormalWrapper />)
   await flushOrangeLine()
@@ -227,10 +231,8 @@ test('manual orange line updates move an existing orange line', async () => {
 test('orange line resets after switching to another thread', async () => {
   const initialOrangeLine = T.Chat.numberToOrdinal(10)
   const nextThreadOrangeLine = T.Chat.numberToOrdinal(40)
-  getUnreadlineRpc()
-    .mockResolvedValueOnce({offline: false, unreadlineID: T.Chat.numberToMessageID(10)})
-    .mockResolvedValueOnce({offline: false, unreadlineID: T.Chat.numberToMessageID(40)})
-    .mockResolvedValue({offline: false, unreadlineID: T.Chat.numberToMessageID(40)})
+  unreadlineAnswers(10, 40)
+  unreadlineAnswer(40)
 
   const {rerender} = render(<NormalWrapper />)
   await flushOrangeLine()
@@ -246,16 +248,13 @@ test('orange line resets after switching to another thread', async () => {
 })
 
 test('loaded gate defers fetching the orange line until the thread has loaded', async () => {
-  const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
-    offline: false,
-    unreadlineID: T.Chat.numberToMessageID(12),
-  })
+  unreadlineAnswer(12)
   mockLoaded = false
 
   render(<NormalWrapper />)
   await flushOrangeLine()
 
-  expect(unreadlineRpc).not.toHaveBeenCalled()
+  expect(unreadlineCalls()).toEqual([])
   expectOrangeLine(noOrangeLine)
 
   act(() => {
@@ -264,15 +263,12 @@ test('loaded gate defers fetching the orange line until the thread has loaded', 
   })
   await flushOrangeLine()
 
-  expect(unreadlineRpc).toHaveBeenCalledTimes(1)
+  expect(unreadlineCalls()).toHaveLength(1)
   expectOrangeLine(T.Chat.numberToOrdinal(12))
 })
 
 test('initial load uses the read message ID from mount even if meta changes before load', async () => {
-  const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
-    offline: false,
-    unreadlineID: T.Chat.numberToMessageID(15),
-  })
+  unreadlineAnswer(15)
   mockLoaded = false
   mockMeta = makeMeta(convID, 5)
 
@@ -286,8 +282,8 @@ test('initial load uses the read message ID from mount even if meta changes befo
   })
   await flushOrangeLine()
 
-  expect(unreadlineRpc).toHaveBeenCalledTimes(1)
-  expectUnreadlineRpcReadMsgID(unreadlineRpc, 5)
+  expect(unreadlineCalls()).toHaveLength(1)
+  expectUnreadlineReadMsgID(5)
   expectOrangeLine(T.Chat.numberToOrdinal(15))
 })
 
@@ -298,16 +294,13 @@ test('the read position is latched when localization lands, not when the load fi
   // advanced read position. Asking the service about that one puts the unreadline at the newest
   // message and the thread shows no divider at all; the position from the moment localization
   // landed is the only one that means anything here.
-  const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
-    offline: false,
-    unreadlineID: T.Chat.numberToMessageID(6),
-  })
+  unreadlineAnswer(6)
   mockLoaded = false
   mockMeta = makeMeta(convID, -1)
 
   render(<NormalWrapper />)
   await flushOrangeLine()
-  expect(unreadlineRpc).not.toHaveBeenCalled()
+  expect(unreadlineCalls()).toEqual([])
 
   // Localization lands while the thread load is still in flight.
   mockMeta = makeMeta(convID, 5, 9)
@@ -315,7 +308,7 @@ test('the read position is latched when localization lands, not when the load fi
     useShellState.setState({mobileAppState: 'background'})
   })
   await flushOrangeLine()
-  expect(unreadlineRpc).not.toHaveBeenCalled()
+  expect(unreadlineCalls()).toEqual([])
 
   // The load finishes, and the mark-read it issues has already moved the read position.
   mockMeta = makeMeta(convID, 9, 9)
@@ -325,28 +318,25 @@ test('the read position is latched when localization lands, not when the load fi
   })
   await flushOrangeLine()
 
-  expect(unreadlineRpc).toHaveBeenCalledTimes(1)
-  expectUnreadlineRpcReadMsgID(unreadlineRpc, 5)
+  expect(unreadlineCalls()).toHaveLength(1)
+  expectUnreadlineReadMsgID(5)
   expectOrangeLine(T.Chat.numberToOrdinal(6))
 })
 
 test('a thread reload does not refetch the orange line against the stale mount read position', async () => {
-  const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
-    offline: false,
-    unreadlineID: T.Chat.numberToMessageID(0),
-  })
+  unreadlineAnswer(0)
   mockMeta = makeMeta(convID, 2606, 2606)
 
   render(<NormalWrapper />)
   await flushOrangeLine()
 
-  expect(unreadlineRpc).toHaveBeenCalledTimes(1)
-  expectUnreadlineRpcReadMsgID(unreadlineRpc, 2606)
+  expect(unreadlineCalls()).toHaveLength(1)
+  expectUnreadlineReadMsgID(2606)
   expectOrangeLine(noOrangeLine)
 
   // you send a message; searching clears the thread and jumping to recent reloads it
   mockMeta = makeMeta(convID, 2607, 2607)
-  unreadlineRpc.mockResolvedValue({offline: false, unreadlineID: T.Chat.numberToMessageID(2607)})
+  unreadlineAnswer(2607)
   act(() => {
     mockLoaded = false
     useShellState.setState({mobileAppState: 'background'})
@@ -358,7 +348,7 @@ test('a thread reload does not refetch the orange line against the stale mount r
   })
   await flushOrangeLine()
 
-  expect(unreadlineRpc).toHaveBeenCalledTimes(1)
+  expect(unreadlineCalls()).toHaveLength(1)
   expectOrangeLine(noOrangeLine)
 })
 
@@ -368,16 +358,13 @@ test('an unknown read position draws no orange line rather than one above everyt
   // and the service answers 0 with "everything is unread", pinning the line above the oldest
   // message - and since the state is set once, that answer used to stick for the life of the mount.
   // 0 itself is a real read position and is still asked about; see the zero-value test below.
-  const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
-    offline: false,
-    unreadlineID: T.Chat.numberToMessageID(8),
-  })
+  unreadlineAnswer(8)
   mockMeta = makeMeta(convID, -5)
 
   render(<NormalWrapper />)
   await flushOrangeLine()
 
-  expect(unreadlineRpc).not.toHaveBeenCalled()
+  expect(unreadlineCalls()).toEqual([])
   expectOrangeLine(noOrangeLine)
 })
 
@@ -385,33 +372,27 @@ test('an unknown read position is not asked about', async () => {
   // -1 is emptyConversationMeta's "not localized yet", the norm right after a DB nuke. The old code
   // clamped it to 0, so the service answered "everything is unread" and pinned the line above the
   // oldest message - and since the state is set once, that answer stuck.
-  const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
-    offline: false,
-    unreadlineID: T.Chat.numberToMessageID(8),
-  })
+  unreadlineAnswer(8)
   mockMeta = makeMeta(convID, -1)
 
   render(<NormalWrapper />)
   await flushOrangeLine()
 
-  expect(unreadlineRpc).not.toHaveBeenCalled()
+  expect(unreadlineCalls()).toEqual([])
   expectOrangeLine(noOrangeLine)
 })
 
 test('an inactive conversation with an unknown read position is not asked about either', async () => {
   // The inactive refresh passes the live readMsgID rather than the mount-time one, so it reaches
   // loadOrangeLine with -1 directly and needs its own guard.
-  const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
-    offline: false,
-    unreadlineID: T.Chat.numberToMessageID(8),
-  })
+  unreadlineAnswer(8)
   mockMeta = makeMeta(convID, -1)
   useShellState.setState({active: false})
 
   render(<NormalWrapper />)
   await flushOrangeLine()
 
-  expect(unreadlineRpc).not.toHaveBeenCalled()
+  expect(unreadlineCalls()).toEqual([])
 })
 
 test('a zero read position is a real answer and is still asked about', async () => {
@@ -419,23 +400,17 @@ test('a zero read position is a real answer and is still asked about', async () 
   // new channel or DM. "Everything is unread" is the correct answer there, so suppressing the
   // request would silently drop the orange line for exactly those conversations. Only a negative
   // read position means "not known yet".
-  const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
-    offline: false,
-    unreadlineID: T.Chat.numberToMessageID(8),
-  })
+  unreadlineAnswer(8)
   mockMeta = makeMeta(convID, 0)
 
   render(<NormalWrapper />)
   await flushOrangeLine()
 
-  expect(unreadlineRpc).toHaveBeenCalledWith(expect.objectContaining({readMsgID: 0}))
+  expect(unreadlineCalls()).toContainEqual([convID, T.Chat.numberToMessageID(0)])
 })
 
 test('zero unreadline responses render as no orange line', async () => {
-  getUnreadlineRpc().mockResolvedValue({
-    offline: false,
-    unreadlineID: T.Chat.numberToMessageID(0),
-  })
+  unreadlineAnswer(0)
 
   render(<NormalWrapper />)
   await flushOrangeLine()
@@ -444,10 +419,7 @@ test('zero unreadline responses render as no orange line', async () => {
 })
 
 test('missing unreadline responses render as no orange line', async () => {
-  getUnreadlineRpc().mockResolvedValue({
-    offline: false,
-    unreadlineID: undefined,
-  })
+  unreadlineAnswer(undefined)
 
   render(<NormalWrapper />)
   await flushOrangeLine()
@@ -456,17 +428,14 @@ test('missing unreadline responses render as no orange line', async () => {
 })
 
 test('manual orange line update sets the line when no line exists yet', async () => {
-  const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
-    offline: false,
-    unreadlineID: T.Chat.numberToMessageID(30),
-  })
+  unreadlineAnswer(30)
   const localOrdinal = T.Chat.numberToOrdinal(50.001)
   mockLoaded = false
 
   render(<NormalWrapper />)
   await flushOrangeLine()
 
-  expect(unreadlineRpc).not.toHaveBeenCalled()
+  expect(unreadlineCalls()).toEqual([])
   expectOrangeLine(noOrangeLine)
 
   act(() => {
@@ -477,7 +446,7 @@ test('manual orange line update sets the line when no line exists yet', async ()
 })
 
 test('explicit orange line requests from outside the thread move an existing orange line', async () => {
-  getUnreadlineRpc().mockResolvedValue({offline: false, unreadlineID: T.Chat.numberToMessageID(10)})
+  unreadlineAnswer(10)
 
   render(<NormalWrapper />)
   await flushOrangeLine()
@@ -492,7 +461,7 @@ test('explicit orange line requests from outside the thread move an existing ora
 })
 
 test('explicit orange line requests for other threads are ignored', async () => {
-  getUnreadlineRpc().mockResolvedValue({offline: false, unreadlineID: T.Chat.numberToMessageID(10)})
+  unreadlineAnswer(10)
 
   render(<NormalWrapper />)
   await flushOrangeLine()
@@ -510,7 +479,7 @@ test('stale explicit orange line requests from before mount do not override the 
   act(() => {
     setConversationOrangeLine(convID, T.Chat.numberToOrdinal(50))
   })
-  getUnreadlineRpc().mockResolvedValue({offline: false, unreadlineID: T.Chat.numberToMessageID(10)})
+  unreadlineAnswer(10)
 
   render(<NormalWrapper />)
   await flushOrangeLine()
@@ -519,10 +488,7 @@ test('stale explicit orange line requests from before mount do not override the 
 })
 
 test('orange line captured while active is hidden while the mobile app state is non-active', async () => {
-  getUnreadlineRpc().mockResolvedValue({
-    offline: false,
-    unreadlineID: T.Chat.numberToMessageID(10),
-  })
+  unreadlineAnswer(10)
 
   render(<NormalWrapper />)
   await flushOrangeLine()
@@ -542,16 +508,13 @@ test('orange line captured while active is hidden while the mobile app state is 
 })
 
 test('inactive unreadline refreshes use the latest read message ID', async () => {
-  const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
-    offline: false,
-    unreadlineID: T.Chat.numberToMessageID(0),
-  })
+  unreadlineAnswer(0)
 
   render(<NormalWrapper />)
   await flushOrangeLine()
 
-  expect(unreadlineRpc).toHaveBeenCalledTimes(1)
-  expectUnreadlineRpcReadMsgID(unreadlineRpc, 1)
+  expect(unreadlineCalls()).toHaveLength(1)
+  expectUnreadlineReadMsgID(1)
 
   mockMeta = makeMeta(convID, 7, 30)
   act(() => {
@@ -559,15 +522,12 @@ test('inactive unreadline refreshes use the latest read message ID', async () =>
   })
   await flushOrangeLine()
 
-  expect(unreadlineRpc).toHaveBeenCalledTimes(2)
-  expectUnreadlineRpcReadMsgID(unreadlineRpc, 7)
+  expect(unreadlineCalls()).toHaveLength(2)
+  expectUnreadlineReadMsgID(7)
 })
 
 test('active max visible message changes do not refresh the orange line', async () => {
-  const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
-    offline: false,
-    unreadlineID: T.Chat.numberToMessageID(10),
-  })
+  unreadlineAnswer(10)
 
   const {rerender} = render(<NormalWrapper />)
   await flushOrangeLine()
@@ -576,7 +536,7 @@ test('active max visible message changes do not refresh the orange line', async 
   rerender(<NormalWrapper />)
   await flushOrangeLine()
 
-  expect(unreadlineRpc).toHaveBeenCalledTimes(1)
+  expect(unreadlineCalls()).toHaveLength(1)
   expectOrangeLine(T.Chat.numberToOrdinal(10))
 })
 
@@ -729,38 +689,26 @@ test('manage channels action ignores empty team names', () => {
   expect(navigateAppend).not.toHaveBeenCalled()
 })
 
-test('the unreadline request carries exactly the conversation id, gui identify behavior and read position', async () => {
-  const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
-    offline: false,
-    unreadlineID: T.Chat.numberToMessageID(10),
-  })
+test('the unreadline request carries exactly the conversation and read position', async () => {
+  unreadlineAnswer(10)
   mockMeta = makeMeta(convID, 7)
 
   render(<NormalWrapper />)
   await flushOrangeLine()
 
-  expect(unreadlineRpc.mock.calls).toEqual([
-    [
-      {
-        convID: new Uint8Array([1, 2, 3, 4]),
-        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-        readMsgID: 7,
-      },
-    ],
-  ])
+  expect(unreadlineCalls()).toEqual([[convID, T.Chat.numberToMessageID(7)]])
 })
 
 test('a rejected unreadline request is only logged, leaves no orange line, and a later refresh can still set one', async () => {
   const failure = new Error('unreadline failed')
-  const unreadlineRpc = getUnreadlineRpc()
-    .mockRejectedValueOnce(failure)
-    .mockResolvedValue({offline: false, unreadlineID: T.Chat.numberToMessageID(15)})
+  rpc.failOnce('getUnreadline', failure)
+  unreadlineAnswer(15)
   const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
 
   const {rerender} = render(<NormalWrapper />)
   await flushOrangeLine()
 
-  expect(unreadlineRpc).toHaveBeenCalledTimes(1)
+  expect(unreadlineCalls()).toHaveLength(1)
   expect(error).toHaveBeenCalledWith('ignorePromise error', failure)
   expectOrangeLine(noOrangeLine)
 
@@ -772,6 +720,6 @@ test('a rejected unreadline request is only logged, leaves no orange line, and a
   rerender(<NormalWrapper />)
   await flushOrangeLine()
 
-  expect(unreadlineRpc.mock.calls.length).toBeGreaterThan(1)
+  expect(unreadlineCalls().length).toBeGreaterThan(1)
   expectOrangeLine(T.Chat.numberToOrdinal(15))
 })

@@ -51,9 +51,10 @@ import * as C from '@/constants'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {resetAllStores} from '@/util/zustand'
+import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import PinnedMessage from './pinned-message'
 
-const convID = T.Chat.keyToConversationID(mockConversationIDKey)
+let rpc: FakeChatRpc
 
 const flushPromises = async () => {
   for (let i = 0; i < 5; i++) {
@@ -63,19 +64,15 @@ const flushPromises = async () => {
 
 // what each dismiss path sends to the service today
 const expectUnpinSent = () => {
-  expect(T.RPCChat.localUnpinMessageRpcPromise).toHaveBeenCalledTimes(1)
-  expect(T.RPCChat.localUnpinMessageRpcPromise).toHaveBeenCalledWith(
-    {convID},
-    C.waitingKeyChatUnpin(mockConversationIDKey)
-  )
+  expect(rpc.calls('unpinMessage')).toEqual([
+    [mockConversationIDKey, C.waitingKeyChatUnpin(mockConversationIDKey)],
+  ])
   expect(C.waitingKeyChatUnpin(mockConversationIDKey)).toBe(
     `chat:unpin:${T.Chat.conversationIDKeyToString(mockConversationIDKey)}`
   )
 }
 const expectIgnoreSent = () => {
-  expect(T.RPCChat.localIgnorePinnedMessageRpcPromise).toHaveBeenCalledTimes(1)
-  expect(T.RPCChat.localIgnorePinnedMessageRpcPromise).toHaveBeenCalledWith({convID})
-  expect(jest.mocked(T.RPCChat.localIgnorePinnedMessageRpcPromise).mock.calls[0]).toHaveLength(1)
+  expect(rpc.calls('ignorePinnedMessage')).toEqual([[mockConversationIDKey]])
 }
 
 const setPinned = (pinnerUsername: string) => {
@@ -94,12 +91,6 @@ const setPinned = (pinnerUsername: string) => {
   }
 }
 
-const spyRpcs = () => {
-  const unpin = jest.spyOn(T.RPCChat, 'localUnpinMessageRpcPromise').mockResolvedValue({})
-  const ignore = jest.spyOn(T.RPCChat, 'localIgnorePinnedMessageRpcPromise').mockResolvedValue(undefined)
-  return {ignore, unpin}
-}
-
 const clickClose = (container: HTMLElement) => {
   const icon = container.querySelector('.icon-gen-iconfont-close')
   if (!icon) throw new Error('no close icon')
@@ -107,19 +98,20 @@ const clickClose = (container: HTMLElement) => {
 }
 
 beforeEach(() => {
+  rpc = installFakeChatRpc()
   mockDeleteOtherMessages = false
   setPinned('testuser-mac')
 })
 
 afterEach(() => {
   cleanup()
+  restoreChatRpc()
   jest.restoreAllMocks()
   mockCenterOnMessage.mockReset()
   resetAllStores()
 })
 
 test('someone else pinned it and you cannot admin-delete: close ignores the pin locally, no popup', async () => {
-  const {ignore, unpin} = spyRpcs()
   const {container, queryByTestId} = render(<PinnedMessage />)
   expect(container.textContent).toContain('pinned words')
 
@@ -130,18 +122,16 @@ test('someone else pinned it and you cannot admin-delete: close ignores the pin 
 
   expect(queryByTestId('unpin-popup')).toBeNull()
   expectIgnoreSent()
-  expect(unpin).not.toHaveBeenCalled()
-  expect(ignore).toHaveBeenCalledTimes(1)
+  expect(rpc.calls('unpinMessage')).toEqual([])
 })
 
 test('you pinned it: close opens the confirm popup, and confirming unpins for everyone', async () => {
   setPinned('testuser')
-  const {ignore, unpin} = spyRpcs()
   const {container, getByTestId, getByText, queryByTestId} = render(<PinnedMessage />)
 
   clickClose(container)
   expect(getByTestId('unpin-popup').textContent).toContain('Unpin this message?')
-  expect(unpin).not.toHaveBeenCalled()
+  expect(rpc.calls('unpinMessage')).toEqual([])
 
   fireEvent.click(getByText('Yes, unpin'))
   await act(async () => {
@@ -149,13 +139,12 @@ test('you pinned it: close opens the confirm popup, and confirming unpins for ev
   })
 
   expectUnpinSent()
-  expect(ignore).not.toHaveBeenCalled()
+  expect(rpc.calls('ignorePinnedMessage')).toEqual([])
   expect(queryByTestId('unpin-popup')).toBeNull()
 })
 
 test('an admin who can delete others messages also unpins through the popup', async () => {
   mockDeleteOtherMessages = true
-  const {ignore} = spyRpcs()
   const {container, getByText} = render(<PinnedMessage />)
 
   clickClose(container)
@@ -165,14 +154,12 @@ test('an admin who can delete others messages also unpins through the popup', as
   })
 
   expectUnpinSent()
-  expect(ignore).not.toHaveBeenCalled()
+  expect(rpc.calls('ignorePinnedMessage')).toEqual([])
 })
 
 test('an RPCError from unpin is logged via logger.error and not rethrown', async () => {
   setPinned('testuser')
-  jest
-    .spyOn(T.RPCChat, 'localUnpinMessageRpcPromise')
-    .mockRejectedValue(new RPCError('cannot unpin', T.RPCGen.StatusCode.scgeneric))
+  rpc.fail('unpinMessage', new RPCError('cannot unpin', T.RPCGen.StatusCode.scgeneric))
   const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
   const {container, getByText} = render(<PinnedMessage />)
 
@@ -190,7 +177,7 @@ test('an RPCError from unpin is logged via logger.error and not rethrown', async
 
 test('a non-RPCError from unpin is swallowed silently', async () => {
   setPinned('testuser')
-  jest.spyOn(T.RPCChat, 'localUnpinMessageRpcPromise').mockRejectedValue(new Error('plain failure'))
+  rpc.fail('unpinMessage', new Error('plain failure'))
   const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
   const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
   const {container, getByText} = render(<PinnedMessage />)
@@ -207,7 +194,7 @@ test('a non-RPCError from unpin is swallowed silently', async () => {
 
 test('a failed ignore falls through to ignorePromise, which logs it', async () => {
   const failure = new Error('ignore failed')
-  jest.spyOn(T.RPCChat, 'localIgnorePinnedMessageRpcPromise').mockRejectedValue(failure)
+  rpc.fail('ignorePinnedMessage', failure)
   const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
   const {container} = render(<PinnedMessage />)
 
@@ -221,7 +208,6 @@ test('a failed ignore falls through to ignorePromise, which logs it', async () =
 
 test('while the unpin waiting key is set a spinner replaces the close icon', () => {
   setPinned('testuser')
-  spyRpcs()
   act(() => {
     C.Waiting.useWaitingState.getState().dispatch.increment(C.waitingKeyChatUnpin(mockConversationIDKey))
   })

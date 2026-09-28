@@ -3,13 +3,13 @@
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {act, render, waitFor} from '@testing-library/react'
+import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {useUnfurlPreviews, suppressedURLsOf, takeSuppressSnapshot, useUnfurlPreviewState} from './unfurl-preview-state'
+
+let rpc: FakeChatRpc
 
 const getSuppressedURLs = (c: T.Chat.ConversationIDKey) => suppressedURLsOf(takeSuppressSnapshot(c))
 
-// stringToConversationIDKey('conv1') is not valid hex and would throw inside
-// T.Chat.keyToConversationID (used to build the RPC's convID param), so build
-// the fixture the way input-state.test.tsx does: round-trip through bytes.
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const info = (url: string): T.RPCChat.UnfurlPreviewInfo =>
   ({unfurl: {generic: {title: url, url}, unfurlType: T.RPCChat.UnfurlType.generic}, url}) as T.RPCChat.UnfurlPreviewInfo
@@ -29,58 +29,55 @@ const Harness = (p: {
 
 describe('unfurl previews', () => {
   beforeEach(() => {
+    rpc = installFakeChatRpc()
     jest.useFakeTimers()
     useUnfurlPreviewState.getState().dispatch.resetState()
   })
   afterEach(() => {
+    restoreChatRpc()
     jest.useRealTimers()
     jest.restoreAllMocks()
   })
 
   it('does not call the rpc for text with no link', () => {
-    const spy = jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([])
+    rpc.on('getUnfurlPreviews', () => [])
     render(<Harness text="no links here" onRender={() => {}} />)
     act(() => {
       jest.advanceTimersByTime(1000)
     })
-    expect(spy).not.toHaveBeenCalled()
+    expect(rpc.calls('getUnfurlPreviews')).toEqual([])
   })
 
   it('calls the rpc for an uppercase scheme', async () => {
-    const spy = jest
-      .spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
-      .mockResolvedValue([info('HTTP://A.COM')])
+    rpc.on('getUnfurlPreviews', () => [info('HTTP://A.COM')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     render(<Harness text="see HTTP://A.COM" onRender={r => (last = r)} />)
     act(() => {
       jest.advanceTimersByTime(500)
     })
     await waitFor(() => expect(last?.previews.length).toBe(1))
-    expect(spy).toHaveBeenCalledTimes(1)
+    expect(rpc.calls('getUnfurlPreviews')).toHaveLength(1)
   })
 
   it('debounces and returns previews', async () => {
-    const spy = jest
-      .spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
-      .mockResolvedValue([info('http://a.com')])
+    rpc.on('getUnfurlPreviews', () => [info('http://a.com')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
-    expect(spy).not.toHaveBeenCalled()
+    expect(rpc.calls('getUnfurlPreviews')).toEqual([])
     act(() => {
       jest.advanceTimersByTime(500)
     })
     await waitFor(() => expect(last?.previews.length).toBe(1))
-    expect(spy).toHaveBeenCalledTimes(1)
+    expect(rpc.calls('getUnfurlPreviews')).toHaveLength(1)
   })
 
   it('drops a stale response', async () => {
     let resolveFirst: ((v: Array<T.RPCChat.UnfurlPreviewInfo>) => void) | undefined
-    jest
-      .spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
-      .mockImplementationOnce(
-        async () => new Promise<Array<T.RPCChat.UnfurlPreviewInfo>>(resolve => (resolveFirst = resolve))
-      )
-      .mockResolvedValueOnce([info('http://b.com')])
+    rpc.once(
+      'getUnfurlPreviews',
+      async () => new Promise<Array<T.RPCChat.UnfurlPreviewInfo>>(resolve => (resolveFirst = resolve))
+    )
+    rpc.once('getUnfurlPreviews', () => [info('http://b.com')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -96,7 +93,7 @@ describe('unfurl previews', () => {
   })
 
   it('dismiss hides the card and records the url for send', async () => {
-    jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([info('http://a.com')])
+    rpc.on('getUnfurlPreviews', () => [info('http://a.com')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -109,9 +106,7 @@ describe('unfurl previews', () => {
   })
 
   it('suppresses a url the service could not preview, and shows no card for it', async () => {
-    jest
-      .spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
-      .mockResolvedValue([failedInfo('http://wsj.com'), info('http://a.com')])
+    rpc.on('getUnfurlPreviews', () => [failedInfo('http://wsj.com'), info('http://a.com')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     render(<Harness text="see http://wsj.com http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -123,9 +118,8 @@ describe('unfurl previews', () => {
   })
 
   it('offers the card again once a url that failed starts previewing', async () => {
-    const spy = jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
-    spy.mockResolvedValueOnce([failedInfo('http://a.com')])
-    spy.mockResolvedValueOnce([info('http://a.com')])
+    rpc.once('getUnfurlPreviews', () => [failedInfo('http://a.com')])
+    rpc.once('getUnfurlPreviews', () => [info('http://a.com')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -143,8 +137,7 @@ describe('unfurl previews', () => {
   it('keeps a dismissal that the next fetch still returns', async () => {
     // keepOnly prunes what the fetch no longer mentions; a url still in the result and
     // still dismissed has to survive, or the card the user declined comes back
-    const spy = jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
-    spy.mockResolvedValue([info('http://a.com')])
+    rpc.on('getUnfurlPreviews', () => [info('http://a.com')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -156,15 +149,14 @@ describe('unfurl previews', () => {
     act(() => {
       jest.advanceTimersByTime(500)
     })
-    await waitFor(() => expect(spy).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(rpc.calls('getUnfurlPreviews')).toHaveLength(2))
     expect(getSuppressedURLs(convID)).toEqual(['http://a.com'])
     expect(last?.previews.length).toBe(0)
   })
 
   it('drops the card for a url the user has typed a query string onto', async () => {
-    const spy = jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
-    spy.mockResolvedValueOnce([info('http://a.com')])
-    spy.mockResolvedValueOnce([info('http://a.com?foo=1')])
+    rpc.once('getUnfurlPreviews', () => [info('http://a.com')])
+    rpc.once('getUnfurlPreviews', () => [info('http://a.com?foo=1')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -180,7 +172,7 @@ describe('unfurl previews', () => {
   })
 
   it('keeps showing a card when the url is followed by a question mark', async () => {
-    jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([info('http://a.com')])
+    rpc.on('getUnfurlPreviews', () => [info('http://a.com')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -194,9 +186,8 @@ describe('unfurl previews', () => {
   it('drops the card for a url the user has typed on past', async () => {
     // the old url is a prefix of the new one, so a substring test would keep the stale card
     // showing and let its X suppress a link the message does not contain
-    const spy = jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
-    spy.mockResolvedValueOnce([info('http://a.com')])
-    spy.mockResolvedValueOnce([info('http://a.com/foo')])
+    rpc.once('getUnfurlPreviews', () => [info('http://a.com')])
+    rpc.once('getUnfurlPreviews', () => [info('http://a.com/foo')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -213,7 +204,7 @@ describe('unfurl previews', () => {
   })
 
   it('keeps showing a card when the url is followed by punctuation', async () => {
-    jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([info('http://a.com')])
+    rpc.on('getUnfurlPreviews', () => [info('http://a.com')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -231,9 +222,8 @@ describe('unfurl previews', () => {
   })
 
   it('replaces the failed set wholesale rather than accumulating', async () => {
-    const spy = jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
-    spy.mockResolvedValueOnce([failedInfo('http://a.com'), failedInfo('http://b.com')])
-    spy.mockResolvedValueOnce([info('http://a.com'), failedInfo('http://b.com')])
+    rpc.once('getUnfurlPreviews', () => [failedInfo('http://a.com'), failedInfo('http://b.com')])
+    rpc.once('getUnfurlPreviews', () => [info('http://a.com'), failedInfo('http://b.com')])
     const {rerender} = render(<Harness text="see http://a.com http://b.com" onRender={() => {}} />)
     act(() => {
       jest.advanceTimersByTime(500)
@@ -249,7 +239,7 @@ describe('unfurl previews', () => {
   })
 
   it('forgets a failure once the url leaves the text', async () => {
-    jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([failedInfo('http://a.com')])
+    rpc.on('getUnfurlPreviews', () => [failedInfo('http://a.com')])
     const {rerender} = render(<Harness text="see http://a.com" onRender={() => {}} />)
     act(() => {
       jest.advanceTimersByTime(500)
@@ -263,12 +253,12 @@ describe('unfurl previews', () => {
   })
 
   it('drops a response left in flight by a mount that has gone away', async () => {
-    const spy = jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
     let resolveFirst: (infos: ReadonlyArray<T.RPCChat.UnfurlPreviewInfo>) => void = () => {}
-    spy.mockImplementationOnce(
+    rpc.once(
+      'getUnfurlPreviews',
       async () => new Promise<ReadonlyArray<T.RPCChat.UnfurlPreviewInfo>>(resolve => (resolveFirst = resolve))
     )
-    spy.mockResolvedValueOnce([info('http://a.com')])
+    rpc.once('getUnfurlPreviews', () => [info('http://a.com')])
     // the conversation the user leaves, with a scrape still running
     const first = render(<Harness text="see http://a.com" onRender={() => {}} />)
     act(() => {
@@ -291,7 +281,7 @@ describe('unfurl previews', () => {
   })
 
   it('forgets a dismissal once the url leaves the text', async () => {
-    jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([])
+    rpc.on('getUnfurlPreviews', () => [])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -307,9 +297,8 @@ describe('unfurl previews', () => {
   })
 
   it('drops a card once its url leaves the composer, even if the next fetch fails', async () => {
-    const spy = jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
-    spy.mockResolvedValueOnce([info('http://a.com')])
-    spy.mockRejectedValueOnce(new Error('scrape failed'))
+    rpc.once('getUnfurlPreviews', () => [info('http://a.com')])
+    rpc.failOnce('getUnfurlPreviews', new Error('scrape failed'))
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     const {rerender} = render(<Harness id={convID} text="see http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -329,7 +318,7 @@ describe('unfurl previews', () => {
   })
 
   it('keeps dismissals when the conversation is left and returned to', async () => {
-    jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([info('http://a.com')])
+    rpc.on('getUnfurlPreviews', () => [info('http://a.com')])
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     const first = render(<Harness id={convID} text="see http://a.com" onRender={r => (last = r)} />)
     act(() => {
@@ -352,27 +341,29 @@ describe('unfurl previews', () => {
 
 describe('unfurl preview rpc', () => {
   beforeEach(() => {
+    rpc = installFakeChatRpc()
     jest.useFakeTimers()
     useUnfurlPreviewState.getState().dispatch.resetState()
   })
   afterEach(() => {
+    restoreChatRpc()
     jest.useRealTimers()
     jest.restoreAllMocks()
   })
 
-  it('sends the conversation id bytes and the full composer text', async () => {
-    const spy = jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([])
+  it('asks for previews of the conversation and the full composer text', async () => {
+    rpc.on('getUnfurlPreviews', () => [])
     render(<Harness text="see http://a.com and more" onRender={() => {}} />)
     await act(async () => {
       jest.advanceTimersByTime(500)
       await Promise.resolve()
     })
-    expect(spy.mock.calls).toEqual([[{convID: new Uint8Array([1, 2, 3, 4]), text: 'see http://a.com and more'}]])
+    expect(rpc.calls('getUnfurlPreviews')).toEqual([[convID, 'see http://a.com and more']])
   })
 
   it('a rejected fetch is logged at info and shows and suppresses nothing', async () => {
     const failure = new Error('scrape failed')
-    jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockRejectedValue(failure)
+    rpc.fail('getUnfurlPreviews', failure)
     const log = jest.spyOn(logger, 'info').mockImplementation(() => {})
     const error = jest.spyOn(logger, 'error')
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
@@ -389,10 +380,8 @@ describe('unfurl preview rpc', () => {
 
   it('a rejected refetch keeps the earlier cards still in the text and records nothing new', async () => {
     const failure = new Error('scrape failed')
-    jest
-      .spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
-      .mockResolvedValueOnce([info('http://a.com')])
-      .mockRejectedValueOnce(failure)
+    rpc.once('getUnfurlPreviews', () => [info('http://a.com')])
+    rpc.failOnce('getUnfurlPreviews', failure)
     const log = jest.spyOn(logger, 'info').mockImplementation(() => {})
     let last: ReturnType<typeof useUnfurlPreviews> | undefined
     const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)

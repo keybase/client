@@ -48,6 +48,7 @@ import * as T from '@/constants/types'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {resetAllStores} from '@/util/zustand'
+import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import BotTeamPicker from './team-picker'
 
 const flushPromises = async () => {
@@ -82,27 +83,29 @@ const typeTerm = async (term: string) => {
 
 const waitingAttr = () => (screen.queryByText('waiting:true') ? 'true' : 'false')
 
+let rpc: FakeChatRpc
 let info: jest.SpyInstance
 
 beforeEach(() => {
+  rpc = installFakeChatRpc()
   info = jest.spyOn(logger, 'info').mockImplementation(() => {})
 })
 
 afterEach(() => {
   cleanup()
+  restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
 })
 
 describe('BotTeamPicker', () => {
   test('searches with an empty term on mount (no waiting key) and lists the hits', async () => {
-    const pending = deferred<ReadonlyArray<T.RPCChat.ConvSearchHit> | null>()
-    const search = jest.spyOn(T.RPCChat, 'localAddBotConvSearchRpcPromise').mockReturnValue(pending.promise)
+    const pending = deferred<ReadonlyArray<T.RPCChat.ConvSearchHit>>()
+    rpc.on('searchBotDestinations', async () => pending.promise)
 
     render(<BotTeamPicker botUsername="helperbot" />)
 
-    expect(search).toHaveBeenCalledTimes(1)
-    expect(search.mock.calls[0]).toEqual([{term: ''}])
+    expect(rpc.calls('searchBotDestinations')).toEqual([['']])
     expect(waitingAttr()).toBe('true')
 
     await act(async () => {
@@ -115,8 +118,8 @@ describe('BotTeamPicker', () => {
     expect(screen.getByText('testuser,testuser-mac')).toBeTruthy()
   })
 
-  test('a null result renders an empty list', async () => {
-    jest.spyOn(T.RPCChat, 'localAddBotConvSearchRpcPromise').mockResolvedValue(null)
+  test('an empty result renders an empty list', async () => {
+    rpc.on('searchBotDestinations', () => [])
 
     render(<BotTeamPicker botUsername="helperbot" />)
     await act(async () => {
@@ -128,10 +131,8 @@ describe('BotTeamPicker', () => {
   })
 
   test('typing searches again with the new term', async () => {
-    const search = jest
-      .spyOn(T.RPCChat, 'localAddBotConvSearchRpcPromise')
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([hit('acme', 1)])
+    rpc.once('searchBotDestinations', () => [])
+    rpc.once('searchBotDestinations', () => [hit('acme', 1)])
 
     render(<BotTeamPicker botUsername="helperbot" />)
     await act(async () => {
@@ -139,15 +140,12 @@ describe('BotTeamPicker', () => {
     })
     await typeTerm('ac')
 
-    expect(search).toHaveBeenCalledTimes(2)
-    expect(search.mock.calls[1]).toEqual([{term: 'ac'}])
+    expect(rpc.calls('searchBotDestinations')).toEqual([[''], ['ac']])
     expect(screen.getByText('acme')).toBeTruthy()
   })
 
   test('a failed search shows the error text in place of the list and logs', async () => {
-    jest
-      .spyOn(T.RPCChat, 'localAddBotConvSearchRpcPromise')
-      .mockRejectedValue(new RPCError('search broke', 3))
+    rpc.fail('searchBotDestinations', new RPCError('search broke', 3))
 
     render(<BotTeamPicker botUsername="helperbot" />)
     await act(async () => {
@@ -164,10 +162,8 @@ describe('BotTeamPicker', () => {
 
   // current behaviour: nothing clears the error, so a later successful search stays hidden
   test('the error text sticks after a later successful search', async () => {
-    jest
-      .spyOn(T.RPCChat, 'localAddBotConvSearchRpcPromise')
-      .mockRejectedValueOnce(new RPCError('search broke', 3))
-      .mockResolvedValue([hit('acme', 1)])
+    rpc.failOnce('searchBotDestinations', new RPCError('search broke', 3))
+    rpc.on('searchBotDestinations', () => [hit('acme', 1)])
 
     render(<BotTeamPicker botUsername="helperbot" />)
     await act(async () => {
@@ -183,10 +179,8 @@ describe('BotTeamPicker', () => {
   test('a slower earlier search overwrites the results of a later one', async () => {
     const first = deferred<ReadonlyArray<T.RPCChat.ConvSearchHit>>()
     const second = deferred<ReadonlyArray<T.RPCChat.ConvSearchHit>>()
-    jest
-      .spyOn(T.RPCChat, 'localAddBotConvSearchRpcPromise')
-      .mockReturnValueOnce(first.promise)
-      .mockReturnValueOnce(second.promise)
+    rpc.once('searchBotDestinations', async () => first.promise)
+    rpc.once('searchBotDestinations', async () => second.promise)
 
     render(<BotTeamPicker botUsername="helperbot" />)
     await typeTerm('ac')
@@ -207,7 +201,7 @@ describe('BotTeamPicker', () => {
 
   test('picking a hit opens the install screen for that conversation', async () => {
     const navigateAppend = jest.spyOn(Router, 'navigateAppend').mockImplementation(() => true)
-    jest.spyOn(T.RPCChat, 'localAddBotConvSearchRpcPromise').mockResolvedValue([hit('acme', 7)])
+    rpc.on('searchBotDestinations', () => [hit('acme', 7)])
 
     render(<BotTeamPicker botUsername="helperbot" />)
     await act(async () => {

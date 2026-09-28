@@ -8,6 +8,7 @@ import {act, cleanup, render} from '@testing-library/react'
 import {resetAllStores} from '@/util/zustand'
 import {metasReceived} from '@/chat/inbox/metadata'
 import * as Router from '@/constants/router'
+import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 // loaded here, while isMobile is still false, so only location-popup itself sees the mobile flag
 import '@/common-adapters'
 import '@/stores/config'
@@ -47,6 +48,9 @@ const LocationPopup = (require('./location-popup') as {default: typeof LocationP
 g.isMobile = false
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
+
+let rpc: FakeChatRpc
+const updates = () => rpc.calls('updateLocation')
 
 const flushPromises = async () => {
   for (let i = 0; i < 5; i++) {
@@ -89,11 +93,13 @@ const emit = async (coords: Partial<ExpoLocation.LocationObjectCoords>) => {
 }
 
 beforeEach(() => {
+  rpc = installFakeChatRpc()
   jest.spyOn(logger, 'info').mockImplementation(() => {})
 })
 
 afterEach(() => {
   cleanup()
+  restoreChatRpc()
   mockWatchCallback = undefined
   mockRemove.mockClear()
   mockWatchPositionAsync.mockClear()
@@ -103,28 +109,27 @@ afterEach(() => {
 
 describe('location popup position watcher', () => {
   test('watches at the highest accuracy and sends each fix as a location update', async () => {
-    const update = jest.spyOn(T.RPCChat, 'localLocationUpdateRpcPromise').mockResolvedValue(undefined)
     await renderPopup()
 
     expect(mockWatchPositionAsync).toHaveBeenCalledTimes(1)
     expect(mockWatchPositionAsync.mock.calls[0]?.[0]).toEqual({accuracy: 6})
-    expect(update).not.toHaveBeenCalled()
+    expect(updates()).toEqual([])
 
     await emit({accuracy: 12.9, altitude: 100, latitude: 37.5, longitude: -122.25})
     // accuracy is floored, and only accuracy/lat/lon are sent
-    expect(update.mock.calls).toEqual([[{coord: {accuracy: 12, lat: 37.5, lon: -122.25}}]])
+    expect(updates()).toEqual([[{accuracy: 12, lat: 37.5, lon: -122.25}]])
 
     await emit({accuracy: null, latitude: 1.5, longitude: 2.5})
     // a missing accuracy is sent as 0
-    expect(update.mock.calls).toEqual([
-      [{coord: {accuracy: 12, lat: 37.5, lon: -122.25}}],
-      [{coord: {accuracy: 0, lat: 1.5, lon: 2.5}}],
+    expect(updates()).toEqual([
+      [{accuracy: 12, lat: 37.5, lon: -122.25}],
+      [{accuracy: 0, lat: 1.5, lon: 2.5}],
     ])
   })
 
   test('a rejected location update is only logged and later fixes still send', async () => {
     const failure = new Error('location update failed')
-    const update = jest.spyOn(T.RPCChat, 'localLocationUpdateRpcPromise').mockRejectedValue(failure)
+    rpc.fail('updateLocation', failure)
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     const commandStatus = jest.spyOn(Router, 'setThreadInputCommandStatus')
     await renderPopup()
@@ -135,12 +140,11 @@ describe('location popup position watcher', () => {
     expect(commandStatus).not.toHaveBeenCalled()
 
     await emit({accuracy: 6, latitude: 11, longitude: 21})
-    expect(update).toHaveBeenCalledTimes(2)
-    expect(update).toHaveBeenLastCalledWith({coord: {accuracy: 6, lat: 11, lon: 21}})
+    expect(updates()).toHaveLength(2)
+    expect(updates().at(-1)).toEqual([{accuracy: 6, lat: 11, lon: 21}])
   })
 
   test('unmounting removes the watch subscription', async () => {
-    jest.spyOn(T.RPCChat, 'localLocationUpdateRpcPromise').mockResolvedValue(undefined)
     const {unmount} = await renderPopup()
     expect(mockRemove).not.toHaveBeenCalled()
     unmount()
@@ -148,12 +152,11 @@ describe('location popup position watcher', () => {
   })
 
   test('a failed watch sends no update and reports an error status to the composer', async () => {
-    const update = jest.spyOn(T.RPCChat, 'localLocationUpdateRpcPromise').mockResolvedValue(undefined)
     const commandStatus = jest.spyOn(Router, 'setThreadInputCommandStatus')
     mockWatchPositionAsync.mockRejectedValueOnce(new Error('no gps'))
     await renderPopup()
 
-    expect(update).not.toHaveBeenCalled()
+    expect(updates()).toEqual([])
     expect(commandStatus.mock.calls).toEqual([
       [
         convID,

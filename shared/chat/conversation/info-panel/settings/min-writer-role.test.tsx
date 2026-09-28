@@ -5,9 +5,9 @@ import * as T from '@/constants/types'
 import {cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {makeConversationMeta} from '@/constants/chat/meta'
 import {flush} from '@/test/flush'
+import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
-const convID = T.Chat.keyToConversationID(conversationIDKey)
 
 let mockMeta: T.Chat.ConversationMeta = makeConversationMeta()
 let mockCanSetMinWriterRole = true
@@ -54,29 +54,32 @@ const shownRole = (container: HTMLElement) =>
 const saveIndicator = (container: HTMLElement) =>
   container.querySelector<HTMLElement>('div[style*="height: 17px"]')!
 
+let rpc: FakeChatRpc
+
+beforeEach(() => {
+  rpc = installFakeChatRpc()
+})
+
 afterEach(() => {
   cleanup()
   jest.restoreAllMocks()
+  restoreChatRpc()
   mockMeta = makeConversationMeta()
   mockCanSetMinWriterRole = true
 })
 
 describe('setConvMinWriterRole', () => {
-  test('picking a new role sends the conversation id and the role enum', async () => {
-    const spy = jest.spyOn(T.RPCChat, 'localSetConvMinWriterRoleLocalRpcPromise').mockResolvedValue()
+  test('picking a new role sends the conversation and the role', async () => {
     renderMinWriterRole('reader')
 
     pickRole('Reader', 'Writer')
     await flush()
 
-    expect(spy).toHaveBeenCalledTimes(1)
-    expect(spy).toHaveBeenCalledWith({convID, role: T.RPCGen.TeamRole.writer})
-    // no waiting key
-    expect(spy.mock.calls[0]).toHaveLength(1)
+    // exactly one call, with no waiting key
+    expect(rpc.calls('setMinWriterRole')).toEqual([[conversationIDKey, 'writer']])
   })
 
-  test('each role maps to its own TeamRole value', async () => {
-    const spy = jest.spyOn(T.RPCChat, 'localSetConvMinWriterRoleLocalRpcPromise').mockResolvedValue()
+  test('each pick sends its own role', async () => {
     renderMinWriterRole('reader')
 
     pickRole('Reader', 'Admin')
@@ -84,22 +87,22 @@ describe('setConvMinWriterRole', () => {
     pickRole('Admin', 'Owner')
     await flush()
 
-    expect(spy.mock.calls.map(c => c[0].role)).toEqual([T.RPCGen.TeamRole.admin, T.RPCGen.TeamRole.owner])
+    expect(rpc.calls('setMinWriterRole').map(c => c[1])).toEqual(['admin', 'owner'])
   })
 
   test('picking the role already selected sends nothing', async () => {
-    const spy = jest.spyOn(T.RPCChat, 'localSetConvMinWriterRoleLocalRpcPromise').mockResolvedValue()
     renderMinWriterRole('writer')
 
     pickRole('Writer', 'Writer')
     await flush()
 
-    expect(spy).not.toHaveBeenCalled()
+    expect(rpc.calls('setMinWriterRole')).toEqual([])
   })
 
   test('a successful save shows the spinner while waiting, then Saved with the new role kept', async () => {
     let resolveSave: (() => void) | undefined
-    jest.spyOn(T.RPCChat, 'localSetConvMinWriterRoleLocalRpcPromise').mockImplementation(
+    rpc.on(
+      'setMinWriterRole',
       async () =>
         new Promise<void>(resolve => {
           resolveSave = resolve
@@ -124,9 +127,7 @@ describe('setConvMinWriterRole', () => {
   })
 
   test('a failed save shows the error, reverts the selection to the conversation role and hides the indicator', async () => {
-    jest
-      .spyOn(T.RPCChat, 'localSetConvMinWriterRoleLocalRpcPromise')
-      .mockRejectedValue(new Error('you are not an admin'))
+    rpc.fail('setMinWriterRole', new Error('you are not an admin'))
     const {container} = renderMinWriterRole('reader')
 
     pickRole('Reader', 'Admin')
@@ -138,7 +139,7 @@ describe('setConvMinWriterRole', () => {
   })
 
   test('a failure without a message falls back to generic error text', async () => {
-    jest.spyOn(T.RPCChat, 'localSetConvMinWriterRoleLocalRpcPromise').mockRejectedValue(new Error(''))
+    rpc.fail('setMinWriterRole', new Error(''))
     renderMinWriterRole('reader')
 
     pickRole('Reader', 'Writer')
@@ -148,10 +149,8 @@ describe('setConvMinWriterRole', () => {
   })
 
   test('the next save clears a previous error banner', async () => {
-    jest
-      .spyOn(T.RPCChat, 'localSetConvMinWriterRoleLocalRpcPromise')
-      .mockRejectedValueOnce(new Error('you are not an admin'))
-      .mockResolvedValueOnce()
+    rpc.failOnce('setMinWriterRole', new Error('you are not an admin'))
+    rpc.once('setMinWriterRole', () => undefined)
     renderMinWriterRole('reader')
 
     pickRole('Reader', 'Admin')
@@ -166,7 +165,8 @@ describe('setConvMinWriterRole', () => {
 
   test('a failure of an older save is ignored once a newer save has started', async () => {
     const rejects: Array<(e: Error) => void> = []
-    jest.spyOn(T.RPCChat, 'localSetConvMinWriterRoleLocalRpcPromise').mockImplementation(
+    rpc.on(
+      'setMinWriterRole',
       async () =>
         new Promise<void>((_resolve, reject) => {
           rejects.push(reject)
@@ -188,11 +188,10 @@ describe('setConvMinWriterRole', () => {
 
   test('without permission the role is only described and nothing can be sent', () => {
     mockCanSetMinWriterRole = false
-    const spy = jest.spyOn(T.RPCChat, 'localSetConvMinWriterRoleLocalRpcPromise').mockResolvedValue()
     const {container} = renderMinWriterRole('writer')
 
     expect(container.textContent).toContain('You must be at least a “writer” to post in this channel.')
     expect(container.querySelector('.clickable-box2')).toBeNull()
-    expect(spy).not.toHaveBeenCalled()
+    expect(rpc.calls('setMinWriterRole')).toEqual([])
   })
 })

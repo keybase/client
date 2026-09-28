@@ -35,6 +35,7 @@ import {RPCError} from '@/util/errors'
 import {resetAllStores} from '@/util/zustand'
 import {useWaitingState} from '@/stores/waiting'
 import {useInboxMetadataState} from '@/chat/inbox/metadata'
+import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import ConfirmBotRemove from './confirm'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
@@ -69,18 +70,21 @@ const uiParticipant = (assertion: string): T.RPCChat.UIParticipant => ({
 })
 
 const previewResult = (participants: Array<string>) =>
-  ({conv: {participants: participants.map(uiParticipant)}}) as unknown as T.RPCChat.PreviewConversationLocalRes
+  ({participants: participants.map(uiParticipant)}) as unknown as T.RPCChat.InboxUIItem
 
+let rpc: FakeChatRpc
 let clearModals: jest.SpyInstance
 let info: jest.SpyInstance
 
 beforeEach(() => {
+  rpc = installFakeChatRpc()
   clearModals = jest.spyOn(Router, 'clearModals').mockImplementation(() => {})
   info = jest.spyOn(logger, 'info').mockImplementation(() => {})
 })
 
 afterEach(() => {
   cleanup()
+  restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
 })
@@ -97,26 +101,20 @@ const clickConfirm = async () => {
 
 describe('ConfirmBotRemove', () => {
   test('uninstalling sends removeBotMember with the remove waiting key, then refreshes participants and closes', async () => {
-    const remove = jest
-      .spyOn(T.RPCChat, 'localRemoveBotMemberRpcPromise')
-      .mockImplementation(async (_p, waitingKey) => settleWithWaiting({result: undefined}, waitingKey))
-    const preview = jest
-      .spyOn(T.RPCChat, 'localPreviewConversationByIDLocalRpcPromise')
-      .mockResolvedValue(previewResult(['testuser', 'testuser-mac']))
+    rpc.on('removeBotMember', async p => settleWithWaiting({result: undefined}, p.waitingKey))
+    rpc.on('previewConversation', () => previewResult(['testuser', 'testuser-mac']))
 
     renderConfirm()
     expect(screen.getByText('Are you sure you want to uninstall helperbot?')).toBeTruthy()
     await clickConfirm()
 
-    expect(remove).toHaveBeenCalledTimes(1)
-    expect(remove).toHaveBeenCalledWith(
-      {convID: T.Chat.keyToConversationID(convID), username: 'helperbot'},
-      C.waitingKeyChatBotRemove
-    )
+    expect(rpc.calls('removeBotMember')).toEqual([
+      [{conversationIDKey: convID, username: 'helperbot', waitingKey: C.waitingKeyChatBotRemove}],
+    ])
     expect(C.waitingKeyChatBotRemove).toBe('chat:botRemove')
     // the membership refresh: preview the conv (no waiting key), store its participants, then close
-    expect(preview).toHaveBeenCalledTimes(1)
-    expect(preview).toHaveBeenCalledWith({convID: T.Chat.keyToConversationID(convID)})
+    expect(rpc.calls('previewConversation')).toEqual([[convID]])
+    expect(rpc.log.map(c => c.method)).toEqual(['removeBotMember', 'previewConversation'])
     expect(useInboxMetadataState.getState().participants.get(convID)?.all).toEqual([
       'testuser',
       'testuser-mac',
@@ -126,27 +124,22 @@ describe('ConfirmBotRemove', () => {
   })
 
   test('an RPCError from removeBotMember is logged and swallowed; the modal stays open and nothing refreshes', async () => {
-    jest
-      .spyOn(T.RPCChat, 'localRemoveBotMemberRpcPromise')
-      .mockImplementation(async (_p, waitingKey) =>
-        settleWithWaiting({error: new RPCError('bot not found', 1)}, waitingKey)
-      )
-    const preview = jest.spyOn(T.RPCChat, 'localPreviewConversationByIDLocalRpcPromise')
+    rpc.on('removeBotMember', async p =>
+      settleWithWaiting({error: new RPCError('bot not found', 1)}, p.waitingKey)
+    )
 
     renderConfirm()
     await clickConfirm()
 
     expect(info).toHaveBeenCalledWith('removeBotMember: failed to remove bot member: ERROR CODE 1 - bot not found')
-    expect(preview).not.toHaveBeenCalled()
+    expect(rpc.calls('previewConversation')).toEqual([])
     expect(clearModals).not.toHaveBeenCalled()
     // the failure is surfaced only through the waiting store's error for the remove key
     expect(useWaitingState.getState().errors.get(C.waitingKeyChatBotRemove)?.desc).toBe('bot not found')
   })
 
   test('a non-RPCError rejection is swallowed without a log', async () => {
-    jest
-      .spyOn(T.RPCChat, 'localRemoveBotMemberRpcPromise')
-      .mockImplementation(async () => settleWithWaiting({error: new Error('boom')}))
+    rpc.on('removeBotMember', async () => settleWithWaiting({error: new Error('boom')}))
 
     renderConfirm()
     await clickConfirm()
@@ -156,30 +149,25 @@ describe('ConfirmBotRemove', () => {
   })
 
   test('a failing membership preview still closes the modal and leaves participants alone', async () => {
-    jest
-      .spyOn(T.RPCChat, 'localRemoveBotMemberRpcPromise')
-      .mockImplementation(async (_p, waitingKey) => settleWithWaiting({result: undefined}, waitingKey))
-    const preview = jest
-      .spyOn(T.RPCChat, 'localPreviewConversationByIDLocalRpcPromise')
-      .mockRejectedValue(new RPCError('offline', 2))
+    rpc.on('removeBotMember', async p => settleWithWaiting({result: undefined}, p.waitingKey))
+    rpc.fail('previewConversation', new RPCError('offline', 2))
 
     renderConfirm()
     await clickConfirm()
 
-    expect(preview).toHaveBeenCalledTimes(1)
+    expect(rpc.calls('previewConversation')).toEqual([[convID]])
     expect(useInboxMetadataState.getState().participants.get(convID)).toBeUndefined()
     expect(clearModals).toHaveBeenCalledTimes(1)
     expect(info).not.toHaveBeenCalled()
   })
 
   test('cancel closes without calling the service', () => {
-    const remove = jest.spyOn(T.RPCChat, 'localRemoveBotMemberRpcPromise')
 
     renderConfirm()
     fireEvent.click(screen.getByText('Cancel'))
 
     expect(clearModals).toHaveBeenCalledTimes(1)
-    expect(remove).not.toHaveBeenCalled()
+    expect(rpc.log).toEqual([])
   })
 
   test('renders nothing without a valid conversation or a general channel to fall back to', () => {

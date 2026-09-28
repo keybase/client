@@ -5,6 +5,7 @@ import * as T from '@/constants/types'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {resetAllStores} from '@/util/zustand'
+import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {useBotSettings} from './settings'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
@@ -15,23 +16,24 @@ const flushPromises = async () => {
   }
 }
 
+let rpc: FakeChatRpc
 let info: jest.SpyInstance
 
 beforeEach(() => {
+  rpc = installFakeChatRpc()
   info = jest.spyOn(logger, 'info').mockImplementation(() => {})
 })
 
 afterEach(() => {
   cleanup()
+  restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
 })
 
 describe('useBotSettings failures', () => {
-  test('a failed getBotMemberSettings (no waiting key) is logged and reported as failed, not loading', async () => {
-    const load = jest
-      .spyOn(T.RPCChat, 'localGetBotMemberSettingsRpcPromise')
-      .mockRejectedValue(new RPCError('not a member', 4))
+  test('a failed getBotSettings (no waiting key) is logged and reported as failed, not loading', async () => {
+    rpc.fail('getBotSettings', new RPCError('not a member', 4))
 
     const {result} = renderHook(() => useBotSettings(convID, 'helperbot'))
 
@@ -40,8 +42,7 @@ describe('useBotSettings failures', () => {
       await flushPromises()
     })
 
-    expect(load).toHaveBeenCalledTimes(1)
-    expect(load.mock.calls[0]).toEqual([{convID: T.Chat.keyToConversationID(convID), username: 'helperbot'}])
+    expect(rpc.calls('getBotSettings')).toEqual([[convID, 'helperbot']])
     expect(result.current.failed).toBe(true)
     expect(result.current.settings).toBeUndefined()
     expect(info).toHaveBeenCalledWith(
@@ -51,7 +52,7 @@ describe('useBotSettings failures', () => {
 
   test('a failure for a bot no longer shown is dropped without a log', async () => {
     let rejectHelper: (e: unknown) => void = () => {}
-    jest.spyOn(T.RPCChat, 'localGetBotMemberSettingsRpcPromise').mockImplementation(async ({username}) => {
+    rpc.on('getBotSettings', async (_conversationIDKey, username) => {
       if (username === 'helperbot') {
         return new Promise<T.RPCGen.TeamBotSettings>((_resolve, reject) => {
           rejectHelper = reject
@@ -78,9 +79,7 @@ describe('useBotSettings failures', () => {
   })
 
   test('a failure is not retried; a later setSettings clears it', async () => {
-    const load = jest
-      .spyOn(T.RPCChat, 'localGetBotMemberSettingsRpcPromise')
-      .mockRejectedValue(new RPCError('not a member', 4))
+    rpc.fail('getBotSettings', new RPCError('not a member', 4))
 
     const {rerender, result} = renderHook(() => useBotSettings(convID, 'helperbot'))
     await act(async () => {
@@ -91,7 +90,7 @@ describe('useBotSettings failures', () => {
       await flushPromises()
     })
 
-    expect(load).toHaveBeenCalledTimes(1)
+    expect(rpc.calls('getBotSettings')).toHaveLength(1)
     expect(result.current.failed).toBe(true)
 
     act(() => {

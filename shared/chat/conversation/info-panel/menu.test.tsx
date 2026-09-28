@@ -9,6 +9,7 @@ import {useConfigState} from '@/stores/config'
 import {resetAllStores} from '@/util/zustand'
 import {flush} from '@/test/flush'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const hexTeamID = '0a1b2cff' as T.Teams.TeamID
@@ -49,6 +50,7 @@ jest.mock('@/common-adapters', () => {
 import InfoPanelMenu from './menu'
 
 let nav: FakeNavigator
+let rpc: FakeChatRpc
 
 const bigTeamChannelMeta = (teamID: T.Teams.TeamID): T.Chat.ConversationMeta => ({
   ...makeConversationMeta(),
@@ -79,6 +81,7 @@ const renderTeamMenu = (teamID: T.Teams.TeamID) =>
   render(<InfoPanelMenu hasHeader={false} isSmallTeam={false} onHidden={() => {}} teamID={teamID} visible={true} />)
 
 beforeEach(() => {
+  rpc = installFakeChatRpc()
   nav = installFakeNavigator({
     modalRouteNames: ['chatInfoPanel'],
     rootState: makeRootState({above: [{name: 'chatInfoPanel'}]}),
@@ -90,38 +93,34 @@ afterEach(() => {
   cleanup()
   jest.restoreAllMocks()
   restoreNavigator()
+  restoreChatRpc()
   resetAllStores()
   mockMeta = makeConversationMeta()
 })
 
 describe('onMarkAsRead', () => {
-  test('marks the whole team TLF read, sending the team id as bytes, and closes the modal', async () => {
-    const spy = jest.spyOn(T.RPCChat, 'localMarkTLFAsReadLocalRpcPromise').mockResolvedValue({offline: false})
+  test('marks the whole team TLF read, sending the team id, and closes the modal', async () => {
     renderChannelMenu(hexTeamID)
     expect(nav.modalsCleared()).toBe(false)
 
     fireEvent.click(screen.getByText('Mark all as read'))
     await flush()
 
-    expect(spy).toHaveBeenCalledTimes(1)
-    expect(spy).toHaveBeenCalledWith({tlfID: new Uint8Array([0x0a, 0x1b, 0x2c, 0xff])})
-    // no waiting key
-    expect(spy.mock.calls[0]).toHaveLength(1)
+    // exactly one call, with the team id only
+    expect(rpc.calls('markTeamRead')).toEqual([[hexTeamID]])
     expect(nav.modalsCleared()).toBe(true)
   })
 
   test('the team-level menu sends the team id from its teamID prop', async () => {
-    const spy = jest.spyOn(T.RPCChat, 'localMarkTLFAsReadLocalRpcPromise').mockResolvedValue({offline: false})
     renderTeamMenu(hexTeamID)
 
     fireEvent.click(screen.getByText('Mark all as read'))
     await flush()
 
-    expect(spy).toHaveBeenCalledWith({tlfID: new Uint8Array([0x0a, 0x1b, 0x2c, 0xff])})
+    expect(rpc.calls('markTeamRead')).toEqual([[hexTeamID]])
   })
 
   test('logged out, the modal still closes but nothing is sent', async () => {
-    const spy = jest.spyOn(T.RPCChat, 'localMarkTLFAsReadLocalRpcPromise').mockResolvedValue({offline: false})
     // setLoggedIn(false) resets every store; flip only the flag the menu reads
     useConfigState.setState({loggedIn: false})
     renderChannelMenu(hexTeamID)
@@ -129,7 +128,7 @@ describe('onMarkAsRead', () => {
     fireEvent.click(screen.getByText('Mark all as read'))
     await flush()
 
-    expect(spy).not.toHaveBeenCalled()
+    expect(rpc.calls('markTeamRead')).toEqual([])
     expect(nav.modalsCleared()).toBe(true)
   })
 
@@ -138,12 +137,11 @@ describe('onMarkAsRead', () => {
     ['an odd number of digits', '0a1'],
     ['empty', ''],
   ])('a team id that is %s hides the item, so nothing can be sent', (_label, teamID) => {
-    const spy = jest.spyOn(T.RPCChat, 'localMarkTLFAsReadLocalRpcPromise').mockResolvedValue({offline: false})
     renderChannelMenu(teamID)
 
     expect(screen.queryByText('Mark all as read')).toBeNull()
     expect(screen.getByText('Mark as unread')).toBeTruthy()
-    expect(spy).not.toHaveBeenCalled()
+    expect(rpc.calls('markTeamRead')).toEqual([])
   })
 
   test('a small team has no mark-all item', () => {
@@ -163,7 +161,7 @@ describe('onMarkAsRead', () => {
 
   test('a failure is only logged: the modal is already closed and nothing is shown', async () => {
     const error = new Error('mark read failed')
-    jest.spyOn(T.RPCChat, 'localMarkTLFAsReadLocalRpcPromise').mockRejectedValue(error)
+    rpc.fail('markTeamRead', error)
     const logError = jest.spyOn(logger, 'error').mockImplementation(() => {})
     const {container} = renderChannelMenu(hexTeamID)
 

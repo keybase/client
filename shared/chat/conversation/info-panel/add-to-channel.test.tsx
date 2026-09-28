@@ -5,6 +5,7 @@ import type * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
 import {cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {flush} from '@/test/flush'
+import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {installFakeNavigator, makeRootState, restoreNavigator} from '@/test/fake-navigator'
 
 jest.mock('../team-hooks', () => ({
@@ -44,38 +45,39 @@ jest.mock('@/common-adapters', () => {
 import AddToChannel, {addMembersToChannel} from './add-to-channel'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
-const convID = T.Chat.keyToConversationID(conversationIDKey)
+
+let rpc: FakeChatRpc
+
+beforeEach(() => {
+  rpc = installFakeChatRpc()
+})
 
 afterEach(() => {
   cleanup()
   jest.restoreAllMocks()
   restoreNavigator()
+  restoreChatRpc()
 })
 
 test('adding members refreshes the conversation participants', async () => {
-  jest.spyOn(T.RPCChat, 'localBulkAddToConvRpcPromise').mockResolvedValue(undefined)
-  jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
 
   await addMembersToChannel(conversationIDKey, ['testuser', 'testuser-mac'])
 
-  expect(T.RPCChat.localBulkAddToConvRpcPromise).toHaveBeenCalledWith({
-    convID,
-    usernames: ['testuser', 'testuser-mac'],
-  })
-  expect(T.RPCChat.localRefreshParticipantsRpcPromise).toHaveBeenCalledWith({convID})
+  expect(rpc.calls('addToConversation')).toEqual([[conversationIDKey, ['testuser', 'testuser-mac']]])
+  expect(rpc.calls('refreshParticipants')).toEqual([[conversationIDKey]])
+  // the refresh follows the add
+  expect(rpc.log.map(c => c.method)).toEqual(['addToConversation', 'refreshParticipants'])
 })
 
 test('a failed add never claims the participants are fresh', async () => {
-  jest.spyOn(T.RPCChat, 'localBulkAddToConvRpcPromise').mockRejectedValue(new Error('nope'))
-  jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
+  rpc.fail('addToConversation', new Error('nope'))
 
   await expect(addMembersToChannel(conversationIDKey, ['testuser'])).rejects.toThrow('nope')
-  expect(T.RPCChat.localRefreshParticipantsRpcPromise).not.toHaveBeenCalled()
+  expect(rpc.calls('refreshParticipants')).toEqual([])
 })
 
 test('a failed refresh does not fail the add', async () => {
-  jest.spyOn(T.RPCChat, 'localBulkAddToConvRpcPromise').mockResolvedValue(undefined)
-  jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockRejectedValue(new Error('offline'))
+  rpc.fail('refreshParticipants', new Error('offline'))
 
   await expect(addMembersToChannel(conversationIDKey, ['testuser'])).resolves.toBeUndefined()
 })
@@ -91,22 +93,19 @@ describe('the add-to-channel modal', () => {
   }
 
   test('adding the ticked members sends them and closes the modal', async () => {
-    const bulkAdd = jest.spyOn(T.RPCChat, 'localBulkAddToConvRpcPromise').mockResolvedValue(undefined)
-    jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
-    const nav = renderModal()
+      const nav = renderModal()
 
     fireEvent.click(screen.getByText('testuser-mac'))
     fireEvent.click(screen.getByText('Add 1 member'))
     await flush()
 
-    expect(bulkAdd).toHaveBeenCalledWith({convID, usernames: ['testuser-mac']})
     // no waiting key
-    expect(bulkAdd.mock.calls[0]).toHaveLength(1)
+    expect(rpc.calls('addToConversation')).toEqual([[conversationIDKey, ['testuser-mac']]])
     expect(nav.types()).toContain('GO_BACK')
   })
 
   test('a failed add shows the error in a banner and keeps the modal open', async () => {
-    jest.spyOn(T.RPCChat, 'localBulkAddToConvRpcPromise').mockRejectedValue(new Error('not a team member'))
+    rpc.fail('addToConversation', new Error('not a team member'))
     const nav = renderModal()
 
     fireEvent.click(screen.getByText('testuser'))

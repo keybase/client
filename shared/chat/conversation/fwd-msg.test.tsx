@@ -41,7 +41,10 @@ import * as C from '@/constants'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {resetAllStores} from '@/util/zustand'
+import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import TeamPicker from './fwd-msg'
+
+let rpc: FakeChatRpc
 
 const srcKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const dstConvID = new Uint8Array([9, 8, 7, 6])
@@ -56,22 +59,21 @@ const flushPromises = async () => {
   }
 }
 
-// what the picker sends to the service today
+// what the picker asks the service for
 const expectSearchSent = (term: string) => {
-  expect(T.RPCChat.localForwardMessageConvSearchRpcPromise).toHaveBeenLastCalledWith({term})
-  const calls = jest.mocked(T.RPCChat.localForwardMessageConvSearchRpcPromise).mock.calls
-  expect(calls[calls.length - 1]).toHaveLength(1)
+  expect(rpc.calls('searchForwardDestinations').at(-1)).toEqual([term])
 }
 const expectForwardSent = (title: string) => {
-  expect(T.RPCChat.localForwardMessageNonblockRpcPromise).toHaveBeenCalledTimes(1)
-  expect(T.RPCChat.localForwardMessageNonblockRpcPromise).toHaveBeenCalledWith({
-    dstConvID,
-    identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-    msgID,
-    srcConvID: T.Chat.keyToConversationID(srcKey),
-    title,
-  })
-  expect(jest.mocked(T.RPCChat.localForwardMessageNonblockRpcPromise).mock.calls[0]).toHaveLength(1)
+  expect(rpc.calls('forwardMessage')).toEqual([
+    [
+      {
+        conversationIDKey: srcKey,
+        destination: T.Chat.conversationIDToKey(dstConvID),
+        messageID: msgID,
+        title,
+      },
+    ],
+  ])
 }
 
 const spyNav = () => ({
@@ -82,12 +84,14 @@ const spyNav = () => ({
 const renderPicker = () => render(<TeamPicker conversationIDKey={srcKey} messageID={msgID} />)
 
 beforeEach(() => {
+  rpc = installFakeChatRpc()
   jest.useFakeTimers()
   mockMessage = {id: msgID, type: 'text'} as unknown as T.Chat.Message
 })
 
 afterEach(() => {
   cleanup()
+  restoreChatRpc()
   jest.useRealTimers()
   jest.restoreAllMocks()
   resetAllStores()
@@ -95,7 +99,7 @@ afterEach(() => {
 
 describe('search', () => {
   test('searches with the empty term on mount and lists the hits', async () => {
-    jest.spyOn(T.RPCChat, 'localForwardMessageConvSearchRpcPromise').mockResolvedValue([hit('testteam#general')])
+    rpc.on('searchForwardDestinations', () => [hit('testteam#general')])
     const {getByTestId} = renderPicker()
     expectSearchSent('')
 
@@ -108,19 +112,17 @@ describe('search', () => {
   })
 
   test('typing searches again with the debounced term', async () => {
-    jest
-      .spyOn(T.RPCChat, 'localForwardMessageConvSearchRpcPromise')
-      .mockImplementation(async ({term}) => {
-        await Promise.resolve()
-        return [hit(`hit-${term}`)]
-      })
+    rpc.on('searchForwardDestinations', async term => {
+      await Promise.resolve()
+      return [hit(`hit-${term}`)]
+    })
     const {getByTestId} = renderPicker()
     await act(async () => {
       await flushPromises()
     })
 
     fireEvent.change(getByTestId('search'), {target: {value: 'test'}})
-    expect(T.RPCChat.localForwardMessageConvSearchRpcPromise).toHaveBeenCalledTimes(1)
+    expect(rpc.calls('searchForwardDestinations')).toHaveLength(1)
     act(() => {
       jest.advanceTimersByTime(200)
     })
@@ -135,9 +137,10 @@ describe('search', () => {
 
   test('a result for a superseded term is dropped', async () => {
     const resolvers = new Map<string, (r: ReadonlyArray<T.RPCChat.ConvSearchHit>) => void>()
-    jest.spyOn(T.RPCChat, 'localForwardMessageConvSearchRpcPromise').mockImplementation(
-      async ({term}) =>
-        new Promise(resolve => {
+    rpc.on(
+      'searchForwardDestinations',
+      async term =>
+        new Promise<ReadonlyArray<T.RPCChat.ConvSearchHit>>(resolve => {
           resolvers.set(term, resolve)
         })
     )
@@ -162,9 +165,7 @@ describe('search', () => {
   })
 
   test('a failed search shows a generic error and logs via logger.info', async () => {
-    jest
-      .spyOn(T.RPCChat, 'localForwardMessageConvSearchRpcPromise')
-      .mockRejectedValue(new RPCError('search broke', T.RPCGen.StatusCode.scgeneric))
+    rpc.fail('searchForwardDestinations', new RPCError('search broke', T.RPCGen.StatusCode.scgeneric))
     const info = jest.spyOn(logger, 'info').mockImplementation(() => {})
     const {container, queryByTestId} = renderPicker()
 
@@ -178,8 +179,8 @@ describe('search', () => {
     expect(info.mock.calls[0]?.[0]).toMatch(/^TeamPicker: error loading search results: .*search broke/)
   })
 
-  test('a null result is treated as no hits', async () => {
-    jest.spyOn(T.RPCChat, 'localForwardMessageConvSearchRpcPromise').mockResolvedValue(null)
+  test('an empty result lists no hits', async () => {
+    rpc.on('searchForwardDestinations', () => [])
     const {getByTestId} = renderPicker()
     await act(async () => {
       await flushPromises()
@@ -190,9 +191,12 @@ describe('search', () => {
 
 describe('forward', () => {
   test('selecting a hit for a text message forwards immediately with an empty title', async () => {
-    jest.spyOn(T.RPCChat, 'localForwardMessageConvSearchRpcPromise').mockResolvedValue([hit('testuser-mac')])
-    jest.spyOn(T.RPCChat, 'localForwardMessageNonblockRpcPromise').mockResolvedValue({} as never)
+    rpc.on('searchForwardDestinations', () => [hit('testuser-mac')])
     const {clearModals, previewConversation} = spyNav()
+    const previewCalledAtForward: Array<boolean> = []
+    rpc.on('forwardMessage', () => {
+      previewCalledAtForward.push(previewConversation.mock.calls.length === 1)
+    })
     const {getByText} = renderPicker()
     await act(async () => {
       await flushPromises()
@@ -207,15 +211,12 @@ describe('forward', () => {
     expectForwardSent('')
     expect(clearModals).toHaveBeenCalledTimes(1)
     // preview is started before the forward goes out, and modals clear without waiting on it
-    expect(previewConversation.mock.invocationCallOrder[0]).toBeLessThan(
-      jest.mocked(T.RPCChat.localForwardMessageNonblockRpcPromise).mock.invocationCallOrder[0] ?? 0
-    )
+    expect(previewCalledAtForward).toEqual([true])
   })
 
   test('an attachment asks for a caption first and sends it as the title', async () => {
     mockMessage = {attachmentType: 'file', fileName: 'a.txt', id: msgID, type: 'attachment'} as unknown as T.Chat.Message
-    jest.spyOn(T.RPCChat, 'localForwardMessageConvSearchRpcPromise').mockResolvedValue([hit('testuser-mac')])
-    jest.spyOn(T.RPCChat, 'localForwardMessageNonblockRpcPromise').mockResolvedValue({} as never)
+    rpc.on('searchForwardDestinations', () => [hit('testuser-mac')])
     const {clearModals, previewConversation} = spyNav()
     const {getByTestId, getByText} = renderPicker()
     await act(async () => {
@@ -223,7 +224,7 @@ describe('forward', () => {
     })
 
     fireEvent.click(getByText('testuser-mac'))
-    expect(T.RPCChat.localForwardMessageNonblockRpcPromise).not.toHaveBeenCalled()
+    expect(rpc.calls('forwardMessage')).toEqual([])
     expect(previewConversation).not.toHaveBeenCalled()
 
     fireEvent.change(getByTestId('caption'), {target: {value: 'a caption'}})
@@ -236,8 +237,7 @@ describe('forward', () => {
 
   test('cancel on the caption step clears modals without forwarding', async () => {
     mockMessage = {attachmentType: 'file', fileName: 'a.txt', id: msgID, type: 'attachment'} as unknown as T.Chat.Message
-    jest.spyOn(T.RPCChat, 'localForwardMessageConvSearchRpcPromise').mockResolvedValue([hit('testuser-mac')])
-    const fwd = jest.spyOn(T.RPCChat, 'localForwardMessageNonblockRpcPromise').mockResolvedValue({} as never)
+    rpc.on('searchForwardDestinations', () => [hit('testuser-mac')])
     const {clearModals} = spyNav()
     const {getByText} = renderPicker()
     await act(async () => {
@@ -248,14 +248,12 @@ describe('forward', () => {
     fireEvent.click(getByText('Cancel'))
 
     expect(clearModals).toHaveBeenCalledTimes(1)
-    expect(fwd).not.toHaveBeenCalled()
+    expect(rpc.calls('forwardMessage')).toEqual([])
   })
 
   test('a failed forward is only logged via logger.info; navigation already happened', async () => {
-    jest.spyOn(T.RPCChat, 'localForwardMessageConvSearchRpcPromise').mockResolvedValue([hit('testuser-mac')])
-    jest
-      .spyOn(T.RPCChat, 'localForwardMessageNonblockRpcPromise')
-      .mockRejectedValue(new RPCError('forward broke', T.RPCGen.StatusCode.scgeneric))
+    rpc.on('searchForwardDestinations', () => [hit('testuser-mac')])
+    rpc.fail('forwardMessage', new RPCError('forward broke', T.RPCGen.StatusCode.scgeneric))
     const info = jest.spyOn(logger, 'info').mockImplementation(() => {})
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     const {clearModals, previewConversation} = spyNav()
@@ -279,8 +277,7 @@ describe('forward', () => {
 
   test('with no message loaded, selecting shows the error and sends nothing', async () => {
     mockMessage = undefined
-    jest.spyOn(T.RPCChat, 'localForwardMessageConvSearchRpcPromise').mockResolvedValue([hit('testuser-mac')])
-    const fwd = jest.spyOn(T.RPCChat, 'localForwardMessageNonblockRpcPromise').mockResolvedValue({} as never)
+    rpc.on('searchForwardDestinations', () => [hit('testuser-mac')])
     const {clearModals, previewConversation} = spyNav()
     const {container, getByText} = renderPicker()
     await act(async () => {
@@ -290,7 +287,7 @@ describe('forward', () => {
     fireEvent.click(getByText('testuser-mac'))
 
     expect(container.textContent).toContain('Something went wrong, please try again.')
-    expect(fwd).not.toHaveBeenCalled()
+    expect(rpc.calls('forwardMessage')).toEqual([])
     expect(previewConversation).not.toHaveBeenCalled()
     expect(clearModals).not.toHaveBeenCalled()
   })

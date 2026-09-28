@@ -4,9 +4,9 @@ import * as T from '@/constants/types'
 import {cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {makeConversationMeta} from '@/constants/chat/meta'
 import {flush} from '@/test/flush'
+import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
-const convID = T.Chat.keyToConversationID(conversationIDKey)
 
 let mockMeta: T.Chat.ConversationMeta = makeConversationMeta()
 jest.mock('../../data-hooks', () => ({
@@ -15,17 +15,8 @@ jest.mock('../../data-hooks', () => ({
 
 import Notifications from './notifications'
 
-const ok = {offline: false}
-const {desktop, mobile} = T.RPCGen.DeviceType
-const {atmention, generic} = T.RPCChat.NotificationKind
-
-// The four entries the service receives for one desktop/mobile choice, in the order sent.
-const settingsFor = (d: T.Chat.NotificationsType, m: T.Chat.NotificationsType) => [
-  {deviceType: desktop, enabled: d === 'onWhenAtMentioned', kind: atmention},
-  {deviceType: desktop, enabled: d === 'onAnyActivity', kind: generic},
-  {deviceType: mobile, enabled: m === 'onWhenAtMentioned', kind: atmention},
-  {deviceType: mobile, enabled: m === 'onAnyActivity', kind: generic},
-]
+// The combined desktop/mobile choice the service is sent.
+const choice = (desktop: T.Chat.NotificationsType, mobile: T.Chat.NotificationsType) => ({desktop, mobile})
 
 const renderNotifications = (over: Partial<T.Chat.ConversationMeta> = {}) => {
   mockMeta = {
@@ -51,46 +42,44 @@ const selectedLabels = (container: HTMLElement) =>
     r => r.parentElement?.querySelector('.text_Body')?.textContent
   )
 
+let rpc: FakeChatRpc
+
+beforeEach(() => {
+  rpc = installFakeChatRpc()
+})
+
 afterEach(() => {
   cleanup()
   jest.restoreAllMocks()
+  restoreChatRpc()
   mockMeta = makeConversationMeta()
 })
 
 describe('saveNotifications', () => {
-  test('choosing a desktop setting sends all four entries with the current mobile setting', async () => {
-    const spy = jest.spyOn(T.RPCChat, 'localSetAppNotificationSettingsLocalRpcPromise').mockResolvedValue(ok)
+  test('choosing a desktop setting sends the choice with the current mobile setting', async () => {
     renderNotifications()
 
     clickDesktop('Only when @mentioned')
     await flush()
 
-    expect(spy).toHaveBeenCalledTimes(1)
-    expect(spy).toHaveBeenCalledWith({
-      channelWide: false,
-      convID,
-      settings: settingsFor('onWhenAtMentioned', 'never'),
-    })
-    // no waiting key
-    expect(spy.mock.calls[0]).toHaveLength(1)
+    // exactly one call, with no waiting key
+    expect(rpc.calls('setNotificationSettings')).toEqual([
+      [{channelWide: false, conversationIDKey, ...choice('onWhenAtMentioned', 'never')}],
+    ])
   })
 
-  test('choosing a mobile setting sends all four entries with the current desktop setting', async () => {
-    const spy = jest.spyOn(T.RPCChat, 'localSetAppNotificationSettingsLocalRpcPromise').mockResolvedValue(ok)
+  test('choosing a mobile setting sends the choice with the current desktop setting', async () => {
     renderNotifications()
 
     clickMobile('On any activity')
     await flush()
 
-    expect(spy).toHaveBeenCalledWith({
-      channelWide: false,
-      convID,
-      settings: settingsFor('onAnyActivity', 'onAnyActivity'),
-    })
+    expect(rpc.params('setNotificationSettings')).toEqual([
+      {channelWide: false, conversationIDKey, ...choice('onAnyActivity', 'onAnyActivity')},
+    ])
   })
 
   test('successive choices each resend the combined desktop and mobile state', async () => {
-    const spy = jest.spyOn(T.RPCChat, 'localSetAppNotificationSettingsLocalRpcPromise').mockResolvedValue(ok)
     renderNotifications({notificationsDesktop: 'onWhenAtMentioned', notificationsMobile: 'onAnyActivity'})
 
     clickDesktop('Never')
@@ -98,32 +87,30 @@ describe('saveNotifications', () => {
     clickMobile('Only when @mentioned')
     await flush()
 
-    expect(spy.mock.calls.map(c => c[0].settings)).toEqual([
-      settingsFor('never', 'onAnyActivity'),
-      settingsFor('never', 'onWhenAtMentioned'),
+    expect(rpc.params('setNotificationSettings').map(p => choice(p.desktop, p.mobile))).toEqual([
+      choice('never', 'onAnyActivity'),
+      choice('never', 'onWhenAtMentioned'),
     ])
   })
 
   test('the ignore @here/@channel checkbox flips channelWide and resends the current settings', async () => {
-    const spy = jest.spyOn(T.RPCChat, 'localSetAppNotificationSettingsLocalRpcPromise').mockResolvedValue(ok)
     renderNotifications()
 
     fireEvent.click(screen.getByText(/mentions/))
     await flush()
 
-    expect(spy).toHaveBeenCalledWith({
-      channelWide: true,
-      convID,
-      settings: settingsFor('onAnyActivity', 'never'),
-    })
+    expect(rpc.params('setNotificationSettings')).toEqual([
+      {channelWide: true, conversationIDKey, ...choice('onAnyActivity', 'never')},
+    ])
   })
 
   test('a successful save shows the spinner while waiting and then Saved, with no error', async () => {
     let resolveSave: (() => void) | undefined
-    jest.spyOn(T.RPCChat, 'localSetAppNotificationSettingsLocalRpcPromise').mockImplementation(
+    rpc.on(
+      'setNotificationSettings',
       async () =>
-        new Promise<T.RPCChat.SetAppNotificationSettingsLocalRes>(resolve => {
-          resolveSave = () => resolve(ok)
+        new Promise<void>(resolve => {
+          resolveSave = resolve
         })
     )
     const {container} = renderNotifications()
@@ -143,9 +130,7 @@ describe('saveNotifications', () => {
   })
 
   test('a failed save shows the error message in a red banner and keeps the new choice selected', async () => {
-    jest
-      .spyOn(T.RPCChat, 'localSetAppNotificationSettingsLocalRpcPromise')
-      .mockRejectedValue(new Error('service said no'))
+    rpc.fail('setNotificationSettings', new Error('service said no'))
     const {container} = renderNotifications()
 
     clickDesktop('Only when @mentioned')
@@ -159,7 +144,7 @@ describe('saveNotifications', () => {
   })
 
   test('a failure without a message falls back to generic error text', async () => {
-    jest.spyOn(T.RPCChat, 'localSetAppNotificationSettingsLocalRpcPromise').mockRejectedValue(new Error(''))
+    rpc.fail('setNotificationSettings', new Error(''))
     renderNotifications()
 
     clickDesktop('Never')
@@ -169,10 +154,8 @@ describe('saveNotifications', () => {
   })
 
   test('the next save clears a previous error banner', async () => {
-    const spy = jest
-      .spyOn(T.RPCChat, 'localSetAppNotificationSettingsLocalRpcPromise')
-      .mockRejectedValueOnce(new Error('service said no'))
-      .mockResolvedValueOnce(ok)
+    rpc.failOnce('setNotificationSettings', new Error('service said no'))
+    rpc.once('setNotificationSettings', () => undefined)
     renderNotifications()
 
     clickDesktop('Never')
@@ -182,15 +165,16 @@ describe('saveNotifications', () => {
     clickMobile('On any activity')
     await flush()
 
-    expect(spy).toHaveBeenCalledTimes(2)
+    expect(rpc.calls('setNotificationSettings')).toHaveLength(2)
     expect(screen.queryByText('service said no')).toBeNull()
   })
 
   test('a failure of an older save is ignored once a newer save has started', async () => {
     const rejects: Array<(e: Error) => void> = []
-    jest.spyOn(T.RPCChat, 'localSetAppNotificationSettingsLocalRpcPromise').mockImplementation(
+    rpc.on(
+      'setNotificationSettings',
       async () =>
-        new Promise<T.RPCChat.SetAppNotificationSettingsLocalRes>((_resolve, reject) => {
+        new Promise<void>((_resolve, reject) => {
           rejects.push(reject)
         })
     )

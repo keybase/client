@@ -51,6 +51,31 @@ test('unscripted, void methods resolve and data methods reject', async () => {
   ).rejects.toThrow('FakeChatRpc.downloadAttachment has no scripted result')
 })
 
+test('the conversation screens\' lookups reject unscripted; their updates resolve', async () => {
+  const messageID = T.Chat.numberToMessageID(1)
+  const lookups: Array<[string, () => Promise<unknown>]> = [
+    ['previewConversation', async () => fake.previewConversation(conversationIDKey)],
+    ['searchForwardDestinations', async () => fake.searchForwardDestinations('')],
+    ['getUnfurlPreviews', async () => fake.getUnfurlPreviews(conversationIDKey, '')],
+    [
+      'loadGallery',
+      async () =>
+        fake.loadGallery({conversationIDKey, num: 1, onHit: () => {}, viewType: T.RPCChat.GalleryItemTyp.media}),
+    ],
+    ['getUnreadline', async () => fake.getUnreadline(conversationIDKey, messageID)],
+    ['searchBotDestinations', async () => fake.searchBotDestinations('')],
+    ['getBotTeamRole', async () => fake.getBotTeamRole(conversationIDKey, 'testbot')],
+    ['getBotSettings', async () => fake.getBotSettings(conversationIDKey, 'testbot')],
+    ['listPublicBotCommands', async () => fake.listPublicBotCommands('testbot')],
+  ]
+  for (const [method, call] of lookups) {
+    await expect(call()).rejects.toThrow(`FakeChatRpc.${method} has no scripted result`)
+  }
+  await expect(fake.refreshParticipants(conversationIDKey)).resolves.toBeUndefined()
+  await expect(fake.setTyping(conversationIDKey, true)).resolves.toBeUndefined()
+  await expect(fake.removeBotMember({conversationIDKey, username: 'testbot'})).resolves.toBeUndefined()
+})
+
 test('once answers the next call ahead of on, then on takes over', async () => {
   fake.on('makeUploadTempFile', p => `/on/${p.filename}`)
   fake.once('makeUploadTempFile', () => '/once')

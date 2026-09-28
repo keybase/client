@@ -520,6 +520,228 @@ describe('service adapter', () => {
     expect(dismiss).toHaveBeenCalledWith({category: `exploding:${conversationIDKey}`})
   })
 
+  test('participants: refresh, add, a reset user back in, and the preview unwrapped to its inbox item', async () => {
+    const refresh = jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
+    const bulk = jest.spyOn(T.RPCChat, 'localBulkAddToConvRpcPromise').mockResolvedValue(undefined)
+    const reset = jest.spyOn(T.RPCChat, 'localAddTeamMemberAfterResetRpcPromise').mockResolvedValue(undefined)
+    const conv = {convID: 'c'} as unknown as T.RPCChat.InboxUIItem
+    const preview = jest
+      .spyOn(T.RPCChat, 'localPreviewConversationByIDLocalRpcPromise')
+      .mockResolvedValue({conv} as T.RPCChat.PreviewConversationLocalRes)
+    const usernames = ['testuser2', 'testuser3']
+    await rpc().refreshParticipants(conversationIDKey)
+    await rpc().addToConversation(conversationIDKey, usernames)
+    await rpc().addTeamMemberAfterReset(conversationIDKey, 'testuser2')
+    await expect(rpc().previewConversation(conversationIDKey)).resolves.toBe(conv)
+    expect(refresh.mock.calls).toEqual([[{convID}]])
+    expect(bulk.mock.calls).toEqual([[{convID, usernames}]])
+    expect(bulk.mock.calls[0]?.[0].usernames).not.toBe(usernames)
+    expect(reset.mock.calls).toEqual([[{convID, username: 'testuser2'}]])
+    expect(preview.mock.calls).toEqual([[{convID}]])
+  })
+
+  test('pins: unpin with the caller waiting key, ignore without one', async () => {
+    const unpin = jest.spyOn(T.RPCChat, 'localUnpinMessageRpcPromise').mockResolvedValue({} as never)
+    const ignore = jest.spyOn(T.RPCChat, 'localIgnorePinnedMessageRpcPromise').mockResolvedValue(undefined)
+    await rpc().unpinMessage(conversationIDKey, 'chat:unpin')
+    await rpc().ignorePinnedMessage(conversationIDKey)
+    expect(unpin.mock.calls).toEqual([[{convID}, 'chat:unpin']])
+    expect(ignore.mock.calls).toEqual([[{convID}]])
+  })
+
+  test('forwarding: the destination search, null as none, and the forward between conversations', async () => {
+    const hit = {convID: new Uint8Array([9]), isTeam: false, name: 'testuser2', parts: null} as T.RPCChat.ConvSearchHit
+    const search = jest
+      .spyOn(T.RPCChat, 'localForwardMessageConvSearchRpcPromise')
+      .mockResolvedValueOnce([hit])
+      .mockResolvedValueOnce(null)
+    const forward = jest.spyOn(T.RPCChat, 'localForwardMessageNonblockRpcPromise').mockResolvedValue({} as never)
+    const destination = T.Chat.conversationIDToKey(new Uint8Array([5, 6]))
+    await expect(rpc().searchForwardDestinations('te')).resolves.toEqual([hit])
+    await expect(rpc().searchForwardDestinations('')).resolves.toEqual([])
+    await rpc().forwardMessage({conversationIDKey, destination, messageID: T.Chat.numberToMessageID(7), title: 'cap'})
+    expect(search.mock.calls).toEqual([[{term: 'te'}], [{term: ''}]])
+    expect(forward.mock.calls).toEqual([
+      [
+        {
+          dstConvID: new Uint8Array([5, 6]),
+          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+          msgID: 7,
+          srcConvID: convID,
+          title: 'cap',
+        },
+      ],
+    ])
+  })
+
+  test('unfurl previews, with null as none', async () => {
+    const info = {url: 'http://a.com'} as T.RPCChat.UnfurlPreviewInfo
+    const spy = jest
+      .spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
+      .mockResolvedValueOnce([info])
+      .mockResolvedValueOnce(null)
+    await expect(rpc().getUnfurlPreviews(conversationIDKey, 'see http://a.com')).resolves.toEqual([info])
+    await expect(rpc().getUnfurlPreviews(conversationIDKey, 'x')).resolves.toEqual([])
+    expect(spy.mock.calls[0]).toEqual([{convID, text: 'see http://a.com'}])
+  })
+
+  test('the unread line resolves its message id, and none for a missing or zero one', async () => {
+    const spy = jest
+      .spyOn(T.RPCChat, 'localGetUnreadlineRpcPromise')
+      .mockResolvedValueOnce({offline: false, unreadlineID: 12})
+      .mockResolvedValueOnce({offline: false, unreadlineID: null})
+      .mockResolvedValueOnce({offline: false, unreadlineID: 0})
+    await expect(rpc().getUnreadline(conversationIDKey, T.Chat.numberToMessageID(10))).resolves.toBe(12)
+    await expect(rpc().getUnreadline(conversationIDKey, T.Chat.numberToMessageID(10))).resolves.toBeUndefined()
+    await expect(rpc().getUnreadline(conversationIDKey, T.Chat.numberToMessageID(10))).resolves.toBeUndefined()
+    expect(spy.mock.calls[0]).toEqual([
+      {convID, identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui, readMsgID: 10},
+    ])
+  })
+
+  test('the gallery streams each hit and resolves whether it was the last page', async () => {
+    const hitMessage = {state: T.RPCChat.MessageUnboxedState.placeholder} as T.RPCChat.UIMessage
+    const spy = jest.spyOn(T.RPCChat, 'localLoadGalleryRpcListener').mockImplementation(async p => {
+      p.incomingCallMap['chat.1.chatUi.chatLoadGalleryHit']?.({message: hitMessage} as never)
+      return Promise.resolve({last: true} as T.RPCChat.LoadGalleryRes)
+    })
+    const onHit = jest.fn()
+    await expect(
+      rpc().loadGallery({
+        conversationIDKey,
+        fromMessageID: T.Chat.numberToMessageID(30),
+        num: 50,
+        onHit,
+        viewType: T.RPCChat.GalleryItemTyp.doc,
+      })
+    ).resolves.toEqual({last: true})
+    expect(onHit).toHaveBeenCalledWith(hitMessage)
+    expect(spy.mock.calls[0]?.[0].params).toEqual({
+      convID,
+      fromMsgID: 30,
+      num: 50,
+      typ: T.RPCChat.GalleryItemTyp.doc,
+    })
+    expect(Object.keys(spy.mock.calls[0]?.[0].incomingCallMap ?? {})).toEqual(['chat.1.chatUi.chatLoadGalleryHit'])
+  })
+
+  test('info panel settings: team read by the team id bytes, notifications per device and kind, min writer role', async () => {
+    const tlf = jest.spyOn(T.RPCChat, 'localMarkTLFAsReadLocalRpcPromise').mockResolvedValue({} as never)
+    const notifications = jest
+      .spyOn(T.RPCChat, 'localSetAppNotificationSettingsLocalRpcPromise')
+      .mockResolvedValue({} as never)
+    const role = jest.spyOn(T.RPCChat, 'localSetConvMinWriterRoleLocalRpcPromise').mockResolvedValue(undefined)
+    await rpc().markTeamRead('0a1bff')
+    await rpc().setNotificationSettings({
+      channelWide: true,
+      conversationIDKey,
+      desktop: 'onWhenAtMentioned',
+      mobile: 'onAnyActivity',
+    })
+    await rpc().setMinWriterRole(conversationIDKey, 'writer')
+    expect(tlf.mock.calls).toEqual([[{tlfID: new Uint8Array([0x0a, 0x1b, 0xff])}]])
+    const {desktop, mobile} = T.RPCGen.DeviceType
+    const {atmention, generic} = T.RPCChat.NotificationKind
+    expect(notifications.mock.calls).toEqual([
+      [
+        {
+          channelWide: true,
+          convID,
+          settings: [
+            {deviceType: desktop, enabled: true, kind: atmention},
+            {deviceType: desktop, enabled: false, kind: generic},
+            {deviceType: mobile, enabled: false, kind: atmention},
+            {deviceType: mobile, enabled: true, kind: generic},
+          ],
+        },
+      ],
+    ])
+    expect(role.mock.calls).toEqual([[{convID, role: T.RPCGen.TeamRole.writer}]])
+  })
+
+  test('delete history removes every message, publicly nothing', async () => {
+    const spy = jest.spyOn(T.RPCChat, 'localPostDeleteHistoryByAgeRpcPromise').mockResolvedValue({} as never)
+    await rpc().deleteHistory(conversationIDKey, 'testuser,testuser2')
+    expect(spy.mock.calls).toEqual([
+      [
+        {
+          age: 0,
+          conversationID: convID,
+          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+          tlfName: 'testuser,testuser2',
+          tlfPublic: false,
+        },
+      ],
+    ])
+  })
+
+  test('typing and drafts; an invalid conversation goes out as an empty id', async () => {
+    const typing = jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
+    const draft = jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+    await rpc().setTyping(conversationIDKey, true)
+    await rpc().setTyping(T.Chat.noConversationIDKey, false)
+    await rpc().saveDraft({conversationIDKey, text: 'hi', tlfName: 'testuser'})
+    await rpc().saveDraft({conversationIDKey: T.Chat.noConversationIDKey, text: '', tlfName: ''})
+    expect(typing.mock.calls).toEqual([
+      [{conversationID: convID, typing: true}],
+      [{conversationID: new Uint8Array(0), typing: false}],
+    ])
+    expect(draft.mock.calls).toEqual([
+      [{conversationID: convID, text: 'hi', tlfName: 'testuser'}],
+      [{conversationID: new Uint8Array(0), text: '', tlfName: ''}],
+    ])
+  })
+
+  test('location sends only the position and its accuracy', async () => {
+    const spy = jest.spyOn(T.RPCChat, 'localLocationUpdateRpcPromise').mockResolvedValue(undefined)
+    await rpc().updateLocation({accuracy: 5, altitude: 9, lat: 1.5, lon: -2} as T.Chat.Coordinate)
+    expect(spy.mock.calls).toEqual([[{coord: {accuracy: 5, lat: 1.5, lon: -2}}]])
+  })
+
+  test('bots: search, role, add restricted or not, settings, remove, public command names', async () => {
+    const hit = {convID: new Uint8Array([9]), isTeam: true, name: 'team', parts: null} as T.RPCChat.ConvSearchHit
+    const search = jest
+      .spyOn(T.RPCChat, 'localAddBotConvSearchRpcPromise')
+      .mockResolvedValueOnce([hit])
+      .mockResolvedValueOnce(null)
+    const role = jest
+      .spyOn(T.RPCChat, 'localGetTeamRoleInConversationRpcPromise')
+      .mockResolvedValue(T.RPCGen.TeamRole.restrictedbot)
+    const add = jest.spyOn(T.RPCChat, 'localAddBotMemberRpcPromise').mockResolvedValue(undefined)
+    const settings = {cmds: true, convs: ['c1'], mentions: false}
+    const getSettings = jest.spyOn(T.RPCChat, 'localGetBotMemberSettingsRpcPromise').mockResolvedValue(settings)
+    const setSettings = jest.spyOn(T.RPCChat, 'localSetBotMemberSettingsRpcPromise').mockResolvedValue(undefined)
+    const remove = jest.spyOn(T.RPCChat, 'localRemoveBotMemberRpcPromise').mockResolvedValue(undefined)
+    const commands = jest
+      .spyOn(T.RPCChat, 'localListPublicBotCommandsLocalRpcPromise')
+      .mockResolvedValueOnce({commands: [{name: 'help'}, {name: 'ping'}]} as unknown as T.RPCChat.ListBotCommandsLocalRes)
+      .mockResolvedValueOnce({commands: null})
+
+    await expect(rpc().searchBotDestinations('te')).resolves.toEqual([hit])
+    await expect(rpc().searchBotDestinations('')).resolves.toEqual([])
+    await expect(rpc().getBotTeamRole(conversationIDKey, 'testbot')).resolves.toBe(
+      T.RPCGen.TeamRole.restrictedbot
+    )
+    await rpc().addBotMember({conversationIDKey, settings, username: 'testbot', waitingKey: 'chat:botAdd'})
+    await rpc().addBotMember({conversationIDKey, username: 'testbot', waitingKey: 'chat:botAdd'})
+    await expect(rpc().getBotSettings(conversationIDKey, 'testbot')).resolves.toBe(settings)
+    await rpc().setBotSettings({conversationIDKey, settings, username: 'testbot', waitingKey: 'chat:botAdd'})
+    await rpc().removeBotMember({conversationIDKey, username: 'testbot', waitingKey: 'chat:botRemove'})
+    await expect(rpc().listPublicBotCommands('testbot')).resolves.toEqual(['help', 'ping'])
+    await expect(rpc().listPublicBotCommands('testbot')).resolves.toEqual([])
+
+    expect(search.mock.calls).toEqual([[{term: 'te'}], [{term: ''}]])
+    expect(role.mock.calls).toEqual([[{convID, username: 'testbot'}]])
+    expect(add.mock.calls).toEqual([
+      [{botSettings: settings, convID, role: T.RPCGen.TeamRole.restrictedbot, username: 'testbot'}, 'chat:botAdd'],
+      [{botSettings: null, convID, role: T.RPCGen.TeamRole.bot, username: 'testbot'}, 'chat:botAdd'],
+    ])
+    expect(getSettings.mock.calls).toEqual([[{convID, username: 'testbot'}]])
+    expect(setSettings.mock.calls).toEqual([[{botSettings: settings, convID, username: 'testbot'}, 'chat:botAdd']])
+    expect(remove.mock.calls).toEqual([[{convID, username: 'testbot'}, 'chat:botRemove']])
+    expect(commands.mock.calls).toEqual([[{username: 'testbot'}], [{username: 'testbot'}]])
+  })
+
   test('service errors reject', async () => {
     jest.spyOn(T.RPCChat, 'localPinMessageRpcPromise').mockRejectedValue(new Error('nope'))
     await expect(rpc().pinMessage(conversationIDKey, T.Chat.numberToMessageID(1))).rejects.toThrow('nope')
