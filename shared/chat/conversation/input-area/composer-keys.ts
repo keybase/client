@@ -29,7 +29,7 @@ export type WindowKeyState = ThreadFacts & {
   targetIsInput: boolean
 }
 // a mobile hardware keyboard, which only ever reports enter and shift-enter
-export type HardwareKeyState = {source: 'hardware'}
+export type HardwareKeyState = {source: 'hardware'; suggestions: Suggestions}
 export type ComposerKeyState = InputKeyState | WindowKeyState | HardwareKeyState
 
 type ThreadKeyAction =
@@ -39,15 +39,16 @@ type ThreadKeyAction =
   | {type: 'openFilePicker'}
   | {type: 'scrollUp'}
   | {type: 'scrollDown'}
+// orSubmit: send instead when the list has nothing highlighted to pick
+type SuggestionSelectAction = {type: 'suggestionSelect'; orSubmit: boolean}
 export type InputKeyAction =
   | ThreadKeyAction
   | {type: 'recheckSuggestions'}
   | {type: 'suggestionMove'; up: boolean}
-  // orSubmit: send instead when the list has nothing highlighted to pick
-  | {type: 'suggestionSelect'; orSubmit: boolean}
+  | SuggestionSelectAction
   | {type: 'submit'}
 export type WindowKeyAction = ThreadKeyAction | {type: 'focusInput'}
-export type HardwareKeyAction = {type: 'submit'} | {type: 'newline'}
+export type HardwareKeyAction = SuggestionSelectAction | {type: 'submit'} | {type: 'newline'}
 export type ComposerKeyAction = InputKeyAction | WindowKeyAction | HardwareKeyAction
 
 // actions run in order, after the default is prevented
@@ -143,9 +144,15 @@ const windowKey = (s: WindowKeyState, k: ComposerKey): ComposerKeyResult<WindowK
   return ignored
 }
 
-const hardwareKey = (k: ComposerKey): ComposerKeyResult<HardwareKeyAction> => {
+const hardwareKey = (s: HardwareKeyState, k: ComposerKey): ComposerKeyResult<HardwareKeyAction> => {
   if (k.key !== 'Enter') return ignored
-  return {actions: [k.shiftKey ? {type: 'newline'} : {type: 'submit'}], preventDefault: false}
+  // a list with no items yet has nothing to pick, so Enter sends, as on desktop
+  const action: HardwareKeyAction = k.shiftKey
+    ? {type: 'newline'}
+    : s.suggestions === 'none' || s.suggestions === 'empty'
+      ? {type: 'submit'}
+      : {orSubmit: true, type: 'suggestionSelect'}
+  return {actions: [action], preventDefault: false}
 }
 
 export function composerKeyDown(s: InputKeyState, k: ComposerKey): ComposerKeyResult<InputKeyAction>
@@ -158,7 +165,7 @@ export function composerKeyDown(s: ComposerKeyState, k: ComposerKey): ComposerKe
     case 'window':
       return windowKey(s, k)
     case 'hardware':
-      return hardwareKey(k)
+      return hardwareKey(s, k)
   }
 }
 

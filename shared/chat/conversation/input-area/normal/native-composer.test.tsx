@@ -36,6 +36,8 @@ let mockFocused = false
 let mockHWKey: ((e: {pressedKey: string}) => void) | undefined
 let mockPressables: Array<{children?: unknown; onPress?: () => void; testID?: string}> = []
 let mockSuggestionsShowing = false
+let mockListHasSelection = true
+const mockSelectSuggestion = jest.fn(() => mockListHasSelection)
 
 jest.mock('react-native', () => {
   const actual = jest.requireActual<Record<string, unknown>>('react-native')
@@ -95,11 +97,13 @@ jest.mock('@/util/expo-document-picker.native', () => ({pickDocumentsAsync: jest
 jest.mock('./moremenu-popup.native', () => ({__esModule: true, default: () => null}))
 jest.mock('../suggestors', () => ({
   useSuggestors: (p: {onChangeText: (s: string) => void}) => ({
+    getSuggestions: () => (mockSuggestionsShowing ? 'filtered' : 'none'),
     onBlur: () => {},
     onChangeText: p.onChangeText,
     onFocus: () => {},
     onSelectionChange: () => {},
     popup: null,
+    selectSuggestion: mockSelectSuggestion,
     suggestionsShowing: mockSuggestionsShowing,
   }),
 }))
@@ -244,6 +248,8 @@ afterEach(() => {
   mockPressables = []
   mockFocused = false
   mockSuggestionsShowing = false
+  mockListHasSelection = true
+  mockSelectSuggestion.mockClear()
   inputDispatch = undefined
   threadActions = undefined
   composer = undefined
@@ -435,13 +441,31 @@ test('the queued send picks up text that changed inside the 60ms', async () => {
   expect(post.mock.calls[0]?.[0].params.body).toBe('hello')
 })
 
-// a hardware Enter never consults the suggestion list: with one open it still sends, unlike
-// desktop where Enter picks the highlighted suggestion
-test('hardware enter sends even while suggestions are showing', async () => {
+// the same rule as desktop Enter: an open list's highlighted suggestion is picked
+test('hardware enter picks the highlighted suggestion instead of sending', async () => {
+  const post = jest.spyOn(m.T.RPCChat, 'localPostTextNonblockRpcListener')
+  mockSuggestionsShowing = true
+  renderComposer()
+  type('hi @te')
+
+  act(() => {
+    mockHWKey?.({pressedKey: 'enter'})
+  })
+  act(() => {
+    jest.advanceTimersByTime(100)
+  })
+  await flushSend()
+
+  expect(mockSelectSuggestion).toHaveBeenCalledTimes(1)
+  expect(post).not.toHaveBeenCalled()
+})
+
+test('hardware enter with an open list that has nothing to pick queues the send', async () => {
   const post = jest.spyOn(m.T.RPCChat, 'localPostTextNonblockRpcListener').mockResolvedValue({
     outboxID: new TextEncoder().encode('posted'),
   })
   mockSuggestionsShowing = true
+  mockListHasSelection = false
   renderComposer()
   type('hi @te')
 
@@ -453,6 +477,7 @@ test('hardware enter sends even while suggestions are showing', async () => {
   })
   await flushSend()
 
+  expect(mockSelectSuggestion).toHaveBeenCalledTimes(1)
   expect(post.mock.calls[0]?.[0].params.body).toBe('hi @te')
 })
 

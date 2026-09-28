@@ -1221,6 +1221,8 @@ const NativePlatformInput = (p: Props) => {
     onBlur,
     onSelectionChange,
     onFocus,
+    getSuggestions,
+    selectSuggestion,
     suggestionsShowing,
   } = useSuggestors({
     inputRef,
@@ -1260,27 +1262,32 @@ const NativePlatformInput = (p: Props) => {
     }, 60)
   })
 
-  React.useEffect(() => {
-    // Enter should send a message like on desktop, when a hardware keyboard's
-    // attached.  On Android we get "hardware" keypresses from soft keyboards,
-    // so check whether a soft keyboard's up.
-    const cb = (hwKeyEvent: {pressedKey: string}) => {
-      const {actions} = composerKeyDown({source: 'hardware'}, keyFromHardware(hwKeyEvent.pressedKey))
-      for (const a of actions) {
-        switch (a.type) {
-          case 'submit':
+  // Enter should send a message like on desktop, when a hardware keyboard's
+  // attached.  On Android we get "hardware" keypresses from soft keyboards,
+  // so check whether a soft keyboard's up.
+  const onHardwareKey = React.useEffectEvent((hwKeyEvent: {pressedKey: string}) => {
+    const {actions} = composerKeyDown({source: 'hardware', suggestions: getSuggestions()}, keyFromHardware(hwKeyEvent.pressedKey))
+    for (const a of actions) {
+      switch (a.type) {
+        case 'suggestionSelect':
+          if (!selectSuggestion() && a.orSubmit) {
             onQueueSubmit()
-            break
-          case 'newline':
-            composer.insertAtCaret('\n')
-        }
+          }
+          break
+        case 'submit':
+          onQueueSubmit()
+          break
+        case 'newline':
+          composer.insertAtCaret('\n')
       }
     }
-    onHWKeyPressed(cb)
+  })
+  React.useEffect(() => {
+    onHWKeyPressed(e => onHardwareKey(e))
     return () => {
       removeOnHWKeyPressed()
     }
-  }, [composer, onQueueSubmit])
+  }, [])
 
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p

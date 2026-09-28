@@ -240,18 +240,38 @@ describe('window keys', () => {
 })
 
 describe('hardware keys', () => {
+  const hw = (suggestions: Suggestions = 'none') => ({source: 'hardware', suggestions}) as const
+
   test('enter sends', () => {
-    expect(composerKeyDown({source: 'hardware'}, keyFromHardware('enter'))).toEqual({
+    expect(composerKeyDown(hw(), keyFromHardware('enter'))).toEqual({
       actions: [submit],
       preventDefault: false,
     })
   })
 
   test('shift-enter inserts a newline', () => {
-    expect(composerKeyDown({source: 'hardware'}, keyFromHardware('shift-enter'))).toEqual({
+    expect(composerKeyDown(hw(), keyFromHardware('shift-enter'))).toEqual({
       actions: [newline],
       preventDefault: false,
     })
+  })
+
+  test('enter with a list open that has no items yet sends', () => {
+    expect(composerKeyDown(hw('empty'), keyFromHardware('enter'))).toEqual({
+      actions: [submit],
+      preventDefault: false,
+    })
+  })
+
+  test.each(['unfiltered', 'filtered'] as const)('enter with a %s list open picks, else sends', suggestions => {
+    expect(composerKeyDown(hw(suggestions), keyFromHardware('enter'))).toEqual({
+      actions: [pickOrSend],
+      preventDefault: false,
+    })
+  })
+
+  test('shift-enter with a list open still inserts a newline', () => {
+    expect(composerKeyDown(hw('filtered'), keyFromHardware('shift-enter')).actions).toEqual([newline])
   })
 
   test('the native key names map to key and shift', () => {
@@ -314,13 +334,17 @@ describe('across every key and state', () => {
     }
   })
 
-  test('a hardware key other than Enter does nothing, and Enter only reads shift', () => {
-    for (const key of allKeys) {
-      const {actions} = composerKeyDown({source: 'hardware'}, key)
-      if (key.key !== 'Enter') {
-        expect(actions).toEqual([])
-      } else {
-        expect(actions).toEqual([key.shiftKey ? newline : submit])
+  test('a hardware key other than Enter does nothing, and Enter reads only shift and the list', () => {
+    for (const suggestions of suggestionStates) {
+      for (const key of allKeys) {
+        const {actions} = composerKeyDown({source: 'hardware', suggestions}, key)
+        if (key.key !== 'Enter') {
+          expect(actions).toEqual([])
+        } else if (key.shiftKey) {
+          expect(actions).toEqual([newline])
+        } else {
+          expect(actions).toEqual([suggestions === 'none' || suggestions === 'empty' ? submit : pickOrSend])
+        }
       }
     }
   })
