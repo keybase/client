@@ -277,6 +277,15 @@ describe('service adapter', () => {
       tlfPublic: false,
     })
     expect(spy.mock.calls[1]?.[0].target).toEqual({messageID: 10, outboxID: undefined})
+    await rpc().postEdit({
+      clientPrev: T.Chat.numberToMessageID(11),
+      conversationIDKey,
+      messageID: T.Chat.numberToMessageID(10),
+      messageOutboxID: T.Chat.stringToOutboxID(''),
+      text: 'changed',
+      tlfName: 'testuser',
+    })
+    expect(spy.mock.calls[2]?.[0].target).toEqual({messageID: 10, outboxID: undefined})
   })
 
   test('postDelete supersedes the message, with a zero clientPrev by default', async () => {

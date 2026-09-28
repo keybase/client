@@ -10,6 +10,7 @@ import {getInboxConversationMeta, metasReceived} from '@/chat/inbox/metadata'
 import {makeMessageAttachment, makeMessageText} from '@/constants/chat/message'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
+import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {
   deleteConversationMessage,
   dismissConversationJourneycard,
@@ -20,7 +21,7 @@ import {
 } from './message-actions'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
-const convID = T.Chat.keyToConversationID(conversationIDKey)
+let rpc: FakeChatRpc
 
 const flushPromises = async () => {
   for (let i = 0; i < 10; i++) {
@@ -39,6 +40,7 @@ const textMessage = (over?: Partial<T.Chat.MessageText>) =>
   })
 
 beforeEach(() => {
+  rpc = installFakeChatRpc()
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
     deviceName: 'testuser-mac',
@@ -60,61 +62,49 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
 })
 
 describe('deleteConversationMessage', () => {
   test('deletes a sent message with the meta tlfName and a zero clientPrev', async () => {
-    const del = jest.spyOn(T.RPCChat, 'localPostDeleteNonblockRpcPromise').mockResolvedValue({} as never)
     deleteConversationMessage(conversationIDKey, textMessage())
     await flushPromises()
-    expect(del).toHaveBeenCalledWith({
-      clientPrev: T.Chat.numberToMessageID(0),
-      conversationID: convID,
-      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-      outboxID: null,
-      supersedes: T.Chat.numberToMessageID(10),
-      tlfName: 'testuser,testuser2',
-      tlfPublic: false,
-    })
+    // no clientPrev: the adapter sends zero
+    expect(rpc.params('postDelete')).toEqual([
+      {conversationIDKey, messageID: T.Chat.numberToMessageID(10), tlfName: 'testuser,testuser2'},
+    ])
   })
 
   test('an explicit tlfName wins over the meta', async () => {
-    const del = jest.spyOn(T.RPCChat, 'localPostDeleteNonblockRpcPromise').mockResolvedValue({} as never)
     deleteConversationMessage(conversationIDKey, textMessage(), 'team.name')
     await flushPromises()
-    expect(del).toHaveBeenCalledWith(expect.objectContaining({tlfName: 'team.name'}))
+    expect(rpc.params('postDelete')).toEqual([expect.objectContaining({tlfName: 'team.name'})])
   })
 
   test('an unsent message cancels its outbox entry instead', async () => {
-    const cancel = jest.spyOn(T.RPCChat, 'localCancelPostRpcPromise').mockResolvedValue(undefined)
-    const del = jest.spyOn(T.RPCChat, 'localPostDeleteNonblockRpcPromise')
     const outboxID = T.Chat.stringToOutboxID('0a0b')
     deleteConversationMessage(conversationIDKey, textMessage({id: T.Chat.numberToMessageID(0), outboxID}))
     await flushPromises()
-    expect(cancel).toHaveBeenCalledWith({outboxID: T.Chat.outboxIDToRpcOutboxID(outboxID)})
-    expect(del).not.toHaveBeenCalled()
+    expect(rpc.calls('cancelPost')).toEqual([[outboxID]])
+    expect(rpc.calls('postDelete')).toEqual([])
   })
 
   test('a message with neither id does nothing', async () => {
-    const cancel = jest.spyOn(T.RPCChat, 'localCancelPostRpcPromise')
-    const del = jest.spyOn(T.RPCChat, 'localPostDeleteNonblockRpcPromise')
     deleteConversationMessage(conversationIDKey, textMessage({id: T.Chat.numberToMessageID(0)}))
     await flushPromises()
-    expect(cancel).not.toHaveBeenCalled()
-    expect(del).not.toHaveBeenCalled()
+    expect(rpc.log).toEqual([])
   })
 
   test('an invalid conversation does nothing', async () => {
-    const del = jest.spyOn(T.RPCChat, 'localPostDeleteNonblockRpcPromise')
     deleteConversationMessage(T.Chat.noConversationIDKey, textMessage())
     await flushPromises()
-    expect(del).not.toHaveBeenCalled()
+    expect(rpc.log).toEqual([])
   })
 
   test('a failed delete is left to ignorePromise', async () => {
-    jest.spyOn(T.RPCChat, 'localPostDeleteNonblockRpcPromise').mockRejectedValue(new Error('x'))
+    rpc.fail('postDelete', new Error('x'))
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     deleteConversationMessage(conversationIDKey, textMessage())
     await flushPromises()
@@ -124,23 +114,21 @@ describe('deleteConversationMessage', () => {
 
 describe('reactions', () => {
   test('posts the emoji against the message with the meta clientPrev and a fresh outbox id', async () => {
-    const react = jest.spyOn(T.RPCChat, 'localPostReactionNonblockRpcPromise').mockResolvedValue({} as never)
     toggleConversationMessageReaction(conversationIDKey, textMessage(), ':+1:')
     await flushPromises()
-    expect(react).toHaveBeenCalledWith({
-      body: ':+1:',
-      clientPrev: T.Chat.numberToMessageID(55),
-      conversationID: convID,
-      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-      outboxID: expect.any(Uint8Array),
-      supersedes: T.Chat.numberToMessageID(10),
-      tlfName: 'testuser,testuser2',
-      tlfPublic: false,
-    })
+    // no outbox id: the adapter makes a fresh one
+    expect(rpc.params('postReaction')).toEqual([
+      {
+        clientPrev: T.Chat.numberToMessageID(55),
+        conversationIDKey,
+        emoji: ':+1:',
+        messageID: T.Chat.numberToMessageID(10),
+        tlfName: 'testuser,testuser2',
+      },
+    ])
   })
 
   test('an exploded message takes no reactions', async () => {
-    const react = jest.spyOn(T.RPCChat, 'localPostReactionNonblockRpcPromise')
     toggleConversationMessageReaction(conversationIDKey, textMessage({exploded: true}), ':+1:')
     toggleConversationMessageReaction(
       conversationIDKey,
@@ -148,11 +136,10 @@ describe('reactions', () => {
       ':+1:'
     )
     await flushPromises()
-    expect(react).not.toHaveBeenCalled()
+    expect(rpc.calls('postReaction')).toEqual([])
   })
 
   test('nothing is posted for an empty emoji, an invalid conversation, a zero id or no user', async () => {
-    const react = jest.spyOn(T.RPCChat, 'localPostReactionNonblockRpcPromise')
     toggleConversationMessageReactionByID(conversationIDKey, T.Chat.numberToMessageID(10), '')
     toggleConversationMessageReactionByID(T.Chat.noConversationIDKey, T.Chat.numberToMessageID(10), ':+1:')
     toggleConversationMessageReactionByID(conversationIDKey, T.Chat.numberToMessageID(0), ':+1:')
@@ -160,7 +147,7 @@ describe('reactions', () => {
     resetAllStores()
     toggleConversationMessageReactionByID(conversationIDKey, T.Chat.numberToMessageID(10), ':+1:')
     await flushPromises()
-    expect(react).not.toHaveBeenCalled()
+    expect(rpc.calls('postReaction')).toEqual([])
   })
 
   test('without meta the clientPrev is zero and an explicit tlfName is used', async () => {
@@ -171,18 +158,15 @@ describe('reactions', () => {
       uid: 'uid',
       username: 'testuser',
     })
-    const react = jest.spyOn(T.RPCChat, 'localPostReactionNonblockRpcPromise').mockResolvedValue({} as never)
     toggleConversationMessageReactionByID(conversationIDKey, T.Chat.numberToMessageID(10), ':+1:', 'team.name')
     await flushPromises()
-    expect(react).toHaveBeenCalledWith(
-      expect.objectContaining({clientPrev: T.Chat.numberToMessageID(0), tlfName: 'team.name'})
-    )
+    expect(rpc.params('postReaction')).toEqual([
+      expect.objectContaining({clientPrev: T.Chat.numberToMessageID(0), tlfName: 'team.name'}),
+    ])
   })
 
   test('a service failure is swallowed', async () => {
-    jest
-      .spyOn(T.RPCChat, 'localPostReactionNonblockRpcPromise')
-      .mockRejectedValue(new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    rpc.fail('postReaction', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
     const error = jest.spyOn(logger, 'error')
     toggleConversationMessageReactionByID(conversationIDKey, T.Chat.numberToMessageID(10), ':+1:')
     await flushPromises()
@@ -195,10 +179,7 @@ describe('replyPrivatelyToConversationMessage', () => {
   const newKey = T.Chat.conversationIDToKey(newConvID)
 
   test('creates the adhoc conversation, stores its meta and opens it with the quote', async () => {
-    const create = jest.spyOn(T.RPCChat, 'localNewConversationLocalRpcPromise').mockResolvedValue({
-      conv: {info: {id: newConvID}},
-      uiConv: {},
-    } as never)
+    rpc.on('createAdhocConversation', () => ({conv: {info: {id: newConvID}}, uiConv: {}}) as never)
     jest
       .spyOn(Meta, 'inboxUIItemToConversationMeta')
       .mockReturnValue({...Meta.makeConversationMeta(), conversationIDKey: newKey, tlfname: 'testuser,testuser2'})
@@ -207,16 +188,9 @@ describe('replyPrivatelyToConversationMessage', () => {
     replyPrivatelyToConversationMessage(textMessage())
     await flushPromises()
 
-    expect(create).toHaveBeenCalledWith(
-      {
-        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-        membersType: T.RPCChat.ConversationMembersType.impteamnative,
-        tlfName: 'testuser,testuser2',
-        tlfVisibility: T.RPCGen.TLFVisibility.private,
-        topicType: T.RPCChat.TopicType.chat,
-      },
-      Strings.waitingKeyChatCreating
-    )
+    expect(rpc.calls('createAdhocConversation')).toEqual([
+      [['testuser', 'testuser2'], Strings.waitingKeyChatCreating],
+    ])
     expect(getInboxConversationMeta(newKey)?.tlfname).toBe('testuser,testuser2')
     expect(navigate).toHaveBeenCalledWith(newKey, 'createdMessagePrivately', {
       intent: {text: '> line one\n> line two\n', type: 'injectText'},
@@ -224,21 +198,16 @@ describe('replyPrivatelyToConversationMessage', () => {
   })
 
   test('replying to yourself does not repeat the name', async () => {
-    const create = jest.spyOn(T.RPCChat, 'localNewConversationLocalRpcPromise').mockResolvedValue({
-      conv: {info: {id: newConvID}},
-      uiConv: {},
-    } as never)
+    rpc.on('createAdhocConversation', () => ({conv: {info: {id: newConvID}}, uiConv: {}}) as never)
     jest.spyOn(Meta, 'inboxUIItemToConversationMeta').mockReturnValue(undefined)
     replyPrivatelyToConversationMessage(textMessage({author: 'testuser'}))
     await flushPromises()
-    expect(create.mock.calls[0]?.[0].tlfName).toBe('testuser')
+    // the adapter dedupes the names
+    expect(rpc.params('createAdhocConversation')).toEqual([['testuser', 'testuser']])
   })
 
   test('a non-text message makes the conversation but does not open it', async () => {
-    jest.spyOn(T.RPCChat, 'localNewConversationLocalRpcPromise').mockResolvedValue({
-      conv: {info: {id: newConvID}},
-      uiConv: {},
-    } as never)
+    rpc.on('createAdhocConversation', () => ({conv: {info: {id: newConvID}}, uiConv: {}}) as never)
     jest
       .spyOn(Meta, 'inboxUIItemToConversationMeta')
       .mockReturnValue({...Meta.makeConversationMeta(), conversationIDKey: newKey})
@@ -252,10 +221,7 @@ describe('replyPrivatelyToConversationMessage', () => {
   })
 
   test('no meta for the new conversation, no navigation', async () => {
-    jest.spyOn(T.RPCChat, 'localNewConversationLocalRpcPromise').mockResolvedValue({
-      conv: {info: {id: newConvID}},
-      uiConv: {},
-    } as never)
+    rpc.on('createAdhocConversation', () => ({conv: {info: {id: newConvID}}, uiConv: {}}) as never)
     jest.spyOn(Meta, 'inboxUIItemToConversationMeta').mockReturnValue(undefined)
     const navigate = jest.spyOn(Router, 'navigateToThread').mockImplementation(() => {})
     replyPrivatelyToConversationMessage(textMessage())
@@ -265,27 +231,23 @@ describe('replyPrivatelyToConversationMessage', () => {
 
   test('logged out it creates nothing', async () => {
     resetAllStores()
-    const create = jest.spyOn(T.RPCChat, 'localNewConversationLocalRpcPromise')
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     replyPrivatelyToConversationMessage(textMessage())
     await flushPromises()
-    expect(create).not.toHaveBeenCalled()
+    expect(rpc.calls('createAdhocConversation')).toEqual([])
     expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(Error))
   })
 })
 
 describe('pinConversationMessage', () => {
   test('pins by conversation and message id', async () => {
-    const pin = jest.spyOn(T.RPCChat, 'localPinMessageRpcPromise').mockResolvedValue({} as never)
     pinConversationMessage(conversationIDKey, T.Chat.numberToMessageID(10))
     await flushPromises()
-    expect(pin).toHaveBeenCalledWith({convID, msgID: T.Chat.numberToMessageID(10)})
+    expect(rpc.calls('pinMessage')).toEqual([[conversationIDKey, T.Chat.numberToMessageID(10)]])
   })
 
   test('a service failure is logged', async () => {
-    jest
-      .spyOn(T.RPCChat, 'localPinMessageRpcPromise')
-      .mockRejectedValue(new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    rpc.fail('pinMessage', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     pinConversationMessage(conversationIDKey, T.Chat.numberToMessageID(10))
     await flushPromises()
@@ -295,16 +257,13 @@ describe('pinConversationMessage', () => {
 
 describe('dismissConversationJourneycard', () => {
   test('dismisses the card type for the conversation', async () => {
-    const dismiss = jest.spyOn(T.RPCChat, 'localDismissJourneycardRpcPromise').mockResolvedValue(undefined)
     dismissConversationJourneycard(conversationIDKey, T.RPCChat.JourneycardType.welcome)
     await flushPromises()
-    expect(dismiss).toHaveBeenCalledWith({cardType: T.RPCChat.JourneycardType.welcome, convID})
+    expect(rpc.calls('dismissJourneycard')).toEqual([[conversationIDKey, T.RPCChat.JourneycardType.welcome]])
   })
 
   test('a service failure is logged, not thrown', async () => {
-    jest
-      .spyOn(T.RPCChat, 'localDismissJourneycardRpcPromise')
-      .mockRejectedValue(new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    rpc.fail('dismissJourneycard', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     dismissConversationJourneycard(conversationIDKey, T.RPCChat.JourneycardType.welcome)
     await flushPromises()

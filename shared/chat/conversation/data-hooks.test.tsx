@@ -3,13 +3,13 @@
 import * as Meta from '@/constants/chat/meta'
 import * as OrangeLine from './orange-line-context'
 import * as T from '@/constants/types'
-import {getChatRpc} from './chat-rpc'
 import {act, cleanup, renderHook} from '@testing-library/react'
 import {metasReceived} from '@/chat/inbox/metadata'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
+import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {
   getConversationClientPrev,
   markConversationAsUnread,
@@ -30,17 +30,22 @@ const setMeta = (over: Partial<T.Chat.ConversationMeta>) => {
   metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, ...over}], undefined, {force: true})
 }
 
+let rpc: FakeChatRpc
+const markReads = () => rpc.params('markRead')
+
 // the walk-back load returns whatever messages the service had around the unread line
-const mockAroundMessages = (ids: ReadonlyArray<number>) =>
-  jest.spyOn(getChatRpc(), 'loadThread').mockImplementation(async p => {
+const mockAroundMessages = (ids: ReadonlyArray<number>) => {
+  rpc.on('loadThread', async p => {
     const messages = ids.map(id => ({
       placeholder: {hidden: false, messageID: messageID(id)},
       state: T.RPCChat.MessageUnboxedState.placeholder,
     }))
     await Promise.resolve()
     p.onFullThread?.(JSON.stringify({messages}))
-    return undefined as never
+    return undefined
   })
+  return () => rpc.params('loadThread')
+}
 
 beforeEach(() => {
   useConfigState.setState({loggedIn: true})
@@ -50,12 +55,13 @@ beforeEach(() => {
     uid: 'uid',
     username: 'testuser',
   })
-  jest.spyOn(getChatRpc(), 'markRead').mockResolvedValue(undefined as never)
+  rpc = installFakeChatRpc()
   jest.spyOn(OrangeLine, 'setConversationOrangeLine').mockImplementation(() => {})
 })
 
 afterEach(() => {
   cleanup()
+  restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
 })
@@ -65,14 +71,14 @@ describe('markConversationAsUnread', () => {
     mockAroundMessages([])
     markConversationAsUnread(conversationIDKey, false)
     await flushPromises()
-    expect(getChatRpc().markRead).not.toHaveBeenCalled()
+    expect(markReads()).toEqual([])
   })
 
   test('does nothing for an invalid conversation', async () => {
     mockAroundMessages([])
     markConversationAsUnread(T.Chat.noConversationIDKey, messageID(5))
     await flushPromises()
-    expect(getChatRpc().markRead).not.toHaveBeenCalled()
+    expect(markReads()).toEqual([])
   })
 
   test('bails when logged out', async () => {
@@ -80,7 +86,7 @@ describe('markConversationAsUnread', () => {
     mockAroundMessages([])
     markConversationAsUnread(conversationIDKey, messageID(5))
     await flushPromises()
-    expect(getChatRpc().markRead).not.toHaveBeenCalled()
+    expect(markReads()).toEqual([])
     expect(OrangeLine.setConversationOrangeLine).not.toHaveBeenCalled()
   })
 
@@ -88,7 +94,7 @@ describe('markConversationAsUnread', () => {
     mockAroundMessages([])
     markConversationAsUnread(conversationIDKey)
     await flushPromises()
-    expect(getChatRpc().markRead).not.toHaveBeenCalled()
+    expect(markReads()).toEqual([])
   })
 
   test('falls back to the conversation maxVisibleMsgID', async () => {
@@ -112,7 +118,7 @@ describe('markConversationAsUnread', () => {
       T.Chat.numberToOrdinal(5)
     )
     // 4 is the newest message older than the unread line
-    expect(getChatRpc().markRead).toHaveBeenCalledWith({
+    expect(markReads()).toContainEqual({
       conversationIDKey,
       forceUnread: true,
       msgID: messageID(4),
@@ -123,7 +129,7 @@ describe('markConversationAsUnread', () => {
     mockAroundMessages([5, 6, 7])
     markConversationAsUnread(conversationIDKey, messageID(5))
     await flushPromises()
-    expect(getChatRpc().markRead).toHaveBeenCalledWith({
+    expect(markReads()).toContainEqual({
       conversationIDKey,
       forceUnread: true,
       msgID: messageID(5),
@@ -134,7 +140,7 @@ describe('markConversationAsUnread', () => {
     const load = mockAroundMessages([])
     markConversationAsUnread(conversationIDKey, messageID(5))
     await flushPromises()
-    expect(load).toHaveBeenCalledWith({
+    expect(load()).toContainEqual({
       conversationIDKey,
       messageIDControl: {mode: T.RPCChat.MessageIDControlMode.centered, num: 3, pivot: messageID(5)},
       onCachedThread: expect.any(Function),
@@ -144,10 +150,10 @@ describe('markConversationAsUnread', () => {
   })
 
   test('still marks read when the walk-back load fails', async () => {
-    jest.spyOn(getChatRpc(), 'loadThread').mockRejectedValue(new Error('offline'))
+    rpc.fail('loadThread', new Error('offline'))
     markConversationAsUnread(conversationIDKey, messageID(5))
     await flushPromises()
-    expect(getChatRpc().markRead).toHaveBeenCalledWith({
+    expect(markReads()).toContainEqual({
       conversationIDKey,
       forceUnread: true,
       msgID: messageID(5),
@@ -201,7 +207,7 @@ describe('useConversationExplodingMode', () => {
 describe('parsed thread messages', () => {
   test('the walk-back load dedupes and sorts by message id', async () => {
     // the service can send the same message in the cached and full thread callbacks
-    jest.spyOn(getChatRpc(), 'loadThread').mockImplementation(async p => {
+    rpc.on('loadThread', async p => {
       const thread = (ids: ReadonlyArray<number>) =>
         JSON.stringify({
           messages: ids.map(id => ({
@@ -212,13 +218,13 @@ describe('parsed thread messages', () => {
       await Promise.resolve()
       p.onCachedThread?.(thread([6, 4]))
       p.onFullThread?.(thread([4, 5]))
-      return undefined as never
+      return undefined
     })
 
     markConversationAsUnread(conversationIDKey, messageID(6))
     await flushPromises()
     // 5 is the newest id below the unread line across both callbacks
-    expect(getChatRpc().markRead).toHaveBeenCalledWith({
+    expect(markReads()).toContainEqual({
       conversationIDKey,
       forceUnread: true,
       msgID: messageID(5),
@@ -240,7 +246,7 @@ describe('useConversationMessage', () => {
     expect(result.current).toBeUndefined()
     await waitForLoad()
     expect(result.current?.id).toBe(messageID(20))
-    expect(load).toHaveBeenCalledWith(
+    expect(load()).toContainEqual(
       expect.objectContaining({
         messageIDControl: {mode: T.RPCChat.MessageIDControlMode.centered, num: 20, pivot: messageID(20)},
         pagination: null,
@@ -252,12 +258,12 @@ describe('useConversationMessage', () => {
     const load = mockAroundMessages([])
     const {result} = renderHook(() => useConversationMessage(conversationIDKey, messageID(0)))
     await waitForLoad()
-    expect(load).not.toHaveBeenCalled()
+    expect(load()).toEqual([])
     expect(result.current).toBeUndefined()
   })
 
   test('a failed load leaves nothing', async () => {
-    jest.spyOn(getChatRpc(), 'loadThread').mockRejectedValue(new Error('offline'))
+    rpc.fail('loadThread', new Error('offline'))
     const {result} = renderHook(() => useConversationMessage(conversationIDKey, messageID(20)))
     await waitForLoad()
     expect(result.current).toBeUndefined()
@@ -267,7 +273,7 @@ describe('useConversationMessage', () => {
     const load = mockAroundMessages([20])
     renderHook(() => useConversationMessage(conversationIDKey, messageID(20)))
     await waitForLoad()
-    expect(load).toHaveBeenCalledTimes(1)
+    expect(load()).toHaveLength(1)
     await act(async () => {
       notifyEngineActionListeners({
         payload: {params: {convID: T.Chat.keyToConversationID(conversationIDKey), msgID: 20}},
@@ -275,6 +281,6 @@ describe('useConversationMessage', () => {
       } as never)
       await flushPromises()
     })
-    expect(load).toHaveBeenCalledTimes(2)
+    expect(load()).toHaveLength(2)
   })
 })

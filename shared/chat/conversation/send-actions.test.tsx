@@ -12,11 +12,12 @@ import {makeMessageAttachment, makeMessageText} from '@/constants/chat/message'
 import {metasReceived} from '@/chat/inbox/metadata'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
+import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {sendTextToConversation, useConversationSendActions} from './send-actions'
+import type {PostTextParams} from './chat-rpc'
 import {ConversationThreadProvider, useConversationThreadActions, useConversationThreadStore} from './thread-context'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
-const convID = T.Chat.keyToConversationID(conversationIDKey)
 const tlfName = 'testuser,testuser2'
 
 const flushPromises = async () => {
@@ -25,16 +26,17 @@ const flushPromises = async () => {
   }
 }
 
-type PostTextArg = Parameters<typeof T.RPCChat.localPostTextNonblockRpcListener>[0]
+let rpc: FakeChatRpc
 
 // Resolves like the service does; `during` runs while the rpc is in flight, the way the
 // service calls back into the ui before answering.
-const mockPostText = (during?: (p: PostTextArg) => void) =>
-  jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener').mockImplementation(async p => {
+const mockPostText = (during?: (p: PostTextParams) => void) => {
+  rpc.on('postText', async p => {
     during?.(p)
     await Promise.resolve()
-    return {} as never
   })
+  return () => rpc.params('postText')
+}
 
 const textAt = (n: number, over?: Partial<T.Chat.MessageText>) =>
   makeMessageText({
@@ -69,6 +71,7 @@ const renderSendActions = (messages: ReadonlyArray<T.Chat.Message> = []) => {
 
 beforeEach(() => {
   useConfigState.setState({loggedIn: true})
+  rpc = installFakeChatRpc()
   metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, tlfname: tlfName}], undefined, {
     force: true,
   })
@@ -76,6 +79,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
+  restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
 })
@@ -86,44 +90,20 @@ describe('sendTextToConversation', () => {
     sendTextToConversation(conversationIDKey, tlfName, 'hello')
     await flushPromises()
 
-    expect(post).toHaveBeenCalledTimes(1)
-    const arg = post.mock.calls[0]![0]
-    expect(arg.params).toEqual({
-      body: 'hello',
-      clientPrev: T.Chat.numberToMessageID(0),
-      conversationID: convID,
-      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-      outboxID: undefined,
-      replyTo: undefined,
-      tlfName,
-      tlfPublic: false,
-      unfurlSuppress: [],
-    })
-    expect(arg.waitingKey).toBeUndefined()
-  })
-
-  test('declines every stellar confirmation from chat', async () => {
-    const confirm = jest.fn()
-    const dataError = jest.fn()
-    mockPostText(p => {
-      p.customResponseIncomingCallMap?.['chat.1.chatUi.chatStellarDataConfirm']?.(
-        {} as never,
-        {error: jest.fn(), result: confirm} as never
-      )
-      p.customResponseIncomingCallMap?.['chat.1.chatUi.chatStellarDataError']?.(
-        {} as never,
-        {error: jest.fn(), result: dataError} as never
-      )
-      p.incomingCallMap['chat.1.chatUi.chatStellarShowConfirm']?.({} as never)
-    })
-    sendTextToConversation(conversationIDKey, tlfName, 'hello')
-    await flushPromises()
-    expect(confirm).toHaveBeenCalledWith(false)
-    expect(dataError).toHaveBeenCalledWith(false)
+    expect(post()).toEqual([
+      {
+        clientPrev: T.Chat.numberToMessageID(0),
+        conversationIDKey,
+        ephemeralLifetime: 0,
+        onStellarCanceled: expect.any(Function),
+        text: 'hello',
+        tlfName,
+      },
+    ])
   })
 
   test('a failed post is swallowed', async () => {
-    jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener').mockRejectedValue(new Error('offline'))
+    rpc.fail('postText', new Error('offline'))
     const error = jest.spyOn(logger, 'error')
     sendTextToConversation(conversationIDKey, tlfName, 'hello')
     await flushPromises()
@@ -146,16 +126,14 @@ describe('sendMessage', () => {
       await flushPromises()
     })
 
-    expect(post.mock.calls[0]![0].params).toEqual({
-      body: 'hi',
+    expect(post()[0]).toEqual({
       clientPrev: T.Chat.numberToMessageID(11),
-      conversationID: convID,
+      conversationIDKey,
       ephemeralLifetime: 300,
-      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-      outboxID: undefined,
+      onStellarCanceled: expect.any(Function),
       replyTo: T.Chat.numberToMessageID(10),
+      text: 'hi',
       tlfName,
-      tlfPublic: false,
       unfurlSuppress: [],
     })
   })
@@ -169,10 +147,10 @@ describe('sendMessage', () => {
     await act(async () => {
       await flushPromises()
     })
-    const params = post.mock.calls[0]![0].params
-    expect(params.clientPrev).toBe(T.Chat.numberToMessageID(0))
-    expect(params.replyTo).toBeUndefined()
-    expect(params).not.toHaveProperty('ephemeralLifetime')
+    const params = post()[0]
+    expect(params?.clientPrev).toBe(T.Chat.numberToMessageID(0))
+    expect(params?.replyTo).toBeUndefined()
+    expect(params?.ephemeralLifetime).toBe(0)
   })
 
   test('with no meta the tlfName is empty', async () => {
@@ -185,7 +163,7 @@ describe('sendMessage', () => {
     await act(async () => {
       await flushPromises()
     })
-    expect(post.mock.calls[0]![0].params.tlfName).toBe('')
+    expect(post()[0]?.tlfName).toBe('')
   })
 
   test('suppresses the snapshotted urls and drops the dismissals once sent', async () => {
@@ -201,14 +179,14 @@ describe('sendMessage', () => {
     await act(async () => {
       await flushPromises()
     })
-    expect(post.mock.calls[0]![0].params.unfurlSuppress).toEqual(['https://a.com', 'https://b.com', 'https://c.com'])
+    expect(post()[0]?.unfurlSuppress).toEqual(['https://a.com', 'https://b.com', 'https://c.com'])
     expect(remove).toHaveBeenCalledWith(conversationIDKey, ['https://a.com', 'https://b.com'])
     expect(restore).not.toHaveBeenCalled()
   })
 
   test('a canceled stellar send restores the text and the dismissals and is not a send', async () => {
     mockPostText(p => {
-      p.incomingCallMap['chat.1.chatUi.chatStellarDone']?.({canceled: true} as never)
+      p.onStellarCanceled?.()
     })
     const remove = jest.spyOn(UnfurlPreview, 'removeDismissals')
     const restore = jest.spyOn(UnfurlPreview, 'restoreDismissals')
@@ -229,9 +207,8 @@ describe('sendMessage', () => {
   })
 
   test('a completed stellar send is a send', async () => {
-    mockPostText(p => {
-      p.incomingCallMap['chat.1.chatUi.chatStellarDone']?.({canceled: false} as never)
-    })
+    // a completed payment reports nothing back
+    mockPostText()
     const remove = jest.spyOn(UnfurlPreview, 'removeDismissals')
     const onRestoreText = jest.fn()
     const result = renderSendActions()
@@ -247,7 +224,7 @@ describe('sendMessage', () => {
 
   test('a canceled stellar send with no restore callback restores nothing', async () => {
     mockPostText(p => {
-      p.incomingCallMap['chat.1.chatUi.chatStellarDone']?.({canceled: true} as never)
+      p.onStellarCanceled?.()
     })
     const restore = jest.spyOn(UnfurlPreview, 'restoreDismissals')
     const remove = jest.spyOn(UnfurlPreview, 'removeDismissals')
@@ -263,7 +240,7 @@ describe('sendMessage', () => {
   })
 
   test('a failed post neither restores nor drops the dismissals', async () => {
-    jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener').mockRejectedValue(new Error('offline'))
+    rpc.fail('postText', new Error('offline'))
     const remove = jest.spyOn(UnfurlPreview, 'removeDismissals')
     const restore = jest.spyOn(UnfurlPreview, 'restoreDismissals')
     const result = renderSendActions()
@@ -279,11 +256,7 @@ describe('sendMessage', () => {
 })
 
 describe('editing', () => {
-  let postEdit: jest.SpyInstance
-
-  beforeEach(() => {
-    postEdit = jest.spyOn(T.RPCChat, 'localPostEditNonblockRpcPromise').mockResolvedValue({} as never)
-  })
+  const edits = () => rpc.params('postEdit')
 
   test('an edit posts against the target and marks it editing', async () => {
     const post = mockPostText()
@@ -297,21 +270,18 @@ describe('editing', () => {
       await flushPromises()
     })
 
-    expect(post).not.toHaveBeenCalled()
+    expect(post()).toEqual([])
     expect(result.current.store.getState().messageMap.get(target.ordinal)?.submitState).toBe('editing')
-    expect(postEdit).toHaveBeenCalledWith({
-      body: 'changed',
-      clientPrev: T.Chat.numberToMessageID(11),
-      conversationID: convID,
-      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-      outboxID: expect.any(Uint8Array),
-      target: {
+    expect(edits()).toEqual([
+      {
+        clientPrev: T.Chat.numberToMessageID(11),
+        conversationIDKey,
         messageID: T.Chat.numberToMessageID(10),
-        outboxID: T.Chat.outboxIDToRpcOutboxID(T.Chat.stringToOutboxID('0a0b')),
+        messageOutboxID: T.Chat.stringToOutboxID('0a0b'),
+        text: 'changed',
+        tlfName,
       },
-      tlfName,
-      tlfPublic: false,
-    })
+    ])
   })
 
   test('a target with no outbox id sends none', async () => {
@@ -322,7 +292,10 @@ describe('editing', () => {
     await act(async () => {
       await flushPromises()
     })
-    expect(postEdit.mock.calls[0]?.[0].target).toEqual({messageID: T.Chat.numberToMessageID(10), outboxID: undefined})
+    expect(edits()[0]).toEqual(
+      // a message that never had an outbox entry carries the empty id, which goes out as none
+      expect.objectContaining({messageID: T.Chat.numberToMessageID(10), messageOutboxID: ''})
+    )
   })
 
   test('an unchanged text is not an edit', async () => {
@@ -333,7 +306,7 @@ describe('editing', () => {
     await act(async () => {
       await flushPromises()
     })
-    expect(postEdit).not.toHaveBeenCalled()
+    expect(edits()).toEqual([])
     expect(result.current.store.getState().messageMap.get(T.Chat.numberToOrdinal(10))?.submitState).toBeUndefined()
   })
 
@@ -351,7 +324,7 @@ describe('editing', () => {
     await act(async () => {
       await flushPromises()
     })
-    expect(postEdit).not.toHaveBeenCalled()
+    expect(edits()).toEqual([])
 
     act(() => {
       result.current.send.sendMessage('new title', {editingOrdinal: attachment.ordinal})
@@ -359,7 +332,7 @@ describe('editing', () => {
     await act(async () => {
       await flushPromises()
     })
-    expect(postEdit).toHaveBeenCalledWith(expect.objectContaining({body: 'new title'}))
+    expect(edits()).toEqual([expect.objectContaining({text: 'new title'})])
   })
 
   test('a missing target is ignored', async () => {
@@ -370,11 +343,11 @@ describe('editing', () => {
     await act(async () => {
       await flushPromises()
     })
-    expect(postEdit).not.toHaveBeenCalled()
+    expect(edits()).toEqual([])
   })
 
   test('a failed edit is left to ignorePromise and the message stays editing', async () => {
-    postEdit.mockRejectedValue(new Error('offline'))
+    rpc.fail('postEdit', new Error('offline'))
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     const result = renderSendActions([textAt(10)])
     act(() => {
@@ -392,7 +365,6 @@ describe('sendGiphyResult', () => {
   const giphy = {targetUrl: 'https://giphy.com/x.gif'} as T.RPCChat.GiphySearchResult
 
   test('tracks the pick then sends its url as text', async () => {
-    const track = jest.spyOn(T.RPCChat, 'localTrackGiphySelectRpcPromise').mockResolvedValue({} as never)
     const post = mockPostText()
     const result = renderSendActions([textAt(10)])
     act(() => {
@@ -401,20 +373,21 @@ describe('sendGiphyResult', () => {
     await act(async () => {
       await flushPromises()
     })
-    expect(track).toHaveBeenCalledWith({result: giphy})
-    expect(post.mock.calls[0]![0].params).toEqual(
+    expect(rpc.calls('trackGiphySelect')).toEqual([[giphy]])
+    expect(post()[0]).toEqual(
       expect.objectContaining({
-        body: 'https://giphy.com/x.gif',
         clientPrev: T.Chat.numberToMessageID(10),
         replyTo: T.Chat.numberToMessageID(10),
+        text: 'https://giphy.com/x.gif',
         tlfName,
-        unfurlSuppress: [],
       })
     )
+    // no snapshot: the adapter sends an empty suppress list
+    expect(post()[0]?.unfurlSuppress).toBeUndefined()
   })
 
   test('a failed track still sends', async () => {
-    jest.spyOn(T.RPCChat, 'localTrackGiphySelectRpcPromise').mockRejectedValue(new Error('x'))
+    rpc.fail('trackGiphySelect', new Error('x'))
     const post = mockPostText()
     const result = renderSendActions()
     act(() => {
@@ -423,8 +396,8 @@ describe('sendGiphyResult', () => {
     await act(async () => {
       await flushPromises()
     })
-    expect(post).toHaveBeenCalledTimes(1)
-    expect(post.mock.calls[0]![0].params.replyTo).toBeUndefined()
+    expect(post()).toHaveLength(1)
+    expect(post()[0]?.replyTo).toBeUndefined()
   })
 })
 
@@ -432,36 +405,28 @@ describe('sendAudioRecording', () => {
   const preview = {filename: 'preview.png'} as unknown as T.RPCChat.MakePreviewRes
 
   test('builds a preview from the amps and posts the file with it', async () => {
-    const makePreview = jest.spyOn(T.RPCChat, 'localMakeAudioPreviewRpcPromise').mockResolvedValue(preview)
-    const post = jest
-      .spyOn(T.RPCChat, 'localPostFileAttachmentLocalNonblockRpcPromise')
-      .mockResolvedValue({} as never)
+    rpc.on('makeAudioPreview', () => preview)
     const result = renderSendActions([textAt(10)])
     await act(async () => {
       await result.current.send.sendAudioRecording('/tmp/audio.m4a', 1234, [0.1, 0.2])
     })
-    expect(makePreview).toHaveBeenCalledWith({amps: [0.1, 0.2], duration: 1234})
-    expect(post).toHaveBeenCalledWith({
-      arg: {
+    expect(rpc.calls('makeAudioPreview')).toEqual([[[0.1, 0.2], 1234]])
+    expect(rpc.params('postAttachment')).toEqual([
+      {
         callerPreview: preview,
-        conversationID: convID,
+        clientPrev: T.Chat.numberToMessageID(10),
+        conversationIDKey,
+        ephemeralLifetime: 0,
         filename: '/tmp/audio.m4a',
-        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-        metadata: new Uint8Array(),
         outboxID: expect.any(Uint8Array),
         title: '',
         tlfName,
-        visibility: T.RPCGen.TLFVisibility.private,
       },
-      clientPrev: T.Chat.numberToMessageID(10),
-    })
+    ])
   })
 
   test('an exploding conversation carries the lifetime', async () => {
-    jest.spyOn(T.RPCChat, 'localMakeAudioPreviewRpcPromise').mockResolvedValue(preview)
-    const post = jest
-      .spyOn(T.RPCChat, 'localPostFileAttachmentLocalNonblockRpcPromise')
-      .mockResolvedValue({} as never)
+    rpc.on('makeAudioPreview', () => preview)
     const result = renderSendActions()
     act(() => {
       result.current.actions.setExplodingMode(60, true)
@@ -469,24 +434,21 @@ describe('sendAudioRecording', () => {
     await act(async () => {
       await result.current.send.sendAudioRecording('/tmp/audio.m4a', 1, [])
     })
-    expect(post.mock.calls[0]?.[0].arg.ephemeralLifetime).toBe(60)
+    expect(rpc.params('postAttachment')[0]?.ephemeralLifetime).toBe(60)
   })
 
   test('without a tlfName nothing is sent', async () => {
     resetAllStores()
-    const makePreview = jest.spyOn(T.RPCChat, 'localMakeAudioPreviewRpcPromise')
     const result = renderSendActions()
     await act(async () => {
       await result.current.send.sendAudioRecording('/tmp/audio.m4a', 1, [])
     })
-    expect(makePreview).not.toHaveBeenCalled()
+    expect(rpc.calls('makeAudioPreview')).toEqual([])
   })
 
   test('a failed post is swallowed', async () => {
-    jest.spyOn(T.RPCChat, 'localMakeAudioPreviewRpcPromise').mockResolvedValue(preview)
-    jest
-      .spyOn(T.RPCChat, 'localPostFileAttachmentLocalNonblockRpcPromise')
-      .mockRejectedValue(new RPCError('too big', T.RPCGen.StatusCode.scgeneric))
+    rpc.on('makeAudioPreview', () => preview)
+    rpc.fail('postAttachment', new RPCError('too big', T.RPCGen.StatusCode.scgeneric))
     const result = renderSendActions()
     await act(async () => {
       await expect(result.current.send.sendAudioRecording('/tmp/audio.m4a', 1, [])).resolves.toBeUndefined()
@@ -494,12 +456,11 @@ describe('sendAudioRecording', () => {
   })
 
   test('a failed preview rejects to the caller and posts nothing', async () => {
-    jest.spyOn(T.RPCChat, 'localMakeAudioPreviewRpcPromise').mockRejectedValue(new Error('no preview'))
-    const post = jest.spyOn(T.RPCChat, 'localPostFileAttachmentLocalNonblockRpcPromise')
+    rpc.fail('makeAudioPreview', new Error('no preview'))
     const result = renderSendActions()
     await act(async () => {
       await expect(result.current.send.sendAudioRecording('/tmp/audio.m4a', 1, [])).rejects.toThrow('no preview')
     })
-    expect(post).not.toHaveBeenCalled()
+    expect(rpc.calls('postAttachment')).toEqual([])
   })
 })

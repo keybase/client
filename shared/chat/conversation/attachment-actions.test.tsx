@@ -14,6 +14,7 @@ import {metasReceived} from '@/chat/inbox/metadata'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
+import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {
   attachmentDownloadMessage,
   cancelAttachmentUploads,
@@ -153,7 +154,6 @@ test('signing out drops messages waiting in the handoff mailboxes', () => {
 // ---- RPC-issuing actions ----
 
 const convKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
-const convID = T.Chat.keyToConversationID(convKey)
 
 const flushPromises = async () => {
   for (let i = 0; i < 10; i++) {
@@ -163,31 +163,40 @@ const flushPromises = async () => {
 
 const deferred = <V,>() => Promise.withResolvers<V>()
 
+let rpc: FakeChatRpc
+
+beforeEach(() => {
+  rpc = installFakeChatRpc()
+})
+
+afterEach(() => {
+  restoreChatRpc()
+})
+
 describe('cancelAttachmentUploads', () => {
   test('cancels every upload, and one failure does not stop the rest', async () => {
-    const cancel = jest
-      .spyOn(T.RPCChat, 'localCancelUploadTempFileRpcPromise')
-      .mockRejectedValueOnce(new Error('gone'))
-      .mockResolvedValue(undefined)
+    rpc.failOnce('cancelUploadTempFile', new Error('gone'))
     const error = jest.spyOn(logger, 'error')
     const a = new Uint8Array([1])
     const b = new Uint8Array([2])
     cancelAttachmentUploads([a, b])
     await flushPromises()
-    expect(cancel.mock.calls).toEqual([[{outboxID: a}], [{outboxID: b}]])
+    expect(rpc.calls('cancelUploadTempFile')).toEqual([[a], [b]])
     expect(error).not.toHaveBeenCalled()
   })
 })
 
 describe('makePasteAttachment', () => {
   test('writes the paste to a temp file and opens the titles screen with it', async () => {
-    const make = jest.spyOn(T.RPCChat, 'localMakeUploadTempFileRpcPromise').mockResolvedValue('/tmp/paste.png')
+    rpc.on('makeUploadTempFile', () => '/tmp/paste.png')
     const data = new Uint8Array([9, 9])
     makePasteAttachment(convKey, data)
     await flushPromises()
 
-    expect(make).toHaveBeenCalledWith({data, filename: 'paste.png', outboxID: expect.any(Uint8Array)})
-    const outboxID = make.mock.calls[0]?.[0].outboxID
+    expect(rpc.params('makeUploadTempFile')).toEqual([
+      {data, filename: 'paste.png', outboxID: expect.any(Uint8Array)},
+    ])
+    const outboxID = rpc.params('makeUploadTempFile')[0]?.outboxID
     expect(navigateAppend).toHaveBeenCalledWith({
       name: 'chatAttachmentGetTitles',
       params: {conversationIDKey: convKey, noDragDrop: true, pathAndOutboxIDs: [{outboxID, path: '/tmp/paste.png'}]},
@@ -195,7 +204,7 @@ describe('makePasteAttachment', () => {
   })
 
   test('a failed temp file never opens the titles screen', async () => {
-    jest.spyOn(T.RPCChat, 'localMakeUploadTempFileRpcPromise').mockRejectedValue(new Error('disk'))
+    rpc.fail('makeUploadTempFile', new Error('disk'))
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     makePasteAttachment(convKey, new Uint8Array())
     await flushPromises()
@@ -220,75 +229,61 @@ describe('uploadAttachments', () => {
     })
 
   test('posts each file with its title, outbox id and the shared clientPrev', async () => {
-    const post = jest.spyOn(T.RPCChat, 'localPostFileAttachmentLocalNonblockRpcPromise').mockResolvedValue({} as never)
     upload()
     await flushPromises()
 
-    expect(post).toHaveBeenCalledTimes(2)
-    expect(post.mock.calls[0]?.[0]).toEqual({
-      arg: {
-        conversationID: convID,
-        filename: '/a.png',
-        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-        metadata: new Uint8Array(),
-        outboxID: pathA.outboxID,
-        title: 'first',
-        tlfName: 'alice,bob',
-        visibility: T.RPCGen.TLFVisibility.private,
-      },
+    const posts = rpc.params('postAttachment')
+    expect(posts).toHaveLength(2)
+    expect(posts[0]).toEqual({
       clientPrev: T.Chat.numberToMessageID(7),
+      conversationIDKey: convKey,
+      ephemeralLifetime: 0,
+      filename: '/a.png',
+      outboxID: pathA.outboxID,
+      title: 'first',
+      tlfName: 'alice,bob',
     })
     // a path with no outbox id gets a fresh one; a missing title is empty
-    expect(post.mock.calls[1]?.[0].arg).toEqual(
+    expect(posts[1]).toEqual(
       expect.objectContaining({filename: '/b.png', outboxID: expect.any(Uint8Array), title: ''})
     )
-    expect(post.mock.calls[1]?.[0].arg).not.toHaveProperty('ephemeralLifetime')
+    expect(posts[1]?.ephemeralLifetime).toBe(0)
   })
 
   test('an exploding conversation carries the lifetime', async () => {
-    const post = jest.spyOn(T.RPCChat, 'localPostFileAttachmentLocalNonblockRpcPromise').mockResolvedValue({} as never)
     upload({ephemeralLifetime: 300, paths: [pathA]})
     await flushPromises()
-    expect(post.mock.calls[0]?.[0].arg.ephemeralLifetime).toBe(300)
+    expect(rpc.params('postAttachment')[0]?.ephemeralLifetime).toBe(300)
   })
 
   test('without a tlfName nothing is posted', async () => {
-    const post = jest.spyOn(T.RPCChat, 'localPostFileAttachmentLocalNonblockRpcPromise')
     upload({tlfName: undefined})
     await flushPromises()
-    expect(post).not.toHaveBeenCalled()
+    expect(rpc.calls('postAttachment')).toEqual([])
   })
 
   test('posts one at a time, in order', async () => {
-    const first = deferred<never>()
-    const post = jest
-      .spyOn(T.RPCChat, 'localPostFileAttachmentLocalNonblockRpcPromise')
-      .mockReturnValueOnce(first.promise)
-      .mockResolvedValue({} as never)
+    const first = deferred<undefined>()
+    rpc.once('postAttachment', async () => first.promise)
     upload()
     await flushPromises()
-    expect(post).toHaveBeenCalledTimes(1)
-    first.resolve({} as never)
+    expect(rpc.calls('postAttachment')).toHaveLength(1)
+    first.resolve(undefined)
     await flushPromises()
-    expect(post).toHaveBeenCalledTimes(2)
+    expect(rpc.calls('postAttachment')).toHaveLength(2)
   })
 
   test('a failure skips that file, keeps going, and reports the count', async () => {
-    jest
-      .spyOn(T.RPCChat, 'localPostFileAttachmentLocalNonblockRpcPromise')
-      .mockRejectedValueOnce(new Error('too big'))
-      .mockResolvedValue({} as never)
+    rpc.failOnce('postAttachment', new Error('too big'))
     jest.spyOn(logger, 'error').mockImplementation(() => {})
     upload({paths: [pathA, pathB, pathA]})
     await flushPromises()
-    expect(T.RPCChat.localPostFileAttachmentLocalNonblockRpcPromise).toHaveBeenCalledTimes(3)
+    expect(rpc.calls('postAttachment')).toHaveLength(3)
     expect(useConfigState.getState().globalError?.message).toBe('Failed to send 1 of 3 attachments.')
   })
 
   test('when every file fails the error says so', async () => {
-    jest
-      .spyOn(T.RPCChat, 'localPostFileAttachmentLocalNonblockRpcPromise')
-      .mockRejectedValue(new Error('offline'))
+    rpc.fail('postAttachment', new Error('offline'))
     jest.spyOn(logger, 'error').mockImplementation(() => {})
     upload({paths: [pathA]})
     await flushPromises()
@@ -300,7 +295,6 @@ describe('uploadAttachments', () => {
   })
 
   test('no failures, no error', async () => {
-    jest.spyOn(T.RPCChat, 'localPostFileAttachmentLocalNonblockRpcPromise').mockResolvedValue({} as never)
     upload()
     await flushPromises()
     expect(useConfigState.getState().globalError).toBeUndefined()
@@ -309,8 +303,6 @@ describe('uploadAttachments', () => {
 
 describe('uploadAttachmentsFromDragAndDrop', () => {
   test('without the darwin copy helper the paths go straight to upload', async () => {
-    const getTemp = jest.spyOn(T.RPCChat, 'localGetUploadTempFileRpcPromise')
-    const post = jest.spyOn(T.RPCChat, 'localPostFileAttachmentLocalNonblockRpcPromise').mockResolvedValue({} as never)
     uploadAttachmentsFromDragAndDrop({
       clientPrev: T.Chat.numberToMessageID(1),
       conversationIDKey: convKey,
@@ -320,8 +312,8 @@ describe('uploadAttachmentsFromDragAndDrop', () => {
       tlfName: 'alice',
     })
     await flushPromises()
-    expect(getTemp).not.toHaveBeenCalled()
-    expect(post.mock.calls[0]?.[0].arg).toEqual(
+    expect(rpc.calls('getUploadTempFile')).toEqual([])
+    expect(rpc.params('postAttachment')[0]).toEqual(
       expect.objectContaining({filename: '/dropped.png', outboxID: new Uint8Array([5]), title: 't'})
     )
   })
@@ -332,14 +324,10 @@ describe('uploadAttachmentsFromDragAndDrop', () => {
     preload.functions['darwinCopyToChatTempUploadFile'] = copy
     try {
       await jest.isolateModulesAsync(async () => {
-        const IsolatedT = (await import('@/constants/types')) as typeof T
+        const IsolatedFake = await import('@/test/fake-chat-rpc')
         const Isolated = await import('./attachment-actions')
-        const getTemp = jest
-          .spyOn(IsolatedT.RPCChat, 'localGetUploadTempFileRpcPromise')
-          .mockResolvedValue('/service/tmp/dropped.png')
-        const post = jest
-          .spyOn(IsolatedT.RPCChat, 'localPostFileAttachmentLocalNonblockRpcPromise')
-          .mockResolvedValue({} as never)
+        const isolatedRpc = IsolatedFake.installFakeChatRpc()
+        isolatedRpc.on('getUploadTempFile', () => '/service/tmp/dropped.png')
         Isolated.uploadAttachmentsFromDragAndDrop({
           clientPrev: T.Chat.numberToMessageID(1),
           conversationIDKey: convKey,
@@ -349,13 +337,16 @@ describe('uploadAttachmentsFromDragAndDrop', () => {
           tlfName: 'alice',
         })
         await flushPromises()
-        expect(getTemp).toHaveBeenCalledWith({filename: '/dropped.png', outboxID: expect.any(Uint8Array)})
-        const tempOutboxID = getTemp.mock.calls[0]?.[0].outboxID
+        expect(isolatedRpc.params('getUploadTempFile')).toEqual([
+          {filename: '/dropped.png', outboxID: expect.any(Uint8Array)},
+        ])
+        const tempOutboxID = isolatedRpc.params('getUploadTempFile')[0]?.outboxID
         expect(tempOutboxID).not.toEqual(new Uint8Array([5]))
         expect(copy).toHaveBeenCalledWith('/service/tmp/dropped.png', '/dropped.png')
-        expect(post.mock.calls[0]?.[0].arg).toEqual(
+        expect(isolatedRpc.params('postAttachment')[0]).toEqual(
           expect.objectContaining({filename: '/service/tmp/dropped.png', outboxID: tempOutboxID})
         )
+        IsolatedFake.restoreChatRpc()
       })
     } finally {
       delete preload.functions['darwinCopyToChatTempUploadFile']
@@ -374,38 +365,28 @@ describe('storeless attachment download', () => {
     })
 
   test('downloads to the download folder', async () => {
-    const download = jest
-      .spyOn(T.RPCChat, 'localDownloadFileAttachmentLocalRpcPromise')
-      .mockResolvedValue({filePath: '/dl/doc.pdf'} as never)
+    rpc.on('downloadAttachment', () => '/dl/doc.pdf')
     attachmentDownloadMessage(convKey, downloadable())
     await flushPromises()
-    expect(download).toHaveBeenCalledWith({
-      conversationID: convID,
-      downloadToCache: false,
-      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-      messageID: T.Chat.numberToMessageID(42),
-      preview: false,
-    })
+    expect(rpc.params('downloadAttachment')).toEqual([
+      {conversationIDKey: convKey, downloadToCache: false, messageID: T.Chat.numberToMessageID(42)},
+    ])
   })
 
   test('an already downloaded message is not fetched again', async () => {
-    const download = jest.spyOn(T.RPCChat, 'localDownloadFileAttachmentLocalRpcPromise')
     attachmentDownloadMessage(convKey, downloadable({downloadPath: '/dl/doc.pdf'}))
     await flushPromises()
-    expect(download).not.toHaveBeenCalled()
+    expect(rpc.calls('downloadAttachment')).toEqual([])
   })
 
   test('a message with no id is not fetched', async () => {
-    const download = jest.spyOn(T.RPCChat, 'localDownloadFileAttachmentLocalRpcPromise')
     attachmentDownloadMessage(convKey, downloadable({id: T.Chat.numberToMessageID(0)}))
     await flushPromises()
-    expect(download).not.toHaveBeenCalled()
+    expect(rpc.calls('downloadAttachment')).toEqual([])
   })
 
   test('a failed download is swallowed', async () => {
-    jest
-      .spyOn(T.RPCChat, 'localDownloadFileAttachmentLocalRpcPromise')
-      .mockRejectedValue(new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    rpc.fail('downloadAttachment', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
     const error = jest.spyOn(logger, 'error')
     attachmentDownloadMessage(convKey, downloadable())
     await flushPromises()
@@ -413,10 +394,9 @@ describe('storeless attachment download', () => {
   })
 
   test('native save does nothing off mobile', async () => {
-    const download = jest.spyOn(T.RPCChat, 'localDownloadFileAttachmentLocalRpcPromise')
     messageAttachmentNativeSaveMessage(convKey, downloadable())
     await flushPromises()
-    expect(download).not.toHaveBeenCalled()
+    expect(rpc.calls('downloadAttachment')).toEqual([])
   })
 
   describe('on mobile', () => {
@@ -430,18 +410,16 @@ describe('storeless attachment download', () => {
     })
 
     test('native save downloads to the cache and saves that file to the camera roll', async () => {
-      const download = jest
-        .spyOn(T.RPCChat, 'localDownloadFileAttachmentLocalRpcPromise')
-        .mockResolvedValue({filePath: '/cache/doc.pdf'} as never)
+      rpc.on('downloadAttachment', () => '/cache/doc.pdf')
       const save = jest.spyOn(PlatformSpecific, 'saveAttachmentToCameraRoll').mockResolvedValue()
       messageAttachmentNativeSaveMessage(convKey, downloadable())
       await flushPromises()
-      expect(download).toHaveBeenCalledWith(expect.objectContaining({downloadToCache: true}))
+      expect(rpc.params('downloadAttachment')[0]).toEqual(expect.objectContaining({downloadToCache: true}))
       expect(save).toHaveBeenCalledWith('/cache/doc.pdf', 'application/pdf')
     })
 
     test('native save skips the camera roll when the download fails', async () => {
-      jest.spyOn(T.RPCChat, 'localDownloadFileAttachmentLocalRpcPromise').mockRejectedValue(new Error('x'))
+      rpc.fail('downloadAttachment', new Error('x'))
       const save = jest.spyOn(PlatformSpecific, 'saveAttachmentToCameraRoll').mockResolvedValue()
       messageAttachmentNativeSaveMessage(convKey, downloadable())
       await flushPromises()
@@ -449,9 +427,7 @@ describe('storeless attachment download', () => {
     })
 
     test('native share opens the share sheet on the cached file', async () => {
-      jest
-        .spyOn(T.RPCChat, 'localDownloadFileAttachmentLocalRpcPromise')
-        .mockResolvedValue({filePath: '/cache/doc.pdf'} as never)
+      rpc.on('downloadAttachment', () => '/cache/doc.pdf')
       const share = jest.spyOn(PlatformSpecific, 'showShareActionSheet').mockResolvedValue({} as never)
       messageAttachmentNativeShareMessage(convKey, downloadable())
       await flushPromises()
@@ -460,9 +436,7 @@ describe('storeless attachment download', () => {
 
     test('a pdf shared from a download on iOS opens the pdf viewer instead', async () => {
       g.isIOS = true
-      jest
-        .spyOn(T.RPCChat, 'localDownloadFileAttachmentLocalRpcPromise')
-        .mockResolvedValue({filePath: '/cache/doc.pdf'} as never)
+      rpc.on('downloadAttachment', () => '/cache/doc.pdf')
       const share = jest.spyOn(PlatformSpecific, 'showShareActionSheet').mockResolvedValue({} as never)
       const message = downloadable()
       messageAttachmentNativeShareMessage(convKey, message, true)
@@ -495,39 +469,31 @@ describe('loadNextAttachmentMessage', () => {
   test('asks for the next image or video and converts it', async () => {
     const uiMessage = {state: T.RPCChat.MessageUnboxedState.valid} as T.RPCChat.UIMessage
     const next = makeMessageAttachment({conversationIDKey: convKey, id: T.Chat.numberToMessageID(43)})
-    const getNext = jest
-      .spyOn(T.RPCChat, 'localGetNextAttachmentMessageLocalRpcPromise')
-      .mockResolvedValue({message: uiMessage} as never)
+    rpc.on('getNextAttachment', () => uiMessage)
     const convert = jest.spyOn(Message, 'uiMessageToMessage').mockReturnValue(next)
 
     await expect(loadNextAttachmentMessage(convKey, fromMsg, true)).resolves.toBe(next)
-    expect(getNext).toHaveBeenCalledWith({
-      assetTypes: [T.RPCChat.AssetMetadataType.image, T.RPCChat.AssetMetadataType.video],
-      backInTime: true,
-      convID,
-      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-      messageID: T.Chat.numberToMessageID(42),
-    })
+    expect(rpc.params('getNextAttachment')).toEqual([
+      {backInTime: true, conversationIDKey: convKey, messageID: T.Chat.numberToMessageID(42)},
+    ])
     expect(convert).toHaveBeenCalledWith(convKey, uiMessage, 'testuser', expect.any(Function), 'testuser-mac')
     const getOrdinal = convert.mock.calls[0]?.[3] as () => T.Chat.Ordinal
     expect(getOrdinal()).toBe(fromMsg.ordinal)
   })
 
   test('rejects when there is no next message', async () => {
-    jest.spyOn(T.RPCChat, 'localGetNextAttachmentMessageLocalRpcPromise').mockResolvedValue({message: null} as never)
+    rpc.on('getNextAttachment', () => undefined)
     await expect(loadNextAttachmentMessage(convKey, fromMsg, false)).rejects.toThrow('No more results')
   })
 
   test('rejects when the next message is not an attachment', async () => {
-    jest
-      .spyOn(T.RPCChat, 'localGetNextAttachmentMessageLocalRpcPromise')
-      .mockResolvedValue({message: {state: T.RPCChat.MessageUnboxedState.valid}} as never)
+    rpc.on('getNextAttachment', () => ({state: T.RPCChat.MessageUnboxedState.valid}) as T.RPCChat.UIMessage)
     jest.spyOn(Message, 'uiMessageToMessage').mockReturnValue(makeMessageText({conversationIDKey: convKey}))
     await expect(loadNextAttachmentMessage(convKey, fromMsg, false)).rejects.toThrow('No more results')
   })
 
   test('passes a service error through', async () => {
-    jest.spyOn(T.RPCChat, 'localGetNextAttachmentMessageLocalRpcPromise').mockRejectedValue(new Error('offline'))
+    rpc.fail('getNextAttachment', new Error('offline'))
     await expect(loadNextAttachmentMessage(convKey, fromMsg, false)).rejects.toThrow('offline')
   })
 })
@@ -570,26 +536,20 @@ describe('useConversationAttachmentActions', () => {
   })
 
   test('a download marks the message downloading, then records the path', async () => {
-    const download = deferred<{filePath: string}>()
-    const rpc = jest
-      .spyOn(T.RPCChat, 'localDownloadFileAttachmentLocalRpcPromise')
-      .mockReturnValue(download.promise as never)
+    const download = deferred<string>()
+    rpc.on('downloadAttachment', async () => download.promise)
     const {current, result} = renderWith(threadAttachment())
 
     act(() => {
       result.current.attachmentActions.attachmentDownload(ordinal)
     })
     expect((current() as T.Chat.MessageAttachment).transferState).toBe('downloading')
-    expect(rpc).toHaveBeenCalledWith({
-      conversationID: convID,
-      downloadToCache: false,
-      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-      messageID: T.Chat.numberToMessageID(42),
-      preview: false,
-    })
+    expect(rpc.params('downloadAttachment')).toEqual([
+      {conversationIDKey: convKey, downloadToCache: false, messageID: T.Chat.numberToMessageID(42)},
+    ])
 
     await act(async () => {
-      download.resolve({filePath: '/dl/doc.pdf'})
+      download.resolve('/dl/doc.pdf')
       await flushPromises()
     })
     const done = current() as T.Chat.MessageAttachment
@@ -600,7 +560,7 @@ describe('useConversationAttachmentActions', () => {
 
   test('a failed download records the service message on the message', async () => {
     const rpcError = new RPCError('quota', T.RPCGen.StatusCode.scgeneric)
-    jest.spyOn(T.RPCChat, 'localDownloadFileAttachmentLocalRpcPromise').mockRejectedValue(rpcError)
+    rpc.fail('downloadAttachment', rpcError)
     const {current, result} = renderWith(threadAttachment())
     await act(async () => {
       result.current.attachmentActions.attachmentDownload(ordinal)
@@ -612,7 +572,7 @@ describe('useConversationAttachmentActions', () => {
   })
 
   test('a non-service failure records a generic message', async () => {
-    jest.spyOn(T.RPCChat, 'localDownloadFileAttachmentLocalRpcPromise').mockRejectedValue(new Error('weird'))
+    rpc.fail('downloadAttachment', new Error('weird'))
     const {current, result} = renderWith(threadAttachment())
     await act(async () => {
       result.current.attachmentActions.attachmentDownload(ordinal)
@@ -622,17 +582,15 @@ describe('useConversationAttachmentActions', () => {
   })
 
   test('an already downloaded message is not fetched again', async () => {
-    const rpc = jest.spyOn(T.RPCChat, 'localDownloadFileAttachmentLocalRpcPromise')
     const {result} = renderWith(threadAttachment({downloadPath: '/dl/doc.pdf'}))
     await act(async () => {
       result.current.attachmentActions.attachmentDownload(ordinal)
       await flushPromises()
     })
-    expect(rpc).not.toHaveBeenCalled()
+    expect(rpc.calls('downloadAttachment')).toEqual([])
   })
 
   test('a non-attachment gets the incorrect-message error and no fetch', async () => {
-    const rpc = jest.spyOn(T.RPCChat, 'localDownloadFileAttachmentLocalRpcPromise')
     const {current, result} = renderWith(
       makeMessageText({conversationIDKey: convKey, id: T.Chat.numberToMessageID(42), ordinal})
     )
@@ -640,7 +598,7 @@ describe('useConversationAttachmentActions', () => {
       result.current.attachmentActions.attachmentDownload(ordinal)
       await flushPromises()
     })
-    expect(rpc).not.toHaveBeenCalled()
+    expect(rpc.calls('downloadAttachment')).toEqual([])
     expect(current()?.transferErrMsg).toBe('Trying to download missing / incorrect message?')
   })
 
@@ -654,26 +612,20 @@ describe('useConversationAttachmentActions', () => {
     })
 
     test('native save downloads to the cache then saves, clearing the saving state', async () => {
-      jest
-        .spyOn(T.RPCChat, 'localDownloadFileAttachmentLocalRpcPromise')
-        .mockResolvedValue({filePath: '/cache/doc.pdf'} as never)
+      rpc.on('downloadAttachment', () => '/cache/doc.pdf')
       const save = jest.spyOn(PlatformSpecific, 'saveAttachmentToCameraRoll').mockResolvedValue()
       const {current, result} = renderWith(threadAttachment())
       await act(async () => {
         result.current.attachmentActions.messageAttachmentNativeSave(ordinal)
         await flushPromises()
       })
-      expect(T.RPCChat.localDownloadFileAttachmentLocalRpcPromise).toHaveBeenCalledWith(
-        expect.objectContaining({downloadToCache: true})
-      )
+      expect(rpc.params('downloadAttachment')[0]).toEqual(expect.objectContaining({downloadToCache: true}))
       expect(save).toHaveBeenCalledWith('/cache/doc.pdf', 'application/pdf')
       expect((current() as T.Chat.MessageAttachment).transferState).toBeUndefined()
     })
 
     test('a failed camera-roll save is recorded on the message', async () => {
-      jest
-        .spyOn(T.RPCChat, 'localDownloadFileAttachmentLocalRpcPromise')
-        .mockResolvedValue({filePath: '/cache/doc.pdf'} as never)
+      rpc.on('downloadAttachment', () => '/cache/doc.pdf')
       jest.spyOn(PlatformSpecific, 'saveAttachmentToCameraRoll').mockRejectedValue(new Error('denied'))
       jest.spyOn(logger, 'error').mockImplementation(() => {})
       const {current, result} = renderWith(threadAttachment())
@@ -685,9 +637,7 @@ describe('useConversationAttachmentActions', () => {
     })
 
     test('native share opens the share sheet on the cached file', async () => {
-      jest
-        .spyOn(T.RPCChat, 'localDownloadFileAttachmentLocalRpcPromise')
-        .mockResolvedValue({filePath: '/cache/doc.pdf'} as never)
+      rpc.on('downloadAttachment', () => '/cache/doc.pdf')
       const share = jest.spyOn(PlatformSpecific, 'showShareActionSheet').mockResolvedValue({} as never)
       const {result} = renderWith(threadAttachment())
       await act(async () => {
