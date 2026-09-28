@@ -6,6 +6,7 @@ import {useThreadNotifications} from '@/chat/notification-registry'
 import {useConfigState} from '@/stores/config'
 import type {Selection as InputSelection} from '../normal/input.shared'
 import {useConversationMeta} from '../../data-hooks'
+import {useConversationThreadUid} from '../../thread-context'
 
 const getCommandPrefix = (command: T.RPCChat.ConversationCommand) => {
   return command.username ? '!' : '/'
@@ -49,8 +50,9 @@ const makeBotCommandsUpdateState = (conversationIDKey: T.Chat.ConversationIDKey)
 
 export const useBotCommandsUpdateState = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const [updateState, setUpdateState] = React.useState(() => makeBotCommandsUpdateState(conversationIDKey))
+  const threadUid = useConversationThreadUid()
 
-  useThreadNotifications(conversationIDKey, notification => {
+  useThreadNotifications(conversationIDKey, threadUid, notification => {
     if (notification.type !== 'botCommandsUpdateStatus') {
       return
     }

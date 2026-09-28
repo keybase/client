@@ -207,6 +207,8 @@ export type ThreadStore = {
   // has shown. Cleared on messagesClear.
   shownUsernameCache: Map<T.Chat.Ordinal, string>
   store: StoreApi<ConversationThreadState>
+  // the account the thread was built for
+  uid: string
 }
 
 const sameStringSet = (a: ReadonlySet<string>, b: ReadonlySet<string>) => {
@@ -794,5 +796,6 @@ export const makeThreadStore = (
     },
     shownUsernameCache,
     store,
+    uid: threadUid,
   }
 }

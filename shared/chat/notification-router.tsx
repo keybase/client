@@ -39,6 +39,7 @@ import {
   updateInboxConversationMeta,
 } from '@/chat/inbox/metadata'
 import {updateInboxTyping} from '@/chat/inbox/typing-state'
+import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import {useWaitingState} from '@/stores/waiting'
 import {
@@ -539,9 +540,11 @@ export const routeChatNotification = (action: ChatNotification) => {
     thread: hasThreadHandlers(),
   })
   inbox?.()
-  deliverThreadNotifications(thread, action.type)
-  deliverReloadTriggers(reloads, action.type)
+  // the service sends notifications for the account signed in now
+  const {uid} = useCurrentUserState.getState()
+  deliverThreadNotifications(thread, action.type, uid)
+  deliverReloadTriggers(reloads, action.type, uid)
   if (reloadEach) {
-    deliverReloadTriggerToEach(reloadEach, action.type)
+    deliverReloadTriggerToEach(reloadEach, action.type, uid)
   }
 }

@@ -4,7 +4,14 @@ import {act, cleanup, renderHook} from '@testing-library/react'
 import {routeChatNotification} from '@/chat/notification-router'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
+import {useCurrentUserState} from '@/stores/current-user'
 import {transformer, useBotCommandsUpdateState} from './commands'
+
+// the hook runs inside a thread built for the signed-in account
+jest.mock('../../thread-context', () => ({
+  ...jest.requireActual<object>('../../thread-context'),
+  useConversationThreadUid: () => 'uid',
+}))
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
@@ -20,6 +27,12 @@ const notifyBotCommandsStatus = (
     } as never)
   })
 }
+
+beforeEach(() => {
+  useCurrentUserState
+    .getState()
+    .dispatch.setBootstrap({deviceID: 'd', deviceName: 'testuser-mac', uid: 'uid', username: 'testuser'})
+})
 
 afterEach(() => {
   cleanup()

@@ -6,6 +6,7 @@ import {
   type ThreadLoadStatusOptions,
   type ThreadLoadStatusReporter,
   useConversationThreadLoadMoreMessages,
+  useConversationThreadUid,
   useConversationThreadSelectedConversation,
 } from './thread-context'
 
@@ -73,6 +74,7 @@ export const ConversationThreadLoadStatusProvider = (
   const [initialSkipThreadLoadOnSelection] = React.useState(skipThreadLoadOnSelection)
   const loadMoreMessages = useConversationThreadLoadMoreMessages()
   const selectedConversation = useConversationThreadSelectedConversation()
+  const threadUid = useConversationThreadUid()
   const currentIDRef = React.useRef(id)
   React.useLayoutEffect(() => {
     currentIDRef.current = id
@@ -144,7 +146,7 @@ export const ConversationThreadLoadStatusProvider = (
     })
   }
 
-  useReloadTriggers(id, trigger => {
+  useReloadTriggers(id, threadUid, trigger => {
     if (trigger.type === 'staleThread') {
       reloadStaleThread()
     }

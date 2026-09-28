@@ -49,7 +49,8 @@ export const useConversationMetadataReload = (conversationIDKey: T.Chat.Conversa
     }
   }, [conversationIDKey, loggedIn])
 
-  useReloadTriggers(conversationIDKey, trigger => {
+  // the reload reads whichever account is signed in
+  useReloadTriggers(conversationIDKey, undefined, trigger => {
     if (trigger.type === 'metadata') {
       reload()
     }
@@ -195,7 +196,8 @@ const useConversationMessagesAroundMessageID = (
       ? loaded.messages
       : emptyMessages
 
-  useReloadTriggers(conversationIDKey, trigger => {
+  // the load asks the service for whichever account is signed in
+  useReloadTriggers(conversationIDKey, undefined, trigger => {
     // the shown message renders the text of the message it replies to
     const shown = messages.find(message => message.id === messageID)
     const replyToID = shown?.type === 'text' ? shown.replyTo?.id : undefined

@@ -4,7 +4,7 @@ import logger from '@/logger'
 import {findLast} from '@/util/arrays'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useThreadNotifications} from '@/chat/notification-registry'
-import {useConversationThreadStore} from '../thread-context'
+import {useConversationThreadStore, useConversationThreadUid} from '../thread-context'
 import {useConversationSendActions} from '../send-actions'
 import {
   consumeInputIntent,
@@ -125,6 +125,7 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
   // Only setEditing reads thread state, so read it lazily instead of subscribing —
   // a subscription here re-renders the whole input subtree on every thread change.
   const threadStore = useConversationThreadStore()
+  const threadUid = useConversationThreadUid()
   const {sendGiphyResult: sendGiphyResultAction, sendMessage} = useConversationSendActions()
 
   const injectIntoInput = React.useEffectEvent((text?: string, focus?: boolean) => {
@@ -273,7 +274,7 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
     }
   }, [id])
 
-  useThreadNotifications(id, notification => {
+  useThreadNotifications(id, threadUid, notification => {
     switch (notification.type) {
       case 'commandStatus':
         setCommandStatusInfo({

@@ -20,6 +20,7 @@ jest.mock('./thread-context', () => ({
   useConversationThreadLoadMessagesCentered: () => mockLoadMessagesCentered,
   useConversationThreadSetMarkReadBlocked: () => mockSetMarkReadBlocked,
   useConversationThreadStore: () => ({getState: () => ({})}),
+  useConversationThreadUid: () => '',
 }))
 jest.mock('./send-actions', () => ({
   useConversationSendActions: () => ({sendGiphyResult: jest.fn(), sendMessage: jest.fn()}),

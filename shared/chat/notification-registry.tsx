@@ -5,8 +5,11 @@
 // Screens register from a passive effect, so a screen React has hidden with <Activity> (which
 // unmounts passive effects) is unregistered while hidden and misses what arrives meanwhile.
 //
-// A store reset leaves registrations alone: they belong to mounted screens, which unregister
-// themselves, and an account switch resets the stores while keeping logged-in screens mounted.
+// Each registration names the account it was made for, and hears only while that account is
+// signed in. Two accounts in one team share its channels' conversation ids, and an account switch
+// resets the stores while keeping the logged-in screens mounted, so a screen built for the account
+// switched away from must not be handed the new account's notifications. A store reset leaves
+// registrations alone: they belong to mounted screens, which unregister themselves.
 //
 // Keep this a leaf. The router's inbox stage imports reach constants/router, whose route table
 // imports these screens, so a screen importing the router would close a require cycle.
@@ -63,7 +66,9 @@ export type Delivery<N> = {conversationIDKey: T.Chat.ConversationIDKey; notifica
 // mounted (a team's channels, an inbox sync), so it is matched against the registrations instead.
 export type FanOut<N> = {conversationIDKeys: ReadonlySet<T.Chat.ConversationIDKey>; notification: N}
 type Handler<N> = (notification: N) => void
-type Registry<N> = Map<T.Chat.ConversationIDKey, Set<Handler<N>>>
+// uid undefined: hears whichever account is signed in
+type Entry<N> = {handler: Handler<N>; uid: string | undefined}
+type Registry<N> = Map<T.Chat.ConversationIDKey, Set<Entry<N>>>
 
 declare global {
   var __hmr_chatThreadHandlers: Registry<ThreadNotification> | undefined
@@ -71,22 +76,27 @@ declare global {
 }
 
 const threadHandlers: Registry<ThreadNotification> = __DEV__
-  ? (globalThis.__hmr_chatThreadHandlers ??= new Map<T.Chat.ConversationIDKey, Set<Handler<ThreadNotification>>>())
-  : new Map<T.Chat.ConversationIDKey, Set<Handler<ThreadNotification>>>()
+  ? (globalThis.__hmr_chatThreadHandlers ??= new Map<T.Chat.ConversationIDKey, Set<Entry<ThreadNotification>>>())
+  : new Map<T.Chat.ConversationIDKey, Set<Entry<ThreadNotification>>>()
 const reloadHandlers: Registry<ReloadTrigger> = __DEV__
-  ? (globalThis.__hmr_chatReloadHandlers ??= new Map<T.Chat.ConversationIDKey, Set<Handler<ReloadTrigger>>>())
-  : new Map<T.Chat.ConversationIDKey, Set<Handler<ReloadTrigger>>>()
+  ? (globalThis.__hmr_chatReloadHandlers ??= new Map<T.Chat.ConversationIDKey, Set<Entry<ReloadTrigger>>>())
+  : new Map<T.Chat.ConversationIDKey, Set<Entry<ReloadTrigger>>>()
 
-const register = <N,>(registry: Registry<N>, id: T.Chat.ConversationIDKey, handler: Handler<N>) => {
-  let handlers = registry.get(id)
-  if (!handlers) {
-    handlers = new Set()
-    registry.set(id, handlers)
+const register = <N,>(
+  registry: Registry<N>,
+  id: T.Chat.ConversationIDKey,
+  uid: string | undefined,
+  handler: Handler<N>
+) => {
+  let entries = registry.get(id)
+  if (!entries) {
+    entries = new Set()
+    registry.set(id, entries)
   }
-  const set = handlers
+  const set = entries
   // each registration is its own entry, so registering one function twice delivers twice and
   // each unregister removes only its own
-  const entry: Handler<N> = notification => handler(notification)
+  const entry: Entry<N> = {handler, uid}
   set.add(entry)
   return () => {
     set.delete(entry)
@@ -97,37 +107,63 @@ const register = <N,>(registry: Registry<N>, id: T.Chat.ConversationIDKey, handl
   }
 }
 
-export const registerThreadHandler = (id: T.Chat.ConversationIDKey, handler: Handler<ThreadNotification>) =>
-  register(threadHandlers, id, handler)
+// uid: the account the screen's thread was built for
+export const registerThreadHandler = (
+  id: T.Chat.ConversationIDKey,
+  uid: string,
+  handler: Handler<ThreadNotification>
+) => register(threadHandlers, id, uid, handler)
 
-export const registerReloadHandler = (id: T.Chat.ConversationIDKey, handler: Handler<ReloadTrigger>) =>
-  register(reloadHandlers, id, handler)
+// uid: the account the reader's data belongs to, or undefined for a reader that loads for whichever
+// account is signed in
+export const registerReloadHandler = (
+  id: T.Chat.ConversationIDKey,
+  uid: string | undefined,
+  handler: Handler<ReloadTrigger>
+) => register(reloadHandlers, id, uid, handler)
 
-export const useThreadNotifications = (id: T.Chat.ConversationIDKey, handler: Handler<ThreadNotification>) => {
+export const useThreadNotifications = (
+  id: T.Chat.ConversationIDKey,
+  uid: string,
+  handler: Handler<ThreadNotification>
+) => {
   const onNotification = React.useEffectEvent(handler)
-  React.useEffect(() => registerThreadHandler(id, n => onNotification(n)), [id])
+  React.useEffect(() => registerThreadHandler(id, uid, n => onNotification(n)), [id, uid])
 }
 
-export const useReloadTriggers = (id: T.Chat.ConversationIDKey, handler: Handler<ReloadTrigger>) => {
+export const useReloadTriggers = (
+  id: T.Chat.ConversationIDKey,
+  uid: string | undefined,
+  handler: Handler<ReloadTrigger>
+) => {
   const onTrigger = React.useEffectEvent(handler)
-  React.useEffect(() => registerReloadHandler(id, r => onTrigger(r)), [id])
+  React.useEffect(() => registerReloadHandler(id, uid, r => onTrigger(r)), [id, uid])
 }
 
-const runHandlers = <N,>(handlers: ReadonlySet<Handler<N>>, notification: N, type: string) => {
-  for (const handler of [...handlers]) {
+// uid: the account signed in now
+const runHandlers = <N,>(entries: ReadonlySet<Entry<N>>, notification: N, type: string, uid: string) => {
+  for (const entry of [...entries]) {
+    if (entry.uid !== undefined && entry.uid !== uid) {
+      continue
+    }
     try {
-      handler(notification)
+      entry.handler(notification)
     } catch (error) {
       logger.error(`Error in chat notification handler for ${type}`, error)
     }
   }
 }
 
-const deliver = <N,>(registry: Registry<N>, deliveries: ReadonlyArray<Delivery<N>>, type: string) => {
+const deliver = <N,>(
+  registry: Registry<N>,
+  deliveries: ReadonlyArray<Delivery<N>>,
+  type: string,
+  uid: string
+) => {
   for (const {conversationIDKey, notification} of deliveries) {
-    const handlers = registry.get(conversationIDKey)
-    if (handlers?.size) {
-      runHandlers(handlers, notification, type)
+    const entries = registry.get(conversationIDKey)
+    if (entries?.size) {
+      runHandlers(entries, notification, type, uid)
     }
   }
 }
@@ -137,25 +173,26 @@ const deliver = <N,>(registry: Registry<N>, deliveries: ReadonlyArray<Delivery<N
 const deliverToEach = <N,>(
   registry: Registry<N>,
   {conversationIDKeys, notification}: FanOut<N>,
-  type: string
+  type: string,
+  uid: string
 ) => {
-  const matched: Array<ReadonlySet<Handler<N>>> = []
+  const matched: Array<ReadonlySet<Entry<N>>> = []
   if (conversationIDKeys.size < registry.size) {
     for (const conversationIDKey of conversationIDKeys) {
-      const handlers = registry.get(conversationIDKey)
-      if (handlers) {
-        matched.push(handlers)
+      const entries = registry.get(conversationIDKey)
+      if (entries) {
+        matched.push(entries)
       }
     }
   } else {
-    for (const [conversationIDKey, handlers] of registry) {
+    for (const [conversationIDKey, entries] of registry) {
       if (conversationIDKeys.has(conversationIDKey)) {
-        matched.push(handlers)
+        matched.push(entries)
       }
     }
   }
-  for (const handlers of matched) {
-    runHandlers(handlers, notification, type)
+  for (const entries of matched) {
+    runHandlers(entries, notification, type, uid)
   }
 }
 
@@ -164,11 +201,15 @@ export const hasReloadHandlers = () => reloadHandlers.size > 0
 
 export const deliverThreadNotifications = (
   deliveries: ReadonlyArray<Delivery<ThreadNotification>>,
-  type: string
-) => deliver(threadHandlers, deliveries, type)
+  type: string,
+  uid: string
+) => deliver(threadHandlers, deliveries, type, uid)
 
-export const deliverReloadTriggers = (deliveries: ReadonlyArray<Delivery<ReloadTrigger>>, type: string) =>
-  deliver(reloadHandlers, deliveries, type)
+export const deliverReloadTriggers = (
+  deliveries: ReadonlyArray<Delivery<ReloadTrigger>>,
+  type: string,
+  uid: string
+) => deliver(reloadHandlers, deliveries, type, uid)
 
-export const deliverReloadTriggerToEach = (fanOut: FanOut<ReloadTrigger>, type: string) =>
-  deliverToEach(reloadHandlers, fanOut, type)
+export const deliverReloadTriggerToEach = (fanOut: FanOut<ReloadTrigger>, type: string, uid: string) =>
+  deliverToEach(reloadHandlers, fanOut, type, uid)

@@ -1118,6 +1118,9 @@ const typingIn = (id: T.Chat.ConversationIDKey, username: string) =>
 
 const typersIn = (tag: string) => [...(mounted.get(tag)?.store.getState().typing ?? [])]
 
+const signIn = (uid: string, username: string) =>
+  useCurrentUserState.getState().dispatch.setBootstrap({deviceID: 'device-id', deviceName: 'test-device', uid, username})
+
 const explodingModeIn = (id: T.Chat.ConversationIDKey, seconds: number) =>
   engineAction('keybase.1.gregorUI.pushState', {
     reason: T.RPCGen.PushReason.none,
@@ -1183,13 +1186,14 @@ describe('mounted conversation screens', () => {
     expect(typersIn('A')).toEqual(['testuser-2'])
   })
 
-  // An account switch resets every store but keeps the logged-in screens mounted; they keep
-  // hearing their conversation, on the chat router and on the engine bus.
-  test('a mounted screen keeps getting notifications across a store reset', async () => {
+  // An account switch resets every store but keeps the logged-in screens mounted. Back on the same
+  // account they keep hearing their conversation, on the chat router and on the engine bus.
+  test('a mounted screen keeps getting notifications across a store reset on the same account', async () => {
     await mountScreens([convA])
     act(() => {
       resetAllStores()
       useConfigState.setState({loggedIn: true})
+      signIn('uid', 'alice')
     })
     await settle()
     timeline = []
@@ -1204,6 +1208,42 @@ describe('mounted conversation screens', () => {
     expect(mounted.get('A')?.store.getState().messageOrdinals).toContain(T.Chat.numberToOrdinal(31))
     await notify(explodingModeIn(convA, 300))
     expect(mounted.get('A')?.store.getState().explodingMode).toBe(300)
+  })
+
+  // Two accounts in one team share its channels' conversation ids. A screen still mounted for the
+  // account switched away from hears nothing meant for the new one; a screen mounted for the new
+  // account hears it.
+  test('after a switch to another account, only a screen mounted for it hears the shared conversation', async () => {
+    await mountScreens([convA])
+    act(() => {
+      resetAllStores()
+      useConfigState.setState({loggedIn: true})
+      signIn('uid2', 'bob')
+    })
+    await settle()
+    timeline = []
+    await notify(typingIn(convA, 'carol'))
+    expect(timeline).toEqual(['inbox:typing'])
+    expect(typersIn('A')).toEqual([])
+    timeline = []
+    await notify(
+      engineAction('chat.1.NotifyChat.ChatThreadsStale', {
+        uid: '',
+        updates: [{convID: rpcConvID(convA), updateType: T.RPCChat.StaleUpdateType.newactivity}],
+      })
+    )
+    expect(timeline.filter(e => e.startsWith('rpc:loadThread'))).toEqual([])
+    await notify(explodingModeIn(convA, 300))
+    expect(mounted.get('A')?.store.getState().explodingMode).toBe(0)
+
+    await mountTree(<Screen id={convA} tag="A-bob" />)
+    timeline = []
+    await notify(typingIn(convA, 'carol'))
+    expect(typersIn('A-bob')).toEqual(['carol'])
+    expect(typersIn('A')).toEqual([])
+    await notify(explodingModeIn(convA, 300))
+    expect(mounted.get('A-bob')?.store.getState().explodingMode).toBe(300)
+    expect(mounted.get('A')?.store.getState().explodingMode).toBe(0)
   })
 
   // Every useConversationMetadata reader arms its own reload, so one notification asks for the
