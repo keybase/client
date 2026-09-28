@@ -6,7 +6,7 @@ import * as React from 'react'
 import * as Users from './users'
 import * as InputState from '../input-state'
 import type * as Common from './common'
-import type {PlatformInputProps as Props, RefType as InputRef} from '../normal/input.shared'
+import type {PlatformInputProps as Props, RefType as InputRef, TextInfo} from '../normal/input.shared'
 import {useComposer, type Composer} from '../composer'
 import type {Suggestions} from '../composer-keys'
 import {useConversationThreadID} from '../../thread-context'
@@ -317,15 +317,34 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     checkTrigger()
   }
 
+  // What a run of previews replaced, so a preview whose item leaves the list can go back to what
+  // was typed rather than show an item the highlight is no longer on. `shown` is the text the last
+  // preview left; once the text is anything else the user has changed it and it is theirs.
+  const previewRef = React.useRef<{shown: string; typed: TextInfo} | undefined>(undefined)
   const onSelected = (item: unknown, final: boolean) => {
+    const previous = previewRef.current
+    const typed =
+      previous?.shown === composer.getText()
+        ? previous.typed
+        : {selection: composer.getSelection(), text: composer.getText()}
     selectedItemRef.current = item as SelectedType
     triggerTransform(item as SelectedType, final)
+    previewRef.current = final ? undefined : {shown: composer.getText(), typed}
+  }
+
+  const onPreviewGone = () => {
+    const previous = previewRef.current
+    previewRef.current = undefined
+    if (previous?.shown !== composer.getText()) return
+    setSnapshotText(previous.typed.text)
+    composer.replace(previous.typed, false)
   }
 
   const listProps = {
     conversationIDKey,
     filter,
     listStyle: suggestionListStyle,
+    onPreviewGone,
     onSelected,
     setListHandle: (h: Common.ListHandle | undefined) => {
       listRef.current = h

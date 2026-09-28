@@ -220,7 +220,7 @@ const useDataSource = (p: UseDataSourceProps) => {
 type CommandType = T.RPCChat.ConversationCommand
 type ListProps = Pick<
   Common.ListProps<CommandType>,
-  'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
+  'suggestBotCommandsUpdateStatus' | 'listStyle' | 'onPreviewGone' | 'spinnerStyle'
 > & {
   botSettings: BotSettingsMap
   conversationIDKey: T.Chat.ConversationIDKey

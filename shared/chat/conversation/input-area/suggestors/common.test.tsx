@@ -77,11 +77,16 @@ describe('List', () => {
 
   const setup = (
     items: Array<string>,
-    opts?: {filter?: string; keyExtractor?: (item: string, idx: number) => string}
+    opts?: {
+      filter?: string
+      keyExtractor?: (item: string, idx: number) => string
+      selectionKey?: (item: string) => string
+    }
   ) => {
     let move: ((up: boolean) => void) | undefined
     let submit: (() => boolean) | undefined
     const onSelected = jest.fn()
+    const onPreviewGone = jest.fn()
     const Item = (p: {selected: boolean; item: string}) => <>{p.item}</>
     const keyExtractor = opts?.keyExtractor ?? ((item: string) => item)
     const view = (next: Array<string>, filter: string) => (
@@ -94,7 +99,9 @@ describe('List', () => {
         listStyle={{}}
         spinnerStyle={{}}
         rowHeight={20}
+        onPreviewGone={onPreviewGone}
         onSelected={onSelected}
+        selectionKey={opts?.selectionKey}
         setListHandle={h => {
           move = h?.move
           submit = h?.submit
@@ -104,6 +111,7 @@ describe('List', () => {
     const utils = render(view(items, opts?.filter ?? 't'))
     return {
       move: (up: boolean) => act(() => move?.(up)),
+      onPreviewGone,
       onSelected,
       rerender: (next: Array<string>, filter: string) => utils.rerender(view(next, filter)),
       submit: () => submit?.(),
@@ -122,6 +130,7 @@ describe('List', () => {
     list.rerender(['testuser', 'testuser-mac'], 't')
 
     expect(highlighted()).toEqual(['testuser'])
+    expect(list.onPreviewGone).toHaveBeenCalledTimes(1)
     expect(list.submit()).toBe(true)
     expect(list.onSelected).toHaveBeenCalledWith('testuser', true)
   })
@@ -150,6 +159,49 @@ describe('List', () => {
     expect(list.onSelected).not.toHaveBeenCalled()
     list.move(false)
     expect(list.onSelected).toHaveBeenLastCalledWith('testuser-mac', false)
+  })
+
+  test('a refresh under the same filter keeps the highlight on the same item, wherever it lands', () => {
+    const list = setup(['testuser', 'testuser-mac', 'testuser2'])
+    list.move(false)
+    list.onSelected.mockClear()
+
+    list.rerender(['testuser0', 'testuser', 'testuser-mac', 'testuser2'], 't')
+
+    expect(highlighted()).toEqual(['testuser-mac'])
+    expect(list.onSelected).not.toHaveBeenCalled()
+    expect(list.onPreviewGone).not.toHaveBeenCalled()
+    expect(list.submit()).toBe(true)
+    expect(list.onSelected).toHaveBeenCalledWith('testuser-mac', true)
+  })
+
+  test('a refresh that drops the highlighted item highlights the first one and says the preview is gone', () => {
+    const list = setup(['testuser', 'testuser-mac', 'testuser2'])
+    list.move(false)
+    list.onSelected.mockClear()
+
+    list.rerender(['testuser', 'testuser2'], 't')
+    list.rerender(['testuser', 'testuser2', 'testuser3'], 't')
+
+    expect(highlighted()).toEqual(['testuser'])
+    expect(list.onPreviewGone).toHaveBeenCalledTimes(1)
+    expect(list.onSelected).not.toHaveBeenCalled()
+    expect(list.submit()).toBe(true)
+    expect(list.onSelected).toHaveBeenCalledWith('testuser', true)
+  })
+
+  test('rows keyed by position follow the highlighted item by its selection key', () => {
+    const list = setup([':smile:', ':smiley:'], {
+      filter: 'smi',
+      keyExtractor: (_, idx) => String(idx),
+      selectionKey: item => item,
+    })
+    list.move(false)
+
+    list.rerender([':smile_cat:', ':smile:', ':smiley:'], 'smi')
+
+    expect(highlighted()).toEqual([':smiley:'])
+    expect(list.onPreviewGone).not.toHaveBeenCalled()
   })
 
   // the emoji list keys its rows by position, so a new filter that yields as many rows has the same keys
@@ -198,6 +250,7 @@ describe('List', () => {
         listStyle={{}}
         spinnerStyle={{}}
         rowHeight={20}
+        onPreviewGone={jest.fn()}
         onSelected={jest.fn()}
         setListHandle={h => (handle = h)}
       />
@@ -228,6 +281,7 @@ describe('List', () => {
         listStyle={{}}
         spinnerStyle={{}}
         rowHeight={20}
+        onPreviewGone={jest.fn()}
         onSelected={(item: string, final: boolean) => {
           onSelected(item, final)
         }}

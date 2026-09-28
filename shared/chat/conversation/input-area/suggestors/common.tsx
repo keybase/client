@@ -75,6 +75,11 @@ export type ListProps<L> = {
   // desktop only, see SuggestionList
   rowHeight: number
   onSelected: (item: L, final: boolean) => void
+  // the item a move previewed left the list while the filter held, so the preview shows an item
+  // that is no longer there; the highlight is back on the first item
+  onPreviewGone: () => void
+  // what identifies an item across refreshes, for lists whose row keys are positions
+  selectionKey?: (item: L) => string
   setListHandle: (h: ListHandle | undefined) => void
   ItemRenderer: (p: ItemRendererProps<L>) => React.JSX.Element
 }
@@ -99,14 +104,36 @@ const RowImpl = <T,>(p: RowProps<T>) => {
 // rows skip on each filter keystroke
 const Row = React.memo(RowImpl) as typeof RowImpl
 
+const identify = <T,>(
+  p: Pick<ListProps<T>, 'keyExtractor' | 'selectionKey'>,
+  item: T,
+  idx: number
+) => (p.selectionKey ? p.selectionKey(item) : p.keyExtractor(item, idx))
+
 export function List<T>(p: ListProps<T>) {
-  const {filter, items, ItemRenderer, loading, keyExtractor, onSelected, rowHeight} = p
-  const {suggestBotCommandsUpdateStatus, listStyle, spinnerStyle, setListHandle} = p
-  // Typing a new filter starts the highlight again from the first item, the way a desktop
-  // completion list does, so Enter and Tab pick that one.
-  const [highlight, setHighlight] = React.useState({filter, index: 0})
-  const highlightIndex = highlight.filter === filter ? highlight.index : 0
-  const selectedIndex = highlightIndex < items.length ? highlightIndex : 0
+  const {filter, items, ItemRenderer, loading, keyExtractor, onPreviewGone, onSelected, rowHeight} = p
+  const {selectionKey, suggestBotCommandsUpdateStatus, listStyle, spinnerStyle, setListHandle} = p
+  // The highlight is an item, so a list that refreshes under it (a participant arriving) keeps it
+  // on the item the text previews; undefined is the first item. Typing a new filter starts again
+  // from the first item, the way a desktop completion list does, so Enter and Tab pick that one.
+  // `dropped` counts highlights whose item left the list, so each one is reported once
+  const [highlight, setHighlight] = React.useState<{dropped: number; filter: string; key?: string}>({
+    dropped: 0,
+    filter,
+  })
+  const highlightKey = highlight.filter === filter ? highlight.key : undefined
+  const found =
+    highlightKey === undefined ? 0 : items.findIndex((item, idx) => identify({keyExtractor, selectionKey}, item, idx) === highlightKey)
+  if (found === -1) {
+    setHighlight({dropped: highlight.dropped + 1, filter})
+  }
+  const selectedIndex = Math.max(found, 0)
+  const reportPreviewGone = React.useEffectEvent(() => onPreviewGone())
+  React.useEffect(() => {
+    if (highlight.dropped) {
+      reportPreviewGone()
+    }
+  }, [highlight.dropped])
 
   const onSelectedEvent = React.useEffectEvent((item: T, final: boolean) => onSelected(item, final))
   const renderItem = (idx: number, item: T) => (
@@ -127,7 +154,7 @@ export function List<T>(p: ListProps<T>) {
     const s = (((up ? selectedIndex - 1 : selectedIndex + 1) % length) + length) % length
     const item = items[s]
     if (s === selectedIndex || !item) return
-    setHighlight({filter, index: s})
+    setHighlight({dropped: highlight.dropped, filter, key: identify({keyExtractor, selectionKey}, item, s)})
     onSelected(item, false)
   })
   const submit = React.useEffectEvent(() => {

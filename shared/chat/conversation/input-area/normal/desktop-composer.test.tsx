@@ -35,6 +35,7 @@ jest.mock('@/common-adapters', () => {
 })
 type MockUsersListProps = {
   filter: string
+  onPreviewGone: () => void
   onSelected: (item: {fullName: string; username: string}, final: boolean) => void
 }
 const mockUsersList = jest.fn((_p: MockUsersListProps) => null)
@@ -374,6 +375,61 @@ test('a previewed suggestion shows in the input and a later pick replaces the pr
     onSelected?.({fullName: '', username: 'testuser-mac'}, true)
   })
   expect(textarea.value).toBe('hi @testuser-mac ')
+})
+
+test('a preview whose user leaves the list goes back to what was typed, so the text matches the highlight', () => {
+  const saveDraft = jest.mocked(T.RPCChat.localUpdateUnsentTextRpcPromise)
+  const {textarea} = renderComposer()
+  act(() => {
+    textarea.focus()
+  })
+  type(textarea, 'hi @te and more', 6)
+  act(() => {
+    jest.advanceTimersByTime(300)
+  })
+  saveDraft.mockClear()
+  const {onPreviewGone, onSelected} = mockUsersList.mock.calls.at(-1)![0]
+  act(() => {
+    onSelected({fullName: '', username: 'testuser'}, false)
+  })
+  act(() => {
+    onSelected({fullName: '', username: 'testuser-mac'}, false)
+  })
+  expect(textarea.value).toBe('hi @testuser-mac and more')
+
+  act(() => {
+    onPreviewGone()
+  })
+
+  expect(textarea.value).toBe('hi @te and more')
+  expect(textarea.selectionStart).toBe(6)
+  expect(saveDraft).not.toHaveBeenCalled()
+  act(() => {
+    onSelected({fullName: '', username: 'testuser'}, true)
+  })
+  expect(textarea.value).toBe('hi @testuser and more')
+})
+
+test('a preview gone after the user typed over it leaves the text alone', () => {
+  const {textarea} = renderComposer()
+  act(() => {
+    textarea.focus()
+  })
+  type(textarea, 'hi @te')
+  act(() => {
+    jest.advanceTimersByTime(5)
+  })
+  const {onPreviewGone, onSelected} = mockUsersList.mock.calls.at(-1)![0]
+  act(() => {
+    onSelected({fullName: '', username: 'testuser-mac'}, false)
+  })
+  type(textarea, 'hi @testuser-mac!')
+
+  act(() => {
+    onPreviewGone()
+  })
+
+  expect(textarea.value).toBe('hi @testuser-mac!')
 })
 
 test('the gif button prefills the giphy command and a second press clears it once the window is up', () => {

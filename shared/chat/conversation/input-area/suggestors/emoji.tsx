@@ -14,6 +14,8 @@ export const transformer = (
 }
 
 const keyExtractor = (_item: EmojiData, idx: number) => String(idx) // emojis can have conflicts on the names
+// names that conflict insert the same text, so either one is the same pick
+const selectionKey = (item: EmojiData) => item.short_name
 
 const emojiSize = 24
 const rowHeight = Common.desktopRowHeight(emojiSize)
@@ -86,7 +88,7 @@ const useDataSource = (conversationIDKey: T.Chat.ConversationIDKey, filter: stri
 
 type ListProps = Pick<
   Common.ListProps<EmojiData>,
-  'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
+  'suggestBotCommandsUpdateStatus' | 'listStyle' | 'onPreviewGone' | 'spinnerStyle'
 > & {
   conversationIDKey: T.Chat.ConversationIDKey
   filter: string
@@ -101,6 +103,7 @@ export const List = (p: ListProps) => {
       {...rest}
       filter={filter}
       keyExtractor={keyExtractor}
+      selectionKey={selectionKey}
       items={items}
       ItemRenderer={ItemRenderer}
       loading={loading}
