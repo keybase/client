@@ -641,4 +641,26 @@ describe('read-only', () => {
     expect(textarea.value).toBe('')
     expect(unsent).not.toHaveBeenCalled()
   })
+
+  // a first keystroke into the empty composer would otherwise save over the draft
+  test('the saved draft loads once the user can post, and typing goes on from it', () => {
+    const unsent = jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+    const meta = {...Meta.makeConversationMeta(), conversationIDKey: convID, draft: 'saved'}
+    act(() => {
+      metasReceived([{...meta, cannotWrite: true}], undefined, {force: true})
+    })
+    const {textarea} = renderComposer()
+    expect(textarea.value).toBe('')
+
+    act(() => {
+      metasReceived([{...meta, cannotWrite: false}], undefined, {force: true})
+    })
+    expect(textarea.value).toBe('saved')
+    type(textarea, 'saved!')
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(unsent.mock.calls.at(-1)?.[0].text).toBe('saved!')
+  })
 })

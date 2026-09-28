@@ -842,4 +842,21 @@ describe('read-only', () => {
     expect(fake.text).toBe('')
     expect(composer.getText()).toBe('')
   })
+
+  test('a draft kept out while read-only loads once the user can post', () => {
+    const {composer} = setup()
+    const fake = makeFakeComposerInput()
+    const view = (readOnly: boolean) => (
+      <ComposerContext value={composer}>
+        <FakeComposerInputView draft="saved" fake={fake} readOnly={readOnly} />
+      </ComposerContext>
+    )
+    const {rerender} = render(view(true))
+    expect(fake.text).toBe('')
+
+    rerender(view(false))
+
+    expect(fake.text).toBe('saved')
+    expect(composer.getText()).toBe('saved')
+  })
 })
