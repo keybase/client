@@ -7,10 +7,10 @@ export type ExpoLocationModule = {
   startLocationUpdatesAsync: (taskName: string, options: object) => Promise<void>
   stopLocationUpdatesAsync: (taskName: string) => Promise<void>
 }
-export type NetInfoModule = {
-  fetch: () => Promise<{type: ConnectionType}>
-  addEventListener: (cb: (state: {type: ConnectionType}) => void) => () => void
-  NetInfoStateType: {none: ConnectionType}
+export type NetworkModule = {
+  getConnectionType: () => Promise<ConnectionType>
+  // Also delivers the current type once on subscribe
+  addConnectionTypeListener: (cb: (type: ConnectionType) => void) => () => void
 }
 export type ExpoTaskManagerModule = {
   defineTask: (taskName: string, cb: (params: {data: unknown; error: unknown}) => Promise<void>) => void
@@ -34,10 +34,9 @@ export type NativeModules = {
   ExpoLocation: ExpoLocationModule
   ExpoTaskManager: ExpoTaskManagerModule
   Linking: {getInitialURL: () => Promise<string | null>}
-  NetInfo: NetInfoModule
+  Network: NetworkModule
   // iOS only
   addLocationFixListener: (cb: (fix: {accuracy: number; lat: number; lon: number}) => void) => () => void
-  androidAppColorSchemeChanged: (mode: string) => void
   fsCacheDir: string
   fsDownloadDir: string
   guiConfig: string
@@ -50,7 +49,6 @@ export type NativeModules = {
 }
 
 export type NativeSyncModules = {
-  androidAppColorSchemeChanged: (mode: string) => void
   fsCacheDir: string
   fsDownloadDir: string
   guiConfig: string

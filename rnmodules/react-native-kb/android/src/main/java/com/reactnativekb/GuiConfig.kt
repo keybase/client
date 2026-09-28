@@ -15,8 +15,11 @@ class GuiConfig private constructor(private val filesDir: File?) {
         return try {
             val jsonObject = JSONObject(asString() ?: return DarkModePreference.System)
             val jsonObjectUI: JSONObject = jsonObject.getJSONObject("ui")
-            val darkModeString: String = jsonObjectUI.getString("darkMode")
-            DarkModePrefHelper.fromString(darkModeString)
+            when (jsonObjectUI.getString("darkMode")) {
+                "alwaysDark" -> DarkModePreference.AlwaysDark
+                "alwaysLight" -> DarkModePreference.AlwaysLight
+                else -> DarkModePreference.System
+            }
         } catch (e: JSONException) {
             DarkModePreference.System
         }

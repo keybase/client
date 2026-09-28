@@ -3,7 +3,7 @@ import * as Styles from '@/styles'
 import {localFileHost, localFileScheme, normalizeFilePathURL} from '@/util/file-url'
 import {Box2} from './box'
 import Text from './text'
-import {StatusBar} from 'react-native'
+import {StatusBar} from 'expo-status-bar'
 import {useVideoPlayer, VideoView} from 'expo-video'
 import {useEventListener} from 'expo'
 

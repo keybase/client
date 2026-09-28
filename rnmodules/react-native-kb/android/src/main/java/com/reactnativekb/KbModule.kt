@@ -376,22 +376,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         }
     }
 
-    // Dark mode
-    // Same type as DarkModePreference: 'system' | 'alwaysDark' | 'alwaysLight'
-    @ReactMethod
-    override fun androidAppColorSchemeChanged(prefString: String) {
-        try {
-            val activity: Activity? = reactContext.currentActivity
-            if (activity != null) {
-                val m: Method = activity.javaClass.getMethod("setBackgroundColor", DarkModePreference::class.java)
-                val pref: DarkModePreference = DarkModePrefHelper.fromString(prefString)
-                m.invoke(activity, pref)
-            }
-        } catch (ex: Exception) {
-            NativeLogger.warn("Error calling androidAppColorSchemeChanged", ex)
-        }
-    }
-
     @ReactMethod
     override fun setApplicationIconBadgeNumber(badge: Double) {
         // Android manages badge counts automatically via notification channels.

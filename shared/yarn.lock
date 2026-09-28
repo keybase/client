@@ -1213,11 +1213,6 @@
     hashery "^1.5.1"
     keyv "^5.6.0"
 
-"@callstack/liquid-glass@0.8.2":
-  version "0.8.2"
-  resolved "https://registry.yarnpkg.com/@callstack/liquid-glass/-/liquid-glass-0.8.2.tgz#f7a4fb48b3785b94f188e474e38bd2ce8f759029"
-  integrity sha512-Z3bhZLkQLBquA7LIx6Ktv/fFd8nuOsAo1vb/S6Y3tqaQVnHu9RNFreidfZ+SUYnrQu5TqVzEOqq+9CR4jrwd9A==
-
 "@colors/colors@1.6.0", "@colors/colors@^1.6.0":
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.6.0.tgz#ec6cd237440700bc23ca23087f513c75508958b0"
@@ -3388,16 +3383,6 @@
     picocolors "^1.1.1"
     prompts "^2.4.2"
     semver "^7.5.2"
-
-"@react-native-community/netinfo@12.0.1":
-  version "12.0.1"
-  resolved "https://registry.yarnpkg.com/@react-native-community/netinfo/-/netinfo-12.0.1.tgz#fec75f4093c27778479d8927b4f51f133b8a13a4"
-  integrity sha512-P/3caXIvfYSJG8AWJVefukg+ZGRPs+M4Lp3pNJtgcTYoJxCjWrKQGNnCkj/Cz//zWa/avGed0i/wzm0T8vV2IQ==
-
-"@react-native-masked-view/masked-view@0.3.2":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@react-native-masked-view/masked-view/-/masked-view-0.3.2.tgz#7064533a573e3539ec912f59c1f457371bf49dd9"
-  integrity sha512-XwuQoW7/GEgWRMovOQtX3A4PrXhyaZm0lVUiY8qJDvdngjLms9Cpdck6SmGAUNqQwcj2EadHC1HwL0bEyoa/SQ==
 
 "@react-native-picker/picker@2.11.4":
   version "2.11.4"
@@ -7412,6 +7397,11 @@ expo-font@~57.0.4:
   dependencies:
     fontfaceobserver "^2.1.0"
 
+expo-glass-effect@57.0.4:
+  version "57.0.4"
+  resolved "https://registry.yarnpkg.com/expo-glass-effect/-/expo-glass-effect-57.0.4.tgz#9b7e65b1475970f0662c045b71fce99bf2710a5c"
+  integrity sha512-/AG2Kljbqfgxu+GchI2YFIbxiF9cPsIpCy4iNDzlRiZk9rvR6BwRfB6gfQVu3V2ExaoGf2h5IsEnqVI5MYNBAg==
+
 expo-haptics@57.0.3:
   version "57.0.3"
   resolved "https://registry.yarnpkg.com/expo-haptics/-/expo-haptics-57.0.3.tgz#0a5c8dd099ed4f9121d19ec200ce2e1b11eaa454"
@@ -7455,11 +7445,6 @@ expo-location@57.0.20:
   dependencies:
     "@expo/image-utils" "^0.11.5"
 
-expo-mail-composer@57.0.2:
-  version "57.0.2"
-  resolved "https://registry.yarnpkg.com/expo-mail-composer/-/expo-mail-composer-57.0.2.tgz#fd4e8d17dd340f195c069b57f41b025dd82a2cff"
-  integrity sha512-QzUUaUpAg50/jHuQGw0W9JDRtJysnOVGGRk7vcp5aOl+A+4ozfYYG6x5uE1uUbkgINiGQFOuBxvQEvvjAlD27A==
-
 expo-media-library@57.0.5:
   version "57.0.5"
   resolved "https://registry.yarnpkg.com/expo-media-library/-/expo-media-library-57.0.5.tgz#d2962086511ae648b022689995891d64f6fe32af"
@@ -7489,6 +7474,11 @@ expo-modules-jsi@~57.1.1:
   resolved "https://registry.yarnpkg.com/expo-modules-jsi/-/expo-modules-jsi-57.1.1.tgz#0821e42a6a7b1b962cb14416889107481182f62b"
   integrity sha512-ssnwz3ZuIgCbZj5A3J6NlhQrXZojg+BjkeWrOWqVJhyMHlV/A/cRT7s986chKku97BFt6ucmDu6/BCzrV45Wcw==
 
+expo-network@57.0.2:
+  version "57.0.2"
+  resolved "https://registry.yarnpkg.com/expo-network/-/expo-network-57.0.2.tgz#d79914a260ee05dbf5420811e0ee55d390d41849"
+  integrity sha512-BfK1kdftZcM6o9o1FAG7/y0l6vWX0n8td0M5lwkvaMeRXZ9LkRwOi9CQXwvsMTQGQiPwtQXgwiAze13cqjt75g==
+
 expo-screen-capture@57.0.3:
   version "57.0.3"
   resolved "https://registry.yarnpkg.com/expo-screen-capture/-/expo-screen-capture-57.0.3.tgz#d5f64ef4d05287cdb415004f3ad69cc67e9b3953"
@@ -7503,6 +7493,11 @@ expo-sms@57.0.2:
   version "57.0.2"
   resolved "https://registry.yarnpkg.com/expo-sms/-/expo-sms-57.0.2.tgz#6b09484aefaf3d2b0ca54716398656f1737c2545"
   integrity sha512-JZVASDukRLqYjFgydDsbQXYAizHtSBgcOj0dff4XkrTWCZSeaQErD5ecmXWLsL5upAXGi6aR0F4eSQIorqyXnQ==
+
+expo-status-bar@57.0.1:
+  version "57.0.1"
+  resolved "https://registry.yarnpkg.com/expo-status-bar/-/expo-status-bar-57.0.1.tgz#0a8ec1657fcd0987f9612ca411a0c3d002f0eaf0"
+  integrity sha512-Xwaq1gAoVRWx5dPG5VhT5RSbnI9OilhZnO5qoPBnUaBAa5VzRzfdS8q0/bsPt0jR2DKLtGuP0bQ6efMJ4RIMDg==
 
 expo-task-manager@57.0.20:
   version "57.0.20"

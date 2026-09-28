@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {LiquidGlassView, isLiquidGlassSupported} from '@callstack/liquid-glass'
+import {GlassView} from 'expo-glass-effect'
 import {isEmptyInboxLayout, useInboxLayoutState} from './layout-state'
 
 const rainbowHeight = isElectron ? 32 : 36
@@ -53,12 +53,11 @@ const HeaderNewChatButton = () => {
     </Kb.Box2>
   )
 
-  // eslint-disable-next-line
-  if (isIOS && isLiquidGlassSupported) {
+  if (C.isLiquidGlassSupported) {
     return (
-      <LiquidGlassView interactive={true} effect="regular" style={styles.glass}>
+      <GlassView isInteractive={true} glassEffectStyle="regular" style={styles.glass}>
         {rainbowButton}
-      </LiquidGlassView>
+      </GlassView>
     )
   }
 
