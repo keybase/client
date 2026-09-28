@@ -3,13 +3,19 @@ import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import AudioPlayer from '@/chat/audio/audio-player'
-import {Title, TransferIcon, ShowToastAfterSaving, messageAttachmentHasProgress} from './shared'
+import {
+  Title,
+  TransferIcon,
+  ShowToastAfterSaving,
+  getAudioAttachmentURL,
+  messageAttachmentHasProgress,
+} from './shared'
 
 const AudioAttachment = ({message, ordinal}: {message: T.Chat.MessageAttachment; ordinal: T.Chat.Ordinal}) => {
   const styles = useStyles()
   const progressLabel = Chat.messageAttachmentTransferStateToProgressLabel(message.transferState)
   const hasProgress = messageAttachmentHasProgress(message.transferState)
-  const url = !message.submitState && message.fileURL.length > 0 ? `${message.fileURL}&contentforce=true` : ''
+  const url = getAudioAttachmentURL(message)
   const showTitle = !!(message.decoratedText?.stringValue() ?? message.title)
 
   const toastTargetRef = React.useRef<Kb.MeasureRef | null>(null)

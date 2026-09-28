@@ -16,6 +16,12 @@ type Props = {
 export const maxWidth = isMobile ? Math.min(356, Kb.Styles.dimensionWidth - 70) : 356
 export const maxHeight = 320
 
+// an unsent audio has no playable file yet
+export const getAudioAttachmentURL = (message: T.Chat.MessageAttachment) =>
+  message.submitState !== 'pending' && message.submitState !== 'failed' && message.fileURL.length > 0
+    ? `${message.fileURL}&contentforce=true`
+    : ''
+
 export const messageAttachmentHasProgress = (transferState: T.Chat.MessageAttachmentTransferState) => {
   return !!transferState && transferState !== 'remoteUploading' && transferState !== 'mobileSaving'
 }

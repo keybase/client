@@ -3,6 +3,7 @@ import type * as T from '@/constants/types'
 import {makeMessageAttachment} from '@/constants/chat/message'
 import {
   getAttachmentDisplayFileName,
+  getAudioAttachmentURL,
   getAttachmentPreviewSize,
   maxHeight,
   maxWidth,
@@ -22,6 +23,22 @@ describe('messageAttachmentHasProgress', () => {
     // the client has no byte counts for these two
     expect(messageAttachmentHasProgress('remoteUploading')).toBe(false)
     expect(messageAttachmentHasProgress('mobileSaving')).toBe(false)
+  })
+})
+
+describe('getAudioAttachmentURL', () => {
+  const fileURL = 'http://127.0.0.1/att?key=1'
+
+  test('a sent audio plays from its file url, while deleting or editing too', () => {
+    for (const submitState of [undefined, 'deleting', 'editing'] as const) {
+      expect(getAudioAttachmentURL(attachment({fileURL, submitState}))).toBe(`${fileURL}&contentforce=true`)
+    }
+  })
+
+  test('an unsent audio or one with no file url has none', () => {
+    expect(getAudioAttachmentURL(attachment({fileURL, submitState: 'pending'}))).toBe('')
+    expect(getAudioAttachmentURL(attachment({fileURL, submitState: 'failed'}))).toBe('')
+    expect(getAudioAttachmentURL(attachment({fileURL: ''}))).toBe('')
   })
 })
 
