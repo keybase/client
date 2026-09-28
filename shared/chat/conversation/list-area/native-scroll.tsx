@@ -38,10 +38,15 @@ const maintainVisibleContentPositionNoAutoscroll = {
   minIndexForVisible: 0,
 }
 
-// Whether the row at this data index sits above the middle of the viewable rows, or out of view.
-// Data is newest first, so a higher index is older and higher up.
-const rowAboveMiddle = (index: number, first: number | null | undefined, last: number | null | undefined) =>
-  first == null || last == null || index > (first + last) / 2
+// Whether the row at this data index is wholly in view. The viewable range counts rows in view at all,
+// so the rows at its edges may be cut off by the viewport, except the newest row (data index 0) with
+// the list at its end, which rests wholly above the composer.
+const rowFullyVisible = (
+  index: number,
+  first: number | null | undefined,
+  last: number | null | undefined,
+  listAtEnd: boolean
+) => first != null && last != null && ((index > first && index < last) || (index === 0 && first === 0 && listAtEnd))
 
 // An offset within this many points of the resting offset is at the end.
 const endTolerance = 8
@@ -261,7 +266,14 @@ export const useNativeThreadScroll = (p: {
     const index = editingOrdinal === undefined ? -1 : messageOrdinals.indexOf(editingOrdinal)
     dispatch({
       ordinal: editingOrdinal,
-      rowAboveMiddle: index >= 0 && rowAboveMiddle(index, vFirstRef.current, vLastRef.current),
+      rowFullyVisible:
+        index >= 0 &&
+        rowFullyVisible(
+          index,
+          vFirstRef.current,
+          vLastRef.current,
+          scrollOffsetRef.current <= restingOffsetRef.current() + endTolerance
+        ),
       targetInData: index >= 0,
       type: 'editingChanged',
     })

@@ -21,6 +21,8 @@ const centerTolerancePx = 8
 const endTolerancePx = 2
 // A scroller within this many pixels of where the list put it is where the list put it.
 const ownTolerancePx = 1
+// A row overhanging the viewport by no more than this is wholly in view.
+const rowEdgeTolerancePx = 1
 
 type ScrollerLike = {clientHeight: number; scrollHeight: number; scrollTop: number}
 type WrapperLike = {children: ArrayLike<ScrollerLike>}
@@ -45,19 +47,31 @@ type MeasurableWrapper = {
   querySelector: (s: string) => {getBoundingClientRect: () => RectLike} | null
 }
 
-// How far the ordinal's row sits below the middle of the viewport (the wrapper); undefined while the
-// row is not rendered.
-const offsetFromMiddle = (wrapper: unknown, ordinal: T.Chat.Ordinal) => {
+// The ordinal's row and the viewport (the wrapper) as laid out now; undefined while the row is not
+// rendered.
+const measureRow = (wrapper: unknown, ordinal: T.Chat.Ordinal) => {
   const w = wrapper as MeasurableWrapper | null
   const el = w?.querySelector(`[data-ordinal="${ordinal}"]`)
   if (!w || !el) return undefined
-  const row = el.getBoundingClientRect()
-  const view = w.getBoundingClientRect()
-  return row.top + row.height / 2 - (view.top + view.height / 2)
+  return {row: el.getBoundingClientRect(), view: w.getBoundingClientRect()}
 }
 
-// A row not rendered is out of view.
-const rowAboveMiddle = (wrapper: unknown, ordinal: T.Chat.Ordinal) => (offsetFromMiddle(wrapper, ordinal) ?? -1) < 0
+// How far the ordinal's row sits below the middle of the viewport; undefined while the row is not
+// rendered.
+const offsetFromMiddle = (wrapper: unknown, ordinal: T.Chat.Ordinal) => {
+  const m = measureRow(wrapper, ordinal)
+  return m && m.row.top + m.row.height / 2 - (m.view.top + m.view.height / 2)
+}
+
+// Whether the ordinal's row is wholly inside the viewport; a row not rendered is not.
+const rowFullyVisible = (wrapper: unknown, ordinal: T.Chat.Ordinal) => {
+  const m = measureRow(wrapper, ordinal)
+  return (
+    !!m &&
+    m.row.top >= m.view.top - rowEdgeTolerancePx &&
+    m.row.top + m.row.height <= m.view.top + m.view.height + rowEdgeTolerancePx
+  )
+}
 
 export const useDesktopThreadScroll = (p: {
   centeredOrdinal: T.Chat.Ordinal | undefined
@@ -267,7 +281,7 @@ export const useDesktopThreadScroll = (p: {
     const targetInData = editingOrdinal !== undefined && indexOfOrdinal(messageOrdinals, editingOrdinal) >= 0
     dispatch({
       ordinal: editingOrdinal,
-      rowAboveMiddle: targetInData && rowAboveMiddle(wrapperRef.current, editingOrdinal),
+      rowFullyVisible: targetInData && rowFullyVisible(wrapperRef.current, editingOrdinal),
       targetInData,
       type: 'editingChanged',
     })

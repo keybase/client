@@ -301,36 +301,42 @@ describe('readerAtEnd', () => {
 })
 
 describe('editingChanged', () => {
-  const editing = (n: number | undefined, targetInData = true, rowAboveMiddle = true): ScrollEvent => ({
+  const editing = (n: number | undefined, targetInData = true, rowFullyVisible = false): ScrollEvent => ({
     ordinal: n === undefined ? undefined : ord(n),
-    rowAboveMiddle,
+    rowFullyVisible,
     targetInData,
     type: 'editingChanged',
   })
   runTable([
     [
-      'a loaded edit is revealed, and a row above the middle takes the end from the list',
+      'a loaded edit out of view is revealed, and the reveal takes the end from the list',
       fresh,
       editing(15),
       reveal(15),
       state({endOwner: 'reader', lastEditing: ord(15)}),
     ],
     [
-      'a row in the lower half, which the reveal leaves at the end, keeps the end with the list',
+      'an edit already wholly in view is recorded and not scrolled to, and the end stays with the list',
       fresh,
-      editing(58, true, false),
-      reveal(58),
+      editing(58, true, true),
+      leaveAlone,
       state({lastEditing: ord(58)}),
     ],
     [
       'a reader holding the end keeps it',
       state({endOwner: 'reader'}),
-      editing(58, true, false),
-      reveal(58),
+      editing(58, true, true),
+      leaveAlone,
       state({endOwner: 'reader', lastEditing: ord(58)}),
     ],
     ['the same edit is revealed once', state({lastEditing: ord(15)}), editing(15), leaveAlone, state({lastEditing: ord(15)})],
-    ['a different edit is revealed', state({lastEditing: ord(15)}), editing(20, true, false), reveal(20), state({lastEditing: ord(20)})],
+    [
+      'a different edit is revealed',
+      state({lastEditing: ord(15)}),
+      editing(20),
+      reveal(20),
+      state({endOwner: 'reader', lastEditing: ord(20)}),
+    ],
     ['an edit that is not loaded waits, unrecorded, for its row', fresh, editing(15, false), leaveAlone, fresh],
     [
       'an edit that is not loaded leaves the last revealed one recorded',
@@ -501,10 +507,10 @@ describe('sequences', () => {
 
   test('an edit revealed before a reload is not revealed again after it', () => {
     const d = openList()
-    d.send({ordinal: ord(15), rowAboveMiddle: true, targetInData: true, type: 'editingChanged'})
+    d.send({ordinal: ord(15), rowFullyVisible: false, targetInData: true, type: 'editingChanged'})
     d.centreOn(ord(30))
     d.load(window(1, 60))
-    d.send({ordinal: ord(15), rowAboveMiddle: true, targetInData: true, type: 'editingChanged'})
+    d.send({ordinal: ord(15), rowFullyVisible: false, targetInData: true, type: 'editingChanged'})
     expect(d.take()).toEqual([reveal(15), stopCentering, leaveAlone, center(30), leaveAlone])
   })
 })

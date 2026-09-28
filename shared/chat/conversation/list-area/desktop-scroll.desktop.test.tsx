@@ -737,12 +737,21 @@ describe('editing', () => {
     expect(H.log).toHaveLength(1)
   })
 
-  test('editing the same message again after stopping reveals it again', () => {
+  test('editing the same message again after stopping, once it has left the view, reveals it again', () => {
+    open()
+    update(() => H.inputStore.set({editing: ord(15)}))
+    update(() => H.inputStore.set({editing: undefined}))
+    update(() => H.moveScroller(0))
+    update(() => H.inputStore.set({editing: ord(15)}))
+    expect(H.log).toHaveLength(2)
+  })
+
+  test('editing the same message again while the reveal still holds it in view does not scroll', () => {
     open()
     update(() => H.inputStore.set({editing: ord(15)}))
     update(() => H.inputStore.set({editing: undefined}))
     update(() => H.inputStore.set({editing: ord(15)}))
-    expect(H.log).toHaveLength(2)
+    expect(H.log).toHaveLength(1)
   })
 
   test('stopping an edit does not scroll', () => {
@@ -780,7 +789,7 @@ describe('editing', () => {
   // At the end, the viewport shows rows 56..60 of 60.
   const atEnd = () => update(() => H.listStore.set({scroll: 60 * H.rowHeight - H.viewportHeight}))
 
-  test('revealing a message above the middle takes the reader off the end, and header growth leaves them on it', async () => {
+  test('revealing a message out of view takes the reader off the end, and header growth leaves them on it', async () => {
     open()
     atEnd()
     update(() => H.inputStore.set({editing: ord(15)}))
@@ -790,12 +799,23 @@ describe('editing', () => {
     expect(H.log).toEqual([])
   })
 
-  test('revealing a message in the lower half leaves the list at the end, and header growth re-pins it', async () => {
+  test('a message partly cut off at the edge of the view is revealed, and takes the reader off the end', async () => {
+    open()
+    update(() => H.listStore.set({scroll: 60 * H.rowHeight - H.viewportHeight - 50}))
+    update(() => H.inputStore.set({editing: ord(55)}))
+    expect(H.log).toEqual([['scrollToIndex', {animated: true, index: 54, viewPosition: 0.5}]])
+    H.log.length = 0
+    growHeader()
+    await tick(3000)
+    expect(H.log).toEqual([])
+  })
+
+  // In either half: moving a row already in view to the middle only moves the list off its end.
+  test.each([57, 59])('a message already wholly in view (%p) is not scrolled to, and header growth re-pins the end', async n => {
     open()
     atEnd()
-    update(() => H.inputStore.set({editing: ord(59)}))
-    expect(H.log).toEqual([['scrollToIndex', {animated: true, index: 58, viewPosition: 0.5}]])
-    H.log.length = 0
+    update(() => H.inputStore.set({editing: ord(n)}))
+    expect(H.log).toEqual([])
     growHeader()
     await tick(100)
     expect(H.log).toEqual([['scrollToEnd', noAnimation]])

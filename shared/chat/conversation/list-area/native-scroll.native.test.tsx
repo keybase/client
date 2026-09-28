@@ -1045,7 +1045,7 @@ describe('editing', () => {
     expect(scrollsOnly()).toEqual([revealed(15)])
   })
 
-  test('with the keyboard up, revealing a message above the middle leaves the reader on it when a new message arrives', async () => {
+  test('with the keyboard up, revealing a message out of view leaves the reader on it when a new message arrives', async () => {
     open({keyboard: true})
     await tick(200)
     viewable(0, 9)
@@ -1056,15 +1056,39 @@ describe('editing', () => {
     expect(H.log).toEqual([])
   })
 
-  test('with the keyboard up, revealing one of the newest messages keeps the end, and a new message re-pins', async () => {
+  // Rows 60..51 in view, the newest at the bottom. The viewable range counts rows in view at all, so
+  // its oldest row may be cut off at the top.
+  test.each([
+    ['in the middle of the view', 59],
+    ['the newest, with the list at its end', 60],
+  ])('with the keyboard up, a message already wholly in view (%s) is not scrolled to, and a new message re-pins', async (_name, n) => {
     open({keyboard: true})
     await tick(200)
+    scrolled(H.bottomInset - keyboardHeight, 6000)
     viewable(0, 9)
-    update(() => H.inputStore.set({editing: ord(59)}))
     clearLog()
+    update(() => H.inputStore.set({editing: ord(n)}))
+    expect(H.log).toEqual([])
     setOrdinals(1, 61)
     await tick(0)
     expect(H.log).toEqual([toBottomOverKeyboard])
+  })
+
+  test.each([
+    ['the oldest in view, which may be cut off at the top', 51],
+    ['the newest, with the list short of its end', 60],
+  ])('with the keyboard up, a message at the edge of the view (%s) is revealed, and takes the reader off the end', async (_name, n) => {
+    open({keyboard: true})
+    await tick(200)
+    scrolled(n === 60 ? 100 : H.bottomInset - keyboardHeight, 6000)
+    viewable(0, 9)
+    clearLog()
+    update(() => H.inputStore.set({editing: ord(n)}))
+    expect(H.log).toEqual([['scrollToItem', {animated: true, item: ord(n), viewPosition: 0.5}]])
+    clearLog()
+    setOrdinals(1, 61)
+    await tick(1000)
+    expect(H.log).toEqual([])
   })
 })
 
