@@ -376,7 +376,11 @@ describe('editing', () => {
 
   test('a failed edit leaves a row that moved on since in its new state', async () => {
     let fail: (e: Error) => void = () => {}
-    rpc.on('postEdit', async () => new Promise<void>((_, reject) => { fail = reject }))
+    rpc.on('postEdit', async () =>
+      new Promise<void>((_resolve, reject) => {
+        fail = reject
+      })
+    )
     jest.spyOn(logger, 'warn').mockImplementation(() => {})
     const result = renderSendActions([textAt(10)])
     act(() => {
