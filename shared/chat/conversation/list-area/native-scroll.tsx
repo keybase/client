@@ -63,18 +63,17 @@ export const useNativeThreadScroll = (p: {
   const numOrdinals = messageOrdinals.length
 
   const {bottomInset, keyboardHeight} = useComposerAnchor()
-  const scrollToBottom = React.useCallback(() => {
-    listRef.current?.scrollToOffset({
-      animated: false,
-      offset: restingScrollOffset(bottomInset, keyboardHeight.value),
-    })
-  }, [bottomInset, keyboardHeight, listRef])
-  // perform reaches the end only through this, so it scrolls for the inset as it is when it runs, and
-  // neither perform nor the effects that dispatch through it change identity with the inset.
-  const scrollToBottomRef = React.useRef(scrollToBottom)
+  // The offset the list rests at with its newest message in view, below which it does not scroll:
+  // negative while the keyboard is up. Read through a ref so every scroll uses the inset and keyboard
+  // as they are when it runs, and nothing that scrolls changes identity with the inset.
+  const restingOffset = React.useCallback(
+    () => restingScrollOffset(bottomInset, keyboardHeight.value),
+    [bottomInset, keyboardHeight]
+  )
+  const restingOffsetRef = React.useRef(restingOffset)
   React.useLayoutEffect(() => {
-    scrollToBottomRef.current = scrollToBottom
-  }, [scrollToBottom])
+    restingOffsetRef.current = restingOffset
+  }, [restingOffset])
 
   // Read by timers and list callbacks as they fire, so they see the target and rows as they are now.
   const centeredRef = React.useRef(centeredOrdinal)
@@ -161,7 +160,10 @@ export const useNativeThreadScroll = (p: {
       const avgH = contentHeightRef.current / num
       const maxOffset = Math.max(0, contentHeightRef.current - viewportHeightRef.current)
       // damp by 0.9 to avoid overshoot/oscillation; higher index = older = higher offset
-      const newOffset = Math.min(maxOffset, Math.max(0, scrollOffsetRef.current + diff * avgH * 0.9))
+      const newOffset = Math.min(
+        maxOffset,
+        Math.max(restingOffsetRef.current(), scrollOffsetRef.current + diff * avgH * 0.9)
+      )
       // A target among the newest or oldest rows cannot reach the middle: the step is clamped to the
       // end of the scrollable range and would move nothing, now or on any later try.
       if (Math.abs(newOffset - scrollOffsetRef.current) < 1) {
@@ -184,7 +186,7 @@ export const useNativeThreadScroll = (p: {
           if (directive.stopCentering) stopCentering()
           // The end is a fixed resting offset, so every pin is the one scroll there: from the end it moves
           // nothing (unlessAtEnd), and there is no bootstrap of the list's own to wait out (whenSettled).
-          scrollToBottomRef.current()
+          listRef.current?.scrollToOffset({animated: false, offset: restingOffsetRef.current()})
           return
         case 'center':
           if (directive.newTarget) {
@@ -362,10 +364,10 @@ export const useNativeThreadScroll = (p: {
   // is true however the list got there: the end goes back to the list.
   const onScrollSettled = React.useCallback(
     (e: {nativeEvent: {contentOffset: {y: number}}}) => {
-      if (e.nativeEvent.contentOffset.y > restingScrollOffset(bottomInset, keyboardHeight.value) + endTolerance) return
+      if (e.nativeEvent.contentOffset.y > restingOffset() + endTolerance) return
       dispatch({type: 'readerAtEnd'})
     },
-    [bottomInset, dispatch, keyboardHeight]
+    [dispatch, restingOffset]
   )
 
   // Data indices of the first and last viewable rows; the corrector steps from them.

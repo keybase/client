@@ -409,7 +409,7 @@ describe('the closed-loop corrector', () => {
     expect(scrollsOnly()).toEqual([])
   })
 
-  test('steps from the reported offset and never below 0', () => {
+  test('steps from the reported offset and never below the resting offset', () => {
     open({center: 30})
     scrolled(1000, 6000)
     viewable(0, 9)
@@ -532,6 +532,24 @@ describe('a centre requested after opening', () => {
     viewable(0, 9)
     await tick(1000)
     expect(scrollsOnly()).toEqual([coarse(78)])
+  })
+
+  test('with the keyboard up, a target among the newest rows settles at the resting offset without a step', async () => {
+    open({center: 59, keyboard: true})
+    const resting = H.bottomInset - keyboardHeight
+    scrolled(resting, 6000)
+    viewable(0, 9)
+    await tick(1000)
+    expect(scrollsOnly()).toEqual([coarse(59), coarse(59)])
+  })
+
+  test('with the keyboard up, a step toward the newest stops at the resting offset', () => {
+    open({center: 57, keyboard: true})
+    const resting = H.bottomInset - keyboardHeight
+    // Rows 2..11 in view centre on 6.5; target 57 sits at data index 3, 3.5 rows newer.
+    scrolled(resting + 200, 6000)
+    viewable(2, 11)
+    expect(scrollsOnly()).toEqual([toOffset(resting)])
   })
 
   test('a target among the oldest rows, which cannot reach the middle, settles without a step', async () => {
