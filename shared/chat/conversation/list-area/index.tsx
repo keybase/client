@@ -214,7 +214,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
 
   const getItemType = useGetItemType()
 
-  const {initialScrollIndex, maintainScrollAtEnd, onMetricsChange, onWheel, scrollToBottom} =
+  const {initialScrollIndex, maintainScrollAtEnd, onKeyDown, onMetricsChange, onPointerDown, onWheel, scrollToBottom} =
     useDesktopThreadScroll({
       centeredOrdinal,
       datasetKey,
@@ -356,6 +356,8 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
         style={Kb.Styles.castStyleDesktop(desktopStyles.container)}
         onClick={handleListClick}
         onCopyCapture={onCopyCapture}
+        onKeyDown={onKeyDown}
+        onPointerDown={onPointerDown}
         onWheel={onWheel}
         ref={wrapperRef}
       >

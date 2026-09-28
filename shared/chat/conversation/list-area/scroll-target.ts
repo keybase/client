@@ -51,7 +51,9 @@ export type ScrollEvent =
   // rows. Only a list with no declarative initial position reports it; the desktop list starts at its
   // end or on its target through its own props.
   | {type: 'initialLoad'; hasMessages: boolean}
-  | {type: 'userScrolled'; how: 'wheel' | 'drag' | 'pageUp' | 'pageDown'}
+  // The reader scrolled: by wheel, touch drag, a navigation key or the scrollbar, or by paging through
+  // the composer's page keys.
+  | {type: 'userScrolled'; how: 'wheel' | 'drag' | 'key' | 'scrollbar' | 'pageUp' | 'pageDown'}
   // Only a list whose header comes before its end in scroll order reports it: the native list is
   // inverted, so its header sits at the far, oldest end and growing it never moves the newest.
   | {type: 'headerMeasured'; hasMessages: boolean; size: number}
@@ -152,8 +154,8 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
     case 'userScrolled':
       // Paging toward the end does not claim it back, even when it arrives there.
       if (event.how === 'pageDown') return {directive: leaveAlone, state}
-      // A wheel or a drag is the reader taking over, so centring stops rather than pull them back.
-      // Paging up hands over the end but leaves a centring under way to finish.
+      // Scrolling the list directly is the reader taking over, so centring stops rather than pull them
+      // back. Paging up hands over the end but leaves a centring under way to finish.
       if (event.how === 'pageUp') return {directive: leaveAlone, state: {...state, endOwner: 'reader'}}
       return {
         directive: {stopCentering: true, type: 'leaveAlone'},

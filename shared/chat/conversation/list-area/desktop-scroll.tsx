@@ -20,6 +20,18 @@ const centerTolerancePx = 8
 // A scroller within this many pixels of its end counts as at the end.
 const endTolerancePx = 2
 
+type ScrollerLike = {clientHeight: number; scrollHeight: number; scrollTop: number}
+type WrapperLike = {children: ArrayLike<ScrollerLike>}
+
+// The list's scrolling element: the wrapper's child with content to scroll.
+const scrollerIn = (wrapper: unknown) =>
+  Array.from((wrapper as WrapperLike | null)?.children ?? []).find(c => c.scrollHeight - c.clientHeight > 1)
+
+// Keys a focused scroller scrolls by itself.
+const scrollKeys = new Set(['ArrowDown', 'ArrowUp', 'End', 'Home', 'PageDown', 'PageUp', ' '])
+// Elements that take those keys for themselves, where they scroll nothing.
+const keyTakingTags = new Set(['BUTTON', 'INPUT', 'SELECT', 'TEXTAREA'])
+
 export const useDesktopThreadScroll = (p: {
   centeredOrdinal: T.Chat.Ordinal | undefined
   datasetKey: string
@@ -45,15 +57,8 @@ export const useDesktopThreadScroll = (p: {
   // the list has recorded, and both lag a composer collapse, so it reads not-at-end while the scroller
   // is in fact at its end.
   const isScrolledToEnd = React.useCallback(() => {
-    type ElLike = {children: ArrayLike<ElLike>; clientHeight: number; scrollHeight: number; scrollTop: number}
-    const wrapper = wrapperRef.current as unknown as ElLike | null
-    if (!wrapper) return false
-    for (const child of Array.from(wrapper.children)) {
-      if (child.scrollHeight - child.clientHeight > 1) {
-        return child.scrollHeight - child.clientHeight - child.scrollTop <= endTolerancePx
-      }
-    }
-    return false
+    const scroller = scrollerIn(wrapperRef.current)
+    return !!scroller && scroller.scrollHeight - scroller.clientHeight - scroller.scrollTop <= endTolerancePx
   }, [wrapperRef])
 
   const decide = React.useCallback((event: ScrollEvent) => {
@@ -264,9 +269,31 @@ export const useDesktopThreadScroll = (p: {
     [dispatch]
   )
 
+  // The reader's own scrolling is told apart by the input that causes it, not by scroll events: the
+  // list scrolls itself too (its initial position, its end anchor, holding rows in place as they
+  // measure), and a scroll event does not say who moved it. A wheel, a navigation key reaching the
+  // scroller, and a press on the scroller itself (its scrollbar: a press on a row lands on the row)
+  // are always the reader.
   const onWheel = React.useCallback(() => {
     dispatch({how: 'wheel', type: 'userScrolled'})
   }, [dispatch])
+
+  const onKeyDown = React.useCallback(
+    (e: {key: string; target: unknown}) => {
+      const target = e.target as {isContentEditable?: boolean; tagName?: string}
+      if (!scrollKeys.has(e.key) || target.isContentEditable || keyTakingTags.has(target.tagName ?? '')) return
+      dispatch({how: 'key', type: 'userScrolled'})
+    },
+    [dispatch]
+  )
+
+  const onPointerDown = React.useCallback(
+    (e: {target: unknown}) => {
+      if (e.target !== scrollerIn(wrapperRef.current)) return
+      dispatch({how: 'scrollbar', type: 'userScrolled'})
+    },
+    [dispatch, wrapperRef]
+  )
 
   const scrollToBottom = React.useCallback(() => {
     dispatch({centeredOrdinal, type: 'scrollToBottomRequested'})
@@ -305,7 +332,9 @@ export const useDesktopThreadScroll = (p: {
   return {
     initialScrollIndex,
     maintainScrollAtEnd: listAnchorsEnd(centeredOrdinal),
+    onKeyDown,
     onMetricsChange,
+    onPointerDown,
     onWheel,
     scrollToBottom,
   }

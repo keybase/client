@@ -774,6 +774,69 @@ describe('dataset reset', () => {
   })
 })
 
+describe('the reader scrolling without a wheel', () => {
+  const scroller = () => screen.getByTestId('fake-scroller')
+  // Drives an in-flight centring loop that keeps asking for an unmounted target.
+  const openCentring = () => {
+    update(() => H.listStore.set({mountsOnScrollToIndex: false, rendered: new Set()}))
+    open({center: 30})
+    scrollerNotAtEnd()
+  }
+  const centringAsks = () => H.log.filter(([name]) => name === 'scrollToIndex').length
+
+  test.each(['PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'Home', 'End', ' '])(
+    'the %p key stops the centring loop',
+    async key => {
+      openCentring()
+      fireEvent.keyDown(scroller(), {key})
+      await tick(5000)
+      expect(centringAsks()).toBe(1)
+    }
+  )
+
+  test('a navigation key takes the end from the list', async () => {
+    open()
+    fireEvent.keyDown(scroller(), {key: 'ArrowUp'})
+    growHeader()
+    await tick(3000)
+    expect(H.log).toEqual([])
+  })
+
+  test('grabbing the scrollbar stops the centring loop and takes the end', async () => {
+    openCentring()
+    fireEvent.pointerDown(scroller())
+    await tick(5000)
+    expect(centringAsks()).toBe(1)
+    H.log.length = 0
+    growHeader()
+    await tick(3000)
+    expect(H.log).toEqual([])
+  })
+
+  test('pressing on a message is not scrolling: centring goes on correcting', async () => {
+    open({center: 30})
+    scrollerNotAtEnd()
+    fireEvent.pointerDown(document.querySelector('[data-ordinal="30"]')!)
+    await tick(50)
+    update(() => H.listStore.set({scroll: H.listStore.get().scroll - 40}))
+    await tick(50)
+    expect(H.log).toEqual([
+      ['scrollToOffset', {animated: false, offset: centredOffset(30)}],
+      ['scrollToOffset', {animated: false, offset: centredOffset(30)}],
+    ])
+  })
+
+  test('other keys, and keys typed into a field inside the list, are not scrolling', async () => {
+    openCentring()
+    const field = document.createElement('input')
+    scroller().appendChild(field)
+    fireEvent.keyDown(scroller(), {key: 'a'})
+    fireEvent.keyDown(field, {key: 'ArrowUp'})
+    await tick(250)
+    expect(centringAsks()).toBe(3)
+  })
+})
+
 describe('returning to the chat tab', () => {
   test('keeps a reader who wheeled away from a centred hit where they are', async () => {
     open({center: 30})
