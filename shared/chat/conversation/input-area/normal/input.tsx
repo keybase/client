@@ -1287,9 +1287,10 @@ const NativePlatformInput = (p: Props) => {
     }, 60)
   })
 
-  // Enter should send a message like on desktop, when a hardware keyboard's
-  // attached.  On Android we get "hardware" keypresses from soft keyboards,
-  // so check whether a soft keyboard's up.
+  // Enter and shift-Enter from a hardware keyboard, answered like desktop Enter. The native side
+  // gates it: Android's MainActivity.dispatchKeyEvent sends it only while the configuration reports
+  // a hardware keyboard and consumes the key, so the TextInput never gets its own newline as well;
+  // iOS sends it from AppDelegate.pressesBegan, which only hardware key presses reach.
   const onHardwareKey = React.useEffectEvent((hwKeyEvent: {pressedKey: string}) => {
     const {actions} = composerKeyDown(
       {readOnly: cannotWrite, source: 'hardware', suggestions: getSuggestions()},
