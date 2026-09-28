@@ -255,14 +255,14 @@ describe('opening a conversation', () => {
     expect(H.log).toEqual([markRead, toBottomOverKeyboard, toBottomOverKeyboard])
   })
 
-  test('the 100ms retry repeats the end scroll even if a centre arrives in between', async () => {
+  test('the 100ms retry is skipped if a centre arrives in between', async () => {
     open()
     await tick(10)
     update(() => {
       H.setCenter(ord(30))
     })
     await tick(1000)
-    expect(H.log).toEqual([markRead, toBottom, coarse(30), toBottom, coarse(30)])
+    expect(H.log).toEqual([markRead, toBottom, coarse(30), coarse(30)])
   })
 })
 

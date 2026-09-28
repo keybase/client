@@ -284,10 +284,17 @@ export const useNativeThreadScroll = (p: {
 
     const directive = decide({centeredOrdinal, hasMessages: numOrdinals > 0, type: 'initialLoad'})
     perform(directive)
-    // Once more 100ms on, repeating the scroll to the end.
+    // Once more 100ms on, asking again with the target and rows as they are then, so a centre
+    // requested in between is not undone by a scroll to the end.
     if (directive.type === 'pinEnd') {
       setTimeout(() => {
-        perform(directive)
+        perform(
+          decide({
+            centeredOrdinal: centeredRef.current,
+            hasMessages: ordsRef.current.length > 0,
+            type: 'initialLoad',
+          })
+        )
       }, 100)
     }
   }, [centeredOrdinal, conversationIDKey, decide, loaded, numOrdinals, perform])
