@@ -1,10 +1,10 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import type * as React from 'react'
-import {act, cleanup, renderHook} from '@testing-library/react'
+import * as React from 'react'
+import {act, cleanup, render, renderHook} from '@testing-library/react'
 import logger from '@/logger'
 import {ComposerContext, makeComposer, useComposerInput} from './composer'
-import {makeFakeComposerInput, type FakeComposerInput} from './composer-fake-input'
+import {FakeComposerInputView, makeFakeComposerInput, type FakeComposerInput} from './composer-fake-input'
 import type {SuppressSnapshot} from '../unfurl-preview-state'
 
 const noSnapshot: SuppressSnapshot = {dismissed: [], failed: []}
@@ -348,17 +348,72 @@ describe('insertAtCaret', () => {
     expect(reports).toEqual(['x'])
   })
 
-  test('does nothing with no input attached', () => {
+  // effects mount children first, so a child's insert can come before its input attaches
+  test('waits while no input is attached and lands at the caret once it attaches again', () => {
     const {composer, mount} = setup()
-    const {detach, fake} = mount()
-    fake.type('abc')
+    const {detach, fake, ref} = mount()
+    fake.type('abcd', 2)
     detach()
 
     composer.insertAtCaret('x')
+    expect(fake.text).toBe('abcd')
+    composer.attach(ref, undefined)
 
-    expect(fake.text).toBe('abc')
-    expect(composer.getText()).toBe('abc')
+    expect(fake.text).toBe('abxcd')
+    expect(composer.getText()).toBe('abxcd')
   })
+
+  test('waiting writes land in the order they were made, once', () => {
+    const {composer, mount} = setup()
+    const {detach, ref} = mount()
+    detach()
+
+    composer.inject('hello')
+    composer.insertAtCaret('!')
+    composer.replace({selection: {end: 7, start: 7}, text: 'hello! '}, true)
+    composer.insertAtCaret('x')
+    const detachAgain = composer.attach(ref, undefined)
+
+    expect(composer.getText()).toBe('hello! x')
+    detachAgain()
+    composer.attach(ref, undefined)
+    expect(composer.getText()).toBe('hello! x')
+  })
+})
+
+// A hidden Activity (a screen kept but not shown) unmounts every effect, and showing it again
+// mounts them children first, so a child writes before its composer view attaches the input.
+test('an insert a child makes as its hidden screen is shown lands once the input attaches', () => {
+  const {composer} = setup()
+  const fake = makeFakeComposerInput()
+  const Inserter = (p: {pick: string}) => {
+    const {pick} = p
+    React.useEffect(() => {
+      if (pick) composer.insertAtCaret(pick)
+    }, [pick])
+    return null
+  }
+  const tree = (mode: 'hidden' | 'visible', pick: string) => (
+    <ComposerContext value={composer}>
+      <React.Activity mode={mode}>
+        <FakeComposerInputView fake={fake}>
+          <Inserter pick={pick} />
+        </FakeComposerInputView>
+      </React.Activity>
+    </ComposerContext>
+  )
+  const {rerender} = render(tree('visible', ''))
+  act(() => {
+    fake.type('abcd', 2)
+  })
+  rerender(tree('hidden', ''))
+  rerender(tree('hidden', ':smile: '))
+  expect(fake.text).toBe('abcd')
+
+  rerender(tree('visible', ':smile: '))
+
+  expect(fake.text).toBe('ab:smile: cd')
+  expect(composer.getText()).toBe('ab:smile: cd')
 })
 
 describe('replace', () => {

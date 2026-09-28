@@ -23,8 +23,7 @@ export type Composer = {
   getSelection: () => Selection | undefined
   isFocused: () => boolean
   focus: () => void
-  // Replaces the whole text with the caret at its end. While no input is attached the latest
-  // text waits and lands when one attaches, without the focus.
+  // Replaces the whole text with the caret at its end.
   inject: (text: string, focus?: boolean) => void
   // appendSpaceToText is the desktop emoji picker's placement: its space goes at the very end of
   // the text rather than after the insert, and the caret lands one past the insert
@@ -36,6 +35,8 @@ export type Composer = {
   // An input's text belongs to the input it came from: attaching a different input starts over
   // with no text and a draft still to load. Re-attaching the same one (StrictMode's effect replay)
   // keeps both.
+  // Writes made while no input is attached (an inject, an insert, a replace) wait, and land in
+  // order once one attaches, after its draft; a waiting inject lands without the focus.
   attach: (input: ComposerInputRef, draft: string | undefined) => () => void
   // Loads the draft into an untouched composer, once per input.
   offerDraft: (input: ComposerInputRef, draft: string | undefined) => void
@@ -60,7 +61,9 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   let session: ComposerInputRef | undefined
   let attached = false
   let draftLoaded = false
-  let pending: string | undefined
+  // Effects mount children first (and again when a hidden Activity is shown), so a child's
+  // write can come before its composer view attaches the input.
+  let pending: Array<() => void> = []
 
   const current = () => (attached ? (session?.current ?? undefined) : undefined)
 
@@ -79,6 +82,14 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     }
     if (focus) {
       input.focus()
+    }
+  }
+
+  const whenAttached = (w: () => void) => {
+    if (attached) {
+      w()
+    } else {
+      pending.push(w)
     }
   }
 
@@ -113,11 +124,9 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
       }
       attached = true
       offerDraft(draft)
-      if (pending !== undefined) {
-        const next = pending
-        pending = undefined
-        write(next, false)
-      }
+      const waiting = pending
+      pending = []
+      waiting.forEach(w => w())
       return () => {
         if (session === input) {
           attached = false
@@ -130,41 +139,35 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     getSelection: () => current()?.getSelection(),
     getText: () => text,
     inject: (next, focus = false) => {
-      if (!attached) {
-        pending = next
-        return
-      }
-      write(next, focus)
+      whenAttached(attached ? () => write(next, focus) : () => write(next, false))
     },
-    insertAtCaret: (s, opts) => {
-      const selection = current()?.getSelection()
-      const inserted = standardTransformer(
-        s,
-        {position: {end: selection?.end ?? null, start: selection?.start ?? null}, text},
-        true
-      )
-      const pad = opts?.appendSpaceToText ? ' ' : ''
-      const caret = inserted.selection.start + pad.length
-      replace({selection: {end: caret, start: caret}, text: inserted.text + pad}, true)
-    },
+    insertAtCaret: (s, opts) =>
+      whenAttached(() => {
+        const selection = current()?.getSelection()
+        const inserted = standardTransformer(
+          s,
+          {position: {end: selection?.end ?? null, start: selection?.start ?? null}, text},
+          true
+        )
+        const pad = opts?.appendSpaceToText ? ' ' : ''
+        const caret = inserted.selection.start + pad.length
+        replace({selection: {end: caret, start: caret}, text: inserted.text + pad}, true)
+      }),
     isFocused: () => !!current()?.isFocused(),
     offerDraft: (input, draft) => {
       if (input === session) {
         offerDraft(draft)
       }
     },
-    replace,
+    replace: (info, reflectChange) => whenAttached(() => replace(info, reflectChange)),
     submit: send => {
       const toSend = text
       if (!toSend) return false
       const unfurlSuppress = deps.takeUnfurlSnapshot()
       text = ''
-      if (attached) {
-        write('', true)
-      } else {
-        // the next input loads the draft saved as this one unmounted, the text being sent
-        pending = ''
-      }
+      // with no input attached, the next one loads the draft saved as this one unmounted, the
+      // text being sent
+      whenAttached(attached ? () => write('', true) : () => write('', false))
       // Clearing the composer shrinks it back to one line, which grows the thread's viewport. Sending in
       // the same tick makes that growth and the new row a single change for the list to resolve its end
       // against, and it lands short — 8 of 8 at one, two and six lines, worse the longer the message. So
