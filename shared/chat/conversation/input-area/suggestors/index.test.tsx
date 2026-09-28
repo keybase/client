@@ -4,6 +4,7 @@ import type * as React from 'react'
 import {act, cleanup, render, renderHook} from '@testing-library/react'
 import type {RefType as InputRef, Selection} from '../normal/input.shared'
 import {useSuggestors} from '.'
+import {ComposerContext, makeComposer} from '../composer'
 
 const mockCommandsList = jest.fn((_p: {filter: string}) => null)
 const mockUsersList = jest.fn((_p: {filter: string}) => null)
@@ -29,26 +30,34 @@ jest.mock('@/common-adapters', () => {
   return {...actual, AnchoredPopup: (p: {children: React.ReactNode}) => <>{p.children}</>}
 })
 
-// the suggestors read the caret through the input ref; drive it directly so the
+// the suggestors read the caret through the composer's input; drive it directly so the
 // test exercises the word-splitting rather than a real textarea
 const makeInputRef = (getSelection: () => Selection | undefined) => ({
   current: {
+    clear: jest.fn(),
+    focus: jest.fn(),
     getSelection,
     isFocused: () => true,
-    transformText: jest.fn(),
+    replaceText: jest.fn(),
   } as unknown as InputRef,
 })
 
+// the composer the suggestors read the text from, attached to the input the way the composer
+// view attaches it; its onChangeText reports what was typed, as the view's does
 const renderSuggestors = (getSelection: () => Selection | undefined) => {
   const inputRef = makeInputRef(getSelection)
-  const {result} = renderHook(() =>
-    useSuggestors({
-      inputRef,
-      onChangeText: jest.fn(),
-      suggestionListStyle: {},
-      suggestionOverlayStyle: {},
-      suggestionSpinnerStyle: {},
-    })
+  const composer = makeComposer({takeUnfurlSnapshot: () => ({dismissed: [], failed: []})})
+  composer.attach(inputRef, undefined)
+  const {result} = renderHook(
+    () =>
+      useSuggestors({
+        inputRef,
+        onChangeText: text => composer.textChanged(inputRef, text),
+        suggestionListStyle: {},
+        suggestionOverlayStyle: {},
+        suggestionSpinnerStyle: {},
+      }),
+    {wrapper: (p: {children: React.ReactNode}) => <ComposerContext value={composer}>{p.children}</ComposerContext>}
   )
   return result
 }

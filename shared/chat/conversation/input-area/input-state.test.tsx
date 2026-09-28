@@ -17,6 +17,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import Input from './normal'
 import type {PlatformInputProps, Selection} from './normal/input.shared'
 import {ConversationInputProvider, useConversationInput, type ConversationInputState} from './input-state'
+import {FakeComposerInputView, makeFakeComposerInput, type FakeComposerInput} from './composer-fake-input'
 import {ConversationThreadProvider, useConversationThreadActions} from '../thread-context'
 import {suppressedURLsOf, takeSuppressSnapshot, useUnfurlPreviewState} from '../unfurl-preview-state'
 
@@ -55,15 +56,13 @@ jest.mock('./normal/input', () => ({
       },
       getSelection: () => mockInput.selection,
       isFocused: () => false,
-      transformText: (fn, reflectChange) => {
-        const ti = fn({selection: mockInput.selection, text: mockInput.text})
+      replaceText: (ti, reflectChange) => {
         mockInput.text = ti.text
         mockInput.selection = ti.selection
         if (reflectChange) {
           mockPlatformInputProps?.onChangeText(ti.text)
         }
       },
-      value: mockInput.text,
     })
     return null
   },
@@ -133,10 +132,27 @@ const wrapperFor = (id: T.Chat.ConversationIDKey) =>
     )
   }
 
-const renderInput = (id = convID) =>
-  renderHook(() => useConversationInput(s => s), {
-    wrapper: wrapperFor(id),
+// the provider-only harness: a fake input stands in for the composer so what an action puts
+// into the composer can be read back off it
+const fakeInputWrapperFor = (id: T.Chat.ConversationIDKey, fake: FakeComposerInput) =>
+  function Wrapper(p: React.PropsWithChildren) {
+    return (
+      <ConversationThreadProvider id={id}>
+        <ConversationInputProvider id={id}>
+          <FakeComposerInputView fake={fake} />
+          {p.children}
+        </ConversationInputProvider>
+      </ConversationThreadProvider>
+    )
+  }
+
+const renderInput = (id = convID) => {
+  const composerInput = makeFakeComposerInput()
+  const rendered = renderHook(() => useConversationInput(s => s), {
+    wrapper: fakeInputWrapperFor(id, composerInput),
   })
+  return {composerInput, result: rendered.result, unmount: rendered.unmount}
+}
 
 function renderComposer(id = convID) {
   return render(<Input />, {wrapper: wrapperFor(id)})
@@ -162,14 +178,17 @@ function renderComposerWithProbe(onRender: (h: InputHandles) => void, id = convI
   )
 }
 
-const renderInputWithThreadActions = (id = convID) =>
-  renderHook(
+const renderInputWithThreadActions = (id = convID) => {
+  const composerInput = makeFakeComposerInput()
+  const {result} = renderHook(
     () => ({
       input: useConversationInput(s => s),
       threadActions: useConversationThreadActions(),
     }),
-    {wrapper: wrapperFor(id)}
+    {wrapper: fakeInputWrapperFor(id, composerInput)}
   )
+  return {composerInput, result}
+}
 
 const notifyInputEngineAction = (action: Parameters<typeof notifyEngineActionListeners>[0]) => {
   act(() => {
@@ -200,7 +219,7 @@ afterEach(() => {
 
 test('setEditing last picks the latest editable local message and injects its content', () => {
   const attachmentOrdinal = T.Chat.numberToOrdinal(703)
-  const {result} = renderInputWithThreadActions()
+  const {composerInput, result} = renderInputWithThreadActions()
 
   act(() => {
     result.current.threadActions.addMessages(
@@ -234,12 +253,12 @@ test('setEditing last picks the latest editable local message and injects its co
   })
 
   expect(result.current.input.editing).toBe(attachmentOrdinal)
-  expect(result.current.input.unsentText).toBe('picked attachment title')
+  expect(composerInput.text).toBe('picked attachment title')
 })
 
 test('setEditing clear resets editing state and clears unsent text', () => {
   const editOrdinal = T.Chat.numberToOrdinal(704)
-  const {result} = renderInputWithThreadActions()
+  const {composerInput, result} = renderInputWithThreadActions()
 
   act(() => {
     result.current.threadActions.addMessages(
@@ -261,12 +280,12 @@ test('setEditing clear resets editing state and clears unsent text', () => {
   })
 
   expect(result.current.input.editing).toBe(T.Chat.numberToOrdinal(0))
-  expect(result.current.input.unsentText).toBe('')
+  expect(composerInput.text).toBe('')
 })
 
 test('setEditing explicit ordinal selects editable text and ignores missing messages', () => {
   const editOrdinal = T.Chat.numberToOrdinal(704)
-  const {result} = renderInputWithThreadActions()
+  const {composerInput, result} = renderInputWithThreadActions()
 
   act(() => {
     result.current.threadActions.addMessages(
@@ -287,14 +306,14 @@ test('setEditing explicit ordinal selects editable text and ignores missing mess
   })
 
   expect(result.current.input.editing).toBe(editOrdinal)
-  expect(result.current.input.unsentText).toBe('explicit edit text')
+  expect(composerInput.text).toBe('explicit edit text')
 
   act(() => {
     result.current.input.dispatch.setEditing(T.Chat.numberToOrdinal(999))
   })
 
   expect(result.current.input.editing).toBe(editOrdinal)
-  expect(result.current.input.unsentText).toBe('explicit edit text')
+  expect(composerInput.text).toBe('explicit edit text')
 })
 
 test('input injection is scoped to the owning provider', () => {
@@ -305,27 +324,21 @@ test('input injection is scoped to the owning provider', () => {
     input.result.current.dispatch.injectIntoInput('prefill from share')
   })
 
-  expect(input.result.current.unsentText).toBe('prefill from share')
-  expect(otherInput.result.current.unsentText).toBeUndefined()
+  expect(input.composerInput.text).toBe('prefill from share')
+  expect(otherInput.composerInput.text).toBe('')
 
   act(() => {
     input.result.current.dispatch.injectIntoInput('')
   })
 
-  expect(input.result.current.unsentText).toBe('')
-
-  act(() => {
-    input.result.current.dispatch.injectIntoInput()
-  })
-
-  expect(input.result.current.unsentText).toBeUndefined()
+  expect(input.composerInput.text).toBe('')
 })
 
 test('sendComposerText sends reply context and clears transient composer state', async () => {
   const replyOrdinal = T.Chat.numberToOrdinal(801)
   const replyMessageID = T.Chat.numberToMessageID(801)
   const getLastPost = mockPostText()
-  const {result} = renderInputWithThreadActions()
+  const {composerInput, result} = renderInputWithThreadActions()
   act(() => {
     result.current.threadActions.addMessages(
       [
@@ -354,14 +367,14 @@ test('sendComposerText sends reply context and clears transient composer state',
   expect(result.current.input.replyTo).toBe(T.Chat.numberToOrdinal(0))
   expect(result.current.input.commandMarkdown).toBeUndefined()
   expect(result.current.input.giphyWindow).toBe(false)
-  expect(result.current.input.unsentText).toBe('')
+  expect(composerInput.text).toBe('')
   expect(getLastPost()?.params.body).toBe('sent reply')
   expect(getLastPost()?.params.replyTo).toBe(replyMessageID)
 })
 
 test('sendComposerText restores text when a stellar flow is canceled', async () => {
   const getLastPost = mockPostText()
-  const {result} = renderInput()
+  const {composerInput, result} = renderInput()
 
   act(() => {
     result.current.dispatch.sendComposerText('restore me')
@@ -371,7 +384,7 @@ test('sendComposerText restores text when a stellar flow is canceled', async () 
     getLastPost()?.incomingCallMap['chat.1.chatUi.chatStellarDone']?.({canceled: true})
   })
 
-  expect(result.current.unsentText).toBe('restore me')
+  expect(composerInput.text).toBe('restore me')
 })
 
 test('sendComposerText edits the selected message and clears edit state', async () => {
@@ -380,7 +393,7 @@ test('sendComposerText edits the selected message and clears edit state', async 
   const editPost = jest.spyOn(T.RPCChat, 'localPostEditNonblockRpcPromise').mockResolvedValue({
     outboxID: makeRpcOutboxID('edit-outbox'),
   })
-  const {result} = renderInputWithThreadActions()
+  const {composerInput, result} = renderInputWithThreadActions()
   act(() => {
     result.current.threadActions.addMessages(
       [
@@ -410,7 +423,7 @@ test('sendComposerText edits the selected message and clears edit state', async 
   expect(result.current.input.replyTo).toBe(T.Chat.numberToOrdinal(0))
   expect(result.current.input.giphyWindow).toBe(false)
   expect(result.current.input.commandMarkdown).toBeUndefined()
-  expect(result.current.input.unsentText).toBe('')
+  expect(composerInput.text).toBe('')
   expect(editPost).toHaveBeenCalledWith(
     expect.objectContaining({
       body: 'new text',
@@ -424,7 +437,7 @@ test('giphy engine events and send path update the input owner', async () => {
   const replyMessageID = T.Chat.numberToMessageID(1001)
   const getLastPost = mockPostText()
   const trackGiphy = jest.spyOn(T.RPCChat, 'localTrackGiphySelectRpcPromise').mockResolvedValue({})
-  const {result} = renderInputWithThreadActions()
+  const {composerInput, result} = renderInputWithThreadActions()
   const giphyResult = makeGiphyResult()
 
   act(() => {
@@ -453,7 +466,7 @@ test('giphy engine events and send path update the input owner', async () => {
   })
 
   expect(result.current.input.giphyWindow).toBe(true)
-  expect(result.current.input.unsentText).toBe('')
+  expect(composerInput.text).toBe('')
   expect(result.current.input.giphyResult?.results).toEqual([giphyResult])
 
   act(() => {
@@ -466,7 +479,7 @@ test('giphy engine events and send path update the input owner', async () => {
   expect(getLastPost()?.params.replyTo).toBe(replyMessageID)
   expect(result.current.input.replyTo).toBe(T.Chat.numberToOrdinal(0))
   expect(result.current.input.giphyWindow).toBe(false)
-  expect(result.current.input.unsentText).toBe('')
+  expect(composerInput.text).toBe('')
 })
 
 test('sendComposerText sends dismissed unfurl urls as unfurlSuppress', async () => {
@@ -533,7 +546,7 @@ test('onSubmit sends dismissed unfurl urls even though clearing the composer dro
     // more than the 200ms draft throttle since the last keystroke, so clearing the composer
     // runs updateDraft's leading edge synchronously and the hook drops the dismissal
     act(() => {
-      mockPlatformInputProps?.onSubmit(text)
+      mockPlatformInputProps?.onSubmit()
     })
     expect(getSuppressedURLs(convID)).toEqual([])
 
@@ -563,7 +576,10 @@ test('onSubmit snapshots the dismissals before the composer clears them', async 
     })
 
     act(() => {
-      mockPlatformInputProps?.onSubmit('look at http://a.com')
+      mockPlatformInputProps?.onChangeText('look at http://a.com')
+    })
+    act(() => {
+      mockPlatformInputProps?.onSubmit()
     })
     // the clear has already emptied the store by now: only a snapshot taken ahead of it
     // still has the dismissal to send
@@ -679,18 +695,18 @@ test('a send suppresses what failed to preview as well as what was dismissed', a
 })
 
 test('toggleGiphyPrefill toggles the slash command text', () => {
-  const {result} = renderInput()
+  const {composerInput, result} = renderInput()
 
   act(() => {
     result.current.dispatch.toggleGiphyPrefill()
   })
-  expect(result.current.unsentText).toBe('/giphy ')
+  expect(composerInput.text).toBe('/giphy ')
 
   act(() => {
     result.current.dispatch.setGiphyWindow(true)
     result.current.dispatch.toggleGiphyPrefill()
   })
-  expect(result.current.unsentText).toBe('')
+  expect(composerInput.text).toBe('')
 })
 
 test('command status and markdown engine events are conversation scoped', () => {
@@ -763,28 +779,28 @@ function InputStateProbe(p: {onState: (state: ConversationInputState) => void}) 
 test('an intent written before the provider mounts is delivered on mount', () => {
   setInputIntent(convID, {text: 'prefill from store', type: 'injectText'})
 
-  const {result} = renderInput(convID)
+  const {composerInput} = renderInput(convID)
 
-  expect(result.current.unsentText).toBe('prefill from store')
+  expect(composerInput.text).toBe('prefill from store')
 })
 
 test('a consumed intent does not replay on remount', () => {
   setInputIntent(convID, {text: 'only once', type: 'injectText'})
 
   const first = renderInput(convID)
-  expect(first.result.current.unsentText).toBe('only once')
+  expect(first.composerInput.text).toBe('only once')
   first.unmount()
 
   const second = renderInput(convID)
-  expect(second.result.current.unsentText).toBeUndefined()
+  expect(second.composerInput.text).toBe('')
 })
 
 test('an intent for one conversation is not delivered to a different conversation provider', () => {
   setInputIntent(convID, {text: 'for convID only', type: 'injectText'})
 
-  const {result} = renderInput(otherConvID)
+  const {composerInput} = renderInput(otherConvID)
 
-  expect(result.current.unsentText).toBeUndefined()
+  expect(composerInput.text).toBe('')
   expect(useInputIntentState.getState().intents.get(convID)).toEqual({
     text: 'for convID only',
     type: 'injectText',
@@ -792,6 +808,7 @@ test('an intent for one conversation is not delivered to a different conversatio
 })
 
 test('two setEditing writes before the input provider mounts: the second one applies', () => {
+  const composerInput = makeFakeComposerInput()
   const firstOrdinal = T.Chat.numberToOrdinal(211)
   const secondOrdinal = T.Chat.numberToOrdinal(212)
   let threadActions: ReturnType<typeof useConversationThreadActions> | undefined
@@ -828,23 +845,24 @@ test('two setEditing writes before the input provider mounts: the second one app
       <ThreadActionsProbe onActions={actions => (threadActions = actions)} />
       <ConversationInputProvider id={convID}>
         <InputStateProbe onState={state => (inputState = state)} />
+        <FakeComposerInputView fake={composerInput} />
       </ConversationInputProvider>
     </ConversationThreadProvider>
   )
 
   expect(inputState?.editing).toBe(secondOrdinal)
-  expect(inputState?.unsentText).toBe('second write text')
+  expect(composerInput.text).toBe('second write text')
 })
 
 test('an intent that arrives after mount is delivered without a remount', () => {
-  const {result} = renderInput(convID)
-  expect(result.current.unsentText).toBeUndefined()
+  const {composerInput} = renderInput(convID)
+  expect(composerInput.text).toBe('')
 
   act(() => {
     setInputIntent(convID, {text: 'arrived after mount', type: 'injectText'})
   })
 
-  expect(result.current.unsentText).toBe('arrived after mount')
+  expect(composerInput.text).toBe('arrived after mount')
 })
 
 test('commandStatus reaches a mounted provider but is dropped when none is mounted', () => {
@@ -867,6 +885,7 @@ test('commandStatus reaches a mounted provider but is dropped when none is mount
 })
 
 test('setThreadInputEditing reaches the store with no provider mounted, then applies on mount', () => {
+  const composerInput = makeFakeComposerInput()
   const editOrdinal = T.Chat.numberToOrdinal(801)
   let threadActions: ReturnType<typeof useConversationThreadActions> | undefined
   let inputState: ConversationInputState | undefined
@@ -898,12 +917,13 @@ test('setThreadInputEditing reaches the store with no provider mounted, then app
       <ThreadActionsProbe onActions={actions => (threadActions = actions)} />
       <ConversationInputProvider id={convID}>
         <InputStateProbe onState={state => (inputState = state)} />
+        <FakeComposerInputView fake={composerInput} />
       </ConversationInputProvider>
     </ConversationThreadProvider>
   )
 
   expect(inputState?.editing).toBe(editOrdinal)
-  expect(inputState?.unsentText).toBe('router edit text')
+  expect(composerInput.text).toBe('router edit text')
 })
 
 test('setThreadInputReplyTo reaches the store with no provider mounted, then applies on mount', () => {
@@ -1302,7 +1322,7 @@ describe('the composer text', () => {
       const post = jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener')
       renderComposer()
       act(() => {
-        mockPlatformInputProps?.onSubmit('')
+        mockPlatformInputProps?.onSubmit()
       })
       act(() => {
         jest.advanceTimersByTime(10)
@@ -1325,7 +1345,7 @@ describe('the composer text', () => {
       mockInput.text = 'hello'
 
       act(() => {
-        mockPlatformInputProps?.onSubmit('hello')
+        mockPlatformInputProps?.onSubmit()
       })
       expect(mockInput.text).toBe('')
       expect(mockInput.focusCount).toBe(1)

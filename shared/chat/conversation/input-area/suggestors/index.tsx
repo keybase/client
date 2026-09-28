@@ -7,6 +7,7 @@ import * as Users from './users'
 import * as InputState from '../input-state'
 import type * as Common from './common'
 import type {PlatformInputProps as Props, RefType as InputRef} from '../normal/input.shared'
+import {useComposer, type Composer} from '../composer'
 import {useConversationThreadID} from '../../thread-context'
 import {KeyboardStickyView} from 'react-native-keyboard-controller'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
@@ -84,25 +85,25 @@ type SelectedType = Parameters<(typeof transformers)['channels' | 'commands' | '
 // handles watching the input and seeing which suggestor we need to use
 type UseSyncInputProps = {
   active: ActiveType
+  composer: Composer
   inputRef: React.RefObject<InputRef | null>
   setActive: React.Dispatch<React.SetStateAction<ActiveType>>
   setFilter: React.Dispatch<React.SetStateAction<string>>
   selectedItemRef: React.RefObject<undefined | SelectedType>
-  lastTextRef: React.RefObject<string>
   setCommandInputSnapshot: (snapshot: Commands.CommandInputSnapshot) => void
-  setLastText: (text: string) => void
+  setSnapshotText: (text: string) => void
 }
 
 const useSyncInput = (p: UseSyncInputProps) => {
   const {
+    composer,
     inputRef,
     active,
     setActive,
     setFilter,
     selectedItemRef,
     setCommandInputSnapshot,
-    setLastText,
-    lastTextRef,
+    setSnapshotText,
   } = p
   const setInactive = () => {
     setActive('')
@@ -110,40 +111,38 @@ const useSyncInput = (p: UseSyncInputProps) => {
   }
 
   const getInputSnapshot = (): Commands.CommandInputSnapshot => ({
-    selection: inputRef.current?.getSelection(),
-    text: lastTextRef.current,
+    selection: composer.getSelection(),
+    text: composer.getText(),
   })
 
+  // with no input attached there is no selection, so no word
   const getWordAtCursor = (inputSnapshot: Commands.CommandInputSnapshot) => {
-    if (inputRef.current) {
-      const {selection, text} = inputSnapshot
-      // eslint-disable-next-line
-      if (!selection || selection.start === null) {
-        return null
-      }
-
-      // move selection to end of the selected word so replacements don't squish with text after
-      const startIdx = Math.min(selection.start, text.length)
-      const nextSpaceIndex = text.indexOf(' ', startIdx)
-      const toReplaceEnd = nextSpaceIndex !== -1 ? nextSpaceIndex : text.length
-
-      const upToCursor = text.substring(0, toReplaceEnd)
-
-      // Which split applies can only be told from the word itself: `active` is a
-      // keystroke behind and pasted text never gets a follow-up keystroke to
-      // correct it. So take the command split and keep it only when the word it
-      // yields really is a command, otherwise fall back to plain spaces.
-      let lastWordPrefix = upToCursor.split(commandWordSplit).at(-1) ?? ''
-      if (!suggestorToMarker.commands.test(lastWordPrefix)) {
-        lastWordPrefix = upToCursor.split(plainWordSplit).at(-1) ?? ''
-      }
-      const toReplaceStart = toReplaceEnd - lastWordPrefix.length
-      const position = {end: toReplaceEnd, start: toReplaceStart}
-
-      const word = text.substring(toReplaceStart, toReplaceEnd)
-      return {position, word}
+    const {selection, text} = inputSnapshot
+    // eslint-disable-next-line
+    if (!selection || selection.start === null) {
+      return null
     }
-    return null
+
+    // move selection to end of the selected word so replacements don't squish with text after
+    const startIdx = Math.min(selection.start, text.length)
+    const nextSpaceIndex = text.indexOf(' ', startIdx)
+    const toReplaceEnd = nextSpaceIndex !== -1 ? nextSpaceIndex : text.length
+
+    const upToCursor = text.substring(0, toReplaceEnd)
+
+    // Which split applies can only be told from the word itself: `active` is a
+    // keystroke behind and pasted text never gets a follow-up keystroke to
+    // correct it. So take the command split and keep it only when the word it
+    // yields really is a command, otherwise fall back to plain spaces.
+    let lastWordPrefix = upToCursor.split(commandWordSplit).at(-1) ?? ''
+    if (!suggestorToMarker.commands.test(lastWordPrefix)) {
+      lastWordPrefix = upToCursor.split(plainWordSplit).at(-1) ?? ''
+    }
+    const toReplaceStart = toReplaceEnd - lastWordPrefix.length
+    const position = {end: toReplaceEnd, start: toReplaceStart}
+
+    const word = text.substring(toReplaceStart, toReplaceEnd)
+    return {position, word}
   }
 
   const triggerIDRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -181,7 +180,7 @@ const useSyncInput = (p: UseSyncInputProps) => {
       const entries = Object.entries(suggestorToMarker) as Array<[string, string | RegExp]>
       for (const [suggestor, marker] of entries) {
         const matchInfo = matchesMarker(word, marker)
-        if (matchInfo.matches && inputRef.current?.isFocused()) {
+        if (matchInfo.matches && composer.isFocused()) {
           setActive(suggestor as ActiveType)
           setFilter(word.substring(matchInfo.marker.length))
         }
@@ -203,7 +202,6 @@ const useSyncInput = (p: UseSyncInputProps) => {
     if (!value) {
       return
     }
-    const input = inputRef.current
     const inputSnapshot = getInputSnapshot()
     setCommandInputSnapshot(inputSnapshot)
     const cursorInfo = getWordAtCursor(inputSnapshot)
@@ -219,7 +217,7 @@ const useSyncInput = (p: UseSyncInputProps) => {
 
     const transformRest = [
       matchInfo.marker,
-      {position: cursorInfo?.position ?? {end: null, start: null}, text: lastTextRef.current},
+      {position: cursorInfo?.position ?? {end: null, start: null}, text: inputSnapshot.text},
       !final,
     ] as const
 
@@ -238,8 +236,8 @@ const useSyncInput = (p: UseSyncInputProps) => {
         transformedText = transformers[active](value as TransformerType['users'], ...transformRest)
         break
     }
-    setLastText(transformedText.text)
-    input.transformText(() => transformedText, final)
+    setSnapshotText(transformedText.text)
+    composer.replace(transformedText, final)
   }
 
   return {
@@ -313,7 +311,7 @@ const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
 
 export const useSuggestors = (p: UseSuggestorsProps) => {
   const selectedItemRef = React.useRef<undefined | SelectedType>(undefined)
-  const lastTextRef = React.useRef('')
+  const composer = useComposer()
   const [commandInputSnapshot, setCommandInputSnapshot] = React.useState<Commands.CommandInputSnapshot>({
     selection: undefined,
     text: '',
@@ -327,8 +325,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
         : snapshot
     )
   }
-  const setLastText = (text: string) => {
-    lastTextRef.current = text
+  const setSnapshotText = (text: string) => {
     setCommandInputSnapshot(previous => (previous.text === text ? previous : {...previous, text}))
   }
   const [active, setActive] = React.useState<ActiveType>('')
@@ -341,13 +338,13 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   const botCommandsUpdateState = Commands.useBotCommandsUpdateState(conversationIDKey)
   const {triggerTransform, checkTrigger, setInactive} = useSyncInput({
     active,
+    composer,
     inputRef,
-    lastTextRef,
     selectedItemRef,
     setActive,
     setCommandInputSnapshot: setCommandInputSnapshotIfChanged,
     setFilter,
-    setLastText,
+    setSnapshotText,
   })
 
   // tell list to move the selection
@@ -369,7 +366,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   }
 
   const onChangeText = (text: string) => {
-    setLastText(text)
+    setSnapshotText(text)
     onChangeTextProps(text)
     checkTrigger()
   }

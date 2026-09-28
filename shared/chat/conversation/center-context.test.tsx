@@ -31,20 +31,20 @@ jest.mock('./thread-load-status-context', () => ({
 jest.mock('./thread-search-route', () => ({useChatThreadRouteParams: () => mockRouteParams}))
 
 import {ConversationCenterProvider, useConversationCenter} from './center-context'
-import {ConversationInputProvider, useConversationInput} from './input-area/input-state'
+import {ConversationInputProvider} from './input-area/input-state'
+import {FakeComposerInputView, makeFakeComposerInput} from './input-area/composer-fake-input'
 import {setInputIntent, useInputIntentState} from './input-intent-store'
 
 let seenHighlightOrdinal: T.Chat.Ordinal | undefined
-let seenUnsentText: string | undefined
+// what reaches the composer's input
+let composerInput = makeFakeComposerInput()
 
 const Probe = () => {
   const centeredHighlightOrdinal = useConversationCenter().centeredHighlightOrdinal
-  const unsentText = useConversationInput(s => s.unsentText)
   // captured in an effect, not during render: assigning module state while rendering is the
   // side effect react-hooks/globals rejects
   React.useEffect(() => {
     seenHighlightOrdinal = centeredHighlightOrdinal
-    seenUnsentText = unsentText
   })
   return null
 }
@@ -56,6 +56,7 @@ const Tree = ({id}: {id: T.Chat.ConversationIDKey}) => (
   <ConversationCenterProvider id={id}>
     <ConversationInputProvider id={id}>
       <Probe />
+      <FakeComposerInputView fake={composerInput} />
     </ConversationInputProvider>
   </ConversationCenterProvider>
 )
@@ -65,7 +66,7 @@ const highlight = (n: number) => ({messageID: T.Chat.numberToMessageID(n), type:
 beforeEach(() => {
   mockRouteParams = undefined
   seenHighlightOrdinal = undefined
-  seenUnsentText = undefined
+  composerInput = makeFakeComposerInput()
 })
 
 afterEach(() => {
@@ -138,7 +139,7 @@ test('the input provider does not consume a highlight meant for the center provi
     'flash',
     expect.anything()
   )
-  expect(seenUnsentText).toBeUndefined()
+  expect(composerInput.text).toBe('')
 })
 
 test('the center provider does not consume an injectText meant for the input provider', () => {
@@ -146,7 +147,7 @@ test('the center provider does not consume an injectText meant for the input pro
 
   render(<Tree id={convX} />)
 
-  expect(seenUnsentText).toBe('hello')
+  expect(composerInput.text).toBe('hello')
   expect(mockLoadMessagesCentered).not.toHaveBeenCalled()
   expect(useInputIntentState.getState().intents.has(convX)).toBe(false)
 })

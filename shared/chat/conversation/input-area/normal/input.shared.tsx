@@ -3,20 +3,15 @@ import type * as T from '@/constants/types'
 import type * as Styles from '@/styles'
 import type {TextType} from '@/common-adapters/text.shared'
 import type {TextInputProps} from 'react-native'
+import type {ComposerInput} from '../composer'
 
 export type Selection = {
   start: number
   end?: number
 }
 
-export type RefType = {
+export type RefType = ComposerInput & {
   blur: () => void
-  clear: () => void
-  focus: () => void
-  getSelection: () => Selection | undefined
-  isFocused: () => boolean
-  transformText: (fn: (textInfo: TextInfo) => TextInfo, reflectChange: boolean) => void
-  value: string
   getBoundingClientRect?: () =>
     | undefined
     | {
@@ -72,7 +67,7 @@ export type PlatformInputProps = {
   minWriterRole: T.Teams.TeamRoleType
   onCancelEditing: () => void
   onChangeText: (newText: string) => void
-  onSubmit: (text: string) => void
+  onSubmit: () => void
   showReplyPreview: boolean
   suggestionOverlayStyle: Styles.StylesCrossPlatform
 }

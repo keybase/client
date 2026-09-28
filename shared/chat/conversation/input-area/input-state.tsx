@@ -12,21 +12,20 @@ import {
   useInputIntentState,
   type InputIntent,
 } from '../input-intent-store'
-import type {SuppressSnapshot} from '../unfurl-preview-state'
+import {takeSuppressSnapshot, type SuppressSnapshot} from '../unfurl-preview-state'
+import {ComposerContext, makeComposer} from './composer'
 
 type ConversationInputStore = T.Immutable<{
   commandMarkdown?: T.RPCChat.UICommandMarkdown
   commandStatus?: T.Chat.CommandStatusInfo
   editing: T.Chat.Ordinal
-  focusInputCounter: number
   giphyResult?: T.RPCChat.GiphySearchResults
   giphyWindow: boolean
   replyTo: T.Chat.Ordinal
-  unsentText?: string
 }>
 
 type ConversationInputDispatch = {
-  injectIntoInput: (text?: string, focus?: boolean) => void
+  injectIntoInput: (text: string, focus?: boolean) => void
   resetState: () => void
   sendComposerText: (text: string, unfurlSuppress?: SuppressSnapshot) => void
   sendGiphyResult: (result: T.RPCChat.GiphySearchResult) => void
@@ -49,25 +48,20 @@ const initialConversationInputStore: ConversationInputStore = {
   commandMarkdown: undefined,
   commandStatus: undefined,
   editing: emptyOrdinal,
-  focusInputCounter: 0,
   giphyResult: undefined,
   giphyWindow: false,
   replyTo: emptyOrdinal,
-  unsentText: undefined,
 }
 
 type InputAction =
   | {type: 'afterSend'}
-  | {type: 'injectIntoInput'; focus?: boolean; text?: string}
   | {type: 'resetState'}
   | {type: 'setCommandMarkdown'; md?: T.RPCChat.UICommandMarkdown}
   | {type: 'setCommandStatusInfo'; info?: T.Chat.CommandStatusInfo}
-  | {type: 'setEditing'; ordinal: T.Chat.Ordinal; text: string}
-  | {type: 'setEditingClear'}
+  | {type: 'setEditing'; ordinal: T.Chat.Ordinal}
   | {type: 'setGiphyResult'; result?: T.RPCChat.GiphySearchResults}
   | {type: 'setGiphyWindow'; show: boolean}
   | {type: 'setReplyTo'; ordinal: T.Chat.Ordinal}
-  | {type: 'toggleGiphyPrefill'}
 
 const inputReducer = (state: ConversationInputStore, action: InputAction): ConversationInputStore => {
   switch (action.type) {
@@ -78,14 +72,6 @@ const inputReducer = (state: ConversationInputStore, action: InputAction): Conve
         editing: emptyOrdinal,
         giphyWindow: false,
         replyTo: emptyOrdinal,
-        unsentText: '',
-      }
-    case 'injectIntoInput':
-      return {
-        ...state,
-        focusInputCounter:
-          action.focus && action.text !== undefined ? state.focusInputCounter + 1 : state.focusInputCounter,
-        unsentText: action.text,
       }
     case 'resetState':
       return initialConversationInputStore
@@ -94,17 +80,13 @@ const inputReducer = (state: ConversationInputStore, action: InputAction): Conve
     case 'setCommandStatusInfo':
       return {...state, commandStatus: action.info}
     case 'setEditing':
-      return {...state, editing: action.ordinal, unsentText: action.text}
-    case 'setEditingClear':
-      return {...state, editing: emptyOrdinal, unsentText: ''}
+      return {...state, editing: action.ordinal}
     case 'setGiphyResult':
       return {...state, giphyResult: action.result}
     case 'setGiphyWindow':
       return {...state, giphyWindow: action.show}
     case 'setReplyTo':
       return {...state, replyTo: action.ordinal}
-    case 'toggleGiphyPrefill':
-      return {...state, unsentText: state.giphyWindow ? '' : '/giphy '}
   }
 }
 
@@ -123,14 +105,23 @@ const storeInputIntentTypes = ['commandStatus', 'injectText', 'setEditing', 'set
 
 export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat.ConversationIDKey}>) => {
   const {children, id} = p
-  const [state, dispatchState] = React.useReducer(inputReducer, initialConversationInputStore)
+  const [state, dispatchReducer] = React.useReducer(inputReducer, initialConversationInputStore)
+  // The state as of the last dispatch rather than the last render: the giphy prefill has to see a
+  // window opened earlier in the same batch.
+  const dispatchedRef = React.useRef(initialConversationInputStore)
+  const dispatchState = (action: InputAction) => {
+    dispatchedRef.current = inputReducer(dispatchedRef.current, action)
+    dispatchReducer(action)
+  }
   // Only setEditing reads thread state, so read it lazily instead of subscribing —
   // a subscription here re-renders the whole input subtree on every thread change.
   const threadStore = useConversationThreadStore()
   const {sendGiphyResult: sendGiphyResultAction, sendMessage} = useConversationSendActions()
+  const takeUnfurlSnapshot = React.useEffectEvent(() => takeSuppressSnapshot(id))
+  const [composer] = React.useState(() => makeComposer({takeUnfurlSnapshot}))
 
-  const injectIntoInput = React.useEffectEvent((text?: string, focus?: boolean) => {
-    dispatchState({focus, text, type: 'injectIntoInput'})
+  const injectIntoInput = React.useEffectEvent((text: string, focus?: boolean) => {
+    composer.inject(text, focus)
   })
   const resetState = React.useEffectEvent(() => {
     dispatchState({type: 'resetState'})
@@ -152,7 +143,8 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
   })
   const setEditing = React.useEffectEvent((e: T.Chat.Ordinal | 'last' | 'clear') => {
     if (e === 'clear') {
-      dispatchState({type: 'setEditingClear'})
+      dispatchState({ordinal: emptyOrdinal, type: 'setEditing'})
+      composer.inject('')
       return
     }
 
@@ -190,11 +182,8 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
     }
     const message = messageMap.get(ordinal)
     if (message?.type === 'text' || message?.type === 'attachment') {
-      dispatchState({
-        ordinal,
-        text: message.type === 'text' ? message.text.stringValue() : message.title,
-        type: 'setEditing',
-      })
+      dispatchState({ordinal, type: 'setEditing'})
+      composer.inject(message.type === 'text' ? message.text.stringValue() : message.title)
     } else {
       logger.error(`[chat] setEditing ignored ordinal ${ordinal}: message is ${message?.type ?? 'missing'}`)
     }
@@ -207,13 +196,15 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
       unfurlSuppress,
     })
     dispatchState({type: 'afterSend'})
+    composer.inject('')
   })
   const sendGiphyResult = React.useEffectEvent((result: T.RPCChat.GiphySearchResult) => {
     sendGiphyResultAction(result, state.replyTo)
     dispatchState({type: 'afterSend'})
+    composer.inject('')
   })
   const toggleGiphyPrefill = React.useEffectEvent(() => {
-    dispatchState({type: 'toggleGiphyPrefill'})
+    composer.inject(dispatchedRef.current.giphyWindow ? '' : '/giphy ')
   })
   const [inputDispatch] = React.useState<ConversationInputDispatch>(() => ({
     injectIntoInput,
@@ -312,9 +303,11 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
   })
 
   return (
-    <DispatchContext value={inputDispatch}>
-      <StateContext value={state}>{children}</StateContext>
-    </DispatchContext>
+    <ComposerContext value={composer}>
+      <DispatchContext value={inputDispatch}>
+        <StateContext value={state}>{children}</StateContext>
+      </DispatchContext>
+    </ComposerContext>
   )
 }
 

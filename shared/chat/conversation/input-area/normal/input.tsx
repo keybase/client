@@ -8,6 +8,7 @@ import * as InputState from '../input-state'
 import SetExplodingMessagePopup from './set-explode-popup'
 import Typing from './typing'
 import type {Props as InputLowLevelProps, TextInfo, RefType} from './input.shared'
+import {useComposer} from '../composer'
 import type {PlatformInputProps as Props} from './input.shared'
 export type {Selection, RefType, TextInfo, PlatformInputProps} from './input.shared'
 import {formatDurationShort} from '@/util/timestamp'
@@ -34,7 +35,6 @@ import {launchCameraAsync, launchImageLibraryAsync} from '@/util/expo-image-pick
 import {pickDocumentsAsync} from '@/util/expo-document-picker.native'
 import {filePickerError} from '@/util/storeless-actions'
 import {AudioSendWrapper} from '@/chat/audio/audio-send.native'
-import {standardTransformer} from '../suggestors/common'
 import logger from '@/logger'
 import {ComposerBoxContext, useComposerAnchor} from '@/chat/conversation/composer-viewport-context'
 import {
@@ -151,8 +151,7 @@ function DesktopInput(p: InputLowLevelProps) {
       },
       isFocused: () =>
         !!i && (globalThis as {document?: {activeElement: unknown}}).document?.activeElement === i,
-      transformText: (fn: (textInfo: TextInfo) => TextInfo, reflectChange: boolean): void => {
-        const ti = fn({selection: selectionRef.current, text: value})
+      replaceText: (ti: TextInfo, reflectChange: boolean): void => {
         // defer since we can do this in other renders
         setTimeout(() => {
           setValue(ti.text)
@@ -176,9 +175,8 @@ function DesktopInput(p: InputLowLevelProps) {
           }
         }, 0)
       },
-      value,
     }
-  }, [value, multiline, onChange])
+  }, [multiline, onChange])
 
   const rows = multiline ? rowsMin || Math.min(2, rowsMax || 2) : 0
   const style = (() => {
@@ -374,17 +372,15 @@ function NativeInput(p: InputLowLevelProps) {
         return selection
       },
       isFocused: () => !!inputRef.current?.isFocused(),
-      transformText: (fn: (textInfo: TextInfo) => TextInfo, reflectChange: boolean): void => {
-        const ti = fn({selection, text: value})
+      replaceText: (ti: TextInfo, reflectChange: boolean): void => {
         if (!reflectChange) {
           return
         }
         onChangeText(ti.text)
         setSelection(ti.selection)
       },
-      value,
     }
-  }, [onChangeText, selection, value])
+  }, [onChangeText, selection])
 
   const style = (() => {
     let textStyle = getTextStyle(textType, theme)
@@ -466,7 +462,6 @@ export const Input = isMobile ? NativeInput : DesktopInput
 // ==================== DESKTOP PLATFORM INPUT ====================
 
 type HtmlInputRefType = React.RefObject<HtmlInputRef | null>
-type InputRefType = React.RefObject<RefType | null>
 
 type ExplodingButtonProps = Pick<Props, 'explodingModeSeconds'> & {
   focusInput: () => void
@@ -530,23 +525,14 @@ const ExplodingButton = function ExplodingButton(p: ExplodingButtonProps) {
   )
 }
 
-type EmojiButtonProps = {inputRef: InputRefType}
-const EmojiButton = function EmojiButton(p: EmojiButtonProps) {
+const EmojiButton = function EmojiButton() {
   const desktopStyles = useDesktopStyles()
   const theme = Kb.Styles.useTheme()
-  const {inputRef} = p
+  const composer = useComposer()
   const conversationIDKey = useConversationThreadID()
   const insertEmoji = (emojiColons: string) => {
-    inputRef.current?.transformText(({text, selection}) => {
-      const newText =
-        text.slice(0, selection?.start || 0) + emojiColons + text.slice(selection?.end || 0) + ' '
-      const pos = (selection?.start || 0) + emojiColons.length + 1
-      return {
-        selection: {end: pos, start: pos},
-        text: newText,
-      }
-    }, true)
-    inputRef.current?.focus()
+    composer.insertAtCaret(emojiColons, {appendSpaceToText: true})
+    composer.focus()
   }
 
   const makePopup = (p: Kb.Popup2Parms) => {
@@ -659,7 +645,7 @@ const DesktopFooter = () => {
   )
 }
 
-type UseKeyboardProps = Pick<Props, 'isEditing' | 'onChangeText' | 'showReplyPreview'> & {
+type UseKeyboardProps = Pick<Props, 'isEditing' | 'showReplyPreview'> & {
   focusInput: () => void
   htmlInputRef: HtmlInputRefType
   onKeyDown?: (evt: React.KeyboardEvent) => void
@@ -668,8 +654,8 @@ type UseKeyboardProps = Pick<Props, 'isEditing' | 'onChangeText' | 'showReplyPre
 }
 const useKeyboard = (p: UseKeyboardProps) => {
   const {htmlInputRef, focusInput, isEditing, onKeyDown, onCancelEditing} = p
-  const {onChangeText, onEditLastMessage, showReplyPreview} = p
-  const lastText = React.useRef('')
+  const {onEditLastMessage, showReplyPreview} = p
+  const composer = useComposer()
   const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
   const {scrollDown, scrollUp} = React.useContext(ThreadRefsContext)
   const onCancelReply = () => {
@@ -677,8 +663,7 @@ const useKeyboard = (p: UseKeyboardProps) => {
   }
 
   const commonOnKeyDown = (e: React.KeyboardEvent | DesktopKeyboardEvent) => {
-    const text = lastText.current
-    if (e.key === 'ArrowUp' && !isEditing && !text) {
+    if (e.key === 'ArrowUp' && !isEditing && !composer.getText()) {
       e.preventDefault()
       onEditLastMessage()
       return true
@@ -734,28 +719,22 @@ const useKeyboard = (p: UseKeyboardProps) => {
     onKeyDown?.(e)
   }
 
-  const onChangeTextInner = (text: string) => {
-    lastText.current = text
-    onChangeText(text)
-  }
-
-  return {globalKeyDownPressHandler, inputKeyDown, onChangeText: onChangeTextInner}
+  return {globalKeyDownPressHandler, inputKeyDown}
 }
 
 type SideButtonsProps = Pick<Props, 'cannotWrite'> & {
   setHtmlInputRef: (i: HtmlInputRef | null) => void
-  inputRef: InputRefType
 }
 
 const SideButtons = (p: SideButtonsProps) => {
   const desktopStyles = useDesktopStyles()
-  const {setHtmlInputRef, cannotWrite, inputRef} = p
+  const {setHtmlInputRef, cannotWrite} = p
   return (
     <Kb.Box2 direction="horizontal" style={desktopStyles.sideButtons}>
       {!cannotWrite && (
         <>
           <GiphyButton />
-          <EmojiButton inputRef={inputRef} />
+          <EmojiButton />
           <FileButton setHtmlInputRef={setHtmlInputRef} />
         </>
       )}
@@ -781,16 +760,12 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
     if (e.key === 'Enter' && !(e.altKey || e.shiftKey || e.metaKey)) {
       e.preventDefault()
       if (inputRef.current) {
-        onSubmit(inputRef.current.value)
+        onSubmit()
       }
     }
   }
 
-  const {
-    popup,
-    onKeyDown,
-    onChangeText: onChangeTextSuggestors,
-  } = useSuggestors({
+  const {popup, onKeyDown, onChangeText} = useSuggestors({
     inputRef,
     onChangeText: p.onChangeText,
     onKeyDown: checkEnterOnKeyDown,
@@ -807,12 +782,11 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
     setEditing('last')
   }
 
-  const {globalKeyDownPressHandler, inputKeyDown, onChangeText} = useKeyboard({
+  const {globalKeyDownPressHandler, inputKeyDown} = useKeyboard({
     focusInput,
     htmlInputRef,
     isEditing,
     onCancelEditing,
-    onChangeText: onChangeTextSuggestors,
     onEditLastMessage,
     onKeyDown,
     showReplyPreview,
@@ -874,7 +848,7 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
                 onKeyDown={inputKeyDown}
               />
             </Kb.Box2>
-            <SideButtons cannotWrite={cannotWrite} setHtmlInputRef={setHtmlInputRef} inputRef={inputRef} />
+            <SideButtons cannotWrite={cannotWrite} setHtmlInputRef={setHtmlInputRef} />
           </Kb.Box2>
           <DesktopFooter />
         </Kb.Box2>
@@ -968,7 +942,6 @@ type NativeButtonsProps = Pick<
   hasText: boolean
   isEditing: boolean
   toggleShowingMenu: () => void
-  insertText: (s: string) => void
   onSubmit: () => void
   ourShowMenu: (m: MenuType) => void
   onSelectionChange?: (p: {start: number | null; end: number | null}) => void
@@ -978,7 +951,9 @@ type NativeButtonsProps = Pick<
 
 const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
   const nativeStyles = useNativeStyles()
-  const {insertText, ourShowMenu, onSubmit, onCancelEditing} = p
+  const {ourShowMenu, onSubmit, onCancelEditing} = p
+  const composer = useComposer()
+  const insertText = composer.insertAtCaret
   const {hasText, isEditing, isExploding, explodingModeSeconds, cannotWrite, toggleShowingMenu} = p
   const {showAudioSend, setShowAudioSend} = p
 
@@ -1277,24 +1252,13 @@ const NativePlatformInput = (p: Props) => {
   const {onSubmit, explodingModeSeconds, hintText, onCancelEditing} = p
   const suggestionListReserveHeight = expanded && suggestionsShowing ? expandedSuggestionListHeight : 0
 
-  const lastText = React.useRef('')
+  const composer = useComposer()
   const whichMenu = React.useRef<MenuType | undefined>(undefined)
   const [hasText, setHasText] = React.useState(false)
 
   const toggleExpandInput = () => {
     const nextState = !expanded
     setExpanded(nextState)
-  }
-
-  const insertText = (toInsert: string) => {
-    const i = inputRef.current
-    i?.transformText(({selection, text}) => {
-      return standardTransformer(
-        toInsert,
-        {position: {end: selection?.end || null, start: selection?.start || null}, text},
-        true
-      )
-    }, true)
   }
 
   const expandedRef = React.useRef(expanded)
@@ -1306,9 +1270,8 @@ const NativePlatformInput = (p: Props) => {
 
   const [onQueueSubmit] = React.useState(() => () => {
     setTimeout(() => {
-      const text = lastText.current
-      if (text) {
-        onSubmitRef.current(text)
+      if (composer.getText()) {
+        onSubmitRef.current()
         if (expandedRef.current) {
           setExpanded(false)
         }
@@ -1325,23 +1288,15 @@ const NativePlatformInput = (p: Props) => {
         case 'enter':
           onQueueSubmit()
           break
-        case 'shift-enter': {
-          const i = inputRef.current
-          i?.transformText(({selection, text}) => {
-            return standardTransformer(
-              '\n',
-              {position: {end: selection?.end || null, start: selection?.start || null}, text},
-              true
-            )
-          }, true)
-        }
+        case 'shift-enter':
+          composer.insertAtCaret('\n')
       }
     }
     onHWKeyPressed(cb)
     return () => {
       removeOnHWKeyPressed()
     }
-  }, [onQueueSubmit])
+  }, [composer, onQueueSubmit])
 
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
@@ -1401,7 +1356,6 @@ const NativePlatformInput = (p: Props) => {
   }
   const aiOnChangeText = (text: string) => {
     setHasText(!!text)
-    lastText.current = text
     onChangeText(text)
   }
 
@@ -1456,7 +1410,6 @@ const NativePlatformInput = (p: Props) => {
             <NativeAnimatedExpand expandInput={toggleExpandInput} expanded={expanded} />
           </Kb.Box2>
           <NativeButtons
-            insertText={insertText}
             ourShowMenu={ourShowMenu}
             onCancelEditing={onCancelEditing}
             onSelectionChange={onSelectionChange}

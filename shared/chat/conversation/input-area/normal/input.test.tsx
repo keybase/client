@@ -18,9 +18,10 @@ afterEach(() => {
 
 const renderInput = () => {
   const ref = React.createRef<RefType>()
-  const utils = render(<Input multiline={true} onChangeText={jest.fn()} ref={ref} />)
+  const onChangeText = jest.fn()
+  const utils = render(<Input multiline={true} onChangeText={onChangeText} ref={ref} />)
   const input = utils.getByTestId(TestIDs.CHAT_INPUT)
-  return {input, ref}
+  return {input, onChangeText, ref}
 }
 
 // the browser dispatches selectionchange (our onSelect) asynchronously, so a paste
@@ -28,11 +29,11 @@ const renderInput = () => {
 // carry it instead, otherwise a pasted `!keybot cancel` looks like a caret at 0 and
 // the suggestors match on the first word only
 test('getSelection reflects the caret carried by the change event', () => {
-  const {input, ref} = renderInput()
+  const {input, onChangeText, ref} = renderInput()
 
   fireEvent.change(input, {target: {selectionEnd: 14, selectionStart: 14, value: '!keybot cancel'}})
 
-  expect(ref.current?.value).toBe('!keybot cancel')
+  expect(onChangeText).toHaveBeenLastCalledWith('!keybot cancel')
   expect(ref.current?.getSelection()).toEqual({end: 14, start: 14})
 })
 
