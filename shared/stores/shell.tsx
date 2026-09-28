@@ -5,19 +5,10 @@ import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {defaultUseNativeFrame} from '@/constants/platform'
+import type {NetworkStateType} from 'expo-network'
 
 // Lowercase names are what Go's UpdateMobileNetState expects; 'notavailable' is desktop.
-export type ConnectionType =
-  | 'none'
-  | 'unknown'
-  | 'cellular'
-  | 'wifi'
-  | 'bluetooth'
-  | 'ethernet'
-  | 'wimax'
-  | 'vpn'
-  | 'other'
-  | 'notavailable'
+export type ConnectionType = Lowercase<`${NetworkStateType}`> | 'notavailable'
 
 type WindowState = T.Immutable<{
   dockHidden: boolean

@@ -18,26 +18,35 @@ import type {ConnectionType} from '@/stores/shell'
 import logger from '@/logger'
 
 // expo-network reports uppercase enum values; Go expects the lowercase names
-const toConnectionType = (type: ExpoNetwork.NetworkStateType | undefined): ConnectionType =>
-  (type ?? ExpoNetwork.NetworkStateType.UNKNOWN).toLowerCase() as ConnectionType
+const toConnectionType = (type: ExpoNetwork.NetworkStateType | undefined) =>
+  (type ?? ExpoNetwork.NetworkStateType.UNKNOWN).toLowerCase() as Lowercase<`${ExpoNetwork.NetworkStateType}`>
+
+// iOS getNetworkStateAsync reports NONE when its one-off path monitor doesn't answer within 5s, so
+// prefer what the listener last reported and only fetch before it has reported anything.
+let lastType: ConnectionType | undefined
 
 const Network: NetworkModule = {
   addConnectionTypeListener: cb => {
-    let gotEvent = false
-    const sub = ExpoNetwork.addNetworkStateListener(({type}) => {
-      gotEvent = true
-      cb(toConnectionType(type))
-    })
+    let removed = false
+    const report = (type: ConnectionType) => {
+      lastType = type
+      if (!removed) cb(type)
+    }
+    const sub = ExpoNetwork.addNetworkStateListener(({type}) => report(toConnectionType(type)))
     // The native listener doesn't always fire on subscribe (Android when offline), so seed it
     ExpoNetwork.getNetworkStateAsync()
       .then(({type}) => {
-        if (!gotEvent) cb(toConnectionType(type))
+        if (lastType === undefined) report(toConnectionType(type))
       })
       .catch((e: unknown) => logger.warn(`Network state fetch failed: ${String(e)}`))
-    return () => sub.remove()
+    return () => {
+      removed = true
+      sub.remove()
+    }
   },
-  getConnectionType: async () => toConnectionType((await ExpoNetwork.getNetworkStateAsync()).type),
+  getConnectionType: async () => lastType ?? toConnectionType((await ExpoNetwork.getNetworkStateAsync()).type),
 }
+
 
 export const getNative = (): NativeModules =>
   ({
