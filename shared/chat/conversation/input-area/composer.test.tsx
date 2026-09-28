@@ -15,10 +15,13 @@ const setup = (opts?: {takeUnfurlSnapshot?: () => SuppressSnapshot}) => {
   // and every report the attached input makes, with whether the composer took it as typing
   const drafts: Array<string> = []
   const reports: Array<{text: string; typed: boolean}> = []
+  // stands in for the conversation's cannotWrite in the inbox metadata store
+  let readOnly = false
   const composer = makeComposer({
     flushDraft: () => {
       drafts.push('flush')
     },
+    isReadOnly: () => readOnly,
     saveDraft: text => {
       drafts.push(text)
     },
@@ -39,7 +42,10 @@ const setup = (opts?: {takeUnfurlSnapshot?: () => SuppressSnapshot}) => {
     attach()
     return {attach, detach: () => view.setInput(null), fake, view}
   }
-  return {composer, drafts, mount, reports, send}
+  const setReadOnly = (next: boolean) => {
+    readOnly = next
+  }
+  return {composer, drafts, mount, reports, send, setReadOnly}
 }
 
 afterEach(() => {
@@ -782,8 +788,8 @@ describe('typing and the saved draft', () => {
 
 describe('read-only', () => {
   test('an inject, an insert and a typed insert reach neither the input nor the text', () => {
-    const {composer, mount} = setup()
-    composer.setReadOnly(true)
+    const {composer, mount, setReadOnly} = setup()
+    setReadOnly(true)
     const {fake} = mount()
     fake.typesText = true
 
@@ -796,8 +802,8 @@ describe('read-only', () => {
   })
 
   test('a waiting inject does not land when the input attaches', () => {
-    const {composer, mount} = setup()
-    composer.setReadOnly(true)
+    const {composer, mount, setReadOnly} = setup()
+    setReadOnly(true)
     composer.inject('intent')
 
     const {fake} = mount()
@@ -806,10 +812,10 @@ describe('read-only', () => {
   })
 
   test('a clear still clears', () => {
-    const {composer, mount} = setup()
+    const {composer, mount, setReadOnly} = setup()
     const {fake} = mount()
     fake.type('before')
-    composer.setReadOnly(true)
+    setReadOnly(true)
 
     composer.inject('')
 
@@ -818,10 +824,10 @@ describe('read-only', () => {
   })
 
   test('writes land again once the composer can be written to', () => {
-    const {composer, mount} = setup()
-    composer.setReadOnly(true)
+    const {composer, mount, setReadOnly} = setup()
+    setReadOnly(true)
     const {fake} = mount()
-    composer.setReadOnly(false)
+    setReadOnly(false)
 
     composer.inject('hello')
 
@@ -830,7 +836,8 @@ describe('read-only', () => {
   })
 
   test('a mounted read-only input does not get the draft', () => {
-    const {composer} = setup()
+    const {composer, setReadOnly} = setup()
+    setReadOnly(true)
     const fake = makeFakeComposerInput()
 
     render(
@@ -843,8 +850,29 @@ describe('read-only', () => {
     expect(composer.getText()).toBe('')
   })
 
+  // The store turns read-only before React renders it, and an input handle is set in the commit's
+  // layout phase, ahead of every passive effect: a draft offered there must already see it.
+  test('a draft that arrives with read-only as the input gets a new handle is not written', () => {
+    const {composer, setReadOnly} = setup()
+    const first = makeFakeComposerInput()
+    const second = makeFakeComposerInput()
+    const view = (fake: FakeComposerInput, draft: string | undefined, readOnly: boolean) => (
+      <ComposerContext value={composer}>
+        <FakeComposerInputView draft={draft} fake={fake} readOnly={readOnly} />
+      </ComposerContext>
+    )
+    const {rerender} = render(view(first, undefined, false))
+
+    setReadOnly(true)
+    rerender(view(second, 'saved', true))
+
+    expect(second.text).toBe('')
+    expect(composer.getText()).toBe('')
+  })
+
   test('a draft kept out while read-only loads once the user can post', () => {
-    const {composer} = setup()
+    const {composer, setReadOnly} = setup()
+    setReadOnly(true)
     const fake = makeFakeComposerInput()
     const view = (readOnly: boolean) => (
       <ComposerContext value={composer}>
@@ -854,6 +882,7 @@ describe('read-only', () => {
     const {rerender} = render(view(true))
     expect(fake.text).toBe('')
 
+    setReadOnly(false)
     rerender(view(false))
 
     expect(fake.text).toBe('saved')

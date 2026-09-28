@@ -143,6 +143,7 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
       flushDraft: () => {
         saveDraft.flush()
       },
+      isReadOnly: () => !!useInboxMetadataState.getState().metas.get(id)?.cannotWrite,
       saveDraft: text => {
         saveDraft(text)
       },
