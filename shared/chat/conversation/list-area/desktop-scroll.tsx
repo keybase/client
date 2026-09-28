@@ -79,9 +79,11 @@ export const useDesktopThreadScroll = (p: {
     const run = async () => {
       let previousScroll: number | undefined
       let corrections = 0
-      for (let elapsed = 0; elapsed < 2000 && !loop.cancelled && ownsEnd(targetRef.current); ) {
+      for (let elapsed = 0; elapsed < 2000; ) {
         await new Promise<void>(resolve => setTimeout(resolve, 50))
         elapsed += 50
+        // Checked after the sleep, not before: whatever stopped it may have landed during it.
+        if (loop.cancelled || !ownsEnd(targetRef.current)) return
         const state = listRef.current?.getState()
         if (!state) continue
         if (state.isAtEnd) return
@@ -226,9 +228,11 @@ export const useDesktopThreadScroll = (p: {
     [perform]
   )
 
+  // The end being verified belongs to the old rows.
   React.useLayoutEffect(() => {
+    stopEndAnchor()
     dispatch({type: 'datasetChanged'})
-  }, [datasetKey, dispatch])
+  }, [datasetKey, dispatch, stopEndAnchor])
 
   // Level-triggered on purpose: centring has to start when loaded flips true after the target was
   // already set, and when the target arrives in the thread after the request.

@@ -245,15 +245,22 @@ describe('header growth re-pins the end', () => {
     expect(H.log).toEqual([])
   })
 
-  // The loop checks for a stop before it sleeps, not after, so a wheel landing between two checks
-  // still gets the correction that was already due.
-  test('a wheel mid-correction stops it, one check late', async () => {
+  test('a wheel mid-correction stops it before the correction that was due', async () => {
     open()
     growHeader()
     await tick(50)
     wheel()
     await tick(3000)
-    expect(H.log).toEqual([['scrollToEnd', noAnimation]])
+    expect(H.log).toEqual([])
+  })
+
+  test('a reload mid-correction stops it', async () => {
+    open()
+    growHeader()
+    await tick(50)
+    reloadDataset()
+    await tick(3000)
+    expect(H.log).toEqual([])
   })
 
   test('a wheel before the first check stops it outright', async () => {
@@ -264,18 +271,18 @@ describe('header growth re-pins the end', () => {
     expect(H.log).toEqual([])
   })
 
-  // Same late check: the replaced loop still fires the correction it was sleeping on, then the new
-  // loop spends its own budget of two.
-  test('a second growth restarts the loop, and the old one fires once more', async () => {
+  // The replaced loop does not fire the correction it was sleeping on; the new loop spends its own
+  // budget of two.
+  test('a second growth restarts the loop', async () => {
     open()
     update(() => H.listStore.set({scrollToEndLands: false}))
     growHeader()
     await tick(50)
     update(() => (props()['onMetricsChange'] as (m: {headerSize: number}) => void)({headerSize: 200}))
     await tick(50)
-    expect(H.log).toHaveLength(1)
+    expect(H.log).toHaveLength(0)
     await tick(3000)
-    expect(H.log).toHaveLength(3)
+    expect(H.log).toHaveLength(2)
   })
 })
 
