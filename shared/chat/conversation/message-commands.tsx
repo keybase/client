@@ -65,7 +65,8 @@ const deleteThreadMessage = (conversationIDKey: T.Chat.ConversationIDKey, target
       revertDeleting()
       return
     }
-    if (!getInboxConversationMeta(conversationIDKey)) {
+    const meta = getInboxConversationMeta(conversationIDKey)
+    if (!meta) {
       logger.warn('Deleting message w/ no meta')
       revertDeleting()
       return
@@ -82,11 +83,7 @@ const deleteThreadMessage = (conversationIDKey: T.Chat.ConversationIDKey, target
         return
       }
       // a successful delete leaves the row deleting; the service's delete notification removes it
-      await getChatRpc().postDelete({
-        conversationIDKey,
-        messageID: message.id,
-        tlfName: getMeta(conversationIDKey).tlfname,
-      })
+      await getChatRpc().postDelete({conversationIDKey, messageID: message.id, tlfName: meta.tlfname})
     } catch (error) {
       revertDeleting()
       if (error instanceof RPCError) {
@@ -341,15 +338,12 @@ export const toggleCollapse = (
 
 export const removeUnfurl = (conversationIDKey: T.Chat.ConversationIDKey, messageID: T.Chat.MessageID) => {
   const f = async () => {
-    if (!getInboxConversationMeta(conversationIDKey)) {
+    const meta = getInboxConversationMeta(conversationIDKey)
+    if (!meta) {
       logger.debug('unfurl remove no meta found, aborting!')
       return
     }
-    await getChatRpc().postDelete({
-      conversationIDKey,
-      messageID,
-      tlfName: getMeta(conversationIDKey).tlfname,
-    })
+    await getChatRpc().postDelete({conversationIDKey, messageID, tlfName: meta.tlfname})
   }
   ignorePromise(f())
 }
