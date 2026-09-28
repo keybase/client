@@ -125,6 +125,7 @@ export const useNativeThreadScroll = (p: {
   // scrollToOffset by the item-delta until the target sits at viewport center.
   const scrollOffsetRef = React.useRef(0)
   const contentHeightRef = React.useRef(0)
+  const viewportHeightRef = React.useRef(0)
   // {active, iters}: correcting toward a centered hit and how many steps taken
   const correctRef = React.useRef({active: false, iters: 0})
   const vFirstRef = React.useRef<number | null | undefined>(undefined)
@@ -132,6 +133,12 @@ export const useNativeThreadScroll = (p: {
   const [stopCentering] = React.useState(() => () => {
     correctRef.current.active = false
     timers.stop()
+  })
+  const [settleCenter] = React.useState(() => () => {
+    if (!correctRef.current.active) return
+    correctRef.current.active = false
+    // Only ever leaves the list alone.
+    decide({type: 'centerSettled'})
   })
   const [correctCenter] = React.useState(
     () => (first: number | null | undefined, last: number | null | undefined) => {
@@ -146,19 +153,26 @@ export const useNativeThreadScroll = (p: {
       const centerIdx = (first + last) / 2
       const diff = targetIdx - centerIdx
       if (Math.abs(diff) <= 0.5 || st.iters > 12) {
-        st.active = false
-        decide({type: 'centerSettled'})
+        settleCenter()
+        return
+      }
+      const avgH = contentHeightRef.current / num
+      const maxOffset = Math.max(0, contentHeightRef.current - viewportHeightRef.current)
+      // damp by 0.9 to avoid overshoot/oscillation; higher index = older = higher offset
+      const newOffset = Math.min(maxOffset, Math.max(0, scrollOffsetRef.current + diff * avgH * 0.9))
+      // A target among the newest or oldest rows cannot reach the middle: the step is clamped to the
+      // end of the scrollable range and would move nothing, now or on any later try.
+      if (Math.abs(newOffset - scrollOffsetRef.current) < 1) {
+        settleCenter()
         return
       }
       st.iters += 1
-      const avgH = contentHeightRef.current / num
-      // damp by 0.9 to avoid overshoot/oscillation; higher index = older = higher offset
-      const newOffset = Math.max(0, scrollOffsetRef.current + diff * avgH * 0.9)
       listRef.current?.scrollToOffset({animated: false, offset: newOffset})
     }
   )
 
-  // The corrector's 50/250/500/900ms schedule, restarted by each center directive.
+  // The corrector's 50/250/500/900ms schedule, restarted by each center directive. It is the whole
+  // budget: the target settles where the last step leaves it.
   const ladderRef = React.useRef<Array<Scheduled>>([])
 
   const perform = React.useCallback(
@@ -174,8 +188,11 @@ export const useNativeThreadScroll = (p: {
           if (directive.newTarget) moveToward(directive.ordinal)
           correctRef.current = {active: true, iters: 0}
           ladderRef.current.forEach(t => t.cancel())
-          ladderRef.current = [50, 250, 500, 900].map(d =>
-            timers.after(d, () => correctCenter(vFirstRef.current, vLastRef.current))
+          ladderRef.current = [50, 250, 500, 900].map((d, i, ladder) =>
+            timers.after(d, () => {
+              correctCenter(vFirstRef.current, vLastRef.current)
+              if (i === ladder.length - 1) settleCenter()
+            })
           )
           return
         case 'reveal':
@@ -190,7 +207,7 @@ export const useNativeThreadScroll = (p: {
         }
       }
     },
-    [correctCenter, listRef, moveToward, stopCentering, timers]
+    [correctCenter, listRef, moveToward, settleCenter, stopCentering, timers]
   )
 
   // Compared by value, not by the effect re-running: a freeze/thaw of this screen re-mounts effects
@@ -316,10 +333,14 @@ export const useNativeThreadScroll = (p: {
   })
 
   const [onScroll] = React.useState(
-    () => (e: {nativeEvent: {contentOffset: {y: number}; contentSize: {height: number}}}) => {
-      scrollOffsetRef.current = e.nativeEvent.contentOffset.y
-      contentHeightRef.current = e.nativeEvent.contentSize.height
-    }
+    () =>
+      (e: {
+        nativeEvent: {contentOffset: {y: number}; contentSize: {height: number}; layoutMeasurement: {height: number}}
+      }) => {
+        scrollOffsetRef.current = e.nativeEvent.contentOffset.y
+        contentHeightRef.current = e.nativeEvent.contentSize.height
+        viewportHeightRef.current = e.nativeEvent.layoutMeasurement.height
+      }
   )
   const [onContentSizeChange] = React.useState(() => (_w: number, h: number) => {
     contentHeightRef.current = h

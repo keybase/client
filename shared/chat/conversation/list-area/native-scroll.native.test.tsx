@@ -150,9 +150,13 @@ const viewable = (first: number, last: number) => {
   })
 }
 
+// The viewport shows ten 100pt rows.
+const viewportHeight = 1000
 const scrolled = (y: number, height: number) => {
   update(() => {
-    props().onScroll({nativeEvent: {contentOffset: {y}, contentSize: {height}}})
+    props().onScroll({
+      nativeEvent: {contentOffset: {y}, contentSize: {height}, layoutMeasurement: {height: viewportHeight}},
+    })
   })
 }
 
@@ -466,7 +470,7 @@ describe('a centre requested after opening', () => {
 
   test('rows changing under a centred target re-arm the corrector without a coarse scroll', async () => {
     open({center: 50, from: 21, to: 80})
-    await tick(1000)
+    await tick(300)
     scrolled(0, 6000)
     clearLog()
     // More rows arrive around the target while it is still settling. It keeps its index in the
@@ -490,6 +494,44 @@ describe('a centre requested after opening', () => {
     viewable(0, 9)
     await tick(1000)
     expect(scrollsOnly()).toEqual([])
+  })
+
+  test('once the corrector\'s schedule has run out, older rows loading under the target leave the reader there', async () => {
+    open({center: 50, from: 21, to: 80})
+    scrolled(0, 6000)
+    viewable(0, 9)
+    await tick(1000)
+    clearLog()
+    setOrdinals(1, 80)
+    viewable(0, 9)
+    await tick(1000)
+    expect(scrollsOnly()).toEqual([])
+  })
+
+  test('a target among the newest rows, which cannot reach the middle, settles without a step', async () => {
+    open({center: 78, from: 21, to: 80})
+    scrolled(0, 6000)
+    viewable(0, 9)
+    await tick(100)
+    expect(scrollsOnly()).toEqual([coarse(78)])
+    clearLog()
+    setOrdinals(1, 80)
+    viewable(0, 9)
+    await tick(1000)
+    expect(scrollsOnly()).toEqual([coarse(78)])
+  })
+
+  test('a target among the oldest rows, which cannot reach the middle, settles without a step', async () => {
+    open({center: 22, from: 21, to: 80})
+    scrolled(5000, 6000)
+    viewable(50, 59)
+    await tick(100)
+    expect(scrollsOnly()).toEqual([coarse(22)])
+    clearLog()
+    setOrdinals(21, 81)
+    viewable(50, 59)
+    await tick(1000)
+    expect(scrollsOnly()).toEqual([coarse(22)])
   })
 
   test('once the corrector runs out of steps, older rows loading under the target leave the reader there', async () => {

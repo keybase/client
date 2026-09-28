@@ -58,7 +58,9 @@ type FakeListProps = {
   data: ReadonlyArray<T.Chat.Ordinal>
   maintainVisibleContentPosition: unknown
   onContentSizeChange: (w: number, h: number) => void
-  onScroll: (e: {nativeEvent: {contentOffset: {y: number}; contentSize: {height: number}}}) => void
+  onScroll: (e: {
+    nativeEvent: {contentOffset: {y: number}; contentSize: {height: number}; layoutMeasurement: {height: number}}
+  }) => void
   onScrollBeginDrag: () => void
   onScrollToIndexFailed: (info: unknown) => void
   onViewableItemsChanged: (info: {viewableItems: Array<ViewToken>}) => void
