@@ -202,7 +202,7 @@ type ListItem = {
 
 type ListProps = Pick<
   Common.ListProps<ListItem>,
-  'suggestBotCommandsUpdateStatus' | 'listStyle' | 'onPreviewGone' | 'spinnerStyle'
+  'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
   conversationIDKey: T.Chat.ConversationIDKey
   filter: string

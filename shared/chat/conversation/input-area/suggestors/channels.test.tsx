@@ -51,7 +51,6 @@ const renderChannels = () =>
       filter=""
       listStyle={{}}
       spinnerStyle={{}}
-      onPreviewGone={jest.fn()}
       onSelected={jest.fn()}
       setListHandle={jest.fn()}
     />

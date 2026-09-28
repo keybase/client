@@ -130,7 +130,7 @@ type ChannelType = {
 }
 type ListProps = Pick<
   Common.ListProps<ChannelType>,
-  'suggestBotCommandsUpdateStatus' | 'listStyle' | 'onPreviewGone' | 'spinnerStyle'
+  'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
   conversationIDKey: T.Chat.ConversationIDKey
   filter: string

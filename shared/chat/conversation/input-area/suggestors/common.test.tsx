@@ -1,14 +1,9 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import type * as React from 'react'
 import {act, cleanup, render} from '@testing-library/react'
 import {List, standardTransformer, type ListHandle, type TransformerData} from './common'
 
-type MockSuggestionListProps = {
-  items: Array<string>
-  renderItem: (index: number, item: string) => React.ReactElement<{selected: boolean}>
-  selectedIndex: number
-}
+type MockSuggestionListProps = {items: Array<string>; selectedIndex: number}
 let mockListProps: MockSuggestionListProps | undefined
 jest.mock('./suggestion-list', () => ({
   __esModule: true,
@@ -77,16 +72,10 @@ describe('List', () => {
 
   const setup = (
     items: Array<string>,
-    opts?: {
-      filter?: string
-      keyExtractor?: (item: string, idx: number) => string
-      selectionKey?: (item: string) => string
-    }
+    opts?: {filter?: string; keyExtractor?: (item: string, idx: number) => string}
   ) => {
-    let move: ((up: boolean) => void) | undefined
-    let submit: (() => boolean) | undefined
+    let handle: ListHandle | undefined
     const onSelected = jest.fn()
-    const onPreviewGone = jest.fn()
     const Item = (p: {selected: boolean; item: string}) => <>{p.item}</>
     const keyExtractor = opts?.keyExtractor ?? ((item: string) => item)
     const view = (next: Array<string>, filter: string) => (
@@ -99,41 +88,22 @@ describe('List', () => {
         listStyle={{}}
         spinnerStyle={{}}
         rowHeight={20}
-        onPreviewGone={onPreviewGone}
         onSelected={onSelected}
-        selectionKey={opts?.selectionKey}
-        setListHandle={h => {
-          move = h?.move
-          submit = h?.submit
-        }}
+        setListHandle={h => (handle = h)}
       />
     )
     const utils = render(view(items, opts?.filter ?? 't'))
     return {
-      move: (up: boolean) => act(() => move?.(up)),
-      onPreviewGone,
+      handle: () => handle,
+      move: (up: boolean) => act(() => handle?.move(up)),
       onSelected,
       rerender: (next: Array<string>, filter: string) => utils.rerender(view(next, filter)),
-      submit: () => submit?.(),
+      submit: () => handle?.submit(),
+      unmount: utils.unmount,
     }
   }
-  const highlighted = () =>
-    mockListProps?.items.filter((item, i) => mockListProps?.renderItem(i, item).props.selected)
-
-  test('picks the first item when the highlight was left past the end of a narrower list', () => {
-    const list = setup(['testuser', 'testuser-mac', 'testuser2', 'testuser3'])
-    list.move(false)
-    list.move(false)
-    list.move(false)
-    list.onSelected.mockClear()
-
-    list.rerender(['testuser', 'testuser-mac'], 't')
-
-    expect(highlighted()).toEqual(['testuser'])
-    expect(list.onPreviewGone).toHaveBeenCalledTimes(1)
-    expect(list.submit()).toBe(true)
-    expect(list.onSelected).toHaveBeenCalledWith('testuser', true)
-  })
+  const shown = () => mockListProps?.items
+  const highlighted = () => mockListProps?.items[mockListProps.selectedIndex]
 
   test('moving previews the newly highlighted item, wrapping at the ends', () => {
     const list = setup(['testuser', 'testuser-mac', 'testuser2'])
@@ -144,7 +114,7 @@ describe('List', () => {
     list.move(true)
 
     expect(list.onSelected).toHaveBeenLastCalledWith('testuser2', false)
-    expect(highlighted()).toEqual(['testuser2'])
+    expect(highlighted()).toBe('testuser2')
   })
 
   test('a new filter starts the highlight again from its first item, without a preview', () => {
@@ -155,53 +125,23 @@ describe('List', () => {
 
     list.rerender(['testuser', 'testuser-mac', 'testuser2', 'testuser3'], 'te')
 
-    expect(highlighted()).toEqual(['testuser'])
+    expect(highlighted()).toBe('testuser')
     expect(list.onSelected).not.toHaveBeenCalled()
     list.move(false)
     expect(list.onSelected).toHaveBeenLastCalledWith('testuser-mac', false)
   })
 
-  test('a refresh under the same filter keeps the highlight on the same item, wherever it lands', () => {
-    const list = setup(['testuser', 'testuser-mac', 'testuser2'])
+  test('going back to an earlier filter starts from the first item too, not where it was left', () => {
+    const list = setup(['testuser', 'testuser-mac', 'testuser2'], {filter: 't'})
     list.move(false)
-    list.onSelected.mockClear()
+    list.move(false)
 
-    list.rerender(['testuser0', 'testuser', 'testuser-mac', 'testuser2'], 't')
+    list.rerender(['testuser', 'testuser-mac', 'testuser2'], 'te')
+    list.rerender(['testuser', 'testuser-mac', 'testuser2'], 't')
 
-    expect(highlighted()).toEqual(['testuser-mac'])
-    expect(list.onSelected).not.toHaveBeenCalled()
-    expect(list.onPreviewGone).not.toHaveBeenCalled()
+    expect(highlighted()).toBe('testuser')
     expect(list.submit()).toBe(true)
-    expect(list.onSelected).toHaveBeenCalledWith('testuser-mac', true)
-  })
-
-  test('a refresh that drops the highlighted item highlights the first one and says the preview is gone', () => {
-    const list = setup(['testuser', 'testuser-mac', 'testuser2'])
-    list.move(false)
-    list.onSelected.mockClear()
-
-    list.rerender(['testuser', 'testuser2'], 't')
-    list.rerender(['testuser', 'testuser2', 'testuser3'], 't')
-
-    expect(highlighted()).toEqual(['testuser'])
-    expect(list.onPreviewGone).toHaveBeenCalledTimes(1)
-    expect(list.onSelected).not.toHaveBeenCalled()
-    expect(list.submit()).toBe(true)
-    expect(list.onSelected).toHaveBeenCalledWith('testuser', true)
-  })
-
-  test('rows keyed by position follow the highlighted item by its selection key', () => {
-    const list = setup([':smile:', ':smiley:'], {
-      filter: 'smi',
-      keyExtractor: (_, idx) => String(idx),
-      selectionKey: item => item,
-    })
-    list.move(false)
-
-    list.rerender([':smile_cat:', ':smile:', ':smiley:'], 'smi')
-
-    expect(highlighted()).toEqual([':smiley:'])
-    expect(list.onPreviewGone).not.toHaveBeenCalled()
+    expect(list.onSelected).toHaveBeenLastCalledWith('testuser', true)
   })
 
   // the emoji list keys its rows by position, so a new filter that yields as many rows has the same keys
@@ -212,9 +152,58 @@ describe('List', () => {
 
     list.rerender([':smile:', ':smiley:', ':smiling_imp:'], 'smi')
 
-    expect(highlighted()).toEqual([':smile:'])
+    expect(highlighted()).toBe(':smile:')
     expect(list.submit()).toBe(true)
     expect(list.onSelected).toHaveBeenLastCalledWith(':smile:', true)
+  })
+
+  test('while moving, a refresh leaves the list as it was, so the highlight stays on the previewed item', () => {
+    const list = setup(['testuser', 'testuser-mac', 'testuser2'])
+    list.move(false)
+    list.onSelected.mockClear()
+
+    list.rerender(['testuser0', 'testuser', 'testuser-mac', 'testuser2'], 't')
+    expect(shown()).toEqual(['testuser', 'testuser-mac', 'testuser2'])
+    expect(highlighted()).toBe('testuser-mac')
+    list.rerender(['testuser', 'testuser2'], 't')
+
+    expect(shown()).toEqual(['testuser', 'testuser-mac', 'testuser2'])
+    expect(highlighted()).toBe('testuser-mac')
+    expect(list.onSelected).not.toHaveBeenCalled()
+    expect(list.submit()).toBe(true)
+    expect(list.onSelected).toHaveBeenCalledWith('testuser-mac', true)
+  })
+
+  test('a new filter after moving shows the live items again', () => {
+    const list = setup(['testuser', 'testuser-mac'])
+    list.move(false)
+    list.rerender(['testuser', 'testuser-mac', 'testuser2'], 't')
+
+    list.rerender(['testuser2', 'testuser3'], 'testuser')
+
+    expect(shown()).toEqual(['testuser2', 'testuser3'])
+    expect(highlighted()).toBe('testuser2')
+  })
+
+  test('before any move, a refresh shows the live items with the first highlighted', () => {
+    const list = setup(['testuser', 'testuser-mac'])
+
+    list.rerender(['testuser0', 'testuser', 'testuser-mac'], 't')
+
+    expect(shown()).toEqual(['testuser0', 'testuser', 'testuser-mac'])
+    expect(highlighted()).toBe('testuser0')
+    expect(list.onSelected).not.toHaveBeenCalled()
+  })
+
+  test('items that are the same by name do not trap the highlight', () => {
+    const list = setup([':smile:', ':smile:', ':smiley:'], {filter: 'smile', keyExtractor: (_, idx) => String(idx)})
+
+    list.move(false)
+    expect(mockListProps?.selectedIndex).toBe(1)
+    list.move(false)
+
+    expect(mockListProps?.selectedIndex).toBe(2)
+    expect(list.onSelected).toHaveBeenLastCalledWith(':smiley:', false)
   })
 
   test('moving on an empty list does nothing, and items that arrive later are not previewed', () => {
@@ -225,7 +214,7 @@ describe('List', () => {
     list.rerender(['testuser', 'testuser-mac', 'testuser2'], 't')
 
     expect(list.onSelected).not.toHaveBeenCalled()
-    expect(highlighted()).toEqual(['testuser'])
+    expect(highlighted()).toBe('testuser')
     expect(list.submit()).toBe(true)
     expect(list.onSelected).toHaveBeenCalledWith('testuser', true)
   })
@@ -238,31 +227,14 @@ describe('List', () => {
   })
 
   test('tells the composer whether it shows items, and lets go of its handle when it closes', () => {
-    let handle: ListHandle | undefined
-    const Item = (p: {selected: boolean; item: string}) => <>{p.item}</>
-    const view = (items: Array<string>) => (
-      <List
-        filter="t"
-        items={items}
-        ItemRenderer={Item}
-        keyExtractor={(item: string) => item}
-        loading={false}
-        listStyle={{}}
-        spinnerStyle={{}}
-        rowHeight={20}
-        onPreviewGone={jest.fn()}
-        onSelected={jest.fn()}
-        setListHandle={h => (handle = h)}
-      />
-    )
-    const {rerender, unmount} = render(view([]))
-    expect(handle?.hasItems()).toBe(false)
+    const list = setup([])
+    expect(list.handle()?.hasItems()).toBe(false)
 
-    rerender(view(['testuser']))
-    expect(handle?.hasItems()).toBe(true)
+    list.rerender(['testuser'], 't')
+    expect(list.handle()?.hasItems()).toBe(true)
 
-    unmount()
-    expect(handle).toBeUndefined()
+    list.unmount()
+    expect(list.handle()).toBeUndefined()
   })
 
   // a key reads the handle when it lands, so one swapped out under it would see no list
@@ -281,7 +253,6 @@ describe('List', () => {
         listStyle={{}}
         spinnerStyle={{}}
         rowHeight={20}
-        onPreviewGone={jest.fn()}
         onSelected={(item: string, final: boolean) => {
           onSelected(item, final)
         }}

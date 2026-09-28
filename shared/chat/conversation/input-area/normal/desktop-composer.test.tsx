@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as Message from '@/constants/chat/message'
-import type * as React from 'react'
+import * as React from 'react'
 import * as T from '@/constants/types'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import HiddenString from '@/util/hidden-string'
@@ -13,6 +13,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import * as Composer from '../composer'
 import {recordComposerAttaches} from '@/test/fake-composer-input'
 import Input from '.'
+import {List as SuggestionsList} from '../suggestors/common'
 import {ConversationInputProvider, useConversationInput, type ConversationInputState} from '../input-state'
 import {ConversationThreadProvider, useConversationThreadActions} from '../../thread-context'
 
@@ -35,10 +36,10 @@ jest.mock('@/common-adapters', () => {
 })
 type MockUsersListProps = {
   filter: string
-  onPreviewGone: () => void
   onSelected: (item: {fullName: string; username: string}, final: boolean) => void
 }
-const mockUsersList = jest.fn((_p: MockUsersListProps) => null)
+const mockUsersList = jest.fn((_p: MockUsersListProps): React.ReactElement | null => null)
+jest.mock('../suggestors/suggestion-list', () => ({__esModule: true, default: () => null}))
 jest.mock('../suggestors/users', () => ({
   UsersList: (p: MockUsersListProps) => mockUsersList(p),
   transformer: jest.requireActual<{transformer: unknown}>('../suggestors/users').transformer,
@@ -377,59 +378,72 @@ test('a previewed suggestion shows in the input and a later pick replaces the pr
   expect(textarea.value).toBe('hi @testuser-mac ')
 })
 
-test('a preview whose user leaves the list goes back to what was typed, so the text matches the highlight', () => {
-  const saveDraft = jest.mocked(T.RPCChat.localUpdateUnsentTextRpcPromise)
-  const {textarea} = renderComposer()
-  act(() => {
-    textarea.focus()
+// the users list as the shared list over a scripted set of users, which a test refreshes the way
+// a participant arriving or leaving does
+describe('with the shared suggestion list', () => {
+  let setUsers: ((users: Array<string>) => void) | undefined
+  const NoRow = () => <></>
+  beforeEach(() => {
+    mockUsersList.mockImplementation(function ScriptedUsersList(p) {
+      const [users, set] = React.useState(['testuser', 'testuser-mac'])
+      setUsers = set
+      const items = users.map(username => ({fullName: '', username}))
+      return (
+        <SuggestionsList
+          {...(p as unknown as React.ComponentProps<typeof SuggestionsList<{fullName: string; username: string}>>)}
+          items={items}
+          ItemRenderer={NoRow}
+          keyExtractor={u => u.username}
+          loading={false}
+          rowHeight={20}
+        />
+      )
+    })
   })
-  type(textarea, 'hi @te and more', 6)
-  act(() => {
-    jest.advanceTimersByTime(300)
-  })
-  saveDraft.mockClear()
-  const {onPreviewGone, onSelected} = mockUsersList.mock.calls.at(-1)![0]
-  act(() => {
-    onSelected({fullName: '', username: 'testuser'}, false)
-  })
-  act(() => {
-    onSelected({fullName: '', username: 'testuser-mac'}, false)
-  })
-  expect(textarea.value).toBe('hi @testuser-mac and more')
-
-  act(() => {
-    onPreviewGone()
-  })
-
-  expect(textarea.value).toBe('hi @te and more')
-  expect(textarea.selectionStart).toBe(6)
-  expect(saveDraft).not.toHaveBeenCalled()
-  act(() => {
-    onSelected({fullName: '', username: 'testuser'}, true)
-  })
-  expect(textarea.value).toBe('hi @testuser and more')
-})
-
-test('a preview gone after the user typed over it leaves the text alone', () => {
-  const {textarea} = renderComposer()
-  act(() => {
-    textarea.focus()
-  })
-  type(textarea, 'hi @te')
-  act(() => {
-    jest.advanceTimersByTime(5)
-  })
-  const {onPreviewGone, onSelected} = mockUsersList.mock.calls.at(-1)![0]
-  act(() => {
-    onSelected({fullName: '', username: 'testuser-mac'}, false)
-  })
-  type(textarea, 'hi @testuser-mac!')
-
-  act(() => {
-    onPreviewGone()
+  afterEach(() => {
+    mockUsersList.mockImplementation(() => null)
+    setUsers = undefined
   })
 
-  expect(textarea.value).toBe('hi @testuser-mac!')
+  const openList = () => {
+    act(() => {
+      jest.advanceTimersByTime(5)
+    })
+    expect(mockUsersList).toHaveBeenCalled()
+  }
+
+  test('a list closed on a preview and opened again does not put back the text from before it', () => {
+    const {textarea} = renderComposer()
+    act(() => {
+      textarea.focus()
+    })
+    type(textarea, 'hi @te')
+    openList()
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'ArrowDown'})
+    })
+    expect(textarea.value).toBe('hi @testuser-mac')
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'Escape'})
+    })
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'ArrowLeft'})
+    })
+    openList()
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'ArrowDown'})
+    })
+
+    act(() => {
+      setUsers?.(['testuser'])
+    })
+
+    expect(textarea.value).toBe('hi @testuser-mac')
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'Enter'})
+    })
+    expect(textarea.value).toBe('hi @testuser-mac ')
+  })
 })
 
 test('the gif button prefills the giphy command and a second press clears it once the window is up', () => {
