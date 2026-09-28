@@ -91,9 +91,9 @@ export const useNativeThreadScroll = (p: {
     return directive
   }, [])
 
-  // Every delayed scroll toward a centred target (coarse reasserts, the first load's centre retry,
-  // scroll-to-index retries) runs through here, so stopping centring cancels whatever is pending
-  // and a reader's drag is never followed by a jump.
+  // Every delayed scroll toward a centred target (coarse reasserts, scroll-to-index retries) runs
+  // through here, so stopping centring cancels whatever is pending and a reader's drag is never
+  // followed by a jump.
   const centringTimersRef = React.useRef(new Set<ReturnType<typeof setTimeout>>())
   const [afterCentringDelay] = React.useState(() => (delay: number, fn: () => void) => {
     const timers = centringTimersRef.current
@@ -179,8 +179,8 @@ export const useNativeThreadScroll = (p: {
           // reaches it.
           scrollToBottomRef.current()
           return
+        // Only threadObserved asks for center, and this list reports centerTargetObserved instead.
         case 'center':
-          moveToward(directive.ordinal)
           return
         case 'refineCenter':
           if (directive.newTarget) moveToward(directive.ordinal)
@@ -212,23 +212,30 @@ export const useNativeThreadScroll = (p: {
   // What it last reconciled, compared by value: a freeze/thaw of this screen re-mounts effects with
   // nothing changed, and reconciling again then would re-arm centring the reader has moved away from.
   const observedRef = React.useRef<
-    {centeredOrdinal: T.Chat.Ordinal | undefined; messageOrdinals: ReadonlyArray<T.Chat.Ordinal>} | undefined
+    | {centeredOrdinal: T.Chat.Ordinal | undefined; loaded: boolean; messageOrdinals: ReadonlyArray<T.Chat.Ordinal>}
+    | undefined
   >(undefined)
   React.useEffect(() => {
     const observed = observedRef.current
-    if (observed && observed.centeredOrdinal === centeredOrdinal && observed.messageOrdinals === messageOrdinals) {
+    if (
+      observed &&
+      observed.centeredOrdinal === centeredOrdinal &&
+      observed.loaded === loaded &&
+      observed.messageOrdinals === messageOrdinals
+    ) {
       return
     }
-    observedRef.current = {centeredOrdinal, messageOrdinals}
+    observedRef.current = {centeredOrdinal, loaded, messageOrdinals}
     stopLadder()
     perform(
       decide({
         centeredOrdinal,
+        loaded,
         targetInData: centeredOrdinal !== undefined && messageOrdinals.includes(centeredOrdinal),
         type: 'centerTargetObserved',
       })
     )
-  }, [centeredOrdinal, decide, messageOrdinals, perform, stopLadder])
+  }, [centeredOrdinal, decide, loaded, messageOrdinals, perform, stopLadder])
 
   // When keyboard is open, maintainVisibleContentPosition adjusts contentOffset by the new
   // message height when a message is added, undoing the scrollToBottom from onSubmit.
@@ -277,18 +284,13 @@ export const useNativeThreadScroll = (p: {
 
     const directive = decide({centeredOrdinal, hasMessages: numOrdinals > 0, type: 'initialLoad'})
     perform(directive)
-    // Once more 100ms on: a centred load asks again for whatever target is current by then, an
-    // uncentred one repeats its scroll to the end.
-    if (centeredOrdinal !== undefined) {
-      afterCentringDelay(100, () => {
-        perform(decide({centeredOrdinal: centeredRef.current, type: 'centerRequested'}))
-      })
-    } else if (directive.type === 'pinEnd') {
+    // Once more 100ms on, repeating the scroll to the end.
+    if (directive.type === 'pinEnd') {
       setTimeout(() => {
         perform(directive)
       }, 100)
     }
-  }, [afterCentringDelay, centeredOrdinal, conversationIDKey, decide, loaded, numOrdinals, perform])
+  }, [centeredOrdinal, conversationIDKey, decide, loaded, numOrdinals, perform])
 
   // The centered hit may be outside the rendered window, so scrollToItem fails
   // silently. Wait for more rows to render and retry centering (capped) until it lands.

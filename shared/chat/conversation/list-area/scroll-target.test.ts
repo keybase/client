@@ -196,18 +196,18 @@ describe('threadObserved', () => {
 describe('initialLoad', () => {
   runTable([
     [
-      'a centred conversation centres, even before the target is known to be loaded',
+      'a centred conversation is left to the centre reconcile',
       fresh,
       {centeredOrdinal: ord(30), hasMessages: true, type: 'initialLoad'},
-      center(30),
-      state({endOwner: 'reader', lastCentered: ord(30), settlingCenter: true}),
+      leaveAlone,
+      fresh,
     ],
     [
-      'a centred conversation centres even with no messages',
+      'so is one with no messages',
       fresh,
       {centeredOrdinal: ord(30), hasMessages: false, type: 'initialLoad'},
-      center(30),
-      state({endOwner: 'reader', lastCentered: ord(30), settlingCenter: true}),
+      leaveAlone,
+      fresh,
     ],
     [
       'otherwise it goes to the end',

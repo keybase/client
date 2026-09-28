@@ -278,42 +278,41 @@ describe('opening centred on a target', () => {
     expect(H.log).toEqual([markRead, coarse(30), coarse(30)])
   })
 
-  test('centring does not wait for the load; the load then adds nothing', async () => {
+  test('centring waits for the load', async () => {
     open({center: 30, loaded: false})
-    await tick(20)
+    await tick(1000)
+    expect(H.log).toEqual([])
     update(() => {
       H.threadStore.set({loaded: true})
     })
+    expect(H.log).toEqual([markRead])
+    await tick(50)
+    expect(H.log).toEqual([markRead, coarse(30)])
     await tick(1000)
     expect(H.log).toEqual([markRead, coarse(30), coarse(30)])
   })
 
-  test('the 100ms retry centres whatever target is current by then', async () => {
+  test('a target not in the rows is not scrolled toward until it arrives', async () => {
+    open({center: 500})
+    await tick(1000)
+    expect(H.log).toEqual([markRead])
+    setOrdinals(450, 550)
+    await tick(1000)
+    expect(H.log).toEqual([markRead, coarse(500), coarse(500)])
+  })
+
+  test('a target that moves on before it is loaded is centred once it arrives', async () => {
     open({center: 30})
     await tick(10)
-    // Not loaded, so only the retry can reach it.
     update(() => {
       H.setCenter(ord(500))
     })
     await tick(1000)
     // The first target's reasserts see the target moved on and skip.
-    expect(H.log).toEqual([markRead, coarse(500), coarse(500)])
-    clearLog()
-    // Arriving later refines but does not coarse-scroll again.
+    expect(H.log).toEqual([markRead])
     setOrdinals(450, 550)
     await tick(1000)
-    expect(H.log).toEqual([])
-  })
-
-  test('a drag before the 100ms retry cancels it', async () => {
-    open({center: 30})
-    await tick(10)
-    update(() => {
-      H.setCenter(ord(500))
-    })
-    drag()
-    await tick(1000)
-    expect(H.log).toEqual([markRead])
+    expect(H.log).toEqual([markRead, coarse(500), coarse(500)])
   })
 
   test('a newer target that is loaded is centred on its own schedule', async () => {

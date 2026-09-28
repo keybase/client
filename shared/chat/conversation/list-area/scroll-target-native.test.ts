@@ -21,7 +21,6 @@ const released = (n: number) => state({endOwner: 'reader', lastCentered: ord(n)}
 const leaveAlone: ScrollDirective = {stopCentering: false, type: 'leaveAlone'}
 const stopCentering: ScrollDirective = {stopCentering: true, type: 'leaveAlone'}
 const pinNow: ScrollDirective = {how: 'now', stopCentering: false, type: 'pinEnd'}
-const center = (n: number): ScrollDirective => ({ordinal: ord(n), type: 'center'})
 const refine = (n: number, newTarget: boolean): ScrollDirective => ({
   newTarget,
   ordinal: ord(n),
@@ -45,13 +44,22 @@ const runTable = (rows: Array<Row>) =>
   })
 
 describe('centerTargetObserved', () => {
-  const observed = (n: number | undefined, targetInData = true): ScrollEvent => ({
+  const observed = (n: number | undefined, targetInData = true, loaded = true): ScrollEvent => ({
     centeredOrdinal: n === undefined ? undefined : ord(n),
+    loaded,
     targetInData,
     type: 'centerTargetObserved',
   })
   runTable([
     ['nothing centred, nothing to do', fresh, observed(undefined), leaveAlone, fresh],
+    ['a target in the rows waits for the thread to load', fresh, observed(30, true, false), leaveAlone, fresh],
+    [
+      'leaving a centred target does not wait for the load',
+      centred(30),
+      observed(undefined, false, false),
+      stopCentering,
+      fresh,
+    ],
     [
       'nothing centred leaves a reader holding the end',
       state({endOwner: 'reader'}),
@@ -115,34 +123,14 @@ describe('centerTargetObserved', () => {
   ])
 })
 
-describe('centerRequested', () => {
-  const requested = (n: number | undefined): ScrollEvent => ({
-    centeredOrdinal: n === undefined ? undefined : ord(n),
-    type: 'centerRequested',
-  })
-  runTable([
-    ['a target is centred, loaded or not', fresh, requested(30), center(30), centred(30)],
-    ['a target already centred is left alone', centred(30), requested(30), leaveAlone, centred(30)],
-    ['a new target replaces the old one', centred(30), requested(500), center(500), centred(500)],
-    ['no target, nothing to do', centred(30), requested(undefined), leaveAlone, centred(30)],
-  ])
-})
-
 describe('initialLoad', () => {
   runTable([
     [
-      'a target already centred before the load finished is not centred again',
-      centred(30),
-      {centeredOrdinal: ord(30), hasMessages: true, type: 'initialLoad'},
-      leaveAlone,
-      centred(30),
-    ],
-    [
-      'a target other than the one centred is',
+      'a centred load leaves the target to the centre reconcile',
       centred(30),
       {centeredOrdinal: ord(40), hasMessages: true, type: 'initialLoad'},
-      center(40),
-      centred(40),
+      leaveAlone,
+      centred(30),
     ],
   ])
 })
@@ -159,20 +147,27 @@ describe('the native list, in sequence', () => {
     return {directives, state: s}
   }
 
-  test('opening on a hit: move there on load, refine as rows arrive, then leave it in place', () => {
+  const observed = (n: number | undefined, targetInData = true, loaded = true): ScrollEvent => ({
+    centeredOrdinal: n === undefined ? undefined : ord(n),
+    loaded,
+    targetInData,
+    type: 'centerTargetObserved',
+  })
+
+  test('opening on a hit: move there once loaded, refine as rows arrive, then leave it in place', () => {
     const {directives, state: end} = run([
-      {centeredOrdinal: ord(30), targetInData: true, type: 'centerTargetObserved'},
+      observed(30, true, false),
       {centeredOrdinal: ord(30), hasMessages: true, type: 'initialLoad'},
-      {centeredOrdinal: ord(30), type: 'centerRequested'},
-      {centeredOrdinal: ord(30), targetInData: true, type: 'centerTargetObserved'},
+      observed(30),
+      observed(30),
       {how: 'drag', type: 'userScrolled'},
-      {centeredOrdinal: ord(30), targetInData: true, type: 'centerTargetObserved'},
-      {centeredOrdinal: undefined, targetInData: false, type: 'centerTargetObserved'},
+      observed(30),
+      observed(undefined, false),
     ])
     expect(directives).toEqual([
+      leaveAlone,
+      leaveAlone,
       refine(30, true),
-      leaveAlone,
-      leaveAlone,
       refine(30, false),
       stopCentering,
       // Rows arriving after a drag leave the reader where they are.
@@ -182,21 +177,17 @@ describe('the native list, in sequence', () => {
     expect(end).toEqual(fresh)
   })
 
-  test('a load that finishes before its target arrives moves there first and only refines later', () => {
+  test('a load that finishes before its target arrives moves there once it does', () => {
     const {directives} = run([
       {centeredOrdinal: ord(500), hasMessages: true, type: 'initialLoad'},
-      {centeredOrdinal: ord(500), targetInData: false, type: 'centerTargetObserved'},
-      {centeredOrdinal: ord(500), targetInData: true, type: 'centerTargetObserved'},
+      observed(500, false),
+      observed(500),
     ])
-    expect(directives).toEqual([center(500), leaveAlone, refine(500, false)])
+    expect(directives).toEqual([leaveAlone, leaveAlone, refine(500, true)])
   })
 
   test('the same hit after leaving it is moved to again', () => {
-    const {directives} = run([
-      {centeredOrdinal: ord(30), targetInData: true, type: 'centerTargetObserved'},
-      {centeredOrdinal: undefined, targetInData: false, type: 'centerTargetObserved'},
-      {centeredOrdinal: ord(30), targetInData: true, type: 'centerTargetObserved'},
-    ])
+    const {directives} = run([observed(30), observed(undefined, false), observed(30)])
     expect(directives).toEqual([refine(30, true), stopCentering, refine(30, true)])
   })
 
