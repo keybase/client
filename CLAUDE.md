@@ -20,6 +20,12 @@
 - Keep an open PR's description in step with its branch. Whenever new commits change what the PR does or how (a new fix, a changed approach, a removed piece, new tests or evidence), rewrite the affected sections with `gh pr edit --body-file`, and the title if the scope moved. It should read as a description of the current diff, not a changelog. Skip it for commits that don't change the story (lint, renames, test placeholders).
 - Never patch `react-native` itself (patch-package or node_modules edits): we use prebuilt RN core and don't compile its source, so native-side patches never take effect. Work around RN core bugs in app code.
 
+## Debugging
+- Evidence before diagnosis: when the user reports seeing something, never answer "that can't happen" from reading code. Reproduce it or add logging first, and only then name a cause.
+- For a user-reported runtime bug, check whether it reproduces on the base branch before blaming the current branch. (Lint, tsc and test failures after our changes are still ours.)
+- Before calling code dead, search the whole repo (desktop, native, Go callers, string-built names), not one directory.
+- Prefer fixes that keep underlying state truthful (e.g. a UI-level hold) over changing state semantics, unless asked.
+
 ## Working Directory
 Repo root is `client/`. TS source lives in `shared/`. Always use absolute paths for file ops. For Bash: always `cd shared/` first.
 
