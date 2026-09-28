@@ -63,11 +63,7 @@ export const DropdownButton = (props: DropdownButtonProps) => {
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Styles.collapseStyles([styles.selectedBox, selectedBoxStyle])}>
         {loading ? <Kb.ProgressIndicator type="Small" /> : selected}
       </Kb.Box2>
-      <Kb.Icon
-        type="iconfont-caret-down"
-        sizeType="Tiny"
-        style={{marginTop: isMobile ? 2 : -8}}
-      />
+      <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" style={styles.caret} />
     </Kb.ClickableBox>
   )
 }
@@ -202,6 +198,7 @@ export const InlineDropdown = (props: InlineDropdownProps) => {
 const useStyles = Styles.createStyleHook(
   theme =>
     ({
+      caret: Styles.platformStyles({isMobile: {marginTop: 2}}),
       dropdownBoxContainer: Styles.platformStyles({
         isTablet: {
           maxWidth: 460,
