@@ -64,6 +64,7 @@ export type ScrollEvent =
   // Messages were appended. Only a list whose own anchoring can leave a new message out of view
   // reports it; anchorHidesNewest says whether it would this time.
   | {type: 'appended'; anchorHidesNewest: boolean}
+  // Sent whenever the edit or the loaded rows change.
   | {type: 'editingChanged'; ordinal: T.Chat.Ordinal | undefined; targetInData: boolean}
   // The reader asked for the newest messages: the composer, the keyboard or jump to recent.
   // centeredOrdinal is the centre request as it stands.
@@ -187,9 +188,10 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
     case 'editingChanged': {
       const {ordinal, targetInData} = event
       if (state.lastEditing === ordinal) return {directive: leaveAlone, state}
-      const next = {...state, lastEditing: ordinal}
-      if (!ordinal || !targetInData) return {directive: leaveAlone, state: next}
-      return {directive: {ordinal, type: 'reveal'}, state: next}
+      if (!ordinal) return {directive: leaveAlone, state: {...state, lastEditing: ordinal}}
+      // An edit whose row is not loaded waits for it: the list reports again as its rows change.
+      if (!targetInData) return {directive: leaveAlone, state}
+      return {directive: {ordinal, type: 'reveal'}, state: {...state, lastEditing: ordinal}}
     }
     case 'scrollToBottomRequested':
       // The reader has left the target as surely as with a drag. It stays centred until the thread

@@ -723,10 +723,21 @@ describe('editing', () => {
     expect(H.log).toEqual([])
   })
 
-  test('a message outside the thread is not revealed, even once it loads', () => {
+  test('a message outside the thread is revealed once it loads', () => {
     open({count: 10})
     update(() => H.inputStore.set({editing: ord(15)}))
-    update(() => H.threadStore.set({messageOrdinals: H.range(1, 60)}))
+    expect(H.log).toEqual([])
+    update(() => loadThread(11, 60))
+    expect(H.log).toEqual([['scrollToIndex', {animated: true, index: 14, viewPosition: 0.5}]])
+    update(() => loadThread(61, 70))
+    expect(H.log).toHaveLength(1)
+  })
+
+  test('a message outside the thread whose edit stopped before it loaded is not revealed', () => {
+    open({count: 10})
+    update(() => H.inputStore.set({editing: ord(15)}))
+    update(() => H.inputStore.set({editing: undefined}))
+    update(() => loadThread(11, 60))
     expect(H.log).toEqual([])
   })
 

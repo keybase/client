@@ -244,11 +244,11 @@ export const useNativeThreadScroll = (p: {
     perform(
       decide({
         ordinal: editingOrdinal,
-        targetInData: editingOrdinal !== undefined && ordsRef.current.includes(editingOrdinal),
+        targetInData: editingOrdinal !== undefined && messageOrdinals.includes(editingOrdinal),
         type: 'editingChanged',
       })
     )
-  }, [decide, editingOrdinal, perform])
+  }, [decide, editingOrdinal, messageOrdinals, perform])
 
   // When keyboard is open, maintainVisibleContentPosition adjusts contentOffset by the new
   // message height when a message is added, undoing the scrollToBottom from onSubmit.

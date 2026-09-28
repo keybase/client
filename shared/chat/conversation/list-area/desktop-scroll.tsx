@@ -252,11 +252,10 @@ export const useDesktopThreadScroll = (p: {
   React.useEffect(() => {
     dispatch({
       ordinal: editingOrdinal,
-      targetInData:
-        editingOrdinal !== undefined && indexOfOrdinal(messageOrdinalsRef.current, editingOrdinal) >= 0,
+      targetInData: editingOrdinal !== undefined && indexOfOrdinal(messageOrdinals, editingOrdinal) >= 0,
       type: 'editingChanged',
     })
-  }, [dispatch, editingOrdinal])
+  }, [dispatch, editingOrdinal, messageOrdinals])
 
   const onMetricsChange = React.useCallback(
     (metrics: {headerSize: number}) => {

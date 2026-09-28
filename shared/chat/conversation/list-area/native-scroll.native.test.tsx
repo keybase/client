@@ -963,6 +963,19 @@ describe('editing', () => {
     expect(H.log).toEqual([revealed(15), revealed(15)])
   })
 
+  test('a message outside the rows is revealed once it loads', async () => {
+    open({from: 21, to: 80})
+    await tick(200)
+    clearLog()
+    update(() => H.inputStore.set({editing: ord(15)}))
+    expect(H.log).toEqual([])
+    update(() => loadThread(1, 20))
+    expect(H.log).toEqual([revealed(15)])
+    update(() => loadThread(81, 90))
+    await tick(1000)
+    expect(scrollsOnly()).toEqual([revealed(15)])
+  })
+
   test('with the keyboard up, revealing keeps the end with the list', async () => {
     open({keyboard: true})
     await tick(200)
