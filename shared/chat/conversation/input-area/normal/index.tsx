@@ -21,9 +21,9 @@ import {
   useConversationThreadMessage,
   useConversationThreadSelector,
   useConversationThreadSetExplodingMode,
-  useConversationThreadToggleSearch,
   useThreadMeta,
 } from '../../thread-context'
+import {useConversationThreadToggleSearch} from '../../thread-navigation'
 import {useConversationParticipantsSelector} from '../../data-hooks'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useRoute} from '@react-navigation/native'

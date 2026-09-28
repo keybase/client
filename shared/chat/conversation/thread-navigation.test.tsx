@@ -5,13 +5,13 @@ import * as Router from '@/constants/router'
 import * as T from '@/constants/types'
 import type * as React from 'react'
 import {act, cleanup, renderHook} from '@testing-library/react'
+import {ConversationThreadProvider} from './thread-context'
 import {
-  ConversationThreadProvider,
   showConversationInfoPanel,
   toggleConversationThreadSearch,
   useConversationShowInfoPanel,
   useConversationThreadToggleSearch,
-} from './thread-context'
+} from './thread-navigation'
 
 let mockSplit = true
 let mockPhone = false

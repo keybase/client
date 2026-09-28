@@ -9,11 +9,8 @@ import ListArea from '../list-area'
 import PinnedMessage from '../pinned-message'
 import ThreadLoadStatus from '../load-status'
 import {useConversationCenterActions} from '../center-context'
-import {
-  useConversationThreadID,
-  useConversationThreadToggleSearch,
-  useThreadMeta,
-} from '../thread-context'
+import {useConversationThreadID, useThreadMeta} from '../thread-context'
+import {useConversationThreadToggleSearch} from '../thread-navigation'
 import {useThreadSearchRoute} from '../thread-search-route'
 import {indefiniteArticle} from '@/util/string'
 import {makePasteAttachment} from '../attachment-actions'

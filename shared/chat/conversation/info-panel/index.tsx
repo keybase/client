@@ -13,7 +13,7 @@ import AttachmentsList from './attachments'
 import {infoPanelWidthElectron, infoPanelWidthTablet} from './common'
 import type {Tab as TabType} from '@/common-adapters/tabs'
 import {useChatTeam} from '../team-hooks'
-import {showConversationInfoPanel} from '../thread-context'
+import {showConversationInfoPanel} from '../thread-navigation'
 import {useConversationMeta} from '../data-hooks'
 
 type Props = {

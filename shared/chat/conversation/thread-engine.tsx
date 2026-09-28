@@ -11,7 +11,7 @@ import {
   getLastOrdinalFromSnapshot,
   getOrdinalForMessageIDInSnapshot,
 } from './thread-load'
-import type {ConversationThreadActions} from './thread-context'
+import type {ConversationThreadActions} from './thread-store'
 
 export const applyMessagesUpdatedToThread = (
   conversationIDKey: T.Chat.ConversationIDKey,

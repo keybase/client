@@ -13,7 +13,7 @@ type Props = {
   onContextMenu?: () => void
   onMouseOver?: () => void
 }
-import {useConversationThreadToggleSearch} from '../../../thread-context'
+import {useConversationThreadToggleSearch} from '../../../thread-navigation'
 import Swipeable, {type SwipeableMethods} from '@/common-adapters/swipeable-row'
 import {ThreadRefsContext} from '@/chat/conversation/normal/context'
 

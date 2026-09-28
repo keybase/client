@@ -21,7 +21,8 @@ import {getChatRpc} from './chat-rpc'
 import {getClientPrevFromThread, getConversationClientPrev} from './client-prev'
 import {getMeta} from './thread-load'
 import {applyOptimisticReactionsToMessage} from './thread-message-state'
-import {useConversationThreadActions, useConversationThreadID, type ConversationThreadActions} from './thread-context'
+import {useConversationThreadActions, useConversationThreadID} from './thread-context'
+import type {ConversationThreadActions} from './thread-store'
 
 // The slice of a mounted thread the commands read and write.
 export type MessageCommandThread = Pick<

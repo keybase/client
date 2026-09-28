@@ -19,7 +19,7 @@ import type {
   ConversationThreadState,
   LoadMoreMessagesParams,
   ScrollDirection,
-} from './thread-context'
+} from './thread-store'
 
 // Identifies one load, so the window gate can tell two loads of the same conversation apart.
 // Only ever compared for equality, never ordered.
@@ -198,7 +198,7 @@ export const loadConversationThreadMessages = (
     // clearVersion alone still cannot separate two loads issued after the same clear, so the gate
     // is also owned: first claim wins, and only the owner may drop it. Claimed here, before the
     // first await, rather than when a response arrives - both clear paths bypass the load throttle
-    // (see loadMoreMessages in thread-context) and call in synchronously, so the reload the clear
+    // (see loadMoreMessages in thread-store) and call in synchronously, so the reload the clear
     // issued is always the first to get here, and a load that ends without ever applying still has
     // to be the one that releases.
     const loadID = nextLoadID++

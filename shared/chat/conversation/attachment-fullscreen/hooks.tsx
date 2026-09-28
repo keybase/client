@@ -10,7 +10,7 @@ import {
   attachmentDownloadMessage,
   loadNextAttachmentMessage,
 } from '../attachment-actions'
-import {showConversationInfoPanel} from '../thread-context'
+import {showConversationInfoPanel} from '../thread-navigation'
 import {useConversationMessage} from '../data-hooks'
 import {registerExternalResetter} from '@/util/zustand'
 

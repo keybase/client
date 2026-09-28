@@ -2,7 +2,8 @@ import type * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {useChatTeam} from '../team-hooks'
-import {useConversationShowInfoPanel, useThreadMeta} from '../thread-context'
+import {useThreadMeta} from '../thread-context'
+import {useConversationShowInfoPanel} from '../thread-navigation'
 
 // Parses retention policies into a string suitable for display at the top of a conversation
 function makeRetentionNotice(
