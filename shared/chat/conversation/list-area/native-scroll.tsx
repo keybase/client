@@ -1,6 +1,6 @@
 // Native adapter for the thread scroll target: turns what the inverted FlatList thread sees into
-// scroll-target events and carries out each directive with the list's own imperative API, on the
-// correction schedule this list has always used.
+// scroll-target events and carries out each directive with the list's own imperative API: coarse
+// scrollToItem reasserts, then a closed-loop corrector against the viewable range.
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import noop from 'lodash/noop'
@@ -61,8 +61,8 @@ export const useNativeThreadScroll = (p: {
       offset: restingScrollOffset(bottomInset, keyboardHeight.value),
     })
   }, [bottomInset, keyboardHeight, listRef])
-  // Directives reach the end through this, so carrying one out does not depend on the inset and the
-  // effects that dispatch do not re-run when it changes.
+  // perform reaches the end only through this, so it scrolls for the inset as it is when it runs, and
+  // neither perform nor the effects that dispatch through it change identity with the inset.
   const scrollToBottomRef = React.useRef(scrollToBottom)
   React.useLayoutEffect(() => {
     scrollToBottomRef.current = scrollToBottom
@@ -143,14 +143,15 @@ export const useNativeThreadScroll = (p: {
     }
   )
 
-  // Returns the cleanup for whatever it leaves running. This list reports no header or edit events,
-  // so neither whenSettled nor reveal reaches it.
+  // Returns the cleanup for whatever it leaves running.
   const perform = React.useCallback(
     (directive: ScrollDirective): (() => void) | undefined => {
       switch (directive.type) {
         case 'pinEnd':
+          if (directive.stopCentering) correctRef.current.active = false
           // The end is the resting offset, so scrolling there from the end moves nothing: unlessAtEnd
-          // needs no check of its own here.
+          // needs no check of its own here. This list reports no header events, so whenSettled never
+          // reaches it.
           scrollToBottomRef.current()
           return undefined
         case 'center':
@@ -169,8 +170,13 @@ export const useNativeThreadScroll = (p: {
         case 'leaveAlone':
           if (directive.stopCentering) correctRef.current.active = false
           return undefined
+        // This list reports no edit events.
         case 'reveal':
           return undefined
+        default: {
+          const unexpected: never = directive
+          return unexpected
+        }
       }
     },
     [correctCenter, moveToward]
@@ -213,15 +219,15 @@ export const useNativeThreadScroll = (p: {
     prevNumOrdinalsRef.current = numOrdinals
     // Only the count is compared, so older rows arriving count as an append too.
     if (!sameConv || numOrdinals <= prev) return undefined
-    const directive = decide({anchorHidesNewest: isKeyboardVisibleRef.current, type: 'appended'})
-    if (directive.type !== 'pinEnd') return undefined
+    const appended = () => decide({anchorHidesNewest: isKeyboardVisibleRef.current, type: 'appended'})
+    if (appended().type !== 'pinEnd') return undefined
+    // Asked again when it fires: if the keyboard closed in between, the list's own anchor already
+    // shows the newest message.
     const id = setTimeout(() => {
-      if (isKeyboardVisibleRef.current) {
-        scrollToBottom()
-      }
+      perform(appended())
     }, 0)
     return () => clearTimeout(id)
-  }, [conversationIDKey, decide, numOrdinals, scrollToBottom])
+  }, [conversationIDKey, decide, numOrdinals, perform])
 
   // Stores the conversation it last applied to (not a boolean) so a freeze/thaw of this screen —
   // which re-mounts effects without a real conversation change — does not reset it and re-trigger
@@ -245,10 +251,10 @@ export const useNativeThreadScroll = (p: {
       }, 100)
     } else if (directive.type === 'pinEnd') {
       setTimeout(() => {
-        scrollToBottom()
+        perform(directive)
       }, 100)
     }
-  }, [centeredOrdinal, conversationIDKey, decide, loaded, numOrdinals, perform, scrollToBottom])
+  }, [centeredOrdinal, conversationIDKey, decide, loaded, numOrdinals, perform])
 
   // The centered hit may be outside the rendered window, so scrollToItem fails
   // silently. Wait for more rows to render and retry centering (capped) until it lands.
@@ -288,14 +294,14 @@ export const useNativeThreadScroll = (p: {
     }
   )
 
-  const requestScrollToBottom = React.useCallback(() => {
+  const requestBottom = React.useCallback(() => {
     perform(decide({type: 'scrollToBottomRequested'}))
   }, [decide, perform])
 
   const {setScrollRef} = React.useContext(ThreadRefsContext)
   React.useEffect(() => {
-    setScrollRef({scrollDown: noop, scrollToBottom: requestScrollToBottom, scrollUp: noop})
-  }, [requestScrollToBottom, setScrollRef])
+    setScrollRef({scrollDown: noop, scrollToBottom: requestBottom, scrollUp: noop})
+  }, [requestBottom, setScrollRef])
 
   const mvpAutoscroll = listAnchorsEnd(centeredOrdinal) && numOrdinals > 0 && !isKeyboardVisible
 
@@ -308,6 +314,6 @@ export const useNativeThreadScroll = (p: {
     onScrollBeginDrag,
     onScrollToIndexFailed,
     onViewableRange,
-    scrollToBottom: requestScrollToBottom,
+    scrollToBottom: requestBottom,
   }
 }

@@ -547,22 +547,22 @@ describe('a safe-area inset change', () => {
     })
   }
 
-  test('before the first-load retry fires, the retry keeps the inset the load finished with', async () => {
+  test('before the first-load retry fires, the retry uses the inset as it is then', async () => {
     open({keyboard: true})
     await tick(10)
     changeInset()
     await tick(1000)
-    expect(H.log).toEqual([markRead, toBottomOverKeyboard, toBottomOverKeyboard])
+    expect(H.log).toEqual([markRead, toBottomOverKeyboard, toBottomOverKeyboardAtNewInset])
   })
 
-  test('before the keyboard-up append re-pin fires, it cancels the re-pin', async () => {
+  test('before the keyboard-up append re-pin fires, the re-pin still fires, for the new inset', async () => {
     open({keyboard: true})
     await tick(200)
     clearLog()
     setOrdinals(1, 61)
     changeInset()
     await tick(1000)
-    expect(H.log).toEqual([])
+    expect(H.log).toEqual([toBottomOverKeyboardAtNewInset])
   })
 
   test('ThreadRefs scrollToBottom uses the inset as it is now', async () => {
