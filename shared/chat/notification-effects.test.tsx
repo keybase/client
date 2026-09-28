@@ -435,6 +435,8 @@ afterEach(() => {
   restoreChatRpc()
   jest.restoreAllMocks()
   jest.mocked(NotifyPopup).mockReset()
+  // a store reset keeps the switch flag, and a switch left open stops the next one resetting
+  useConfigState.getState().dispatch.setUserSwitching(false)
   resetAllStores()
 })
 
