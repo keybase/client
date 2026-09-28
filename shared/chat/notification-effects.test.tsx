@@ -1180,9 +1180,9 @@ describe('mounted conversation screens', () => {
     expect(typersIn('A')).toEqual(['testuser-2'])
   })
 
-  // resetAllStores (logout) drops every mounted screen's subscription; the screens stay deaf
-  // until they remount.
-  test('a mounted screen stops getting notifications after the stores reset', async () => {
+  // An account switch resets every store but keeps the logged-in screens mounted; they keep
+  // hearing their conversation.
+  test('a mounted screen keeps getting notifications across a store reset', async () => {
     await mountScreens([convA])
     act(() => {
       resetAllStores()
@@ -1191,8 +1191,14 @@ describe('mounted conversation screens', () => {
     await settle()
     timeline = []
     await notify(typingIn(convA, 'testuser-mac'))
-    expect(timeline).toEqual(['inbox:typing'])
-    expect(typersIn('A')).toEqual([])
+    expect(timeline).toEqual(['inbox:typing', 'thread:A:typing'])
+    expect(typersIn('A')).toEqual(['testuser-mac'])
+    timeline = []
+    await notify(incomingMessage(convA, 31))
+    expect(timeline).toEqual(
+      expect.arrayContaining(['thread:A:liveUpdateVersion,messageIDToOrdinal,messageMap,messageOrdinals', 'unboxRows:A'])
+    )
+    expect(mounted.get('A')?.store.getState().messageOrdinals).toContain(T.Chat.numberToOrdinal(31))
   })
 
   // Every useConversationMetadata reader arms its own reload, so one notification asks for the

@@ -5,12 +5,14 @@
 // Screens register from a passive effect, so a screen React has hidden with <Activity> (which
 // unmounts passive effects) is unregistered while hidden and misses what arrives meanwhile.
 //
+// A store reset leaves registrations alone: they belong to mounted screens, which unregister
+// themselves, and an account switch resets the stores while keeping logged-in screens mounted.
+//
 // Keep this a leaf. The router's inbox stage imports reach constants/router, whose route table
 // imports these screens, so a screen importing the router would close a require cycle.
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import logger from '@/logger'
-import {registerExternalResetter} from '@/util/zustand'
 
 // What a mounted conversation screen is told about its own conversation.
 export type ThreadNotification =
@@ -83,7 +85,7 @@ const register = <N,>(registry: Registry<N>, id: T.Chat.ConversationIDKey, handl
   set.add(entry)
   return () => {
     set.delete(entry)
-    // a reset replaces the map, so only drop the entry if it is still this set
+    // a repeated unregister must not drop a set registered since this one emptied
     if (!set.size && registry.get(id) === set) {
       registry.delete(id)
     }
@@ -105,14 +107,6 @@ export const useReloadTriggers = (id: T.Chat.ConversationIDKey, handler: Handler
   const onTrigger = React.useEffectEvent(handler)
   React.useEffect(() => registerReloadHandler(id, r => onTrigger(r)), [id])
 }
-
-// Logout resets every store and, with them, drops every registration; a screen that stays
-// mounted across it hears nothing until it remounts.
-const clearRegistrations = () => {
-  threadHandlers.clear()
-  reloadHandlers.clear()
-}
-registerExternalResetter('chat-notification-registry', clearRegistrations)
 
 const runHandlers = <N,>(handlers: ReadonlySet<Handler<N>>, notification: N, type: string) => {
   for (const handler of [...handlers]) {

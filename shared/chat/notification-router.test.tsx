@@ -471,16 +471,16 @@ describe('registry', () => {
     expect(heard).toHaveBeenCalledTimes(3)
   })
 
-  test('a store reset drops every registration', () => {
+  test('a store reset keeps every registration', () => {
     const heard = jest.fn()
     onThread(convA, heard)
     onReload(convA, heard)
     resetAllStores()
     routeChatNotification(activity({activityType: T.RPCChat.ChatActivityType.expunge, expunge: {convID: rpcConvID(convA), expunge: {basis: 0, upto: 1}}}))
-    expect(heard).not.toHaveBeenCalled()
+    expect(heard.mock.calls.map(([n]: [{type: string}]) => n.type)).toEqual(['expunge', 'metadata', 'messages'])
   })
 
-  test('an unregister left over from before a reset leaves later registrations alone', () => {
+  test('an unregister from before a reset removes only its own registration', () => {
     const stale = registerThreadHandler(convA, jest.fn())
     resetAllStores()
     const heard = jest.fn()
