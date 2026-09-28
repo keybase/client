@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime"
 	"os"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -39,8 +40,7 @@ func SinkFromFilename(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	if err != nil || typ != chat1.MessageType_ATTACHMENT {
 		return "", nil, fmt.Errorf("invalid message type for download: %v", typ)
 	}
-	unsafeBasename := body.Attachment().Object.Filename
-	safeBasename := libkb.GetSafeFilename(unsafeBasename)
+	safeBasename := DownloadBasename(body.Attachment().Object)
 
 	filePath, err := libkb.FindFilePathWithNumberSuffix(parentDir, safeBasename, useArbitraryName)
 	if err != nil {
@@ -50,6 +50,37 @@ func SinkFromFilename(ctx context.Context, g *globals.Context, uid gregor1.UID,
 		return "", nil, err
 	}
 	return filePath, sink, nil
+}
+
+// extensionsByMIMEType inverts mimeTypes, keeping the lexically first extension
+// when several share a type (.jpeg over .jpg).
+var extensionsByMIMEType = func() map[string]string {
+	res := make(map[string]string, len(mimeTypes))
+	for ext, typ := range mimeTypes {
+		if cur, ok := res[typ]; !ok || ext < cur {
+			res[typ] = ext
+		}
+	}
+	return res
+}()
+
+// DownloadBasename names the file an asset is saved as. Audio recordings sent
+// before their filename was kept on upload were stored as "." (the Base of an
+// empty path), which would otherwise save with no extension.
+func DownloadBasename(asset chat1.Asset) string {
+	if safe := libkb.GetSafeFilename(asset.Filename); safe != "." && safe != "/" {
+		return safe
+	}
+	if typ, err := asset.Metadata.AssetType(); err == nil && typ == chat1.AssetMetadataType_VIDEO &&
+		asset.Metadata.Video().IsAudio {
+		return "audio.m4a"
+	}
+	if mediaType, _, err := mime.ParseMediaType(asset.MimeType); err == nil {
+		if ext, ok := extensionsByMIMEType[mediaType]; ok {
+			return "attachment" + ext
+		}
+	}
+	return "attachment"
 }
 
 func Download(ctx context.Context, g *globals.Context, uid gregor1.UID,

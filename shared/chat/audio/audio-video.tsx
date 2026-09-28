@@ -23,15 +23,14 @@ const MobileAudioVideo = (props: Props) => {
     }
   })
 
-  const [lastPaused, setLastPaused] = React.useState(paused)
-  if (lastPaused !== paused) {
-    setLastPaused(paused)
+  // runs on mount too: this mounts on the first tap with paused=false, and a new player starts paused
+  React.useEffect(() => {
     if (paused) {
       player.pause()
     } else {
       player.play()
     }
-  }
+  }, [paused, player])
 
   return null
 }
@@ -41,7 +40,8 @@ type VideoEl = {pause: () => void; play: () => Promise<void>; currentTime: numbe
 const DesktopAudioVideo = (props: Props) => {
   const {url, paused, onPositionUpdated, onEnded} = props
   const vidRef = React.useRef<VideoEl | null>(null)
-  const lastPausedRef = React.useRef(paused)
+  // a new <video> starts paused, so mounting with paused=false (the first tap) must still call play()
+  const lastPausedRef = React.useRef(true)
 
   React.useEffect(() => {
     if (lastPausedRef.current === paused) return

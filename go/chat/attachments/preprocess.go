@@ -225,6 +225,7 @@ func PreprocessAsset(ctx context.Context, g *globals.Context, log utils.DebugLab
 		if p, err = processCallerPreview(ctx, g, *callerPreview); err != nil {
 			log.Debug(ctx, "preprocessAsset: failed to process caller preview, making fresh one: %s", err)
 		} else {
+			p.Filename = filename
 			return p, nil
 		}
 	}

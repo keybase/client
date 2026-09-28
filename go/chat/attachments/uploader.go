@@ -537,7 +537,10 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 		}
 	}
 
-	filename = pre.Filename
+	// a preview persisted by an older build can carry an empty filename
+	if pre.Filename != "" {
+		filename = pre.Filename
+	}
 	// Use our converted input, if available
 	if pre.SrcDat != nil {
 		fileSize = int64(len(pre.SrcDat))
