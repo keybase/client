@@ -12,6 +12,7 @@
 import * as Meta from '@/constants/chat/meta'
 import * as S from '@/constants/strings'
 import * as T from '@/constants/types'
+import * as Message from '@/constants/chat/message'
 import type * as EngineGen from '@/constants/rpc'
 import {ignorePromise} from '@/constants/utils'
 import {
@@ -131,18 +132,8 @@ const metadataAndMessagesOf = (
   ]
 }
 
-const uiMessageID = (m: T.RPCChat.UIMessage | null | undefined) => {
-  switch (m?.state) {
-    case T.RPCChat.MessageUnboxedState.valid:
-      return m.valid.messageID
-    case T.RPCChat.MessageUnboxedState.error:
-      return m.error.messageID
-    case T.RPCChat.MessageUnboxedState.placeholder:
-      return m.placeholder.messageID
-    default:
-      return undefined
-  }
-}
+const uiMessageID = (m: T.RPCChat.UIMessage | null | undefined) =>
+  (m ? Message.getMessageID(m) : null) ?? undefined
 
 // the messages an incoming edit, delete, reaction or unfurl changes
 const targetMessageIDs = (m: T.RPCChat.UIMessage | null | undefined): ReadonlyArray<number> => {
