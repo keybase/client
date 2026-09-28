@@ -568,3 +568,45 @@ test('a stellar send the user cancels puts the text back in the composer', async
 
   expect(textarea.value).toBe('+1xlm@testuser')
 })
+
+// Desktop's read-only composer: the textarea can't be typed into and the side buttons are gone,
+// but a text the app injects (a share, an edit prefill, a restored stellar send) still lands
+describe('read-only', () => {
+  const renderReadOnly = () => {
+    act(() => {
+      metasReceived([{...Meta.makeConversationMeta(), cannotWrite: true, conversationIDKey: convID}], undefined, {
+        force: true,
+      })
+    })
+    return renderComposer()
+  }
+  const hasIcon = (container: HTMLElement, type: string) => !!container.querySelector(`.icon-gen-${type}`)
+
+  test('the textarea is read-only and the gif, emoji, file and exploding buttons are hidden', () => {
+    const {textarea, utils} = renderReadOnly()
+
+    expect(textarea.readOnly).toBe(true)
+    for (const type of ['iconfont-gif', 'iconfont-emoji', 'iconfont-attachment', 'iconfont-timer']) {
+      expect(hasIcon(utils.container, type)).toBe(false)
+    }
+  })
+
+  test('the same buttons show in a composer that can be written to', () => {
+    const {textarea, utils} = renderComposer()
+
+    expect(textarea.readOnly).toBe(false)
+    for (const type of ['iconfont-gif', 'iconfont-emoji', 'iconfont-attachment', 'iconfont-timer']) {
+      expect(hasIcon(utils.container, type)).toBe(true)
+    }
+  })
+
+  test('an injected text still lands in the read-only textarea', () => {
+    const {getHandles, textarea} = renderReadOnly()
+
+    act(() => {
+      getHandles().input.dispatch.injectIntoInput('shared text', true)
+    })
+
+    expect(textarea.value).toBe('shared text')
+  })
+})
