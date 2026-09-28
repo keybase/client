@@ -4,6 +4,7 @@ import {act, cleanup, render, screen} from '@testing-library/react'
 import * as C from '@/constants'
 import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
+import logger from '@/logger'
 import * as React from 'react'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
@@ -726,4 +727,51 @@ test('manage channels action ignores empty team names', () => {
   })
 
   expect(navigateAppend).not.toHaveBeenCalled()
+})
+
+test('the unreadline request carries exactly the conversation id, gui identify behavior and read position', async () => {
+  const unreadlineRpc = getUnreadlineRpc().mockResolvedValue({
+    offline: false,
+    unreadlineID: T.Chat.numberToMessageID(10),
+  })
+  mockMeta = makeMeta(convID, 7)
+
+  render(<NormalWrapper />)
+  await flushOrangeLine()
+
+  expect(unreadlineRpc.mock.calls).toEqual([
+    [
+      {
+        convID: new Uint8Array([1, 2, 3, 4]),
+        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+        readMsgID: 7,
+      },
+    ],
+  ])
+})
+
+test('a rejected unreadline request is only logged, leaves no orange line, and a later refresh can still set one', async () => {
+  const failure = new Error('unreadline failed')
+  const unreadlineRpc = getUnreadlineRpc()
+    .mockRejectedValueOnce(failure)
+    .mockResolvedValue({offline: false, unreadlineID: T.Chat.numberToMessageID(15)})
+  const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+
+  const {rerender} = render(<NormalWrapper />)
+  await flushOrangeLine()
+
+  expect(unreadlineRpc).toHaveBeenCalledTimes(1)
+  expect(error).toHaveBeenCalledWith('ignorePromise error', failure)
+  expectOrangeLine(noOrangeLine)
+
+  // an inactive refresh asks again, and its answer fills the still-empty line
+  act(() => {
+    useShellState.setState({active: false})
+  })
+  mockMeta = makeMeta(convID, 1, 20)
+  rerender(<NormalWrapper />)
+  await flushOrangeLine()
+
+  expect(unreadlineRpc.mock.calls.length).toBeGreaterThan(1)
+  expectOrangeLine(T.Chat.numberToOrdinal(15))
 })

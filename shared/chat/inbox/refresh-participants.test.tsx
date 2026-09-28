@@ -236,3 +236,19 @@ describe('the refresh reaching the members list', () => {
     expect(currentMembers()).toEqual(['testuser'])
   })
 })
+
+describe('refreshConversationParticipants failures', () => {
+  test('a failed refresh is logged at info with the conversation id', async () => {
+    jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockRejectedValue(new Error('offline'))
+    const info = jest.spyOn(logger, 'info').mockImplementation(() => {})
+    const error = jest.spyOn(logger, 'error')
+
+    await refreshConversationParticipants([convA])
+
+    expect(T.RPCChat.localRefreshParticipantsRpcPromise).toHaveBeenCalledWith({
+      convID: T.Chat.keyToConversationID(convA),
+    })
+    expect(info).toHaveBeenCalledWith(`refreshConversationParticipants: failed for ${convA}`)
+    expect(error).not.toHaveBeenCalled()
+  })
+})

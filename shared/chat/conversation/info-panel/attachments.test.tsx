@@ -3,6 +3,7 @@
 import {act, cleanup, renderHook} from '@testing-library/react'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
+import logger from '@/logger'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useAttachmentSections} from './attachments'
 
@@ -226,4 +227,40 @@ test('attachment gallery ignores hits that arrive after unmount cleanup', async 
   })
 
   expect(request?.params.convID).toEqual(T.Chat.keyToConversationID(convID))
+})
+
+test('attachment gallery sends only the listener call map and params, with no waiting key', async () => {
+  const spy = jest.spyOn(T.RPCChat, 'localLoadGalleryRpcListener').mockResolvedValue({last: true})
+  renderAttachmentSections()
+
+  await act(async () => {
+    jest.advanceTimersByTime(1)
+    await flushPromises()
+  })
+
+  expect(spy).toHaveBeenCalledTimes(1)
+  expect(spy.mock.calls[0]).toHaveLength(1)
+  expect(Object.keys(spy.mock.calls[0]![0]).sort()).toEqual(['incomingCallMap', 'params'])
+  expect(Object.keys(spy.mock.calls[0]![0].incomingCallMap)).toEqual(['chat.1.chatUi.chatLoadGalleryHit'])
+})
+
+test('attachment gallery logs a failed load as an error with the load context', async () => {
+  jest.spyOn(T.RPCChat, 'localLoadGalleryRpcListener').mockRejectedValue(new Error('gallery failed'))
+  const logError = jest.spyOn(logger, 'error').mockImplementation(() => {})
+  renderAttachmentSections()
+
+  await act(async () => {
+    jest.advanceTimersByTime(1)
+    await flushPromises()
+  })
+
+  expect(logError).toHaveBeenCalledWith(
+    'failed to load attachment view: gallery failed',
+    expect.objectContaining({
+      conversationIDKey: convID,
+      fromMsgID: undefined,
+      reason: 'initial-effect',
+      viewType: T.RPCChat.GalleryItemTyp.media,
+    })
+  )
 })

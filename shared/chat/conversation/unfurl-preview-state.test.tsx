@@ -1,6 +1,7 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as T from '@/constants/types'
+import logger from '@/logger'
 import {act, render, waitFor} from '@testing-library/react'
 import {useUnfurlPreviews, suppressedURLsOf, takeSuppressSnapshot, useUnfurlPreviewState} from './unfurl-preview-state'
 
@@ -346,5 +347,67 @@ describe('unfurl previews', () => {
       jest.advanceTimersByTime(500)
     })
     expect(getSuppressedURLs(convID)).toEqual(['http://a.com'])
+  })
+})
+
+describe('unfurl preview rpc', () => {
+  beforeEach(() => {
+    jest.useFakeTimers()
+    useUnfurlPreviewState.getState().dispatch.resetState()
+  })
+  afterEach(() => {
+    jest.useRealTimers()
+    jest.restoreAllMocks()
+  })
+
+  it('sends the conversation id bytes and the full composer text', async () => {
+    const spy = jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([])
+    render(<Harness text="see http://a.com and more" onRender={() => {}} />)
+    await act(async () => {
+      jest.advanceTimersByTime(500)
+      await Promise.resolve()
+    })
+    expect(spy.mock.calls).toEqual([[{convID: new Uint8Array([1, 2, 3, 4]), text: 'see http://a.com and more'}]])
+  })
+
+  it('a rejected fetch is logged at info and shows and suppresses nothing', async () => {
+    const failure = new Error('scrape failed')
+    jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockRejectedValue(failure)
+    const log = jest.spyOn(logger, 'info').mockImplementation(() => {})
+    const error = jest.spyOn(logger, 'error')
+    let last: ReturnType<typeof useUnfurlPreviews> | undefined
+    render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
+    await act(async () => {
+      jest.advanceTimersByTime(500)
+      await Promise.resolve()
+    })
+    await waitFor(() => expect(log).toHaveBeenCalledWith('unfurl preview failed', failure))
+    expect(error).not.toHaveBeenCalled()
+    expect(last?.previews).toEqual([])
+    expect(getSuppressedURLs(convID)).toEqual([])
+  })
+
+  it('a rejected refetch keeps the earlier cards still in the text and records nothing new', async () => {
+    const failure = new Error('scrape failed')
+    jest
+      .spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
+      .mockResolvedValueOnce([info('http://a.com')])
+      .mockRejectedValueOnce(failure)
+    const log = jest.spyOn(logger, 'info').mockImplementation(() => {})
+    let last: ReturnType<typeof useUnfurlPreviews> | undefined
+    const {rerender} = render(<Harness text="see http://a.com" onRender={r => (last = r)} />)
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    await waitFor(() => expect(last?.previews.map(p => p.url)).toEqual(['http://a.com']))
+
+    rerender(<Harness text="see http://a.com http://b.com" onRender={r => (last = r)} />)
+    await act(async () => {
+      jest.advanceTimersByTime(500)
+      await Promise.resolve()
+    })
+    await waitFor(() => expect(log).toHaveBeenCalledWith('unfurl preview failed', failure))
+    expect(last?.previews.map(p => p.url)).toEqual(['http://a.com'])
+    expect(getSuppressedURLs(convID)).toEqual([])
   })
 })

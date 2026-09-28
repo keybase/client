@@ -1,6 +1,9 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as Message from '@/constants/chat/message'
+import * as Meta from '@/constants/chat/meta'
+import logger from '@/logger'
+import {metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
 import type * as React from 'react'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
@@ -1042,5 +1045,182 @@ describe('a draft typed just before leaving the conversation', () => {
 
   test('is not saved for the next account when the unmount comes from a switch', () => {
     expect(typeThenUnmount(true)).not.toContain('ab')
+  })
+})
+
+describe('composer typing and draft RPCs', () => {
+  const convBytes = new Uint8Array([1, 2, 3, 4])
+
+  const seedMeta = () => {
+    metasReceived(
+      [{...Meta.makeConversationMeta(), conversationIDKey: convID, tlfname: 'testuser,testuser-mac'}],
+      undefined,
+      {force: true}
+    )
+  }
+
+  const type = (text: string) => {
+    act(() => {
+      mockPlatformInputProps?.onChangeText(text)
+    })
+  }
+  const advance = (ms: number) => {
+    act(() => {
+      jest.advanceTimersByTime(ms)
+    })
+  }
+
+  beforeEach(() => {
+    jest.useFakeTimers()
+  })
+  afterEach(() => {
+    jest.useRealTimers()
+  })
+
+  test('typing is sent on the leading edge, then at most once per 1000ms while text stays non-empty', () => {
+    const typing = jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
+    jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+    seedMeta()
+    renderComposer()
+
+    type('a')
+    expect(typing.mock.calls).toEqual([[{conversationID: convBytes, typing: true}]])
+
+    advance(100)
+    type('ab')
+    advance(100)
+    type('abc')
+    expect(typing).toHaveBeenCalledTimes(1)
+
+    // trailing edge of the 1000ms window
+    advance(799)
+    expect(typing).toHaveBeenCalledTimes(1)
+    advance(1)
+    expect(typing).toHaveBeenCalledTimes(2)
+    expect(typing).toHaveBeenLastCalledWith({conversationID: convBytes, typing: true})
+
+    advance(5000)
+    expect(typing).toHaveBeenCalledTimes(2)
+  })
+
+  test('emptying the composer cancels a pending typing=true and sends typing=false right away', () => {
+    const typing = jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
+    jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+    seedMeta()
+    renderComposer()
+
+    type('a')
+    advance(100)
+    type('ab')
+    advance(100)
+    type('')
+    expect(typing.mock.calls).toEqual([
+      [{conversationID: convBytes, typing: true}],
+      [{conversationID: convBytes, typing: false}],
+    ])
+
+    // the cancelled trailing typing=true never goes out
+    advance(5000)
+    expect(typing).toHaveBeenCalledTimes(2)
+  })
+
+  test('the draft is saved with the conversation id, text and tlf name, throttled to one trailing save per 200ms', () => {
+    jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
+    const saveDraft = jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+    seedMeta()
+    renderComposer()
+
+    type('a')
+    expect(saveDraft.mock.calls).toEqual([
+      [{conversationID: convBytes, text: 'a', tlfName: 'testuser,testuser-mac'}],
+    ])
+    // the local meta draft is updated alongside the save
+    expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('a')
+
+    advance(50)
+    type('ab')
+    advance(50)
+    type('abc')
+    expect(saveDraft).toHaveBeenCalledTimes(1)
+
+    advance(100)
+    expect(saveDraft.mock.calls).toEqual([
+      [{conversationID: convBytes, text: 'a', tlfName: 'testuser,testuser-mac'}],
+      [{conversationID: convBytes, text: 'abc', tlfName: 'testuser,testuser-mac'}],
+    ])
+    expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('abc')
+
+    advance(1000)
+    expect(saveDraft).toHaveBeenCalledTimes(2)
+  })
+
+  test('a pending draft is flushed with its params on unmount', () => {
+    jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
+    jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
+    const saveDraft = jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+    seedMeta()
+    const {unmount} = renderComposer()
+
+    type('a')
+    type('ab')
+    expect(saveDraft).toHaveBeenCalledTimes(1)
+    unmount()
+    expect(saveDraft).toHaveBeenLastCalledWith({
+      conversationID: convBytes,
+      text: 'ab',
+      tlfName: 'testuser,testuser-mac',
+    })
+  })
+
+  test('after an account switch neither the draft save nor the local draft update happens', () => {
+    jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
+    const saveDraft = jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+    seedMeta()
+    renderComposer()
+    act(() => {
+      useCurrentUserState.getState().dispatch.setBootstrap({
+        deviceID: 'device-id-2',
+        deviceName: 'test-device-2',
+        uid: 'uid-2',
+        username: 'testuser-mac',
+      })
+    })
+
+    type('a')
+    advance(1000)
+    expect(saveDraft).not.toHaveBeenCalled()
+    expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('')
+  })
+
+  test('rejected typing and draft RPCs are only logged, and later keystrokes still send', async () => {
+    const typingError = new Error('typing failed')
+    const draftError = new Error('draft failed')
+    const typing = jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockRejectedValue(typingError)
+    const saveDraft = jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockRejectedValue(draftError)
+    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    seedMeta()
+    renderComposer()
+
+    type('a')
+    await act(async () => {
+      await flushPromises()
+    })
+    expect(error).toHaveBeenCalledWith('ignorePromise error', typingError)
+    expect(error).toHaveBeenCalledWith('ignorePromise error', draftError)
+    // the optimistic local draft is not rolled back
+    expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('a')
+
+    advance(2000)
+    type('ab')
+    expect(typing).toHaveBeenCalledTimes(2)
+    expect(saveDraft).toHaveBeenCalledTimes(2)
+    expect(saveDraft).toHaveBeenLastCalledWith({
+      conversationID: convBytes,
+      text: 'ab',
+      tlfName: 'testuser,testuser-mac',
+    })
+    await act(async () => {
+      await flushPromises()
+    })
   })
 })

@@ -5,6 +5,8 @@ import {act, cleanup, renderHook} from '@testing-library/react'
 import {makeConversationMeta} from '@/constants/chat/meta'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
+import logger from '@/logger'
+import {flush} from '@/test/flush'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const convID = T.Chat.keyToConversationID(conversationIDKey)
@@ -183,4 +185,37 @@ test('general lists the whole team rather than the conversation participants', (
   const {participantsItems} = renderHook(() => useChannelMembers(conversationIDKey)).result.current
 
   expect(participantsItems.map(i => i.username)).toEqual(['testuser', 'testuser-mac'])
+})
+
+test('a failed participant refresh on open is swallowed: nothing logged, the list still renders', async () => {
+  ;(T.RPCChat.localRefreshParticipantsRpcPromise as jest.Mock).mockRejectedValue(new Error('offline'))
+  const logInfo = jest.spyOn(logger, 'info')
+  const logError = jest.spyOn(logger, 'error')
+  mockMembers = new Map([member('testuser', 'writer')])
+  mockMeta = teamChannelMeta()
+  mockParticipants = {all: ['testuser'], contactName: new Map(), name: []}
+
+  const {result} = renderHook(() => useChannelMembers(conversationIDKey))
+  await flush()
+
+  expect(T.RPCChat.localRefreshParticipantsRpcPromise).toHaveBeenCalledWith({convID})
+  expect(logInfo).not.toHaveBeenCalled()
+  expect(logError).not.toHaveBeenCalled()
+  expect(result.current.participantsItems.map(i => i.username)).toEqual(['testuser'])
+})
+
+test('a failed refresh after a membership change is logged at info and not surfaced', async () => {
+  mockMeta = teamChannelMeta()
+  renderHook(() => useChannelMembers(conversationIDKey))
+  ;(T.RPCChat.localRefreshParticipantsRpcPromise as jest.Mock).mockClear()
+  ;(T.RPCChat.localRefreshParticipantsRpcPromise as jest.Mock).mockRejectedValue(new Error('offline'))
+  const logInfo = jest.spyOn(logger, 'info').mockImplementation(() => {})
+
+  act(() => {
+    notifyEngineActionListeners(teamChangedByID())
+  })
+  await flush()
+
+  expect(T.RPCChat.localRefreshParticipantsRpcPromise).toHaveBeenCalledWith({convID})
+  expect(logInfo).toHaveBeenCalledWith(`refreshConversationParticipants: failed for ${conversationIDKey}`)
 })
