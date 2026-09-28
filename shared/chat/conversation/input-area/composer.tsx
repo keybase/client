@@ -1,6 +1,7 @@
 import * as React from 'react'
 import logger from '@/logger'
 import type {SuppressSnapshot} from '../unfurl-preview-state'
+import {standardTransformer} from './suggestors/common'
 import type {Selection, TextInfo} from './normal/input.shared'
 
 // The platform input the composer writes through: the desktop textarea, the native TextInput,
@@ -132,11 +133,14 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     },
     insertAtCaret: (s, opts) => {
       const selection = current()?.getSelection()
-      const start = selection?.start || 0
-      const end = selection?.end || 0
+      const inserted = standardTransformer(
+        s,
+        {position: {end: selection?.end ?? null, start: selection?.start ?? null}, text},
+        true
+      )
       const pad = opts?.appendSpaceToText ? ' ' : ''
-      const caret = start + s.length + pad.length
-      replace({selection: {end: caret, start: caret}, text: text.slice(0, start) + s + text.slice(end) + pad}, true)
+      const caret = inserted.selection.start + pad.length
+      replace({selection: {end: caret, start: caret}, text: inserted.text + pad}, true)
     },
     isFocused: () => !!current()?.isFocused(),
     offerDraft,
