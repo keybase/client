@@ -648,7 +648,10 @@ const DesktopFooter = () => {
   )
 }
 
-type UseDesktopKeysProps = Pick<Props, 'isEditing' | 'onCancelEditing' | 'onSubmit' | 'showReplyPreview'> & {
+type UseDesktopKeysProps = Pick<
+  Props,
+  'cannotWrite' | 'isEditing' | 'onCancelEditing' | 'onSubmit' | 'showReplyPreview'
+> & {
   focusInput: () => void
   htmlInputRef: HtmlInputRefType
   suggestors: Pick<
@@ -657,7 +660,7 @@ type UseDesktopKeysProps = Pick<Props, 'isEditing' | 'onCancelEditing' | 'onSubm
   >
 }
 const useDesktopKeys = (p: UseDesktopKeysProps) => {
-  const {focusInput, htmlInputRef, isEditing, onCancelEditing, onSubmit} = p
+  const {cannotWrite, focusInput, htmlInputRef, isEditing, onCancelEditing, onSubmit} = p
   const {showReplyPreview, suggestors} = p
   const {getSuggestions, moveSuggestion, recheckSuggestions, selectSuggestion} = suggestors
   const composer = useComposer()
@@ -730,7 +733,10 @@ const useDesktopKeys = (p: UseDesktopKeysProps) => {
   }
 
   const inputKeyDown = (e: React.KeyboardEvent) => {
-    const {actions, preventDefault} = composerKeyDown({...threadFacts(), source: 'input', suggestions: getSuggestions()}, e)
+    const {actions, preventDefault} = composerKeyDown(
+      {...threadFacts(), readOnly: cannotWrite, source: 'input', suggestions: getSuggestions()},
+      e
+    )
     if (preventDefault) e.preventDefault()
     actions.forEach(run)
   }
@@ -784,6 +790,7 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
   }
 
   const {globalKeyDownPressHandler, inputKeyDown} = useDesktopKeys({
+    cannotWrite,
     focusInput,
     htmlInputRef,
     isEditing,
@@ -1281,7 +1288,10 @@ const NativePlatformInput = (p: Props) => {
   // attached.  On Android we get "hardware" keypresses from soft keyboards,
   // so check whether a soft keyboard's up.
   const onHardwareKey = React.useEffectEvent((hwKeyEvent: {pressedKey: string}) => {
-    const {actions} = composerKeyDown({source: 'hardware', suggestions: getSuggestions()}, keyFromHardware(hwKeyEvent.pressedKey))
+    const {actions} = composerKeyDown(
+      {readOnly: cannotWrite, source: 'hardware', suggestions: getSuggestions()},
+      keyFromHardware(hwKeyEvent.pressedKey)
+    )
     for (const a of actions) {
       switch (a.type) {
         case 'suggestionSelect':

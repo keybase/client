@@ -329,6 +329,32 @@ test('a preview write the input does not show is not what the next send sends', 
   expect(post.mock.calls[0]?.[0].params.body).toBe('hi @te')
 })
 
+test('hardware shift-enter on a read-only composer inserts nothing, so enter has nothing to send', async () => {
+  const post = jest.spyOn(m.T.RPCChat, 'localPostTextNonblockRpcListener')
+  const {metasReceived} = require('@/chat/inbox/metadata') as typeof Metadata
+  const Meta = require('@/constants/chat/meta') as typeof MetaModule
+  act(() => {
+    metasReceived([{...Meta.makeConversationMeta(), cannotWrite: true, conversationIDKey: convID}], undefined, {
+      force: true,
+    })
+  })
+  renderComposer()
+
+  act(() => {
+    mockHWKey?.({pressedKey: 'shift-enter'})
+  })
+  act(() => {
+    mockHWKey?.({pressedKey: 'enter'})
+  })
+  act(() => {
+    jest.advanceTimersByTime(60)
+  })
+  await flushSend()
+
+  expect(input().value).toBe('')
+  expect(post).not.toHaveBeenCalled()
+})
+
 test('hardware enter sends the text 60ms later and clears the composer', async () => {
   const post = jest.spyOn(m.T.RPCChat, 'localPostTextNonblockRpcListener').mockResolvedValue({
     outboxID: new TextEncoder().encode('posted'),

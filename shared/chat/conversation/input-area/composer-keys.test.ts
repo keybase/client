@@ -20,6 +20,7 @@ const k = (key: string, mods: Mods = {}): ComposerKey => ({
 })
 const input = (o: Partial<InputKeyState> = {}): InputKeyState => ({
   editing: false,
+  readOnly: false,
   replying: false,
   source: 'input',
   suggestions: 'none',
@@ -109,6 +110,8 @@ describe('the composer textarea', () => {
     ['ctrl-shift-Enter: newline', input(withText), k('Enter', {ctrlKey: true, shiftKey: true}), [newline], true],
     ['shift-Enter, empty: newline by the browser', input(), k('Enter', {shiftKey: true}), [], false],
     ['alt-Enter, editing: newline', input({...withText, editing: true}), k('Enter', {altKey: true}), [newline], true],
+    ['alt-Enter, read-only: nothing', input({...withText, readOnly: true}), k('Enter', {altKey: true}), [], false],
+    ['meta-Enter, read-only: nothing', input({readOnly: true}), k('Enter', {metaKey: true}), [], false],
     ['Enter, list open: pick, else send', input({suggestions: open}), k('Enter'), [pickOrSend], true],
     [
       'Enter, unfiltered list: pick, else send',
@@ -257,7 +260,8 @@ describe('window keys', () => {
 })
 
 describe('hardware keys', () => {
-  const hw = (suggestions: Suggestions = 'none') => ({source: 'hardware', suggestions}) as const
+  const hw = (suggestions: Suggestions = 'none', readOnly = false) =>
+    ({readOnly, source: 'hardware', suggestions}) as const
 
   test('enter sends', () => {
     expect(composerKeyDown(hw(), keyFromHardware('enter'))).toEqual({
@@ -289,6 +293,10 @@ describe('hardware keys', () => {
 
   test('shift-enter with a list open still inserts a newline', () => {
     expect(composerKeyDown(hw('filtered'), keyFromHardware('shift-enter')).actions).toEqual([newline])
+  })
+
+  test('shift-enter on a read-only input does nothing', () => {
+    expect(composerKeyDown(hw('none', true), keyFromHardware('shift-enter')).actions).toEqual([])
   })
 
   test('the native key names map to key and shift', () => {
@@ -335,7 +343,9 @@ const allKeys = keys.flatMap(key => modifierSets.map(mods => k(key, mods)))
 const suggestionStates: Array<Suggestions> = ['none', 'empty', 'unfiltered', 'filtered']
 const showsItems = (s: InputKeyState) => s.suggestions === 'unfiltered' || s.suggestions === 'filtered'
 const listKeys = new Set(['ArrowUp', 'ArrowDown', 'Tab'])
-const allInputStates = threadFacts.flatMap(f => suggestionStates.map(suggestions => input({...f, suggestions})))
+const allInputStates = threadFacts.flatMap(f =>
+  suggestionStates.flatMap(suggestions => bools.map(readOnly => input({...f, readOnly, suggestions})))
+)
 
 describe('across every key and state', () => {
   test('a key typed into some other input is never handled', () => {
@@ -351,16 +361,18 @@ describe('across every key and state', () => {
     }
   })
 
-  test('a hardware key other than Enter does nothing, and Enter reads only shift and the list', () => {
+  test('a hardware key other than Enter does nothing, and Enter reads only shift, read-only and the list', () => {
     for (const suggestions of suggestionStates) {
       for (const key of allKeys) {
-        const {actions} = composerKeyDown({source: 'hardware', suggestions}, key)
-        if (key.key !== 'Enter') {
-          expect(actions).toEqual([])
-        } else if (key.shiftKey) {
-          expect(actions).toEqual([newline])
-        } else {
-          expect(actions).toEqual([suggestions === 'none' || suggestions === 'empty' ? submit : pickOrSend])
+        for (const readOnly of bools) {
+          const {actions} = composerKeyDown({readOnly, source: 'hardware', suggestions}, key)
+          if (key.key !== 'Enter') {
+            expect(actions).toEqual([])
+          } else if (key.shiftKey) {
+            expect(actions).toEqual(readOnly ? [] : [newline])
+          } else {
+            expect(actions).toEqual([suggestions === 'none' || suggestions === 'empty' ? submit : pickOrSend])
+          }
         }
       }
     }
@@ -408,7 +420,7 @@ describe('across every key and state', () => {
   })
 
   test('an Enter with alt, ctrl or meta held only inserts a newline, and claims the key', () => {
-    for (const s of allInputStates) {
+    for (const s of allInputStates.filter(s => !s.readOnly)) {
       for (const key of allKeys.filter(k => k.key === 'Enter' && (k.altKey || k.ctrlKey || k.metaKey))) {
         expect(composerKeyDown(s, key)).toEqual({actions: [newline], preventDefault: true})
       }
@@ -418,6 +430,14 @@ describe('across every key and state', () => {
   test('a shift-Enter is left to the browser', () => {
     for (const s of allInputStates) {
       expect(composerKeyDown(s, k('Enter', {shiftKey: true}))).toEqual({actions: [], preventDefault: false})
+    }
+  })
+
+  test('a read-only textarea never gets a newline', () => {
+    for (const s of allInputStates.filter(s => s.readOnly)) {
+      for (const key of allKeys) {
+        expect(composerKeyDown(s, key).actions).not.toContainEqual(newline)
+      }
     }
   })
 

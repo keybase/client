@@ -7,6 +7,8 @@ import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import HiddenString from '@/util/hidden-string'
 import {act, cleanup, fireEvent, render} from '@testing-library/react'
 import {resetAllStores} from '@/util/zustand'
+import * as Meta from '@/constants/chat/meta'
+import {metasReceived} from '@/chat/inbox/metadata'
 import {useCurrentUserState} from '@/stores/current-user'
 import {GlobalKeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
 import {ThreadRefsContext} from '@/chat/conversation/normal/context'
@@ -313,6 +315,23 @@ describe('in the composer, no suggestions', () => {
     expect(execCommand).not.toHaveBeenCalled()
     expect(post).not.toHaveBeenCalled()
     expect(textarea.value).toBe('ab')
+  })
+
+  test.each(modifiers)('a read-only composer takes no newline from Enter with %s, so Enter has nothing to send', async modifier => {
+    act(() => {
+      metasReceived([{...Meta.makeConversationMeta(), cannotWrite: true, conversationIDKey: convID}], undefined, {
+        force: true,
+      })
+    })
+    const {textarea} = renderComposer()
+    expect(textarea.readOnly).toBe(true)
+
+    expect(keyDown(textarea, 'Enter', {[modifier]: true})).toBe(false)
+    keyDown(textarea, 'Enter')
+    await flushSend()
+
+    expect(textarea.value).toBe('')
+    expect(post).not.toHaveBeenCalled()
   })
 
   test('with no typed insert available the newline is still written at the caret', async () => {
