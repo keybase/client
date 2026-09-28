@@ -182,8 +182,8 @@ export const useConversationSendActions = () => {
       return
     }
 
-    const callerPreview = await getChatRpc().makeAudioPreview(amps, duration)
     try {
+      const callerPreview = await getChatRpc().makeAudioPreview(amps, duration)
       await getChatRpc().postAttachment({
         callerPreview,
         clientPrev: getClientPrev(),
@@ -197,6 +197,8 @@ export const useConversationSendActions = () => {
     } catch (error) {
       if (error instanceof RPCError) {
         logger.warn('sendAudioRecording: failed to send attachment: ' + error.message)
+      } else {
+        logger.error('sendAudioRecording: failed to send attachment', error)
       }
     }
   }

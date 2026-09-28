@@ -487,12 +487,26 @@ describe('sendAudioRecording', () => {
     })
   })
 
-  test('a failed preview rejects to the caller and posts nothing', async () => {
-    rpc.fail('makeAudioPreview', new Error('no preview'))
+  // the recorder resets once the send resolves, so a failure must not reject
+  test('a failed preview is logged, resolves like a failed post, and posts nothing', async () => {
+    rpc.fail('makeAudioPreview', new RPCError('no preview', T.RPCGen.StatusCode.scgeneric))
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
     const result = renderSendActions()
     await act(async () => {
-      await expect(result.current.send.sendAudioRecording('/tmp/audio.m4a', 1, [])).rejects.toThrow('no preview')
+      await expect(result.current.send.sendAudioRecording('/tmp/audio.m4a', 1, [])).resolves.toBeUndefined()
     })
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('no preview'))
+    expect(rpc.calls('postAttachment')).toEqual([])
+  })
+
+  test('a send that fails for a reason other than the service is logged as an error and resolves', async () => {
+    rpc.fail('makeAudioPreview', new Error('broken'))
+    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    const result = renderSendActions()
+    await act(async () => {
+      await expect(result.current.send.sendAudioRecording('/tmp/audio.m4a', 1, [])).resolves.toBeUndefined()
+    })
+    expect(error).toHaveBeenCalledWith(expect.stringContaining('sendAudioRecording'), expect.any(Error))
     expect(rpc.calls('postAttachment')).toEqual([])
   })
 })
