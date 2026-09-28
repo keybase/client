@@ -1,5 +1,9 @@
 /// <reference types="jest" />
+import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
+import * as Teams from '@/constants/teams'
+import RPCError from '@/util/rpcerror'
+import logger from '@/logger'
 import {makeMessageText} from '@/constants/chat/message'
 import {
   getClientPrevFromSnapshot,
@@ -9,6 +13,7 @@ import {
   loadConversationThreadMessages,
   maxBackPageReloads,
   numMessagesOnScrollback,
+  persistExplodingMode,
   scrollDirectionToPagination,
 } from './thread-load'
 import * as ThreadRpc from './thread-rpc'
@@ -787,5 +792,95 @@ describe('only a pass that can account for a whole window reconciles', () => {
     await flushPromises()
 
     expect(prunedOnLastPass(actions)).toBe(true)
+  })
+})
+
+describe('persistExplodingMode', () => {
+  const category = `exploding:${conversationIDKey}`
+  const meta = (retention?: Partial<T.Retention.RetentionPolicy>) => ({
+    ...Meta.makeConversationMeta(),
+    retentionPolicy: Teams.makeRetentionPolicy(retention),
+  })
+
+  const flush = async () => {
+    for (let i = 0; i < 10; i++) {
+      await Promise.resolve()
+    }
+  }
+
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
+  test('a lifetime is stored as the gregor category body', async () => {
+    const update = jest.spyOn(T.RPCGen, 'gregorUpdateCategoryRpcPromise').mockResolvedValue(new Uint8Array())
+    const dismiss = jest.spyOn(T.RPCGen, 'gregorDismissCategoryRpcPromise')
+    persistExplodingMode(conversationIDKey, meta(), 300)
+    await flush()
+    expect(update).toHaveBeenCalledWith({body: '300', category, dtime: {offset: 0, time: 0}})
+    expect(dismiss).not.toHaveBeenCalled()
+  })
+
+  test('turning it off dismisses the category', async () => {
+    const update = jest.spyOn(T.RPCGen, 'gregorUpdateCategoryRpcPromise')
+    const dismiss = jest.spyOn(T.RPCGen, 'gregorDismissCategoryRpcPromise').mockResolvedValue(undefined)
+    persistExplodingMode(conversationIDKey, meta(), 0)
+    await flush()
+    expect(dismiss).toHaveBeenCalledWith({category})
+    expect(update).not.toHaveBeenCalled()
+  })
+
+  test('a lifetime equal to the retention policy is the default, so it dismisses too', async () => {
+    const update = jest.spyOn(T.RPCGen, 'gregorUpdateCategoryRpcPromise')
+    const dismiss = jest.spyOn(T.RPCGen, 'gregorDismissCategoryRpcPromise').mockResolvedValue(undefined)
+    persistExplodingMode(conversationIDKey, meta({seconds: 86400, type: 'explode'}), 86400)
+    await flush()
+    expect(dismiss).toHaveBeenCalledWith({category})
+    expect(update).not.toHaveBeenCalled()
+  })
+
+  test('an inherited policy compares against the team policy', async () => {
+    const dismiss = jest.spyOn(T.RPCGen, 'gregorDismissCategoryRpcPromise').mockResolvedValue(undefined)
+    persistExplodingMode(
+      conversationIDKey,
+      {
+        ...meta({type: 'inherit'}),
+        teamRetentionPolicy: Teams.makeRetentionPolicy({seconds: 3600, type: 'explode'}),
+      },
+      3600
+    )
+    await flush()
+    expect(dismiss).toHaveBeenCalledWith({category})
+  })
+
+  test('a transient service error is logged and dropped', async () => {
+    jest
+      .spyOn(T.RPCGen, 'gregorUpdateCategoryRpcPromise')
+      .mockRejectedValue(new RPCError('offline', T.RPCGen.StatusCode.scapinetworkerror))
+    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    persistExplodingMode(conversationIDKey, meta(), 300)
+    await flush()
+    expect(error).toHaveBeenCalledTimes(1)
+    expect(error).toHaveBeenCalledWith(expect.stringContaining('Failed to set exploding mode'))
+  })
+
+  test('any other service error is logged and rethrown', async () => {
+    jest
+      .spyOn(T.RPCGen, 'gregorDismissCategoryRpcPromise')
+      .mockRejectedValue(new RPCError('bad', T.RPCGen.StatusCode.scgeneric))
+    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    persistExplodingMode(conversationIDKey, meta(), 0)
+    await flush()
+    expect(error).toHaveBeenCalledWith(expect.stringContaining('Failed to unset exploding mode'))
+    expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(RPCError))
+  })
+
+  test('a non-service error is rethrown without the service log', async () => {
+    jest.spyOn(T.RPCGen, 'gregorUpdateCategoryRpcPromise').mockRejectedValue(new Error('bug'))
+    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    persistExplodingMode(conversationIDKey, meta(), 300)
+    await flush()
+    expect(error).toHaveBeenCalledTimes(1)
+    expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(Error))
   })
 })

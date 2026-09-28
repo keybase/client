@@ -6,6 +6,7 @@ import * as T from '@/constants/types'
 import * as ThreadRpc from './thread-rpc'
 import {act, cleanup, renderHook} from '@testing-library/react'
 import {metasReceived} from '@/chat/inbox/metadata'
+import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -13,6 +14,7 @@ import {
   getConversationClientPrev,
   markConversationAsUnread,
   useConversationExplodingMode,
+  useConversationMessage,
 } from './data-hooks'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
@@ -128,6 +130,19 @@ describe('markConversationAsUnread', () => {
     })
   })
 
+  test('the walk-back load is centered on the unread line, three wide', async () => {
+    const load = mockAroundMessages([])
+    markConversationAsUnread(conversationIDKey, messageID(5))
+    await flushPromises()
+    expect(load).toHaveBeenCalledWith({
+      conversationIDKey,
+      messageIDControl: {mode: T.RPCChat.MessageIDControlMode.centered, num: 3, pivot: messageID(5)},
+      onCachedThread: expect.any(Function),
+      onFullThread: expect.any(Function),
+      pagination: null,
+    })
+  })
+
   test('still marks read when the walk-back load fails', async () => {
     jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockRejectedValue(new Error('offline'))
     markConversationAsUnread(conversationIDKey, messageID(5))
@@ -208,5 +223,58 @@ describe('parsed thread messages', () => {
       forceUnread: true,
       msgID: messageID(5),
     })
+  })
+})
+
+describe('useConversationMessage', () => {
+  const waitForLoad = async () => {
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 0))
+      await flushPromises()
+    })
+  }
+
+  test('loads twenty around the message and returns it', async () => {
+    const load = mockAroundMessages([19, 20, 21])
+    const {result} = renderHook(() => useConversationMessage(conversationIDKey, messageID(20)))
+    expect(result.current).toBeUndefined()
+    await waitForLoad()
+    expect(result.current?.id).toBe(messageID(20))
+    expect(load).toHaveBeenCalledWith(
+      expect.objectContaining({
+        messageIDControl: {mode: T.RPCChat.MessageIDControlMode.centered, num: 20, pivot: messageID(20)},
+        pagination: null,
+      })
+    )
+  })
+
+  test('no load for an unsent message', async () => {
+    const load = mockAroundMessages([])
+    const {result} = renderHook(() => useConversationMessage(conversationIDKey, messageID(0)))
+    await waitForLoad()
+    expect(load).not.toHaveBeenCalled()
+    expect(result.current).toBeUndefined()
+  })
+
+  test('a failed load leaves nothing', async () => {
+    jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockRejectedValue(new Error('offline'))
+    const {result} = renderHook(() => useConversationMessage(conversationIDKey, messageID(20)))
+    await waitForLoad()
+    expect(result.current).toBeUndefined()
+  })
+
+  test('a finished download of that message reloads it', async () => {
+    const load = mockAroundMessages([20])
+    renderHook(() => useConversationMessage(conversationIDKey, messageID(20)))
+    await waitForLoad()
+    expect(load).toHaveBeenCalledTimes(1)
+    await act(async () => {
+      notifyEngineActionListeners({
+        payload: {params: {convID: T.Chat.keyToConversationID(conversationIDKey), msgID: 20}},
+        type: 'chat.1.NotifyChat.ChatAttachmentDownloadComplete',
+      } as never)
+      await flushPromises()
+    })
+    expect(load).toHaveBeenCalledTimes(2)
   })
 })
