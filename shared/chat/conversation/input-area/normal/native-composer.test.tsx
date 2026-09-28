@@ -15,6 +15,7 @@ import type * as HiddenStringModule from '@/util/hidden-string'
 import type * as Metadata from '@/chat/inbox/metadata'
 import type * as MetaModule from '@/constants/chat/meta'
 import type * as FakeInput from '@/test/fake-composer-input'
+import type * as LoggerModule from '@/logger'
 
 // The composer picks its native or desktop half when its module loads, so the platform globals
 // have to be flipped before anything from the app is required. isIOS stays off: the iOS theme
@@ -387,6 +388,30 @@ test('a queued send that fires as thread search hides the input does not come ba
   expect(input().value).toBe('')
   expect(composer?.getText()).toBe('')
   expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('')
+})
+
+test('a queued send still goes out when the composer unmounts inside the 60ms, without an error', async () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const logger = (require('@/logger') as typeof LoggerModule).default
+  const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+  const post = jest.spyOn(m.T.RPCChat, 'localPostTextNonblockRpcListener').mockResolvedValue({
+    outboxID: new TextEncoder().encode('posted'),
+  })
+  const {unmount} = renderComposer()
+  type('sent while leaving')
+
+  act(() => {
+    mockHWKey?.({pressedKey: 'enter'})
+  })
+  unmount()
+  act(() => {
+    jest.advanceTimersByTime(60)
+  })
+  await flushSend()
+
+  expect(post).toHaveBeenCalledTimes(1)
+  expect(post.mock.calls[0]?.[0].params.body).toBe('sent while leaving')
+  expect(error).not.toHaveBeenCalled()
 })
 
 // the queued send reads the text when the timer fires, so a keystroke inside the 60ms (the

@@ -2,6 +2,7 @@
 /// <reference types="jest" />
 import * as React from 'react'
 import {act, cleanup, render, renderHook} from '@testing-library/react'
+import logger from '@/logger'
 import {ComposerContext, makeComposer, useComposerInput} from './composer'
 import {FakeComposerInputView, makeFakeComposerInput, type FakeComposerInput} from '@/test/fake-composer-input'
 import type {SuppressSnapshot} from '../unfurl-preview-state'
@@ -618,15 +619,19 @@ describe('submit', () => {
 
   // the draft the next input loads is the one saved as the old input unmounted, the text just
   // sent; the clear waiting for that input is newer, so it wins
-  test('after the input detaches still sends, and the next input starts empty', () => {
+  test('after the input detaches still sends, without an error, and the next input starts empty', () => {
     jest.useFakeTimers()
+    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     const {composer, mount, send} = setup()
     const {detach, fake} = mount()
     fake.type('queued before unmount')
     detach()
 
     expect(composer.submit(send)).toBe(true)
+    expect(composer.getText()).toBe('')
     jest.advanceTimersByTime(0)
+
+    expect(error).not.toHaveBeenCalled()
     expect(send).toHaveBeenCalledWith('queued before unmount', noSnapshot)
     expect(composer.getText()).toBe('')
     const next = mount('queued before unmount')
