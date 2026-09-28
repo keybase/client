@@ -15,7 +15,8 @@ export type ComposerInput = {
   insertTyped: (s: string) => boolean
   isFocused: () => boolean
   // reflectChange: echo the new text back through the input's onChangeText, as typing would.
-  // False when the input did not show the text (the native input shows only reflected writes).
+  // False when the input did not show the text: the native input shows only reflected writes, and
+  // none at all while read-only.
   replaceText: (info: TextInfo, reflectChange: boolean) => boolean
 }
 // One mounted composer view: the conversation's composer reads and writes through the input of
@@ -95,18 +96,22 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   }
 
   const write = (target: ComposerInput, next: string, focus: boolean) => {
-    text = next
     writing = true
     try {
       if (next) {
-        target.replaceText({selection: injectedSelection(next), text: next}, true)
+        // an input that does not show the text (read-only) keeps the text it had
+        if (target.replaceText({selection: injectedSelection(next), text: next}, true)) {
+          text = next
+          saveDraft(next)
+        }
       } else {
+        text = ''
         target.clear()
+        saveDraft('')
       }
     } finally {
       writing = false
     }
-    saveDraft(text)
     if (focus) {
       target.focus()
     }

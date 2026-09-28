@@ -190,12 +190,19 @@ const press = (pred: (p: {children?: unknown; testID?: string}) => boolean) => {
     target.onPress?.()
   })
 }
-const pressIcon = (type: 'iconfont-mention') => {
+const iconGlyph = (type: 'iconfont-emoji' | 'iconfont-mention') => {
   const {iconMeta} = require('@/common-adapters/icon.constants-gen') as {
     iconMeta: Record<string, {charCode?: number}>
   }
-  const glyph = String.fromCharCode(iconMeta[type]?.charCode ?? 0)
+  return String.fromCharCode(iconMeta[type]?.charCode ?? 0)
+}
+const pressIcon = (type: 'iconfont-mention') => {
+  const glyph = iconGlyph(type)
   press(p => p.children === glyph)
+}
+const showsIcon = (type: 'iconfont-emoji' | 'iconfont-mention') => {
+  const glyph = iconGlyph(type)
+  return mockPressables.some(p => p.children === glyph)
 }
 
 // the send runs on a 0ms timer and then awaits its way to the RPC. A 0ms timer set from inside
@@ -329,8 +336,7 @@ test('a preview write the input does not show is not what the next send sends', 
   expect(post.mock.calls[0]?.[0].params.body).toBe('hi @te')
 })
 
-test('hardware shift-enter on a read-only composer inserts nothing, so enter has nothing to send', async () => {
-  const post = jest.spyOn(m.T.RPCChat, 'localPostTextNonblockRpcListener')
+const makeReadOnly = () => {
   const {metasReceived} = require('@/chat/inbox/metadata') as typeof Metadata
   const Meta = require('@/constants/chat/meta') as typeof MetaModule
   act(() => {
@@ -338,6 +344,11 @@ test('hardware shift-enter on a read-only composer inserts nothing, so enter has
       force: true,
     })
   })
+}
+
+test('hardware shift-enter on a read-only composer inserts nothing, so enter has nothing to send', async () => {
+  const post = jest.spyOn(m.T.RPCChat, 'localPostTextNonblockRpcListener')
+  makeReadOnly()
   renderComposer()
 
   act(() => {
@@ -795,5 +806,90 @@ describe('typing and the saved draft', () => {
 
     expect(typingSent()).toEqual([true])
     expect(draftsSaved()).toEqual(['h'])
+  })
+})
+
+describe('read-only, like desktop', () => {
+  test('the emoji and mention buttons are hidden', () => {
+    makeReadOnly()
+    renderComposer()
+
+    expect(showsIcon('iconfont-emoji')).toBe(false)
+    expect(showsIcon('iconfont-mention')).toBe(false)
+  })
+
+  test('the emoji and mention buttons show where the user can post', () => {
+    renderComposer()
+
+    expect(showsIcon('iconfont-emoji')).toBe(true)
+    expect(showsIcon('iconfont-mention')).toBe(true)
+  })
+
+  test('an injected text is not written, so enter has nothing to send', async () => {
+    const post = jest.spyOn(m.T.RPCChat, 'localPostTextNonblockRpcListener')
+    makeReadOnly()
+    renderComposer()
+
+    act(() => {
+      inputDispatch?.injectIntoInput('shared text', true)
+    })
+
+    expect(input().value).toBe('')
+    expect(composer?.getText()).toBe('')
+    act(() => {
+      mockHWKey?.({pressedKey: 'enter'})
+    })
+    act(() => {
+      jest.advanceTimersByTime(60)
+    })
+    await flushSend()
+    expect(post).not.toHaveBeenCalled()
+  })
+
+  test('starting an edit does not fill it', () => {
+    /* eslint-disable @typescript-eslint/no-require-imports */
+    const {makeMessageText} = require('@/constants/chat/message') as typeof MessageModule
+    const HiddenString = (require('@/util/hidden-string') as typeof HiddenStringModule).default
+    /* eslint-enable @typescript-eslint/no-require-imports */
+    makeReadOnly()
+    renderComposer()
+    act(() => {
+      threadActions?.addMessages(
+        [
+          makeMessageText({
+            author: 'testuser',
+            conversationIDKey: convID,
+            id: m.T.Chat.numberToMessageID(101),
+            isEditable: true,
+            ordinal: m.T.Chat.numberToOrdinal(101),
+            text: new HiddenString('fix my typo'),
+          }),
+        ],
+        {markAsRead: false}
+      )
+    })
+
+    act(() => {
+      inputDispatch?.setEditing(m.T.Chat.numberToOrdinal(101))
+    })
+
+    expect(input().value).toBe('')
+    expect(composer?.getText()).toBe('')
+  })
+
+  test('a saved draft is not written into it either', () => {
+    const {metasReceived} = require('@/chat/inbox/metadata') as typeof Metadata
+    const Meta = require('@/constants/chat/meta') as typeof MetaModule
+    act(() => {
+      metasReceived(
+        [{...Meta.makeConversationMeta(), cannotWrite: true, conversationIDKey: convID, draft: 'saved'}],
+        undefined,
+        {force: true}
+      )
+    })
+    renderComposer()
+
+    expect(input().value).toBe('')
+    expect(composer?.getText()).toBe('')
   })
 })

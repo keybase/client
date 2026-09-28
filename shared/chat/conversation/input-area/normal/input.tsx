@@ -374,8 +374,9 @@ function NativeInput(p: InputLowLevelProps) {
       },
       insertTyped: () => false,
       isFocused: () => !!inputRef.current?.isFocused(),
+      // a read-only input shows no text the app writes, only what it had
       replaceText: (ti: TextInfo, reflectChange: boolean) => {
-        if (!reflectChange) {
+        if (!reflectChange || disabled) {
           return false
         }
         onChangeText(ti.text)
@@ -383,7 +384,7 @@ function NativeInput(p: InputLowLevelProps) {
         return true
       },
     }
-  }, [onChangeText, setSelection])
+  }, [disabled, onChangeText, setSelection])
 
   const style = (() => {
     let textStyle = getTextStyle(textType, theme)
@@ -1024,8 +1025,12 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
         />
       )}
       {explodingIcon}
-      <Kb.Icon padding="tiny" onClick={openEmojiPicker} type="iconfont-emoji" testID={TestIDs.CHAT_EMOJI_BUTTON} />
-      <Kb.Icon padding="tiny" onClick={insertMentionMarker} type="iconfont-mention" />
+      {!cannotWrite && (
+        <>
+          <Kb.Icon padding="tiny" onClick={openEmojiPicker} type="iconfont-emoji" testID={TestIDs.CHAT_EMOJI_BUTTON} />
+          <Kb.Icon padding="tiny" onClick={insertMentionMarker} type="iconfont-mention" />
+        </>
+      )}
       <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexGrow} />
       {!hasText && (
         <Kb.Box2 direction="horizontal" alignItems="flex-end">
