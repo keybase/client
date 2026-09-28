@@ -415,6 +415,18 @@ describe('centering on a target', () => {
     expect(H.log).toHaveLength(3)
   })
 
+  test('a centre whose target has not arrived keeps header growth from re-pinning the end', async () => {
+    open()
+    update(() => {
+      H.setCenter(ord(500))
+      clearThread()
+    })
+    update(() => loadThread(1, 60))
+    growHeader()
+    await tick(3000)
+    expect(H.log).toEqual([])
+  })
+
   test('centering hands the end to the reader', async () => {
     open({center: 30})
     await tick(5000)

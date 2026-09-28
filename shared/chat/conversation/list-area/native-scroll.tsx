@@ -207,8 +207,9 @@ export const useNativeThreadScroll = (p: {
   // on the raw centeredOrdinal change is unreliable: navigating to a hit reloads the
   // thread centered on it, so messageOrdinals is briefly empty (idx -1) when the
   // ordinal changes. Wait for the target to load, then scroll. Every change to the rows under a
-  // target still settling restarts the corrector's schedule.
-  React.useEffect(() => {
+  // target still settling restarts the corrector's schedule. A layout effect ahead of the first
+  // load's, which relies on a centre request having taken the end already.
+  React.useLayoutEffect(() => {
     perform(
       decide({
         centeredOrdinal,
@@ -275,22 +276,16 @@ export const useNativeThreadScroll = (p: {
     }
     if (!justLoaded) return
 
-    const directive = decide({centeredOrdinal, hasMessages: numOrdinals > 0, type: 'initialLoad'})
+    const directive = decide({hasMessages: numOrdinals > 0, type: 'initialLoad'})
     perform(directive)
-    // Once more 100ms on, asking again with the target and rows as they are then, so a centre
-    // requested in between is not undone by a scroll to the end.
+    // Once more 100ms on, asking again with the rows as they are then, so a centre requested in
+    // between is not undone by a scroll to the end.
     if (directive.type === 'pinEnd') {
       initialRetryRef.current = timers.after(100, () => {
-        perform(
-          decide({
-            centeredOrdinal: centeredRef.current,
-            hasMessages: ordsRef.current.length > 0,
-            type: 'initialLoad',
-          })
-        )
+        perform(decide({hasMessages: ordsRef.current.length > 0, type: 'initialLoad'}))
       })
     }
-  }, [centeredOrdinal, conversationIDKey, decide, loaded, numOrdinals, perform, timers])
+  }, [conversationIDKey, decide, loaded, numOrdinals, perform, timers])
 
   // Hidden (a screen pushed over this one) or unmounted: nothing scheduled may scroll a list no
   // longer shown. Work cut short is left to be done again if the list comes back: a target still

@@ -263,6 +263,14 @@ describe('opening a conversation', () => {
     expect(H.log).toEqual([markRead, toBottomOverKeyboard, toBottomOverKeyboard])
   })
 
+  test('the 100ms retry is skipped while a centre requested in between is still loading', async () => {
+    open()
+    await tick(10)
+    centreOn(30)
+    await tick(1000)
+    expect(H.log).toEqual([markRead, toBottom])
+  })
+
   test('the 100ms retry is skipped if a centre arrives in between', async () => {
     open()
     await tick(10)

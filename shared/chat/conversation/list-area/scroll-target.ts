@@ -47,9 +47,10 @@ export type ScrollEvent =
   // The list stopped being shown (hidden under another screen or tab, or unmounted) and dropped
   // everything it had scheduled.
   | {type: 'detached'}
-  // A conversation finished its first load. Only a list with no declarative initial position reports
-  // it; the desktop list starts at its end or on its target through its own props.
-  | {type: 'initialLoad'; centeredOrdinal: T.Chat.Ordinal | undefined; hasMessages: boolean}
+  // A conversation finished its first load, reported after the centre reconcile has seen the same
+  // rows. Only a list with no declarative initial position reports it; the desktop list starts at its
+  // end or on its target through its own props.
+  | {type: 'initialLoad'; hasMessages: boolean}
   | {type: 'userScrolled'; how: 'wheel' | 'drag' | 'pageUp' | 'pageDown'}
   // Only a list whose header comes before its end in scroll order reports it: the native list is
   // inverted, so its header sits at the far, oldest end and growing it never moves the newest.
@@ -116,10 +117,15 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
           state: {...state, lastCentered: undefined, settlingCenter: false},
         }
       }
-      if (!loaded || !targetInData) return {directive: leaveAlone, state}
       // Centring happens once per target and dataset; after that only a target still settling is
       // refined as the rows change under it.
       const newTarget = state.lastCentered !== centeredOrdinal
+      if (!loaded || !targetInData) {
+        // A centre takes the end from the list as soon as it is requested, as it turns the list's own
+        // end anchor off (listAnchorsEnd): nothing may scroll to the end on the list's account while
+        // the target is on its way.
+        return {directive: leaveAlone, state: newTarget ? {...state, endOwner: 'reader'} : state}
+      }
       if (!newTarget && !state.settlingCenter) return {directive: leaveAlone, state}
       return {
         directive: {newTarget, ordinal: centeredOrdinal, type: 'center'},
@@ -136,13 +142,11 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
         state: state.settlingCenter ? {...state, lastCentered: undefined, settlingCenter: false} : state,
       }
     case 'initialLoad':
-      // A centred load is centred by the centre reconcile, once its target is in the rows. A reader
-      // who has taken the end is left there.
+      // A centred load is left to the centre reconcile, whose request has taken the end, and so is a
+      // reader who has taken it.
       return {
         directive:
-          event.centeredOrdinal === undefined && event.hasMessages && state.endOwner === 'list'
-            ? {how: 'now', stopCentering: false, type: 'pinEnd'}
-            : leaveAlone,
+          event.hasMessages && state.endOwner === 'list' ? {how: 'now', stopCentering: false, type: 'pinEnd'} : leaveAlone,
         state,
       }
     case 'userScrolled':

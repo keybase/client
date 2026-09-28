@@ -95,8 +95,27 @@ describe('threadObserved', () => {
   // load that brings it.
   runTable([
     ['nothing centred, nothing to do', fresh, observed(undefined), leaveAlone, fresh],
-    ['a target waits for the reload that brings it', fresh, observed(30, false, false), leaveAlone, fresh],
-    ['a target the load did not bring waits', fresh, observed(30, false), leaveAlone, fresh],
+    [
+      'a target waits for the reload that brings it, and takes the end from the list meanwhile',
+      fresh,
+      observed(30, false, false),
+      leaveAlone,
+      state({endOwner: 'reader'}),
+    ],
+    [
+      'a target the load did not bring waits, holding the end',
+      fresh,
+      observed(30, false),
+      leaveAlone,
+      state({endOwner: 'reader'}),
+    ],
+    [
+      'a target the reader asked the bottom over waits without taking the end back',
+      state({lastCentered: ord(30)}),
+      observed(30, false, false),
+      leaveAlone,
+      state({lastCentered: ord(30)}),
+    ],
     ['a loaded target is centred and takes the end from the list', fresh, observed(30), center(30), centred(30)],
     [
       'centring takes the end even from a list that owned it, keeping the rest',
@@ -179,38 +198,12 @@ describe('detached', () => {
 
 describe('initialLoad', () => {
   runTable([
+    ['a conversation with messages goes to the end', fresh, {hasMessages: true, type: 'initialLoad'}, pinNow, fresh],
+    ['an empty conversation has no end to go to', fresh, {hasMessages: false, type: 'initialLoad'}, leaveAlone, fresh],
     [
-      'a centred conversation is left to the centre reconcile',
-      fresh,
-      {centeredOrdinal: ord(30), hasMessages: true, type: 'initialLoad'},
-      leaveAlone,
-      fresh,
-    ],
-    [
-      'so is one with no messages',
-      fresh,
-      {centeredOrdinal: ord(30), hasMessages: false, type: 'initialLoad'},
-      leaveAlone,
-      fresh,
-    ],
-    [
-      'otherwise it goes to the end',
-      fresh,
-      {centeredOrdinal: undefined, hasMessages: true, type: 'initialLoad'},
-      pinNow,
-      fresh,
-    ],
-    [
-      'an empty conversation has no end to go to',
-      fresh,
-      {centeredOrdinal: undefined, hasMessages: false, type: 'initialLoad'},
-      leaveAlone,
-      fresh,
-    ],
-    [
-      'a reader who took the end is left where they are',
+      'a centred one, whose request took the end, is left to the centre reconcile',
       state({endOwner: 'reader'}),
-      {centeredOrdinal: undefined, hasMessages: true, type: 'initialLoad'},
+      {hasMessages: true, type: 'initialLoad'},
       leaveAlone,
       state({endOwner: 'reader'}),
     ],
@@ -411,9 +404,9 @@ describe('sequences', () => {
   test('opening a conversation on a hit leaves the first load to the centre reconcile', () => {
     const d = makeScrollDriver()
     d.centreOn(ord(30))
-    d.send({centeredOrdinal: ord(30), hasMessages: true, type: 'initialLoad'})
     d.load(window(1, 60))
-    expect(d.take()).toEqual([stopCentering, leaveAlone, leaveAlone, center(30)])
+    d.send({hasMessages: true, type: 'initialLoad'})
+    expect(d.take()).toEqual([stopCentering, leaveAlone, center(30), leaveAlone])
   })
 
   test('re-choosing the same hit after wheeling away reloads it and centres it again', () => {
