@@ -96,6 +96,19 @@ describe('centerTargetObserved', () => {
   ])
 })
 
+describe('centerSettled', () => {
+  runTable([
+    [
+      'the target stops settling, and keeps the end and its record',
+      centred(30),
+      {type: 'centerSettled'},
+      leaveAlone,
+      released(30),
+    ],
+    ['with nothing settling, nothing changes', released(30), {type: 'centerSettled'}, leaveAlone, released(30)],
+  ])
+})
+
 describe('initialLoad', () => {
   runTable([
     [
@@ -189,6 +202,15 @@ describe('the native list, in sequence', () => {
     d.centreOn(ord(30))
     d.load(window(1, 60))
     expect(d.take()).toEqual([stopCentering, leaveAlone, refine(30, true)])
+  })
+
+  test('once the corrector has settled the hit, rows arriving under it leave the reader there', () => {
+    const d = nativeList()
+    d.centreOn(ord(500))
+    d.load(window(450, 550))
+    d.send({type: 'centerSettled'})
+    d.load(window(400, 449))
+    expect(d.take()).toEqual([stopCentering, leaveAlone, refine(500, true), leaveAlone, leaveAlone])
   })
 
   test('asking for the bottom before the hit loads leaves the reader at the bottom once it does', () => {

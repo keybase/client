@@ -432,6 +432,31 @@ describe('a centre requested after opening', () => {
     expect(scrollsOnly().filter(([kind]) => kind === 'scrollToItem')).toEqual([])
   })
 
+  test('once the corrector has centred the target, older rows loading under it leave the reader there', async () => {
+    open({center: 50, from: 21, to: 80})
+    await tick(1000)
+    scrolled(3000, 6000)
+    // Target 50 sits at data index 30, dead centre of rows 25..35.
+    viewable(25, 35)
+    clearLog()
+    setOrdinals(1, 80)
+    viewable(0, 9)
+    await tick(1000)
+    expect(scrollsOnly()).toEqual([])
+  })
+
+  test('once the corrector runs out of steps, older rows loading under the target leave the reader there', async () => {
+    open({center: 50, from: 21, to: 80})
+    await tick(1000)
+    scrolled(0, 6000)
+    for (let i = 0; i < 14; i++) viewable(0, 9)
+    clearLog()
+    setOrdinals(1, 80)
+    viewable(0, 9)
+    await tick(1000)
+    expect(scrollsOnly()).toEqual([])
+  })
+
   test('after a drag, older rows loading under a centred target leave the reader where they are', async () => {
     open({center: 50, from: 21, to: 80})
     await tick(1000)

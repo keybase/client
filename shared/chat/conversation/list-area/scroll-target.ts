@@ -49,6 +49,9 @@ export type ScrollEvent =
       loaded: boolean
       targetInData: boolean
     }
+  // The native list's corrector finished with the centred target: it reached the middle, or ran out
+  // of steps trying.
+  | {type: 'centerSettled'}
   // A conversation finished its first load, for a list with no declarative initial position.
   | {type: 'initialLoad'; centeredOrdinal: T.Chat.Ordinal | undefined; hasMessages: boolean}
   | {type: 'userScrolled'; how: 'wheel' | 'drag' | 'pageUp' | 'pageDown'}
@@ -142,6 +145,9 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
         state: {...state, endOwner: 'reader', lastCentered: centeredOrdinal, settlingCenter: true},
       }
     }
+    case 'centerSettled':
+      // Settled like a drag leaves it: later changes to the rows around the target leave it be.
+      return {directive: leaveAlone, state: {...state, settlingCenter: false}}
     case 'initialLoad':
       // A centred load is centred by the centre reconcile, once its target is in the rows.
       return {

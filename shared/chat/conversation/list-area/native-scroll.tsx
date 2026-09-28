@@ -151,6 +151,7 @@ export const useNativeThreadScroll = (p: {
       const diff = targetIdx - centerIdx
       if (Math.abs(diff) <= 0.5 || st.iters > 12) {
         st.active = false
+        decide({type: 'centerSettled'})
         return
       }
       st.iters += 1
