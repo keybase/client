@@ -30,19 +30,19 @@ jest.mock('@/common-adapters', () => {
   return {...actual, AnchoredPopup: passthrough, Popup: passthrough}
 })
 
-// the users list stands in for every suggestion list: it hands the composer the same move and
-// pick callbacks a real list does, and the pick reports whether anything was highlighted
+// the users list stands in for every suggestion list: it hands the composer the same handle a
+// real list does, saying whether it shows any items, and the pick reports whether anything was
+// highlighted
 const mockMove = jest.fn((_up: boolean) => {})
+let mockListHasItems = true
 let mockListHasSelection = true
 const mockSelect = jest.fn(() => mockListHasSelection)
 type MockUsersListProps = {
   filter: string
-  setOnMoveRef: (r: (up: boolean) => void) => void
-  setOnSubmitRef: (r: () => boolean) => void
+  setListHandle: (h: {hasItems: boolean; move: (up: boolean) => void; submit: () => boolean}) => void
 }
 const mockUsersList = jest.fn((p: MockUsersListProps) => {
-  p.setOnMoveRef(mockMove)
-  p.setOnSubmitRef(mockSelect)
+  p.setListHandle({hasItems: mockListHasItems, move: mockMove, submit: mockSelect})
   return null
 })
 jest.mock('../suggestors/users', () => ({
@@ -190,6 +190,7 @@ afterEach(() => {
   mockUsersList.mockClear()
   mockMove.mockClear()
   mockSelect.mockClear()
+  mockListHasItems = true
   mockListHasSelection = true
   scrollDown.mockClear()
   scrollUp.mockClear()
@@ -542,6 +543,34 @@ describe('in the composer, suggestions open', () => {
 
     expect(getHandles().input.editing).toBe(lastOrdinal)
     expect(mockMove.mock.calls).toEqual([[true]])
+  })
+})
+
+// open while a lookup loads or when nothing matches: the list takes no keys
+describe('in the composer, a list open with no items', () => {
+  test('ArrowDown, ArrowUp and Tab are left to the browser, and the list is not asked', () => {
+    mockListHasItems = false
+    const {textarea} = renderComposer()
+    openSuggestions(textarea, 'hi @zz')
+
+    expect(keyDown(textarea, 'ArrowDown')).toBe(false)
+    expect(keyDown(textarea, 'ArrowUp')).toBe(false)
+    expect(keyDown(textarea, 'Tab')).toBe(false)
+
+    expect(mockMove).not.toHaveBeenCalled()
+    expect(mockSelect).not.toHaveBeenCalled()
+  })
+
+  test('Enter sends without asking the list', async () => {
+    mockListHasItems = false
+    const {textarea} = renderComposer()
+    openSuggestions(textarea, 'hi @zz')
+
+    expect(keyDown(textarea, 'Enter')).toBe(true)
+    await flushSend()
+
+    expect(mockSelect).not.toHaveBeenCalled()
+    expect(post.mock.calls[0]?.[0].params.body).toBe('hi @zz')
   })
 })
 

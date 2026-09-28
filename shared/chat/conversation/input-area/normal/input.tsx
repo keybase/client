@@ -652,13 +652,13 @@ type UseDesktopKeysProps = Pick<Props, 'isEditing' | 'onCancelEditing' | 'onSubm
   htmlInputRef: HtmlInputRefType
   suggestors: Pick<
     ReturnType<typeof useSuggestors>,
-    'moveSuggestion' | 'recheckSuggestions' | 'selectSuggestion' | 'suggestions'
+    'getSuggestions' | 'moveSuggestion' | 'recheckSuggestions' | 'selectSuggestion'
   >
 }
 const useDesktopKeys = (p: UseDesktopKeysProps) => {
   const {focusInput, htmlInputRef, isEditing, onCancelEditing, onSubmit} = p
   const {showReplyPreview, suggestors} = p
-  const {moveSuggestion, recheckSuggestions, selectSuggestion, suggestions} = suggestors
+  const {getSuggestions, moveSuggestion, recheckSuggestions, selectSuggestion} = suggestors
   const composer = useComposer()
   const setEditing = InputState.useConversationInputDispatch(s => s.setEditing)
   const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
@@ -726,7 +726,7 @@ const useDesktopKeys = (p: UseDesktopKeysProps) => {
   }
 
   const inputKeyDown = (e: React.KeyboardEvent) => {
-    const {actions, preventDefault} = composerKeyDown({...threadFacts(), source: 'input', suggestions}, e)
+    const {actions, preventDefault} = composerKeyDown({...threadFacts(), source: 'input', suggestions: getSuggestions()}, e)
     if (preventDefault) e.preventDefault()
     actions.forEach(run)
   }

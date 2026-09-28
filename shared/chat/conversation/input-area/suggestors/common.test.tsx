@@ -1,5 +1,9 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
-import {standardTransformer, type TransformerData} from './common'
+import {cleanup, render} from '@testing-library/react'
+import {List, standardTransformer, type ListHandle, type TransformerData} from './common'
+
+jest.mock('./suggestion-list', () => ({__esModule: true, default: () => null}))
 
 const data = (text: string, start: number | null, end: number | null): TransformerData => ({
   position: {end, start},
@@ -50,4 +54,36 @@ test('does not stack a second space when the following text already leads with o
   expect(text).toBe('hey @testuser how are you')
   // caret lands right after the mention, in front of the space that was already there
   expect(selection).toEqual({end: 13, start: 13})
+})
+
+describe('List', () => {
+  afterEach(() => {
+    cleanup()
+  })
+
+  test('tells the composer whether it shows items, and lets go of its handle when it closes', () => {
+    let handle: ListHandle | undefined
+    const Item = (p: {selected: boolean; item: string}) => <>{p.item}</>
+    const view = (items: Array<string>) => (
+      <List
+        items={items}
+        ItemRenderer={Item}
+        keyExtractor={(item: string) => item}
+        loading={false}
+        listStyle={{}}
+        spinnerStyle={{}}
+        rowHeight={20}
+        onSelected={jest.fn()}
+        setListHandle={h => (handle = h)}
+      />
+    )
+    const {rerender, unmount} = render(view([]))
+    expect(handle?.hasItems).toBe(false)
+
+    rerender(view(['testuser']))
+    expect(handle?.hasItems).toBe(true)
+
+    unmount()
+    expect(handle).toBeUndefined()
+  })
 })

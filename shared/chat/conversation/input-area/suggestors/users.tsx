@@ -207,8 +207,7 @@ type ListProps = Pick<
   conversationIDKey: T.Chat.ConversationIDKey
   filter: string
   onSelected: (item: ListItem, final: boolean) => void
-  setOnMoveRef: (r: (up: boolean) => void) => void
-  setOnSubmitRef: (r: () => boolean) => void
+  setListHandle: (h: Common.ListHandle | undefined) => void
 }
 
 const ItemRenderer = (p: Common.ItemRendererProps<ListItem>) => {

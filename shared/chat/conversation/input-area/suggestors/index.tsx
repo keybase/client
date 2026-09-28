@@ -288,16 +288,14 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     setSnapshotText,
   })
 
-  // tell list to move the selection
-  const onMoveRef = React.useRef<(up: boolean) => void>(undefined)
-  // tell list we want to submit the selection, true if it selected anything
-  const onSubmitRef = React.useRef<() => boolean>(undefined)
-
-  const suggestions: Suggestions = !active ? 'none' : filter.length === 0 ? 'unfiltered' : 'filtered'
+  const listRef = React.useRef<Common.ListHandle>(undefined)
+  // read when a key lands: only a list that shows items takes keys
+  const getSuggestions = (): Suggestions =>
+    !listRef.current?.hasItems ? 'none' : filter.length === 0 ? 'unfiltered' : 'filtered'
   const moveSuggestion = (up: boolean) => {
-    onMoveRef.current?.(up)
+    listRef.current?.move(up)
   }
-  const selectSuggestion = () => !!onSubmitRef.current?.()
+  const selectSuggestion = () => !!listRef.current?.submit()
 
   const onBlur = () => {
     setInactive()
@@ -323,11 +321,8 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     filter,
     listStyle: suggestionListStyle,
     onSelected,
-    setOnMoveRef: (r: (up: boolean) => void) => {
-      onMoveRef.current = r
-    },
-    setOnSubmitRef: (r: () => boolean) => {
-      onSubmitRef.current = r
+    setListHandle: (h: Common.ListHandle | undefined) => {
+      listRef.current = h
     },
     spinnerStyle: suggestionSpinnerStyle,
     suggestBotCommandsUpdateStatus: botCommandsUpdateState.status,
@@ -371,8 +366,8 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     onSelectionChange: (_selection: Common.TransformerData['position']) => { checkTrigger() },
     popup,
     recheckSuggestions: checkTrigger,
+    getSuggestions,
     selectSuggestion,
-    suggestions,
     suggestionsShowing: !!content,
   }
 }

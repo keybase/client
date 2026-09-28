@@ -55,6 +55,14 @@ export const TeamSuggestion = (p: {teamname: string; channelname: string | undef
 }
 
 export type ItemRendererProps<T> = {selected: boolean; item: T}
+// What a mounted list gives the composer's keys. A list with no items (a lookup still loading,
+// or nothing matching) takes no keys.
+export type ListHandle = {
+  hasItems: boolean
+  move: (up: boolean) => void
+  // true if it picked anything
+  submit: () => boolean
+}
 export type ListProps<L> = {
   items: Array<L>
   keyExtractor: (item: L, idx: number) => string
@@ -65,8 +73,7 @@ export type ListProps<L> = {
   // desktop only, see SuggestionList
   rowHeight: number
   onSelected: (item: L, final: boolean) => void
-  setOnMoveRef: (r: (up: boolean) => void) => void
-  setOnSubmitRef: (r: () => boolean) => void
+  setListHandle: (h: ListHandle | undefined) => void
   ItemRenderer: (p: ItemRendererProps<L>) => React.JSX.Element
 }
 
@@ -92,7 +99,7 @@ const Row = React.memo(RowImpl) as typeof RowImpl
 
 export function List<T>(p: ListProps<T>) {
   const {items, ItemRenderer, loading, keyExtractor, onSelected, rowHeight} = p
-  const {suggestBotCommandsUpdateStatus, listStyle, spinnerStyle, setOnMoveRef, setOnSubmitRef} = p
+  const {suggestBotCommandsUpdateStatus, listStyle, spinnerStyle, setListHandle} = p
   const [selectedIndex, setSelectedIndex] = React.useState(0)
 
   const onSelectedEvent = React.useEffectEvent((item: T, final: boolean) => onSelected(item, final))
@@ -134,9 +141,11 @@ export function List<T>(p: ListProps<T>) {
       return !!sel
     }
 
-    setOnMoveRef(onMove)
-    setOnSubmitRef(onSubmit)
-  }, [setOnMoveRef, setOnSubmitRef, items, selectedIndex, onSelected, setSelectedIndex])
+    setListHandle({hasItems: items.length > 0, move: onMove, submit: onSubmit})
+    return () => {
+      setListHandle(undefined)
+    }
+  }, [setListHandle, items, selectedIndex, onSelected, setSelectedIndex])
 
   return (
     <>
