@@ -127,7 +127,7 @@ describe('inject', () => {
     expect(composer.getText()).toBe('')
   })
 
-  test('waits while no input is attached and the last text lands on attach, without focus', () => {
+  test('waits while no input is attached and the last text lands on attach, with the focus asked for', () => {
     const {composer, mount} = setup()
 
     composer.inject('first', true)
@@ -136,19 +136,31 @@ describe('inject', () => {
     const {fake} = mount()
 
     expect(fake.text).toBe('second')
-    expect(fake.focusCount).toBe(0)
+    expect(fake.focusCount).toBe(1)
     expect(composer.getText()).toBe('second')
   })
 
-  test('a waiting text lands once', () => {
+  test('a waiting text and its focus land once', () => {
     const {composer, mount} = setup()
-    composer.inject('once')
+    composer.inject('once', true)
     const first = mount()
     first.detach()
 
     const second = mount()
 
+    expect(first.fake.focusCount).toBe(1)
     expect(second.fake.text).toBe('')
+    expect(second.fake.focusCount).toBe(0)
+  })
+
+  test('a waiting inject without focus does not focus on attach', () => {
+    const {composer, mount} = setup()
+    composer.inject('quiet')
+
+    const {fake} = mount()
+
+    expect(fake.text).toBe('quiet')
+    expect(fake.focusCount).toBe(0)
   })
 
   test('an input whose ref is emptied is detached: the text waits for it and lands when it is set again', () => {

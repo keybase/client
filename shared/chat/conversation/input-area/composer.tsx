@@ -47,9 +47,9 @@ export type Composer = {
   // over with no text and a draft still to load. The same view attaching again (a new handle,
   // StrictMode's ref replay, a hidden Activity shown again) keeps both.
   // Writes made while no input is attached (an inject, an insert, a replace) wait, and land in
-  // order once one attaches, after its draft; a waiting inject lands without the focus. A replace
-  // carries a whole text worked out from its view's text, so it lands only if the same view
-  // attaches again; injects, inserts and a send's clear land on whichever input comes next.
+  // order once one attaches, after its draft; a waiting inject lands with the focus it asked for.
+  // A replace carries a whole text worked out from its view's text, so it lands only if the same
+  // view attaches again; injects, inserts and a send's clear land on whichever input comes next.
   connect: () => ComposerView
 }
 
@@ -185,11 +185,7 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     getSelection: () => input?.getSelection(),
     getText: () => text,
     inject: (next, focus = false) => {
-      if (input) {
-        write(input, next, focus)
-      } else {
-        pending.push(target => write(target, next, false))
-      }
+      whenAttached(target => write(target, next, focus))
     },
     insertAtCaret: s =>
       whenAttached(target => {

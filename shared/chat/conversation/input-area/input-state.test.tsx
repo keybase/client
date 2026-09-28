@@ -1182,9 +1182,7 @@ describe('the composer text', () => {
     expect(saveDraft.mock.calls.map(c => c[0].text)).toContain('echoed')
   })
 
-  // the focus request does not survive the wait: the input only focuses for requests made
-  // while it is mounted
-  test('an inject made while the input is unmounted lands when it mounts, without focus', () => {
+  test('an inject made while the input is unmounted lands when it mounts, with its focus', () => {
     const {getHandles, setShowInput} = renderToggle()
 
     act(() => {
@@ -1195,10 +1193,10 @@ describe('the composer text', () => {
     setShowInput(true)
 
     expect(mockInput.text).toBe('queued')
-    expect(mockInput.focusCount).toBe(0)
+    expect(mockInput.focusCount).toBe(1)
   })
 
-  test('of several injects made while unmounted the last text wins', () => {
+  test('of several injects made while unmounted the last text wins, and any focus request is kept', () => {
     const {getHandles, setShowInput} = renderToggle()
 
     act(() => {
@@ -1210,7 +1208,7 @@ describe('the composer text', () => {
     setShowInput(true)
 
     expect(mockInput.text).toBe('second')
-    expect(mockInput.focusCount).toBe(0)
+    expect(mockInput.focusCount).toBe(1)
   })
 
   test('an edit started while unmounted fills the input when it mounts', () => {
