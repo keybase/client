@@ -91,22 +91,35 @@ export const useNativeThreadScroll = (p: {
     return directive
   }, [])
 
+  // Every delayed scroll toward a centred target (coarse reasserts, the first load's centre retry,
+  // scroll-to-index retries) runs through here, so stopping centring cancels whatever is pending
+  // and a reader's drag is never followed by a jump.
+  const centringTimersRef = React.useRef(new Set<ReturnType<typeof setTimeout>>())
+  const [afterCentringDelay] = React.useState(() => (delay: number, fn: () => void) => {
+    const timers = centringTimersRef.current
+    const id = setTimeout(() => {
+      timers.delete(id)
+      fn()
+    }, delay)
+    timers.add(id)
+  })
+
   // coarse: scrollToItem lands at the wrong offset for tall variable-height rows,
   // but it gets the target area rendered. The closed-loop corrector below
   // refines from there using the real viewable index range.
   const moveToward = React.useCallback(
     (target: T.Chat.Ordinal) => {
       const reassert = (delay: number) =>
-        setTimeout(() => {
+        afterCentringDelay(delay, () => {
           const list = listRef.current
           if (!list || centeredRef.current !== target) {
             return
           }
           list.scrollToItem({animated: false, item: target, viewPosition: 0.5})
-        }, delay)
+        })
       ;[50, 250].forEach(reassert)
     },
-    [listRef]
+    [afterCentringDelay, listRef]
   )
 
   // Closed-loop centering corrector. scrollToItem/scrollToIndex lands at the wrong
@@ -119,6 +132,11 @@ export const useNativeThreadScroll = (p: {
   const correctRef = React.useRef({active: false, iters: 0})
   const vFirstRef = React.useRef<number | null | undefined>(undefined)
   const vLastRef = React.useRef<number | null | undefined>(undefined)
+  const [stopCentering] = React.useState(() => () => {
+    correctRef.current.active = false
+    centringTimersRef.current.forEach(clearTimeout)
+    centringTimersRef.current.clear()
+  })
   const [correctCenter] = React.useState(
     () => (first: number | null | undefined, last: number | null | undefined) => {
       const st = correctRef.current
@@ -148,7 +166,7 @@ export const useNativeThreadScroll = (p: {
     (directive: ScrollDirective): (() => void) | undefined => {
       switch (directive.type) {
         case 'pinEnd':
-          if (directive.stopCentering) correctRef.current.active = false
+          if (directive.stopCentering) stopCentering()
           // The end is the resting offset, so scrolling there from the end moves nothing: unlessAtEnd
           // needs no check of its own here. This list reports no header events, so whenSettled never
           // reaches it.
@@ -168,7 +186,7 @@ export const useNativeThreadScroll = (p: {
           }
         }
         case 'leaveAlone':
-          if (directive.stopCentering) correctRef.current.active = false
+          if (directive.stopCentering) stopCentering()
           return undefined
         // This list reports no edit events.
         case 'reveal':
@@ -179,7 +197,7 @@ export const useNativeThreadScroll = (p: {
         }
       }
     },
-    [correctCenter, moveToward]
+    [correctCenter, moveToward, stopCentering]
   )
 
   // Center on the search hit once it actually appears in the loaded list. Centering
@@ -246,15 +264,15 @@ export const useNativeThreadScroll = (p: {
     // Once more 100ms on: a centred load asks again for whatever target is current by then, an
     // uncentred one repeats its scroll to the end.
     if (centeredOrdinal !== undefined) {
-      setTimeout(() => {
+      afterCentringDelay(100, () => {
         perform(decide({centeredOrdinal: centeredRef.current, type: 'centerRequested'}))
-      }, 100)
+      })
     } else if (directive.type === 'pinEnd') {
       setTimeout(() => {
         perform(directive)
       }, 100)
     }
-  }, [centeredOrdinal, conversationIDKey, decide, loaded, numOrdinals, perform])
+  }, [afterCentringDelay, centeredOrdinal, conversationIDKey, decide, loaded, numOrdinals, perform])
 
   // The centered hit may be outside the rendered window, so scrollToItem fails
   // silently. Wait for more rows to render and retry centering (capped) until it lands.
@@ -263,12 +281,12 @@ export const useNativeThreadScroll = (p: {
       return
     }
     scrollFailRetryRef.current += 1
-    setTimeout(() => {
+    afterCentringDelay(200, () => {
       const co = centeredRef.current
       if (co !== undefined) {
         listRef.current?.scrollToItem({animated: false, item: co, viewPosition: 0.5})
       }
-    }, 200)
+    })
   })
 
   const [onScroll] = React.useState(

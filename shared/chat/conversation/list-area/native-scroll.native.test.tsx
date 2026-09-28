@@ -278,6 +278,17 @@ describe('opening centred on a target', () => {
     expect(H.log).toEqual([])
   })
 
+  test('a drag before the 100ms retry cancels it', async () => {
+    open({center: 30})
+    await tick(10)
+    update(() => {
+      H.setCenter(ord(500))
+    })
+    drag()
+    await tick(1000)
+    expect(H.log).toEqual([markRead])
+  })
+
   test('a newer target that is loaded is centred on its own schedule', async () => {
     open({center: 30})
     await tick(10)
@@ -350,13 +361,21 @@ describe('the closed-loop corrector', () => {
     expect(scrollsOnly()).toHaveLength(13)
   })
 
-  test('a drag stops it, but not the coarse reasserts already scheduled', async () => {
+  test('a drag stops it, and the coarse reasserts already scheduled', async () => {
     open({center: 30})
     scrolled(0, 6000)
     drag()
     viewable(0, 9)
     await tick(1000)
-    expect(scrollsOnly()).toEqual([coarse(30), coarse(30)])
+    expect(scrollsOnly()).toEqual([])
+  })
+
+  test('a drag between the coarse reasserts cancels the second', async () => {
+    open({center: 30})
+    await tick(50)
+    drag()
+    await tick(1000)
+    expect(scrollsOnly()).toEqual([coarse(30)])
   })
 
   test('does nothing before the list reports a viewable range', async () => {
@@ -685,6 +704,16 @@ describe('scroll-to-index failures', () => {
     for (let i = 0; i < 8; i++) scrollToIndexFailed()
     await tick(200)
     expect(H.log).toHaveLength(6)
+  })
+
+  test('a drag cancels a pending retry', async () => {
+    open({center: 30})
+    await tick(1000)
+    clearLog()
+    scrollToIndexFailed()
+    drag()
+    await tick(1000)
+    expect(H.log).toEqual([])
   })
 
   test('a new target gets a fresh batch of retries', async () => {
