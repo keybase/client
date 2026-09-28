@@ -616,11 +616,20 @@ describe('appending', () => {
     expect(scrollsOnly()).toEqual([toBottomOverKeyboard])
   })
 
-  test('with the keyboard up, older rows count too', async () => {
+  test('with the keyboard up, older rows arriving are not an append', async () => {
     open({from: 21, keyboard: true, to: 80})
     await tick(200)
     clearLog()
     setOrdinals(1, 80)
+    await tick(1000)
+    expect(H.log).toEqual([])
+  })
+
+  test('with the keyboard up, older and newer rows arriving together re-pin', async () => {
+    open({from: 21, keyboard: true, to: 80})
+    await tick(200)
+    clearLog()
+    setOrdinals(1, 81)
     await tick(0)
     expect(H.log).toEqual([toBottomOverKeyboard])
   })

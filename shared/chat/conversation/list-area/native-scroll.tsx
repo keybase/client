@@ -234,22 +234,25 @@ export const useNativeThreadScroll = (p: {
   // message height when a message is added, undoing the scrollToBottom from onSubmit.
   // Defer the re-scroll past the native MPV adjustment (which runs on the UI thread after
   // React's commit) so the newest message stays visible.
-  const prevNumOrdinalsRef = React.useRef(numOrdinals)
-  // Tracks which conversation prevNumOrdinalsRef's baseline belongs to so the
+  // An append is a newer newest message. Older rows arriving (scrolling up loads them) leave the
+  // newest where it was, and re-pinning then would yank the reader to the bottom.
+  const newestOrdinal = messageOrdinals[0]
+  const prevNewestRef = React.useRef(newestOrdinal)
+  // Tracks which conversation prevNewestRef's baseline belongs to so the
   // baseline resets on a real conversation switch (value compare) rather than on
   // a react-native-screens freeze/thaw, which re-mounts effects.
-  const numBaselineConvRef = React.useRef(conversationIDKey)
+  const newestBaselineConvRef = React.useRef(conversationIDKey)
   const isKeyboardVisibleRef = React.useRef(isKeyboardVisible)
   React.useLayoutEffect(() => {
     isKeyboardVisibleRef.current = isKeyboardVisible
   })
   React.useLayoutEffect(() => {
-    const sameConv = numBaselineConvRef.current === conversationIDKey
-    numBaselineConvRef.current = conversationIDKey
-    const prev = prevNumOrdinalsRef.current
-    prevNumOrdinalsRef.current = numOrdinals
-    // Only the count is compared, so older rows arriving count as an append too.
-    if (!sameConv || numOrdinals <= prev) return undefined
+    const sameConv = newestBaselineConvRef.current === conversationIDKey
+    newestBaselineConvRef.current = conversationIDKey
+    const prev = prevNewestRef.current
+    prevNewestRef.current = newestOrdinal
+    const isNewer = newestOrdinal !== undefined && (prev === undefined || newestOrdinal > prev)
+    if (!sameConv || !isNewer) return undefined
     const appended = () => decide({anchorHidesNewest: isKeyboardVisibleRef.current, type: 'appended'})
     if (appended().type !== 'pinEnd') return undefined
     // Asked again when it fires: if the keyboard closed in between, the list's own anchor already
@@ -258,7 +261,7 @@ export const useNativeThreadScroll = (p: {
       perform(appended())
     }, 0)
     return () => clearTimeout(id)
-  }, [conversationIDKey, decide, numOrdinals, perform])
+  }, [conversationIDKey, decide, newestOrdinal, perform])
 
   // Stores the conversation it last applied to (not a boolean) so a freeze/thaw of this screen —
   // which re-mounts effects without a real conversation change — does not reset it and re-trigger
