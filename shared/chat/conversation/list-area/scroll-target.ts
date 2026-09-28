@@ -168,11 +168,17 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
       if (state.endOwner !== 'list' || !event.hasMessages) return {directive: leaveAlone, state: next}
       return {directive: {how: 'whenSettled', stopCentering: false, type: 'pinEnd'}, state: next}
     }
-    case 'appended':
+    case 'appended': {
+      // A reader holding a centred target, settling or dragged away from, keeps it. The reader's
+      // end otherwise says nothing here: a drag dismisses the keyboard, and scrolling back down to
+      // the newest message before reopening it does not hand the end back.
+      const onCentredTarget = state.endOwner === 'reader' && state.lastCentered !== undefined
       return {
-        directive: event.anchorHidesNewest ? {how: 'now', stopCentering: false, type: 'pinEnd'} : leaveAlone,
+        directive:
+          event.anchorHidesNewest && !onCentredTarget ? {how: 'now', stopCentering: false, type: 'pinEnd'} : leaveAlone,
         state,
       }
+    }
     case 'editingChanged': {
       const {ordinal, targetInData} = event
       if (state.lastEditing === ordinal) return {directive: leaveAlone, state}

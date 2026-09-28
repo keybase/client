@@ -672,6 +672,45 @@ describe('appending', () => {
     expect(props().maintainVisibleContentPosition).toEqual(mvpClosed)
   })
 
+  test('with the keyboard up, the newest page refilling a thread cleared by jump to recent is not an append', async () => {
+    open({keyboard: true})
+    await tick(200)
+    clearLog()
+    update(() => clearThread())
+    update(() => loadThread(1, 61))
+    await tick(1000)
+    expect(H.log).toEqual([])
+  })
+
+  test('with the keyboard up, the reload around a hit is not an append', async () => {
+    open({keyboard: true})
+    await tick(200)
+    clearLog()
+    centreOn(30)
+    update(() => loadThread(1, 60))
+    await tick(1000)
+    expect(scrollsOnly()).toEqual([coarse(30), coarse(30)])
+  })
+
+  test('with the keyboard up, a new message leaves the reader on a centred hit', async () => {
+    open({center: 30, keyboard: true})
+    await tick(1000)
+    clearLog()
+    setOrdinals(1, 61)
+    await tick(1000)
+    expect(scrollsOnly()).not.toContainEqual(toBottomOverKeyboard)
+  })
+
+  test('with the keyboard up, a new message after asking for the bottom from a hit re-pins', async () => {
+    open({center: 30, keyboard: true})
+    await tick(1000)
+    act(() => H.threadRefs.current?.scrollToBottom())
+    clearLog()
+    setOrdinals(1, 61)
+    await tick(0)
+    expect(scrollsOnly()).toEqual([toBottomOverKeyboard])
+  })
+
   test('fewer rows is not an append', async () => {
     open({keyboard: true})
     await tick(200)

@@ -235,25 +235,25 @@ export const useNativeThreadScroll = (p: {
   // message height when a message is added, undoing the scrollToBottom from onSubmit.
   // Defer the re-scroll past the native MPV adjustment (which runs on the UI thread after
   // React's commit) so the newest message stays visible.
-  // An append is a newer newest message. Older rows arriving (scrolling up loads them) leave the
-  // newest where it was, and re-pinning then would yank the reader to the bottom.
+  // An append is a newer newest message than the dataset already held. Older rows arriving
+  // (scrolling up loads them) leave the newest where it was, and the reload that refills a cleared
+  // thread has nothing to append to; re-pinning for either would yank the reader to the bottom.
   const newestOrdinal = messageOrdinals[0]
   const prevNewestRef = React.useRef(newestOrdinal)
-  // Tracks which conversation prevNewestRef's baseline belongs to so the
-  // baseline resets on a real conversation switch (value compare) rather than on
-  // a react-native-screens freeze/thaw, which re-mounts effects.
-  const newestBaselineConvRef = React.useRef(conversationIDKey)
+  // The dataset prevNewestRef's baseline belongs to, compared by value so a freeze/thaw re-mount
+  // does not reset it.
+  const newestBaselineDatasetRef = React.useRef(datasetKey)
   const isKeyboardVisibleRef = React.useRef(isKeyboardVisible)
   React.useLayoutEffect(() => {
     isKeyboardVisibleRef.current = isKeyboardVisible
   })
   React.useLayoutEffect(() => {
-    const sameConv = newestBaselineConvRef.current === conversationIDKey
-    newestBaselineConvRef.current = conversationIDKey
+    const sameDataset = newestBaselineDatasetRef.current === datasetKey
+    newestBaselineDatasetRef.current = datasetKey
     const prev = prevNewestRef.current
     prevNewestRef.current = newestOrdinal
-    const isNewer = newestOrdinal !== undefined && (prev === undefined || newestOrdinal > prev)
-    if (!sameConv || !isNewer) return undefined
+    const isNewer = newestOrdinal !== undefined && prev !== undefined && newestOrdinal > prev
+    if (!sameDataset || !isNewer) return undefined
     const appended = () => decide({anchorHidesNewest: isKeyboardVisibleRef.current, type: 'appended'})
     if (appended().type !== 'pinEnd') return undefined
     // Asked again when it fires: if the keyboard closed in between, the list's own anchor already
@@ -262,7 +262,7 @@ export const useNativeThreadScroll = (p: {
       perform(appended())
     }, 0)
     return () => clearTimeout(id)
-  }, [conversationIDKey, decide, newestOrdinal, perform])
+  }, [datasetKey, decide, newestOrdinal, perform])
 
   // Stores the conversation it last applied to (not a boolean) so a freeze/thaw of this screen —
   // which re-mounts effects without a real conversation change — does not reset it and re-trigger

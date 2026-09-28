@@ -21,7 +21,6 @@ const released = (n: number) => state({endOwner: 'reader', lastCentered: ord(n)}
 
 const leaveAlone: ScrollDirective = {stopCentering: false, type: 'leaveAlone'}
 const stopCentering: ScrollDirective = {stopCentering: true, type: 'leaveAlone'}
-const pinNow: ScrollDirective = {how: 'now', stopCentering: false, type: 'pinEnd'}
 const refine = (n: number, newTarget: boolean): ScrollDirective => ({
   newTarget,
   ordinal: ord(n),
@@ -192,7 +191,7 @@ describe('the native list, in sequence', () => {
     expect(d.take()).toEqual([stopCentering, leaveAlone, refine(30, true)])
   })
 
-  test('with the keyboard up a new message re-pins; scroll to bottom ends the settling without leaving the centre', () => {
+  test('with the keyboard up a new message leaves a settling hit alone; scroll to bottom ends the settling without leaving the centre', () => {
     const d = nativeList()
     d.centreOn(ord(30))
     d.load(window(1, 60))
@@ -200,7 +199,7 @@ describe('the native list, in sequence', () => {
     d.receive(ord(61))
     d.send({anchorHidesNewest: true, type: 'appended'})
     d.send({type: 'scrollToBottomRequested'})
-    expect(d.take()).toEqual([refine(30, false), pinNow, bottomRequested])
+    expect(d.take()).toEqual([refine(30, false), leaveAlone, bottomRequested])
     expect(d.state).toEqual(state({lastCentered: ord(30)}))
   })
 

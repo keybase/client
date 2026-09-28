@@ -276,11 +276,32 @@ describe('appended', () => {
     ['an anchor that keeps the newest in view is left to it', fresh, {anchorHidesNewest: false, type: 'appended'}, leaveAlone, fresh],
     ['an anchor that would hide the newest is overridden', fresh, {anchorHidesNewest: true, type: 'appended'}, pinNow, fresh],
     [
-      'the override applies whoever owns the end',
+      'the override applies to a reader who scrolled away from the end',
       state({endOwner: 'reader'}),
       {anchorHidesNewest: true, type: 'appended'},
       pinNow,
       state({endOwner: 'reader'}),
+    ],
+    [
+      'a reader on a centred target keeps it',
+      state({endOwner: 'reader', lastCentered: ord(30), settlingCenter: true}),
+      {anchorHidesNewest: true, type: 'appended'},
+      leaveAlone,
+      state({endOwner: 'reader', lastCentered: ord(30), settlingCenter: true}),
+    ],
+    [
+      'so does one who dragged away from it',
+      state({endOwner: 'reader', lastCentered: ord(30)}),
+      {anchorHidesNewest: true, type: 'appended'},
+      leaveAlone,
+      state({endOwner: 'reader', lastCentered: ord(30)}),
+    ],
+    [
+      'once the reader asked for the bottom from a centred target, the override applies again',
+      state({lastCentered: ord(30)}),
+      {anchorHidesNewest: true, type: 'appended'},
+      pinNow,
+      state({lastCentered: ord(30)}),
     ],
   ])
 })
