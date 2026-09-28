@@ -1,6 +1,8 @@
-// Where the thread should be scrolled right now. Pure: each list adapter reports what happened as an
-// event, gets back one directive, and carries it out with its own measuring and correcting. The
-// decision rules live here once; how a list reaches the end or a centred row stays with that list.
+// Where the thread should be scrolled right now. decideScroll is pure: each list adapter reports what
+// happened as an event, gets back one directive, and carries it out with its own measuring and
+// correcting. The decision rules live here once; how a list reaches the end or a centred row stays
+// with that list.
+import * as React from 'react'
 import type * as T from '@/constants/types'
 import sortedIndexOf from 'lodash/sortedIndexOf'
 
@@ -206,6 +208,31 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
 }
 
 export const ownsEnd = (state: ScrollTargetState) => state.endOwner === 'list'
+
+// One list's scroll target: its state, moved only by the decisions it makes. The list adapters and
+// the test driver each drive one.
+export type ScrollTarget = {
+  decide: (event: ScrollEvent) => ScrollDirective
+  readonly state: ScrollTargetState
+}
+
+export const makeScrollTarget = (): ScrollTarget => {
+  let state = initialScrollTargetState
+  return {
+    decide: event => {
+      const decision = decideScroll(state, event)
+      state = decision.state
+      return decision.directive
+    },
+    get state() {
+      return state
+    },
+  }
+}
+
+// The list's scroll target for as long as it is mounted. Its identity never changes, so the list's
+// own loops can report back to it while the directives they carry out come from it too.
+export const useScrollTarget = () => React.useState(makeScrollTarget)[0]
 
 // Ordinals are sorted oldest first; -1 when the ordinal is not loaded.
 export const indexOfOrdinal = (ordinals: ReadonlyArray<T.Chat.Ordinal>, ordinal: T.Chat.Ordinal) =>

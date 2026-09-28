@@ -7,13 +7,7 @@ import noop from 'lodash/noop'
 import {ThreadRefsContext} from '../normal/context'
 import {useComposerAnchor} from '../composer-viewport-context'
 import {restingScrollOffset} from '../composer-geometry'
-import {
-  decideScroll,
-  initialScrollTargetState,
-  listAnchorsEnd,
-  type ScrollDirective,
-  type ScrollEvent,
-} from './scroll-target'
+import {listAnchorsEnd, useScrollTarget, type ScrollDirective, type ScrollEvent} from './scroll-target'
 import {makeSchedule, type Scheduled} from './schedule'
 
 export type NativeListRef = {
@@ -90,12 +84,7 @@ export const useNativeThreadScroll = (p: {
     ordsRef.current = messageOrdinals
   }, [messageOrdinals])
 
-  const targetRef = React.useRef(initialScrollTargetState)
-  const decide = React.useCallback((event: ScrollEvent) => {
-    const {directive, state} = decideScroll(targetRef.current, event)
-    targetRef.current = state
-    return directive
-  }, [])
+  const scrollTarget = useScrollTarget()
 
   // Every delayed scroll (coarse reasserts, the corrector's schedule, scroll-to-index retries, the
   // first load's retry, the append re-pin) runs through here, so stopping centring, a new dataset or
@@ -141,7 +130,7 @@ export const useNativeThreadScroll = (p: {
     if (!correctRef.current.active) return
     correctRef.current.active = false
     // Only ever leaves the list alone.
-    decide({type: 'centerSettled'})
+    scrollTarget.decide({type: 'centerSettled'})
   })
   const [correctCenter] = React.useState(
     () => (first: number | null | undefined, last: number | null | undefined) => {
@@ -213,6 +202,13 @@ export const useNativeThreadScroll = (p: {
     [correctCenter, listRef, moveToward, settleCenter, stopCentering, timers]
   )
 
+  const dispatch = React.useCallback(
+    (event: ScrollEvent) => {
+      perform(scrollTarget.decide(event))
+    },
+    [perform, scrollTarget]
+  )
+
   // Compared by value, not by the effect re-running: a freeze/thaw of this screen re-mounts effects
   // with nothing changed. Declared ahead of every effect that dispatches, so they see the new
   // dataset's state.
@@ -220,8 +216,8 @@ export const useNativeThreadScroll = (p: {
   React.useLayoutEffect(() => {
     if (datasetRef.current === datasetKey) return
     datasetRef.current = datasetKey
-    perform(decide({type: 'datasetChanged'}))
-  }, [datasetKey, decide, perform])
+    dispatch({type: 'datasetChanged'})
+  }, [datasetKey, dispatch])
 
   // Center on the search hit once it actually appears in the loaded list. Centering
   // on the raw centeredOrdinal change is unreliable: navigating to a hit reloads the
@@ -230,25 +226,21 @@ export const useNativeThreadScroll = (p: {
   // target still settling restarts the corrector's schedule. A layout effect ahead of the first
   // load's, which relies on a centre request having taken the end already.
   React.useLayoutEffect(() => {
-    perform(
-      decide({
-        centeredOrdinal,
-        loaded,
-        targetInData: centeredOrdinal !== undefined && messageOrdinals.includes(centeredOrdinal),
-        type: 'threadObserved',
-      })
-    )
-  }, [centeredOrdinal, decide, loaded, messageOrdinals, perform])
+    dispatch({
+      centeredOrdinal,
+      loaded,
+      targetInData: centeredOrdinal !== undefined && messageOrdinals.includes(centeredOrdinal),
+      type: 'threadObserved',
+    })
+  }, [centeredOrdinal, dispatch, loaded, messageOrdinals])
 
   React.useEffect(() => {
-    perform(
-      decide({
-        ordinal: editingOrdinal,
-        targetInData: editingOrdinal !== undefined && messageOrdinals.includes(editingOrdinal),
-        type: 'editingChanged',
-      })
-    )
-  }, [decide, editingOrdinal, messageOrdinals, perform])
+    dispatch({
+      ordinal: editingOrdinal,
+      targetInData: editingOrdinal !== undefined && messageOrdinals.includes(editingOrdinal),
+      type: 'editingChanged',
+    })
+  }, [dispatch, editingOrdinal, messageOrdinals])
 
   // When keyboard is open, maintainVisibleContentPosition adjusts contentOffset by the new
   // message height when a message is added, undoing the scrollToBottom from onSubmit.
@@ -273,7 +265,7 @@ export const useNativeThreadScroll = (p: {
     prevNewestRef.current = newestOrdinal
     const isNewer = newestOrdinal !== undefined && prev !== undefined && newestOrdinal > prev
     if (!sameDataset || !isNewer) return undefined
-    const appended = () => decide({anchorHidesNewest: isKeyboardVisibleRef.current, type: 'appended'})
+    const appended = () => scrollTarget.decide({anchorHidesNewest: isKeyboardVisibleRef.current, type: 'appended'})
     if (appended().type !== 'pinEnd') return undefined
     // Asked again when it fires: if the keyboard closed in between, the list's own anchor already
     // shows the newest message.
@@ -281,7 +273,7 @@ export const useNativeThreadScroll = (p: {
       perform(appended())
     })
     return repin.cancel
-  }, [datasetKey, decide, newestOrdinal, perform, timers])
+  }, [datasetKey, newestOrdinal, perform, scrollTarget, timers])
 
   // Stores the conversation it last applied to (not a boolean) so a freeze/thaw of this screen —
   // which re-mounts effects without a real conversation change — does not reset it and re-trigger
@@ -296,28 +288,28 @@ export const useNativeThreadScroll = (p: {
     }
     if (!justLoaded) return
 
-    const directive = decide({hasMessages: numOrdinals > 0, type: 'initialLoad'})
+    const directive = scrollTarget.decide({hasMessages: numOrdinals > 0, type: 'initialLoad'})
     perform(directive)
     // Once more 100ms on, asking again with the rows as they are then, so a centre requested in
     // between is not undone by a scroll to the end.
     if (directive.type === 'pinEnd') {
       initialRetryRef.current = timers.after(100, () => {
-        perform(decide({hasMessages: ordsRef.current.length > 0, type: 'initialLoad'}))
+        dispatch({hasMessages: ordsRef.current.length > 0, type: 'initialLoad'})
       })
     }
-  }, [conversationIDKey, decide, loaded, numOrdinals, perform, timers])
+  }, [conversationIDKey, dispatch, loaded, numOrdinals, perform, scrollTarget, timers])
 
   // Hidden (a screen pushed over this one) or unmounted: nothing scheduled may scroll a list no
   // longer shown. Work cut short is left to be done again if the list comes back: a target still
   // settling is centred afresh, and a first load whose retry had not fired is treated as not yet
-  // scrolled. StrictMode's mount-time effect re-run is the same case. decide and perform never change
-  // identity, so this cleanup runs only then.
+  // scrolled. StrictMode's mount-time effect re-run is the same case. dispatch never changes identity,
+  // so this cleanup runs only then.
   React.useEffect(
     () => () => {
       if (initialRetryRef.current?.pending()) loadedConvRef.current = undefined
-      perform(decide({type: 'detached'}))
+      dispatch({type: 'detached'})
     },
-    [decide, perform]
+    [dispatch]
   )
 
   // The centered hit may be outside the rendered window, so scrollToItem fails
@@ -350,8 +342,8 @@ export const useNativeThreadScroll = (p: {
   })
   // user touched the list: stop fighting them
   const onScrollBeginDrag = React.useCallback(() => {
-    perform(decide({how: 'drag', type: 'userScrolled'}))
-  }, [decide, perform])
+    dispatch({how: 'drag', type: 'userScrolled'})
+  }, [dispatch])
 
   // A scroll coming to rest: the reader letting go, a fling stopping, or (on iOS) an animated scroll
   // of ours ending. Only coming to rest at the end, over the keyboard as it is now, counts, and that
@@ -359,9 +351,9 @@ export const useNativeThreadScroll = (p: {
   const onScrollSettled = React.useCallback(
     (e: {nativeEvent: {contentOffset: {y: number}}}) => {
       if (e.nativeEvent.contentOffset.y > restingScrollOffset(bottomInset, keyboardHeight.value) + endTolerance) return
-      perform(decide({type: 'readerAtEnd'}))
+      dispatch({type: 'readerAtEnd'})
     },
-    [bottomInset, decide, keyboardHeight, perform]
+    [bottomInset, dispatch, keyboardHeight]
   )
 
   // Data indices of the first and last viewable rows; the corrector steps from them.
@@ -374,8 +366,8 @@ export const useNativeThreadScroll = (p: {
   )
 
   const requestBottom = React.useCallback(() => {
-    perform(decide({centeredOrdinal: centeredRef.current, type: 'scrollToBottomRequested'}))
-  }, [decide, perform])
+    dispatch({centeredOrdinal: centeredRef.current, type: 'scrollToBottomRequested'})
+  }, [dispatch])
 
   const {setScrollRef} = React.useContext(ThreadRefsContext)
   React.useEffect(() => {

@@ -2,12 +2,7 @@
 // of the thread, center and input providers.
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import {
-  decideScroll,
-  initialScrollTargetState,
-  type ScrollDirective,
-  type ScrollEvent,
-} from './scroll-target'
+import {makeScrollTarget, type ScrollDirective, type ScrollEvent} from './scroll-target'
 
 export type Store<S> = {
   get: () => S
@@ -86,12 +81,10 @@ export const threadTransitions = {
 export const makeScrollDriver = () => {
   let thread = emptyThread
   let centre: T.Chat.Ordinal | undefined
-  let state = initialScrollTargetState
+  const target = makeScrollTarget()
   let directives: Array<ScrollDirective> = []
   const send = (event: ScrollEvent) => {
-    const decision = decideScroll(state, event)
-    state = decision.state
-    directives.push(decision.directive)
+    directives.push(target.decide(event))
   }
   const commit = (next: ThreadSnapshot, nextCentre: T.Chat.Ordinal | undefined) => {
     if (next.clearVersion !== thread.clearVersion) send({type: 'datasetChanged'})
@@ -118,7 +111,7 @@ export const makeScrollDriver = () => {
       return centre
     },
     get state() {
-      return state
+      return target.state
     },
     get thread() {
       return thread

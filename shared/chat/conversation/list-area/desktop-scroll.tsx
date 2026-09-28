@@ -6,12 +6,11 @@ import type {LegendListRef} from '@/common-adapters'
 import {ThreadRefsContext} from '../normal/context'
 import {useSchedule} from './schedule'
 import {
-  decideScroll,
   indexOfOrdinal,
   initialScrollTarget,
-  initialScrollTargetState,
   listAnchorsEnd,
   ownsEnd,
+  useScrollTarget,
   type ScrollDirective,
   type ScrollEvent,
 } from './scroll-target'
@@ -51,7 +50,7 @@ export const useDesktopThreadScroll = (p: {
     messageOrdinalsRef.current = messageOrdinals
   }, [messageOrdinals])
 
-  const targetRef = React.useRef(initialScrollTargetState)
+  const scrollTarget = useScrollTarget()
 
   // Asks the scroller, not the list's own isAtEnd: that flag comes from the content size and viewport
   // the list has recorded, and both lag a composer collapse, so it reads not-at-end while the scroller
@@ -60,12 +59,6 @@ export const useDesktopThreadScroll = (p: {
     const scroller = scrollerIn(wrapperRef.current)
     return !!scroller && scroller.scrollHeight - scroller.clientHeight - scroller.scrollTop <= endTolerancePx
   }, [wrapperRef])
-
-  const decide = React.useCallback((event: ScrollEvent) => {
-    const {directive, state} = decideScroll(targetRef.current, event)
-    targetRef.current = state
-    return directive
-  }, [])
 
   // The list resolves its initialScrollAtEnd target from the header size it has measured so far, and
   // SpecialTopMessage renders at its bare minHeight before the thread's intro content (retention
@@ -88,7 +81,7 @@ export const useDesktopThreadScroll = (p: {
         if (!(await sleep(50))) return
         elapsed += 50
         // Checked after the sleep, not before: the reader may have taken the end during it.
-        if (!ownsEnd(targetRef.current)) return
+        if (!ownsEnd(scrollTarget.state)) return
         const state = listRef.current?.getState()
         if (!state) continue
         if (state.isAtEnd) return
@@ -104,7 +97,7 @@ export const useDesktopThreadScroll = (p: {
         }
       }
     })
-  }, [endAnchor, listRef])
+  }, [endAnchor, listRef, scrollTarget])
 
   // Owns the in-flight centering loop. It has to outlive re-renders: the messages that make
   // centering accurate arrive after it starts, so the loop must not be torn down by an effect
@@ -171,10 +164,10 @@ export const useDesktopThreadScroll = (p: {
           elapsed += 50
         }
         // Settled, pinned or out of time; centerSettled only ever leaves the list alone.
-        decide({type: 'centerSettled'})
+        scrollTarget.decide({type: 'centerSettled'})
       })
     },
-    [centering, decide, listRef, wrapperRef]
+    [centering, listRef, scrollTarget, wrapperRef]
   )
 
   const perform = React.useCallback(
@@ -218,9 +211,9 @@ export const useDesktopThreadScroll = (p: {
 
   const dispatch = React.useCallback(
     (event: ScrollEvent) => {
-      perform(decide(event))
+      perform(scrollTarget.decide(event))
     },
-    [decide, perform]
+    [perform, scrollTarget]
   )
 
   // Compared by value, not by the effect re-running: selecting the chat tab again re-mounts effects
