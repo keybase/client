@@ -66,9 +66,7 @@ const useWatchPosition = (
     logger.info('[location] perms check due to map')
     const f = async () => {
       try {
-        await (requestLocationPermission)(
-          T.RPCChat.UIWatchPositionPerm.base
-        )
+        await requestLocationPermission(T.RPCChat.UIWatchPositionPerm.base)
         const sub = await ExpoLocation.watchPositionAsync(
           {accuracy: ExpoLocation.LocationAccuracy.Highest},
           (location: ExpoLocation.LocationObject) => {
