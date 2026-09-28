@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import {Box2} from './box'
 import {AnchoredPopup} from './popup/anchored'
-import {ModalCover} from './popup/modal-cover'
 import {Portal} from './portal'
 import {Animated as NativeAnimated, Easing as NativeEasing, useColorScheme} from 'react-native'
 import {colors, darkColors} from '@/styles/colors'
@@ -23,7 +22,6 @@ type Props = {
 const Kb = {
   AnchoredPopup,
   Box2,
-  ModalCover,
   Portal,
 }
 
@@ -132,7 +130,9 @@ const Toast = (props: Props) => {
         {props.children}
       </div>
     )
-    // with nothing to anchor to the positioner would render an invisible box
+    // with nothing to anchor to the positioner would render an invisible box, so
+    // center it instead. The overlay stays mounted while the toast is faded out,
+    // so it must never take clicks from what's under it.
     return attachTo ? (
       <Kb.AnchoredPopup
         attachTo={attachTo}
@@ -145,7 +145,9 @@ const Toast = (props: Props) => {
         {toast}
       </Kb.AnchoredPopup>
     ) : (
-      <Kb.ModalCover>{toast}</Kb.ModalCover>
+      <Kb.Box2 direction="vertical" pointerEvents="none" centerChildren={true} style={Styles.globalStyles.fillAbsolute}>
+        {toast}
+      </Kb.Box2>
     )
   }
 
