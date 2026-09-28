@@ -51,12 +51,7 @@ const pendingRoute = {
 }
 
 const realConvID = 'ff00ff00' as T.Chat.ConversationIDKey
-const deepLinkConvID = 'aa11aa11' as T.Chat.ConversationIDKey
-const deepLinkConvID2 = 'bb22bb22' as T.Chat.ConversationIDKey
-const optionsConvID = 'cc33cc33' as T.Chat.ConversationIDKey
-const optionsConvID2 = 'dd44dd44' as T.Chat.ConversationIDKey
-const optionsConvID3 = 'ee55ee55' as T.Chat.ConversationIDKey
-const optionsConvID4 = 'ff66ff66' as T.Chat.ConversationIDKey
+const otherConvID = 'aa11aa11' as T.Chat.ConversationIDKey
 
 beforeEach(() => {
   onDispatch = undefined
@@ -135,17 +130,17 @@ test('reissuing navigateToThread on a deep-linked thread (single-key params) doe
   const deepLinkedThreadRoute = {
     key: 'conv-deep-link',
     name: 'chatConversation',
-    params: {conversationIDKey: deepLinkConvID},
+    params: {conversationIDKey: realConvID},
   }
   setRootRoutes([loggedIn, deepLinkedThreadRoute])
 
-  navigateToThread(deepLinkConvID, 'createdMessagePrivately')
+  navigateToThread(realConvID, 'createdMessagePrivately')
 
   expect(nav.actions).toHaveLength(1)
   const action = nav.actions[0]
   expect(action?.type).toBe('SET_PARAMS')
   expect(action?.source).toBe(deepLinkedThreadRoute.key)
-  expect(action?.payload?.['params']).toMatchObject({conversationIDKey: deepLinkConvID})
+  expect(action?.payload?.['params']).toMatchObject({conversationIDKey: realConvID})
 })
 
 // Same shape as the deep-link case above, but reached by a reason that never carried an intent -
@@ -155,11 +150,11 @@ test('a plain re-navigate to a deep-linked thread does not push a duplicate', ()
   const deepLinkedThreadRoute = {
     key: 'conv-deep-link-plain',
     name: 'chatConversation',
-    params: {conversationIDKey: deepLinkConvID2},
+    params: {conversationIDKey: realConvID},
   }
   setRootRoutes([loggedIn, deepLinkedThreadRoute])
 
-  navigateToThread(deepLinkConvID2, 'focused')
+  navigateToThread(realConvID, 'focused')
 
   expect(nav.actions).toHaveLength(1)
   const action = nav.actions[0]
@@ -175,23 +170,23 @@ test('the options object writes the intent before navigating and forwards thread
   const messageID = T.Chat.numberToMessageID(99)
   const order: Array<string> = []
   onDispatch = () => {
-    order.push(`intent:${String(useInputIntentState.getState().intents.has(optionsConvID))}`)
+    order.push(`intent:${String(useInputIntentState.getState().intents.has(realConvID))}`)
   }
 
-  navigateToThread(optionsConvID, 'justCreated', {
+  navigateToThread(realConvID, 'justCreated', {
     intent: {messageID, type: 'highlight'},
     threadSearchQuery: 'needle',
   })
 
   expect(order).toEqual(['intent:true'])
-  expect(useInputIntentState.getState().intents.get(optionsConvID)).toEqual({
+  expect(useInputIntentState.getState().intents.get(realConvID)).toEqual({
     messageID,
     type: 'highlight',
   })
   const action = nav.actions[0]
   expect(action?.type).toBe('PUSH')
   expect(action?.payload?.['params']).toMatchObject({
-    conversationIDKey: optionsConvID,
+    conversationIDKey: realConvID,
     threadSearch: {query: 'needle'},
   })
 })
@@ -201,7 +196,7 @@ test('the options object writes the intent before navigating and forwards thread
 test('an aborted navigation writes no intent', () => {
   setRootRoutes([loggedIn])
 
-  navigateToThread(optionsConvID, 'findNewestConversation', {
+  navigateToThread(realConvID, 'findNewestConversation', {
     intent: {messageID: T.Chat.numberToMessageID(99), type: 'highlight'},
   })
 
@@ -217,26 +212,26 @@ test('an injectText intent is written before navigating, and an undefined one wr
   setRootRoutes([loggedIn])
   const order: Array<string> = []
   onDispatch = () => {
-    order.push(`intent:${String(useInputIntentState.getState().intents.has(optionsConvID3))}`)
+    order.push(`intent:${String(useInputIntentState.getState().intents.has(realConvID))}`)
   }
 
-  navigateToThread(optionsConvID3, 'justCreated', {intent: {text: 'prefill me', type: 'injectText'}})
+  navigateToThread(realConvID, 'justCreated', {intent: {text: 'prefill me', type: 'injectText'}})
 
   expect(order).toEqual(['intent:true'])
-  expect(useInputIntentState.getState().intents.get(optionsConvID3)).toEqual({
+  expect(useInputIntentState.getState().intents.get(realConvID)).toEqual({
     text: 'prefill me',
     type: 'injectText',
   })
 
-  navigateToThread(optionsConvID4, 'justCreated', {intent: undefined})
+  navigateToThread(otherConvID, 'justCreated', {intent: undefined})
 
-  expect(useInputIntentState.getState().intents.has(optionsConvID4)).toBe(false)
+  expect(useInputIntentState.getState().intents.has(otherConvID)).toBe(false)
 })
 
 test('no options writes no intent', () => {
   setRootRoutes([loggedIn])
 
-  navigateToThread(optionsConvID2, 'justCreated')
+  navigateToThread(realConvID, 'justCreated')
 
   expect(useInputIntentState.getState().intents.size).toBe(0)
 })

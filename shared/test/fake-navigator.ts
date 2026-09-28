@@ -1,8 +1,11 @@
 // The in-memory Navigator adapter: the second implementation of the seam, so that
 // substituting navigation in a test is installing an adapter rather than mocking a
-// module. It records what was dispatched and serves whatever root state the test set;
-// it deliberately does not reduce actions into state - a test that needs the tree to
-// change says so with setRootState.
+// module. It records what was dispatched and folds each action into its root state
+// the way React Navigation's routers would, so an operation that reads the tree
+// after an earlier navigation sees what it would see in the app.
+//
+// By default every dispatch commits at once. With commit: 'manual' actions queue until
+// commit(), for tests about the window between a dispatch and React Navigation's commit.
 import * as NavTree from '@/constants/nav-tree'
 import * as Tabs from '@/constants/tabs'
 import {makeNavigator, setNavigator, type Navigator, type NavigatorRef} from '@/constants/navigator'
@@ -17,17 +20,22 @@ export type RecordedAction = {
 
 export type FakeNavigator = Navigator & {
   actions: Array<RecordedAction>
+  // The adapter's raw dispatch, which the Navigator itself does not expose.
+  dispatch: NavigatorRef['dispatch']
   lastAction: () => RecordedAction | undefined
   // Every route name pushed, in order, with the params it was pushed with.
   pushes: () => Array<{name?: unknown; params?: unknown}>
   // Every screen navigateAppend asked for, in order: pushes plus the replaces it
   // dispatches when called with replace=true.
   navigations: () => Array<{name?: unknown; params?: unknown; replace: boolean}>
-  // Whether a reset of the root stack left no modal behind, which is what clearModals does.
+  // Whether clearModals dispatched a reset of the root stack that left no modal behind.
   modalsCleared: () => boolean
   // The dispatched action types, in order (PUSH, RESET, GO_BACK, JUMP_TO, ...).
   types: () => Array<string>
   clearActions: () => void
+  // Folds any queued actions into the root state and fires the 'state' listeners. Only
+  // needed with commit: 'manual'.
+  commit: () => void
   // Replaces the root state and fires the 'state' listeners, as a real commit would.
   setRootState: (state?: NavTree.NavState) => void
   setReady: (ready: boolean) => void
@@ -102,16 +110,184 @@ export const makeRootState = (p?: {
   }
 }
 
+// ---- The reducer ----
+//
+// A deliberately small model of React Navigation's stack and tab routers, covering the
+// actions the Navigator dispatches. An action it does not model throws, so a test can
+// never silently run against a tree that stopped tracking the app.
+
+type FakeRoute = {key: string; name: string; params?: object; state?: FakeState}
+type FakeState = {key: string; index: number; routes: Array<FakeRoute>; type: string}
+
+const cloneState = (s: NavTree.NavState): FakeState => JSON.parse(JSON.stringify(s)) as FakeState
+
+// The navigators from the root down along the focused routes.
+const focusChain = (root: FakeState): Array<FakeState> => {
+  const chain = [root]
+  for (;;) {
+    const s = chain.at(-1)!
+    const child = s.routes[s.index]?.state
+    if (!child) return chain
+    chain.push(child)
+  }
+}
+
+const deepestStack = (root: FakeState) => focusChain(root).filter(s => s.type === 'stack').at(-1)
+
+const findState = (s: FakeState, key: string): FakeState | undefined => {
+  if (s.key === key) return s
+  for (const r of s.routes) {
+    const found = r.state && findState(r.state, key)
+    if (found) return found
+  }
+  return undefined
+}
+
+const findRoute = (s: FakeState, key: string): FakeRoute | undefined => {
+  for (const r of s.routes) {
+    if (r.key === key) return r
+    const found = r.state && findRoute(r.state, key)
+    if (found) return found
+  }
+  return undefined
+}
+
 export const makeFakeNavigator = (p?: {
   rootState?: NavTree.NavState
   ready?: boolean
+  commit?: 'sync' | 'manual'
   // Called at the moment of dispatch, for tests that assert ordering against it.
   onDispatch?: (action: RecordedAction) => void
 }): FakeNavigator => {
   const actions: Array<RecordedAction> = []
+  const queued: Array<RecordedAction> = []
+  // Actions dispatched from inside clearModals.
+  const clearModalsActions = new Set<RecordedAction>()
+  let insideClearModals = false
   let rootState = p?.rootState ?? makeRootState()
   let ready = p?.ready ?? true
   const listeners = new Set<() => void>()
+  let nextKey = 0
+
+  const newKey = (name: string) => `${name}-f${nextKey++}`
+
+  // Keys, indices and navigator types for a partial state from a reset or a builder.
+  const complete = (s: NavTree.PartialNavState, type: string, key?: string): FakeState => ({
+    index: s.index ?? s.routes.length - 1,
+    key: key ?? newKey(type),
+    routes: s.routes.map(r => {
+      const route = r as NavTree.PartialRoute & {key?: string}
+      const state = route.state as (NavTree.PartialNavState & {key?: string; type?: string}) | undefined
+      return {
+        key: route.key ?? newKey(route.name),
+        name: route.name,
+        ...(route.params ? {params: route.params} : {}),
+        ...(state
+          ? {state: complete(state, state.type ?? (route.name === 'loggedIn' ? 'tab' : 'stack'), state.key)}
+          : {}),
+      }
+    }),
+    type,
+  })
+
+  const stackFor = (root: FakeState, a: RecordedAction) => {
+    const s = a.target ? findState(root, a.target) : deepestStack(root)
+    if (!s) throw new Error(`fake navigator: no navigator for ${a.type} (target ${String(a.target)})`)
+    return s
+  }
+
+  const push = (s: FakeState, name: string, params?: object) => {
+    s.routes = [...s.routes.slice(0, s.index + 1), {key: newKey(name), name, ...(params ? {params} : {})}]
+    s.index = s.routes.length - 1
+  }
+
+  const reduce = (root: FakeState, a: RecordedAction) => {
+    const name = a.payload?.['name'] as string | undefined
+    const params = a.payload?.['params'] as object | undefined
+    switch (a.type) {
+      case 'PUSH':
+        push(stackFor(root, a), name!, params)
+        return
+      case 'REPLACE': {
+        const s = stackFor(root, a)
+        s.routes[s.index] = {key: newKey(name!), name: name!, ...(params ? {params} : {})}
+        return
+      }
+      case 'GO_BACK':
+      case 'POP_TO_TOP': {
+        const s = focusChain(root)
+          .filter(n => n.type === 'stack' && n.index > 0)
+          .at(-1)
+        if (!s) return
+        s.routes = s.routes.slice(0, a.type === 'GO_BACK' ? s.index : 1)
+        s.index = s.routes.length - 1
+        return
+      }
+      case 'POP_TO':
+      case 'NAVIGATE': {
+        const s = stackFor(root, a)
+        const i = s.routes.map(r => r.name).lastIndexOf(name!)
+        if (i < 0) {
+          push(s, name!, params)
+          return
+        }
+        s.routes = s.routes.slice(0, i + 1)
+        s.index = i
+        const route = s.routes[i]!
+        if (params) {
+          route.params = a.payload?.['merge'] ? {...route.params, ...params} : params
+        }
+        return
+      }
+      case 'SET_PARAMS': {
+        const route = a.source ? findRoute(root, a.source) : focusChain(root).map(s => s.routes[s.index]).at(-1)
+        if (!route) throw new Error(`fake navigator: no route for SET_PARAMS (source ${String(a.source)})`)
+        route.params = {...route.params, ...params}
+        return
+      }
+      case 'JUMP_TO': {
+        const s = stackFor(root, a)
+        let i = s.routes.findIndex(r => r.name === name)
+        if (i < 0) {
+          // The tab navigator in the app always holds every tab; makeRootState builds only the
+          // selected one, so a tab jumped to for the first time appears on its root screen.
+          const tabRoot = NavTree.tabRoots[name as Tabs.AppTab]
+          s.routes.push({
+            key: name!,
+            name: name!,
+            state: complete({routes: [{name: tabRoot}]}, 'stack', `${name!}-stack`),
+          })
+          i = s.routes.length - 1
+        }
+        s.index = i
+        return
+      }
+      case 'RESET': {
+        const s = a.target ? findState(root, a.target) : root
+        if (!s) throw new Error(`fake navigator: no navigator for RESET (target ${String(a.target)})`)
+        Object.assign(s, complete(a.payload as NavTree.PartialNavState, s.type, s.key))
+        return
+      }
+      default:
+        throw new Error(`fake navigator: ${a.type} is not modelled`)
+    }
+  }
+
+  const fireListeners = () => {
+    for (const cb of [...listeners]) {
+      cb()
+    }
+  }
+
+  const commit = () => {
+    if (!queued.length) return
+    const next = cloneState(rootState)
+    for (const a of queued.splice(0)) {
+      reduce(next, a)
+    }
+    rootState = next as NavTree.NavState
+    fireListeners()
+  }
 
   const ref: NavigatorRef = {
     addListener: (_type, cb) => {
@@ -122,7 +298,14 @@ export const makeFakeNavigator = (p?: {
       if (!ready) return
       const recorded = action as unknown as RecordedAction
       actions.push(recorded)
+      if (insideClearModals) {
+        clearModalsActions.add(recorded)
+      }
       p?.onDispatch?.(recorded)
+      queued.push(recorded)
+      if (p?.commit !== 'manual') {
+        commit()
+      }
     },
     getRootState: () => (ready ? rootState : undefined),
     isReady: () => ready,
@@ -135,10 +318,21 @@ export const makeFakeNavigator = (p?: {
     actions,
     clearActions: () => {
       actions.length = 0
+      clearModalsActions.clear()
     },
+    clearModals: () => {
+      insideClearModals = true
+      try {
+        navigator.clearModals()
+      } finally {
+        insideClearModals = false
+      }
+    },
+    commit,
+    dispatch: ref.dispatch,
     lastAction: () => actions.at(-1),
     modalsCleared: () =>
-      actions.some(
+      [...clearModalsActions].some(
         a =>
           a.type === 'RESET' &&
           a.target === 'root' &&
@@ -158,31 +352,34 @@ export const makeFakeNavigator = (p?: {
       ready = next
     },
     setRootState: next => {
+      queued.length = 0
       rootState = next
-      for (const cb of [...listeners]) {
-        cb()
-      }
+      fireListeners()
     },
     types: () => actions.map(a => a.type),
   }
 }
 
 // Installs the fake as the app-wide Navigator, so the free-function facade
-// (C.Router2.navigateAppend and friends) drives it. Also registers the modal route
-// names, which the tree readers require.
+// (C.Router2.navigateAppend and friends) drives it. Registers the modal route names
+// only when given: a test whose tree has routes above the tab navigator has to say
+// which of them are modals, exactly as the app does at startup.
 export const installFakeNavigator = (p?: {
   rootState?: NavTree.NavState
   ready?: boolean
+  commit?: 'sync' | 'manual'
   modalRouteNames?: Iterable<string>
   onDispatch?: (action: RecordedAction) => void
 }): FakeNavigator => {
-  NavTree.setModalRouteNames(p?.modalRouteNames ?? [])
+  NavTree.setModalRouteNames(p?.modalRouteNames)
   const fake = makeFakeNavigator(p)
   setNavigator(fake)
   return fake
 }
 
+// Restores the real Navigator and leaves the modal route names unregistered, as they
+// are before startup.
 export const restoreNavigator = () => {
   setNavigator()
-  NavTree.setModalRouteNames([])
+  NavTree.setModalRouteNames()
 }

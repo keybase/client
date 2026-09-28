@@ -5,11 +5,11 @@ import {clearInputIntent, setInputIntent, type InputIntent} from '@/chat/convers
 import {refreshInboxLayout} from '@/chat/inbox/inbox-refresh'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as Tabs from './tabs'
-import {CommonActions, type NavigationContainerRef, NavigationContext} from '@react-navigation/core'
+import {type NavigationContainerRef, NavigationContext} from '@react-navigation/core'
 import type {StaticScreenProps} from '@react-navigation/core'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import * as NavTree from './nav-tree'
-import {getNavigator} from './navigator'
+import {DEBUG_NAV, getNavigator} from './navigator'
 import type {GetOptionsRet, RouteDef} from './types/router'
 import {isSplit, threadRouteName} from './chat/layout'
 import {ignorePromise} from './utils'
@@ -53,7 +53,6 @@ export type NavigationRef = NavigationContainerRef<KBRootParamList>
 export {setModalRouteNames} from './nav-tree'
 export {navigationRef} from './navigator'
 
-const DEBUG_NAV = __DEV__ && (false as boolean)
 
 const uiParticipantsToParticipantInfo = (
   uiParticipants: ReadonlyArray<T.RPCChat.UIParticipant>
@@ -185,35 +184,12 @@ export function navigateAppend(path: NavigateAppendType, replace?: boolean): boo
   return getNavigator().navigateAppend(path, replace)
 }
 
-// Push once the root stack has a `rootRouteName` route. For a push whose target lives in a
-// conditional root group that a store change is about to mount (e.g. the logged-out stack): a push
-// dispatched before the group mounts reaches no navigator that can handle it and is dropped. Gives
-// up after `timeoutMs` so a group that never mounts can't fire the push at some unrelated later time.
 export const navigateAppendOnceRootHas = (
   rootRouteName: string,
   path: NavigateAppendType,
-  timeoutMs = 5000
+  timeoutMs?: number
 ) => {
-  const rootHas = () => getRootState()?.routes?.some(r => r.name === rootRouteName) ?? false
-  if (rootHas()) {
-    navigateAppend(path)
-    return
-  }
-  const n = getNavigator()
-  if (!n.isReady()) {
-    logger.warn(`[Nav] navigateAppendOnceRootHas: no navigator, dropping ${path.name}`)
-    return
-  }
-  const timer = setTimeout(() => {
-    unsub()
-    logger.warn(`[Nav] navigateAppendOnceRootHas: ${rootRouteName} never mounted, dropping ${path.name}`)
-  }, timeoutMs)
-  const unsub = n.addListener('state', () => {
-    if (!rootHas()) return
-    clearTimeout(timer)
-    unsub()
-    navigateAppend(path)
-  })
+  getNavigator().navigateAppendOnceRootHas(rootRouteName, path, timeoutMs)
 }
 
 export const switchTab = (name: Tabs.AppTab) => {
@@ -546,10 +522,6 @@ const navToThread = (
   if (DEBUG_NAV) {
     console.log('[Nav] navToThread', conversationIDKey)
   }
-  const nav = getNavigator()
-  if (!nav.isReady()) return false
-  const rs = nav.getRootState()
-  if (!rs?.key) return false
   const params = {
     conversationIDKey,
     createConversationError: navParams?.createConversationError,
@@ -564,12 +536,7 @@ const navToThread = (
     return setChatRootParams(params)
   } else {
     // Phone: switch to the chat tab, then push the conversation above the tabs.
-    const nextState = NavTree.pushedAboveTabs(Tabs.chatTab, {name: 'chatConversation', params})
-    nav.dispatch({
-      ...CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]),
-      target: rs.key,
-    })
-    return true
+    return getNavigator().showAboveTabs(Tabs.chatTab, {name: 'chatConversation', params})
   }
 }
 
@@ -650,9 +617,7 @@ export const navigateToThread = (
       // re-measures a title subview it first measured empty, so a blank pending title would
       // leave the bar blank for the real conv too. Same-conversation retargets ride this path
       // too: the screen is already showing real content, so setParams is a plain in-place merge.
-      const nav = getNavigator()
-      nav.dispatch({...CommonActions.setParams(params), source: visible?.key})
-      navigated = nav.isReady()
+      navigated = getNavigator().setRouteParams(visible?.key, params)
     } else {
       navigated = navigateAppend({name: threadRouteName, params})
     }

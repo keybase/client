@@ -71,6 +71,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import {navigateUp} from '@/constants/router'
 import {resetAllStores} from '@/util/zustand'
+import {installFakeNavigator, restoreNavigator} from '@/test/fake-navigator'
 import DeleteRepo from './delete-repo'
 
 const mockDeleteRPCs = () => {
@@ -85,8 +86,13 @@ const confirmButton = () => screen.getByText(/Delete this repository|^Delete$/) 
 const typeName = (name: string) =>
   fireEvent.change(screen.getByPlaceholderText('Name of the repository'), {target: {value: name}})
 
+beforeEach(() => {
+  installFakeNavigator()
+})
+
 afterEach(() => {
   cleanup()
+  restoreNavigator()
   jest.clearAllMocks()
   jest.restoreAllMocks()
   resetAllStores()

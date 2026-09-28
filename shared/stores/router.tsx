@@ -1,6 +1,7 @@
 import type * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import {castDraft} from 'immer'
+import {DEBUG_NAV} from '@/constants/navigator'
 import type {NavState} from '@/constants/nav-tree'
 
 export {type NavState} from '@/constants/nav-tree'
@@ -29,7 +30,6 @@ export const useRouterState = Z.createZustand<State>('router', (set, get) => {
       }))
     },
     setNavState: next => {
-      const DEBUG_NAV = __DEV__ && (false as boolean)
       if (DEBUG_NAV) {
         console.log('[Nav] setNavState')
       }

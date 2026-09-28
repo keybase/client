@@ -72,17 +72,22 @@ jest.mock('./text', () => ({
     require('react').createElement('span', null, children),
 }))
 
+import {installFakeNavigator, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 import {NameWithIcon} from './name-with-icon'
 
 const avatar = () => screen.queryByTestId('avatar')
 const followIcon = () => screen.queryByTestId('follow-icon')
 
+let nav: FakeNavigator
+
 describe('NameWithIcon', () => {
   beforeEach(() => {
     mockFollowerReads.length = 0
+    nav = installFakeNavigator()
   })
   afterEach(() => {
     cleanup()
+    restoreNavigator()
     mockFollowers.followers = new Set()
     mockFollowers.following = new Set()
   })
@@ -208,6 +213,7 @@ describe('NameWithIcon', () => {
       render(<NameWithIcon username="testuser" onClick={onClick} />)
       screen.getByTestId('clickable').click()
       expect(onClick).toHaveBeenCalledWith('testuser')
+      expect(nav.actions).toEqual([])
     })
 
     test('no onClick means no clickable wrapper', () => {

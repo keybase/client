@@ -6,10 +6,11 @@
 // NavigationContainerRef (below), and the in-memory fake in test/fake-navigator.
 //
 // The operations here are the ones that need the tree shape to decide what to
-// dispatch; they read it through NavTree and never re-derive it. Dispatches that
-// target a *specific* navigator rather than the root (e.g. a tab bar acting on the
-// navigation object handed to it by its own navigator) stay where they are - they
-// are not this seam.
+// dispatch; they read it through NavTree and never re-derive it. The Navigator does
+// not expose a raw dispatch, so every root-level navigation is one of them.
+// Dispatches that target a *specific* navigator rather than the root (e.g. a tab bar
+// acting on the navigation object handed to it by its own navigator) stay where they
+// are - they are not this seam.
 import * as NavTree from './nav-tree'
 import * as Tabs from './tabs'
 import {
@@ -19,6 +20,7 @@ import {
   createNavigationContainerRef,
   type NavigationContainerRef,
 } from '@react-navigation/core'
+import logger from '@/logger'
 import {registerDebugClear} from '@/util/debug-registry'
 import {shallowEqual} from './utils'
 import type {NavigateAppendType, RouteKeys, RootParamList} from '@/router-v2/route-params'
@@ -36,21 +38,33 @@ export type NavigatorRef = {
   addListener: (type: 'state', cb: () => void) => () => void
 }
 
-export type Navigator = NavigatorRef & {
+export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
   navigateUp: () => void
   popStack: () => void
   clearModals: () => void
   // Returns whether the target is now the visible route - either because we dispatched,
   // or because we were already there. False means nothing happened and nothing will.
   navigateAppend: (path: NavigateAppendType, replace?: boolean) => boolean
+  // Push once the root stack has a `rootRouteName` route. For a push whose target lives in a
+  // conditional root group that a store change is about to mount (e.g. the logged-out stack): a
+  // push dispatched before the group mounts reaches no navigator that can handle it and is
+  // dropped. Gives up after `timeoutMs` so a group that never mounts can't fire the push at some
+  // unrelated later time.
+  navigateAppendOnceRootHas: (rootRouteName: string, path: NavigateAppendType, timeoutMs?: number) => void
   navUpToScreen: (nameOrPath: RouteKeys | NavigateAppendType, replaceIfMissing?: boolean) => void
   switchTab: (name: Tabs.AppTab) => void
   // Returns whether chatRoot now carries these params - by dispatch, or because it
   // already did. False means the nav tree was not in a state where anything could happen.
   setChatRootParams: (params: Partial<NonNullable<RootParamList['chatRoot']>>) => boolean
+  // Phone: select `tab` on its root screen and push `screen` above the tab bar, in one reset.
+  // Returns whether it dispatched.
+  showAboveTabs: (tab: Tabs.AppTab, screen: NavTree.ScreenSpec) => boolean
+  // Merges params into the route with this key, in place and without a transition. Returns
+  // whether it dispatched.
+  setRouteParams: (routeKey: string | undefined, params: object) => boolean
 }
 
-const DEBUG_NAV = __DEV__ && (false as boolean)
+export const DEBUG_NAV = __DEV__ && (false as boolean)
 
 export const makeNavigator = (ref: NavigatorRef): Navigator => {
   // A push dispatched this tick isn't in getRootState() until React Navigation commits, so the
@@ -153,6 +167,32 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     })
     ref.dispatch(StackActions.push(routeName, params))
     return true
+  }
+
+  const navigateAppendOnceRootHas = (
+    rootRouteName: string,
+    path: NavigateAppendType,
+    timeoutMs = 5000
+  ) => {
+    const rootHas = () => ref.getRootState()?.routes?.some(r => r.name === rootRouteName) ?? false
+    if (rootHas()) {
+      navigateAppend(path)
+      return
+    }
+    if (!ref.isReady()) {
+      logger.warn(`[Nav] navigateAppendOnceRootHas: no navigator, dropping ${path.name}`)
+      return
+    }
+    const timer = setTimeout(() => {
+      unsub()
+      logger.warn(`[Nav] navigateAppendOnceRootHas: ${rootRouteName} never mounted, dropping ${path.name}`)
+    }, timeoutMs)
+    const unsub = ref.addListener('state', () => {
+      if (!rootHas()) return
+      clearTimeout(timer)
+      unsub()
+      navigateAppend(path)
+    })
   }
 
   const navUpToScreen = (nameOrPath: RouteKeys | NavigateAppendType, replaceIfMissing = false) => {
@@ -272,17 +312,39 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     return true
   }
 
+  const showAboveTabs = (tab: Tabs.AppTab, screen: NavTree.ScreenSpec): boolean => {
+    if (DEBUG_NAV) {
+      console.log('[Nav] showAboveTabs', {screen, tab})
+    }
+    if (!ref.isReady()) return false
+    const rs = ref.getRootState()
+    if (!rs?.key) return false
+    ref.dispatch({
+      ...CommonActions.reset(NavTree.pushedAboveTabs(tab, screen) as Parameters<typeof CommonActions.reset>[0]),
+      target: rs.key,
+    })
+    return true
+  }
+
+  const setRouteParams = (routeKey: string | undefined, params: object): boolean => {
+    if (!ref.isReady()) return false
+    ref.dispatch({...CommonActions.setParams(params), source: routeKey})
+    return true
+  }
+
   return {
     addListener: ref.addListener,
     clearModals,
-    dispatch: ref.dispatch,
     getRootState: ref.getRootState,
     isReady: ref.isReady,
     navUpToScreen,
     navigateAppend,
+    navigateAppendOnceRootHas,
     navigateUp,
     popStack,
     setChatRootParams,
+    setRouteParams,
+    showAboveTabs,
     switchTab,
   }
 }

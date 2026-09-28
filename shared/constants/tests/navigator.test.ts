@@ -1,15 +1,18 @@
 /// <reference types="jest" />
+import * as NavTree from '@/constants/nav-tree'
 import * as Tabs from '@/constants/tabs'
 import {CommonActions} from '@react-navigation/core'
 import {
   clearModals,
   navUpToScreen,
   navigateAppend,
+  navigateAppendOnceRootHas,
   navigateUp,
   popStack,
   setChatRootParams,
   switchTab,
 } from '@/constants/router'
+import {getNavigator} from '@/constants/navigator'
 import {
   installFakeNavigator,
   makeRootState,
@@ -120,9 +123,11 @@ describe('navigateAppend', () => {
 // the visible-route check above cannot see it. Repeat taps that land inside that window -
 // a janky JS thread queueing both - would otherwise push the same screen twice.
 describe('navigateAppend in-flight dedupe', () => {
+  // Manual commit keeps the pushed screen out of the tree, as it is in the app until React
+  // Navigation commits.
   beforeEach(() => {
     jest.useFakeTimers()
-    nav = installFakeNavigator()
+    nav = installFakeNavigator({commit: 'manual'})
   })
 
   test('a second identical push before the state commits is dropped', () => {
@@ -348,5 +353,111 @@ describe('switchTab', () => {
     switchTab(Tabs.teamsTab)
 
     expect(nav.actions).toEqual([])
+  })
+})
+
+// ---- showAboveTabs / setRouteParams ----
+
+describe('showAboveTabs', () => {
+  test('resets the root onto the tab and pushes the screen above the tab bar', () => {
+    nav = installFakeNavigator({modalRouteNames: [], rootState: makeRootState({tab: Tabs.teamsTab})})
+
+    expect(
+      getNavigator().showAboveTabs(Tabs.chatTab, {name: 'chatConversation', params: {conversationIDKey: 'C'}})
+    ).toBe(true)
+
+    expect(nav.lastAction()).toMatchObject({target: 'root', type: 'RESET'})
+    expect(NavTree.currentTab(nav.getRootState())).toBe(Tabs.chatTab)
+    expect(NavTree.visibleScreen(nav.getRootState())).toMatchObject({
+      name: 'chatConversation',
+      params: {conversationIDKey: 'C'},
+    })
+  })
+
+  test('a not-ready navigator dispatches nothing and reports failure', () => {
+    nav = installFakeNavigator({ready: false})
+
+    expect(getNavigator().showAboveTabs(Tabs.chatTab, {name: 'chatConversation'})).toBe(false)
+    expect(nav.actions).toEqual([])
+  })
+})
+
+describe('setRouteParams', () => {
+  test('merges params into the route with that key, whatever is on top', () => {
+    nav = installFakeNavigator({
+      rootState: makeRootState({tabStack: [{name: 'chatRoot'}, {name: 'profile', params: {username: 'testuser'}}]}),
+    })
+
+    expect(getNavigator().setRouteParams('chatRoot-0', {conversationIDKey: 'C'})).toBe(true)
+
+    expect(nav.lastAction()).toMatchObject({source: 'chatRoot-0', type: 'SET_PARAMS'})
+    const stack = NavTree.activeStack(nav.getRootState())
+    expect(stack?.routes?.[0]?.params).toEqual({conversationIDKey: 'C'})
+    expect(NavTree.visibleScreen(nav.getRootState())?.name).toBe('profile')
+  })
+
+  test('a not-ready navigator dispatches nothing and reports failure', () => {
+    nav = installFakeNavigator({ready: false})
+
+    expect(getNavigator().setRouteParams('chatRoot-0', {conversationIDKey: 'C'})).toBe(false)
+    expect(nav.actions).toEqual([])
+  })
+})
+
+// ---- navigateAppendOnceRootHas ----
+
+describe('navigateAppendOnceRootHas', () => {
+  // The wait belongs to the navigator it started on: swapping in another one (a test's
+  // teardown, say) must neither check nor push onto the newcomer.
+  test('stays bound to the navigator it was called on', () => {
+    jest.useFakeTimers()
+    const first = installFakeNavigator({rootState: makeRootState({loggedIn: false})})
+    navigateAppendOnceRootHas('loggedIn', {name: 'profile', params: {username: 'testuser'}})
+
+    const second = installFakeNavigator()
+    first.setRootState(makeRootState())
+
+    expect(first.pushes()).toEqual([{name: 'profile', params: {username: 'testuser'}}])
+    expect(second.actions).toEqual([])
+  })
+})
+
+// ---- the fake itself ----
+
+describe('fake navigator', () => {
+  test('a push lands in the tree, so the next navigation sees it', () => {
+    nav = installFakeNavigator()
+
+    navigateAppend({name: 'profile', params: {username: 'testuser'}})
+    navigateAppend({name: 'profile', params: {username: 'testuser'}})
+
+    expect(nav.pushes()).toHaveLength(1)
+    expect(NavTree.visibleScreen(nav.getRootState())?.name).toBe('profile')
+
+    navigateUp()
+    expect(NavTree.visibleScreen(nav.getRootState())?.name).toBe('chatRoot')
+  })
+
+  test('an action it does not model throws instead of leaving the tree stale', () => {
+    nav = installFakeNavigator()
+
+    expect(() => nav.dispatch({type: 'OPEN_DRAWER'} as never)).toThrow('OPEN_DRAWER is not modelled')
+  })
+
+  // A root reset that happens to leave no modal is not clearModals: navToThread's phone reset
+  // is one.
+  test('modalsCleared only counts resets clearModals dispatched', () => {
+    nav = installFakeNavigator({modalRouteNames: ['chatInfoPanel']})
+
+    getNavigator().showAboveTabs(Tabs.chatTab, {name: 'chatConversation'})
+
+    expect(nav.modalsCleared()).toBe(false)
+  })
+
+  test('restoring leaves the modal route names unregistered, as before startup', () => {
+    installFakeNavigator({modalRouteNames: ['chatInfoPanel']})
+    restoreNavigator()
+
+    expect(() => NavTree.isModalRouteName('chatInfoPanel')).toThrow('modalRouteNames not registered')
   })
 })

@@ -1,4 +1,5 @@
 /// <reference types="jest" />
+import * as NavTree from '@/constants/nav-tree'
 import * as T from '@/constants/types'
 import {invalidPasswordErrorString} from '@/constants/config'
 import {resetAllStores} from '@/util/zustand'
@@ -188,6 +189,29 @@ describe('passphrase prompts', () => {
       name: 'password',
       params: {error: 'Incorrect password.', username: 'testuser'},
       replace: true,
+    })
+  })
+
+  // In the app the retry prompt arrives while the password screen from the first prompt is
+  // still showing, so it retargets that screen in place rather than swapping it.
+  test('a retry while the password screen is showing updates that screen in place', async () => {
+    const attempt = await startAttempt()
+
+    const prompt = attempt.listener.customResponseIncomingCallMap?.['keybase.1.secretUi.getPassphrase']
+    prompt?.(
+      {pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.passPhrase}} as any,
+      {error: jest.fn(), result: jest.fn()} as any
+    )
+    nav.clearActions()
+    prompt?.(
+      {pinentry: {retryLabel: invalidPasswordErrorString, type: T.RPCGen.PassphraseType.passPhrase}} as any,
+      {error: jest.fn(), result: jest.fn()} as any
+    )
+
+    expect(nav.types()).toEqual(['SET_PARAMS'])
+    expect(NavTree.visibleScreen(nav.getRootState())).toMatchObject({
+      name: 'password',
+      params: {error: 'Incorrect password.', username: 'testuser'},
     })
   })
 
