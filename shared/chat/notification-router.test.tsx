@@ -156,6 +156,11 @@ describe('decodeChatNotification', () => {
         incoming(valid(44, {messageType: T.RPCChat.MessageType.unfurl, unfurl: {messageID: 20, unfurl: {}}}))
       ).toEqual({messageIDs: [mid(44), mid(20)], type: 'messages'})
       expect(incoming(placeholder(45))).toEqual({messageIDs: [mid(45)], type: 'messages'})
+      expect(
+        incoming(
+          valid(46, {attachmentuploaded: {messageID: 20, object: {}}, messageType: T.RPCChat.MessageType.attachmentuploaded})
+        )
+      ).toEqual({messageIDs: [mid(46), mid(20)], type: 'messages'})
     })
 
     test('an update, an explosion and a reaction update name the messages they carry', () => {

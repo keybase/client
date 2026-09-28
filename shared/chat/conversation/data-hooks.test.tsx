@@ -298,6 +298,12 @@ describe('useConversationMessage', () => {
       activityType: T.RPCChat.ChatActivityType.messagesUpdated,
       messagesUpdated: {convID, updates: [placeholder(19), placeholder(20)]},
     }),
+    'an upload completing for another': incoming(
+      valid(40, {attachmentuploaded: {messageID: 21, object: {}}, messageType: T.RPCChat.MessageType.attachmentuploaded})
+    ),
+    'an upload completing for it': incoming(
+      valid(40, {attachmentuploaded: {messageID: 20, object: {}}, messageType: T.RPCChat.MessageType.attachmentuploaded})
+    ),
   }
   const loadsAfter = async (event: keyof typeof events) => {
     const load = mockAroundMessages([19, 20, 21])
@@ -322,6 +328,7 @@ describe('useConversationMessage', () => {
     'a reaction update of it',
     'an unfurl of it',
     'an update of it',
+    'an upload completing for it',
   ] as const)('%s reloads it', async event => {
     expect(await loadsAfter(event)).toBe(1)
   })
@@ -336,6 +343,7 @@ describe('useConversationMessage', () => {
     'a reaction update of another',
     'an unfurl of another',
     'an update of another',
+    'an upload completing for another',
   ] as const)('%s in its conversation leaves it', async event => {
     expect(await loadsAfter(event)).toBe(0)
   })

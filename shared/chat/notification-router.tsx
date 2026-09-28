@@ -135,7 +135,7 @@ const metadataAndMessagesOf = (
 const uiMessageID = (m: T.RPCChat.UIMessage | null | undefined) =>
   (m ? Message.getMessageID(m) : null) ?? undefined
 
-// the messages an incoming edit, delete, reaction or unfurl changes
+// the messages an incoming edit, delete, reaction, unfurl or finished upload changes
 const targetMessageIDs = (m: T.RPCChat.UIMessage | null | undefined): ReadonlyArray<number> => {
   if (m?.state !== T.RPCChat.MessageUnboxedState.valid) {
     return []
@@ -150,6 +150,8 @@ const targetMessageIDs = (m: T.RPCChat.UIMessage | null | undefined): ReadonlyAr
       return [body.reaction.m]
     case T.RPCChat.MessageType.unfurl:
       return [body.unfurl.messageID]
+    case T.RPCChat.MessageType.attachmentuploaded:
+      return [body.attachmentuploaded.messageID]
     default:
       return []
   }
