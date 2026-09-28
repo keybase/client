@@ -246,7 +246,7 @@ describe('replyPrivately', () => {
     await flushPromises()
     expect(rpc.log).toEqual([])
     expect(warn).toHaveBeenCalledWith(
-      "messageReplyPrivately: can't find message to reply to",
+      "replyPrivately: can't find message to reply to",
       T.Chat.numberToOrdinal(10)
     )
   })

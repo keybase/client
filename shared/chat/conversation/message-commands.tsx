@@ -132,6 +132,52 @@ export const deleteMessage = (
   }
 }
 
+type ReactionTarget = {exploded: boolean; messageID: T.Chat.MessageID}
+
+const reactionTargetOf = (message: T.Chat.Message): ReactionTarget => ({
+  exploded: (message.type === 'text' || message.type === 'attachment') && message.exploded,
+  messageID: message.id,
+})
+
+// The user reacting, or undefined (logged) when this reaction cannot be sent.
+const reactingUser = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  target: ReactionTarget | undefined,
+  emoji: string
+) => {
+  if (!emoji) {
+    return undefined
+  }
+  if (!T.Chat.isValidConversationIDKey(conversationIDKey)) {
+    logger.warn('toggleReaction: no conversation id')
+    return undefined
+  }
+  if (!target) {
+    logger.warn('toggleReaction: no message found')
+    return undefined
+  }
+  if (target.exploded) {
+    logger.warn('toggleReaction: message is exploded')
+    return undefined
+  }
+  if (!T.Chat.messageIDToNumber(target.messageID)) {
+    logger.warn('toggleReaction: message has no id yet')
+    return undefined
+  }
+  const {username} = useCurrentUserState.getState()
+  if (!username) {
+    logger.warn('toggleReaction: no current username')
+    return undefined
+  }
+  return username
+}
+
+const logReactionFailure = (error: unknown) => {
+  if (error instanceof RPCError) {
+    logger.info(`toggleReaction: failed to post ${error.message}`)
+  }
+}
+
 const toggleThreadReaction = (
   conversationIDKey: T.Chat.ConversationIDKey,
   target: ThreadMessage,
@@ -139,27 +185,10 @@ const toggleThreadReaction = (
 ) => {
   const {ordinal, thread} = target
   const f = async () => {
-    if (!emoji) {
-      return
-    }
     const snapshot = thread.getSnapshot()
     const message = snapshot.messageMap.get(ordinal)
-    if (!message) {
-      logger.warn(`toggleMessageReaction: no message found`)
-      return
-    }
-    const {type, exploded, id: messageID} = message
-    if ((type === 'text' || type === 'attachment') && exploded) {
-      logger.warn(`toggleMessageReaction: message is exploded`)
-      return
-    }
-    if (!messageID) {
-      logger.warn(`toggleMessageReaction: message has no id yet`)
-      return
-    }
-    const username = useCurrentUserState.getState().username
-    if (!username) {
-      logger.warn(`toggleMessageReaction: no current username`)
+    const username = reactingUser(conversationIDKey, message && reactionTargetOf(message), emoji)
+    if (!message || !username) {
       return
     }
     const displayMessage = applyOptimisticReactionsToMessage(message, snapshot.optimisticReactionMap)
@@ -179,15 +208,13 @@ const toggleThreadReaction = (
         clientPrev: getClientPrevFromThread(snapshot.messageMap, snapshot.messageOrdinals),
         conversationIDKey,
         emoji,
-        messageID,
+        messageID: message.id,
         outboxID,
         tlfName: getMeta(conversationIDKey).tlfname,
       })
     } catch (error) {
       thread.removeOptimisticReaction(localOutboxID)
-      if (error instanceof RPCError) {
-        logger.info(`toggleMessageReaction: failed to post` + error.message)
-      }
+      logReactionFailure(error)
     }
   }
   ignorePromise(f())
@@ -195,25 +222,12 @@ const toggleThreadReaction = (
 
 const toggleStorelessReaction = (
   conversationIDKey: T.Chat.ConversationIDKey,
-  target: StorelessMessageID,
+  target: ReactionTarget,
+  tlfName: string | undefined,
   emoji: string
 ) => {
-  const {messageID, tlfName} = target
   const f = async () => {
-    if (!emoji) {
-      return
-    }
-    if (!T.Chat.isValidConversationIDKey(conversationIDKey)) {
-      logger.warn('toggleConversationMessageReaction: no conversation id')
-      return
-    }
-    if (!T.Chat.messageIDToNumber(messageID)) {
-      logger.warn('toggleConversationMessageReaction: no message id')
-      return
-    }
-    const username = useCurrentUserState.getState().username
-    if (!username) {
-      logger.warn('toggleConversationMessageReaction: no current username')
+    if (!reactingUser(conversationIDKey, target, emoji)) {
       return
     }
     try {
@@ -221,13 +235,11 @@ const toggleStorelessReaction = (
         clientPrev: getConversationClientPrev(conversationIDKey),
         conversationIDKey,
         emoji,
-        messageID,
+        messageID: target.messageID,
         tlfName: tlfName || getInboxConversationMeta(conversationIDKey)?.tlfname || '',
       })
     } catch (error) {
-      if (error instanceof RPCError) {
-        logger.info(`toggleConversationMessageReaction: failed to post ${error.message}`)
-      }
+      logReactionFailure(error)
     }
   }
   ignorePromise(f())
@@ -244,39 +256,20 @@ export const toggleReaction = (
     toggleThreadReaction(conversationIDKey, target, emoji)
     return
   }
-  if ('message' in target) {
-    const {type, exploded, id: messageID} = target.message
-    if ((type === 'text' || type === 'attachment') && exploded) {
-      logger.warn('toggleConversationMessageReaction: message is exploded')
-      return
-    }
-    toggleStorelessReaction(conversationIDKey, {messageID, tlfName: target.tlfName}, emoji)
-    return
-  }
-  toggleStorelessReaction(conversationIDKey, target, emoji)
-}
-
-const threadReplyLog = {
-  noConversation: "messageReplyPrivately: couldn't make a new conversation?",
-  noMeta: 'messageReplyPrivately: unable to make meta',
-  signedOut: 'messageReplyPrivately: making a convo while logged out?',
-}
-const storelessReplyLog = {
-  noConversation: "replyPrivatelyToConversationMessage: couldn't make a new conversation",
-  noMeta: 'replyPrivatelyToConversationMessage: unable to make meta',
-  signedOut: 'replyPrivatelyToConversationMessage: making a convo while logged out?',
+  const reactionTarget =
+    'message' in target ? reactionTargetOf(target.message) : {exploded: false, messageID: target.messageID}
+  toggleStorelessReaction(conversationIDKey, reactionTarget, target.tlfName, emoji)
 }
 
 // Opens a conversation between you and the author with the text message quoted in the composer.
 // A non-text message still makes the conversation, but nothing is opened.
 export const replyPrivately = (target: ThreadMessage | StorelessMessage) => {
-  const log = isThread(target) ? threadReplyLog : storelessReplyLog
   const f = async () => {
     let message: T.Chat.Message | undefined
     if (isThread(target)) {
       message = target.thread.getSnapshot().messageMap.get(target.ordinal)
       if (!message) {
-        logger.warn("messageReplyPrivately: can't find message to reply to", target.ordinal)
+        logger.warn("replyPrivately: can't find message to reply to", target.ordinal)
         return
       }
     } else {
@@ -284,7 +277,7 @@ export const replyPrivately = (target: ThreadMessage | StorelessMessage) => {
     }
     const username = useCurrentUserState.getState().username
     if (!username) {
-      throw new Error(log.signedOut)
+      throw new Error('replyPrivately: making a convo while logged out?')
     }
     const result = await getChatRpc().createAdhocConversation(
       [username, message.author],
@@ -292,12 +285,12 @@ export const replyPrivately = (target: ThreadMessage | StorelessMessage) => {
     )
     const newThreadCID = T.Chat.conversationIDToKey(result.conv.info.id)
     if (!newThreadCID) {
-      logger.warn(log.noConversation)
+      logger.warn("replyPrivately: couldn't make a new conversation")
       return
     }
     const meta = Meta.inboxUIItemToConversationMeta(result.uiConv)
     if (!meta) {
-      logger.warn(log.noMeta)
+      logger.warn('replyPrivately: unable to make meta')
       return
     }
     if (message.type !== 'text') {

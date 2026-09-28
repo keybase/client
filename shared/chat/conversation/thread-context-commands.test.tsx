@@ -589,7 +589,7 @@ describe('toggleMessageReaction edges', () => {
     await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
     expect(result.current.store.getState().optimisticReactionMap.size).toBe(0)
     expect(error).not.toHaveBeenCalled()
-    expect(info).not.toHaveBeenCalledWith(expect.stringContaining('toggleMessageReaction'))
+    expect(info).not.toHaveBeenCalledWith(expect.stringContaining('toggleReaction'))
   })
 
   test('a service failure is logged as info', async () => {
@@ -597,7 +597,7 @@ describe('toggleMessageReaction edges', () => {
     const info = jest.spyOn(logger, 'info')
     renderThread([textAt(10)])
     await run(() => cmd.toggleMessageReaction(T.Chat.numberToOrdinal(10), ':+1:'))
-    expect(info).toHaveBeenCalledWith(expect.stringContaining('toggleMessageReaction: failed to post'))
+    expect(info).toHaveBeenCalledWith(expect.stringContaining('toggleReaction: failed to post'))
   })
 
   test('without meta the tlfName is empty and the post still goes', async () => {
@@ -641,7 +641,7 @@ describe('messageReplyPrivately edges', () => {
     renderThread([textAt(10)])
     await run(() => cmd.messageReplyPrivately(T.Chat.numberToOrdinal(10)))
     expect(navigate).not.toHaveBeenCalled()
-    expect(warn).toHaveBeenCalledWith('messageReplyPrivately: unable to make meta')
+    expect(warn).toHaveBeenCalledWith('replyPrivately: unable to make meta')
   })
 
   test('an empty conversation id, no navigation', async () => {
@@ -651,7 +651,7 @@ describe('messageReplyPrivately edges', () => {
     renderThread([textAt(10)])
     await run(() => cmd.messageReplyPrivately(T.Chat.numberToOrdinal(10)))
     expect(navigate).not.toHaveBeenCalled()
-    expect(warn).toHaveBeenCalledWith("messageReplyPrivately: couldn't make a new conversation?")
+    expect(warn).toHaveBeenCalledWith("replyPrivately: couldn't make a new conversation")
   })
 
   test('logged out it creates nothing and throws to ignorePromise', async () => {

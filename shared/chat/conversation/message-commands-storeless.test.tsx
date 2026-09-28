@@ -345,8 +345,8 @@ describe('storeless edges', () => {
     toggleConversationMessageReactionByID(conversationIDKey, T.Chat.numberToMessageID(10), ':-1:')
     await flushPromises()
     expect(rpc.calls('postReaction')).toHaveLength(2)
-    expect(info.mock.calls.filter(c => String(c[0]).startsWith('toggleConversationMessageReaction'))).toEqual([
-      [expect.stringContaining('toggleConversationMessageReaction: failed to post ')],
+    expect(info.mock.calls.filter(c => String(c[0]).startsWith('toggleReaction'))).toEqual([
+      [expect.stringContaining('toggleReaction: failed to post ')],
     ])
     expect(error).not.toHaveBeenCalled()
   })
@@ -358,7 +358,7 @@ describe('storeless edges', () => {
     replyPrivatelyToConversationMessage(textMessage())
     await flushPromises()
     expect(navigate).not.toHaveBeenCalled()
-    expect(warn).toHaveBeenCalledWith("replyPrivatelyToConversationMessage: couldn't make a new conversation")
+    expect(warn).toHaveBeenCalledWith("replyPrivately: couldn't make a new conversation")
   })
 
   test('reply privately with no meta warns', async () => {
@@ -367,7 +367,7 @@ describe('storeless edges', () => {
     const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
     replyPrivatelyToConversationMessage(textMessage())
     await flushPromises()
-    expect(warn).toHaveBeenCalledWith('replyPrivatelyToConversationMessage: unable to make meta')
+    expect(warn).toHaveBeenCalledWith('replyPrivately: unable to make meta')
   })
 
   test('a failed adhoc create goes to ignorePromise', async () => {
