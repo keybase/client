@@ -346,7 +346,21 @@ describe('editing', () => {
     expect(edits()).toEqual([])
   })
 
-  test('a failed edit is left to ignorePromise and the message stays editing', async () => {
+  test('an edit the service refuses puts the row back as it was and warns', async () => {
+    rpc.fail('postEdit', new RPCError('refused', T.RPCGen.StatusCode.scgeneric))
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    const result = renderSendActions([textAt(10, {submitState: 'failed'})])
+    act(() => {
+      result.current.send.sendMessage('changed', {editingOrdinal: T.Chat.numberToOrdinal(10)})
+    })
+    await act(async () => {
+      await flushPromises()
+    })
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('refused'))
+    expect(result.current.store.getState().messageMap.get(T.Chat.numberToOrdinal(10))?.submitState).toBe('failed')
+  })
+
+  test('an edit that fails for another reason puts the row back and reaches ignorePromise', async () => {
     rpc.fail('postEdit', new Error('offline'))
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     const result = renderSendActions([textAt(10)])
@@ -357,7 +371,25 @@ describe('editing', () => {
       await flushPromises()
     })
     expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(Error))
-    expect(result.current.store.getState().messageMap.get(T.Chat.numberToOrdinal(10))?.submitState).toBe('editing')
+    expect(result.current.store.getState().messageMap.get(T.Chat.numberToOrdinal(10))?.submitState).toBeUndefined()
+  })
+
+  test('a failed edit leaves a row that moved on since in its new state', async () => {
+    let fail: (e: Error) => void = () => {}
+    rpc.on('postEdit', async () => new Promise<void>((_, reject) => { fail = reject }))
+    jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    const result = renderSendActions([textAt(10)])
+    act(() => {
+      result.current.send.sendMessage('changed', {editingOrdinal: T.Chat.numberToOrdinal(10)})
+    })
+    act(() => {
+      result.current.actions.setMessageSubmitState(T.Chat.numberToOrdinal(10), 'failed')
+    })
+    await act(async () => {
+      fail(new RPCError('refused', T.RPCGen.StatusCode.scgeneric))
+      await flushPromises()
+    })
+    expect(result.current.store.getState().messageMap.get(T.Chat.numberToOrdinal(10))?.submitState).toBe('failed')
   })
 })
 

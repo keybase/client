@@ -81,16 +81,30 @@ export const useConversationSendActions = () => {
     if (message.type === 'attachment' && message.title === text) {
       return
     }
+    // a failed or pending row gets its state back if the edit fails, so it can still be retried
+    const priorSubmitState = message.submitState
     actions.setMessageSubmitState(ordinal, 'editing')
     const f = async () => {
-      await getChatRpc().postEdit({
-        clientPrev: getClientPrev(),
-        conversationIDKey,
-        messageID: message.id,
-        messageOutboxID: message.outboxID,
-        text,
-        tlfName: getTlfName(),
-      })
+      try {
+        await getChatRpc().postEdit({
+          clientPrev: getClientPrev(),
+          conversationIDKey,
+          messageID: message.id,
+          messageOutboxID: message.outboxID,
+          text,
+          tlfName: getTlfName(),
+        })
+      } catch (error) {
+        // only undoes our own mark: a row that moved on since keeps its new state
+        if (threadStore.getState().messageMap.get(ordinal)?.submitState === 'editing') {
+          actions.setMessageSubmitState(ordinal, priorSubmitState)
+        }
+        if (error instanceof RPCError) {
+          logger.warn(`editMessage: failed to edit: ${error.message}`)
+        } else {
+          throw error
+        }
+      }
     }
     ignorePromise(f())
   }
