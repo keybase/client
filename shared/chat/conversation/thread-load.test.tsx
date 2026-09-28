@@ -5,8 +5,8 @@ import * as Teams from '@/constants/teams'
 import RPCError from '@/util/rpcerror'
 import logger from '@/logger'
 import {makeMessageText} from '@/constants/chat/message'
+import {getClientPrevFromSnapshot} from './client-prev'
 import {
-  getClientPrevFromSnapshot,
   getExplodingModeFromGregorItems,
   getLastOrdinalFromSnapshot,
   getOrdinalForMessageIDInSnapshot,

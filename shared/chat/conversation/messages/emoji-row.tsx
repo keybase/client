@@ -6,10 +6,11 @@ import * as T from '@/constants/types'
 import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
 import {useReactionRowTopReacjis} from '@/chat/user-reacjis'
 import {showForwardMessagePicker} from '../fwd-msg'
+import {toggleReaction} from '../message-commands'
 import {
+  useConversationThreadActions,
   useConversationThreadID,
   useConversationThreadMessage,
-  useConversationThreadMessageActions,
 } from '../thread-context'
 
 // A raised hover bar stops this far above the scroller's bottom edge instead of flush against it.
@@ -43,7 +44,7 @@ function EmojiRowContainer(p: OwnProps) {
   } = p
   const ordinal = useOrdinal()
   const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
-  const {toggleMessageReaction} = useConversationThreadMessageActions()
+  const thread = useConversationThreadActions()
   const emojis = useReactionRowTopReacjis()
   const conversationIDKey = useConversationThreadID()
   const message = useConversationThreadMessage(ordinal)
@@ -59,7 +60,7 @@ function EmojiRowContainer(p: OwnProps) {
       onReactProp(emoji)
       return
     }
-    toggleMessageReaction(ordinal, emoji)
+    toggleReaction(conversationIDKey, {ordinal, thread}, emoji)
   }
   const _onReply = () => {
     setReplyTo(ordinal)

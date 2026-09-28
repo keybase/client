@@ -15,10 +15,10 @@ import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {getClientPrevFromThread} from './client-prev'
 import {
   attachmentDownloadMessage,
   cancelAttachmentUploads,
-  getClientPrevFromThread,
   loadNextAttachmentMessage,
   makePasteAttachment,
   messageAttachmentNativeSaveMessage,

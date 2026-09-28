@@ -5,7 +5,8 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 import {useConversationAttachmentActions} from '../../attachment-actions'
-import {useConversationThreadMessageActions} from '../../thread-context'
+import {toggleCollapse} from '../../message-commands'
+import {useConversationThreadActions, useConversationThreadID} from '../../thread-context'
 
 type Props = {
   transferState: T.Chat.MessageAttachmentTransferState
@@ -300,9 +301,14 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
 }))
 
 const useCollapseAction = (ordinal: T.Chat.Ordinal) => {
-  const {toggleMessageCollapse} = useConversationThreadMessageActions()
+  const conversationIDKey = useConversationThreadID()
+  const thread = useConversationThreadActions()
   const onCollapse = () => {
-    toggleMessageCollapse(T.Chat.numberToMessageID(T.Chat.ordinalToNumber(ordinal)), ordinal)
+    toggleCollapse(
+      conversationIDKey,
+      {ordinal, thread},
+      T.Chat.numberToMessageID(T.Chat.ordinalToNumber(ordinal))
+    )
   }
   return onCollapse
 }

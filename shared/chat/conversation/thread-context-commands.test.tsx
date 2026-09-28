@@ -18,9 +18,16 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {
+  deleteMessage,
+  dismissJourneycard,
+  removeUnfurl,
+  replyPrivately,
+  toggleCollapse,
+  toggleReaction,
+} from './message-commands'
+import {
   ConversationThreadProvider,
   useConversationThreadActions,
-  useConversationThreadDismissJourneycard,
   useConversationThreadStore,
   useConversationThreadUnfurlResolvePrompt,
 } from './thread-context'
@@ -55,7 +62,6 @@ const renderThread = (messages: ReadonlyArray<T.Chat.Message> = []) => {
   const rendered = renderHook(
     () => ({
       actions: useConversationThreadActions(),
-      dismissJourneycard: useConversationThreadDismissJourneycard(),
       resolveUnfurlPrompt: useConversationThreadUnfurlResolvePrompt(),
       store: useConversationThreadStore(),
     }),
@@ -68,14 +74,14 @@ const renderThread = (messages: ReadonlyArray<T.Chat.Message> = []) => {
   }
   const result = rendered.result
   const message = (n: number) => result.current.store.getState().messageMap.get(T.Chat.numberToOrdinal(n))
+  const row = (ordinal: T.Chat.Ordinal) => ({ordinal, thread: result.current.actions})
   cmd = {
-    dismissJourneycard: (cardType, ordinal) => result.current.dismissJourneycard(cardType, ordinal),
-    messageDelete: ordinal => result.current.actions.messageDelete(ordinal),
-    messageReplyPrivately: ordinal => result.current.actions.messageReplyPrivately(ordinal),
-    toggleMessageCollapse: (messageID, ordinal) =>
-      result.current.actions.toggleMessageCollapse(messageID, ordinal),
-    toggleMessageReaction: (ordinal, emoji) => result.current.actions.toggleMessageReaction(ordinal, emoji),
-    unfurlRemove: messageID => result.current.actions.unfurlRemove(messageID),
+    dismissJourneycard: (cardType, ordinal) => dismissJourneycard(conversationIDKey, cardType, row(ordinal)),
+    messageDelete: ordinal => deleteMessage(conversationIDKey, row(ordinal)),
+    messageReplyPrivately: ordinal => replyPrivately(row(ordinal)),
+    toggleMessageCollapse: (messageID, ordinal) => toggleCollapse(conversationIDKey, row(ordinal), messageID),
+    toggleMessageReaction: (ordinal, emoji) => toggleReaction(conversationIDKey, row(ordinal), emoji),
+    unfurlRemove: messageID => removeUnfurl(conversationIDKey, messageID),
   }
   return {message, result}
 }

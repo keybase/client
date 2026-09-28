@@ -4,13 +4,13 @@ import type * as React from 'react'
 import * as T from '@/constants/types'
 import {copyToClipboard} from '@/util/storeless-actions'
 import {openURL} from '@/util/misc'
-import {replyPrivatelyToConversationMessage} from '../../message-actions'
+import {replyPrivately} from '../../message-commands'
 import {useConversationMetadata, useConversationParticipants} from '../../data-hooks'
 import {useCurrentUserState} from '@/stores/current-user'
 import {
+  useConversationThreadActions,
   useConversationThreadID,
   useConversationThreadMessage,
-  useConversationThreadMessageActions,
   useThreadMeta,
 } from '../../thread-context'
 import type {MessagePopupItems} from './hooks'
@@ -159,7 +159,7 @@ const PopTextThread = (ownProps: OwnProps) => {
   const participantInfo = useConversationParticipants(conversationIDKey)
   const itemsData = useItems(ordinal, onHidden)
   const header = useHeader(ordinal, onHidden)
-  const {messageReplyPrivately} = useConversationThreadMessageActions()
+  const thread = useConversationThreadActions()
   return (
     <PopTextLoaded
       {...ownProps}
@@ -167,7 +167,7 @@ const PopTextThread = (ownProps: OwnProps) => {
       itemsData={itemsData}
       message={message}
       meta={meta}
-      onReplyPrivately={() => messageReplyPrivately(ordinal)}
+      onReplyPrivately={() => replyPrivately({ordinal, thread})}
       participantInfo={participantInfo}
     />
   )
@@ -187,7 +187,7 @@ const PopTextStoreless = (ownProps: OwnProps & {
       header={header}
       itemsData={itemsData}
       meta={meta}
-      onReplyPrivately={() => replyPrivatelyToConversationMessage(message)}
+      onReplyPrivately={() => replyPrivately({message})}
       participantInfo={participantInfo}
     />
   )

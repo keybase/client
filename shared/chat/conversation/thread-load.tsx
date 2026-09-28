@@ -5,7 +5,6 @@ import * as Strings from '@/constants/strings'
 import * as T from '@/constants/types'
 import {navigateToInbox} from '@/constants/router'
 import logger from '@/logger'
-import {findLast} from '@/util/arrays'
 import {ignorePromise} from '@/constants/utils'
 import {RPCError} from '@/util/errors'
 import {persistRoute} from '@/util/storeless-actions'
@@ -119,15 +118,6 @@ export const threadLoadReasonToRPCReason = (reason: string): T.RPCChat.GetThread
     default:
       return T.RPCChat.GetThreadReason.general
   }
-}
-
-export const getClientPrevFromSnapshot = (snapshot: ConversationThreadState): T.Chat.MessageID => {
-  const ordinal = findLast(snapshot.messageOrdinals ?? [], o => {
-    const m = snapshot.messageMap.get(o)
-    return !!m?.id
-  })
-  const message = ordinal ? snapshot.messageMap.get(ordinal) : undefined
-  return message?.id || T.Chat.numberToMessageID(0)
 }
 
 export const getLastOrdinalFromSnapshot = (snapshot: ConversationThreadState) =>

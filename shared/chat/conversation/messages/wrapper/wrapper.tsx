@@ -26,11 +26,11 @@ import {
   ShownUsernameCacheContext,
   useConversationThreadActions,
   useConversationThreadID,
-  useConversationThreadMessageActions,
   useConversationThreadSelector,
   useThreadMeta,
 } from '../../thread-context'
 import {emptyParticipantInfo} from '../../data-hooks'
+import {deleteMessage, toggleReaction} from '../../message-commands'
 import {useInboxMetadataState} from '@/chat/inbox/metadata'
 import type {ConversationInputState} from '../../input-area/input-state'
 import {useChatTeamMemberRole} from '../../team-hooks'
@@ -388,10 +388,19 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
   const uiDispatch = InputState.useConversationInputDispatch(
     C.useShallow(s => ({setEditing: s.setEditing, setReplyTo: s.setReplyTo}))
   )
-  const {retryMessage} = useConversationThreadActions()
-  const messageActions = useConversationThreadMessageActions()
+  const thread = useConversationThreadActions()
+  const {retryMessage} = thread
   const shownCache = React.useContext(ShownUsernameCacheContext)
   const conversationIDKey = useConversationThreadID()
+  // the selector below hands these to every row, so they must keep their identity across renders
+  const messageActions = React.useMemo(
+    () => ({
+      messageDelete: (ordinal: T.Chat.Ordinal) => deleteMessage(conversationIDKey, {ordinal, thread}),
+      toggleMessageReaction: (ordinal: T.Chat.Ordinal, emoji: string) =>
+        toggleReaction(conversationIDKey, {ordinal, thread}, emoji),
+    }),
+    [conversationIDKey, thread]
+  )
   // Reload-free read: avoid useConversationParticipants' per-mount unboxRows + engine
   // listener registration, which is too expensive to pay per message row.
   const participantInfo = useInboxMetadataState(s => s.participants.get(conversationIDKey)) ?? emptyParticipantInfo

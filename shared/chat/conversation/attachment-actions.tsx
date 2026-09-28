@@ -21,20 +21,6 @@ import {getChatRpc} from './chat-rpc'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
-export const getClientPrevFromThread = (
-  messageMap: ReadonlyMap<T.Chat.Ordinal, T.Chat.Message>,
-  messageOrdinals?: ReadonlyArray<T.Chat.Ordinal>
-): T.Chat.MessageID => {
-  for (let idx = (messageOrdinals?.length ?? 0) - 1; idx >= 0; --idx) {
-    const ordinal = messageOrdinals?.[idx]
-    const message = ordinal ? messageMap.get(ordinal) : undefined
-    if (message?.id) {
-      return message.id
-    }
-  }
-  return T.Chat.numberToMessageID(0)
-}
-
 export const cancelAttachmentUploads = (outboxIDs: ReadonlyArray<T.RPCChat.OutboxID>) => {
   const f = async () => {
     const promises = outboxIDs.map(async outboxID =>

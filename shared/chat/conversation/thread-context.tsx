@@ -1,16 +1,14 @@
 import * as Common from '@/constants/chat/common'
 import * as Meta from '@/constants/chat/meta'
 import * as React from 'react'
-import * as Strings from '@/constants/strings'
 import * as T from '@/constants/types'
-import {getVisibleScreen, navigateAppend, navigateToThread, navigateUp, setChatRootParams} from '@/constants/router'
+import {getVisibleScreen, navigateAppend, navigateUp, setChatRootParams} from '@/constants/router'
 import {isPhone} from '@/constants/platform'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
 import {clearChatTimeCache} from '@/util/timestamp'
 import {findLast} from '@/util/arrays'
 import {ignorePromise} from '@/constants/utils'
-import {RPCError} from '@/util/errors'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import {useConfigState} from '@/stores/config'
@@ -43,7 +41,6 @@ import {
 import {
   getInboxConversationMeta,
   getInboxConversationParticipants,
-  metasReceived,
   unboxRows,
   useInboxMetadataState,
 } from '@/chat/inbox/metadata'
@@ -51,7 +48,6 @@ import {getChatRpc, loadThreadMessageIDAtIndex} from './chat-rpc'
 import {cancelActiveThreadSearchRPC} from '../search-rpc'
 import {
   emptyConversationMeta,
-  getClientPrevFromSnapshot,
   getExplodingModeFromConfig,
   getMeta,
   loadConversationThreadMessages,
@@ -78,12 +74,6 @@ const emptyParticipantInfo: T.Chat.ParticipantInfo = {
   contactName: new Map(),
   name: [],
 }
-
-const formatTextForQuoting = (text: string) =>
-  text
-    .split('\n')
-    .map(line => `> ${line}\n`)
-    .join('')
 
 const ConversationThreadIDContext = React.createContext<T.Chat.ConversationIDKey | undefined>(undefined)
 ConversationThreadIDContext.displayName = 'ConversationThreadIDContext'
@@ -251,8 +241,6 @@ export type ConversationThreadActions = {
   loadMoreMessages: LoadMoreMessages
   markThreadAsRead: () => void
   setMarkReadBlocked: (blocked: boolean) => void
-  messageDelete: (ordinal: T.Chat.Ordinal) => void
-  messageReplyPrivately: (ordinal: T.Chat.Ordinal) => void
   messagesClear: MessagesClear
   receivePaymentInfo: (messageID: T.Chat.MessageID, paymentInfo: T.Chat.ChatPaymentInfo) => void
   receiveRequestInfo: (messageID: T.Chat.MessageID, requestInfo: T.Chat.ChatRequestInfo) => void
@@ -266,9 +254,6 @@ export type ConversationThreadActions = {
   addOptimisticReaction: (outboxID: T.Chat.OutboxID, reaction: OptimisticReaction) => void
   removeOptimisticReaction: (outboxID: T.Chat.OutboxID) => void
   updateOptimisticReactionDecorated: (outboxID: T.Chat.OutboxID, decorated: string) => void
-  toggleMessageCollapse: (messageID: T.Chat.MessageID, ordinal: T.Chat.Ordinal) => void
-  toggleMessageReaction: (ordinal: T.Chat.Ordinal, emoji: string) => void
-  unfurlRemove: (messageID: T.Chat.MessageID) => void
   updateReactions: (
     updates: ReadonlyArray<{targetMsgID: T.Chat.MessageID; reactions?: T.Chat.Reactions}>
   ) => void
@@ -732,97 +717,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
     }
     ignorePromise(f())
   })
-  const messageDelete = React.useEffectEvent((ordinal: T.Chat.Ordinal) => {
-    updateThreadState(s => {
-      const m = s.messageMap.get(ordinal)
-      if (m?.type === 'text') {
-        m.submitState = 'deleting'
-      }
-    })
-    const revertDeleting = () => {
-      updateThreadState(s => {
-        const m = s.messageMap.get(ordinal)
-        if (m?.type === 'text' && m.submitState === 'deleting') {
-          m.submitState = undefined
-        }
-      })
-    }
-
-    const f = async () => {
-      const snapshot = getSnapshot()
-      const message = snapshot.messageMap.get(ordinal)
-      if (!message) {
-        logger.warn('Deleting invalid message')
-        revertDeleting()
-        return
-      }
-      if (!getInboxConversationMeta(id)) {
-        logger.warn('Deleting message w/ no meta')
-        revertDeleting()
-        return
-      }
-      try {
-        if (!message.id) {
-          if (message.outboxID) {
-            await getChatRpc().cancelPost(message.outboxID)
-            deleteMessages({ordinals: [message.ordinal]})
-          } else {
-            logger.warn('Delete of no message id and no outboxid')
-            revertDeleting()
-          }
-          return
-        }
-        await getChatRpc().postDelete({
-          conversationIDKey: id,
-          messageID: message.id,
-          tlfName: getMeta(id).tlfname,
-        })
-      } catch (error) {
-        revertDeleting()
-        if (error instanceof RPCError) {
-          logger.warn(`messageDelete: failed to delete: ${error.message}`)
-        } else {
-          throw error
-        }
-      }
-    }
-    ignorePromise(f())
-  })
-  const messageReplyPrivately = React.useEffectEvent((ordinal: T.Chat.Ordinal) => {
-    const f = async () => {
-      const message = getSnapshot().messageMap.get(ordinal)
-      if (!message) {
-        logger.warn("messageReplyPrivately: can't find message to reply to", ordinal)
-        return
-      }
-      const username = useCurrentUserState.getState().username
-      if (!username) {
-        throw new Error('messageReplyPrivately: making a convo while logged out?')
-      }
-      const result = await getChatRpc().createAdhocConversation(
-        [username, message.author],
-        Strings.waitingKeyChatCreating
-      )
-      const newThreadCID = T.Chat.conversationIDToKey(result.conv.info.id)
-      if (!newThreadCID) {
-        logger.warn("messageReplyPrivately: couldn't make a new conversation?")
-        return
-      }
-      const meta = Meta.inboxUIItemToConversationMeta(result.uiConv)
-      if (!meta) {
-        logger.warn('messageReplyPrivately: unable to make meta')
-        return
-      }
-      if (message.type !== 'text') {
-        return
-      }
-
-      const text = formatTextForQuoting(message.text.stringValue())
-      metasReceived([meta])
-      navigateToThread(newThreadCID, 'createdMessagePrivately', {intent: {text, type: 'injectText'}})
-    }
-    ignorePromise(f())
-  })
   const addOptimisticReaction = React.useEffectEvent(
     (outboxID: T.Chat.OutboxID, reaction: OptimisticReaction) => {
       updateThreadState(s => {
@@ -845,97 +739,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       })
     }
   )
-  const toggleMessageCollapse = React.useEffectEvent(
-    (messageID: T.Chat.MessageID, ordinal: T.Chat.Ordinal) => {
-      const f = async () => {
-        const snapshot = getSnapshot()
-        const m = snapshot.messageMap.get(ordinal)
-        let isCollapsed = false
-
-        if (T.Chat.messageIDToNumber(messageID) !== T.Chat.ordinalToNumber(ordinal)) {
-          const unfurlInfos = [...(m?.unfurls?.values() ?? [])]
-          const ui = unfurlInfos.find(u => u.unfurlMessageID === messageID)
-          if (ui) {
-            isCollapsed = ui.isCollapsed
-          }
-        } else {
-          isCollapsed = m?.isCollapsed ?? false
-        }
-        await getChatRpc().toggleCollapse({collapse: !isCollapsed, conversationIDKey: id, messageID})
-      }
-      ignorePromise(f())
-    }
-  )
-  const toggleMessageReaction = React.useEffectEvent((ordinal: T.Chat.Ordinal, emoji: string) => {
-    const f = async () => {
-      if (!emoji) {
-        return
-      }
-      const snapshot = getSnapshot()
-      const message = snapshot.messageMap.get(ordinal)
-      if (!message) {
-        logger.warn(`toggleMessageReaction: no message found`)
-        return
-      }
-      const {type, exploded, id: messageID} = message
-      if ((type === 'text' || type === 'attachment') && exploded) {
-        logger.warn(`toggleMessageReaction: message is exploded`)
-        return
-      }
-      if (!messageID) {
-        logger.warn(`toggleMessageReaction: message has no id yet`)
-        return
-      }
-      const username = useCurrentUserState.getState().username
-      if (!username) {
-        logger.warn(`toggleMessageReaction: no current username`)
-        return
-      }
-      const displayMessage = applyOptimisticReactionsToMessage(message, snapshot.optimisticReactionMap)
-      const add =
-        !displayMessage?.reactions?.get(emoji)?.users.some(reaction => reaction.username === username)
-      const outboxID = Common.generateOutboxID()
-      const localOutboxID = T.Chat.rpcOutboxIDToOutboxID(outboxID)
-      addOptimisticReaction(localOutboxID, {
-        add,
-        decorated: emoji,
-        emoji,
-        targetOrdinal: ordinal,
-        timestamp: Date.now(),
-        username,
-      })
-      try {
-        await getChatRpc().postReaction({
-          clientPrev: getClientPrevFromSnapshot(snapshot),
-          conversationIDKey: id,
-          emoji,
-          messageID,
-          outboxID,
-          tlfName: getMeta(id).tlfname,
-        })
-      } catch (error) {
-        removeOptimisticReaction(localOutboxID)
-        if (error instanceof RPCError) {
-          logger.info(`toggleMessageReaction: failed to post` + error.message)
-        }
-      }
-    }
-    ignorePromise(f())
-  })
-  const unfurlRemove = React.useEffectEvent((messageID: T.Chat.MessageID) => {
-    const f = async () => {
-      if (!getInboxConversationMeta(id)) {
-        logger.debug('unfurl remove no meta found, aborting!')
-        return
-      }
-      await getChatRpc().postDelete({
-        conversationIDKey: id,
-        messageID,
-        tlfName: getMeta(id).tlfname,
-      })
-    }
-    ignorePromise(f())
-  })
   const setMessageSubmitState = React.useEffectEvent(
     (ordinal: T.Chat.Ordinal, submitState: T.Chat.Message['submitState']) => {
       updateThreadState(s => {
@@ -1137,8 +940,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       getSnapshot,
       loadMoreMessages,
       markThreadAsRead,
-      messageDelete,
-      messageReplyPrivately,
       messagesClear,
       receivePaymentInfo,
       receiveRequestInfo,
@@ -1153,9 +954,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       setTyping,
       showUnfurlPrompt,
       startAttachmentDownload,
-      toggleMessageCollapse,
-      toggleMessageReaction,
-      unfurlRemove,
       updateAttachmentDownloadProgress,
       updateAttachmentUploadProgress,
       updateCoinFlipStatuses,
@@ -1331,12 +1129,6 @@ export const useConversationThreadSetMarkAsUnread = () => useConversationThreadA
 
 export const useConversationThreadSetMarkReadBlocked = () => useConversationThreadActions().setMarkReadBlocked
 
-export const useConversationThreadMessageActions = () => {
-  const {messageDelete, messageReplyPrivately, toggleMessageCollapse, toggleMessageReaction, unfurlRemove} =
-    useConversationThreadActions()
-  return {messageDelete, messageReplyPrivately, toggleMessageCollapse, toggleMessageReaction, unfurlRemove}
-}
-
 export const useConversationThreadSelectedConversation = () => {
   const conversationIDKey = useConversationThreadID()
   const loadMoreMessages = useConversationThreadLoadMoreMessages()
@@ -1427,22 +1219,6 @@ export const useConversationShowInfoPanel = () => {
   const conversationIDKey = useConversationThreadID()
   return (show: boolean, tab: ConversationInfoPanelTab) => {
     showConversationInfoPanel(conversationIDKey, show, tab)
-  }
-}
-
-export const useConversationThreadDismissJourneycard = () => {
-  const conversationIDKey = useConversationThreadID()
-  const {deleteMessages} = useConversationThreadActions()
-  return (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) => {
-    const f = async () => {
-      await getChatRpc().dismissJourneycard(conversationIDKey, cardType).catch((error: unknown) => {
-        if (error instanceof RPCError) {
-          logger.error(`Failed to dismiss journeycard: ${error.message}`)
-        }
-      })
-      deleteMessages({ordinals: [ordinal]})
-    }
-    ignorePromise(f())
   }
 }
 

@@ -3,11 +3,7 @@ import * as Chat from '@/constants/chat'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {copyToClipboard} from '@/util/storeless-actions'
-import {
-  deleteConversationMessage,
-  pinConversationMessage,
-  toggleConversationMessageReaction,
-} from '../../message-actions'
+import {deleteMessage, pinMessage, toggleReaction} from '../../message-commands'
 import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 import {linkFromConvAndMessage} from '@/constants/deeplinks'
 import {markConversationAsUnread, useConversationParticipants} from '../../data-hooks'
@@ -21,9 +17,9 @@ import {SetOrangeLineContext} from '../../orange-line-context'
 import {useChatTeam, useChatTeamMembers} from '../../team-hooks'
 import {useCurrentUserState} from '@/stores/current-user'
 import {
+  useConversationThreadActions,
   useConversationThreadID,
   useConversationThreadMessage,
-  useConversationThreadMessageActions,
   useConversationThreadSetMarkAsUnread,
   useThreadMeta,
 } from '../../thread-context'
@@ -194,7 +190,7 @@ const useItemsForMessage = (p: {
   const canPinMessage = (!isTeam || yourOperations.pinMessage) && !message.exploded
   const _onPinMessage = () => {
     if (id) {
-      pinConversationMessage(conversationIDKey, id)
+      pinMessage(conversationIDKey, id)
     }
   }
   const onPinMessage = canPinMessage && hasMessageID ? _onPinMessage : undefined
@@ -365,15 +361,15 @@ const useThreadItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const message = useConversationThreadMessage(ordinal) ?? emptyText
   const meta = useThreadMeta(m => m)
   const participantInfo = useConversationParticipants(conversationIDKey)
-  const {messageDelete, toggleMessageReaction} = useConversationThreadMessageActions()
+  const thread = useConversationThreadActions()
   const setMarkAsUnread = useConversationThreadSetMarkAsUnread()
   // Rendered inline in the thread, so the composer is right here in context.
   const inputDispatch = useConversationInputDispatchOptional()
   return useItemsForMessage({
     actions: {
-      deleteMessage: () => messageDelete(ordinal),
+      deleteMessage: () => deleteMessage(conversationIDKey, {ordinal, thread}),
       markAsUnread: setMarkAsUnread,
-      toggleReaction: emoji => toggleMessageReaction(ordinal, emoji),
+      toggleReaction: emoji => toggleReaction(conversationIDKey, {ordinal, thread}, emoji),
     },
     conversationIDKey,
     inputDispatch,
@@ -393,10 +389,10 @@ export const useStorelessItems = (p: {
 }) =>
   useItemsForMessage({
     actions: {
-      deleteMessage: () => deleteConversationMessage(p.conversationIDKey, p.message, p.meta.tlfname),
+      deleteMessage: () => deleteMessage(p.conversationIDKey, {message: p.message, tlfName: p.meta.tlfname}),
       markAsUnread: id => markConversationAsUnread(p.conversationIDKey, id),
       toggleReaction: emoji =>
-        toggleConversationMessageReaction(p.conversationIDKey, p.message, emoji, p.meta.tlfname),
+        toggleReaction(p.conversationIDKey, {message: p.message, tlfName: p.meta.tlfname}, emoji),
     },
     conversationIDKey: p.conversationIDKey,
     message: p.message,

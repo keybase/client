@@ -11,14 +11,32 @@ import {makeMessageAttachment, makeMessageText} from '@/constants/chat/message'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
-import {
-  deleteConversationMessage,
-  dismissConversationJourneycard,
-  pinConversationMessage,
-  replyPrivatelyToConversationMessage,
-  toggleConversationMessageReaction,
-  toggleConversationMessageReactionByID,
-} from './message-actions'
+import {deleteMessage, dismissJourneycard, pinMessage, replyPrivately, toggleReaction} from './message-commands'
+
+// The message commands with no thread: each target is the message itself, or its id.
+const deleteConversationMessage = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  message: T.Chat.Message,
+  tlfName?: string
+) => deleteMessage(conversationIDKey, {message, tlfName})
+const toggleConversationMessageReaction = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  message: T.Chat.Message,
+  emoji: string,
+  tlfName?: string
+) => toggleReaction(conversationIDKey, {message, tlfName}, emoji)
+const toggleConversationMessageReactionByID = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  messageID: T.Chat.MessageID,
+  emoji: string,
+  tlfName?: string
+) => toggleReaction(conversationIDKey, {messageID, tlfName}, emoji)
+const replyPrivatelyToConversationMessage = (message: T.Chat.Message) => replyPrivately({message})
+const pinConversationMessage = pinMessage
+const dismissConversationJourneycard = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  cardType: T.RPCChat.JourneycardType
+) => dismissJourneycard(conversationIDKey, cardType)
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 let rpc: FakeChatRpc

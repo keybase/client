@@ -9,8 +9,9 @@ import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {setMemberPublicity} from '@/teams/actions'
 import {useTeamsListMap} from '@/teams/use-teams-list'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
+import {dismissJourneycard} from '../../../message-commands'
 import {
-  useConversationThreadDismissJourneycard,
+  useConversationThreadActions,
   useConversationThreadID,
   useConversationThreadMessage,
   useThreadMeta,
@@ -42,10 +43,12 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const canShowcase = teamMeta.allowPromote || teamMeta.role === 'admin' || teamMeta.role === 'owner'
   const isBigTeam = useInboxLayoutState(s => getIsBigTeam(s.layout, teamID))
   const navigateAppend = C.Router2.navigateAppend
-  const dismissJourneycard = useConversationThreadDismissJourneycard()
+  const conversationIDKey = useConversationThreadID()
+  const thread = useConversationThreadActions()
   const onAuthorClick = () => navigateAppend({name: 'team', params: {teamID}})
   const onBrowseChannels = () => navigateAppend({name: 'teamAddToChannels', params: {teamID}})
-  const onDismiss = () => dismissJourneycard(message.cardType, message.ordinal)
+  const onDismiss = () =>
+    dismissJourneycard(conversationIDKey, message.cardType, {ordinal: message.ordinal, thread})
   const onGoToChannel = (channelName: string) =>
     C.Router2.previewConversation({channelname: channelName, reason: 'journeyCardPopular', teamname})
   const onPublishTeam = () => {
@@ -53,7 +56,6 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
     setMemberPublicity(teamID, true)
   }
 
-  const conversationIDKey = useConversationThreadID()
   const {cardType} = message
   let textComponent: React.ReactNode
   let image: Kb.IconType | undefined

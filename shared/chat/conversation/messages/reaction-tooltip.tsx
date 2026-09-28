@@ -6,7 +6,8 @@ import ReactButton from './react-button'
 import * as T from '@/constants/types'
 import {MessageContext} from './ids-context'
 import {useUsersState} from '@/stores/users'
-import {useConversationThreadID, useConversationThreadMessage, useConversationThreadMessageActions} from '../thread-context'
+import {toggleReaction} from '../message-commands'
+import {useConversationThreadActions, useConversationThreadID, useConversationThreadMessage} from '../thread-context'
 
 const positionFallbacks = ['bottom center', 'left center'] as const
 
@@ -38,7 +39,7 @@ const ReactionTooltip = (p: OwnProps) => {
   const message = useConversationThreadMessage(ordinal)
   const reactions = message && Chat.isMessageWithReactions(message) ? message.reactions : undefined
   const usersInfo = useUsersState(s => (reactions ? s.infoMap : emptyUsersInfo))
-  const {toggleMessageReaction} = useConversationThreadMessageActions()
+  const thread = useConversationThreadActions()
   const conversationIDKey = useConversationThreadID()
   const hasMessageID = !!message && !!T.Chat.messageIDToNumber(message.id)
 
@@ -125,7 +126,7 @@ const ReactionTooltip = (p: OwnProps) => {
       <ReactButton
         emoji={section.title}
         reaction={section.reaction}
-        toggleReaction={emoji => toggleMessageReaction(section.ordinal, emoji)}
+        toggleReaction={emoji => toggleReaction(conversationIDKey, {ordinal: section.ordinal, thread}, emoji)}
       />
       <Kb.Text type="Terminal" lineClamp={1} style={styles.emojiText}>
         {section.title}

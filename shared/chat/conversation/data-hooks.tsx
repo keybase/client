@@ -158,9 +158,6 @@ export const useConversationParticipantsSelector = <TValue,>(
 export const useConversationExplodingMode = (conversationIDKey: T.Chat.ConversationIDKey) =>
   useConfigState(state => getExplodingModeFromGregorItems(conversationIDKey, state.gregorPushState) ?? 0)
 
-export const getConversationClientPrev = (conversationIDKey: T.Chat.ConversationIDKey) =>
-  getInboxConversationMeta(conversationIDKey)?.maxVisibleMsgID ?? T.Chat.numberToMessageID(0)
-
 const parseThreadMessages = (conversationIDKey: T.Chat.ConversationIDKey, thread: string) => {
   if (!thread) {
     return emptyMessages

@@ -23,11 +23,11 @@ import {
   useConversationThreadLoadOlderMessagesDueToScroll,
   useConversationThreadMarkThreadAsRead,
   useConversationThreadMessage,
-  useConversationThreadMessageActions,
   useConversationThreadSelector,
   useConversationThreadStore,
 } from './thread-context'
 import {ConversationThreadLoadStatusProvider} from './thread-load-status-context'
+import {toggleReaction} from './message-commands'
 import {useConversationParticipants} from './data-hooks'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
@@ -1214,7 +1214,6 @@ test('toggleMessageReaction overlays locally without mutating server reactions',
     () => ({
       actions: useConversationThreadActions(),
       message: useConversationThreadMessage(targetOrdinal),
-      messageActions: useConversationThreadMessageActions(),
       store: useConversationThreadStore(),
     }),
     {wrapper}
@@ -1231,7 +1230,7 @@ test('toggleMessageReaction overlays locally without mutating server reactions',
   })
 
   act(() => {
-    result.current.messageActions.toggleMessageReaction(targetOrdinal, ':+1:')
+    toggleReaction(convID, {ordinal: targetOrdinal, thread: result.current.actions}, ':+1:')
   })
 
   expect(result.current.message?.reactions?.get(':+1:')?.users.map(u => u.username)).toEqual(['alice'])
