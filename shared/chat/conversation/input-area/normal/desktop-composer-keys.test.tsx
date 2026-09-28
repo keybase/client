@@ -56,7 +56,7 @@ const noOrdinal = T.Chat.numberToOrdinal(0)
 
 const makeTextMessage = (text: string) =>
   Message.makeMessageText({
-    author: 'alice',
+    author: 'testuser',
     conversationIDKey: convID,
     id: T.Chat.numberToMessageID(101),
     isEditable: true,
@@ -175,7 +175,7 @@ beforeEach(() => {
     deviceID: 'device-id',
     deviceName: 'test-device',
     uid: 'uid',
-    username: 'alice',
+    username: 'testuser',
   })
 })
 

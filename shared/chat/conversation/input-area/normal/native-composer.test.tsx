@@ -474,7 +474,7 @@ test('hardware enter while editing sends the edit', async () => {
     threadActions?.addMessages(
       [
         makeMessageText({
-          author: 'alice',
+          author: 'testuser',
           conversationIDKey: convID,
           id: m.T.Chat.numberToMessageID(101),
           isEditable: true,
