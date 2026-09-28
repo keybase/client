@@ -590,6 +590,19 @@ describe('thread refs (keyboard and composer scrolling)', () => {
     ])
   })
 
+  test('scrollToBottom before a centred target loads is not undone once it arrives', async () => {
+    open()
+    update(() => {
+      H.setCenter(ord(30))
+      clearThread()
+    })
+    H.log.length = 0
+    act(() => H.threadRefs.current?.scrollToBottom())
+    update(() => loadThread(1, 60))
+    await tick(5000)
+    expect(H.log).toEqual([['scrollToEnd', noAnimation]])
+  })
+
   test('scrollUp pages up by one viewport and hands the end to the reader', async () => {
     open()
     update(() => H.listStore.set({scroll: 1200}))

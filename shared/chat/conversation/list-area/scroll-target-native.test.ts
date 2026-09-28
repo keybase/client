@@ -191,6 +191,14 @@ describe('the native list, in sequence', () => {
     expect(d.take()).toEqual([stopCentering, leaveAlone, refine(30, true)])
   })
 
+  test('asking for the bottom before the hit loads leaves the reader at the bottom once it does', () => {
+    const d = nativeList()
+    d.centreOn(ord(30))
+    d.requestBottom()
+    d.load(window(1, 60))
+    expect(d.take()).toEqual([stopCentering, leaveAlone, bottomRequested, leaveAlone])
+  })
+
   test('with the keyboard up a new message leaves a settling hit alone; scroll to bottom ends the settling without leaving the centre', () => {
     const d = nativeList()
     d.centreOn(ord(30))
@@ -198,7 +206,7 @@ describe('the native list, in sequence', () => {
     d.take()
     d.receive(ord(61))
     d.send({anchorHidesNewest: true, type: 'appended'})
-    d.send({type: 'scrollToBottomRequested'})
+    d.requestBottom()
     expect(d.take()).toEqual([refine(30, false), leaveAlone, bottomRequested])
     expect(d.state).toEqual(state({lastCentered: ord(30)}))
   })
@@ -207,7 +215,7 @@ describe('the native list, in sequence', () => {
     const d = nativeList()
     d.centreOn(ord(30))
     d.load(window(1, 60))
-    d.send({type: 'scrollToBottomRequested'})
+    d.requestBottom()
     d.receive(ord(61))
     expect(d.take()).toEqual([stopCentering, leaveAlone, refine(30, true), bottomRequested, leaveAlone])
   })

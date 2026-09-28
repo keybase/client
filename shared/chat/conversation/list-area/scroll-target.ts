@@ -58,7 +58,8 @@ export type ScrollEvent =
   | {type: 'appended'; anchorHidesNewest: boolean}
   | {type: 'editingChanged'; ordinal: T.Chat.Ordinal | undefined; targetInData: boolean}
   // The reader asked for the newest messages: the composer, the keyboard or jump to recent.
-  | {type: 'scrollToBottomRequested'}
+  // centeredOrdinal is the centre request as it stands.
+  | {type: 'scrollToBottomRequested'; centeredOrdinal: T.Chat.Ordinal | undefined}
 
 export type ScrollDirective =
   // now: scroll to the end. unlessAtEnd: only if not already there, because scrolling an at-end
@@ -188,10 +189,11 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
     }
     case 'scrollToBottomRequested':
       // The reader has left the target as surely as with a drag. It stays centred until the thread
-      // reconcile sees the centre cleared, but nothing may pull the reader back to it meanwhile.
+      // reconcile sees the centre cleared, but nothing may pull the reader back to it meanwhile, not
+      // even its arrival: a target still loading counts as centred already.
       return {
         directive: {how: 'unlessAtEnd', stopCentering: true, type: 'pinEnd'},
-        state: {...state, endOwner: 'list', settlingCenter: false},
+        state: {...state, endOwner: 'list', lastCentered: event.centeredOrdinal, settlingCenter: false},
       }
   }
 }

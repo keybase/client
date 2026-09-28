@@ -268,8 +268,8 @@ export const useDesktopThreadScroll = (p: {
   }, [dispatch])
 
   const scrollToBottom = React.useCallback(() => {
-    dispatch({type: 'scrollToBottomRequested'})
-  }, [dispatch])
+    dispatch({centeredOrdinal, type: 'scrollToBottomRequested'})
+  }, [centeredOrdinal, dispatch])
 
   const scrollUp = React.useCallback(() => {
     const state = listRef.current?.getState()

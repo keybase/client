@@ -336,14 +336,24 @@ describe('editingChanged', () => {
 })
 
 describe('scrollToBottomRequested', () => {
-  const requested = {type: 'scrollToBottomRequested'} as const
+  const requested = (n?: number): ScrollEvent => ({
+    centeredOrdinal: n === undefined ? undefined : ord(n),
+    type: 'scrollToBottomRequested',
+  })
   runTable([
-    ['from a reader takes back the end', busy, requested, pinUnlessAtEndStopCentering, {...busy, endOwner: 'list'}],
-    ['with the list at the end changes nothing but asks again', fresh, requested, pinUnlessAtEndStopCentering, fresh],
+    ['from a reader takes back the end', busy, requested(30), pinUnlessAtEndStopCentering, {...busy, endOwner: 'list'}],
+    ['with the list at the end changes nothing but asks again', fresh, requested(), pinUnlessAtEndStopCentering, fresh],
     [
       'ends the settling of a centred target, as a drag does, but keeps the target',
       state({endOwner: 'reader', lastCentered: ord(30), settlingCenter: true}),
-      requested,
+      requested(30),
+      pinUnlessAtEndStopCentering,
+      state({lastCentered: ord(30)}),
+    ],
+    [
+      'counts a target still loading as centred, so its arrival leaves the reader at the bottom',
+      fresh,
+      requested(30),
       pinUnlessAtEndStopCentering,
       state({lastCentered: ord(30)}),
     ],
@@ -412,7 +422,7 @@ describe('sequences', () => {
     d.send(header(100))
     d.send({how: 'wheel', type: 'userScrolled'})
     d.send(header(152))
-    d.send({type: 'scrollToBottomRequested'})
+    d.requestBottom()
     d.send(header(200))
     expect(d.take()).toEqual([leaveAlone, stopCentering, leaveAlone, pinUnlessAtEndStopCentering, pinWhenSettled])
   })
@@ -421,7 +431,7 @@ describe('sequences', () => {
     const d = desktopList()
     d.centreOn(ord(30))
     d.load(window(1, 60))
-    d.send({type: 'scrollToBottomRequested'})
+    d.requestBottom()
     d.jumpToRecent()
     d.load(window(1, 60))
     expect(d.take()).toEqual([
@@ -434,6 +444,14 @@ describe('sequences', () => {
       leaveAlone,
     ])
     expect(d.state).toEqual(fresh)
+  })
+
+  test('asking for the bottom before the hit loads leaves the reader at the bottom once it does', () => {
+    const d = desktopList()
+    d.centreOn(ord(30))
+    d.requestBottom()
+    d.load(window(1, 60))
+    expect(d.take()).toEqual([stopCentering, leaveAlone, pinUnlessAtEndStopCentering, leaveAlone])
   })
 
   test('an edit revealed before a reload is not revealed again after it', () => {

@@ -332,7 +332,7 @@ export const useNativeThreadScroll = (p: {
   )
 
   const requestBottom = React.useCallback(() => {
-    perform(decide({type: 'scrollToBottomRequested'}))
+    perform(decide({centeredOrdinal: centeredRef.current, type: 'scrollToBottomRequested'}))
   }, [decide, perform])
 
   const {setScrollRef} = React.useContext(ThreadRefsContext)

@@ -507,6 +507,19 @@ describe('choosing a hit again', () => {
   })
 })
 
+describe('asking for the bottom before a hit loads', () => {
+  test('leaves the reader at the bottom once the hit arrives', async () => {
+    open()
+    await tick(200)
+    centreOn(30)
+    clearLog()
+    act(() => H.threadRefs.current?.scrollToBottom())
+    update(() => loadThread(1, 60))
+    await tick(1000)
+    expect(scrollsOnly()).toEqual([toBottom])
+  })
+})
+
 describe('a screen pushed over a centred conversation', () => {
   test('after a drag away from the hit, coming back keeps the position', async () => {
     open({center: 30})

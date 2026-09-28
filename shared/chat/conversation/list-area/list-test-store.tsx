@@ -110,6 +110,8 @@ export const makeScrollDriver = (p: {
     jumpToRecent: () => commit(threadTransitions.cleared(thread), undefined),
     load: (ordinals: ReadonlyArray<T.Chat.Ordinal>) => commit(threadTransitions.loaded(thread, ordinals), centre),
     receive: (ordinal: T.Chat.Ordinal) => commit(threadTransitions.received(thread, ordinal), centre),
+    // The composer, the keyboard or jump to recent asking for the newest messages.
+    requestBottom: () => send({centeredOrdinal: centre, type: 'scrollToBottomRequested'}),
     send,
     get centre() {
       return centre
