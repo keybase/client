@@ -90,33 +90,31 @@ export const getRootState = (): NavState | undefined => {
   return navigationRef.getRootState()
 }
 
-export const getTab = (navState?: T.Immutable<NavState>): undefined | Tabs.Tab =>
-  NavTree.currentTab(navState || getRootState())
+// These read the live navigator. To read a state you already hold (e.g. a previous one), use
+// the pure readers in nav-tree directly: they treat undefined as no state, not as "now".
+export const getTab = (): undefined | Tabs.Tab => NavTree.currentTab(getRootState())
 
 export const _getNavigator = () => {
   return navigationRef.isReady() ? navigationRef : undefined
 }
 
-const getActiveStackState = (navState?: T.Immutable<NavState>) =>
-  NavTree.activeStack(navState || getRootState())
+const getActiveStackState = () => NavTree.activeStack(getRootState())
 
 // Public API
 // gives you loggedin/tab/stackitems + modals
-export const getVisiblePath = (navState?: T.Immutable<NavState>, includeModals?: boolean) =>
-  NavTree.visiblePath(navState || getRootState(), {includeModals})
+export const getVisiblePath = (includeModals?: boolean) => NavTree.visiblePath(getRootState(), {includeModals})
 
-export const getModalStack = (navState?: T.Immutable<NavState>) =>
-  NavTree.modalStack(navState || getRootState())
+export const getModalStack = () => NavTree.modalStack(getRootState())
 
-export const getVisibleScreen = (navState?: T.Immutable<NavState>, includeModals?: boolean) =>
-  NavTree.visibleScreen(navState || getRootState(), {includeModals})
+export const getVisibleScreen = (includeModals?: boolean) =>
+  NavTree.visibleScreen(getRootState(), {includeModals})
 
 export const logState = () => {
   const rs = getRootState()
   const safePaths = (ps: ReadonlyArray<{key?: string; name?: string}>) =>
     ps.map(p => ({key: p.key, name: p.name}))
-  const modals = safePaths(getModalStack(rs))
-  const visible = safePaths(getVisiblePath(rs))
+  const modals = safePaths(NavTree.modalStack(rs))
+  const visible = safePaths(NavTree.visiblePath(rs))
   return {loggedIn: NavTree.isLoggedIn(rs), modals, visible}
 }
 
@@ -308,7 +306,7 @@ export function navigateAppend(path: NavigateAppendType, replace?: boolean): boo
     }
     return false
   }
-  const vp = getVisiblePath(ns)
+  const vp = NavTree.visiblePath(ns)
   const visible = vp.at(-1)
   if (visible) {
     if (routeName === visible.name && shallowEqual(visible.params, params)) {

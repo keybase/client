@@ -40,7 +40,7 @@ import { useSettingsContactsState } from "@/stores/settings-contacts";
 import { useUsersState } from "@/stores/users";
 import { useWaitingState } from "@/stores/waiting";
 import { useRouterState } from "@/stores/router";
-import * as Util from "@/constants/router";
+import * as NavTree from "@/constants/nav-tree";
 import { handleConvoEngineIncoming } from "@/chat/inbox/engine";
 import {
   onChatRouteChanged,
@@ -475,9 +475,9 @@ const onNavStateChanged = (
   // Clear critical update when we nav away from tab
   if (
     prev &&
-    Util.getTab(prev) === Tabs.fsTab &&
+    NavTree.currentTab(prev) === Tabs.fsTab &&
     next &&
-    Util.getTab(next) !== Tabs.fsTab &&
+    NavTree.currentTab(next) !== Tabs.fsTab &&
     useShellState.getState().fsCriticalUpdate
   ) {
     const { dispatch } = useShellState.getState();
@@ -486,9 +486,9 @@ const onNavStateChanged = (
 
   if (
     prev &&
-    Util.getTab(prev) === Tabs.teamsTab &&
+    NavTree.currentTab(prev) === Tabs.teamsTab &&
     next &&
-    Util.getTab(next) !== Tabs.teamsTab
+    NavTree.currentTab(next) !== Tabs.teamsTab
   ) {
     clearNavBadges();
   }

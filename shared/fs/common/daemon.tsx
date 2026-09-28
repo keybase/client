@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Constants from '@/constants/fs'
 import * as React from 'react'
-import * as RouterConstants from '@/constants/router'
+import * as NavTree from '@/constants/nav-tree'
 import * as T from '@/constants/types'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
@@ -167,8 +167,8 @@ export const FsDaemonProvider = ({children}: {children: React.ReactNode}) => {
       return
     }
 
-    const wasScreen = fsRouteNames.includes(RouterConstants.getVisibleScreen(previousNavState)?.name ?? '')
-    const isScreen = fsRouteNames.includes(RouterConstants.getVisibleScreen(navState)?.name ?? '')
+    const wasScreen = fsRouteNames.includes(NavTree.visibleScreen(previousNavState)?.name ?? '')
+    const isScreen = fsRouteNames.includes(NavTree.visibleScreen(navState)?.name ?? '')
     if (wasScreen === isScreen) {
       return
     }

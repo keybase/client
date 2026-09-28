@@ -6,7 +6,7 @@ import {isSplit, threadRouteName} from './layout'
 export const explodingModeGregorKeyPrefix = 'exploding:'
 
 export const getSelectedConversation = (allowUnderModal: boolean = false): T.Chat.ConversationIDKey => {
-  const maybeVisibleScreen = getVisibleScreen(undefined, allowUnderModal)
+  const maybeVisibleScreen = getVisibleScreen(allowUnderModal)
   if (maybeVisibleScreen?.name === threadRouteName) {
     const mParams = maybeVisibleScreen.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
     return mParams?.conversationIDKey ?? T.Chat.noConversationIDKey
