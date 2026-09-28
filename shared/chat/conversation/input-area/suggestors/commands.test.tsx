@@ -2,16 +2,17 @@
 /// <reference types="jest" />
 import {act, cleanup, renderHook} from '@testing-library/react'
 import {routeChatNotification} from '@/chat/notification-router'
+import {ConversationThreadUidContext} from '@/chat/notification-registry'
+import type * as React from 'react'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
 import {transformer, useBotCommandsUpdateState} from './commands'
 
 // the hook runs inside a thread built for the signed-in account
-jest.mock('../../thread-context', () => ({
-  ...jest.requireActual<object>('../../thread-context'),
-  useConversationThreadUid: () => 'uid',
-}))
+const wrapper = ({children}: {children: React.ReactNode}) => (
+  <ConversationThreadUidContext value="uid">{children}</ConversationThreadUidContext>
+)
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
@@ -43,6 +44,7 @@ afterEach(() => {
 test('useBotCommandsUpdateState ignores other conversations and applies uptodate settings', () => {
   const {result} = renderHook(({id}) => useBotCommandsUpdateState(id), {
     initialProps: {id: convID},
+    wrapper,
   })
 
   notifyBotCommandsStatus(otherConvID, {typ: T.RPCChat.UIBotCommandsUpdateStatusTyp.updating})
@@ -63,6 +65,7 @@ test('useBotCommandsUpdateState ignores other conversations and applies uptodate
 test('useBotCommandsUpdateState preserves settings during non-uptodate updates and blanks on conv changes', () => {
   const {rerender, result} = renderHook(({id}) => useBotCommandsUpdateState(id), {
     initialProps: {id: convID},
+    wrapper,
   })
   const botSettings = {cmds: true, mentions: false}
 

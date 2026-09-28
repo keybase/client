@@ -14,6 +14,7 @@ import {getInboxConversationParticipants, unboxRows, useInboxMetadataState} from
 import {getChatRpc} from './chat-rpc'
 import {emptyConversationMeta, numMessagesOnInitialLoad, numMessagesOnScrollback} from './thread-load'
 import {useThreadEngineListeners} from './thread-engine'
+import {ConversationThreadUidContext} from '@/chat/notification-registry'
 import {
   makeThreadStore,
   type ConversationThreadActions,
@@ -50,9 +51,6 @@ export const ShownUsernameCacheContext = React.createContext<Map<T.Chat.Ordinal,
 )
 ShownUsernameCacheContext.displayName = 'ShownUsernameCacheContext'
 
-const ConversationThreadUidContext = React.createContext<string | undefined>(undefined)
-ConversationThreadUidContext.displayName = 'ConversationThreadUidContext'
-
 type SelectedConversationOptions = ThreadLoadStatusOptions & {
   allowMarkAsRead?: boolean
   skipThreadLoad?: boolean
@@ -85,16 +83,6 @@ export const useConversationThreadID = () => {
     throw new Error('Missing ConversationThreadProvider in the tree')
   }
   return conversationIDKey
-}
-
-// The account the thread was built for. Notifications for this conversation reach its screen only
-// while that account is signed in.
-export const useConversationThreadUid = () => {
-  const uid = React.useContext(ConversationThreadUidContext)
-  if (uid === undefined) {
-    throw new Error('Missing ConversationThreadProvider uid in the tree')
-  }
-  return uid
 }
 
 export const useConversationThreadActions = () => {
@@ -165,9 +153,7 @@ const ConversationThreadContextProvider = (p: {
   <ConversationThreadIDContext value={p.id}>
     <ConversationThreadActionsContext value={p.thread.actions}>
       <ConversationThreadStoreContext value={p.thread.store}>
-        <ShownUsernameCacheContext value={p.thread.shownUsernameCache}>
-          <ConversationThreadUidContext value={p.thread.uid}>{p.children}</ConversationThreadUidContext>
-        </ShownUsernameCacheContext>
+        <ShownUsernameCacheContext value={p.thread.shownUsernameCache}>{p.children}</ShownUsernameCacheContext>
       </ConversationThreadStoreContext>
     </ConversationThreadActionsContext>
   </ConversationThreadIDContext>
@@ -219,7 +205,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps & {u
       thread.dispose()
     }
   }, [thread])
-  useThreadEngineListeners(id, thread.uid, thread.actions)
+  useThreadEngineListeners(id, thread.actions)
 
   return (
     <ConversationThreadContextProvider id={id} thread={thread}>
@@ -239,9 +225,11 @@ const ConversationThreadForSignedInAccount = (p: ConversationThreadProviderProps
     return null
   }
   return (
-    <ConversationThreadProviderInner key={uid} id={id} uid={uid}>
-      {children}
-    </ConversationThreadProviderInner>
+    <ConversationThreadUidContext value={uid}>
+      <ConversationThreadProviderInner key={uid} id={id} uid={uid}>
+        {children}
+      </ConversationThreadProviderInner>
+    </ConversationThreadUidContext>
   )
 }
 

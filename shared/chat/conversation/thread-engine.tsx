@@ -5,7 +5,11 @@ import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useEngineActionListener} from '@/engine/action-listener'
-import {useThreadNotifications, type ThreadNotification} from '@/chat/notification-registry'
+import {
+  useConversationThreadUid,
+  useThreadNotifications,
+  type ThreadNotification,
+} from '@/chat/notification-registry'
 import {
   getCurrentUser,
   getExplodingModeFromGregorItems,
@@ -311,10 +315,10 @@ export const applyThreadNotification = (
 
 export const useThreadEngineListeners = (
   id: T.Chat.ConversationIDKey,
-  uid: string,
   threadActions: ConversationThreadActions
 ): void => {
-  useThreadNotifications(id, uid, notification => {
+  const uid = useConversationThreadUid()
+  useThreadNotifications(id, notification => {
     applyThreadNotification(id, notification, threadActions)
   })
   // gregor is not a chat notification; it reaches every listener on the engine bus, so this one

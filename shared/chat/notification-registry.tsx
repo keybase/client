@@ -122,16 +122,26 @@ export const registerReloadHandler = (
   handler: Handler<ReloadTrigger>
 ) => register(reloadHandlers, id, uid, handler)
 
-export const useThreadNotifications = (
-  id: T.Chat.ConversationIDKey,
-  uid: string,
-  handler: Handler<ThreadNotification>
-) => {
+// The account the thread below was built for; the thread provider sets it.
+export const ConversationThreadUidContext = React.createContext<string | undefined>(undefined)
+ConversationThreadUidContext.displayName = 'ConversationThreadUidContext'
+
+export const useConversationThreadUid = () => {
+  const uid = React.useContext(ConversationThreadUidContext)
+  if (uid === undefined) {
+    throw new Error('Missing ConversationThreadProvider uid in the tree')
+  }
+  return uid
+}
+
+// For a screen inside a thread: hears while the thread's account is signed in.
+export const useThreadNotifications = (id: T.Chat.ConversationIDKey, handler: Handler<ThreadNotification>) => {
+  const uid = useConversationThreadUid()
   const onNotification = React.useEffectEvent(handler)
   React.useEffect(() => registerThreadHandler(id, uid, n => onNotification(n)), [id, uid])
 }
 
-export const useReloadTriggers = (
+const useReloadRegistration = (
   id: T.Chat.ConversationIDKey,
   uid: string | undefined,
   handler: Handler<ReloadTrigger>
@@ -139,6 +149,17 @@ export const useReloadTriggers = (
   const onTrigger = React.useEffectEvent(handler)
   React.useEffect(() => registerReloadHandler(id, uid, r => onTrigger(r)), [id, uid])
 }
+
+// For a screen inside a thread: hears while the thread's account is signed in.
+export const useReloadTriggers = (id: T.Chat.ConversationIDKey, handler: Handler<ReloadTrigger>) =>
+  useReloadRegistration(id, useConversationThreadUid(), handler)
+
+// For a reader that loads for whichever account is signed in (the conversation's meta, a message
+// shown outside its thread), inside a thread or not.
+export const useSignedInAccountReloadTriggers = (
+  id: T.Chat.ConversationIDKey,
+  handler: Handler<ReloadTrigger>
+) => useReloadRegistration(id, undefined, handler)
 
 // uid: the account signed in now
 const runHandlers = <N,>(entries: ReadonlySet<Entry<N>>, notification: N, type: string, uid: string) => {

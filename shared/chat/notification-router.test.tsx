@@ -1,6 +1,7 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as T from '@/constants/types'
+import type * as React from 'react'
 import {act, cleanup, renderHook} from '@testing-library/react'
 import logger from '@/logger'
 import {useDaemonState} from '@/stores/daemon'
@@ -14,9 +15,10 @@ import {
   type ChatNotification,
 } from './notification-router'
 import {
+  ConversationThreadUidContext,
   registerReloadHandler,
   registerThreadHandler,
-  useReloadTriggers,
+  useSignedInAccountReloadTriggers,
   useThreadNotifications,
   type ReloadTrigger,
   type ThreadNotification,
@@ -603,10 +605,16 @@ describe('hooks', () => {
     const heard: Array<string> = []
     const {rerender, unmount} = renderHook(
       ({id, prefix}) =>
-        useThreadNotifications(id, 'uid', n => {
+        useThreadNotifications(id, n => {
           heard.push(`${prefix}:${n.type}`)
         }),
-      {initialProps: {id: convA, prefix: 'first'}}
+      {
+        initialProps: {id: convA, prefix: 'first'},
+        // inside a thread built for the signed-in account
+        wrapper: ({children}: {children: React.ReactNode}) => (
+          <ConversationThreadUidContext value="uid">{children}</ConversationThreadUidContext>
+        ),
+      }
     )
     act(() => routeChatNotification(typingIn(convA, 'testuser-mac')))
     rerender({id: convA, prefix: 'second'})
@@ -619,9 +627,9 @@ describe('hooks', () => {
     expect(heard).toEqual(['first:typing', 'second:typing', 'second:typing'])
   })
 
-  test('useReloadTriggers hears reloads for its conversation while mounted', () => {
+  test('useSignedInAccountReloadTriggers hears reloads for its conversation while mounted', () => {
     const heard: Array<string> = []
-    const {unmount} = renderHook(() => useReloadTriggers(convA, undefined, r => heard.push(r.type)))
+    const {unmount} = renderHook(() => useSignedInAccountReloadTriggers(convA, r => heard.push(r.type)))
     act(() =>
       routeChatNotification(
         chat('chat.1.NotifyChat.ChatThreadsStale', {
