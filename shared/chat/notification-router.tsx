@@ -112,14 +112,57 @@ const each = <N,>(ids: Iterable<T.Chat.ConversationIDKey>, notification: N): Fan
 })
 
 const metadataReload: ReloadTrigger = {type: 'metadata'}
-const messagesReload: ReloadTrigger = {type: 'messages'}
 const staleThread: ReloadTrigger = {type: 'staleThread'}
 
 const metadataOf = (conversationIDKey: T.Chat.ConversationIDKey) => one(conversationIDKey, metadataReload)
-const metadataAndMessagesOf = (conversationIDKey: T.Chat.ConversationIDKey) => [
-  {conversationIDKey, notification: metadataReload},
-  {conversationIDKey, notification: messagesReload},
-]
+// the conversation's meta, then the messages an activity changed: those listed, and with upTo every
+// message below it
+const metadataAndMessagesOf = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  ids: ReadonlyArray<number | undefined>,
+  upTo?: T.Chat.MessageID
+): Array<Delivery<ReloadTrigger>> => {
+  const messageIDs = [...new Set(ids)].flatMap(id => (id === undefined ? [] : [T.Chat.numberToMessageID(id)]))
+  const messages: ReloadTrigger =
+    upTo === undefined ? {messageIDs, type: 'messages'} : {messageIDs, type: 'messages', upTo}
+  return [
+    {conversationIDKey, notification: metadataReload},
+    {conversationIDKey, notification: messages},
+  ]
+}
+
+const uiMessageID = (m: T.RPCChat.UIMessage | null | undefined) => {
+  switch (m?.state) {
+    case T.RPCChat.MessageUnboxedState.valid:
+      return m.valid.messageID
+    case T.RPCChat.MessageUnboxedState.error:
+      return m.error.messageID
+    case T.RPCChat.MessageUnboxedState.placeholder:
+      return m.placeholder.messageID
+    default:
+      return undefined
+  }
+}
+
+// the messages an incoming edit, delete, reaction or unfurl changes
+const targetMessageIDs = (m: T.RPCChat.UIMessage | null | undefined): ReadonlyArray<number> => {
+  if (m?.state !== T.RPCChat.MessageUnboxedState.valid) {
+    return []
+  }
+  const body = m.valid.messageBody
+  switch (body.messageType) {
+    case T.RPCChat.MessageType.edit:
+      return [body.edit.messageID]
+    case T.RPCChat.MessageType.delete:
+      return body.delete.messageIDs ?? []
+    case T.RPCChat.MessageType.reaction:
+      return [body.reaction.m]
+    case T.RPCChat.MessageType.unfurl:
+      return [body.unfurl.messageID]
+    default:
+      return []
+  }
+}
 
 const inboxUIItemConversationIDKey = (conv: T.RPCChat.InboxUIItem | null | undefined) =>
   conv ? T.Chat.stringToConversationIDKey(conv.convID) : T.Chat.noConversationIDKey
@@ -137,7 +180,12 @@ const activityStages = (activity: T.RPCChat.ChatActivity): Stages => {
           maybeShowIncomingMessageDesktopNotification(incomingMessage)
           onIncomingInboxUIItem(incomingMessage.conv ?? undefined)
         },
-        reloads: () => metadataAndMessagesOf(id),
+        reloads: () =>
+          metadataAndMessagesOf(id, [
+            uiMessageID(incomingMessage.message),
+            uiMessageID(incomingMessage.modifiedMessage),
+            ...targetMessageIDs(incomingMessage.message),
+          ]),
         thread: () => one(id, {incomingMessage, type: 'incomingMessage'}),
       }
     }
@@ -203,7 +251,7 @@ const activityStages = (activity: T.RPCChat.ChatActivity): Stages => {
       const {messagesUpdated} = activity
       const id = T.Chat.conversationIDToKey(messagesUpdated.convID)
       return {
-        reloads: () => metadataAndMessagesOf(id),
+        reloads: () => metadataAndMessagesOf(id, (messagesUpdated.updates ?? []).map(uiMessageID)),
         thread: () => one(id, {messagesUpdated, type: 'messagesUpdated'}),
       }
     }
@@ -212,7 +260,11 @@ const activityStages = (activity: T.RPCChat.ChatActivity): Stages => {
       const id = T.Chat.conversationIDToKey(reactionUpdate.convID)
       return {
         inbox: () => onReactionUpdate(reactionUpdate),
-        reloads: () => metadataAndMessagesOf(id),
+        reloads: () =>
+          metadataAndMessagesOf(
+            id,
+            (reactionUpdate.reactionUpdates ?? []).map(r => r.targetMsgID)
+          ),
         thread: () => one(id, {reactionUpdate, type: 'reactionUpdate'}),
       }
     }
@@ -220,7 +272,7 @@ const activityStages = (activity: T.RPCChat.ChatActivity): Stages => {
       const {expunge} = activity
       const id = T.Chat.conversationIDToKey(expunge.convID)
       return {
-        reloads: () => metadataAndMessagesOf(id),
+        reloads: () => metadataAndMessagesOf(id, [], T.Chat.numberToMessageID(expunge.expunge.upto)),
         thread: () => one(id, {expunge, type: 'expunge'}),
       }
     }
@@ -228,7 +280,7 @@ const activityStages = (activity: T.RPCChat.ChatActivity): Stages => {
       const {ephemeralPurge} = activity
       const id = T.Chat.conversationIDToKey(ephemeralPurge.convID)
       return {
-        reloads: () => metadataAndMessagesOf(id),
+        reloads: () => metadataAndMessagesOf(id, (ephemeralPurge.msgs ?? []).map(uiMessageID)),
         thread: () => one(id, {ephemeralPurge, type: 'ephemeralPurge'}),
       }
     }

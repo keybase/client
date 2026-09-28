@@ -240,6 +240,106 @@ describe('useConversationMessage', () => {
     })
   }
 
+  const convID = T.Chat.keyToConversationID(conversationIDKey)
+  const activity = (a: object) =>
+    ({payload: {params: {activity: a}}, type: 'chat.1.NotifyChat.NewChatActivity'}) as never
+  const placeholder = (id: number) =>
+    ({placeholder: {hidden: false, messageID: id}, state: T.RPCChat.MessageUnboxedState.placeholder}) as T.RPCChat.UIMessage
+  const valid = (id: number, messageBody: object) =>
+    ({state: T.RPCChat.MessageUnboxedState.valid, valid: {messageBody, messageID: id}}) as unknown as T.RPCChat.UIMessage
+  const incoming = (message: T.RPCChat.UIMessage, modifiedMessage?: T.RPCChat.UIMessage) =>
+    activity({
+      activityType: T.RPCChat.ChatActivityType.incomingMessage,
+      incomingMessage: {conv: null, convID, message, modifiedMessage},
+    })
+  const text = {messageType: T.RPCChat.MessageType.text, text: {body: 'hi'}}
+  const events = {
+    'a delete of it': incoming(valid(40, {delete: {messageIDs: [20]}, messageType: T.RPCChat.MessageType.delete})),
+    'a delete of another': incoming(valid(40, {delete: {messageIDs: [21]}, messageType: T.RPCChat.MessageType.delete})),
+    'an edit of another': incoming(valid(40, {edit: {body: 'x', messageID: 21}, messageType: T.RPCChat.MessageType.edit})),
+    'an edit of it': incoming(valid(40, {edit: {body: 'x', messageID: 20}, messageType: T.RPCChat.MessageType.edit})),
+    'an expunge below it': activity({
+      activityType: T.RPCChat.ChatActivityType.expunge,
+      expunge: {convID, expunge: {basis: 0, upto: 20}},
+    }),
+    'an expunge past it': activity({
+      activityType: T.RPCChat.ChatActivityType.expunge,
+      expunge: {convID, expunge: {basis: 0, upto: 21}},
+    }),
+    'an explosion of another': activity({
+      activityType: T.RPCChat.ChatActivityType.ephemeralPurge,
+      ephemeralPurge: {convID, msgs: [placeholder(21)]},
+    }),
+    'an explosion of it': activity({
+      activityType: T.RPCChat.ChatActivityType.ephemeralPurge,
+      ephemeralPurge: {convID, msgs: [placeholder(21), placeholder(20)]},
+    }),
+    'an incoming message that modified it': incoming(valid(40, text), valid(20, text)),
+    'a new message': incoming(valid(40, text)),
+    'a reaction to another': incoming(valid(40, {messageType: T.RPCChat.MessageType.reaction, reaction: {b: ':+1:', m: 21}})),
+    'a reaction to it': incoming(valid(40, {messageType: T.RPCChat.MessageType.reaction, reaction: {b: ':+1:', m: 20}})),
+    'a reaction update of another': activity({
+      activityType: T.RPCChat.ChatActivityType.reactionUpdate,
+      reactionUpdate: {convID, reactionUpdates: [{reactions: {reactions: {}}, targetMsgID: 21}]},
+    }),
+    'a reaction update of it': activity({
+      activityType: T.RPCChat.ChatActivityType.reactionUpdate,
+      reactionUpdate: {convID, reactionUpdates: [{reactions: {reactions: {}}, targetMsgID: 20}]},
+    }),
+    'an unfurl of another': incoming(
+      valid(40, {messageType: T.RPCChat.MessageType.unfurl, unfurl: {messageID: 21, unfurl: {}}})
+    ),
+    'an unfurl of it': incoming(valid(40, {messageType: T.RPCChat.MessageType.unfurl, unfurl: {messageID: 20, unfurl: {}}})),
+    'an update of another': activity({
+      activityType: T.RPCChat.ChatActivityType.messagesUpdated,
+      messagesUpdated: {convID, updates: [placeholder(21)]},
+    }),
+    'an update of it': activity({
+      activityType: T.RPCChat.ChatActivityType.messagesUpdated,
+      messagesUpdated: {convID, updates: [placeholder(19), placeholder(20)]},
+    }),
+  }
+  const loadsAfter = async (event: keyof typeof events) => {
+    const load = mockAroundMessages([19, 20, 21])
+    renderHook(() => useConversationMessage(conversationIDKey, messageID(20)))
+    await waitForLoad()
+    expect(load()).toHaveLength(1)
+    await act(async () => {
+      routeChatNotification(events[event])
+      await flushPromises()
+    })
+    await waitForLoad()
+    return load().length - 1
+  }
+
+  test.each([
+    'a delete of it',
+    'an edit of it',
+    'an expunge past it',
+    'an explosion of it',
+    'an incoming message that modified it',
+    'a reaction to it',
+    'a reaction update of it',
+    'an unfurl of it',
+    'an update of it',
+  ] as const)('%s reloads it', async event => {
+    expect(await loadsAfter(event)).toBe(1)
+  })
+
+  test.each([
+    'a delete of another',
+    'an edit of another',
+    'an expunge below it',
+    'an explosion of another',
+    'a new message',
+    'a reaction to another',
+    'a reaction update of another',
+    'an unfurl of another',
+    'an update of another',
+  ] as const)('%s in its conversation leaves it', async event => {
+    expect(await loadsAfter(event)).toBe(0)
+  })
+
   test('loads twenty around the message and returns it', async () => {
     const load = mockAroundMessages([19, 20, 21])
     const {result} = renderHook(() => useConversationMessage(conversationIDKey, messageID(20)))

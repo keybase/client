@@ -47,11 +47,16 @@ export type ThreadNotification =
 export type ReloadTrigger =
   // the conversation's meta or participants may have changed
   | {type: 'metadata'}
-  // messages in the conversation changed
-  | {type: 'messages'}
+  // messages in the conversation changed: those listed, and with upTo every message below it
+  | {type: 'messages'; messageIDs: ReadonlyArray<T.Chat.MessageID>; upTo?: T.Chat.MessageID}
   | {type: 'attachmentDownloaded'; messageID: T.Chat.MessageID}
   // the service says the thread is out of date
   | {type: 'staleThread'}
+
+export const messagesTriggerConcerns = (
+  trigger: Extract<ReloadTrigger, {type: 'messages'}>,
+  messageID: T.Chat.MessageID
+) => trigger.messageIDs.includes(messageID) || (trigger.upTo !== undefined && messageID < trigger.upTo)
 
 export type Delivery<N> = {conversationIDKey: T.Chat.ConversationIDKey; notification: N}
 // One notification for every conversation in a set that can name far more conversations than are

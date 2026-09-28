@@ -125,6 +125,70 @@ describe('decodeChatNotification', () => {
     })
   })
 
+  describe('which messages a messages reload names', () => {
+    const mid = T.Chat.numberToMessageID
+    const placeholder = (id: number) =>
+      ({placeholder: {hidden: false, messageID: id}, state: T.RPCChat.MessageUnboxedState.placeholder}) as T.RPCChat.UIMessage
+    const valid = (id: number, messageBody: object) =>
+      ({state: T.RPCChat.MessageUnboxedState.valid, valid: {messageBody, messageID: id}}) as unknown as T.RPCChat.UIMessage
+    const messagesReload = (a: object) =>
+      decodeChatNotification(activity(a)).reloads.find(d => d.notification.type === 'messages')?.notification
+    const incoming = (message: T.RPCChat.UIMessage, modifiedMessage?: T.RPCChat.UIMessage) =>
+      messagesReload({
+        activityType: T.RPCChat.ChatActivityType.incomingMessage,
+        incomingMessage: {conv: null, convID: rpcConvID(convA), message, modifiedMessage},
+      })
+    const text = {messageType: T.RPCChat.MessageType.text, text: {body: 'hi'}}
+
+    test('an incoming message names itself, the message it modified and the target of its body', () => {
+      expect(incoming(valid(40, text))).toEqual({messageIDs: [mid(40)], type: 'messages'})
+      expect(incoming(valid(40, text), valid(20, text))).toEqual({messageIDs: [mid(40), mid(20)], type: 'messages'})
+      expect(
+        incoming(valid(41, {edit: {body: 'x', messageID: 20}, messageType: T.RPCChat.MessageType.edit}), valid(20, text))
+      ).toEqual({messageIDs: [mid(41), mid(20)], type: 'messages'})
+      expect(
+        incoming(valid(42, {delete: {messageIDs: [20, 21]}, messageType: T.RPCChat.MessageType.delete}))
+      ).toEqual({messageIDs: [mid(42), mid(20), mid(21)], type: 'messages'})
+      expect(
+        incoming(valid(43, {messageType: T.RPCChat.MessageType.reaction, reaction: {b: ':+1:', m: 20}}))
+      ).toEqual({messageIDs: [mid(43), mid(20)], type: 'messages'})
+      expect(
+        incoming(valid(44, {messageType: T.RPCChat.MessageType.unfurl, unfurl: {messageID: 20, unfurl: {}}}))
+      ).toEqual({messageIDs: [mid(44), mid(20)], type: 'messages'})
+      expect(incoming(placeholder(45))).toEqual({messageIDs: [mid(45)], type: 'messages'})
+    })
+
+    test('an update, an explosion and a reaction update name the messages they carry', () => {
+      expect(
+        messagesReload({
+          activityType: T.RPCChat.ChatActivityType.messagesUpdated,
+          messagesUpdated: {convID: rpcConvID(convA), updates: [placeholder(19), valid(20, text)]},
+        })
+      ).toEqual({messageIDs: [mid(19), mid(20)], type: 'messages'})
+      expect(
+        messagesReload({
+          activityType: T.RPCChat.ChatActivityType.ephemeralPurge,
+          ephemeralPurge: {convID: rpcConvID(convA), msgs: [valid(21, text)]},
+        })
+      ).toEqual({messageIDs: [mid(21)], type: 'messages'})
+      expect(
+        messagesReload({
+          activityType: T.RPCChat.ChatActivityType.reactionUpdate,
+          reactionUpdate: {convID: rpcConvID(convA), reactionUpdates: [{reactions: {reactions: {}}, targetMsgID: 22}]},
+        })
+      ).toEqual({messageIDs: [mid(22)], type: 'messages'})
+    })
+
+    test('an expunge names everything below its line', () => {
+      expect(
+        messagesReload({
+          activityType: T.RPCChat.ChatActivityType.expunge,
+          expunge: {convID: rpcConvID(convA), expunge: {basis: 0, upto: 30}},
+        })
+      ).toEqual({messageIDs: [], type: 'messages', upTo: mid(30)})
+    })
+  })
+
   test.each([
     ['setStatus', {setStatus: {conv: inboxItem(convA), convID: rpcConvID(convB)}}],
     ['newConversation', {newConversation: {conv: inboxItem(convA), convID: rpcConvID(convB)}}],

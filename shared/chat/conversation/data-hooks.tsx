@@ -9,7 +9,7 @@ import {
   unboxRows,
   useInboxMetadataState,
 } from '@/chat/inbox/metadata'
-import {useReloadTriggers} from '@/chat/notification-registry'
+import {messagesTriggerConcerns, useReloadTriggers} from '@/chat/notification-registry'
 import {ignorePromise} from '@/constants/utils'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
@@ -192,7 +192,7 @@ const useConversationMessagesAroundMessageID = (
 
   useReloadTriggers(conversationIDKey, trigger => {
     if (
-      trigger.type === 'messages' ||
+      (trigger.type === 'messages' && messagesTriggerConcerns(trigger, messageID)) ||
       (trigger.type === 'attachmentDownloaded' && trigger.messageID === messageID)
     ) {
       reload()
