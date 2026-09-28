@@ -194,11 +194,11 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     insertAtCaret: s =>
       whenAttached(target => {
         const selection = target.getSelection()
-        const inserted = standardTransformer(
-          s,
-          {position: {end: selection?.end ?? null, start: selection?.start ?? null}, text},
-          true
-        )
+        // the native input has no caret until it reports one
+        const position = selection
+          ? {end: selection.end ?? null, start: selection.start}
+          : {end: text.length, start: text.length}
+        const inserted = standardTransformer(s, {position, text}, true)
         replace(target, {selection: inserted.selection, text: inserted.text}, true)
       }),
     isFocused: () => !!input?.isFocused(),

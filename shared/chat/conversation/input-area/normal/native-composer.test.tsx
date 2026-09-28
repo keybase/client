@@ -275,7 +275,7 @@ test('a picked emoji lands at the caret followed by a space', () => {
   expect(m.usePickerState.getState().pickerMap.get('chatInput')).toBeUndefined()
 })
 
-test('an insert before the input has reported a caret goes at the start of the text', () => {
+test('an insert before the input has reported a caret goes at the end of the text', () => {
   renderComposer()
   act(() => {
     input().onChangeText('abcd')
@@ -283,7 +283,8 @@ test('an insert before the input has reported a caret goes at the start of the t
 
   pressIcon('iconfont-mention')
 
-  expect(input().value).toBe('@abcd')
+  expect(input().value).toBe('abcd@')
+  expect(input().selection).toEqual({end: 5, start: 5})
 })
 
 test('hardware shift-enter inserts a newline at the caret', () => {
