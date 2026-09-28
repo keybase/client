@@ -80,14 +80,10 @@ export const threadTransitions = {
   receivedDuringReload: (s: ThreadSnapshot): ThreadSnapshot => ({...s, messageOrdinals: s.messageOrdinals ?? []}),
 }
 
-// Drives decideScroll the way a list adapter does, from real thread transitions: each thread or
-// centre change is observed once, and with reportsDatasets a new clearVersion is a new dataset,
-// reported before the thread is observed. observe builds the platform's reconcile event.
-export const makeScrollDriver = (p: {
-  observe: (thread: ThreadSnapshot, centre: T.Chat.Ordinal | undefined) => ScrollEvent
-  reportsDatasets: boolean
-}) => {
-  const {observe, reportsDatasets} = p
+// Drives decideScroll the way a list adapter does, from real thread transitions: a new clearVersion
+// is a new dataset, reported before the thread is observed, and each thread or centre change is
+// observed once.
+export const makeScrollDriver = () => {
   let thread = emptyThread
   let centre: T.Chat.Ordinal | undefined
   let state = initialScrollTargetState
@@ -98,10 +94,15 @@ export const makeScrollDriver = (p: {
     directives.push(decision.directive)
   }
   const commit = (next: ThreadSnapshot, nextCentre: T.Chat.Ordinal | undefined) => {
-    if (reportsDatasets && next.clearVersion !== thread.clearVersion) send({type: 'datasetChanged'})
+    if (next.clearVersion !== thread.clearVersion) send({type: 'datasetChanged'})
     thread = next
     centre = nextCentre
-    send(observe(thread, centre))
+    send({
+      centeredOrdinal: centre,
+      loaded: thread.loaded,
+      targetInData: centre !== undefined && !!thread.messageOrdinals?.includes(centre),
+      type: 'threadObserved',
+    })
   }
   return {
     // Centre context and thread together, as the app moves them.

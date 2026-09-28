@@ -14,6 +14,7 @@ import {
   type ScrollDirective,
   type ScrollEvent,
 } from './scroll-target'
+import {makeSchedule, type Scheduled} from './schedule'
 
 export type NativeListRef = {
   scrollToOffset: (opts: {animated: boolean; offset: number}) => void
@@ -50,11 +51,13 @@ export const useNativeThreadScroll = (p: {
   // Changes with the conversation and with every clear of its thread (a centred reload, jump to
   // recent): each is a new list as far as scrolling is concerned.
   datasetKey: string
+  editingOrdinal: T.Chat.Ordinal | undefined
   isKeyboardVisible: boolean
   listRef: React.RefObject<NativeListRef | null>
   loaded: boolean
 }) => {
-  const {centeredOrdinal, conversationIDKey, datasetKey, isKeyboardVisible, listRef, loaded, messageOrdinals} = p
+  const {centeredOrdinal, conversationIDKey, datasetKey, editingOrdinal, isKeyboardVisible} = p
+  const {listRef, loaded, messageOrdinals} = p
   const numOrdinals = messageOrdinals.length
 
   const {bottomInset, keyboardHeight} = useComposerAnchor()
@@ -93,21 +96,10 @@ export const useNativeThreadScroll = (p: {
 
   // Every delayed scroll (coarse reasserts, the corrector's schedule, scroll-to-index retries, the
   // first load's retry, the append re-pin) runs through here, so stopping centring, a new dataset or
-  // unmounting cancels whatever is pending, and a reader's drag is never followed by a jump.
-  const scheduledRef = React.useRef(new Set<ReturnType<typeof setTimeout>>())
-  const [schedule] = React.useState(() => (delay: number, fn: () => void) => {
-    const scheduled = scheduledRef.current
-    const id = setTimeout(() => {
-      scheduled.delete(id)
-      fn()
-    }, delay)
-    scheduled.add(id)
-    return id
-  })
-  const [cancelScheduled] = React.useState(() => (id: ReturnType<typeof setTimeout>) => {
-    clearTimeout(id)
-    scheduledRef.current.delete(id)
-  })
+  // the list going away cancels whatever is pending, and a reader's drag is never followed by a jump.
+  // Stopped by the detached cleanup below, not by useSchedule's, which would run first and hide
+  // whether the first load's retry was still pending.
+  const [timers] = React.useState(makeSchedule)
 
   // coarse: scrollToItem lands at the wrong offset for tall variable-height rows,
   // but it gets the target area rendered. The closed-loop corrector below
@@ -115,7 +107,7 @@ export const useNativeThreadScroll = (p: {
   const moveToward = React.useCallback(
     (target: T.Chat.Ordinal) => {
       const reassert = (delay: number) =>
-        schedule(delay, () => {
+        timers.after(delay, () => {
           const list = listRef.current
           if (!list || centeredRef.current !== target) {
             return
@@ -124,7 +116,7 @@ export const useNativeThreadScroll = (p: {
         })
       ;[50, 250].forEach(reassert)
     },
-    [listRef, schedule]
+    [listRef, timers]
   )
 
   // Closed-loop centering corrector. scrollToItem/scrollToIndex lands at the wrong
@@ -139,8 +131,7 @@ export const useNativeThreadScroll = (p: {
   const vLastRef = React.useRef<number | null | undefined>(undefined)
   const [stopCentering] = React.useState(() => () => {
     correctRef.current.active = false
-    scheduledRef.current.forEach(clearTimeout)
-    scheduledRef.current.clear()
+    timers.stop()
   })
   const [correctCenter] = React.useState(
     () => (first: number | null | undefined, last: number | null | undefined) => {
@@ -167,35 +158,31 @@ export const useNativeThreadScroll = (p: {
     }
   )
 
-  // The corrector's 50/250/500/900ms schedule, restarted by each refine.
-  const ladderRef = React.useRef<Array<ReturnType<typeof setTimeout>>>([])
+  // The corrector's 50/250/500/900ms schedule, restarted by each center directive.
+  const ladderRef = React.useRef<Array<Scheduled>>([])
 
   const perform = React.useCallback(
     (directive: ScrollDirective) => {
       switch (directive.type) {
         case 'pinEnd':
           if (directive.stopCentering) stopCentering()
-          // The end is the resting offset, so scrolling there from the end moves nothing: unlessAtEnd
-          // needs no check of its own here. This list reports no header events, so whenSettled never
-          // reaches it.
+          // The end is a fixed resting offset, so every pin is the one scroll there: from the end it moves
+          // nothing (unlessAtEnd), and there is no bootstrap of the list's own to wait out (whenSettled).
           scrollToBottomRef.current()
           return
-        // Only threadObserved asks for center, and this list reports centerTargetObserved instead.
         case 'center':
-          return
-        case 'refineCenter':
           if (directive.newTarget) moveToward(directive.ordinal)
           correctRef.current = {active: true, iters: 0}
-          ladderRef.current.forEach(cancelScheduled)
+          ladderRef.current.forEach(t => t.cancel())
           ladderRef.current = [50, 250, 500, 900].map(d =>
-            schedule(d, () => correctCenter(vFirstRef.current, vLastRef.current))
+            timers.after(d, () => correctCenter(vFirstRef.current, vLastRef.current))
           )
+          return
+        case 'reveal':
+          listRef.current?.scrollToItem({animated: true, item: directive.ordinal, viewPosition: 0.5})
           return
         case 'leaveAlone':
           if (directive.stopCentering) stopCentering()
-          return
-        // This list reports no edit events.
-        case 'reveal':
           return
         default: {
           const unexpected: never = directive
@@ -203,7 +190,7 @@ export const useNativeThreadScroll = (p: {
         }
       }
     },
-    [cancelScheduled, correctCenter, moveToward, schedule, stopCentering]
+    [correctCenter, listRef, moveToward, stopCentering, timers]
   )
 
   // Compared by value, not by the effect re-running: a freeze/thaw of this screen re-mounts effects
@@ -219,18 +206,28 @@ export const useNativeThreadScroll = (p: {
   // Center on the search hit once it actually appears in the loaded list. Centering
   // on the raw centeredOrdinal change is unreliable: navigating to a hit reloads the
   // thread centered on it, so messageOrdinals is briefly empty (idx -1) when the
-  // ordinal changes. Wait for the target to load, then scroll. Every change to the rows or the
-  // target restarts the corrector's schedule.
+  // ordinal changes. Wait for the target to load, then scroll. Every change to the rows under a
+  // target still settling restarts the corrector's schedule.
   React.useEffect(() => {
     perform(
       decide({
         centeredOrdinal,
         loaded,
         targetInData: centeredOrdinal !== undefined && messageOrdinals.includes(centeredOrdinal),
-        type: 'centerTargetObserved',
+        type: 'threadObserved',
       })
     )
   }, [centeredOrdinal, decide, loaded, messageOrdinals, perform])
+
+  React.useEffect(() => {
+    perform(
+      decide({
+        ordinal: editingOrdinal,
+        targetInData: editingOrdinal !== undefined && ordsRef.current.includes(editingOrdinal),
+        type: 'editingChanged',
+      })
+    )
+  }, [decide, editingOrdinal, perform])
 
   // When keyboard is open, maintainVisibleContentPosition adjusts contentOffset by the new
   // message height when a message is added, undoing the scrollToBottom from onSubmit.
@@ -259,18 +256,18 @@ export const useNativeThreadScroll = (p: {
     if (appended().type !== 'pinEnd') return undefined
     // Asked again when it fires: if the keyboard closed in between, the list's own anchor already
     // shows the newest message.
-    const id = schedule(0, () => {
+    const repin = timers.after(0, () => {
       perform(appended())
     })
-    return () => cancelScheduled(id)
-  }, [cancelScheduled, datasetKey, decide, newestOrdinal, perform, schedule])
+    return repin.cancel
+  }, [datasetKey, decide, newestOrdinal, perform, timers])
 
   // Stores the conversation it last applied to (not a boolean) so a freeze/thaw of this screen —
   // which re-mounts effects without a real conversation change — does not reset it and re-trigger
   // the initial scroll, which would lose the user's scroll position (e.g. returning from the info
   // panel). It resets implicitly when conversationIDKey changes.
   const loadedConvRef = React.useRef<string | undefined>(undefined)
-  const initialRetryRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const initialRetryRef = React.useRef<Scheduled | undefined>(undefined)
   React.useLayoutEffect(() => {
     const justLoaded = loaded && loadedConvRef.current !== conversationIDKey
     if (loaded) {
@@ -283,7 +280,7 @@ export const useNativeThreadScroll = (p: {
     // Once more 100ms on, asking again with the target and rows as they are then, so a centre
     // requested in between is not undone by a scroll to the end.
     if (directive.type === 'pinEnd') {
-      initialRetryRef.current = schedule(100, () => {
+      initialRetryRef.current = timers.after(100, () => {
         perform(
           decide({
             centeredOrdinal: centeredRef.current,
@@ -293,7 +290,7 @@ export const useNativeThreadScroll = (p: {
         )
       })
     }
-  }, [centeredOrdinal, conversationIDKey, decide, loaded, numOrdinals, perform, schedule])
+  }, [centeredOrdinal, conversationIDKey, decide, loaded, numOrdinals, perform, timers])
 
   // Hidden (a screen pushed over this one) or unmounted: nothing scheduled may scroll a list no
   // longer shown. Work cut short is left to be done again if the list comes back: a target still
@@ -302,8 +299,7 @@ export const useNativeThreadScroll = (p: {
   // identity, so this cleanup runs only then.
   React.useEffect(
     () => () => {
-      const retry = initialRetryRef.current
-      if (retry !== undefined && scheduledRef.current.has(retry)) loadedConvRef.current = undefined
+      if (initialRetryRef.current?.pending()) loadedConvRef.current = undefined
       perform(decide({type: 'detached'}))
     },
     [decide, perform]
@@ -316,7 +312,7 @@ export const useNativeThreadScroll = (p: {
       return
     }
     scrollFailRetryRef.current += 1
-    schedule(200, () => {
+    timers.after(200, () => {
       const co = centeredRef.current
       if (co !== undefined) {
         listRef.current?.scrollToItem({animated: false, item: co, viewPosition: 0.5})

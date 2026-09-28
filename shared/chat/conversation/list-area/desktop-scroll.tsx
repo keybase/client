@@ -4,6 +4,7 @@ import * as React from 'react'
 import type * as T from '@/constants/types'
 import type {LegendListRef} from '@/common-adapters'
 import {ThreadRefsContext} from '../normal/context'
+import {useSchedule} from './schedule'
 import {
   decideScroll,
   indexOfOrdinal,
@@ -21,7 +22,6 @@ const endTolerancePx = 2
 
 export const useDesktopThreadScroll = (p: {
   centeredOrdinal: T.Chat.Ordinal | undefined
-  containsLatestMessage: boolean
   datasetKey: string
   editingOrdinal: T.Chat.Ordinal | undefined
   listRef: React.RefObject<LegendListRef | null>
@@ -29,7 +29,7 @@ export const useDesktopThreadScroll = (p: {
   messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
   wrapperRef: React.RefObject<HTMLDivElement | null>
 }) => {
-  const {centeredOrdinal, containsLatestMessage, datasetKey, editingOrdinal} = p
+  const {centeredOrdinal, datasetKey, editingOrdinal} = p
   const {listRef, loaded, messageOrdinals, wrapperRef} = p
 
   // Read by the loops below as they run, so they see the thread as it is now rather than when they
@@ -56,6 +56,12 @@ export const useDesktopThreadScroll = (p: {
     return false
   }, [wrapperRef])
 
+  const decide = React.useCallback((event: ScrollEvent) => {
+    const {directive, state} = decideScroll(targetRef.current, event)
+    targetRef.current = state
+    return directive
+  }, [])
+
   // The list resolves its initialScrollAtEnd target from the header size it has measured so far, and
   // SpecialTopMessage renders at its bare minHeight before the thread's intro content (retention
   // notice, new-chat card, the "digging" spinner) lands. maintainScrollAtEnd re-pins on a data, item,
@@ -67,23 +73,17 @@ export const useDesktopThreadScroll = (p: {
   // empty, and a scrollToEnd issued against that near-empty content becomes the target the list then
   // abandons its own bootstrap for, landing anywhere. Wait for the scroll offset to hold still, so
   // the list has finished its own initial scroll, and only then correct what it left on the table.
-  const endAnchorLoopRef = React.useRef<{cancelled: boolean} | undefined>(undefined)
-  const stopEndAnchor = React.useCallback(() => {
-    if (endAnchorLoopRef.current) endAnchorLoopRef.current.cancelled = true
-  }, [])
-  React.useEffect(() => stopEndAnchor, [stopEndAnchor])
+  const endAnchor = useSchedule()
   const verifyEndAnchor = React.useCallback(() => {
-    stopEndAnchor()
-    const loop = {cancelled: false}
-    endAnchorLoopRef.current = loop
-    const run = async () => {
+    endAnchor.stop()
+    endAnchor.start(async sleep => {
       let previousScroll: number | undefined
       let corrections = 0
       for (let elapsed = 0; elapsed < 2000; ) {
-        await new Promise<void>(resolve => setTimeout(resolve, 50))
+        if (!(await sleep(50))) return
         elapsed += 50
-        // Checked after the sleep, not before: whatever stopped it may have landed during it.
-        if (loop.cancelled || !ownsEnd(targetRef.current)) return
+        // Checked after the sleep, not before: the reader may have taken the end during it.
+        if (!ownsEnd(targetRef.current)) return
         const state = listRef.current?.getState()
         if (!state) continue
         if (state.isAtEnd) return
@@ -98,19 +98,14 @@ export const useDesktopThreadScroll = (p: {
           previousScroll = state.scroll
         }
       }
-    }
-    void run()
-  }, [listRef, stopEndAnchor])
+    })
+  }, [endAnchor, listRef])
 
   // Owns the in-flight centering loop. It has to outlive re-renders: the messages that make
   // centering accurate arrive after it starts, so the loop must not be torn down by an effect
-  // cleanup when messageOrdinals changes. Only a new target, a stop directive or unmount stops it.
-  const centerLoopRef = React.useRef<{cancelled: boolean} | undefined>(undefined)
-  // The loop re-centers for up to ~3s; a user scrolling in that window must win.
-  const abortCentering = React.useCallback(() => {
-    if (centerLoopRef.current) centerLoopRef.current.cancelled = true
-  }, [])
-  React.useEffect(() => abortCentering, [abortCentering])
+  // cleanup when messageOrdinals changes. Only a new target, a stop directive, being hidden or
+  // unmounting stops it; a user scrolling in its ~3s window must win.
+  const centering = useSchedule()
 
   // Closed loop, not one shot: rows enter at estimatedItemSize and only settle as they measure, so
   // the first scroll lands off by however wrong the estimates above the target were. Measure the
@@ -123,14 +118,12 @@ export const useDesktopThreadScroll = (p: {
   // snaps somewhere unrelated.
   const scrollToCentered = React.useCallback(
     (target: T.Chat.Ordinal) => {
-      abortCentering()
-      const loop = {cancelled: false}
-      centerLoopRef.current = loop
-      const run = async () => {
+      centering.stop()
+      centering.start(async sleep => {
         let settled = 0
         let pinnedChecks = 0
         let scrollAtLastRequest: number | undefined
-        for (let elapsed = 0; elapsed < 3000 && !loop.cancelled; ) {
+        for (let elapsed = 0; elapsed < 3000; ) {
           const wrapper = wrapperRef.current as unknown as {
             getBoundingClientRect: () => {height: number; top: number}
             querySelector: (s: string) => {getBoundingClientRect: () => {height: number; top: number}} | null
@@ -144,7 +137,7 @@ export const useDesktopThreadScroll = (p: {
             }
             settled = 0
             pinnedChecks = 0
-            await new Promise<void>(resolve => setTimeout(resolve, 100))
+            if (!(await sleep(100))) return
             elapsed += 100
             continue
           }
@@ -158,31 +151,32 @@ export const useDesktopThreadScroll = (p: {
             pinnedChecks = 0
             // Only the iteration right after a correction can diagnose a clamp.
             scrollAtLastRequest = undefined
-            if (++settled >= 3) return
+            if (++settled >= 3) break
           } else if (scroll === scrollAtLastRequest) {
             // A hit near either end of the thread cannot be centered: the offset we ask for gets
             // clamped and the row never reaches the middle. Our last correction moved the scroll
             // position not at all, so we are pinned against an edge — stop rather than spin.
-            if (++pinnedChecks >= 3) return
+            if (++pinnedChecks >= 3) break
           } else {
             pinnedChecks = 0
             scrollAtLastRequest = scroll
             void listRef.current?.scrollToOffset({animated: false, offset: scroll + offBy})
           }
-          await new Promise<void>(resolve => setTimeout(resolve, 50))
+          if (!(await sleep(50))) return
           elapsed += 50
         }
-      }
-      void run()
+        // Settled, pinned or out of time; centerSettled only ever leaves the list alone.
+        decide({type: 'centerSettled'})
+      })
     },
-    [abortCentering, listRef, wrapperRef]
+    [centering, decide, listRef, wrapperRef]
   )
 
   const perform = React.useCallback(
     (directive: ScrollDirective) => {
       switch (directive.type) {
         case 'pinEnd':
-          if (directive.stopCentering) abortCentering()
+          if (directive.stopCentering) centering.stop()
           if (directive.how === 'whenSettled') {
             verifyEndAnchor()
             return
@@ -194,11 +188,9 @@ export const useDesktopThreadScroll = (p: {
           void listRef.current?.scrollToEnd({animated: false})
           return
         case 'center':
-          scrollToCentered(directive.ordinal)
-          return
-        // Only the native list reports centerTargetObserved; this list's centring loop measures and
-        // corrects on its own.
-        case 'refineCenter':
+          // A target still settling has its loop running, and every step of it measures the rows as
+          // they are now, so rows changing under it need nothing more.
+          if (directive.newTarget) scrollToCentered(directive.ordinal)
           return
         case 'reveal': {
           const idx = indexOfOrdinal(messageOrdinalsRef.current, directive.ordinal)
@@ -208,7 +200,7 @@ export const useDesktopThreadScroll = (p: {
           return
         }
         case 'leaveAlone':
-          if (directive.stopCentering) abortCentering()
+          if (directive.stopCentering) centering.stop()
           return
         default: {
           const unexpected: never = directive
@@ -216,36 +208,37 @@ export const useDesktopThreadScroll = (p: {
         }
       }
     },
-    [abortCentering, isScrolledToEnd, listRef, scrollToCentered, verifyEndAnchor]
+    [centering, isScrolledToEnd, listRef, scrollToCentered, verifyEndAnchor]
   )
 
   const dispatch = React.useCallback(
     (event: ScrollEvent) => {
-      const {directive, state} = decideScroll(targetRef.current, event)
-      targetRef.current = state
-      perform(directive)
+      perform(decide(event))
     },
-    [perform]
+    [decide, perform]
   )
 
   // The end being verified belongs to the old rows.
   React.useLayoutEffect(() => {
-    stopEndAnchor()
+    endAnchor.stop()
     dispatch({type: 'datasetChanged'})
-  }, [datasetKey, dispatch, stopEndAnchor])
+  }, [datasetKey, dispatch, endAnchor])
 
   // Level-triggered on purpose: centring has to start when loaded flips true after the target was
   // already set, and when the target arrives in the thread after the request.
   React.useEffect(() => {
     dispatch({
       centeredOrdinal,
-      containsLatestMessage,
       loaded,
       targetInData:
         centeredOrdinal !== undefined && indexOfOrdinal(messageOrdinalsRef.current, centeredOrdinal) >= 0,
       type: 'threadObserved',
     })
-  }, [centeredOrdinal, containsLatestMessage, dispatch, loaded, messageOrdinals])
+  }, [centeredOrdinal, dispatch, loaded, messageOrdinals])
+
+  // Hidden (another tab selected, under Activity) or unmounted: the loops have stopped with the
+  // schedules, and a target still settling is centred afresh if the list comes back.
+  React.useEffect(() => () => dispatch({type: 'detached'}), [dispatch])
 
   React.useEffect(() => {
     dispatch({

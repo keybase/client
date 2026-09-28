@@ -20,14 +20,16 @@ const state = (p: Partial<ScrollTargetState> = {}): ScrollTargetState => ({...fr
 // Everything a busy session accumulates: reader holds the end, a target centred, a header measured,
 // an edit revealed.
 const busy = state({endOwner: 'reader', headerSize: 100, lastCentered: ord(30), lastEditing: ord(15)})
+const centred = (n: number) => state({endOwner: 'reader', lastCentered: ord(n), settlingCenter: true})
+// Centred, and then settled or left by the reader.
+const released = (n: number) => state({endOwner: 'reader', lastCentered: ord(n)})
 
 const leaveAlone: ScrollDirective = {stopCentering: false, type: 'leaveAlone'}
 const stopCentering: ScrollDirective = {stopCentering: true, type: 'leaveAlone'}
 const pinNow: ScrollDirective = {how: 'now', stopCentering: false, type: 'pinEnd'}
-const pinNowStopCentering: ScrollDirective = {how: 'now', stopCentering: true, type: 'pinEnd'}
 const pinUnlessAtEndStopCentering: ScrollDirective = {how: 'unlessAtEnd', stopCentering: true, type: 'pinEnd'}
 const pinWhenSettled: ScrollDirective = {how: 'whenSettled', stopCentering: false, type: 'pinEnd'}
-const center = (n: number): ScrollDirective => ({ordinal: ord(n), type: 'center'})
+const center = (n: number, newTarget = true): ScrollDirective => ({newTarget, ordinal: ord(n), type: 'center'})
 const reveal = (n: number): ScrollDirective => ({ordinal: ord(n), type: 'reveal'})
 
 type Row = [
@@ -82,94 +84,96 @@ describe('datasetChanged', () => {
 })
 
 describe('threadObserved', () => {
-  const observed = (
-    p: Partial<Extract<ScrollEvent, {type: 'threadObserved'}>>
-  ): Extract<ScrollEvent, {type: 'threadObserved'}> => ({
-    centeredOrdinal: undefined,
-    containsLatestMessage: true,
-    loaded: true,
-    targetInData: false,
+  const observed = (n: number | undefined, targetInData = true, loaded = true): ScrollEvent => ({
+    centeredOrdinal: n === undefined ? undefined : ord(n),
+    loaded,
+    targetInData,
     type: 'threadObserved',
-    ...p,
   })
+  // A centre is only ever set together with a clear (centerOnMessage reloads around its target), so
+  // a new target arrives with an unloaded, empty thread, and the only way to a target is through a
+  // load that brings it.
   runTable([
+    ['nothing centred, nothing to do', fresh, observed(undefined), leaveAlone, fresh],
+    ['a target waits for the reload that brings it', fresh, observed(30, false, false), leaveAlone, fresh],
+    ['a target the load did not bring waits', fresh, observed(30, false), leaveAlone, fresh],
+    ['a loaded target is centred and takes the end from the list', fresh, observed(30), center(30), centred(30)],
     [
-      'nothing happens before the reload brings the target',
-      fresh,
-      observed({centeredOrdinal: ord(30), loaded: false}),
-      leaveAlone,
-      fresh,
-    ],
-    [
-      'a target the load did not bring waits',
-      fresh,
-      observed({centeredOrdinal: ord(30)}),
-      leaveAlone,
-      fresh,
-    ],
-    [
-      'a loaded target is centred and takes the end from the list',
-      fresh,
-      observed({centeredOrdinal: ord(30), targetInData: true}),
+      'centring takes the end even from a list that owned it, keeping the rest',
+      state({headerSize: 100, lastEditing: ord(15)}),
+      observed(30),
       center(30),
-      state({endOwner: 'reader', lastCentered: ord(30), settlingCenter: true}),
+      {...centred(30), headerSize: 100, lastEditing: ord(15)},
     ],
     [
-      'centring does not depend on the newest messages being loaded',
-      fresh,
-      observed({centeredOrdinal: ord(30), containsLatestMessage: false, targetInData: true}),
-      center(30),
-      state({endOwner: 'reader', lastCentered: ord(30), settlingCenter: true}),
+      'rows changing under a target still settling refine it',
+      centred(30),
+      observed(30),
+      center(30, false),
+      centred(30),
     ],
     [
-      'the same target is centred once, however the thread changes around it',
-      state({endOwner: 'reader', lastCentered: ord(30)}),
-      observed({centeredOrdinal: ord(30), targetInData: true}),
+      'once it has settled or the reader left it, rows changing under the same target leave it be',
+      released(30),
+      observed(30),
       leaveAlone,
-      state({endOwner: 'reader', lastCentered: ord(30)}),
+      released(30),
     ],
     [
       'the same target is centred once even after the end was asked back',
       state({lastCentered: ord(30)}),
-      observed({centeredOrdinal: ord(30), targetInData: true}),
+      observed(30),
       leaveAlone,
       state({lastCentered: ord(30)}),
     ],
     [
-      'centring takes the end even from a list that owned it',
-      state({headerSize: 100}),
-      observed({centeredOrdinal: ord(30), targetInData: true}),
-      center(30),
-      state({endOwner: 'reader', headerSize: 100, lastCentered: ord(30), settlingCenter: true}),
+      'nothing centred leaves a reader holding the end',
+      state({endOwner: 'reader'}),
+      observed(undefined),
+      leaveAlone,
+      state({endOwner: 'reader'}),
     ],
     [
-      'leaving a centred target returns to the end and stops centring',
-      state({endOwner: 'reader', lastCentered: ord(30)}),
-      observed({}),
-      pinNowStopCentering,
-      fresh,
+      'leaving a centred target stops centring and leaves the reader, and the end, where they are',
+      centred(30),
+      observed(undefined),
+      stopCentering,
+      state({endOwner: 'reader'}),
     ],
     [
-      'leaving a centred target without the newest loaded hands back the end without scrolling',
-      state({endOwner: 'reader', lastCentered: ord(30)}),
-      observed({containsLatestMessage: false}),
+      'leaving after asking for the bottom leaves the end with the list',
+      state({lastCentered: ord(30)}),
+      observed(undefined),
       stopCentering,
       fresh,
     ],
     [
-      'with nothing centred there is nothing to leave, and a reader keeps the end',
-      state({endOwner: 'reader'}),
-      observed({}),
-      leaveAlone,
-      state({endOwner: 'reader'}),
+      'leaving keeps the rest of the state',
+      busy,
+      observed(undefined),
+      stopCentering,
+      state({endOwner: 'reader', headerSize: 100, lastEditing: ord(15)}),
     ],
+  ])
+})
+
+describe('centerSettled', () => {
+  runTable([
+    ['the target stops settling, and keeps the end and its record', centred(30), {type: 'centerSettled'}, leaveAlone, released(30)],
+    ['with nothing settling, nothing changes', released(30), {type: 'centerSettled'}, leaveAlone, released(30)],
+  ])
+})
+
+describe('detached', () => {
+  runTable([
     [
-      'with nothing centred and the list at the end, nothing happens',
-      fresh,
-      observed({containsLatestMessage: false}),
-      leaveAlone,
-      fresh,
+      'a target still settling is forgotten, so the list re-attaching centres it afresh',
+      centred(30),
+      {type: 'detached'},
+      stopCentering,
+      state({endOwner: 'reader'}),
     ],
+    ['a target that settled or the reader left stays centred', released(30), {type: 'detached'}, stopCentering, released(30)],
   ])
 })
 
@@ -366,30 +370,24 @@ describe('sequences', () => {
     for (let i = from; i <= to; i++) out.push(ord(i))
     return out
   }
-  // The desktop list, over a conversation already open at its newest messages.
-  const desktopList = () => {
-    const d = makeScrollDriver({
-      observe: (thread, centre) => ({
-        centeredOrdinal: centre,
-        containsLatestMessage: true,
-        loaded: thread.loaded,
-        targetInData: centre !== undefined && !!thread.messageOrdinals?.includes(centre),
-        type: 'threadObserved',
-      }),
-      reportsDatasets: true,
-    })
+  // A list over a conversation already open at its newest messages.
+  const openList = () => {
+    const d = makeScrollDriver()
     d.send({type: 'datasetChanged'})
     d.load(window(1, 60))
     d.take()
     return d
   }
   const header = (size: number): ScrollEvent => ({hasMessages: true, size, type: 'headerMeasured'})
+  const wheel: ScrollEvent = {how: 'wheel', type: 'userScrolled'}
 
-  test('a search hit: clear, reload, centre once, then back to the end', () => {
-    const d = desktopList()
-    d.centreOn(ord(30))
-    d.load(window(1, 60))
-    d.load(window(61, 70))
+  test('a search hit: clear, reload, centre, refine as rows arrive, settle, then leave it in place', () => {
+    const d = openList()
+    d.centreOn(ord(500))
+    d.load(window(450, 550))
+    d.load(window(400, 449))
+    d.send({type: 'centerSettled'})
+    d.load(window(350, 399))
     d.send(header(100))
     d.send(header(152))
     d.clearCentre()
@@ -397,30 +395,51 @@ describe('sequences', () => {
     expect(d.take()).toEqual([
       stopCentering,
       leaveAlone,
-      center(30),
+      center(500),
+      center(500, false),
+      leaveAlone,
+      // Rows arriving under a settled target leave the reader where they are.
       leaveAlone,
       leaveAlone,
       leaveAlone,
-      pinNowStopCentering,
-      pinWhenSettled,
+      stopCentering,
+      leaveAlone,
     ])
-    expect(d.state).toEqual(state({headerSize: 200}))
+    expect(d.state).toEqual(state({endOwner: 'reader', headerSize: 200}))
   })
 
-  test('re-choosing the same hit reloads and centres it again', () => {
-    const d = desktopList()
+  test('opening a conversation on a hit leaves the first load to the centre reconcile', () => {
+    const d = makeScrollDriver()
+    d.centreOn(ord(30))
+    d.send({centeredOrdinal: ord(30), hasMessages: true, type: 'initialLoad'})
+    d.load(window(1, 60))
+    expect(d.take()).toEqual([stopCentering, leaveAlone, leaveAlone, center(30)])
+  })
+
+  test('re-choosing the same hit after wheeling away reloads it and centres it again', () => {
+    const d = openList()
     d.centreOn(ord(30))
     d.load(window(1, 60))
-    d.send({how: 'wheel', type: 'userScrolled'})
+    d.send(wheel)
+    d.centreOn(ord(30))
+    d.load(window(1, 60))
+    expect(d.take()).toEqual([stopCentering, leaveAlone, center(30), stopCentering, stopCentering, leaveAlone, center(30)])
+  })
+
+  test('the same hit after closing it is centred again', () => {
+    const d = openList()
+    d.centreOn(ord(30))
+    d.load(window(1, 60))
+    d.clearCentre()
     d.centreOn(ord(30))
     d.load(window(1, 60))
     expect(d.take()).toEqual([stopCentering, leaveAlone, center(30), stopCentering, stopCentering, leaveAlone, center(30)])
   })
 
   test('a wheel stops the header re-pin until the reader asks for the bottom', () => {
-    const d = desktopList()
+    const d = openList()
     d.send(header(100))
-    d.send({how: 'wheel', type: 'userScrolled'})
+    d.send(wheel)
     d.send(header(152))
     d.requestBottom()
     d.send(header(200))
@@ -428,7 +447,7 @@ describe('sequences', () => {
   })
 
   test('jump to recent from a hit: pin first, then the clear hands the end back to the list', () => {
-    const d = desktopList()
+    const d = openList()
     d.centreOn(ord(30))
     d.load(window(1, 60))
     d.requestBottom()
@@ -447,15 +466,36 @@ describe('sequences', () => {
   })
 
   test('asking for the bottom before the hit loads leaves the reader at the bottom once it does', () => {
-    const d = desktopList()
+    const d = openList()
     d.centreOn(ord(30))
     d.requestBottom()
     d.load(window(1, 60))
     expect(d.take()).toEqual([stopCentering, leaveAlone, pinUnlessAtEndStopCentering, leaveAlone])
   })
 
+  test('with the keyboard up a new message leaves a settling hit alone; asking for the bottom ends the settling without leaving the centre', () => {
+    const d = openList()
+    d.centreOn(ord(30))
+    d.load(window(1, 60))
+    d.take()
+    d.receive(ord(61))
+    d.send({anchorHidesNewest: true, type: 'appended'})
+    d.requestBottom()
+    expect(d.take()).toEqual([center(30, false), leaveAlone, pinUnlessAtEndStopCentering])
+    expect(d.state).toEqual(state({lastCentered: ord(30)}))
+  })
+
+  test('after asking for the bottom from a hit still settling, a new message leaves the reader there', () => {
+    const d = openList()
+    d.centreOn(ord(30))
+    d.load(window(1, 60))
+    d.requestBottom()
+    d.receive(ord(61))
+    expect(d.take()).toEqual([stopCentering, leaveAlone, center(30), pinUnlessAtEndStopCentering, leaveAlone])
+  })
+
   test('an edit revealed before a reload is not revealed again after it', () => {
-    const d = desktopList()
+    const d = openList()
     d.send({ordinal: ord(15), targetInData: true, type: 'editingChanged'})
     d.centreOn(ord(30))
     d.load(window(1, 60))

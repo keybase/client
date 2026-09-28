@@ -434,27 +434,28 @@ describe('centering on a target', () => {
 })
 
 describe('clearing the centre', () => {
-  test('returns to the end and re-arms the end anchor', async () => {
+  test('leaves the reader where they are, holding the end, and re-arms the list anchor', async () => {
     open({center: 30})
     await tick(5000)
     H.log.length = 0
     update(() => H.setCenter(undefined))
-    expect(H.log).toEqual([['scrollToEnd', noAnimation]])
+    expect(H.log).toEqual([])
     expect(props()['maintainScrollAtEnd']).toBe(true)
     expect(props()['initialScrollAtEnd']).toBe(true)
-    H.log.length = 0
     update(() => H.listStore.set({isAtEnd: false}))
     growHeader()
-    await tick(100)
-    expect(H.log).toEqual([['scrollToEnd', noAnimation]])
+    await tick(3000)
+    expect(H.log).toEqual([])
   })
 
-  test('without the latest messages loaded, re-pins but does not scroll', async () => {
-    open({center: 30, moreToLoadForward: true})
+  test('after asking for the bottom, the end stays with the list', async () => {
+    open({center: 30})
     await tick(5000)
-    H.log.length = 0
+    scrollerNotAtEnd()
+    update(() => H.threadRefs.current?.scrollToBottom())
     update(() => H.setCenter(undefined))
-    expect(H.log).toEqual([])
+    H.log.length = 0
+    update(() => H.listStore.set({isAtEnd: false}))
     growHeader()
     await tick(100)
     expect(H.log).toEqual([['scrollToEnd', noAnimation]])
@@ -475,10 +476,7 @@ describe('clearing the centre', () => {
     open({center: 30})
     update(() => H.setCenter(undefined))
     await tick(5000)
-    expect(H.log).toEqual([
-      ['scrollToIndex', {animated: false, index: 29, viewPosition: 0.5}],
-      ['scrollToEnd', noAnimation],
-    ])
+    expect(H.log).toEqual([['scrollToIndex', {animated: false, index: 29, viewPosition: 0.5}]])
   })
 
   test('does nothing when the target never arrived', async () => {

@@ -28,7 +28,7 @@ jest.mock('../messages/special-top-message', () => () => null)
 jest.mock('../messages/special-bottom-message', () => () => null)
 jest.mock('../messages/separator', () => ({__esModule: true, NativeSeparator: () => null, default: () => null}))
 jest.mock('../messages/wrapper', () => ({MessageRow: () => null}))
-jest.mock('../input-area/input-state', () => ({useConversationInput: () => undefined}))
+jest.mock('../input-area/input-state', () => require('./native-list-harness.native').inputStateModule)
 jest.mock('../input-area/normal/typing', () => ({mobileTypingContainerHeight: 18}))
 jest.mock('@legendapp/list/react', () => ({LegendList: () => null}))
 jest.mock('@/util/storeless-actions', () => ({copyToClipboard: () => {}}))
@@ -795,6 +795,48 @@ describe('appending', () => {
     setOrdinals(1, 59)
     await tick(1000)
     expect(H.log).toEqual([])
+  })
+})
+
+describe('editing', () => {
+  const revealed = (n: number) => ['scrollToItem', {animated: true, item: ord(n), viewPosition: 0.5}]
+
+  test('reveals the message being edited, animated', async () => {
+    open()
+    await tick(200)
+    clearLog()
+    update(() => H.inputStore.set({editing: ord(15)}))
+    expect(H.log).toEqual([revealed(15)])
+  })
+
+  test('once per edit, not on every change to the rows', async () => {
+    open()
+    await tick(200)
+    clearLog()
+    update(() => H.inputStore.set({editing: ord(15)}))
+    setOrdinals(1, 61)
+    await tick(1000)
+    expect(scrollsOnly()).toEqual([revealed(15)])
+  })
+
+  test('editing the same message again after stopping reveals it again', async () => {
+    open()
+    await tick(200)
+    clearLog()
+    update(() => H.inputStore.set({editing: ord(15)}))
+    update(() => H.inputStore.set({editing: undefined}))
+    update(() => H.inputStore.set({editing: ord(15)}))
+    expect(H.log).toEqual([revealed(15), revealed(15)])
+  })
+
+  test('with the keyboard up, revealing keeps the end with the list', async () => {
+    open({keyboard: true})
+    await tick(200)
+    update(() => H.inputStore.set({editing: ord(15)}))
+    clearLog()
+    setOrdinals(1, 61)
+    await tick(0)
+    expect(H.log).toEqual([toBottomOverKeyboard])
   })
 })
 

@@ -38,6 +38,12 @@ export const setCenter = (ordinal: T.Chat.Ordinal | undefined) =>
 
 export const keyboardStore = makeStore({isVisible: false})
 
+type InputState = {editing: T.Chat.Ordinal | undefined}
+export const inputStore = makeStore<InputState>({editing: undefined})
+export const inputStateModule = {
+  useConversationInput: <R,>(selector: (s: InputState) => R) => useStore(inputStore, selector),
+}
+
 export const bottomInset = 34
 // The safe-area inset is React state, so a change re-renders the list.
 export const insetStore = makeStore({bottomInset})
@@ -186,6 +192,7 @@ export const resetHarness = () => {
   threadStore.reset(initialThreadState())
   centerStore.reset(noCenter)
   keyboardStore.reset({isVisible: false})
+  inputStore.reset({editing: undefined})
   insetStore.reset({bottomInset})
   markThreadAsRead.mockClear()
   loadOlderMessages.mockClear()

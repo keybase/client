@@ -217,7 +217,6 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const {initialScrollIndex, maintainScrollAtEnd, onMetricsChange, onWheel, scrollToBottom} =
     useDesktopThreadScroll({
       centeredOrdinal,
-      containsLatestMessage,
       datasetKey,
       editingOrdinal,
       listRef,
@@ -459,6 +458,7 @@ const NativeConversationList = function NativeConversationList() {
     }))
   )
   const {centeredHighlightOrdinal, centeredOrdinal} = useConversationCenter()
+  const editingOrdinal = InputState.useConversationInput(s => s.editing)
   const noCenteredOrdinal = T.Chat.numberToOrdinal(-1)
   // Ordinals start at 1; this list takes anything else as no centre.
   const centeredTarget = centeredOrdinal !== undefined && centeredOrdinal > 0 ? centeredOrdinal : undefined
@@ -524,6 +524,7 @@ const NativeConversationList = function NativeConversationList() {
     centeredOrdinal: centeredTarget,
     conversationIDKey,
     datasetKey: `${conversationIDKey}:${clearVersion}`,
+    editingOrdinal,
     isKeyboardVisible,
     listRef,
     loaded,

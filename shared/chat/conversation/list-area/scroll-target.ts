@@ -8,8 +8,8 @@ import sortedIndexOf from 'lodash/sortedIndexOf'
 // thread and refills it under a new key, and that is a new list as far as scrolling is concerned.
 export type ScrollTargetState = {
   // Whether the end still belongs to the list (hold the newest message in view) or to the reader,
-  // who took it by scrolling away or by asking for a centred target. Only the header re-pin consults
-  // it, and that must not yank a reader who has scrolled away.
+  // who took it by scrolling away or by asking for a centred target. Nothing that scrolls to the end
+  // on the list's own account may yank a reader who holds it.
   endOwner: 'list' | 'reader'
   // The last header size reported for this dataset. The first report is the size the list built its
   // initial position from, so only a later, different one counts as growth.
@@ -19,64 +19,59 @@ export type ScrollTargetState = {
   // the reader back to the hit. Per dataset, not per conversation: re-centring on the ordinal we
   // are already parked on still reloads the thread, so the list has to scroll to it again.
   lastCentered: T.Chat.Ordinal | undefined
-  // Whether that target is still being settled in the middle. A wheel, a drag or asking for the bottom
-  // ends it: the reader has left the target, and rows changing under the target must not pull them back.
+  // Whether the list's centring of that target is still under way. It ends when the list reports it
+  // settled, and when the reader leaves the target (a wheel, a drag, asking for the bottom): rows
+  // changing under a target no longer settling must not pull the reader back to it.
   settlingCenter: boolean
   // The edit already revealed. Deliberately survives a dataset change.
   lastEditing: T.Chat.Ordinal | undefined
 }
 
+// Every list reports the events it can observe, from one vocabulary. Most come from both lists; the
+// few that do not say which list reports them and why the other has nothing to report.
 export type ScrollEvent =
+  // The list laid out a dataset other than the one it last saw.
   | {type: 'datasetChanged'}
-  // The thread or the centre request changed: the level-triggered reconcile that starts and ends
-  // centring. targetInData says whether the centred ordinal is in the loaded messages.
+  // The level-triggered centre reconcile, sent whenever the centre request or the loaded rows change:
+  // it starts centring, refines a target still settling against rows that changed under it, and
+  // ends centring. targetInData says whether the centred ordinal is in the loaded rows.
   | {
       type: 'threadObserved'
       centeredOrdinal: T.Chat.Ordinal | undefined
-      containsLatestMessage: boolean
       loaded: boolean
       targetInData: boolean
     }
-  // The native list's reconcile of the centre request against the loaded rows. Like threadObserved
-  // it centres a target once per dataset, only once the thread has loaded and the target is in the
-  // rows. It parts from it in two ways, each the native list's own: leaving a centred target leaves
-  // the reader where they are, because the list's own anchor takes the end back once it is
-  // re-enabled, and only if they are at it; and every change to the rows under a target still
-  // settling asks for the centring to be refined against them.
-  | {
-      type: 'centerTargetObserved'
-      centeredOrdinal: T.Chat.Ordinal | undefined
-      loaded: boolean
-      targetInData: boolean
-    }
-  // The native list's corrector finished with the centred target: it reached the middle, or ran out
-  // of steps trying.
+  // The list's own centring finished with the target: it reached the middle, was pinned against an
+  // edge, or ran out of tries.
   | {type: 'centerSettled'}
-  // The native list stopped being shown (hidden under another screen, or unmounted) and dropped
+  // The list stopped being shown (hidden under another screen or tab, or unmounted) and dropped
   // everything it had scheduled.
   | {type: 'detached'}
-  // A conversation finished its first load, for a list with no declarative initial position.
+  // A conversation finished its first load. Only a list with no declarative initial position reports
+  // it; the desktop list starts at its end or on its target through its own props.
   | {type: 'initialLoad'; centeredOrdinal: T.Chat.Ordinal | undefined; hasMessages: boolean}
   | {type: 'userScrolled'; how: 'wheel' | 'drag' | 'pageUp' | 'pageDown'}
+  // Only a list whose header comes before its end in scroll order reports it: the native list is
+  // inverted, so its header sits at the far, oldest end and growing it never moves the newest.
   | {type: 'headerMeasured'; hasMessages: boolean; size: number}
-  // Messages were appended. anchorHidesNewest is true when the list's own anchoring would leave the
-  // new message out of view.
+  // Messages were appended. Only a list whose own anchoring can leave a new message out of view
+  // reports it; anchorHidesNewest says whether it would this time.
   | {type: 'appended'; anchorHidesNewest: boolean}
   | {type: 'editingChanged'; ordinal: T.Chat.Ordinal | undefined; targetInData: boolean}
   // The reader asked for the newest messages: the composer, the keyboard or jump to recent.
   // centeredOrdinal is the centre request as it stands.
   | {type: 'scrollToBottomRequested'; centeredOrdinal: T.Chat.Ordinal | undefined}
 
+// Every list carries out every directive; how is its own.
 export type ScrollDirective =
   // now: scroll to the end. unlessAtEnd: only if not already there, because scrolling an at-end
   // list displaces its own end anchor. whenSettled: once the list has stopped moving, correct any
   // shortfall for as long as the list still owns the end.
   | {type: 'pinEnd'; how: 'now' | 'unlessAtEnd' | 'whenSettled'; stopCentering: boolean}
-  // Bring the ordinal to the middle of the viewport, replacing any centring already under way.
-  | {type: 'center'; ordinal: T.Chat.Ordinal}
-  // The centred target is in the loaded rows: settle it in the middle against them. newTarget says
-  // it has not been centred before, so the move toward it is still to make.
-  | {type: 'refineCenter'; ordinal: T.Chat.Ordinal; newTarget: boolean}
+  // Bring the ordinal to the middle of the viewport and settle it there against the loaded rows.
+  // newTarget says it has not been centred in this dataset, so the move toward it is still to make;
+  // otherwise the rows changed under a target still settling.
+  | {type: 'center'; ordinal: T.Chat.Ordinal; newTarget: boolean}
   // Bring the ordinal into view without taking the end from the list.
   | {type: 'reveal'; ordinal: T.Chat.Ordinal}
   | {type: 'leaveAlone'; stopCentering: boolean}
@@ -96,8 +91,7 @@ const leaveAlone: ScrollDirective = {stopCentering: false, type: 'leaveAlone'}
 export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): ScrollDecision => {
   switch (event.type) {
     case 'datasetChanged':
-      // Resets even for a key it has seen: the list re-announces its dataset whenever it lays it out
-      // afresh, and the end, the centred target and the header baseline all start over with it. A
+      // The end, the centred target and the header baseline all start over with a new dataset. A
       // centring under way belongs to the old rows, so it stops: a target still wanted is centred
       // again once it is in the new ones, and one cleared in the same commit (jump to recent) would
       // otherwise go on pulling the reader toward it.
@@ -112,44 +106,28 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
         },
       }
     case 'threadObserved': {
-      const {centeredOrdinal, containsLatestMessage, loaded, targetInData} = event
-      if (!loaded) return {directive: leaveAlone, state}
-      if (centeredOrdinal !== undefined) {
-        if (state.lastCentered === centeredOrdinal || !targetInData) return {directive: leaveAlone, state}
-        return {
-          directive: {ordinal: centeredOrdinal, type: 'center'},
-          state: {...state, endOwner: 'reader', lastCentered: centeredOrdinal, settlingCenter: true},
-        }
-      }
-      if (state.lastCentered === undefined) return {directive: leaveAlone, state}
-      // Leaving a centred target hands the end back. Without the newest messages loaded there is no
-      // end to go to yet; the list anchors it once they arrive.
-      return {
-        directive: containsLatestMessage
-          ? {how: 'now', stopCentering: true, type: 'pinEnd'}
-          : {stopCentering: true, type: 'leaveAlone'},
-        state: {...state, endOwner: 'list', lastCentered: undefined, settlingCenter: false},
-      }
-    }
-    case 'centerTargetObserved': {
       const {centeredOrdinal, loaded, targetInData} = event
       if (centeredOrdinal === undefined) {
         if (state.lastCentered === undefined) return {directive: leaveAlone, state}
+        // Leaving a centred target stops centring and leaves the reader where they are, and the end
+        // with whoever holds it: the reader, unless they asked for the bottom.
         return {
           directive: {stopCentering: true, type: 'leaveAlone'},
-          state: {...state, endOwner: 'list', lastCentered: undefined, settlingCenter: false},
+          state: {...state, lastCentered: undefined, settlingCenter: false},
         }
       }
       if (!loaded || !targetInData) return {directive: leaveAlone, state}
+      // Centring happens once per target and dataset; after that only a target still settling is
+      // refined as the rows change under it.
       const newTarget = state.lastCentered !== centeredOrdinal
       if (!newTarget && !state.settlingCenter) return {directive: leaveAlone, state}
       return {
-        directive: {newTarget, ordinal: centeredOrdinal, type: 'refineCenter'},
+        directive: {newTarget, ordinal: centeredOrdinal, type: 'center'},
         state: {...state, endOwner: 'reader', lastCentered: centeredOrdinal, settlingCenter: true},
       }
     }
     case 'centerSettled':
-      // Settled like a drag leaves it: later changes to the rows around the target leave it be.
+      // Settled like a wheel or a drag leaves it: later changes to the rows around the target leave it be.
       return {directive: leaveAlone, state: {...state, settlingCenter: false}}
     case 'detached':
       // A target still settling had its move cut short, so if the list comes back it is new again.
