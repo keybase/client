@@ -1,6 +1,9 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as Message from '@/constants/chat/message'
+import * as Meta from '@/constants/chat/meta'
+import logger from '@/logger'
+import {metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
 import type * as React from 'react'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
@@ -12,7 +15,7 @@ import {setInputIntent, useInputIntentState} from '../input-intent-store'
 import {setThreadInputCommandStatus, setThreadInputEditing, setThreadInputReplyTo} from '@/constants/router'
 import {useCurrentUserState} from '@/stores/current-user'
 import Input from './normal'
-import type {PlatformInputProps} from './normal/input.shared'
+import type {PlatformInputProps, Selection} from './normal/input.shared'
 import {ConversationInputProvider, useConversationInput, type ConversationInputState} from './input-state'
 import {ConversationThreadProvider, useConversationThreadActions} from '../thread-context'
 import {suppressedURLsOf, takeSuppressSnapshot, useUnfurlPreviewState} from '../unfurl-preview-state'
@@ -22,12 +25,20 @@ const getSuppressedURLs = (c: T.Chat.ConversationIDKey) => suppressedURLsOf(take
 // jest.mock factories may only close over mock-prefixed names
 let mockOnClear: (() => void) | undefined
 let mockPlatformInputProps: PlatformInputProps | undefined
+let mockNullInputRef = false
+// what the stand-in input is showing: the real inputs apply a write and, when asked to reflect
+// it, echo it back through onChangeText; this one does both synchronously
+const mockInput = {focusCount: 0, selection: undefined as Selection | undefined, text: ''}
 // stand in for the real composer input: it only has to hand back a ref whose clear()
 // fires onChangeText('') the way the desktop input does, which is what races the send
 jest.mock('./normal/input', () => ({
   __esModule: true,
   default: function MockPlatformInput(p: PlatformInputProps) {
     mockPlatformInputProps = p
+    if (mockNullInputRef) {
+      p.setInputRef(null)
+      return null
+    }
     p.setInputRef({
       blur: () => {},
       clear: () => {
@@ -35,13 +46,24 @@ jest.mock('./normal/input', () => ({
         // can ask for that to happen synchronously inside clear() instead, which is the
         // ordering onSubmit's snapshot has to survive
         mockOnClear?.()
+        mockInput.text = ''
+        mockInput.selection = undefined
         mockPlatformInputProps?.onChangeText('')
       },
-      focus: () => {},
-      getSelection: () => undefined,
+      focus: () => {
+        mockInput.focusCount++
+      },
+      getSelection: () => mockInput.selection,
       isFocused: () => false,
-      transformText: () => {},
-      value: '',
+      transformText: (fn, reflectChange) => {
+        const ti = fn({selection: mockInput.selection, text: mockInput.text})
+        mockInput.text = ti.text
+        mockInput.selection = ti.selection
+        if (reflectChange) {
+          mockPlatformInputProps?.onChangeText(ti.text)
+        }
+      },
+      value: mockInput.text,
     })
     return null
   },
@@ -167,6 +189,10 @@ beforeEach(() => {
 afterEach(() => {
   mockPlatformInputProps = undefined
   mockOnClear = undefined
+  mockNullInputRef = false
+  mockInput.focusCount = 0
+  mockInput.selection = undefined
+  mockInput.text = ''
   cleanup()
   jest.restoreAllMocks()
   resetAllStores()
@@ -1042,5 +1068,276 @@ describe('a draft typed just before leaving the conversation', () => {
 
   test('is not saved for the next account when the unmount comes from a switch', () => {
     expect(typeThenUnmount(true)).not.toContain('ab')
+  })
+})
+
+describe('the composer text', () => {
+  // the provider outlives the composer: mobile thread search, for one, swaps the input out
+  // while the conversation stays mounted
+  const renderToggle = () => {
+    let handles: InputHandles | undefined
+    const tree = (showInput: boolean) => (
+      <ConversationThreadProvider id={convID}>
+        <ConversationInputProvider id={convID}>
+          {showInput && <Input />}
+          <InputProbe onRender={h => (handles = h)} />
+        </ConversationInputProvider>
+      </ConversationThreadProvider>
+    )
+    const utils = render(tree(false))
+    return {
+      getHandles: () => handles!,
+      setShowInput: (show: boolean) => {
+        act(() => {
+          utils.rerender(tree(show))
+        })
+      },
+    }
+  }
+
+  const receiveDraft = (draft: string) => {
+    act(() => {
+      metasReceived([{...Meta.makeConversationMeta(), conversationIDKey: convID, draft}], undefined, {force: true})
+    })
+  }
+
+  beforeEach(() => {
+    jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
+    jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+    jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([])
+  })
+
+  test('an inject reaches the mounted input with the caret at the end', () => {
+    let handles: InputHandles | undefined
+    renderComposerWithProbe(h => (handles = h))
+
+    act(() => {
+      handles?.input.dispatch.injectIntoInput('hello')
+    })
+
+    expect(mockInput.text).toBe('hello')
+    expect(mockInput.selection).toEqual({end: 5, start: 5})
+    expect(mockInput.focusCount).toBe(0)
+  })
+
+  test('an inject with focus focuses the input once', () => {
+    let handles: InputHandles | undefined
+    renderComposerWithProbe(h => (handles = h))
+
+    act(() => {
+      handles?.input.dispatch.injectIntoInput('hello', true)
+    })
+
+    expect(mockInput.text).toBe('hello')
+    expect(mockInput.focusCount).toBe(1)
+  })
+
+  test('an injected empty text clears the input', () => {
+    let handles: InputHandles | undefined
+    renderComposerWithProbe(h => (handles = h))
+    act(() => {
+      handles?.input.dispatch.injectIntoInput('typed')
+    })
+
+    act(() => {
+      handles?.input.dispatch.injectIntoInput('')
+    })
+
+    expect(mockInput.text).toBe('')
+    expect(mockInput.selection).toBeUndefined()
+  })
+
+  test('the injected text is echoed back through onChangeText, which saves it as the draft', () => {
+    const saveDraft = jest.mocked(T.RPCChat.localUpdateUnsentTextRpcPromise)
+    let handles: InputHandles | undefined
+    renderComposerWithProbe(h => (handles = h))
+
+    act(() => {
+      handles?.input.dispatch.injectIntoInput('echoed')
+    })
+
+    expect(saveDraft.mock.calls.map(c => c[0].text)).toContain('echoed')
+  })
+
+  // the focus request does not survive the wait: the input only focuses for requests made
+  // while it is mounted
+  test('an inject made while the input is unmounted lands when it mounts, without focus', () => {
+    const {getHandles, setShowInput} = renderToggle()
+
+    act(() => {
+      getHandles().input.dispatch.injectIntoInput('queued', true)
+    })
+    expect(mockInput.text).toBe('')
+
+    setShowInput(true)
+
+    expect(mockInput.text).toBe('queued')
+    expect(mockInput.focusCount).toBe(0)
+  })
+
+  test('of several injects made while unmounted the last text wins', () => {
+    const {getHandles, setShowInput} = renderToggle()
+
+    act(() => {
+      getHandles().input.dispatch.injectIntoInput('first', true)
+    })
+    act(() => {
+      getHandles().input.dispatch.injectIntoInput('second')
+    })
+    setShowInput(true)
+
+    expect(mockInput.text).toBe('second')
+    expect(mockInput.focusCount).toBe(0)
+  })
+
+  test('an edit started while unmounted fills the input when it mounts', () => {
+    const {getHandles, setShowInput} = renderToggle()
+    act(() => {
+      getHandles().thread.addMessages([makeTextMessage({text: 'edit me later'})], {markAsRead: false})
+    })
+    act(() => {
+      getHandles().input.dispatch.setEditing(T.Chat.numberToOrdinal(101))
+    })
+
+    setShowInput(true)
+
+    expect(mockInput.text).toBe('edit me later')
+    expect(mockPlatformInputProps?.isEditing).toBe(true)
+  })
+
+  test('an inject still waiting when the input mounts beats the draft', () => {
+    receiveDraft('saved draft')
+    const {getHandles, setShowInput} = renderToggle()
+    act(() => {
+      getHandles().input.dispatch.injectIntoInput('from an intent')
+    })
+
+    setShowInput(true)
+
+    expect(mockInput.text).toBe('from an intent')
+  })
+
+  test('an empty inject still waiting when the input mounts clears the draft it loaded', () => {
+    receiveDraft('saved draft')
+    const {getHandles, setShowInput} = renderToggle()
+    act(() => {
+      getHandles().input.dispatch.injectIntoInput('')
+    })
+
+    setShowInput(true)
+
+    expect(mockInput.text).toBe('')
+  })
+
+  test('the draft typed before the input unmounts is reloaded when it mounts again', () => {
+    receiveDraft('')
+    const {setShowInput} = renderToggle()
+    setShowInput(true)
+    act(() => {
+      mockPlatformInputProps?.onChangeText('a')
+    })
+    act(() => {
+      mockPlatformInputProps?.onChangeText('ab')
+    })
+
+    setShowInput(false)
+    // flushed on unmount into the inbox meta, which is where the next mount reads it
+    expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('ab')
+    mockInput.text = ''
+
+    setShowInput(true)
+
+    expect(mockInput.text).toBe('ab')
+  })
+
+  test('an inject into a mounted composer whose input ref is null is dropped and logged', () => {
+    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    mockNullInputRef = true
+    let handles: InputHandles | undefined
+    renderComposerWithProbe(h => (handles = h))
+
+    act(() => {
+      handles?.input.dispatch.injectIntoInput('lost')
+    })
+
+    expect(error).toHaveBeenCalledWith('[chat] injectText dropped: input ref is null')
+  })
+
+  test('a composer send empties the input once the send goes out', async () => {
+    mockPostText()
+    let handles: InputHandles | undefined
+    renderComposerWithProbe(h => (handles = h))
+    act(() => {
+      handles?.input.dispatch.injectIntoInput('going out')
+    })
+
+    act(() => {
+      handles?.input.dispatch.sendComposerText('going out')
+    })
+    await flushPromises()
+
+    expect(mockInput.text).toBe('')
+  })
+
+  test('a canceled stellar send puts the text back into the input', async () => {
+    const getLastPost = mockPostText()
+    let handles: InputHandles | undefined
+    renderComposerWithProbe(h => (handles = h))
+
+    act(() => {
+      handles?.input.dispatch.sendComposerText('+1xlm@testuser')
+    })
+    await flushPromises()
+    expect(mockInput.text).toBe('')
+    act(() => {
+      getLastPost()?.incomingCallMap['chat.1.chatUi.chatStellarDone']?.({canceled: true})
+    })
+
+    expect(mockInput.text).toBe('+1xlm@testuser')
+  })
+
+  test('onSubmit ignores an empty composer', () => {
+    jest.useFakeTimers()
+    try {
+      const post = jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener')
+      renderComposer()
+      act(() => {
+        mockPlatformInputProps?.onSubmit('')
+      })
+      act(() => {
+        jest.advanceTimersByTime(10)
+      })
+      expect(post).not.toHaveBeenCalled()
+      expect(mockInput.focusCount).toBe(0)
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  test('onSubmit clears and focuses the input at once and sends on the next tick', async () => {
+    jest.useFakeTimers()
+    try {
+      const getLastPost = mockPostText()
+      renderComposer()
+      act(() => {
+        mockPlatformInputProps?.onChangeText('hello')
+      })
+      mockInput.text = 'hello'
+
+      act(() => {
+        mockPlatformInputProps?.onSubmit('hello')
+      })
+      expect(mockInput.text).toBe('')
+      expect(mockInput.focusCount).toBe(1)
+      expect(getLastPost()).toBeUndefined()
+
+      await act(async () => {
+        jest.advanceTimersByTime(0)
+        await flushPromises()
+      })
+      expect(getLastPost()?.params.body).toBe('hello')
+    } finally {
+      jest.useRealTimers()
+    }
   })
 })
