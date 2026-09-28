@@ -161,9 +161,16 @@ export const useNativeThreadScroll = (p: {
     }
   )
 
-  // Returns the cleanup for whatever it leaves running.
+  // The corrector's 50/250/500/900ms schedule. Held here rather than in an effect cleanup, because
+  // the effect that starts it skips re-mounts, and a cleanup would cancel it with nothing to restart it.
+  const ladderRef = React.useRef<Array<ReturnType<typeof setTimeout>>>([])
+  const [stopLadder] = React.useState(() => () => {
+    ladderRef.current.forEach(clearTimeout)
+    ladderRef.current = []
+  })
+
   const perform = React.useCallback(
-    (directive: ScrollDirective): (() => void) | undefined => {
+    (directive: ScrollDirective) => {
       switch (directive.type) {
         case 'pinEnd':
           if (directive.stopCentering) stopCentering()
@@ -171,26 +178,23 @@ export const useNativeThreadScroll = (p: {
           // needs no check of its own here. This list reports no header events, so whenSettled never
           // reaches it.
           scrollToBottomRef.current()
-          return undefined
+          return
         case 'center':
           moveToward(directive.ordinal)
-          return undefined
-        case 'refineCenter': {
+          return
+        case 'refineCenter':
           if (directive.newTarget) moveToward(directive.ordinal)
           correctRef.current = {active: true, iters: 0}
-          const ids = [50, 250, 500, 900].map(d =>
+          ladderRef.current = [50, 250, 500, 900].map(d =>
             setTimeout(() => correctCenter(vFirstRef.current, vLastRef.current), d)
           )
-          return () => {
-            ids.forEach(clearTimeout)
-          }
-        }
+          return
         case 'leaveAlone':
           if (directive.stopCentering) stopCentering()
-          return undefined
+          return
         // This list reports no edit events.
         case 'reveal':
-          return undefined
+          return
         default: {
           const unexpected: never = directive
           return unexpected
@@ -203,19 +207,28 @@ export const useNativeThreadScroll = (p: {
   // Center on the search hit once it actually appears in the loaded list. Centering
   // on the raw centeredOrdinal change is unreliable: navigating to a hit reloads the
   // thread centered on it, so messageOrdinals is briefly empty (idx -1) when the
-  // ordinal changes. Wait for the target to load, then scroll. Every change to the rows re-runs
-  // this, which restarts the corrector's schedule and stops the previous one.
-  React.useEffect(
-    () =>
-      perform(
-        decide({
-          centeredOrdinal,
-          targetInData: centeredOrdinal !== undefined && messageOrdinals.includes(centeredOrdinal),
-          type: 'centerTargetObserved',
-        })
-      ),
-    [centeredOrdinal, decide, messageOrdinals, perform]
-  )
+  // ordinal changes. Wait for the target to load, then scroll. Every change to the rows or the
+  // target restarts the corrector's schedule.
+  // What it last reconciled, compared by value: a freeze/thaw of this screen re-mounts effects with
+  // nothing changed, and reconciling again then would re-arm centring the reader has moved away from.
+  const observedRef = React.useRef<
+    {centeredOrdinal: T.Chat.Ordinal | undefined; messageOrdinals: ReadonlyArray<T.Chat.Ordinal>} | undefined
+  >(undefined)
+  React.useEffect(() => {
+    const observed = observedRef.current
+    if (observed && observed.centeredOrdinal === centeredOrdinal && observed.messageOrdinals === messageOrdinals) {
+      return
+    }
+    observedRef.current = {centeredOrdinal, messageOrdinals}
+    stopLadder()
+    perform(
+      decide({
+        centeredOrdinal,
+        targetInData: centeredOrdinal !== undefined && messageOrdinals.includes(centeredOrdinal),
+        type: 'centerTargetObserved',
+      })
+    )
+  }, [centeredOrdinal, decide, messageOrdinals, perform, stopLadder])
 
   // When keyboard is open, maintainVisibleContentPosition adjusts contentOffset by the new
   // message height when a message is added, undoing the scrollToBottom from onSubmit.

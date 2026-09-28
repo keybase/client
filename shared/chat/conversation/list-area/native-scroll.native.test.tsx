@@ -6,11 +6,13 @@
 // declarative scrolling (maintainVisibleContentPosition) is pinned as the config it hands the list,
 // not simulated.
 import type * as React from 'react'
+import {Activity, StrictMode} from 'react'
 import '@/constants'
 import * as T from '@/constants/types'
 import {act, cleanup, render} from '@testing-library/react'
 import {ThreadRefsContext} from '../normal/context'
 import * as H from './native-list-harness.native'
+import {makeStore, useStore} from './list-test-store'
 
 jest.mock('react-native', () => require('./native-list-harness.native').reactNativeModule)
 jest.mock('react-native-keyboard-controller', () => require('./native-list-harness.native').nativeOnlyModule)
@@ -47,11 +49,27 @@ afterAll(() => {
 
 const ord = T.Chat.numberToOrdinal
 
-const Harness = () => (
-  <ThreadRefsContext value={H.threadRefsValue}>
-    <ThreadList />
-  </ThreadRefsContext>
-)
+// A screen pushed over the conversation hides it the way native-stack does, with Activity, which
+// unmounts its effects; coming back re-mounts them with nothing changed.
+const screenStore = makeStore({hidden: false})
+const Harness = () => {
+  const hidden = useStore(screenStore, s => s.hidden)
+  return (
+    <Activity mode={hidden ? 'hidden' : 'visible'}>
+      <ThreadRefsContext value={H.threadRefsValue}>
+        <ThreadList />
+      </ThreadRefsContext>
+    </Activity>
+  )
+}
+const hideAndShow = () => {
+  update(() => {
+    screenStore.set({hidden: true})
+  })
+  update(() => {
+    screenStore.set({hidden: false})
+  })
+}
 
 const update = (fn: () => void) => {
   act(fn)
@@ -77,15 +95,23 @@ const closeKeyboard = () => {
 
 // Opens a conversation holding ordinals from..to, optionally centered and with the keyboard up.
 const open = (
-  p: {center?: number; from?: number; keyboard?: boolean; loaded?: boolean; to?: number} = {}
+  p: {center?: number; from?: number; keyboard?: boolean; loaded?: boolean; strict?: boolean; to?: number} = {}
 ) => {
-  const {center, from = 1, keyboard = false, loaded = true, to = 60} = p
+  const {center, from = 1, keyboard = false, loaded = true, strict = false, to = 60} = p
   update(() => {
     H.threadStore.set({loaded, messageOrdinals: to >= from ? H.range(from, to) : []})
     if (center !== undefined) H.setCenter(ord(center))
     if (keyboard) openKeyboard()
   })
-  render(<Harness />)
+  render(
+    strict ? (
+      <StrictMode>
+        <Harness />
+      </StrictMode>
+    ) : (
+      <Harness />
+    )
+  )
 }
 
 const props = () => {
@@ -146,6 +172,7 @@ const mvpNoAutoscroll = {minIndexForVisible: 0}
 beforeEach(() => {
   jest.useFakeTimers()
   H.resetHarness()
+  screenStore.reset({hidden: false})
 })
 
 afterEach(() => {
@@ -468,6 +495,61 @@ describe('a centre requested after opening', () => {
     viewable(0, 9)
     await tick(1000)
     expect(scrollsOnly()).toEqual([])
+  })
+})
+
+describe('a screen pushed over a centred conversation', () => {
+  test('after a drag away from the hit, coming back keeps the position', async () => {
+    open({center: 30})
+    await tick(1000)
+    scrolled(0, 6000)
+    drag()
+    viewable(0, 9)
+    clearLog()
+    hideAndShow()
+    viewable(0, 9)
+    await tick(1000)
+    expect(scrollsOnly()).toEqual([])
+  })
+
+  test('after the hit settled and the reader asked for the bottom, coming back keeps the position', async () => {
+    open({center: 30})
+    await tick(1000)
+    scrolled(3000, 6000)
+    viewable(25, 35)
+    act(() => H.threadRefs.current?.scrollToBottom())
+    scrolled(0, 6000)
+    viewable(0, 9)
+    clearLog()
+    hideAndShow()
+    viewable(0, 9)
+    await tick(1000)
+    expect(scrollsOnly()).toEqual([])
+  })
+
+  test('under StrictMode, whose effect re-mount is the same, centring still runs its schedule', async () => {
+    open({center: 30, strict: true})
+    scrolled(0, 6000)
+    viewable(0, 9)
+    clearLog()
+    await tick(1000)
+    expect(scrollsOnly()).toEqual([
+      coarse(30),
+      toOffset(25.5 * 100 * 0.9),
+      coarse(30),
+      toOffset(25.5 * 100 * 0.9),
+      toOffset(25.5 * 100 * 0.9),
+      toOffset(25.5 * 100 * 0.9),
+    ])
+  })
+
+  test('the first load is not repeated', async () => {
+    open()
+    await tick(1000)
+    clearLog()
+    hideAndShow()
+    await tick(1000)
+    expect(H.log).toEqual([])
   })
 })
 
