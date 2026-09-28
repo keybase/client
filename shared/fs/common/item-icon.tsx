@@ -1,6 +1,5 @@
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import type {IconType} from '@/common-adapters/icon'
 import {useFsDownloadIntent, useFsPathItem, useFsTlfs} from './hooks'
 import * as FS from '@/constants/fs'
 
@@ -56,7 +55,6 @@ const icons = {
 } as const
 
 export type TlfTypeIconProps = {
-  badgeOverride?: Kb.IconType
   size: Size
   style: Kb.Styles.StylesCrossPlatform
   tlfType: T.FS.TlfType
@@ -82,30 +80,22 @@ const TlfTypeIcon = (props: TlfTypeIconProps) => {
   return (
     <Kb.Box2 direction="vertical" style={props.style}>
       {getTlfTypeIcon(props.size, props.tlfType)}
-      {props.badgeOverride ? (
+      {!!badgeCount && (
         <Kb.Box2 direction="vertical" relative={true} style={styles.badgeContainer}>
-          <Kb.ImageIcon type={props.badgeOverride} style={badgeStyle.rightBottomBadge} />
+          <Kb.Badge badgeNumber={badgeCount} badgeStyle={badgeStyle.numberBadge} />
         </Kb.Box2>
-      ) : (
-        !!badgeCount && (
-          <Kb.Box2 direction="vertical" relative={true} style={styles.badgeContainer}>
-            <Kb.Badge badgeNumber={badgeCount} badgeStyle={badgeStyle.numberBadge} />
-          </Kb.Box2>
-        )
       )}
     </Kb.Box2>
   )
 }
 
 type TlfIconProps = {
-  badgeOverride?: Kb.IconType // TS freaking out IconType
   size: Size
   style?: Kb.Styles.StylesCrossPlatform
   tlfTypeForFolderIconOverride?: T.FS.TlfType
 }
 
 const TlfIcon = (props: TlfIconProps) => {
-  const styles = useStyles()
   return (
     <Kb.Box2 direction="vertical" style={props.style}>
       {props.tlfTypeForFolderIconOverride ? (
@@ -113,20 +103,11 @@ const TlfIcon = (props: TlfIconProps) => {
       ) : (
         <Kb.ImageIcon type={icons.folder[getIconSizeString(props.size)]} />
       )}
-      {!!props.badgeOverride && (
-        <Kb.Box2 direction="vertical" relative={true} style={styles.badgeContainer}>
-          <Kb.ImageIcon
-            type={props.badgeOverride}
-            style={badgeStyles[getIconSizeString(props.size)].rightBottomBadge}
-          />
-        </Kb.Box2>
-      )}
     </Kb.Box2>
   )
 }
 
 type InTlfItemIconProps = {
-  badgeOverride?: Kb.IconType
   loadOnMount?: boolean
   path: T.FS.Path
   size: Size
@@ -140,7 +121,7 @@ const InTlfIcon = (props: InTlfItemIconProps) => {
   const downloadIntent = useFsDownloadIntent(props.path)
   const pathItem = useFsPathItem(props.path, {loadOnMount: props.loadOnMount, subscribe: props.subscribe})
   const badgeStyle = badgeStyles[getIconSizeString(props.size)]
-  const badgeIcon = props.badgeOverride || (downloadIntent && 'icon-addon-file-downloading')
+  const badgeIcon = downloadIntent && 'icon-addon-file-downloading'
   return (
     <Kb.Box2 direction="vertical" style={props.style}>
       {pathItem.type === T.FS.PathType.Folder ? (
@@ -165,7 +146,6 @@ const InTlfIcon = (props: InTlfItemIconProps) => {
 }
 
 export type ItemIconProps = {
-  badgeOverride?: IconType
   loadOnMount?: boolean
   mixedMode?: boolean
   path: T.FS.Path
@@ -182,7 +162,6 @@ const ItemIcon = (props: ItemIconProps) => {
     case T.FS.PathKind.TlfList:
       return (
         <TlfTypeIcon
-          badgeOverride={props.badgeOverride}
           size={props.size}
           style={props.style}
           tlfType={parsedPath.tlfType}
@@ -192,7 +171,6 @@ const ItemIcon = (props: ItemIconProps) => {
     case T.FS.PathKind.TeamTlf:
       return (
         <TlfIcon
-          badgeOverride={props.badgeOverride}
           size={props.size}
           style={props.style}
           tlfTypeForFolderIconOverride={
@@ -204,7 +182,6 @@ const ItemIcon = (props: ItemIconProps) => {
     case T.FS.PathKind.InTeamTlf:
       return (
         <InTlfIcon
-          badgeOverride={props.badgeOverride}
           loadOnMount={props.loadOnMount}
           path={props.path}
           size={props.size}

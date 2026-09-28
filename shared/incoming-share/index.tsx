@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
-import {MobileSendToChat} from '../chat/send-to-chat'
+import {SendToChat} from '../chat/send-to-chat'
 import {settingsFeedbackTab} from '@/constants/settings'
 import {useConfigState} from '@/stores/config'
 import {useRPCLoad} from '@/util/use-rpc-load'
@@ -78,7 +78,7 @@ const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) =>
     {sendPaths: new Array<string>(), text: undefined as string | undefined}
   )
 
-  // Pre-selected conv: navToThread + attachments directly (skip MobileSendToChat)
+  // Pre-selected conv: navToThread + attachments directly (skip SendToChat)
   const selectedConversationIDKey = props.selectedConversationIDKey
   const canDirectNav = selectedConversationIDKey && T.Chat.isValidConversationIDKey(selectedConversationIDKey)
   const hasNavigatedRef = React.useRef(false)
@@ -129,7 +129,7 @@ const IncomingShare = (props: IncomingShareProps & SelectedConversationProps) =>
   return (
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1}>
-        <MobileSendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />
+        <SendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />
       </Kb.Box2>
       {footer ? <Kb.ModalFooter>{footer}</Kb.ModalFooter> : null}
     </>

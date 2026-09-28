@@ -125,16 +125,8 @@ const AddToChannelHeaderRight = () => {
   )
 }
 
-const SendToChatHeaderLeft = ({canBack}: {canBack?: boolean}) => {
+const SendToChatHeaderLeft = () => {
   const clearModals = C.Router2.clearModals
-  const navigateUp = C.Router2.navigateUp
-  if (canBack) {
-    return (
-      <Kb.Text type="BodyBigLink" onClick={navigateUp}>
-        Back
-      </Kb.Text>
-    )
-  }
   return (
     <Kb.Text type="BodyBigLink" onClick={clearModals}>
       Cancel
@@ -315,12 +307,13 @@ export const newModalRoutes = defineRouteMap({
       getOptions: ({route}) => ({
         ...(isIOS
           ? {
-              unstable_headerLeftItems: () =>
-                route.params.canBack
-                  ? [Kb.nativeBackHeaderItem()]
-                  : [Kb.nativeCancelHeaderItem(C.Router2.clearModals)],
+              unstable_headerLeftItems: () => [Kb.nativeCancelHeaderItem(C.Router2.clearModals)],
             }
-          : {headerLeft: () => <SendToChatHeaderLeft canBack={route.params.canBack} />}),
+          : isMobile
+            ? {headerLeft: () => <SendToChatHeaderLeft />}
+            : {}),
+        // sized like chatAttachmentGetTitles, which it pushes, so the modal doesn't jump
+        modalSize: 'wide',
         title: FS.getSharePathArrayDescription(route.params.sendPaths || []),
       }),
       skipProvider: true,
