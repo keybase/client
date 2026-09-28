@@ -95,9 +95,12 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
   switch (event.type) {
     case 'datasetChanged':
       // Resets even for a key it has seen: the list re-announces its dataset whenever it lays it out
-      // afresh, and the end, the centred target and the header baseline all start over with it.
+      // afresh, and the end, the centred target and the header baseline all start over with it. A
+      // centring under way belongs to the old rows, so it stops: a target still wanted is centred
+      // again once it is in the new ones, and one cleared in the same commit (jump to recent) would
+      // otherwise go on pulling the reader toward it.
       return {
-        directive: leaveAlone,
+        directive: {stopCentering: true, type: 'leaveAlone'},
         state: {
           ...state,
           endOwner: 'list',

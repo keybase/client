@@ -522,6 +522,19 @@ describe('jump to recent', () => {
     expect(H.log).toEqual([['scrollToEnd', noAnimation]])
   })
 
+  test('stops an in-flight centring loop, so the reader lands at the newest', async () => {
+    update(() => H.listStore.set({mountsOnScrollToIndex: false, rendered: new Set()}))
+    open({center: 30, moreToLoadForward: true})
+    // The thread's jump clears the centre and the thread in one commit, then loads the newest.
+    update(() => {
+      H.setCenter(undefined)
+      H.threadStore.set({clearVersion: 1, messageOrdinals: []})
+    })
+    update(() => H.threadStore.set({messageOrdinals: H.range(1, 70), moreToLoadForward: false}))
+    await tick(5000)
+    expect(H.log).toEqual([['scrollToIndex', {animated: false, index: 29, viewPosition: 0.5}]])
+  })
+
   test('is only offered when newer messages exist', () => {
     open()
     expect(screen.queryByText('Jump to recent messages')).toBeNull()

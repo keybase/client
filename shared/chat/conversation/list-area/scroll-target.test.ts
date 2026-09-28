@@ -62,15 +62,21 @@ describe('initial state', () => {
 describe('datasetChanged', () => {
   const next = {type: 'datasetChanged'} as const
   runTable([
-    ['from a fresh state, nothing changes', fresh, next, leaveAlone, fresh],
+    ['from a fresh state, only stops any centring', fresh, next, stopCentering, fresh],
     [
       'hands the end back and forgets the centred target and header, keeping the revealed edit',
       busy,
       next,
-      leaveAlone,
+      stopCentering,
       state({lastEditing: ord(15)}),
     ],
-    ['does not stop centring already under way', state({lastCentered: ord(30)}), next, leaveAlone, fresh],
+    [
+      'stops centring already under way',
+      state({lastCentered: ord(30), settlingCenter: true}),
+      next,
+      stopCentering,
+      fresh,
+    ],
   ])
 })
 
@@ -377,7 +383,7 @@ describe('sequences', () => {
     ])
     expect(directives).toEqual([
       center(30),
-      leaveAlone,
+      stopCentering,
       leaveAlone,
       center(30),
       leaveAlone,
@@ -412,7 +418,7 @@ describe('sequences', () => {
       {type: 'datasetChanged'},
       {ordinal: ord(15), targetInData: true, type: 'editingChanged'},
     ])
-    expect(directives).toEqual([reveal(15), leaveAlone, leaveAlone])
+    expect(directives).toEqual([reveal(15), stopCentering, leaveAlone])
   })
 })
 
