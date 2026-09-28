@@ -11,6 +11,7 @@ import {
 } from './attachment-actions'
 import {getConversationClientPrev, useConversationExplodingMode, useConversationMeta} from './data-hooks'
 import AttachmentTrim from './attachment-trim'
+import {isKbfsPath} from './attachment-path'
 import {canEdit, canProcess, isEditNoop, isVideoPath, processPaths, type VideoEdit} from '@/util/media-process'
 
 type OwnProps = {
@@ -47,8 +48,6 @@ export const pathToAttachmentType = (path: string) => {
   }
   return 'file'
 }
-
-export const isKbfsPath = (path: string) => path.startsWith('/keybase/')
 
 const ContainerInner = (ownProps: OwnProps) => {
   const styles = useStyles()
@@ -264,7 +263,7 @@ const ContainerInner = (ownProps: OwnProps) => {
   >()
   const kbfsPreviewURL = kbfsPreview && kbfsPreview.path === path ? kbfsPreview.url : undefined
   React.useEffect(() => {
-    if (info?.type !== 'image' || info.url || !path || !isKbfsPath(path)) {
+    if ((info?.type !== 'image' && info?.type !== 'video') || info.url || !path || !isKbfsPath(path)) {
       return
     }
     let canceled = false
@@ -287,18 +286,28 @@ const ContainerInner = (ownProps: OwnProps) => {
   const titleHint = 'Add a caption...'
   if (!info) return null
 
+  const isKbfs = !!path && isKbfsPath(path)
   // kbfs paths aren't real files, so there's nothing to export from them.
-  const showTrim = !!path && !isKbfsPath(path) && canEdit(path)
+  const showTrim = !!path && !isKbfs && canEdit(path)
+  // A kbfs path isn't loadable as a src; it previews through the service's URL
+  // once that resolves, and as a file until then (or for good if it fails).
+  const mediaSrc = info.url ?? (isKbfs ? kbfsPreviewURL : path)
+  const filePreview = (
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
+      <Kb.ImageIcon type="icon-file-uploading-48" />
+    </Kb.Box2>
+  )
 
   let preview: React.ReactNode
   switch (info.type) {
     case 'image':
-      preview = path ? (
-        <Kb.ZoomableImage src={info.url ?? kbfsPreviewURL ?? path} style={styles.image} boxCacheKey="getTitlesImg" />
-      ) : null
+      preview = mediaSrc ? (
+        <Kb.ZoomableImage src={mediaSrc} style={styles.image} boxCacheKey="getTitlesImg" />
+      ) : (
+        filePreview
+      )
       break
     case 'video':
-      // kbfs paths aren't real files, so nothing can be exported from them.
       preview = !path ? null : showTrim ? (
         <AttachmentTrim
           // remount per slot AND per clip: duration and handle positions are
@@ -310,19 +319,17 @@ const ContainerInner = (ownProps: OwnProps) => {
             setEdits(s => ({...s, [index]: edit}))
           }}
         />
+      ) : mediaSrc ? (
+        <Kb.Video autoPlay={false} allowFile={!isKbfs} muted={true} url={mediaSrc} />
       ) : (
-        <Kb.Video autoPlay={false} allowFile={true} muted={true} url={path} />
+        filePreview
       )
       break
     default: {
-      if (isIOS && path && Chat.isPathHEIC(path)) {
+      if (isIOS && path && !isKbfs && Chat.isPathHEIC(path)) {
         preview = <Kb.ZoomableImage src={path} style={styles.image} boxCacheKey="getTitlesHeicImg" />
       } else {
-        preview = (
-          <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
-            <Kb.ImageIcon type="icon-file-uploading-48" />
-          </Kb.Box2>
-        )
+        preview = filePreview
       }
     }
   }

@@ -10,7 +10,6 @@ import {Avatars, TeamAvatar} from '@/chat/avatars'
  * sure it doesn't break there if you make changes to this file. */
 
 type Props = {
-  onDone?: () => void
   onSelect: (conversationIDKey: T.Chat.ConversationIDKey, convName: string) => void
 }
 
@@ -54,7 +53,7 @@ const Row = React.memo(function Row(p: RowProps) {
 })
 
 const ConversationList = (props: Props) => {
-  const {onDone, onSelect: _onSelect} = props
+  const {onSelect} = props
 
   const [query, setQuery] = React.useState('')
   const [waiting, setWaiting] = React.useState(false)
@@ -77,10 +76,6 @@ const ConversationList = (props: Props) => {
         logger.info('ConversationList: error loading search results: ' + error.message)
       }
     )
-  }
-  const onSelect = (convID: T.Chat.ConversationIDKey, convName: string) => {
-    _onSelect(convID, convName)
-    onDone?.()
   }
   return (
     <ConversationListRender

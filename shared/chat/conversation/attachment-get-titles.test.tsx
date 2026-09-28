@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import {isKbfsPath, pathToAttachmentType} from './attachment-get-titles'
+import {pathToAttachmentType} from './attachment-get-titles'
 
 describe('pathToAttachmentType', () => {
   test('common image extensions preview as images, case insensitively', () => {
@@ -23,13 +23,5 @@ describe('pathToAttachmentType', () => {
 
   test('the extension has to be on the file name, not the directory', () => {
     expect(pathToAttachmentType('/tmp/a.png/notanimage')).toBe('file')
-  })
-})
-
-describe('isKbfsPath', () => {
-  test('only /keybase/ paths count', () => {
-    expect(isKbfsPath('/keybase/private/testuser/a.png')).toBe(true)
-    expect(isKbfsPath('/tmp/a.png')).toBe(false)
-    expect(isKbfsPath('keybase/private/testuser/a.png')).toBe(false)
   })
 })

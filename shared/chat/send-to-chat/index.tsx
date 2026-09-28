@@ -1,22 +1,15 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat'
-import * as T from '@/constants/types'
-import * as React from 'react'
-import * as Kb from '@/common-adapters'
-import * as Kbfs from '@/fs/common'
+import type * as T from '@/constants/types'
 import ConversationList from './conversation-list/conversation-list'
-import ChooseConversation from './conversation-list/choose-conversation'
-import {useCurrentUserState} from '@/stores/current-user'
-import {uploadAttachments} from '../conversation/attachment-actions'
+import {toAttachmentPath} from '../conversation/attachment-path'
 
 type Props = {
-  canBack?: boolean
   isFromShareExtension?: boolean
   text?: string // incoming share (text)
   sendPaths?: Array<string> // KBFS or incoming share (files)
 }
 
-export const MobileSendToChat = (props: Props) => {
+export const SendToChat = (props: Props) => {
   const {isFromShareExtension, sendPaths, text} = props
   const navigateAppend = C.Router2.navigateAppend
   const clearModals = C.Router2.clearModals
@@ -27,9 +20,7 @@ export const MobileSendToChat = (props: Props) => {
         params: {
           conversationIDKey,
           inputPrefillText: text,
-          pathAndOutboxIDs: sendPaths.map(p => ({
-            path: Kb.Styles.normalizePath(p),
-          })),
+          pathAndOutboxIDs: sendPaths.map(p => ({path: toAttachmentPath(p)})),
           selectConversationWithReason: isFromShareExtension ? 'extension' : 'files',
           tlfName,
         },
@@ -41,133 +32,7 @@ export const MobileSendToChat = (props: Props) => {
       })
     }
   }
-  return <ConversationList {...props} onSelect={onSelect} />
+  return <ConversationList onSelect={onSelect} />
 }
-
-const noPaths = new Array<string>()
-const DesktopSendToChat = (props: Props) => {
-  const sendPaths = props.sendPaths ?? noPaths
-  const [title, setTitle] = React.useState('')
-  const [conversationIDKey, setConversationIDKey] = React.useState(Chat.noConversationIDKey)
-  const [convName, setConvName] = React.useState('')
-  const username = useCurrentUserState(s => s.username)
-  const clearModals = C.Router2.clearModals
-  const onCancel = () => {
-    clearModals()
-  }
-  const onSelect = (convID: T.Chat.ConversationIDKey, convname: string) => {
-    setConversationIDKey(convID)
-    setConvName(convname)
-  }
-  const onSend = () => {
-    sendPaths.forEach(path =>
-      uploadAttachments({
-        clientPrev: T.Chat.numberToMessageID(0),
-        conversationIDKey,
-        ephemeralLifetime: 0,
-        paths: [{path: T.FS.pathToString(path)}],
-        titles: [title],
-        tlfName: `${username},${convName.split('#')[0]}`,
-      })
-    )
-    clearModals()
-    C.Router2.navigateToThread(conversationIDKey, 'files')
-  }
-  return (
-    <DesktopSendToChatRender
-      enabled={conversationIDKey !== Chat.noConversationIDKey}
-      convName={convName}
-      // If we ever support sending multiples from desktop this will need to
-      // change.
-      path={sendPaths[0]}
-      title={title}
-      setTitle={setTitle}
-      onSend={onSend}
-      onSelect={onSelect}
-      onCancel={onCancel}
-    />
-  )
-}
-
-type DesktopSendToChatRenderProps = {
-  enabled: boolean
-  convName: string
-  path: T.FS.Path
-  title: string
-  setTitle: (title: string) => void
-  onSend: () => void
-  onCancel: () => void
-  onSelect: (convID: T.Chat.ConversationIDKey, convName: string) => void
-}
-
-export const DesktopSendToChatRender = (props: DesktopSendToChatRenderProps) => {
-  const desktopStyles = useDesktopStyles()
-  return (
-    <Kb.Box2 direction="vertical" style={desktopStyles.container} centerChildren={true}>
-      <Kb.Box2 direction="horizontal" centerChildren={true} style={desktopStyles.header} fullWidth={true}>
-        <Kb.Text type="Header">Attach in conversation</Kb.Text>
-      </Kb.Box2>
-      <Kb.Box2 direction="vertical" alignItems="center" style={desktopStyles.belly} fullWidth={true}>
-        <Kb.Box2
-          direction="vertical"
-          centerChildren={true}
-          fullWidth={true}
-          style={desktopStyles.pathItem}
-          gap="tiny"
-        >
-          <Kbfs.ItemIcon size={48} path={props.path} badgeOverride="iconfont-attachment" />
-          <Kb.Text type="BodySmall">{T.FS.getPathName(props.path)}</Kb.Text>
-        </Kb.Box2>
-        <ChooseConversation
-          convName={props.convName}
-          dropdownButtonStyle={desktopStyles.dropdown}
-          onSelect={props.onSelect}
-        />
-        <Kb.Input3
-          textType="BodySemibold"
-          placeholder="Title"
-          value={props.title}
-          onChangeText={props.setTitle}
-        />
-      </Kb.Box2>
-      <Kb.ConfirmButtons
-        onCancel={props.onCancel}
-        onConfirm={props.onSend}
-        confirmLabel="Send in conversation"
-        confirmDisabled={!props.enabled}
-      />
-    </Kb.Box2>
-  )
-}
-
-const SendToChat = isMobile ? MobileSendToChat : DesktopSendToChat
 
 export default SendToChat
-
-const useDesktopStyles = Kb.Styles.createStyleHook(
-  () =>
-    ({
-      belly: {
-        ...Kb.Styles.globalStyles.flexGrow,
-        marginBottom: Kb.Styles.globalMargins.small,
-        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.large),
-      },
-      container: Kb.Styles.platformStyles({
-        isElectron: {
-          maxHeight: 560,
-          width: 400,
-        },
-      }),
-      dropdown: {
-        marginBottom: Kb.Styles.globalMargins.small,
-        marginTop: Kb.Styles.globalMargins.mediumLarge,
-        width: '100%',
-      },
-      header: {
-        paddingTop: Kb.Styles.globalMargins.mediumLarge,
-      },
-      pathItem: {
-        marginTop: Kb.Styles.globalMargins.mediumLarge,
-      },
-    }) as const
-)
