@@ -204,10 +204,10 @@ describe('initialLoad', () => {
       fresh,
     ],
     [
-      'going to the end does not take it back from a reader',
+      'a reader who took the end is left where they are',
       state({endOwner: 'reader'}),
       {centeredOrdinal: undefined, hasMessages: true, type: 'initialLoad'},
-      pinNow,
+      leaveAlone,
       state({endOwner: 'reader'}),
     ],
   ])

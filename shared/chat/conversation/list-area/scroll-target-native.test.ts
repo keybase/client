@@ -109,6 +109,19 @@ describe('centerSettled', () => {
   ])
 })
 
+describe('detached', () => {
+  runTable([
+    [
+      'a target still settling is forgotten, so the list re-attaching centres it afresh',
+      centred(30),
+      {type: 'detached'},
+      stopCentering,
+      state({endOwner: 'reader'}),
+    ],
+    ['a target the reader left stays centred', released(30), {type: 'detached'}, stopCentering, released(30)],
+  ])
+})
+
 describe('initialLoad', () => {
   runTable([
     [

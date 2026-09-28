@@ -12,7 +12,7 @@ import * as T from '@/constants/types'
 import {act, cleanup, render} from '@testing-library/react'
 import {ThreadRefsContext} from '../normal/context'
 import * as H from './native-list-harness.native'
-import {makeStore, threadTransitions, useStore} from './list-test-store'
+import {emptyThread, makeStore, threadTransitions, useStore} from './list-test-store'
 
 jest.mock('react-native', () => require('./native-list-harness.native').reactNativeModule)
 jest.mock('react-native-keyboard-controller', () => require('./native-list-harness.native').nativeOnlyModule)
@@ -270,6 +270,45 @@ describe('opening a conversation', () => {
     update(() => loadThread(1, 60))
     await tick(1000)
     expect(H.log).toEqual([markRead, toBottom, coarse(30), coarse(30)])
+  })
+})
+
+describe('scrolls scheduled for later', () => {
+  test('a drag before the first load\'s 100ms retry cancels it', async () => {
+    open()
+    await tick(10)
+    drag()
+    await tick(1000)
+    expect(H.log).toEqual([markRead, toBottom])
+  })
+
+  test('a conversation switch cancels the old conversation\'s retry', async () => {
+    open()
+    await tick(10)
+    update(() => {
+      H.threadStore.reset({
+        ...threadTransitions.loaded(emptyThread, H.range(1, 80)),
+        conversationIDKey: T.Chat.stringToConversationIDKey('conv2'),
+      })
+    })
+    await tick(1000)
+    expect(H.log).toEqual([markRead, toBottom, markRead, toBottom, toBottom])
+  })
+
+  test('unmounting cancels every one', () => {
+    open({center: 30, keyboard: true})
+    scrolled(0, 6000)
+    viewable(0, 9)
+    setOrdinals(1, 61)
+    scrollToIndexFailed()
+    cleanup()
+    expect(jest.getTimerCount()).toBe(0)
+  })
+
+  test('under StrictMode, whose effect re-mount is the same, the first load still gets its retry', async () => {
+    open({strict: true})
+    await tick(1000)
+    expect(H.log).toEqual([markRead, toBottom, toBottom, toBottom])
   })
 })
 

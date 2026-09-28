@@ -52,6 +52,9 @@ export type ScrollEvent =
   // The native list's corrector finished with the centred target: it reached the middle, or ran out
   // of steps trying.
   | {type: 'centerSettled'}
+  // The native list stopped being shown (hidden under another screen, or unmounted) and dropped
+  // everything it had scheduled.
+  | {type: 'detached'}
   // A conversation finished its first load, for a list with no declarative initial position.
   | {type: 'initialLoad'; centeredOrdinal: T.Chat.Ordinal | undefined; hasMessages: boolean}
   | {type: 'userScrolled'; how: 'wheel' | 'drag' | 'pageUp' | 'pageDown'}
@@ -148,11 +151,18 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
     case 'centerSettled':
       // Settled like a drag leaves it: later changes to the rows around the target leave it be.
       return {directive: leaveAlone, state: {...state, settlingCenter: false}}
+    case 'detached':
+      // A target still settling had its move cut short, so if the list comes back it is new again.
+      return {
+        directive: {stopCentering: true, type: 'leaveAlone'},
+        state: state.settlingCenter ? {...state, lastCentered: undefined, settlingCenter: false} : state,
+      }
     case 'initialLoad':
-      // A centred load is centred by the centre reconcile, once its target is in the rows.
+      // A centred load is centred by the centre reconcile, once its target is in the rows. A reader
+      // who has taken the end is left there.
       return {
         directive:
-          event.centeredOrdinal === undefined && event.hasMessages
+          event.centeredOrdinal === undefined && event.hasMessages && state.endOwner === 'list'
             ? {how: 'now', stopCentering: false, type: 'pinEnd'}
             : leaveAlone,
         state,
