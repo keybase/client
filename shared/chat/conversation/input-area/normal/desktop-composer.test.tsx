@@ -279,9 +279,7 @@ test('a keystroke typed before the send goes out is kept', async () => {
   expect(textarea.value).toBe('n')
 })
 
-// the emoji picker's insert puts the emoji at the caret but appends its trailing space to the
-// very end of the text, and parks the caret one past the emoji
-test('picking an emoji mid-text inserts at the caret with the space appended at the end', () => {
+test('picking an emoji mid-text inserts it and its space at the caret, with the caret after the space', () => {
   const {textarea, utils} = renderComposer()
   type(textarea, 'abcd', 2)
 
@@ -293,8 +291,8 @@ test('picking an emoji mid-text inserts at the caret with the space appended at 
     mockPickEmoji?.(':smile:')
   })
 
-  expect(textarea.value).toBe('ab:smile:cd ')
-  expect(textarea.selectionStart).toBe(2 + ':smile:'.length + 1)
+  expect(textarea.value).toBe('ab:smile: cd')
+  expect(textarea.selectionStart).toBe('ab:smile: '.length)
   expect(document.activeElement).toBe(textarea)
 })
 

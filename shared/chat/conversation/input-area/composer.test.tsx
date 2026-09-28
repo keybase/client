@@ -357,17 +357,6 @@ describe('insertAtCaret', () => {
     expect(fake.text).toBe('abXabcd')
   })
 
-  test('appendSpaceToText puts the space at the end of the text, not after the insert', () => {
-    const {composer, mount} = setup()
-    const {fake} = mount()
-    fake.type('abcd', 2)
-
-    composer.insertAtCaret(':smile:', {appendSpaceToText: true})
-
-    expect(fake.text).toBe('ab:smile:cd ')
-    expect(fake.selection).toEqual({end: 10, start: 10})
-  })
-
   test('the insert is reported like typing', () => {
     const {composer, mount} = setup()
     const {fake, view} = mount()

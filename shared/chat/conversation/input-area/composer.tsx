@@ -36,9 +36,7 @@ export type Composer = {
   focus: () => void
   // Replaces the whole text with the caret at its end.
   inject: (text: string, focus?: boolean) => void
-  // appendSpaceToText is the desktop emoji picker's placement: its space goes at the very end of
-  // the text rather than after the insert, and the caret lands one past the insert
-  insertAtCaret: (s: string, opts?: {appendSpaceToText?: boolean}) => void
+  insertAtCaret: (s: string) => void
   // True when the input shows the text now; a write made while no input is attached waits.
   replace: (info: TextInfo, reflectChange: boolean) => boolean
   // Saves an empty draft and clears the input now (with none attached, the next one once it has
@@ -193,7 +191,7 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
         pending.push(target => write(target, next, false))
       }
     },
-    insertAtCaret: (s, opts) =>
+    insertAtCaret: s =>
       whenAttached(target => {
         const selection = target.getSelection()
         const inserted = standardTransformer(
@@ -201,9 +199,7 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
           {position: {end: selection?.end ?? null, start: selection?.start ?? null}, text},
           true
         )
-        const pad = opts?.appendSpaceToText ? ' ' : ''
-        const caret = inserted.selection.start + pad.length
-        replace(target, {selection: {end: caret, start: caret}, text: inserted.text + pad}, true)
+        replace(target, {selection: inserted.selection, text: inserted.text}, true)
       }),
     isFocused: () => !!input?.isFocused(),
     replace: (info, reflectChange) => {

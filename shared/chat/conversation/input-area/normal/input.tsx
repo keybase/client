@@ -533,7 +533,7 @@ const EmojiButton = function EmojiButton() {
   const composer = useComposer()
   const conversationIDKey = useConversationThreadID()
   const insertEmoji = (emojiColons: string) => {
-    composer.insertAtCaret(emojiColons, {appendSpaceToText: true})
+    composer.insertAtCaret(`${emojiColons} `)
     composer.focus()
   }
 
