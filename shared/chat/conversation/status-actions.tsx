@@ -6,17 +6,13 @@ import logger from '@/logger'
 import {getInboxConversationMeta} from '@/chat/inbox/metadata'
 import {refreshConversationParticipants} from '@/chat/inbox/refresh-participants'
 import {setConversationOrangeLine} from './orange-line-context'
-import {loadThreadMessageIDAtIndex, markConversationRead} from './thread-rpc'
+import {getChatRpc, loadThreadMessageIDAtIndex} from './chat-rpc'
 
 const setConversationStatusPromise = async (
   conversationIDKey: T.Chat.ConversationIDKey,
   status: T.RPCChat.ConversationStatus
 ) => {
-  await T.RPCChat.localSetConversationStatusLocalRpcPromise({
-    conversationID: T.Chat.keyToConversationID(conversationIDKey),
-    identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-    status,
-  })
+  await getChatRpc().setConversationStatus(conversationIDKey, status)
 }
 
 const setConversationStatus = (
@@ -41,9 +37,7 @@ export const hideConversation = (conversationIDKey: T.Chat.ConversationIDKey, hi
 
 export const joinConversation = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const f = async () => {
-    await T.RPCChat.localJoinConversationByIDLocalRpcPromise({
-      convID: T.Chat.keyToConversationID(conversationIDKey),
-    })
+    await getChatRpc().joinConversation(conversationIDKey)
     // joining adds you to the participants, which nothing else recomputes
     await refreshConversationParticipants([conversationIDKey])
   }
@@ -86,7 +80,7 @@ export const markConversationUnread = (
     }
 
     logger.info(`marking unread messages ${conversationIDKey} ${msgID}`)
-    await markConversationRead({conversationIDKey, forceUnread: true, msgID})
+    await getChatRpc().markRead({conversationIDKey, forceUnread: true, msgID})
   }
   C.ignorePromise(f())
 }

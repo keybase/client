@@ -47,14 +47,7 @@ import {
   unboxRows,
   useInboxMetadataState,
 } from '@/chat/inbox/metadata'
-import {loadThreadMessageIDAtIndex, markConversationRead} from './thread-rpc'
-import {
-  cancelConversationPost,
-  createAdhocConversation,
-  dismissConversationJourneycardRPC,
-  postConversationDelete,
-  postConversationReaction,
-} from './message-rpc'
+import {getChatRpc, loadThreadMessageIDAtIndex} from './chat-rpc'
 import {cancelActiveThreadSearchRPC} from '../search-rpc'
 import {
   emptyConversationMeta,
@@ -479,7 +472,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         return
       }
       logger.info(`marking read messages ${id} ${readMsgID}`)
-      await markConversationRead({conversationIDKey: id, forceUnread: false, msgID: readMsgID})
+      await getChatRpc().markRead({conversationIDKey: id, forceUnread: false, msgID: readMsgID})
     }
     ignorePromise(f())
   })
@@ -684,7 +677,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
     })
     ignorePromise(
       (async () => {
-        await T.RPCChat.localRetryPostRpcPromise({outboxID: T.Chat.outboxIDToRpcOutboxID(outboxID)})
+        await getChatRpc().retryPost(outboxID)
       })()
     )
   })
@@ -735,7 +728,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       }
 
       logger.info(`marking unread messages ${id} ${msgID}`)
-      await markConversationRead({conversationIDKey: id, forceUnread: true, msgID})
+      await getChatRpc().markRead({conversationIDKey: id, forceUnread: true, msgID})
     }
     ignorePromise(f())
   })
@@ -771,7 +764,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       try {
         if (!message.id) {
           if (message.outboxID) {
-            await cancelConversationPost(message.outboxID)
+            await getChatRpc().cancelPost(message.outboxID)
             deleteMessages({ordinals: [message.ordinal]})
           } else {
             logger.warn('Delete of no message id and no outboxid')
@@ -779,7 +772,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
           }
           return
         }
-        await postConversationDelete({
+        await getChatRpc().postDelete({
           conversationIDKey: id,
           messageID: message.id,
           tlfName: getMeta(id).tlfname,
@@ -806,7 +799,10 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       if (!username) {
         throw new Error('messageReplyPrivately: making a convo while logged out?')
       }
-      const result = await createAdhocConversation([username, message.author], Strings.waitingKeyChatCreating)
+      const result = await getChatRpc().createAdhocConversation(
+        [username, message.author],
+        Strings.waitingKeyChatCreating
+      )
       const newThreadCID = T.Chat.conversationIDToKey(result.conv.info.id)
       if (!newThreadCID) {
         logger.warn("messageReplyPrivately: couldn't make a new conversation?")
@@ -865,11 +861,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         } else {
           isCollapsed = m?.isCollapsed ?? false
         }
-        await T.RPCChat.localToggleMessageCollapseRpcPromise({
-          collapse: !isCollapsed,
-          convID: T.Chat.keyToConversationID(id),
-          msgID: messageID,
-        })
+        await getChatRpc().toggleCollapse({collapse: !isCollapsed, conversationIDKey: id, messageID})
       }
       ignorePromise(f())
     }
@@ -913,10 +905,10 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         username,
       })
       try {
-        await postConversationReaction({
-          body: emoji,
+        await getChatRpc().postReaction({
           clientPrev: getClientPrevFromSnapshot(snapshot),
           conversationIDKey: id,
+          emoji,
           messageID,
           outboxID,
           tlfName: getMeta(id).tlfname,
@@ -936,7 +928,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         logger.debug('unfurl remove no meta found, aborting!')
         return
       }
-      await postConversationDelete({
+      await getChatRpc().postDelete({
         conversationIDKey: id,
         messageID,
         tlfName: getMeta(id).tlfname,
@@ -1443,7 +1435,7 @@ export const useConversationThreadDismissJourneycard = () => {
   const {deleteMessages} = useConversationThreadActions()
   return (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) => {
     const f = async () => {
-      await dismissConversationJourneycardRPC(conversationIDKey, cardType).catch((error: unknown) => {
+      await getChatRpc().dismissJourneycard(conversationIDKey, cardType).catch((error: unknown) => {
         if (error instanceof RPCError) {
           logger.error(`Failed to dismiss journeycard: ${error.message}`)
         }
@@ -1460,12 +1452,7 @@ export const useConversationThreadUnfurlResolvePrompt = () => {
   return (messageID: T.Chat.MessageID, domain: string, result: T.RPCChat.UnfurlPromptResult) => {
     clearUnfurlPrompt(messageID, domain)
     const f = async () => {
-      await T.RPCChat.localResolveUnfurlPromptRpcPromise({
-        convID: T.Chat.keyToConversationID(conversationIDKey),
-        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-        msgID: T.Chat.messageIDToNumber(messageID),
-        result,
-      })
+      await getChatRpc().resolveUnfurlPrompt({conversationIDKey, messageID, result})
     }
     ignorePromise(f())
   }

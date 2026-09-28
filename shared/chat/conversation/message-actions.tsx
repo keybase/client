@@ -7,13 +7,7 @@ import {navigateToThread} from '@/constants/router'
 import {useCurrentUserState} from '@/stores/current-user'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
-import {
-  cancelConversationPost,
-  createAdhocConversation,
-  dismissConversationJourneycardRPC,
-  postConversationDelete,
-  postConversationReaction,
-} from './message-rpc'
+import {getChatRpc} from './chat-rpc'
 
 const formatTextForQuoting = (text: string) =>
   text
@@ -36,13 +30,13 @@ export const deleteConversationMessage = (
     }
     if (!message.id) {
       if (message.outboxID) {
-        await cancelConversationPost(message.outboxID)
+        await getChatRpc().cancelPost(message.outboxID)
       } else {
         logger.warn('deleteConversationMessage: no message id or outbox id')
       }
       return
     }
-    await postConversationDelete({
+    await getChatRpc().postDelete({
       conversationIDKey,
       messageID: message.id,
       tlfName: tlfName || getInboxConversationMeta(conversationIDKey)?.tlfname || '',
@@ -89,10 +83,10 @@ export const toggleConversationMessageReactionByID = (
       return
     }
     try {
-      await postConversationReaction({
-        body: emoji,
+      await getChatRpc().postReaction({
         clientPrev: getClientPrev(conversationIDKey),
         conversationIDKey,
+        emoji,
         messageID,
         tlfName: tlfName || getInboxConversationMeta(conversationIDKey)?.tlfname || '',
       })
@@ -111,7 +105,10 @@ export const replyPrivatelyToConversationMessage = (message: T.Chat.Message) => 
     if (!username) {
       throw new Error('replyPrivatelyToConversationMessage: making a convo while logged out?')
     }
-    const result = await createAdhocConversation([username, message.author], Strings.waitingKeyChatCreating)
+    const result = await getChatRpc().createAdhocConversation(
+      [username, message.author],
+      Strings.waitingKeyChatCreating
+    )
     const newThreadCID = T.Chat.conversationIDToKey(result.conv.info.id)
     if (!newThreadCID) {
       logger.warn("replyPrivatelyToConversationMessage: couldn't make a new conversation")
@@ -139,10 +136,7 @@ export const pinConversationMessage = (
 ) => {
   const f = async () => {
     try {
-      await T.RPCChat.localPinMessageRpcPromise({
-        convID: T.Chat.keyToConversationID(conversationIDKey),
-        msgID: messageID,
-      })
+      await getChatRpc().pinMessage(conversationIDKey, messageID)
     } catch (error) {
       if (error instanceof RPCError) {
         logger.error(`pinConversationMessage: ${error.message}`)
@@ -157,7 +151,7 @@ export const dismissConversationJourneycard = (
   cardType: T.RPCChat.JourneycardType
 ) => {
   const f = async () => {
-    await dismissConversationJourneycardRPC(conversationIDKey, cardType).catch((error: unknown) => {
+    await getChatRpc().dismissJourneycard(conversationIDKey, cardType).catch((error: unknown) => {
       if (error instanceof RPCError) {
         logger.error(`Failed to dismiss journeycard: ${error.message}`)
       }

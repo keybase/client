@@ -4,6 +4,7 @@ import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {ignorePromise} from '@/constants/utils'
 import {getClientPrevFromThread} from './attachment-actions'
+import {getChatRpc, type PostTextParams} from './chat-rpc'
 import {removeDismissals, restoreDismissals, suppressedURLsOf, type SuppressSnapshot} from './unfurl-preview-state'
 import {useInboxMetadataState} from '../inbox/metadata-store'
 import {
@@ -12,60 +13,27 @@ import {
   useConversationThreadStore,
 } from './thread-context'
 
-type SendTextParams = {
-  clientPrev: T.Chat.MessageID
-  conversationIDKey: T.Chat.ConversationIDKey
-  ephemeralLifetime: number
+type SendTextParams = Omit<PostTextParams, 'onStellarCanceled'> & {
   onRestoreText?: (text: string) => void
   onSent?: () => void
-  replyTo?: T.Chat.MessageID
-  text: string
-  tlfName: string
-  unfurlSuppress?: ReadonlyArray<string>
-  waitingKey?: string
 }
 
 const sendTextMessageStoreless = (p: SendTextParams) => {
   const f = async () => {
-    const ephemeralData = p.ephemeralLifetime !== 0 ? {ephemeralLifetime: p.ephemeralLifetime} : {}
+    const {onRestoreText, onSent, ...params} = p
     // a canceled stellar confirm resolves the rpc normally but posts nothing, so it is
     // not a send and must not be treated as one
     const sendState = {stellarCanceled: false}
     try {
-      await T.RPCChat.localPostTextNonblockRpcListener({
-        customResponseIncomingCallMap: {
-          'chat.1.chatUi.chatStellarDataConfirm': (_, response) => {
-            response.result(false)
-          },
-          'chat.1.chatUi.chatStellarDataError': (_, response) => {
-            response.result(false)
-          },
+      await getChatRpc().postText({
+        ...params,
+        onStellarCanceled: () => {
+          sendState.stellarCanceled = true
+          onRestoreText?.(p.text)
         },
-        incomingCallMap: {
-          'chat.1.chatUi.chatStellarDone': ({canceled}) => {
-            if (canceled) {
-              sendState.stellarCanceled = true
-              p.onRestoreText?.(p.text)
-            }
-          },
-          'chat.1.chatUi.chatStellarShowConfirm': () => {},
-        },
-        params: {
-          ...ephemeralData,
-          body: p.text,
-          clientPrev: p.clientPrev,
-          conversationID: T.Chat.keyToConversationID(p.conversationIDKey),
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-          outboxID: undefined,
-          replyTo: p.replyTo,
-          tlfName: p.tlfName,
-          tlfPublic: false,
-          unfurlSuppress: p.unfurlSuppress ? [...p.unfurlSuppress] : [],
-        },
-        waitingKey: p.waitingKey,
       })
       if (!sendState.stellarCanceled) {
-        p.onSent?.()
+        onSent?.()
       }
       logger.info('success')
     } catch {
@@ -115,18 +83,13 @@ export const useConversationSendActions = () => {
     }
     actions.setMessageSubmitState(ordinal, 'editing')
     const f = async () => {
-      await T.RPCChat.localPostEditNonblockRpcPromise({
-        body: text,
+      await getChatRpc().postEdit({
         clientPrev: getClientPrev(),
-        conversationID: T.Chat.keyToConversationID(conversationIDKey),
-        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-        outboxID: Common.generateOutboxID(),
-        target: {
-          messageID: message.id,
-          outboxID: message.outboxID ? T.Chat.outboxIDToRpcOutboxID(message.outboxID) : undefined,
-        },
+        conversationIDKey,
+        messageID: message.id,
+        messageOutboxID: message.outboxID,
+        text,
         tlfName: getTlfName(),
-        tlfPublic: false,
       })
     }
     ignorePromise(f())
@@ -182,7 +145,7 @@ export const useConversationSendActions = () => {
   const sendGiphyResult = (result: T.RPCChat.GiphySearchResult, replyToOrdinal?: T.Chat.Ordinal) => {
     const f = async () => {
       try {
-        await T.RPCChat.localTrackGiphySelectRpcPromise({result})
+        await getChatRpc().trackGiphySelect(result)
       } catch {}
       const replyTo = threadStore.getState().messageMap.get(replyToOrdinal ?? T.Chat.numberToOrdinal(0))?.id
       sendTextMessageStoreless({
@@ -205,24 +168,17 @@ export const useConversationSendActions = () => {
       return
     }
 
-    const callerPreview = await T.RPCChat.localMakeAudioPreviewRpcPromise({amps, duration})
-    const explodingMode = threadStore.getState().explodingMode
-    const ephemeralData = explodingMode !== 0 ? {ephemeralLifetime: explodingMode} : {}
+    const callerPreview = await getChatRpc().makeAudioPreview(amps, duration)
     try {
-      await T.RPCChat.localPostFileAttachmentLocalNonblockRpcPromise({
-        arg: {
-          ...ephemeralData,
-          callerPreview,
-          conversationID: T.Chat.keyToConversationID(conversationIDKey),
-          filename: path,
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-          metadata: new Uint8Array(),
-          outboxID,
-          title: '',
-          tlfName,
-          visibility: T.RPCGen.TLFVisibility.private,
-        },
+      await getChatRpc().postAttachment({
+        callerPreview,
         clientPrev: getClientPrev(),
+        conversationIDKey,
+        ephemeralLifetime: threadStore.getState().explodingMode,
+        filename: path,
+        outboxID,
+        title: '',
+        tlfName,
       })
     } catch (error) {
       if (error instanceof RPCError) {

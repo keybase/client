@@ -3,7 +3,7 @@
 import * as Meta from '@/constants/chat/meta'
 import * as OrangeLine from './orange-line-context'
 import * as T from '@/constants/types'
-import * as ThreadRpc from './thread-rpc'
+import {getChatRpc} from './chat-rpc'
 import {act, cleanup, renderHook} from '@testing-library/react'
 import {metasReceived} from '@/chat/inbox/metadata'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
@@ -32,7 +32,7 @@ const setMeta = (over: Partial<T.Chat.ConversationMeta>) => {
 
 // the walk-back load returns whatever messages the service had around the unread line
 const mockAroundMessages = (ids: ReadonlyArray<number>) =>
-  jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+  jest.spyOn(getChatRpc(), 'loadThread').mockImplementation(async p => {
     const messages = ids.map(id => ({
       placeholder: {hidden: false, messageID: messageID(id)},
       state: T.RPCChat.MessageUnboxedState.placeholder,
@@ -50,7 +50,7 @@ beforeEach(() => {
     uid: 'uid',
     username: 'testuser',
   })
-  jest.spyOn(ThreadRpc, 'markConversationRead').mockResolvedValue(undefined as never)
+  jest.spyOn(getChatRpc(), 'markRead').mockResolvedValue(undefined as never)
   jest.spyOn(OrangeLine, 'setConversationOrangeLine').mockImplementation(() => {})
 })
 
@@ -65,14 +65,14 @@ describe('markConversationAsUnread', () => {
     mockAroundMessages([])
     markConversationAsUnread(conversationIDKey, false)
     await flushPromises()
-    expect(ThreadRpc.markConversationRead).not.toHaveBeenCalled()
+    expect(getChatRpc().markRead).not.toHaveBeenCalled()
   })
 
   test('does nothing for an invalid conversation', async () => {
     mockAroundMessages([])
     markConversationAsUnread(T.Chat.noConversationIDKey, messageID(5))
     await flushPromises()
-    expect(ThreadRpc.markConversationRead).not.toHaveBeenCalled()
+    expect(getChatRpc().markRead).not.toHaveBeenCalled()
   })
 
   test('bails when logged out', async () => {
@@ -80,7 +80,7 @@ describe('markConversationAsUnread', () => {
     mockAroundMessages([])
     markConversationAsUnread(conversationIDKey, messageID(5))
     await flushPromises()
-    expect(ThreadRpc.markConversationRead).not.toHaveBeenCalled()
+    expect(getChatRpc().markRead).not.toHaveBeenCalled()
     expect(OrangeLine.setConversationOrangeLine).not.toHaveBeenCalled()
   })
 
@@ -88,7 +88,7 @@ describe('markConversationAsUnread', () => {
     mockAroundMessages([])
     markConversationAsUnread(conversationIDKey)
     await flushPromises()
-    expect(ThreadRpc.markConversationRead).not.toHaveBeenCalled()
+    expect(getChatRpc().markRead).not.toHaveBeenCalled()
   })
 
   test('falls back to the conversation maxVisibleMsgID', async () => {
@@ -112,7 +112,7 @@ describe('markConversationAsUnread', () => {
       T.Chat.numberToOrdinal(5)
     )
     // 4 is the newest message older than the unread line
-    expect(ThreadRpc.markConversationRead).toHaveBeenCalledWith({
+    expect(getChatRpc().markRead).toHaveBeenCalledWith({
       conversationIDKey,
       forceUnread: true,
       msgID: messageID(4),
@@ -123,7 +123,7 @@ describe('markConversationAsUnread', () => {
     mockAroundMessages([5, 6, 7])
     markConversationAsUnread(conversationIDKey, messageID(5))
     await flushPromises()
-    expect(ThreadRpc.markConversationRead).toHaveBeenCalledWith({
+    expect(getChatRpc().markRead).toHaveBeenCalledWith({
       conversationIDKey,
       forceUnread: true,
       msgID: messageID(5),
@@ -144,10 +144,10 @@ describe('markConversationAsUnread', () => {
   })
 
   test('still marks read when the walk-back load fails', async () => {
-    jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockRejectedValue(new Error('offline'))
+    jest.spyOn(getChatRpc(), 'loadThread').mockRejectedValue(new Error('offline'))
     markConversationAsUnread(conversationIDKey, messageID(5))
     await flushPromises()
-    expect(ThreadRpc.markConversationRead).toHaveBeenCalledWith({
+    expect(getChatRpc().markRead).toHaveBeenCalledWith({
       conversationIDKey,
       forceUnread: true,
       msgID: messageID(5),
@@ -201,7 +201,7 @@ describe('useConversationExplodingMode', () => {
 describe('parsed thread messages', () => {
   test('the walk-back load dedupes and sorts by message id', async () => {
     // the service can send the same message in the cached and full thread callbacks
-    jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+    jest.spyOn(getChatRpc(), 'loadThread').mockImplementation(async p => {
       const thread = (ids: ReadonlyArray<number>) =>
         JSON.stringify({
           messages: ids.map(id => ({
@@ -218,7 +218,7 @@ describe('parsed thread messages', () => {
     markConversationAsUnread(conversationIDKey, messageID(6))
     await flushPromises()
     // 5 is the newest id below the unread line across both callbacks
-    expect(ThreadRpc.markConversationRead).toHaveBeenCalledWith({
+    expect(getChatRpc().markRead).toHaveBeenCalledWith({
       conversationIDKey,
       forceUnread: true,
       msgID: messageID(5),
@@ -257,7 +257,7 @@ describe('useConversationMessage', () => {
   })
 
   test('a failed load leaves nothing', async () => {
-    jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockRejectedValue(new Error('offline'))
+    jest.spyOn(getChatRpc(), 'loadThread').mockRejectedValue(new Error('offline'))
     const {result} = renderHook(() => useConversationMessage(conversationIDKey, messageID(20)))
     await waitForLoad()
     expect(result.current).toBeUndefined()

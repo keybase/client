@@ -17,6 +17,7 @@ import {
   useConversationThreadStore,
 } from './thread-context'
 import {registerExternalResetter} from '@/util/zustand'
+import {getChatRpc} from './chat-rpc'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
@@ -37,7 +38,7 @@ export const getClientPrevFromThread = (
 export const cancelAttachmentUploads = (outboxIDs: ReadonlyArray<T.RPCChat.OutboxID>) => {
   const f = async () => {
     const promises = outboxIDs.map(async outboxID =>
-      T.RPCChat.localCancelUploadTempFileRpcPromise({outboxID})
+      getChatRpc().cancelUploadTempFile(outboxID)
     )
     await Promise.allSettled(promises)
   }
@@ -47,7 +48,7 @@ export const cancelAttachmentUploads = (outboxIDs: ReadonlyArray<T.RPCChat.Outbo
 export const makePasteAttachment = (conversationIDKey: T.Chat.ConversationIDKey, data: Uint8Array) => {
   const f = async () => {
     const outboxID = Common.generateOutboxID()
-    const path = await T.RPCChat.localMakeUploadTempFileRpcPromise({
+    const path = await getChatRpc().makeUploadTempFile({
       data,
       filename: 'paste.png',
       outboxID,
@@ -142,7 +143,6 @@ export const uploadAttachments = (p: {
       logger.warn('attachmentsUpload: missing meta for attachment upload', conversationIDKey)
       return
     }
-    const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
     const outboxIDs = paths.map(pathInfo => pathInfo.outboxID ?? Common.generateOutboxID())
     // Serial, not Promise.all: the service assigns the outbox ordinal when the RPC reaches the
     // outbox, after a variable-length preprocess (video preview gen). Concurrent calls land in
@@ -153,19 +153,14 @@ export const uploadAttachments = (p: {
     let failed = 0
     for (const [idx, pathInfo] of paths.entries()) {
       try {
-        await T.RPCChat.localPostFileAttachmentLocalNonblockRpcPromise({
-          arg: {
-            ...ephemeralData,
-            conversationID: T.Chat.keyToConversationID(conversationIDKey),
-            filename: Styles.unnormalizePath(pathInfo.path),
-            identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-            metadata: new Uint8Array(),
-            outboxID: outboxIDs[idx],
-            title: titles[idx] ?? '',
-            tlfName,
-            visibility: T.RPCGen.TLFVisibility.private,
-          },
+        await getChatRpc().postAttachment({
           clientPrev,
+          conversationIDKey,
+          ephemeralLifetime,
+          filename: Styles.unnormalizePath(pathInfo.path),
+          outboxID: outboxIDs[idx],
+          title: titles[idx] ?? '',
+          tlfName,
         })
       } catch (e) {
         ++failed
@@ -200,10 +195,7 @@ export const uploadAttachmentsFromDragAndDrop = (p: {
       const copiedPaths = await Promise.all(
         p.paths.map(async pathInfo => {
           const outboxID = Common.generateOutboxID()
-          const dst = await T.RPCChat.localGetUploadTempFileRpcPromise({
-            filename: pathInfo.path,
-            outboxID,
-          })
+          const dst = await getChatRpc().getUploadTempFile({filename: pathInfo.path, outboxID})
           await darwinCopyToChatTempUploadFile(dst, pathInfo.path)
           return {outboxID, path: dst}
         })
@@ -226,14 +218,7 @@ const downloadAttachmentMessage = async (
     return false
   }
   try {
-    const rpcRes = await T.RPCChat.localDownloadFileAttachmentLocalRpcPromise({
-      conversationID: T.Chat.keyToConversationID(conversationIDKey),
-      downloadToCache,
-      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-      messageID: message.id,
-      preview: false,
-    })
-    return rpcRes.filePath
+    return await getChatRpc().downloadAttachment({conversationIDKey, downloadToCache, messageID: message.id})
   } catch (error) {
     if (error instanceof RPCError) {
       logger.info(`downloadAttachmentMessage error: ${error.message}`)
@@ -315,18 +300,12 @@ export const loadNextAttachmentMessage = async (
   backInTime: boolean
 ) => {
   const {deviceName, username} = useCurrentUserState.getState()
-  const result = await T.RPCChat.localGetNextAttachmentMessageLocalRpcPromise({
-    assetTypes: [T.RPCChat.AssetMetadataType.image, T.RPCChat.AssetMetadataType.video],
-    backInTime,
-    convID: T.Chat.keyToConversationID(conversationIDKey),
-    identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-    messageID: fromMsg.id,
-  })
+  const next = await getChatRpc().getNextAttachment({backInTime, conversationIDKey, messageID: fromMsg.id})
 
-  if (result.message) {
+  if (next) {
     const goodMessage = Message.uiMessageToMessage(
       conversationIDKey,
-      result.message,
+      next,
       username,
       () => fromMsg.ordinal,
       deviceName
@@ -352,16 +331,9 @@ export const useConversationAttachmentActions = () => {
       return false
     }
     try {
-      const rpcRes = await T.RPCChat.localDownloadFileAttachmentLocalRpcPromise({
-        conversationID: T.Chat.keyToConversationID(conversationIDKey),
-        downloadToCache,
-        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-        messageID,
-        preview: false,
-      })
-
-      actions.finishAttachmentDownload(ordinal, rpcRes.filePath)
-      return rpcRes.filePath
+      const filePath = await getChatRpc().downloadAttachment({conversationIDKey, downloadToCache, messageID})
+      actions.finishAttachmentDownload(ordinal, filePath)
+      return filePath
     } catch (error) {
       const errMsg =
         error instanceof RPCError

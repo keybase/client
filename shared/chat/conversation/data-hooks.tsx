@@ -14,7 +14,7 @@ import {ignorePromise} from '@/constants/utils'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
 import logger from '@/logger'
-import {loadThreadNonblock, markConversationRead} from './thread-rpc'
+import {getChatRpc} from './chat-rpc'
 import {setConversationOrangeLine} from './orange-line-context'
 import {getExplodingModeFromGregorItems} from './thread-load'
 
@@ -200,7 +200,7 @@ const loadConversationMessagesAroundMessageID = async (
       }
     })
   }
-  await loadThreadNonblock({
+  await getChatRpc().loadThread({
     conversationIDKey,
     messageIDControl: {
       mode: T.RPCChat.MessageIDControlMode.centered,
@@ -333,7 +333,7 @@ export const markConversationAsUnread = (
     } catch {}
 
     logger.info(`marking unread messages ${conversationIDKey} ${msgID}`)
-    await markConversationRead({conversationIDKey, forceUnread: true, msgID})
+    await getChatRpc().markRead({conversationIDKey, forceUnread: true, msgID})
   }
   ignorePromise(f())
 }

@@ -14,7 +14,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
 import {type ThreadLoadReconcile, getOrdinalForMessageID} from './thread-message-state'
 import {getInboxConversationMeta, updateInboxConversationMeta} from '@/chat/inbox/metadata'
-import {loadThreadNonblock, threadLoadReasonToRPCReason} from './thread-rpc'
+import {getChatRpc} from './chat-rpc'
 import type {
   ConversationThreadActions,
   ConversationThreadState,
@@ -82,17 +82,12 @@ export const persistExplodingMode = (
 ) => {
   const f = async () => {
     logger.info(`Setting exploding mode for conversation ${conversationIDKey} to ${seconds}`)
-    const category = `${Common.explodingModeGregorKeyPrefix}${conversationIDKey}`
     const convRetention = Meta.getEffectiveRetentionPolicy(meta)
     try {
       if (seconds === 0 || seconds === convRetention.seconds) {
-        await T.RPCGen.gregorDismissCategoryRpcPromise({category})
+        await getChatRpc().clearExplodingMode(conversationIDKey)
       } else {
-        await T.RPCGen.gregorUpdateCategoryRpcPromise({
-          body: seconds.toString(),
-          category,
-          dtime: {offset: 0, time: 0},
-        })
+        await getChatRpc().setExplodingMode(conversationIDKey, seconds)
         logger.info(`Successfully set exploding mode for conversation ${conversationIDKey} to ${seconds}`)
       }
     } catch (error) {
@@ -114,6 +109,16 @@ export const persistExplodingMode = (
     }
   }
   ignorePromise(f())
+}
+
+export const threadLoadReasonToRPCReason = (reason: string): T.RPCChat.GetThreadReason => {
+  switch (reason) {
+    case 'extension':
+    case 'push':
+      return T.RPCChat.GetThreadReason.push
+    default:
+      return T.RPCChat.GetThreadReason.general
+  }
 }
 
 export const getClientPrevFromSnapshot = (snapshot: ConversationThreadState): T.Chat.MessageID => {
@@ -401,7 +406,7 @@ export const loadConversationThreadMessages = (
         // later load supersedes, and that load extends the window or retries in turn.
         //
         // The delay has a cost: the next page comes from a cursor the daemon holds, not one we
-        // send. pgmode is SERVER (see thread-rpc), so `next` resolves against convPageStatus in the
+        // send. pgmode is SERVER (see chat-rpc), so `next` resolves against convPageStatus in the
         // service, and any first-page request resets it (applyPagerModeOutgoing in
         // go/chat/uithreadloader.go) - which every scrollDirection 'none' load is, stale and focus
         // reloads included. One landing inside the throttle window makes this retry fetch near the
@@ -427,7 +432,7 @@ export const loadConversationThreadMessages = (
       ? null
       : scrollDirectionToPagination(scrollDirection, numberOfMessagesToLoad)
     try {
-      const results = await loadThreadNonblock({
+      const results = await getChatRpc().loadThread({
         conversationIDKey,
         knownRemotes,
         messageIDControl,
