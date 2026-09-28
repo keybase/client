@@ -487,7 +487,7 @@ describe('messageDelete edges', () => {
     expect(warn).toHaveBeenCalledWith('Deleting invalid message')
   })
 
-  test('only a text row shows deleting', async () => {
+  test('an attachment row shows deleting, like a text row', async () => {
     const pending = deferred<undefined>()
     rpc.on('postDelete', async () => pending.promise)
     const attachment = makeMessageAttachment({
@@ -498,11 +498,30 @@ describe('messageDelete edges', () => {
     const {message} = renderThread([attachment])
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
     expect(rpc.calls('postDelete')).toHaveLength(1)
-    expect(message(10)?.submitState).toBeUndefined()
+    expect(message(10)?.submitState).toBe('deleting')
     await act(async () => {
       pending.resolve(undefined)
       await flushPromises()
     })
+  })
+
+  test('a failed attachment delete reverts its deleting state', async () => {
+    const pending = deferred<undefined>()
+    rpc.on('postDelete', async () => pending.promise)
+    jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    const attachment = makeMessageAttachment({
+      conversationIDKey,
+      id: T.Chat.numberToMessageID(10),
+      ordinal: T.Chat.numberToOrdinal(10),
+    })
+    const {message} = renderThread([attachment])
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
+    expect(message(10)?.submitState).toBe('deleting')
+    await act(async () => {
+      pending.reject(new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+      await flushPromises()
+    })
+    expect(message(10)?.submitState).toBeUndefined()
   })
 
   test('a service failure is logged as a warning', async () => {

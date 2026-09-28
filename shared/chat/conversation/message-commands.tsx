@@ -65,16 +65,16 @@ export const formatTextForQuoting = (text: string) =>
 
 const deleteThreadMessage = (conversationIDKey: T.Chat.ConversationIDKey, target: ThreadMessage) => {
   const {ordinal, thread} = target
-  const deletingText = () => {
+  const deletable = () => {
     const m = thread.getSnapshot().messageMap.get(ordinal)
-    return m?.type === 'text' ? m : undefined
+    return m?.type === 'text' || m?.type === 'attachment' ? m : undefined
   }
-  if (deletingText()) {
+  if (deletable()) {
     thread.setMessageSubmitState(ordinal, 'deleting')
   }
   // only undoes our own mark: a row that moved on since keeps its new state
   const revertDeleting = () => {
-    if (deletingText()?.submitState === 'deleting') {
+    if (deletable()?.submitState === 'deleting') {
       thread.setMessageSubmitState(ordinal, undefined)
     }
   }
