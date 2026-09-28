@@ -28,7 +28,8 @@ export type Composer = {
   // appendSpaceToText is the desktop emoji picker's placement: its space goes at the very end of
   // the text rather than after the insert, and the caret lands one past the insert
   insertAtCaret: (s: string, opts?: {appendSpaceToText?: boolean}) => void
-  replace: (info: TextInfo, reflectChange: boolean) => void
+  // True when the input shows the text now; a write made while no input is attached waits.
+  replace: (info: TextInfo, reflectChange: boolean) => boolean
   // Clears the input now (with none attached, the next one once it has loaded its draft) and
   // hands the text to send on the next tick; false when there is nothing to send.
   submit: (send: (text: string, unfurlSuppress: SuppressSnapshot) => void) => boolean
@@ -95,11 +96,10 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
 
   const replace = (info: TextInfo, reflectChange: boolean) => {
     const input = current()
-    if (!input) return
     // the text is only ever what the input shows, or a send would send a preview nobody saw
-    if (input.replaceText(info, reflectChange)) {
-      text = info.text
-    }
+    if (!input?.replaceText(info, reflectChange)) return false
+    text = info.text
+    return true
   }
 
   // Loaded only once it is written, so an offer made while the input has no handle is retried
@@ -159,7 +159,11 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
         offerDraft(draft)
       }
     },
-    replace: (info, reflectChange) => whenAttached(() => replace(info, reflectChange)),
+    replace: (info, reflectChange) => {
+      if (attached) return replace(info, reflectChange)
+      pending.push(() => replace(info, reflectChange))
+      return false
+    },
     submit: send => {
       const toSend = text
       if (!toSend) return false

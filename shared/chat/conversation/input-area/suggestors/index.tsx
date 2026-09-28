@@ -236,8 +236,9 @@ const useSyncInput = (p: UseSyncInputProps) => {
         transformedText = transformers[active](value as TransformerType['users'], ...transformRest)
         break
     }
-    setSnapshotText(transformedText.text)
-    composer.replace(transformedText, final)
+    if (composer.replace(transformedText, final)) {
+      setSnapshotText(transformedText.text)
+    }
   }
 
   return {
