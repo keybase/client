@@ -41,8 +41,6 @@ export type Props = {
   onSelectionChange?: TextInputProps['onSelectionChange']
   autoCapitalize?: TextInputProps['autoCapitalize']
   onKeyDown?: (e: React.KeyboardEvent) => void
-  onKeyUp?: (e: React.KeyboardEvent) => void
-  onEnterKeyDown?: (e?: React.KeyboardEvent) => void
   placeholder?: string
   className?: string
   ref?: React.Ref<RefType | null>

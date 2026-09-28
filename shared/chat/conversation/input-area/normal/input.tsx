@@ -99,8 +99,8 @@ function DesktopInput(p: InputLowLevelProps) {
   const theme = Kb.Styles.useTheme()
   const desktopInputLowLevelStyles = useDesktopInputLowLevelStyles()
   const {style: _style, onChangeText: _onChangeText, multiline, ref} = p
-  const {textType = 'Body', rowsMax, rowsMin, padding, placeholder, onKeyUp: _onKeyUp} = p
-  const {allowKeyboardEvents, className, disabled, autoFocus, onKeyDown: _onKeyDown, onEnterKeyDown} = p
+  const {textType = 'Body', rowsMax, rowsMin, padding, placeholder} = p
+  const {allowKeyboardEvents, className, disabled, autoFocus, onKeyDown: _onKeyDown} = p
 
   const [value, setValue] = React.useState('')
   // this isn't a value react can set on the input, so we need to drive it manually
@@ -224,16 +224,6 @@ function DesktopInput(p: InputLowLevelProps) {
       return
     }
     _onKeyDown?.(e)
-    if (onEnterKeyDown && e.key === 'Enter' && !(e.shiftKey || e.ctrlKey || e.altKey)) {
-      onEnterKeyDown(e)
-    }
-  }
-
-  const onKeyUp = (e: React.KeyboardEvent) => {
-    if (isComposingIMERef.current) {
-      return
-    }
-    _onKeyUp?.(e)
   }
 
   const commonProps = {
@@ -244,7 +234,6 @@ function DesktopInput(p: InputLowLevelProps) {
     onCompositionEnd,
     onCompositionStart,
     onKeyDown,
-    onKeyUp,
     onSelect,
     placeholder,
     value,
