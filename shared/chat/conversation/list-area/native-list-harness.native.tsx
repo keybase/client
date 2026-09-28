@@ -44,9 +44,10 @@ export const setCenter = (ordinal: T.Chat.Ordinal | undefined) =>
 export const keyboardStore = makeStore({isVisible: false})
 
 export const bottomInset = 34
+// The safe-area inset is React state, so a change re-renders the list.
+export const insetStore = makeStore({bottomInset})
 // The composer anchor's shared values; tests move keyboardHeight the way reanimated would.
 export const anchor = {
-  bottomInset,
   keyboardHeight: {value: 0},
   keyboardProgress: {value: 0},
 }
@@ -113,7 +114,9 @@ export const commonAdaptersModule = {
   Styles: {createStyleHook: (f: (theme: object) => unknown) => () => f({})},
 }
 
-export const composerViewportModule = {useComposerAnchor: () => anchor}
+export const composerViewportModule = {
+  useComposerAnchor: () => ({...anchor, bottomInset: useStore(insetStore, s => s.bottomInset)}),
+}
 
 export const markThreadAsRead = jest.fn(() => {
   log.push(['markThreadAsRead'])
@@ -188,6 +191,7 @@ export const resetHarness = () => {
   threadStore.reset(initialThreadState())
   centerStore.reset(noCenter)
   keyboardStore.reset({isVisible: false})
+  insetStore.reset({bottomInset})
   markThreadAsRead.mockClear()
   loadOlderMessages.mockClear()
 }

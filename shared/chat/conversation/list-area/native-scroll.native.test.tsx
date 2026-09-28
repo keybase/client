@@ -538,6 +538,51 @@ describe('appending', () => {
   })
 })
 
+describe('a safe-area inset change', () => {
+  const newInset = 50
+  const toBottomOverKeyboardAtNewInset = ['scrollToOffset', {animated: false, offset: newInset - keyboardHeight}]
+  const changeInset = () => {
+    update(() => {
+      H.insetStore.set({bottomInset: newInset})
+    })
+  }
+
+  test('before the first-load retry fires, the retry keeps the inset the load finished with', async () => {
+    open({keyboard: true})
+    await tick(10)
+    changeInset()
+    await tick(1000)
+    expect(H.log).toEqual([markRead, toBottomOverKeyboard, toBottomOverKeyboard])
+  })
+
+  test('before the keyboard-up append re-pin fires, it cancels the re-pin', async () => {
+    open({keyboard: true})
+    await tick(200)
+    clearLog()
+    setOrdinals(1, 61)
+    changeInset()
+    await tick(1000)
+    expect(H.log).toEqual([])
+  })
+
+  test('ThreadRefs scrollToBottom uses the inset as it is now', async () => {
+    open({keyboard: true})
+    await tick(200)
+    changeInset()
+    clearLog()
+    act(() => H.threadRefs.current?.scrollToBottom())
+    expect(H.log).toEqual([toBottomOverKeyboardAtNewInset])
+  })
+
+  test('does not restart a centring under way', async () => {
+    open({center: 30})
+    await tick(10)
+    changeInset()
+    await tick(1000)
+    expect(H.log).toEqual([markRead, coarse(30), coarse(30)])
+  })
+})
+
 describe('loading older messages', () => {
   // Data is newest first, so the last viewable index is the oldest row on screen.
   const loads = () => H.log.filter(([kind]) => kind === 'loadOlderMessages')
