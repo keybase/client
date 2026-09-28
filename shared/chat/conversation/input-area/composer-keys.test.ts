@@ -64,13 +64,7 @@ describe('the composer textarea', () => {
     ['ArrowUp, empty, replying: still edits', input({replying: true}), k('ArrowUp'), [editLast], true],
     ['ArrowUp with modifiers still edits', input(), k('ArrowUp', {shiftKey: true}), [editLast], true],
     ['ArrowUp, text, list open: move up', input({...withText, suggestions: open}), k('ArrowUp'), [moveUp], true],
-    [
-      'ArrowUp, empty, list open: edit and move up',
-      input({suggestions: open}),
-      k('ArrowUp'),
-      [editLast, moveUp],
-      true,
-    ],
+    ['ArrowUp, empty, list open: move up only', input({suggestions: open}), k('ArrowUp'), [moveUp], true],
     [
       'ArrowUp, editing, list open: move up only',
       input({editing: true, suggestions: open}),
@@ -334,6 +328,14 @@ describe('across every key and state', () => {
       for (const key of allKeys) {
         const {actions} = composerKeyDown(s, key)
         expect(actions.filter(a => a.type === 'suggestionMove' || a.type === 'suggestionSelect')).toEqual([])
+      }
+    }
+  })
+
+  test('with a list showing items ArrowUp only moves the highlight, and with one still empty it does nothing', () => {
+    for (const s of allInputStates.filter(s => s.suggestions !== 'none')) {
+      for (const key of allKeys.filter(k => k.key === 'ArrowUp')) {
+        expect(composerKeyDown(s, key).actions).toEqual(showsItems(s) ? [moveUp] : [])
       }
     }
   })

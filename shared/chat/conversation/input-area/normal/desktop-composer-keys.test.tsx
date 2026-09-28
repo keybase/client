@@ -511,16 +511,16 @@ describe('in the composer, suggestions open', () => {
   })
 
   // the list closes on the suggestors' 1ms settle after a change, so a key inside that window
-  // still sees it open: an ArrowUp on the just-emptied text both starts the edit and moves the
-  // highlight
-  test('ArrowUp right after emptying the text both edits the last message and moves the list', () => {
+  // still sees it open, and the open list wins
+  test('ArrowUp right after emptying the text only moves the list', () => {
     const {getHandles, textarea} = renderComposer()
     openSuggestions(textarea, '@')
     type(textarea, '')
 
     expect(keyDown(textarea, 'ArrowUp')).toBe(true)
 
-    expect(getHandles().input.editing).toBe(lastOrdinal)
+    expect(getHandles().input.editing).toBe(noOrdinal)
+    expect(textarea.value).toBe('')
     expect(mockMove.mock.calls).toEqual([[true]])
   })
 })

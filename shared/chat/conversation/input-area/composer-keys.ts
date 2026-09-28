@@ -82,46 +82,43 @@ const threadKey = (s: ThreadFacts, k: ComposerKey): ComposerKeyResult<ThreadKeyA
 
 const isSendEnter = (k: ComposerKey) => k.key === 'Enter' && !(k.altKey || k.ctrlKey || k.metaKey || k.shiftKey)
 
+// The keys an open suggestion list takes, ahead of everything else. It claims the keys that move
+// through it even before it has items, as it always has, so a key pressed while it loads neither
+// moves the caret nor takes focus out of the composer; there is just nothing to move to. Enter
+// has nothing to pick then, so it sends.
+const suggestionKey = (suggestions: Suggestions, k: ComposerKey): ComposerKeyResult<InputKeyAction> | undefined => {
+  if (suggestions === 'none') return undefined
+  const hasItems = suggestions !== 'empty'
+  const claim = (action?: InputKeyAction) => ({actions: action ? [action] : [], preventDefault: true})
+  switch (k.key) {
+    case 'ArrowDown':
+    case 'ArrowUp':
+      return claim(hasItems ? {type: 'suggestionMove', up: k.key === 'ArrowUp'} : undefined)
+    case 'Enter':
+      return hasItems && isSendEnter(k) ? claim({orSubmit: true, type: 'suggestionSelect'}) : undefined
+    case 'Tab':
+      return claim(
+        !hasItems
+          ? undefined
+          : suggestions === 'filtered'
+            ? {orSubmit: false, type: 'suggestionSelect'}
+            : {type: 'suggestionMove', up: k.shiftKey}
+      )
+    default:
+      return undefined
+  }
+}
+
 const inputKey = (s: InputKeyState, k: ComposerKey): ComposerKeyResult<InputKeyAction> => {
-  // the thread keys never stop the suggestion and send handling below, so while the list is
-  // still open an ArrowUp on empty text both starts the edit and moves the highlight
+  const list = suggestionKey(s.suggestions, k)
+  if (list) return list
+
   const thread = threadKey(s, k)
   const actions: Array<InputKeyAction> = [...(thread?.actions ?? [])]
   let preventDefault = thread?.preventDefault ?? false
 
   if (k.key === 'ArrowLeft' || k.key === 'ArrowRight') {
     actions.push({type: 'recheckSuggestions'})
-  }
-
-  // An open list claims the keys that move through it even before it has items, so a key pressed
-  // while it loads neither moves the caret nor takes focus out of the composer; there is just
-  // nothing to move to. Enter has nothing to pick, so it sends.
-  if (s.suggestions !== 'none') {
-    const hasItems = s.suggestions !== 'empty'
-    switch (k.key) {
-      case 'ArrowDown':
-      case 'ArrowUp':
-        if (hasItems) {
-          actions.push({type: 'suggestionMove', up: k.key === 'ArrowUp'})
-        }
-        return {actions, preventDefault: true}
-      case 'Enter':
-        if (hasItems && isSendEnter(k)) {
-          actions.push({orSubmit: true, type: 'suggestionSelect'})
-          return {actions, preventDefault: true}
-        }
-        break
-      case 'Tab':
-        if (hasItems) {
-          actions.push(
-            s.suggestions === 'filtered'
-              ? {orSubmit: false, type: 'suggestionSelect'}
-              : {type: 'suggestionMove', up: k.shiftKey}
-          )
-        }
-        return {actions, preventDefault: true}
-      default:
-    }
   }
 
   if (isSendEnter(k)) {
