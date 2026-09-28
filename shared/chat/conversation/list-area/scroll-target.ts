@@ -56,9 +56,8 @@ export type ScrollEvent =
   // The reader scrolled: by wheel, touch drag, a navigation key or the scrollbar, or by paging through
   // the composer's page keys.
   | {type: 'userScrolled'; how: 'wheel' | 'drag' | 'key' | 'scrollbar' | 'pageUp' | 'pageDown'}
-  // A scroll came to rest at the end, the reader's or the list's own. Only a list whose end the
-  // reader can reach without the list's own anchor noticing reports it: the desktop list's
-  // maintainScrollAtEnd takes the end back by itself once the reader is there.
+  // A scroll came to rest at the end, the reader's or the list's own, or an input of the reader's
+  // toward the end found the list already there and moved nothing.
   | {type: 'readerAtEnd'}
   // The header's size as the list measured it. Only a list whose header comes before its end in
   // scroll order reports it: the native list is inverted, so its header sits at the far, oldest end
@@ -160,7 +159,7 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
         state,
       }
     case 'userScrolled':
-      // Paging toward the end does not claim it back, even when it arrives there.
+      // Paging toward the end does not take the end; arriving there gives it back (readerAtEnd).
       if (event.how === 'pageDown') return {directive: leaveAlone, state}
       // Scrolling the list directly is the reader taking over, so centring stops rather than pull them
       // back. Paging up hands over the end but leaves a centring under way to finish.

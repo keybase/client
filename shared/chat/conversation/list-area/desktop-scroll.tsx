@@ -28,6 +28,8 @@ const scrollerIn = (wrapper: unknown) =>
 
 // Keys a focused scroller scrolls by itself.
 const scrollKeys = new Set(['ArrowDown', 'ArrowUp', 'End', 'Home', 'PageDown', 'PageUp', ' '])
+// Those that scroll toward the end; Space does unless shifted.
+const towardEndKeys = new Set(['ArrowDown', 'End', 'PageDown', ' '])
 // Elements that take those keys for themselves, where they scroll nothing.
 const keyTakingTags = new Set(['BUTTON', 'INPUT', 'SELECT', 'TEXTAREA'])
 
@@ -260,22 +262,41 @@ export const useDesktopThreadScroll = (p: {
     [dispatch]
   )
 
+  // A scroll coming to rest at the end, the reader's or the list's own, gives the end back to the
+  // list, however it got there. scrollend does not bubble, so it is caught on its way down to the
+  // scroller.
+  const reportIfAtEnd = React.useCallback(() => {
+    if (isScrolledToEnd()) dispatch({type: 'readerAtEnd'})
+  }, [dispatch, isScrolledToEnd])
+  React.useLayoutEffect(() => {
+    const wrapper = wrapperRef.current
+    if (!wrapper) return undefined
+    wrapper.addEventListener('scrollend', reportIfAtEnd, {capture: true})
+    return () => wrapper.removeEventListener('scrollend', reportIfAtEnd, {capture: true})
+  }, [reportIfAtEnd, wrapperRef])
+
   // The reader's own scrolling is told apart by the input that causes it, not by scroll events: the
   // list scrolls itself too (its initial position, its end anchor, holding rows in place as they
   // measure), and a scroll event does not say who moved it. A wheel, a navigation key reaching the
   // scroller, and a press on the scroller itself (its scrollbar: a press on a row lands on the row)
-  // are always the reader.
-  const onWheel = React.useCallback(() => {
-    dispatch({how: 'wheel', type: 'userScrolled'})
-  }, [dispatch])
+  // are always the reader. An input toward the end that finds the scroller already there moves
+  // nothing, so no scroll comes to rest to say it ended at the end: it says so itself.
+  const onWheel = React.useCallback(
+    (e: {deltaY: number}) => {
+      dispatch({how: 'wheel', type: 'userScrolled'})
+      if (e.deltaY > 0) reportIfAtEnd()
+    },
+    [dispatch, reportIfAtEnd]
+  )
 
   const onKeyDown = React.useCallback(
-    (e: {key: string; target: unknown}) => {
+    (e: {key: string; shiftKey: boolean; target: unknown}) => {
       const target = e.target as {isContentEditable?: boolean; tagName?: string}
       if (!scrollKeys.has(e.key) || target.isContentEditable || keyTakingTags.has(target.tagName ?? '')) return
       dispatch({how: 'key', type: 'userScrolled'})
+      if (towardEndKeys.has(e.key) && !(e.key === ' ' && e.shiftKey)) reportIfAtEnd()
     },
-    [dispatch]
+    [dispatch, reportIfAtEnd]
   )
 
   const onPointerDown = React.useCallback(

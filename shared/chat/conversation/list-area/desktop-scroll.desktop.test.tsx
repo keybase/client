@@ -848,6 +848,79 @@ describe('the reader scrolling without a wheel', () => {
   })
 })
 
+describe('the reader reaching the end', () => {
+  const scroller = () => screen.getByTestId('fake-scroller')
+  // A scroll of the thread's scroller finishing, whoever started it.
+  const scrollEnded = () => {
+    fireEvent(scroller(), new Event('scrollend'))
+  }
+
+  test.each(['End', 'PageDown', 'ArrowDown', ' '])(
+    'after %p scrolls the reader down to it, header growth re-pins the end',
+    async key => {
+      open()
+      scrollerNotAtEnd()
+      fireEvent.keyDown(scroller(), {key})
+      scrollerAtEnd()
+      scrollEnded()
+      growHeader()
+      await tick(100)
+      expect(H.log).toEqual([['scrollToEnd', noAnimation]])
+    }
+  )
+
+  test('after wheeling back down to it, header growth re-pins the end', async () => {
+    open()
+    scrollerNotAtEnd()
+    wheel()
+    scrollerAtEnd()
+    scrollEnded()
+    growHeader()
+    await tick(100)
+    expect(H.log).toEqual([['scrollToEnd', noAnimation]])
+  })
+
+  test('a scroll that comes to rest short of it leaves the end with the reader', async () => {
+    open()
+    scrollerNotAtEnd()
+    wheel()
+    scrollEnded()
+    growHeader()
+    await tick(3000)
+    expect(H.log).toEqual([])
+  })
+
+  test('a wheel down at the end, which moves nothing, leaves the end with the list', async () => {
+    open()
+    scrollerAtEnd()
+    fireEvent.wheel(screen.getByTestId('chat-message-list'), {deltaY: 100})
+    growHeader()
+    await tick(100)
+    expect(H.log).toEqual([['scrollToEnd', noAnimation]])
+  })
+
+  test.each(['End', 'PageDown', 'ArrowDown', ' '])(
+    '%p at the end, which moves nothing, leaves the end with the list',
+    async key => {
+      open()
+      scrollerAtEnd()
+      fireEvent.keyDown(scroller(), {key})
+      growHeader()
+      await tick(100)
+      expect(H.log).toEqual([['scrollToEnd', noAnimation]])
+    }
+  )
+
+  test('keys toward the oldest at the end take it', async () => {
+    open()
+    scrollerAtEnd()
+    fireEvent.keyDown(scroller(), {key: ' ', shiftKey: true})
+    growHeader()
+    await tick(3000)
+    expect(H.log).toEqual([])
+  })
+})
+
 describe('returning to the chat tab', () => {
   test('keeps a reader who wheeled away from a centred hit where they are', async () => {
     open({center: 30})
