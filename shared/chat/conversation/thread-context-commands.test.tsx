@@ -10,7 +10,7 @@ import HiddenString from '@/util/hidden-string'
 import RPCError from '@/util/rpcerror'
 import type * as React from 'react'
 import logger from '@/logger'
-import {act, cleanup, renderHook} from '@testing-library/react'
+import {act, cleanup, fireEvent, renderHook, screen} from '@testing-library/react'
 import {getInboxConversationMeta, metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {makeMessageAttachment, makeMessageText} from '@/constants/chat/message'
 import {resetAllStores} from '@/util/zustand'
@@ -25,6 +25,7 @@ import {
   toggleCollapse,
   toggleReaction,
 } from './message-commands'
+import {Collapsed} from './messages/attachment/shared'
 import {
   ConversationThreadProvider,
   useConversationThreadActions,
@@ -240,6 +241,55 @@ describe('unfurlRemove', () => {
 })
 
 describe('toggleMessageCollapse', () => {
+  // An attachment sent this session keeps its fractional outbox ordinal after it gets its id.
+  const sentAttachment = (over?: Partial<T.Chat.MessageAttachment>) =>
+    makeMessageAttachment({
+      author: 'testuser',
+      conversationIDKey,
+      id: T.Chat.numberToMessageID(12),
+      isCollapsed: true,
+      ordinal: T.Chat.numberToOrdinal(10.001),
+      ...over,
+    })
+
+  const clickCollapsed = async () => {
+    await run(() => fireEvent.click(screen.getByText('Collapsed')))
+  }
+
+  const renderCollapsed = (message: T.Chat.MessageAttachment) => {
+    const {result} = renderHook(useConversationThreadActions, {
+      wrapper: ({children}: {children: React.ReactNode}) => (
+        <ConversationThreadProvider id={conversationIDKey}>
+          {children}
+          <Collapsed isCollapsed={message.isCollapsed} ordinal={message.ordinal} />
+        </ConversationThreadProvider>
+      ),
+    })
+    act(() => result.current.addMessages([message]))
+  }
+
+  test('a collapsed attachment row toggles its own message by id, not by ordinal', async () => {
+    renderCollapsed(sentAttachment())
+    await clickCollapsed()
+    expect(rpc.params('toggleCollapse')).toEqual([
+      {collapse: false, conversationIDKey, messageID: T.Chat.numberToMessageID(12)},
+    ])
+  })
+
+  test('a row with no id yet toggles nothing', async () => {
+    renderCollapsed(sentAttachment({id: T.Chat.numberToMessageID(0)}))
+    await clickCollapsed()
+    expect(rpc.calls('toggleCollapse')).toEqual([])
+  })
+
+  test('a row whose ordinal is not its id reads its own collapsed state', async () => {
+    renderThread([sentAttachment()])
+    await run(() => cmd.toggleMessageCollapse(T.Chat.numberToMessageID(12), T.Chat.numberToOrdinal(10.001)))
+    expect(rpc.params('toggleCollapse')).toEqual([
+      {collapse: false, conversationIDKey, messageID: T.Chat.numberToMessageID(12)},
+    ])
+  })
+
   test('a message collapses or expands itself', async () => {
     renderThread([textAt(10), textAt(11, {isCollapsed: true})])
     await run(() => cmd.toggleMessageCollapse(T.Chat.numberToMessageID(10), T.Chat.numberToOrdinal(10)))

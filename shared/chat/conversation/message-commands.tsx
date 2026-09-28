@@ -315,14 +315,14 @@ export const toggleCollapse = (
     const m = thread.getSnapshot().messageMap.get(ordinal)
     let isCollapsed = false
 
-    if (T.Chat.messageIDToNumber(messageID) !== T.Chat.ordinalToNumber(ordinal)) {
+    if (m?.id === messageID) {
+      isCollapsed = m.isCollapsed ?? false
+    } else {
       const unfurlInfos = [...(m?.unfurls?.values() ?? [])]
       const ui = unfurlInfos.find(u => u.unfurlMessageID === messageID)
       if (ui) {
         isCollapsed = ui.isCollapsed
       }
-    } else {
-      isCollapsed = m?.isCollapsed ?? false
     }
     await getChatRpc().toggleCollapse({collapse: !isCollapsed, conversationIDKey, messageID})
   }

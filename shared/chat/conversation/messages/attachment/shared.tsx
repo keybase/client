@@ -303,12 +303,13 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
 const useCollapseAction = (ordinal: T.Chat.Ordinal) => {
   const conversationIDKey = useConversationThreadID()
   const thread = useConversationThreadActions()
+  // A row's ordinal is not its id (a message sent this session keeps its outbox ordinal), and a
+  // row still being sent has no id to collapse.
   const onCollapse = () => {
-    toggleCollapse(
-      conversationIDKey,
-      {ordinal, thread},
-      T.Chat.numberToMessageID(T.Chat.ordinalToNumber(ordinal))
-    )
+    const messageID = thread.getSnapshot().messageMap.get(ordinal)?.id
+    if (messageID) {
+      toggleCollapse(conversationIDKey, {ordinal, thread}, messageID)
+    }
   }
   return onCollapse
 }
