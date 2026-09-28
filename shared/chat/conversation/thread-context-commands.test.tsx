@@ -725,20 +725,30 @@ describe('collapse and unfurl edges', () => {
     ])
   })
 
-  test('a failed collapse goes to ignorePromise', async () => {
-    rpc.fail('toggleCollapse', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+  test('a service refusal of a collapse is logged; any other failure goes to ignorePromise', async () => {
+    rpc.failOnce('toggleCollapse', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    rpc.failOnce('toggleCollapse', new Error('bug'))
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     renderThread([textAt(10)])
     await run(() => cmd.toggleMessageCollapse(T.Chat.numberToMessageID(10), T.Chat.numberToOrdinal(10)))
-    expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(RPCError))
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('toggleCollapse: failed to toggle collapse: '))
+    expect(error).not.toHaveBeenCalled()
+    await run(() => cmd.toggleMessageCollapse(T.Chat.numberToMessageID(10), T.Chat.numberToOrdinal(10)))
+    expect(error).toHaveBeenCalledWith('ignorePromise error', new Error('bug'))
   })
 
-  test('a failed unfurl remove goes to ignorePromise', async () => {
-    rpc.fail('postDelete', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+  test('a service refusal of an unfurl remove is logged; any other failure goes to ignorePromise', async () => {
+    rpc.failOnce('postDelete', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    rpc.failOnce('postDelete', new Error('bug'))
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     renderThread()
     await run(() => cmd.unfurlRemove(T.Chat.numberToMessageID(33)))
-    expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(RPCError))
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('removeUnfurl: failed to remove unfurl: '))
+    expect(error).not.toHaveBeenCalled()
+    await run(() => cmd.unfurlRemove(T.Chat.numberToMessageID(33)))
+    expect(error).toHaveBeenCalledWith('ignorePromise error', new Error('bug'))
   })
 })
 

@@ -324,7 +324,15 @@ export const toggleCollapse = (
         isCollapsed = ui.isCollapsed
       }
     }
-    await getChatRpc().toggleCollapse({collapse: !isCollapsed, conversationIDKey, messageID})
+    try {
+      await getChatRpc().toggleCollapse({collapse: !isCollapsed, conversationIDKey, messageID})
+    } catch (error) {
+      if (error instanceof RPCError) {
+        logger.warn(`toggleCollapse: failed to toggle collapse: ${error.message}`)
+      } else {
+        throw error
+      }
+    }
   }
   ignorePromise(f())
 }
@@ -336,7 +344,15 @@ export const removeUnfurl = (conversationIDKey: T.Chat.ConversationIDKey, messag
       logger.debug('unfurl remove no meta found, aborting!')
       return
     }
-    await getChatRpc().postDelete({conversationIDKey, messageID, tlfName: meta.tlfname})
+    try {
+      await getChatRpc().postDelete({conversationIDKey, messageID, tlfName: meta.tlfname})
+    } catch (error) {
+      if (error instanceof RPCError) {
+        logger.warn(`removeUnfurl: failed to remove unfurl: ${error.message}`)
+      } else {
+        throw error
+      }
+    }
   }
   ignorePromise(f())
 }
