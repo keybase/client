@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Constants from '@/constants/fs'
 import * as React from 'react'
-import * as RouterConstants from '@/constants/router'
+import * as NavTree from '@/constants/nav-tree'
 import * as T from '@/constants/types'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
@@ -75,7 +75,7 @@ export const FsDaemonProvider = ({children}: {children: React.ReactNode}) => {
   // Re-kick the watcher when the daemon handshake (re)completes: the watch loop exits
   // if the service dies, and a new handshake means RPCs work again.
   const handshakeDone = useDaemonState(s => s.handshakeState === 'done')
-  const navState = useRouterState(s => s.navState as RouterConstants.NavState | undefined)
+  const navState = useRouterState(s => s.navState)
   const [kbfsDaemonStatus, setKbfsDaemonStatus] = React.useState<T.FS.KbfsDaemonStatus>(
     Constants.unknownKbfsDaemonStatus
   )
@@ -167,8 +167,8 @@ export const FsDaemonProvider = ({children}: {children: React.ReactNode}) => {
       return
     }
 
-    const wasScreen = fsRouteNames.includes(RouterConstants.getVisibleScreen(previousNavState)?.name ?? '')
-    const isScreen = fsRouteNames.includes(RouterConstants.getVisibleScreen(navState)?.name ?? '')
+    const wasScreen = fsRouteNames.includes(NavTree.visibleScreen(previousNavState)?.name ?? '')
+    const isScreen = fsRouteNames.includes(NavTree.visibleScreen(navState)?.name ?? '')
     if (wasScreen === isScreen) {
       return
     }

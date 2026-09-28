@@ -47,7 +47,7 @@ test('the phone shapes are in force -- a conversation opens above the tabs, not 
         name: 'loggedIn',
         state: {
           index: 0,
-          routes: [{name: Tabs.chatTab, state: {index: 0, routes: [{name: 'chatRoot', params: {}}]}}],
+          routes: [{name: Tabs.chatTab, state: {index: 0, routes: [{name: 'chatRoot'}]}}],
         },
       },
       {name: 'chatConversation', params: {conversationIDKey: 'conv-1'}},

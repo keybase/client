@@ -2,13 +2,13 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
+import * as NavTree from '@/constants/nav-tree'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import Conversation from '@/chat/conversation/container'
 import InfoPanel, {type Panel} from '@/chat/conversation/info-panel'
 import type {ThreadSearchRouteProps} from '@/chat/conversation/thread-search-route'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
-import type {NavState} from '@/constants/router'
 import logger from '@/logger'
 
 export type InboxAndConversationProps = ThreadSearchRouteProps & {
@@ -30,7 +30,7 @@ export function InboxAndConversationShell(props: Props) {
   const validConvoID = conversationIDKey && conversationIDKey !== Chat.noConversationIDKey
   const lastValidCIDRef = React.useRef(validConvoID ? conversationIDKey : '')
   const chatTabSelected = C.useRouterState(s => {
-    const storedTab = C.Router2.getTab(s.navState as NavState | undefined)
+    const storedTab = NavTree.currentTab(s.navState)
     return (storedTab ?? C.Router2.getTab()) === C.Tabs.chatTab
   })
   const firstSmallTeam = useInboxLayoutState(s => {
