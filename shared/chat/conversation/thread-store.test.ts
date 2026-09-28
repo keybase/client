@@ -288,12 +288,16 @@ describe('mark read', () => {
     expect(markReads()).toEqual([])
   })
 
-  test('addMessages with markAsRead and every updateReactions ask to mark', async () => {
+  test('addMessages with markAsRead and an updateReactions that found a target ask to mark', async () => {
     const {actions} = makeThread()
     arm(actions, [textAt(5)])
     actions.addMessages([textAt(6)], {markAsRead: true})
     await flushPromises()
     actions.updateReactions([])
+    actions.updateReactions([{targetMsgID: T.Chat.numberToMessageID(9)}])
+    await flushPromises()
+    expect(markReads().map(p => p.msgID)).toEqual([6])
+    actions.updateReactions([{reactions: new Map(), targetMsgID: T.Chat.numberToMessageID(6)}])
     await flushPromises()
     expect(markReads().map(p => p.msgID)).toEqual([6, 6])
   })

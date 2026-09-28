@@ -575,7 +575,9 @@ export const makeThreadStore = (
         `updateReactions: couldn't find target ordinal for targetMsgID=${targetMsgID} in convID=${id}`
       )
     }
-    markThreadAsRead()
+    if (missingTargetMsgIDs.length !== updates.length) {
+      markThreadAsRead()
+    }
   }
 
   // The reload a clear issues claims the gate, so a load that merely happens to be running at the

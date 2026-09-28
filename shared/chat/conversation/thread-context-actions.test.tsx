@@ -379,10 +379,17 @@ describe('mark read gating', () => {
     expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 12}])
   })
 
-  test('a reaction update always asks to mark read', async () => {
+  test('a reaction update asks to mark read only when it found a target', async () => {
     const {h} = renderThread()
     armWith(h().actions, [textAt(10)])
     await run(() => h().actions.updateReactions([{targetMsgID: T.Chat.numberToMessageID(99)}]))
+    expect(markReads()).toEqual([])
+    await run(() =>
+      h().actions.updateReactions([
+        {targetMsgID: T.Chat.numberToMessageID(99)},
+        {reactions: new Map(), targetMsgID: T.Chat.numberToMessageID(10)},
+      ])
+    )
     expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 10}])
   })
 
