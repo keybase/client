@@ -17,6 +17,7 @@
     "./common-adapters/icon.constants-gen.desktop.tsx",
     "./common-adapters/icon.constants-gen.native.tsx",
     "./common-adapters/icon.constants-gen.shared.tsx",
+    "./chat/conversation/list-area/desktop-scroll.desktop.test.tsx",
     "./chat/conversation/normal/container.test.tsx",
     "./chat/conversation/messages/separator.test.tsx",
     "./chat/conversation/input-area/unfurl-preview.test.tsx",
