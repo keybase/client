@@ -192,7 +192,7 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
         const selection = target.getSelection()
         // the native input has no caret until it reports one
         const position = selection
-          ? {end: selection.end ?? null, start: selection.start}
+          ? {end: selection.end ?? selection.start, start: selection.start}
           : {end: text.length, start: text.length}
         const inserted = standardTransformer(s, {position, text}, true)
         replace(target, {selection: inserted.selection, text: inserted.text}, true)

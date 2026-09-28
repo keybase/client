@@ -360,7 +360,7 @@ describe('insertAtCaret', () => {
     expect(fake.selection).toEqual({end: 9, start: 9})
   })
 
-  test('a caret with no end takes the text from 0 as the rest', () => {
+  test('a caret with no end inserts at the caret', () => {
     const {composer, mount} = setup()
     const {fake} = mount()
     fake.type('abcd')
@@ -368,7 +368,8 @@ describe('insertAtCaret', () => {
 
     composer.insertAtCaret('X')
 
-    expect(fake.text).toBe('abXabcd')
+    expect(fake.text).toBe('abXcd')
+    expect(fake.selection).toEqual({end: 3, start: 3})
   })
 
   test('the insert is reported like typing', () => {
