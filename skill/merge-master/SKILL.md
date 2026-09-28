@@ -94,8 +94,7 @@ After all commits are processed:
 
 **TypeScript** (from `shared/`):
 ```bash
-yarn lint
-yarn tsc
+yarn lint:all
 ```
 
 **Go** (from `go/`):
@@ -120,13 +119,3 @@ git merge --continue
 ```
 
 Use this approach when there are many commits and the conflict markers clearly show the divergence. Use the per-commit approach when conflicts are ambiguous or when you need to understand each change's intent before applying it.
-
-## Merge History
-
-| Date | Branch | Last master commit merged |
-|------|--------|--------------------------|
-| 2026-05-04 | nojima/HOTPOT-next-670-clean-2 | 0a255e2f88 (fix race on HUD after a command) |
-| 2026-05-19 | nojima/HOTPOT-next-670-clean-2 | 44af33002554ea4f81d4bca766fe642ad154e883 (fix UI bugs) |
-| 2026-05-26 | nojima/HOTPOT-next-670-clean-2 | ecfd22f61208ab37ec6c48e843f56c39fe128e4b (backport retry fixes) |
-| 2026-05-29 | nojima/HOTPOT-next-670-clean-2 | 7c434a8686d2b6d2e38366b8675f360bbace9f34 (fix additional api retry args) |
-| 2026-06-03 | nojima/HOTPOT-next-670-clean-2 | c067f2a368f0889b61ff70518933d6c69c4b96b3 (bump golang.org/x/image) |

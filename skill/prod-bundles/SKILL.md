@@ -1,13 +1,13 @@
 ---
 name: prod-bundles
-description: Use when the user asks to build production bundles, check bundle sizes, audit tree-shaking, or verify mobile/desktop code separation. Covers both the desktop webpack prod build and the iOS/Android Metro bundle.
+description: Use when the user asks to build production bundles, check bundle sizes, audit tree-shaking, or verify mobile/desktop code separation. Covers both the desktop Vite prod build and the iOS/Android Metro bundle.
 ---
 
 Build production bundles for both platforms and analyze them for correct tree-shaking.
 
 ## Build Commands
 
-**Desktop (webpack):**
+**Desktop (Vite):**
 ```bash
 # From shared/
 yarn desktop:build:prod
@@ -57,7 +57,6 @@ for name in ['isMobile', 'isElectron', 'isAndroid', 'isIOS']:
 
 ## Key Facts
 
-- **Webpack (desktop)**: `DefinePlugin` replaces bare globals (`isMobile`, `isElectron`, etc.) with literals. Terser DCEs dead branches. Works cross-module.
+- **Vite (desktop)**: the `define` block in `shared/vite.config.mts` (`makeDefines`) replaces bare globals (`isMobile`, `isElectron`, etc.) with literals, and the prod minifier drops the dead branches.
 - **Metro (iOS/Android)**: The `makePlatformPlugin` Babel plugin in `babel.config.js` inlines the same globals at transform time, enabling Metro's `constant-folding-plugin` to DCE dead branches.
-- **Native-only module aliasing** (desktop): packages in `shared/native-only-modules.js` are aliased to `shared/null-module.js` by webpack. Changes to that file require clearing the webpack cache: `rm -rf shared/node_modules/.cache/webpack`.
-- **Webpack cache invalidation**: `shared/desktop/webpack.config.mts` lists `buildDependencies` — if you add a new file that affects the build, add it there so cache auto-invalidates.
+- **Native-only module aliasing** (desktop): packages in `shared/native-only-modules.js` are aliased to `shared/null-module.js` by the resolve config in `shared/vite.config.mts`, and pre-bundled through `optimizeDeps`. After changing that file, clear Vite's dep cache: `rm -rf shared/node_modules/.vite`.

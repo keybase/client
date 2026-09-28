@@ -19,8 +19,6 @@ description: Use when updating npm/yarn dependencies in shared/package.json, pro
 
 `expo` and `expo-*` packages **can** be updated, but update them all together in one pass since they are versioned in sync.
 
-**`webpack-dev-server`: do NOT go past `5.x`.** v6 deleted the SockJS client, but `@pmmmwh/react-refresh-webpack-plugin` (latest 0.6.2, peer range `^4.8.0 || 5.x`) still hard-`require`s `webpack-dev-server/client/clients/SockJSClient` in `sockets/WDSSocket.js` — so wds6 breaks desktop hot mode at compile time (`ModuleNotFoundError`). Stay on the latest `5.x` (currently 5.2.6). Only move to wds6 once @pmmmwh ships a release whose peer range includes `6.x`, or after migrating the bundler off webpack (see Rspack notes elsewhere). See memory [[project_wds6_react_refresh_sockjs]].
-
 **`oxc-transform-react`: stay inside `@vitejs/plugin-react`'s peer range.** It is the Rust react-compiler behind `react({compiler: true})` in `vite.config.mts` (desktop only). For a 0.x version, `^0.145.0` means `0.145.x` only, so the check script's "latest" is usually outside the range — read `npm view @vitejs/plugin-react@<ver> peerDependencies` and pin the newest version inside it. Metro, jest and `lint:bailouts` still use `babel-plugin-react-compiler`, `yarn lint:bailouts` runs both and fails on any file where they memoize a different number of functions, so run it after bumping either compiler.
 
 **`typescript` is intentionally split into two packages — do NOT collapse them yet.** TypeScript 7.x is the native (Go) rewrite: fast, but it does NOT ship the classic JS compiler API (`ts.isCallExpression`, `ts.forEachChild`, `ts.Extension.*`, etc.). Two consumers here still require that classic API: `typescript-eslint` (its `@typescript-eslint/typescript-estree` crashes at module-load on TS7 with `Cannot read properties of undefined (reading 'Cjs')`, and its peer range is `>=4.8.4 <6.1.0` even on canary), and `scripts/analyze-styles.mts` (imports `typescript` and walks the AST). So:
@@ -65,8 +63,7 @@ For packages on a stable version, suggestions are **capped at the `latest` dist-
 
 ```bash
 cd shared && yarn
-yarn lint
-yarn tsc
+yarn lint:all
 ```
 
 **Lint/tsc failures after a dep update are caused by the update** — do not try to prove they are pre-existing. The branch is clean before the update starts, so any new errors are ours to fix. Fix them before proceeding. If the failures are large or unclear, stop and ask for guidance rather than guessing.
@@ -75,7 +72,7 @@ yarn tsc
 
 Plain `pod install` only re-integrates the Pods project; it leaves `ios/build/` (stale `.o`, `.pcm` module cache, generated headers) and `ios/Pods/` framework/header caches from the *previous* versions. Xcode's incremental build trusts those by timestamp and then compiles/links against headers and symbols that moved when a pod's source was swapped underneath it → build fails out of the box. This bites almost every time a **native** dependency version changes.
 
-A native dep = anything with an iOS pod: any `expo`/`expo-*`, `react-native`, `react-native-*`, `@react-native-*`, `lottie-react-native`, `react-native-kb`, etc. Pure JS/tooling bumps (webpack, babel, eslint, typescript, immer, lodash, zustand, `@types/*`) do **not** need a pod clean.
+A native dep = anything with an iOS pod: any `expo`/`expo-*`, `react-native`, `react-native-*`, `@react-native-*`, `lottie-react-native`, `react-native-kb`, etc. Pure JS/tooling bumps (vite, babel, eslint, typescript, immer, lodash, zustand, `@types/*`) do **not** need a pod clean.
 
 **If any native dep changed**, do the targeted clean instead of a plain install:
 
@@ -126,7 +123,7 @@ This runs `yarn audit --json`, dedupes the advisories, and cross-references `yar
   Yarn 1 gotchas for scoped resolutions: write the scope as `"**/xcode/uuid"` — the documented bare `"xcode/uuid"` form is silently ignored. And a resolution alone does NOT rewrite an existing lockfile entry: delete the stale entry block (e.g. `uuid@^7.0.3:`) from `yarn.lock` and re-run `yarn` so the range re-resolves through the resolution. Verify by checking the nested install (`node_modules/<parent>/node_modules/<pkg>/package.json`), not just the lockfile.
 - **NO-FIX** — no patched version published. Don't work around it; report it to the user with the advisory link.
 
-After applying fixes: re-run `yarn`, re-run this script to confirm clean, and re-run the dupes check (4a) — resolutions can change the dedupe picture. A forced major bump via `resolutions` runs code the parent package never tested with. "Verify" means: `yarn lint` + `yarn tsc` always; if the forced package sits under runtime app code, also build/run the app; if it sits under tooling (test runners, bundler, patch-package), run that tool once if cheap. Either way, explicitly tell the user which packages were force-bumped so they can watch for fallout.
+After applying fixes: re-run `yarn`, re-run this script to confirm clean, and re-run the dupes check (4a) — resolutions can change the dedupe picture. A forced major bump via `resolutions` runs code the parent package never tested with. "Verify" means: `yarn lint:all` always; if the forced package sits under runtime app code, also build/run the app; if it sits under tooling (test runners, bundler, patch-package), run that tool once if cheap. Either way, explicitly tell the user which packages were force-bumped so they can watch for fallout.
 
 ### 4c. Minimize existing resolutions
 
@@ -135,7 +132,7 @@ Keep the `resolutions` block as small as possible — every entry overrides yarn
 On every dep-update pass, audit each entry (except `**/@types/react`, which is permanent — see Notes):
 
 1. Remove the candidate entries from `package.json`.
-2. **Delete the forced entries from `yarn.lock` too** — find each entry whose resolved version was pinned by the resolution (e.g. `serialize-javascript@7.0.7, serialize-javascript@^6.0.2:`) and delete the block. This is the mirror of the "resolution alone does not rewrite the lockfile" gotcha in 4b: removing a resolution does NOT make yarn re-resolve either. The forced version lingers in `yarn.lock`, so the audit still sees the patched version and comes back **falsely clean** — then some later pass re-resolves the range down to the vulnerable version and the advisory "mysteriously" returns. This exact false negative caused the serialize-javascript/uuid resolutions to be dropped in PR #29417 (audit "clean" against lingering 7.0.7/11.1.1 lock entries) and re-added one day later when the entries re-resolved to 6.0.2/7.0.3.
+2. **Delete the forced entries from `yarn.lock` too** — find each entry whose resolved version was pinned by the resolution (e.g. `serialize-javascript@7.0.7, serialize-javascript@^6.0.2:`) and delete the block. This is the mirror of the "resolution alone does not rewrite the lockfile" gotcha in 4b: removing a resolution does NOT make yarn re-resolve either. The forced version lingers in `yarn.lock`, so the audit still sees the patched version and comes back **falsely clean** — then some later pass re-resolves the range down to the vulnerable version and the advisory returns.
 3. Run `yarn`, then **confirm the installed version actually changed** (`grep -A1 '^<pkg>@' yarn.lock` or check `node_modules/<pkg>/package.json`) — if it still shows the previously-forced version, the removal test hasn't actually run yet.
 4. Re-run the audit script (4b) and dupes script (4a).
 5. If both come back clean, the entries were redundant — leave them removed.
@@ -143,7 +140,7 @@ On every dep-update pass, audit each entry (except `**/@types/react`, which is p
 
 Testing removal is one `yarn` run — always do it empirically rather than reasoning from lockfile ranges. But "empirically" means verifying the lockfile actually re-resolved (step 3), not just that `yarn` exited 0.
 
-Known still-needed entries (as of 2026-09), all because a parent pins an old range: `**/serialize-javascript` (mocha, via @wdio/mocha-framework, still pins `^6.0.2` — GHSA-5c6j-r48x-rmvq, GHSA-qj8w-gfj5-8c6v), `**/xcode/uuid` (xcode pins `^7.0.3`, no release since 2021 — GHSA-w5hq-g745-h8pq), and `**/morgan` (`@appium/base-driver` exact-pins `morgan 1.11.0` — GHSA-jxfw-x594-9x9m; blanket is fine, it's the only copy). Still run the removal test each pass (a parent may finally ship a fix), but expect these to survive it.
+Known still-needed entries (as of 2026-09), all because a parent pins an old range: `**/serialize-javascript` (mocha, via @wdio/mocha-framework, still pins `^6.0.2` — GHSA-5c6j-r48x-rmvq, GHSA-qj8w-gfj5-8c6v) and `**/xcode/uuid` (xcode pins `^7.0.3`, no release since 2021 — GHSA-w5hq-g745-h8pq). Still run the removal test each pass (a parent may finally ship a fix), but expect these to survive it.
 
 ### 5. Evaluate existing patches
 
@@ -178,7 +175,7 @@ Dependabot also watches `protocol/yarn.lock` and `rnmodules/react-native-kb/yarn
 
 - Only one real (non-`file:`) devDep: `react-native-builder-bob`. Bob ≥0.43 validates entry fields with `require.resolve`, which needs an explicit extension — that's why `"main"` is `"src/index.tsx"` (not `"src/index"`); don't "clean it up" back to extensionless or the `prepare` script (`bob build`) fails with `Found incorrect path in 'main' field`. The `"react-native"`/`"source"` fields stay extensionless for metro.
 - Bob's tsc run uses the module's own `tsconfig.json` — keep it free of TS-6-deprecated options (no `baseUrl`, `moduleResolution: "bundler"`).
-- The app consumes the module's `src/` directly via the `file:` dep + postinstall sync; bob's `lib/` output is gitignored and unused. After changing the module's `package.json`, run `yarn sync:kb-modules` from `shared/` then `yarn lint` + `yarn tsc`.
+- The app consumes the module's `src/` directly via the `file:` dep + postinstall sync; bob's `lib/` output is gitignored and unused. After changing the module's `package.json`, run `yarn sync:kb-modules` from `shared/` then `yarn lint:all`.
 - Everything vulnerable here is transitive dev tooling (babel/metro chain). Fix by deleting the vulnerable entry blocks from `yarn.lock` and re-running `yarn` — the ranges are loose (`^`), so they re-resolve to patched versions with no `package.json` change.
 
 ### go/chat/flip/

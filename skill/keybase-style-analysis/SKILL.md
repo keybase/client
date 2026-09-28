@@ -22,7 +22,7 @@ Skip extract when:
 ### Phase 1: Extract (run from shared/)
 
 ```bash
-cd /Users/chrisnojima/go/src/github.com/keybase/client/shared
+cd shared
 node scripts/analyze-styles.mts extract --output /tmp/keybase-styles.json
 ```
 
@@ -32,7 +32,7 @@ Takes ~10–30 seconds. Writes structured JSON with one entry per style object (
 
 Full audit — gaps + new candidates:
 ```bash
-cd /Users/chrisnojima/go/src/github.com/keybase/client/shared
+cd shared
 node scripts/analyze-styles.mts analyze --input /tmp/keybase-styles.json
 ```
 
@@ -75,4 +75,4 @@ When recommending a new helper, include: what it would be named, its signature, 
 
 - For gap sites: offer to migrate them file-by-file or all at once
 - For new helper candidates: present the proposed helper signature and get approval before adding it
-- After migrating, run `yarn lint && yarn tsc` from `shared/` to verify
+- After migrating, run `yarn lint:all` from `shared/` to verify

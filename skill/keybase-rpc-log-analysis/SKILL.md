@@ -175,8 +175,6 @@ not `getMessagesRemote`. The script says so when it finds no counts.
   for it. Check whether it recurs on a timer before spending time on it.
 - **Reporting a burst as same-subject when it is not.** See the BURSTS caveat
   above. If it matters, prove the subject repeats before claiming it.
-- **Using plain `grep`.** It is wrapped in this environment and truncates. Use
-  python, as the scripts do.
 - **Comparing unlike runs.** `rpc-diff.py` is only meaningful if both runs did
   the same thing — same tests, same order, same project, renderer reloaded
   between them. See "Prove a fix".
