@@ -26,6 +26,11 @@ type WrapperLike = {children: ArrayLike<ScrollerLike>}
 const scrollerIn = (wrapper: unknown) =>
   Array.from((wrapper as WrapperLike | null)?.children ?? []).find(c => c.scrollHeight - c.clientHeight > 1)
 
+type ListenerOptions = {capture: boolean}
+type ListenerTarget = {
+  addEventListener: (type: string, listener: () => void, options: ListenerOptions) => void
+  removeEventListener: (type: string, listener: () => void, options: ListenerOptions) => void
+}
 type RectLike = {height: number; top: number}
 type MeasurableWrapper = {
   getBoundingClientRect: () => RectLike
@@ -282,7 +287,7 @@ export const useDesktopThreadScroll = (p: {
     if (isScrolledToEnd()) dispatch({type: 'readerAtEnd'})
   }, [dispatch, isScrolledToEnd])
   React.useLayoutEffect(() => {
-    const wrapper = wrapperRef.current
+    const wrapper = wrapperRef.current as unknown as ListenerTarget | null
     if (!wrapper) return undefined
     wrapper.addEventListener('scrollend', reportIfAtEnd, {capture: true})
     return () => wrapper.removeEventListener('scrollend', reportIfAtEnd, {capture: true})

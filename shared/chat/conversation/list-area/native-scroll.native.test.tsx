@@ -325,7 +325,7 @@ describe('scrolls scheduled for later', () => {
     scrolled(0, 6000)
     viewable(0, 9)
     setOrdinals(1, 61)
-    scrollToIndexFailed()
+    scrollToIndexFailed(30)
     cleanup()
     expect(jest.getTimerCount()).toBe(0)
   })
