@@ -524,6 +524,41 @@ describe('messageDelete edges', () => {
     expect(message(10)?.submitState).toBeUndefined()
   })
 
+  test('a failed upload whose cancel fails is failed again, not sent', async () => {
+    rpc.fail('cancelPost', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    const outboxID = T.Chat.stringToOutboxID('0a0b')
+    const attachment = makeMessageAttachment({
+      conversationIDKey,
+      id: T.Chat.numberToMessageID(0),
+      ordinal: T.Chat.numberToOrdinal(10),
+      outboxID,
+      submitState: 'failed',
+    })
+    const {message} = renderThread([attachment])
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
+    expect(rpc.calls('cancelPost')).toEqual([[outboxID]])
+    expect(message(10)?.submitState).toBe('failed')
+  })
+
+  test('a pending text whose cancel fails is pending again', async () => {
+    rpc.fail('cancelPost', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+    jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    const outboxID = T.Chat.stringToOutboxID('0a0b')
+    const {message} = renderThread([
+      textAt(10, {id: T.Chat.numberToMessageID(0), outboxID, submitState: 'pending'}),
+    ])
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
+    expect(message(10)?.submitState).toBe('pending')
+  })
+
+  test('a failed text with neither id is failed again', async () => {
+    jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    const {message} = renderThread([textAt(10, {id: T.Chat.numberToMessageID(0), submitState: 'failed'})])
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
+    expect(message(10)?.submitState).toBe('failed')
+  })
+
   test('a service failure is logged as a warning', async () => {
     rpc.fail('postDelete', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
     const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})

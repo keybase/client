@@ -69,13 +69,15 @@ const deleteThreadMessage = (conversationIDKey: T.Chat.ConversationIDKey, target
     const m = thread.getSnapshot().messageMap.get(ordinal)
     return m?.type === 'text' || m?.type === 'attachment' ? m : undefined
   }
+  // a failed or pending row gets its state back if the delete fails, so it can still be retried
+  const priorSubmitState = deletable()?.submitState
   if (deletable()) {
     thread.setMessageSubmitState(ordinal, 'deleting')
   }
   // only undoes our own mark: a row that moved on since keeps its new state
   const revertDeleting = () => {
     if (deletable()?.submitState === 'deleting') {
-      thread.setMessageSubmitState(ordinal, undefined)
+      thread.setMessageSubmitState(ordinal, priorSubmitState)
     }
   }
 
