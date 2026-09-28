@@ -8,6 +8,7 @@ import * as InputState from '../input-state'
 import type * as Common from './common'
 import type {PlatformInputProps as Props, RefType as InputRef} from '../normal/input.shared'
 import {useComposer, type Composer} from '../composer'
+import type {Suggestions} from '../composer-keys'
 import {useConversationThreadID} from '../../thread-context'
 import {KeyboardStickyView} from 'react-native-keyboard-controller'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
@@ -75,7 +76,6 @@ type UseSuggestorsProps = Pick<
   suggestionListStyle: Kb.Styles.StylesCrossPlatform
   suggestionSpinnerStyle: Kb.Styles.StylesCrossPlatform
   inputRef: React.RefObject<InputRef | null>
-  onKeyDown?: (evt: React.KeyboardEvent) => void
 }
 
 // nasty to mix these types but keeping this for now
@@ -250,66 +250,6 @@ const useSyncInput = (p: UseSyncInputProps) => {
   }
 }
 
-type UseHandleKeyEventsProps = {
-  onKeyDownProps?: (evt: React.KeyboardEvent) => void
-  active: string
-  checkTrigger: () => void
-  filterEmpty: boolean
-  onMoveRef: React.RefObject<((up: boolean) => void) | undefined>
-  onSubmitRef: React.RefObject<(() => boolean) | undefined>
-}
-const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
-  const {onKeyDownProps, active, checkTrigger, filterEmpty, onMoveRef, onSubmitRef} = p
-
-  const onKeyDown = (evt: React.KeyboardEvent) => {
-    if (evt.key === 'ArrowLeft' || evt.key === 'ArrowRight') {
-      checkTrigger()
-    }
-
-    if (!active) {
-      // not showing list, bail
-      onKeyDownProps?.(evt)
-      return
-    }
-
-    let shouldCallParentCallback = true
-    // check trigger keys (up, down, enter, tab)
-    switch (evt.key) {
-      case 'ArrowDown':
-        evt.preventDefault()
-        onMoveRef.current?.(false)
-        shouldCallParentCallback = false
-        break
-      case 'ArrowUp':
-        evt.preventDefault()
-        onMoveRef.current?.(true)
-        shouldCallParentCallback = false
-        break
-      case 'Enter':
-        if (!(evt.altKey || evt.shiftKey || evt.metaKey)) {
-          evt.preventDefault()
-          shouldCallParentCallback = !onSubmitRef.current?.()
-        }
-        break
-      case 'Tab':
-        evt.preventDefault()
-        if (!filterEmpty) {
-          onSubmitRef.current?.()
-        } else {
-          // shift held -> move up
-          onMoveRef.current?.(evt.shiftKey)
-        }
-        shouldCallParentCallback = false
-    }
-
-    if (shouldCallParentCallback) {
-      onKeyDownProps?.(evt)
-    }
-  }
-
-  return {onKeyDown}
-}
-
 export const useSuggestors = (p: UseSuggestorsProps) => {
   const selectedItemRef = React.useRef<undefined | SelectedType>(undefined)
   const composer = useComposer()
@@ -353,14 +293,11 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   // tell list we want to submit the selection, true if it selected anything
   const onSubmitRef = React.useRef<() => boolean>(undefined)
 
-  const {onKeyDown} = useHandleKeyEvents({
-    active,
-    checkTrigger,
-    filterEmpty: filter.length === 0,
-    onKeyDownProps: p.onKeyDown,
-    onMoveRef,
-    onSubmitRef,
-  })
+  const suggestions: Suggestions = !active ? 'none' : filter.length === 0 ? 'unfiltered' : 'filtered'
+  const moveSuggestion = (up: boolean) => {
+    onMoveRef.current?.(up)
+  }
+  const selectSuggestion = () => !!onSubmitRef.current?.()
 
   const onBlur = () => {
     setInactive()
@@ -430,9 +367,12 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     onBlur,
     onChangeText,
     onFocus,
-    onKeyDown,
+    moveSuggestion,
     onSelectionChange: (_selection: Common.TransformerData['position']) => { checkTrigger() },
     popup,
+    recheckSuggestions: checkTrigger,
+    selectSuggestion,
+    suggestions,
     suggestionsShowing: !!content,
   }
 }

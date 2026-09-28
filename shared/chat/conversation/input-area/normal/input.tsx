@@ -13,6 +13,7 @@ import type {PlatformInputProps as Props} from './input.shared'
 export type {Selection, RefType, TextInfo, PlatformInputProps} from './input.shared'
 import {formatDurationShort} from '@/util/timestamp'
 import {useSuggestors} from '../suggestors'
+import {composerKeyDown, keyFromHardware, type InputKeyAction, type WindowKeyAction} from '../composer-keys'
 import {ThreadRefsContext} from '@/chat/conversation/normal/context'
 import {getTextStyle} from '@/common-adapters/text.styles'
 import {useConversationThreadID} from '../../thread-context'
@@ -82,8 +83,10 @@ type NativeSyntheticEvent<T> = {nativeEvent: T}
 type TextInputSelectionChangeEventData = {selection: {start: number; end: number}}
 type DesktopKeyboardEvent = {
   key: string
+  altKey: boolean
   ctrlKey: boolean
   metaKey: boolean
+  shiftKey: boolean
   type: string
   target: unknown
   preventDefault: () => void
@@ -644,78 +647,95 @@ const DesktopFooter = () => {
   )
 }
 
-type UseKeyboardProps = Pick<Props, 'isEditing' | 'showReplyPreview'> & {
+type UseDesktopKeysProps = Pick<Props, 'isEditing' | 'onCancelEditing' | 'onSubmit' | 'showReplyPreview'> & {
   focusInput: () => void
   htmlInputRef: HtmlInputRefType
-  onKeyDown?: (evt: React.KeyboardEvent) => void
-  onEditLastMessage: () => void
-  onCancelEditing: () => void
+  inputRef: React.RefObject<RefType | null>
+  suggestors: Pick<
+    ReturnType<typeof useSuggestors>,
+    'moveSuggestion' | 'recheckSuggestions' | 'selectSuggestion' | 'suggestions'
+  >
 }
-const useKeyboard = (p: UseKeyboardProps) => {
-  const {htmlInputRef, focusInput, isEditing, onKeyDown, onCancelEditing} = p
-  const {onEditLastMessage, showReplyPreview} = p
+const useDesktopKeys = (p: UseDesktopKeysProps) => {
+  const {focusInput, htmlInputRef, inputRef, isEditing, onCancelEditing, onSubmit} = p
+  const {showReplyPreview, suggestors} = p
+  const {moveSuggestion, recheckSuggestions, selectSuggestion, suggestions} = suggestors
   const composer = useComposer()
+  const setEditing = InputState.useConversationInputDispatch(s => s.setEditing)
   const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
   const {scrollDown, scrollUp} = React.useContext(ThreadRefsContext)
-  const onCancelReply = () => {
-    setReplyTo(ChatTypes.numberToOrdinal(0))
-  }
 
-  const commonOnKeyDown = (e: React.KeyboardEvent | DesktopKeyboardEvent) => {
-    if (e.key === 'ArrowUp' && !isEditing && !composer.getText()) {
-      e.preventDefault()
-      onEditLastMessage()
-      return true
-    } else if (e.key === 'Escape' && isEditing) {
-      onCancelEditing()
-      return true
-    } else if (e.key === 'Escape' && showReplyPreview) {
-      onCancelReply()
-      return true
-    } else if (e.key === 'u' && (e.ctrlKey || e.metaKey)) {
-      htmlInputRef.current?.click()
-      return true
-    } else if (e.key === 'PageDown') {
-      scrollDown()
-      return true
-    } else if (e.key === 'PageUp') {
-      scrollUp()
-      return true
+  const submit = () => {
+    if (inputRef.current) {
+      onSubmit()
     }
-
-    return false
   }
+
+  const run = (a: InputKeyAction | WindowKeyAction) => {
+    switch (a.type) {
+      case 'editLast':
+        setEditing('last')
+        break
+      case 'cancelEdit':
+        onCancelEditing()
+        break
+      case 'cancelReply':
+        setReplyTo(ChatTypes.numberToOrdinal(0))
+        break
+      case 'openFilePicker':
+        htmlInputRef.current?.click()
+        break
+      case 'scrollDown':
+        scrollDown()
+        break
+      case 'scrollUp':
+        scrollUp()
+        break
+      case 'focusInput':
+        focusInput()
+        break
+      case 'recheckSuggestions':
+        recheckSuggestions()
+        break
+      case 'suggestionMove':
+        moveSuggestion(a.up)
+        break
+      case 'suggestionSelect':
+        if (!selectSuggestion() && a.orSubmit) {
+          submit()
+        }
+        break
+      case 'submit':
+        submit()
+        break
+    }
+  }
+
+  const threadFacts = () => ({
+    editing: isEditing,
+    replying: showReplyPreview,
+    textEmpty: !composer.getText(),
+  })
 
   const globalKeyDownPressHandler = (ev: DesktopKeyboardEvent) => {
-    const target = ev.target
-    const tagName = (target as {tagName?: string} | null)?.tagName?.toUpperCase()
-    if (tagName === 'INPUT' || tagName === 'TEXTAREA') {
-      return
-    }
-
-    if (commonOnKeyDown(ev)) {
-      return
-    }
-
-    const isPasteKey = ev.key === 'v' && (ev.ctrlKey || ev.metaKey)
-    const isValidSpecialKey = [
-      'Backspace',
-      'Delete',
-      'ArrowLeft',
-      'ArrowRight',
-      'ArrowUp',
-      'ArrowDown',
-      'Enter',
-      'Escape',
-    ].includes(ev.key)
-    if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
-      focusInput()
-    }
+    const tagName = (ev.target as {tagName?: string} | null)?.tagName?.toUpperCase()
+    const {actions, preventDefault} = composerKeyDown(
+      {
+        ...threadFacts(),
+        keypress: ev.type === 'keypress',
+        source: 'window',
+        targetIsInput: tagName === 'INPUT' || tagName === 'TEXTAREA',
+      },
+      ev
+    )
+    if (preventDefault) ev.preventDefault()
+    actions.forEach(run)
   }
 
   const inputKeyDown = (e: React.KeyboardEvent) => {
-    commonOnKeyDown(e)
-    onKeyDown?.(e)
+    const {actions, preventDefault} = composerKeyDown({...threadFacts(), source: 'input', suggestions}, e)
+    if (preventDefault) e.preventDefault()
+    actions.forEach(run)
   }
 
   return {globalKeyDownPressHandler, inputKeyDown}
@@ -754,19 +774,9 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
     inputRef.current?.focus()
   }, [inputRef])
 
-  const checkEnterOnKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !(e.altKey || e.shiftKey || e.metaKey)) {
-      e.preventDefault()
-      if (inputRef.current) {
-        onSubmit()
-      }
-    }
-  }
-
-  const {popup, onKeyDown, onChangeText} = useSuggestors({
+  const {popup, onChangeText, ...suggestors} = useSuggestors({
     inputRef,
     onChangeText: p.onChangeText,
-    onKeyDown: checkEnterOnKeyDown,
     suggestionListStyle: undefined,
     suggestionOverlayStyle: p.suggestionOverlayStyle,
     suggestionSpinnerStyle: desktopStyles.suggestionSpinnerStyle,
@@ -775,19 +785,16 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
   const focusInput = () => {
     inputRef.current?.focus()
   }
-  const setEditing = InputState.useConversationInputDispatch(s => s.setEditing)
-  const onEditLastMessage = () => {
-    setEditing('last')
-  }
 
-  const {globalKeyDownPressHandler, inputKeyDown} = useKeyboard({
+  const {globalKeyDownPressHandler, inputKeyDown} = useDesktopKeys({
     focusInput,
     htmlInputRef,
+    inputRef,
     isEditing,
     onCancelEditing,
-    onEditLastMessage,
-    onKeyDown,
+    onSubmit,
     showReplyPreview,
+    suggestors,
   })
 
   return (
@@ -1277,12 +1284,15 @@ const NativePlatformInput = (p: Props) => {
     // attached.  On Android we get "hardware" keypresses from soft keyboards,
     // so check whether a soft keyboard's up.
     const cb = (hwKeyEvent: {pressedKey: string}) => {
-      switch (hwKeyEvent.pressedKey) {
-        case 'enter':
-          onQueueSubmit()
-          break
-        case 'shift-enter':
-          composer.insertAtCaret('\n')
+      const {actions} = composerKeyDown({source: 'hardware'}, keyFromHardware(hwKeyEvent.pressedKey))
+      for (const a of actions) {
+        switch (a.type) {
+          case 'submit':
+            onQueueSubmit()
+            break
+          case 'newline':
+            composer.insertAtCaret('\n')
+        }
       }
     }
     onHWKeyPressed(cb)
