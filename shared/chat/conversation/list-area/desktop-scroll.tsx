@@ -4,6 +4,7 @@ import * as React from 'react'
 import type * as T from '@/constants/types'
 import type {LegendListRef} from '@/common-adapters'
 import {ThreadRefsContext} from '../normal/context'
+import {makeOwnScrolls} from './own-scrolls'
 import {useSchedule} from './schedule'
 import {
   indexOfOrdinal,
@@ -18,6 +19,8 @@ import {
 const centerTolerancePx = 8
 // A scroller within this many pixels of its end counts as at the end.
 const endTolerancePx = 2
+// A scroller within this many pixels of where the list put it is where the list put it.
+const ownTolerancePx = 1
 
 type ScrollerLike = {clientHeight: number; scrollHeight: number; scrollTop: number}
 type WrapperLike = {children: ArrayLike<ScrollerLike>}
@@ -26,10 +29,15 @@ type WrapperLike = {children: ArrayLike<ScrollerLike>}
 const scrollerIn = (wrapper: unknown) =>
   Array.from((wrapper as WrapperLike | null)?.children ?? []).find(c => c.scrollHeight - c.clientHeight > 1)
 
+// Scroll events reach the wrapper from anything scrollable inside it; only the list's own scroller counts.
+const listScrollerOf = (wrapper: unknown, target: unknown) =>
+  Array.from((wrapper as WrapperLike | null)?.children ?? []).find(c => c === target)
+
 type ListenerOptions = {capture: boolean}
+type ScrollListener = (e: {target: unknown}) => void
 type ListenerTarget = {
-  addEventListener: (type: string, listener: () => void, options: ListenerOptions) => void
-  removeEventListener: (type: string, listener: () => void, options: ListenerOptions) => void
+  addEventListener: (type: string, listener: ScrollListener, options: ListenerOptions) => void
+  removeEventListener: (type: string, listener: ScrollListener, options: ListenerOptions) => void
 }
 type RectLike = {height: number; top: number}
 type MeasurableWrapper = {
@@ -51,13 +59,6 @@ const offsetFromMiddle = (wrapper: unknown, ordinal: T.Chat.Ordinal) => {
 // A row not rendered is out of view.
 const rowAboveMiddle = (wrapper: unknown, ordinal: T.Chat.Ordinal) => (offsetFromMiddle(wrapper, ordinal) ?? -1) < 0
 
-// Keys a focused scroller scrolls by itself.
-const scrollKeys = new Set(['ArrowDown', 'ArrowUp', 'End', 'Home', 'PageDown', 'PageUp', ' '])
-// Those that scroll toward the end; Space does unless shifted.
-const towardEndKeys = new Set(['ArrowDown', 'End', 'PageDown', ' '])
-// Elements that take those keys for themselves, where they scroll nothing.
-const keyTakingTags = new Set(['BUTTON', 'INPUT', 'SELECT', 'TEXTAREA'])
-
 export const useDesktopThreadScroll = (p: {
   centeredOrdinal: T.Chat.Ordinal | undefined
   datasetKey: string
@@ -78,6 +79,7 @@ export const useDesktopThreadScroll = (p: {
   }, [messageOrdinals])
 
   const scrollTarget = useScrollTarget()
+  const [own] = React.useState(makeOwnScrolls)
 
   // Asks the scroller, not the list's own isAtEnd: that flag comes from the content size and viewport
   // the list has recorded, and both lag a composer collapse, so it reads not-at-end while the scroller
@@ -211,6 +213,8 @@ export const useDesktopThreadScroll = (p: {
         case 'reveal': {
           const idx = indexOfOrdinal(messageOrdinalsRef.current, directive.ordinal)
           if (idx >= 0) {
+            // The list records an animated scroll's target only as it arrives, so this one says so itself.
+            own.issued()
             void listRef.current?.scrollToIndex({animated: true, index: idx, viewPosition: 0.5})
           }
           return
@@ -224,7 +228,7 @@ export const useDesktopThreadScroll = (p: {
         }
       }
     },
-    [centering, isScrolledToEnd, listRef, scrollToCentered, verifyEndAnchor]
+    [centering, isScrolledToEnd, listRef, own, scrollToCentered, verifyEndAnchor]
   )
 
   const dispatch = React.useCallback(
@@ -280,85 +284,74 @@ export const useDesktopThreadScroll = (p: {
     [dispatch]
   )
 
-  // A scroll coming to rest at the end, the reader's or the list's own, gives the end back to the
-  // list, however it got there. scrollend does not bubble, so it is caught on its way down to the
-  // scroller.
-  const reportIfAtEnd = React.useCallback(() => {
-    if (isScrolledToEnd()) dispatch({type: 'readerAtEnd'})
-  }, [dispatch, isScrolledToEnd])
+  // Who moved the scroller is read from where it moved to, never from the input that moved it: the
+  // list writes down where it is putting the scroller before it moves it (its initial position, every
+  // scrollTo, its end anchor, holding rows in place as they measure), and anything else that moved it
+  // is the reader, however they did it. A scroll of the list's own can land short of the offset it
+  // wrote down (the scroller clamps to an extent that has not caught up with new rows), so landing
+  // anywhere between where the scroller was and that offset is still the list's own.
+  const lastOffsetRef = React.useRef(0)
+  const onScrollerScroll = React.useCallback(
+    (e: {target: unknown}) => {
+      const scroller = listScrollerOf(wrapperRef.current, e.target)
+      const listState = listRef.current?.getState()
+      if (!scroller || !listState) return
+      const now = scroller.scrollTop
+      const toward = Math.min(listState.scroll, scroller.scrollHeight - scroller.clientHeight)
+      const from = lastOffsetRef.current
+      lastOffsetRef.current = now
+      if (own.ownInFlight()) return
+      if (now >= Math.min(from, toward) - ownTolerancePx && now <= Math.max(from, toward) + ownTolerancePx) return
+      dispatch(own.readerMoved())
+    },
+    [dispatch, listRef, own, wrapperRef]
+  )
+
+  const onScrollerRest = React.useCallback(
+    (e: {target: unknown}) => {
+      if (!listScrollerOf(wrapperRef.current, e.target)) return
+      const handedBack = own.rested(isScrolledToEnd())
+      if (handedBack) dispatch(handedBack)
+    },
+    [dispatch, isScrolledToEnd, own, wrapperRef]
+  )
+
+  // Both caught on their way down to the scroller: scrollend does not bubble, and a scroll has to be
+  // read before the list's own listener on the scroller writes its new offset down.
   React.useLayoutEffect(() => {
     const wrapper = wrapperRef.current as unknown as ListenerTarget | null
     if (!wrapper) return undefined
-    wrapper.addEventListener('scrollend', reportIfAtEnd, {capture: true})
-    return () => wrapper.removeEventListener('scrollend', reportIfAtEnd, {capture: true})
-  }, [reportIfAtEnd, wrapperRef])
-
-  // The reader's own scrolling is told apart by the input that causes it, not by scroll events: the
-  // list scrolls itself too (its initial position, its end anchor, holding rows in place as they
-  // measure), and a scroll event does not say who moved it. A wheel, a navigation key reaching the
-  // scroller, and a press on the scroller itself (its scrollbar: a press on a row lands on the row)
-  // are always the reader. An input toward the end that finds the scroller already there moves
-  // nothing, so no scroll comes to rest to say it ended at the end: it says so itself.
-  const onWheel = React.useCallback(
-    (e: {deltaY: number}) => {
-      dispatch({type: 'userScrolled'})
-      if (e.deltaY > 0) reportIfAtEnd()
-    },
-    [dispatch, reportIfAtEnd]
-  )
-
-  const onKeyDown = React.useCallback(
-    (e: {key: string; shiftKey: boolean; target: unknown}) => {
-      const target = e.target as {isContentEditable?: boolean; tagName?: string}
-      if (!scrollKeys.has(e.key) || target.isContentEditable || keyTakingTags.has(target.tagName ?? '')) return
-      dispatch({type: 'userScrolled'})
-      if (towardEndKeys.has(e.key) && !(e.key === ' ' && e.shiftKey)) reportIfAtEnd()
-    },
-    [dispatch, reportIfAtEnd]
-  )
-
-  const onPointerDown = React.useCallback(
-    (e: {target: unknown}) => {
-      if (e.target !== scrollerIn(wrapperRef.current)) return
-      dispatch({type: 'userScrolled'})
-    },
-    [dispatch, wrapperRef]
-  )
-
-  // Letting go of the scrollbar, as a touch list reports a drag let go. A drag of its thumb comes to
-  // rest by itself; a press that moved nothing only ends here.
-  const onPointerUp = React.useCallback(
-    (e: {target: unknown}) => {
-      if (e.target !== scrollerIn(wrapperRef.current)) return
-      reportIfAtEnd()
-    },
-    [reportIfAtEnd, wrapperRef]
-  )
+    // The scroller may have moved while the listeners were off (the list hidden under Activity).
+    lastOffsetRef.current = scrollerIn(wrapper)?.scrollTop ?? 0
+    wrapper.addEventListener('scroll', onScrollerScroll, {capture: true})
+    wrapper.addEventListener('scrollend', onScrollerRest, {capture: true})
+    return () => {
+      wrapper.removeEventListener('scroll', onScrollerScroll, {capture: true})
+      wrapper.removeEventListener('scrollend', onScrollerRest, {capture: true})
+    }
+  }, [onScrollerRest, onScrollerScroll, wrapperRef])
 
   const scrollToBottom = React.useCallback(() => {
     dispatch({centeredOrdinal, type: 'scrollToBottomRequested'})
   }, [centeredOrdinal, dispatch])
 
-  const scrollUp = React.useCallback(() => {
-    const state = listRef.current?.getState()
-    if (!state) return
-    dispatch({type: 'userScrolled'})
-    void listRef.current?.scrollToOffset({
-      animated: false,
-      offset: Math.max(0, state.scroll - state.scrollLength),
-    })
-  }, [dispatch, listRef])
-
-  const scrollDown = React.useCallback(() => {
-    const state = listRef.current?.getState()
-    if (!state) return
-    dispatch({type: 'userScrolled'})
-    reportIfAtEnd()
-    void listRef.current?.scrollToOffset({
-      animated: false,
-      offset: state.scroll + state.scrollLength,
-    })
-  }, [dispatch, listRef, reportIfAtEnd])
+  // The composer's page keys scroll on the reader's behalf. A page that would move nothing (up at the
+  // top, down at the end) is no scroll at all.
+  const page = React.useCallback(
+    (direction: 'up' | 'down') => {
+      const state = listRef.current?.getState()
+      if (!state) return
+      if (direction === 'up' ? state.scroll <= 0 : isScrolledToEnd()) return
+      dispatch(own.readerMoved())
+      void listRef.current?.scrollToOffset({
+        animated: false,
+        offset: direction === 'up' ? Math.max(0, state.scroll - state.scrollLength) : state.scroll + state.scrollLength,
+      })
+    },
+    [dispatch, isScrolledToEnd, listRef, own]
+  )
+  const scrollUp = React.useCallback(() => page('up'), [page])
+  const scrollDown = React.useCallback(() => page('down'), [page])
 
   const {setScrollRef} = React.useContext(ThreadRefsContext)
   React.useEffect(() => {
@@ -373,11 +366,7 @@ export const useDesktopThreadScroll = (p: {
   return {
     initialScrollIndex,
     maintainScrollAtEnd: listAnchorsEnd(centeredOrdinal),
-    onKeyDown,
     onMetricsChange,
-    onPointerDown,
-    onPointerUp,
-    onWheel,
     scrollToBottom,
   }
 }

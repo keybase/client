@@ -1030,6 +1030,35 @@ describe('editing', () => {
   })
 })
 
+describe('the list\'s own scrolls coming to rest', () => {
+  // An animated scroll of the list's own ending reports a rest on iOS as a fling's end does.
+  test('a reveal ending at the resting offset does not hand the end back while a hit is centred', async () => {
+    open({center: 30, keyboard: true})
+    await tick(1000)
+    viewable(25, 35)
+    update(() => H.inputStore.set({editing: ord(58)}))
+    flingEnded(H.bottomInset - keyboardHeight)
+    clearLog()
+    setOrdinals(1, 61)
+    await tick(1000)
+    expect(H.log).toEqual([])
+  })
+
+  test('a scroll of the list\'s own supersedes a reader\'s fling: the rest that follows is the list\'s', async () => {
+    open({keyboard: true})
+    await tick(200)
+    drag()
+    dragEnded(2000)
+    act(() => H.threadRefs.current?.scrollToBottom())
+    update(() => H.inputStore.set({editing: ord(15)}))
+    flingEnded(H.bottomInset - keyboardHeight)
+    clearLog()
+    setOrdinals(1, 61)
+    await tick(1000)
+    expect(H.log).toEqual([])
+  })
+})
+
 describe('a safe-area inset change', () => {
   const newInset = 50
   const toBottomOverKeyboardAtNewInset = ['scrollToOffset', {animated: false, offset: newInset - keyboardHeight}]

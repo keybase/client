@@ -53,12 +53,13 @@ export type ScrollEvent =
   // rows. Only a list with no declarative initial position reports it; the desktop list starts at its
   // end or on its target through its own props.
   | {type: 'initialLoad'; hasMessages: boolean}
-  // The reader scrolled: by wheel, touch drag, a navigation key or the scrollbar, or by paging through
-  // the composer's page keys. Only the desktop composer has page keys: the native one takes its keys
+  // The reader moved the list: anything that moved it other than the list itself (a touch drag; on the
+  // desktop a wheel, a key, the scrollbar, autoscroll, find in page alike), or the composer's page keys
+  // scrolling on their behalf. Only the desktop composer has page keys: the native one takes its keys
   // from an on-screen keyboard, which has none.
   | {type: 'userScrolled'}
-  // A scroll came to rest at the end, the reader's or the list's own, or an input of the reader's
-  // toward the end found the list already there and moved nothing.
+  // The reader's scroll came to rest at the end. The list's own scrolls coming to rest there report
+  // nothing.
   | {type: 'readerAtEnd'}
   // The header's size as the list measured it. Only a list whose header comes before its end in
   // scroll order reports it: the native list is inverted, so its header sits at the far, oldest end

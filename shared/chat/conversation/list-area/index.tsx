@@ -217,11 +217,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const {
     initialScrollIndex,
     maintainScrollAtEnd,
-    onKeyDown,
     onMetricsChange,
-    onPointerDown,
-    onPointerUp,
-    onWheel,
     scrollToBottom,
   } = useDesktopThreadScroll({
     centeredOrdinal,
@@ -364,10 +360,6 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
         style={Kb.Styles.castStyleDesktop(desktopStyles.container)}
         onClick={handleListClick}
         onCopyCapture={onCopyCapture}
-        onKeyDown={onKeyDown}
-        onPointerDown={onPointerDown}
-        onPointerUp={onPointerUp}
-        onWheel={onWheel}
         ref={wrapperRef}
       >
         <LegendList

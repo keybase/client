@@ -80,7 +80,8 @@ type FakeListProps = {
 // The props of the list's latest commit.
 export const listProps: {current: FakeListProps | undefined} = {current: undefined}
 
-const maxScroll = () => Math.max(0, (listProps.current?.data.length ?? 0) * rowHeight - viewportHeight)
+const contentHeight = () => (listProps.current?.data.length ?? 0) * rowHeight
+const maxScroll = () => Math.max(0, contentHeight() - viewportHeight)
 const clampScroll = (offset: number) => Math.min(maxScroll(), Math.max(0, offset))
 
 const handle = {
@@ -92,7 +93,9 @@ const handle = {
     log.push(['scrollToEnd', opts])
     listStore.set({isAtEnd: listStore.get().scrollToEndLands, scroll: maxScroll()})
   },
-  scrollToIndex: (opts: {index: number; viewPosition?: number}) => {
+  // An animated scroll is not written down ahead: the list hears of it as the scroller moves, as it
+  // does of the reader's.
+  scrollToIndex: (opts: {animated?: boolean; index: number; viewPosition?: number}) => {
     log.push(['scrollToIndex', opts])
     const {mountsOnScrollToIndex, rendered, scrollToIndexError} = listStore.get()
     const target = listProps.current?.data[opts.index]
@@ -102,8 +105,12 @@ const handle = {
     listStore.set({
       rendered:
         rendered && mountsOnScrollToIndex && target !== undefined ? new Set([...rendered, target]) : rendered,
-      scroll,
     })
+    if (opts.animated) {
+      moveScroller(scroll)
+    } else {
+      listStore.set({scroll})
+    }
   },
   scrollToOffset: (opts: {offset: number}) => {
     log.push(['scrollToOffset', opts])
@@ -111,10 +118,45 @@ const handle = {
   },
 }
 
-type ScrollerMetrics = {clientHeight: number; scrollHeight: number; scrollTop: number}
-// What the DOM scroller reports, which is what the list reads to decide it is already at its end.
-export const scroller: {metrics: ScrollerMetrics} = {
-  metrics: {clientHeight: 0, scrollHeight: 0, scrollTop: 0},
+// The DOM scroller. The list's own scrolls write their offset down (listStore's scroll) and move it
+// there together; anything else moves it first, and the list writes the new offset down only when its
+// own scroll listener hears of it. Every move fires a scroll event, as the browser's do.
+let scrollerElement: HTMLDivElement | null = null
+let movedTo: number | undefined
+let lastFired = 0
+const scrollTop = () => movedTo ?? listStore.get().scroll
+const fireScroll = () => {
+  lastFired = scrollTop()
+  scrollerElement?.dispatchEvent(new Event('scroll'))
+}
+listStore.subscribe(() => {
+  if (scrollTop() !== lastFired) fireScroll()
+})
+
+// Moves the scroller to offset without the list moving it, as the reader does however they scroll,
+// and as the scroller does when it clamps a scroll of the list's short.
+export const moveScroller = (offset: number) => {
+  const to = clampScroll(offset)
+  if (to === scrollTop()) return
+  movedTo = to
+  fireScroll()
+}
+// The list's own scroll listener, writing down where something else moved the scroller.
+const listHearsScroll = () => {
+  if (movedTo === undefined) return
+  const scroll = movedTo
+  movedTo = undefined
+  listStore.set({scroll})
+}
+
+// The list writes offset down and moves the scroller there, but the scroller clamps it at landsAt.
+export const listLandsShort = (offset: number, landsAt: number) => {
+  movedTo = landsAt
+  listStore.set({scroll: offset})
+}
+// The scroller's current scroll coming to rest, whoever moved it.
+export const scrollEnds = () => {
+  scrollerElement?.dispatchEvent(new Event('scrollend'))
 }
 
 const FakeLegendList = (p: FakeListProps) => {
@@ -125,14 +167,18 @@ const FakeLegendList = (p: FakeListProps) => {
   })
   React.useImperativeHandle(ref, () => handle, [])
   const scrollerRef = React.useCallback((el: HTMLDivElement | null) => {
+    scrollerElement = el
     if (!el) return
-    for (const key of ['clientHeight', 'scrollHeight', 'scrollTop'] as const) {
-      Object.defineProperty(el, key, {configurable: true, get: () => scroller.metrics[key]})
-    }
+    Object.defineProperty(el, 'scrollTop', {configurable: true, get: scrollTop})
+    Object.defineProperty(el, 'scrollHeight', {
+      configurable: true,
+      get: () => Math.max(contentHeight(), viewportHeight),
+    })
+    Object.defineProperty(el, 'clientHeight', {configurable: true, get: () => viewportHeight})
   }, [])
   const rows = rendered ? data.filter(o => rendered.has(o)) : data
   return (
-    <div data-testid="fake-scroller" ref={scrollerRef}>
+    <div data-testid="fake-scroller" onScroll={listHearsScroll} ref={scrollerRef}>
       {rows.map(o => (
         <div key={String(o)} data-ordinal={o} />
       ))}
@@ -148,7 +194,7 @@ const rectFor = (el: Element) => {
   const ordinal = el.getAttribute('data-ordinal')
   if (ordinal !== null) {
     const index = (listProps.current?.data ?? []).findIndex(o => String(o) === ordinal)
-    const top = index * rowHeight - listStore.get().scroll
+    const top = index * rowHeight - scrollTop()
     return {bottom: top + rowHeight, height: rowHeight, left: 0, right: 0, top, width: 0, x: 0, y: top}
   }
   if (el.getAttribute('data-testid') === 'chat-message-list') {
@@ -226,7 +272,8 @@ export const resetHarness = () => {
   log.length = 0
   listProps.current = undefined
   threadRefs.current = null
-  scroller.metrics = {clientHeight: 0, scrollHeight: 0, scrollTop: 0}
+  movedTo = undefined
+  lastFired = 0
   listStore.reset(initialListState())
   threadStore.reset({clearVersion: 0, loaded: false, messageOrdinals: undefined, moreToLoadForward: false})
   centerStore.reset({centeredHighlightOrdinal: undefined, centeredOrdinal: undefined, hasCenter: false})

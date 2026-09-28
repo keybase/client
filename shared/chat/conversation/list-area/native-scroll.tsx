@@ -7,6 +7,7 @@ import noop from 'lodash/noop'
 import {ThreadRefsContext} from '../normal/context'
 import {useComposerAnchor} from '../composer-viewport-context'
 import {restingScrollOffset} from '../composer-geometry'
+import {makeOwnScrolls} from './own-scrolls'
 import {listAnchorsEnd, useScrollTarget, type ScrollDirective, type ScrollEvent} from './scroll-target'
 import {makeSchedule, type Scheduled} from './schedule'
 
@@ -86,6 +87,16 @@ export const useNativeThreadScroll = (p: {
   }, [messageOrdinals])
 
   const scrollTarget = useScrollTarget()
+  const [own] = React.useState(makeOwnScrolls)
+  // Every scroll the list makes itself goes through these, so the rest that follows is its own.
+  const [scrollToOffset] = React.useState(() => (offset: number) => {
+    own.issued()
+    listRef.current?.scrollToOffset({animated: false, offset})
+  })
+  const [scrollToItem] = React.useState(() => (item: T.Chat.Ordinal, animated: boolean) => {
+    own.issued()
+    listRef.current?.scrollToItem({animated, item, viewPosition: 0.5})
+  })
 
   // Every delayed scroll (coarse reasserts, the corrector's schedule, scroll-to-index retries, the
   // first load's retry, the append re-pin) runs through here, so stopping centring, a new dataset or
@@ -101,15 +112,14 @@ export const useNativeThreadScroll = (p: {
     (target: T.Chat.Ordinal) => {
       const reassert = (delay: number) =>
         timers.after(delay, () => {
-          const list = listRef.current
-          if (!list || centeredRef.current !== target) {
+          if (centeredRef.current !== target) {
             return
           }
-          list.scrollToItem({animated: false, item: target, viewPosition: 0.5})
+          scrollToItem(target, false)
         })
       ;[50, 250].forEach(reassert)
     },
-    [listRef, timers]
+    [scrollToItem, timers]
   )
 
   // Closed-loop centering corrector. scrollToItem/scrollToIndex lands at the wrong
@@ -171,7 +181,7 @@ export const useNativeThreadScroll = (p: {
         return
       }
       st.iters += 1
-      listRef.current?.scrollToOffset({animated: false, offset: newOffset})
+      scrollToOffset(newOffset)
     }
   )
 
@@ -186,7 +196,7 @@ export const useNativeThreadScroll = (p: {
           if (directive.stopCentering) stopCentering()
           // The end is a fixed resting offset, so every pin is the one scroll there: from the end it moves
           // nothing (unlessAtEnd), and there is no bootstrap of the list's own to wait out (whenSettled).
-          listRef.current?.scrollToOffset({animated: false, offset: restingOffsetRef.current()})
+          scrollToOffset(restingOffsetRef.current())
           return
         case 'center':
           requestItem(directive.ordinal, false)
@@ -202,7 +212,7 @@ export const useNativeThreadScroll = (p: {
           return
         case 'reveal':
           requestItem(directive.ordinal, true)
-          listRef.current?.scrollToItem({animated: true, item: directive.ordinal, viewPosition: 0.5})
+          scrollToItem(directive.ordinal, true)
           return
         case 'leaveAlone':
           if (directive.stopCentering) stopCentering()
@@ -213,7 +223,7 @@ export const useNativeThreadScroll = (p: {
         }
       }
     },
-    [correctCenter, listRef, moveToward, requestItem, settleCenter, stopCentering, timers]
+    [correctCenter, moveToward, requestItem, scrollToItem, scrollToOffset, settleCenter, stopCentering, timers]
   )
 
   const dispatch = React.useCallback(
@@ -334,7 +344,7 @@ export const useNativeThreadScroll = (p: {
     if (item === undefined || !request || request.retries > 5) return
     request.retries += 1
     timers.after(200, () => {
-      listRef.current?.scrollToItem({animated: request.animated, item, viewPosition: 0.5})
+      scrollToItem(item, request.animated)
     })
   })
 
@@ -351,20 +361,32 @@ export const useNativeThreadScroll = (p: {
   const [onContentSizeChange] = React.useState(() => (_w: number, h: number) => {
     contentHeightRef.current = h
   })
-  // user touched the list: stop fighting them
+  // The reader is told apart by touch, which the list reports itself: a drag is always theirs, and
+  // everything else moving the list is the list's own.
   const onScrollBeginDrag = React.useCallback(() => {
-    dispatch({type: 'userScrolled'})
-  }, [dispatch])
+    dispatch(own.readerMoved())
+  }, [dispatch, own])
 
-  // A scroll coming to rest: the reader letting go, a fling stopping, or (on iOS) an animated scroll
-  // of ours ending. Only coming to rest at the end, over the keyboard as it is now, counts, and that
-  // is true however the list got there: the end goes back to the list.
-  const onScrollSettled = React.useCallback(
+  // Only resting at the end, over the keyboard as it is now, counts.
+  const atEnd = React.useCallback(
+    (e: {nativeEvent: {contentOffset: {y: number}}}) => e.nativeEvent.contentOffset.y <= restingOffset() + endTolerance,
+    [restingOffset]
+  )
+  // The reader letting go at the end hands the end back.
+  const onScrollEndDrag = React.useCallback(
     (e: {nativeEvent: {contentOffset: {y: number}}}) => {
-      if (e.nativeEvent.contentOffset.y > restingOffset() + endTolerance) return
-      dispatch({type: 'readerAtEnd'})
+      if (atEnd(e)) dispatch({type: 'readerAtEnd'})
     },
-    [dispatch, restingOffset]
+    [atEnd, dispatch]
+  )
+  // A scroll coming to rest: a fling stopping, or (on iOS) an animated scroll of the list's own ending,
+  // which hands nothing back.
+  const onMomentumScrollEnd = React.useCallback(
+    (e: {nativeEvent: {contentOffset: {y: number}}}) => {
+      const handedBack = own.rested(atEnd(e))
+      if (handedBack) dispatch(handedBack)
+    },
+    [atEnd, dispatch, own]
   )
 
   // Data indices of the first and last viewable rows; the corrector steps from them.
@@ -393,9 +415,9 @@ export const useNativeThreadScroll = (p: {
       : maintainVisibleContentPositionNoAutoscroll,
     onContentSizeChange,
     onScroll,
-    onMomentumScrollEnd: onScrollSettled,
+    onMomentumScrollEnd,
     onScrollBeginDrag,
-    onScrollEndDrag: onScrollSettled,
+    onScrollEndDrag,
     onScrollToIndexFailed,
     onViewableRange,
     scrollToBottom: requestBottom,

@@ -86,8 +86,12 @@ const growHeader = () => {
   })
 }
 
+// The reader moving the scroller a notch, which is what a wheel does; the wheel event itself decides
+// nothing.
 const wheel = () => {
   fireEvent.wheel(screen.getByTestId('chat-message-list'))
+  const {scroll} = H.listStore.get()
+  update(() => H.moveScroller(scroll >= 100 ? scroll - 100 : scroll + 100))
 }
 
 // The thread's own transitions; thread-transitions.test.tsx holds them to the real thread store.
@@ -106,11 +110,13 @@ const reloadDataset = (count = 60) => {
   })
 }
 
+// Where the list has put the scroller.
+const endOffset = () => props().data.length * H.rowHeight - H.viewportHeight
 const scrollerNotAtEnd = () => {
-  H.scroller.metrics = {clientHeight: 500, scrollHeight: 6000, scrollTop: 1000}
+  update(() => H.listStore.set({scroll: 1000}))
 }
 const scrollerAtEnd = () => {
-  H.scroller.metrics = {clientHeight: 500, scrollHeight: 6000, scrollTop: 5499}
+  update(() => H.listStore.set({scroll: endOffset()}))
 }
 
 // Where the harness grid puts ordinal n dead centre in the viewport.
@@ -795,6 +801,30 @@ describe('editing', () => {
     expect(H.log).toEqual([['scrollToEnd', noAnimation]])
   })
 
+  test('the reveal is the list\'s own scroll: a centring under way goes on', async () => {
+    update(() => H.listStore.set({mountsOnScrollToIndex: false, rendered: new Set()}))
+    open({center: 30})
+    update(() => H.inputStore.set({editing: ord(15)}))
+    await tick(250)
+    expect(H.log.filter(([name, opts]) => name === 'scrollToIndex' && !(opts as {animated: boolean}).animated)).toHaveLength(3)
+  })
+
+  test('the reveal coming to rest at the end does not hand the end back while a centre is on its way', async () => {
+    open()
+    update(() => {
+      H.setCenter(ord(500))
+      clearThread()
+    })
+    update(() => loadThread(1, 60))
+    scrollerNotAtEnd()
+    update(() => H.inputStore.set({editing: ord(58)}))
+    H.scrollEnds()
+    H.log.length = 0
+    growHeader()
+    await tick(3000)
+    expect(H.log).toEqual([])
+  })
+
   test('the reveal survives a reload: the same edit is not revealed twice', () => {
     open()
     update(() => H.inputStore.set({editing: ord(15)}))
@@ -824,48 +854,67 @@ describe('dataset reset', () => {
   })
 })
 
-describe('the reader scrolling without a wheel', () => {
+describe('whatever moves the scroller, when the list did not, is the reader', () => {
   const scroller = () => screen.getByTestId('fake-scroller')
   // Drives an in-flight centring loop that keeps asking for an unmounted target.
   const openCentring = () => {
     update(() => H.listStore.set({mountsOnScrollToIndex: false, rendered: new Set()}))
     open({center: 30})
-    scrollerNotAtEnd()
   }
   const centringAsks = () => H.log.filter(([name]) => name === 'scrollToIndex').length
+  const moveBy = (delta: number) => update(() => H.moveScroller(H.listStore.get().scroll + delta))
 
-  test.each(['PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'Home', 'End', ' '])(
-    'the %p key stops the centring loop',
-    async key => {
-      openCentring()
-      fireEvent.keyDown(scroller(), {key})
-      await tick(5000)
-      expect(centringAsks()).toBe(1)
-    }
-  )
+  // Each input as it reaches the thread, then the movement it causes; only the movement counts.
+  const inputs: Array<[string, () => void]> = [
+    ['a wheel', () => fireEvent.wheel(scroller(), {deltaY: -100})],
+    ['a navigation key', () => fireEvent.keyDown(scroller(), {key: 'PageUp'})],
+    ['the scrollbar thumb dragged', () => fireEvent.pointerDown(scroller())],
+    ['a touch drag', () => fireEvent.touchStart(scroller())],
+    ['middle-click autoscroll', () => fireEvent.pointerDown(scroller(), {button: 1})],
+    ['find in page', () => {}],
+  ]
 
-  test('a navigation key takes the end from the list', async () => {
+  test.each(inputs)('%s stops the centring loop', async (_name, input) => {
+    openCentring()
+    input()
+    moveBy(-100)
+    await tick(5000)
+    expect(centringAsks()).toBe(1)
+  })
+
+  test.each(inputs)('%s takes the end from the list', async (_name, input) => {
     open()
-    fireEvent.keyDown(scroller(), {key: 'ArrowUp'})
+    input()
+    moveBy(100)
     growHeader()
     await tick(3000)
     expect(H.log).toEqual([])
   })
 
-  test('grabbing the scrollbar stops the centring loop and takes the end', async () => {
+  // An input that moves nothing: pressing the scrollbar without dragging, a key or wheel the thread
+  // does not scroll for (a zoom, a popup over the thread scrolling itself), a key typed into a field.
+  test.each<[string, () => void]>([
+    ['pressing the scrollbar without dragging', () => fireEvent.pointerDown(scroller())],
+    ['a zooming ctrl+wheel', () => fireEvent.wheel(scroller(), {ctrlKey: true, deltaY: 100})],
+    ['a navigation key the thread does not scroll for', () => fireEvent.keyDown(scroller(), {key: 'ArrowUp'})],
+  ])('%s is not scrolling: centring goes on', async (_name, input) => {
     openCentring()
-    fireEvent.pointerDown(scroller())
-    await tick(5000)
-    expect(centringAsks()).toBe(1)
-    H.log.length = 0
-    growHeader()
-    await tick(3000)
-    expect(H.log).toEqual([])
+    input()
+    await tick(250)
+    expect(centringAsks()).toBe(3)
+  })
+
+  test('something scrollable inside the thread scrolling is not the thread scrolling', async () => {
+    openCentring()
+    const inner = document.createElement('div')
+    scroller().appendChild(inner)
+    inner.dispatchEvent(new Event('scroll'))
+    await tick(250)
+    expect(centringAsks()).toBe(3)
   })
 
   test('pressing on a message is not scrolling: centring goes on correcting', async () => {
     open({center: 30})
-    scrollerNotAtEnd()
     fireEvent.pointerDown(document.querySelector('[data-ordinal="30"]')!)
     await tick(50)
     update(() => H.listStore.set({scroll: H.listStore.get().scroll - 40}))
@@ -876,14 +925,40 @@ describe('the reader scrolling without a wheel', () => {
     ])
   })
 
-  test('other keys, and keys typed into a field inside the list, are not scrolling', async () => {
+  test('the list holding rows in place as they measure is its own scroll: centring goes on', async () => {
     openCentring()
-    const field = document.createElement('input')
-    scroller().appendChild(field)
-    fireEvent.keyDown(scroller(), {key: 'a'})
-    fireEvent.keyDown(field, {key: 'ArrowUp'})
+    update(() => H.listStore.set({scroll: H.listStore.get().scroll + 300}))
     await tick(250)
     expect(centringAsks()).toBe(3)
+  })
+
+  // Its end anchor writes the new end down, the scroller clamps short of it against an extent that has
+  // not caught up with the new rows, and the list goes again.
+  test('a scroll of the list\'s own that lands short of where it was going is still its own: header growth re-pins', async () => {
+    open()
+    scrollerAtEnd()
+    update(() => H.threadStore.set({messageOrdinals: H.range(1, 63)}))
+    update(() => H.listLandsShort(endOffset(), endOffset() - 200))
+    // The header measures larger a frame after the list's own scroll, as it does on opening.
+    growHeader()
+    update(() => H.listStore.set({scroll: endOffset()}))
+    H.scrollEnds()
+    await tick(100)
+    expect(H.log).toEqual([['scrollToEnd', noAnimation]])
+  })
+
+  test('the list\'s own scroll coming to rest at the end does not hand the end back while a centre is on its way', async () => {
+    open()
+    update(() => {
+      H.setCenter(ord(500))
+      clearThread()
+    })
+    update(() => loadThread(1, 60))
+    scrollerAtEnd()
+    H.scrollEnds()
+    growHeader()
+    await tick(3000)
+    expect(H.log).toEqual([])
   })
 })
 
@@ -891,16 +966,17 @@ describe('the reader reaching the end', () => {
   const scroller = () => screen.getByTestId('fake-scroller')
   // A scroll of the thread's scroller finishing, whoever started it.
   const scrollEnded = () => {
-    fireEvent(scroller(), new Event('scrollend'))
+    H.scrollEnds()
   }
+  const readerTo = (offset: number) => update(() => H.moveScroller(offset))
 
   test.each(['End', 'PageDown', 'ArrowDown', ' '])(
     'after %p scrolls the reader down to it, header growth re-pins the end',
     async key => {
       open()
-      scrollerNotAtEnd()
+      readerTo(1000)
       fireEvent.keyDown(scroller(), {key})
-      scrollerAtEnd()
+      readerTo(endOffset())
       scrollEnded()
       growHeader()
       await tick(100)
@@ -912,7 +988,7 @@ describe('the reader reaching the end', () => {
     open()
     scrollerNotAtEnd()
     wheel()
-    scrollerAtEnd()
+    readerTo(endOffset())
     scrollEnded()
     growHeader()
     await tick(100)
@@ -960,11 +1036,13 @@ describe('the reader reaching the end', () => {
     expect(H.log).toEqual([['scrollToEnd', noAnimation]])
   })
 
-  test('letting go of the scrollbar short of the end leaves the end with the reader', async () => {
+  test('dragging the scrollbar thumb and letting go short of the end leaves the end with the reader', async () => {
     open()
-    scrollerNotAtEnd()
+    scrollerAtEnd()
     fireEvent.pointerDown(scroller())
+    readerTo(1000)
     fireEvent.pointerUp(scroller())
+    scrollEnded()
     growHeader()
     await tick(3000)
     expect(H.log).toEqual([])
@@ -974,6 +1052,7 @@ describe('the reader reaching the end', () => {
     open()
     scrollerAtEnd()
     fireEvent.keyDown(scroller(), {key: ' ', shiftKey: true})
+    readerTo(endOffset() - H.viewportHeight)
     growHeader()
     await tick(3000)
     expect(H.log).toEqual([])
