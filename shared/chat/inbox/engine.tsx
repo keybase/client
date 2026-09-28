@@ -93,13 +93,12 @@ export const maybeShowIncomingMessageDesktopNotification = (incomingMessage: T.R
   NotifyPopup(title, {body: cleanBody, sound}, -1, senderUsername, onClick, onClose)
 }
 
-// Marks each user an identify failure names as broken, stopping at the first record that is not
-// an error.
+// Marks each user an identify failure names as broken.
 export const markIdentifyFailures = (outboxRecords: T.RPCChat.FailedMessageInfo['outboxRecords']) => {
   for (const outboxRecord of outboxRecords ?? []) {
     const s = outboxRecord.state
     if (s.state !== T.RPCChat.OutboxStateType.error) {
-      return
+      continue
     }
     const {error} = s
     if (error.typ === T.RPCChat.OutboxErrorType.identify) {

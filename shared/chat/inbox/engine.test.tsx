@@ -8,6 +8,7 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import {updateInboxTyping} from '@/chat/inbox/typing-state'
+import {useUsersState} from '@/stores/users'
 
 jest.mock('@/chat/inbox/badge-state', () => ({
   syncInboxBadgeState: jest.fn(),
@@ -439,4 +440,43 @@ test('global inbox failure routing stores error metadata and rekey participants'
   expect(meta?.snippet).toBe('rekey needed')
   expect([...(meta?.rekeyers ?? [])]).toEqual(['bob'])
   expect(getInboxConversationParticipants(convID)?.name).toEqual(['alice', 'bob', 'charlie'])
+})
+
+test('a failed message marks every identify break, past records that are still sending', () => {
+  const record = (label: string, state: T.RPCChat.OutboxState) =>
+    ({
+      Msg: {},
+      convID: T.Chat.keyToConversationID(convID),
+      ctime: 0,
+      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+      ordinal: 0,
+      outboxID: makeRpcOutboxID(label),
+      state,
+    }) as T.RPCChat.OutboxRecord
+  const identifyError = (username: string): T.RPCChat.OutboxState => ({
+    error: {message: `identify failed for "${username}"`, typ: T.RPCChat.OutboxErrorType.identify},
+    state: T.RPCChat.OutboxStateType.error,
+  })
+  routeChatNotification({
+    payload: {
+      params: {
+        activity: {
+          activityType: T.RPCChat.ChatActivityType.failedMessage,
+          failedMessage: {
+            conv: null,
+            isEphemeralPurge: false,
+            outboxRecords: [
+              record('outbox-1', identifyError('testuser1')),
+              record('outbox-2', {sending: 1, state: T.RPCChat.OutboxStateType.sending}),
+              record('outbox-3', identifyError('testuser3')),
+            ],
+          },
+        },
+      },
+    },
+    type: 'chat.1.NotifyChat.NewChatActivity',
+  } as never)
+  const {infoMap} = useUsersState.getState()
+  expect(infoMap.get('testuser1')?.broken).toBe(true)
+  expect(infoMap.get('testuser3')?.broken).toBe(true)
 })
