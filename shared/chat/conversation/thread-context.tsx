@@ -178,11 +178,12 @@ const ConversationThreadContextProvider = (p: {
 const isLookingAtThread = (shell: {active: boolean; appFocused: boolean}, routeFocused: boolean) =>
   shell.active && shell.appFocused && routeFocused
 
-const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => {
-  const {children, id} = p
+// uid: the account the thread is built for
+const ConversationThreadProviderInner = (p: ConversationThreadProviderProps & {uid: string}) => {
+  const {children, id, uid} = p
   const navigation = useNavigation()
   const [thread] = React.useState(() =>
-    makeThreadStore(id, () => isLookingAtThread(useShellState.getState(), navigation.isFocused()))
+    makeThreadStore(id, uid, () => isLookingAtThread(useShellState.getState(), navigation.isFocused()))
   )
   const routeFocused = useIsFocused()
   // Mark read refuses while the reader is not looking at the thread, so try again whenever they are
@@ -227,6 +228,23 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
   )
 }
 
+// A thread belongs to one account: its notifications, reloads and service calls are that account's.
+// An account switch keeps the logged-in screens mounted (and desktop can keep the same conversation
+// selected), so the thread is built again whenever the signed-in account changes. Between a switch's
+// store reset and the next account's sign-in nobody is signed in, and there is no thread to show.
+const ConversationThreadForSignedInAccount = (p: ConversationThreadProviderProps) => {
+  const {children, id} = p
+  const uid = useCurrentUserState(s => s.uid)
+  if (!uid) {
+    return null
+  }
+  return (
+    <ConversationThreadProviderInner key={uid} id={id} uid={uid}>
+      {children}
+    </ConversationThreadProviderInner>
+  )
+}
+
 export const ConversationThreadProvider = (p: ConversationThreadProviderProps) => {
   const currentConversationIDKey = React.useContext(ConversationThreadIDContext)
   const currentActions = React.useContext(ConversationThreadActionsContext)
@@ -235,11 +253,11 @@ export const ConversationThreadProvider = (p: ConversationThreadProviderProps) =
     // Same-thread wrappers should share the live message/meta state instead of replacing it.
     return <>{p.children}</>
   }
-  return <ConversationThreadProviderInner {...p} />
+  return <ConversationThreadForSignedInAccount {...p} />
 }
 
 export const LiveConversationThreadProvider = (p: ConversationThreadProviderProps) => (
-  <ConversationThreadProviderInner {...p} />
+  <ConversationThreadForSignedInAccount {...p} />
 )
 
 export const useConversationThreadSetExplodingMode = () => useConversationThreadActions().setExplodingMode

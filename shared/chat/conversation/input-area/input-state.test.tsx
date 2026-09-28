@@ -1147,9 +1147,7 @@ describe('composer typing and draft RPCs', () => {
     })
   })
 
-  test('after an account switch neither the draft save nor the local draft update happens', () => {
-    seedMeta()
-    renderComposer()
+  const switchToSecondAccount = () => {
     act(() => {
       useCurrentUserState.getState().dispatch.setBootstrap({
         deviceID: 'device-id-2',
@@ -1158,11 +1156,30 @@ describe('composer typing and draft RPCs', () => {
         username: 'testuser-mac',
       })
     })
+  }
 
-    type('a')
+  test('after an account switch the composer left from the old account neither saves nor updates the draft', () => {
+    seedMeta()
+    renderComposer()
+    const oldComposer = mockPlatformInputProps
+    switchToSecondAccount()
+
+    act(() => {
+      oldComposer?.onChangeText('a')
+    })
     advance(1000)
     expect(saveDraft()).toEqual([])
     expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('')
+  })
+
+  test('after an account switch the composer is built again and saves for the new account', () => {
+    seedMeta()
+    renderComposer()
+    switchToSecondAccount()
+
+    type('a')
+    advance(1000)
+    expect(saveDraft()).toEqual([{conversationIDKey: convID, text: 'a', tlfName: 'testuser,testuser-mac'}])
   })
 
   test('rejected typing and draft RPCs are only logged, and later keystrokes still send', async () => {

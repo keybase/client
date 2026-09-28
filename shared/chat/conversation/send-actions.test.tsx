@@ -9,7 +9,8 @@ import type * as React from 'react'
 import logger from '@/logger'
 import {act, cleanup, renderHook} from '@testing-library/react'
 import {makeMessageAttachment, makeMessageText} from '@/constants/chat/message'
-import {metasReceived} from '@/chat/inbox/metadata'
+import {metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
+import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
@@ -71,6 +72,13 @@ const renderSendActions = (messages: ReadonlyArray<T.Chat.Message> = []) => {
 
 beforeEach(() => {
   useConfigState.setState({loggedIn: true})
+  // the thread provider builds a thread only for a signed-in account
+  useCurrentUserState.getState().dispatch.setBootstrap({
+    deviceID: 'device-id',
+    deviceName: 'testuser-mac',
+    uid: 'uid',
+    username: 'testuser',
+  })
   rpc = installFakeChatRpc()
   metasReceived([{...Meta.makeConversationMeta(), conversationIDKey, tlfname: tlfName}], undefined, {
     force: true,
@@ -154,7 +162,7 @@ describe('sendMessage', () => {
   })
 
   test('with no meta the tlfName is empty', async () => {
-    resetAllStores()
+    useInboxMetadataState.setState({metas: new Map()})
     const post = mockPostText()
     const result = renderSendActions()
     act(() => {
@@ -474,7 +482,7 @@ describe('sendAudioRecording', () => {
   })
 
   test('without a tlfName nothing is sent', async () => {
-    resetAllStores()
+    useInboxMetadataState.setState({metas: new Map()})
     const result = renderSendActions()
     await act(async () => {
       await result.current.send.sendAudioRecording('/tmp/audio.m4a', 1, [])

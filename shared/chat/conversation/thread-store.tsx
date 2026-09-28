@@ -247,10 +247,12 @@ const makeEmptyThreadState = (): ConversationThreadState =>
     () => {}
   )
 
+// uid: the account the thread belongs to
 // isLookingAtThread: whether the reader is looking at this thread right now (app active and
 // focused, route focused). Mark read asks it each time and refuses while they are not.
 export const makeThreadStore = (
   id: T.Chat.ConversationIDKey,
+  uid: string,
   isLookingAtThread: () => boolean,
   overrides?: Partial<ThreadStoreDeps>
 ): ThreadStore => {
@@ -261,9 +263,6 @@ export const makeThreadStore = (
     })
   )
   const shownUsernameCache = new Map<T.Chat.Ordinal, string>()
-  // The account this thread was loaded for. Its screen outlives an account switch by a few renders,
-  // and a mark-read sent then would mark the next account's read position.
-  const threadUid = deps.getSession().uid
   let activeMarkReadEnabled = false
   // the message a mark read is on its way for; the inbox meta moves only once the service answers
   let markReadSending: T.Chat.MessageID | undefined
@@ -286,7 +285,9 @@ export const makeThreadStore = (
         logger.info('mark read bail on not logged in')
         return
       }
-      if (session.uid !== threadUid) {
+      // the provider builds another store for the next account, but this one can outlive the
+      // switch by a render, and a mark read sent then would mark that account's read position
+      if (session.uid !== uid) {
         logger.info('mark read bail on thread loaded for another account')
         return
       }
@@ -796,6 +797,6 @@ export const makeThreadStore = (
     },
     shownUsernameCache,
     store,
-    uid: threadUid,
+    uid,
   }
 }

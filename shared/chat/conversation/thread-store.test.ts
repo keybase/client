@@ -66,7 +66,7 @@ const flushPromises = async () => {
 // whether the reader is looking at the thread, as the provider reports it when asked
 let looking = true
 const makeThread = (id = convA, overrides?: Partial<ThreadStoreDeps>) =>
-  makeThreadStore(id, () => looking, {...deps, ...overrides})
+  makeThreadStore(id, session.uid, () => looking, {...deps, ...overrides})
 
 const arm = (actions: ConversationThreadActions, messages: ReadonlyArray<T.Chat.Message>) =>
   actions.applyThreadLoad({
@@ -134,7 +134,7 @@ describe('mark read', () => {
   })
 
   test('a store whose reader is not looking refuses', async () => {
-    const {actions} = makeThreadStore(convA, () => false, deps)
+    const {actions} = makeThreadStore(convA, session.uid, () => false, deps)
     arm(actions, [textAt(5)])
     actions.markThreadAsRead()
     await flushPromises()
@@ -404,7 +404,7 @@ describe('loadMoreMessages', () => {
   })
 
   test('the default loader goes to the service', () => {
-    const {actions} = makeThreadStore(convA, () => looking)
+    const {actions} = makeThreadStore(convA, session.uid, () => looking)
     actions.loadMoreMessages({reason: 'focused'})
     expect(rpc.params('loadThread')).toHaveLength(1)
     expect(rpc.params('loadThread')[0]?.conversationIDKey).toBe(convA)

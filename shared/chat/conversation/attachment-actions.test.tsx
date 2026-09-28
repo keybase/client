@@ -43,6 +43,13 @@ let navigateAppend: jest.SpyInstance
 
 beforeEach(() => {
   navigateAppend = jest.spyOn(Router, 'navigateAppend').mockImplementation(() => true)
+  // the thread provider builds a thread only for a signed-in account
+  useCurrentUserState.getState().dispatch.setBootstrap({
+    deviceID: 'device-id',
+    deviceName: 'testuser-mac',
+    uid: 'uid',
+    username: 'testuser',
+  })
 })
 
 afterEach(() => {

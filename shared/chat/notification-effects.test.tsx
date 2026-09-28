@@ -1157,6 +1157,25 @@ const finishSwitch = async (uid: string, username: string) => {
   await settle()
 }
 
+const loadThread = (tag: string, enableActiveMarkRead: boolean) => {
+  const m = mounted.get(tag)
+  act(() => {
+    m?.actions.applyThreadLoad({
+      centered: false,
+      enableActiveMarkRead,
+      messages: [10, 20].map(n => threadText(m.id, n)),
+      moreToLoad: false,
+      scrollDirection: 'none',
+    })
+  })
+}
+
+const staleThread = (id: T.Chat.ConversationIDKey) =>
+  engineAction('chat.1.NotifyChat.ChatThreadsStale', {
+    uid: '',
+    updates: [{convID: rpcConvID(id), updateType: T.RPCChat.StaleUpdateType.newactivity}],
+  })
+
 describe('an account switch', () => {
   test('empties the signed-in uid from the reset until the new account signs in', async () => {
     await mountScreens([convA])
@@ -1171,6 +1190,75 @@ describe('an account switch', () => {
     expect(snapshot()).toEqual({loggedIn: false, metas: 0, uid: '', userSwitching: true})
     await finishSwitch('uid2', 'testuser-mac')
     expect(snapshot()).toEqual({loggedIn: true, metas: 3, uid: 'uid2', userSwitching: false})
+  })
+
+  // The routers keep the logged-in screens mounted through a switch, and desktop can keep the same
+  // conversation selected. The screen's thread is built again for whoever signs in, the same
+  // account or another, and the one built for the account before hears nothing more.
+  test.each([
+    ['the same account', 'uid', 'testuser'],
+    ['another account', 'uid2', 'testuser-mac'],
+  ])('a screen left mounted through a switch to %s is rebuilt for it', async (_, uid, username) => {
+    await mountScreens([convA])
+    const before = mounted.get('A')
+    await startSwitch(username)
+    await finishSwitch(uid, username)
+    const after = mounted.get('A')
+    expect(after?.store).toBeDefined()
+    expect(after?.store).not.toBe(before?.store)
+    loadThread('A', true)
+    timeline = []
+
+    await notify(typingIn(convA, 'testuser-2'))
+    expect(typersIn('A')).toEqual(['testuser-2'])
+    expect([...(before?.store.getState().typing ?? [])]).toEqual([])
+    await notify(incomingMessage(convA, 31))
+    expect(after?.store.getState().messageOrdinals).toContain(T.Chat.numberToOrdinal(31))
+    expect(before?.store.getState().messageOrdinals).not.toContain(T.Chat.numberToOrdinal(31))
+    await notify(explodingModeIn(convA, 300))
+    expect(after?.store.getState().explodingMode).toBe(300)
+    expect(before?.store.getState().explodingMode).toBe(0)
+    act(() => {
+      after?.actions.markThreadAsRead()
+    })
+    await settle()
+    expect(timeline.filter(e => e.startsWith('rpc:markRead'))).toEqual(['rpc:markRead:A'])
+    timeline = []
+    await notify(staleThread(convA))
+    expect(timeline.filter(e => e.startsWith('rpc:loadThread'))).toEqual(['rpc:loadThread:A:general'])
+  })
+
+  // Two accounts in one team share its channels' conversation ids. Until React rebuilds the screen,
+  // its thread built for the old account must not take the new account's notifications.
+  test("the old account's thread hears nothing of the new account's before it is rebuilt", async () => {
+    await mountScreens([convA])
+    const before = mounted.get('A')
+    act(() => {
+      useConfigState.getState().dispatch.setUserSwitching(true, 'testuser-mac')
+      signIn('uid2', 'testuser-mac')
+      useConfigState.getState().dispatch.setLoggedIn(true)
+      convMetas()
+      _onEngineIncoming(typingIn(convA, 'testuser-2'))
+      _onEngineIncoming(explodingModeIn(convA, 300))
+      _onEngineIncoming(staleThread(convA))
+    })
+    await settle()
+    expect([...(before?.store.getState().typing ?? [])]).toEqual([])
+    expect(before?.store.getState().explodingMode).toBe(0)
+    expect(timeline.filter(e => e.startsWith('rpc:loadThread'))).toEqual([])
+  })
+
+  test('a screen mounted while no account is signed in starts hearing once one is', async () => {
+    await startSwitch('testuser-mac')
+    await mountTree(<Screen id={convA} tag="A-mid" />)
+    // no thread is built for nobody
+    expect(mounted.has('A-mid')).toBe(false)
+    await finishSwitch('uid2', 'testuser-mac')
+    loadThread('A-mid', false)
+    await notify(typingIn(convA, 'testuser-2'))
+    expect(typersIn('A-mid')).toEqual(['testuser-2'])
+    await notify(explodingModeIn(convA, 300))
+    expect(mounted.get('A-mid')?.store.getState().explodingMode).toBe(300)
   })
 })
 
@@ -1224,66 +1312,6 @@ describe('mounted conversation screens', () => {
     await notify(typingIn(convA, 'testuser-2'))
     expect(timeline).toEqual(['inbox:typing', 'thread:A:typing'])
     expect(typersIn('A')).toEqual(['testuser-2'])
-  })
-
-  // An account switch resets every store but keeps the logged-in screens mounted. Back on the same
-  // account they keep hearing their conversation, on the chat router and on the engine bus.
-  test('a mounted screen keeps getting notifications across a store reset on the same account', async () => {
-    await mountScreens([convA])
-    act(() => {
-      resetAllStores()
-      useConfigState.setState({loggedIn: true})
-      signIn('uid', 'testuser')
-    })
-    await settle()
-    timeline = []
-    await notify(typingIn(convA, 'testuser-mac'))
-    expect(timeline).toEqual(['inbox:typing', 'thread:A:typing'])
-    expect(typersIn('A')).toEqual(['testuser-mac'])
-    timeline = []
-    await notify(incomingMessage(convA, 31))
-    expect(timeline).toEqual(
-      expect.arrayContaining(['thread:A:liveUpdateVersion,messageIDToOrdinal,messageMap,messageOrdinals', 'unboxRows:A'])
-    )
-    expect(mounted.get('A')?.store.getState().messageOrdinals).toContain(T.Chat.numberToOrdinal(31))
-    await notify(explodingModeIn(convA, 300))
-    expect(mounted.get('A')?.store.getState().explodingMode).toBe(300)
-  })
-
-  // Two accounts in one team share its channels' conversation ids. A screen still mounted for the
-  // account switched away from hears nothing meant for the new one; a screen mounted for the new
-  // account hears it.
-  test('after a switch to another account, only a screen mounted for it hears the shared conversation', async () => {
-    await mountScreens([convA])
-    act(() => {
-      resetAllStores()
-      useConfigState.setState({loggedIn: true})
-      signIn('uid2', 'testuser-mac')
-    })
-    await settle()
-    timeline = []
-    await notify(typingIn(convA, 'testuser-2'))
-    expect(timeline).toEqual(['inbox:typing'])
-    expect(typersIn('A')).toEqual([])
-    timeline = []
-    await notify(
-      engineAction('chat.1.NotifyChat.ChatThreadsStale', {
-        uid: '',
-        updates: [{convID: rpcConvID(convA), updateType: T.RPCChat.StaleUpdateType.newactivity}],
-      })
-    )
-    expect(timeline.filter(e => e.startsWith('rpc:loadThread'))).toEqual([])
-    await notify(explodingModeIn(convA, 300))
-    expect(mounted.get('A')?.store.getState().explodingMode).toBe(0)
-
-    await mountTree(<Screen id={convA} tag="A-testuser-mac" />)
-    timeline = []
-    await notify(typingIn(convA, 'testuser-2'))
-    expect(typersIn('A-testuser-mac')).toEqual(['testuser-2'])
-    expect(typersIn('A')).toEqual([])
-    await notify(explodingModeIn(convA, 300))
-    expect(mounted.get('A-testuser-mac')?.store.getState().explodingMode).toBe(300)
-    expect(mounted.get('A')?.store.getState().explodingMode).toBe(0)
   })
 
   // Every useConversationMetadata reader arms its own reload, so one notification asks for the

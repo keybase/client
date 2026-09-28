@@ -6,6 +6,7 @@ import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {makeConversationMeta} from '@/constants/chat/meta'
 import {resetAllStores} from '@/util/zustand'
 import {metasReceived, participantInfoReceived} from '@/chat/inbox/metadata'
+import {useCurrentUserState} from '@/stores/current-user'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {ConversationThreadProvider} from '../thread-context'
 import ResetUser, {addTeamMemberAfterReset} from './reset-user'
@@ -22,6 +23,13 @@ const flushPromises = async () => {
 
 beforeEach(() => {
   rpc = installFakeChatRpc()
+  // the thread provider builds a thread only for a signed-in account
+  useCurrentUserState.getState().dispatch.setBootstrap({
+    deviceID: 'device-id',
+    deviceName: 'testuser-mac',
+    uid: 'uid',
+    username: 'testuser',
+  })
 })
 
 afterEach(() => {

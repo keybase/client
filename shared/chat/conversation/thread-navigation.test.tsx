@@ -5,6 +5,7 @@ import * as Router from '@/constants/router'
 import * as T from '@/constants/types'
 import type * as React from 'react'
 import {act, cleanup, renderHook} from '@testing-library/react'
+import {useCurrentUserState} from '@/stores/current-user'
 import {ConversationThreadProvider} from './thread-context'
 import {
   showConversationInfoPanel,
@@ -53,6 +54,13 @@ beforeEach(() => {
   navigateUp = jest.spyOn(Router, 'navigateUp').mockImplementation(() => {})
   getVisibleScreen = jest.spyOn(Router, 'getVisibleScreen').mockReturnValue(undefined)
   cancelSearch = jest.spyOn(T.RPCChat, 'localCancelActiveSearchRpcPromise').mockResolvedValue()
+  // the thread provider builds a thread only for a signed-in account
+  useCurrentUserState.getState().dispatch.setBootstrap({
+    deviceID: 'device-id',
+    deviceName: 'testuser-mac',
+    uid: 'uid',
+    username: 'testuser',
+  })
 })
 
 afterEach(() => {
