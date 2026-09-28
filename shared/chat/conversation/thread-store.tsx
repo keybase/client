@@ -498,14 +498,15 @@ export const makeThreadStore = (
   }
 
   const retryMessage = (outboxID: T.Chat.OutboxID) => {
-    let found = false
-    updateThreadState(s => {
-      found = retryMessageInThreadState(s, outboxID)
-    })
-    if (!found) {
+    const {messageMap, pendingOutboxToOrdinal} = store.getState()
+    const ordinal = pendingOutboxToOrdinal.get(outboxID)
+    if (!ordinal || !messageMap.get(ordinal)) {
       logger.warn(`retryMessage: no message for outbox id ${outboxID} in convID=${id}`)
       return
     }
+    updateThreadState(s => {
+      retryMessageInThreadState(s, outboxID)
+    })
     ignorePromise(
       (async () => {
         await getChatRpc().retryPost(outboxID)
