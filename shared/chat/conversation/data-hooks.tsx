@@ -190,18 +190,26 @@ const useConversationMessagesAroundMessageID = (
     }
   }, [conversationIDKey, messageID, num])
 
+  const messages =
+    loaded?.conversationIDKey === conversationIDKey && loaded.messageID === messageID
+      ? loaded.messages
+      : emptyMessages
+
   useReloadTriggers(conversationIDKey, trigger => {
+    // the shown message renders the text of the message it replies to
+    const shown = messages.find(message => message.id === messageID)
+    const replyToID = shown?.type === 'text' ? shown.replyTo?.id : undefined
     if (
-      (trigger.type === 'messages' && messagesTriggerConcerns(trigger, messageID)) ||
+      (trigger.type === 'messages' &&
+        (messagesTriggerConcerns(trigger, messageID) ||
+          (!!replyToID && messagesTriggerConcerns(trigger, replyToID)))) ||
       (trigger.type === 'attachmentDownloaded' && trigger.messageID === messageID)
     ) {
       reload()
     }
   })
 
-  return loaded?.conversationIDKey === conversationIDKey && loaded.messageID === messageID
-    ? loaded.messages
-    : emptyMessages
+  return messages
 }
 
 export const useConversationMessage = (

@@ -34,12 +34,13 @@ let rpc: FakeChatRpc
 const markReads = () => rpc.params('markRead')
 
 // the walk-back load returns whatever messages the service had around the unread line
-const mockAroundMessages = (ids: ReadonlyArray<number>) => {
+const mockAroundMessages = (ids: ReadonlyArray<number | T.RPCChat.UIMessage>) => {
   rpc.on('loadThread', async p => {
-    const messages = ids.map(id => ({
-      placeholder: {hidden: false, messageID: messageID(id)},
-      state: T.RPCChat.MessageUnboxedState.placeholder,
-    }))
+    const messages = ids.map(id =>
+      typeof id === 'number'
+        ? {placeholder: {hidden: false, messageID: messageID(id)}, state: T.RPCChat.MessageUnboxedState.placeholder}
+        : id
+    )
     await Promise.resolve()
     p.onFullThread?.(JSON.stringify({messages}))
     return undefined
@@ -346,6 +347,87 @@ describe('useConversationMessage', () => {
     'an upload completing for another',
   ] as const)('%s in its conversation leaves it', async event => {
     expect(await loadsAfter(event)).toBe(0)
+  })
+
+  describe('a reply', () => {
+    const textBody = (body: string) => ({
+      messageType: T.RPCChat.MessageType.text as const,
+      text: {body, payments: null, replyTo: null, replyToUID: null, teamMentions: null, userMentions: null},
+    })
+    const validText = (id: number, body: string, replyTo: T.RPCChat.UIMessage | null = null): T.RPCChat.UIMessage => ({
+      state: T.RPCChat.MessageUnboxedState.valid,
+      valid: {
+        atMentions: null,
+        bodySummary: body,
+        botUsername: '',
+        channelMention: T.RPCChat.ChannelMention.none,
+        channelNameMentions: null,
+        ctime: 200,
+        decoratedTextBody: null,
+        etime: 0,
+        explodedBy: null,
+        hasPairwiseMacs: false,
+        isCollapsed: false,
+        isDeleteable: true,
+        isEditable: true,
+        isEphemeral: false,
+        isEphemeralExpired: false,
+        messageBody: textBody(body),
+        messageID: id,
+        outboxID: '',
+        paymentInfos: null,
+        pinnedMessageID: null,
+        reactions: {},
+        replyTo,
+        requestInfo: null,
+        senderDeviceID: new Uint8Array([1]),
+        senderDeviceName: 'testuser-mac',
+        senderDeviceRevokedAt: null,
+        senderDeviceType: 'desktop',
+        senderUID: new Uint8Array([2]),
+        senderUsername: 'testuser',
+        superseded: false,
+        unfurls: null,
+      },
+    })
+    const reply = validText(20, 'the reply', validText(15, 'the original'))
+
+    const loadsAfterReplyEvent = async (event: ReturnType<typeof incoming>) => {
+      const load = mockAroundMessages([19, reply, 21])
+      const {result} = renderHook(() => useConversationMessage(conversationIDKey, messageID(20)))
+      await waitForLoad()
+      expect(result.current?.type === 'text' ? result.current.replyTo?.id : undefined).toBe(messageID(15))
+      await act(async () => {
+        routeChatNotification(event)
+        await flushPromises()
+      })
+      await waitForLoad()
+      return load().length - 1
+    }
+
+    test('an edit of the message it replies to reloads it', async () => {
+      expect(
+        await loadsAfterReplyEvent(
+          incoming(valid(40, {edit: {body: 'x', messageID: 15}, messageType: T.RPCChat.MessageType.edit}))
+        )
+      ).toBe(1)
+    })
+
+    test('a delete of the message it replies to reloads it', async () => {
+      expect(
+        await loadsAfterReplyEvent(
+          incoming(valid(40, {delete: {messageIDs: [15]}, messageType: T.RPCChat.MessageType.delete}))
+        )
+      ).toBe(1)
+    })
+
+    test('an edit of an unrelated message leaves it', async () => {
+      expect(
+        await loadsAfterReplyEvent(
+          incoming(valid(40, {edit: {body: 'x', messageID: 16}, messageType: T.RPCChat.MessageType.edit}))
+        )
+      ).toBe(0)
+    })
   })
 
   test('loads twenty around the message and returns it', async () => {
