@@ -18,7 +18,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import {getChatRpc} from './chat-rpc'
-import {getClientPrevFromSnapshot, getConversationClientPrev} from './client-prev'
+import {getClientPrevFromThread, getConversationClientPrev} from './client-prev'
 import {getMeta} from './thread-load'
 import {applyOptimisticReactionsToMessage} from './thread-message-state'
 import type {ConversationThreadActions} from './thread-context'
@@ -179,7 +179,7 @@ const toggleThreadReaction = (
     })
     try {
       await getChatRpc().postReaction({
-        clientPrev: getClientPrevFromSnapshot(snapshot),
+        clientPrev: getClientPrevFromThread(snapshot.messageMap, snapshot.messageOrdinals),
         conversationIDKey,
         emoji,
         messageID,

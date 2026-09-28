@@ -5,7 +5,7 @@ import * as Teams from '@/constants/teams'
 import RPCError from '@/util/rpcerror'
 import logger from '@/logger'
 import {makeMessageText} from '@/constants/chat/message'
-import {getClientPrevFromSnapshot} from './client-prev'
+import {getClientPrevFromThread} from './client-prev'
 import {
   getExplodingModeFromGregorItems,
   getLastOrdinalFromSnapshot,
@@ -133,11 +133,11 @@ describe('snapshot helpers', () => {
       ...extra,
     }) as unknown as ConversationThreadState
 
-  test('getClientPrevFromSnapshot returns 0 for an empty thread', () => {
-    expect(getClientPrevFromSnapshot(makeSnapshot([]))).toBe(0)
+  test('getClientPrevFromThread returns 0 for an empty thread', () => {
+    expect(getClientPrevFromThread(new Map())).toBe(0)
   })
 
-  test('getClientPrevFromSnapshot skips trailing pending messages with no id', () => {
+  test('getClientPrevFromThread skips trailing pending messages with no id', () => {
     const snapshot = makeSnapshot([
       {id: 1, ordinal: 1},
       {id: 2, ordinal: 2},
@@ -153,7 +153,7 @@ describe('snapshot helpers', () => {
       messageOrdinals: [...(snapshot.messageOrdinals ?? []), pendingOrdinal],
     } as ConversationThreadState
 
-    expect(getClientPrevFromSnapshot(withPending)).toBe(2)
+    expect(getClientPrevFromThread(withPending.messageMap, withPending.messageOrdinals)).toBe(2)
   })
 
   test('getLastOrdinalFromSnapshot returns the last ordinal or 0', () => {
