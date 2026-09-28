@@ -24,7 +24,7 @@ const leaveAlone: ScrollDirective = {stopCentering: false, type: 'leaveAlone'}
 const stopCentering: ScrollDirective = {stopCentering: true, type: 'leaveAlone'}
 const pinNow: ScrollDirective = {how: 'now', stopCentering: false, type: 'pinEnd'}
 const pinNowStopCentering: ScrollDirective = {how: 'now', stopCentering: true, type: 'pinEnd'}
-const pinUnlessAtEnd: ScrollDirective = {how: 'unlessAtEnd', stopCentering: false, type: 'pinEnd'}
+const pinUnlessAtEndStopCentering: ScrollDirective = {how: 'unlessAtEnd', stopCentering: true, type: 'pinEnd'}
 const pinWhenSettled: ScrollDirective = {how: 'whenSettled', stopCentering: false, type: 'pinEnd'}
 const center = (n: number): ScrollDirective => ({ordinal: ord(n), type: 'center'})
 const reveal = (n: number): ScrollDirective => ({ordinal: ord(n), type: 'reveal'})
@@ -337,13 +337,13 @@ describe('editingChanged', () => {
 describe('scrollToBottomRequested', () => {
   const requested = {type: 'scrollToBottomRequested'} as const
   runTable([
-    ['from a reader takes back the end', busy, requested, pinUnlessAtEnd, {...busy, endOwner: 'list'}],
-    ['with the list at the end changes nothing but asks again', fresh, requested, pinUnlessAtEnd, fresh],
+    ['from a reader takes back the end', busy, requested, pinUnlessAtEndStopCentering, {...busy, endOwner: 'list'}],
+    ['with the list at the end changes nothing but asks again', fresh, requested, pinUnlessAtEndStopCentering, fresh],
     [
-      'does not stop centring or forget the target',
-      state({endOwner: 'reader', lastCentered: ord(30)}),
+      'ends the settling of a centred target, as a drag does, but keeps the target',
+      state({endOwner: 'reader', lastCentered: ord(30), settlingCenter: true}),
       requested,
-      pinUnlessAtEnd,
+      pinUnlessAtEndStopCentering,
       state({lastCentered: ord(30)}),
     ],
   ])
@@ -403,12 +403,12 @@ describe('sequences', () => {
       {type: 'scrollToBottomRequested'},
       header(200),
     ])
-    expect(directives).toEqual([leaveAlone, stopCentering, leaveAlone, pinUnlessAtEnd, pinWhenSettled])
+    expect(directives).toEqual([leaveAlone, stopCentering, leaveAlone, pinUnlessAtEndStopCentering, pinWhenSettled])
   })
 
   test('jump to recent from a hit: pin first, then leaving the centre stops centring', () => {
     const {directives, state: end} = run([observed(30), {type: 'scrollToBottomRequested'}, observed(undefined)])
-    expect(directives).toEqual([center(30), pinUnlessAtEnd, pinNowStopCentering])
+    expect(directives).toEqual([center(30), pinUnlessAtEndStopCentering, pinNowStopCentering])
     expect(end).toEqual(fresh)
   })
 

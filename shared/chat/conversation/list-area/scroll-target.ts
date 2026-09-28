@@ -19,8 +19,8 @@ export type ScrollTargetState = {
   // the reader back to the hit. Per dataset, not per conversation: re-centring on the ordinal we
   // are already parked on still reloads the thread, so the list has to scroll to it again.
   lastCentered: T.Chat.Ordinal | undefined
-  // Whether that target is still being settled in the middle. A wheel or a drag ends it: the reader
-  // owns the position from then on, and rows changing under the target must not pull them back.
+  // Whether that target is still being settled in the middle. A wheel, a drag or asking for the bottom
+  // ends it: the reader has left the target, and rows changing under the target must not pull them back.
   settlingCenter: boolean
   // The edit already revealed. Deliberately survives a dataset change.
   lastEditing: T.Chat.Ordinal | undefined
@@ -187,9 +187,11 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
       return {directive: {ordinal, type: 'reveal'}, state: next}
     }
     case 'scrollToBottomRequested':
+      // The reader has left the target as surely as with a drag. It stays centred until the thread
+      // reconcile sees the centre cleared, but nothing may pull the reader back to it meanwhile.
       return {
-        directive: {how: 'unlessAtEnd', stopCentering: false, type: 'pinEnd'},
-        state: {...state, endOwner: 'list'},
+        directive: {how: 'unlessAtEnd', stopCentering: true, type: 'pinEnd'},
+        state: {...state, endOwner: 'list', settlingCenter: false},
       }
   }
 }

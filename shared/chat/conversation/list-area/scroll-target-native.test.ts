@@ -191,12 +191,21 @@ describe('the native list, in sequence', () => {
     expect(directives).toEqual([refine(30, true), stopCentering, refine(30, true)])
   })
 
-  test('with the keyboard up an append re-pins; scroll to bottom pins without leaving the centre', () => {
+  test('with the keyboard up an append re-pins; scroll to bottom ends the settling without leaving the centre', () => {
     const {directives, state: end} = run(
       [{anchorHidesNewest: true, type: 'appended'}, {type: 'scrollToBottomRequested'}],
       centred(30)
     )
-    expect(directives).toEqual([pinNow, {how: 'unlessAtEnd', stopCentering: false, type: 'pinEnd'}])
-    expect(end).toEqual(state({lastCentered: ord(30), settlingCenter: true}))
+    expect(directives).toEqual([pinNow, {how: 'unlessAtEnd', stopCentering: true, type: 'pinEnd'}])
+    expect(end).toEqual(state({lastCentered: ord(30)}))
+  })
+
+  test('after asking for the bottom from a hit still settling, rows changing under it leave the reader there', () => {
+    const {directives} = run([observed(30), {type: 'scrollToBottomRequested'}, observed(30)])
+    expect(directives).toEqual([
+      refine(30, true),
+      {how: 'unlessAtEnd', stopCentering: true, type: 'pinEnd'},
+      leaveAlone,
+    ])
   })
 })

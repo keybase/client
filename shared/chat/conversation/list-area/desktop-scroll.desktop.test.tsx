@@ -566,16 +566,16 @@ describe('thread refs (keyboard and composer scrolling)', () => {
     expect(H.log).toEqual([['scrollToEnd', noAnimation]])
   })
 
-  test('scrollToBottom does not stop an in-flight centering loop', async () => {
+  test('scrollToBottom stops an in-flight centering loop, and a new message does not restart it', async () => {
     update(() => H.listStore.set({mountsOnScrollToIndex: false, rendered: new Set()}))
     open({center: 30})
     scrollerNotAtEnd()
     update(() => H.threadRefs.current?.scrollToBottom())
-    await tick(100)
+    update(() => H.threadStore.set({messageOrdinals: H.range(1, 61)}))
+    await tick(3000)
     expect(H.log).toEqual([
       ['scrollToIndex', {animated: false, index: 29, viewPosition: 0.5}],
       ['scrollToEnd', noAnimation],
-      ['scrollToIndex', {animated: false, index: 29, viewPosition: 0.5}],
     ])
   })
 

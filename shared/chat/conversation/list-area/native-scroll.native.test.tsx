@@ -495,6 +495,19 @@ describe('a centre requested after opening', () => {
     await tick(1000)
     expect(scrollsOnly()).toEqual([])
   })
+
+  test('after asking for the bottom from a hit still settling, a new message leaves the reader there', async () => {
+    open({center: 50, from: 21, to: 80})
+    await tick(1000)
+    scrolled(0, 6000)
+    clearLog()
+    act(() => H.threadRefs.current?.scrollToBottom())
+    viewable(0, 9)
+    setOrdinals(21, 81)
+    viewable(0, 9)
+    await tick(1000)
+    expect(scrollsOnly()).toEqual([toBottom])
+  })
 })
 
 describe('a screen pushed over a centred conversation', () => {
