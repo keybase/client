@@ -23,10 +23,10 @@ cd shared && node perf/visual-diff-take.js current
 cd shared && ./perf/visual-diff-compare.sh
 ```
 
-### Option B: Playwright MCP (manual)
-1. Close the DevTools tab (`browser_tabs` action=close index=0), select the app tab.
-2. Navigate to each tab (People, Chat, Files, Crypto, Teams, Git, Devices, Settings) via `browser_snapshot` + `browser_click`.
-3. Take screenshots to `/tmp/visual-diff/baseline/` or `/tmp/visual-diff/current/`.
+### Option B: playwright-cli (manual)
+1. Attach and select the main app tab as described in the playwright-cli skill ("Connecting to the Electron App"): `PLAYWRIGHT_MCP_CDP_ENDPOINT=http://localhost:9222 playwright-cli open --persistent`, then `tab-list` and `tab-select` the row whose URL contains `main.html`.
+2. Navigate to each tab (People, Chat, Files, Crypto, Teams, Git, Devices, Settings) with `playwright-cli click` or `eval`. `snapshot` reads the first CDP page (usually the menubar), not the selected tab, so locate elements with `eval`.
+3. Save each with `playwright-cli screenshot --filename=/tmp/visual-diff/<baseline|current>/<tab>.png`.
 4. Run `cd shared && ./perf/visual-diff-compare.sh`.
 
 ## Viewing Results

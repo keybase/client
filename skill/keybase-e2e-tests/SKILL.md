@@ -7,7 +7,7 @@ description: Use when writing, fixing, or adding e2e flow tests for the Keybase 
 
 ## Overview
 
-Two harnesses, one shared testID registry. Always implement Electron + iOS for each bucket together (pairing rule in `plans/flow-test.md`).
+Two harnesses, one shared testID registry. Implement each flow on Electron and iOS together.
 
 ## Shared testID Registry
 
@@ -52,7 +52,7 @@ Drives the **already-installed** app black-box (no rebuild). Selectors: `~<testI
 **Gotchas (hard-won — read before adding flows):**
 - **Native tab bar:** tap tabs by **label** (`tab('People')` → `~People`), NOT `nav-tab-*` testIDs — those don't reach the native `UITabBar`.
 - **Container testIDs** (a flex `Kb.Box2` wrapping a list) report `visible="false"` to XCUITest even when on screen → use `waitForTestID` (it uses `waitForExist`, presence), never `toBeDisplayed`.
-- **testIDs must be on the MOBILE-rendered element.** Many components branch on `isMobile`/`.desktop`/`.native`; a desktop-only testID is invisible on iOS (see [[project_e2e_testid_mobile_branch]]). Put the testID on the **clickable/leaf** element (e.g. `Kb.ListItem`'s `testID`, a `ClickableBox`), not a non-clickable wrapping `Box2` — wdio `.click()` no-ops on a non-accessible container.
+- **testIDs must be on the MOBILE-rendered element.** Many components branch on `isMobile`/`.desktop`/`.native`; a desktop-only testID is invisible on iOS, so a flow that waits on it passes on desktop while testing nothing on iOS. Put the testID on the **clickable/leaf** element (e.g. `Kb.ListItem`'s `testID`, a `ClickableBox`), not a non-clickable wrapping `Box2` — wdio `.click()` no-ops on a non-accessible container.
 - **`byText` uses CONTAINS** — tappable rows have merged accessibility labels (e.g. `", Crypto"`), so exact match fails.
 - **`Kb.Tabs`** supports a per-tab `testID` (needed for icon-only tabs like the team Settings gear). The app remembers the last-selected team tab → select tabs by testID, don't assume the default.
 - **Modals:** dismiss via Done/Close/Cancel (`escapeToTabs` does this first, before back buttons — a modal's back button is a no-op that loops).
@@ -60,7 +60,3 @@ Drives the **already-installed** app black-box (no rebuild). Selectors: `~<testI
 - Wait for a **real data row** (not just the list container) before asserting/screenshotting, so shots show loaded content.
 
 **iOS tab structure:** People & Teams are direct tabs; Chat & Files have their own nav helpers; Crypto/Devices/Git/Settings live under the **More** tab (`navigateToMore`).
-
-## Plan
-
-`plans/flow-test.md` — bucket checklist ordered easiest-first. Work one bucket at a time, both platforms together.
