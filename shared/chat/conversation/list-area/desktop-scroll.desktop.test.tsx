@@ -4,12 +4,13 @@
 // records every imperative scroll. jsdom has no layout, so rows sit on a fixed grid (see the
 // harness) and the list's own declarative scrolling (initialScrollAtEnd, maintainScrollAtEnd,
 // maintainVisibleContentPosition) is pinned as the props it hands the list, not simulated.
+import {Activity} from 'react'
 import * as T from '@/constants/types'
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {OrangeLineContext} from '../orange-line-context'
 import {ThreadRefsContext} from '../normal/context'
 import * as H from './desktop-list-harness.desktop'
-import {threadTransitions} from './list-test-store'
+import {makeStore, threadTransitions, useStore} from './list-test-store'
 import ThreadList from '.'
 
 jest.mock('@legendapp/list/react', () => require('./desktop-list-harness.desktop').legendListModule)
@@ -29,13 +30,25 @@ jest.mock('@/stores/current-user', () => ({
 const ord = T.Chat.numberToOrdinal
 const noAnimation = {animated: false}
 
-const Harness = (p: {orangeLine?: number}) => (
-  <OrangeLineContext value={ord(p.orangeLine ?? 0)}>
-    <ThreadRefsContext value={H.threadRefsValue}>
-      <ThreadList />
-    </ThreadRefsContext>
-  </OrangeLineContext>
-)
+// Another tab selected hides the chat tab the way left-tab-navigator does, with Activity, which
+// unmounts its effects; selecting it again re-mounts them with nothing changed.
+const tabStore = makeStore({hidden: false})
+const Harness = (p: {orangeLine?: number}) => {
+  const hidden = useStore(tabStore, s => s.hidden)
+  return (
+    <Activity mode={hidden ? 'hidden' : 'visible'}>
+      <OrangeLineContext value={ord(p.orangeLine ?? 0)}>
+        <ThreadRefsContext value={H.threadRefsValue}>
+          <ThreadList />
+        </ThreadRefsContext>
+      </OrangeLineContext>
+    </Activity>
+  )
+}
+const switchTabAwayAndBack = () => {
+  update(() => tabStore.set({hidden: true}))
+  update(() => tabStore.set({hidden: false}))
+}
 
 const update = (fn: () => void) => {
   act(fn)
@@ -106,6 +119,7 @@ const centredOffset = (n: number) => (n - 1) * H.rowHeight + H.rowHeight / 2 - H
 beforeEach(() => {
   jest.useFakeTimers()
   H.resetHarness()
+  tabStore.reset({hidden: false})
   H.installLayout()
 })
 
@@ -744,6 +758,71 @@ describe('dataset reset', () => {
     reloadDataset()
     update(() => (props()['onMetricsChange'] as (m: {headerSize: number}) => void)({headerSize: 152}))
     await tick(3000)
+    expect(H.log).toEqual([])
+  })
+})
+
+describe('returning to the chat tab', () => {
+  test('keeps a reader who wheeled away from a centred hit where they are', async () => {
+    open({center: 30})
+    await tick(5000)
+    wheel()
+    update(() => H.listStore.set({scroll: 0}))
+    H.log.length = 0
+    switchTabAwayAndBack()
+    await tick(5000)
+    expect(H.log).toEqual([])
+  })
+
+  test('keeps the end with a reader who wheeled away', async () => {
+    open()
+    wheel()
+    switchTabAwayAndBack()
+    growHeader()
+    await tick(3000)
+    expect(H.log).toEqual([])
+  })
+
+  test('keeps the header baseline: the next change is growth, not a new baseline', async () => {
+    open()
+    update(() => (props()['onMetricsChange'] as (m: {headerSize: number}) => void)({headerSize: 100}))
+    switchTabAwayAndBack()
+    update(() => (props()['onMetricsChange'] as (m: {headerSize: number}) => void)({headerSize: 152}))
+    await tick(100)
+    expect(H.log).toEqual([['scrollToEnd', noAnimation]])
+  })
+
+  test('a hit that finished centring is not centred again, however the rows moved it', async () => {
+    update(() => {
+      H.threadStore.set({loaded: true, messageOrdinals: H.range(21, 80)})
+      H.setCenter(ord(50))
+    })
+    render(<Harness />)
+    await tick(5000)
+    // Older rows loading as the reader scrolls up move the hit down the grid.
+    update(() => loadThread(1, 20))
+    H.log.length = 0
+    switchTabAwayAndBack()
+    await tick(5000)
+    expect(H.log).toEqual([])
+  })
+
+  test('a hit still centring when the tab was hidden is centred afresh', async () => {
+    update(() => H.listStore.set({mountsOnScrollToIndex: false, rendered: new Set()}))
+    open({center: 30})
+    await tick(250)
+    H.log.length = 0
+    switchTabAwayAndBack()
+    expect(H.log).toEqual([['scrollToIndex', {animated: false, index: 29, viewPosition: 0.5}]])
+  })
+
+  test('nothing scheduled fires while the tab is hidden', async () => {
+    update(() => H.listStore.set({mountsOnScrollToIndex: false, rendered: new Set()}))
+    open({center: 30})
+    growHeader()
+    H.log.length = 0
+    update(() => tabStore.set({hidden: true}))
+    await tick(5000)
     expect(H.log).toEqual([])
   })
 })

@@ -218,8 +218,12 @@ export const useDesktopThreadScroll = (p: {
     [decide, perform]
   )
 
-  // The end being verified belongs to the old rows.
+  // Compared by value, not by the effect re-running: selecting the chat tab again re-mounts effects
+  // hidden under Activity with nothing changed. The end being verified belongs to the old rows.
+  const datasetRef = React.useRef<string | undefined>(undefined)
   React.useLayoutEffect(() => {
+    if (datasetRef.current === datasetKey) return
+    datasetRef.current = datasetKey
     endAnchor.stop()
     dispatch({type: 'datasetChanged'})
   }, [datasetKey, dispatch, endAnchor])
