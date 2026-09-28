@@ -45,6 +45,7 @@ type SuggestionSelectAction = {type: 'suggestionSelect'; orSubmit: boolean}
 export type InputKeyAction =
   | ThreadKeyAction
   | {type: 'recheckSuggestions'}
+  | {type: 'closeSuggestions'}
   | {type: 'suggestionMove'; up: boolean}
   | SuggestionSelectAction
   | {type: 'submit'}
@@ -109,6 +110,10 @@ const suggestionKey = (suggestions: Suggestions, k: ComposerKey): ComposerKeyRes
             ? {orSubmit: false, type: 'suggestionSelect'}
             : {type: 'suggestionMove', up: k.shiftKey}
       )
+    case 'Escape':
+      // Closes only the list; an edit or reply is left for the next Escape. A list with nothing
+      // in it yet is not in the way of cancelling one.
+      return hasItems ? claim({type: 'closeSuggestions'}) : undefined
     default:
       return undefined
   }
@@ -120,11 +125,7 @@ const inputKey = (s: InputKeyState, k: ComposerKey): ComposerKeyResult<InputKeyA
 
   const thread = threadKey(s, k)
   const actions: Array<InputKeyAction> = [...(thread?.actions ?? [])]
-  // an open list's popup closes itself on Escape, so the key did something here too; a list with
-  // no items yet shows nothing to close
-  let preventDefault =
-    (thread?.preventDefault ?? false) ||
-    (k.key === 'Escape' && (s.suggestions === 'unfiltered' || s.suggestions === 'filtered'))
+  let preventDefault = thread?.preventDefault ?? false
 
   if (k.key === 'ArrowLeft' || k.key === 'ArrowRight') {
     actions.push({type: 'recheckSuggestions'})

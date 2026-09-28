@@ -44,6 +44,7 @@ const openFilePicker = {type: 'openFilePicker'} as const
 const scrollUp = {type: 'scrollUp'} as const
 const scrollDown = {type: 'scrollDown'} as const
 const recheck = {type: 'recheckSuggestions'} as const
+const closeList = {type: 'closeSuggestions'} as const
 const moveUp = {type: 'suggestionMove', up: true} as const
 const moveDown = {type: 'suggestionMove', up: false} as const
 const pickOrSend = {orSubmit: true, type: 'suggestionSelect'} as const
@@ -174,15 +175,22 @@ describe('the composer textarea', () => {
       true,
     ],
     ['Escape, neither: nothing', input(withText), k('Escape'), [], false],
+    // the edit or reply waits for the next Escape
     [
-      'Escape, editing, list open: cancel the edit',
+      'Escape, editing, list open: only the list closes',
       input({editing: true, suggestions: open}),
       k('Escape'),
-      [cancelEdit],
+      [closeList],
       true,
     ],
-    // the list's popup closes itself on Escape
-    ['Escape, list open only: the list closes', input({suggestions: open}), k('Escape'), [], true],
+    [
+      'Escape, replying, list open: only the list closes',
+      input({replying: true, suggestions: open}),
+      k('Escape'),
+      [closeList],
+      true,
+    ],
+    ['Escape, list open only: the list closes', input({suggestions: open}), k('Escape'), [closeList], true],
     [
       'Escape, editing, list open with no items yet: cancel the edit',
       input({editing: true, suggestions: 'empty'}),
@@ -463,11 +471,17 @@ describe('across every key and state', () => {
               a.type === 'editLast' ||
               a.type === 'cancelEdit' ||
               a.type === 'cancelReply' ||
-              a.type === 'newline'
-          ) ||
-          (key.key === 'Escape' && showsItems(s))
+              a.type === 'newline' ||
+              a.type === 'closeSuggestions'
+          )
         expect(preventDefault).toBe(claims)
       }
+    }
+  })
+
+  test('Escape with a list showing items in the textarea only closes the list, whatever else is going on', () => {
+    for (const s of allInputStates.filter(showsItems)) {
+      expect(composerKeyDown(s, k('Escape'))).toEqual({actions: [closeList], preventDefault: true})
     }
   })
 
@@ -479,7 +493,7 @@ describe('across every key and state', () => {
   })
 
   test('an edit in progress wins Escape over a reply, in the textarea and the window', () => {
-    for (const s of allInputStates.filter(s => s.editing)) {
+    for (const s of allInputStates.filter(s => s.editing && !showsItems(s))) {
       expect(composerKeyDown(s, k('Escape')).actions).toEqual([cancelEdit])
     }
     for (const f of threadFacts.filter(f => f.editing)) {

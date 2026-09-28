@@ -656,13 +656,13 @@ type UseDesktopKeysProps = Pick<
   htmlInputRef: HtmlInputRefType
   suggestors: Pick<
     ReturnType<typeof useSuggestors>,
-    'getSuggestions' | 'moveSuggestion' | 'recheckSuggestions' | 'selectSuggestion'
+    'closeSuggestions' | 'getSuggestions' | 'moveSuggestion' | 'recheckSuggestions' | 'selectSuggestion'
   >
 }
 const useDesktopKeys = (p: UseDesktopKeysProps) => {
   const {cannotWrite, focusInput, htmlInputRef, isEditing, onCancelEditing, onSubmit} = p
   const {showReplyPreview, suggestors} = p
-  const {getSuggestions, moveSuggestion, recheckSuggestions, selectSuggestion} = suggestors
+  const {closeSuggestions, getSuggestions, moveSuggestion, recheckSuggestions, selectSuggestion} = suggestors
   const composer = useComposer()
   const setEditing = InputState.useConversationInputDispatch(s => s.setEditing)
   const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
@@ -693,6 +693,9 @@ const useDesktopKeys = (p: UseDesktopKeysProps) => {
         break
       case 'recheckSuggestions':
         recheckSuggestions()
+        break
+      case 'closeSuggestions':
+        closeSuggestions()
         break
       case 'suggestionMove':
         moveSuggestion(a.up)

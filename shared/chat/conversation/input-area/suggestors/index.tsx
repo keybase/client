@@ -383,6 +383,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   )
 
   return {
+    closeSuggestions: setInactive,
     inputRef,
     onBlur,
     onChangeText,

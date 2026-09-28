@@ -620,20 +620,38 @@ describe('in the composer, suggestions open', () => {
     expect(mockSelect).not.toHaveBeenCalled()
   })
 
-  test('Escape while editing still cancels the edit and leaves the list alone', () => {
+  test('Escape while editing closes only the list, and the next Escape cancels the edit', () => {
     const {getHandles, textarea} = renderComposer()
     startEdit(textarea)
     openSuggestions(textarea, 'hi @te')
 
     expect(keyDown(textarea, 'Escape')).toBe(true)
 
-    expect(getHandles().input.editing).toBe(noOrdinal)
+    expect(getHandles().input.editing).toBe(lastOrdinal)
+    expect(textarea.value).toBe('hi @te')
     expect(mockMove).not.toHaveBeenCalled()
     expect(mockSelect).not.toHaveBeenCalled()
+
+    expect(keyDown(textarea, 'Escape')).toBe(true)
+
+    expect(getHandles().input.editing).toBe(noOrdinal)
+    expect(textarea.value).toBe('')
   })
 
-  // the list's popup closes itself on Escape; the composer only claims the key
-  test('Escape with only a list open prevents the default and does nothing else', () => {
+  test('Escape while replying closes only the list, and the next Escape cancels the reply', () => {
+    const {getHandles, textarea} = renderComposer()
+    startReply(getHandles)
+    openSuggestions(textarea, 'hi @te')
+
+    expect(keyDown(textarea, 'Escape')).toBe(true)
+    expect(getHandles().input.replyTo).toBe(lastOrdinal)
+
+    expect(keyDown(textarea, 'Escape')).toBe(true)
+    expect(getHandles().input.replyTo).toBe(noOrdinal)
+    expect(textarea.value).toBe('hi @te')
+  })
+
+  test('Escape with only a list open closes the list, prevents the default and does nothing else', () => {
     const {getHandles, textarea} = renderComposer()
     openSuggestions(textarea, 'hi @te')
 
@@ -643,6 +661,9 @@ describe('in the composer, suggestions open', () => {
     expect(getHandles().input.editing).toBe(noOrdinal)
     expect(mockMove).not.toHaveBeenCalled()
     expect(mockSelect).not.toHaveBeenCalled()
+    // closed: an arrow no longer reaches the list
+    keyDown(textarea, 'ArrowDown')
+    expect(mockMove).not.toHaveBeenCalled()
   })
 
   test('PageUp still scrolls the thread', () => {
