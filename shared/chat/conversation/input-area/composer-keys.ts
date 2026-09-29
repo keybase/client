@@ -19,9 +19,8 @@ type ThreadFacts = {
   textEmpty: boolean
 }
 
-// a key in the desktop composer's own textarea. readOnly: the conversation can't be written to,
-// so no newline goes in either
-export type InputKeyState = ThreadFacts & {readOnly: boolean; source: 'input'; suggestions: Suggestions}
+// a key in the desktop composer's own textarea
+export type InputKeyState = ThreadFacts & {source: 'input'; suggestions: Suggestions}
 // a key anywhere else in the desktop window
 export type WindowKeyState = ThreadFacts & {
   source: 'window'
@@ -30,7 +29,7 @@ export type WindowKeyState = ThreadFacts & {
   targetIsInput: boolean
 }
 // a mobile hardware keyboard, which only ever reports enter and shift-enter
-export type HardwareKeyState = {readOnly: boolean; source: 'hardware'; suggestions: Suggestions}
+export type HardwareKeyState = {source: 'hardware'; suggestions: Suggestions}
 export type ComposerKeyState = InputKeyState | WindowKeyState | HardwareKeyState
 
 type ThreadKeyAction =
@@ -134,7 +133,7 @@ const inputKey = (s: InputKeyState, k: ComposerKey): ComposerKeyResult<InputKeyA
   if (isSendEnter(k)) {
     actions.push({type: 'submit'})
     preventDefault = true
-  } else if (k.key === 'Enter' && (k.altKey || k.ctrlKey || k.metaKey) && !s.readOnly) {
+  } else if (k.key === 'Enter' && (k.altKey || k.ctrlKey || k.metaKey)) {
     // Chromium inserts a newline for shift-Enter only (left to it, so its undo keeps working);
     // alt-, ctrl- and meta-Enter insert nothing
     actions.push({type: 'newline'})
@@ -158,7 +157,6 @@ const windowKey = (s: WindowKeyState, k: ComposerKey): ComposerKeyResult<WindowK
 
 const hardwareKey = (s: HardwareKeyState, k: ComposerKey): ComposerKeyResult<HardwareKeyAction> => {
   if (k.key !== 'Enter') return ignored
-  if (k.shiftKey && s.readOnly) return ignored
   // a list with no items yet has nothing to pick, so Enter sends, as on desktop
   const action: HardwareKeyAction = k.shiftKey
     ? {type: 'newline'}

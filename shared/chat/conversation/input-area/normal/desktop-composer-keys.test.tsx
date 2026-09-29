@@ -326,7 +326,8 @@ describe('in the composer, no suggestions', () => {
     const {textarea} = renderComposer()
     expect(textarea.readOnly).toBe(true)
 
-    expect(keyDown(textarea, 'Enter', {[modifier]: true})).toBe(false)
+    // the key is claimed as anywhere else; the composer writes nothing where the user can't post
+    expect(keyDown(textarea, 'Enter', {[modifier]: true})).toBe(true)
     keyDown(textarea, 'Enter')
     await flushSend()
 

@@ -650,7 +650,7 @@ const DesktopFooter = () => {
 
 type UseDesktopKeysProps = Pick<
   Props,
-  'cannotWrite' | 'isEditing' | 'onCancelEditing' | 'onSubmit' | 'showReplyPreview'
+  'isEditing' | 'onCancelEditing' | 'onSubmit' | 'showReplyPreview'
 > & {
   focusInput: () => void
   htmlInputRef: HtmlInputRefType
@@ -660,7 +660,7 @@ type UseDesktopKeysProps = Pick<
   >
 }
 const useDesktopKeys = (p: UseDesktopKeysProps) => {
-  const {cannotWrite, focusInput, htmlInputRef, isEditing, onCancelEditing, onSubmit} = p
+  const {focusInput, htmlInputRef, isEditing, onCancelEditing, onSubmit} = p
   const {showReplyPreview, suggestors} = p
   const {closeSuggestions, getSuggestions, moveSuggestion, recheckSuggestions, selectSuggestion} = suggestors
   const composer = useComposer()
@@ -737,7 +737,7 @@ const useDesktopKeys = (p: UseDesktopKeysProps) => {
 
   const inputKeyDown = (e: React.KeyboardEvent) => {
     const {actions, preventDefault} = composerKeyDown(
-      {...threadFacts(), readOnly: cannotWrite, source: 'input', suggestions: getSuggestions()},
+      {...threadFacts(), source: 'input', suggestions: getSuggestions()},
       e
     )
     if (preventDefault) e.preventDefault()
@@ -793,7 +793,6 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
   }
 
   const {globalKeyDownPressHandler, inputKeyDown} = useDesktopKeys({
-    cannotWrite,
     focusInput,
     htmlInputRef,
     isEditing,
@@ -1297,7 +1296,7 @@ const NativePlatformInput = (p: Props) => {
   // iOS sends it from AppDelegate.pressesBegan, which only hardware key presses reach.
   const onHardwareKey = React.useEffectEvent((hwKeyEvent: {pressedKey: string}) => {
     const {actions} = composerKeyDown(
-      {readOnly: cannotWrite, source: 'hardware', suggestions: getSuggestions()},
+      {source: 'hardware', suggestions: getSuggestions()},
       keyFromHardware(hwKeyEvent.pressedKey)
     )
     for (const a of actions) {
