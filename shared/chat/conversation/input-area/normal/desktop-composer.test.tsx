@@ -1073,7 +1073,7 @@ describe('editing and the draft', () => {
       getHandles().thread.addMessages([sentMessage()], {markAsRead: false})
     })
     act(() => {
-      getHandles().input.dispatch.setReplyTo(T.Chat.numberToOrdinal(101))
+      getHandles().input.dispatch.reply(T.Chat.numberToOrdinal(101))
     })
     type(textarea, 'r')
     type(textarea, 're')

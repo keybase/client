@@ -1000,7 +1000,7 @@ describe('editing and the draft', () => {
     const {unmount} = renderComposer()
     addMessage()
     act(() => {
-      inputDispatch?.setReplyTo(m.T.Chat.numberToOrdinal(101))
+      inputDispatch?.reply(m.T.Chat.numberToOrdinal(101))
     })
     type('r')
     type('re')
