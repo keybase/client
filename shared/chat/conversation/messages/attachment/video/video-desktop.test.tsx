@@ -62,9 +62,43 @@ test('a click on the playing video is left to its controls', () => {
   fireEvent.click(screen.getByText('0:05'))
 
   fireEvent.click(video()!)
-  fireEvent.doubleClick(video()!)
 
   expect(openFullscreen).not.toHaveBeenCalled()
+  expect(video()).not.toBeNull()
+})
+
+// A double-click is two clicks first, each a play/pause for the controls. It does what the corner
+// button does, and the inline player it toggled goes away with it, so it is left neither paused
+// nor playing behind the fullscreen view.
+test('a double-click on the playing video opens fullscreen and stops the inline one', () => {
+  const openFullscreen = jest.fn()
+  renderVideo(openFullscreen)
+  fireEvent.click(screen.getByText('0:05'))
+
+  fireEvent.click(video()!)
+  fireEvent.click(video()!)
+  fireEvent.doubleClick(video()!)
+
+  expect(openFullscreen).toHaveBeenCalledTimes(1)
+  expect(video()).toBeNull()
+})
+
+test('a double-click on the poster opens fullscreen without playing inline', () => {
+  const openFullscreen = jest.fn()
+  renderVideo(openFullscreen)
+
+  fireEvent.doubleClick(screen.getByText('0:05'))
+
+  expect(openFullscreen).toHaveBeenCalledTimes(1)
+  expect(video()).toBeNull()
+})
+
+test('a double-click does nothing until the message is sent', () => {
+  renderVideo(undefined)
+  fireEvent.click(screen.getByText('0:05'))
+
+  fireEvent.doubleClick(video()!)
+
   expect(video()).not.toBeNull()
 })
 

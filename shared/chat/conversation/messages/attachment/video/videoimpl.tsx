@@ -21,7 +21,8 @@ const usePosterState = (url: string) => {
 }
 
 // The video's own surface belongs to its player controls (a click is play/pause on desktop, a tap
-// shows the controls on iOS), so fullscreen is this button in the corner the player leaves free.
+// shows the controls on iOS), so fullscreen is this button in the corner the player leaves free,
+// and on desktop a double-click too.
 const FullscreenButton = ({onClick}: {onClick: () => void}) => {
   const sharedStyles = useSharedStyles()
   const theme = Kb.Styles.useTheme()
@@ -82,18 +83,18 @@ const DesktopVideoImpl = (p: Props) => {
   const {fileURL: url, videoDuration} = message
   const {previewURL, height, width} = getAttachmentPreviewSize(message)
   const {reset, reveal, showPoster} = usePosterState(url)
-  // the fullscreen view plays it, so the inline one goes back to its poster
-  const fullscreenButton = openFullscreen ? (
-    <FullscreenButton
-      onClick={() => {
+  // The fullscreen view plays it, so the inline one goes back to its poster. That also discards
+  // the play/pause the two clicks of a double-click gave the controls first.
+  const onFullscreen = openFullscreen
+    ? () => {
         reset()
         openFullscreen()
-      }}
-    />
-  ) : null
+      }
+    : undefined
+  const fullscreenButton = onFullscreen ? <FullscreenButton onClick={onFullscreen} /> : null
 
   return showPoster ? (
-    <div onClick={reveal} style={desktopStyles.posterContainer}>
+    <div onClick={reveal} onDoubleClick={onFullscreen} style={desktopStyles.posterContainer}>
       <Kb.Image src={previewURL} style={{height, width}} />
       {allowPlay ? <Kb.ImageIcon type="icon-play-64" style={sharedStyles.playButton} /> : null}
       <Kb.Box2 direction="vertical" overflow="hidden" style={sharedStyles.durationContainer}>
@@ -107,6 +108,7 @@ const DesktopVideoImpl = (p: Props) => {
     <Kb.Box2 direction="vertical" relative={true}>
       <video
         autoPlay={true}
+        onDoubleClick={onFullscreen}
         height={height}
         width={width}
         poster={previewURL}
