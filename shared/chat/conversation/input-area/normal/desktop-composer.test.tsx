@@ -444,6 +444,76 @@ describe('with the shared suggestion list', () => {
     })
     expect(textarea.value).toBe('hi @testuser-mac ')
   })
+
+  // the user saw the preview, so it is their text: the draft and the typing indicator hear of it
+  const closeWithEscape = (textarea: HTMLTextAreaElement) => {
+    fireEvent.keyDown(textarea, {key: 'Escape'})
+  }
+  const closeByMovingTheCaret = (textarea: HTMLTextAreaElement) => {
+    textarea.setSelectionRange(0, 0)
+    fireEvent.select(textarea)
+    fireEvent.keyDown(textarea, {key: 'ArrowLeft'})
+  }
+  test.each([
+    ['Escape', closeWithEscape],
+    ['the caret leaving the word', closeByMovingTheCaret],
+  ])('a list closed by %s on a preview keeps the preview as typed text', (_name, close) => {
+    receiveDraft('')
+    const saveDraft = jest.mocked(T.RPCChat.localUpdateUnsentTextRpcPromise)
+    const sendTyping = jest.mocked(T.RPCChat.localUpdateTypingRpcPromise)
+    const {textarea, utils} = renderComposer()
+    act(() => {
+      textarea.focus()
+    })
+    type(textarea, 'hi @te')
+    openList()
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+    saveDraft.mockClear()
+    sendTyping.mockClear()
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'ArrowDown'})
+    })
+    expect(textarea.value).toBe('hi @testuser-mac')
+    expect(saveDraft).not.toHaveBeenCalled()
+
+    act(() => {
+      close(textarea)
+    })
+    act(() => {
+      jest.advanceTimersByTime(5)
+    })
+    mockUsersList.mockClear()
+    act(() => {
+      jest.advanceTimersByTime(5)
+    })
+    // closed, and not opened again by its own report
+    expect(mockUsersList).not.toHaveBeenCalled()
+    expect(sendTyping.mock.calls.map(c => c[0].typing)).toEqual([true])
+
+    utils.unmount()
+    expect(saveDraft.mock.calls.map(c => c[0].text).at(-1)).toBe('hi @testuser-mac')
+    expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('hi @testuser-mac')
+  })
+
+  test('leaving the conversation with a preview showing saves the preview as the draft', () => {
+    receiveDraft('')
+    const saveDraft = jest.mocked(T.RPCChat.localUpdateUnsentTextRpcPromise)
+    const {textarea, utils} = renderComposer()
+    act(() => {
+      textarea.focus()
+    })
+    type(textarea, 'hi @te')
+    openList()
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'ArrowDown'})
+    })
+    expect(textarea.value).toBe('hi @testuser-mac')
+
+    utils.unmount()
+    expect(saveDraft.mock.calls.map(c => c[0].text).at(-1)).toBe('hi @testuser-mac')
+  })
 })
 
 test('the gif button prefills the giphy command and a second press clears it once the window is up', () => {

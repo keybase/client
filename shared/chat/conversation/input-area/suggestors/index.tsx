@@ -87,6 +87,8 @@ type UseSyncInputProps = {
   active: ActiveType
   composer: Composer
   inputRef: React.RefObject<InputRef | null>
+  // reports text as the user's, the way the input reports typing
+  reportText: (text: string) => void
   setActive: React.Dispatch<React.SetStateAction<ActiveType>>
   setFilter: React.Dispatch<React.SetStateAction<string>>
   selectedItemRef: React.RefObject<undefined | SelectedType>
@@ -99,16 +101,32 @@ const useSyncInput = (p: UseSyncInputProps) => {
     composer,
     inputRef,
     active,
+    reportText,
     setActive,
     setFilter,
     selectedItemRef,
     setCommandInputSnapshot,
     setSnapshotText,
   } = p
+  // Arrowing through a list shows each pick in the input without reporting it. The user saw it,
+  // so a list closing on one (Escape, a blur, the caret leaving the word) keeps it as their text.
+  const previewRef = React.useRef<string | undefined>(undefined)
+  const commitPreview = () => {
+    const preview = previewRef.current
+    previewRef.current = undefined
+    if (preview !== undefined && preview === composer.getText()) {
+      reportText(preview)
+    }
+  }
   const setInactive = () => {
+    commitPreview()
     setActive('')
     setFilter('')
   }
+  // Leaving closes the list too. A layout cleanup, so it runs before the input detaches and its
+  // detach flushes the draft.
+  const commitPreviewOnLeave = React.useEffectEvent(commitPreview)
+  React.useLayoutEffect(() => () => commitPreviewOnLeave(), [])
 
   const getInputSnapshot = (): Commands.CommandInputSnapshot => ({
     selection: composer.getSelection(),
@@ -238,6 +256,7 @@ const useSyncInput = (p: UseSyncInputProps) => {
     }
     if (composer.replace(transformedText, final)) {
       setSnapshotText(transformedText.text)
+      previewRef.current = final ? undefined : transformedText.text
     }
   }
 
@@ -281,6 +300,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     active,
     composer,
     inputRef,
+    reportText: onChangeTextProps,
     selectedItemRef,
     setActive,
     setCommandInputSnapshot: setCommandInputSnapshotIfChanged,
