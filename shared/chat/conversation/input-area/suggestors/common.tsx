@@ -56,8 +56,7 @@ export const TeamSuggestion = (p: {teamname: string; channelname: string | undef
 
 export type ItemRendererProps<T> = {selected: boolean; item: T}
 // What a mounted list gives the composer's keys: one handle for as long as the list is open,
-// whose methods read the list as it is when the key lands. A list with no items (a lookup still
-// loading, or nothing matching) takes no keys.
+// whose methods read the list as it is when the key lands.
 export type ListHandle = {
   hasItems: () => boolean
   move: (up: boolean) => void

@@ -547,16 +547,18 @@ describe('in the composer, suggestions open', () => {
   })
 })
 
-// open while a lookup loads or when nothing matches: the list takes no keys
+// open while a lookup loads or when nothing matches: the keys that move through a list are still
+// the list's, so focus stays in the composer and the caret stays put, but nothing moves
 describe('in the composer, a list open with no items', () => {
-  test('ArrowDown, ArrowUp and Tab are left to the browser, and the list is not asked', () => {
+  test('ArrowDown, ArrowUp and Tab are claimed, and the list is not asked', () => {
     mockListHasItems = false
     const {textarea} = renderComposer()
     openSuggestions(textarea, 'hi @zz')
 
-    expect(keyDown(textarea, 'ArrowDown')).toBe(false)
-    expect(keyDown(textarea, 'ArrowUp')).toBe(false)
-    expect(keyDown(textarea, 'Tab')).toBe(false)
+    expect(keyDown(textarea, 'ArrowDown')).toBe(true)
+    expect(keyDown(textarea, 'ArrowUp')).toBe(true)
+    expect(keyDown(textarea, 'Tab')).toBe(true)
+    expect(keyDown(textarea, 'Tab', {shiftKey: true})).toBe(true)
 
     expect(mockMove).not.toHaveBeenCalled()
     expect(mockSelect).not.toHaveBeenCalled()

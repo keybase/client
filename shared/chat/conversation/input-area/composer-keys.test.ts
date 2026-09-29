@@ -88,8 +88,23 @@ describe('the composer textarea', () => {
       [moveDown],
       true,
     ],
+    [
+      'ArrowUp, list open with no items yet: claimed, nothing moves',
+      input({...withText, suggestions: 'empty'}),
+      k('ArrowUp'),
+      [],
+      true,
+    ],
+    [
+      'ArrowDown, list open with no items yet: claimed, nothing moves',
+      input({suggestions: 'empty'}),
+      k('ArrowDown'),
+      [],
+      true,
+    ],
     // Enter
     ['Enter: send', input(withText), k('Enter'), [submit], true],
+    ['Enter, list open with no items yet: send', input({suggestions: 'empty'}), k('Enter'), [submit], true],
     ['Enter, empty: still asks to send', input(), k('Enter'), [submit], true],
     ['Enter, editing: send', input({...withText, editing: true}), k('Enter'), [submit], true],
     ['ctrl-Enter: send', input(withText), k('Enter', {ctrlKey: true}), [submit], true],
@@ -139,6 +154,14 @@ describe('the composer textarea', () => {
       [moveUp],
       true,
     ],
+    ['Tab, list open with no items yet: claimed, focus stays', input({suggestions: 'empty'}), k('Tab'), [], true],
+    [
+      'shift-Tab, list open with no items yet: claimed, focus stays',
+      input({suggestions: 'empty'}),
+      k('Tab', {shiftKey: true}),
+      [],
+      true,
+    ],
     // Escape
     ['Escape, editing: cancel the edit', input({editing: true}), k('Escape'), [cancelEdit], false],
     ['Escape, replying: cancel the reply', input({replying: true}), k('Escape'), [cancelReply], false],
@@ -158,6 +181,13 @@ describe('the composer textarea', () => {
       false,
     ],
     ['Escape, list open only: nothing', input({suggestions: open}), k('Escape'), [], false],
+    [
+      'Escape, editing, list open with no items yet: cancel the edit',
+      input({editing: true, suggestions: 'empty'}),
+      k('Escape'),
+      [cancelEdit],
+      false,
+    ],
     // other thread keys
     ['ctrl-U: file picker', input(withText), k('u', {ctrlKey: true}), [openFilePicker], false],
     ['cmd-U: file picker', input(withText), k('u', {metaKey: true}), [openFilePicker], false],
@@ -281,7 +311,9 @@ const threadFacts = bools.flatMap(editing =>
   bools.flatMap(replying => bools.map(textEmpty => ({editing, replying, textEmpty})))
 )
 const allKeys = keys.flatMap(key => modifierSets.map(mods => k(key, mods)))
-const suggestionStates: Array<Suggestions> = ['none', 'unfiltered', 'filtered']
+const suggestionStates: Array<Suggestions> = ['none', 'empty', 'unfiltered', 'filtered']
+const showsItems = (s: InputKeyState) => s.suggestions === 'unfiltered' || s.suggestions === 'filtered'
+const listKeys = new Set(['ArrowUp', 'ArrowDown', 'Tab'])
 const allInputStates = threadFacts.flatMap(f => suggestionStates.map(suggestions => input({...f, suggestions})))
 
 describe('across every key and state', () => {
@@ -309,8 +341,8 @@ describe('across every key and state', () => {
     }
   })
 
-  test('with no list open the textarea never touches suggestions', () => {
-    for (const s of allInputStates.filter(s => s.suggestions === 'none')) {
+  test('with no list, or one with no items yet, the textarea never touches suggestions', () => {
+    for (const s of allInputStates.filter(s => !showsItems(s))) {
       for (const key of allKeys) {
         const {actions} = composerKeyDown(s, key)
         expect(actions.filter(a => a.type === 'suggestionMove' || a.type === 'suggestionSelect')).toEqual([])
@@ -318,8 +350,8 @@ describe('across every key and state', () => {
     }
   })
 
-  test('with a list open Enter never sends outright; it picks first', () => {
-    for (const s of allInputStates.filter(s => s.suggestions !== 'none')) {
+  test('with a list showing items Enter never sends outright; it picks first', () => {
+    for (const s of allInputStates.filter(showsItems)) {
       for (const key of allKeys.filter(k => k.key === 'Enter')) {
         const {actions} = composerKeyDown(s, key)
         expect(actions.some(a => a.type === 'submit')).toBe(false)
@@ -327,17 +359,21 @@ describe('across every key and state', () => {
     }
   })
 
-  test('the default is prevented exactly when the key sends, picks, moves or edits', () => {
+  // a list with no items yet still claims the keys that move through it, so a key pressed as it
+  // loads never leaves the textarea or moves the caret
+  test("the default is prevented exactly when the key sends, picks, moves, edits or is an open list's", () => {
     for (const s of allInputStates) {
       for (const key of allKeys) {
         const {actions, preventDefault} = composerKeyDown(s, key)
-        const claims = actions.some(
-          a =>
-            a.type === 'submit' ||
-            a.type === 'suggestionSelect' ||
-            a.type === 'suggestionMove' ||
-            a.type === 'editLast'
-        )
+        const claims =
+          (s.suggestions !== 'none' && listKeys.has(key.key)) ||
+          actions.some(
+            a =>
+              a.type === 'submit' ||
+              a.type === 'suggestionSelect' ||
+              a.type === 'suggestionMove' ||
+              a.type === 'editLast'
+          )
         expect(preventDefault).toBe(claims)
       }
     }

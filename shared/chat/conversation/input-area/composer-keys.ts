@@ -9,8 +9,9 @@ export type ComposerKey = {
   shiftKey: boolean
 }
 
-// 'unfiltered' is a list opened on a bare marker (`@`), before anything was typed after it
-export type Suggestions = 'none' | 'unfiltered' | 'filtered'
+// 'empty' is a list open with no items yet (a lookup loading, or nothing matching); 'unfiltered'
+// is a list opened on a bare marker (`@`), before anything was typed after it
+export type Suggestions = 'none' | 'empty' | 'unfiltered' | 'filtered'
 
 type ThreadFacts = {
   editing: boolean
@@ -93,24 +94,32 @@ const inputKey = (s: InputKeyState, k: ComposerKey): ComposerKeyResult<InputKeyA
     actions.push({type: 'recheckSuggestions'})
   }
 
+  // An open list claims the keys that move through it even before it has items, as it always
+  // has, so a key pressed while it loads neither moves the caret nor takes focus out of the
+  // composer; there is just nothing to move to. Enter has nothing to pick, so it sends.
   if (s.suggestions !== 'none') {
+    const hasItems = s.suggestions !== 'empty'
     switch (k.key) {
       case 'ArrowDown':
       case 'ArrowUp':
-        actions.push({type: 'suggestionMove', up: k.key === 'ArrowUp'})
+        if (hasItems) {
+          actions.push({type: 'suggestionMove', up: k.key === 'ArrowUp'})
+        }
         return {actions, preventDefault: true}
       case 'Enter':
-        if (isSendEnter(k)) {
+        if (hasItems && isSendEnter(k)) {
           actions.push({orSubmit: true, type: 'suggestionSelect'})
           return {actions, preventDefault: true}
         }
         break
       case 'Tab':
-        actions.push(
-          s.suggestions === 'filtered'
-            ? {orSubmit: false, type: 'suggestionSelect'}
-            : {type: 'suggestionMove', up: k.shiftKey}
-        )
+        if (hasItems) {
+          actions.push(
+            s.suggestions === 'filtered'
+              ? {orSubmit: false, type: 'suggestionSelect'}
+              : {type: 'suggestionMove', up: k.shiftKey}
+          )
+        }
         return {actions, preventDefault: true}
       default:
     }
