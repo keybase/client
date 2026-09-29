@@ -43,30 +43,30 @@ type ListenerTarget = {
   removeEventListener: (type: string, listener: ScrollListener, options: ListenerOptions) => void
 }
 type RectLike = {height: number; top: number}
-type MeasurableWrapper = {
+type MeasurableScroller = {
   getBoundingClientRect: () => RectLike
   querySelector: (s: string) => {getBoundingClientRect: () => RectLike} | null
 }
 
-// The ordinal's row and the viewport (the wrapper) as laid out now; undefined while the row is not
-// rendered.
-const measureRow = (wrapper: unknown, ordinal: T.Chat.Ordinal) => {
-  const w = wrapper as MeasurableWrapper | null
-  const el = w?.querySelector(`[data-ordinal="${ordinal}"]`)
-  if (!w || !el) return undefined
-  return {row: el.getBoundingClientRect(), view: w.getBoundingClientRect()}
+// The ordinal's row and the viewport (the scroller, not the wrapper around it, whose padding reaches
+// below the view) as laid out now; undefined while the row is not rendered.
+const measureRow = (scroller: unknown, ordinal: T.Chat.Ordinal) => {
+  const s = scroller as MeasurableScroller | null | undefined
+  const el = s?.querySelector(`[data-ordinal="${ordinal}"]`)
+  if (!s || !el) return undefined
+  return {row: el.getBoundingClientRect(), view: s.getBoundingClientRect()}
 }
 
 // How far the ordinal's row sits below the middle of the viewport; undefined while the row is not
 // rendered.
-const offsetFromMiddle = (wrapper: unknown, ordinal: T.Chat.Ordinal) => {
-  const m = measureRow(wrapper, ordinal)
+const offsetFromMiddle = (scroller: unknown, ordinal: T.Chat.Ordinal) => {
+  const m = measureRow(scroller, ordinal)
   return m && m.row.top + m.row.height / 2 - (m.view.top + m.view.height / 2)
 }
 
 // Whether the ordinal's row is wholly inside the viewport; a row not rendered is not.
-const rowFullyVisible = (wrapper: unknown, ordinal: T.Chat.Ordinal) => {
-  const m = measureRow(wrapper, ordinal)
+const rowFullyVisible = (scroller: unknown, ordinal: T.Chat.Ordinal) => {
+  const m = measureRow(scroller, ordinal)
   return (
     !!m &&
     m.row.top >= m.view.top - rowEdgeTolerancePx &&
@@ -168,7 +168,7 @@ export const useDesktopThreadScroll = (p: {
         let pinnedChecks = 0
         let scrollAtLastRequest: number | undefined
         for (let elapsed = 0; elapsed < 3000; ) {
-          const offBy = offsetFromMiddle(wrapperRef.current, target)
+          const offBy = offsetFromMiddle(listRef.current?.getScrollableNode(), target)
           if (offBy === undefined) {
             // Target is outside the rendered window; get it mounted first.
             const idx = indexOfOrdinal(messageOrdinalsRef.current, target)
@@ -206,7 +206,7 @@ export const useDesktopThreadScroll = (p: {
         scrollTarget.decide({type: 'centerSettled'})
       })
     },
-    [centering, listRef, scrollTarget, wrapperRef]
+    [centering, listRef, scrollTarget]
   )
 
   // Carries out the directive decided for event: how the list reaches the end depends on what happened.
@@ -286,11 +286,12 @@ export const useDesktopThreadScroll = (p: {
     const targetInData = editingOrdinal !== undefined && indexOfOrdinal(messageOrdinals, editingOrdinal) >= 0
     dispatch({
       ordinal: editingOrdinal,
-      rowFullyVisible: () => editingOrdinal !== undefined && rowFullyVisible(wrapperRef.current, editingOrdinal),
+      rowFullyVisible: () =>
+        editingOrdinal !== undefined && rowFullyVisible(listRef.current?.getScrollableNode(), editingOrdinal),
       targetInData,
       type: 'editingChanged',
     })
-  }, [dispatch, editingOrdinal, messageOrdinals, wrapperRef])
+  }, [dispatch, editingOrdinal, listRef, messageOrdinals])
 
   const onMetricsChange = React.useCallback(
     (metrics: {headerSize: number}) => {

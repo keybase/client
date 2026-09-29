@@ -20,6 +20,8 @@ export {
 
 export const rowHeight = 100
 export const viewportHeight = 500
+// The thread's wrapper keeps the gap above the composer as its own paddingBottom, outside the scroller.
+export const wrapperPaddingBottom = 8
 
 type ThreadState = {
   clearVersion: number
@@ -70,6 +72,7 @@ const maxScroll = () => Math.max(0, contentHeight() - viewportHeight)
 const clampScroll = (offset: number) => Math.min(maxScroll(), Math.max(0, offset))
 
 const handle = {
+  getScrollableNode: () => scrollerElement,
   getState: () => {
     const {isAtEnd, scroll} = listStore.get()
     return {isAtEnd, scroll, scrollLength: viewportHeight}
@@ -174,8 +177,8 @@ const FakeLegendList = (p: FakeListProps) => {
 
 export const legendListModule = {LegendList: FakeLegendList}
 
-// Rows sit on a fixed grid under the current scroll offset and the wrapper is the viewport, which
-// is all the centering loop measures.
+// Rows sit on a fixed grid under the current scroll offset and the scroller is the viewport, which
+// is all the centering loop measures. The wrapper around it reaches its padding further down.
 const rectFor = (el: Element) => {
   const ordinal = el.getAttribute('data-ordinal')
   if (ordinal !== null) {
@@ -183,8 +186,12 @@ const rectFor = (el: Element) => {
     const top = index * rowHeight - scrollTop()
     return {bottom: top + rowHeight, height: rowHeight, left: 0, right: 0, top, width: 0, x: 0, y: top}
   }
-  if (el.getAttribute('data-testid') === 'chat-message-list') {
+  if (el.getAttribute('data-testid') === 'fake-scroller') {
     return {bottom: viewportHeight, height: viewportHeight, left: 0, right: 0, top: 0, width: 0, x: 0, y: 0}
+  }
+  if (el.getAttribute('data-testid') === 'chat-message-list') {
+    const height = viewportHeight + wrapperPaddingBottom
+    return {bottom: height, height, left: 0, right: 0, top: 0, width: 0, x: 0, y: 0}
   }
   return {bottom: 0, height: 0, left: 0, right: 0, top: 0, width: 0, x: 0, y: 0}
 }

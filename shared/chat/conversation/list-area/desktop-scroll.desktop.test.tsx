@@ -840,6 +840,14 @@ describe('editing', () => {
     expect(H.log).toEqual([])
   })
 
+  // The wrapper's padding below the scroller is not part of the view: a row reaching into it is cut off.
+  test('a message cut off at the bottom of the scroller, though inside the wrapper, is revealed', () => {
+    open()
+    update(() => H.listStore.set({scroll: 60 * H.rowHeight - H.viewportHeight - H.wrapperPaddingBottom / 2}))
+    update(() => H.inputStore.set({editing: ord(60)}))
+    expect(H.log).toEqual([['scrollToIndex', {animated: true, index: 59, viewPosition: 0.5}]])
+  })
+
   // In either half: moving a row already in view to the middle only moves the list off its end.
   test.each([57, 59])('a message already wholly in view (%p) is not scrolled to, and header growth re-pins the end', async n => {
     open()
