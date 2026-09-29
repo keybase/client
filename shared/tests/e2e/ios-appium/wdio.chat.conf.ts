@@ -4,7 +4,7 @@ import {config as base} from './wdio.conf'
 import {e2eAccounts, ensureChatData} from '../shared/chat-data'
 import {switchCliAccount} from '../shared/cli-account'
 import {hideKeyboard, switchAppAccount} from './helpers/chat'
-import {BUNDLE_ID, metroClientLogSince, metroLogMark} from './helpers/lifecycle'
+import {BUNDLE_ID, jsEval, metroClientLogSince, metroLogMark, waitFor} from './helpers/lifecycle'
 import {escapeToTabs} from './helpers/navigate'
 
 // The chat flows (chat.test.ts), in their own session: they need the seeded e2e team data, the app
@@ -26,6 +26,21 @@ export const config: WebdriverIO.Config = {
     const foreground = 4
     if ((await browser.execute('mobile: queryAppState', {bundleId: BUNDLE_ID})) !== foreground) {
       await browser.execute('mobile: activateApp', {bundleId: BUNDLE_ID})
+    }
+    // The runner relaunched the app for the current bundle; the JS runtime found must have started
+    // since (Metro's bundle prelude stamps when it ran).
+    const relaunchedAt = Number(process.env['KB_IOS_RELAUNCHED_AT'] ?? 0)
+    if (relaunchedAt) {
+      await waitFor(
+        'a JS runtime started since the relaunch',
+        async () => {
+          const age = await jsEval<number>(
+            `const now = globalThis.nativePerformanceNow ? globalThis.nativePerformanceNow() : Date.now(); return now - globalThis.__BUNDLE_START_TIME__`
+          )
+          return Date.now() - age >= relaunchedAt - 1_000 ? true : undefined
+        },
+        {interval: 1_000, timeout: 90_000}
+      )
     }
     // seeding sends as the team's owner
     await switchCliAccount(smokeUser)

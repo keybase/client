@@ -9,7 +9,7 @@
 # both accounts (the flows send "incoming" messages through the host's CLI as KB_SECOND_USER).
 #
 # The run:
-# - relaunches the app so it loads the current bundle, and waits for Metro to serve it;
+# - relaunches the app so it loads the current bundle, and waits for it to connect to Metro;
 # - switches the host's keybase CLI to KB_SECOND_USER for the flows and back to KB_SMOKE_USER when it
 #   ends, however it ends;
 # - is stopped after KB_IOS_CHAT_DEADLINE seconds (default 3600) if it has not finished.
@@ -30,20 +30,27 @@ LOG="tests/results/run-chat-$SLUG.log"
 METRO_LOG=".expo/dev/logs/start.log"
 
 restore_cli() {
-  if [ "$(keybase whoami 2>/dev/null)" != "$KB_SMOKE_USER" ]; then
+  # a second signal must not cut the restore short
+  trap '' INT TERM
+  local i
+  for i in 1 2 3; do
+    [ "$(keybase whoami 2>/dev/null)" = "$KB_SMOKE_USER" ] && return
     echo "▶ Switching the host's keybase CLI back to the smoke user"
     perl -e 'alarm 60; exec @ARGV' keybase login --switch "$KB_SMOKE_USER" </dev/null
-  fi
+  done
   if [ "$(keybase whoami 2>/dev/null)" != "$KB_SMOKE_USER" ]; then
     echo "❌ the host's keybase CLI is not back on the smoke user"
   fi
 }
 RUN=""
 WATCHDOG=""
+UDID=""
 # Stopped from outside: stop what this run started, then exit, which restores the CLI.
 stop_run() {
   [ -n "$RUN" ] && kill -- -"$RUN" 2>/dev/null
   [ -n "$WATCHDOG" ] && kill -- -"$WATCHDOG" 2>/dev/null
+  # appium starts WebDriverAgent's xcodebuild in a process group of its own
+  [ -n "$UDID" ] && pkill -f "xcodebuild test-without-building .*id=$UDID" 2>/dev/null
   exit 143
 }
 trap restore_cli EXIT
@@ -54,6 +61,7 @@ if ! curl -sf -m 5 http://127.0.0.1:8081/status >/dev/null; then
   exit 1
 fi
 
+UDID="$(xcrun simctl list devices available | sed -n "s/^ *$NAME (\([-0-9A-F]*\)).*/\1/p" | head -1)"
 xcrun simctl boot "$NAME" 2>/dev/null || true
 if ! perl -e 'alarm 120; exec @ARGV' xcrun simctl bootstatus "$NAME" -b >/dev/null 2>&1; then
   echo "❌ Simulator not found / failed to boot: $NAME"
@@ -62,21 +70,23 @@ fi
 # Xcode 27 shows simulators in DeviceHub; older Xcodes in Simulator.
 open -a Simulator >/dev/null 2>&1 || open -a DeviceHub >/dev/null 2>&1 || true
 
-# A session attaches to the app already running, which may be running an old bundle.
+# A session attaches to the app already running, which may be running an old bundle. The session
+# checks the JS runtime it finds started after this relaunch (KB_IOS_RELAUNCHED_AT).
 echo "▶ Relaunching the app on $NAME for a fresh bundle"
 xcrun simctl terminate "$NAME" keybase.ios 2>/dev/null || true
-LINES="$(wc -l <"$METRO_LOG" 2>/dev/null || echo 0)"
+KB_IOS_RELAUNCHED_AT="$(node -e 'console.log(Date.now())')"
+export KB_IOS_RELAUNCHED_AT
 xcrun simctl launch "$NAME" keybase.ios >/dev/null
 END=$(($(date +%s) + 180))
-until tail -n +"$((LINES + 1))" "$METRO_LOG" 2>/dev/null | grep -q '"metro:bundling:done"'; do
+until curl -s -m 3 http://127.0.0.1:8081/json/list | grep -q "\"deviceName\": \"$NAME\""; do
   if [ "$(date +%s)" -gt "$END" ]; then
-    echo "❌ Metro served no bundle within 180s of the relaunch"
+    echo "❌ the relaunched app did not connect to Metro within 180s"
     tail -5 "$METRO_LOG"
     exit 1
   fi
   sleep 1
 done
-echo "▶ Bundle served: $(tail -n +"$((LINES + 1))" "$METRO_LOG" | grep '"metro:bundling:done"' | head -1)"
+echo "▶ The relaunched app is connected to Metro"
 
 rm -rf "$DBG"; mkdir -p "$DBG"
 echo "▶ Running chat flows on $NAME (deadline ${DEADLINE}s)"
