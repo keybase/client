@@ -464,6 +464,10 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
 export const setRouteParams = (routeKey: string | undefined, params: object): boolean =>
   getNavigator().setRouteParams(routeKey, params)
 
+export const whenModalsGone = (cb: () => void) => {
+  getNavigator().whenModalsGone(cb)
+}
+
 export const setThreadInputCommandStatus = (
   conversationIDKey: T.Chat.ConversationIDKey,
   info?: T.Chat.CommandStatusInfo

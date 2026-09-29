@@ -63,6 +63,8 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
   // Merges params into the route with this key, in place and without a transition. Returns
   // whether it dispatched.
   setRouteParams: (routeKey: string | undefined, params: object) => boolean
+  // Runs cb once no modal route is up: now, or at the state commit that removes the last one.
+  whenModalsGone: (cb: () => void) => void
 }
 
 
@@ -332,6 +334,19 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     return true
   }
 
+  const whenModalsGone = (cb: () => void) => {
+    const modalsGone = () => NavTree.modalStack(ref.getRootState()).length === 0
+    if (modalsGone()) {
+      cb()
+      return
+    }
+    const unsub = ref.addListener('state', () => {
+      if (!modalsGone()) return
+      unsub()
+      cb()
+    })
+  }
+
   return {
     addListener: ref.addListener,
     clearModals,
@@ -346,6 +361,7 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     setRouteParams,
     showAboveTabs,
     switchTab,
+    whenModalsGone,
   }
 }
 

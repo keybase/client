@@ -13,7 +13,12 @@ import {Freeze} from 'react-freeze'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
 import {setInputIntent, useInputIntentState} from '../input-intent-store'
-import {setThreadInputCommandStatus, setThreadInputEditing, setThreadInputReplyTo} from '@/constants/router'
+import {
+  clearModals,
+  setThreadInputCommandStatus,
+  setThreadInputEditing,
+  setThreadInputReplyTo,
+} from '@/constants/router'
 import {useCurrentUserState} from '@/stores/current-user'
 import Input from './normal'
 import type {PlatformInputProps, Selection} from './normal/input.shared'
@@ -1501,12 +1506,12 @@ describe('focusing the composer from the thread', () => {
 
 describe('reply', () => {
   const replyOrdinal = T.Chat.numberToOrdinal(1201)
-  // the phone message menu is a modal route above the thread, still up when Reply runs
-  const installThread = (threadSearch?: {query?: string}, conversationIDKey = convID) =>
+  // menuUp: the phone message menu, a modal route above the thread, is still up when Reply runs
+  const installThread = (threadSearch?: {query?: string}, conversationIDKey = convID, menuUp = false) =>
     installFakeNavigator({
       modalRouteNames: ['chatMessagePopup'],
       rootState: makeRootState({
-        above: [{name: 'chatMessagePopup'}],
+        above: menuUp ? [{name: 'chatMessagePopup'}] : [],
         tabStack: [{name: 'chatRoot'}, {name: 'chatConversation', params: {conversationIDKey, threadSearch}}],
       }),
     })
@@ -1523,6 +1528,25 @@ describe('reply', () => {
 
     expect(result.current.replyTo).toBe(replyOrdinal)
     expect(threadParams(nav)?.threadSearch).toBeUndefined()
+    expect(composerInput.focusCount).toBe(1)
+  })
+
+  test('under the message menu, closes search behind it and focuses only once the menu is gone', () => {
+    const nav = installThread({query: 'needle'}, convID, true)
+    const {composerInput, result} = renderInput()
+
+    act(() => {
+      result.current.dispatch.reply(replyOrdinal)
+    })
+    expect(result.current.replyTo).toBe(replyOrdinal)
+    expect(threadParams(nav)?.threadSearch).toBeUndefined()
+    expect(composerInput.focusCount).toBe(0)
+
+    act(() => {
+      clearModals()
+    })
+
+    expect(nav.modalsCleared()).toBe(true)
     expect(composerInput.focusCount).toBe(1)
   })
 
@@ -1580,7 +1604,7 @@ describe('reply', () => {
   })
 
   test("does not close another conversation's thread search", () => {
-    const nav = installThread({query: 'needle'}, otherConvID)
+    const nav = installThread({query: 'needle'}, otherConvID, true)
     const {result} = renderInput()
 
     act(() => {

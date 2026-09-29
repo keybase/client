@@ -6,6 +6,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {ignorePromise} from '@/constants/utils'
+import {whenModalsGone} from '@/constants/router'
 import {useThrottledCallback} from '@/util/use-debounce'
 import {closeConversationThreadSearch, useConversationThreadID, useConversationThreadStore} from '../thread-context'
 import {useConversationSendActions} from '../send-actions'
@@ -179,7 +180,9 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
     }
     dispatchState({ordinal, type: 'setReplyTo'})
     closeConversationThreadSearch(id)
-    composer.focus()
+    // a TextInput focused under a modal that is still presented (the phone message menu) takes
+    // first responder unreliably on iOS
+    whenModalsGone(() => composer.focus())
   })
   const clearReplyTo = React.useEffectEvent(() => {
     dispatchState({ordinal: emptyOrdinal, type: 'setReplyTo'})

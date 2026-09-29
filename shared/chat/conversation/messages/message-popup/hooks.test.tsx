@@ -209,12 +209,19 @@ describe('composer items dismiss a covering modal', () => {
     expect(clearModals).toHaveBeenCalledTimes(1)
   })
 
-  test('Reply clears modals so the composer it just filled is visible', () => {
+  // the reply focuses the composer, which is only reliable on iOS once no modal is presented
+  test('Reply clears modals first, then replies', () => {
+    const order: Array<string> = []
+    clearModals.mockImplementation(() => order.push('clearModals'))
+    jest.spyOn(Router, 'setThreadInputReplyTo').mockImplementation(() => {
+      order.push('reply')
+    })
     const {itemReply} = yourEditableMessage()
     expect(titles(itemReply)).toEqual(['Reply'])
-    expect(clearModals).not.toHaveBeenCalled()
+
     itemReply[0].onClick()
-    expect(clearModals).toHaveBeenCalledTimes(1)
+
+    expect(order).toEqual(['clearModals', 'reply'])
   })
 })
 
