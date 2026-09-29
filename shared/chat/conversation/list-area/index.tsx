@@ -216,6 +216,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const {
     initialScrollIndex,
     maintainScrollAtEnd,
+    onItemSizeChanged,
     onLayout,
     onMetricsChange,
     scrollToBottom,
@@ -391,6 +392,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           // Stays on while centered: the full thread response lands after the cached one and
           // re-measures rows above the target, which slides it out of view unless anchored.
           maintainVisibleContentPosition={{data: true}}
+          onItemSizeChanged={onItemSizeChanged}
           onLayout={onLayout}
           onMetricsChange={onMetricsChange}
           onLoad={onLoad}

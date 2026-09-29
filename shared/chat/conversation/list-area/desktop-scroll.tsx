@@ -118,6 +118,10 @@ export const useDesktopThreadScroll = (p: {
   // footer or viewport layout change but has no header trigger, so a header that grows after the
   // target resolved leaves the list short by exactly that growth and nothing corrects it.
   //
+  // The same holds for the other size changes that anchor misses: the viewport changing height while
+  // a scroll it declines to interrupt is in flight, and a row changing by a few pixels, which it
+  // leaves alone.
+  //
   // Closed loop rather than a correction fired straight from the size change, for the same reason a
   // pin leaves a list already at its end alone: the header often settles while the thread is still
   // empty, and a scrollToEnd issued against that near-empty content becomes the target the list then
@@ -221,9 +225,10 @@ export const useDesktopThreadScroll = (p: {
       switch (directive.type) {
         case 'pinEnd':
           if (directive.stopCentering) centering.stop()
-          // The header or the viewport changes size while the list may still be settling its own
-          // position, and its own end anchor may already have re-pinned it.
-          if (event.type === 'headerMeasured' || event.type === 'viewportResized') {
+          // The header, the viewport or a row changes size while the list may still be settling its
+          // own position, and its own end anchor may already have re-pinned it. That anchor re-pins
+          // for no header change at all, and for no row changing by five pixels or less.
+          if (event.type === 'headerMeasured' || event.type === 'viewportResized' || event.type === 'rowResized') {
             verifyEndAnchor()
             return
           }
@@ -333,6 +338,10 @@ export const useDesktopThreadScroll = (p: {
     [dispatch]
   )
 
+  const onItemSizeChanged = React.useCallback(() => {
+    dispatch({anchorsEnd: anchorsEndRef.current, type: 'rowResized'})
+  }, [dispatch])
+
   // Who moved the scroller is read from where it moved to, never from the input that moved it: the
   // list writes down where it is putting the scroller before it moves it (its initial position, every
   // scrollTo, its end anchor, holding rows in place as they measure), and anything else that moved it
@@ -419,6 +428,7 @@ export const useDesktopThreadScroll = (p: {
   return {
     initialScrollIndex,
     maintainScrollAtEnd: anchorsEnd,
+    onItemSizeChanged,
     onLayout,
     onMetricsChange,
     scrollToBottom,

@@ -76,6 +76,10 @@ export type ScrollEvent =
   // (listAnchorsEnd). Only a list whose end moves with its viewport reports it: the native list is
   // inverted, so its end is its bottom edge, which stays put however the viewport above it changes.
   | {type: 'viewportResized'; anchorsEnd: boolean}
+  // A row changed size after the list laid it out (a late measure, a re-measure: an image or a font
+  // landing). anchorsEnd as for viewportResized. Only a list whose end moves with its rows reports it:
+  // the native list is inverted, so its newest row sits on its bottom edge and grows away from it.
+  | {type: 'rowResized'; anchorsEnd: boolean}
   // Messages were appended. Only a list whose own anchoring can leave a new message out of view
   // reports it; anchorHidesNewest says whether it would this time. That is the native list with the
   // keyboard up, whose content-position anchor holds the old rows in place and so leaves a new one
@@ -218,6 +222,10 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
       if (state.holdingReveal && state.lastEditing !== undefined) {
         return {directive: {ordinal: state.lastEditing, type: 'reveal'}, state}
       }
+      return {directive: state.endOwner === 'list' && event.anchorsEnd ? pinEnd : leaveAlone, state}
+    case 'rowResized':
+      // Rows growing around a reader, or around a centred target, are left to the list's
+      // content-position anchor, which holds what is in view where it is.
       return {directive: state.endOwner === 'list' && event.anchorsEnd ? pinEnd : leaveAlone, state}
     case 'appended':
       // Only an end the list holds is re-pinned: a reader in history, or on a centred target, stays.

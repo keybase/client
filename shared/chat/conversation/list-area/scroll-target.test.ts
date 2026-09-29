@@ -345,6 +345,23 @@ describe('viewportResized', () => {
   ])
 })
 
+describe('rowResized', () => {
+  const resized = (anchorsEnd = true): ScrollEvent => ({anchorsEnd, type: 'rowResized'})
+  runTable([
+    ['an end the list holds is re-pinned', fresh, resized(), pinEnd, fresh],
+    ['an end the list owns but its anchor does not hold is left alone', fresh, resized(false), leaveAlone, fresh],
+    ['a reader holding the end is left where they are', busy, resized(), leaveAlone, busy],
+    ['a centred target is left to its centring', centred(30), resized(false), leaveAlone, centred(30)],
+    [
+      'a held reveal is left where it is',
+      state({endOwner: 'reader', holdingReveal: true, lastEditing: ord(15)}),
+      resized(),
+      leaveAlone,
+      state({endOwner: 'reader', holdingReveal: true, lastEditing: ord(15)}),
+    ],
+  ])
+})
+
 describe('readerAtEnd', () => {
   runTable([
     ['hands the end back to the list', busy, {type: 'readerAtEnd'}, leaveAlone, {...busy, endOwner: 'list'}],

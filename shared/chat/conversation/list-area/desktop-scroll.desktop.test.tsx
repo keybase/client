@@ -1072,6 +1072,69 @@ describe('the viewport changing height', () => {
   })
 })
 
+// A row measuring at a new height after the list laid it out: the newest message, just received,
+// measuring a few pixels taller once the thread has opened on it. The list's own end anchor re-pins
+// only for a change of more than a few pixels.
+describe('a row changing size', () => {
+  const scrollerTop = () => screen.getByTestId('fake-scroller').scrollTop
+  const scrollerEnd = () => {
+    const s = screen.getByTestId('fake-scroller')
+    return s.scrollHeight - s.clientHeight
+  }
+  // At the end, which the list's own anchor put it at.
+  const heldAtEnd = () => update(() => H.listStore.set({isAtEnd: true, scroll: endOffset()}))
+  const newestGrows = () => H.remeasureRow(ord(60), H.rowHeight + 3)
+
+  test('while the list holds its end, a row growing there re-pins it, as the list\'s own scroll', async () => {
+    open()
+    heldAtEnd()
+    newestGrows()
+    await tick(150)
+    expect(H.log).toEqual([['scrollToEnd', noAnimation]])
+    expect(scrollerTop()).toBe(scrollerEnd())
+    expect(props()['maintainScrollAtEnd']).toBe(true)
+  })
+
+  test('a list already at its end is left to its own anchor', async () => {
+    open()
+    heldAtEnd()
+    H.remeasureRow(ord(10), H.rowHeight + 3)
+    update(() => H.listStore.set({isAtEnd: true, scroll: endOffset()}))
+    await tick(3000)
+    expect(H.log).toEqual([])
+  })
+
+  test('a reader who holds the end is left where they are', async () => {
+    open()
+    heldAtEnd()
+    wheel()
+    newestGrows()
+    await tick(3000)
+    expect(H.log).toEqual([])
+  })
+
+  test('a centred target is left to its centring', async () => {
+    open({center: 30})
+    await tick(5000)
+    H.log.length = 0
+    newestGrows()
+    await tick(3000)
+    expect(H.log).toEqual([])
+  })
+
+  test('a window of history is left where it is, even with the reader resting at its end', async () => {
+    open({center: 30, moreToLoadForward: true})
+    update(() => H.setCenter(undefined))
+    await tick(5000)
+    update(() => H.moveScroller(endOffset()))
+    H.scrollEnds()
+    H.log.length = 0
+    newestGrows()
+    await tick(3000)
+    expect(H.log).toEqual([])
+  })
+})
+
 describe('dataset reset', () => {
   test('changes the dataKey and hands the end back to the list', async () => {
     open()

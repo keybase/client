@@ -186,6 +186,23 @@ export const listHearsLayout = () => {
     reportLayout(viewport)
   })
 }
+// A rendered row measuring at a new height after the list laid it out (an image or a font landing, a
+// late re-measure): the list records it, re-reads whether it is at its end, and reports the change to
+// its onItemSizeChanged prop. The list's own end anchor, which re-pins here only for a change of more
+// than a few pixels, is not simulated.
+export const remeasureRow = (ordinal: T.Chat.Ordinal, height: number) => {
+  const previous = heightOf(ordinal)
+  act(() => {
+    listStore.set({rowHeights: new Map([...listStore.get().rowHeights, [ordinal, height]])})
+    const {listViewport, scroll} = listStore.get()
+    listStore.set({isAtEnd: scroll >= contentHeight() - listViewport})
+    const data = listProps.current?.data ?? []
+    const onItemSizeChanged = listProps.current?.['onItemSizeChanged'] as
+      | ((info: {index: number; itemData: T.Chat.Ordinal; itemKey: string; previous: number; size: number}) => void)
+      | undefined
+    onItemSizeChanged?.({index: data.indexOf(ordinal), itemData: ordinal, itemKey: String(ordinal), previous, size: height})
+  })
+}
 // The scroller's current scroll coming to rest, whoever moved it.
 export const scrollEnds = () => {
   act(() => {
