@@ -668,6 +668,44 @@ describe('read-only', () => {
     expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('typed before')
   })
 
+  test('a stellar send cancelled after the conversation turned read-only still puts the text back as the draft', async () => {
+    const unsent = jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+    let cancel: (() => void) | undefined
+    jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener').mockImplementation(async p => {
+      cancel = () => p.incomingCallMap['chat.1.chatUi.chatStellarDone']?.({canceled: true})
+      await Promise.resolve()
+      return {outboxID: new TextEncoder().encode('posted')}
+    })
+    const meta = {...Meta.makeConversationMeta(), conversationIDKey: convID, draft: ''}
+    act(() => {
+      metasReceived([meta], undefined, {force: true})
+    })
+    const {textarea} = renderComposer()
+    type(textarea, '+1xlm@testuser')
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'Enter'})
+    })
+    await act(async () => {
+      jest.advanceTimersByTime(0)
+      await Promise.resolve()
+    })
+    expect(textarea.value).toBe('')
+    act(() => {
+      metasReceived([{...meta, cannotWrite: true, draft: ''}], undefined, {force: true})
+    })
+
+    act(() => {
+      cancel?.()
+    })
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(textarea.value).toBe('+1xlm@testuser')
+    expect(unsent.mock.calls.at(-1)?.[0].text).toBe('+1xlm@testuser')
+    expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('+1xlm@testuser')
+  })
+
   // a first keystroke into the empty composer would otherwise save over the draft
   test('the saved draft loads once the user can post, and typing goes on from it', () => {
     const unsent = jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)

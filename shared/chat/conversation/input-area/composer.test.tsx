@@ -829,6 +829,28 @@ describe('read-only', () => {
     expect(composer.getText()).toBe('typed before')
   })
 
+  // a stellar send the user cancels hands its text back after the send cleared it and its draft
+  test("a restore puts the user's own text back, and reports it so it is saved again", () => {
+    jest.useFakeTimers()
+    const {composer, mount, send, setReadOnly} = setup()
+    const {fake, view} = mount()
+    const reports: Array<string> = []
+    fake.connect(text => {
+      reports.push(text)
+      view.textChanged(text)
+    })
+    fake.type('+1xlm@testuser')
+    composer.submit(send)
+    jest.runAllTimers()
+    setReadOnly(true)
+
+    composer.restore('+1xlm@testuser')
+
+    expect(fake.text).toBe('+1xlm@testuser')
+    expect(composer.getText()).toBe('+1xlm@testuser')
+    expect(reports.at(-1)).toBe('+1xlm@testuser')
+  })
+
   test('a clear still clears', () => {
     const {composer, mount, setReadOnly} = setup()
     const {fake} = mount()

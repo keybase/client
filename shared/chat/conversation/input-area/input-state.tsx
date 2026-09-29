@@ -219,10 +219,13 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
       logger.error(`[chat] setEditing ignored ordinal ${ordinal}: message is ${message?.type ?? 'missing'}`)
     }
   })
+  const restoreText = React.useEffectEvent((text: string) => {
+    composer.restore(text)
+  })
   const sendComposerText = React.useEffectEvent((text: string, unfurlSuppress?: SuppressSnapshot) => {
     sendMessage(text, {
       editingOrdinal: state.editing,
-      onRestoreText: injectIntoInput,
+      onRestoreText: restoreText,
       replyToOrdinal: state.replyTo,
       unfurlSuppress,
     })

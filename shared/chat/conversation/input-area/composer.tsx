@@ -40,6 +40,10 @@ export type Composer = {
   focus: () => void
   // Replaces the whole text with the caret at its end.
   inject: (text: string, focus?: boolean) => void
+  // Puts back text of the user's own that a send took out (a stellar send the user cancelled),
+  // as inject does, and reports it so it is saved as the draft again. It lands even where the user
+  // can't post: the text was theirs before the send.
+  restore: (text: string) => void
   insertAtCaret: (s: string) => void
   // insertAtCaret, typed by the input itself where it can be, so the platform can undo it
   typeAtCaret: (s: string) => void
@@ -55,7 +59,8 @@ export type Composer = {
   // Writes made while no input is attached (an inject, an insert, a replace) wait, and land in
   // order once one attaches, after its draft; a waiting inject lands with the focus it asked for.
   // A replace carries a whole text worked out from its view's text, so it lands only if the same
-  // view attaches again; injects, inserts and a send's clear land on whichever input comes next.
+  // view attaches again; injects, restores, inserts and a send's clear land on whichever input
+  // comes next.
   connect: () => ComposerView
 }
 
@@ -100,21 +105,36 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     deps.saveDraft(next)
   }
 
-  const write = (target: ComposerInput, next: string, focus: boolean) => {
+  const asComposer = (w: () => void) => {
     writing = true
     try {
-      if (next) {
-        if (!deps.isReadOnly() && target.replaceText({selection: injectedSelection(next), text: next}, true)) {
-          text = next
-          saveDraft(next)
-        }
-      } else {
+      w()
+    } finally {
+      writing = false
+    }
+  }
+
+  // an input that does not show the text keeps the text it had
+  const show = (target: ComposerInput, next: string) => {
+    asComposer(() => {
+      if (target.replaceText({selection: injectedSelection(next), text: next}, true)) {
+        text = next
+        saveDraft(next)
+      }
+    })
+  }
+
+  const write = (target: ComposerInput, next: string, focus: boolean) => {
+    if (next) {
+      if (!deps.isReadOnly()) {
+        show(target, next)
+      }
+    } else {
+      asComposer(() => {
         text = ''
         target.clear()
         saveDraft('')
-      }
-    } finally {
-      writing = false
+      })
     }
     if (focus) {
       target.focus()
@@ -225,6 +245,9 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
         }
       })
       return false
+    },
+    restore: next => {
+      whenAttached(target => show(target, next))
     },
     submit: send => {
       const toSend = text
