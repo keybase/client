@@ -5,6 +5,7 @@ import * as Meta from '@/constants/chat/meta'
 import logger from '@/logger'
 import {metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
 import type * as React from 'react'
+import {useContext} from 'react'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
 import {act, cleanup, render, renderHook} from '@testing-library/react'
@@ -1440,7 +1441,6 @@ describe('focusing the composer from the thread', () => {
   const renderWithThreadRefs = () => {
     let focusInput: (() => void) | undefined
     const FocusProbe = (p: {onRender: (focus: () => void) => void}) => {
-      const {useContext} = require('react') as typeof React
       p.onRender(useContext(ThreadRefsContext).focusInput)
       return null
     }
