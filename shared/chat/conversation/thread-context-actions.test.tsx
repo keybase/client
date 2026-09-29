@@ -29,11 +29,21 @@ import {
   type ConversationThreadActions,
 } from './thread-context'
 
+// the route's focus, both as the screen last rendered it and as navigation reports it now
 let mockRouteFocused = true
-jest.mock('@react-navigation/core', () => ({
-  ...jest.requireActual<object>('@react-navigation/core'),
-  useIsFocused: () => mockRouteFocused,
-}))
+let mockRouteFocusedNow = true
+jest.mock('@react-navigation/core', () => {
+  const actual = jest.requireActual<{useNavigation: () => object}>('@react-navigation/core')
+  return {
+    ...actual,
+    useIsFocused: () => mockRouteFocused,
+    useNavigation: () => ({...actual.useNavigation(), isFocused: () => mockRouteFocusedNow}),
+  }
+})
+const setRouteFocused = (focused: boolean) => {
+  mockRouteFocused = focused
+  mockRouteFocusedNow = focused
+}
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
@@ -133,7 +143,7 @@ const HideableThread = (p: {into: (v: Probed) => void; mode: 'hidden' | 'visible
 }
 
 beforeEach(() => {
-  mockRouteFocused = true
+  setRouteFocused(true)
   rpc = installFakeChatRpc()
   useConfigState.setState({loggedIn: true})
   useCurrentUserState.getState().dispatch.setBootstrap({
@@ -227,13 +237,37 @@ describe('mark read gating', () => {
   test('route focus: refused while covered, marked when the route is focused again', async () => {
     const {h, rendered} = renderThread()
     armWith(h().actions, [textAt(10)])
-    mockRouteFocused = false
+    setRouteFocused(false)
     rendered.rerender()
     await run(() => h().actions.markThreadAsRead())
     expect(markReads()).toEqual([])
-    mockRouteFocused = true
+    setRouteFocused(true)
     await run(() => rendered.rerender())
     expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 10}])
+  })
+
+  test('a load that finishes while <Activity> hides the screen is not marked read; showing it again marks it', async () => {
+    let actions: ConversationThreadActions | undefined
+    const into = (v: Probed) => {
+      actions = v.actions
+    }
+    const {rerender} = render(<HideableThread into={into} mode="visible" />)
+    setRouteFocused(false)
+    rerender(<HideableThread into={into} mode="hidden" />)
+    armWith(actions!, [textAt(10)])
+    await run(() => actions?.markThreadAsRead())
+    expect(markReads()).toEqual([])
+    setRouteFocused(true)
+    await run(() => rerender(<HideableThread into={into} mode="visible" />))
+    expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 10}])
+  })
+
+  test('a load that finishes after the route loses focus, before the screen renders again, is not marked read', async () => {
+    const {h} = renderThread()
+    mockRouteFocusedNow = false
+    armWith(h().actions, [textAt(10)])
+    await run(() => h().actions.markThreadAsRead())
+    expect(markReads()).toEqual([])
   })
 
   test('coming back into view does nothing unless a load armed mark read', async () => {

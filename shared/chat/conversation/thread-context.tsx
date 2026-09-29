@@ -8,7 +8,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import {useShellState} from '@/stores/shell'
 import {useStore} from 'zustand'
-import {useIsFocused} from '@react-navigation/core'
+import {useIsFocused, useNavigation} from '@react-navigation/core'
 import {applyOptimisticReactionsToMessage} from './thread-message-state'
 import {getInboxConversationParticipants, unboxRows, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {getChatRpc} from './chat-rpc'
@@ -161,25 +161,24 @@ const ConversationThreadContextProvider = (p: {
 
 const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => {
   const {children, id} = p
-  const [thread] = React.useState(() => makeThreadStore(id))
+  const navigation = useNavigation()
+  const [thread] = React.useState(() =>
+    makeThreadStore(id, () => {
+      const {active, appFocused} = useShellState.getState()
+      return active && appFocused && navigation.isFocused()
+    })
+  )
   const active = useShellState(s => s.active)
   const appFocused = useShellState(s => s.appFocused)
   const routeFocused = useIsFocused()
-  // Mark-read attempts bail while we're not looking at the thread (backgrounded,
-  // covered by another route, or idle on desktop), so re-fire when any of those
-  // gates reopen. On mobile `active` never changes; appFocused/routeFocused are
-  // the only signals that we came back.
+  // Mark read refuses while the reader is not looking at the thread (backgrounded, covered by
+  // another route, or idle on desktop), so try again whenever they are looking once more: when one
+  // of those gates reopens, and when <Activity> shows the screen again, which runs this effect
+  // again. On mobile `active` never changes; appFocused/routeFocused are the only signals that we
+  // came back.
   const lookingAtThread = active && appFocused && routeFocused
-  // An insertion effect runs before every layout effect of the commit, so a child's layout effect
-  // that marks read (the native list's initial mark read) already sees this commit's value.
-  React.useInsertionEffect(() => {
-    thread.setLookingAtThread(lookingAtThread)
-  }, [thread, lookingAtThread])
-  const previousLookingAtThreadRef = React.useRef(lookingAtThread)
   React.useEffect(() => {
-    const wasLookingAtThread = previousLookingAtThreadRef.current
-    previousLookingAtThreadRef.current = lookingAtThread
-    if (!wasLookingAtThread && lookingAtThread) {
+    if (lookingAtThread) {
       thread.markReadIfArmed()
     }
   }, [thread, lookingAtThread])

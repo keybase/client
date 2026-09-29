@@ -58,12 +58,10 @@ const flushPromises = async () => {
   }
 }
 
-// A thread the reader is looking at, as the provider leaves it once mounted.
-const makeThread = (id = convA, overrides?: Partial<ThreadStoreDeps>) => {
-  const thread = makeThreadStore(id, {...deps, ...overrides})
-  thread.setLookingAtThread(true)
-  return thread
-}
+// whether the reader is looking at the thread, as the provider reports it when asked
+let looking = true
+const makeThread = (id = convA, overrides?: Partial<ThreadStoreDeps>) =>
+  makeThreadStore(id, () => looking, {...deps, ...overrides})
 
 const arm = (actions: ConversationThreadActions, messages: ReadonlyArray<T.Chat.Message>) =>
   actions.applyThreadLoad({
@@ -77,6 +75,7 @@ const arm = (actions: ConversationThreadActions, messages: ReadonlyArray<T.Chat.
 const markReads = () => rpc.params('markRead')
 
 beforeEach(() => {
+  looking = true
   rpc = installFakeChatRpc()
   useConfigState.setState({loggedIn: true})
   session = {loggedIn: true, uid: 'uid'}
@@ -130,8 +129,8 @@ describe('mark read', () => {
     expect(markReads()).toEqual([{conversationIDKey: convA, forceUnread: false, msgID: 6}])
   })
 
-  test('a store nobody has said is being looked at refuses', async () => {
-    const {actions} = makeThreadStore(convA, deps)
+  test('a store whose reader is not looking refuses', async () => {
+    const {actions} = makeThreadStore(convA, () => false, deps)
     arm(actions, [textAt(5)])
     actions.markThreadAsRead()
     await flushPromises()
@@ -141,9 +140,9 @@ describe('mark read', () => {
   test('looking away refuses, looking back does not mark on its own', async () => {
     const thread = makeThread()
     arm(thread.actions, [textAt(5)])
-    thread.setLookingAtThread(false)
+    looking = false
     thread.actions.markThreadAsRead()
-    thread.setLookingAtThread(true)
+    looking = true
     await flushPromises()
     expect(markReads()).toEqual([])
     thread.actions.markThreadAsRead()
@@ -385,7 +384,7 @@ describe('loadMoreMessages', () => {
   })
 
   test('the default loader goes to the service', () => {
-    const {actions} = makeThreadStore(convA)
+    const {actions} = makeThreadStore(convA, () => looking)
     actions.loadMoreMessages({reason: 'focused'})
     expect(rpc.params('loadThread')).toHaveLength(1)
     expect(rpc.params('loadThread')[0]?.conversationIDKey).toBe(convA)

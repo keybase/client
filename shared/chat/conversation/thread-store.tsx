@@ -205,9 +205,6 @@ export type ThreadStore = {
   dispose: () => void
   // Marks read if a load has armed it; for when the reader comes back to the thread.
   markReadIfArmed: () => void
-  // Whether the reader is looking at this thread (app active and focused, route focused). Mark read
-  // refuses while they are not.
-  setLookingAtThread: (looking: boolean) => void
   // Sticky username-header cache (see getMessageShowUsername): ordinal -> the author username it
   // has shown. Cleared on messagesClear.
   shownUsernameCache: Map<T.Chat.Ordinal, string>
@@ -250,8 +247,11 @@ const makeEmptyThreadState = (): ConversationThreadState =>
     () => {}
   )
 
+// isLookingAtThread: whether the reader is looking at this thread right now (app active and
+// focused, route focused). Mark read asks it each time and refuses while they are not.
 export const makeThreadStore = (
   id: T.Chat.ConversationIDKey,
+  isLookingAtThread: () => boolean,
   overrides?: Partial<ThreadStoreDeps>
 ): ThreadStore => {
   const deps: ThreadStoreDeps = {...defaultDeps, ...overrides}
@@ -265,7 +265,6 @@ export const makeThreadStore = (
   // The account this thread was loaded for. Its screen outlives an account switch by a few renders,
   // and a mark-read sent then would mark the next account's read position.
   const threadUid = deps.getSession().uid
-  let lookingAtThread = false
   let activeMarkReadEnabled = false
   let markReadBlocked = false
 
@@ -302,7 +301,7 @@ export const makeThreadStore = (
         logger.info('mark read bail on blocked thread load')
         return
       }
-      if (!lookingAtThread) {
+      if (!isLookingAtThread()) {
         logger.info('mark read bail on not looking at this thread')
         return
       }
@@ -774,9 +773,6 @@ export const makeThreadStore = (
       if (activeMarkReadEnabled) {
         markThreadAsRead()
       }
-    },
-    setLookingAtThread: looking => {
-      lookingAtThread = looking
     },
     shownUsernameCache,
     store,
