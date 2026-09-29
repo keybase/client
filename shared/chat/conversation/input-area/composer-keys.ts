@@ -47,6 +47,7 @@ export type InputKeyAction =
   | {type: 'suggestionMove'; up: boolean}
   | SuggestionSelectAction
   | {type: 'submit'}
+  | {type: 'newline'}
 export type WindowKeyAction = ThreadKeyAction | {type: 'focusInput'}
 export type HardwareKeyAction = SuggestionSelectAction | {type: 'submit'} | {type: 'newline'}
 export type ComposerKeyAction = InputKeyAction | WindowKeyAction | HardwareKeyAction
@@ -130,6 +131,10 @@ const inputKey = (s: InputKeyState, k: ComposerKey): ComposerKeyResult<InputKeyA
 
   if (isSendEnter(k)) {
     actions.push({type: 'submit'})
+    preventDefault = true
+  } else if (k.key === 'Enter') {
+    // Chromium inserts a newline for shift-Enter only; alt-, ctrl- and meta-Enter insert nothing
+    actions.push({type: 'newline'})
     preventDefault = true
   }
   return {actions, preventDefault}

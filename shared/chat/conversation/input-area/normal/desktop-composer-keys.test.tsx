@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as Message from '@/constants/chat/message'
-import type * as React from 'react'
+import * as React from 'react'
 import * as T from '@/constants/types'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import HiddenString from '@/util/hidden-string'
@@ -31,18 +31,24 @@ jest.mock('@/common-adapters', () => {
 })
 
 // the users list stands in for every suggestion list: it hands the composer the same handle a
-// real list does, saying whether it shows any items, and the pick reports whether anything was
-// highlighted
+// real list does, saying whether it shows any items, once when it opens, and lets go of it when it
+// closes; the pick reports whether anything was highlighted
 const mockMove = jest.fn((_up: boolean) => {})
 let mockListHasItems = true
 let mockListHasSelection = true
 const mockSelect = jest.fn(() => mockListHasSelection)
 type MockUsersListProps = {
   filter: string
-  setListHandle: (h: {hasItems: () => boolean; move: (up: boolean) => void; submit: () => boolean}) => void
+  setListHandle: (h: {hasItems: () => boolean; move: (up: boolean) => void; submit: () => boolean} | undefined) => void
 }
 const mockUsersList = jest.fn((p: MockUsersListProps) => {
-  p.setListHandle({hasItems: () => mockListHasItems, move: mockMove, submit: mockSelect})
+  const {setListHandle} = p
+  React.useEffect(() => {
+    setListHandle({hasItems: () => mockListHasItems, move: mockMove, submit: mockSelect})
+    return () => {
+      setListHandle(undefined)
+    }
+  }, [setListHandle])
   return null
 })
 jest.mock('../suggestors/users', () => ({
@@ -120,6 +126,14 @@ const type = (textarea: HTMLTextAreaElement, text: string, caret = text.length) 
     fireEvent.change(textarea, {target: {selectionEnd: caret, selectionStart: caret, value: text}})
   })
 }
+
+const select = (textarea: HTMLTextAreaElement, text: string, start: number, end: number) => {
+  act(() => {
+    fireEvent.change(textarea, {target: {selectionEnd: end, selectionStart: start, value: text}})
+  })
+}
+
+const modifiers = [['shiftKey'], ['altKey'], ['ctrlKey'], ['metaKey']] as const
 
 type KeyInit = {altKey?: boolean; ctrlKey?: boolean; metaKey?: boolean; shiftKey?: boolean}
 // returns whether the default was prevented
@@ -262,19 +276,53 @@ describe('in the composer, no suggestions', () => {
     expect(post.mock.calls[0]?.[0].params.body).toBe('hello')
   })
 
-  test.each([['shiftKey'], ['altKey'], ['metaKey'], ['ctrlKey']] as const)(
-    'Enter with %s neither sends nor prevents the default (the browser adds the newline)',
-    async modifier => {
-      const {textarea} = renderComposer()
-      type(textarea, 'hello')
+  test.each(modifiers)('Enter with %s inserts a newline at the caret instead of sending', async modifier => {
+    const {textarea} = renderComposer()
+    type(textarea, 'ab', 1)
 
-      expect(keyDown(textarea, 'Enter', {[modifier]: true})).toBe(false)
-      await flushSend()
+    expect(keyDown(textarea, 'Enter', {[modifier]: true})).toBe(true)
+    await flushSend()
 
-      expect(post).not.toHaveBeenCalled()
-      expect(textarea.value).toBe('hello')
-    }
-  )
+    expect(post).not.toHaveBeenCalled()
+    expect(textarea.value).toBe('a\nb')
+    expect(textarea.selectionStart).toBe(2)
+    expect(textarea.selectionEnd).toBe(2)
+  })
+
+  test.each(modifiers)('Enter with %s replaces the selection with a newline', async modifier => {
+    const {textarea} = renderComposer()
+    select(textarea, 'aXYb', 1, 3)
+
+    expect(keyDown(textarea, 'Enter', {[modifier]: true})).toBe(true)
+    await flushSend()
+
+    expect(post).not.toHaveBeenCalled()
+    expect(textarea.value).toBe('a\nb')
+    expect(textarea.selectionStart).toBe(2)
+  })
+
+  test('an inserted newline is saved in the draft and sent like typed text', async () => {
+    const {textarea} = renderComposer()
+    const saveDraft = jest.mocked(T.RPCChat.localUpdateUnsentTextRpcPromise)
+    type(textarea, 'ab', 1)
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    saveDraft.mockClear()
+
+    keyDown(textarea, 'Enter', {altKey: true})
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+
+    expect(saveDraft.mock.calls.at(-1)?.[0].text).toBe('a\nb')
+
+    expect(keyDown(textarea, 'Enter')).toBe(true)
+    await flushSend()
+
+    expect(post).toHaveBeenCalledTimes(1)
+    expect(post.mock.calls[0]?.[0].params.body).toBe('a\nb')
+  })
 
   test('Escape while editing cancels the edit and prevents the default', () => {
     const {getHandles, textarea} = renderComposer()
@@ -453,19 +501,31 @@ describe('in the composer, suggestions open', () => {
     expect(post.mock.calls[0]?.[0].params.body).toBe('hi @te')
   })
 
-  test.each([['shiftKey'], ['altKey'], ['metaKey'], ['ctrlKey']] as const)(
-    'Enter with %s neither picks nor sends',
-    async modifier => {
-      const {textarea} = renderComposer()
-      openSuggestions(textarea, 'hi @te')
+  test.each(modifiers)('Enter with %s inserts a newline and neither picks nor sends', async modifier => {
+    const {textarea} = renderComposer()
+    openSuggestions(textarea, 'hi @te')
 
-      expect(keyDown(textarea, 'Enter', {[modifier]: true})).toBe(false)
-      await flushSend()
+    expect(keyDown(textarea, 'Enter', {[modifier]: true})).toBe(true)
+    await flushSend()
 
-      expect(mockSelect).not.toHaveBeenCalled()
-      expect(post).not.toHaveBeenCalled()
-    }
-  )
+    expect(mockSelect).not.toHaveBeenCalled()
+    expect(post).not.toHaveBeenCalled()
+    expect(textarea.value).toBe('hi @te\n')
+  })
+
+  // the echoed change re-runs the suggestion check, which finds no marker on the new line
+  test('the list closes once a newline moves the caret past the marker', () => {
+    const {textarea} = renderComposer()
+    openSuggestions(textarea, 'hi @te')
+
+    keyDown(textarea, 'Enter', {shiftKey: true})
+    act(() => {
+      jest.advanceTimersByTime(5)
+    })
+
+    expect(keyDown(textarea, 'ArrowDown')).toBe(false)
+    expect(mockMove).not.toHaveBeenCalled()
+  })
 
   test('Tab picks when the list is filtered', () => {
     const {textarea} = renderComposer()

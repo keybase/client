@@ -690,6 +690,9 @@ const useDesktopKeys = (p: UseDesktopKeysProps) => {
       case 'submit':
         onSubmit()
         break
+      case 'newline':
+        composer.insertAtCaret('\n')
+        break
     }
   }
 

@@ -102,11 +102,13 @@ describe('the composer textarea', () => {
     ['Enter, list open with no items yet: send', input({suggestions: 'empty'}), k('Enter'), [submit], true],
     ['Enter, empty: still asks to send', input(), k('Enter'), [submit], true],
     ['Enter, editing: send', input({...withText, editing: true}), k('Enter'), [submit], true],
-    ['ctrl-Enter: newline by the browser', input(withText), k('Enter', {ctrlKey: true}), [], false],
-    ['shift-Enter: newline by the browser', input(withText), k('Enter', {shiftKey: true}), [], false],
-    ['alt-Enter: newline by the browser', input(withText), k('Enter', {altKey: true}), [], false],
-    ['meta-Enter: nothing', input(withText), k('Enter', {metaKey: true}), [], false],
-    ['ctrl-shift-Enter: nothing', input(withText), k('Enter', {ctrlKey: true, shiftKey: true}), [], false],
+    ['shift-Enter: newline', input(withText), k('Enter', {shiftKey: true}), [newline], true],
+    ['alt-Enter: newline', input(withText), k('Enter', {altKey: true}), [newline], true],
+    ['ctrl-Enter: newline', input(withText), k('Enter', {ctrlKey: true}), [newline], true],
+    ['meta-Enter: newline', input(withText), k('Enter', {metaKey: true}), [newline], true],
+    ['ctrl-shift-Enter: newline', input(withText), k('Enter', {ctrlKey: true, shiftKey: true}), [newline], true],
+    ['shift-Enter, empty: newline', input(), k('Enter', {shiftKey: true}), [newline], true],
+    ['alt-Enter, editing: newline', input({...withText, editing: true}), k('Enter', {altKey: true}), [newline], true],
     ['Enter, list open: pick, else send', input({suggestions: open}), k('Enter'), [pickOrSend], true],
     [
       'Enter, unfiltered list: pick, else send',
@@ -115,10 +117,17 @@ describe('the composer textarea', () => {
       [pickOrSend],
       true,
     ],
-    ['ctrl-Enter, list open: nothing', input({suggestions: open}), k('Enter', {ctrlKey: true}), [], false],
-    ['shift-Enter, list open: nothing', input({suggestions: open}), k('Enter', {shiftKey: true}), [], false],
-    ['alt-Enter, list open: nothing', input({suggestions: open}), k('Enter', {altKey: true}), [], false],
-    ['meta-Enter, list open: nothing', input({suggestions: open}), k('Enter', {metaKey: true}), [], false],
+    ['shift-Enter, list open: newline, no pick', input({suggestions: open}), k('Enter', {shiftKey: true}), [newline], true],
+    ['alt-Enter, list open: newline, no pick', input({suggestions: open}), k('Enter', {altKey: true}), [newline], true],
+    ['ctrl-Enter, list open: newline, no pick', input({suggestions: open}), k('Enter', {ctrlKey: true}), [newline], true],
+    ['meta-Enter, list open: newline, no pick', input({suggestions: open}), k('Enter', {metaKey: true}), [newline], true],
+    [
+      'alt-Enter, unfiltered list: newline, no pick',
+      input({suggestions: 'unfiltered'}),
+      k('Enter', {altKey: true}),
+      [newline],
+      true,
+    ],
     // Tab
     ['Tab, no list: focus moves on', input(withText), k('Tab'), [], false],
     ['Tab, filtered list: pick', input({suggestions: 'filtered'}), k('Tab'), [pick], true],
@@ -392,18 +401,23 @@ describe('across every key and state', () => {
     }
   })
 
-  test('an Enter with any modifier held never sends or picks', () => {
+  test('an Enter with any modifier held only inserts a newline, and claims the key', () => {
     for (const s of allInputStates) {
       for (const key of allKeys.filter(k => k.key === 'Enter' && (k.altKey || k.ctrlKey || k.metaKey || k.shiftKey))) {
-        const {actions} = composerKeyDown(s, key)
-        expect(actions.filter(a => a.type === 'submit' || a.type === 'suggestionSelect')).toEqual([])
+        expect(composerKeyDown(s, key)).toEqual({actions: [newline], preventDefault: true})
       }
+    }
+  })
+
+  test('a plain Enter never inserts a newline in the textarea', () => {
+    for (const s of allInputStates) {
+      expect(composerKeyDown(s, k('Enter')).actions).not.toContainEqual(newline)
     }
   })
 
   // a list with no items yet still claims the keys that move through it, so a key pressed as it
   // loads never leaves the textarea or moves the caret
-  test("the default is prevented exactly when the key sends, picks, moves, edits, cancels, closes the list or is an open list's", () => {
+  test("the default is prevented exactly when the key sends, picks, moves, edits, cancels, inserts a newline, closes the list or is an open list's", () => {
     for (const s of allInputStates) {
       for (const key of allKeys) {
         const {actions, preventDefault} = composerKeyDown(s, key)
@@ -416,7 +430,8 @@ describe('across every key and state', () => {
               a.type === 'suggestionMove' ||
               a.type === 'editLast' ||
               a.type === 'cancelEdit' ||
-              a.type === 'cancelReply'
+              a.type === 'cancelReply' ||
+              a.type === 'newline'
           ) ||
           (key.key === 'Escape' && showsItems(s))
         expect(preventDefault).toBe(claims)
