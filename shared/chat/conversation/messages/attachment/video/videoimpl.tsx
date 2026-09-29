@@ -17,7 +17,26 @@ const usePosterState = (url: string) => {
     setLastUrl(url)
     setShowPoster(true)
   }
-  return {showPoster, reveal: () => setShowPoster(false)}
+  return {reset: () => setShowPoster(true), reveal: () => setShowPoster(false), showPoster}
+}
+
+// The video's own surface belongs to its player controls (a click is play/pause on desktop, a tap
+// shows the controls on iOS), so fullscreen is this button in the corner the player leaves free.
+const FullscreenButton = ({onClick}: {onClick: () => void}) => {
+  const sharedStyles = useSharedStyles()
+  const theme = Kb.Styles.useTheme()
+  return (
+    <Kb.Box2 direction="vertical" style={sharedStyles.fullscreenButton}>
+      <Kb.Icon
+        type="iconfont-app-maximize"
+        color={theme.white}
+        padding="xtiny"
+        hint="Open fullscreen"
+        onClick={onClick}
+        testID="video-fullscreen"
+      />
+    </Kb.Box2>
+  )
 }
 
 const useSharedStyles = Kb.Styles.createStyleHook(
@@ -37,6 +56,13 @@ const useSharedStyles = Kb.Styles.createStyleHook(
         paddingLeft: 3,
         paddingRight: 3,
       },
+      fullscreenButton: {
+        backgroundColor: theme.black_50,
+        borderRadius: 2,
+        left: Kb.Styles.globalMargins.tiny,
+        position: 'absolute',
+        top: Kb.Styles.globalMargins.tiny,
+      },
       playButton: {
         left: '50%',
         marginLeft: -32,
@@ -47,13 +73,7 @@ const useSharedStyles = Kb.Styles.createStyleHook(
     }) as const
 )
 import {useVideoPlayer, VideoView} from 'expo-video'
-import {useEventListener} from 'expo'
 import {Pressable} from 'react-native'
-
-// Stub type to avoid dom lib dependency in native tsconfig
-type VideoElementRef = {
-  pause: () => void
-}
 
 const DesktopVideoImpl = (p: Props) => {
   const desktopStyles = useDesktopStyles()
@@ -61,13 +81,16 @@ const DesktopVideoImpl = (p: Props) => {
   const {allowPlay, message, openFullscreen} = p
   const {fileURL: url, videoDuration} = message
   const {previewURL, height, width} = getAttachmentPreviewSize(message)
-  const {showPoster, reveal} = usePosterState(url)
-  const ref = React.useRef<VideoElementRef | null>(null)
-
-  const onDoubleClick = () => {
-    ref.current?.pause()
-    openFullscreen?.()
-  }
+  const {reset, reveal, showPoster} = usePosterState(url)
+  // the fullscreen view plays it, so the inline one goes back to its poster
+  const fullscreenButton = openFullscreen ? (
+    <FullscreenButton
+      onClick={() => {
+        reset()
+        openFullscreen()
+      }}
+    />
+  ) : null
 
   return showPoster ? (
     <div onClick={reveal} style={desktopStyles.posterContainer}>
@@ -78,23 +101,25 @@ const DesktopVideoImpl = (p: Props) => {
           {videoDuration}
         </Kb.Text>
       </Kb.Box2>
+      {fullscreenButton}
     </div>
   ) : (
-    <video
-      ref={ref as React.RefObject<HTMLVideoElement>}
-      autoPlay={true}
-      onDoubleClick={openFullscreen ? onDoubleClick : undefined}
-      height={height}
-      width={width}
-      poster={previewURL}
-      preload="none"
-      controls={true}
-      playsInline={true}
-      controlsList="nodownload noremoteplayback nofullscreen"
-      style={Kb.Styles.castStyleDesktop(desktopStyles.video)}
-    >
-      <source src={url} />
-    </video>
+    <Kb.Box2 direction="vertical" relative={true}>
+      <video
+        autoPlay={true}
+        height={height}
+        width={width}
+        poster={previewURL}
+        preload="none"
+        controls={true}
+        playsInline={true}
+        controlsList="nodownload noremoteplayback nofullscreen"
+        style={Kb.Styles.castStyleDesktop(desktopStyles.video)}
+      >
+        <source src={url} />
+      </video>
+      {fullscreenButton}
+    </Kb.Box2>
   )
 }
 
@@ -103,6 +128,7 @@ const DesktopVideoImpl = (p: Props) => {
 // video message in the list caused CoreMedia to initialize a player per
 // message, spawning dozens of network threads and exhausting VM memory.
 type NativeActiveVideoProps = {
+  fullscreenButton: React.ReactNode
   sourceUri: string
   height: number
   width: number
@@ -110,28 +136,35 @@ type NativeActiveVideoProps = {
 
 const NativeActiveVideo = (p: NativeActiveVideoProps) => {
   const nativeStyles = useNativeStyles()
-  const {sourceUri, height, width} = p
+  const {fullscreenButton, sourceUri, height, width} = p
   const player = useVideoPlayer(sourceUri, pl => {
-    pl.loop = false
-    pl.play()
+    // a player released while its screen was frozen throws from every call
+    try {
+      pl.loop = false
+      pl.play()
+    } catch {}
   })
-  useEventListener(player, 'playToEnd', () => {
-    player.replay()
-  })
+  // the player's own fullscreen is off, as desktop's is: fullscreen is the app's attachment view
   return (
-    <VideoView
-      player={player}
-      nativeControls={true}
-      contentFit="cover"
-      style={(Kb.Styles.collapseStyles([nativeStyles.video, {height, width}]) ?? {}) as object}
-    />
+    <Kb.Box2 direction="vertical" relative={true} style={nativeStyles.video}>
+      <VideoView
+        player={player}
+        nativeControls={true}
+        fullscreenOptions={nativeFullscreenOptions}
+        contentFit="cover"
+        style={{height, width}}
+      />
+      {fullscreenButton}
+    </Kb.Box2>
   )
 }
+
+const nativeFullscreenOptions = {enable: false}
 
 const NativeVideoImpl = (p: Props) => {
   const nativeStyles = useNativeStyles()
   const sharedStyles = useSharedStyles()
-  const {allowPlay, message, showPopup} = p
+  const {allowPlay, message, openFullscreen, showPopup} = p
   const {fileURL: url, transferState, videoDuration} = message
   const {previewURL, height, width} = getAttachmentPreviewSize(message)
   const [playerActive, setPlayerActive] = React.useState(false)
@@ -141,12 +174,26 @@ const NativeVideoImpl = (p: Props) => {
     setPlayerActive(false)
   }
   const sourceUri = `${url}&contentforce=true`
+  // the fullscreen view plays it, so the inline one goes back to its poster
+  const fullscreenButton = openFullscreen ? (
+    <FullscreenButton
+      onClick={() => {
+        setPlayerActive(false)
+        openFullscreen()
+      }}
+    />
+  ) : null
 
   return (
     <>
       <ShowToastAfterSaving transferState={transferState} />
       {playerActive && url ? (
-        <NativeActiveVideo sourceUri={sourceUri} height={height} width={width} />
+        <NativeActiveVideo
+          fullscreenButton={fullscreenButton}
+          sourceUri={sourceUri}
+          height={height}
+          width={width}
+        />
       ) : (
         <Pressable
           onPress={() => {
@@ -166,6 +213,7 @@ const NativeVideoImpl = (p: Props) => {
                 {videoDuration}
               </Kb.Text>
             </Kb.Box2>
+            {fullscreenButton}
           </Kb.Box2>
         </Pressable>
       )}
