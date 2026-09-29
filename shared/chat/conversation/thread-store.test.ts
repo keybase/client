@@ -1,6 +1,6 @@
 /// <reference types="jest" />
-// makeThreadStore on its own: no provider, no React. Its deps are faked here, and the service goes
-// through the fake chat RPC.
+// makeThreadStore on its own: no provider, no React. Its deps are faked here, the service goes
+// through the fake chat RPC, and conversation meta is real inbox metadata.
 import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
@@ -8,6 +8,7 @@ import logger from '@/logger'
 import {makeMessageAttachment, makeMessageDeleted, makeMessageText} from '@/constants/chat/message'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
+import {metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {
   makeThreadStore,
@@ -21,11 +22,9 @@ const convB = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
 
 let rpc: FakeChatRpc
 let session: {loggedIn: boolean; uid: string}
-let metas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
 let loadCalls: Array<{id: T.Chat.ConversationIDKey; p: LoadMoreMessagesParams; actions: ConversationThreadActions}>
 
 const deps: ThreadStoreDeps = {
-  getMeta: id => metas.get(id),
   getSession: () => session,
   loadThreadMessages: (id, p, actions) => {
     loadCalls.push({actions, id, p})
@@ -33,13 +32,19 @@ const deps: ThreadStoreDeps = {
 }
 
 const setMeta = (id: T.Chat.ConversationIDKey, over: Partial<T.Chat.ConversationMeta>) => {
-  metas.set(id, {
-    ...Meta.makeConversationMeta(),
-    conversationIDKey: id,
-    maxVisibleMsgID: T.Chat.numberToMessageID(20),
-    readMsgID: T.Chat.numberToMessageID(0),
-    ...over,
-  })
+  metasReceived(
+    [
+      {
+        ...Meta.makeConversationMeta(),
+        conversationIDKey: id,
+        maxVisibleMsgID: T.Chat.numberToMessageID(20),
+        readMsgID: T.Chat.numberToMessageID(0),
+        ...over,
+      },
+    ],
+    undefined,
+    {force: true}
+  )
 }
 
 const textAt = (n: number, over?: Partial<T.Chat.MessageText>, id = convA) =>
@@ -79,7 +84,6 @@ beforeEach(() => {
   rpc = installFakeChatRpc()
   useConfigState.setState({loggedIn: true})
   session = {loggedIn: true, uid: 'uid'}
-  metas = new Map()
   loadCalls = []
   setMeta(convA, {})
   setMeta(convB, {})
@@ -203,7 +207,7 @@ describe('mark read', () => {
   test('meta decides: no meta or unlocalized waits, a read position already there is a no-op', async () => {
     const {actions} = makeThread()
     arm(actions, [textAt(5)])
-    metas.delete(convA)
+    useInboxMetadataState.setState(s => ({metas: new Map([...s.metas].filter(([id]) => id !== convA))}))
     actions.markThreadAsRead()
     setMeta(convA, {readMsgID: T.Chat.numberToMessageID(-1)})
     actions.markThreadAsRead()

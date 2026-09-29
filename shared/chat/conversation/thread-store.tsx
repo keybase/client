@@ -28,11 +28,10 @@ import {
   updateAttachmentUploadProgressInThreadState,
   updateReactionsInThreadState,
 } from './thread-message-state'
-import {getInboxConversationMeta} from '@/chat/inbox/metadata'
 import {getChatRpc, loadThreadMessageIDAtIndex} from './chat-rpc'
 import {
-  emptyConversationMeta,
   getExplodingModeFromConfig,
+  getMeta,
   loadConversationThreadMessages,
   persistExplodingMode,
 } from './thread-load'
@@ -175,10 +174,10 @@ export type ConversationThreadActions = {
 }
 
 // What the store reads from outside the thread. Service calls are not here: they go through
-// getChatRpc() like the rest of the load pipeline, so a test swaps them with setChatRpc().
+// getChatRpc() like the rest of the load pipeline, so a test swaps them with setChatRpc(). Nor is
+// the conversation's meta: the inbox metadata store owns it, and the store, the load pipeline and
+// the message commands all read it there, so a test sets real inbox metadata.
 export type ThreadStoreDeps = {
-  // The inbox metadata store owns the conversation's meta; the thread only reads it.
-  getMeta: (conversationIDKey: T.Chat.ConversationIDKey) => T.Chat.ConversationMeta | undefined
   getSession: () => {loggedIn: boolean; uid: string}
   loadThreadMessages: (
     conversationIDKey: T.Chat.ConversationIDKey,
@@ -188,7 +187,6 @@ export type ThreadStoreDeps = {
 }
 
 const defaultDeps: ThreadStoreDeps = {
-  getMeta: conversationIDKey => getInboxConversationMeta(conversationIDKey),
   getSession: () => ({
     loggedIn: useConfigState.getState().loggedIn,
     uid: useCurrentUserState.getState().uid,
@@ -255,7 +253,6 @@ export const makeThreadStore = (
   overrides?: Partial<ThreadStoreDeps>
 ): ThreadStore => {
   const deps: ThreadStoreDeps = {...defaultDeps, ...overrides}
-  const getMeta = () => deps.getMeta(id) ?? emptyConversationMeta
   const store = createStore<ConversationThreadState>(() =>
     produce(makeEmptyThreadState(), s => {
       s.explodingMode = getExplodingModeFromConfig(id)
@@ -318,7 +315,7 @@ export const makeThreadStore = (
       // out of the window. If it wins that race the true read position is gone before useOrangeLine
       // ever sees it, localization then lands already advanced, and the thread shows no unread
       // divider at all. Wait for localization; the provider runs this again once it lands.
-      if ((deps.getMeta(id)?.readMsgID ?? T.Chat.numberToMessageID(-1)) < 0) {
+      if (getMeta(id).readMsgID < 0) {
         logger.info('mark read bail on unlocalized conversation')
         return
       }
@@ -336,7 +333,7 @@ export const makeThreadStore = (
         logger.info(`marking read messages ${id} failed due to no id`)
         return
       }
-      if (readMsgID === deps.getMeta(id)?.readMsgID) {
+      if (readMsgID === getMeta(id).readMsgID) {
         logger.info(`marking read messages is noop bail: ${id} ${readMsgID}`)
         return
       }
@@ -451,7 +448,7 @@ export const makeThreadStore = (
           // moreToLoadForward true would drop live incoming messages and block mark-read.
           let containsLatest = false
           if (p.centered && p.forceContainsLatestCalc) {
-            const {maxVisibleMsgID} = getMeta()
+            const {maxVisibleMsgID} = getMeta(id)
             const ordinal = findLast(s.messageOrdinals ?? [], o => !!s.messageMap.get(o)?.id)
             const message = ordinal ? s.messageMap.get(ordinal) : undefined
             containsLatest = !!message?.id && maxVisibleMsgID > 0 && message.id >= maxVisibleMsgID
@@ -516,7 +513,7 @@ export const makeThreadStore = (
       s.explodingMode = seconds
     })
     if (!incoming) {
-      persistExplodingMode(id, getMeta(), seconds)
+      persistExplodingMode(id, getMeta(id), seconds)
     }
   }
 
@@ -530,7 +527,7 @@ export const makeThreadStore = (
         return
       }
       const snapshot = getSnapshot()
-      const unreadLineID = readMsgID ? readMsgID : getMeta().maxVisibleMsgID
+      const unreadLineID = readMsgID ? readMsgID : getMeta(id).maxVisibleMsgID
       let msgID = unreadLineID
 
       if (snapshot.messageMap.size) {
