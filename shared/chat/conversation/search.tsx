@@ -3,6 +3,7 @@ import * as Message from '@/constants/chat/message'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {RPCError} from '@/util/errors'
 import {formatTimeForMessages} from '@/util/timestamp'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -393,7 +394,7 @@ const ThreadSearchDesktopInner = function ThreadSearchDesktopInner(p: CommonProp
 
   const _renderHit = (index: number, item: SearchHit) => {
     return (
-      <Kb.ClickableBox direction="horizontal" alignItems="center" justifyContent="space-between" fullWidth={true} key={index} onClick={() => selectResult(index)} style={styles.hitRow}>
+      <Kb.ClickableBox direction="horizontal" alignItems="center" justifyContent="space-between" fullWidth={true} key={index} onClick={() => selectResult(index)} style={styles.hitRow} testID={TestIDs.CHAT_THREAD_SEARCH_HIT}>
         <Kb.Avatar username={item.author} size={24} />
         <Kb.Text type="Body" style={styles.hitSummary}>
           {item.summary}
@@ -413,7 +414,7 @@ const ThreadSearchDesktopInner = function ThreadSearchDesktopInner(p: CommonProp
 
   const noResults = status === 'done' && hits.length === 0
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={style}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={style} testID={TestIDs.CHAT_THREAD_SEARCH}>
       <Kb.Box2
         direction="horizontal"
         justifyContent="space-between"
@@ -423,7 +424,7 @@ const ThreadSearchDesktopInner = function ThreadSearchDesktopInner(p: CommonProp
         gap="tiny"
       >
         <Kb.Box2 direction="horizontal" justifyContent="space-between" style={styles.inputContainer}>
-          <Kb.Box2 direction="horizontal" gap="xtiny" flex={1} centerChildren={true}>
+          <Kb.Box2 direction="horizontal" gap="xtiny" flex={1} centerChildren={true} testID={TestIDs.CHAT_THREAD_SEARCH_INPUT}>
             <Kb.Input3
               autoFocus={true}
               onChangeText={onChangedText}
@@ -508,7 +509,7 @@ const ThreadSearchMobileInner = function ThreadSearchMobileInner(p: CommonProps)
   }, [searchOverlayHeight])
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.mobileContainer} onLayout={onLayout}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.mobileContainer} onLayout={onLayout} testID={TestIDs.CHAT_THREAD_SEARCH}>
       <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="space-between" padding="tiny" style={styles.outerContainer} gap="tiny">
         <Kb.Box2 direction="horizontal" centerChildren={true} noShrink={true}>
           <Kb.Text type="BodySemibold" style={styles.done} onClick={onToggleThreadSearch}>
@@ -516,7 +517,7 @@ const ThreadSearchMobileInner = function ThreadSearchMobileInner(p: CommonProps)
           </Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" justifyContent="space-between" style={styles.inputContainer}>
-          <Kb.Box2 direction="horizontal" gap="xtiny" flex={1} centerChildren={true}>
+          <Kb.Box2 direction="horizontal" gap="xtiny" flex={1} centerChildren={true} testID={TestIDs.CHAT_THREAD_SEARCH_INPUT}>
             <Kb.Input3
               ref={inputRef}
               autoFocus={false}

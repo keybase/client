@@ -838,6 +838,7 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
                 onClick={onCancelEditing}
                 small={true}
                 style={desktopStyles.cancelEditingBtn}
+                testID={TestIDs.CHAT_EDIT_CANCEL}
                 type="Dim"
               />
             )}
@@ -1025,6 +1026,7 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
           small={true}
           onClick={onCancelEditing}
           label="Cancel"
+          testID={TestIDs.CHAT_EDIT_CANCEL}
           type="Dim"
         />
       )}

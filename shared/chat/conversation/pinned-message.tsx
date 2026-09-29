@@ -3,6 +3,7 @@ import {zoomImage} from '@/constants/chat/helpers'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useChatTeam} from './team-hooks'
 import {ZoomedImage} from './common'
@@ -87,7 +88,7 @@ const PinnedMessage = function PinnedMessage() {
   }
   const sizing = imageWidth && imageHeight ? zoomImage(imageWidth, imageHeight, 30) : undefined
   const pin = (
-    <Kb.ClickableBox direction="horizontal" fullWidth={true} gap="tiny" className="hover_container" onClick={onClick} style={styles.container}>
+    <Kb.ClickableBox direction="horizontal" fullWidth={true} gap="tiny" className="hover_container" onClick={onClick} style={styles.container} testID={TestIDs.CHAT_PINNED_BANNER}>
       <Kb.Box2 direction="horizontal" alignSelf="stretch" style={styles.blueBar} />
       {!!imageURL && <ZoomedImage src={imageURL} sizing={sizing} />}
       <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>

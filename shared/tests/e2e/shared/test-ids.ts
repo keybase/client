@@ -31,6 +31,22 @@ export const CHAT_INFO_PANEL_SETTINGS_TAB = 'chat-info-panel-settings-tab'
 // Android only: iOS 26 folds Search/Info into one native "More" header menu,
 // but the Android header keeps the plain info icon — icons have no tappable text
 export const CHAT_HEADER_INFO_BUTTON = 'chat-header-info-button'
+// Thread search: the whole search bar, the box holding its text input (Input3 takes no testID),
+// and each hit row (desktop only: mobile shows a counter, not a hit list)
+export const CHAT_THREAD_SEARCH       = 'chat-thread-search'
+export const CHAT_THREAD_SEARCH_INPUT = 'chat-thread-search-input'
+export const CHAT_THREAD_SEARCH_HIT   = 'chat-thread-search-hit'
+export const CHAT_JUMP_TO_RECENT      = 'chat-jump-to-recent'
+export const CHAT_CATCH_UP            = 'chat-catch-up'
+export const CHAT_PINNED_BANNER       = 'chat-pinned-banner'
+export const CHAT_REPLY_PREVIEW       = 'chat-reply-preview'
+export const CHAT_REPLY_CANCEL        = 'chat-reply-cancel'
+export const CHAT_EDIT_CANCEL         = 'chat-edit-cancel'
+// a suggestion row carries the _SELECTED id while it is the highlighted one
+export const CHAT_SUGGESTION_ROW          = 'chat-suggestion-row'
+export const CHAT_SUGGESTION_ROW_SELECTED = 'chat-suggestion-row-selected'
+// the video attachment's corner fullscreen button; its unit tests match the literal value
+export const CHAT_VIDEO_FULLSCREEN    = 'video-fullscreen'
 
 // Files
 export const FILES_BROWSER = 'files-browser'

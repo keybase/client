@@ -1,4 +1,5 @@
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {getAttachmentPreviewSize, ShowToastAfterSaving, maxHeight, maxWidth} from '../shared'
@@ -34,7 +35,7 @@ const FullscreenButton = ({onClick}: {onClick: () => void}) => {
         padding="xtiny"
         hint="Open fullscreen"
         onClick={onClick}
-        testID="video-fullscreen"
+        testID={TestIDs.CHAT_VIDEO_FULLSCREEN}
       />
     </Kb.Box2>
   )

@@ -1,4 +1,5 @@
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as React from 'react'
 import SuggestionList from './suggestion-list'
 import type * as T from '@/constants/types'
@@ -89,7 +90,12 @@ type RowProps<T> = {
 const RowImpl = <T,>(p: RowProps<T>) => {
   const {ItemRenderer, item, onSelected, selected} = p
   return (
-    <Kb.ClickableBox direction="vertical" fullWidth={true} onClick={() => onSelected(item, true)}>
+    <Kb.ClickableBox
+      direction="vertical"
+      fullWidth={true}
+      onClick={() => onSelected(item, true)}
+      testID={selected ? TestIDs.CHAT_SUGGESTION_ROW_SELECTED : TestIDs.CHAT_SUGGESTION_ROW}
+    >
       <ItemRenderer selected={selected} item={item} />
     </Kb.ClickableBox>
   )
