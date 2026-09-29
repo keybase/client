@@ -31,6 +31,10 @@ export const CHAT_INFO_PANEL_SETTINGS_TAB = 'chat-info-panel-settings-tab'
 // Android only: iOS 26 folds Search/Info into one native "More" header menu,
 // but the Android header keeps the plain info icon — icons have no tappable text
 export const CHAT_HEADER_INFO_BUTTON = 'chat-header-info-button'
+// Desktop conversation header: the title row (team#channel, or the participants) and the search
+// icon. Mobile's header is the native navigation bar.
+export const CHAT_HEADER_TITLE         = 'chat-header-title'
+export const CHAT_HEADER_SEARCH_BUTTON = 'chat-header-search-button'
 // Thread search: the whole search bar, the box holding its text input (Input3 takes no testID),
 // and each hit row (desktop only: mobile shows a counter, not a hit list)
 export const CHAT_THREAD_SEARCH       = 'chat-thread-search'
@@ -119,6 +123,9 @@ export const CRYPTO_RUN_BUTTON    = 'crypto-run-button'
 export const CRYPTO_RECIPIENTS    = 'crypto-recipients'
 // The recipients field is a display-only input inside a pointerEvents="none"
 // wrapper, so only this outer clickable can receive a click.
+
+// A desktop floating menu (message "..." menu, header menus); mobile menus are bottom sheets
+export const FLOATING_MENU = 'floating-menu'
 
 // Common — keep value matching existing testID="backButton" in .maestro subflows
 export const COMMON_BACK_BUTTON = 'backButton'
