@@ -1526,6 +1526,33 @@ describe('reply', () => {
     expect(composerInput.focusCount).toBe(1)
   })
 
+  // mobile thread search shows in place of the composer, so a Reply from a hit finds no input;
+  // closing search brings the composer back
+  test('with no input attached, the input is focused once the composer comes back', () => {
+    installThread({query: 'needle'})
+    const composerInput = makeFakeComposerInput()
+    let dispatch: ConversationInputState['dispatch'] | undefined
+    const tree = (showInput: boolean) => (
+      <ConversationThreadProvider id={convID}>
+        <ConversationInputProvider id={convID}>
+          {showInput && <FakeComposerInputView fake={composerInput} />}
+          <InputProbe onRender={h => (dispatch = h.input.dispatch)} />
+        </ConversationInputProvider>
+      </ConversationThreadProvider>
+    )
+    const {rerender} = render(tree(false))
+
+    act(() => {
+      dispatch?.reply(replyOrdinal)
+    })
+    expect(composerInput.focusCount).toBe(0)
+    act(() => {
+      rerender(tree(true))
+    })
+
+    expect(composerInput.focusCount).toBe(1)
+  })
+
   // the search UI unmounting is what cancels its search, once
   test('closing thread search leaves cancelling the search to the search UI', () => {
     const cancel = jest.spyOn(T.RPCChat, 'localCancelActiveSearchRpcPromise').mockResolvedValue(undefined)
