@@ -39,10 +39,10 @@ let mockListHasSelection = true
 const mockSelect = jest.fn(() => mockListHasSelection)
 type MockUsersListProps = {
   filter: string
-  setListHandle: (h: {hasItems: boolean; move: (up: boolean) => void; submit: () => boolean}) => void
+  setListHandle: (h: {hasItems: () => boolean; move: (up: boolean) => void; submit: () => boolean}) => void
 }
 const mockUsersList = jest.fn((p: MockUsersListProps) => {
-  p.setListHandle({hasItems: mockListHasItems, move: mockMove, submit: mockSelect})
+  p.setListHandle({hasItems: () => mockListHasItems, move: mockMove, submit: mockSelect})
   return null
 })
 jest.mock('../suggestors/users', () => ({

@@ -55,10 +55,11 @@ export const TeamSuggestion = (p: {teamname: string; channelname: string | undef
 }
 
 export type ItemRendererProps<T> = {selected: boolean; item: T}
-// What a mounted list gives the composer's keys. A list with no items (a lookup still loading,
-// or nothing matching) takes no keys.
+// What a mounted list gives the composer's keys: one handle for as long as the list is open,
+// whose methods read the list as it is when the key lands. A list with no items (a lookup still
+// loading, or nothing matching) takes no keys.
 export type ListHandle = {
-  hasItems: boolean
+  hasItems: () => boolean
   move: (up: boolean) => void
   // true if it picked anything
   submit: () => boolean
@@ -124,28 +125,30 @@ export function List<T>(p: ListProps<T>) {
     }
   }, [onSelected, sel, selectedIndex])
 
+  const hasItems = React.useEffectEvent(() => items.length > 0)
+  const move = React.useEffectEvent((up: boolean) => {
+    const length = items.length
+    const s = (((up ? selectedIndex - 1 : selectedIndex + 1) % length) + length) % length
+    if (s !== selectedIndex) {
+      setSelectedIndex(s)
+    }
+  })
+  const submit = React.useEffectEvent(() => {
+    const sel = items[selectedIndex]
+    if (sel) {
+      onSelected(sel, true)
+    }
+    return !!sel
+  })
+  const handOver = React.useEffectEvent((h: ListHandle | undefined) => {
+    setListHandle(h)
+  })
   React.useEffect(() => {
-    const onMove = (up: boolean) => {
-      const length = items.length
-      const s = (((up ? selectedIndex - 1 : selectedIndex + 1) % length) + length) % length
-      if (s !== selectedIndex) {
-        setSelectedIndex(s)
-      }
-    }
-
-    const onSubmit = () => {
-      const sel = items[selectedIndex]
-      if (sel) {
-        onSelected(sel, true)
-      }
-      return !!sel
-    }
-
-    setListHandle({hasItems: items.length > 0, move: onMove, submit: onSubmit})
+    handOver({hasItems: () => hasItems(), move: up => move(up), submit: () => submit()})
     return () => {
-      setListHandle(undefined)
+      handOver(undefined)
     }
-  }, [setListHandle, items, selectedIndex, onSelected, setSelectedIndex])
+  }, [])
 
   return (
     <>

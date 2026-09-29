@@ -78,12 +78,51 @@ describe('List', () => {
       />
     )
     const {rerender, unmount} = render(view([]))
-    expect(handle?.hasItems).toBe(false)
+    expect(handle?.hasItems()).toBe(false)
 
     rerender(view(['testuser']))
-    expect(handle?.hasItems).toBe(true)
+    expect(handle?.hasItems()).toBe(true)
 
     unmount()
     expect(handle).toBeUndefined()
+  })
+
+  // a key reads the handle when it lands, so one swapped out under it would see no list
+  test('hands over one handle for as long as it is open, which reads the items as they are now', () => {
+    const setListHandle = jest.fn((_h: ListHandle | undefined) => {})
+    const onSelected = jest.fn()
+    const Item = (p: {selected: boolean; item: string}) => <>{p.item}</>
+    // every parent render makes a new items array and new callbacks
+    const view = (items: Array<string>) => (
+      <List
+        items={[...items]}
+        ItemRenderer={Item}
+        keyExtractor={(item: string) => item}
+        loading={false}
+        listStyle={{}}
+        spinnerStyle={{}}
+        rowHeight={20}
+        onSelected={(item: string, final: boolean) => {
+          onSelected(item, final)
+        }}
+        setListHandle={h => {
+          setListHandle(h)
+        }}
+      />
+    )
+    const {rerender, unmount} = render(view([]))
+    rerender(view([]))
+    rerender(view(['testuser']))
+    rerender(view(['testuser', 'testuser-mac']))
+
+    expect(setListHandle).toHaveBeenCalledTimes(1)
+    const handle = setListHandle.mock.calls[0]?.[0]
+    expect(handle?.hasItems()).toBe(true)
+    expect(handle?.submit()).toBe(true)
+    expect(onSelected).toHaveBeenLastCalledWith('testuser', true)
+
+    unmount()
+    expect(setListHandle).toHaveBeenCalledTimes(2)
+    expect(setListHandle).toHaveBeenLastCalledWith(undefined)
   })
 })

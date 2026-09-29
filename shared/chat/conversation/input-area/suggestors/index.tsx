@@ -291,7 +291,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   const listRef = React.useRef<Common.ListHandle>(undefined)
   // read when a key lands: only a list that shows items takes keys
   const getSuggestions = (): Suggestions =>
-    !listRef.current?.hasItems ? 'none' : filter.length === 0 ? 'unfiltered' : 'filtered'
+    !listRef.current?.hasItems() ? 'none' : filter.length === 0 ? 'unfiltered' : 'filtered'
   const moveSuggestion = (up: boolean) => {
     listRef.current?.move(up)
   }
