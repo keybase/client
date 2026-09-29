@@ -42,6 +42,8 @@ type ListState = {
   mountsOnScrollToIndex: boolean
   // Rows mounted by the fake list; undefined mounts every row.
   rendered: Set<T.Chat.Ordinal> | undefined
+  // Rows taller than rowHeight.
+  rowHeights: ReadonlyMap<T.Chat.Ordinal, number>
   scroll: number
   // What scrollToEnd leaves isAtEnd as, so a test can model an end the list fails to reach.
   scrollToEndLands: boolean
@@ -52,6 +54,7 @@ const initialListState = (): ListState => ({
   isAtEnd: false,
   mountsOnScrollToIndex: true,
   rendered: undefined,
+  rowHeights: new Map(),
   scroll: 0,
   scrollToEndLands: true,
   scrollToIndexError: 0,
@@ -67,7 +70,12 @@ type FakeListProps = {
 export const listProps: {current: FakeListProps | undefined} = {current: undefined}
 export const listCommits: Array<FakeListProps> = []
 
-const contentHeight = () => (listProps.current?.data.length ?? 0) * rowHeight
+const heightOf = (ordinal: T.Chat.Ordinal | undefined) =>
+  (ordinal === undefined ? undefined : listStore.get().rowHeights.get(ordinal)) ?? rowHeight
+// Where the row at index starts in the content.
+const rowTop = (index: number) =>
+  (listProps.current?.data ?? []).slice(0, index).reduce((top, o) => top + heightOf(o), 0)
+const contentHeight = () => rowTop(listProps.current?.data.length ?? 0)
 const maxScroll = () => Math.max(0, contentHeight() - viewportHeight)
 const clampScroll = (offset: number) => Math.min(maxScroll(), Math.max(0, offset))
 
@@ -75,7 +83,10 @@ const handle = {
   getScrollableNode: () => scrollerElement,
   getState: () => {
     const {isAtEnd, scroll} = listStore.get()
-    return {isAtEnd, scroll, scrollLength: viewportHeight}
+    const data = listProps.current?.data ?? []
+    // The first row in view.
+    const start = Math.max(0, data.findIndex((_o, i) => rowTop(i + 1) > scroll))
+    return {isAtEnd, scroll, scrollLength: viewportHeight, start}
   },
   scrollToEnd: (opts: unknown) => {
     log.push(['scrollToEnd', opts])
@@ -88,7 +99,7 @@ const handle = {
     const {mountsOnScrollToIndex, rendered, scrollToIndexError} = listStore.get()
     const target = listProps.current?.data[opts.index]
     const scroll = clampScroll(
-      opts.index * rowHeight + rowHeight / 2 - viewportHeight * (opts.viewPosition ?? 0) + scrollToIndexError
+      rowTop(opts.index) + heightOf(target) / 2 - viewportHeight * (opts.viewPosition ?? 0) + scrollToIndexError
     )
     listStore.set({
       rendered:
@@ -182,9 +193,11 @@ export const legendListModule = {LegendList: FakeLegendList}
 const rectFor = (el: Element) => {
   const ordinal = el.getAttribute('data-ordinal')
   if (ordinal !== null) {
-    const index = (listProps.current?.data ?? []).findIndex(o => String(o) === ordinal)
-    const top = index * rowHeight - scrollTop()
-    return {bottom: top + rowHeight, height: rowHeight, left: 0, right: 0, top, width: 0, x: 0, y: top}
+    const data = listProps.current?.data ?? []
+    const index = data.findIndex(o => String(o) === ordinal)
+    const top = rowTop(index) - scrollTop()
+    const height = heightOf(data[index])
+    return {bottom: top + height, height, left: 0, right: 0, top, width: 0, x: 0, y: top}
   }
   if (el.getAttribute('data-testid') === 'fake-scroller') {
     return {bottom: viewportHeight, height: viewportHeight, left: 0, right: 0, top: 0, width: 0, x: 0, y: 0}

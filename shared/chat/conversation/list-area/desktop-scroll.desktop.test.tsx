@@ -782,16 +782,17 @@ describe('editing', () => {
   })
 
   // Measuring a row forces a layout.
-  test('the edited row is measured once, not again on every change to the rows while the edit is open', () => {
+  test('the edited row is measured as the edit starts, not again on every change to the rows while it is open', () => {
     open()
     const measured = () =>
       (HTMLElement.prototype.getBoundingClientRect as jest.Mock).mock.contexts.filter(
         el => (el as HTMLElement).getAttribute('data-ordinal') === '15'
       ).length
     update(() => H.inputStore.set({editing: ord(15)}))
-    expect(measured()).toBe(1)
+    const whenRevealed = measured()
+    expect(whenRevealed).toBeGreaterThan(0)
     for (let n = 61; n <= 65; n++) update(() => H.threadStore.set({messageOrdinals: H.range(1, n)}))
-    expect(measured()).toBe(1)
+    expect(measured()).toBe(whenRevealed)
   })
 
   test('stopping an edit does not scroll', () => {
@@ -891,6 +892,34 @@ describe('editing', () => {
     growHeader()
     await tick(3000)
     expect(H.log).toEqual([])
+  })
+
+  // A row taller than the view is never wholly in it; centred already, revealing it moves nothing.
+  test('a reveal that cannot move the list is not in flight: the reader wheeling to the end right after hands it back', async () => {
+    update(() => H.listStore.set({rowHeights: new Map([[ord(58), 700]])}))
+    open()
+    update(() => H.listStore.set({scroll: 57 * H.rowHeight + 350 - H.viewportHeight / 2}))
+    update(() => H.inputStore.set({editing: ord(58)}))
+    expect(H.log).toEqual([])
+    update(() => H.moveScroller(59 * H.rowHeight + 700 - H.viewportHeight))
+    H.scrollEnds()
+    growHeader()
+    await tick(100)
+    expect(H.log).toEqual([['scrollToEnd', noAnimation]])
+  })
+
+  // The reader's wheel interrupts the reveal's animated scroll before it comes to rest.
+  test('the reader moving the list against a reveal in flight is the reader: wheeling back to the end hands it back', async () => {
+    open()
+    update(() => H.listStore.set({scroll: endOffset()}))
+    update(() => H.inputStore.set({editing: ord(15)}))
+    expect(H.log).toEqual([['scrollToIndex', {animated: true, index: 14, viewPosition: 0.5}]])
+    update(() => H.moveScroller(endOffset()))
+    H.scrollEnds()
+    H.log.length = 0
+    growHeader()
+    await tick(100)
+    expect(H.log).toEqual([['scrollToEnd', noAnimation]])
   })
 
   test('the reveal survives a reload: the same edit is not revealed twice', () => {

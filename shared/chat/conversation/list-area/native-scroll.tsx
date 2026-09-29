@@ -107,11 +107,11 @@ export const useNativeThreadScroll = (p: {
   const heldLatest = useHeldLatest(containsLatestMessage)
   // Every scroll the list makes itself goes through these, so the rest that follows is its own.
   const [scrollToOffset] = React.useState(() => (offset: number) => {
-    own.issued()
+    own.issued(undefined, undefined)
     listRef.current?.scrollToOffset({animated: false, offset})
   })
   const [scrollToItem] = React.useState(() => (item: T.Chat.Ordinal, animated: boolean) => {
-    own.issued()
+    own.issued(undefined, undefined)
     listRef.current?.scrollToItem({animated, item, viewPosition: 0.5})
   })
 

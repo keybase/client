@@ -228,9 +228,17 @@ export const useDesktopThreadScroll = (p: {
           return
         case 'reveal': {
           const idx = indexOfOrdinal(messageOrdinalsRef.current, directive.ordinal)
-          if (idx >= 0) {
-            // The list records an animated scroll's target only as it arrives, so this one says so itself.
-            own.issued()
+          const scroller = scrollerOf()
+          const state = listRef.current?.getState()
+          if (idx < 0 || !scroller || !state) return
+          // The list records an animated scroll's target only as it arrives, so this one says where it is
+          // going itself: the row's middle to the viewport's when the row is rendered to measure, and
+          // otherwise the end of the thread on the row's side of the view.
+          const from = scroller.scrollTop
+          const max = scroller.scrollHeight - scroller.clientHeight
+          const offBy = offsetFromMiddle(scroller, directive.ordinal)
+          const to = offBy === undefined ? (idx < state.start ? 0 : max) : Math.min(max, Math.max(0, from + offBy))
+          if (own.issued(from, to)) {
             void listRef.current?.scrollToIndex({animated: true, index: idx, viewPosition: 0.5})
           }
           return
@@ -244,7 +252,7 @@ export const useDesktopThreadScroll = (p: {
         }
       }
     },
-    [centering, isScrolledToEnd, listRef, own, scrollToCentered, verifyEndAnchor]
+    [centering, isScrolledToEnd, listRef, own, scrollToCentered, scrollerOf, verifyEndAnchor]
   )
 
   const dispatch = React.useCallback(
@@ -317,7 +325,7 @@ export const useDesktopThreadScroll = (p: {
       const toward = Math.min(listState.scroll, scroller.scrollHeight - scroller.clientHeight)
       const from = lastOffsetRef.current
       lastOffsetRef.current = now
-      if (own.ownInFlight()) return
+      if (own.carries(from, now)) return
       if (now >= Math.min(from, toward) - ownTolerancePx && now <= Math.max(from, toward) + ownTolerancePx) return
       dispatch(own.readerMoved())
     },

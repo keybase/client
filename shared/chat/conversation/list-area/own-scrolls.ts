@@ -11,12 +11,20 @@ import type {ScrollEvent} from './scroll-target'
 
 // How long a scroll of the list's own counts as in flight when no rest is reported after it.
 const ownSettleMs = 1000
+// A scroll whose destination is within this many pixels of where the list is moves nothing.
+const stillPx = 1
 
 export type OwnScrolls = {
-  // The list starts a scroll of its own. Its movement until the list next comes to rest is the
-  // list's, and the rest that follows is the list's too, whatever the reader moved before it.
-  issued: () => void
-  ownInFlight: () => boolean
+  // The list starts a scroll of its own from offset from toward offset to: its destination, or only
+  // an offset past it in the same direction when the list does not know where it will land exactly,
+  // or undefined when it knows neither. Its movement toward there until the list next comes to rest
+  // is the list's, and the rest that follows is the list's too, whatever the reader moved before it.
+  // A scroll whose destination is where the list already is moves nothing, so there is nothing in
+  // flight and no rest will follow it. Returns whether it moves.
+  issued: (from: number | undefined, to: number | undefined) => boolean
+  // Whether the list moving from offset from to offset now is a scroll of its own in flight: one is,
+  // and the movement heads its way. The reader moving it the other way is the reader.
+  carries: (from: number, now: number) => boolean
   // The list moved without moving itself, or scrolls on the reader's behalf (the composer's page keys).
   readerMoved: () => ScrollEvent
   // The list came to rest. Returns the end handed back, if the reader's movement brought it there.
@@ -25,13 +33,23 @@ export type OwnScrolls = {
 
 export const makeOwnScrolls = (): OwnScrolls => {
   let ownUntil = 0
+  let ownFrom: number | undefined
+  let ownTo: number | undefined
   let readerMoving = false
   return {
-    issued: () => {
-      ownUntil = Date.now() + ownSettleMs
-      readerMoving = false
+    carries: (from, now) => {
+      if (Date.now() >= ownUntil) return false
+      if (ownFrom === undefined || ownTo === undefined) return true
+      return Math.sign(now - from) === Math.sign(ownTo - ownFrom)
     },
-    ownInFlight: () => Date.now() < ownUntil,
+    issued: (from, to) => {
+      if (from !== undefined && to !== undefined && Math.abs(to - from) <= stillPx) return false
+      ownUntil = Date.now() + ownSettleMs
+      ownFrom = from
+      ownTo = to
+      readerMoving = false
+      return true
+    },
     readerMoved: () => {
       readerMoving = true
       return {type: 'userScrolled'}

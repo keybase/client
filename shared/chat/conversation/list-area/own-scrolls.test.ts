@@ -38,7 +38,7 @@ describe('the reader moving the list', () => {
 describe('the list scrolling itself', () => {
   test('coming to rest at the end hands nothing back', () => {
     const own = makeOwnScrolls()
-    own.issued()
+    own.issued(0, 500)
     expect(own.rested(true)).toBeUndefined()
   })
 
@@ -49,25 +49,49 @@ describe('the list scrolling itself', () => {
   test('its scroll supersedes the reader\'s movement before it: the rest that follows is the list\'s', () => {
     const own = makeOwnScrolls()
     own.readerMoved()
-    own.issued()
+    own.issued(0, 500)
     expect(own.rested(true)).toBeUndefined()
   })
 
-  test('is in flight until the list comes to rest', () => {
+  test('carries movement toward its destination until the list comes to rest', () => {
     const own = makeOwnScrolls()
-    expect(own.ownInFlight()).toBe(false)
-    own.issued()
-    expect(own.ownInFlight()).toBe(true)
+    expect(own.carries(0, 100)).toBe(false)
+    own.issued(0, 500)
+    expect(own.carries(0, 100)).toBe(true)
+    expect(own.carries(100, 600)).toBe(true)
     own.rested(false)
-    expect(own.ownInFlight()).toBe(false)
+    expect(own.carries(100, 200)).toBe(false)
   })
 
   test('or, with no rest reported, for a second', () => {
     const own = makeOwnScrolls()
-    own.issued()
+    own.issued(0, 500)
     jest.advanceTimersByTime(999)
-    expect(own.ownInFlight()).toBe(true)
+    expect(own.carries(0, 100)).toBe(true)
     jest.advanceTimersByTime(1)
-    expect(own.ownInFlight()).toBe(false)
+    expect(own.carries(0, 100)).toBe(false)
+  })
+
+  test('does not carry movement the other way: that is the reader\'s', () => {
+    const own = makeOwnScrolls()
+    own.issued(1000, 200)
+    expect(own.carries(1000, 600)).toBe(true)
+    expect(own.carries(600, 900)).toBe(false)
+  })
+
+  test('with no destination known, carries any movement', () => {
+    const own = makeOwnScrolls()
+    own.issued(undefined, undefined)
+    expect(own.carries(0, 100)).toBe(true)
+    expect(own.carries(100, 0)).toBe(true)
+  })
+
+  test('one already where it is going moves nothing and is not in flight', () => {
+    const own = makeOwnScrolls()
+    own.readerMoved()
+    expect(own.issued(300, 300.5)).toBe(false)
+    expect(own.carries(300, 400)).toBe(false)
+    // Nor does it take over the rest that follows the reader's movement.
+    expect(own.rested(true)).toEqual(readerAtEnd)
   })
 })
