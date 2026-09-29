@@ -84,7 +84,7 @@ const Probe = (p: {tag?: string}) => {
   const commandMarkdown = useConversationInput(s => s.commandMarkdown)
   const giphyWindow = useConversationInput(s => s.giphyWindow)
   const giphyResult = useConversationInput(s => s.giphyResult)
-  const botCommandsStatus = useBotCommandsUpdateState(id).status
+  const botCommandsStatus = useBotCommandsUpdateState().status
   useConversationMessage(id, aroundMessageID)
   React.useEffect(() => {
     mounted.set(tag ?? label(id), {actions, id, store})

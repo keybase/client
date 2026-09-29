@@ -14,6 +14,7 @@ import {getInboxConversationParticipants, unboxRows, useInboxMetadataState} from
 import {getChatRpc} from './chat-rpc'
 import {emptyConversationMeta, numMessagesOnInitialLoad, numMessagesOnScrollback} from './thread-load'
 import {useThreadEngineListeners} from './thread-engine'
+import {useThreadNotifications, type ThreadNotification} from '@/chat/notification-registry'
 import {
   makeThreadStore,
   type ConversationThreadActions,
@@ -90,6 +91,20 @@ export const useConversationThreadActions = () => {
     throw new Error('Missing ConversationThreadProvider actions in the tree')
   }
   return actions
+}
+
+// A screen's own handler for its thread's notifications (the composer's command status and giphy,
+// the bot-command status). Registrations are keyed by conversation id alone, so until the provider
+// rebuilds a screen kept through an account switch it can hear the next account's copy of a shared
+// team channel; like the thread store's actions, the handler hears nothing once the thread retires.
+export const useConversationThreadNotifications = (handler: (notification: ThreadNotification) => void) => {
+  const id = useConversationThreadID()
+  const {isRetired} = useConversationThreadActions()
+  useThreadNotifications(id, notification => {
+    if (!isRetired()) {
+      handler(notification)
+    }
+  })
 }
 
 const useScrollLoadGate = () => {

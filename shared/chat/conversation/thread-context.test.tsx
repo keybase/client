@@ -9,6 +9,7 @@ import {act, cleanup, renderHook} from '@testing-library/react'
 import type * as React from 'react'
 import {metasReceived, participantInfoReceived} from '@/chat/inbox/metadata'
 import {routeChatNotification} from '@/chat/notification-router'
+import {deliverThreadNotifications} from '@/chat/notification-registry'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useShellState} from '@/stores/shell'
@@ -23,6 +24,7 @@ import {
   useConversationThreadLoadOlderMessagesDueToScroll,
   useConversationThreadMarkThreadAsRead,
   useConversationThreadMessage,
+  useConversationThreadNotifications,
   useConversationThreadSelector,
   useConversationThreadStore,
 } from './thread-context'
@@ -885,6 +887,33 @@ test('a thread still on screen after an account switch does not mark read for th
     await flushPromises()
   })
   expect(markAsRead).not.toHaveBeenCalled()
+})
+
+test("a screen's thread notifications stop once the thread retires, until it is built for the next account", () => {
+  const heard: Array<string> = []
+  renderHook(
+    () =>
+      useConversationThreadNotifications(notification => {
+        heard.push(notification.type)
+      }),
+    {wrapper}
+  )
+  const commandMarkdown = () =>
+    deliverThreadNotifications([{conversationIDKey: convID, notification: {md: undefined, type: 'commandMarkdown'}}], 'test')
+  act(commandMarkdown)
+  act(() => {
+    // the next account signs in; until React renders again the screen is still registered
+    useCurrentUserState.getState().dispatch.setBootstrap({
+      deviceID: 'device-id-2',
+      deviceName: 'test-device-2',
+      uid: 'uid-2',
+      username: 'testuser-mac',
+    })
+    commandMarkdown()
+  })
+  expect(heard).toEqual(['commandMarkdown'])
+  act(commandMarkdown)
+  expect(heard).toEqual(['commandMarkdown', 'commandMarkdown'])
 })
 
 test('active change does not mark read after a centered thread load', async () => {

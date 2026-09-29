@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
-import {useThreadNotifications} from '@/chat/notification-registry'
+import {useConversationThreadID, useConversationThreadNotifications} from '../../thread-context'
 import {useConfigState} from '@/stores/config'
 import type {Selection as InputSelection} from '../normal/input.shared'
 import {useConversationMeta} from '../../data-hooks'
@@ -47,9 +47,10 @@ const makeBotCommandsUpdateState = (conversationIDKey: T.Chat.ConversationIDKey)
   status: T.RPCChat.UIBotCommandsUpdateStatusTyp.blank,
 })
 
-export const useBotCommandsUpdateState = (conversationIDKey: T.Chat.ConversationIDKey) => {
+export const useBotCommandsUpdateState = () => {
+  const conversationIDKey = useConversationThreadID()
   const [updateState, setUpdateState] = React.useState(() => makeBotCommandsUpdateState(conversationIDKey))
-  useThreadNotifications(conversationIDKey, notification => {
+  useConversationThreadNotifications(notification => {
     if (notification.type !== 'botCommandsUpdateStatus') {
       return
     }

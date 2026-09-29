@@ -8,9 +8,9 @@
 // Registrations are keyed by conversation id alone, which two accounts in one team share for its
 // channels. A screen built for an account that has left can still be registered until the thread
 // provider, keyed by account, rebuilds it, and whatever it hears in that moment lands in a thread
-// store that has retired (see makeThreadStore) or in the state of a screen about to unmount. A
-// store reset leaves registrations alone: they belong to mounted screens, which unregister
-// themselves.
+// store that has retired (see makeThreadStore) or in a screen handler that checks the same
+// retirement (useConversationThreadNotifications in thread-context). A store reset leaves
+// registrations alone: they belong to mounted screens, which unregister themselves.
 //
 // Keep this a leaf. The router's inbox stage imports reach constants/router, whose route table
 // imports these screens, so a screen importing the router would close a require cycle.

@@ -3,8 +3,7 @@ import * as T from '@/constants/types'
 import logger from '@/logger'
 import {findLast} from '@/util/arrays'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useThreadNotifications} from '@/chat/notification-registry'
-import {useConversationThreadStore} from '../thread-context'
+import {useConversationThreadNotifications, useConversationThreadStore} from '../thread-context'
 import {useConversationSendActions} from '../send-actions'
 import {
   consumeInputIntent,
@@ -273,7 +272,7 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
     }
   }, [id])
 
-  useThreadNotifications(id, notification => {
+  useConversationThreadNotifications(notification => {
     switch (notification.type) {
       case 'commandStatus':
         setCommandStatusInfo({
