@@ -960,6 +960,17 @@ describe('appending', () => {
     expect(H.log).toEqual([toBottomOverKeyboard])
   })
 
+  // One decision per append, taken when the re-pin would fire, with the keyboard as it is then.
+  test('the keyboard opening before the re-pin would fire re-pins over it', async () => {
+    open()
+    await tick(200)
+    clearLog()
+    setOrdinals(1, 61)
+    update(openKeyboard)
+    await tick(0)
+    expect(H.log).toEqual([toBottomOverKeyboard])
+  })
+
   test('the keyboard closing before the re-pin fires cancels it', async () => {
     open({keyboard: true})
     await tick(200)

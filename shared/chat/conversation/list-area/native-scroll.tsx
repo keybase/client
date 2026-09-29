@@ -72,14 +72,15 @@ export const useNativeThreadScroll = (p: {
   // The offset the list rests at with its newest message in view, below which it does not scroll:
   // negative while the keyboard is up. Read through a ref so every scroll uses the inset and keyboard
   // as they are when it runs, and nothing that scrolls changes identity with the inset.
-  const restingOffset = React.useCallback(
-    () => restingScrollOffset(bottomInset, keyboardHeight.value),
-    [bottomInset, keyboardHeight]
-  )
-  const restingOffsetRef = React.useRef(restingOffset)
+  const anchorRef = React.useRef({bottomInset, keyboardHeight})
   React.useLayoutEffect(() => {
-    restingOffsetRef.current = restingOffset
-  }, [restingOffset])
+    anchorRef.current = {bottomInset, keyboardHeight}
+  }, [bottomInset, keyboardHeight])
+  const [restingOffset] = React.useState(
+    () => () => restingScrollOffset(anchorRef.current.bottomInset, anchorRef.current.keyboardHeight.value)
+  )
+  // Resting at the end: over the keyboard as it is now.
+  const [atEnd] = React.useState(() => (offset: number) => offset <= restingOffset() + endTolerance)
 
   // Read by timers and list callbacks as they fire, so they see the target and rows as they are now.
   const centeredRef = React.useRef(centeredOrdinal)
@@ -187,7 +188,7 @@ export const useNativeThreadScroll = (p: {
       const avgH = content / num
       const maxOffset = Math.max(0, content - viewport)
       // damp by 0.9 to avoid overshoot/oscillation; higher index = older = higher offset
-      const newOffset = Math.min(maxOffset, Math.max(restingOffsetRef.current(), offset + diff * avgH * 0.9))
+      const newOffset = Math.min(maxOffset, Math.max(restingOffset(), offset + diff * avgH * 0.9))
       // A target among the newest or oldest rows cannot reach the middle: the step is clamped to the
       // end of the scrollable range and would move nothing, now or on any later try.
       if (Math.abs(newOffset - offset) < 1) {
@@ -210,7 +211,7 @@ export const useNativeThreadScroll = (p: {
           if (directive.stopCentering) stopCentering()
           // The end is a fixed resting offset, so every pin is the one scroll there: from the end it moves
           // nothing (unlessAtEnd), and there is no bootstrap of the list's own to wait out (whenSettled).
-          scrollToOffset(restingOffsetRef.current())
+          scrollToOffset(restingOffset())
           return
         case 'center':
           requestItem(directive.ordinal, false)
@@ -237,7 +238,17 @@ export const useNativeThreadScroll = (p: {
         }
       }
     },
-    [correctCenter, moveToward, requestItem, scrollToItem, scrollToOffset, settleCenter, stopCentering, timers]
+    [
+      correctCenter,
+      moveToward,
+      requestItem,
+      restingOffset,
+      scrollToItem,
+      scrollToOffset,
+      settleCenter,
+      stopCentering,
+      timers,
+    ]
   )
 
   const dispatch = React.useCallback(
@@ -276,16 +287,11 @@ export const useNativeThreadScroll = (p: {
     dispatch({
       ordinal: editingOrdinal,
       rowFullyVisible: () =>
-        rowFullyVisible(
-          index,
-          vFirstRef.current,
-          vLastRef.current,
-          (metricsRef.current.offset ?? Infinity) <= restingOffsetRef.current() + endTolerance
-        ),
+        rowFullyVisible(index, vFirstRef.current, vLastRef.current, atEnd(metricsRef.current.offset ?? Infinity)),
       targetInData: index >= 0,
       type: 'editingChanged',
     })
-  }, [dispatch, editingOrdinal, messageOrdinals])
+  }, [atEnd, dispatch, editingOrdinal, messageOrdinals])
 
   // When keyboard is open, maintainVisibleContentPosition adjusts contentOffset by the new
   // message height when a message is added, undoing the scrollToBottom from onSubmit.
@@ -310,15 +316,13 @@ export const useNativeThreadScroll = (p: {
     prevNewestRef.current = newestOrdinal
     const isNewer = newestOrdinal !== undefined && prev !== undefined && newestOrdinal > prev
     if (!sameDataset || !isNewer) return undefined
-    const appended = () => scrollTarget.decide({anchorHidesNewest: isKeyboardVisibleRef.current, type: 'appended'})
-    if (appended().type !== 'pinEnd') return undefined
-    // Asked again when it fires: if the keyboard closed in between, the list's own anchor already
-    // shows the newest message.
+    // Decided when the re-pin would fire, with the keyboard as it is then: if it closed in between,
+    // the list's own anchor already shows the newest message.
     const repin = timers.after(0, () => {
-      perform(appended())
+      dispatch({anchorHidesNewest: isKeyboardVisibleRef.current, type: 'appended'})
     })
     return repin.cancel
-  }, [datasetKey, newestOrdinal, perform, scrollTarget, timers])
+  }, [datasetKey, dispatch, newestOrdinal, timers])
 
   // Stores the conversation it last applied to (not a boolean) so a freeze/thaw of this screen —
   // which re-mounts effects without a real conversation change — does not reset it and re-trigger
@@ -389,16 +393,11 @@ export const useNativeThreadScroll = (p: {
     dispatch(own.readerMoved())
   }, [dispatch, own])
 
-  // Only resting at the end, over the keyboard as it is now, counts.
-  const atEnd = React.useCallback(
-    (e: {nativeEvent: {contentOffset: {y: number}}}) => e.nativeEvent.contentOffset.y <= restingOffset() + endTolerance,
-    [restingOffset]
-  )
   // The list coming to rest: the reader letting go, a fling stopping, or (on iOS) an animated scroll of
   // the list's own ending, which hands nothing back.
   const rested = React.useCallback(
     (e: {nativeEvent: {contentOffset: {y: number}}}) => {
-      const handedBack = own.rested(atEnd(e))
+      const handedBack = own.rested(atEnd(e.nativeEvent.contentOffset.y))
       if (handedBack) dispatch(handedBack)
     },
     [atEnd, dispatch, own]
