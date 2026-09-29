@@ -88,9 +88,9 @@ const threadKey = (s: ThreadFacts, k: ComposerKey): ComposerKeyResult<ThreadKeyA
 const isSendEnter = (k: ComposerKey) => k.key === 'Enter' && !hasModifier(k)
 
 // The keys an open suggestion list takes, ahead of everything else. It claims the keys that move
-// through it even before it has items, as it always has, so a key pressed while it loads neither
-// moves the caret nor takes focus out of the composer; there is just nothing to move to. Enter
-// has nothing to pick then, so it sends.
+// through it even before it has items, so a key pressed while it loads neither moves the caret nor
+// takes focus out of the composer; there is just nothing to move to. Enter has nothing to pick
+// then, so it sends.
 const suggestionKey = (suggestions: Suggestions, k: ComposerKey): ComposerKeyResult<InputKeyAction> | undefined => {
   if (suggestions === 'none') return undefined
   const hasItems = suggestions !== 'empty'
