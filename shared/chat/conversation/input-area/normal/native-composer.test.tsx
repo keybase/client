@@ -446,6 +446,44 @@ test('a queued send still goes out when the composer unmounts inside the 60ms, w
   expect(error).not.toHaveBeenCalled()
 })
 
+// The clear a send makes after the input unmounted waits for the next input. The draft that input
+// loads is the one saved as the old input unmounted, which is the text just sent, so the waiting
+// clear is newer than it and still wins: the sent text does not come back as a draft.
+test('a send that lands while thread search hides the input does not come back as a draft', async () => {
+  const post = jest.spyOn(m.T.RPCChat, 'localPostTextNonblockRpcListener').mockResolvedValue({
+    outboxID: new TextEncoder().encode('posted'),
+  })
+  const {metasReceived, useInboxMetadataState} = require('@/chat/inbox/metadata') as typeof Metadata
+  const Meta = require('@/constants/chat/meta') as typeof MetaModule
+  act(() => {
+    metasReceived([{...Meta.makeConversationMeta(), conversationIDKey: convID, draft: ''}], undefined, {
+      force: true,
+    })
+  })
+  const {showInput} = renderComposer()
+  type('hello')
+
+  act(() => {
+    mockHWKey?.({pressedKey: 'enter'})
+  })
+  showInput(false)
+  expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('hello')
+  act(() => {
+    jest.advanceTimersByTime(60)
+  })
+  await flushSend()
+  expect(post.mock.calls[0]?.[0].params.body).toBe('hello')
+  showInput(true)
+  // the draft save is throttled
+  act(() => {
+    jest.advanceTimersByTime(200)
+  })
+
+  expect(input().value).toBe('')
+  expect(composer?.getText()).toBe('')
+  expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('')
+})
+
 // the queued send reads the text when the timer fires, so a keystroke inside the 60ms (the
 // keyboard committing an autocorrection) is part of the message
 test('the queued send picks up text that changed inside the 60ms', async () => {
