@@ -2,7 +2,8 @@
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
-import {getChatRpc, loadThreadMessageIDAtIndex} from './chat-rpc'
+import {chatRpcCall, getChatRpc, loadThreadMessageIDAtIndex, setChatRpc} from './chat-rpc'
+import {makeFakeChatRpc, restoreChatRpc} from '@/test/fake-chat-rpc'
 import {threadLoadReasonToRPCReason} from './thread-load'
 
 const loadThreadNonblock = async (p: Parameters<ReturnType<typeof getChatRpc>['loadThread']>[0]) =>
@@ -745,5 +746,27 @@ describe('service adapter', () => {
   test('service errors reject', async () => {
     jest.spyOn(T.RPCChat, 'localPinMessageRpcPromise').mockRejectedValue(new Error('nope'))
     await expect(rpc().pinMessage(conversationIDKey, T.Chat.numberToMessageID(1))).rejects.toThrow('nope')
+  })
+})
+
+describe('chatRpcCall', () => {
+  afterEach(() => {
+    restoreChatRpc()
+  })
+
+  test('holds every adapter method, each reaching the adapter set after it was taken', async () => {
+    const {forwardMessage} = chatRpcCall
+    const fake = makeFakeChatRpc()
+    setChatRpc(fake)
+    const helpers = ['calls', 'clearLog', 'fail', 'failOnce', 'log', 'on', 'once', 'params']
+    const methods = Object.keys(fake).filter(k => !helpers.includes(k))
+    expect(Object.keys(chatRpcCall).sort()).toEqual(methods.sort())
+    await forwardMessage({
+      conversationIDKey,
+      destination: conversationIDKey,
+      messageID: T.Chat.numberToMessageID(1),
+      title: '',
+    })
+    expect(fake.calls('forwardMessage')).toHaveLength(1)
   })
 })
