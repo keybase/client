@@ -8,6 +8,7 @@ import {useChatTeam} from './team-hooks'
 import {ZoomedImage} from './common'
 import {useConversationCenterActions} from './center-context'
 import {useConversationThreadID, useThreadMeta} from './thread-context'
+import {useThreadSearchRoute} from './thread-search-route'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 
@@ -25,6 +26,7 @@ const PinnedMessage = function PinnedMessage() {
   const {centerOnMessage} = useConversationCenterActions()
   const you = useCurrentUserState(s => s.username)
   const {yourOperations} = useChatTeam(teamID, teamname)
+  const threadSearchOpen = !!useThreadSearchRoute()
   const unpinning = C.Waiting.useAnyWaiting(C.waitingKeyChatUnpin(conversationIDKey))
   const {message, pinnerUsername} = pinnedMsg ?? {}
   const {id: messageID, author, type} = message ?? {}
@@ -82,7 +84,7 @@ const PinnedMessage = function PinnedMessage() {
     }
   }
 
-  if (!(type === 'text' || type === 'attachment')) {
+  if (threadSearchOpen || !(type === 'text' || type === 'attachment')) {
     return null
   }
   if (!text) {

@@ -104,7 +104,7 @@ const DesktopConversation = function DesktopConversation() {
             <ListArea />
             <Kb.Box2 direction="vertical" fullWidth={true} style={desktopStyles.overlayTop}>
               <ThreadLoadStatus />
-              {!showThreadSearch && <PinnedMessage />}
+              <PinnedMessage />
             </Kb.Box2>
             {showThreadSearch && <ThreadSearch style={desktopStyles.threadSearchStyle} />}
             <LoadingLine />
