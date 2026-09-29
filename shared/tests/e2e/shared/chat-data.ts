@@ -342,9 +342,38 @@ const seedMedia = async (api: ChatApi, team: string) => {
   }
 }
 
+// The smoke user's one-on-one conversation with the second account: its conversation id, and its
+// tlf name (both names, sorted), which is what a send to it names.
+export type DirectConversation = {convID: string; tlfName: string}
+
+const directTlfName = (a: string, b: string) => [a, b].sort().join(',')
+
+// Reads the conversation's newest message to learn its id; a first send creates it.
+const ensureDirect = async (api: ChatApi, smokeUser: string, secondUser: string): Promise<DirectConversation> => {
+  const tlfName = directTlfName(smokeUser, secondUser)
+  const channel = {name: tlfName}
+  const newest = async () => {
+    const res = await api.call<{messages?: Array<{msg: {conversation_id: string}}>}>('read', {
+      channel,
+      pagination: {num: 1},
+      peek: true,
+    })
+    return res.messages?.[0]?.msg.conversation_id
+  }
+  let convID = await newest().catch(() => undefined)
+  if (!convID) {
+    log('starting the conversation with the second account')
+    await api.call('send', {channel, message: {body: 'e2e-direct-start'}})
+    convID = await newest()
+  }
+  if (!convID) throw new Error('the conversation with the second account was not created')
+  return {convID, tlfName}
+}
+
 export type ChatData = E2EAccounts & {
   // conversation id (hex, the app's ConversationIDKey) per channel
   convIDs: Record<E2EChannel, string>
+  direct: DirectConversation
 }
 
 let ensured: Promise<ChatData> | undefined
@@ -366,7 +395,8 @@ export const ensureChatData = async (): Promise<ChatData> => {
       await seedScratch(api, team)
       await seedReadonly(api, team)
       await seedMedia(api, team)
-      return {...accounts, convIDs}
+      const direct = await ensureDirect(api, accounts.smokeUser, secondUser)
+      return {...accounts, convIDs, direct}
     } finally {
       api.close()
     }
@@ -374,13 +404,32 @@ export const ensureChatData = async (): Promise<ChatData> => {
   return ensured
 }
 
-// A text message sent as the smoke user through the CLI (not the app under test).
-export const sendAsSmokeUser = async (topicName: E2EChannel, body: string) => {
-  const {team} = e2eAccounts()
+const withApi = async <R>(f: (api: ChatApi) => Promise<R>) => {
   const api = new ChatApi()
   try {
-    await sendText(api, channelRef(team, topicName), body)
+    return await f(api)
   } finally {
     api.close()
   }
+}
+
+// A text message sent as the smoke user through the CLI (not the app under test).
+export const sendAsSmokeUser = async (topicName: E2EChannel, body: string) => {
+  const {team} = e2eAccounts()
+  await withApi(async api => sendText(api, channelRef(team, topicName), body))
+}
+
+// An image sent as the smoke user through the CLI, titled `title`.
+export const attachAsSmokeUser = async (topicName: E2EChannel, title: string) => {
+  const {team} = e2eAccounts()
+  const image = MEDIA_FIXTURES[1]
+  await withApi(async api => api.call('attach', {channel: channelRef(team, topicName), filename: image.file, title}))
+}
+
+// The bot commands offered in a channel (none unless the team has a bot installed).
+export const botCommands = async (topicName: E2EChannel) => {
+  const {team} = e2eAccounts()
+  type Commands = {commands?: Array<{name: string; username: string}> | null}
+  const res = await withApi(async api => api.call<Commands>('listcommands', {channel: channelRef(team, topicName)}))
+  return (res.commands ?? []).filter(c => !!c.username)
 }

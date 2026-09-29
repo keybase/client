@@ -224,30 +224,93 @@ export const clickUnoccluded = async (locator: Locator, timeoutMs = 5_000) => {
 
 export const threadHeaderTitle = (page: Page) => page.getByTestId(T.CHAT_HEADER_TITLE)
 
-// Picks a result in the inbox search (mod+k) by its exact row text and waits for its thread.
-const openFromInboxSearch = async (page: Page, query: string, rowText: string) => {
+// Picks a result in the inbox search (mod+k) and waits for its thread. `pick` finds the result's
+// row among everything the search shows.
+const openFromInboxSearch = async (page: Page, query: string, pick: (page: Page) => Locator) => {
   await navigateToChat(page)
   await page.keyboard.press('Meta+k')
   const search = page.getByPlaceholder('Search', {exact: true})
   await expect(search).toBeFocused({timeout: 5_000})
   await search.fill(query)
-  const row = page.getByText(rowText, {exact: true}).first()
+  const row = pick(page).first()
   await expect(row).toBeVisible({timeout: 10_000})
   await clickUnoccluded(row)
   await expect(page.getByTestId(T.CHAT_MESSAGE_LIST)).toBeVisible({timeout: 10_000})
 }
 
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+// A conversation result names its conversation in semibold; a user result above the conversations
+// (which opens the profile) shows the same name in another style.
+const conversationResult = (name: string) => (page: Page) =>
+  page.locator('.text_BodySemibold').filter({hasText: new RegExp(`^${escapeRegExp(name)}$`)})
+
 // Opens a team channel by name, and checks the header names it.
 export const openConversationByName = async (page: Page, team: string, channel: string) => {
-  await openFromInboxSearch(page, channel, `#${channel}`)
+  await openFromInboxSearch(page, channel, p => p.getByText(`#${channel}`, {exact: true}))
   await expect(threadHeaderTitle(page)).toHaveText(`${team}#${channel}`, {timeout: 10_000})
 }
 
 // Opens the user's conversation with themselves. Its header shows the user's full name when they
 // have one, so the composer's hint is what names it.
 export const openSelfConversation = async (page: Page, username: string) => {
-  await openFromInboxSearch(page, username, username)
+  await openFromInboxSearch(page, username, conversationResult(username))
   await expect(composerInput(page)).toHaveAttribute('placeholder', 'Message yourself', {timeout: 10_000})
+}
+
+// Opens the signed-in user's one-on-one conversation with `username`.
+export const openDirectConversation = async (page: Page, username: string) => {
+  await openFromInboxSearch(page, username, conversationResult(username))
+  await expect(threadHeaderTitle(page)).toHaveText(username, {timeout: 10_000})
+}
+
+// A small conversation's inbox row, by the participant names its title carries (the user's own
+// name for their conversation with themselves).
+export const inboxRow = (page: Page, title: string) =>
+  page.getByTestId(T.CHAT_INBOX_ROW).filter({has: page.locator(`[title="${title}"]`)})
+
+// -- accounts ------------------------------------------------------------------------------------
+
+// The signed-in user's name in the tab bar: "Hi <name>!", or the bare name when that is too long.
+const signedInName = (page: Page) => page.locator('.username').first()
+export const signedInAs = async (page: Page) =>
+  (await signedInName(page).innerText({timeout: 5_000})).replace(/^Hi /, '').replace(/!$/, '').trim()
+
+// Waits until the open thread's header reads the same for `quietMs`, and returns it.
+export const waitForHeaderStable = async (page: Page, quietMs = 1_500, timeoutMs = 15_000) => {
+  const deadline = Date.now() + timeoutMs
+  const read = async () => (await threadHeaderTitle(page).count()) ? threadHeaderTitle(page).innerText({timeout: 1_000}) : ''
+  let last = await read()
+  let since = Date.now()
+  for (;;) {
+    await page.waitForTimeout(250)
+    const now = await read()
+    if (now !== last) {
+      last = now
+      since = Date.now()
+    } else if (last && Date.now() - since >= quietMs) {
+      return last
+    }
+    if (Date.now() > deadline) throw new Error(`the thread header did not settle (last: "${last}")`)
+  }
+}
+
+// Switches the app to another account signed in on this device, through the account switcher in
+// the tab bar's user menu, and waits for the tab bar to name it. The switch lands on the People
+// tab; the chat tab then selects a conversation for the account on its own, up to a second later
+// (see chat-data.test.ts's switch flows), so this opens the chat tab and waits for that selection
+// to settle before handing back, and a conversation the caller opens next stays open.
+export const switchAccount = async (page: Page, username: string) => {
+  if ((await signedInAs(page)) === username) return
+  await signedInName(page).click({force: true, timeout: 5_000})
+  const row = page.locator('.accountSwitcherScrollView').getByText(username, {exact: true})
+  await expect(row).toBeVisible({timeout: 5_000})
+  // the switcher's popup ignores a choice within 100ms of showing (see messageMenu)
+  await page.waitForTimeout(150)
+  await clickUnoccluded(row)
+  await expect(signedInName(page)).toHaveText(new RegExp(`^(Hi )?${escapeRegExp(username)}!?$`), {timeout: 30_000})
+  await navigateToChat(page)
+  await waitForHeaderStable(page)
 }
 
 // -- rows ----------------------------------------------------------------------------------------
@@ -266,15 +329,18 @@ export const waitForRow = async (page: Page, marker: string, timeoutMs = 10_000)
 export const messageMenu = async (page: Page, ordinal: number) => {
   const row = rowByOrdinal(page, ordinal)
   const ellipsis = row.locator('.icon-gen-iconfont-ellipsis').first()
+  const menu = page.getByTestId(T.FLOATING_MENU)
   // The row shows its "..." only while hovered, and the list ignores the pointer until 200ms after
-  // its last scroll: hover again until the row takes it.
+  // its last scroll: hover again until the row takes it. A row that moves between the hover and the
+  // click (the list settling after a send) loses the hover and hides its "...", so the click is
+  // retried along with the hover.
   await expect(async () => {
+    if (await menu.isVisible()) return
     await row.hover({timeout: 1_000})
     await expect(ellipsis).toBeVisible({timeout: 500})
-  }).toPass({timeout: 5_000})
-  await clickUnoccluded(ellipsis)
-  const menu = page.getByTestId(T.FLOATING_MENU)
-  await expect(menu).toBeVisible({timeout: 5_000})
+    await clickUnoccluded(ellipsis, 1_000)
+    await expect(menu).toBeVisible({timeout: 1_000})
+  }).toPass({timeout: 10_000})
   // The popup ignores a hide within 100ms of its show (usePopup2's tooQuick guard against a
   // double toggle), and choosing an item hides it through that path: an item chosen sooner runs
   // but leaves the menu open.
@@ -316,6 +382,26 @@ export const composer = {
     await page.keyboard.type(text)
   },
 }
+
+export type SuggestionRow = {selected: boolean; text: string}
+
+// The open suggestion list's rows top to bottom, each with its text and whether it is the
+// highlighted one. Empty while no list is open.
+export const suggestionRows = async (page: Page): Promise<Array<SuggestionRow>> =>
+  page.evaluate(
+    ([listID, rowID, selectedID]) => {
+      type RowEl = ElLike & {innerText: string}
+      const g = globalThis as unknown as PageGlobals
+      const list = g.document.querySelector(`[data-testid="${listID}"]`)
+      if (!list) return []
+      const rows = Array.from(list.querySelectorAll(`[data-testid="${rowID}"], [data-testid="${selectedID}"]`)) as Array<RowEl>
+      return rows
+        .map(el => ({selected: el.getAttribute('data-testid') === selectedID, text: el.innerText, top: el.getBoundingClientRect().top}))
+        .sort((a, b) => a.top - b.top)
+        .map(({selected, text}) => ({selected, text}))
+    },
+    [T.CHAT_SUGGESTION_LIST, T.CHAT_SUGGESTION_ROW, T.CHAT_SUGGESTION_ROW_SELECTED] as const
+  )
 
 // Sends `text` from the composer and returns the ordinal of the row that shows it.
 export const sendMessage = async (page: Page, text: string) => {

@@ -16,6 +16,8 @@ export type IncomingSender =
       device: string
       // tlfName is the team name for a team channel
       send: (conversationIDKey: string, tlfName: string, text: string) => Promise<void>
+      // tells the conversation's other members the second account is typing (or stopped)
+      typing: (conversationIDKey: string, on: boolean) => Promise<void>
     }
   | {ok: false; reason: string}
 
@@ -56,7 +58,14 @@ export const findIncomingSender = async (username: string): Promise<IncomingSend
           `kbModule('chat/conversation/send-actions.tsx').sendTextToConversation(${JSON.stringify(conversationIDKey)}, ${JSON.stringify(tlfName)}, ${JSON.stringify(text)}); return true`
         )
       }
-      return {device, ok: true, send}
+      const typing = async (conversationIDKey: string, on: boolean) => {
+        await evalInPage(
+          page,
+          `const conversationID = kbModule('constants/types/chat/index.tsx').keyToConversationID(${JSON.stringify(conversationIDKey)});
+           kbModule('constants/rpc/rpc-chat-gen.tsx').localUpdateTypingRpcPromise({conversationID, typing: ${on}}); return true`
+        )
+      }
+      return {device, ok: true, send, typing}
     }
   }
   return {ok: false, reason: `no app attached to Metro is signed in as the second account (${seen.join('; ')})`}
