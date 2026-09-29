@@ -1230,7 +1230,7 @@ test('toggleMessageReaction overlays locally without mutating server reactions',
   })
 
   act(() => {
-    toggleReaction(convID, {ordinal: targetOrdinal, thread: result.current.actions}, ':+1:')
+    toggleReaction({conversationIDKey: convID, ordinal: targetOrdinal, thread: result.current.actions}, ':+1:')
   })
 
   expect(result.current.message?.reactions?.get(':+1:')?.users.map(u => u.username)).toEqual(['alice'])

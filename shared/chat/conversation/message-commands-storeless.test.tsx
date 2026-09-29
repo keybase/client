@@ -18,25 +18,26 @@ const deleteConversationMessage = (
   conversationIDKey: T.Chat.ConversationIDKey,
   message: T.Chat.Message,
   tlfName?: string
-) => deleteMessage(conversationIDKey, {message, tlfName})
+) => deleteMessage({conversationIDKey, message, tlfName})
 const toggleConversationMessageReaction = (
   conversationIDKey: T.Chat.ConversationIDKey,
   message: T.Chat.Message,
   emoji: string,
   tlfName?: string
-) => toggleReaction(conversationIDKey, {message, tlfName}, emoji)
+) => toggleReaction({conversationIDKey, message, tlfName}, emoji)
 const toggleConversationMessageReactionByID = (
   conversationIDKey: T.Chat.ConversationIDKey,
   messageID: T.Chat.MessageID,
   emoji: string,
   tlfName?: string
-) => toggleReaction(conversationIDKey, {messageID, tlfName}, emoji)
-const replyPrivatelyToConversationMessage = (message: T.Chat.Message) => replyPrivately({message})
+) => toggleReaction({conversationIDKey, messageID, tlfName}, emoji)
+const replyPrivatelyToConversationMessage = (message: T.Chat.Message) =>
+  replyPrivately({conversationIDKey: message.conversationIDKey, message})
 const pinConversationMessage = pinMessage
 const dismissConversationJourneycard = (
   conversationIDKey: T.Chat.ConversationIDKey,
   cardType: T.RPCChat.JourneycardType
-) => dismissJourneycard(conversationIDKey, cardType)
+) => dismissJourneycard({conversationIDKey}, cardType)
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 let rpc: FakeChatRpc

@@ -75,13 +75,13 @@ const renderThread = (messages: ReadonlyArray<T.Chat.Message> = []) => {
   }
   const result = rendered.result
   const message = (n: number) => result.current.store.getState().messageMap.get(T.Chat.numberToOrdinal(n))
-  const row = (ordinal: T.Chat.Ordinal) => ({ordinal, thread: result.current.actions})
+  const row = (ordinal: T.Chat.Ordinal) => ({conversationIDKey, ordinal, thread: result.current.actions})
   cmd = {
-    dismissJourneycard: (cardType, ordinal) => dismissJourneycard(conversationIDKey, cardType, row(ordinal)),
-    messageDelete: ordinal => deleteMessage(conversationIDKey, row(ordinal)),
+    dismissJourneycard: (cardType, ordinal) => dismissJourneycard(row(ordinal), cardType),
+    messageDelete: ordinal => deleteMessage(row(ordinal)),
     messageReplyPrivately: ordinal => replyPrivately(row(ordinal)),
-    toggleMessageCollapse: (messageID, ordinal) => toggleCollapse(conversationIDKey, row(ordinal), messageID),
-    toggleMessageReaction: (ordinal, emoji) => toggleReaction(conversationIDKey, row(ordinal), emoji),
+    toggleMessageCollapse: (messageID, ordinal) => toggleCollapse(row(ordinal), messageID),
+    toggleMessageReaction: (ordinal, emoji) => toggleReaction(row(ordinal), emoji),
     unfurlRemove: messageID => removeUnfurl(conversationIDKey, messageID),
   }
   return {message, result}

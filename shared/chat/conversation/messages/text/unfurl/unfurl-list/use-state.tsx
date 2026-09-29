@@ -1,15 +1,13 @@
 import type * as T from '@/constants/types'
-import {removeUnfurl, toggleCollapse} from '../../../../message-commands'
-import {useConversationThreadActions, useConversationThreadID} from '../../../../thread-context'
+import {removeUnfurl, toggleCollapse, useThreadMessageTarget} from '../../../../message-commands'
 
 export const useActions = (youAreAuthor: boolean, messageID: T.Chat.MessageID, ordinal: T.Chat.Ordinal) => {
-  const conversationIDKey = useConversationThreadID()
-  const thread = useConversationThreadActions()
+  const target = useThreadMessageTarget(ordinal)
   const onClose = () => {
-    removeUnfurl(conversationIDKey, messageID)
+    removeUnfurl(target.conversationIDKey, messageID)
   }
   const onToggleCollapse = () => {
-    toggleCollapse(conversationIDKey, {ordinal, thread}, messageID)
+    toggleCollapse(target, messageID)
   }
 
   return {onClose: youAreAuthor ? onClose : undefined, onToggleCollapse}

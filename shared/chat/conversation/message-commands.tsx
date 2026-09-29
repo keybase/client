@@ -2,7 +2,7 @@
 // remove an unfurl, pin it, dismiss a journeycard.
 //
 // A command runs one of two ways, chosen by the target it is given:
-// - {ordinal, thread}: a row in a mounted thread. The message is read from the thread store at call
+// - {ordinal, thread}: a row in a mounted thread (useThreadMessageTarget builds it). The message is read from the thread store at call
 //   time, and the store is updated around the call (the deleting state and its revert, the
 //   optimistic reaction, dropping a cancelled or dismissed row).
 // - {message} or {messageID}: a message held outside any thread (a popup opened from search, the
@@ -21,7 +21,7 @@ import {getChatRpc} from './chat-rpc'
 import {getClientPrevFromThread, getConversationClientPrev} from './client-prev'
 import {getMeta} from './thread-load'
 import {applyOptimisticReactionsToMessage} from './thread-message-state'
-import type {ConversationThreadActions} from './thread-context'
+import {useConversationThreadActions, useConversationThreadID, type ConversationThreadActions} from './thread-context'
 
 // The slice of a mounted thread the commands read and write.
 export type MessageCommandThread = Pick<
@@ -29,10 +29,30 @@ export type MessageCommandThread = Pick<
   'addOptimisticReaction' | 'deleteMessages' | 'getSnapshot' | 'removeOptimisticReaction' | 'setMessageSubmitState'
 >
 
-export type ThreadMessage = {ordinal: T.Chat.Ordinal; thread: MessageCommandThread}
+// Every target names its conversation.
+export type ThreadMessage = {
+  conversationIDKey: T.Chat.ConversationIDKey
+  ordinal: T.Chat.Ordinal
+  thread: MessageCommandThread
+}
 // tlfName falls back to the inbox meta's
-export type StorelessMessage = {message: T.Chat.Message; tlfName?: string}
-export type StorelessMessageID = {messageID: T.Chat.MessageID; tlfName?: string}
+export type StorelessMessage = {
+  conversationIDKey: T.Chat.ConversationIDKey
+  message: T.Chat.Message
+  tlfName?: string
+}
+export type StorelessMessageID = {
+  conversationIDKey: T.Chat.ConversationIDKey
+  messageID: T.Chat.MessageID
+  tlfName?: string
+}
+
+// The row at ordinal in the thread this component is rendered inside.
+export const useThreadMessageTarget = (ordinal: T.Chat.Ordinal): ThreadMessage => {
+  const conversationIDKey = useConversationThreadID()
+  const thread = useConversationThreadActions()
+  return {conversationIDKey, ordinal, thread}
+}
 
 const isThread = (target: object): target is ThreadMessage => 'thread' in target
 
@@ -121,14 +141,11 @@ const deleteStorelessMessage = (conversationIDKey: T.Chat.ConversationIDKey, tar
 }
 
 // A message not yet sent is cancelled instead.
-export const deleteMessage = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  target: ThreadMessage | StorelessMessage
-) => {
+export const deleteMessage = (target: ThreadMessage | StorelessMessage) => {
   if (isThread(target)) {
-    deleteThreadMessage(conversationIDKey, target)
+    deleteThreadMessage(target.conversationIDKey, target)
   } else {
-    deleteStorelessMessage(conversationIDKey, target)
+    deleteStorelessMessage(target.conversationIDKey, target)
   }
 }
 
@@ -247,11 +264,8 @@ const toggleStorelessReaction = (
 
 // Adds the emoji, or removes it if it is yours already. Only a thread knows the message's reactions
 // and shows the change before the service confirms it; outside one the service decides.
-export const toggleReaction = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  target: ThreadMessage | StorelessMessage | StorelessMessageID,
-  emoji: string
-) => {
+export const toggleReaction = (target: ThreadMessage | StorelessMessage | StorelessMessageID, emoji: string) => {
+  const {conversationIDKey} = target
   if (isThread(target)) {
     toggleThreadReaction(conversationIDKey, target, emoji)
     return
@@ -305,12 +319,8 @@ export const replyPrivately = (target: ThreadMessage | StorelessMessage) => {
 }
 
 // messageID is the message itself or one of its unfurls; each has its own collapsed state.
-export const toggleCollapse = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  target: ThreadMessage,
-  messageID: T.Chat.MessageID
-) => {
-  const {ordinal, thread} = target
+export const toggleCollapse = (target: ThreadMessage, messageID: T.Chat.MessageID) => {
+  const {conversationIDKey, ordinal, thread} = target
   const f = async () => {
     const m = thread.getSnapshot().messageMap.get(ordinal)
     let isCollapsed = false
@@ -372,17 +382,19 @@ export const pinMessage = (conversationIDKey: T.Chat.ConversationIDKey, messageI
 
 // A thread drops the card's row once the service answers, whether or not it agreed.
 export const dismissJourneycard = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  cardType: T.RPCChat.JourneycardType,
-  row?: ThreadMessage
+  target: ThreadMessage | {conversationIDKey: T.Chat.ConversationIDKey},
+  cardType: T.RPCChat.JourneycardType
 ) => {
+  const {conversationIDKey} = target
   const f = async () => {
     await getChatRpc().dismissJourneycard(conversationIDKey, cardType).catch((error: unknown) => {
       if (error instanceof RPCError) {
         logger.error(`Failed to dismiss journeycard: ${error.message}`)
       }
     })
-    row?.thread.deleteMessages({ordinals: [row.ordinal]})
+    if (isThread(target)) {
+      target.thread.deleteMessages({ordinals: [target.ordinal]})
+    }
   }
   ignorePromise(f())
 }

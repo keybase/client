@@ -25,12 +25,11 @@ import {
   getConversationThreadDisplayMessage,
   ShownUsernameCacheContext,
   useConversationThreadActions,
-  useConversationThreadID,
   useConversationThreadSelector,
   useThreadMeta,
 } from '../../thread-context'
 import {emptyParticipantInfo} from '../../data-hooks'
-import {deleteMessage, toggleReaction} from '../../message-commands'
+import {deleteMessage, toggleReaction, useThreadMessageTarget} from '../../message-commands'
 import {useInboxMetadataState} from '@/chat/inbox/metadata'
 import type {ConversationInputState} from '../../input-area/input-state'
 import {useChatTeamMemberRole} from '../../team-hooks'
@@ -388,14 +387,13 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
   const uiDispatch = InputState.useConversationInputDispatch(
     C.useShallow(s => ({setEditing: s.setEditing, setReplyTo: s.setReplyTo}))
   )
-  const thread = useConversationThreadActions()
-  const {retryMessage} = thread
+  const {retryMessage} = useConversationThreadActions()
+  const target = useThreadMessageTarget(ordinal)
+  const {conversationIDKey} = target
   const shownCache = React.useContext(ShownUsernameCacheContext)
-  const conversationIDKey = useConversationThreadID()
   const messageActions = {
-    messageDelete: (ordinal: T.Chat.Ordinal) => deleteMessage(conversationIDKey, {ordinal, thread}),
-    toggleMessageReaction: (ordinal: T.Chat.Ordinal, emoji: string) =>
-      toggleReaction(conversationIDKey, {ordinal, thread}, emoji),
+    messageDelete: (ordinal: T.Chat.Ordinal) => deleteMessage({...target, ordinal}),
+    toggleMessageReaction: (ordinal: T.Chat.Ordinal, emoji: string) => toggleReaction({...target, ordinal}, emoji),
   }
   // Reload-free read: avoid useConversationParticipants' per-mount unboxRows + engine
   // listener registration, which is too expensive to pay per message row.

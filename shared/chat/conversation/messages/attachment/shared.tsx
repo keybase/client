@@ -5,8 +5,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 import {useConversationAttachmentActions} from '../../attachment-actions'
-import {toggleCollapse} from '../../message-commands'
-import {useConversationThreadActions, useConversationThreadID} from '../../thread-context'
+import {toggleCollapse, useThreadMessageTarget} from '../../message-commands'
 
 type Props = {
   transferState: T.Chat.MessageAttachmentTransferState
@@ -301,14 +300,13 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
 }))
 
 const useCollapseAction = (ordinal: T.Chat.Ordinal) => {
-  const conversationIDKey = useConversationThreadID()
-  const thread = useConversationThreadActions()
+  const target = useThreadMessageTarget(ordinal)
   // A row's ordinal is not its id (a message sent this session keeps its outbox ordinal), and a
   // row still being sent has no id to collapse.
   const onCollapse = () => {
-    const messageID = thread.getSnapshot().messageMap.get(ordinal)?.id
+    const messageID = target.thread.getSnapshot().messageMap.get(ordinal)?.id
     if (messageID) {
-      toggleCollapse(conversationIDKey, {ordinal, thread}, messageID)
+      toggleCollapse(target, messageID)
     }
   }
   return onCollapse

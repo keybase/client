@@ -1,10 +1,8 @@
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type * as React from 'react'
-import {dismissJourneycard} from '../../message-commands'
+import {dismissJourneycard, useThreadMessageTarget} from '../../message-commands'
 import {
-  useConversationThreadActions,
-  useConversationThreadID,
   useConversationThreadMessage,
 } from '../../thread-context'
 
@@ -51,15 +49,14 @@ const JourneyCardLoaded = (ownProps: OwnProps & {
 
 const JourneyCardThread = (ownProps: OwnProps) => {
   const {ordinal} = ownProps
-  const conversationIDKey = useConversationThreadID()
+  const target = useThreadMessageTarget(ordinal)
   const cardType = useConversationThreadMessage(ordinal)?.cardType ?? T.RPCChat.JourneycardType.unused
-  const thread = useConversationThreadActions()
   return (
     <JourneyCardLoaded
       {...ownProps}
       cardType={cardType}
-      conversationIDKey={conversationIDKey}
-      onDismissCard={() => dismissJourneycard(conversationIDKey, cardType, {ordinal, thread})}
+      conversationIDKey={target.conversationIDKey}
+      onDismissCard={() => dismissJourneycard(target, cardType)}
     />
   )
 }
@@ -70,7 +67,7 @@ const JourneyCardStoreless = (ownProps: OwnProps & {conversationIDKey: T.Chat.Co
     <JourneyCardLoaded
       {...ownProps}
       cardType={cardType}
-      onDismissCard={() => dismissJourneycard(ownProps.conversationIDKey, cardType)}
+      onDismissCard={() => dismissJourneycard({conversationIDKey: ownProps.conversationIDKey}, cardType)}
     />
   )
 }

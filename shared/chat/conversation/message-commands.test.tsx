@@ -123,8 +123,8 @@ describe('formatTextForQuoting', () => {
 describe('deleteMessage', () => {
   test('both paths send the same delete; only the thread path touches the thread', async () => {
     const {thread, writes} = makeThread([textAt(10)])
-    deleteMessage(conversationIDKey, {ordinal: T.Chat.numberToOrdinal(10), thread})
-    deleteMessage(conversationIDKey, {message: textAt(10)})
+    deleteMessage({conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread})
+    deleteMessage({conversationIDKey, message: textAt(10)})
     await flushPromises()
     const sent = {conversationIDKey, messageID: T.Chat.numberToMessageID(10), tlfName}
     expect(rpc.params('postDelete')).toEqual([sent, sent])
@@ -133,7 +133,7 @@ describe('deleteMessage', () => {
 
   test('the thread path marks deleting before the service is asked', () => {
     const {thread} = makeThread([textAt(10)])
-    deleteMessage(conversationIDKey, {ordinal: T.Chat.numberToOrdinal(10), thread})
+    deleteMessage({conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread})
     expect(thread.getSnapshot().messageMap.get(T.Chat.numberToOrdinal(10))?.submitState).toBe('deleting')
   })
 
@@ -141,7 +141,7 @@ describe('deleteMessage', () => {
     rpc.fail('postDelete', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
     jest.spyOn(logger, 'warn').mockImplementation(() => {})
     const {thread, writes} = makeThread([textAt(10)])
-    deleteMessage(conversationIDKey, {ordinal: T.Chat.numberToOrdinal(10), thread})
+    deleteMessage({conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread})
     await flushPromises()
     expect(writes).toEqual([
       ['setMessageSubmitState', T.Chat.numberToOrdinal(10), 'deleting'],
@@ -152,7 +152,7 @@ describe('deleteMessage', () => {
   test('a failed storeless delete has nothing to revert and reaches ignorePromise', async () => {
     rpc.fail('postDelete', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
-    deleteMessage(conversationIDKey, {message: textAt(10)})
+    deleteMessage({conversationIDKey, message: textAt(10)})
     await flushPromises()
     expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(RPCError))
   })
@@ -161,15 +161,15 @@ describe('deleteMessage', () => {
     const outboxID = T.Chat.stringToOutboxID('0a0b')
     const unsent = textAt(10, {id: T.Chat.numberToMessageID(0), outboxID})
     const {thread, writes} = makeThread([unsent])
-    deleteMessage(conversationIDKey, {ordinal: T.Chat.numberToOrdinal(10), thread})
-    deleteMessage(conversationIDKey, {message: unsent})
+    deleteMessage({conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread})
+    deleteMessage({conversationIDKey, message: unsent})
     await flushPromises()
     expect(rpc.calls('cancelPost')).toEqual([[outboxID], [outboxID]])
     expect(writes).toContainEqual(['deleteMessages', {ordinals: [T.Chat.numberToOrdinal(10)]}])
   })
 
   test('the storeless path takes its tlfName from the caller first', async () => {
-    deleteMessage(conversationIDKey, {message: textAt(10), tlfName: 'team.name'})
+    deleteMessage({conversationIDKey, message: textAt(10), tlfName: 'team.name'})
     await flushPromises()
     expect(rpc.params('postDelete')).toEqual([expect.objectContaining({tlfName: 'team.name'})])
   })
@@ -178,18 +178,18 @@ describe('deleteMessage', () => {
 describe('toggleReaction', () => {
   test('the thread path takes clientPrev from its rows, the storeless path from the meta', async () => {
     const {thread} = makeThread([textAt(10), textAt(12)])
-    toggleReaction(conversationIDKey, {ordinal: T.Chat.numberToOrdinal(10), thread}, ':+1:')
-    toggleReaction(conversationIDKey, {message: textAt(10)}, ':+1:')
-    toggleReaction(conversationIDKey, {messageID: T.Chat.numberToMessageID(10)}, ':+1:')
+    toggleReaction({conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread}, ':+1:')
+    toggleReaction({conversationIDKey, message: textAt(10)}, ':+1:')
+    toggleReaction({conversationIDKey, messageID: T.Chat.numberToMessageID(10)}, ':+1:')
     await flushPromises()
     expect(rpc.params('postReaction').map(p => p.clientPrev)).toEqual([12, 55, 55])
   })
 
   test('only the thread path picks the outbox id and shows the reaction first', async () => {
     const {thread, writes} = makeThread([textAt(10)])
-    toggleReaction(conversationIDKey, {ordinal: T.Chat.numberToOrdinal(10), thread}, ':+1:')
+    toggleReaction({conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread}, ':+1:')
     expect(writes.map(w => w[0])).toEqual(['addOptimisticReaction'])
-    toggleReaction(conversationIDKey, {message: textAt(10)}, ':+1:')
+    toggleReaction({conversationIDKey, message: textAt(10)}, ':+1:')
     await flushPromises()
     const [threaded, storeless] = rpc.params('postReaction')
     expect(threaded?.outboxID).toBeInstanceOf(Uint8Array)
@@ -200,7 +200,7 @@ describe('toggleReaction', () => {
   test('a failed thread reaction is taken back through the handle', async () => {
     rpc.fail('postReaction', new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
     const {thread, writes} = makeThread([textAt(10)])
-    toggleReaction(conversationIDKey, {ordinal: T.Chat.numberToOrdinal(10), thread}, ':+1:')
+    toggleReaction({conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread}, ':+1:')
     await flushPromises()
     expect(writes.map(w => w[0])).toEqual(['addOptimisticReaction', 'removeOptimisticReaction'])
     expect(thread.getSnapshot().optimisticReactionMap.size).toBe(0)
@@ -210,9 +210,9 @@ describe('toggleReaction', () => {
     jest.spyOn(logger, 'warn').mockImplementation(() => {})
     const exploded = textAt(10, {exploded: true})
     const {thread, writes} = makeThread([exploded])
-    toggleReaction(conversationIDKey, {ordinal: T.Chat.numberToOrdinal(10), thread}, ':+1:')
-    toggleReaction(conversationIDKey, {message: exploded}, ':+1:')
-    toggleReaction(conversationIDKey, {messageID: exploded.id}, ':+1:')
+    toggleReaction({conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread}, ':+1:')
+    toggleReaction({conversationIDKey, message: exploded}, ':+1:')
+    toggleReaction({conversationIDKey, messageID: exploded.id}, ':+1:')
     await flushPromises()
     expect(rpc.params('postReaction')).toEqual([
       expect.objectContaining({messageID: T.Chat.numberToMessageID(10)}),
@@ -232,8 +232,8 @@ describe('replyPrivately', () => {
       .mockReturnValue({...Meta.makeConversationMeta(), conversationIDKey: newKey})
     const navigate = jest.spyOn(Router, 'navigateToThread').mockImplementation(() => {})
     const {thread} = makeThread([textAt(10)])
-    replyPrivately({ordinal: T.Chat.numberToOrdinal(10), thread})
-    replyPrivately({message: textAt(10)})
+    replyPrivately({conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread})
+    replyPrivately({conversationIDKey, message: textAt(10)})
     await flushPromises()
     const opened = [newKey, 'createdMessagePrivately', {intent: {text: '> message 10\n', type: 'injectText'}}]
     expect(navigate.mock.calls).toEqual([opened, opened])
@@ -242,7 +242,7 @@ describe('replyPrivately', () => {
   test('the thread path reads the message from the thread when it runs', async () => {
     const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
     const {thread} = makeThread([])
-    replyPrivately({ordinal: T.Chat.numberToOrdinal(10), thread})
+    replyPrivately({conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread})
     await flushPromises()
     expect(rpc.log).toEqual([])
     expect(warn).toHaveBeenCalledWith(
@@ -255,7 +255,7 @@ describe('replyPrivately', () => {
 describe('the thread-only and storeless-only commands', () => {
   test('toggleCollapse flips what the thread shows', async () => {
     const {thread} = makeThread([textAt(10, {isCollapsed: true})])
-    toggleCollapse(conversationIDKey, {ordinal: T.Chat.numberToOrdinal(10), thread}, T.Chat.numberToMessageID(10))
+    toggleCollapse({conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread}, T.Chat.numberToMessageID(10))
     await flushPromises()
     expect(rpc.params('toggleCollapse')).toEqual([
       {collapse: false, conversationIDKey, messageID: T.Chat.numberToMessageID(10)},
@@ -278,11 +278,11 @@ describe('the thread-only and storeless-only commands', () => {
 
   test('dismissJourneycard drops the row only when given one', async () => {
     const {thread, writes} = makeThread([textAt(10)])
-    dismissJourneycard(conversationIDKey, T.RPCChat.JourneycardType.welcome)
-    dismissJourneycard(conversationIDKey, T.RPCChat.JourneycardType.welcome, {
-      ordinal: T.Chat.numberToOrdinal(10),
-      thread,
-    })
+    dismissJourneycard({conversationIDKey}, T.RPCChat.JourneycardType.welcome)
+    dismissJourneycard(
+      {conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread},
+      T.RPCChat.JourneycardType.welcome
+    )
     await flushPromises()
     expect(rpc.calls('dismissJourneycard')).toHaveLength(2)
     expect(writes).toEqual([['deleteMessages', {ordinals: [T.Chat.numberToOrdinal(10)]}]])

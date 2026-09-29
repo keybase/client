@@ -3,7 +3,7 @@ import * as Chat from '@/constants/chat'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {copyToClipboard} from '@/util/storeless-actions'
-import {deleteMessage, pinMessage, toggleReaction} from '../../message-commands'
+import {deleteMessage, pinMessage, toggleReaction, useThreadMessageTarget} from '../../message-commands'
 import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 import {linkFromConvAndMessage} from '@/constants/deeplinks'
 import {markConversationAsUnread, useConversationParticipants} from '../../data-hooks'
@@ -17,7 +17,6 @@ import {SetOrangeLineContext} from '../../orange-line-context'
 import {useChatTeam, useChatTeamMembers} from '../../team-hooks'
 import {useCurrentUserState} from '@/stores/current-user'
 import {
-  useConversationThreadActions,
   useConversationThreadID,
   useConversationThreadMessage,
   useConversationThreadSetMarkAsUnread,
@@ -361,15 +360,15 @@ const useThreadItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const message = useConversationThreadMessage(ordinal) ?? emptyText
   const meta = useThreadMeta(m => m)
   const participantInfo = useConversationParticipants(conversationIDKey)
-  const thread = useConversationThreadActions()
+  const target = useThreadMessageTarget(ordinal)
   const setMarkAsUnread = useConversationThreadSetMarkAsUnread()
   // Rendered inline in the thread, so the composer is right here in context.
   const inputDispatch = useConversationInputDispatchOptional()
   return useItemsForMessage({
     actions: {
-      deleteMessage: () => deleteMessage(conversationIDKey, {ordinal, thread}),
+      deleteMessage: () => deleteMessage(target),
       markAsUnread: setMarkAsUnread,
-      toggleReaction: emoji => toggleReaction(conversationIDKey, {ordinal, thread}, emoji),
+      toggleReaction: emoji => toggleReaction(target, emoji),
     },
     conversationIDKey,
     inputDispatch,
@@ -389,10 +388,11 @@ export const useStorelessItems = (p: {
 }) =>
   useItemsForMessage({
     actions: {
-      deleteMessage: () => deleteMessage(p.conversationIDKey, {message: p.message, tlfName: p.meta.tlfname}),
+      deleteMessage: () =>
+        deleteMessage({conversationIDKey: p.conversationIDKey, message: p.message, tlfName: p.meta.tlfname}),
       markAsUnread: id => markConversationAsUnread(p.conversationIDKey, id),
       toggleReaction: emoji =>
-        toggleReaction(p.conversationIDKey, {message: p.message, tlfName: p.meta.tlfname}, emoji),
+        toggleReaction({conversationIDKey: p.conversationIDKey, message: p.message, tlfName: p.meta.tlfname}, emoji),
     },
     conversationIDKey: p.conversationIDKey,
     message: p.message,

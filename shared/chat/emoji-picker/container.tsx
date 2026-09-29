@@ -50,7 +50,10 @@ const useReacji = ({
   )
   const onChoose = (emoji: string, renderableEmoji: RenderableEmoji) => {
     if (conversationIDKey !== T.Chat.noConversationIDKey && onPickAddToMessageID) {
-      toggleReaction(conversationIDKey, message ? {message} : {messageID: onPickAddToMessageID}, emoji)
+      toggleReaction(
+        message ? {conversationIDKey, message} : {conversationIDKey, messageID: onPickAddToMessageID},
+        emoji
+      )
     }
     onPickAction?.(emoji, renderableEmoji)
     onDidPick?.()
