@@ -6,22 +6,38 @@
 //      thread store, the composer, bot command status)
 //   3. reload: triggers a mounted reader registered for its conversationIDKey (a meta unbox, a
 //      storeless message reload, a stale thread reload)
-// A notification about a conversation nobody has mounted stops after stage 1. Stages 2 and 3
-// reach screens through notification-registry.tsx.
+// Each notification type is decoded in one place (stagesOf) into what it does at each stage. A
+// notification about a conversation nobody has mounted stops after stage 1. Stages 2 and 3 reach
+// screens through notification-registry.tsx.
+import * as Meta from '@/constants/chat/meta'
 import * as S from '@/constants/strings'
 import * as T from '@/constants/types'
 import type * as EngineGen from '@/constants/rpc'
 import {ignorePromise} from '@/constants/utils'
-import {handleConvoEngineIncoming} from '@/chat/inbox/engine'
+import {
+  markIdentifyFailures,
+  maybeShowIncomingMessageDesktopNotification,
+  onChatThreadsStale,
+  onConvUpdate,
+  onReactionUpdate,
+  onSetConvRetention,
+  onSetConvSettings,
+  onSetTeamRetention,
+} from '@/chat/inbox/engine'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {
+  forceUnboxRowsForService,
+  metaReceivedError,
   onChatInboxSynced,
   onGetInboxConvsUnboxed,
   onGetInboxUnverifiedConvs,
   onInboxLayoutChanged,
   onIncomingInboxUIItem,
+  syncInboxParticipantsFromParticipantMap,
+  unboxRows,
+  updateInboxConversationMeta,
 } from '@/chat/inbox/metadata'
-import {useDaemonState} from '@/stores/daemon'
+import {updateInboxTyping} from '@/chat/inbox/typing-state'
 import {useUsersState} from '@/stores/users'
 import {useWaitingState} from '@/stores/waiting'
 import {
@@ -75,124 +91,13 @@ const chatNotificationTypeSet: ReadonlySet<string> = new Set(chatNotificationTyp
 export const isChatNotification = (action: EngineGen.Actions): action is ChatNotification =>
   chatNotificationTypeSet.has(action.type)
 
-type Decoded = {
-  reloads: Array<Delivery<ReloadTrigger>>
+// What one notification does at each stage. The thread and reload parts are built when asked for.
+type Stages = {
+  inbox?: () => void
+  thread?: () => ReadonlyArray<Delivery<ThreadNotification>>
+  reloads?: () => ReadonlyArray<Delivery<ReloadTrigger>>
   // delivered after `reloads`, to mounted readers of any of its conversations
-  reloadEach?: FanOut<ReloadTrigger>
-  thread: Array<Delivery<ThreadNotification>>
-}
-
-const inboxUIItemConversationIDKey = (conv: T.RPCChat.InboxUIItem | null | undefined) =>
-  conv ? T.Chat.stringToConversationIDKey(conv.convID) : T.Chat.noConversationIDKey
-
-// The conversation an activity reloads its readers for. setStatus, readMessage, newConversation
-// and failedMessage name it only through their inbox item, so without one they reload the
-// no-conversation readers.
-const activityConversationIDKey = (activity: T.RPCChat.ChatActivity) => {
-  switch (activity.activityType) {
-    case T.RPCChat.ChatActivityType.incomingMessage:
-      return T.Chat.conversationIDToKey(activity.incomingMessage.convID)
-    case T.RPCChat.ChatActivityType.setStatus:
-      return inboxUIItemConversationIDKey(activity.setStatus.conv)
-    case T.RPCChat.ChatActivityType.readMessage:
-      return inboxUIItemConversationIDKey(activity.readMessage.conv)
-    case T.RPCChat.ChatActivityType.newConversation:
-      return inboxUIItemConversationIDKey(activity.newConversation.conv)
-    case T.RPCChat.ChatActivityType.failedMessage:
-      return inboxUIItemConversationIDKey(activity.failedMessage.conv)
-    case T.RPCChat.ChatActivityType.membersUpdate:
-      return T.Chat.conversationIDToKey(activity.membersUpdate.convID)
-    case T.RPCChat.ChatActivityType.setAppNotificationSettings:
-      return T.Chat.conversationIDToKey(activity.setAppNotificationSettings.convID)
-    case T.RPCChat.ChatActivityType.messagesUpdated:
-      return T.Chat.conversationIDToKey(activity.messagesUpdated.convID)
-    case T.RPCChat.ChatActivityType.reactionUpdate:
-      return T.Chat.conversationIDToKey(activity.reactionUpdate.convID)
-    case T.RPCChat.ChatActivityType.expunge:
-      return T.Chat.conversationIDToKey(activity.expunge.convID)
-    case T.RPCChat.ChatActivityType.ephemeralPurge:
-      return T.Chat.conversationIDToKey(activity.ephemeralPurge.convID)
-    default:
-      return T.Chat.noConversationIDKey
-  }
-}
-
-const threadNotificationForActivity = (
-  activity: T.RPCChat.ChatActivity
-): Array<Delivery<ThreadNotification>> => {
-  switch (activity.activityType) {
-    case T.RPCChat.ChatActivityType.incomingMessage: {
-      const {incomingMessage} = activity
-      return [
-        {
-          conversationIDKey: T.Chat.conversationIDToKey(incomingMessage.convID),
-          notification: {incomingMessage, type: 'incomingMessage'},
-        },
-      ]
-    }
-    case T.RPCChat.ChatActivityType.messagesUpdated: {
-      const {messagesUpdated} = activity
-      return [
-        {
-          conversationIDKey: T.Chat.conversationIDToKey(messagesUpdated.convID),
-          notification: {messagesUpdated, type: 'messagesUpdated'},
-        },
-      ]
-    }
-    case T.RPCChat.ChatActivityType.failedMessage: {
-      const {failedMessage} = activity
-      const ids = new Set((failedMessage.outboxRecords ?? []).map(r => T.Chat.conversationIDToKey(r.convID)))
-      return [...ids].map(conversationIDKey => ({
-        conversationIDKey,
-        notification: {failedMessage, type: 'failedMessage'},
-      }))
-    }
-    case T.RPCChat.ChatActivityType.reactionUpdate: {
-      const {reactionUpdate} = activity
-      return [
-        {
-          conversationIDKey: T.Chat.conversationIDToKey(reactionUpdate.convID),
-          notification: {reactionUpdate, type: 'reactionUpdate'},
-        },
-      ]
-    }
-    case T.RPCChat.ChatActivityType.expunge: {
-      const {expunge} = activity
-      return [
-        {
-          conversationIDKey: T.Chat.conversationIDToKey(expunge.convID),
-          notification: {expunge, type: 'expunge'},
-        },
-      ]
-    }
-    case T.RPCChat.ChatActivityType.ephemeralPurge: {
-      const {ephemeralPurge} = activity
-      return [
-        {
-          conversationIDKey: T.Chat.conversationIDToKey(ephemeralPurge.convID),
-          notification: {ephemeralPurge, type: 'ephemeralPurge'},
-        },
-      ]
-    }
-    default:
-      return []
-  }
-}
-
-const reloadsForActivity = (activity: T.RPCChat.ChatActivity): Array<Delivery<ReloadTrigger>> => {
-  const conversationIDKey = activityConversationIDKey(activity)
-  const reloads: Array<Delivery<ReloadTrigger>> = [{conversationIDKey, notification: {type: 'metadata'}}]
-  switch (activity.activityType) {
-    case T.RPCChat.ChatActivityType.incomingMessage:
-    case T.RPCChat.ChatActivityType.messagesUpdated:
-    case T.RPCChat.ChatActivityType.reactionUpdate:
-    case T.RPCChat.ChatActivityType.expunge:
-    case T.RPCChat.ChatActivityType.ephemeralPurge:
-      reloads.push({conversationIDKey, notification: {type: 'messages'}})
-      break
-    default:
-  }
-  return reloads
+  reloadEach?: () => FanOut<ReloadTrigger>
 }
 
 const one = <N,>(conversationIDKey: T.Chat.ConversationIDKey, notification: N): Array<Delivery<N>> => [
@@ -205,229 +110,375 @@ const each = <N,>(ids: Iterable<T.Chat.ConversationIDKey>, notification: N): Fan
 })
 
 const metadataReload: ReloadTrigger = {type: 'metadata'}
+const messagesReload: ReloadTrigger = {type: 'messages'}
 const staleThread: ReloadTrigger = {type: 'staleThread'}
 
-// Which conversations a notification concerns, and what each stage-2 and stage-3 handler is told.
-export const decodeChatNotification = (action: ChatNotification): Decoded => {
+const metadataOf = (conversationIDKey: T.Chat.ConversationIDKey) => one(conversationIDKey, metadataReload)
+const metadataAndMessagesOf = (conversationIDKey: T.Chat.ConversationIDKey) => [
+  {conversationIDKey, notification: metadataReload},
+  {conversationIDKey, notification: messagesReload},
+]
+
+const inboxUIItemConversationIDKey = (conv: T.RPCChat.InboxUIItem | null | undefined) =>
+  conv ? T.Chat.stringToConversationIDKey(conv.convID) : T.Chat.noConversationIDKey
+
+// setStatus, readMessage, newConversation and failedMessage name the conversation whose readers
+// they reload only through their inbox item, so without one they reload the no-conversation
+// readers, as does an activity type not listed here.
+const activityStages = (activity: T.RPCChat.ChatActivity): Stages => {
+  switch (activity.activityType) {
+    case T.RPCChat.ChatActivityType.incomingMessage: {
+      const {incomingMessage} = activity
+      const id = T.Chat.conversationIDToKey(incomingMessage.convID)
+      return {
+        inbox: () => {
+          maybeShowIncomingMessageDesktopNotification(incomingMessage)
+          onIncomingInboxUIItem(incomingMessage.conv ?? undefined)
+        },
+        reloads: () => metadataAndMessagesOf(id),
+        thread: () => one(id, {incomingMessage, type: 'incomingMessage'}),
+      }
+    }
+    case T.RPCChat.ChatActivityType.setStatus: {
+      const {conv} = activity.setStatus
+      return {
+        inbox: () => onIncomingInboxUIItem(conv ?? undefined),
+        reloads: () => metadataOf(inboxUIItemConversationIDKey(conv)),
+      }
+    }
+    case T.RPCChat.ChatActivityType.readMessage: {
+      const {conv, convID} = activity.readMessage
+      return {
+        inbox: () => {
+          if (!conv) {
+            forceUnboxRowsForService([T.Chat.conversationIDToKey(convID)])
+          }
+          onIncomingInboxUIItem(conv ?? undefined)
+        },
+        reloads: () => metadataOf(inboxUIItemConversationIDKey(conv)),
+      }
+    }
+    case T.RPCChat.ChatActivityType.newConversation: {
+      const {conv} = activity.newConversation
+      return {
+        inbox: () => onIncomingInboxUIItem(conv ?? undefined),
+        reloads: () => metadataOf(inboxUIItemConversationIDKey(conv)),
+      }
+    }
+    case T.RPCChat.ChatActivityType.failedMessage: {
+      const {failedMessage} = activity
+      return {
+        inbox: () => {
+          markIdentifyFailures(failedMessage.outboxRecords)
+          onIncomingInboxUIItem(failedMessage.conv ?? undefined)
+        },
+        reloads: () => metadataOf(inboxUIItemConversationIDKey(failedMessage.conv)),
+        // every record's conversation hears the whole notification once
+        thread: () => {
+          const ids = new Set(
+            (failedMessage.outboxRecords ?? []).map(r => T.Chat.conversationIDToKey(r.convID))
+          )
+          return [...ids].map(conversationIDKey => ({
+            conversationIDKey,
+            notification: {failedMessage, type: 'failedMessage'} as const,
+          }))
+        },
+      }
+    }
+    case T.RPCChat.ChatActivityType.membersUpdate: {
+      const id = T.Chat.conversationIDToKey(activity.membersUpdate.convID)
+      return {inbox: () => forceUnboxRowsForService([id]), reloads: () => metadataOf(id)}
+    }
+    case T.RPCChat.ChatActivityType.setAppNotificationSettings: {
+      const {convID, settings} = activity.setAppNotificationSettings
+      const id = T.Chat.conversationIDToKey(convID)
+      return {
+        inbox: () => updateInboxConversationMeta(id, Meta.parseNotificationSettings(settings)),
+        reloads: () => metadataOf(id),
+      }
+    }
+    case T.RPCChat.ChatActivityType.messagesUpdated: {
+      const {messagesUpdated} = activity
+      const id = T.Chat.conversationIDToKey(messagesUpdated.convID)
+      return {
+        reloads: () => metadataAndMessagesOf(id),
+        thread: () => one(id, {messagesUpdated, type: 'messagesUpdated'}),
+      }
+    }
+    case T.RPCChat.ChatActivityType.reactionUpdate: {
+      const {reactionUpdate} = activity
+      const id = T.Chat.conversationIDToKey(reactionUpdate.convID)
+      return {
+        inbox: () => onReactionUpdate(reactionUpdate),
+        reloads: () => metadataAndMessagesOf(id),
+        thread: () => one(id, {reactionUpdate, type: 'reactionUpdate'}),
+      }
+    }
+    case T.RPCChat.ChatActivityType.expunge: {
+      const {expunge} = activity
+      const id = T.Chat.conversationIDToKey(expunge.convID)
+      return {
+        reloads: () => metadataAndMessagesOf(id),
+        thread: () => one(id, {expunge, type: 'expunge'}),
+      }
+    }
+    case T.RPCChat.ChatActivityType.ephemeralPurge: {
+      const {ephemeralPurge} = activity
+      const id = T.Chat.conversationIDToKey(ephemeralPurge.convID)
+      return {
+        reloads: () => metadataAndMessagesOf(id),
+        thread: () => one(id, {ephemeralPurge, type: 'ephemeralPurge'}),
+      }
+    }
+    default:
+      return {reloads: () => metadataOf(T.Chat.noConversationIDKey)}
+  }
+}
+
+// The one place each notification is decoded.
+const stagesOf = (action: ChatNotification): Stages => {
   switch (action.type) {
-    case 'chat.1.NotifyChat.NewChatActivity': {
-      const {activity} = action.payload.params
-      return {reloads: reloadsForActivity(activity), thread: threadNotificationForActivity(activity)}
+    case 'chat.1.NotifyChat.NewChatActivity':
+      return activityStages(action.payload.params.activity)
+    case 'chat.1.NotifyChat.ChatConvUpdate': {
+      const {conv} = action.payload.params
+      return {inbox: () => onConvUpdate(conv), reloads: () => metadataOf(inboxUIItemConversationIDKey(conv))}
     }
-    case 'chat.1.NotifyChat.ChatConvUpdate':
-      return {reloads: one(inboxUIItemConversationIDKey(action.payload.params.conv), metadataReload), thread: []}
-    case 'chat.1.chatUi.chatInboxFailed':
-    case 'chat.1.NotifyChat.ChatSetConvSettings':
-    case 'chat.1.NotifyChat.ChatSetConvRetention':
-      return {reloads: one(T.Chat.conversationIDToKey(action.payload.params.convID), metadataReload), thread: []}
-    case 'chat.1.NotifyChat.ChatSetTeamRetention':
+    case 'chat.1.chatUi.chatInboxFailed': {
+      const {convID, error} = action.payload.params
+      const id = T.Chat.conversationIDToKey(convID)
+      return {inbox: () => metaReceivedError(id, error), reloads: () => metadataOf(id)}
+    }
+    case 'chat.1.NotifyChat.ChatSetConvSettings': {
+      const {params} = action.payload
       return {
-        reloadEach: each((action.payload.params.convs ?? []).map(inboxUIItemConversationIDKey), metadataReload),
-        reloads: [],
-        thread: [],
+        inbox: () => onSetConvSettings(params),
+        reloads: () => metadataOf(T.Chat.conversationIDToKey(params.convID)),
       }
+    }
+    case 'chat.1.NotifyChat.ChatSetConvRetention': {
+      const {params} = action.payload
+      return {
+        inbox: () => onSetConvRetention(params),
+        reloads: () => metadataOf(T.Chat.conversationIDToKey(params.convID)),
+      }
+    }
+    case 'chat.1.NotifyChat.ChatSetTeamRetention': {
+      const {convs} = action.payload.params
+      return {
+        inbox: () => onSetTeamRetention(convs),
+        reloadEach: () => each((convs ?? []).map(inboxUIItemConversationIDKey), metadataReload),
+      }
+    }
     case 'chat.1.NotifyChat.ChatParticipantsInfo': {
-      const participants = action.payload.params.participants ?? {}
-      const ids = Object.keys(participants).filter(id => participants[id])
-      return {reloadEach: each(ids.map(T.Chat.stringToConversationIDKey), metadataReload), reloads: [], thread: []}
-    }
-    case 'chat.1.NotifyChat.ChatThreadsStale':
+      const {participants} = action.payload.params
       return {
-        reloadEach: each(
-          (action.payload.params.updates ?? []).map(u => T.Chat.conversationIDToKey(u.convID)),
-          staleThread
-        ),
-        reloads: [],
-        thread: [],
+        inbox: () => syncInboxParticipantsFromParticipantMap(participants),
+        reloadEach: () => {
+          const map = participants ?? {}
+          const ids = Object.keys(map).filter(id => map[id])
+          return each(ids.map(T.Chat.stringToConversationIDKey), metadataReload)
+        },
       }
+    }
+    case 'chat.1.NotifyChat.ChatThreadsStale': {
+      const {updates} = action.payload.params
+      return {
+        inbox: () => onChatThreadsStale(updates),
+        reloadEach: () => each((updates ?? []).map(u => T.Chat.conversationIDToKey(u.convID)), staleThread),
+      }
+    }
+    case 'chat.1.NotifyChat.ChatSubteamRename': {
+      const {convs} = action.payload.params
+      return {
+        inbox: () => forceUnboxRowsForService((convs ?? []).map(c => T.Chat.stringToConversationIDKey(c.convID))),
+      }
+    }
+    case 'chat.1.NotifyChat.ChatTLFFinalize': {
+      const {convID} = action.payload.params
+      return {inbox: () => unboxRows([T.Chat.conversationIDToKey(convID)])}
+    }
+    case 'chat.1.NotifyChat.ChatIdentifyUpdate': {
+      const {update} = action.payload.params
+      return {
+        inbox: () => {
+          const usernames = update.CanonicalName.split(',')
+          const broken = (update.breaks.breaks || []).map(b => b.user.username)
+          useUsersState.getState().dispatch.updates(
+            usernames.map(name => ({info: {broken: broken.includes(name)}, name}))
+          )
+        },
+      }
+    }
+    case 'chat.1.NotifyChat.ChatInboxStale':
+      return {inbox: () => ignorePromise(useInboxLayoutState.getState().dispatch.refresh('inboxStale'))}
+    case 'chat.1.chatUi.chatInboxUnverified':
+      return {inbox: () => onGetInboxUnverifiedConvs(action)}
+    case 'chat.1.NotifyChat.ChatInboxSyncStarted':
+      return {inbox: () => useWaitingState.getState().dispatch.increment(S.waitingKeyChatInboxSyncStarted)}
     case 'chat.1.NotifyChat.ChatInboxSynced': {
       const {syncRes} = action.payload.params
-      if (syncRes.syncType !== T.RPCChat.SyncInboxResType.incremental) {
-        return {reloads: [], thread: []}
-      }
       return {
-        reloadEach: each(
-          (syncRes.incremental.items ?? []).map(item => T.Chat.stringToConversationIDKey(item.conv.convID)),
-          staleThread
-        ),
-        reloads: [],
-        thread: [],
+        inbox: () => {
+          useWaitingState.getState().dispatch.clear(S.waitingKeyChatInboxSyncStarted)
+          ignorePromise(
+            onChatInboxSynced(action, async reason => useInboxLayoutState.getState().dispatch.refresh(reason))
+          )
+        },
+        reloadEach:
+          syncRes.syncType === T.RPCChat.SyncInboxResType.incremental
+            ? () =>
+                each(
+                  (syncRes.incremental.items ?? []).map(item => T.Chat.stringToConversationIDKey(item.conv.convID)),
+                  staleThread
+                )
+            : undefined,
       }
     }
-    case 'chat.1.NotifyChat.ChatTypingUpdate':
+    case 'chat.1.chatUi.chatInboxLayout':
       return {
-        reloads: [],
-        thread: (action.payload.params.typingUpdates ?? []).map(update => ({
-          conversationIDKey: T.Chat.conversationIDToKey(update.convID),
-          notification: {type: 'typing', typers: update.typers},
-        })),
+        inbox: () => {
+          const {hasLoaded, dispatch} = useInboxLayoutState.getState()
+          dispatch.updateLayout(action.payload.params.layout)
+          const {layout} = useInboxLayoutState.getState()
+          if (layout) {
+            onInboxLayoutChanged(layout, hasLoaded)
+          }
+        },
       }
+    case 'chat.1.chatUi.chatInboxConversation':
+      return {inbox: () => onGetInboxConvsUnboxed(action)}
+    case 'chat.1.NotifyChat.ChatTypingUpdate': {
+      const {typingUpdates} = action.payload.params
+      return {
+        inbox: () => updateInboxTyping(typingUpdates),
+        thread: () =>
+          (typingUpdates ?? []).map(update => ({
+            conversationIDKey: T.Chat.conversationIDToKey(update.convID),
+            notification: {type: 'typing', typers: update.typers} as const,
+          })),
+      }
+    }
     case 'chat.1.NotifyChat.ChatRequestInfo': {
       const {convID, info, msgID} = action.payload.params
-      return {reloads: [], thread: one(T.Chat.conversationIDToKey(convID), {info, msgID, type: 'requestInfo'})}
+      return {thread: () => one(T.Chat.conversationIDToKey(convID), {info, msgID, type: 'requestInfo'})}
     }
     case 'chat.1.NotifyChat.ChatPaymentInfo': {
       const {convID, info, msgID} = action.payload.params
-      return {reloads: [], thread: one(T.Chat.conversationIDToKey(convID), {info, msgID, type: 'paymentInfo'})}
+      return {thread: () => one(T.Chat.conversationIDToKey(convID), {info, msgID, type: 'paymentInfo'})}
     }
     case 'chat.1.NotifyChat.ChatPromptUnfurl': {
       const {convID, domain, msgID} = action.payload.params
-      return {reloads: [], thread: one(T.Chat.conversationIDToKey(convID), {domain, msgID, type: 'promptUnfurl'})}
+      return {thread: () => one(T.Chat.conversationIDToKey(convID), {domain, msgID, type: 'promptUnfurl'})}
     }
     case 'chat.1.chatUi.chatCoinFlipStatus': {
-      const byConversation = new Map<T.Chat.ConversationIDKey, Array<T.RPCChat.UICoinFlipStatus>>()
-      for (const status of action.payload.params.statuses ?? []) {
-        const id = T.Chat.stringToConversationIDKey(status.convID)
-        const statuses = byConversation.get(id) ?? []
-        statuses.push(status)
-        byConversation.set(id, statuses)
-      }
+      const {statuses} = action.payload.params
       return {
-        reloads: [],
-        thread: [...byConversation].map(([conversationIDKey, statuses]) => ({
-          conversationIDKey,
-          notification: {statuses, type: 'coinFlipStatuses'},
-        })),
+        // grouped per conversation, in arrival order
+        thread: () => {
+          const byConversation = new Map<T.Chat.ConversationIDKey, Array<T.RPCChat.UICoinFlipStatus>>()
+          for (const status of statuses ?? []) {
+            const id = T.Chat.stringToConversationIDKey(status.convID)
+            const forConversation = byConversation.get(id) ?? []
+            forConversation.push(status)
+            byConversation.set(id, forConversation)
+          }
+          return [...byConversation].map(([conversationIDKey, s]) => ({
+            conversationIDKey,
+            notification: {statuses: s, type: 'coinFlipStatuses'} as const,
+          }))
+        },
       }
     }
     case 'chat.1.NotifyChat.ChatAttachmentDownloadProgress': {
       const {bytesComplete, bytesTotal, convID, msgID} = action.payload.params
       return {
-        reloads: [],
-        thread: one(T.Chat.conversationIDToKey(convID), {
-          bytesComplete,
-          bytesTotal,
-          msgID,
-          type: 'attachmentDownloadProgress',
-        }),
+        thread: () =>
+          one(T.Chat.conversationIDToKey(convID), {
+            bytesComplete,
+            bytesTotal,
+            msgID,
+            type: 'attachmentDownloadProgress',
+          }),
       }
     }
     case 'chat.1.NotifyChat.ChatAttachmentDownloadComplete': {
       const {convID, msgID} = action.payload.params
-      const conversationIDKey = T.Chat.conversationIDToKey(convID)
+      const id = T.Chat.conversationIDToKey(convID)
       return {
-        reloads: one(conversationIDKey, {messageID: T.Chat.numberToMessageID(msgID), type: 'attachmentDownloaded'}),
-        thread: one(conversationIDKey, {msgID, type: 'attachmentDownloadComplete'}),
+        reloads: () => one(id, {messageID: T.Chat.numberToMessageID(msgID), type: 'attachmentDownloaded'}),
+        thread: () => one(id, {msgID, type: 'attachmentDownloadComplete'}),
       }
     }
     case 'chat.1.NotifyChat.ChatAttachmentUploadStart': {
       const {convID, outboxID} = action.payload.params
-      return {
-        reloads: [],
-        thread: one(T.Chat.conversationIDToKey(convID), {outboxID, type: 'attachmentUploadProgress'}),
-      }
+      return {thread: () => one(T.Chat.conversationIDToKey(convID), {outboxID, type: 'attachmentUploadProgress'})}
     }
     case 'chat.1.NotifyChat.ChatAttachmentUploadProgress': {
       const {bytesComplete, bytesTotal, convID, outboxID} = action.payload.params
       return {
-        reloads: [],
-        thread: one(T.Chat.conversationIDToKey(convID), {
-          bytesComplete,
-          bytesTotal,
-          outboxID,
-          type: 'attachmentUploadProgress',
-        }),
+        thread: () =>
+          one(T.Chat.conversationIDToKey(convID), {
+            bytesComplete,
+            bytesTotal,
+            outboxID,
+            type: 'attachmentUploadProgress',
+          }),
       }
     }
     case 'chat.1.chatUi.chatCommandStatus': {
       const {actions, convID, displayText, typ} = action.payload.params
       return {
-        reloads: [],
-        thread: one(T.Chat.stringToConversationIDKey(convID), {
-          actions,
-          displayText,
-          displayType: typ,
-          type: 'commandStatus',
-        }),
+        thread: () =>
+          one(T.Chat.stringToConversationIDKey(convID), {
+            actions,
+            displayText,
+            displayType: typ,
+            type: 'commandStatus',
+          }),
       }
     }
     case 'chat.1.chatUi.chatCommandMarkdown': {
       const {convID, md} = action.payload.params
-      return {reloads: [], thread: one(T.Chat.stringToConversationIDKey(convID), {md, type: 'commandMarkdown'})}
+      return {thread: () => one(T.Chat.stringToConversationIDKey(convID), {md, type: 'commandMarkdown'})}
     }
     case 'chat.1.chatUi.chatGiphyToggleResultWindow': {
       const {clearInput, convID, show} = action.payload.params
       return {
-        reloads: [],
-        thread: one(T.Chat.stringToConversationIDKey(convID), {
-          clearInput,
-          show,
-          type: 'giphyToggleResultWindow',
-        }),
+        thread: () =>
+          one(T.Chat.stringToConversationIDKey(convID), {clearInput, show, type: 'giphyToggleResultWindow'}),
       }
     }
     case 'chat.1.chatUi.chatGiphySearchResults': {
       const {convID, results} = action.payload.params
-      return {
-        reloads: [],
-        thread: one(T.Chat.stringToConversationIDKey(convID), {results, type: 'giphySearchResults'}),
-      }
+      return {thread: () => one(T.Chat.stringToConversationIDKey(convID), {results, type: 'giphySearchResults'})}
     }
     case 'chat.1.chatUi.chatBotCommandsUpdateStatus': {
       const {convID, status} = action.payload.params
       return {
-        reloads: [],
-        thread: one(T.Chat.stringToConversationIDKey(convID), {status, type: 'botCommandsUpdateStatus'}),
+        thread: () => one(T.Chat.stringToConversationIDKey(convID), {status, type: 'botCommandsUpdateStatus'}),
       }
     }
-    default:
-      return {reloads: [], thread: []}
   }
 }
 
-const applyToInbox = (action: ChatNotification) => {
-  switch (action.type) {
-    case 'chat.1.NotifyChat.ChatIdentifyUpdate': {
-      const {update} = action.payload.params
-      const usernames = update.CanonicalName.split(',')
-      const broken = (update.breaks.breaks || []).map(b => b.user.username)
-      useUsersState.getState().dispatch.updates(
-        usernames.map(name => ({info: {broken: broken.includes(name)}, name}))
-      )
-      return
-    }
-    case 'chat.1.NotifyChat.ChatInboxStale':
-      ignorePromise(useInboxLayoutState.getState().dispatch.refresh('inboxStale'))
-      return
-    case 'chat.1.chatUi.chatInboxUnverified':
-      onGetInboxUnverifiedConvs(action)
-      return
-    case 'chat.1.NotifyChat.ChatInboxSyncStarted':
-      useWaitingState.getState().dispatch.increment(S.waitingKeyChatInboxSyncStarted)
-      return
-    case 'chat.1.NotifyChat.ChatInboxSynced':
-      useWaitingState.getState().dispatch.clear(S.waitingKeyChatInboxSyncStarted)
-      ignorePromise(
-        onChatInboxSynced(action, async reason => useInboxLayoutState.getState().dispatch.refresh(reason))
-      )
-      return
-    case 'chat.1.chatUi.chatInboxLayout': {
-      const {hasLoaded, dispatch} = useInboxLayoutState.getState()
-      dispatch.updateLayout(action.payload.params.layout)
-      const {layout} = useInboxLayoutState.getState()
-      if (layout) {
-        onInboxLayoutChanged(layout, hasLoaded)
-      }
-      return
-    }
-    case 'chat.1.chatUi.chatInboxConversation':
-      onGetInboxConvsUnboxed(action)
-      return
-    default: {
-      const {inboxUIItem, userReacjis} = handleConvoEngineIncoming(action)
-      if (inboxUIItem) {
-        onIncomingInboxUIItem(inboxUIItem)
-      }
-      if (userReacjis) {
-        useDaemonState.getState().dispatch.updateUserReacjis(userReacjis)
-      }
-    }
-  }
+type Decoded = {
+  inbox?: () => void
+  reloads: ReadonlyArray<Delivery<ReloadTrigger>>
+  reloadEach?: FanOut<ReloadTrigger>
+  thread: ReadonlyArray<Delivery<ThreadNotification>>
+}
+
+// Which conversations a notification concerns, what each stage-2 and stage-3 handler is told, and
+// what stage 1 does to the inbox.
+export const decodeChatNotification = (action: ChatNotification): Decoded => {
+  const {inbox, reloadEach, reloads, thread} = stagesOf(action)
+  return {inbox, reloadEach: reloadEach?.(), reloads: reloads?.() ?? [], thread: thread?.() ?? []}
 }
 
 export const routeChatNotification = (action: ChatNotification) => {
-  applyToInbox(action)
-  const {reloadEach, reloads, thread} = decodeChatNotification(action)
+  const {inbox, reloadEach, reloads, thread} = decodeChatNotification(action)
+  inbox?.()
   deliverThreadNotifications(thread, action.type)
   deliverReloadTriggers(reloads, action.type)
   if (reloadEach) {
