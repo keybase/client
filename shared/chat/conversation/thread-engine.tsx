@@ -3,13 +3,8 @@ import * as Message from '@/constants/chat/message'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
-import {useCurrentUserState} from '@/stores/current-user'
 import {useEngineActionListener} from '@/engine/action-listener'
-import {
-  useConversationThreadUid,
-  useThreadNotifications,
-  type ThreadNotification,
-} from '@/chat/notification-registry'
+import {useThreadNotifications, type ThreadNotification} from '@/chat/notification-registry'
 import {
   getCurrentUser,
   getExplodingModeFromGregorItems,
@@ -317,16 +312,12 @@ export const useThreadEngineListeners = (
   id: T.Chat.ConversationIDKey,
   threadActions: ConversationThreadActions
 ): void => {
-  const uid = useConversationThreadUid()
   useThreadNotifications(id, notification => {
     applyThreadNotification(id, notification, threadActions)
   })
-  // gregor is not a chat notification; it reaches every listener on the engine bus, so this one
-  // checks the account itself
+  // gregor is not a chat notification; it reaches every listener on the engine bus, and a thread
+  // whose account has left ignores it like everything else
   useEngineActionListener('keybase.1.gregorUI.pushState', action => {
-    if (useCurrentUserState.getState().uid !== uid) {
-      return
-    }
     const items = (action.payload.params.state.items ?? []).reduce<
       Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>
     >((arr, {md, item}) => {

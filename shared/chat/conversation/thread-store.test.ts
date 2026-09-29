@@ -8,8 +8,10 @@ import logger from '@/logger'
 import {makeMessageAttachment, makeMessageDeleted, makeMessageText} from '@/constants/chat/message'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
 import {metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {loadConversationThreadMessages} from './thread-load'
 import {
   makeThreadStore,
   type ConversationThreadActions,
@@ -185,10 +187,15 @@ describe('mark read', () => {
     arm(actions, [textAt(5)])
     session = {loggedIn: false, uid: 'uid'}
     actions.markThreadAsRead()
-    session = {loggedIn: true, uid: 'uid-2'}
-    actions.markThreadAsRead()
     await flushPromises()
     expect(markReads()).toEqual([])
+    session = {loggedIn: true, uid: 'uid'}
+    actions.markThreadAsRead()
+    await flushPromises()
+    expect(markReads()).toHaveLength(1)
+    // another account retires the store for good
+    session = {loggedIn: true, uid: 'uid-2'}
+    actions.markThreadAsRead()
     session = {loggedIn: true, uid: 'uid'}
     actions.markThreadAsRead()
     await flushPromises()
@@ -343,7 +350,8 @@ describe('loadMoreMessages', () => {
     const {actions} = makeThread()
     const p = scroll(1)
     actions.loadMoreMessages(p)
-    expect(loadCalls).toEqual([{actions, id: convA, p}])
+    expect(loadCalls.map(c => [c.actions, c.id])).toEqual([[actions, convA]])
+    expect(loadCalls[0]?.p).toMatchObject(p)
   })
 
   test('throttles to the first and last call in 500ms', () => {
@@ -385,7 +393,7 @@ describe('loadMoreMessages', () => {
     actions.loadMoreMessages(scroll(2))
     actions.loadMoreMessages(p)
     jest.advanceTimersByTime(1000)
-    expect(loadCalls.map(c => c.p)).toEqual([scroll(1), p])
+    expect(loadCalls.map(c => c.p)).toEqual([expect.objectContaining(scroll(1)), expect.objectContaining(p)])
   })
 
   test('dispose drops the pending call and leaves the store working', () => {
@@ -404,6 +412,9 @@ describe('loadMoreMessages', () => {
   })
 
   test('the default loader goes to the service', () => {
+    useCurrentUserState
+      .getState()
+      .dispatch.setBootstrap({deviceID: 'device-id', deviceName: 'device', uid: session.uid, username: 'testuser'})
     const {actions} = makeThreadStore(convA, session.uid, () => looking)
     actions.loadMoreMessages({reason: 'focused'})
     expect(rpc.params('loadThread')).toHaveLength(1)
@@ -639,6 +650,95 @@ describe('store writes', () => {
       ['setExplodingMode', convA, 300],
       ['clearExplodingMode', convA],
     ])
+  })
+})
+
+describe('a store whose account has left', () => {
+  const leave = () => {
+    session = {loggedIn: true, uid: 'uid-2'}
+  }
+
+  test('does nothing, whatever action it is asked for', async () => {
+    const {actions, store} = makeThread()
+    const outboxID = T.Chat.stringToOutboxID('o1')
+    arm(actions, [textAt(5), textAt(6, {id: T.Chat.numberToMessageID(0), outboxID, submitState: 'failed'})])
+    rpc.clearLog()
+    const before = store.getState()
+    leave()
+    actions.addMessages([textAt(8)])
+    actions.retryMessage(outboxID)
+    actions.markThreadAsRead()
+    actions.setMarkAsUnread(T.Chat.numberToMessageID(6))
+    actions.setExplodingMode(300)
+    actions.setExplodingMode(60, true)
+    actions.loadMoreMessages({reason: 'jump to recent'})
+    // every other action too, with arguments it would fail on if it ran at all
+    for (const key of Object.keys(actions) as Array<keyof typeof actions>) {
+      if (key !== 'getSnapshot') {
+        expect(() => (actions[key] as () => void)()).not.toThrow()
+      }
+    }
+    await flushPromises()
+    expect(store.getState()).toBe(before)
+    expect(rpc.log).toEqual([])
+    expect(loadCalls).toEqual([])
+  })
+
+  test('a load resolving after it left applies nothing', () => {
+    const {actions, store} = makeThread()
+    actions.loadMoreMessages({reason: 'jump to recent'})
+    leave()
+    const [load] = loadCalls
+    expect(load?.p.isThreadLoadCurrent?.()).toBe(false)
+    load?.actions.applyThreadLoad({
+      centered: false,
+      enableActiveMarkRead: true,
+      messages: [textAt(5)],
+      moreToLoad: false,
+      scrollDirection: 'none',
+    })
+    expect(store.getState().loaded).toBe(false)
+  })
+
+  test('the service answering a load after it left writes nothing', async () => {
+    let answer: (res: T.RPCChat.NonblockFetchRes) => void = () => {}
+    rpc.on('loadThread', async () => new Promise<T.RPCChat.NonblockFetchRes>(resolve => (answer = resolve)))
+    const {actions} = makeThread(convA, {loadThreadMessages: loadConversationThreadMessages})
+    actions.loadMoreMessages({reason: 'jump to recent'})
+    await flushPromises()
+    expect(rpc.params('loadThread')).toHaveLength(1)
+    leave()
+    answer({offline: true})
+    await flushPromises()
+    expect(useInboxMetadataState.getState().metas.get(convA)?.offline).toBe(false)
+  })
+
+  test('a mark unread waiting on the service is not sent once it left', async () => {
+    const {actions} = makeThread()
+    actions.setMarkAsUnread(T.Chat.numberToMessageID(8))
+    leave()
+    await flushPromises()
+    expect(rpc.params('loadThread')).toHaveLength(1)
+    expect(markReads()).toEqual([])
+  })
+
+  test('stays retired when its account signs back in', () => {
+    const {actions, store} = makeThread()
+    leave()
+    actions.addMessages([textAt(5)])
+    session = {loggedIn: true, uid: 'uid'}
+    actions.addMessages([textAt(6)])
+    expect(store.getState().messageOrdinals).toBeUndefined()
+  })
+
+  test('an unmount while nobody is signed in retires it, though nothing asked in between', () => {
+    const thread = makeThread()
+    session = {loggedIn: false, uid: ''}
+    thread.dispose()
+    session = {loggedIn: true, uid: 'uid'}
+    thread.actions.addMessages([textAt(5)])
+    thread.markReadIfArmed()
+    expect(thread.store.getState().messageOrdinals).toBeUndefined()
   })
 })
 

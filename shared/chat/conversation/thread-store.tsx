@@ -197,9 +197,9 @@ const defaultDeps: ThreadStoreDeps = {
 
 export type ThreadStore = {
   actions: ConversationThreadActions
-  // Drops the pending throttled load. The store stays usable: the provider calls this from an
-  // effect cleanup, which also runs when <Activity> hides the screen and it comes back on the same
-  // store.
+  // Drops the pending throttled load, and retires the store if its account has left. The store
+  // otherwise stays usable: the provider calls this from an effect cleanup, which also runs when
+  // <Activity> hides the screen and it comes back on the same store.
   dispose: () => void
   // Marks read if a load has armed it; for when the reader comes back to the thread.
   markReadIfArmed: () => void
@@ -245,7 +245,28 @@ const makeEmptyThreadState = (): ConversationThreadState =>
     () => {}
   )
 
-// uid: the account the thread belongs to
+// Each of fns, doing nothing once isRetired says so.
+const unlessRetired = <Fns extends {[K in keyof Fns]: (...args: never) => void}>(
+  fns: Fns,
+  isRetired: () => boolean
+): Fns => {
+  const guarded: Partial<Record<keyof Fns, unknown>> = {}
+  for (const key of Object.keys(fns) as Array<keyof Fns>) {
+    const f = fns[key] as unknown as (...args: ReadonlyArray<unknown>) => void
+    guarded[key] = (...args: ReadonlyArray<unknown>) => {
+      if (!isRetired()) {
+        f(...args)
+      }
+    }
+  }
+  return guarded as Fns
+}
+
+// uid: the account the thread belongs to. The store serves only that account: the first time it
+// finds another account signed in, or none, it is retired for good (even if that account signs
+// back in), and from then on every action, and every continuation of one (a load resolving late, a
+// mark unread waiting on the service), does nothing. The provider builds a new store for whoever
+// signs in next.
 // isLookingAtThread: whether the reader is looking at this thread right now (app active and
 // focused, route focused). Mark read asks it each time and refuses while they are not.
 export const makeThreadStore = (
@@ -261,6 +282,8 @@ export const makeThreadStore = (
     })
   )
   const shownUsernameCache = new Map<T.Chat.Ordinal, string>()
+  let retired = false
+  const isRetired = () => (retired ||= deps.getSession().uid !== uid)
   let activeMarkReadEnabled = false
   // the message a mark read is on its way for; the inbox meta moves only once the service answers
   let markReadSending: T.Chat.MessageID | undefined
@@ -286,12 +309,6 @@ export const makeThreadStore = (
       const session = deps.getSession()
       if (!session.loggedIn) {
         logger.info('mark read bail on not logged in')
-        return
-      }
-      // the provider builds another store for the next account, but this one can outlive the
-      // switch by a render, and a mark read sent then would mark that account's read position
-      if (session.uid !== uid) {
-        logger.info('mark read bail on thread loaded for another account')
         return
       }
       if (!T.Chat.isValidConversationIDKey(id)) {
@@ -555,6 +572,9 @@ export const makeThreadStore = (
             msgID = loadedMsgID
           }
         } catch {}
+        if (isRetired()) {
+          return
+        }
       }
 
       if (!msgID) {
@@ -641,7 +661,18 @@ export const makeThreadStore = (
     })
   }
 
-  const loadImmediately = (p: LoadMoreMessagesParams) => deps.loadThreadMessages(id, p, actions)
+  // a throttled load runs later, and the load pipeline asks isThreadLoadCurrent after every await
+  const loadImmediately = (p: LoadMoreMessagesParams) => {
+    if (isRetired()) {
+      return
+    }
+    const {isThreadLoadCurrent} = p
+    deps.loadThreadMessages(
+      id,
+      {...p, isThreadLoadCurrent: () => !isRetired() && (isThreadLoadCurrent?.() ?? true)},
+      actions
+    )
+  }
   const throttledLoad = throttle(loadImmediately, 500)
   // The throttle keeps only the last trailing call, so a centered or jump-to-recent
   // load issued between two other loads would be silently dropped — after
@@ -662,7 +693,7 @@ export const makeThreadStore = (
     }
   )
 
-  const actions: ConversationThreadActions = {
+  const mutators: Omit<ConversationThreadActions, 'getSnapshot' | 'loadMoreMessages'> = {
     addMessages,
     addOptimisticReaction: (outboxID, reaction) => {
       updateThreadState(s => {
@@ -695,8 +726,6 @@ export const makeThreadStore = (
         finishAttachmentDownloadInThreadState(s, ordinal, path)
       })
     },
-    getSnapshot,
-    loadMoreMessages,
     markThreadAsRead,
     messagesClear,
     receivePaymentInfo: (messageID, paymentInfo) => {
@@ -784,12 +813,24 @@ export const makeThreadStore = (
     },
     updateReactions,
   }
+  const actions: ConversationThreadActions = {
+    ...unlessRetired(mutators, isRetired),
+    getSnapshot,
+    loadMoreMessages: Object.assign(unlessRetired({loadMoreMessages}, isRetired).loadMoreMessages, {
+      cancel: loadMoreMessages.cancel,
+    }),
+  }
 
   return {
     actions,
-    dispose: loadMoreMessages.cancel,
+    dispose: () => {
+      loadMoreMessages.cancel()
+      // an unmount for an account switch runs after the reset, so the store is retired even if the
+      // account signs back in before a late continuation of it asks
+      isRetired()
+    },
     markReadIfArmed: () => {
-      if (activeMarkReadEnabled) {
+      if (!isRetired() && activeMarkReadEnabled) {
         markThreadAsRead()
       }
     },
