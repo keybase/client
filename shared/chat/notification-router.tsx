@@ -135,25 +135,33 @@ const metadataAndMessagesOf = (
 const uiMessageID = (m: T.RPCChat.UIMessage | null | undefined) =>
   (m ? Message.getMessageID(m) : null) ?? undefined
 
-// the messages an incoming edit, delete, reaction, unfurl or finished upload changes
-const targetMessageIDs = (m: T.RPCChat.UIMessage | null | undefined): ReadonlyArray<number> => {
+// The existing messages an incoming message's body changes: the target of an edit, delete,
+// reaction, unfurl or finished upload, and with upTo every message below it (a delete-history, which
+// the service applies strictly below its line, as an expunge). The other types add a message and
+// change none: text, attachment, metadata, tlfname and headline (the conversation's meta), join,
+// leave, system, sendpayment, requestpayment, flip and pin (the pinned message is read off the meta).
+const bodyTargets = (
+  m: T.RPCChat.UIMessage | null | undefined
+): {ids: ReadonlyArray<number>; upTo?: T.Chat.MessageID} => {
   if (m?.state !== T.RPCChat.MessageUnboxedState.valid) {
-    return []
+    return {ids: []}
   }
   const body = m.valid.messageBody
   switch (body.messageType) {
     case T.RPCChat.MessageType.edit:
-      return [body.edit.messageID]
+      return {ids: [body.edit.messageID]}
     case T.RPCChat.MessageType.delete:
-      return body.delete.messageIDs ?? []
+      return {ids: body.delete.messageIDs ?? []}
+    case T.RPCChat.MessageType.deletehistory:
+      return {ids: [], upTo: T.Chat.numberToMessageID(body.deletehistory.upto)}
     case T.RPCChat.MessageType.reaction:
-      return [body.reaction.m]
+      return {ids: [body.reaction.m]}
     case T.RPCChat.MessageType.unfurl:
-      return [body.unfurl.messageID]
+      return {ids: [body.unfurl.messageID]}
     case T.RPCChat.MessageType.attachmentuploaded:
-      return [body.attachmentuploaded.messageID]
+      return {ids: [body.attachmentuploaded.messageID]}
     default:
-      return []
+      return {ids: []}
   }
 }
 
@@ -173,12 +181,14 @@ const activityStages = (activity: T.RPCChat.ChatActivity): Stages => {
           maybeShowIncomingMessageDesktopNotification(incomingMessage)
           onIncomingInboxUIItem(incomingMessage.conv ?? undefined)
         },
-        reloads: () =>
-          metadataAndMessagesOf(id, [
-            uiMessageID(incomingMessage.message),
-            uiMessageID(incomingMessage.modifiedMessage),
-            ...targetMessageIDs(incomingMessage.message),
-          ]),
+        reloads: () => {
+          const targets = bodyTargets(incomingMessage.message)
+          return metadataAndMessagesOf(
+            id,
+            [uiMessageID(incomingMessage.message), uiMessageID(incomingMessage.modifiedMessage), ...targets.ids],
+            targets.upTo
+          )
+        },
         thread: () => one(id, {incomingMessage, type: 'incomingMessage'}),
       }
     }

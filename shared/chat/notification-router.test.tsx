@@ -184,6 +184,12 @@ describe('decodeChatNotification', () => {
       ).toEqual({messageIDs: [mid(22)], type: 'messages'})
     })
 
+    test('a delete-history names itself and everything below its line', () => {
+      expect(
+        incoming(valid(47, {deletehistory: {upto: 30}, messageType: T.RPCChat.MessageType.deletehistory}))
+      ).toEqual({messageIDs: [mid(47)], type: 'messages', upTo: mid(30)})
+    })
+
     test('an expunge names everything below its line', () => {
       expect(
         messagesReload({

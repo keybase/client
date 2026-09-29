@@ -131,6 +131,12 @@ describe('useConversationMessage', () => {
     'a delete of another': incoming(valid(40, {delete: {messageIDs: [21]}, messageType: T.RPCChat.MessageType.delete})),
     'an edit of another': incoming(valid(40, {edit: {body: 'x', messageID: 21}, messageType: T.RPCChat.MessageType.edit})),
     'an edit of it': incoming(valid(40, {edit: {body: 'x', messageID: 20}, messageType: T.RPCChat.MessageType.edit})),
+    'a delete-history below it': incoming(
+      valid(40, {deletehistory: {upto: 20}, messageType: T.RPCChat.MessageType.deletehistory})
+    ),
+    'a delete-history past it': incoming(
+      valid(40, {deletehistory: {upto: 21}, messageType: T.RPCChat.MessageType.deletehistory})
+    ),
     'an expunge below it': activity({
       activityType: T.RPCChat.ChatActivityType.expunge,
       expunge: {convID, expunge: {basis: 0, upto: 20}},
@@ -194,6 +200,7 @@ describe('useConversationMessage', () => {
   test.each([
     'a delete of it',
     'an edit of it',
+    'a delete-history past it',
     'an expunge past it',
     'an explosion of it',
     'an incoming message that modified it',
@@ -209,6 +216,7 @@ describe('useConversationMessage', () => {
   test.each([
     'a delete of another',
     'an edit of another',
+    'a delete-history below it',
     'an expunge below it',
     'an explosion of another',
     'a new message',
