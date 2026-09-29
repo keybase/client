@@ -272,6 +272,9 @@ export default defineConfig(({mode}) => {
       port: devServerPort,
       strictPort: true,
       host: 'localhost',
+      // e2e runs write their reports under tests/results; a change there must not reload the app
+      // the run is driving
+      watch: {ignored: ['**/tests/results/**']},
     },
     // Force the nulled native packages to be pre-bundled (they resolve to the CJS
     // empty-module via alias). The Vite dev server strict-checks named exports on
