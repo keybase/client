@@ -195,27 +195,38 @@ const cli = async (args: Array<string>) =>
     })
   })
 
-// Setting a min writer role always asks for confirmation on /dev/tty, so it runs under `script`
-// (a pseudo-terminal) and answers the prompt when it appears.
-const cliConfirmed = async (args: Array<string>) =>
+// Setting a min writer role or deleting a channel asks for confirmation on /dev/tty, so the command
+// runs under `expect` (a pseudo-terminal; `script` needs a terminal on its own stdin, which a test
+// runner does not have), which types `answer` and Enter once `prompt` appears. Exit code 2 means
+// the prompt never came.
+const confirmScript = [
+  'set timeout 30',
+  'spawn {*}$env(KB_CONFIRM_CMD)',
+  'expect $env(KB_CONFIRM_PROMPT) { send "$env(KB_CONFIRM_ANSWER)\\r" } timeout { exit 2 }',
+  'expect eof',
+  'lassign [wait] pid spawnid oserr code',
+  'exit $code',
+].join('; ')
+
+const cliConfirmed = async (args: Array<string>, prompt = 'Hit Enter to confirm', answer = '') =>
   new Promise<void>((resolve, reject) => {
-    const proc = spawn('script', ['-q', '/dev/null', keybaseBin(), ...args])
+    const env = {
+      ...process.env,
+      KB_CONFIRM_ANSWER: answer,
+      KB_CONFIRM_CMD: [keybaseBin(), ...args].map(a => `{${a}}`).join(' '),
+      KB_CONFIRM_PROMPT: prompt,
+    }
+    const proc = spawn('expect', ['-c', confirmScript], {env})
     let output = ''
-    let answered = false
     const timer = setTimeout(() => {
       proc.kill()
       reject(new Error(`keybase ${args.join(' ')} timed out: ${output}`))
-    }, 30_000)
-    proc.stdout.on('data', (d: Buffer) => {
-      output += d.toString()
-      if (!answered && output.includes('Hit Enter to confirm')) {
-        answered = true
-        proc.stdin.write('\r')
-      }
-    })
+    }, 60_000)
+    proc.stdout.on('data', (d: Buffer) => (output += d.toString()))
+    proc.stderr.on('data', (d: Buffer) => (output += d.toString()))
     proc.on('exit', code => {
       clearTimeout(timer)
-      if (code === 0 && answered) resolve()
+      if (code === 0) resolve()
       else reject(new Error(`keybase ${args.join(' ')} exited ${code}: ${output}`))
     })
   })
@@ -455,4 +466,29 @@ export const botCommands = async (topicName: E2EChannel) => {
   }
   const res = await withApi(async api => api.call<Commands>('listcommands', {channel: channelRef(team, topicName)}))
   return (res.commands ?? []).filter(c => !!c.username)
+}
+
+// A channel for one run's membership flows, named `<prefix>-<time in base 36>` (a channel name is
+// 20 characters at most), created by the CLI's account (the team owner) with the second account
+// added to it.
+export const createThrowawayChannel = async (prefix: string) => {
+  const {secondUser, team} = e2eAccounts()
+  const topicName = `${prefix}-${Date.now().toString(36)}`
+  const convID = await withApi(async api => {
+    const id = await ensureChannel(api, team, topicName)
+    await ensureMember(api, team, topicName, secondUser)
+    return id
+  })
+  return {convID, topicName}
+}
+
+// Deletes every channel createThrowawayChannel made with `prefix`, this run's or a failed run's,
+// through the CLI, which must be signed in as the team owner.
+export const deleteThrowawayChannels = async (prefix: string) => {
+  const {team} = e2eAccounts()
+  const names = [...(await withApi(async api => listChannels(api, team))).keys()]
+  for (const topicName of names.filter(n => new RegExp(`^${prefix}-[0-9a-z]+$`).test(n))) {
+    log(`deleting #${topicName}`)
+    await cliConfirmed(['chat', 'delete-channel', team, topicName], 'please type:', `nuke ${topicName}`)
+  }
 }

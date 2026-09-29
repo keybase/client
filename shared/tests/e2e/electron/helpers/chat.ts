@@ -1,7 +1,7 @@
 // Chat helpers for the desktop flows: open a conversation by name, drive the composer and thread
 // search, and read the thread's geometry straight from the DOM (the scroller and its
 // [data-ordinal] rows). Everything here observes the page; nothing reaches into app state.
-import {expect, type Locator, type Page} from '@playwright/test'
+import {expect, type ConsoleMessage, type Locator, type Page} from '@playwright/test'
 import * as T from '@/tests/e2e/shared/test-ids'
 import {navigateToChat} from './navigate'
 
@@ -269,6 +269,53 @@ export const openDirectConversation = async (page: Page, username: string) => {
 export const inboxRow = (page: Page, title: string) =>
   page.getByTestId(T.CHAT_INBOX_ROW).filter({has: page.locator(`[title="${title}"]`)})
 
+// The inbox rows drawn as selected, by name: a big team's channel as `#channel` (its name turns
+// semibold), a small conversation by its row's title. One entry while one conversation is selected.
+export const selectedInboxRows = async (page: Page) =>
+  page.evaluate(() => {
+    type El = {getAttribute: (n: string) => string | null; textContent: string | null}
+    const g = globalThis as unknown as {document: {querySelectorAll: (s: string) => ArrayLike<El>}}
+    const inbox = '.inbox-hover-container'
+    const channels = Array.from(
+      g.document.querySelectorAll(`${inbox} .hover_background_color_blueGreyDark > .text_Body > .text_BodySemibold`)
+    ).map(
+      el => `#${(el.textContent ?? '').trim()}`
+    )
+    const small = Array.from(g.document.querySelectorAll(`${inbox} .small-row.selected [title]`)).map(
+      el => el.getAttribute('title') ?? ''
+    )
+    return [...channels, ...small]
+  })
+
+// Reads the thread header and the selected inbox rows every 100ms for `forMs`, and returns each
+// distinct reading in order, so a selection that moves and comes back still shows the move.
+export const watchSelection = async (page: Page, forMs: number) => {
+  const seen: Array<string> = []
+  const start = Date.now()
+  while (Date.now() - start < forMs) {
+    const header = (await threadHeaderTitle(page).count()) ? await threadHeaderTitle(page).innerText({timeout: 1_000}) : ''
+    const reading = `${header} | ${(await selectedInboxRows(page)).join(', ')}`
+    if (seen.at(-1) !== reading) seen.push(reading)
+    await page.waitForTimeout(100)
+  }
+  return seen
+}
+
+// Collects the renderer's console errors from now until stop(), less those matching `ignore`.
+export const collectConsoleErrors = (page: Page, ignore: ReadonlyArray<RegExp> = []) => {
+  const errors: Array<string> = []
+  const onConsole = (m: ConsoleMessage) => {
+    if (m.type() === 'error') errors.push(m.text())
+  }
+  page.on('console', onConsole)
+  return {
+    stop: () => {
+      page.off('console', onConsole)
+      return errors.filter(e => !ignore.some(r => r.test(e)))
+    },
+  }
+}
+
 // -- accounts ------------------------------------------------------------------------------------
 
 // The signed-in user's name in the tab bar: "Hi <name>!", or the bare name when that is too long.
@@ -276,30 +323,10 @@ const signedInName = (page: Page) => page.locator('.username').first()
 export const signedInAs = async (page: Page) =>
   (await signedInName(page).innerText({timeout: 5_000})).replace(/^Hi /, '').replace(/!$/, '').trim()
 
-// Waits until the open thread's header reads the same for `quietMs`, and returns it.
-export const waitForHeaderStable = async (page: Page, quietMs = 1_500, timeoutMs = 15_000) => {
-  const deadline = Date.now() + timeoutMs
-  const read = async () => (await threadHeaderTitle(page).count()) ? threadHeaderTitle(page).innerText({timeout: 1_000}) : ''
-  let last = await read()
-  let since = Date.now()
-  for (;;) {
-    await page.waitForTimeout(250)
-    const now = await read()
-    if (now !== last) {
-      last = now
-      since = Date.now()
-    } else if (last && Date.now() - since >= quietMs) {
-      return last
-    }
-    if (Date.now() > deadline) throw new Error(`the thread header did not settle (last: "${last}")`)
-  }
-}
-
 // Switches the app to another account signed in on this device, through the account switcher in
-// the tab bar's user menu, and waits for the tab bar to name it. The switch lands on the People
-// tab; the chat tab then selects a conversation for the account on its own, up to a second later
-// (see chat-data.test.ts's switch flows), so this opens the chat tab and waits for that selection
-// to settle before handing back, and a conversation the caller opens next stays open.
+// the tab bar's user menu, waits for the tab bar to name it, and opens the chat tab (the switch
+// lands on the People tab). A conversation the caller opens next stays open, even while the chat
+// tab is still picking one for the account.
 export const switchAccount = async (page: Page, username: string) => {
   if ((await signedInAs(page)) === username) return
   await signedInName(page).click({force: true, timeout: 5_000})
@@ -310,7 +337,6 @@ export const switchAccount = async (page: Page, username: string) => {
   await clickUnoccluded(row)
   await expect(signedInName(page)).toHaveText(new RegExp(`^(Hi )?${escapeRegExp(username)}!?$`), {timeout: 30_000})
   await navigateToChat(page)
-  await waitForHeaderStable(page)
 }
 
 // -- rows ----------------------------------------------------------------------------------------

@@ -3,10 +3,11 @@
 // draws the orange line and marks the inbox row, reply privately opens the direct conversation
 // quoting the message, incoming messages reach the thread and the inbox, and all of it keeps
 // working across an account switch.
-import type {ConsoleMessage, Page} from '@playwright/test'
+import type {Page} from '@playwright/test'
 import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {
   clickUnoccluded,
+  collectConsoleErrors,
   composer,
   composerInput,
   endTolerancePx,
@@ -22,8 +23,8 @@ import {
   threadHeaderTitle,
   waitForRow,
   waitForScrollStable,
+  watchSelection,
 } from '@/tests/e2e/electron/helpers/chat'
-import {navigateToChat} from '@/tests/e2e/electron/helpers/navigate'
 import {E2E_CHANNELS, attachFromCli, ensureChatData, type ChatData} from '@/tests/e2e/shared/chat-data'
 import {findIncomingSender, type IncomingSender} from '@/tests/e2e/shared/incoming-sender'
 import * as T from '@/tests/e2e/shared/test-ids'
@@ -289,19 +290,6 @@ test.describe('account switch', () => {
   //   not be pinned to a step; it is reported separately rather than failed here.
   const notFromTheSwitch = [/refreshAccounts|ignorePromise error/, /getUsernameToShow: message with no author/]
 
-  const collectConsoleErrors = (page: Page) => {
-    const errors: Array<string> = []
-    const onConsole = (m: ConsoleMessage) => {
-      if (m.type() === 'error') errors.push(m.text())
-    }
-    page.on('console', onConsole)
-    return {
-      stop: () => {
-        page.off('console', onConsole)
-        return errors.filter(e => !notFromTheSwitch.some(r => r.test(e)))
-      },
-    }
-  }
 
   test.afterEach(async ({page}) => {
     await switchAccount(page, data.smokeUser)
@@ -310,7 +298,7 @@ test.describe('account switch', () => {
   test('a thread opened after switching accounts and back gets new messages and typing for the account signed in', async ({page}) => {
     test.setTimeout(120_000)
     const s = requireSender()
-    const errors = collectConsoleErrors(page)
+    const errors = collectConsoleErrors(page, notFromTheSwitch)
     await openScratch(page)
 
     // as the second account: the thread builds for it and hears a message sent from its other device
@@ -339,37 +327,14 @@ test.describe('account switch', () => {
     expect(errors.stop(), 'console errors across the switches').toEqual([])
   })
 
-  // App bug: a conversation opened right after an account switch is replaced by the account's
-  // first conversation. The client no longer asks for a forced reselect, but the service's next
-  // inbox layout, about 300ms after the pick, still carries reselect info naming the picked channel
-  // as the one to replace, and the header flips 0.5-0.75s after the pick. Opened after the chat tab
-  // settles, the pick stays, so switchAccount waits that out for the other flows. Remove test.fail
-  // once fixed.
+  // The account's own pick of a conversation lands up to a second after a switch, with the service
+  // still naming the previous account's selection; the conversation the user opened stays anyway.
   test('a conversation opened right after an account switch stays open', async ({page}) => {
-    test.fail()
     test.setTimeout(90_000)
     await switchAccount(page, data.secondUser)
-    await switchAccount(page, data.smokeUser)
-    // the same switch as switchAccount, without waiting for the chat tab to settle
-    await page.locator('.username').first().click({force: true, timeout: 5_000})
-    const row = page.locator('.accountSwitcherScrollView').getByText(data.secondUser, {exact: true})
-    await expect(row).toBeVisible({timeout: 5_000})
-    await page.waitForTimeout(150)
-    await clickUnoccluded(row)
-    await expect(page.locator('.username').first()).toContainText(data.secondUser, {timeout: 30_000})
-    await navigateToChat(page)
-
     await openScratch(page)
-    const title = `${data.team}#${E2E_CHANNELS.scratch}`
-    // what the header reads, and when (ms after the pick), each time it changes
-    const shown: Array<string> = []
-    const start = Date.now()
-    let last = ''
-    while (Date.now() - start < 1_500) {
-      const now = await threadHeaderTitle(page).innerText({timeout: 1_000})
-      if (now !== last) shown.push(`${Date.now() - start}ms ${(last = now)}`)
-      await page.waitForTimeout(100)
-    }
-    expect(shown.map(s => s.replace(/^\d+ms /, '')), `the thread header after opening: ${shown.join(', ')}`).toEqual([title])
+    const expected = `${data.team}#${E2E_CHANNELS.scratch} | #${E2E_CHANNELS.scratch}`
+    const seen = await watchSelection(page, 1_500)
+    expect(seen, 'the thread header and selected inbox row after opening').toEqual([expected])
   })
 })

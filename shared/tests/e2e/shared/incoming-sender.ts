@@ -4,6 +4,10 @@
 //
 // The sender is looked up, never assumed: when Metro is down, or no attached app is signed in as
 // the second account, it comes back with the reason instead, so a flow can skip saying why.
+//
+// The same attached app also acts as the team owner (KB_SMOKE_USER) for desktop flows that run the
+// app as the second account: the desktop CLI talks to the desktop app's service, so it is whoever
+// the app is signed in as and cannot act as the owner meanwhile.
 import {evalInPage, listInspectorPages, metroOrigin, type InspectorPage} from './metro-eval'
 
 // The app ids a Keybase debug build registers with Metro (iOS bundle id, Android package).
@@ -32,41 +36,115 @@ const signedInAs = async (page: InspectorPage) =>
      }`
   )
 
-export const findIncomingSender = async (username: string): Promise<IncomingSender> => {
-  let pages: Array<InspectorPage>
+const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
+// The newest page of each Keybase debug build attached to Metro, by device: an app restart leaves
+// the old runtime's page listed ahead of it.
+const attachedApps = async (): Promise<Map<string, InspectorPage>> => {
+  const newest = new Map<string, InspectorPage>()
+  for (const p of await listInspectorPages()) {
+    if (p.appId && appIds.has(p.appId) && p.deviceName) newest.set(p.deviceName, p)
+  }
+  return newest
+}
+
+type Found = {ok: true; device: string; page: InspectorPage} | {ok: false; reason: string}
+
+// The attached app signed in as `username`, or why there is none.
+const findAppSignedInAs = async (username: string): Promise<Found> => {
+  let apps: Map<string, InspectorPage>
   try {
-    pages = await listInspectorPages()
+    apps = await attachedApps()
   } catch (e) {
     return {ok: false, reason: `Metro is not reachable at ${metroOrigin} (${String(e)})`}
   }
-  // newest page per device: an app restart leaves the old runtime's page listed ahead of it
-  const newest = new Map<string, InspectorPage>()
-  for (const p of pages) {
-    if (p.appId && appIds.has(p.appId) && p.deviceName) newest.set(p.deviceName, p)
-  }
-  if (!newest.size) {
+  if (!apps.size) {
     return {ok: false, reason: 'no Keybase debug build is attached to Metro'}
   }
   const seen: Array<string> = []
-  for (const [device, page] of newest) {
+  for (const [device, page] of apps) {
     const account = await signedInAs(page).catch(() => undefined)
     seen.push(`${device}: ${account ? (account.loggedIn ? 'signed in' : 'signed out') : 'no answer'}`)
     if (account?.loggedIn && account.username === username) {
-      const send = async (conversationIDKey: string, tlfName: string, text: string) => {
-        await evalInPage(
-          page,
-          `kbModule('chat/conversation/send-actions.tsx').sendTextToConversation(${JSON.stringify(conversationIDKey)}, ${JSON.stringify(tlfName)}, ${JSON.stringify(text)}); return true`
-        )
-      }
-      const typing = async (conversationIDKey: string, on: boolean) => {
-        await evalInPage(
-          page,
-          `const conversationID = kbModule('constants/types/chat/index.tsx').keyToConversationID(${JSON.stringify(conversationIDKey)});
-           kbModule('constants/rpc/rpc-chat-gen.tsx').localUpdateTypingRpcPromise({conversationID, typing: ${on}}); return true`
-        )
-      }
-      return {device, ok: true, send, typing}
+      return {device, ok: true, page}
     }
   }
-  return {ok: false, reason: `no app attached to Metro is signed in as the second account (${seen.join('; ')})`}
+  return {ok: false, reason: `no app attached to Metro is signed in as that account (${seen.join('; ')})`}
+}
+
+export const findIncomingSender = async (username: string): Promise<IncomingSender> => {
+  const found = await findAppSignedInAs(username)
+  if (!found.ok) return found
+  const {device, page} = found
+  const send = async (conversationIDKey: string, tlfName: string, text: string) => {
+    await evalInPage(
+      page,
+      `kbModule('chat/conversation/send-actions.tsx').sendTextToConversation(${JSON.stringify(conversationIDKey)}, ${JSON.stringify(tlfName)}, ${JSON.stringify(text)}); return true`
+    )
+  }
+  const typing = async (conversationIDKey: string, on: boolean) => {
+    await evalInPage(
+      page,
+      `const conversationID = kbModule('constants/types/chat/index.tsx').keyToConversationID(${JSON.stringify(conversationIDKey)});
+       kbModule('constants/rpc/rpc-chat-gen.tsx').localUpdateTypingRpcPromise({conversationID, typing: ${on}}); return true`
+    )
+  }
+  return {device, ok: true, send, typing}
+}
+
+// Switches the one attached app to `username`, an account already signed in on that device, through
+// the app's own account switch, and waits until it is signed in as it.
+export const switchAttachedApp = async (username: string, timeoutMs = 60_000) => {
+  if ((await findAppSignedInAs(username)).ok) return
+  const apps = await attachedApps()
+  const [device, page] = [...apps][0] ?? []
+  if (apps.size !== 1 || !device || !page) {
+    throw new Error(`switching the attached app needs exactly one attached, found ${apps.size}`)
+  }
+  const started = await evalInPage<boolean>(
+    page,
+    `return !!kbModule('stores/config.tsx').useConfigState.getState().dispatch.switchToAccount(${JSON.stringify(username)})`
+  )
+  if (!started) throw new Error(`${device} would not switch accounts (is the account signed in there?)`)
+  const deadline = Date.now() + timeoutMs
+  let last: Found | undefined
+  while (Date.now() < deadline) {
+    await sleep(1_000)
+    last = await findAppSignedInAs(username)
+    if (last.ok) return
+  }
+  throw new Error(`${device} was not signed in as the account ${timeoutMs / 1000}s after switching (${last && !last.ok ? last.reason : ''})`)
+}
+
+// Channel membership changes made as the team owner, from an attached app signed in as the owner.
+export type ChannelOwner =
+  | {ok: true; device: string; removeFromChannel: (conversationIDKey: string, username: string) => Promise<void>}
+  | {ok: false; reason: string}
+
+export const findChannelOwner = async (owner: string): Promise<ChannelOwner> => {
+  const found = await findAppSignedInAs(owner)
+  if (!found.ok) return found
+  const {device, page} = found
+  // Starts the RPC, then polls for its outcome: an evaluate returns synchronously.
+  const removeFromChannel = async (conversationIDKey: string, username: string) => {
+    const key = `__e2eRemove${Date.now()}`
+    await evalInPage(
+      page,
+      `const g = globalThis; g.${key} = 'pending';
+       const convID = kbModule('constants/types/chat/index.tsx').keyToConversationID(${JSON.stringify(conversationIDKey)});
+       kbModule('constants/rpc/rpc-chat-gen.tsx')
+         .localRemoveFromConversationLocalRpcPromise({convID, usernames: [${JSON.stringify(username)}]})
+         .then(() => { g.${key} = 'done' }, e => { g.${key} = 'error: ' + (e && e.message) });
+       return true`
+    )
+    const deadline = Date.now() + 20_000
+    for (;;) {
+      const state = await evalInPage<string>(page, `return globalThis.${key}`)
+      if (state === 'done') return
+      if (state !== 'pending') throw new Error(`removing from the channel failed on ${device}: ${state}`)
+      if (Date.now() > deadline) throw new Error(`removing from the channel on ${device}: no answer in 20s`)
+      await sleep(250)
+    }
+  }
+  return {device, ok: true, removeFromChannel}
 }
