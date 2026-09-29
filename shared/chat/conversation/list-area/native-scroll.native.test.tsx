@@ -140,13 +140,22 @@ const setOrdinals = (from: number, to: number) => {
   })
 }
 
-// Reports the rows at data indices first..last as viewable. Data is newest first.
-const viewable = (first: number, last: number) => {
+const viewableItems = (first: number, last: number) => {
   const data = props().data
-  const viewableItems: Array<{index: number; item: T.Chat.Ordinal}> = []
-  for (let i = first; i <= last; i++) viewableItems.push({index: i, item: data[i]!})
+  const items: Array<{index: number; item: T.Chat.Ordinal}> = []
+  for (let i = first; i <= last; i++) items.push({index: i, item: data[i]!})
+  return items
+}
+// Reports the rows at data indices first..last as viewable, in view at all. Data is newest first.
+const viewable = (first: number, last: number) => {
   update(() => {
-    props().onViewableItemsChanged({viewableItems})
+    props().viewabilityConfigCallbackPairs[0]!.onViewableItemsChanged({viewableItems: viewableItems(first, last)})
+  })
+}
+// Reports the rows at data indices first..last as wholly in view.
+const fullyViewable = (first: number, last: number) => {
+  update(() => {
+    props().viewabilityConfigCallbackPairs[1]!.onViewableItemsChanged({viewableItems: viewableItems(first, last)})
   })
 }
 
@@ -1098,8 +1107,7 @@ describe('editing', () => {
     expect(H.log).toEqual([])
   })
 
-  // Rows 60..51 in view, the newest at the bottom. The viewable range counts rows in view at all, so
-  // its oldest row may be cut off at the top.
+  // Rows 60..51 in view, the newest at the bottom; the oldest of them, 51, is cut off at the top.
   test.each([
     ['in the middle of the view', 59],
     ['the newest, with the list at its end', 60],
@@ -1108,6 +1116,26 @@ describe('editing', () => {
     await tick(200)
     scrolled(H.bottomInset - keyboardHeight, 6000)
     viewable(0, 9)
+    fullyViewable(0, 8)
+    clearLog()
+    update(() => H.inputStore.set({editing: ord(n)}))
+    expect(H.log).toEqual([])
+    setOrdinals(1, 61)
+    await tick(0)
+    expect(H.log).toEqual([toBottomOverKeyboard])
+  })
+
+  // Whether a row is wholly in view is measured, not read off its place in the viewable range.
+  test.each([
+    ['the oldest in view, at the top edge', 9, 51],
+    ['the older of two tall rows filling the view', 1, 59],
+    ['the newer of two tall rows filling the view', 1, 60],
+  ])('with the keyboard up, a message wholly in view (%s) is not scrolled to, and a new message re-pins', async (_name, last, n) => {
+    open({keyboard: true})
+    await tick(200)
+    scrolled(H.bottomInset - keyboardHeight, 6000)
+    viewable(0, last)
+    fullyViewable(0, last)
     clearLog()
     update(() => H.inputStore.set({editing: ord(n)}))
     expect(H.log).toEqual([])
@@ -1124,6 +1152,8 @@ describe('editing', () => {
     await tick(200)
     scrolled(n === 60 ? 100 : H.bottomInset - keyboardHeight, 6000)
     viewable(0, 9)
+    if (n === 60) fullyViewable(1, 9)
+    else fullyViewable(0, 8)
     clearLog()
     update(() => H.inputStore.set({editing: ord(n)}))
     expect(H.log).toEqual([['scrollToItem', {animated: true, item: ord(n), viewPosition: 0.5}]])
@@ -1369,14 +1399,18 @@ describe('loading older messages', () => {
     expect(H.log).toContainEqual(['oldestVisible', ord(51)])
   })
 
-  test('the viewable-items callback keeps its identity, as FlatList requires', () => {
+  test('the viewability pairs keep their identity, as FlatList requires', () => {
     open()
-    const first = props().onViewableItemsChanged
+    const first = props().viewabilityConfigCallbackPairs
     setOrdinals(1, 61)
     update(() => {
       H.setCenter(ord(30))
     })
-    expect(props().onViewableItemsChanged).toBe(first)
+    expect(props().viewabilityConfigCallbackPairs).toBe(first)
+    expect(first.map(p => p.viewabilityConfig)).toEqual([
+      {viewAreaCoveragePercentThreshold: 0},
+      {itemVisiblePercentThreshold: 100},
+    ])
   })
 })
 

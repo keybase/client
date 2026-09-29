@@ -514,6 +514,7 @@ const NativeConversationList = function NativeConversationList() {
   const {
     maintainVisibleContentPosition,
     onContentSizeChange,
+    onFullyViewable,
     onMomentumScrollEnd,
     onScroll,
     onScrollBeginDrag,
@@ -539,14 +540,25 @@ const NativeConversationList = function NativeConversationList() {
   const {onCatchUp, onViewableOrdinalsChanged, showCatchUp} = useCatchUp({loaded})
 
   const onViewableItemsChanged = useNativeSafeOnViewableItemsChanged({loadNewer, loadOlder, numOrdinals})
-  const [onViewableItemsChangedNative] = React.useState(
-    () => (info: {viewableItems: Array<{index: number | null; item: T.Chat.Ordinal}>}) => {
-      onViewableItemsChanged.current(info)
-      onViewableRange(info.viewableItems.at(0)?.index, info.viewableItems.at(-1)?.index)
-      // The list is inverted and its data reversed, so the last viewable row is the oldest.
-      onViewableOrdinalsChanged(info.viewableItems.at(-1)?.item)
-    }
-  )
+  // Two views of the rows in view: those in view at all (the default viewability), and those wholly in
+  // view. FlatList takes the pairs once, so they never change identity.
+  const [viewabilityConfigCallbackPairs] = React.useState(() => [
+    {
+      onViewableItemsChanged: (info: {viewableItems: Array<{index: number | null; item: T.Chat.Ordinal}>}) => {
+        onViewableItemsChanged.current(info)
+        onViewableRange(info.viewableItems.at(0)?.index, info.viewableItems.at(-1)?.index)
+        // The list is inverted and its data reversed, so the last viewable row is the oldest.
+        onViewableOrdinalsChanged(info.viewableItems.at(-1)?.item)
+      },
+      viewabilityConfig: {viewAreaCoveragePercentThreshold: 0},
+    },
+    {
+      onViewableItemsChanged: (info: {viewableItems: Array<{item: T.Chat.Ordinal}>}) => {
+        onFullyViewable(info.viewableItems)
+      },
+      viewabilityConfig: {itemVisiblePercentThreshold: 100},
+    },
+  ])
 
   const renderScrollComponent = React.useCallback(
     (props: ScrollViewProps) => (
@@ -589,7 +601,7 @@ const NativeConversationList = function NativeConversationList() {
             getItemType={getItemType}
             inverted={true}
             renderItem={renderItem}
-            onViewableItemsChanged={onViewableItemsChangedNative}
+            viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs}
             onScroll={onScroll}
             scrollEventThrottle={16}
             onContentSizeChange={onContentSizeChange}
