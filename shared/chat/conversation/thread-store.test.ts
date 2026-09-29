@@ -137,6 +137,18 @@ describe('mark read', () => {
     expect(markReads()).toEqual([])
   })
 
+  test('a mark read already on its way is not sent again; once it lands the next one goes', async () => {
+    const {actions} = makeThread()
+    arm(actions, [textAt(5)])
+    actions.markThreadAsRead()
+    actions.markThreadAsRead()
+    await flushPromises()
+    expect(markReads()).toHaveLength(1)
+    actions.markThreadAsRead()
+    await flushPromises()
+    expect(markReads()).toHaveLength(2)
+  })
+
   test('looking away refuses, looking back does not mark on its own', async () => {
     const thread = makeThread()
     arm(thread.actions, [textAt(5)])

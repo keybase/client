@@ -262,6 +262,25 @@ describe('mark read gating', () => {
     expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 10}])
   })
 
+  test('under StrictMode, showing the screen again marks read once', async () => {
+    let actions: ConversationThreadActions | undefined
+    const into = (v: Probed) => {
+      actions = v.actions
+    }
+    const tree = (mode: 'hidden' | 'visible') => (
+      <React.StrictMode>
+        <HideableThread into={into} mode={mode} />
+      </React.StrictMode>
+    )
+    const {rerender} = render(tree('visible'))
+    setRouteFocused(false)
+    rerender(tree('hidden'))
+    armWith(actions!, [textAt(10)])
+    setRouteFocused(true)
+    await run(() => rerender(tree('visible')))
+    expect(markReads()).toEqual([{conversationIDKey: convID, forceUnread: false, msgID: 10}])
+  })
+
   test('a load that finishes after the route loses focus, before the screen renders again, is not marked read', async () => {
     const {h} = renderThread()
     mockRouteFocusedNow = false

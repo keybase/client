@@ -266,6 +266,8 @@ export const makeThreadStore = (
   // and a mark-read sent then would mark the next account's read position.
   const threadUid = deps.getSession().uid
   let activeMarkReadEnabled = false
+  // the message a mark read is on its way for; the inbox meta moves only once the service answers
+  let markReadSending: T.Chat.MessageID | undefined
   let markReadBlocked = false
 
   const getSnapshot = () => store.getState()
@@ -338,8 +340,19 @@ export const makeThreadStore = (
         logger.info(`marking read messages is noop bail: ${id} ${readMsgID}`)
         return
       }
+      if (readMsgID === markReadSending) {
+        logger.info(`marking read messages already sending: ${id} ${readMsgID}`)
+        return
+      }
       logger.info(`marking read messages ${id} ${readMsgID}`)
-      await getChatRpc().markRead({conversationIDKey: id, forceUnread: false, msgID: readMsgID})
+      markReadSending = readMsgID
+      try {
+        await getChatRpc().markRead({conversationIDKey: id, forceUnread: false, msgID: readMsgID})
+      } finally {
+        if (markReadSending === readMsgID) {
+          markReadSending = undefined
+        }
+      }
     }
     ignorePromise(f())
   }
