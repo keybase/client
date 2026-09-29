@@ -210,6 +210,11 @@ export const useConversationSendActions = () => {
     }
   }
 
+  // a plain wave: never exploding, whatever the composer's mode
+  const sendWave = () => {
+    sendTextToConversation(conversationIDKey, getTlfName(), ':wave:')
+  }
+
   // a screen kept through an account switch sends nothing, here or after an await above
-  return unlessRetired({sendAudioRecording, sendGiphyResult, sendMessage}, actions.isRetired)
+  return unlessRetired({sendAudioRecording, sendGiphyResult, sendMessage, sendWave}, actions.isRetired)
 }

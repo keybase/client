@@ -10,10 +10,13 @@ import {setMemberPublicity} from '@/teams/actions'
 import {useTeamsListMap} from '@/teams/use-teams-list'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {dismissJourneycard, useThreadMessageTarget} from '../../../message-commands'
+import {useConversationSendActions} from '../../../send-actions'
 import {
+  useConversationThreadActions,
   useConversationThreadMessage,
   useThreadMeta,
 } from '../../../thread-context'
+import {unlessRetired} from '../../../thread-store'
 
 type Action = {label: string; onClick: () => void} | 'wave'
 type OwnProps = {ordinal: T.Chat.Ordinal}
@@ -31,7 +34,6 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
       channelname: m.channelname,
       teamID: m.teamID,
       teamname: m.teamname,
-      tlfname: m.tlfname,
     }))
   )
   const {cannotWrite, channelname, teamname, teamID} = conv
@@ -42,16 +44,23 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const isBigTeam = useInboxLayoutState(s => getIsBigTeam(s.layout, teamID))
   const navigateAppend = C.Router2.navigateAppend
   const target = useThreadMessageTarget(ordinal)
-  const {conversationIDKey} = target
+  const {sendWave} = useConversationSendActions()
   const onAuthorClick = () => navigateAppend({name: 'team', params: {teamID}})
   const onBrowseChannels = () => navigateAppend({name: 'teamAddToChannels', params: {teamID}})
   const onDismiss = () => dismissJourneycard(target, message.cardType)
   const onGoToChannel = (channelName: string) =>
     C.Router2.previewConversation({channelname: channelName, reason: 'journeyCardPopular', teamname})
-  const onPublishTeam = () => {
-    navigateAppend({name: 'profileShowcaseTeamOffer', params: {}})
-    setMemberPublicity(teamID, true)
-  }
+  const {isRetired} = useConversationThreadActions()
+  // a screen kept through an account switch publishes nothing
+  const {onPublishTeam} = unlessRetired(
+    {
+      onPublishTeam: () => {
+        navigateAppend({name: 'profileShowcaseTeamOffer', params: {}})
+        setMemberPublicity(teamID, true)
+      },
+    },
+    isRetired
+  )
 
   const {cardType} = message
   let textComponent: React.ReactNode
@@ -159,8 +168,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
               action === 'wave' ? (
                 <Kb.WaveButton
                   key="wave"
-                  conversationIDKey={conversationIDKey}
-                  tlfName={conv.tlfname}
+                  onWave={sendWave}
                   small={true}
                   style={styles.buttonSpace}
                   disabled={!!deactivateButtons}

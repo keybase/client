@@ -29,6 +29,7 @@ let mockOwnMessage = false
 jest.mock('../conversation/thread-context', () => ({
   useConversationThreadActions: () => ({isRetired: () => mockRetired}),
   useConversationThreadID: () => mockConversationIDKey,
+  useConversationThreadStore: () => ({getState: () => ({messageMap: new Map(), messageOrdinals: []})}),
   useConversationThreadSelector: (
     sel: (s: {messageMap: Map<number, {author: string}>; messageOrdinals: Array<number>}) => unknown
   ) =>
@@ -43,7 +44,9 @@ jest.mock('./block-buttons-state', () => ({
   useBlockButtonsInfo: () => ({adder: 'testuser-mac'}),
 }))
 
-import {act, cleanup, render} from '@testing-library/react'
+import * as Meta from '@/constants/chat/meta'
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
+import {metasReceived} from '@/chat/inbox/metadata'
 import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
@@ -84,7 +87,19 @@ beforeEach(() => {
     uid: 'uid',
     username: 'testuser',
   })
+  metasReceived(
+    [{...Meta.makeConversationMeta(), conversationIDKey: mockConversationIDKey, tlfname: 'testteam'}],
+    undefined,
+    {force: true}
+  )
 })
+
+const clickWave = async () => {
+  await act(async () => {
+    fireEvent.click(screen.getByText('Wave at everyone'))
+    await flushPromises()
+  })
+}
 
 afterEach(() => {
   cleanup()
@@ -104,6 +119,21 @@ test('a message of your own in the thread dismisses the banner', async () => {
   expect(rpc.calls('dismissBlockButtons')).toEqual([[mockTeamID]])
 })
 
+test('waving posts a plain wave into the conversation', async () => {
+  await renderBanner()
+  await clickWave()
+  expect(rpc.params('postText')).toEqual([
+    {
+      clientPrev: T.Chat.numberToMessageID(0),
+      conversationIDKey: mockConversationIDKey,
+      ephemeralLifetime: 0,
+      onStellarCanceled: expect.any(Function),
+      text: ':wave:',
+      tlfName: 'testteam',
+    },
+  ])
+})
+
 // an account switch keeps the screen up until the provider rebuilds its thread for the next account
 describe('a banner whose thread has retired', () => {
   test('dismisses nothing when clicked', async () => {
@@ -111,6 +141,13 @@ describe('a banner whose thread has retired', () => {
     mockRetired = true
     await clickDismiss()
     expect(rpc.calls('dismissBlockButtons')).toEqual([])
+  })
+
+  test('waves nothing', async () => {
+    await renderBanner()
+    mockRetired = true
+    await clickWave()
+    expect(rpc.calls('postText')).toEqual([])
   })
 
   test('dismisses nothing for a message of your own', async () => {

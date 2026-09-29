@@ -17,6 +17,7 @@ import {
 import {unlessRetired} from '../conversation/thread-store'
 import {useConversationParticipantsSelector} from '../conversation/data-hooks'
 import {getChatRpc} from '../conversation/chat-rpc'
+import {useConversationSendActions} from '../conversation/send-actions'
 
 const dismissBlockButtonsRaw = (teamID: T.RPCGen.TeamID) => {
   const f = async () => {
@@ -39,9 +40,8 @@ const BlockButtons = () => {
   const {isRetired} = useConversationThreadActions()
   // a screen kept through an account switch dismisses nothing
   const {dismissBlockButtons} = unlessRetired({dismissBlockButtons: dismissBlockButtonsRaw}, isRetired)
-  const {team, teamID, tlfname} = useThreadMeta(
-    C.useShallow(m => ({team: m.teamname, teamID: m.teamID, tlfname: m.tlfname}))
-  )
+  const {sendWave} = useConversationSendActions()
+  const {team, teamID} = useThreadMeta(C.useShallow(m => ({team: m.teamname, teamID: m.teamID})))
   const participantInfo = useConversationParticipantsSelector(
     conversationIDKey,
     C.useShallow(p => ({all: p.all, name: p.name}))
@@ -94,8 +94,7 @@ const BlockButtons = () => {
     >
       <Kb.WaveButton
         small={true}
-        conversationIDKey={conversationIDKey}
-        tlfName={tlfname}
+        onWave={sendWave}
         toMany={others.length > 0 || !!team}
         style={styles.waveButton}
       />

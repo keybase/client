@@ -25,8 +25,9 @@ type Props = {
   toMany?: boolean
   disabled?: boolean
 } & (
-  | {conversationIDKey: T.Chat.ConversationIDKey; tlfName: string; username?: never}
-  | {conversationIDKey?: never; username: string}
+  // a conversation's own wave, sent by the caller
+  | {onWave: () => void; username?: never}
+  | {onWave?: never; username: string}
 )
 
 const getWaveWaitingKey = (recipient: string) => {
@@ -35,15 +36,16 @@ const getWaveWaitingKey = (recipient: string) => {
 
 // A button that sends a wave emoji into a chat.
 const WaveButton = (props: Props) => {
+  const {disabled, onWave: sendWave, small, style, toMany, username: recipient} = props
   const styles = useStyles()
   const theme = Styles.useTheme()
   const [waved, setWaved] = React.useState(false)
-  const waitingKey = getWaveWaitingKey(props.username || props.conversationIDKey || 'missing')
+  const waitingKey = getWaveWaitingKey(recipient || 'missing')
   const waving = C.Waiting.useAnyWaiting(waitingKey)
   const username = useCurrentUserState(s => s.username)
   const createConversation = C.useRPC(T.RPCChat.localNewConversationLocalRpcPromise)
   const onWave = () => {
-    if (props.username) {
+    if (recipient) {
       if (!username) {
         logger.warn('WaveButton: missing username for direct wave')
         return
@@ -53,7 +55,7 @@ const WaveButton = (props: Props) => {
           {
             identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
             membersType: T.RPCChat.ConversationMembersType.impteamnative,
-            tlfName: `${username},${props.username}`,
+            tlfName: `${username},${recipient}`,
             tlfVisibility: T.RPCGen.TLFVisibility.private,
             topicType: T.RPCChat.TopicType.chat,
           },
@@ -65,26 +67,23 @@ const WaveButton = (props: Props) => {
             logger.warn("WaveButton: couldn't resolve wave conversation")
             return
           }
-          sendTextToConversation(conversationIDKey, `${username},${props.username}`, ':wave:')
+          sendTextToConversation(conversationIDKey, `${username},${recipient}`, ':wave:')
         },
         error => {
           logger.warn('Could not send in WaveButton', error.message)
         }
       )
-    } else if (props.conversationIDKey) {
-      sendTextToConversation(props.conversationIDKey, props.tlfName, ':wave:')
     } else {
-      logger.warn('WaveButton: need one of username or conversationIDKey')
-      return
+      sendWave?.()
     }
     setWaved(true)
   }
 
-  const waveText = props.toMany ? 'Wave at everyone' : 'Wave'
+  const waveText = toMany ? 'Wave at everyone' : 'Wave'
 
   const hideButton = waved && !waving
   return (
-    <Kb.Box2 direction="vertical" noShrink={true} style={props.style}>
+    <Kb.Box2 direction="vertical" noShrink={true} style={style}>
       {hideButton && (
         <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.waved} gap="xtiny">
           <Kb.Icon type="iconfont-check" color={theme.black_50} sizeType="Tiny" />
@@ -93,11 +92,11 @@ const WaveButton = (props: Props) => {
       )}
       <Kb.Button
         onClick={hideButton ? undefined : onWave}
-        small={props.small}
+        small={small}
         style={hideButton ? styles.hiddenButton : styles.button}
         mode="Secondary"
         waiting={waving}
-        disabled={!!props.disabled}
+        disabled={!!disabled}
       >
         <Kb.Text type="BodySemibold" style={styles.blueText}>
           {waveText}
