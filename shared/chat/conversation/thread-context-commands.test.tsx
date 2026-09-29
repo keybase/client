@@ -810,7 +810,7 @@ describe('messageReplyPrivately edges', () => {
     expect(warn).toHaveBeenCalledWith("replyPrivately: couldn't make a new conversation")
   })
 
-  test('logged out it creates nothing and throws to ignorePromise', async () => {
+  test('logged out it creates nothing: the thread has retired', async () => {
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     renderThread([textAt(10)])
     act(() => {
@@ -818,7 +818,7 @@ describe('messageReplyPrivately edges', () => {
     })
     await run(() => cmd.messageReplyPrivately(T.Chat.numberToOrdinal(10)))
     expect(rpc.calls('createAdhocConversation')).toEqual([])
-    expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(Error))
+    expect(error).not.toHaveBeenCalled()
   })
 })
 

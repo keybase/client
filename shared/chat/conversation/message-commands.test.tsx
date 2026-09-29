@@ -65,6 +65,7 @@ const makeThread = (messages: ReadonlyArray<T.Chat.Message>) => {
       writes.push(['deleteMessages', p])
     },
     getSnapshot: () => state,
+    isRetired: () => false,
     removeOptimisticReaction: outboxID => {
       writes.push(['removeOptimisticReaction'])
       const optimisticReactionMap = new Map(state.optimisticReactionMap)

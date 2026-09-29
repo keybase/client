@@ -2,9 +2,11 @@
 // remove an unfurl, pin it, dismiss a journeycard.
 //
 // A command runs one of two ways, chosen by the target it is given:
-// - {ordinal, thread}: a row in a mounted thread (useThreadMessageTarget builds it). The message is read from the thread store at call
-//   time, and the store is updated around the call (the deleting state and its revert, the
-//   optimistic reaction, dropping a cancelled or dismissed row).
+// - {ordinal, thread}: a row in a mounted thread (useThreadMessageTarget builds it). The message is
+//   read from the thread store at call time, and the store is updated around the call (the
+//   deleting state and its revert, the optimistic reaction, dropping a cancelled or dismissed row).
+//   A thread whose account has left (thread.isRetired) does nothing, the service included: its
+//   conversation id can name the next account's copy of a shared team channel.
 // - {message} or {messageID}: a message held outside any thread (a popup opened from search, the
 //   emoji picker). Only the service is told; there is no store to update.
 import * as Common from '@/constants/chat/common'
@@ -27,7 +29,12 @@ import type {ConversationThreadActions} from './thread-store'
 // The slice of a mounted thread the commands read and write.
 export type MessageCommandThread = Pick<
   ConversationThreadActions,
-  'addOptimisticReaction' | 'deleteMessages' | 'getSnapshot' | 'removeOptimisticReaction' | 'setMessageSubmitState'
+  | 'addOptimisticReaction'
+  | 'deleteMessages'
+  | 'getSnapshot'
+  | 'isRetired'
+  | 'removeOptimisticReaction'
+  | 'setMessageSubmitState'
 >
 
 // Every target names its conversation.
@@ -65,6 +72,9 @@ export const formatTextForQuoting = (text: string) =>
 
 const deleteThreadMessage = (conversationIDKey: T.Chat.ConversationIDKey, target: ThreadMessage) => {
   const {ordinal, thread} = target
+  if (thread.isRetired()) {
+    return
+  }
   const deletable = () => {
     const m = thread.getSnapshot().messageMap.get(ordinal)
     return m?.type === 'text' || m?.type === 'attachment' ? m : undefined
@@ -215,6 +225,9 @@ const toggleThreadReaction = (
   emoji: string
 ) => {
   const {ordinal, thread} = target
+  if (thread.isRetired()) {
+    return
+  }
   const f = async () => {
     const snapshot = thread.getSnapshot()
     const message = snapshot.messageMap.get(ordinal)
@@ -292,6 +305,9 @@ export const toggleReaction = (target: ThreadMessage | StorelessMessage | Storel
 // Opens a conversation between you and the author with the text message quoted in the composer.
 // A non-text message still makes the conversation, but nothing is opened.
 export const replyPrivately = (target: ThreadMessage | StorelessMessage) => {
+  if (isThread(target) && target.thread.isRetired()) {
+    return
+  }
   const f = async () => {
     let message: T.Chat.Message | undefined
     if (isThread(target)) {
@@ -335,6 +351,9 @@ export const replyPrivately = (target: ThreadMessage | StorelessMessage) => {
 // messageID is the message itself or one of its unfurls; each has its own collapsed state.
 export const toggleCollapse = (target: ThreadMessage, messageID: T.Chat.MessageID) => {
   const {conversationIDKey, ordinal, thread} = target
+  if (thread.isRetired()) {
+    return
+  }
   const f = async () => {
     const m = thread.getSnapshot().messageMap.get(ordinal)
     let isCollapsed = false
@@ -400,6 +419,9 @@ export const dismissJourneycard = (
   cardType: T.RPCChat.JourneycardType
 ) => {
   const {conversationIDKey} = target
+  if (isThread(target) && target.thread.isRetired()) {
+    return
+  }
   const f = async () => {
     await getChatRpc().dismissJourneycard(conversationIDKey, cardType).catch((error: unknown) => {
       if (error instanceof RPCError) {

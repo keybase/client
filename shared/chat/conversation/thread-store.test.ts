@@ -12,6 +12,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {loadConversationThreadMessages} from './thread-load'
+import {deleteMessage, dismissJourneycard, replyPrivately, toggleCollapse, toggleReaction} from './message-commands'
 import {
   makeThreadStore,
   type ConversationThreadActions,
@@ -674,7 +675,7 @@ describe('a store whose account has left', () => {
     actions.loadMoreMessages({reason: 'jump to recent'})
     // every other action too, with arguments it would fail on if it ran at all
     for (const key of Object.keys(actions) as Array<keyof typeof actions>) {
-      if (key !== 'getSnapshot') {
+      if (key !== 'getSnapshot' && key !== 'isRetired') {
         expect(() => (actions[key] as () => void)()).not.toThrow()
       }
     }
@@ -682,6 +683,26 @@ describe('a store whose account has left', () => {
     expect(store.getState()).toBe(before)
     expect(rpc.log).toEqual([])
     expect(loadCalls).toEqual([])
+  })
+
+  test('the message commands given its rows ask the service nothing', async () => {
+    useCurrentUserState
+      .getState()
+      .dispatch.setBootstrap({deviceID: 'device-id', deviceName: 'device', uid: session.uid, username: 'testuser'})
+    const {actions, store} = makeThread()
+    arm(actions, [textAt(5)])
+    rpc.clearLog()
+    const before = store.getState()
+    leave()
+    const row = {conversationIDKey: convA, ordinal: T.Chat.numberToOrdinal(5), thread: actions}
+    deleteMessage(row)
+    toggleReaction(row, ':+1:')
+    toggleCollapse(row, T.Chat.numberToMessageID(5))
+    replyPrivately(row)
+    dismissJourneycard(row, T.RPCChat.JourneycardType.welcome)
+    await flushPromises()
+    expect(rpc.log).toEqual([])
+    expect(store.getState()).toBe(before)
   })
 
   test('a load resolving after it left applies nothing', () => {

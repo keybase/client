@@ -140,6 +140,9 @@ export type ConversationThreadActions = {
   claimWindowGate: (loadID: number) => void
   clearWindowGate: (loadID: number) => void
   getSnapshot: () => ConversationThreadState
+  // Whether the store's account has left (see makeThreadStore). Its actions already do nothing then;
+  // this is for a caller that talks to the service about the thread without going through them.
+  isRetired: () => boolean
   loadMoreMessages: LoadMoreMessages
   markThreadAsRead: () => void
   setMarkReadBlocked: (blocked: boolean) => void
@@ -693,7 +696,7 @@ export const makeThreadStore = (
     }
   )
 
-  const mutators: Omit<ConversationThreadActions, 'getSnapshot' | 'loadMoreMessages'> = {
+  const mutators: Omit<ConversationThreadActions, 'getSnapshot' | 'isRetired' | 'loadMoreMessages'> = {
     addMessages,
     addOptimisticReaction: (outboxID, reaction) => {
       updateThreadState(s => {
@@ -816,6 +819,7 @@ export const makeThreadStore = (
   const actions: ConversationThreadActions = {
     ...unlessRetired(mutators, isRetired),
     getSnapshot,
+    isRetired,
     loadMoreMessages: Object.assign(unlessRetired({loadMoreMessages}, isRetired).loadMoreMessages, {
       cancel: loadMoreMessages.cancel,
     }),
