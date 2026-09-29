@@ -569,6 +569,25 @@ describe('messageDelete edges', () => {
     expect(error).not.toHaveBeenCalled()
   })
 
+  test('a server update to the row while its delete is in flight keeps it deleting', async () => {
+    const pending = deferred<undefined>()
+    rpc.on('postDelete', async () => pending.promise)
+    jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    const {message, result} = renderThread([textAt(10)])
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
+    act(() => {
+      result.current.actions.addMessages([textAt(10, {text: new HiddenString('unfurled')})], {liveUpdate: true})
+    })
+    const updated = message(10)
+    expect(updated?.submitState).toBe('deleting')
+    expect(updated?.type === 'text' && updated.text.stringValue()).toBe('unfurled')
+    await act(async () => {
+      pending.reject(new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+      await flushPromises()
+    })
+    expect(message(10)?.submitState).toBeUndefined()
+  })
+
   test('the revert only undoes its own deleting state', async () => {
     const pending = deferred<undefined>()
     rpc.on('postDelete', async () => pending.promise)

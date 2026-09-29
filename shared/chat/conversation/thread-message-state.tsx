@@ -177,6 +177,10 @@ const mergeMessage = (
       } else {
         existingRecord[key] = val
       }
+    } else if (key === 'submitState' && cur === 'deleting' && val === undefined) {
+      // A server update to a row being deleted (a reaction, an unfurl) carries no submit state.
+      // The row stays deleting until the delete resolves: its notification removes the row, and a
+      // failed delete reverts it.
     } else if (key === 'fileURL' || key === 'previewURL') {
       const next = keepUrl(val as string | undefined, cur as string | undefined)
       if (cur !== next) {
