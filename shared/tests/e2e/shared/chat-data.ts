@@ -123,6 +123,9 @@ type ConvSummary = {id: string; channel: {topic_name?: string}}
 
 class RateLimited extends Error {}
 
+// How long one keybase CLI call or chat api request may take before it counts as stuck.
+const cliTimeoutMs = 60_000
+
 const isRateLimit = (e: ApiError) => e.code === 2501 || /rate limit/i.test(e.message)
 
 // One long-lived `keybase chat api` process: it reads a stream of requests on stdin and answers
@@ -138,7 +141,15 @@ class ChatApi {
 
   private async callOnce<R>(method: string, options: object): Promise<R> {
     this.proc.stdin.write(`${JSON.stringify({method, params: {options}})}\n`)
-    const next = await this.lines.next()
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const timeout = new Promise<never>((_resolve, reject) => {
+      timer = setTimeout(() => {
+        // its answer can no longer be matched to its call, so the process goes with it
+        this.proc.kill()
+        reject(new Error(`keybase chat api ${method}: no answer in ${cliTimeoutMs / 1000}s`))
+      }, cliTimeoutMs)
+    })
+    const next = await Promise.race([this.lines.next(), timeout]).finally(() => clearTimeout(timer))
     if (next.done) {
       throw new Error(`keybase chat api exited during ${method}`)
     }
@@ -175,8 +186,9 @@ class ChatApi {
 
 const cli = async (args: Array<string>) =>
   new Promise<string>((resolve, reject) => {
-    execFile(keybaseBin(), args, {encoding: 'utf8'}, (err, stdout, stderr) => {
-      if (err) reject(new Error(`keybase ${args.join(' ')}: ${stderr || err.message}`))
+    execFile(keybaseBin(), args, {encoding: 'utf8', killSignal: 'SIGKILL', timeout: cliTimeoutMs}, (err, stdout, stderr) => {
+      if (err?.killed) reject(new Error(`keybase ${args.join(' ')}: no answer in ${cliTimeoutMs / 1000}s`))
+      else if (err) reject(new Error(`keybase ${args.join(' ')}: ${stderr || err.message}`))
       else resolve(`${stdout}${stderr}`)
     })
   })

@@ -8,6 +8,9 @@ export default defineConfig({
   // visibility waits + 3 reopen attempts of 5s settle + 2s menu wait each + a 3s
   // confirm wait, which is over 30s of step budget on its own.
   timeout: 30_000,
+  // A whole run never waits longer than this, whatever gets stuck (KB_E2E_GLOBAL_TIMEOUT_MIN to change).
+  globalTimeout: Number(process.env['KB_E2E_GLOBAL_TIMEOUT_MIN'] ?? 20) * 60_000,
+  expect: {timeout: 5_000},
   retries: 1,
   workers: 1,
   outputDir: '../../results/test-results',
