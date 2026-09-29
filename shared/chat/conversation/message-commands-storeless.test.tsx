@@ -92,7 +92,12 @@ describe('deleteConversationMessage', () => {
     await flushPromises()
     // no clientPrev: the adapter sends zero
     expect(rpc.params('postDelete')).toEqual([
-      {conversationIDKey, messageID: T.Chat.numberToMessageID(10), tlfName: 'testuser,testuser2'},
+      {
+        conversationIDKey,
+        messageID: T.Chat.numberToMessageID(10),
+        outboxID: expect.any(Uint8Array),
+        tlfName: 'testuser,testuser2',
+      },
     ])
   })
 
@@ -292,11 +297,13 @@ describe('dismissConversationJourneycard', () => {
 })
 
 describe('storeless edges', () => {
-  test('delete with no meta and no tlfName sends an empty tlfName', async () => {
+  test('delete with no meta and no tlfName sends nothing, the same as the thread path', async () => {
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
     resetAllStores()
     deleteConversationMessage(conversationIDKey, textMessage())
     await flushPromises()
-    expect(rpc.params('postDelete')).toEqual([expect.objectContaining({tlfName: ''})])
+    expect(rpc.log).toEqual([])
+    expect(warn).toHaveBeenCalledWith('deleteMessage: no tlfName and no conversation meta')
   })
 
   test('a failed cancel is logged as a warning', async () => {
@@ -308,7 +315,7 @@ describe('storeless edges', () => {
       textMessage({id: T.Chat.numberToMessageID(0), outboxID: T.Chat.stringToOutboxID('0a0b')})
     )
     await flushPromises()
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('deleteConversationMessage: failed to delete: '))
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('deleteMessage: failed to delete: '))
     expect(error).not.toHaveBeenCalled()
   })
 
@@ -318,8 +325,8 @@ describe('storeless edges', () => {
     deleteConversationMessage(T.Chat.noConversationIDKey, textMessage())
     await flushPromises()
     expect(warn.mock.calls).toEqual([
-      ['deleteConversationMessage: no message id or outbox id'],
-      ['deleteConversationMessage: no conversation id'],
+      ['deleteMessage: no message id or outbox id'],
+      ['deleteMessage: no conversation id'],
     ])
   })
 

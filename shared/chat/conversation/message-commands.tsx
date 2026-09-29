@@ -71,108 +71,88 @@ export const formatTextForQuoting = (text: string) =>
     .map(line => `> ${line}\n`)
     .join('')
 
-const deleteThreadMessage = (conversationIDKey: T.Chat.ConversationIDKey, target: ThreadMessage) => {
-  const {ordinal, thread} = target
-  if (thread.isRetired()) {
+// What both paths do: cancel an unsent message's outbox entry, or ask the service to delete a sent
+// message. A thread passes its hooks: dropping the cancelled row, and undoing its deleting mark when
+// nothing was deleted. tlfName falls back to the inbox meta's.
+const deleteConversationMessage = async (p: {
+  conversationIDKey: T.Chat.ConversationIDKey
+  message: T.Chat.Message
+  onCancelled?: () => void
+  onNotDeleted?: () => void
+  // the delete's own
+  outboxID: T.RPCChat.OutboxID
+  tlfName?: string
+}) => {
+  const {conversationIDKey, message, onCancelled, onNotDeleted, outboxID} = p
+  const bail = (reason: string) => {
+    logger.warn(`deleteMessage: ${reason}`)
+    onNotDeleted?.()
+  }
+  if (!T.Chat.isValidConversationIDKey(conversationIDKey)) {
+    bail('no conversation id')
     return
   }
-  // The delete's own outbox id: this call's key to its pending delete, and what a failedMessage
-  // for the delete names once the service has queued it.
-  const outboxID = Common.generateOutboxID()
-  const deleteOutboxID = T.Chat.rpcOutboxIDToOutboxID(outboxID)
-  const row = thread.getSnapshot().messageMap.get(ordinal)
-  // Only a sent row shows deleting. An unsent one keeps its pending or failed state, which the
-  // renderers read (an unsent video does not play), until the cancel removes it.
-  if ((row?.type === 'text' || row?.type === 'attachment') && row.id && row.submitState === undefined) {
-    thread.addPendingDelete(deleteOutboxID, ordinal)
-  }
-  // drops only this call's entry, so another delete of the row still pending keeps it deleting
-  const revertDeleting = () => {
-    thread.removePendingDelete(deleteOutboxID)
-  }
-
-  const f = async () => {
-    const message = thread.getSnapshot().messageMap.get(ordinal)
-    if (!message) {
-      logger.warn('Deleting invalid message')
-      revertDeleting()
-      return
-    }
-    const meta = getInboxConversationMeta(conversationIDKey)
-    if (!meta) {
-      logger.warn('Deleting message w/ no meta')
-      revertDeleting()
-      return
-    }
-    try {
-      if (!message.id) {
-        if (message.outboxID) {
-          await getChatRpc().cancelPost(message.outboxID)
-          thread.deleteMessages({ordinals: [message.ordinal]})
-        } else {
-          logger.warn('Delete of no message id and no outboxid')
-          revertDeleting()
-        }
+  try {
+    if (!message.id) {
+      if (!message.outboxID) {
+        bail('no message id or outbox id')
         return
       }
-      // a successful delete leaves the row deleting; the service's delete notification removes it
-      await getChatRpc().postDelete({
-        conversationIDKey,
-        messageID: message.id,
-        outboxID,
-        tlfName: meta.tlfname,
-      })
-    } catch (error) {
-      revertDeleting()
-      if (error instanceof RPCError) {
-        logger.warn(`messageDelete: failed to delete: ${error.message}`)
-      } else {
-        throw error
-      }
-    }
-  }
-  ignorePromise(f())
-}
-
-const deleteStorelessMessage = (conversationIDKey: T.Chat.ConversationIDKey, target: StorelessMessage) => {
-  const {message, tlfName} = target
-  const f = async () => {
-    if (!T.Chat.isValidConversationIDKey(conversationIDKey)) {
-      logger.warn('deleteConversationMessage: no conversation id')
+      await getChatRpc().cancelPost(message.outboxID)
+      onCancelled?.()
       return
     }
-    try {
-      if (!message.id) {
-        if (message.outboxID) {
-          await getChatRpc().cancelPost(message.outboxID)
-        } else {
-          logger.warn('deleteConversationMessage: no message id or outbox id')
-        }
-        return
-      }
-      await getChatRpc().postDelete({
-        conversationIDKey,
-        messageID: message.id,
-        tlfName: tlfName || getInboxConversationMeta(conversationIDKey)?.tlfname || '',
-      })
-    } catch (error) {
-      if (error instanceof RPCError) {
-        logger.warn(`deleteConversationMessage: failed to delete: ${error.message}`)
-      } else {
-        throw error
-      }
+    const tlfName = p.tlfName || getInboxConversationMeta(conversationIDKey)?.tlfname
+    if (tlfName === undefined) {
+      bail('no tlfName and no conversation meta')
+      return
+    }
+    // a successful delete leaves a thread's row deleting; the service's delete notification removes it
+    await getChatRpc().postDelete({conversationIDKey, messageID: message.id, outboxID, tlfName})
+  } catch (error) {
+    onNotDeleted?.()
+    if (error instanceof RPCError) {
+      logger.warn(`deleteMessage: failed to delete: ${error.message}`)
+    } else {
+      throw error
     }
   }
-  ignorePromise(f())
 }
 
 // A message not yet sent is cancelled instead.
 export const deleteMessage = (target: ThreadMessage | StorelessMessage) => {
-  if (isThread(target)) {
-    deleteThreadMessage(target.conversationIDKey, target)
-  } else {
-    deleteStorelessMessage(target.conversationIDKey, target)
+  // The delete's own outbox id: a thread's key to its pending delete, and what a failedMessage for
+  // the delete names once the service has queued it.
+  const outboxID = Common.generateOutboxID()
+  if (!isThread(target)) {
+    ignorePromise(deleteConversationMessage({...target, outboxID}))
+    return
   }
+  const {conversationIDKey, ordinal, thread} = target
+  if (thread.isRetired()) {
+    return
+  }
+  const message = thread.getSnapshot().messageMap.get(ordinal)
+  if (!message) {
+    logger.warn('deleteMessage: message not in the thread')
+    return
+  }
+  const deleteOutboxID = T.Chat.rpcOutboxIDToOutboxID(outboxID)
+  // Only a sent row shows deleting. An unsent one keeps its pending or failed state, which the
+  // renderers read (an unsent video does not play), until the cancel removes it.
+  if ((message.type === 'text' || message.type === 'attachment') && message.id && message.submitState === undefined) {
+    thread.addPendingDelete(deleteOutboxID, ordinal)
+  }
+  ignorePromise(
+    deleteConversationMessage({
+      conversationIDKey,
+      message,
+      onCancelled: () => thread.deleteMessages({ordinals: [ordinal]}),
+      // drops only this call's entry, so another delete of the row still pending keeps it deleting
+      onNotDeleted: () => thread.removePendingDelete(deleteOutboxID),
+      outboxID,
+    })
+  )
 }
 
 type ReactionTarget = {exploded: boolean; messageID: T.Chat.MessageID}

@@ -217,11 +217,22 @@ describe('messageDelete', () => {
   test('without meta nothing is sent and the state reverts', async () => {
     const {message} = renderThread([textAt(10)])
     act(() => {
-      resetAllStores()
+      metasReceived([], [conversationIDKey])
     })
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
     expect(rpc.calls('postDelete')).toEqual([])
     expect(message(10)?.submitState).toBeUndefined()
+  })
+
+  test('without meta an unsent message is still cancelled: a cancel needs no tlfName', async () => {
+    const outboxID = T.Chat.stringToOutboxID('0a0b')
+    const {message} = renderThread([textAt(10, {id: T.Chat.numberToMessageID(0), outboxID})])
+    act(() => {
+      metasReceived([], [conversationIDKey])
+    })
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
+    expect(rpc.calls('cancelPost')).toEqual([[outboxID]])
+    expect(message(10)).toBeUndefined()
   })
 })
 
@@ -488,7 +499,7 @@ describe('messageDelete edges', () => {
     renderThread([textAt(10)])
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(11)))
     expect(rpc.log).toEqual([])
-    expect(warn).toHaveBeenCalledWith('Deleting invalid message')
+    expect(warn).toHaveBeenCalledWith('deleteMessage: message not in the thread')
   })
 
   test('an attachment row shows deleting, like a text row', async () => {
@@ -569,7 +580,7 @@ describe('messageDelete edges', () => {
     const error = jest.spyOn(logger, 'error')
     renderThread([textAt(10)])
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('messageDelete: failed to delete: '))
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('deleteMessage: failed to delete: '))
     expect(error).not.toHaveBeenCalled()
   })
 

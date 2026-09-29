@@ -126,13 +126,13 @@ describe('formatTextForQuoting', () => {
 })
 
 describe('deleteMessage', () => {
-  test('both paths send the delete by id; only the thread path names its outbox id and touches the thread', async () => {
+  test('both paths send the same delete; only the thread path touches the thread', async () => {
     const {thread, writes} = makeThread([textAt(10)])
     deleteMessage({conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread})
     deleteMessage({conversationIDKey, message: textAt(10)})
     await flushPromises()
-    const sent = {conversationIDKey, messageID: T.Chat.numberToMessageID(10), tlfName}
-    expect(rpc.params('postDelete')).toEqual([{...sent, outboxID: expect.any(Uint8Array)}, sent])
+    const sent = {conversationIDKey, messageID: T.Chat.numberToMessageID(10), outboxID: expect.any(Uint8Array), tlfName}
+    expect(rpc.params('postDelete')).toEqual([sent, sent])
     expect(writes).toEqual([['addPendingDelete', T.Chat.numberToOrdinal(10)]])
   })
 
@@ -167,8 +167,8 @@ describe('deleteMessage', () => {
     deleteMessage({conversationIDKey, message: textAt(10)})
     await flushPromises()
     expect(warn.mock.calls.map(c => String(c[0]))).toEqual([
-      expect.stringContaining('messageDelete: failed to delete: '),
-      expect.stringContaining('deleteConversationMessage: failed to delete: '),
+      expect.stringContaining('deleteMessage: failed to delete: '),
+      expect.stringContaining('deleteMessage: failed to delete: '),
     ])
     expect(error).not.toHaveBeenCalled()
   })
