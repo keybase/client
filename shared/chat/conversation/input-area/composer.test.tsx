@@ -504,6 +504,32 @@ describe('replace', () => {
     jest.runAllTimers()
     expect(send).toHaveBeenCalledWith('hi @te', noSnapshot)
   })
+  // the text it carries was worked out from the text the old view had
+  test('a replace waiting from one view is dropped when another view attaches, so its draft stands', () => {
+    const {composer, mount} = setup()
+    const first = mount()
+    first.fake.type('hi @te')
+    first.detach()
+
+    composer.replace({selection: {end: 12, start: 12}, text: 'hi @testuser'}, true)
+    const second = mount('saved')
+
+    expect(second.fake.text).toBe('saved')
+    expect(composer.getText()).toBe('saved')
+  })
+
+  test('a replace waiting from a view lands when that view attaches again', () => {
+    const {composer, mount} = setup()
+    const {attach, detach, fake} = mount()
+    fake.type('hi @te')
+    detach()
+
+    composer.replace({selection: {end: 12, start: 12}, text: 'hi @testuser'}, true)
+    attach()
+
+    expect(fake.text).toBe('hi @testuser')
+    expect(composer.getText()).toBe('hi @testuser')
+  })
 })
 
 describe('submit', () => {
