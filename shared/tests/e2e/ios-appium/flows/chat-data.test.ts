@@ -207,6 +207,13 @@ describe('chat data: account switch', () => {
     // as the second account: the thread builds for it and hears a message sent from its other device
     await switchAppAccount(data.secondUser)
     await openScratch()
+    // a conversation opened right after the switch stays open (nothing selects one on its own)
+    const shown = new Set<string | null>()
+    for (const until = Date.now() + 1_500; Date.now() < until; ) shown.add(await visibleConversation())
+    check(
+      shown.size === 1 && shown.has(data.convIDs[E2E_CHANNELS.scratch]),
+      `the screen showed ${[...shown].join(', ')} in the 1.5s after opening`
+    )
     const whileSecond = `e2e-ios-data-switch-second-${Date.now()}`
     await sendFromCli(E2E_CHANNELS.scratch, whileSecond)
     await waitForRow(whileSecond, 20_000)

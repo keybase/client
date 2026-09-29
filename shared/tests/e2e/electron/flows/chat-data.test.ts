@@ -339,12 +339,12 @@ test.describe('account switch', () => {
     expect(errors.stop(), 'console errors across the switches').toEqual([])
   })
 
-  // App bug (integration build): for about a second after an account switch, the chat tab selects
-  // its first conversation on its own, and a conversation the user opened in that time is replaced
-  // by it. Header readings every 100ms from opening the chat tab right after a switch: at 217ms the
-  // first conversation, at 319ms the channel the user picked from the inbox search, and at 1057ms
-  // the first conversation again, with nothing done in between. Opened 800ms or later, the pick
-  // stays. switchAccount waits this out for the other flows. Remove test.fail once fixed.
+  // App bug: a conversation opened right after an account switch is replaced by the account's
+  // first conversation. The client no longer asks for a forced reselect, but the service's next
+  // inbox layout, about 300ms after the pick, still carries reselect info naming the picked channel
+  // as the one to replace, and the header flips 0.5-0.75s after the pick. Opened after the chat tab
+  // settles, the pick stays, so switchAccount waits that out for the other flows. Remove test.fail
+  // once fixed.
   test('a conversation opened right after an account switch stays open', async ({page}) => {
     test.fail()
     test.setTimeout(90_000)
@@ -360,7 +360,16 @@ test.describe('account switch', () => {
     await navigateToChat(page)
 
     await openScratch(page)
-    await page.waitForTimeout(2_000)
-    await expect(threadHeaderTitle(page)).toHaveText(`${data.team}#${E2E_CHANNELS.scratch}`)
+    const title = `${data.team}#${E2E_CHANNELS.scratch}`
+    // what the header reads, and when (ms after the pick), each time it changes
+    const shown: Array<string> = []
+    const start = Date.now()
+    let last = ''
+    while (Date.now() - start < 1_500) {
+      const now = await threadHeaderTitle(page).innerText({timeout: 1_000})
+      if (now !== last) shown.push(`${Date.now() - start}ms ${(last = now)}`)
+      await page.waitForTimeout(100)
+    }
+    expect(shown.map(s => s.replace(/^\d+ms /, '')), `the thread header after opening: ${shown.join(', ')}`).toEqual([title])
   })
 })
