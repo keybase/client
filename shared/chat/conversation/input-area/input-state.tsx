@@ -117,8 +117,7 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
   // a subscription here re-renders the whole input subtree on every thread change.
   const threadStore = useConversationThreadStore()
   const {sendGiphyResult: sendGiphyResultAction, sendMessage} = useConversationSendActions()
-  const takeUnfurlSnapshot = React.useEffectEvent(() => takeSuppressSnapshot(id))
-  const [composer] = React.useState(() => makeComposer({takeUnfurlSnapshot}))
+  const [composer] = React.useState(() => makeComposer({takeUnfurlSnapshot: () => takeSuppressSnapshot(id)}))
 
   const injectIntoInput = React.useEffectEvent((text: string, focus?: boolean) => {
     composer.inject(text, focus)
