@@ -1,10 +1,12 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
-import {handleConvoEngineIncoming} from './engine'
+import {routeChatNotification, type ChatNotification} from '@/chat/notification-router'
+import * as InboxMetadata from './metadata'
 import {getInboxConversationMeta, getInboxConversationParticipants} from './metadata'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useDaemonState} from '@/stores/daemon'
 import {updateInboxTyping} from '@/chat/inbox/typing-state'
 
 jest.mock('@/chat/inbox/badge-state', () => ({
@@ -22,6 +24,28 @@ afterEach(() => {
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const msgID = T.Chat.numberToMessageID(101)
+
+// Routes a notification and reports what its inbox stage applied beyond the inbox stores: the inbox
+// item it hydrated and the reacjis it gave the daemon.
+const inboxApplied = (action: ChatNotification) => {
+  const hydrate = jest.spyOn(InboxMetadata, 'onIncomingInboxUIItem').mockImplementation(() => {})
+  const before = {skinTone: T.RPCGen.ReacjiSkinTone.none, topReacjis: null}
+  useDaemonState.setState(s => {
+    s.bootstrapStatus = T.castDraft({userReacjis: before} as T.RPCGen.BootstrapStatus)
+  })
+  routeChatNotification(action)
+  const applied: {inboxUIItem?: unknown; userReacjis?: unknown} = {}
+  const inboxUIItem = hydrate.mock.calls.find(([item]) => item)?.[0]
+  if (inboxUIItem) {
+    applied.inboxUIItem = inboxUIItem
+  }
+  const userReacjis = useDaemonState.getState().bootstrapStatus?.userReacjis
+  if (userReacjis !== before) {
+    applied.userReacjis = userReacjis
+  }
+  hydrate.mockRestore()
+  return applied
+}
 
 const makeRpcOutboxID = (label: string): T.RPCChat.OutboxID => new TextEncoder().encode(label)
 
@@ -148,7 +172,7 @@ test('coin flips, unfurl prompts, payments and requests leave the inbox nothing 
   const second = makeCoinFlipStatus({convID: otherConvID, gameID: 'flip-2'})
 
   expect(
-    handleConvoEngineIncoming({
+    inboxApplied({
       payload: {params: {statuses: [first, second]}},
       type: 'chat.1.chatUi.chatCoinFlipStatus',
     } as never)
@@ -186,12 +210,12 @@ test('coin flips, unfurl prompts, payments and requests leave the inbox nothing 
       },
       type: 'chat.1.NotifyChat.ChatPaymentInfo',
     },
-  ].forEach(action => expect(handleConvoEngineIncoming(action as never)).toEqual({}))
+  ].forEach(action => expect(inboxApplied(action as never)).toEqual({}))
 })
 
 test('global message activity routing preserves returned global data', () => {
   expect(
-    handleConvoEngineIncoming({
+    inboxApplied({
       payload: {
         params: {
           activity: {
@@ -208,7 +232,7 @@ test('global message activity routing preserves returned global data', () => {
   ).toEqual({})
 
   const inboxUIItem = {convID: T.Chat.conversationIDKeyToString(convID)} as T.RPCChat.InboxUIItem
-  const incomingResult = handleConvoEngineIncoming({
+  const incomingResult = inboxApplied({
     payload: {
       params: {
         activity: {
@@ -224,7 +248,7 @@ test('global message activity routing preserves returned global data', () => {
   expect(incomingResult.inboxUIItem).toBe(inboxUIItem)
 
   const userReacjis = {skinTone: T.RPCGen.ReacjiSkinTone.none, topReacjis: null}
-  const reactionResult = handleConvoEngineIncoming({
+  const reactionResult = inboxApplied({
     payload: {
       params: {
         activity: {
@@ -270,7 +294,7 @@ test('read message activity without attached inbox item refreshes service-owned 
   const unbox = jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
 
   expect(
-    handleConvoEngineIncoming({
+    inboxApplied({
       payload: {
         params: {
           activity: {
@@ -294,7 +318,7 @@ test('read message activity without attached inbox item refreshes service-owned 
 
 test('a failed message with no inbox item and transfer progress leave the inbox nothing to apply', () => {
   expect(
-    handleConvoEngineIncoming({
+    inboxApplied({
       payload: {
         params: {
           activity: {
@@ -328,7 +352,7 @@ test('a failed message with no inbox item and transfer progress leave the inbox 
   ).toEqual({})
 
   expect(
-    handleConvoEngineIncoming({
+    inboxApplied({
       payload: {
         params: {
           bytesComplete: 25,
@@ -342,7 +366,7 @@ test('a failed message with no inbox item and transfer progress leave the inbox 
   ).toEqual({})
 
   expect(
-    handleConvoEngineIncoming({
+    inboxApplied({
       payload: {
         params: {
           bytesComplete: 25,
@@ -365,7 +389,7 @@ test('global typing and participant updates route to inbox rows', () => {
     },
   ]
 
-  handleConvoEngineIncoming({
+  routeChatNotification({
     payload: {params: {typingUpdates}},
     type: 'chat.1.NotifyChat.ChatTypingUpdate',
   } as never)
@@ -379,7 +403,7 @@ test('global typing and participant updates route to inbox rows', () => {
     ],
   }
 
-  handleConvoEngineIncoming({
+  routeChatNotification({
     payload: {params: {participants: participantMap}},
     type: 'chat.1.NotifyChat.ChatParticipantsInfo',
   } as never)
@@ -388,7 +412,7 @@ test('global typing and participant updates route to inbox rows', () => {
 })
 
 test('global inbox failure routing stores error metadata and rekey participants', () => {
-  handleConvoEngineIncoming({
+  routeChatNotification({
     payload: {
       params: {
         convID: T.Chat.keyToConversationID(convID),

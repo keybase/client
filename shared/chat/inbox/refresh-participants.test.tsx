@@ -7,7 +7,7 @@ import {resetAllStores} from '@/util/zustand'
 import logger from '@/logger'
 import {getBotsAndParticipants} from '@/constants/chat/helpers'
 import {makeConversationMeta} from '@/constants/chat/meta'
-import {handleConvoEngineIncoming} from './engine'
+import {routeChatNotification} from '@/chat/notification-router'
 import {participantInfoReceived, useInboxMetadataState} from './metadata'
 import {
   refreshConversationParticipants,
@@ -192,7 +192,7 @@ describe('the refresh reaching the members list', () => {
   ])
 
   const deliverParticipants = (usernames: ReadonlyArray<string>) => {
-    handleConvoEngineIncoming({
+    routeChatNotification({
       payload: {
         params: {
           participants: {
