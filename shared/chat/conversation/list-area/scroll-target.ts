@@ -219,29 +219,45 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
 export const ownsEnd = (state: ScrollTargetState) => state.endOwner === 'list'
 
 // One list's scroll target: its state, moved only by the decisions it makes. The list adapters and
-// the test driver each drive one.
+// the test driver each drive one. Subscribers hear of every change to its state.
 export type ScrollTarget = {
   decide: (event: ScrollEvent) => ScrollDirective
   readonly state: ScrollTargetState
+  subscribe: (listener: () => void) => () => void
 }
 
 export const makeScrollTarget = (): ScrollTarget => {
   let state = initialScrollTargetState
+  const listeners = new Set<() => void>()
   return {
     decide: event => {
       const decision = decideScroll(state, event)
-      state = decision.state
+      if (decision.state !== state) {
+        state = decision.state
+        listeners.forEach(l => l())
+      }
       return decision.directive
     },
     get state() {
       return state
     },
+    subscribe: listener => {
+      listeners.add(listener)
+      return () => {
+        listeners.delete(listener)
+      }
+    },
   }
 }
 
-// The list's scroll target for as long as it is mounted. Its identity never changes, so the list's
-// own loops can report back to it while the directives they carry out come from it too.
-export const useScrollTarget = () => React.useState(makeScrollTarget)[0]
+// The list's scroll target for as long as it is mounted, and whether the list owns the end, which its
+// own end anchor follows. The target's identity never changes, so the list's own loops can report back
+// to it while the directives they carry out come from it too.
+export const useScrollTarget = () => {
+  const [target] = React.useState(makeScrollTarget)
+  const listOwnsEnd = React.useSyncExternalStore(target.subscribe, () => ownsEnd(target.state))
+  return {listOwnsEnd, scrollTarget: target}
+}
 
 // Ordinals are sorted oldest first; -1 when the ordinal is not loaded.
 export const indexOfOrdinal = (ordinals: ReadonlyArray<T.Chat.Ordinal>, ordinal: T.Chat.Ordinal) =>
@@ -257,14 +273,19 @@ export const initialScrollTarget = (
   return index >= 0 ? ({index, viewPosition: 0.5} as const) : undefined
 }
 
-// The list's own end anchor holds the newest message in view. It stays off while a target is
+// The list's own end anchor holds the newest message in view, and only while the list owns the end:
+// its own idea of being at the end (within a tenth of the viewport of it, on the desktop) would
+// otherwise pull down a reader who has scrolled a little way up. It stays off while a target is
 // centred, even one that is not loaded, so new messages don't pull the reader away from it, and
 // while the thread holds a window of history without the newest message, whose end is only the
 // newest row loaded: a page of newer rows landing there would carry the reader along with it.
 // heldLatest is whether the rows now shown are held at the newest message (useHeldLatest), so the
 // page that brings the newest message lands as a page too.
-export const listAnchorsEnd = (centeredOrdinal: T.Chat.Ordinal | undefined, heldLatest: boolean) =>
-  centeredOrdinal === undefined && heldLatest
+export const listAnchorsEnd = (p: {
+  centeredOrdinal: T.Chat.Ordinal | undefined
+  heldLatest: boolean
+  listOwnsEnd: boolean
+}) => p.listOwnsEnd && p.centeredOrdinal === undefined && p.heldLatest
 
 // Whether the rows now shown hold the newest message as a thread that already held it: false for the
 // page of newer rows that brings it into a window of history, which is laid out as the page it is,

@@ -9,6 +9,7 @@ import {
   initialScrollTarget,
   initialScrollTargetState,
   listAnchorsEnd,
+  makeScrollTarget,
   ownsEnd,
   useHeldLatest,
   type ScrollDirective,
@@ -536,10 +537,28 @@ describe('helpers', () => {
     expect(initialScrollTarget(ordinals, ord(4))).toBeUndefined()
   })
 
-  test('the list anchors the end only while nothing is centred and the thread holds the newest message', () => {
-    expect(listAnchorsEnd(undefined, true)).toBe(true)
-    expect(listAnchorsEnd(ord(30), true)).toBe(false)
-    expect(listAnchorsEnd(undefined, false)).toBe(false)
+  test('the list anchors the end only while it owns the end, nothing is centred and the thread holds the newest message', () => {
+    const anchors = {centeredOrdinal: undefined, heldLatest: true, listOwnsEnd: true}
+    expect(listAnchorsEnd(anchors)).toBe(true)
+    expect(listAnchorsEnd({...anchors, listOwnsEnd: false})).toBe(false)
+    expect(listAnchorsEnd({...anchors, centeredOrdinal: ord(30)})).toBe(false)
+    expect(listAnchorsEnd({...anchors, heldLatest: false})).toBe(false)
+  })
+
+  test('the scroll target tells its subscribers of each change to its state, and only then', () => {
+    const target = makeScrollTarget()
+    const heard = jest.fn()
+    const unsubscribe = target.subscribe(heard)
+    target.decide({type: 'userScrolled'})
+    expect(heard).toHaveBeenCalledTimes(1)
+    target.decide({type: 'centerSettled'})
+    target.decide({type: 'readerAtEnd'})
+    expect(heard).toHaveBeenCalledTimes(3)
+    target.decide({centeredOrdinal: undefined, loaded: true, targetInData: false, type: 'threadObserved'})
+    expect(heard).toHaveBeenCalledTimes(3)
+    unsubscribe()
+    target.decide({type: 'userScrolled'})
+    expect(heard).toHaveBeenCalledTimes(3)
   })
 })
 

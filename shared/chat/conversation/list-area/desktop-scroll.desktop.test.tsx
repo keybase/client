@@ -466,18 +466,21 @@ describe('centering on a target', () => {
 })
 
 describe('closing thread search (clearing the centre)', () => {
-  test('leaves the reader where they are, not at the newest, holding the end, and re-arms the list anchor', async () => {
+  test('leaves the reader where they are, not at the newest, holding the end, with the list anchor off until they come back to it', async () => {
     open({center: 30})
     await tick(5000)
     H.log.length = 0
     update(() => H.setCenter(undefined))
     expect(H.log).toEqual([])
-    expect(props()['maintainScrollAtEnd']).toBe(true)
+    expect(props()['maintainScrollAtEnd']).toBe(false)
     expect(props()['initialScrollAtEnd']).toBe(true)
     update(() => H.listStore.set({isAtEnd: false}))
     growHeader()
     await tick(3000)
     expect(H.log).toEqual([])
+    update(() => H.moveScroller(endOffset()))
+    H.scrollEnds()
+    expect(props()['maintainScrollAtEnd']).toBe(true)
   })
 
   test('after asking for the bottom, the end stays with the list', async () => {
@@ -540,6 +543,9 @@ describe('a window of history (the thread does not hold the newest message)', ()
     open({center: 30, moreToLoadForward: true})
     update(() => H.setCenter(undefined))
     update(() => H.threadStore.set({messageOrdinals: H.range(1, 90), moreToLoadForward: false}))
+    // The reader, holding the end since the centre, scrolls down to it.
+    update(() => H.moveScroller(endOffset()))
+    H.scrollEnds()
     expect(H.listCommits.filter(c => c.data.length === 90).map(c => c['maintainScrollAtEnd'])).not.toContain(true)
     update(() => H.threadStore.set({messageOrdinals: H.range(1, 91)}))
     expect(props()['maintainScrollAtEnd']).toBe(true)
@@ -750,6 +756,18 @@ describe('new messages', () => {
     update(() => H.threadStore.set({messageOrdinals: H.range(1, 62)}))
     await tick(3000)
     expect(H.log).toEqual([])
+    expect(props()['maintainScrollAtEnd']).toBe(true)
+  })
+
+  // The list's own anchor counts a list within a tenth of its viewport of the end as at it.
+  test('after the reader wheels a little way up, a new message leaves them there, until they come back down', () => {
+    open()
+    scrollerAtEnd()
+    update(() => H.moveScroller(endOffset() - 30))
+    update(() => H.threadStore.set({messageOrdinals: H.range(1, 61)}))
+    expect(props()['maintainScrollAtEnd']).toBe(false)
+    update(() => H.moveScroller(endOffset()))
+    H.scrollEnds()
     expect(props()['maintainScrollAtEnd']).toBe(true)
   })
 

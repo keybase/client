@@ -4,6 +4,7 @@
 // tests drive in place of the thread, center and input providers.
 import * as React from 'react'
 import * as T from '@/constants/types'
+import {act} from '@testing-library/react'
 import {centerStore, log, makeStore, resetShared, useStore} from './list-test-store'
 
 export {
@@ -155,7 +156,9 @@ export const listLandsShort = (offset: number, landsAt: number) => {
 }
 // The scroller's current scroll coming to rest, whoever moved it.
 export const scrollEnds = () => {
-  scrollerElement?.dispatchEvent(new Event('scrollend'))
+  act(() => {
+    scrollerElement?.dispatchEvent(new Event('scrollend'))
+  })
 }
 
 const FakeLegendList = (p: FakeListProps) => {

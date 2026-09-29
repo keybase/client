@@ -30,13 +30,15 @@ export type NativeListRef = {
 // the keyboard following a send). Instead we swap between two configs:
 // - closed (keyboard hidden): autoscrollToTopThreshold=1 so new messages at the bottom
 //   auto-reveal when the user is pinned there.
-// - noAutoscroll (keyboard open, or centered on a search hit, or a window of history, or empty
-//   list): MVP still anchors content, but autoscroll-to-top is off because:
+// - noAutoscroll (keyboard open, or centered on a search hit, or a window of history, or the
+//   reader holding the end, or empty list): MVP still anchors content, but autoscroll-to-top is
+//   off because:
 //   1. with the keyboard open contentOffset.y = -(K-insets.bottom) <= 1, so the threshold
 //      would fire on insert and scroll to y=0, hiding new messages behind the keyboard.
 //   2. while centered on a search hit, autoscroll yanks the centered row.
 //   3. in a window of history (listAnchorsEnd), a page of newer rows loading at the bottom would
 //      carry the reader down with it.
+//   4. a reader who holds the end has scrolled away from it, and stays where they are.
 //   With the keyboard open, MVP's insert adjustment briefly holds old content in place;
 //   the deferred re-pin on append below re-pins the newest message.
 const maintainVisibleContentPositionClosed = {
@@ -95,7 +97,7 @@ export const useNativeThreadScroll = (p: {
     ordsRef.current = messageOrdinals
   }, [messageOrdinals])
 
-  const scrollTarget = useScrollTarget()
+  const {listOwnsEnd, scrollTarget} = useScrollTarget()
   const [own] = React.useState(makeOwnScrolls)
   const heldLatest = useHeldLatest(containsLatestMessage, datasetKey, messageOrdinals)
 
@@ -470,7 +472,8 @@ export const useNativeThreadScroll = (p: {
     setScrollRef({scrollDown: noop, scrollToBottom: requestBottom, scrollUp: noop})
   }, [requestBottom, setScrollRef])
 
-  const mvpAutoscroll = listAnchorsEnd(centeredOrdinal, heldLatest) && numOrdinals > 0 && !isKeyboardVisible
+  const mvpAutoscroll =
+    listAnchorsEnd({centeredOrdinal, heldLatest, listOwnsEnd}) && numOrdinals > 0 && !isKeyboardVisible
 
   return {
     maintainVisibleContentPosition: mvpAutoscroll

@@ -91,7 +91,7 @@ export const useDesktopThreadScroll = (p: {
     messageOrdinalsRef.current = messageOrdinals
   }, [messageOrdinals])
 
-  const scrollTarget = useScrollTarget()
+  const {listOwnsEnd, scrollTarget} = useScrollTarget()
   const [own] = React.useState(makeOwnScrolls)
   const heldLatest = useHeldLatest(containsLatestMessage, datasetKey, messageOrdinals)
 
@@ -391,7 +391,7 @@ export const useDesktopThreadScroll = (p: {
 
   return {
     initialScrollIndex,
-    maintainScrollAtEnd: listAnchorsEnd(centeredOrdinal, heldLatest),
+    maintainScrollAtEnd: listAnchorsEnd({centeredOrdinal, heldLatest, listOwnsEnd}),
     onMetricsChange,
     scrollToBottom,
   }

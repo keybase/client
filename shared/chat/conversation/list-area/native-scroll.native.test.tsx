@@ -993,6 +993,16 @@ describe('appending', () => {
     expect(H.log).toEqual([])
   })
 
+  test('with the keyboard down, after the reader drags a little way up, the anchor leaves them there until they come back down', () => {
+    open()
+    drag()
+    dragEnded(40)
+    expect(props().maintainVisibleContentPosition).toEqual(mvpNoAutoscroll)
+    drag()
+    dragEnded(0)
+    expect(props().maintainVisibleContentPosition).toEqual(mvpClosed)
+  })
+
   test('with the keyboard down is left to the list', async () => {
     open()
     await tick(200)
@@ -1502,6 +1512,10 @@ describe('loading newer messages', () => {
     expect(props().maintainVisibleContentPosition).toEqual(mvpNoAutoscroll)
     update(() => H.threadStore.set({messageOrdinals: H.range(1, 80), moreToLoadForward: false}))
     expect(props().maintainVisibleContentPosition).toEqual(mvpNoAutoscroll)
+    // The reader, holding the end since the centre, drags down to the newest.
+    drag()
+    dragEnded(0)
+    expect(props().maintainVisibleContentPosition).toEqual(mvpNoAutoscroll)
     setOrdinals(1, 81)
     expect(props().maintainVisibleContentPosition).toEqual(mvpClosed)
     // Back at the newest, a new message over the keyboard is re-pinned as ever.
@@ -1590,7 +1604,7 @@ describe('scroll-to-index failures', () => {
 })
 
 describe('maintainVisibleContentPosition', () => {
-  test('autoscrolls only when nothing is centred, the thread has rows and the keyboard is down', () => {
+  test('autoscrolls only when the list owns the end, nothing is centred, the thread has rows and the keyboard is down', () => {
     open()
     const closed = props().maintainVisibleContentPosition
     expect(closed).toEqual(mvpClosed)
@@ -1605,6 +1619,10 @@ describe('maintainVisibleContentPosition', () => {
     update(() => {
       H.setCenter(undefined)
     })
+    // The reader holds the end the centre took until they come back to it.
+    expect(props().maintainVisibleContentPosition).toEqual(mvpNoAutoscroll)
+    drag()
+    dragEnded(0)
     // The same object each time: the prop is never unset or rebuilt, only swapped.
     expect(props().maintainVisibleContentPosition).toBe(closed)
     update(openKeyboard)
