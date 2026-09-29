@@ -70,15 +70,15 @@ const deleteThreadMessage = (conversationIDKey: T.Chat.ConversationIDKey, target
     return m?.type === 'text' || m?.type === 'attachment' ? m : undefined
   }
   const row = deletable()
-  // a failed or pending row gets its state back if the delete fails, so it can still be retried
-  const priorSubmitState = row?.submitState
-  if (row) {
+  // Only a sent row shows deleting. An unsent one keeps its pending or failed state, which the
+  // renderers read (an unsent video does not play), until the cancel removes it.
+  if (row?.id && row.submitState === undefined) {
     thread.setMessageSubmitState(ordinal, 'deleting')
   }
   // only undoes our own mark: a row that moved on since keeps its new state
   const revertDeleting = () => {
     if (deletable()?.submitState === 'deleting') {
-      thread.setMessageSubmitState(ordinal, priorSubmitState)
+      thread.setMessageSubmitState(ordinal, undefined)
     }
   }
 

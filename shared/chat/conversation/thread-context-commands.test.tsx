@@ -584,18 +584,50 @@ describe('messageDelete edges', () => {
     expect(message(10)?.submitState).toBe('failed')
   })
 
-  test('an unsent row stays, deleting, until the cancel lands', async () => {
-    const pending = deferred<undefined>()
-    rpc.on('cancelPost', async () => pending.promise)
+  // the renderers read pending and failed (an unsent video does not play, an unsent audio has no
+  // url), so a row being cancelled keeps its state until the cancel removes it
+  test.each(['pending', 'failed'] as const)(
+    'an unsent %s upload keeps its state until the cancel lands',
+    async submitState => {
+      const pending = deferred<undefined>()
+      rpc.on('cancelPost', async () => pending.promise)
+      const outboxID = T.Chat.stringToOutboxID('0a0b')
+      const {message} = renderThread([
+        makeMessageAttachment({
+          conversationIDKey,
+          id: T.Chat.numberToMessageID(0),
+          ordinal: T.Chat.numberToOrdinal(10),
+          outboxID,
+          submitState,
+        }),
+      ])
+      await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
+      expect(message(10)?.submitState).toBe(submitState)
+      await act(async () => {
+        pending.resolve(undefined)
+        await flushPromises()
+      })
+      expect(message(10)).toBeUndefined()
+    }
+  )
+
+  test('only a sent row shows deleting', async () => {
+    rpc.on('cancelPost', async () => new Promise<undefined>(() => {}))
+    rpc.on('postDelete', async () => new Promise<undefined>(() => {}))
     const outboxID = T.Chat.stringToOutboxID('0a0b')
-    const {message} = renderThread([textAt(10, {id: T.Chat.numberToMessageID(0), outboxID})])
+    const {message} = renderThread([
+      textAt(10, {id: T.Chat.numberToMessageID(0), outboxID}),
+      textAt(11, {submitState: 'editing'}),
+      textAt(12),
+    ])
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
-    expect(message(10)?.submitState).toBe('deleting')
-    await act(async () => {
-      pending.resolve(undefined)
-      await flushPromises()
-    })
-    expect(message(10)).toBeUndefined()
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(11)))
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(12)))
+    expect([message(10)?.submitState, message(11)?.submitState, message(12)?.submitState]).toEqual([
+      undefined,
+      'editing',
+      'deleting',
+    ])
   })
 
   test('the tlfName is empty when the meta has none', async () => {
