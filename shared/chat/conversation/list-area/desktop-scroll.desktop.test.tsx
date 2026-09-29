@@ -1046,6 +1046,13 @@ describe('whatever moves the scroller, when the list did not, is the reader', ()
     expect(centringAsks()).toBe(3)
   })
 
+  test('a scroll event that moved nothing reads nothing of the list', () => {
+    open()
+    const getState = jest.spyOn(H.listHandle, 'getState')
+    scroller().dispatchEvent(new Event('scroll'))
+    expect(getState).not.toHaveBeenCalled()
+  })
+
   test('something scrollable inside the thread scrolling is not the thread scrolling', async () => {
     openCentring()
     const inner = document.createElement('div')

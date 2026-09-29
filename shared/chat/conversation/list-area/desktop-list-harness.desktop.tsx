@@ -80,7 +80,7 @@ const contentHeight = () => rowTop(listProps.current?.data.length ?? 0)
 const maxScroll = () => Math.max(0, contentHeight() - viewportHeight)
 const clampScroll = (offset: number) => Math.min(maxScroll(), Math.max(0, offset))
 
-const handle = {
+export const listHandle = {
   getScrollableNode: () => scrollerElement,
   getState: () => {
     const {isAtEnd, scroll} = listStore.get()
@@ -168,7 +168,7 @@ const FakeLegendList = (p: FakeListProps) => {
     listProps.current = p
     listCommits.push(p)
   })
-  React.useImperativeHandle(ref, () => handle, [])
+  React.useImperativeHandle(ref, () => listHandle, [])
   const scrollerRef = React.useCallback((el: HTMLDivElement | null) => {
     scrollerElement = el
     if (!el) return

@@ -100,19 +100,16 @@ const useThreadListData = () =>
 // loaded, newer as they near the newest one while the thread does not hold the newest message
 // (after a jump to an old hit). Each list decides when the reader is near either end. Refs keep the
 // throttled callbacks stable.
-const usePagination = (p: {
-  containsLatestMessage: boolean
-  messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
-}) => {
-  const {containsLatestMessage, messageOrdinals} = p
+const usePagination = (p: {containsLatestMessage: boolean; numOrdinals: number}) => {
+  const {containsLatestMessage, numOrdinals} = p
   const loadOlderMessagesDueToScroll = useConversationThreadLoadOlderMessagesDueToScroll()
   const loadNewerMessagesDueToScroll = useConversationThreadLoadNewerMessagesDueToScroll()
   const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
 
-  const numOrdinalsRef = React.useRef(messageOrdinals.length)
+  const numOrdinalsRef = React.useRef(numOrdinals)
   React.useEffect(() => {
-    numOrdinalsRef.current = messageOrdinals.length
-  }, [messageOrdinals.length])
+    numOrdinalsRef.current = numOrdinals
+  }, [numOrdinals])
 
   const containsLatestMessageRef = React.useRef(containsLatestMessage)
   React.useEffect(() => {
@@ -212,7 +209,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
 
   const markInitiallyLoadedThreadAsRead = useConversationThreadMarkThreadAsRead()
 
-  const {loadNewer, loadOlder} = usePagination({containsLatestMessage, messageOrdinals})
+  const {loadNewer, loadOlder} = usePagination({containsLatestMessage, numOrdinals: messageOrdinals.length})
 
   const getItemType = useGetItemType()
 
@@ -469,7 +466,8 @@ const NativeConversationList = function NativeConversationList() {
 
   const listRef = React.useRef<NativeListRef | null>(null)
   const markInitiallyLoadedThreadAsRead = useConversationThreadMarkThreadAsRead()
-  const {loadNewer, loadOlder} = usePagination({containsLatestMessage, messageOrdinals})
+  const numOrdinals = messageOrdinals.length
+  const {loadNewer, loadOlder} = usePagination({containsLatestMessage, numOrdinals})
 
   const keyExtractor = (ordinal: ItemType) => {
     return String(ordinal)
@@ -482,8 +480,6 @@ const NativeConversationList = function NativeConversationList() {
     }
     return <MessageRow isCenteredHighlight={centeredHighlightOrdinalOrNone === ordinal} ordinal={ordinal} />
   }
-
-  const numOrdinals = messageOrdinals.length
 
   const getItemType = useGetItemType()
 

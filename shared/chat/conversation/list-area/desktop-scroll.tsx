@@ -319,13 +319,15 @@ export const useDesktopThreadScroll = (p: {
     (e: {target: unknown}) => {
       // Scroll events reach the wrapper from anything scrollable inside it; only the list's own counts.
       const scroller = scrollerOf()
-      const listState = listRef.current?.getState()
-      if (!scroller || e.target !== scroller || !listState) return
+      if (!scroller || e.target !== scroller) return
       const now = scroller.scrollTop
-      const toward = Math.min(listState.scroll, scroller.scrollHeight - scroller.clientHeight)
       const from = lastOffsetRef.current
+      if (now === from) return
       lastOffsetRef.current = now
       if (own.carries(from, now)) return
+      const listState = listRef.current?.getState()
+      if (!listState) return
+      const toward = Math.min(listState.scroll, scroller.scrollHeight - scroller.clientHeight)
       if (now >= Math.min(from, toward) - ownTolerancePx && now <= Math.max(from, toward) + ownTolerancePx) return
       dispatch(own.readerMoved())
     },

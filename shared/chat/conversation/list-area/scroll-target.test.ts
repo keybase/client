@@ -6,6 +6,7 @@ import {act, renderHook} from '@testing-library/react'
 import {
   decideScroll,
   indexOfOrdinal,
+  indexOfOrdinalNewestFirst,
   initialScrollTarget,
   initialScrollTargetState,
   listAnchorsEnd,
@@ -222,6 +223,12 @@ describe('userScrolled', () => {
     ['leaves a reader holding the end with it', busy, scrolled, stopCentering, busy],
     ['ends the settling of a centred target', settling, scrolled, stopCentering, {...settling, settlingCenter: false}],
   ])
+
+  // The reader's scroll arrives on every scroll event; one that changes nothing leaves the state as it is.
+  test('from a reader already holding the end with nothing settling, the state is left as it is', () => {
+    const holding = Object.freeze(state({endOwner: 'reader', lastCentered: ord(30)}))
+    expect(decideScroll(holding, scrolled).state).toBe(holding)
+  })
 })
 
 describe('headerMeasured', () => {
@@ -522,6 +529,14 @@ describe('sequences', () => {
 describe('helpers', () => {
   const ordinals = [1, 2, 5, 9].map(ord)
 
+  test('indexOfOrdinalNewestFirst finds loaded ordinals in rows held newest first and reports -1 otherwise', () => {
+    const newestFirst = [...ordinals].reverse()
+    ordinals.forEach(o => expect(indexOfOrdinalNewestFirst(newestFirst, o)).toBe(newestFirst.indexOf(o)))
+    expect(indexOfOrdinalNewestFirst(newestFirst, ord(4))).toBe(-1)
+    expect(indexOfOrdinalNewestFirst(newestFirst, ord(1000))).toBe(-1)
+    expect(indexOfOrdinalNewestFirst([], ord(4))).toBe(-1)
+  })
+
   test('indexOfOrdinal finds loaded ordinals and reports -1 otherwise', () => {
     expect(indexOfOrdinal(ordinals, ord(5))).toBe(2)
     expect(indexOfOrdinal(ordinals, ord(4))).toBe(-1)
@@ -551,14 +566,15 @@ describe('helpers', () => {
     const unsubscribe = target.subscribe(heard)
     target.decide({type: 'userScrolled'})
     expect(heard).toHaveBeenCalledTimes(1)
-    target.decide({type: 'centerSettled'})
+    target.decide({type: 'userScrolled'})
+    expect(heard).toHaveBeenCalledTimes(1)
     target.decide({type: 'readerAtEnd'})
-    expect(heard).toHaveBeenCalledTimes(3)
+    expect(heard).toHaveBeenCalledTimes(2)
     target.decide({centeredOrdinal: undefined, loaded: true, targetInData: false, type: 'threadObserved'})
-    expect(heard).toHaveBeenCalledTimes(3)
+    expect(heard).toHaveBeenCalledTimes(2)
     unsubscribe()
     target.decide({type: 'userScrolled'})
-    expect(heard).toHaveBeenCalledTimes(3)
+    expect(heard).toHaveBeenCalledTimes(2)
   })
 })
 

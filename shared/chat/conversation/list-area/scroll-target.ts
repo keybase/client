@@ -4,6 +4,7 @@
 // with that list.
 import * as React from 'react'
 import type * as T from '@/constants/types'
+import sortedIndexBy from 'lodash/sortedIndexBy'
 import sortedIndexOf from 'lodash/sortedIndexOf'
 
 // The centring bookkeeping below belongs to the current dataset: a centred load clears the thread and
@@ -171,9 +172,13 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
     case 'userScrolled':
       // However the reader scrolls, and whichever way, they have taken over: centring stops rather
       // than pull them back, and the end is theirs until a scroll comes to rest there (readerAtEnd).
+      // It arrives on every scroll event, and most find it so already.
       return {
         directive: {stopCentering: true, type: 'leaveAlone'},
-        state: {...state, endOwner: 'reader', settlingCenter: false},
+        state:
+          state.endOwner === 'reader' && !state.settlingCenter
+            ? state
+            : {...state, endOwner: 'reader', settlingCenter: false},
       }
     case 'readerAtEnd':
       return {directive: leaveAlone, state: {...state, endOwner: 'list'}}
@@ -262,6 +267,12 @@ export const useScrollTarget = () => {
 // Ordinals are sorted oldest first; -1 when the ordinal is not loaded.
 export const indexOfOrdinal = (ordinals: ReadonlyArray<T.Chat.Ordinal>, ordinal: T.Chat.Ordinal) =>
   sortedIndexOf(ordinals as unknown as Array<number>, ordinal as unknown as number)
+
+// The same for ordinals held newest first, as the inverted native list holds them.
+export const indexOfOrdinalNewestFirst = (ordinals: ReadonlyArray<T.Chat.Ordinal>, ordinal: T.Chat.Ordinal) => {
+  const index = sortedIndexBy(ordinals as unknown as Array<number>, ordinal as unknown as number, o => -o)
+  return ordinals[index] === ordinal ? index : -1
+}
 
 // Where a freshly laid out dataset starts: on the centred target when it is loaded, otherwise at
 // the end.

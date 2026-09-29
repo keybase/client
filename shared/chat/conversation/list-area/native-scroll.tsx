@@ -9,6 +9,7 @@ import {useComposerAnchor} from '../composer-viewport-context'
 import {restingScrollOffset} from '../composer-geometry'
 import {makeOwnScrolls} from './own-scrolls'
 import {
+  indexOfOrdinalNewestFirst,
   listAnchorsEnd,
   ownsEnd,
   useHeldLatest,
@@ -117,7 +118,7 @@ export const useNativeThreadScroll = (p: {
   })
   // Where a row lands is not known ahead, only which way it lies: older rows sit at higher offsets.
   const [scrollToItem] = React.useState(() => (item: T.Chat.Ordinal, animated: boolean) => {
-    const index = ordsRef.current.indexOf(item)
+    const index = indexOfOrdinalNewestFirst(ordsRef.current, item)
     const first = vFirstRef.current
     const last = vLastRef.current
     const to =
@@ -201,7 +202,7 @@ export const useNativeThreadScroll = (p: {
       const ords = ordsRef.current
       const num = ords.length
       if (co === undefined || !num || first == null || last == null) return
-      const targetIdx = ords.indexOf(co)
+      const targetIdx = indexOfOrdinalNewestFirst(ords, co)
       if (targetIdx < 0) return
       const centerIdx = (first + last) / 2
       const diff = targetIdx - centerIdx
@@ -304,7 +305,7 @@ export const useNativeThreadScroll = (p: {
     dispatch({
       centeredOrdinal,
       loaded,
-      targetInData: centeredOrdinal !== undefined && messageOrdinals.includes(centeredOrdinal),
+      targetInData: centeredOrdinal !== undefined && indexOfOrdinalNewestFirst(messageOrdinals, centeredOrdinal) >= 0,
       type: 'threadObserved',
     })
   }, [centeredOrdinal, dispatch, loaded, messageOrdinals])
@@ -313,7 +314,7 @@ export const useNativeThreadScroll = (p: {
     dispatch({
       ordinal: editingOrdinal,
       rowFullyVisible: () => editingOrdinal !== undefined && fullyVisibleRef.current.has(editingOrdinal),
-      targetInData: editingOrdinal !== undefined && messageOrdinals.includes(editingOrdinal),
+      targetInData: editingOrdinal !== undefined && indexOfOrdinalNewestFirst(messageOrdinals, editingOrdinal) >= 0,
       type: 'editingChanged',
     })
   }, [dispatch, editingOrdinal, messageOrdinals])
