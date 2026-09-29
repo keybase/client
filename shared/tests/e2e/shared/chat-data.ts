@@ -82,7 +82,9 @@ export const readonlyMarker = (index: number) => `e2e-readonly-${String(index).p
 // e2e runners start in shared/
 const fixturesDir = path.resolve('tests/e2e/fixtures')
 export const MEDIA_FIXTURES = [
-  {file: path.join(fixturesDir, 'e2e-video.mp4'), title: 'e2e-media-video'},
+  // 480x640: its preview is 320px tall, so the middle of the video sits above the desktop video's
+  // own control bar (the bottom ~72px), where a press never reaches the page
+  {file: path.join(fixturesDir, 'e2e-video.mp4'), title: 'e2e-media-video-tall'},
   {file: path.join(fixturesDir, 'e2e-image.png'), title: 'e2e-media-image'},
   {file: path.join(fixturesDir, 'e2e-file.txt'), title: 'e2e-media-file'},
 ] as const

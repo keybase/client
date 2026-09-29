@@ -207,14 +207,10 @@ test.describe('inline video', () => {
     await expect(row.locator('video')).toHaveCount(0)
   })
 
-  // Fails on this fixture, not on the app: Chromium's native controls panel takes the bottom ~72px
-  // of a video, and a press there is consumed by the controls and never reaches the page (window
-  // capture listeners see no mousedown, click or dblclick, while mousemove still arrives). The seeded
-  // video previews at 160x120, so its middle is 60px from the bottom, inside that panel; on a video
-  // 240px tall its middle is outside it and a double-click there opens fullscreen. Hiding the overlay
-  // play button changes nothing here. Remove test.fail once the fixture previews tall enough.
+  // The seeded video previews 320px tall, so its middle sits above Chromium's own controls panel
+  // (the bottom ~72px of a video, where a press is consumed by the controls and never reaches the
+  // page). On a preview shorter than about 150px the middle falls inside that panel.
   test('double-clicking the middle of a playing video opens it fullscreen', async ({page}) => {
-    test.fail()
     const row = videoRow(page)
     await clickUnoccluded(poster(row))
     await expect(row.locator('video')).toHaveCount(1, {timeout: 5_000})
