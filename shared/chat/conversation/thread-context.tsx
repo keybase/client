@@ -158,24 +158,23 @@ const ConversationThreadContextProvider = (p: {
   </ConversationThreadIDContext>
 )
 
+// The reader is looking at the thread: the app is active (not idle on desktop) and focused, and the
+// thread's route is focused (not covered by another route).
+const isLookingAtThread = (shell: {active: boolean; appFocused: boolean}, routeFocused: boolean) =>
+  shell.active && shell.appFocused && routeFocused
+
 const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => {
   const {children, id} = p
   const navigation = useNavigation()
   const [thread] = React.useState(() =>
-    makeThreadStore(id, () => {
-      const {active, appFocused} = useShellState.getState()
-      return active && appFocused && navigation.isFocused()
-    })
+    makeThreadStore(id, () => isLookingAtThread(useShellState.getState(), navigation.isFocused()))
   )
-  const active = useShellState(s => s.active)
-  const appFocused = useShellState(s => s.appFocused)
   const routeFocused = useIsFocused()
-  // Mark read refuses while the reader is not looking at the thread (backgrounded, covered by
-  // another route, or idle on desktop), so try again whenever they are looking once more: when one
-  // of those gates reopens, and when <Activity> shows the screen again, which runs this effect
-  // again. On mobile `active` never changes; appFocused/routeFocused are the only signals that we
-  // came back.
-  const lookingAtThread = active && appFocused && routeFocused
+  // Mark read refuses while the reader is not looking at the thread, so try again whenever they are
+  // looking once more: when one of its gates reopens, and when <Activity> shows the screen again,
+  // which runs this effect again. On mobile `active` never changes; appFocused/routeFocused are the
+  // only signals that we came back.
+  const lookingAtThread = useShellState(s => isLookingAtThread(s, routeFocused))
   React.useEffect(() => {
     if (lookingAtThread) {
       thread.markReadIfArmed()
