@@ -1,12 +1,10 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as T from '@/constants/types'
-import type * as React from 'react'
 import {act, cleanup, renderHook} from '@testing-library/react'
 import logger from '@/logger'
 import {useDaemonState} from '@/stores/daemon'
 import {useConfigState} from '@/stores/config'
-import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
 import {
   decodeChatNotification,
@@ -15,10 +13,9 @@ import {
   type ChatNotification,
 } from './notification-router'
 import {
-  ConversationThreadUidContext,
   registerReloadHandler,
   registerThreadHandler,
-  useSignedInAccountReloadTriggers,
+  useReloadTriggers,
   useThreadNotifications,
   type ReloadTrigger,
   type ThreadNotification,
@@ -51,22 +48,15 @@ const decoded = (action: ChatNotification) => {
 }
 
 const unregisters: Array<() => void> = []
-const onThread = (id: T.Chat.ConversationIDKey, handler: (n: ThreadNotification) => void, uid = 'uid') => {
-  unregisters.push(registerThreadHandler(id, uid, handler))
+const onThread = (id: T.Chat.ConversationIDKey, handler: (n: ThreadNotification) => void) => {
+  unregisters.push(registerThreadHandler(id, handler))
 }
 const onReload = (id: T.Chat.ConversationIDKey, handler: (r: ReloadTrigger) => void) => {
-  unregisters.push(registerReloadHandler(id, 'uid', handler))
+  unregisters.push(registerReloadHandler(id, handler))
 }
-// a reader that loads for whichever account is signed in
-const onAnyAccountReload = (id: T.Chat.ConversationIDKey, handler: (r: ReloadTrigger) => void) => {
-  unregisters.push(registerReloadHandler(id, undefined, handler))
-}
-const signIn = (uid: string) =>
-  useCurrentUserState.getState().dispatch.setBootstrap({deviceID: 'd', deviceName: 'testuser-mac', uid, username: 'testuser'})
 
 beforeEach(() => {
   useConfigState.setState({loggedIn: false})
-  signIn('uid')
 })
 
 afterEach(() => {
@@ -521,7 +511,7 @@ describe('routeChatNotification', () => {
     const heard = jest.fn()
     let unregisterSecond: () => void = () => {}
     onThread(convA, () => unregisterSecond())
-    unregisterSecond = registerThreadHandler(convA, 'uid', heard)
+    unregisterSecond = registerThreadHandler(convA, heard)
     routeChatNotification(typingIn(convA, 'testuser-mac'))
     routeChatNotification(typingIn(convA, 'testuser-2'))
     expect(heard).toHaveBeenCalledTimes(1)
@@ -531,7 +521,7 @@ describe('routeChatNotification', () => {
 describe('registry', () => {
   test('unregistering stops delivery', () => {
     const heard = jest.fn()
-    const unregister = registerThreadHandler(convA, 'uid', heard)
+    const unregister = registerThreadHandler(convA, heard)
     routeChatNotification(typingIn(convA, 'testuser-mac'))
     unregister()
     routeChatNotification(typingIn(convA, 'testuser-2'))
@@ -540,8 +530,8 @@ describe('registry', () => {
 
   test('registering one handler twice delivers twice, and each unregister removes only its own', () => {
     const heard = jest.fn()
-    const first = registerThreadHandler(convA, 'uid', heard)
-    unregisters.push(registerThreadHandler(convA, 'uid', heard))
+    const first = registerThreadHandler(convA, heard)
+    unregisters.push(registerThreadHandler(convA, heard))
     routeChatNotification(typingIn(convA, 'testuser-mac'))
     expect(heard).toHaveBeenCalledTimes(2)
     first()
@@ -561,37 +551,13 @@ describe('registry', () => {
     onThread(convA, heard)
     onReload(convA, heard)
     resetAllStores()
-    signIn('uid')
     routeChatNotification(expunge())
     expect(heard.mock.calls.map(([n]: [{type: string}]) => n.type)).toEqual(['expunge', 'metadata', 'messages'])
   })
 
-  // two accounts in one team share its channels' conversation ids
-  test('a registration hears only while its account is signed in', () => {
-    const heard: Array<string> = []
-    onThread(convA, n => heard.push(`thread:${n.type}`))
-    onReload(convA, r => heard.push(`reload:${r.type}`))
-    onAnyAccountReload(convA, r => heard.push(`any:${r.type}`))
-    resetAllStores()
-    signIn('uid2')
-    routeChatNotification(expunge())
-    expect(heard).toEqual(['any:metadata', 'any:messages'])
-    heard.length = 0
-    signIn('uid')
-    routeChatNotification(expunge())
-    expect(heard).toEqual([
-      'thread:expunge',
-      'reload:metadata',
-      'any:metadata',
-      'reload:messages',
-      'any:messages',
-    ])
-  })
-
   test('an unregister from before a reset removes only its own registration', () => {
-    const stale = registerThreadHandler(convA, 'uid', jest.fn())
+    const stale = registerThreadHandler(convA, jest.fn())
     resetAllStores()
-    signIn('uid')
     const heard = jest.fn()
     onThread(convA, heard)
     stale()
@@ -608,13 +574,7 @@ describe('hooks', () => {
         useThreadNotifications(id, n => {
           heard.push(`${prefix}:${n.type}`)
         }),
-      {
-        initialProps: {id: convA, prefix: 'first'},
-        // inside a thread built for the signed-in account
-        wrapper: ({children}: {children: React.ReactNode}) => (
-          <ConversationThreadUidContext value="uid">{children}</ConversationThreadUidContext>
-        ),
-      }
+      {initialProps: {id: convA, prefix: 'first'}}
     )
     act(() => routeChatNotification(typingIn(convA, 'testuser-mac')))
     rerender({id: convA, prefix: 'second'})
@@ -627,9 +587,9 @@ describe('hooks', () => {
     expect(heard).toEqual(['first:typing', 'second:typing', 'second:typing'])
   })
 
-  test('useSignedInAccountReloadTriggers hears reloads for its conversation while mounted', () => {
+  test('useReloadTriggers hears reloads for its conversation while mounted', () => {
     const heard: Array<string> = []
-    const {unmount} = renderHook(() => useSignedInAccountReloadTriggers(convA, r => heard.push(r.type)))
+    const {unmount} = renderHook(() => useReloadTriggers(convA, r => heard.push(r.type)))
     act(() =>
       routeChatNotification(
         chat('chat.1.NotifyChat.ChatThreadsStale', {

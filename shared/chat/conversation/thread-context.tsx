@@ -14,7 +14,6 @@ import {getInboxConversationParticipants, unboxRows, useInboxMetadataState} from
 import {getChatRpc} from './chat-rpc'
 import {emptyConversationMeta, numMessagesOnInitialLoad, numMessagesOnScrollback} from './thread-load'
 import {useThreadEngineListeners} from './thread-engine'
-import {ConversationThreadUidContext} from '@/chat/notification-registry'
 import {
   makeThreadStore,
   type ConversationThreadActions,
@@ -216,8 +215,9 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps & {u
 
 // A thread belongs to one account: its notifications, reloads and service calls are that account's.
 // An account switch keeps the logged-in screens mounted (and desktop can keep the same conversation
-// selected), so the thread is built again whenever the signed-in account changes. Between a switch's
-// store reset and the next account's sign-in nobody is signed in, and there is no thread to show.
+// selected), so the thread is built again whenever the signed-in account changes; the store built
+// for the account that left retires itself. Between a switch's store reset and the next account's
+// sign-in nobody is signed in, and there is no thread to show.
 const ConversationThreadForSignedInAccount = (p: ConversationThreadProviderProps) => {
   const {children, id} = p
   const uid = useCurrentUserState(s => s.uid)
@@ -225,11 +225,9 @@ const ConversationThreadForSignedInAccount = (p: ConversationThreadProviderProps
     return null
   }
   return (
-    <ConversationThreadUidContext value={uid}>
-      <ConversationThreadProviderInner key={uid} id={id} uid={uid}>
-        {children}
-      </ConversationThreadProviderInner>
-    </ConversationThreadUidContext>
+    <ConversationThreadProviderInner key={uid} id={id} uid={uid}>
+      {children}
+    </ConversationThreadProviderInner>
   )
 }
 

@@ -9,7 +9,7 @@ import {
   unboxRows,
   useInboxMetadataState,
 } from '@/chat/inbox/metadata'
-import {messagesTriggerConcerns, useSignedInAccountReloadTriggers} from '@/chat/notification-registry'
+import {messagesTriggerConcerns, useReloadTriggers} from '@/chat/notification-registry'
 import {ignorePromise} from '@/constants/utils'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
@@ -49,8 +49,7 @@ export const useConversationMetadataReload = (conversationIDKey: T.Chat.Conversa
     }
   }, [conversationIDKey, loggedIn])
 
-  // the reload reads whichever account is signed in
-  useSignedInAccountReloadTriggers(conversationIDKey, trigger => {
+  useReloadTriggers(conversationIDKey, trigger => {
     if (trigger.type === 'metadata') {
       reload()
     }
@@ -196,8 +195,7 @@ const useConversationMessagesAroundMessageID = (
       ? loaded.messages
       : emptyMessages
 
-  // the load asks the service for whichever account is signed in
-  useSignedInAccountReloadTriggers(conversationIDKey, trigger => {
+  useReloadTriggers(conversationIDKey, trigger => {
     // the shown message renders the text of the message it replies to
     const shown = messages.find(message => message.id === messageID)
     const replyToID = shown?.type === 'text' ? shown.replyTo?.id : undefined

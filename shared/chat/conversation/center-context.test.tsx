@@ -30,7 +30,6 @@ jest.mock('./thread-load-status-context', () => ({
 }))
 jest.mock('./thread-search-route', () => ({useChatThreadRouteParams: () => mockRouteParams}))
 
-import {ConversationThreadUidContext} from '@/chat/notification-registry'
 import {ConversationCenterProvider, useConversationCenter} from './center-context'
 import {ConversationInputProvider, useConversationInput} from './input-area/input-state'
 import {setInputIntent, useInputIntentState} from './input-intent-store'
@@ -54,13 +53,11 @@ const Probe = () => {
 // provider's consume effect runs FIRST. If either provider claimed the other's intent types, the
 // input provider would silently eat every highlight.
 const Tree = ({id}: {id: T.Chat.ConversationIDKey}) => (
-  <ConversationThreadUidContext value="">
-    <ConversationCenterProvider id={id}>
-      <ConversationInputProvider id={id}>
-        <Probe />
-      </ConversationInputProvider>
-    </ConversationCenterProvider>
-  </ConversationThreadUidContext>
+  <ConversationCenterProvider id={id}>
+    <ConversationInputProvider id={id}>
+      <Probe />
+    </ConversationInputProvider>
+  </ConversationCenterProvider>
 )
 
 const highlight = (n: number) => ({messageID: T.Chat.numberToMessageID(n), type: 'highlight'}) as const
