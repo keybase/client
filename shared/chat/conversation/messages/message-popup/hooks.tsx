@@ -46,6 +46,7 @@ const getConversationLabel = (
 type ItemActions = {
   deleteMessage: () => void
   markAsUnread: (id: T.Chat.MessageID) => void
+  pinMessage: () => void
   toggleReaction: (emoji: string) => void
 }
 
@@ -188,12 +189,7 @@ const useItemsForMessage = (p: {
 
   const isTeam = !!teamname
   const canPinMessage = (!isTeam || yourOperations.pinMessage) && !message.exploded
-  const _onPinMessage = () => {
-    if (id) {
-      pinMessage(conversationIDKey, id)
-    }
-  }
-  const onPinMessage = canPinMessage && hasMessageID ? _onPinMessage : undefined
+  const onPinMessage = canPinMessage && hasMessageID ? actions.pinMessage : undefined
   const itemPin = onPinMessage
     ? ([{icon: 'iconfont-pin', onClick: onPinMessage, title: 'Pin message'}] as const)
     : []
@@ -369,6 +365,7 @@ const useThreadItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     actions: {
       deleteMessage: () => deleteMessage(target),
       markAsUnread: setMarkAsUnread,
+      pinMessage: () => pinMessage(target),
       toggleReaction: emoji => toggleReaction(target, emoji),
     },
     conversationIDKey,
@@ -392,6 +389,7 @@ export const useStorelessItems = (p: {
       deleteMessage: () =>
         deleteMessage({conversationIDKey: p.conversationIDKey, message: p.message, tlfName: p.meta.tlfname}),
       markAsUnread: id => markConversationUnread(p.conversationIDKey, id),
+      pinMessage: () => pinMessage({conversationIDKey: p.conversationIDKey, messageID: p.message.id}),
       toggleReaction: emoji =>
         toggleReaction({conversationIDKey: p.conversationIDKey, message: p.message, tlfName: p.meta.tlfname}, emoji),
     },

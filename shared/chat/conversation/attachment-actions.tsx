@@ -16,6 +16,7 @@ import {
   useConversationThreadID,
   useConversationThreadStore,
 } from './thread-context'
+import {unlessRetired} from './thread-store'
 import {registerExternalResetter} from '@/util/zustand'
 import {getChatRpc} from './chat-rpc'
 
@@ -413,16 +414,20 @@ export const useConversationAttachmentActions = () => {
     ignorePromise(f())
   }
 
-  return {
-    attachmentDownload,
-    messageAttachmentNativeSave,
-    messageAttachmentNativeShare,
-    showAttachmentPreview: (ordinal: T.Chat.Ordinal, message?: T.Chat.MessageAttachment) => {
-      const existing = threadStore.getState().messageMap.get(ordinal)
-      const initialMessage = message ?? (existing?.type === 'attachment' ? existing : undefined)
-      if (initialMessage) {
-        showAttachmentPreview(conversationIDKey, initialMessage)
-      }
+  // a screen kept through an account switch downloads, saves, shares and opens nothing
+  return unlessRetired(
+    {
+      attachmentDownload,
+      messageAttachmentNativeSave,
+      messageAttachmentNativeShare,
+      showAttachmentPreview: (ordinal: T.Chat.Ordinal, message?: T.Chat.MessageAttachment) => {
+        const existing = threadStore.getState().messageMap.get(ordinal)
+        const initialMessage = message ?? (existing?.type === 'attachment' ? existing : undefined)
+        if (initialMessage) {
+          showAttachmentPreview(conversationIDKey, initialMessage)
+        }
+      },
     },
-  }
+    actions.isRetired
+  )
 }

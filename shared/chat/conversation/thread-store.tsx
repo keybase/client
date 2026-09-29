@@ -258,21 +258,19 @@ const makeEmptyThreadState = (): ConversationThreadState =>
     () => {}
   )
 
-// Each of fns, doing nothing once isRetired says so.
-const unlessRetired = <Fns extends {[K in keyof Fns]: (...args: never) => void}>(
+// Each of fns, doing nothing (undefined) once isRetired says so. The one retirement gate: the thread
+// store's actions, the message commands given a thread row, and what a thread's screen asks of the
+// service (its sends, attachment actions and unfurl prompt) all go through it.
+export const unlessRetired = <Fns extends {[K in keyof Fns]: (...args: never) => unknown}>(
   fns: Fns,
   isRetired: () => boolean
-): Fns => {
+): {[K in keyof Fns]: (...args: Parameters<Fns[K]>) => ReturnType<Fns[K]> | undefined} => {
   const guarded: Partial<Record<keyof Fns, unknown>> = {}
   for (const key of Object.keys(fns) as Array<keyof Fns>) {
-    const f = fns[key] as unknown as (...args: ReadonlyArray<unknown>) => void
-    guarded[key] = (...args: ReadonlyArray<unknown>) => {
-      if (!isRetired()) {
-        f(...args)
-      }
-    }
+    const f = fns[key] as unknown as (...args: ReadonlyArray<unknown>) => unknown
+    guarded[key] = (...args: ReadonlyArray<unknown>) => (isRetired() ? undefined : f(...args))
   }
-  return guarded as Fns
+  return guarded as {[K in keyof Fns]: (...args: Parameters<Fns[K]>) => ReturnType<Fns[K]> | undefined}
 }
 
 // uid: the account the thread belongs to. The store serves only that account: the first time it

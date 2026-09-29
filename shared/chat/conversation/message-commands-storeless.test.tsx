@@ -33,7 +33,8 @@ const toggleConversationMessageReactionByID = (
 ) => toggleReaction({conversationIDKey, messageID, tlfName}, emoji)
 const replyPrivatelyToConversationMessage = (message: T.Chat.Message) =>
   replyPrivately({conversationIDKey: message.conversationIDKey, message})
-const pinConversationMessage = pinMessage
+const pinConversationMessage = (conversationIDKey: T.Chat.ConversationIDKey, messageID: T.Chat.MessageID) =>
+  pinMessage({conversationIDKey, messageID})
 const dismissConversationJourneycard = (
   conversationIDKey: T.Chat.ConversationIDKey,
   cardType: T.RPCChat.JourneycardType

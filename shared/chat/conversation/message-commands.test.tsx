@@ -279,17 +279,23 @@ describe('the thread-only and storeless-only commands', () => {
   })
 
   test('removeUnfurl deletes the unfurl message with the meta tlfName and no clientPrev', async () => {
-    removeUnfurl(conversationIDKey, T.Chat.numberToMessageID(33))
+    const {thread} = makeThread([textAt(10)])
+    removeUnfurl({conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread}, T.Chat.numberToMessageID(33))
     await flushPromises()
     expect(rpc.params('postDelete')).toEqual([
       {conversationIDKey, messageID: T.Chat.numberToMessageID(33), tlfName},
     ])
   })
 
-  test('pinMessage pins by id', async () => {
-    pinMessage(conversationIDKey, T.Chat.numberToMessageID(10))
+  test('pinMessage pins by id: a thread row by the id it holds, otherwise the id given', async () => {
+    const {thread} = makeThread([textAt(10)])
+    pinMessage({conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread})
+    pinMessage({conversationIDKey, messageID: T.Chat.numberToMessageID(12)})
     await flushPromises()
-    expect(rpc.calls('pinMessage')).toEqual([[conversationIDKey, T.Chat.numberToMessageID(10)]])
+    expect(rpc.calls('pinMessage')).toEqual([
+      [conversationIDKey, T.Chat.numberToMessageID(10)],
+      [conversationIDKey, T.Chat.numberToMessageID(12)],
+    ])
   })
 
   test('dismissJourneycard drops the row only when given one', async () => {

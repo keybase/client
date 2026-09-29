@@ -12,6 +12,7 @@ import {
   useConversationThreadID,
   useConversationThreadStore,
 } from './thread-context'
+import {unlessRetired} from './thread-store'
 
 type SendTextParams = Omit<PostTextParams, 'onStellarCanceled'> & {
   onRestoreText?: (text: string) => void
@@ -161,6 +162,9 @@ export const useConversationSendActions = () => {
       try {
         await getChatRpc().trackGiphySelect(result)
       } catch {}
+      if (actions.isRetired()) {
+        return
+      }
       const replyTo = threadStore.getState().messageMap.get(replyToOrdinal ?? T.Chat.numberToOrdinal(0))?.id
       sendTextMessageStoreless({
         clientPrev: getClientPrev(),
@@ -184,6 +188,9 @@ export const useConversationSendActions = () => {
 
     try {
       const callerPreview = await getChatRpc().makeAudioPreview(amps, duration)
+      if (actions.isRetired()) {
+        return
+      }
       await getChatRpc().postAttachment({
         callerPreview,
         clientPrev: getClientPrev(),
@@ -203,5 +210,6 @@ export const useConversationSendActions = () => {
     }
   }
 
-  return {sendAudioRecording, sendGiphyResult, sendMessage}
+  // a screen kept through an account switch sends nothing, here or after an await above
+  return unlessRetired({sendAudioRecording, sendGiphyResult, sendMessage}, actions.isRetired)
 }

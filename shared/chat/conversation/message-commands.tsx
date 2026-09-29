@@ -6,7 +6,8 @@
 //   read from the thread store at call time, and the store is updated around the call (the
 //   deleting state and its revert, the optimistic reaction, dropping a cancelled or dismissed row).
 //   A thread whose account has left (thread.isRetired) does nothing, the service included: its
-//   conversation id can name the next account's copy of a shared team channel.
+//   conversation id can name the next account's copy of a shared team channel. Every command
+//   reaches a thread row through onTarget, which gates it with the store's unlessRetired.
 // - {message} or {messageID}: a message held outside any thread (a popup opened from search, the
 //   emoji picker). Only the service is told; there is no store to update.
 import * as Common from '@/constants/chat/common'
@@ -24,7 +25,7 @@ import {getClientPrevFromThread, getConversationClientPrev} from './client-prev'
 import {getMeta} from './thread-load'
 import {applyOptimisticReactionsToMessage} from './thread-message-state'
 import {useConversationThreadActions, useConversationThreadID} from './thread-context'
-import type {ConversationThreadActions} from './thread-store'
+import {unlessRetired, type ConversationThreadActions} from './thread-store'
 
 // The slice of a mounted thread the commands read and write.
 export type MessageCommandThread = Pick<
@@ -64,6 +65,21 @@ export const useThreadMessageTarget = (ordinal: T.Chat.Ordinal): ThreadMessage =
 }
 
 const isThread = (target: object): target is ThreadMessage => 'thread' in target
+
+// Runs a command on its target: a thread row only while its thread has not retired, anything else
+// as it is. A thread-only command passes never for Storeless.
+const onTarget = <Storeless extends object>(
+  target: ThreadMessage | Storeless,
+  onThread: (target: ThreadMessage) => void,
+  onStoreless: (target: Storeless) => void
+) => {
+  if (isThread(target)) {
+    unlessRetired({onThread}, target.thread.isRetired).onThread(target)
+  } else {
+    onStoreless(target)
+  }
+}
+const threadOnly = () => {}
 
 export const formatTextForQuoting = (text: string) =>
   text
@@ -124,34 +140,36 @@ export const deleteMessage = (target: ThreadMessage | StorelessMessage) => {
   // The delete's own outbox id: a thread's key to its pending delete, and what a failedMessage for
   // the delete names once the service has queued it.
   const outboxID = Common.generateOutboxID()
-  if (!isThread(target)) {
-    ignorePromise(deleteConversationMessage({...target, outboxID}))
-    return
-  }
-  const {conversationIDKey, ordinal, thread} = target
-  if (thread.isRetired()) {
-    return
-  }
-  const message = thread.getSnapshot().messageMap.get(ordinal)
-  if (!message) {
-    logger.warn('deleteMessage: message not in the thread')
-    return
-  }
-  const deleteOutboxID = T.Chat.rpcOutboxIDToOutboxID(outboxID)
-  // Only a sent row shows deleting. An unsent one keeps its pending or failed state, which the
-  // renderers read (an unsent video does not play), until the cancel removes it.
-  if ((message.type === 'text' || message.type === 'attachment') && message.id && message.submitState === undefined) {
-    thread.addPendingDelete(deleteOutboxID, ordinal)
-  }
-  ignorePromise(
-    deleteConversationMessage({
-      conversationIDKey,
-      message,
-      onCancelled: () => thread.deleteMessages({ordinals: [ordinal]}),
-      // drops only this call's entry, so another delete of the row still pending keeps it deleting
-      onNotDeleted: () => thread.removePendingDelete(deleteOutboxID),
-      outboxID,
-    })
+  onTarget(
+    target,
+    ({conversationIDKey, ordinal, thread}) => {
+      const message = thread.getSnapshot().messageMap.get(ordinal)
+      if (!message) {
+        logger.warn('deleteMessage: message not in the thread')
+        return
+      }
+      const deleteOutboxID = T.Chat.rpcOutboxIDToOutboxID(outboxID)
+      // Only a sent row shows deleting. An unsent one keeps its pending or failed state, which the
+      // renderers read (an unsent video does not play), until the cancel removes it.
+      if (
+        (message.type === 'text' || message.type === 'attachment') &&
+        message.id &&
+        message.submitState === undefined
+      ) {
+        thread.addPendingDelete(deleteOutboxID, ordinal)
+      }
+      ignorePromise(
+        deleteConversationMessage({
+          conversationIDKey,
+          message,
+          onCancelled: () => thread.deleteMessages({ordinals: [ordinal]}),
+          // drops only this call's entry, so another delete of the row still pending keeps it deleting
+          onNotDeleted: () => thread.removePendingDelete(deleteOutboxID),
+          outboxID,
+        })
+      )
+    },
+    storeless => ignorePromise(deleteConversationMessage({...storeless, outboxID}))
   )
 }
 
@@ -203,15 +221,8 @@ const logReactionFailure = (error: unknown) => {
   }
 }
 
-const toggleThreadReaction = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  target: ThreadMessage,
-  emoji: string
-) => {
-  const {ordinal, thread} = target
-  if (thread.isRetired()) {
-    return
-  }
+const toggleThreadReaction = (target: ThreadMessage, emoji: string) => {
+  const {conversationIDKey, ordinal, thread} = target
   const f = async () => {
     const snapshot = thread.getSnapshot()
     const message = snapshot.messageMap.get(ordinal)
@@ -276,33 +287,38 @@ const toggleStorelessReaction = (
 // Adds the emoji, or removes it if it is yours already. Only a thread knows the message's reactions
 // and shows the change before the service confirms it; outside one the service decides.
 export const toggleReaction = (target: ThreadMessage | StorelessMessage | StorelessMessageID, emoji: string) => {
-  const {conversationIDKey} = target
-  if (isThread(target)) {
-    toggleThreadReaction(conversationIDKey, target, emoji)
-    return
-  }
-  const reactionTarget =
-    'message' in target ? reactionTargetOf(target.message) : {exploded: false, messageID: target.messageID}
-  toggleStorelessReaction(conversationIDKey, reactionTarget, target.tlfName, emoji)
+  onTarget(
+    target,
+    thread => toggleThreadReaction(thread, emoji),
+    storeless => {
+      const reactionTarget =
+        'message' in storeless
+          ? reactionTargetOf(storeless.message)
+          : {exploded: false, messageID: storeless.messageID}
+      toggleStorelessReaction(storeless.conversationIDKey, reactionTarget, storeless.tlfName, emoji)
+    }
+  )
 }
 
 // Opens a conversation between you and the author with the text message quoted in the composer.
 // A non-text message still makes the conversation, but nothing is opened.
 export const replyPrivately = (target: ThreadMessage | StorelessMessage) => {
-  if (isThread(target) && target.thread.isRetired()) {
-    return
-  }
-  const f = async () => {
-    let message: T.Chat.Message | undefined
-    if (isThread(target)) {
-      message = target.thread.getSnapshot().messageMap.get(target.ordinal)
+  onTarget(
+    target,
+    ({ordinal, thread}) => {
+      const message = thread.getSnapshot().messageMap.get(ordinal)
       if (!message) {
-        logger.warn("replyPrivately: can't find message to reply to", target.ordinal)
+        logger.warn("replyPrivately: can't find message to reply to", ordinal)
         return
       }
-    } else {
-      message = target.message
-    }
+      replyPrivatelyTo(message)
+    },
+    storeless => replyPrivatelyTo(storeless.message)
+  )
+}
+
+const replyPrivatelyTo = (message: T.Chat.Message) => {
+  const f = async () => {
     const username = useCurrentUserState.getState().username
     if (!username) {
       throw new Error('replyPrivately: making a convo while logged out?')
@@ -334,10 +350,10 @@ export const replyPrivately = (target: ThreadMessage | StorelessMessage) => {
 
 // messageID is the message itself or one of its unfurls; each has its own collapsed state.
 export const toggleCollapse = (target: ThreadMessage, messageID: T.Chat.MessageID) => {
-  const {conversationIDKey, ordinal, thread} = target
-  if (thread.isRetired()) {
-    return
-  }
+  onTarget<never>(target, row => toggleThreadCollapse(row, messageID), threadOnly)
+}
+
+const toggleThreadCollapse = ({conversationIDKey, ordinal, thread}: ThreadMessage, messageID: T.Chat.MessageID) => {
   const f = async () => {
     const m = thread.getSnapshot().messageMap.get(ordinal)
     let isCollapsed = false
@@ -364,7 +380,12 @@ export const toggleCollapse = (target: ThreadMessage, messageID: T.Chat.MessageI
   ignorePromise(f())
 }
 
-export const removeUnfurl = (conversationIDKey: T.Chat.ConversationIDKey, messageID: T.Chat.MessageID) => {
+// messageID is the unfurl's own message.
+export const removeUnfurl = (target: ThreadMessage, messageID: T.Chat.MessageID) => {
+  onTarget<never>(target, ({conversationIDKey}) => removeConversationUnfurl(conversationIDKey, messageID), threadOnly)
+}
+
+const removeConversationUnfurl = (conversationIDKey: T.Chat.ConversationIDKey, messageID: T.Chat.MessageID) => {
   const f = async () => {
     const meta = getInboxConversationMeta(conversationIDKey)
     if (!meta) {
@@ -384,7 +405,23 @@ export const removeUnfurl = (conversationIDKey: T.Chat.ConversationIDKey, messag
   ignorePromise(f())
 }
 
-export const pinMessage = (conversationIDKey: T.Chat.ConversationIDKey, messageID: T.Chat.MessageID) => {
+// A thread row is pinned by the id it holds when this runs.
+export const pinMessage = (target: ThreadMessage | StorelessMessageID) => {
+  onTarget(
+    target,
+    ({conversationIDKey, ordinal, thread}) => {
+      const messageID = thread.getSnapshot().messageMap.get(ordinal)?.id
+      if (!messageID) {
+        logger.warn('pinMessage: message has no id in the thread')
+        return
+      }
+      pinConversationMessage(conversationIDKey, messageID)
+    },
+    ({conversationIDKey, messageID}) => pinConversationMessage(conversationIDKey, messageID)
+  )
+}
+
+const pinConversationMessage = (conversationIDKey: T.Chat.ConversationIDKey, messageID: T.Chat.MessageID) => {
   const f = async () => {
     try {
       await getChatRpc().pinMessage(conversationIDKey, messageID)
@@ -402,19 +439,30 @@ export const dismissJourneycard = (
   target: ThreadMessage | {conversationIDKey: T.Chat.ConversationIDKey},
   cardType: T.RPCChat.JourneycardType
 ) => {
-  const {conversationIDKey} = target
-  if (isThread(target) && target.thread.isRetired()) {
-    return
-  }
-  const f = async () => {
-    await getChatRpc().dismissJourneycard(conversationIDKey, cardType).catch((error: unknown) => {
+  onTarget(
+    target,
+    ({conversationIDKey, ordinal, thread}) =>
+      ignorePromise(
+        dismissConversationJourneycard(conversationIDKey, cardType, () =>
+          thread.deleteMessages({ordinals: [ordinal]})
+        )
+      ),
+    ({conversationIDKey}) => ignorePromise(dismissConversationJourneycard(conversationIDKey, cardType))
+  )
+}
+
+const dismissConversationJourneycard = async (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  cardType: T.RPCChat.JourneycardType,
+  onAnswered?: () => void
+) => {
+  await getChatRpc()
+    .dismissJourneycard(conversationIDKey, cardType)
+    .catch((error: unknown) => {
       if (error instanceof RPCError) {
         logger.error(`Failed to dismiss journeycard: ${error.message}`)
       }
     })
-    if (isThread(target)) {
-      target.thread.deleteMessages({ordinals: [target.ordinal]})
-    }
-  }
-  ignorePromise(f())
+  onAnswered?.()
 }
+

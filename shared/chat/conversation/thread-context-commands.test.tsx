@@ -20,12 +20,15 @@ import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-
 import {
   deleteMessage,
   dismissJourneycard,
+  pinMessage,
   removeUnfurl,
   replyPrivately,
   toggleCollapse,
   toggleReaction,
 } from './message-commands'
 import {Collapsed} from './messages/attachment/shared'
+import {useConversationAttachmentActions} from './attachment-actions'
+import {useConversationSendActions} from './send-actions'
 import {applyFailedMessageToThread} from './thread-engine'
 import {
   ConversationThreadProvider,
@@ -86,7 +89,7 @@ const renderThread = (messages: ReadonlyArray<T.Chat.Message> = []) => {
     messageReplyPrivately: ordinal => replyPrivately(row(ordinal)),
     toggleMessageCollapse: (messageID, ordinal) => toggleCollapse(row(ordinal), messageID),
     toggleMessageReaction: (ordinal, emoji) => toggleReaction(row(ordinal), emoji),
-    unfurlRemove: messageID => removeUnfurl(conversationIDKey, messageID),
+    unfurlRemove: messageID => removeUnfurl(row(T.Chat.numberToOrdinal(0)), messageID),
   }
   return {message, result}
 }
@@ -1003,5 +1006,94 @@ describe('dismissJourneycard edges', () => {
     expect(error).toHaveBeenCalledWith(expect.stringContaining('Failed to dismiss journeycard: '))
     expect(message(10)).toBeUndefined()
     expect(message(11)).toBeUndefined()
+  })
+})
+
+// An account switch keeps logged-in screens up, and the provider rebuilds the thread for the next
+// account only on its next render. Until then the old screen's callbacks are still wired to its
+// conversation id, which the next account shares for a team's channels.
+describe('a screen kept through an account switch, before the provider rebuilds it', () => {
+  const nextAccount = () => {
+    act(() => {
+      useCurrentUserState
+        .getState()
+        .dispatch.setBootstrap({deviceID: 'device-id2', deviceName: 'testuser-mac', uid: 'uid2', username: 'testuser2'})
+    })
+  }
+  const giphy = {targetUrl: 'https://giphy.example/g.gif'} as T.RPCChat.GiphySearchResult
+  const renderScreen = () => {
+    const rendered = renderHook(
+      () => ({
+        actions: useConversationThreadActions(),
+        attachments: useConversationAttachmentActions(),
+        resolveUnfurlPrompt: useConversationThreadUnfurlResolvePrompt(),
+        send: useConversationSendActions(),
+      }),
+      {wrapper}
+    )
+    act(() => {
+      rendered.result.current.actions.addMessages([
+        textAt(10, {author: 'testuser'}),
+        makeMessageAttachment({conversationIDKey, id: T.Chat.numberToMessageID(11), ordinal: T.Chat.numberToOrdinal(11)}),
+      ])
+    })
+    return rendered.result.current
+  }
+  const sent = () =>
+    (
+      [
+        'downloadAttachment',
+        'makeAudioPreview',
+        'pinMessage',
+        'postAttachment',
+        'postDelete',
+        'postEdit',
+        'postText',
+        'resolveUnfurlPrompt',
+        'trackGiphySelect',
+      ] as const
+    ).flatMap(method => rpc.calls(method).map(() => method))
+
+  test('its commands, sends and attachment actions ask the service nothing', async () => {
+    const screen = renderScreen()
+    const row = {conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread: screen.actions}
+    nextAccount()
+    await run(() => {
+      screen.send.sendMessage('hi')
+      screen.send.sendMessage('edited', {editingOrdinal: T.Chat.numberToOrdinal(10)})
+      screen.send.sendGiphyResult(giphy)
+      screen.attachments.attachmentDownload(T.Chat.numberToOrdinal(11))
+      screen.resolveUnfurlPrompt(T.Chat.numberToMessageID(10), 'example.com', {
+        actionType: T.RPCChat.UnfurlPromptAction.never,
+      } as T.RPCChat.UnfurlPromptResult)
+      removeUnfurl(row, T.Chat.numberToMessageID(12))
+      pinMessage(row)
+    })
+    await act(async () => {
+      await screen.send.sendAudioRecording('/tmp/a.m4a', 1000, [1])
+    })
+    expect(sent()).toEqual([])
+  })
+
+  test('a giphy or audio send that was waiting on the service when the account left posts nothing', async () => {
+    const tracked = deferred<undefined>()
+    const preview = deferred<T.RPCChat.MakePreviewRes>()
+    rpc.on('trackGiphySelect', async () => tracked.promise)
+    rpc.on('makeAudioPreview', async () => preview.promise)
+    const screen = renderScreen()
+    let audio: Promise<void> | undefined
+    await run(() => {
+      screen.send.sendGiphyResult(giphy)
+      audio = screen.send.sendAudioRecording('/tmp/a.m4a', 1000, [1])
+    })
+    nextAccount()
+    await act(async () => {
+      tracked.resolve(undefined)
+      preview.resolve({} as T.RPCChat.MakePreviewRes)
+      await audio
+      await flushPromises()
+    })
+    expect(rpc.calls('postText')).toEqual([])
+    expect(rpc.calls('postAttachment')).toEqual([])
   })
 })

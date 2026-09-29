@@ -17,6 +17,7 @@ import {useThreadEngineListeners} from './thread-engine'
 import {useThreadNotifications, type ThreadNotification} from '@/chat/notification-registry'
 import {
   makeThreadStore,
+  unlessRetired,
   type ConversationThreadActions,
   type ConversationThreadState,
   type ThreadLoadStatusOptions,
@@ -435,12 +436,13 @@ export const useConversationThreadSelectedConversation = () => {
 
 export const useConversationThreadUnfurlResolvePrompt = () => {
   const conversationIDKey = useConversationThreadID()
-  const {clearUnfurlPrompt} = useConversationThreadActions()
-  return (messageID: T.Chat.MessageID, domain: string, result: T.RPCChat.UnfurlPromptResult) => {
+  const {clearUnfurlPrompt, isRetired} = useConversationThreadActions()
+  const resolve = (messageID: T.Chat.MessageID, domain: string, result: T.RPCChat.UnfurlPromptResult) => {
     clearUnfurlPrompt(messageID, domain)
     const f = async () => {
       await getChatRpc().resolveUnfurlPrompt({conversationIDKey, messageID, result})
     }
     ignorePromise(f())
   }
+  return unlessRetired({resolve}, isRetired).resolve
 }

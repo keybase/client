@@ -4,7 +4,7 @@ import {removeUnfurl, toggleCollapse, useThreadMessageTarget} from '../../../../
 export const useActions = (youAreAuthor: boolean, messageID: T.Chat.MessageID, ordinal: T.Chat.Ordinal) => {
   const target = useThreadMessageTarget(ordinal)
   const onClose = () => {
-    removeUnfurl(target.conversationIDKey, messageID)
+    removeUnfurl(target, messageID)
   }
   const onToggleCollapse = () => {
     toggleCollapse(target, messageID)
