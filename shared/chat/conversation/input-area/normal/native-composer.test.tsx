@@ -347,9 +347,9 @@ test('hardware enter sends the text 60ms later and clears the composer', async (
 })
 
 // Thread search unmounts the input. Its ref is cleared as that commit is made, and its passive
-// effects run later; the 60ms send can fire in between (here, inside the commit). The clear then
-// waits for the next input, whose draft is the text just sent (saved as the old input unmounted),
-// and wins over it, so the sent text does not come back.
+// effects run later; the 60ms send can fire in between (here, inside the commit). The send saves
+// an empty draft at once, over the text saved as the old input went away, and its clear waits for
+// the next input, so the sent text does not come back.
 test('a queued send that fires as thread search hides the input does not come back as a draft', async () => {
   const post = jest.spyOn(m.T.RPCChat, 'localPostTextNonblockRpcListener').mockResolvedValue({
     outboxID: new TextEncoder().encode('posted'),
@@ -374,7 +374,7 @@ test('a queued send that fires as thread search hides the input does not come ba
   })
   await flushSend()
   expect(post.mock.calls[0]?.[0].params.body).toBe('hello')
-  expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('hello')
+  expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('')
   showInput(true)
   // the draft save is throttled
   act(() => {
@@ -550,6 +550,31 @@ describe('typing and the saved draft', () => {
     showInput(false)
 
     expect(draftsSaved()).toEqual(['h', 'he'])
+  })
+
+  // Leaving the conversation inside the 60ms send queue unmounts the input and the provider
+  // together. The send still goes out, and the draft it leaves is empty, so the text does not come
+  // back to be sent twice.
+  test('a queued send that fires after the conversation is left leaves an empty draft', async () => {
+    const post = jest.spyOn(m.T.RPCChat, 'localPostTextNonblockRpcListener').mockResolvedValue({
+      outboxID: new TextEncoder().encode('posted'),
+    })
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const {useInboxMetadataState} = require('@/chat/inbox/metadata') as typeof Metadata
+    receiveDraft('')
+    const {unmount} = renderComposer()
+    type('hello')
+    press(p => p.testID === CHAT_SEND_BUTTON)
+
+    unmount()
+    act(() => {
+      jest.advanceTimersByTime(60)
+    })
+    await flushSend()
+
+    expect(post.mock.calls[0]?.[0].params.body).toBe('hello')
+    expect(draftsSaved().at(-1)).toBe('')
+    expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('')
   })
 
   test('typing says so, and is saved', () => {

@@ -547,6 +547,17 @@ describe('replace', () => {
 })
 
 describe('submit', () => {
+  test('saves an empty draft now, with no input attached as with one', () => {
+    const {composer, drafts, mount, send} = setup()
+    const {detach, fake} = mount()
+    fake.type('hello')
+    detach()
+
+    composer.submit(send)
+
+    expect(drafts).toEqual(['hello', 'flush', '', 'flush'])
+  })
+
   test('with nothing typed sends nothing and leaves the input alone', () => {
     jest.useFakeTimers()
     const {composer, mount, send} = setup()

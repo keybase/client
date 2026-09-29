@@ -41,8 +41,9 @@ export type Composer = {
   insertAtCaret: (s: string, opts?: {appendSpaceToText?: boolean}) => void
   // True when the input shows the text now; a write made while no input is attached waits.
   replace: (info: TextInfo, reflectChange: boolean) => boolean
-  // Clears the input now (with none attached, the next one once it has loaded its draft) and
-  // hands the text to send on the next tick; false when there is nothing to send.
+  // Saves an empty draft and clears the input now (with none attached, the next one once it has
+  // loaded its draft), and hands the text to send on the next tick; false when there is nothing to
+  // send.
   submit: (send: (text: string, unfurlSuppress: SuppressSnapshot) => void) => boolean
   // An input's text belongs to the view it came from: an input attached by a different view starts
   // over with no text and a draft still to load. The same view attaching again (a new handle,
@@ -220,8 +221,13 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
       if (!toSend) return false
       const unfurlSuppress = deps.takeUnfurlSnapshot()
       text = ''
-      // with no input attached, the next one loads the draft saved as this one unmounted, the
-      // text being sent
+      // The send owns the draft: it is emptied now, with or without an input, so no later flush
+      // (a detach, the provider unmounting) can save the text being sent, and nothing depends on an
+      // input attaching again.
+      saveDraft('')
+      deps.flushDraft()
+      // with no input attached, the next one may still load the text being sent, if the row it
+      // loads from was unboxed before the empty draft was saved
       if (input) {
         write(input, '', true)
       } else {
