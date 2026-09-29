@@ -7,7 +7,7 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import {metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {ignorePromise} from '@/constants/utils'
 import {useThrottledCallback} from '@/util/use-debounce'
-import {closeConversationThreadSearch, useConversationThreadStore} from '../thread-context'
+import {closeConversationThreadSearch, useConversationThreadID, useConversationThreadStore} from '../thread-context'
 import {useConversationSendActions} from '../send-actions'
 import {
   consumeInputIntent,
@@ -389,4 +389,10 @@ export function useConversationInputDispatch<T>(selector: (dispatch: Conversatio
     throw new Error('Missing ConversationInputProvider in the tree')
   }
   return selector(dispatch)
+}
+
+// A Reply where the user can't post is refused by the composer, so no gesture offers one there.
+export function useCanReply() {
+  const id = useConversationThreadID()
+  return useInboxMetadataState(s => !s.metas.get(id)?.cannotWrite)
 }

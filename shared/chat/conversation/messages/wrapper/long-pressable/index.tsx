@@ -28,6 +28,7 @@ function ReplyIcon({progress}: {progress: Animated.Value}) {
 function LongPressable(props: Props & {ref?: React.Ref<Kb.MeasureRef>}) {
   const styles = useStyles()
   const reply = InputState.useConversationInputDispatch(s => s.reply)
+  const canReply = InputState.useCanReply()
   const ordinal = useOrdinal()
   const swipeRef = React.useRef<SwipeableMethods | null>(null)
 
@@ -58,6 +59,7 @@ function LongPressable(props: Props & {ref?: React.Ref<Kb.MeasureRef>}) {
   return (
     <Swipeable
       ref={swipeRef}
+      enabled={canReply}
       renderRightActions={makeAction}
       onSwipeableWillOpen={onSwipeableWillOpen}
     >
