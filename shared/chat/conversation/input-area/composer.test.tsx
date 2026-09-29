@@ -851,8 +851,8 @@ describe('read-only', () => {
     expect(reports.at(-1)).toBe('+1xlm@testuser')
   })
 
-  test('a clear still clears', () => {
-    const {composer, mount, setReadOnly} = setup()
+  test('a clear still clears, and leaves the saved draft alone', () => {
+    const {composer, drafts, mount, setReadOnly} = setup()
     const {fake} = mount()
     fake.type('before')
     setReadOnly(true)
@@ -861,6 +861,35 @@ describe('read-only', () => {
 
     expect(fake.text).toBe('')
     expect(composer.getText()).toBe('')
+    expect(drafts).toEqual(['before'])
+  })
+
+  test('an edit is refused, and the composer is left as it was', () => {
+    const {composer, drafts, mount, setReadOnly} = setup()
+    const {fake} = mount()
+    setReadOnly(true)
+
+    expect(composer.startEdit('my message')).toBe(false)
+
+    expect(fake.text).toBe('')
+    expect(drafts).toEqual([])
+  })
+
+  test('an edit starts with its text once the composer can be written to', () => {
+    const {composer, mount} = setup()
+    const {fake} = mount()
+
+    expect(composer.startEdit('my message')).toBe(true)
+
+    expect(fake.text).toBe('my message')
+  })
+
+  test('a reply is refused', () => {
+    const {composer, setReadOnly} = setup()
+    expect(composer.startReply()).toBe(true)
+    setReadOnly(true)
+
+    expect(composer.startReply()).toBe(false)
   })
 
   test('writes land again once the composer can be written to', () => {

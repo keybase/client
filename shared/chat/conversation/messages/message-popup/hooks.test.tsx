@@ -217,3 +217,42 @@ describe('composer items dismiss a covering modal', () => {
     expect(clearModals).toHaveBeenCalledTimes(1)
   })
 })
+
+// Where the user can't post, nothing can be sent, so the menu offers no edit or reply to send
+describe('composer items where the user cannot post', () => {
+  const itemsFor = (cannotWrite: boolean) => {
+    const message = Chat.makeMessageText({
+      author: you,
+      conversationIDKey,
+      id: T.Chat.numberToMessageID(1),
+      ordinal: T.Chat.numberToOrdinal(1),
+    })
+    const meta: T.Chat.ConversationMeta = {
+      ...Chat.makeConversationMeta(),
+      cannotWrite,
+      conversationIDKey,
+      teamType: 'adhoc',
+    }
+    return renderHook(() =>
+      useStorelessItems({
+        conversationIDKey,
+        message,
+        meta,
+        onHidden: () => {},
+        participantInfo: {all: [you, them], contactName: new Map(), name: []},
+      })
+    ).result.current
+  }
+
+  test('Edit and Reply are not offered', () => {
+    const {itemEdit, itemReply} = itemsFor(true)
+    expect(itemEdit).toEqual([])
+    expect(itemReply).toEqual([])
+  })
+
+  test('Edit and Reply are offered where the user can post', () => {
+    const {itemEdit, itemReply} = itemsFor(false)
+    expect(titles(itemEdit)).toEqual(['Edit'])
+    expect(titles(itemReply)).toEqual(['Reply'])
+  })
+})

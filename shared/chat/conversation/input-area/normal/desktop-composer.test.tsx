@@ -624,6 +624,58 @@ describe('read-only', () => {
     expect(textarea.value).toBe('')
   })
 
+  test('ArrowUp does not start an edit of your last message', () => {
+    const {getHandles, textarea} = renderReadOnly()
+    act(() => {
+      getHandles().thread.addMessages([makeTextMessage('last thing I said')], {markAsRead: false})
+    })
+
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'ArrowUp'})
+    })
+
+    expect(getHandles().input.editing).toBe(T.Chat.numberToOrdinal(0))
+    expect(textarea.value).toBe('')
+  })
+
+  test('an edit or a reply from the message menu does not start', () => {
+    const {getHandles, textarea} = renderReadOnly()
+    act(() => {
+      getHandles().thread.addMessages([makeTextMessage('last thing I said')], {markAsRead: false})
+    })
+
+    act(() => {
+      getHandles().input.dispatch.setEditing(T.Chat.numberToOrdinal(101))
+      getHandles().input.dispatch.setReplyTo(T.Chat.numberToOrdinal(101))
+    })
+
+    expect(getHandles().input.editing).toBe(T.Chat.numberToOrdinal(0))
+    expect(getHandles().input.replyTo).toBe(T.Chat.numberToOrdinal(0))
+    expect(textarea.value).toBe('')
+  })
+
+  test('a clear leaves the saved draft it kept out', () => {
+    const unsent = jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+    act(() => {
+      metasReceived(
+        [{...Meta.makeConversationMeta(), cannotWrite: true, conversationIDKey: convID, draft: 'saved'}],
+        undefined,
+        {force: true}
+      )
+    })
+    const {getHandles} = renderComposer()
+
+    act(() => {
+      getHandles().input.dispatch.setEditing('clear')
+    })
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(unsent).not.toHaveBeenCalled()
+    expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('saved')
+  })
+
   test('a saved draft does not load into it, and is kept', () => {
     const unsent = jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
     act(() => {

@@ -170,6 +170,10 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
     dispatchState({show, type: 'setGiphyWindow'})
   })
   const setReplyTo = React.useEffectEvent((ordinal: T.Chat.Ordinal) => {
+    if (ordinal !== emptyOrdinal && !composer.startReply()) {
+      logger.info('[chat] setReplyTo refused: the conversation is read-only')
+      return
+    }
     dispatchState({ordinal, type: 'setReplyTo'})
   })
   const setEditing = React.useEffectEvent((e: T.Chat.Ordinal | 'last' | 'clear') => {
@@ -213,8 +217,11 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
     }
     const message = messageMap.get(ordinal)
     if (message?.type === 'text' || message?.type === 'attachment') {
+      if (!composer.startEdit(message.type === 'text' ? message.text.stringValue() : message.title)) {
+        logger.info('[chat] setEditing refused: the conversation is read-only')
+        return
+      }
       dispatchState({ordinal, type: 'setEditing'})
-      composer.inject(message.type === 'text' ? message.text.stringValue() : message.title)
     } else {
       logger.error(`[chat] setEditing ignored ordinal ${ordinal}: message is ${message?.type ?? 'missing'}`)
     }

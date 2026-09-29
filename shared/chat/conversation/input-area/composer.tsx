@@ -44,6 +44,11 @@ export type Composer = {
   // as inject does, and reports it so it is saved as the draft again. It lands even where the user
   // can't post: the text was theirs before the send.
   restore: (text: string) => void
+  // Fills the composer with the text of the message to edit. Where the user can't post an edit
+  // could never be sent, so it is refused (false) and the composer is left as it was.
+  startEdit: (text: string) => boolean
+  // False where the user can't post: a reply could never be sent.
+  startReply: () => boolean
   insertAtCaret: (s: string) => void
   // insertAtCaret, typed by the input itself where it can be, so the platform can undo it
   typeAtCaret: (s: string) => void
@@ -69,9 +74,10 @@ type ComposerDeps = {
   // saved draft. saveDraft is throttled; flushDraft saves a pending one now.
   flushDraft: () => void
   // Where the user can't post, nothing the app writes reaches the input (an inject, an insert, a
-  // draft), so there is nothing to send; a clear still clears. The saved draft is left alone. Read
-  // at every write, from the store that turns read-only before React renders it, so no write in
-  // the commit that renders it (a ref being set, a child's effect) can come first.
+  // draft), so there is nothing to send, and no edit or reply starts; a clear still clears. Nothing
+  // but a restore saves the draft there. Read at every write, from the store that turns read-only
+  // before React renders it, so no write in the commit that renders it (a ref being set, a child's
+  // effect) can come first.
   isReadOnly: () => boolean
   saveDraft: (text: string) => void
   // Taken before the clear, which runs onChangeText('') synchronously and drops every dismissal.
@@ -99,8 +105,9 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   // the draft as last loaded or saved
   let saved: string | undefined
 
-  const saveDraft = (next: string) => {
-    if (next === saved) return
+  // only a restore saves where the user can't post: it puts back the user's own text
+  const saveDraft = (next: string, evenReadOnly = false) => {
+    if (next === saved || (!evenReadOnly && deps.isReadOnly())) return
     saved = next
     deps.saveDraft(next)
   }
@@ -119,7 +126,7 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     asComposer(() => {
       if (target.replaceText({selection: injectedSelection(next), text: next}, true)) {
         text = next
-        saveDraft(next)
+        saveDraft(next, true)
       }
     })
   }
@@ -249,6 +256,12 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     restore: next => {
       whenAttached(target => show(target, next))
     },
+    startEdit: next => {
+      if (deps.isReadOnly()) return false
+      whenAttached(target => write(target, next, false))
+      return true
+    },
+    startReply: () => !deps.isReadOnly(),
     submit: send => {
       const toSend = text
       if (!toSend || deps.isReadOnly()) return false
