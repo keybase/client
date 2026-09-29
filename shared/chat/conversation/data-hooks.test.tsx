@@ -324,6 +324,14 @@ describe('useConversationMessage', () => {
     expect(result.current).toBeUndefined()
   })
 
+  test('no load for an id below 1, as a placeholder meta holds', async () => {
+    const load = mockAroundMessages([])
+    const {result} = renderHook(() => useConversationMessage(conversationIDKey, messageID(-1)))
+    await waitForLoad()
+    expect(load()).toEqual([])
+    expect(result.current).toBeUndefined()
+  })
+
   test('a failed load leaves nothing', async () => {
     rpc.fail('loadThread', new Error('offline'))
     const {result} = renderHook(() => useConversationMessage(conversationIDKey, messageID(20)))

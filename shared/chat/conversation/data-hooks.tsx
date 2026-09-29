@@ -109,28 +109,42 @@ const parseThreadMessages = (conversationIDKey: T.Chat.ConversationIDKey, thread
   return messages
 }
 
-// A centered load, each pass's thread JSON handed to onThread. Nothing is asked for an invalid
-// conversation or message id. Rejects when the load does.
-const loadThreadAroundMessageID = async (
+// Which messages to load: those centered on a message, or the conversation's newest.
+type MessagesRequest = {around: T.Chat.MessageID; num: number} | {newest: number}
+
+// Each pass's thread JSON is handed to onThread. Nothing is asked for an invalid conversation or a
+// pivot that is not a message id (0, or the -1 of a placeholder meta). Rejects when the load does.
+const loadThreadPasses = async (
   conversationIDKey: T.Chat.ConversationIDKey,
-  messageID: T.Chat.MessageID,
-  num: number,
+  request: MessagesRequest,
   onThread: (thread: string) => void
 ) => {
-  if (!T.Chat.isValidConversationIDKey(conversationIDKey) || !T.Chat.messageIDToNumber(messageID)) {
+  if (!T.Chat.isValidConversationIDKey(conversationIDKey)) {
     return
   }
-  await getChatRpc().loadThread({
-    conversationIDKey,
-    messageIDControl: {
-      mode: T.RPCChat.MessageIDControlMode.centered,
-      num,
-      pivot: messageID,
-    },
-    onCachedThread: onThread,
-    onFullThread: onThread,
-    pagination: null,
-  })
+  if ('around' in request) {
+    if (T.Chat.messageIDToNumber(request.around) <= 0) {
+      return
+    }
+    await getChatRpc().loadThread({
+      conversationIDKey,
+      messageIDControl: {
+        mode: T.RPCChat.MessageIDControlMode.centered,
+        num: request.num,
+        pivot: request.around,
+      },
+      onCachedThread: onThread,
+      onFullThread: onThread,
+      pagination: null,
+    })
+  } else {
+    await getChatRpc().loadThread({
+      conversationIDKey,
+      onCachedThread: onThread,
+      onFullThread: onThread,
+      pagination: {last: false, next: '', num: request.newest, previous: ''},
+    })
+  }
 }
 
 const loadConversationMessagesAroundMessageID = async (
@@ -139,7 +153,7 @@ const loadConversationMessagesAroundMessageID = async (
   num = 20
 ) => {
   const messages = new Map<T.Chat.MessageID, T.Chat.Message>()
-  await loadThreadAroundMessageID(conversationIDKey, messageID, num, thread => {
+  await loadThreadPasses(conversationIDKey, {around: messageID, num}, thread => {
     parseThreadMessages(conversationIDKey, thread).forEach(message => {
       if (message.id) {
         messages.set(message.id, message)
@@ -160,15 +174,14 @@ const parseThreadMessageIDs = (thread: string) => {
   }
 }
 
-// The ids a centered load holds, across both passes, in no order. Every unboxed state counts, not
-// only the ones that become thread rows. Rejects when the load does.
-export const loadConversationMessageIDsAroundMessageID = async (
+// The ids a load holds, across both passes, in no order. Every unboxed state counts, not only the
+// ones that become thread rows. Rejects when the load does.
+export const loadConversationMessageIDs = async (
   conversationIDKey: T.Chat.ConversationIDKey,
-  messageID: T.Chat.MessageID,
-  num: number
+  request: MessagesRequest
 ) => {
   const ids = new Set<T.Chat.MessageID>()
-  await loadThreadAroundMessageID(conversationIDKey, messageID, num, thread => {
+  await loadThreadPasses(conversationIDKey, request, thread => {
     parseThreadMessageIDs(thread).forEach(id => {
       if (id) {
         ids.add(id)

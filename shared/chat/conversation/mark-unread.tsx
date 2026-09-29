@@ -2,7 +2,8 @@
 // (through the thread store), the message popup outside a thread, the info panel and the inbox
 // swipe.
 //
-// The rule: the unread line is the message given, else the conversation's newest visible message.
+// The rule: the unread line is the message given, else the conversation's newest visible message,
+// else (no meta yet) the newest message loaded.
 // Everything strictly older than the line is marked read, which the service takes as a read
 // position: the newest message id strictly older than the line. A thread's window answers when it
 // holds the line and a message below it; otherwise the service is asked for the messages around
@@ -14,7 +15,7 @@ import {ignorePromise} from '@/constants/utils'
 import {useConfigState} from '@/stores/config'
 import {getInboxConversationMeta} from '@/chat/inbox/metadata'
 import {getChatRpc} from './chat-rpc'
-import {loadConversationMessageIDsAroundMessageID} from './data-hooks'
+import {loadConversationMessageIDs} from './data-hooks'
 import {setConversationOrangeLine} from './orange-line-context'
 
 type ThreadWindow = {
@@ -29,28 +30,34 @@ export type MarkUnreadThread = {
   isRetired: () => boolean
 }
 
-const newestIDBefore = (ids: Iterable<T.Chat.MessageID | null | undefined>, line: T.Chat.MessageID) => {
-  let before: T.Chat.MessageID | undefined
+const validID = (id?: T.Chat.MessageID) => (id && T.Chat.messageIDToNumber(id) > 0 ? id : undefined)
+
+// The newest id, or with a line the newest strictly older than it.
+const newestID = (ids: Iterable<T.Chat.MessageID | null | undefined>, line?: T.Chat.MessageID) => {
+  let newest: T.Chat.MessageID | undefined
   for (const id of ids) {
-    if (id && id < line && (!before || id > before)) {
-      before = id
+    if (id && (!line || id < line) && (!newest || id > newest)) {
+      newest = id
     }
   }
-  return before
+  return newest
 }
 
 // Undefined when the window cannot say: it does not reach the line, or holds nothing below it.
 const idBeforeLineInWindow = (window: ThreadWindow, line: T.Chat.MessageID) => {
   const ids = (window.messageOrdinals ?? []).map(o => window.messageMap.get(o)?.id)
-  return ids.some(id => !!id && id >= line) ? newestIDBefore(ids, line) : undefined
+  return ids.some(id => !!id && id >= line) ? newestID(ids, line) : undefined
 }
 
-// Never rejects: a failed load knows of nothing older.
-const loadIDBeforeLine = async (conversationIDKey: T.Chat.ConversationIDKey, line: T.Chat.MessageID) => {
+// Never rejects: a failed load knows of no message.
+const loadIDs = async (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  request: Parameters<typeof loadConversationMessageIDs>[1]
+) => {
   try {
-    return newestIDBefore(await loadConversationMessageIDsAroundMessageID(conversationIDKey, line, 3), line)
+    return await loadConversationMessageIDs(conversationIDKey, request)
   } catch {
-    return undefined
+    return []
   }
 }
 
@@ -67,7 +74,12 @@ export const markConversationUnread = (
       logger.info('mark unread bail on not logged in')
       return
     }
-    const line = readMsgID || getInboxConversationMeta(conversationIDKey)?.maxVisibleMsgID
+    // With no line known (no meta for the conversation yet, or a placeholder one) the newest
+    // messages give both the line and the message before it.
+    const knownLine =
+      validID(readMsgID) ?? validID(getInboxConversationMeta(conversationIDKey)?.maxVisibleMsgID)
+    const newest = knownLine ? undefined : await loadIDs(conversationIDKey, {newest: 2})
+    const line = knownLine ?? newestID(newest ?? [])
     if (!line) {
       logger.info(`marking unread messages ${conversationIDKey} failed due to no line`)
       return
@@ -75,9 +87,10 @@ export const markConversationUnread = (
     if (!thread) {
       setConversationOrangeLine(conversationIDKey, T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(line)))
     }
-    const msgID =
-      (thread && idBeforeLineInWindow(thread.getWindow(), line)) ??
-      (await loadIDBeforeLine(conversationIDKey, line))
+    const msgID = newest
+      ? newestID(newest, line)
+      : ((thread && idBeforeLineInWindow(thread.getWindow(), line)) ??
+        newestID(await loadIDs(conversationIDKey, {around: line, num: 3}), line))
     if (thread?.isRetired()) {
       return
     }

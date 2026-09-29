@@ -123,12 +123,51 @@ describe('without a thread', () => {
     expect(markReads()).toEqual([])
   })
 
-  test('an invalid conversation, no line, or signed out does nothing', async () => {
-    aroundLine([3, 4])
-    markConversationUnread(T.Chat.noConversationIDKey, messageID(5))
+  test('with no meta (a row drawn from the layout) the line is the newest message loaded', async () => {
     resetAllStores()
     useConfigState.setState({loggedIn: true})
+    aroundLine([7, 8], [6, 8])
     markConversationUnread(conversationIDKey)
+    await flushPromises()
+    expect(loads()).toEqual([
+      {
+        conversationIDKey,
+        onCachedThread: expect.any(Function),
+        onFullThread: expect.any(Function),
+        pagination: {last: false, next: '', num: 2, previous: ''},
+      },
+    ])
+    expect(setOrangeLine).toHaveBeenCalledWith(conversationIDKey, T.Chat.numberToOrdinal(8))
+    expect(markReads()).toEqual(marked(7))
+  })
+
+  test('a placeholder meta (no visible message known) loads the newest messages, never a pivot at -1', async () => {
+    metasReceived([{...Meta.makeConversationMeta(), conversationIDKey}], undefined, {force: true})
+    aroundLine([7, 8])
+    markConversationUnread(conversationIDKey)
+    await flushPromises()
+    expect(loads()).toEqual([expect.objectContaining({pagination: {last: false, next: '', num: 2, previous: ''}})])
+    expect(loads()[0]).not.toHaveProperty('messageIDControl')
+    expect(markReads()).toEqual(marked(7))
+  })
+
+  test('a conversation with one message, or none, marks nothing', async () => {
+    resetAllStores()
+    useConfigState.setState({loggedIn: true})
+    aroundLine([8])
+    markConversationUnread(conversationIDKey)
+    await flushPromises()
+    aroundLine([])
+    markConversationUnread(conversationIDKey)
+    await flushPromises()
+    expect(loads()).toHaveLength(2)
+    expect(markReads()).toEqual([])
+  })
+
+  test('an invalid conversation or signed out does nothing', async () => {
+    aroundLine([3, 4])
+    markConversationUnread(T.Chat.noConversationIDKey, messageID(5))
+    markConversationUnread(T.Chat.noConversationIDKey)
     useConfigState.setState({loggedIn: false})
     markConversationUnread(conversationIDKey, messageID(5))
     await flushPromises()
