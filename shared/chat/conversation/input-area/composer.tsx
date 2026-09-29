@@ -23,8 +23,10 @@ export type ComposerView = {
   setInput: (input: ComposerInput | null) => void
   // Loads the draft into an untouched composer, once per view, once the view's input is attached.
   offerDraft: (draft: string | undefined) => void
-  // What the input reports as typed. Reports from a view other than the attached one are dropped.
-  textChanged: (text: string) => void
+  // What the input reports, and whether the user typed it: false for the composer's own writes
+  // (a draft, an inject, a clear), and for reports from a view other than the attached one, which
+  // are dropped.
+  textChanged: (text: string) => boolean
 }
 
 export type Composer = {
@@ -53,6 +55,10 @@ export type Composer = {
 }
 
 type ComposerDeps = {
+  // The composer saves the draft: what the user types, and what it writes when that changes the
+  // saved draft. saveDraft is throttled; flushDraft saves a pending one now.
+  flushDraft: () => void
+  saveDraft: (text: string) => void
   // Taken before the clear, which runs onChangeText('') synchronously and drops every dismissal.
   // Urls whose preview has not landed yet are not in it and so are not suppressed.
   takeUnfurlSnapshot: () => SuppressSnapshot
@@ -73,14 +79,30 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   // Effects mount children first (and again when a hidden Activity is shown), so a child's
   // write can come before its composer view attaches the input.
   let pending: Array<(input: ComposerInput) => void> = []
+  // set while the composer writes, so the input's report of that write is not taken as typing
+  let writing = false
+  // the draft as last loaded or saved
+  let saved: string | undefined
+
+  const saveDraft = (next: string) => {
+    if (next === saved) return
+    saved = next
+    deps.saveDraft(next)
+  }
 
   const write = (target: ComposerInput, next: string, focus: boolean) => {
     text = next
-    if (next) {
-      target.replaceText({selection: injectedSelection(next), text: next}, true)
-    } else {
-      target.clear()
+    writing = true
+    try {
+      if (next) {
+        target.replaceText({selection: injectedSelection(next), text: next}, true)
+      } else {
+        target.clear()
+      }
+    } finally {
+      writing = false
     }
+    saveDraft(text)
     if (focus) {
       target.focus()
     }
@@ -107,10 +129,14 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     if (draftLoaded || draft === undefined) return
     if (text !== '' || !draft) {
       draftLoaded = true
+      if (text === '') {
+        saved = draft
+      }
       return
     }
     if (!input) return
     draftLoaded = true
+    saved = draft
     write(input, draft, false)
   }
 
@@ -129,6 +155,8 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
           if (!next) {
             if (session === view) {
               input = null
+              // what was typed is saved before whatever follows the input going away runs
+              deps.flushDraft()
             }
             return
           }
@@ -144,9 +172,11 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
           waiting.forEach(whenAttached)
         },
         textChanged: next => {
-          if (session === view) {
-            text = next
-          }
+          if (session !== view) return false
+          text = next
+          if (writing) return false
+          saveDraft(next)
+          return true
         },
       }
     },

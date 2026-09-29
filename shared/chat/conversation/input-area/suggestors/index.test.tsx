@@ -52,7 +52,11 @@ const makeInputRef = (getSelection: () => Selection | undefined, showsWrites: bo
 // view attaches it; its onChangeText reports what was typed, as the view's does
 const renderSuggestors = (getSelection: () => Selection | undefined, showsWrites = true) => {
   const inputRef = makeInputRef(getSelection, showsWrites)
-  const composer = makeComposer({takeUnfurlSnapshot: () => ({dismissed: [], failed: []})})
+  const composer = makeComposer({
+    flushDraft: () => {},
+    saveDraft: () => {},
+    takeUnfurlSnapshot: () => ({dismissed: [], failed: []}),
+  })
   const view = composer.connect()
   view.setInput(inputRef.current)
   const {result} = renderHook(

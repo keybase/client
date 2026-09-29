@@ -410,6 +410,18 @@ test('a keystroke or a caret move leaves the same textarea attached to the compo
 })
 
 describe('drafts', () => {
+  test('a saved draft loads without saying the user is typing, and is not saved again', () => {
+    receiveDraft('saved draft')
+    const {textarea} = renderComposer()
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(textarea.value).toBe('saved draft')
+    expect(T.RPCChat.localUpdateTypingRpcPromise).not.toHaveBeenCalled()
+    expect(T.RPCChat.localUpdateUnsentTextRpcPromise).not.toHaveBeenCalled()
+  })
+
   test('a draft already in the inbox meta is loaded into the composer on mount', () => {
     receiveDraft('saved draft')
     const {textarea} = renderComposer()

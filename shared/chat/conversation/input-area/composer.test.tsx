@@ -10,13 +10,27 @@ const noSnapshot: SuppressSnapshot = {dismissed: [], failed: []}
 
 const setup = (opts?: {takeUnfurlSnapshot?: () => SuppressSnapshot}) => {
   const send = jest.fn()
-  const composer = makeComposer({takeUnfurlSnapshot: opts?.takeUnfurlSnapshot ?? (() => noSnapshot)})
+  // what the composer saves as the draft ('flush' where it asks for a pending save to go now),
+  // and every report the attached input makes, with whether the composer took it as typing
+  const drafts: Array<string> = []
+  const reports: Array<{text: string; typed: boolean}> = []
+  const composer = makeComposer({
+    flushDraft: () => {
+      drafts.push('flush')
+    },
+    saveDraft: text => {
+      drafts.push(text)
+    },
+    takeUnfurlSnapshot: opts?.takeUnfurlSnapshot ?? (() => noSnapshot),
+  })
   // one mounted composer view: its fake input's reports go to the composer, and the draft is
   // offered as the input's ref is set, as useComposerInput wires them
   const mount = (draft?: string) => {
     const fake = makeFakeComposerInput()
     const view = composer.connect()
-    fake.connect(view.textChanged)
+    fake.connect(text => {
+      reports.push({text, typed: view.textChanged(text)})
+    })
     const attach = (input: FakeComposerInput = fake) => {
       view.offerDraft(draft)
       view.setInput(input)
@@ -24,7 +38,7 @@ const setup = (opts?: {takeUnfurlSnapshot?: () => SuppressSnapshot}) => {
     attach()
     return {attach, detach: () => view.setInput(null), fake, view}
   }
-  return {composer, mount, send}
+  return {composer, drafts, mount, reports, send}
 }
 
 afterEach(() => {
@@ -648,5 +662,60 @@ describe('the input it reads through', () => {
     composer.inject('to the new handle')
 
     expect(next.text).toBe('to the new handle')
+  })
+})
+
+describe('typing and the saved draft', () => {
+  test('what the user types is typing, and is saved', () => {
+    const {drafts, mount, reports} = setup()
+    const {fake} = mount()
+
+    fake.type('h')
+
+    expect(reports).toEqual([{text: 'h', typed: true}])
+    expect(drafts).toEqual(['h'])
+  })
+
+  test('a draft loads as a write of the composer, and is not saved again', () => {
+    const {drafts, mount, reports} = setup()
+
+    mount('saved draft')
+
+    expect(reports).toEqual([{text: 'saved draft', typed: false}])
+    expect(drafts).toEqual([])
+  })
+
+  test('an inject is a write of the composer, saved as the draft because it changes it', () => {
+    const {composer, drafts, mount, reports} = setup()
+    mount('')
+
+    composer.inject('shared text')
+
+    expect(reports).toEqual([{text: 'shared text', typed: false}])
+    expect(drafts).toEqual(['shared text'])
+  })
+
+  test('a write that leaves the saved draft as it is saves nothing', () => {
+    const {composer, drafts, mount} = setup()
+    mount('same')
+    composer.inject('')
+    drafts.length = 0
+
+    composer.inject('')
+
+    expect(drafts).toEqual([])
+  })
+
+  test('a user edit made through the composer (a pick, an insert) is typing', () => {
+    const {composer, drafts, mount, reports} = setup()
+    const {fake} = mount()
+    fake.type('ab', 1)
+    reports.length = 0
+    drafts.length = 0
+
+    composer.insertAtCaret('@')
+
+    expect(reports).toEqual([{text: 'a@b', typed: true}])
+    expect(drafts).toEqual(['a@b'])
   })
 })

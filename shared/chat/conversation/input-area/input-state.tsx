@@ -4,6 +4,9 @@ import logger from '@/logger'
 import {findLast} from '@/util/arrays'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useEngineActionListener} from '@/engine/action-listener'
+import {metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
+import {ignorePromise} from '@/constants/utils'
+import {useThrottledCallback} from '@/util/use-debounce'
 import {useConversationThreadStore} from '../thread-context'
 import {useConversationSendActions} from '../send-actions'
 import {
@@ -117,7 +120,42 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
   // a subscription here re-renders the whole input subtree on every thread change.
   const threadStore = useConversationThreadStore()
   const {sendGiphyResult: sendGiphyResultAction, sendMessage} = useConversationSendActions()
-  const [composer] = React.useState(() => makeComposer({takeUnfurlSnapshot: () => takeSuppressSnapshot(id)}))
+  // The account this composer was mounted for. After an account switch the service saves drafts
+  // for the next account, so the unmount flush of a draft typed here must not save it there.
+  const [composerUid] = React.useState(() => useCurrentUserState.getState().uid)
+  const saveDraftRaw = (text: string) => {
+    if (useCurrentUserState.getState().uid !== composerUid) {
+      return
+    }
+    // Immediately update local meta.draft so switching back to this thread
+    // before the async unbox completes won't re-inject the old stale draft.
+    // Merges from the current meta (same inbox version), so force past gating.
+    const currentMeta = useInboxMetadataState.getState().metas.get(id)
+    if (currentMeta) {
+      metasReceived([{...currentMeta, draft: text}], undefined, {force: true})
+    }
+    const f = async () => {
+      await T.RPCChat.localUpdateUnsentTextRpcPromise({
+        conversationID: T.Chat.isValidConversationIDKey(id) ? T.Chat.keyToConversationID(id) : new Uint8Array(0),
+        text,
+        tlfName: currentMeta?.tlfname ?? '',
+      })
+    }
+    ignorePromise(f())
+  }
+  // flushOnUnmount: leaving the conversation must still save what was typed in the last 200ms
+  const saveDraft = useThrottledCallback(saveDraftRaw, 200, {flushOnUnmount: true, trailing: true})
+  const [composer] = React.useState(() =>
+    makeComposer({
+      flushDraft: () => {
+        saveDraft.flush()
+      },
+      saveDraft: text => {
+        saveDraft(text)
+      },
+      takeUnfurlSnapshot: () => takeSuppressSnapshot(id),
+    })
+  )
 
   const injectIntoInput = React.useEffectEvent((text: string, focus?: boolean) => {
     composer.inject(text, focus)

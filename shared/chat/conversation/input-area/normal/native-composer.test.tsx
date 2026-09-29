@@ -493,3 +493,72 @@ test('starting an edit fills the input and focuses it', () => {
   expect(input().value).toBe('fix my typo')
   expect(mockFocused).toBe(true)
 })
+
+describe('typing and the saved draft', () => {
+  const typingSent = () =>
+    (m.T.RPCChat.localUpdateTypingRpcPromise as unknown as jest.Mock<unknown, [{typing: boolean}]>).mock.calls.map(
+      c => c[0].typing
+    )
+  const draftsSaved = () =>
+    (m.T.RPCChat.localUpdateUnsentTextRpcPromise as unknown as jest.Mock<unknown, [{text: string}]>).mock.calls.map(
+      c => c[0].text
+    )
+  const receiveDraft = (draft: string) => {
+    /* eslint-disable @typescript-eslint/no-require-imports */
+    const {metasReceived} = require('@/chat/inbox/metadata') as typeof Metadata
+    const Meta = require('@/constants/chat/meta') as typeof MetaModule
+    /* eslint-enable @typescript-eslint/no-require-imports */
+    act(() => {
+      metasReceived([{...Meta.makeConversationMeta(), conversationIDKey: convID, draft}], undefined, {force: true})
+    })
+  }
+
+  test('a saved draft loads without saying the user is typing, and is not saved again', () => {
+    receiveDraft('saved draft')
+    renderComposer()
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(input().value).toBe('saved draft')
+    expect(typingSent()).toEqual([])
+    expect(draftsSaved()).toEqual([])
+  })
+
+  test('an injected text says nothing about typing, and is saved as the draft', () => {
+    receiveDraft('')
+    renderComposer()
+
+    act(() => {
+      inputDispatch?.injectIntoInput('shared text')
+    })
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(typingSent()).toEqual([])
+    expect(draftsSaved()).toEqual(['shared text'])
+  })
+
+  test('what was typed in the last 200ms is saved as the input goes away', () => {
+    receiveDraft('')
+    const {showInput} = renderComposer()
+    type('h')
+    type('he')
+    expect(draftsSaved()).toEqual(['h'])
+
+    showInput(false)
+
+    expect(draftsSaved()).toEqual(['h', 'he'])
+  })
+
+  test('typing says so, and is saved', () => {
+    receiveDraft('')
+    renderComposer()
+
+    type('h')
+
+    expect(typingSent()).toEqual([true])
+    expect(draftsSaved()).toEqual(['h'])
+  })
+})
