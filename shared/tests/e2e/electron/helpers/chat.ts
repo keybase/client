@@ -118,6 +118,74 @@ export const waitForScrollStable = async (page: Page, timeoutMs = 10_000) => {
   }
 }
 
+// -- moving the thread as a reader ---------------------------------------------------------------
+
+// A mouse wheel over the middle of the thread; positive dy scrolls toward the newest message.
+export const wheelThread = async (page: Page, dy: number) => {
+  const box = await page.getByTestId(T.CHAT_MESSAGE_LIST).boundingBox({timeout: 5_000})
+  if (!box) throw new Error('no thread list on the page')
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+  await page.mouse.wheel(0, dy)
+}
+
+// The thread's scroller as the scrollbar sees it, in page coordinates.
+const scrollerMetrics = async (page: Page) =>
+  page.evaluate(testID => {
+    const g = globalThis as unknown as PageGlobals
+    const wrapper = g.document.querySelector(`[data-testid="${testID}"]`)
+    const scroller = wrapper && Array.from(wrapper.children).find(c => /auto|scroll/.test(g.getComputedStyle(c).overflowY))
+    if (!scroller) throw new Error('no thread list on the page')
+    const r = scroller.getBoundingClientRect()
+    return {
+      clientHeight: scroller.clientHeight,
+      left: r.left,
+      scrollHeight: scroller.scrollHeight,
+      scrollTop: scroller.scrollTop,
+      top: r.top,
+      width: r.width,
+    }
+  }, T.CHAT_MESSAGE_LIST)
+
+// Drags the scrollbar thumb by dy pixels (positive: toward the newest message). macOS draws overlay
+// scrollbars, shown only while the scroller moves and kept while the pointer is over them, so
+// callers either drag right after the list scrolled (a centring's own scroll shows it) or pass
+// nudge: a small wheel with the pointer already on the thumb shows it there first.
+export const dragScrollbar = async (page: Page, dy: number, opts: {nudge?: boolean} = {}) => {
+  const thumbAt = (m: Awaited<ReturnType<typeof scrollerMetrics>>) => {
+    const thumbHeight = Math.max(20, (m.clientHeight * m.clientHeight) / m.scrollHeight)
+    return {x: m.left + m.width - 5, y: m.top + (m.scrollTop / m.scrollHeight) * m.clientHeight + thumbHeight / 2}
+  }
+  let m = await scrollerMetrics(page)
+  if (opts.nudge) {
+    const at = thumbAt(m)
+    await page.mouse.move(at.x, at.y)
+    await page.mouse.wheel(0, -10)
+    const before = m.scrollTop
+    await expect.poll(async () => (await scrollerMetrics(page)).scrollTop, {timeout: 2_000}).not.toBe(before)
+    m = await scrollerMetrics(page)
+  }
+  const {x, y} = thumbAt(m)
+  await page.mouse.move(x, y)
+  await page.mouse.down()
+  await page.mouse.move(x, y + dy, {steps: 10})
+  await page.mouse.up()
+}
+
+// Puts keyboard focus on the thread's scroller, where a reader tabbing to it would put it, so the
+// browser's own scrolling keys (End, Home, Page Up/Down, arrows) move it.
+export const focusThreadScroller = async (page: Page) => {
+  const focused = await page.evaluate(testID => {
+    type Focusable = {focus: () => void}
+    const g = globalThis as unknown as PageGlobals & {document: {activeElement: unknown}}
+    const wrapper = g.document.querySelector(`[data-testid="${testID}"]`)
+    const scroller = wrapper && Array.from(wrapper.children).find(c => /auto|scroll/.test(g.getComputedStyle(c).overflowY))
+    if (!scroller) return false
+    ;(scroller as unknown as Focusable).focus()
+    return g.document.activeElement === scroller
+  }, T.CHAT_MESSAGE_LIST)
+  if (!focused) throw new Error('the thread scroller did not take focus')
+}
+
 // -- clicking ------------------------------------------------------------------------------------
 
 // Clicks the locator's centre only once that point hits the element itself (or a child): isVisible
@@ -125,26 +193,29 @@ export const waitForScrollStable = async (page: Page, timeoutMs = 10_000) => {
 export const clickUnoccluded = async (locator: Locator, timeoutMs = 5_000) => {
   const page = locator.page()
   const deadline = Date.now() + timeoutMs
+  let coveredBy = ''
   for (;;) {
     const box = await locator.boundingBox({timeout: timeoutMs})
     if (box) {
       const x = box.x + box.width / 2
       const y = box.y + box.height / 2
-      const owns = await locator.evaluate(
+      const hit = await locator.evaluate(
         (el, [px, py]) => {
           const target = el as unknown as ElLike
           const top = (globalThis as unknown as PageGlobals).document.elementFromPoint(px, py)
-          return !!top && (top === target || target.contains(top))
+          const owns = !!top && (top === target || target.contains(top))
+          return {coveredBy: owns ? '' : ((top as unknown as {outerHTML?: string} | null)?.outerHTML ?? 'nothing').slice(0, 200), owns}
         },
         [x, y] as const,
         {timeout: timeoutMs}
       )
-      if (owns) {
+      if (hit.owns) {
         await page.mouse.click(x, y)
         return
       }
+      coveredBy = hit.coveredBy
     }
-    if (Date.now() > deadline) throw new Error(`${String(locator)} is covered at its centre`)
+    if (Date.now() > deadline) throw new Error(`${String(locator)} is covered at its centre by ${coveredBy}`)
     await page.waitForTimeout(100)
   }
 }
@@ -194,10 +265,20 @@ export const waitForRow = async (page: Page, marker: string, timeoutMs = 10_000)
 // Opens a message's "..." menu and returns the menu.
 export const messageMenu = async (page: Page, ordinal: number) => {
   const row = rowByOrdinal(page, ordinal)
-  await row.hover({timeout: 5_000})
-  await clickUnoccluded(row.locator('.icon-gen-iconfont-ellipsis').first())
+  const ellipsis = row.locator('.icon-gen-iconfont-ellipsis').first()
+  // The row shows its "..." only while hovered, and the list ignores the pointer until 200ms after
+  // its last scroll: hover again until the row takes it.
+  await expect(async () => {
+    await row.hover({timeout: 1_000})
+    await expect(ellipsis).toBeVisible({timeout: 500})
+  }).toPass({timeout: 5_000})
+  await clickUnoccluded(ellipsis)
   const menu = page.getByTestId(T.FLOATING_MENU)
   await expect(menu).toBeVisible({timeout: 5_000})
+  // The popup ignores a hide within 100ms of its show (usePopup2's tooQuick guard against a
+  // double toggle), and choosing an item hides it through that path: an item chosen sooner runs
+  // but leaves the menu open.
+  await page.waitForTimeout(150)
   return menu
 }
 

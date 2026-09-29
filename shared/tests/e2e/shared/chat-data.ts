@@ -36,6 +36,9 @@ export const E2E_CHANNELS = {
   // min writer role admin: the second account (a writer) can read it but not post
   readonly: 'e2e-readonly',
   scratch: 'e2e-scratch',
+  // a short history that the first load brings in whole, so the thread's intro card lands in its
+  // header after the rows do; nothing ever posts to it after seeding
+  short: 'e2e-short',
 } as const
 export type E2EChannel = (typeof E2E_CHANNELS)[keyof typeof E2E_CHANNELS]
 
@@ -60,6 +63,18 @@ export const longBody = (index: number) => {
   const first = token ? `${longMarker(index)} ${token}` : longMarker(index)
   return index % 10 === 0 ? `${first}\nsecond line of ${index}\nthird line of ${index}` : first
 }
+
+// e2e-short: every message of it fits in the first page the desktop thread loads (100), and it
+// still runs past one viewport, so the thread scrolls.
+export const SHORT_COUNT = 40
+export const shortMarker = (index: number) => `e2e-short-${String(index).padStart(4, '0')}`
+const shortBody = (index: number) =>
+  index % 5 === 0 ? `${shortMarker(index)}\nsecond line of ${index}\nthird line of ${index}` : shortMarker(index)
+
+// e2e-scratch keeps at least this many text messages, so the scroll flows that post to it have
+// history above the viewport to scroll into from the first run on.
+export const SCRATCH_MIN_TEXTS = 60
+const scratchPadMarker = (index: number) => `e2e-scratch-pad-${String(index).padStart(4, '0')}`
 
 export const READONLY_COUNT = 3
 export const readonlyMarker = (index: number) => `e2e-readonly-${String(index).padStart(4, '0')}`
@@ -274,6 +289,27 @@ const seedLong = async (api: ChatApi, team: string) => {
   }
 }
 
+const seedShort = async (api: ChatApi, team: string) => {
+  const channel = channelRef(team, E2E_CHANNELS.short)
+  const have = new Set(textBodies(await readAll(api, channel)).map(b => b.split('\n')[0]))
+  const missing = Array.from({length: SHORT_COUNT}, (_, i) => i + 1).filter(i => !have.has(shortMarker(i)))
+  if (missing.length) log(`sending ${missing.length} messages to #${E2E_CHANNELS.short}`)
+  for (const i of missing) {
+    await sendText(api, channel, shortBody(i))
+  }
+}
+
+const seedScratch = async (api: ChatApi, team: string) => {
+  const channel = channelRef(team, E2E_CHANNELS.scratch)
+  const texts = textBodies(await readAll(api, channel))
+  const pads = texts.filter(b => b.startsWith('e2e-scratch-pad-')).length
+  const short = SCRATCH_MIN_TEXTS - texts.length
+  if (short > 0) log(`padding #${E2E_CHANNELS.scratch} with ${short} messages`)
+  for (let i = 1; i <= short; i++) {
+    await sendText(api, channel, scratchPadMarker(pads + i))
+  }
+}
+
 const seedReadonly = async (api: ChatApi, team: string) => {
   const channel = channelRef(team, E2E_CHANNELS.readonly)
   const bodies = new Set(textBodies(await readAll(api, channel)))
@@ -326,6 +362,8 @@ export const ensureChatData = async (): Promise<ChatData> => {
         await ensureMember(api, team, topicName, secondUser)
       }
       await seedLong(api, team)
+      await seedShort(api, team)
+      await seedScratch(api, team)
       await seedReadonly(api, team)
       await seedMedia(api, team)
       return {...accounts, convIDs}
