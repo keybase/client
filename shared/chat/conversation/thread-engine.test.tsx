@@ -489,11 +489,11 @@ describe('applyThreadNotification', () => {
     const a = makeAllActions()
     applyThreadNotification(
       conversationIDKey,
-      {type: 'typing', typers: [{deviceID: 'd', uid: 'u', username: 'bob'}]},
+      {type: 'typing', typers: [{deviceID: 'd', uid: 'u', username: 'testuser-mac'}]},
       asActions(a)
     )
     applyThreadNotification(conversationIDKey, {type: 'typing', typers: null}, asActions(a))
-    expect(a.setTyping.mock.calls).toEqual([[new Set(['bob'])], [new Set()]])
+    expect(a.setTyping.mock.calls).toEqual([[new Set(['testuser-mac'])], [new Set()]])
   })
 
   test('an upload start reports progress with no bytes', () => {

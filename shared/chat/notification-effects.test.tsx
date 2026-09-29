@@ -170,7 +170,7 @@ const makeInboxUIItem = (
   maxVisibleMsgID: 30,
   memberStatus: T.RPCChat.ConversationMemberStatus.active,
   membersType: T.RPCChat.ConversationMembersType.impteamnative,
-  name: 'alice,bob',
+  name: 'testuser,testuser-mac',
   notifications: undefined,
   participants: undefined,
   pinnedMsg: undefined,
@@ -222,11 +222,11 @@ const makeValidText = (id: T.Chat.MessageID, text: string): T.RPCChat.UIMessage 
     replyTo: null,
     requestInfo: null,
     senderDeviceID: new Uint8Array([1]),
-    senderDeviceName: 'bob-device',
+    senderDeviceName: 'testuser-mac-device',
     senderDeviceRevokedAt: null,
     senderDeviceType: 'desktop',
     senderUID: new Uint8Array([2]),
-    senderUsername: 'bob',
+    senderUsername: 'testuser-mac',
     superseded: false,
     unfurls: null,
   },
@@ -249,7 +249,7 @@ const makeFailedRecord = (
 
 const threadText = (id: T.Chat.ConversationIDKey, n: number) =>
   Message.makeMessageText({
-    author: 'bob',
+    author: 'testuser-mac',
     conversationIDKey: id,
     id: msgID(n),
     ordinal: T.Chat.numberToOrdinal(n),
@@ -259,7 +259,7 @@ const threadText = (id: T.Chat.ConversationIDKey, n: number) =>
 
 const pendingText = (id: T.Chat.ConversationIDKey, outboxID: string) =>
   Message.makeMessageText({
-    author: 'alice',
+    author: 'testuser',
     conversationIDKey: id,
     ordinal: T.Chat.numberToOrdinal(20.001),
     outboxID: T.Chat.stringToOutboxID(outboxID),
@@ -370,7 +370,7 @@ beforeEach(() => {
     deviceID: 'device-id',
     deviceName: 'test-device',
     uid: 'uid',
-    username: 'alice',
+    username: 'testuser',
   })
   metasReceived(
     [convA, convB, convC].map(id => ({
@@ -464,20 +464,20 @@ const cases: Array<Case> = [
     action: () => incomingMessage(convA, 31, {conv: makeInboxUIItem(convA), desktopNotification: true}),
     expected: {
       A: [
-        'desktopNotification:bob:hi there',
+        'desktopNotification:testuser-mac:hi there',
         'inbox:metas',
         'thread:A:liveUpdateVersion,messageIDToOrdinal,messageMap,messageOrdinals',
         'unboxRows:A',
         'rpc:loadThread:A:around',
       ],
       'A+B': [
-        'desktopNotification:bob:hi there',
+        'desktopNotification:testuser-mac:hi there',
         'inbox:metas',
         'thread:A:liveUpdateVersion,messageIDToOrdinal,messageMap,messageOrdinals',
         'unboxRows:A',
         'rpc:loadThread:A:around',
       ],
-      none: ['desktopNotification:bob:hi there', 'inbox:metas'],
+      none: ['desktopNotification:testuser-mac:hi there', 'inbox:metas'],
     },
     name: 'incoming message, conversation not being looked at',
   },
@@ -580,7 +580,7 @@ const cases: Array<Case> = [
           outboxRecords: [
             makeFailedRecord(convA, '0a0a', {message: 'network fail', typ: T.RPCChat.OutboxErrorType.misc}),
             makeFailedRecord(convB, '0b0b', {
-              message: 'identify failed for "charlie"',
+              message: 'identify failed for "testuser-3"',
               typ: T.RPCChat.OutboxErrorType.identify,
             }),
           ],
@@ -670,7 +670,7 @@ const cases: Array<Case> = [
           reactionUpdates: [
             {
               reactions: {
-                reactions: {':+1:': {decorated: ':+1:', users: {bob: {ctime: 5, reactionMsgID: 40}}}},
+                reactions: {':+1:': {decorated: ':+1:', users: {'testuser-mac': {ctime: 5, reactionMsgID: 40}}}},
               },
               targetMsgID: 10,
             },
@@ -727,7 +727,7 @@ const cases: Array<Case> = [
           rekeyInfo: null,
           remoteConv: {convID: convIDString(convA)},
           typ: T.RPCChat.ConversationErrorType.transient,
-          unverifiedTLFName: 'alice,bob',
+          unverifiedTLFName: 'testuser,testuser-mac',
         },
       }),
     expected: {
@@ -741,7 +741,7 @@ const cases: Array<Case> = [
     action: () =>
       engineAction('chat.1.NotifyChat.ChatSetConvSettings', {
         conv: makeInboxUIItem(convA, {
-          convSettings: {minWriterRoleInfo: {cannotWrite: true, changedBy: 'bob', role: T.RPCGen.TeamRole.admin}},
+          convSettings: {minWriterRoleInfo: {cannotWrite: true, changedBy: 'testuser-mac', role: T.RPCGen.TeamRole.admin}},
         }),
         convID: rpcConvID(convA),
       }),
@@ -779,8 +779,8 @@ const cases: Array<Case> = [
     action: () =>
       engineAction('chat.1.NotifyChat.ChatParticipantsInfo', {
         participants: {
-          [convIDString(convA)]: [{assertion: 'alice', inConvName: true, type: T.RPCChat.UIParticipantType.user}],
-          [convIDString(convC)]: [{assertion: 'carol', inConvName: true, type: T.RPCChat.UIParticipantType.user}],
+          [convIDString(convA)]: [{assertion: 'testuser', inConvName: true, type: T.RPCChat.UIParticipantType.user}],
+          [convIDString(convC)]: [{assertion: 'testuser-2', inConvName: true, type: T.RPCChat.UIParticipantType.user}],
         },
       }),
     expected: {
@@ -848,7 +848,7 @@ const cases: Array<Case> = [
     action: () =>
       engineAction('chat.1.NotifyChat.ChatTypingUpdate', {
         typingUpdates: [
-          {convID: rpcConvID(convA), typers: [{deviceID: 'd', uid: 'u', username: 'bob'}]},
+          {convID: rpcConvID(convA), typers: [{deviceID: 'd', uid: 'u', username: 'testuser-mac'}]},
           {convID: rpcConvID(convB), typers: null},
         ],
       }),
@@ -919,7 +919,7 @@ const cases: Array<Case> = [
           accountID: 'account-id',
           amountDescription: '1 XLM',
           delta: T.RPCStellar.BalanceDelta.none,
-          fromUsername: 'alice',
+          fromUsername: 'testuser',
           issuerDescription: 'Lumens',
           note: '',
           paymentID: 'payment-1',
@@ -929,7 +929,7 @@ const cases: Array<Case> = [
           status: T.RPCStellar.PaymentStatus.completed,
           statusDescription: 'Completed',
           statusDetail: '',
-          toUsername: 'bob',
+          toUsername: 'testuser-mac',
           worth: '$1.00',
           worthAtSendTime: '$1.00',
         },
@@ -1100,8 +1100,8 @@ const cases: Array<Case> = [
     action: () =>
       engineAction('chat.1.NotifyChat.ChatIdentifyUpdate', {
         update: {
-          CanonicalName: 'alice,charlie',
-          breaks: {breaks: [{user: {username: 'charlie'}}]},
+          CanonicalName: 'testuser,testuser-3',
+          breaks: {breaks: [{user: {username: 'testuser-3'}}]},
         },
       }),
     expected: {
@@ -1136,10 +1136,10 @@ describe('mounted conversation screens', () => {
         <Screen id={convA} tag="A2" />
       </>
     )
-    await notify(typingIn(convA, 'bob'))
+    await notify(typingIn(convA, 'testuser-mac'))
     expect(timeline).toEqual(['inbox:typing', 'thread:A1:typing', 'thread:A2:typing'])
-    expect(typersIn('A1')).toEqual(['bob'])
-    expect(typersIn('A2')).toEqual(['bob'])
+    expect(typersIn('A1')).toEqual(['testuser-mac'])
+    expect(typersIn('A2')).toEqual(['testuser-mac'])
   })
 
   test('a screen that unmounted gets nothing', async () => {
@@ -1147,7 +1147,7 @@ describe('mounted conversation screens', () => {
     rerender(<Screens ids={[convB]} />)
     await settle()
     timeline = []
-    await notify(typingIn(convA, 'bob'))
+    await notify(typingIn(convA, 'testuser-mac'))
     expect(timeline).toEqual(['inbox:typing'])
     expect(typersIn('A')).toEqual([])
   })
@@ -1167,7 +1167,7 @@ describe('mounted conversation screens', () => {
     rerender(<Tree mode="hidden" />)
     await settle()
     timeline = []
-    await notify(typingIn(convA, 'bob'))
+    await notify(typingIn(convA, 'testuser-mac'))
     expect(timeline).toEqual(['inbox:typing'])
     expect(typersIn('A')).toEqual([])
 
@@ -1175,9 +1175,9 @@ describe('mounted conversation screens', () => {
     await settle()
     expect(typersIn('A')).toEqual([])
     timeline = []
-    await notify(typingIn(convA, 'carol'))
+    await notify(typingIn(convA, 'testuser-2'))
     expect(timeline).toEqual(['inbox:typing', 'thread:A:typing'])
-    expect(typersIn('A')).toEqual(['carol'])
+    expect(typersIn('A')).toEqual(['testuser-2'])
   })
 
   // resetAllStores (logout) drops every mounted screen's subscription; the screens stay deaf
@@ -1190,7 +1190,7 @@ describe('mounted conversation screens', () => {
     })
     await settle()
     timeline = []
-    await notify(typingIn(convA, 'bob'))
+    await notify(typingIn(convA, 'testuser-mac'))
     expect(timeline).toEqual(['inbox:typing'])
     expect(typersIn('A')).toEqual([])
   })
@@ -1235,7 +1235,7 @@ describe('what each notification leaves behind', () => {
           outboxRecords: [
             makeFailedRecord(convA, '0a0a', {message: 'network fail', typ: T.RPCChat.OutboxErrorType.misc}),
             makeFailedRecord(convB, '0b0b', {
-              message: 'identify failed for "charlie"',
+              message: 'identify failed for "testuser-3"',
               typ: T.RPCChat.OutboxErrorType.identify,
             }),
           ],
@@ -1247,7 +1247,7 @@ describe('what each notification leaves behind', () => {
     // misc is 0, which the thread stores as no error type
     expect(rowIn('A')).toMatchObject({errorReason: 'network fail', errorTyp: undefined, submitState: 'failed'})
     expect(rowIn('B')).toMatchObject({errorTyp: T.RPCChat.OutboxErrorType.identify, submitState: 'failed'})
-    expect(useUsersState.getState().infoMap.get('charlie')?.broken).toBe(true)
+    expect(useUsersState.getState().infoMap.get('testuser-3')?.broken).toBe(true)
   })
 
   test('an incoming message lands in its open thread only', async () => {
@@ -1267,7 +1267,7 @@ describe('what each notification leaves behind', () => {
           convID: rpcConvID(convA),
           reactionUpdates: [
             {
-              reactions: {reactions: {':+1:': {decorated: ':+1:', users: {bob: {ctime: 5, reactionMsgID: 40}}}}},
+              reactions: {reactions: {':+1:': {decorated: ':+1:', users: {'testuser-mac': {ctime: 5, reactionMsgID: 40}}}}},
               targetMsgID: 10,
             },
           ],
@@ -1276,7 +1276,7 @@ describe('what each notification leaves behind', () => {
       })
     )
     const row = mounted.get('A')?.store.getState().messageMap.get(T.Chat.numberToOrdinal(10))
-    expect(row?.reactions?.get(':+1:')?.users.map(u => u.username)).toEqual(['bob'])
+    expect(row?.reactions?.get(':+1:')?.users.map(u => u.username)).toEqual(['testuser-mac'])
     expect(useDaemonState.getState().bootstrapStatus?.userReacjis).toEqual(userReacjis)
   })
 
@@ -1302,9 +1302,9 @@ describe('what each notification leaves behind', () => {
 
   test('typing sets the inbox row typers and the open thread typers', async () => {
     await mountScreens([convA, convB])
-    await notify(typingIn(convA, 'bob'))
-    expect([...(useInboxTypingState.getState().typing.get(convA) ?? [])]).toEqual(['bob'])
-    expect(typersIn('A')).toEqual(['bob'])
+    await notify(typingIn(convA, 'testuser-mac'))
+    expect([...(useInboxTypingState.getState().typing.get(convA) ?? [])]).toEqual(['testuser-mac'])
+    expect(typersIn('A')).toEqual(['testuser-mac'])
     expect(typersIn('B')).toEqual([])
   })
 
@@ -1313,13 +1313,13 @@ describe('what each notification leaves behind', () => {
     await notify(
       engineAction('chat.1.NotifyChat.ChatParticipantsInfo', {
         participants: {
-          [convIDString(convA)]: [{assertion: 'alice', inConvName: true, type: T.RPCChat.UIParticipantType.user}],
-          [convIDString(convC)]: [{assertion: 'carol', inConvName: true, type: T.RPCChat.UIParticipantType.user}],
+          [convIDString(convA)]: [{assertion: 'testuser', inConvName: true, type: T.RPCChat.UIParticipantType.user}],
+          [convIDString(convC)]: [{assertion: 'testuser-2', inConvName: true, type: T.RPCChat.UIParticipantType.user}],
         },
       })
     )
     const {participants} = useInboxMetadataState.getState()
-    expect(participants.get(convA)?.name).toEqual(['alice'])
-    expect(participants.get(convC)?.name).toEqual(['carol'])
+    expect(participants.get(convA)?.name).toEqual(['testuser'])
+    expect(participants.get(convC)?.name).toEqual(['testuser-2'])
   })
 })

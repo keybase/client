@@ -182,16 +182,16 @@ describe('decodeChatNotification', () => {
     const {thread} = decodeChatNotification(
       chat('chat.1.NotifyChat.ChatTypingUpdate', {
         typingUpdates: [
-          {convID: rpcConvID(convA), typers: [{username: 'bob'}]},
+          {convID: rpcConvID(convA), typers: [{username: 'testuser-mac'}]},
           {convID: rpcConvID(convB), typers: null},
-          {convID: rpcConvID(convA), typers: [{username: 'carol'}]},
+          {convID: rpcConvID(convA), typers: [{username: 'testuser-2'}]},
         ],
       })
     )
     expect(thread.map(d => [d.conversationIDKey, d.notification])).toEqual([
-      [convA, {type: 'typing', typers: [{username: 'bob'}]}],
+      [convA, {type: 'typing', typers: [{username: 'testuser-mac'}]}],
       [convB, {type: 'typing', typers: null}],
-      [convA, {type: 'typing', typers: [{username: 'carol'}]}],
+      [convA, {type: 'typing', typers: [{username: 'testuser-2'}]}],
     ])
   })
 
@@ -394,19 +394,19 @@ describe('routeChatNotification', () => {
     routeChatNotification(
       chat('chat.1.NotifyChat.ChatTypingUpdate', {
         typingUpdates: [
-          {convID: rpcConvID(convA), typers: [{username: 'bob'}]},
-          {convID: rpcConvID(convB), typers: [{username: 'carol'}]},
+          {convID: rpcConvID(convA), typers: [{username: 'testuser-mac'}]},
+          {convID: rpcConvID(convB), typers: [{username: 'testuser-2'}]},
         ],
       })
     )
-    expect(order).toEqual(['A:bob', 'B:carol'])
+    expect(order).toEqual(['A:testuser-mac', 'B:testuser-2'])
   })
 
   test('a conversation nobody registered for reaches nobody', () => {
     const heard = jest.fn()
     onThread(convB, heard)
     onReload(convB, heard)
-    expect(() => routeChatNotification(typingIn(convA, 'bob'))).not.toThrow()
+    expect(() => routeChatNotification(typingIn(convA, 'testuser-mac'))).not.toThrow()
     expect(heard).not.toHaveBeenCalled()
   })
 
@@ -417,7 +417,7 @@ describe('routeChatNotification', () => {
       throw new Error('boom')
     })
     onThread(convA, heard)
-    routeChatNotification(typingIn(convA, 'bob'))
+    routeChatNotification(typingIn(convA, 'testuser-mac'))
     expect(heard).toHaveBeenCalledTimes(1)
     expect(error).toHaveBeenCalledWith(
       'Error in chat notification handler for chat.1.NotifyChat.ChatTypingUpdate',
@@ -430,8 +430,8 @@ describe('routeChatNotification', () => {
     let unregisterSecond: () => void = () => {}
     onThread(convA, () => unregisterSecond())
     unregisterSecond = registerThreadHandler(convA, heard)
-    routeChatNotification(typingIn(convA, 'bob'))
-    routeChatNotification(typingIn(convA, 'carol'))
+    routeChatNotification(typingIn(convA, 'testuser-mac'))
+    routeChatNotification(typingIn(convA, 'testuser-2'))
     expect(heard).toHaveBeenCalledTimes(1)
   })
 })
@@ -440,9 +440,9 @@ describe('registry', () => {
   test('unregistering stops delivery', () => {
     const heard = jest.fn()
     const unregister = registerThreadHandler(convA, heard)
-    routeChatNotification(typingIn(convA, 'bob'))
+    routeChatNotification(typingIn(convA, 'testuser-mac'))
     unregister()
-    routeChatNotification(typingIn(convA, 'carol'))
+    routeChatNotification(typingIn(convA, 'testuser-2'))
     expect(heard).toHaveBeenCalledTimes(1)
   })
 
@@ -450,11 +450,11 @@ describe('registry', () => {
     const heard = jest.fn()
     const first = registerThreadHandler(convA, heard)
     unregisters.push(registerThreadHandler(convA, heard))
-    routeChatNotification(typingIn(convA, 'bob'))
+    routeChatNotification(typingIn(convA, 'testuser-mac'))
     expect(heard).toHaveBeenCalledTimes(2)
     first()
     first()
-    routeChatNotification(typingIn(convA, 'carol'))
+    routeChatNotification(typingIn(convA, 'testuser-2'))
     expect(heard).toHaveBeenCalledTimes(3)
   })
 
@@ -473,7 +473,7 @@ describe('registry', () => {
     const heard = jest.fn()
     onThread(convA, heard)
     stale()
-    routeChatNotification(typingIn(convA, 'bob'))
+    routeChatNotification(typingIn(convA, 'testuser-mac'))
     expect(heard).toHaveBeenCalledTimes(1)
   })
 })
@@ -488,14 +488,14 @@ describe('hooks', () => {
         }),
       {initialProps: {id: convA, prefix: 'first'}}
     )
-    act(() => routeChatNotification(typingIn(convA, 'bob')))
+    act(() => routeChatNotification(typingIn(convA, 'testuser-mac')))
     rerender({id: convA, prefix: 'second'})
-    act(() => routeChatNotification(typingIn(convA, 'bob')))
+    act(() => routeChatNotification(typingIn(convA, 'testuser-mac')))
     rerender({id: convB, prefix: 'second'})
-    act(() => routeChatNotification(typingIn(convA, 'bob')))
-    act(() => routeChatNotification(typingIn(convB, 'bob')))
+    act(() => routeChatNotification(typingIn(convA, 'testuser-mac')))
+    act(() => routeChatNotification(typingIn(convB, 'testuser-mac')))
     unmount()
-    act(() => routeChatNotification(typingIn(convB, 'bob')))
+    act(() => routeChatNotification(typingIn(convB, 'testuser-mac')))
     expect(heard).toEqual(['first:typing', 'second:typing', 'second:typing'])
   })
 
