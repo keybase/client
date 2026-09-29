@@ -109,8 +109,8 @@ export const useDesktopThreadScroll = (p: {
   // footer or viewport layout change but has no header trigger, so a header that grows after the
   // target resolved leaves the list short by exactly that growth and nothing corrects it.
   //
-  // Closed loop rather than a correction fired straight from the size change, for the same reason
-  // pinning unlessAtEnd keeps out of the way: the header often settles while the thread is still
+  // Closed loop rather than a correction fired straight from the size change, for the same reason a
+  // pin leaves a list already at its end alone: the header often settles while the thread is still
   // empty, and a scrollToEnd issued against that near-empty content becomes the target the list then
   // abandons its own bootstrap for, landing anywhere. Wait for the scroll offset to hold still, so
   // the list has finished its own initial scroll, and only then correct what it left on the table.
