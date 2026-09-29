@@ -26,6 +26,8 @@ export const CHAT_BOT_ROW               = 'chat-bot-row'
 // Review / Edit settings / Uninstall), so tests key off the modal itself
 export const CHAT_BOT_INSTALL           = 'chat-bot-install'
 export const CHAT_SUGGESTION_LIST       = 'chat-suggestion-list'
+// a bot command's help, shown over the composer once its text names the command
+export const CHAT_COMMAND_MARKDOWN      = 'chat-command-markdown'
 export const CHAT_EMOJI_BUTTON          = 'chat-emoji-button'
 export const CHAT_INFO_PANEL_SETTINGS_TAB = 'chat-info-panel-settings-tab'
 // Android only: iOS 26 folds Search/Info into one native "More" header menu,

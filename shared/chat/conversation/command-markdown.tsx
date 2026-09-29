@@ -1,4 +1,5 @@
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as React from 'react'
 import * as InputState from './input-area/input-state'
 import {ComposerBoxContext} from './composer-viewport-context'
@@ -18,6 +19,7 @@ const CommandMarkdown = () => {
       direction="vertical"
       fullWidth={true}
       style={Kb.Styles.collapseStyles([styles.container, maxHeightStyle])}
+      testID={TestIDs.CHAT_COMMAND_MARKDOWN}
     >
       {!!title && (
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.title}>
