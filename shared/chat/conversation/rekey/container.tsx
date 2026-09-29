@@ -1,10 +1,11 @@
 import * as C from '@/constants'
 import {useCurrentUserState} from '@/stores/current-user'
-import * as T from '@/constants/types'
 import ParticipantRekey from './participant-rekey'
 import YouRekey from './you-rekey'
 import {navToProfile} from '@/constants/router'
-import {useThreadMeta} from '../thread-context'
+import {useConversationThreadActions, useThreadMeta} from '../thread-context'
+import {unlessRetired} from '../thread-store'
+import {getChatRpc} from '../chat-rpc'
 
 const Container = () => {
   const _you = useCurrentUserState(s => s.username)
@@ -14,14 +15,16 @@ const Container = () => {
   const onEnterPaperkey = () => {
     navigateAppend({name: 'chatEnterPaperkey', params: {}})
   }
-  const rekeyShowPendingRekeyStatus = C.useRPC(T.RPCGen.rekeyShowPendingRekeyStatusRpcPromise)
-  const onRekey = () => {
-    rekeyShowPendingRekeyStatus(
-      [],
-      () => {},
-      () => {}
-    )
-  }
+  const {isRetired} = useConversationThreadActions()
+  // a screen kept through an account switch asks for no rekey
+  const {onRekey} = unlessRetired(
+    {
+      onRekey: () => {
+        C.ignorePromise(getChatRpc().showPendingRekeyStatus())
+      },
+    },
+    isRetired
+  )
 
   const onShowProfile = navToProfile
 

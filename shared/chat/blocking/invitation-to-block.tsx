@@ -4,21 +4,24 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {useBlockButtonsInfo} from './block-buttons-state'
 import {
+  useConversationThreadActions,
   useConversationThreadID,
   useConversationThreadSelector,
   useThreadMeta,
 } from '../conversation/thread-context'
+import {unlessRetired} from '../conversation/thread-store'
 import {useConversationParticipantsSelector} from '../conversation/data-hooks'
+import {getChatRpc} from '../conversation/chat-rpc'
 
-const dismissBlockButtons = (teamID: T.RPCGen.TeamID) => {
+const dismissBlockButtonsRaw = (teamID: T.RPCGen.TeamID) => {
   const f = async () => {
     try {
-      await T.RPCGen.userDismissBlockButtonsRpcPromise({tlfID: teamID})
+      await getChatRpc().dismissBlockButtons(teamID)
     } catch (error) {
       if (error instanceof RPCError) {
         logger.error(`Couldn't dismiss block buttons: ${error.message}`)
@@ -33,6 +36,9 @@ const BlockButtons = () => {
   const theme = Kb.Styles.useTheme()
   const navigateAppend = C.Router2.navigateAppend
   const conversationIDKey = useConversationThreadID()
+  const {isRetired} = useConversationThreadActions()
+  // a screen kept through an account switch dismisses nothing
+  const {dismissBlockButtons} = unlessRetired({dismissBlockButtons: dismissBlockButtonsRaw}, isRetired)
   const {team, teamID, tlfname} = useThreadMeta(
     C.useShallow(m => ({team: m.teamname, teamID: m.teamID, tlfname: m.tlfname}))
   )
@@ -55,7 +61,7 @@ const BlockButtons = () => {
     if (hasOwnMessage && blockButtonInfo && teamID) {
       dismissBlockButtons(teamID)
     }
-  }, [blockButtonInfo, hasOwnMessage, teamID])
+  }, [blockButtonInfo, dismissBlockButtons, hasOwnMessage, teamID])
 
   if (!blockButtonInfo) {
     return null

@@ -217,6 +217,11 @@ export type ChatThreadRpc = {
   }) => Promise<void>
   // the names of the bot's public commands
   listPublicBotCommands: (username: string) => Promise<ReadonlyArray<string>>
+
+  // hides the invitation-to-block banner of the team or conversation
+  dismissBlockButtons: (teamID: T.RPCGen.TeamID) => Promise<void>
+  // asks the service to show its rekey prompt for what is waiting on this device
+  showPendingRekeyStatus: () => Promise<void>
 }
 
 const threadLoadMessageTypes = enumKeys(T.RPCChat.MessageType).reduce<Array<T.RPCChat.MessageType>>(
@@ -334,6 +339,9 @@ const serviceChatRpc: ChatThreadRpc = {
       tlfName,
       tlfPublic: false,
     })
+  },
+  dismissBlockButtons: async teamID => {
+    await T.RPCGen.userDismissBlockButtonsRpcPromise({tlfID: teamID})
   },
   dismissJourneycard: async (conversationIDKey, cardType) => {
     await T.RPCChat.localDismissJourneycardRpcPromise({
@@ -640,6 +648,9 @@ const serviceChatRpc: ChatThreadRpc = {
       conversationID: composerConversationID(conversationIDKey),
       typing,
     })
+  },
+  showPendingRekeyStatus: async () => {
+    await T.RPCGen.rekeyShowPendingRekeyStatusRpcPromise()
   },
   toggleCollapse: async p => {
     await T.RPCChat.localToggleMessageCollapseRpcPromise({
