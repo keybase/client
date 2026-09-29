@@ -17,7 +17,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import Input from './normal'
 import type {PlatformInputProps, Selection} from './normal/input.shared'
 import {ConversationInputProvider, useConversationInput, type ConversationInputState} from './input-state'
-import {FakeComposerInputView, makeFakeComposerInput, type FakeComposerInput} from './composer-fake-input'
+import {FakeComposerInputView, makeFakeComposerInput, type FakeComposerInput} from '@/test/fake-composer-input'
 import {ConversationThreadProvider, useConversationThreadActions} from '../thread-context'
 import {suppressedURLsOf, takeSuppressSnapshot, useUnfurlPreviewState} from '../unfurl-preview-state'
 

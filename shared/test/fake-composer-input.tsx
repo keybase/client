@@ -1,8 +1,8 @@
 // Test-only third input for the composer, next to the desktop textarea and the native TextInput.
 // It applies writes and echoes reflected ones synchronously, the way the native input does.
 import * as React from 'react'
-import {useComposerInput, type ComposerInput} from './composer'
-import type {Selection} from './normal/input.shared'
+import {useComposerInput, type ComposerInput} from '@/chat/conversation/input-area/composer'
+import type {Selection} from '@/chat/conversation/input-area/normal/input.shared'
 
 export type FakeComposerInput = ComposerInput & {
   // where the input reports what was typed; the real inputs call their onChangeText prop

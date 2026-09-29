@@ -3,7 +3,7 @@
 import * as React from 'react'
 import {act, cleanup, render, renderHook} from '@testing-library/react'
 import {ComposerContext, makeComposer, useComposerInput} from './composer'
-import {FakeComposerInputView, makeFakeComposerInput, type FakeComposerInput} from './composer-fake-input'
+import {FakeComposerInputView, makeFakeComposerInput, type FakeComposerInput} from '@/test/fake-composer-input'
 import type {SuppressSnapshot} from '../unfurl-preview-state'
 
 const noSnapshot: SuppressSnapshot = {dismissed: [], failed: []}

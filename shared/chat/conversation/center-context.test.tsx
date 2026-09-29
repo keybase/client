@@ -32,7 +32,7 @@ jest.mock('./thread-search-route', () => ({useChatThreadRouteParams: () => mockR
 
 import {ConversationCenterProvider, useConversationCenter} from './center-context'
 import {ConversationInputProvider} from './input-area/input-state'
-import {FakeComposerInputView, makeFakeComposerInput} from './input-area/composer-fake-input'
+import {FakeComposerInputView, makeFakeComposerInput} from '@/test/fake-composer-input'
 import {setInputIntent, useInputIntentState} from './input-intent-store'
 
 let seenHighlightOrdinal: T.Chat.Ordinal | undefined
