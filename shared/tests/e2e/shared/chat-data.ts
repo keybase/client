@@ -441,7 +441,9 @@ export const attachAsSmokeUser = async (topicName: E2EChannel, title: string) =>
 // The bot commands offered in a channel (none unless the team has a bot installed).
 export const botCommands = async (topicName: E2EChannel) => {
   const {team} = e2eAccounts()
-  type Commands = {commands?: Array<{name: string; username: string}> | null}
+  type Commands = {
+    commands?: Array<{extended_description?: {title?: string} | null; name: string; username: string}> | null
+  }
   const res = await withApi(async api => api.call<Commands>('listcommands', {channel: channelRef(team, topicName)}))
   return (res.commands ?? []).filter(c => !!c.username)
 }

@@ -368,17 +368,78 @@ test.describe('suggestions', () => {
     await expectComposerText(page, `x :${name}: `)
   })
 
-  test('pasting a bot command offers it', async ({page}) => {
-    const commands = await botCommands(E2E_CHANNELS.scratch)
-    const command = commands[0]
-    test.skip(!command, 'the e2e team has no bot installed, so there is no bot command to paste')
-    if (!command) return
+  // The bot's commands are read from the service (the e2e team has a bot installed), never named here.
+  const botCommandsFor = async () => {
+    const all = await botCommands(E2E_CHANNELS.scratch)
+    const bot = all[0]?.username
+    const commands = all.filter(c => c.username === bot)
+    test.skip(commands.length < 2, 'the e2e team needs a bot with at least two commands to paste')
+    return commands
+  }
+  const commandMarkdown = (page: Page) => page.getByTestId(T.CHAT_COMMAND_MARKDOWN)
+  // A command's help title, as drawn: its markdown (`*!bot cmd*\nWhat it does`) without the emphasis.
+  const titleLines = (title: string | undefined) =>
+    (title ?? '')
+      .split('\n')
+      .map(l => l.replace(/\*/g, '').trim())
+      .filter(Boolean)
+  const pasteIntoComposer = async (page: Page, text: string) => {
     await openScratch(page)
     await resetComposer(page)
     await composer.focus(page)
-    await page.keyboard.insertText(`!${command.name}`)
+    await page.keyboard.insertText(text)
+  }
+
+  test('pasting a bot name lists its commands, the first highlighted', async ({page}) => {
+    const commands = await botCommandsFor()
+    await pasteIntoComposer(page, `!${commands[0]!.username}`)
     await expect(suggestionList(page)).toBeVisible({timeout: 10_000})
-    await expect.poll(async () => (await suggestionRows(page)).map(r => r.text).join('\n'), {timeout: 10_000}).toContain(command.name)
+    await expect
+      .poll(async () => (await suggestionRows(page)).map(r => firstLine(r.text)), {timeout: 10_000})
+      .toEqual(commands.map(c => `!${c.name}`))
+    expect((await suggestionRows(page)).map(r => r.selected)).toEqual(commands.map((_, i) => i === 0))
+  })
+
+  test('pasting part of a bot command highlights that command', async ({page}) => {
+    const commands = await botCommandsFor()
+    // not the first command, so the highlight has to move to it
+    const target = commands[1]!
+    const others = commands.filter(c => c !== target).map(c => c.name)
+    let prefix = target.name
+    for (let n = target.username.length + 2; n <= target.name.length; n++) {
+      if (!others.some(o => o.startsWith(target.name.slice(0, n)))) {
+        prefix = target.name.slice(0, n)
+        break
+      }
+    }
+    await pasteIntoComposer(page, `!${prefix}`)
+    await expect(suggestionList(page)).toBeVisible({timeout: 10_000})
+    await expect
+      .poll(async () => (await suggestionRows(page)).map(r => ({command: firstLine(r.text), selected: r.selected})), {
+        timeout: 10_000,
+      })
+      .toEqual([{command: `!${target.name}`, selected: true}])
+  })
+
+  test('pasting a whole bot command shows that command\'s help instead of the list', async ({page}) => {
+    const commands = (await botCommandsFor()).filter(c => titleLines(c.extended_description?.title).length)
+    test.skip(commands.length < 2, 'the bot needs two commands with help to tell them apart')
+    const target = commands[1]!
+    await pasteIntoComposer(page, `!${target.name}`)
+    await expect(commandMarkdown(page)).toBeVisible({timeout: 10_000})
+    await expect(suggestionList(page)).toHaveCount(0)
+    const help = await commandMarkdown(page).innerText({timeout: 5_000})
+    for (const line of titleLines(target.extended_description?.title)) {
+      expect(help, `the help names ${target.name}`).toContain(line)
+    }
+    for (const other of commands.filter(c => c !== target)) {
+      // the other commands' one-line summaries, which only their own help shows
+      const summary = titleLines(other.extended_description?.title).at(-1)!
+      expect(help, `the help is not ${other.name}'s`).not.toContain(summary)
+    }
+    // clearing the text closes the help
+    await composerInput(page).fill('', {timeout: 5_000})
+    await expect(commandMarkdown(page)).toHaveCount(0, {timeout: 10_000})
   })
 })
 
