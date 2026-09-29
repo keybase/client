@@ -79,6 +79,14 @@ describe('the list scrolling itself', () => {
     expect(own.carries(600, 900)).toBe(false)
   })
 
+  test('what heads its way is judged from where each movement starts, so one issued from nowhere known is judged too', () => {
+    const own = makeOwnScrolls()
+    own.issued(undefined, 200)
+    expect(own.carries(1000, 600)).toBe(true)
+    expect(own.carries(100, 150)).toBe(true)
+    expect(own.carries(100, 50)).toBe(false)
+  })
+
   test('with no destination known, carries any movement', () => {
     const own = makeOwnScrolls()
     own.issued(undefined, undefined)

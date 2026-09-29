@@ -15,9 +15,9 @@ const ownSettleMs = 1000
 const stillPx = 1
 
 export type OwnScrolls = {
-  // The list starts a scroll of its own from offset from toward offset to: its destination, or only
-  // an offset past it in the same direction when the list does not know where it will land exactly,
-  // or undefined when it knows neither. Its movement toward there until the list next comes to rest
+  // The list starts a scroll of its own from offset from (undefined when it does not know where it
+  // is) toward offset to: its destination, or only an offset past it in the same direction when the
+  // list does not know where it will land exactly, or undefined when it knows neither. Its movement toward there until the list next comes to rest
   // is the list's, and the rest that follows is the list's too, whatever the reader moved before it.
   // A scroll whose destination is where the list already is moves nothing, so there is nothing in
   // flight and no rest will follow it. Returns whether it moves.
@@ -33,19 +33,16 @@ export type OwnScrolls = {
 
 export const makeOwnScrolls = (): OwnScrolls => {
   let ownUntil = 0
-  let ownFrom: number | undefined
   let ownTo: number | undefined
   let readerMoving = false
   return {
     carries: (from, now) => {
       if (Date.now() >= ownUntil) return false
-      if (ownFrom === undefined || ownTo === undefined) return true
-      return Math.sign(now - from) === Math.sign(ownTo - ownFrom)
+      return ownTo === undefined || Math.sign(now - from) === Math.sign(ownTo - from)
     },
     issued: (from, to) => {
       if (from !== undefined && to !== undefined && Math.abs(to - from) <= stillPx) return false
       ownUntil = Date.now() + ownSettleMs
-      ownFrom = from
       ownTo = to
       readerMoving = false
       return true

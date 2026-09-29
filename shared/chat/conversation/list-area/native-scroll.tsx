@@ -10,6 +10,7 @@ import {restingScrollOffset} from '../composer-geometry'
 import {makeOwnScrolls} from './own-scrolls'
 import {
   listAnchorsEnd,
+  ownsEnd,
   useHeldLatest,
   useScrollTarget,
   type ScrollDirective,
@@ -58,6 +59,8 @@ const rowFullyVisible = (
 
 // An offset within this many points of the resting offset is at the end.
 const endTolerance = 8
+// The list moving by less than this has not moved.
+const stillPoints = 1
 
 export const useNativeThreadScroll = (p: {
   // Newest first, as the inverted list holds them.
@@ -105,13 +108,33 @@ export const useNativeThreadScroll = (p: {
   const scrollTarget = useScrollTarget()
   const [own] = React.useState(makeOwnScrolls)
   const heldLatest = useHeldLatest(containsLatestMessage)
-  // Every scroll the list makes itself goes through these, so the rest that follows is its own.
+
+  // What the list has reported of itself, undefined until it does. The list is keyed by conversation,
+  // so a switch brings a new list that starts unmeasured, and the old one's figures say nothing of it.
+  const metricsRef = React.useRef<{content?: number; offset?: number; viewport?: number}>({})
+  const vFirstRef = React.useRef<number | null | undefined>(undefined)
+  const vLastRef = React.useRef<number | null | undefined>(undefined)
+
+  // Every scroll the list makes itself goes through these, saying where it is going, so the movement
+  // toward there and the rest that follows are its own.
   const [scrollToOffset] = React.useState(() => (offset: number) => {
-    own.issued(undefined, undefined)
+    own.issued(metricsRef.current.offset, offset)
     listRef.current?.scrollToOffset({animated: false, offset})
   })
+  // Where a row lands is not known ahead, only which way it lies: older rows sit at higher offsets.
   const [scrollToItem] = React.useState(() => (item: T.Chat.Ordinal, animated: boolean) => {
-    own.issued(undefined, undefined)
+    const index = ordsRef.current.indexOf(item)
+    const first = vFirstRef.current
+    const last = vLastRef.current
+    const to =
+      first == null || last == null || index < 0
+        ? undefined
+        : index > last
+          ? Infinity
+          : index < first
+            ? -Infinity
+            : undefined
+    own.issued(metricsRef.current.offset, to)
     listRef.current?.scrollToItem({animated, item, viewPosition: 0.5})
   })
 
@@ -143,19 +166,17 @@ export const useNativeThreadScroll = (p: {
   // offset here (inverted list + custom keyboard scrollview + tall variable-height
   // image rows), so instead we read the actual viewable index range each frame and
   // scrollToOffset by the item-delta until the target sits at viewport center.
-  // What the list has reported of itself, undefined until it does. The list is keyed by conversation,
-  // so a switch brings a new list that starts unmeasured, and the old one's figures say nothing of it.
-  const metricsRef = React.useRef<{content?: number; offset?: number; viewport?: number}>({})
   // {active, iters}: correcting toward a centered hit and how many steps taken
   const correctRef = React.useRef({active: false, iters: 0})
-  const vFirstRef = React.useRef<number | null | undefined>(undefined)
-  const vLastRef = React.useRef<number | null | undefined>(undefined)
+  // The list as its last scroll event reported it, which the next one is compared with.
+  const lastScrollRef = React.useRef<{content: number; offset: number; resting: number} | undefined>(undefined)
   // Compared by value, so a freeze/thaw re-mount, which keeps the list, keeps its figures.
   const measuredConvRef = React.useRef(conversationIDKey)
   React.useLayoutEffect(() => {
     if (measuredConvRef.current === conversationIDKey) return
     measuredConvRef.current = conversationIDKey
     metricsRef.current = {}
+    lastScrollRef.current = undefined
     vFirstRef.current = undefined
     vLastRef.current = undefined
   }, [conversationIDKey])
@@ -385,29 +406,39 @@ export const useNativeThreadScroll = (p: {
     })
   })
 
-  const [onScroll] = React.useState(
-    () =>
-      (e: {
-        nativeEvent: {contentOffset: {y: number}; contentSize: {height: number}; layoutMeasurement: {height: number}}
-      }) => {
-        metricsRef.current = {
-          content: e.nativeEvent.contentSize.height,
-          offset: e.nativeEvent.contentOffset.y,
-          viewport: e.nativeEvent.layoutMeasurement.height,
-        }
-      }
+  // Who moved the list is read from how it moved, never from the input that moved it: a drag, the
+  // status bar, VoiceOver alike. The list moves itself only by the scrolls it issues (toward where they
+  // are going), by its content changing size (its content-position anchor holding the rows in view in
+  // place) or its resting offset moving (the keyboard, the safe area), and, while it holds the end, by
+  // its anchor bringing a new message into view. Any other movement is the reader's.
+  const onScroll = React.useCallback(
+    (e: {
+      nativeEvent: {contentOffset: {y: number}; contentSize: {height: number}; layoutMeasurement: {height: number}}
+    }) => {
+      const content = e.nativeEvent.contentSize.height
+      const offset = e.nativeEvent.contentOffset.y
+      const resting = restingOffset()
+      metricsRef.current = {content, offset, viewport: e.nativeEvent.layoutMeasurement.height}
+      const last = lastScrollRef.current
+      lastScrollRef.current = {content, offset, resting}
+      if (!last || Math.abs(offset - last.offset) < stillPoints) return
+      if (content !== last.content || resting !== last.resting) return
+      if (own.carries(last.offset, offset)) return
+      if (ownsEnd(scrollTarget.state) && Math.abs(offset - resting) < Math.abs(last.offset - resting)) return
+      dispatch(own.readerMoved())
+    },
+    [dispatch, own, restingOffset, scrollTarget]
   )
   const [onContentSizeChange] = React.useState(() => (_w: number, h: number) => {
     metricsRef.current = {...metricsRef.current, content: h}
   })
-  // The reader is told apart by touch, which the list reports itself: a drag is always theirs, and
-  // everything else moving the list is the list's own.
+  // A drag is the reader's for certain, and is seen before it moves anything.
   const onScrollBeginDrag = React.useCallback(() => {
     dispatch(own.readerMoved())
   }, [dispatch, own])
 
-  // The list coming to rest: the reader letting go, a fling stopping, or (on iOS) an animated scroll of
-  // the list's own ending, which hands nothing back.
+  // The list coming to rest: the reader letting go, a fling or a status-bar tap's scroll stopping, or
+  // (on iOS) a scroll of the list's own ending, which hands nothing back.
   const rested = React.useCallback(
     (e: {nativeEvent: {contentOffset: {y: number}}}) => {
       const handedBack = own.rested(atEnd(e.nativeEvent.contentOffset.y))
@@ -456,6 +487,7 @@ export const useNativeThreadScroll = (p: {
     onScrollBeginDrag,
     onScrollEndDrag,
     onScrollToIndexFailed,
+    onScrollToTop: rested,
     onViewableRange,
     scrollToBottom: requestBottom,
   }

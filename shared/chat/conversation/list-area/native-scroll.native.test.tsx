@@ -1134,6 +1134,115 @@ describe('editing', () => {
   })
 })
 
+// However the reader moved the list, it moved without the list moving itself.
+describe('movement the list did not make is the reader', () => {
+  const restingOverKeyboard = H.bottomInset - keyboardHeight
+
+  // A tap on the status bar scrolls an inverted list to its newest message, with no drag.
+  test('a status-bar tap that carries the reader from history to the newest hands the end back', async () => {
+    open({keyboard: true})
+    await tick(200)
+    scrolled(restingOverKeyboard, 6000)
+    drag()
+    scrolled(2000, 6000)
+    dragEnded(2000)
+    update(() => {
+      props().onScrollToTop({nativeEvent: {contentOffset: {y: 2000}}})
+    })
+    scrolled(1000, 6000)
+    scrolled(restingOverKeyboard, 6000)
+    update(() => {
+      props().onScrollToTop({nativeEvent: {contentOffset: {y: restingOverKeyboard}}})
+    })
+    clearLog()
+    setOrdinals(1, 61)
+    await tick(0)
+    expect(H.log).toEqual([toBottomOverKeyboard])
+  })
+
+  // VoiceOver's three-finger scroll moves the list with no drag.
+  test('a scroll with no drag during a centring ladder stops it', async () => {
+    open({center: 30})
+    scrolled(0, 6000)
+    viewable(0, 9)
+    const firstStep = 25.5 * 100 * 0.9
+    expect(scrollsOnly()).toEqual([toOffset(firstStep)])
+    scrolled(firstStep, 6000)
+    scrolled(firstStep - 800, 6000)
+    clearLog()
+    viewable(0, 9)
+    await tick(1000)
+    expect(scrollsOnly()).toEqual([])
+  })
+
+  // Where a coarse scroll to the row lands is not known, only which way the row lies.
+  test('a scroll with no drag against a coarse scroll to the target still under way stops centring', async () => {
+    open({center: 30})
+    viewable(0, 9)
+    await tick(50)
+    expect(scrollsOnly()).toEqual([coarse(30)])
+    scrolled(0, 6000)
+    scrolled(2000, 6000)
+    scrolled(1000, 6000)
+    clearLog()
+    await tick(1000)
+    expect(scrollsOnly()).toEqual([])
+  })
+
+  test('a scroll with no drag into history takes the end: a new message with the keyboard up leaves the reader there', async () => {
+    open({keyboard: true})
+    await tick(200)
+    scrolled(restingOverKeyboard, 6000)
+    scrolled(1500, 6000)
+    clearLog()
+    setOrdinals(1, 61)
+    await tick(1000)
+    expect(H.log).toEqual([])
+  })
+
+  // The keyboard lifts the list with it wherever it is, here off a hit still being centred.
+  test('the keyboard opening moves the list with its resting offset, which is the list\'s own: centring goes on', async () => {
+    open({center: 30})
+    scrolled(0, 6000)
+    viewable(0, 9)
+    const firstStep = 25.5 * 100 * 0.9
+    scrolled(firstStep, 6000)
+    update(openKeyboard)
+    scrolled(firstStep - keyboardHeight + H.bottomInset, 6000)
+    clearLog()
+    await tick(50)
+    expect(scrollsOnly()).toContainEqual(coarse(30))
+  })
+
+  test('rows changing size move the list as its anchor holds them, which is the list\'s own', async () => {
+    open({keyboard: true})
+    await tick(200)
+    scrolled(restingOverKeyboard, 6000)
+    scrolled(restingOverKeyboard + 150, 6150)
+    clearLog()
+    setOrdinals(1, 61)
+    await tick(0)
+    expect(H.log).toEqual([toBottomOverKeyboard])
+  })
+
+  // With the keyboard down, the anchor itself scrolls a new message into view.
+  test('while the list holds the end, its anchor bringing the newest into view is its own', async () => {
+    open()
+    // Past the first load's own scrolls.
+    await tick(1100)
+    scrolled(0, 6000)
+    scrolled(100, 6100)
+    scrolled(40, 6100)
+    scrolled(0, 6100)
+    expect(props().maintainVisibleContentPosition).toEqual(mvpClosed)
+    update(openKeyboard)
+    clearLog()
+    setOrdinals(1, 61)
+    await tick(0)
+    expect(H.log).toEqual([toBottomOverKeyboard])
+  })
+})
+
 describe('the list\'s own scrolls coming to rest', () => {
   // An animated scroll of the list's own ending reports a rest on iOS as a fling's end does.
   test('a reveal ending at the resting offset does not hand the end back while a hit is centred', async () => {

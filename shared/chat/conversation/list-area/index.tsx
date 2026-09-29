@@ -519,6 +519,7 @@ const NativeConversationList = function NativeConversationList() {
     onScrollBeginDrag,
     onScrollEndDrag,
     onScrollToIndexFailed,
+    onScrollToTop,
     onViewableRange,
     scrollToBottom,
   } = useNativeThreadScroll({
@@ -595,6 +596,7 @@ const NativeConversationList = function NativeConversationList() {
             onScrollBeginDrag={onScrollBeginDrag}
             onScrollEndDrag={onScrollEndDrag}
             onMomentumScrollEnd={onMomentumScrollEnd}
+            onScrollToTop={onScrollToTop}
             keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
             keyExtractor={keyExtractor}
