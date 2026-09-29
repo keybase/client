@@ -172,7 +172,7 @@ const startEdit = (textarea: HTMLTextAreaElement) => {
 
 const startReply = (getHandles: () => Handles) => {
   act(() => {
-    getHandles().input.dispatch.setReplyTo(lastOrdinal)
+    getHandles().input.dispatch.reply(lastOrdinal)
   })
 }
 

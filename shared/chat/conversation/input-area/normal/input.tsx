@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
-import * as ChatTypes from '@/constants/types/chat/message'
 import type * as T from '@/constants/types'
 import * as InputState from '../input-state'
 import SetExplodingMessagePopup from './set-explode-popup'
@@ -665,7 +664,7 @@ const useDesktopKeys = (p: UseDesktopKeysProps) => {
   const {closeSuggestions, getSuggestions, moveSuggestion, recheckSuggestions, selectSuggestion} = suggestors
   const composer = useComposer()
   const setEditing = InputState.useConversationInputDispatch(s => s.setEditing)
-  const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
+  const clearReplyTo = InputState.useConversationInputDispatch(s => s.clearReplyTo)
   const {scrollDown, scrollUp} = React.useContext(ThreadRefsContext)
 
   const run = (a: InputKeyAction | WindowKeyAction) => {
@@ -677,7 +676,7 @@ const useDesktopKeys = (p: UseDesktopKeysProps) => {
         onCancelEditing()
         break
       case 'cancelReply':
-        setReplyTo(ChatTypes.numberToOrdinal(0))
+        clearReplyTo()
         break
       case 'openFilePicker':
         htmlInputRef.current?.click()

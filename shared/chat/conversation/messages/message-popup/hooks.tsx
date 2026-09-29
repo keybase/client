@@ -146,7 +146,7 @@ const useItemsForMessage = (p: {
   // driving the wrong conversation's composer.
   const onReply = () => {
     if (inputDispatch) {
-      inputDispatch.setReplyTo(ordinal)
+      inputDispatch.reply(ordinal)
     } else {
       setThreadInputReplyTo(conversationIDKey, ordinal)
     }

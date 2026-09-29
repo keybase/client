@@ -3,7 +3,14 @@ import * as Meta from '@/constants/chat/meta'
 import * as React from 'react'
 import * as Strings from '@/constants/strings'
 import * as T from '@/constants/types'
-import {getVisibleScreen, navigateAppend, navigateToThread, navigateUp, setChatRootParams} from '@/constants/router'
+import {
+  getVisibleScreen,
+  navigateAppend,
+  navigateToThread,
+  navigateUp,
+  setChatRootParams,
+  setRouteParams,
+} from '@/constants/router'
 import {isPhone} from '@/constants/platform'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
@@ -1380,15 +1387,15 @@ export const useConversationThreadToggleSearch = () => {
   }
 }
 
+type ThreadSearchParams = {conversationIDKey?: T.Chat.ConversationIDKey; threadSearch?: {query?: string}}
+
 export const toggleConversationThreadSearch = (
   conversationIDKey: T.Chat.ConversationIDKey,
   hide?: boolean,
   query?: string
 ) => {
   const visible = getVisibleScreen()
-  const params = visible?.params as
-    | {conversationIDKey?: T.Chat.ConversationIDKey; threadSearch?: {query?: string}}
-    | undefined
+  const params = visible?.params as ThreadSearchParams | undefined
   const nextVisible = hide !== undefined ? !hide : !params?.threadSearch
 
   const threadSearch = nextVisible ? (query ? {query} : {}) : undefined
@@ -1404,6 +1411,18 @@ export const toggleConversationThreadSearch = (
     }
   }
   ignorePromise(f())
+}
+
+// Closes this conversation's thread search if it is open. It looks past modals and targets the
+// thread's route by key, so it still lands while the phone message menu (a modal) is up.
+export const closeConversationThreadSearch = (conversationIDKey: T.Chat.ConversationIDKey) => {
+  const visible = getVisibleScreen(false)
+  const params = visible?.params as ThreadSearchParams | undefined
+  if (!params?.threadSearch || params.conversationIDKey !== conversationIDKey) {
+    return
+  }
+  setRouteParams(visible?.key, {threadSearch: undefined})
+  ignorePromise(cancelActiveThreadSearchRPC())
 }
 
 export type ConversationInfoPanelTab = 'settings' | 'members' | 'attachments' | 'bots' | undefined

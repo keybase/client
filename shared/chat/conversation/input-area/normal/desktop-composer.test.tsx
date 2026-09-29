@@ -793,7 +793,7 @@ describe('read-only', () => {
 
     act(() => {
       getHandles().input.dispatch.setEditing(T.Chat.numberToOrdinal(101))
-      getHandles().input.dispatch.setReplyTo(T.Chat.numberToOrdinal(101))
+      getHandles().input.dispatch.reply(T.Chat.numberToOrdinal(101))
     })
 
     expect(getHandles().input.editing).toBe(T.Chat.numberToOrdinal(0))

@@ -20,6 +20,8 @@ import type {PlatformInputProps, Selection} from './normal/input.shared'
 import {ConversationInputProvider, useConversationInput, type ConversationInputState} from './input-state'
 import {FakeComposerInputView, makeFakeComposerInput, type FakeComposerInput} from '@/test/fake-composer-input'
 import {ConversationThreadProvider, useConversationThreadActions} from '../thread-context'
+import {installFakeNavigator, makeRootState, restoreNavigator} from '@/test/fake-navigator'
+import * as NavTree from '@/constants/nav-tree'
 import {suppressedURLsOf, takeSuppressSnapshot, useUnfurlPreviewState} from '../unfurl-preview-state'
 import {ThreadRefsContext, ThreadRefsProvider} from '../normal/context'
 
@@ -221,6 +223,7 @@ afterEach(() => {
   cleanup()
   jest.restoreAllMocks()
   resetAllStores()
+  restoreNavigator()
 })
 
 test('setEditing last picks the latest editable local message and injects its content', () => {
@@ -359,7 +362,7 @@ test('sendComposerText sends reply context and clears transient composer state',
     )
   })
   act(() => {
-    result.current.input.dispatch.setReplyTo(replyOrdinal)
+    result.current.input.dispatch.reply(replyOrdinal)
     result.current.input.dispatch.setCommandMarkdown({body: '**markdown**', title: 'Command'})
     result.current.input.dispatch.setGiphyWindow(true)
     result.current.input.dispatch.injectIntoInput('reply text')
@@ -416,7 +419,7 @@ test('sendComposerText edits the selected message and clears edit state', async 
   })
   act(() => {
     result.current.input.dispatch.setEditing(editOrdinal)
-    result.current.input.dispatch.setReplyTo(T.Chat.numberToOrdinal(705))
+    result.current.input.dispatch.reply(T.Chat.numberToOrdinal(705))
     result.current.input.dispatch.setGiphyWindow(true)
     result.current.input.dispatch.setCommandMarkdown({body: 'edit markdown'})
   })
@@ -468,7 +471,7 @@ test('giphy engine events and send path update the input owner', async () => {
     type: 'chat.1.chatUi.chatGiphySearchResults',
   } as never)
   act(() => {
-    result.current.input.dispatch.setReplyTo(replyOrdinal)
+    result.current.input.dispatch.reply(replyOrdinal)
   })
 
   expect(result.current.input.giphyWindow).toBe(true)
@@ -1493,5 +1496,87 @@ describe('focusing the composer from the thread', () => {
     setShowInput(true)
 
     expect(mockInput.focusCount).toBe(1)
+  })
+})
+
+describe('reply', () => {
+  const replyOrdinal = T.Chat.numberToOrdinal(1201)
+  // the phone message menu is a modal route above the thread, still up when Reply runs
+  const installThread = (threadSearch?: {query?: string}, conversationIDKey = convID) =>
+    installFakeNavigator({
+      modalRouteNames: ['chatMessagePopup'],
+      rootState: makeRootState({
+        above: [{name: 'chatMessagePopup'}],
+        tabStack: [{name: 'chatRoot'}, {name: 'chatConversation', params: {conversationIDKey, threadSearch}}],
+      }),
+    })
+  const threadParams = (nav: ReturnType<typeof installThread>) =>
+    NavTree.visibleScreen(nav.getRootState(), {includeModals: false})?.params as {threadSearch?: object} | undefined
+
+  test('quotes the message, closes thread search and focuses the composer', () => {
+    const nav = installThread({query: 'needle'})
+    const {composerInput, result} = renderInput()
+
+    act(() => {
+      result.current.dispatch.reply(replyOrdinal)
+    })
+
+    expect(result.current.replyTo).toBe(replyOrdinal)
+    expect(threadParams(nav)?.threadSearch).toBeUndefined()
+    expect(composerInput.focusCount).toBe(1)
+  })
+
+  test('leaves navigation alone when thread search is closed', () => {
+    const nav = installThread()
+    const {composerInput, result} = renderInput()
+
+    act(() => {
+      result.current.dispatch.reply(replyOrdinal)
+    })
+
+    expect(nav.actions).toEqual([])
+    expect(composerInput.focusCount).toBe(1)
+  })
+
+  test("does not close another conversation's thread search", () => {
+    const nav = installThread({query: 'needle'}, otherConvID)
+    const {result} = renderInput()
+
+    act(() => {
+      result.current.dispatch.reply(replyOrdinal)
+    })
+
+    expect(nav.actions).toEqual([])
+    expect(threadParams(nav)?.threadSearch).toEqual({query: 'needle'})
+  })
+
+  test('a Reply from outside the thread (setThreadInputReplyTo) does the same', () => {
+    const nav = installThread({query: 'needle'})
+    const {composerInput, result} = renderInput()
+
+    act(() => {
+      setThreadInputReplyTo(convID, replyOrdinal)
+    })
+
+    expect(result.current.replyTo).toBe(replyOrdinal)
+    expect(threadParams(nav)?.threadSearch).toBeUndefined()
+    expect(composerInput.focusCount).toBe(1)
+  })
+
+  test('clearReplyTo drops the reply and nothing else', () => {
+    const nav = installThread({query: 'needle'})
+    const {composerInput, result} = renderInput()
+    act(() => {
+      result.current.dispatch.reply(replyOrdinal)
+    })
+    nav.clearActions()
+
+    act(() => {
+      result.current.dispatch.clearReplyTo()
+    })
+
+    expect(result.current.replyTo).toBe(T.Chat.numberToOrdinal(0))
+    expect(nav.actions).toEqual([])
+    expect(composerInput.focusCount).toBe(1)
   })
 })

@@ -7,7 +7,7 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import {metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {ignorePromise} from '@/constants/utils'
 import {useThrottledCallback} from '@/util/use-debounce'
-import {useConversationThreadStore} from '../thread-context'
+import {closeConversationThreadSearch, useConversationThreadStore} from '../thread-context'
 import {useConversationSendActions} from '../send-actions'
 import {
   consumeInputIntent,
@@ -28,6 +28,7 @@ type ConversationInputStore = T.Immutable<{
 }>
 
 type ConversationInputDispatch = {
+  clearReplyTo: () => void
   injectIntoInput: (text: string, focus?: boolean) => void
   resetState: () => void
   sendComposerText: (text: string, unfurlSuppress?: SuppressSnapshot) => void
@@ -37,7 +38,8 @@ type ConversationInputDispatch = {
   setEditing: (ordinal: T.Chat.Ordinal | 'last' | 'clear') => void
   setGiphyResult: (result?: T.RPCChat.GiphySearchResults) => void
   setGiphyWindow: (show: boolean) => void
-  setReplyTo: (ordinal: T.Chat.Ordinal) => void
+  // What every Reply does: quote this message, close thread search, focus the composer.
+  reply: (ordinal: T.Chat.Ordinal) => void
   toggleGiphyPrefill: () => void
 }
 
@@ -170,12 +172,17 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
   const setGiphyWindow = React.useEffectEvent((show: boolean) => {
     dispatchState({show, type: 'setGiphyWindow'})
   })
-  const setReplyTo = React.useEffectEvent((ordinal: T.Chat.Ordinal) => {
-    if (ordinal !== emptyOrdinal && !composer.startReply()) {
-      logger.info('[chat] setReplyTo refused: the conversation is read-only')
+  const reply = React.useEffectEvent((ordinal: T.Chat.Ordinal) => {
+    if (!composer.startReply()) {
+      logger.info('[chat] reply refused: the conversation is read-only')
       return
     }
     dispatchState({ordinal, type: 'setReplyTo'})
+    closeConversationThreadSearch(id)
+    composer.focus()
+  })
+  const clearReplyTo = React.useEffectEvent(() => {
+    dispatchState({ordinal: emptyOrdinal, type: 'setReplyTo'})
   })
   const setEditing = React.useEffectEvent((e: T.Chat.Ordinal | 'last' | 'clear') => {
     if (e === 'clear') {
@@ -248,7 +255,9 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
     composer.inject(state.giphyWindow ? '' : '/giphy ')
   })
   const [inputDispatch] = React.useState<ConversationInputDispatch>(() => ({
+    clearReplyTo,
     injectIntoInput,
+    reply,
     resetState,
     sendComposerText,
     sendGiphyResult,
@@ -257,7 +266,6 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
     setEditing,
     setGiphyResult,
     setGiphyWindow,
-    setReplyTo,
     toggleGiphyPrefill,
   }))
 
@@ -282,7 +290,7 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
           setEditing(action.ordinal)
           break
         case 'setReplyTo':
-          setReplyTo(action.ordinal)
+          reply(action.ordinal)
           break
       }
     }
