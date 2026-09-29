@@ -245,6 +245,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
       hintText={hintText}
       suggestionOverlayStyle={suggestionOverlayStyle}
       onSubmit={onSubmit}
+      inputRef={inputRef}
       setInputRef={setInput}
       onChangeText={onChangeText}
       onCancelEditing={onCancelEditing}

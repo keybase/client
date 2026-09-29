@@ -14,6 +14,7 @@ import type * as MessageModule from '@/constants/chat/message'
 import type * as HiddenStringModule from '@/util/hidden-string'
 import type * as Metadata from '@/chat/inbox/metadata'
 import type * as MetaModule from '@/constants/chat/meta'
+import type * as FakeInput from '@/test/fake-composer-input'
 
 // The composer picks its native or desktop half when its module loads, so the platform globals
 // have to be flipped before anything from the app is required. isIOS stays off: the iOS theme
@@ -433,6 +434,20 @@ test('an injected text lands synchronously with the caret at its end', () => {
   expect(input().value).toBe('prefilled')
   expect(input().selection).toEqual({end: 9, start: 9})
   expect(mockFocused).toBe(true)
+})
+
+test('a keystroke or a caret move leaves the same input attached to the composer', () => {
+  const {recordComposerAttaches} = require('@/test/fake-composer-input') as typeof FakeInput
+  const attaches = recordComposerAttaches(m.Composer)
+  renderComposer()
+  expect(attaches).toHaveLength(1)
+
+  type('hello')
+  act(() => {
+    input().onSelectionChange({nativeEvent: {selection: {end: 2, start: 2}}})
+  })
+
+  expect(attaches).toHaveLength(1)
 })
 
 test('an empty queued send does nothing', () => {

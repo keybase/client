@@ -10,6 +10,8 @@ import {resetAllStores} from '@/util/zustand'
 import * as Meta from '@/constants/chat/meta'
 import {metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {useCurrentUserState} from '@/stores/current-user'
+import * as Composer from '../composer'
+import {recordComposerAttaches} from '@/test/fake-composer-input'
 import Input from '.'
 import {ConversationInputProvider, useConversationInput, type ConversationInputState} from '../input-state'
 import {ConversationThreadProvider, useConversationThreadActions} from '../../thread-context'
@@ -395,6 +397,17 @@ const receiveDraft = (draft: string) => {
     metasReceived([{...Meta.makeConversationMeta(), conversationIDKey: convID, draft}], undefined, {force: true})
   })
 }
+
+test('a keystroke or a caret move leaves the same textarea attached to the composer', () => {
+  const attaches = recordComposerAttaches(Composer)
+  const {textarea} = renderComposer()
+  expect(attaches).toHaveLength(1)
+
+  type(textarea, 'hello')
+  type(textarea, 'hello', 2)
+
+  expect(attaches).toHaveLength(1)
+})
 
 describe('drafts', () => {
   test('a draft already in the inbox meta is loaded into the composer on mount', () => {

@@ -315,9 +315,14 @@ function NativeInput(p: InputLowLevelProps) {
 
   const [autoFocus] = React.useState(_autoFocus)
   const [value, setValue] = React.useState('')
-  const [selection, setSelection] = React.useState<{start: number; end?: number | undefined} | undefined>(
-    undefined
-  )
+  type InputSelection = {start: number; end?: number | undefined} | undefined
+  const [selection, setSelectionState] = React.useState<InputSelection>(undefined)
+  // read by the handle, which is built once: rebuilding it would detach and reattach the input
+  const selectionRef = React.useRef<InputSelection>(undefined)
+  const [setSelection] = React.useState(() => (next: InputSelection) => {
+    selectionRef.current = next
+    setSelectionState(next)
+  })
   // iOS multiline TextInput doesn't shrink its content height when value is
   // reset programmatically (only on manual deletion). Rather than remount to
   // collapse (which drops the keyboard on send), force a one-line height on
@@ -345,10 +350,9 @@ function NativeInput(p: InputLowLevelProps) {
   }
 
   React.useImperativeHandle(ref, () => {
-    const i = inputRef.current
     return {
       blur: () => {
-        i?.blur()
+        inputRef.current?.blur()
       },
       clear: () => {
         setValue('')
@@ -360,10 +364,10 @@ function NativeInput(p: InputLowLevelProps) {
         }
       },
       focus: () => {
-        i?.focus()
+        inputRef.current?.focus()
       },
       getSelection: () => {
-        return selection
+        return selectionRef.current
       },
       isFocused: () => !!inputRef.current?.isFocused(),
       replaceText: (ti: TextInfo, reflectChange: boolean) => {
@@ -375,7 +379,7 @@ function NativeInput(p: InputLowLevelProps) {
         return true
       },
     }
-  }, [onChangeText, selection])
+  }, [onChangeText, setSelection])
 
   const style = (() => {
     let textStyle = getTextStyle(textType, theme)
@@ -740,16 +744,15 @@ const SideButtons = (p: SideButtonsProps) => {
 const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
   const desktopStyles = useDesktopStyles()
   const {cannotWrite, explodingModeSeconds, onCancelEditing, setExplodingMode} = p
-  const {showReplyPreview, hintText, setInputRef, isEditing, onSubmit} = p
+  const {showReplyPreview, hintText, inputRef, setInputRef, isEditing, onSubmit} = p
   const htmlInputRef = React.useRef<HtmlInputRef | null>(null)
   const setHtmlInputRef = (i: HtmlInputRef | null) => {
     htmlInputRef.current = i
   }
-  const inputRef = React.useRef<RefType | null>(null)
 
   React.useEffect(() => {
     inputRef.current?.focus()
-  }, [])
+  }, [inputRef])
 
   const checkEnterOnKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !(e.altKey || e.shiftKey || e.metaKey)) {
@@ -786,11 +789,6 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
     onKeyDown,
     showReplyPreview,
   })
-
-  const setRefs = (ref: null | RefType) => {
-    setInputRef(ref)
-    inputRef.current = ref
-  }
 
   return (
     <>
@@ -830,7 +828,7 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
                 allowKeyboardEvents={true}
                 disabled={cannotWrite}
                 autoFocus={false}
-                ref={setRefs}
+                ref={setInputRef}
                 placeholder={hintText}
                 style={Kb.Styles.collapseStyles([
                   desktopStyles.input,
@@ -1218,7 +1216,7 @@ const NativePlatformInput = (p: Props) => {
   const [showAudioSend, setShowAudioSend] = React.useState(false)
   const [height, setHeight] = React.useState(0)
   const [expanded, setExpanded] = React.useState(false) // updates immediately, used for the icon etc
-  const inputRef = React.useRef<RefType | null>(null)
+  const {inputRef} = p
   const {expandedSuggestionListHeight} = React.useContext(ComposerBoxContext)
   const suggestionListStyle = Kb.Styles.collapseStyles([
     nativeStyles.suggestionList,
@@ -1345,10 +1343,6 @@ const NativePlatformInput = (p: Props) => {
     setHeight(height)
   }
 
-  const onAnimatedInputRef = (ref: RefType | null) => {
-    setInputRef(ref)
-    inputRef.current = ref
-  }
   const aiOnChangeText = (text: string) => {
     setHasText(!!text)
     onChangeText(text)
@@ -1362,7 +1356,7 @@ const NativePlatformInput = (p: Props) => {
         inputRef.current?.focus()
       }
     }
-  }, [isEditing])
+  }, [isEditing, inputRef])
 
   const _onSelectionChange = (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
     onSelectionChange(e.nativeEvent.selection)
@@ -1395,7 +1389,7 @@ const NativePlatformInput = (p: Props) => {
               onFocus={onFocus}
               onChangeText={aiOnChangeText}
               onSelectionChange={_onSelectionChange}
-              inputRef={onAnimatedInputRef}
+              inputRef={setInputRef}
               style={nativeStyles.input}
               textType="Body"
               rowsMin={1}

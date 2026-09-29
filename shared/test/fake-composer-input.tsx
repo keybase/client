@@ -1,7 +1,7 @@
 // Test-only third input for the composer, next to the desktop textarea and the native TextInput.
 // It applies writes and echoes reflected ones synchronously, the way the native input does.
 import * as React from 'react'
-import {useComposerInput, type ComposerInput} from '@/chat/conversation/input-area/composer'
+import {useComposerInput, type ComposerInput, type makeComposer} from '@/chat/conversation/input-area/composer'
 import type {Selection} from '@/chat/conversation/input-area/normal/input.shared'
 
 export type FakeComposerInput = ComposerInput & {
@@ -70,4 +70,28 @@ export const FakeComposerInputView = (p: {children?: React.ReactElement; draft?:
     [fake, textChanged]
   )
   return children ?? null
+}
+
+// Records every input a view of the composers made from now on attaches (and null for every
+// detach), by wrapping makeComposer; restored with the other mocks.
+export const recordComposerAttaches = (composerModule: {makeComposer: typeof makeComposer}) => {
+  const attaches: Array<ComposerInput | null> = []
+  const actual = composerModule.makeComposer
+  jest.spyOn(composerModule, 'makeComposer').mockImplementation(deps => {
+    const composer = actual(deps)
+    return {
+      ...composer,
+      connect: () => {
+        const view = composer.connect()
+        return {
+          ...view,
+          setInput: input => {
+            attaches.push(input)
+            view.setInput(input)
+          },
+        }
+      },
+    }
+  })
+  return attaches
 }
