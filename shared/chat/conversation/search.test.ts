@@ -431,11 +431,12 @@ describe('enter key', () => {
 
 describe('teardown', () => {
   // the centre provider drops the hit when the route closes, the same for every close
-  test('closing the search is the one close every other path uses', () => {
+  test('closing the search is the one close every other path uses, and nothing more', () => {
     const {result} = mountSearch()
     act(() => result.current.onToggleThreadSearch())
     expect(mockCloseThreadSearch).toHaveBeenCalledTimes(1)
     expect(mockClearCenter).not.toHaveBeenCalled()
+    expect(mockCancelSearch).not.toHaveBeenCalled()
   })
 
   test('unmounting cancels the in-flight RPC and drops the pending flush', () => {
@@ -446,7 +447,7 @@ describe('teardown', () => {
     // the hit is parked on the 16ms coalescing timer
     expect(jest.getTimerCount()).toBe(1)
     unmount()
-    expect(mockCancelSearch).toHaveBeenCalled()
+    expect(mockCancelSearch).toHaveBeenCalledTimes(1)
     expect(jest.getTimerCount()).toBe(0)
   })
 })

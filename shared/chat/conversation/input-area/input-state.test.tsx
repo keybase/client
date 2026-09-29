@@ -1526,6 +1526,20 @@ describe('reply', () => {
     expect(composerInput.focusCount).toBe(1)
   })
 
+  // the search UI unmounting is what cancels its search, once
+  test('closing thread search leaves cancelling the search to the search UI', () => {
+    const cancel = jest.spyOn(T.RPCChat, 'localCancelActiveSearchRpcPromise').mockResolvedValue(undefined)
+    const nav = installThread({query: 'needle'})
+    const {result} = renderInput()
+
+    act(() => {
+      result.current.dispatch.reply(replyOrdinal)
+    })
+
+    expect(threadParams(nav)?.threadSearch).toBeUndefined()
+    expect(cancel).not.toHaveBeenCalled()
+  })
+
   test('leaves navigation alone when thread search is closed', () => {
     const nav = installThread()
     const {composerInput, result} = renderInput()

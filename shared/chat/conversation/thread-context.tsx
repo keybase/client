@@ -62,7 +62,6 @@ import {
   postConversationDelete,
   postConversationReaction,
 } from './message-rpc'
-import {cancelActiveThreadSearchRPC} from '../search-rpc'
 import {
   emptyConversationMeta,
   getClientPrevFromSnapshot,
@@ -1404,19 +1403,12 @@ export const toggleConversationThreadSearch = (
   } else {
     navigateAppend({name: Common.threadRouteName, params: {conversationIDKey, threadSearch}}, true)
   }
-
-  const f = async () => {
-    if (!nextVisible) {
-      await cancelActiveThreadSearchRPC()
-    }
-  }
-  ignorePromise(f())
 }
 
-// Every close of thread search: the search's own Cancel and Done, mod+f, and every Reply. The
-// centre provider drops the hit it centred when the route closes. It looks past modals and
-// targets the thread's route by key, so it still lands while the phone message menu (a modal) is
-// up.
+// Every close of thread search: the search's own Cancel and Done, mod+f, and every Reply. It only
+// changes the route; the search UI unmounting cancels its search, and the centre provider drops
+// the hit it centred. It looks past modals and targets the thread's route by key, so it still
+// lands while the phone message menu (a modal) is up.
 export const closeConversationThreadSearch = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const visible = getVisibleScreen(false)
   const params = visible?.params as ThreadSearchParams | undefined
@@ -1424,7 +1416,6 @@ export const closeConversationThreadSearch = (conversationIDKey: T.Chat.Conversa
     return
   }
   setRouteParams(visible?.key, {threadSearch: undefined})
-  ignorePromise(cancelActiveThreadSearchRPC())
 }
 
 export const useConversationThreadCloseSearch = () => {
