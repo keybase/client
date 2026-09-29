@@ -8,8 +8,8 @@ import InvitationToBlock from '@/chat/blocking/invitation-to-block'
 import ListArea from '../list-area'
 import PinnedMessage from '../pinned-message'
 import ThreadLoadStatus from '../load-status'
-import {useConversationCenterActions} from '../center-context'
 import {
+  useConversationThreadCloseSearch,
   useConversationThreadID,
   useConversationThreadToggleSearch,
   useThreadMeta,
@@ -76,12 +76,13 @@ const DesktopConversation = function DesktopConversation() {
       .catch(() => {})
   }
   const toggleThreadSearch = useConversationThreadToggleSearch()
-  const {clearCenter} = useConversationCenterActions()
+  const closeThreadSearch = useConversationThreadCloseSearch()
   const onToggleThreadSearch = () => {
     if (showThreadSearch) {
-      clearCenter()
+      closeThreadSearch()
+    } else {
+      toggleThreadSearch()
     }
-    toggleThreadSearch()
   }
   Kb.useHotKey('mod+f', onToggleThreadSearch)
 

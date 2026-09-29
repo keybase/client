@@ -1413,8 +1413,10 @@ export const toggleConversationThreadSearch = (
   ignorePromise(f())
 }
 
-// Closes this conversation's thread search if it is open. It looks past modals and targets the
-// thread's route by key, so it still lands while the phone message menu (a modal) is up.
+// Every close of thread search: the search's own Cancel and Done, mod+f, and every Reply. The
+// centre provider drops the hit it centred when the route closes. It looks past modals and
+// targets the thread's route by key, so it still lands while the phone message menu (a modal) is
+// up.
 export const closeConversationThreadSearch = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const visible = getVisibleScreen(false)
   const params = visible?.params as ThreadSearchParams | undefined
@@ -1423,6 +1425,13 @@ export const closeConversationThreadSearch = (conversationIDKey: T.Chat.Conversa
   }
   setRouteParams(visible?.key, {threadSearch: undefined})
   ignorePromise(cancelActiveThreadSearchRPC())
+}
+
+export const useConversationThreadCloseSearch = () => {
+  const conversationIDKey = useConversationThreadID()
+  return () => {
+    closeConversationThreadSearch(conversationIDKey)
+  }
 }
 
 export type ConversationInfoPanelTab = 'settings' | 'members' | 'attachments' | 'bots' | undefined

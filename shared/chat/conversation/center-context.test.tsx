@@ -28,7 +28,18 @@ jest.mock('@/engine/action-listener', () => ({useEngineActionListener: () => {}}
 jest.mock('./thread-load-status-context', () => ({
   useThreadLoadStatusOptionsGetter: () => () => mockThreadLoadStatusOptions,
 }))
-jest.mock('./thread-search-route', () => ({useChatThreadRouteParams: () => mockRouteParams}))
+// the route params as the navigator holds them: a change re-renders the screen that reads them
+const mockRouteListeners = new Set<() => void>()
+const mockSubscribeRoute = (l: () => void) => {
+  mockRouteListeners.add(l)
+  return () => {
+    mockRouteListeners.delete(l)
+  }
+}
+jest.mock('./thread-search-route', () => ({
+  useChatThreadRouteParams: () =>
+    jest.requireActual<typeof React>('react').useSyncExternalStore(mockSubscribeRoute, () => mockRouteParams),
+}))
 
 import {ConversationCenterProvider, useConversationCenter} from './center-context'
 import {ConversationInputProvider} from './input-area/input-state'
@@ -36,15 +47,17 @@ import {FakeComposerInputView, makeFakeComposerInput} from '@/test/fake-composer
 import {setInputIntent, useInputIntentState} from './input-intent-store'
 
 let seenHighlightOrdinal: T.Chat.Ordinal | undefined
+let seenCenteredOrdinal: T.Chat.Ordinal | undefined
 // what reaches the composer's input
 let composerInput = makeFakeComposerInput()
 
 const Probe = () => {
-  const centeredHighlightOrdinal = useConversationCenter().centeredHighlightOrdinal
+  const {centeredHighlightOrdinal, centeredOrdinal} = useConversationCenter()
   // captured in an effect, not during render: assigning module state while rendering is the
   // side effect react-hooks/globals rejects
   React.useEffect(() => {
     seenHighlightOrdinal = centeredHighlightOrdinal
+    seenCenteredOrdinal = centeredOrdinal
   })
   return null
 }
@@ -66,6 +79,7 @@ const highlight = (n: number) => ({messageID: T.Chat.numberToMessageID(n), type:
 beforeEach(() => {
   mockRouteParams = undefined
   seenHighlightOrdinal = undefined
+  seenCenteredOrdinal = undefined
   composerInput = makeFakeComposerInput()
 })
 
@@ -159,4 +173,31 @@ test('a highlight for another conversation is left alone', () => {
 
   expect(mockLoadMessagesCentered).not.toHaveBeenCalled()
   expect(useInputIntentState.getState().intents.get(convY)).toEqual(highlight(3))
+})
+
+describe('closing thread search', () => {
+  const setRouteParams = (params: typeof mockRouteParams) => {
+    act(() => {
+      mockRouteParams = params
+      mockRouteListeners.forEach(l => l())
+    })
+  }
+
+  // every close (the search's own Cancel, a Reply, a send) only changes the route
+  test('drops the hit it centred, and opening search again does not bring it back', () => {
+    mockRouteParams = {threadSearch: {query: 'needle'}}
+    render(<Tree id={convX} />)
+    act(() => {
+      setInputIntent(convX, highlight(42))
+    })
+    expect(seenHighlightOrdinal).toBe(T.Chat.numberToOrdinal(42))
+
+    setRouteParams({threadSearch: undefined})
+    expect(seenHighlightOrdinal).toBeUndefined()
+    expect(seenCenteredOrdinal).toBeUndefined()
+
+    setRouteParams({threadSearch: {}})
+    expect(seenHighlightOrdinal).toBeUndefined()
+    expect(seenCenteredOrdinal).toBeUndefined()
+  })
 })
