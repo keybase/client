@@ -811,6 +811,24 @@ describe('read-only', () => {
     expect(fake.text).toBe('')
   })
 
+  // the text was typed before the conversation turned read-only; a clear would save '' over it
+  test('a submit sends nothing and leaves the text where it is', () => {
+    jest.useFakeTimers()
+    const {composer, mount, send, setReadOnly} = setup()
+    const {fake} = mount()
+    fake.type('typed before')
+    const clear = jest.spyOn(fake, 'clear')
+    setReadOnly(true)
+
+    expect(composer.submit(send)).toBe(false)
+    jest.runAllTimers()
+
+    expect(send).not.toHaveBeenCalled()
+    expect(clear).not.toHaveBeenCalled()
+    expect(fake.text).toBe('typed before')
+    expect(composer.getText()).toBe('typed before')
+  })
+
   test('a clear still clears', () => {
     const {composer, mount, setReadOnly} = setup()
     const {fake} = mount()

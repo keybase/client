@@ -47,7 +47,7 @@ export type Composer = {
   replace: (info: TextInfo, reflectChange: boolean) => boolean
   // Saves an empty draft and clears the input now (with none attached, the next one once it has
   // loaded its draft), and hands the text to send on the next tick; false when there is nothing to
-  // send.
+  // send, or the user can't post (the text, typed before, stays, and so does its draft).
   submit: (send: (text: string, unfurlSuppress: SuppressSnapshot) => void) => boolean
   // An input's text belongs to the view it came from: an input attached by a different view starts
   // over with no text and a draft still to load. The same view attaching again (a new handle,
@@ -228,7 +228,7 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     },
     submit: send => {
       const toSend = text
-      if (!toSend) return false
+      if (!toSend || deps.isReadOnly()) return false
       const unfurlSuppress = deps.takeUnfurlSnapshot()
       text = ''
       // The send owns the draft: it is emptied now, with or without an input, so no later flush

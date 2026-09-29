@@ -642,6 +642,32 @@ describe('read-only', () => {
     expect(unsent).not.toHaveBeenCalled()
   })
 
+  test('text typed before the conversation turned read-only is not sent, and stays the draft', () => {
+    const unsent = jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+    const post = jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener')
+    const meta = {...Meta.makeConversationMeta(), conversationIDKey: convID, draft: ''}
+    act(() => {
+      metasReceived([meta], undefined, {force: true})
+    })
+    const {textarea} = renderComposer()
+    type(textarea, 'typed before')
+    act(() => {
+      metasReceived([{...meta, cannotWrite: true, draft: 'typed before'}], undefined, {force: true})
+    })
+
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'Enter'})
+    })
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(post).not.toHaveBeenCalled()
+    expect(textarea.value).toBe('typed before')
+    expect(unsent.mock.calls.at(-1)?.[0].text).toBe('typed before')
+    expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('typed before')
+  })
+
   // a first keystroke into the empty composer would otherwise save over the draft
   test('the saved draft loads once the user can post, and typing goes on from it', () => {
     const unsent = jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
