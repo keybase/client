@@ -26,7 +26,6 @@ const PinnedMessage = function PinnedMessage() {
   const {centerOnMessage} = useConversationCenterActions()
   const you = useCurrentUserState(s => s.username)
   const {yourOperations} = useChatTeam(teamID, teamname)
-  const threadSearchOpen = !!useThreadSearchRoute()
   const unpinning = C.Waiting.useAnyWaiting(C.waitingKeyChatUnpin(conversationIDKey))
   const {message, pinnerUsername} = pinnedMsg ?? {}
   const {id: messageID, author, type} = message ?? {}
@@ -84,7 +83,7 @@ const PinnedMessage = function PinnedMessage() {
     }
   }
 
-  if (threadSearchOpen || !(type === 'text' || type === 'attachment')) {
+  if (!(type === 'text' || type === 'attachment')) {
     return null
   }
   if (!text) {
@@ -211,5 +210,8 @@ const useStyles = Kb.Styles.createStyleHook(
       }),
     }) as const
 )
+
+// The banner hides during thread search, on both platforms: whether a layout mounts it at all.
+export const usePinnedMessageShown = () => !useThreadSearchRoute()
 
 export default PinnedMessage

@@ -6,7 +6,7 @@ import Banner from '../bottom-banner'
 import InputArea from '../input-area/container'
 import InvitationToBlock from '@/chat/blocking/invitation-to-block'
 import ListArea from '../list-area'
-import PinnedMessage from '../pinned-message'
+import PinnedMessage, {usePinnedMessageShown} from '../pinned-message'
 import ThreadLoadStatus from '../load-status'
 import {
   useConversationThreadCloseSearch,
@@ -60,6 +60,7 @@ const DesktopConversation = function DesktopConversation() {
     })
   }
   const showThreadSearch = !!useThreadSearchRoute()
+  const pinnedMessageShown = usePinnedMessageShown()
   const {cannotWrite, minWriterRole, offline: threadLoadedOffline} = useThreadMeta(
     C.useShallow(m => ({cannotWrite: m.cannotWrite, minWriterRole: m.minWriterRole, offline: m.offline}))
   )
@@ -105,7 +106,7 @@ const DesktopConversation = function DesktopConversation() {
             <ListArea />
             <Kb.Box2 direction="vertical" fullWidth={true} style={desktopStyles.overlayTop}>
               <ThreadLoadStatus />
-              <PinnedMessage />
+              {pinnedMessageShown && <PinnedMessage />}
             </Kb.Box2>
             {showThreadSearch && <ThreadSearch style={desktopStyles.threadSearchStyle} />}
             <LoadingLine />
@@ -148,6 +149,7 @@ const NativeConversation = function NativeConversation() {
   const safeStyle = {height, maxHeight: height, minHeight: height}
 
   const threadLoadedOffline = useThreadMeta(m => m.offline)
+  const pinnedMessageShown = usePinnedMessageShown()
 
   // Height of the search bar that overlays the list bottom while searching.
   // Shared with ListArea (extra content padding + jump-button lift).
@@ -180,7 +182,7 @@ const NativeConversation = function NativeConversation() {
               style={styles.whiteBackground}
             >
               <ThreadLoadStatus />
-              <PinnedMessage />
+              {pinnedMessageShown && <PinnedMessage />}
               <ListArea />
               <LoadingLine />
             </Kb.Box2>

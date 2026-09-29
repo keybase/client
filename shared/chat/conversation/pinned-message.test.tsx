@@ -1,11 +1,11 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import {cleanup, render, screen} from '@testing-library/react'
+import {cleanup, render, renderHook, screen} from '@testing-library/react'
 import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
-import PinnedMessage from './pinned-message'
+import PinnedMessage, {usePinnedMessageShown} from './pinned-message'
 
 const mockConvID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
@@ -45,13 +45,17 @@ afterEach(() => {
   mockThreadSearch = undefined
 })
 
-test('the pinned banner shows while thread search is closed', () => {
+test('the pinned banner renders the pinned message', () => {
   render(<PinnedMessage />)
   expect(screen.queryByText('Pinned')).not.toBeNull()
 })
 
-test('the pinned banner hides while thread search is open', () => {
+// both layouts mount the banner only when this says so
+test('the pinned banner is shown while thread search is closed', () => {
+  expect(renderHook(() => usePinnedMessageShown()).result.current).toBe(true)
+})
+
+test('the pinned banner is not shown while thread search is open', () => {
   mockThreadSearch = {}
-  render(<PinnedMessage />)
-  expect(screen.queryByText('Pinned')).toBeNull()
+  expect(renderHook(() => usePinnedMessageShown()).result.current).toBe(false)
 })
