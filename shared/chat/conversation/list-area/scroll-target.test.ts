@@ -26,9 +26,8 @@ const released = (n: number) => state({endOwner: 'reader', lastCentered: ord(n)}
 
 const leaveAlone: ScrollDirective = {stopCentering: false, type: 'leaveAlone'}
 const stopCentering: ScrollDirective = {stopCentering: true, type: 'leaveAlone'}
-const pinNow: ScrollDirective = {how: 'now', stopCentering: false, type: 'pinEnd'}
-const pinUnlessAtEndStopCentering: ScrollDirective = {how: 'unlessAtEnd', stopCentering: true, type: 'pinEnd'}
-const pinWhenSettled: ScrollDirective = {how: 'whenSettled', stopCentering: false, type: 'pinEnd'}
+const pinEnd: ScrollDirective = {stopCentering: false, type: 'pinEnd'}
+const pinEndStopCentering: ScrollDirective = {stopCentering: true, type: 'pinEnd'}
 const center = (n: number): ScrollDirective => ({ordinal: ord(n), type: 'center'})
 const reveal = (n: number): ScrollDirective => ({ordinal: ord(n), type: 'reveal'})
 
@@ -198,7 +197,7 @@ describe('detached', () => {
 
 describe('initialLoad', () => {
   runTable([
-    ['a conversation with messages goes to the end', fresh, {hasMessages: true, type: 'initialLoad'}, pinNow, fresh],
+    ['a conversation with messages goes to the end', fresh, {hasMessages: true, type: 'initialLoad'}, pinEnd, fresh],
     ['an empty conversation has no end to go to', fresh, {hasMessages: false, type: 'initialLoad'}, leaveAlone, fresh],
     [
       'a centred one, whose request took the end, is left to the centre reconcile',
@@ -232,8 +231,8 @@ describe('headerMeasured', () => {
       state({endOwner: 'reader', headerSize: 100}),
     ],
     ['an unchanged size is not growth', state({headerSize: 100}), measured(100), leaveAlone, state({headerSize: 100})],
-    ['growth re-pins the end once the list settles', state({headerSize: 100}), measured(152), pinWhenSettled, state({headerSize: 152})],
-    ['so does shrinking', state({headerSize: 152}), measured(100), pinWhenSettled, state({headerSize: 100})],
+    ['growth re-pins the end once the list settles', state({headerSize: 100}), measured(152), pinEnd, state({headerSize: 152})],
+    ['so does shrinking', state({headerSize: 152}), measured(100), pinEnd, state({headerSize: 100})],
     [
       'growth is recorded but ignored once the reader owns the end',
       state({endOwner: 'reader', headerSize: 100}),
@@ -252,7 +251,7 @@ describe('headerMeasured', () => {
       'growth does not depend on a centred target, only on who owns the end',
       state({headerSize: 100, lastCentered: ord(30)}),
       measured(152),
-      pinWhenSettled,
+      pinEnd,
       state({headerSize: 152, lastCentered: ord(30)}),
     ],
   ])
@@ -261,7 +260,7 @@ describe('headerMeasured', () => {
 describe('appended', () => {
   runTable([
     ['an anchor that keeps the newest in view is left to it', fresh, {anchorHidesNewest: false, type: 'appended'}, leaveAlone, fresh],
-    ['an anchor that would hide the newest is overridden', fresh, {anchorHidesNewest: true, type: 'appended'}, pinNow, fresh],
+    ['an anchor that would hide the newest is overridden', fresh, {anchorHidesNewest: true, type: 'appended'}, pinEnd, fresh],
     [
       'a reader who scrolled away from the end is left there',
       state({endOwner: 'reader'}),
@@ -287,7 +286,7 @@ describe('appended', () => {
       'once the reader asked for the bottom from a centred target, the override applies again',
       state({lastCentered: ord(30)}),
       {anchorHidesNewest: true, type: 'appended'},
-      pinNow,
+      pinEnd,
       state({lastCentered: ord(30)}),
     ],
   ])
@@ -356,20 +355,20 @@ describe('scrollToBottomRequested', () => {
     type: 'scrollToBottomRequested',
   })
   runTable([
-    ['from a reader takes back the end', busy, requested(30), pinUnlessAtEndStopCentering, {...busy, endOwner: 'list'}],
-    ['with the list at the end changes nothing but asks again', fresh, requested(), pinUnlessAtEndStopCentering, fresh],
+    ['from a reader takes back the end', busy, requested(30), pinEndStopCentering, {...busy, endOwner: 'list'}],
+    ['with the list at the end changes nothing but asks again', fresh, requested(), pinEndStopCentering, fresh],
     [
       'ends the settling of a centred target, as a drag does, but keeps the target',
       state({endOwner: 'reader', lastCentered: ord(30), settlingCenter: true}),
       requested(30),
-      pinUnlessAtEndStopCentering,
+      pinEndStopCentering,
       state({lastCentered: ord(30)}),
     ],
     [
       'counts a target still loading as centred, so its arrival leaves the reader at the bottom',
       fresh,
       requested(30),
-      pinUnlessAtEndStopCentering,
+      pinEndStopCentering,
       state({lastCentered: ord(30)}),
     ],
   ])
@@ -454,7 +453,7 @@ describe('sequences', () => {
     d.send(header(152))
     d.requestBottom()
     d.send(header(200))
-    expect(d.take()).toEqual([leaveAlone, stopCentering, leaveAlone, pinUnlessAtEndStopCentering, pinWhenSettled])
+    expect(d.take()).toEqual([leaveAlone, stopCentering, leaveAlone, pinEndStopCentering, pinEnd])
   })
 
   test('jump to recent from a hit: pin first, then the clear hands the end back to the list', () => {
@@ -468,7 +467,7 @@ describe('sequences', () => {
       stopCentering,
       leaveAlone,
       center(30),
-      pinUnlessAtEndStopCentering,
+      pinEndStopCentering,
       stopCentering,
       leaveAlone,
       leaveAlone,
@@ -481,7 +480,7 @@ describe('sequences', () => {
     d.centreOn(ord(30))
     d.requestBottom()
     d.load(window(1, 60))
-    expect(d.take()).toEqual([stopCentering, leaveAlone, pinUnlessAtEndStopCentering, leaveAlone])
+    expect(d.take()).toEqual([stopCentering, leaveAlone, pinEndStopCentering, leaveAlone])
   })
 
   test('with the keyboard up a new message leaves a settling hit alone; asking for the bottom ends the settling without leaving the centre', () => {
@@ -492,7 +491,7 @@ describe('sequences', () => {
     d.receive(ord(61))
     d.send({anchorHidesNewest: true, type: 'appended'})
     d.requestBottom()
-    expect(d.take()).toEqual([leaveAlone, leaveAlone, pinUnlessAtEndStopCentering])
+    expect(d.take()).toEqual([leaveAlone, leaveAlone, pinEndStopCentering])
     expect(d.state).toEqual(state({lastCentered: ord(30)}))
   })
 
@@ -502,7 +501,7 @@ describe('sequences', () => {
     d.load(window(1, 60))
     d.requestBottom()
     d.receive(ord(61))
-    expect(d.take()).toEqual([stopCentering, leaveAlone, center(30), pinUnlessAtEndStopCentering, leaveAlone])
+    expect(d.take()).toEqual([stopCentering, leaveAlone, center(30), pinEndStopCentering, leaveAlone])
   })
 
   test('an edit revealed before a reload is not revealed again after it', () => {

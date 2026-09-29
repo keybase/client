@@ -87,10 +87,9 @@ export type ScrollEvent =
 
 // Every list carries out every directive; how is its own.
 export type ScrollDirective =
-  // now: scroll to the end. unlessAtEnd: only if not already there, because scrolling an at-end
-  // list displaces its own end anchor. whenSettled: once the list has stopped moving, correct any
-  // shortfall for as long as the list still owns the end.
-  | {type: 'pinEnd'; how: 'now' | 'unlessAtEnd' | 'whenSettled'; stopCentering: boolean}
+  // Bring the newest message into view and hold it there. How, and when, is the list's own: it knows
+  // what it can scroll now and what it must wait out.
+  | {type: 'pinEnd'; stopCentering: boolean}
   // Bring the ordinal to the middle of the viewport and settle it there, measuring the rows as they
   // are at each step, so rows changing under it need no directive of their own. Its budget (steps,
   // time) is the target's, however often the rows change.
@@ -110,6 +109,7 @@ export const initialScrollTargetState: ScrollTargetState = {
 }
 
 const leaveAlone: ScrollDirective = {stopCentering: false, type: 'leaveAlone'}
+const pinEnd: ScrollDirective = {stopCentering: false, type: 'pinEnd'}
 
 export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): ScrollDecision => {
   switch (event.type) {
@@ -165,8 +165,7 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
       // A centred load is left to the centre reconcile, whose request has taken the end, and so is a
       // reader who has taken it.
       return {
-        directive:
-          event.hasMessages && state.endOwner === 'list' ? {how: 'now', stopCentering: false, type: 'pinEnd'} : leaveAlone,
+        directive: event.hasMessages && state.endOwner === 'list' ? pinEnd : leaveAlone,
         state,
       }
     case 'userScrolled':
@@ -184,15 +183,12 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
       if (previous === undefined || previous === event.size) return {directive: leaveAlone, state: next}
       // The header frequently settles while the thread is still empty, and there is no end to hold yet.
       if (state.endOwner !== 'list' || !event.hasMessages) return {directive: leaveAlone, state: next}
-      return {directive: {how: 'whenSettled', stopCentering: false, type: 'pinEnd'}, state: next}
+      return {directive: pinEnd, state: next}
     }
     case 'appended':
       // Only an end the list holds is re-pinned: a reader in history, or on a centred target, stays.
       return {
-        directive:
-          event.anchorHidesNewest && state.endOwner === 'list'
-            ? {how: 'now', stopCentering: false, type: 'pinEnd'}
-            : leaveAlone,
+        directive: event.anchorHidesNewest && state.endOwner === 'list' ? pinEnd : leaveAlone,
         state,
       }
     case 'editingChanged': {
@@ -214,7 +210,7 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
       // reconcile sees the centre cleared, but nothing may pull the reader back to it meanwhile, not
       // even its arrival: a target still loading counts as centred already.
       return {
-        directive: {how: 'unlessAtEnd', stopCentering: true, type: 'pinEnd'},
+        directive: {stopCentering: true, type: 'pinEnd'},
         state: {...state, endOwner: 'list', lastCentered: event.centeredOrdinal, settlingCenter: false},
       }
   }

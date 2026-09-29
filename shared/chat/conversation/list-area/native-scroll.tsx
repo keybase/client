@@ -221,7 +221,7 @@ export const useNativeThreadScroll = (p: {
         case 'pinEnd':
           if (directive.stopCentering) stopCentering()
           // The end is a fixed resting offset, so every pin is the one scroll there: from the end it moves
-          // nothing (unlessAtEnd), and there is no bootstrap of the list's own to wait out (whenSettled).
+          // nothing, and there is no bootstrap of the list's own to wait out.
           scrollToOffset(restingOffset())
           return
         case 'center':
