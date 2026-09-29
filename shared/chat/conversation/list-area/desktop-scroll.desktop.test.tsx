@@ -1485,3 +1485,24 @@ describe('catch up', () => {
     expect(H.log).toHaveLength(2)
   })
 })
+
+// Both lists load a page as the reader comes within two screens of either end of the rows loaded.
+// The list measures the distance itself, in its viewport's heights; the mobile list's figure is
+// pinned by native-scroll.native.test.tsx.
+describe('loading pages', () => {
+  const loads = () => H.log.filter(([kind]) => kind === 'loadOlderMessages' || kind === 'loadNewerMessages')
+
+  test('older rows load two screens from the oldest row loaded', () => {
+    open()
+    expect(props()['onStartReachedThreshold']).toBe(2)
+    update(() => (props()['onStartReached'] as () => void)())
+    expect(loads()).toEqual([['loadOlderMessages', 60]])
+  })
+
+  test('in a window of history, newer rows load two screens from the newest row loaded', () => {
+    open({moreToLoadForward: true})
+    expect(props()['onEndReachedThreshold']).toBe(2)
+    update(() => (props()['onEndReached'] as () => void)())
+    expect(loads()).toEqual([['loadNewerMessages', 60]])
+  })
+})

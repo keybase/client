@@ -303,11 +303,18 @@ export const toggleThreadSearch = jest.fn((hide?: boolean) => {
   log.push(['toggleThreadSearch', hide])
 })
 
+export const loadOlderMessages = jest.fn((numOrdinals: number) => {
+  log.push(['loadOlderMessages', numOrdinals])
+})
+export const loadNewerMessages = jest.fn((numOrdinals: number) => {
+  log.push(['loadNewerMessages', numOrdinals])
+})
+
 export const threadContextModule = {
   ShownUsernameCacheContext: React.createContext(undefined),
   useConversationThreadID: () => T.Chat.stringToConversationIDKey('conv1'),
-  useConversationThreadLoadNewerMessagesDueToScroll: () => () => {},
-  useConversationThreadLoadOlderMessagesDueToScroll: () => () => {},
+  useConversationThreadLoadNewerMessagesDueToScroll: () => loadNewerMessages,
+  useConversationThreadLoadOlderMessagesDueToScroll: () => loadOlderMessages,
   useConversationThreadMarkThreadAsRead: () => markThreadAsRead,
   useConversationThreadSelector: <R,>(selector: (s: ThreadState) => R) => useStore(threadStore, selector),
   useConversationThreadStore: () => ({
@@ -349,5 +356,7 @@ export const resetHarness = () => {
   threadStore.reset({clearVersion: 0, loaded: false, messageOrdinals: undefined, moreToLoadForward: false})
   markThreadAsRead.mockClear()
   toggleThreadSearch.mockClear()
+  loadOlderMessages.mockClear()
+  loadNewerMessages.mockClear()
   Object.values(centerActions).forEach(f => f.mockClear())
 }

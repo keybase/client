@@ -1357,50 +1357,73 @@ describe('a safe-area inset change', () => {
   })
 })
 
+// Both lists load a page as the reader comes within two screens of either end of the rows loaded,
+// measured from where they are scrolled to, not from which rows are in view. In the native test's
+// terms: a viewport of 1000pt, 100pt rows, the inverted list's offset rising toward the oldest row.
 describe('loading older messages', () => {
-  // Data is newest first, so the last viewable index is the oldest row on screen.
   const loads = () => H.log.filter(([kind]) => kind === 'loadOlderMessages')
 
-  test('a long thread loads within 10 rows of its oldest, once the 1s gate has passed', async () => {
+  test('a long thread loads two screens from its oldest row, once the 1s gate has passed', async () => {
     open()
-    viewable(40, 48)
-    viewable(40, 49)
+    // 60 rows are 6000pt; two screens from the oldest is offset 3000.
+    scrolled(3000, 6000)
     expect(loads()).toEqual([])
     await tick(1001)
-    viewable(40, 48)
+    scrolled(2999, 6000)
     expect(loads()).toEqual([])
-    viewable(40, 49)
+    scrolled(3000, 6000)
     expect(loads()).toEqual([['loadOlderMessages', 60]])
-    viewable(40, 59)
-    expect(loads()).toEqual([['loadOlderMessages', 60]])
+  })
+
+  test('rows in view do not decide: the oldest row on screen loads nothing while two screens remain', async () => {
+    open()
     await tick(1001)
+    scrolled(2000, 6000)
     viewable(40, 59)
+    expect(loads()).toEqual([])
+  })
+
+  test('a load under way is not asked for again until the 1s gate passes', async () => {
+    open()
+    await tick(1001)
+    scrolled(3000, 6000)
+    scrolled(3500, 6000)
+    scrolled(5000, 6000)
+    await tick(999)
+    scrolled(5000, 6000)
+    expect(loads()).toEqual([['loadOlderMessages', 60]])
+    await tick(2)
+    scrolled(5000, 6000)
     expect(loads()).toEqual([
       ['loadOlderMessages', 60],
       ['loadOlderMessages', 60],
     ])
   })
 
-  test('a short thread loads within 1 row of its oldest', async () => {
-    open({to: 30})
-    await tick(1001)
-    viewable(0, 27)
-    expect(loads()).toEqual([])
-    viewable(0, 28)
-    expect(loads()).toEqual([['loadOlderMessages', 30]])
-  })
-
   test('new rows restart the 1s gate and move the threshold', async () => {
     open()
     await tick(1001)
     setOrdinals(1, 80)
-    viewable(60, 79)
+    scrolled(5000, 8000)
     expect(loads()).toEqual([])
     await tick(1001)
-    viewable(60, 68)
+    scrolled(4999, 8000)
     expect(loads()).toEqual([])
-    viewable(60, 69)
+    scrolled(5000, 8000)
     expect(loads()).toEqual([['loadOlderMessages', 80]])
+  })
+
+  // Every offset of a thread shorter than two screens is within two screens of its oldest row.
+  test('a short thread loads once as the reader scrolls it, and nothing more without scrolling', async () => {
+    open({to: 5})
+    scrolled(0, 500)
+    expect(loads()).toEqual([])
+    await tick(1001)
+    scrolled(0, 500)
+    scrolled(10, 500)
+    expect(loads()).toEqual([['loadOlderMessages', 5]])
+    await tick(10000)
+    expect(loads()).toEqual([['loadOlderMessages', 5]])
   })
 
   test('catch-up hears the oldest row in view', () => {
@@ -1427,56 +1450,58 @@ describe('loading older messages', () => {
 // After a jump to an old search hit the thread holds a window of history, and newer messages are
 // loaded as the reader scrolls down toward the newest row loaded, as on desktop.
 describe('loading newer messages', () => {
-  // Data is newest first, so the first viewable index is the newest row on screen.
   const loads = () => H.log.filter(([kind]) => kind === 'loadNewerMessages')
   const openOnOldHit = (p: {keyboard?: boolean} = {}) => {
     open({center: 30, keyboard: p.keyboard})
     update(() => H.threadStore.set({moreToLoadForward: true}))
   }
 
-  test('a long window loads within 10 rows of its newest, once the 1s gate has passed', async () => {
+  test('a long window loads two screens from its newest row, once the 1s gate has passed', async () => {
     openOnOldHit()
-    await tick(1001)
-    viewable(11, 20)
+    scrolled(2000, 6000)
     expect(loads()).toEqual([])
-    viewable(10, 19)
+    await tick(1001)
+    scrolled(2001, 6000)
+    expect(loads()).toEqual([])
+    scrolled(2000, 6000)
     expect(loads()).toEqual([['loadNewerMessages', 60]])
-    viewable(0, 9)
+    scrolled(0, 6000)
     expect(loads()).toEqual([['loadNewerMessages', 60]])
     await tick(1001)
-    viewable(0, 9)
+    scrolled(0, 6000)
     expect(loads()).toEqual([
       ['loadNewerMessages', 60],
       ['loadNewerMessages', 60],
     ])
   })
 
-  test('a short window loads within 1 row of its newest', async () => {
-    open({center: 20, to: 30})
-    update(() => H.threadStore.set({moreToLoadForward: true}))
+  // The newest row rests over the keyboard, below offset 0.
+  test('with the keyboard up, two screens are measured from where the newest row rests', async () => {
+    openOnOldHit({keyboard: true})
     await tick(1001)
-    viewable(2, 29)
+    const resting = H.bottomInset - keyboardHeight
+    scrolled(resting + 2001, 6000)
     expect(loads()).toEqual([])
-    viewable(1, 28)
-    expect(loads()).toEqual([['loadNewerMessages', 30]])
+    scrolled(resting + 2000, 6000)
+    expect(loads()).toEqual([['loadNewerMessages', 60]])
   })
 
   test('a thread holding the newest message loads nothing newer', async () => {
     open({center: 30})
     await tick(1001)
-    viewable(0, 9)
+    scrolled(0, 6000)
     expect(loads()).toEqual([])
   })
 
   test('the rows of a load landing restart the 1s gate', async () => {
     openOnOldHit()
     await tick(1001)
-    viewable(0, 9)
+    scrolled(0, 6000)
     setOrdinals(1, 80)
-    viewable(0, 9)
+    scrolled(0, 8000)
     expect(loads()).toEqual([['loadNewerMessages', 60]])
     await tick(1001)
-    viewable(0, 9)
+    scrolled(0, 8000)
     expect(loads()).toEqual([
       ['loadNewerMessages', 60],
       ['loadNewerMessages', 80],
