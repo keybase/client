@@ -228,13 +228,15 @@ export const metroLogPath = path.resolve('.expo/dev/logs/start.log')
 
 export const metroLogMark = (): LogMark => markFile(metroLogPath)
 
-// JS console output since the mark, one string per call (arguments joined by spaces).
-export const metroClientLogSince = (mark: LogMark): Array<string> =>
+// JS console output since the mark, one string per call (arguments joined by spaces); `level`
+// keeps only that level's calls (console.error is 'error').
+export const metroClientLogSince = (mark: LogMark, level?: string): Array<string> =>
   linesSince(mark)
     .filter(l => l.includes('"metro:client_log"'))
     .map(l => {
       try {
-        const e = JSON.parse(l) as {data?: Array<unknown>}
+        const e = JSON.parse(l) as {data?: Array<unknown>; level?: string}
+        if (level && e.level !== level) return ''
         return (e.data ?? []).map(d => (typeof d === 'string' ? d : JSON.stringify(d))).join(' ')
       } catch {
         return ''

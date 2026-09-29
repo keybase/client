@@ -427,14 +427,21 @@ const withApi = async <R>(f: (api: ChatApi) => Promise<R>) => {
   }
 }
 
-// A text message sent as the smoke user through the CLI (not the app under test).
-export const sendAsSmokeUser = async (topicName: E2EChannel, body: string) => {
+// A text message sent through the host's CLI (not the app under test), as whichever account the
+// CLI is signed in as: the smoke user for the desktop flows, the second account for the iOS ones
+// (see cli-account.ts).
+export const sendFromCli = async (topicName: E2EChannel, body: string) => {
   const {team} = e2eAccounts()
   await withApi(async api => sendText(api, channelRef(team, topicName), body))
 }
 
-// An image sent as the smoke user through the CLI, titled `title`.
-export const attachAsSmokeUser = async (topicName: E2EChannel, title: string) => {
+// A text message sent through the host's CLI to a one-on-one conversation, named by its tlf name.
+export const sendDirectFromCli = async (tlfName: string, body: string) => {
+  await withApi(async api => api.call('send', {channel: {name: tlfName}, message: {body}}))
+}
+
+// An image sent through the host's CLI, titled `title`.
+export const attachFromCli = async (topicName: E2EChannel, title: string) => {
   const {team} = e2eAccounts()
   const image = MEDIA_FIXTURES[1]
   await withApi(async api => api.call('attach', {channel: channelRef(team, topicName), filename: image.file, title}))

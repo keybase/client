@@ -24,7 +24,7 @@ import {
   waitForScrollStable,
 } from '@/tests/e2e/electron/helpers/chat'
 import {navigateToChat} from '@/tests/e2e/electron/helpers/navigate'
-import {E2E_CHANNELS, attachAsSmokeUser, ensureChatData, type ChatData} from '@/tests/e2e/shared/chat-data'
+import {E2E_CHANNELS, attachFromCli, ensureChatData, type ChatData} from '@/tests/e2e/shared/chat-data'
 import {findIncomingSender, type IncomingSender} from '@/tests/e2e/shared/incoming-sender'
 import * as T from '@/tests/e2e/shared/test-ids'
 
@@ -176,7 +176,7 @@ test.describe('attachments', () => {
   test('an image just sent collapses and expands', async ({page}) => {
     await openScratch(page)
     const title = `e2e-data-image-${Date.now()}`
-    await attachAsSmokeUser(E2E_CHANNELS.scratch, title)
+    await attachFromCli(E2E_CHANNELS.scratch, title)
     const ordinal = await waitForRow(page, title, 30_000)
     const row = rowByOrdinal(page, ordinal)
     await expect(row.getByTestId(T.CHAT_ATTACHMENT_IMAGE)).toHaveCount(1, {timeout: 15_000})
