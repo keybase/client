@@ -2,7 +2,8 @@
 /// <reference types="jest" />
 
 import {afterEach, beforeEach, expect, jest, test} from '@jest/globals'
-import {act, cleanup, renderHook} from '@testing-library/react'
+import * as React from 'react'
+import {act, cleanup, render, renderHook} from '@testing-library/react'
 import {useDebouncedCallback, useThrottledCallback} from './use-debounce'
 
 const advance = (ms: number) => {
@@ -311,6 +312,28 @@ test('useThrottledCallback runs a pending trailing call on unmount with flushOnU
   })
 
   unmount()
+  advance(100)
+
+  expect(callback.mock.calls).toEqual([['alpha'], ['beta']])
+})
+
+// a child's layout effects and refs run ahead of its parent's in the same commit
+test('useThrottledCallback keeps a trailing call made in the commit that mounts it', () => {
+  const callback = jest.fn((value: string) => value)
+  const Child = (p: {save: (value: string) => void}) => {
+    const {save} = p
+    React.useLayoutEffect(() => {
+      save('alpha')
+      save('beta')
+    }, [save])
+    return null
+  }
+  const Parent = () => {
+    const save = useThrottledCallback(callback, 100)
+    return <Child save={save} />
+  }
+  render(<Parent />)
+
   advance(100)
 
   expect(callback.mock.calls).toEqual([['alpha'], ['beta']])
