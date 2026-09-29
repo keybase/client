@@ -217,18 +217,20 @@ test('injecting the spoiler markup selects the placeholder between the markers',
   expect(textarea.selectionEnd).toBe(9)
 })
 
-test('Enter sends the composer text and clears it; shift-Enter adds a newline and does not send', async () => {
+test('Enter sends the composer text and clears it; shift-Enter is left to the browser and does not send', async () => {
   const post = jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener').mockResolvedValue({
     outboxID: new TextEncoder().encode('posted'),
   })
   const {textarea} = renderComposer()
   type(textarea, 'hello')
 
+  let notPrevented = true
   act(() => {
-    fireEvent.keyDown(textarea, {key: 'Enter', shiftKey: true})
+    notPrevented = fireEvent.keyDown(textarea, {key: 'Enter', shiftKey: true})
   })
+  expect(notPrevented).toBe(true)
   expect(post).not.toHaveBeenCalled()
-  expect(textarea.value).toBe('hello\n')
+  expect(textarea.value).toBe('hello')
 
   act(() => {
     fireEvent.keyDown(textarea, {key: 'Enter'})
@@ -241,7 +243,7 @@ test('Enter sends the composer text and clears it; shift-Enter adds a newline an
   })
 
   expect(post).toHaveBeenCalledTimes(1)
-  expect(post.mock.calls[0]?.[0].params.body).toBe('hello\n')
+  expect(post.mock.calls[0]?.[0].params.body).toBe('hello')
   expect(textarea.value).toBe('')
 })
 

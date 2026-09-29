@@ -102,12 +102,12 @@ describe('the composer textarea', () => {
     ['Enter, list open with no items yet: send', input({suggestions: 'empty'}), k('Enter'), [submit], true],
     ['Enter, empty: still asks to send', input(), k('Enter'), [submit], true],
     ['Enter, editing: send', input({...withText, editing: true}), k('Enter'), [submit], true],
-    ['shift-Enter: newline', input(withText), k('Enter', {shiftKey: true}), [newline], true],
+    ['shift-Enter: newline by the browser', input(withText), k('Enter', {shiftKey: true}), [], false],
     ['alt-Enter: newline', input(withText), k('Enter', {altKey: true}), [newline], true],
     ['ctrl-Enter: newline', input(withText), k('Enter', {ctrlKey: true}), [newline], true],
     ['meta-Enter: newline', input(withText), k('Enter', {metaKey: true}), [newline], true],
     ['ctrl-shift-Enter: newline', input(withText), k('Enter', {ctrlKey: true, shiftKey: true}), [newline], true],
-    ['shift-Enter, empty: newline', input(), k('Enter', {shiftKey: true}), [newline], true],
+    ['shift-Enter, empty: newline by the browser', input(), k('Enter', {shiftKey: true}), [], false],
     ['alt-Enter, editing: newline', input({...withText, editing: true}), k('Enter', {altKey: true}), [newline], true],
     ['Enter, list open: pick, else send', input({suggestions: open}), k('Enter'), [pickOrSend], true],
     [
@@ -117,7 +117,13 @@ describe('the composer textarea', () => {
       [pickOrSend],
       true,
     ],
-    ['shift-Enter, list open: newline, no pick', input({suggestions: open}), k('Enter', {shiftKey: true}), [newline], true],
+    [
+      'shift-Enter, list open: newline by the browser, no pick',
+      input({suggestions: open}),
+      k('Enter', {shiftKey: true}),
+      [],
+      false,
+    ],
     ['alt-Enter, list open: newline, no pick', input({suggestions: open}), k('Enter', {altKey: true}), [newline], true],
     ['ctrl-Enter, list open: newline, no pick', input({suggestions: open}), k('Enter', {ctrlKey: true}), [newline], true],
     ['meta-Enter, list open: newline, no pick', input({suggestions: open}), k('Enter', {metaKey: true}), [newline], true],
@@ -401,11 +407,17 @@ describe('across every key and state', () => {
     }
   })
 
-  test('an Enter with any modifier held only inserts a newline, and claims the key', () => {
+  test('an Enter with alt, ctrl or meta held only inserts a newline, and claims the key', () => {
     for (const s of allInputStates) {
-      for (const key of allKeys.filter(k => k.key === 'Enter' && (k.altKey || k.ctrlKey || k.metaKey || k.shiftKey))) {
+      for (const key of allKeys.filter(k => k.key === 'Enter' && (k.altKey || k.ctrlKey || k.metaKey))) {
         expect(composerKeyDown(s, key)).toEqual({actions: [newline], preventDefault: true})
       }
+    }
+  })
+
+  test('a shift-Enter is left to the browser', () => {
+    for (const s of allInputStates) {
+      expect(composerKeyDown(s, k('Enter', {shiftKey: true}))).toEqual({actions: [], preventDefault: false})
     }
   })
 

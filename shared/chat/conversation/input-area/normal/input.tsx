@@ -154,6 +154,17 @@ function DesktopInput(p: InputLowLevelProps) {
       getSelection: () => {
         return selectionRef.current
       },
+      insertTyped: (s: string) => {
+        const doc = (
+          globalThis as {
+            document?: {activeElement: unknown; execCommand?: (c: string, ui: boolean, v: string) => boolean}
+          }
+        ).document
+        if (!i || !doc?.execCommand || doc.activeElement !== i) return false
+        // deprecated, but the one insert Chromium puts in the textarea's own undo history; it fires
+        // the input event, so onChange reports the change
+        return doc.execCommand('insertText', false, s)
+      },
       isFocused: () =>
         !!i && (globalThis as {document?: {activeElement: unknown}}).document?.activeElement === i,
       replaceText: (ti: TextInfo, reflectChange: boolean) => {
@@ -361,6 +372,7 @@ function NativeInput(p: InputLowLevelProps) {
       getSelection: () => {
         return selectionRef.current
       },
+      insertTyped: () => false,
       isFocused: () => !!inputRef.current?.isFocused(),
       replaceText: (ti: TextInfo, reflectChange: boolean) => {
         if (!reflectChange) {
@@ -691,7 +703,7 @@ const useDesktopKeys = (p: UseDesktopKeysProps) => {
         onSubmit()
         break
       case 'newline':
-        composer.insertAtCaret('\n')
+        composer.typeAtCaret('\n')
         break
     }
   }

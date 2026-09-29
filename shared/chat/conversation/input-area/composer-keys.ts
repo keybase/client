@@ -132,8 +132,9 @@ const inputKey = (s: InputKeyState, k: ComposerKey): ComposerKeyResult<InputKeyA
   if (isSendEnter(k)) {
     actions.push({type: 'submit'})
     preventDefault = true
-  } else if (k.key === 'Enter') {
-    // Chromium inserts a newline for shift-Enter only; alt-, ctrl- and meta-Enter insert nothing
+  } else if (k.key === 'Enter' && (k.altKey || k.ctrlKey || k.metaKey)) {
+    // Chromium inserts a newline for shift-Enter only (left to it, so its undo keeps working);
+    // alt-, ctrl- and meta-Enter insert nothing
     actions.push({type: 'newline'})
     preventDefault = true
   }

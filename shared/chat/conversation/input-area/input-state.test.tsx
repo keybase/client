@@ -48,6 +48,7 @@ const mockHandle = () =>
         mockInput.focusCount++
       },
       getSelection: () => mockInput.selection,
+      insertTyped: () => false,
       isFocused: () => false,
       replaceText: (ti, reflectChange) => {
         mockInput.text = ti.text

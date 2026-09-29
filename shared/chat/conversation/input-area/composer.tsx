@@ -10,6 +10,9 @@ export type ComposerInput = {
   clear: () => void
   focus: () => void
   getSelection: () => Selection | undefined
+  // Inserts s at the caret the way typing does, so it lands in the platform's own undo history
+  // and is reported through onChangeText. False when the input cannot.
+  insertTyped: (s: string) => boolean
   isFocused: () => boolean
   // reflectChange: echo the new text back through the input's onChangeText, as typing would.
   // False when the input did not show the text (the native input shows only reflected writes).
@@ -37,6 +40,8 @@ export type Composer = {
   // Replaces the whole text with the caret at its end.
   inject: (text: string, focus?: boolean) => void
   insertAtCaret: (s: string) => void
+  // insertAtCaret, typed by the input itself where it can be, so the platform can undo it
+  typeAtCaret: (s: string) => void
   // True when the input shows the text now; a write made while no input is attached waits.
   replace: (info: TextInfo, reflectChange: boolean) => boolean
   // Saves an empty draft and clears the input now (with none attached, the next one once it has
@@ -122,6 +127,16 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     return true
   }
 
+  const insertAtCaret = (target: ComposerInput, s: string) => {
+    const selection = target.getSelection()
+    // the native input has no caret until it reports one
+    const position = selection
+      ? {end: selection.end ?? selection.start, start: selection.start}
+      : {end: text.length, start: text.length}
+    const inserted = standardTransformer(s, {position, text}, true)
+    replace(target, {selection: inserted.selection, text: inserted.text}, true)
+  }
+
   // Loaded only once it is written, so an offer made before the view's input is attached is
   // retried when it attaches.
   const offerDraft = (draft: string | undefined) => {
@@ -187,16 +202,9 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     inject: (next, focus = false) => {
       whenAttached(target => write(target, next, focus))
     },
-    insertAtCaret: s =>
-      whenAttached(target => {
-        const selection = target.getSelection()
-        // the native input has no caret until it reports one
-        const position = selection
-          ? {end: selection.end ?? selection.start, start: selection.start}
-          : {end: text.length, start: text.length}
-        const inserted = standardTransformer(s, {position, text}, true)
-        replace(target, {selection: inserted.selection, text: inserted.text}, true)
-      }),
+    insertAtCaret: s => {
+      whenAttached(target => insertAtCaret(target, s))
+    },
     isFocused: () => !!input?.isFocused(),
     replace: (info, reflectChange) => {
       if (input) return replace(input, info, reflectChange)
@@ -238,6 +246,13 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
         send(toSend, unfurlSuppress)
       }, 0)
       return true
+    },
+    typeAtCaret: s => {
+      whenAttached(target => {
+        if (!target.insertTyped(s)) {
+          insertAtCaret(target, s)
+        }
+      })
     },
   }
 }

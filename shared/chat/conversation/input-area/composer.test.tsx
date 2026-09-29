@@ -492,6 +492,47 @@ test('an insert a child makes as its hidden screen is shown lands once the input
   expect(composer.getText()).toBe('ab:smile: cd')
 })
 
+describe('typeAtCaret', () => {
+  test('an input that can type the text does it itself, and its report is the new text', () => {
+    const {composer, mount} = setup()
+    const {fake} = mount()
+    fake.typesText = true
+    fake.type('abcd', 2)
+    const replaceText = jest.spyOn(fake, 'replaceText')
+
+    composer.typeAtCaret('\n')
+
+    expect(replaceText).not.toHaveBeenCalled()
+    expect(fake.text).toBe('ab\ncd')
+    expect(composer.getText()).toBe('ab\ncd')
+  })
+
+  test('an input that cannot type it gets it inserted at the caret', () => {
+    const {composer, mount} = setup()
+    const {fake} = mount()
+    fake.type('abcd', 2)
+
+    composer.typeAtCaret('\n')
+
+    expect(fake.text).toBe('ab\ncd')
+    expect(fake.selection).toEqual({end: 3, start: 3})
+    expect(composer.getText()).toBe('ab\ncd')
+  })
+
+  test('waits while no input is attached and lands once it attaches again', () => {
+    const {composer, mount} = setup()
+    const {attach, detach, fake} = mount()
+    fake.type('abc')
+    detach()
+
+    composer.typeAtCaret('\n')
+    expect(composer.getText()).toBe('abc')
+    attach()
+
+    expect(composer.getText()).toBe('abc\n')
+  })
+})
+
 describe('replace', () => {
   test('a preview write is readable without being reported as typed', () => {
     const {composer, mount} = setup()

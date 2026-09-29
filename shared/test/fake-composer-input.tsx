@@ -13,6 +13,8 @@ export type FakeComposerInput = ComposerInput & {
   // false: like the native input, a write that is not reflected is not shown
   showsPreviews: boolean
   text: string
+  // true: insertTyped types into the text like a keystroke; false: it cannot, like the native input
+  typesText: boolean
   // what a keystroke or paste does: new text, the caret, then the change report
   type: (text: string, caret?: number) => void
 }
@@ -35,6 +37,13 @@ export const makeFakeComposerInput = (): FakeComposerInput => {
     focusCount: 0,
     focused: false,
     getSelection: () => fake.selection,
+    insertTyped: s => {
+      if (!fake.typesText) return false
+      const start = fake.selection?.start ?? fake.text.length
+      const end = fake.selection?.end ?? start
+      fake.type(fake.text.slice(0, start) + s + fake.text.slice(end), start + s.length)
+      return true
+    },
     isFocused: () => fake.focused,
     replaceText: (info, reflectChange) => {
       if (!reflectChange && !fake.showsPreviews) return false
@@ -53,6 +62,7 @@ export const makeFakeComposerInput = (): FakeComposerInput => {
       fake.selection = {end: caret, start: caret}
       onChangeText?.(text)
     },
+    typesText: false,
   }
   return fake
 }

@@ -133,7 +133,18 @@ const select = (textarea: HTMLTextAreaElement, text: string, start: number, end:
   })
 }
 
-const modifiers = [['shiftKey'], ['altKey'], ['ctrlKey'], ['metaKey']] as const
+// the modifiers whose Enter the composer turns into a newline; shift-Enter is the browser's own
+const modifiers = [['altKey'], ['ctrlKey'], ['metaKey']] as const
+
+// jsdom has no execCommand. This one does what Chromium's insertText does in a focused, writable
+// textarea: replace the selection, put the caret after it, and fire the input event.
+const execCommand = jest.fn((command: string, _ui: boolean, value: string) => {
+  const el = document.activeElement
+  if (command !== 'insertText' || !(el instanceof HTMLTextAreaElement) || el.readOnly) return false
+  el.setRangeText(value, el.selectionStart, el.selectionEnd, 'end')
+  el.dispatchEvent(new InputEvent('input', {bubbles: true, data: value, inputType: 'insertText'}))
+  return true
+})
 
 type KeyInit = {altKey?: boolean; ctrlKey?: boolean; metaKey?: boolean; shiftKey?: boolean}
 // returns whether the default was prevented
@@ -180,6 +191,7 @@ const openSuggestions = (textarea: HTMLTextAreaElement, text: string) => {
 
 beforeEach(() => {
   jest.useFakeTimers()
+  Object.defineProperty(document, 'execCommand', {configurable: true, value: execCommand})
   jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
   jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
   jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([])
@@ -205,6 +217,7 @@ afterEach(() => {
   mockUsersList.mockClear()
   mockMove.mockClear()
   mockSelect.mockClear()
+  execCommand.mockClear()
   mockListHasItems = true
   mockListHasSelection = true
   scrollDown.mockClear()
@@ -276,17 +289,43 @@ describe('in the composer, no suggestions', () => {
     expect(post.mock.calls[0]?.[0].params.body).toBe('hello')
   })
 
-  test.each(modifiers)('Enter with %s inserts a newline at the caret instead of sending', async modifier => {
+  test.each(modifiers)('Enter with %s types a newline at the caret instead of sending', async modifier => {
     const {textarea} = renderComposer()
     type(textarea, 'ab', 1)
 
     expect(keyDown(textarea, 'Enter', {[modifier]: true})).toBe(true)
     await flushSend()
 
+    expect(execCommand).toHaveBeenCalledWith('insertText', false, '\n')
     expect(post).not.toHaveBeenCalled()
     expect(textarea.value).toBe('a\nb')
     expect(textarea.selectionStart).toBe(2)
     expect(textarea.selectionEnd).toBe(2)
+  })
+
+  test('shift-Enter is left to the browser: not claimed, not typed by the composer, not sent', async () => {
+    const {textarea} = renderComposer()
+    type(textarea, 'ab', 1)
+
+    expect(keyDown(textarea, 'Enter', {shiftKey: true})).toBe(false)
+    await flushSend()
+
+    expect(execCommand).not.toHaveBeenCalled()
+    expect(post).not.toHaveBeenCalled()
+    expect(textarea.value).toBe('ab')
+  })
+
+  test('with no typed insert available the newline is still written at the caret', async () => {
+    Object.defineProperty(document, 'execCommand', {configurable: true, value: undefined})
+    const {textarea} = renderComposer()
+    type(textarea, 'ab', 1)
+
+    expect(keyDown(textarea, 'Enter', {altKey: true})).toBe(true)
+    await flushSend()
+
+    expect(post).not.toHaveBeenCalled()
+    expect(textarea.value).toBe('a\nb')
+    expect(textarea.selectionStart).toBe(2)
   })
 
   test.each(modifiers)('Enter with %s replaces the selection with a newline', async modifier => {
@@ -518,7 +557,7 @@ describe('in the composer, suggestions open', () => {
     const {textarea} = renderComposer()
     openSuggestions(textarea, 'hi @te')
 
-    keyDown(textarea, 'Enter', {shiftKey: true})
+    keyDown(textarea, 'Enter', {altKey: true})
     act(() => {
       jest.advanceTimersByTime(5)
     })
