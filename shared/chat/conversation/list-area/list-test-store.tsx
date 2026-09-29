@@ -1,7 +1,8 @@
 // Test support shared by the thread list harnesses: a tiny external store the tests drive in place
-// of the thread, center and input providers.
+// of the thread, center and input providers, and what both harnesses record and hand the tests.
 import * as React from 'react'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
+import type {ThreadRefsContext} from '../normal/context'
 import {makeScrollTarget, type ScrollDirective, type ScrollEvent} from './scroll-target'
 
 export type Store<S> = {
@@ -36,6 +37,55 @@ export const makeStore = <S extends object>(initial: S): Store<S> => {
 
 export const useStore = <S extends object, R>(store: Store<S>, selector: (s: S) => R): R =>
   React.useSyncExternalStore(store.subscribe, () => selector(store.get()))
+
+export const ords = (...ns: Array<number>) => ns.map(T.Chat.numberToOrdinal)
+export const range = (from: number, to: number) => {
+  const out: Array<number> = []
+  for (let i = from; i <= to; i++) out.push(i)
+  return ords(...out)
+}
+
+// Everything the list does, in the order it did it: imperative scrolls on the list handle and the
+// thread and centre actions it calls, and what it tells catch-up.
+export const log: Array<[string, unknown?]> = []
+
+type CenterState = {
+  centeredHighlightOrdinal: T.Chat.Ordinal | undefined
+  centeredOrdinal: T.Chat.Ordinal | undefined
+  hasCenter: boolean
+}
+const noCenter: CenterState = {centeredHighlightOrdinal: undefined, centeredOrdinal: undefined, hasCenter: false}
+export const centerStore = makeStore<CenterState>(noCenter)
+export const setCenter = (ordinal: T.Chat.Ordinal | undefined) =>
+  centerStore.reset({centeredHighlightOrdinal: ordinal, centeredOrdinal: ordinal, hasCenter: !!ordinal})
+
+type InputState = {editing: T.Chat.Ordinal | undefined}
+export const inputStore = makeStore<InputState>({editing: undefined})
+export const inputStateModule = {
+  useConversationInput: <R,>(selector: (s: InputState) => R) => useStore(inputStore, selector),
+}
+
+type ScrollRef = {scrollDown: () => void; scrollToBottom: () => void; scrollUp: () => void}
+// The list registers its imperative scrolls through ThreadRefsContext; this captures them.
+export const threadRefs: {current: ScrollRef | null} = {current: null}
+export const threadRefsValue: React.ContextType<typeof ThreadRefsContext> = {
+  focusInput: () => {},
+  scrollDown: () => threadRefs.current?.scrollDown(),
+  scrollToBottom: () => threadRefs.current?.scrollToBottom(),
+  scrollUp: () => threadRefs.current?.scrollUp(),
+  setInputRef: () => {},
+  setScrollRef: r => {
+    threadRefs.current = r
+  },
+}
+
+// What both harnesses reset before each test.
+export const resetShared = () => {
+  log.length = 0
+  threadRefs.current = null
+  centerStore.reset(noCenter)
+  inputStore.reset({editing: undefined})
+}
 
 // The part of the thread store the lists read, moved the way the thread's own actions move it.
 // thread-transitions.test.tsx checks each transition against the real thread store, so tests built

@@ -4,22 +4,22 @@
 // tests drive in place of the thread, center and input providers.
 import * as React from 'react'
 import * as T from '@/constants/types'
-import type {ThreadRefsContext} from '../normal/context'
-import {makeStore, useStore} from './list-test-store'
+import {centerStore, log, makeStore, resetShared, useStore} from './list-test-store'
+
+export {
+  centerStore,
+  inputStateModule,
+  inputStore,
+  log,
+  ords,
+  range,
+  setCenter,
+  threadRefs,
+  threadRefsValue,
+} from './list-test-store'
 
 export const rowHeight = 100
 export const viewportHeight = 500
-
-// Everything the list does, in the order it did it: imperative scrolls on the list handle and the
-// center/thread actions the list's buttons call.
-export const log: Array<[string, unknown?]> = []
-
-export const ords = (...ns: Array<number>) => ns.map(T.Chat.numberToOrdinal)
-export const range = (from: number, to: number) => {
-  const out: Array<number> = []
-  for (let i = from; i <= to; i++) out.push(i)
-  return ords(...out)
-}
 
 type ThreadState = {
   clearVersion: number
@@ -33,22 +33,6 @@ export const threadStore = makeStore<ThreadState>({
   messageOrdinals: undefined,
   moreToLoadForward: false,
 })
-
-type CenterState = {
-  centeredHighlightOrdinal: T.Chat.Ordinal | undefined
-  centeredOrdinal: T.Chat.Ordinal | undefined
-  hasCenter: boolean
-}
-export const centerStore = makeStore<CenterState>({
-  centeredHighlightOrdinal: undefined,
-  centeredOrdinal: undefined,
-  hasCenter: false,
-})
-export const setCenter = (ordinal: T.Chat.Ordinal | undefined) =>
-  centerStore.reset({centeredHighlightOrdinal: ordinal, centeredOrdinal: ordinal, hasCenter: !!ordinal})
-
-type InputState = {editing: T.Chat.Ordinal | undefined}
-export const inputStore = makeStore<InputState>({editing: undefined})
 
 type ListState = {
   isAtEnd: boolean
@@ -250,34 +234,13 @@ export const centerContextModule = {
   useConversationCenterActions: () => centerActions,
 }
 
-export const inputStateModule = {
-  useConversationInput: <R,>(selector: (s: InputState) => R) => useStore(inputStore, selector),
-}
-
-type ScrollRef = {scrollDown: () => void; scrollToBottom: () => void; scrollUp: () => void}
-// The list registers its imperative scrolls through ThreadRefsContext; this captures them.
-export const threadRefs: {current: ScrollRef | null} = {current: null}
-export const threadRefsValue: React.ContextType<typeof ThreadRefsContext> = {
-  focusInput: () => {},
-  scrollDown: () => threadRefs.current?.scrollDown(),
-  scrollToBottom: () => threadRefs.current?.scrollToBottom(),
-  scrollUp: () => threadRefs.current?.scrollUp(),
-  setInputRef: () => {},
-  setScrollRef: r => {
-    threadRefs.current = r
-  },
-}
-
 export const resetHarness = () => {
-  log.length = 0
+  resetShared()
   listProps.current = undefined
-  threadRefs.current = null
   movedTo = undefined
   lastFired = 0
   listStore.reset(initialListState())
   threadStore.reset({clearVersion: 0, loaded: false, messageOrdinals: undefined, moreToLoadForward: false})
-  centerStore.reset({centeredHighlightOrdinal: undefined, centeredOrdinal: undefined, hasCenter: false})
-  inputStore.reset({editing: undefined})
   markThreadAsRead.mockClear()
   toggleThreadSearch.mockClear()
   Object.values(centerActions).forEach(f => f.mockClear())

@@ -13,7 +13,7 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
 import {ConversationThreadProvider, useConversationThreadActions} from '../thread-context'
-import {emptyThread, threadTransitions, type ThreadSnapshot} from './list-test-store'
+import {emptyThread, range, threadTransitions, type ThreadSnapshot} from './list-test-store'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
@@ -26,11 +26,6 @@ const textAt = (n: number) =>
     text: new HiddenString(`message ${n}`),
     timestamp: 100,
   })
-const range = (from: number, to: number) => {
-  const out: Array<number> = []
-  for (let i = from; i <= to; i++) out.push(i)
-  return out
-}
 
 const wrapper = ({children}: {children: React.ReactNode}) => (
   <ConversationThreadProvider id={convID}>{children}</ConversationThreadProvider>
@@ -62,12 +57,12 @@ const mountThread = () => {
     const {clearVersion, loaded, messageOrdinals} = result.current.getSnapshot()
     return {clearVersion, loaded, messageOrdinals}
   }
-  const load = (ns: Array<number>) =>
+  const load = (ordinals: ReadonlyArray<T.Chat.Ordinal>) =>
     act(() => {
       result.current.applyThreadLoad({
         centered: false,
         enableActiveMarkRead: false,
-        messages: ns.map(textAt),
+        messages: ordinals.map(o => textAt(T.Chat.ordinalToNumber(o))),
         moreToLoad: false,
         scrollDirection: 'none',
       })
@@ -80,8 +75,6 @@ const mountThread = () => {
   }
 }
 
-const ords = (ns: Array<number>) => ns.map(T.Chat.numberToOrdinal)
-
 test('a fresh thread is empty and unloaded', () => {
   expect(mountThread().snapshot()).toEqual(emptyThread)
 })
@@ -89,7 +82,7 @@ test('a fresh thread is empty and unloaded', () => {
 test('a load fills the window and marks it loaded', () => {
   const thread = mountThread()
   thread.load(range(1, 60))
-  expect(thread.snapshot()).toEqual(threadTransitions.loaded(emptyThread, ords(range(1, 60))))
+  expect(thread.snapshot()).toEqual(threadTransitions.loaded(emptyThread, range(1, 60)))
 })
 
 test('paging merges into the window', () => {
@@ -97,7 +90,7 @@ test('paging merges into the window', () => {
   thread.load(range(21, 80))
   const before = thread.snapshot()
   thread.load(range(1, 20))
-  expect(thread.snapshot()).toEqual(threadTransitions.loaded(before, ords(range(1, 20))))
+  expect(thread.snapshot()).toEqual(threadTransitions.loaded(before, range(1, 20)))
 })
 
 test('a clear empties the window, marks it unloaded and starts a new dataset, in one update', () => {
@@ -111,11 +104,11 @@ test('a clear empties the window, marks it unloaded and starts a new dataset, in
 test('a centred jump is a clear, then a load of the window around the target', () => {
   const thread = mountThread()
   thread.load(range(1, 60))
-  let expected = threadTransitions.loaded(emptyThread, ords(range(1, 60)))
+  let expected = threadTransitions.loaded(emptyThread, range(1, 60))
   thread.clear()
   expected = threadTransitions.cleared(expected)
   thread.load(range(450, 550))
-  expected = threadTransitions.loaded(expected, ords(range(450, 550)))
+  expected = threadTransitions.loaded(expected, range(450, 550))
   expect(thread.snapshot()).toEqual(expected)
 })
 
