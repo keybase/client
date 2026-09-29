@@ -1037,7 +1037,7 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
           <Kb.Icon onClick={openMoreMenu} padding="tiny" type="iconfont-add" />
         </Kb.Box2>
       )}
-      {hasText && (
+      {hasText && !cannotWrite && (
         <Kb.Button
           type="Default"
           small={true}
@@ -1281,11 +1281,8 @@ const NativePlatformInput = (p: Props) => {
 
   const [onQueueSubmit] = React.useState(() => () => {
     setTimeout(() => {
-      if (composer.getText()) {
-        onSubmitRef.current()
-        if (expandedRef.current) {
-          setExpanded(false)
-        }
+      if (onSubmitRef.current() && expandedRef.current) {
+        setExpanded(false)
       }
     }, 60)
   })

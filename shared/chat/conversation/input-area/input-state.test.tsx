@@ -1372,6 +1372,40 @@ describe('the composer text', () => {
     }
   })
 
+  // the mobile send queue collapses the expanded input only after a send
+  test('onSubmit says whether it sent: not where the user cannot post', () => {
+    jest.useFakeTimers()
+    try {
+      mockPostText()
+      renderComposer()
+      act(() => {
+        mockPlatformInputProps?.onChangeText('hello')
+      })
+      act(() => {
+        metasReceived([{...Meta.makeConversationMeta(), cannotWrite: true, conversationIDKey: convID}], undefined, {
+          force: true,
+        })
+      })
+      let sent: boolean | undefined
+      act(() => {
+        sent = mockPlatformInputProps?.onSubmit()
+      })
+      expect(sent).toBe(false)
+
+      act(() => {
+        metasReceived([{...Meta.makeConversationMeta(), cannotWrite: false, conversationIDKey: convID}], undefined, {
+          force: true,
+        })
+      })
+      act(() => {
+        sent = mockPlatformInputProps?.onSubmit()
+      })
+      expect(sent).toBe(true)
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
   test('onSubmit clears and focuses the input at once and sends on the next tick', async () => {
     jest.useFakeTimers()
     try {

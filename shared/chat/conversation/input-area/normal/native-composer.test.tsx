@@ -812,6 +812,19 @@ describe('typing and the saved draft', () => {
 })
 
 describe('read-only, like desktop', () => {
+  // a stellar send the user cancels puts its text back even where the user can't post
+  test('text put back into it shows no Send button', () => {
+    makeReadOnly()
+    renderComposer()
+
+    act(() => {
+      composer?.restore('+1xlm@testuser')
+    })
+
+    expect(input().value).toBe('+1xlm@testuser')
+    expect(mockPressables.some(p => p.testID === CHAT_SEND_BUTTON)).toBe(false)
+  })
+
   test('the emoji and mention buttons are hidden', () => {
     makeReadOnly()
     renderComposer()

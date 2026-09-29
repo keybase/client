@@ -170,6 +170,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     if (sent && !hasCenter) {
       scrollToBottom()
     }
+    return sent
   }
 
   const sendTypingRaw = (typing: boolean) => {

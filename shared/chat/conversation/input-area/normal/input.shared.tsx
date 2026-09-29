@@ -67,7 +67,8 @@ export type PlatformInputProps = {
   minWriterRole: T.Teams.TeamRoleType
   onCancelEditing: () => void
   onChangeText: (newText: string) => void
-  onSubmit: () => void
+  // true when it sent: false for an empty composer, or where the user can't post
+  onSubmit: () => boolean
   showReplyPreview: boolean
   suggestionOverlayStyle: Styles.StylesCrossPlatform
 }
