@@ -131,13 +131,22 @@ export const useNativeThreadScroll = (p: {
   // offset here (inverted list + custom keyboard scrollview + tall variable-height
   // image rows), so instead we read the actual viewable index range each frame and
   // scrollToOffset by the item-delta until the target sits at viewport center.
-  const scrollOffsetRef = React.useRef(0)
-  const contentHeightRef = React.useRef(0)
-  const viewportHeightRef = React.useRef(0)
+  // What the list has reported of itself, undefined until it does. The list is keyed by conversation,
+  // so a switch brings a new list that starts unmeasured, and the old one's figures say nothing of it.
+  const metricsRef = React.useRef<{content?: number; offset?: number; viewport?: number}>({})
   // {active, iters}: correcting toward a centered hit and how many steps taken
   const correctRef = React.useRef({active: false, iters: 0})
   const vFirstRef = React.useRef<number | null | undefined>(undefined)
   const vLastRef = React.useRef<number | null | undefined>(undefined)
+  // Compared by value, so a freeze/thaw re-mount, which keeps the list, keeps its figures.
+  const measuredConvRef = React.useRef(conversationIDKey)
+  React.useLayoutEffect(() => {
+    if (measuredConvRef.current === conversationIDKey) return
+    measuredConvRef.current = conversationIDKey
+    metricsRef.current = {}
+    vFirstRef.current = undefined
+    vLastRef.current = undefined
+  }, [conversationIDKey])
   // The rows asked for by scrollToItem, each asked for by a centre or a reveal, with how many of its
   // failures have been retried: a row outside the rendered window makes the scroll fail, and the
   // retry asks for that same row again once more rows have rendered.
@@ -172,16 +181,16 @@ export const useNativeThreadScroll = (p: {
         settleCenter()
         return
       }
-      const avgH = contentHeightRef.current / num
-      const maxOffset = Math.max(0, contentHeightRef.current - viewportHeightRef.current)
+      const {content, offset, viewport} = metricsRef.current
+      // Nothing to step from until the list has reported where it is and how big.
+      if (content === undefined || offset === undefined || viewport === undefined) return
+      const avgH = content / num
+      const maxOffset = Math.max(0, content - viewport)
       // damp by 0.9 to avoid overshoot/oscillation; higher index = older = higher offset
-      const newOffset = Math.min(
-        maxOffset,
-        Math.max(restingOffsetRef.current(), scrollOffsetRef.current + diff * avgH * 0.9)
-      )
+      const newOffset = Math.min(maxOffset, Math.max(restingOffsetRef.current(), offset + diff * avgH * 0.9))
       // A target among the newest or oldest rows cannot reach the middle: the step is clamped to the
       // end of the scrollable range and would move nothing, now or on any later try.
-      if (Math.abs(newOffset - scrollOffsetRef.current) < 1) {
+      if (Math.abs(newOffset - offset) < 1) {
         settleCenter()
         return
       }
@@ -272,7 +281,7 @@ export const useNativeThreadScroll = (p: {
           index,
           vFirstRef.current,
           vLastRef.current,
-          scrollOffsetRef.current <= restingOffsetRef.current() + endTolerance
+          (metricsRef.current.offset ?? Infinity) <= restingOffsetRef.current() + endTolerance
         ),
       targetInData: index >= 0,
       type: 'editingChanged',
@@ -365,13 +374,15 @@ export const useNativeThreadScroll = (p: {
       (e: {
         nativeEvent: {contentOffset: {y: number}; contentSize: {height: number}; layoutMeasurement: {height: number}}
       }) => {
-        scrollOffsetRef.current = e.nativeEvent.contentOffset.y
-        contentHeightRef.current = e.nativeEvent.contentSize.height
-        viewportHeightRef.current = e.nativeEvent.layoutMeasurement.height
+        metricsRef.current = {
+          content: e.nativeEvent.contentSize.height,
+          offset: e.nativeEvent.contentOffset.y,
+          viewport: e.nativeEvent.layoutMeasurement.height,
+        }
       }
   )
   const [onContentSizeChange] = React.useState(() => (_w: number, h: number) => {
-    contentHeightRef.current = h
+    metricsRef.current = {...metricsRef.current, content: h}
   })
   // The reader is told apart by touch, which the list reports itself: a drag is always theirs, and
   // everything else moving the list is the list's own.

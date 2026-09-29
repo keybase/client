@@ -463,6 +463,34 @@ describe('the closed-loop corrector', () => {
     expect(scrollsOnly()).toEqual([coarse(30)])
   })
 
+  test('waits for the list to report its offset and size before its first step', () => {
+    open({center: 30})
+    viewable(0, 9)
+    expect(scrollsOnly()).toEqual([])
+    scrolled(0, 6000)
+    viewable(0, 9)
+    expect(scrollsOnly()).toEqual([toOffset(firstStep)])
+  })
+
+  // The new conversation's list is a new FlatList: the old one's offset and sizes say nothing about it.
+  test('after a conversation switch, steps from the new list\'s offset and sizes, not the old one\'s', () => {
+    open({center: 30})
+    scrolled(3000, 6000)
+    update(() => {
+      H.threadStore.reset({
+        ...threadTransitions.loaded(emptyThread, H.range(1, 60)),
+        clearVersion: 1,
+        conversationIDKey: T.Chat.stringToConversationIDKey('conv2'),
+      })
+    })
+    clearLog()
+    viewable(0, 9)
+    expect(scrollsOnly()).toEqual([])
+    scrolled(0, 6000)
+    viewable(0, 9)
+    expect(scrollsOnly()).toEqual([toOffset(firstStep)])
+  })
+
   test('does nothing before the list reports a viewable range', async () => {
     open({center: 30})
     await tick(1000)
