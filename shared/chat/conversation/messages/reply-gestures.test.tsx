@@ -5,6 +5,7 @@ import type * as React from 'react'
 import * as T from '@/constants/types'
 import {act, cleanup, render} from '@testing-library/react'
 import {metasReceived} from '@/chat/inbox/metadata'
+import type * as InboxMetadata from '@/chat/inbox/metadata'
 import {resetAllStores} from '@/util/zustand'
 import type {Props as SwipeableProps} from '@/common-adapters/swipeable-row.shared'
 import {ConversationInputProvider} from '../input-area/input-state'
@@ -22,6 +23,20 @@ jest.mock('@/common-adapters/swipeable-row', () => ({
     return null
   },
 }))
+
+// counts the components that read the inbox store
+let mockInboxReads = 0
+jest.mock('@/chat/inbox/metadata', () => {
+  const actual = jest.requireActual<typeof InboxMetadata>('@/chat/inbox/metadata')
+  const useInboxMetadataState = Object.assign(
+    (...args: Parameters<typeof actual.useInboxMetadataState>) => {
+      mockInboxReads++
+      return actual.useInboxMetadataState(...args)
+    },
+    actual.useInboxMetadataState
+  )
+  return {...actual, useInboxMetadataState}
+})
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const ordinal = T.Chat.numberToOrdinal(101)
@@ -95,4 +110,26 @@ describe('swipe-to-reply', () => {
     setCannotWrite(true)
     expect(swipeEnabled()).toBe(false)
   })
+})
+
+// a thread renders a row per message, so what a row subscribes to is paid per message on every
+// inbox update
+test('rows read whether they can reply from the thread, not from the inbox store', () => {
+  g.isMobile = true
+  setCannotWrite(false)
+  const inboxReadsFor = (rows: number) => {
+    mockInboxReads = 0
+    const {unmount} = render(
+      <Row>
+        {Array.from({length: rows}, (_, i) => (
+          <LongPressable key={i}>{null}</LongPressable>
+        ))}
+      </Row>
+    )
+    const count = mockInboxReads
+    unmount()
+    return count
+  }
+
+  expect(inboxReadsFor(5)).toBe(inboxReadsFor(1))
 })

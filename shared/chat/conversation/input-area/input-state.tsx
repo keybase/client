@@ -8,7 +8,7 @@ import {metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {ignorePromise} from '@/constants/utils'
 import {whenModalsGone} from '@/constants/router'
 import {useThrottledCallback} from '@/util/use-debounce'
-import {closeConversationThreadSearch, useConversationThreadID, useConversationThreadStore} from '../thread-context'
+import {closeConversationThreadSearch, useConversationThreadStore, useThreadMeta} from '../thread-context'
 import {useConversationSendActions} from '../send-actions'
 import {
   consumeInputIntent,
@@ -100,6 +100,8 @@ const StateContext = React.createContext<ConversationInputStore | undefined>(und
 StateContext.displayName = 'ConversationInputStateContext'
 const DispatchContext = React.createContext<ConversationInputDispatch | undefined>(undefined)
 DispatchContext.displayName = 'ConversationInputDispatchContext'
+const CanReplyContext = React.createContext(false)
+CanReplyContext.displayName = 'ConversationCanReplyContext'
 
 const actionConversationIDKey = (convID: string) => T.Chat.stringToConversationIDKey(convID)
 
@@ -354,10 +356,14 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
     setGiphyResult(results)
   })
 
+  const canReply = useThreadMeta(m => !m.cannotWrite)
+
   return (
     <ComposerContext value={composer}>
       <DispatchContext value={inputDispatch}>
-        <StateContext value={state}>{children}</StateContext>
+        <CanReplyContext value={canReply}>
+          <StateContext value={state}>{children}</StateContext>
+        </CanReplyContext>
       </DispatchContext>
     </ComposerContext>
   )
@@ -395,7 +401,5 @@ export function useConversationInputDispatch<T>(selector: (dispatch: Conversatio
 }
 
 // A Reply where the user can't post is refused by the composer, so no gesture offers one there.
-export function useCanReply() {
-  const id = useConversationThreadID()
-  return useInboxMetadataState(s => !s.metas.get(id)?.cannotWrite)
-}
+// Read once per thread by the provider, so no message row reads the inbox store for it.
+export const useCanReply = () => React.useContext(CanReplyContext)
