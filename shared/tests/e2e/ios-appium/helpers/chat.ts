@@ -380,6 +380,32 @@ export const switchAppAccount = async (username: string) => {
   await escapeToTabs()
 }
 
+// Deletes a team channel as the app's account (an admin of the team): an evaluate returns
+// synchronously, so it starts the RPC and polls for its outcome.
+export const deleteChannelAsApp = async (convID: string, channelName: string) => {
+  const key = `__e2eDelete${Date.now()}`
+  await jsEval(`
+    const g = globalThis; g.${key} = 'pending'
+    kbModule('constants/rpc/rpc-chat-gen.tsx')
+      .localDeleteConversationLocalRpcPromise({
+        channelName: ${JSON.stringify(channelName)},
+        confirmed: true,
+        convID: kbModule('constants/types/chat/index.tsx').keyToConversationID(${JSON.stringify(convID)}),
+      })
+      .then(() => { g.${key} = 'done' }, e => { g.${key} = 'error: ' + (e && e.message) })
+    return true
+  `)
+  const state = await waitFor(
+    `#${channelName} to be deleted`,
+    async () => {
+      const now = await jsEval<string>(`return globalThis.${key}`)
+      return now === 'pending' ? undefined : now
+    },
+    {interval: 250, timeout: 20_000}
+  )
+  if (state !== 'done') throw new Error(`deleting #${channelName} failed: ${state}`)
+}
+
 // -- composer ------------------------------------------------------------------------------------
 
 // The composer's text, read from the input element.

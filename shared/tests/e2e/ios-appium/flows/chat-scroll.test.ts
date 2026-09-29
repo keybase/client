@@ -307,7 +307,11 @@ const rowToFollow = (t: ThreadReading, v: Viewport, dy: number) => {
 // and a page moving the reader moves it 55 points or more.
 const pagingTolerance = 24
 
-type Landing = {atEdge: boolean; i: number; travel?: number; what: string}
+// Paging toward older rows from the end, where the rows loaded settle before each drag, the drags
+// with a landing travel within this of the usual drag (seen: 511 and 519 against 511).
+const olderPagingTolerance = 10
+
+type Landing = {added: number; atEdge: boolean; i: number; travel?: number; what: string}
 
 // Drags the thread in `step`-point steps until `done`. Each step's travel is read off a row in view
 // before it that stays rendered; a step in which a page landed must travel as far as the steps in
@@ -315,8 +319,13 @@ type Landing = {atEdge: boolean; i: number; travel?: number; what: string}
 // newer page is still to come, a drag that would reach the newest row loaded first waits a moment
 // for the page (it loads once the reader is within ten rows), and drags on when none comes; a page
 // that lands with the reader on that row is marked, as the flow for it is its own. Returns the
-// landings, and which of them moved the reader.
-const scrollThroughPages = async (step: number, done: (t: ThreadReading, v: Viewport) => boolean) => {
+// landings (with the rows each brought), and which of them moved the reader by more than
+// `tolerance`.
+const scrollThroughPages = async (
+  step: number,
+  done: (t: ThreadReading, v: Viewport) => boolean,
+  tolerance = pagingTolerance
+) => {
   let t = await waitForThreadStable()
   let v = await viewport(t)
   const plain: Array<number> = []
@@ -347,7 +356,7 @@ const scrollThroughPages = async (step: number, done: (t: ThreadReading, v: View
     const travel = now && now.top - anchor.top
     if (t.ordinals.length !== before.ordinals.length) {
       const what = `row ${anchor.ordinal} at ${anchor.top} -> ${now?.top}; ${summary(before, v)} then ${summary(t, v)}`
-      landed.push({atEdge, i, travel, what})
+      landed.push({added: t.ordinals.length - before.ordinals.length, atEdge, i, travel, what})
     } else {
       check(travel !== undefined, `step ${i}: row ${anchor.ordinal} is no longer rendered: ${summary(t, v)}`)
       // the last step can stop short at the end of the thread, and one from the edge at the edge
@@ -357,7 +366,7 @@ const scrollThroughPages = async (step: number, done: (t: ThreadReading, v: View
   check(done(t, v), `the scroll did not reach its end: ${summary(t, v)}`)
   check(plain.length >= 2, `only ${plain.length} steps loaded no page, too few to measure a drag's travel`)
   const usual = [...plain].sort((a, b) => a - b)[Math.floor(plain.length / 2)]!
-  const moved = (l: Landing) => l.travel === undefined || Math.abs(l.travel - usual) > pagingTolerance
+  const moved = (l: Landing) => l.travel === undefined || Math.abs(l.travel - usual) > tolerance
   const describe = (ls: Array<Landing>) =>
     ls.map(l => `step ${l.i}: the reader's row travelled ${l.travel ?? 'out of the rendered rows'} where a drag moves it ${usual}: ${l.what}`).join('\n')
   return {describe, landed, moved}
@@ -394,13 +403,23 @@ describe('chat scroll: paging', () => {
     )
   })
 
+  // Pages load two screens ahead of the reader, and one lands, the next is asked for as soon as
+  // the reader is still that near the oldest row loaded: the first drag from the end brings in
+  // several pages (20 rows loaded became 320 in one drag, then 403 in the next). So pages are
+  // counted by the rows each drag brought in, and every drag during which rows landed must travel
+  // as the drags without a landing do.
   it('dragging up loads older pages without moving the reader, back to the first message', async () => {
     await openLong()
-    await expectAtEnd()
-    // the first page's landing is the flow above
-    await dragTravel(400)
-    const {describe, landed, moved} = await scrollThroughPages(400, t => !t.moreToLoadBack && t.rows[0]!.top >= t.listTop - 1)
-    check(landed.length >= 2, `only ${landed.length} pages landed`)
+    const start = (await expectAtEnd()).t.ordinals.length
+    const {describe, landed, moved} = await scrollThroughPages(
+      400,
+      t => !t.moreToLoadBack && t.rows[0]!.top >= t.listTop - 1,
+      olderPagingTolerance
+    )
+    const rows = landed.reduce((n, l) => n + l.added, 0)
+    console.log(`older pages: ${landed.map(l => `step ${l.i} +${l.added} rows, travel ${l.travel}`).join('; ')}`)
+    check(landed.length >= 1, 'no page landed during a drag')
+    check(start + rows >= LONG_COUNT, `the drags brought in ${rows} rows from ${start}, short of the ${LONG_COUNT} messages`)
     check(!landed.some(moved), describe(landed.filter(moved)))
     await waitForRow(longMarker(1))
   })

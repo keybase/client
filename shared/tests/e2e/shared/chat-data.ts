@@ -469,8 +469,8 @@ export const botCommands = async (topicName: E2EChannel) => {
 }
 
 // A channel for one run's membership flows, named `<prefix>-<time in base 36>` (a channel name is
-// 20 characters at most), created by the CLI's account (the team owner) with the second account
-// added to it.
+// 20 characters at most), created by the CLI's account (the team owner for the desktop flows, the
+// second account, a writer, for the iOS ones) with the second account in it.
 export const createThrowawayChannel = async (prefix: string) => {
   const {secondUser, team} = e2eAccounts()
   const topicName = `${prefix}-${Date.now().toString(36)}`
@@ -480,6 +480,12 @@ export const createThrowawayChannel = async (prefix: string) => {
     return id
   })
   return {convID, topicName}
+}
+
+// The CLI's account leaves a team channel.
+export const leaveChannelFromCli = async (topicName: string) => {
+  const {team} = e2eAccounts()
+  await withApi(async api => api.call('leave', {channel: channelRef(team, topicName)}))
 }
 
 // Deletes every channel createThrowawayChannel made with `prefix`, this run's or a failed run's,

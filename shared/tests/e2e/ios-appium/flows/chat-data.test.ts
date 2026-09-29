@@ -5,7 +5,9 @@
 // an account switch.
 import {
   E2E_CHANNELS,
+  createThrowawayChannel,
   ensureChatData,
+  leaveChannelFromCli,
   sendDirectFromCli,
   sendFromCli,
   type ChatData,
@@ -14,6 +16,7 @@ import {
   check,
   chooseMenuItem,
   clearComposer,
+  deleteChannelAsApp,
   deletePhase,
   expectAtEnd,
   hideKeyboard,
@@ -31,7 +34,7 @@ import {
   waitForRow,
   type DeletePhase,
 } from '../helpers/chat'
-import {waitFor} from '../helpers/lifecycle'
+import {jsEval, waitFor} from '../helpers/lifecycle'
 import {escapeToTabs, navigateToChat} from '../helpers/navigate'
 import * as T from '../../shared/test-ids'
 
@@ -227,5 +230,46 @@ describe('chat data: account switch', () => {
     await sendFromCli(E2E_CHANNELS.scratch, incoming)
     await waitForRow(incoming, 20_000)
     check((await ordinalsWithText(incoming)).length === 1, 'the incoming message shows more than once')
+  })
+})
+
+// A phone has no selection to move: its open thread stays where the user put it, even when the
+// account leaves that channel on another device (the notification that moves a desktop's selection
+// to the newest conversation). The host CLI runs as the second account for these flows, so the app
+// signs in as it too; the channel is made for the run by the second account (a writer) and deleted
+// by the smoke user (the owner) from the app afterwards.
+describe('chat data: selection', () => {
+  // Whether the inbox lists the channel. It drops the channel as the leave's notification arrives
+  // (about 200ms after the CLI's leave); the channel's meta still says active well after.
+  const inInbox = async (convID: string) =>
+    jsEval<boolean>(
+      `const ls = kbModule('chat/inbox/layout-state.tsx'); return !!ls.getBigLayoutChannelRow(ls.useInboxLayoutState.getState(), ${JSON.stringify(convID)})`
+    )
+  let channel: {convID: string; topicName: string} | undefined
+
+  after(async () => {
+    await switchAppAccount(data.smokeUser)
+    if (channel) await deleteChannelAsApp(channel.convID, channel.topicName)
+  })
+
+  it("a phone's open thread stays open when the account leaves the channel on another device", async () => {
+    channel = await createThrowawayChannel('e2e-phone')
+    await switchAppAccount(data.secondUser)
+    const {convID, topicName} = channel
+    await openConversation(convID)
+    await waitFor('the inbox to list the channel', async () => ((await inInbox(convID)) ? true : undefined), {timeout: 15_000})
+    await leaveChannelFromCli(topicName)
+    const shown = new Set<string | null>()
+    let left = false
+    for (const until = Date.now() + 5_000; Date.now() < until; ) {
+      shown.add(await visibleConversation())
+      left ||= !(await inInbox(convID))
+    }
+    // the app heard about the leave, so the thread staying put is its choice
+    check(left, 'the inbox still lists the channel 5s after leaving it')
+    check(
+      shown.size === 1 && shown.has(convID),
+      `the screen showed ${[...shown].join(', ')} in the 5s after leaving the channel elsewhere`
+    )
   })
 })
