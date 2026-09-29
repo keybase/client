@@ -410,6 +410,19 @@ describe('routeChatNotification', () => {
     expect(heard).not.toHaveBeenCalled()
   })
 
+  test('a stage nothing is registered for is not decoded', () => {
+    const readStatuses = jest.fn(() => [{convID: convIDString(convA), gameID: 'a1'}][Symbol.iterator]())
+    const coinFlip = chat('chat.1.chatUi.chatCoinFlipStatus', {statuses: {[Symbol.iterator]: readStatuses}})
+    onReload(convA, jest.fn())
+    routeChatNotification(coinFlip)
+    expect(readStatuses).not.toHaveBeenCalled()
+    const heard = jest.fn()
+    onThread(convB, heard)
+    routeChatNotification(coinFlip)
+    expect(readStatuses).toHaveBeenCalledTimes(1)
+    expect(heard).not.toHaveBeenCalled()
+  })
+
   test('a handler that throws is logged and does not stop the rest', () => {
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     const heard = jest.fn()

@@ -133,17 +133,35 @@ const deliver = <N,>(registry: Registry<N>, deliveries: ReadonlyArray<Delivery<N
   }
 }
 
+// Walks whichever is smaller, the named conversations or the registrations, and runs only the
+// matched entries' handlers.
 const deliverToEach = <N,>(
   registry: Registry<N>,
   {conversationIDKeys, notification}: FanOut<N>,
   type: string
 ) => {
-  for (const [conversationIDKey, handlers] of [...registry]) {
-    if (conversationIDKeys.has(conversationIDKey)) {
-      runHandlers(handlers, notification, type)
+  const matched: Array<ReadonlySet<Handler<N>>> = []
+  if (conversationIDKeys.size < registry.size) {
+    for (const conversationIDKey of conversationIDKeys) {
+      const handlers = registry.get(conversationIDKey)
+      if (handlers) {
+        matched.push(handlers)
+      }
+    }
+  } else {
+    for (const [conversationIDKey, handlers] of registry) {
+      if (conversationIDKeys.has(conversationIDKey)) {
+        matched.push(handlers)
+      }
     }
   }
+  for (const handlers of matched) {
+    runHandlers(handlers, notification, type)
+  }
 }
+
+export const hasThreadHandlers = () => threadHandlers.size > 0
+export const hasReloadHandlers = () => reloadHandlers.size > 0
 
 export const deliverThreadNotifications = (
   deliveries: ReadonlyArray<Delivery<ThreadNotification>>,

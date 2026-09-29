@@ -44,6 +44,8 @@ import {
   deliverReloadTriggerToEach,
   deliverReloadTriggers,
   deliverThreadNotifications,
+  hasReloadHandlers,
+  hasThreadHandlers,
   type Delivery,
   type FanOut,
   type ReloadTrigger,
@@ -469,15 +471,28 @@ type Decoded = {
   thread: ReadonlyArray<Delivery<ThreadNotification>>
 }
 
+const everyStage = {reload: true, thread: true}
+
 // Which conversations a notification concerns, what each stage-2 and stage-3 handler is told, and
-// what stage 1 does to the inbox.
-export const decodeChatNotification = (action: ChatNotification): Decoded => {
+// what stage 1 does to the inbox. A stage not wanted is left empty, unbuilt.
+export const decodeChatNotification = (
+  action: ChatNotification,
+  wanted: {reload: boolean; thread: boolean} = everyStage
+): Decoded => {
   const {inbox, reloadEach, reloads, thread} = stagesOf(action)
-  return {inbox, reloadEach: reloadEach?.(), reloads: reloads?.() ?? [], thread: thread?.() ?? []}
+  return {
+    inbox,
+    reloadEach: wanted.reload ? reloadEach?.() : undefined,
+    reloads: (wanted.reload && reloads?.()) || [],
+    thread: (wanted.thread && thread?.()) || [],
+  }
 }
 
 export const routeChatNotification = (action: ChatNotification) => {
-  const {inbox, reloadEach, reloads, thread} = decodeChatNotification(action)
+  const {inbox, reloadEach, reloads, thread} = decodeChatNotification(action, {
+    reload: hasReloadHandlers(),
+    thread: hasThreadHandlers(),
+  })
   inbox?.()
   deliverThreadNotifications(thread, action.type)
   deliverReloadTriggers(reloads, action.type)
