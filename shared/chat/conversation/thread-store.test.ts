@@ -329,6 +329,29 @@ describe('setMarkAsUnread', () => {
     expect(markReads()).toEqual([{conversationIDKey: convA, forceUnread: true, msgID: 5}])
   })
 
+  test('a window that does not reach the line marks read at its own newest message', async () => {
+    // a search jump left the window far below the newest visible message
+    setMeta(convA, {maxVisibleMsgID: T.Chat.numberToMessageID(20)})
+    const {actions} = makeThread()
+    actions.addMessages([textAt(3), textAt(5)])
+    actions.setMarkAsUnread()
+    await flushPromises()
+    expect(rpc.params('loadThread')).toEqual([])
+    expect(markReads()).toEqual([{conversationIDKey: convA, forceUnread: true, msgID: 5}])
+  })
+
+  test('an unsent row below the line is taken as the position, and nothing is marked', async () => {
+    const {actions} = makeThread()
+    actions.addMessages([
+      textAt(3),
+      textAt(8),
+      textAt(9, {id: T.Chat.numberToMessageID(0), outboxID: T.Chat.stringToOutboxID('o1'), submitState: 'pending'}),
+    ])
+    actions.setMarkAsUnread(T.Chat.numberToMessageID(10))
+    await flushPromises()
+    expect(markReads()).toEqual([])
+  })
+
   test('false, or logged out by the session dep, does nothing', async () => {
     const {actions} = makeThread()
     actions.addMessages([textAt(3)])
