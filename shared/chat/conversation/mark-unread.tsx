@@ -8,13 +8,13 @@
 // holds the line and a message below it; otherwise the service is asked for the messages around
 // the line. With no older message known (the line is the first message, or the load failed)
 // nothing is marked, since marking the line itself read would leave it read.
-import * as Message from '@/constants/chat/message'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {ignorePromise} from '@/constants/utils'
 import {useConfigState} from '@/stores/config'
 import {getInboxConversationMeta} from '@/chat/inbox/metadata'
 import {getChatRpc} from './chat-rpc'
+import {loadConversationMessageIDsAroundMessageID} from './data-hooks'
 import {setConversationOrangeLine} from './orange-line-context'
 
 type ThreadWindow = {
@@ -47,24 +47,11 @@ const idBeforeLineInWindow = (window: ThreadWindow, line: T.Chat.MessageID) => {
 
 // Never rejects: a failed load knows of nothing older.
 const loadIDBeforeLine = async (conversationIDKey: T.Chat.ConversationIDKey, line: T.Chat.MessageID) => {
-  let before: T.Chat.MessageID | undefined
-  const onGotThread = (thread: string) => {
-    try {
-      const parsed = JSON.parse(thread) as {messages?: ReadonlyArray<T.RPCChat.UIMessage> | null} | null
-      const ids = (parsed?.messages ?? []).map(Message.getMessageID)
-      before = newestIDBefore(before ? [before, ...ids] : ids, line)
-    } catch {}
-  }
   try {
-    await getChatRpc().loadThread({
-      conversationIDKey,
-      messageIDControl: {mode: T.RPCChat.MessageIDControlMode.centered, num: 3, pivot: line},
-      onCachedThread: onGotThread,
-      onFullThread: onGotThread,
-      pagination: null,
-    })
-  } catch {}
-  return before
+    return newestIDBefore(await loadConversationMessageIDsAroundMessageID(conversationIDKey, line, 3), line)
+  } catch {
+    return undefined
+  }
 }
 
 export const markConversationUnread = (
