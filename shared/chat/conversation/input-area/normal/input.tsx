@@ -1034,15 +1034,15 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
       {!cannotWrite && (
         <>
           <Kb.Icon padding="tiny" onClick={openEmojiPicker} type="iconfont-emoji" testID={TestIDs.CHAT_EMOJI_BUTTON} />
-          <Kb.Icon padding="tiny" onClick={insertMentionMarker} type="iconfont-mention" />
+          <Kb.Icon padding="tiny" onClick={insertMentionMarker} type="iconfont-mention" testID={TestIDs.CHAT_MENTION_BUTTON} />
         </>
       )}
       <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexGrow} />
       {!hasText && !cannotWrite && (
         <Kb.Box2 direction="horizontal" alignItems="flex-end">
-          <Kb.Icon onClick={openFilePicker} padding="tiny" type="iconfont-camera" />
+          <Kb.Icon onClick={openFilePicker} padding="tiny" type="iconfont-camera" testID={TestIDs.CHAT_CAMERA_BUTTON} />
           <AudioRecorder showAudioSend={showAudioSend} setShowAudioSend={setShowAudioSend} />
-          <Kb.Icon onClick={openMoreMenu} padding="tiny" type="iconfont-add" />
+          <Kb.Icon onClick={openMoreMenu} padding="tiny" type="iconfont-add" testID={TestIDs.CHAT_MORE_BUTTON} />
         </Kb.Box2>
       )}
       {hasText && !cannotWrite && (

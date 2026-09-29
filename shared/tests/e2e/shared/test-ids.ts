@@ -29,6 +29,11 @@ export const CHAT_SUGGESTION_LIST       = 'chat-suggestion-list'
 // a bot command's help, shown over the composer once its text names the command
 export const CHAT_COMMAND_MARKDOWN      = 'chat-command-markdown'
 export const CHAT_EMOJI_BUTTON          = 'chat-emoji-button'
+// the phone composer's other buttons: @, camera, audio and + (a read-only channel hides them all)
+export const CHAT_MENTION_BUTTON        = 'chat-mention-button'
+export const CHAT_CAMERA_BUTTON         = 'chat-camera-button'
+export const CHAT_AUDIO_BUTTON          = 'chat-audio-button'
+export const CHAT_MORE_BUTTON           = 'chat-more-button'
 export const CHAT_INFO_PANEL_SETTINGS_TAB = 'chat-info-panel-settings-tab'
 // Android only: iOS 26 folds Search/Info into one native "More" header menu,
 // but the Android header keeps the plain info icon — icons have no tappable text
