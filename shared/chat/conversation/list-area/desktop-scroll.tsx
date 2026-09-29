@@ -55,13 +55,16 @@ const offsetFromMiddle = (scroller: unknown, ordinal: T.Chat.Ordinal) => {
   return m && m.row.top + m.row.height / 2 - (m.view.top + m.view.height / 2)
 }
 
-// Whether the ordinal's row is wholly inside the viewport; a row not rendered is not.
-const rowFullyVisible = (scroller: unknown, ordinal: T.Chat.Ordinal) => {
+// Whether the ordinal's row is wholly inside the viewport, with the scroller at its end when atEnd;
+// a row not rendered is not.
+const rowFullyVisible = (scroller: unknown, ordinal: T.Chat.Ordinal, atEnd: boolean) => {
   const m = measureRow(scroller, ordinal)
+  if (!m) return false
+  const s = scroller as ScrollerLike
+  const top = m.row.top - (atEnd ? s.scrollHeight - s.clientHeight - s.scrollTop : 0)
   return (
-    !!m &&
-    m.row.top >= m.view.top - rowEdgeTolerancePx &&
-    m.row.top + m.row.height <= m.view.top + m.view.height + rowEdgeTolerancePx
+    top >= m.view.top - rowEdgeTolerancePx &&
+    top + m.row.height <= m.view.top + m.view.height + rowEdgeTolerancePx
   )
 }
 
@@ -94,6 +97,12 @@ export const useDesktopThreadScroll = (p: {
   const {listOwnsEnd, scrollTarget} = useScrollTarget()
   const [own] = React.useState(makeOwnScrolls)
   const heldLatest = useHeldLatest(containsLatestMessage, datasetKey, messageOrdinals)
+  const anchorsEnd = listAnchorsEnd({centeredOrdinal, heldLatest, listOwnsEnd})
+  // Read by the list's callbacks, which report after the commit that set it.
+  const anchorsEndRef = React.useRef(anchorsEnd)
+  React.useLayoutEffect(() => {
+    anchorsEndRef.current = anchorsEnd
+  }, [anchorsEnd])
 
   // Asks the scroller, not the list's own isAtEnd: that flag comes from the content size and viewport
   // the list has recorded, and both lag a composer collapse, so it reads not-at-end while the scroller
@@ -212,8 +221,9 @@ export const useDesktopThreadScroll = (p: {
       switch (directive.type) {
         case 'pinEnd':
           if (directive.stopCentering) centering.stop()
-          // The header changes size while the list is still settling its own position.
-          if (event.type === 'headerMeasured') {
+          // The header or the viewport changes size while the list may still be settling its own
+          // position, and its own end anchor may already have re-pinned it.
+          if (event.type === 'headerMeasured' || event.type === 'viewportResized') {
             verifyEndAnchor()
             return
           }
@@ -291,7 +301,8 @@ export const useDesktopThreadScroll = (p: {
     const targetInData = editingOrdinal !== undefined && indexOfOrdinal(messageOrdinals, editingOrdinal) >= 0
     dispatch({
       ordinal: editingOrdinal,
-      rowFullyVisible: () => editingOrdinal !== undefined && rowFullyVisible(scrollerOf(), editingOrdinal),
+      rowFullyVisible: () =>
+        editingOrdinal !== undefined && rowFullyVisible(scrollerOf(), editingOrdinal, anchorsEndRef.current),
       targetInData,
       type: 'editingChanged',
     })
@@ -304,6 +315,20 @@ export const useDesktopThreadScroll = (p: {
         size: metrics.headerSize,
         type: 'headerMeasured',
       })
+    },
+    [dispatch]
+  )
+
+  // The list's viewport as it last reported it; its first report is where it starts, not a change.
+  const viewportRef = React.useRef<number | undefined>(undefined)
+  // Reported once the list has recorded the new viewport, so a scroll issued from here aims at it.
+  const onLayout = React.useCallback(
+    (e: {nativeEvent: {layout: {height: number}}}) => {
+      const {height} = e.nativeEvent.layout
+      const previous = viewportRef.current
+      viewportRef.current = height
+      if (previous === undefined || previous === height) return
+      dispatch({anchorsEnd: anchorsEndRef.current, type: 'viewportResized'})
     },
     [dispatch]
   )
@@ -393,7 +418,8 @@ export const useDesktopThreadScroll = (p: {
 
   return {
     initialScrollIndex,
-    maintainScrollAtEnd: listAnchorsEnd({centeredOrdinal, heldLatest, listOwnsEnd}),
+    maintainScrollAtEnd: anchorsEnd,
+    onLayout,
     onMetricsChange,
     scrollToBottom,
   }

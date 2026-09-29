@@ -58,6 +58,7 @@ describe('initial state', () => {
     expect(fresh).toEqual({
       endOwner: 'list',
       headerSize: undefined,
+      holdingReveal: false,
       lastCentered: undefined,
       lastEditing: undefined,
       settlingCenter: false,
@@ -85,6 +86,7 @@ describe('datasetChanged', () => {
       stopCentering,
       fresh,
     ],
+    ['ends the hold on a revealed edit', state({endOwner: 'reader', holdingReveal: true, lastEditing: ord(15)}), next, stopCentering, state({lastEditing: ord(15)})],
   ])
 })
 
@@ -122,6 +124,13 @@ describe('threadObserved', () => {
       state({lastCentered: ord(30)}),
     ],
     ['a loaded target is centred and takes the end from the list', fresh, observed(30), center(30), centred(30)],
+    [
+      'centring ends the hold on a revealed edit',
+      state({endOwner: 'reader', holdingReveal: true, lastEditing: ord(15)}),
+      observed(30),
+      center(30),
+      {...centred(30), lastEditing: ord(15)},
+    ],
     [
       'centring takes the end even from a list that owned it, keeping the rest',
       state({headerSize: 100, lastEditing: ord(15)}),
@@ -198,6 +207,13 @@ describe('detached', () => {
       state({endOwner: 'reader'}),
     ],
     ['a target that settled or the reader left stays centred', released(30), {type: 'detached'}, stopCentering, released(30)],
+    [
+      'the hold on a revealed edit ends',
+      state({endOwner: 'reader', holdingReveal: true, lastEditing: ord(15)}),
+      {type: 'detached'},
+      stopCentering,
+      state({endOwner: 'reader', lastEditing: ord(15)}),
+    ],
   ])
 })
 
@@ -222,6 +238,13 @@ describe('userScrolled', () => {
     ['takes the end from the list and stops centring', fresh, scrolled, stopCentering, state({endOwner: 'reader'})],
     ['leaves a reader holding the end with it', busy, scrolled, stopCentering, busy],
     ['ends the settling of a centred target', settling, scrolled, stopCentering, {...settling, settlingCenter: false}],
+    [
+      'ends the hold on a revealed edit',
+      state({endOwner: 'reader', holdingReveal: true, lastEditing: ord(15)}),
+      scrolled,
+      stopCentering,
+      state({endOwner: 'reader', lastEditing: ord(15)}),
+    ],
   ])
 
   // The reader's scroll arrives on every scroll event; one that changes nothing leaves the state as it is.
@@ -304,6 +327,24 @@ describe('appended', () => {
   ])
 })
 
+describe('viewportResized', () => {
+  const resized = (anchorsEnd = true): ScrollEvent => ({anchorsEnd, type: 'viewportResized'})
+  const holding = state({endOwner: 'reader', holdingReveal: true, lastEditing: ord(15)})
+  runTable([
+    ['an end the list holds is re-pinned', fresh, resized(), pinEnd, fresh],
+    ['an end the list owns but its anchor does not hold is left alone', fresh, resized(false), leaveAlone, fresh],
+    ['a reader holding the end is left where they are', busy, resized(), leaveAlone, busy],
+    ['a held reveal is aimed again', holding, resized(), reveal(15), holding],
+    [
+      'a reveal no longer held is left alone',
+      state({endOwner: 'reader', lastEditing: ord(15)}),
+      resized(),
+      leaveAlone,
+      state({endOwner: 'reader', lastEditing: ord(15)}),
+    ],
+  ])
+})
+
 describe('readerAtEnd', () => {
   runTable([
     ['hands the end back to the list', busy, {type: 'readerAtEnd'}, leaveAlone, {...busy, endOwner: 'list'}],
@@ -324,7 +365,7 @@ describe('editingChanged', () => {
       fresh,
       editing(15),
       reveal(15),
-      state({endOwner: 'reader', lastEditing: ord(15)}),
+      state({endOwner: 'reader', holdingReveal: true, lastEditing: ord(15)}),
     ],
     [
       'an edit already wholly in view is recorded and not scrolled to, and the end stays with the list',
@@ -346,7 +387,28 @@ describe('editingChanged', () => {
       state({lastEditing: ord(15)}),
       editing(20),
       reveal(20),
+      state({endOwner: 'reader', holdingReveal: true, lastEditing: ord(20)}),
+    ],
+    [
+      'a different edit already in view ends the hold on the last reveal',
+      state({endOwner: 'reader', holdingReveal: true, lastEditing: ord(15)}),
+      editing(20, true, true),
+      leaveAlone,
       state({endOwner: 'reader', lastEditing: ord(20)}),
+    ],
+    [
+      'a different edit that is not loaded ends the hold on the last reveal',
+      state({endOwner: 'reader', holdingReveal: true, lastEditing: ord(15)}),
+      editing(20, false),
+      leaveAlone,
+      state({endOwner: 'reader', lastEditing: ord(15)}),
+    ],
+    [
+      'stopping an edit ends the hold on its reveal',
+      state({endOwner: 'reader', holdingReveal: true, lastEditing: ord(15)}),
+      editing(undefined),
+      leaveAlone,
+      state({endOwner: 'reader'}),
     ],
     ['an edit that is not loaded waits, unrecorded, for its row', fresh, editing(15, false), leaveAlone, fresh],
     [
@@ -369,6 +431,7 @@ describe('scrollToBottomRequested', () => {
   runTable([
     ['from a reader takes back the end', busy, requested(30), pinEndStopCentering, {...busy, endOwner: 'list'}],
     ['with the list at the end changes nothing but asks again', fresh, requested(), pinEndStopCentering, fresh],
+    ['ends the hold on a revealed edit', state({endOwner: 'reader', holdingReveal: true, lastEditing: ord(15)}), requested(), pinEndStopCentering, state({lastEditing: ord(15)})],
     [
       'ends the settling of a centred target, as a drag does, but keeps the target',
       state({endOwner: 'reader', lastCentered: ord(30), settlingCenter: true}),

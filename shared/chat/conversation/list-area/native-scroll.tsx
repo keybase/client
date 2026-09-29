@@ -310,6 +310,8 @@ export const useNativeThreadScroll = (p: {
     })
   }, [centeredOrdinal, dispatch, loaded, messageOrdinals])
 
+  // The rows wholly in view are where the list holds them: its end is its bottom edge, which stays put
+  // however the viewport above it changes.
   React.useEffect(() => {
     dispatch({
       ordinal: editingOrdinal,

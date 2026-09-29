@@ -50,6 +50,10 @@ type ListState = {
   scrollToEndLands: boolean
   // How far scrollToIndex misses by, standing in for estimated row sizes above the target.
   scrollToIndexError: number
+  // The scroller's height as laid out, and as the list last heard of it: the list measures its
+  // viewport only when its resize observer reports, after the layout that changed it.
+  viewport: number
+  listViewport: number
 }
 const initialListState = (): ListState => ({
   isAtEnd: false,
@@ -59,6 +63,8 @@ const initialListState = (): ListState => ({
   scroll: 0,
   scrollToEndLands: true,
   scrollToIndexError: 0,
+  listViewport: viewportHeight,
+  viewport: viewportHeight,
 })
 export const listStore = makeStore<ListState>(initialListState())
 
@@ -77,17 +83,19 @@ const heightOf = (ordinal: T.Chat.Ordinal | undefined) =>
 const rowTop = (index: number) =>
   (listProps.current?.data ?? []).slice(0, index).reduce((top, o) => top + heightOf(o), 0)
 const contentHeight = () => rowTop(listProps.current?.data.length ?? 0)
-const maxScroll = () => Math.max(0, contentHeight() - viewportHeight)
+// The list clamps its own scrolls against the viewport it has heard of, the scroller against its own.
+const maxScroll = () => Math.max(0, contentHeight() - listStore.get().listViewport)
 const clampScroll = (offset: number) => Math.min(maxScroll(), Math.max(0, offset))
+const scrollerMax = () => Math.max(0, contentHeight() - listStore.get().viewport)
 
 export const listHandle = {
   getScrollableNode: () => scrollerElement,
   getState: () => {
-    const {isAtEnd, scroll} = listStore.get()
+    const {isAtEnd, listViewport, scroll} = listStore.get()
     const data = listProps.current?.data ?? []
     // The first row in view.
     const start = Math.max(0, data.findIndex((_o, i) => rowTop(i + 1) > scroll))
-    return {isAtEnd, scroll, scrollLength: viewportHeight, start}
+    return {isAtEnd, scroll, scrollLength: listViewport, start}
   },
   scrollToEnd: (opts: unknown) => {
     log.push(['scrollToEnd', opts])
@@ -100,7 +108,10 @@ export const listHandle = {
     const {mountsOnScrollToIndex, rendered, scrollToIndexError} = listStore.get()
     const target = listProps.current?.data[opts.index]
     const scroll = clampScroll(
-      rowTop(opts.index) + heightOf(target) / 2 - viewportHeight * (opts.viewPosition ?? 0) + scrollToIndexError
+      rowTop(opts.index) +
+        heightOf(target) / 2 -
+        listStore.get().listViewport * (opts.viewPosition ?? 0) +
+        scrollToIndexError
     )
     listStore.set({
       rendered:
@@ -136,7 +147,7 @@ listStore.subscribe(() => {
 // Moves the scroller to offset without the list moving it, as the reader does however they scroll,
 // and as the scroller does when it clamps a scroll of the list's short.
 export const moveScroller = (offset: number) => {
-  const to = clampScroll(offset)
+  const to = Math.min(scrollerMax(), Math.max(0, offset))
   if (to === scrollTop()) return
   movedTo = to
   fireScroll()
@@ -154,6 +165,27 @@ export const listLandsShort = (offset: number, landsAt: number) => {
   movedTo = landsAt
   listStore.set({scroll: offset})
 }
+const reportLayout = (height: number) => {
+  const onLayout = listProps.current?.['onLayout'] as
+    | ((e: {nativeEvent: {layout: {height: number; width: number; x: number; y: number}}}) => void)
+    | undefined
+  onLayout?.({nativeEvent: {layout: {height, width: 0, x: 0, y: 0}}})
+}
+// The scroller changing height (the composer growing, a window resize), keeping its scrollTop as the
+// browser does. The list hears of it only later (listHearsLayout).
+export const resizeViewport = (height: number) => {
+  listStore.set({viewport: height})
+}
+// The list's resize observer reporting the scroller's height: the list records it as its viewport,
+// re-reads whether it is at its end, and hands the layout to its onLayout prop. The list's own end
+// anchor, which re-pins here when its maintainScrollAtEnd prop is on, is not simulated.
+export const listHearsLayout = () => {
+  const {scroll, viewport} = listStore.get()
+  act(() => {
+    listStore.set({isAtEnd: scroll >= contentHeight() - viewport, listViewport: viewport})
+    reportLayout(viewport)
+  })
+}
 // The scroller's current scroll coming to rest, whoever moved it.
 export const scrollEnds = () => {
   act(() => {
@@ -169,15 +201,19 @@ const FakeLegendList = (p: FakeListProps) => {
     listCommits.push(p)
   })
   React.useImperativeHandle(ref, () => listHandle, [])
+  // The list measures its viewport as it mounts, as the real one does in a layout effect.
+  React.useLayoutEffect(() => {
+    reportLayout(listStore.get().listViewport)
+  }, [])
   const scrollerRef = React.useCallback((el: HTMLDivElement | null) => {
     scrollerElement = el
     if (!el) return
     Object.defineProperty(el, 'scrollTop', {configurable: true, get: scrollTop})
     Object.defineProperty(el, 'scrollHeight', {
       configurable: true,
-      get: () => Math.max(contentHeight(), viewportHeight),
+      get: () => Math.max(contentHeight(), listStore.get().viewport),
     })
-    Object.defineProperty(el, 'clientHeight', {configurable: true, get: () => viewportHeight})
+    Object.defineProperty(el, 'clientHeight', {configurable: true, get: () => listStore.get().viewport})
   }, [])
   const rows = rendered ? data.filter(o => rendered.has(o)) : data
   return (
@@ -202,11 +238,12 @@ const rectFor = (el: Element) => {
     const height = heightOf(data[index])
     return {bottom: top + height, height, left: 0, right: 0, top, width: 0, x: 0, y: top}
   }
+  const {viewport} = listStore.get()
   if (el.getAttribute('data-testid') === 'fake-scroller') {
-    return {bottom: viewportHeight, height: viewportHeight, left: 0, right: 0, top: 0, width: 0, x: 0, y: 0}
+    return {bottom: viewport, height: viewport, left: 0, right: 0, top: 0, width: 0, x: 0, y: 0}
   }
   if (el.getAttribute('data-testid') === 'chat-message-list') {
-    const height = viewportHeight + wrapperPaddingBottom
+    const height = viewport + wrapperPaddingBottom
     return {bottom: height, height, left: 0, right: 0, top: 0, width: 0, x: 0, y: 0}
   }
   return {bottom: 0, height: 0, left: 0, right: 0, top: 0, width: 0, x: 0, y: 0}

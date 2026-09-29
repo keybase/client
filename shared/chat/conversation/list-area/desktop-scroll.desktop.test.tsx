@@ -884,9 +884,10 @@ describe('editing', () => {
   })
 
   // The wrapper's padding below the scroller is not part of the view: a row reaching into it is cut off.
+  // Measured where the reader left the list: one holding the end would be measured at the end.
   test('a message cut off at the bottom of the scroller, though inside the wrapper, is revealed', () => {
     open()
-    update(() => H.listStore.set({scroll: 60 * H.rowHeight - H.viewportHeight - H.wrapperPaddingBottom / 2}))
+    update(() => H.moveScroller(60 * H.rowHeight - H.viewportHeight - H.wrapperPaddingBottom / 2))
     update(() => H.inputStore.set({editing: ord(60)}))
     expect(H.log).toEqual([['scrollToIndex', {animated: true, index: 59, viewPosition: 0.5}]])
   })
@@ -959,6 +960,115 @@ describe('editing', () => {
     update(() => H.inputStore.set({editing: ord(15)}))
     reloadDataset()
     expect(H.log).toHaveLength(1)
+  })
+})
+
+// The scroller changes height (the composer growing for typed lines or for the edit banner, a window
+// resize) and keeps its scrollTop, as the browser does; the list hears of its new viewport only when
+// its resize observer reports, after the commit that changed it. Starting an edit grows the composer in
+// the same commit, so the edit is decided before the list has heard.
+describe('the viewport changing height', () => {
+  const shrunk = H.viewportHeight - 4
+  const scrollerTop = () => screen.getByTestId('fake-scroller').scrollTop
+  const scrollerEnd = () => {
+    const s = screen.getByTestId('fake-scroller')
+    return s.scrollHeight - s.clientHeight
+  }
+  // At the end, which the list's own anchor put it at.
+  const heldAtEnd = () => update(() => H.listStore.set({isAtEnd: true, scroll: endOffset()}))
+  const shrink = () => update(() => H.resizeViewport(shrunk))
+
+  test('while the list holds its end, it re-pins it once it has heard of the new viewport', async () => {
+    open()
+    heldAtEnd()
+    shrink()
+    H.listHearsLayout()
+    await tick(150)
+    expect(H.log).toEqual([['scrollToEnd', noAnimation]])
+    expect(scrollerTop()).toBe(scrollerEnd())
+  })
+
+  test('the list\'s first layout is where it starts, not a change', async () => {
+    open()
+    H.listHearsLayout()
+    await tick(3000)
+    expect(H.log).toEqual([])
+  })
+
+  test('a reader who holds the end is left where they are', async () => {
+    open()
+    heldAtEnd()
+    wheel()
+    shrink()
+    H.listHearsLayout()
+    await tick(3000)
+    expect(H.log).toEqual([])
+  })
+
+  test('a window of history is left where it is, even with the reader resting at its end', async () => {
+    open({center: 30, moreToLoadForward: true})
+    update(() => H.setCenter(undefined))
+    await tick(5000)
+    update(() => H.moveScroller(endOffset()))
+    H.scrollEnds()
+    H.log.length = 0
+    shrink()
+    H.listHearsLayout()
+    await tick(3000)
+    expect(H.log).toEqual([])
+  })
+
+  test('entering an edit of the newest message keeps the end with the list, which re-pins it', async () => {
+    open()
+    heldAtEnd()
+    update(() => {
+      H.resizeViewport(shrunk)
+      H.inputStore.set({editing: ord(60)})
+    })
+    expect(H.log).toEqual([])
+    expect(props()['maintainScrollAtEnd']).toBe(true)
+    H.listHearsLayout()
+    await tick(150)
+    expect(H.log).toEqual([['scrollToEnd', noAnimation]])
+    expect(scrollerTop()).toBe(scrollerEnd())
+  })
+
+  const revealFromHistory = () => {
+    open()
+    heldAtEnd()
+    update(() => H.moveScroller(1000))
+    H.scrollEnds()
+    update(() => {
+      H.resizeViewport(shrunk)
+      H.inputStore.set({editing: ord(60)})
+    })
+    expect(H.log).toEqual([['scrollToIndex', {animated: true, index: 59, viewPosition: 0.5}]])
+    H.log.length = 0
+  }
+
+  test('an edit revealed from out of view lands in the viewport as it ends up', () => {
+    revealFromHistory()
+    // Aimed at the viewport the list knew of, the reveal stops short of the scroller's new end.
+    expect(scrollerTop()).toBe(endOffset())
+    H.listHearsLayout()
+    expect(H.log).toEqual([['scrollToIndex', {animated: true, index: 59, viewPosition: 0.5}]])
+    expect(scrollerTop()).toBe(scrollerEnd())
+  })
+
+  test('the reveal is held only until the reader moves the list', async () => {
+    revealFromHistory()
+    wheel()
+    H.listHearsLayout()
+    await tick(3000)
+    expect(H.log).toEqual([])
+  })
+
+  test('the reveal is held only while the edit lasts', async () => {
+    revealFromHistory()
+    update(() => H.inputStore.set({editing: undefined}))
+    H.listHearsLayout()
+    await tick(3000)
+    expect(H.log).toEqual([])
   })
 })
 
