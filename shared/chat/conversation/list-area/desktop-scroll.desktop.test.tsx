@@ -651,10 +651,11 @@ describe('thread refs (keyboard and composer scrolling)', () => {
       clearThread()
     })
     H.log.length = 0
+    // The cleared thread has nothing to scroll, so it is at its end already.
     act(() => H.threadRefs.current?.scrollToBottom())
     update(() => loadThread(1, 60))
     await tick(5000)
-    expect(H.log).toEqual([['scrollToEnd', noAnimation]])
+    expect(H.log).toEqual([])
   })
 
   test('scrollUp pages up by one viewport and hands the end to the reader', async () => {
@@ -703,6 +704,15 @@ describe('thread refs (keyboard and composer scrolling)', () => {
     scrollerAtEnd()
     fireEvent(screen.getByTestId('fake-scroller'), new Event('scrollend'))
     H.log.length = 0
+    growHeader()
+    await tick(100)
+    expect(H.log).toEqual([['scrollToEnd', noAnimation]])
+  })
+
+  test('scrollDown in a thread too short to scroll, which moves nothing, keeps the end with the list', async () => {
+    open({count: 3})
+    update(() => H.threadRefs.current?.scrollDown())
+    expect(H.log).toEqual([])
     growHeader()
     await tick(100)
     expect(H.log).toEqual([['scrollToEnd', noAnimation]])

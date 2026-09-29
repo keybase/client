@@ -26,15 +26,6 @@ const ownTolerancePx = 1
 const rowEdgeTolerancePx = 1
 
 type ScrollerLike = {clientHeight: number; scrollHeight: number; scrollTop: number}
-type WrapperLike = {children: ArrayLike<ScrollerLike>}
-
-// The list's scrolling element: the wrapper's child with content to scroll.
-const scrollerIn = (wrapper: unknown) =>
-  Array.from((wrapper as WrapperLike | null)?.children ?? []).find(c => c.scrollHeight - c.clientHeight > 1)
-
-// Scroll events reach the wrapper from anything scrollable inside it; only the list's own scroller counts.
-const listScrollerOf = (wrapper: unknown, target: unknown) =>
-  Array.from((wrapper as WrapperLike | null)?.children ?? []).find(c => c === target)
 
 type ListenerOptions = {capture: boolean}
 type ScrollListener = (e: {target: unknown}) => void
@@ -87,6 +78,12 @@ export const useDesktopThreadScroll = (p: {
   const {centeredOrdinal, containsLatestMessage, datasetKey, editingOrdinal} = p
   const {listRef, loaded, messageOrdinals, wrapperRef} = p
 
+  // The list's scrolling element, whether or not its content overflows it.
+  const scrollerOf = React.useCallback(
+    () => listRef.current?.getScrollableNode() as ScrollerLike | null | undefined,
+    [listRef]
+  )
+
   // Read by the loops below as they run, so they see the thread as it is now rather than when they
   // started.
   const messageOrdinalsRef = React.useRef(messageOrdinals)
@@ -102,9 +99,9 @@ export const useDesktopThreadScroll = (p: {
   // the list has recorded, and both lag a composer collapse, so it reads not-at-end while the scroller
   // is in fact at its end.
   const isScrolledToEnd = React.useCallback(() => {
-    const scroller = scrollerIn(wrapperRef.current)
+    const scroller = scrollerOf()
     return !!scroller && scroller.scrollHeight - scroller.clientHeight - scroller.scrollTop <= endTolerancePx
-  }, [wrapperRef])
+  }, [scrollerOf])
 
   // The list resolves its initialScrollAtEnd target from the header size it has measured so far, and
   // SpecialTopMessage renders at its bare minHeight before the thread's intro content (retention
@@ -168,7 +165,7 @@ export const useDesktopThreadScroll = (p: {
         let pinnedChecks = 0
         let scrollAtLastRequest: number | undefined
         for (let elapsed = 0; elapsed < 3000; ) {
-          const offBy = offsetFromMiddle(listRef.current?.getScrollableNode(), target)
+          const offBy = offsetFromMiddle(scrollerOf(), target)
           if (offBy === undefined) {
             // Target is outside the rendered window; get it mounted first.
             const idx = indexOfOrdinal(messageOrdinalsRef.current, target)
@@ -206,7 +203,7 @@ export const useDesktopThreadScroll = (p: {
         scrollTarget.decide({type: 'centerSettled'})
       })
     },
-    [centering, listRef, scrollTarget]
+    [centering, listRef, scrollTarget, scrollerOf]
   )
 
   // Carries out the directive decided for event: how the list reaches the end depends on what happened.
@@ -286,12 +283,11 @@ export const useDesktopThreadScroll = (p: {
     const targetInData = editingOrdinal !== undefined && indexOfOrdinal(messageOrdinals, editingOrdinal) >= 0
     dispatch({
       ordinal: editingOrdinal,
-      rowFullyVisible: () =>
-        editingOrdinal !== undefined && rowFullyVisible(listRef.current?.getScrollableNode(), editingOrdinal),
+      rowFullyVisible: () => editingOrdinal !== undefined && rowFullyVisible(scrollerOf(), editingOrdinal),
       targetInData,
       type: 'editingChanged',
     })
-  }, [dispatch, editingOrdinal, listRef, messageOrdinals])
+  }, [dispatch, editingOrdinal, messageOrdinals, scrollerOf])
 
   const onMetricsChange = React.useCallback(
     (metrics: {headerSize: number}) => {
@@ -313,9 +309,10 @@ export const useDesktopThreadScroll = (p: {
   const lastOffsetRef = React.useRef(0)
   const onScrollerScroll = React.useCallback(
     (e: {target: unknown}) => {
-      const scroller = listScrollerOf(wrapperRef.current, e.target)
+      // Scroll events reach the wrapper from anything scrollable inside it; only the list's own counts.
+      const scroller = scrollerOf()
       const listState = listRef.current?.getState()
-      if (!scroller || !listState) return
+      if (!scroller || e.target !== scroller || !listState) return
       const now = scroller.scrollTop
       const toward = Math.min(listState.scroll, scroller.scrollHeight - scroller.clientHeight)
       const from = lastOffsetRef.current
@@ -324,16 +321,16 @@ export const useDesktopThreadScroll = (p: {
       if (now >= Math.min(from, toward) - ownTolerancePx && now <= Math.max(from, toward) + ownTolerancePx) return
       dispatch(own.readerMoved())
     },
-    [dispatch, listRef, own, wrapperRef]
+    [dispatch, listRef, own, scrollerOf]
   )
 
   const onScrollerRest = React.useCallback(
     (e: {target: unknown}) => {
-      if (!listScrollerOf(wrapperRef.current, e.target)) return
+      if (e.target !== scrollerOf()) return
       const handedBack = own.rested(isScrolledToEnd())
       if (handedBack) dispatch(handedBack)
     },
-    [dispatch, isScrolledToEnd, own, wrapperRef]
+    [dispatch, isScrolledToEnd, own, scrollerOf]
   )
 
   // Both caught on their way down to the scroller: scrollend does not bubble, and a scroll has to be
@@ -342,33 +339,34 @@ export const useDesktopThreadScroll = (p: {
     const wrapper = wrapperRef.current as unknown as ListenerTarget | null
     if (!wrapper) return undefined
     // The scroller may have moved while the listeners were off (the list hidden under Activity).
-    lastOffsetRef.current = scrollerIn(wrapper)?.scrollTop ?? 0
+    lastOffsetRef.current = scrollerOf()?.scrollTop ?? 0
     wrapper.addEventListener('scroll', onScrollerScroll, {capture: true})
     wrapper.addEventListener('scrollend', onScrollerRest, {capture: true})
     return () => {
       wrapper.removeEventListener('scroll', onScrollerScroll, {capture: true})
       wrapper.removeEventListener('scrollend', onScrollerRest, {capture: true})
     }
-  }, [onScrollerRest, onScrollerScroll, wrapperRef])
+  }, [onScrollerRest, onScrollerScroll, scrollerOf, wrapperRef])
 
   const scrollToBottom = React.useCallback(() => {
     dispatch({centeredOrdinal, type: 'scrollToBottomRequested'})
   }, [centeredOrdinal, dispatch])
 
   // The composer's page keys scroll on the reader's behalf. A page that would move nothing (up at the
-  // top, down at the end) is no scroll at all.
+  // top, down at the end, either way in a thread too short to scroll) is no scroll at all.
   const page = React.useCallback(
     (direction: 'up' | 'down') => {
       const state = listRef.current?.getState()
-      if (!state) return
-      if (direction === 'up' ? state.scroll <= 0 : isScrolledToEnd()) return
+      const scroller = scrollerOf()
+      if (!state || !scroller) return
+      if (direction === 'up' ? scroller.scrollTop <= 0 : isScrolledToEnd()) return
       dispatch(own.readerMoved())
       void listRef.current?.scrollToOffset({
         animated: false,
         offset: direction === 'up' ? Math.max(0, state.scroll - state.scrollLength) : state.scroll + state.scrollLength,
       })
     },
-    [dispatch, isScrolledToEnd, listRef, own]
+    [dispatch, isScrolledToEnd, listRef, own, scrollerOf]
   )
   const scrollUp = React.useCallback(() => page('up'), [page])
   const scrollDown = React.useCallback(() => page('down'), [page])
