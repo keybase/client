@@ -661,16 +661,19 @@ let currentChatRpc: ChatThreadRpc = serviceChatRpc
 
 export const getChatRpc = () => currentChatRpc
 
-type ChatRpcMethods = Record<string, (...args: Array<unknown>) => unknown>
-
-// Each method, looked up on the current adapter when it is called, for a caller that holds the
-// function itself (useRPC takes one) and must still reach an adapter swapped in later.
-export const chatRpcCall = Object.fromEntries(
-  Object.keys(serviceChatRpc).map(method => [
-    method,
-    (...args: Array<unknown>) => (currentChatRpc as unknown as ChatRpcMethods)[method]!(...args),
-  ])
-) as unknown as ChatThreadRpc
+// The methods a caller holds as a function (useRPC takes one), each looked up on the current adapter
+// when it is called, so the caller still reaches an adapter swapped in later.
+export const chatRpcCall = {
+  forwardMessage: async (...args) => currentChatRpc.forwardMessage(...args),
+  getBotSettings: async (...args) => currentChatRpc.getBotSettings(...args),
+  getBotTeamRole: async (...args) => currentChatRpc.getBotTeamRole(...args),
+  listPublicBotCommands: async (...args) => currentChatRpc.listPublicBotCommands(...args),
+  previewConversation: async (...args) => currentChatRpc.previewConversation(...args),
+  refreshParticipants: async (...args) => currentChatRpc.refreshParticipants(...args),
+  searchBotDestinations: async (...args) => currentChatRpc.searchBotDestinations(...args),
+  searchForwardDestinations: async (...args) => currentChatRpc.searchForwardDestinations(...args),
+  setBotSettings: async (...args) => currentChatRpc.setBotSettings(...args),
+} satisfies Partial<ChatThreadRpc>
 
 // Swaps in another adapter - the in-memory fake in tests. Passing nothing restores the service one.
 export const setChatRpc = (rpc?: ChatThreadRpc) => {
