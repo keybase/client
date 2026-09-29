@@ -5,7 +5,8 @@ import type * as Message from './message'
 import type * as TeamTypes from '../teams'
 import type {RetentionPolicy} from '../retention-policy'
 
-export type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset' | 'notMember'
+// youLeft: you left the conversation or were removed from it; notMember: you never joined it
+export type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset' | 'youLeft' | 'notMember'
 export type TeamType = 'small' | 'big' | 'adhoc'
 
 export type MetaTrustedState = 'untrusted' | 'requesting' | 'trusted' | 'error'

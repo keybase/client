@@ -164,7 +164,10 @@ const ChannelBody = (props: OwnProps) => {
     teamMembers,
     true /* sort */
   )
-  const isPreview = meta.membershipType === 'youArePreviewing' || meta.membershipType === 'notMember'
+  const isPreview =
+    meta.membershipType === 'youArePreviewing' ||
+    meta.membershipType === 'youLeft' ||
+    meta.membershipType === 'notMember'
   const [selectedTab, setSelectedTab] = useTabsState(conversationIDKey, providedTab)
   const channelParticipants = useChannelParticipants(teamID, conversationIDKey, inboxParticipants)
   const generalMembersLoading = meta.channelname === 'general' && loadingTeam && teamMembers.size === 0
@@ -248,6 +251,7 @@ const ChannelBody = (props: OwnProps) => {
       } else if (
         participants.length === 1 &&
         meta.membershipType !== 'notMember' &&
+        meta.membershipType !== 'youLeft' &&
         meta.membershipType !== 'youArePreviewing'
       ) {
         sections.push({

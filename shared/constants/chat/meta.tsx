@@ -16,6 +16,9 @@ const conversationMemberStatusToMembershipType = (
       return 'youAreReset'
     case T.RPCChat.ConversationMemberStatus.preview:
       return 'youArePreviewing'
+    case T.RPCChat.ConversationMemberStatus.left:
+    case T.RPCChat.ConversationMemberStatus.removed:
+      return 'youLeft'
     default:
       return 'notMember'
   }

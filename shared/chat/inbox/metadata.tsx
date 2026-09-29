@@ -5,7 +5,6 @@ export {useInboxMetadataState, metasReceived, participantInfoReceived} from './m
 import * as T from '@/constants/types'
 import type * as EngineGen from '@/constants/rpc'
 import * as NavTree from '@/constants/nav-tree'
-import {navigateToInbox, navigateToThread as routerNavigateToThread} from '@/constants/router'
 import type * as Router2 from '@/constants/router'
 import logger from '@/logger'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
@@ -13,6 +12,7 @@ import {RPCError} from '@/util/errors'
 import * as Z from '@/util/zustand'
 import {useConfigState, isChatSessionReady} from '@/stores/config'
 import {withChatSessionRetry} from './session-rpc'
+import {conversationGone, maybeChangeSelectedConversation} from './selection'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 
@@ -138,63 +138,6 @@ const updateInboxUserInfo = (inboxUIItems: ReadonlyArray<T.RPCChat.InboxUIItem>)
       name,
     }))
   )
-}
-
-export const maybeChangeSelectedConversation = (inboxLayout?: T.RPCChat.UIInboxLayout) => {
-  const newConvID = inboxLayout?.reselectInfo?.newConvID
-  const oldConvID = inboxLayout?.reselectInfo?.oldConvID
-
-  const selectedConversation = Common.getSelectedConversation()
-
-  if (!newConvID && !oldConvID) {
-    return
-  }
-
-  // A pending placeholder means a conversation creation is in flight: that screen belongs to the
-  // create flow, which replaces it with the real conv (or the error screen) when the RPC returns.
-  // The service rebuilds the layout the moment the conv exists, and while it has never been told a
-  // selected conv it tags every layout with reselectInfo, so acting on one here yanks the screen
-  // away - navigateToInbox defers a tick, so it lands either just after the real conv arrives
-  // (bounced back to the inbox) or just before it (pending pushed, popped, then pushed again).
-  if (
-    selectedConversation === T.Chat.pendingWaitingConversationIDKey ||
-    selectedConversation === T.Chat.pendingErrorConversationIDKey
-  ) {
-    logger.info('maybeChangeSelectedConversation: creation in flight, ignoring reselect')
-    return
-  }
-
-  const existingValid = T.Chat.isValidConversationIDKey(selectedConversation)
-  if (!newConvID) {
-    if (!existingValid && isMobile) {
-      logger.info(`maybeChangeSelectedConversation: no new and no valid, so go to inbox`)
-      navigateToInbox(false)
-    }
-    return
-  }
-
-  if (selectedConversation !== oldConvID) {
-    if (!existingValid && isMobile) {
-      logger.info(`maybeChangeSelectedConversation: no new and no valid, so go to inbox`)
-      navigateToInbox(false)
-    }
-    return
-  }
-
-  if (isMobile) {
-    if (T.Chat.isValidConversationIDKey(selectedConversation)) {
-      logger.info(`maybeChangeSelectedConversation: mobile: navigating up on conv change`)
-      navigateToInbox(false)
-      return
-    }
-    logger.info(`maybeChangeSelectedConversation: mobile: ignoring conv change, no conv selected`)
-    return
-  }
-
-  logger.info(
-    `maybeChangeSelectedConversation: selecting new conv: new:${newConvID} old:${oldConvID} prevselected ${selectedConversation}`
-  )
-  routerNavigateToThread(newConvID, 'findNewestConversation')
 }
 
 export const onChatRouteChanged = (
@@ -660,6 +603,7 @@ export const onChatInboxSynced = async (
         // Incremental unverified sync is authoritative for these convs; force past gating.
         metasReceived(metas, removals, {force: true})
       }
+      removals?.forEach(id => conversationGone(id, 'removed from the inbox'))
 
       forceUnboxRowsForService(
         items

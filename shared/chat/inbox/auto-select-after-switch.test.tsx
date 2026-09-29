@@ -1,24 +1,32 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-// The chat tab's automatic "select the newest conversation" after an account switch, on the split
-// (desktop) layout, driven through the real config, current-user and inbox layout stores and the
-// real layout notification path. Two things select automatically: the split shell fills an empty
-// selection from the layout, and a layout's reselectInfo replaces the selection the service says
-// is gone. Neither may replace a conversation the user picked.
+// The chat tab's automatic selection on the split (desktop) layout, driven through the real config,
+// current-user, inbox layout and metadata stores, the real chat notification path and the real
+// thread load against a fake service. The GUI owns the selection: the split shell fills an empty
+// one, a layout's reselectInfo replaces only a selection that is empty or unknown to this account,
+// and a selection that is gone (left, removed, reset, not in it, removed from the inbox) moves to
+// the newest conversation. None of them may replace a conversation the user picked and can see.
 jest.mock('@/chat/conversation/container', () => ({__esModule: true, default: () => null}))
 jest.mock('@/chat/conversation/info-panel', () => ({__esModule: true, default: () => null}))
 
+import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
+import RPCError from '@/util/rpcerror'
 import {act, cleanup, render} from '@testing-library/react'
 import {getSelectedConversation} from '@/constants/chat/common'
 import {navigateToThread} from '@/constants/router'
 import {InboxAndConversationShell} from '@/chat/inbox-and-conversation-shared'
 import {routeChatNotification, type ChatNotification} from '@/chat/notification-router'
+import {loadConversationThreadMessages} from '@/chat/conversation/thread-load'
+import type {ConversationThreadActions, ConversationThreadState} from '@/chat/conversation/thread-context'
 import {useInboxLayoutState} from './layout-state'
+import {metasReceived} from './metadata-store'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
 import {installFakeNavigator, restoreNavigator} from '@/test/fake-navigator'
+import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {flush} from '@/test/flush'
 
 const convKey = (n: number) => T.Chat.stringToConversationIDKey(`0000${n}`.padEnd(64, `${n}`))
 // the new account's inbox, newest first
@@ -30,28 +38,43 @@ const previousAccountConv = convKey(9)
 
 // The service side of the layout, as chat/uiinboxloader.go builds it: the service remembers the
 // conversation the UI last loaded, and a layout carries reselectInfo when that conversation is not
-// in the inbox, or when the request asked for a forced reselect.
+// in the inbox snapshot it built from, or when the request asked for a forced reselect. A snapshot
+// can be partial, so it can leave out a conversation the user can see.
 const service = {
   lastLoaded: '' as string,
   requested: [] as Array<T.RPCChat.InboxLayoutReselectMode>,
 }
 
-const deliverLayout = (reselectMode: T.RPCChat.InboxLayoutReselectMode) => {
+const deliverLayout = (
+  reselectMode: T.RPCChat.InboxLayoutReselectMode,
+  snapshot: ReadonlyArray<T.Chat.ConversationIDKey> = inbox
+) => {
   const reselect =
-    !inbox.includes(service.lastLoaded) || reselectMode === T.RPCChat.InboxLayoutReselectMode.force
+    !snapshot.includes(service.lastLoaded) || reselectMode === T.RPCChat.InboxLayoutReselectMode.force
   const layout: T.RPCChat.UIInboxLayout = {
     bigTeams: [],
-    reselectInfo: reselect ? {newConvID: inbox[0], oldConvID: service.lastLoaded} : undefined,
-    smallTeams: inbox.map(convID => ({convID}) as T.RPCChat.UIInboxSmallTeamRow),
-    totalSmallTeams: inbox.length,
+    reselectInfo: reselect ? {newConvID: snapshot[0], oldConvID: service.lastLoaded} : undefined,
+    smallTeams: snapshot.map(convID => ({convID}) as T.RPCChat.UIInboxSmallTeamRow),
+    totalSmallTeams: snapshot.length,
   }
-  act(() => {
-    routeChatNotification({
-      payload: {params: {layout: JSON.stringify(layout)}},
-      type: 'chat.1.chatUi.chatInboxLayout',
-    } as ChatNotification)
-  })
+  notify('chat.1.chatUi.chatInboxLayout', {layout: JSON.stringify(layout)})
 }
+
+const notify = (type: ChatNotification['type'], params: object) =>
+  act(() => {
+    routeChatNotification({payload: {params}, type} as ChatNotification)
+  })
+
+// a meta as the service's inbox would send it; a later inbox version replaces an earlier one
+const meta = (
+  id: T.Chat.ConversationIDKey,
+  membershipType: T.Chat.MembershipType,
+  inboxVersion = 1,
+  trustedState: T.Chat.MetaTrustedState = 'trusted'
+) =>
+  act(() => {
+    metasReceived([{...Meta.makeConversationMeta(), conversationIDKey: id, inboxVersion, membershipType, trustedState}])
+  })
 
 // The layout a refresh asked for arrives only after the service's batch delay, so the user can pick
 // a conversation in between.
@@ -65,6 +88,7 @@ const open = (id: T.Chat.ConversationIDKey, reason: Parameters<typeof navigateTo
   act(() => navigateToThread(id, reason))
 
 let rerenderShell: () => void
+let chatRpc: FakeChatRpc
 
 // The chat tab as the new account's navigator mounts it: the shell reads its selection from the
 // chat root's params, as the route does.
@@ -103,6 +127,7 @@ const switchAccount = () => {
     useConfigState.getState().dispatch.setUserSwitching(false)
   })
   installFakeNavigator()
+  chatRpc = installFakeChatRpc()
   service.lastLoaded = previousAccountConv
   mountShell()
   // the inbox asks for its first layout as soon as it mounts for the new account
@@ -127,6 +152,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   restoreNavigator()
+  restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
 })
@@ -167,4 +193,138 @@ test("a selection left over from the previous account is replaced by the new acc
   step(deliverRequestedLayout)
 
   expect(selected()).toBe(newest)
+})
+
+test('a leftover selection whose only meta is an error is replaced', () => {
+  switchAccount()
+  step(() => open(previousAccountConv, 'misc'))
+  // the new account's service could not load it
+  meta(previousAccountConv, 'active', 1, 'error')
+
+  step(deliverRequestedLayout)
+
+  expect(selected()).toBe(newest)
+})
+
+// the new account, with its layout loaded and a conversation the user picked (its row's meta loaded)
+const pickAfterSwitch = () => {
+  switchAccount()
+  step(() => deliverLayout(T.RPCChat.InboxLayoutReselectMode.default))
+  inbox.forEach(id => meta(id, 'active'))
+  step(() => open(picked, 'inboxSmall'))
+  expect(selected()).toBe(picked)
+}
+
+test("a picked conversation the service's snapshot leaves out stays selected when a layout names it", () => {
+  pickAfterSwitch()
+
+  // a partial snapshot: the service names the picked conversation as one to replace
+  step(() => deliverLayout(T.RPCChat.InboxLayoutReselectMode.default, [newest, convKey(3)]))
+
+  expect(selected()).toBe(picked)
+})
+
+test('a layout naming a conversation a popup loaded leaves a picked conversation selected', () => {
+  switchAccount()
+  step(() => deliverLayout(T.RPCChat.InboxLayoutReselectMode.default))
+  // picked from its row before its meta has loaded
+  step(() => open(picked, 'inboxSmall'))
+  // a popup (a forward, the emoji picker) loaded a conversation the inbox does not list
+  service.lastLoaded = convKey(8)
+
+  step(() => deliverLayout(T.RPCChat.InboxLayoutReselectMode.default))
+
+  expect(selected()).toBe(picked)
+})
+
+test('leaving the selected conversation moves the selection to the newest other one', () => {
+  pickAfterSwitch()
+
+  // another account's notification, and one about a conversation not selected, change nothing
+  step(() => notify('chat.1.NotifyChat.ChatLeftConversation', {convID: T.Chat.keyToConversationID(newest), uid: 'uid-2'}))
+  step(() => notify('chat.1.NotifyChat.ChatLeftConversation', {convID: T.Chat.keyToConversationID(picked), uid: 'uid-1'}))
+  expect(selected()).toBe(picked)
+
+  step(() => notify('chat.1.NotifyChat.ChatLeftConversation', {convID: T.Chat.keyToConversationID(picked), uid: 'uid-2'}))
+
+  expect(selected()).toBe(newest)
+})
+
+test('being reset out of the selected conversation moves the selection past it', () => {
+  pickAfterSwitch()
+  step(() => open(newest, 'inboxSmall'))
+
+  step(() => notify('chat.1.NotifyChat.ChatResetConversation', {convID: T.Chat.keyToConversationID(newest), uid: 'uid-2'}))
+
+  // the newest row is the one that is gone, so the next one
+  expect(selected()).toBe(picked)
+})
+
+test("a thread load that says the user is not in the conversation moves the selection", async () => {
+  pickAfterSwitch()
+  chatRpc.fail('loadThread', new RPCError('not in conv', T.RPCGen.StatusCode.scchatnotinconv))
+  const actions = {
+    claimWindowGate: () => {},
+    clearWindowGate: () => {},
+    getSnapshot: () => ({clearVersion: 0, liveUpdateVersion: 0, loaded: false}) as ConversationThreadState,
+  } as unknown as ConversationThreadActions
+
+  loadConversationThreadMessages(picked, {reason: 'focused'}, actions)
+  await flush()
+  rerenderShell()
+
+  expect(selected()).toBe(newest)
+})
+
+test('a layout naming a selected conversation the user has left moves the selection', () => {
+  switchAccount()
+  step(() => deliverLayout(T.RPCChat.InboxLayoutReselectMode.default))
+  step(() => open(picked, 'inboxSmall'))
+  // its first meta already says so, as for a left channel reopened from a link
+  meta(picked, 'youLeft')
+  expect(selected()).toBe(picked)
+
+  step(() => deliverLayout(T.RPCChat.InboxLayoutReselectMode.default, [newest, convKey(3)]))
+
+  expect(selected()).toBe(newest)
+})
+
+test("the selected conversation's meta turning to left moves the selection", () => {
+  pickAfterSwitch()
+
+  step(() => meta(picked, 'youLeft', 2))
+
+  expect(selected()).toBe(newest)
+})
+
+test('an inbox sync that removes the selected conversation moves the selection', () => {
+  pickAfterSwitch()
+
+  step(() =>
+    notify('chat.1.NotifyChat.ChatInboxSynced', {
+      syncRes: {
+        incremental: {items: [], removals: [T.Chat.conversationIDKeyToString(picked)]},
+        syncType: T.RPCChat.SyncInboxResType.incremental,
+      },
+      uid: 'uid-2',
+    })
+  )
+
+  expect(selected()).toBe(newest)
+})
+
+test('a layout arriving while a conversation is being created leaves the create flow alone', () => {
+  pickAfterSwitch()
+  const created = convKey(4)
+
+  step(() => open(T.Chat.pendingWaitingConversationIDKey, 'justCreated'))
+  // the service has never loaded the new conversation, so its layout names the old one
+  step(() => deliverLayout(T.RPCChat.InboxLayoutReselectMode.default, [created, ...inbox]))
+  expect(selected()).toBe(T.Chat.pendingWaitingConversationIDKey)
+
+  // the create RPC returns and the flow opens the new conversation
+  step(() => open(created, 'justCreated'))
+  step(() => deliverLayout(T.RPCChat.InboxLayoutReselectMode.default, [created, ...inbox]))
+
+  expect(selected()).toBe(created)
 })
