@@ -1,5 +1,4 @@
 import * as React from 'react'
-import logger from '@/logger'
 import type {SuppressSnapshot} from '../unfurl-preview-state'
 import {standardTransformer} from './suggestors/common'
 import type {Selection, TextInfo} from './normal/input.shared'
@@ -16,7 +15,17 @@ export type ComposerInput = {
   // False when the input did not show the text (the native input shows only reflected writes).
   replaceText: (info: TextInfo, reflectChange: boolean) => boolean
 }
-export type ComposerInputRef = {readonly current: ComposerInput | null}
+// One mounted composer view: the conversation's composer reads and writes through the input of
+// the view that last attached one.
+export type ComposerView = {
+  // The input's callback ref: an element attaches it, null detaches it, both in the commit that
+  // sets the ref, so no write can find the composer holding an input that is gone.
+  setInput: (input: ComposerInput | null) => void
+  // Loads the draft into an untouched composer, once per view, once the view's input is attached.
+  offerDraft: (draft: string | undefined) => void
+  // What the input reports as typed. Reports from a view other than the attached one are dropped.
+  textChanged: (text: string) => void
+}
 
 export type Composer = {
   getText: () => string
@@ -33,16 +42,12 @@ export type Composer = {
   // Clears the input now (with none attached, the next one once it has loaded its draft) and
   // hands the text to send on the next tick; false when there is nothing to send.
   submit: (send: (text: string, unfurlSuppress: SuppressSnapshot) => void) => boolean
-  // An input's text belongs to the input it came from: attaching a different input starts over
-  // with no text and a draft still to load. Re-attaching the same one (StrictMode's effect replay)
-  // keeps both.
+  // An input's text belongs to the view it came from: an input attached by a different view starts
+  // over with no text and a draft still to load. The same view attaching again (a new handle,
+  // StrictMode's ref replay, a hidden Activity shown again) keeps both.
   // Writes made while no input is attached (an inject, an insert, a replace) wait, and land in
   // order once one attaches, after its draft; a waiting inject lands without the focus.
-  attach: (input: ComposerInputRef, draft: string | undefined) => () => void
-  // Loads the draft into an untouched composer, once per input.
-  offerDraft: (input: ComposerInputRef, draft: string | undefined) => void
-  // What the input reports as typed. Reports from an input other than the attached one are dropped.
-  textChanged: (input: ComposerInputRef, text: string) => void
+  connect: () => ComposerView
 }
 
 type ComposerDeps = {
@@ -59,91 +64,105 @@ const injectedSelection = (text: string): Selection =>
 
 export const makeComposer = (deps: ComposerDeps): Composer => {
   let text = ''
-  let session: ComposerInputRef | undefined
-  let attached = false
+  // the view whose input the composer reads and writes, and that input while it is attached
+  let session: object | undefined
+  let input: ComposerInput | null = null
   let draftLoaded = false
   // Effects mount children first (and again when a hidden Activity is shown), so a child's
   // write can come before its composer view attaches the input.
-  let pending: Array<() => void> = []
+  let pending: Array<(input: ComposerInput) => void> = []
 
-  const current = () => (attached ? (session?.current ?? undefined) : undefined)
-
-  const write = (next: string, focus: boolean) => {
-    const input = current()
-    if (!input) {
-      // An edit prefill dropped here looks like edit mode never opened.
-      logger.error('[chat] injectText dropped: input ref is null')
-      return
-    }
+  const write = (target: ComposerInput, next: string, focus: boolean) => {
     text = next
     if (next) {
-      input.replaceText({selection: injectedSelection(next), text: next}, true)
+      target.replaceText({selection: injectedSelection(next), text: next}, true)
     } else {
-      input.clear()
+      target.clear()
     }
     if (focus) {
-      input.focus()
+      target.focus()
     }
   }
 
-  const whenAttached = (w: () => void) => {
-    if (attached) {
-      w()
+  const whenAttached = (w: (input: ComposerInput) => void) => {
+    if (input) {
+      w(input)
     } else {
       pending.push(w)
     }
   }
 
-  const replace = (info: TextInfo, reflectChange: boolean) => {
-    const input = current()
+  const replace = (target: ComposerInput, info: TextInfo, reflectChange: boolean) => {
     // the text is only ever what the input shows, or a send would send a preview nobody saw
-    if (!input?.replaceText(info, reflectChange)) return false
+    if (!target.replaceText(info, reflectChange)) return false
     text = info.text
     return true
   }
 
-  // Loaded only once it is written, so an offer made while the input has no handle is retried
-  // by the next one (the handle being set makes one).
+  // Loaded only once it is written, so an offer made before the view's input is attached is
+  // retried when it attaches.
   const offerDraft = (draft: string | undefined) => {
     if (draftLoaded || draft === undefined) return
     if (text !== '' || !draft) {
       draftLoaded = true
       return
     }
-    if (!current()) return
+    if (!input) return
     draftLoaded = true
-    write(draft, false)
+    write(input, draft, false)
   }
 
   return {
-    attach: (input, draft) => {
-      if (session !== input) {
-        session = input
-        text = ''
-        draftLoaded = false
-      }
-      attached = true
-      offerDraft(draft)
-      const waiting = pending
-      pending = []
-      waiting.forEach(w => w())
-      return () => {
-        if (session === input) {
-          attached = false
-        }
+    connect: () => {
+      const view = {}
+      let offered: string | undefined
+      return {
+        offerDraft: draft => {
+          offered = draft
+          if (session === view) {
+            offerDraft(draft)
+          }
+        },
+        setInput: next => {
+          if (!next) {
+            if (session === view) {
+              input = null
+            }
+            return
+          }
+          if (session !== view) {
+            session = view
+            text = ''
+            draftLoaded = false
+          }
+          input = next
+          offerDraft(offered)
+          const waiting = pending
+          pending = []
+          waiting.forEach(whenAttached)
+        },
+        textChanged: next => {
+          if (session === view) {
+            text = next
+          }
+        },
       }
     },
     focus: () => {
-      current()?.focus()
+      input?.focus()
     },
-    getSelection: () => current()?.getSelection(),
+    getSelection: () => input?.getSelection(),
     getText: () => text,
     inject: (next, focus = false) => {
-      whenAttached(attached ? () => write(next, focus) : () => write(next, false))
+      if (input) {
+        write(input, next, focus)
+      } else {
+        pending.push(target => write(target, next, false))
+      }
     },
     insertAtCaret: (s, opts) =>
-      whenAttached(() => {
-        const selection = current()?.getSelection()
+      whenAttached(target => {
+        const selection = target.getSelection()
         const inserted = standardTransformer(
           s,
           {position: {end: selection?.end ?? null, start: selection?.start ?? null}, text},
@@ -151,17 +170,12 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
         )
         const pad = opts?.appendSpaceToText ? ' ' : ''
         const caret = inserted.selection.start + pad.length
-        replace({selection: {end: caret, start: caret}, text: inserted.text + pad}, true)
+        replace(target, {selection: {end: caret, start: caret}, text: inserted.text + pad}, true)
       }),
-    isFocused: () => !!current()?.isFocused(),
-    offerDraft: (input, draft) => {
-      if (input === session) {
-        offerDraft(draft)
-      }
-    },
+    isFocused: () => !!input?.isFocused(),
     replace: (info, reflectChange) => {
-      if (attached) return replace(info, reflectChange)
-      pending.push(() => replace(info, reflectChange))
+      if (input) return replace(input, info, reflectChange)
+      pending.push(target => replace(target, info, reflectChange))
       return false
     },
     submit: send => {
@@ -171,7 +185,11 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
       text = ''
       // with no input attached, the next one loads the draft saved as this one unmounted, the
       // text being sent
-      whenAttached(attached ? () => write('', true) : () => write('', false))
+      if (input) {
+        write(input, '', true)
+      } else {
+        pending.push(target => write(target, '', false))
+      }
       // Clearing the composer shrinks it back to one line, which grows the thread's viewport. Sending in
       // the same tick makes that growth and the new row a single change for the list to resolve its end
       // against, and it lands short — 8 of 8 at one, two and six lines, worse the longer the message. So
@@ -185,11 +203,6 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
         send(toSend, unfurlSuppress)
       }, 0)
       return true
-    },
-    textChanged: (input, next) => {
-      if (input === session) {
-        text = next
-      }
     },
   }
 }
@@ -205,26 +218,29 @@ export const useComposer = (): Composer => {
   return composer
 }
 
-// Binds one mounted platform input to the conversation's composer: attaches it (loading the draft
-// the first time), detaches on unmount, and gives back the input's ref setter and the reporter for
-// what the input says was typed.
+// Binds one mounted platform input to the conversation's composer, and gives back the input's
+// ref setter (stable, so React never detaches and re-attaches the input between renders) and the
+// reporter for what the input says was typed.
 export const useComposerInput = <R extends ComposerInput>(draft: string | undefined) => {
   const composer = useComposer()
   const inputRef = React.useRef<R | null>(null)
-  const attach = React.useEffectEvent(() => composer.attach(inputRef, draft))
-  React.useEffect(() => attach(), [composer])
-  React.useEffect(() => {
-    composer.offerDraft(inputRef, draft)
-  }, [composer, draft])
-  const textChanged = (text: string) => {
-    composer.textChanged(inputRef, text)
-  }
-  // the input's ref: a draft offered before the handle was set loads once it is
-  const setInput = (input: R | null) => {
-    inputRef.current = input
-    if (input) {
-      composer.offerDraft(inputRef, draft)
+  // read as the ref is set, so the draft loads ahead of the writes waiting for the input
+  const currentDraft = React.useEffectEvent(() => draft)
+  const [{setInput, view}] = React.useState(() => {
+    const view = composer.connect()
+    return {
+      setInput: (input: R | null) => {
+        inputRef.current = input
+        if (input) {
+          view.offerDraft(currentDraft())
+        }
+        view.setInput(input)
+      },
+      view,
     }
-  }
-  return {composer, inputRef, setInput, textChanged}
+  })
+  React.useEffect(() => {
+    view.offerDraft(draft)
+  }, [view, draft])
+  return {composer, inputRef, setInput, textChanged: view.textChanged}
 }

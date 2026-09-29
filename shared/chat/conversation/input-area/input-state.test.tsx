@@ -30,17 +30,10 @@ let mockNullInputRef = false
 // what the stand-in input is showing: the real inputs apply a write and, when asked to reflect
 // it, echo it back through onChangeText; this one does both synchronously
 const mockInput = {focusCount: 0, selection: undefined as Selection | undefined, text: ''}
-// stand in for the real composer input: it only has to hand back a ref whose clear()
-// fires onChangeText('') the way the desktop input does, which is what races the send
-jest.mock('./normal/input', () => ({
-  __esModule: true,
-  default: function MockPlatformInput(p: PlatformInputProps) {
-    mockPlatformInputProps = p
-    if (mockNullInputRef) {
-      p.setInputRef(null)
-      return null
-    }
-    p.setInputRef({
+// the stand-in input's handle: its clear() fires onChangeText('') the way the desktop input does,
+// which is what races the send
+const mockHandle = () =>
+  ({
       blur: () => {},
       clear: () => {
         // the real hook drops suppressions from an effect after the text goes empty; a test
@@ -64,7 +57,16 @@ jest.mock('./normal/input', () => ({
         }
         return true
       },
-    })
+    }) as NonNullable<Parameters<PlatformInputProps['setInputRef']>[0]>
+// Stands in for the real composer input, setting its handle the way the real inputs do, as the
+// commit is made; mockNullInputRef leaves it unset.
+jest.mock('./normal/input', () => ({
+  __esModule: true,
+  default: function MockPlatformInput(p: PlatformInputProps) {
+    mockPlatformInputProps = p
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const {useImperativeHandle} = require('react') as typeof React
+    useImperativeHandle(mockNullInputRef ? undefined : p.setInputRef, mockHandle)
     return null
   },
 }))
@@ -1271,17 +1273,22 @@ describe('the composer text', () => {
     expect(mockInput.text).toBe('ab')
   })
 
-  test('an inject into a mounted composer whose input ref is null is dropped and logged', () => {
+  test('an inject into a mounted composer whose input has no handle waits for it', () => {
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
     mockNullInputRef = true
     let handles: InputHandles | undefined
     renderComposerWithProbe(h => (handles = h))
 
     act(() => {
-      handles?.input.dispatch.injectIntoInput('lost')
+      handles?.input.dispatch.injectIntoInput('not lost')
+    })
+    expect(mockInput.text).toBe('')
+    act(() => {
+      mockPlatformInputProps?.setInputRef(mockHandle())
     })
 
-    expect(error).toHaveBeenCalledWith('[chat] injectText dropped: input ref is null')
+    expect(mockInput.text).toBe('not lost')
+    expect(error).not.toHaveBeenCalled()
   })
 
   test('a composer send empties the input once, when it is submitted', async () => {

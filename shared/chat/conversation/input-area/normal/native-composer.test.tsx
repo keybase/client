@@ -12,6 +12,8 @@ import type * as UsePicker from '@/chat/emoji-picker/use-picker'
 import type * as CurrentUser from '@/stores/current-user'
 import type * as MessageModule from '@/constants/chat/message'
 import type * as HiddenStringModule from '@/util/hidden-string'
+import type * as Metadata from '@/chat/inbox/metadata'
+import type * as MetaModule from '@/constants/chat/meta'
 
 // The composer picks its native or desktop half when its module loads, so the platform globals
 // have to be flipped before anything from the app is required. isIOS stays off: the iOS theme
@@ -101,6 +103,7 @@ jest.mock('../suggestors', () => ({
 
 type Modules = {
   act: typeof RTL.act
+  React: typeof React
   Composer: typeof ComposerModule
   cleanup: typeof RTL.cleanup
   render: typeof RTL.render
@@ -116,6 +119,7 @@ type Modules = {
 const m: Modules = {
   ...(require('@testing-library/react') as Pick<Modules, 'act' | 'cleanup' | 'render'>),
   Composer: require('../composer') as typeof ComposerModule,
+  React: require('react') as typeof React,
   Input: (require('.') as typeof NormalInput).default,
   InputState: require('../input-state') as Modules['InputState'],
   T: require('@/constants/types') as typeof T,
@@ -141,18 +145,35 @@ const Probe = () => {
   return null
 }
 
+// runs in the layout phase of the commit that hands it a new run: after that commit has set and
+// cleared its refs, before any of its passive effects
+const InCommit = (p: {run?: () => void}) => {
+  const {run} = p
+  m.React.useLayoutEffect(() => {
+    run?.()
+  }, [run])
+  return null
+}
+
+// showInput(false) unmounts only the input, as thread search does on mobile; the conversation's
+// composer lives on in the provider. inCommit runs inside the commit that shows or hides it.
 const renderComposer = () => {
   const {ConversationInputProvider} = m.InputState
   const {ConversationThreadProvider} = m.Thread
-  const utils = m.render(
+  const view = (show: boolean, inCommit?: () => void) => (
     <ConversationThreadProvider id={convID}>
       <ConversationInputProvider id={convID}>
-        <m.Input />
+        {show && <m.Input />}
         <Probe />
+        <InCommit run={inCommit} />
       </ConversationInputProvider>
     </ConversationThreadProvider>
   )
-  return utils
+  const utils = m.render(view(true))
+  return {
+    ...utils,
+    showInput: (show: boolean, inCommit?: () => void) => utils.rerender(view(show, inCommit)),
+  }
 }
 
 const press = (pred: (p: {children?: unknown; testID?: string}) => boolean) => {
@@ -322,6 +343,46 @@ test('hardware enter sends the text 60ms later and clears the composer', async (
 
   expect(post).toHaveBeenCalledTimes(1)
   expect(post.mock.calls[0]?.[0].params.body).toBe('hello')
+})
+
+// Thread search unmounts the input. Its ref is cleared as that commit is made, and its passive
+// effects run later; the 60ms send can fire in between (here, inside the commit). The clear then
+// waits for the next input, whose draft is the text just sent (saved as the old input unmounted),
+// and wins over it, so the sent text does not come back.
+test('a queued send that fires as thread search hides the input does not come back as a draft', async () => {
+  const post = jest.spyOn(m.T.RPCChat, 'localPostTextNonblockRpcListener').mockResolvedValue({
+    outboxID: new TextEncoder().encode('posted'),
+  })
+  /* eslint-disable @typescript-eslint/no-require-imports */
+  const {metasReceived, useInboxMetadataState} = require('@/chat/inbox/metadata') as typeof Metadata
+  const Meta = require('@/constants/chat/meta') as typeof MetaModule
+  /* eslint-enable @typescript-eslint/no-require-imports */
+  act(() => {
+    metasReceived([{...Meta.makeConversationMeta(), conversationIDKey: convID, draft: ''}], undefined, {
+      force: true,
+    })
+  })
+  const {showInput} = renderComposer()
+  type('hello')
+  act(() => {
+    mockHWKey?.({pressedKey: 'enter'})
+  })
+
+  showInput(false, () => {
+    jest.advanceTimersByTime(60)
+  })
+  await flushSend()
+  expect(post.mock.calls[0]?.[0].params.body).toBe('hello')
+  expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('hello')
+  showInput(true)
+  // the draft save is throttled
+  act(() => {
+    jest.advanceTimersByTime(200)
+  })
+
+  expect(input().value).toBe('')
+  expect(composer?.getText()).toBe('')
+  expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('')
 })
 
 // the queued send reads the text when the timer fires, so a keystroke inside the 60ms (the

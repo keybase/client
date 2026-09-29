@@ -2,7 +2,6 @@
 /// <reference types="jest" />
 import * as React from 'react'
 import {act, cleanup, render, renderHook} from '@testing-library/react'
-import logger from '@/logger'
 import {ComposerContext, makeComposer, useComposerInput} from './composer'
 import {FakeComposerInputView, makeFakeComposerInput, type FakeComposerInput} from './composer-fake-input'
 import type {SuppressSnapshot} from '../unfurl-preview-state'
@@ -12,13 +11,18 @@ const noSnapshot: SuppressSnapshot = {dismissed: [], failed: []}
 const setup = (opts?: {takeUnfurlSnapshot?: () => SuppressSnapshot}) => {
   const send = jest.fn()
   const composer = makeComposer({takeUnfurlSnapshot: opts?.takeUnfurlSnapshot ?? (() => noSnapshot)})
-  // one mounted input: a fake whose reports go to the composer, as the composer view wires them
+  // one mounted composer view: its fake input's reports go to the composer, and the draft is
+  // offered as the input's ref is set, as useComposerInput wires them
   const mount = (draft?: string) => {
     const fake = makeFakeComposerInput()
-    const ref: {current: FakeComposerInput | null} = {current: fake}
-    fake.connect(text => composer.textChanged(ref, text))
-    const detach = composer.attach(ref, draft)
-    return {detach, fake, ref}
+    const view = composer.connect()
+    fake.connect(view.textChanged)
+    const attach = (input: FakeComposerInput = fake) => {
+      view.offerDraft(draft)
+      view.setInput(input)
+    }
+    attach()
+    return {attach, detach: () => view.setInput(null), fake, view}
   }
   return {composer, mount, send}
 }
@@ -133,17 +137,18 @@ describe('inject', () => {
     expect(second.fake.text).toBe('')
   })
 
-  test('an attached input whose ref is empty drops the text and says so', () => {
-    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+  test('an input whose ref is emptied is detached: the text waits for it and lands when it is set again', () => {
     const {composer, mount} = setup()
-    const {fake, ref} = mount()
+    const {attach, detach, fake} = mount()
     fake.type('kept')
-    ref.current = null
+    detach()
 
-    composer.inject('lost')
+    composer.inject('not lost')
+    expect(fake.text).toBe('kept')
+    attach()
 
-    expect(error).toHaveBeenCalledWith('[chat] injectText dropped: input ref is null')
-    expect(composer.getText()).toBe('kept')
+    expect(fake.text).toBe('not lost')
+    expect(composer.getText()).toBe('not lost')
   })
 })
 
@@ -159,47 +164,64 @@ describe('draft', () => {
   })
 
   test('loads once, when it first arrives', () => {
-    const {composer, mount} = setup()
-    const {fake, ref} = mount(undefined)
+    const {mount} = setup()
+    const {fake, view} = mount(undefined)
 
-    composer.offerDraft(ref, 'arrived')
-    composer.offerDraft(ref, 'arrived again, changed')
+    view.offerDraft('arrived')
+    view.offerDraft('arrived again, changed')
 
     expect(fake.text).toBe('arrived')
   })
 
   test('does not overwrite text already typed', () => {
-    const {composer, mount} = setup()
-    const {fake, ref} = mount(undefined)
+    const {mount} = setup()
+    const {fake, view} = mount(undefined)
     fake.type('typed')
 
-    composer.offerDraft(ref, 'stale')
+    view.offerDraft('stale')
 
     expect(fake.text).toBe('typed')
   })
 
   test('an empty draft counts as loaded', () => {
-    const {composer, mount} = setup()
-    const {fake, ref} = mount('')
+    const {mount} = setup()
+    const {fake, view} = mount('')
 
-    composer.offerDraft(ref, 'later')
+    view.offerDraft('later')
 
     expect(fake.text).toBe('')
   })
 
-  test('waits while the attached input has no handle, and loads once it has one', () => {
-    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+  test('waits while the input has no handle, and loads once it has one', () => {
     const {composer, mount} = setup()
-    const {fake, ref} = mount(undefined)
-    ref.current = null
+    const {detach, fake, view} = mount(undefined)
+    detach()
 
-    composer.offerDraft(ref, 'saved')
-    ref.current = fake
-    composer.offerDraft(ref, 'saved')
+    view.offerDraft('saved')
+    expect(fake.text).toBe('')
+    view.setInput(fake)
 
     expect(fake.text).toBe('saved')
     expect(composer.getText()).toBe('saved')
-    expect(error).not.toHaveBeenCalled()
+  })
+
+  // a new ref callback on a render makes React clear the old one and set the new one
+  test('the ref setter stays the same across renders, whatever the draft', () => {
+    const {composer} = setup()
+    const wrapper = (p: {children: React.ReactNode}) => (
+      <ComposerContext value={composer}>{p.children}</ComposerContext>
+    )
+    const {rerender, result} = renderHook((p: {draft?: string}) => useComposerInput<FakeComposerInput>(p.draft), {
+      initialProps: {draft: undefined as string | undefined},
+      wrapper,
+    })
+    const {setInput, textChanged} = result.current
+
+    rerender({draft: 'saved'})
+    rerender({draft: 'saved'})
+
+    expect(result.current.setInput).toBe(setInput)
+    expect(result.current.textChanged).toBe(textChanged)
   })
 
   test('a mounted input whose handle is set late gets the draft when it is set', () => {
@@ -222,13 +244,11 @@ describe('draft', () => {
   test('an offer from an input that is not attached is ignored', () => {
     const {composer, mount} = setup()
     const first = mount(undefined)
-    const other = makeFakeComposerInput()
 
-    composer.offerDraft({current: other}, 'saved')
+    composer.connect().offerDraft('saved')
 
-    expect(other.text).toBe('')
     expect(first.fake.text).toBe('')
-    composer.offerDraft(first.ref, 'saved')
+    first.view.offerDraft('saved')
     expect(first.fake.text).toBe('saved')
   })
 
@@ -253,11 +273,11 @@ describe('draft', () => {
 
   test('re-attaching the same input keeps its text and does not reload the draft', () => {
     const {composer, mount} = setup()
-    const {detach, fake, ref} = mount('saved')
+    const {attach, detach, fake} = mount('saved')
     fake.type('edited')
     detach()
 
-    composer.attach(ref, 'saved')
+    attach()
 
     expect(fake.text).toBe('edited')
     expect(composer.getText()).toBe('edited')
@@ -336,11 +356,11 @@ describe('insertAtCaret', () => {
 
   test('the insert is reported like typing', () => {
     const {composer, mount} = setup()
-    const {fake, ref} = mount()
+    const {fake, view} = mount()
     const reports: Array<string> = []
     fake.connect(text => {
       reports.push(text)
-      composer.textChanged(ref, text)
+      view.textChanged(text)
     })
 
     composer.insertAtCaret('x')
@@ -351,13 +371,13 @@ describe('insertAtCaret', () => {
   // effects mount children first, so a child's insert can come before its input attaches
   test('waits while no input is attached and lands at the caret once it attaches again', () => {
     const {composer, mount} = setup()
-    const {detach, fake, ref} = mount()
+    const {attach, detach, fake} = mount()
     fake.type('abcd', 2)
     detach()
 
     composer.insertAtCaret('x')
     expect(fake.text).toBe('abcd')
-    composer.attach(ref, undefined)
+    attach()
 
     expect(fake.text).toBe('abxcd')
     expect(composer.getText()).toBe('abxcd')
@@ -365,20 +385,58 @@ describe('insertAtCaret', () => {
 
   test('waiting writes land in the order they were made, once', () => {
     const {composer, mount} = setup()
-    const {detach, ref} = mount()
+    const {attach, detach} = mount()
     detach()
 
     composer.inject('hello')
     composer.insertAtCaret('!')
     composer.replace({selection: {end: 7, start: 7}, text: 'hello! '}, true)
     composer.insertAtCaret('x')
-    const detachAgain = composer.attach(ref, undefined)
+    attach()
 
     expect(composer.getText()).toBe('hello! x')
-    detachAgain()
-    composer.attach(ref, undefined)
+    detach()
+    attach()
     expect(composer.getText()).toBe('hello! x')
   })
+})
+
+// Hiding an Activity clears the input's ref as the commit is made; its passive effects go later,
+// and a timer (the native 60ms send) can land in between. The composer is detached from the
+// moment the ref is cleared, so a clear made in that window (here, inside the commit) waits for
+// the input to be shown again instead of being lost.
+test('a send made in the commit that hides the input clears it once it is shown again', () => {
+  jest.useFakeTimers()
+  const {composer, send} = setup()
+  const fake = makeFakeComposerInput()
+  const SendInCommit = (p: {hidden: boolean}) => {
+    const {hidden} = p
+    React.useLayoutEffect(() => {
+      if (hidden) composer.submit(send)
+    }, [hidden])
+    return null
+  }
+  const tree = (mode: 'hidden' | 'visible') => (
+    <ComposerContext value={composer}>
+      <React.Activity mode={mode}>
+        <FakeComposerInputView fake={fake} />
+      </React.Activity>
+      <SendInCommit hidden={mode === 'hidden'} />
+    </ComposerContext>
+  )
+  const {rerender} = render(tree('visible'))
+  act(() => {
+    fake.type('hello')
+  })
+
+  rerender(tree('hidden'))
+  jest.advanceTimersByTime(0)
+  expect(send).toHaveBeenCalledWith('hello', noSnapshot)
+  expect(fake.text).toBe('hello')
+  rerender(tree('visible'))
+
+  expect(fake.text).toBe('')
+  expect(composer.getText()).toBe('')
 })
 
 // A hidden Activity (a screen kept but not shown) unmounts every effect, and showing it again
@@ -552,11 +610,14 @@ describe('the input it reads through', () => {
     expect(fake.focusCount).toBe(1)
   })
 
-  test('the input the composer holds is the ref, so a replaced handle is picked up', () => {
+  test('a handle the ref replaces is picked up, and the text stays', () => {
     const {composer, mount} = setup()
-    const {ref} = mount()
+    const {attach, detach, fake} = mount()
+    fake.type('kept')
     const next = makeFakeComposerInput()
-    ref.current = next
+    detach()
+    attach(next)
+    expect(composer.getText()).toBe('kept')
 
     composer.inject('to the new handle')
 

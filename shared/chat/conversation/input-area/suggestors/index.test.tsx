@@ -53,12 +53,13 @@ const makeInputRef = (getSelection: () => Selection | undefined, showsWrites: bo
 const renderSuggestors = (getSelection: () => Selection | undefined, showsWrites = true) => {
   const inputRef = makeInputRef(getSelection, showsWrites)
   const composer = makeComposer({takeUnfurlSnapshot: () => ({dismissed: [], failed: []})})
-  composer.attach(inputRef, undefined)
+  const view = composer.connect()
+  view.setInput(inputRef.current)
   const {result} = renderHook(
     () =>
       useSuggestors({
         inputRef,
-        onChangeText: text => composer.textChanged(inputRef, text),
+        onChangeText: view.textChanged,
         suggestionListStyle: {},
         suggestionOverlayStyle: {},
         suggestionSpinnerStyle: {},
