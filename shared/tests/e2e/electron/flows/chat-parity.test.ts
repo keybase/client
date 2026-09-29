@@ -180,7 +180,8 @@ test.describe('inline video', () => {
   })
 
   // A double-click at a point on the video, as a fraction of its height. Chromium's own controls
-  // put a play button over the middle of a video, which is why the flows below aim above it.
+  // panel takes the bottom ~72px of a video and keeps presses there to itself, which is why the
+  // flows below aim above it.
   const doubleClickAt = async (page: Page, row: Locator, fy: number) => {
     const box = await poster(row).boundingBox({timeout: 5_000})
     if (!box) throw new Error('the video has no box')
@@ -206,12 +207,12 @@ test.describe('inline video', () => {
     await expect(row.locator('video')).toHaveCount(0)
   })
 
-  // App bug (integration build): a double-click in the middle of a playing video never reaches the
-  // video's onDoubleClick. Chromium's native controls draw their play button there and take both
-  // clicks: document-level capture listeners see no mousedown, click or dblclick at that point,
-  // while 30% down the same video they see all three and fullscreen opens. The same goes for a
-  // double-click in the middle of the poster: the first click starts the video, and the second
-  // lands on that play button. Remove test.fail once fixed.
+  // Fails on this fixture, not on the app: Chromium's native controls panel takes the bottom ~72px
+  // of a video, and a press there is consumed by the controls and never reaches the page (window
+  // capture listeners see no mousedown, click or dblclick, while mousemove still arrives). The seeded
+  // video previews at 160x120, so its middle is 60px from the bottom, inside that panel; on a video
+  // 240px tall its middle is outside it and a double-click there opens fullscreen. Hiding the overlay
+  // play button changes nothing here. Remove test.fail once the fixture previews tall enough.
   test('double-clicking the middle of a playing video opens it fullscreen', async ({page}) => {
     test.fail()
     const row = videoRow(page)

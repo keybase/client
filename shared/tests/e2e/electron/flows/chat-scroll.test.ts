@@ -111,17 +111,9 @@ const expectAtEnd = async (page: Page) => {
   return g
 }
 
-// e2e-scratch after a flow receives a message: opening it can land a few pixels short of the end
-// (an app bug, seen 3-5px: the newest row, a message just received from the second account,
-// measures taller than the list assumed when it resolved its initial scroll to the end, and
-// nothing re-pins it). It is intermittent, so flows that only need to start at the bottom of
-// e2e-scratch accept that much; the opening flows hold e2e-short and e2e-long to the exact end.
-const shortOpenTolerancePx = 8
 const openScratchAtEnd = async (page: Page) => {
   await openFresh(page, E2E_CHANNELS.scratch)
-  const g = await waitForScrollStable(page)
-  expect(g.distanceFromEnd, `opened near the end: ${summary(g)}`).toBeLessThanOrEqual(shortOpenTolerancePx)
-  return g
+  return expectAtEnd(page)
 }
 
 // Selects the first hit for `token` and waits for its row; returns the row's ordinal.
@@ -450,12 +442,7 @@ test.describe('editing', () => {
     expect(rect!.bottom, `row ${ordinal} bottom against the view's ${rect!.viewHeight}`).toBeLessThanOrEqual(rect!.viewHeight + 1)
   }
 
-  // App bug (integration build): entering an edit grows the composer by 4px (the edit bar), and the
-  // thread does not keep its end through that growth as it does for a composer growing with typed
-  // lines. The thread stops 4px short of its end, with the edited newest row 4px under the composer.
-  // The off-screen case below lands short by the same 4px. Remove test.fail once fixed.
   test('editing a message in view does not scroll the thread', async ({page}) => {
-    test.fail()
     await openFresh(page, E2E_CHANNELS.scratch)
     const text = `e2e-scroll-edit-visible-${Date.now()}`
     const ordinal = await sendMessage(page, text)
@@ -469,10 +456,7 @@ test.describe('editing', () => {
     await expectRowWhollyInView(page, ordinal)
   })
 
-  // Same app bug as above: the reveal lands at the end as it was before the edit bar grew the
-  // composer, so the edited newest row stays 4px under it.
   test('editing a message scrolled out of view brings it into view', async ({page}) => {
-    test.fail()
     await openFresh(page, E2E_CHANNELS.scratch)
     const text = `e2e-scroll-edit-offscreen-${Date.now()}`
     const ordinal = await sendMessage(page, text)

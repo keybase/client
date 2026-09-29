@@ -133,7 +133,7 @@ test.describe('reactions', () => {
     return text
   }
 
-  // the reaction leaves the thread short of its end (see below), so bring its button into view
+  // a thread left short of its end would keep the reaction button under the composer
   const removeReaction = async (page: Page, text: string) => {
     await focusThreadScroller(page)
     await page.keyboard.press('End')
@@ -153,13 +153,7 @@ test.describe('reactions', () => {
     await removeReaction(page, text)
   })
 
-  // App bug (integration build): a reaction on the newest message grows its row, and the thread,
-  // at its end before (0-0.5px from it in each run), settles 40px short of it; the new reaction
-  // button sits under the composer (its box 862-888px down the window, the textarea's 874-896).
-  // Only on a thread that reached its end by opening and sending: once the reader has pressed End
-  // on it, the same growth keeps the end. Remove test.fail once fixed.
   test('a reaction on the newest message keeps the thread at its end', async ({page}) => {
-    test.fail()
     const text = await sendFresh(page)
     const before = await waitForScrollStable(page)
     await react(page, text)
