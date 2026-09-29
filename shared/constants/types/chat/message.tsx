@@ -103,6 +103,7 @@ interface _MessageCommon {
   readonly previewWidth?: number
   readonly prover?: string
   readonly reactions?: Reactions
+  // 'deleting' is only ever on a row as the thread shows it (getConversationThreadDisplayMessage)
   readonly submitState?: 'deleting' | 'editing' | 'pending' | 'failed'
   readonly timestamp: number
   readonly title?: string

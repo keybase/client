@@ -26,8 +26,10 @@ import {
   toggleReaction,
 } from './message-commands'
 import {Collapsed} from './messages/attachment/shared'
+import {applyFailedMessageToThread} from './thread-engine'
 import {
   ConversationThreadProvider,
+  getConversationThreadDisplayMessage,
   useConversationThreadActions,
   useConversationThreadStore,
   useConversationThreadUnfurlResolvePrompt,
@@ -74,7 +76,9 @@ const renderThread = (messages: ReadonlyArray<T.Chat.Message> = []) => {
     })
   }
   const result = rendered.result
-  const message = (n: number) => result.current.store.getState().messageMap.get(T.Chat.numberToOrdinal(n))
+  // the row as the thread shows it
+  const message = (n: number) =>
+    getConversationThreadDisplayMessage(result.current.store.getState(), T.Chat.numberToOrdinal(n))
   const row = (ordinal: T.Chat.Ordinal) => ({conversationIDKey, ordinal, thread: result.current.actions})
   cmd = {
     dismissJourneycard: (cardType, ordinal) => dismissJourneycard(row(ordinal), cardType),
@@ -160,7 +164,7 @@ describe('messageDelete', () => {
     })
     // the thread's own delete sends no clientPrev
     expect(rpc.params('postDelete')).toEqual([
-      {conversationIDKey, messageID: T.Chat.numberToMessageID(10), tlfName},
+      {conversationIDKey, messageID: T.Chat.numberToMessageID(10), outboxID: expect.any(Uint8Array), tlfName},
     ])
     await act(async () => {
       pending.resolve(undefined)
@@ -588,19 +592,96 @@ describe('messageDelete edges', () => {
     expect(message(10)?.submitState).toBeUndefined()
   })
 
-  test('the revert only undoes its own deleting state', async () => {
-    const pending = deferred<undefined>()
-    rpc.on('postDelete', async () => pending.promise)
+  test('a failed delete undoes only its own mark: a second delete of the row still pending keeps it deleting', async () => {
+    jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    const second = deferred<undefined>()
+    rpc.once('postDelete', () => undefined)
+    rpc.once('postDelete', async () => second.promise)
+    const {message} = renderThread([textAt(10)])
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
+    await act(async () => {
+      second.reject(new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
+      await flushPromises()
+    })
+    expect(message(10)?.submitState).toBe('deleting')
+  })
+
+  test('a delete the service queued and then failed stops showing deleting', async () => {
+    const {message, result} = renderThread([textAt(10), textAt(11)])
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
+    expect(message(10)?.submitState).toBe('deleting')
+    const deleteOutboxID = rpc.params('postDelete')[0]?.outboxID
+    act(() => {
+      applyFailedMessageToThread(
+        conversationIDKey,
+        {
+          isEphemeralPurge: false,
+          outboxRecords: [
+            {
+              convID: T.Chat.keyToConversationID(conversationIDKey),
+              outboxID: deleteOutboxID,
+              state: {error: {message: 'nope', typ: T.RPCChat.OutboxErrorType.misc}, state: T.RPCChat.OutboxStateType.error},
+            } as unknown as T.RPCChat.OutboxRecord,
+          ],
+        },
+        result.current.actions
+      )
+    })
+    expect(message(10)?.submitState).toBeUndefined()
+    expect(message(11)?.submitState).toBeUndefined()
+  })
+
+  test('a reload carrying the row clears a delete that never landed', async () => {
     const {message, result} = renderThread([textAt(10)])
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
     act(() => {
-      result.current.actions.setMessageSubmitState(T.Chat.numberToOrdinal(10), 'failed')
+      result.current.actions.applyThreadLoad({
+        centered: false,
+        enableActiveMarkRead: false,
+        messages: [textAt(10)],
+        moreToLoad: false,
+        scrollDirection: 'none',
+      })
     })
-    await act(async () => {
-      pending.reject(new RPCError('nope', T.RPCGen.StatusCode.scgeneric))
-      await flushPromises()
+    expect(message(10)?.submitState).toBeUndefined()
+  })
+
+  test('a reaction or unfurl update to the row mid-delete keeps it deleting', async () => {
+    const {message, result} = renderThread([textAt(10)])
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
+    act(() => {
+      result.current.actions.updateReactions([
+        {
+          reactions: new Map([[':+1:', {decorated: ':+1:', users: [{timestamp: 1, username: 'testuser2'}]}]]),
+          targetMsgID: T.Chat.numberToMessageID(10),
+        },
+      ])
+      result.current.actions.addMessages([textAt(10, {text: new HiddenString('unfurled')})], {liveUpdate: true})
     })
-    expect(message(10)?.submitState).toBe('failed')
+    expect(message(10)?.submitState).toBe('deleting')
+  })
+
+  test('the delete notification removes the row and its pending delete', async () => {
+    const {message, result} = renderThread([textAt(10), textAt(11)])
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(11)))
+    act(() => {
+      result.current.actions.deleteMessages({liveUpdate: true, messageIDs: [T.Chat.numberToMessageID(10)]})
+      result.current.actions.explodeMessages([T.Chat.numberToMessageID(11)], 'testuser', true)
+    })
+    expect(message(10)).toBeUndefined()
+    expect(message(11)?.submitState).toBeUndefined()
+    expect(result.current.store.getState().pendingDeleteMap.size).toBe(0)
+  })
+
+  test('clearing the thread drops its pending deletes', async () => {
+    const {result} = renderThread([textAt(10)])
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
+    act(() => {
+      result.current.actions.messagesClear()
+    })
+    expect(result.current.store.getState().pendingDeleteMap.size).toBe(0)
   })
 
   // the renderers read pending and failed (an unsent video does not play, an unsent audio has no

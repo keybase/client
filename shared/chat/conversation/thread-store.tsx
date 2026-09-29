@@ -14,6 +14,7 @@ import {
   completeAttachmentDownloadInThreadState,
   clearOptimisticReactionsForUpdatesInThreadState,
   clearOptimisticReactionsForMessagesInThreadState,
+  clearPendingDeletesInThreadState,
   deleteMessagesFromThreadState,
   explodeMessagesInThreadState,
   failAttachmentDownloadInThreadState,
@@ -64,6 +65,9 @@ export type ConversationThreadState = {
   moreToLoadForward: boolean
   optimisticReactionMap: Map<T.Chat.OutboxID, OptimisticReaction>
   paymentStatusMap: Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
+  // See PendingDeleteMap. Set by a delete, cleared when the row goes, when a thread load carries the
+  // row again, when the delete fails (its RPC or, once queued, its outbox entry) and by messagesClear.
+  pendingDeleteMap: Map<T.Chat.OutboxID, T.Chat.Ordinal>
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal>
   typing: Set<string>
   unfurlPrompt: Map<T.Chat.MessageID, Set<string>>
@@ -157,6 +161,9 @@ export type ConversationThreadActions = {
   setTyping: (typing: ReadonlySet<string>) => void
   showUnfurlPrompt: (messageID: T.Chat.MessageID, domain: string) => void
   addOptimisticReaction: (outboxID: T.Chat.OutboxID, reaction: OptimisticReaction) => void
+  // outboxID: the delete's own
+  addPendingDelete: (outboxID: T.Chat.OutboxID, ordinal: T.Chat.Ordinal) => void
+  removePendingDelete: (outboxID: T.Chat.OutboxID) => void
   removeOptimisticReaction: (outboxID: T.Chat.OutboxID) => void
   updateOptimisticReactionDecorated: (outboxID: T.Chat.OutboxID, decorated: string) => void
   updateReactions: (
@@ -241,6 +248,7 @@ const makeEmptyThreadState = (): ConversationThreadState =>
       moreToLoadForward: false,
       optimisticReactionMap: new Map<T.Chat.OutboxID, OptimisticReaction>(),
       paymentStatusMap: new Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>(),
+      pendingDeleteMap: new Map<T.Chat.OutboxID, T.Chat.Ordinal>(),
       pendingOutboxToOrdinal: new Map<T.Chat.OutboxID, T.Chat.Ordinal>(),
       typing: new Set<string>(),
       unfurlPrompt: new Map<T.Chat.MessageID, Set<string>>(),
@@ -390,6 +398,9 @@ export const makeThreadStore = (
         dropNewBelowWindow: true,
       })
       clearOptimisticReactionsForMessagesInThreadState(s, messages)
+      // a row a notification removed is no longer being deleted; one it only updated (a reaction,
+      // an unfurl) still is
+      clearPendingDeletesInThreadState(s, o => !s.messageMap.has(o))
     })
     if (opt.markAsRead) {
       markThreadAsRead()
@@ -449,8 +460,11 @@ export const makeThreadStore = (
       // messageOrdinals array behind, and an empty one reads as a loaded, empty thread - the top
       // of the conversation renders against it and then swaps when the real page arrives.
       if (p.messages.length || p.reconcile?.prune) {
-        addMessagesToThreadState(s, p.messages, {reconcile: p.reconcile})
+        const carried = addMessagesToThreadState(s, p.messages, {reconcile: p.reconcile})
         clearOptimisticReactionsForMessagesInThreadState(s, p.messages)
+        // A load still carrying the row is the service saying it is there: a delete that failed
+        // after it was queued, with no outbox failure to say so, stops showing here.
+        clearPendingDeletesInThreadState(s, o => carried.has(o) || !s.messageMap.has(o))
       }
       // Only a pass that actually rendered something drops the gate. A cold cache sends an empty
       // cached pass ahead of the full response, and a page can be all tombstones: dropping the
@@ -507,6 +521,7 @@ export const makeThreadStore = (
         ordinals: p.ordinals,
         upToMessageID: p.upToMessageID,
       })
+      clearPendingDeletesInThreadState(s, o => !s.messageMap.has(o))
     })
   }
 
@@ -520,6 +535,8 @@ export const makeThreadStore = (
         s.liveUpdateVersion += 1
       }
       explodeMessagesInThreadState(s, messageIDs, explodedBy)
+      // deleting an exploding message explodes it
+      clearPendingDeletesInThreadState(s, o => !!s.messageMap.get(o)?.exploded)
     })
   }
 
@@ -661,6 +678,7 @@ export const makeThreadStore = (
       s.messageOrdinals = undefined
       s.messageTypeMap.clear()
       s.optimisticReactionMap.clear()
+      s.pendingDeleteMap.clear()
     })
   }
 
@@ -701,6 +719,11 @@ export const makeThreadStore = (
     addOptimisticReaction: (outboxID, reaction) => {
       updateThreadState(s => {
         s.optimisticReactionMap.set(outboxID, reaction)
+      })
+    },
+    addPendingDelete: (outboxID, ordinal) => {
+      updateThreadState(s => {
+        s.pendingDeleteMap.set(outboxID, ordinal)
       })
     },
     applyThreadLoad,
@@ -747,6 +770,11 @@ export const makeThreadStore = (
         s.optimisticReactionMap.delete(outboxID)
       })
     },
+    removePendingDelete: outboxID => {
+      updateThreadState(s => {
+        s.pendingDeleteMap.delete(outboxID)
+      })
+    },
     retryMessage,
     setAttachmentMobileSaving: (ordinal, saving) => {
       updateThreadState(s => {
@@ -759,6 +787,8 @@ export const makeThreadStore = (
     setMessageErrored: (outboxID, reason, errorTyp) => {
       updateThreadState(s => {
         setMessageErroredInThreadState(s, outboxID, reason, errorTyp)
+        // the failed outbox entry can be a delete's, which names no row
+        s.pendingDeleteMap.delete(outboxID)
       })
     },
     setMessageSubmitState: (ordinal, submitState) => {

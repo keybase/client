@@ -177,10 +177,6 @@ const mergeMessage = (
       } else {
         existingRecord[key] = val
       }
-    } else if (key === 'submitState' && cur === 'deleting' && val === undefined) {
-      // A server update to a row being deleted (a reaction, an unfurl) carries no submit state.
-      // The row stays deleting until the delete resolves: its notification removes the row, and a
-      // failed delete reverts it.
     } else if (key === 'fileURL' || key === 'previewURL') {
       const next = keepUrl(val as string | undefined, cur as string | undefined)
       if (cur !== next) {
@@ -192,6 +188,7 @@ const mergeMessage = (
   }
 }
 
+// Returns the ordinals the batch's rows now occupy.
 export const addMessagesToThreadState = (
   state: WritableConversationThreadMessageState,
   messages: ReadonlyArray<T.Chat.Message>,
@@ -199,7 +196,7 @@ export const addMessagesToThreadState = (
     dropNewBelowWindow?: boolean
     reconcile?: ThreadLoadReconcile
   }
-) => {
+): ReadonlySet<T.Chat.Ordinal> => {
   const {dropNewBelowWindow, reconcile} = opt
   // The bounds of the loaded window before this batch is merged in.
   const ords = state.messageOrdinals
@@ -400,6 +397,7 @@ export const addMessagesToThreadState = (
   if (changed || !state.messageOrdinals) {
     state.messageOrdinals = [...existing].sort((a, b) => a - b)
   }
+  return incomingOrdinals
 }
 
 export const deleteMessagesFromThreadState = (
@@ -516,6 +514,31 @@ export const applyOptimisticReactionsToMessage = (
     }
   }
   return changed ? {...message, reactions} : message
+}
+
+// Deletes of sent rows this client has asked the service for and not yet seen land, each keyed by
+// the outbox id it was posted under, so one call's revert or failure touches only its own entry. A
+// row is shown deleting while any entry names it. Client-only: it is never merged into a row.
+export type PendingDeleteMap = ReadonlyMap<T.Chat.OutboxID, T.Chat.Ordinal>
+
+export const isPendingDelete = (pendingDeletes: PendingDeleteMap, ordinal: T.Chat.Ordinal) => {
+  for (const o of pendingDeletes.values()) {
+    if (o === ordinal) {
+      return true
+    }
+  }
+  return false
+}
+
+// Drops every entry whose row is gone or settled: done(ordinal) says which.
+export const clearPendingDeletesInThreadState = (
+  state: {pendingDeleteMap: Map<T.Chat.OutboxID, T.Chat.Ordinal>},
+  done: (ordinal: T.Chat.Ordinal) => boolean
+) => {
+  const settled = [...state.pendingDeleteMap].filter(([, ordinal]) => done(ordinal))
+  for (const [outboxID] of settled) {
+    state.pendingDeleteMap.delete(outboxID)
+  }
 }
 
 const clearOptimisticReactionsForOrdinal = (

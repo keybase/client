@@ -30,11 +30,12 @@ import type {ConversationThreadActions} from './thread-store'
 export type MessageCommandThread = Pick<
   ConversationThreadActions,
   | 'addOptimisticReaction'
+  | 'addPendingDelete'
   | 'deleteMessages'
   | 'getSnapshot'
   | 'isRetired'
   | 'removeOptimisticReaction'
-  | 'setMessageSubmitState'
+  | 'removePendingDelete'
 >
 
 // Every target names its conversation.
@@ -75,21 +76,19 @@ const deleteThreadMessage = (conversationIDKey: T.Chat.ConversationIDKey, target
   if (thread.isRetired()) {
     return
   }
-  const deletable = () => {
-    const m = thread.getSnapshot().messageMap.get(ordinal)
-    return m?.type === 'text' || m?.type === 'attachment' ? m : undefined
-  }
-  const row = deletable()
+  // The delete's own outbox id: this call's key to its pending delete, and what a failedMessage
+  // for the delete names once the service has queued it.
+  const outboxID = Common.generateOutboxID()
+  const deleteOutboxID = T.Chat.rpcOutboxIDToOutboxID(outboxID)
+  const row = thread.getSnapshot().messageMap.get(ordinal)
   // Only a sent row shows deleting. An unsent one keeps its pending or failed state, which the
   // renderers read (an unsent video does not play), until the cancel removes it.
-  if (row?.id && row.submitState === undefined) {
-    thread.setMessageSubmitState(ordinal, 'deleting')
+  if ((row?.type === 'text' || row?.type === 'attachment') && row.id && row.submitState === undefined) {
+    thread.addPendingDelete(deleteOutboxID, ordinal)
   }
-  // only undoes our own mark: a row that moved on since keeps its new state
+  // drops only this call's entry, so another delete of the row still pending keeps it deleting
   const revertDeleting = () => {
-    if (deletable()?.submitState === 'deleting') {
-      thread.setMessageSubmitState(ordinal, undefined)
-    }
+    thread.removePendingDelete(deleteOutboxID)
   }
 
   const f = async () => {
@@ -117,7 +116,12 @@ const deleteThreadMessage = (conversationIDKey: T.Chat.ConversationIDKey, target
         return
       }
       // a successful delete leaves the row deleting; the service's delete notification removes it
-      await getChatRpc().postDelete({conversationIDKey, messageID: message.id, tlfName: meta.tlfname})
+      await getChatRpc().postDelete({
+        conversationIDKey,
+        messageID: message.id,
+        outboxID,
+        tlfName: meta.tlfname,
+      })
     } catch (error) {
       revertDeleting()
       if (error instanceof RPCError) {

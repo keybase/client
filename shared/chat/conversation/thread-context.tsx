@@ -9,7 +9,7 @@ import {useUsersState} from '@/stores/users'
 import {useShellState} from '@/stores/shell'
 import {useStore} from 'zustand'
 import {useIsFocused, useNavigation} from '@react-navigation/core'
-import {applyOptimisticReactionsToMessage} from './thread-message-state'
+import {applyOptimisticReactionsToMessage, isPendingDelete} from './thread-message-state'
 import {getInboxConversationParticipants, unboxRows, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {getChatRpc} from './chat-rpc'
 import {emptyConversationMeta, numMessagesOnInitialLoad, numMessagesOnScrollback} from './thread-load'
@@ -253,9 +253,12 @@ const displayMessageCache = new WeakMap<
   {
     displayMessage: T.Chat.Message | undefined
     optimisticReactionMap: ConversationThreadState['optimisticReactionMap']
+    pendingDeleteMap: ConversationThreadState['pendingDeleteMap']
   }
 >()
 
+// The row as it is shown: with this client's reactions the service has not confirmed yet, and
+// submitState 'deleting' while a delete of it is pending. 'deleting' is never stored on the row.
 export const getConversationThreadDisplayMessage = (
   snapshot: ConversationThreadState,
   ordinal: T.Chat.Ordinal
@@ -264,12 +267,20 @@ export const getConversationThreadDisplayMessage = (
   if (!message) {
     return undefined
   }
+  const {optimisticReactionMap, pendingDeleteMap} = snapshot
   const cached = displayMessageCache.get(message)
-  if (cached?.optimisticReactionMap === snapshot.optimisticReactionMap) {
+  if (
+    cached?.optimisticReactionMap === optimisticReactionMap &&
+    cached.pendingDeleteMap === pendingDeleteMap
+  ) {
     return cached.displayMessage
   }
-  const displayMessage = applyOptimisticReactionsToMessage(message, snapshot.optimisticReactionMap)
-  displayMessageCache.set(message, {displayMessage, optimisticReactionMap: snapshot.optimisticReactionMap})
+  const withReactions = applyOptimisticReactionsToMessage(message, optimisticReactionMap)
+  const displayMessage =
+    withReactions && isPendingDelete(pendingDeleteMap, ordinal)
+      ? {...withReactions, submitState: 'deleting' as const}
+      : withReactions
+  displayMessageCache.set(message, {displayMessage, optimisticReactionMap, pendingDeleteMap})
   return displayMessage
 }
 

@@ -562,11 +562,11 @@ describe('store writes', () => {
     actions.addMessages([textAt(5), textAt(6), textAt(7)])
     actions.deleteMessages({messageIDs: [T.Chat.numberToMessageID(5)]})
     actions.explodeMessages([T.Chat.numberToMessageID(6)], undefined, true)
-    actions.setMessageSubmitState(T.Chat.numberToOrdinal(7), 'deleting')
+    actions.setMessageSubmitState(T.Chat.numberToOrdinal(7), 'editing')
     const s = store.getState()
     expect(s.messageOrdinals).toEqual([6, 7])
     expect(s.messageMap.get(T.Chat.numberToOrdinal(6))?.exploded).toBe(true)
-    expect(s.messageMap.get(T.Chat.numberToOrdinal(7))?.submitState).toBe('deleting')
+    expect(s.messageMap.get(T.Chat.numberToOrdinal(7))?.submitState).toBe('editing')
     expect(s.liveUpdateVersion).toBe(1)
   })
 

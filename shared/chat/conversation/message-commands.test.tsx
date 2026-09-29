@@ -52,6 +52,7 @@ const makeThread = (messages: ReadonlyArray<T.Chat.Message>) => {
     messageMap: new Map(messages.map(m => [m.ordinal, m])),
     messageOrdinals: messages.map(m => m.ordinal),
     optimisticReactionMap: new Map<T.Chat.OutboxID, OptimisticReaction>(),
+    pendingDeleteMap: new Map<T.Chat.OutboxID, T.Chat.Ordinal>(),
   } as unknown as ConversationThreadState
   const writes: Array<ReadonlyArray<unknown>> = []
   const thread: MessageCommandThread = {
@@ -72,14 +73,17 @@ const makeThread = (messages: ReadonlyArray<T.Chat.Message>) => {
       optimisticReactionMap.delete(outboxID)
       state = {...state, optimisticReactionMap}
     },
-    setMessageSubmitState: (ordinal, submitState) => {
-      writes.push(['setMessageSubmitState', ordinal, submitState])
-      const m = state.messageMap.get(ordinal)
-      if (m) {
-        const messageMap = new Map(state.messageMap)
-        messageMap.set(ordinal, {...m, submitState})
-        state = {...state, messageMap}
-      }
+    addPendingDelete: (outboxID, ordinal) => {
+      writes.push(['addPendingDelete', ordinal])
+      const pendingDeleteMap = new Map(state.pendingDeleteMap)
+      pendingDeleteMap.set(outboxID, ordinal)
+      state = {...state, pendingDeleteMap}
+    },
+    removePendingDelete: outboxID => {
+      writes.push(['removePendingDelete', state.pendingDeleteMap.get(outboxID)])
+      const pendingDeleteMap = new Map(state.pendingDeleteMap)
+      pendingDeleteMap.delete(outboxID)
+      state = {...state, pendingDeleteMap}
     },
   }
   return {thread, writes}
@@ -122,20 +126,24 @@ describe('formatTextForQuoting', () => {
 })
 
 describe('deleteMessage', () => {
-  test('both paths send the same delete; only the thread path touches the thread', async () => {
+  test('both paths send the delete by id; only the thread path names its outbox id and touches the thread', async () => {
     const {thread, writes} = makeThread([textAt(10)])
     deleteMessage({conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread})
     deleteMessage({conversationIDKey, message: textAt(10)})
     await flushPromises()
     const sent = {conversationIDKey, messageID: T.Chat.numberToMessageID(10), tlfName}
-    expect(rpc.params('postDelete')).toEqual([sent, sent])
-    expect(writes).toEqual([['setMessageSubmitState', T.Chat.numberToOrdinal(10), 'deleting']])
+    expect(rpc.params('postDelete')).toEqual([{...sent, outboxID: expect.any(Uint8Array)}, sent])
+    expect(writes).toEqual([['addPendingDelete', T.Chat.numberToOrdinal(10)]])
   })
 
-  test('the thread path marks deleting before the service is asked', () => {
+  test('the thread path marks the delete pending, under the outbox id it sends, before the service is asked', async () => {
     const {thread} = makeThread([textAt(10)])
     deleteMessage({conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread})
-    expect(thread.getSnapshot().messageMap.get(T.Chat.numberToOrdinal(10))?.submitState).toBe('deleting')
+    const pending = [...thread.getSnapshot().pendingDeleteMap]
+    expect(pending.map(([, ordinal]) => ordinal)).toEqual([T.Chat.numberToOrdinal(10)])
+    await flushPromises()
+    const sent = rpc.params('postDelete')[0]?.outboxID
+    expect(pending.map(([outboxID]) => outboxID)).toEqual([sent && T.Chat.rpcOutboxIDToOutboxID(sent)])
   })
 
   test('a failed thread delete writes the revert through the handle', async () => {
@@ -145,8 +153,8 @@ describe('deleteMessage', () => {
     deleteMessage({conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread})
     await flushPromises()
     expect(writes).toEqual([
-      ['setMessageSubmitState', T.Chat.numberToOrdinal(10), 'deleting'],
-      ['setMessageSubmitState', T.Chat.numberToOrdinal(10), undefined],
+      ['addPendingDelete', T.Chat.numberToOrdinal(10)],
+      ['removePendingDelete', T.Chat.numberToOrdinal(10)],
     ])
   })
 

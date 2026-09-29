@@ -65,10 +65,12 @@ export type ChatThreadRpc = {
     text: string
     tlfName: string
   }) => Promise<void>
+  // outboxID: the delete's own; the service picks one when it is left out
   postDelete: (p: {
     clientPrev?: T.Chat.MessageID
     conversationIDKey: T.Chat.ConversationIDKey
     messageID: T.Chat.MessageID
+    outboxID?: T.RPCChat.OutboxID
     tlfName: string
   }) => Promise<void>
   // outboxID defaults to a fresh one
@@ -494,7 +496,7 @@ const serviceChatRpc: ChatThreadRpc = {
       clientPrev: p.clientPrev ?? T.Chat.numberToMessageID(0),
       conversationID: T.Chat.keyToConversationID(p.conversationIDKey),
       identifyBehavior,
-      outboxID: null,
+      outboxID: p.outboxID ?? null,
       supersedes: p.messageID,
       tlfName: p.tlfName,
       tlfPublic: false,

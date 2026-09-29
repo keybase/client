@@ -735,8 +735,8 @@ describe('store writes', () => {
   test('setMessageSubmitState writes the row', () => {
     const {h, state} = renderThread()
     act(() => h().actions.addMessages([textAt(10)]))
-    act(() => h().actions.setMessageSubmitState(T.Chat.numberToOrdinal(10), 'deleting'))
-    expect(state().messageMap.get(T.Chat.numberToOrdinal(10))?.submitState).toBe('deleting')
+    act(() => h().actions.setMessageSubmitState(T.Chat.numberToOrdinal(10), 'editing'))
+    expect(state().messageMap.get(T.Chat.numberToOrdinal(10))?.submitState).toBe('editing')
   })
 
   test('the optimistic reaction map is added to, decorated and removed from', () => {
