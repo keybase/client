@@ -37,6 +37,7 @@ export type Composer = {
   getText: () => string
   getSelection: () => Selection | undefined
   isFocused: () => boolean
+  // with no input attached, the next one to attach is focused
   focus: () => void
   // Replaces the whole text with the caret at its end.
   inject: (text: string, focus?: boolean) => void
@@ -232,7 +233,7 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
       }
     },
     focus: () => {
-      input?.focus()
+      whenAttached(target => target.focus())
     },
     getSelection: () => input?.getSelection(),
     getText: () => text,

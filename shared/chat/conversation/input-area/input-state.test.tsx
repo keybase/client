@@ -20,6 +20,7 @@ import {ConversationInputProvider, useConversationInput, type ConversationInputS
 import {FakeComposerInputView, makeFakeComposerInput, type FakeComposerInput} from '@/test/fake-composer-input'
 import {ConversationThreadProvider, useConversationThreadActions} from '../thread-context'
 import {suppressedURLsOf, takeSuppressSnapshot, useUnfurlPreviewState} from '../unfurl-preview-state'
+import {ThreadRefsContext, ThreadRefsProvider} from '../normal/context'
 
 const getSuppressedURLs = (c: T.Chat.ConversationIDKey) => suppressedURLsOf(takeSuppressSnapshot(c))
 
@@ -1431,5 +1432,66 @@ describe('the composer text', () => {
     } finally {
       jest.useRealTimers()
     }
+  })
+})
+
+describe('focusing the composer from the thread', () => {
+  // what the list and the unfurl preview call to put the user back in the composer
+  const renderWithThreadRefs = () => {
+    let focusInput: (() => void) | undefined
+    const FocusProbe = (p: {onRender: (focus: () => void) => void}) => {
+      const {useContext} = require('react') as typeof React
+      p.onRender(useContext(ThreadRefsContext).focusInput)
+      return null
+    }
+    const tree = (showInput: boolean) => (
+      <ConversationThreadProvider id={convID}>
+        <ConversationInputProvider id={convID}>
+          <ThreadRefsProvider>
+            {showInput && <Input />}
+            <FocusProbe onRender={f => (focusInput = f)} />
+          </ThreadRefsProvider>
+        </ConversationInputProvider>
+      </ConversationThreadProvider>
+    )
+    const utils = render(tree(true))
+    return {
+      focusInput: () => focusInput?.(),
+      setShowInput: (show: boolean) => {
+        act(() => {
+          utils.rerender(tree(show))
+        })
+      },
+    }
+  }
+
+  test('focuses the input the composer attached last', () => {
+    const {focusInput} = renderWithThreadRefs()
+    const next = {...mockHandle(), focus: jest.fn()}
+    act(() => {
+      mockPlatformInputProps?.setInputRef(next)
+    })
+    mockInput.focusCount = 0
+
+    act(() => {
+      focusInput()
+    })
+
+    expect(next.focus).toHaveBeenCalledTimes(1)
+    expect(mockInput.focusCount).toBe(0)
+  })
+
+  test('with no input attached, focuses the next one once it attaches', () => {
+    const {focusInput, setShowInput} = renderWithThreadRefs()
+    setShowInput(false)
+    mockInput.focusCount = 0
+
+    act(() => {
+      focusInput()
+    })
+    expect(mockInput.focusCount).toBe(0)
+    setShowInput(true)
+
+    expect(mockInput.focusCount).toBe(1)
   })
 })

@@ -212,11 +212,6 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     }
   }, [loadIDOnUnloadRef])
 
-  const {setInputRef} = React.useContext(ThreadRefsContext)
-  React.useEffect(() => {
-    setInputRef(inputRef.current)
-  }, [inputRef, setInputRef])
-
   const input = (
     <PlatformInput
       hintText={hintText}

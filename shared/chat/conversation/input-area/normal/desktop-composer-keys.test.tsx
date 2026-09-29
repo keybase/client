@@ -90,7 +90,6 @@ const threadRefs = {
   scrollDown,
   scrollToBottom: () => {},
   scrollUp,
-  setInputRef: () => {},
   setScrollRef: () => {},
 }
 

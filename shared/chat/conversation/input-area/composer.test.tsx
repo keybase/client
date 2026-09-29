@@ -702,9 +702,9 @@ describe('the input it reads through', () => {
     expect(fake.focusCount).toBe(1)
   })
 
-  test('with nothing attached there is no selection and no focus', () => {
+  test('with nothing attached there is no selection, and a focus waits for the next input', () => {
     const {composer, mount} = setup()
-    const {detach, fake} = mount()
+    const {attach, detach, fake} = mount()
     fake.type('abc')
     fake.focus()
     detach()
@@ -714,6 +714,9 @@ describe('the input it reads through', () => {
     expect(composer.getSelection()).toBeUndefined()
     expect(composer.isFocused()).toBe(false)
     expect(fake.focusCount).toBe(1)
+    const next = makeFakeComposerInput()
+    attach(next)
+    expect(next.focusCount).toBe(1)
   })
 
   test('a handle the ref replaces is picked up, and the text stays', () => {
