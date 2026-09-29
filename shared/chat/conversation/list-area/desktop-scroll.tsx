@@ -11,6 +11,7 @@ import {
   initialScrollTarget,
   listAnchorsEnd,
   ownsEnd,
+  useHeldLatest,
   useScrollTarget,
   type ScrollDirective,
   type ScrollEvent,
@@ -75,6 +76,7 @@ const rowFullyVisible = (wrapper: unknown, ordinal: T.Chat.Ordinal) => {
 
 export const useDesktopThreadScroll = (p: {
   centeredOrdinal: T.Chat.Ordinal | undefined
+  containsLatestMessage: boolean
   datasetKey: string
   editingOrdinal: T.Chat.Ordinal | undefined
   listRef: React.RefObject<LegendListRef | null>
@@ -82,7 +84,7 @@ export const useDesktopThreadScroll = (p: {
   messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
   wrapperRef: React.RefObject<HTMLDivElement | null>
 }) => {
-  const {centeredOrdinal, datasetKey, editingOrdinal} = p
+  const {centeredOrdinal, containsLatestMessage, datasetKey, editingOrdinal} = p
   const {listRef, loaded, messageOrdinals, wrapperRef} = p
 
   // Read by the loops below as they run, so they see the thread as it is now rather than when they
@@ -94,6 +96,7 @@ export const useDesktopThreadScroll = (p: {
 
   const scrollTarget = useScrollTarget()
   const [own] = React.useState(makeOwnScrolls)
+  const heldLatest = useHeldLatest(containsLatestMessage)
 
   // Asks the scroller, not the list's own isAtEnd: that flag comes from the content size and viewport
   // the list has recorded, and both lag a composer collapse, so it reads not-at-end while the scroller
@@ -379,7 +382,7 @@ export const useDesktopThreadScroll = (p: {
 
   return {
     initialScrollIndex,
-    maintainScrollAtEnd: listAnchorsEnd(centeredOrdinal),
+    maintainScrollAtEnd: listAnchorsEnd(centeredOrdinal, heldLatest),
     onMetricsChange,
     scrollToBottom,
   }

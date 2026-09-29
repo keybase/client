@@ -261,6 +261,15 @@ export const initialScrollTarget = (
   return index >= 0 ? ({index, viewPosition: 0.5} as const) : undefined
 }
 
-// The list's own end anchor stays off while a target is centred, even one that is not loaded,
-// so new messages don't pull the reader away from it.
-export const listAnchorsEnd = (centeredOrdinal: T.Chat.Ordinal | undefined) => centeredOrdinal === undefined
+// The list's own end anchor holds the newest message in view. It stays off while a target is
+// centred, even one that is not loaded, so new messages don't pull the reader away from it, and
+// while the thread holds a window of history without the newest message, whose end is only the
+// newest row loaded: a page of newer rows landing there would carry the reader along with it.
+// heldLatest is whether the thread held the newest message before the rows now arriving
+// (useHeldLatest), so the page that brings the newest message lands as a page too.
+export const listAnchorsEnd = (centeredOrdinal: T.Chat.Ordinal | undefined, heldLatest: boolean) =>
+  centeredOrdinal === undefined && heldLatest
+
+// Whether the thread holds the newest message, a render late: a page of newer rows that brings it is
+// laid out with the value from before it landed, and only the renders after it see it held.
+export const useHeldLatest = (containsLatestMessage: boolean) => React.useDeferredValue(containsLatestMessage)

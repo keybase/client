@@ -19,10 +19,11 @@ export {
   threadRefsValue,
 } from './list-test-store'
 
-type ThreadState = ThreadSnapshot & {conversationIDKey: T.Chat.ConversationIDKey}
+type ThreadState = ThreadSnapshot & {conversationIDKey: T.Chat.ConversationIDKey; moreToLoadForward: boolean}
 const initialThreadState = (): ThreadState => ({
   ...emptyThread,
   conversationIDKey: T.Chat.stringToConversationIDKey('conv1'),
+  moreToLoadForward: false,
 })
 export const threadStore = makeStore<ThreadState>(initialThreadState())
 
@@ -68,10 +69,14 @@ const handle = {
   },
 }
 
+// The props of each commit, oldest first.
+export const listCommits: Array<FakeListProps> = []
+
 const FakeFlatList = (p: FakeListProps) => {
   const {ref} = p
   React.useLayoutEffect(() => {
     listProps.current = p
+    listCommits.push(p)
   })
   React.useEffect(() => {
     listMounts.count += 1
@@ -113,11 +118,14 @@ export const markThreadAsRead = jest.fn(() => {
 export const loadOlderMessages = jest.fn((numOrdinals: number) => {
   log.push(['loadOlderMessages', numOrdinals])
 })
+export const loadNewerMessages = jest.fn((numOrdinals: number) => {
+  log.push(['loadNewerMessages', numOrdinals])
+})
 
 export const threadContextModule = {
   ShownUsernameCacheContext: React.createContext(undefined),
   useConversationThreadID: () => useStore(threadStore, s => s.conversationIDKey),
-  useConversationThreadLoadNewerMessagesDueToScroll: () => () => {},
+  useConversationThreadLoadNewerMessagesDueToScroll: () => loadNewerMessages,
   useConversationThreadLoadOlderMessagesDueToScroll: () => loadOlderMessages,
   useConversationThreadMarkThreadAsRead: () => markThreadAsRead,
   useConversationThreadSelector: <R,>(selector: (s: ThreadState) => R) => useStore(threadStore, selector),
@@ -158,6 +166,7 @@ export const catchUpModule = {
 export const resetHarness = () => {
   resetShared()
   listProps.current = undefined
+  listCommits.length = 0
   listMounts.count = 0
   jumpToRecent.scroll = undefined
   anchor.keyboardHeight.value = 0
@@ -167,4 +176,5 @@ export const resetHarness = () => {
   insetStore.reset({bottomInset})
   markThreadAsRead.mockClear()
   loadOlderMessages.mockClear()
+  loadNewerMessages.mockClear()
 }

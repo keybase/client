@@ -61,8 +61,9 @@ type FakeListProps = {
   ref?: React.Ref<unknown>
   [key: string]: unknown
 }
-// The props of the list's latest commit.
+// The props of the list's latest commit, and of each commit, oldest first.
 export const listProps: {current: FakeListProps | undefined} = {current: undefined}
+export const listCommits: Array<FakeListProps> = []
 
 const contentHeight = () => (listProps.current?.data.length ?? 0) * rowHeight
 const maxScroll = () => Math.max(0, contentHeight() - viewportHeight)
@@ -148,6 +149,7 @@ const FakeLegendList = (p: FakeListProps) => {
   const rendered = useStore(listStore, s => s.rendered)
   React.useLayoutEffect(() => {
     listProps.current = p
+    listCommits.push(p)
   })
   React.useImperativeHandle(ref, () => handle, [])
   const scrollerRef = React.useCallback((el: HTMLDivElement | null) => {
@@ -237,6 +239,7 @@ export const centerContextModule = {
 export const resetHarness = () => {
   resetShared()
   listProps.current = undefined
+  listCommits.length = 0
   movedTo = undefined
   lastFired = 0
   listStore.reset(initialListState())

@@ -533,8 +533,9 @@ describe('helpers', () => {
     expect(initialScrollTarget(ordinals, ord(4))).toBeUndefined()
   })
 
-  test('the list anchors the end only while nothing is centred', () => {
-    expect(listAnchorsEnd(undefined)).toBe(true)
-    expect(listAnchorsEnd(ord(30))).toBe(false)
+  test('the list anchors the end only while nothing is centred and the thread holds the newest message', () => {
+    expect(listAnchorsEnd(undefined, true)).toBe(true)
+    expect(listAnchorsEnd(ord(30), true)).toBe(false)
+    expect(listAnchorsEnd(undefined, false)).toBe(false)
   })
 })

@@ -8,7 +8,13 @@ import {ThreadRefsContext} from '../normal/context'
 import {useComposerAnchor} from '../composer-viewport-context'
 import {restingScrollOffset} from '../composer-geometry'
 import {makeOwnScrolls} from './own-scrolls'
-import {listAnchorsEnd, useScrollTarget, type ScrollDirective, type ScrollEvent} from './scroll-target'
+import {
+  listAnchorsEnd,
+  useHeldLatest,
+  useScrollTarget,
+  type ScrollDirective,
+  type ScrollEvent,
+} from './scroll-target'
 import {makeSchedule, type Scheduled} from './schedule'
 
 export type NativeListRef = {
@@ -23,11 +29,13 @@ export type NativeListRef = {
 // the keyboard following a send). Instead we swap between two configs:
 // - closed (keyboard hidden): autoscrollToTopThreshold=1 so new messages at the bottom
 //   auto-reveal when the user is pinned there.
-// - noAutoscroll (keyboard open, or centered on a search hit, or empty list): MVP still
-//   anchors content, but autoscroll-to-top is off because:
+// - noAutoscroll (keyboard open, or centered on a search hit, or a window of history, or empty
+//   list): MVP still anchors content, but autoscroll-to-top is off because:
 //   1. with the keyboard open contentOffset.y = -(K-insets.bottom) <= 1, so the threshold
 //      would fire on insert and scroll to y=0, hiding new messages behind the keyboard.
 //   2. while centered on a search hit, autoscroll yanks the centered row.
+//   3. in a window of history (listAnchorsEnd), a page of newer rows loading at the bottom would
+//      carry the reader down with it.
 //   With the keyboard open, MVP's insert adjustment briefly holds old content in place;
 //   the deferred re-pin on append below re-pins the newest message.
 const maintainVisibleContentPositionClosed = {
@@ -55,6 +63,7 @@ export const useNativeThreadScroll = (p: {
   // Newest first, as the inverted list holds them.
   messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
   centeredOrdinal: T.Chat.Ordinal | undefined
+  containsLatestMessage: boolean
   conversationIDKey: T.Chat.ConversationIDKey
   // Changes with the conversation and with every clear of its thread (a centred reload, jump to
   // recent): each is a new list as far as scrolling is concerned.
@@ -64,7 +73,8 @@ export const useNativeThreadScroll = (p: {
   listRef: React.RefObject<NativeListRef | null>
   loaded: boolean
 }) => {
-  const {centeredOrdinal, conversationIDKey, datasetKey, editingOrdinal, isKeyboardVisible} = p
+  const {centeredOrdinal, containsLatestMessage, conversationIDKey, datasetKey, editingOrdinal} = p
+  const {isKeyboardVisible} = p
   const {listRef, loaded, messageOrdinals} = p
   const numOrdinals = messageOrdinals.length
 
@@ -94,6 +104,7 @@ export const useNativeThreadScroll = (p: {
 
   const scrollTarget = useScrollTarget()
   const [own] = React.useState(makeOwnScrolls)
+  const heldLatest = useHeldLatest(containsLatestMessage)
   // Every scroll the list makes itself goes through these, so the rest that follows is its own.
   const [scrollToOffset] = React.useState(() => (offset: number) => {
     own.issued()
@@ -297,9 +308,11 @@ export const useNativeThreadScroll = (p: {
   // message height when a message is added, undoing the scrollToBottom from onSubmit.
   // Defer the re-scroll past the native MPV adjustment (which runs on the UI thread after
   // React's commit) so the newest message stays visible.
-  // An append is a newer newest message than the dataset already held. Older rows arriving
-  // (scrolling up loads them) leave the newest where it was, and the reload that refills a cleared
-  // thread has nothing to append to; re-pinning for either would yank the reader to the bottom.
+  // An append is a newer newest message than the dataset already held, arriving while the thread held
+  // the newest message. Older rows arriving (scrolling up loads them) leave the newest where it was,
+  // a page of newer rows loading into a window of history is not a new message, and the reload that
+  // refills a cleared thread has nothing to append to; re-pinning for any of them would yank the
+  // reader to the bottom.
   const newestOrdinal = messageOrdinals[0]
   const prevNewestRef = React.useRef(newestOrdinal)
   // The dataset prevNewestRef's baseline belongs to, compared by value so a freeze/thaw re-mount
@@ -315,14 +328,14 @@ export const useNativeThreadScroll = (p: {
     const prev = prevNewestRef.current
     prevNewestRef.current = newestOrdinal
     const isNewer = newestOrdinal !== undefined && prev !== undefined && newestOrdinal > prev
-    if (!sameDataset || !isNewer) return undefined
+    if (!sameDataset || !isNewer || !heldLatest) return undefined
     // Decided when the re-pin would fire, with the keyboard as it is then: if it closed in between,
     // the list's own anchor already shows the newest message.
     const repin = timers.after(0, () => {
       dispatch({anchorHidesNewest: isKeyboardVisibleRef.current, type: 'appended'})
     })
     return repin.cancel
-  }, [datasetKey, dispatch, newestOrdinal, timers])
+  }, [datasetKey, dispatch, heldLatest, newestOrdinal, timers])
 
   // Stores the conversation it last applied to (not a boolean) so a freeze/thaw of this screen —
   // which re-mounts effects without a real conversation change — does not reset it and re-trigger
@@ -431,7 +444,7 @@ export const useNativeThreadScroll = (p: {
     setScrollRef({scrollDown: noop, scrollToBottom: requestBottom, scrollUp: noop})
   }, [requestBottom, setScrollRef])
 
-  const mvpAutoscroll = listAnchorsEnd(centeredOrdinal) && numOrdinals > 0 && !isKeyboardVisible
+  const mvpAutoscroll = listAnchorsEnd(centeredOrdinal, heldLatest) && numOrdinals > 0 && !isKeyboardVisible
 
   return {
     maintainVisibleContentPosition: mvpAutoscroll

@@ -96,8 +96,10 @@ const useThreadListData = () =>
     }))
   )
 
-// Pagination: load older at the top of the list, newer at the bottom (only when not already at
-// the latest). Refs keep the throttled callbacks stable.
+// Pagination, the one rule both lists load pages by: older as the reader nears the oldest row
+// loaded, newer as they near the newest one while the thread does not hold the newest message
+// (after a jump to an old hit). Each list decides when the reader is near either end. Refs keep the
+// throttled callbacks stable.
 const usePagination = (p: {
   containsLatestMessage: boolean
   messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
@@ -117,23 +119,23 @@ const usePagination = (p: {
     containsLatestMessageRef.current = containsLatestMessage
   }, [containsLatestMessage])
 
-  const onStartReached = React.useCallback(() => {
+  const loadOlder = React.useCallback(() => {
     loadOlderMessagesDueToScroll(numOrdinalsRef.current, getThreadLoadStatusOptions())
   }, [loadOlderMessagesDueToScroll, getThreadLoadStatusOptions])
 
-  const onEndReached = C.useThrottledCallback(() => {
+  const loadNewer = C.useThrottledCallback(() => {
     if (!containsLatestMessageRef.current) {
       loadNewerMessagesDueToScroll(numOrdinalsRef.current, getThreadLoadStatusOptions())
     }
   }, 200)
   React.useEffect(
     () => () => {
-      onEndReached.cancel()
+      loadNewer.cancel()
     },
-    [onEndReached]
+    [loadNewer]
   )
 
-  return {onEndReached, onStartReached}
+  return {loadNewer, loadOlder}
 }
 
 // ==================== DESKTOP ====================
@@ -210,7 +212,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
 
   const markInitiallyLoadedThreadAsRead = useConversationThreadMarkThreadAsRead()
 
-  const {onStartReached, onEndReached} = usePagination({containsLatestMessage, messageOrdinals})
+  const {loadNewer, loadOlder} = usePagination({containsLatestMessage, messageOrdinals})
 
   const getItemType = useGetItemType()
 
@@ -221,6 +223,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     scrollToBottom,
   } = useDesktopThreadScroll({
     centeredOrdinal,
+    containsLatestMessage,
     datasetKey,
     editingOrdinal,
     listRef,
@@ -393,9 +396,9 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           onMetricsChange={onMetricsChange}
           onLoad={onLoad}
           onScroll={onScroll as unknown as (e: unknown) => void}
-          onStartReached={onStartReached}
+          onStartReached={loadOlder}
           onStartReachedThreshold={2}
-          onEndReached={onEndReached}
+          onEndReached={loadNewer}
           onViewableItemsChanged={onViewableItemsChanged}
         />
         {jumpToRecent}
@@ -453,27 +456,20 @@ const NativeConversationList = function NativeConversationList() {
   >
 
   const conversationIDKey = useConversationThreadID()
-  const listData = useConversationThreadSelector(
-    C.useShallow(s => ({
-      clearVersion: s.clearVersion,
-      loaded: s.loaded,
-      messageOrdinals: s.messageOrdinals,
-    }))
-  )
+  const listData = useThreadListData()
   const {centeredHighlightOrdinal, centeredOrdinal} = useConversationCenter()
   const editingOrdinal = InputState.useConversationInput(s => s.editing)
   const noCenteredOrdinal = T.Chat.numberToOrdinal(-1)
   // Ordinals start at 1; this list takes anything else as no centre.
   const centeredTarget = centeredOrdinal !== undefined && centeredOrdinal > 0 ? centeredOrdinal : undefined
   const centeredHighlightOrdinalOrNone = centeredHighlightOrdinal ?? noCenteredOrdinal
-  const {clearVersion, loaded} = listData
+  const {clearVersion, containsLatestMessage, loaded} = listData
 
   const messageOrdinals = useInvertedMessageOrdinals(listData.messageOrdinals)
 
   const listRef = React.useRef<NativeListRef | null>(null)
   const markInitiallyLoadedThreadAsRead = useConversationThreadMarkThreadAsRead()
-  const loadOlderMessages = useConversationThreadLoadOlderMessagesDueToScroll()
-  const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
+  const {loadNewer, loadOlder} = usePagination({containsLatestMessage, messageOrdinals})
 
   const keyExtractor = (ordinal: ItemType) => {
     return String(ordinal)
@@ -527,6 +523,7 @@ const NativeConversationList = function NativeConversationList() {
     scrollToBottom,
   } = useNativeThreadScroll({
     centeredOrdinal: centeredTarget,
+    containsLatestMessage,
     conversationIDKey,
     datasetKey: `${conversationIDKey}:${clearVersion}`,
     editingOrdinal,
@@ -540,10 +537,7 @@ const NativeConversationList = function NativeConversationList() {
 
   const {onCatchUp, onViewableOrdinalsChanged, showCatchUp} = useCatchUp({loaded})
 
-  const onEndReached = () => {
-    loadOlderMessages(numOrdinals, getThreadLoadStatusOptions())
-  }
-  const onViewableItemsChanged = useNativeSafeOnViewableItemsChanged(onEndReached, messageOrdinals.length)
+  const onViewableItemsChanged = useNativeSafeOnViewableItemsChanged({loadNewer, loadOlder, numOrdinals})
   const [onViewableItemsChangedNative] = React.useState(
     () => (info: {viewableItems: Array<{index: number | null; item: T.Chat.Ordinal}>}) => {
       onViewableItemsChanged.current(info)
@@ -636,36 +630,43 @@ const useNativeStyles = Kb.Styles.createStyleHook(
 const minTimeDelta = 1000
 const minDistanceFromEnd = 10
 
-const useNativeSafeOnViewableItemsChanged = (onEndReached: () => void, numOrdinals: number) => {
-  const nextCallbackRef = React.useRef(new Date().getTime())
-  const onEndReachedRef = React.useRef(onEndReached)
+// Loads a page when the viewable rows come near either end of those loaded: within 10 rows of it in a
+// long thread, the last row but one in a short one. Each end waits out a second after the rows last
+// changed, so a page landing is not taken for the reader nearing the new end.
+const useNativeSafeOnViewableItemsChanged = (p: {
+  loadNewer: () => void
+  loadOlder: () => void
+  numOrdinals: number
+}) => {
+  const {loadNewer, loadOlder, numOrdinals} = p
+  const nextCallbackRef = React.useRef({newer: 0, older: 0})
+  const loadRef = React.useRef({newer: loadNewer, older: loadOlder})
   React.useEffect(() => {
-    onEndReachedRef.current = onEndReached
-  }, [onEndReached])
+    loadRef.current = {newer: loadNewer, older: loadOlder}
+  }, [loadNewer, loadOlder])
   const numOrdinalsRef = React.useRef(numOrdinals)
   React.useEffect(() => {
     numOrdinalsRef.current = numOrdinals
-    nextCallbackRef.current = new Date().getTime() + minTimeDelta
+    const next = new Date().getTime() + minTimeDelta
+    nextCallbackRef.current = {newer: next, older: next}
   }, [numOrdinals])
 
   // this can't change ever, so we have to use refs to keep in sync
   const onViewableItemsChanged = React.useRef(
     ({viewableItems}: {viewableItems: Array<{index: number | null}>}) => {
-      const idx = viewableItems.at(-1)?.index ?? 0
-      const lastIdx = numOrdinalsRef.current - 1
-      const offset = numOrdinalsRef.current > 50 ? minDistanceFromEnd : 1
-      const deltaIdx = idx - lastIdx + offset
-      // not far enough from the end
-      if (deltaIdx < 0) {
-        return
+      const num = numOrdinalsRef.current
+      const distance = num > 50 ? minDistanceFromEnd : 1
+      const near = (end: 'newer' | 'older') => {
+        const t = new Date().getTime()
+        // enough time elapsed?
+        if (t <= nextCallbackRef.current[end]) return
+        nextCallbackRef.current[end] = t + minTimeDelta
+        loadRef.current[end]()
       }
-      const t = new Date().getTime()
-      const deltaT = t - nextCallbackRef.current
-      // enough time elapsed?
-      if (deltaT > 0) {
-        nextCallbackRef.current = t + minTimeDelta
-        onEndReachedRef.current()
-      }
+      // Data is newest first: the first viewable row is the newest in view, the last the oldest.
+      if ((viewableItems.at(-1)?.index ?? 0) >= num - 1 - distance) near('older')
+      const newest = viewableItems.at(0)?.index
+      if (newest != null && newest <= distance) near('newer')
     }
   )
   return onViewableItemsChanged

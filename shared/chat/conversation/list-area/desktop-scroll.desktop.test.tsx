@@ -528,6 +528,23 @@ describe('closing thread search (clearing the centre)', () => {
   })
 })
 
+describe('a window of history (the thread does not hold the newest message)', () => {
+  // Newer pages load at the end as the reader nears it; one landing must not carry the list along.
+  test('the list does not hold its end, even with nothing centred', () => {
+    open({center: 30, moreToLoadForward: true})
+    update(() => H.setCenter(undefined))
+    expect(props()['maintainScrollAtEnd']).toBe(false)
+  })
+
+  test('the page that brings the newest message lands unheld, and the end is held from then on', () => {
+    open({center: 30, moreToLoadForward: true})
+    update(() => H.setCenter(undefined))
+    update(() => H.threadStore.set({messageOrdinals: H.range(1, 90), moreToLoadForward: false}))
+    expect(H.listCommits.find(c => c.data.length === 90)?.['maintainScrollAtEnd']).toBe(false)
+    expect(props()['maintainScrollAtEnd']).toBe(true)
+  })
+})
+
 describe('jump to recent', () => {
   test('scrolls to the end before asking the thread to jump, then hides search', async () => {
     open({center: 30, moreToLoadForward: true})

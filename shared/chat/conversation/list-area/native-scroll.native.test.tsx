@@ -316,6 +316,7 @@ describe('scrolls scheduled for later', () => {
       H.threadStore.reset({
         ...threadTransitions.loaded(emptyThread, H.range(1, 80)),
         conversationIDKey: T.Chat.stringToConversationIDKey('conv2'),
+        moreToLoadForward: false,
       })
     })
     await tick(1000)
@@ -481,6 +482,7 @@ describe('the closed-loop corrector', () => {
         ...threadTransitions.loaded(emptyThread, H.range(1, 60)),
         clearVersion: 1,
         conversationIDKey: T.Chat.stringToConversationIDKey('conv2'),
+        moreToLoadForward: false,
       })
     })
     clearLog()
@@ -686,6 +688,7 @@ describe('choosing a hit again', () => {
         conversationIDKey: T.Chat.stringToConversationIDKey('conv2'),
         loaded: false,
         messageOrdinals: undefined,
+        moreToLoadForward: false,
       })
     })
     update(() => loadThread(1, 60))
@@ -1265,6 +1268,105 @@ describe('loading older messages', () => {
       H.setCenter(ord(30))
     })
     expect(props().onViewableItemsChanged).toBe(first)
+  })
+})
+
+// After a jump to an old search hit the thread holds a window of history, and newer messages are
+// loaded as the reader scrolls down toward the newest row loaded, as on desktop.
+describe('loading newer messages', () => {
+  // Data is newest first, so the first viewable index is the newest row on screen.
+  const loads = () => H.log.filter(([kind]) => kind === 'loadNewerMessages')
+  const openOnOldHit = (p: {keyboard?: boolean} = {}) => {
+    open({center: 30, keyboard: p.keyboard})
+    update(() => H.threadStore.set({moreToLoadForward: true}))
+  }
+
+  test('a long window loads within 10 rows of its newest, once the 1s gate has passed', async () => {
+    openOnOldHit()
+    await tick(1001)
+    viewable(11, 20)
+    expect(loads()).toEqual([])
+    viewable(10, 19)
+    expect(loads()).toEqual([['loadNewerMessages', 60]])
+    viewable(0, 9)
+    expect(loads()).toEqual([['loadNewerMessages', 60]])
+    await tick(1001)
+    viewable(0, 9)
+    expect(loads()).toEqual([
+      ['loadNewerMessages', 60],
+      ['loadNewerMessages', 60],
+    ])
+  })
+
+  test('a short window loads within 1 row of its newest', async () => {
+    open({center: 20, to: 30})
+    update(() => H.threadStore.set({moreToLoadForward: true}))
+    await tick(1001)
+    viewable(2, 29)
+    expect(loads()).toEqual([])
+    viewable(1, 28)
+    expect(loads()).toEqual([['loadNewerMessages', 30]])
+  })
+
+  test('a thread holding the newest message loads nothing newer', async () => {
+    open({center: 30})
+    await tick(1001)
+    viewable(0, 9)
+    expect(loads()).toEqual([])
+  })
+
+  test('the rows of a load landing restart the 1s gate', async () => {
+    openOnOldHit()
+    await tick(1001)
+    viewable(0, 9)
+    setOrdinals(1, 80)
+    viewable(0, 9)
+    expect(loads()).toEqual([['loadNewerMessages', 60]])
+    await tick(1001)
+    viewable(0, 9)
+    expect(loads()).toEqual([
+      ['loadNewerMessages', 60],
+      ['loadNewerMessages', 80],
+    ])
+  })
+
+  // A page of newer rows lands at the visual bottom of the inverted list; the list's content-position
+  // anchor holds the rows in view where they are, so nothing may scroll for the page, the last one
+  // (which brings the newest message) included.
+  test.each([
+    ['with the keyboard down, a page', false, true],
+    ['with the keyboard up, a page', true, true],
+    ['with the keyboard down, the last page', false, false],
+    ['with the keyboard up, the last page', true, false],
+  ])('%s landing leaves the reader where they are, even resting at the newest row loaded', async (_name, keyboard, more) => {
+    openOnOldHit({keyboard})
+    await tick(1001)
+    update(() => H.setCenter(undefined))
+    drag()
+    dragEnded(keyboard ? H.bottomInset - keyboardHeight : 0)
+    viewable(0, 9)
+    clearLog()
+    update(() => H.threadStore.set({messageOrdinals: H.range(1, 80), moreToLoadForward: more}))
+    await tick(1000)
+    expect(scrollsOnly()).toEqual([])
+    const landing = H.listCommits.find(c => c.data.length === 80)
+    expect(landing?.maintainVisibleContentPosition).toEqual(mvpNoAutoscroll)
+  })
+
+  test('the anchor autoscrolls new messages into view again once the thread holds the newest', async () => {
+    openOnOldHit()
+    update(() => H.setCenter(undefined))
+    expect(props().maintainVisibleContentPosition).toEqual(mvpNoAutoscroll)
+    update(() => H.threadStore.set({messageOrdinals: H.range(1, 80), moreToLoadForward: false}))
+    expect(props().maintainVisibleContentPosition).toEqual(mvpClosed)
+    // Back at the newest, a new message over the keyboard is re-pinned as ever.
+    update(openKeyboard)
+    drag()
+    dragEnded(H.bottomInset - keyboardHeight)
+    clearLog()
+    setOrdinals(1, 81)
+    await tick(0)
+    expect(H.log).toEqual([toBottomOverKeyboard])
   })
 })
 
