@@ -59,6 +59,10 @@ export type MessageTypes = {
     inParam: {readonly uid: Keybase1.UID,readonly syncRes: ChatSyncResult},
     outParam: void,
   },
+  'chat.1.NotifyChat.ChatLeftConversation': {
+    inParam: {readonly uid: Keybase1.UID,readonly convID: ConversationID},
+    outParam: void,
+  },
   'chat.1.NotifyChat.ChatParticipantsInfo': {
     inParam: {readonly participants?: {[key: string]: ReadonlyArray<UIParticipant> | null} | null},
     outParam: void,
@@ -73,6 +77,10 @@ export type MessageTypes = {
   },
   'chat.1.NotifyChat.ChatRequestInfo': {
     inParam: {readonly uid: Keybase1.UID,readonly convID: ConversationID,readonly msgID: MessageID,readonly info: UIRequestInfo},
+    outParam: void,
+  },
+  'chat.1.NotifyChat.ChatResetConversation': {
+    inParam: {readonly uid: Keybase1.UID,readonly convID: ConversationID},
     outParam: void,
   },
   'chat.1.NotifyChat.ChatSetConvRetention': {
@@ -1607,7 +1615,7 @@ export type VersionKind = string
 export type WelcomeMessage = {readonly set: boolean,readonly raw: string,}
 export type WelcomeMessageDisplay = {readonly set: boolean,readonly display: string,readonly raw: string,}
 
-type IncomingMethod = 'chat.1.NotifyChat.ChatArchiveComplete' | 'chat.1.NotifyChat.ChatArchiveProgress' | 'chat.1.NotifyChat.ChatAttachmentDownloadComplete' | 'chat.1.NotifyChat.ChatAttachmentDownloadProgress' | 'chat.1.NotifyChat.ChatAttachmentUploadProgress' | 'chat.1.NotifyChat.ChatAttachmentUploadStart' | 'chat.1.NotifyChat.ChatConvUpdate' | 'chat.1.NotifyChat.ChatIdentifyUpdate' | 'chat.1.NotifyChat.ChatInboxStale' | 'chat.1.NotifyChat.ChatInboxSyncStarted' | 'chat.1.NotifyChat.ChatInboxSynced' | 'chat.1.NotifyChat.ChatParticipantsInfo' | 'chat.1.NotifyChat.ChatPaymentInfo' | 'chat.1.NotifyChat.ChatPromptUnfurl' | 'chat.1.NotifyChat.ChatRequestInfo' | 'chat.1.NotifyChat.ChatSetConvRetention' | 'chat.1.NotifyChat.ChatSetConvSettings' | 'chat.1.NotifyChat.ChatSetTeamRetention' | 'chat.1.NotifyChat.ChatSubteamRename' | 'chat.1.NotifyChat.ChatTLFFinalize' | 'chat.1.NotifyChat.ChatThreadsStale' | 'chat.1.NotifyChat.ChatTypingUpdate' | 'chat.1.NotifyChat.ChatWelcomeMessageLoaded' | 'chat.1.NotifyChat.NewChatActivity' | 'chat.1.chatUi.chatLoadGalleryHit' | 'chat.1.chatUi.chatSearchBotHits' | 'chat.1.chatUi.chatSearchConvHits' | 'chat.1.chatUi.chatSearchDone' | 'chat.1.chatUi.chatSearchHit' | 'chat.1.chatUi.chatSearchInboxDone' | 'chat.1.chatUi.chatSearchInboxHit' | 'chat.1.chatUi.chatSearchInboxStart' | 'chat.1.chatUi.chatSearchIndexStatus' | 'chat.1.chatUi.chatSearchTeamHits' | 'chat.1.chatUi.chatStellarDone' | 'chat.1.chatUi.chatStellarShowConfirm' | 'chat.1.chatUi.chatThreadCached' | 'chat.1.chatUi.chatThreadFull' | 'chat.1.chatUi.chatThreadStatus'
+type IncomingMethod = 'chat.1.NotifyChat.ChatArchiveComplete' | 'chat.1.NotifyChat.ChatArchiveProgress' | 'chat.1.NotifyChat.ChatAttachmentDownloadComplete' | 'chat.1.NotifyChat.ChatAttachmentDownloadProgress' | 'chat.1.NotifyChat.ChatAttachmentUploadProgress' | 'chat.1.NotifyChat.ChatAttachmentUploadStart' | 'chat.1.NotifyChat.ChatConvUpdate' | 'chat.1.NotifyChat.ChatIdentifyUpdate' | 'chat.1.NotifyChat.ChatInboxStale' | 'chat.1.NotifyChat.ChatInboxSyncStarted' | 'chat.1.NotifyChat.ChatInboxSynced' | 'chat.1.NotifyChat.ChatLeftConversation' | 'chat.1.NotifyChat.ChatParticipantsInfo' | 'chat.1.NotifyChat.ChatPaymentInfo' | 'chat.1.NotifyChat.ChatPromptUnfurl' | 'chat.1.NotifyChat.ChatRequestInfo' | 'chat.1.NotifyChat.ChatResetConversation' | 'chat.1.NotifyChat.ChatSetConvRetention' | 'chat.1.NotifyChat.ChatSetConvSettings' | 'chat.1.NotifyChat.ChatSetTeamRetention' | 'chat.1.NotifyChat.ChatSubteamRename' | 'chat.1.NotifyChat.ChatTLFFinalize' | 'chat.1.NotifyChat.ChatThreadsStale' | 'chat.1.NotifyChat.ChatTypingUpdate' | 'chat.1.NotifyChat.ChatWelcomeMessageLoaded' | 'chat.1.NotifyChat.NewChatActivity' | 'chat.1.chatUi.chatLoadGalleryHit' | 'chat.1.chatUi.chatSearchBotHits' | 'chat.1.chatUi.chatSearchConvHits' | 'chat.1.chatUi.chatSearchDone' | 'chat.1.chatUi.chatSearchHit' | 'chat.1.chatUi.chatSearchInboxDone' | 'chat.1.chatUi.chatSearchInboxHit' | 'chat.1.chatUi.chatSearchInboxStart' | 'chat.1.chatUi.chatSearchIndexStatus' | 'chat.1.chatUi.chatSearchTeamHits' | 'chat.1.chatUi.chatStellarDone' | 'chat.1.chatUi.chatStellarShowConfirm' | 'chat.1.chatUi.chatThreadCached' | 'chat.1.chatUi.chatThreadFull' | 'chat.1.chatUi.chatThreadStatus'
 export type IncomingCallMapType = Partial<{[M in IncomingMethod]: (params: RpcIn<M>) => void}>
 
 type CustomIncomingMethod = 'chat.1.chatUi.chatBotCommandsUpdateStatus' | 'chat.1.chatUi.chatClearWatch' | 'chat.1.chatUi.chatCoinFlipStatus' | 'chat.1.chatUi.chatCommandMarkdown' | 'chat.1.chatUi.chatCommandStatus' | 'chat.1.chatUi.chatGiphySearchResults' | 'chat.1.chatUi.chatGiphyToggleResultWindow' | 'chat.1.chatUi.chatInboxConversation' | 'chat.1.chatUi.chatInboxFailed' | 'chat.1.chatUi.chatInboxLayout' | 'chat.1.chatUi.chatInboxUnverified' | 'chat.1.chatUi.chatLoadGalleryHit' | 'chat.1.chatUi.chatMaybeMentionUpdate' | 'chat.1.chatUi.chatSearchBotHits' | 'chat.1.chatUi.chatSearchConvHits' | 'chat.1.chatUi.chatSearchDone' | 'chat.1.chatUi.chatSearchHit' | 'chat.1.chatUi.chatSearchInboxDone' | 'chat.1.chatUi.chatSearchInboxHit' | 'chat.1.chatUi.chatSearchInboxStart' | 'chat.1.chatUi.chatSearchIndexStatus' | 'chat.1.chatUi.chatSearchTeamHits' | 'chat.1.chatUi.chatShowManageChannels' | 'chat.1.chatUi.chatStellarDataConfirm' | 'chat.1.chatUi.chatStellarDataError' | 'chat.1.chatUi.chatStellarDone' | 'chat.1.chatUi.chatStellarShowConfirm' | 'chat.1.chatUi.chatThreadCached' | 'chat.1.chatUi.chatThreadFull' | 'chat.1.chatUi.chatThreadStatus' | 'chat.1.chatUi.chatWatchPosition' | 'chat.1.chatUi.triggerContactSync'
@@ -1747,8 +1755,6 @@ export const localUserEmojisRpcPromise = createRpc('chat.1.local.userEmojis')
 // 'chat.1.local.addEmoji'
 // 'chat.1.NotifyChat.ChatTLFResolve'
 // 'chat.1.NotifyChat.ChatJoinedConversation'
-// 'chat.1.NotifyChat.ChatLeftConversation'
-// 'chat.1.NotifyChat.ChatResetConversation'
 // 'chat.1.NotifyChat.ChatKBFSToImpteamUpgrade'
 // 'chat.1.remote.getInboxRemote'
 // 'chat.1.remote.getThreadRemote'

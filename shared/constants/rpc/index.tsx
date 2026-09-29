@@ -14,10 +14,12 @@ type Chat1IncomingAction =
   'chat.1.NotifyChat.ChatInboxStale' |
   'chat.1.NotifyChat.ChatInboxSyncStarted' |
   'chat.1.NotifyChat.ChatInboxSynced' |
+  'chat.1.NotifyChat.ChatLeftConversation' |
   'chat.1.NotifyChat.ChatParticipantsInfo' |
   'chat.1.NotifyChat.ChatPaymentInfo' |
   'chat.1.NotifyChat.ChatPromptUnfurl' |
   'chat.1.NotifyChat.ChatRequestInfo' |
+  'chat.1.NotifyChat.ChatResetConversation' |
   'chat.1.NotifyChat.ChatSetConvRetention' |
   'chat.1.NotifyChat.ChatSetConvSettings' |
   'chat.1.NotifyChat.ChatSetTeamRetention' |
