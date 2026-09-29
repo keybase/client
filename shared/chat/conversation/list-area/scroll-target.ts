@@ -261,11 +261,24 @@ export const initialScrollTarget = (
 // centred, even one that is not loaded, so new messages don't pull the reader away from it, and
 // while the thread holds a window of history without the newest message, whose end is only the
 // newest row loaded: a page of newer rows landing there would carry the reader along with it.
-// heldLatest is whether the thread held the newest message before the rows now arriving
-// (useHeldLatest), so the page that brings the newest message lands as a page too.
+// heldLatest is whether the rows now shown are held at the newest message (useHeldLatest), so the
+// page that brings the newest message lands as a page too.
 export const listAnchorsEnd = (centeredOrdinal: T.Chat.Ordinal | undefined, heldLatest: boolean) =>
   centeredOrdinal === undefined && heldLatest
 
-// Whether the thread holds the newest message, a render late: a page of newer rows that brings it is
-// laid out with the value from before it landed, and only the renders after it see it held.
-export const useHeldLatest = (containsLatestMessage: boolean) => React.useDeferredValue(containsLatestMessage)
+// Whether the rows now shown hold the newest message as a thread that already held it: false for the
+// page of newer rows that brings it into a window of history, which is laid out as the page it is,
+// and true again from the next rows on. Rows refilling a cleared thread, or a new dataset, are no
+// window of history, so they are held at once. Decided from the rows themselves, once per change to
+// them, so it holds however React schedules the render.
+export const useHeldLatest = (containsLatest: boolean, datasetKey: string, rows: ReadonlyArray<unknown>) => {
+  const [seen, setSeen] = React.useState({containsLatest, datasetKey, heldLatest: containsLatest, rows})
+  if (seen.rows === rows && seen.datasetKey === datasetKey && seen.containsLatest === containsLatest) {
+    return seen.heldLatest
+  }
+  const bringsLatest =
+    containsLatest && !seen.containsLatest && seen.datasetKey === datasetKey && seen.rows.length > 0
+  const next = {containsLatest, datasetKey, heldLatest: containsLatest && !bringsLatest, rows}
+  setSeen(next)
+  return next.heldLatest
+}

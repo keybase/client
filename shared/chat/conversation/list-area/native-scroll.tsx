@@ -97,7 +97,7 @@ export const useNativeThreadScroll = (p: {
 
   const scrollTarget = useScrollTarget()
   const [own] = React.useState(makeOwnScrolls)
-  const heldLatest = useHeldLatest(containsLatestMessage)
+  const heldLatest = useHeldLatest(containsLatestMessage, datasetKey, messageOrdinals)
 
   // What the list has reported of itself, undefined until it does. The list is keyed by conversation,
   // so a switch brings a new list that starts unmeasured, and the old one's figures say nothing of it.

@@ -536,12 +536,26 @@ describe('a window of history (the thread does not hold the newest message)', ()
     expect(props()['maintainScrollAtEnd']).toBe(false)
   })
 
-  test('the page that brings the newest message lands unheld, and the end is held from then on', () => {
+  test('the page that brings the newest message lands unheld, and the end is held from the next rows on', () => {
     open({center: 30, moreToLoadForward: true})
     update(() => H.setCenter(undefined))
     update(() => H.threadStore.set({messageOrdinals: H.range(1, 90), moreToLoadForward: false}))
-    expect(H.listCommits.find(c => c.data.length === 90)?.['maintainScrollAtEnd']).toBe(false)
+    expect(H.listCommits.filter(c => c.data.length === 90).map(c => c['maintainScrollAtEnd'])).not.toContain(true)
+    update(() => H.threadStore.set({messageOrdinals: H.range(1, 91)}))
     expect(props()['maintainScrollAtEnd']).toBe(true)
+  })
+
+  test('jump to recent lays the newest rows out held from their first commit', () => {
+    open({center: 30, moreToLoadForward: true})
+    update(() => {
+      H.setCenter(undefined)
+      clearThread()
+    })
+    update(() => {
+      loadThread(1, 70)
+      H.threadStore.set({moreToLoadForward: false})
+    })
+    expect(H.listCommits.filter(c => c.data.length === 70).map(c => c['maintainScrollAtEnd'])).not.toContain(false)
   })
 })
 

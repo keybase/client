@@ -93,7 +93,7 @@ export const useDesktopThreadScroll = (p: {
 
   const scrollTarget = useScrollTarget()
   const [own] = React.useState(makeOwnScrolls)
-  const heldLatest = useHeldLatest(containsLatestMessage)
+  const heldLatest = useHeldLatest(containsLatestMessage, datasetKey, messageOrdinals)
 
   // Asks the scroller, not the list's own isAtEnd: that flag comes from the content size and viewport
   // the list has recorded, and both lag a composer collapse, so it reads not-at-end while the scroller
