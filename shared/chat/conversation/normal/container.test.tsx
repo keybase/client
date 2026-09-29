@@ -19,6 +19,7 @@ type ConstantsModule = typeof C
 let mockConversationIDKey: T.Chat.ConversationIDKey
 let mockLoaded = true
 let mockMeta: T.Chat.ConversationMeta
+let mockRetired = false
 let mockRouteParams: {threadSearch?: {query?: string}} | undefined
 let mockSetOrangeLine: ((ordinal: T.Chat.Ordinal) => void) | undefined
 let mockThreadLoadStatusProviderProps:
@@ -95,6 +96,7 @@ jest.mock('@/engine/action-listener', () => ({
 }))
 
 jest.mock('../thread-context', () => ({
+  useConversationThreadActions: () => ({isRetired: () => mockRetired}),
   useConversationThreadID: () => mockConversationIDKey,
   useConversationThreadSelector: (
     selector: (state: {loaded: boolean; meta: T.Chat.ConversationMeta}) => unknown
@@ -174,6 +176,7 @@ beforeEach(() => {
   rpc = installFakeChatRpc()
   mockConversationIDKey = convID
   mockLoaded = true
+  mockRetired = false
   mockMeta = makeMeta(convID)
   mockRouteParams = undefined
   mockSetOrangeLine = undefined
@@ -722,4 +725,33 @@ test('a rejected unreadline request is only logged, leaves no orange line, and a
 
   expect(unreadlineCalls().length).toBeGreaterThan(1)
   expectOrangeLine(T.Chat.numberToOrdinal(15))
+})
+
+// an account switch keeps the screen up until the provider rebuilds its thread for the next account
+describe('a screen whose thread has retired', () => {
+  test('asks for no unread line', async () => {
+    unreadlineAnswer(10)
+    mockRetired = true
+
+    render(<NormalWrapper />)
+    await flushOrangeLine()
+
+    expect(unreadlineCalls()).toEqual([])
+    expectOrangeLine(noOrangeLine)
+  })
+
+  test('drops an unread line that answers after it retired', async () => {
+    let answer: (id: T.Chat.MessageID) => void = () => {}
+    rpc.on('getUnreadline', async () => new Promise<T.Chat.MessageID>(resolve => (answer = resolve)))
+
+    render(<NormalWrapper />)
+    await flushOrangeLine()
+    expect(unreadlineCalls()).toHaveLength(1)
+
+    mockRetired = true
+    answer(T.Chat.numberToMessageID(10))
+    await flushOrangeLine()
+
+    expectOrangeLine(noOrangeLine)
+  })
 })

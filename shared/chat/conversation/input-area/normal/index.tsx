@@ -17,6 +17,7 @@ import {ThreadRefsContext} from '@/chat/conversation/normal/context'
 import type {RefType as InputRef} from './input.shared'
 import {useConversationCenter, useConversationCenterActions} from '../../center-context'
 import {
+  useConversationThreadActions,
   useConversationThreadID,
   useConversationThreadMessage,
   useConversationThreadSelector,
@@ -30,6 +31,7 @@ import {useRoute} from '@react-navigation/native'
 import {metasReceived, unboxRows, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {takeSuppressSnapshot} from '@/chat/conversation/unfurl-preview-state'
 import {getChatRpc} from '../../chat-rpc'
+import {unlessRetired} from '../../thread-store'
 
 const useHintText = (p: {
   isExploding: boolean
@@ -163,6 +165,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     }))
   )
   const setExplodingModeRaw = useConversationThreadSetExplodingMode()
+  const {isRetired} = useConversationThreadActions()
   const {cannotWrite, minWriterRole, tlfname} = meta
   const metaGood = meta.conversationIDKey === conversationIDKey
   const storeDraft = metaGood ? meta.draft : undefined
@@ -227,38 +230,38 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     }
   }
 
-  const sendTypingRaw = (typing: boolean) => {
-    const f = async () => {
-      await getChatRpc().setTyping(conversationIDKey, typing)
-    }
-    C.ignorePromise(f())
-  }
-  const sendTyping = C.useThrottledCallback(sendTypingRaw, 1000)
-
   // Low-frequency copy of the composer text for the unfurl preview, set from the already
   // throttled draft-save path rather than from onChangeText, so the composer does not
   // re-render on every keystroke. The preview debounces another 500ms downstream anyway.
   const [previewText, setPreviewText] = React.useState('')
-  // The account this composer was mounted for. After an account switch the service saves drafts
-  // for the next account, so the unmount flush of a draft typed here must not save it there.
-  const [composerUid] = React.useState(() => useCurrentUserState.getState().uid)
-  const updateDraftRaw = (text: string) => {
-    if (useCurrentUserState.getState().uid !== composerUid) {
-      return
-    }
-    // Immediately update local meta.draft so switching back to this thread
-    // before the async unbox completes won't re-inject the old stale draft.
-    // Merges from the current meta (same inbox version), so force past gating.
-    const currentMeta = useInboxMetadataState.getState().metas.get(conversationIDKey)
-    if (currentMeta) {
-      metasReceived([{...currentMeta, draft: text}], undefined, {force: true})
-    }
-    setPreviewText(text)
-    const f = async () => {
-      await getChatRpc().saveDraft({conversationIDKey, text, tlfName: tlfname})
-    }
-    C.ignorePromise(f())
-  }
+  // a composer kept through an account switch sends no typing and saves no draft, not even the
+  // unmount flush of one typed here: the service would save it for the next account
+  const {sendTypingRaw, updateDraftRaw} = unlessRetired(
+    {
+      sendTypingRaw: (typing: boolean) => {
+        const f = async () => {
+          await getChatRpc().setTyping(conversationIDKey, typing)
+        }
+        C.ignorePromise(f())
+      },
+      updateDraftRaw: (text: string) => {
+        // Immediately update local meta.draft so switching back to this thread
+        // before the async unbox completes won't re-inject the old stale draft.
+        // Merges from the current meta (same inbox version), so force past gating.
+        const currentMeta = useInboxMetadataState.getState().metas.get(conversationIDKey)
+        if (currentMeta) {
+          metasReceived([{...currentMeta, draft: text}], undefined, {force: true})
+        }
+        setPreviewText(text)
+        const f = async () => {
+          await getChatRpc().saveDraft({conversationIDKey, text, tlfName: tlfname})
+        }
+        C.ignorePromise(f())
+      },
+    },
+    isRetired
+  )
+  const sendTyping = C.useThrottledCallback(sendTypingRaw, 1000)
   // flushOnUnmount: leaving the conversation must still save what was typed in the last 200ms
   const updateDraft = C.useThrottledCallback(updateDraftRaw, 200, {flushOnUnmount: true, trailing: true})
 

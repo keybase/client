@@ -1172,6 +1172,22 @@ describe('composer typing and draft RPCs', () => {
     expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('')
   })
 
+  test('after an account switch the composer left from the old account sends no typing', () => {
+    seedMeta()
+    renderComposer()
+    const oldComposer = mockPlatformInputProps
+    switchToSecondAccount()
+
+    act(() => {
+      oldComposer?.onChangeText('a')
+    })
+    advance(1000)
+    act(() => {
+      oldComposer?.onChangeText('')
+    })
+    expect(typing()).toEqual([])
+  })
+
   test('after an account switch the composer is built again and saves for the new account', () => {
     seedMeta()
     renderComposer()

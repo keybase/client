@@ -2,7 +2,8 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {navToProfile} from '@/constants/router'
-import {useConversationThreadID, useThreadMeta} from '../thread-context'
+import {useConversationThreadActions, useConversationThreadID, useThreadMeta} from '../thread-context'
+import {unlessRetired} from '../thread-store'
 import {useConversationParticipants} from '../data-hooks'
 import {refreshConversationParticipants} from '@/chat/inbox/refresh-participants'
 import {getChatRpc} from '../chat-rpc'
@@ -20,6 +21,7 @@ export const addTeamMemberAfterReset = async (
 const ResetUser = () => {
   const styles = useStyles()
   const conversationIDKey = useConversationThreadID()
+  const {isRetired} = useConversationThreadActions()
   const participantInfo = useConversationParticipants(conversationIDKey)
   const _participants = participantInfo.all
   const _resetParticipants = useThreadMeta(m => m.resetParticipants)
@@ -34,9 +36,15 @@ const ResetUser = () => {
       reason: 'resetChatWithoutThem',
     })
   }
-  const letThemIn = () => {
-    C.ignorePromise(addTeamMemberAfterReset(conversationIDKey, username))
-  }
+  // a screen kept through an account switch lets no one in
+  const {letThemIn} = unlessRetired(
+    {
+      letThemIn: () => {
+        C.ignorePromise(addTeamMemberAfterReset(conversationIDKey, username))
+      },
+    },
+    isRetired
+  )
   const viewProfile = () => _viewProfile(username)
 
   return (

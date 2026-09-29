@@ -7,7 +7,8 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useChatTeam} from './team-hooks'
 import {ZoomedImage} from './common'
 import {useConversationCenterActions} from './center-context'
-import {useConversationThreadID, useThreadMeta} from './thread-context'
+import {useConversationThreadActions, useConversationThreadID, useThreadMeta} from './thread-context'
+import {unlessRetired} from './thread-store'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {getChatRpc} from './chat-rpc'
@@ -24,6 +25,7 @@ const PinnedMessage = function PinnedMessage() {
     }))
   )
   const {centerOnMessage} = useConversationCenterActions()
+  const {isRetired} = useConversationThreadActions()
   const you = useCurrentUserState(s => s.username)
   const {yourOperations} = useChatTeam(teamID, teamname)
   const unpinning = C.Waiting.useAnyWaiting(C.waitingKeyChatUnpin(conversationIDKey))
@@ -44,24 +46,30 @@ const PinnedMessage = function PinnedMessage() {
       centerOnMessage(messageID, 'flash')
     }
   }
-  const onUnpin = () => {
-    const f = async () => {
-      try {
-        await getChatRpc().unpinMessage(conversationIDKey, C.waitingKeyChatUnpin(conversationIDKey))
-      } catch (error) {
-        if (error instanceof RPCError) {
-          logger.error(`pinMessage: ${error.message}`)
+  // a screen kept through an account switch unpins and ignores nothing
+  const {onIgnore, onUnpin} = unlessRetired(
+    {
+      onIgnore: () => {
+        const f = async () => {
+          await getChatRpc().ignorePinnedMessage(conversationIDKey)
         }
-      }
-    }
-    C.ignorePromise(f())
-  }
-  const onIgnore = () => {
-    const f = async () => {
-      await getChatRpc().ignorePinnedMessage(conversationIDKey)
-    }
-    C.ignorePromise(f())
-  }
+        C.ignorePromise(f())
+      },
+      onUnpin: () => {
+        const f = async () => {
+          try {
+            await getChatRpc().unpinMessage(conversationIDKey, C.waitingKeyChatUnpin(conversationIDKey))
+          } catch (error) {
+            if (error instanceof RPCError) {
+              logger.error(`pinMessage: ${error.message}`)
+            }
+          }
+        }
+        C.ignorePromise(f())
+      },
+    },
+    isRetired
+  )
   const closeref = React.useRef<Kb.MeasureRef | null>(null)
   const [showPopup, setShowPopup] = React.useState(false)
   const _onDismiss = dismissUnpins ? onUnpin : onIgnore

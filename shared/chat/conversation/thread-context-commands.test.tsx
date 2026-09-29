@@ -1044,6 +1044,7 @@ describe('a screen kept through an account switch, before the provider rebuilds 
       [
         'downloadAttachment',
         'makeAudioPreview',
+        'makeUploadTempFile',
         'pinMessage',
         'postAttachment',
         'postDelete',
@@ -1066,6 +1067,7 @@ describe('a screen kept through an account switch, before the provider rebuilds 
       screen.resolveUnfurlPrompt(T.Chat.numberToMessageID(10), 'example.com', {
         actionType: T.RPCChat.UnfurlPromptAction.never,
       } as T.RPCChat.UnfurlPromptResult)
+      screen.attachments.pasteAttachment(new Uint8Array([1]))
       removeUnfurl(row, T.Chat.numberToMessageID(12))
       pinMessage(row)
     })
@@ -1073,6 +1075,14 @@ describe('a screen kept through an account switch, before the provider rebuilds 
       await screen.send.sendAudioRecording('/tmp/a.m4a', 1000, [1])
     })
     expect(sent()).toEqual([])
+  })
+
+  test('before the switch its paste uploads the image', async () => {
+    const screen = renderScreen()
+    await run(() => {
+      screen.attachments.pasteAttachment(new Uint8Array([1]))
+    })
+    expect(sent()).toEqual(['makeUploadTempFile'])
   })
 
   test('a giphy or audio send that was waiting on the service when the account left posts nothing', async () => {

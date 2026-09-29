@@ -10,6 +10,7 @@ import {ChatTeamProvider} from '../team-hooks'
 import {ConversationCenterProvider} from '../center-context'
 import {ConversationInputProvider} from '../input-area/input-state'
 import {
+  useConversationThreadActions,
   useConversationThreadID,
   useConversationThreadSelector,
   useThreadMeta,
@@ -18,6 +19,7 @@ import {ConversationThreadLoadStatusProvider} from '../thread-load-status-contex
 import {MaybeMentionProvider} from '@/common-adapters/markdown/maybe-mention/context'
 import {peekInputIntent} from '../input-intent-store'
 import {getChatRpc} from '../chat-rpc'
+import {unlessRetired} from '../thread-store'
 import {useChatThreadRouteParams} from '../thread-search-route'
 
 type OrangeLineState = {
@@ -77,37 +79,45 @@ const useOrangeLine = (
     }
   }, [readMsgID])
 
+  const {isRetired} = useConversationThreadActions()
+  // a screen kept through an account switch asks for no unread line, and drops one that answers late
   const loadOrangeLine = React.useEffectEvent(
     (conversationIDKey: T.Chat.ConversationIDKey, readMsgID: T.Chat.MessageID) => {
-      // Negative means we do not know the read position yet: an unlocalized conversation reads -1
-      // from emptyConversationMeta, which a DB nuke makes the norm, and the old code turned that
-      // into 0 - so the service answered "everything is unread" and put the line above the oldest
-      // message. Since the state is set once and only refreshed while the conversation is
-      // inactive, that answer stuck.
-      //
-      // Zero is different and must still be asked: ReaderInfo reports 0 for a conversation you
-      // have genuinely never read, where "everything is unread" is the right answer.
-      if (readMsgID < 0) {
-        return
-      }
-      const f = async () => {
-        const unreadlineID = await getChatRpc().getUnreadline(conversationIDKey, readMsgID)
-        const nextOrangeLine = T.Chat.numberToOrdinal(unreadlineID ?? 0)
-        const currentKey = currentOrangeLineKeyRef.current
-        if (currentKey.conversationIDKey !== conversationIDKey) {
+      const load = () => {
+        // Negative means we do not know the read position yet: an unlocalized conversation reads -1
+        // from emptyConversationMeta, which a DB nuke makes the norm, and the old code turned that
+        // into 0 - so the service answered "everything is unread" and put the line above the oldest
+        // message. Since the state is set once and only refreshed while the conversation is
+        // inactive, that answer stuck.
+        //
+        // Zero is different and must still be asked: ReaderInfo reports 0 for a conversation you
+        // have genuinely never read, where "everything is unread" is the right answer.
+        if (readMsgID < 0) {
           return
         }
-        setOrangeLineState(prev => {
-          if (prev.orangeLine !== noOrangeLine) {
-            return prev
+        const f = async () => {
+          const unreadlineID = await getChatRpc().getUnreadline(conversationIDKey, readMsgID)
+          if (isRetired()) {
+            return
           }
-          return {
-            mobileAppState: currentKey.mobileAppState,
-            orangeLine: nextOrangeLine,
+          const nextOrangeLine = T.Chat.numberToOrdinal(unreadlineID ?? 0)
+          const currentKey = currentOrangeLineKeyRef.current
+          if (currentKey.conversationIDKey !== conversationIDKey) {
+            return
           }
-        })
+          setOrangeLineState(prev => {
+            if (prev.orangeLine !== noOrangeLine) {
+              return prev
+            }
+            return {
+              mobileAppState: currentKey.mobileAppState,
+              orangeLine: nextOrangeLine,
+            }
+          })
+        }
+        C.ignorePromise(f())
       }
-      C.ignorePromise(f())
+      unlessRetired({load}, isRetired).load()
     }
   )
 

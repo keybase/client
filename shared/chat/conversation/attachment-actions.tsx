@@ -414,12 +414,13 @@ export const useConversationAttachmentActions = () => {
     ignorePromise(f())
   }
 
-  // a screen kept through an account switch downloads, saves, shares and opens nothing
+  // a screen kept through an account switch downloads, saves, shares, pastes and opens nothing
   return unlessRetired(
     {
       attachmentDownload,
       messageAttachmentNativeSave,
       messageAttachmentNativeShare,
+      pasteAttachment: (data: Uint8Array) => makePasteAttachment(conversationIDKey, data),
       showAttachmentPreview: (ordinal: T.Chat.Ordinal, message?: T.Chat.MessageAttachment) => {
         const existing = threadStore.getState().messageMap.get(ordinal)
         const initialMessage = message ?? (existing?.type === 'attachment' ? existing : undefined)

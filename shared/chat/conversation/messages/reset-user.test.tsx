@@ -1,5 +1,25 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
+import type * as React from 'react'
+
+// each button's first onClick: the handler a screen kept through an account switch still holds
+const mockFirstOnClick = new Map<string, () => void>()
+jest.mock('@/common-adapters', () => {
+  const actual = jest.requireActual<{Button: React.ComponentType<{label?: string; onClick?: () => void}>}>(
+    '@/common-adapters'
+  )
+  const R = jest.requireActual<typeof React>('react')
+  return {
+    ...actual,
+    Button: (p: {label?: string; onClick?: () => void}) => {
+      if (p.label && p.onClick && !mockFirstOnClick.has(p.label)) {
+        mockFirstOnClick.set(p.label, p.onClick)
+      }
+      return R.createElement(actual.Button, p)
+    },
+  }
+})
+
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
@@ -22,6 +42,7 @@ const flushPromises = async () => {
 }
 
 beforeEach(() => {
+  mockFirstOnClick.clear()
   rpc = installFakeChatRpc()
   // the thread provider builds a thread only for a signed-in account
   useCurrentUserState.getState().dispatch.setBootstrap({
@@ -115,5 +136,26 @@ describe('the Let them in button', () => {
     expect(rpc.calls('refreshParticipants')).toEqual([])
     // the banner stays up: nothing about the conversation changed
     expect(screen.getByText('Let them in')).toBeTruthy()
+  })
+
+  // an account switch keeps the screen up until the provider rebuilds its thread for the next account
+  test('a banner whose thread has retired re-adds no one', async () => {
+    renderBanner()
+    act(() => {
+      useCurrentUserState.getState().dispatch.setBootstrap({
+        deviceID: 'device-id2',
+        deviceName: 'testuser-mac',
+        uid: 'uid2',
+        username: 'testuser2',
+      })
+    })
+
+    await act(async () => {
+      mockFirstOnClick.get('Let them in')?.()
+      await flushPromises()
+    })
+
+    expect(mockFirstOnClick.has('Let them in')).toBe(true)
+    expect(rpc.calls('addTeamMemberAfterReset')).toEqual([])
   })
 })

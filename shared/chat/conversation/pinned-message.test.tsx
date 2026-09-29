@@ -7,6 +7,7 @@ const mockConversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3
 const mockCenterOnMessage = jest.fn()
 let mockMeta: {pinnedMsg: unknown; teamID: string; teamname: string}
 let mockDeleteOtherMessages = false
+let mockRetired = false
 
 // the popup is a positioned overlay; render its header and items inline so the confirm is clickable
 jest.mock('@/common-adapters', () => {
@@ -33,6 +34,7 @@ jest.mock('@/common-adapters', () => {
   }
 })
 jest.mock('./thread-context', () => ({
+  useConversationThreadActions: () => ({isRetired: () => mockRetired}),
   useConversationThreadID: () => mockConversationIDKey,
   useThreadMeta: (sel: (m: unknown) => unknown) => sel(mockMeta),
 }))
@@ -100,6 +102,7 @@ const clickClose = (container: HTMLElement) => {
 beforeEach(() => {
   rpc = installFakeChatRpc()
   mockDeleteOtherMessages = false
+  mockRetired = false
   setPinned('testuser-mac')
 })
 
@@ -204,6 +207,33 @@ test('a failed ignore falls through to ignorePromise, which logs it', async () =
   })
 
   expect(error).toHaveBeenCalledWith('ignorePromise error', failure)
+})
+
+// an account switch keeps the screen up until the provider rebuilds its thread for the next account
+test('a banner whose thread has retired ignores nothing', async () => {
+  const {container} = render(<PinnedMessage />)
+  mockRetired = true
+
+  clickClose(container)
+  await act(async () => {
+    await flushPromises()
+  })
+
+  expect(rpc.calls('ignorePinnedMessage')).toEqual([])
+})
+
+test('a banner whose thread retires while its unpin confirm is open unpins nothing', async () => {
+  setPinned('testuser')
+  const {container, getByText} = render(<PinnedMessage />)
+
+  clickClose(container)
+  mockRetired = true
+  fireEvent.click(getByText('Yes, unpin'))
+  await act(async () => {
+    await flushPromises()
+  })
+
+  expect(rpc.calls('unpinMessage')).toEqual([])
 })
 
 test('while the unpin waiting key is set a spinner replaces the close icon', () => {

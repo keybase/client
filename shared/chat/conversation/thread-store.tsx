@@ -259,8 +259,8 @@ const makeEmptyThreadState = (): ConversationThreadState =>
   )
 
 // Each of fns, doing nothing (undefined) once isRetired says so. The one retirement gate: the thread
-// store's actions, the message commands given a thread row, and what a thread's screen asks of the
-// service (its sends, attachment actions and unfurl prompt) all go through it.
+// store's actions, the message commands given a thread row, and everything a thread's screen asks of
+// the service directly all go through it.
 export const unlessRetired = <Fns extends {[K in keyof Fns]: (...args: never) => unknown}>(
   fns: Fns,
   isRetired: () => boolean
