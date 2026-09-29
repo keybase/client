@@ -2,7 +2,7 @@
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
-import {chatRpcCall, getChatRpc, loadThreadMessageIDAtIndex, setChatRpc} from './chat-rpc'
+import {chatRpcCall, getChatRpc, setChatRpc} from './chat-rpc'
 import {makeFakeChatRpc, restoreChatRpc} from '@/test/fake-chat-rpc'
 import {threadLoadReasonToRPCReason} from './thread-load'
 
@@ -122,49 +122,6 @@ describe('loadThreadNonblock', () => {
   test('a service error rejects', async () => {
     jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockRejectedValue(new Error('offline'))
     await expect(loadThreadNonblock({conversationIDKey})).rejects.toThrow('offline')
-  })
-})
-
-describe('loadThreadMessageIDAtIndex', () => {
-  const thread = (ids: ReadonlyArray<number>) => JSON.stringify({messages: ids.map(messageID => ({valid: {messageID}}))})
-
-  test('reads the id at the index from the first thread that arrives', async () => {
-    let sendFull = () => {}
-    const rpc = jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
-      p.incomingCallMap['chat.1.chatUi.chatThreadCached']?.({thread: thread([30, 20, 10])} as never)
-      sendFull = () => p.incomingCallMap['chat.1.chatUi.chatThreadFull']?.({thread: thread([31, 21, 11])} as never)
-      return new Promise(() => {})
-    })
-    await expect(loadThreadMessageIDAtIndex(conversationIDKey, 2)).resolves.toBe(T.Chat.numberToMessageID(10))
-    expect(rpc.mock.calls[0]?.[0].params.pagination).toEqual({last: false, next: '', num: 3, previous: ''})
-    sendFull()
-  })
-
-  test('a second thread that lands before the caller resumes overwrites the id', async () => {
-    jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
-      p.incomingCallMap['chat.1.chatUi.chatThreadCached']?.({thread: thread([30, 20, 10])} as never)
-      p.incomingCallMap['chat.1.chatUi.chatThreadFull']?.({thread: thread([31, 21, 11])} as never)
-      return Promise.resolve({offline: false})
-    })
-    await expect(loadThreadMessageIDAtIndex(conversationIDKey, 2)).resolves.toBe(T.Chat.numberToMessageID(11))
-  })
-
-  test('an unparseable thread, a short thread or a non-valid message give nothing', async () => {
-    const cases = ['not json', thread([30]), JSON.stringify({messages: [{}, {placeholder: {messageID: 4}}]})]
-    for (const t of cases) {
-      jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
-        p.incomingCallMap['chat.1.chatUi.chatThreadFull']?.({thread: t} as never)
-        return Promise.resolve({offline: false})
-      })
-      await expect(loadThreadMessageIDAtIndex(conversationIDKey, 1)).resolves.toBeUndefined()
-    }
-  })
-
-  test('resolves with nothing when the load fails or returns without a thread', async () => {
-    jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockRejectedValueOnce(new Error('offline'))
-    await expect(loadThreadMessageIDAtIndex(conversationIDKey, 1)).resolves.toBeUndefined()
-    jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockResolvedValueOnce({offline: false})
-    await expect(loadThreadMessageIDAtIndex(conversationIDKey, 1)).resolves.toBeUndefined()
   })
 })
 

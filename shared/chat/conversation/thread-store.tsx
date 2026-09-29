@@ -29,7 +29,8 @@ import {
   updateAttachmentUploadProgressInThreadState,
   updateReactionsInThreadState,
 } from './thread-message-state'
-import {getChatRpc, loadThreadMessageIDAtIndex} from './chat-rpc'
+import {getChatRpc} from './chat-rpc'
+import {markConversationUnread} from './mark-unread'
 import {
   getExplodingModeFromConfig,
   getMeta,
@@ -157,7 +158,7 @@ export type ConversationThreadActions = {
   setExplodingMode: (seconds: number, incoming?: boolean) => void
   setMessageErrored: (outboxID: T.Chat.OutboxID, reason: string, errorTyp?: number) => void
   setMessageSubmitState: (ordinal: T.Chat.Ordinal, submitState: T.Chat.Message['submitState']) => void
-  setMarkAsUnread: (readMsgID?: T.Chat.MessageID | false) => void
+  setMarkAsUnread: (readMsgID?: T.Chat.MessageID) => void
   setTyping: (typing: ReadonlySet<string>) => void
   showUnfurlPrompt: (messageID: T.Chat.MessageID, domain: string) => void
   addOptimisticReaction: (outboxID: T.Chat.OutboxID, reaction: OptimisticReaction) => void
@@ -561,51 +562,12 @@ export const makeThreadStore = (
     }
   }
 
-  const setMarkAsUnread = (readMsgID?: T.Chat.MessageID | false) => {
-    if (readMsgID === false) {
+  const setMarkAsUnread = (readMsgID?: T.Chat.MessageID) => {
+    if (!deps.getSession().loggedIn) {
+      logger.info('mark unread bail on not logged in')
       return
     }
-    const f = async () => {
-      if (!deps.getSession().loggedIn) {
-        logger.info('mark unread bail on not logged in')
-        return
-      }
-      const snapshot = getSnapshot()
-      const unreadLineID = readMsgID ? readMsgID : getMeta(id).maxVisibleMsgID
-      let msgID = unreadLineID
-
-      if (snapshot.messageMap.size) {
-        const ord =
-          snapshot.messageOrdinals &&
-          findLast(snapshot.messageOrdinals, o => {
-            const message = snapshot.messageMap.get(o)
-            return !!(message && message.id < unreadLineID)
-          })
-        const message = ord ? snapshot.messageMap.get(ord) : undefined
-        if (message) {
-          msgID = message.id
-        }
-      } else {
-        try {
-          const loadedMsgID = await loadThreadMessageIDAtIndex(id, 1)
-          if (loadedMsgID) {
-            msgID = loadedMsgID
-          }
-        } catch {}
-        if (isRetired()) {
-          return
-        }
-      }
-
-      if (!msgID) {
-        logger.info(`marking unread messages ${id} failed due to no id`)
-        return
-      }
-
-      logger.info(`marking unread messages ${id} ${msgID}`)
-      await getChatRpc().markRead({conversationIDKey: id, forceUnread: true, msgID})
-    }
-    ignorePromise(f())
+    markConversationUnread(id, readMsgID, {getWindow: getSnapshot, isRetired})
   }
 
   const updateReactions: ConversationThreadActions['updateReactions'] = updates => {

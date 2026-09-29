@@ -3,19 +3,13 @@ import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {
-  ensureConversationMetaLoaded,
-  getInboxConversationMeta,
-  unboxRows,
-  useInboxMetadataState,
-} from '@/chat/inbox/metadata'
+import {ensureConversationMetaLoaded, unboxRows, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {messagesTriggerConcerns, useReloadTriggers} from '@/chat/notification-registry'
 import {ignorePromise} from '@/constants/utils'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
 import logger from '@/logger'
 import {getChatRpc} from './chat-rpc'
-import {setConversationOrangeLine} from './orange-line-context'
 import {getExplodingModeFromGregorItems} from './thread-load'
 
 const emptyConversationMeta = Meta.makeConversationMeta()
@@ -220,50 +214,3 @@ export const useConversationMessage = (
   return messages.find(message => message.id === messageID)
 }
 
-export const markConversationAsUnread = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  readMsgID?: T.Chat.MessageID | false
-) => {
-  if (readMsgID === false || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
-    return
-  }
-  const f = async () => {
-    if (!useConfigState.getState().loggedIn) {
-      logger.info('mark unread bail on not logged in')
-      return
-    }
-
-    const unreadLineID = readMsgID || getInboxConversationMeta(conversationIDKey)?.maxVisibleMsgID
-    if (!unreadLineID) {
-      logger.info(`marking unread messages ${conversationIDKey} failed due to no id`)
-      return
-    }
-    setConversationOrangeLine(
-      conversationIDKey,
-      T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(unreadLineID))
-    )
-
-    let msgID = unreadLineID
-    try {
-      const messages = await loadConversationMessagesAroundMessageID(conversationIDKey, unreadLineID, 3)
-      for (let idx = messages.length - 1; idx >= 0; --idx) {
-        const message = messages[idx]
-        if (message?.id && message.id < unreadLineID) {
-          msgID = message.id
-          break
-        }
-      }
-    } catch {}
-
-    logger.info(`marking unread messages ${conversationIDKey} ${msgID}`)
-    await getChatRpc().markRead({conversationIDKey, forceUnread: true, msgID})
-  }
-  ignorePromise(f())
-}
-
-export const useConversationMarkAsUnread = (conversationIDKey: T.Chat.ConversationIDKey) => {
-  const markAsUnread = (readMsgID?: T.Chat.MessageID | false) => {
-    markConversationAsUnread(conversationIDKey, readMsgID)
-  }
-  return markAsUnread
-}

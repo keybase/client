@@ -412,28 +412,32 @@ describe('setMarkAsUnread', () => {
     expect(markReads()).toEqual([expect.objectContaining({msgID: T.Chat.numberToMessageID(15)})])
   })
 
-  test('an empty thread asks the service for the second newest message', async () => {
+  test('an empty thread asks the service for the messages around the line', async () => {
     rpc.on('loadThread', async p => {
-      p.onCachedThread?.(JSON.stringify({messages: [{valid: {messageID: 20}}, {valid: {messageID: 18}}]}))
+      const valid = (messageID: number) => ({state: T.RPCChat.MessageUnboxedState.valid, valid: {messageID}})
+      p.onCachedThread?.(JSON.stringify({messages: [valid(20), valid(18)]}))
       await Promise.resolve()
       return {offline: false}
     })
     const {result} = renderThread()
     await run(() => result.current.actions.setMarkAsUnread(T.Chat.numberToMessageID(20)))
-    expect(rpc.params('loadThread')[0]?.pagination).toEqual({last: false, next: '', num: 2, previous: ''})
+    expect(rpc.params('loadThread')[0]?.messageIDControl).toEqual({
+      mode: T.RPCChat.MessageIDControlMode.centered,
+      num: 3,
+      pivot: T.Chat.numberToMessageID(20),
+    })
     expect(markReads()).toEqual([expect.objectContaining({msgID: T.Chat.numberToMessageID(18)})])
   })
 
-  test('an empty thread whose load fails falls back to the line itself', async () => {
+  test('an empty thread whose load fails marks nothing', async () => {
     rpc.fail('loadThread', new Error('offline'))
     const {result} = renderThread()
     await run(() => result.current.actions.setMarkAsUnread(T.Chat.numberToMessageID(20)))
-    expect(markReads()).toEqual([expect.objectContaining({msgID: T.Chat.numberToMessageID(20)})])
+    expect(markReads()).toEqual([])
   })
 
-  test('false and logged out do nothing', async () => {
+  test('logged out it does nothing', async () => {
     const {result} = renderThread([textAt(10)])
-    await run(() => result.current.actions.setMarkAsUnread(false))
     useConfigState.setState({loggedIn: false})
     await run(() => result.current.actions.setMarkAsUnread(T.Chat.numberToMessageID(20)))
     expect(markReads()).toEqual([])

@@ -11,11 +11,7 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {getConversationClientPrev} from './client-prev'
-import {
-  markConversationAsUnread,
-  useConversationExplodingMode,
-  useConversationMessage,
-} from './data-hooks'
+import {useConversationExplodingMode, useConversationMessage} from './data-hooks'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const messageID = (n: number) => T.Chat.numberToMessageID(n)
@@ -31,7 +27,6 @@ const setMeta = (over: Partial<T.Chat.ConversationMeta>) => {
 }
 
 let rpc: FakeChatRpc
-const markReads = () => rpc.params('markRead')
 
 // the walk-back load returns whatever messages the service had around the unread line
 const mockAroundMessages = (ids: ReadonlyArray<number | T.RPCChat.UIMessage>) => {
@@ -65,101 +60,6 @@ afterEach(() => {
   restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
-})
-
-describe('markConversationAsUnread', () => {
-  test('does nothing when the caller opts out with false', async () => {
-    mockAroundMessages([])
-    markConversationAsUnread(conversationIDKey, false)
-    await flushPromises()
-    expect(markReads()).toEqual([])
-  })
-
-  test('does nothing for an invalid conversation', async () => {
-    mockAroundMessages([])
-    markConversationAsUnread(T.Chat.noConversationIDKey, messageID(5))
-    await flushPromises()
-    expect(markReads()).toEqual([])
-  })
-
-  test('bails when logged out', async () => {
-    useConfigState.setState({loggedIn: false})
-    mockAroundMessages([])
-    markConversationAsUnread(conversationIDKey, messageID(5))
-    await flushPromises()
-    expect(markReads()).toEqual([])
-    expect(OrangeLine.setConversationOrangeLine).not.toHaveBeenCalled()
-  })
-
-  test('bails when there is no id to unread from', async () => {
-    mockAroundMessages([])
-    markConversationAsUnread(conversationIDKey)
-    await flushPromises()
-    expect(markReads()).toEqual([])
-  })
-
-  test('falls back to the conversation maxVisibleMsgID', async () => {
-    setMeta({maxVisibleMsgID: messageID(9)})
-    mockAroundMessages([])
-    markConversationAsUnread(conversationIDKey)
-    await flushPromises()
-    expect(OrangeLine.setConversationOrangeLine).toHaveBeenCalledWith(
-      conversationIDKey,
-      T.Chat.numberToOrdinal(9)
-    )
-  })
-
-  test('sets the orange line and marks read at the message before the unread line', async () => {
-    mockAroundMessages([3, 4, 5, 6])
-    markConversationAsUnread(conversationIDKey, messageID(5))
-    await flushPromises()
-
-    expect(OrangeLine.setConversationOrangeLine).toHaveBeenCalledWith(
-      conversationIDKey,
-      T.Chat.numberToOrdinal(5)
-    )
-    // 4 is the newest message older than the unread line
-    expect(markReads()).toContainEqual({
-      conversationIDKey,
-      forceUnread: true,
-      msgID: messageID(4),
-    })
-  })
-
-  test('keeps the unread line id when nothing older came back', async () => {
-    mockAroundMessages([5, 6, 7])
-    markConversationAsUnread(conversationIDKey, messageID(5))
-    await flushPromises()
-    expect(markReads()).toContainEqual({
-      conversationIDKey,
-      forceUnread: true,
-      msgID: messageID(5),
-    })
-  })
-
-  test('the walk-back load is centered on the unread line, three wide', async () => {
-    const load = mockAroundMessages([])
-    markConversationAsUnread(conversationIDKey, messageID(5))
-    await flushPromises()
-    expect(load()).toContainEqual({
-      conversationIDKey,
-      messageIDControl: {mode: T.RPCChat.MessageIDControlMode.centered, num: 3, pivot: messageID(5)},
-      onCachedThread: expect.any(Function),
-      onFullThread: expect.any(Function),
-      pagination: null,
-    })
-  })
-
-  test('still marks read when the walk-back load fails', async () => {
-    rpc.fail('loadThread', new Error('offline'))
-    markConversationAsUnread(conversationIDKey, messageID(5))
-    await flushPromises()
-    expect(markReads()).toContainEqual({
-      conversationIDKey,
-      forceUnread: true,
-      msgID: messageID(5),
-    })
-  })
 })
 
 describe('getConversationClientPrev', () => {
@@ -202,34 +102,6 @@ describe('useConversationExplodingMode', () => {
       })
     })
     expect(result.current).toBe(0)
-  })
-})
-
-describe('parsed thread messages', () => {
-  test('the walk-back load dedupes and sorts by message id', async () => {
-    // the service can send the same message in the cached and full thread callbacks
-    rpc.on('loadThread', async p => {
-      const thread = (ids: ReadonlyArray<number>) =>
-        JSON.stringify({
-          messages: ids.map(id => ({
-            placeholder: {hidden: false, messageID: messageID(id)},
-            state: T.RPCChat.MessageUnboxedState.placeholder,
-          })),
-        })
-      await Promise.resolve()
-      p.onCachedThread?.(thread([6, 4]))
-      p.onFullThread?.(thread([4, 5]))
-      return undefined
-    })
-
-    markConversationAsUnread(conversationIDKey, messageID(6))
-    await flushPromises()
-    // 5 is the newest id below the unread line across both callbacks
-    expect(markReads()).toContainEqual({
-      conversationIDKey,
-      forceUnread: true,
-      msgID: messageID(5),
-    })
   })
 })
 

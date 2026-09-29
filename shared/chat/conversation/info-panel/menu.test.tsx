@@ -16,7 +16,6 @@ const hexTeamID = '0a1b2cff' as T.Teams.TeamID
 
 let mockMeta: T.Chat.ConversationMeta = makeConversationMeta()
 jest.mock('../data-hooks', () => ({
-  useConversationMarkAsUnread: () => () => {},
   useConversationMetadata: () => ({
     meta: mockMeta,
     participants: {all: [], contactName: new Map(), name: []},

@@ -1,18 +1,14 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import * as Meta from '@/constants/chat/meta'
-import * as OrangeLine from './orange-line-context'
 import * as Router from '@/constants/router'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {metasReceived} from '@/chat/inbox/metadata'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {
   hideConversation,
   joinConversation,
-  markConversationUnread,
   muteConversation,
   muteConversationPromise,
 } from './status-actions'
@@ -25,20 +21,15 @@ const flushPromises = async () => {
   }
 }
 
-const threadWithIDs = (ids: ReadonlyArray<number>) =>
-  JSON.stringify({messages: ids.map(messageID => ({valid: {messageID}}))})
-
 let rpc: FakeChatRpc
 let navigateToInbox: jest.SpyInstance
 let setChatRootParams: jest.SpyInstance
-let setOrangeLine: jest.SpyInstance
 
 beforeEach(() => {
   useConfigState.setState({loggedIn: true})
   rpc = installFakeChatRpc()
   navigateToInbox = jest.spyOn(Router, 'navigateToInbox').mockImplementation(() => {})
   setChatRootParams = jest.spyOn(Router, 'setChatRootParams').mockImplementation(() => true)
-  setOrangeLine = jest.spyOn(OrangeLine, 'setConversationOrangeLine').mockImplementation(() => {})
 })
 
 afterEach(() => {
@@ -123,91 +114,5 @@ describe('conversation status', () => {
     muteConversation(conversationIDKey, true)
     await flushPromises()
     expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(Error))
-  })
-})
-
-describe('markConversationUnread', () => {
-  const markReads = () => rpc.params('markRead')
-  const loads = () => rpc.params('loadThread')
-
-  beforeEach(() => {
-    rpc.on('loadThread', async p => {
-      p.onFullThread?.(threadWithIDs([90, 80, 70]))
-      await Promise.resolve()
-      return {offline: false}
-    })
-  })
-
-  test('an explicit read position is used directly, with no thread load', async () => {
-    markConversationUnread(conversationIDKey, T.Chat.numberToMessageID(42))
-    await flushPromises()
-
-    expect(setOrangeLine).toHaveBeenCalledWith(conversationIDKey, T.Chat.numberToOrdinal(42))
-    expect(loads()).toEqual([])
-    expect(markReads()).toContainEqual({
-      conversationIDKey,
-      forceUnread: true,
-      msgID: T.Chat.numberToMessageID(42),
-    })
-  })
-
-  test('without a read position it draws the line at the newest visible message and marks the second newest', async () => {
-    metasReceived(
-      [{...Meta.makeConversationMeta(), conversationIDKey, maxVisibleMsgID: T.Chat.numberToMessageID(90)}],
-      undefined,
-      {force: true}
-    )
-    markConversationUnread(conversationIDKey)
-    await flushPromises()
-
-    expect(setOrangeLine).toHaveBeenCalledWith(conversationIDKey, T.Chat.numberToOrdinal(90))
-    expect(loads()).toHaveLength(1)
-    const params = loads()[0]
-    expect(params?.pagination).toEqual({last: false, next: '', num: 2, previous: ''})
-    expect(params?.conversationIDKey).toEqual(conversationIDKey)
-    expect(params?.messageIDControl ?? null).toBeNull()
-    expect(markReads()).toContainEqual({
-      conversationIDKey,
-      forceUnread: true,
-      msgID: T.Chat.numberToMessageID(80),
-    })
-  })
-
-  test('without meta there is no orange line but the load still decides the position', async () => {
-    markConversationUnread(conversationIDKey)
-    await flushPromises()
-
-    expect(setOrangeLine).not.toHaveBeenCalled()
-    expect(markReads()).toContainEqual({
-      conversationIDKey,
-      forceUnread: true,
-      msgID: T.Chat.numberToMessageID(80),
-    })
-  })
-
-  test('a thread too short to have a second message marks nothing', async () => {
-    rpc.on('loadThread', async p => {
-      p.onFullThread?.(threadWithIDs([90]))
-      await Promise.resolve()
-      return {offline: false}
-    })
-    markConversationUnread(conversationIDKey)
-    await flushPromises()
-    expect(markReads()).toEqual([])
-  })
-
-  test('a failed thread load marks nothing', async () => {
-    rpc.fail('loadThread', new Error('offline'))
-    markConversationUnread(conversationIDKey)
-    await flushPromises()
-    expect(markReads()).toEqual([])
-  })
-
-  test('a load is not issued while the chat session is not ready', async () => {
-    useConfigState.setState({loggedIn: false})
-    markConversationUnread(conversationIDKey)
-    await flushPromises()
-    expect(loads()).toEqual([])
-    expect(markReads()).toEqual([])
   })
 })

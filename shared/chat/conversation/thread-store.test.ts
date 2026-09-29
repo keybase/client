@@ -329,33 +329,38 @@ describe('setMarkAsUnread', () => {
     expect(markReads()).toEqual([{conversationIDKey: convA, forceUnread: true, msgID: 5}])
   })
 
-  test('a window that does not reach the line marks read at its own newest message', async () => {
+  test('a window that does not reach the line asks the service for the message before it', async () => {
     // a search jump left the window far below the newest visible message
     setMeta(convA, {maxVisibleMsgID: T.Chat.numberToMessageID(20)})
+    rpc.on('loadThread', async p => {
+      const valid = (messageID: number) => ({state: T.RPCChat.MessageUnboxedState.valid, valid: {messageID}})
+      p.onFullThread?.(JSON.stringify({messages: [valid(19), valid(20)]}))
+      await Promise.resolve()
+      return {offline: false}
+    })
     const {actions} = makeThread()
     actions.addMessages([textAt(3), textAt(5)])
     actions.setMarkAsUnread()
     await flushPromises()
-    expect(rpc.params('loadThread')).toEqual([])
-    expect(markReads()).toEqual([{conversationIDKey: convA, forceUnread: true, msgID: 5}])
+    expect(rpc.params('loadThread')).toHaveLength(1)
+    expect(markReads()).toEqual([{conversationIDKey: convA, forceUnread: true, msgID: 19}])
   })
 
-  test('an unsent row below the line is taken as the position, and nothing is marked', async () => {
+  test('an unsent row below the line is passed over', async () => {
     const {actions} = makeThread()
     actions.addMessages([
       textAt(3),
       textAt(8),
       textAt(9, {id: T.Chat.numberToMessageID(0), outboxID: T.Chat.stringToOutboxID('o1'), submitState: 'pending'}),
     ])
-    actions.setMarkAsUnread(T.Chat.numberToMessageID(10))
+    actions.setMarkAsUnread(T.Chat.numberToMessageID(8))
     await flushPromises()
-    expect(markReads()).toEqual([])
+    expect(markReads()).toEqual([{conversationIDKey: convA, forceUnread: true, msgID: 3}])
   })
 
-  test('false, or logged out by the session dep, does nothing', async () => {
+  test('logged out by the session dep, it does nothing', async () => {
     const {actions} = makeThread()
     actions.addMessages([textAt(3)])
-    actions.setMarkAsUnread(false)
     session = {loggedIn: false, uid: 'uid'}
     actions.setMarkAsUnread(T.Chat.numberToMessageID(8))
     await flushPromises()

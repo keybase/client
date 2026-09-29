@@ -2,11 +2,8 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import {isPhone} from '@/constants/platform'
 import {navigateToInbox, setChatRootParams} from '@/constants/router'
-import logger from '@/logger'
-import {getInboxConversationMeta} from '@/chat/inbox/metadata'
 import {refreshConversationParticipants} from '@/chat/inbox/refresh-participants'
-import {setConversationOrangeLine} from './orange-line-context'
-import {getChatRpc, loadThreadMessageIDAtIndex} from './chat-rpc'
+import {getChatRpc} from './chat-rpc'
 
 const setConversationStatusPromise = async (
   conversationIDKey: T.Chat.ConversationIDKey,
@@ -56,31 +53,3 @@ export const muteConversationPromise = async (conversationIDKey: T.Chat.Conversa
     conversationIDKey,
     muted ? T.RPCChat.ConversationStatus.muted : T.RPCChat.ConversationStatus.unfiled
   )
-
-export const markConversationUnread = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  readMsgID?: T.Chat.MessageID
-) => {
-  const f = async () => {
-    const unreadLineID = readMsgID || getInboxConversationMeta(conversationIDKey)?.maxVisibleMsgID
-    if (unreadLineID) {
-      setConversationOrangeLine(
-        conversationIDKey,
-        T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(unreadLineID))
-      )
-    }
-    let msgID = readMsgID
-    if (!msgID) {
-      msgID = await loadThreadMessageIDAtIndex(conversationIDKey, 1)
-    }
-
-    if (!msgID) {
-      logger.info(`marking unread messages ${conversationIDKey} failed due to no id`)
-      return
-    }
-
-    logger.info(`marking unread messages ${conversationIDKey} ${msgID}`)
-    await getChatRpc().markRead({conversationIDKey, forceUnread: true, msgID})
-  }
-  C.ignorePromise(f())
-}

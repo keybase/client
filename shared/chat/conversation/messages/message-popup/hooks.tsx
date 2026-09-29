@@ -6,7 +6,8 @@ import {copyToClipboard} from '@/util/storeless-actions'
 import {deleteMessage, pinMessage, toggleReaction, useThreadMessageTarget} from '../../message-commands'
 import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 import {linkFromConvAndMessage} from '@/constants/deeplinks'
-import {markConversationAsUnread, useConversationParticipants} from '../../data-hooks'
+import {useConversationParticipants} from '../../data-hooks'
+import {markConversationUnread} from '../../mark-unread'
 import {showForwardMessagePicker} from '../../fwd-msg'
 import {navToProfile, setThreadInputEditing, setThreadInputReplyTo} from '@/constants/router'
 import {
@@ -390,7 +391,7 @@ export const useStorelessItems = (p: {
     actions: {
       deleteMessage: () =>
         deleteMessage({conversationIDKey: p.conversationIDKey, message: p.message, tlfName: p.meta.tlfname}),
-      markAsUnread: id => markConversationAsUnread(p.conversationIDKey, id),
+      markAsUnread: id => markConversationUnread(p.conversationIDKey, id),
       toggleReaction: emoji =>
         toggleReaction({conversationIDKey: p.conversationIDKey, message: p.message, tlfName: p.meta.tlfname}, emoji),
     },
