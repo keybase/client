@@ -79,10 +79,10 @@ const props = () => {
 // The header's first measurement is the baseline; the second is the growth that re-pins.
 const growHeader = () => {
   update(() => {
-    ;(props()['onMetricsChange'] as (m: {headerSize: number}) => void)({headerSize: 100})
+    H.measureHeader(100)
   })
   update(() => {
-    ;(props()['onMetricsChange'] as (m: {headerSize: number}) => void)({headerSize: 152})
+    H.measureHeader(152)
   })
 }
 
@@ -103,7 +103,7 @@ const loadThread = (from: number, to: number) =>
 const reloadDataset = (count = 60) => {
   update(() => {
     clearThread()
-    H.listStore.set({isAtEnd: false, scroll: 0})
+    H.listStore.set({scroll: 0})
   })
   update(() => {
     loadThread(1, count)
@@ -111,7 +111,7 @@ const reloadDataset = (count = 60) => {
 }
 
 // Where the list has put the scroller.
-const endOffset = () => props().data.length * H.rowHeight - H.viewportHeight
+const endOffset = () => H.contentHeight() - H.viewportHeight
 const scrollerNotAtEnd = () => {
   update(() => H.listStore.set({scroll: 1000}))
 }
@@ -221,31 +221,32 @@ describe('header growth re-pins the end', () => {
 
   test('does nothing when the list is already at its end', async () => {
     open()
-    update(() => H.listStore.set({isAtEnd: true}))
     growHeader()
+    // The list's own anchor re-pinned it before the first check.
+    scrollerAtEnd()
     await tick(3000)
     expect(H.log).toEqual([])
   })
 
   test('the first measurement is a baseline, not growth', async () => {
     open()
-    update(() => (props()['onMetricsChange'] as (m: {headerSize: number}) => void)({headerSize: 152}))
+    update(() => H.measureHeader(152))
     await tick(3000)
     expect(H.log).toEqual([])
   })
 
   test('an unchanged measurement is not growth', async () => {
     open()
-    update(() => (props()['onMetricsChange'] as (m: {headerSize: number}) => void)({headerSize: 100}))
-    update(() => (props()['onMetricsChange'] as (m: {headerSize: number}) => void)({headerSize: 100}))
+    update(() => H.measureHeader(100))
+    update(() => H.measureHeader(100))
     await tick(3000)
     expect(H.log).toEqual([])
   })
 
   test('a shrinking header re-pins too', async () => {
     open()
-    update(() => (props()['onMetricsChange'] as (m: {headerSize: number}) => void)({headerSize: 152}))
-    update(() => (props()['onMetricsChange'] as (m: {headerSize: number}) => void)({headerSize: 100}))
+    update(() => H.measureHeader(152))
+    update(() => H.measureHeader(100))
     await tick(100)
     expect(H.log).toEqual([['scrollToEnd', noAnimation]])
   })
@@ -298,7 +299,7 @@ describe('header growth re-pins the end', () => {
     update(() => H.listStore.set({scrollToEndLands: false}))
     growHeader()
     await tick(50)
-    update(() => (props()['onMetricsChange'] as (m: {headerSize: number}) => void)({headerSize: 200}))
+    update(() => H.measureHeader(200))
     await tick(50)
     expect(H.log).toHaveLength(0)
     await tick(3000)
@@ -474,7 +475,6 @@ describe('closing thread search (clearing the centre)', () => {
     expect(H.log).toEqual([])
     expect(props()['maintainScrollAtEnd']).toBe(false)
     expect(props()['initialScrollAtEnd']).toBe(true)
-    update(() => H.listStore.set({isAtEnd: false}))
     growHeader()
     await tick(3000)
     expect(H.log).toEqual([])
@@ -490,7 +490,6 @@ describe('closing thread search (clearing the centre)', () => {
     update(() => H.threadRefs.current?.scrollToBottom())
     update(() => H.setCenter(undefined))
     H.log.length = 0
-    update(() => H.listStore.set({isAtEnd: false}))
     growHeader()
     await tick(100)
     expect(H.log).toEqual([['scrollToEnd', noAnimation]])
@@ -733,7 +732,9 @@ describe('thread refs (keyboard and composer scrolling)', () => {
     open({count: 3})
     update(() => H.threadRefs.current?.scrollDown())
     expect(H.log).toEqual([])
-    growHeader()
+    // Grows the thread past its viewport, so it has an end to scroll to.
+    update(() => H.measureHeader(100))
+    update(() => H.measureHeader(400))
     await tick(100)
     expect(H.log).toEqual([['scrollToEnd', noAnimation]])
   })
@@ -975,7 +976,7 @@ describe('the viewport changing height', () => {
     return s.scrollHeight - s.clientHeight
   }
   // At the end, which the list's own anchor put it at.
-  const heldAtEnd = () => update(() => H.listStore.set({isAtEnd: true, scroll: endOffset()}))
+  const heldAtEnd = () => scrollerAtEnd()
   const shrink = () => update(() => H.resizeViewport(shrunk))
 
   test('while the list holds its end, it re-pins it once it has heard of the new viewport', async () => {
@@ -1082,8 +1083,25 @@ describe('a row changing size', () => {
     return s.scrollHeight - s.clientHeight
   }
   // At the end, which the list's own anchor put it at.
-  const heldAtEnd = () => update(() => H.listStore.set({isAtEnd: true, scroll: endOffset()}))
+  const heldAtEnd = () => scrollerAtEnd()
   const newestGrows = () => H.remeasureRow(ord(60), H.rowHeight + 3)
+
+  // The list re-reads its isAtEnd only when it scrolls, so after the row grows with nothing scrolling
+  // it still reads at-end; the thread has to be measured to see it is short.
+  test.each([
+    ['a late re-measure of a few pixels', H.rowHeight, H.rowHeight + 3],
+    ['a reaction landing on it', 26, 66],
+  ])('while the list holds its end, %s on the newest row ends at the end', async (_what, from, to) => {
+    open()
+    H.remeasureRow(ord(60), from)
+    heldAtEnd()
+    H.log.length = 0
+    H.remeasureRow(ord(60), to)
+    expect(scrollerEnd() - scrollerTop()).toBe(to - from)
+    await tick(3000)
+    expect(H.log).toEqual([['scrollToEnd', noAnimation]])
+    expect(scrollerEnd() - scrollerTop()).toBe(0)
+  })
 
   test('while the list holds its end, a row growing there re-pins it, as the list\'s own scroll', async () => {
     open()
@@ -1099,7 +1117,7 @@ describe('a row changing size', () => {
     open()
     heldAtEnd()
     H.remeasureRow(ord(10), H.rowHeight + 3)
-    update(() => H.listStore.set({isAtEnd: true, scroll: endOffset()}))
+    scrollerAtEnd()
     await tick(3000)
     expect(H.log).toEqual([])
   })
@@ -1150,20 +1168,19 @@ describe('dataset reset', () => {
   // measured before the clear is still the one the list builds on.
   test('keeps the header baseline: after jump to recent, the header growing re-pins the end', async () => {
     open({center: 30, moreToLoadForward: true})
-    update(() => (props()['onMetricsChange'] as (m: {headerSize: number}) => void)({headerSize: 100}))
+    update(() => H.measureHeader(100))
     await tick(5000)
     fireEvent.click(screen.getByText('Jump to recent messages'))
     update(() => {
       H.setCenter(undefined)
       clearThread()
-      H.listStore.set({isAtEnd: false})
     })
     update(() => {
       loadThread(1, 70)
       H.threadStore.set({moreToLoadForward: false})
     })
     H.log.length = 0
-    update(() => (props()['onMetricsChange'] as (m: {headerSize: number}) => void)({headerSize: 152}))
+    update(() => H.measureHeader(152))
     await tick(100)
     expect(H.log).toEqual([['scrollToEnd', noAnimation]])
   })
@@ -1261,9 +1278,10 @@ describe('whatever moves the scroller, when the list did not, is the reader', ()
     scrollerAtEnd()
     update(() => H.threadStore.set({messageOrdinals: H.range(1, 63)}))
     update(() => H.listLandsShort(endOffset(), endOffset() - 200))
+    const target = endOffset()
     // The header measures larger a frame after the list's own scroll, as it does on opening.
     growHeader()
-    update(() => H.listStore.set({scroll: endOffset()}))
+    update(() => H.listStore.set({scroll: target}))
     H.scrollEnds()
     await tick(100)
     expect(H.log).toEqual([['scrollToEnd', noAnimation]])
@@ -1404,9 +1422,9 @@ describe('returning to the chat tab', () => {
 
   test('keeps the header baseline: the next change is growth, not a new baseline', async () => {
     open()
-    update(() => (props()['onMetricsChange'] as (m: {headerSize: number}) => void)({headerSize: 100}))
+    update(() => H.measureHeader(100))
     switchTabAwayAndBack()
-    update(() => (props()['onMetricsChange'] as (m: {headerSize: number}) => void)({headerSize: 152}))
+    update(() => H.measureHeader(152))
     await tick(100)
     expect(H.log).toEqual([['scrollToEnd', noAnimation]])
   })

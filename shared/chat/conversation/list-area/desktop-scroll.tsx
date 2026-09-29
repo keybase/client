@@ -104,9 +104,10 @@ export const useDesktopThreadScroll = (p: {
     anchorsEndRef.current = anchorsEnd
   }, [anchorsEnd])
 
-  // Asks the scroller, not the list's own isAtEnd: that flag comes from the content size and viewport
-  // the list has recorded, and both lag a composer collapse, so it reads not-at-end while the scroller
-  // is in fact at its end.
+  // Every "is the list at its end?" asks the scroller, never the list's own isAtEnd. The list re-reads
+  // that flag only when it scrolls or lays out, so it lags both ways: a row or the header growing at
+  // the end with nothing scrolling leaves it reading at-end while the scroller is short, and a
+  // composer collapse leaves it reading not-at-end while the scroller is at its end.
   const isScrolledToEnd = React.useCallback(() => {
     const scroller = scrollerOf()
     return !!scroller && scroller.scrollHeight - scroller.clientHeight - scroller.scrollTop <= endTolerancePx
@@ -138,22 +139,22 @@ export const useDesktopThreadScroll = (p: {
         elapsed += 50
         // Checked after the sleep, not before: the reader may have taken the end during it.
         if (!ownsEnd(scrollTarget.state)) return
-        const state = listRef.current?.getState()
-        if (!state) continue
-        if (state.isAtEnd) return
+        const scroll = listRef.current?.getState().scroll
+        if (scroll === undefined) continue
+        if (isScrolledToEnd()) return
         // Only a scroll offset that held still across two checks means the list is done moving.
-        if (state.scroll === previousScroll) {
+        if (scroll === previousScroll) {
           // Two corrections is the whole budget: one for the header, one for whatever re-measured
           // alongside it. Past that we would be fighting something that owns the offset.
           if (++corrections > 2) return
           void listRef.current?.scrollToEnd({animated: false})
           previousScroll = undefined
         } else {
-          previousScroll = state.scroll
+          previousScroll = scroll
         }
       }
     })
-  }, [endAnchor, listRef, scrollTarget])
+  }, [endAnchor, isScrolledToEnd, listRef, scrollTarget])
 
   // Owns the in-flight centering loop. It has to outlive re-renders: the messages that make
   // centering accurate arrive after it starts, so the loop must not be torn down by an effect

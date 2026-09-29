@@ -38,7 +38,8 @@ export const threadStore = makeStore<ThreadState>({
 })
 
 type ListState = {
-  isAtEnd: boolean
+  // The list's header (SpecialTopMessage), above the rows.
+  headerSize: number
   // Whether scrollToIndex mounts its target row, as the real list does once it scrolls there.
   mountsOnScrollToIndex: boolean
   // Rows mounted by the fake list; undefined mounts every row.
@@ -46,7 +47,7 @@ type ListState = {
   // Rows taller than rowHeight.
   rowHeights: ReadonlyMap<T.Chat.Ordinal, number>
   scroll: number
-  // What scrollToEnd leaves isAtEnd as, so a test can model an end the list fails to reach.
+  // Whether scrollToEnd reaches the end; when not, it lands endShortBy short of it.
   scrollToEndLands: boolean
   // How far scrollToIndex misses by, standing in for estimated row sizes above the target.
   scrollToIndexError: number
@@ -56,7 +57,7 @@ type ListState = {
   listViewport: number
 }
 const initialListState = (): ListState => ({
-  isAtEnd: false,
+  headerSize: 0,
   mountsOnScrollToIndex: true,
   rendered: undefined,
   rowHeights: new Map(),
@@ -79,19 +80,36 @@ export const listCommits: Array<FakeListProps> = []
 
 const heightOf = (ordinal: T.Chat.Ordinal | undefined) =>
   (ordinal === undefined ? undefined : listStore.get().rowHeights.get(ordinal)) ?? rowHeight
-// Where the row at index starts in the content.
+// Where the row at index starts in the content, below the header.
 const rowTop = (index: number) =>
-  (listProps.current?.data ?? []).slice(0, index).reduce((top, o) => top + heightOf(o), 0)
-const contentHeight = () => rowTop(listProps.current?.data.length ?? 0)
+  (listProps.current?.data ?? [])
+    .slice(0, index)
+    .reduce((top, o) => top + heightOf(o), listStore.get().headerSize)
+export const contentHeight = () => rowTop(listProps.current?.data.length ?? 0)
 // The list clamps its own scrolls against the viewport it has heard of, the scroller against its own.
 const maxScroll = () => Math.max(0, contentHeight() - listStore.get().listViewport)
 const clampScroll = (offset: number) => Math.min(maxScroll(), Math.max(0, offset))
 const scrollerMax = () => Math.max(0, contentHeight() - listStore.get().viewport)
+export const endShortBy = 40
+
+// The list's isAtEnd, as the real one keeps it: re-read from its content size and viewport only when
+// its scroll offset changes and when it lays out, never when a row or the header changes size. So it
+// goes stale, still reading true, after content grows at the end with nothing scrolling.
+let isAtEnd = false
+let isAtEndReadAt = 0
+const readIsAtEnd = () => {
+  const {listViewport, scroll} = listStore.get()
+  isAtEndReadAt = scroll
+  isAtEnd = scroll >= contentHeight() - listViewport
+}
+listStore.subscribe(() => {
+  if (listStore.get().scroll !== isAtEndReadAt) readIsAtEnd()
+})
 
 export const listHandle = {
   getScrollableNode: () => scrollerElement,
   getState: () => {
-    const {isAtEnd, listViewport, scroll} = listStore.get()
+    const {listViewport, scroll} = listStore.get()
     const data = listProps.current?.data ?? []
     // The first row in view.
     const start = Math.max(0, data.findIndex((_o, i) => rowTop(i + 1) > scroll))
@@ -99,7 +117,7 @@ export const listHandle = {
   },
   scrollToEnd: (opts: unknown) => {
     log.push(['scrollToEnd', opts])
-    listStore.set({isAtEnd: listStore.get().scrollToEndLands, scroll: maxScroll()})
+    listStore.set({scroll: listStore.get().scrollToEndLands ? maxScroll() : Math.max(0, maxScroll() - endShortBy)})
   },
   // An animated scroll is not written down ahead: the list hears of it as the scroller moves, as it
   // does of the reader's.
@@ -180,28 +198,34 @@ export const resizeViewport = (height: number) => {
 // re-reads whether it is at its end, and hands the layout to its onLayout prop. The list's own end
 // anchor, which re-pins here when its maintainScrollAtEnd prop is on, is not simulated.
 export const listHearsLayout = () => {
-  const {scroll, viewport} = listStore.get()
+  const {viewport} = listStore.get()
   act(() => {
-    listStore.set({isAtEnd: scroll >= contentHeight() - viewport, listViewport: viewport})
+    listStore.set({listViewport: viewport})
+    readIsAtEnd()
     reportLayout(viewport)
   })
 }
 // A rendered row measuring at a new height after the list laid it out (an image or a font landing, a
-// late re-measure): the list records it, re-reads whether it is at its end, and reports the change to
-// its onItemSizeChanged prop. The list's own end anchor, which re-pins here only for a change of more
+// late re-measure): the list records it and reports the change to its onItemSizeChanged prop, without
+// re-reading whether it is at its end. The list's own end anchor, which re-pins here only for a change of more
 // than a few pixels, is not simulated.
 export const remeasureRow = (ordinal: T.Chat.Ordinal, height: number) => {
   const previous = heightOf(ordinal)
   act(() => {
     listStore.set({rowHeights: new Map([...listStore.get().rowHeights, [ordinal, height]])})
-    const {listViewport, scroll} = listStore.get()
-    listStore.set({isAtEnd: scroll >= contentHeight() - listViewport})
     const data = listProps.current?.data ?? []
     const onItemSizeChanged = listProps.current?.['onItemSizeChanged'] as
       | ((info: {index: number; itemData: T.Chat.Ordinal; itemKey: string; previous: number; size: number}) => void)
       | undefined
     onItemSizeChanged?.({index: data.indexOf(ordinal), itemData: ordinal, itemKey: String(ordinal), previous, size: height})
   })
+}
+// The list measuring its header at size and reporting it to its onMetricsChange prop. The content grows
+// or shrinks above the rows, the scroll offset stays put, and the list does not re-read its isAtEnd.
+export const measureHeader = (size: number) => {
+  listStore.set({headerSize: size})
+  const onMetricsChange = listProps.current?.['onMetricsChange'] as ((m: {headerSize: number}) => void) | undefined
+  onMetricsChange?.({headerSize: size})
 }
 // The scroller's current scroll coming to rest, whoever moved it.
 export const scrollEnds = () => {
@@ -319,6 +343,8 @@ export const resetHarness = () => {
   listCommits.length = 0
   movedTo = undefined
   lastFired = 0
+  isAtEnd = false
+  isAtEndReadAt = 0
   listStore.reset(initialListState())
   threadStore.reset({clearVersion: 0, loaded: false, messageOrdinals: undefined, moreToLoadForward: false})
   markThreadAsRead.mockClear()
