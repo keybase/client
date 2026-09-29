@@ -4,6 +4,7 @@ import * as os from 'os'
 import * as path from 'path'
 import {udidForName} from './app'
 import * as T from '../../shared/test-ids'
+import {evalInPage, inspectorPageFor} from '../../shared/metro-eval'
 import {waitForTestID} from './elements'
 import {atTabs, escapeToTabs, navigateToChat} from './navigate'
 
@@ -103,61 +104,10 @@ export const crashReportsSince = (since: number): Array<string> => {
 
 // -- Metro inspector ----------------------------------------------------------
 
-const metroOrigin = 'http://127.0.0.1:8081'
-
-type InspectorPage = {deviceName?: string; appId?: string; webSocketDebuggerUrl: string}
-
-type EvalResponse = {
-  id: number
-  result?: {result?: {value?: unknown}; exceptionDetails?: {text?: string}}
-}
-
-// Metro keeps a page per JS runtime the device has started; the newest is last.
-const inspectorUrl = async (device: string) => {
-  const res = await fetch(`${metroOrigin}/json/list`)
-  const pages = (await res.json()) as Array<InspectorPage>
-  const page = pages.filter(p => p.deviceName === device && p.appId === BUNDLE_ID).at(-1)
-  if (!page) throw new Error(`no Metro inspector page for ${device}`)
-  return page.webSocketDebuggerUrl.replace('ws://localhost:', 'ws://127.0.0.1:')
-}
-
-// Metro dev bundles register modules by path; this finds and requires one by that path.
-const prelude = `const kbModule = name => { for (const [id, m] of __r.getModules()) if (m.verboseName === name) return __r(id); throw new Error('no module ' + name) };`
-
 // Evaluates a synchronous function body in the app's JS runtime and returns its value.
 // Only works against a debug build served by Metro.
-export const jsEval = async <R>(body: string, device = deviceName()): Promise<R> => {
-  const url = await inspectorUrl(device)
-  // The inspector proxy rejects connections without a local Origin; Node's WebSocket
-  // takes headers as a non-standard option.
-  const WS = WebSocket as unknown as new (url: string, opts: {headers: Record<string, string>}) => WebSocket
-  const ws = new WS(url, {headers: {Origin: metroOrigin}})
-  try {
-    return await new Promise<R>((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error('inspector evaluate timed out')), 10000)
-      ws.addEventListener('error', () => {
-        clearTimeout(timer)
-        reject(new Error('inspector connection failed'))
-      })
-      ws.addEventListener('open', () => {
-        const expression = `(() => { ${prelude} ${body} })()`
-        ws.send(JSON.stringify({id: 1, method: 'Runtime.evaluate', params: {expression, returnByValue: true}}))
-      })
-      ws.addEventListener('message', (e: MessageEvent) => {
-        const m = JSON.parse(String(e.data)) as EvalResponse
-        if (m.id !== 1) return
-        clearTimeout(timer)
-        if (m.result?.exceptionDetails) {
-          reject(new Error(`app evaluate threw: ${m.result.exceptionDetails.text ?? 'unknown'}`))
-        } else {
-          resolve(m.result?.result?.value as R)
-        }
-      })
-    })
-  } finally {
-    ws.close()
-  }
-}
+export const jsEval = async <R>(body: string, device = deviceName()): Promise<R> =>
+  evalInPage<R>(await inspectorPageFor(device, BUNDLE_ID), body)
 
 export type AppSnapshot = {
   loggedIn: boolean
