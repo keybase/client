@@ -26,7 +26,6 @@ export type {
   ConversationThreadActions,
   ConversationThreadState,
   LoadMoreMessagesParams,
-  ScrollDirection,
   ThreadLoadStatusOptions,
   ThreadLoadStatusReporter,
 } from './thread-store'
