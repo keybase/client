@@ -267,13 +267,18 @@ export const makeThreadStore = (
   let markReadBlocked = false
 
   const getSnapshot = () => store.getState()
-  const updateThreadState = (updater: (draft: Draft<ConversationThreadState>) => void) => {
+  // Returns what the updater returns. The updater's result is never handed to immer, which would
+  // take it as the replacement state.
+  const updateThreadState = <R,>(updater: (draft: Draft<ConversationThreadState>) => R): R => {
     const current = store.getState()
-    const next = produce(current, draft => updater(draft))
-    if (current === next) {
-      return
+    let result: R | undefined
+    const next = produce(current, draft => {
+      result = updater(draft)
+    })
+    if (current !== next) {
+      store.setState(next, true)
     }
-    store.setState(next, true)
+    return result as R
   }
 
   const markThreadAsRead = () => {
@@ -499,15 +504,10 @@ export const makeThreadStore = (
   }
 
   const retryMessage = (outboxID: T.Chat.OutboxID) => {
-    const {messageMap, pendingOutboxToOrdinal} = store.getState()
-    const ordinal = pendingOutboxToOrdinal.get(outboxID)
-    if (!ordinal || !messageMap.get(ordinal)) {
+    if (!updateThreadState(s => retryMessageInThreadState(s, outboxID))) {
       logger.warn(`retryMessage: no message for outbox id ${outboxID} in convID=${id}`)
       return
     }
-    updateThreadState(s => {
-      retryMessageInThreadState(s, outboxID)
-    })
     ignorePromise(
       (async () => {
         await getChatRpc().retryPost(outboxID)
