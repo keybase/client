@@ -94,9 +94,9 @@ const inputKey = (s: InputKeyState, k: ComposerKey): ComposerKeyResult<InputKeyA
     actions.push({type: 'recheckSuggestions'})
   }
 
-  // An open list claims the keys that move through it even before it has items, as it always
-  // has, so a key pressed while it loads neither moves the caret nor takes focus out of the
-  // composer; there is just nothing to move to. Enter has nothing to pick, so it sends.
+  // An open list claims the keys that move through it even before it has items, so a key pressed
+  // while it loads neither moves the caret nor takes focus out of the composer; there is just
+  // nothing to move to. Enter has nothing to pick, so it sends.
   if (s.suggestions !== 'none') {
     const hasItems = s.suggestions !== 'empty'
     switch (k.key) {
