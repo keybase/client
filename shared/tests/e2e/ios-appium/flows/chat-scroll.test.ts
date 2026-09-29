@@ -256,11 +256,12 @@ describe('chat scroll: search', () => {
   })
 
   // App bug (integration build, iOS): closing thread search moves the rows the reader is looking at
-  // down by 30 to 50 points instead of leaving them where they are. Readings (window points): the
-  // centred hit's row top 428 with search open, 476 after the close; the list's frame goes from
-  // 116..802 to 116..779 and its scroll offset from 28 to 99.7, so the offset change (+71.7, the
-  // search bar's reserved padding) outruns the frame change (-23). Appium's own rect for the row
-  // agrees (y 447 -> 476 in another run). Remove the expected-failure mark once fixed.
+  // down by about 48 points instead of leaving them where they are. Readings (window points): the
+  // centred hit's row top 400 with search open, 448.3 after the close (3 of 3 runs). Sampled every
+  // 16ms across the close, the list's frame shrinks first (686 to 663 high, the row at 376.7 with the
+  // offset still 0), then the scroll view shifts the rows by the search bar's reserved padding
+  // (offset 0 to 71.7, the row at 448.3), and nothing scrolls them back. Remove the expected-failure
+  // mark once fixed.
   it('closing search leaves the list where it is', async () => {
     await openLong()
     const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.middle.token)
@@ -376,12 +377,8 @@ const dragTravel = async (dy: number) => {
 }
 
 describe('chat scroll: paging', () => {
-  // App bug (integration build, iOS): the first page of older rows landing during a drag from the
-  // end of the thread takes about 60 points off the drag: the reader's rows stop short of where the
-  // finger put them. The same 400-point drag from the same place (row top 439.3, offset 0) moved the
-  // row 450 to 455 points with the page landing during it (20 rows loaded -> 120) and 511 to 520
-  // points once that page was already loaded; Appium's rect for the row agrees within a point. Later
-  // pages landing mid-thread cost nothing (the next flow). Remove the expected-failure mark once fixed.
+  // The first page of older rows lands during a drag from the end of the thread; the drag moves the
+  // reader's rows as far as the same drag does once that page is loaded.
   it('the first older page landing during a drag from the end leaves the reader where the drag put them', async () => {
     await openLong()
     await expectAtEnd()
@@ -391,12 +388,10 @@ describe('chat scroll: paging', () => {
     await expectAtEnd()
     const plain = await dragTravel(400)
     check(plain.after.ordinals.length === plain.before.ordinals.length, 'a page landed during the second drag')
-    await expectedFailure('the first older page landing takes travel off the drag', () => {
-      check(
-        Math.abs(landing.travel - plain.travel) <= pagingTolerance,
-        `the drag moved the reader's row ${landing.travel}pt as the page landed, ${plain.travel}pt with it loaded`
-      )
-    })
+    check(
+      Math.abs(landing.travel - plain.travel) <= pagingTolerance,
+      `the drag moved the reader's row ${landing.travel}pt as the page landed, ${plain.travel}pt with it loaded`
+    )
   })
 
   it('dragging up loads older pages without moving the reader, back to the first message', async () => {
