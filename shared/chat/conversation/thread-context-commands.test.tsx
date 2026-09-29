@@ -12,7 +12,7 @@ import type * as React from 'react'
 import logger from '@/logger'
 import {act, cleanup, fireEvent, renderHook, screen} from '@testing-library/react'
 import {getInboxConversationMeta, metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
-import {makeMessageAttachment, makeMessageText} from '@/constants/chat/message'
+import {makeMessageAttachment, makeMessageDeleted, makeMessageText} from '@/constants/chat/message'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -688,6 +688,30 @@ describe('messageDelete edges', () => {
     expect(message(10)).toBeUndefined()
     expect(message(11)?.submitState).toBeUndefined()
     expect(result.current.store.getState().pendingDeleteMap.size).toBe(0)
+  })
+
+  // a live update can carry the delete: a deleted placeholder takes the row out, and an exploding
+  // message's delete comes back as the row itself, exploded
+  test.each([
+    [
+      'a deleted placeholder',
+      makeMessageDeleted({
+        conversationIDKey,
+        id: T.Chat.numberToMessageID(10),
+        ordinal: T.Chat.numberToOrdinal(10),
+      }),
+    ],
+    ['the row exploded', textAt(10, {exploded: true, explodedBy: 'testuser', exploding: true})],
+  ])('a delete landing in a live update as %s clears its pending delete', async (_, update) => {
+    const {message, result} = renderThread([textAt(10, {exploding: true}), textAt(11)])
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
+    await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(11)))
+    act(() => {
+      result.current.actions.addMessages([update], {liveUpdate: true})
+    })
+    expect(message(10)?.submitState).toBeUndefined()
+    expect([...result.current.store.getState().pendingDeleteMap.values()]).toEqual([T.Chat.numberToOrdinal(11)])
+    expect(message(11)?.submitState).toBe('deleting')
   })
 
   test('clearing the thread drops its pending deletes', async () => {

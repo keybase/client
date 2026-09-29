@@ -66,8 +66,9 @@ export type ConversationThreadState = {
   moreToLoadForward: boolean
   optimisticReactionMap: Map<T.Chat.OutboxID, OptimisticReaction>
   paymentStatusMap: Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
-  // See PendingDeleteMap. Set by a delete, cleared when the row goes, when a thread load carries the
-  // row again, when the delete fails (its RPC or, once queued, its outbox entry) and by messagesClear.
+  // See PendingDeleteMap. Set by a delete, cleared by any update once the delete has landed (see
+  // clearPendingDeletesInThreadState), when a thread load carries the row again, when the delete
+  // fails (its RPC or, once queued, its outbox entry) and by messagesClear.
   pendingDeleteMap: Map<T.Chat.OutboxID, T.Chat.Ordinal>
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal>
   typing: Set<string>
@@ -309,6 +310,10 @@ export const makeThreadStore = (
     let result: R | undefined
     const next = produce(current, draft => {
       result = updater(draft)
+      // A delete lands by whatever path changes the row, so every update settles pending deletes.
+      if (draft.pendingDeleteMap.size) {
+        clearPendingDeletesInThreadState(draft)
+      }
     })
     if (current !== next) {
       store.setState(next, true)
@@ -399,9 +404,6 @@ export const makeThreadStore = (
         dropNewBelowWindow: true,
       })
       clearOptimisticReactionsForMessagesInThreadState(s, messages)
-      // a row a notification removed is no longer being deleted; one it only updated (a reaction,
-      // an unfurl) still is
-      clearPendingDeletesInThreadState(s, o => !s.messageMap.has(o))
     })
     if (opt.markAsRead) {
       markThreadAsRead()
@@ -465,7 +467,7 @@ export const makeThreadStore = (
         clearOptimisticReactionsForMessagesInThreadState(s, p.messages)
         // A load still carrying the row is the service saying it is there: a delete that failed
         // after it was queued, with no outbox failure to say so, stops showing here.
-        clearPendingDeletesInThreadState(s, o => carried.has(o) || !s.messageMap.has(o))
+        clearPendingDeletesInThreadState(s, o => carried.has(o))
       }
       // Only a pass that actually rendered something drops the gate. A cold cache sends an empty
       // cached pass ahead of the full response, and a page can be all tombstones: dropping the
@@ -522,7 +524,6 @@ export const makeThreadStore = (
         ordinals: p.ordinals,
         upToMessageID: p.upToMessageID,
       })
-      clearPendingDeletesInThreadState(s, o => !s.messageMap.has(o))
     })
   }
 
@@ -536,8 +537,6 @@ export const makeThreadStore = (
         s.liveUpdateVersion += 1
       }
       explodeMessagesInThreadState(s, messageIDs, explodedBy)
-      // deleting an exploding message explodes it
-      clearPendingDeletesInThreadState(s, o => !!s.messageMap.get(o)?.exploded)
     })
   }
 

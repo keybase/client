@@ -530,12 +530,20 @@ export const isPendingDelete = (pendingDeletes: PendingDeleteMap, ordinal: T.Cha
   return false
 }
 
-// Drops every entry whose row is gone or settled: done(ordinal) says which.
+// Drops every entry whose delete has landed: its row is gone, a deleted placeholder, or exploded
+// (deleting an exploding message explodes it). done(ordinal) names more rows to drop.
 export const clearPendingDeletesInThreadState = (
-  state: {pendingDeleteMap: Map<T.Chat.OutboxID, T.Chat.Ordinal>},
-  done: (ordinal: T.Chat.Ordinal) => boolean
+  state: {
+    messageMap: ReadonlyMap<T.Chat.Ordinal, T.Chat.Message>
+    pendingDeleteMap: Map<T.Chat.OutboxID, T.Chat.Ordinal>
+  },
+  done?: (ordinal: T.Chat.Ordinal) => boolean
 ) => {
-  const settled = [...state.pendingDeleteMap].filter(([, ordinal]) => done(ordinal))
+  const landed = (ordinal: T.Chat.Ordinal) => {
+    const m = state.messageMap.get(ordinal)
+    return !m || m.type === 'deleted' || ('exploded' in m && !!m.exploded)
+  }
+  const settled = [...state.pendingDeleteMap].filter(([, ordinal]) => landed(ordinal) || !!done?.(ordinal))
   for (const [outboxID] of settled) {
     state.pendingDeleteMap.delete(outboxID)
   }
