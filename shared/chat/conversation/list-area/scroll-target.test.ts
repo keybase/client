@@ -303,7 +303,7 @@ describe('readerAtEnd', () => {
 describe('editingChanged', () => {
   const editing = (n: number | undefined, targetInData = true, rowFullyVisible = false): ScrollEvent => ({
     ordinal: n === undefined ? undefined : ord(n),
-    rowFullyVisible,
+    rowFullyVisible: () => rowFullyVisible,
     targetInData,
     type: 'editingChanged',
   })
@@ -507,10 +507,10 @@ describe('sequences', () => {
 
   test('an edit revealed before a reload is not revealed again after it', () => {
     const d = openList()
-    d.send({ordinal: ord(15), rowFullyVisible: false, targetInData: true, type: 'editingChanged'})
+    d.send({ordinal: ord(15), rowFullyVisible: () => false, targetInData: true, type: 'editingChanged'})
     d.centreOn(ord(30))
     d.load(window(1, 60))
-    d.send({ordinal: ord(15), rowFullyVisible: false, targetInData: true, type: 'editingChanged'})
+    d.send({ordinal: ord(15), rowFullyVisible: () => false, targetInData: true, type: 'editingChanged'})
     expect(d.take()).toEqual([reveal(15), stopCentering, leaveAlone, center(30), leaveAlone])
   })
 })

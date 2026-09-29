@@ -281,7 +281,7 @@ export const useDesktopThreadScroll = (p: {
     const targetInData = editingOrdinal !== undefined && indexOfOrdinal(messageOrdinals, editingOrdinal) >= 0
     dispatch({
       ordinal: editingOrdinal,
-      rowFullyVisible: targetInData && rowFullyVisible(wrapperRef.current, editingOrdinal),
+      rowFullyVisible: () => editingOrdinal !== undefined && rowFullyVisible(wrapperRef.current, editingOrdinal),
       targetInData,
       type: 'editingChanged',
     })

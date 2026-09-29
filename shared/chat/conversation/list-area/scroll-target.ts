@@ -72,11 +72,12 @@ export type ScrollEvent =
   // the newest message in view whenever the list is at its end.
   | {type: 'appended'; anchorHidesNewest: boolean}
   // Sent whenever the edit or the loaded rows change. rowFullyVisible says whether the edited row is
-  // wholly in view, as each list measures it.
+  // wholly in view, as each list measures it; measuring can force a layout, so it is asked only when
+  // the decision turns on it.
   | {
       type: 'editingChanged'
       ordinal: T.Chat.Ordinal | undefined
-      rowFullyVisible: boolean
+      rowFullyVisible: () => boolean
       targetInData: boolean
     }
   // The reader asked for the newest messages: the composer, the keyboard or jump to recent.
@@ -202,7 +203,7 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
       if (!targetInData) return {directive: leaveAlone, state}
       // A row already in view stays where it is: bringing it to the middle would only move the list
       // off its end.
-      if (rowFullyVisible) return {directive: leaveAlone, state: {...state, lastEditing: ordinal}}
+      if (rowFullyVisible()) return {directive: leaveAlone, state: {...state, lastEditing: ordinal}}
       // Any other reveal moves the list, off its end if it was there, and leaves the reader on the
       // edited message as their own scroll would: nothing may scroll back to the end on the list's
       // account.

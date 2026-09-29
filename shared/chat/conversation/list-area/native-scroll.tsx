@@ -275,8 +275,7 @@ export const useNativeThreadScroll = (p: {
     const index = editingOrdinal === undefined ? -1 : messageOrdinals.indexOf(editingOrdinal)
     dispatch({
       ordinal: editingOrdinal,
-      rowFullyVisible:
-        index >= 0 &&
+      rowFullyVisible: () =>
         rowFullyVisible(
           index,
           vFirstRef.current,

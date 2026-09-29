@@ -754,6 +754,19 @@ describe('editing', () => {
     expect(H.log).toHaveLength(1)
   })
 
+  // Measuring a row forces a layout.
+  test('the edited row is measured once, not again on every change to the rows while the edit is open', () => {
+    open()
+    const measured = () =>
+      (HTMLElement.prototype.getBoundingClientRect as jest.Mock).mock.contexts.filter(
+        el => (el as HTMLElement).getAttribute('data-ordinal') === '15'
+      ).length
+    update(() => H.inputStore.set({editing: ord(15)}))
+    expect(measured()).toBe(1)
+    for (let n = 61; n <= 65; n++) update(() => H.threadStore.set({messageOrdinals: H.range(1, n)}))
+    expect(measured()).toBe(1)
+  })
+
   test('stopping an edit does not scroll', () => {
     open()
     update(() => H.inputStore.set({editing: ord(15)}))
