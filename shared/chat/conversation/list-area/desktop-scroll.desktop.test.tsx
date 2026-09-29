@@ -894,13 +894,26 @@ describe('dataset reset', () => {
     expect(H.log).toEqual([['scrollToEnd', noAnimation]])
   })
 
-  test('resets the header baseline, so the first measurement after it is not growth', async () => {
-    open()
+  // The list reports its header only when its size changes, never for a new dataset, so the size
+  // measured before the clear is still the one the list builds on.
+  test('keeps the header baseline: after jump to recent, the header growing re-pins the end', async () => {
+    open({center: 30, moreToLoadForward: true})
     update(() => (props()['onMetricsChange'] as (m: {headerSize: number}) => void)({headerSize: 100}))
-    reloadDataset()
+    await tick(5000)
+    fireEvent.click(screen.getByText('Jump to recent messages'))
+    update(() => {
+      H.setCenter(undefined)
+      clearThread()
+      H.listStore.set({isAtEnd: false})
+    })
+    update(() => {
+      loadThread(1, 70)
+      H.threadStore.set({moreToLoadForward: false})
+    })
+    H.log.length = 0
     update(() => (props()['onMetricsChange'] as (m: {headerSize: number}) => void)({headerSize: 152}))
-    await tick(3000)
-    expect(H.log).toEqual([])
+    await tick(100)
+    expect(H.log).toEqual([['scrollToEnd', noAnimation]])
   })
 })
 

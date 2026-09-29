@@ -6,15 +6,16 @@ import * as React from 'react'
 import type * as T from '@/constants/types'
 import sortedIndexOf from 'lodash/sortedIndexOf'
 
-// The centring and header bookkeeping below belong to the current dataset: a centred load clears the
-// thread and refills it under a new key, and that is a new list as far as scrolling is concerned.
+// The centring bookkeeping below belongs to the current dataset: a centred load clears the thread and
+// refills it under a new key, and that is a new list as far as scrolling is concerned.
 export type ScrollTargetState = {
   // Whether the end still belongs to the list (hold the newest message in view) or to the reader,
   // who took it by scrolling away or by asking for a centred target. Nothing that scrolls to the end
   // on the list's own account may yank a reader who holds it.
   endOwner: 'list' | 'reader'
-  // The last header size reported for this dataset. The first report is the size the list built its
-  // initial position from, so only a later, different one counts as growth.
+  // The last header size the list reported, whatever the dataset. The list reports the header only
+  // when its size changes, never for a new dataset, so the size from before a clear is still the one
+  // the new dataset builds its position on: only a later, different size counts as growth.
   headerSize: number | undefined
   // The target already centred in this dataset. Centring happens once per target: scrolling up
   // prepends older messages, which moves the target's index, and re-centring on that would pull
@@ -113,7 +114,7 @@ const leaveAlone: ScrollDirective = {stopCentering: false, type: 'leaveAlone'}
 export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): ScrollDecision => {
   switch (event.type) {
     case 'datasetChanged':
-      // The end, the centred target and the header baseline all start over with a new dataset. A
+      // The end and the centred target start over with a new dataset; the header does not. A
       // centring under way belongs to the old rows, so it stops: a target still wanted is centred
       // again once it is in the new ones, and one cleared in the same commit (jump to recent) would
       // otherwise go on pulling the reader toward it.
@@ -122,7 +123,6 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
         state: {
           ...state,
           endOwner: 'list',
-          headerSize: undefined,
           lastCentered: undefined,
           settlingCenter: false,
         },

@@ -67,11 +67,11 @@ describe('datasetChanged', () => {
   runTable([
     ['from a fresh state, only stops any centring', fresh, next, stopCentering, fresh],
     [
-      'hands the end back and forgets the centred target and header, keeping the revealed edit',
+      'hands the end back and forgets the centred target, keeping the header size and the revealed edit',
       busy,
       next,
       stopCentering,
-      state({lastEditing: ord(15)}),
+      state({headerSize: 100, lastEditing: ord(15)}),
     ],
     [
       'stops centring already under way',
