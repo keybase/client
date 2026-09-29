@@ -47,7 +47,11 @@ export type Composer = {
   restore: (text: string) => void
   // Fills the composer with the text of the message to edit. Where the user can't post an edit
   // could never be sent, so it is refused (false) and the composer is left as it was.
+  // An edit is not a draft: from here until the edit ends (a clear, or its send) nothing the
+  // composer holds is saved, and the saved draft is set aside to come back when it ends.
   startEdit: (text: string) => boolean
+  // Empties the composer. An edit ends instead, and the draft it set aside comes back.
+  clear: () => void
   // False where the user can't post: a reply could never be sent.
   startReply: () => boolean
   insertAtCaret: (s: string) => void
@@ -57,7 +61,8 @@ export type Composer = {
   replace: (info: TextInfo, reflectChange: boolean) => boolean
   // Saves an empty draft and clears the input now (with none attached, the next one once it has
   // loaded its draft), and hands the text to send on the next tick; false when there is nothing to
-  // send, or the user can't post (the text, typed before, stays, and so does its draft).
+  // send, or the user can't post (the text, typed before, stays, and so does its draft). Sending an
+  // edit ends it as clear does: the draft it set aside comes back, unsaved.
   submit: (send: (text: string, unfurlSuppress: SuppressSnapshot) => void) => boolean
   // An input's text belongs to the view it came from: an input attached by a different view starts
   // over with no text and a draft still to load. The same view attaching again (a new handle,
@@ -105,10 +110,12 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   let writing = false
   // the draft as last loaded or saved
   let saved: string | undefined
+  // set from the moment an edit's text lands until the edit ends
+  let editing = false
 
   // only a restore saves where the user can't post: it puts back the user's own text
   const saveDraft = (next: string, evenReadOnly = false) => {
-    if (next === saved || (!evenReadOnly && deps.isReadOnly())) return
+    if (editing || next === saved || (!evenReadOnly && deps.isReadOnly())) return
     saved = next
     deps.saveDraft(next)
   }
@@ -149,6 +156,17 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     }
   }
 
+  // The draft is written back while still editing, so writing it saves nothing: not even an empty
+  // draft over one that has not loaded yet.
+  const clear = (target: ComposerInput, focus: boolean) => {
+    if (editing) {
+      write(target, saved ?? '', focus)
+      editing = false
+    } else {
+      write(target, '', focus)
+    }
+  }
+
   const whenAttached = (w: (input: ComposerInput) => void) => {
     if (input) {
       w(input)
@@ -179,6 +197,11 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   // makes one).
   const offerDraft = (draft: string | undefined) => {
     if (draftLoaded || draft === undefined) return
+    if (editing) {
+      draftLoaded = true
+      saved = draft
+      return
+    }
     if (text !== '' || !draft) {
       draftLoaded = true
       if (text === '') {
@@ -193,6 +216,9 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   }
 
   return {
+    clear: () => {
+      whenAttached(target => clear(target, false))
+    },
     connect: () => {
       const view = {}
       let offered: string | undefined
@@ -259,7 +285,10 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     },
     startEdit: next => {
       if (deps.isReadOnly()) return false
-      whenAttached(target => write(target, next, false))
+      whenAttached(target => {
+        editing = true
+        write(target, next, false)
+      })
       return true
     },
     startReply: () => !deps.isReadOnly(),
@@ -270,15 +299,15 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
       text = ''
       // The send owns the draft: it is emptied now, with or without an input, so no later flush
       // (a detach, the provider unmounting) can save the text being sent, and nothing depends on an
-      // input attaching again.
+      // input attaching again. An edit never saved its text, and leaves the draft as it was.
       saveDraft('')
       deps.flushDraft()
       // with no input attached, the next one may still load the text being sent, if the row it
       // loads from was unboxed before the empty draft was saved
       if (input) {
-        write(input, '', true)
+        clear(input, true)
       } else {
-        pending.push(target => write(target, '', false))
+        pending.push(target => clear(target, false))
       }
       // Clearing the composer shrinks it back to one line, which grows the thread's viewport. Sending in
       // the same tick makes that growth and the new row a single change for the list to resolve its end

@@ -789,6 +789,112 @@ describe('typing and the saved draft', () => {
   })
 })
 
+describe('an edit', () => {
+  test('its text, and typing into it, is never saved, not even as the input goes away', () => {
+    const {composer, drafts, mount} = setup()
+    const {detach, fake} = mount('my draft')
+
+    composer.startEdit('my message')
+    fake.type('my message, fixed')
+    detach()
+
+    expect(fake.text).toBe('my message, fixed')
+    expect(drafts).toEqual(['flush'])
+  })
+
+  test('a clear ends it and puts back the draft it set aside, saving nothing; typing after is saved', () => {
+    const {composer, drafts, mount} = setup()
+    const {fake} = mount('my draft')
+    composer.startEdit('my message')
+    fake.type('my message, fixed')
+
+    composer.clear()
+
+    expect(fake.text).toBe('my draft')
+    expect(composer.getText()).toBe('my draft')
+    expect(drafts).toEqual([])
+    fake.type('my draft!')
+    expect(drafts).toEqual(['my draft!'])
+  })
+
+  test('a clear with no draft set aside leaves the composer empty, saving nothing', () => {
+    const {composer, drafts, mount} = setup()
+    const {fake} = mount('')
+    composer.startEdit('my message')
+
+    composer.clear()
+
+    expect(fake.text).toBe('')
+    expect(drafts).toEqual([])
+  })
+
+  test('a clear before any draft was known saves no empty draft over the one not yet loaded', () => {
+    const {composer, drafts, mount} = setup()
+    const {fake, view} = mount(undefined)
+    composer.startEdit('my message')
+
+    composer.clear()
+    expect(fake.text).toBe('')
+    expect(drafts).toEqual([])
+
+    view.offerDraft('late draft')
+    expect(fake.text).toBe('late draft')
+  })
+
+  test('sending it hands over its text and puts back the draft, saving nothing', () => {
+    jest.useFakeTimers()
+    const {composer, drafts, mount, send} = setup()
+    const {fake} = mount('my draft')
+    composer.startEdit('my message')
+    fake.type('my message, fixed')
+
+    expect(composer.submit(send)).toBe(true)
+    jest.runAllTimers()
+
+    expect(send).toHaveBeenCalledWith('my message, fixed', noSnapshot)
+    expect(fake.text).toBe('my draft')
+    expect(drafts).toEqual(['flush'])
+  })
+
+  test('a draft that arrives during it is set aside, and comes back when it ends', () => {
+    const {composer, drafts, mount} = setup()
+    const {fake, view} = mount(undefined)
+    composer.startEdit('my message')
+
+    view.offerDraft('late draft')
+    expect(fake.text).toBe('my message')
+
+    composer.clear()
+    expect(fake.text).toBe('late draft')
+    expect(drafts).toEqual([])
+  })
+
+  test('started, cleared and started again with no input attached, the second edit is not saved either', () => {
+    const {composer, drafts, mount} = setup()
+    const {attach, detach, fake} = mount('my draft')
+    detach()
+    drafts.length = 0
+
+    composer.startEdit('first')
+    composer.clear()
+    composer.startEdit('second')
+    attach()
+
+    expect(fake.text).toBe('second')
+    expect(drafts).toEqual([])
+  })
+
+  test('with no edit, a clear empties the composer and saves the empty draft', () => {
+    const {composer, drafts, mount} = setup()
+    const {fake} = mount('my draft')
+
+    composer.clear()
+
+    expect(fake.text).toBe('')
+    expect(drafts).toEqual([''])
+  })
+})
+
 describe('read-only', () => {
   test('an inject, an insert and a typed insert reach neither the input nor the text', () => {
     const {composer, mount, setReadOnly} = setup()

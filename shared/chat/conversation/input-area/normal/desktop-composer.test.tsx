@@ -20,6 +20,8 @@ import {ConversationThreadProvider, useConversationThreadActions} from '../../th
 jest.mock('@/chat/audio/audio-recorder.native', () => ({__esModule: true, default: () => null}))
 jest.mock('@/chat/audio/audio-send.native', () => ({AudioSendWrapper: () => null}))
 jest.mock('@/util/expo-document-picker.native', () => ({pickDocumentsAsync: jest.fn()}))
+// the reply preview's avatar needs more of react-native than the stub has
+jest.mock('../../reply-preview', () => ({__esModule: true, default: () => null}))
 
 let mockPickEmoji: ((emojiColons: string) => void) | undefined
 jest.mock('@/chat/emoji-picker/container', () => ({
@@ -848,5 +850,162 @@ describe('read-only', () => {
     })
 
     expect(unsent.mock.calls.at(-1)?.[0].text).toBe('saved!')
+  })
+})
+
+// An edit borrows the composer: its text is never the draft, and the draft the user had before
+// it is left alone on the service and comes back when the edit ends.
+describe('editing and the draft', () => {
+  const draftsSaved = () => jest.mocked(T.RPCChat.localUpdateUnsentTextRpcPromise).mock.calls.map(c => c[0].text)
+  const inboxDraft = () => useInboxMetadataState.getState().metas.get(convID)?.draft
+
+  // no outbox id, which the edit's RPC would have to encode
+  const sentMessage = () =>
+    Message.makeMessageText({
+      author: 'testuser',
+      conversationIDKey: convID,
+      id: T.Chat.numberToMessageID(101),
+      isEditable: true,
+      ordinal: T.Chat.numberToOrdinal(101),
+      text: new HiddenString('last thing I said'),
+      timestamp: 100,
+    })
+
+  const startEditFromMenu = (getHandles: () => Handles) => {
+    act(() => {
+      getHandles().thread.addMessages([sentMessage()], {markAsRead: false})
+    })
+    act(() => {
+      getHandles().input.dispatch.setEditing(T.Chat.numberToOrdinal(101))
+    })
+  }
+
+  test('leaving mid-edit started with ArrowUp saves nothing', () => {
+    receiveDraft('')
+    const {getHandles, textarea, utils} = renderComposer()
+    act(() => {
+      getHandles().thread.addMessages([makeTextMessage('last thing I said')], {markAsRead: false})
+    })
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'ArrowUp'})
+    })
+    expect(textarea.value).toBe('last thing I said')
+    type(textarea, 'last thing I said, fixed')
+
+    utils.unmount()
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(draftsSaved()).toEqual([])
+    expect(inboxDraft()).toBe('')
+  })
+
+  test('leaving mid-edit started from the menu keeps the draft the user had, and it comes back', () => {
+    receiveDraft('my draft')
+    const {getHandles, textarea, utils} = renderComposer()
+    expect(textarea.value).toBe('my draft')
+    startEditFromMenu(getHandles)
+    expect(textarea.value).toBe('last thing I said')
+    type(textarea, 'last thing I said, fixed')
+    // past the throttle's trailing edge while still editing
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+    expect(draftsSaved()).toEqual([])
+
+    utils.unmount()
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(draftsSaved()).toEqual([])
+    expect(inboxDraft()).toBe('my draft')
+    const again = renderComposer()
+    expect(again.textarea.value).toBe('my draft')
+  })
+
+  test('Escape puts back the draft the user had, and saves nothing', () => {
+    receiveDraft('my draft')
+    const {getHandles, textarea} = renderComposer()
+    startEditFromMenu(getHandles)
+    type(textarea, 'last thing I said, fixed')
+
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'Escape'})
+    })
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(getHandles().input.editing).toBe(T.Chat.numberToOrdinal(0))
+    expect(textarea.value).toBe('my draft')
+    expect(draftsSaved()).toEqual([])
+    expect(inboxDraft()).toBe('my draft')
+
+    // typing after the edit is the draft again
+    type(textarea, 'my draft, more')
+    expect(draftsSaved()).toEqual(['my draft, more'])
+  })
+
+  test('Escape with no draft before the edit leaves the composer empty, and saves nothing', () => {
+    receiveDraft('')
+    const {getHandles, textarea} = renderComposer()
+    startEditFromMenu(getHandles)
+
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'Escape'})
+    })
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(textarea.value).toBe('')
+    expect(draftsSaved()).toEqual([])
+    expect(inboxDraft()).toBe('')
+  })
+
+  test('sending the edit puts back the draft the user had, and saves nothing', async () => {
+    const edit = jest.spyOn(T.RPCChat, 'localPostEditNonblockRpcPromise').mockResolvedValue({
+      outboxID: new TextEncoder().encode('edited'),
+    })
+    receiveDraft('my draft')
+    const {getHandles, textarea} = renderComposer()
+    startEditFromMenu(getHandles)
+    type(textarea, 'last thing I said, fixed')
+
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'Enter'})
+    })
+    await act(async () => {
+      jest.advanceTimersByTime(1000)
+      for (let i = 0; i < 5; i++) {
+        await Promise.resolve()
+      }
+    })
+
+    expect(edit.mock.calls[0]?.[0].body).toBe('last thing I said, fixed')
+    expect(getHandles().input.editing).toBe(T.Chat.numberToOrdinal(0))
+    expect(textarea.value).toBe('my draft')
+    expect(draftsSaved()).toEqual([])
+    expect(inboxDraft()).toBe('my draft')
+  })
+
+  test('a reply is not an edit: its text is saved as the draft, and when leaving', () => {
+    receiveDraft('')
+    const {getHandles, textarea, utils} = renderComposer()
+    act(() => {
+      getHandles().thread.addMessages([sentMessage()], {markAsRead: false})
+    })
+    act(() => {
+      getHandles().input.dispatch.setReplyTo(T.Chat.numberToOrdinal(101))
+    })
+    type(textarea, 'r')
+    type(textarea, 're')
+
+    utils.unmount()
+
+    expect(draftsSaved()).toEqual(['r', 're'])
+    expect(inboxDraft()).toBe('re')
   })
 })

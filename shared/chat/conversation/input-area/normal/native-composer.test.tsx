@@ -96,6 +96,8 @@ jest.mock('@/chat/audio/audio-recorder.native', () => ({__esModule: true, defaul
 jest.mock('@/chat/audio/audio-send.native', () => ({AudioSendWrapper: () => null}))
 jest.mock('@/util/expo-document-picker.native', () => ({pickDocumentsAsync: jest.fn()}))
 jest.mock('./moremenu-popup.native', () => ({__esModule: true, default: () => null}))
+// the reply preview's avatar needs more of react-native than the stub has
+jest.mock('../../reply-preview', () => ({__esModule: true, default: () => null}))
 jest.mock('../suggestors', () => ({
   useSuggestors: (p: {onChangeText: (s: string) => void}) => ({
     getSuggestions: () => (mockSuggestionsShowing ? 'filtered' : 'none'),
@@ -808,6 +810,129 @@ describe('typing and the saved draft', () => {
 
     expect(typingSent()).toEqual([true])
     expect(draftsSaved()).toEqual(['h'])
+  })
+})
+
+// An edit borrows the composer: its text is never the draft, and the draft the user had before
+// it is left alone on the service and comes back when the edit ends. Same as desktop.
+describe('editing and the draft', () => {
+  const draftsSaved = () =>
+    (m.T.RPCChat.localUpdateUnsentTextRpcPromise as unknown as jest.Mock<unknown, [{text: string}]>).mock.calls.map(
+      c => c[0].text
+    )
+  const inboxDraft = () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const {useInboxMetadataState} = require('@/chat/inbox/metadata') as typeof Metadata
+    return useInboxMetadataState.getState().metas.get(convID)?.draft
+  }
+  const receiveDraft = (draft: string) => {
+    /* eslint-disable @typescript-eslint/no-require-imports */
+    const {metasReceived} = require('@/chat/inbox/metadata') as typeof Metadata
+    const Meta = require('@/constants/chat/meta') as typeof MetaModule
+    /* eslint-enable @typescript-eslint/no-require-imports */
+    act(() => {
+      metasReceived([{...Meta.makeConversationMeta(), conversationIDKey: convID, draft}], undefined, {force: true})
+    })
+  }
+  const addMessage = () => {
+    /* eslint-disable @typescript-eslint/no-require-imports */
+    const {makeMessageText} = require('@/constants/chat/message') as typeof MessageModule
+    const HiddenString = (require('@/util/hidden-string') as typeof HiddenStringModule).default
+    /* eslint-enable @typescript-eslint/no-require-imports */
+    act(() => {
+      threadActions?.addMessages(
+        [
+          makeMessageText({
+            author: 'testuser',
+            conversationIDKey: convID,
+            id: m.T.Chat.numberToMessageID(101),
+            isEditable: true,
+            ordinal: m.T.Chat.numberToOrdinal(101),
+            text: new HiddenString('fix my typo'),
+          }),
+        ],
+        {markAsRead: false}
+      )
+    })
+  }
+  const startEdit = () => {
+    addMessage()
+    act(() => {
+      inputDispatch?.setEditing(m.T.Chat.numberToOrdinal(101))
+    })
+  }
+
+  test('leaving mid-edit keeps the draft the user had, and it comes back', () => {
+    receiveDraft('my draft')
+    const {unmount} = renderComposer()
+    expect(input().value).toBe('my draft')
+    startEdit()
+    expect(input().value).toBe('fix my typo')
+    type('fixed my typo')
+    // past the throttle's trailing edge while still editing
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+    expect(draftsSaved()).toEqual([])
+
+    unmount()
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(draftsSaved()).toEqual([])
+    expect(inboxDraft()).toBe('my draft')
+    renderComposer()
+    expect(input().value).toBe('my draft')
+  })
+
+  test('hiding the input mid-edit saves nothing', () => {
+    receiveDraft('')
+    const {showInput} = renderComposer()
+    startEdit()
+    type('fixed my typo')
+
+    showInput(false)
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(draftsSaved()).toEqual([])
+    expect(inboxDraft()).toBe('')
+  })
+
+  test('cancelling puts back the draft the user had, and saves nothing', () => {
+    receiveDraft('my draft')
+    renderComposer()
+    startEdit()
+    type('fixed my typo')
+
+    act(() => {
+      inputDispatch?.setEditing('clear')
+    })
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(input().value).toBe('my draft')
+    expect(draftsSaved()).toEqual([])
+    expect(inboxDraft()).toBe('my draft')
+  })
+
+  test('a reply is not an edit: its text is saved as the draft, and when leaving', () => {
+    receiveDraft('')
+    const {unmount} = renderComposer()
+    addMessage()
+    act(() => {
+      inputDispatch?.setReplyTo(m.T.Chat.numberToOrdinal(101))
+    })
+    type('r')
+    type('re')
+
+    unmount()
+
+    expect(draftsSaved()).toEqual(['r', 're'])
+    expect(inboxDraft()).toBe('re')
   })
 })
 

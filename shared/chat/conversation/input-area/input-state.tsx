@@ -179,7 +179,7 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
   const setEditing = React.useEffectEvent((e: T.Chat.Ordinal | 'last' | 'clear') => {
     if (e === 'clear') {
       dispatchState({ordinal: emptyOrdinal, type: 'setEditing'})
-      composer.inject('')
+      composer.clear()
       return
     }
 
@@ -241,7 +241,7 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
   const sendGiphyResult = React.useEffectEvent((result: T.RPCChat.GiphySearchResult) => {
     sendGiphyResultAction(result, state.replyTo)
     dispatchState({type: 'afterSend'})
-    composer.inject('')
+    composer.clear()
   })
   const toggleGiphyPrefill = React.useEffectEvent(() => {
     composer.inject(state.giphyWindow ? '' : '/giphy ')
