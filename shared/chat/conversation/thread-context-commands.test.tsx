@@ -437,7 +437,7 @@ describe('setMarkAsUnread', () => {
   })
 
   test('logged out it does nothing', async () => {
-    const {result} = renderThread([textAt(10)])
+    const {result} = renderThread([textAt(10), textAt(20)])
     useConfigState.setState({loggedIn: false})
     await run(() => result.current.actions.setMarkAsUnread(T.Chat.numberToMessageID(20)))
     expect(markReads()).toEqual([])

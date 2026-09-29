@@ -358,10 +358,10 @@ describe('setMarkAsUnread', () => {
     expect(markReads()).toEqual([{conversationIDKey: convA, forceUnread: true, msgID: 3}])
   })
 
-  test('logged out by the session dep, it does nothing', async () => {
+  test('logged out, it does nothing', async () => {
     const {actions} = makeThread()
-    actions.addMessages([textAt(3)])
-    session = {loggedIn: false, uid: 'uid'}
+    actions.addMessages([textAt(3), textAt(8)])
+    useConfigState.setState({loggedIn: false})
     actions.setMarkAsUnread(T.Chat.numberToMessageID(8))
     await flushPromises()
     expect(markReads()).toEqual([])

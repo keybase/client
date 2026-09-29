@@ -563,10 +563,6 @@ export const makeThreadStore = (
   }
 
   const setMarkAsUnread = (readMsgID?: T.Chat.MessageID) => {
-    if (!deps.getSession().loggedIn) {
-      logger.info('mark unread bail on not logged in')
-      return
-    }
     markConversationUnread(id, readMsgID, {getWindow: getSnapshot, isRetired})
   }
 
