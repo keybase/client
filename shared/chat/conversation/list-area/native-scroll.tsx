@@ -24,7 +24,7 @@ import {makeSchedule, useSchedule, type Scheduled} from './schedule'
 
 export type NativeListRef = {
   scrollToOffset: (opts: {animated: boolean; offset: number}) => void
-  scrollToItem: (opts: {animated: boolean; item: unknown; viewPosition?: number}) => void
+  scrollToItem: (opts: {animated: boolean; item: unknown; viewOffset?: number; viewPosition?: number}) => void
 }
 
 // The maintainVisibleContentPosition prop must ALWAYS be set (never toggled to undefined):
@@ -61,6 +61,8 @@ const rowEdgeTolerance = 1
 // reader nearing the new end, and a second after it last asked, so a page on its way is not asked for
 // again.
 const pageLoadGate = 1000
+// What a scroll to a row is for: a centre, or a reveal.
+type ItemScroll = 'center' | 'reveal'
 // The list moving by less than this has not moved.
 const stillPoints = 1
 
@@ -138,15 +140,26 @@ export const useNativeThreadScroll = (p: {
   })
   // Where a row lands is not known ahead, only which way it lies from the middle of the view, once the
   // list has reported what is in view: older rows sit at higher offsets. Until then the scroll heads
-  // nowhere known, and the movement after it is the reader's.
-  const [scrollToItem] = React.useState(() => (item: T.Chat.Ordinal, animated: boolean) => {
+  // nowhere known, and the movement after it is the reader's. A centre's coarse scroll puts the row in
+  // the middle of the whole scroll view, where its corrector, reading the list's viewability, settles
+  // it. A reveal, animated, puts it in the middle of the part of the view nothing covers: the keyboard
+  // (and the composer riding it) covers the bottom of the scroll view by as much as the resting offset
+  // sits below 0, so the row is lifted by half of that. Which way that lies is read from the row
+  // itself when the list has laid it out, as the lift can turn a row just past the middle of the view.
+  const [scrollToItem] = React.useState(() => (item: T.Chat.Ordinal, kind: ItemScroll) => {
+    const animated = kind === 'reveal'
     const index = indexOfOrdinalNewestFirst(ordsRef.current, item)
     const first = vFirstRef.current
     const last = vLastRef.current
-    if (first != null && last != null && index >= 0) {
-      own.issued(metricsRef.current.offset, index >= (first + last) / 2 ? Infinity : -Infinity, animated)
+    const {offset, viewport} = metricsRef.current
+    const lift = kind === 'reveal' ? -restingOffset() / 2 : 0
+    const frame = rowFramesRef.current.get(item)
+    if (lift && frame && offset !== undefined && viewport !== undefined) {
+      own.issued(offset, frame.y + (frame.height - viewport) / 2 - lift, animated)
+    } else if (first != null && last != null && index >= 0) {
+      own.issued(offset, index >= (first + last) / 2 ? Infinity : -Infinity, animated)
     }
-    listRef.current?.scrollToItem({animated, item, viewPosition: 0.5})
+    listRef.current?.scrollToItem({animated, item, viewOffset: lift, viewPosition: 0.5})
   })
 
   // Every delayed scroll (coarse reasserts, the corrector's schedule, scroll-to-index retries, the
@@ -166,7 +179,7 @@ export const useNativeThreadScroll = (p: {
           if (centeredRef.current !== target) {
             return
           }
-          scrollToItem(target, false)
+          scrollToItem(target, 'center')
         })
       ;[50, 250].forEach(reassert)
     },
@@ -200,9 +213,9 @@ export const useNativeThreadScroll = (p: {
   // failures have been retried: a row outside the rendered window makes the scroll fail, and the
   // retry asks for that same row again once more rows have rendered. A request lasts as long as what
   // asked for it: a centre's ends when it settles, and every one ends when the reader takes over.
-  const itemScrollsRef = React.useRef(new Map<T.Chat.Ordinal, {animated: boolean; retries: number}>())
-  const [requestItem] = React.useState(() => (item: T.Chat.Ordinal, animated: boolean) => {
-    itemScrollsRef.current.set(item, {animated, retries: 0})
+  const itemScrollsRef = React.useRef(new Map<T.Chat.Ordinal, {kind: ItemScroll; retries: number}>())
+  const [requestItem] = React.useState(() => (item: T.Chat.Ordinal, kind: ItemScroll) => {
+    itemScrollsRef.current.set(item, {kind, retries: 0})
   })
   const [stopCentering] = React.useState(() => () => {
     correctRef.current.active = false
@@ -265,7 +278,7 @@ export const useNativeThreadScroll = (p: {
           scrollToOffset(restingOffset())
           return
         case 'center':
-          requestItem(directive.ordinal, false)
+          requestItem(directive.ordinal, 'center')
           moveToward(directive.ordinal)
           correctRef.current = {active: true, iters: 0, target: directive.ordinal}
           ladderRef.current.forEach(t => t.cancel())
@@ -277,8 +290,8 @@ export const useNativeThreadScroll = (p: {
           )
           return
         case 'reveal':
-          requestItem(directive.ordinal, true)
-          scrollToItem(directive.ordinal, true)
+          requestItem(directive.ordinal, 'reveal')
+          scrollToItem(directive.ordinal, 'reveal')
           return
         case 'leaveAlone':
           if (directive.stopCentering) stopCentering()
@@ -450,7 +463,7 @@ export const useNativeThreadScroll = (p: {
     request.retries += 1
     timers.after(200, () => {
       if (itemScrollsRef.current.get(item) !== request) return
-      scrollToItem(item, request.animated)
+      scrollToItem(item, request.kind)
     })
   })
 
