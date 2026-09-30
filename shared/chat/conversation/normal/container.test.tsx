@@ -10,7 +10,7 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {useShellState} from '@/stores/shell'
-import {OrangeLineContext, SetOrangeLineContext, setConversationOrangeLine} from '../orange-line-context'
+import {OrangeLineContext, setConversationOrangeLine} from '../orange-line-context'
 import {consumeInputIntent, setInputIntent, useInputIntentState} from '../input-intent-store'
 import NormalWrapper from './container'
 
@@ -21,7 +21,6 @@ let mockLoaded = true
 let mockMeta: T.Chat.ConversationMeta
 let mockRetired = false
 let mockRouteParams: {threadSearch?: {query?: string}} | undefined
-let mockSetOrangeLine: ((ordinal: T.Chat.Ordinal) => void) | undefined
 let mockThreadLoadStatusProviderProps:
   | {
       allowMarkReadOnLoad?: boolean
@@ -54,12 +53,7 @@ const makeMeta = (
 function mockNormal() {
   return React.createElement(OrangeLineContext.Consumer, {
     children: (orangeLine: T.Chat.Ordinal) =>
-      React.createElement(SetOrangeLineContext.Consumer, {
-        children: (setOrangeLine: (ordinal: T.Chat.Ordinal) => void) => {
-          mockSetOrangeLine = setOrangeLine
-          return React.createElement('div', {'data-testid': 'orange-line'}, String(orangeLine))
-        },
-      }),
+      React.createElement('div', {'data-testid': 'orange-line'}, String(orangeLine)),
   })
 }
 
@@ -179,7 +173,6 @@ beforeEach(() => {
   mockRetired = false
   mockMeta = makeMeta(convID)
   mockRouteParams = undefined
-  mockSetOrangeLine = undefined
   mockThreadLoadStatusProviderProps = undefined
   useShellState.setState({active: true, mobileAppState: 'active'})
 })
@@ -213,22 +206,6 @@ test('orange line stays fixed across unreadline refreshes while the thread stays
   await flushOrangeLine()
 
   expectOrangeLine(initialOrangeLine)
-})
-
-test('manual orange line updates move an existing orange line', async () => {
-  const initialOrangeLine = T.Chat.numberToOrdinal(10)
-  unreadlineAnswer(10)
-
-  render(<NormalWrapper />)
-  await flushOrangeLine()
-
-  expectOrangeLine(initialOrangeLine)
-
-  act(() => {
-    mockSetOrangeLine?.(T.Chat.numberToOrdinal(50))
-  })
-
-  expectOrangeLine(T.Chat.numberToOrdinal(50))
 })
 
 test('orange line resets after switching to another thread', async () => {
@@ -430,7 +407,7 @@ test('missing unreadline responses render as no orange line', async () => {
   expectOrangeLine(noOrangeLine)
 })
 
-test('manual orange line update sets the line when no line exists yet', async () => {
+test('an explicit orange line sets the line when no line exists yet', async () => {
   unreadlineAnswer(30)
   const localOrdinal = T.Chat.numberToOrdinal(50.001)
   mockLoaded = false
@@ -442,7 +419,7 @@ test('manual orange line update sets the line when no line exists yet', async ()
   expectOrangeLine(noOrangeLine)
 
   act(() => {
-    mockSetOrangeLine?.(localOrdinal)
+    setConversationOrangeLine(convID, localOrdinal)
   })
 
   expectOrangeLine(localOrdinal)

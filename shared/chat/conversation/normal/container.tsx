@@ -5,7 +5,7 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import Normal from '.'
 import * as T from '@/constants/types'
 import {ThreadRefsProvider} from './context'
-import {OrangeLineContext, SetOrangeLineContext, useExplicitOrangeLineState} from '../orange-line-context'
+import {OrangeLineContext, useExplicitOrangeLineState} from '../orange-line-context'
 import {ChatTeamProvider} from '../team-hooks'
 import {ConversationCenterProvider} from '../center-context'
 import {ConversationInputProvider} from '../input-area/input-state'
@@ -169,7 +169,7 @@ const useOrangeLine = (
     setOrangeLine(explicitOrangeLine.ordinal)
   }, [explicitOrangeLine, id])
 
-  return {orangeLine: getVisibleOrangeLine(orangeLineState, mobileAppState), setOrangeLine}
+  return getVisibleOrangeLine(orangeLineState, mobileAppState)
 }
 
 const useShowManageChannels = () => {
@@ -197,13 +197,9 @@ type OrangeLineProviderProps = React.PropsWithChildren<{
 
 const NormalOrangeLineProvider = (props: OrangeLineProviderProps) => {
   const {active, children, conversationIDKey, mobileAppState} = props
-  const {orangeLine, setOrangeLine} = useOrangeLine(conversationIDKey, active, mobileAppState)
+  const orangeLine = useOrangeLine(conversationIDKey, active, mobileAppState)
 
-  return (
-    <OrangeLineContext value={orangeLine}>
-      <SetOrangeLineContext value={setOrangeLine}>{children}</SetOrangeLineContext>
-    </OrangeLineContext>
-  )
+  return <OrangeLineContext value={orangeLine}>{children}</OrangeLineContext>
 }
 
 // Keyed on the conversation by its caller, so the peek runs in a useState initializer exactly

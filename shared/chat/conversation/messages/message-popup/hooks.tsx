@@ -14,7 +14,6 @@ import {
   useConversationInputDispatchOptional,
   type ConversationInputState,
 } from '../../input-area/input-state'
-import {SetOrangeLineContext} from '../../orange-line-context'
 import {useChatTeam, useChatTeamMembers} from '../../team-hooks'
 import {useCurrentUserState} from '@/stores/current-user'
 import {
@@ -130,7 +129,6 @@ const useItemsForMessage = (p: {
     ? ([{icon: 'iconfont-link', onClick: onCopyLink, title: 'Copy a link to this message'}] as const)
     : []
 
-  const setOrangeLine = React.useContext(SetOrangeLineContext)
   const clearModals = C.Router2.clearModals
   // Edit and Reply put something in the composer, so the composer has to be visible afterwards.
   // From the attachment viewer this popup sits under a modal route, and nothing else dismisses it -
@@ -196,7 +194,6 @@ const useItemsForMessage = (p: {
 
   const onMarkAsUnread = () => {
     if (id) {
-      setOrangeLine(ordinal)
       actions.markAsUnread(id)
     }
   }

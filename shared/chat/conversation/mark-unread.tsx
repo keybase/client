@@ -8,7 +8,8 @@
 // position: the newest message id strictly older than the line. A thread's window answers when it
 // holds the line and a message below it; otherwise the service is asked for the messages around
 // the line. With no older message known (the line is the first message, or the load failed)
-// nothing is marked, since marking the line itself read would leave it read.
+// nothing is marked, since marking the line itself read would leave it read. The orange line is
+// drawn only once the service has taken the new read position.
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {ignorePromise} from '@/constants/utils'
@@ -23,8 +24,7 @@ type ThreadWindow = {
   messageOrdinals?: ReadonlyArray<T.Chat.Ordinal>
 }
 
-// What a mounted thread lends: its window, and whether its account has left. A thread draws its
-// own orange line, at the row's ordinal, so none is drawn for it here.
+// What a mounted thread lends: its window, and whether its account has left.
 export type MarkUnreadThread = {
   getWindow: () => ThreadWindow
   isRetired: () => boolean
@@ -48,6 +48,12 @@ const idBeforeLineInWindow = (window: ThreadWindow, line: T.Chat.MessageID) => {
   const ids = (window.messageOrdinals ?? []).map(o => window.messageMap.get(o)?.id)
   return ids.some(id => !!id && id >= line) ? newestID(ids, line) : undefined
 }
+
+// The line's row in the window (a message this client sent keeps the ordinal it was placed at),
+// else the ordinal its id gives.
+const lineOrdinal = (line: T.Chat.MessageID, window?: ThreadWindow) =>
+  window?.messageOrdinals?.find(o => window.messageMap.get(o)?.id === line) ??
+  T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(line))
 
 // Never rejects: a failed load knows of no message.
 const loadIDs = async (
@@ -84,9 +90,6 @@ export const markConversationUnread = (
       logger.info(`marking unread messages ${conversationIDKey} failed due to no line`)
       return
     }
-    if (!thread) {
-      setConversationOrangeLine(conversationIDKey, T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(line)))
-    }
     const msgID = newest
       ? newestID(newest, line)
       : ((thread && idBeforeLineInWindow(thread.getWindow(), line)) ??
@@ -100,6 +103,10 @@ export const markConversationUnread = (
     }
     logger.info(`marking unread messages ${conversationIDKey} ${msgID}`)
     await getChatRpc().markRead({conversationIDKey, forceUnread: true, msgID})
+    if (thread?.isRetired()) {
+      return
+    }
+    setConversationOrangeLine(conversationIDKey, lineOrdinal(line, thread?.getWindow()))
   }
   ignorePromise(f())
 }

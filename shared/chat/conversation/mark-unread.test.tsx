@@ -5,6 +5,7 @@ import * as Meta from '@/constants/chat/meta'
 import * as OrangeLine from './orange-line-context'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
+import logger from '@/logger'
 import {makeMessageText} from '@/constants/chat/message'
 import {metasReceived} from '@/chat/inbox/metadata'
 import {resetAllStores} from '@/util/zustand'
@@ -113,7 +114,7 @@ describe('without a thread', () => {
     expect(markReads()).toEqual(marked(5))
   })
 
-  test('nothing older known marks nothing: the line is first, or the load failed', async () => {
+  test('nothing older known marks nothing and draws no line: the line is first, or the load failed', async () => {
     aroundLine([5, 6, 7])
     markConversationUnread(conversationIDKey, messageID(5))
     await flushPromises()
@@ -121,6 +122,17 @@ describe('without a thread', () => {
     markConversationUnread(conversationIDKey, messageID(5))
     await flushPromises()
     expect(markReads()).toEqual([])
+    expect(setOrangeLine).not.toHaveBeenCalled()
+  })
+
+  test('a mark read the service refuses draws no line', async () => {
+    aroundLine([3, 4, 5])
+    rpc.fail('markRead', new Error('offline'))
+    jest.spyOn(logger, 'error').mockImplementation(() => {})
+    markConversationUnread(conversationIDKey, messageID(5))
+    await flushPromises()
+    expect(markReads()).toEqual(marked(4))
+    expect(setOrangeLine).not.toHaveBeenCalled()
   })
 
   test('with no meta (a row drawn from the layout) the line is the newest message loaded', async () => {
@@ -177,12 +189,13 @@ describe('without a thread', () => {
 })
 
 describe('with a thread', () => {
-  test('a window holding the line and a message below it answers, with no load and no orange line', async () => {
-    markConversationUnread(conversationIDKey, messageID(8), threadOf([textAt(3), textAt(5), textAt(8)]))
+  test('a window holding the line and a message below it answers with no load; the line is drawn at its row', async () => {
+    const line = textAt(8, {ordinal: T.Chat.numberToOrdinal(7.5)})
+    markConversationUnread(conversationIDKey, messageID(8), threadOf([textAt(3), textAt(5), line]))
     await flushPromises()
     expect(loads()).toEqual([])
     expect(markReads()).toEqual(marked(5))
-    expect(setOrangeLine).not.toHaveBeenCalled()
+    expect(setOrangeLine).toHaveBeenCalledWith(conversationIDKey, T.Chat.numberToOrdinal(7.5))
   })
 
   test('an unsent row is not a read position', async () => {
@@ -207,6 +220,18 @@ describe('with a thread', () => {
     expect(markReads()).toEqual(marked(4))
   })
 
+  test('a thread that retired while the mark read was on its way draws no line', async () => {
+    rpc.on('markRead', async () => {
+      retired = true
+      await Promise.resolve()
+    })
+    let retired = false
+    markConversationUnread(conversationIDKey, messageID(8), threadOf([textAt(5), textAt(8)], () => retired))
+    await flushPromises()
+    expect(markReads()).toEqual(marked(5))
+    expect(setOrangeLine).not.toHaveBeenCalled()
+  })
+
   test('a thread that retired while the service answered marks nothing', async () => {
     aroundLine([4, 5])
     let retired = false
@@ -215,5 +240,6 @@ describe('with a thread', () => {
     await flushPromises()
     expect(loads()).toHaveLength(1)
     expect(markReads()).toEqual([])
+    expect(setOrangeLine).not.toHaveBeenCalled()
   })
 })

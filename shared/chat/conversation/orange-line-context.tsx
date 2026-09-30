@@ -48,5 +48,3 @@ export const setConversationOrangeLine = (
 
 export const OrangeLineContext = React.createContext(T.Chat.numberToOrdinal(0))
 OrangeLineContext.displayName = 'OrangeLineContext'
-export const SetOrangeLineContext = React.createContext<(ordinal: T.Chat.Ordinal) => void>(() => {})
-SetOrangeLineContext.displayName = 'SetOrangeLineContext'
