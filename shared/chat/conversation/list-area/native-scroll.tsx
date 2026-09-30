@@ -303,12 +303,16 @@ export const useNativeThreadScroll = (p: {
   // load's, which relies on a centre request having taken the end already.
   React.useLayoutEffect(() => {
     dispatch({
+      atNewest: () => {
+        const {offset} = metricsRef.current
+        return containsLatestMessage && offset !== undefined && atEnd(offset)
+      },
       centeredOrdinal,
       loaded,
       targetInData: centeredOrdinal !== undefined && indexOfOrdinalNewestFirst(messageOrdinals, centeredOrdinal) >= 0,
       type: 'threadObserved',
     })
-  }, [centeredOrdinal, dispatch, loaded, messageOrdinals])
+  }, [atEnd, centeredOrdinal, containsLatestMessage, dispatch, loaded, messageOrdinals])
 
   // The rows wholly in view are where the list holds them: its end is its bottom edge, which stays put
   // however the viewport above it changes.

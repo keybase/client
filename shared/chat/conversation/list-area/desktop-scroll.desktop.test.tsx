@@ -483,6 +483,27 @@ describe('closing thread search (clearing the centre)', () => {
     expect(props()['maintainScrollAtEnd']).toBe(true)
   })
 
+  // A hit among the newest rows cannot reach the middle, and centring leaves the list at its end.
+  test('with the list resting at the newest message, hands the end back to the list, whose anchor follows new messages', async () => {
+    open({center: 59})
+    await tick(5000)
+    expect(H.listStore.get().scroll).toBe(endOffset())
+    expect(props()['maintainScrollAtEnd']).toBe(false)
+    H.log.length = 0
+    update(() => H.setCenter(undefined))
+    expect(H.log).toEqual([])
+    expect(props()['maintainScrollAtEnd']).toBe(true)
+  })
+
+  test('with the list resting at the end of a window of history, leaves the end with the reader', async () => {
+    open({center: 59, moreToLoadForward: true})
+    await tick(5000)
+    update(() => H.setCenter(undefined))
+    update(() => H.threadStore.set({messageOrdinals: H.range(1, 70), moreToLoadForward: false}))
+    update(() => H.threadStore.set({messageOrdinals: H.range(1, 71)}))
+    expect(props()['maintainScrollAtEnd']).toBe(false)
+  })
+
   test('after asking for the bottom, the end stays with the list', async () => {
     open({center: 30})
     await tick(5000)

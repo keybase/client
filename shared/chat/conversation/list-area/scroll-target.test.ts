@@ -91,7 +91,8 @@ describe('datasetChanged', () => {
 })
 
 describe('threadObserved', () => {
-  const observed = (n: number | undefined, targetInData = true, loaded = true): ScrollEvent => ({
+  const observed = (n: number | undefined, targetInData = true, loaded = true, atNewest = false): ScrollEvent => ({
+    atNewest: () => atNewest,
     centeredOrdinal: n === undefined ? undefined : ord(n),
     loaded,
     targetInData,
@@ -172,6 +173,13 @@ describe('threadObserved', () => {
       observed(undefined),
       stopCentering,
       state({endOwner: 'reader'}),
+    ],
+    [
+      'leaving a centred target with the list resting at the newest message hands the end back to the list',
+      centred(30),
+      observed(undefined, false, true, true),
+      stopCentering,
+      fresh,
     ],
     [
       'leaving after asking for the bottom leaves the end with the list',
@@ -650,7 +658,13 @@ describe('helpers', () => {
     expect(heard).toHaveBeenCalledTimes(1)
     target.decide({type: 'readerAtEnd'})
     expect(heard).toHaveBeenCalledTimes(2)
-    target.decide({centeredOrdinal: undefined, loaded: true, targetInData: false, type: 'threadObserved'})
+    target.decide({
+      atNewest: () => false,
+      centeredOrdinal: undefined,
+      loaded: true,
+      targetInData: false,
+      type: 'threadObserved',
+    })
     expect(heard).toHaveBeenCalledTimes(2)
     unsubscribe()
     target.decide({type: 'userScrolled'})

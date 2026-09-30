@@ -42,9 +42,11 @@ export type ScrollEvent =
   | {type: 'datasetChanged'}
   // The level-triggered centre reconcile, sent whenever the centre request or the loaded rows change:
   // it starts centring once the target is loaded, and ends it. targetInData says whether the centred
-  // ordinal is in the loaded rows.
+  // ordinal is in the loaded rows. atNewest says whether the list rests at its end with the newest
+  // message loaded; measuring can force a layout, so it is asked only when the centre clears.
   | {
       type: 'threadObserved'
+      atNewest: () => boolean
       centeredOrdinal: T.Chat.Ordinal | undefined
       loaded: boolean
       targetInData: boolean
@@ -149,11 +151,13 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
       const {centeredOrdinal, loaded, targetInData} = event
       if (centeredOrdinal === undefined) {
         if (state.lastCentered === undefined) return {directive: leaveAlone, state}
-        // Leaving a centred target stops centring and leaves the reader where they are, and the end
-        // with whoever holds it: the reader, unless they asked for the bottom.
+        // Leaving a centred target stops centring and leaves the list where it is, and the end with
+        // whoever holds it: the reader, unless they asked for the bottom, or the list already rests at
+        // the newest message, where new messages are followed as on any thread at its end.
+        const endOwner = state.endOwner === 'reader' && event.atNewest() ? 'list' : state.endOwner
         return {
           directive: {stopCentering: true, type: 'leaveAlone'},
-          state: {...state, lastCentered: undefined, settlingCenter: false},
+          state: {...state, endOwner, lastCentered: undefined, settlingCenter: false},
         }
       }
       // Centring happens once per target and dataset.

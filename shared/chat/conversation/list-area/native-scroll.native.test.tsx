@@ -786,6 +786,51 @@ describe('closing thread search (clearing the centre)', () => {
     expect(H.log).toEqual([])
   })
 
+  // A hit among the newest rows settles with the list at its end.
+  test('with the list resting at the newest message, hands the end back: a new message is followed', async () => {
+    open({center: 59, keyboard: true})
+    scrolled(H.bottomInset - keyboardHeight, 6000)
+    viewable(0, 9)
+    await tick(1000)
+    clearLog()
+    update(() => {
+      H.setCenter(undefined)
+    })
+    expect(H.log).toEqual([])
+    setOrdinals(1, 61)
+    await tick(0)
+    expect(H.log).toEqual([toBottomOverKeyboard])
+  })
+
+  test('with the list resting at the end of a window of history, leaves the end with the reader', async () => {
+    open({center: 59})
+    update(() => H.threadStore.set({moreToLoadForward: true}))
+    scrolled(0, 6000)
+    viewable(0, 9)
+    await tick(1000)
+    update(() => {
+      H.setCenter(undefined)
+    })
+    update(() => H.threadStore.set({messageOrdinals: H.range(1, 70), moreToLoadForward: false}))
+    setOrdinals(1, 71)
+    expect(props().maintainVisibleContentPosition).toEqual(mvpNoAutoscroll)
+  })
+
+  test('with the list in history, leaves the end with the reader: a new message leaves them there', async () => {
+    open({center: 30, keyboard: true})
+    scrolled(H.bottomInset - keyboardHeight, 6000)
+    viewable(0, 9)
+    scrolled(2000, 6000)
+    await tick(1000)
+    update(() => {
+      H.setCenter(undefined)
+    })
+    clearLog()
+    setOrdinals(1, 61)
+    await tick(1000)
+    expect(H.log).toEqual([])
+  })
+
   test('stops a centring under way', async () => {
     open({center: 30})
     scrolled(0, 6000)

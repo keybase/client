@@ -136,11 +136,12 @@ export const makeScrollDriver = () => {
   const send = (event: ScrollEvent) => {
     directives.push(target.decide(event))
   }
-  const commit = (next: ThreadSnapshot, nextCentre: T.Chat.Ordinal | undefined) => {
+  const commit = (next: ThreadSnapshot, nextCentre: T.Chat.Ordinal | undefined, atNewest = false) => {
     if (next.clearVersion !== thread.clearVersion) send({type: 'datasetChanged'})
     thread = next
     centre = nextCentre
     send({
+      atNewest: () => atNewest,
       centeredOrdinal: centre,
       loaded: thread.loaded,
       targetInData: centre !== undefined && !!thread.messageOrdinals?.includes(centre),
@@ -150,7 +151,8 @@ export const makeScrollDriver = () => {
   return {
     // Centre context and thread together, as the app moves them.
     centreOn: (n: T.Chat.Ordinal) => commit(threadTransitions.cleared(thread), n),
-    clearCentre: () => commit(thread, undefined),
+    // atNewest: the list rests at its end with the newest message loaded as the centre clears.
+    clearCentre: (atNewest = false) => commit(thread, undefined, atNewest),
     jumpToRecent: () => commit(threadTransitions.cleared(thread), undefined),
     load: (ordinals: ReadonlyArray<T.Chat.Ordinal>) => commit(threadTransitions.loaded(thread, ordinals), centre),
     receive: (ordinal: T.Chat.Ordinal) => commit(threadTransitions.received(thread, ordinal), centre),

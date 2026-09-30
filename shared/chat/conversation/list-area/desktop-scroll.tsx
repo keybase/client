@@ -292,12 +292,13 @@ export const useDesktopThreadScroll = (p: {
   // already set, and when the target arrives in the thread after the request.
   React.useEffect(() => {
     dispatch({
+      atNewest: () => containsLatestMessage && isScrolledToEnd(),
       centeredOrdinal,
       loaded,
       targetInData: centeredOrdinal !== undefined && indexOfOrdinal(messageOrdinals, centeredOrdinal) >= 0,
       type: 'threadObserved',
     })
-  }, [centeredOrdinal, dispatch, loaded, messageOrdinals])
+  }, [centeredOrdinal, containsLatestMessage, dispatch, isScrolledToEnd, loaded, messageOrdinals])
 
   // Hidden (another tab selected, under Activity) or unmounted: the loops have stopped with the
   // schedules, and a target still settling is centred afresh if the list comes back.
