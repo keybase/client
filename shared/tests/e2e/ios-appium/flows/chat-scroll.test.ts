@@ -1,17 +1,21 @@
 // Where the iOS thread scrolls, read off the list as the app holds it: opening lands at the end, new
 // messages keep a reader at the end there (keyboard up or not) and leave one in history where they
 // are, search hits centre and let the reader take over (a drag or a status-bar tap), pages load in
-// both directions without moving the reader, and the list keeps its place across an edit, a mark
-// unread and a tab switch.
+// both directions without moving the reader (and older ones with nobody scrolling when the first
+// page draws too little to scroll), an edit stays in view as the keyboard rises for it, and the list
+// keeps its place across an edit, a mark unread and a tab switch.
 import {
   E2E_CHANNELS,
   LONG_COUNT,
   LONG_SEARCH_TOKENS,
   SHORT_COUNT,
+  SPARSE_NEWER,
+  SPARSE_OLDER,
   ensureChatData,
   longMarker,
   sendFromCli,
   shortMarker,
+  sparseMarker,
   type ChatData,
 } from '../../shared/chat-data'
 import {
@@ -60,7 +64,7 @@ import {
 } from '../helpers/chat'
 import {el} from '../helpers/elements'
 import {goBackUntilGone} from '../helpers/navigate'
-import {waitFor} from '../helpers/lifecycle'
+import {jsEval, waitFor} from '../helpers/lifecycle'
 import * as T from '../../shared/test-ids'
 
 let data: ChatData
@@ -290,6 +294,49 @@ describe('chat scroll: search', () => {
         !!r && Math.abs(r.top - before.top) <= stillTolerance,
         `row ${ordinal} moved from ${before.top} to ${r?.top}: ${summary(after, v)}`
       )
+    })
+  })
+
+  // Closing search with the list resting at its end, the newest message loaded, gives the end back
+  // to the list: the next message is followed as on any thread at its end.
+  //
+  // App bug (iOS): closing search at the newest message leaves the list 60.7 points short of its end
+  // (the composer swap's shift, as in the flow below), and the end stays with the reader: an
+  // incoming message after it is not followed (the newest row 131.3 points under the composer,
+  // offset 71.7 then 142.3). Desktop follows it. Remove the expected-failure mark once fixed.
+  it('closing search at the newest message, then an incoming message keeps the end', async () => {
+    await openScratch()
+    await expectAtEnd()
+    const token = `e2esearchend${Date.now()}`
+    await sendMessage(`e2e-ios-scroll-search-end ${token}`)
+    await hideKeyboard()
+    await expectAtEnd()
+    await openThreadSearch()
+    // the search index can take a moment to hold a message just sent
+    await waitFor(
+      `the search for ${token} to find it`,
+      async () => {
+        const counter = await searchFor(token)
+        if (counter === '1 of 1') return true
+        await closeSearch()
+        await openThreadSearch()
+        return undefined
+      },
+      {interval: 1_000, timeout: 30_000}
+    )
+    await expectAtEnd('with the newest message the hit, the thread')
+    await closeSearch()
+    const closed = await waitForThreadStable()
+    console.log(`closing search at the newest message: ${summary(closed, await viewport(closed))}`)
+
+    const text = `e2e-ios-scroll-search-end-incoming-${Date.now()}`
+    await sendFromCli(E2E_CHANNELS.scratch, text)
+    const ordinal = await waitForRow(text, 20_000)
+    const t = await waitForThreadStable()
+    const v = await viewport(t)
+    await expectedFailure('closing search at the newest message keeps the end with the reader', () => {
+      check(isAtEnd(t, v), `after the incoming message, the thread is not at its end: ${summary(t, v)}`)
+      check(t.rows.at(-1)?.ordinal === ordinal, `the newest row is not the incoming one: ${summary(t, v)}`)
     })
   })
 
@@ -627,6 +674,100 @@ describe('chat scroll: editing', () => {
     await editCancel().waitForExist({reverse: true, timeout: 5_000})
   })
 
+  // Where the keyboard's top sits once it is up, measured by focusing the composer.
+  const keyboardTopWhenUp = async () => {
+    await el(T.CHAT_INPUT).click()
+    await waitFor('the keyboard', async () => ((await isKeyboardUp()) ? true : undefined), {timeout: 5_000})
+    const t = await waitForThreadStable()
+    await hideKeyboard()
+    await waitForThreadStable()
+    check(t.keyboardTop !== undefined, `no keyboard reading: ${summary(t)}`)
+    return t.keyboardTop!
+  }
+
+  // A message of the user's with `below` incoming messages after it, so it can sit anywhere in view.
+  const sendWithRowsBelow = async (below: number) => {
+    const text = `e2e-ios-scroll-edit-kb-${Date.now()}`
+    const ordinal = await sendMessage(text)
+    await hideKeyboard()
+    let last = ''
+    for (let i = 0; i < below; i++) {
+      last = `e2e-ios-scroll-edit-kb-below-${Date.now()}-${i}`
+      await sendFromCli(E2E_CHANNELS.scratch, last)
+    }
+    await waitForRow(last, 20_000)
+    return {ordinal, text}
+  }
+
+  // Drags until the row's middle sits within 10 points of `y`.
+  const bringRowTo = async (ordinal: number, y: number) => {
+    for (let i = 0; i < 8; i++) {
+      const t = await waitForThreadStable()
+      const r = rowOf(t, ordinal)
+      check(!!r, `row ${ordinal} is not rendered: ${summary(t)}`)
+      const off = y - (r!.top + r!.bottom) / 2
+      if (Math.abs(off) <= 10) return {r: r!, t}
+      // a drag shorter than the touch slop moves nothing, so overshoot and come back
+      await dragThread(Math.abs(off) < 30 ? off + Math.sign(off) * 60 : off)
+      if (Math.abs(off) < 30) await dragThread(-Math.sign(off) * 60)
+    }
+    const t = await waitForThreadStable()
+    throw new Error(`row ${ordinal} did not come to ${y}: ${JSON.stringify(rowOf(t, ordinal))} ${summary(t)}`)
+  }
+
+  const editWithKeyboard = async (text: string) => {
+    await openMessageMenu(text)
+    await chooseMenuItem('Edit')
+    await editCancel().waitForExist({timeout: 5_000})
+    await waitFor('the keyboard', async () => ((await isKeyboardUp()) ? true : undefined), {timeout: 5_000})
+    const t = await waitForThreadStable()
+    return {t, v: await viewport(t)}
+  }
+
+  // The edited row counts as in view only in the part of the list the keyboard leaves clear, judged
+  // once the keyboard is up: a row wholly in view before it rose, but half under where it rises, is
+  // revealed above it.
+  //
+  // App bug (iOS): the reveal stops short by the composer. The row at 540-592 with the keyboard's top
+  // at 566 moves to 448-500 while the composer's input starts at 472: the band judged covered is the
+  // keyboard's (the resting offset below 0), not the composer's above it. Remove the
+  // expected-failure mark once fixed.
+  it('editing a row that the rising keyboard half covers brings it into view above the keyboard', async () => {
+    await openScratch()
+    const kbTop = await keyboardTopWhenUp()
+    const {ordinal, text} = await sendWithRowsBelow(8)
+    const {r, t} = await bringRowTo(ordinal, kbTop)
+    const v0 = await viewport(t)
+    check(wholly(r, v0), `row ${ordinal} is not wholly in view before the edit: ${JSON.stringify(r)} ${summary(t, v0)}`)
+    check(r.top < kbTop && r.bottom > kbTop, `row ${ordinal} does not straddle the keyboard's top ${kbTop}: ${JSON.stringify(r)}`)
+    const {t: after, v} = await editWithKeyboard(text)
+    console.log(`half covered: row ${ordinal} at ${r.top}-${r.bottom} with the keyboard's top at ${kbTop}; editing, ${JSON.stringify(rowOf(after, ordinal))}`)
+    await expectedFailure('an edit revealed above the keyboard stays under the composer', () => {
+      check(wholly(rowOf(after, ordinal), v), `row ${ordinal} is not wholly in view with the keyboard up: ${summary(after, v)}`)
+    })
+  })
+
+  // A row near the top of the view when the edit starts: the keyboard rising must not leave it off
+  // the top.
+  //
+  // App bug (iOS): the rising keyboard carries the rows up with the list's end, and the edited row,
+  // at 127-217 before, ends at -159 to -69, above the list's top, and is not revealed again. Remove
+  // the expected-failure mark once fixed.
+  it('editing a row near the top keeps it in view once the keyboard is up', async () => {
+    await openScratch()
+    const {ordinal, text} = await sendWithRowsBelow(22)
+    const t0 = await waitForThreadStable()
+    const height = rowOf(t0, ordinal)!.bottom - rowOf(t0, ordinal)!.top
+    const {r, t} = await bringRowTo(ordinal, t0.listTop + height / 2 + 12)
+    const v0 = await viewport(t)
+    check(wholly(r, v0), `row ${ordinal} is not wholly in view before the edit: ${JSON.stringify(r)} ${summary(t, v0)}`)
+    const {t: after, v} = await editWithKeyboard(text)
+    console.log(`near the top: row ${ordinal} at ${r.top}-${r.bottom}; editing, ${JSON.stringify(rowOf(after, ordinal))} ${summary(after, v)}`)
+    await expectedFailure('the rising keyboard pushes an edit near the top off the list', () => {
+      check(wholly(rowOf(after, ordinal), v), `row ${ordinal} is not wholly in view with the keyboard up: ${summary(after, v)}`)
+    })
+  })
+
   it('editing a message in view does not scroll the thread', async () => {
     await openScratch()
     const text = `e2e-ios-scroll-edit-${Date.now()}`
@@ -666,6 +807,71 @@ it('chat scroll: mark unread shows the catch-up pill, which centres the unread m
     // a fresh open marks the thread read again
     await openLong()
   }
+})
+
+// e2e-sparse's newest page is mostly deleted messages, which draw no rows: the rows the first page
+// draws do not fill the view, so there is nothing to scroll. The thread loads the older pages anyway,
+// with nobody touching it, until the view is full or the history ends. Read every 50ms from inside
+// the app from the moment the thread's list appears.
+it('chat scroll: a thread whose first page draws too little to scroll loads older pages by itself', async () => {
+  const convID = data.convIDs[E2E_CHANNELS.sparse]
+  await jsEval(`
+    const g = globalThis
+    if (g.__e2eOpenWatch) clearInterval(g.__e2eOpenWatch)
+    g.__e2eOpenSamples = []
+    const started = Date.now()
+    g.__e2eOpenWatch = setInterval(() => {
+      if (Date.now() - started > 20000) { clearInterval(g.__e2eOpenWatch); return }
+      const hook = g.__REACT_DEVTOOLS_GLOBAL_HOOK__
+      let root
+      for (const r of hook.getFiberRoots(1)) root = r
+      let fiber
+      const stack = [root.current]
+      while (stack.length && !fiber) {
+        const f = stack.pop()
+        if (f.key === ${JSON.stringify(convID)} && f.memoizedProps && f.memoizedProps.testID === ${JSON.stringify(T.CHAT_MESSAGE_LIST)} && f.stateNode && f.stateNode._listRef) fiber = f
+        if (f.sibling) stack.push(f.sibling)
+        if (f.child) stack.push(f.child)
+      }
+      const list = fiber && fiber.stateNode._listRef
+      if (!list) return
+      const data = fiber.memoizedProps.data || []
+      g.__e2eOpenSamples.push({
+        content: Math.round(list._listMetrics._contentLength),
+        offset: Math.round(list._scrollMetrics.offset),
+        rows: data.length,
+        t: Date.now() - started,
+        view: Math.round(list._scrollRef.getBoundingClientRect().height),
+      })
+    }, 50)
+    return true
+  `)
+  let samples: Array<{content: number; offset: number; rows: number; t: number; view: number}> = []
+  try {
+    await openConversation(convID)
+    await waitForRow(sparseMarker(1), 20_000)
+    await browser.pause(500)
+  } finally {
+    samples = await jsEval(`
+      const g = globalThis
+      clearInterval(g.__e2eOpenWatch)
+      const s = g.__e2eOpenSamples || []
+      g.__e2eOpenSamples = undefined
+      return s
+    `)
+  }
+  const first = samples.find(x => x.rows > 0 && x.content > 0)
+  const changes = samples.filter((x, i) => i === 0 || x.rows !== samples[i - 1]!.rows || x.offset !== samples[i - 1]!.offset)
+  console.log(`sparse thread, each change (ms: rows, content/view, offset): ${changes.map(x => `${x.t}: ${x.rows}, ${x.content}/${x.view}, ${x.offset}`).join('; ')}`)
+  check(!!first, 'the list never drew a row')
+  check(first!.content < first!.view, `the first page drew enough to fill the view: ${JSON.stringify(first)}`)
+  const t = await waitForThreadStable()
+  check(
+    t.ordinals.length >= SPARSE_OLDER + SPARSE_NEWER,
+    `the thread holds ${t.ordinals.length} rows, short of the ${SPARSE_OLDER + SPARSE_NEWER} messages drawn: ${summary(t)}`
+  )
+  // nobody moved it, so it still rests at its end, the newest message in view
+  await expectAtEnd('after the older pages, the thread')
 })
 
 // The phone hides the tab bar inside a conversation, so the way away and back is a screen pushed

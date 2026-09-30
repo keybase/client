@@ -842,3 +842,134 @@ export const orangeLineOrdinals = async () =>
 // The conversation the visible screen shows.
 export const visibleConversation = async () =>
   jsEval<string | null>(`const s = kbModule('constants/router.tsx').getVisibleScreen(); return (s && s.params && s.params.conversationIDKey) || null`)
+
+// -- standing in for the service, and reading what the app asked of it ---------------------------
+
+// Watches the visible thread's row at `ordinal` from inside the app, every 16ms: logs each change of
+// its delete phase to the console (so Metro's log holds it in order with the RPC log), and from the
+// moment its delete is in flight hands the app a ChatThreadsStale for the conversation every 100ms,
+// as the service sends one when a thread changed underneath it; each makes the thread reload. Stops
+// by itself once the row is gone or after 15s.
+export const watchDeleteThroughReloads = async (ordinal: number) => {
+  const ok = await jsEval<boolean>(`${threadStoreBody}
+    if (!store) return false
+    const g = globalThis
+    if (g.__e2eDeleteWatch) clearInterval(g.__e2eDeleteWatch)
+    const router = kbModule('chat/notification-router.tsx')
+    const types = kbModule('constants/types/chat/index.tsx')
+    const started = Date.now()
+    let phase
+    let lastStale = Date.now()
+    g.__e2eStaleCount = 0
+    g.__e2eDeleteWatch = setInterval(() => {
+      const s = store.getState()
+      const now = !(s.messageOrdinals || []).includes(${ordinal}) ? 'gone' : [...s.pendingDeleteMap.values()].includes(${ordinal}) ? 'row+deleting' : 'row'
+      if (now !== phase) {
+        phase = now
+        console.log('e2e-row-phase ' + now)
+      }
+      if (now === 'gone' || Date.now() - started > 15000) {
+        clearInterval(g.__e2eDeleteWatch)
+        g.__e2eDeleteWatch = undefined
+        return
+      }
+      if (now === 'row+deleting' && Date.now() - lastStale >= 100) {
+        lastStale = Date.now()
+        g.__e2eStaleCount++
+        router.routeChatNotification({
+          payload: {params: {updates: [{convID: types.keyToConversationID(convID), updateType: 1}]}},
+          type: 'chat.1.NotifyChat.ChatThreadsStale',
+        })
+      }
+    }, 16)
+    return true
+  `)
+  if (!ok) throw new Error('no thread store on screen to watch')
+}
+
+export const staleNotificationsSent = async () => jsEval<number>(`return globalThis.__e2eStaleCount || 0`)
+
+// Chooses Delete in the open message menu from inside the app, right behind a ChatThreadsStale for
+// the visible conversation in the same task: the thread's reload is asked for just ahead of the
+// delete, so its pass can come back while the delete is still on its way (a phone's delete lands
+// within a tick or two of the tap, before a reload the tap starts). The menu stays open; close it
+// after.
+export const chooseDeleteBehindAReload = async () => {
+  const ok = await jsEval<boolean>(`
+    const screen = kbModule('constants/router.tsx').getVisibleScreen()
+    const convID = screen && screen.params && screen.params.conversationIDKey
+    const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
+    let root
+    for (const r of hook.getFiberRoots(1)) root = r
+    let onClick
+    const stack = [root.current]
+    while (stack.length && !onClick) {
+      const f = stack.pop()
+      const p = f.memoizedProps
+      const item = p && (p.item || p)
+      if (item && item.title === 'Delete' && item.rightTitle === 'for everyone' && typeof item.onClick === 'function') onClick = item.onClick
+      if (f.sibling) stack.push(f.sibling)
+      if (f.child) stack.push(f.child)
+    }
+    if (!onClick || !convID) return false
+    globalThis.__e2eStaleCount = (globalThis.__e2eStaleCount || 0) + 1
+    kbModule('chat/notification-router.tsx').routeChatNotification({
+      payload: {params: {updates: [{convID: kbModule('constants/types/chat/index.tsx').keyToConversationID(convID), updateType: 1}]}},
+      type: 'chat.1.NotifyChat.ChatThreadsStale',
+    })
+    onClick()
+    return true
+  `)
+  if (!ok) throw new Error('no Delete for everyone in an open message menu')
+}
+
+// What the app logged, in order, from Metro's log lines: its e2e-row-phase markers, and 'pass' for
+// each thread pass the service sent it (chatThreadCached / chatThreadFull).
+export const rowPhasesAndPasses = (lines: ReadonlyArray<string>) =>
+  lines.flatMap(l => {
+    const phase = /e2e-row-phase (\S+)/.exec(l)?.[1]
+    if (phase) return [phase]
+    return /IN >>.*chat\.1\.chatUi\.chatThread(Cached|Full)/.test(l) ? ['pass'] : []
+  })
+
+// The waiting keys the app holds right now (a spinner or a disabled control waits on each).
+export const heldWaitingKeys = async () =>
+  jsEval<Array<string>>(
+    `return [...kbModule('stores/waiting.tsx').useWaitingState.getState().counts].filter(([, n]) => n > 0).map(([k]) => k)`
+  )
+
+const accountChangedMarker = 'e2e-signed-in-account-changed'
+
+// Logs a marker to the console the moment the signed-in account changes, so Metro's log shows which
+// of the app's calls came after it.
+export const markAccountChange = async () =>
+  jsEval(`
+    const g = globalThis
+    if (g.__e2eUidWatch) g.__e2eUidWatch()
+    g.__e2eUidWatch = kbModule('stores/current-user.tsx').useCurrentUserState.subscribe((s, prev) => {
+      if (s.uid !== prev.uid) console.log(${JSON.stringify(accountChangedMarker)})
+    })
+    return true
+  `)
+
+// The RPCs the app sent, read off Metro's log lines in order, each marked with whether the marker of
+// markAccountChange came before it.
+export const outgoingRpcs = (lines: ReadonlyArray<string>) => {
+  let changed = false
+  const calls: Array<{afterAccountChange: boolean; method: string; params: string}> = []
+  for (const l of lines) {
+    if (l.includes(accountChangedMarker)) changed = true
+    const call = /<< OUT\s*((?:chat|keybase)\.1\.[\w.]+)\[\+calling\].*?\[\+calling\] \S+ (\{.*)$/.exec(l)
+    if (call) calls.push({afterAccountChange: changed, method: call[1]!, params: call[2]!})
+  }
+  return calls
+}
+
+// Starts a switch to another account signed in on this device through the app's own switch (what
+// the account switcher's row calls), for a flow that keeps typing while it runs.
+export const startAppAccountSwitch = async (username: string) => {
+  const started = await jsEval<boolean>(
+    `return !!kbModule('stores/config.tsx').useConfigState.getState().dispatch.switchToAccount(${JSON.stringify(username)})`
+  )
+  if (!started) throw new Error(`the app would not switch to ${username}`)
+}

@@ -1,8 +1,9 @@
 // What the phone thread shows as its data changes, read off the thread store and the screen: a
-// delete shows deleting and then takes the row away, reactions come and go, mark unread sets the
-// orange line and the inbox's unread count, reply privately opens the direct conversation quoting
-// the message, incoming messages reach the thread and the inbox, and all of it keeps working across
-// an account switch.
+// delete shows deleting (through thread reloads too) and then takes the row away, reactions come and
+// go, mark unread sets the orange line and the inbox's unread count (and none on a first message),
+// reply privately opens the direct conversation quoting the message, incoming messages reach the
+// thread and the inbox, all of it keeps working across an account switch, and the thread left behind
+// by one sends nothing for the next account.
 import {
   E2E_CHANNELS,
   createThrowawayChannel,
@@ -14,27 +15,43 @@ import {
 } from '../../shared/chat-data'
 import {
   check,
+  chooseDeleteBehindAReload,
   chooseMenuItem,
   clearComposer,
+  closeMessageMenu,
   deleteChannelAsApp,
   deletePhase,
+  dragThread,
   expectAtEnd,
+  heldWaitingKeys,
   hideKeyboard,
+  markAccountChange,
   openConversation,
   openMessageMenu,
   ordinalsWithText,
   orangeLineOrdinals,
+  outgoingRpcs,
+  readThread,
   rowElement,
+  rowPhasesAndPasses,
+  rowText,
   sendMessage,
+  signedInAs,
+  staleNotificationsSent,
+  startAppAccountSwitch,
   storedMessage,
   switchAppAccount,
+  typeInComposer,
   unreadCount,
   visibleConversation,
   waitForComposerText,
   waitForRow,
+  waitForThreadStable,
+  watchDeleteThroughReloads,
   type DeletePhase,
 } from '../helpers/chat'
-import {jsEval, waitFor} from '../helpers/lifecycle'
+import {jsEval, metroClientLogSince, metroLogMark, openUrl, waitFor} from '../helpers/lifecycle'
+import {el} from '../helpers/elements'
 import {escapeToTabs, navigateToChat} from '../helpers/navigate'
 import * as T from '../../shared/test-ids'
 
@@ -73,6 +90,56 @@ describe('chat data: delete', () => {
     }
     check(JSON.stringify(phases) === JSON.stringify(['row', 'row+deleting', 'gone']), `the row went ${phases.join(' -> ')}`)
     check(!(await ordinalsWithText(text)).length, 'the deleted message is back in the thread')
+  })
+})
+
+// A thread load while the delete waits to go out still carries the row unchanged (the service never
+// puts a queued delete in a load). Offline the wait is long; here the thread is told it is stale
+// right ahead of the delete and every 100ms after while it is in flight (see
+// chooseDeleteBehindAReload and watchDeleteThroughReloads), so reloads come back before the delete
+// lands. Whether one did is timing: an attempt in which none did proves nothing and is made again.
+describe('chat data: delete through reloads', () => {
+  it('a delete keeps showing deleting through thread reloads until it lands', async () => {
+    await openScratch()
+    const attempts: Array<string> = []
+    for (let attempt = 1; attempt <= 4; attempt++) {
+      const text = `e2e-ios-data-delete-reload-${Date.now()}`
+      const ordinal = await sendMessage(text)
+      await hideKeyboard()
+      await openMessageMenu(text)
+      // the thread throttles its loads to one per 500ms, so the first reload must not follow another
+      await browser.pause(600)
+      const mark = metroLogMark()
+      await watchDeleteThroughReloads(ordinal)
+      await chooseDeleteBehindAReload()
+      await waitFor('the row to go', async () => ((await deletePhase(ordinal)) === 'gone' ? true : undefined), {
+        interval: 100,
+        timeout: 15_000,
+      })
+      await closeMessageMenu()
+      const stale = await staleNotificationsSent()
+      const heard = await waitFor(
+        "the row's phases in Metro's log",
+        () => {
+          const h = rowPhasesAndPasses(metroClientLogSince(mark))
+          return h.includes('gone') ? h : undefined
+        },
+        {timeout: 10_000}
+      )
+      // the delete can start before the watcher's first look, so the row may be first seen deleting
+      const phases = heard.filter(h => h !== 'pass')
+      const deleting = heard.slice(heard.indexOf('row+deleting') + 1, heard.indexOf('gone'))
+      attempts.push(`${stale} stale notifications; heard ${heard.join(' ')}`)
+      check(
+        JSON.stringify(phases.slice(phases.indexOf('row+deleting'))) === JSON.stringify(['row+deleting', 'gone']),
+        `the row went ${phases.join(' -> ')}`
+      )
+      if (deleting.includes('pass')) {
+        console.log(`delete through reloads: ${attempts.join('; ')}`)
+        return
+      }
+    }
+    throw new Error(`no thread load landed while a row showed deleting in 4 attempts: ${attempts.join('; ')}`)
   })
 })
 
@@ -157,6 +224,40 @@ describe('chat data: mark unread', () => {
   })
 })
 
+// Nothing is older than a conversation's first message, so marking it unread has no read position
+// to move to: nothing is marked, and no line is drawn for a mark that never happened.
+describe('chat data: mark unread on the first message', () => {
+  it('mark unread on the first message of a conversation draws no orange line', async () => {
+    await openDirect()
+    // drag to the top until nothing older is left to load and the oldest row is in view
+    const top = await waitFor(
+      'the oldest message in view',
+      async () => {
+        const t = await waitForThreadStable()
+        if (!t.moreToLoadBack && t.rows[0]?.ordinal === t.ordinals[0] && t.rows[0]!.top >= t.listTop - 1) return t
+        await dragThread(600)
+        return undefined
+      },
+      {interval: 0, timeout: 180_000}
+    )
+    const oldest = top.ordinals[0]!
+    const mark = metroLogMark()
+    await openMessageMenu(await rowText(oldest))
+    await chooseMenuItem('Mark as unread')
+    const logged = await waitFor(
+      "the app's account of the mark",
+      () => metroClientLogSince(mark).find(l => l.includes('marking unread messages')),
+      {timeout: 10_000}
+    )
+    check(logged.includes('nothing older than'), `the app marked something: ${logged}`)
+    // a line would be drawn within a frame of the answer; give it well past that
+    for (const until = Date.now() + 2_000; Date.now() < until; ) {
+      const lines = await orangeLineOrdinals()
+      check(!lines.length, `the orange line after marking the first message unread: above ${lines.join(', ')}`)
+    }
+  })
+})
+
 describe('chat data: reply privately', () => {
   afterEach(async () => {
     // the quote was put in the direct conversation's composer, which saved it as its draft
@@ -204,6 +305,52 @@ describe('chat data: account switch', () => {
     await switchAppAccount(data.smokeUser)
   })
 
+  // The thread open when the account changes belongs to the account that left. Typing in its
+  // composer right through the switch sends nothing for the next account (no typing, no draft save,
+  // no post), and nothing on screen is left waiting on a call it never made. The switch goes through
+  // the app's own switch, started while the keys are still being typed.
+  it('typing through an account switch sends nothing for the next account and leaves nothing waiting', async () => {
+    await openScratch()
+    const token = `e2eswitchdraft${Date.now()}`
+    await typeInComposer(token)
+    // the draft saves for the account that typed it
+    await browser.pause(1_000)
+    const mark = metroLogMark()
+    await markAccountChange()
+    const typing = el(T.CHAT_INPUT)
+      .addValue('x'.repeat(80))
+      .catch(() => {})
+    // switch once the composer is saving drafts of the keys coming in
+    await waitFor(
+      'a draft save of the keys being typed',
+      () => (metroClientLogSince(mark).some(l => l.includes('<< OUTchat.1.local.updateUnsentText')) ? true : undefined),
+      {interval: 50, timeout: 10_000}
+    )
+    await startAppAccountSwitch(data.secondUser)
+    await typing
+    await waitFor(
+      'the switch to the second account',
+      async () => {
+        const a = await signedInAs().catch(() => undefined)
+        return a && a.loggedIn && !a.switching && a.username === data.secondUser ? true : undefined
+      },
+      {interval: 500, timeout: 60_000}
+    )
+    // outlast the composer's 200ms draft save and 1s typing throttle, and a load or two
+    await browser.pause(5_000)
+    const calls = outgoingRpcs(metroClientLogSince(mark))
+    const composerCalls = /^chat\.1\.local\.(updateUnsentText|updateTyping|post\w*)$/
+    const before = calls.filter(c => !c.afterAccountChange && composerCalls.test(c.method))
+    const after = calls.filter(c => c.afterAccountChange)
+    console.log(`the composer's calls before the account changed: ${before.map(c => c.method).join(', ')}`)
+    check(before.length > 0, 'the composer sent nothing while typing before the switch')
+    check(after.length > 0, "no RPC in Metro's log after the account changed")
+    const stray = after.filter(c => composerCalls.test(c.method)).map(c => `${c.method} ${c.params.slice(0, 120)}`)
+    check(!stray.length, `the old composer's calls after the account changed: ${stray.join('; ')}`)
+    const held = await heldWaitingKeys()
+    check(!held.length, `waiting keys still held 5s after the switch: ${held.join(', ')}`)
+  })
+
   it('a thread opened after switching accounts and back gets new messages for the account signed in', async () => {
     await openScratch()
 
@@ -230,6 +377,35 @@ describe('chat data: account switch', () => {
     await sendFromCli(E2E_CHANNELS.scratch, incoming)
     await waitForRow(incoming, 20_000)
     check((await ordinalsWithText(incoming)).length === 1, 'the incoming message shows more than once')
+  })
+})
+
+// A conversation opened from a link that the account has never joined (the closed subteam's
+// channel: the smoke user administers the subteam but is not in it) stays up: the phone's open
+// thread never moves on its own.
+describe('chat data: a conversation never joined', () => {
+  it('a conversation never joined, opened from a link, does not bounce', async () => {
+    await hideKeyboard()
+    await escapeToTabs()
+    await navigateToChat()
+    const mark = metroLogMark()
+    openUrl(`keybase://convid/${data.closedConvID}`)
+    await waitFor('the conversation to open', async () => ((await visibleConversation()) === data.closedConvID ? true : undefined), {
+      timeout: 20_000,
+    })
+    const shown = new Set<string | null>()
+    for (const until = Date.now() + 6_000; Date.now() < until; ) shown.add(await visibleConversation())
+    const thread = await readThread()
+    console.log(
+      `never joined: its thread ${thread ? `lists ${thread.ordinals.length} rows` : 'is not drawn'}; the app logged: ${metroClientLogSince(mark)
+        .filter(l => /thread load|not in|NotIn|conversationGone|selection/i.test(l))
+        .slice(0, 5)
+        .join(' | ')}`
+    )
+    check(
+      shown.size === 1 && shown.has(data.closedConvID),
+      `the screen showed ${[...shown].join(', ')} in the 6s after opening the conversation`
+    )
   })
 })
 
