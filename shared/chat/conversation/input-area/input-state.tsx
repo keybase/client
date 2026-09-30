@@ -175,9 +175,10 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
   const setGiphyWindow = React.useEffectEvent((show: boolean) => {
     dispatchState({show, type: 'setGiphyWindow'})
   })
-  // An edit or a reply focuses the composer once the modal it came from (the phone message menu)
-  // is gone: a TextInput focused under a modal that is still presented takes first responder
-  // unreliably on iOS. Leaving the conversation drops a wait still pending.
+  // An edit or a reply focuses the composer, on every platform and from every entry point, once
+  // any modal it came from (the phone message menu) is gone: a TextInput focused under a modal
+  // that is still presented takes first responder unreliably on iOS. Leaving the conversation
+  // drops a wait still pending.
   const cancelFocusRef = React.useRef<() => void>(undefined)
   const focusOnceModalsGone = () => {
     cancelFocusRef.current = whenModalsGone(() => composer.focus())
@@ -246,10 +247,7 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
         return
       }
       dispatchState({ordinal, type: 'setEditing'})
-      // desktop leaves the focus where it is: its up-arrow edit is handled outside the input
-      if (isMobile) {
-        focusOnceModalsGone()
-      }
+      focusOnceModalsGone()
     } else {
       logger.error(`[chat] setEditing ignored ordinal ${ordinal}: message is ${message?.type ?? 'missing'}`)
     }

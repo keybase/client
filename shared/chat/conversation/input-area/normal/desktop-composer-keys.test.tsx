@@ -228,11 +228,33 @@ afterEach(() => {
 describe('in the composer, no suggestions', () => {
   test('ArrowUp when empty edits the last message and prevents the default', () => {
     const {getHandles, textarea} = renderComposer()
+    act(() => {
+      textarea.focus()
+    })
 
     expect(keyDown(textarea, 'ArrowUp')).toBe(true)
 
     expect(getHandles().input.editing).toBe(lastOrdinal)
     expect(textarea.value).toBe('last thing I said')
+    expect(document.activeElement).toBe(textarea)
+  })
+
+  // the desktop message menu is a popup, not a modal route, so nothing is waited for
+  test('Edit from the message menu with focus elsewhere focuses the composer, caret at the end', () => {
+    const {elsewhere, getHandles, textarea} = renderComposer()
+    act(() => {
+      elsewhere.focus()
+    })
+
+    act(() => {
+      getHandles().input.dispatch.setEditing(lastOrdinal)
+    })
+
+    expect(getHandles().input.editing).toBe(lastOrdinal)
+    expect(document.activeElement).toBe(textarea)
+    expect(textarea.value).toBe('last thing I said')
+    expect(textarea.selectionStart).toBe('last thing I said'.length)
+    expect(textarea.selectionEnd).toBe('last thing I said'.length)
   })
 
   test.each([['shiftKey'], ['altKey'], ['ctrlKey'], ['metaKey']] as const)(
@@ -734,8 +756,8 @@ describe('outside any input (window keys)', () => {
     expect(keyDown(document.body, 'ArrowUp')).toBe(true)
 
     expect(getHandles().input.editing).toBe(lastOrdinal)
-    // handled, so focus stays where it was
-    expect(document.activeElement).not.toBe(textarea)
+    // an edit focuses the composer, whatever started it
+    expect(document.activeElement).toBe(textarea)
   })
 
   test('ArrowUp with a draft focuses the composer instead', () => {
