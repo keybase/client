@@ -10,6 +10,7 @@ import {useComposerAnchor} from '../composer-viewport-context'
 import {ThreadSearchOverlayContext} from '../thread-search-overlay-context'
 import {restingScrollOffset} from '../composer-geometry'
 import {makeOwnScrolls} from './own-scrolls'
+import {KeyboardEvents} from 'react-native-keyboard-controller'
 import {
   indexOfOrdinalNewestFirst,
   listAnchorsEnd,
@@ -373,16 +374,25 @@ export const useNativeThreadScroll = (p: {
     })
   }, [dispatch, editingOrdinal, messageOrdinals, rowFullyVisible])
 
-  // The keyboard rising or falling, or the safe area changing, changes how much of the list is in view,
-  // once the keyboard has settled and moved the list with it. Compared by value, so a freeze/thaw
-  // re-mount changes nothing.
-  const coverRef = React.useRef({bottomInset, isKeyboardVisible})
+  // The keyboard rising or falling, or the safe area changing, changes how much of the list is in view.
+  // The keyboard's is judged once it has finished moving, and the list with it: the keyboard scroll
+  // view carries the rows up as the keyboard rises, so a row near the top is pushed off only by the
+  // end of the rise, and whether the keyboard counts as visible flips as it starts. The safe area's is
+  // compared by value, so a freeze/thaw re-mount changes nothing.
   React.useEffect(() => {
-    const cover = coverRef.current
-    if (cover.bottomInset === bottomInset && cover.isKeyboardVisible === isKeyboardVisible) return
-    coverRef.current = {bottomInset, isKeyboardVisible}
+    const coverChanged = () => dispatch({anchorsEnd: false, rowFullyVisible, type: 'viewportResized'})
+    const subscriptions = [
+      KeyboardEvents.addListener('keyboardDidShow', coverChanged),
+      KeyboardEvents.addListener('keyboardDidHide', coverChanged),
+    ]
+    return () => subscriptions.forEach(s => s.remove())
+  }, [dispatch, rowFullyVisible])
+  const coveredInsetRef = React.useRef(bottomInset)
+  React.useEffect(() => {
+    if (coveredInsetRef.current === bottomInset) return
+    coveredInsetRef.current = bottomInset
     dispatch({anchorsEnd: false, rowFullyVisible, type: 'viewportResized'})
-  }, [bottomInset, dispatch, isKeyboardVisible, rowFullyVisible])
+  }, [bottomInset, dispatch, rowFullyVisible])
 
   // When keyboard is open, maintainVisibleContentPosition adjusts contentOffset by the new
   // message height when a message is added, undoing the scrollToBottom from onSubmit.
