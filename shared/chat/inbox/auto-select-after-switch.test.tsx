@@ -313,6 +313,36 @@ test('an inbox sync that removes the selected conversation moves the selection',
   expect(selected()).toBe(newest)
 })
 
+// A big-team-only inbox: no small-team rows, one team's channels.
+const deliverBigTeamLayout = (channels: ReadonlyArray<T.Chat.ConversationIDKey>) => {
+  const layout: T.RPCChat.UIInboxLayout = {
+    bigTeams: [
+      {label: {id: 'team-id', name: 'testteam'}, state: T.RPCChat.UIInboxBigTeamRowTyp.label},
+      ...channels.map(convID => ({
+        channel: {channelname: `channel-${convID}`, convID, isMuted: false, teamname: 'testteam'},
+        state: T.RPCChat.UIInboxBigTeamRowTyp.channel as const,
+      })),
+    ],
+    smallTeams: [],
+    totalSmallTeams: 0,
+  }
+  notify('chat.1.chatUi.chatInboxLayout', {layout: JSON.stringify(layout)})
+}
+
+test('with only big-team channels, a gone selection moves to the first other channel', () => {
+  switchAccount()
+  const [general, random] = [convKey(5), convKey(6)]
+  step(() => deliverBigTeamLayout([general, random]))
+  meta(general, 'active')
+  meta(random, 'active')
+  step(() => open(general, 'inboxBig'))
+  expect(selected()).toBe(general)
+
+  step(() => notify('chat.1.NotifyChat.ChatLeftConversation', {convID: T.Chat.keyToConversationID(general), uid: 'uid-2'}))
+
+  expect(selected()).toBe(random)
+})
+
 test('a layout arriving while a conversation is being created leaves the create flow alone', () => {
   pickAfterSwitch()
   const created = convKey(4)

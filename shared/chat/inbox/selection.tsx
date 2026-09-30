@@ -15,12 +15,20 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {getBigLayoutChannelRow, getSmallLayoutRow, useInboxLayoutState} from './layout-state'
 import {useInboxMetadataState} from './metadata-store'
 
-// The layout's first row, as the service picks for reselectInfo, skipping the conversation that is gone.
-const newestOtherThan = (gone: T.Chat.ConversationIDKey) =>
-  useInboxLayoutState
-    .getState()
-    .layout?.smallTeams?.map(row => T.Chat.stringToConversationIDKey(row.convID))
-    .find(id => id !== gone) ?? T.Chat.noConversationIDKey
+// The layout's first small-team row, as the service picks for reselectInfo, skipping the
+// conversation that is gone. An inbox with no other small-team row takes its first big-team channel:
+// channel rows carry no time, so the layout's order is the only one there is.
+const newestOtherThan = (gone: T.Chat.ConversationIDKey) => {
+  const layout = useInboxLayoutState.getState().layout
+  const small = (layout?.smallTeams ?? []).map(row => row.convID)
+  const channels = (layout?.bigTeams ?? []).flatMap(row =>
+    row.state === T.RPCChat.UIInboxBigTeamRowTyp.channel ? [row.channel.convID] : []
+  )
+  return (
+    [...small, ...channels].map(id => T.Chat.stringToConversationIDKey(id)).find(id => id !== gone) ??
+    T.Chat.noConversationIDKey
+  )
+}
 
 const moveSelectionOff = (from: T.Chat.ConversationIDKey, why: string) => {
   const next = newestOtherThan(from)
