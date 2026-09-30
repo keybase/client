@@ -745,17 +745,23 @@ export const centreTolerance = (v: Viewport) => Math.max(48, (v.bottom - v.top) 
 
 // Waits for `ordinal` to be centred and the thread to settle, and checks it stays centred.
 export const expectCentred = async (ordinal: number, timeout = 10_000) => {
-  await waitFor(
-    `row ${ordinal} to be centred`,
-    async () => {
-      const t = await readThread()
-      if (!t) return undefined
-      const v = await viewport(t)
-      const r = rowOf(t, ordinal)
-      return r && Math.abs(centreOffset(r, v)) <= centreTolerance(v) ? true : undefined
-    },
-    {interval: 250, timeout}
-  )
+  let last = ''
+  try {
+    await waitFor(
+      `row ${ordinal} to be centred`,
+      async () => {
+        const t = await readThread()
+        if (!t) return undefined
+        const v = await viewport(t)
+        const r = rowOf(t, ordinal)
+        last = `${JSON.stringify(r)} ${summary(t, v)}`
+        return r && Math.abs(centreOffset(r, v)) <= centreTolerance(v) ? true : undefined
+      },
+      {interval: 250, timeout}
+    )
+  } catch (e) {
+    throw new Error(`${e instanceof Error ? e.message : String(e)}; last reading ${last}`, {cause: e})
+  }
   const t = await waitForThreadStable()
   const v = await viewport(t)
   const r = rowOf(t, ordinal)

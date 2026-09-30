@@ -87,6 +87,20 @@ const expectRowWhere = (t: ThreadReading, anchor: {ordinal: number; top: number}
   )
 }
 
+// Waits for the rows loaded to hold for 2s (the page a thread asks for as it opens lands within a
+// second or two), and returns that reading.
+const waitForRowsToHold = async () =>
+  waitFor(
+    'the rows loaded to hold for 2s',
+    async () => {
+      const a = (await requireThread()).ordinals.length
+      await browser.pause(2_000)
+      const b = await requireThread()
+      return b.ordinals.length === a ? b : undefined
+    },
+    {interval: 0, timeout: 15_000}
+  )
+
 // Selects the only hit for `token`, and returns the ordinal of its row once the row is loaded.
 const searchAndSelect = async (token: string) => {
   await openThreadSearch()
@@ -141,16 +155,7 @@ describe('chat scroll: new messages', () => {
   it('at the end, a burst of incoming messages keeps the thread at its end', async () => {
     await openScratch()
     await expectAtEnd()
-    const settled = await waitFor(
-      'the rows loaded to hold for 2s',
-      async () => {
-        const a = (await requireThread()).ordinals.length
-        await browser.pause(2_000)
-        const b = (await requireThread()).ordinals.length
-        return b === a ? b : undefined
-      },
-      {interval: 0, timeout: 15_000}
-    )
+    const settled = (await waitForRowsToHold()).ordinals.length
     await expectAtEnd()
     console.log(`a burst of 6 incoming messages, from ${settled} rows loaded`)
     let last = ''
@@ -568,17 +573,7 @@ describe('chat scroll: paging', () => {
     it(`left idle at its end, ${name} loads no more pages, and dragging up still loads them`, async () => {
       await open()
       const first = (await expectAtEnd()).t.ordinals.length
-      // the page asked for as the thread opened lands within a second or two
-      const start = await waitFor(
-        'the rows loaded to hold for 2s',
-        async () => {
-          const a = (await requireThread()).ordinals.length
-          await browser.pause(2_000)
-          const b = await requireThread()
-          return b.ordinals.length === a ? b : undefined
-        },
-        {interval: 0, timeout: 15_000}
-      )
+      const start = await waitForRowsToHold()
       const counts: Array<number> = []
       const idleFrom = Date.now()
       while (Date.now() - idleFrom < 12_000) {
@@ -607,17 +602,28 @@ describe('chat scroll: paging', () => {
     })
   }
 
-  // The first page of older rows lands during a drag from the end of the thread; the drag moves the
-  // reader's rows as far as the same drag does once that page is loaded.
-  it('the first older page landing during a drag from the end leaves the reader where the drag put them', async () => {
+  // A page of older rows lands during a drag up from the end of the thread; the drag moves the
+  // reader's rows as far as the next drag, with that page loaded, does. The thread loads a page as it
+  // opens, so the drags start once that has landed and go on until one brings in the next.
+  it('an older page landing during a drag up from the end leaves the reader where the drag put them', async () => {
     await openLong()
     await expectAtEnd()
-    const landing = await dragTravel(400)
-    check(landing.after.ordinals.length > landing.before.ordinals.length, 'no page landed during the first drag')
-    await tapStatusBar()
-    await expectAtEnd()
+    await waitForRowsToHold()
+    let drags = 0
+    const landing = await waitFor(
+      'a drag during which an older page lands',
+      async () => {
+        drags++
+        const d = await dragTravel(400)
+        return d.after.ordinals.length > d.before.ordinals.length ? d : undefined
+      },
+      {interval: 0, timeout: 90_000}
+    )
     const plain = await dragTravel(400)
-    check(plain.after.ordinals.length === plain.before.ordinals.length, 'a page landed during the second drag')
+    console.log(
+      `an older page landed during drag ${drags} (${landing.before.ordinals.length} to ${landing.after.ordinals.length} rows), travel ${landing.travel}; the next drag ${plain.travel}`
+    )
+    check(plain.after.ordinals.length === plain.before.ordinals.length, 'a page landed during the next drag too')
     check(
       Math.abs(landing.travel - plain.travel) <= pagingTolerance,
       `the drag moved the reader's row ${landing.travel}pt as the page landed, ${plain.travel}pt with it loaded`
