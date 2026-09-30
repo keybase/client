@@ -4,6 +4,7 @@
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import noop from 'lodash/noop'
+import sortedIndexBy from 'lodash/sortedIndexBy'
 import {ThreadRefsContext} from '../normal/context'
 import {useComposerAnchor} from '../composer-viewport-context'
 import {restingScrollOffset} from '../composer-geometry'
@@ -118,6 +119,9 @@ export const useNativeThreadScroll = (p: {
   const vLastRef = React.useRef<number | null | undefined>(undefined)
   // Where each row sits in the content, as the list last laid it out.
   const rowFramesRef = React.useRef(new Map<T.Chat.Ordinal, {height: number; y: number}>())
+  // The oldest row the list has laid out in this dataset. The list sizes its content only as far as the
+  // rows it has laid out, so rows loaded past this one are not in the content size yet.
+  const oldestLaidOutRef = React.useRef<T.Chat.Ordinal | undefined>(undefined)
 
   // Every scroll the list makes itself goes through these, saying where it is going, so the movement
   // toward there and the rest that follows are its own.
@@ -183,6 +187,7 @@ export const useNativeThreadScroll = (p: {
     vFirstRef.current = undefined
     vLastRef.current = undefined
     rowFramesRef.current = new Map()
+    oldestLaidOutRef.current = undefined
   }, [conversationIDKey])
   // The rows asked for by scrollToItem, each asked for by a centre or a reveal, with how many of its
   // failures have been retried: a row outside the rendered window makes the scroll fail, and the
@@ -304,6 +309,7 @@ export const useNativeThreadScroll = (p: {
   React.useLayoutEffect(() => {
     if (datasetRef.current === datasetKey) return
     datasetRef.current = datasetKey
+    oldestLaidOutRef.current = undefined
     dispatch({type: 'datasetChanged'})
   }, [datasetKey, dispatch])
 
@@ -458,7 +464,15 @@ export const useNativeThreadScroll = (p: {
   const [loadPages] = React.useState(() => () => {
     const {content, viewport} = metricsRef.current
     const offset = metricsRef.current.offset ?? restingOffset()
-    if (content === undefined || viewport === undefined) return
+    const oldestLaidOut = oldestLaidOutRef.current
+    if (content === undefined || viewport === undefined || oldestLaidOut === undefined) return
+    // The content ends at the oldest row laid out, which the list keeps within a screen of the view
+    // however many rows are loaded past it; those rows count toward the distance at the average height
+    // of the rows laid out, or the oldest end would always look a screen away.
+    const ords = ordsRef.current
+    const notNewer = sortedIndexBy(ords as unknown as Array<number>, oldestLaidOut as unknown as number, o => -o)
+    const laidOut = notNewer + (ords[notNewer] === oldestLaidOut ? 1 : 0)
+    const notLaidOut = ords.length - laidOut
     const near = (end: 'newer' | 'older', distance: number) => {
       if (!withinPageLoad(distance, viewport)) return
       const now = Date.now()
@@ -466,7 +480,7 @@ export const useNativeThreadScroll = (p: {
       nextLoadRef.current[end] = now + pageLoadGate
       loadsRef.current[end]()
     }
-    near('older', content - offset - viewport)
+    near('older', content - offset - viewport + (notLaidOut * content) / Math.max(laidOut, 1))
     // A thread holding the newest message has nothing newer to load.
     if (!containsLatestRef.current) near('newer', offset - restingOffset())
   })
@@ -549,6 +563,8 @@ export const useNativeThreadScroll = (p: {
   )
   const [onCellLayout] = React.useState(() => (item: T.Chat.Ordinal, layout: {height: number; y: number}) => {
     rowFramesRef.current.set(item, {height: layout.height, y: layout.y})
+    const oldest = oldestLaidOutRef.current
+    if (oldest === undefined || item < oldest) oldestLaidOutRef.current = item
   })
 
   const requestBottom = React.useCallback(() => {
