@@ -768,15 +768,3 @@ export const navigationWithoutSearch = async (page: Page) =>
     })
     return {hadSearch, json}
   })
-
-// Runs a check that fails today because of an app bug (named where it is called). The test passes
-// while the check fails, and fails once the check passes, so the mark is removed with the fix.
-export const expectedFailure = async (bug: string, body: () => unknown) => {
-  try {
-    await body()
-  } catch (e) {
-    console.log(`expected failure (${bug}): ${e instanceof Error ? e.message : String(e)}`)
-    return
-  }
-  throw new Error(`passes now, so the app bug it marks looks fixed; remove the expected-failure mark (${bug})`)
-}

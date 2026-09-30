@@ -8,7 +8,6 @@ import {
   clickUnoccluded,
   closeMenu,
   composer,
-  expectedFailure,
   composerInput,
   focusThreadScroller,
   focusedElement,
@@ -643,11 +642,8 @@ test.describe('leaving with a suggestion preview', () => {
       drafts.some(p => p.includes(`text: @${second},`)),
       `draft saves after leaving: ${JSON.stringify(drafts)}`
     ).toBe(true)
-    // The click blurs the composer before the conversation goes, and a list closed by a blur reports
-    // its preview as typed text, typing(true) included; only the unmount path keeps it quiet.
-    await expectedFailure('leaving by a click reports the preview as typing, through the blur that closes the list', () => {
-      expect(typingOn.filter(c => c.at >= leftMark), `typing calls after leaving: ${JSON.stringify(typing)}`).toEqual([])
-    })
+    // the click blurs the composer before the conversation goes, which closes the list first
+    expect(typingOn.filter(c => c.at >= leftMark), `typing calls after leaving: ${JSON.stringify(typing)}`).toEqual([])
 
     await openScratch(page)
     await expectComposerText(page, `@${second}`)
@@ -658,7 +654,7 @@ test.describe('leaving with a suggestion preview', () => {
 // The channel turns read-only for the second account (a writer) while it edits: the owner, the app
 // attached to Metro, raises the channel's minimum writer role. Ending the edit then empties the
 // composer and leaves the draft set aside for the edit as it was; it loads again once the account
-// can post.
+// can post. The owner clearing the role altogether makes the channel writable again as it shows.
 test.describe('read-only mid-edit', () => {
   const prefix = 'e2e-roedit'
 
@@ -715,11 +711,35 @@ test.describe('read-only mid-edit', () => {
     await expectComposerText(page, '')
     expect(await messageText(page, text)).toBe(text)
 
-    // back to writers: a role cleared to none reaches the service, but here the app kept the channel
-    // read-only for the account, even across a reopen
     await owner.setMinWriterRole(convID, 'writer')
     await expect(input).not.toHaveAttribute('readonly', '', {timeout: 20_000})
     await expectComposerText(page, draft)
+    expect(await messageText(page, text)).toBe(text)
+  })
+
+  test('the owner clearing the minimum writer role makes the composer writable again, without a reopen', async ({page}) => {
+    test.setTimeout(180_000)
+    await switchAttachedApp(data.smokeUser)
+    const owner = await findChannelOwner(data.smokeUser)
+    if (!owner.ok) throw new Error(`the owner's app is unavailable: ${owner.reason}`)
+    const {convID, topicName} = await createThrowawayChannel(prefix)
+
+    await switchAccount(page, data.secondUser)
+    const row = page.locator('.inbox-hover-container').getByText(topicName, {exact: true})
+    await expect(row).toBeVisible({timeout: 20_000})
+    await clickUnoccluded(row)
+    await expect(threadHeaderTitle(page)).toHaveText(`${data.team}#${topicName}`, {timeout: 10_000})
+    const input = composerInput(page)
+    await expect(input).not.toHaveAttribute('readonly', '', {timeout: 10_000})
+
+    await owner.setMinWriterRole(convID, 'admin')
+    await expect(input).toHaveAttribute('readonly', '', {timeout: 20_000})
+    await owner.setMinWriterRole(convID, 'none')
+    await expect(input).not.toHaveAttribute('readonly', '', {timeout: 20_000})
+    await expect(threadHeaderTitle(page)).toHaveText(`${data.team}#${topicName}`)
+
+    const text = `e2e-roclear-message-${Date.now()}`
+    await sendMessage(page, text)
     expect(await messageText(page, text)).toBe(text)
   })
 })
