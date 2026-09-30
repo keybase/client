@@ -541,6 +541,16 @@ export const leaveChannelFromCli = async (topicName: string) => {
   await withApi(async api => api.call('leave', {channel: channelRef(team, topicName)}))
 }
 
+// Sets the lowest team role that can post in a team channel, through the CLI, which must be signed
+// in as a team admin.
+export const setMinWriterRoleFromCli = async (topicName: string, role: 'admin' | 'writer') => {
+  const {team} = e2eAccounts()
+  // the prompt wraps at the terminal's width, which splits 'confirm' for some role names
+  await cliConfirmed(['chat', 'min-writer-role', team, '--channel', topicName, '--role', role], 'Hit Enter')
+  const now = await cli(['chat', 'min-writer-role', team, '--channel', topicName])
+  if (!new RegExp(`\\b${role}\\b`, 'i').test(now)) throw new Error(`#${topicName} min writer role not ${role}: ${now}`)
+}
+
 // Deletes every channel createThrowawayChannel made with `prefix`, this run's or a failed run's,
 // through the CLI, which must be signed in as the team owner.
 export const deleteThrowawayChannels = async (prefix: string) => {

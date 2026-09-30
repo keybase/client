@@ -2,12 +2,22 @@
 // app relaunch, a send takes the text and the draft with it, an edit is never a draft, the reply bar
 // cancels, the suggestion lists pick by tap, an emoji from the picker lands with its space, and a
 // read-only channel hides every way to post.
-import {E2E_CHANNELS, ensureChatData, readonlyMarker, type ChatData} from '../../shared/chat-data'
+import {
+  E2E_CHANNELS,
+  createThrowawayChannel,
+  deleteThrowawayChannels,
+  ensureChatData,
+  readonlyMarker,
+  setMinWriterRoleFromCli,
+  type ChatData,
+} from '../../shared/chat-data'
+import {switchCliAccount} from '../../shared/cli-account'
 import {
   check,
   chooseMenuItem,
   clearComposer,
   closeMessageMenu,
+  closeSearch,
   composerText,
   editCancel,
   hideKeyboard,
@@ -15,6 +25,8 @@ import {
   menuHas,
   openConversation,
   openMessageMenu,
+  openThreadSearch,
+  outgoingRpcs,
   replyPreview,
   sendMessage,
   ordinalsWithText,
@@ -25,7 +37,16 @@ import {
   waitForRow,
 } from '../helpers/chat'
 import {el, els} from '../helpers/elements'
-import {BUNDLE_ID, deviceUdid, jsEval, simctl, terminateApp, waitFor} from '../helpers/lifecycle'
+import {
+  BUNDLE_ID,
+  deviceUdid,
+  jsEval,
+  metroClientLogSince,
+  metroLogMark,
+  simctl,
+  terminateApp,
+  waitFor,
+} from '../helpers/lifecycle'
 import {escapeToTabs, navigateToChat} from '../helpers/navigate'
 import * as T from '../../shared/test-ids'
 
@@ -231,6 +252,53 @@ describe('chat composer: editing', () => {
     await waitForComposerText(draft)
     await expectStoredText(text)
   })
+
+  it('Edit from the menu raises the keyboard once the menu is gone', async () => {
+    await openDirect()
+    await resetComposer()
+    const text = `e2e-ios-composer-edit-focus-${Date.now()}`
+    await sendMessage(text)
+    await startEdit(text)
+    await waitFor('the composer to take the keyboard', async () => ((await isKeyboardUp()) ? true : undefined), {
+      timeout: 5_000,
+    })
+    // the keys go to the focused composer, into the edit
+    await browser.keys([' ', 'x'])
+    await waitForComposerText(`${text} x`)
+  })
+
+  // On a phone thread search takes the composer's place, and closing it attaches a new input.
+  it("an edit's text comes back after thread search, sending posts the edit, and no draft is saved", async () => {
+    await openDirect()
+    await resetComposer()
+    const text = `e2e-ios-composer-edit-search-${Date.now()}`
+    await sendMessage(text)
+    await startEdit(text)
+    await el(T.CHAT_INPUT).addValue(' edited')
+    await waitForComposerText(`${text} edited`)
+    await browser.pause(500)
+
+    await openThreadSearch()
+    await el(T.CHAT_INPUT).waitForExist({reverse: true, timeout: 5_000})
+    await closeSearch()
+    await waitForComposerText(`${text} edited`)
+    check(await editCancel().isExisting(), 'the edit ended across thread search')
+
+    await el(T.CHAT_SEND_BUTTON).click()
+    await editCancel().waitForExist({reverse: true, timeout: 5_000})
+    await waitForComposerText('')
+    await waitFor(
+      'the message to read the edited text',
+      async () => {
+        const found = await ordinalsWithText(`${text} edited`)
+        const m = found.length === 1 ? await storedMessage(found[0]!) : undefined
+        return m?.text === `${text} edited` ? true : undefined
+      },
+      {timeout: 15_000}
+    )
+    await openScratch()
+    await expectDirectDraft(undefined)
+  })
 })
 
 describe('chat composer: reply and suggestions', () => {
@@ -294,6 +362,39 @@ describe('chat composer: reply and suggestions', () => {
     await el(T.CHAT_SUGGESTION_LIST).waitForExist({reverse: true, timeout: 5_000})
     const text = await composerText()
     check(/^:tada[\w-]*: $/.test(text), `the composer reads "${text}" after picking "${label}"`)
+  })
+
+  // Arrowing through the list shows the pick in the composer (a preview) without it being typed;
+  // leaving with one showing keeps it as the draft and sends no typing for it. What the app sends is
+  // read off its RPC log in Metro's log; the other account is not watched. Arrows come only from a
+  // hardware keyboard, which Appium reaches only where XCTest synthesizes hardware key presses.
+  it('leaving with an @mention preview keeps it as the draft and sends no typing', async function () {
+    const rows = await openList('@', 2)
+    const second = ((await rowLabel(rows[1]!)).split(/[ ,]/).find(w => !!w)) ?? ''
+    check(!!second, 'the second row has no name')
+    await browser.execute('mobile: keys', {
+      elementId: (await el(T.CHAT_INPUT).getElement()).elementId,
+      // XCUIKeyboardKeyDownArrow
+      keys: [{key: '\uF701', modifierFlags: 0}],
+    })
+    const previewed = await waitForComposerText(`@${second}`, 3_000)
+      .then(() => true)
+      .catch(() => false)
+    if (!previewed && (await composerText()) === '@') {
+      console.log('skipped: a hardware arrow key from Appium does not reach the app on this simulator')
+      this.skip()
+    }
+    check(previewed, `the arrow left the composer reading ${JSON.stringify(await composerText())}`)
+    // past the typing throttle (1s), so the typing from before the leave has all gone out
+    await browser.pause(1_500)
+    const mark = metroLogMark()
+    await openDirect()
+    await browser.pause(1_500)
+    const calls = outgoingRpcs(metroClientLogSince(mark))
+    const typingOn = calls.filter(c => c.method === 'chat.1.local.updateTyping' && /"typing":\s*true/.test(c.params))
+    check(typingOn.length === 0, `typing sent after leaving: ${JSON.stringify(typingOn)}`)
+    await openScratch()
+    await waitForComposerText(`@${second}`)
   })
 
   it('an emoji from the picker goes in after the text with one space after it', async () => {
@@ -399,5 +500,53 @@ describe('chat composer: read-only channel', () => {
     check(!(await menuHas('Edit')), 'the message menu offers Edit')
     check(!(await menuHas('Reply')), 'the message menu offers Reply')
     await closeMessageMenu()
+  })
+})
+
+// The channel turns read-only for the second account (a writer) while it edits: the owner, the host
+// CLI, raises the channel's minimum writer role. Cancelling the edit then empties the composer and
+// leaves the draft set aside for the edit as it was; it loads again once the account can post.
+describe('chat composer: read-only mid-edit', () => {
+  const prefix = 'e2e-iroedit'
+
+  after(async () => {
+    await closeMessageMenu().catch(() => {})
+    await switchAppAccount(data.smokeUser)
+    await switchCliAccount(data.smokeUser)
+    await deleteThrowawayChannels(prefix)
+    await switchCliAccount(data.secondUser)
+  })
+
+  it('cancelling the edit empties the composer and leaves the draft, which comes back once it can post', async () => {
+    await switchCliAccount(data.smokeUser)
+    await deleteThrowawayChannels(prefix)
+    const {convID, topicName} = await createThrowawayChannel(prefix)
+    await switchAppAccount(data.secondUser)
+    await openConversation(convID)
+    await el(T.CHAT_EMOJI_BUTTON).waitForExist({timeout: 10_000})
+
+    const text = `e2e-ios-roedit-message-${Date.now()}`
+    await sendMessage(text)
+    const draft = `e2e-ios-roedit-draft-${Date.now()}`
+    await typeInComposer(draft)
+    // past the draft save's throttle, so the draft is saved before the edit sets it aside
+    await browser.pause(500)
+    await startEdit(text)
+    await el(T.CHAT_INPUT).addValue(' changed')
+    await waitForComposerText(`${text} changed`)
+
+    await setMinWriterRoleFromCli(topicName, 'admin')
+    await el(T.CHAT_EMOJI_BUTTON).waitForExist({reverse: true, timeout: 20_000})
+    await hideKeyboard()
+    await editCancel().waitForExist({timeout: 5_000})
+    await editCancel().click()
+    await editCancel().waitForExist({reverse: true, timeout: 5_000})
+    await waitForComposerText('')
+    await expectStoredText(text)
+
+    await setMinWriterRoleFromCli(topicName, 'writer')
+    await el(T.CHAT_EMOJI_BUTTON).waitForExist({timeout: 20_000})
+    await waitForComposerText(draft, 10_000)
+    await expectStoredText(text)
   })
 })
