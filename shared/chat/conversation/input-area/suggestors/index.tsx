@@ -87,8 +87,6 @@ type SelectedType = Parameters<(typeof transformers)['channels' | 'commands' | '
 type UseSyncInputProps = {
   active: ActiveType
   composer: Composer
-  // reports text as the user's, the way the input reports typing
-  reportText: (text: string) => void
   setActive: React.Dispatch<React.SetStateAction<ActiveType>>
   setFilter: React.Dispatch<React.SetStateAction<string>>
   selectedItemRef: React.RefObject<undefined | SelectedType>
@@ -100,7 +98,6 @@ const useSyncInput = (p: UseSyncInputProps) => {
   const {
     composer,
     active,
-    reportText,
     setActive,
     setFilter,
     selectedItemRef,
@@ -108,30 +105,24 @@ const useSyncInput = (p: UseSyncInputProps) => {
     setSnapshotText,
   } = p
   // Arrowing through a list shows each pick in the input without reporting it. The user saw it,
-  // so a list closing on one (Escape, a blur, the caret leaving the word) keeps it as their text.
+  // so a list closing on one (Escape, a blur, the caret leaving the word, leaving the conversation)
+  // keeps it as their text. Picking is not typing, so it is kept, never reported as typed.
   const previewRef = React.useRef<string | undefined>(undefined)
-  // the preview, taken, if the input still shows it
-  const takePreview = () => {
+  const keepPreview = () => {
     const preview = previewRef.current
     previewRef.current = undefined
-    return preview !== undefined && preview === composer.getText() ? preview : undefined
+    if (preview !== undefined && preview === composer.getText()) {
+      composer.keepText()
+    }
   }
   const setInactive = () => {
-    const preview = takePreview()
-    if (preview !== undefined) {
-      reportText(preview)
-    }
+    keepPreview()
     setActive('')
     setFilter('')
   }
-  // Leaving closes the list too, but the user is not typing: the preview is only saved as the
-  // draft. A layout cleanup, so it runs before the input detaches and its detach flushes the draft.
-  const commitPreviewOnLeave = React.useEffectEvent(() => {
-    if (takePreview() !== undefined) {
-      composer.keepText()
-    }
-  })
-  React.useLayoutEffect(() => () => commitPreviewOnLeave(), [])
+  // A layout cleanup, so it runs before the input detaches and its detach flushes the draft.
+  const keepPreviewOnLeave = React.useEffectEvent(keepPreview)
+  React.useLayoutEffect(() => () => keepPreviewOnLeave(), [])
 
   const getInputSnapshot = (): Commands.CommandInputSnapshot => ({
     selection: composer.getSelection(),
@@ -308,7 +299,6 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   const {triggerTransform, checkTrigger, setInactive} = useSyncInput({
     active,
     composer,
-    reportText: onChangeTextProps,
     selectedItemRef,
     setActive,
     setCommandInputSnapshot: setCommandInputSnapshotIfChanged,

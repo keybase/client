@@ -30,11 +30,17 @@ jest.mock('@/chat/emoji-picker/container', () => ({
     return null
   },
 }))
-// popups measure their anchor before they render anything, which jsdom cannot do
+// popups measure their anchor before they render anything, which jsdom cannot do; the anchored
+// popup's onHidden is kept, as it is what a click outside the popup calls
+let mockHidePopup: (() => void) | undefined
 jest.mock('@/common-adapters', () => {
   const actual = jest.requireActual<Record<string, unknown>>('@/common-adapters')
   const passthrough = (p: {children: React.ReactNode}): React.ReactNode => p.children
-  return {...actual, AnchoredPopup: passthrough, Popup: passthrough}
+  const anchored = (p: {children: React.ReactNode; onHidden?: () => void}): React.ReactNode => {
+    mockHidePopup = p.onHidden
+    return p.children
+  }
+  return {...actual, AnchoredPopup: anchored, Popup: passthrough}
 })
 type MockUsersListProps = {
   filter: string
@@ -117,6 +123,7 @@ afterEach(() => {
   jest.restoreAllMocks()
   resetAllStores()
   mockPickEmoji = undefined
+  mockHidePopup = undefined
   mockUsersList.mockClear()
 })
 
@@ -447,7 +454,8 @@ describe('with the shared suggestion list', () => {
     expect(textarea.value).toBe('hi @testuser-mac ')
   })
 
-  // the user saw the preview, so it is their text: the draft and the typing indicator hear of it
+  // The user saw the preview, so it is their text and is saved as the draft. Picking is not
+  // typing: however the list closes, the typing indicator hears nothing of it.
   const closeWithEscape = (textarea: HTMLTextAreaElement) => {
     fireEvent.keyDown(textarea, {key: 'Escape'})
   }
@@ -456,10 +464,17 @@ describe('with the shared suggestion list', () => {
     fireEvent.select(textarea)
     fireEvent.keyDown(textarea, {key: 'ArrowLeft'})
   }
+  // clicking another conversation's row: the input blurs and the popup hears the outside click
+  // before the conversation is left
+  const closeByClickingOutside = (textarea: HTMLTextAreaElement) => {
+    textarea.blur()
+    mockHidePopup?.()
+  }
   test.each([
     ['Escape', closeWithEscape],
     ['the caret leaving the word', closeByMovingTheCaret],
-  ])('a list closed by %s on a preview keeps the preview as typed text', (_name, close) => {
+    ['a click outside it', closeByClickingOutside],
+  ])('a list closed by %s on a preview keeps the preview without saying the user is typing', (_name, close) => {
     receiveDraft('')
     const saveDraft = jest.mocked(T.RPCChat.localUpdateUnsentTextRpcPromise)
     const sendTyping = jest.mocked(T.RPCChat.localUpdateTypingRpcPromise)
@@ -470,7 +485,7 @@ describe('with the shared suggestion list', () => {
     type(textarea, 'hi @te')
     openList()
     act(() => {
-      jest.advanceTimersByTime(1000)
+      jest.advanceTimersByTime(2000)
     })
     saveDraft.mockClear()
     sendTyping.mockClear()
@@ -488,15 +503,46 @@ describe('with the shared suggestion list', () => {
     })
     mockUsersList.mockClear()
     act(() => {
-      jest.advanceTimersByTime(5)
+      jest.advanceTimersByTime(2000)
     })
-    // closed, and not opened again by its own report
+    // closed, and not opened again by keeping the preview
     expect(mockUsersList).not.toHaveBeenCalled()
-    expect(sendTyping.mock.calls.map(c => c[0].typing)).toEqual([true])
+    expect(sendTyping).not.toHaveBeenCalled()
 
     utils.unmount()
-    expect(saveDraft.mock.calls.map(c => c[0].text).at(-1)).toBe('hi @testuser-mac')
+    act(() => {
+      jest.advanceTimersByTime(2000)
+    })
+    expect(sendTyping).not.toHaveBeenCalled()
+    expect(saveDraft.mock.calls.map(c => c[0].text)).toEqual(['hi @testuser-mac'])
     expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('hi @testuser-mac')
+  })
+
+  test('typing after a list closed on a preview is typing', () => {
+    receiveDraft('')
+    const sendTyping = jest.mocked(T.RPCChat.localUpdateTypingRpcPromise)
+    const {textarea} = renderComposer()
+    act(() => {
+      textarea.focus()
+    })
+    type(textarea, 'hi @te')
+    openList()
+    act(() => {
+      jest.advanceTimersByTime(2000)
+    })
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'ArrowDown'})
+    })
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'Escape'})
+    })
+    act(() => {
+      jest.advanceTimersByTime(2000)
+    })
+    sendTyping.mockClear()
+
+    type(textarea, 'hi @testuser-mac yo')
+    expect(sendTyping.mock.calls.map(c => c[0].typing)).toEqual([true])
   })
 
   test('leaving the conversation with a preview showing saves the preview as the draft', () => {

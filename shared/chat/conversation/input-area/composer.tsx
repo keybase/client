@@ -57,8 +57,8 @@ export type Composer = {
   // False where the user can't post: a reply could never be sent.
   startReply: () => boolean
   insertAtCaret: (s: string) => void
-  // Saves the text as the draft, as typing would, without it being typing: a suggestion preview
-  // the input showed without reporting it, kept as the user leaves.
+  // Saves the text as the draft without it being typing: a suggestion preview the input shows
+  // without reporting it, kept as the list closes.
   keepText: () => void
   // insertAtCaret, typed by the input itself where it can be, so the platform can undo it
   typeAtCaret: (s: string) => void
