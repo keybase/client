@@ -2,6 +2,8 @@ import {defineConfig} from '@playwright/test'
 
 export default defineConfig({
   testDir: './',
+  // aborts the run in seconds when the dev app's renderer does not load (see global-setup.ts)
+  globalSetup: './global-setup.ts',
   // several flows chain 3-4 five-second waits against a live service, so the
   // per-test budget has to clear the sum of their step timeouts. Worst case is
   // flows/teams-modals 'retention warning opens': openFirstTeam (~8s) + two 5s

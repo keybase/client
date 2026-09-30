@@ -1,6 +1,5 @@
 import {test as base, type ConsoleMessage, type Page, type WorkerInfo} from '@playwright/test'
-import {appNotReady, connectToElectron} from './connect'
-import {NAV_TAB_CHAT} from '@/tests/e2e/shared/test-ids'
+import {checkRendererAfterReload, connectToElectron} from './connect'
 
 type WorkerFixtures = {_electronPage: Page}
 type TestFixtures = {_rendererErrors: undefined; page: Page}
@@ -21,14 +20,9 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       const {page} = await connectToElectron()
       // emulateMedia sets prefers-color-scheme via CDP and persists across reloads
       await page.emulateMedia({colorScheme: isDark ? 'dark' : 'light'})
-      // Reload to clear in-memory state and apply the new color scheme
-      await page.reload({timeout: 20_000})
-      await page
-        .getByTestId(NAV_TAB_CHAT)
-        .waitFor({timeout: 20_000})
-        .catch(() => {
-          throw appNotReady('the chat tab did not come back after a reload', 20_000)
-        })
+      // Reload to clear in-memory state and apply the new color scheme; a renderer that comes back
+      // white fails here at once with the app log's tail
+      await checkRendererAfterReload(page)
       try {
         await setup(page)
       } finally {
