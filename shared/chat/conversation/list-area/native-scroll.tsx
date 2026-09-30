@@ -161,8 +161,11 @@ export const useNativeThreadScroll = (p: {
   // offset here (inverted list + custom keyboard scrollview + tall variable-height
   // image rows), so instead we read the actual viewable index range each frame and
   // scrollToOffset by the item-delta until the target sits at viewport center.
-  // {active, iters}: correcting toward a centered hit and how many steps taken
-  const correctRef = React.useRef({active: false, iters: 0})
+  // Correcting toward a centered hit, which one, and how many steps taken.
+  const correctRef = React.useRef<{active: boolean; iters: number; target?: T.Chat.Ordinal}>({
+    active: false,
+    iters: 0,
+  })
   // The list as its last scroll event reported it, which the next one is compared with.
   const lastScrollRef = React.useRef<{content: number; offset: number; resting: number} | undefined>(undefined)
   // Compared by value, so a freeze/thaw re-mount, which keeps the list, keeps its figures.
@@ -178,7 +181,8 @@ export const useNativeThreadScroll = (p: {
   }, [conversationIDKey])
   // The rows asked for by scrollToItem, each asked for by a centre or a reveal, with how many of its
   // failures have been retried: a row outside the rendered window makes the scroll fail, and the
-  // retry asks for that same row again once more rows have rendered.
+  // retry asks for that same row again once more rows have rendered. A request lasts as long as what
+  // asked for it: a centre's ends when it settles, and every one ends when the reader takes over.
   const itemScrollsRef = React.useRef(new Map<T.Chat.Ordinal, {animated: boolean; retries: number}>())
   const [requestItem] = React.useState(() => (item: T.Chat.Ordinal, animated: boolean) => {
     itemScrollsRef.current.set(item, {animated, retries: 0})
@@ -189,8 +193,10 @@ export const useNativeThreadScroll = (p: {
     timers.stop()
   })
   const [settleCenter] = React.useState(() => () => {
-    if (!correctRef.current.active) return
+    const {active, target} = correctRef.current
+    if (!active) return
     correctRef.current.active = false
+    if (target !== undefined) itemScrollsRef.current.delete(target)
     // Only ever leaves the list alone.
     scrollTarget.decide({type: 'centerSettled'})
   })
@@ -244,7 +250,7 @@ export const useNativeThreadScroll = (p: {
         case 'center':
           requestItem(directive.ordinal, false)
           moveToward(directive.ordinal)
-          correctRef.current = {active: true, iters: 0}
+          correctRef.current = {active: true, iters: 0, target: directive.ordinal}
           ladderRef.current.forEach(t => t.cancel())
           ladderRef.current = [50, 250, 500, 900].map((d, i, ladder) =>
             timers.after(d, () => {
@@ -395,13 +401,15 @@ export const useNativeThreadScroll = (p: {
     [dispatch]
   )
 
-  // Waits for more rows to render and asks for the failed row again, six times per request.
+  // Waits for more rows to render and asks for the failed row again, six times per request, while the
+  // request lasts.
   const [onScrollToIndexFailed] = React.useState(() => (info: {index: number}) => {
     const item = ordsRef.current[info.index]
     const request = item === undefined ? undefined : itemScrollsRef.current.get(item)
     if (item === undefined || !request || request.retries > 5) return
     request.retries += 1
     timers.after(200, () => {
+      if (itemScrollsRef.current.get(item) !== request) return
       scrollToItem(item, request.animated)
     })
   })

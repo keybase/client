@@ -202,13 +202,13 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
     case 'userScrolled':
       // However the reader scrolls, and whichever way, they have taken over: centring stops rather
       // than pull them back, and the end is theirs until a scroll comes to rest there (readerAtEnd).
-      // It arrives on every scroll event, and most find it so already.
+      // It arrives on every scroll event, and most find it so already, with nothing left to stop.
+      if (state.endOwner === 'reader' && !state.settlingCenter && !state.holdingReveal) {
+        return {directive: leaveAlone, state}
+      }
       return {
         directive: {stopCentering: true, type: 'leaveAlone'},
-        state:
-          state.endOwner === 'reader' && !state.settlingCenter && !state.holdingReveal
-            ? state
-            : {...state, endOwner: 'reader', holdingReveal: false, settlingCenter: false},
+        state: {...state, endOwner: 'reader', holdingReveal: false, settlingCenter: false},
       }
     case 'readerAtEnd':
       return {directive: leaveAlone, state: {...state, endOwner: 'list'}}

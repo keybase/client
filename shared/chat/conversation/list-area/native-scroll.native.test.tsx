@@ -1600,9 +1600,10 @@ describe('loading newer messages', () => {
 })
 
 describe('scroll-to-index failures', () => {
+  // Past the coarse reasserts, within the corrector's schedule, which steps only on a viewable range.
   test('retry the current target 200ms later, at most six times per target', async () => {
     open({center: 30})
-    await tick(1000)
+    await tick(300)
     clearLog()
     scrollToIndexFailed(30)
     await tick(199)
@@ -1616,10 +1617,31 @@ describe('scroll-to-index failures', () => {
 
   test('a drag cancels a pending retry', async () => {
     open({center: 30})
-    await tick(1000)
+    await tick(300)
     clearLog()
     scrollToIndexFailed(30)
     drag()
+    await tick(1000)
+    expect(H.log).toEqual([])
+  })
+
+  // Settled, the target is left where it is, as a drag would leave it.
+  test('once the centre has settled, its failures are not retried', async () => {
+    open({center: 30})
+    await tick(300)
+    scrollToIndexFailed(30)
+    await tick(700)
+    clearLog()
+    scrollToIndexFailed(30)
+    await tick(1000)
+    expect(H.log).toEqual([])
+  })
+
+  test('a retry still pending when the centre settles is dropped', async () => {
+    open({center: 30})
+    await tick(800)
+    clearLog()
+    scrollToIndexFailed(30)
     await tick(1000)
     expect(H.log).toEqual([])
   })
@@ -1630,7 +1652,7 @@ describe('scroll-to-index failures', () => {
     await tick(1000)
     centreOn(40)
     update(() => loadThread(1, 60))
-    await tick(1000)
+    await tick(300)
     clearLog()
     scrollToIndexFailed(40)
     await tick(200)
@@ -1660,7 +1682,7 @@ describe('scroll-to-index failures', () => {
 
   test('while centred, a failed reveal retries the reveal on its own budget and leaves the centre its own', async () => {
     open({center: 30})
-    await tick(1000)
+    await tick(300)
     clearLog()
     update(() => H.inputStore.set({editing: ord(15)}))
     for (let i = 0; i < 8; i++) scrollToIndexFailed(15)

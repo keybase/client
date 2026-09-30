@@ -244,7 +244,7 @@ describe('userScrolled', () => {
   const settling = state({endOwner: 'reader', lastCentered: ord(30), settlingCenter: true})
   runTable([
     ['takes the end from the list and stops centring', fresh, scrolled, stopCentering, state({endOwner: 'reader'})],
-    ['leaves a reader holding the end with it', busy, scrolled, stopCentering, busy],
+    ['leaves a reader holding the end with it, with nothing to stop', busy, scrolled, leaveAlone, busy],
     ['ends the settling of a centred target', settling, scrolled, stopCentering, {...settling, settlingCenter: false}],
     [
       'ends the hold on a revealed edit',
