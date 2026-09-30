@@ -573,6 +573,35 @@ export const watchReselects = async (page: Page, convID: string) =>
     g.__e2eReselects = {seen, stop}
   }, convID)
 
+// Asks the service for a fresh inbox layout through the app's own refresh, waits for it, and reads
+// the reselect info the layout the app now holds carries, and what the app knew of the conversation.
+export const requestLayoutAndReadReselect = async (page: Page, convID: string) =>
+  page.evaluate(async id => {
+    type Layout = {reselectInfo?: {oldConvID?: string}}
+    type LayoutState = {dispatch: {refresh: (reason: string) => Promise<void>}; layout?: Layout}
+    const layoutMod = (await import('/chat/inbox/layout-state.tsx' as string)) as {
+      getBigLayoutChannelRow: (s: LayoutState, id: string) => unknown
+      getSmallLayoutRow: (s: LayoutState, id: string) => unknown
+      useInboxLayoutState: Store<LayoutState>
+    }
+    const metaMod = (await import('/chat/inbox/metadata-store.tsx' as string)) as {
+      useInboxMetadataState: Store<{metas: Map<string, {trustedState: string}>}>
+    }
+    const common = (await import('/constants/chat/common.tsx' as string)) as {getSelectedConversation: () => string}
+    await layoutMod.useInboxLayoutState.getState().dispatch.refresh('e2e layout request')
+    // the layout comes as a notification after the request answers
+    await new Promise(resolve => setTimeout(resolve, 1_000))
+    const s = layoutMod.useInboxLayoutState.getState()
+    const meta = metaMod.useInboxMetadataState.getState().metas.get(id)
+    const seen: ReselectSeen = {
+      inboxRow: !!(layoutMod.getSmallLayoutRow(s, id) || layoutMod.getBigLayoutChannelRow(s, id)),
+      meta: !meta ? 'none' : meta.trustedState === 'error' ? 'error' : 'ok',
+      named: s.layout?.reselectInfo?.oldConvID ?? '',
+      whileSelected: common.getSelectedConversation() === id,
+    }
+    return seen
+  }, convID)
+
 export const stopWatchingReselects = async (page: Page) =>
   page.evaluate(() => {
     const g = globalThis as unknown as ReselectGlobals

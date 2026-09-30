@@ -300,10 +300,11 @@ test.describe('mark unread', () => {
   test('mark unread on the first message of a conversation draws no orange line', async ({page}) => {
     test.setTimeout(90_000)
     await openDirectConversation(page, data.secondUser)
-    // Home until the list rests at its top with nothing more coming in above
-    await focusThreadScroller(page)
+    // Home until the list rests at its top with nothing more coming in above; the composer takes the
+    // focus as the conversation opens, so the scroller is given it back each time
     let oldest = -1
     await expect(async () => {
+      await focusThreadScroller(page)
       await page.keyboard.press('Home')
       const g = await waitForScrollStable(page, 15_000)
       await page.waitForTimeout(1_000)

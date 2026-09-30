@@ -13,6 +13,7 @@ import {
   clickUnoccluded,
   collectConsoleErrors,
   inboxRow,
+  requestLayoutAndReadReselect,
   rowByOrdinal,
   selectedInboxRows,
   stopWatchingReselects,
@@ -138,8 +139,8 @@ test('removed from the open channel moves the selection to the newest conversati
 // loads it, finds the conversation it last loaded missing from the inbox, and puts reselect info in
 // the next inbox layout it sends. That speaks of a conversation the account cannot see in its inbox,
 // not of one it has lost: the selection stays. As the second account, the link is one it sends
-// itself in its conversation with the owner; its own messages there afterwards keep the inbox moving
-// while the selection is watched.
+// itself in its conversation with the owner. While the selection is watched, fresh layouts are asked
+// for as the app's own inbox refresh asks.
 const openFromLinkThroughLayouts = async (page: Page, convID: string, link: string) => {
   await switchAccount(page, data.secondUser)
   await clickUnoccluded(inboxRow(page, data.smokeUser))
@@ -151,18 +152,17 @@ const openFromLinkThroughLayouts = async (page: Page, convID: string, link: stri
   const errors = collectConsoleErrors(page, notFromTheMove)
   await watchReselects(page, convID)
   let reselects: Awaited<ReturnType<typeof stopWatchingReselects>> | undefined
+  const requested: Awaited<ReturnType<typeof stopWatchingReselects>> = []
   let seen: Array<string> | undefined
   try {
     await clickUnoccluded(rowByOrdinal(page, ordinal).getByText(link, {exact: true}))
     await expect.poll(async () => (await watchSelectedConversation(page, 1)).at(-1), {timeout: 10_000}).toBe(convID)
     const watching = watchSelectedConversation(page, 6_000)
-    for (let i = 0; i < 3; i++) {
-      await page.waitForTimeout(1_000)
-      await sendDirectFromCli(data.direct.tlfName, `e2e-selection-layout-${Date.now()}`)
-    }
+    // fresh layouts while it is open, each asked for as the app's own inbox refresh does
+    for (let i = 0; i < 3; i++) requested.push(await requestLayoutAndReadReselect(page, convID))
     seen = await watching
   } finally {
-    reselects = await stopWatchingReselects(page)
+    reselects = [...(await stopWatchingReselects(page)), ...requested]
   }
   const namingIt = reselects.filter(r => r.named === convID)
   console.log(
