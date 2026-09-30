@@ -67,8 +67,9 @@ export type ConversationThreadState = {
   optimisticReactionMap: Map<T.Chat.OutboxID, OptimisticReaction>
   paymentStatusMap: Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
   // See PendingDeleteMap. Set by a delete, cleared by any update once the delete has landed (see
-  // clearPendingDeletesInThreadState), when a thread load carries the row again, when the delete
-  // fails (its RPC or, once queued, its outbox entry) and by messagesClear.
+  // clearPendingDeletesInThreadState), when the delete fails (its RPC or, once queued, its outbox
+  // entry) and by messagesClear. A thread load still carrying the row does not clear it: loads never
+  // carry a queued delete, so they cannot tell a delete waiting to go out from one that failed.
   pendingDeleteMap: Map<T.Chat.OutboxID, T.Chat.Ordinal>
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal>
   typing: Set<string>
@@ -461,11 +462,8 @@ export const makeThreadStore = (
       // messageOrdinals array behind, and an empty one reads as a loaded, empty thread - the top
       // of the conversation renders against it and then swaps when the real page arrives.
       if (p.messages.length || p.reconcile?.prune) {
-        const carried = addMessagesToThreadState(s, p.messages, {reconcile: p.reconcile})
+        addMessagesToThreadState(s, p.messages, {reconcile: p.reconcile})
         clearOptimisticReactionsForMessagesInThreadState(s, p.messages)
-        // A load still carrying the row is the service saying it is there: a delete that failed
-        // after it was queued, with no outbox failure to say so, stops showing here.
-        clearPendingDeletesInThreadState(s, o => carried.has(o))
       }
       // Only a pass that actually rendered something drops the gate. A cold cache sends an empty
       // cached pass ahead of the full response, and a page can be all tombstones: dropping the

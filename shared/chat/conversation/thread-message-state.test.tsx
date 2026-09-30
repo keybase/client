@@ -729,7 +729,7 @@ describe('clearPendingDeletesInThreadState', () => {
   const text = (n: number, over?: Partial<T.Chat.MessageText>) =>
     Message.makeMessageText({conversationIDKey: convID, id: T.Chat.numberToMessageID(n), ordinal: o(n), ...over})
 
-  test('drops a delete whose row is gone, a deleted placeholder or exploded, and those done names', () => {
+  test('drops a delete whose row is gone, a deleted placeholder or exploded', () => {
     const state = {
       messageMap: new Map<T.Chat.Ordinal, T.Chat.Message>([
         [o(2), Message.makeMessageDeleted({conversationIDKey: convID, id: T.Chat.numberToMessageID(2), ordinal: o(2)})],
@@ -739,7 +739,7 @@ describe('clearPendingDeletesInThreadState', () => {
       ]),
       pendingDeleteMap: new Map([1, 2, 3, 4, 5].map(n => [T.Chat.stringToOutboxID(`d${n}`), o(n)])),
     }
-    clearPendingDeletesInThreadState(state, ordinal => ordinal === o(5))
-    expect([...state.pendingDeleteMap.values()]).toEqual([o(4)])
+    clearPendingDeletesInThreadState(state)
+    expect([...state.pendingDeleteMap.values()]).toEqual([o(4), o(5)])
   })
 })

@@ -670,19 +670,36 @@ describe('messageDelete edges', () => {
     expect(message(11)?.submitState).toBeUndefined()
   })
 
-  test('a reload carrying the row clears a delete that never landed', async () => {
+  // A thread load never carries a queued delete (the service sprinkles only unsent text and
+  // attachments from its outbox into a thread), so a load still holding the row says nothing about
+  // whether the delete will happen: offline or slow, the delete may still be waiting to go out.
+  test('a thread load carrying the row, cached or full, keeps it deleting while the delete is queued', async () => {
     const {message, result} = renderThread([textAt(10)])
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
-    act(() => {
+    const load = (prune: boolean) =>
       result.current.actions.applyThreadLoad({
         centered: false,
         enableActiveMarkRead: false,
         messages: [textAt(10)],
         moreToLoad: false,
+        reconcile: {carried: new Set(), prune},
+        scrollDirection: 'none',
+      })
+    act(() => load(false))
+    expect(message(10)?.submitState).toBe('deleting')
+    act(() => load(true))
+    expect(message(10)?.submitState).toBe('deleting')
+    act(() => {
+      result.current.actions.applyThreadLoad({
+        centered: false,
+        enableActiveMarkRead: false,
+        messages: [makeMessageDeleted({conversationIDKey, id: T.Chat.numberToMessageID(10), ordinal: T.Chat.numberToOrdinal(10)})],
+        moreToLoad: false,
         scrollDirection: 'none',
       })
     })
     expect(message(10)?.submitState).toBeUndefined()
+    expect(result.current.store.getState().pendingDeleteMap.size).toBe(0)
   })
 
   test('a reaction or unfurl update to the row mid-delete keeps it deleting', async () => {

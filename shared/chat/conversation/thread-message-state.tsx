@@ -188,7 +188,6 @@ const mergeMessage = (
   }
 }
 
-// Returns the ordinals the batch's rows now occupy.
 export const addMessagesToThreadState = (
   state: WritableConversationThreadMessageState,
   messages: ReadonlyArray<T.Chat.Message>,
@@ -196,7 +195,7 @@ export const addMessagesToThreadState = (
     dropNewBelowWindow?: boolean
     reconcile?: ThreadLoadReconcile
   }
-): ReadonlySet<T.Chat.Ordinal> => {
+) => {
   const {dropNewBelowWindow, reconcile} = opt
   // The bounds of the loaded window before this batch is merged in.
   const ords = state.messageOrdinals
@@ -397,7 +396,6 @@ export const addMessagesToThreadState = (
   if (changed || !state.messageOrdinals) {
     state.messageOrdinals = [...existing].sort((a, b) => a - b)
   }
-  return incomingOrdinals
 }
 
 export const deleteMessagesFromThreadState = (
@@ -531,19 +529,16 @@ export const isPendingDelete = (pendingDeletes: PendingDeleteMap, ordinal: T.Cha
 }
 
 // Drops every entry whose delete has landed: its row is gone, a deleted placeholder, or exploded
-// (deleting an exploding message explodes it). done(ordinal) names more rows to drop.
-export const clearPendingDeletesInThreadState = (
-  state: {
-    messageMap: ReadonlyMap<T.Chat.Ordinal, T.Chat.Message>
-    pendingDeleteMap: Map<T.Chat.OutboxID, T.Chat.Ordinal>
-  },
-  done?: (ordinal: T.Chat.Ordinal) => boolean
-) => {
+// (deleting an exploding message explodes it).
+export const clearPendingDeletesInThreadState = (state: {
+  messageMap: ReadonlyMap<T.Chat.Ordinal, T.Chat.Message>
+  pendingDeleteMap: Map<T.Chat.OutboxID, T.Chat.Ordinal>
+}) => {
   const landed = (ordinal: T.Chat.Ordinal) => {
     const m = state.messageMap.get(ordinal)
     return !m || m.type === 'deleted' || ('exploded' in m && !!m.exploded)
   }
-  const settled = [...state.pendingDeleteMap].filter(([, ordinal]) => landed(ordinal) || !!done?.(ordinal))
+  const settled = [...state.pendingDeleteMap].filter(([, ordinal]) => landed(ordinal))
   for (const [outboxID] of settled) {
     state.pendingDeleteMap.delete(outboxID)
   }
