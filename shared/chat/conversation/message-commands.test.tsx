@@ -184,6 +184,19 @@ describe('deleteMessage', () => {
     expect(writes).toContainEqual(['deleteMessages', {ordinals: [T.Chat.numberToOrdinal(10)]}])
   })
 
+  test('with no meta both paths still post, with an empty tlfName the service fills in', async () => {
+    resetAllStores()
+    const {thread, writes} = makeThread([textAt(10)])
+    deleteMessage({conversationIDKey, ordinal: T.Chat.numberToOrdinal(10), thread})
+    deleteMessage({conversationIDKey, message: textAt(10)})
+    await flushPromises()
+    expect(rpc.params('postDelete')).toEqual([
+      expect.objectContaining({tlfName: ''}),
+      expect.objectContaining({tlfName: ''}),
+    ])
+    expect(writes).toEqual([['addPendingDelete', T.Chat.numberToOrdinal(10)]])
+  })
+
   test('the storeless path takes its tlfName from the caller first', async () => {
     deleteMessage({conversationIDKey, message: textAt(10), tlfName: 'team.name'})
     await flushPromises()

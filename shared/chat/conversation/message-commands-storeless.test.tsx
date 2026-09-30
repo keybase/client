@@ -298,13 +298,11 @@ describe('dismissConversationJourneycard', () => {
 })
 
 describe('storeless edges', () => {
-  test('delete with no meta and no tlfName sends nothing, the same as the thread path', async () => {
-    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
+  test('delete with no meta and no tlfName still posts, with an empty tlfName the service fills in', async () => {
     resetAllStores()
     deleteConversationMessage(conversationIDKey, textMessage())
     await flushPromises()
-    expect(rpc.log).toEqual([])
-    expect(warn).toHaveBeenCalledWith('deleteMessage: no tlfName and no conversation meta')
+    expect(rpc.params('postDelete')).toEqual([expect.objectContaining({tlfName: ''})])
   })
 
   test('a failed cancel is logged as a warning', async () => {

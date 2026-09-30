@@ -89,7 +89,7 @@ export const formatTextForQuoting = (text: string) =>
 
 // What both paths do: cancel an unsent message's outbox entry, or ask the service to delete a sent
 // message. A thread passes its hooks: dropping the cancelled row, and undoing its deleting mark when
-// nothing was deleted. tlfName falls back to the inbox meta's.
+// nothing was deleted. tlfName falls back to the inbox meta's, then to none.
 const deleteConversationMessage = async (p: {
   conversationIDKey: T.Chat.ConversationIDKey
   message: T.Chat.Message
@@ -118,11 +118,8 @@ const deleteConversationMessage = async (p: {
       onCancelled?.()
       return
     }
-    const tlfName = p.tlfName || getInboxConversationMeta(conversationIDKey)?.tlfname
-    if (tlfName === undefined) {
-      bail('no tlfName and no conversation meta')
-      return
-    }
+    // With no meta (a popup opened from search or the pinned banner) the service fills in the tlf name.
+    const tlfName = p.tlfName || getInboxConversationMeta(conversationIDKey)?.tlfname || ''
     // a successful delete leaves a thread's row deleting; the service's delete notification removes it
     await getChatRpc().postDelete({conversationIDKey, messageID: message.id, outboxID, tlfName})
   } catch (error) {
