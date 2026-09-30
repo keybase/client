@@ -60,8 +60,8 @@ module.exports = {
   transform: {
     '^.+\\.(js|jsx|mjs|ts|tsx)$': 'babel-jest',
   },
-  // emoji-regex 11 ships only ESM (main: index.mjs), so jest has to transform it to CJS.
+  // emoji-regex 11 and @khanacademy/simple-markdown 4 ship only ESM, so jest has to transform them to CJS.
   transformIgnorePatterns: [
-    'node_modules/(?!(react-native|@react-native|@react-native-community|@react-navigation|expo(-[a-z-]+)?|lottie-react-native|react-native-safe-area-context|react-native-screens|react-native-webview|react-native-keyboard-controller|react-native-kb|@gorhom|@legendapp|sf-symbols-typescript|emoji-regex)/)',
+    'node_modules/(?!(react-native|@react-native|@react-native-community|@react-navigation|expo(-[a-z-]+)?|lottie-react-native|react-native-safe-area-context|react-native-screens|react-native-webview|react-native-keyboard-controller|react-native-kb|@gorhom|@khanacademy|@legendapp|sf-symbols-typescript|emoji-regex)/)',
   ],
 }

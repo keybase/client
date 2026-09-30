@@ -91,7 +91,7 @@
   "dependencies": {
     "@gorhom/bottom-sheet": "5.2.14",
     "@gorhom/portal": "1.0.14",
-    "@khanacademy/simple-markdown": "3.0.1",
+    "@khanacademy/simple-markdown": "4.0.0",
     "@legendapp/list": "3.6.0",
     "@msgpack/msgpack": "3.1.3",
     "@react-native-picker/picker": "2.11.4",
