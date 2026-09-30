@@ -18,7 +18,7 @@ import {
   type ScrollDirective,
   type ScrollEvent,
 } from './scroll-target'
-import {makeSchedule, type Scheduled} from './schedule'
+import {makeSchedule, useSchedule, type Scheduled} from './schedule'
 
 export type NativeListRef = {
   scrollToOffset: (opts: {animated: boolean; offset: number}) => void
@@ -442,8 +442,10 @@ export const useNativeThreadScroll = (p: {
   })
 
   // Loads a page as the list comes within pageLoadScreens of either end of the rows loaded, measured
-  // from where it is scrolled to. The list is inverted: its offset rises toward the oldest row, and the
-  // newest rests at the resting offset.
+  // from where it is scrolled to: checked as it scrolls, as its content or viewport changes size, and
+  // once the gate after new rows has passed, so a short page, or a page landing with the reader still,
+  // loads the next without a scroll. The list is inverted: its offset rises toward the oldest row, and
+  // the newest rests at the resting offset, where the list sits until it first reports a scroll.
   const loadsRef = React.useRef({newer: loadNewer, older: loadOlder})
   React.useEffect(() => {
     loadsRef.current = {newer: loadNewer, older: loadOlder}
@@ -453,13 +455,10 @@ export const useNativeThreadScroll = (p: {
     containsLatestRef.current = containsLatestMessage
   }, [containsLatestMessage])
   const nextLoadRef = React.useRef({newer: 0, older: 0})
-  React.useEffect(() => {
-    const next = Date.now() + pageLoadGate
-    nextLoadRef.current = {newer: next, older: next}
-  }, [numOrdinals])
   const [loadPages] = React.useState(() => () => {
-    const {content, offset, viewport} = metricsRef.current
-    if (content === undefined || offset === undefined || viewport === undefined) return
+    const {content, viewport} = metricsRef.current
+    const offset = metricsRef.current.offset ?? restingOffset()
+    if (content === undefined || viewport === undefined) return
     const near = (end: 'newer' | 'older', distance: number) => {
       if (!withinPageLoad(distance, viewport)) return
       const now = Date.now()
@@ -471,6 +470,14 @@ export const useNativeThreadScroll = (p: {
     // A thread holding the newest message has nothing newer to load.
     if (!containsLatestRef.current) near('newer', offset - restingOffset())
   })
+  // Only new rows schedule a check of their own: a load that brought none leaves nothing more to ask
+  // for until the list moves or changes size.
+  const pageChecks = useSchedule()
+  React.useEffect(() => {
+    const next = Date.now() + pageLoadGate
+    nextLoadRef.current = {newer: next, older: next}
+    return pageChecks.after(pageLoadGate + 1, loadPages).cancel
+  }, [loadPages, numOrdinals, pageChecks])
 
   // Who moved the list is read from how it moved, never from the input that moved it: a drag, the
   // status bar, VoiceOver alike. The list moves itself only by the scrolls it issues (toward where they
@@ -501,6 +508,11 @@ export const useNativeThreadScroll = (p: {
   )
   const [onContentSizeChange] = React.useState(() => (_w: number, h: number) => {
     metricsRef.current = {...metricsRef.current, content: h}
+    loadPages()
+  })
+  const [onLayout] = React.useState(() => (e: {nativeEvent: {layout: {height: number}}}) => {
+    metricsRef.current = {...metricsRef.current, viewport: e.nativeEvent.layout.height}
+    loadPages()
   })
   // A drag is the reader's for certain, and is seen before it moves anything.
   const onScrollBeginDrag = React.useCallback(() => {
@@ -557,6 +569,7 @@ export const useNativeThreadScroll = (p: {
       : maintainVisibleContentPositionNoAutoscroll,
     onCellLayout,
     onContentSizeChange,
+    onLayout,
     onScroll,
     onMomentumScrollEnd: rested,
     onScrollBeginDrag,

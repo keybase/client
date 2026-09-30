@@ -43,6 +43,7 @@ type FakeListProps = {
   data: ReadonlyArray<T.Chat.Ordinal>
   maintainVisibleContentPosition: unknown
   onContentSizeChange: (w: number, h: number) => void
+  onLayout: (e: {nativeEvent: {layout: {height: number}}}) => void
   onScroll: (e: {
     nativeEvent: {contentOffset: {y: number}; contentSize: {height: number}; layoutMeasurement: {height: number}}
   }) => void

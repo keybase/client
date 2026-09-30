@@ -1515,12 +1515,19 @@ describe('loading older messages', () => {
   test('a long thread loads two screens from its oldest row, once the 1s gate has passed', async () => {
     open()
     // 60 rows are 6000pt; two screens from the oldest is offset 3000.
-    scrolled(3000, 6000)
-    expect(loads()).toEqual([])
-    await tick(1001)
     scrolled(2999, 6000)
+    await tick(1001)
     expect(loads()).toEqual([])
     scrolled(3000, 6000)
+    expect(loads()).toEqual([['loadOlderMessages', 60]])
+  })
+
+  test('a reader already within two screens as the gate passes loads with no scroll', async () => {
+    open()
+    scrolled(3000, 6000)
+    await tick(1000)
+    expect(loads()).toEqual([])
+    await tick(1)
     expect(loads()).toEqual([['loadOlderMessages', 60]])
   })
 
@@ -1553,17 +1560,69 @@ describe('loading older messages', () => {
     open()
     await tick(1001)
     setOrdinals(1, 80)
-    scrolled(5000, 8000)
-    expect(loads()).toEqual([])
-    await tick(1001)
     scrolled(4999, 8000)
+    await tick(1001)
     expect(loads()).toEqual([])
     scrolled(5000, 8000)
     expect(loads()).toEqual([['loadOlderMessages', 80]])
   })
 
+  // The page lands at the far end of the inverted list, which leaves the reader's offset where it was,
+  // and a list held still (an Android overscroll, which scrolls nothing) reports no scroll.
+  test('a page landing with the reader still near its end loads the next once the gate has passed, with no scroll', async () => {
+    open()
+    await tick(1001)
+    scrolled(5000, 6000)
+    expect(loads()).toEqual([['loadOlderMessages', 60]])
+    setOrdinals(1, 80)
+    update(() => props().onContentSizeChange(0, 8000))
+    await tick(1001)
+    expect(loads()).toEqual([
+      ['loadOlderMessages', 60],
+      ['loadOlderMessages', 80],
+    ])
+  })
+
+  test('a load that brings nothing asks nothing more until the list moves', async () => {
+    open()
+    await tick(1001)
+    scrolled(5000, 6000)
+    await tick(10000)
+    expect(loads()).toEqual([['loadOlderMessages', 60]])
+  })
+
+  test('a short first page loads the next with no scroll, and nothing more while no rows arrive', async () => {
+    open({to: 5})
+    update(() => {
+      props().onLayout({nativeEvent: {layout: {height: viewportHeight}}})
+      props().onContentSizeChange(0, 500)
+    })
+    await tick(1001)
+    expect(loads()).toEqual([['loadOlderMessages', 5]])
+    await tick(10000)
+    expect(loads()).toEqual([['loadOlderMessages', 5]])
+  })
+
+  test('the list laying out its viewport, with the gate passed, loads at once', async () => {
+    open({to: 5})
+    update(() => props().onContentSizeChange(0, 500))
+    await tick(1001)
+    expect(loads()).toEqual([])
+    update(() => props().onLayout({nativeEvent: {layout: {height: viewportHeight}}}))
+    expect(loads()).toEqual([['loadOlderMessages', 5]])
+  })
+
+  test('the content growing to within two screens, with the gate passed, loads at once', async () => {
+    open({to: 5})
+    update(() => props().onLayout({nativeEvent: {layout: {height: viewportHeight}}}))
+    await tick(1001)
+    expect(loads()).toEqual([])
+    update(() => props().onContentSizeChange(0, 500))
+    expect(loads()).toEqual([['loadOlderMessages', 5]])
+  })
+
   // Every offset of a thread shorter than two screens is within two screens of its oldest row.
-  test('a short thread loads once as the reader scrolls it, and nothing more without scrolling', async () => {
+  test('a short thread loads once the 1s gate has passed, and nothing more without scrolling', async () => {
     open({to: 5})
     scrolled(0, 500)
     expect(loads()).toEqual([])
@@ -1604,10 +1663,8 @@ describe('loading newer messages', () => {
 
   test('a long window loads two screens from its newest row, once the 1s gate has passed', async () => {
     openOnOldHit()
-    scrolled(2000, 6000)
-    expect(loads()).toEqual([])
-    await tick(1001)
     scrolled(2001, 6000)
+    await tick(1001)
     expect(loads()).toEqual([])
     scrolled(2000, 6000)
     expect(loads()).toEqual([['loadNewerMessages', 60]])

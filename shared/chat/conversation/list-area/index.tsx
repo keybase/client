@@ -533,6 +533,7 @@ const NativeConversationList = function NativeConversationList() {
     maintainVisibleContentPosition,
     onCellLayout,
     onContentSizeChange,
+    onLayout,
     onMomentumScrollEnd,
     onScroll,
     onScrollBeginDrag,
@@ -618,6 +619,7 @@ const NativeConversationList = function NativeConversationList() {
               onScroll={onScroll}
               scrollEventThrottle={16}
               onContentSizeChange={onContentSizeChange}
+              onLayout={onLayout}
               onScrollBeginDrag={onScrollBeginDrag}
               onScrollEndDrag={onScrollEndDrag}
               onMomentumScrollEnd={onMomentumScrollEnd}
