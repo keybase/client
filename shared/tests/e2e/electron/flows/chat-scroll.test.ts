@@ -14,6 +14,7 @@ import {
   focusThreadScroller,
   isOrdinalCentred,
   messageMenu,
+  navigationWithoutSearch,
   openConversationByName,
   openThreadSearch,
   ordinalRect,
@@ -24,6 +25,7 @@ import {
   sendMessage,
   startScrollerFrames,
   stopScrollerFrames,
+  threadHeaderTitle,
   threadSearch,
   waitForRow,
   waitForScrollStable,
@@ -361,6 +363,53 @@ test.describe('search', () => {
     expect(newestRendered(g)).toBe(newest)
     await expect(jumpToRecent(page)).toHaveCount(0, {timeout: 5_000})
     await expect(threadSearch(page)).toHaveCount(0, {timeout: 5_000})
+  })
+
+  // Closing search is the only navigation either of these makes: the app's navigation state after
+  // it is the one before it less the search.
+  const expectOnlySearchClosed = async (page: Page, before: {hadSearch: boolean; json: string}) => {
+    expect(before.hadSearch, 'thread search was open in the navigation state before').toBe(true)
+    await expect(threadSearch(page)).toHaveCount(0, {timeout: 5_000})
+    const after = await navigationWithoutSearch(page)
+    expect(after.hadSearch, 'thread search is still in the navigation state').toBe(false)
+    expect(after.json, 'navigation other than closing search').toBe(before.json)
+  }
+
+  test('jump to recent from a centred hit closes search and navigates nowhere else', async ({page}) => {
+    await openFresh(page, E2E_CHANNELS.long)
+    const {index, token} = LONG_SEARCH_TOKENS.deep
+    const ordinal = await searchAndSelect(page, token, longMarker(index))
+    await expectCentred(page, ordinal)
+    const before = await navigationWithoutSearch(page)
+
+    await clickUnoccluded(jumpToRecent(page))
+    await waitForRow(page, longMarker(LONG_COUNT), 15_000)
+    await expectAtEnd(page)
+    await expectOnlySearchClosed(page, before)
+    await expect(threadHeaderTitle(page)).toHaveText(`${data.team}#${E2E_CHANNELS.long}`)
+  })
+
+  test('a send while centred on a hit closes search, lands at the sent message, and navigates nowhere else', async ({page}) => {
+    await openFresh(page, E2E_CHANNELS.scratch)
+    await openThreadSearch(page)
+    // the channel's oldest messages are its seeding pads (e2e-scratch-pad-<n>), far back from its end
+    const hits = await searchFor(page, 'scratch')
+    expect(hits.length, 'hits for the seeding pads').toBeGreaterThan(0)
+    // the oldest hit, at the bottom of the hit list, which scrolls
+    await threadSearch(page).getByTestId(T.CHAT_THREAD_SEARCH_HIT).nth(hits.length - 1).scrollIntoViewIfNeeded({timeout: 5_000})
+    await selectHit(page, hits.length - 1)
+    await expect.poll(async () => (await readThreadGeometry(page))?.distanceFromEnd ?? 0, {timeout: 10_000}).toBeGreaterThan(200)
+    await waitForScrollStable(page)
+    const before = await navigationWithoutSearch(page)
+
+    const text = `e2e-scroll-send-centred-${Date.now()}`
+    await composer.type(page, text)
+    await composer.press(page, 'Enter')
+    const sent = await waitForRow(page, text, 15_000)
+    const g = await expectAtEnd(page)
+    expect(newestRendered(g)).toBe(sent)
+    await expectOnlySearchClosed(page, before)
+    await expect(threadHeaderTitle(page)).toHaveText(`${data.team}#${E2E_CHANNELS.scratch}`)
   })
 })
 

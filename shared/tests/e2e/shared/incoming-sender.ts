@@ -116,35 +116,56 @@ export const switchAttachedApp = async (username: string, timeoutMs = 60_000) =>
   throw new Error(`${device} was not signed in as the account ${timeoutMs / 1000}s after switching (${last && !last.ok ? last.reason : ''})`)
 }
 
-// Channel membership changes made as the team owner, from an attached app signed in as the owner.
+// Channel changes made as the team owner, from an attached app signed in as the owner.
 export type ChannelOwner =
-  | {ok: true; device: string; removeFromChannel: (conversationIDKey: string, username: string) => Promise<void>}
+  | {
+      ok: true
+      device: string
+      removeFromChannel: (conversationIDKey: string, username: string) => Promise<void>
+      // the lowest team role that can post in the channel: 'none' lets every member post
+      setMinWriterRole: (conversationIDKey: string, role: keyof typeof teamRoles) => Promise<void>
+    }
   | {ok: false; reason: string}
+
+// TeamRole in the protocol
+const teamRoles = {admin: 3, none: 0, writer: 2} as const
 
 export const findChannelOwner = async (owner: string): Promise<ChannelOwner> => {
   const found = await findAppSignedInAs(owner)
   if (!found.ok) return found
   const {device, page} = found
-  // Starts the RPC, then polls for its outcome: an evaluate returns synchronously.
-  const removeFromChannel = async (conversationIDKey: string, username: string) => {
-    const key = `__e2eRemove${Date.now()}`
+  // Starts the RPC `call` builds (from `convID`), then polls for its outcome: an evaluate returns
+  // synchronously.
+  const runRpc = async (what: string, conversationIDKey: string, call: string) => {
+    const key = `__e2eOwnerRpc${Date.now()}`
     await evalInPage(
       page,
       `const g = globalThis; g.${key} = 'pending';
        const convID = kbModule('constants/types/chat/index.tsx').keyToConversationID(${JSON.stringify(conversationIDKey)});
-       kbModule('constants/rpc/rpc-chat-gen.tsx')
-         .localRemoveFromConversationLocalRpcPromise({convID, usernames: [${JSON.stringify(username)}]})
-         .then(() => { g.${key} = 'done' }, e => { g.${key} = 'error: ' + (e && e.message) });
+       const rpc = kbModule('constants/rpc/rpc-chat-gen.tsx');
+       (${call}).then(() => { g.${key} = 'done' }, e => { g.${key} = 'error: ' + (e && e.message) });
        return true`
     )
     const deadline = Date.now() + 20_000
     for (;;) {
       const state = await evalInPage<string>(page, `return globalThis.${key}`)
       if (state === 'done') return
-      if (state !== 'pending') throw new Error(`removing from the channel failed on ${device}: ${state}`)
-      if (Date.now() > deadline) throw new Error(`removing from the channel on ${device}: no answer in 20s`)
+      if (state !== 'pending') throw new Error(`${what} failed on ${device}: ${state}`)
+      if (Date.now() > deadline) throw new Error(`${what} on ${device}: no answer in 20s`)
       await sleep(250)
     }
   }
-  return {device, ok: true, removeFromChannel}
+  const removeFromChannel = async (conversationIDKey: string, username: string) =>
+    runRpc(
+      'removing from the channel',
+      conversationIDKey,
+      `rpc.localRemoveFromConversationLocalRpcPromise({convID, usernames: [${JSON.stringify(username)}]})`
+    )
+  const setMinWriterRole = async (conversationIDKey: string, role: keyof typeof teamRoles) =>
+    runRpc(
+      `setting the channel's minimum writer role to ${role}`,
+      conversationIDKey,
+      `rpc.localSetConvMinWriterRoleLocalRpcPromise({convID, role: ${teamRoles[role]}})`
+    )
+  return {device, ok: true, removeFromChannel, setMinWriterRole}
 }

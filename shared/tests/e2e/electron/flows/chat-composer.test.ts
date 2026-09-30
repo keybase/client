@@ -8,7 +8,10 @@ import {
   clickUnoccluded,
   closeMenu,
   composer,
+  expectedFailure,
   composerInput,
+  focusThreadScroller,
+  focusedElement,
   inboxRow,
   messageMenu,
   openConversationByName,
@@ -16,9 +19,20 @@ import {
   sendMessage,
   suggestionRows,
   switchAccount,
+  threadHeaderTitle,
   waitForRow,
+  watchOutgoingRpcs,
 } from '@/tests/e2e/electron/helpers/chat'
-import {E2E_CHANNELS, botCommands, ensureChatData, type ChatData} from '@/tests/e2e/shared/chat-data'
+import {
+  E2E_CHANNELS,
+  botCommands,
+  createThrowawayChannel,
+  deleteThrowawayChannels,
+  ensureChatData,
+  type ChatData,
+} from '@/tests/e2e/shared/chat-data'
+import {cliWhoami} from '@/tests/e2e/shared/cli-account'
+import {findChannelOwner, switchAttachedApp} from '@/tests/e2e/shared/incoming-sender'
 import * as T from '@/tests/e2e/shared/test-ids'
 
 let data: ChatData
@@ -230,6 +244,27 @@ test.describe('editing', () => {
     await openSelf(page)
     await expectComposerText(page, draft)
     expect(await messageText(page, text)).toBe(text)
+  })
+
+  test('Edit from the message menu with the focus elsewhere focuses the composer, the caret at the end', async ({page}) => {
+    await openSelf(page)
+    await resetComposer(page)
+    const text = `e2e-composer-menu-edit-${Date.now()}`
+    const ordinal = await sendMessage(page, text)
+    await focusThreadScroller(page)
+    expect((await focusedElement(page)).testID, 'the composer still has the focus').not.toBe(T.CHAT_INPUT)
+
+    const menu = await messageMenu(page, ordinal)
+    await clickUnoccluded(menu.getByText('Edit', {exact: true}))
+    await expect(editBar(page)).toBeVisible({timeout: 5_000})
+    await expect
+      .poll(async () => focusedElement(page), {timeout: 5_000})
+      .toEqual({end: text.length, start: text.length, testID: T.CHAT_INPUT, value: text})
+    // what is typed goes into the edit
+    await page.keyboard.type(' changed')
+    await expectComposerText(page, `${text} changed`)
+    await composer.press(page, 'Escape')
+    await expect(editBar(page)).toHaveCount(0, {timeout: 5_000})
   })
 })
 
@@ -562,5 +597,129 @@ test.describe('read-only channel', () => {
     await openConversationByName(page, data.team, E2E_CHANNELS.readonly)
     await expect(composerInput(page)).toHaveAttribute('readonly', '', {timeout: 10_000})
     await expectComposerText(page, '')
+  })
+})
+
+// Arrowing through a suggestion list shows each pick in the composer without it being typed.
+// Leaving with one showing keeps it as the draft, and the app does not tell the conversation left
+// behind that the user is typing. What the app sends is read off its dev RPC log (every call it
+// makes, with its params, in the renderer console); the other account is not watched.
+test.describe('leaving with a suggestion preview', () => {
+  test.afterEach(async ({page}) => {
+    await openScratch(page)
+    await resetComposer(page)
+  })
+
+  test('the @mention preview is the draft on return, and no typing goes out for it', async ({page}) => {
+    await openScratch(page)
+    await resetComposer(page)
+    await expect(selfRow(page)).toHaveCount(1, {timeout: 10_000})
+    const rpcs = await watchOutgoingRpcs(page)
+    await typeInComposer(page, '@')
+    await expect(suggestionList(page)).toBeVisible({timeout: 10_000})
+    await expect.poll(async () => (await suggestionRows(page)).length, {timeout: 10_000}).toBeGreaterThan(1)
+    await page.keyboard.press('ArrowDown')
+    const second = firstLine((await suggestionRows(page))[1]?.text)
+    expect(second, 'the second row has a name').not.toBe('')
+    await expectComposerText(page, `@${second}`)
+    await expect(suggestionList(page)).toBeVisible()
+    // past the typing throttle (1s), so the typing from before the leave has all gone out
+    await page.waitForTimeout(1_500)
+    const leftMark = Date.now()
+
+    // leaves the way a user does: a click on another conversation's inbox row
+    await clickUnoccluded(selfRow(page))
+    await expect(composerInput(page)).toHaveAttribute('placeholder', 'Message yourself', {timeout: 10_000})
+    // past the throttle again: a typing call the leave queued has gone out by now
+    await page.waitForTimeout(1_500)
+    const calls = await rpcs.stop()
+    // the log prints params as `{conversationID: Uint8Array(32), typing: true, sessionID: 5}`
+    const typing = calls.filter(c => c.method === 'chat.1.local.updateTyping')
+    const typingOn = typing.filter(c => /\btyping: true\b/.test(c.params))
+    // the '@' itself was typing, and the log shows it: the read below can see a typing call
+    expect(typingOn.filter(c => c.at < leftMark).length, `typing calls: ${JSON.stringify(typing)}`).toBeGreaterThan(0)
+    const drafts = calls.filter(c => c.method === 'chat.1.local.updateUnsentText' && c.at >= leftMark).map(c => c.params)
+    expect(
+      drafts.some(p => p.includes(`text: @${second},`)),
+      `draft saves after leaving: ${JSON.stringify(drafts)}`
+    ).toBe(true)
+    // The click blurs the composer before the conversation goes, and a list closed by a blur reports
+    // its preview as typed text, typing(true) included; only the unmount path keeps it quiet.
+    await expectedFailure('leaving by a click reports the preview as typing, through the blur that closes the list', () => {
+      expect(typingOn.filter(c => c.at >= leftMark), `typing calls after leaving: ${JSON.stringify(typing)}`).toEqual([])
+    })
+
+    await openScratch(page)
+    await expectComposerText(page, `@${second}`)
+    await expect(suggestionList(page)).toHaveCount(0)
+  })
+})
+
+// The channel turns read-only for the second account (a writer) while it edits: the owner, the app
+// attached to Metro, raises the channel's minimum writer role. Ending the edit then empties the
+// composer and leaves the draft set aside for the edit as it was; it loads again once the account
+// can post.
+test.describe('read-only mid-edit', () => {
+  const prefix = 'e2e-roedit'
+
+  test.beforeAll(async () => {
+    test.setTimeout(120_000)
+    if ((await cliWhoami()) !== data.smokeUser) throw new Error('the desktop app and CLI must start as the smoke user')
+    await deleteThrowawayChannels(prefix)
+  })
+
+  test.afterEach(async ({page}) => {
+    test.setTimeout(120_000)
+    await switchAccount(page, data.smokeUser)
+    await switchAttachedApp(data.secondUser)
+    await deleteThrowawayChannels(prefix)
+  })
+
+  test('Escape ends the edit, empties the composer and leaves the draft, which comes back once it can post', async ({page}) => {
+    test.setTimeout(180_000)
+    await switchAttachedApp(data.smokeUser)
+    const owner = await findChannelOwner(data.smokeUser)
+    if (!owner.ok) throw new Error(`the owner's app is unavailable: ${owner.reason}`)
+    const {convID, topicName} = await createThrowawayChannel(prefix)
+
+    await switchAccount(page, data.secondUser)
+    // from its inbox row: inbox search can lag behind a channel made moments earlier
+    const row = page.locator('.inbox-hover-container').getByText(topicName, {exact: true})
+    await expect(row).toBeVisible({timeout: 20_000})
+    await clickUnoccluded(row)
+    await expect(threadHeaderTitle(page)).toHaveText(`${data.team}#${topicName}`, {timeout: 10_000})
+    const input = composerInput(page)
+    await expect(input).not.toHaveAttribute('readonly', '', {timeout: 10_000})
+
+    const text = `e2e-roedit-message-${Date.now()}`
+    const ordinal = await sendMessage(page, text)
+    const draft = `e2e-roedit-draft-${Date.now()}`
+    await typeInComposer(page, draft)
+    // past the draft save's throttle, so the draft is saved before the edit sets it aside
+    await page.waitForTimeout(500)
+
+    const menu = await messageMenu(page, ordinal)
+    await clickUnoccluded(menu.getByText('Edit', {exact: true}))
+    await expect(editBar(page)).toBeVisible({timeout: 5_000})
+    await expectComposerText(page, text)
+    await composer.focus(page)
+    await page.keyboard.press('End')
+    await page.keyboard.type(' changed')
+    await expectComposerText(page, `${text} changed`)
+
+    await owner.setMinWriterRole(convID, 'admin')
+    await expect(input).toHaveAttribute('readonly', '', {timeout: 20_000})
+
+    await composer.press(page, 'Escape')
+    await expect(editBar(page)).toHaveCount(0, {timeout: 5_000})
+    await expectComposerText(page, '')
+    expect(await messageText(page, text)).toBe(text)
+
+    // back to writers: a role cleared to none reaches the service, but here the app kept the channel
+    // read-only for the account, even across a reopen
+    await owner.setMinWriterRole(convID, 'writer')
+    await expect(input).not.toHaveAttribute('readonly', '', {timeout: 20_000})
+    await expectComposerText(page, draft)
+    expect(await messageText(page, text)).toBe(text)
   })
 })

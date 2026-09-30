@@ -670,11 +670,12 @@ export const heldWaitingKeys = async (page: Page) =>
     return [...mod.useWaitingState.getState().counts].filter(([, n]) => n > 0).map(([k]) => k)
   })
 
-export type OutgoingRpc = {afterAccountChange: boolean; method: string; params: string}
+export type OutgoingRpc = {afterAccountChange: boolean; at: number; method: string; params: string}
 const uidChangedMarker = 'e2e-signed-in-account-changed'
 
 // Records every RPC the app sends from now until stop(), read off the dev build's RPC log in the
-// renderer console, each marked with whether the signed-in account had changed by then.
+// renderer console, each marked with whether the signed-in account had changed by then and when the
+// test saw it (Date.now()).
 export const watchOutgoingRpcs = async (page: Page) => {
   const calls: Array<OutgoingRpc> = []
   let changed = false
@@ -685,7 +686,7 @@ export const watchOutgoingRpcs = async (page: Page) => {
       return
     }
     const call = /<< OUT\s.*?\s((?:chat|keybase)\.1\.[\w.]+)\s.*?\[\+calling\] \S+ (\{.*)$/.exec(text.replace(/%[cs]/g, ' '))
-    if (call) calls.push({afterAccountChange: changed, method: call[1]!, params: call[2]!})
+    if (call) calls.push({afterAccountChange: changed, at: Date.now(), method: call[1]!, params: call[2]!})
   }
   page.on('console', onConsole)
   await page.evaluate(
@@ -737,3 +738,45 @@ export const watchSelectedConversation = async (page: Page, forMs: number) =>
     }
     return seen
   }, forMs)
+
+// What has the page's focus: its testID, and for a text field its value and caret.
+export const focusedElement = async (page: Page) =>
+  page.evaluate(() => {
+    type Field = {getAttribute: (n: string) => string | null; selectionEnd?: number | null; selectionStart?: number | null; value?: string}
+    const g = globalThis as unknown as {document: {activeElement: Field | null}}
+    const el = g.document.activeElement
+    return {
+      end: el?.selectionEnd ?? null,
+      start: el?.selectionStart ?? null,
+      testID: el?.getAttribute('data-testid') ?? null,
+      value: typeof el?.value === 'string' ? el.value : null,
+    }
+  })
+
+// The app's navigation state as JSON, with every thread search param taken out, and whether any
+// route had one: two readings that differ only by an open search compare equal.
+export const navigationWithoutSearch = async (page: Page) =>
+  page.evaluate(async () => {
+    const mod = (await import('/constants/router.tsx' as string)) as {getRootState: () => unknown}
+    let hadSearch = false
+    const json = JSON.stringify(mod.getRootState(), (k, v: unknown) => {
+      if (k === 'threadSearch') {
+        if (v !== undefined) hadSearch = true
+        return undefined
+      }
+      return v
+    })
+    return {hadSearch, json}
+  })
+
+// Runs a check that fails today because of an app bug (named where it is called). The test passes
+// while the check fails, and fails once the check passes, so the mark is removed with the fix.
+export const expectedFailure = async (bug: string, body: () => unknown) => {
+  try {
+    await body()
+  } catch (e) {
+    console.log(`expected failure (${bug}): ${e instanceof Error ? e.message : String(e)}`)
+    return
+  }
+  throw new Error(`passes now, so the app bug it marks looks fixed; remove the expected-failure mark (${bug})`)
+}
