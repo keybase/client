@@ -659,10 +659,24 @@ describe('chat scroll: back to the end', () => {
       await toEnd()
       await expectAtEnd('back at the end, the thread')
 
+      // sampled from the send until the thread settles, so a miss says what else moved the list then
       const text = `e2e-ios-scroll-repin-${Date.now()}`
-      await sendFromCli(E2E_CHANNELS.scratch, text)
-      const ordinal = await waitForRow(text, 20_000)
-      const {t, v} = await expectAtEnd('after the incoming message, the thread')
+      let ordinal = -1
+      const samples = await sampleThreadWhile(async () => {
+        await sendFromCli(E2E_CHANNELS.scratch, text)
+        ordinal = await waitForRow(text, 20_000)
+        await waitForThreadStable()
+      })
+      const t = await waitForThreadStable()
+      const v = await viewport(t)
+      const at = (s: ThreadSample) => `${Math.round(s.t - samples[0]!.t)}ms`
+      const counts = samples.filter((s, i) => i === 0 || s.count !== samples[i - 1]!.count).map(s => `${at(s)}: ${s.count}`)
+      const moves = samples
+        .filter((s, i) => i > 0 && Math.abs(s.offset - samples[i - 1]!.offset) >= 0.5)
+        .map(s => `${at(s)}: ${Math.round(s.offset * 10) / 10}`)
+      const during = `rows loaded ${counts.join(', ')}; offset ${moves.join(', ') || 'unchanged'}`
+      console.log(`${how}, then an incoming message: ${during}`)
+      check(isAtEnd(t, v), `after the incoming message, the thread is not at its end (${during}): ${summary(t, v)}`)
       check(t.rows.at(-1)?.ordinal === ordinal, `the newest row is not the incoming one: ${summary(t, v)}`)
     })
   }
