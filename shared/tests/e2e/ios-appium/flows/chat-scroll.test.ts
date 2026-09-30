@@ -128,6 +128,56 @@ describe('chat scroll: new messages', () => {
     check(t.rows.at(-1)?.ordinal === ordinal, `the newest row is not the incoming one: ${summary(t, v)}`)
   })
 
+  // Sampled from the first send until the thread settles, so a miss says how the list moved. The
+  // burst waits for the page the thread asks for as it opens, so no page lands during it.
+  //
+  // App bug (iOS): six messages about 120ms apart leave the list 114 points short of its end. Each
+  // insert shifts the offset by the new row's 25 points; the first two start the animated follow,
+  // and each lands during the one before it, which it cuts short, and from the third on no follow
+  // starts at all (offset 25, 45.7, 54.3, 75, 100, 125). The same on a list without the newer
+  // scroll fixes, so it predates them: the content-position anchor's autoscroll does not follow an
+  // insert that lands while its own animated scroll is running. Remove the expected-failure mark
+  // once fixed.
+  it('at the end, a burst of incoming messages keeps the thread at its end', async () => {
+    await openScratch()
+    await expectAtEnd()
+    const settled = await waitFor(
+      'the rows loaded to hold for 2s',
+      async () => {
+        const a = (await requireThread()).ordinals.length
+        await browser.pause(2_000)
+        const b = (await requireThread()).ordinals.length
+        return b === a ? b : undefined
+      },
+      {interval: 0, timeout: 15_000}
+    )
+    await expectAtEnd()
+    console.log(`a burst of 6 incoming messages, from ${settled} rows loaded`)
+    let last = ''
+    let ordinal = -1
+    const samples = await sampleThreadWhile(async () => {
+      for (let i = 0; i < 6; i++) {
+        last = `e2e-ios-scroll-burst-${Date.now()}-${i}`
+        await sendFromCli(E2E_CHANNELS.scratch, last)
+      }
+      ordinal = await waitForRow(last, 20_000)
+      await waitForThreadStable()
+    })
+    const t = await waitForThreadStable()
+    const v = await viewport(t)
+    const at = (s: ThreadSample) => `${Math.round(s.t - samples[0]!.t)}ms`
+    const counts = samples.filter((s, i) => i === 0 || s.count !== samples[i - 1]!.count).map(s => `${at(s)}: ${s.count}`)
+    const moves = samples
+      .filter((s, i) => i > 0 && Math.abs(s.offset - samples[i - 1]!.offset) >= 0.5)
+      .map(s => `${at(s)}: ${Math.round(s.offset * 10) / 10}`)
+    const during = `rows loaded ${counts.join(', ')}; offset ${moves.join(', ') || 'unchanged'}`
+    console.log(`a burst of 6 incoming messages: newest row ${newestGap(t, v)}pt above the composer (${during})`)
+    await expectedFailure('a burst of incoming messages at the end is not followed', () => {
+      check(isAtEnd(t, v), `after the burst, the thread is not at its end (${during}): ${summary(t, v)}`)
+      check(t.rows.at(-1)?.ordinal === ordinal, `the newest row is not the last of the burst: ${summary(t, v)}`)
+    })
+  })
+
   it('with the keyboard up, the first keystroke keeps the newest message above the composer', async () => {
     await openScratch()
     await expectAtEnd()
@@ -298,19 +348,22 @@ describe('chat scroll: search', () => {
   })
 
   // Closing search with the list resting at its end, the newest message loaded, gives the end back
-  // to the list: the next message is followed as on any thread at its end.
+  // to the list where it was before search opened: the next message is followed as on any thread at
+  // its end.
   //
-  // App bug (iOS): closing search at the newest message leaves the list 60.7 points short of its end
-  // (the composer swap's shift, as in the flow below), and the end stays with the reader: an
-  // incoming message after it is not followed (the newest row 131.3 points under the composer,
-  // offset 71.7 then 142.3). Desktop follows it. Remove the expected-failure mark once fixed.
+  // App bug (iOS): closing search at the newest message leaves the list 60.7 points short of its end,
+  // and the next incoming message is not followed. With the hit (the newest message) already in view
+  // nothing scrolls while search is open, so the list stays at offset 0 with the newest row 17.7
+  // points above the search bar, not at the resting offset that counts the bar's padding; closing
+  // then moves the offset to 71.7 within 405ms. Remove the expected-failure mark once fixed.
   it('closing search at the newest message, then an incoming message keeps the end', async () => {
     await openScratch()
     await expectAtEnd()
     const token = `e2esearchend${Date.now()}`
     await sendMessage(`e2e-ios-scroll-search-end ${token}`)
     await hideKeyboard()
-    await expectAtEnd()
+    const rest = await expectAtEnd()
+    const restGap = newestGap(rest.t, rest.v)!
     await openThreadSearch()
     // the search index can take a moment to hold a message just sent
     await waitFor(
@@ -324,17 +377,29 @@ describe('chat scroll: search', () => {
       },
       {interval: 1_000, timeout: 30_000}
     )
-    await expectAtEnd('with the newest message the hit, the thread')
-    await closeSearch()
+    const open = await expectAtEnd('with the newest message the hit, the thread')
+    const closing = await sampleThreadWhile(async () => {
+      await closeSearch()
+      await waitForThreadStable()
+    })
     const closed = await waitForThreadStable()
-    console.log(`closing search at the newest message: ${summary(closed, await viewport(closed))}`)
+    const cv = await viewport(closed)
+    const closedGap = newestGap(closed, cv)
+    console.log(
+      `closing search at the newest message: newest row ${closedGap}pt above the composer (${restGap} before search), offset ${closed.offset} (${rest.t.offset} before, ${open.t.offset} with search open, newest row ${newestGap(open.t, open.v)}pt above the search bar); closing, offset ${closing.filter((s, i) => i === 0 || Math.abs(s.offset - closing[i - 1]!.offset) >= 0.5).map(s => `${Math.round(s.t - closing[0]!.t)}ms: ${Math.round(s.offset * 10) / 10}`).join(', ')}`
+    )
 
     const text = `e2e-ios-scroll-search-end-incoming-${Date.now()}`
     await sendFromCli(E2E_CHANNELS.scratch, text)
     const ordinal = await waitForRow(text, 20_000)
     const t = await waitForThreadStable()
     const v = await viewport(t)
-    await expectedFailure('closing search at the newest message keeps the end with the reader', () => {
+    console.log(`then an incoming message: newest row ${newestGap(t, v)}pt above the composer`)
+    await expectedFailure('closing search at the newest message leaves the list short of its end', () => {
+      check(
+        closedGap !== undefined && Math.abs(closedGap - restGap) <= 1 && Math.abs(closed.offset - rest.t.offset) <= 1,
+        `closing search left the thread off its end: ${summary(closed, cv)}, before search ${summary(rest.t, rest.v)}`
+      )
       check(isAtEnd(t, v), `after the incoming message, the thread is not at its end: ${summary(t, v)}`)
       check(t.rows.at(-1)?.ordinal === ordinal, `the newest row is not the incoming one: ${summary(t, v)}`)
     })
@@ -493,6 +558,55 @@ const checkLandings = (ls: ReadonlyArray<SampledLanding>, what: string) => {
 }
 
 describe('chat scroll: paging', () => {
+  // A thread left alone at its end loads the pages the reader is near once (the phone's first page of
+  // 20 rows is within two screens of its oldest row, so one page of 100 more follows), then no more:
+  // the rows loaded stay the same over a long idle stretch, and a drag up still loads older pages.
+  for (const {name, open} of [
+    {name: 'e2e-scratch', open: openScratch},
+    {name: 'e2e-long', open: openLong},
+  ]) {
+    it(`left idle at its end, ${name} loads no more pages, and dragging up still loads them`, async () => {
+      await open()
+      const first = (await expectAtEnd()).t.ordinals.length
+      // the page asked for as the thread opened lands within a second or two
+      const start = await waitFor(
+        'the rows loaded to hold for 2s',
+        async () => {
+          const a = (await requireThread()).ordinals.length
+          await browser.pause(2_000)
+          const b = await requireThread()
+          return b.ordinals.length === a ? b : undefined
+        },
+        {interval: 0, timeout: 15_000}
+      )
+      const counts: Array<number> = []
+      const idleFrom = Date.now()
+      while (Date.now() - idleFrom < 12_000) {
+        counts.push((await requireThread()).ordinals.length)
+        await browser.pause(1_000)
+      }
+      const idle = await waitForThreadStable()
+      console.log(
+        `${name} idle: ${first} rows at the end, ${start.ordinals.length} once settled, then ${counts.join(', ')}, ${idle.ordinals.length} after ${Math.round((Date.now() - idleFrom) / 1000)}s`
+      )
+      check(
+        counts.every(c => c === start.ordinals.length) && idle.ordinals.length === start.ordinals.length,
+        `left idle, the thread loaded pages: ${start.ordinals.length} rows became ${counts.join(', ')}, ${idle.ordinals.length}`
+      )
+      check(idle.moreToLoadBack, `the idle thread loaded its whole history: ${summary(idle)}`)
+      const paged = await waitFor(
+        'a drag up to load an older page',
+        async () => {
+          await dragThread(500)
+          const t = await waitForThreadStable()
+          return t.ordinals.length > start.ordinals.length ? t : undefined
+        },
+        {interval: 0, timeout: 60_000}
+      )
+      console.log(`${name} dragged up: ${start.ordinals.length} rows became ${paged.ordinals.length}`)
+    })
+  }
+
   // The first page of older rows lands during a drag from the end of the thread; the drag moves the
   // reader's rows as far as the same drag does once that page is loaded.
   it('the first older page landing during a drag from the end leaves the reader where the drag put them', async () => {
@@ -739,14 +853,31 @@ describe('chat scroll: editing', () => {
     return {t, v: await viewport(t)}
   }
 
+  // Records, on the app's clock, when the keyboard reports it has finished showing.
+  const watchKeyboardDidShow = async () =>
+    jsEval<boolean>(`
+      const g = globalThis
+      let id
+      for (const [i, m] of __r.getModules()) if (m.verboseName && m.verboseName.startsWith('node_modules/react-native-keyboard-controller/src/index')) id = i
+      if (id === undefined) throw new Error('no react-native-keyboard-controller module')
+      if (g.__e2eKbDidShow) g.__e2eKbDidShow.remove()
+      const now = g.nativePerformanceNow ? () => g.nativePerformanceNow() : () => Date.now()
+      g.__e2eKbDidShowAt = []
+      g.__e2eKbDidShow = __r(id).KeyboardEvents.addListener('keyboardDidShow', () => g.__e2eKbDidShowAt.push(now()))
+      return true
+    `)
+  const keyboardDidShowTimes = async () => jsEval<Array<number>>(`return globalThis.__e2eKbDidShowAt || []`)
+  const unwatchKeyboardDidShow = async () =>
+    jsEval<boolean>(`
+      const g = globalThis
+      if (g.__e2eKbDidShow) g.__e2eKbDidShow.remove()
+      g.__e2eKbDidShow = undefined
+      return true
+    `)
+
   // The edited row counts as in view only in the part of the list the keyboard leaves clear, judged
   // once the keyboard is up: a row wholly in view before it rose, but half under where it rises, is
   // revealed above it.
-  //
-  // App bug (iOS): the reveal stops short by the composer. The row at 540-592 with the keyboard's top
-  // at 566 moves to 448-500 while the composer's input starts at 472: the band judged covered is the
-  // keyboard's (the resting offset below 0), not the composer's above it. Remove the
-  // expected-failure mark once fixed.
   it('editing a row that the rising keyboard half covers brings it into view above the keyboard', async () => {
     await openScratch()
     const kbTop = await keyboardTopWhenUp()
@@ -756,18 +887,15 @@ describe('chat scroll: editing', () => {
     check(wholly(r, v0), `row ${ordinal} is not wholly in view before the edit: ${JSON.stringify(r)} ${summary(t, v0)}`)
     check(r.top < kbTop && r.bottom > kbTop, `row ${ordinal} does not straddle the keyboard's top ${kbTop}: ${JSON.stringify(r)}`)
     const {t: after, v} = await editWithKeyboard(text)
-    console.log(`half covered: row ${ordinal} at ${r.top}-${r.bottom} with the keyboard's top at ${kbTop}; editing, ${JSON.stringify(rowOf(after, ordinal))}`)
-    await expectedFailure('an edit revealed above the keyboard stays under the composer', () => {
-      check(wholly(rowOf(after, ordinal), v), `row ${ordinal} is not wholly in view with the keyboard up: ${summary(after, v)}`)
-    })
+    console.log(
+      `half covered: row ${ordinal} at ${r.top}-${r.bottom} with the keyboard's top at ${kbTop}; editing, ${JSON.stringify(rowOf(after, ordinal))} with the composer's top at ${v.bottom}`
+    )
+    check(wholly(rowOf(after, ordinal), v), `row ${ordinal} is not wholly in view with the keyboard up: ${summary(after, v)}`)
   })
 
   // A row near the top of the view when the edit starts: the keyboard rising must not leave it off
-  // the top.
-  //
-  // App bug (iOS): the rising keyboard carries the rows up with the list's end, and the edited row,
-  // at 127-217 before, ends at -159 to -69, above the list's top, and is not revealed again. Remove
-  // the expected-failure mark once fixed.
+  // the top. Sampled every frame from the edit until a second after the keyboard reports it has
+  // finished showing: once the row is wholly in view it stays there.
   it('editing a row near the top keeps it in view once the keyboard is up', async () => {
     await openScratch()
     const {ordinal, text} = await sendWithRowsBelow(22)
@@ -789,11 +917,37 @@ describe('chat scroll: editing', () => {
     const {r, t} = await bringRowTo(ordinal, t0.listTop + height / 2 + 30, 25)
     const v0 = await viewport(t)
     check(wholly(r, v0), `row ${ordinal} is not wholly in view before the edit: ${JSON.stringify(r)} ${summary(t, v0)}`)
-    const {t: after, v} = await editWithKeyboard(text)
-    console.log(`near the top: row ${ordinal} at ${r.top}-${r.bottom}; editing, ${JSON.stringify(rowOf(after, ordinal))} ${summary(after, v)}`)
-    await expectedFailure('the rising keyboard pushes an edit near the top off the list', () => {
-      check(wholly(rowOf(after, ordinal), v), `row ${ordinal} is not wholly in view with the keyboard up: ${summary(after, v)}`)
-    })
+    await watchKeyboardDidShow()
+    let didShow: number | undefined
+    let samples: Array<ThreadSample>
+    try {
+      samples = await sampleThreadWhile(async () => {
+        await editWithKeyboard(text)
+        didShow = await waitFor('keyboardDidShow', async () => (await keyboardDidShowTimes())[0], {timeout: 5_000})
+        await browser.pause(1_200)
+      })
+    } finally {
+      await unwatchKeyboardDidShow()
+    }
+    const after = await waitForThreadStable()
+    const v = await viewport(after)
+    const final = rowOf(after, ordinal)
+    const rowHeight = final ? final.bottom - final.top : r.bottom - r.top
+    const inView = (s: ThreadSample) => {
+      const top = sampleTop(s, ordinal)
+      return top !== undefined && top >= v.top - 1 && top + rowHeight <= v.bottom + 1
+    }
+    const window = samples.filter(s => s.t >= didShow! && s.t <= didShow! + 1_000)
+    const firstIn = window.findIndex(inView)
+    const outAfterIn = firstIn < 0 ? [] : window.slice(firstIn).filter(s => !inView(s))
+    const at = (s: ThreadSample) => `${Math.round(s.t - didShow!)}ms: ${sampleTop(s, ordinal) ?? 'off'}`
+    console.log(
+      `near the top: row ${ordinal} at ${r.top}-${r.bottom}; editing, ${JSON.stringify(final)} with the view ${v.top}-${v.bottom}; in the second after keyboardDidShow ${window.length} samples, ${window.filter(s => !inView(s)).length} not wholly in view, first wholly in view at ${firstIn < 0 ? 'never' : at(window[firstIn]!)}; tops at didShow ${window.slice(0, 3).map(at).join(', ')}`
+    )
+    check(window.length > 0, `no samples in the second after keyboardDidShow (${samples.length} samples)`)
+    check(firstIn >= 0, `row ${ordinal} was never wholly in view in the second after keyboardDidShow: ${window.map(at).join(', ')}`)
+    check(!outAfterIn.length, `row ${ordinal} left the view after it was revealed: ${outAfterIn.map(at).join(', ')}`)
+    check(wholly(final, v), `row ${ordinal} is not wholly in view with the keyboard up: ${summary(after, v)}`)
   })
 
   it('editing a message in view does not scroll the thread', async () => {
