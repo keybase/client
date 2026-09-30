@@ -24,6 +24,8 @@ const endTolerancePx = 2
 const ownTolerancePx = 1
 // A row overhanging the viewport by no more than this is wholly in view.
 const rowEdgeTolerancePx = 1
+// The largest change to a measured row the list's end anchor leaves alone (applyItemSize).
+const rowAnchorMissPx = 5
 
 type ScrollerLike = {clientHeight: number; scrollHeight: number; scrollTop: number}
 
@@ -340,9 +342,19 @@ export const useDesktopThreadScroll = (p: {
     [dispatch]
   )
 
-  const onItemSizeChanged = React.useCallback(() => {
-    dispatch({anchorsEnd: anchorsEndRef.current, type: 'rowResized'})
-  }, [dispatch])
+  // The list's own end anchor re-pins for a row's first measurement and for a change of more than
+  // rowAnchorMissPx; only a smaller change to a row it has measured before is left for the end loop.
+  // Reporting the rest would restart that loop for every row as a thread opens.
+  const measuredRowsRef = React.useRef(new Set<string>())
+  const onItemSizeChanged = React.useCallback(
+    (info: {itemKey: string; previous: number; size: number}) => {
+      const known = measuredRowsRef.current.has(info.itemKey)
+      measuredRowsRef.current.add(info.itemKey)
+      if (!known || Math.abs(info.size - info.previous) > rowAnchorMissPx) return
+      dispatch({anchorsEnd: anchorsEndRef.current, type: 'rowResized'})
+    },
+    [dispatch]
+  )
 
   // Who moved the scroller is read from where it moved to, never from the input that moved it: the
   // list writes down where it is putting the scroller before it moves it (its initial position, every

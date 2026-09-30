@@ -209,19 +209,30 @@ export const listHearsLayout = () => {
     reportLayout(viewport)
   })
 }
+type ItemSizeChanged = (info: {
+  index: number
+  itemData: T.Chat.Ordinal
+  itemKey: string
+  previous: number
+  size: number
+}) => void
+const reportItemSize = (ordinal: T.Chat.Ordinal, previous: number, size: number) => {
+  const data = listProps.current?.data ?? []
+  const onItemSizeChanged = listProps.current?.['onItemSizeChanged'] as ItemSizeChanged | undefined
+  onItemSizeChanged?.({index: data.indexOf(ordinal), itemData: ordinal, itemKey: String(ordinal), previous, size})
+}
+// The rows the list has measured. It measures each row as it first lays it out, from its estimated
+// size, and reports the change as it does any other; it keeps the sizes across a new dataKey.
+const measured = new Set<T.Chat.Ordinal>()
 // A rendered row measuring at a new height after the list laid it out (an image or a font landing, a
 // late re-measure): the list records it and reports the change to its onItemSizeChanged prop, without
-// re-reading whether it is at its end. The list's own end anchor, which re-pins here only for a change of more
-// than a few pixels, is not simulated.
+// re-reading whether it is at its end. The list's own end anchor, which re-pins here for a first
+// measurement and for a change of more than a few pixels, is not simulated.
 export const remeasureRow = (ordinal: T.Chat.Ordinal, height: number) => {
   const previous = heightOf(ordinal)
   act(() => {
     listStore.set({rowHeights: new Map([...listStore.get().rowHeights, [ordinal, height]])})
-    const data = listProps.current?.data ?? []
-    const onItemSizeChanged = listProps.current?.['onItemSizeChanged'] as
-      | ((info: {index: number; itemData: T.Chat.Ordinal; itemKey: string; previous: number; size: number}) => void)
-      | undefined
-    onItemSizeChanged?.({index: data.indexOf(ordinal), itemData: ordinal, itemKey: String(ordinal), previous, size: height})
+    reportItemSize(ordinal, previous, height)
   })
 }
 // The list measuring its header at size and reporting it to its onMetricsChange prop. The content grows
@@ -244,6 +255,13 @@ const FakeLegendList = (p: FakeListProps) => {
   React.useLayoutEffect(() => {
     listProps.current = p
     listCommits.push(p)
+    const estimate = p['estimatedItemSize'] as number
+    const {rendered} = listStore.get()
+    data.forEach(o => {
+      if (measured.has(o) || (rendered && !rendered.has(o))) return
+      measured.add(o)
+      if (heightOf(o) !== estimate) reportItemSize(o, estimate, heightOf(o))
+    })
   })
   React.useImperativeHandle(ref, () => listHandle, [])
   // The list measures its viewport as it mounts, as the real one does in a layout effect.
@@ -352,6 +370,7 @@ export const resetHarness = () => {
   resetShared()
   listProps.current = undefined
   listCommits.length = 0
+  measured.clear()
   movedTo = undefined
   lastFired = 0
   isAtEnd = false

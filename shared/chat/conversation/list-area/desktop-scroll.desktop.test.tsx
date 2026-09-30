@@ -1154,19 +1154,53 @@ describe('a row changing size', () => {
 
   // The list re-reads its isAtEnd only when it scrolls, so after the row grows with nothing scrolling
   // it still reads at-end; the thread has to be measured to see it is short.
-  test.each([
-    ['a late re-measure of a few pixels', H.rowHeight, H.rowHeight + 3],
-    ['a reaction landing on it', 26, 66],
-  ])('while the list holds its end, %s on the newest row ends at the end', async (_what, from, to) => {
+  test('while the list holds its end, a late re-measure of a few pixels on the newest row ends at the end', async () => {
     open()
-    H.remeasureRow(ord(60), from)
     heldAtEnd()
     H.log.length = 0
-    H.remeasureRow(ord(60), to)
-    expect(scrollerEnd() - scrollerTop()).toBe(to - from)
+    newestGrows()
+    expect(scrollerEnd() - scrollerTop()).toBe(3)
     await tick(3000)
     expect(H.log).toEqual([['scrollToEnd', noAnimation]])
     expect(scrollerEnd() - scrollerTop()).toBe(0)
+  })
+
+  // A reaction landing on the newest row: the list's own end anchor re-pins that.
+  test('a change of more than five pixels is left to the list\'s own end anchor', async () => {
+    open()
+    heldAtEnd()
+    H.log.length = 0
+    H.remeasureRow(ord(60), H.rowHeight + 40)
+    await tick(3000)
+    expect(H.log).toEqual([])
+  })
+
+  // Rows measure for the first time as a thread opens, each within a few pixels of its estimate
+  // here; the list's own end anchor re-pins for those. The header's re-pin corrects on schedule,
+  // 100ms after the header grew, however many rows measure meanwhile.
+  test('rows measuring for the first time do not restart the end loop', async () => {
+    open()
+    heldAtEnd()
+    growHeader()
+    await tick(75)
+    update(() => {
+      H.listStore.set({rowHeights: new Map([[ord(61), 74]])})
+      H.threadStore.set({messageOrdinals: H.range(1, 61)})
+    })
+    await tick(25)
+    expect(H.log).toEqual([['scrollToEnd', noAnimation]])
+  })
+
+  test('a re-measure of a few pixels restarts the end loop', async () => {
+    open()
+    heldAtEnd()
+    growHeader()
+    await tick(75)
+    H.remeasureRow(ord(10), H.rowHeight + 3)
+    await tick(25)
+    expect(H.log).toEqual([])
+    await tick(75)
+    expect(H.log).toEqual([['scrollToEnd', noAnimation]])
   })
 
   test('while the list holds its end, a row growing there re-pins it, as the list\'s own scroll', async () => {
