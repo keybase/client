@@ -38,6 +38,9 @@ export const threadStore = makeStore<ThreadState>({
 })
 
 type ListState = {
+  // Whether an animated scroll lands at once; when not, the test plays its animation by moving the
+  // scroller.
+  animatedScrollsLand: boolean
   // The list's header (SpecialTopMessage), above the rows.
   headerSize: number
   // Whether scrollToIndex mounts its target row, as the real list does once it scrolls there.
@@ -57,6 +60,7 @@ type ListState = {
   listViewport: number
 }
 const initialListState = (): ListState => ({
+  animatedScrollsLand: true,
   headerSize: 0,
   mountsOnScrollToIndex: true,
   rendered: undefined,
@@ -136,7 +140,7 @@ export const listHandle = {
         rendered && mountsOnScrollToIndex && target !== undefined ? new Set([...rendered, target]) : rendered,
     })
     if (opts.animated) {
-      moveScroller(scroll)
+      if (listStore.get().animatedScrollsLand) moveScroller(scroll)
     } else {
       listStore.set({scroll})
     }

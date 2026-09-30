@@ -113,23 +113,19 @@ export const useNativeThreadScroll = (p: {
   // Every scroll the list makes itself goes through these, saying where it is going, so the movement
   // toward there and the rest that follows are its own.
   const [scrollToOffset] = React.useState(() => (offset: number) => {
-    own.issued(metricsRef.current.offset, offset)
+    own.issued(metricsRef.current.offset, offset, false)
     listRef.current?.scrollToOffset({animated: false, offset})
   })
-  // Where a row lands is not known ahead, only which way it lies: older rows sit at higher offsets.
+  // Where a row lands is not known ahead, only which way it lies from the middle of the view, once the
+  // list has reported what is in view: older rows sit at higher offsets. Until then the scroll heads
+  // nowhere known, and the movement after it is the reader's.
   const [scrollToItem] = React.useState(() => (item: T.Chat.Ordinal, animated: boolean) => {
     const index = indexOfOrdinalNewestFirst(ordsRef.current, item)
     const first = vFirstRef.current
     const last = vLastRef.current
-    const to =
-      first == null || last == null || index < 0
-        ? undefined
-        : index > last
-          ? Infinity
-          : index < first
-            ? -Infinity
-            : undefined
-    own.issued(metricsRef.current.offset, to)
+    if (first != null && last != null && index >= 0) {
+      own.issued(metricsRef.current.offset, index >= (first + last) / 2 ? Infinity : -Infinity, animated)
+    }
     listRef.current?.scrollToItem({animated, item, viewPosition: 0.5})
   })
 

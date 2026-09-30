@@ -1274,6 +1274,34 @@ describe('movement the list did not make is the reader', () => {
     expect(scrollsOnly()).toEqual([])
   })
 
+  // Before the list reports what is in view, a coarse scroll to the target heads nowhere known.
+  test('a scroll with no drag after a coarse scroll to a target the list cannot place stops centring', async () => {
+    open({center: 30})
+    scrolled(0, 6000)
+    await tick(50)
+    expect(scrollsOnly()).toEqual([coarse(30)])
+    scrolled(500, 6000)
+    clearLog()
+    await tick(1000)
+    expect(scrollsOnly()).toEqual([])
+  })
+
+  // A row already in view is brought toward the middle: here the oldest in view, cut off at the top,
+  // toward the oldest. VoiceOver scrolling the other way, to the newest, is the reader.
+  test('a scroll with no drag against a reveal of a row in view is the reader: coming to rest at the newest hands the end back', async () => {
+    open()
+    await tick(200)
+    scrolled(300, 6000)
+    viewable(0, 9)
+    fullyViewable(0, 8)
+    update(() => H.inputStore.set({editing: ord(51)}))
+    expect(scrollsOnly()).toContainEqual(['scrollToItem', {animated: true, item: ord(51), viewPosition: 0.5}])
+    expect(props().maintainVisibleContentPosition).toEqual(mvpNoAutoscroll)
+    scrolled(0, 6000)
+    flingEnded(0)
+    expect(props().maintainVisibleContentPosition).toEqual(mvpClosed)
+  })
+
   test('a scroll with no drag into history takes the end: a new message with the keyboard up leaves the reader there', async () => {
     open({keyboard: true})
     await tick(200)

@@ -977,6 +977,51 @@ describe('editing', () => {
     expect(H.log).toEqual([['scrollToEnd', noAnimation]])
   })
 
+  // The reveal is aimed at the viewport as the edit starts; the viewport shrinking after holds it
+  // there again, but only while the reader has not moved the list.
+  const revealAnimated = () => {
+    update(() => H.listStore.set({animatedScrollsLand: false}))
+    open()
+    atEnd()
+    update(() => H.inputStore.set({editing: ord(15)}))
+    expect(H.log).toEqual([['scrollToIndex', {animated: true, index: 14, viewPosition: 0.5}]])
+    H.log.length = 0
+  }
+  const shrinkAndHear = () => {
+    update(() => H.resizeViewport(H.viewportHeight - 4))
+    H.listHearsLayout()
+  }
+
+  test('a reveal animating for longer than a second is the list\'s own all the way', async () => {
+    revealAnimated()
+    update(() => H.moveScroller(4000))
+    await tick(1500)
+    update(() => H.moveScroller(2000))
+    update(() => H.moveScroller(1200))
+    H.scrollEnds()
+    shrinkAndHear()
+    expect(H.log).toEqual([['scrollToIndex', {animated: true, index: 14, viewPosition: 0.5}]])
+  })
+
+  test('a reveal landing past where it was measured to land is the list\'s own', () => {
+    revealAnimated()
+    update(() => H.moveScroller(2000))
+    update(() => H.moveScroller(1100))
+    update(() => H.moveScroller(1000))
+    H.scrollEnds()
+    shrinkAndHear()
+    expect(H.log).toEqual([['scrollToIndex', {animated: true, index: 14, viewPosition: 0.5}]])
+  })
+
+  test('the reader moving the list back against a reveal still animating is the reader', () => {
+    revealAnimated()
+    update(() => H.moveScroller(2000))
+    update(() => H.moveScroller(2500))
+    H.scrollEnds()
+    shrinkAndHear()
+    expect(H.log).toEqual([])
+  })
+
   test('the reveal survives a reload: the same edit is not revealed twice', () => {
     open()
     update(() => H.inputStore.set({editing: ord(15)}))

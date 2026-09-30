@@ -254,7 +254,7 @@ export const useDesktopThreadScroll = (p: {
           const max = scroller.scrollHeight - scroller.clientHeight
           const offBy = offsetFromMiddle(scroller, directive.ordinal)
           const to = offBy === undefined ? (idx < state.start ? 0 : max) : Math.min(max, Math.max(0, from + offBy))
-          if (own.issued(from, to)) {
+          if (own.issued(from, to, true)) {
             void listRef.current?.scrollToIndex({animated: true, index: idx, viewPosition: 0.5})
           }
           return
