@@ -7,7 +7,6 @@ import noop from 'lodash/noop'
 import sortedIndexBy from 'lodash/sortedIndexBy'
 import {ThreadRefsContext} from '../normal/context'
 import {useComposerAnchor} from '../composer-viewport-context'
-import {ThreadSearchOverlayContext} from '../thread-search-overlay-context'
 import {restingScrollOffset} from '../composer-geometry'
 import {makeOwnScrolls} from './own-scrolls'
 import {KeyboardEvents} from 'react-native-keyboard-controller'
@@ -89,23 +88,17 @@ export const useNativeThreadScroll = (p: {
   const numOrdinals = messageOrdinals.length
 
   const {bottomInset, keyboardHeight} = useComposerAnchor()
-  const searchOverlayHeight = React.useContext(ThreadSearchOverlayContext)
   // The offset the list rests at with its newest message in view, below which it does not scroll:
-  // negative while the keyboard is up or the thread-search bar overlays the list's bottom, as the
-  // keyboard scroll view pads the list for both. Read through a ref so every scroll uses the inset,
-  // keyboard and search bar as they are when it runs, and nothing that scrolls changes identity with
-  // them.
-  const anchorRef = React.useRef({bottomInset, keyboardHeight, searchOverlayHeight})
+  // negative while the keyboard is up. Read through a ref so every scroll uses the inset and keyboard
+  // as they are when it runs, and nothing that scrolls changes identity with the inset.
+  const anchorRef = React.useRef({bottomInset, keyboardHeight})
   React.useLayoutEffect(() => {
-    anchorRef.current = {bottomInset, keyboardHeight, searchOverlayHeight}
-  }, [bottomInset, keyboardHeight, searchOverlayHeight])
-  const [restingOffset] = React.useState(() => () => {
-    const anchor = anchorRef.current
-    return (
-      restingScrollOffset(anchor.bottomInset, anchor.keyboardHeight.value) - (anchor.searchOverlayHeight?.value ?? 0)
-    )
-  })
-  // Resting at the end: over the keyboard and search bar as they are now.
+    anchorRef.current = {bottomInset, keyboardHeight}
+  }, [bottomInset, keyboardHeight])
+  const [restingOffset] = React.useState(
+    () => () => restingScrollOffset(anchorRef.current.bottomInset, anchorRef.current.keyboardHeight.value)
+  )
+  // Resting at the end: over the keyboard as it is now.
   const [atEnd] = React.useState(() => (offset: number) => offset <= restingOffset() + endTolerance)
 
   // Read by timers and list callbacks as they fire, so they see the target and rows as they are now.
