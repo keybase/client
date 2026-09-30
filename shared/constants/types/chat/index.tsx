@@ -114,7 +114,6 @@ export type RefreshReason =
   | 'joinedAConversation'
   | 'leftAConversation'
   | 'teamTypeChanged'
-  | 'maybeKickedFromTeam'
   | 'widgetRefresh'
   | 'shareConfigSearch'
 
