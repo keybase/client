@@ -380,14 +380,12 @@ export const useComposer = (): Composer => {
 // reporter for what the input says was typed.
 export const useComposerInput = <R extends ComposerInput>(draft: string | undefined, readOnly: boolean) => {
   const composer = useComposer()
-  const inputRef = React.useRef<R | null>(null)
   // read as the ref is set, so the draft loads ahead of the writes waiting for the input
   const currentDraft = React.useEffectEvent(() => draft)
   const [{setInput, view}] = React.useState(() => {
     const view = composer.connect()
     return {
       setInput: (input: R | null) => {
-        inputRef.current = input
         if (input) {
           view.offerDraft(currentDraft())
         }
@@ -401,5 +399,5 @@ export const useComposerInput = <R extends ComposerInput>(draft: string | undefi
   React.useEffect(() => {
     view.offerDraft(draft)
   }, [view, draft, readOnly])
-  return {composer, inputRef, setInput, textChanged: view.textChanged}
+  return {composer, setInput, textChanged: view.textChanged}
 }

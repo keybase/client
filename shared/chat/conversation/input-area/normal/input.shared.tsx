@@ -59,8 +59,7 @@ export type PlatformInputProps = {
   explodingModeSeconds: number
   setExplodingMode: (mode: number) => void
   hintText: string
-  // the composer's own ref to the input, which setInputRef sets
-  inputRef: React.RefObject<RefType | null>
+  // attaches the input to the composer, which is what everything else asks about it
   setInputRef: (r: RefType | null) => void
   isEditing: boolean
   isExploding: boolean

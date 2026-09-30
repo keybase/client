@@ -38,20 +38,19 @@ jest.mock('@/common-adapters', () => {
 
 // the suggestors read the caret through the composer's input; drive it directly so the
 // test exercises the word-splitting rather than a real textarea
-const makeInputRef = (getSelection: () => Selection | undefined, showsWrites: boolean) => ({
-  current: {
+const makeInput = (getSelection: () => Selection | undefined, showsWrites: boolean) =>
+  ({
     clear: jest.fn(),
     focus: jest.fn(),
     getSelection,
     isFocused: () => true,
     replaceText: jest.fn(() => showsWrites),
-  } as unknown as InputRef,
-})
+  }) as unknown as InputRef
 
 // the composer the suggestors read the text from, attached to the input the way the composer
 // view attaches it; its onChangeText reports what was typed, as the view's does
 const renderSuggestors = (getSelection: () => Selection | undefined, showsWrites = true) => {
-  const inputRef = makeInputRef(getSelection, showsWrites)
+  const input = makeInput(getSelection, showsWrites)
   const composer = makeComposer({
     flushDraft: () => {},
     isReadOnly: () => false,
@@ -59,11 +58,10 @@ const renderSuggestors = (getSelection: () => Selection | undefined, showsWrites
     takeUnfurlSnapshot: () => ({dismissed: [], failed: []}),
   })
   const view = composer.connect()
-  view.setInput(inputRef.current)
+  view.setInput(input)
   const {result} = renderHook(
     () =>
       useSuggestors({
-        inputRef,
         onChangeText: view.textChanged,
         suggestionListStyle: {},
         suggestionOverlayStyle: {},

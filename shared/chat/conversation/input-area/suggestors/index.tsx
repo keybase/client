@@ -75,7 +75,8 @@ type UseSuggestorsProps = Pick<
 > & {
   suggestionListStyle: Kb.Styles.StylesCrossPlatform
   suggestionSpinnerStyle: Kb.Styles.StylesCrossPlatform
-  inputRef: React.RefObject<InputRef | null>
+  // what the desktop list is placed against; phones show it above the keyboard instead
+  popupAnchorRef?: React.RefObject<InputRef | null>
 }
 
 // nasty to mix these types but keeping this for now
@@ -86,7 +87,6 @@ type SelectedType = Parameters<(typeof transformers)['channels' | 'commands' | '
 type UseSyncInputProps = {
   active: ActiveType
   composer: Composer
-  inputRef: React.RefObject<InputRef | null>
   // reports text as the user's, the way the input reports typing
   reportText: (text: string) => void
   setActive: React.Dispatch<React.SetStateAction<ActiveType>>
@@ -99,7 +99,6 @@ type UseSyncInputProps = {
 const useSyncInput = (p: UseSyncInputProps) => {
   const {
     composer,
-    inputRef,
     active,
     reportText,
     setActive,
@@ -219,7 +218,7 @@ const useSyncInput = (p: UseSyncInputProps) => {
   }, [])
 
   const triggerTransform = function (maybeValue: SelectedType | undefined, final = true) {
-    if (!inputRef.current || !active) {
+    if (!active) {
       return
     }
     const value = maybeValue ?? selectedItemRef.current
@@ -227,6 +226,10 @@ const useSyncInput = (p: UseSyncInputProps) => {
       return
     }
     const inputSnapshot = getInputSnapshot()
+    // with no input attached there is no caret to transform at
+    if (!inputSnapshot.selection) {
+      return
+    }
     setCommandInputSnapshot(inputSnapshot)
     const cursorInfo = getWordAtCursor(inputSnapshot)
     const matchInfo = matchesMarker(cursorInfo?.word ?? '', suggestorToMarker[active])
@@ -297,7 +300,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   const [active, setActive] = React.useState<ActiveType>('')
   const [filter, setFilter] = React.useState('')
   const suppressCommandSuggestions = InputState.useConversationInput(s => !!s.commandMarkdown || s.giphyWindow)
-  const {inputRef, suggestionListStyle, suggestionOverlayStyle} = p
+  const {popupAnchorRef, suggestionListStyle, suggestionOverlayStyle} = p
   const {onChangeText: onChangeTextProps} = p
   const {suggestionSpinnerStyle} = p
   const conversationIDKey = useConversationThreadID()
@@ -305,7 +308,6 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   const {triggerTransform, checkTrigger, setInactive} = useSyncInput({
     active,
     composer,
-    inputRef,
     reportText: onChangeTextProps,
     selectedItemRef,
     setActive,
@@ -384,14 +386,13 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     default:
   }
   const popup = !!content && (
-    <Popup suggestionOverlayStyle={suggestionOverlayStyle} setInactive={setInactive} inputRef={inputRef}>
+    <Popup suggestionOverlayStyle={suggestionOverlayStyle} setInactive={setInactive} anchorRef={popupAnchorRef}>
       {content}
     </Popup>
   )
 
   return {
     closeSuggestions: setInactive,
-    inputRef,
     onBlur,
     onChangeText,
     onFocus,
@@ -408,7 +409,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
 type PopupProps = {
   suggestionOverlayStyle: Kb.Styles.StylesCrossPlatform
   setInactive: () => void
-  inputRef: React.RefObject<InputRef | null>
+  anchorRef?: React.RefObject<InputRef | null>
   children: React.ReactNode
 }
 const MobileSuggestionArea = (p: {children: React.ReactNode}) => {
@@ -430,10 +431,13 @@ const MobileSuggestionArea = (p: {children: React.ReactNode}) => {
   )
 }
 
-const Popup = (p: PopupProps) => {
-  const {children, suggestionOverlayStyle, setInactive, inputRef} = p
+// phones place the list above the keyboard, not against an anchor
+const unanchored: React.RefObject<InputRef | null> = {current: null}
 
-  const attachRef = inputRef as React.RefObject<Kb.MeasureRef | null>
+const Popup = (p: PopupProps) => {
+  const {children, suggestionOverlayStyle, setInactive, anchorRef} = p
+
+  const attachRef = (anchorRef ?? unanchored) as React.RefObject<Kb.MeasureRef | null>
 
   return (
     <Kb.AnchoredPopup

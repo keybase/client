@@ -770,18 +770,25 @@ const SideButtons = (p: SideButtonsProps) => {
 const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
   const desktopStyles = useDesktopStyles()
   const {cannotWrite, explodingModeSeconds, onCancelEditing, setExplodingMode} = p
-  const {showReplyPreview, hintText, inputRef, setInputRef, isEditing, onSubmit} = p
+  const {showReplyPreview, hintText, setInputRef, isEditing, onSubmit} = p
+  const composer = useComposer()
   const htmlInputRef = React.useRef<HtmlInputRef | null>(null)
   const setHtmlInputRef = (i: HtmlInputRef | null) => {
     htmlInputRef.current = i
   }
+  // the suggestion list is placed against the textarea
+  const popupAnchorRef = React.useRef<RefType | null>(null)
+  const setInput = (r: RefType | null) => {
+    popupAnchorRef.current = r
+    setInputRef(r)
+  }
 
   React.useEffect(() => {
-    inputRef.current?.focus()
-  }, [inputRef])
+    composer.focus()
+  }, [composer])
 
   const {popup, onChangeText, ...suggestors} = useSuggestors({
-    inputRef,
+    popupAnchorRef,
     onChangeText: p.onChangeText,
     suggestionListStyle: undefined,
     suggestionOverlayStyle: p.suggestionOverlayStyle,
@@ -789,7 +796,7 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
   })
 
   const focusInput = () => {
-    inputRef.current?.focus()
+    composer.focus()
   }
 
   const {globalKeyDownPressHandler, inputKeyDown} = useDesktopKeys({
@@ -840,7 +847,7 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
                 allowKeyboardEvents={true}
                 disabled={cannotWrite}
                 autoFocus={false}
-                ref={setInputRef}
+                ref={setInput}
                 placeholder={hintText}
                 style={Kb.Styles.collapseStyles([
                   desktopStyles.input,
@@ -1232,7 +1239,6 @@ const NativePlatformInput = (p: Props) => {
   const [showAudioSend, setShowAudioSend] = React.useState(false)
   const [height, setHeight] = React.useState(0)
   const [expanded, setExpanded] = React.useState(false) // updates immediately, used for the icon etc
-  const {inputRef} = p
   const {expandedSuggestionListHeight} = React.useContext(ComposerBoxContext)
   const suggestionListStyle = Kb.Styles.collapseStyles([
     nativeStyles.suggestionList,
@@ -1253,7 +1259,6 @@ const NativePlatformInput = (p: Props) => {
     selectSuggestion,
     suggestionsShowing,
   } = useSuggestors({
-    inputRef,
     onChangeText: p.onChangeText,
     suggestionListStyle,
     suggestionOverlayStyle: p.suggestionOverlayStyle,
@@ -1380,10 +1385,10 @@ const NativePlatformInput = (p: Props) => {
     if (isEditing !== lastEditRef.current) {
       lastEditRef.current = isEditing
       if (isEditing) {
-        inputRef.current?.focus()
+        composer.focus()
       }
     }
-  }, [isEditing, inputRef])
+  }, [isEditing, composer])
 
   const _onSelectionChange = (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
     onSelectionChange(e.nativeEvent.selection)
