@@ -771,10 +771,22 @@ describe('chat scroll: editing', () => {
   it('editing a row near the top keeps it in view once the keyboard is up', async () => {
     await openScratch()
     const {ordinal, text} = await sendWithRowsBelow(22)
-    const t0 = await waitForThreadStable(20_000)
+    // a burst of incoming messages can leave the list short of its end: go to the end, then up to
+    // the row until the list renders it
+    await tapStatusBar()
+    const t0 = await waitFor(
+      `row ${ordinal} rendered`,
+      async () => {
+        const t = await waitForThreadStable(20_000)
+        if (rowOf(t, ordinal)) return t
+        await dragThread(300)
+        return undefined
+      },
+      {interval: 0, timeout: 60_000}
+    )
     const height = rowOf(t0, ordinal)!.bottom - rowOf(t0, ordinal)!.top
-    // near the top: its middle within 30 points of a row's height below the list's top
-    const {r, t} = await bringRowTo(ordinal, t0.listTop + height / 2 + 12, 30)
+    // near the top: its top 5 to 55 points below the list's top
+    const {r, t} = await bringRowTo(ordinal, t0.listTop + height / 2 + 30, 25)
     const v0 = await viewport(t)
     check(wholly(r, v0), `row ${ordinal} is not wholly in view before the edit: ${JSON.stringify(r)} ${summary(t, v0)}`)
     const {t: after, v} = await editWithKeyboard(text)
