@@ -45,7 +45,9 @@ import {
   searchAgain,
   searchFor,
   searchOpen,
+  sampleTop,
   sendMessage,
+  sampleThreadWhile,
   summary,
   tapStatusBar,
   viewport,
@@ -53,6 +55,7 @@ import {
   waitForThreadStable,
   wholly,
   type ThreadReading,
+  type ThreadSample,
   type Viewport,
 } from '../helpers/chat'
 import {el} from '../helpers/elements'
@@ -114,7 +117,9 @@ describe('chat scroll: new messages', () => {
     await expectAtEnd()
     const text = `e2e-ios-scroll-incoming-end-${Date.now()}`
     await sendFromCli(E2E_CHANNELS.scratch, text)
+    const sent = Date.now()
     const ordinal = await waitForRow(text, 20_000)
+    console.log(`incoming at the end: its row showed ${Date.now() - sent}ms after the send returned`)
     const {t, v} = await expectAtEnd('after the incoming message, the thread')
     check(t.rows.at(-1)?.ordinal === ordinal, `the newest row is not the incoming one: ${summary(t, v)}`)
   })
@@ -255,24 +260,31 @@ describe('chat scroll: search', () => {
     )
   })
 
-  // App bug (integration build, iOS): closing thread search moves the rows the reader is looking at
-  // down by about 48 points instead of leaving them where they are. Readings (window points): the
-  // centred hit's row top 400 with search open, 448.3 after the close (3 of 3 runs). Sampled every
-  // 16ms across the close, the list's frame shrinks first (686 to 663 high, the row at 376.7 with the
-  // offset still 0), then the scroll view shifts the rows by the search bar's reserved padding
-  // (offset 0 to 71.7, the row at 448.3), and nothing scrolls them back. Remove the expected-failure
-  // mark once fixed.
+  // App bug (integration build with the settling-window fix, iOS): closing search leaves the rows
+  // near, not at, where they were. Readings (window points): the centred hit's row top 400 with
+  // search open, 418.3 once the list settles; sampled every 16ms across the close, the row is away
+  // from 400 for about 1.3s, by up to 23.3 points (before the fix: 448.3 after the 71.7-point shift,
+  // never corrected). Remove the expected-failure mark once fixed.
   it('closing search leaves the list where it is', async () => {
     await openLong()
     const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.middle.token)
     const {t} = await expectCentred(ordinal)
     const before = rowOf(t, ordinal)!
 
-    await closeSearch()
+    const samples = await sampleThreadWhile(async () => {
+      await closeSearch()
+      await waitForThreadStable()
+    })
     const after = await waitForThreadStable()
     const v = await viewport(after)
+    const tops = samples.map(s => sampleTop(s, ordinal))
+    const off = samples.filter((_, i) => tops[i] === undefined || Math.abs(tops[i]! - before.top) > stillTolerance)
+    const most = Math.max(0, ...tops.map(top => (top === undefined ? 0 : Math.abs(top - before.top))))
+    console.log(
+      `closing search: row ${ordinal} at ${before.top}, then ${rowOf(after, ordinal)?.top}; away from its place in ${off.length} of ${samples.length} samples, ${off.length ? Math.round(off.at(-1)!.t - off[0]!.t) : 0}ms from the first to the last, by up to ${Math.round(most * 10) / 10} points`
+    )
     check(!isAtEnd(after, v), `the thread went to its end: ${summary(after, v)}`)
-    await expectedFailure('closing search moves the rows', () => {
+    await expectedFailure('closing search leaves the rows about 18 points from their place', () => {
       const r = rowOf(after, ordinal)
       check(
         !!r && Math.abs(r.top - before.top) <= stillTolerance,
@@ -385,6 +397,54 @@ const dragTravel = async (dy: number) => {
   return {after, before, travel: now!.top - anchor.top}
 }
 
+// A page of newer rows waits for the list to stop moving (no scroll event for 100ms) before it
+// lands. How long the list must have been still when a page lands, less a sample's worth of slack.
+const heldRestMs = 80
+
+type SampledLanding = {rows: string; shift: number; stillFor: number}
+
+// The pages that landed in a run of samples (a sample with more rows loaded than the one before):
+// how long the list had been still (its offset unchanged) when each landed, and how far the rows in
+// view just before it moved over the 300ms from the landing (Infinity when one left the rows near
+// the view).
+const sampledLandings = (samples: ReadonlyArray<ThreadSample>, v: Viewport) => {
+  const out: Array<SampledLanding> = []
+  let lastMove = samples[0]?.t ?? 0
+  for (let i = 1; i < samples.length; i++) {
+    const a = samples[i - 1]!
+    const b = samples[i]!
+    if (b.count === a.count) {
+      if (Math.abs(b.offset - a.offset) >= 0.5) lastMove = b.t
+      continue
+    }
+    if (b.count < a.count) continue
+    const inView = a.rows.filter(([, top]) => top >= v.top && top <= v.bottom - 40)
+    let shift = 0
+    for (let j = i; j < samples.length && samples[j]!.t - b.t <= 300; j++) {
+      // the list can read no rows at all mid-render, the tick the page lands
+      if (!samples[j]!.rows.length) continue
+      for (const [ordinal, top] of inView) {
+        const now = sampleTop(samples[j]!, ordinal)
+        shift = Math.max(shift, now === undefined ? Infinity : Math.abs(now - top))
+      }
+    }
+    out.push({rows: `${a.count} -> ${b.count}`, shift: Math.round(shift * 10) / 10, stillFor: Math.round(b.t - lastMove)})
+  }
+  return out
+}
+
+const describeLandings = (ls: ReadonlyArray<SampledLanding>) =>
+  ls.map(l => `${l.rows} rows after ${l.stillFor}ms still, rows in view moved ${l.shift}`).join('; ')
+
+// Every page landed at rest and left the rows in view where they were.
+const checkLandings = (ls: ReadonlyArray<SampledLanding>, what: string) => {
+  check(ls.length >= 1, `${what}: no page landed`)
+  const moving = ls.filter(l => l.stillFor < heldRestMs)
+  check(!moving.length, `${what}: pages landed while the list moved: ${describeLandings(moving)}`)
+  const jumped = ls.filter(l => l.shift > stillTolerance)
+  check(!jumped.length, `${what}: pages moved the rows in view: ${describeLandings(jumped)}`)
+}
+
 describe('chat scroll: paging', () => {
   // The first page of older rows lands during a drag from the end of the thread; the drag moves the
   // reader's rows as far as the same drag does once that page is loaded.
@@ -424,14 +484,13 @@ describe('chat scroll: paging', () => {
     await waitForRow(longMarker(1))
   })
 
-  // Pages of newer rows landing sometimes throw the reader ahead (the app bug the next flow marks,
-  // which reproduces it every time with the reader resting on the newest row loaded). Here it depends
-  // on where each page lands, so about half the runs see it: rows wholly in view went from 181..201
-  // to 298..318 in one drag as 225 rows loaded became 403 (Appium's element tree agreeing); in other
-  // runs the reader's row left the rendered rows as 225 became 325 (390 points from the newest row
-  // loaded) and as 325 became 403 (530 points from it). The landings that moved the reader are
-  // logged, not failed; the flow holds the rest: pages keep loading until the present, and the
-  // thread ends there.
+  // Pages of newer rows are held while the list moves and land at rest: none moves the reader,
+  // mid-drag or at the drag's end on the newest row loaded.
+  //
+  // App bug (integration build with the held newer page, iOS), in 2 of 3 runs: every page landed
+  // at rest (146-411ms after the list stopped), but a later one still threw the reader ahead: the
+  // reader's row left the rendered rows as 225 rows became 403 in one drag (run 1), and as 325
+  // became 403 (run 2); the 16ms samples agree. The third run held all three landings in place.
   it('dragging down from an old hit loads newer pages until the present', async () => {
     await openLong()
     const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.deep.token)
@@ -439,24 +498,52 @@ describe('chat scroll: paging', () => {
     await closeSearch()
     await jumpToRecentButton().waitForExist({timeout: 5_000})
 
-    const {describe, landed, moved} = await scrollThroughPages(-200, (t, v) => isAtEnd(t, v))
-    check(landed.length >= 2, `only ${landed.length} pages landed`)
-    const jumped = landed.filter(moved)
-    console.log(
-      `newer pages landed: ${landed.length}, ${landed.filter(l => l.atEdge).length} with the reader on the newest row loaded, ${jumped.length} moving the reader${jumped.length ? `:\n${describe(jumped)}` : ''}`
-    )
+    const v = await viewport(await waitForThreadStable())
+    let paging: Awaited<ReturnType<typeof scrollThroughPages>> | undefined
+    const samples = await sampleThreadWhile(async () => {
+      paging = await scrollThroughPages(-200, (t, tv) => isAtEnd(t, tv))
+    })
+    const {describe, landed, moved} = paging!
+    const sampled = sampledLandings(samples, v)
+    console.log(`newer pages while dragging: ${landed.length} drags with a landing; ${describeLandings(sampled)}`)
+    check(landed.length >= 2, `only ${landed.length} drags had a page land`)
+    check(!landed.some(moved), describe(landed.filter(moved)))
+    checkLandings(sampled, 'dragging')
     await waitForRow(longMarker(LONG_COUNT))
     await expectAtEnd()
     await jumpToRecentButton().waitForExist({reverse: true, timeout: 5_000})
   })
 
-  // App bug (integration build, iOS): with the reader resting on the newest row of a window of
-  // history, the page of newer rows that lands next carries the list to the new newest row: the
-  // reader is thrown about 100 rows ahead. From the deep hit (rows 1..125 loaded), a status-bar tap
-  // rests the list on row 125; the page 126..225 lands and the rows wholly in view read 205..225
-  // (fiber reading, 2 of 2 tries). A drag that happens to end on that row does the same (rows in view
-  // 181..201 -> 298..318 in one run, Appium's element tree agreeing). Remove the expected-failure
-  // mark once fixed.
+  // The same through flicks: the list keeps moving after the finger lifts, and a page asked for
+  // mid-fling waits for it to stop.
+  it('flicking down from an old hit, newer pages land at rest without moving the reader', async () => {
+    await openLong()
+    const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.deep.token)
+    await expectCentred(ordinal)
+    await closeSearch()
+
+    const v = await viewport(await waitForThreadStable())
+    const samples = await sampleThreadWhile(async () => {
+      for (let i = 0; i < 40; i++) {
+        const t = await waitForThreadStable()
+        if (isAtEnd(t, await viewport(t))) break
+        // short enough to start above the jump-to-recent button, which takes a touch that lands on it
+        await flickThread(-300)
+      }
+    })
+    const sampled = sampledLandings(samples, v)
+    console.log(`newer pages while flicking: ${describeLandings(sampled)}`)
+    checkLandings(sampled, 'flicking')
+    await waitForRow(longMarker(LONG_COUNT))
+    await expectAtEnd()
+  })
+
+  // App bug (integration build with the held newer page, iOS): a status-bar tap from the deep hit
+  // scrolls the list to the newest row loaded (125 of 403, offset 0); the next page is held until
+  // the list rests and lands about 500ms later, and carries the reader with it: sampled every 16ms,
+  // the offset stays 0 and the rows at the bottom read 225, 224 where 125, 124 were (row 124 leaves
+  // the rendered rows). Drags and flicks that end short of that row are not carried (their flows
+  // hold it). Remove the expected-failure mark once fixed.
   it('resting on the newest row of a window of history, the next page leaves the reader where they are', async () => {
     await openLong()
     const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.deep.token)
@@ -465,15 +552,22 @@ describe('chat scroll: paging', () => {
     const before = await waitForThreadStable()
     check(before.moreToLoadForward, `the hit's page holds the newest message: ${summary(before)}`)
     const newestLoaded = before.ordinals.at(-1)!
-    await tapStatusBar()
-    await waitFor(
-      'the next page of newer rows',
-      async () => ((await requireThread()).ordinals.length > before.ordinals.length ? true : undefined),
-      {timeout: 15_000}
-    )
+    const v0 = await viewport(before)
+    const samples = await sampleThreadWhile(async () => {
+      await tapStatusBar()
+      await waitFor(
+        'the next page of newer rows',
+        async () => ((await requireThread()).ordinals.length > before.ordinals.length ? true : undefined),
+        {timeout: 15_000}
+      )
+      await waitForThreadStable()
+    })
+    const sampled = sampledLandings(samples, v0)
+    console.log(`newer page after a status-bar tap: ${describeLandings(sampled)}`)
     const after = await waitForThreadStable()
     const v = await viewport(after)
     await expectedFailure('a newer page carries a reader resting on the newest row with it', () => {
+      checkLandings(sampled, 'after a status-bar tap')
       check(
         wholly(rowOf(after, newestLoaded), v),
         `row ${newestLoaded}, the newest the reader could reach, left the view: ${summary(after, v)}`

@@ -109,6 +109,82 @@ const readThreadBody = `
 
 export const readThread = async () => jsEval<ThreadReading | null>(readThreadBody)
 
+// -- sampling the thread frame by frame ------------------------------------------------------------
+
+// One tick of the in-app sampler: when (ms, the app's clock), the list's scroll offset, how many rows
+// it has loaded, its view height, and the tops (window points) of the rendered rows in or near the
+// view, as [ordinal, top].
+export type ThreadSample = {count: number; height: number; offset: number; rows: Array<[number, number]>; t: number}
+
+// Starts sampling the open thread every 16ms inside the app (a round trip through Metro takes longer
+// than a frame). It finds the list once, then reads only its scroll metrics each tick.
+const startThreadSampler = async () => {
+  const ok = await jsEval<boolean>(`
+    const g = globalThis
+    if (g.__e2eSampler) clearInterval(g.__e2eSampler)
+    const screen = kbModule('constants/router.tsx').getVisibleScreen()
+    const convID = screen && screen.params && screen.params.conversationIDKey
+    const hook = g.__REACT_DEVTOOLS_GLOBAL_HOOK__
+    let root
+    for (const r of hook.getFiberRoots(1)) root = r
+    let fiber
+    const stack = [root.current]
+    while (stack.length && !fiber) {
+      const f = stack.pop()
+      if (f.key === convID && f.memoizedProps && f.memoizedProps.testID === ${JSON.stringify(T.CHAT_MESSAGE_LIST)} && f.stateNode && f.stateNode._listRef) fiber = f
+      if (f.sibling) stack.push(f.sibling)
+      if (f.child) stack.push(f.child)
+    }
+    if (!fiber) return false
+    const inst = fiber.stateNode
+    const now = g.nativePerformanceNow ? () => g.nativePerformanceNow() : () => Date.now()
+    g.__e2eSamples = []
+    g.__e2eSampler = setInterval(() => {
+      const list = inst._listRef
+      if (!list) return
+      const view = list._scrollRef.getBoundingClientRect()
+      const offset = list._scrollMetrics.offset
+      const data = inst.props.data || []
+      const rows = []
+      for (const ordinal of data) {
+        const m = list._listMetrics._cellMetrics.get(String(ordinal))
+        if (!m || !m.isMounted) continue
+        const bottom = view.y + view.height - (m.offset - offset)
+        // rows well outside the view only make the samples bigger
+        if (bottom < view.y - 200 || bottom - m.length > view.y + view.height + 200) continue
+        rows.push([ordinal, Math.round((bottom - m.length) * 10) / 10])
+      }
+      g.__e2eSamples.push({count: data.length, height: view.height, offset, rows, t: now()})
+    }, 16)
+    return true
+  `)
+  if (!ok) throw new Error('no thread list on screen to sample')
+}
+
+const stopThreadSampler = async () =>
+  jsEval<Array<ThreadSample>>(`
+    const g = globalThis
+    if (g.__e2eSampler) clearInterval(g.__e2eSampler)
+    g.__e2eSampler = undefined
+    const s = g.__e2eSamples || []
+    g.__e2eSamples = undefined
+    return s
+  `)
+
+// Samples the thread while `body` runs, and returns the samples.
+export const sampleThreadWhile = async (body: () => Promise<unknown>) => {
+  await startThreadSampler()
+  try {
+    await body()
+  } catch (e) {
+    await stopThreadSampler().catch(() => [])
+    throw e
+  }
+  return stopThreadSampler()
+}
+
+export const sampleTop = (s: ThreadSample, ordinal: number) => s.rows.find(([o]) => o === ordinal)?.[1]
+
 export const requireThread = async () => {
   const t = await readThread()
   if (!t) throw new Error('no thread list on screen')
