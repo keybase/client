@@ -22,6 +22,8 @@ import {
   searchFor,
   selectHit,
   sendMessage,
+  startScrollerFrames,
+  stopScrollerFrames,
   threadSearch,
   waitForRow,
   waitForScrollStable,
@@ -111,9 +113,21 @@ const expectAtEnd = async (page: Page) => {
   return g
 }
 
+// Every frame from the thread's list showing until it settles, so a miss says whether it reached
+// the end and what grew after.
 const openScratchAtEnd = async (page: Page) => {
   await openFresh(page, E2E_CHANNELS.scratch)
-  return expectAtEnd(page)
+  await startScrollerFrames(page)
+  const g = await waitForScrollStable(page)
+  const frames = await stopScrollerFrames(page)
+  expect(
+    g.distanceFromEnd,
+    `distance from the end after opening: ${summary(g)}; frames (ms/scrollTop/scrollHeight/clientHeight/distance/newest row/its height): ${frames
+      .slice(-12)
+      .map(f => f.join('/'))
+      .join(' ')}`
+  ).toBeLessThanOrEqual(endTolerancePx)
+  return g
 }
 
 // Selects the first hit for `token` and waits for its row; returns the row's ordinal.
@@ -436,8 +450,23 @@ test.describe('back to the bottom', () => {
       const up = await waitForScrollStable(page)
       expect(up.distanceFromEnd, `after the wheel: ${summary(up)}; before: ${summary(atEnd)}`).toBeGreaterThan(400)
 
-      await toBottom(page)
-      await expectAtEnd(page)
+      // every frame from the move to the check, so a miss says whether the list reached the end
+      await startScrollerFrames(page)
+      let frames: Array<Array<number>> | undefined
+      try {
+        await toBottom(page)
+        const g = await waitForScrollStable(page)
+        frames = await stopScrollerFrames(page)
+        expect(
+          g.distanceFromEnd,
+          `distance from the end after ${how}: ${summary(g)}; frames (ms/scrollTop/scrollHeight/clientHeight/distance/newest row/its height): ${frames
+            .slice(-10)
+            .map(f => f.join('/'))
+            .join(' ')}`
+        ).toBeLessThanOrEqual(endTolerancePx)
+      } finally {
+        if (!frames) await stopScrollerFrames(page).catch(() => [])
+      }
 
       const text = `e2e-scroll-repin-${Date.now()}`
       await sendIncoming(E2E_CHANNELS.scratch, text)

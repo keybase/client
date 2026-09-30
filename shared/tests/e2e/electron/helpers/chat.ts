@@ -118,6 +118,58 @@ export const waitForScrollStable = async (page: Page, timeoutMs = 10_000) => {
   }
 }
 
+// Records the scroller every animation frame from now until stop(): each reading that differs from
+// the one before, as [ms since start, scrollTop, scrollHeight, clientHeight, distance from the end,
+// the newest rendered row's ordinal and height].
+export const startScrollerFrames = async (page: Page) =>
+  page.evaluate(testID => {
+    type Row = {getAttribute: (n: string) => string | null; getBoundingClientRect: () => {height: number}}
+    type Scroller = {clientHeight: number; querySelectorAll: (s: string) => ArrayLike<Row>; scrollHeight: number; scrollTop: number}
+    const g = globalThis as unknown as {
+      __e2eFrames?: {frames: Array<Array<number>>; stop: boolean}
+      document: {querySelector: (s: string) => {children: ArrayLike<Scroller>} | null}
+      getComputedStyle: (el: Scroller) => {overflowY: string}
+      performance: {now: () => number}
+      requestAnimationFrame: (f: () => void) => void
+    }
+    const wrapper = g.document.querySelector(`[data-testid="${testID}"]`)
+    const scroller = wrapper && Array.from(wrapper.children).find(c => /auto|scroll/.test(g.getComputedStyle(c).overflowY))
+    if (!scroller) throw new Error('no thread list on the page')
+    const state = {frames: [] as Array<Array<number>>, stop: false}
+    const start = g.performance.now()
+    const tick = () => {
+      const rows = Array.from(scroller.querySelectorAll('[data-ordinal]'))
+      const newest = rows.reduce<Row | undefined>(
+        (a, b) => (!a || Number(b.getAttribute('data-ordinal')) > Number(a.getAttribute('data-ordinal')) ? b : a),
+        undefined
+      )
+      const r = [
+        Math.round(g.performance.now() - start),
+        Math.round(scroller.scrollTop * 10) / 10,
+        scroller.scrollHeight,
+        scroller.clientHeight,
+        Math.round((scroller.scrollHeight - scroller.clientHeight - scroller.scrollTop) * 10) / 10,
+        Number(newest?.getAttribute('data-ordinal') ?? -1),
+        Math.round((newest?.getBoundingClientRect().height ?? 0) * 10) / 10,
+      ]
+      const last = state.frames.at(-1)
+      if (!last || last.slice(1).some((v, i) => v !== r[i + 1])) state.frames.push(r)
+      if (!state.stop && g.performance.now() - start < 20_000) g.requestAnimationFrame(tick)
+    }
+    g.requestAnimationFrame(tick)
+    g.__e2eFrames = state
+  }, T.CHAT_MESSAGE_LIST)
+
+export const stopScrollerFrames = async (page: Page) =>
+  page.evaluate(() => {
+    const g = globalThis as unknown as {__e2eFrames?: {frames: Array<Array<number>>; stop: boolean}}
+    const s = g.__e2eFrames
+    g.__e2eFrames = undefined
+    if (!s) return []
+    s.stop = true
+    return s.frames
+  })
+
 // -- moving the thread as a reader ---------------------------------------------------------------
 
 // A mouse wheel over the middle of the thread; positive dy scrolls toward the newest message.
