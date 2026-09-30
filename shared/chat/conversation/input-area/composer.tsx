@@ -50,7 +50,8 @@ export type Composer = {
   // An edit is not a draft: from here until the edit ends (a clear, or its send) nothing the
   // composer holds is saved, and the saved draft is set aside to come back when it ends.
   startEdit: (text: string) => boolean
-  // Empties the composer. An edit ends instead, and the draft it set aside comes back.
+  // Empties the composer. An edit ends instead, and the draft it set aside comes back (once the user
+  // can post).
   clear: () => void
   // False where the user can't post: a reply could never be sent.
   startReply: () => boolean
@@ -160,11 +161,17 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     }
   }
 
-  // The draft is written back while still editing, so writing it saves nothing: not even an empty
-  // draft over one that has not loaded yet.
+  // Ending an edit always takes its text out of the input. The draft it set aside comes back in its
+  // place, but not where the user can't post: there the composer empties, and the draft loads again
+  // once they can. Written while still editing, so it saves nothing: not even an empty draft over
+  // one that has not loaded yet.
   const clear = (target: ComposerInput, focus: boolean) => {
     if (editing) {
-      write(target, saved ?? '', focus)
+      const readOnly = deps.isReadOnly()
+      write(target, readOnly ? '' : (saved ?? ''), focus)
+      if (readOnly) {
+        draftLoaded = false
+      }
       editing = false
     } else {
       write(target, '', focus)

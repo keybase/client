@@ -931,6 +931,52 @@ describe('editing and the draft', () => {
     expect(inboxDraft()).toBe('my draft')
   })
 
+  // Ending an edit always takes its text out: left in, it would be sent as a new message. The draft
+  // it set aside is not written into a composer the user can't post from; it comes back once they
+  // can.
+  test('cancelling an edit after the channel turns read-only empties the composer, and the draft comes back later', async () => {
+    const post = jest.spyOn(m.T.RPCChat, 'localPostTextNonblockRpcListener')
+    /* eslint-disable @typescript-eslint/no-require-imports */
+    const {metasReceived} = require('@/chat/inbox/metadata') as typeof Metadata
+    const Meta = require('@/constants/chat/meta') as typeof MetaModule
+    /* eslint-enable @typescript-eslint/no-require-imports */
+    const receiveMeta = (cannotWrite: boolean) => {
+      act(() => {
+        metasReceived(
+          [{...Meta.makeConversationMeta(), cannotWrite, conversationIDKey: convID, draft: 'my draft'}],
+          undefined,
+          {force: true}
+        )
+      })
+    }
+    receiveMeta(false)
+    renderComposer()
+    startEdit()
+    type('fixed my typo')
+    receiveMeta(true)
+
+    act(() => {
+      inputDispatch?.setEditing('clear')
+    })
+
+    expect(input().value).toBe('')
+    expect(composer?.getText()).toBe('')
+    act(() => {
+      mockHWKey?.({pressedKey: 'enter'})
+    })
+    act(() => {
+      jest.advanceTimersByTime(60)
+    })
+    await flushSend()
+    expect(post).not.toHaveBeenCalled()
+
+    receiveMeta(false)
+
+    expect(input().value).toBe('my draft')
+    expect(draftsSaved()).toEqual([])
+    expect(inboxDraft()).toBe('my draft')
+  })
+
   test('cancelling puts back the draft the user had, and saves nothing', () => {
     receiveDraft('my draft')
     renderComposer()
