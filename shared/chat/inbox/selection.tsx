@@ -57,11 +57,15 @@ export const conversationGoneForUser = (uid: string, id: T.Chat.ConversationIDKe
 // The conversation selected when the signed-in account last changed. A split layout keeps it
 // selected through the switch, but it is the previous account's.
 let previousAccountSelection = T.Chat.noConversationIDKey
-useCurrentUserState.subscribe((s, prev) => {
-  if (prev.uid && s.uid !== prev.uid) {
-    previousAccountSelection = Common.getSelectedConversation()
-  }
-})
+
+// Records the selection each time an account signs out or is switched away from. App init starts
+// it; the returned function stops it.
+export const watchSignedInAccount = () =>
+  useCurrentUserState.subscribe((s, prev) => {
+    if (prev.uid && s.uid !== prev.uid) {
+      previousAccountSelection = Common.getSelectedConversation()
+    }
+  })
 
 // Whether a reselect may replace this selection: the user left it or was removed (its meta says
 // so), this account could not load it (an error meta, and the inbox does not list it), or it is the
