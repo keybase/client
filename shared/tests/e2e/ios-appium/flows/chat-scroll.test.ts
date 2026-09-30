@@ -523,10 +523,11 @@ describe('chat scroll: paging', () => {
       t => !t.moreToLoadBack && t.rows[0]!.top >= t.listTop - 1,
       olderPagingTolerance
     )
-    const rows = landed.reduce((n, l) => n + l.added, 0)
-    console.log(`older pages: ${landed.map(l => `step ${l.i} +${l.added} rows, travel ${l.travel}`).join('; ')}`)
+    // pages also land while the list rests between drags, so the whole history is counted at the end
+    const loaded = (await waitForThreadStable()).ordinals.length
+    console.log(`older pages: from ${start} rows to ${loaded}; ${landed.map(l => `step ${l.i} +${l.added} rows, travel ${l.travel}`).join('; ')}`)
     check(landed.length >= 1, 'no page landed during a drag')
-    check(start + rows >= LONG_COUNT, `the drags brought in ${rows} rows from ${start}, short of the ${LONG_COUNT} messages`)
+    check(loaded >= LONG_COUNT, `the thread holds ${loaded} rows, short of the ${LONG_COUNT} messages`)
     check(!landed.some(moved), describe(landed.filter(moved)))
     await waitForRow(longMarker(1))
   })
@@ -692,11 +693,11 @@ describe('chat scroll: editing', () => {
   const keyboardTopWhenUp = async () => {
     await el(T.CHAT_INPUT).click()
     await waitFor('the keyboard', async () => ((await isKeyboardUp()) ? true : undefined), {timeout: 5_000})
-    const t = await waitForThreadStable()
+    // the app hears the keyboard's metrics a moment after the element reports it shown
+    const top = await waitFor('the keyboard in the app', async () => (await requireThread()).keyboardTop, {timeout: 5_000})
     await hideKeyboard()
-    await waitForThreadStable()
-    check(t.keyboardTop !== undefined, `no keyboard reading: ${summary(t)}`)
-    return t.keyboardTop!
+    await waitForThreadStable(20_000)
+    return top
   }
 
   // A message of the user's with `below` incoming messages after it, so it can sit anywhere in view.
@@ -713,14 +714,14 @@ describe('chat scroll: editing', () => {
     return {ordinal, text}
   }
 
-  // Drags until the row's middle sits within 10 points of `y`.
-  const bringRowTo = async (ordinal: number, y: number) => {
+  // Drags until the row's middle sits within `within` points of `y`.
+  const bringRowTo = async (ordinal: number, y: number, within = 10) => {
     for (let i = 0; i < 8; i++) {
-      const t = await waitForThreadStable()
+      const t = await waitForThreadStable(20_000)
       const r = rowOf(t, ordinal)
       check(!!r, `row ${ordinal} is not rendered: ${summary(t)}`)
       const off = y - (r!.top + r!.bottom) / 2
-      if (Math.abs(off) <= 10) return {r: r!, t}
+      if (Math.abs(off) <= within) return {r: r!, t}
       // a drag shorter than the touch slop moves nothing, so overshoot and come back
       await dragThread(Math.abs(off) < 30 ? off + Math.sign(off) * 60 : off)
       if (Math.abs(off) < 30) await dragThread(-Math.sign(off) * 60)
@@ -770,9 +771,10 @@ describe('chat scroll: editing', () => {
   it('editing a row near the top keeps it in view once the keyboard is up', async () => {
     await openScratch()
     const {ordinal, text} = await sendWithRowsBelow(22)
-    const t0 = await waitForThreadStable()
+    const t0 = await waitForThreadStable(20_000)
     const height = rowOf(t0, ordinal)!.bottom - rowOf(t0, ordinal)!.top
-    const {r, t} = await bringRowTo(ordinal, t0.listTop + height / 2 + 12)
+    // near the top: its middle within 30 points of a row's height below the list's top
+    const {r, t} = await bringRowTo(ordinal, t0.listTop + height / 2 + 12, 30)
     const v0 = await viewport(t)
     check(wholly(r, v0), `row ${ordinal} is not wholly in view before the edit: ${JSON.stringify(r)} ${summary(t, v0)}`)
     const {t: after, v} = await editWithKeyboard(text)

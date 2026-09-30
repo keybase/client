@@ -724,11 +724,19 @@ export const check = (ok: boolean, message: string) => {
 }
 
 // Waits for the thread to settle and checks it rests at its end.
+// A still reading can land mid-animation: the list follows a new message with an animated scroll of
+// about 250ms, and a JS thread busy loading pages can hold a frame of it for longer than the 300ms
+// between readings (a reading 20.7 points short matched one frame of that animation). So a reading
+// short of the end is taken again, for up to 3s, before it counts.
 export const expectAtEnd = async (what = 'the thread') => {
-  const t = await waitForThreadStable()
-  const v = await viewport(t)
-  check(isAtEnd(t, v), `${what} is not at its end: ${summary(t, v)}`)
-  return {t, v}
+  const end = Date.now() + 3_000
+  for (;;) {
+    const t = await waitForThreadStable()
+    const v = await viewport(t)
+    if (isAtEnd(t, v)) return {t, v}
+    if (Date.now() > end) throw new Error(`${what} is not at its end: ${summary(t, v)}`)
+    await sleep(250)
+  }
 }
 
 // The list centres a row by index (it settles once the row is within half a row of the middle of
