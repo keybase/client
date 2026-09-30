@@ -146,13 +146,10 @@ export const deleteMessage = (target: ThreadMessage | StorelessMessage) => {
         return
       }
       const deleteOutboxID = T.Chat.rpcOutboxIDToOutboxID(outboxID)
-      // Only a sent row shows deleting. An unsent one keeps its pending or failed state, which the
-      // renderers read (an unsent video does not play), until the cancel removes it.
-      if (
-        (message.type === 'text' || message.type === 'attachment') &&
-        message.id &&
-        message.submitState === undefined
-      ) {
+      // Only a sent row shows deleting, whatever edit it has in flight. An unsent one keeps its
+      // pending or failed state, which the renderers read (an unsent video does not play), until
+      // the cancel removes it.
+      if ((message.type === 'text' || message.type === 'attachment') && message.id) {
         thread.addPendingDelete(deleteOutboxID, ordinal)
       }
       ignorePromise(

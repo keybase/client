@@ -177,6 +177,26 @@ describe('messageDelete', () => {
     expect(message(10)?.submitState).toBe('deleting')
   })
 
+  test('a sent message with an edit in flight shows deleting too; an unsent one keeps its state', async () => {
+    const pendingDelete = deferred<undefined>()
+    rpc.on('postDelete', async () => pendingDelete.promise)
+    rpc.on('cancelPost', async () => deferred<undefined>().promise)
+    const outboxID = T.Chat.stringToOutboxID('0a0b')
+    const {message} = renderThread([
+      textAt(10, {submitState: 'editing'}),
+      textAt(11, {id: T.Chat.numberToMessageID(0), outboxID, submitState: 'pending'}),
+      textAt(12, {id: T.Chat.numberToMessageID(0), outboxID: T.Chat.stringToOutboxID('0c0d'), submitState: 'failed'}),
+    ])
+    act(() => {
+      cmd.messageDelete(T.Chat.numberToOrdinal(10))
+      cmd.messageDelete(T.Chat.numberToOrdinal(11))
+      cmd.messageDelete(T.Chat.numberToOrdinal(12))
+    })
+    expect(message(10)?.submitState).toBe('deleting')
+    expect(message(11)?.submitState).toBe('pending')
+    expect(message(12)?.submitState).toBe('failed')
+  })
+
   test('an unsent message cancels its outbox entry and drops the row', async () => {
     const outboxID = T.Chat.stringToOutboxID('0a0b')
     const {message} = renderThread([textAt(10, {id: T.Chat.numberToMessageID(0), outboxID})])
@@ -767,7 +787,7 @@ describe('messageDelete edges', () => {
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(12)))
     expect([message(10)?.submitState, message(11)?.submitState, message(12)?.submitState]).toEqual([
       undefined,
-      'editing',
+      'deleting',
       'deleting',
     ])
   })
