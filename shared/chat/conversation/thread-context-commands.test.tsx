@@ -217,14 +217,14 @@ describe('messageDelete', () => {
     expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(Error))
   })
 
-  test('without meta nothing is sent and the state reverts', async () => {
+  test('without meta the delete still posts, with an empty tlfName, and the row shows deleting', async () => {
     const {message} = renderThread([textAt(10)])
     act(() => {
       metasReceived([], [conversationIDKey])
     })
     await run(() => cmd.messageDelete(T.Chat.numberToOrdinal(10)))
-    expect(rpc.calls('postDelete')).toEqual([])
-    expect(message(10)?.submitState).toBeUndefined()
+    expect(rpc.params('postDelete')).toEqual([expect.objectContaining({tlfName: ''})])
+    expect(message(10)?.submitState).toBe('deleting')
   })
 
   test('without meta an unsent message is still cancelled: a cancel needs no tlfName', async () => {
