@@ -14,6 +14,7 @@ import {
   ownsEnd,
   useHeldLatest,
   useScrollTarget,
+  withinPageLoad,
   type ScrollDirective,
   type ScrollEvent,
 } from './scroll-target'
@@ -54,6 +55,10 @@ const maintainVisibleContentPositionNoAutoscroll = {
 const endTolerance = 8
 // A row overhanging the part of the list in view by no more than this is wholly in view.
 const rowEdgeTolerance = 1
+// Each end waits out a second after the rows last changed, so a page landing is not taken for the
+// reader nearing the new end, and a second after it last asked, so a page on its way is not asked for
+// again.
+const pageLoadGate = 1000
 // The list moving by less than this has not moved.
 const stillPoints = 1
 
@@ -69,10 +74,12 @@ export const useNativeThreadScroll = (p: {
   editingOrdinal: T.Chat.Ordinal | undefined
   isKeyboardVisible: boolean
   listRef: React.RefObject<NativeListRef | null>
+  loadNewer: () => void
+  loadOlder: () => void
   loaded: boolean
 }) => {
   const {centeredOrdinal, containsLatestMessage, conversationIDKey, datasetKey, editingOrdinal} = p
-  const {isKeyboardVisible} = p
+  const {isKeyboardVisible, loadNewer, loadOlder} = p
   const {listRef, loaded, messageOrdinals} = p
   const numOrdinals = messageOrdinals.length
 
@@ -434,6 +441,32 @@ export const useNativeThreadScroll = (p: {
     })
   })
 
+  // Loads a page as the list comes within pageLoadScreens of either end of the rows loaded, measured
+  // from where it is scrolled to. The list is inverted: its offset rises toward the oldest row, and the
+  // newest rests at the resting offset.
+  const loadsRef = React.useRef({newer: loadNewer, older: loadOlder})
+  React.useEffect(() => {
+    loadsRef.current = {newer: loadNewer, older: loadOlder}
+  }, [loadNewer, loadOlder])
+  const nextLoadRef = React.useRef({newer: 0, older: 0})
+  React.useEffect(() => {
+    const next = Date.now() + pageLoadGate
+    nextLoadRef.current = {newer: next, older: next}
+  }, [numOrdinals])
+  const [loadPages] = React.useState(() => () => {
+    const {content, offset, viewport} = metricsRef.current
+    if (content === undefined || offset === undefined || viewport === undefined) return
+    const near = (end: 'newer' | 'older', distance: number) => {
+      if (!withinPageLoad(distance, viewport)) return
+      const now = Date.now()
+      if (now <= nextLoadRef.current[end]) return
+      nextLoadRef.current[end] = now + pageLoadGate
+      loadsRef.current[end]()
+    }
+    near('older', content - offset - viewport)
+    near('newer', offset - restingOffset())
+  })
+
   // Who moved the list is read from how it moved, never from the input that moved it: a drag, the
   // status bar, VoiceOver alike. The list moves itself only by the scrolls it issues (toward where they
   // are going), by its content changing size (its content-position anchor holding the rows in view in
@@ -449,13 +482,17 @@ export const useNativeThreadScroll = (p: {
       metricsRef.current = {content, offset, viewport: e.nativeEvent.layoutMeasurement.height}
       const last = lastScrollRef.current
       lastScrollRef.current = {content, offset, resting}
-      if (!last || Math.abs(offset - last.offset) < stillPoints) return
-      if (content !== last.content || resting !== last.resting) return
-      if (own.carries(last.offset, offset)) return
-      if (ownsEnd(scrollTarget.state) && Math.abs(offset - resting) < Math.abs(last.offset - resting)) return
-      dispatch(own.readerMoved())
+      const readerMoved =
+        !!last &&
+        Math.abs(offset - last.offset) >= stillPoints &&
+        content === last.content &&
+        resting === last.resting &&
+        !own.carries(last.offset, offset) &&
+        !(ownsEnd(scrollTarget.state) && Math.abs(offset - resting) < Math.abs(last.offset - resting))
+      if (readerMoved) dispatch(own.readerMoved())
+      loadPages()
     },
-    [dispatch, own, restingOffset, scrollTarget]
+    [dispatch, loadPages, own, restingOffset, scrollTarget]
   )
   const [onContentSizeChange] = React.useState(() => (_w: number, h: number) => {
     metricsRef.current = {...metricsRef.current, content: h}

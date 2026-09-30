@@ -283,6 +283,13 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
 
 export const ownsEnd = (state: ScrollTargetState) => state.endOwner === 'list'
 
+// How near either end of the rows loaded the reader comes before the next page loads there, in
+// screens (the list's viewport heights): desktop's list takes its thresholds in that unit, and the
+// mobile list measures its scroll offset against it. Early enough that a page lands before a
+// reader's fling reaches the edge of the rows it has.
+export const pageLoadScreens = 2
+export const withinPageLoad = (distance: number, viewport: number) => distance <= pageLoadScreens * viewport
+
 // One list's scroll target: its state, moved only by the decisions it makes. The list adapters and
 // the test driver each drive one. Subscribers hear of every change to its state.
 export type ScrollTarget = {

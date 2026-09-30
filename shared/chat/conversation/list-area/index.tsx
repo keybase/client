@@ -25,6 +25,7 @@ import {useJumpToRecent} from './jump-to-recent'
 import {useThreadLoadStatusOptionsGetter} from '../thread-load-status-context'
 import {useDesktopThreadScroll} from './desktop-scroll'
 import {useNativeThreadScroll, type NativeListRef} from './native-scroll'
+import {pageLoadScreens} from './scroll-target'
 import {getMessageRowType, getMessageShowUsername} from '../messages/row-metadata'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as InputState from '../input-area/input-state'
@@ -38,7 +39,7 @@ import {KeyboardChatScrollView, useKeyboardState} from 'react-native-keyboard-co
 import Animated, {useAnimatedStyle} from 'react-native-reanimated'
 import {ThreadSearchOverlayContext} from '../thread-search-overlay-context'
 import {useComposerAnchor} from '../composer-viewport-context'
-import {restingScrollOffset, stickyTranslateY} from '../composer-geometry'
+import {stickyTranslateY} from '../composer-geometry'
 type ItemType = T.Chat.Ordinal
 
 const noOrdinals: ReadonlyArray<T.Chat.Ordinal> = []
@@ -95,13 +96,6 @@ const useThreadListData = () =>
       messageOrdinals: s.messageOrdinals ?? noOrdinals,
     }))
   )
-
-// How near either end of the rows loaded the reader comes before the next page loads there, in
-// screens (the list's viewport heights): desktop's list takes its thresholds in that unit, and the
-// mobile list measures its scroll offset against it. Early enough that a page lands before a
-// reader's fling reaches the edge of the rows it has.
-const pageLoadScreens = 2
-const withinPageLoad = (distance: number, viewport: number) => distance <= pageLoadScreens * viewport
 
 // Pagination, the one rule both lists load pages by: older as the reader nears the oldest row
 // loaded, newer as they near the newest one while the thread does not hold the newest message
@@ -512,7 +506,6 @@ const NativeConversationList = function NativeConversationList() {
   const getItemType = useGetItemType()
 
   const {bottomInset, keyboardHeight, keyboardProgress} = useComposerAnchor()
-  const onPageScroll = useNativePagination({bottomInset, keyboardHeight, loadNewer, loadOlder, numOrdinals})
   const isKeyboardVisible = useKeyboardState((s: {isVisible: boolean}) => s.isVisible)
 
   // While the thread-search bar is open it overlays the bottom of the list. Reserve
@@ -541,7 +534,7 @@ const NativeConversationList = function NativeConversationList() {
     onCellLayout,
     onContentSizeChange,
     onMomentumScrollEnd,
-    onScroll: onThreadScroll,
+    onScroll,
     onScrollBeginDrag,
     onScrollEndDrag,
     onScrollToIndexFailed,
@@ -556,6 +549,8 @@ const NativeConversationList = function NativeConversationList() {
     editingOrdinal,
     isKeyboardVisible,
     listRef,
+    loadNewer,
+    loadOlder,
     loaded,
     messageOrdinals,
   })
@@ -563,14 +558,6 @@ const NativeConversationList = function NativeConversationList() {
   const jumpToRecent = useJumpToRecent(scrollToBottom, messageOrdinals.length)
 
   const {onCatchUp, onViewableOrdinalsChanged, showCatchUp} = useCatchUp({loaded})
-
-  const onScroll = React.useCallback(
-    (e: NativeScrollEvent) => {
-      onThreadScroll(e)
-      onPageScroll(e)
-    },
-    [onPageScroll, onThreadScroll]
-  )
 
   // The rows in view at all (the default viewability). FlatList takes the pairs once, so they never
   // change identity.
@@ -668,55 +655,5 @@ const useNativeStyles = Kb.Styles.createStyleHook(
       },
     }) as const
 )
-
-type NativeScrollEvent = {
-  nativeEvent: {contentOffset: {y: number}; contentSize: {height: number}; layoutMeasurement: {height: number}}
-}
-
-// Each end waits out a second after the rows last changed, so a page landing is not taken for the
-// reader nearing the new end, and a second after it last asked, so a page on its way is not asked for
-// again.
-const pageLoadGate = 1000
-
-// Loads a page as the list scrolls within pageLoadScreens of either end of the rows loaded. The list
-// is inverted: its offset rises toward the oldest row, and the newest rests at the resting offset
-// (below 0 while the keyboard is up).
-const useNativePagination = (p: {
-  bottomInset: number
-  keyboardHeight: {readonly value: number}
-  loadNewer: () => void
-  loadOlder: () => void
-  numOrdinals: number
-}) => {
-  const {bottomInset, keyboardHeight, loadNewer, loadOlder, numOrdinals} = p
-  const nextLoadRef = React.useRef({newer: 0, older: 0})
-  const loadRef = React.useRef({newer: loadNewer, older: loadOlder})
-  React.useEffect(() => {
-    loadRef.current = {newer: loadNewer, older: loadOlder}
-  }, [loadNewer, loadOlder])
-  const restingRef = React.useRef(() => restingScrollOffset(bottomInset, keyboardHeight.value))
-  React.useEffect(() => {
-    restingRef.current = () => restingScrollOffset(bottomInset, keyboardHeight.value)
-  }, [bottomInset, keyboardHeight])
-  React.useEffect(() => {
-    const next = Date.now() + pageLoadGate
-    nextLoadRef.current = {newer: next, older: next}
-  }, [numOrdinals])
-
-  const [onScroll] = React.useState(() => (e: NativeScrollEvent) => {
-    const offset = e.nativeEvent.contentOffset.y
-    const viewport = e.nativeEvent.layoutMeasurement.height
-    const near = (end: 'newer' | 'older', distance: number) => {
-      if (!withinPageLoad(distance, viewport)) return
-      const now = Date.now()
-      if (now <= nextLoadRef.current[end]) return
-      nextLoadRef.current[end] = now + pageLoadGate
-      loadRef.current[end]()
-    }
-    near('older', e.nativeEvent.contentSize.height - offset - viewport)
-    near('newer', offset - restingRef.current())
-  })
-  return onScroll
-}
 
 export default isMobile ? NativeConversationList : DesktopThreadWrapperWithProfiler
