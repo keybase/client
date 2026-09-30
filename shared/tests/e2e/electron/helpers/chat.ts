@@ -476,3 +476,183 @@ export const closeSearch = async (page: Page) => {
   await threadSearch(page).getByText('Cancel', {exact: true}).click({timeout: 5_000})
   await expect(threadSearch(page)).toHaveCount(0, {timeout: 5_000})
 }
+
+// -- standing in for the service, and reading what the app asked of it ---------------------------
+// A few flows need a notification the service only sends in conditions a test cannot arrange on
+// demand (a thread gone stale while a delete waits to go out), or need to know what the app decided
+// and asked for. These reach the app's own modules through the dev server's module graph: a dynamic
+// import of a module's path returns the instance the app runs, so they add nothing to the app.
+type RouterModule = {routeChatNotification: (action: unknown) => void}
+type ChatTypesModule = {keyToConversationID: (key: string) => unknown}
+type Store<S> = {getState: () => S; subscribe: (f: (s: S, prev: S) => void) => () => void}
+type StaleGlobals = {__e2eStale?: {count: number; timer: ReturnType<typeof setInterval>}}
+
+// Starts handing the app a ChatThreadsStale for the conversation every `everyMs`, as the service
+// sends one when a thread changed underneath it; each makes the open thread reload. With
+// `clickFirst`, the first one follows a click on that element in the same task, so its reload is
+// asked for right behind whatever the click asks of the service.
+export const startStaleReloads = async (page: Page, convID: string, everyMs = 100, clickFirst?: Locator) => {
+  const target = clickFirst ? await clickFirst.elementHandle({timeout: 5_000}) : null
+  return page.evaluate(
+    async ([id, ms, el]) => {
+      const router = (await import('/chat/notification-router.tsx' as string)) as RouterModule
+      const types = (await import('/constants/types/chat/index.tsx' as string)) as ChatTypesModule
+      const g = globalThis as unknown as StaleGlobals
+      if (g.__e2eStale) clearInterval(g.__e2eStale.timer)
+      const state = {count: 0, timer: setInterval(() => {}, 1 << 30)}
+      clearInterval(state.timer)
+      const fire = () => {
+        state.count++
+        // updateType 1: newactivity
+        router.routeChatNotification({
+          payload: {params: {updates: [{convID: types.keyToConversationID(id), updateType: 1}]}},
+          type: 'chat.1.NotifyChat.ChatThreadsStale',
+        })
+      }
+      ;(el as unknown as {click: () => void} | null)?.click()
+      fire()
+      state.timer = setInterval(fire, ms)
+      g.__e2eStale = state
+    },
+    [convID, everyMs, target] as const
+  )
+}
+
+// Stops the reloads startStaleReloads started, and returns how many it handed the app.
+export const stopStaleReloads = async (page: Page) =>
+  page.evaluate(() => {
+    const g = globalThis as unknown as StaleGlobals
+    if (!g.__e2eStale) return 0
+    clearInterval(g.__e2eStale.timer)
+    const {count} = g.__e2eStale
+    g.__e2eStale = undefined
+    return count
+  })
+
+export type ReselectSeen = {
+  // the conversation the layout's reselect info named
+  named: string
+  // the watched conversation was the selection when the layout came
+  whileSelected: boolean
+  // what the app knew of the watched conversation then: an inbox row, and its meta's trust
+  inboxRow: boolean
+  meta: 'none' | 'error' | 'ok'
+}
+type ReselectGlobals = {__e2eReselects?: {seen: Array<ReselectSeen>; stop: () => void}}
+
+// Records every inbox layout that carries reselect info, which conversation it names, and what the
+// app knew of the watched conversation at that moment. The service adds that info to a layout
+// while the conversation it last loaded is not in the inbox; a split layout moves a selection it
+// names that is gone from the account.
+export const watchReselects = async (page: Page, convID: string) =>
+  page.evaluate(async id => {
+    type Layout = {reselectInfo?: {oldConvID?: string}}
+    type LayoutState = {layout?: Layout}
+    const layoutMod = (await import('/chat/inbox/layout-state.tsx' as string)) as {
+      getBigLayoutChannelRow: (s: LayoutState, id: string) => unknown
+      getSmallLayoutRow: (s: LayoutState, id: string) => unknown
+      useInboxLayoutState: Store<LayoutState>
+    }
+    const metaMod = (await import('/chat/inbox/metadata-store.tsx' as string)) as {
+      useInboxMetadataState: Store<{metas: Map<string, {trustedState: string}>}>
+    }
+    const common = (await import('/constants/chat/common.tsx' as string)) as {getSelectedConversation: () => string}
+    const g = globalThis as unknown as ReselectGlobals
+    g.__e2eReselects?.stop()
+    const seen: Array<ReselectSeen> = []
+    const stop = layoutMod.useInboxLayoutState.subscribe((s, prev) => {
+      if (s.layout === prev.layout || !s.layout?.reselectInfo) return
+      const meta = metaMod.useInboxMetadataState.getState().metas.get(id)
+      seen.push({
+        inboxRow: !!(layoutMod.getSmallLayoutRow(s, id) || layoutMod.getBigLayoutChannelRow(s, id)),
+        meta: !meta ? 'none' : meta.trustedState === 'error' ? 'error' : 'ok',
+        named: s.layout.reselectInfo.oldConvID ?? '',
+        whileSelected: common.getSelectedConversation() === id,
+      })
+    })
+    g.__e2eReselects = {seen, stop}
+  }, convID)
+
+export const stopWatchingReselects = async (page: Page) =>
+  page.evaluate(() => {
+    const g = globalThis as unknown as ReselectGlobals
+    const r = g.__e2eReselects
+    g.__e2eReselects = undefined
+    r?.stop()
+    return r?.seen ?? []
+  })
+
+// The waiting keys the app holds right now (a spinner or a disabled control waits on each).
+export const heldWaitingKeys = async (page: Page) =>
+  page.evaluate(async () => {
+    const mod = (await import('/stores/waiting.tsx' as string)) as {useWaitingState: Store<{counts: Map<string, number>}>}
+    return [...mod.useWaitingState.getState().counts].filter(([, n]) => n > 0).map(([k]) => k)
+  })
+
+export type OutgoingRpc = {afterAccountChange: boolean; method: string; params: string}
+const uidChangedMarker = 'e2e-signed-in-account-changed'
+
+// Records every RPC the app sends from now until stop(), read off the dev build's RPC log in the
+// renderer console, each marked with whether the signed-in account had changed by then.
+export const watchOutgoingRpcs = async (page: Page) => {
+  const calls: Array<OutgoingRpc> = []
+  let changed = false
+  const onConsole = (m: ConsoleMessage) => {
+    const text = m.text()
+    if (text.includes(uidChangedMarker)) {
+      changed = true
+      return
+    }
+    const call = /<< OUT\s.*?\s((?:chat|keybase)\.1\.[\w.]+)\s.*?\[\+calling\] \S+ (\{.*)$/.exec(text.replace(/%[cs]/g, ' '))
+    if (call) calls.push({afterAccountChange: changed, method: call[1]!, params: call[2]!})
+  }
+  page.on('console', onConsole)
+  await page.evaluate(
+    async marker => {
+      const mod = (await import('/stores/current-user.tsx' as string)) as {useCurrentUserState: Store<{uid: string}>}
+      const g = globalThis as unknown as {__e2eUidWatch?: () => void}
+      g.__e2eUidWatch?.()
+      g.__e2eUidWatch = mod.useCurrentUserState.subscribe((s, prev) => {
+        if (s.uid !== prev.uid) console.log(marker)
+      })
+    },
+    uidChangedMarker
+  )
+  return {
+    stop: async () => {
+      page.off('console', onConsole)
+      await page.evaluate(() => {
+        const g = globalThis as unknown as {__e2eUidWatch?: () => void}
+        g.__e2eUidWatch?.()
+        g.__e2eUidWatch = undefined
+      })
+      return calls
+    },
+  }
+}
+
+// Switches accounts through the app's own switch (what the account switcher's row calls), for a
+// flow that must keep typing in the composer while the switch runs, which the switcher's menu
+// would take the focus from.
+export const startAccountSwitch = async (page: Page, username: string) => {
+  const started = await page.evaluate(async u => {
+    const mod = (await import('/stores/config.tsx' as string)) as {
+      useConfigState: {getState: () => {dispatch: {switchToAccount: (u: string) => unknown}}}
+    }
+    return !!mod.useConfigState.getState().dispatch.switchToAccount(u)
+  }, username)
+  if (!started) throw new Error(`the app would not switch to ${username}`)
+}
+
+// The conversation the app has selected, every 100ms for `forMs`: each distinct one in order.
+export const watchSelectedConversation = async (page: Page, forMs: number) =>
+  page.evaluate(async ms => {
+    const common = (await import('/constants/chat/common.tsx' as string)) as {getSelectedConversation: () => string}
+    const seen: Array<string> = []
+    for (const until = Date.now() + ms; Date.now() < until; ) {
+      const now = common.getSelectedConversation()
+      if (seen.at(-1) !== now) seen.push(now)
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+    return seen
+  }, forMs)

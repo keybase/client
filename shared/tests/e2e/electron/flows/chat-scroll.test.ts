@@ -286,6 +286,31 @@ test.describe('search', () => {
     expect(after.distanceFromEnd).toBeGreaterThan(endTolerancePx)
   })
 
+  // Closing search with the list resting at its end, the newest message loaded, gives the end back
+  // to the list: the next message is followed as on any thread at its end.
+  test('closing search at the newest message, then an incoming message is followed', async ({page}) => {
+    requireSender()
+    await openScratchAtEnd(page)
+    const token = `e2esearchend${Date.now()}`
+    await sendMessage(page, `e2e-scroll-search-end ${token}`)
+    await expectAtEnd(page)
+    await openThreadSearch(page)
+    // the search index can take a moment to hold a message just sent
+    await expect(async () => {
+      expect(await searchFor(page, token)).toHaveLength(1)
+    }).toPass({timeout: 20_000})
+    await selectHit(page, 0)
+    await expectAtEnd(page)
+    await closeSearch(page)
+    await expectAtEnd(page)
+
+    const text = `e2e-scroll-search-end-incoming-${Date.now()}`
+    await sendIncoming(E2E_CHANNELS.scratch, text)
+    const ordinal = await waitForRow(page, text, 20_000)
+    const g = await expectAtEnd(page)
+    expect(newestRendered(g)).toBe(ordinal)
+  })
+
   test('jump to recent from a deep hit lands at the newest message', async ({page}) => {
     await openFresh(page, E2E_CHANNELS.long)
     const {index, token} = LONG_SEARCH_TOKENS.deep
@@ -454,6 +479,81 @@ test.describe('editing', () => {
     // the composer grows for the edit bar; the list keeps its end and the row stays in view
     await expectAtEnd(page)
     await expectRowWhollyInView(page, ordinal)
+  })
+
+  // A reveal from far away animates for longer than a second (about 1.5s here). All of it is the
+  // list's own, so the edit stays held in view: the composer growing under it afterwards, which
+  // would cover the row where the reveal left it, brings it back into view. The window is made
+  // short (an emulated 470px) so the composer's growth reaches a row centred by the reveal.
+  test('a long animated edit reveal keeps holding the row: the composer growing after brings it back into view', async ({page}) => {
+    test.setTimeout(120_000)
+    requireSender()
+    const cdp = await page.context().newCDPSession(page)
+    try {
+      await cdp.send('Emulation.setDeviceMetricsOverride', {deviceScaleFactor: 0, height: 470, mobile: false, width: 1000})
+      await openFresh(page, E2E_CHANNELS.scratch)
+      const text = `e2e-scroll-edit-long-${Date.now()}`
+      const ordinal = await sendMessage(page, text)
+      // enough rows below it that the reveal centres it rather than resting at the end
+      for (let i = 0; i < 10; i++) {
+        const below = `e2e-scroll-edit-long-below-${Date.now()}-${i}`
+        await sendIncoming(E2E_CHANNELS.scratch, below)
+        await waitForRow(page, below, 20_000)
+      }
+      await focusThreadScroller(page)
+      for (let i = 0; i < 3; i++) {
+        await page.keyboard.press('Home')
+        await waitForScrollStable(page, 15_000)
+      }
+      expect(await ordinalRect(page, ordinal), 'the message is out of view').toBeUndefined()
+
+      // every frame of the reveal: when the scroller moved
+      await page.evaluate(testID => {
+        type Scroller = {scrollTop: number}
+        const g = globalThis as unknown as {
+          __e2eMoves?: Array<number>
+          document: {querySelector: (s: string) => {children: ArrayLike<Scroller>} | null}
+          getComputedStyle: (el: Scroller) => {overflowY: string}
+          performance: {now: () => number}
+          requestAnimationFrame: (f: () => void) => void
+        }
+        const wrapper = g.document.querySelector(`[data-testid="${testID}"]`)
+        const scroller = wrapper && Array.from(wrapper.children).find(c => /auto|scroll/.test(g.getComputedStyle(c).overflowY))
+        if (!scroller) throw new Error('no thread list on the page')
+        const moves: Array<number> = []
+        const start = g.performance.now()
+        let last = scroller.scrollTop
+        const tick = () => {
+          if (scroller.scrollTop !== last) moves.push(g.performance.now() - start)
+          last = scroller.scrollTop
+          if (g.performance.now() - start < 5_000) g.requestAnimationFrame(tick)
+        }
+        g.requestAnimationFrame(tick)
+        g.__e2eMoves = moves
+      }, T.CHAT_MESSAGE_LIST)
+      await composer.press(page, 'ArrowUp')
+      await expect(editBar(page)).toBeVisible({timeout: 5_000})
+      await expect(rowByOrdinal(page, ordinal)).toHaveCount(1, {timeout: 5_000})
+      await page.waitForTimeout(3_000)
+      const moves = await page.evaluate(() => (globalThis as unknown as {__e2eMoves?: Array<number>}).__e2eMoves ?? [])
+      const revealMs = Math.round((moves.at(-1) ?? 0) - (moves[0] ?? 0))
+      const revealed = await waitForScrollStable(page)
+      await expectRowWhollyInView(page, ordinal)
+      const at = (await ordinalRect(page, ordinal))!
+
+      for (let i = 0; i < 20; i++) await composer.press(page, 'Shift+Enter')
+      const grown = await waitForScrollStable(page)
+      console.log(
+        `long reveal: ${revealMs}ms of movement; row at ${Math.round(at.top)}-${Math.round(at.bottom)} of ${revealed.viewHeight}, the view then ${grown.viewHeight}`
+      )
+      expect(revealMs, 'the reveal was not longer than a second').toBeGreaterThan(1_000)
+      // where the reveal left it, the grown composer covers it
+      expect(at.bottom, 'the composer growth would not have covered the row').toBeGreaterThan(grown.viewHeight + 1)
+      await expectRowWhollyInView(page, ordinal)
+    } finally {
+      await cdp.send('Emulation.clearDeviceMetricsOverride').catch(() => {})
+      await cdp.detach().catch(() => {})
+    }
   })
 
   test('editing a message scrolled out of view brings it into view', async ({page}) => {

@@ -1,6 +1,7 @@
 // Where the desktop's conversation selection goes when the open channel stops being the user's: the
 // user leaves it, or the team owner removes them from it. Either way the selection moves to the
-// newest conversation, and the thread shows that conversation without an error.
+// newest conversation, and the thread shows that conversation without an error. A conversation the
+// account has not joined, opened from a link, is not gone from it: that selection stays.
 //
 // The app runs as the second account for these, in a channel made for the run. The desktop CLI
 // talks to the app's own service, so while the app is the second account the CLI is too: it sends
@@ -12,10 +13,14 @@ import {
   clickUnoccluded,
   collectConsoleErrors,
   inboxRow,
+  rowByOrdinal,
   selectedInboxRows,
+  stopWatchingReselects,
   switchAccount,
   threadHeaderTitle,
   waitForRow,
+  watchReselects,
+  watchSelectedConversation,
   watchSelection,
 } from '@/tests/e2e/electron/helpers/chat'
 import {createThrowawayChannel, deleteThrowawayChannels, ensureChatData, sendDirectFromCli, type ChatData} from '@/tests/e2e/shared/chat-data'
@@ -25,6 +30,7 @@ import * as T from '@/tests/e2e/shared/test-ids'
 
 const leavePrefix = 'e2e-leave'
 const removedPrefix = 'e2e-kick'
+const unjoinedPrefix = 'e2e-nojoin'
 
 // Known console noise across an account switch (see chat-data.test.ts's account switch flows).
 const notFromTheMove = [/refreshAccounts|ignorePromise error/, /getUsernameToShow: message with no author/]
@@ -42,8 +48,15 @@ test.beforeAll(async () => {
   await requireOwnerCli()
   await deleteThrowawayChannels(leavePrefix)
   await deleteThrowawayChannels(removedPrefix)
+  await deleteThrowawayChannels(unjoinedPrefix)
   // the owner's side of the removal flow
   await switchAttachedApp(data.smokeUser)
+})
+
+// The attached app goes back to sending as the second account, the part the other chat flows give it.
+test.afterAll(async () => {
+  test.setTimeout(90_000)
+  await switchAttachedApp(data.secondUser)
 })
 
 test.afterEach(async ({page}) => {
@@ -51,6 +64,7 @@ test.afterEach(async ({page}) => {
   await requireOwnerCli()
   await deleteThrowawayChannels(leavePrefix)
   await deleteThrowawayChannels(removedPrefix)
+  await deleteThrowawayChannels(unjoinedPrefix)
 })
 
 // As the second account, with the throwaway channel open: sends a message to the owner so that
@@ -118,4 +132,67 @@ test('removed from the open channel moves the selection to the newest conversati
 
   await expectMovedToNewest(page, newest)
   expect(errors.stop(), 'console errors after the removal').toEqual([])
+})
+
+// A conversation opened from a link that the account has not joined has no inbox row. The service
+// loads it, finds the conversation it last loaded missing from the inbox, and puts reselect info in
+// the next inbox layout it sends. That speaks of a conversation the account cannot see in its inbox,
+// not of one it has lost: the selection stays. As the second account, the link is one it sends
+// itself in its conversation with the owner; its own messages there afterwards keep the inbox moving
+// while the selection is watched.
+const openFromLinkThroughLayouts = async (page: Page, convID: string, link: string) => {
+  await switchAccount(page, data.secondUser)
+  await clickUnoccluded(inboxRow(page, data.smokeUser))
+  await expect.poll(async () => selectedInboxRows(page), {timeout: 10_000}).toEqual([data.smokeUser])
+  const marker = `e2e-selection-link-${Date.now()}`
+  await sendDirectFromCli(data.direct.tlfName, `${marker} ${link}`)
+  const ordinal = await waitForRow(page, marker, 20_000)
+
+  const errors = collectConsoleErrors(page, notFromTheMove)
+  await watchReselects(page, convID)
+  let reselects: Awaited<ReturnType<typeof stopWatchingReselects>> | undefined
+  let seen: Array<string> | undefined
+  try {
+    await clickUnoccluded(rowByOrdinal(page, ordinal).getByText(link, {exact: true}))
+    await expect.poll(async () => (await watchSelectedConversation(page, 1)).at(-1), {timeout: 10_000}).toBe(convID)
+    const watching = watchSelectedConversation(page, 6_000)
+    for (let i = 0; i < 3; i++) {
+      await page.waitForTimeout(1_000)
+      await sendDirectFromCli(data.direct.tlfName, `e2e-selection-layout-${Date.now()}`)
+    }
+    seen = await watching
+  } finally {
+    reselects = await stopWatchingReselects(page)
+  }
+  const namingIt = reselects.filter(r => r.named === convID)
+  console.log(
+    `inbox layouts with reselect info after opening the link: ${reselects
+      .map(r => `naming ${r.named === convID ? 'it' : 'another'}${r.whileSelected ? ' while selected' : ''}, it having ${r.inboxRow ? 'a' : 'no'} row and ${r.meta} meta`)
+      .join('; ')}`
+  )
+  expect(seen, 'the selected conversation after opening the link').toEqual([convID])
+  expect(reselects.length, 'no inbox layout with reselect info came after opening the link').toBeGreaterThan(0)
+  expect(errors.stop(), 'console errors after opening the link').toEqual([])
+  return namingIt
+}
+
+// Its preview arrives with the link's lookup, so the app knows it from the start.
+test('a channel the account has not joined, opened from a link, stays open through inbox layouts with reselect info', async ({page}) => {
+  test.setTimeout(150_000)
+  const {convID, topicName} = await createThrowawayChannel(unjoinedPrefix, {withSecond: false})
+  await openFromLinkThroughLayouts(page, convID, `keybase://chat/${data.team}#${topicName}`)
+  await expect(threadHeaderTitle(page)).toHaveText(`${data.team}#${topicName}`)
+})
+
+// The closed subteam's channel: the second account is not in its team at all, so the app knows
+// nothing of it (no inbox row, no meta) all the while it is open.
+test('a conversation the account never joined, opened from a link, does not bounce', async ({page}) => {
+  test.setTimeout(150_000)
+  const namingIt = await openFromLinkThroughLayouts(page, data.closedConvID, `keybase://convid/${data.closedConvID}`)
+  // The service named it for reselection while it was open and the app knew nothing of it: a
+  // selection with no inbox row and no meta, which a reselect used to move whatever it named.
+  expect(
+    namingIt.some(r => r.whileSelected && !r.inboxRow && r.meta === 'none'),
+    'no layout named it for reselection while it was open and unknown to the app'
+  ).toBe(true)
 })

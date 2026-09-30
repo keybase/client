@@ -39,6 +39,8 @@ export const E2E_CHANNELS = {
   // a short history that the first load brings in whole, so the thread's intro card lands in its
   // header after the rows do; nothing ever posts to it after seeding
   short: 'e2e-short',
+  // older rows under a newest page that is mostly deleted messages (see seedSparse)
+  sparse: 'e2e-sparse',
 } as const
 export type E2EChannel = (typeof E2E_CHANNELS)[keyof typeof E2E_CHANNELS]
 
@@ -70,6 +72,14 @@ export const SHORT_COUNT = 40
 export const shortMarker = (index: number) => `e2e-short-${String(index).padStart(4, '0')}`
 const shortBody = (index: number) =>
   index % 5 === 0 ? `${shortMarker(index)}\nsecond line of ${index}\nthird line of ${index}` : shortMarker(index)
+
+// e2e-sparse: SPARSE_OLDER messages, then SPARSE_DELETED deleted ones, then SPARSE_NEWER more. A
+// page of the newest messages is mostly the deleted ones, which draw nothing, so the rows a phone's
+// first page draws do not fill its view: the thread has to load older pages with nobody scrolling.
+export const SPARSE_OLDER = 30
+export const SPARSE_DELETED = 18
+export const SPARSE_NEWER = 2
+export const sparseMarker = (index: number) => `e2e-sparse-${String(index).padStart(4, '0')}`
 
 // e2e-scratch keeps at least this many text messages, so the scroll flows that post to it have
 // history above the viewport to scroll into from the first run on.
@@ -324,6 +334,21 @@ const seedShort = async (api: ChatApi, team: string) => {
   }
 }
 
+const seedSparse = async (api: ChatApi, team: string) => {
+  const channel = channelRef(team, E2E_CHANNELS.sparse)
+  const have = new Set(textBodies(await readAll(api, channel)))
+  if (have.has(sparseMarker(SPARSE_OLDER + SPARSE_NEWER))) return
+  if (have.size) throw new Error(`#${E2E_CHANNELS.sparse} was seeded part way; delete the channel and run again`)
+  log(`seeding #${E2E_CHANNELS.sparse}`)
+  for (let i = 1; i <= SPARSE_OLDER; i++) await sendText(api, channel, sparseMarker(i))
+  for (let i = 1; i <= SPARSE_DELETED; i++) {
+    const sent = await api.call<{id?: number}>('send', {channel, message: {body: `e2e-sparse-deleted-${i}`}})
+    if (!sent.id) throw new Error('a send to the sparse channel returned no message id')
+    await api.call('delete', {channel, message_id: sent.id})
+  }
+  for (let i = SPARSE_OLDER + 1; i <= SPARSE_OLDER + SPARSE_NEWER; i++) await sendText(api, channel, sparseMarker(i))
+}
+
 const seedScratch = async (api: ChatApi, team: string) => {
   const channel = channelRef(team, E2E_CHANNELS.scratch)
   const texts = textBodies(await readAll(api, channel))
@@ -395,7 +420,32 @@ const ensureDirect = async (api: ChatApi, smokeUser: string, secondUser: string)
   return {convID, tlfName}
 }
 
+// A subteam of the e2e team that only the owner administers: neither account is in it, so its
+// channel is a conversation the second account has never joined and cannot join.
+export const CLOSED_SUBTEAM = 'e2eclosed'
+
+// The closed subteam's default channel, created with the subteam when missing.
+const ensureClosedChannel = async (api: ChatApi, team: string) => {
+  const subteam = `${team}.${CLOSED_SUBTEAM}`
+  const find = async () => {
+    const res = await api
+      .call<{conversations?: Array<ConvSummary>}>('listconvsonname', {members_type: 'team', name: subteam, topic_type: 'CHAT'})
+      .catch(() => undefined)
+    return res?.conversations?.[0]?.id
+  }
+  let id = await find()
+  if (!id) {
+    log(`creating the subteam ${CLOSED_SUBTEAM}`)
+    await cli(['team', 'create', subteam])
+    id = await find()
+  }
+  if (!id) throw new Error(`the subteam ${CLOSED_SUBTEAM} has no channel`)
+  return id
+}
+
 export type ChatData = E2EAccounts & {
+  // the closed subteam's channel (see CLOSED_SUBTEAM)
+  closedConvID: string
   // conversation id (hex, the app's ConversationIDKey) per channel
   convIDs: Record<E2EChannel, string>
   direct: DirectConversation
@@ -417,11 +467,13 @@ export const ensureChatData = async (): Promise<ChatData> => {
       }
       await seedLong(api, team)
       await seedShort(api, team)
+      await seedSparse(api, team)
       await seedScratch(api, team)
       await seedReadonly(api, team)
       await seedMedia(api, team)
       const direct = await ensureDirect(api, accounts.smokeUser, secondUser)
-      return {...accounts, convIDs, direct}
+      const closedConvID = await ensureClosedChannel(api, team)
+      return {...accounts, closedConvID, convIDs, direct}
     } finally {
       api.close()
     }
@@ -470,13 +522,14 @@ export const botCommands = async (topicName: E2EChannel) => {
 
 // A channel for one run's membership flows, named `<prefix>-<time in base 36>` (a channel name is
 // 20 characters at most), created by the CLI's account (the team owner for the desktop flows, the
-// second account, a writer, for the iOS ones) with the second account in it.
-export const createThrowawayChannel = async (prefix: string) => {
+// second account, a writer, for the iOS ones) with the second account in it, unless `withSecond`
+// is false.
+export const createThrowawayChannel = async (prefix: string, {withSecond = true}: {withSecond?: boolean} = {}) => {
   const {secondUser, team} = e2eAccounts()
   const topicName = `${prefix}-${Date.now().toString(36)}`
   const convID = await withApi(async api => {
     const id = await ensureChannel(api, team, topicName)
-    await ensureMember(api, team, topicName, secondUser)
+    if (withSecond) await ensureMember(api, team, topicName, secondUser)
     return id
   })
   return {convID, topicName}
