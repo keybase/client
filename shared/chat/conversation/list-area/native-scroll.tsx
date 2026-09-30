@@ -448,6 +448,10 @@ export const useNativeThreadScroll = (p: {
   React.useEffect(() => {
     loadsRef.current = {newer: loadNewer, older: loadOlder}
   }, [loadNewer, loadOlder])
+  const containsLatestRef = React.useRef(containsLatestMessage)
+  React.useEffect(() => {
+    containsLatestRef.current = containsLatestMessage
+  }, [containsLatestMessage])
   const nextLoadRef = React.useRef({newer: 0, older: 0})
   React.useEffect(() => {
     const next = Date.now() + pageLoadGate
@@ -464,7 +468,8 @@ export const useNativeThreadScroll = (p: {
       loadsRef.current[end]()
     }
     near('older', content - offset - viewport)
-    near('newer', offset - restingOffset())
+    // A thread holding the newest message has nothing newer to load.
+    if (!containsLatestRef.current) near('newer', offset - restingOffset())
   })
 
   // Who moved the list is read from how it moved, never from the input that moved it: a drag, the
