@@ -37,7 +37,8 @@ export type Composer = {
   getText: () => string
   getSelection: () => Selection | undefined
   isFocused: () => boolean
-  // with no input attached, the next one to attach is focused
+  // With no input attached, the next one to attach is focused if it comes within a second. One
+  // focus waits at most: asking again only moves its deadline.
   focus: () => void
   // Replaces the whole text with the caret at its end.
   inject: (text: string, focus?: boolean) => void
@@ -97,6 +98,7 @@ type ComposerDeps = {
 }
 
 const spoiler = '!>spoiler<!'
+const focusWaitMs = 1000
 const injectedSelection = (text: string): Selection =>
   text === spoiler
     ? {end: text.length - 2, start: text.length - 2 - 7}
@@ -117,6 +119,8 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   let saved: string | undefined
   // set from the moment an edit's text lands until the edit ends
   let editing = false
+  // when a focus asked for while no input was attached stops waiting
+  let focusUntil: number | undefined
 
   // only a restore saves where the user can't post: it puts back the user's own text
   const saveDraft = (next: string, evenReadOnly = false) => {
@@ -264,6 +268,10 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
           const waiting = pending
           pending = []
           waiting.forEach(whenAttached)
+          if (focusUntil !== undefined && Date.now() <= focusUntil) {
+            next.focus()
+          }
+          focusUntil = undefined
         },
         textChanged: next => {
           if (session !== view) return false
@@ -275,7 +283,11 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
       }
     },
     focus: () => {
-      whenAttached(target => target.focus())
+      if (input) {
+        input.focus()
+      } else {
+        focusUntil = Date.now() + focusWaitMs
+      }
     },
     getSelection: () => input?.getSelection(),
     getText: () => text,

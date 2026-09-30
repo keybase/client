@@ -719,6 +719,35 @@ describe('the input it reads through', () => {
     expect(next.focusCount).toBe(1)
   })
 
+  test('focus asked for again and again while nothing is attached focuses the next input once', () => {
+    const {composer, mount} = setup()
+    const {attach, detach} = mount()
+    detach()
+
+    composer.focus()
+    composer.focus()
+    composer.focus()
+
+    const next = makeFakeComposerInput()
+    attach(next)
+    expect(next.focusCount).toBe(1)
+  })
+
+  // an input that turns up much later is not one the user asked to focus
+  test('a waiting focus is dropped after a second', () => {
+    jest.useFakeTimers()
+    const {composer, mount} = setup()
+    const {attach, detach} = mount()
+    detach()
+
+    composer.focus()
+    jest.advanceTimersByTime(1001)
+
+    const next = makeFakeComposerInput()
+    attach(next)
+    expect(next.focusCount).toBe(0)
+  })
+
   test('a handle the ref replaces is picked up, and the text stays', () => {
     const {composer, mount} = setup()
     const {attach, detach, fake} = mount()
