@@ -6,7 +6,7 @@
 //   node tests/e2e/electron/launch-app.mts --check    only check the running app is ready
 //
 // Options: --deadline <seconds> (default 120), --cdp-port <port> (default 9222), --log <path>
-// (default /tmp/chat-e2e-electron.log).
+// (default /tmp/chat-e2e-electron.log, appended to, one separator per launch).
 import {spawn, execFileSync} from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -175,7 +175,10 @@ if (checkOnly) {
 }
 
 await killApp()
-const out = fs.openSync(logPath, 'w')
+// appended to, each launch under its own separator, so what a previous launch logged (a renderer
+// that went white, say) is still there after a relaunch
+const out = fs.openSync(logPath, 'a')
+fs.writeSync(out, `\n=== launch ${new Date().toISOString()} ===\n`)
 const child = spawn('yarn', ['desktop:start:hot:e2e'], {cwd: sharedDir, detached: true, stdio: ['ignore', out, out]})
 child.unref()
 log(`started the app (pid ${child.pid}), log at ${logPath}`)
