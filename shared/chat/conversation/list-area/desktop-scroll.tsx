@@ -24,8 +24,6 @@ const endTolerancePx = 2
 const ownTolerancePx = 1
 // A row overhanging the viewport by no more than this is wholly in view.
 const rowEdgeTolerancePx = 1
-// The largest change to a measured row the list's end anchor leaves alone (applyItemSize).
-const rowAnchorMissPx = 5
 
 type ScrollerLike = {clientHeight: number; scrollHeight: number; scrollTop: number}
 
@@ -230,7 +228,8 @@ export const useDesktopThreadScroll = (p: {
           if (directive.stopCentering) centering.stop()
           // The header, the viewport or a row changes size while the list may still be settling its
           // own position, and its own end anchor may already have re-pinned it. That anchor re-pins
-          // for no header change at all, and for no row changing by five pixels or less.
+          // for no header change at all, for no row changing by five pixels or less, and not
+          // reliably for larger ones.
           if (event.type === 'headerMeasured' || event.type === 'viewportResized' || event.type === 'rowResized') {
             verifyEndAnchor()
             return
@@ -346,15 +345,17 @@ export const useDesktopThreadScroll = (p: {
     [dispatch, scrollerOf]
   )
 
-  // The list's own end anchor re-pins for a row's first measurement and for a change of more than
-  // rowAnchorMissPx; only a smaller change to a row it has measured before is left for the end loop.
-  // Reporting the rest would restart that loop for every row as a thread opens.
+  // Every change to a row the list has measured before is reported, however large. The list's own
+  // end anchor re-pins for some of them, but not reliably: a reaction growing the newest row by 40px
+  // was left short. The end loop does nothing when the list is already at its end. A row's first
+  // measurement is not reported: every row measures once as a thread opens, and restarting the loop
+  // for each would keep it from ever correcting.
   const measuredRowsRef = React.useRef(new Set<string>())
   const onItemSizeChanged = React.useCallback(
-    (info: {itemKey: string; previous: number; size: number}) => {
+    (info: {itemKey: string}) => {
       const known = measuredRowsRef.current.has(info.itemKey)
       measuredRowsRef.current.add(info.itemKey)
-      if (!known || Math.abs(info.size - info.previous) > rowAnchorMissPx) return
+      if (!known) return
       dispatch({anchorsEnd: anchorsEndRef.current, type: 'rowResized'})
     },
     [dispatch]

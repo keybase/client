@@ -1140,8 +1140,7 @@ describe('the viewport changing height', () => {
 })
 
 // A row measuring at a new height after the list laid it out: the newest message, just received,
-// measuring a few pixels taller once the thread has opened on it. The list's own end anchor re-pins
-// only for a change of more than a few pixels.
+// measuring a few pixels taller once the thread has opened on it, or a reaction landing on it.
 describe('a row changing size', () => {
   const scrollerTop = () => screen.getByTestId('fake-scroller').scrollTop
   const scrollerEnd = () => {
@@ -1165,14 +1164,16 @@ describe('a row changing size', () => {
     expect(scrollerEnd() - scrollerTop()).toBe(0)
   })
 
-  // A reaction landing on the newest row: the list's own end anchor re-pins that.
-  test('a change of more than five pixels is left to the list\'s own end anchor', async () => {
+  // A reaction landing on the newest row. The list's own end anchor is not counted on for it: in the
+  // app it left the thread 40px short.
+  test('while the list holds its end, a change of more than five pixels on the newest row ends at the end', async () => {
     open()
     heldAtEnd()
     H.log.length = 0
     H.remeasureRow(ord(60), H.rowHeight + 40)
     await tick(3000)
-    expect(H.log).toEqual([])
+    expect(H.log).toEqual([['scrollToEnd', noAnimation]])
+    expect(scrollerEnd() - scrollerTop()).toBe(0)
   })
 
   // Rows measure for the first time as a thread opens, each within a few pixels of its estimate
