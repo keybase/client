@@ -901,6 +901,36 @@ describe('editing and the draft', () => {
     expect(inboxDraft()).toBe('')
   })
 
+  // Thread search swaps the input for its own bar, and closing it mounts a new one. The edit is
+  // still on, so its text comes back with it, and is still not the draft.
+  test('opening and closing thread search mid-edit brings the edit text back', async () => {
+    const edit = jest.spyOn(m.T.RPCChat, 'localPostEditNonblockRpcPromise').mockResolvedValue({
+      outboxID: new TextEncoder().encode('edited'),
+    })
+    receiveDraft('my draft')
+    const {showInput} = renderComposer()
+    startEdit()
+    type('fixed my typo')
+
+    showInput(false)
+    showInput(true)
+
+    expect(input().value).toBe('fixed my typo')
+    expect(composer?.getText()).toBe('fixed my typo')
+    type('fixed my typo!')
+    act(() => {
+      mockHWKey?.({pressedKey: 'enter'})
+    })
+    act(() => {
+      jest.advanceTimersByTime(60)
+    })
+    await flushSend()
+
+    expect(edit.mock.calls[0]?.[0].body).toBe('fixed my typo!')
+    expect(draftsSaved()).toEqual([])
+    expect(inboxDraft()).toBe('my draft')
+  })
+
   test('cancelling puts back the draft the user had, and saves nothing', () => {
     receiveDraft('my draft')
     renderComposer()

@@ -68,8 +68,9 @@ export type Composer = {
   // edit ends it as clear does: the draft it set aside comes back, unsaved.
   submit: (send: (text: string, unfurlSuppress: SuppressSnapshot) => void) => boolean
   // An input's text belongs to the view it came from: an input attached by a different view starts
-  // over with no text and a draft still to load. The same view attaching again (a new handle,
-  // StrictMode's ref replay, a hidden Activity shown again) keeps both.
+  // over with no text and a draft still to load, except for an edit still on, whose text it shows.
+  // The same view attaching again (a new handle, StrictMode's ref replay, a hidden Activity shown
+  // again) keeps both.
   // Writes made while no input is attached (an inject, an insert, a replace) wait, and land in
   // order once one attaches, after its draft; a waiting inject lands with the focus it asked for.
   // A replace carries a whole text worked out from its view's text, so it lands only if the same
@@ -241,12 +242,17 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
             }
             return
           }
+          // an edit still on outlives the view that showed it, in memory only: it is never a draft
+          const editText = session !== view && editing ? text : undefined
           if (session !== view) {
             session = view
             text = ''
             draftLoaded = false
           }
           input = next
+          if (editText) {
+            write(next, editText, false)
+          }
           offerDraft(offered)
           const waiting = pending
           pending = []
