@@ -52,6 +52,8 @@ const maintainVisibleContentPositionNoAutoscroll = {
 
 // An offset within this many points of the resting offset is at the end.
 const endTolerance = 8
+// A row overhanging the part of the list in view by no more than this is wholly in view.
+const rowEdgeTolerance = 1
 // The list moving by less than this has not moved.
 const stillPoints = 1
 
@@ -107,8 +109,8 @@ export const useNativeThreadScroll = (p: {
   const metricsRef = React.useRef<{content?: number; offset?: number; viewport?: number}>({})
   const vFirstRef = React.useRef<number | null | undefined>(undefined)
   const vLastRef = React.useRef<number | null | undefined>(undefined)
-  // The rows wholly in view, as the list measures them.
-  const fullyVisibleRef = React.useRef<ReadonlySet<T.Chat.Ordinal>>(new Set())
+  // Where each row sits in the content, as the list last laid it out.
+  const rowFramesRef = React.useRef(new Map<T.Chat.Ordinal, {height: number; y: number}>())
 
   // Every scroll the list makes itself goes through these, saying where it is going, so the movement
   // toward there and the rest that follows are its own.
@@ -173,7 +175,7 @@ export const useNativeThreadScroll = (p: {
     lastScrollRef.current = undefined
     vFirstRef.current = undefined
     vLastRef.current = undefined
-    fullyVisibleRef.current = new Set()
+    rowFramesRef.current = new Map()
   }, [conversationIDKey])
   // The rows asked for by scrollToItem, each asked for by a centre or a reveal, with how many of its
   // failures have been retried: a row outside the rendered window makes the scroll fail, and the
@@ -316,16 +318,38 @@ export const useNativeThreadScroll = (p: {
     })
   }, [atEnd, centeredOrdinal, containsLatestMessage, dispatch, loaded, messageOrdinals])
 
-  // The rows wholly in view are where the list holds them: its end is its bottom edge, which stays put
-  // however the viewport above it changes.
+  // Whether the row is wholly in the part of the list nothing covers: the keyboard, and the composer
+  // riding it, cover its bottom by as much as the resting offset sits below 0. The list's own
+  // viewability measures against the whole scroll view, covered or not.
+  const [rowFullyVisible] = React.useState(() => (ordinal: T.Chat.Ordinal) => {
+    const frame = rowFramesRef.current.get(ordinal)
+    const {offset, viewport} = metricsRef.current
+    if (!frame || offset === undefined || viewport === undefined) return false
+    return (
+      frame.y >= offset - restingOffset() - rowEdgeTolerance &&
+      frame.y + frame.height <= offset + viewport + rowEdgeTolerance
+    )
+  })
+
   React.useEffect(() => {
     dispatch({
       ordinal: editingOrdinal,
-      rowFullyVisible: () => editingOrdinal !== undefined && fullyVisibleRef.current.has(editingOrdinal),
+      rowFullyVisible: () => editingOrdinal !== undefined && rowFullyVisible(editingOrdinal),
       targetInData: editingOrdinal !== undefined && indexOfOrdinalNewestFirst(messageOrdinals, editingOrdinal) >= 0,
       type: 'editingChanged',
     })
-  }, [dispatch, editingOrdinal, messageOrdinals])
+  }, [dispatch, editingOrdinal, messageOrdinals, rowFullyVisible])
+
+  // The keyboard rising or falling, or the safe area changing, changes how much of the list is in view,
+  // once the keyboard has settled and moved the list with it. Compared by value, so a freeze/thaw
+  // re-mount changes nothing.
+  const coverRef = React.useRef({bottomInset, isKeyboardVisible})
+  React.useEffect(() => {
+    const cover = coverRef.current
+    if (cover.bottomInset === bottomInset && cover.isKeyboardVisible === isKeyboardVisible) return
+    coverRef.current = {bottomInset, isKeyboardVisible}
+    dispatch({anchorsEnd: false, rowFullyVisible, type: 'viewportResized'})
+  }, [bottomInset, dispatch, isKeyboardVisible, rowFullyVisible])
 
   // When keyboard is open, maintainVisibleContentPosition adjusts contentOffset by the new
   // message height when a message is added, undoing the scrollToBottom from onSubmit.
@@ -469,9 +493,8 @@ export const useNativeThreadScroll = (p: {
       correctCenter(first, last)
     }
   )
-  // The rows the list reports wholly in view, from its own measured frames against its viewport.
-  const [onFullyViewable] = React.useState(() => (items: ReadonlyArray<{item: T.Chat.Ordinal}>) => {
-    fullyVisibleRef.current = new Set(items.map(i => i.item))
+  const [onCellLayout] = React.useState(() => (item: T.Chat.Ordinal, layout: {height: number; y: number}) => {
+    rowFramesRef.current.set(item, {height: layout.height, y: layout.y})
   })
 
   const requestBottom = React.useCallback(() => {
@@ -490,8 +513,8 @@ export const useNativeThreadScroll = (p: {
     maintainVisibleContentPosition: mvpAutoscroll
       ? maintainVisibleContentPositionClosed
       : maintainVisibleContentPositionNoAutoscroll,
+    onCellLayout,
     onContentSizeChange,
-    onFullyViewable,
     onScroll,
     onMomentumScrollEnd: rested,
     onScrollBeginDrag,

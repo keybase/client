@@ -152,10 +152,16 @@ const viewable = (first: number, last: number) => {
     props().viewabilityConfigCallbackPairs[0]!.onViewableItemsChanged({viewableItems: viewableItems(first, last)})
   })
 }
-// Reports the rows at data indices first..last as wholly in view.
-const fullyViewable = (first: number, last: number) => {
+// The list laying every row out 100pt tall, the newest at the bottom of the content (y 0), or ordinal
+// n at y, height tall.
+const layRows = () => {
   update(() => {
-    props().viewabilityConfigCallbackPairs[1]!.onViewableItemsChanged({viewableItems: viewableItems(first, last)})
+    props().data.forEach((o, i) => H.layRow(o, i * 100, 100))
+  })
+}
+const layRow = (n: number, y: number, height: number) => {
+  update(() => {
+    H.layRow(ord(n), y, height)
   })
 }
 
@@ -1162,7 +1168,8 @@ describe('editing', () => {
     expect(H.log).toEqual([])
   })
 
-  // Rows 60..51 in view, the newest at the bottom; the oldest of them, 51, is cut off at the top.
+  // With the keyboard up, the list at its end shows the content from 0 to 734pt over the keyboard:
+  // rows 60..54 wholly, and 53 cut off at the top.
   test.each([
     ['in the middle of the view', 59],
     ['the newest, with the list at its end', 60],
@@ -1170,8 +1177,8 @@ describe('editing', () => {
     open({keyboard: true})
     await tick(200)
     scrolled(H.bottomInset - keyboardHeight, 6000)
-    viewable(0, 9)
-    fullyViewable(0, 8)
+    viewable(0, 7)
+    layRows()
     clearLog()
     update(() => H.inputStore.set({editing: ord(n)}))
     expect(H.log).toEqual([])
@@ -1181,16 +1188,20 @@ describe('editing', () => {
   })
 
   // Whether a row is wholly in view is measured, not read off its place in the viewable range.
+  const twoTallRows = () => {
+    layRow(60, 0, 367)
+    layRow(59, 367, 367)
+  }
   test.each([
-    ['the oldest in view, at the top edge', 9, 51],
-    ['the older of two tall rows filling the view', 1, 59],
-    ['the newer of two tall rows filling the view', 1, 60],
-  ])('with the keyboard up, a message wholly in view (%s) is not scrolled to, and a new message re-pins', async (_name, last, n) => {
+    ['the oldest wholly in view, near the top edge', 6, 54, layRows],
+    ['the older of two tall rows filling the view', 1, 59, twoTallRows],
+    ['the newer of two tall rows filling the view', 1, 60, twoTallRows],
+  ])('with the keyboard up, a message wholly in view (%s) is not scrolled to, and a new message re-pins', async (_name, last, n, lay) => {
     open({keyboard: true})
     await tick(200)
     scrolled(H.bottomInset - keyboardHeight, 6000)
     viewable(0, last)
-    fullyViewable(0, last)
+    lay()
     clearLog()
     update(() => H.inputStore.set({editing: ord(n)}))
     expect(H.log).toEqual([])
@@ -1199,16 +1210,81 @@ describe('editing', () => {
     expect(H.log).toEqual([toBottomOverKeyboard])
   })
 
+  // The list's own viewability measures against the whole scroll view, keyboard and all.
+  test('with the keyboard up and the reader in history, a message half behind the keyboard is revealed', async () => {
+    open({keyboard: true})
+    await tick(200)
+    drag()
+    scrolled(2000, 6000)
+    dragEnded(2000)
+    viewable(20, 30)
+    layRows()
+    clearLog()
+    // Ordinal 38 sits at 2200..2300; over the keyboard the list shows 2266..3000.
+    update(() => H.inputStore.set({editing: ord(38)}))
+    expect(scrollsOnly()).toEqual([revealed(38)])
+  })
+
+  // The keyboard scroll view carries the list up with the keyboard; its visibility settles after.
+  const keyboardRises = (from: number) => {
+    H.anchor.keyboardHeight.value = -keyboardHeight
+    H.anchor.keyboardProgress.value = 1
+    scrolled(from + H.bottomInset - keyboardHeight, 6000)
+    update(() => H.keyboardStore.set({isVisible: true}))
+  }
+
+  test('a message in view as the edit starts that the keyboard rising then covers is revealed', async () => {
+    open()
+    await tick(200)
+    scrolled(0, 6000)
+    viewable(0, 9)
+    layRows()
+    clearLog()
+    update(() => H.inputStore.set({editing: ord(51)}))
+    expect(scrollsOnly()).toEqual([])
+    keyboardRises(0)
+    expect(scrollsOnly()).toEqual([revealed(51)])
+  })
+
+  test('a message still in view once the keyboard has risen is left where it is, and a new message re-pins', async () => {
+    open()
+    await tick(200)
+    scrolled(0, 6000)
+    viewable(0, 9)
+    layRows()
+    clearLog()
+    update(() => H.inputStore.set({editing: ord(58)}))
+    keyboardRises(0)
+    expect(scrollsOnly()).toEqual([])
+    setOrdinals(1, 61)
+    await tick(0)
+    expect(H.log).toEqual([toBottomOverKeyboard])
+  })
+
+  test('once the reader has moved the list, the keyboard rising over the edit leaves it be', async () => {
+    open()
+    await tick(200)
+    scrolled(0, 6000)
+    viewable(0, 9)
+    layRows()
+    update(() => H.inputStore.set({editing: ord(51)}))
+    drag()
+    scrolled(100, 6000)
+    dragEnded(100)
+    clearLog()
+    keyboardRises(100)
+    expect(scrollsOnly()).toEqual([])
+  })
+
   test.each([
-    ['the oldest in view, which may be cut off at the top', 51],
+    ['the oldest in view, cut off at the top', 53],
     ['the newest, with the list short of its end', 60],
   ])('with the keyboard up, a message at the edge of the view (%s) is revealed, and takes the reader off the end', async (_name, n) => {
     open({keyboard: true})
     await tick(200)
     scrolled(n === 60 ? 100 : H.bottomInset - keyboardHeight, 6000)
     viewable(0, 9)
-    if (n === 60) fullyViewable(1, 9)
-    else fullyViewable(0, 8)
+    layRows()
     clearLog()
     update(() => H.inputStore.set({editing: ord(n)}))
     expect(H.log).toEqual([['scrollToItem', {animated: true, item: ord(n), viewPosition: 0.5}]])
@@ -1291,11 +1367,11 @@ describe('movement the list did not make is the reader', () => {
   test('a scroll with no drag against a reveal of a row in view is the reader: coming to rest at the newest hands the end back', async () => {
     open()
     await tick(200)
-    scrolled(300, 6000)
-    viewable(0, 9)
-    fullyViewable(0, 8)
-    update(() => H.inputStore.set({editing: ord(51)}))
-    expect(scrollsOnly()).toContainEqual(['scrollToItem', {animated: true, item: ord(51), viewPosition: 0.5}])
+    scrolled(350, 6000)
+    viewable(3, 13)
+    layRows()
+    update(() => H.inputStore.set({editing: ord(47)}))
+    expect(scrollsOnly()).toContainEqual(['scrollToItem', {animated: true, item: ord(47), viewPosition: 0.5}])
     expect(props().maintainVisibleContentPosition).toEqual(mvpNoAutoscroll)
     scrolled(0, 6000)
     flingEnded(0)
@@ -1513,10 +1589,7 @@ describe('loading older messages', () => {
       H.setCenter(ord(30))
     })
     expect(props().viewabilityConfigCallbackPairs).toBe(first)
-    expect(first.map(p => p.viewabilityConfig)).toEqual([
-      {viewAreaCoveragePercentThreshold: 0},
-      {itemVisiblePercentThreshold: 100},
-    ])
+    expect(first.map(p => p.viewabilityConfig)).toEqual([{viewAreaCoveragePercentThreshold: 0}])
   })
 })
 

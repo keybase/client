@@ -27,12 +27,13 @@ export type ScrollTargetState = {
   // settled, and when the reader leaves the target (a wheel, a drag, asking for the bottom). A list
   // hidden while it is under way has its centring cut short, and centres the target afresh.
   settlingCenter: boolean
-  // The edit already revealed. Deliberately survives a dataset change.
+  // The edit already revealed, or found in view. Deliberately survives a dataset change.
   lastEditing: T.Chat.Ordinal | undefined
-  // Whether the list still holds that edit where its reveal put it: the reveal is aimed at the viewport
-  // as it is when the edit starts, and the composer growing for the edit changes it. Held until the
-  // reader moves the list, the edit ends, or something else takes the list somewhere.
-  holdingReveal: boolean
+  // Whether the list still holds that edit in view, where its reveal put it or where it already was:
+  // either is judged against the viewport as it is when the edit starts, and the viewport changes
+  // around an edit (the composer growing for it, the keyboard rising for it). Held until the reader
+  // moves the list, the edit ends, or something else takes the list somewhere.
+  holdingEdit: boolean
 }
 
 // Every list reports the events it can observe, from one vocabulary. Most come from both lists; the
@@ -73,11 +74,13 @@ export type ScrollEvent =
   // scroll order reports it: the native list is inverted, so its header sits at the far, oldest end
   // and growing it never moves the newest.
   | {type: 'headerMeasured'; hasMessages: boolean; size: number}
-  // The list's viewport changed height: the composer growing or shrinking (typed lines, the edit or
-  // reply banner), a window resize. anchorsEnd is whether the list's own end anchor is on
-  // (listAnchorsEnd). Only a list whose end moves with its viewport reports it: the native list is
-  // inverted, so its end is its bottom edge, which stays put however the viewport above it changes.
-  | {type: 'viewportResized'; anchorsEnd: boolean}
+  // The part of the list in view changed height: the composer growing or shrinking (typed lines, the
+  // edit or reply banner), a window resize, the keyboard rising or falling over the list's bottom.
+  // anchorsEnd is whether the list's own end anchor is on (listAnchorsEnd) and the end moves with the
+  // viewport: the native list's end stays over the keyboard through its keyboard scroll view, so it
+  // reports false. rowFullyVisible says whether the ordinal's row is wholly in view as the list now
+  // measures it, asked only when the decision turns on it.
+  | {type: 'viewportResized'; anchorsEnd: boolean; rowFullyVisible: (ordinal: T.Chat.Ordinal) => boolean}
   // A row changed size after the list laid it out (a late measure, a re-measure: an image or a font
   // landing). anchorsEnd as for viewportResized. Only a list whose end moves with its rows reports it:
   // the native list is inverted, so its newest row sits on its bottom edge and grows away from it.
@@ -89,10 +92,11 @@ export type ScrollEvent =
   // the newest message in view whenever the list is at its end.
   | {type: 'appended'; anchorHidesNewest: boolean}
   // Sent whenever the edit or the loaded rows change. rowFullyVisible says whether the edited row is
-  // wholly in view where the list holds itself, as each list measures it: at its end while its own end
-  // anchor holds it there, which keeps it there through a change to the viewport (the composer growing
-  // for this very edit) the list may not have caught up with yet. Measuring can force a layout, so it
-  // is asked only when the decision turns on it.
+  // wholly in the part of the list in view (clear of the keyboard, on the native list) where the list
+  // holds itself, as each list measures it: at its end while its own end anchor holds it there, which
+  // keeps it there through a change to the viewport (the composer growing for this very edit) the list
+  // may not have caught up with yet. Measuring can force a layout, so it is asked only when the
+  // decision turns on it.
   | {
       type: 'editingChanged'
       ordinal: T.Chat.Ordinal | undefined
@@ -121,7 +125,7 @@ export type ScrollDecision = {directive: ScrollDirective; state: ScrollTargetSta
 export const initialScrollTargetState: ScrollTargetState = {
   endOwner: 'list',
   headerSize: undefined,
-  holdingReveal: false,
+  holdingEdit: false,
   lastCentered: undefined,
   lastEditing: undefined,
   settlingCenter: false,
@@ -142,7 +146,7 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
         state: {
           ...state,
           endOwner: 'list',
-          holdingReveal: false,
+          holdingEdit: false,
           lastCentered: undefined,
           settlingCenter: false,
         },
@@ -174,7 +178,7 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
         state: {
           ...state,
           endOwner: 'reader',
-          holdingReveal: false,
+          holdingEdit: false,
           lastCentered: centeredOrdinal,
           settlingCenter: true,
         },
@@ -186,7 +190,7 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
     case 'detached': {
       // A target still settling had its move cut short, so if the list comes back it is new again. A
       // list coming back is laid out afresh, and holds no reveal.
-      const next = state.holdingReveal ? {...state, holdingReveal: false} : state
+      const next = state.holdingEdit ? {...state, holdingEdit: false} : state
       return {
         directive: {stopCentering: true, type: 'leaveAlone'},
         state: next.settlingCenter ? {...next, lastCentered: undefined, settlingCenter: false} : next,
@@ -203,12 +207,12 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
       // However the reader scrolls, and whichever way, they have taken over: centring stops rather
       // than pull them back, and the end is theirs until a scroll comes to rest there (readerAtEnd).
       // It arrives on every scroll event, and most find it so already, with nothing left to stop.
-      if (state.endOwner === 'reader' && !state.settlingCenter && !state.holdingReveal) {
+      if (state.endOwner === 'reader' && !state.settlingCenter && !state.holdingEdit) {
         return {directive: leaveAlone, state}
       }
       return {
         directive: {stopCentering: true, type: 'leaveAlone'},
-        state: {...state, endOwner: 'reader', holdingReveal: false, settlingCenter: false},
+        state: {...state, endOwner: 'reader', holdingEdit: false, settlingCenter: false},
       }
     case 'readerAtEnd':
       return {directive: leaveAlone, state: {...state, endOwner: 'list'}}
@@ -221,10 +225,11 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
       return {directive: pinEnd, state: next}
     }
     case 'viewportResized':
-      // Whatever the list holds, it holds through the change: its end while it owns the end, and an
-      // edit where its reveal put it.
-      if (state.holdingReveal && state.lastEditing !== undefined) {
-        return {directive: {ordinal: state.lastEditing, type: 'reveal'}, state}
+      // Whatever the list holds, it holds through the change: an edit in view, revealed again if the
+      // change covered it, which moves the list off its end as any reveal does; otherwise its end,
+      // while it owns the end.
+      if (state.holdingEdit && state.lastEditing !== undefined && !event.rowFullyVisible(state.lastEditing)) {
+        return {directive: {ordinal: state.lastEditing, type: 'reveal'}, state: {...state, endOwner: 'reader'}}
       }
       return {directive: state.endOwner === 'list' && event.anchorsEnd ? pinEnd : leaveAlone, state}
     case 'rowResized':
@@ -240,23 +245,23 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
     case 'editingChanged': {
       const {ordinal, rowFullyVisible, targetInData} = event
       if (state.lastEditing === ordinal) return {directive: leaveAlone, state}
-      if (!ordinal) return {directive: leaveAlone, state: {...state, holdingReveal: false, lastEditing: ordinal}}
+      if (!ordinal) return {directive: leaveAlone, state: {...state, holdingEdit: false, lastEditing: ordinal}}
       // An edit whose row is not loaded waits for it: the list reports again as its rows change. The
       // edit held so far is not this one.
       if (!targetInData) {
-        return {directive: leaveAlone, state: state.holdingReveal ? {...state, holdingReveal: false} : state}
+        return {directive: leaveAlone, state: state.holdingEdit ? {...state, holdingEdit: false} : state}
       }
       // A row already in view stays where it is: bringing it to the middle would only move the list
       // off its end.
       if (rowFullyVisible()) {
-        return {directive: leaveAlone, state: {...state, holdingReveal: false, lastEditing: ordinal}}
+        return {directive: leaveAlone, state: {...state, holdingEdit: true, lastEditing: ordinal}}
       }
       // Any other reveal moves the list, off its end if it was there, and leaves the reader on the
       // edited message as their own scroll would: nothing may scroll back to the end on the list's
       // account.
       return {
         directive: {ordinal, type: 'reveal'},
-        state: {...state, endOwner: 'reader', holdingReveal: true, lastEditing: ordinal},
+        state: {...state, endOwner: 'reader', holdingEdit: true, lastEditing: ordinal},
       }
     }
     case 'scrollToBottomRequested':
@@ -268,7 +273,7 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
         state: {
           ...state,
           endOwner: 'list',
-          holdingReveal: false,
+          holdingEdit: false,
           lastCentered: event.centeredOrdinal,
           settlingCenter: false,
         },

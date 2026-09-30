@@ -337,9 +337,13 @@ export const useDesktopThreadScroll = (p: {
       const previous = viewportRef.current
       viewportRef.current = height
       if (previous === undefined || previous === height) return
-      dispatch({anchorsEnd: anchorsEndRef.current, type: 'viewportResized'})
+      dispatch({
+        anchorsEnd: anchorsEndRef.current,
+        rowFullyVisible: ordinal => rowFullyVisible(scrollerOf(), ordinal, anchorsEndRef.current),
+        type: 'viewportResized',
+      })
     },
-    [dispatch]
+    [dispatch, scrollerOf]
   )
 
   // The list's own end anchor re-pins for a row's first measurement and for a change of more than

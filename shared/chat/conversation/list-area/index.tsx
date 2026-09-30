@@ -31,8 +31,8 @@ import * as InputState from '../input-area/input-state'
 import {copyToClipboard} from '@/util/storeless-actions'
 import {LegendList} from '@legendapp/list/react'
 import type {LegendListRef} from '@/common-adapters'
-import {FlatList} from 'react-native'
-import type {ScrollViewProps} from 'react-native'
+import {FlatList, View} from 'react-native'
+import type {LayoutChangeEvent, ScrollViewProps} from 'react-native'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import {KeyboardChatScrollView, useKeyboardState} from 'react-native-keyboard-controller'
 import Animated, {useAnimatedStyle} from 'react-native-reanimated'
@@ -453,6 +453,22 @@ const DesktopThreadWrapperWithProfiler = () => (
 
 // ==================== NATIVE ====================
 
+// Each row's cell, laid out as FlatList lays it out, also reports where it sits in the content: the
+// thread measures whether a row is wholly in view against the part of the list the keyboard leaves
+// uncovered, which FlatList's own viewability does not know of.
+type RowLayout = (item: T.Chat.Ordinal, layout: {height: number; y: number}) => void
+const RowLayoutContext = React.createContext<RowLayout>(() => {})
+type NativeCellProps = React.ComponentProps<typeof View> & {item: T.Chat.Ordinal}
+const NativeCell = (p: NativeCellProps) => {
+  const {item, onLayout, ...rest} = p
+  const onRowLayout = React.useContext(RowLayoutContext)
+  const onCellLayout = (e: LayoutChangeEvent) => {
+    onLayout?.(e)
+    onRowLayout(item, e.nativeEvent.layout)
+  }
+  return <View {...rest} onLayout={onCellLayout} />
+}
+
 const useInvertedMessageOrdinals = (messageOrdinals?: ReadonlyArray<T.Chat.Ordinal>) => {
   const source = messageOrdinals ?? noOrdinals
   return React.useMemo(() => (source.length > 1 ? [...source].reverse() : source), [source])
@@ -522,8 +538,8 @@ const NativeConversationList = function NativeConversationList() {
 
   const {
     maintainVisibleContentPosition,
+    onCellLayout,
     onContentSizeChange,
-    onFullyViewable,
     onMomentumScrollEnd,
     onScroll: onThreadScroll,
     onScrollBeginDrag,
@@ -556,8 +572,8 @@ const NativeConversationList = function NativeConversationList() {
     [onPageScroll, onThreadScroll]
   )
 
-  // Two views of the rows in view: those in view at all (the default viewability), and those wholly in
-  // view. FlatList takes the pairs once, so they never change identity.
+  // The rows in view at all (the default viewability). FlatList takes the pairs once, so they never
+  // change identity.
   const [viewabilityConfigCallbackPairs] = React.useState(() => [
     {
       onViewableItemsChanged: (info: {viewableItems: Array<{index: number | null; item: T.Chat.Ordinal}>}) => {
@@ -566,12 +582,6 @@ const NativeConversationList = function NativeConversationList() {
         onViewableOrdinalsChanged(info.viewableItems.at(-1)?.item)
       },
       viewabilityConfig: {viewAreaCoveragePercentThreshold: 0},
-    },
-    {
-      onViewableItemsChanged: (info: {viewableItems: Array<{item: T.Chat.Ordinal}>}) => {
-        onFullyViewable(info.viewableItems)
-      },
-      viewabilityConfig: {itemVisiblePercentThreshold: 100},
     },
   ])
 
@@ -602,36 +612,39 @@ const NativeConversationList = function NativeConversationList() {
     <Kb.ErrorBoundary>
       <PerfProfiler id="MessageList">
         <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
-          <List
-            key={conversationIDKey}
-            testID={TestIDs.CHAT_MESSAGE_LIST}
-            onScrollToIndexFailed={onScrollToIndexFailed}
-            estimatedItemSize={72}
-            ListHeaderComponent={SpecialBottomMessage}
-            ListFooterComponent={SpecialTopMessage}
-            ItemSeparatorComponent={NativeSeparator}
-            overScrollMode="never"
-            contentContainerStyle={nativeContentContainerStyle}
-            data={messageOrdinals}
-            getItemType={getItemType}
-            inverted={true}
-            renderItem={renderItem}
-            viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs}
-            onScroll={onScroll}
-            scrollEventThrottle={16}
-            onContentSizeChange={onContentSizeChange}
-            onScrollBeginDrag={onScrollBeginDrag}
-            onScrollEndDrag={onScrollEndDrag}
-            onMomentumScrollEnd={onMomentumScrollEnd}
-            onScrollToTop={onScrollToTop}
-            keyboardDismissMode="on-drag"
-            keyboardShouldPersistTaps="handled"
-            keyExtractor={keyExtractor}
-            ref={listRef}
-            renderScrollComponent={renderScrollComponent}
-            windowSize={3}
-            maintainVisibleContentPosition={maintainVisibleContentPosition}
-          />
+          <RowLayoutContext value={onCellLayout}>
+            <List
+              key={conversationIDKey}
+              testID={TestIDs.CHAT_MESSAGE_LIST}
+              onScrollToIndexFailed={onScrollToIndexFailed}
+              estimatedItemSize={72}
+              ListHeaderComponent={SpecialBottomMessage}
+              ListFooterComponent={SpecialTopMessage}
+              ItemSeparatorComponent={NativeSeparator}
+              overScrollMode="never"
+              contentContainerStyle={nativeContentContainerStyle}
+              data={messageOrdinals}
+              getItemType={getItemType}
+              inverted={true}
+              renderItem={renderItem}
+              viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs}
+              onScroll={onScroll}
+              scrollEventThrottle={16}
+              onContentSizeChange={onContentSizeChange}
+              onScrollBeginDrag={onScrollBeginDrag}
+              onScrollEndDrag={onScrollEndDrag}
+              onMomentumScrollEnd={onMomentumScrollEnd}
+              onScrollToTop={onScrollToTop}
+              keyboardDismissMode="on-drag"
+              keyboardShouldPersistTaps="handled"
+              keyExtractor={keyExtractor}
+              ref={listRef}
+              renderScrollComponent={renderScrollComponent}
+              windowSize={3}
+              maintainVisibleContentPosition={maintainVisibleContentPosition}
+              CellRendererComponent={NativeCell}
+            />
+          </RowLayoutContext>
           {jumpToRecent && (
             <Animated.View style={[nativeStyles.jumpWrapper, jumpLiftStyle]} pointerEvents="box-none">
               {jumpToRecent}

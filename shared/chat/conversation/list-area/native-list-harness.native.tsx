@@ -76,6 +76,24 @@ const handle = {
 // The props of each commit, oldest first.
 export const listCommits: Array<FakeListProps> = []
 
+type LayoutEvent = {nativeEvent: {layout: {height: number; width: number; x: number; y: number}}}
+// Each row cell's onLayout, by the row it holds: the list renders every row's cell through the
+// thread's CellRendererComponent, and the cell's view hands its onLayout here.
+const cellLayouts = new Map<T.Chat.Ordinal, (e: LayoutEvent) => void>()
+const CellItemContext = React.createContext<T.Chat.Ordinal | undefined>(undefined)
+const FakeView = (p: {onLayout?: (e: LayoutEvent) => void}) => {
+  const item = React.useContext(CellItemContext)
+  const {onLayout} = p
+  React.useLayoutEffect(() => {
+    if (item !== undefined && onLayout) cellLayouts.set(item, onLayout)
+  })
+  return null
+}
+// The list laying the row out at y in the content, height tall: the newest row sits at the lowest y.
+export const layRow = (ordinal: T.Chat.Ordinal, y: number, height: number) => {
+  cellLayouts.get(ordinal)?.({nativeEvent: {layout: {height, width: 0, x: 0, y}}})
+}
+
 const FakeFlatList = (p: FakeListProps) => {
   const {ref} = p
   React.useLayoutEffect(() => {
@@ -86,12 +104,22 @@ const FakeFlatList = (p: FakeListProps) => {
     listMounts.count += 1
   }, [])
   React.useImperativeHandle(ref, () => handle, [])
-  return null
+  const Cell = p['CellRendererComponent'] as React.ComponentType<{item: T.Chat.Ordinal; onLayout: () => void}>
+  return (
+    <>
+      {p.data.map(o => (
+        <CellItemContext key={String(o)} value={o}>
+          <Cell item={o} onLayout={() => {}} />
+        </CellItemContext>
+      ))}
+    </>
+  )
 }
 
 export const reactNativeModule = {
   ...(jest.requireActual('react-native') as object),
   FlatList: FakeFlatList,
+  View: FakeView,
 }
 
 const Passthrough = (p: {children?: React.ReactNode}) => <>{p.children}</>
@@ -172,6 +200,7 @@ export const resetHarness = () => {
   listProps.current = undefined
   listCommits.length = 0
   listMounts.count = 0
+  cellLayouts.clear()
   jumpToRecent.scroll = undefined
   anchor.keyboardHeight.value = 0
   anchor.keyboardProgress.value = 0

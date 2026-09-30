@@ -977,8 +977,8 @@ describe('editing', () => {
     expect(H.log).toEqual([['scrollToEnd', noAnimation]])
   })
 
-  // The reveal is aimed at the viewport as the edit starts; the viewport shrinking after holds it
-  // there again, but only while the reader has not moved the list.
+  // The reveal is aimed at the viewport as the edit starts; the viewport shrinking after, until it cuts
+  // the row off, reveals it again, but only while the reader has not moved the list.
   const revealAnimated = () => {
     update(() => H.listStore.set({animatedScrollsLand: false}))
     open()
@@ -988,7 +988,7 @@ describe('editing', () => {
     H.log.length = 0
   }
   const shrinkAndHear = () => {
-    update(() => H.resizeViewport(H.viewportHeight - 4))
+    update(() => H.resizeViewport(H.viewportHeight / 2))
     H.listHearsLayout()
   }
 
