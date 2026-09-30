@@ -640,18 +640,47 @@ const counterText = async () => {
   return (await counter.isExisting()) ? counter.getText() : undefined
 }
 
+// The search bar's text as the app holds it (its input's value prop), which trails the keys typed
+// into the native field while the JS thread is busy.
+const searchBarText = async () =>
+  jsEval<string | null>(`
+    const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
+    let root
+    for (const r of hook.getFiberRoots(1)) root = r
+    const stack = [root.current]
+    while (stack.length) {
+      const f = stack.pop()
+      const p = f.memoizedProps
+      if (p && p.placeholder === 'Search...' && typeof p.onEnterKeyDown === 'function') return p.value
+      if (f.sibling) stack.push(f.sibling)
+      if (f.child) stack.push(f.child)
+    }
+    return null
+  `)
+
 // Runs a search (typing the query and pressing return) and waits for its counter; returns it
 // ("1 of 1"). The first hit is selected, and the thread centres on it. The app's service starts
 // with the app, and a search in the first moments after a launch can finish with "No results"
 // for a message that is there (seen once, the first search after a relaunch); such a search is
 // run again, and said so, until the deadline.
+//
+// Return searches for whatever text the app holds at that moment. Pressed in the same run of keys
+// as the query, with the JS thread busy, it went out as a prefix of it ("quokk" for
+// "quokkadeepmarker", in Metro's RPC log), which matches every seeded token sharing that prefix
+// ("1 of 3"). So the query is typed, the app is waited for until it holds all of it, and only then
+// is return pressed.
 export const searchFor = async (query: string, timeout = 30_000) => {
   const input = searchInput()
   const end = Date.now() + timeout
   for (;;) {
     await input.waitForExist({timeout: 5_000})
     await input.clearValue().catch(() => {})
-    await input.addValue(`${query}\n`)
+    await input.addValue(query)
+    await waitFor(`the search bar to hold "${query}"`, async () => ((await searchBarText()) === query ? true : undefined), {
+      interval: 100,
+      timeout: 10_000,
+    })
+    await input.addValue('\n')
     const counter = await waitFor('the thread search to finish', async () => counterText(), {
       interval: 250,
       timeout: Math.max(1_000, end - Date.now()),
