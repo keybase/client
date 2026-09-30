@@ -33,6 +33,7 @@ import {
   storedMessage,
   switchAppAccount,
   typeInComposer,
+  visibleConversation,
   waitForComposerText,
   waitForRow,
 } from '../helpers/chat'
@@ -505,7 +506,8 @@ describe('chat composer: read-only channel', () => {
 
 // The channel turns read-only for the second account (a writer) while it edits: the owner, the host
 // CLI, raises the channel's minimum writer role. Cancelling the edit then empties the composer and
-// leaves the draft set aside for the edit as it was; it loads again once the account can post.
+// leaves the draft set aside for the edit as it was; it loads again once the account can post. The
+// owner clearing the role altogether makes the channel writable again as it shows.
 describe('chat composer: read-only mid-edit', () => {
   const prefix = 'e2e-iroedit'
 
@@ -548,5 +550,21 @@ describe('chat composer: read-only mid-edit', () => {
     await el(T.CHAT_EMOJI_BUTTON).waitForExist({timeout: 20_000})
     await waitForComposerText(draft, 10_000)
     await expectStoredText(text)
+  })
+
+  it('the owner clearing the minimum writer role makes the composer writable again, without a reopen', async () => {
+    await switchCliAccount(data.smokeUser)
+    const {convID, topicName} = await createThrowawayChannel(prefix)
+    await switchAppAccount(data.secondUser)
+    await openConversation(convID)
+    await el(T.CHAT_EMOJI_BUTTON).waitForExist({timeout: 10_000})
+
+    await setMinWriterRoleFromCli(topicName, 'admin')
+    await el(T.CHAT_EMOJI_BUTTON).waitForExist({reverse: true, timeout: 20_000})
+    await setMinWriterRoleFromCli(topicName, 'none')
+    await el(T.CHAT_EMOJI_BUTTON).waitForExist({timeout: 20_000})
+    check((await visibleConversation()) === convID, 'the channel is no longer the one showing')
+
+    await sendMessage(`e2e-ios-roclear-message-${Date.now()}`)
   })
 })
