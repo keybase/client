@@ -1379,16 +1379,6 @@ const NativePlatformInput = (p: Props) => {
     onChangeText(text)
   }
 
-  const lastEditRef = React.useRef(isEditing)
-  React.useEffect(() => {
-    if (isEditing !== lastEditRef.current) {
-      lastEditRef.current = isEditing
-      if (isEditing) {
-        composer.focus()
-      }
-    }
-  }, [isEditing, composer])
-
   const _onSelectionChange = (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
     onSelectionChange(e.nativeEvent.selection)
   }

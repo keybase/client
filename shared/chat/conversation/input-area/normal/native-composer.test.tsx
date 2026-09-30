@@ -16,6 +16,8 @@ import type * as Metadata from '@/chat/inbox/metadata'
 import type * as MetaModule from '@/constants/chat/meta'
 import type * as FakeInput from '@/test/fake-composer-input'
 import type * as LoggerModule from '@/logger'
+import type * as FakeNavigatorModule from '@/test/fake-navigator'
+import type * as RouterModule from '@/constants/router'
 
 // The composer picks its native or desktop half when its module loads, so the platform globals
 // have to be flipped before anything from the app is required. isIOS stays off: the iOS theme
@@ -717,6 +719,67 @@ test('starting an edit fills the input and focuses it', () => {
 
   expect(input().value).toBe('fix my typo')
   expect(mockFocused).toBe(true)
+})
+
+// The phone message menu is a modal route above the thread. A TextInput focused under it takes
+// first responder unreliably on iOS, so Edit and Reply both focus once it is gone.
+describe('from the message menu', () => {
+  /* eslint-disable @typescript-eslint/no-require-imports */
+  const FakeNav = require('@/test/fake-navigator') as typeof FakeNavigatorModule
+  const Router = require('@/constants/router') as typeof RouterModule
+  /* eslint-enable @typescript-eslint/no-require-imports */
+  const installMenu = () =>
+    FakeNav.installFakeNavigator({
+      modalRouteNames: ['chatMessagePopup'],
+      rootState: FakeNav.makeRootState({
+        above: [{name: 'chatMessagePopup'}],
+        tabStack: [{name: 'chatRoot'}, {name: 'chatConversation', params: {conversationIDKey: convID}}],
+      }),
+    })
+  const addMessage = () => {
+    /* eslint-disable @typescript-eslint/no-require-imports */
+    const {makeMessageText} = require('@/constants/chat/message') as typeof MessageModule
+    const HiddenString = (require('@/util/hidden-string') as typeof HiddenStringModule).default
+    /* eslint-enable @typescript-eslint/no-require-imports */
+    act(() => {
+      threadActions?.addMessages(
+        [
+          makeMessageText({
+            author: 'testuser',
+            conversationIDKey: convID,
+            id: m.T.Chat.numberToMessageID(101),
+            isEditable: true,
+            ordinal: m.T.Chat.numberToOrdinal(101),
+            text: new HiddenString('fix my typo'),
+          }),
+        ],
+        {markAsRead: false}
+      )
+    })
+  }
+  afterEach(() => {
+    FakeNav.restoreNavigator()
+  })
+
+  test.each([
+    ['Edit', () => inputDispatch?.setEditing(m.T.Chat.numberToOrdinal(101))],
+    ['Reply', () => inputDispatch?.reply(m.T.Chat.numberToOrdinal(101))],
+  ])('%s focuses the input only once the menu is gone', (_name, run) => {
+    installMenu()
+    renderComposer()
+    addMessage()
+
+    act(() => {
+      run()
+    })
+    expect(mockFocused).toBe(false)
+
+    act(() => {
+      Router.clearModals()
+    })
+
+    expect(mockFocused).toBe(true)
+  })
 })
 
 describe('typing and the saved draft', () => {
