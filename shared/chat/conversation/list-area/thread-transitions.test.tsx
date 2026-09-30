@@ -1,7 +1,8 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-// The list tests model the thread with threadTransitions. This holds each transition to what the real
-// thread store does, so a list test cannot rest on a state the thread never produces.
+// The scroll-target decision tests model the thread with threadTransitions. This holds each transition
+// to what the real thread store does, so a decision test cannot rest on a state the thread never
+// produces.
 import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
