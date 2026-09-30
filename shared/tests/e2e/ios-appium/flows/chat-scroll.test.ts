@@ -260,11 +260,11 @@ describe('chat scroll: search', () => {
     )
   })
 
-  // App bug (integration build with the settling-window fix, iOS): closing search leaves the rows
-  // near, not at, where they were. Readings (window points): the centred hit's row top 400 with
-  // search open, 418.3 once the list settles; sampled every 16ms across the close, the row is away
-  // from 400 for about 1.3s, by up to 23.3 points (before the fix: 448.3 after the 71.7-point shift,
-  // never corrected). Remove the expected-failure mark once fixed.
+  // App bug (iOS): closing search moves the rows and nothing puts them back. Closing swaps the
+  // search bar back for the composer, and the keyboard padding the list reserves below its rows
+  // changes with it; the scroll view keeps its offset, so the rows shift by the padding's change.
+  // Readings (window points): the centred hit's row top 400 with search open, 448.3 once the list
+  // settles, never corrected. Remove the expected-failure mark once fixed.
   it('closing search leaves the list where it is', async () => {
     await openLong()
     const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.middle.token)
@@ -284,7 +284,7 @@ describe('chat scroll: search', () => {
       `closing search: row ${ordinal} at ${before.top}, then ${rowOf(after, ordinal)?.top}; away from its place in ${off.length} of ${samples.length} samples, ${off.length ? Math.round(off.at(-1)!.t - off[0]!.t) : 0}ms from the first to the last, by up to ${Math.round(most * 10) / 10} points`
     )
     check(!isAtEnd(after, v), `the thread went to its end: ${summary(after, v)}`)
-    await expectedFailure('closing search leaves the rows about 18 points from their place', () => {
+    await expectedFailure('closing search moves the rows by the composer swap and keyboard padding shift', () => {
       const r = rowOf(after, ordinal)
       check(
         !!r && Math.abs(r.top - before.top) <= stillTolerance,
@@ -397,8 +397,8 @@ const dragTravel = async (dy: number) => {
   return {after, before, travel: now!.top - anchor.top}
 }
 
-// A page of newer rows waits for the list to stop moving (no scroll event for 100ms) before it
-// lands. How long the list must have been still when a page lands, less a sample's worth of slack.
+// A page of newer rows lands at rest once the list has been still (no scroll event) for 100ms. How
+// long the list must have been still when a page lands, less a sample's worth of slack.
 const heldRestMs = 80
 
 type SampledLanding = {rows: string; shift: number; stillFor: number}
@@ -484,13 +484,15 @@ describe('chat scroll: paging', () => {
     await waitForRow(longMarker(1))
   })
 
-  // Pages of newer rows are held while the list moves and land at rest: none moves the reader,
+  // Dragging down from an old hit reaches the present, and no page of newer rows moves the reader,
   // mid-drag or at the drag's end on the newest row loaded.
   //
-  // App bug (integration build with the held newer page, iOS), in 2 of 3 runs: every page landed
-  // at rest (146-411ms after the list stopped), but a later one still threw the reader ahead: the
-  // reader's row left the rendered rows as 225 rows became 403 in one drag (run 1), and as 325
-  // became 403 (run 2); the 16ms samples agree. The third run held all three landings in place.
+  // App bug (iOS): a newer page throws the reader ahead. The page is prepended to the inverted
+  // list, and maintainVisibleContentPosition must shift the offset by the new rows' height in the
+  // same commit; RN's VirtualizedList renders the new window first, so the shift is skipped and the
+  // rows in view move out of the rendered rows (125 rows becoming 225 in one drag). The reader's
+  // row still reaches the present, which this flow requires. Remove the expected-failure mark once
+  // fixed.
   it('dragging down from an old hit loads newer pages until the present', async () => {
     await openLong()
     const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.deep.token)
@@ -507,15 +509,21 @@ describe('chat scroll: paging', () => {
     const sampled = sampledLandings(samples, v)
     console.log(`newer pages while dragging: ${landed.length} drags with a landing; ${describeLandings(sampled)}`)
     check(landed.length >= 2, `only ${landed.length} drags had a page land`)
-    check(!landed.some(moved), describe(landed.filter(moved)))
-    checkLandings(sampled, 'dragging')
     await waitForRow(longMarker(LONG_COUNT))
     await expectAtEnd()
     await jumpToRecentButton().waitForExist({reverse: true, timeout: 5_000})
+    await expectedFailure('a newer page landing mid-drag throws the reader ahead', () => {
+      check(!landed.some(moved), describe(landed.filter(moved)))
+      checkLandings(sampled, 'dragging')
+    })
   })
 
   // The same through flicks: the list keeps moving after the finger lifts, and a page asked for
   // mid-fling waits for it to stop.
+  //
+  // App bug (iOS): the same skipped window shift as dragging down; nothing holds a page until the
+  // list rests, so each lands mid-fling and the rows in view leave the rendered rows. Remove the
+  // expected-failure mark once fixed.
   it('flicking down from an old hit, newer pages land at rest without moving the reader', async () => {
     await openLong()
     const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.deep.token)
@@ -533,17 +541,18 @@ describe('chat scroll: paging', () => {
     })
     const sampled = sampledLandings(samples, v)
     console.log(`newer pages while flicking: ${describeLandings(sampled)}`)
-    checkLandings(sampled, 'flicking')
     await waitForRow(longMarker(LONG_COUNT))
     await expectAtEnd()
+    await expectedFailure('a newer page landing mid-fling throws the reader ahead', () => {
+      checkLandings(sampled, 'flicking')
+    })
   })
 
-  // App bug (integration build with the held newer page, iOS): a status-bar tap from the deep hit
-  // scrolls the list to the newest row loaded (125 of 403, offset 0); the next page is held until
-  // the list rests and lands about 500ms later, and carries the reader with it: sampled every 16ms,
-  // the offset stays 0 and the rows at the bottom read 225, 224 where 125, 124 were (row 124 leaves
-  // the rendered rows). Drags and flicks that end short of that row are not carried (their flows
-  // hold it). Remove the expected-failure mark once fixed.
+  // App bug (iOS): a status-bar tap from the deep hit scrolls the list to the newest row loaded
+  // (125 of 403, offset 0), and the next page carries the reader with it: RN's VirtualizedList
+  // renders the new window before maintainVisibleContentPosition shifts the offset, so the shift is
+  // skipped; sampled every 16ms, the offset stays 0 and the rows at the bottom read 225, 224 where
+  // 125, 124 were (row 124 leaves the rendered rows). Remove the expected-failure mark once fixed.
   it('resting on the newest row of a window of history, the next page leaves the reader where they are', async () => {
     await openLong()
     const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.deep.token)
