@@ -194,6 +194,9 @@ test.describe('attachments', () => {
       await expect(row.getByTestId(T.CHAT_ATTACHMENT_IMAGE)).toHaveCount(0)
       await expect(row).toContainText('Collapsed')
       await expect(row).not.toContainText(title)
+      // The collapsed row is shorter, so the thread re-pins its end and the row moves down (about
+      // 145px) just after it collapses; a click aimed before that lands where the icon was.
+      await waitForScrollStable(page)
 
       await clickUnoccluded(collapseIcon(page, ordinal, true))
       await expect(collapseIcon(page, ordinal, false)).toHaveCount(1, {timeout: 10_000})
