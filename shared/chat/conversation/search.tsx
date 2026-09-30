@@ -83,9 +83,7 @@ const runSearchInbox = async (p: {
         },
       },
       opts: {
-        convID: T.Chat.isValidConversationIDKey(conversationIDKey)
-          ? T.Chat.keyToConversationID(conversationIDKey)
-          : new Uint8Array(0),
+        convID: T.Chat.keyToConversationIDOrEmpty(conversationIDKey),
         maxHits: 1000,
       },
       query,

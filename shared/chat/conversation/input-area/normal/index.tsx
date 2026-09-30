@@ -129,9 +129,6 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   )
   const setExplodingModeRaw = useConversationThreadSetExplodingMode()
   const {cannotWrite, minWriterRole} = meta
-  const convoID = T.Chat.isValidConversationIDKey(conversationIDKey)
-    ? T.Chat.keyToConversationID(conversationIDKey)
-    : new Uint8Array(0)
   const metaGood = meta.conversationIDKey === conversationIDKey
   const storeDraft = metaGood ? meta.draft : undefined
   const convRetention =
@@ -175,7 +172,10 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
 
   const sendTypingRaw = (typing: boolean) => {
     const f = async () => {
-      await T.RPCChat.localUpdateTypingRpcPromise({conversationID: convoID, typing})
+      await T.RPCChat.localUpdateTypingRpcPromise({
+        conversationID: T.Chat.keyToConversationIDOrEmpty(conversationIDKey),
+        typing,
+      })
     }
     C.ignorePromise(f())
   }

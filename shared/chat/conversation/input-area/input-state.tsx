@@ -116,6 +116,7 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
   // The account this composer was mounted for. After an account switch the service saves drafts
   // for the next account, so the unmount flush of a draft typed here must not save it there.
   const [composerUid] = React.useState(() => useCurrentUserState.getState().uid)
+  const getMeta = () => useInboxMetadataState.getState().metas.get(id)
   const saveDraftRaw = (text: string) => {
     if (useCurrentUserState.getState().uid !== composerUid) {
       return
@@ -123,13 +124,13 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
     // Immediately update local meta.draft so switching back to this thread
     // before the async unbox completes won't re-inject the old stale draft.
     // Merges from the current meta (same inbox version), so force past gating.
-    const currentMeta = useInboxMetadataState.getState().metas.get(id)
+    const currentMeta = getMeta()
     if (currentMeta) {
       metasReceived([{...currentMeta, draft: text}], undefined, {force: true})
     }
     const f = async () => {
       await T.RPCChat.localUpdateUnsentTextRpcPromise({
-        conversationID: T.Chat.isValidConversationIDKey(id) ? T.Chat.keyToConversationID(id) : new Uint8Array(0),
+        conversationID: T.Chat.keyToConversationIDOrEmpty(id),
         text,
         tlfName: currentMeta?.tlfname ?? '',
       })
@@ -143,7 +144,7 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
       flushDraft: () => {
         saveDraft.flush()
       },
-      isReadOnly: () => !!useInboxMetadataState.getState().metas.get(id)?.cannotWrite,
+      isReadOnly: () => !!getMeta()?.cannotWrite,
       saveDraft: text => {
         saveDraft(text)
       },
