@@ -1550,6 +1550,64 @@ describe('reply', () => {
     expect(composerInput.focusCount).toBe(1)
   })
 
+  // one wait at a time: a Reply replaces the one before it
+  test('a second Reply under the menu leaves one wait, and focuses once', () => {
+    const nav = installThread({query: 'needle'}, convID, true)
+    const {composerInput, result} = renderInput()
+
+    act(() => {
+      result.current.dispatch.reply(replyOrdinal)
+    })
+    act(() => {
+      result.current.dispatch.reply(replyOrdinal)
+    })
+    expect(nav.listenerCount()).toBe(1)
+
+    act(() => {
+      clearModals()
+    })
+
+    expect(composerInput.focusCount).toBe(1)
+    expect(nav.listenerCount()).toBe(0)
+  })
+
+  // a menu gone much later is no longer the moment the user asked for the keyboard
+  test('a menu that stays up past a second drops the focus', () => {
+    jest.useFakeTimers()
+    try {
+      const nav = installThread({query: 'needle'}, convID, true)
+      const {composerInput, result} = renderInput()
+      act(() => {
+        result.current.dispatch.reply(replyOrdinal)
+      })
+
+      act(() => {
+        jest.advanceTimersByTime(1001)
+      })
+      expect(nav.listenerCount()).toBe(0)
+      act(() => {
+        clearModals()
+      })
+
+      expect(composerInput.focusCount).toBe(0)
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  test('leaving the conversation drops the wait', () => {
+    const nav = installThread({query: 'needle'}, convID, true)
+    const {result, unmount} = renderInput()
+    act(() => {
+      result.current.dispatch.reply(replyOrdinal)
+    })
+    expect(nav.listenerCount()).toBe(1)
+
+    unmount()
+
+    expect(nav.listenerCount()).toBe(0)
+  })
+
   // mobile thread search shows in place of the composer, so a Reply from a hit finds no input;
   // closing search brings the composer back
   test('with no input attached, the input is focused once the composer comes back', () => {

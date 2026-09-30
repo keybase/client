@@ -175,6 +175,19 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
   const setGiphyWindow = React.useEffectEvent((show: boolean) => {
     dispatchState({show, type: 'setGiphyWindow'})
   })
+  // A reply focuses the composer once the modal it came from (the phone message menu)
+  // is gone: a TextInput focused under a modal that is still presented takes first responder
+  // unreliably on iOS. Leaving the conversation drops a wait still pending.
+  const cancelFocusRef = React.useRef<() => void>(undefined)
+  const focusOnceModalsGone = () => {
+    cancelFocusRef.current = whenModalsGone(() => composer.focus())
+  }
+  React.useEffect(
+    () => () => {
+      cancelFocusRef.current?.()
+    },
+    [id]
+  )
   const reply = React.useEffectEvent((ordinal: T.Chat.Ordinal) => {
     if (!composer.startReply()) {
       logger.info('[chat] reply refused: the conversation is read-only')
@@ -182,9 +195,7 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
     }
     dispatchState({ordinal, type: 'setReplyTo'})
     closeConversationThreadSearch(id)
-    // a TextInput focused under a modal that is still presented (the phone message menu) takes
-    // first responder unreliably on iOS
-    whenModalsGone(() => composer.focus())
+    focusOnceModalsGone()
   })
   const clearReplyTo = React.useEffectEvent(() => {
     dispatchState({ordinal: emptyOrdinal, type: 'setReplyTo'})
