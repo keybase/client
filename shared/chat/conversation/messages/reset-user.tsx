@@ -2,26 +2,27 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {navToProfile} from '@/constants/router'
-import {useConversationThreadActions, useConversationThreadID, useThreadMeta} from '../thread-context'
-import {unlessRetired} from '../thread-store'
+import {useConversationThreadID, useThreadMeta, useThreadRpc} from '../thread-context'
 import {useConversationParticipants} from '../data-hooks'
 import {refreshConversationParticipants} from '@/chat/inbox/refresh-participants'
-import {getChatRpc} from '../chat-rpc'
+import {getChatRpc, type ChatThreadRpc} from '../chat-rpc'
 
 // Letting a reset user back in puts them back in the conversation, and nothing
 // recomputes its participants on its own - see refreshConversationParticipants.
+// rpc: a thread screen's own (useThreadRpc)
 export const addTeamMemberAfterReset = async (
   conversationIDKey: T.Chat.ConversationIDKey,
-  username: string
+  username: string,
+  rpc: ChatThreadRpc = getChatRpc()
 ) => {
-  await getChatRpc().addTeamMemberAfterReset(conversationIDKey, username)
+  await rpc.addTeamMemberAfterReset(conversationIDKey, username)
   await refreshConversationParticipants([conversationIDKey])
 }
 
 const ResetUser = () => {
   const styles = useStyles()
   const conversationIDKey = useConversationThreadID()
-  const {isRetired} = useConversationThreadActions()
+  const rpc = useThreadRpc()
   const participantInfo = useConversationParticipants(conversationIDKey)
   const _participants = participantInfo.all
   const _resetParticipants = useThreadMeta(m => m.resetParticipants)
@@ -36,15 +37,9 @@ const ResetUser = () => {
       reason: 'resetChatWithoutThem',
     })
   }
-  // a screen kept through an account switch lets no one in
-  const {letThemIn} = unlessRetired(
-    {
-      letThemIn: () => {
-        C.ignorePromise(addTeamMemberAfterReset(conversationIDKey, username))
-      },
-    },
-    isRetired
-  )
+  const letThemIn = () => {
+    C.ignorePromise(addTeamMemberAfterReset(conversationIDKey, username, rpc))
+  }
   const viewProfile = () => _viewProfile(username)
 
   return (

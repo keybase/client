@@ -4,7 +4,7 @@ import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {ignorePromise} from '@/constants/utils'
 import {getClientPrevFromThread} from './client-prev'
-import {getChatRpc, type PostTextParams} from './chat-rpc'
+import {getChatRpc, type ChatThreadRpc, type PostTextParams} from './chat-rpc'
 import {removeDismissals, restoreDismissals, suppressedURLsOf, type SuppressSnapshot} from './unfurl-preview-state'
 import {useInboxMetadataState} from '../inbox/metadata-store'
 import {
@@ -12,21 +12,20 @@ import {
   useConversationThreadID,
   useConversationThreadStore,
 } from './thread-context'
-import {unlessRetired} from './thread-store'
 
 type SendTextParams = Omit<PostTextParams, 'onStellarCanceled'> & {
   onRestoreText?: (text: string) => void
   onSent?: () => void
 }
 
-const sendTextMessageStoreless = (p: SendTextParams) => {
+const sendText = (rpc: ChatThreadRpc, p: SendTextParams) => {
   const f = async () => {
     const {onRestoreText, onSent, ...params} = p
     // a canceled stellar confirm resolves the rpc normally but posts nothing, so it is
     // not a send and must not be treated as one
     const sendState = {stellarCanceled: false}
     try {
-      await getChatRpc().postText({
+      await rpc.postText({
         ...params,
         onStellarCanceled: () => {
           sendState.stellarCanceled = true
@@ -45,23 +44,28 @@ const sendTextMessageStoreless = (p: SendTextParams) => {
   ignorePromise(f())
 }
 
+// never exploding, and with no clientPrev
+const plainText = (conversationIDKey: T.Chat.ConversationIDKey, tlfName: string, text: string) => ({
+  clientPrev: T.Chat.numberToMessageID(0),
+  conversationIDKey,
+  ephemeralLifetime: 0,
+  text,
+  tlfName,
+})
+
 export const sendTextToConversation = (
   conversationIDKey: T.Chat.ConversationIDKey,
   tlfName: string,
   text: string
 ) => {
-  sendTextMessageStoreless({
-    clientPrev: T.Chat.numberToMessageID(0),
-    conversationIDKey,
-    ephemeralLifetime: 0,
-    text,
-    tlfName,
-  })
+  sendText(getChatRpc(), plainText(conversationIDKey, tlfName, text))
 }
 
+// A screen kept through an account switch sends nothing: every call goes through the thread's rpc.
 export const useConversationSendActions = () => {
   const conversationIDKey = useConversationThreadID()
   const actions = useConversationThreadActions()
+  const {rpc} = actions
   // Callbacks-only hook: read thread/meta state lazily so per-row callers
   // (coinflip rows, the input provider) don't re-render on thread churn.
   const threadStore = useConversationThreadStore()
@@ -87,7 +91,7 @@ export const useConversationSendActions = () => {
     actions.setMessageSubmitState(ordinal, 'editing')
     const f = async () => {
       try {
-        await getChatRpc().postEdit({
+        await rpc.postEdit({
           clientPrev: getClientPrev(),
           conversationIDKey,
           messageID: message.id,
@@ -135,7 +139,7 @@ export const useConversationSendActions = () => {
     const snapshot = context?.unfurlSuppress ?? {dismissed: [], failed: []}
     const unfurlSuppress = suppressedURLsOf(snapshot)
     const onRestoreText = context?.onRestoreText
-    sendTextMessageStoreless({
+    sendText(rpc, {
       clientPrev: getClientPrev(),
       conversationIDKey,
       ephemeralLifetime: threadStore.getState().explodingMode,
@@ -160,13 +164,10 @@ export const useConversationSendActions = () => {
   const sendGiphyResult = (result: T.RPCChat.GiphySearchResult, replyToOrdinal?: T.Chat.Ordinal) => {
     const f = async () => {
       try {
-        await getChatRpc().trackGiphySelect(result)
+        await rpc.trackGiphySelect(result)
       } catch {}
-      if (actions.isRetired()) {
-        return
-      }
       const replyTo = threadStore.getState().messageMap.get(replyToOrdinal ?? T.Chat.numberToOrdinal(0))?.id
-      sendTextMessageStoreless({
+      sendText(rpc, {
         clientPrev: getClientPrev(),
         conversationIDKey,
         ephemeralLifetime: threadStore.getState().explodingMode,
@@ -187,11 +188,13 @@ export const useConversationSendActions = () => {
     }
 
     try {
-      const callerPreview = await getChatRpc().makeAudioPreview(amps, duration)
+      const callerPreview = await rpc.makeAudioPreview(amps, duration)
+      // The thread's rpc would post nothing now, but it would never answer either: return, so the
+      // recorder waiting on this send still cleans up after itself.
       if (actions.isRetired()) {
         return
       }
-      await getChatRpc().postAttachment({
+      await rpc.postAttachment({
         callerPreview,
         clientPrev: getClientPrev(),
         conversationIDKey,
@@ -212,9 +215,8 @@ export const useConversationSendActions = () => {
 
   // a plain wave: never exploding, whatever the composer's mode
   const sendWave = () => {
-    sendTextToConversation(conversationIDKey, getTlfName(), ':wave:')
+    sendText(rpc, plainText(conversationIDKey, getTlfName(), ':wave:'))
   }
 
-  // a screen kept through an account switch sends nothing, here or after an await above
-  return unlessRetired({sendAudioRecording, sendGiphyResult, sendMessage, sendWave}, actions.isRetired)
+  return {sendAudioRecording, sendGiphyResult, sendMessage, sendWave}
 }

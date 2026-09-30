@@ -15,6 +15,7 @@ import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {getChatRpc} from './chat-rpc'
 import {getClientPrevFromThread} from './client-prev'
 import {
   attachmentDownloadMessage,
@@ -197,7 +198,7 @@ describe('makePasteAttachment', () => {
   test('writes the paste to a temp file and opens the titles screen with it', async () => {
     rpc.on('makeUploadTempFile', () => '/tmp/paste.png')
     const data = new Uint8Array([9, 9])
-    makePasteAttachment(convKey, data)
+    makePasteAttachment(convKey, data, getChatRpc())
     await flushPromises()
 
     expect(rpc.params('makeUploadTempFile')).toEqual([
@@ -213,7 +214,7 @@ describe('makePasteAttachment', () => {
   test('a failed temp file never opens the titles screen', async () => {
     rpc.fail('makeUploadTempFile', new Error('disk'))
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
-    makePasteAttachment(convKey, new Uint8Array())
+    makePasteAttachment(convKey, new Uint8Array(), getChatRpc())
     await flushPromises()
     expect(navigateAppend).not.toHaveBeenCalled()
     expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(Error))

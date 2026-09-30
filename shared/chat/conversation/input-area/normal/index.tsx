@@ -30,8 +30,6 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useRoute} from '@react-navigation/native'
 import {metasReceived, unboxRows, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {takeSuppressSnapshot} from '@/chat/conversation/unfurl-preview-state'
-import {getChatRpc} from '../../chat-rpc'
-import {unlessRetired} from '../../thread-store'
 
 const useHintText = (p: {
   isExploding: boolean
@@ -165,7 +163,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     }))
   )
   const setExplodingModeRaw = useConversationThreadSetExplodingMode()
-  const {isRetired} = useConversationThreadActions()
+  const {isRetired, rpc} = useConversationThreadActions()
   const {cannotWrite, minWriterRole, tlfname} = meta
   const metaGood = meta.conversationIDKey === conversationIDKey
   const storeDraft = metaGood ? meta.draft : undefined
@@ -234,33 +232,31 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   // throttled draft-save path rather than from onChangeText, so the composer does not
   // re-render on every keystroke. The preview debounces another 500ms downstream anyway.
   const [previewText, setPreviewText] = React.useState('')
-  // a composer kept through an account switch sends no typing and saves no draft, not even the
-  // unmount flush of one typed here: the service would save it for the next account
-  const {sendTypingRaw, updateDraftRaw} = unlessRetired(
-    {
-      sendTypingRaw: (typing: boolean) => {
-        const f = async () => {
-          await getChatRpc().setTyping(conversationIDKey, typing)
-        }
-        C.ignorePromise(f())
-      },
-      updateDraftRaw: (text: string) => {
-        // Immediately update local meta.draft so switching back to this thread
-        // before the async unbox completes won't re-inject the old stale draft.
-        // Merges from the current meta (same inbox version), so force past gating.
-        const currentMeta = useInboxMetadataState.getState().metas.get(conversationIDKey)
-        if (currentMeta) {
-          metasReceived([{...currentMeta, draft: text}], undefined, {force: true})
-        }
-        setPreviewText(text)
-        const f = async () => {
-          await getChatRpc().saveDraft({conversationIDKey, text, tlfName: tlfname})
-        }
-        C.ignorePromise(f())
-      },
-    },
-    isRetired
-  )
+  const sendTypingRaw = (typing: boolean) => {
+    const f = async () => {
+      await rpc.setTyping(conversationIDKey, typing)
+    }
+    C.ignorePromise(f())
+  }
+  const updateDraftRaw = (text: string) => {
+    // The unmount flush below runs when an account switch takes this screen down, after its thread
+    // has retired: a draft typed here is not the next account's, locally or in the service.
+    if (isRetired()) {
+      return
+    }
+    // Immediately update local meta.draft so switching back to this thread
+    // before the async unbox completes won't re-inject the old stale draft.
+    // Merges from the current meta (same inbox version), so force past gating.
+    const currentMeta = useInboxMetadataState.getState().metas.get(conversationIDKey)
+    if (currentMeta) {
+      metasReceived([{...currentMeta, draft: text}], undefined, {force: true})
+    }
+    setPreviewText(text)
+    const f = async () => {
+      await rpc.saveDraft({conversationIDKey, text, tlfName: tlfname})
+    }
+    C.ignorePromise(f())
+  }
   const sendTyping = C.useThrottledCallback(sendTypingRaw, 1000)
   // flushOnUnmount: leaving the conversation must still save what was typed in the last 200ms
   const updateDraft = C.useThrottledCallback(updateDraftRaw, 200, {flushOnUnmount: true, trailing: true})

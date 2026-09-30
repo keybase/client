@@ -2,7 +2,7 @@
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
-import {chatRpcCall, getChatRpc, setChatRpc} from './chat-rpc'
+import {chatRpcCall, getChatRpc, makeThreadChatRpc, setChatRpc} from './chat-rpc'
 import {makeFakeChatRpc, restoreChatRpc} from '@/test/fake-chat-rpc'
 import {threadLoadReasonToRPCReason} from './thread-load'
 
@@ -725,5 +725,34 @@ describe('chatRpcCall', () => {
       title: '',
     })
     expect(fake.calls('forwardMessage')).toHaveLength(1)
+  })
+})
+
+describe('makeThreadChatRpc', () => {
+  afterEach(() => {
+    restoreChatRpc()
+  })
+
+  test('reaches the current adapter until its thread retires, then asks nothing and never settles', async () => {
+    let retired = false
+    const threadRpc = makeThreadChatRpc(() => retired)
+    const fake = makeFakeChatRpc()
+    setChatRpc(fake)
+    const helpers = ['calls', 'clearLog', 'fail', 'failOnce', 'log', 'on', 'once', 'params']
+    expect(Object.keys(threadRpc).sort()).toEqual(Object.keys(fake).filter(k => !helpers.includes(k)).sort())
+
+    await threadRpc.pinMessage(conversationIDKey, T.Chat.numberToMessageID(1))
+    expect(fake.calls('pinMessage')).toHaveLength(1)
+
+    retired = true
+    let settled = false
+    void threadRpc.pinMessage(conversationIDKey, T.Chat.numberToMessageID(2)).finally(() => {
+      settled = true
+    })
+    for (let i = 0; i < 10; i++) {
+      await Promise.resolve()
+    }
+    expect(fake.calls('pinMessage')).toHaveLength(1)
+    expect(settled).toBe(false)
   })
 })

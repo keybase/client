@@ -3,9 +3,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import ParticipantRekey from './participant-rekey'
 import YouRekey from './you-rekey'
 import {navToProfile} from '@/constants/router'
-import {useConversationThreadActions, useThreadMeta} from '../thread-context'
-import {unlessRetired} from '../thread-store'
-import {getChatRpc} from '../chat-rpc'
+import {useThreadMeta, useThreadRpc} from '../thread-context'
 
 const Container = () => {
   const _you = useCurrentUserState(s => s.username)
@@ -15,16 +13,10 @@ const Container = () => {
   const onEnterPaperkey = () => {
     navigateAppend({name: 'chatEnterPaperkey', params: {}})
   }
-  const {isRetired} = useConversationThreadActions()
-  // a screen kept through an account switch asks for no rekey
-  const {onRekey} = unlessRetired(
-    {
-      onRekey: () => {
-        C.ignorePromise(getChatRpc().showPendingRekeyStatus())
-      },
-    },
-    isRetired
-  )
+  const rpc = useThreadRpc()
+  const onRekey = () => {
+    C.ignorePromise(rpc.showPendingRekeyStatus())
+  }
 
   const onShowProfile = navToProfile
 

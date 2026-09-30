@@ -5,9 +5,9 @@
 // - {ordinal, thread}: a row in a mounted thread (useThreadMessageTarget builds it). The message is
 //   read from the thread store at call time, and the store is updated around the call (the
 //   deleting state and its revert, the optimistic reaction, dropping a cancelled or dismissed row).
-//   A thread whose account has left (thread.isRetired) does nothing, the service included: its
-//   conversation id can name the next account's copy of a shared team channel. Every command
-//   reaches a thread row through onTarget, which gates it with the store's unlessRetired.
+//   The service is asked through the thread's rpc, which, like the store's actions, does nothing
+//   once the thread's account has left: its conversation id can name the next account's copy of a
+//   shared team channel.
 // - {message} or {messageID}: a message held outside any thread (a popup opened from search, the
 //   emoji picker). Only the service is told; there is no store to update.
 import * as Common from '@/constants/chat/common'
@@ -20,12 +20,12 @@ import {navigateToThread} from '@/constants/router'
 import {useCurrentUserState} from '@/stores/current-user'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
-import {getChatRpc} from './chat-rpc'
+import {getChatRpc, type ChatThreadRpc} from './chat-rpc'
 import {getClientPrevFromThread, getConversationClientPrev} from './client-prev'
 import {getMeta} from './thread-load'
 import {applyOptimisticReactionsToMessage} from './thread-message-state'
 import {useConversationThreadActions, useConversationThreadID} from './thread-context'
-import {unlessRetired, type ConversationThreadActions} from './thread-store'
+import type {ConversationThreadActions} from './thread-store'
 
 // The slice of a mounted thread the commands read and write.
 export type MessageCommandThread = Pick<
@@ -34,9 +34,9 @@ export type MessageCommandThread = Pick<
   | 'addPendingDelete'
   | 'deleteMessages'
   | 'getSnapshot'
-  | 'isRetired'
   | 'removeOptimisticReaction'
   | 'removePendingDelete'
+  | 'rpc'
 >
 
 // Every target names its conversation.
@@ -66,15 +66,14 @@ export const useThreadMessageTarget = (ordinal: T.Chat.Ordinal): ThreadMessage =
 
 const isThread = (target: object): target is ThreadMessage => 'thread' in target
 
-// Runs a command on its target: a thread row only while its thread has not retired, anything else
-// as it is. A thread-only command passes never for Storeless.
+// Runs a command's thread or storeless arm. A thread-only command passes never for Storeless.
 const onTarget = <Storeless extends object>(
   target: ThreadMessage | Storeless,
   onThread: (target: ThreadMessage) => void,
   onStoreless: (target: Storeless) => void
 ) => {
   if (isThread(target)) {
-    unlessRetired({onThread}, target.thread.isRetired).onThread(target)
+    onThread(target)
   } else {
     onStoreless(target)
   }
@@ -97,9 +96,10 @@ const deleteConversationMessage = async (p: {
   onNotDeleted?: () => void
   // the delete's own
   outboxID: T.RPCChat.OutboxID
+  rpc: ChatThreadRpc
   tlfName?: string
 }) => {
-  const {conversationIDKey, message, onCancelled, onNotDeleted, outboxID} = p
+  const {conversationIDKey, message, onCancelled, onNotDeleted, outboxID, rpc} = p
   const bail = (reason: string) => {
     logger.warn(`deleteMessage: ${reason}`)
     onNotDeleted?.()
@@ -114,14 +114,14 @@ const deleteConversationMessage = async (p: {
         bail('no message id or outbox id')
         return
       }
-      await getChatRpc().cancelPost(message.outboxID)
+      await rpc.cancelPost(message.outboxID)
       onCancelled?.()
       return
     }
     // With no meta (a popup opened from search or the pinned banner) the service fills in the tlf name.
     const tlfName = p.tlfName || getInboxConversationMeta(conversationIDKey)?.tlfname || ''
     // a successful delete leaves a thread's row deleting; the service's delete notification removes it
-    await getChatRpc().postDelete({conversationIDKey, messageID: message.id, outboxID, tlfName})
+    await rpc.postDelete({conversationIDKey, messageID: message.id, outboxID, tlfName})
   } catch (error) {
     onNotDeleted?.()
     if (error instanceof RPCError) {
@@ -160,10 +160,11 @@ export const deleteMessage = (target: ThreadMessage | StorelessMessage) => {
           // drops only this call's entry, so another delete of the row still pending keeps it deleting
           onNotDeleted: () => thread.removePendingDelete(deleteOutboxID),
           outboxID,
+          rpc: thread.rpc,
         })
       )
     },
-    storeless => ignorePromise(deleteConversationMessage({...storeless, outboxID}))
+    storeless => ignorePromise(deleteConversationMessage({...storeless, outboxID, rpc: getChatRpc()}))
   )
 }
 
@@ -237,7 +238,7 @@ const toggleThreadReaction = (target: ThreadMessage, emoji: string) => {
       username,
     })
     try {
-      await getChatRpc().postReaction({
+      await thread.rpc.postReaction({
         clientPrev: getClientPrevFromThread(snapshot.messageMap, snapshot.messageOrdinals),
         conversationIDKey,
         emoji,
@@ -305,19 +306,19 @@ export const replyPrivately = (target: ThreadMessage | StorelessMessage) => {
         logger.warn("replyPrivately: can't find message to reply to", ordinal)
         return
       }
-      replyPrivatelyTo(message)
+      replyPrivatelyTo(message, thread.rpc)
     },
-    storeless => replyPrivatelyTo(storeless.message)
+    storeless => replyPrivatelyTo(storeless.message, getChatRpc())
   )
 }
 
-const replyPrivatelyTo = (message: T.Chat.Message) => {
+const replyPrivatelyTo = (message: T.Chat.Message, rpc: ChatThreadRpc) => {
   const f = async () => {
     const username = useCurrentUserState.getState().username
     if (!username) {
       throw new Error('replyPrivately: making a convo while logged out?')
     }
-    const result = await getChatRpc().createAdhocConversation(
+    const result = await rpc.createAdhocConversation(
       [username, message.author],
       Strings.waitingKeyChatCreating
     )
@@ -362,7 +363,7 @@ const toggleThreadCollapse = ({conversationIDKey, ordinal, thread}: ThreadMessag
       }
     }
     try {
-      await getChatRpc().toggleCollapse({collapse: !isCollapsed, conversationIDKey, messageID})
+      await thread.rpc.toggleCollapse({collapse: !isCollapsed, conversationIDKey, messageID})
     } catch (error) {
       if (error instanceof RPCError) {
         logger.warn(`toggleCollapse: failed to toggle collapse: ${error.message}`)
@@ -376,10 +377,18 @@ const toggleThreadCollapse = ({conversationIDKey, ordinal, thread}: ThreadMessag
 
 // messageID is the unfurl's own message.
 export const removeUnfurl = (target: ThreadMessage, messageID: T.Chat.MessageID) => {
-  onTarget<never>(target, ({conversationIDKey}) => removeConversationUnfurl(conversationIDKey, messageID), threadOnly)
+  onTarget<never>(
+    target,
+    ({conversationIDKey, thread}) => removeConversationUnfurl(conversationIDKey, messageID, thread.rpc),
+    threadOnly
+  )
 }
 
-const removeConversationUnfurl = (conversationIDKey: T.Chat.ConversationIDKey, messageID: T.Chat.MessageID) => {
+const removeConversationUnfurl = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  messageID: T.Chat.MessageID,
+  rpc: ChatThreadRpc
+) => {
   const f = async () => {
     const meta = getInboxConversationMeta(conversationIDKey)
     if (!meta) {
@@ -387,7 +396,7 @@ const removeConversationUnfurl = (conversationIDKey: T.Chat.ConversationIDKey, m
       return
     }
     try {
-      await getChatRpc().postDelete({conversationIDKey, messageID, tlfName: meta.tlfname})
+      await rpc.postDelete({conversationIDKey, messageID, tlfName: meta.tlfname})
     } catch (error) {
       if (error instanceof RPCError) {
         logger.warn(`removeUnfurl: failed to remove unfurl: ${error.message}`)
@@ -409,16 +418,20 @@ export const pinMessage = (target: ThreadMessage | StorelessMessageID) => {
         logger.warn('pinMessage: message has no id in the thread')
         return
       }
-      pinConversationMessage(conversationIDKey, messageID)
+      pinConversationMessage(conversationIDKey, messageID, thread.rpc)
     },
-    ({conversationIDKey, messageID}) => pinConversationMessage(conversationIDKey, messageID)
+    ({conversationIDKey, messageID}) => pinConversationMessage(conversationIDKey, messageID, getChatRpc())
   )
 }
 
-const pinConversationMessage = (conversationIDKey: T.Chat.ConversationIDKey, messageID: T.Chat.MessageID) => {
+const pinConversationMessage = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  messageID: T.Chat.MessageID,
+  rpc: ChatThreadRpc
+) => {
   const f = async () => {
     try {
-      await getChatRpc().pinMessage(conversationIDKey, messageID)
+      await rpc.pinMessage(conversationIDKey, messageID)
     } catch (error) {
       if (error instanceof RPCError) {
         logger.error(`pinConversationMessage: ${error.message}`)
@@ -437,20 +450,22 @@ export const dismissJourneycard = (
     target,
     ({conversationIDKey, ordinal, thread}) =>
       ignorePromise(
-        dismissConversationJourneycard(conversationIDKey, cardType, () =>
+        dismissConversationJourneycard(conversationIDKey, cardType, thread.rpc, () =>
           thread.deleteMessages({ordinals: [ordinal]})
         )
       ),
-    ({conversationIDKey}) => ignorePromise(dismissConversationJourneycard(conversationIDKey, cardType))
+    ({conversationIDKey}) =>
+      ignorePromise(dismissConversationJourneycard(conversationIDKey, cardType, getChatRpc()))
   )
 }
 
 const dismissConversationJourneycard = async (
   conversationIDKey: T.Chat.ConversationIDKey,
   cardType: T.RPCChat.JourneycardType,
+  rpc: ChatThreadRpc,
   onAnswered?: () => void
 ) => {
-  await getChatRpc()
+  await rpc
     .dismissJourneycard(conversationIDKey, cardType)
     .catch((error: unknown) => {
       if (error instanceof RPCError) {

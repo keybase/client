@@ -1,9 +1,17 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
+import type * as ChatRpcT from '@/chat/conversation/chat-rpc'
 let mockRetired = false
+// the thread's rpc, which retires with the thread
+let mockRpc: ChatRpcT.ChatThreadRpc | undefined
+const mockThreadRpc = () =>
+  (mockRpc ??= jest
+    .requireActual<typeof ChatRpcT>('@/chat/conversation/chat-rpc')
+    .makeThreadChatRpc(() => mockRetired))
 
 jest.mock('../thread-context', () => ({
-  useConversationThreadActions: () => ({isRetired: () => mockRetired}),
+  useConversationThreadActions: () => ({isRetired: () => mockRetired, rpc: mockThreadRpc()}),
+  useThreadRpc: () => mockThreadRpc(),
   useThreadMeta: (sel: (m: {rekeyers: Set<string>}) => unknown) => sel({rekeyers: new Set(['testuser'])}),
 }))
 

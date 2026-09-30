@@ -685,6 +685,19 @@ export const chatRpcCall = Object.fromEntries(
   (Object.keys(serviceChatRpc) as Array<keyof ChatThreadRpc>).map(key => [key, callAtCallTime(key)])
 ) as unknown as ChatThreadRpc
 
+// The chat RPCs as one thread's screen makes them. Each looks up the current adapter when it is
+// called, until isRetired says the thread's account has left: from then on a call asks the service
+// nothing and returns a promise that never settles, so nothing awaiting it runs either. The thread
+// provider builds one per store (useThreadRpc); a continuation already past its await when the
+// account leaves still checks for itself.
+export const makeThreadChatRpc = (isRetired: () => boolean): ChatThreadRpc =>
+  Object.fromEntries(
+    (Object.keys(serviceChatRpc) as Array<keyof ChatThreadRpc>).map(key => {
+      const call = callAtCallTime(key)
+      return [key, (...args: ReadonlyArray<unknown>) => (isRetired() ? new Promise(() => {}) : call(...args))]
+    })
+  ) as unknown as ChatThreadRpc
+
 // Swaps in another adapter - the in-memory fake in tests. Passing nothing restores the service one.
 export const setChatRpc = (rpc?: ChatThreadRpc) => {
   currentChatRpc = rpc ?? serviceChatRpc

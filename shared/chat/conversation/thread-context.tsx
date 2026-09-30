@@ -11,13 +11,11 @@ import {useStore} from 'zustand'
 import {useIsFocused, useNavigation} from '@react-navigation/core'
 import {applyOptimisticReactionsToMessage, isPendingDelete} from './thread-message-state'
 import {getInboxConversationParticipants, unboxRows, useInboxMetadataState} from '@/chat/inbox/metadata'
-import {getChatRpc} from './chat-rpc'
 import {emptyConversationMeta, numMessagesOnInitialLoad, numMessagesOnScrollback} from './thread-load'
 import {useThreadEngineListeners} from './thread-engine'
 import {useThreadNotifications, type ThreadNotification} from '@/chat/notification-registry'
 import {
   makeThreadStore,
-  unlessRetired,
   type ConversationThreadActions,
   type ConversationThreadState,
   type ThreadLoadStatusOptions,
@@ -93,6 +91,10 @@ export const useConversationThreadActions = () => {
   }
   return actions
 }
+
+// What a screen inside the thread asks of the service. It asks nothing once the thread has retired,
+// which is what keeps a screen kept through an account switch from acting for the next account.
+export const useThreadRpc = () => useConversationThreadActions().rpc
 
 // A screen's own handler for its thread's notifications (the composer's command status and giphy,
 // the bot-command status). Registrations are keyed by conversation id alone, so until the provider
@@ -436,13 +438,12 @@ export const useConversationThreadSelectedConversation = () => {
 
 export const useConversationThreadUnfurlResolvePrompt = () => {
   const conversationIDKey = useConversationThreadID()
-  const {clearUnfurlPrompt, isRetired} = useConversationThreadActions()
-  const resolve = (messageID: T.Chat.MessageID, domain: string, result: T.RPCChat.UnfurlPromptResult) => {
+  const {clearUnfurlPrompt, rpc} = useConversationThreadActions()
+  return (messageID: T.Chat.MessageID, domain: string, result: T.RPCChat.UnfurlPromptResult) => {
     clearUnfurlPrompt(messageID, domain)
     const f = async () => {
-      await getChatRpc().resolveUnfurlPrompt({conversationIDKey, messageID, result})
+      await rpc.resolveUnfurlPrompt({conversationIDKey, messageID, result})
     }
     ignorePromise(f())
   }
-  return unlessRetired({resolve}, isRetired).resolve
 }

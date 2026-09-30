@@ -7,11 +7,9 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useChatTeam} from './team-hooks'
 import {ZoomedImage} from './common'
 import {useConversationCenterActions} from './center-context'
-import {useConversationThreadActions, useConversationThreadID, useThreadMeta} from './thread-context'
-import {unlessRetired} from './thread-store'
+import {useConversationThreadID, useThreadMeta, useThreadRpc} from './thread-context'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
-import {getChatRpc} from './chat-rpc'
 
 const PinnedMessage = function PinnedMessage() {
   const styles = useStyles()
@@ -25,7 +23,7 @@ const PinnedMessage = function PinnedMessage() {
     }))
   )
   const {centerOnMessage} = useConversationCenterActions()
-  const {isRetired} = useConversationThreadActions()
+  const rpc = useThreadRpc()
   const you = useCurrentUserState(s => s.username)
   const {yourOperations} = useChatTeam(teamID, teamname)
   const unpinning = C.Waiting.useAnyWaiting(C.waitingKeyChatUnpin(conversationIDKey))
@@ -46,30 +44,24 @@ const PinnedMessage = function PinnedMessage() {
       centerOnMessage(messageID, 'flash')
     }
   }
-  // a screen kept through an account switch unpins and ignores nothing
-  const {onIgnore, onUnpin} = unlessRetired(
-    {
-      onIgnore: () => {
-        const f = async () => {
-          await getChatRpc().ignorePinnedMessage(conversationIDKey)
+  const onIgnore = () => {
+    const f = async () => {
+      await rpc.ignorePinnedMessage(conversationIDKey)
+    }
+    C.ignorePromise(f())
+  }
+  const onUnpin = () => {
+    const f = async () => {
+      try {
+        await rpc.unpinMessage(conversationIDKey, C.waitingKeyChatUnpin(conversationIDKey))
+      } catch (error) {
+        if (error instanceof RPCError) {
+          logger.error(`pinMessage: ${error.message}`)
         }
-        C.ignorePromise(f())
-      },
-      onUnpin: () => {
-        const f = async () => {
-          try {
-            await getChatRpc().unpinMessage(conversationIDKey, C.waitingKeyChatUnpin(conversationIDKey))
-          } catch (error) {
-            if (error instanceof RPCError) {
-              logger.error(`pinMessage: ${error.message}`)
-            }
-          }
-        }
-        C.ignorePromise(f())
-      },
-    },
-    isRetired
-  )
+      }
+    }
+    C.ignorePromise(f())
+  }
   const closeref = React.useRef<Kb.MeasureRef | null>(null)
   const [showPopup, setShowPopup] = React.useState(false)
   const _onDismiss = dismissUnpins ? onUnpin : onIgnore

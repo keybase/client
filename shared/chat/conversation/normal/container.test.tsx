@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
+import type * as ChatRpcT from '@/chat/conversation/chat-rpc'
 import {act, cleanup, render, screen} from '@testing-library/react'
 import * as C from '@/constants'
 import * as Meta from '@/constants/chat/meta'
@@ -20,6 +21,12 @@ let mockConversationIDKey: T.Chat.ConversationIDKey
 let mockLoaded = true
 let mockMeta: T.Chat.ConversationMeta
 let mockRetired = false
+// the thread's rpc, which retires with the thread
+let mockRpc: ChatRpcT.ChatThreadRpc | undefined
+const mockThreadRpc = () =>
+  (mockRpc ??= jest
+    .requireActual<typeof ChatRpcT>('@/chat/conversation/chat-rpc')
+    .makeThreadChatRpc(() => mockRetired))
 let mockRouteParams: {threadSearch?: {query?: string}} | undefined
 let mockThreadLoadStatusProviderProps:
   | {
@@ -90,7 +97,8 @@ jest.mock('@/engine/action-listener', () => ({
 }))
 
 jest.mock('../thread-context', () => ({
-  useConversationThreadActions: () => ({isRetired: () => mockRetired}),
+  useConversationThreadActions: () => ({isRetired: () => mockRetired, rpc: mockThreadRpc()}),
+  useThreadRpc: () => mockThreadRpc(),
   useConversationThreadID: () => mockConversationIDKey,
   useConversationThreadSelector: (
     selector: (state: {loaded: boolean; meta: T.Chat.ConversationMeta}) => unknown

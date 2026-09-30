@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
+import type * as ChatRpcT from '@/chat/conversation/chat-rpc'
 import type * as React from 'react'
 import * as T from '@/constants/types'
 
@@ -8,6 +9,12 @@ const mockCenterOnMessage = jest.fn()
 let mockMeta: {pinnedMsg: unknown; teamID: string; teamname: string}
 let mockDeleteOtherMessages = false
 let mockRetired = false
+// the thread's rpc, which retires with the thread
+let mockRpc: ChatRpcT.ChatThreadRpc | undefined
+const mockThreadRpc = () =>
+  (mockRpc ??= jest
+    .requireActual<typeof ChatRpcT>('@/chat/conversation/chat-rpc')
+    .makeThreadChatRpc(() => mockRetired))
 
 // the popup is a positioned overlay; render its header and items inline so the confirm is clickable
 jest.mock('@/common-adapters', () => {
@@ -34,7 +41,8 @@ jest.mock('@/common-adapters', () => {
   }
 })
 jest.mock('./thread-context', () => ({
-  useConversationThreadActions: () => ({isRetired: () => mockRetired}),
+  useConversationThreadActions: () => ({isRetired: () => mockRetired, rpc: mockThreadRpc()}),
+  useThreadRpc: () => mockThreadRpc(),
   useConversationThreadID: () => mockConversationIDKey,
   useThreadMeta: (sel: (m: unknown) => unknown) => sel(mockMeta),
 }))

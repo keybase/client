@@ -9,20 +9,19 @@ import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {useBlockButtonsInfo} from './block-buttons-state'
 import {
-  useConversationThreadActions,
   useConversationThreadID,
   useConversationThreadSelector,
   useThreadMeta,
+  useThreadRpc,
 } from '../conversation/thread-context'
-import {unlessRetired} from '../conversation/thread-store'
 import {useConversationParticipantsSelector} from '../conversation/data-hooks'
-import {getChatRpc} from '../conversation/chat-rpc'
+import type {ChatThreadRpc} from '../conversation/chat-rpc'
 import {useConversationSendActions} from '../conversation/send-actions'
 
-const dismissBlockButtonsRaw = (teamID: T.RPCGen.TeamID) => {
+const dismissBlockButtons = (rpc: ChatThreadRpc, teamID: T.RPCGen.TeamID) => {
   const f = async () => {
     try {
-      await getChatRpc().dismissBlockButtons(teamID)
+      await rpc.dismissBlockButtons(teamID)
     } catch (error) {
       if (error instanceof RPCError) {
         logger.error(`Couldn't dismiss block buttons: ${error.message}`)
@@ -37,9 +36,7 @@ const BlockButtons = () => {
   const theme = Kb.Styles.useTheme()
   const navigateAppend = C.Router2.navigateAppend
   const conversationIDKey = useConversationThreadID()
-  const {isRetired} = useConversationThreadActions()
-  // a screen kept through an account switch dismisses nothing
-  const {dismissBlockButtons} = unlessRetired({dismissBlockButtons: dismissBlockButtonsRaw}, isRetired)
+  const rpc = useThreadRpc()
   const {sendWave} = useConversationSendActions()
   const {team, teamID} = useThreadMeta(C.useShallow(m => ({team: m.teamname, teamID: m.teamID})))
   const participantInfo = useConversationParticipantsSelector(
@@ -59,9 +56,9 @@ const BlockButtons = () => {
 
   React.useEffect(() => {
     if (hasOwnMessage && blockButtonInfo && teamID) {
-      dismissBlockButtons(teamID)
+      dismissBlockButtons(rpc, teamID)
     }
-  }, [blockButtonInfo, dismissBlockButtons, hasOwnMessage, teamID])
+  }, [blockButtonInfo, hasOwnMessage, rpc, teamID])
 
   if (!blockButtonInfo) {
     return null
@@ -84,7 +81,7 @@ const BlockButtons = () => {
         username: adder,
       },
     })
-  const onDismiss = () => dismissBlockButtons(teamID)
+  const onDismiss = () => dismissBlockButtons(rpc, teamID)
 
   const buttonRow = (
     <Kb.ButtonBar

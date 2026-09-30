@@ -29,7 +29,7 @@ import {
   updateAttachmentUploadProgressInThreadState,
   updateReactionsInThreadState,
 } from './thread-message-state'
-import {getChatRpc} from './chat-rpc'
+import {getChatRpc, makeThreadChatRpc, type ChatThreadRpc} from './chat-rpc'
 import {markConversationUnread} from './mark-unread'
 import {
   getExplodingModeFromConfig,
@@ -147,10 +147,13 @@ export type ConversationThreadActions = {
   claimWindowGate: (loadID: number) => void
   clearWindowGate: (loadID: number) => void
   getSnapshot: () => ConversationThreadState
-  // Whether the store's account has left (see makeThreadStore). Its actions already do nothing then;
-  // this is for a caller that talks to the service about the thread without going through them.
+  // Whether the store's account has left (see makeThreadStore). Its actions and rpc already do
+  // nothing then; this is for a continuation that was already past its await when it left.
   isRetired: () => boolean
   loadMoreMessages: LoadMoreMessages
+  // What the thread's screen asks of the service: asks nothing once the store's account has left
+  // (see makeThreadChatRpc).
+  rpc: ChatThreadRpc
   markThreadAsRead: () => void
   setMarkReadBlocked: (blocked: boolean) => void
   messagesClear: () => void
@@ -259,10 +262,9 @@ const makeEmptyThreadState = (): ConversationThreadState =>
     () => {}
   )
 
-// Each of fns, doing nothing (undefined) once isRetired says so. The one retirement gate: the thread
-// store's actions, the message commands given a thread row, and everything a thread's screen asks of
-// the service directly all go through it.
-export const unlessRetired = <Fns extends {[K in keyof Fns]: (...args: never) => unknown}>(
+// Each of fns, doing nothing (undefined) once isRetired says so: the store's actions. What a thread's
+// screen asks of the service goes through the thread's rpc, which retires with it.
+const unlessRetired = <Fns extends {[K in keyof Fns]: (...args: never) => unknown}>(
   fns: Fns,
   isRetired: () => boolean
 ): {[K in keyof Fns]: (...args: Parameters<Fns[K]>) => ReturnType<Fns[K]> | undefined} => {
@@ -667,7 +669,7 @@ export const makeThreadStore = (
     }
   )
 
-  const mutators: Omit<ConversationThreadActions, 'getSnapshot' | 'isRetired' | 'loadMoreMessages'> = {
+  const mutators: Omit<ConversationThreadActions, 'getSnapshot' | 'isRetired' | 'loadMoreMessages' | 'rpc'> = {
     addMessages,
     addOptimisticReaction: (outboxID, reaction) => {
       updateThreadState(s => {
@@ -806,6 +808,7 @@ export const makeThreadStore = (
     loadMoreMessages: Object.assign(unlessRetired({loadMoreMessages}, isRetired).loadMoreMessages, {
       cancel: loadMoreMessages.cancel,
     }),
+    rpc: makeThreadChatRpc(isRetired),
   }
 
   return {

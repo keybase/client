@@ -16,9 +16,8 @@ import {
   useConversationThreadID,
   useConversationThreadStore,
 } from './thread-context'
-import {unlessRetired} from './thread-store'
 import {registerExternalResetter} from '@/util/zustand'
-import {getChatRpc} from './chat-rpc'
+import {getChatRpc, type ChatThreadRpc} from './chat-rpc'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
@@ -32,10 +31,14 @@ export const cancelAttachmentUploads = (outboxIDs: ReadonlyArray<T.RPCChat.Outbo
   ignorePromise(f())
 }
 
-export const makePasteAttachment = (conversationIDKey: T.Chat.ConversationIDKey, data: Uint8Array) => {
+export const makePasteAttachment = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  data: Uint8Array,
+  rpc: ChatThreadRpc
+) => {
   const f = async () => {
     const outboxID = Common.generateOutboxID()
-    const path = await getChatRpc().makeUploadTempFile({
+    const path = await rpc.makeUploadTempFile({
       data,
       filename: 'paste.png',
       outboxID,
@@ -304,9 +307,12 @@ export const loadNextAttachmentMessage = async (
   return Promise.reject(new Error('No more results'))
 }
 
+// A screen kept through an account switch downloads, saves, shares and pastes nothing: every call
+// goes through the thread's rpc.
 export const useConversationAttachmentActions = () => {
   const conversationIDKey = useConversationThreadID()
   const actions = useConversationThreadActions()
+  const {rpc} = actions
   // Read thread state lazily at call time. Callers (TransferIcon etc) render per
   // message row, so subscribing to messageMap here would re-render every one of
   // them on every thread change.
@@ -318,7 +324,7 @@ export const useConversationAttachmentActions = () => {
       return false
     }
     try {
-      const filePath = await getChatRpc().downloadAttachment({conversationIDKey, downloadToCache, messageID})
+      const filePath = await rpc.downloadAttachment({conversationIDKey, downloadToCache, messageID})
       actions.finishAttachmentDownload(ordinal, filePath)
       return filePath
     } catch (error) {
@@ -414,21 +420,17 @@ export const useConversationAttachmentActions = () => {
     ignorePromise(f())
   }
 
-  // a screen kept through an account switch downloads, saves, shares, pastes and opens nothing
-  return unlessRetired(
-    {
-      attachmentDownload,
-      messageAttachmentNativeSave,
-      messageAttachmentNativeShare,
-      pasteAttachment: (data: Uint8Array) => makePasteAttachment(conversationIDKey, data),
-      showAttachmentPreview: (ordinal: T.Chat.Ordinal, message?: T.Chat.MessageAttachment) => {
-        const existing = threadStore.getState().messageMap.get(ordinal)
-        const initialMessage = message ?? (existing?.type === 'attachment' ? existing : undefined)
-        if (initialMessage) {
-          showAttachmentPreview(conversationIDKey, initialMessage)
-        }
-      },
+  return {
+    attachmentDownload,
+    messageAttachmentNativeSave,
+    messageAttachmentNativeShare,
+    pasteAttachment: (data: Uint8Array) => makePasteAttachment(conversationIDKey, data, rpc),
+    showAttachmentPreview: (ordinal: T.Chat.Ordinal, message?: T.Chat.MessageAttachment) => {
+      const existing = threadStore.getState().messageMap.get(ordinal)
+      const initialMessage = message ?? (existing?.type === 'attachment' ? existing : undefined)
+      if (initialMessage) {
+        showAttachmentPreview(conversationIDKey, initialMessage)
+      }
     },
-    actions.isRetired
-  )
+  }
 }

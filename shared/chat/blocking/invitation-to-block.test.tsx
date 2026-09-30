@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
+import type * as ChatRpcT from '@/chat/conversation/chat-rpc'
 import type * as React from 'react'
 import * as T from '@/constants/types'
 
@@ -24,10 +25,17 @@ jest.mock('@/common-adapters', () => {
 const mockConversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const mockTeamID = 'aabbccdd'
 let mockRetired = false
+// the thread's rpc, which retires with the thread
+let mockRpc: ChatRpcT.ChatThreadRpc | undefined
+const mockThreadRpc = () =>
+  (mockRpc ??= jest
+    .requireActual<typeof ChatRpcT>('@/chat/conversation/chat-rpc')
+    .makeThreadChatRpc(() => mockRetired))
 let mockOwnMessage = false
 
 jest.mock('../conversation/thread-context', () => ({
-  useConversationThreadActions: () => ({isRetired: () => mockRetired}),
+  useConversationThreadActions: () => ({isRetired: () => mockRetired, rpc: mockThreadRpc()}),
+  useThreadRpc: () => mockThreadRpc(),
   useConversationThreadID: () => mockConversationIDKey,
   useConversationThreadStore: () => ({getState: () => ({messageMap: new Map(), messageOrdinals: []})}),
   useConversationThreadSelector: (

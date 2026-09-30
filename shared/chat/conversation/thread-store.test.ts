@@ -703,9 +703,13 @@ describe('a store whose account has left', () => {
     actions.loadMoreMessages({reason: 'jump to recent'})
     // every other action too, with arguments it would fail on if it ran at all
     for (const key of Object.keys(actions) as Array<keyof typeof actions>) {
-      if (key !== 'getSnapshot' && key !== 'isRetired') {
+      if (key !== 'getSnapshot' && key !== 'isRetired' && key !== 'rpc') {
         expect(() => (actions[key] as () => void)()).not.toThrow()
       }
+    }
+    // and every service call a screen makes through the thread
+    for (const call of Object.values(actions.rpc) as Array<() => Promise<unknown>>) {
+      void call()
     }
     await flushPromises()
     expect(store.getState()).toBe(before)

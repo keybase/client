@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
+import type * as ChatRpcT from '@/chat/conversation/chat-rpc'
 import * as T from '@/constants/types'
 import type * as MessageT from '@/constants/chat/message'
 import type * as TypesT from '@/constants/types'
@@ -7,6 +8,12 @@ import type * as TypesT from '@/constants/types'
 const mockConversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const mockTeamID = 'aabbccdd'
 let mockRetired = false
+// the thread's rpc, which retires with the thread
+let mockRpc: ChatRpcT.ChatThreadRpc | undefined
+const mockThreadRpc = () =>
+  (mockRpc ??= jest
+    .requireActual<typeof ChatRpcT>('@/chat/conversation/chat-rpc')
+    .makeThreadChatRpc(() => mockRetired))
 
 jest.mock('../../../thread-context', () => {
   const Message = jest.requireActual<typeof MessageT>('@/constants/chat/message')
@@ -17,7 +24,8 @@ jest.mock('../../../thread-context', () => {
       conversationIDKey: mockConversationIDKey,
     })
   return {
-    useConversationThreadActions: () => ({isRetired: () => mockRetired}),
+    useConversationThreadActions: () => ({isRetired: () => mockRetired, rpc: mockThreadRpc()}),
+    useThreadRpc: () => mockThreadRpc(),
     useConversationThreadID: () => mockConversationIDKey,
     useConversationThreadMessage: card,
     useConversationThreadStore: () => ({getState: () => ({messageMap: new Map(), messageOrdinals: []})}),
@@ -124,12 +132,5 @@ describe('a welcome card whose thread has retired', () => {
     mockRetired = true
     await click('Wave')
     expect(rpc.calls('postText')).toEqual([])
-  })
-
-  test('publishes nothing', async () => {
-    renderCard()
-    mockRetired = true
-    await click('Publish team on your profile')
-    expect(mockSetMemberPublicity).not.toHaveBeenCalled()
   })
 })

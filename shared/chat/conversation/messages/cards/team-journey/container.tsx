@@ -11,12 +11,7 @@ import {useTeamsListMap} from '@/teams/use-teams-list'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {dismissJourneycard, useThreadMessageTarget} from '../../../message-commands'
 import {useConversationSendActions} from '../../../send-actions'
-import {
-  useConversationThreadActions,
-  useConversationThreadMessage,
-  useThreadMeta,
-} from '../../../thread-context'
-import {unlessRetired} from '../../../thread-store'
+import {useConversationThreadMessage, useThreadMeta} from '../../../thread-context'
 
 type Action = {label: string; onClick: () => void} | 'wave'
 type OwnProps = {ordinal: T.Chat.Ordinal}
@@ -50,17 +45,10 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const onDismiss = () => dismissJourneycard(target, message.cardType)
   const onGoToChannel = (channelName: string) =>
     C.Router2.previewConversation({channelname: channelName, reason: 'journeyCardPopular', teamname})
-  const {isRetired} = useConversationThreadActions()
-  // a screen kept through an account switch publishes nothing
-  const {onPublishTeam} = unlessRetired(
-    {
-      onPublishTeam: () => {
-        navigateAppend({name: 'profileShowcaseTeamOffer', params: {}})
-        setMemberPublicity(teamID, true)
-      },
-    },
-    isRetired
-  )
+  const onPublishTeam = () => {
+    navigateAppend({name: 'profileShowcaseTeamOffer', params: {}})
+    setMemberPublicity(teamID, true)
+  }
 
   const {cardType} = message
   let textComponent: React.ReactNode

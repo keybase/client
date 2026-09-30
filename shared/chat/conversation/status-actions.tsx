@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import {isPhone} from '@/constants/platform'
 import {navigateToInbox, setChatRootParams} from '@/constants/router'
 import {refreshConversationParticipants} from '@/chat/inbox/refresh-participants'
-import {getChatRpc} from './chat-rpc'
+import {getChatRpc, type ChatThreadRpc} from './chat-rpc'
 
 const setConversationStatusPromise = async (
   conversationIDKey: T.Chat.ConversationIDKey,
@@ -32,9 +32,10 @@ export const hideConversation = (conversationIDKey: T.Chat.ConversationIDKey, hi
   )
 }
 
-export const joinConversation = (conversationIDKey: T.Chat.ConversationIDKey) => {
+// rpc: a thread screen's own (useThreadRpc)
+export const joinConversation = (conversationIDKey: T.Chat.ConversationIDKey, rpc: ChatThreadRpc = getChatRpc()) => {
   const f = async () => {
-    await getChatRpc().joinConversation(conversationIDKey)
+    await rpc.joinConversation(conversationIDKey)
     // joining adds you to the participants, which nothing else recomputes
     await refreshConversationParticipants([conversationIDKey])
   }
