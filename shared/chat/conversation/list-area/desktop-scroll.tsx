@@ -128,11 +128,16 @@ export const useDesktopThreadScroll = (p: {
   // empty, and a scrollToEnd issued against that near-empty content becomes the target the list then
   // abandons its own bootstrap for, landing anywhere. Wait for the scroll offset to hold still, so
   // the list has finished its own initial scroll, and only then correct what it left on the table.
+  //
+  // Done only once the end has held: at the end on two checks in a row with the content no taller on
+  // the second. The list reports a size change before the scroller's extent catches up with it, and a
+  // row can measure again a frame after its first measurement, so one look at the end proves nothing.
   const endAnchor = useSchedule()
   const verifyEndAnchor = React.useCallback(() => {
     endAnchor.stop()
     endAnchor.start(async sleep => {
       let previousScroll: number | undefined
+      let heldAtHeight: number | undefined
       let corrections = 0
       for (let elapsed = 0; elapsed < 2000; ) {
         if (!(await sleep(50))) return
@@ -140,8 +145,15 @@ export const useDesktopThreadScroll = (p: {
         // Checked after the sleep, not before: the reader may have taken the end during it.
         if (!ownsEnd(scrollTarget.state)) return
         const scroll = listRef.current?.getState().scroll
-        if (scroll === undefined) continue
-        if (isScrolledToEnd()) return
+        const scroller = scrollerOf()
+        if (scroll === undefined || !scroller) continue
+        if (isScrolledToEnd()) {
+          if (heldAtHeight === scroller.scrollHeight) return
+          heldAtHeight = scroller.scrollHeight
+          previousScroll = undefined
+          continue
+        }
+        heldAtHeight = undefined
         // Only a scroll offset that held still across two checks means the list is done moving.
         if (scroll === previousScroll) {
           // Two corrections is the whole budget: one for the header, one for whatever re-measured
@@ -154,7 +166,7 @@ export const useDesktopThreadScroll = (p: {
         }
       }
     })
-  }, [endAnchor, isScrolledToEnd, listRef, scrollTarget])
+  }, [endAnchor, isScrolledToEnd, listRef, scrollTarget, scrollerOf])
 
   // Owns the in-flight centering loop. It has to outlive re-renders: the messages that make
   // centering accurate arrive after it starts, so the loop must not be torn down by an effect
@@ -284,11 +296,14 @@ export const useDesktopThreadScroll = (p: {
   const datasetRef = React.useRef<string | undefined>(undefined)
   // Whether the current dataset is still in its initial layout (see onItemSizeChanged).
   const initialLayoutRef = React.useRef(true)
+  // How many row size changes the initial layout has held back for its end to verify.
+  const heldRowChangesRef = React.useRef(0)
   React.useLayoutEffect(() => {
     if (datasetRef.current === datasetKey) return
     datasetRef.current = datasetKey
     endAnchor.stop()
     initialLayoutRef.current = true
+    heldRowChangesRef.current = 0
     dispatch({type: 'datasetChanged'})
   }, [datasetKey, dispatch, endAnchor])
 
@@ -348,48 +363,43 @@ export const useDesktopThreadScroll = (p: {
     [dispatch, scrollerOf]
   )
 
-  // Every change to a row the list has measured before is reported, however large. The list's own
-  // end anchor re-pins for some of them, but not reliably: a reaction growing the newest row by 40px
-  // was left short. The end loop does nothing when the list is already at its end.
+  // Every change to a row's size is reported, however large, and a row's first measurement off the
+  // size the list laid it out at among them. The list's own end anchor re-pins for some of them, but
+  // not reliably: a reaction growing the newest row by 40px was left short, and a new message at the
+  // bottom landing a few pixels off its estimate is left short too. The end loop does nothing when
+  // the list is already at its end.
   //
-  // A row's first measurement is reported too, except during a dataset's initial layout: every row
-  // measures once as a thread opens, and restarting the loop for each would keep it from ever
-  // correcting. Once the list has settled, a first measurement is a row arriving (a new message at
-  // the bottom landing a few pixels off its estimate), and the end anchor misses it as it misses any
-  // other change.
-  const measuredRowsRef = React.useRef(new Set<string>())
-  // Whether a row measured for the first time since the initial layout watch last looked.
-  const firstMeasuredRef = React.useRef(false)
-  const onItemSizeChanged = React.useCallback(
-    (info: {itemKey: string}) => {
-      const known = measuredRowsRef.current.has(info.itemKey)
-      measuredRowsRef.current.add(info.itemKey)
-      if (!known) {
-        firstMeasuredRef.current = true
-        if (initialLayoutRef.current) return
-      }
-      dispatch({anchorsEnd: anchorsEndRef.current, type: 'rowResized'})
-    },
-    [dispatch]
-  )
+  // Which report is a row's first cannot be told: the list reports a size only when it differs from
+  // the size it laid the row out at, so a row that measures at its estimate first reports on its
+  // second measurement. So during a dataset's initial layout, when every row measures and restarting
+  // the loop for each would keep it from ever correcting, none restarts it: the layout ending does,
+  // once, for all of them.
+  const onItemSizeChanged = React.useCallback(() => {
+    if (initialLayoutRef.current) {
+      heldRowChangesRef.current++
+      return
+    }
+    dispatch({anchorsEnd: anchorsEndRef.current, type: 'rowResized'})
+  }, [dispatch])
 
   // The initial layout ends once the list has rows and has settled: its scroll offset held still and
-  // no row measured for the first time across two checks. Timed only while there are rows, so a slow
-  // reload after a clear still has its whole page laid out before it ends.
+  // no row changed size across two checks. Timed only while there are rows, so a slow reload after a
+  // clear still has its whole page laid out before it ends.
   const initialLayout = useSchedule()
   React.useEffect(() => {
     if (!initialLayoutRef.current) return
     initialLayout.start(async sleep => {
       let previousScroll: number | undefined
+      let previousChanges = heldRowChangesRef.current
       let quiet = 0
       for (let elapsed = 0; elapsed < 5000; ) {
         if (!(await sleep(50))) return
         if (messageOrdinalsRef.current.length === 0) continue
         elapsed += 50
         const scroll = listRef.current?.getState().scroll
-        const measured = firstMeasuredRef.current
-        firstMeasuredRef.current = false
-        if (scroll === undefined || measured || scroll !== previousScroll) {
+        const changes = heldRowChangesRef.current
+        if (scroll === undefined || changes !== previousChanges || scroll !== previousScroll) {
+          previousChanges = changes
           previousScroll = scroll
           quiet = 0
         } else if (++quiet >= 2) {
@@ -397,9 +407,12 @@ export const useDesktopThreadScroll = (p: {
         }
       }
       initialLayoutRef.current = false
+      if (heldRowChangesRef.current === 0) return
+      heldRowChangesRef.current = 0
+      dispatch({anchorsEnd: anchorsEndRef.current, type: 'rowResized'})
     })
     return () => initialLayout.stop()
-  }, [datasetKey, initialLayout, listRef])
+  }, [datasetKey, dispatch, initialLayout, listRef])
 
   // Who moved the scroller is read from where it moved to, never from the input that moved it: the
   // list writes down where it is putting the scroller before it moves it (its initial position, every
