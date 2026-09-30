@@ -21,7 +21,7 @@ import {
   useConversationThreadMessage,
   useConversationThreadSelector,
   useConversationThreadSetExplodingMode,
-  useConversationThreadToggleSearch,
+  useConversationThreadCloseSearch,
   useThreadMeta,
 } from '../../thread-context'
 import {useConversationParticipantsSelector} from '../../data-hooks'
@@ -141,7 +141,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const sendComposerText = InputState.useConversationInputDispatch(s => s.sendComposerText)
   const {hasCenter} = useConversationCenter()
   const {jumpToRecent} = useConversationCenterActions()
-  const toggleThreadSearch = useConversationThreadToggleSearch()
+  const closeThreadSearch = useConversationThreadCloseSearch()
 
   const isExploding = explodingModeSecondsRaw !== 0
 
@@ -160,7 +160,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     const sent = composer.submit((text, unfurlSuppress) => {
       sendComposerText(text, unfurlSuppress)
       if (hasCenter) {
-        toggleThreadSearch(true)
+        closeThreadSearch()
         jumpToRecent()
       }
     })

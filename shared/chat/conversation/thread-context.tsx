@@ -1381,23 +1381,21 @@ export const useConversationThreadSelectedConversation = () => {
 
 export const useConversationThreadToggleSearch = () => {
   const conversationIDKey = useConversationThreadID()
-  return (hide?: boolean, query?: string) => {
-    toggleConversationThreadSearch(conversationIDKey, hide, query)
+  return () => {
+    toggleConversationThreadSearch(conversationIDKey)
   }
 }
 
 type ThreadSearchParams = {conversationIDKey?: T.Chat.ConversationIDKey; threadSearch?: {query?: string}}
 
-export const toggleConversationThreadSearch = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  hide?: boolean,
-  query?: string
-) => {
-  const visible = getVisibleScreen()
-  const params = visible?.params as ThreadSearchParams | undefined
-  const nextVisible = hide !== undefined ? !hide : !params?.threadSearch
-
-  const threadSearch = nextVisible ? (query ? {query} : {}) : undefined
+// Opens thread search, or closes it through closeConversationThreadSearch when it is open.
+export const toggleConversationThreadSearch = (conversationIDKey: T.Chat.ConversationIDKey) => {
+  const params = getVisibleScreen()?.params as ThreadSearchParams | undefined
+  if (params?.threadSearch) {
+    closeConversationThreadSearch(conversationIDKey)
+    return
+  }
+  const threadSearch = {}
   if (Common.isSplit) {
     setChatRootParams({conversationIDKey, threadSearch})
   } else {
@@ -1405,10 +1403,11 @@ export const toggleConversationThreadSearch = (
   }
 }
 
-// Every close of thread search: the search's own Cancel and Done, mod+f, and every Reply. It only
-// changes the route; the search UI unmounting cancels its search, and the centre provider drops
-// the hit it centred. It looks past modals and targets the thread's route by key, so it still
-// lands while the phone message menu (a modal) is up.
+// Every close of thread search: the search's own Cancel and Done, mod+f, a toggle, every Reply,
+// jumping to recent, and a send while centred on a hit. It only changes the route, and only when
+// this conversation's search is open; the search UI unmounting cancels its search, and the centre
+// provider drops the hit it centred. It looks past modals and targets the thread's route by key,
+// so it still lands while the phone message menu (a modal) is up.
 export const closeConversationThreadSearch = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const visible = getVisibleScreen(false)
   const params = visible?.params as ThreadSearchParams | undefined
