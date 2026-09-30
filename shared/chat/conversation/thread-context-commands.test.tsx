@@ -177,9 +177,8 @@ describe('messageDelete', () => {
     expect(message(10)?.submitState).toBe('deleting')
   })
 
-  test('a sent message with an edit in flight shows deleting too; an unsent one keeps its state', async () => {
-    const pendingDelete = deferred<undefined>()
-    rpc.on('postDelete', async () => pendingDelete.promise)
+  test('a sent message with an edit in flight shows deleting too; an unsent one keeps its state', () => {
+    rpc.on('postDelete', async () => deferred<undefined>().promise)
     rpc.on('cancelPost', async () => deferred<undefined>().promise)
     const outboxID = T.Chat.stringToOutboxID('0a0b')
     const {message} = renderThread([
