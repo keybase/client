@@ -320,6 +320,26 @@ test("a thread load that says the user is not in the conversation moves the sele
   expect(selected()).toBe(newest)
 })
 
+test('a thread load that says the user was never in the conversation leaves it selected', async () => {
+  pickAfterSwitch()
+  // opened from a link or search: a conversation this account never joined
+  const stranger = convKey(7)
+  step(() => open(stranger, 'previewResolved'))
+  meta(stranger, 'notMember')
+  chatRpc.fail('loadThread', new RPCError('not in conv', T.RPCGen.StatusCode.scchatnotinconv))
+  const actions = {
+    claimWindowGate: () => {},
+    clearWindowGate: () => {},
+    getSnapshot: () => ({clearVersion: 0, liveUpdateVersion: 0, loaded: false}) as ConversationThreadState,
+  } as unknown as ConversationThreadActions
+
+  loadConversationThreadMessages(stranger, {reason: 'focused'}, actions)
+  await flush()
+  rerenderShell()
+
+  expect(selected()).toBe(stranger)
+})
+
 test('a layout naming a selected conversation the user has left moves the selection', () => {
   switchAccount()
   step(() => deliverLayout(T.RPCChat.InboxLayoutReselectMode.default))

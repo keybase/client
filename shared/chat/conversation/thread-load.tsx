@@ -3,7 +3,6 @@ import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
 import * as Strings from '@/constants/strings'
 import * as T from '@/constants/types'
-import {navigateToInbox} from '@/constants/router'
 import logger from '@/logger'
 import {ignorePromise} from '@/constants/utils'
 import {RPCError} from '@/util/errors'
@@ -462,10 +461,11 @@ export const loadConversationThreadMessages = (
           // (ui.routeState2) so app startup doesn't keep restoring and reloading
           // this conv, which would re-trigger this error on every launch.
           persistRoute(true, true, () => useConfigState.getState().startup.loaded)
-          conversationGone(conversationIDKey, `thread load: ${error.desc}`)
-          // a phone keeps leaving the thread of a team it was kicked from
-          if (!Common.isSplit && error.code === T.RPCGen.StatusCode.scchatnotinteam) {
-            navigateToInbox(true, 'maybeKickedFromTeam')
+          // Only a conversation this account was in is gone (kicked, removed). One it never joined,
+          // opened from a link or search, stays up on every platform, as does a phone's open thread.
+          const membership = getInboxConversationMeta(conversationIDKey)?.membershipType
+          if (membership === 'active' || membership === 'youLeft') {
+            conversationGone(conversationIDKey, `thread load: ${error.desc}`)
           }
         }
         if (error.code !== T.RPCGen.StatusCode.scteamreaderror) {

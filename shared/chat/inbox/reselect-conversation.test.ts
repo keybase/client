@@ -14,6 +14,12 @@ jest.mock('@/constants/chat/common', () => ({
 import * as Common from '@/constants/chat/common'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 import {conversationGone, maybeChangeSelectedConversation} from './selection'
+import * as Meta from '@/constants/chat/meta'
+import RPCError from '@/util/rpcerror'
+import {loadConversationThreadMessages} from '@/chat/conversation/thread-load'
+import type {ConversationThreadActions, ConversationThreadState} from '@/chat/conversation/thread-context'
+import {metasReceived} from './metadata-store'
+import {installFakeChatRpc, restoreChatRpc} from '@/test/fake-chat-rpc'
 
 const newConvID = 'ff00ff00'
 const mockedSelected = Common.getSelectedConversation as jest.Mock
@@ -106,5 +112,33 @@ test('the open thread being gone on a phone leaves it open', () => {
   conversationGone(open, 'left')
 
   runDeferredNavigation()
+  expect(nav.actions).toEqual([])
+})
+
+// Kicked from the team, removed from the conversation, or never in it: a phone's open thread stays
+// where the user put it and shows what the load could not do.
+test.each([
+  ['kicked from its team', T.RPCGen.StatusCode.scchatnotinteam, 'active'],
+  ['removed from it', T.RPCGen.StatusCode.scchatnotinconv, 'active'],
+  ['never in it', T.RPCGen.StatusCode.scchatnotinconv, 'notMember'],
+] as const)('a thread load that says the user is not in it, %s, leaves a phone thread open', async (_, code, membershipType) => {
+  const open = T.Chat.stringToConversationIDKey('aa11aa11')
+  mockedSelected.mockReturnValue(open)
+  metasReceived([{...Meta.makeConversationMeta(), conversationIDKey: open, membershipType}])
+  const rpc = installFakeChatRpc()
+  rpc.fail('loadThread', new RPCError('not in it', code))
+  const actions = {
+    claimWindowGate: () => {},
+    clearWindowGate: () => {},
+    getSnapshot: () => ({clearVersion: 0, liveUpdateVersion: 0, loaded: false}) as ConversationThreadState,
+  } as unknown as ConversationThreadActions
+
+  loadConversationThreadMessages(open, {reason: 'focused'}, actions)
+  for (let i = 0; i < 20; i++) {
+    await Promise.resolve()
+  }
+  runDeferredNavigation()
+  restoreChatRpc()
+
   expect(nav.actions).toEqual([])
 })
