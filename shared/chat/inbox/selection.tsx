@@ -3,9 +3,9 @@
 // account switch, so its layout's reselectInfo is a hint, not an instruction.
 //
 // A selection moves on its own only when it is gone: the user left it or was removed or reset,
-// its thread load says the user is not in it, its meta says so, or a layout names it while
-// nothing in this account knows it. Every one of those moves a split layout (desktop, tablet) to
-// the newest conversation. Phones have no selection to move:
+// its thread load says the user is no longer in it, its meta says so, or a layout names it while
+// this account cannot open it (see replaceable). An empty selection is filled by any reselect.
+// Every one of those moves a split layout (desktop, tablet) to the newest conversation. Phones have no selection to move:
 // their open thread stays where the user put it.
 import * as Common from '@/constants/chat/common'
 import * as T from '@/constants/types'
@@ -54,19 +54,32 @@ export const conversationGoneForUser = (uid: string, id: T.Chat.ConversationIDKe
   conversationGone(id, why)
 }
 
-// Whether this account knows the conversation as one it can open: the inbox lists it, or it has
-// the conversation's meta. A conversation left over from the previous account has neither, or only
-// an error meta; one the user left says so in its meta.
-const selectableHere = (id: T.Chat.ConversationIDKey) => {
+// The conversation selected when the signed-in account last changed. A split layout keeps it
+// selected through the switch, but it is the previous account's.
+let previousAccountSelection = T.Chat.noConversationIDKey
+useCurrentUserState.subscribe((s, prev) => {
+  if (prev.uid && s.uid !== prev.uid) {
+    previousAccountSelection = Common.getSelectedConversation()
+  }
+})
+
+// Whether a reselect may replace this selection: the user left it or was removed (its meta says
+// so), this account could not load it (an error meta, and the inbox does not list it), or it is the
+// previous account's, unknown here. A conversation this account knows nothing about yet (a channel
+// preview, one opened from a link still loading) is not grounds: its meta is on its way.
+const replaceable = (id: T.Chat.ConversationIDKey) => {
   const meta = useInboxMetadataState.getState().metas.get(id)
   if (meta?.membershipType === 'youLeft') {
-    return false
+    return true
   }
   const layoutState = useInboxLayoutState.getState()
   if (getSmallLayoutRow(layoutState, id) || getBigLayoutChannelRow(layoutState, id)) {
-    return true
+    return false
   }
-  return !!meta && meta.trustedState !== 'error'
+  if (meta) {
+    return meta.trustedState === 'error'
+  }
+  return id === previousAccountSelection
 }
 
 export const maybeChangeSelectedConversation = (inboxLayout?: T.RPCChat.UIInboxLayout) => {
@@ -96,11 +109,16 @@ export const maybeChangeSelectedConversation = (inboxLayout?: T.RPCChat.UIInboxL
     return
   }
 
-  // a selection the user can see here stays, whatever the reselect names
-  if (T.Chat.isValidConversationIDKey(selected) && selectableHere(selected)) {
+  if (!T.Chat.isValidConversationIDKey(selected)) {
+    moveSelectionOff(selected, 'reselect with nothing selected')
     return
   }
-  moveSelectionOff(selected, `reselect named ${oldConvID ?? ''}, selection empty or not in this account`)
+  // The service names whatever it last loaded, which a popup or a picker can have moved, so a
+  // reselect speaks only about the selection it names.
+  if (!oldConvID || T.Chat.stringToConversationIDKey(oldConvID) !== selected || !replaceable(selected)) {
+    return
+  }
+  moveSelectionOff(selected, `reselect named ${oldConvID}, which is gone from this account`)
 }
 
 // A meta that turns from a member's to a left or removed one, for the selected conversation.

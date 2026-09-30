@@ -114,8 +114,13 @@ const step = (fn: () => void) => {
 
 // setUserSwitching resets every store, including the inbox layout; the navigator remounts for the
 // new account, so the chat root starts with nothing selected. The service still remembers the
-// previous account's last-loaded conversation.
-const switchAccount = () => {
+// previous account's last-loaded conversation. keptSelected: the previous account's selection,
+// which a split layout keeps selected through the switch.
+const switchAccount = (keptSelected?: T.Chat.ConversationIDKey) => {
+  if (keptSelected) {
+    installFakeNavigator()
+    open(keptSelected, 'misc')
+  }
   act(() => {
     useConfigState.getState().dispatch.setUserSwitching(true, 'testuser-mac')
   })
@@ -129,6 +134,9 @@ const switchAccount = () => {
   installFakeNavigator()
   chatRpc = installFakeChatRpc()
   service.lastLoaded = previousAccountConv
+  if (keptSelected) {
+    open(keptSelected, 'misc')
+  }
   mountShell()
   // the inbox asks for its first layout as soon as it mounts for the new account
   act(() => {
@@ -185,9 +193,7 @@ test('a conversation picked right after a switch stays selected when later layou
 })
 
 test("a selection left over from the previous account is replaced by the new account's newest", () => {
-  switchAccount()
-  // something reopened the previous account's conversation on the new navigator
-  step(() => open(previousAccountConv, 'misc'))
+  switchAccount(previousAccountConv)
   expect(selected()).toBe(previousAccountConv)
 
   step(deliverRequestedLayout)
@@ -222,6 +228,38 @@ test("a picked conversation the service's snapshot leaves out stays selected whe
   step(() => deliverLayout(T.RPCChat.InboxLayoutReselectMode.default, [newest, convKey(3)]))
 
   expect(selected()).toBe(picked)
+})
+
+test('a conversation still loading, or a channel preview, stays selected when a layout names it', () => {
+  switchAccount()
+  step(() => deliverLayout(T.RPCChat.InboxLayoutReselectMode.default))
+  // opened from a link or search: not in the inbox, and its meta has not arrived
+  const preview = convKey(7)
+  step(() => open(preview, 'previewResolved'))
+  expect(selected()).toBe(preview)
+
+  // the service last loaded it, and it is in no inbox snapshot
+  step(() => deliverLayout(T.RPCChat.InboxLayoutReselectMode.default))
+  expect(selected()).toBe(preview)
+
+  // nor does its preview meta, for a conversation the user never joined
+  meta(preview, 'youArePreviewing')
+  step(() => deliverLayout(T.RPCChat.InboxLayoutReselectMode.default))
+  expect(selected()).toBe(preview)
+})
+
+test('a reselect naming another conversation leaves the selection alone, even one this account cannot load', () => {
+  switchAccount()
+  step(() => deliverLayout(T.RPCChat.InboxLayoutReselectMode.default))
+  const unloadable = convKey(7)
+  step(() => open(unloadable, 'previewResolved'))
+  meta(unloadable, 'active', 1, 'error')
+  // a popup loaded another conversation the inbox does not list
+  service.lastLoaded = convKey(8)
+
+  step(() => deliverLayout(T.RPCChat.InboxLayoutReselectMode.default))
+
+  expect(selected()).toBe(unloadable)
 })
 
 test('a layout naming a conversation a popup loaded leaves a picked conversation selected', () => {
