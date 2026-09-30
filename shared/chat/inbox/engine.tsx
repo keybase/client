@@ -2,7 +2,6 @@
 // The notification router (chat/notification-router.tsx) decodes each notification and calls these.
 import * as Common from '@/constants/chat/common'
 import * as Meta from '@/constants/chat/meta'
-import * as TeamsUtil from '@/constants/teams'
 import * as T from '@/constants/types'
 import type * as EngineGen from '@/constants/rpc'
 import {navigateToThread as routerNavigateToThread} from '@/constants/router'
@@ -130,13 +129,14 @@ export const onConvUpdate = (conv: T.RPCChat.InboxUIItem | null | undefined) => 
   }
 }
 
+// A cleared minimum writer role is a change too: the conversation's settings are applied whatever
+// they are.
 export const onSetConvSettings = ({conv, convID}: Params<'chat.1.NotifyChat.ChatSetConvSettings'>) => {
-  const newRole = conv?.convSettings?.minWriterRoleInfo?.role
-  const role = newRole && TeamsUtil.teamRoleByEnum[newRole]
-  const cannotWrite = conv?.convSettings?.minWriterRoleInfo?.cannotWrite || false
-  if (role) {
-    updateInboxConversationMeta(T.Chat.conversationIDToKey(convID), {cannotWrite, minWriterRole: role})
+  if (!conv) {
+    logger.warn('onChatSetConvSettings: no conv given')
+    return
   }
+  updateInboxConversationMeta(T.Chat.conversationIDToKey(convID), Meta.convSettingsToMeta(conv.convSettings))
 }
 
 export const onSetConvRetention = ({conv, convID}: Params<'chat.1.NotifyChat.ChatSetConvRetention'>) => {

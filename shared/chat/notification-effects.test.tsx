@@ -1444,3 +1444,33 @@ describe('what each notification leaves behind', () => {
     expect(participants.get(convC)?.name).toEqual(['testuser-2'])
   })
 })
+
+describe('a channel minimum writer role', () => {
+  const setMinWriterRole = (minWriterRoleInfo: T.RPCChat.ConversationMinWriterRoleInfoLocal | null) =>
+    engineAction('chat.1.NotifyChat.ChatSetConvSettings', {
+      conv: makeInboxUIItem(convA, {convSettings: {minWriterRoleInfo}}),
+      convID: rpcConvID(convA),
+    })
+  const writability = () => {
+    const meta = useInboxMetadataState.getState().metas.get(convA)
+    return {cannotWrite: meta?.cannotWrite, minWriterRole: meta?.minWriterRole}
+  }
+
+  test.each([
+    ['cleared', null],
+    ['set to none', {cannotWrite: false, changedBy: 'testuser-mac', role: T.RPCGen.TeamRole.none}],
+  ] as const)('%s makes the channel writable again', async (_name, cleared) => {
+    await notify(
+      setMinWriterRole({cannotWrite: true, changedBy: 'testuser-mac', role: T.RPCGen.TeamRole.admin})
+    )
+    expect(writability()).toEqual({cannotWrite: true, minWriterRole: 'admin'})
+
+    await notify(setMinWriterRole(cleared))
+    expect(writability()).toEqual({cannotWrite: false, minWriterRole: 'reader'})
+
+    await notify(
+      setMinWriterRole({cannotWrite: true, changedBy: 'testuser-mac', role: T.RPCGen.TeamRole.admin})
+    )
+    expect(writability()).toEqual({cannotWrite: true, minWriterRole: 'admin'})
+  })
+})
