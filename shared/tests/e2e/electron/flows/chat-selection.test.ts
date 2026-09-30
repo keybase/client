@@ -77,12 +77,17 @@ const openChannelAsSecond = async (page: Page, topicName: string) => {
   return {marker, newestHeader}
 }
 
-// The selection is on the conversation with the owner, showing `marker`, and stays there.
+// The selection is on the conversation with the owner, showing `marker`, and stays there. Its header
+// names the owner by username until their full name loads, so it may read either.
 const expectMovedToNewest = async (page: Page, {marker, newestHeader}: {marker: string; newestHeader: string}) => {
-  await expect(threadHeaderTitle(page)).toHaveText(newestHeader, {timeout: 15_000})
+  const headers = new Set([data.smokeUser, newestHeader])
+  await expect.poll(async () => selectedInboxRows(page), {timeout: 15_000}).toEqual([data.smokeUser])
+  await expect.poll(async () => headers.has(await threadHeaderTitle(page).innerText()), {timeout: 15_000}).toBe(true)
   await waitForRow(page, marker, 15_000)
   const seen = await watchSelection(page, 1_500)
-  expect(seen, 'the thread header and selected inbox row after the move').toEqual([`${newestHeader} | ${data.smokeUser}`])
+  const [header, selected] = [seen.map(r => r.split(' | ')[0]!), seen.map(r => r.split(' | ')[1])]
+  expect(new Set(selected), `the selected inbox row after the move: ${seen.join(', ')}`).toEqual(new Set([data.smokeUser]))
+  expect(header.every(h => headers.has(h)), `the thread header after the move: ${seen.join(', ')}`).toBe(true)
 }
 
 test('leaving the open channel moves the selection to the newest conversation', async ({page}) => {
