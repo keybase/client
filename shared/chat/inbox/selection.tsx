@@ -13,7 +13,7 @@ import {navigateToInbox, navigateToThread} from '@/constants/router'
 import logger from '@/logger'
 import {useCurrentUserState} from '@/stores/current-user'
 import {getBigLayoutChannelRow, getSmallLayoutRow, useInboxLayoutState} from './layout-state'
-import {useInboxMetadataState} from './metadata-store'
+import {setConversationLeftListener, useInboxMetadataState} from './metadata-store'
 
 // The layout's first small-team row, as the service picks for reselectInfo, skipping the
 // conversation that is gone. An inbox with no other small-team row takes its first big-team channel:
@@ -58,14 +58,21 @@ export const conversationGoneForUser = (uid: string, id: T.Chat.ConversationIDKe
 // selected through the switch, but it is the previous account's.
 let previousAccountSelection = T.Chat.noConversationIDKey
 
-// Records the selection each time an account signs out or is switched away from. App init starts
-// it; the returned function stops it.
-export const watchSignedInAccount = () =>
-  useCurrentUserState.subscribe((s, prev) => {
+// App init starts it; the returned function stops it. It records the selection each time an
+// account signs out or is switched away from, and moves a selection whose meta turns from a
+// member's to a left or removed one.
+export const watchChatSelection = () => {
+  const stopAccount = useCurrentUserState.subscribe((s, prev) => {
     if (prev.uid && s.uid !== prev.uid) {
       previousAccountSelection = Common.getSelectedConversation()
     }
   })
+  setConversationLeftListener(id => conversationGone(id, 'meta says you left'))
+  return () => {
+    stopAccount()
+    setConversationLeftListener()
+  }
+}
 
 // Whether a reselect may replace this selection: the user left it or was removed (its meta says
 // so), this account could not load it (an error meta, and the inbox does not list it), or it is the
@@ -124,16 +131,3 @@ export const maybeChangeSelectedConversation = (inboxLayout?: T.RPCChat.UIInboxL
   }
   moveSelectionOff(selected, `reselect named ${oldConvID}, which is gone from this account`)
 }
-
-// A meta that turns from a member's to a left or removed one, for the selected conversation.
-useInboxMetadataState.subscribe((s, prev) => {
-  if (s.metas === prev.metas || !Common.isSplit) {
-    return
-  }
-  const selected = Common.getSelectedConversation()
-  const meta = s.metas.get(selected)
-  const before = prev.metas.get(selected)
-  if (meta?.membershipType === 'youLeft' && before && before.membershipType !== 'youLeft') {
-    conversationGone(selected, 'meta says you left')
-  }
-})

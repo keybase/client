@@ -30,6 +30,14 @@ export const participantInfoReceived = (
   })
 }
 
+// Told of each conversation whose meta turns from a member's to one the user left or was removed
+// from. The selection listens (see watchChatSelection); it cannot be imported here, as it needs the
+// router.
+let onConversationLeft: ((id: T.Chat.ConversationIDKey) => void) | undefined
+export const setConversationLeftListener = (listener?: (id: T.Chat.ConversationIDKey) => void) => {
+  onConversationLeft = listener
+}
+
 export const metasReceived = (
   metas: ReadonlyArray<T.Chat.ConversationMeta>,
   removals?: ReadonlyArray<T.Chat.ConversationIDKey>,
@@ -60,4 +68,10 @@ export const metasReceived = (
       s.metas.set(next.conversationIDKey, T.castDraft(next))
     })
   })
+  for (const next of changedMetas) {
+    const before = current.get(next.conversationIDKey)
+    if (next.membershipType === 'youLeft' && before && before.membershipType !== 'youLeft') {
+      onConversationLeft?.(next.conversationIDKey)
+    }
+  }
 }

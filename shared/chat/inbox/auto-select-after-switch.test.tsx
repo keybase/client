@@ -20,7 +20,7 @@ import {routeChatNotification, type ChatNotification} from '@/chat/notification-
 import {loadConversationThreadMessages} from '@/chat/conversation/thread-load'
 import type {ConversationThreadActions, ConversationThreadState} from '@/chat/conversation/thread-context'
 import {useInboxLayoutState} from './layout-state'
-import {watchSignedInAccount} from './selection'
+import {watchChatSelection} from './selection'
 import {metasReceived} from './metadata-store'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -149,7 +149,7 @@ let stopWatchingAccount: () => void
 
 beforeEach(() => {
   // as app init starts it
-  stopWatchingAccount = watchSignedInAccount()
+  stopWatchingAccount = watchChatSelection()
   service.lastLoaded = ''
   service.requested = []
   jest.spyOn(T.RPCChat, 'localRequestInboxLayoutRpcPromise').mockImplementation(async ({reselectMode}) => {
