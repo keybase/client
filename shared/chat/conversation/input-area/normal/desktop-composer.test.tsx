@@ -516,6 +516,35 @@ describe('with the shared suggestion list', () => {
     utils.unmount()
     expect(saveDraft.mock.calls.map(c => c[0].text).at(-1)).toBe('hi @testuser-mac')
   })
+
+  // the user is leaving, not typing: the conversation just left hears nothing of it
+  test('leaving with a preview showing says nothing about typing, and saves the draft once', () => {
+    receiveDraft('')
+    const saveDraft = jest.mocked(T.RPCChat.localUpdateUnsentTextRpcPromise)
+    const sendTyping = jest.mocked(T.RPCChat.localUpdateTypingRpcPromise)
+    const {textarea, utils} = renderComposer()
+    act(() => {
+      textarea.focus()
+    })
+    type(textarea, 'hi @te')
+    openList()
+    act(() => {
+      jest.advanceTimersByTime(2000)
+    })
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'ArrowDown'})
+    })
+    saveDraft.mockClear()
+    sendTyping.mockClear()
+
+    utils.unmount()
+    act(() => {
+      jest.advanceTimersByTime(2000)
+    })
+
+    expect(sendTyping.mock.calls.map(c => c[0].typing)).not.toContain(true)
+    expect(saveDraft.mock.calls.map(c => c[0].text)).toEqual(['hi @testuser-mac'])
+  })
 })
 
 test('the gif button prefills the giphy command and a second press clears it once the window is up', () => {

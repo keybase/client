@@ -111,21 +111,27 @@ const useSyncInput = (p: UseSyncInputProps) => {
   // Arrowing through a list shows each pick in the input without reporting it. The user saw it,
   // so a list closing on one (Escape, a blur, the caret leaving the word) keeps it as their text.
   const previewRef = React.useRef<string | undefined>(undefined)
-  const commitPreview = () => {
+  // the preview, taken, if the input still shows it
+  const takePreview = () => {
     const preview = previewRef.current
     previewRef.current = undefined
-    if (preview !== undefined && preview === composer.getText()) {
-      reportText(preview)
-    }
+    return preview !== undefined && preview === composer.getText() ? preview : undefined
   }
   const setInactive = () => {
-    commitPreview()
+    const preview = takePreview()
+    if (preview !== undefined) {
+      reportText(preview)
+    }
     setActive('')
     setFilter('')
   }
-  // Leaving closes the list too. A layout cleanup, so it runs before the input detaches and its
-  // detach flushes the draft.
-  const commitPreviewOnLeave = React.useEffectEvent(commitPreview)
+  // Leaving closes the list too, but the user is not typing: the preview is only saved as the
+  // draft. A layout cleanup, so it runs before the input detaches and its detach flushes the draft.
+  const commitPreviewOnLeave = React.useEffectEvent(() => {
+    if (takePreview() !== undefined) {
+      composer.keepText()
+    }
+  })
   React.useLayoutEffect(() => () => commitPreviewOnLeave(), [])
 
   const getInputSnapshot = (): Commands.CommandInputSnapshot => ({

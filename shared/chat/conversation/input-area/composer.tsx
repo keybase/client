@@ -55,6 +55,9 @@ export type Composer = {
   // False where the user can't post: a reply could never be sent.
   startReply: () => boolean
   insertAtCaret: (s: string) => void
+  // Saves the text as the draft, as typing would, without it being typing: a suggestion preview
+  // the input showed without reporting it, kept as the user leaves.
+  keepText: () => void
   // insertAtCaret, typed by the input itself where it can be, so the platform can undo it
   typeAtCaret: (s: string) => void
   // True when the input shows the text now; a write made while no input is attached waits.
@@ -270,6 +273,9 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
       whenAttached(target => insertAtCaret(target, s))
     },
     isFocused: () => !!input?.isFocused(),
+    keepText: () => {
+      saveDraft(text)
+    },
     replace: (info, reflectChange) => {
       if (input) return replace(input, info, reflectChange)
       const from = session
