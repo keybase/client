@@ -134,14 +134,10 @@ export const useNativeThreadScroll = (p: {
     own.issued(metricsRef.current.offset, offset, false)
     listRef.current?.scrollToOffset({animated: false, offset})
   })
-  // Where a row lands is not known ahead, only which way it lies from the middle of the view, once the
-  // list has reported what is in view: older rows sit at higher offsets. Until then the scroll heads
-  // nowhere known, and the movement after it is the reader's. A centre's coarse scroll puts the row in
-  // the middle of the whole scroll view, where its corrector, reading the list's viewability, settles
-  // it. A reveal, animated, puts it in the middle of the part of the view nothing covers: the keyboard
-  // (and the composer riding it) covers the bottom of the scroll view by as much as the resting offset
-  // sits below 0, so the row is lifted by half of that. Which way that lies is read from the row
-  // itself when the list has laid it out, as the lift can turn a row just past the middle of the view.
+  // A centre's coarse scroll puts the row in the middle of the whole scroll view, where its corrector
+  // settles it. A reveal, animated, puts it in the middle of the part of the view nothing covers: the
+  // keyboard (and the composer riding it) covers the bottom by as much as the resting offset sits
+  // below 0, so the row is lifted by half of that.
   const [scrollToItem] = React.useState(() => (item: T.Chat.Ordinal, kind: ItemScroll) => {
     const animated = kind === 'reveal'
     const {offset, viewport} = metricsRef.current
@@ -168,9 +164,8 @@ export const useNativeThreadScroll = (p: {
   // useSchedule's, which would run first and hide whether the first load's retry was still pending.
   const [pins] = React.useState(makeSchedule)
 
-  // coarse: scrollToItem lands at the wrong offset for tall variable-height rows,
-  // but it gets the target area rendered. The closed-loop corrector below
-  // refines from there using the real viewable index range.
+  // Coarse: scrollToItem lands at the wrong offset for tall variable-height rows, but it gets the
+  // target rendered for the corrector to refine.
   const moveToward = React.useCallback(
     (target: T.Chat.Ordinal) => {
       const reassert = (delay: number) =>
@@ -341,11 +336,9 @@ export const useNativeThreadScroll = (p: {
     dispatch({type: 'datasetChanged'})
   }, [datasetKey, dispatch])
 
-  // Center on the search hit once it actually appears in the loaded list. Centering
-  // on the raw centeredOrdinal change is unreliable: navigating to a hit reloads the
-  // thread centered on it, so messageOrdinals is briefly empty (idx -1) when the
-  // ordinal changes. Wait for the target to load, then scroll. A layout effect ahead of the first
-  // load's, which relies on a centre request having taken the end already.
+  // Level-triggered: navigating to a hit reloads the thread around it, so the rows are briefly empty
+  // when the ordinal changes. A layout effect ahead of the first load's, which relies on a centre
+  // request having taken the end already.
   React.useLayoutEffect(() => {
     dispatch({
       atNewest: () => {
@@ -397,15 +390,9 @@ export const useNativeThreadScroll = (p: {
     dispatch({anchorsEnd: false, rowFullyVisible, type: 'viewportResized'})
   }, [bottomInset, dispatch, rowFullyVisible])
 
-  // When keyboard is open, maintainVisibleContentPosition adjusts contentOffset by the new
-  // message height when a message is added, undoing the scrollToBottom from onSubmit.
-  // Defer the re-scroll past the native MPV adjustment (which runs on the UI thread after
-  // React's commit) so the newest message stays visible.
-  // An append is a newer newest message than the dataset already held, arriving while the thread held
-  // the newest message. Older rows arriving (scrolling up loads them) leave the newest where it was,
-  // a page of newer rows loading into a window of history is not a new message, and the reload that
-  // refills a cleared thread has nothing to append to; re-pinning for any of them would yank the
-  // reader to the bottom.
+  // With the keyboard open, maintainVisibleContentPosition adjusts contentOffset by a new message's
+  // height, undoing the scroll to the bottom from onSubmit. The re-pin is deferred past that
+  // adjustment, which runs on the UI thread after React's commit.
   const newestOrdinal = messageOrdinals[0]
   const prevNewestRef = React.useRef(newestOrdinal)
   // The dataset prevNewestRef's baseline belongs to, compared by value so a freeze/thaw re-mount
@@ -429,10 +416,9 @@ export const useNativeThreadScroll = (p: {
     return repin.cancel
   }, [datasetKey, dispatch, heldLatest, newestOrdinal, pins])
 
-  // Stores the conversation it last applied to (not a boolean) so a freeze/thaw of this screen —
-  // which re-mounts effects without a real conversation change — does not reset it and re-trigger
-  // the initial scroll, which would lose the user's scroll position (e.g. returning from the info
-  // panel). It resets implicitly when conversationIDKey changes.
+  // The conversation last loaded, not a boolean: a freeze/thaw of this screen re-mounts effects with
+  // no conversation change, and must not re-run the first load's scroll (returning from the info
+  // panel would lose the reader's place).
   const loadedConvRef = React.useRef<string | undefined>(undefined)
   React.useLayoutEffect(() => {
     const justLoaded = loaded && loadedConvRef.current !== conversationIDKey
@@ -469,11 +455,9 @@ export const useNativeThreadScroll = (p: {
     })
   })
 
-  // Loads a page as the list comes within pageLoadScreens of either end of the rows loaded, measured
-  // from where it is scrolled to: checked as it scrolls, as its content or viewport changes size, and
-  // once the gate after new rows has passed, so a short page, or a page landing with the reader still,
-  // loads the next without a scroll. The list is inverted: its offset rises toward the oldest row, and
-  // the newest rests at the resting offset, where the list sits until it first reports a scroll.
+  // Checked as the list scrolls, as its content or viewport changes size, and once the gate after new
+  // rows has passed, so a short page, or a page landing with the reader still, loads the next without
+  // a scroll. Until the list first reports a scroll it sits at the resting offset.
   const loadsRef = React.useRef({newer: loadNewer, older: loadOlder})
   React.useEffect(() => {
     loadsRef.current = {newer: loadNewer, older: loadOlder}

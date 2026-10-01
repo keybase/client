@@ -1,7 +1,5 @@
-// Where the thread should be scrolled right now. decideScroll is pure: each list adapter reports what
-// happened as an event, gets back one directive, and carries it out with its own measuring and
-// correcting. The decision rules live here once; how a list reaches the end or a centred row stays
-// with that list.
+// Where the thread should be scrolled right now. Each list adapter reports what happened as an event
+// and carries out the one directive it gets back with its own measuring and correcting.
 import type * as T from '@/constants/types'
 import sortedIndexBy from 'lodash/sortedIndexBy'
 import sortedIndexOf from 'lodash/sortedIndexOf'

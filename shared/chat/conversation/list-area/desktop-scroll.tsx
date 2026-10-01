@@ -53,15 +53,13 @@ const measureRow = (scroller: unknown, ordinal: T.Chat.Ordinal) => {
   return {row: el.getBoundingClientRect(), view: s.getBoundingClientRect()}
 }
 
-// How far the ordinal's row sits below the middle of the viewport; undefined while the row is not
-// rendered.
+// Undefined while the row is not rendered.
 const offsetFromMiddle = (scroller: unknown, ordinal: T.Chat.Ordinal) => {
   const m = measureRow(scroller, ordinal)
   return m && rowOffsetFromMiddle(m.row, m.view)
 }
 
-// Whether the ordinal's row is wholly inside the viewport, with the scroller at its end when atEnd;
-// a row not rendered is not.
+// With the scroller at its end when atEnd; a row not rendered is not in view.
 const rowFullyVisible = (scroller: unknown, ordinal: T.Chat.Ordinal, atEnd: boolean) => {
   const m = measureRow(scroller, ordinal)
   if (!m) return false
@@ -218,8 +216,7 @@ export const useDesktopThreadScroll = (p: {
           const state = listRef.current?.getState()
           if (idx < 0 || !scroller || !state) return
           // The list records an animated scroll's target only as it arrives, so this one says where it is
-          // going itself: the row's middle to the viewport's when the row is rendered to measure, and
-          // otherwise the end of the thread on the row's side of the view.
+          // going itself.
           const from = scroller.scrollTop
           const to = revealDestination({
             from,
@@ -348,9 +345,8 @@ export const useDesktopThreadScroll = (p: {
     dispatch({anchorsEnd: anchorsEndRef.current, type: 'rowResized'})
   }, [dispatch])
 
-  // The initial layout ends once the list has rows and has settled: its scroll offset held still and
-  // no row changed size across two checks. Timed only while there are rows, so a slow reload after a
-  // clear still has its whole page laid out before it ends.
+  // Timed only while there are rows, so a slow reload after a clear still has its whole page laid out
+  // before the initial layout ends.
   const initialLayout = useSchedule()
   React.useEffect(() => {
     if (!initialLayoutRef.current) return
@@ -375,12 +371,10 @@ export const useDesktopThreadScroll = (p: {
     return () => initialLayout.stop()
   }, [datasetKey, dispatch, initialLayout, listRef])
 
-  // Who moved the scroller is read from where it moved to, never from the input that moved it: the
-  // list writes down where it is putting the scroller before it moves it (its initial position, every
-  // scrollTo, its end anchor, holding rows in place as they measure), and anything else that moved it
-  // is the reader, however they did it. A scroll of the list's own can land short of the offset it
-  // wrote down (the scroller clamps to an extent that has not caught up with new rows), so landing
-  // anywhere between where the scroller was and that offset is still the list's own.
+  // Who moved the scroller is read from where it moved to (listMovedItself), never from the input that
+  // moved it: the list writes down where it is putting the scroller before it moves it (its initial
+  // position, every scrollTo, its end anchor, holding rows in place as they measure), and anything
+  // else that moved it is the reader, however they did it.
   const lastOffsetRef = React.useRef(0)
   const onScrollerScroll = React.useCallback(
     (e: {target: unknown}) => {
