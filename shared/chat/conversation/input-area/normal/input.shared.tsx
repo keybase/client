@@ -3,20 +3,15 @@ import type * as T from '@/constants/types'
 import type * as Styles from '@/styles'
 import type {TextType} from '@/common-adapters/text.shared'
 import type {TextInputProps} from 'react-native'
+import type {ComposerInput} from '../composer'
 
 export type Selection = {
   start: number
   end?: number
 }
 
-export type RefType = {
+export type RefType = ComposerInput & {
   blur: () => void
-  clear: () => void
-  focus: () => void
-  getSelection: () => Selection | undefined
-  isFocused: () => boolean
-  transformText: (fn: (textInfo: TextInfo) => TextInfo, reflectChange: boolean) => void
-  value: string
   getBoundingClientRect?: () =>
     | undefined
     | {
@@ -46,8 +41,6 @@ export type Props = {
   onSelectionChange?: TextInputProps['onSelectionChange']
   autoCapitalize?: TextInputProps['autoCapitalize']
   onKeyDown?: (e: React.KeyboardEvent) => void
-  onKeyUp?: (e: React.KeyboardEvent) => void
-  onEnterKeyDown?: (e?: React.KeyboardEvent) => void
   placeholder?: string
   className?: string
   ref?: React.Ref<RefType | null>
@@ -66,13 +59,15 @@ export type PlatformInputProps = {
   explodingModeSeconds: number
   setExplodingMode: (mode: number) => void
   hintText: string
+  // attaches the input to the composer, which is what everything else asks about it
   setInputRef: (r: RefType | null) => void
   isEditing: boolean
   isExploding: boolean
   minWriterRole: T.Teams.TeamRoleType
   onCancelEditing: () => void
   onChangeText: (newText: string) => void
-  onSubmit: (text: string) => void
+  // true when it sent: false for an empty composer, or where the user can't post
+  onSubmit: () => boolean
   showReplyPreview: boolean
   suggestionOverlayStyle: Styles.StylesCrossPlatform
 }

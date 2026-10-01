@@ -1,9 +1,12 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
+import type * as React from 'react'
 import {act, cleanup, renderHook} from '@testing-library/react'
-import {notifyEngineActionListeners} from '@/engine/action-listener'
+import {routeChatNotification} from '@/chat/notification-router'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
+import {useCurrentUserState} from '@/stores/current-user'
+import {ConversationThreadProvider} from '../../thread-context'
 import {transformer, useBotCommandsUpdateState} from './commands'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
@@ -14,12 +17,28 @@ const notifyBotCommandsStatus = (
   status: T.RPCChat.UIBotCommandsUpdateStatus
 ) => {
   act(() => {
-    notifyEngineActionListeners({
+    routeChatNotification({
       payload: {params: {convID: conversationIDKey, status}},
       type: 'chat.1.chatUi.chatBotCommandsUpdateStatus',
     } as never)
   })
 }
+
+// the thread the hook is rendered inside; a test may move it to another conversation
+let threadID = convID
+const wrapper = ({children}: {children: React.ReactNode}) => (
+  <ConversationThreadProvider id={threadID}>{children}</ConversationThreadProvider>
+)
+
+beforeEach(() => {
+  threadID = convID
+  useCurrentUserState.getState().dispatch.setBootstrap({
+    deviceID: 'device-id',
+    deviceName: 'testuser-mac',
+    uid: 'uid',
+    username: 'testuser',
+  })
+})
 
 afterEach(() => {
   cleanup()
@@ -28,9 +47,7 @@ afterEach(() => {
 })
 
 test('useBotCommandsUpdateState ignores other conversations and applies uptodate settings', () => {
-  const {result} = renderHook(({id}) => useBotCommandsUpdateState(id), {
-    initialProps: {id: convID},
-  })
+  const {result} = renderHook(() => useBotCommandsUpdateState(), {wrapper})
 
   notifyBotCommandsStatus(otherConvID, {typ: T.RPCChat.UIBotCommandsUpdateStatusTyp.updating})
 
@@ -48,9 +65,7 @@ test('useBotCommandsUpdateState ignores other conversations and applies uptodate
 })
 
 test('useBotCommandsUpdateState preserves settings during non-uptodate updates and blanks on conv changes', () => {
-  const {rerender, result} = renderHook(({id}) => useBotCommandsUpdateState(id), {
-    initialProps: {id: convID},
-  })
+  const {rerender, result} = renderHook(() => useBotCommandsUpdateState(), {wrapper})
   const botSettings = {cmds: true, mentions: false}
 
   notifyBotCommandsStatus(convID, {
@@ -62,7 +77,8 @@ test('useBotCommandsUpdateState preserves settings during non-uptodate updates a
   expect(result.current.status).toBe(T.RPCChat.UIBotCommandsUpdateStatusTyp.failed)
   expect(result.current.settings.get('helperbot')).toEqual(botSettings)
 
-  rerender({id: otherConvID})
+  threadID = otherConvID
+  rerender()
 
   expect(result.current.status).toBe(T.RPCChat.UIBotCommandsUpdateStatusTyp.blank)
   expect(result.current.settings.size).toBe(0)

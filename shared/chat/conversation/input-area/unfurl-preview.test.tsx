@@ -155,7 +155,6 @@ describe('UnfurlPreview', () => {
       scrollDown: () => {},
       scrollToBottom: () => {},
       scrollUp: () => {},
-      setInputRef: () => {},
       setScrollRef: () => {},
     }
     const {container} = render(
