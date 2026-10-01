@@ -1,42 +1,52 @@
 import * as Common from '@/constants/chat/common'
 import type * as T from '@/constants/types'
-import {getVisibleScreen, navigateAppend, navigateUp, setChatRootParams} from '@/constants/router'
+import {getVisibleScreen, navigateAppend, navigateUp, setChatRootParams, setRouteParams} from '@/constants/router'
 import {isPhone} from '@/constants/platform'
-import {ignorePromise} from '@/constants/utils'
-import {cancelActiveThreadSearchRPC} from '../search-rpc'
 import {useConversationThreadID} from './thread-context'
 
 export const useConversationThreadToggleSearch = () => {
   const conversationIDKey = useConversationThreadID()
-  return (hide?: boolean, query?: string) => {
-    toggleConversationThreadSearch(conversationIDKey, hide, query)
+  return () => {
+    toggleConversationThreadSearch(conversationIDKey)
   }
 }
 
-export const toggleConversationThreadSearch = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  hide?: boolean,
-  query?: string
-) => {
-  const visible = getVisibleScreen()
-  const params = visible?.params as
-    | {conversationIDKey?: T.Chat.ConversationIDKey; threadSearch?: {query?: string}}
-    | undefined
-  const nextVisible = hide !== undefined ? !hide : !params?.threadSearch
+type ThreadSearchParams = {conversationIDKey?: T.Chat.ConversationIDKey; threadSearch?: {query?: string}}
 
-  const threadSearch = nextVisible ? (query ? {query} : {}) : undefined
+// Opens thread search, or closes it through closeConversationThreadSearch when it is open.
+export const toggleConversationThreadSearch = (conversationIDKey: T.Chat.ConversationIDKey) => {
+  const params = getVisibleScreen()?.params as ThreadSearchParams | undefined
+  if (params?.threadSearch) {
+    closeConversationThreadSearch(conversationIDKey)
+    return
+  }
+  const threadSearch = {}
   if (Common.isSplit) {
     setChatRootParams({conversationIDKey, threadSearch})
   } else {
     navigateAppend({name: Common.threadRouteName, params: {conversationIDKey, threadSearch}}, true)
   }
+}
 
-  const f = async () => {
-    if (!nextVisible) {
-      await cancelActiveThreadSearchRPC()
-    }
+// Every close of thread search: the search's own Cancel and Done, mod+f, a toggle, every Reply,
+// jumping to recent, and a send while centred on a hit. It only changes the route, and only when
+// this conversation's search is open; the search UI unmounting cancels its search, and the centre
+// provider drops the hit it centred. It looks past modals and targets the thread's route by key,
+// so it still lands while the phone message menu (a modal) is up.
+export const closeConversationThreadSearch = (conversationIDKey: T.Chat.ConversationIDKey) => {
+  const visible = getVisibleScreen(false)
+  const params = visible?.params as ThreadSearchParams | undefined
+  if (!params?.threadSearch || params.conversationIDKey !== conversationIDKey) {
+    return
   }
-  ignorePromise(f())
+  setRouteParams(visible?.key, {threadSearch: undefined})
+}
+
+export const useConversationThreadCloseSearch = () => {
+  const conversationIDKey = useConversationThreadID()
+  return () => {
+    closeConversationThreadSearch(conversationIDKey)
+  }
 }
 
 export type ConversationInfoPanelTab = 'settings' | 'members' | 'attachments' | 'bots' | undefined

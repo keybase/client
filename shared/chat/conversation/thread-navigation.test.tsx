@@ -37,6 +37,7 @@ let setChatRootParams: jest.SpyInstance
 let navigateAppend: jest.SpyInstance
 let navigateUp: jest.SpyInstance
 let getVisibleScreen: jest.SpyInstance
+let setRouteParams: jest.SpyInstance
 let cancelSearch: jest.SpyInstance
 
 const flushPromises = async () => {
@@ -52,6 +53,7 @@ beforeEach(() => {
   navigateAppend = jest.spyOn(Router, 'navigateAppend').mockReturnValue(true)
   navigateUp = jest.spyOn(Router, 'navigateUp').mockImplementation(() => {})
   getVisibleScreen = jest.spyOn(Router, 'getVisibleScreen').mockReturnValue(undefined)
+  setRouteParams = jest.spyOn(Router, 'setRouteParams').mockReturnValue(true)
   cancelSearch = jest.spyOn(T.RPCChat, 'localCancelActiveSearchRpcPromise').mockResolvedValue()
 })
 
@@ -69,35 +71,22 @@ describe('toggleConversationThreadSearch', () => {
     expect(cancelSearch).not.toHaveBeenCalled()
   })
 
-  test('split: a query goes with it', () => {
-    toggleConversationThreadSearch(convID, false, 'hello')
-    expect(setChatRootParams).toHaveBeenCalledWith({conversationIDKey: convID, threadSearch: {query: 'hello'}})
-  })
-
-  test('toggling while search shows closes it and cancels the running search', async () => {
-    getVisibleScreen.mockReturnValue(visible('chatRoot', {threadSearch: {query: 'x'}}))
+  // the search UI unmounting is what cancels its search
+  test('toggling while search shows closes it on that route and leaves the cancel to the search UI', async () => {
+    getVisibleScreen.mockReturnValue(visible('chatRoot', {conversationIDKey: convID, threadSearch: {query: 'x'}}))
     toggleConversationThreadSearch(convID)
     await flushPromises()
-    expect(setChatRootParams).toHaveBeenCalledWith({conversationIDKey: convID, threadSearch: undefined})
-    expect(cancelSearch).toHaveBeenCalledTimes(1)
-  })
-
-  test('an explicit hide wins over the visible state, and a show ignores the query when empty', async () => {
-    toggleConversationThreadSearch(convID, true, 'ignored')
-    await flushPromises()
-    expect(setChatRootParams).toHaveBeenLastCalledWith({conversationIDKey: convID, threadSearch: undefined})
-    expect(cancelSearch).toHaveBeenCalledTimes(1)
-    getVisibleScreen.mockReturnValue(visible('chatRoot', {threadSearch: {}}))
-    toggleConversationThreadSearch(convID, false, '')
-    expect(setChatRootParams).toHaveBeenLastCalledWith({conversationIDKey: convID, threadSearch: {}})
+    expect(setRouteParams).toHaveBeenCalledWith('chatRoot', {threadSearch: undefined})
+    expect(setChatRootParams).not.toHaveBeenCalled()
+    expect(cancelSearch).not.toHaveBeenCalled()
   })
 
   test('not split: replaces the conversation route with the search params', () => {
     mockSplit = false
-    toggleConversationThreadSearch(convID, undefined, 'q')
+    toggleConversationThreadSearch(convID)
     expect(setChatRootParams).not.toHaveBeenCalled()
     expect(navigateAppend).toHaveBeenCalledWith(
-      {name: 'chatConversation', params: {conversationIDKey: convID, threadSearch: {query: 'q'}}},
+      {name: 'chatConversation', params: {conversationIDKey: convID, threadSearch: {}}},
       true
     )
   })
@@ -107,8 +96,8 @@ describe('toggleConversationThreadSearch', () => {
       <ConversationThreadProvider id={convID}>{children}</ConversationThreadProvider>
     )
     const {result} = renderHook(() => useConversationThreadToggleSearch(), {wrapper})
-    act(() => result.current(false, 'hi'))
-    expect(setChatRootParams).toHaveBeenCalledWith({conversationIDKey: convID, threadSearch: {query: 'hi'}})
+    act(() => result.current())
+    expect(setChatRootParams).toHaveBeenCalledWith({conversationIDKey: convID, threadSearch: {}})
   })
 })
 

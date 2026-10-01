@@ -9,9 +9,8 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useConversationCenterActions} from './center-context'
 import {cancelActiveThreadSearchRPC, searchInboxRPC} from '../search-rpc'
 import {useConversationThreadID, useConversationThreadSelector} from './thread-context'
-import {useConversationThreadToggleSearch} from './thread-navigation'
+import {useConversationThreadCloseSearch} from './thread-navigation'
 import {useThreadSearchRoute} from './thread-search-route'
-import {ThreadSearchOverlayContext} from './thread-search-overlay-context'
 
 type OwnProps = {style?: Kb.Styles.StylesCrossPlatform}
 export type CommonProps = OwnProps & {
@@ -80,9 +79,7 @@ const runSearchInbox = async (p: {
         },
       },
       opts: {
-        convID: T.Chat.isValidConversationIDKey(conversationIDKey)
-          ? T.Chat.keyToConversationID(conversationIDKey)
-          : new Uint8Array(0),
+        convID: T.Chat.keyToConversationIDOrEmpty(conversationIDKey),
         maxHits: 1000,
       },
       query,
@@ -96,12 +93,8 @@ const runSearchInbox = async (p: {
 
 export const useCommon = (ownProps: CommonProps) => {
   const {conversationIDKey, initialQuery, style} = ownProps
-  const toggleThreadSearch = useConversationThreadToggleSearch()
-  const {centerOnMessage, clearCenter} = useConversationCenterActions()
-  const onToggleThreadSearch = () => {
-    clearCenter()
-    toggleThreadSearch()
-  }
+  const onToggleThreadSearch = useConversationThreadCloseSearch()
+  const {centerOnMessage} = useConversationCenterActions()
 
   const [searchState, setSearchState] = React.useState<SearchState>(() => ({
     hits: [],
@@ -501,20 +494,8 @@ const ThreadSearchMobileInner = function ThreadSearchMobileInner(p: CommonProps)
     }, 100)
   }, [])
 
-  // Report our height so the list can reserve space / lift the jump button while
-  // this bar overlays the bottom of the thread. Reset to 0 when we unmount.
-  const searchOverlayHeight = React.useContext(ThreadSearchOverlayContext)
-  const onLayout = (e: {nativeEvent: {layout: {height: number}}}) => {
-    searchOverlayHeight?.set(e.nativeEvent.layout.height)
-  }
-  React.useEffect(() => {
-    return () => {
-      searchOverlayHeight?.set(0)
-    }
-  }, [searchOverlayHeight])
-
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.mobileContainer} onLayout={onLayout}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.mobileContainer}>
       <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="space-between" padding="tiny" style={styles.outerContainer} gap="tiny">
         <Kb.Box2 direction="horizontal" centerChildren={true} noShrink={true}>
           <Kb.Text type="BodySemibold" style={styles.done} onClick={onToggleThreadSearch}>

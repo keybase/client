@@ -2,16 +2,17 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
-import * as ChatTypes from '@/constants/types/chat/message'
 import type * as T from '@/constants/types'
 import * as InputState from '../input-state'
 import SetExplodingMessagePopup from './set-explode-popup'
 import Typing from './typing'
 import type {Props as InputLowLevelProps, TextInfo, RefType} from './input.shared'
+import {useComposer} from '../composer'
 import type {PlatformInputProps as Props} from './input.shared'
 export type {Selection, RefType, TextInfo, PlatformInputProps} from './input.shared'
 import {formatDurationShort} from '@/util/timestamp'
 import {useSuggestors} from '../suggestors'
+import {composerKeyDown, keyFromHardware, type InputKeyAction, type WindowKeyAction} from '../composer-keys'
 import {ThreadRefsContext} from '@/chat/conversation/normal/context'
 import {getTextStyle} from '@/common-adapters/text.styles'
 import {useConversationThreadID} from '../../thread-context'
@@ -34,7 +35,6 @@ import {launchCameraAsync, launchImageLibraryAsync} from '@/util/expo-image-pick
 import {pickDocumentsAsync} from '@/util/expo-document-picker.native'
 import {filePickerError} from '@/util/storeless-actions'
 import {AudioSendWrapper} from '@/chat/audio/audio-send.native'
-import {standardTransformer} from '../suggestors/common'
 import logger from '@/logger'
 import {ComposerBoxContext, useComposerAnchor} from '@/chat/conversation/composer-viewport-context'
 import {
@@ -54,6 +54,7 @@ type HtmlInputRef = {
   selectionStart: number | null
   selectionEnd: number | null
   click: () => void
+  setSelectionRange: (start: number, end: number) => void
   getBoundingClientRect: () => DOMRect
   files?: HtmlFileList | null
 }
@@ -64,6 +65,7 @@ type HtmlTextAreaRef = {
   selectionStart: number | null
   selectionEnd: number | null
   click: () => void
+  setSelectionRange: (start: number, end: number) => void
   getBoundingClientRect: () => DOMRect
 }
 type HtmlFileList = {
@@ -80,8 +82,10 @@ type NativeSyntheticEvent<T> = {nativeEvent: T}
 type TextInputSelectionChangeEventData = {selection: {start: number; end: number}}
 type DesktopKeyboardEvent = {
   key: string
+  altKey: boolean
   ctrlKey: boolean
   metaKey: boolean
+  shiftKey: boolean
   type: string
   target: unknown
   preventDefault: () => void
@@ -94,8 +98,8 @@ function DesktopInput(p: InputLowLevelProps) {
   const theme = Kb.Styles.useTheme()
   const desktopInputLowLevelStyles = useDesktopInputLowLevelStyles()
   const {style: _style, onChangeText: _onChangeText, multiline, ref} = p
-  const {textType = 'Body', rowsMax, rowsMin, padding, placeholder, onKeyUp: _onKeyUp} = p
-  const {allowKeyboardEvents, className, disabled, autoFocus, onKeyDown: _onKeyDown, onEnterKeyDown} = p
+  const {textType = 'Body', rowsMax, rowsMin, padding, placeholder} = p
+  const {allowKeyboardEvents, className, disabled, autoFocus, onKeyDown: _onKeyDown} = p
 
   const [value, setValue] = React.useState('')
   // this isn't a value react can set on the input, so we need to drive it manually
@@ -104,7 +108,8 @@ function DesktopInput(p: InputLowLevelProps) {
   const inputMultiRef = React.useRef<HtmlTextAreaRef>(null)
 
   const onChangeTextRef = React.useRef(_onChangeText)
-  React.useEffect(() => {
+  // before useImperativeHandle hands the ref the handle, whose writes report through it
+  React.useLayoutEffect(() => {
     onChangeTextRef.current = _onChangeText
   }, [_onChangeText])
   const [onChange] = React.useState(
@@ -149,36 +154,37 @@ function DesktopInput(p: InputLowLevelProps) {
       getSelection: () => {
         return selectionRef.current
       },
+      insertTyped: (s: string) => {
+        const doc = (
+          globalThis as {
+            document?: {activeElement: unknown; execCommand?: (c: string, ui: boolean, v: string) => boolean}
+          }
+        ).document
+        if (!i || !doc?.execCommand || doc.activeElement !== i) return false
+        // deprecated, but the one insert Chromium puts in the textarea's own undo history; it fires
+        // the input event, so onChange reports the change
+        return doc.execCommand('insertText', false, s)
+      },
       isFocused: () =>
         !!i && (globalThis as {document?: {activeElement: unknown}}).document?.activeElement === i,
-      transformText: (fn: (textInfo: TextInfo) => TextInfo, reflectChange: boolean): void => {
-        const ti = fn({selection: selectionRef.current, text: value})
-        // defer since we can do this in other renders
-        setTimeout(() => {
+      replaceText: (ti: TextInfo, reflectChange: boolean) => {
+        if (!i) return false
+        // Written to the element before React sees it, so the render that follows finds the
+        // value already there and leaves the element (and its caret) alone.
+        i.value = ti.text
+        if (ti.selection) {
+          i.setSelectionRange(ti.selection.start, ti.selection.end ?? ti.selection.start)
+        }
+        if (reflectChange) {
+          onChange({target: i})
+        } else {
+          selectionRef.current = {end: i.selectionEnd ?? 0, start: i.selectionStart ?? 0}
           setValue(ti.text)
-          selectionRef.current = {end: ti.selection?.end ?? 0, start: ti.selection?.start ?? 0}
-          // defer this else we'll get onSelect called and wipe it out
-          setTimeout(() => {
-            if (i && ti.selection) {
-              if (typeof ti.selection.start === 'number') {
-                i.selectionStart = ti.selection.start
-              }
-              if (typeof ti.selection.end === 'number') {
-                i.selectionEnd = ti.selection.end
-              }
-            }
-          }, 10)
-          if (reflectChange) {
-            setTimeout(() => {
-              if (!i) return
-              onChange({target: i})
-            }, 100)
-          }
-        }, 0)
+        }
+        return true
       },
-      value,
     }
-  }, [value, multiline, onChange])
+  }, [multiline, onChange])
 
   const rows = multiline ? rowsMin || Math.min(2, rowsMax || 2) : 0
   const style = (() => {
@@ -229,16 +235,6 @@ function DesktopInput(p: InputLowLevelProps) {
       return
     }
     _onKeyDown?.(e)
-    if (onEnterKeyDown && e.key === 'Enter' && !(e.shiftKey || e.ctrlKey || e.altKey)) {
-      onEnterKeyDown(e)
-    }
-  }
-
-  const onKeyUp = (e: React.KeyboardEvent) => {
-    if (isComposingIMERef.current) {
-      return
-    }
-    _onKeyUp?.(e)
   }
 
   const commonProps = {
@@ -249,7 +245,6 @@ function DesktopInput(p: InputLowLevelProps) {
     onCompositionEnd,
     onCompositionStart,
     onKeyDown,
-    onKeyUp,
     onSelect,
     placeholder,
     value,
@@ -323,9 +318,14 @@ function NativeInput(p: InputLowLevelProps) {
 
   const [autoFocus] = React.useState(_autoFocus)
   const [value, setValue] = React.useState('')
-  const [selection, setSelection] = React.useState<{start: number; end?: number | undefined} | undefined>(
-    undefined
-  )
+  type InputSelection = {start: number; end?: number | undefined} | undefined
+  const [selection, setSelectionState] = React.useState<InputSelection>(undefined)
+  // read by the handle, which is built once: rebuilding it would detach and reattach the input
+  const selectionRef = React.useRef<InputSelection>(undefined)
+  const [setSelection] = React.useState(() => (next: InputSelection) => {
+    selectionRef.current = next
+    setSelectionState(next)
+  })
   // iOS multiline TextInput doesn't shrink its content height when value is
   // reset programmatically (only on manual deletion). Rather than remount to
   // collapse (which drops the keyboard on send), force a one-line height on
@@ -338,9 +338,9 @@ function NativeInput(p: InputLowLevelProps) {
   }
 
   const onChangeTextRef = React.useRef(_onChangeText)
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     onChangeTextRef.current = _onChangeText
-  })
+  }, [_onChangeText])
   const [onChangeText] = React.useState(() => (s: string) => {
     setValue(s)
     // any real input releases the post-send collapse so auto-grow resumes
@@ -353,10 +353,9 @@ function NativeInput(p: InputLowLevelProps) {
   }
 
   React.useImperativeHandle(ref, () => {
-    const i = inputRef.current
     return {
       blur: () => {
-        i?.blur()
+        inputRef.current?.blur()
       },
       clear: () => {
         setValue('')
@@ -368,23 +367,23 @@ function NativeInput(p: InputLowLevelProps) {
         }
       },
       focus: () => {
-        i?.focus()
+        inputRef.current?.focus()
       },
       getSelection: () => {
-        return selection
+        return selectionRef.current
       },
+      insertTyped: () => false,
       isFocused: () => !!inputRef.current?.isFocused(),
-      transformText: (fn: (textInfo: TextInfo) => TextInfo, reflectChange: boolean): void => {
-        const ti = fn({selection, text: value})
+      replaceText: (ti: TextInfo, reflectChange: boolean) => {
         if (!reflectChange) {
-          return
+          return false
         }
         onChangeText(ti.text)
         setSelection(ti.selection)
+        return true
       },
-      value,
     }
-  }, [onChangeText, selection, value])
+  }, [onChangeText, setSelection])
 
   const style = (() => {
     let textStyle = getTextStyle(textType, theme)
@@ -466,7 +465,6 @@ export const Input = isMobile ? NativeInput : DesktopInput
 // ==================== DESKTOP PLATFORM INPUT ====================
 
 type HtmlInputRefType = React.RefObject<HtmlInputRef | null>
-type InputRefType = React.RefObject<RefType | null>
 
 type ExplodingButtonProps = Pick<Props, 'explodingModeSeconds'> & {
   focusInput: () => void
@@ -530,23 +528,14 @@ const ExplodingButton = function ExplodingButton(p: ExplodingButtonProps) {
   )
 }
 
-type EmojiButtonProps = {inputRef: InputRefType}
-const EmojiButton = function EmojiButton(p: EmojiButtonProps) {
+const EmojiButton = function EmojiButton() {
   const desktopStyles = useDesktopStyles()
   const theme = Kb.Styles.useTheme()
-  const {inputRef} = p
+  const composer = useComposer()
   const conversationIDKey = useConversationThreadID()
   const insertEmoji = (emojiColons: string) => {
-    inputRef.current?.transformText(({text, selection}) => {
-      const newText =
-        text.slice(0, selection?.start || 0) + emojiColons + text.slice(selection?.end || 0) + ' '
-      const pos = (selection?.start || 0) + emojiColons.length + 1
-      return {
-        selection: {end: pos, start: pos},
-        text: newText,
-      }
-    }, true)
-    inputRef.current?.focus()
+    composer.insertAtCaret(`${emojiColons} `)
+    composer.focus()
   }
 
   const makePopup = (p: Kb.Popup2Parms) => {
@@ -659,103 +648,118 @@ const DesktopFooter = () => {
   )
 }
 
-type UseKeyboardProps = Pick<Props, 'isEditing' | 'onChangeText' | 'showReplyPreview'> & {
+type UseDesktopKeysProps = Pick<
+  Props,
+  'isEditing' | 'onCancelEditing' | 'onSubmit' | 'showReplyPreview'
+> & {
   focusInput: () => void
   htmlInputRef: HtmlInputRefType
-  onKeyDown?: (evt: React.KeyboardEvent) => void
-  onEditLastMessage: () => void
-  onCancelEditing: () => void
+  suggestors: Pick<
+    ReturnType<typeof useSuggestors>,
+    'closeSuggestions' | 'getSuggestions' | 'moveSuggestion' | 'recheckSuggestions' | 'selectSuggestion'
+  >
 }
-const useKeyboard = (p: UseKeyboardProps) => {
-  const {htmlInputRef, focusInput, isEditing, onKeyDown, onCancelEditing} = p
-  const {onChangeText, onEditLastMessage, showReplyPreview} = p
-  const lastText = React.useRef('')
-  const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
+const useDesktopKeys = (p: UseDesktopKeysProps) => {
+  const {focusInput, htmlInputRef, isEditing, onCancelEditing, onSubmit} = p
+  const {showReplyPreview, suggestors} = p
+  const {closeSuggestions, getSuggestions, moveSuggestion, recheckSuggestions, selectSuggestion} = suggestors
+  const composer = useComposer()
+  const setEditing = InputState.useConversationInputDispatch(s => s.setEditing)
+  const clearReplyTo = InputState.useConversationInputDispatch(s => s.clearReplyTo)
   const {scrollDown, scrollUp} = React.useContext(ThreadRefsContext)
-  const onCancelReply = () => {
-    setReplyTo(ChatTypes.numberToOrdinal(0))
-  }
 
-  const commonOnKeyDown = (e: React.KeyboardEvent | DesktopKeyboardEvent) => {
-    const text = lastText.current
-    if (e.key === 'ArrowUp' && !isEditing && !text) {
-      e.preventDefault()
-      onEditLastMessage()
-      return true
-    } else if (e.key === 'Escape' && isEditing) {
-      onCancelEditing()
-      return true
-    } else if (e.key === 'Escape' && showReplyPreview) {
-      onCancelReply()
-      return true
-    } else if (e.key === 'u' && (e.ctrlKey || e.metaKey)) {
-      htmlInputRef.current?.click()
-      return true
-    } else if (e.key === 'PageDown') {
-      scrollDown()
-      return true
-    } else if (e.key === 'PageUp') {
-      scrollUp()
-      return true
+  const run = (a: InputKeyAction | WindowKeyAction) => {
+    switch (a.type) {
+      case 'editLast':
+        setEditing('last')
+        break
+      case 'cancelEdit':
+        onCancelEditing()
+        break
+      case 'cancelReply':
+        clearReplyTo()
+        break
+      case 'openFilePicker':
+        htmlInputRef.current?.click()
+        break
+      case 'scrollDown':
+        scrollDown()
+        break
+      case 'scrollUp':
+        scrollUp()
+        break
+      case 'focusInput':
+        focusInput()
+        break
+      case 'recheckSuggestions':
+        recheckSuggestions()
+        break
+      case 'closeSuggestions':
+        closeSuggestions()
+        break
+      case 'suggestionMove':
+        moveSuggestion(a.up)
+        break
+      case 'suggestionSelect':
+        if (!selectSuggestion() && a.orSubmit) {
+          onSubmit()
+        }
+        break
+      case 'submit':
+        onSubmit()
+        break
+      case 'newline':
+        composer.typeAtCaret('\n')
+        break
     }
-
-    return false
   }
+
+  const threadFacts = () => ({
+    editing: isEditing,
+    replying: showReplyPreview,
+    textEmpty: !composer.getText(),
+  })
 
   const globalKeyDownPressHandler = (ev: DesktopKeyboardEvent) => {
-    const target = ev.target
-    const tagName = (target as {tagName?: string} | null)?.tagName?.toUpperCase()
-    if (tagName === 'INPUT' || tagName === 'TEXTAREA') {
-      return
-    }
-
-    if (commonOnKeyDown(ev)) {
-      return
-    }
-
-    const isPasteKey = ev.key === 'v' && (ev.ctrlKey || ev.metaKey)
-    const isValidSpecialKey = [
-      'Backspace',
-      'Delete',
-      'ArrowLeft',
-      'ArrowRight',
-      'ArrowUp',
-      'ArrowDown',
-      'Enter',
-      'Escape',
-    ].includes(ev.key)
-    if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
-      focusInput()
-    }
+    const tagName = (ev.target as {tagName?: string} | null)?.tagName?.toUpperCase()
+    const {actions, preventDefault} = composerKeyDown(
+      {
+        ...threadFacts(),
+        keypress: ev.type === 'keypress',
+        source: 'window',
+        targetIsInput: tagName === 'INPUT' || tagName === 'TEXTAREA',
+      },
+      ev
+    )
+    if (preventDefault) ev.preventDefault()
+    actions.forEach(run)
   }
 
   const inputKeyDown = (e: React.KeyboardEvent) => {
-    commonOnKeyDown(e)
-    onKeyDown?.(e)
+    const {actions, preventDefault} = composerKeyDown(
+      {...threadFacts(), source: 'input', suggestions: getSuggestions()},
+      e
+    )
+    if (preventDefault) e.preventDefault()
+    actions.forEach(run)
   }
 
-  const onChangeTextInner = (text: string) => {
-    lastText.current = text
-    onChangeText(text)
-  }
-
-  return {globalKeyDownPressHandler, inputKeyDown, onChangeText: onChangeTextInner}
+  return {globalKeyDownPressHandler, inputKeyDown}
 }
 
 type SideButtonsProps = Pick<Props, 'cannotWrite'> & {
   setHtmlInputRef: (i: HtmlInputRef | null) => void
-  inputRef: InputRefType
 }
 
 const SideButtons = (p: SideButtonsProps) => {
   const desktopStyles = useDesktopStyles()
-  const {setHtmlInputRef, cannotWrite, inputRef} = p
+  const {setHtmlInputRef, cannotWrite} = p
   return (
     <Kb.Box2 direction="horizontal" style={desktopStyles.sideButtons}>
       {!cannotWrite && (
         <>
           <GiphyButton />
-          <EmojiButton inputRef={inputRef} />
+          <EmojiButton />
           <FileButton setHtmlInputRef={setHtmlInputRef} />
         </>
       )}
@@ -767,61 +771,43 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
   const desktopStyles = useDesktopStyles()
   const {cannotWrite, explodingModeSeconds, onCancelEditing, setExplodingMode} = p
   const {showReplyPreview, hintText, setInputRef, isEditing, onSubmit} = p
+  const composer = useComposer()
   const htmlInputRef = React.useRef<HtmlInputRef | null>(null)
   const setHtmlInputRef = (i: HtmlInputRef | null) => {
     htmlInputRef.current = i
   }
-  const inputRef = React.useRef<RefType | null>(null)
-
-  React.useEffect(() => {
-    inputRef.current?.focus()
-  }, [])
-
-  const checkEnterOnKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !(e.altKey || e.shiftKey || e.metaKey)) {
-      e.preventDefault()
-      if (inputRef.current) {
-        onSubmit(inputRef.current.value)
-      }
-    }
+  // the suggestion list is placed against the textarea
+  const popupAnchorRef = React.useRef<RefType | null>(null)
+  const setInput = (r: RefType | null) => {
+    popupAnchorRef.current = r
+    setInputRef(r)
   }
 
-  const {
-    popup,
-    onKeyDown,
-    onChangeText: onChangeTextSuggestors,
-  } = useSuggestors({
-    inputRef,
+  React.useEffect(() => {
+    composer.focus()
+  }, [composer])
+
+  const {popup, onChangeText, ...suggestors} = useSuggestors({
+    popupAnchorRef,
     onChangeText: p.onChangeText,
-    onKeyDown: checkEnterOnKeyDown,
     suggestionListStyle: undefined,
     suggestionOverlayStyle: p.suggestionOverlayStyle,
     suggestionSpinnerStyle: desktopStyles.suggestionSpinnerStyle,
   })
 
   const focusInput = () => {
-    inputRef.current?.focus()
-  }
-  const setEditing = InputState.useConversationInputDispatch(s => s.setEditing)
-  const onEditLastMessage = () => {
-    setEditing('last')
+    composer.focus()
   }
 
-  const {globalKeyDownPressHandler, inputKeyDown, onChangeText} = useKeyboard({
+  const {globalKeyDownPressHandler, inputKeyDown} = useDesktopKeys({
     focusInput,
     htmlInputRef,
     isEditing,
     onCancelEditing,
-    onChangeText: onChangeTextSuggestors,
-    onEditLastMessage,
-    onKeyDown,
+    onSubmit,
     showReplyPreview,
+    suggestors,
   })
-
-  const setRefs = (ref: null | RefType) => {
-    setInputRef(ref)
-    inputRef.current = ref
-  }
 
   return (
     <>
@@ -861,7 +847,7 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
                 allowKeyboardEvents={true}
                 disabled={cannotWrite}
                 autoFocus={false}
-                ref={setRefs}
+                ref={setInput}
                 placeholder={hintText}
                 style={Kb.Styles.collapseStyles([
                   desktopStyles.input,
@@ -874,7 +860,7 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
                 onKeyDown={inputKeyDown}
               />
             </Kb.Box2>
-            <SideButtons cannotWrite={cannotWrite} setHtmlInputRef={setHtmlInputRef} inputRef={inputRef} />
+            <SideButtons cannotWrite={cannotWrite} setHtmlInputRef={setHtmlInputRef} />
           </Kb.Box2>
           <DesktopFooter />
         </Kb.Box2>
@@ -968,7 +954,6 @@ type NativeButtonsProps = Pick<
   hasText: boolean
   isEditing: boolean
   toggleShowingMenu: () => void
-  insertText: (s: string) => void
   onSubmit: () => void
   ourShowMenu: (m: MenuType) => void
   onSelectionChange?: (p: {start: number | null; end: number | null}) => void
@@ -978,7 +963,9 @@ type NativeButtonsProps = Pick<
 
 const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
   const nativeStyles = useNativeStyles()
-  const {insertText, ourShowMenu, onSubmit, onCancelEditing} = p
+  const {ourShowMenu, onSubmit, onCancelEditing} = p
+  const composer = useComposer()
+  const insertText = composer.insertAtCaret
   const {hasText, isEditing, isExploding, explodingModeSeconds, cannotWrite, toggleShowingMenu} = p
   const {showAudioSend, setShowAudioSend} = p
 
@@ -1043,17 +1030,21 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
         />
       )}
       {explodingIcon}
-      <Kb.Icon padding="tiny" onClick={openEmojiPicker} type="iconfont-emoji" testID={TestIDs.CHAT_EMOJI_BUTTON} />
-      <Kb.Icon padding="tiny" onClick={insertMentionMarker} type="iconfont-mention" />
+      {!cannotWrite && (
+        <>
+          <Kb.Icon padding="tiny" onClick={openEmojiPicker} type="iconfont-emoji" testID={TestIDs.CHAT_EMOJI_BUTTON} />
+          <Kb.Icon padding="tiny" onClick={insertMentionMarker} type="iconfont-mention" />
+        </>
+      )}
       <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexGrow} />
-      {!hasText && (
+      {!hasText && !cannotWrite && (
         <Kb.Box2 direction="horizontal" alignItems="flex-end">
           <Kb.Icon onClick={openFilePicker} padding="tiny" type="iconfont-camera" />
           <AudioRecorder showAudioSend={showAudioSend} setShowAudioSend={setShowAudioSend} />
           <Kb.Icon onClick={openMoreMenu} padding="tiny" type="iconfont-add" />
         </Kb.Box2>
       )}
-      {hasText && (
+      {hasText && !cannotWrite && (
         <Kb.Button
           type="Default"
           small={true}
@@ -1248,7 +1239,6 @@ const NativePlatformInput = (p: Props) => {
   const [showAudioSend, setShowAudioSend] = React.useState(false)
   const [height, setHeight] = React.useState(0)
   const [expanded, setExpanded] = React.useState(false) // updates immediately, used for the icon etc
-  const inputRef = React.useRef<RefType | null>(null)
   const {expandedSuggestionListHeight} = React.useContext(ComposerBoxContext)
   const suggestionListStyle = Kb.Styles.collapseStyles([
     nativeStyles.suggestionList,
@@ -1265,9 +1255,10 @@ const NativePlatformInput = (p: Props) => {
     onBlur,
     onSelectionChange,
     onFocus,
+    getSuggestions,
+    selectSuggestion,
     suggestionsShowing,
   } = useSuggestors({
-    inputRef,
     onChangeText: p.onChangeText,
     suggestionListStyle,
     suggestionOverlayStyle: p.suggestionOverlayStyle,
@@ -1277,24 +1268,13 @@ const NativePlatformInput = (p: Props) => {
   const {onSubmit, explodingModeSeconds, hintText, onCancelEditing} = p
   const suggestionListReserveHeight = expanded && suggestionsShowing ? expandedSuggestionListHeight : 0
 
-  const lastText = React.useRef('')
+  const composer = useComposer()
   const whichMenu = React.useRef<MenuType | undefined>(undefined)
   const [hasText, setHasText] = React.useState(false)
 
   const toggleExpandInput = () => {
     const nextState = !expanded
     setExpanded(nextState)
-  }
-
-  const insertText = (toInsert: string) => {
-    const i = inputRef.current
-    i?.transformText(({selection, text}) => {
-      return standardTransformer(
-        toInsert,
-        {position: {end: selection?.end || null, start: selection?.start || null}, text},
-        true
-      )
-    }, true)
   }
 
   const expandedRef = React.useRef(expanded)
@@ -1304,44 +1284,46 @@ const NativePlatformInput = (p: Props) => {
     onSubmitRef.current = onSubmit
   }, [expanded, onSubmit])
 
+  // An iOS autocorrection (or predictive-text pick) of the last word reaches onChangeText only
+  // after the send tap; reading the text sooner would send the uncorrected word.
   const [onQueueSubmit] = React.useState(() => () => {
     setTimeout(() => {
-      const text = lastText.current
-      if (text) {
-        onSubmitRef.current(text)
-        if (expandedRef.current) {
-          setExpanded(false)
-        }
+      if (onSubmitRef.current() && expandedRef.current) {
+        setExpanded(false)
       }
     }, 60)
   })
 
-  React.useEffect(() => {
-    // Enter should send a message like on desktop, when a hardware keyboard's
-    // attached.  On Android we get "hardware" keypresses from soft keyboards,
-    // so check whether a soft keyboard's up.
-    const cb = (hwKeyEvent: {pressedKey: string}) => {
-      switch (hwKeyEvent.pressedKey) {
-        case 'enter':
+  // Enter and shift-Enter from a hardware keyboard, answered like desktop Enter. The native side
+  // gates it: Android's MainActivity.dispatchKeyEvent sends it only while the configuration reports
+  // a hardware keyboard and consumes the key, so the TextInput never gets its own newline as well;
+  // iOS sends it from AppDelegate.pressesBegan, which only hardware key presses reach.
+  const onHardwareKey = React.useEffectEvent((hwKeyEvent: {pressedKey: string}) => {
+    const {actions} = composerKeyDown(
+      {source: 'hardware', suggestions: getSuggestions()},
+      keyFromHardware(hwKeyEvent.pressedKey)
+    )
+    for (const a of actions) {
+      switch (a.type) {
+        case 'suggestionSelect':
+          if (!selectSuggestion() && a.orSubmit) {
+            onQueueSubmit()
+          }
+          break
+        case 'submit':
           onQueueSubmit()
           break
-        case 'shift-enter': {
-          const i = inputRef.current
-          i?.transformText(({selection, text}) => {
-            return standardTransformer(
-              '\n',
-              {position: {end: selection?.end || null, start: selection?.start || null}, text},
-              true
-            )
-          }, true)
-        }
+        case 'newline':
+          composer.insertAtCaret('\n')
       }
     }
-    onHWKeyPressed(cb)
+  })
+  React.useEffect(() => {
+    onHWKeyPressed(e => onHardwareKey(e))
     return () => {
       removeOnHWKeyPressed()
     }
-  }, [onQueueSubmit])
+  }, [])
 
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
@@ -1395,25 +1377,10 @@ const NativePlatformInput = (p: Props) => {
     setHeight(height)
   }
 
-  const onAnimatedInputRef = (ref: RefType | null) => {
-    setInputRef(ref)
-    inputRef.current = ref
-  }
   const aiOnChangeText = (text: string) => {
     setHasText(!!text)
-    lastText.current = text
     onChangeText(text)
   }
-
-  const lastEditRef = React.useRef(isEditing)
-  React.useEffect(() => {
-    if (isEditing !== lastEditRef.current) {
-      lastEditRef.current = isEditing
-      if (isEditing) {
-        inputRef.current?.focus()
-      }
-    }
-  }, [isEditing])
 
   const _onSelectionChange = (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
     onSelectionChange(e.nativeEvent.selection)
@@ -1446,7 +1413,7 @@ const NativePlatformInput = (p: Props) => {
               onFocus={onFocus}
               onChangeText={aiOnChangeText}
               onSelectionChange={_onSelectionChange}
-              inputRef={onAnimatedInputRef}
+              inputRef={setInputRef}
               style={nativeStyles.input}
               textType="Body"
               rowsMin={1}
@@ -1456,7 +1423,6 @@ const NativePlatformInput = (p: Props) => {
             <NativeAnimatedExpand expandInput={toggleExpandInput} expanded={expanded} />
           </Kb.Box2>
           <NativeButtons
-            insertText={insertText}
             ourShowMenu={ourShowMenu}
             onCancelEditing={onCancelEditing}
             onSelectionChange={onSelectionChange}
