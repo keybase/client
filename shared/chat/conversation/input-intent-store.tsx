@@ -16,8 +16,8 @@
 // durably. Unreachable today only because registration and the subscription that consumes are the
 // same effect - split them and you owe this a second look.
 //
-// Do not add composer state to this store. The composer's state lives in the reducer in
-// input-area/input-state.tsx; this only carries a one-shot instruction to it.
+// Do not add composer state to this store. It lives in input-area/input-state.tsx and the
+// composer it makes; this only carries a one-shot instruction to them.
 import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
