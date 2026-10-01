@@ -19,6 +19,7 @@ import {
   openThreadSearch,
   ordinalRect,
   readThreadGeometry,
+  requireAttachedApp,
   rowByOrdinal,
   searchFor,
   selectHit,
@@ -68,11 +69,7 @@ const centreTolerancePx = 16
 const jumpToRecent = (page: Page) => page.getByTestId(T.CHAT_JUMP_TO_RECENT)
 const catchUp = (page: Page) => page.getByTestId(T.CHAT_CATCH_UP)
 
-const requireSender = () => {
-  test.skip(!sender.ok, sender.ok ? '' : `second-account sender unavailable: ${sender.reason}`)
-  if (!sender.ok) throw new Error('unreachable')
-  return sender
-}
+const requireSender = () => requireAttachedApp(sender, "the second account's sender")
 
 const sendIncoming = async (channel: E2EChannel, text: string) => {
   await requireSender().send(data.convIDs[channel], data.team, text)

@@ -14,6 +14,8 @@ import {
   collectConsoleErrors,
   inboxRow,
   requestLayoutAndReadReselect,
+  requireAttachedApp,
+  requireAttachedAppAsEither,
   rowByOrdinal,
   selectedInboxRows,
   stopWatchingReselects,
@@ -40,6 +42,8 @@ let data: ChatData
 
 const requireOwnerCli = async () => {
   const who = await cliWhoami()
+// set once the attached app is the owner, for afterAll to hand it back
+let ownerAttached = false
   if (who !== data.smokeUser) throw new Error('the desktop app and CLI must start as the smoke user (the team owner)')
 }
 
@@ -54,12 +58,15 @@ test.beforeAll(async () => {
   await switchAttachedApp(data.smokeUser)
 })
 
+  await requireAttachedAppAsEither(data.secondUser, data.smokeUser)
 // The attached app goes back to sending as the second account, the part the other chat flows give it.
+  ownerAttached = true
 test.afterAll(async () => {
   test.setTimeout(90_000)
   await switchAttachedApp(data.secondUser)
 })
 
+  if (!ownerAttached) return
 test.afterEach(async ({page}) => {
   await switchAccount(page, data.smokeUser)
   await requireOwnerCli()
@@ -123,8 +130,7 @@ test('leaving the open channel moves the selection to the newest conversation', 
 
 test('removed from the open channel moves the selection to the newest conversation', async ({page}) => {
   test.setTimeout(150_000)
-  const owner = await findChannelOwner(data.smokeUser)
-  if (!owner.ok) throw new Error(`the owner's app is unavailable: ${owner.reason}`)
+  const owner = requireAttachedApp(await findChannelOwner(data.smokeUser), "the owner's app")
   const {convID, topicName} = await createThrowawayChannel(removedPrefix)
   const newest = await openChannelAsSecond(page, topicName)
 

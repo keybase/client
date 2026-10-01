@@ -15,6 +15,8 @@ import {
   messageMenu,
   openConversationByName,
   openSelfConversation,
+  requireAttachedApp,
+  requireAttachedAppAsEither,
   sendMessage,
   suggestionRows,
   switchAccount,
@@ -664,6 +666,7 @@ test.describe('read-only mid-edit', () => {
     await deleteThrowawayChannels(prefix)
   })
 
+    await requireAttachedAppAsEither(data.secondUser, data.smokeUser)
   test.afterEach(async ({page}) => {
     test.setTimeout(120_000)
     await switchAccount(page, data.smokeUser)
@@ -674,8 +677,7 @@ test.describe('read-only mid-edit', () => {
   test('Escape ends the edit, empties the composer and leaves the draft, which comes back once it can post', async ({page}) => {
     test.setTimeout(180_000)
     await switchAttachedApp(data.smokeUser)
-    const owner = await findChannelOwner(data.smokeUser)
-    if (!owner.ok) throw new Error(`the owner's app is unavailable: ${owner.reason}`)
+    const owner = requireAttachedApp(await findChannelOwner(data.smokeUser), "the owner's app")
     const {convID, topicName} = await createThrowawayChannel(prefix)
 
     await switchAccount(page, data.secondUser)
@@ -720,8 +722,7 @@ test.describe('read-only mid-edit', () => {
   test('the owner clearing the minimum writer role makes the composer writable again, without a reopen', async ({page}) => {
     test.setTimeout(180_000)
     await switchAttachedApp(data.smokeUser)
-    const owner = await findChannelOwner(data.smokeUser)
-    if (!owner.ok) throw new Error(`the owner's app is unavailable: ${owner.reason}`)
+    const owner = requireAttachedApp(await findChannelOwner(data.smokeUser), "the owner's app")
     const {convID, topicName} = await createThrowawayChannel(prefix)
 
     await switchAccount(page, data.secondUser)

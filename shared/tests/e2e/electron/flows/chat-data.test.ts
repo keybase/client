@@ -18,6 +18,7 @@ import {
   openConversationByName,
   openDirectConversation,
   openSelfConversation,
+  requireAttachedApp,
   rowByOrdinal,
   heldWaitingKeys,
   sendMessage,
@@ -45,11 +46,7 @@ test.beforeAll(async () => {
   sender = await findIncomingSender(data.secondUser)
 })
 
-const requireSender = () => {
-  test.skip(!sender.ok, sender.ok ? '' : `second-account sender unavailable: ${sender.reason}`)
-  if (!sender.ok) throw new Error('unreachable')
-  return sender
-}
+const requireSender = () => requireAttachedApp(sender, "the second account's sender")
 
 const openScratch = async (page: Page) => openConversationByName(page, data.team, E2E_CHANNELS.scratch)
 const openSelf = async (page: Page) => openSelfConversation(page, data.smokeUser)
