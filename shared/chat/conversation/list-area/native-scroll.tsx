@@ -16,8 +16,8 @@ import {
   type ScrollDirective,
   type ScrollEvent,
 } from './scroll-target'
-import {useHeldLatest, useScrollTarget} from './use-scroll-target'
-import {nativePageDistances, withinPageLoad} from './paging'
+import {useScrollTarget} from './use-scroll-target'
+import {nativeOlderPageDistance, withinPageLoad} from './paging'
 import {
   atRestingEnd,
   correctorStep,
@@ -42,15 +42,12 @@ export type NativeListRef = {
 // the keyboard following a send). Instead we swap between two configs:
 // - closed (keyboard hidden): autoscrollToTopThreshold=1 so new messages at the bottom
 //   auto-reveal when the user is pinned there.
-// - noAutoscroll (keyboard open, or centered on a search hit, or a window of history, or the
-//   reader holding the end, or empty list): MVP still anchors content, but autoscroll-to-top is
-//   off because:
+// - noAutoscroll (keyboard open, or centered on a search hit, or the reader holding the end, or
+//   empty list): MVP still anchors content, but autoscroll-to-top is off because:
 //   1. with the keyboard open contentOffset.y = -(K-insets.bottom) <= 1, so the threshold
 //      would fire on insert and scroll to y=0, hiding new messages behind the keyboard.
 //   2. while centered on a search hit, autoscroll yanks the centered row.
-//   3. in a window of history (listAnchorsEnd), a page of newer rows loading at the bottom would
-//      carry the reader down with it.
-//   4. a reader who holds the end has scrolled away from it, and stays where they are.
+//   3. a reader who holds the end has scrolled away from it, and stays where they are.
 //   With the keyboard open, MVP's insert adjustment briefly holds old content in place;
 //   the deferred re-pin on append below re-pins the newest message.
 const maintainVisibleContentPositionClosed = {
@@ -61,9 +58,9 @@ const maintainVisibleContentPositionNoAutoscroll = {
   minIndexForVisible: 0,
 }
 
-// Each end waits out a second after the rows last changed, so a page landing is not taken for the
-// reader nearing the new end, and a second after it last asked, so a page on its way is not asked for
-// again.
+// An older page waits out a second after the rows last changed, so a page landing is not taken for
+// the reader nearing the new oldest row, and a second after it last asked, so a page on its way is
+// not asked for again.
 const pageLoadGate = 1000
 // What a scroll to a row is for: a centre, or a reveal.
 type ItemScroll = 'center' | 'reveal'
@@ -80,12 +77,11 @@ export const useNativeThreadScroll = (p: {
   editingOrdinal: T.Chat.Ordinal | undefined
   isKeyboardVisible: boolean
   listRef: React.RefObject<NativeListRef | null>
-  loadNewer: () => void
   loadOlder: () => void
   loaded: boolean
 }) => {
   const {centeredOrdinal, containsLatestMessage, conversationIDKey, datasetKey, editingOrdinal} = p
-  const {isKeyboardVisible, loadNewer, loadOlder} = p
+  const {isKeyboardVisible, loadOlder} = p
   const {listRef, loaded, messageOrdinals} = p
   const numOrdinals = messageOrdinals.length
 
@@ -115,7 +111,6 @@ export const useNativeThreadScroll = (p: {
 
   const {listOwnsEnd, scrollTarget} = useScrollTarget()
   const [own] = React.useState(makeOwnScrolls)
-  const heldLatest = useHeldLatest(containsLatestMessage, datasetKey, messageOrdinals)
 
   // What the list has reported of itself, undefined until it does. The list is keyed by conversation,
   // so a switch brings a new list that starts unmeasured, and the old one's figures say nothing of it.
@@ -407,14 +402,14 @@ export const useNativeThreadScroll = (p: {
     newestBaselineDatasetRef.current = datasetKey
     const previousNewest = prevNewestRef.current
     prevNewestRef.current = newestOrdinal
-    if (!isAppend({heldLatest, newest: newestOrdinal, previousNewest, sameDataset})) return undefined
+    if (!isAppend({newest: newestOrdinal, previousNewest, sameDataset})) return undefined
     // Decided when the re-pin would fire, with the keyboard as it is then: if it closed in between,
     // the list's own anchor already shows the newest message.
     const repin = pins.after(0, () => {
       dispatch({anchorHidesNewest: isKeyboardVisibleRef.current, type: 'appended'})
     })
     return repin.cancel
-  }, [datasetKey, dispatch, heldLatest, newestOrdinal, pins])
+  }, [datasetKey, dispatch, newestOrdinal, pins])
 
   // The conversation last loaded, not a boolean: a freeze/thaw of this screen re-mounts effects with
   // no conversation change, and must not re-run the first load's scroll (returning from the info
@@ -458,45 +453,33 @@ export const useNativeThreadScroll = (p: {
   // Checked as the list scrolls, as its content or viewport changes size, and once the gate after new
   // rows has passed, so a short page, or a page landing with the reader still, loads the next without
   // a scroll. Until the list first reports a scroll it sits at the resting offset.
-  const loadsRef = React.useRef({newer: loadNewer, older: loadOlder})
+  const loadOlderRef = React.useRef(loadOlder)
   React.useEffect(() => {
-    loadsRef.current = {newer: loadNewer, older: loadOlder}
-  }, [loadNewer, loadOlder])
-  const containsLatestRef = React.useRef(containsLatestMessage)
-  React.useEffect(() => {
-    containsLatestRef.current = containsLatestMessage
-  }, [containsLatestMessage])
-  const nextLoadRef = React.useRef({newer: 0, older: 0})
+    loadOlderRef.current = loadOlder
+  }, [loadOlder])
+  const nextLoadRef = React.useRef(0)
   const [loadPages] = React.useState(() => () => {
     const {content, viewport} = metricsRef.current
-    const resting = restingOffset()
     const oldestLaidOut = oldestLaidOutRef.current
     if (content === undefined || viewport === undefined || oldestLaidOut === undefined) return
-    const distances = nativePageDistances({
+    const distance = nativeOlderPageDistance({
       content,
-      offset: metricsRef.current.offset ?? resting,
+      offset: metricsRef.current.offset ?? restingOffset(),
       oldestLaidOut,
       ordinals: ordsRef.current,
-      resting,
       viewport,
     })
-    const near = (end: 'newer' | 'older', distance: number) => {
-      if (!withinPageLoad(distance, viewport)) return
-      const now = Date.now()
-      if (now <= nextLoadRef.current[end]) return
-      nextLoadRef.current[end] = now + pageLoadGate
-      loadsRef.current[end]()
-    }
-    near('older', distances.older)
-    // A thread holding the newest message has nothing newer to load.
-    if (!containsLatestRef.current) near('newer', distances.newer)
+    if (!withinPageLoad(distance, viewport)) return
+    const now = Date.now()
+    if (now <= nextLoadRef.current) return
+    nextLoadRef.current = now + pageLoadGate
+    loadOlderRef.current()
   })
   // Only new rows schedule a check of their own: a load that brought none leaves nothing more to ask
   // for until the list moves or changes size.
   const pageChecks = useSchedule()
   React.useEffect(() => {
-    const next = Date.now() + pageLoadGate
-    nextLoadRef.current = {newer: next, older: next}
+    nextLoadRef.current = Date.now() + pageLoadGate
     return pageChecks.after(pageLoadGate + 1, loadPages).cancel
   }, [loadPages, numOrdinals, pageChecks])
 
@@ -577,8 +560,10 @@ export const useNativeThreadScroll = (p: {
     setScrollRef({scrollDown: noop, scrollToBottom: requestBottom, scrollUp: noop})
   }, [requestBottom, setScrollRef])
 
+  // The native list loads no newer pages, so its rows' newest end only ever grows by new messages,
+  // and a window of history leaves its end anchor on.
   const mvpAutoscroll =
-    listAnchorsEnd({centeredOrdinal, heldLatest, listOwnsEnd}) && numOrdinals > 0 && !isKeyboardVisible
+    listAnchorsEnd({centeredOrdinal, heldLatest: true, listOwnsEnd}) && numOrdinals > 0 && !isKeyboardVisible
 
   return {
     maintainVisibleContentPosition: mvpAutoscroll

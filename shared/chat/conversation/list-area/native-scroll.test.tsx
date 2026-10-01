@@ -48,7 +48,6 @@ const mount = () => {
         editingOrdinal: undefined,
         isKeyboardVisible: true,
         listRef,
-        loadNewer: () => {},
         loadOlder: () => {},
         loaded: true,
         messageOrdinals: p.messageOrdinals,

@@ -138,15 +138,14 @@ describe('correctorStep', () => {
 })
 
 describe('isAppend', () => {
-  const base = {heldLatest: true, newest: 11, previousNewest: 10, sameDataset: true}
-  test('a newer newest row in the same dataset, held at the newest, is an append', () => {
+  const base = {newest: 11, previousNewest: 10, sameDataset: true}
+  test('a newer newest row in the same dataset is an append', () => {
     expect(isAppend(base)).toBe(true)
   })
   test('anything else is not', () => {
     expect(isAppend({...base, newest: 10})).toBe(false)
     expect(isAppend({...base, newest: 9})).toBe(false)
     expect(isAppend({...base, sameDataset: false})).toBe(false)
-    expect(isAppend({...base, heldLatest: false})).toBe(false)
     expect(isAppend({...base, previousNewest: undefined})).toBe(false)
     expect(isAppend({...base, newest: undefined})).toBe(false)
   })

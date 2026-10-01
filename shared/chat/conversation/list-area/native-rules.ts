@@ -87,12 +87,7 @@ export const correctorStep = (p: {
   return {offset: next, type: 'step'}
 }
 
-// Whether a newest row is a new message appended to a thread that held the newest message: not older
-// rows loading, a page of newer rows landing in a window of history, or a cleared thread refilling.
-export const isAppend = (p: {
-  heldLatest: boolean
-  newest: number | undefined
-  previousNewest: number | undefined
-  sameDataset: boolean
-}) =>
-  p.sameDataset && p.heldLatest && p.newest !== undefined && p.previousNewest !== undefined && p.newest > p.previousNewest
+// Whether a newest row is a new message appended to the thread: not older rows loading, or a cleared
+// thread refilling.
+export const isAppend = (p: {newest: number | undefined; previousNewest: number | undefined; sameDataset: boolean}) =>
+  p.sameDataset && p.newest !== undefined && p.previousNewest !== undefined && p.newest > p.previousNewest
