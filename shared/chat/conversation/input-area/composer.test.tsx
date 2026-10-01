@@ -255,6 +255,41 @@ describe('draft', () => {
     expect(composer.getText()).toBe('saved')
   })
 
+  // The input is a child of the view, as the platform inputs are, so it attaches before any of the
+  // view's own layout effects run.
+  test('an input attaching in the commit that changes the draft loads that commit\'s draft', () => {
+    const {composer} = setup()
+    const fake = makeFakeComposerInput()
+    const Input = (p: {setInput: (input: FakeComposerInput | null) => void; textChanged: (t: string) => boolean}) => {
+      const {setInput, textChanged} = p
+      React.useImperativeHandle(
+        setInput,
+        () => {
+          fake.connect(textChanged)
+          return fake
+        },
+        [textChanged]
+      )
+      return null
+    }
+    const View = (p: {draft?: string; shown: boolean}) => {
+      const {draft, shown} = p
+      const {setInput, textChanged} = useComposerInput<FakeComposerInput>(draft)
+      return shown ? <Input setInput={setInput} textChanged={textChanged} /> : null
+    }
+    const tree = (draft: string | undefined, shown: boolean) => (
+      <ComposerContext value={composer}>
+        <View draft={draft} shown={shown} />
+      </ComposerContext>
+    )
+    const {rerender} = render(tree('stale', false))
+
+    rerender(tree('current', true))
+
+    expect(fake.text).toBe('current')
+    expect(composer.getText()).toBe('current')
+  })
+
   test('an offer from an input that is not attached is ignored', () => {
     const {composer, mount} = setup()
     const first = mount(undefined)
