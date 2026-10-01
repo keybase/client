@@ -1,7 +1,11 @@
 // Chat helpers for the desktop flows: open a conversation by name, drive the composer and thread
 // search, and read the thread's geometry straight from the DOM (the scroller and its
-// [data-ordinal] rows). Everything here observes the page; nothing reaches into app state.
-import {expect, test, type ConsoleMessage, type Locator, type Page} from '@playwright/test'
+// [data-ordinal] rows). The rest reads the page as a user would, except the section near the end
+// that reaches the app's own modules through the dev server: it reads the navigation state, the
+// selected conversation, waiting keys, inbox layout and metadata stores and the signed-in user, and
+// drives a few things a test cannot arrange on demand (a ChatThreadsStale notification, an inbox
+// refresh, an account switch).
+import {expect, test, type ConsoleMessage, type ElementHandle, type JSHandle, type Locator, type Page} from '@playwright/test'
 import {findChannelOwner, findIncomingSender} from '@/tests/e2e/shared/incoming-sender'
 import * as T from '@/tests/e2e/shared/test-ids'
 import {navigateToChat} from './navigate'
@@ -41,31 +45,67 @@ export type ThreadGeometry = {
   viewHeight: number
 }
 
-// One reading of the thread list: the scroller (the list's own overflow child of the
-// chat-message-list wrapper, not the wrapper, whose padding reaches below the view) and its rows.
-export const readThreadGeometry = async (page: Page): Promise<ThreadGeometry | undefined> =>
-  page.evaluate(testID => {
+// The thread list's scroller: the list's own overflow child of the chat-message-list wrapper (not
+// the wrapper, whose padding reaches below the view). Undefined while no thread list is on the page.
+// The only place that finds it; dispose of the handle after use.
+export const threadScroller = async (page: Page): Promise<ElementHandle | undefined> => {
+  const handle = await page.evaluateHandle(testID => {
     const g = globalThis as unknown as PageGlobals
     const wrapper = g.document.querySelector(`[data-testid="${testID}"]`)
-    if (!wrapper) return undefined
-    const scroller = Array.from(wrapper.children).find(c => /auto|scroll/.test(g.getComputedStyle(c).overflowY))
-    if (!scroller) return undefined
-    const view = scroller.getBoundingClientRect()
-    const rows = Array.from(scroller.querySelectorAll('[data-ordinal]'))
-      .map(el => {
-        const r = el.getBoundingClientRect()
-        return {bottom: r.bottom - view.top, ordinal: Number(el.getAttribute('data-ordinal')), top: r.top - view.top}
-      })
-      .sort((a, b) => a.ordinal - b.ordinal)
-    return {
-      clientHeight: scroller.clientHeight,
-      distanceFromEnd: scroller.scrollHeight - scroller.clientHeight - scroller.scrollTop,
-      rows,
-      scrollHeight: scroller.scrollHeight,
-      scrollTop: scroller.scrollTop,
-      viewHeight: view.height,
-    }
+    return (wrapper && Array.from(wrapper.children).find(c => /auto|scroll/.test(g.getComputedStyle(c).overflowY))) ?? null
   }, T.CHAT_MESSAGE_LIST)
+  // typed from the page-side shape, which is not a DOM Node here: null when no element came back
+  const el = (handle as JSHandle<unknown>).asElement() as ElementHandle | null
+  if (el) return el
+  await handle.dispose()
+  return undefined
+}
+
+// Runs `run` with the thread's scroller, or returns undefined while there is none.
+const withThreadScroller = async <R>(page: Page, run: (scroller: ElementHandle) => Promise<R>) => {
+  const scroller = await threadScroller(page)
+  if (!scroller) return undefined
+  try {
+    return await run(scroller)
+  } finally {
+    await scroller.dispose()
+  }
+}
+
+const requireThreadScroller = async <R>(page: Page, run: (scroller: ElementHandle) => Promise<R>) => {
+  const scroller = await threadScroller(page)
+  if (!scroller) throw new Error('no thread list on the page')
+  try {
+    return await run(scroller)
+  } finally {
+    await scroller.dispose()
+  }
+}
+
+// One reading of the thread list: its scroller and rows. Undefined while there is no list, or once
+// the scroller found has left the page (the list remounting).
+export const readThreadGeometry = async (page: Page): Promise<ThreadGeometry | undefined> =>
+  withThreadScroller(page, async scroller =>
+    scroller.evaluate(node => {
+      const el = node as unknown as ElLike & {isConnected: boolean}
+      if (!el.isConnected) return undefined
+      const view = el.getBoundingClientRect()
+      const rows = Array.from(el.querySelectorAll('[data-ordinal]'))
+        .map(row => {
+          const r = row.getBoundingClientRect()
+          return {bottom: r.bottom - view.top, ordinal: Number(row.getAttribute('data-ordinal')), top: r.top - view.top}
+        })
+        .sort((a, b) => a.ordinal - b.ordinal)
+      return {
+        clientHeight: el.clientHeight,
+        distanceFromEnd: el.scrollHeight - el.clientHeight - el.scrollTop,
+        rows,
+        scrollHeight: el.scrollHeight,
+        scrollTop: el.scrollTop,
+        viewHeight: view.height,
+      }
+    })
+  )
 
 const requireGeometry = async (page: Page) => {
   const g = await readThreadGeometry(page)
@@ -111,47 +151,63 @@ export const waitForScrollStable = async (page: Page, timeoutMs = 10_000) => {
   }
 }
 
+// Waits, checking every animation frame, until the thread's scroller has moved off its top. A list
+// that remounts meanwhile is followed to its new scroller.
+export const waitForScrolledFromTop = async (page: Page, timeoutMs = 5_000) => {
+  const deadline = Date.now() + timeoutMs
+  for (;;) {
+    const moved = await requireThreadScroller(page, async scroller => {
+      await page.waitForFunction(
+        node => {
+          const el = node as unknown as ElLike & {isConnected: boolean}
+          return !el.isConnected || el.scrollTop > 0
+        },
+        scroller,
+        {polling: 'raf', timeout: Math.max(1, deadline - Date.now())}
+      )
+      return scroller.evaluate(node => (node as unknown as {isConnected: boolean}).isConnected)
+    })
+    if (moved) return
+  }
+}
+
 // Records the scroller every animation frame from now until stop(): each reading that differs from
 // the one before, as [ms since start, scrollTop, scrollHeight, clientHeight, distance from the end,
 // the newest rendered row's ordinal and height].
 export const startScrollerFrames = async (page: Page) =>
-  page.evaluate(testID => {
-    type Row = {getAttribute: (n: string) => string | null; getBoundingClientRect: () => {height: number}}
-    type Scroller = {clientHeight: number; querySelectorAll: (s: string) => ArrayLike<Row>; scrollHeight: number; scrollTop: number}
-    const g = globalThis as unknown as {
-      __e2eFrames?: {frames: Array<Array<number>>; stop: boolean}
-      document: {querySelector: (s: string) => {children: ArrayLike<Scroller>} | null}
-      getComputedStyle: (el: Scroller) => {overflowY: string}
-      performance: {now: () => number}
-      requestAnimationFrame: (f: () => void) => void
-    }
-    const wrapper = g.document.querySelector(`[data-testid="${testID}"]`)
-    const scroller = wrapper && Array.from(wrapper.children).find(c => /auto|scroll/.test(g.getComputedStyle(c).overflowY))
-    if (!scroller) throw new Error('no thread list on the page')
-    const state = {frames: [] as Array<Array<number>>, stop: false}
-    const start = g.performance.now()
-    const tick = () => {
-      const rows = Array.from(scroller.querySelectorAll('[data-ordinal]'))
-      const newest = rows.reduce<Row | undefined>(
-        (a, b) => (!a || Number(b.getAttribute('data-ordinal')) > Number(a.getAttribute('data-ordinal')) ? b : a),
-        undefined
-      )
-      const r = [
-        Math.round(g.performance.now() - start),
-        Math.round(scroller.scrollTop * 10) / 10,
-        scroller.scrollHeight,
-        scroller.clientHeight,
-        Math.round((scroller.scrollHeight - scroller.clientHeight - scroller.scrollTop) * 10) / 10,
-        Number(newest?.getAttribute('data-ordinal') ?? -1),
-        Math.round((newest?.getBoundingClientRect().height ?? 0) * 10) / 10,
-      ]
-      const last = state.frames.at(-1)
-      if (!last || last.slice(1).some((v, i) => v !== r[i + 1])) state.frames.push(r)
-      if (!state.stop && g.performance.now() - start < 20_000) g.requestAnimationFrame(tick)
-    }
-    g.requestAnimationFrame(tick)
-    g.__e2eFrames = state
-  }, T.CHAT_MESSAGE_LIST)
+  requireThreadScroller(page, async scroller =>
+    scroller.evaluate(node => {
+      const el = node as unknown as ElLike
+      const g = globalThis as unknown as {
+        __e2eFrames?: {frames: Array<Array<number>>; stop: boolean}
+        performance: {now: () => number}
+        requestAnimationFrame: (f: () => void) => void
+      }
+      const state = {frames: [] as Array<Array<number>>, stop: false}
+      const start = g.performance.now()
+      const tick = () => {
+        const rows = Array.from(el.querySelectorAll('[data-ordinal]'))
+        const newest = rows.reduce<ElLike | undefined>(
+          (a, b) => (!a || Number(b.getAttribute('data-ordinal')) > Number(a.getAttribute('data-ordinal')) ? b : a),
+          undefined
+        )
+        const r = [
+          Math.round(g.performance.now() - start),
+          Math.round(el.scrollTop * 10) / 10,
+          el.scrollHeight,
+          el.clientHeight,
+          Math.round((el.scrollHeight - el.clientHeight - el.scrollTop) * 10) / 10,
+          Number(newest?.getAttribute('data-ordinal') ?? -1),
+          Math.round((newest?.getBoundingClientRect().height ?? 0) * 10) / 10,
+        ]
+        const last = state.frames.at(-1)
+        if (!last || last.slice(1).some((v, i) => v !== r[i + 1])) state.frames.push(r)
+        if (!state.stop && g.performance.now() - start < 20_000) g.requestAnimationFrame(tick)
+      }
+      g.requestAnimationFrame(tick)
+      g.__e2eFrames = state
+    })
+  )
 
 export const stopScrollerFrames = async (page: Page) =>
   page.evaluate(() => {
@@ -175,21 +231,20 @@ export const wheelThread = async (page: Page, dy: number) => {
 
 // The thread's scroller as the scrollbar sees it, in page coordinates.
 const scrollerMetrics = async (page: Page) =>
-  page.evaluate(testID => {
-    const g = globalThis as unknown as PageGlobals
-    const wrapper = g.document.querySelector(`[data-testid="${testID}"]`)
-    const scroller = wrapper && Array.from(wrapper.children).find(c => /auto|scroll/.test(g.getComputedStyle(c).overflowY))
-    if (!scroller) throw new Error('no thread list on the page')
-    const r = scroller.getBoundingClientRect()
-    return {
-      clientHeight: scroller.clientHeight,
-      left: r.left,
-      scrollHeight: scroller.scrollHeight,
-      scrollTop: scroller.scrollTop,
-      top: r.top,
-      width: r.width,
-    }
-  }, T.CHAT_MESSAGE_LIST)
+  requireThreadScroller(page, async scroller =>
+    scroller.evaluate(node => {
+      const el = node as unknown as ElLike
+      const r = el.getBoundingClientRect()
+      return {
+        clientHeight: el.clientHeight,
+        left: r.left,
+        scrollHeight: el.scrollHeight,
+        scrollTop: el.scrollTop,
+        top: r.top,
+        width: r.width,
+      }
+    })
+  )
 
 // Drags the scrollbar thumb by dy pixels (positive: toward the newest message). macOS draws overlay
 // scrollbars, shown only while the scroller moves and kept while the pointer is over them, so
@@ -219,15 +274,12 @@ export const dragScrollbar = async (page: Page, dy: number, opts: {nudge?: boole
 // Puts keyboard focus on the thread's scroller, where a reader tabbing to it would put it, so the
 // browser's own scrolling keys (End, Home, Page Up/Down, arrows) move it.
 export const focusThreadScroller = async (page: Page) => {
-  const focused = await page.evaluate(testID => {
-    type Focusable = {focus: () => void}
-    const g = globalThis as unknown as PageGlobals & {document: {activeElement: unknown}}
-    const wrapper = g.document.querySelector(`[data-testid="${testID}"]`)
-    const scroller = wrapper && Array.from(wrapper.children).find(c => /auto|scroll/.test(g.getComputedStyle(c).overflowY))
-    if (!scroller) return false
-    ;(scroller as unknown as Focusable).focus()
-    return g.document.activeElement === scroller
-  }, T.CHAT_MESSAGE_LIST)
+  const focused = await requireThreadScroller(page, async scroller =>
+    scroller.evaluate(node => {
+      ;(node as unknown as {focus: () => void}).focus()
+      return (globalThis as unknown as {document: {activeElement: unknown}}).document.activeElement === node
+    })
+  )
   if (!focused) throw new Error('the thread scroller did not take focus')
 }
 

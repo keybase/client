@@ -30,6 +30,7 @@ import {
   threadSearch,
   waitForRow,
   waitForScrollStable,
+  waitForScrolledFromTop,
   wheelThread,
   type ThreadGeometry,
 } from '@/tests/e2e/electron/helpers/chat'
@@ -261,20 +262,7 @@ test.describe('search', () => {
       // The hit's page lands with the list at its top; move only once the list has started for the
       // hit, while its centring is still under way. A reader's move before that finds the list
       // pinned at the top, where an upward move changes nothing.
-      await page.waitForFunction(
-        testID => {
-          type Scroller = {scrollTop: number}
-          const g = globalThis as unknown as {
-            document: {querySelector: (s: string) => {children: ArrayLike<Scroller>} | null}
-            getComputedStyle: (el: Scroller) => {overflowY: string}
-          }
-          const wrapper = g.document.querySelector(`[data-testid="${testID}"]`)
-          const scroller = wrapper && Array.from(wrapper.children).find(c => /auto|scroll/.test(g.getComputedStyle(c).overflowY))
-          return !!scroller && scroller.scrollTop > 0
-        },
-        T.CHAT_MESSAGE_LIST,
-        {polling: 'raf', timeout: 5_000}
-      )
+      await waitForScrolledFromTop(page)
       await move(page)
       const moved = await waitForScrollStable(page)
       const offsetAfterMove = (await isOrdinalCentred(page, ordinal, centreTolerancePx)).offset
@@ -586,34 +574,19 @@ test.describe('editing', () => {
       expect(await ordinalRect(page, ordinal), 'the message is out of view').toBeUndefined()
 
       // every frame of the reveal: when the scroller moved
-      await page.evaluate(testID => {
-        type Scroller = {scrollTop: number}
-        const g = globalThis as unknown as {
-          __e2eMoves?: Array<number>
-          document: {querySelector: (s: string) => {children: ArrayLike<Scroller>} | null}
-          getComputedStyle: (el: Scroller) => {overflowY: string}
-          performance: {now: () => number}
-          requestAnimationFrame: (f: () => void) => void
-        }
-        const wrapper = g.document.querySelector(`[data-testid="${testID}"]`)
-        const scroller = wrapper && Array.from(wrapper.children).find(c => /auto|scroll/.test(g.getComputedStyle(c).overflowY))
-        if (!scroller) throw new Error('no thread list on the page')
-        const moves: Array<number> = []
-        const start = g.performance.now()
-        let last = scroller.scrollTop
-        const tick = () => {
-          if (scroller.scrollTop !== last) moves.push(g.performance.now() - start)
-          last = scroller.scrollTop
-          if (g.performance.now() - start < 5_000) g.requestAnimationFrame(tick)
-        }
-        g.requestAnimationFrame(tick)
-        g.__e2eMoves = moves
-      }, T.CHAT_MESSAGE_LIST)
-      await composer.press(page, 'ArrowUp')
-      await expect(editBar(page)).toBeVisible({timeout: 5_000})
-      await expect(rowByOrdinal(page, ordinal)).toHaveCount(1, {timeout: 5_000})
-      await page.waitForTimeout(3_000)
-      const moves = await page.evaluate(() => (globalThis as unknown as {__e2eMoves?: Array<number>}).__e2eMoves ?? [])
+      await startScrollerFrames(page)
+      let frames: Array<Array<number>> | undefined
+      try {
+        await composer.press(page, 'ArrowUp')
+        await expect(editBar(page)).toBeVisible({timeout: 5_000})
+        await expect(rowByOrdinal(page, ordinal)).toHaveCount(1, {timeout: 5_000})
+        await page.waitForTimeout(3_000)
+        frames = await stopScrollerFrames(page)
+      } finally {
+        if (!frames) await stopScrollerFrames(page).catch(() => [])
+      }
+      // frames are [ms, scrollTop, ...]: the times scrollTop changed
+      const moves = frames.flatMap((f, i, all) => (i > 0 && f[1] !== all[i - 1]![1] ? [f[0]!] : []))
       const revealMs = Math.round((moves.at(-1) ?? 0) - (moves[0] ?? 0))
       const revealed = await waitForScrollStable(page)
       await expectRowWhollyInView(page, ordinal)
