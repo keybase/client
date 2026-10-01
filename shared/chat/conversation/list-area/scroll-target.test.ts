@@ -1,8 +1,5 @@
-/** @jest-environment jsdom */
 /// <reference types="jest" />
-import * as React from 'react'
 import * as T from '@/constants/types'
-import {act, renderHook} from '@testing-library/react'
 import {
   decideScroll,
   indexOfOrdinal,
@@ -12,12 +9,11 @@ import {
   listAnchorsEnd,
   makeScrollTarget,
   ownsEnd,
-  useHeldLatest,
   type ScrollDirective,
   type ScrollEvent,
   type ScrollTargetState,
 } from './scroll-target'
-import {makeScrollDriver} from './list-test-store'
+import {makeScrollDriver} from './thread-test-driver'
 
 const ord = T.Chat.numberToOrdinal
 
@@ -32,8 +28,12 @@ const released = (n: number) => state({endOwner: 'reader', lastCentered: ord(n)}
 
 const leaveAlone: ScrollDirective = {stopCentering: false, type: 'leaveAlone'}
 const stopCentering: ScrollDirective = {stopCentering: true, type: 'leaveAlone'}
-const pinEnd: ScrollDirective = {stopCentering: false, type: 'pinEnd'}
-const pinEndStopCentering: ScrollDirective = {stopCentering: true, type: 'pinEnd'}
+const pinEnd: ScrollDirective = {retry: false, stopCentering: false, type: 'pinEnd', verify: false}
+const pinEndStopCentering: ScrollDirective = {...pinEnd, stopCentering: true}
+// The end moved with a size change: confirm it held once the list settles.
+const verifyEnd: ScrollDirective = {...pinEnd, verify: true}
+// The first load's pin, which asks for the first load to be reported again.
+const pinEndRetry: ScrollDirective = {...pinEnd, retry: true}
 const center = (n: number): ScrollDirective => ({ordinal: ord(n), type: 'center'})
 const reveal = (n: number): ScrollDirective => ({ordinal: ord(n), type: 'reveal'})
 
@@ -226,16 +226,26 @@ describe('detached', () => {
 })
 
 describe('initialLoad', () => {
+  const loaded = (hasMessages = true, retry = false): ScrollEvent => ({hasMessages, retry, type: 'initialLoad'})
   runTable([
-    ['a conversation with messages goes to the end', fresh, {hasMessages: true, type: 'initialLoad'}, pinEnd, fresh],
-    ['an empty conversation has no end to go to', fresh, {hasMessages: false, type: 'initialLoad'}, leaveAlone, fresh],
+    ['a conversation with messages goes to the end, and asks to be told again', fresh, loaded(), pinEndRetry, fresh],
+    ['an empty conversation has no end to go to', fresh, loaded(false), leaveAlone, fresh],
     [
       'a centred one, whose request took the end, is left to the centre reconcile',
       state({endOwner: 'reader'}),
-      {hasMessages: true, type: 'initialLoad'},
+      loaded(),
       leaveAlone,
       state({endOwner: 'reader'}),
     ],
+    ['told again, it goes to the end once more and asks no further', fresh, loaded(true, true), pinEnd, fresh],
+    [
+      'told again after a centre was requested in between, it leaves the list to the centre',
+      state({endOwner: 'reader'}),
+      loaded(true, true),
+      leaveAlone,
+      state({endOwner: 'reader'}),
+    ],
+    ['told again with the rows gone, there is no end to go to', fresh, loaded(false, true), leaveAlone, fresh],
   ])
 })
 
@@ -274,8 +284,8 @@ describe('headerMeasured', () => {
       state({endOwner: 'reader', headerSize: 100}),
     ],
     ['an unchanged size is not growth', state({headerSize: 100}), measured(100), leaveAlone, state({headerSize: 100})],
-    ['growth re-pins the end once the list settles', state({headerSize: 100}), measured(152), pinEnd, state({headerSize: 152})],
-    ['so does shrinking', state({headerSize: 152}), measured(100), pinEnd, state({headerSize: 100})],
+    ['growth re-pins the end once the list settles', state({headerSize: 100}), measured(152), verifyEnd, state({headerSize: 152})],
+    ['so does shrinking', state({headerSize: 152}), measured(100), verifyEnd, state({headerSize: 100})],
     [
       'growth is recorded but ignored once the reader owns the end',
       state({endOwner: 'reader', headerSize: 100}),
@@ -294,7 +304,7 @@ describe('headerMeasured', () => {
       'growth does not depend on a centred target, only on who owns the end',
       state({headerSize: 100, lastCentered: ord(30)}),
       measured(152),
-      pinEnd,
+      verifyEnd,
       state({headerSize: 152, lastCentered: ord(30)}),
     ],
   ])
@@ -344,7 +354,7 @@ describe('viewportResized', () => {
   const holding = state({endOwner: 'reader', holdingEdit: true, lastEditing: ord(15)})
   const holdingInView = state({holdingEdit: true, lastEditing: ord(15)})
   runTable([
-    ['an end the list holds is re-pinned', fresh, resized(), pinEnd, fresh],
+    ['an end the list holds is re-pinned once the list settles', fresh, resized(), verifyEnd, fresh],
     ['an end the list owns but its anchor does not hold is left alone', fresh, resized(false), leaveAlone, fresh],
     ['a reader holding the end is left where they are', busy, resized(), leaveAlone, busy],
     ['a held reveal the change cut off is aimed again', holding, resized(), reveal(15), holding],
@@ -356,7 +366,7 @@ describe('viewportResized', () => {
       reveal(15),
       {...holdingInView, endOwner: 'reader'},
     ],
-    ['a held edit still wholly in view leaves the end the list holds to be re-pinned', holdingInView, resized(true, true), pinEnd, holdingInView],
+    ['a held edit still wholly in view leaves the end the list holds to be re-pinned', holdingInView, resized(true, true), verifyEnd, holdingInView],
     [
       'a reveal no longer held is left alone',
       state({endOwner: 'reader', lastEditing: ord(15)}),
@@ -370,7 +380,7 @@ describe('viewportResized', () => {
 describe('rowResized', () => {
   const resized = (anchorsEnd = true): ScrollEvent => ({anchorsEnd, type: 'rowResized'})
   runTable([
-    ['an end the list holds is re-pinned', fresh, resized(), pinEnd, fresh],
+    ['an end the list holds is re-pinned once the list settles', fresh, resized(), verifyEnd, fresh],
     ['an end the list owns but its anchor does not hold is left alone', fresh, resized(false), leaveAlone, fresh],
     ['a reader holding the end is left where they are', busy, resized(), leaveAlone, busy],
     ['a centred target is left to its centring', centred(30), resized(false), leaveAlone, centred(30)],
@@ -536,7 +546,7 @@ describe('sequences', () => {
     const d = makeScrollDriver()
     d.centreOn(ord(30))
     d.load(window(1, 60))
-    d.send({hasMessages: true, type: 'initialLoad'})
+    d.send({hasMessages: true, retry: false, type: 'initialLoad'})
     expect(d.take()).toEqual([stopCentering, leaveAlone, center(30), leaveAlone])
   })
 
@@ -567,7 +577,7 @@ describe('sequences', () => {
     d.send(header(152))
     d.requestBottom()
     d.send(header(200))
-    expect(d.take()).toEqual([leaveAlone, stopCentering, leaveAlone, pinEndStopCentering, pinEnd])
+    expect(d.take()).toEqual([leaveAlone, stopCentering, leaveAlone, pinEndStopCentering, verifyEnd])
   })
 
   test('jump to recent from a hit: pin first, then the clear hands the end back to the list', () => {
@@ -662,7 +672,7 @@ describe('helpers', () => {
     expect(listAnchorsEnd({...anchors, heldLatest: false})).toBe(false)
   })
 
-  test('the scroll target tells its subscribers of each change to its state, and only then', () => {
+  test('the scroll target tells its subscriber of each change to its state, and only then', () => {
     const target = makeScrollTarget()
     const heard = jest.fn()
     const unsubscribe = target.subscribe(heard)
@@ -684,64 +694,16 @@ describe('helpers', () => {
     target.decide({type: 'userScrolled'})
     expect(heard).toHaveBeenCalledTimes(2)
   })
-})
 
-describe('useHeldLatest', () => {
-  type Rows = {containsLatest: boolean; datasetKey: string; rows: ReadonlyArray<number>}
-  // Every value the hook returned, render by render, as the list would lay each one out.
-  const mount = (initial: Rows) => {
-    const seen: Array<boolean> = []
-    const set: {current: (r: Rows) => void} = {current: () => {}}
-    renderHook(() => {
-      const [rows, setRows] = React.useState(initial)
-      set.current = setRows
-      const held = useHeldLatest(rows.containsLatest, rows.datasetKey, rows.rows)
-      seen.push(held)
-      return held
-    })
-    return {
-      seen,
-      set: (r: Rows, transition = false) =>
-        act(() => {
-          if (transition) React.startTransition(() => set.current(r))
-          else set.current(r)
-        }),
-    }
-  }
-  const history = {containsLatest: false, datasetKey: 'conv1:1', rows: [10, 11, 12]}
-
-  test('a thread holding the newest message holds it from the start', () => {
-    expect(mount({containsLatest: true, datasetKey: 'conv1:0', rows: [1, 2]}).seen).toEqual([true])
-  })
-
-  test.each([false, true])(
-    'the page that brings the newest message into a window of history lands unheld (in a transition: %p), and the rows after it are held',
-    transition => {
-      const h = mount(history)
-      h.set({...history, containsLatest: true, rows: [10, 11, 12, 13, 14]}, transition)
-      expect(h.seen.at(-1)).toBe(false)
-      expect(h.seen.slice(1)).not.toContain(true)
-      h.set({...history, containsLatest: true, rows: [10, 11, 12, 13, 14, 15]}, transition)
-      expect(h.seen.at(-1)).toBe(true)
-    }
-  )
-
-  test.each([false, true])(
-    'jump to recent: the newest rows refilling a cleared thread are held at once (in a transition: %p)',
-    transition => {
-      const h = mount(history)
-      h.set({containsLatest: false, datasetKey: 'conv1:2', rows: []}, transition)
-      const before = h.seen.length
-      h.set({containsLatest: true, datasetKey: 'conv1:2', rows: [50, 51]}, transition)
-      expect(h.seen.slice(before)).not.toContain(false)
-      expect(h.seen.at(-1)).toBe(true)
-    }
-  )
-
-  test('a new dataset that holds the newest message is held at once', () => {
-    const h = mount(history)
-    const before = h.seen.length
-    h.set({containsLatest: true, datasetKey: 'conv2:0', rows: [1, 2]})
-    expect(h.seen.slice(before)).not.toContain(false)
+  test('unsubscribing a replaced subscriber leaves the current one subscribed', () => {
+    const target = makeScrollTarget()
+    const stale = jest.fn()
+    const current = jest.fn()
+    const unsubscribeStale = target.subscribe(stale)
+    target.subscribe(current)
+    unsubscribeStale()
+    target.decide({type: 'userScrolled'})
+    expect(stale).not.toHaveBeenCalled()
+    expect(current).toHaveBeenCalledTimes(1)
   })
 })

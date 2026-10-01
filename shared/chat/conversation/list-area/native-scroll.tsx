@@ -4,7 +4,6 @@
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import noop from 'lodash/noop'
-import sortedIndexBy from 'lodash/sortedIndexBy'
 import {ThreadRefsContext} from '../normal/context'
 import {useComposerAnchor} from '../composer-viewport-context'
 import {restingScrollOffset} from '../composer-geometry'
@@ -14,12 +13,21 @@ import {
   indexOfOrdinalNewestFirst,
   listAnchorsEnd,
   ownsEnd,
-  useHeldLatest,
-  useScrollTarget,
-  withinPageLoad,
   type ScrollDirective,
   type ScrollEvent,
 } from './scroll-target'
+import {useScrollTarget} from './use-scroll-target'
+import {nativeOlderPageDistance, withinPageLoad} from './paging'
+import {
+  atRestingEnd,
+  correctorStep,
+  isAppend,
+  itemScrollHeading,
+  readerMovedList,
+  rowUncovered,
+  type RowFrame,
+  type ScrollReport,
+} from './native-rules'
 import {makeSchedule, useSchedule, type Scheduled} from './schedule'
 
 export type NativeListRef = {
@@ -34,15 +42,12 @@ export type NativeListRef = {
 // the keyboard following a send). Instead we swap between two configs:
 // - closed (keyboard hidden): autoscrollToTopThreshold=1 so new messages at the bottom
 //   auto-reveal when the user is pinned there.
-// - noAutoscroll (keyboard open, or centered on a search hit, or a window of history, or the
-//   reader holding the end, or empty list): MVP still anchors content, but autoscroll-to-top is
-//   off because:
+// - noAutoscroll (keyboard open, or centered on a search hit, or the reader holding the end, or
+//   empty list): MVP still anchors content, but autoscroll-to-top is off because:
 //   1. with the keyboard open contentOffset.y = -(K-insets.bottom) <= 1, so the threshold
 //      would fire on insert and scroll to y=0, hiding new messages behind the keyboard.
 //   2. while centered on a search hit, autoscroll yanks the centered row.
-//   3. in a window of history (listAnchorsEnd), a page of newer rows loading at the bottom would
-//      carry the reader down with it.
-//   4. a reader who holds the end has scrolled away from it, and stays where they are.
+//   3. a reader who holds the end has scrolled away from it, and stays where they are.
 //   With the keyboard open, MVP's insert adjustment briefly holds old content in place;
 //   the deferred re-pin on append below re-pins the newest message.
 const maintainVisibleContentPositionClosed = {
@@ -53,18 +58,12 @@ const maintainVisibleContentPositionNoAutoscroll = {
   minIndexForVisible: 0,
 }
 
-// An offset within this many points of the resting offset is at the end.
-const endTolerance = 8
-// A row overhanging the part of the list in view by no more than this is wholly in view.
-const rowEdgeTolerance = 1
-// Each end waits out a second after the rows last changed, so a page landing is not taken for the
-// reader nearing the new end, and a second after it last asked, so a page on its way is not asked for
-// again.
+// An older page waits out a second after the rows last changed, so a page landing is not taken for
+// the reader nearing the new oldest row, and a second after it last asked, so a page on its way is
+// not asked for again.
 const pageLoadGate = 1000
 // What a scroll to a row is for: a centre, or a reveal.
 type ItemScroll = 'center' | 'reveal'
-// The list moving by less than this has not moved.
-const stillPoints = 1
 
 export const useNativeThreadScroll = (p: {
   // Newest first, as the inverted list holds them.
@@ -78,12 +77,11 @@ export const useNativeThreadScroll = (p: {
   editingOrdinal: T.Chat.Ordinal | undefined
   isKeyboardVisible: boolean
   listRef: React.RefObject<NativeListRef | null>
-  loadNewer: () => void
   loadOlder: () => void
   loaded: boolean
 }) => {
   const {centeredOrdinal, containsLatestMessage, conversationIDKey, datasetKey, editingOrdinal} = p
-  const {isKeyboardVisible, loadNewer, loadOlder} = p
+  const {isKeyboardVisible, loadOlder} = p
   const {listRef, loaded, messageOrdinals} = p
   const numOrdinals = messageOrdinals.length
 
@@ -99,7 +97,7 @@ export const useNativeThreadScroll = (p: {
     () => () => restingScrollOffset(anchorRef.current.bottomInset, anchorRef.current.keyboardHeight.value)
   )
   // Resting at the end: over the keyboard as it is now.
-  const [atEnd] = React.useState(() => (offset: number) => offset <= restingOffset() + endTolerance)
+  const [atEnd] = React.useState(() => (offset: number) => atRestingEnd(offset, restingOffset()))
 
   // Read by timers and list callbacks as they fire, so they see the target and rows as they are now.
   const centeredRef = React.useRef(centeredOrdinal)
@@ -113,7 +111,6 @@ export const useNativeThreadScroll = (p: {
 
   const {listOwnsEnd, scrollTarget} = useScrollTarget()
   const [own] = React.useState(makeOwnScrolls)
-  const heldLatest = useHeldLatest(containsLatestMessage, datasetKey, messageOrdinals)
 
   // What the list has reported of itself, undefined until it does. The list is keyed by conversation,
   // so a switch brings a new list that starts unmeasured, and the old one's figures say nothing of it.
@@ -121,7 +118,7 @@ export const useNativeThreadScroll = (p: {
   const vFirstRef = React.useRef<number | null | undefined>(undefined)
   const vLastRef = React.useRef<number | null | undefined>(undefined)
   // Where each row sits in the content, as the list last laid it out.
-  const rowFramesRef = React.useRef(new Map<T.Chat.Ordinal, {height: number; y: number}>())
+  const rowFramesRef = React.useRef(new Map<T.Chat.Ordinal, RowFrame>())
   // The oldest row the list has laid out in this dataset. The list sizes its content only as far as the
   // rows it has laid out, so rows loaded past this one are not in the content size yet.
   const oldestLaidOutRef = React.useRef<T.Chat.Ordinal | undefined>(undefined)
@@ -132,44 +129,44 @@ export const useNativeThreadScroll = (p: {
     own.issued(metricsRef.current.offset, offset, false)
     listRef.current?.scrollToOffset({animated: false, offset})
   })
-  // Where a row lands is not known ahead, only which way it lies from the middle of the view, once the
-  // list has reported what is in view: older rows sit at higher offsets. Until then the scroll heads
-  // nowhere known, and the movement after it is the reader's. A centre's coarse scroll puts the row in
-  // the middle of the whole scroll view, where its corrector, reading the list's viewability, settles
-  // it. A reveal, animated, puts it in the middle of the part of the view nothing covers: the keyboard
-  // (and the composer riding it) covers the bottom of the scroll view by as much as the resting offset
-  // sits below 0, so the row is lifted by half of that. Which way that lies is read from the row
-  // itself when the list has laid it out, as the lift can turn a row just past the middle of the view.
+  // A centre's coarse scroll puts the row in the middle of the whole scroll view, where its corrector
+  // settles it. A reveal, animated, puts it in the middle of the part of the view nothing covers: the
+  // keyboard (and the composer riding it) covers the bottom by as much as the resting offset sits
+  // below 0, so the row is lifted by half of that.
   const [scrollToItem] = React.useState(() => (item: T.Chat.Ordinal, kind: ItemScroll) => {
     const animated = kind === 'reveal'
-    const index = indexOfOrdinalNewestFirst(ordsRef.current, item)
-    const first = vFirstRef.current
-    const last = vLastRef.current
     const {offset, viewport} = metricsRef.current
     const lift = kind === 'reveal' ? -restingOffset() / 2 : 0
-    const frame = rowFramesRef.current.get(item)
-    if (lift && frame && offset !== undefined && viewport !== undefined) {
-      own.issued(offset, frame.y + (frame.height - viewport) / 2 - lift, animated)
-    } else if (first != null && last != null && index >= 0) {
-      own.issued(offset, index >= (first + last) / 2 ? Infinity : -Infinity, animated)
-    }
+    const heading = itemScrollHeading({
+      first: vFirstRef.current,
+      frame: rowFramesRef.current.get(item),
+      index: indexOfOrdinalNewestFirst(ordsRef.current, item),
+      last: vLastRef.current,
+      lift,
+      offset,
+      viewport,
+    })
+    if (heading !== undefined) own.issued(offset, heading, animated)
     listRef.current?.scrollToItem({animated, item, viewOffset: lift, viewPosition: 0.5})
   })
 
-  // Every delayed scroll (coarse reasserts, the corrector's schedule, scroll-to-index retries, the
-  // first load's retry, the append re-pin) runs through here, so stopping centring, a new dataset or
-  // the list going away cancels whatever is pending, and a reader's drag is never followed by a jump.
-  // Stopped by the detached cleanup below, not by useSchedule's, which would run first and hide
-  // whether the first load's retry was still pending.
-  const [timers] = React.useState(makeSchedule)
+  // The delayed scrolls of a centre (coarse reasserts, the corrector's schedule, scroll-to-index
+  // retries), which stopping centring cancels.
+  const [centring] = React.useState(makeSchedule)
+  // A reveal's scroll-to-index retries, which last as long as the scroll target holds the edit.
+  const [reveals] = React.useState(makeSchedule)
+  // The delayed pins to the end (the first load's retry, the append re-pin), which stopping centring
+  // leaves alone: each asks the scroll target again when it fires, so a reader who took the end in
+  // between is left where they are. Both are stopped by the detached cleanup below, not by
+  // useSchedule's, which would run first and hide whether the first load's retry was still pending.
+  const [pins] = React.useState(makeSchedule)
 
-  // coarse: scrollToItem lands at the wrong offset for tall variable-height rows,
-  // but it gets the target area rendered. The closed-loop corrector below
-  // refines from there using the real viewable index range.
+  // Coarse: scrollToItem lands at the wrong offset for tall variable-height rows, but it gets the
+  // target rendered for the corrector to refine.
   const moveToward = React.useCallback(
     (target: T.Chat.Ordinal) => {
       const reassert = (delay: number) =>
-        timers.after(delay, () => {
+        centring.after(delay, () => {
           if (centeredRef.current !== target) {
             return
           }
@@ -177,20 +174,18 @@ export const useNativeThreadScroll = (p: {
         })
       ;[50, 250].forEach(reassert)
     },
-    [scrollToItem, timers]
+    [centring, scrollToItem]
   )
 
-  // Closed-loop centering corrector. scrollToItem/scrollToIndex lands at the wrong
-  // offset here (inverted list + custom keyboard scrollview + tall variable-height
-  // image rows), so instead we read the actual viewable index range each frame and
-  // scrollToOffset by the item-delta until the target sits at viewport center.
-  // Correcting toward a centered hit, which one, and how many steps taken.
+  // Closed-loop centring corrector: scrollToItem lands at the wrong offset here (inverted list, custom
+  // keyboard scroll view, tall variable-height image rows), so it steps from the viewable index range
+  // instead (correctorStep).
   const correctRef = React.useRef<{active: boolean; iters: number; target?: T.Chat.Ordinal}>({
     active: false,
     iters: 0,
   })
   // The list as its last scroll event reported it, which the next one is compared with.
-  const lastScrollRef = React.useRef<{content: number; offset: number; resting: number} | undefined>(undefined)
+  const lastScrollRef = React.useRef<ScrollReport | undefined>(undefined)
   // Compared by value, so a freeze/thaw re-mount, which keeps the list, keeps its figures.
   const measuredConvRef = React.useRef(conversationIDKey)
   React.useLayoutEffect(() => {
@@ -206,15 +201,21 @@ export const useNativeThreadScroll = (p: {
   // The rows asked for by scrollToItem, each asked for by a centre or a reveal, with how many of its
   // failures have been retried: a row outside the rendered window makes the scroll fail, and the
   // retry asks for that same row again once more rows have rendered. A request lasts as long as what
-  // asked for it: a centre's ends when it settles, and every one ends when the reader takes over.
+  // asked for it: a centre's until it settles or centring stops, a reveal's while its edit is held.
   const itemScrollsRef = React.useRef(new Map<T.Chat.Ordinal, {kind: ItemScroll; retries: number}>())
   const [requestItem] = React.useState(() => (item: T.Chat.Ordinal, kind: ItemScroll) => {
     itemScrollsRef.current.set(item, {kind, retries: 0})
   })
+  const [holdsEdit] = React.useState(() => (item: T.Chat.Ordinal) => {
+    const {holdingEdit, lastEditing} = scrollTarget.state
+    return holdingEdit && lastEditing === item
+  })
   const [stopCentering] = React.useState(() => () => {
     correctRef.current.active = false
-    itemScrollsRef.current.clear()
-    timers.stop()
+    itemScrollsRef.current.forEach((request, item) => {
+      if (request.kind === 'center' || !holdsEdit(item)) itemScrollsRef.current.delete(item)
+    })
+    centring.stop()
   })
   const [settleCenter] = React.useState(() => () => {
     const {active, target} = correctRef.current
@@ -232,35 +233,35 @@ export const useNativeThreadScroll = (p: {
       const ords = ordsRef.current
       const num = ords.length
       if (co === undefined || !num || first == null || last == null) return
-      const targetIdx = indexOfOrdinalNewestFirst(ords, co)
-      if (targetIdx < 0) return
-      const centerIdx = (first + last) / 2
-      const diff = targetIdx - centerIdx
-      if (Math.abs(diff) <= 0.5 || st.iters > 12) {
-        settleCenter()
-        return
-      }
+      const targetIndex = indexOfOrdinalNewestFirst(ords, co)
+      if (targetIndex < 0) return
       const {content, offset, viewport} = metricsRef.current
-      // Nothing to step from until the list has reported where it is and how big.
-      if (content === undefined || offset === undefined || viewport === undefined) return
-      const avgH = content / num
-      const maxOffset = Math.max(0, content - viewport)
-      // damp by 0.9 to avoid overshoot/oscillation; higher index = older = higher offset
-      const newOffset = Math.min(maxOffset, Math.max(restingOffset(), offset + diff * avgH * 0.9))
-      // A target among the newest or oldest rows cannot reach the middle: the step is clamped to the
-      // end of the scrollable range and would move nothing, now or on any later try.
-      if (Math.abs(newOffset - offset) < 1) {
+      const step = correctorStep({
+        content,
+        first,
+        iters: st.iters,
+        last,
+        offset,
+        resting: restingOffset(),
+        rows: num,
+        targetIndex,
+        viewport,
+      })
+      if (step.type === 'settle') {
         settleCenter()
         return
       }
+      if (step.type === 'wait') return
       st.iters += 1
-      scrollToOffset(newOffset)
+      scrollToOffset(step.offset)
     }
   )
 
   // The corrector's 50/250/500/900ms schedule, started once per target. With its 13 steps it is the
   // whole budget: the target settles where the last step leaves it.
   const ladderRef = React.useRef<Array<Scheduled>>([])
+  const initialRetryRef = React.useRef<Scheduled | undefined>(undefined)
+  const dispatchRef = React.useRef<(event: ScrollEvent) => void>(noop)
 
   const perform = React.useCallback(
     (directive: ScrollDirective) => {
@@ -270,6 +271,11 @@ export const useNativeThreadScroll = (p: {
           // The end is a fixed resting offset, so every pin is the one scroll there: from the end it moves
           // nothing, and there is no bootstrap of the list's own to wait out.
           scrollToOffset(restingOffset())
+          if (directive.retry) {
+            initialRetryRef.current = pins.after(100, () => {
+              dispatchRef.current({hasMessages: ordsRef.current.length > 0, retry: true, type: 'initialLoad'})
+            })
+          }
           return
         case 'center':
           requestItem(directive.ordinal, 'center')
@@ -277,7 +283,7 @@ export const useNativeThreadScroll = (p: {
           correctRef.current = {active: true, iters: 0, target: directive.ordinal}
           ladderRef.current.forEach(t => t.cancel())
           ladderRef.current = [50, 250, 500, 900].map((d, i, ladder) =>
-            timers.after(d, () => {
+            centring.after(d, () => {
               correctCenter(vFirstRef.current, vLastRef.current)
               if (i === ladder.length - 1) settleCenter()
             })
@@ -297,15 +303,16 @@ export const useNativeThreadScroll = (p: {
       }
     },
     [
+      centring,
       correctCenter,
       moveToward,
+      pins,
       requestItem,
       restingOffset,
       scrollToItem,
       scrollToOffset,
       settleCenter,
       stopCentering,
-      timers,
     ]
   )
 
@@ -315,6 +322,11 @@ export const useNativeThreadScroll = (p: {
     },
     [perform, scrollTarget]
   )
+  // Read by the detached cleanup, so it runs only when the list is hidden or unmounted however
+  // dispatch's dependencies change, and by the first load's retry, which perform schedules.
+  React.useLayoutEffect(() => {
+    dispatchRef.current = dispatch
+  }, [dispatch])
 
   // Compared by value, not by the effect re-running: a freeze/thaw of this screen re-mounts effects
   // with nothing changed. Declared ahead of every effect that dispatches, so they see the new
@@ -327,11 +339,9 @@ export const useNativeThreadScroll = (p: {
     dispatch({type: 'datasetChanged'})
   }, [datasetKey, dispatch])
 
-  // Center on the search hit once it actually appears in the loaded list. Centering
-  // on the raw centeredOrdinal change is unreliable: navigating to a hit reloads the
-  // thread centered on it, so messageOrdinals is briefly empty (idx -1) when the
-  // ordinal changes. Wait for the target to load, then scroll. A layout effect ahead of the first
-  // load's, which relies on a centre request having taken the end already.
+  // Level-triggered: navigating to a hit reloads the thread around it, so the rows are briefly empty
+  // when the ordinal changes. A layout effect ahead of the first load's, which relies on a centre
+  // request having taken the end already.
   React.useLayoutEffect(() => {
     dispatch({
       atNewest: () => {
@@ -345,17 +355,13 @@ export const useNativeThreadScroll = (p: {
     })
   }, [atEnd, centeredOrdinal, containsLatestMessage, dispatch, loaded, messageOrdinals])
 
-  // Whether the row is wholly in the part of the list nothing covers: the keyboard, and the composer
-  // riding it, cover its bottom by as much as the resting offset sits below 0. The list's own
-  // viewability measures against the whole scroll view, covered or not.
+  // Measured against the part of the list nothing covers, not the list's own viewability, which
+  // measures against the whole scroll view, covered or not.
   const [rowFullyVisible] = React.useState(() => (ordinal: T.Chat.Ordinal) => {
     const frame = rowFramesRef.current.get(ordinal)
     const {offset, viewport} = metricsRef.current
     if (!frame || offset === undefined || viewport === undefined) return false
-    return (
-      frame.y >= offset - restingOffset() - rowEdgeTolerance &&
-      frame.y + frame.height <= offset + viewport + rowEdgeTolerance
-    )
+    return rowUncovered(frame, {offset, resting: restingOffset(), viewport})
   })
 
   React.useEffect(() => {
@@ -387,15 +393,9 @@ export const useNativeThreadScroll = (p: {
     dispatch({anchorsEnd: false, rowFullyVisible, type: 'viewportResized'})
   }, [bottomInset, dispatch, rowFullyVisible])
 
-  // When keyboard is open, maintainVisibleContentPosition adjusts contentOffset by the new
-  // message height when a message is added, undoing the scrollToBottom from onSubmit.
-  // Defer the re-scroll past the native MPV adjustment (which runs on the UI thread after
-  // React's commit) so the newest message stays visible.
-  // An append is a newer newest message than the dataset already held, arriving while the thread held
-  // the newest message. Older rows arriving (scrolling up loads them) leave the newest where it was,
-  // a page of newer rows loading into a window of history is not a new message, and the reload that
-  // refills a cleared thread has nothing to append to; re-pinning for any of them would yank the
-  // reader to the bottom.
+  // With the keyboard open, maintainVisibleContentPosition adjusts contentOffset by a new message's
+  // height, undoing the scroll to the bottom from onSubmit. The re-pin is deferred past that
+  // adjustment, which runs on the UI thread after React's commit.
   const newestOrdinal = messageOrdinals[0]
   const prevNewestRef = React.useRef(newestOrdinal)
   // The dataset prevNewestRef's baseline belongs to, compared by value so a freeze/thaw re-mount
@@ -408,53 +408,42 @@ export const useNativeThreadScroll = (p: {
   React.useLayoutEffect(() => {
     const sameDataset = newestBaselineDatasetRef.current === datasetKey
     newestBaselineDatasetRef.current = datasetKey
-    const prev = prevNewestRef.current
+    const previousNewest = prevNewestRef.current
     prevNewestRef.current = newestOrdinal
-    const isNewer = newestOrdinal !== undefined && prev !== undefined && newestOrdinal > prev
-    if (!sameDataset || !isNewer || !heldLatest) return undefined
+    if (!isAppend({newest: newestOrdinal, previousNewest, sameDataset})) return undefined
     // Decided when the re-pin would fire, with the keyboard as it is then: if it closed in between,
     // the list's own anchor already shows the newest message.
-    const repin = timers.after(0, () => {
+    const repin = pins.after(0, () => {
       dispatch({anchorHidesNewest: isKeyboardVisibleRef.current, type: 'appended'})
     })
     return repin.cancel
-  }, [datasetKey, dispatch, heldLatest, newestOrdinal, timers])
+  }, [datasetKey, dispatch, newestOrdinal, pins])
 
-  // Stores the conversation it last applied to (not a boolean) so a freeze/thaw of this screen —
-  // which re-mounts effects without a real conversation change — does not reset it and re-trigger
-  // the initial scroll, which would lose the user's scroll position (e.g. returning from the info
-  // panel). It resets implicitly when conversationIDKey changes.
+  // The conversation last loaded, not a boolean: a freeze/thaw of this screen re-mounts effects with
+  // no conversation change, and must not re-run the first load's scroll (returning from the info
+  // panel would lose the reader's place).
   const loadedConvRef = React.useRef<string | undefined>(undefined)
-  const initialRetryRef = React.useRef<Scheduled | undefined>(undefined)
   React.useLayoutEffect(() => {
     const justLoaded = loaded && loadedConvRef.current !== conversationIDKey
     if (loaded) {
       loadedConvRef.current = conversationIDKey
     }
     if (!justLoaded) return
-
-    const directive = scrollTarget.decide({hasMessages: numOrdinals > 0, type: 'initialLoad'})
-    perform(directive)
-    // Once more 100ms on, asking again with the rows as they are then, so a centre requested in
-    // between is not undone by a scroll to the end.
-    if (directive.type === 'pinEnd') {
-      initialRetryRef.current = timers.after(100, () => {
-        dispatch({hasMessages: ordsRef.current.length > 0, type: 'initialLoad'})
-      })
-    }
-  }, [conversationIDKey, dispatch, loaded, numOrdinals, perform, scrollTarget, timers])
+    dispatch({hasMessages: numOrdinals > 0, retry: false, type: 'initialLoad'})
+  }, [conversationIDKey, dispatch, loaded, numOrdinals])
 
   // Hidden (a screen pushed over this one) or unmounted: nothing scheduled may scroll a list no
   // longer shown. Work cut short is left to be done again if the list comes back: a target still
   // settling is centred afresh, and a first load whose retry had not fired is treated as not yet
-  // scrolled. StrictMode's mount-time effect re-run is the same case. dispatch never changes identity,
-  // so this cleanup runs only then.
+  // scrolled. StrictMode's mount-time effect re-run is the same case.
   React.useEffect(
     () => () => {
       if (initialRetryRef.current?.pending()) loadedConvRef.current = undefined
-      dispatch({type: 'detached'})
+      pins.stop()
+      reveals.stop()
+      dispatchRef.current({type: 'detached'})
     },
-    [dispatch]
+    [pins, reveals]
   )
 
   // Waits for more rows to render and asks for the failed row again, six times per request, while the
@@ -464,80 +453,62 @@ export const useNativeThreadScroll = (p: {
     const request = item === undefined ? undefined : itemScrollsRef.current.get(item)
     if (item === undefined || !request || request.retries > 5) return
     request.retries += 1
-    timers.after(200, () => {
-      if (itemScrollsRef.current.get(item) !== request) return
+    const reveal = request.kind === 'reveal'
+    ;(reveal ? reveals : centring).after(200, () => {
+      if (itemScrollsRef.current.get(item) !== request || (reveal && !holdsEdit(item))) return
       scrollToItem(item, request.kind)
     })
   })
 
-  // Loads a page as the list comes within pageLoadScreens of either end of the rows loaded, measured
-  // from where it is scrolled to: checked as it scrolls, as its content or viewport changes size, and
-  // once the gate after new rows has passed, so a short page, or a page landing with the reader still,
-  // loads the next without a scroll. The list is inverted: its offset rises toward the oldest row, and
-  // the newest rests at the resting offset, where the list sits until it first reports a scroll.
-  const loadsRef = React.useRef({newer: loadNewer, older: loadOlder})
+  // Checked as the list scrolls, as its content or viewport changes size, and once the gate after new
+  // rows has passed, so a short page, or a page landing with the reader still, loads the next without
+  // a scroll. Until the list first reports a scroll it sits at the resting offset.
+  const loadOlderRef = React.useRef(loadOlder)
   React.useEffect(() => {
-    loadsRef.current = {newer: loadNewer, older: loadOlder}
-  }, [loadNewer, loadOlder])
-  const containsLatestRef = React.useRef(containsLatestMessage)
-  React.useEffect(() => {
-    containsLatestRef.current = containsLatestMessage
-  }, [containsLatestMessage])
-  const nextLoadRef = React.useRef({newer: 0, older: 0})
+    loadOlderRef.current = loadOlder
+  }, [loadOlder])
+  const nextLoadRef = React.useRef(0)
   const [loadPages] = React.useState(() => () => {
     const {content, viewport} = metricsRef.current
-    const offset = metricsRef.current.offset ?? restingOffset()
     const oldestLaidOut = oldestLaidOutRef.current
     if (content === undefined || viewport === undefined || oldestLaidOut === undefined) return
-    // The content ends at the oldest row laid out, which the list keeps within a screen of the view
-    // however many rows are loaded past it; those rows count toward the distance at the average height
-    // of the rows laid out, or the oldest end would always look a screen away.
-    const ords = ordsRef.current
-    const notNewer = sortedIndexBy(ords as unknown as Array<number>, oldestLaidOut as unknown as number, o => -o)
-    const laidOut = notNewer + (ords[notNewer] === oldestLaidOut ? 1 : 0)
-    const notLaidOut = ords.length - laidOut
-    const near = (end: 'newer' | 'older', distance: number) => {
-      if (!withinPageLoad(distance, viewport)) return
-      const now = Date.now()
-      if (now <= nextLoadRef.current[end]) return
-      nextLoadRef.current[end] = now + pageLoadGate
-      loadsRef.current[end]()
-    }
-    near('older', content - offset - viewport + (notLaidOut * content) / Math.max(laidOut, 1))
-    // A thread holding the newest message has nothing newer to load.
-    if (!containsLatestRef.current) near('newer', offset - restingOffset())
+    const distance = nativeOlderPageDistance({
+      content,
+      offset: metricsRef.current.offset ?? restingOffset(),
+      oldestLaidOut,
+      ordinals: ordsRef.current,
+      viewport,
+    })
+    if (!withinPageLoad(distance, viewport)) return
+    const now = Date.now()
+    if (now <= nextLoadRef.current) return
+    nextLoadRef.current = now + pageLoadGate
+    loadOlderRef.current()
   })
   // Only new rows schedule a check of their own: a load that brought none leaves nothing more to ask
   // for until the list moves or changes size.
   const pageChecks = useSchedule()
   React.useEffect(() => {
-    const next = Date.now() + pageLoadGate
-    nextLoadRef.current = {newer: next, older: next}
+    nextLoadRef.current = Date.now() + pageLoadGate
     return pageChecks.after(pageLoadGate + 1, loadPages).cancel
   }, [loadPages, numOrdinals, pageChecks])
 
-  // Who moved the list is read from how it moved, never from the input that moved it: a drag, the
-  // status bar, VoiceOver alike. The list moves itself only by the scrolls it issues (toward where they
-  // are going), by its content changing size (its content-position anchor holding the rows in view in
-  // place) or its resting offset moving (the keyboard, the safe area), and, while it holds the end, by
-  // its anchor bringing a new message into view. Any other movement is the reader's.
+  // Who moved the list is read from how it moved (readerMovedList), never from the input that moved
+  // it: a drag, the status bar, VoiceOver alike.
   const onScroll = React.useCallback(
     (e: {
       nativeEvent: {contentOffset: {y: number}; contentSize: {height: number}; layoutMeasurement: {height: number}}
     }) => {
       const content = e.nativeEvent.contentSize.height
       const offset = e.nativeEvent.contentOffset.y
-      const resting = restingOffset()
       metricsRef.current = {content, offset, viewport: e.nativeEvent.layoutMeasurement.height}
       const last = lastScrollRef.current
-      lastScrollRef.current = {content, offset, resting}
-      const readerMoved =
-        !!last &&
-        Math.abs(offset - last.offset) >= stillPoints &&
-        content === last.content &&
-        resting === last.resting &&
-        !own.carries(last.offset, offset) &&
-        !(ownsEnd(scrollTarget.state) && Math.abs(offset - resting) < Math.abs(last.offset - resting))
+      const now = {content, offset, resting: restingOffset()}
+      lastScrollRef.current = now
+      const readerMoved = readerMovedList(last, now, {
+        carried: () => !!last && own.carries(last.offset, offset),
+        ownsEnd: ownsEnd(scrollTarget.state),
+      })
       if (readerMoved) dispatch(own.readerMoved())
       loadPages()
     },
@@ -599,8 +570,10 @@ export const useNativeThreadScroll = (p: {
     setScrollRef({scrollDown: noop, scrollToBottom: requestBottom, scrollUp: noop})
   }, [requestBottom, setScrollRef])
 
+  // The native list loads no newer pages, so its rows' newest end only ever grows by new messages,
+  // and a window of history leaves its end anchor on.
   const mvpAutoscroll =
-    listAnchorsEnd({centeredOrdinal, heldLatest, listOwnsEnd}) && numOrdinals > 0 && !isKeyboardVisible
+    listAnchorsEnd({centeredOrdinal, heldLatest: true, listOwnsEnd}) && numOrdinals > 0 && !isKeyboardVisible
 
   return {
     maintainVisibleContentPosition: mvpAutoscroll

@@ -1,8 +1,5 @@
-// Where the thread should be scrolled right now. decideScroll is pure: each list adapter reports what
-// happened as an event, gets back one directive, and carries it out with its own measuring and
-// correcting. The decision rules live here once; how a list reaches the end or a centred row stays
-// with that list.
-import * as React from 'react'
+// Where the thread should be scrolled right now. Each list adapter reports what happened as an event
+// and carries out the one directive it gets back with its own measuring and correcting.
 import type * as T from '@/constants/types'
 import sortedIndexBy from 'lodash/sortedIndexBy'
 import sortedIndexOf from 'lodash/sortedIndexOf'
@@ -59,9 +56,9 @@ export type ScrollEvent =
   // everything it had scheduled.
   | {type: 'detached'}
   // A conversation finished its first load, reported after the centre reconcile has seen the same
-  // rows. Only a list with no declarative initial position reports it; the desktop list starts at its
-  // end or on its target through its own props.
-  | {type: 'initialLoad'; hasMessages: boolean}
+  // rows, and again (retry) when a pin it decided asks for it. Only a list with no declarative initial
+  // position reports it; the desktop list starts at its end or on its target through its own props.
+  | {type: 'initialLoad'; hasMessages: boolean; retry: boolean}
   // The reader moved the list: anything that moved it other than the list itself (a touch drag; on the
   // desktop a wheel, a key, the scrollbar, autoscroll, find in page alike), or the composer's page keys
   // scrolling on their behalf. Only the desktop composer has page keys: the native one takes its keys
@@ -110,8 +107,11 @@ export type ScrollEvent =
 // Every list carries out every directive; how is its own.
 export type ScrollDirective =
   // Bring the newest message into view and hold it there. How, and when, is the list's own: it knows
-  // what it can scroll now and what it must wait out.
-  | {type: 'pinEnd'; stopCentering: boolean}
+  // what it can scroll now and what it must wait out. verify: a size change moved the end, and the
+  // list's own end anchor may already be re-pinning it, so confirm the end held once the list has
+  // settled rather than scroll now. retry: report initialLoad again (retry: true) a moment later,
+  // with the rows as they are then, so a centre requested in between is not undone by this pin.
+  | {type: 'pinEnd'; retry: boolean; stopCentering: boolean; verify: boolean}
   // Bring the ordinal to the middle of the viewport and settle it there, measuring the rows as they
   // are at each step, so rows changing under it need no directive of their own. Its budget (steps,
   // time) is the target's, however often the rows change.
@@ -132,7 +132,9 @@ export const initialScrollTargetState: ScrollTargetState = {
 }
 
 const leaveAlone: ScrollDirective = {stopCentering: false, type: 'leaveAlone'}
-const pinEnd: ScrollDirective = {stopCentering: false, type: 'pinEnd'}
+type PinEnd = Extract<ScrollDirective, {type: 'pinEnd'}>
+const pinEnd: PinEnd = {retry: false, stopCentering: false, type: 'pinEnd', verify: false}
+const verifyEnd: PinEnd = {...pinEnd, verify: true}
 
 export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): ScrollDecision => {
   switch (event.type) {
@@ -199,10 +201,8 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
     case 'initialLoad':
       // A centred load is left to the centre reconcile, whose request has taken the end, and so is a
       // reader who has taken it.
-      return {
-        directive: event.hasMessages && state.endOwner === 'list' ? pinEnd : leaveAlone,
-        state,
-      }
+      if (!event.hasMessages || state.endOwner !== 'list') return {directive: leaveAlone, state}
+      return {directive: event.retry ? pinEnd : {...pinEnd, retry: true}, state}
     case 'userScrolled':
       // However the reader scrolls, and whichever way, they have taken over: centring stops rather
       // than pull them back, and the end is theirs until a scroll comes to rest there (readerAtEnd).
@@ -222,7 +222,7 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
       if (previous === undefined || previous === event.size) return {directive: leaveAlone, state: next}
       // The header frequently settles while the thread is still empty, and there is no end to hold yet.
       if (state.endOwner !== 'list' || !event.hasMessages) return {directive: leaveAlone, state: next}
-      return {directive: pinEnd, state: next}
+      return {directive: verifyEnd, state: next}
     }
     case 'viewportResized':
       // Whatever the list holds, it holds through the change: an edit in view, revealed again if the
@@ -231,11 +231,11 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
       if (state.holdingEdit && state.lastEditing !== undefined && !event.rowFullyVisible(state.lastEditing)) {
         return {directive: {ordinal: state.lastEditing, type: 'reveal'}, state: {...state, endOwner: 'reader'}}
       }
-      return {directive: state.endOwner === 'list' && event.anchorsEnd ? pinEnd : leaveAlone, state}
+      return {directive: state.endOwner === 'list' && event.anchorsEnd ? verifyEnd : leaveAlone, state}
     case 'rowResized':
       // Rows growing around a reader, or around a centred target, are left to the list's
       // content-position anchor, which holds what is in view where it is.
-      return {directive: state.endOwner === 'list' && event.anchorsEnd ? pinEnd : leaveAlone, state}
+      return {directive: state.endOwner === 'list' && event.anchorsEnd ? verifyEnd : leaveAlone, state}
     case 'appended':
       // Only an end the list holds is re-pinned: a reader in history, or on a centred target, stays.
       return {
@@ -269,7 +269,7 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
       // reconcile sees the centre cleared, but nothing may pull the reader back to it meanwhile, not
       // even its arrival: a target still loading counts as centred already.
       return {
-        directive: {stopCentering: true, type: 'pinEnd'},
+        directive: {...pinEnd, stopCentering: true},
         state: {
           ...state,
           endOwner: 'list',
@@ -283,15 +283,8 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
 
 export const ownsEnd = (state: ScrollTargetState) => state.endOwner === 'list'
 
-// How near either end of the rows loaded the reader comes before the next page loads there, in
-// screens (the list's viewport heights): desktop's list takes its thresholds in that unit, and the
-// mobile list measures its scroll offset against it. Early enough that a page lands before a
-// reader's fling reaches the edge of the rows it has.
-export const pageLoadScreens = 2
-export const withinPageLoad = (distance: number, viewport: number) => distance <= pageLoadScreens * viewport
-
-// One list's scroll target: its state, moved only by the decisions it makes. The list adapters and
-// the test driver each drive one. Subscribers hear of every change to its state.
+// One list's scroll target: its state, moved only by the decisions it makes. Its one subscriber
+// (useSyncExternalStore) hears of every change to its state.
 export type ScrollTarget = {
   decide: (event: ScrollEvent) => ScrollDirective
   readonly state: ScrollTargetState
@@ -300,13 +293,13 @@ export type ScrollTarget = {
 
 export const makeScrollTarget = (): ScrollTarget => {
   let state = initialScrollTargetState
-  const listeners = new Set<() => void>()
+  let onChange: (() => void) | undefined
   return {
     decide: event => {
       const decision = decideScroll(state, event)
       if (decision.state !== state) {
         state = decision.state
-        listeners.forEach(l => l())
+        onChange?.()
       }
       return decision.directive
     },
@@ -314,21 +307,12 @@ export const makeScrollTarget = (): ScrollTarget => {
       return state
     },
     subscribe: listener => {
-      listeners.add(listener)
+      onChange = listener
       return () => {
-        listeners.delete(listener)
+        if (onChange === listener) onChange = undefined
       }
     },
   }
-}
-
-// The list's scroll target for as long as it is mounted, and whether the list owns the end, which its
-// own end anchor follows. The target's identity never changes, so the list's own loops can report back
-// to it while the directives they carry out come from it too.
-export const useScrollTarget = () => {
-  const [target] = React.useState(makeScrollTarget)
-  const listOwnsEnd = React.useSyncExternalStore(target.subscribe, () => ownsEnd(target.state))
-  return {listOwnsEnd, scrollTarget: target}
 }
 
 // Ordinals are sorted oldest first; -1 when the ordinal is not loaded.
@@ -364,20 +348,3 @@ export const listAnchorsEnd = (p: {
   heldLatest: boolean
   listOwnsEnd: boolean
 }) => p.listOwnsEnd && p.centeredOrdinal === undefined && p.heldLatest
-
-// Whether the rows now shown hold the newest message as a thread that already held it: false for the
-// page of newer rows that brings it into a window of history, which is laid out as the page it is,
-// and true again from the next rows on. Rows refilling a cleared thread, or a new dataset, are no
-// window of history, so they are held at once. Decided from the rows themselves, once per change to
-// them, so it holds however React schedules the render.
-export const useHeldLatest = (containsLatest: boolean, datasetKey: string, rows: ReadonlyArray<unknown>) => {
-  const [seen, setSeen] = React.useState({containsLatest, datasetKey, heldLatest: containsLatest, rows})
-  if (seen.rows === rows && seen.datasetKey === datasetKey && seen.containsLatest === containsLatest) {
-    return seen.heldLatest
-  }
-  const bringsLatest =
-    containsLatest && !seen.containsLatest && seen.datasetKey === datasetKey && seen.rows.length > 0
-  const next = {containsLatest, datasetKey, heldLatest: containsLatest && !bringsLatest, rows}
-  setSeen(next)
-  return next.heldLatest
-}

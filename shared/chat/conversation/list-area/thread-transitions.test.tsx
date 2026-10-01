@@ -14,7 +14,7 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
 import {ConversationThreadProvider, useConversationThreadActions} from '../thread-context'
-import {emptyThread, range, threadTransitions, type ThreadSnapshot} from './list-test-store'
+import {emptyThread, range, threadTransitions, type ThreadSnapshot} from './thread-test-driver'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 

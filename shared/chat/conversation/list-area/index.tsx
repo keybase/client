@@ -25,7 +25,7 @@ import {useJumpToRecent} from './jump-to-recent'
 import {useThreadLoadStatusOptionsGetter} from '../thread-load-status-context'
 import {useDesktopThreadScroll} from './desktop-scroll'
 import {useNativeThreadScroll, type NativeListRef} from './native-scroll'
-import {pageLoadScreens} from './scroll-target'
+import {pageLoadScreens} from './paging'
 import {getMessageRowType, getMessageShowUsername} from '../messages/row-metadata'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as InputState from '../input-area/input-state'
@@ -97,13 +97,25 @@ const useThreadListData = () =>
     }))
   )
 
-// Pagination, the one rule both lists load pages by: older as the reader nears the oldest row
-// loaded, newer as they near the newest one while the thread does not hold the newest message
-// (after a jump to an old hit), each within pageLoadScreens. Refs keep the throttled callbacks
-// stable.
-const usePagination = (p: {containsLatestMessage: boolean; numOrdinals: number}) => {
-  const {containsLatestMessage, numOrdinals} = p
+// Both lists load an older page as the reader nears the oldest row loaded, within pageLoadScreens.
+const useLoadOlder = (numOrdinals: number) => {
   const loadOlderMessagesDueToScroll = useConversationThreadLoadOlderMessagesDueToScroll()
+  const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
+  const numOrdinalsRef = React.useRef(numOrdinals)
+  React.useEffect(() => {
+    numOrdinalsRef.current = numOrdinals
+  }, [numOrdinals])
+  return React.useCallback(() => {
+    loadOlderMessagesDueToScroll(numOrdinalsRef.current, getThreadLoadStatusOptions())
+  }, [loadOlderMessagesDueToScroll, getThreadLoadStatusOptions])
+}
+
+// Only the desktop list loads a newer page, as the reader nears the newest row loaded while the
+// thread does not hold the newest message (after a jump to an old hit). On mobile a newer page
+// landing mid-drag, mid-fling or after a status-bar tap throws the reader ahead. Refs keep the
+// throttled callback stable.
+const useLoadNewer = (p: {containsLatestMessage: boolean; numOrdinals: number}) => {
+  const {containsLatestMessage, numOrdinals} = p
   const loadNewerMessagesDueToScroll = useConversationThreadLoadNewerMessagesDueToScroll()
   const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
 
@@ -117,10 +129,6 @@ const usePagination = (p: {containsLatestMessage: boolean; numOrdinals: number})
     containsLatestMessageRef.current = containsLatestMessage
   }, [containsLatestMessage])
 
-  const loadOlder = React.useCallback(() => {
-    loadOlderMessagesDueToScroll(numOrdinalsRef.current, getThreadLoadStatusOptions())
-  }, [loadOlderMessagesDueToScroll, getThreadLoadStatusOptions])
-
   const loadNewer = C.useThrottledCallback(() => {
     if (!containsLatestMessageRef.current) {
       loadNewerMessagesDueToScroll(numOrdinalsRef.current, getThreadLoadStatusOptions())
@@ -133,7 +141,7 @@ const usePagination = (p: {containsLatestMessage: boolean; numOrdinals: number})
     [loadNewer]
   )
 
-  return {loadNewer, loadOlder}
+  return loadNewer
 }
 
 // ==================== DESKTOP ====================
@@ -210,7 +218,8 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
 
   const markInitiallyLoadedThreadAsRead = useConversationThreadMarkThreadAsRead()
 
-  const {loadNewer, loadOlder} = usePagination({containsLatestMessage, numOrdinals: messageOrdinals.length})
+  const loadOlder = useLoadOlder(messageOrdinals.length)
+  const loadNewer = useLoadNewer({containsLatestMessage, numOrdinals: messageOrdinals.length})
 
   const getItemType = useGetItemType()
 
@@ -367,8 +376,8 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
       >
         <LegendList
           dataKey={datasetKey}
-          ref={listRef as React.Ref<LegendListRef>}
-          data={messageOrdinals as unknown as T.Chat.Ordinal[]}
+          ref={listRef}
+          data={messageOrdinals}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
           getItemType={getItemType}
@@ -397,7 +406,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           onLayout={onLayout}
           onMetricsChange={onMetricsChange}
           onLoad={onLoad}
-          onScroll={onScroll as unknown as (e: unknown) => void}
+          onScroll={onScroll}
           onStartReached={loadOlder}
           onStartReachedThreshold={pageLoadScreens}
           onEndReached={loadNewer}
@@ -489,7 +498,7 @@ const NativeConversationList = function NativeConversationList() {
   const listRef = React.useRef<NativeListRef | null>(null)
   const markInitiallyLoadedThreadAsRead = useConversationThreadMarkThreadAsRead()
   const numOrdinals = messageOrdinals.length
-  const {loadNewer, loadOlder} = usePagination({containsLatestMessage, numOrdinals})
+  const loadOlder = useLoadOlder(numOrdinals)
 
   const keyExtractor = (ordinal: ItemType) => {
     return String(ordinal)
@@ -550,7 +559,6 @@ const NativeConversationList = function NativeConversationList() {
     editingOrdinal,
     isKeyboardVisible,
     listRef,
-    loadNewer,
     loadOlder,
     loaded,
     messageOrdinals,
