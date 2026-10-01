@@ -261,7 +261,9 @@ describe('chat scroll: search', () => {
     const ordinal = await searchAndSelect(token)
     await expectCentred(ordinal)
 
-    await dragThread(-350)
+    // toward older rows: the hit sits ten rows from the newest of its window, too near its edge for a
+    // drag toward newer rows to take it out of the middle
+    await dragThread(350)
     const moved = await waitForThreadStable()
     const mv = await viewport(moved)
     const r = rowOf(moved, ordinal)
@@ -271,9 +273,10 @@ describe('chat scroll: search', () => {
     await expectCentred(ordinal)
   })
 
-  // Each way the reader can move the list, done the moment the hit's row lands, while the list is
-  // still centring it. The reader's move wins: the list stays where it left it and is not pulled
-  // back to the hit.
+  // A drag done the moment the hit's row lands, while the list is still centring it. The reader's
+  // move wins: the list stays where the drag left it and is not pulled back to the hit. (A
+  // status-bar tap cannot be told apart here: every hit's page holds only about ten rows newer than
+  // the hit, so its centred place and the list's top, where a tap goes, are both offset 0.)
   const moveDuringCentring = async (move: () => Promise<void>) => {
     await openLong()
     await expectAtEnd()
@@ -308,23 +311,11 @@ describe('chat scroll: search', () => {
     )
   })
 
-  // The tap scrolls the list to its top (for this inverted list, the newest rows loaded), and it
-  // stays there: tapping again finds it already there.
-  it('a status-bar tap during centring stops it', async () => {
-    const {moved} = await moveDuringCentring(tapStatusBar)
-    await tapStatusBar()
-    const again = await waitForThreadStable()
-    check(
-      Math.abs(again.offset - moved.offset) <= stillTolerance,
-      `the first tap did not leave the list at its top: ${summary(moved)} then ${summary(again)}`
-    )
-  })
-
   // App bug (iOS): closing search moves the rows and nothing puts them back. Closing swaps the
-  // search bar back for the composer, and the keyboard padding the list reserves below its rows
-  // changes with it; the scroll view keeps its offset, so the rows shift by the padding's change.
-  // Readings (window points): the centred hit's row top 400 with search open, 448.3 once the list
-  // settles, never corrected. Remove the expected-failure mark once fixed.
+  // search bar back for the composer; the scroll view keeps its offset, so the rows shift with the
+  // layout change (cause not yet pinned down). Readings (window points): the centred hit's row top 400
+  // with search open, 376.7 once the list settles, never corrected (448.3 while the list also padded
+  // its end by the search bar's height). Remove the expected-failure mark once fixed.
   it('closing search leaves the list where it is', async () => {
     await openLong()
     const ordinal = await searchAndSelect(LONG_SEARCH_TOKENS.middle.token)
@@ -344,7 +335,7 @@ describe('chat scroll: search', () => {
       `closing search: row ${ordinal} at ${before.top}, then ${rowOf(after, ordinal)?.top}; away from its place in ${off.length} of ${samples.length} samples, ${off.length ? Math.round(off.at(-1)!.t - off[0]!.t) : 0}ms from the first to the last, by up to ${Math.round(most * 10) / 10} points`
     )
     check(!isAtEnd(after, v), `the thread went to its end: ${summary(after, v)}`)
-    await expectedFailure({bug: 'closing search moves the rows by the composer swap and keyboard padding shift', origin: 'suspected pre-existing on master'}, () => {
+    await expectedFailure({bug: 'closing search moves the rows by the composer swap', origin: 'suspected pre-existing on master'}, () => {
       const r = rowOf(after, ordinal)
       check(
         !!r && Math.abs(r.top - before.top) <= stillTolerance,
@@ -356,12 +347,6 @@ describe('chat scroll: search', () => {
   // Closing search with the list resting at its end, the newest message loaded, gives the end back
   // to the list where it was before search opened: the next message is followed as on any thread at
   // its end.
-  //
-  // App bug (iOS): closing search at the newest message leaves the list 60.7 points short of its end,
-  // and the next incoming message is not followed. With the hit (the newest message) already in view
-  // nothing scrolls while search is open, so the list stays at offset 0 with the newest row 17.7
-  // points above the search bar, not at the resting offset that counts the bar's padding; closing
-  // then moves the offset to 71.7 within 405ms. Remove the expected-failure mark once fixed.
   it('closing search at the newest message, then an incoming message keeps the end', async () => {
     await openScratch()
     await expectAtEnd()
@@ -401,14 +386,12 @@ describe('chat scroll: search', () => {
     const t = await waitForThreadStable()
     const v = await viewport(t)
     console.log(`then an incoming message: newest row ${newestGap(t, v)}pt above the composer`)
-    await expectedFailure({bug: 'closing search at the newest message leaves the list short of its end', origin: 'this branch: its fix 037fd14c71 was reverted by 4c5b6abf90; master not checked'}, () => {
-      check(
-        closedGap !== undefined && Math.abs(closedGap - restGap) <= 1 && Math.abs(closed.offset - rest.t.offset) <= 1,
-        `closing search left the thread off its end: ${summary(closed, cv)}, before search ${summary(rest.t, rest.v)}`
-      )
-      check(isAtEnd(t, v), `after the incoming message, the thread is not at its end: ${summary(t, v)}`)
-      check(t.rows.at(-1)?.ordinal === ordinal, `the newest row is not the incoming one: ${summary(t, v)}`)
-    })
+    check(
+      closedGap !== undefined && Math.abs(closedGap - restGap) <= 1 && Math.abs(closed.offset - rest.t.offset) <= 1,
+      `closing search left the thread off its end: ${summary(closed, cv)}, before search ${summary(rest.t, rest.v)}`
+    )
+    check(isAtEnd(t, v), `after the incoming message, the thread is not at its end: ${summary(t, v)}`)
+    check(t.rows.at(-1)?.ordinal === ordinal, `the newest row is not the incoming one: ${summary(t, v)}`)
   })
 
   it('jump to recent from a deep hit lands at the newest message and closes search', async () => {

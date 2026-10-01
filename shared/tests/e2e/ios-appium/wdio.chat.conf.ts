@@ -59,7 +59,8 @@ export const config: WebdriverIO.Config = {
   ...base,
   specs: [process.env['KB_IOS_SPEC'] ?? './chat.test.ts'],
   // 7 minutes: the paging flows drag through 400 messages a step at a time
-  mochaOpts: {bail: false, retries: 0, timeout: 420_000, ui: 'bdd'},
+  // KB_IOS_GREP runs only the flows whose full titles match it
+  mochaOpts: {bail: false, grep: process.env['KB_IOS_GREP'], retries: 0, timeout: 420_000, ui: 'bdd'},
   // wdio only logs what this hook throws and runs the flows anyway, against a stale bundle or
   // missing data: a failed setup stops the run instead.
   before: async () => {
