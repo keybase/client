@@ -2,7 +2,7 @@
 // a reader at the bottom there and leave one in history where they are, search hits centre and let
 // the reader take over, pages load in both directions without moving the reader, and the list
 // keeps its place across an edit, a mark unread and a tab switch.
-import type {ConsoleMessage, Page} from '@playwright/test'
+import type {Page} from '@playwright/test'
 import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {
   clickUnoccluded,
@@ -115,45 +115,21 @@ const expectAtEnd = async (page: Page) => {
   return g
 }
 
-// The app's own account of its end re-pins, from its debug log in the renderer console (lines
-// tagged [scrollpin]), from now until stop().
-const collectPinLog = (page: Page) => {
-  const lines: Array<string> = []
-  const onConsole = (m: ConsoleMessage) => {
-    const text = m.text()
-    if (text.includes('[scrollpin]')) lines.push(text.replace(/^.*?\[scrollpin\] /, ''))
-  }
-  page.on('console', onConsole)
-  return {
-    stop: () => {
-      page.off('console', onConsole)
-      return lines
-    },
-  }
-}
-
-// Every frame from the thread's list showing until it settles, and the app's re-pin log, so a miss
-// says whether it reached the end, what grew after, and what the list decided.
+// Every frame from the thread's list showing until it settles, so a miss says whether it reached
+// the end and what grew after.
 const openScratchAtEnd = async (page: Page) => {
-  const pins = collectPinLog(page)
-  let pinLines: Array<string> | undefined
-  try {
-    await openFresh(page, E2E_CHANNELS.scratch)
-    await startScrollerFrames(page)
-    const g = await waitForScrollStable(page)
-    const frames = await stopScrollerFrames(page)
-    pinLines = pins.stop()
-    expect(
-      g.distanceFromEnd,
-      `distance from the end after opening: ${summary(g)}; frames (ms/scrollTop/scrollHeight/clientHeight/distance/newest row/its height): ${frames
-        .slice(-12)
-        .map(f => f.join('/'))
-        .join(' ')}; the list's re-pin log:\n${pinLines.slice(-40).join('\n')}`
-    ).toBeLessThanOrEqual(endTolerancePx)
-    return g
-  } finally {
-    if (!pinLines) pins.stop()
-  }
+  await openFresh(page, E2E_CHANNELS.scratch)
+  await startScrollerFrames(page)
+  const g = await waitForScrollStable(page)
+  const frames = await stopScrollerFrames(page)
+  expect(
+    g.distanceFromEnd,
+    `distance from the end after opening: ${summary(g)}; frames (ms/scrollTop/scrollHeight/clientHeight/distance/newest row/its height): ${frames
+      .slice(-12)
+      .map(f => f.join('/'))
+      .join(' ')}`
+  ).toBeLessThanOrEqual(endTolerancePx)
+  return g
 }
 
 // Selects the first hit for `token` and waits for its row; returns the row's ordinal.
