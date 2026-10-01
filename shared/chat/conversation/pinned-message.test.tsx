@@ -8,6 +8,7 @@ const mockConversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3
 const mockCenterOnMessage = jest.fn()
 let mockMeta: {pinnedMsg: unknown; teamID: string; teamname: string}
 let mockDeleteOtherMessages = false
+let mockThreadSearch: {query?: string} | undefined
 let mockRetired = false
 // the thread's rpc, which retires with the thread
 let mockRpc: ChatRpcT.ChatThreadRpc | undefined
@@ -52,17 +53,20 @@ jest.mock('./team-hooks', () => ({
 jest.mock('./center-context', () => ({
   useConversationCenterActions: () => ({centerOnMessage: mockCenterOnMessage}),
 }))
+jest.mock('./thread-search-route', () => ({
+  useThreadSearchRoute: () => mockThreadSearch,
+}))
 jest.mock('@/stores/current-user', () => ({
   useCurrentUserState: (sel: (s: unknown) => unknown) => sel({username: 'testuser'}),
 }))
 
-import {act, cleanup, fireEvent, render} from '@testing-library/react'
+import {act, cleanup, fireEvent, render, renderHook} from '@testing-library/react'
 import * as C from '@/constants'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {resetAllStores} from '@/util/zustand'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
-import PinnedMessage from './pinned-message'
+import PinnedMessage, {usePinnedMessageShown} from './pinned-message'
 
 let rpc: FakeChatRpc
 
@@ -116,6 +120,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
+  mockThreadSearch = undefined
   restoreChatRpc()
   jest.restoreAllMocks()
   mockCenterOnMessage.mockReset()
@@ -251,4 +256,19 @@ test('while the unpin waiting key is set a spinner replaces the close icon', () 
   })
   const {container} = render(<PinnedMessage />)
   expect(container.querySelector('.icon-gen-iconfont-close')).toBeNull()
+})
+
+test('the pinned banner renders the pinned message', () => {
+  const {queryByText} = render(<PinnedMessage />)
+  expect(queryByText('Pinned')).not.toBeNull()
+})
+
+// both layouts mount the banner only when this says so
+test('the pinned banner is shown while thread search is closed', () => {
+  expect(renderHook(() => usePinnedMessageShown()).result.current).toBe(true)
+})
+
+test('the pinned banner is not shown while thread search is open', () => {
+  mockThreadSearch = {}
+  expect(renderHook(() => usePinnedMessageShown()).result.current).toBe(false)
 })

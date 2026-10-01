@@ -118,6 +118,11 @@ jest.mock('../input-area/input-state', () => {
   return {ConversationInputProvider: mockPassthroughProvider}
 })
 
+// its focus goes through the composer, which the passthrough input provider above does not make
+jest.mock('./context', () => {
+  return {ThreadRefsProvider: mockPassthroughProvider}
+})
+
 jest.mock('../thread-load-status-context', () => {
   return {ConversationThreadLoadStatusProvider: mockConversationThreadLoadStatusProvider}
 })

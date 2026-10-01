@@ -209,6 +209,10 @@ export const conversationIDToKey = (conversationID: T.RPCChat.ConversationID): C
 export const keyToConversationID = (key: Common.ConversationIDKey): T.RPCChat.ConversationID =>
   hexToUint8Array(Common.conversationIDKeyToString(key))
 
+// an empty ID for a conversation that is not a real one yet (pending, or none)
+export const keyToConversationIDOrEmpty = (key: Common.ConversationIDKey): T.RPCChat.ConversationID =>
+  Common.isValidConversationIDKey(key) ? keyToConversationID(key) : new Uint8Array(0)
+
 export const rpcOutboxIDToOutboxID = (outboxID: T.RPCChat.OutboxID): _Message.OutboxID =>
   _Message.stringToOutboxID(uint8ArrayToHex(outboxID))
 
