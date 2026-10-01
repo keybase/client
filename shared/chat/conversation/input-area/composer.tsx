@@ -62,20 +62,13 @@ export type Composer = {
   typeAtCaret: (s: string) => void
   // True when the input shows the text now; a write made while no input is attached waits.
   replace: (info: TextInfo, reflectChange: boolean) => boolean
-  // Saves an empty draft and clears the input now (with none attached, the next one once it has
-  // loaded its draft), and hands the text to send on the next tick; false when there is nothing to
-  // send, or the user can't post (the text, typed before, stays, and so does its draft). Sending an
-  // edit ends it as clear does: the draft it set aside comes back, unsaved.
+  // Clears now and sends on the next tick; false when nothing is sent (no text, or the user can't
+  // post, where the text and its draft stay). Sending an edit ends it as clear does.
   submit: (send: (text: string, unfurlSuppress: SuppressSnapshot) => void) => boolean
-  // An input's text belongs to the view it came from: an input attached by a different view starts
-  // over with no text and a draft still to load, except for an edit still on, whose text it shows.
-  // The same view attaching again (a new handle, StrictMode's ref replay, a hidden Activity shown
-  // again) keeps both.
-  // Writes made while no input is attached (an inject, an insert, a replace) wait, and land in
-  // order once one attaches, after its draft; a waiting inject lands with the focus it asked for.
-  // A replace carries a whole text worked out from its view's text, so it lands only if the same
-  // view attaches again; injects, restores, inserts and a send's clear land on whichever input
-  // comes next.
+  // A different view attaching starts over (no text, its draft to load) unless an edit is on; the
+  // same view attaching again (a new handle, StrictMode's ref replay, an Activity shown again)
+  // keeps both. Writes made with no input attached land in order on the next one, after its draft,
+  // except a replace: it was worked out from its view's text, so only that view gets it.
   connect: () => ComposerView
 }
 
@@ -83,11 +76,9 @@ type ComposerDeps = {
   // The composer saves the draft: what the user types, and what it writes when that changes the
   // saved draft. saveDraft is throttled; flushDraft saves a pending one now.
   flushDraft: () => void
-  // Where the user can't post, nothing the app writes reaches the input (an inject, an insert, a
-  // draft), so there is nothing to send, and no edit starts; a clear still clears. Nothing
-  // but a restore saves the draft there. Read at every write, from the store that turns read-only
-  // before React renders it, so no write in the commit that renders it (a ref being set, a child's
-  // effect) can come first.
+  // Where the user can't post, only a clear and a restore write, and only a restore saves the
+  // draft. Read at every write from the store, which turns read-only before React renders it, so
+  // no write in that commit (a ref being set, a child's effect) can come first.
   isReadOnly: () => boolean
   saveDraft: (text: string) => void
   // Taken before the clear, which runs onChangeText('') synchronously and drops every dismissal.
@@ -339,15 +330,9 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
       } else {
         pending.push(target => clear(target, false))
       }
-      // Clearing the composer shrinks it back to one line, which grows the thread's viewport. Sending in
-      // the same tick makes that growth and the new row a single change for the list to resolve its end
-      // against, and it lands short — 8 of 8 at one, two and six lines, worse the longer the message. So
-      // clear first and let that land before the row arrives. legend-list's own chat example does both at
-      // once, which works there because its composer is a single-line input that never resizes the list.
-      //
-      // A timeout rather than requestAnimationFrame: this closure owns the only copy of the text, and
-      // frames stop in a hidden or backgrounded window, which would drop the message with the composer
-      // already emptied.
+      // The clear shrinks the composer, growing the thread's viewport; landing that in the same tick
+      // as the new row leaves the list short of its end. A timeout, not a frame: frames stop in a
+      // hidden window, and this closure holds the only copy of the text.
       setTimeout(() => {
         send(toSend, unfurlSuppress)
       }, 0)
