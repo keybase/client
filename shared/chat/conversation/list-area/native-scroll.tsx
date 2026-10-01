@@ -62,6 +62,11 @@ const maintainVisibleContentPositionNoAutoscroll = {
 // the reader nearing the new oldest row, and a second after it last asked, so a page on its way is
 // not asked for again.
 const pageLoadGate = 1000
+// How long a centring scroll counts as on its way when the list reports no scroll for it: one that
+// moved nothing, or a scroll to a row that failed.
+const centreLandingMs = 300
+// How long after a centring scroll lands the list has to report it came to rest.
+const centreRestWaitMs = 50
 // What a scroll to a row is for: a centre, or a reveal.
 type ItemScroll = 'center' | 'reveal'
 
@@ -161,22 +166,6 @@ export const useNativeThreadScroll = (p: {
   // useSchedule's, which would run first and hide whether the first load's retry was still pending.
   const [pins] = React.useState(makeSchedule)
 
-  // Coarse: scrollToItem lands at the wrong offset for tall variable-height rows, but it gets the
-  // target rendered for the corrector to refine.
-  const moveToward = React.useCallback(
-    (target: T.Chat.Ordinal) => {
-      const reassert = (delay: number) =>
-        centring.after(delay, () => {
-          if (centeredRef.current !== target) {
-            return
-          }
-          scrollToItem(target, 'center')
-        })
-      ;[50, 250].forEach(reassert)
-    },
-    [centring, scrollToItem]
-  )
-
   // Closed-loop centring corrector: scrollToItem lands at the wrong offset here (inverted list, custom
   // keyboard scroll view, tall variable-height image rows), so it steps from the viewable index range
   // instead (correctorStep).
@@ -184,6 +173,21 @@ export const useNativeThreadScroll = (p: {
     active: false,
     iters: 0,
   })
+
+  // When the centring scroll last issued stops counting as on its way, after which the corrector steps
+  // again: once the list reports it came to rest (iOS reports a rest even for an instant scroll), a
+  // moment after it reports the scroll (a list that reports no rest for it), or once it has had time
+  // to land (one that moved nothing, or failed). Centring issues its scrolls one at a time: a scroll
+  // still queued when a newer one is issued moves the list away from the newer one's destination,
+  // which reads as the reader taking over, and a rest arriving after the newer one was issued ends
+  // that one's flight early.
+  const centreScrollUntilRef = React.useRef(0)
+  const [centreScrollPending] = React.useState(() => () => Date.now() < centreScrollUntilRef.current)
+  const [issueCentreScroll] = React.useState(() => (scroll: () => void) => {
+    centreScrollUntilRef.current = Date.now() + centreLandingMs
+    scroll()
+  })
+
   // The list as its last scroll event reported it, which the next one is compared with.
   const lastScrollRef = React.useRef<ScrollReport | undefined>(undefined)
   // Compared by value, so a freeze/thaw re-mount, which keeps the list, keeps its figures.
@@ -213,6 +217,7 @@ export const useNativeThreadScroll = (p: {
   })
   const [stopCentering] = React.useState(() => () => {
     correctRef.current.active = false
+    centreScrollUntilRef.current = 0
     itemScrollsRef.current.forEach((request, item) => {
       if (request.kind === 'center' || !holdsEdit(item)) itemScrollsRef.current.delete(item)
     })
@@ -226,10 +231,10 @@ export const useNativeThreadScroll = (p: {
     // Only ever leaves the list alone.
     scrollTarget.decide({type: 'centerSettled'})
   })
-  const [correctCenter] = React.useState(
-    () => (first: number | null | undefined, last: number | null | undefined) => {
+  const [correctCenter] = React.useState(() => {
+    const correct = (first: number | null | undefined, last: number | null | undefined) => {
       const st = correctRef.current
-      if (!st.active) return
+      if (!st.active || centreScrollPending()) return
       const co = centeredRef.current
       const ords = ordsRef.current
       const num = ords.length
@@ -254,8 +259,30 @@ export const useNativeThreadScroll = (p: {
       }
       if (step.type === 'wait') return
       st.iters += 1
-      scrollToOffset(step.offset)
+      issueCentreScroll(() => scrollToOffset(step.offset))
+      centring.after(centreLandingMs, () => correct(vFirstRef.current, vLastRef.current))
     }
+    return correct
+  })
+  const [correctCenterAfter] = React.useState(
+    () => (delay: number) => centring.after(delay, () => correctCenter(vFirstRef.current, vLastRef.current))
+  )
+
+  // Coarse: scrollToItem lands at the wrong offset for tall variable-height rows, but it gets the
+  // target rendered for the corrector to refine.
+  const moveToward = React.useCallback(
+    (target: T.Chat.Ordinal) => {
+      const reassert = (delay: number) =>
+        centring.after(delay, () => {
+          if (centeredRef.current !== target || centreScrollPending()) {
+            return
+          }
+          issueCentreScroll(() => scrollToItem(target, 'center'))
+          correctCenterAfter(centreLandingMs)
+        })
+      ;[50, 250].forEach(reassert)
+    },
+    [centreScrollPending, centring, correctCenterAfter, issueCentreScroll, scrollToItem]
   )
 
   // The corrector's 50/250/500/900ms schedule, started once per target. With its 13 steps it is the
@@ -282,6 +309,7 @@ export const useNativeThreadScroll = (p: {
           requestItem(directive.ordinal, 'center')
           moveToward(directive.ordinal)
           correctRef.current = {active: true, iters: 0, target: directive.ordinal}
+          centreScrollUntilRef.current = 0
           ladderRef.current.forEach(t => t.cancel())
           ladderRef.current = [50, 250, 500, 900].map((d, i, ladder) =>
             centring.after(d, () => {
@@ -466,7 +494,13 @@ export const useNativeThreadScroll = (p: {
     const reveal = request.kind === 'reveal'
     ;(reveal ? reveals : centring).after(200, () => {
       if (itemScrollsRef.current.get(item) !== request || (reveal && !holdsEdit(item))) return
-      scrollToItem(item, request.kind)
+      if (reveal) {
+        scrollToItem(item, request.kind)
+        return
+      }
+      if (centreScrollPending()) return
+      issueCentreScroll(() => scrollToItem(item, request.kind))
+      correctCenterAfter(centreLandingMs)
     })
   })
 
@@ -520,10 +554,23 @@ export const useNativeThreadScroll = (p: {
         ownsEnd: ownsEnd(scrollTarget.state),
       })
       if (readerMoved) dispatch(own.readerMoved())
+      if (centreScrollPending()) {
+        centreScrollUntilRef.current = Math.min(centreScrollUntilRef.current, Date.now() + centreRestWaitMs)
+        correctCenterAfter(centreRestWaitMs)
+      }
       dropFinishedReveals()
       loadPages()
     },
-    [dispatch, dropFinishedReveals, loadPages, own, restingOffset, scrollTarget]
+    [
+      centreScrollPending,
+      correctCenterAfter,
+      dispatch,
+      dropFinishedReveals,
+      loadPages,
+      own,
+      restingOffset,
+      scrollTarget,
+    ]
   )
   const [onContentSizeChange] = React.useState(() => (_w: number, h: number) => {
     metricsRef.current = {...metricsRef.current, content: h}
@@ -544,8 +591,12 @@ export const useNativeThreadScroll = (p: {
     (e: {nativeEvent: {contentOffset: {y: number}}}) => {
       const handedBack = own.rested(atEnd(e.nativeEvent.contentOffset.y))
       if (handedBack) dispatch(handedBack)
+      if (centreScrollPending()) {
+        centreScrollUntilRef.current = 0
+        correctCenter(vFirstRef.current, vLastRef.current)
+      }
     },
-    [atEnd, dispatch, own]
+    [atEnd, centreScrollPending, correctCenter, dispatch, own]
   )
   // Letting go is where the list comes to rest only when the finger lifts still; moving, it flings on,
   // and it comes to rest where the fling ends. On Android a fling's end is reported even after a still

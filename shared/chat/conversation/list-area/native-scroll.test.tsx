@@ -67,6 +67,8 @@ const mount = () => {
       scrollToItem.mock.calls.filter(([o]) => (o as {item: T.Chat.Ordinal}).item === item).length,
     // Pins to the end: the resting offset over the keyboard.
     pins: () => scrollToOffset.mock.calls.filter(([o]) => (o as {offset: number}).offset === keyboardOffset).length,
+    // Scrolls to an offset other than the end: the centring corrector's steps.
+    steps: () => scrollToOffset.mock.calls.filter(([o]) => (o as {offset: number}).offset !== keyboardOffset),
     set: (p: Partial<Props>) => {
       props = {...props, ...p}
       act(() => hook.rerender(props))
@@ -195,4 +197,55 @@ test('a reveal ends with its edit: editing the row again, already in view, retri
   act(() => m.hook.result.current.onScrollToIndexFailed({index: 60 - 5}))
   act(() => jest.advanceTimersByTime(200))
   expect(m.itemScrolls(edited)).toBe(1)
+})
+
+// A thread of 60 rows of 100pt, resting at its end in an 800pt view, centring row 30 from a view
+// that shows rows 0 to 8: the corrector's first step goes toward it.
+const startCentring = () => {
+  const m = mount()
+  act(() => jest.advanceTimersByTime(1000))
+  const scroll = (y: number) =>
+    m.hook.result.current.onScroll({
+      nativeEvent: {contentOffset: {y}, contentSize: {height: 6000}, layoutMeasurement: {height: 800}},
+    })
+  act(() => scroll(keyboardOffset))
+  m.set({centeredOrdinal: T.Chat.numberToOrdinal(30)})
+  act(() => m.hook.result.current.onViewableRange(0, 8))
+  expect(m.steps()).toHaveLength(1)
+  const landed = (m.steps()[0]![0] as {offset: number}).offset
+  // the list reports the rows it shows as it moves, before it reports the scroll
+  act(() => m.hook.result.current.onViewableRange(20, 28))
+  return {landed, m, scroll}
+}
+
+test('centring keeps one scroll in flight: the list showing new rows before it reports the scroll steps nothing', () => {
+  const {m} = startCentring()
+  expect(m.steps()).toHaveLength(1)
+})
+
+test('centring steps again once the list reports its scroll came to rest', () => {
+  const {landed, m, scroll} = startCentring()
+  act(() => scroll(landed))
+  act(() => m.hook.result.current.onMomentumScrollEnd({nativeEvent: {contentOffset: {y: landed}}}))
+  expect(m.steps()).toHaveLength(2)
+})
+
+test('centring steps again shortly after its scroll lands on a list that reports no rest for it', () => {
+  const {landed, m, scroll} = startCentring()
+  const target = T.Chat.numberToOrdinal(30)
+  const scrolls = () => m.steps().length + m.itemScrolls(target)
+  act(() => scroll(landed))
+  act(() => jest.advanceTimersByTime(40))
+  expect(scrolls()).toBe(1)
+  // the next is the corrector's step or its coarse reassert, whichever is due first
+  act(() => jest.advanceTimersByTime(10))
+  expect(scrolls()).toBe(2)
+})
+
+test('centring steps again once a scroll the list reports nothing for has had time to land', () => {
+  const {m} = startCentring()
+  act(() => jest.advanceTimersByTime(290))
+  expect(m.steps()).toHaveLength(1)
+  act(() => jest.advanceTimersByTime(10))
+  expect(m.steps()).toHaveLength(2)
 })
