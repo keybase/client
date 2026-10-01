@@ -1,6 +1,6 @@
 import {zoomImage} from '@/constants/chat/helpers'
 import * as Kb from '@/common-adapters'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import * as InputState from './input-area/input-state'
 import {useConversationThreadMessage} from './thread-context'
 import {ZoomedImage} from './common'
@@ -32,10 +32,7 @@ const ReplyPreview = () => {
   const imageWidth = attachment?.previewWidth
   const username = message?.author ?? ''
   const sizing = imageWidth && imageHeight ? zoomImage(imageWidth, imageHeight, 80) : undefined
-  const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
-  const onCancel = () => {
-    setReplyTo(T.Chat.numberToOrdinal(0))
-  }
+  const onCancel = InputState.useConversationInputDispatch(s => s.clearReplyTo)
 
   return (
     <Kb.Box2 direction="vertical" alignSelf="stretch" style={styles.outerContainer}>

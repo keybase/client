@@ -55,7 +55,17 @@ export const TeamSuggestion = (p: {teamname: string; channelname: string | undef
 }
 
 export type ItemRendererProps<T> = {selected: boolean; item: T}
+// What a mounted list gives the composer's keys: one handle for as long as the list is open,
+// whose methods read the list as it is when the key lands.
+export type ListHandle = {
+  hasItems: () => boolean
+  move: (up: boolean) => void
+  // true if it picked anything
+  submit: () => boolean
+}
 export type ListProps<L> = {
+  // what the user typed after the marker; a new one starts the highlight again from the first item
+  filter: string
   items: Array<L>
   keyExtractor: (item: L, idx: number) => string
   suggestBotCommandsUpdateStatus?: T.RPCChat.UIBotCommandsUpdateStatusTyp
@@ -65,8 +75,7 @@ export type ListProps<L> = {
   // desktop only, see SuggestionList
   rowHeight: number
   onSelected: (item: L, final: boolean) => void
-  setOnMoveRef: (r: (up: boolean) => void) => void
-  setOnSubmitRef: (r: () => boolean) => void
+  setListHandle: (h: ListHandle | undefined) => void
   ItemRenderer: (p: ItemRendererProps<L>) => React.JSX.Element
 }
 
@@ -91,9 +100,20 @@ const RowImpl = <T,>(p: RowProps<T>) => {
 const Row = React.memo(RowImpl) as typeof RowImpl
 
 export function List<T>(p: ListProps<T>) {
-  const {items, ItemRenderer, loading, keyExtractor, onSelected, rowHeight} = p
-  const {suggestBotCommandsUpdateStatus, listStyle, spinnerStyle, setOnMoveRef, setOnSubmitRef} = p
-  const [selectedIndex, setSelectedIndex] = React.useState(0)
+  const {filter, items, ItemRenderer, loading, keyExtractor, onSelected, rowHeight} = p
+  const {suggestBotCommandsUpdateStatus, listStyle, spinnerStyle, setListHandle} = p
+  // The highlight is a position, and the first move freezes the list on the items it showed: a
+  // refresh while the reader moves through it (a participant arriving, custom emoji loading) can't
+  // put another item under the highlight, so the highlighted row is always the previewed text.
+  // A new filter starts over on the live items from the first one, the way a desktop completion
+  // list does, so Enter and Tab pick that one. Closing the list unmounts it, which drops it all.
+  const [moved, setMoved] = React.useState<{filter: string; index: number; items: Array<T>}>()
+  if (moved && moved.filter !== filter) {
+    setMoved(undefined)
+  }
+  const current = moved?.filter === filter ? moved : undefined
+  const shown = current?.items ?? items
+  const selectedIndex = current?.index ?? 0
 
   const onSelectedEvent = React.useEffectEvent((item: T, final: boolean) => onSelected(item, final))
   const renderItem = (idx: number, item: T) => (
@@ -106,43 +126,39 @@ export function List<T>(p: ListProps<T>) {
     />
   )
 
-  const lastSelectedIndex = React.useRef(selectedIndex)
-  const sel = items[selectedIndex]
+  const hasItems = React.useEffectEvent(() => shown.length > 0)
+  // only a move previews, so a list that changes under the highlight never writes to the input
+  const move = React.useEffectEvent((up: boolean) => {
+    const length = shown.length
+    if (!length) return
+    const s = (((up ? selectedIndex - 1 : selectedIndex + 1) % length) + length) % length
+    const item = shown[s]
+    if (s === selectedIndex || !item) return
+    setMoved({filter, index: s, items: shown})
+    onSelected(item, false)
+  })
+  const submit = React.useEffectEvent(() => {
+    const sel = shown[selectedIndex]
+    if (sel) {
+      onSelected(sel, true)
+    }
+    return !!sel
+  })
+  const handOver = React.useEffectEvent((h: ListHandle | undefined) => {
+    setListHandle(h)
+  })
   React.useEffect(() => {
-    if (lastSelectedIndex.current !== selectedIndex) {
-      lastSelectedIndex.current = selectedIndex
-      if (sel) {
-        onSelected(sel, false)
-      }
+    handOver({hasItems: () => hasItems(), move: up => move(up), submit: () => submit()})
+    return () => {
+      handOver(undefined)
     }
-  }, [onSelected, sel, selectedIndex])
-
-  React.useEffect(() => {
-    const onMove = (up: boolean) => {
-      const length = items.length
-      const s = (((up ? selectedIndex - 1 : selectedIndex + 1) % length) + length) % length
-      if (s !== selectedIndex) {
-        setSelectedIndex(s)
-      }
-    }
-
-    const onSubmit = () => {
-      const sel = items[selectedIndex]
-      if (sel) {
-        onSelected(sel, true)
-      }
-      return !!sel
-    }
-
-    setOnMoveRef(onMove)
-    setOnSubmitRef(onSubmit)
-  }, [setOnMoveRef, setOnSubmitRef, items, selectedIndex, onSelected, setSelectedIndex])
+  }, [])
 
   return (
     <>
       <SuggestionList
         style={listStyle}
-        items={items}
+        items={shown}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
         rowHeight={rowHeight}

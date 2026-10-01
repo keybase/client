@@ -11,7 +11,7 @@ const devicename = 'testuser-mac'
 
 const mockCenterOnMessage = jest.fn()
 const mockClearCenter = jest.fn()
-const mockToggleThreadSearch = jest.fn()
+const mockCloseThreadSearch = jest.fn()
 const mockCancelSearch = jest.fn()
 type CallMap = Record<string, (p: any) => void>
 const mockSearchCalls: Array<{incomingCallMap: CallMap; query: string}> = []
@@ -29,7 +29,7 @@ jest.mock('./thread-context', () => ({
   useConversationThreadID: () => 'conv',
   useConversationThreadSelector: (selector: (s: unknown) => unknown) =>
     selector({messageOrdinals: [mockLastOrdinal.current]}),
-  useConversationThreadToggleSearch: () => mockToggleThreadSearch,
+  useConversationThreadCloseSearch: () => mockCloseThreadSearch,
 }))
 
 jest.mock('../search-rpc', () => ({
@@ -116,7 +116,7 @@ afterEach(() => {
   mockSearchCalls.length = 0
   mockCenterOnMessage.mockClear()
   mockClearCenter.mockClear()
-  mockToggleThreadSearch.mockClear()
+  mockCloseThreadSearch.mockClear()
   mockCancelSearch.mockClear()
   mockLastOrdinal.current = T.Chat.numberToOrdinal(0)
   resetAllStores()
@@ -430,11 +430,13 @@ describe('enter key', () => {
 })
 
 describe('teardown', () => {
-  test('closing the search clears the centered message first', () => {
+  // the centre provider drops the hit when the route closes, the same for every close
+  test('closing the search is the one close every other path uses, and nothing more', () => {
     const {result} = mountSearch()
     act(() => result.current.onToggleThreadSearch())
-    expect(mockClearCenter).toHaveBeenCalled()
-    expect(mockToggleThreadSearch).toHaveBeenCalled()
+    expect(mockCloseThreadSearch).toHaveBeenCalledTimes(1)
+    expect(mockClearCenter).not.toHaveBeenCalled()
+    expect(mockCancelSearch).not.toHaveBeenCalled()
   })
 
   test('unmounting cancels the in-flight RPC and drops the pending flush', () => {
@@ -445,7 +447,7 @@ describe('teardown', () => {
     // the hit is parked on the 16ms coalescing timer
     expect(jest.getTimerCount()).toBe(1)
     unmount()
-    expect(mockCancelSearch).toHaveBeenCalled()
+    expect(mockCancelSearch).toHaveBeenCalledTimes(1)
     expect(jest.getTimerCount()).toBe(0)
   })
 })

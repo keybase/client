@@ -91,8 +91,7 @@ type ListProps = Pick<
   conversationIDKey: T.Chat.ConversationIDKey
   filter: string
   onSelected: (item: EmojiData, final: boolean) => void
-  setOnMoveRef: (r: (up: boolean) => void) => void
-  setOnSubmitRef: (r: () => boolean) => void
+  setListHandle: (h: Common.ListHandle | undefined) => void
 }
 export const List = (p: ListProps) => {
   const {conversationIDKey, filter, ...rest} = p
@@ -100,6 +99,7 @@ export const List = (p: ListProps) => {
   return (
     <Common.List
       {...rest}
+      filter={filter}
       keyExtractor={keyExtractor}
       items={items}
       ItemRenderer={ItemRenderer}
