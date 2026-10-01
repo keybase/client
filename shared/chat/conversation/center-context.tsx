@@ -85,7 +85,12 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
     threadSearchVisible,
   }))
 
+  // Stored, not only derived: a search opened again must not bring back the hit a close dropped.
+  // Every close only changes the route, so this is where closing drops the centre.
   const currentCenterState = stateForThreadSearchVisible(centerState, threadSearchVisible)
+  if (currentCenterState !== centerState) {
+    setCenterState(currentCenterState)
+  }
 
   const setCenterForMessage = (
     messageID: T.Chat.MessageID,

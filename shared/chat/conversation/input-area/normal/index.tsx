@@ -21,9 +21,9 @@ import {
   useConversationThreadMessage,
   useConversationThreadSelector,
   useConversationThreadSetExplodingMode,
-  useConversationThreadToggleSearch,
   useThreadMeta,
 } from '../../thread-context'
+import {useConversationThreadCloseSearch} from '../../thread-navigation'
 import {useConversationParticipantsSelector} from '../../data-hooks'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useRoute} from '@react-navigation/native'
@@ -180,7 +180,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const sendComposerText = InputState.useConversationInputDispatch(s => s.sendComposerText)
   const {hasCenter} = useConversationCenter()
   const {jumpToRecent} = useConversationCenterActions()
-  const toggleThreadSearch = useConversationThreadToggleSearch()
+  const closeThreadSearch = useConversationThreadCloseSearch()
 
   const isExploding = explodingModeSecondsRaw !== 0
 
@@ -220,7 +220,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     setTimeout(() => {
       sendComposerText(text, unfurlSuppress)
       if (hasCenter) {
-        toggleThreadSearch(true)
+        closeThreadSearch()
         jumpToRecent()
       }
     }, 0)

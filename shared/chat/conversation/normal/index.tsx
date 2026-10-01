@@ -8,12 +8,8 @@ import InvitationToBlock from '@/chat/blocking/invitation-to-block'
 import ListArea from '../list-area'
 import PinnedMessage from '../pinned-message'
 import ThreadLoadStatus from '../load-status'
-import {useConversationCenterActions} from '../center-context'
-import {
-  useConversationThreadID,
-  useConversationThreadToggleSearch,
-  useThreadMeta,
-} from '../thread-context'
+import {useConversationThreadID, useThreadMeta} from '../thread-context'
+import {useConversationThreadCloseSearch, useConversationThreadToggleSearch} from '../thread-navigation'
 import {useThreadSearchRoute} from '../thread-search-route'
 import {indefiniteArticle} from '@/util/string'
 import {makePasteAttachment} from '../attachment-actions'
@@ -74,12 +70,13 @@ const DesktopConversation = function DesktopConversation() {
       .catch(() => {})
   }
   const toggleThreadSearch = useConversationThreadToggleSearch()
-  const {clearCenter} = useConversationCenterActions()
+  const closeThreadSearch = useConversationThreadCloseSearch()
   const onToggleThreadSearch = () => {
     if (showThreadSearch) {
-      clearCenter()
+      closeThreadSearch()
+    } else {
+      toggleThreadSearch()
     }
-    toggleThreadSearch()
   }
   Kb.useHotKey('mod+f', onToggleThreadSearch)
 
