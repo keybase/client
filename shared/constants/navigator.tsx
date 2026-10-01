@@ -63,8 +63,13 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
   // Merges params into the route with this key, in place and without a transition. Returns
   // whether it dispatched.
   setRouteParams: (routeKey: string | undefined, params: object) => boolean
+  // Runs cb once no modal route is up: now, or at the state commit that removes the last one
+  // within modalsWaitMs. One wait at a time: a new one drops the one before it. Returns a cancel.
+  whenModalsGone: (cb: () => void) => () => void
 }
 
+
+const modalsWaitMs = 1000
 
 export const makeNavigator = (ref: NavigatorRef): Navigator => {
   // A push dispatched this tick isn't in getRootState() until React Navigation commits, so the
@@ -332,6 +337,31 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     return true
   }
 
+  let cancelModalsWait: (() => void) | undefined
+  const whenModalsGone = (cb: () => void) => {
+    cancelModalsWait?.()
+    const modalsGone = () => NavTree.modalStack(ref.getRootState()).length === 0
+    if (modalsGone()) {
+      cb()
+      return () => {}
+    }
+    const cancel = () => {
+      clearTimeout(timer)
+      unsub()
+      if (cancelModalsWait === cancel) {
+        cancelModalsWait = undefined
+      }
+    }
+    const timer = setTimeout(cancel, modalsWaitMs)
+    const unsub = ref.addListener('state', () => {
+      if (!modalsGone()) return
+      cancel()
+      cb()
+    })
+    cancelModalsWait = cancel
+    return cancel
+  }
+
   return {
     addListener: ref.addListener,
     clearModals,
@@ -346,6 +376,7 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     setRouteParams,
     showAboveTabs,
     switchTab,
+    whenModalsGone,
   }
 }
 

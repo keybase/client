@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import logger from '@/logger'
 import CommandMarkdown from '../../command-markdown'
 import CommandStatus from '../../command-status'
 import Giphy from '../../giphy'
@@ -15,20 +14,20 @@ import {infoPanelWidthTablet} from '../../info-panel/common'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import {ThreadRefsContext} from '@/chat/conversation/normal/context'
 import type {RefType as InputRef} from './input.shared'
+import {useComposerInput} from '../composer'
 import {useConversationCenter, useConversationCenterActions} from '../../center-context'
 import {
   useConversationThreadID,
   useConversationThreadMessage,
   useConversationThreadSelector,
   useConversationThreadSetExplodingMode,
-  useConversationThreadToggleSearch,
+  useConversationThreadCloseSearch,
   useThreadMeta,
 } from '../../thread-context'
 import {useConversationParticipantsSelector} from '../../data-hooks'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useRoute} from '@react-navigation/native'
-import {metasReceived, unboxRows, useInboxMetadataState} from '@/chat/inbox/metadata'
-import {takeSuppressSnapshot} from '@/chat/conversation/unfurl-preview-state'
+import {unboxRows} from '@/chat/inbox/metadata'
 
 const useHintText = (p: {
   isExploding: boolean
@@ -106,48 +105,16 @@ const Input = function Input() {
   )
 }
 
-const doInjectText = (inputRef: React.RefObject<InputRef | null>, text: string, focus?: boolean) => {
-  if (!inputRef.current) {
-    // Silently loses the text: the caller has already moved the value into unsentText, and the
-    // effect that got us here clears it straight after. An edit prefill dropped here looks like
-    // edit mode never opened.
-    logger.error('[chat] injectText dropped: input ref is null')
-    return
-  }
-  if (!text) {
-    inputRef.current.clear()
-  } else {
-    inputRef.current.transformText(
-      () => ({
-        selection:
-          text === '!>spoiler<!'
-            ? {end: text.length - 2, start: text.length - 2 - 7}
-            : {end: text.length, start: text.length},
-        text,
-      }),
-      true
-    )
-  }
-  if (focus) {
-    inputRef.current.focus()
-  }
-}
-
 const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const styles = useStyles()
   const route = useRoute()
   // infoPanel only exists on the desktop/tablet split-view chatRoot route
   const infoPanelShowing =
     route.name === 'chatRoot' && 'infoPanel' in route.params && !!route.params.infoPanel
-  const uiData = InputState.useConversationInput(
-    C.useShallow(s => ({
-      editOrdinal: s.editing,
-      focusInputCounter: s.focusInputCounter,
-      replyTo: s.replyTo,
-      unsentText: s.unsentText,
-    }))
+  const {editOrdinal, replyTo} = InputState.useConversationInput(
+    C.useShallow(s => ({editOrdinal: s.editing, replyTo: s.replyTo}))
   )
-  const replyToMessage = useConversationThreadMessage(uiData.replyTo)
+  const replyToMessage = useConversationThreadMessage(replyTo)
   const conversationIDKey = useConversationThreadID()
   const explodingMode = useConversationThreadSelector(s => s.explodingMode)
   const meta = useThreadMeta(
@@ -158,14 +125,10 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
       minWriterRole: m.minWriterRole,
       retentionPolicy: m.retentionPolicy,
       teamRetentionPolicy: m.teamRetentionPolicy,
-      tlfname: m.tlfname,
     }))
   )
   const setExplodingModeRaw = useConversationThreadSetExplodingMode()
-  const {cannotWrite, minWriterRole, tlfname} = meta
-  const convoID = T.Chat.isValidConversationIDKey(conversationIDKey)
-    ? T.Chat.keyToConversationID(conversationIDKey)
-    : new Uint8Array(0)
+  const {cannotWrite, minWriterRole} = meta
   const metaGood = meta.conversationIDKey === conversationIDKey
   const storeDraft = metaGood ? meta.draft : undefined
   const convRetention =
@@ -173,22 +136,17 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const explodingModeSecondsRaw =
     convRetention.type === 'explode' ? Math.min(explodingMode || Infinity, convRetention.seconds) : explodingMode
   const showReplyPreview = !!replyToMessage?.id
-  const {editOrdinal, focusInputCounter, unsentText} = uiData
   const isEditing = !!editOrdinal
   const setEditing = InputState.useConversationInputDispatch(s => s.setEditing)
-  const updateUnsentText = InputState.useConversationInputDispatch(s => s.injectIntoInput)
   const sendComposerText = InputState.useConversationInputDispatch(s => s.sendComposerText)
   const {hasCenter} = useConversationCenter()
   const {jumpToRecent} = useConversationCenterActions()
-  const toggleThreadSearch = useConversationThreadToggleSearch()
+  const closeThreadSearch = useConversationThreadCloseSearch()
 
   const isExploding = explodingModeSecondsRaw !== 0
 
   const hintText = useHintText({cannotWrite, isEditing, isExploding, minWriterRole})
-  const inputRef = React.useRef<InputRef | null>(null)
-  const setLocalInputRef = (r: InputRef | null) => {
-    inputRef.current = r
-  }
+  const {composer, setInput, textChanged} = useComposerInput<InputRef>(storeDraft, cannotWrite)
   const suggestionOverlayStyle = infoPanelShowing
     ? styles.suggestionOverlayInfoShowing
     : styles.suggestionOverlay
@@ -197,91 +155,52 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     setExplodingModeRaw(mode, false)
   }
 
-  const injectText = (text: string, focus?: boolean) => {
-    doInjectText(inputRef, text, focus)
-  }
-
   const {scrollToBottom} = React.useContext(ThreadRefsContext)
-  const onSubmit = (text: string) => {
-    if (!text) return
-    // Clearing the composer shrinks it back to one line, which grows the thread's viewport. Sending in
-    // the same tick makes that growth and the new row a single change for the list to resolve its end
-    // against, and it lands short — 8 of 8 at one, two and six lines, worse the longer the message. So
-    // clear first and let that land before the row arrives. legend-list's own chat example does both at
-    // once, which works there because its composer is a single-line input that never resizes the list.
-    //
-    // A timeout rather than requestAnimationFrame: this callback owns the only copy of the text, and
-    // frames stop in a hidden or backgrounded window, which would drop the message with the composer
-    // already emptied.
-    // Before the clear, which runs onChangeText('') synchronously and drops every dismissal.
-    // Urls whose preview has not landed yet are not in here and so are not suppressed.
-    const unfurlSuppress = takeSuppressSnapshot(conversationIDKey)
-    injectText('', true)
-    setTimeout(() => {
+  const onSubmit = () => {
+    const sent = composer.submit((text, unfurlSuppress) => {
       sendComposerText(text, unfurlSuppress)
       if (hasCenter) {
-        toggleThreadSearch(true)
+        closeThreadSearch()
         jumpToRecent()
       }
-    }, 0)
-    if (!hasCenter) {
+    })
+    if (sent && !hasCenter) {
       scrollToBottom()
     }
+    return sent
   }
 
   const sendTypingRaw = (typing: boolean) => {
     const f = async () => {
-      await T.RPCChat.localUpdateTypingRpcPromise({conversationID: convoID, typing})
+      await T.RPCChat.localUpdateTypingRpcPromise({
+        conversationID: T.Chat.keyToConversationIDOrEmpty(conversationIDKey),
+        typing,
+      })
     }
     C.ignorePromise(f())
   }
   const sendTyping = C.useThrottledCallback(sendTypingRaw, 1000)
 
-  // Low-frequency copy of the composer text for the unfurl preview, set from the already
-  // throttled draft-save path rather than from onChangeText, so the composer does not
+  // Low-frequency copy of the composer text for the unfurl preview, so the composer does not
   // re-render on every keystroke. The preview debounces another 500ms downstream anyway.
   const [previewText, setPreviewText] = React.useState('')
-  // The account this composer was mounted for. After an account switch the service saves drafts
-  // for the next account, so the unmount flush of a draft typed here must not save it there.
-  const [composerUid] = React.useState(() => useCurrentUserState.getState().uid)
-  const updateDraftRaw = (text: string) => {
-    if (useCurrentUserState.getState().uid !== composerUid) {
-      return
-    }
-    // Immediately update local meta.draft so switching back to this thread
-    // before the async unbox completes won't re-inject the old stale draft.
-    // Merges from the current meta (same inbox version), so force past gating.
-    const currentMeta = useInboxMetadataState.getState().metas.get(conversationIDKey)
-    if (currentMeta) {
-      metasReceived([{...currentMeta, draft: text}], undefined, {force: true})
-    }
-    setPreviewText(text)
-    const f = async () => {
-      await T.RPCChat.localUpdateUnsentTextRpcPromise({
-        conversationID: convoID,
-        text,
-        tlfName: tlfname,
-      })
-    }
-    C.ignorePromise(f())
-  }
-  // flushOnUnmount: leaving the conversation must still save what was typed in the last 200ms
-  const updateDraft = C.useThrottledCallback(updateDraftRaw, 200, {flushOnUnmount: true, trailing: true})
+  const updatePreview = C.useThrottledCallback(setPreviewText, 200, {trailing: true})
 
-  const textValueRef = React.useRef('')
+  // the composer's own writes (a draft, an inject) are not the user typing; an empty text always
+  // says they stopped
   const onChangeText = (text: string) => {
-    textValueRef.current = text
-    const isTyping = text.length > 0
-    if (!isTyping) {
+    const typed = textChanged(text)
+    updatePreview(text)
+    if (!text) {
       sendTyping.cancel()
+      sendTyping(false)
+    } else if (typed) {
+      sendTyping(true)
     }
-    sendTyping(isTyping)
-    updateDraft(text)
   }
 
   const onCancelEditing = () => {
     setEditing('clear')
-    injectText('')
   }
 
   // on unmount load meta so we have an updated draft
@@ -293,43 +212,12 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     }
   }, [loadIDOnUnloadRef])
 
-  // maybe inject a draft
-  const loadedDraft = React.useRef(false)
-  React.useEffect(() => {
-    if (loadedDraft.current) {
-      return
-    }
-    // not loaded yet
-    if (storeDraft === undefined) {
-      return
-    }
-    loadedDraft.current = true
-    if (textValueRef.current === '' && storeDraft) {
-      doInjectText(inputRef, storeDraft)
-    }
-  }, [storeDraft])
-
-  const lastFocusInputCounter = React.useRef(focusInputCounter)
-  React.useEffect(() => {
-    if (unsentText !== undefined) {
-      const shouldFocus = focusInputCounter !== lastFocusInputCounter.current
-      lastFocusInputCounter.current = focusInputCounter
-      doInjectText(inputRef, unsentText, shouldFocus)
-      updateUnsentText(undefined)
-    }
-  }, [focusInputCounter, updateUnsentText, unsentText])
-
-  const {setInputRef} = React.useContext(ThreadRefsContext)
-  React.useEffect(() => {
-    setInputRef(inputRef.current)
-  }, [setInputRef])
-
   const input = (
     <PlatformInput
       hintText={hintText}
       suggestionOverlayStyle={suggestionOverlayStyle}
       onSubmit={onSubmit}
-      setInputRef={setLocalInputRef}
+      setInputRef={setInput}
       onChangeText={onChangeText}
       onCancelEditing={onCancelEditing}
       cannotWrite={cannotWrite}

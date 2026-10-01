@@ -10,8 +10,8 @@ import {useConversationCenterActions} from './center-context'
 import {cancelActiveThreadSearchRPC, searchInboxRPC} from '../search-rpc'
 import {
   useConversationThreadID,
+  useConversationThreadCloseSearch,
   useConversationThreadSelector,
-  useConversationThreadToggleSearch,
 } from './thread-context'
 import {useThreadSearchRoute} from './thread-search-route'
 import {ThreadSearchOverlayContext} from './thread-search-overlay-context'
@@ -83,9 +83,7 @@ const runSearchInbox = async (p: {
         },
       },
       opts: {
-        convID: T.Chat.isValidConversationIDKey(conversationIDKey)
-          ? T.Chat.keyToConversationID(conversationIDKey)
-          : new Uint8Array(0),
+        convID: T.Chat.keyToConversationIDOrEmpty(conversationIDKey),
         maxHits: 1000,
       },
       query,
@@ -99,12 +97,8 @@ const runSearchInbox = async (p: {
 
 export const useCommon = (ownProps: CommonProps) => {
   const {conversationIDKey, initialQuery, style} = ownProps
-  const toggleThreadSearch = useConversationThreadToggleSearch()
-  const {centerOnMessage, clearCenter} = useConversationCenterActions()
-  const onToggleThreadSearch = () => {
-    clearCenter()
-    toggleThreadSearch()
-  }
+  const onToggleThreadSearch = useConversationThreadCloseSearch()
+  const {centerOnMessage} = useConversationCenterActions()
 
   const [searchState, setSearchState] = React.useState<SearchState>(() => ({
     hits: [],

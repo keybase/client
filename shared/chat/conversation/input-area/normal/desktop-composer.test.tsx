@@ -1,0 +1,1086 @@
+/** @jest-environment jsdom */
+/// <reference types="jest" />
+import * as Message from '@/constants/chat/message'
+import * as React from 'react'
+import * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
+import HiddenString from '@/util/hidden-string'
+import {act, cleanup, fireEvent, render} from '@testing-library/react'
+import {resetAllStores} from '@/util/zustand'
+import * as Meta from '@/constants/chat/meta'
+import {metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
+import {useCurrentUserState} from '@/stores/current-user'
+import * as Composer from '../composer'
+import {recordComposerAttaches} from '@/test/fake-composer-input'
+import Input from '.'
+import {List as SuggestionsList} from '../suggestors/common'
+import {ConversationInputProvider, useConversationInput, type ConversationInputState} from '../input-state'
+import {ConversationThreadProvider, useConversationThreadActions} from '../../thread-context'
+
+jest.mock('@/chat/audio/audio-recorder.native', () => ({__esModule: true, default: () => null}))
+jest.mock('@/chat/audio/audio-send.native', () => ({AudioSendWrapper: () => null}))
+jest.mock('@/util/expo-document-picker.native', () => ({pickDocumentsAsync: jest.fn()}))
+// the reply preview's avatar needs more of react-native than the stub has
+jest.mock('../../reply-preview', () => ({__esModule: true, default: () => null}))
+
+let mockPickEmoji: ((emojiColons: string) => void) | undefined
+jest.mock('@/chat/emoji-picker/container', () => ({
+  EmojiPickerDesktop: (p: {onPickAction: (emojiColons: string) => void}) => {
+    mockPickEmoji = p.onPickAction
+    return null
+  },
+}))
+// popups measure their anchor before they render anything, which jsdom cannot do; the anchored
+// popup's onHidden is kept, as it is what a click outside the popup calls
+let mockHidePopup: (() => void) | undefined
+jest.mock('@/common-adapters', () => {
+  const actual = jest.requireActual<Record<string, unknown>>('@/common-adapters')
+  const passthrough = (p: {children: React.ReactNode}): React.ReactNode => p.children
+  const anchored = (p: {children: React.ReactNode; onHidden?: () => void}): React.ReactNode => {
+    mockHidePopup = p.onHidden
+    return p.children
+  }
+  return {...actual, AnchoredPopup: anchored, Popup: passthrough}
+})
+type MockUsersListProps = {
+  filter: string
+  onSelected: (item: {fullName: string; username: string}, final: boolean) => void
+}
+const mockUsersList = jest.fn((_p: MockUsersListProps): React.ReactElement | null => null)
+jest.mock('../suggestors/suggestion-list', () => ({__esModule: true, default: () => null}))
+jest.mock('../suggestors/users', () => ({
+  UsersList: (p: MockUsersListProps) => mockUsersList(p),
+  transformer: jest.requireActual<{transformer: unknown}>('../suggestors/users').transformer,
+}))
+
+const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
+
+const makeTextMessage = (text: string) =>
+  Message.makeMessageText({
+    author: 'testuser',
+    conversationIDKey: convID,
+    id: T.Chat.numberToMessageID(101),
+    isEditable: true,
+    ordinal: T.Chat.numberToOrdinal(101),
+    outboxID: T.Chat.stringToOutboxID('outbox-1'),
+    text: new HiddenString(text),
+    timestamp: 100,
+  })
+
+type Handles = {
+  input: ConversationInputState
+  thread: ReturnType<typeof useConversationThreadActions>
+}
+const Probe = (p: {onRender: (h: Handles) => void}) => {
+  p.onRender({input: useConversationInput(s => s), thread: useConversationThreadActions()})
+  return null
+}
+
+const Wrapper = (p: React.PropsWithChildren) => (
+  <ConversationThreadProvider id={convID}>
+    <ConversationInputProvider id={convID}>{p.children}</ConversationInputProvider>
+  </ConversationThreadProvider>
+)
+
+const renderComposer = () => {
+  let handles: Handles | undefined
+  const utils = render(
+    <>
+      <Input />
+      <Probe onRender={h => (handles = h)} />
+    </>,
+    {wrapper: Wrapper}
+  )
+  const textarea = utils.getByTestId(TestIDs.CHAT_INPUT) as HTMLTextAreaElement
+  return {getHandles: () => handles!, textarea, utils}
+}
+
+const type = (textarea: HTMLTextAreaElement, text: string, caret = text.length) => {
+  act(() => {
+    fireEvent.change(textarea, {target: {selectionEnd: caret, selectionStart: caret, value: text}})
+  })
+}
+
+beforeEach(() => {
+  jest.useFakeTimers()
+  jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
+  jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+  jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([])
+  useCurrentUserState.getState().dispatch.setBootstrap({
+    deviceID: 'device-id',
+    deviceName: 'test-device',
+    uid: 'uid',
+    username: 'testuser',
+  })
+})
+
+afterEach(() => {
+  act(() => {
+    jest.runOnlyPendingTimers()
+  })
+  cleanup()
+  jest.useRealTimers()
+  jest.restoreAllMocks()
+  resetAllStores()
+  mockPickEmoji = undefined
+  mockHidePopup = undefined
+  mockUsersList.mockClear()
+})
+
+test('ArrowUp in an empty composer edits your last message and injects its text', () => {
+  const {getHandles, textarea} = renderComposer()
+  act(() => {
+    getHandles().thread.addMessages([makeTextMessage('last thing I said')], {markAsRead: false})
+  })
+
+  act(() => {
+    fireEvent.keyDown(textarea, {key: 'ArrowUp'})
+  })
+
+  expect(getHandles().input.editing).toBe(T.Chat.numberToOrdinal(101))
+  expect(textarea.value).toBe('last thing I said')
+  expect(textarea.selectionStart).toBe('last thing I said'.length)
+})
+
+test('ArrowUp with text in the composer does not start an edit', () => {
+  const {getHandles, textarea} = renderComposer()
+  act(() => {
+    getHandles().thread.addMessages([makeTextMessage('last thing I said')], {markAsRead: false})
+  })
+  type(textarea, 'draft')
+
+  act(() => {
+    fireEvent.keyDown(textarea, {key: 'ArrowUp'})
+  })
+
+  expect(getHandles().input.editing).toBe(T.Chat.numberToOrdinal(0))
+  expect(textarea.value).toBe('draft')
+})
+
+test('Escape while editing cancels the edit and clears the composer', () => {
+  const {getHandles, textarea} = renderComposer()
+  act(() => {
+    getHandles().thread.addMessages([makeTextMessage('last thing I said')], {markAsRead: false})
+  })
+  act(() => {
+    fireEvent.keyDown(textarea, {key: 'ArrowUp'})
+  })
+
+  act(() => {
+    fireEvent.keyDown(textarea, {key: 'Escape'})
+  })
+
+  expect(getHandles().input.editing).toBe(T.Chat.numberToOrdinal(0))
+  expect(textarea.value).toBe('')
+})
+
+test('injecting with focus writes the text, parks the caret at the end and focuses', () => {
+  const {getHandles, textarea} = renderComposer()
+  act(() => {
+    textarea.blur()
+  })
+
+  act(() => {
+    getHandles().input.dispatch.injectIntoInput('hello there', true)
+  })
+  expect(document.activeElement).toBe(textarea)
+
+  expect(textarea.value).toBe('hello there')
+  expect(textarea.selectionStart).toBe(11)
+  expect(textarea.selectionEnd).toBe(11)
+})
+
+test('a write shows in the textarea at once, caret included', () => {
+  const {getHandles, textarea} = renderComposer()
+
+  act(() => {
+    getHandles().input.dispatch.injectIntoInput('hello there')
+  })
+
+  expect(textarea.value).toBe('hello there')
+  expect(textarea.selectionStart).toBe(11)
+  expect(textarea.selectionEnd).toBe(11)
+})
+
+test('a keystroke right after a write is kept', () => {
+  const {getHandles, textarea} = renderComposer()
+
+  act(() => {
+    getHandles().input.dispatch.injectIntoInput('hello', true)
+  })
+  type(textarea, `${textarea.value}!`)
+  act(() => {
+    jest.advanceTimersByTime(500)
+  })
+
+  expect(textarea.value).toBe('hello!')
+})
+
+test('injecting the spoiler markup selects the placeholder between the markers', () => {
+  const {getHandles, textarea} = renderComposer()
+
+  act(() => {
+    getHandles().input.dispatch.injectIntoInput('!>spoiler<!')
+  })
+
+  expect(textarea.value).toBe('!>spoiler<!')
+  expect(textarea.selectionStart).toBe(2)
+  expect(textarea.selectionEnd).toBe(9)
+})
+
+test('Enter sends the composer text and clears it; shift-Enter is left to the browser and does not send', async () => {
+  const post = jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener').mockResolvedValue({
+    outboxID: new TextEncoder().encode('posted'),
+  })
+  const {textarea} = renderComposer()
+  type(textarea, 'hello')
+
+  let notPrevented = true
+  act(() => {
+    notPrevented = fireEvent.keyDown(textarea, {key: 'Enter', shiftKey: true})
+  })
+  expect(notPrevented).toBe(true)
+  expect(post).not.toHaveBeenCalled()
+  expect(textarea.value).toBe('hello')
+
+  act(() => {
+    fireEvent.keyDown(textarea, {key: 'Enter'})
+  })
+  // cleared first, the send waits for the clear to land
+  expect(post).not.toHaveBeenCalled()
+  await act(async () => {
+    jest.advanceTimersByTime(0)
+    await Promise.resolve()
+  })
+
+  expect(post).toHaveBeenCalledTimes(1)
+  expect(post.mock.calls[0]?.[0].params.body).toBe('hello')
+  expect(textarea.value).toBe('')
+})
+
+test('Enter in an empty composer sends nothing', () => {
+  const post = jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener')
+  const {textarea} = renderComposer()
+
+  act(() => {
+    fireEvent.keyDown(textarea, {key: 'Enter'})
+  })
+  act(() => {
+    jest.advanceTimersByTime(200)
+  })
+
+  expect(post).not.toHaveBeenCalled()
+})
+
+test('a keystroke typed before the send goes out is kept', async () => {
+  const post = jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener').mockResolvedValue({
+    outboxID: new TextEncoder().encode('posted'),
+  })
+  const {textarea} = renderComposer()
+  type(textarea, 'hello')
+  act(() => {
+    fireEvent.keyDown(textarea, {key: 'Enter'})
+  })
+  expect(textarea.value).toBe('')
+
+  type(textarea, 'n')
+  await act(async () => {
+    jest.advanceTimersByTime(0)
+    await Promise.resolve()
+  })
+
+  expect(post.mock.calls[0]?.[0].params.body).toBe('hello')
+  expect(textarea.value).toBe('n')
+})
+
+test('picking an emoji mid-text inserts it and its space at the caret, with the caret after the space', () => {
+  const {textarea, utils} = renderComposer()
+  type(textarea, 'abcd', 2)
+
+  act(() => {
+    fireEvent.click(utils.container.querySelector('.icon-gen-iconfont-emoji') ?? textarea)
+  })
+  expect(mockPickEmoji).toBeDefined()
+  act(() => {
+    mockPickEmoji?.(':smile:')
+  })
+
+  expect(textarea.value).toBe('ab:smile: cd')
+  expect(textarea.selectionStart).toBe('ab:smile: '.length)
+  expect(document.activeElement).toBe(textarea)
+})
+
+test('picking an emoji at the end of the text reads as emoji plus space', () => {
+  const {textarea, utils} = renderComposer()
+  type(textarea, 'hi ')
+
+  act(() => {
+    fireEvent.click(utils.container.querySelector('.icon-gen-iconfont-emoji') ?? textarea)
+  })
+  act(() => {
+    mockPickEmoji?.(':wave:')
+  })
+
+  expect(textarea.value).toBe('hi :wave: ')
+  expect(textarea.selectionStart).toBe(textarea.value.length)
+})
+
+test('the suggestors see text injected into the composer', () => {
+  const {getHandles, textarea} = renderComposer()
+
+  act(() => {
+    getHandles().input.dispatch.injectIntoInput('hey @te', true)
+  })
+  expect(document.activeElement).toBe(textarea)
+  // the suggestors settle on a 1ms timer after the change lands
+  act(() => {
+    jest.advanceTimersByTime(5)
+  })
+
+  expect(mockUsersList).toHaveBeenCalled()
+  expect(mockUsersList.mock.calls.at(-1)?.[0].filter).toBe('te')
+})
+
+test('picking a suggested user rewrites the word at the caret', () => {
+  const {textarea} = renderComposer()
+  act(() => {
+    textarea.focus()
+  })
+  type(textarea, 'hi @te and more', 6)
+  act(() => {
+    jest.advanceTimersByTime(5)
+  })
+  const onSelected = mockUsersList.mock.calls.at(-1)?.[0].onSelected
+  expect(onSelected).toBeDefined()
+
+  act(() => {
+    onSelected?.({fullName: '', username: 'testuser'}, true)
+  })
+
+  expect(textarea.value).toBe('hi @testuser and more')
+  expect(textarea.selectionStart).toBe('hi @testuser'.length)
+})
+
+// arrowing through the list previews each pick in the text without reporting it as typed
+test('a previewed suggestion shows in the input and a later pick replaces the previewed word', () => {
+  const saveDraft = jest.mocked(T.RPCChat.localUpdateUnsentTextRpcPromise)
+  const {textarea} = renderComposer()
+  act(() => {
+    textarea.focus()
+  })
+  type(textarea, 'hi @te')
+  act(() => {
+    jest.advanceTimersByTime(300)
+  })
+  saveDraft.mockClear()
+  const onSelected = mockUsersList.mock.calls.at(-1)?.[0].onSelected
+
+  act(() => {
+    onSelected?.({fullName: '', username: 'testuser'}, false)
+  })
+  expect(textarea.value).toBe('hi @testuser')
+  expect(saveDraft).not.toHaveBeenCalled()
+
+  act(() => {
+    onSelected?.({fullName: '', username: 'testuser-mac'}, true)
+  })
+  expect(textarea.value).toBe('hi @testuser-mac ')
+})
+
+// the users list as the shared list over a scripted set of users, which a test refreshes the way
+// a participant arriving or leaving does
+describe('with the shared suggestion list', () => {
+  let setUsers: ((users: Array<string>) => void) | undefined
+  const NoRow = () => <></>
+  beforeEach(() => {
+    mockUsersList.mockImplementation(function ScriptedUsersList(p) {
+      const [users, set] = React.useState(['testuser', 'testuser-mac'])
+      setUsers = set
+      const items = users.map(username => ({fullName: '', username}))
+      return (
+        <SuggestionsList
+          {...(p as unknown as React.ComponentProps<typeof SuggestionsList<{fullName: string; username: string}>>)}
+          items={items}
+          ItemRenderer={NoRow}
+          keyExtractor={u => u.username}
+          loading={false}
+          rowHeight={20}
+        />
+      )
+    })
+  })
+  afterEach(() => {
+    mockUsersList.mockImplementation(() => null)
+    setUsers = undefined
+  })
+
+  const openList = () => {
+    act(() => {
+      jest.advanceTimersByTime(5)
+    })
+    expect(mockUsersList).toHaveBeenCalled()
+  }
+
+  test('a list closed on a preview and opened again does not put back the text from before it', () => {
+    const {textarea} = renderComposer()
+    act(() => {
+      textarea.focus()
+    })
+    type(textarea, 'hi @te')
+    openList()
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'ArrowDown'})
+    })
+    expect(textarea.value).toBe('hi @testuser-mac')
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'Escape'})
+    })
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'ArrowLeft'})
+    })
+    openList()
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'ArrowDown'})
+    })
+
+    act(() => {
+      setUsers?.(['testuser'])
+    })
+
+    expect(textarea.value).toBe('hi @testuser-mac')
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'Enter'})
+    })
+    expect(textarea.value).toBe('hi @testuser-mac ')
+  })
+
+  // The user saw the preview, so it is their text and is saved as the draft. Picking is not
+  // typing: however the list closes, the typing indicator hears nothing of it.
+  const closeWithEscape = (textarea: HTMLTextAreaElement) => {
+    fireEvent.keyDown(textarea, {key: 'Escape'})
+  }
+  const closeByMovingTheCaret = (textarea: HTMLTextAreaElement) => {
+    textarea.setSelectionRange(0, 0)
+    fireEvent.select(textarea)
+    fireEvent.keyDown(textarea, {key: 'ArrowLeft'})
+  }
+  // clicking another conversation's row: the input blurs and the popup hears the outside click
+  // before the conversation is left
+  const closeByClickingOutside = (textarea: HTMLTextAreaElement) => {
+    textarea.blur()
+    mockHidePopup?.()
+  }
+  test.each([
+    ['Escape', closeWithEscape],
+    ['the caret leaving the word', closeByMovingTheCaret],
+    ['a click outside it', closeByClickingOutside],
+  ])('a list closed by %s on a preview keeps the preview without saying the user is typing', (_name, close) => {
+    receiveDraft('')
+    const saveDraft = jest.mocked(T.RPCChat.localUpdateUnsentTextRpcPromise)
+    const sendTyping = jest.mocked(T.RPCChat.localUpdateTypingRpcPromise)
+    const {textarea, utils} = renderComposer()
+    act(() => {
+      textarea.focus()
+    })
+    type(textarea, 'hi @te')
+    openList()
+    act(() => {
+      jest.advanceTimersByTime(2000)
+    })
+    saveDraft.mockClear()
+    sendTyping.mockClear()
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'ArrowDown'})
+    })
+    expect(textarea.value).toBe('hi @testuser-mac')
+    expect(saveDraft).not.toHaveBeenCalled()
+
+    act(() => {
+      close(textarea)
+    })
+    act(() => {
+      jest.advanceTimersByTime(5)
+    })
+    mockUsersList.mockClear()
+    act(() => {
+      jest.advanceTimersByTime(2000)
+    })
+    // closed, and not opened again by keeping the preview
+    expect(mockUsersList).not.toHaveBeenCalled()
+    expect(sendTyping).not.toHaveBeenCalled()
+
+    utils.unmount()
+    act(() => {
+      jest.advanceTimersByTime(2000)
+    })
+    expect(sendTyping).not.toHaveBeenCalled()
+    expect(saveDraft.mock.calls.map(c => c[0].text)).toEqual(['hi @testuser-mac'])
+    expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('hi @testuser-mac')
+  })
+
+  test('typing after a list closed on a preview is typing', () => {
+    receiveDraft('')
+    const sendTyping = jest.mocked(T.RPCChat.localUpdateTypingRpcPromise)
+    const {textarea} = renderComposer()
+    act(() => {
+      textarea.focus()
+    })
+    type(textarea, 'hi @te')
+    openList()
+    act(() => {
+      jest.advanceTimersByTime(2000)
+    })
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'ArrowDown'})
+    })
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'Escape'})
+    })
+    act(() => {
+      jest.advanceTimersByTime(2000)
+    })
+    sendTyping.mockClear()
+
+    type(textarea, 'hi @testuser-mac yo')
+    expect(sendTyping.mock.calls.map(c => c[0].typing)).toEqual([true])
+  })
+
+  test('leaving the conversation with a preview showing saves the preview as the draft', () => {
+    receiveDraft('')
+    const saveDraft = jest.mocked(T.RPCChat.localUpdateUnsentTextRpcPromise)
+    const {textarea, utils} = renderComposer()
+    act(() => {
+      textarea.focus()
+    })
+    type(textarea, 'hi @te')
+    openList()
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'ArrowDown'})
+    })
+    expect(textarea.value).toBe('hi @testuser-mac')
+
+    utils.unmount()
+    expect(saveDraft.mock.calls.map(c => c[0].text).at(-1)).toBe('hi @testuser-mac')
+  })
+
+  // the user is leaving, not typing: the conversation just left hears nothing of it
+  test('leaving with a preview showing says nothing about typing, and saves the draft once', () => {
+    receiveDraft('')
+    const saveDraft = jest.mocked(T.RPCChat.localUpdateUnsentTextRpcPromise)
+    const sendTyping = jest.mocked(T.RPCChat.localUpdateTypingRpcPromise)
+    const {textarea, utils} = renderComposer()
+    act(() => {
+      textarea.focus()
+    })
+    type(textarea, 'hi @te')
+    openList()
+    act(() => {
+      jest.advanceTimersByTime(2000)
+    })
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'ArrowDown'})
+    })
+    saveDraft.mockClear()
+    sendTyping.mockClear()
+
+    utils.unmount()
+    act(() => {
+      jest.advanceTimersByTime(2000)
+    })
+
+    expect(sendTyping.mock.calls.map(c => c[0].typing)).not.toContain(true)
+    expect(saveDraft.mock.calls.map(c => c[0].text)).toEqual(['hi @testuser-mac'])
+  })
+})
+
+test('the gif button prefills the giphy command and a second press clears it once the window is up', () => {
+  const {getHandles, textarea, utils} = renderComposer()
+
+  act(() => {
+    fireEvent.click(utils.container.querySelector('.icon-gen-iconfont-gif') ?? textarea)
+  })
+  expect(textarea.value).toBe('/giphy ')
+
+  act(() => {
+    getHandles().input.dispatch.setGiphyWindow(true)
+  })
+  act(() => {
+    fireEvent.click(utils.container.querySelector('.icon-gen-iconfont-gif') ?? textarea)
+  })
+  expect(textarea.value).toBe('')
+})
+
+const receiveDraft = (draft: string) => {
+  act(() => {
+    metasReceived([{...Meta.makeConversationMeta(), conversationIDKey: convID, draft}], undefined, {force: true})
+  })
+}
+
+test('a keystroke or a caret move leaves the same textarea attached to the composer', () => {
+  const attaches = recordComposerAttaches(Composer)
+  const {textarea} = renderComposer()
+  expect(attaches).toHaveLength(1)
+
+  type(textarea, 'hello')
+  type(textarea, 'hello', 2)
+
+  expect(attaches).toHaveLength(1)
+})
+
+describe('drafts', () => {
+  test('a saved draft loads without saying the user is typing, and is not saved again', () => {
+    receiveDraft('saved draft')
+    const {textarea} = renderComposer()
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(textarea.value).toBe('saved draft')
+    expect(T.RPCChat.localUpdateTypingRpcPromise).not.toHaveBeenCalled()
+    expect(T.RPCChat.localUpdateUnsentTextRpcPromise).not.toHaveBeenCalled()
+  })
+
+  test('a draft already in the inbox meta is loaded into the composer on mount', () => {
+    receiveDraft('saved draft')
+    const {textarea} = renderComposer()
+  
+    expect(textarea.value).toBe('saved draft')
+    expect(textarea.selectionStart).toBe('saved draft'.length)
+  })
+
+  test('a draft that arrives after mount is loaded once, and later draft updates are not', () => {
+    const {textarea} = renderComposer()
+      expect(textarea.value).toBe('')
+
+    receiveDraft('late draft')
+      expect(textarea.value).toBe('late draft')
+
+    receiveDraft('newer draft from elsewhere')
+      expect(textarea.value).toBe('late draft')
+  })
+
+  test('a draft arriving after the user already typed does not clobber the text', () => {
+    const {textarea} = renderComposer()
+    type(textarea, 'typed first')
+
+    receiveDraft('stale draft')
+  
+    expect(textarea.value).toBe('typed first')
+  })
+
+  test('an empty draft marks the draft loaded without touching the composer', () => {
+    receiveDraft('')
+    const {textarea} = renderComposer()
+  
+    receiveDraft('arrives later')
+  
+    expect(textarea.value).toBe('')
+  })
+
+  test('typing saves the draft on the leading edge and again at the 200ms trailing edge', () => {
+    receiveDraft('')
+    const saveDraft = jest.mocked(T.RPCChat.localUpdateUnsentTextRpcPromise)
+    const {textarea} = renderComposer()
+    // clear the throttle's window from any mount-time save
+    act(() => {
+      jest.advanceTimersByTime(500)
+    })
+    saveDraft.mockClear()
+
+    type(textarea, 'a')
+    expect(saveDraft.mock.calls.map(c => c[0].text)).toEqual(['a'])
+    // the inbox row's draft follows right away so switching back does not reload a stale one
+    expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('a')
+
+    type(textarea, 'ab')
+    type(textarea, 'abc')
+    expect(saveDraft.mock.calls.map(c => c[0].text)).toEqual(['a'])
+
+    act(() => {
+      jest.advanceTimersByTime(200)
+    })
+    expect(saveDraft.mock.calls.map(c => c[0].text)).toEqual(['a', 'abc'])
+    expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('abc')
+  })
+})
+
+test('a stellar send the user cancels puts the text back in the composer', async () => {
+  let cancel: (() => void) | undefined
+  jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener').mockImplementation(async p => {
+    cancel = () => p.incomingCallMap['chat.1.chatUi.chatStellarDone']?.({canceled: true})
+    await Promise.resolve()
+    return {outboxID: new TextEncoder().encode('posted')}
+  })
+  const {textarea} = renderComposer()
+  type(textarea, '+1xlm@testuser')
+
+  act(() => {
+    fireEvent.keyDown(textarea, {key: 'Enter'})
+  })
+  await act(async () => {
+    jest.advanceTimersByTime(0)
+    await Promise.resolve()
+  })
+  expect(textarea.value).toBe('')
+
+  act(() => {
+    cancel?.()
+  })
+
+  expect(textarea.value).toBe('+1xlm@testuser')
+})
+
+// Desktop's read-only composer: the textarea can't be typed into, the side buttons are gone, and a
+// text the app injects (a share, an edit prefill, a restored stellar send) does not land
+describe('read-only', () => {
+  const renderReadOnly = () => {
+    act(() => {
+      metasReceived([{...Meta.makeConversationMeta(), cannotWrite: true, conversationIDKey: convID}], undefined, {
+        force: true,
+      })
+    })
+    return renderComposer()
+  }
+  const hasIcon = (container: HTMLElement, type: string) => !!container.querySelector(`.icon-gen-${type}`)
+
+  test('the textarea is read-only and the gif, emoji, file and exploding buttons are hidden', () => {
+    const {textarea, utils} = renderReadOnly()
+
+    expect(textarea.readOnly).toBe(true)
+    for (const type of ['iconfont-gif', 'iconfont-emoji', 'iconfont-attachment', 'iconfont-timer']) {
+      expect(hasIcon(utils.container, type)).toBe(false)
+    }
+  })
+
+  test('the same buttons show in a composer that can be written to', () => {
+    const {textarea, utils} = renderComposer()
+
+    expect(textarea.readOnly).toBe(false)
+    for (const type of ['iconfont-gif', 'iconfont-emoji', 'iconfont-attachment', 'iconfont-timer']) {
+      expect(hasIcon(utils.container, type)).toBe(true)
+    }
+  })
+
+  test('an injected text leaves the read-only textarea unchanged', () => {
+    const {getHandles, textarea} = renderReadOnly()
+
+    act(() => {
+      getHandles().input.dispatch.injectIntoInput('shared text', true)
+    })
+
+    expect(textarea.value).toBe('')
+  })
+
+  test('ArrowUp does not start an edit of your last message', () => {
+    const {getHandles, textarea} = renderReadOnly()
+    act(() => {
+      getHandles().thread.addMessages([makeTextMessage('last thing I said')], {markAsRead: false})
+    })
+
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'ArrowUp'})
+    })
+
+    expect(getHandles().input.editing).toBe(T.Chat.numberToOrdinal(0))
+    expect(textarea.value).toBe('')
+  })
+
+  test('an edit or a reply from the message menu does not start', () => {
+    const {getHandles, textarea} = renderReadOnly()
+    act(() => {
+      getHandles().thread.addMessages([makeTextMessage('last thing I said')], {markAsRead: false})
+    })
+
+    act(() => {
+      getHandles().input.dispatch.setEditing(T.Chat.numberToOrdinal(101))
+      getHandles().input.dispatch.reply(T.Chat.numberToOrdinal(101))
+    })
+
+    expect(getHandles().input.editing).toBe(T.Chat.numberToOrdinal(0))
+    expect(getHandles().input.replyTo).toBe(T.Chat.numberToOrdinal(0))
+    expect(textarea.value).toBe('')
+  })
+
+  test('a clear leaves the saved draft it kept out', () => {
+    const unsent = jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+    act(() => {
+      metasReceived(
+        [{...Meta.makeConversationMeta(), cannotWrite: true, conversationIDKey: convID, draft: 'saved'}],
+        undefined,
+        {force: true}
+      )
+    })
+    const {getHandles} = renderComposer()
+
+    act(() => {
+      getHandles().input.dispatch.setEditing('clear')
+    })
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(unsent).not.toHaveBeenCalled()
+    expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('saved')
+  })
+
+  test('a saved draft does not load into it, and is kept', () => {
+    const unsent = jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+    act(() => {
+      metasReceived(
+        [{...Meta.makeConversationMeta(), cannotWrite: true, conversationIDKey: convID, draft: 'saved'}],
+        undefined,
+        {force: true}
+      )
+    })
+    const {textarea} = renderComposer()
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(textarea.value).toBe('')
+    expect(unsent).not.toHaveBeenCalled()
+  })
+
+  test('text typed before the conversation turned read-only is not sent, and stays the draft', () => {
+    const unsent = jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+    const post = jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener')
+    const meta = {...Meta.makeConversationMeta(), conversationIDKey: convID, draft: ''}
+    act(() => {
+      metasReceived([meta], undefined, {force: true})
+    })
+    const {textarea} = renderComposer()
+    type(textarea, 'typed before')
+    act(() => {
+      metasReceived([{...meta, cannotWrite: true, draft: 'typed before'}], undefined, {force: true})
+    })
+
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'Enter'})
+    })
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(post).not.toHaveBeenCalled()
+    expect(textarea.value).toBe('typed before')
+    expect(unsent.mock.calls.at(-1)?.[0].text).toBe('typed before')
+    expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('typed before')
+  })
+
+  test('a stellar send cancelled after the conversation turned read-only still puts the text back as the draft', async () => {
+    const unsent = jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+    let cancel: (() => void) | undefined
+    jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener').mockImplementation(async p => {
+      cancel = () => p.incomingCallMap['chat.1.chatUi.chatStellarDone']?.({canceled: true})
+      await Promise.resolve()
+      return {outboxID: new TextEncoder().encode('posted')}
+    })
+    const meta = {...Meta.makeConversationMeta(), conversationIDKey: convID, draft: ''}
+    act(() => {
+      metasReceived([meta], undefined, {force: true})
+    })
+    const {textarea} = renderComposer()
+    type(textarea, '+1xlm@testuser')
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'Enter'})
+    })
+    await act(async () => {
+      jest.advanceTimersByTime(0)
+      await Promise.resolve()
+    })
+    expect(textarea.value).toBe('')
+    act(() => {
+      metasReceived([{...meta, cannotWrite: true, draft: ''}], undefined, {force: true})
+    })
+
+    act(() => {
+      cancel?.()
+    })
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(textarea.value).toBe('+1xlm@testuser')
+    expect(unsent.mock.calls.at(-1)?.[0].text).toBe('+1xlm@testuser')
+    expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('+1xlm@testuser')
+  })
+
+  // a first keystroke into the empty composer would otherwise save over the draft
+  test('the saved draft loads once the user can post, and typing goes on from it', () => {
+    const unsent = jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+    const meta = {...Meta.makeConversationMeta(), conversationIDKey: convID, draft: 'saved'}
+    act(() => {
+      metasReceived([{...meta, cannotWrite: true}], undefined, {force: true})
+    })
+    const {textarea} = renderComposer()
+    expect(textarea.value).toBe('')
+
+    act(() => {
+      metasReceived([{...meta, cannotWrite: false}], undefined, {force: true})
+    })
+    expect(textarea.value).toBe('saved')
+    type(textarea, 'saved!')
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(unsent.mock.calls.at(-1)?.[0].text).toBe('saved!')
+  })
+})
+
+// An edit borrows the composer: its text is never the draft, and the draft the user had before
+// it is left alone on the service and comes back when the edit ends.
+describe('editing and the draft', () => {
+  const draftsSaved = () => jest.mocked(T.RPCChat.localUpdateUnsentTextRpcPromise).mock.calls.map(c => c[0].text)
+  const inboxDraft = () => useInboxMetadataState.getState().metas.get(convID)?.draft
+
+  // no outbox id, which the edit's RPC would have to encode
+  const sentMessage = () =>
+    Message.makeMessageText({
+      author: 'testuser',
+      conversationIDKey: convID,
+      id: T.Chat.numberToMessageID(101),
+      isEditable: true,
+      ordinal: T.Chat.numberToOrdinal(101),
+      text: new HiddenString('last thing I said'),
+      timestamp: 100,
+    })
+
+  const startEditFromMenu = (getHandles: () => Handles) => {
+    act(() => {
+      getHandles().thread.addMessages([sentMessage()], {markAsRead: false})
+    })
+    act(() => {
+      getHandles().input.dispatch.setEditing(T.Chat.numberToOrdinal(101))
+    })
+  }
+
+  test('leaving mid-edit started with ArrowUp saves nothing', () => {
+    receiveDraft('')
+    const {getHandles, textarea, utils} = renderComposer()
+    act(() => {
+      getHandles().thread.addMessages([makeTextMessage('last thing I said')], {markAsRead: false})
+    })
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'ArrowUp'})
+    })
+    expect(textarea.value).toBe('last thing I said')
+    type(textarea, 'last thing I said, fixed')
+
+    utils.unmount()
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(draftsSaved()).toEqual([])
+    expect(inboxDraft()).toBe('')
+  })
+
+  test('leaving mid-edit started from the menu keeps the draft the user had, and it comes back', () => {
+    receiveDraft('my draft')
+    const {getHandles, textarea, utils} = renderComposer()
+    expect(textarea.value).toBe('my draft')
+    startEditFromMenu(getHandles)
+    expect(textarea.value).toBe('last thing I said')
+    type(textarea, 'last thing I said, fixed')
+    // past the throttle's trailing edge while still editing
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+    expect(draftsSaved()).toEqual([])
+
+    utils.unmount()
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(draftsSaved()).toEqual([])
+    expect(inboxDraft()).toBe('my draft')
+    const again = renderComposer()
+    expect(again.textarea.value).toBe('my draft')
+  })
+
+  test('Escape puts back the draft the user had, and saves nothing', () => {
+    receiveDraft('my draft')
+    const {getHandles, textarea} = renderComposer()
+    startEditFromMenu(getHandles)
+    type(textarea, 'last thing I said, fixed')
+
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'Escape'})
+    })
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(getHandles().input.editing).toBe(T.Chat.numberToOrdinal(0))
+    expect(textarea.value).toBe('my draft')
+    expect(draftsSaved()).toEqual([])
+    expect(inboxDraft()).toBe('my draft')
+
+    // typing after the edit is the draft again
+    type(textarea, 'my draft, more')
+    expect(draftsSaved()).toEqual(['my draft, more'])
+  })
+
+  test('Escape with no draft before the edit leaves the composer empty, and saves nothing', () => {
+    receiveDraft('')
+    const {getHandles, textarea} = renderComposer()
+    startEditFromMenu(getHandles)
+
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'Escape'})
+    })
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+
+    expect(textarea.value).toBe('')
+    expect(draftsSaved()).toEqual([])
+    expect(inboxDraft()).toBe('')
+  })
+
+  test('sending the edit puts back the draft the user had, and saves nothing', async () => {
+    const edit = jest.spyOn(T.RPCChat, 'localPostEditNonblockRpcPromise').mockResolvedValue({
+      outboxID: new TextEncoder().encode('edited'),
+    })
+    receiveDraft('my draft')
+    const {getHandles, textarea} = renderComposer()
+    startEditFromMenu(getHandles)
+    type(textarea, 'last thing I said, fixed')
+
+    act(() => {
+      fireEvent.keyDown(textarea, {key: 'Enter'})
+    })
+    await act(async () => {
+      jest.advanceTimersByTime(1000)
+      for (let i = 0; i < 5; i++) {
+        await Promise.resolve()
+      }
+    })
+
+    expect(edit.mock.calls[0]?.[0].body).toBe('last thing I said, fixed')
+    expect(getHandles().input.editing).toBe(T.Chat.numberToOrdinal(0))
+    expect(textarea.value).toBe('my draft')
+    expect(draftsSaved()).toEqual([])
+    expect(inboxDraft()).toBe('my draft')
+  })
+
+  test('a reply is not an edit: its text is saved as the draft, and when leaving', () => {
+    receiveDraft('')
+    const {getHandles, textarea, utils} = renderComposer()
+    act(() => {
+      getHandles().thread.addMessages([sentMessage()], {markAsRead: false})
+    })
+    act(() => {
+      getHandles().input.dispatch.reply(T.Chat.numberToOrdinal(101))
+    })
+    type(textarea, 'r')
+    type(textarea, 're')
+
+    utils.unmount()
+
+    expect(draftsSaved()).toEqual(['r', 're'])
+    expect(inboxDraft()).toBe('re')
+  })
+})

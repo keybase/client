@@ -82,7 +82,7 @@ type AuthorProps = {
   showUsername: string
 }
 
-type RowActions = Pick<ConversationInputState['dispatch'], 'setEditing' | 'setReplyTo'> & {
+type RowActions = Pick<ConversationInputState['dispatch'], 'setEditing' | 'reply'> & {
   messageDelete: (ordinal: T.Chat.Ordinal) => void
   messageRetry: (outboxID: T.Chat.OutboxID) => void
   toggleMessageReaction: (ordinal: T.Chat.Ordinal, emoji: string) => void
@@ -119,12 +119,12 @@ const emptyAuthorData: FlatAuthorData = {
 
 const getRowActions = (
   messageActions: Pick<RowActions, 'messageDelete' | 'toggleMessageReaction'>,
-  uiDispatch: Pick<ConversationInputState['dispatch'], 'setEditing' | 'setReplyTo'>,
+  uiDispatch: Pick<ConversationInputState['dispatch'], 'setEditing' | 'reply'>,
   messageRetry: RowActions['messageRetry']
 ): RowActions => {
   const {messageDelete, toggleMessageReaction} = messageActions
-  const {setEditing, setReplyTo} = uiDispatch
-  return {messageDelete, messageRetry, setEditing, setReplyTo, toggleMessageReaction}
+  const {setEditing, reply} = uiDispatch
+  return {messageDelete, messageRetry, setEditing, reply, toggleMessageReaction}
 }
 
 function AuthorSection(p: AuthorProps) {
@@ -386,7 +386,7 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
   const you = useCurrentUserState(s => s.username)
   const isEditing = InputState.useConversationInput(s => s.editing === ordinal)
   const uiDispatch = InputState.useConversationInputDispatch(
-    C.useShallow(s => ({setEditing: s.setEditing, setReplyTo: s.setReplyTo}))
+    C.useShallow(s => ({setEditing: s.setEditing, reply: s.reply}))
   )
   const {retryMessage} = useConversationThreadActions()
   const messageActions = useConversationThreadMessageActions()
@@ -531,7 +531,7 @@ type TSProps = {
   sendIndicatorID: number
   sendIndicatorSent: boolean
   setEditing: RowActions['setEditing']
-  setReplyTo: RowActions['setReplyTo']
+  reply: RowActions['reply']
   setShowingPicker: (s: boolean) => void
   shouldShowPopup: boolean
   showCoinsIcon: boolean
@@ -638,7 +638,7 @@ function TextAndSiblings(p: TSProps) {
             outboxID={p.outboxID}
             reactions={reactions}
             setEditing={p.setEditing}
-            setReplyTo={p.setReplyTo}
+            reply={p.reply}
             setShowingPicker={setShowingPicker}
             showingPopup={showingPopup}
             toggleMessageReaction={p.toggleMessageReaction}
@@ -759,7 +759,7 @@ type BProps = {
   outboxID?: T.Chat.OutboxID
   reactions?: T.Chat.Reactions
   setEditing: RowActions['setEditing']
-  setReplyTo: RowActions['setReplyTo']
+  reply: RowActions['reply']
   toggleMessageReaction: RowActions['toggleMessageReaction']
   ecrType: EditCancelRetryType
 }
@@ -768,13 +768,13 @@ function BottomSide(p: BProps) {
   const styles = useStyles()
   const {showingPopup, setShowingPicker, bottomChildren, canShowReactionsPopup, ecrType, hasBeenEdited} = p
   const {exploding, failureDescription, hasReactions, hasUnfurlList, messageType, ordinal, reactions} = p
-  const {messageDelete, messageRetry, outboxID, setEditing, setReplyTo, toggleMessageReaction} = p
+  const {messageDelete, messageRetry, outboxID, setEditing, reply, toggleMessageReaction} = p
 
   const onReact = (emoji: string) => {
     toggleMessageReaction(ordinal, emoji)
   }
   const onReply = () => {
-    setReplyTo(ordinal)
+    reply(ordinal)
   }
 
   const reactionsRow = hasReactions ? (
@@ -949,7 +949,7 @@ export function WrapperMessage(p: WrapperMessageProps) {
   const {showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata
   const {showCoinsIcon, botname, hasBeenEdited, hasUnfurlList, showCenteredHighlight} = mdata
   const {failureDescription, messageDelete, messageRetry, outboxID} = mdata
-  const {setEditing, setReplyTo, toggleMessageReaction} = mdata
+  const {setEditing, reply, toggleMessageReaction} = mdata
   const {author, botAlias, hiddenHeader, isAdhocBot, showUsername, teamID, teamType, teamname} = mdata
   const {timestamp} = mdata
 
@@ -1000,7 +1000,7 @@ export function WrapperMessage(p: WrapperMessageProps) {
     sendIndicatorID,
     sendIndicatorSent,
     setEditing,
-    setReplyTo,
+    reply,
     setShowingPicker,
     shouldShowPopup,
     showCoinsIcon,

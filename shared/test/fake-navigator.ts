@@ -39,6 +39,8 @@ export type FakeNavigator = Navigator & {
   // Replaces the root state and fires the 'state' listeners, as a real commit would.
   setRootState: (state?: NavTree.NavState) => void
   setReady: (ready: boolean) => void
+  // How many 'state' listeners are subscribed right now.
+  listenerCount: () => number
 }
 
 type RouteSpec = {name: string; params?: object}
@@ -366,6 +368,7 @@ export const makeFakeNavigator = (p?: {
     commit,
     dispatch: ref.dispatch,
     lastAction: () => actions.at(-1),
+    listenerCount: () => listeners.size,
     modalsCleared: () =>
       [...clearModalsActions].some(
         a =>

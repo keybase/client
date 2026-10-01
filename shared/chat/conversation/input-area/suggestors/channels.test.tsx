@@ -52,8 +52,7 @@ const renderChannels = () =>
       listStyle={{}}
       spinnerStyle={{}}
       onSelected={jest.fn()}
-      setOnMoveRef={jest.fn()}
-      setOnSubmitRef={jest.fn()}
+      setListHandle={jest.fn()}
     />
   )
 

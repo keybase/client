@@ -254,14 +254,16 @@ export function useThrottledCallback<T extends AnyFunction>(
     return next
   }, [leading, trailing, waitMs])
 
+  // reset on the way out, not on the way in: a child's layout effects and refs run ahead of this
+  // one in the commit that mounts it, and what they called must survive it
   React.useLayoutEffect(() => {
-    runtimeRef.current = {}
     return () => {
       if (flushOnUnmount) {
         throttled.flush()
       } else {
         throttled.cancel()
       }
+      runtimeRef.current = {}
     }
   }, [throttled, flushOnUnmount])
 

@@ -144,15 +144,18 @@ const useItemsForMessage = (p: {
   // The fork is about scope: with a provider above us the dispatch is by construction the one for
   // the thread we are rendered inside, which is a second line of defence against a storeless popup
   // driving the wrong conversation's composer.
+  // the modal goes first: the reply's focus waits for it
   const onReply = () => {
+    clearModals()
     if (inputDispatch) {
-      inputDispatch.setReplyTo(ordinal)
+      inputDispatch.reply(ordinal)
     } else {
       setThreadInputReplyTo(conversationIDKey, ordinal)
     }
-    clearModals()
   }
-  const itemReply = message.exploded
+  // where the user can't post, an edit or a reply could never be sent
+  const {cannotWrite} = meta
+  const itemReply = message.exploded || cannotWrite
     ? []
     : hasMessageID
       ? ([{icon: 'iconfont-reply', onClick: onReply, title: 'Reply'}] as const)
@@ -170,7 +173,7 @@ const useItemsForMessage = (p: {
   const you = useCurrentUserState(s => s.username)
   const yourMessage = author === you
   const onEdit = yourMessage ? _onEdit : undefined
-  const isEditable = hasMessageID && message.isEditable && yourMessage && !message.exploded
+  const isEditable = hasMessageID && message.isEditable && yourMessage && !message.exploded && !cannotWrite
   const itemEdit =
     onEdit && isEditable
       ? ([
