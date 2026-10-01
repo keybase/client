@@ -157,3 +157,42 @@ test('ending the edit while its reveal waits for its row drops the retry', () =>
   act(() => jest.advanceTimersByTime(200))
   expect(m.itemScrolls(edited)).toBe(1)
 })
+
+// The list resting at the end over the keyboard, with the edited row laid out well above the part in view.
+const restAtEndWithRowAbove = (m: ReturnType<typeof mount>, row: T.Chat.Ordinal) => {
+  act(() => jest.advanceTimersByTime(1000))
+  act(() => m.hook.result.current.onCellLayout(row, {height: 100, y: 2000}))
+  act(() => m.hook.result.current.onScroll(scrollAt(keyboardOffset)))
+}
+const scrollAt = (y: number) => ({
+  nativeEvent: {contentOffset: {y}, contentSize: {height: 6000}, layoutMeasurement: {height: 800}},
+})
+
+test('a reveal that brings its row into view is done: a later failure for that row is not retried', () => {
+  const m = mount()
+  const edited = T.Chat.numberToOrdinal(5)
+  restAtEndWithRowAbove(m, edited)
+  m.set({editingOrdinal: edited})
+  expect(m.itemScrolls(edited)).toBe(1)
+  // The reveal's own animated scroll lands with the row in the middle of the part in view.
+  act(() => m.hook.result.current.onScroll(scrollAt(1500)))
+  act(() => m.hook.result.current.onScrollToIndexFailed({index: 60 - 5}))
+  act(() => jest.advanceTimersByTime(200))
+  expect(m.itemScrolls(edited)).toBe(1)
+})
+
+test('a reveal ends with its edit: editing the row again, already in view, retries nothing of the old one', () => {
+  const m = mount()
+  const edited = T.Chat.numberToOrdinal(5)
+  restAtEndWithRowAbove(m, edited)
+  m.set({editingOrdinal: edited})
+  expect(m.itemScrolls(edited)).toBe(1)
+  m.set({editingOrdinal: undefined})
+  // The rows re-lay out with the edited row in view, and it is edited again: nothing to reveal.
+  act(() => m.hook.result.current.onCellLayout(edited, {height: 100, y: 0}))
+  m.set({editingOrdinal: edited})
+  expect(m.itemScrolls(edited)).toBe(1)
+  act(() => m.hook.result.current.onScrollToIndexFailed({index: 60 - 5}))
+  act(() => jest.advanceTimersByTime(200))
+  expect(m.itemScrolls(edited)).toBe(1)
+})

@@ -364,17 +364,27 @@ export const useComposer = (): Composer => {
 // reporter for what the input says was typed.
 export const useComposerInput = (draft: string | undefined, readOnly: boolean) => {
   const composer = useComposer()
-  const [view] = React.useState(() => {
+  // The draft of the commit an input attaches in, offered as it attaches so it loads ahead of the
+  // writes waiting for the input. The platform inputs are children, whose refs attach before any of
+  // this view's layout effects run, so it is kept by an insertion effect, which runs before them all.
+  const draftRef = React.useRef(draft)
+  React.useInsertionEffect(() => {
+    draftRef.current = draft
+  }, [draft])
+  const [{setInput, view}] = React.useState(() => {
     const view = composer.connect()
-    // the effect below offers it only after the first commit has attached the input, too late
-    // to load ahead of the writes waiting for it
-    view.offerDraft(draft)
-    return view
+    return {
+      setInput: (input: ComposerInput | null) => {
+        if (input) view.offerDraft(draftRef.current)
+        view.setInput(input)
+      },
+      view,
+    }
   })
-  // the composer reads read-only itself; a change only offers the draft again, which loads it
-  // once the user can post
+  // A draft that arrives after the input attached. The composer reads read-only itself; a change
+  // only offers the draft again, which loads it once the user can post.
   React.useEffect(() => {
     view.offerDraft(draft)
   }, [view, draft, readOnly])
-  return {composer, setInput: view.setInput, textChanged: view.textChanged}
+  return {composer, setInput, textChanged: view.textChanged}
 }

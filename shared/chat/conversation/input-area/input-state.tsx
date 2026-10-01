@@ -8,13 +8,13 @@ import {ignorePromise} from '@/constants/utils'
 import {whenModalsGone} from '@/constants/router'
 import {useThrottledCallback} from '@/util/use-debounce'
 import {
+  useConversationThreadActions,
   useConversationThreadNotifications,
   useConversationThreadStore,
   useThreadMeta,
 } from '../thread-context'
 import {closeConversationThreadSearch} from '../thread-navigation'
 import {useConversationSendActions} from '../send-actions'
-import {getChatRpc} from '../chat-rpc'
 import {
   consumeInputIntent,
   registerInputIntentConsumer,
@@ -121,12 +121,12 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
   // a subscription here re-renders the whole input subtree on every thread change.
   const threadStore = useConversationThreadStore()
   const {sendGiphyResult: sendGiphyResultAction, sendMessage} = useConversationSendActions()
-  // The account this composer was mounted for. After an account switch the service saves drafts
-  // for the next account, so the unmount flush of a draft typed here must not save it there.
-  const [composerUid] = React.useState(() => useCurrentUserState.getState().uid)
+  const {isRetired, rpc} = useConversationThreadActions()
   const getMeta = () => useInboxMetadataState.getState().metas.get(id)
   const saveDraftRaw = (text: string) => {
-    if (useCurrentUserState.getState().uid !== composerUid) {
+    // The unmount flush runs when an account switch takes this screen down, after its thread has
+    // retired: a draft typed here is not the next account's, locally or in the service.
+    if (isRetired()) {
       return
     }
     // Immediately update local meta.draft so switching back to this thread
@@ -137,7 +137,7 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
       metasReceived([{...currentMeta, draft: text}], undefined, {force: true})
     }
     const f = async () => {
-      await getChatRpc().saveDraft({conversationIDKey: id, text, tlfName: currentMeta?.tlfname ?? ''})
+      await rpc.saveDraft({conversationIDKey: id, text, tlfName: currentMeta?.tlfname ?? ''})
     }
     ignorePromise(f())
   }

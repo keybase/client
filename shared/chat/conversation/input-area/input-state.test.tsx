@@ -1068,6 +1068,37 @@ describe('a pending draft save', () => {
   })
 })
 
+// A thread retires for good the first time it finds another account signed in, even if its own
+// signs back in before the screen is built again; the composer's draft save is the thread's.
+test('a pending draft save from a retired thread asks nothing, even with its account signed back in', () => {
+  jest.useFakeTimers()
+  try {
+    metasReceived([{...Meta.makeConversationMeta(), conversationIDKey: convID}], undefined, {force: true})
+    let thread: InputHandles['thread'] | undefined
+    renderComposerWithProbe(h => (thread = h.thread))
+    act(() => {
+      mockPlatformInputProps?.onChangeText('a')
+    })
+    act(() => {
+      mockPlatformInputProps?.onChangeText('ab')
+    })
+    const draftBefore = useInboxMetadataState.getState().metas.get(convID)?.draft
+    act(() => {
+      const {setBootstrap} = useCurrentUserState.getState().dispatch
+      setBootstrap({deviceID: 'device-id-2', deviceName: 'test-device-2', uid: 'uid-2', username: 'testuser-mac'})
+      expect(thread?.isRetired()).toBe(true)
+      setBootstrap({deviceID: 'device-id', deviceName: 'test-device', uid: 'uid', username: 'testuser'})
+    })
+    act(() => {
+      jest.advanceTimersByTime(250)
+    })
+    expect(rpc.params('saveDraft').map(p => p.text)).not.toContain('ab')
+    expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe(draftBefore)
+  } finally {
+    jest.useRealTimers()
+  }
+})
+
 describe('a draft typed just before leaving the conversation', () => {
   const typeThenUnmount = (switchAccount: boolean) => {
     jest.useFakeTimers()
