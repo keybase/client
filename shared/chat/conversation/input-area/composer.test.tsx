@@ -15,24 +15,30 @@ const setup = (opts?: {takeUnfurlSnapshot?: () => SuppressSnapshot}) => {
   // and every report the attached input makes, with whether the composer took it as typing
   const drafts: Array<string> = []
   const reports: Array<{text: string; typed: boolean}> = []
+  // the draft the store holds, which an input reads as it attaches
+  let stored: string | undefined
+  const store = (draft: string | undefined) => {
+    stored = draft
+  }
   // stands in for the conversation's cannotWrite in the inbox metadata store
   let readOnly = false
   const composer = makeComposer({
     flushDraft: () => {
       drafts.push('flush')
     },
+    getDraft: () => stored,
     isReadOnly: () => readOnly,
     saveDraft: text => {
       drafts.push(text)
     },
     takeUnfurlSnapshot: opts?.takeUnfurlSnapshot ?? (() => noSnapshot),
   })
-  // one mounted composer view: its fake input's reports go to the composer, and the draft is
-  // offered as the view is made, as useComposerInput wires them
+  // one mounted composer view, with the store holding draft as it mounts: its fake input's reports
+  // go to the composer, as useComposerInput wires them
   const mount = (draft?: string) => {
+    store(draft)
     const fake = makeFakeComposerInput()
     const view = composer.connect()
-    view.offerDraft(draft)
     fake.connect(text => {
       reports.push({text, typed: view.textChanged(text)})
     })
@@ -45,7 +51,7 @@ const setup = (opts?: {takeUnfurlSnapshot?: () => SuppressSnapshot}) => {
   const setReadOnly = (next: boolean) => {
     readOnly = next
   }
-  return {composer, drafts, mount, reports, send, setReadOnly}
+  return {composer, drafts, mount, reports, send, setReadOnly, store}
 }
 
 afterEach(() => {
@@ -226,10 +232,11 @@ describe('draft', () => {
   })
 
   test('waits while the input has no handle, and loads once it has one', () => {
-    const {composer, mount} = setup()
+    const {composer, mount, store} = setup()
     const {detach, fake, view} = mount(undefined)
     detach()
 
+    store('saved')
     view.offerDraft('saved')
     expect(fake.text).toBe('')
     view.setInput(fake)
@@ -258,7 +265,8 @@ describe('draft', () => {
   })
 
   test('a mounted input whose handle is set late gets the draft when it is set', () => {
-    const {composer} = setup()
+    const {composer, store} = setup()
+    store('saved')
     const wrapper = (p: {children: React.ReactNode}) => (
       <ComposerContext value={composer}>{p.children}</ComposerContext>
     )
@@ -277,7 +285,7 @@ describe('draft', () => {
   // The input is a child of the view, as the platform inputs are, so it attaches before any of the
   // view's own layout effects run.
   test('an input attaching in the commit that changes the draft loads that commit\'s draft', () => {
-    const {composer} = setup()
+    const {composer, store} = setup()
     const fake = makeFakeComposerInput()
     const Input = (p: {setInput: (input: FakeComposerInput | null) => void; textChanged: (t: string) => boolean}) => {
       const {setInput, textChanged} = p
@@ -301,9 +309,30 @@ describe('draft', () => {
         <View draft={draft} shown={shown} />
       </ComposerContext>
     )
+    store('stale')
     const {rerender} = render(tree('stale', false))
 
+    store('current')
     rerender(tree('current', true))
+
+    expect(fake.text).toBe('current')
+    expect(composer.getText()).toBe('current')
+  })
+
+  // the view renders the draft a render behind the store; the input reads the store as it attaches
+  test('an input attaching loads the draft the store holds then, not the one the view rendered', () => {
+    const {composer, store} = setup()
+    const wrapper = (p: {children: React.ReactNode}) => (
+      <ComposerContext value={composer}>{p.children}</ComposerContext>
+    )
+    store('stale')
+    const {result} = renderHook(() => useComposerInput('stale', false), {wrapper})
+    store('current')
+    const fake = makeFakeComposerInput()
+
+    act(() => {
+      result.current.setInput(fake)
+    })
 
     expect(fake.text).toBe('current')
     expect(composer.getText()).toBe('current')
