@@ -11,6 +11,7 @@ import {metasReceived} from '@/chat/inbox/metadata'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {makeThreadChatRpc} from './chat-rpc'
 import {markConversationUnread, type MarkUnreadThread} from './mark-unread'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
@@ -62,6 +63,7 @@ const threadOf = (messages: ReadonlyArray<T.Chat.Message>, retired = () => false
     messageOrdinals: messages.map(m => m.ordinal),
   }),
   isRetired: retired,
+  rpc: makeThreadChatRpc(retired),
 })
 
 beforeEach(() => {
@@ -218,6 +220,14 @@ describe('with a thread', () => {
     markConversationUnread(conversationIDKey, messageID(5), threadOf([textAt(5), textAt(6)]))
     await flushPromises()
     expect(markReads()).toEqual(marked(4))
+  })
+
+  test('a thread that has retired asks the service nothing', async () => {
+    aroundLine([4, 5])
+    markConversationUnread(conversationIDKey, messageID(5), threadOf([], () => true))
+    await flushPromises()
+    expect(loads()).toEqual([])
+    expect(markReads()).toEqual([])
   })
 
   test('a thread that retired while the mark read was on its way draws no line', async () => {

@@ -29,7 +29,7 @@ import {
   updateAttachmentUploadProgressInThreadState,
   updateReactionsInThreadState,
 } from './thread-message-state'
-import {getChatRpc, makeThreadChatRpc, type ChatThreadRpc} from './chat-rpc'
+import {makeThreadChatRpc, type ChatThreadRpc} from './chat-rpc'
 import {markConversationUnread} from './mark-unread'
 import {
   getExplodingModeFromConfig,
@@ -148,11 +148,10 @@ export type ConversationThreadActions = {
   clearWindowGate: (loadID: number) => void
   getSnapshot: () => ConversationThreadState
   // Whether the store's account has left (see makeThreadStore). Its actions and rpc already do
-  // nothing then; this is for a continuation that was already past its await when it left.
+  // nothing then; this is for a continuation whose call was already in flight when it left.
   isRetired: () => boolean
   loadMoreMessages: LoadMoreMessages
-  // What the thread's screen asks of the service: asks nothing once the store's account has left
-  // (see makeThreadChatRpc).
+  // What anything for this thread asks of the service (see makeThreadChatRpc)
   rpc: ChatThreadRpc
   markThreadAsRead: () => void
   setMarkReadBlocked: (blocked: boolean) => void
@@ -245,8 +244,7 @@ const makeEmptyThreadState = (): ConversationThreadState =>
     () => {}
   )
 
-// Each of fns, doing nothing (undefined) once isRetired says so: the store's actions. What a thread's
-// screen asks of the service goes through the thread's rpc, which retires with it.
+// Each of fns, doing nothing (undefined) once isRetired says so
 const unlessRetired = <Fns extends {[K in keyof Fns]: (...args: never) => unknown}>(
   fns: Fns,
   isRetired: () => boolean
@@ -279,6 +277,7 @@ export const makeThreadStore = (
   const shownUsernameCache = new Map<T.Chat.Ordinal, string>()
   let retired = false
   const isRetired = () => (retired ||= getSession().uid !== uid)
+  const rpc = makeThreadChatRpc(isRetired)
   let activeMarkReadEnabled = false
   // the message a mark read is on its way for; the inbox meta moves only once the service answers
   let markReadSending: T.Chat.MessageID | undefined
@@ -366,7 +365,7 @@ export const makeThreadStore = (
       logger.info(`marking read messages ${id} ${readMsgID}`)
       markReadSending = readMsgID
       try {
-        await getChatRpc().markRead({conversationIDKey: id, forceUnread: false, msgID: readMsgID})
+        await rpc.markRead({conversationIDKey: id, forceUnread: false, msgID: readMsgID})
       } finally {
         if (markReadSending === readMsgID) {
           markReadSending = undefined
@@ -526,7 +525,7 @@ export const makeThreadStore = (
     }
     ignorePromise(
       (async () => {
-        await getChatRpc().retryPost(outboxID)
+        await rpc.retryPost(outboxID)
       })()
     )
   }
@@ -536,12 +535,12 @@ export const makeThreadStore = (
       s.explodingMode = seconds
     })
     if (!incoming) {
-      persistExplodingMode(id, getMeta(id), seconds)
+      persistExplodingMode(id, getMeta(id), seconds, rpc)
     }
   }
 
   const setMarkAsUnread = (readMsgID?: T.Chat.MessageID) => {
-    markConversationUnread(id, readMsgID, {getWindow: getSnapshot, isRetired})
+    markConversationUnread(id, readMsgID, {getWindow: getSnapshot, isRetired, rpc})
   }
 
   const updateReactions: ConversationThreadActions['updateReactions'] = updates => {
@@ -789,7 +788,7 @@ export const makeThreadStore = (
     loadMoreMessages: Object.assign(unlessRetired({loadMoreMessages}, isRetired).loadMoreMessages, {
       cancel: loadMoreMessages.cancel,
     }),
-    rpc: makeThreadChatRpc(isRetired),
+    rpc,
   }
 
   return {

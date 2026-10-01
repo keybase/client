@@ -15,7 +15,7 @@ import logger from '@/logger'
 import {ignorePromise} from '@/constants/utils'
 import {useConfigState} from '@/stores/config'
 import {getInboxConversationMeta} from '@/chat/inbox/metadata'
-import {getChatRpc} from './chat-rpc'
+import {getChatRpc, type ChatThreadRpc} from './chat-rpc'
 import {loadConversationMessageIDs} from './data-hooks'
 import {setConversationOrangeLine} from './orange-line-context'
 
@@ -24,10 +24,11 @@ type ThreadWindow = {
   messageOrdinals?: ReadonlyArray<T.Chat.Ordinal>
 }
 
-// What a mounted thread lends: its window, and whether its account has left.
+// What a mounted thread lends: its window, its rpc, and whether its account has left.
 export type MarkUnreadThread = {
   getWindow: () => ThreadWindow
   isRetired: () => boolean
+  rpc: ChatThreadRpc
 }
 
 const validID = (id?: T.Chat.MessageID) => (id && T.Chat.messageIDToNumber(id) > 0 ? id : undefined)
@@ -57,11 +58,12 @@ const lineOrdinal = (line: T.Chat.MessageID, window?: ThreadWindow) =>
 
 // Never rejects: a failed load knows of no message.
 const loadIDs = async (
+  rpc: ChatThreadRpc,
   conversationIDKey: T.Chat.ConversationIDKey,
   request: Parameters<typeof loadConversationMessageIDs>[1]
 ) => {
   try {
-    return await loadConversationMessageIDs(conversationIDKey, request)
+    return await loadConversationMessageIDs(conversationIDKey, request, rpc)
   } catch {
     return []
   }
@@ -80,11 +82,12 @@ export const markConversationUnread = (
       logger.info('mark unread bail on not logged in')
       return
     }
+    const rpc = thread?.rpc ?? getChatRpc()
     // With no line known (no meta for the conversation yet, or a placeholder one) the newest
     // messages give both the line and the message before it.
     const knownLine =
       validID(readMsgID) ?? validID(getInboxConversationMeta(conversationIDKey)?.maxVisibleMsgID)
-    const newest = knownLine ? undefined : await loadIDs(conversationIDKey, {newest: 2})
+    const newest = knownLine ? undefined : await loadIDs(rpc, conversationIDKey, {newest: 2})
     const line = knownLine ?? newestID(newest ?? [])
     if (!line) {
       logger.info(`marking unread messages ${conversationIDKey} failed due to no line`)
@@ -93,16 +96,13 @@ export const markConversationUnread = (
     const msgID = newest
       ? newestID(newest, line)
       : ((thread && idBeforeLineInWindow(thread.getWindow(), line)) ??
-        newestID(await loadIDs(conversationIDKey, {around: line, num: 3}), line))
-    if (thread?.isRetired()) {
-      return
-    }
+        newestID(await loadIDs(rpc, conversationIDKey, {around: line, num: 3}), line))
     if (!msgID) {
       logger.info(`marking unread messages ${conversationIDKey} failed: nothing older than ${line}`)
       return
     }
     logger.info(`marking unread messages ${conversationIDKey} ${msgID}`)
-    await getChatRpc().markRead({conversationIDKey, forceUnread: true, msgID})
+    await rpc.markRead({conversationIDKey, forceUnread: true, msgID})
     if (thread?.isRetired()) {
       return
     }

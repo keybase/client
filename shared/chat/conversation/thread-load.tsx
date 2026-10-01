@@ -13,7 +13,7 @@ import {useConfigState} from '@/stores/config'
 import {type ThreadLoadReconcile, getOrdinalForMessageID} from './thread-message-state'
 import {getInboxConversationMeta, updateInboxConversationMeta} from '@/chat/inbox/metadata'
 import {conversationGone} from '@/chat/inbox/selection'
-import {getChatRpc} from './chat-rpc'
+import type {ChatThreadRpc} from './chat-rpc'
 import type {
   ConversationThreadActions,
   ConversationThreadState,
@@ -77,16 +77,17 @@ export const getExplodingModeFromConfig = (conversationIDKey: T.Chat.Conversatio
 export const persistExplodingMode = (
   conversationIDKey: T.Chat.ConversationIDKey,
   meta: T.Chat.ConversationMeta,
-  seconds: number
+  seconds: number,
+  rpc: ChatThreadRpc
 ) => {
   const f = async () => {
     logger.info(`Setting exploding mode for conversation ${conversationIDKey} to ${seconds}`)
     const convRetention = Meta.getEffectiveRetentionPolicy(meta)
     try {
       if (seconds === 0 || seconds === convRetention.seconds) {
-        await getChatRpc().clearExplodingMode(conversationIDKey)
+        await rpc.clearExplodingMode(conversationIDKey)
       } else {
-        await getChatRpc().setExplodingMode(conversationIDKey, seconds)
+        await rpc.setExplodingMode(conversationIDKey, seconds)
         logger.info(`Successfully set exploding mode for conversation ${conversationIDKey} to ${seconds}`)
       }
     } catch (error) {
@@ -422,7 +423,7 @@ export const loadConversationThreadMessages = (
       ? null
       : scrollDirectionToPagination(scrollDirection, numberOfMessagesToLoad)
     try {
-      const results = await getChatRpc().loadThread({
+      const results = await actions.rpc.loadThread({
         conversationIDKey,
         knownRemotes,
         messageIDControl,
