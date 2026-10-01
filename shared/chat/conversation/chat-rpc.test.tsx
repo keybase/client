@@ -389,6 +389,22 @@ describe('service adapter', () => {
     )
   })
 
+  test('downloadAttachment fetches the full file, never the preview, and resolves its path', async () => {
+    const spy = jest
+      .spyOn(T.RPCChat, 'localDownloadFileAttachmentLocalRpcPromise')
+      .mockResolvedValue({filePath: '/dl/doc.pdf'})
+    await expect(
+      rpc().downloadAttachment({conversationIDKey, downloadToCache: true, messageID: T.Chat.numberToMessageID(42)})
+    ).resolves.toBe('/dl/doc.pdf')
+    expect(spy).toHaveBeenCalledWith({
+      conversationID: convID,
+      downloadToCache: true,
+      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+      messageID: 42,
+      preview: false,
+    })
+  })
+
   test('getNextAttachment asks for images and videos and unwraps the message', async () => {
     const message = {state: T.RPCChat.MessageUnboxedState.valid} as T.RPCChat.UIMessage
     const spy = jest
