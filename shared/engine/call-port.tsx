@@ -32,6 +32,10 @@ export const installCallPort = (p: CallPort) => {
   port = p
 }
 
+export const uninstallCallPort = () => {
+  port = undefined
+}
+
 export const hasCallPort = () => !!port
 
 export const getCallPort = (): CallPort => {
