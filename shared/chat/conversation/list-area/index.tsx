@@ -37,7 +37,6 @@ import type {LayoutChangeEvent, ScrollViewProps} from 'react-native'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import {KeyboardChatScrollView, useKeyboardState} from 'react-native-keyboard-controller'
 import Animated, {useAnimatedStyle} from 'react-native-reanimated'
-import {ThreadSearchOverlayContext} from '../thread-search-overlay-context'
 import {useComposerAnchor} from '../composer-viewport-context'
 import {stickyTranslateY} from '../composer-geometry'
 type ItemType = T.Chat.Ordinal
@@ -517,9 +516,6 @@ const NativeConversationList = function NativeConversationList() {
   const {bottomInset, keyboardHeight, keyboardProgress} = useComposerAnchor()
   const isKeyboardVisible = useKeyboardState((s: {isVisible: boolean}) => s.isVisible)
 
-  // While the thread-search bar is open it overlays the bottom of the list. Reserve
-  // that height as extra content padding so centered/newest messages clear it.
-  const searchOverlayHeight = React.useContext(ThreadSearchOverlayContext)
   // The input/search bar is translated above the list's layout bottom even when the
   // keyboard is closed. Mirror that exact translation here so the jump button always
   // rests on the bar's visual top edge instead of being clipped by it.
@@ -588,12 +584,11 @@ const NativeConversationList = function NativeConversationList() {
         contentInsetAdjustmentBehavior="never"
         inverted={true}
         offset={bottomInset}
-        extraContentPadding={searchOverlayHeight}
         {...props}
         scrollIndicatorInsets={{top: bottomInset}}
       />
     ),
-    [bottomInset, searchOverlayHeight]
+    [bottomInset]
   )
 
   const nativeContentContainerStyle = React.useMemo(
