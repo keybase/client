@@ -26,6 +26,7 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
 import {installFakeNavigator, restoreNavigator} from '@/test/fake-navigator'
+import {getChatRpc} from '@/chat/conversation/chat-rpc'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {flush} from '@/test/flush'
 
@@ -311,6 +312,7 @@ test("a thread load that says the user is not in the conversation moves the sele
     claimWindowGate: () => {},
     clearWindowGate: () => {},
     getSnapshot: () => ({clearVersion: 0, liveUpdateVersion: 0, loaded: false}) as ConversationThreadState,
+    rpc: getChatRpc(),
   } as unknown as ConversationThreadActions
 
   loadConversationThreadMessages(picked, {reason: 'focused'}, actions)
@@ -331,6 +333,7 @@ test('a thread load that says the user was never in the conversation leaves it s
     claimWindowGate: () => {},
     clearWindowGate: () => {},
     getSnapshot: () => ({clearVersion: 0, liveUpdateVersion: 0, loaded: false}) as ConversationThreadState,
+    rpc: getChatRpc(),
   } as unknown as ConversationThreadActions
 
   loadConversationThreadMessages(stranger, {reason: 'focused'}, actions)

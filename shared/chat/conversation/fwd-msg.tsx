@@ -7,7 +7,8 @@ import {useNavigation} from '@react-navigation/native'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import logger from '@/logger'
 import {useConversationMessage} from './data-hooks'
-import {chatRpcCall} from './chat-rpc'
+import {getChatRpc} from './chat-rpc'
+import type {RPCError} from '@/util/errors'
 import {registerExternalResetter} from '@/util/zustand'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey; messageID: T.Chat.MessageID}
@@ -62,8 +63,6 @@ const TeamPickerInner = (props: Props) => {
   const [loadedTerm, setLoadedTerm] = React.useState<string>()
   const [error, setError] = React.useState('')
   const waiting = loadedTerm !== term
-  const fwdMsg = C.useRPC(chatRpcCall.forwardMessage)
-  const submit = C.useRPC(chatRpcCall.searchForwardDestinations)
 
   React.useEffect(() => {
     forwardMessageHandoff.delete(handoffKey)
@@ -71,25 +70,24 @@ const TeamPickerInner = (props: Props) => {
 
   React.useEffect(() => {
     let stale = false
-    submit(
-      [term],
-      result => {
+    getChatRpc()
+      .searchForwardDestinations(term)
+      .then(result => {
         if (stale) return
         setLoadedTerm(term)
         setError('')
         setResults(result)
-      },
-      error => {
+      })
+      .catch((error: RPCError) => {
         if (stale) return
         setLoadedTerm(term)
         setError('Something went wrong, please try again.')
         logger.info('TeamPicker: error loading search results: ' + error.message)
-      }
-    )
+      })
     return () => {
       stale = true
     }
-  }, [submit, term])
+  }, [term])
 
   const clearModals = C.Router2.clearModals
   const onClose = () => {
@@ -131,13 +129,11 @@ const TeamPickerInner = (props: Props) => {
     const destination = destinationRef.current
     if (!destination || !message) return
     previewConversation({conversationIDKey: destination, reason: 'forward'})
-    fwdMsg(
-      [{conversationIDKey: srcConvID, destination, messageID: message.id, title}],
-      () => {},
-      error => {
+    getChatRpc()
+      .forwardMessage({conversationIDKey: srcConvID, destination, messageID: message.id, title})
+      .catch((error: RPCError) => {
         logger.info('TeamPicker: error forwarding message: ' + error.message)
-      }
-    )
+      })
     clearModals()
   }
 

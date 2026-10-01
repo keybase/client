@@ -1,10 +1,19 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
+import type * as ChatRpcT from './chat-rpc'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {act, render, waitFor} from '@testing-library/react'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {useUnfurlPreviews, suppressedURLsOf, takeSuppressSnapshot, useUnfurlPreviewState} from './unfurl-preview-state'
+
+let mockRetired = false
+// the composer's thread rpc, which retires with the thread
+let mockRpc: ChatRpcT.ChatThreadRpc | undefined
+jest.mock('./thread-context', () => ({
+  useThreadRpc: () =>
+    (mockRpc ??= jest.requireActual<typeof ChatRpcT>('./chat-rpc').makeThreadChatRpc(() => mockRetired)),
+}))
 
 let rpc: FakeChatRpc
 
@@ -29,6 +38,7 @@ const Harness = (p: {
 
 describe('unfurl previews', () => {
   beforeEach(() => {
+    mockRetired = false
     rpc = installFakeChatRpc()
     jest.useFakeTimers()
     useUnfurlPreviewState.getState().dispatch.resetState()
@@ -42,6 +52,16 @@ describe('unfurl previews', () => {
   it('does not call the rpc for text with no link', () => {
     rpc.on('getUnfurlPreviews', () => [])
     render(<Harness text="no links here" onRender={() => {}} />)
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+    expect(rpc.calls('getUnfurlPreviews')).toEqual([])
+  })
+
+  it('asks for nothing once its thread has retired', () => {
+    rpc.on('getUnfurlPreviews', () => [info('http://a.com')])
+    mockRetired = true
+    render(<Harness text="see http://a.com" onRender={() => {}} />)
     act(() => {
       jest.advanceTimersByTime(1000)
     })

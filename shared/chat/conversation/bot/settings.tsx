@@ -1,8 +1,8 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import logger from '@/logger'
-import {chatRpcCall} from '../chat-rpc'
+import {getChatRpc} from '../chat-rpc'
+import type {RPCError} from '@/util/errors'
 
 export const useBotSettings = (
   conversationIDKey: T.Chat.ConversationIDKey | undefined,
@@ -18,7 +18,6 @@ export const useBotSettings = (
       }
     | undefined
   >()
-  const loadBotSettings = C.useRPC(chatRpcCall.getBotSettings)
   const requestIDRef = React.useRef(0)
 
   React.useEffect(() => {
@@ -27,28 +26,27 @@ export const useBotSettings = (
       return undefined
     }
     const requestID = requestIDRef.current
-    loadBotSettings(
-      [conversationIDKey, botUsername],
-      settings => {
+    getChatRpc()
+      .getBotSettings(conversationIDKey, botUsername)
+      .then(settings => {
         if (requestIDRef.current !== requestID) {
           return
         }
         setLoaded({botUsername, conversationIDKey, settings})
-      },
-      error => {
+      })
+      .catch((error: RPCError) => {
         if (requestIDRef.current !== requestID) {
           return
         }
         logger.info(`useBotSettings: failed to refresh settings for ${botUsername}: ${error.message}`)
         setLoaded({botUsername, conversationIDKey, failed: true})
-      }
-    )
+      })
     return () => {
       if (requestIDRef.current === requestID) {
         requestIDRef.current += 1
       }
     }
-  }, [botUsername, conversationIDKey, enabled, loadBotSettings])
+  }, [botUsername, conversationIDKey, enabled])
 
   const current =
     enabled &&

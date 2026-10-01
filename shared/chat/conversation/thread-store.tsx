@@ -29,7 +29,7 @@ import {
   updateAttachmentUploadProgressInThreadState,
   updateReactionsInThreadState,
 } from './thread-message-state'
-import {getChatRpc, makeThreadChatRpc, type ChatThreadRpc} from './chat-rpc'
+import {makeThreadChatRpc, type ChatThreadRpc} from './chat-rpc'
 import {markConversationUnread} from './mark-unread'
 import {
   getExplodingModeFromConfig,
@@ -148,11 +148,10 @@ export type ConversationThreadActions = {
   clearWindowGate: (loadID: number) => void
   getSnapshot: () => ConversationThreadState
   // Whether the store's account has left (see makeThreadStore). Its actions and rpc already do
-  // nothing then; this is for a continuation that was already past its await when it left.
+  // nothing then; this is for a continuation whose call was already in flight when it left.
   isRetired: () => boolean
   loadMoreMessages: LoadMoreMessages
-  // What the thread's screen asks of the service: asks nothing once the store's account has left
-  // (see makeThreadChatRpc).
+  // What anything for this thread asks of the service (see makeThreadChatRpc)
   rpc: ChatThreadRpc
   markThreadAsRead: () => void
   setMarkReadBlocked: (blocked: boolean) => void
@@ -189,27 +188,10 @@ export type ConversationThreadActions = {
   ) => void
 }
 
-// What the store reads from outside the thread. Service calls are not here: they go through
-// getChatRpc() like the rest of the load pipeline, so a test swaps them with setChatRpc(). Nor is
-// the conversation's meta: the inbox metadata store owns it, and the store, the load pipeline and
-// the message commands all read it there, so a test sets real inbox metadata.
-export type ThreadStoreDeps = {
-  getSession: () => {loggedIn: boolean; uid: string}
-  loadThreadMessages: (
-    conversationIDKey: T.Chat.ConversationIDKey,
-    p: LoadMoreMessagesParams,
-    actions: ConversationThreadActions
-  ) => void
-}
-
-const defaultDeps: ThreadStoreDeps = {
-  getSession: () => ({
-    loggedIn: useConfigState.getState().loggedIn,
-    uid: useCurrentUserState.getState().uid,
-  }),
-  loadThreadMessages: (conversationIDKey, p, actions) =>
-    loadConversationThreadMessages(conversationIDKey, p, actions),
-}
+const getSession = () => ({
+  loggedIn: useConfigState.getState().loggedIn,
+  uid: useCurrentUserState.getState().uid,
+})
 
 export type ThreadStore = {
   actions: ConversationThreadActions
@@ -262,8 +244,7 @@ const makeEmptyThreadState = (): ConversationThreadState =>
     () => {}
   )
 
-// Each of fns, doing nothing (undefined) once isRetired says so: the store's actions. What a thread's
-// screen asks of the service goes through the thread's rpc, which retires with it.
+// Each of fns, doing nothing (undefined) once isRetired says so
 const unlessRetired = <Fns extends {[K in keyof Fns]: (...args: never) => unknown}>(
   fns: Fns,
   isRetired: () => boolean
@@ -286,10 +267,8 @@ const unlessRetired = <Fns extends {[K in keyof Fns]: (...args: never) => unknow
 export const makeThreadStore = (
   id: T.Chat.ConversationIDKey,
   uid: string,
-  isLookingAtThread: () => boolean,
-  overrides?: Partial<ThreadStoreDeps>
+  isLookingAtThread: () => boolean
 ): ThreadStore => {
-  const deps: ThreadStoreDeps = {...defaultDeps, ...overrides}
   const store = createStore<ConversationThreadState>(() =>
     produce(makeEmptyThreadState(), s => {
       s.explodingMode = getExplodingModeFromConfig(id)
@@ -297,7 +276,8 @@ export const makeThreadStore = (
   )
   const shownUsernameCache = new Map<T.Chat.Ordinal, string>()
   let retired = false
-  const isRetired = () => (retired ||= deps.getSession().uid !== uid)
+  const isRetired = () => (retired ||= getSession().uid !== uid)
+  const rpc = makeThreadChatRpc(isRetired)
   let activeMarkReadEnabled = false
   // the message a mark read is on its way for; the inbox meta moves only once the service answers
   let markReadSending: T.Chat.MessageID | undefined
@@ -324,7 +304,7 @@ export const makeThreadStore = (
 
   const markThreadAsRead = () => {
     const f = async () => {
-      const session = deps.getSession()
+      const session = getSession()
       if (!session.loggedIn) {
         logger.info('mark read bail on not logged in')
         return
@@ -385,7 +365,7 @@ export const makeThreadStore = (
       logger.info(`marking read messages ${id} ${readMsgID}`)
       markReadSending = readMsgID
       try {
-        await getChatRpc().markRead({conversationIDKey: id, forceUnread: false, msgID: readMsgID})
+        await rpc.markRead({conversationIDKey: id, forceUnread: false, msgID: readMsgID})
       } finally {
         if (markReadSending === readMsgID) {
           markReadSending = undefined
@@ -545,7 +525,7 @@ export const makeThreadStore = (
     }
     ignorePromise(
       (async () => {
-        await getChatRpc().retryPost(outboxID)
+        await rpc.retryPost(outboxID)
       })()
     )
   }
@@ -555,12 +535,12 @@ export const makeThreadStore = (
       s.explodingMode = seconds
     })
     if (!incoming) {
-      persistExplodingMode(id, getMeta(id), seconds)
+      persistExplodingMode(id, getMeta(id), seconds, rpc)
     }
   }
 
   const setMarkAsUnread = (readMsgID?: T.Chat.MessageID) => {
-    markConversationUnread(id, readMsgID, {getWindow: getSnapshot, isRetired})
+    markConversationUnread(id, readMsgID, {getWindow: getSnapshot, isRetired, rpc})
   }
 
   const updateReactions: ConversationThreadActions['updateReactions'] = updates => {
@@ -643,7 +623,7 @@ export const makeThreadStore = (
       return
     }
     const {isThreadLoadCurrent} = p
-    deps.loadThreadMessages(
+    loadConversationThreadMessages(
       id,
       {...p, isThreadLoadCurrent: () => !isRetired() && (isThreadLoadCurrent?.() ?? true)},
       actions
@@ -808,7 +788,7 @@ export const makeThreadStore = (
     loadMoreMessages: Object.assign(unlessRetired({loadMoreMessages}, isRetired).loadMoreMessages, {
       cancel: loadMoreMessages.cancel,
     }),
-    rpc: makeThreadChatRpc(isRetired),
+    rpc,
   }
 
   return {

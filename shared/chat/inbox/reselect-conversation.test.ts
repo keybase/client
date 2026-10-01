@@ -131,6 +131,7 @@ test.each([
     claimWindowGate: () => {},
     clearWindowGate: () => {},
     getSnapshot: () => ({clearVersion: 0, liveUpdateVersion: 0, loaded: false}) as ConversationThreadState,
+    rpc,
   } as unknown as ConversationThreadActions
 
   loadConversationThreadMessages(open, {reason: 'focused'}, actions)
@@ -140,5 +141,6 @@ test.each([
   runDeferredNavigation()
   restoreChatRpc()
 
+  expect(rpc.calls('loadThread')).toHaveLength(1)
   expect(nav.actions).toEqual([])
 })

@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import {getBotsAndParticipants} from '@/constants/chat/helpers'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
@@ -10,7 +9,7 @@ import {navToProfile} from '@/constants/router'
 import {useChatTeamMembers} from '../team-hooks'
 import {useConversationMetadata} from '../data-hooks'
 import {useRefreshParticipantsOnTeamMembershipChange} from '@/chat/inbox/refresh-participants'
-import {chatRpcCall} from '../chat-rpc'
+import {getChatRpc} from '../chat-rpc'
 
 type Props = {
   commonSections: ReadonlyArray<Section>
@@ -46,7 +45,6 @@ export const useChannelMembers = (conversationIDKey: T.Chat.ConversationIDKey) =
   const {loading: loadingTeamMembers, members: teamMembers} = useChatTeamMembers(teamID)
   const isGeneral = channelname === 'general'
   const showAuditingBanner = isGeneral && loadingTeamMembers
-  const refreshParticipants = C.useRPC(chatRpcCall.refreshParticipants)
   const participants = getBotsAndParticipants(meta, participantInfo, teamMembers).participants
   const lastTeamNameRef = React.useRef('')
   React.useEffect(() => {
@@ -55,9 +53,11 @@ export const useChannelMembers = (conversationIDKey: T.Chat.ConversationIDKey) =
     }
     lastTeamNameRef.current = teamname
     if (teamname) {
-      refreshParticipants([conversationIDKey], () => {}, () => {})
+      getChatRpc()
+        .refreshParticipants(conversationIDKey)
+        .catch(() => {})
     }
-  }, [conversationIDKey, refreshParticipants, teamname])
+  }, [conversationIDKey, teamname])
 
   // a kick, an add-to-team or a reset user let back in changes this channel's members
   // too, including when another client does it

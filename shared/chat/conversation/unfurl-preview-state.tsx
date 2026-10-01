@@ -3,7 +3,8 @@ import type * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import {ignorePromise} from '@/constants/utils'
 import logger from '@/logger'
-import {getChatRpc} from './chat-rpc'
+import type {ChatThreadRpc} from './chat-rpc'
+import {useThreadRpc} from './thread-context'
 
 type State = T.Immutable<{
   dismissed: Map<T.Chat.ConversationIDKey, Set<string>>
@@ -120,6 +121,7 @@ const stillInText = (text: string, url: string) => {
 
 // kept outside the hook body: try/catch inside a hook trips the react-compiler bailout check
 const fetchPreviews = async (
+  rpc: ChatThreadRpc,
   conversationIDKey: T.Chat.ConversationIDKey,
   text: string,
   requestID: number,
@@ -127,7 +129,7 @@ const fetchPreviews = async (
   onSuccess: (conversationIDKey: T.Chat.ConversationIDKey, infos: ReadonlyArray<T.RPCChat.UnfurlPreviewInfo>) => void
 ) => {
   try {
-    const res = await getChatRpc().getUnfurlPreviews(conversationIDKey, text)
+    const res = await rpc.getUnfurlPreviews(conversationIDKey, text)
     if (requestID !== requestIDRef.current) return
     onSuccess(conversationIDKey, res)
   } catch (e) {
@@ -145,6 +147,7 @@ let nextRequestID = 0
 const takeRequestID = () => ++nextRequestID
 
 export const useUnfurlPreviews = (conversationIDKey: T.Chat.ConversationIDKey, text: string) => {
+  const rpc = useThreadRpc()
   const [fetched, setFetched] = React.useState<ReadonlyArray<T.RPCChat.UnfurlPreviewInfo>>([])
   const dismissedSet = useUnfurlPreviewState(s => s.dismissed.get(conversationIDKey))
   const {dismiss: dismissURL, keepOnly, setFailed} = useUnfurlPreviewState(s => s.dispatch)
@@ -196,12 +199,12 @@ export const useUnfurlPreviews = (conversationIDKey: T.Chat.ConversationIDKey, t
     }
     sawTextRef.current = true
     const timeoutID = setTimeout(() => {
-      ignorePromise(fetchPreviews(conversationIDKey, text, id, requestIDRef, onFetched))
+      ignorePromise(fetchPreviews(rpc, conversationIDKey, text, id, requestIDRef, onFetched))
     }, debounceMS)
     return () => {
       clearTimeout(timeoutID)
     }
-  }, [conversationIDKey, hasLink, keepOnly, setFailed, text, onFetched])
+  }, [conversationIDKey, hasLink, keepOnly, setFailed, text, onFetched, rpc])
 
   const dismiss = React.useCallback(
     (url: string) => {

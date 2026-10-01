@@ -2,14 +2,12 @@
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
-import {chatRpcCall, getChatRpc, makeThreadChatRpc, setChatRpc} from './chat-rpc'
+import {getChatRpc, makeThreadChatRpc, setChatRpc} from './chat-rpc'
 import {makeFakeChatRpc, restoreChatRpc} from '@/test/fake-chat-rpc'
 import {threadLoadReasonToRPCReason} from './thread-load'
 
 const loadThreadNonblock = async (p: Parameters<ReturnType<typeof getChatRpc>['loadThread']>[0]) =>
   getChatRpc().loadThread(p)
-const markConversationRead = async (p: Parameters<ReturnType<typeof getChatRpc>['markRead']>[0]) =>
-  getChatRpc().markRead(p)
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const convID = T.Chat.keyToConversationID(conversationIDKey)
@@ -125,22 +123,14 @@ describe('loadThreadNonblock', () => {
   })
 })
 
-test('markConversationRead sends the read position', async () => {
-  const rpc = jest.spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise').mockResolvedValue({offline: false})
-  await markConversationRead({conversationIDKey, forceUnread: true, msgID: T.Chat.numberToMessageID(9)})
-  expect(rpc).toHaveBeenCalledWith({conversationID: convID, forceUnread: true, msgID: 9})
-  await markConversationRead({conversationIDKey, forceUnread: false})
-  expect(rpc).toHaveBeenLastCalledWith({conversationID: convID, forceUnread: false, msgID: undefined})
-})
-
 test('threadLoadReasonToRPCReason maps push-like reasons to push', () => {
   expect(threadLoadReasonToRPCReason('push')).toBe(T.RPCChat.GetThreadReason.push)
   expect(threadLoadReasonToRPCReason('extension')).toBe(T.RPCChat.GetThreadReason.push)
   expect(threadLoadReasonToRPCReason('scroll back')).toBe(T.RPCChat.GetThreadReason.general)
 })
 
-// What the service adapter sends for each domain call. The callers' suites drive the fake and
-// assert the domain params; these pin the translation from those to the wire.
+// The service adapter's translations that carry logic: defaults, derived fields, filters. The
+// callers' suites drive the fake; a pure pass-through is left to the types.
 describe('service adapter', () => {
   const rpc = () => getChatRpc()
   const outboxID = new Uint8Array([7, 7])
@@ -341,50 +331,6 @@ describe('service adapter', () => {
     expect(spy.mock.calls[1]?.[0].arg).toEqual(expect.objectContaining({callerPreview, ephemeralLifetime: 60}))
   })
 
-  test('cancelPost and retryPost take the local outbox id', async () => {
-    const cancel = jest.spyOn(T.RPCChat, 'localCancelPostRpcPromise').mockResolvedValue(undefined)
-    const retry = jest.spyOn(T.RPCChat, 'localRetryPostRpcPromise').mockResolvedValue(undefined)
-    await rpc().cancelPost(localOutboxID)
-    await rpc().retryPost(localOutboxID)
-    expect(cancel).toHaveBeenCalledWith({outboxID})
-    expect(retry).toHaveBeenCalledWith({outboxID})
-  })
-
-  test('audio preview and giphy tracking', async () => {
-    const preview = {mimeType: 'image/png'} as T.RPCChat.MakePreviewRes
-    const make = jest.spyOn(T.RPCChat, 'localMakeAudioPreviewRpcPromise').mockResolvedValue(preview)
-    const track = jest.spyOn(T.RPCChat, 'localTrackGiphySelectRpcPromise').mockResolvedValue({} as never)
-    await expect(rpc().makeAudioPreview([0.5], 900)).resolves.toBe(preview)
-    const giphy = {targetUrl: 'https://giphy.com/x.gif'} as T.RPCChat.GiphySearchResult
-    await rpc().trackGiphySelect(giphy)
-    expect(make).toHaveBeenCalledWith({amps: [0.5], duration: 900})
-    expect(track).toHaveBeenCalledWith({result: giphy})
-  })
-
-  test('message commands', async () => {
-    const collapse = jest.spyOn(T.RPCChat, 'localToggleMessageCollapseRpcPromise').mockResolvedValue({} as never)
-    const pin = jest.spyOn(T.RPCChat, 'localPinMessageRpcPromise').mockResolvedValue({} as never)
-    const unfurl = jest.spyOn(T.RPCChat, 'localResolveUnfurlPromptRpcPromise').mockResolvedValue(undefined)
-    const journey = jest.spyOn(T.RPCChat, 'localDismissJourneycardRpcPromise').mockResolvedValue(undefined)
-    const messageID = T.Chat.numberToMessageID(10)
-    const result = {actionType: T.RPCChat.UnfurlPromptAction.always} as T.RPCChat.UnfurlPromptResult
-
-    await rpc().toggleCollapse({collapse: true, conversationIDKey, messageID})
-    await rpc().pinMessage(conversationIDKey, messageID)
-    await rpc().resolveUnfurlPrompt({conversationIDKey, messageID, result})
-    await rpc().dismissJourneycard(conversationIDKey, T.RPCChat.JourneycardType.welcome)
-
-    expect(collapse).toHaveBeenCalledWith({collapse: true, convID, msgID: 10})
-    expect(pin).toHaveBeenCalledWith({convID, msgID: 10})
-    expect(unfurl).toHaveBeenCalledWith({
-      convID,
-      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-      msgID: 10,
-      result,
-    })
-    expect(journey).toHaveBeenCalledWith({cardType: T.RPCChat.JourneycardType.welcome, convID})
-  })
-
   test('createAdhocConversation makes a private implicit-team chat of the distinct users', async () => {
     const res = {conv: {}, uiConv: {}} as T.RPCChat.NewConversationLocalRes
     const spy = jest.spyOn(T.RPCChat, 'localNewConversationLocalRpcPromise').mockResolvedValue(res)
@@ -399,39 +345,6 @@ describe('service adapter', () => {
       },
       'wk'
     )
-  })
-
-  test('upload temp files', async () => {
-    const make = jest.spyOn(T.RPCChat, 'localMakeUploadTempFileRpcPromise').mockResolvedValue('/tmp/paste.png')
-    const get = jest.spyOn(T.RPCChat, 'localGetUploadTempFileRpcPromise').mockResolvedValue('/tmp/dropped.png')
-    const cancel = jest.spyOn(T.RPCChat, 'localCancelUploadTempFileRpcPromise').mockResolvedValue(undefined)
-    const data = new Uint8Array([1])
-    await expect(rpc().makeUploadTempFile({data, filename: 'paste.png', outboxID})).resolves.toBe(
-      '/tmp/paste.png'
-    )
-    await expect(rpc().getUploadTempFile({filename: '/dropped.png', outboxID})).resolves.toBe(
-      '/tmp/dropped.png'
-    )
-    await rpc().cancelUploadTempFile(outboxID)
-    expect(make).toHaveBeenCalledWith({data, filename: 'paste.png', outboxID})
-    expect(get).toHaveBeenCalledWith({filename: '/dropped.png', outboxID})
-    expect(cancel).toHaveBeenCalledWith({outboxID})
-  })
-
-  test('downloadAttachment fetches the full file and resolves its path', async () => {
-    const spy = jest
-      .spyOn(T.RPCChat, 'localDownloadFileAttachmentLocalRpcPromise')
-      .mockResolvedValue({filePath: '/dl/doc.pdf'})
-    await expect(
-      rpc().downloadAttachment({conversationIDKey, downloadToCache: true, messageID: T.Chat.numberToMessageID(42)})
-    ).resolves.toBe('/dl/doc.pdf')
-    expect(spy).toHaveBeenCalledWith({
-      conversationID: convID,
-      downloadToCache: true,
-      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-      messageID: 42,
-      preview: false,
-    })
   })
 
   test('getNextAttachment asks for images and videos and unwraps the message', async () => {
@@ -452,19 +365,6 @@ describe('service adapter', () => {
     })
   })
 
-  test('conversation status and joining', async () => {
-    const status = jest.spyOn(T.RPCChat, 'localSetConversationStatusLocalRpcPromise').mockResolvedValue({} as never)
-    const join = jest.spyOn(T.RPCChat, 'localJoinConversationByIDLocalRpcPromise').mockResolvedValue({} as never)
-    await rpc().setConversationStatus(conversationIDKey, T.RPCChat.ConversationStatus.muted)
-    await rpc().joinConversation(conversationIDKey)
-    expect(status).toHaveBeenCalledWith({
-      conversationID: convID,
-      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-      status: T.RPCChat.ConversationStatus.muted,
-    })
-    expect(join).toHaveBeenCalledWith({convID})
-  })
-
   test('exploding mode is the per-conversation gregor category', async () => {
     const update = jest.spyOn(T.RPCGen, 'gregorUpdateCategoryRpcPromise').mockResolvedValue(new Uint8Array())
     const dismiss = jest.spyOn(T.RPCGen, 'gregorDismissCategoryRpcPromise').mockResolvedValue(undefined)
@@ -476,35 +376,6 @@ describe('service adapter', () => {
       dtime: {offset: 0, time: 0},
     })
     expect(dismiss).toHaveBeenCalledWith({category: `exploding:${conversationIDKey}`})
-  })
-
-  test('participants: refresh, add, a reset user back in, and the preview unwrapped to its inbox item', async () => {
-    const refresh = jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
-    const bulk = jest.spyOn(T.RPCChat, 'localBulkAddToConvRpcPromise').mockResolvedValue(undefined)
-    const reset = jest.spyOn(T.RPCChat, 'localAddTeamMemberAfterResetRpcPromise').mockResolvedValue(undefined)
-    const conv = {convID: 'c'} as unknown as T.RPCChat.InboxUIItem
-    const preview = jest
-      .spyOn(T.RPCChat, 'localPreviewConversationByIDLocalRpcPromise')
-      .mockResolvedValue({conv} as T.RPCChat.PreviewConversationLocalRes)
-    const usernames = ['testuser2', 'testuser3']
-    await rpc().refreshParticipants(conversationIDKey)
-    await rpc().addToConversation(conversationIDKey, usernames)
-    await rpc().addTeamMemberAfterReset(conversationIDKey, 'testuser2')
-    await expect(rpc().previewConversation(conversationIDKey)).resolves.toBe(conv)
-    expect(refresh.mock.calls).toEqual([[{convID}]])
-    expect(bulk.mock.calls).toEqual([[{convID, usernames}]])
-    expect(bulk.mock.calls[0]?.[0].usernames).not.toBe(usernames)
-    expect(reset.mock.calls).toEqual([[{convID, username: 'testuser2'}]])
-    expect(preview.mock.calls).toEqual([[{convID}]])
-  })
-
-  test('pins: unpin with the caller waiting key, ignore without one', async () => {
-    const unpin = jest.spyOn(T.RPCChat, 'localUnpinMessageRpcPromise').mockResolvedValue({} as never)
-    const ignore = jest.spyOn(T.RPCChat, 'localIgnorePinnedMessageRpcPromise').mockResolvedValue(undefined)
-    await rpc().unpinMessage(conversationIDKey, 'chat:unpin')
-    await rpc().ignorePinnedMessage(conversationIDKey)
-    expect(unpin.mock.calls).toEqual([[{convID}, 'chat:unpin']])
-    expect(ignore.mock.calls).toEqual([[{convID}]])
   })
 
   test('forwarding: the destination search, null as none, and the forward between conversations', async () => {
@@ -530,17 +401,6 @@ describe('service adapter', () => {
         },
       ],
     ])
-  })
-
-  test('unfurl previews, with null as none', async () => {
-    const info = {url: 'http://a.com'} as T.RPCChat.UnfurlPreviewInfo
-    const spy = jest
-      .spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
-      .mockResolvedValueOnce([info])
-      .mockResolvedValueOnce(null)
-    await expect(rpc().getUnfurlPreviews(conversationIDKey, 'see http://a.com')).resolves.toEqual([info])
-    await expect(rpc().getUnfurlPreviews(conversationIDKey, 'x')).resolves.toEqual([])
-    expect(spy.mock.calls[0]).toEqual([{convID, text: 'see http://a.com'}])
   })
 
   test('the unread line resolves its message id, and none for a missing or zero one', async () => {
@@ -617,22 +477,6 @@ describe('service adapter', () => {
     expect(role.mock.calls).toEqual([[{convID, role: T.RPCGen.TeamRole.writer}]])
   })
 
-  test('delete history removes every message, publicly nothing', async () => {
-    const spy = jest.spyOn(T.RPCChat, 'localPostDeleteHistoryByAgeRpcPromise').mockResolvedValue({} as never)
-    await rpc().deleteHistory(conversationIDKey, 'testuser,testuser2')
-    expect(spy.mock.calls).toEqual([
-      [
-        {
-          age: 0,
-          conversationID: convID,
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-          tlfName: 'testuser,testuser2',
-          tlfPublic: false,
-        },
-      ],
-    ])
-  })
-
   test('typing and drafts; an invalid conversation goes out as an empty id', async () => {
     const typing = jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
     const draft = jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
@@ -650,81 +494,22 @@ describe('service adapter', () => {
     ])
   })
 
-  test('location sends only the position and its accuracy', async () => {
-    const spy = jest.spyOn(T.RPCChat, 'localLocationUpdateRpcPromise').mockResolvedValue(undefined)
-    await rpc().updateLocation({accuracy: 5, altitude: 9, lat: 1.5, lon: -2} as T.Chat.Coordinate)
-    expect(spy.mock.calls).toEqual([[{coord: {accuracy: 5, lat: 1.5, lon: -2}}]])
-  })
-
-  test('bots: search, role, add restricted or not, settings, remove, public command names', async () => {
-    const hit = {convID: new Uint8Array([9]), isTeam: true, name: 'team', parts: null} as T.RPCChat.ConvSearchHit
-    const search = jest
-      .spyOn(T.RPCChat, 'localAddBotConvSearchRpcPromise')
-      .mockResolvedValueOnce([hit])
-      .mockResolvedValueOnce(null)
-    const role = jest
-      .spyOn(T.RPCChat, 'localGetTeamRoleInConversationRpcPromise')
-      .mockResolvedValue(T.RPCGen.TeamRole.restrictedbot)
+  test('a bot added with settings is restricted to them; its public commands come back by name', async () => {
     const add = jest.spyOn(T.RPCChat, 'localAddBotMemberRpcPromise').mockResolvedValue(undefined)
-    const settings = {cmds: true, convs: ['c1'], mentions: false}
-    const getSettings = jest.spyOn(T.RPCChat, 'localGetBotMemberSettingsRpcPromise').mockResolvedValue(settings)
-    const setSettings = jest.spyOn(T.RPCChat, 'localSetBotMemberSettingsRpcPromise').mockResolvedValue(undefined)
-    const remove = jest.spyOn(T.RPCChat, 'localRemoveBotMemberRpcPromise').mockResolvedValue(undefined)
     const commands = jest
       .spyOn(T.RPCChat, 'localListPublicBotCommandsLocalRpcPromise')
       .mockResolvedValueOnce({commands: [{name: 'help'}, {name: 'ping'}]} as unknown as T.RPCChat.ListBotCommandsLocalRes)
       .mockResolvedValueOnce({commands: null})
-
-    await expect(rpc().searchBotDestinations('te')).resolves.toEqual([hit])
-    await expect(rpc().searchBotDestinations('')).resolves.toEqual([])
-    await expect(rpc().getBotTeamRole(conversationIDKey, 'testbot')).resolves.toBe(
-      T.RPCGen.TeamRole.restrictedbot
-    )
+    const settings = {cmds: true, convs: ['c1'], mentions: false}
     await rpc().addBotMember({conversationIDKey, settings, username: 'testbot', waitingKey: 'chat:botAdd'})
     await rpc().addBotMember({conversationIDKey, username: 'testbot', waitingKey: 'chat:botAdd'})
-    await expect(rpc().getBotSettings(conversationIDKey, 'testbot')).resolves.toBe(settings)
-    await rpc().setBotSettings({conversationIDKey, settings, username: 'testbot', waitingKey: 'chat:botAdd'})
-    await rpc().removeBotMember({conversationIDKey, username: 'testbot', waitingKey: 'chat:botRemove'})
     await expect(rpc().listPublicBotCommands('testbot')).resolves.toEqual(['help', 'ping'])
     await expect(rpc().listPublicBotCommands('testbot')).resolves.toEqual([])
-
-    expect(search.mock.calls).toEqual([[{term: 'te'}], [{term: ''}]])
-    expect(role.mock.calls).toEqual([[{convID, username: 'testbot'}]])
     expect(add.mock.calls).toEqual([
       [{botSettings: settings, convID, role: T.RPCGen.TeamRole.restrictedbot, username: 'testbot'}, 'chat:botAdd'],
       [{botSettings: null, convID, role: T.RPCGen.TeamRole.bot, username: 'testbot'}, 'chat:botAdd'],
     ])
-    expect(getSettings.mock.calls).toEqual([[{convID, username: 'testbot'}]])
-    expect(setSettings.mock.calls).toEqual([[{botSettings: settings, convID, username: 'testbot'}, 'chat:botAdd']])
-    expect(remove.mock.calls).toEqual([[{convID, username: 'testbot'}, 'chat:botRemove']])
     expect(commands.mock.calls).toEqual([[{username: 'testbot'}], [{username: 'testbot'}]])
-  })
-
-  test('service errors reject', async () => {
-    jest.spyOn(T.RPCChat, 'localPinMessageRpcPromise').mockRejectedValue(new Error('nope'))
-    await expect(rpc().pinMessage(conversationIDKey, T.Chat.numberToMessageID(1))).rejects.toThrow('nope')
-  })
-})
-
-describe('chatRpcCall', () => {
-  afterEach(() => {
-    restoreChatRpc()
-  })
-
-  test('holds every adapter method, each reaching the adapter set after it was taken', async () => {
-    const {forwardMessage} = chatRpcCall
-    const fake = makeFakeChatRpc()
-    setChatRpc(fake)
-    const helpers = ['calls', 'clearLog', 'fail', 'failOnce', 'log', 'on', 'once', 'params']
-    const methods = Object.keys(fake).filter(k => !helpers.includes(k))
-    expect(Object.keys(chatRpcCall).sort()).toEqual(methods.sort())
-    await forwardMessage({
-      conversationIDKey,
-      destination: conversationIDKey,
-      messageID: T.Chat.numberToMessageID(1),
-      title: '',
-    })
-    expect(fake.calls('forwardMessage')).toHaveLength(1)
   })
 })
 

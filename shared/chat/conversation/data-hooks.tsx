@@ -9,7 +9,7 @@ import {ignorePromise} from '@/constants/utils'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
 import logger from '@/logger'
-import {getChatRpc} from './chat-rpc'
+import {getChatRpc, type ChatThreadRpc} from './chat-rpc'
 import {getExplodingModeFromGregorItems} from './thread-load'
 
 const emptyConversationMeta = Meta.makeConversationMeta()
@@ -115,6 +115,7 @@ type MessagesRequest = {around: T.Chat.MessageID; num: number} | {newest: number
 // Each pass's thread JSON is handed to onThread. Nothing is asked for an invalid conversation or a
 // pivot that is not a message id (0, or the -1 of a placeholder meta). Rejects when the load does.
 const loadThreadPasses = async (
+  rpc: ChatThreadRpc,
   conversationIDKey: T.Chat.ConversationIDKey,
   request: MessagesRequest,
   onThread: (thread: string) => void
@@ -126,7 +127,7 @@ const loadThreadPasses = async (
     if (T.Chat.messageIDToNumber(request.around) <= 0) {
       return
     }
-    await getChatRpc().loadThread({
+    await rpc.loadThread({
       conversationIDKey,
       messageIDControl: {
         mode: T.RPCChat.MessageIDControlMode.centered,
@@ -138,7 +139,7 @@ const loadThreadPasses = async (
       pagination: null,
     })
   } else {
-    await getChatRpc().loadThread({
+    await rpc.loadThread({
       conversationIDKey,
       onCachedThread: onThread,
       onFullThread: onThread,
@@ -153,7 +154,7 @@ const loadConversationMessagesAroundMessageID = async (
   num = 20
 ) => {
   const messages = new Map<T.Chat.MessageID, T.Chat.Message>()
-  await loadThreadPasses(conversationIDKey, {around: messageID, num}, thread => {
+  await loadThreadPasses(getChatRpc(), conversationIDKey, {around: messageID, num}, thread => {
     parseThreadMessages(conversationIDKey, thread).forEach(message => {
       if (message.id) {
         messages.set(message.id, message)
@@ -178,10 +179,11 @@ const parseThreadMessageIDs = (thread: string) => {
 // ones that become thread rows. Rejects when the load does.
 export const loadConversationMessageIDs = async (
   conversationIDKey: T.Chat.ConversationIDKey,
-  request: MessagesRequest
+  request: MessagesRequest,
+  rpc: ChatThreadRpc = getChatRpc()
 ) => {
   const ids = new Set<T.Chat.MessageID>()
-  await loadThreadPasses(conversationIDKey, request, thread => {
+  await loadThreadPasses(rpc, conversationIDKey, request, thread => {
     parseThreadMessageIDs(thread).forEach(id => {
       if (id) {
         ids.add(id)

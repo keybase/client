@@ -6,6 +6,7 @@ import RPCError from '@/util/rpcerror'
 import logger from '@/logger'
 import {makeMessageText} from '@/constants/chat/message'
 import {getClientPrevFromThread} from './client-prev'
+import {getChatRpc, makeThreadChatRpc} from './chat-rpc'
 import {
   getExplodingModeFromGregorItems,
   getLastOrdinalFromSnapshot,
@@ -240,6 +241,7 @@ describe('a back page that adds no ordinals reloads itself', () => {
         loadConversationThreadMessages(conversationIDKey, p, actions)
       }),
       markThreadAsRead: jest.fn(),
+      rpc: getChatRpc(),
     } as unknown as ConversationThreadActions
     return actions
   }
@@ -415,6 +417,7 @@ describe('a back page that adds no ordinals reloads itself', () => {
           pendingOutboxToOrdinal: new Map(),
         }) as unknown as ConversationThreadState,
       markThreadAsRead: jest.fn(),
+      rpc: getChatRpc(),
     } as unknown as ConversationThreadActions
     const rpc = scriptLoadThread(async p => {
       calls++
@@ -468,6 +471,7 @@ describe('a load releases the window gate it was issued under', () => {
         }) as unknown as ConversationThreadState,
       loadMoreMessages: jest.fn(),
       markThreadAsRead: jest.fn(),
+      rpc: getChatRpc(),
     }) as unknown as ConversationThreadActions
 
   beforeEach(() => {
@@ -498,6 +502,15 @@ describe('a load releases the window gate it was issued under', () => {
 
     expect(rpc()).toEqual([])
     expect(actions.clearWindowGate).toHaveBeenCalledTimes(1)
+  })
+
+  test('a load for a thread that has retired asks the service nothing', async () => {
+    const rpc = scriptLoadThread()
+    const actions = {...gateActions(() => 3), rpc: makeThreadChatRpc(() => true)}
+    loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
+    await flushPromises()
+
+    expect(rpc()).toEqual([])
   })
 
   test('releases it when the load ends without ever applying', async () => {
@@ -572,6 +585,7 @@ describe('a load releases the window gate it was issued under', () => {
         }) as unknown as ConversationThreadState,
       loadMoreMessages: jest.fn(),
       markThreadAsRead: jest.fn(),
+      rpc: getChatRpc(),
     } as unknown as ConversationThreadActions
     scriptLoadThread(async p => {
       await Promise.resolve()
@@ -618,6 +632,7 @@ describe('a load releases the window gate it was issued under', () => {
         }) as unknown as ConversationThreadState,
       loadMoreMessages: jest.fn(),
       markThreadAsRead: jest.fn(),
+      rpc: getChatRpc(),
     } as unknown as ConversationThreadActions
     scriptLoadThread(async p => {
       await Promise.resolve()
@@ -688,6 +703,7 @@ describe('only a pass that can account for a whole window reconciles', () => {
         }) as unknown as ConversationThreadState,
       loadMoreMessages: jest.fn(),
       markThreadAsRead: jest.fn(),
+      rpc: getChatRpc(),
     }) as unknown as ConversationThreadActions
 
   const mockPasses = (cached: string, full: string) =>
@@ -764,6 +780,7 @@ describe('only a pass that can account for a whole window reconciles', () => {
         }) as unknown as ConversationThreadState,
       loadMoreMessages: jest.fn(),
       markThreadAsRead: jest.fn(),
+      rpc: getChatRpc(),
     } as unknown as ConversationThreadActions
     scriptLoadThread(async p => {
       await Promise.resolve()
@@ -838,21 +855,21 @@ describe('persistExplodingMode', () => {
   })
 
   test('a lifetime is stored as the gregor category body', async () => {
-    persistExplodingMode(conversationIDKey, meta(), 300)
+    persistExplodingMode(conversationIDKey, meta(), 300, getChatRpc())
     await flush()
     expect(chatRpc.calls('setExplodingMode')).toEqual([[conversationIDKey, 300]])
     expect(chatRpc.calls('clearExplodingMode')).toEqual([])
   })
 
   test('turning it off dismisses the category', async () => {
-    persistExplodingMode(conversationIDKey, meta(), 0)
+    persistExplodingMode(conversationIDKey, meta(), 0, getChatRpc())
     await flush()
     expect(chatRpc.calls('clearExplodingMode')).toEqual([[conversationIDKey]])
     expect(chatRpc.calls('setExplodingMode')).toEqual([])
   })
 
   test('a lifetime equal to the retention policy is the default, so it dismisses too', async () => {
-    persistExplodingMode(conversationIDKey, meta({seconds: 86400, type: 'explode'}), 86400)
+    persistExplodingMode(conversationIDKey, meta({seconds: 86400, type: 'explode'}), 86400, getChatRpc())
     await flush()
     expect(chatRpc.calls('clearExplodingMode')).toEqual([[conversationIDKey]])
     expect(chatRpc.calls('setExplodingMode')).toEqual([])
@@ -865,16 +882,24 @@ describe('persistExplodingMode', () => {
         ...meta({type: 'inherit'}),
         teamRetentionPolicy: Teams.makeRetentionPolicy({seconds: 3600, type: 'explode'}),
       },
-      3600
+      3600,
+      getChatRpc()
     )
     await flush()
     expect(chatRpc.calls('clearExplodingMode')).toEqual([[conversationIDKey]])
   })
 
+  test('a thread that has retired persists nothing', async () => {
+    persistExplodingMode(conversationIDKey, meta(), 300, makeThreadChatRpc(() => true))
+    persistExplodingMode(conversationIDKey, meta(), 0, makeThreadChatRpc(() => true))
+    await flush()
+    expect(chatRpc.log).toEqual([])
+  })
+
   test('a transient service error is logged and dropped', async () => {
     chatRpc.fail('setExplodingMode', new RPCError('offline', T.RPCGen.StatusCode.scapinetworkerror))
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
-    persistExplodingMode(conversationIDKey, meta(), 300)
+    persistExplodingMode(conversationIDKey, meta(), 300, getChatRpc())
     await flush()
     expect(error).toHaveBeenCalledTimes(1)
     expect(error).toHaveBeenCalledWith(expect.stringContaining('Failed to set exploding mode'))
@@ -883,7 +908,7 @@ describe('persistExplodingMode', () => {
   test('any other service error is logged and rethrown', async () => {
     chatRpc.fail('clearExplodingMode', new RPCError('bad', T.RPCGen.StatusCode.scgeneric))
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
-    persistExplodingMode(conversationIDKey, meta(), 0)
+    persistExplodingMode(conversationIDKey, meta(), 0, getChatRpc())
     await flush()
     expect(error).toHaveBeenCalledWith(expect.stringContaining('Failed to unset exploding mode'))
     expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(RPCError))
@@ -892,7 +917,7 @@ describe('persistExplodingMode', () => {
   test('a non-service error is rethrown without the service log', async () => {
     chatRpc.fail('setExplodingMode', new Error('bug'))
     const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
-    persistExplodingMode(conversationIDKey, meta(), 300)
+    persistExplodingMode(conversationIDKey, meta(), 300, getChatRpc())
     await flush()
     expect(error).toHaveBeenCalledTimes(1)
     expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(Error))

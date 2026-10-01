@@ -12,11 +12,24 @@ import logger from '@/logger'
 import {useBotSettings} from '../bot/settings'
 import {participantInfoReceived} from '@/chat/inbox/metadata'
 import {useConversationMetadata} from '../data-hooks'
-import {chatRpcCall} from '../chat-rpc'
+import {getChatRpc} from '../chat-rpc'
+import type {RPCError} from '@/util/errors'
 
 type AddToChannelProps = {
   conversationIDKey: T.Chat.ConversationIDKey
   username: string
+}
+
+const reloadParticipants = (conversationIDKey: T.Chat.ConversationIDKey) => {
+  getChatRpc()
+    .previewConversation(conversationIDKey)
+    .then(conv => {
+      participantInfoReceived(
+        conversationIDKey,
+        ChatCommon.uiParticipantsToParticipantInfo(conv.participants ?? [])
+      )
+    })
+    .catch(() => {})
 }
 
 const inThisChannelHeader = {type: 'bots: in this channel'} as const
@@ -47,8 +60,6 @@ const AddToChannel = (props: AddToChannelProps) => {
   // empty convs means the bot already reads every channel in the team; writing
   // [thisConv] over that would revoke the rest, not add one
   const readsAllChannels = !settings?.convs?.length
-  const editBotSettings = C.useRPC(chatRpcCall.setBotSettings)
-  const previewConversationByID = C.useRPC(chatRpcCall.previewConversation)
   return (
     <Kb.WaitingButton
       disabled={!settings || readsAllChannels}
@@ -64,25 +75,15 @@ const AddToChannel = (props: AddToChannelProps) => {
             convs: [conversationIDKey].concat(settings.convs ?? []),
             mentions: settings.mentions,
           }
-          editBotSettings(
-            [{conversationIDKey, settings: nextSettings, username, waitingKey: C.waitingKeyChatBotAdd}],
-            () => {
+          getChatRpc()
+            .setBotSettings({conversationIDKey, settings: nextSettings, username, waitingKey: C.waitingKeyChatBotAdd})
+            .then(() => {
               setSettings(nextSettings)
-              previewConversationByID(
-                [conversationIDKey],
-                conv => {
-                  participantInfoReceived(
-                    conversationIDKey,
-                    ChatCommon.uiParticipantsToParticipantInfo(conv.participants ?? [])
-                  )
-                },
-                () => {}
-              )
-            },
-            error => {
+              reloadParticipants(conversationIDKey)
+            })
+            .catch((error: RPCError) => {
               logger.info(`AddToChannel: failed to edit bot settings: ${error.message}`)
-            }
-          )
+            })
         }
       }}
       waitingKey={C.waitingKeyChatBotAdd}
@@ -217,7 +218,6 @@ const BotTab = (props: Props) => {
   const canManageBots = teamname ? yourOperations.manageBots : true
   const adhocTeam = teamType === 'adhoc'
   const {members: teamMembers, reload: reloadTeamMembers} = useChatTeamMembers(teamID)
-  const previewConversationByID = C.useRPC(chatRpcCall.previewConversation)
   const mutationWaiting = C.Waiting.useAnyWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
   const mutationError = C.Waiting.useAnyErrors([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
   const wasMutationWaitingRef = React.useRef(mutationWaiting)
@@ -234,22 +234,12 @@ const BotTab = (props: Props) => {
       return
     }
     repairedAdhocParticipantsRef.current = conversationIDKey
-    previewConversationByID(
-      [conversationIDKey],
-      conv => {
-        participantInfoReceived(
-          conversationIDKey,
-          ChatCommon.uiParticipantsToParticipantInfo(conv.participants ?? [])
-        )
-      },
-      () => {}
-    )
+    reloadParticipants(conversationIDKey)
   }, [
     adhocTeam,
     conversationIDKey,
     participantInfo.name.length,
     participantsAll.length,
-    previewConversationByID,
   ])
 
   React.useEffect(() => {
@@ -258,16 +248,7 @@ const BotTab = (props: Props) => {
     if (!mutationJustFinished || mutationError || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
       return
     }
-    previewConversationByID(
-      [conversationIDKey],
-      conv => {
-        participantInfoReceived(
-          conversationIDKey,
-          ChatCommon.uiParticipantsToParticipantInfo(conv.participants ?? [])
-        )
-      },
-      () => {}
-    )
+    reloadParticipants(conversationIDKey)
     if (!adhocTeam) {
       C.ignorePromise(reloadTeamMembers())
     }
@@ -276,7 +257,6 @@ const BotTab = (props: Props) => {
     conversationIDKey,
     mutationError,
     mutationWaiting,
-    previewConversationByID,
     reloadTeamMembers,
   ])
 
