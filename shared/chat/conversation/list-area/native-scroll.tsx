@@ -150,9 +150,11 @@ export const useNativeThreadScroll = (p: {
     listRef.current?.scrollToItem({animated, item, viewOffset: lift, viewPosition: 0.5})
   })
 
-  // The delayed scrolls of a centre or a reveal (coarse reasserts, the corrector's schedule,
-  // scroll-to-index retries), which stopping centring cancels.
+  // The delayed scrolls of a centre (coarse reasserts, the corrector's schedule, scroll-to-index
+  // retries), which stopping centring cancels.
   const [centring] = React.useState(makeSchedule)
+  // A reveal's scroll-to-index retries, which last as long as the scroll target holds the edit.
+  const [reveals] = React.useState(makeSchedule)
   // The delayed pins to the end (the first load's retry, the append re-pin), which stopping centring
   // leaves alone: each asks the scroll target again when it fires, so a reader who took the end in
   // between is left where they are. Both are stopped by the detached cleanup below, not by
@@ -199,14 +201,20 @@ export const useNativeThreadScroll = (p: {
   // The rows asked for by scrollToItem, each asked for by a centre or a reveal, with how many of its
   // failures have been retried: a row outside the rendered window makes the scroll fail, and the
   // retry asks for that same row again once more rows have rendered. A request lasts as long as what
-  // asked for it: a centre's ends when it settles, and every one ends when the reader takes over.
+  // asked for it: a centre's until it settles or centring stops, a reveal's while its edit is held.
   const itemScrollsRef = React.useRef(new Map<T.Chat.Ordinal, {kind: ItemScroll; retries: number}>())
   const [requestItem] = React.useState(() => (item: T.Chat.Ordinal, kind: ItemScroll) => {
     itemScrollsRef.current.set(item, {kind, retries: 0})
   })
+  const [holdsEdit] = React.useState(() => (item: T.Chat.Ordinal) => {
+    const {holdingEdit, lastEditing} = scrollTarget.state
+    return holdingEdit && lastEditing === item
+  })
   const [stopCentering] = React.useState(() => () => {
     correctRef.current.active = false
-    itemScrollsRef.current.clear()
+    itemScrollsRef.current.forEach((request, item) => {
+      if (request.kind === 'center' || !holdsEdit(item)) itemScrollsRef.current.delete(item)
+    })
     centring.stop()
   })
   const [settleCenter] = React.useState(() => () => {
@@ -432,9 +440,10 @@ export const useNativeThreadScroll = (p: {
     () => () => {
       if (initialRetryRef.current?.pending()) loadedConvRef.current = undefined
       pins.stop()
+      reveals.stop()
       dispatchRef.current({type: 'detached'})
     },
-    [pins]
+    [pins, reveals]
   )
 
   // Waits for more rows to render and asks for the failed row again, six times per request, while the
@@ -444,8 +453,9 @@ export const useNativeThreadScroll = (p: {
     const request = item === undefined ? undefined : itemScrollsRef.current.get(item)
     if (item === undefined || !request || request.retries > 5) return
     request.retries += 1
-    centring.after(200, () => {
-      if (itemScrollsRef.current.get(item) !== request) return
+    const reveal = request.kind === 'reveal'
+    ;(reveal ? reveals : centring).after(200, () => {
+      if (itemScrollsRef.current.get(item) !== request || (reveal && !holdsEdit(item))) return
       scrollToItem(item, request.kind)
     })
   })

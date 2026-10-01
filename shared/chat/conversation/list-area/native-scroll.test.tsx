@@ -22,11 +22,16 @@ const newestFirst = (from: number, to: number) => {
   return out
 }
 
-type Props = {centeredOrdinal: T.Chat.Ordinal | undefined; messageOrdinals: ReadonlyArray<T.Chat.Ordinal>}
+type Props = {
+  centeredOrdinal: T.Chat.Ordinal | undefined
+  editingOrdinal: T.Chat.Ordinal | undefined
+  messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
+}
 
 const mount = () => {
   const scrollToOffset = jest.fn()
-  const listRef: React.RefObject<NativeListRef | null> = {current: {scrollToItem: jest.fn(), scrollToOffset}}
+  const scrollToItem = jest.fn()
+  const listRef: React.RefObject<NativeListRef | null> = {current: {scrollToItem, scrollToOffset}}
   const wrapper = ({children}: {children: React.ReactNode}) => (
     <ComposerProvider
       bottomInset={0}
@@ -37,7 +42,7 @@ const mount = () => {
       {children}
     </ComposerProvider>
   )
-  const initialProps: Props = {centeredOrdinal: undefined, messageOrdinals: newestFirst(1, 60)}
+  const initialProps: Props = {centeredOrdinal: undefined, editingOrdinal: undefined, messageOrdinals: newestFirst(1, 60)}
   const hook = renderHook(
     (p: Props) =>
       useNativeThreadScroll({
@@ -45,7 +50,7 @@ const mount = () => {
         containsLatestMessage: true,
         conversationIDKey: T.Chat.stringToConversationIDKey('conv1'),
         datasetKey: 'conv1:0',
-        editingOrdinal: undefined,
+        editingOrdinal: p.editingOrdinal,
         isKeyboardVisible: true,
         listRef,
         loadOlder: () => {},
@@ -57,6 +62,9 @@ const mount = () => {
   let props = initialProps
   return {
     hook,
+    // Scrolls to the row, whatever for.
+    itemScrolls: (item: T.Chat.Ordinal) =>
+      scrollToItem.mock.calls.filter(([o]) => (o as {item: T.Chat.Ordinal}).item === item).length,
     // Pins to the end: the resting offset over the keyboard.
     pins: () => scrollToOffset.mock.calls.filter(([o]) => (o as {offset: number}).offset === keyboardOffset).length,
     set: (p: Partial<Props>) => {
@@ -111,4 +119,41 @@ test('a drag before a new message is re-pinned leaves the reader where they are'
   act(() => m.hook.result.current.onScrollBeginDrag())
   act(() => jest.advanceTimersByTime(10))
   expect(m.pins()).toBe(before)
+})
+
+test('a search hit closing while an edit reveal waits for its row leaves the reveal to retry', () => {
+  const m = mount()
+  act(() => jest.advanceTimersByTime(1000))
+  const hit = T.Chat.numberToOrdinal(30)
+  const edited = T.Chat.numberToOrdinal(5)
+  m.set({centeredOrdinal: hit})
+  m.set({editingOrdinal: edited})
+  expect(m.itemScrolls(edited)).toBe(1)
+  // The row is outside the rendered window, so the list fails the scroll and the reveal waits to retry.
+  act(() => m.hook.result.current.onScrollToIndexFailed({index: 60 - 5}))
+  m.set({centeredOrdinal: undefined})
+  act(() => jest.advanceTimersByTime(200))
+  expect(m.itemScrolls(edited)).toBe(2)
+})
+
+test('a drag while an edit reveal waits for its row drops the retry', () => {
+  const m = mount()
+  act(() => jest.advanceTimersByTime(1000))
+  const edited = T.Chat.numberToOrdinal(5)
+  m.set({editingOrdinal: edited})
+  act(() => m.hook.result.current.onScrollToIndexFailed({index: 60 - 5}))
+  act(() => m.hook.result.current.onScrollBeginDrag())
+  act(() => jest.advanceTimersByTime(200))
+  expect(m.itemScrolls(edited)).toBe(1)
+})
+
+test('ending the edit while its reveal waits for its row drops the retry', () => {
+  const m = mount()
+  act(() => jest.advanceTimersByTime(1000))
+  const edited = T.Chat.numberToOrdinal(5)
+  m.set({editingOrdinal: edited})
+  act(() => m.hook.result.current.onScrollToIndexFailed({index: 60 - 5}))
+  m.set({editingOrdinal: undefined})
+  act(() => jest.advanceTimersByTime(200))
+  expect(m.itemScrolls(edited)).toBe(1)
 })
