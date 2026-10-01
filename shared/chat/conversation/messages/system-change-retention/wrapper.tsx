@@ -5,7 +5,8 @@ import * as T from '@/constants/types'
 import * as dateFns from 'date-fns'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useChatTeam} from '../../team-hooks'
-import {useConversationShowInfoPanel, useThreadMeta} from '../../thread-context'
+import {useThreadMeta} from '../../thread-context'
+import {useConversationShowInfoPanel} from '../../thread-navigation'
 import {makeMessageWrapper} from '../wrapper/wrapper'
 
 type OwnProps = {message: T.Chat.MessageSystemChangeRetention}

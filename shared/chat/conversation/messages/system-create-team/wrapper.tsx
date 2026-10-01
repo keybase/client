@@ -6,7 +6,8 @@ import type * as T from '@/constants/types'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useChatTeam} from '../../team-hooks'
 import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
-import {useConversationShowInfoPanel, useThreadMeta} from '../../thread-context'
+import {useThreadMeta} from '../../thread-context'
+import {useConversationShowInfoPanel} from '../../thread-navigation'
 import {makeMessageWrapper} from '../wrapper/wrapper'
 
 type OwnProps = {message: T.Chat.MessageSystemCreateTeam}

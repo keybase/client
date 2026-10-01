@@ -5,7 +5,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 import {useConversationAttachmentActions} from '../../attachment-actions'
-import {useConversationThreadMessageActions} from '../../thread-context'
+import {toggleCollapse, useThreadMessageTarget} from '../../message-commands'
 
 type Props = {
   transferState: T.Chat.MessageAttachmentTransferState
@@ -15,6 +15,12 @@ type Props = {
 // this is a function of how much space is taken up by the rest of the elements
 export const maxWidth = isMobile ? Math.min(356, Kb.Styles.dimensionWidth - 70) : 356
 export const maxHeight = 320
+
+// an unsent audio has no playable file yet
+export const getAudioAttachmentURL = (message: T.Chat.MessageAttachment) =>
+  message.submitState !== 'pending' && message.submitState !== 'failed' && message.fileURL.length > 0
+    ? `${message.fileURL}&contentforce=true`
+    : ''
 
 export const messageAttachmentHasProgress = (transferState: T.Chat.MessageAttachmentTransferState) => {
   return !!transferState && transferState !== 'remoteUploading' && transferState !== 'mobileSaving'
@@ -300,9 +306,14 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
 }))
 
 const useCollapseAction = (ordinal: T.Chat.Ordinal) => {
-  const {toggleMessageCollapse} = useConversationThreadMessageActions()
+  const target = useThreadMessageTarget(ordinal)
+  // A row's ordinal is not its id (a message sent this session keeps its outbox ordinal), and a
+  // row still being sent has no id to collapse.
   const onCollapse = () => {
-    toggleMessageCollapse(T.Chat.numberToMessageID(T.Chat.ordinalToNumber(ordinal)), ordinal)
+    const messageID = target.thread.getSnapshot().messageMap.get(ordinal)?.id
+    if (messageID) {
+      toggleCollapse(target, messageID)
+    }
   }
   return onCollapse
 }

@@ -26,6 +26,7 @@
     "./chat/conversation/bot/team-picker.test.tsx",
     "./chat/conversation/fwd-msg.test.tsx",
     "./chat/conversation/info-panel/bot.test.tsx",
+    "./chat/conversation/info-panel/menu.test.tsx",
     "./chat/conversation/info-panel/settings/min-writer-role.test.tsx",
     "./chat/conversation/info-panel/settings/notifications.test.tsx",
     "./common-adapters/markdown/index.test.tsx",

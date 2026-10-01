@@ -5,11 +5,12 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import Normal from '.'
 import * as T from '@/constants/types'
 import {ThreadRefsProvider} from './context'
-import {OrangeLineContext, SetOrangeLineContext, useExplicitOrangeLineState} from '../orange-line-context'
+import {OrangeLineContext, useExplicitOrangeLineState} from '../orange-line-context'
 import {ChatTeamProvider} from '../team-hooks'
 import {ConversationCenterProvider} from '../center-context'
 import {ConversationInputProvider} from '../input-area/input-state'
 import {
+  useConversationThreadActions,
   useConversationThreadID,
   useConversationThreadSelector,
   useThreadMeta,
@@ -76,6 +77,8 @@ const useOrangeLine = (
     }
   }, [readMsgID])
 
+  const {isRetired, rpc} = useConversationThreadActions()
+  // the thread's rpc asks for no unread line once the thread retires; one that answers late is dropped
   const loadOrangeLine = React.useEffectEvent(
     (conversationIDKey: T.Chat.ConversationIDKey, readMsgID: T.Chat.MessageID) => {
       // Negative means we do not know the read position yet: an unlocalized conversation reads -1
@@ -90,15 +93,11 @@ const useOrangeLine = (
         return
       }
       const f = async () => {
-        const convID = T.Chat.keyToConversationID(conversationIDKey)
-        const unreadlineRes = await T.RPCChat.localGetUnreadlineRpcPromise({
-          convID,
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-          readMsgID,
-        })
-        const nextOrangeLine = T.Chat.numberToOrdinal(
-          unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
-        )
+        const unreadlineID = await rpc.getUnreadline(conversationIDKey, readMsgID)
+        if (isRetired()) {
+          return
+        }
+        const nextOrangeLine = T.Chat.numberToOrdinal(unreadlineID ?? 0)
         const currentKey = currentOrangeLineKeyRef.current
         if (currentKey.conversationIDKey !== conversationIDKey) {
           return
@@ -165,7 +164,7 @@ const useOrangeLine = (
     setOrangeLine(explicitOrangeLine.ordinal)
   }, [explicitOrangeLine, id])
 
-  return {orangeLine: getVisibleOrangeLine(orangeLineState, mobileAppState), setOrangeLine}
+  return getVisibleOrangeLine(orangeLineState, mobileAppState)
 }
 
 const useShowManageChannels = () => {
@@ -193,13 +192,9 @@ type OrangeLineProviderProps = React.PropsWithChildren<{
 
 const NormalOrangeLineProvider = (props: OrangeLineProviderProps) => {
   const {active, children, conversationIDKey, mobileAppState} = props
-  const {orangeLine, setOrangeLine} = useOrangeLine(conversationIDKey, active, mobileAppState)
+  const orangeLine = useOrangeLine(conversationIDKey, active, mobileAppState)
 
-  return (
-    <OrangeLineContext value={orangeLine}>
-      <SetOrangeLineContext value={setOrangeLine}>{children}</SetOrangeLineContext>
-    </OrangeLineContext>
-  )
+  return <OrangeLineContext value={orangeLine}>{children}</OrangeLineContext>
 }
 
 // Keyed on the conversation by its caller, so the peek runs in a useState initializer exactly

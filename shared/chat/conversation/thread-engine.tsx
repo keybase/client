@@ -4,13 +4,14 @@ import * as T from '@/constants/types'
 import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
 import {useEngineActionListener} from '@/engine/action-listener'
+import {useThreadNotifications, type ThreadNotification} from '@/chat/notification-registry'
 import {
   getCurrentUser,
   getExplodingModeFromGregorItems,
   getLastOrdinalFromSnapshot,
   getOrdinalForMessageIDInSnapshot,
 } from './thread-load'
-import type {ConversationThreadActions} from './thread-context'
+import type {ConversationThreadActions} from './thread-store'
 
 export const applyMessagesUpdatedToThread = (
   conversationIDKey: T.Chat.ConversationIDKey,
@@ -228,61 +229,94 @@ export const applyEphemeralPurgeToThread = (
   }
 }
 
+// Applies one notification about this thread's conversation to the thread.
+export const applyThreadNotification = (
+  id: T.Chat.ConversationIDKey,
+  notification: ThreadNotification,
+  threadActions: ConversationThreadActions
+) => {
+  switch (notification.type) {
+    case 'incomingMessage':
+      applyIncomingMessageToThread(id, notification.incomingMessage, threadActions)
+      return
+    case 'messagesUpdated':
+      applyMessagesUpdatedToThread(id, notification.messagesUpdated, threadActions)
+      return
+    case 'failedMessage':
+      applyFailedMessageToThread(id, notification.failedMessage, threadActions)
+      return
+    case 'reactionUpdate':
+      applyReactionUpdateToThread(notification.reactionUpdate, threadActions)
+      return
+    case 'expunge':
+      applyExpungeToThread(notification.expunge, threadActions)
+      return
+    case 'ephemeralPurge':
+      applyEphemeralPurgeToThread(notification.ephemeralPurge, threadActions)
+      return
+    case 'requestInfo': {
+      const {info, msgID} = notification
+      const requestInfo = Message.uiRequestInfoToChatRequestInfo(info)
+      if (!requestInfo) {
+        logger.error(
+          `got 'NotifyChat.ChatRequestInfo' with no valid requestInfo for convID ${id} messageID: ${msgID}. The local version may be absent or out of date.`
+        )
+        return
+      }
+      threadActions.receiveRequestInfo(T.Chat.numberToMessageID(msgID), requestInfo)
+      return
+    }
+    case 'paymentInfo': {
+      const {info, msgID} = notification
+      const paymentInfo = Message.uiPaymentInfoToChatPaymentInfo([info])
+      if (!paymentInfo) {
+        logger.error(
+          `got 'NotifyChat.ChatPaymentInfo' with no valid paymentInfo for convID ${id} messageID: ${msgID}. The local version may be absent or out of date.`
+        )
+        return
+      }
+      threadActions.receivePaymentInfo(T.Chat.numberToMessageID(msgID), paymentInfo)
+      return
+    }
+    case 'promptUnfurl':
+      threadActions.showUnfurlPrompt(T.Chat.numberToMessageID(notification.msgID), notification.domain)
+      return
+    case 'coinFlipStatuses':
+      threadActions.updateCoinFlipStatuses(notification.statuses)
+      return
+    case 'typing':
+      threadActions.setTyping(new Set(notification.typers?.map(typer => typer.username)))
+      return
+    case 'attachmentDownloadProgress':
+      threadActions.updateAttachmentDownloadProgress(
+        notification.msgID,
+        notification.bytesComplete,
+        notification.bytesTotal
+      )
+      return
+    case 'attachmentDownloadComplete':
+      threadActions.completeAttachmentDownload(notification.msgID)
+      return
+    case 'attachmentUploadProgress':
+      threadActions.updateAttachmentUploadProgress(
+        notification.outboxID,
+        notification.bytesComplete,
+        notification.bytesTotal
+      )
+      return
+    default:
+  }
+}
+
 export const useThreadEngineListeners = (
   id: T.Chat.ConversationIDKey,
   threadActions: ConversationThreadActions
 ): void => {
-  useEngineActionListener('chat.1.NotifyChat.NewChatActivity', action => {
-    const {activity} = action.payload.params
-    switch (activity.activityType) {
-      case T.RPCChat.ChatActivityType.incomingMessage: {
-        const {incomingMessage} = activity
-        const conversationIDKey = T.Chat.conversationIDToKey(incomingMessage.convID)
-        if (conversationIDKey === id) {
-          applyIncomingMessageToThread(conversationIDKey, incomingMessage, threadActions)
-        }
-        break
-      }
-      case T.RPCChat.ChatActivityType.messagesUpdated: {
-        const {messagesUpdated} = activity
-        const conversationIDKey = T.Chat.conversationIDToKey(messagesUpdated.convID)
-        if (conversationIDKey === id) {
-          applyMessagesUpdatedToThread(conversationIDKey, messagesUpdated, threadActions)
-        }
-        break
-      }
-      case T.RPCChat.ChatActivityType.failedMessage: {
-        const {failedMessage} = activity
-        applyFailedMessageToThread(id, failedMessage, threadActions)
-        break
-      }
-      case T.RPCChat.ChatActivityType.reactionUpdate: {
-        const {reactionUpdate} = activity
-        const conversationIDKey = T.Chat.conversationIDToKey(reactionUpdate.convID)
-        if (conversationIDKey === id) {
-          applyReactionUpdateToThread(reactionUpdate, threadActions)
-        }
-        break
-      }
-      case T.RPCChat.ChatActivityType.expunge: {
-        const {expunge} = activity
-        const conversationIDKey = T.Chat.conversationIDToKey(expunge.convID)
-        if (conversationIDKey === id) {
-          applyExpungeToThread(expunge, threadActions)
-        }
-        break
-      }
-      case T.RPCChat.ChatActivityType.ephemeralPurge: {
-        const {ephemeralPurge} = activity
-        const conversationIDKey = T.Chat.conversationIDToKey(ephemeralPurge.convID)
-        if (conversationIDKey === id) {
-          applyEphemeralPurgeToThread(ephemeralPurge, threadActions)
-        }
-        break
-      }
-      default:
-    }
+  useThreadNotifications(id, notification => {
+    applyThreadNotification(id, notification, threadActions)
   })
+  // gregor is not a chat notification; it reaches every listener on the engine bus, and a thread
+  // whose account has left ignores it like everything else
   useEngineActionListener('keybase.1.gregorUI.pushState', action => {
     const items = (action.payload.params.state.items ?? []).reduce<
       Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>
@@ -295,80 +329,6 @@ export const useThreadEngineListeners = (
     const seconds = getExplodingModeFromGregorItems(id, items)
     if (seconds !== undefined) {
       threadActions.setExplodingMode(seconds, true)
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatRequestInfo', action => {
-    const {convID, info, msgID} = action.payload.params
-    if (T.Chat.conversationIDToKey(convID) !== id) {
-      return
-    }
-    const requestInfo = Message.uiRequestInfoToChatRequestInfo(info)
-    if (!requestInfo) {
-      logger.error(
-        `got 'NotifyChat.ChatRequestInfo' with no valid requestInfo for convID ${id} messageID: ${msgID}. The local version may be absent or out of date.`
-      )
-      return
-    }
-    threadActions.receiveRequestInfo(T.Chat.numberToMessageID(msgID), requestInfo)
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatPaymentInfo', action => {
-    const {convID, info, msgID} = action.payload.params
-    if (T.Chat.conversationIDToKey(convID) !== id) {
-      return
-    }
-    const paymentInfo = Message.uiPaymentInfoToChatPaymentInfo([info])
-    if (!paymentInfo) {
-      logger.error(
-        `got 'NotifyChat.ChatPaymentInfo' with no valid paymentInfo for convID ${id} messageID: ${msgID}. The local version may be absent or out of date.`
-      )
-      return
-    }
-    threadActions.receivePaymentInfo(T.Chat.numberToMessageID(msgID), paymentInfo)
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatPromptUnfurl', action => {
-    const {convID, domain, msgID} = action.payload.params
-    if (T.Chat.conversationIDToKey(convID) !== id) {
-      return
-    }
-    threadActions.showUnfurlPrompt(T.Chat.numberToMessageID(msgID), domain)
-  })
-  useEngineActionListener('chat.1.chatUi.chatCoinFlipStatus', action => {
-    const statuses = action.payload.params.statuses?.filter(status => {
-      return T.Chat.stringToConversationIDKey(status.convID) === id
-    })
-    if (statuses?.length) {
-      threadActions.updateCoinFlipStatuses(statuses)
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatTypingUpdate', action => {
-    action.payload.params.typingUpdates?.forEach(update => {
-      if (T.Chat.conversationIDToKey(update.convID) === id) {
-        threadActions.setTyping(new Set(update.typers?.map(typer => typer.username)))
-      }
-    })
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatAttachmentDownloadProgress', action => {
-    const {bytesComplete, bytesTotal, convID, msgID} = action.payload.params
-    if (T.Chat.conversationIDToKey(convID) === id) {
-      threadActions.updateAttachmentDownloadProgress(msgID, bytesComplete, bytesTotal)
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatAttachmentDownloadComplete', action => {
-    const {convID, msgID} = action.payload.params
-    if (T.Chat.conversationIDToKey(convID) === id) {
-      threadActions.completeAttachmentDownload(msgID)
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatAttachmentUploadStart', action => {
-    const {convID, outboxID} = action.payload.params
-    if (T.Chat.conversationIDToKey(convID) === id) {
-      threadActions.updateAttachmentUploadProgress(outboxID)
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatAttachmentUploadProgress', action => {
-    const {bytesComplete, bytesTotal, convID, outboxID} = action.payload.params
-    if (T.Chat.conversationIDToKey(convID) === id) {
-      threadActions.updateAttachmentUploadProgress(outboxID, bytesComplete, bytesTotal)
     }
   })
 }

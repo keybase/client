@@ -1,13 +1,13 @@
 import * as C from '@/constants'
 import {zoomImage} from '@/constants/chat/helpers'
 import * as React from 'react'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useChatTeam} from './team-hooks'
 import {ZoomedImage} from './common'
 import {useConversationCenterActions} from './center-context'
-import {useConversationThreadID, useThreadMeta} from './thread-context'
+import {useConversationThreadID, useThreadMeta, useThreadRpc} from './thread-context'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 
@@ -23,6 +23,7 @@ const PinnedMessage = function PinnedMessage() {
     }))
   )
   const {centerOnMessage} = useConversationCenterActions()
+  const rpc = useThreadRpc()
   const you = useCurrentUserState(s => s.username)
   const {yourOperations} = useChatTeam(teamID, teamname)
   const unpinning = C.Waiting.useAnyWaiting(C.waitingKeyChatUnpin(conversationIDKey))
@@ -43,26 +44,21 @@ const PinnedMessage = function PinnedMessage() {
       centerOnMessage(messageID, 'flash')
     }
   }
+  const onIgnore = () => {
+    const f = async () => {
+      await rpc.ignorePinnedMessage(conversationIDKey)
+    }
+    C.ignorePromise(f())
+  }
   const onUnpin = () => {
     const f = async () => {
       try {
-        await T.RPCChat.localUnpinMessageRpcPromise(
-          {convID: T.Chat.keyToConversationID(conversationIDKey)},
-          C.waitingKeyChatUnpin(conversationIDKey)
-        )
+        await rpc.unpinMessage(conversationIDKey, C.waitingKeyChatUnpin(conversationIDKey))
       } catch (error) {
         if (error instanceof RPCError) {
           logger.error(`pinMessage: ${error.message}`)
         }
       }
-    }
-    C.ignorePromise(f())
-  }
-  const onIgnore = () => {
-    const f = async () => {
-      await T.RPCChat.localIgnorePinnedMessageRpcPromise({
-        convID: T.Chat.keyToConversationID(conversationIDKey),
-      })
     }
     C.ignorePromise(f())
   }

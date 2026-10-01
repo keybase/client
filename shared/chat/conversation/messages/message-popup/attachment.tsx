@@ -10,12 +10,8 @@ import {
   useConversationAttachmentActions,
 } from '../../attachment-actions'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
-import {
-  showConversationInfoPanel,
-  useConversationThreadID,
-  useConversationThreadMessage,
-  useThreadMeta,
-} from '../../thread-context'
+import {useConversationThreadID, useConversationThreadMessage, useThreadMeta} from '../../thread-context'
+import {showConversationInfoPanel} from '../../thread-navigation'
 import {useConversationMetadata, useConversationParticipants} from '../../data-hooks'
 import {useRoute} from '@react-navigation/native'
 import type {MessagePopupItems} from './hooks'

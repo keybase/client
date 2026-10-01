@@ -9,7 +9,8 @@ import {
   uploadAttachments,
   uploadAttachmentsFromDragAndDrop,
 } from './attachment-actions'
-import {getConversationClientPrev, useConversationExplodingMode, useConversationMeta} from './data-hooks'
+import {getConversationClientPrev} from './client-prev'
+import {useConversationExplodingMode, useConversationMeta} from './data-hooks'
 import AttachmentTrim from './attachment-trim'
 import {isKbfsPath} from './attachment-path'
 import {canEdit, canProcess, isEditNoop, isVideoPath, processPaths, type VideoEdit} from '@/util/media-process'
