@@ -17,6 +17,7 @@ import {
   useConversationThreadStore,
 } from './thread-context'
 import {registerExternalResetter} from '@/util/zustand'
+import {getAccountGeneration} from '@/engine/account-generation'
 import {getChatRpc, type ChatThreadRpc} from './chat-rpc'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
@@ -141,7 +142,14 @@ export const uploadAttachments = (p: {
     // A failure skips one attachment and keeps going so the rest of the batch still lands, but the
     // caller is fire-and-forget: without this the user gets a silently short upload.
     let failed = 0
+    // A switch cancels the post in flight, and a post started after it would be the next
+    // account's, so the batch stops at a switch.
+    const generation = getAccountGeneration()
     for (const [idx, pathInfo] of paths.entries()) {
+      if (getAccountGeneration() !== generation) {
+        logger.info(`attachmentsUpload: account changed, dropping ${paths.length - idx} remaining`)
+        return
+      }
       try {
         await getChatRpc().postAttachment({
           clientPrev,
@@ -182,6 +190,8 @@ export const uploadAttachmentsFromDragAndDrop = (p: {
 }) => {
   const f = async () => {
     if (isDarwin && darwinCopyToChatTempUploadFile) {
+      // the copy can outlast an account switch; the drop belongs to the account it was made in
+      const generation = getAccountGeneration()
       const copiedPaths = await Promise.all(
         p.paths.map(async pathInfo => {
           const outboxID = Common.generateOutboxID()
@@ -190,6 +200,10 @@ export const uploadAttachmentsFromDragAndDrop = (p: {
           return {outboxID, path: dst}
         })
       )
+      if (getAccountGeneration() !== generation) {
+        logger.info('uploadAttachmentsFromDragAndDrop: account changed, posting nothing')
+        return
+      }
       uploadAttachments({...p, paths: copiedPaths})
     } else {
       uploadAttachments(p)

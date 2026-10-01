@@ -10,8 +10,10 @@ import {
   uploadAttachmentsFromDragAndDrop,
 } from './attachment-actions'
 import {getConversationClientPrev} from './client-prev'
+import {getAccountGeneration} from '@/engine/account-generation'
 import {useConversationExplodingMode, useConversationMeta} from './data-hooks'
 import AttachmentTrim from './attachment-trim'
+import logger from '@/logger'
 import {isKbfsPath} from './attachment-path'
 import {canEdit, canProcess, isEditNoop, isVideoPath, processPaths, type VideoEdit} from '@/util/media-process'
 
@@ -82,12 +84,17 @@ const ContainerInner = (ownProps: OwnProps) => {
   // The modal's Cancel and swipe-to-dismiss stay live during a multi-second export,
   // so a dismissed screen must not go on to upload or navigate when it finishes.
   const unmountedRef = React.useRef(false)
+  // The screen belongs to the account it opened for. A switch can leave it mounted for a moment,
+  // and an export can outlast one; either way it sends nothing for the next account.
+  const generationRef = React.useRef(0)
   React.useEffect(() => {
     unmountedRef.current = false
+    generationRef.current = getAccountGeneration()
     return () => {
       unmountedRef.current = true
     }
   }, [])
+  const accountChanged = () => getAccountGeneration() !== generationRef.current
   // Send awaits this instead of racing it: a fast tap must not apply the
   // default policy when the user has chosen "Keep full size". A failed lookup
   // resolves to true so we never quietly upload originals either.
@@ -118,6 +125,10 @@ const ContainerInner = (ownProps: OwnProps) => {
     submittingRef.current = true
     setError(undefined)
     const upload = (paths: Array<T.Chat.PathAndOutboxID>) => {
+      if (accountChanged()) {
+        logger.info('attachment titles: account changed, sending nothing')
+        return
+      }
       const uploadArgs = {
         clientPrev,
         conversationIDKey,
@@ -152,7 +163,7 @@ const ContainerInner = (ownProps: OwnProps) => {
     const isUnmounted = () => unmountedRef.current
     const f = async () => {
       const compress = (await compressPrefRef.current) ?? true
-      if (isUnmounted()) {
+      if (isUnmounted() || accountChanged()) {
         return
       }
       // Only local media can be handed to the native processor: kbfs paths aren't

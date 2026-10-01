@@ -163,6 +163,15 @@ test('signing out drops messages waiting in the handoff mailboxes', () => {
 
 const convKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
+// a switch from the signed-in account to the next one, as the config store runs it
+const switchAccount = () =>
+  act(() => {
+    const {dispatch} = useConfigState.getState()
+    dispatch.setLoggedIn(true)
+    dispatch.setUserSwitching(true, 'testuser2')
+    dispatch.setUserSwitching(false)
+  })
+
 const flushPromises = async () => {
   for (let i = 0; i < 10; i++) {
     await Promise.resolve()
@@ -235,6 +244,19 @@ describe('uploadAttachments', () => {
       tlfName: 'testuser,testuser-mac',
       ...over,
     })
+
+  test('a switch mid-batch posts none of the remaining files for the next account', async () => {
+    const first = Promise.withResolvers<undefined>()
+    rpc.once('postAttachment', async () => first.promise)
+    upload()
+    await flushPromises()
+    expect(rpc.calls('postAttachment')).toHaveLength(1)
+    switchAccount()
+    first.reject(new RPCError('The account changed during this call', T.RPCGen.StatusCode.sccanceled))
+    await flushPromises()
+    expect(rpc.calls('postAttachment')).toHaveLength(1)
+    expect(useConfigState.getState().globalError).toBeUndefined()
+  })
 
   test('posts each file with its title, outbox id and the shared clientPrev', async () => {
     upload()
@@ -324,6 +346,43 @@ describe('uploadAttachmentsFromDragAndDrop', () => {
     expect(rpc.params('postAttachment')[0]).toEqual(
       expect.objectContaining({filename: '/dropped.png', outboxID: new Uint8Array([5]), title: 't'})
     )
+  })
+
+  test('on darwin a copy that finishes after an account switch posts nothing for the next account', async () => {
+    const preload = (globalThis as unknown as {_fromPreload: {functions: Record<string, unknown>}})._fromPreload
+    const copied = Promise.withResolvers<undefined>()
+    const copy = jest.fn(async () => copied.promise)
+    preload.functions['darwinCopyToChatTempUploadFile'] = copy
+    try {
+      await jest.isolateModulesAsync(async () => {
+        const IsolatedFake = await import('@/test/fake-chat-rpc')
+        const IsolatedGeneration = await import('@/engine/account-generation')
+        const Isolated = await import('./attachment-actions')
+        const isolatedRpc = IsolatedFake.installFakeChatRpc()
+        isolatedRpc.on('getUploadTempFile', () => '/service/tmp/dropped.png')
+        Isolated.uploadAttachmentsFromDragAndDrop({
+          clientPrev: T.Chat.numberToMessageID(1),
+          conversationIDKey: convKey,
+          ephemeralLifetime: 0,
+          paths: [{outboxID: new Uint8Array([5]), path: '/dropped.png'}],
+          titles: ['t'],
+          tlfName: 'testuser',
+        })
+        await flushPromises()
+        expect(copy).toHaveBeenCalled()
+        // what a switch does first, before its store reset (which isolated stores can't run)
+        IsolatedGeneration.startNewAccountGeneration()
+        copied.resolve(undefined)
+        await flushPromises()
+        try {
+          expect(isolatedRpc.calls('postAttachment')).toEqual([])
+        } finally {
+          IsolatedFake.restoreChatRpc()
+        }
+      })
+    } finally {
+      delete preload.functions['darwinCopyToChatTempUploadFile']
+    }
   })
 
   test('on darwin each drop is copied into a service temp file under a fresh outbox id first', async () => {
