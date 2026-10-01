@@ -54,6 +54,7 @@ import {
   sampleThreadWhile,
   summary,
   tapStatusBar,
+  threadListPrelude,
   viewport,
   waitForRow,
   waitForThreadStable,
@@ -1003,51 +1004,54 @@ it('chat scroll: mark unread shows the catch-up pill, which centres the unread m
 // the app from the moment the thread's list appears.
 it('chat scroll: a thread whose first page draws too little to scroll loads older pages by itself', async () => {
   const convID = data.convIDs[E2E_CHANNELS.sparse]
-  await jsEval(`
+  await jsEval(`${threadListPrelude}
     const g = globalThis
     if (g.__e2eOpenWatch) clearInterval(g.__e2eOpenWatch)
     g.__e2eOpenSamples = []
+    g.__e2eOpenError = undefined
     const started = Date.now()
     g.__e2eOpenWatch = setInterval(() => {
       if (Date.now() - started > 20000) { clearInterval(g.__e2eOpenWatch); return }
-      const hook = g.__REACT_DEVTOOLS_GLOBAL_HOOK__
-      let root
-      for (const r of hook.getFiberRoots(1)) root = r
-      let fiber
-      const stack = [root.current]
-      while (stack.length && !fiber) {
-        const f = stack.pop()
-        if (f.key === ${JSON.stringify(convID)} && f.memoizedProps && f.memoizedProps.testID === ${JSON.stringify(T.CHAT_MESSAGE_LIST)} && f.stateNode && f.stateNode._listRef) fiber = f
-        if (f.sibling) stack.push(f.sibling)
-        if (f.child) stack.push(f.child)
+      // a throw here would land in the app's error overlay every tick: keep it for the read below
+      try {
+        const fiber = e2eThreadList(${JSON.stringify(convID)})
+        if (!fiber) return
+        const list = e2eListInternals(fiber.stateNode._listRef)
+        const data = fiber.memoizedProps.data || []
+        g.__e2eOpenSamples.push({
+          content: Math.round(list.contentLength()),
+          offset: Math.round(list.offset()),
+          rows: data.length,
+          t: Date.now() - started,
+          view: Math.round(list.view().height),
+        })
+      } catch (e) {
+        g.__e2eOpenError = String((e && e.message) || e)
+        clearInterval(g.__e2eOpenWatch)
       }
-      const list = fiber && fiber.stateNode._listRef
-      if (!list) return
-      const data = fiber.memoizedProps.data || []
-      g.__e2eOpenSamples.push({
-        content: Math.round(list._listMetrics._contentLength),
-        offset: Math.round(list._scrollMetrics.offset),
-        rows: data.length,
-        t: Date.now() - started,
-        view: Math.round(list._scrollRef.getBoundingClientRect().height),
-      })
     }, 50)
     return true
   `)
   let samples: Array<{content: number; offset: number; rows: number; t: number; view: number}> = []
+  let watchError: string | null | undefined
   try {
     await openConversation(convID)
     await waitForRow(sparseMarker(1), 20_000)
     await browser.pause(500)
   } finally {
-    samples = await jsEval(`
+    const read = await jsEval<{error: string | null; samples: typeof samples}>(`
       const g = globalThis
       clearInterval(g.__e2eOpenWatch)
       const s = g.__e2eOpenSamples || []
+      const error = g.__e2eOpenError || null
       g.__e2eOpenSamples = undefined
-      return s
+      g.__e2eOpenError = undefined
+      return {error, samples: s}
     `)
+    watchError = read.error
+    samples = read.samples
   }
+  if (watchError) throw new Error(`the open watch stopped: ${watchError}`)
   const first = samples.find(x => x.rows > 0 && x.content > 0)
   const changes = samples.filter((x, i) => i === 0 || x.rows !== samples[i - 1]!.rows || x.offset !== samples[i - 1]!.offset)
   console.log(`sparse thread, each change (ms: rows, content/view, offset): ${changes.map(x => `${x.t}: ${x.rows}, ${x.content}/${x.view}, ${x.offset}`).join('; ')}`)

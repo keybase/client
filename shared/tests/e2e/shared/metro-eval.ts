@@ -8,7 +8,7 @@ export type InspectorPage = {appId?: string; deviceName?: string; title?: string
 
 type EvalResponse = {
   id: number
-  result?: {result?: {value?: unknown}; exceptionDetails?: {text?: string}}
+  result?: {result?: {value?: unknown}; exceptionDetails?: {exception?: {description?: string}; text?: string}}
 }
 
 // Metro keeps a page per JS runtime the device has started; the newest is last.
@@ -67,7 +67,9 @@ export const evalInPage = async <R>(page: InspectorPage, body: string): Promise<
         if (m.id !== 1) return
         clearTimeout(timer)
         if (m.result?.exceptionDetails) {
-          reject(new Error(`app evaluate threw: ${m.result.exceptionDetails.text ?? 'unknown'}`))
+          // text can be just "Uncaught"; the thrown error's message is in its description
+          const {exception, text} = m.result.exceptionDetails
+          reject(new Error(`app evaluate threw: ${[text, exception?.description].filter(Boolean).join(': ') || 'unknown'}`))
         } else {
           resolve(m.result?.result?.value as R)
         }

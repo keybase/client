@@ -51,40 +51,96 @@ export type ThreadReading = {
   keyboardTop?: number
 }
 
-// Finds the thread list of the conversation on screen and reads it. The list is keyed by its
-// conversation, and a conversation pushed under another stays mounted, so the visible screen's
-// conversation picks it.
-const readThreadBody = `
-  const screen = kbModule('constants/router.tsx').getVisibleScreen()
-  const convID = screen && screen.params && screen.params.conversationIDKey
+// In-app functions the thread readers share. They reach React's fiber tree (as React DevTools does)
+// and VirtualizedList's private fields, neither of which is an API: each lookup checks what it
+// relies on and throws naming it, so a React Native upgrade or an app refactor that moves them fails
+// here, clearly, rather than reading undefined.
+//
+// e2eThreadList(convID): the thread FlatList's fiber for the conversation, or null while none is
+// mounted. The list is keyed by its conversation, and a conversation pushed under another stays
+// mounted, so the conversation picks it.
+// e2eListInternals(list): the VirtualizedList (FlatList's _listRef) fields the readers use.
+// e2eThreadContexts(fiber): the conversation's centre context value and thread store, from the
+// providers above its list.
+export const threadListPrelude = `
+  const e2eFail = what => { throw new Error('e2e thread reader: ' + what + ' (React Native or app internals changed?)') }
+  const e2eVisibleConvID = () => {
+    const screen = kbModule('constants/router.tsx').getVisibleScreen()
+    return (screen && screen.params && screen.params.conversationIDKey) || null
+  }
+  const e2eThreadList = convID => {
+    const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
+    if (!hook || typeof hook.getFiberRoots !== 'function') e2eFail('no __REACT_DEVTOOLS_GLOBAL_HOOK__.getFiberRoots')
+    let root
+    for (const r of hook.getFiberRoots(1)) root = r
+    if (!root || !root.current) e2eFail('no React root fiber')
+    let keyed
+    const stack = [root.current]
+    while (stack.length) {
+      const f = stack.pop()
+      if (f.key === convID && f.memoizedProps && f.memoizedProps.testID === ${JSON.stringify(T.CHAT_MESSAGE_LIST)}) {
+        if (f.stateNode && f.stateNode._listRef) return f
+        keyed = f
+      }
+      if (f.sibling) stack.push(f.sibling)
+      if (f.child) stack.push(f.child)
+    }
+    if (keyed) e2eFail('the thread list is mounted but no fiber of it has a FlatList instance with _listRef')
+    return null
+  }
+  const e2eListInternals = list => {
+    if (!list) e2eFail('FlatList._listRef is missing')
+    const scrollRef = list._scrollRef
+    if (!scrollRef || typeof scrollRef.getBoundingClientRect !== 'function') e2eFail('VirtualizedList._scrollRef.getBoundingClientRect is missing')
+    if (!list._scrollMetrics || typeof list._scrollMetrics.offset !== 'number') e2eFail('VirtualizedList._scrollMetrics.offset is missing')
+    const metrics = list._listMetrics
+    if (!metrics || !(metrics._cellMetrics instanceof Map) || !('_contentLength' in metrics)) {
+      e2eFail('VirtualizedList._listMetrics._cellMetrics / _contentLength are missing')
+    }
+    return {
+      // a cell's measured offset (from the list's start) and length, and whether it is rendered
+      cell: ordinal => {
+        const m = metrics._cellMetrics.get(String(ordinal))
+        if (m && (typeof m.offset !== 'number' || typeof m.length !== 'number' || typeof m.isMounted !== 'boolean')) {
+          e2eFail('a VirtualizedList cell metric lacks offset / length / isMounted')
+        }
+        return m
+      },
+      contentLength: () => metrics._contentLength,
+      offset: () => list._scrollMetrics.offset,
+      view: () => scrollRef.getBoundingClientRect(),
+    }
+  }
+  const e2eThreadContexts = fiber => {
+    let center, store
+    for (let p = fiber.return; p && !(center && store); p = p.return) {
+      const v = p.memoizedProps && p.memoizedProps.value
+      if (!v || typeof v !== 'object') continue
+      if (!center && 'centeredOrdinal' in v && typeof v.hasCenter === 'boolean') center = v
+      if (!store && typeof v.getState === 'function' && v.getState().messageMap instanceof Map) store = v
+    }
+    if (!center) e2eFail('no conversation centre context (a provider value with centeredOrdinal and hasCenter) above the thread list')
+    if (!store) e2eFail('no thread store (a provider value whose state has a messageMap Map) above the thread list')
+    return {center, store}
+  }
+`
+
+// Reads the thread list of the conversation on screen, or null while none is mounted.
+const readThreadBody = `${threadListPrelude}
+  const convID = e2eVisibleConvID()
   if (!convID) return null
-  const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
-  let root
-  for (const r of hook.getFiberRoots(1)) root = r
-  let fiber
-  const stack = [root.current]
-  while (stack.length && !fiber) {
-    const f = stack.pop()
-    if (f.key === convID && f.memoizedProps && f.memoizedProps.testID === ${JSON.stringify(T.CHAT_MESSAGE_LIST)} && f.stateNode && f.stateNode._listRef) fiber = f
-    if (f.sibling) stack.push(f.sibling)
-    if (f.child) stack.push(f.child)
-  }
+  const fiber = e2eThreadList(convID)
   if (!fiber) return null
-  const list = fiber.stateNode._listRef
-  const view = list._scrollRef.getBoundingClientRect()
-  const offset = list._scrollMetrics.offset
+  const list = e2eListInternals(fiber.stateNode._listRef)
+  const view = list.view()
+  const offset = list.offset()
   const newestFirst = fiber.memoizedProps.data
-  let center, store
-  for (let p = fiber.return; p && !(center && store); p = p.return) {
-    const v = p.memoizedProps && p.memoizedProps.value
-    if (!v || typeof v !== 'object') continue
-    if (!center && 'centeredOrdinal' in v) center = v
-    if (!store && typeof v.getState === 'function' && v.getState().messageMap instanceof Map) store = v
-  }
+  if (!Array.isArray(newestFirst)) e2eFail('the thread FlatList has no data array')
+  const {center, store} = e2eThreadContexts(fiber)
   const st = store.getState()
   const rows = []
   for (const ordinal of newestFirst) {
-    const m = list._listMetrics._cellMetrics.get(String(ordinal))
+    const m = list.cell(ordinal)
     // a cell out of the rendered window keeps its last metrics, which a reload makes stale
     if (!m || !m.isMounted) continue
     // the list is inverted: a row's offset runs up from the viewport's bottom edge
@@ -94,7 +150,7 @@ const readThreadBody = `
   rows.reverse()
   const kb = kbModule('node_modules/react-native/index.js').Keyboard.metrics()
   return {
-    centeredOrdinal: center ? center.centeredOrdinal : undefined,
+    centeredOrdinal: center.centeredOrdinal,
     convID,
     keyboardTop: kb && kb.height > 0 ? kb.screenY : undefined,
     listBottom: view.y + view.height,
@@ -119,57 +175,60 @@ export type ThreadSample = {count: number; height: number; offset: number; rows:
 // Starts sampling the open thread every 16ms inside the app (a round trip through Metro takes longer
 // than a frame). It finds the list once, then reads only its scroll metrics each tick.
 const startThreadSampler = async () => {
-  const ok = await jsEval<boolean>(`
+  const ok = await jsEval<boolean>(`${threadListPrelude}
     const g = globalThis
     if (g.__e2eSampler) clearInterval(g.__e2eSampler)
-    const screen = kbModule('constants/router.tsx').getVisibleScreen()
-    const convID = screen && screen.params && screen.params.conversationIDKey
-    const hook = g.__REACT_DEVTOOLS_GLOBAL_HOOK__
-    let root
-    for (const r of hook.getFiberRoots(1)) root = r
-    let fiber
-    const stack = [root.current]
-    while (stack.length && !fiber) {
-      const f = stack.pop()
-      if (f.key === convID && f.memoizedProps && f.memoizedProps.testID === ${JSON.stringify(T.CHAT_MESSAGE_LIST)} && f.stateNode && f.stateNode._listRef) fiber = f
-      if (f.sibling) stack.push(f.sibling)
-      if (f.child) stack.push(f.child)
-    }
+    const convID = e2eVisibleConvID()
+    const fiber = convID && e2eThreadList(convID)
     if (!fiber) return false
     const inst = fiber.stateNode
+    e2eListInternals(inst._listRef)
     const now = g.nativePerformanceNow ? () => g.nativePerformanceNow() : () => Date.now()
     g.__e2eSamples = []
+    g.__e2eSamplerError = undefined
     g.__e2eSampler = setInterval(() => {
-      const list = inst._listRef
-      if (!list) return
-      const view = list._scrollRef.getBoundingClientRect()
-      const offset = list._scrollMetrics.offset
-      const data = inst.props.data || []
-      const rows = []
-      for (const ordinal of data) {
-        const m = list._listMetrics._cellMetrics.get(String(ordinal))
-        if (!m || !m.isMounted) continue
-        const bottom = view.y + view.height - (m.offset - offset)
-        // rows well outside the view only make the samples bigger
-        if (bottom < view.y - 200 || bottom - m.length > view.y + view.height + 200) continue
-        rows.push([ordinal, Math.round((bottom - m.length) * 10) / 10])
+      // gone once the list unmounts
+      if (!inst._listRef) return
+      // a throw here would land in the app's error overlay every tick: keep it for stopThreadSampler
+      try {
+        const list = e2eListInternals(inst._listRef)
+        const view = list.view()
+        const offset = list.offset()
+        const data = inst.props.data || []
+        const rows = []
+        for (const ordinal of data) {
+          const m = list.cell(ordinal)
+          if (!m || !m.isMounted) continue
+          const bottom = view.y + view.height - (m.offset - offset)
+          // rows well outside the view only make the samples bigger
+          if (bottom < view.y - 200 || bottom - m.length > view.y + view.height + 200) continue
+          rows.push([ordinal, Math.round((bottom - m.length) * 10) / 10])
+        }
+        g.__e2eSamples.push({count: data.length, height: view.height, offset, rows, t: now()})
+      } catch (e) {
+        g.__e2eSamplerError = String((e && e.message) || e)
+        clearInterval(g.__e2eSampler)
       }
-      g.__e2eSamples.push({count: data.length, height: view.height, offset, rows, t: now()})
     }, 16)
     return true
   `)
   if (!ok) throw new Error('no thread list on screen to sample')
 }
 
-const stopThreadSampler = async () =>
-  jsEval<Array<ThreadSample>>(`
+const stopThreadSampler = async () => {
+  const {error, samples} = await jsEval<{error: string | null; samples: Array<ThreadSample>}>(`
     const g = globalThis
     if (g.__e2eSampler) clearInterval(g.__e2eSampler)
     g.__e2eSampler = undefined
     const s = g.__e2eSamples || []
+    const error = g.__e2eSamplerError || null
     g.__e2eSamples = undefined
-    return s
+    g.__e2eSamplerError = undefined
+    return {error, samples: s}
   `)
+  if (error) throw new Error(`the thread sampler stopped: ${error}`)
+  return samples
+}
 
 // Samples the thread while `body` runs, and returns the samples.
 export const sampleThreadWhile = async (body: () => Promise<unknown>) => {
@@ -191,26 +250,12 @@ export const requireThread = async () => {
   return t
 }
 
-// The visible conversation's thread store (from the provider above its list), as `st`.
-const threadStoreBody = `
-  const screen = kbModule('constants/router.tsx').getVisibleScreen()
-  const convID = screen && screen.params && screen.params.conversationIDKey
-  const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
-  let root
-  for (const r of hook.getFiberRoots(1)) root = r
-  let store
-  const stack = [root.current]
-  while (stack.length && !store) {
-    const f = stack.pop()
-    if (f.key === convID && f.memoizedProps && f.memoizedProps.testID === ${JSON.stringify(T.CHAT_MESSAGE_LIST)}) {
-      for (let p = f.return; p && !store; p = p.return) {
-        const v = p.memoizedProps && p.memoizedProps.value
-        if (v && typeof v === 'object' && typeof v.getState === 'function' && v.getState().messageMap instanceof Map) store = v
-      }
-    }
-    if (f.sibling) stack.push(f.sibling)
-    if (f.child) stack.push(f.child)
-  }
+// The visible conversation's thread store (from the provider above its list), as `store` and `st`;
+// both undefined while no thread list is mounted.
+const threadStoreBody = `${threadListPrelude}
+  const convID = e2eVisibleConvID()
+  const listFiber = convID ? e2eThreadList(convID) : null
+  const store = listFiber ? e2eThreadContexts(listFiber).store : undefined
   const st = store && store.getState()
   const bodyOf = m => (m.text && m.text.stringValue ? m.text.stringValue() : '') + ' ' + (m.title || '')
 `
@@ -819,20 +864,9 @@ export const unreadCount = async (convID: string) =>
 // The ordinals the thread draws an orange line above (read off the rendered separators: the line's
 // box, keyed "orangeLine", sits in the separator for the message below it).
 export const orangeLineOrdinals = async () =>
-  jsEval<Array<number>>(`
-    const screen = kbModule('constants/router.tsx').getVisibleScreen()
-    const convID = screen && screen.params && screen.params.conversationIDKey
-    const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
-    let root
-    for (const r of hook.getFiberRoots(1)) root = r
-    let list
-    const stack = [root.current]
-    while (stack.length && !list) {
-      const f = stack.pop()
-      if (f.key === convID && f.memoizedProps && f.memoizedProps.testID === ${JSON.stringify(T.CHAT_MESSAGE_LIST)}) list = f
-      if (f.sibling) stack.push(f.sibling)
-      if (f.child) stack.push(f.child)
-    }
+  jsEval<Array<number>>(`${threadListPrelude}
+    const convID = e2eVisibleConvID()
+    const list = convID && e2eThreadList(convID)
     if (!list) return []
     const out = []
     const inner = [list.child]
