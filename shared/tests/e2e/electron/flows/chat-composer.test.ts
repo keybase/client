@@ -36,6 +36,9 @@ import {cliWhoami} from '@/tests/e2e/shared/cli-account'
 import {findChannelOwner, switchAttachedApp} from '@/tests/e2e/shared/incoming-sender'
 import * as T from '@/tests/e2e/shared/test-ids'
 
+// no retries: a retry would let an intermittent race pass
+test.describe.configure({retries: 0})
+
 let data: ChatData
 
 test.beforeAll(async () => {

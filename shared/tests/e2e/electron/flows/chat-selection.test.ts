@@ -38,6 +38,9 @@ const unjoinedPrefix = 'e2e-nojoin'
 // Known console noise across an account switch (see chat-data.test.ts's account switch flows).
 const notFromTheMove = [/refreshAccounts|ignorePromise error/, /getUsernameToShow: message with no author/]
 
+// no retries: a retry would let an intermittent race pass
+test.describe.configure({retries: 0})
+
 let data: ChatData
 // set once the attached app is the owner, for afterAll to hand it back
 let ownerAttached = false

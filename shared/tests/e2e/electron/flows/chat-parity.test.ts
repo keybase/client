@@ -18,6 +18,9 @@ import {
 import {E2E_CHANNELS, ensureChatData, type ChatData} from '@/tests/e2e/shared/chat-data'
 import * as T from '@/tests/e2e/shared/test-ids'
 
+// no retries: a retry would let an intermittent race pass
+test.describe.configure({retries: 0})
+
 let data: ChatData
 
 test.beforeAll(async () => {
