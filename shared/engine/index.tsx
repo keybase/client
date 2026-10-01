@@ -1,19 +1,32 @@
 // Handles sending requests to the daemon
 import Session, {type CancelHandlerType} from './session'
-import engineListener from './listener'
+import {makeListen} from './listener'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
 import type {SessionID, MethodKey, WaitingKey} from './types'
-import {initEngine, initEngineListener} from './require'
+import {installCallPort, type CallPort} from './call-port'
 import {printOutstandingRPCs, printRPC} from '@/local-debug'
-import {resetClient, createClient, rpcLog, type CreateClientType, type PayloadType} from './index.platform'
+import {
+  resetClient,
+  createClient,
+  rpcLog,
+  type CreateClientType,
+  type IncomingRPCCallbackType,
+  type ConnectDisconnectCB,
+  type PayloadType,
+} from './index.platform'
 import {type RPCError, convertToError} from '@/util/errors'
 import type * as EngineGen from '@/constants/rpc'
 import type {IncomingCallMapType, CustomResponseIncomingCallMapType} from '@/constants/rpc/rpc-all-gen'
 
 export type BatchParams = Array<{key: WaitingKey; increment: boolean; error?: RPCError}>
+export type MakeClient = (
+  incoming: IncomingRPCCallbackType,
+  connect: ConnectDisconnectCB,
+  disconnect: ConnectDisconnectCB
+) => CreateClientType
 
-class Engine {
+class Engine implements CallPort {
   _onConnectedCB: (c: boolean) => void
   // Tracking outstanding sessions
   _sessionsMap = new Map<SessionID, Session>()
@@ -61,17 +74,20 @@ class Engine {
   constructor(
     emitWaiting: (changes: BatchParams) => void,
     onConnected: (c: boolean) => void,
-    onEngineIncoming?: (action: EngineGen.Actions) => void
+    onEngineIncoming?: (action: EngineGen.Actions) => void,
+    makeClient: MakeClient = createClient
   ) {
     this._onConnectedCB = onConnected
     this._onEngineIncoming = onEngineIncoming
     this._emitWaiting = emitWaiting
-    this._rpcClient = createClient(
+    this._rpcClient = makeClient(
       payload => this._rpcIncoming(payload),
       () => this._onConnected(),
       () => this._onDisconnect()
     )
-    this._setupDebugging()
+    if (makeClient === createClient) {
+      this._setupDebugging()
+    }
   }
 
   rebindCallbacks(
@@ -223,8 +239,8 @@ class Engine {
     }
   }
 
-  // An outgoing call. ONLY called by the flow-type rpc helpers
-  _rpcOutgoing(p: {
+  // An outgoing call. ONLY called by the generated rpc helpers
+  call(p: {
     method: string
     params: object | undefined
     callback: (...args: Array<any>) => void
@@ -245,6 +261,8 @@ class Engine {
     return session.getId()
   }
 
+  listen = makeListen(this)
+
   // Make a new session. If the session hangs around forever set dangling to true
   createSession(p: {
     incomingCallMap?: IncomingCallMapType
@@ -260,6 +278,7 @@ class Engine {
       cancelHandler,
       customResponseIncomingCallMap,
       dangling,
+      dispatchWaiting: this.dispatchWaitingAction,
       endHandler: session => this._sessionEnded(session),
       incomingCallMap,
       invoke: (method, param, cb) => {
@@ -348,8 +367,7 @@ const makeEngine = (
   } else {
     engine.rebindCallbacks(emitWaiting, onConnected, onEngineIncoming)
   }
-  initEngine(engine)
-  initEngineListener(engineListener)
+  installCallPort(engine)
   return engine
 }
 

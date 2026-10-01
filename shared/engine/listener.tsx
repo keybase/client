@@ -1,24 +1,23 @@
-import {getEngine} from './require'
 import {ensureError, RPCError} from '@/util/errors'
 import {printOutstandingRPCs} from '@/local-debug'
 import type {CommonResponseHandler, WaitingKey} from './types'
 import {wrapErrors} from '@/util/debug'
 import type {ErrorType} from './rpc-transport'
+import type {CallPort, ListenParams} from './call-port'
 
-async function listener(p: {
-  method: string
-  params?: object
-  incomingCallMap?: {[K in string]: (params: unknown) => Promise<void>}
-  customResponseIncomingCallMap?: {
-    [K in string]: (params: unknown, response: Partial<CommonResponseHandler>) => Promise<void>
-  }
-  waitingKey?: WaitingKey
-  onSessionCreated?: (cancel: () => void) => void
-}) {
+type ListenEngine = {
+  call: CallPort['call']
+  dispatchWaitingAction: (key: WaitingKey, waiting: boolean, error?: RPCError) => void
+  cancelSession: (sessionID: number) => void
+}
+
+export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
   return new Promise((resolve, reject) => {
     const {method, params, waitingKey} = p
-    const incomingCallMap = p.incomingCallMap || {}
-    const customResponseIncomingCallMap = p.customResponseIncomingCallMap || {}
+    const incomingCallMap = (p.incomingCallMap || {}) as {[K in string]: (params: unknown) => Promise<void>}
+    const customResponseIncomingCallMap = (p.customResponseIncomingCallMap || {}) as {
+      [K in string]: (params: unknown, response: Partial<CommonResponseHandler>) => Promise<void>
+    }
 
     // Whether we've told the waiting store the server is working (vs. parked on a GUI prompt).
     // Dispatches are deduped through this flag so a client-side cancel arriving while a prompt is
@@ -29,7 +28,7 @@ async function listener(p: {
         return
       }
       waitingOnServer = waiting
-      getEngine().dispatchWaitingAction(waitingKey, waiting, error)
+      engine.dispatchWaitingAction(waitingKey, waiting, error)
     }
 
     // Wraps a response to update the waiting state
@@ -116,7 +115,7 @@ async function listener(p: {
       }, 2000)
     }
 
-    const sessionID = getEngine()._rpcOutgoing({
+    const sessionID = engine.call({
       callback: (error?: RPCError, params?: unknown) => {
         if (printOutstandingRPCs) {
           clearInterval(outstandingIntervalID)
@@ -135,8 +134,6 @@ async function listener(p: {
       method,
       params,
     })
-    p.onSessionCreated?.(() => getEngine().cancelSession(sessionID))
+    p.onSessionCreated?.(() => engine.cancelSession(sessionID))
   })
 }
-
-export default listener
