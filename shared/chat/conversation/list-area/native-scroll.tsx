@@ -14,12 +14,11 @@ import {
   indexOfOrdinalNewestFirst,
   listAnchorsEnd,
   ownsEnd,
-  useHeldLatest,
-  useScrollTarget,
-  withinPageLoad,
   type ScrollDirective,
   type ScrollEvent,
 } from './scroll-target'
+import {useHeldLatest, useScrollTarget} from './use-scroll-target'
+import {withinPageLoad} from './paging'
 import {makeSchedule, useSchedule, type Scheduled} from './schedule'
 
 export type NativeListRef = {

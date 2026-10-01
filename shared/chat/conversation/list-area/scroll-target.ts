@@ -2,7 +2,6 @@
 // happened as an event, gets back one directive, and carries it out with its own measuring and
 // correcting. The decision rules live here once; how a list reaches the end or a centred row stays
 // with that list.
-import * as React from 'react'
 import type * as T from '@/constants/types'
 import sortedIndexBy from 'lodash/sortedIndexBy'
 import sortedIndexOf from 'lodash/sortedIndexOf'
@@ -283,15 +282,8 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
 
 export const ownsEnd = (state: ScrollTargetState) => state.endOwner === 'list'
 
-// How near either end of the rows loaded the reader comes before the next page loads there, in
-// screens (the list's viewport heights): desktop's list takes its thresholds in that unit, and the
-// mobile list measures its scroll offset against it. Early enough that a page lands before a
-// reader's fling reaches the edge of the rows it has.
-export const pageLoadScreens = 2
-export const withinPageLoad = (distance: number, viewport: number) => distance <= pageLoadScreens * viewport
-
-// One list's scroll target: its state, moved only by the decisions it makes. The list adapters and
-// the test driver each drive one. Subscribers hear of every change to its state.
+// One list's scroll target: its state, moved only by the decisions it makes. Its one subscriber
+// (useSyncExternalStore) hears of every change to its state.
 export type ScrollTarget = {
   decide: (event: ScrollEvent) => ScrollDirective
   readonly state: ScrollTargetState
@@ -300,13 +292,13 @@ export type ScrollTarget = {
 
 export const makeScrollTarget = (): ScrollTarget => {
   let state = initialScrollTargetState
-  const listeners = new Set<() => void>()
+  let onChange: (() => void) | undefined
   return {
     decide: event => {
       const decision = decideScroll(state, event)
       if (decision.state !== state) {
         state = decision.state
-        listeners.forEach(l => l())
+        onChange?.()
       }
       return decision.directive
     },
@@ -314,21 +306,12 @@ export const makeScrollTarget = (): ScrollTarget => {
       return state
     },
     subscribe: listener => {
-      listeners.add(listener)
+      onChange = listener
       return () => {
-        listeners.delete(listener)
+        if (onChange === listener) onChange = undefined
       }
     },
   }
-}
-
-// The list's scroll target for as long as it is mounted, and whether the list owns the end, which its
-// own end anchor follows. The target's identity never changes, so the list's own loops can report back
-// to it while the directives they carry out come from it too.
-export const useScrollTarget = () => {
-  const [target] = React.useState(makeScrollTarget)
-  const listOwnsEnd = React.useSyncExternalStore(target.subscribe, () => ownsEnd(target.state))
-  return {listOwnsEnd, scrollTarget: target}
 }
 
 // Ordinals are sorted oldest first; -1 when the ordinal is not loaded.
@@ -364,20 +347,3 @@ export const listAnchorsEnd = (p: {
   heldLatest: boolean
   listOwnsEnd: boolean
 }) => p.listOwnsEnd && p.centeredOrdinal === undefined && p.heldLatest
-
-// Whether the rows now shown hold the newest message as a thread that already held it: false for the
-// page of newer rows that brings it into a window of history, which is laid out as the page it is,
-// and true again from the next rows on. Rows refilling a cleared thread, or a new dataset, are no
-// window of history, so they are held at once. Decided from the rows themselves, once per change to
-// them, so it holds however React schedules the render.
-export const useHeldLatest = (containsLatest: boolean, datasetKey: string, rows: ReadonlyArray<unknown>) => {
-  const [seen, setSeen] = React.useState({containsLatest, datasetKey, heldLatest: containsLatest, rows})
-  if (seen.rows === rows && seen.datasetKey === datasetKey && seen.containsLatest === containsLatest) {
-    return seen.heldLatest
-  }
-  const bringsLatest =
-    containsLatest && !seen.containsLatest && seen.datasetKey === datasetKey && seen.rows.length > 0
-  const next = {containsLatest, datasetKey, heldLatest: containsLatest && !bringsLatest, rows}
-  setSeen(next)
-  return next.heldLatest
-}

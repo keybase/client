@@ -11,11 +11,10 @@ import {
   initialScrollTarget,
   listAnchorsEnd,
   ownsEnd,
-  useHeldLatest,
-  useScrollTarget,
   type ScrollDirective,
   type ScrollEvent,
 } from './scroll-target'
+import {useHeldLatest, useScrollTarget} from './use-scroll-target'
 
 const centerTolerancePx = 8
 // A scroller within this many pixels of its end counts as at the end.

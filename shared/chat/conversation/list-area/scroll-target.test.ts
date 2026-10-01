@@ -1,8 +1,5 @@
-/** @jest-environment jsdom */
 /// <reference types="jest" />
-import * as React from 'react'
 import * as T from '@/constants/types'
-import {act, renderHook} from '@testing-library/react'
 import {
   decideScroll,
   indexOfOrdinal,
@@ -12,12 +9,11 @@ import {
   listAnchorsEnd,
   makeScrollTarget,
   ownsEnd,
-  useHeldLatest,
   type ScrollDirective,
   type ScrollEvent,
   type ScrollTargetState,
 } from './scroll-target'
-import {makeScrollDriver} from './list-test-store'
+import {makeScrollDriver} from './thread-test-driver'
 
 const ord = T.Chat.numberToOrdinal
 
@@ -662,7 +658,7 @@ describe('helpers', () => {
     expect(listAnchorsEnd({...anchors, heldLatest: false})).toBe(false)
   })
 
-  test('the scroll target tells its subscribers of each change to its state, and only then', () => {
+  test('the scroll target tells its subscriber of each change to its state, and only then', () => {
     const target = makeScrollTarget()
     const heard = jest.fn()
     const unsubscribe = target.subscribe(heard)
@@ -684,64 +680,16 @@ describe('helpers', () => {
     target.decide({type: 'userScrolled'})
     expect(heard).toHaveBeenCalledTimes(2)
   })
-})
 
-describe('useHeldLatest', () => {
-  type Rows = {containsLatest: boolean; datasetKey: string; rows: ReadonlyArray<number>}
-  // Every value the hook returned, render by render, as the list would lay each one out.
-  const mount = (initial: Rows) => {
-    const seen: Array<boolean> = []
-    const set: {current: (r: Rows) => void} = {current: () => {}}
-    renderHook(() => {
-      const [rows, setRows] = React.useState(initial)
-      set.current = setRows
-      const held = useHeldLatest(rows.containsLatest, rows.datasetKey, rows.rows)
-      seen.push(held)
-      return held
-    })
-    return {
-      seen,
-      set: (r: Rows, transition = false) =>
-        act(() => {
-          if (transition) React.startTransition(() => set.current(r))
-          else set.current(r)
-        }),
-    }
-  }
-  const history = {containsLatest: false, datasetKey: 'conv1:1', rows: [10, 11, 12]}
-
-  test('a thread holding the newest message holds it from the start', () => {
-    expect(mount({containsLatest: true, datasetKey: 'conv1:0', rows: [1, 2]}).seen).toEqual([true])
-  })
-
-  test.each([false, true])(
-    'the page that brings the newest message into a window of history lands unheld (in a transition: %p), and the rows after it are held',
-    transition => {
-      const h = mount(history)
-      h.set({...history, containsLatest: true, rows: [10, 11, 12, 13, 14]}, transition)
-      expect(h.seen.at(-1)).toBe(false)
-      expect(h.seen.slice(1)).not.toContain(true)
-      h.set({...history, containsLatest: true, rows: [10, 11, 12, 13, 14, 15]}, transition)
-      expect(h.seen.at(-1)).toBe(true)
-    }
-  )
-
-  test.each([false, true])(
-    'jump to recent: the newest rows refilling a cleared thread are held at once (in a transition: %p)',
-    transition => {
-      const h = mount(history)
-      h.set({containsLatest: false, datasetKey: 'conv1:2', rows: []}, transition)
-      const before = h.seen.length
-      h.set({containsLatest: true, datasetKey: 'conv1:2', rows: [50, 51]}, transition)
-      expect(h.seen.slice(before)).not.toContain(false)
-      expect(h.seen.at(-1)).toBe(true)
-    }
-  )
-
-  test('a new dataset that holds the newest message is held at once', () => {
-    const h = mount(history)
-    const before = h.seen.length
-    h.set({containsLatest: true, datasetKey: 'conv2:0', rows: [1, 2]})
-    expect(h.seen.slice(before)).not.toContain(false)
+  test('unsubscribing a replaced subscriber leaves the current one subscribed', () => {
+    const target = makeScrollTarget()
+    const stale = jest.fn()
+    const current = jest.fn()
+    const unsubscribeStale = target.subscribe(stale)
+    target.subscribe(current)
+    unsubscribeStale()
+    target.decide({type: 'userScrolled'})
+    expect(stale).not.toHaveBeenCalled()
+    expect(current).toHaveBeenCalledTimes(1)
   })
 })
