@@ -201,7 +201,8 @@ export const useNativeThreadScroll = (p: {
   // The rows asked for by scrollToItem, each asked for by a centre or a reveal, with how many of its
   // failures have been retried: a row outside the rendered window makes the scroll fail, and the
   // retry asks for that same row again once more rows have rendered. A request lasts as long as what
-  // asked for it: a centre's until it settles or centring stops, a reveal's while its edit is held.
+  // asked for it: a centre's until it settles or centring stops, a reveal's until its row is in view
+  // or its edit is no longer held.
   const itemScrollsRef = React.useRef(new Map<T.Chat.Ordinal, {kind: ItemScroll; retries: number}>())
   const [requestItem] = React.useState(() => (item: T.Chat.Ordinal, kind: ItemScroll) => {
     itemScrollsRef.current.set(item, {kind, retries: 0})
@@ -363,6 +364,14 @@ export const useNativeThreadScroll = (p: {
     if (!frame || offset === undefined || viewport === undefined) return false
     return rowUncovered(frame, {offset, resting: restingOffset(), viewport})
   })
+  // A reveal is done once its row is wholly in view, and over once its edit is no longer held.
+  const [dropFinishedReveals] = React.useState(() => () => {
+    itemScrollsRef.current.forEach((request, item) => {
+      if (request.kind === 'reveal' && (!holdsEdit(item) || rowFullyVisible(item))) {
+        itemScrollsRef.current.delete(item)
+      }
+    })
+  })
 
   React.useEffect(() => {
     dispatch({
@@ -371,7 +380,8 @@ export const useNativeThreadScroll = (p: {
       targetInData: editingOrdinal !== undefined && indexOfOrdinalNewestFirst(messageOrdinals, editingOrdinal) >= 0,
       type: 'editingChanged',
     })
-  }, [dispatch, editingOrdinal, messageOrdinals, rowFullyVisible])
+    dropFinishedReveals()
+  }, [dispatch, dropFinishedReveals, editingOrdinal, messageOrdinals, rowFullyVisible])
 
   // The keyboard rising or falling, or the safe area changing, changes how much of the list is in view.
   // The keyboard's is judged once it has finished moving, and the list with it: the keyboard scroll
@@ -510,9 +520,10 @@ export const useNativeThreadScroll = (p: {
         ownsEnd: ownsEnd(scrollTarget.state),
       })
       if (readerMoved) dispatch(own.readerMoved())
+      dropFinishedReveals()
       loadPages()
     },
-    [dispatch, loadPages, own, restingOffset, scrollTarget]
+    [dispatch, dropFinishedReveals, loadPages, own, restingOffset, scrollTarget]
   )
   const [onContentSizeChange] = React.useState(() => (_w: number, h: number) => {
     metricsRef.current = {...metricsRef.current, content: h}
