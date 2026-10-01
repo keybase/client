@@ -178,7 +178,7 @@ describe('chat scroll: new messages', () => {
       .map(s => `${at(s)}: ${Math.round(s.offset * 10) / 10}`)
     const during = `rows loaded ${counts.join(', ')}; offset ${moves.join(', ') || 'unchanged'}`
     console.log(`a burst of 6 incoming messages: newest row ${newestGap(t, v)}pt above the composer (${during})`)
-    await expectedFailure('a burst of incoming messages at the end is not followed', () => {
+    await expectedFailure({bug: 'a burst of incoming messages at the end is not followed', origin: 'suspected pre-existing on master: the maintainVisibleContentPosition autoscroll races the insert animation of the new rows'}, () => {
       check(isAtEnd(t, v), `after the burst, the thread is not at its end (${during}): ${summary(t, v)}`)
       check(t.rows.at(-1)?.ordinal === ordinal, `the newest row is not the last of the burst: ${summary(t, v)}`)
     })
@@ -344,7 +344,7 @@ describe('chat scroll: search', () => {
       `closing search: row ${ordinal} at ${before.top}, then ${rowOf(after, ordinal)?.top}; away from its place in ${off.length} of ${samples.length} samples, ${off.length ? Math.round(off.at(-1)!.t - off[0]!.t) : 0}ms from the first to the last, by up to ${Math.round(most * 10) / 10} points`
     )
     check(!isAtEnd(after, v), `the thread went to its end: ${summary(after, v)}`)
-    await expectedFailure('closing search moves the rows by the composer swap and keyboard padding shift', () => {
+    await expectedFailure({bug: 'closing search moves the rows by the composer swap and keyboard padding shift', origin: 'suspected pre-existing on master'}, () => {
       const r = rowOf(after, ordinal)
       check(
         !!r && Math.abs(r.top - before.top) <= stillTolerance,
@@ -401,7 +401,7 @@ describe('chat scroll: search', () => {
     const t = await waitForThreadStable()
     const v = await viewport(t)
     console.log(`then an incoming message: newest row ${newestGap(t, v)}pt above the composer`)
-    await expectedFailure('closing search at the newest message leaves the list short of its end', () => {
+    await expectedFailure({bug: 'closing search at the newest message leaves the list short of its end', origin: 'this branch: its fix 037fd14c71 was reverted by 4c5b6abf90; master not checked'}, () => {
       check(
         closedGap !== undefined && Math.abs(closedGap - restGap) <= 1 && Math.abs(closed.offset - rest.t.offset) <= 1,
         `closing search left the thread off its end: ${summary(closed, cv)}, before search ${summary(rest.t, rest.v)}`
@@ -681,7 +681,7 @@ describe('chat scroll: paging', () => {
     await waitForRow(longMarker(LONG_COUNT))
     await expectAtEnd()
     await jumpToRecentButton().waitForExist({reverse: true, timeout: 5_000})
-    await expectedFailure('a newer page landing mid-drag throws the reader ahead', () => {
+    await expectedFailure({bug: 'a newer page landing mid-drag throws the reader ahead', origin: 'introduced on this branch by 0de2ca2456 (mobile newer-page loading; master loads no newer pages)'}, () => {
       check(!landed.some(moved), describe(landed.filter(moved)))
       checkLandings(sampled, 'dragging')
     })
@@ -712,7 +712,7 @@ describe('chat scroll: paging', () => {
     console.log(`newer pages while flicking: ${describeLandings(sampled)}`)
     await waitForRow(longMarker(LONG_COUNT))
     await expectAtEnd()
-    await expectedFailure('a newer page landing mid-fling throws the reader ahead', () => {
+    await expectedFailure({bug: 'a newer page landing mid-fling throws the reader ahead', origin: 'introduced on this branch by 0de2ca2456 (mobile newer-page loading; master loads no newer pages)'}, () => {
       checkLandings(sampled, 'flicking')
     })
   })
@@ -744,7 +744,7 @@ describe('chat scroll: paging', () => {
     console.log(`newer page after a status-bar tap: ${describeLandings(sampled)}`)
     const after = await waitForThreadStable()
     const v = await viewport(after)
-    await expectedFailure('a newer page carries a reader resting on the newest row with it', () => {
+    await expectedFailure({bug: 'a newer page carries a reader resting on the newest row with it', origin: 'introduced on this branch by 0de2ca2456 (mobile newer-page loading; master loads no newer pages)'}, () => {
       checkLandings(sampled, 'after a status-bar tap')
       check(
         wholly(rowOf(after, newestLoaded), v),

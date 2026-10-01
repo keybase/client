@@ -821,17 +821,17 @@ export const pickAnchor = (t: ThreadReading, v: Viewport, margin = 20) => {
   return row
 }
 
-// Runs a check that fails today because of an app bug (named where it is called). The test passes
-// while the check fails, and fails once the check passes, so the mark is removed with the fix.
-export const expectedFailure = async (bug: string, body: () => unknown) => {
+// Runs a check that fails today because of an app bug. The test passes while the check fails, and
+// fails once the check passes, so the mark is removed with the fix. `bug` names it; `origin` says
+// in one line whether it exists on master or came with this branch, and what that rests on.
+export const expectedFailure = async ({bug, origin}: {bug: string; origin: string}, body: () => unknown) => {
   try {
     await body()
   } catch (e) {
-     
-    console.log(`expected failure (${bug}): ${e instanceof Error ? e.message : String(e)}`)
+    console.log(`expected failure (${bug}; ${origin}): ${e instanceof Error ? e.message : String(e)}`)
     return
   }
-  throw new Error(`passes now, so the app bug it marks looks fixed; remove the expected-failure mark (${bug})`)
+  throw new Error(`passes now, so the app bug it marks looks fixed; remove the expected-failure mark (${bug}; ${origin})`)
 }
 
 // Whether an element whose label contains `text` sits inside the element with testID `id` (the tree
