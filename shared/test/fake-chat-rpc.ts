@@ -10,8 +10,7 @@
 // A script for loadThread or postText gets the caller's params, callbacks included, and streams
 // by calling them: p.onCachedThread(json), p.onFullThread(json), p.onThreadStatus(status),
 // p.onStellarCanceled().
-import {setChatRpc, type ChatThreadRpc} from '@/chat/conversation/chat-rpc'
-import {isChatSessionReady} from '@/stores/config'
+import {setChatRpc, whenChatSessionReady, type ChatThreadRpc} from '@/chat/conversation/chat-rpc'
 
 export type ChatRpcMethod = keyof ChatThreadRpc
 type Args<M extends ChatRpcMethod> = Parameters<ChatThreadRpc[M]>
@@ -73,10 +72,6 @@ export const makeFakeChatRpc = (): FakeChatRpc => {
   const queued = new Map<ChatRpcMethod, Array<(...args: ReadonlyArray<unknown>) => unknown>>()
 
   const invoke = (method: ChatRpcMethod, args: ReadonlyArray<unknown>) => {
-    // part of loadThread's contract, so every adapter honours it
-    if (method === 'loadThread' && !isChatSessionReady()) {
-      return undefined
-    }
     log.push({args, method})
     const script =
       queued.get(method)?.shift() ??
@@ -86,12 +81,13 @@ export const makeFakeChatRpc = (): FakeChatRpc => {
   }
 
   // a script that throws rejects, as a service error would, rather than throwing at the caller
-  const adapter = Object.fromEntries(
+  const scripted = Object.fromEntries(
     methods.map(method => [
       method,
       async (...args: ReadonlyArray<unknown>) => await Promise.resolve(invoke(method, args)),
     ])
   ) as unknown as ChatThreadRpc
+  const adapter: ChatThreadRpc = {...scripted, loadThread: whenChatSessionReady(scripted.loadThread)}
 
   const calls = <M extends ChatRpcMethod>(method: M) =>
     log.filter(c => c.method === method).map(c => c.args as Args<M>)
