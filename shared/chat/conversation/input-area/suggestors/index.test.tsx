@@ -54,6 +54,7 @@ const renderSuggestors = (getSelection: () => Selection | undefined, showsWrites
   const inputRef = makeInputRef(getSelection, showsWrites)
   const composer = makeComposer({
     flushDraft: () => {},
+    getDraft: () => undefined,
     saveDraft: () => {},
     takeUnfurlSnapshot: () => ({dismissed: [], failed: []}),
   })

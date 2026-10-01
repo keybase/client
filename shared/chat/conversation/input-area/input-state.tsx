@@ -150,6 +150,11 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
       flushDraft: () => {
         saveDraft.flush()
       },
+      // the meta useThreadMeta renders from, so this and the rendered draft differ only by render lag
+      getDraft: () => {
+        const meta = useInboxMetadataState.getState().metas.get(id)
+        return meta?.conversationIDKey === id ? meta.draft : undefined
+      },
       saveDraft: text => {
         saveDraft(text)
       },

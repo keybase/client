@@ -21,7 +21,8 @@ export type ComposerView = {
   // The input's callback ref: an element attaches it, null detaches it, both in the commit that
   // sets the ref, so no write can find the composer holding an input that is gone.
   setInput: (input: ComposerInput | null) => void
-  // Loads the draft into an untouched composer, once per view, once the view's input is attached.
+  // Loads a draft that arrives after the view's input attached into an untouched composer, once
+  // per view. An input attaching loads the store's draft itself.
   offerDraft: (draft: string | undefined) => void
   // What the input reports, and whether the user typed it: false for the composer's own writes
   // (a draft, an inject, a clear), and for reports from a view other than the attached one, which
@@ -56,6 +57,9 @@ export type Composer = {
 }
 
 type ComposerDeps = {
+  // The conversation's saved draft as the store holds it now, undefined while it is not known. Read
+  // as an input attaches, so the draft loads ahead of the writes waiting for that input.
+  getDraft: () => string | undefined
   // The composer saves the draft: what the user types, and what it writes when that changes the
   // saved draft. saveDraft is throttled; flushDraft saves a pending one now.
   flushDraft: () => void
@@ -124,8 +128,8 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     return true
   }
 
-  // Loaded only once it is written, so an offer made before the view's input is attached is
-  // retried when it attaches.
+  // Loaded only once it is written, so a draft known before the view's input is attached loads
+  // when it attaches.
   const offerDraft = (draft: string | undefined) => {
     if (draftLoaded || draft === undefined) return
     if (text !== '' || !draft) {
@@ -144,10 +148,8 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
   return {
     connect: () => {
       const view = {}
-      let offered: string | undefined
       return {
         offerDraft: draft => {
-          offered = draft
           if (session === view) {
             offerDraft(draft)
           }
@@ -167,7 +169,7 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
             draftLoaded = false
           }
           input = next
-          offerDraft(offered)
+          offerDraft(deps.getDraft())
           const waiting = pending
           pending = []
           waiting.forEach(whenAttached)
@@ -267,19 +269,11 @@ export const useComposer = (): Composer => {
 export const useComposerInput = <R extends ComposerInput>(draft: string | undefined) => {
   const composer = useComposer()
   const inputRef = React.useRef<R | null>(null)
-  // The draft of the commit an input attaches in, offered as it attaches so it loads ahead of the
-  // writes waiting for the input. The platform inputs are children, whose refs attach before any of
-  // this view's layout effects run, so it is kept by an insertion effect, which runs before them all.
-  const draftRef = React.useRef(draft)
-  React.useInsertionEffect(() => {
-    draftRef.current = draft
-  }, [draft])
   const [{setInput, view}] = React.useState(() => {
     const view = composer.connect()
     return {
       setInput: (input: R | null) => {
         inputRef.current = input
-        if (input) view.offerDraft(draftRef.current)
         view.setInput(input)
       },
       view,
