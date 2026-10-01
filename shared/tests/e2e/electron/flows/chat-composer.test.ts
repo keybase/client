@@ -663,10 +663,10 @@ test.describe('read-only mid-edit', () => {
   test.beforeAll(async () => {
     test.setTimeout(120_000)
     if ((await cliWhoami()) !== data.smokeUser) throw new Error('the desktop app and CLI must start as the smoke user')
+    await requireAttachedAppAsEither(data.secondUser, data.smokeUser)
     await deleteThrowawayChannels(prefix)
   })
 
-    await requireAttachedAppAsEither(data.secondUser, data.smokeUser)
   test.afterEach(async ({page}) => {
     test.setTimeout(120_000)
     await switchAccount(page, data.smokeUser)

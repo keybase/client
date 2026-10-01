@@ -39,11 +39,11 @@ const unjoinedPrefix = 'e2e-nojoin'
 const notFromTheMove = [/refreshAccounts|ignorePromise error/, /getUsernameToShow: message with no author/]
 
 let data: ChatData
+// set once the attached app is the owner, for afterAll to hand it back
+let ownerAttached = false
 
 const requireOwnerCli = async () => {
   const who = await cliWhoami()
-// set once the attached app is the owner, for afterAll to hand it back
-let ownerAttached = false
   if (who !== data.smokeUser) throw new Error('the desktop app and CLI must start as the smoke user (the team owner)')
 }
 
@@ -55,18 +55,18 @@ test.beforeAll(async () => {
   await deleteThrowawayChannels(removedPrefix)
   await deleteThrowawayChannels(unjoinedPrefix)
   // the owner's side of the removal flow
+  await requireAttachedAppAsEither(data.secondUser, data.smokeUser)
   await switchAttachedApp(data.smokeUser)
+  ownerAttached = true
 })
 
-  await requireAttachedAppAsEither(data.secondUser, data.smokeUser)
 // The attached app goes back to sending as the second account, the part the other chat flows give it.
-  ownerAttached = true
 test.afterAll(async () => {
   test.setTimeout(90_000)
+  if (!ownerAttached) return
   await switchAttachedApp(data.secondUser)
 })
 
-  if (!ownerAttached) return
 test.afterEach(async ({page}) => {
   await switchAccount(page, data.smokeUser)
   await requireOwnerCli()
