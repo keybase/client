@@ -1,6 +1,5 @@
 import type * as EngineGen from "@/constants/rpc";
 import * as T from "../types";
-import * as S from "@/constants/strings";
 import isEqual from "lodash/isEqual";
 import logger from "@/logger";
 import * as Tabs from "@/constants/tabs";
@@ -38,18 +37,13 @@ import { useSettingsEmailState } from "@/stores/settings-email";
 import { useSettingsPhoneState } from "@/stores/settings-phone";
 import { useSettingsContactsState } from "@/stores/settings-contacts";
 import { useUsersState } from "@/stores/users";
-import { useWaitingState } from "@/stores/waiting";
 import { useRouterState } from "@/stores/router";
 import * as NavTree from "@/constants/nav-tree";
-import { handleConvoEngineIncoming } from "@/chat/inbox/engine";
 import {
-  onChatRouteChanged,
-  onChatInboxSynced,
-  onGetInboxConvsUnboxed,
-  onGetInboxUnverifiedConvs,
-  onInboxLayoutChanged,
-  onIncomingInboxUIItem,
-} from "@/chat/inbox/metadata";
+  isChatNotification,
+  routeChatNotification,
+} from "@/chat/notification-router";
+import { onChatRouteChanged } from "@/chat/inbox/metadata";
 import { syncInboxBadgeState } from "@/chat/inbox/badge-state";
 import { clearSignupEmail } from "@/people/signup-email";
 import { clearSignupDeviceNameDraft } from "@/signup/device-name-draft";
@@ -612,16 +606,9 @@ export const initSharedSubscriptions = (
 
 // This is to defer loading stores we don't need immediately.
 export const _onEngineIncoming = (action: EngineGen.Actions) => {
-  const routeConvoEngineIncoming = (engineAction: EngineGen.Actions) => {
-    const result = handleConvoEngineIncoming(engineAction);
-    if (result.inboxUIItem) {
-      onIncomingInboxUIItem(result.inboxUIItem);
-    }
-    if (result.userReacjis) {
-      useDaemonState.getState().dispatch.updateUserReacjis(result.userReacjis);
-    }
-  };
-
+  if (isChatNotification(action)) {
+    routeChatNotification(action);
+  }
   switch (action.type) {
     // These can reach us out of order with each other, so none of them sets the session: each only
     // says it changed, and the daemon's reply to the latest read is what applies.
@@ -657,11 +644,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       useNotifState.getState().dispatch.onEngineIncomingImpl(action);
       break;
     }
-    case "chat.1.NotifyChat.ChatSetTeamRetention":
-      {
-        routeConvoEngineIncoming(action);
-      }
-      break;
     case "keybase.1.NotifyEmailAddress.emailAddressVerified":
       {
         const emailAddress = action.payload.params.emailAddress;
@@ -687,76 +669,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         .dispatch.notifyEmailAddressEmailsChanged(list);
       break;
     }
-    case "chat.1.chatUi.chatInboxFailed":
-    case "chat.1.NotifyChat.ChatSetConvSettings":
-    case "chat.1.NotifyChat.ChatAttachmentUploadStart":
-    case "chat.1.NotifyChat.ChatPromptUnfurl":
-    case "chat.1.NotifyChat.ChatPaymentInfo":
-    case "chat.1.NotifyChat.ChatRequestInfo":
-    case "chat.1.NotifyChat.ChatAttachmentDownloadProgress":
-    case "chat.1.NotifyChat.ChatAttachmentDownloadComplete":
-    case "chat.1.NotifyChat.ChatAttachmentUploadProgress":
-    case "chat.1.chatUi.chatCommandMarkdown":
-    case "chat.1.chatUi.chatGiphyToggleResultWindow":
-    case "chat.1.chatUi.chatCommandStatus":
-    case "chat.1.chatUi.chatGiphySearchResults":
-    case "chat.1.NotifyChat.ChatParticipantsInfo":
-    case "chat.1.NotifyChat.ChatConvUpdate":
-    case "chat.1.chatUi.chatCoinFlipStatus":
-    case "chat.1.NotifyChat.ChatThreadsStale":
-    case "chat.1.NotifyChat.ChatSubteamRename":
-    case "chat.1.NotifyChat.ChatTLFFinalize":
-    case "chat.1.NotifyChat.NewChatActivity":
-    case "chat.1.NotifyChat.ChatTypingUpdate":
-    case "chat.1.NotifyChat.ChatSetConvRetention":
-      routeConvoEngineIncoming(action);
-      break;
-    case "chat.1.NotifyChat.ChatIdentifyUpdate": {
-      const { update } = action.payload.params;
-      const usernames = update.CanonicalName.split(",");
-      const broken = (update.breaks.breaks || []).map((b) => b.user.username);
-      const updates = usernames.map((name) => ({
-        info: { broken: broken.includes(name) },
-        name,
-      }));
-      useUsersState.getState().dispatch.updates(updates);
-      break;
-    }
-    case "chat.1.NotifyChat.ChatInboxStale":
-      ignorePromise(
-        useInboxLayoutState.getState().dispatch.refresh("inboxStale"),
-      );
-      break;
-    case "chat.1.chatUi.chatInboxUnverified":
-      onGetInboxUnverifiedConvs(action);
-      break;
-    case "chat.1.NotifyChat.ChatInboxSyncStarted":
-      useWaitingState
-        .getState()
-        .dispatch.increment(S.waitingKeyChatInboxSyncStarted);
-      break;
-    case "chat.1.NotifyChat.ChatInboxSynced":
-      useWaitingState
-        .getState()
-        .dispatch.clear(S.waitingKeyChatInboxSyncStarted);
-      ignorePromise(
-        onChatInboxSynced(action, async (reason) =>
-          useInboxLayoutState.getState().dispatch.refresh(reason),
-        ),
-      );
-      break;
-    case "chat.1.chatUi.chatInboxLayout": {
-      const { hasLoaded, dispatch } = useInboxLayoutState.getState();
-      dispatch.updateLayout(action.payload.params.layout);
-      const { layout } = useInboxLayoutState.getState();
-      if (layout) {
-        onInboxLayoutChanged(layout, hasLoaded);
-      }
-      break;
-    }
-    case "chat.1.chatUi.chatInboxConversation":
-      onGetInboxConvsUnboxed(action);
-      break;
     case "keybase.1.NotifyService.handleKeybaseLink":
       {
         const { link, deferred } = action.payload.params;

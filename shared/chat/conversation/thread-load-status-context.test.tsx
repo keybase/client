@@ -3,7 +3,7 @@
 import {act, cleanup, renderHook} from '@testing-library/react'
 import type * as React from 'react'
 import * as T from '@/constants/types'
-import {notifyEngineActionListeners} from '@/engine/action-listener'
+import {routeChatNotification} from '@/chat/notification-router'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -93,7 +93,7 @@ test('mounted stale-thread reload reports status through the provider', async ()
   const {result} = renderHook(() => useThreadLoadStatus(), {wrapper})
 
   act(() => {
-    notifyEngineActionListeners({
+    routeChatNotification({
       payload: {
         params: {
           uid: '',

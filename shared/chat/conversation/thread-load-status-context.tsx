@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {useEngineActionListener} from '@/engine/action-listener'
+import {useReloadTriggers} from '@/chat/notification-registry'
 import logger from '@/logger'
 import {
   type ThreadLoadStatusOptions,
@@ -144,24 +144,8 @@ export const ConversationThreadLoadStatusProvider = (
     })
   }
 
-  useEngineActionListener('chat.1.NotifyChat.ChatThreadsStale', action => {
-    const hasStaleThread = (action.payload.params.updates ?? []).some(
-      update => T.Chat.conversationIDToKey(update.convID) === id
-    )
-    if (hasStaleThread) {
-      reloadStaleThread()
-    }
-  })
-
-  useEngineActionListener('chat.1.NotifyChat.ChatInboxSynced', action => {
-    const {syncRes} = action.payload.params
-    if (syncRes.syncType !== T.RPCChat.SyncInboxResType.incremental) {
-      return
-    }
-    const hasStaleThread = (syncRes.incremental.items ?? []).some(
-      item => T.Chat.stringToConversationIDKey(item.conv.convID) === id
-    )
-    if (hasStaleThread) {
+  useReloadTriggers(id, trigger => {
+    if (trigger.type === 'staleThread') {
       reloadStaleThread()
     }
   })
