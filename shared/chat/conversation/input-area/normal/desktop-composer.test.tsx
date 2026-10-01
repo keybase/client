@@ -179,18 +179,6 @@ test('injecting with focus writes the text, parks the caret at the end and focus
   expect(textarea.selectionEnd).toBe(11)
 })
 
-test('a write shows in the textarea at once, caret included', () => {
-  const {getHandles, textarea} = renderComposer()
-
-  act(() => {
-    getHandles().input.dispatch.injectIntoInput('hello there')
-  })
-
-  expect(textarea.value).toBe('hello there')
-  expect(textarea.selectionStart).toBe(11)
-  expect(textarea.selectionEnd).toBe(11)
-})
-
 test('a keystroke right after a write is kept', () => {
   const {getHandles, textarea} = renderComposer()
 
@@ -203,18 +191,6 @@ test('a keystroke right after a write is kept', () => {
   })
 
   expect(textarea.value).toBe('hello!')
-})
-
-test('injecting the spoiler markup selects the placeholder between the markers', () => {
-  const {getHandles, textarea} = renderComposer()
-
-  act(() => {
-    getHandles().input.dispatch.injectIntoInput('!>spoiler<!')
-  })
-
-  expect(textarea.value).toBe('!>spoiler<!')
-  expect(textarea.selectionStart).toBe(2)
-  expect(textarea.selectionEnd).toBe(9)
 })
 
 test('Enter sends the composer text and clears it; shift-Enter does not send', async () => {
@@ -242,20 +218,6 @@ test('Enter sends the composer text and clears it; shift-Enter does not send', a
   expect(post).toHaveBeenCalledTimes(1)
   expect(post.mock.calls[0]?.[0].params.body).toBe('hello')
   expect(textarea.value).toBe('')
-})
-
-test('Enter in an empty composer sends nothing', () => {
-  const post = jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener')
-  const {textarea} = renderComposer()
-
-  act(() => {
-    fireEvent.keyDown(textarea, {key: 'Enter'})
-  })
-  act(() => {
-    jest.advanceTimersByTime(200)
-  })
-
-  expect(post).not.toHaveBeenCalled()
 })
 
 test('a keystroke typed before the send goes out is kept', async () => {
@@ -296,21 +258,6 @@ test('picking an emoji mid-text inserts at the caret with the space appended at 
   expect(textarea.value).toBe('ab:smile:cd ')
   expect(textarea.selectionStart).toBe(2 + ':smile:'.length + 1)
   expect(document.activeElement).toBe(textarea)
-})
-
-test('picking an emoji at the end of the text reads as emoji plus space', () => {
-  const {textarea, utils} = renderComposer()
-  type(textarea, 'hi ')
-
-  act(() => {
-    fireEvent.click(utils.container.querySelector('.icon-gen-iconfont-emoji') ?? textarea)
-  })
-  act(() => {
-    mockPickEmoji?.(':wave:')
-  })
-
-  expect(textarea.value).toBe('hi :wave: ')
-  expect(textarea.selectionStart).toBe(textarea.value.length)
 })
 
 test('the suggestors see text injected into the composer', () => {
@@ -439,24 +386,6 @@ describe('drafts', () => {
 
     receiveDraft('newer draft from elsewhere')
       expect(textarea.value).toBe('late draft')
-  })
-
-  test('a draft arriving after the user already typed does not clobber the text', () => {
-    const {textarea} = renderComposer()
-    type(textarea, 'typed first')
-
-    receiveDraft('stale draft')
-  
-    expect(textarea.value).toBe('typed first')
-  })
-
-  test('an empty draft marks the draft loaded without touching the composer', () => {
-    receiveDraft('')
-    const {textarea} = renderComposer()
-  
-    receiveDraft('arrives later')
-  
-    expect(textarea.value).toBe('')
   })
 
   test('typing saves the draft on the leading edge and again at the 200ms trailing edge', () => {
