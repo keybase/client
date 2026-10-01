@@ -28,15 +28,15 @@ const setup = (opts?: {takeUnfurlSnapshot?: () => SuppressSnapshot}) => {
     takeUnfurlSnapshot: opts?.takeUnfurlSnapshot ?? (() => noSnapshot),
   })
   // one mounted composer view: its fake input's reports go to the composer, and the draft is
-  // offered as the input's ref is set, as useComposerInput wires them
+  // offered as the view is made, as useComposerInput wires them
   const mount = (draft?: string) => {
     const fake = makeFakeComposerInput()
     const view = composer.connect()
+    view.offerDraft(draft)
     fake.connect(text => {
       reports.push({text, typed: view.textChanged(text)})
     })
     const attach = (input: FakeComposerInput = fake) => {
-      view.offerDraft(draft)
       view.setInput(input)
     }
     attach()
