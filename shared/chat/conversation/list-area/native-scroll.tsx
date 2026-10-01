@@ -314,6 +314,12 @@ export const useNativeThreadScroll = (p: {
     },
     [perform, scrollTarget]
   )
+  // The detached cleanup reads dispatch through this, so it runs only when the list is hidden or
+  // unmounted, however dispatch's dependencies change.
+  const dispatchRef = React.useRef(dispatch)
+  React.useLayoutEffect(() => {
+    dispatchRef.current = dispatch
+  }, [dispatch])
 
   // Compared by value, not by the effect re-running: a freeze/thaw of this screen re-mounts effects
   // with nothing changed. Declared ahead of every effect that dispatches, so they see the new
@@ -446,14 +452,13 @@ export const useNativeThreadScroll = (p: {
   // Hidden (a screen pushed over this one) or unmounted: nothing scheduled may scroll a list no
   // longer shown. Work cut short is left to be done again if the list comes back: a target still
   // settling is centred afresh, and a first load whose retry had not fired is treated as not yet
-  // scrolled. StrictMode's mount-time effect re-run is the same case. dispatch never changes identity,
-  // so this cleanup runs only then.
+  // scrolled. StrictMode's mount-time effect re-run is the same case.
   React.useEffect(
     () => () => {
       if (initialRetryRef.current?.pending()) loadedConvRef.current = undefined
-      dispatch({type: 'detached'})
+      dispatchRef.current({type: 'detached'})
     },
-    [dispatch]
+    []
   )
 
   // Waits for more rows to render and asks for the failed row again, six times per request, while the

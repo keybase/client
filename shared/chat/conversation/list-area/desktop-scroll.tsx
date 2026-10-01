@@ -289,6 +289,12 @@ export const useDesktopThreadScroll = (p: {
     },
     [perform, scrollTarget]
   )
+  // The detached cleanup reads dispatch through this, so it runs only when the list is hidden or
+  // unmounted, however dispatch's dependencies change.
+  const dispatchRef = React.useRef(dispatch)
+  React.useLayoutEffect(() => {
+    dispatchRef.current = dispatch
+  }, [dispatch])
 
   // Compared by value, not by the effect re-running: selecting the chat tab again re-mounts effects
   // hidden under Activity with nothing changed. The end being verified belongs to the old rows.
@@ -320,7 +326,7 @@ export const useDesktopThreadScroll = (p: {
 
   // Hidden (another tab selected, under Activity) or unmounted: the loops have stopped with the
   // schedules, and a target still settling is centred afresh if the list comes back.
-  React.useEffect(() => () => dispatch({type: 'detached'}), [dispatch])
+  React.useEffect(() => () => dispatchRef.current({type: 'detached'}), [])
 
   React.useEffect(() => {
     const targetInData = editingOrdinal !== undefined && indexOfOrdinal(messageOrdinals, editingOrdinal) >= 0
