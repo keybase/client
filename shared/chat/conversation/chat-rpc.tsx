@@ -287,6 +287,12 @@ const notificationSettings = (
   },
 ]
 
+// loadThread's session rule, shared by every adapter
+export const whenChatSessionReady =
+  (load: ChatThreadRpc['loadThread']): ChatThreadRpc['loadThread'] =>
+  async p =>
+    (isChatSessionReady() ? load(p) : undefined)
+
 const serviceChatRpc: ChatThreadRpc = {
   addBotMember: async p => {
     await T.RPCChat.localAddBotMemberRpcPromise(
@@ -428,10 +434,7 @@ const serviceChatRpc: ChatThreadRpc = {
     })
     return {last: !!res.last}
   },
-  loadThread: async p => {
-    if (!isChatSessionReady()) {
-      return undefined
-    }
+  loadThread: whenChatSessionReady(async p => {
     const incomingCallMap: T.RPCChat.IncomingCallMapType = {}
     if (p.onCachedThread) {
       incomingCallMap['chat.1.chatUi.chatThreadCached'] = params => p.onCachedThread?.(params.thread || '')
@@ -463,7 +466,7 @@ const serviceChatRpc: ChatThreadRpc = {
       },
       waitingKey: p.waitingKey,
     })
-  },
+  }),
   makeAudioPreview: async (amps, duration) => T.RPCChat.localMakeAudioPreviewRpcPromise({amps, duration}),
   makeUploadTempFile: async p => T.RPCChat.localMakeUploadTempFileRpcPromise(p),
   markRead: async p => {

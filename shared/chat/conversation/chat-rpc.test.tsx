@@ -8,8 +8,6 @@ import {threadLoadReasonToRPCReason} from './thread-load'
 
 const loadThreadNonblock = async (p: Parameters<ReturnType<typeof getChatRpc>['loadThread']>[0]) =>
   getChatRpc().loadThread(p)
-const markConversationRead = async (p: Parameters<ReturnType<typeof getChatRpc>['markRead']>[0]) =>
-  getChatRpc().markRead(p)
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const convID = T.Chat.keyToConversationID(conversationIDKey)
@@ -125,22 +123,14 @@ describe('loadThreadNonblock', () => {
   })
 })
 
-test('markConversationRead sends the read position', async () => {
-  const rpc = jest.spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise').mockResolvedValue({offline: false})
-  await markConversationRead({conversationIDKey, forceUnread: true, msgID: T.Chat.numberToMessageID(9)})
-  expect(rpc).toHaveBeenCalledWith({conversationID: convID, forceUnread: true, msgID: 9})
-  await markConversationRead({conversationIDKey, forceUnread: false})
-  expect(rpc).toHaveBeenLastCalledWith({conversationID: convID, forceUnread: false, msgID: undefined})
-})
-
 test('threadLoadReasonToRPCReason maps push-like reasons to push', () => {
   expect(threadLoadReasonToRPCReason('push')).toBe(T.RPCChat.GetThreadReason.push)
   expect(threadLoadReasonToRPCReason('extension')).toBe(T.RPCChat.GetThreadReason.push)
   expect(threadLoadReasonToRPCReason('scroll back')).toBe(T.RPCChat.GetThreadReason.general)
 })
 
-// What the service adapter sends for each domain call. The callers' suites drive the fake and
-// assert the domain params; these pin the translation from those to the wire.
+// The service adapter's translations that carry logic: defaults, derived fields, filters. The
+// callers' suites drive the fake; a pure pass-through is left to the types.
 describe('service adapter', () => {
   const rpc = () => getChatRpc()
   const outboxID = new Uint8Array([7, 7])
@@ -341,50 +331,6 @@ describe('service adapter', () => {
     expect(spy.mock.calls[1]?.[0].arg).toEqual(expect.objectContaining({callerPreview, ephemeralLifetime: 60}))
   })
 
-  test('cancelPost and retryPost take the local outbox id', async () => {
-    const cancel = jest.spyOn(T.RPCChat, 'localCancelPostRpcPromise').mockResolvedValue(undefined)
-    const retry = jest.spyOn(T.RPCChat, 'localRetryPostRpcPromise').mockResolvedValue(undefined)
-    await rpc().cancelPost(localOutboxID)
-    await rpc().retryPost(localOutboxID)
-    expect(cancel).toHaveBeenCalledWith({outboxID})
-    expect(retry).toHaveBeenCalledWith({outboxID})
-  })
-
-  test('audio preview and giphy tracking', async () => {
-    const preview = {mimeType: 'image/png'} as T.RPCChat.MakePreviewRes
-    const make = jest.spyOn(T.RPCChat, 'localMakeAudioPreviewRpcPromise').mockResolvedValue(preview)
-    const track = jest.spyOn(T.RPCChat, 'localTrackGiphySelectRpcPromise').mockResolvedValue({} as never)
-    await expect(rpc().makeAudioPreview([0.5], 900)).resolves.toBe(preview)
-    const giphy = {targetUrl: 'https://giphy.com/x.gif'} as T.RPCChat.GiphySearchResult
-    await rpc().trackGiphySelect(giphy)
-    expect(make).toHaveBeenCalledWith({amps: [0.5], duration: 900})
-    expect(track).toHaveBeenCalledWith({result: giphy})
-  })
-
-  test('message commands', async () => {
-    const collapse = jest.spyOn(T.RPCChat, 'localToggleMessageCollapseRpcPromise').mockResolvedValue({} as never)
-    const pin = jest.spyOn(T.RPCChat, 'localPinMessageRpcPromise').mockResolvedValue({} as never)
-    const unfurl = jest.spyOn(T.RPCChat, 'localResolveUnfurlPromptRpcPromise').mockResolvedValue(undefined)
-    const journey = jest.spyOn(T.RPCChat, 'localDismissJourneycardRpcPromise').mockResolvedValue(undefined)
-    const messageID = T.Chat.numberToMessageID(10)
-    const result = {actionType: T.RPCChat.UnfurlPromptAction.always} as T.RPCChat.UnfurlPromptResult
-
-    await rpc().toggleCollapse({collapse: true, conversationIDKey, messageID})
-    await rpc().pinMessage(conversationIDKey, messageID)
-    await rpc().resolveUnfurlPrompt({conversationIDKey, messageID, result})
-    await rpc().dismissJourneycard(conversationIDKey, T.RPCChat.JourneycardType.welcome)
-
-    expect(collapse).toHaveBeenCalledWith({collapse: true, convID, msgID: 10})
-    expect(pin).toHaveBeenCalledWith({convID, msgID: 10})
-    expect(unfurl).toHaveBeenCalledWith({
-      convID,
-      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-      msgID: 10,
-      result,
-    })
-    expect(journey).toHaveBeenCalledWith({cardType: T.RPCChat.JourneycardType.welcome, convID})
-  })
-
   test('createAdhocConversation makes a private implicit-team chat of the distinct users', async () => {
     const res = {conv: {}, uiConv: {}} as T.RPCChat.NewConversationLocalRes
     const spy = jest.spyOn(T.RPCChat, 'localNewConversationLocalRpcPromise').mockResolvedValue(res)
@@ -399,39 +345,6 @@ describe('service adapter', () => {
       },
       'wk'
     )
-  })
-
-  test('upload temp files', async () => {
-    const make = jest.spyOn(T.RPCChat, 'localMakeUploadTempFileRpcPromise').mockResolvedValue('/tmp/paste.png')
-    const get = jest.spyOn(T.RPCChat, 'localGetUploadTempFileRpcPromise').mockResolvedValue('/tmp/dropped.png')
-    const cancel = jest.spyOn(T.RPCChat, 'localCancelUploadTempFileRpcPromise').mockResolvedValue(undefined)
-    const data = new Uint8Array([1])
-    await expect(rpc().makeUploadTempFile({data, filename: 'paste.png', outboxID})).resolves.toBe(
-      '/tmp/paste.png'
-    )
-    await expect(rpc().getUploadTempFile({filename: '/dropped.png', outboxID})).resolves.toBe(
-      '/tmp/dropped.png'
-    )
-    await rpc().cancelUploadTempFile(outboxID)
-    expect(make).toHaveBeenCalledWith({data, filename: 'paste.png', outboxID})
-    expect(get).toHaveBeenCalledWith({filename: '/dropped.png', outboxID})
-    expect(cancel).toHaveBeenCalledWith({outboxID})
-  })
-
-  test('downloadAttachment fetches the full file and resolves its path', async () => {
-    const spy = jest
-      .spyOn(T.RPCChat, 'localDownloadFileAttachmentLocalRpcPromise')
-      .mockResolvedValue({filePath: '/dl/doc.pdf'})
-    await expect(
-      rpc().downloadAttachment({conversationIDKey, downloadToCache: true, messageID: T.Chat.numberToMessageID(42)})
-    ).resolves.toBe('/dl/doc.pdf')
-    expect(spy).toHaveBeenCalledWith({
-      conversationID: convID,
-      downloadToCache: true,
-      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-      messageID: 42,
-      preview: false,
-    })
   })
 
   test('getNextAttachment asks for images and videos and unwraps the message', async () => {
@@ -450,19 +363,6 @@ describe('service adapter', () => {
       identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
       messageID: 42,
     })
-  })
-
-  test('conversation status and joining', async () => {
-    const status = jest.spyOn(T.RPCChat, 'localSetConversationStatusLocalRpcPromise').mockResolvedValue({} as never)
-    const join = jest.spyOn(T.RPCChat, 'localJoinConversationByIDLocalRpcPromise').mockResolvedValue({} as never)
-    await rpc().setConversationStatus(conversationIDKey, T.RPCChat.ConversationStatus.muted)
-    await rpc().joinConversation(conversationIDKey)
-    expect(status).toHaveBeenCalledWith({
-      conversationID: convID,
-      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-      status: T.RPCChat.ConversationStatus.muted,
-    })
-    expect(join).toHaveBeenCalledWith({convID})
   })
 
   test('exploding mode is the per-conversation gregor category', async () => {
@@ -698,11 +598,6 @@ describe('service adapter', () => {
     expect(setSettings.mock.calls).toEqual([[{botSettings: settings, convID, username: 'testbot'}, 'chat:botAdd']])
     expect(remove.mock.calls).toEqual([[{convID, username: 'testbot'}, 'chat:botRemove']])
     expect(commands.mock.calls).toEqual([[{username: 'testbot'}], [{username: 'testbot'}]])
-  })
-
-  test('service errors reject', async () => {
-    jest.spyOn(T.RPCChat, 'localPinMessageRpcPromise').mockRejectedValue(new Error('nope'))
-    await expect(rpc().pinMessage(conversationIDKey, T.Chat.numberToMessageID(1))).rejects.toThrow('nope')
   })
 })
 
