@@ -536,14 +536,16 @@ body {
   text-rendering: optimizeLegibility;
   white-space: nowrap;
   z-index: 999;
-  left: 50%;
   transform: translate(-50%, -100%);
-  /* move out so it doesn't affect measuring*/
+  /* parked off the top-left while hidden: an offset to the right or bottom would still widen its
+     scroll container, and focusing an input then scrolls even an overflow:hidden ancestor */
+  left: -99999px;
   top: -99999px;
 }
 
 .tooltip:hover:before {
   opacity: 1;
+  left: 50%;
   top: initial;
 }
 
