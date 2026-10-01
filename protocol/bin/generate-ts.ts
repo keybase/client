@@ -690,13 +690,8 @@ async function writeFlow(typeDefs: AnalysisResult, project: ProjectState): Promi
     Stellar1: "import * as Stellar1 from './rpc-stellar-gen'",
   }
 
-  const engineImports = [
-    project.hasEngine ? 'getEngine as engine' : '',
-    project.hasEngineListener ? 'getEngineListener' : '',
-  ]
-    .filter(f => f.length)
-    .join(', ')
-  const engineImport = engineImports.length ? `import {${engineImports}} from '@/engine/require'` : ''
+  const engineImport =
+    project.hasEngine || project.hasEngineListener ? `import {getCallPort} from '@/engine/call-port'` : ''
   const messageEntries = Object.entries(typeDefs.messages).sort(([left], [right]) => left.localeCompare(right))
   const promiseMethods = messageEntries.filter(([, message]) => message.rpcPromise).map(([key]) => key)
   const listenerMethods = messageEntries.filter(([, message]) => message.engineListener).map(([key]) => key)
@@ -723,7 +718,7 @@ export type RpcFn<M extends PromiseMethod> = [RpcIn<M>] extends [undefined]
 const createRpc = <M extends PromiseMethod>(method: M): RpcFn<M> =>
   ((params?: RpcIn<M>, waitingKey?: WaitingKey) =>
     new Promise<RpcOut<M>>((resolve, reject) =>
-      engine()._rpcOutgoing({
+      getCallPort().call({
         method,
         params,
         callback: (error: SimpleError, result: RpcOut<M>) => error ? reject(error) : resolve(result),
@@ -742,14 +737,14 @@ type ListenerArgs<M extends ListenerMethod> = {
 export type ListenerFn<M extends ListenerMethod> = (p: ListenerArgs<M>) => Promise<RpcOut<M>>
 const createListener = <M extends ListenerMethod>(method: M): ListenerFn<M> =>
   ((p: ListenerArgs<M>) =>
-    getEngineListener<ListenerArgs<M>, Promise<RpcOut<M>>>()({
+    getCallPort().listen({
       method,
       params: p.params,
       incomingCallMap: p.incomingCallMap,
       customResponseIncomingCallMap: p.customResponseIncomingCallMap,
       waitingKey: p.waitingKey,
       onSessionCreated: p.onSessionCreated,
-    })) as ListenerFn<M>`
+    }) as Promise<RpcOut<M>>) as ListenerFn<M>`
       : '',
   ]
     .filter(Boolean)
