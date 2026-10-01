@@ -31,6 +31,8 @@ export const CHAT_INFO_PANEL_SETTINGS_TAB = 'chat-info-panel-settings-tab'
 // Android only: iOS 26 folds Search/Info into one native "More" header menu,
 // but the Android header keeps the plain info icon — icons have no tappable text
 export const CHAT_HEADER_INFO_BUTTON = 'chat-header-info-button'
+// the video attachment's corner fullscreen button; its unit tests match the literal value
+export const CHAT_VIDEO_FULLSCREEN    = 'video-fullscreen'
 
 // Files
 export const FILES_BROWSER = 'files-browser'
