@@ -417,6 +417,68 @@ describe('service adapter', () => {
     ])
   })
 
+  test('previewing a conversation unwraps it to its inbox item', async () => {
+    const conv = {convID: 'c'} as unknown as T.RPCChat.InboxUIItem
+    const preview = jest
+      .spyOn(T.RPCChat, 'localPreviewConversationByIDLocalRpcPromise')
+      .mockResolvedValue({conv} as T.RPCChat.PreviewConversationLocalRes)
+    await expect(rpc().previewConversation(conversationIDKey)).resolves.toBe(conv)
+    expect(preview.mock.calls).toEqual([[{convID}]])
+  })
+
+  test('pins: unpin with the caller waiting key, ignore without one', async () => {
+    const unpin = jest.spyOn(T.RPCChat, 'localUnpinMessageRpcPromise').mockResolvedValue({} as never)
+    const ignore = jest.spyOn(T.RPCChat, 'localIgnorePinnedMessageRpcPromise').mockResolvedValue(undefined)
+    await rpc().unpinMessage(conversationIDKey, 'chat:unpin')
+    await rpc().ignorePinnedMessage(conversationIDKey)
+    expect(unpin.mock.calls).toEqual([[{convID}, 'chat:unpin']])
+    expect(ignore.mock.calls).toEqual([[{convID}]])
+  })
+
+  test('unfurl previews, with null as none', async () => {
+    const info = {url: 'http://a.com'} as T.RPCChat.UnfurlPreviewInfo
+    const spy = jest
+      .spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise')
+      .mockResolvedValueOnce([info])
+      .mockResolvedValueOnce(null)
+    await expect(rpc().getUnfurlPreviews(conversationIDKey, 'see http://a.com')).resolves.toEqual([info])
+    await expect(rpc().getUnfurlPreviews(conversationIDKey, 'x')).resolves.toEqual([])
+    expect(spy.mock.calls[0]).toEqual([{convID, text: 'see http://a.com'}])
+  })
+
+  test('delete history removes every message, publicly nothing', async () => {
+    const spy = jest.spyOn(T.RPCChat, 'localPostDeleteHistoryByAgeRpcPromise').mockResolvedValue({} as never)
+    await rpc().deleteHistory(conversationIDKey, 'testuser,testuser2')
+    expect(spy.mock.calls).toEqual([
+      [
+        {
+          age: 0,
+          conversationID: convID,
+          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+          tlfName: 'testuser,testuser2',
+          tlfPublic: false,
+        },
+      ],
+    ])
+  })
+
+  test('location sends only the position and its accuracy', async () => {
+    const spy = jest.spyOn(T.RPCChat, 'localLocationUpdateRpcPromise').mockResolvedValue(undefined)
+    await rpc().updateLocation({accuracy: 5, altitude: 9, lat: 1.5, lon: -2} as T.Chat.Coordinate)
+    expect(spy.mock.calls).toEqual([[{coord: {accuracy: 5, lat: 1.5, lon: -2}}]])
+  })
+
+  test('the bot destination search, null as none', async () => {
+    const hit = {convID: new Uint8Array([9]), isTeam: true, name: 'team', parts: null} as T.RPCChat.ConvSearchHit
+    const search = jest
+      .spyOn(T.RPCChat, 'localAddBotConvSearchRpcPromise')
+      .mockResolvedValueOnce([hit])
+      .mockResolvedValueOnce(null)
+    await expect(rpc().searchBotDestinations('te')).resolves.toEqual([hit])
+    await expect(rpc().searchBotDestinations('')).resolves.toEqual([])
+    expect(search.mock.calls).toEqual([[{term: 'te'}], [{term: ''}]])
+  })
+
   test('the gallery streams each hit and resolves whether it was the last page', async () => {
     const hitMessage = {state: T.RPCChat.MessageUnboxedState.placeholder} as T.RPCChat.UIMessage
     const spy = jest.spyOn(T.RPCChat, 'localLoadGalleryRpcListener').mockImplementation(async p => {
