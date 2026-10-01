@@ -244,7 +244,7 @@ describe('draft', () => {
     const wrapper = (p: {children: React.ReactNode}) => (
       <ComposerContext value={composer}>{p.children}</ComposerContext>
     )
-    const {rerender, result} = renderHook((p: {draft?: string}) => useComposerInput<FakeComposerInput>(p.draft, false), {
+    const {rerender, result} = renderHook((p: {draft?: string}) => useComposerInput(p.draft, false), {
       initialProps: {draft: undefined as string | undefined},
       wrapper,
     })
@@ -262,7 +262,7 @@ describe('draft', () => {
     const wrapper = (p: {children: React.ReactNode}) => (
       <ComposerContext value={composer}>{p.children}</ComposerContext>
     )
-    const {result} = renderHook(() => useComposerInput<FakeComposerInput>('saved', false), {wrapper})
+    const {result} = renderHook(() => useComposerInput('saved', false), {wrapper})
     expect(composer.getText()).toBe('')
     const fake = makeFakeComposerInput()
 
@@ -1020,14 +1020,6 @@ describe('read-only', () => {
     expect(composer.startEdit('my message')).toBe(true)
 
     expect(fake.text).toBe('my message')
-  })
-
-  test('a reply is refused', () => {
-    const {composer, setReadOnly} = setup()
-    expect(composer.startReply()).toBe(true)
-    setReadOnly(true)
-
-    expect(composer.startReply()).toBe(false)
   })
 
   test('writes land again once the composer can be written to', () => {

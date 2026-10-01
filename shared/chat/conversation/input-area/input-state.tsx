@@ -171,7 +171,8 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
     dispatchState({show, type: 'setGiphyWindow'})
   })
   const setReplyTo = React.useEffectEvent((ordinal: T.Chat.Ordinal) => {
-    if (ordinal !== emptyOrdinal && !composer.startReply()) {
+    // a reply could never be sent
+    if (ordinal !== emptyOrdinal && getMeta()?.cannotWrite) {
       logger.info('[chat] setReplyTo refused: the conversation is read-only')
       return
     }

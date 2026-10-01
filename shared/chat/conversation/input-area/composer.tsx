@@ -54,8 +54,6 @@ export type Composer = {
   // Empties the composer. An edit ends instead, and the draft it set aside comes back (once the user
   // can post).
   clear: () => void
-  // False where the user can't post: a reply could never be sent.
-  startReply: () => boolean
   insertAtCaret: (s: string) => void
   // Saves the text as the draft without it being typing: a suggestion preview the input shows
   // without reporting it, kept as the list closes.
@@ -86,7 +84,7 @@ type ComposerDeps = {
   // saved draft. saveDraft is throttled; flushDraft saves a pending one now.
   flushDraft: () => void
   // Where the user can't post, nothing the app writes reaches the input (an inject, an insert, a
-  // draft), so there is nothing to send, and no edit or reply starts; a clear still clears. Nothing
+  // draft), so there is nothing to send, and no edit starts; a clear still clears. Nothing
   // but a restore saves the draft there. Read at every write, from the store that turns read-only
   // before React renders it, so no write in the commit that renders it (a ref being set, a child's
   // effect) can come first.
@@ -98,6 +96,8 @@ type ComposerDeps = {
 }
 
 const spoiler = '!>spoiler<!'
+// long enough for an input on its way (a screen mounting, or shown again) to attach; one turning up
+// later is not one the user just asked to focus
 const focusWaitMs = 1000
 const injectedSelection = (text: string): Selection =>
   text === spoiler
@@ -322,7 +322,6 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
       })
       return true
     },
-    startReply: () => !deps.isReadOnly(),
     submit: send => {
       const toSend = text
       if (!toSend || deps.isReadOnly()) return false
@@ -378,24 +377,19 @@ export const useComposer = (): Composer => {
 // Binds one mounted platform input to the conversation's composer, and gives back the input's
 // ref setter (stable, so React never detaches and re-attaches the input between renders) and the
 // reporter for what the input says was typed.
-export const useComposerInput = <R extends ComposerInput>(draft: string | undefined, readOnly: boolean) => {
+export const useComposerInput = (draft: string | undefined, readOnly: boolean) => {
   const composer = useComposer()
-  const [{setInput, view}] = React.useState(() => {
+  const [view] = React.useState(() => {
     const view = composer.connect()
     // the effect below offers it only after the first commit has attached the input, too late
     // to load ahead of the writes waiting for it
     view.offerDraft(draft)
-    return {
-      setInput: (input: R | null) => {
-        view.setInput(input)
-      },
-      view,
-    }
+    return view
   })
   // the composer reads read-only itself; a change only offers the draft again, which loads it
   // once the user can post
   React.useEffect(() => {
     view.offerDraft(draft)
   }, [view, draft, readOnly])
-  return {composer, setInput, textChanged: view.textChanged}
+  return {composer, setInput: view.setInput, textChanged: view.textChanged}
 }
