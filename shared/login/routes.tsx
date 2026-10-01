@@ -155,6 +155,13 @@ export const newRoutes = defineRouteMap({
     },
     screen: React.lazy(async () => import('./recover-password/paper-key')),
   },
+  recoverPasswordPgpWarning: {
+    getOptions: {
+      ...recoverPasswordGetOptions,
+      ...(isIOS ? recoverBackItems(cancelRecoverPassword) : {headerLeft: () => <RecoverCancelLeft />}),
+    },
+    screen: React.lazy(async () => import('./recover-password/pgp-warning')),
+  },
   recoverPasswordPromptResetAccount: {
     getOptions: (p: {route: {params: {skipPassword: boolean; username: string}}}) => ({
       ...recoverPasswordGetOptions,

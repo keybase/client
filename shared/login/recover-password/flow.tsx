@@ -25,6 +25,7 @@ const slots = {
   submitNoDevice: 'submitNoDevice',
   submitPaperKey: 'submitPaperKey',
   submitPassword: 'submitPassword',
+  submitPgpWarning: 'submitPgpWarning',
   submitResetPassword: 'submitResetPassword',
 } as const
 type Slot = (typeof slots)[keyof typeof slots]
@@ -38,6 +39,8 @@ export const submitRecoverPasswordPaperKey = (paperKey: string) =>
   callNamed(owner, slots.submitPaperKey, paperKey)
 export const submitRecoverPasswordPassword = (password: string) =>
   callNamed(owner, slots.submitPassword, password)
+export const submitRecoverPasswordPgpWarning = (proceed: boolean) =>
+  callNamed(owner, slots.submitPgpWarning, proceed)
 export const submitRecoverPasswordReset = (action: T.RPCGen.ResetPromptResponse) =>
   callNamed(owner, slots.submitResetPassword, action)
 
@@ -109,7 +112,16 @@ export const startRecoverPassword = ({
             )
             navigateAppend({name: 'recoverPasswordDeviceSelector', params: {devices}}, !!replaceRoute)
           },
-          'keybase.1.loginUi.promptPassphraseRecovery': () => {},
+          'keybase.1.loginUi.promptPassphraseRecovery': (_params, response) => {
+            const clear = () => clearSlots(slots.cancel, slots.submitPgpWarning)
+            const answer = wrapErrors((proceed: boolean) => {
+              clear()
+              response.result(proceed)
+            })
+            setHandle(slots.cancel, () => answer(false))
+            setHandle(slots.submitPgpWarning, answer)
+            navigateAppend({name: 'recoverPasswordPgpWarning', params: {username}}, true)
+          },
           'keybase.1.loginUi.promptResetAccount': (params, response) => {
             if (params.prompt.t === T.RPCGen.ResetPromptType.enterResetPw) {
               navigateAppend({name: 'recoverPasswordPromptResetPassword', params: {username}})
@@ -228,6 +240,7 @@ export const startRecoverPassword = ({
         slots.submitNoDevice,
         slots.submitPaperKey,
         slots.submitPassword,
+        slots.submitPgpWarning,
         slots.submitResetPassword
       )
       active = false

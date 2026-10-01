@@ -11,6 +11,7 @@ import {
   submitRecoverPasswordNoDevice,
   submitRecoverPasswordPaperKey,
   submitRecoverPasswordPassword,
+  submitRecoverPasswordPgpWarning,
 } from './flow'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 
@@ -342,5 +343,46 @@ describe('completion', () => {
     submitRecoverPasswordPassword('hunter2hunter2')
 
     expect(response.result).not.toHaveBeenCalled()
+  })
+})
+
+describe('pgp key warning', () => {
+  const prompt = (first: Awaited<ReturnType<typeof startAttempt>>['first']) => {
+    const response = {error: jest.fn(), result: jest.fn()}
+    first.listener.customResponseIncomingCallMap?.['keybase.1.loginUi.promptPassphraseRecovery']?.(
+      {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys} as any,
+      response as any
+    )
+    return response
+  }
+
+  test('shows the warning screen and continues when the user agrees', async () => {
+    const {first} = await startAttempt()
+    const response = prompt(first)
+    expect(nav.navigations()).toContainEqual({
+      name: 'recoverPasswordPgpWarning',
+      params: {username: 'testuser'},
+      replace: true,
+    })
+    submitRecoverPasswordPgpWarning(true)
+    expect(response.result).toHaveBeenCalledTimes(1)
+    expect(response.result).toHaveBeenCalledWith(true)
+  })
+
+  test('declining answers false once', async () => {
+    const {first} = await startAttempt()
+    const response = prompt(first)
+    submitRecoverPasswordPgpWarning(false)
+    submitRecoverPasswordPgpWarning(false)
+    expect(response.result).toHaveBeenCalledTimes(1)
+    expect(response.result).toHaveBeenCalledWith(false)
+  })
+
+  test('back out through cancel answers false', async () => {
+    const {first} = await startAttempt()
+    const response = prompt(first)
+    cancelRecoverPassword()
+    expect(response.result).toHaveBeenCalledWith(false)
+    expect(response.error).not.toHaveBeenCalled()
   })
 })
