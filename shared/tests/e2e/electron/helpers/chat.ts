@@ -91,14 +91,6 @@ export const isOrdinalCentred = async (page: Page, ordinal: number, tolerancePx 
   return {centred: Math.abs(offset) <= tolerancePx, offset}
 }
 
-// The rows the list has in the DOM (it virtualizes, so this is a window, not the whole thread).
-export const loadedOrdinalRange = async (page: Page) => {
-  const {rows} = await requireGeometry(page)
-  const first = rows[0]
-  const last = rows.at(-1)
-  return first && last ? {count: rows.length, max: last.ordinal, min: first.ordinal} : undefined
-}
-
 const sameReading = (a: ThreadGeometry, b: ThreadGeometry) =>
   a.scrollTop === b.scrollTop && a.scrollHeight === b.scrollHeight && a.clientHeight === b.clientHeight
 
