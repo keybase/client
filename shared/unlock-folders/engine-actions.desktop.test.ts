@@ -2,17 +2,9 @@
 import {handleUnlockFoldersEngineAction} from './engine-actions.desktop'
 
 const mockOpen = jest.fn()
-const mockCreateSession = jest.fn()
-
-jest.mock('@/engine/require', () => ({
-  getEngine: () => ({
-    createSession: mockCreateSession,
-  }),
-}))
 
 afterEach(() => {
   jest.restoreAllMocks()
-  mockCreateSession.mockReset()
   mockOpen.mockReset()
 })
 
@@ -34,26 +26,11 @@ test('rekey refresh actions forward the device list to unlock folders', () => {
   expect(mockOpen).toHaveBeenCalledWith([{deviceID: 'device-1', name: 'device-1', type: 'desktop'}])
 })
 
-test('delegateRekeyUI creates a dangling session and returns its id', () => {
+test('delegateRekeyUI answers with no session so refreshes take the auto-answered global path', () => {
   const response = {result: jest.fn()}
-  mockCreateSession.mockReturnValue({getId: () => 42, id: 42})
-
   handleUnlockFoldersEngineAction(
-    {
-      payload: {response},
-      type: 'keybase.1.rekeyUI.delegateRekeyUI',
-    } as any,
+    {payload: {response}, type: 'keybase.1.rekeyUI.delegateRekeyUI'} as any,
     mockOpen
   )
-
-  expect(mockCreateSession).toHaveBeenCalledWith(
-    expect.objectContaining({
-      dangling: true,
-      incomingCallMap: expect.objectContaining({
-        'keybase.1.rekeyUI.refresh': expect.any(Function),
-        'keybase.1.rekeyUI.rekeySendEvent': expect.any(Function),
-      }),
-    })
-  )
-  expect(response.result).toHaveBeenCalledWith(42)
+  expect(response.result).toHaveBeenCalledWith(0)
 })

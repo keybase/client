@@ -1,6 +1,5 @@
 import type * as EngineGen from '@/constants/rpc'
 import * as T from '@/constants/types'
-import {getEngine} from '@/engine/require'
 import logger from '@/logger'
 import type {UnlockFolderDevice} from './store'
 
@@ -25,18 +24,9 @@ export const handleUnlockFoldersEngineAction = (
       break
     }
     case 'keybase.1.rekeyUI.delegateRekeyUI': {
-      // We get this with sessionID == 0 if we call openDialog.
-      const session = getEngine().createSession({
-        dangling: true,
-        incomingCallMap: {
-          'keybase.1.rekeyUI.refresh': ({problemSetDevices}) => {
-            open(rpcDevicesToUnlockFolderDevices(problemSetDevices.devices ?? []))
-          },
-          'keybase.1.rekeyUI.rekeySendEvent': () => {}, // ignored debug call from daemon
-        },
-      })
-      const {response} = action.payload
-      response.result(session.getId())
+      // No session: Go stamps later rekey calls with this id, and a call with no matching session is
+      // auto-answered by the engine and dispatched to the refresh listener, like a non-delegated one.
+      action.payload.response.result(0)
       break
     }
   }
