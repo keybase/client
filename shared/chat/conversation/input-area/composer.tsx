@@ -24,8 +24,9 @@ export type ComposerView = {
   // The input's callback ref: an element attaches it, null detaches it, both in the commit that
   // sets the ref, so no write can find the composer holding an input that is gone.
   setInput: (input: ComposerInput | null) => void
-  // Loads the draft into an untouched composer, once per view, once the view's input is attached
-  // and the user can post.
+  // Loads the draft into an untouched composer, once per view, once the user can post: one that
+  // arrives after the view's input attached, or offered again as read-only clears. An input
+  // attaching loads the store's draft itself.
   offerDraft: (draft: string | undefined) => void
   // What the input reports, and whether the user typed it: false for the composer's own writes
   // (a draft, an inject, a clear), and for reports from a view other than the attached one, which
@@ -73,6 +74,9 @@ export type Composer = {
 }
 
 type ComposerDeps = {
+  // The conversation's saved draft as the store holds it now, undefined while it is not known. Read
+  // as an input attaches, so the draft loads ahead of the writes waiting for that input.
+  getDraft: () => string | undefined
   // The composer saves the draft: what the user types, and what it writes when that changes the
   // saved draft. saveDraft is throttled; flushDraft saves a pending one now.
   flushDraft: () => void
@@ -198,9 +202,9 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     replace(target, {selection: inserted.selection, text: inserted.text}, true)
   }
 
-  // Loaded only once it is written, so an offer made before the view's input is attached, or while
-  // the user can't post, is retried by the next one (the input attaching or read-only clearing
-  // makes one).
+  // Loaded only once it is written, so a draft known before the view's input is attached, or
+  // offered while the user can't post, loads on the next try: the input attaching reads it from the
+  // store, and read-only clearing offers it again.
   const offerDraft = (draft: string | undefined) => {
     if (draftLoaded || draft === undefined) return
     if (editing) {
@@ -227,10 +231,8 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
     },
     connect: () => {
       const view = {}
-      let offered: string | undefined
       return {
         offerDraft: draft => {
-          offered = draft
           if (session === view) {
             offerDraft(draft)
           }
@@ -255,7 +257,7 @@ export const makeComposer = (deps: ComposerDeps): Composer => {
           if (editText) {
             write(next, editText, false)
           }
-          offerDraft(offered)
+          offerDraft(deps.getDraft())
           const waiting = pending
           pending = []
           waiting.forEach(whenAttached)
@@ -364,27 +366,11 @@ export const useComposer = (): Composer => {
 // reporter for what the input says was typed.
 export const useComposerInput = (draft: string | undefined, readOnly: boolean) => {
   const composer = useComposer()
-  // The draft of the commit an input attaches in, offered as it attaches so it loads ahead of the
-  // writes waiting for the input. The platform inputs are children, whose refs attach before any of
-  // this view's layout effects run, so it is kept by an insertion effect, which runs before them all.
-  const draftRef = React.useRef(draft)
-  React.useInsertionEffect(() => {
-    draftRef.current = draft
-  }, [draft])
-  const [{setInput, view}] = React.useState(() => {
-    const view = composer.connect()
-    return {
-      setInput: (input: ComposerInput | null) => {
-        if (input) view.offerDraft(draftRef.current)
-        view.setInput(input)
-      },
-      view,
-    }
-  })
+  const [view] = React.useState(() => composer.connect())
   // A draft that arrives after the input attached. The composer reads read-only itself; a change
   // only offers the draft again, which loads it once the user can post.
   React.useEffect(() => {
     view.offerDraft(draft)
   }, [view, draft, readOnly])
-  return {composer, setInput, textChanged: view.textChanged}
+  return {composer, setInput: view.setInput, textChanged: view.textChanged}
 }
