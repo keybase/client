@@ -13,9 +13,7 @@ type Props = {
   onContextMenu?: () => void
   onMouseOver?: () => void
 }
-import {useConversationThreadToggleSearch} from '../../../thread-context'
 import Swipeable, {type SwipeableMethods} from '@/common-adapters/swipeable-row'
-import {ThreadRefsContext} from '@/chat/conversation/normal/context'
 
 function ReplyIcon({progress}: {progress: Animated.Value}) {
   const styles = useStyles()
@@ -29,10 +27,9 @@ function ReplyIcon({progress}: {progress: Animated.Value}) {
 
 function LongPressable(props: Props & {ref?: React.Ref<Kb.MeasureRef>}) {
   const styles = useStyles()
-  const toggleThreadSearch = useConversationThreadToggleSearch()
-  const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
+  const reply = InputState.useConversationInputDispatch(s => s.reply)
+  const canReply = InputState.useCanReply()
   const ordinal = useOrdinal()
-  const {focusInput} = React.useContext(ThreadRefsContext)
   const swipeRef = React.useRef<SwipeableMethods | null>(null)
 
   if (!isMobile) {
@@ -54,20 +51,15 @@ function LongPressable(props: Props & {ref?: React.Ref<Kb.MeasureRef>}) {
     translation: Animated.Value
   ) => <ReplyIcon progress={translation} />
 
-  const onSwipeLeft = () => {
-    setReplyTo(ordinal)
-    toggleThreadSearch(true)
-    focusInput()
-  }
-
   const onSwipeableWillOpen = () => {
     swipeRef.current?.close()
-    onSwipeLeft()
+    reply(ordinal)
   }
 
   return (
     <Swipeable
       ref={swipeRef}
+      enabled={canReply}
       renderRightActions={makeAction}
       onSwipeableWillOpen={onSwipeableWillOpen}
     >

@@ -4,15 +4,22 @@ import type * as React from 'react'
 import {act, cleanup, render, renderHook} from '@testing-library/react'
 import type {RefType as InputRef, Selection} from '../normal/input.shared'
 import {useSuggestors} from '.'
+import {ComposerContext, makeComposer} from '../composer'
 
-const mockCommandsList = jest.fn((_p: {filter: string}) => null)
+type MockCommandsListProps = {
+  filter: string
+  inputSnapshot: {text: string}
+  onSelected: (item: unknown, final: boolean) => void
+}
+const mockCommandsList = jest.fn((_p: MockCommandsListProps) => null)
 const mockUsersList = jest.fn((_p: {filter: string}) => null)
 const mockEmojiList = jest.fn((_p: {filter: string}) => null)
 const mockChannelsList = jest.fn((_p: {filter: string}) => null)
+let mockCommandTransform = (): unknown => undefined
 
 jest.mock('./commands', () => ({
-  List: (p: {filter: string}) => mockCommandsList(p),
-  transformer: jest.fn(),
+  List: (p: MockCommandsListProps) => mockCommandsList(p),
+  transformer: () => mockCommandTransform(),
   useBotCommandsUpdateState: () => ({
     conversationIDKey: 'conv',
     settings: new Map<string, unknown>(),
@@ -29,26 +36,38 @@ jest.mock('@/common-adapters', () => {
   return {...actual, AnchoredPopup: (p: {children: React.ReactNode}) => <>{p.children}</>}
 })
 
-// the suggestors read the caret through the input ref; drive it directly so the
+// the suggestors read the caret through the composer's input; drive it directly so the
 // test exercises the word-splitting rather than a real textarea
-const makeInputRef = (getSelection: () => Selection | undefined) => ({
-  current: {
+const makeInput = (getSelection: () => Selection | undefined, showsWrites: boolean) =>
+  ({
+    clear: jest.fn(),
+    focus: jest.fn(),
     getSelection,
     isFocused: () => true,
-    transformText: jest.fn(),
-  } as unknown as InputRef,
-})
+    replaceText: jest.fn(() => showsWrites),
+  }) as unknown as InputRef
 
-const renderSuggestors = (getSelection: () => Selection | undefined) => {
-  const inputRef = makeInputRef(getSelection)
-  const {result} = renderHook(() =>
-    useSuggestors({
-      inputRef,
-      onChangeText: jest.fn(),
-      suggestionListStyle: {},
-      suggestionOverlayStyle: {},
-      suggestionSpinnerStyle: {},
-    })
+// the composer the suggestors read the text from, attached to the input the way the composer
+// view attaches it; its onChangeText reports what was typed, as the view's does
+const renderSuggestors = (getSelection: () => Selection | undefined, showsWrites = true) => {
+  const input = makeInput(getSelection, showsWrites)
+  const composer = makeComposer({
+    flushDraft: () => {},
+    isReadOnly: () => false,
+    saveDraft: () => {},
+    takeUnfurlSnapshot: () => ({dismissed: [], failed: []}),
+  })
+  const view = composer.connect()
+  view.setInput(input)
+  const {result} = renderHook(
+    () =>
+      useSuggestors({
+        onChangeText: view.textChanged,
+        suggestionListStyle: {},
+        suggestionOverlayStyle: {},
+        suggestionSpinnerStyle: {},
+      }),
+    {wrapper: (p: {children: React.ReactNode}) => <ComposerContext value={composer}>{p.children}</ComposerContext>}
   )
   return result
 }
@@ -77,6 +96,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  mockCommandTransform = () => undefined
   cleanup()
   jest.useRealTimers()
 })
@@ -162,4 +182,20 @@ test('non-command text still splits on plain spaces', () => {
 
   expect(mockUsersList).toHaveBeenCalled()
   expect(mockUsersList.mock.calls.at(-1)?.[0].filter).toBe('test')
+})
+
+// the command list filters on the snapshot, so it has to be the text the input shows
+test('a preview the input does not show leaves the command snapshot on what was typed', () => {
+  const text = '/gi'
+  const result = renderSuggestors(() => ({end: text.length, start: text.length}), false)
+  typeText(result, text)
+  renderPopup(result)
+  mockCommandTransform = () => ({selection: {end: 7, start: 7}, text: '/giphy '})
+
+  act(() => {
+    mockCommandsList.mock.calls.at(-1)?.[0].onSelected({name: 'giphy'}, false)
+  })
+  renderPopup(result)
+
+  expect(mockCommandsList.mock.calls.at(-1)?.[0].inputSnapshot.text).toBe('/gi')
 })

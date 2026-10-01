@@ -8,6 +8,7 @@ import {useChatTeam} from './team-hooks'
 import {ZoomedImage} from './common'
 import {useConversationCenterActions} from './center-context'
 import {useConversationThreadID, useThreadMeta} from './thread-context'
+import {useThreadSearchRoute} from './thread-search-route'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 
@@ -209,5 +210,8 @@ const useStyles = Kb.Styles.createStyleHook(
       }),
     }) as const
 )
+
+// The banner hides during thread search, on both platforms: whether a layout mounts it at all.
+export const usePinnedMessageShown = () => !useThreadSearchRoute()
 
 export default PinnedMessage
