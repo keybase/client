@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as Config from '@/constants/config'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as T from '@/constants/types'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import NewChatButton from '@/chat/inbox/new-chat-button'
@@ -191,7 +192,7 @@ const Header = () => {
   )
 
   const topRow = (
-    <Kb.Box2 direction="horizontal" fullWidth={true}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} testID={TestIDs.CHAT_HEADER_TITLE}>
       {showActions && channel ? (
         <Kb.Text selectable={true} type="Header" lineClamp={1}>
           {channel}
@@ -245,7 +246,12 @@ const Header = () => {
         direction="vertical"
         tooltip={`Search in this chat (${C.shortcutSymbol}F)`}
       >
-        <Kb.Icon style={styles.clickable} type="iconfont-search" onClick={onToggleThreadSearch} />
+        <Kb.Icon
+          style={styles.clickable}
+          type="iconfont-search"
+          onClick={onToggleThreadSearch}
+          testID={TestIDs.CHAT_HEADER_SEARCH_BUTTON}
+        />
       </Kb.Box2>
       <Kb.Box2
         className="tooltip-left"
