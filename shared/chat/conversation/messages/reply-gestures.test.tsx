@@ -7,6 +7,7 @@ import {act, cleanup, render} from '@testing-library/react'
 import {metasReceived} from '@/chat/inbox/metadata'
 import type * as InboxMetadata from '@/chat/inbox/metadata'
 import {resetAllStores} from '@/util/zustand'
+import {useCurrentUserState} from '@/stores/current-user'
 import type {Props as SwipeableProps} from '@/common-adapters/swipeable-row.shared'
 import {ConversationInputProvider} from '../input-area/input-state'
 import {ConversationThreadProvider} from '../thread-context'
@@ -59,6 +60,16 @@ const Row = (p: React.PropsWithChildren) => (
 
 const g = globalThis as unknown as {isMobile: boolean}
 const wasMobile = g.isMobile
+
+// the thread provider builds a thread only for a signed-in account
+beforeEach(() => {
+  useCurrentUserState.getState().dispatch.setBootstrap({
+    deviceID: 'device-id',
+    deviceName: 'testuser-mac',
+    uid: 'uid',
+    username: 'testuser',
+  })
+})
 
 afterEach(() => {
   cleanup()

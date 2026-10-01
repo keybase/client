@@ -13,6 +13,7 @@ import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actio
 import {RPCError} from '@/util/errors'
 import {useCurrentUserState} from '@/stores/current-user'
 import logger from '@/logger'
+import {getChatRpc} from '../chat-rpc'
 import {
   attachmentDownloadMessage,
   messageAttachmentNativeShareMessage,
@@ -502,7 +503,6 @@ const runAttachmentViewLoad = async (p: {
 }) => {
   const {conversationIDKey, viewType, fromMsgID, reason, generation} = p
   const {isCurrentLoad, lastOrdinalRef, updateCurrentAttachmentViewMap} = p
-  const convID = T.Chat.keyToConversationID(conversationIDKey)
   const pendingMessages: Array<T.Chat.Message> = []
   let flushTimeout: ReturnType<typeof setTimeout> | undefined
   const flushPendingMessages = () => {
@@ -552,35 +552,24 @@ const runAttachmentViewLoad = async (p: {
   try {
     const {deviceName, username} = useCurrentUserState.getState()
     const getLastOrdinal = () => lastOrdinalRef.current
-    const res = await T.RPCChat.localLoadGalleryRpcListener({
-      incomingCallMap: {
-        'chat.1.chatUi.chatLoadGalleryHit': hit => {
-          const message = Message.uiMessageToMessage(
-            conversationIDKey,
-            hit.message,
-            username,
-            getLastOrdinal,
-            deviceName
-          )
-
-          if (message) {
-            if (T.Chat.ordinalToNumber(message.ordinal) > T.Chat.ordinalToNumber(lastOrdinalRef.current)) {
-              lastOrdinalRef.current = message.ordinal
-            }
-            pendingMessages.push({
-              ...message,
-              conversationMessage: false,
-            })
-            scheduleFlushPendingMessages()
+    const res = await getChatRpc().loadGallery({
+      conversationIDKey,
+      fromMessageID: fromMsgID,
+      num: 50,
+      onHit: hit => {
+        const message = Message.uiMessageToMessage(conversationIDKey, hit, username, getLastOrdinal, deviceName)
+        if (message) {
+          if (T.Chat.ordinalToNumber(message.ordinal) > T.Chat.ordinalToNumber(lastOrdinalRef.current)) {
+            lastOrdinalRef.current = message.ordinal
           }
-        },
+          pendingMessages.push({
+            ...message,
+            conversationMessage: false,
+          })
+          scheduleFlushPendingMessages()
+        }
       },
-      params: {
-        convID,
-        fromMsgID,
-        num: 50,
-        typ: viewType,
-      },
+      viewType,
     })
     flushPendingMessages()
     if (!isCurrentLoad()) {
@@ -597,12 +586,12 @@ const runAttachmentViewLoad = async (p: {
       conversationIDKey,
       fromMsgID,
       generation,
-      last: !!res.last,
+      last: res.last,
       reason,
       viewType,
     })
     updateCurrentAttachmentViewMap(viewType, info => {
-      info.last = !!res.last
+      info.last = res.last
       info.status = 'success'
     })
   } catch (error) {

@@ -8,15 +8,11 @@ import InvitationToBlock from '@/chat/blocking/invitation-to-block'
 import ListArea from '../list-area'
 import PinnedMessage, {usePinnedMessageShown} from '../pinned-message'
 import ThreadLoadStatus from '../load-status'
-import {
-  useConversationThreadCloseSearch,
-  useConversationThreadID,
-  useConversationThreadToggleSearch,
-  useThreadMeta,
-} from '../thread-context'
+import {useConversationThreadID, useThreadMeta} from '../thread-context'
+import {useConversationThreadCloseSearch, useConversationThreadToggleSearch} from '../thread-navigation'
 import {useThreadSearchRoute} from '../thread-search-route'
 import {indefiniteArticle} from '@/util/string'
-import {makePasteAttachment} from '../attachment-actions'
+import {useConversationAttachmentActions} from '../attachment-actions'
 import {readImageFromClipboard} from '@/util/clipboard.desktop'
 import ThreadSearch from '../search'
 import '../conversation.css'
@@ -67,11 +63,12 @@ const DesktopConversation = function DesktopConversation() {
   const dragAndDropRejectReason = cannotWrite
     ? `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
     : undefined
+  const {pasteAttachment} = useConversationAttachmentActions()
   const onPaste = (e: React.SyntheticEvent) => {
     readImageFromClipboard(e)
       .then(clipboardData => {
         if (clipboardData) {
-          makePasteAttachment(conversationIDKey, clipboardData)
+          pasteAttachment(clipboardData)
         }
       })
       .catch(() => {})

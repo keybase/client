@@ -1,7 +1,8 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {useConversationCenterActions} from '../center-context'
-import {useConversationThreadCloseSearch, useConversationThreadSelector} from '../thread-context'
+import {useConversationThreadSelector} from '../thread-context'
+import {useConversationThreadCloseSearch} from '../thread-navigation'
 
 const JumpToRecent = (props: {onClick: () => void}) => {
   const styles = useStyles()

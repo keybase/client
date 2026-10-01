@@ -3,27 +3,22 @@ import * as Chat from '@/constants/chat'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {copyToClipboard} from '@/util/storeless-actions'
-import {
-  deleteConversationMessage,
-  pinConversationMessage,
-  toggleConversationMessageReaction,
-} from '../../message-actions'
+import {deleteMessage, pinMessage, toggleReaction, useThreadMessageTarget} from '../../message-commands'
 import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 import {linkFromConvAndMessage} from '@/constants/deeplinks'
-import {markConversationAsUnread, useConversationParticipants} from '../../data-hooks'
+import {useConversationParticipants} from '../../data-hooks'
+import {markConversationUnread} from '../../mark-unread'
 import {showForwardMessagePicker} from '../../fwd-msg'
 import {navToProfile, setThreadInputEditing, setThreadInputReplyTo} from '@/constants/router'
 import {
   useConversationInputDispatchOptional,
   type ConversationInputState,
 } from '../../input-area/input-state'
-import {SetOrangeLineContext} from '../../orange-line-context'
 import {useChatTeam, useChatTeamMembers} from '../../team-hooks'
 import {useCurrentUserState} from '@/stores/current-user'
 import {
   useConversationThreadID,
   useConversationThreadMessage,
-  useConversationThreadMessageActions,
   useConversationThreadSetMarkAsUnread,
   useThreadMeta,
 } from '../../thread-context'
@@ -50,6 +45,7 @@ const getConversationLabel = (
 type ItemActions = {
   deleteMessage: () => void
   markAsUnread: (id: T.Chat.MessageID) => void
+  pinMessage: () => void
   toggleReaction: (emoji: string) => void
 }
 
@@ -133,7 +129,6 @@ const useItemsForMessage = (p: {
     ? ([{icon: 'iconfont-link', onClick: onCopyLink, title: 'Copy a link to this message'}] as const)
     : []
 
-  const setOrangeLine = React.useContext(SetOrangeLineContext)
   const clearModals = C.Router2.clearModals
   // Edit and Reply put something in the composer, so the composer has to be visible afterwards.
   // From the attachment viewer this popup sits under a modal route, and nothing else dismisses it -
@@ -195,19 +190,13 @@ const useItemsForMessage = (p: {
 
   const isTeam = !!teamname
   const canPinMessage = (!isTeam || yourOperations.pinMessage) && !message.exploded
-  const _onPinMessage = () => {
-    if (id) {
-      pinConversationMessage(conversationIDKey, id)
-    }
-  }
-  const onPinMessage = canPinMessage && hasMessageID ? _onPinMessage : undefined
+  const onPinMessage = canPinMessage && hasMessageID ? actions.pinMessage : undefined
   const itemPin = onPinMessage
     ? ([{icon: 'iconfont-pin', onClick: onPinMessage, title: 'Pin message'}] as const)
     : []
 
   const onMarkAsUnread = () => {
     if (id) {
-      setOrangeLine(ordinal)
       actions.markAsUnread(id)
     }
   }
@@ -368,15 +357,16 @@ const useThreadItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const message = useConversationThreadMessage(ordinal) ?? emptyText
   const meta = useThreadMeta(m => m)
   const participantInfo = useConversationParticipants(conversationIDKey)
-  const {messageDelete, toggleMessageReaction} = useConversationThreadMessageActions()
+  const target = useThreadMessageTarget(ordinal)
   const setMarkAsUnread = useConversationThreadSetMarkAsUnread()
   // Rendered inline in the thread, so the composer is right here in context.
   const inputDispatch = useConversationInputDispatchOptional()
   return useItemsForMessage({
     actions: {
-      deleteMessage: () => messageDelete(ordinal),
+      deleteMessage: () => deleteMessage(target),
       markAsUnread: setMarkAsUnread,
-      toggleReaction: emoji => toggleMessageReaction(ordinal, emoji),
+      pinMessage: () => pinMessage(target),
+      toggleReaction: emoji => toggleReaction(target, emoji),
     },
     conversationIDKey,
     inputDispatch,
@@ -396,10 +386,12 @@ export const useStorelessItems = (p: {
 }) =>
   useItemsForMessage({
     actions: {
-      deleteMessage: () => deleteConversationMessage(p.conversationIDKey, p.message, p.meta.tlfname),
-      markAsUnread: id => markConversationAsUnread(p.conversationIDKey, id),
+      deleteMessage: () =>
+        deleteMessage({conversationIDKey: p.conversationIDKey, message: p.message, tlfName: p.meta.tlfname}),
+      markAsUnread: id => markConversationUnread(p.conversationIDKey, id),
+      pinMessage: () => pinMessage({conversationIDKey: p.conversationIDKey, messageID: p.message.id}),
       toggleReaction: emoji =>
-        toggleConversationMessageReaction(p.conversationIDKey, p.message, emoji, p.meta.tlfname),
+        toggleReaction({conversationIDKey: p.conversationIDKey, message: p.message, tlfName: p.meta.tlfname}, emoji),
     },
     conversationIDKey: p.conversationIDKey,
     message: p.message,

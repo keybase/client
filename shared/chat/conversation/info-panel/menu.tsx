@@ -10,9 +10,10 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
 import {useChatManageChannelsBadge, useChatTeam} from '../team-hooks'
 import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
-import {hexToUint8Array} from '@/util/uint8array'
+import {getChatRpc} from '../chat-rpc'
 import {hideConversation, joinConversation, muteConversation} from '../status-actions'
-import {useConversationMarkAsUnread, useConversationMetadata} from '../data-hooks'
+import {useConversationMetadata} from '../data-hooks'
+import {markConversationUnread} from '../mark-unread'
 import {useInboxPinnedCount, useInboxRowIsPinned, useInboxRowIsTopPinned} from '@/chat/inbox/rows-state'
 import {maxPinnedConvs, setConversationPinned} from '@/chat/inbox/pinned-convs'
 
@@ -149,15 +150,13 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
       if (!loggedIn || !canMarkTLFAsRead) {
         return
       }
-      const tlfID = hexToUint8Array(teamIDString)
-      await T.RPCChat.localMarkTLFAsReadLocalRpcPromise({tlfID})
+      await getChatRpc().markTeamRead(teamID)
     }
     C.ignorePromise(f())
   }
-  const setMarkAsUnread = useConversationMarkAsUnread(conversationIDKey)
   const onMarkAsUnread = () => {
     clearModals()
-    setMarkAsUnread()
+    markConversationUnread(conversationIDKey)
   }
   const onViewTeam = () => {
     clearModals()

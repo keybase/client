@@ -10,7 +10,7 @@ import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
 import {act, cleanup, render, renderHook} from '@testing-library/react'
 import {Freeze} from 'react-freeze'
-import {notifyEngineActionListeners} from '@/engine/action-listener'
+import {routeChatNotification} from '@/chat/notification-router'
 import {resetAllStores} from '@/util/zustand'
 import {setInputIntent, useInputIntentState} from '../input-intent-store'
 import {
@@ -27,6 +27,7 @@ import {FakeComposerInputView, makeFakeComposerInput, type FakeComposerInput} fr
 import {ConversationThreadProvider, useConversationThreadActions} from '../thread-context'
 import {installFakeNavigator, makeRootState, restoreNavigator} from '@/test/fake-navigator'
 import * as NavTree from '@/constants/nav-tree'
+import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {suppressedURLsOf, takeSuppressSnapshot, useUnfurlPreviewState} from '../unfurl-preview-state'
 import {ThreadRefsContext, ThreadRefsProvider} from '../normal/context'
 
@@ -123,17 +124,16 @@ const makeGiphyResult = (targetUrl = 'https://media.giphy.com/media/target/giphy
   targetUrl,
 })
 
-const makeRpcOutboxID = (label: string): T.RPCChat.OutboxID => new TextEncoder().encode(label)
-const makeOutboxID = (label: string): T.Chat.OutboxID => T.Chat.rpcOutboxIDToOutboxID(makeRpcOutboxID(label))
+const makeOutboxID = (label: string): T.Chat.OutboxID =>
+  T.Chat.rpcOutboxIDToOutboxID(new TextEncoder().encode(label))
+
+let rpc: FakeChatRpc
 
 const mockPostText = () => {
-  let lastPost: Parameters<typeof T.RPCChat.localPostTextNonblockRpcListener>[0] | undefined
-  jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener').mockImplementation(async p => {
-    lastPost = p
+  rpc.on('postText', async () => {
     await Promise.resolve()
-    return {outboxID: makeRpcOutboxID('posted-outbox')}
   })
-  return () => lastPost
+  return () => rpc.params('postText').at(-1)
 }
 
 const wrapperFor = (id: T.Chat.ConversationIDKey) =>
@@ -203,13 +203,14 @@ const renderInputWithThreadActions = (id = convID) => {
   return {composerInput, result}
 }
 
-const notifyInputEngineAction = (action: Parameters<typeof notifyEngineActionListeners>[0]) => {
+const notifyInputEngineAction = (action: Parameters<typeof routeChatNotification>[0]) => {
   act(() => {
-    notifyEngineActionListeners(action)
+    routeChatNotification(action)
   })
 }
 
 beforeEach(() => {
+  rpc = installFakeChatRpc()
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
     deviceName: 'test-device',
@@ -226,6 +227,7 @@ afterEach(() => {
   mockInput.selection = undefined
   mockInput.text = ''
   cleanup()
+  restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
   restoreNavigator()
@@ -383,8 +385,8 @@ test('sendComposerText sends reply context and clears transient composer state',
   expect(result.current.input.giphyWindow).toBe(false)
   // the composer's submit clears the text; the send leaves it to that
   expect(composerInput.text).toBe('reply text')
-  expect(getLastPost()?.params.body).toBe('sent reply')
-  expect(getLastPost()?.params.replyTo).toBe(replyMessageID)
+  expect(getLastPost()?.text).toBe('sent reply')
+  expect(getLastPost()?.replyTo).toBe(replyMessageID)
 })
 
 test('sendComposerText restores text when a stellar flow is canceled', async () => {
@@ -396,7 +398,7 @@ test('sendComposerText restores text when a stellar flow is canceled', async () 
   })
   await flushPromises()
   act(() => {
-    getLastPost()?.incomingCallMap['chat.1.chatUi.chatStellarDone']?.({canceled: true})
+    getLastPost()?.onStellarCanceled?.()
   })
 
   expect(composerInput.text).toBe('restore me')
@@ -405,9 +407,6 @@ test('sendComposerText restores text when a stellar flow is canceled', async () 
 test('sendComposerText edits the selected message and clears edit state', async () => {
   const editOrdinal = T.Chat.numberToOrdinal(901)
   const editMessageID = T.Chat.numberToMessageID(901)
-  const editPost = jest.spyOn(T.RPCChat, 'localPostEditNonblockRpcPromise').mockResolvedValue({
-    outboxID: makeRpcOutboxID('edit-outbox'),
-  })
   const {result} = renderInputWithThreadActions()
   act(() => {
     result.current.threadActions.addMessages(
@@ -438,19 +437,15 @@ test('sendComposerText edits the selected message and clears edit state', async 
   expect(result.current.input.replyTo).toBe(T.Chat.numberToOrdinal(0))
   expect(result.current.input.giphyWindow).toBe(false)
   expect(result.current.input.commandMarkdown).toBeUndefined()
-  expect(editPost).toHaveBeenCalledWith(
-    expect.objectContaining({
-      body: 'new text',
-      target: expect.objectContaining({messageID: editMessageID}),
-    })
-  )
+  expect(rpc.params('postEdit')).toEqual([
+    expect.objectContaining({conversationIDKey: convID, messageID: editMessageID, text: 'new text'}),
+  ])
 })
 
 test('giphy engine events and send path update the input owner', async () => {
   const replyOrdinal = T.Chat.numberToOrdinal(1001)
   const replyMessageID = T.Chat.numberToMessageID(1001)
   const getLastPost = mockPostText()
-  const trackGiphy = jest.spyOn(T.RPCChat, 'localTrackGiphySelectRpcPromise').mockResolvedValue({})
   const {composerInput, result} = renderInputWithThreadActions()
   const giphyResult = makeGiphyResult()
 
@@ -488,9 +483,9 @@ test('giphy engine events and send path update the input owner', async () => {
   })
   await flushPromises()
 
-  expect(trackGiphy).toHaveBeenCalledWith({result: giphyResult})
-  expect(getLastPost()?.params.body).toBe(giphyResult.targetUrl)
-  expect(getLastPost()?.params.replyTo).toBe(replyMessageID)
+  expect(rpc.calls('trackGiphySelect')).toEqual([[giphyResult]])
+  expect(getLastPost()?.text).toBe(giphyResult.targetUrl)
+  expect(getLastPost()?.replyTo).toBe(replyMessageID)
   expect(result.current.input.replyTo).toBe(T.Chat.numberToOrdinal(0))
   expect(result.current.input.giphyWindow).toBe(false)
   expect(composerInput.text).toBe('')
@@ -506,7 +501,7 @@ test('sendComposerText sends dismissed unfurl urls as unfurlSuppress', async () 
   })
   await flushPromises()
 
-  expect(getLastPost()?.params.unfurlSuppress).toEqual(['http://a.com'])
+  expect(getLastPost()?.unfurlSuppress).toEqual(['http://a.com'])
   expect(getSuppressedURLs(convID)).toEqual([])
 })
 
@@ -523,7 +518,7 @@ test('a send with no snapshot leaves the composer dismissals alone', async () =>
   })
   await flushPromises()
 
-  expect(getLastPost()?.params.unfurlSuppress).toEqual([])
+  expect(getLastPost()?.unfurlSuppress).toEqual([])
   expect(getSuppressedURLs(convID)).toEqual(['http://a.com'])
 })
 
@@ -531,13 +526,11 @@ test('onSubmit sends dismissed unfurl urls even though clearing the composer dro
   jest.useFakeTimers()
   try {
     const getLastPost = mockPostText()
-    jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
-    jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
-    jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([
+    rpc.on('getUnfurlPreviews', () => [
       {
         unfurl: {generic: {siteName: 'a', title: 'a', url: 'http://a.com'}, unfurlType: T.RPCChat.UnfurlType.generic},
         url: 'http://a.com',
-      } as T.RPCChat.UnfurlPreviewInfo,
+      },
     ])
     renderComposer()
 
@@ -569,8 +562,8 @@ test('onSubmit sends dismissed unfurl urls even though clearing the composer dro
       await flushPromises()
     })
 
-    expect(getLastPost()?.params.body).toBe(text)
-    expect(getLastPost()?.params.unfurlSuppress).toEqual(['http://a.com'])
+    expect(getLastPost()?.text).toBe(text)
+    expect(getLastPost()?.unfurlSuppress).toEqual(['http://a.com'])
   } finally {
     jest.useRealTimers()
   }
@@ -581,9 +574,7 @@ test('onSubmit snapshots the dismissals before the composer clears them', async 
   try {
     mockOnClear = () => useUnfurlPreviewState.getState().dispatch.keepOnly(convID, [])
     const getLastPost = mockPostText()
-    jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
-    jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
-    jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([])
+    rpc.on('getUnfurlPreviews', () => [])
     renderComposer()
     act(() => {
       useUnfurlPreviewState.getState().dispatch.dismiss(convID, ['http://a.com'])
@@ -604,7 +595,7 @@ test('onSubmit snapshots the dismissals before the composer clears them', async 
       await flushPromises()
     })
 
-    expect(getLastPost()?.params.unfurlSuppress).toEqual(['http://a.com'])
+    expect(getLastPost()?.unfurlSuppress).toEqual(['http://a.com'])
   } finally {
     jest.useRealTimers()
   }
@@ -628,9 +619,7 @@ test('a landed send leaves a dismissal made while it was in flight alone', async
 // an edit posts as MessageType_EDIT, which the unfurler does not extract urls from, so
 // there is nothing to preview and no scrape to pay for
 test('no preview is fetched while editing', async () => {
-  const spy = jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([])
-  jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
-  jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
+  rpc.on('getUnfurlPreviews', () => [])
   jest.useFakeTimers()
   try {
     // the composer and the handles that drive it have to share one provider, or the editing
@@ -650,7 +639,7 @@ test('no preview is fetched while editing', async () => {
       jest.advanceTimersByTime(1000)
       await flushPromises()
     })
-    expect(spy).not.toHaveBeenCalled()
+    expect(rpc.calls('getUnfurlPreviews')).toEqual([])
   } finally {
     jest.useRealTimers()
   }
@@ -659,10 +648,9 @@ test('no preview is fetched while editing', async () => {
 test('a canceled stellar send restores the dismissed unfurl urls for the resend', async () => {
   // the composer clears its dismissals before the send resolves, so a cancel has to put
   // the snapshot back or the restored text re-unfurls what the user dismissed
-  jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener').mockImplementation(async p => {
-    p.incomingCallMap['chat.1.chatUi.chatStellarDone']?.({canceled: true})
+  rpc.on('postText', async p => {
+    p.onStellarCanceled?.()
     await Promise.resolve()
-    return {outboxID: makeRpcOutboxID('posted-outbox')}
   })
   const {result} = renderInput()
 
@@ -677,10 +665,9 @@ test('a canceled stellar send restores the dismissed unfurl urls for the resend'
 test('a canceled stellar send leaves a failed preview unrecorded as a dismissal', async () => {
   // a failure is re-derived by the next fetch, a dismissal never is, so restoring one as
   // the other would keep the url suppressed even after it starts scraping again
-  jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener').mockImplementation(async p => {
-    p.incomingCallMap['chat.1.chatUi.chatStellarDone']?.({canceled: true})
+  rpc.on('postText', async p => {
+    p.onStellarCanceled?.()
     await Promise.resolve()
-    return {outboxID: makeRpcOutboxID('posted-outbox')}
   })
   const {result} = renderInput()
 
@@ -705,7 +692,7 @@ test('a send suppresses what failed to preview as well as what was dismissed', a
   })
   await flushPromises()
 
-  expect(getLastPost()?.params.unfurlSuppress).toEqual(['http://a.com', 'http://wsj.com'])
+  expect(getLastPost()?.unfurlSuppress).toEqual(['http://a.com', 'http://wsj.com'])
 })
 
 test('toggleGiphyPrefill toggles the slash command text', () => {
@@ -1045,8 +1032,6 @@ describe('a pending draft save', () => {
   const typeThenWait = (switchAccount: boolean) => {
     jest.useFakeTimers()
     try {
-      const saveDraft = jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
-      jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
       renderComposer()
       act(() => {
         mockPlatformInputProps?.onChangeText('a')
@@ -1068,7 +1053,7 @@ describe('a pending draft save', () => {
       act(() => {
         jest.advanceTimersByTime(250)
       })
-      return saveDraft.mock.calls.map(c => c[0].text)
+      return rpc.params('saveDraft').map(p => p.text)
     } finally {
       jest.useRealTimers()
     }
@@ -1087,8 +1072,6 @@ describe('a draft typed just before leaving the conversation', () => {
   const typeThenUnmount = (switchAccount: boolean) => {
     jest.useFakeTimers()
     try {
-      const saveDraft = jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
-      jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
       const {unmount} = renderComposer()
       act(() => {
         mockPlatformInputProps?.onChangeText('a')
@@ -1108,7 +1091,7 @@ describe('a draft typed just before leaving the conversation', () => {
         })
       }
       unmount()
-      return saveDraft.mock.calls.map(c => c[0].text)
+      return rpc.params('saveDraft').map(p => p.text)
     } finally {
       jest.useRealTimers()
     }
@@ -1154,9 +1137,7 @@ describe('the composer text', () => {
   }
 
   beforeEach(() => {
-    jest.spyOn(T.RPCChat, 'localUpdateTypingRpcPromise').mockResolvedValue(undefined)
-    jest.spyOn(T.RPCChat, 'localUpdateUnsentTextRpcPromise').mockResolvedValue(undefined)
-    jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([])
+    rpc.on('getUnfurlPreviews', () => [])
   })
 
   test('an inject reaches the mounted input with the caret at the end', () => {
@@ -1200,7 +1181,6 @@ describe('the composer text', () => {
   })
 
   test('the injected text is echoed back through onChangeText, which saves it as the draft', () => {
-    const saveDraft = jest.mocked(T.RPCChat.localUpdateUnsentTextRpcPromise)
     let handles: InputHandles | undefined
     renderComposerWithProbe(h => (handles = h))
 
@@ -1208,7 +1188,7 @@ describe('the composer text', () => {
       handles?.input.dispatch.injectIntoInput('echoed')
     })
 
-    expect(saveDraft.mock.calls.map(c => c[0].text)).toContain('echoed')
+    expect(rpc.params('saveDraft').map(p => p.text)).toContain('echoed')
   })
 
   test('an inject made while the input is unmounted lands when it mounts, with its focus', () => {
@@ -1339,7 +1319,7 @@ describe('the composer text', () => {
         await flushPromises()
       })
 
-      expect(getLastPost()?.params.body).toBe('going out')
+      expect(getLastPost()?.text).toBe('going out')
       expect(mockInput.text).toBe('')
       expect(clears).toEqual(['going out'])
     } finally {
@@ -1358,7 +1338,7 @@ describe('the composer text', () => {
     await flushPromises()
     expect(mockInput.text).toBe('')
     act(() => {
-      getLastPost()?.incomingCallMap['chat.1.chatUi.chatStellarDone']?.({canceled: true})
+      getLastPost()?.onStellarCanceled?.()
     })
 
     expect(mockInput.text).toBe('+1xlm@testuser')
@@ -1367,7 +1347,6 @@ describe('the composer text', () => {
   test('onSubmit ignores an empty composer', () => {
     jest.useFakeTimers()
     try {
-      const post = jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener')
       renderComposer()
       act(() => {
         mockPlatformInputProps?.onSubmit()
@@ -1375,7 +1354,7 @@ describe('the composer text', () => {
       act(() => {
         jest.advanceTimersByTime(10)
       })
-      expect(post).not.toHaveBeenCalled()
+      expect(rpc.calls('postText')).toEqual([])
       expect(mockInput.focusCount).toBe(0)
     } finally {
       jest.useRealTimers()
@@ -1437,7 +1416,7 @@ describe('the composer text', () => {
         jest.advanceTimersByTime(0)
         await flushPromises()
       })
-      expect(getLastPost()?.params.body).toBe('hello')
+      expect(getLastPost()?.text).toBe('hello')
     } finally {
       jest.useRealTimers()
     }
@@ -1701,5 +1680,205 @@ describe('reply', () => {
     expect(result.current.replyTo).toBe(T.Chat.numberToOrdinal(0))
     expect(nav.actions).toEqual([])
     expect(composerInput.focusCount).toBe(1)
+  })
+})
+
+describe('composer typing and draft RPCs', () => {
+  const seedMeta = () => {
+    metasReceived(
+      [{...Meta.makeConversationMeta(), conversationIDKey: convID, tlfname: 'testuser,testuser-mac'}],
+      undefined,
+      {force: true}
+    )
+  }
+
+  const type = (text: string) => {
+    act(() => {
+      mockPlatformInputProps?.onChangeText(text)
+    })
+  }
+  const advance = (ms: number) => {
+    act(() => {
+      jest.advanceTimersByTime(ms)
+    })
+  }
+  const typing = () => rpc.calls('setTyping')
+  const saveDraft = () => rpc.params('saveDraft')
+
+  beforeEach(() => {
+    jest.useFakeTimers()
+  })
+  afterEach(() => {
+    jest.useRealTimers()
+  })
+
+  test('typing is sent on the leading edge, then at most once per 1000ms while text stays non-empty', () => {
+    seedMeta()
+    renderComposer()
+
+    type('a')
+    expect(typing()).toEqual([[convID, true]])
+
+    advance(100)
+    type('ab')
+    advance(100)
+    type('abc')
+    expect(typing()).toHaveLength(1)
+
+    // trailing edge of the 1000ms window
+    advance(799)
+    expect(typing()).toHaveLength(1)
+    advance(1)
+    expect(typing()).toHaveLength(2)
+    expect(typing().at(-1)).toEqual([convID, true])
+
+    advance(5000)
+    expect(typing()).toHaveLength(2)
+  })
+
+  test('emptying the composer cancels a pending typing=true and sends typing=false right away', () => {
+    seedMeta()
+    renderComposer()
+
+    type('a')
+    advance(100)
+    type('ab')
+    advance(100)
+    type('')
+    expect(typing()).toEqual([
+      [convID, true],
+      [convID, false],
+    ])
+
+    // the cancelled trailing typing=true never goes out
+    advance(5000)
+    expect(typing()).toHaveLength(2)
+  })
+
+  test('the draft is saved with the conversation id, text and tlf name, throttled to one trailing save per 200ms', () => {
+    seedMeta()
+    renderComposer()
+
+    type('a')
+    expect(saveDraft()).toEqual([
+      {conversationIDKey: convID, text: 'a', tlfName: 'testuser,testuser-mac'},
+    ])
+    // the local meta draft is updated alongside the save
+    expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('a')
+
+    advance(50)
+    type('ab')
+    advance(50)
+    type('abc')
+    expect(saveDraft()).toHaveLength(1)
+
+    advance(100)
+    expect(saveDraft()).toEqual([
+      {conversationIDKey: convID, text: 'a', tlfName: 'testuser,testuser-mac'},
+      {conversationIDKey: convID, text: 'abc', tlfName: 'testuser,testuser-mac'},
+    ])
+    expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('abc')
+
+    advance(1000)
+    expect(saveDraft()).toHaveLength(2)
+  })
+
+  test('a pending draft is flushed with its params on unmount', () => {
+    jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
+    seedMeta()
+    const {unmount} = renderComposer()
+
+    type('a')
+    type('ab')
+    expect(saveDraft()).toHaveLength(1)
+    unmount()
+    expect(saveDraft().at(-1)).toEqual({
+      conversationIDKey: convID,
+      text: 'ab',
+      tlfName: 'testuser,testuser-mac',
+    })
+  })
+
+  const switchToSecondAccount = () => {
+    act(() => {
+      useCurrentUserState.getState().dispatch.setBootstrap({
+        deviceID: 'device-id-2',
+        deviceName: 'test-device-2',
+        uid: 'uid-2',
+        username: 'testuser-mac',
+      })
+    })
+  }
+
+  test('after an account switch the composer left from the old account neither saves nor updates the draft', () => {
+    seedMeta()
+    renderComposer()
+    const oldComposer = mockPlatformInputProps
+    switchToSecondAccount()
+
+    act(() => {
+      oldComposer?.onChangeText('a')
+    })
+    advance(1000)
+    expect(saveDraft()).toEqual([])
+    expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('')
+  })
+
+  test('after an account switch the composer left from the old account sends no typing', () => {
+    seedMeta()
+    renderComposer()
+    const oldComposer = mockPlatformInputProps
+    switchToSecondAccount()
+
+    act(() => {
+      oldComposer?.onChangeText('a')
+    })
+    advance(1000)
+    act(() => {
+      oldComposer?.onChangeText('')
+    })
+    expect(typing()).toEqual([])
+  })
+
+  test('after an account switch the composer is built again and saves for the new account', () => {
+    seedMeta()
+    renderComposer()
+    switchToSecondAccount()
+
+    type('a')
+    advance(1000)
+    expect(saveDraft()).toEqual([{conversationIDKey: convID, text: 'a', tlfName: 'testuser,testuser-mac'}])
+  })
+
+  test('rejected typing and draft RPCs are only logged, and later keystrokes still send', async () => {
+    const typingError = new Error('typing failed')
+    const draftError = new Error('draft failed')
+    rpc.fail('setTyping', typingError)
+    rpc.fail('saveDraft', draftError)
+    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    seedMeta()
+    renderComposer()
+
+    type('a')
+    await act(async () => {
+      await flushPromises()
+    })
+    expect(error).toHaveBeenCalledWith('ignorePromise error', typingError)
+    expect(error).toHaveBeenCalledWith('ignorePromise error', draftError)
+    // the optimistic local draft is not rolled back
+    expect(useInboxMetadataState.getState().metas.get(convID)?.draft).toBe('a')
+
+    advance(2000)
+    type('ab')
+    expect(typing()).toHaveLength(2)
+    expect(saveDraft()).toHaveLength(2)
+    expect(saveDraft().at(-1)).toEqual({
+      conversationIDKey: convID,
+      text: 'ab',
+      tlfName: 'testuser,testuser-mac',
+    })
+    await act(async () => {
+      await flushPromises()
+    })
   })
 })

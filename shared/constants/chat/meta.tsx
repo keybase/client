@@ -16,6 +16,9 @@ const conversationMemberStatusToMembershipType = (
       return 'youAreReset'
     case T.RPCChat.ConversationMemberStatus.preview:
       return 'youArePreviewing'
+    case T.RPCChat.ConversationMemberStatus.left:
+    case T.RPCChat.ConversationMemberStatus.removed:
+      return 'youLeft'
     default:
       return 'notMember'
   }
@@ -286,6 +289,15 @@ const UIItemToRetentionPolicies = (
   return {retentionPolicy, teamRetentionPolicy}
 }
 
+// A conversation with no minimum writer role (none set, or cleared) lets every member write.
+export const convSettingsToMeta = (
+  settings: T.RPCChat.ConversationSettingsLocal | null | undefined
+): Pick<T.Chat.ConversationMeta, 'cannotWrite' | 'minWriterRole'> => {
+  const info = settings?.minWriterRoleInfo
+  const role = info ? Teams.teamRoleByEnum[info.role] : 'none'
+  return {cannotWrite: info?.cannotWrite ?? false, minWriterRole: role === 'none' ? 'reader' : role}
+}
+
 export const inboxUIItemToConversationMeta = (
   i: T.RPCChat.InboxUIItem
 ): T.Chat.ConversationMeta | undefined => {
@@ -300,16 +312,7 @@ export const inboxUIItemToConversationMeta = (
 
   const isTeam = i.membersType === T.RPCChat.ConversationMembersType.team
 
-  const minWriterRoleEnum = i.convSettings?.minWriterRoleInfo
-    ? i.convSettings.minWriterRoleInfo.role
-    : undefined
-  let minWriterRole = minWriterRoleEnum !== undefined ? Teams.teamRoleByEnum[minWriterRoleEnum] : 'reader'
-  if (minWriterRole === 'none') {
-    // means nothing. set it to reader.
-    minWriterRole = 'reader'
-  }
-
-  const cannotWrite = i.convSettings?.minWriterRoleInfo ? i.convSettings.minWriterRoleInfo.cannotWrite : false
+  const {cannotWrite, minWriterRole} = convSettingsToMeta(i.convSettings)
   const conversationIDKey = T.Chat.stringToConversationIDKey(i.convID)
   let pinnedMsg: T.Chat.PinnedMessageInfo | undefined
   if (i.pinnedMsg) {

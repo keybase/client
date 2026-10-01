@@ -295,7 +295,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   const {onChangeText: onChangeTextProps} = p
   const {suggestionSpinnerStyle} = p
   const conversationIDKey = useConversationThreadID()
-  const botCommandsUpdateState = Commands.useBotCommandsUpdateState(conversationIDKey)
+  const botCommandsUpdateState = Commands.useBotCommandsUpdateState()
   const {triggerTransform, checkTrigger, setInactive} = useSyncInput({
     active,
     composer,

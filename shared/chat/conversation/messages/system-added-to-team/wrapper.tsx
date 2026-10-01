@@ -7,7 +7,8 @@ import {getAddedUsernames} from '../system-users-added-to-conv/container'
 import {indefiniteArticle} from '@/util/string'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useChatTeamMembers} from '../../team-hooks'
-import {useConversationShowInfoPanel, useConversationThreadID, useThreadMeta} from '../../thread-context'
+import {useConversationThreadID, useThreadMeta} from '../../thread-context'
+import {useConversationShowInfoPanel} from '../../thread-navigation'
 import {makeMessageWrapper} from '../wrapper/wrapper'
 
 type OwnProps = {message: T.Chat.MessageSystemAddedToTeam}

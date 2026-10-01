@@ -1,90 +1,34 @@
-import * as Common from '@/constants/chat/common'
 import * as Meta from '@/constants/chat/meta'
 import * as React from 'react'
-import * as Strings from '@/constants/strings'
 import * as T from '@/constants/types'
-import {
-  getVisibleScreen,
-  navigateAppend,
-  navigateToThread,
-  navigateUp,
-  setChatRootParams,
-  setRouteParams,
-} from '@/constants/router'
-import {isPhone} from '@/constants/platform'
 import logger from '@/logger'
-import throttle from 'lodash/throttle'
 import {clearChatTimeCache} from '@/util/timestamp'
-import {findLast} from '@/util/arrays'
 import {ignorePromise} from '@/constants/utils'
-import {RPCError} from '@/util/errors'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
-import {useConfigState} from '@/stores/config'
 import {useShellState} from '@/stores/shell'
-import {produce, type Draft} from 'immer'
 import {useStore} from 'zustand'
-import {createStore, type StoreApi} from 'zustand/vanilla'
-import {useIsFocused} from '@react-navigation/core'
-import {
-  type ThreadLoadReconcile,
-  addMessagesToThreadState,
-  applyOptimisticReactionsToMessage,
-  completeAttachmentDownloadInThreadState,
-  clearOptimisticReactionsForUpdatesInThreadState,
-  clearOptimisticReactionsForMessagesInThreadState,
-  deleteMessagesFromThreadState,
-  explodeMessagesInThreadState,
-  failAttachmentDownloadInThreadState,
-  finishAttachmentDownloadInThreadState,
-  type OptimisticReaction,
-  retryMessageInThreadState,
-  setMessageSubmitStateInThreadState,
-  setMessageErroredInThreadState,
-  setAttachmentMobileSavingInThreadState,
-  startAttachmentDownloadInThreadState,
-  updateAttachmentDownloadProgressInThreadState,
-  updateAttachmentUploadProgressInThreadState,
-  updateReactionsInThreadState,
-} from './thread-message-state'
-import {
-  getInboxConversationMeta,
-  getInboxConversationParticipants,
-  metasReceived,
-  unboxRows,
-  useInboxMetadataState,
-} from '@/chat/inbox/metadata'
-import {loadThreadMessageIDAtIndex, markConversationRead} from './thread-rpc'
-import {
-  cancelConversationPost,
-  createAdhocConversation,
-  dismissConversationJourneycardRPC,
-  postConversationDelete,
-  postConversationReaction,
-} from './message-rpc'
-import {
-  emptyConversationMeta,
-  getClientPrevFromSnapshot,
-  getExplodingModeFromConfig,
-  getMeta,
-  loadConversationThreadMessages,
-  numMessagesOnInitialLoad,
-  numMessagesOnScrollback,
-  persistExplodingMode,
-} from './thread-load'
+import {useIsFocused, useNavigation} from '@react-navigation/core'
+import {applyOptimisticReactionsToMessage, isPendingDelete} from './thread-message-state'
+import {getInboxConversationParticipants, unboxRows, useInboxMetadataState} from '@/chat/inbox/metadata'
+import {emptyConversationMeta, numMessagesOnInitialLoad, numMessagesOnScrollback} from './thread-load'
 import {useThreadEngineListeners} from './thread-engine'
+import {useThreadNotifications, type ThreadNotification} from '@/chat/notification-registry'
+import {
+  makeThreadStore,
+  type ConversationThreadActions,
+  type ConversationThreadState,
+  type ThreadLoadStatusOptions,
+  type ThreadStore,
+} from './thread-store'
 
-const sameStringSet = (a: ReadonlySet<string>, b: ReadonlySet<string>) => {
-  if (a.size !== b.size) {
-    return false
-  }
-  for (const value of a) {
-    if (!b.has(value)) {
-      return false
-    }
-  }
-  return true
-}
+export type {
+  ConversationThreadActions,
+  ConversationThreadState,
+  LoadMoreMessagesParams,
+  ThreadLoadStatusOptions,
+  ThreadLoadStatusReporter,
+} from './thread-store'
 
 const emptyParticipantInfo: T.Chat.ParticipantInfo = {
   all: [],
@@ -92,125 +36,25 @@ const emptyParticipantInfo: T.Chat.ParticipantInfo = {
   name: [],
 }
 
-const formatTextForQuoting = (text: string) =>
-  text
-    .split('\n')
-    .map(line => `> ${line}\n`)
-    .join('')
-
 const ConversationThreadIDContext = React.createContext<T.Chat.ConversationIDKey | undefined>(undefined)
 ConversationThreadIDContext.displayName = 'ConversationThreadIDContext'
 
-export type ConversationThreadState = {
-  accountsInfoMap: Map<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
-  // Bumped on every messagesClear. The desktop list remounts on it: LegendList cannot recover
-  // from a non-empty -> empty -> non-empty data transition (it resets its layout state and waits
-  // for a container layout event that never comes), so the thread renders blank forever.
-  clearVersion: number
-  explodingMode: number
-  flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
-  loaded: boolean
-  liveUpdateVersion: number
-  messageIDToOrdinal: Map<T.Chat.MessageID, T.Chat.Ordinal>
-  messageMap: Map<T.Chat.Ordinal, T.Chat.Message>
-  messageOrdinals?: ReadonlyArray<T.Chat.Ordinal>
-  // Set between a messagesClear and the reload that refills the window, so a notification arriving
-  // in that gap cannot install itself as the new window. Cleared once that load settles, however it
-  // settles - see clearWindowGate.
-  windowCleared?: boolean
-  // The load that owns the gate above: the first one to claim it after the clear, which is the
-  // reload the clear issued. Only that load may drop the gate. clearVersion alone cannot tell two
-  // loads of the same conversation apart, and a second load at the same generation - a
-  // ChatThreadsStale reload, say - would otherwise settle first and take down a gate the reload is
-  // still relying on.
-  windowGateOwner?: number
-  messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType>
-  moreToLoadBack: boolean
-  moreToLoadForward: boolean
-  optimisticReactionMap: Map<T.Chat.OutboxID, OptimisticReaction>
-  paymentStatusMap: Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
-  pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal>
-  typing: Set<string>
-  unfurlPrompt: Map<T.Chat.MessageID, Set<string>>
-}
-
-type ConversationThreadStore = StoreApi<ConversationThreadState>
+type ConversationThreadStore = ThreadStore['store']
 const ConversationThreadStoreContext = React.createContext<ConversationThreadStore | undefined>(undefined)
 ConversationThreadStoreContext.displayName = 'ConversationThreadStoreContext'
 
-// Per-conversation sticky username-header cache (see getMessageShowUsername). Owned by the provider
-// as a ref, so it lives and dies with the conversation rather than as a module global; cleared on
-// messagesClear (thread reload). Maps ordinal -> the author username it has shown.
+// Per-conversation sticky username-header cache (see getMessageShowUsername), owned by the thread
+// store so it lives and dies with the conversation rather than as a module global.
 export const ShownUsernameCacheContext = React.createContext<Map<T.Chat.Ordinal, string> | undefined>(
   undefined
 )
 ShownUsernameCacheContext.displayName = 'ShownUsernameCacheContext'
-
-const makeEmptyThreadState = (): ConversationThreadState =>
-  produce(
-    {
-      accountsInfoMap: new Map<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>(),
-      clearVersion: 0,
-      explodingMode: 0,
-      flipStatusMap: new Map<string, T.RPCChat.UICoinFlipStatus>(),
-      liveUpdateVersion: 0,
-      loaded: false,
-      messageIDToOrdinal: new Map<T.Chat.MessageID, T.Chat.Ordinal>(),
-      messageMap: new Map<T.Chat.Ordinal, T.Chat.Message>(),
-      messageOrdinals: undefined as ReadonlyArray<T.Chat.Ordinal> | undefined,
-      messageTypeMap: new Map<T.Chat.Ordinal, T.Chat.RenderMessageType>(),
-      moreToLoadBack: false,
-      moreToLoadForward: false,
-      optimisticReactionMap: new Map<T.Chat.OutboxID, OptimisticReaction>(),
-      paymentStatusMap: new Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>(),
-      pendingOutboxToOrdinal: new Map<T.Chat.OutboxID, T.Chat.Ordinal>(),
-      typing: new Set<string>(),
-      unfurlPrompt: new Map<T.Chat.MessageID, Set<string>>(),
-    },
-    () => {}
-  )
-
-const makeInitialThreadState = (id: T.Chat.ConversationIDKey) => {
-  return produce(makeEmptyThreadState(), s => {
-    s.explodingMode = getExplodingModeFromConfig(id)
-  })
-}
-
-const makeThreadStore = (id: T.Chat.ConversationIDKey) =>
-  createStore<ConversationThreadState>(() => makeInitialThreadState(id))
-
-export type ThreadLoadStatusOptions = {
-  isThreadLoadCurrent?: () => boolean
-  onThreadLoadStatus?: ThreadLoadStatusReporter
-}
 
 type SelectedConversationOptions = ThreadLoadStatusOptions & {
   allowMarkAsRead?: boolean
   skipThreadLoad?: boolean
 }
 
-export type ScrollDirection = 'none' | 'back' | 'forward'
-export type LoadMoreMessagesParams = ThreadLoadStatusOptions & {
-  allowMarkAsRead?: boolean
-  centeredMessageID?: {
-    conversationIDKey: T.Chat.ConversationIDKey
-    highlightMode: T.Chat.CenterOrdinalHighlightMode
-    messageID: T.Chat.MessageID
-  }
-  forceContainsLatestCalc?: boolean
-  knownRemotes?: ReadonlyArray<string>
-  messageIDControl?: T.RPCChat.MessageIDControl | null
-  numberOfMessagesToLoad?: number
-  reason: string
-  // Internal: set only by the empty-back-page reload in thread-load.tsx, carrying the oldest
-  // message ID the previous attempt saw. Each reload must reach strictly further back than that,
-  // which is what stops it looping. Callers leave it unset.
-  retryBelowMessageID?: T.Chat.MessageID
-  // How many times the back-page reload has already chained. See maxBackPageReloads.
-  retryCount?: number
-  scrollDirection?: ScrollDirection
-}
-type LoadMoreMessages = ((p: LoadMoreMessagesParams) => void) & {cancel: () => void}
 type LoadMessagesCentered = (
   messageID: T.Chat.MessageID,
   highlightMode: T.Chat.CenterOrdinalHighlightMode,
@@ -225,89 +69,12 @@ type LoadNewerMessagesDueToScroll = (
   options?: ThreadLoadStatusOptions
 ) => void
 type JumpToRecent = (options?: ThreadLoadStatusOptions) => void
-type MessagesClear = () => void
 type SelectedConversation = (options?: SelectedConversationOptions) => void
-export type ConversationThreadActions = {
-  addMessages: (
-    messages: ReadonlyArray<T.Chat.Message>,
-    opt?: {
-      liveUpdate?: boolean
-      markAsRead?: boolean
-    }
-  ) => void
-  applyThreadLoad: (p: {
-    centered: boolean
-    disableActiveMarkRead?: boolean
-    enableActiveMarkRead: boolean
-    forceContainsLatestCalc?: boolean
-    messages: ReadonlyArray<T.Chat.Message>
-    moreToLoad: boolean
-    reconcile?: ThreadLoadReconcile
-    scrollDirection: ScrollDirection
-  }) => void
-  clearUnfurlPrompt: (messageID: T.Chat.MessageID, domain: string) => void
-  deleteMessages: (p: {
-    messageIDs?: ReadonlyArray<T.Chat.MessageID>
-    upToMessageID?: T.Chat.MessageID
-    deletableMessageTypes?: ReadonlySet<T.Chat.MessageType>
-    ordinals?: ReadonlyArray<T.Chat.Ordinal>
-    liveUpdate?: boolean
-  }) => void
-  explodeMessages: (
-    messageIDs: ReadonlyArray<T.Chat.MessageID>,
-    explodedBy?: string,
-    liveUpdate?: boolean
-  ) => void
-  claimWindowGate: (loadID: number) => void
-  clearWindowGate: (loadID: number) => void
-  getSnapshot: () => ConversationThreadState
-  loadMoreMessages: LoadMoreMessages
-  markThreadAsRead: () => void
-  setMarkReadBlocked: (blocked: boolean) => void
-  messageDelete: (ordinal: T.Chat.Ordinal) => void
-  messageReplyPrivately: (ordinal: T.Chat.Ordinal) => void
-  messagesClear: MessagesClear
-  receivePaymentInfo: (messageID: T.Chat.MessageID, paymentInfo: T.Chat.ChatPaymentInfo) => void
-  receiveRequestInfo: (messageID: T.Chat.MessageID, requestInfo: T.Chat.ChatRequestInfo) => void
-  retryMessage: (outboxID: T.Chat.OutboxID) => void
-  setExplodingMode: (seconds: number, incoming?: boolean) => void
-  setMessageErrored: (outboxID: T.Chat.OutboxID, reason: string, errorTyp?: number) => void
-  setMessageSubmitState: (ordinal: T.Chat.Ordinal, submitState: T.Chat.Message['submitState']) => void
-  setMarkAsUnread: (readMsgID?: T.Chat.MessageID | false) => void
-  setTyping: (typing: ReadonlySet<string>) => void
-  showUnfurlPrompt: (messageID: T.Chat.MessageID, domain: string) => void
-  addOptimisticReaction: (outboxID: T.Chat.OutboxID, reaction: OptimisticReaction) => void
-  removeOptimisticReaction: (outboxID: T.Chat.OutboxID) => void
-  updateOptimisticReactionDecorated: (outboxID: T.Chat.OutboxID, decorated: string) => void
-  toggleMessageCollapse: (messageID: T.Chat.MessageID, ordinal: T.Chat.Ordinal) => void
-  toggleMessageReaction: (ordinal: T.Chat.Ordinal, emoji: string) => void
-  unfurlRemove: (messageID: T.Chat.MessageID) => void
-  updateReactions: (
-    updates: ReadonlyArray<{targetMsgID: T.Chat.MessageID; reactions?: T.Chat.Reactions}>
-  ) => void
-  updateCoinFlipStatuses: (statuses: ReadonlyArray<T.RPCChat.UICoinFlipStatus>) => void
-  startAttachmentDownload: (ordinal: T.Chat.Ordinal) => void
-  finishAttachmentDownload: (ordinal: T.Chat.Ordinal, path: string) => void
-  failAttachmentDownload: (ordinal: T.Chat.Ordinal, errMsg: string) => void
-  setAttachmentMobileSaving: (ordinal: T.Chat.Ordinal, saving: boolean) => void
-  updateAttachmentDownloadProgress: (msgID: number, bytesComplete: number, bytesTotal: number) => void
-  completeAttachmentDownload: (msgID: number) => void
-  updateAttachmentUploadProgress: (
-    outboxID: Uint8Array,
-    bytesComplete?: number,
-    bytesTotal?: number
-  ) => void
-}
 
 const ConversationThreadActionsContext = React.createContext<ConversationThreadActions | undefined>(
   undefined
 )
 ConversationThreadActionsContext.displayName = 'ConversationThreadActionsContext'
-
-export type ThreadLoadStatusReporter = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  status: T.RPCChat.UIChatThreadStatusTyp
-) => void
 
 export const useConversationThreadID = () => {
   const conversationIDKey = React.useContext(ConversationThreadIDContext)
@@ -323,6 +90,24 @@ export const useConversationThreadActions = () => {
     throw new Error('Missing ConversationThreadProvider actions in the tree')
   }
   return actions
+}
+
+// What a screen inside the thread asks of the service. It asks nothing once the thread has retired,
+// which is what keeps a screen kept through an account switch from acting for the next account.
+export const useThreadRpc = () => useConversationThreadActions().rpc
+
+// A screen's own handler for its thread's notifications (the composer's command status and giphy,
+// the bot-command status). Registrations are keyed by conversation id alone, so until the provider
+// rebuilds a screen kept through an account switch it can hear the next account's copy of a shared
+// team channel; like the thread store's actions, the handler hears nothing once the thread retires.
+export const useConversationThreadNotifications = (handler: (notification: ThreadNotification) => void) => {
+  const id = useConversationThreadID()
+  const {isRetired} = useConversationThreadActions()
+  useThreadNotifications(id, notification => {
+    if (!isRetired()) {
+      handler(notification)
+    }
+  })
 }
 
 const useScrollLoadGate = () => {
@@ -378,127 +163,45 @@ type ConversationThreadProviderProps = React.PropsWithChildren<{
 }>
 
 const ConversationThreadContextProvider = (p: {
-  actions: ConversationThreadActions
   children: React.ReactNode
   id: T.Chat.ConversationIDKey
-  shownUsernameCache: Map<T.Chat.Ordinal, string>
-  store: ConversationThreadStore
+  thread: ThreadStore
 }) => (
   <ConversationThreadIDContext value={p.id}>
-    <ConversationThreadActionsContext value={p.actions}>
-      <ConversationThreadStoreContext value={p.store}>
-        <ShownUsernameCacheContext value={p.shownUsernameCache}>{p.children}</ShownUsernameCacheContext>
+    <ConversationThreadActionsContext value={p.thread.actions}>
+      <ConversationThreadStoreContext value={p.thread.store}>
+        <ShownUsernameCacheContext value={p.thread.shownUsernameCache}>{p.children}</ShownUsernameCacheContext>
       </ConversationThreadStoreContext>
     </ConversationThreadActionsContext>
   </ConversationThreadIDContext>
 )
 
-const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => {
-  const {children, id} = p
-  const [threadStore] = React.useState(() => makeThreadStore(id))
-  // sticky username-header cache, owned here so it's scoped to this conversation (see
-  // getMessageShowUsername / ShownUsernameCacheContext); reset on messagesClear (thread reload).
-  const [shownUsernameCache] = React.useState(() => new Map<T.Chat.Ordinal, string>())
-  const active = useShellState(s => s.active)
-  const appFocused = useShellState(s => s.appFocused)
-  const routeFocused = useIsFocused()
-  // Mark-read attempts bail while we're not looking at the thread (backgrounded,
-  // covered by another route, or idle on desktop), so re-fire when any of those
-  // gates reopen. On mobile `active` never changes; appFocused/routeFocused are
-  // the only signals that we came back.
-  const lookingAtThread = active && appFocused && routeFocused
-  const previousLookingAtThreadRef = React.useRef(lookingAtThread)
-  const activeMarkReadEnabledRef = React.useRef(false)
-  // The account this thread was loaded for. Its screen outlives an account switch by a few renders,
-  // and a mark-read sent then would mark the next account's read position.
-  const [threadUid] = React.useState(() => useCurrentUserState.getState().uid)
-  const markReadBlockedRef = React.useRef(false)
+// The reader is looking at the thread: the app is active (not idle on desktop) and focused, and the
+// thread's route is focused (not covered by another route).
+const isLookingAtThread = (shell: {active: boolean; appFocused: boolean}, routeFocused: boolean) =>
+  shell.active && shell.appFocused && routeFocused
 
-  const getSnapshot = React.useEffectEvent(() => threadStore.getState())
-  const updateThreadState = React.useEffectEvent(
-    (updater: (draft: Draft<ConversationThreadState>) => void) => {
-      const current = threadStore.getState()
-      const next = produce(current, draft => updater(draft))
-      if (current === next) {
-        return
-      }
-      threadStore.setState(next, true)
-    }
+// uid: the account the thread is built for
+const ConversationThreadProviderInner = (p: ConversationThreadProviderProps & {uid: string}) => {
+  const {children, id, uid} = p
+  const navigation = useNavigation()
+  const [thread] = React.useState(() =>
+    makeThreadStore(id, uid, () => isLookingAtThread(useShellState.getState(), navigation.isFocused()))
   )
-  const markThreadAsRead = React.useEffectEvent(() => {
-    const f = async () => {
-      if (!useConfigState.getState().loggedIn) {
-        logger.info('mark read bail on not logged in')
-        return
-      }
-      if (useCurrentUserState.getState().uid !== threadUid) {
-        logger.info('mark read bail on thread loaded for another account')
-        return
-      }
-      if (!T.Chat.isValidConversationIDKey(id)) {
-        logger.info('mark read bail on no selected conversation')
-        return
-      }
-      if (!activeMarkReadEnabledRef.current) {
-        logger.info('mark read bail on no eligible thread load')
-        return
-      }
-      if (markReadBlockedRef.current) {
-        logger.info('mark read bail on blocked thread load')
-        return
-      }
-      if (!appFocused || !active || !routeFocused) {
-        logger.info('mark read bail on not looking at this thread')
-        return
-      }
-      const snapshot = getSnapshot()
-      if (!snapshot.loaded) {
-        logger.info('mark read bail on unloaded thread')
-        return
-      }
-      // Marking read overwrites the read position, so it must not run before we know what that
-      // position was. An unlocalized conversation reads -1, which a db nuke makes the norm, and
-      // localization races the thread load - mark-read needs neither, it reads the newest message
-      // out of the window. If it wins that race the true read position is gone before useOrangeLine
-      // ever sees it, localization then lands already advanced, and the thread shows no unread
-      // divider at all. Wait for localization; the effect below runs this again once it lands.
-      if ((getInboxConversationMeta(id)?.readMsgID ?? T.Chat.numberToMessageID(-1)) < 0) {
-        logger.info('mark read bail on unlocalized conversation')
-        return
-      }
-      if (snapshot.moreToLoadForward) {
-        logger.info('mark read bail on not containing latest message')
-        return
-      }
-      const ordinal = findLast([...(snapshot.messageOrdinals ?? [])], (o: T.Chat.Ordinal) => {
-        const m = snapshot.messageMap.get(o)
-        return m ? !!m.id : false
-      })
-      const message = ordinal ? snapshot.messageMap.get(ordinal) : undefined
-      const readMsgID = message?.id
-      if (!readMsgID) {
-        logger.info(`marking read messages ${id} failed due to no id`)
-        return
-      }
-      if (readMsgID === getInboxConversationMeta(id)?.readMsgID) {
-        logger.info(`marking read messages is noop bail: ${id} ${readMsgID}`)
-        return
-      }
-      logger.info(`marking read messages ${id} ${readMsgID}`)
-      await markConversationRead({conversationIDKey: id, forceUnread: false, msgID: readMsgID})
-    }
-    ignorePromise(f())
-  })
+  const routeFocused = useIsFocused()
+  // Mark read refuses while the reader is not looking at the thread, so try again whenever they are
+  // looking once more: when one of its gates reopens, and when <Activity> shows the screen again,
+  // which runs this effect again. On mobile `active` never changes; appFocused/routeFocused are the
+  // only signals that we came back.
+  const lookingAtThread = useShellState(s => isLookingAtThread(s, routeFocused))
   React.useEffect(() => {
-    const wasLookingAtThread = previousLookingAtThreadRef.current
-    previousLookingAtThreadRef.current = lookingAtThread
-    if (!wasLookingAtThread && lookingAtThread && activeMarkReadEnabledRef.current) {
-      markThreadAsRead()
+    if (lookingAtThread) {
+      thread.markReadIfArmed()
     }
-  }, [lookingAtThread])
-  // The other half of the unlocalized bail above: whatever mark-read attempt was refused for want of
-  // a read position, run it again now that there is one. Only on the transition, so an ordinary
-  // mark-read moving readMsgID does not bounce back through here.
+  }, [thread, lookingAtThread])
+  // The other half of the store's unlocalized mark-read bail: whatever mark-read attempt was refused
+  // for want of a read position, run it again now that there is one. Only on the transition, so an
+  // ordinary mark-read moving readMsgID does not bounce back through here.
   //
   // Safe against the orange line: useOrangeLine latches the read position into state on the commit
   // localization lands in, so the position it later asks the unreadline about does not depend on
@@ -511,689 +214,38 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
     const wasUnlocalized = wasUnlocalizedRef.current
     wasUnlocalizedRef.current = metaReadMsgID < 0
     if (wasUnlocalized && metaReadMsgID >= 0) {
-      markThreadAsRead()
+      thread.actions.markThreadAsRead()
     }
-  }, [metaReadMsgID])
-  const addMessages = React.useEffectEvent(
-    (
-      messages: ReadonlyArray<T.Chat.Message>,
-      opt: {
-        liveUpdate?: boolean
-        markAsRead?: boolean
-      } = {}
-    ) => {
-      updateThreadState(s => {
-        if (opt.liveUpdate) {
-          s.liveUpdateVersion += 1
-        }
-        addMessagesToThreadState(s, messages, {
-          // Only thread loads may extend the window downward; a notification must not.
-          dropNewBelowWindow: true,
-        })
-        clearOptimisticReactionsForMessagesInThreadState(s, messages)
-      })
-      if (opt.markAsRead) {
-        markThreadAsRead()
-      }
-    }
-  )
-  const setMarkReadBlocked = React.useEffectEvent((blocked: boolean) => {
-    markReadBlockedRef.current = blocked
-    if (blocked) {
-      activeMarkReadEnabledRef.current = false
-    }
-  })
-  const applyThreadLoad = React.useEffectEvent(
-    (p: {
-      centered: boolean
-      disableActiveMarkRead?: boolean
-      enableActiveMarkRead: boolean
-      forceContainsLatestCalc?: boolean
-      messages: ReadonlyArray<T.Chat.Message>
-      moreToLoad: boolean
-      reconcile?: ThreadLoadReconcile
-      scrollDirection: ScrollDirection
-    }) => {
-      const rendered = p.messages.filter(m => m.conversationMessage !== false && m.type !== 'deleted')
-      // Judged on what this pass carried rather than on the state of the window, so the gate turns
-      // on the one thing that decides it: whether this pass put a row on screen.
-      const carriedRenderedMessage = rendered.length > 0
-      // A 'none' load fetches the newest page, and a window with more to load forward does not
-      // reach it. Merging the two leaves ordinals with a hole through the middle, and the branch
-      // below then reports that window as containing the latest message - which is the gap this
-      // whole invariant is about, arriving through a ChatThreadsStale reload while the reader sits
-      // on a search result. Both conditions are needed: a window that already reaches the newest
-      // message merges fine, and so does a page that overlaps what we hold, however far back the
-      // reader is. Neither holds here, so the page is left alone rather than applied - the reader
-      // keeps their window, and jumping to recent (which empties it first) is what replaces it.
-      const beforeApply = threadStore.getState()
-      const windowOrdinals = beforeApply.messageOrdinals
-      const floor = windowOrdinals?.[0]
-      const ceiling = windowOrdinals?.[windowOrdinals.length - 1]
-      if (
-        p.scrollDirection === 'none' &&
-        rendered.length &&
-        beforeApply.moreToLoadForward &&
-        floor !== undefined &&
-        ceiling !== undefined
-      ) {
-        let lowest = Number.MAX_SAFE_INTEGER
-        let highest = Number.MIN_SAFE_INTEGER
-        for (const m of rendered) {
-          lowest = Math.min(lowest, m.ordinal)
-          highest = Math.max(highest, m.ordinal)
-        }
-        if (lowest > ceiling || highest < floor) {
-          logger.info(
-            `applyThreadLoad: page ${lowest}-${highest} does not reach window ${floor}-${ceiling}, ignoring`
-          )
-          return
-        }
-      }
-      updateThreadState(s => {
-        s.loaded = true
-        // The reconciling pass runs even with nothing to add: the warm reload where nothing changed
-        // answers with an empty full pass, and the span its earlier pass covered is authoritative
-        // all the same - the stale rows inside it are exactly what the prune is for. A pass with
-        // neither is skipped rather than passed through: addMessagesToThreadState always leaves a
-        // messageOrdinals array behind, and an empty one reads as a loaded, empty thread - the top
-        // of the conversation renders against it and then swaps when the real page arrives.
-        if (p.messages.length || p.reconcile?.prune) {
-          addMessagesToThreadState(s, p.messages, {reconcile: p.reconcile})
-          clearOptimisticReactionsForMessagesInThreadState(s, p.messages)
-        }
-        // Only a pass that actually rendered something drops the gate. A cold cache sends an empty
-        // cached pass ahead of the full response, and a page can be all tombstones: dropping the
-        // gate on either would let a notification arriving before the real page install itself as
-        // the whole window and strand once that page lands. A load that ends without ever producing
-        // an ordinal releases the gate in its own finally instead - see clearWindowGate.
-        if (carriedRenderedMessage) {
-          s.windowCleared = false
-          s.windowGateOwner = undefined
-        }
-        switch (p.scrollDirection) {
-          case 'forward':
-            s.moreToLoadForward = p.moreToLoad
-            break
-          case 'back':
-            s.moreToLoadBack = p.moreToLoad
-            break
-          case 'none': {
-            s.moreToLoadBack = p.moreToLoad
-            // A centered window may already include the latest message; leaving
-            // moreToLoadForward true would drop live incoming messages and block mark-read.
-            let containsLatest = false
-            if (p.centered && p.forceContainsLatestCalc) {
-              const {maxVisibleMsgID} = getMeta(id)
-              const ordinal = findLast(s.messageOrdinals ?? [], o => !!s.messageMap.get(o)?.id)
-              const message = ordinal ? s.messageMap.get(ordinal) : undefined
-              containsLatest = !!message?.id && maxVisibleMsgID > 0 && message.id >= maxVisibleMsgID
-            }
-            s.moreToLoadForward = p.centered && !containsLatest
-            break
-          }
-        }
-      })
-      if (p.scrollDirection === 'forward' && !p.moreToLoad) {
-        // User scrolled all the way to the latest message; release any mark-read
-        // block left from jumping to a highlighted message.
-        markReadBlockedRef.current = false
-      }
-      if (p.disableActiveMarkRead) {
-        activeMarkReadEnabledRef.current = false
-      } else if (p.enableActiveMarkRead && !markReadBlockedRef.current) {
-        activeMarkReadEnabledRef.current = true
-      }
-    }
-  )
-  const deleteMessages = React.useEffectEvent(
-    (p: {
-      messageIDs?: ReadonlyArray<T.Chat.MessageID>
-      upToMessageID?: T.Chat.MessageID
-      deletableMessageTypes?: ReadonlySet<T.Chat.MessageType>
-      ordinals?: ReadonlyArray<T.Chat.Ordinal>
-      liveUpdate?: boolean
-    }) => {
-      updateThreadState(s => {
-        if (p.liveUpdate) {
-          s.liveUpdateVersion += 1
-        }
-        deleteMessagesFromThreadState(s, {
-          deletableMessageTypes: p.deletableMessageTypes ?? Common.allMessageTypes,
-          messageIDs: p.messageIDs,
-          ordinals: p.ordinals,
-          upToMessageID: p.upToMessageID,
-        })
-      })
-    }
-  )
-  const explodeMessages = React.useEffectEvent(
-    (messageIDs: ReadonlyArray<T.Chat.MessageID>, explodedBy?: string, liveUpdate?: boolean) => {
-      updateThreadState(s => {
-        if (liveUpdate) {
-          s.liveUpdateVersion += 1
-        }
-        explodeMessagesInThreadState(s, messageIDs, explodedBy)
-      })
-    }
-  )
-  const setMessageErrored = React.useEffectEvent(
-    (outboxID: T.Chat.OutboxID, reason: string, errorTyp?: number) => {
-      updateThreadState(s => {
-        setMessageErroredInThreadState(s, outboxID, reason, errorTyp)
-      })
-    }
-  )
-  const retryMessage = React.useEffectEvent((outboxID: T.Chat.OutboxID) => {
-    updateThreadState(s => {
-      retryMessageInThreadState(s, outboxID)
-    })
-    ignorePromise(
-      (async () => {
-        await T.RPCChat.localRetryPostRpcPromise({outboxID: T.Chat.outboxIDToRpcOutboxID(outboxID)})
-      })()
-    )
-  })
-  const setExplodingMode = React.useEffectEvent((seconds: number, incoming?: boolean) => {
-    updateThreadState(s => {
-      s.explodingMode = seconds
-    })
-    if (!incoming) {
-      persistExplodingMode(id, getMeta(id), seconds)
-    }
-  })
-  const setMarkAsUnread = React.useEffectEvent((readMsgID?: T.Chat.MessageID | false) => {
-    if (readMsgID === false) {
-      return
-    }
-    const f = async () => {
-      if (!useConfigState.getState().loggedIn) {
-        logger.info('mark unread bail on not logged in')
-        return
-      }
-      const snapshot = getSnapshot()
-      const unreadLineID = readMsgID ? readMsgID : getMeta(id).maxVisibleMsgID
-      let msgID = unreadLineID
-
-      if (snapshot.messageMap.size) {
-        const ord =
-          snapshot.messageOrdinals &&
-          findLast(snapshot.messageOrdinals, o => {
-            const message = snapshot.messageMap.get(o)
-            return !!(message && message.id < unreadLineID)
-          })
-        const message = ord ? snapshot.messageMap.get(ord) : undefined
-        if (message) {
-          msgID = message.id
-        }
-      } else {
-        try {
-          const loadedMsgID = await loadThreadMessageIDAtIndex(id, 1)
-          if (loadedMsgID) {
-            msgID = loadedMsgID
-          }
-        } catch {}
-      }
-
-      if (!msgID) {
-        logger.info(`marking unread messages ${id} failed due to no id`)
-        return
-      }
-
-      logger.info(`marking unread messages ${id} ${msgID}`)
-      await markConversationRead({conversationIDKey: id, forceUnread: true, msgID})
-    }
-    ignorePromise(f())
-  })
-  const messageDelete = React.useEffectEvent((ordinal: T.Chat.Ordinal) => {
-    updateThreadState(s => {
-      const m = s.messageMap.get(ordinal)
-      if (m?.type === 'text') {
-        m.submitState = 'deleting'
-      }
-    })
-    const revertDeleting = () => {
-      updateThreadState(s => {
-        const m = s.messageMap.get(ordinal)
-        if (m?.type === 'text' && m.submitState === 'deleting') {
-          m.submitState = undefined
-        }
-      })
-    }
-
-    const f = async () => {
-      const snapshot = getSnapshot()
-      const message = snapshot.messageMap.get(ordinal)
-      if (!message) {
-        logger.warn('Deleting invalid message')
-        revertDeleting()
-        return
-      }
-      if (!getInboxConversationMeta(id)) {
-        logger.warn('Deleting message w/ no meta')
-        revertDeleting()
-        return
-      }
-      try {
-        if (!message.id) {
-          if (message.outboxID) {
-            await cancelConversationPost(message.outboxID)
-            deleteMessages({ordinals: [message.ordinal]})
-          } else {
-            logger.warn('Delete of no message id and no outboxid')
-            revertDeleting()
-          }
-          return
-        }
-        await postConversationDelete({
-          conversationIDKey: id,
-          messageID: message.id,
-          tlfName: getMeta(id).tlfname,
-        })
-      } catch (error) {
-        revertDeleting()
-        if (error instanceof RPCError) {
-          logger.warn(`messageDelete: failed to delete: ${error.message}`)
-        } else {
-          throw error
-        }
-      }
-    }
-    ignorePromise(f())
-  })
-  const messageReplyPrivately = React.useEffectEvent((ordinal: T.Chat.Ordinal) => {
-    const f = async () => {
-      const message = getSnapshot().messageMap.get(ordinal)
-      if (!message) {
-        logger.warn("messageReplyPrivately: can't find message to reply to", ordinal)
-        return
-      }
-      const username = useCurrentUserState.getState().username
-      if (!username) {
-        throw new Error('messageReplyPrivately: making a convo while logged out?')
-      }
-      const result = await createAdhocConversation([username, message.author], Strings.waitingKeyChatCreating)
-      const newThreadCID = T.Chat.conversationIDToKey(result.conv.info.id)
-      if (!newThreadCID) {
-        logger.warn("messageReplyPrivately: couldn't make a new conversation?")
-        return
-      }
-      const meta = Meta.inboxUIItemToConversationMeta(result.uiConv)
-      if (!meta) {
-        logger.warn('messageReplyPrivately: unable to make meta')
-        return
-      }
-      if (message.type !== 'text') {
-        return
-      }
-
-      const text = formatTextForQuoting(message.text.stringValue())
-      metasReceived([meta])
-      navigateToThread(newThreadCID, 'createdMessagePrivately', {intent: {text, type: 'injectText'}})
-    }
-    ignorePromise(f())
-  })
-  const addOptimisticReaction = React.useEffectEvent(
-    (outboxID: T.Chat.OutboxID, reaction: OptimisticReaction) => {
-      updateThreadState(s => {
-        s.optimisticReactionMap.set(outboxID, reaction)
-      })
-    }
-  )
-  const removeOptimisticReaction = React.useEffectEvent((outboxID: T.Chat.OutboxID) => {
-    updateThreadState(s => {
-      s.optimisticReactionMap.delete(outboxID)
-    })
-  })
-  const updateOptimisticReactionDecorated = React.useEffectEvent(
-    (outboxID: T.Chat.OutboxID, decorated: string) => {
-      updateThreadState(s => {
-        const reaction = s.optimisticReactionMap.get(outboxID)
-        if (reaction) {
-          s.optimisticReactionMap.set(outboxID, {...reaction, decorated})
-        }
-      })
-    }
-  )
-  const toggleMessageCollapse = React.useEffectEvent(
-    (messageID: T.Chat.MessageID, ordinal: T.Chat.Ordinal) => {
-      const f = async () => {
-        const snapshot = getSnapshot()
-        const m = snapshot.messageMap.get(ordinal)
-        let isCollapsed = false
-
-        if (T.Chat.messageIDToNumber(messageID) !== T.Chat.ordinalToNumber(ordinal)) {
-          const unfurlInfos = [...(m?.unfurls?.values() ?? [])]
-          const ui = unfurlInfos.find(u => u.unfurlMessageID === messageID)
-          if (ui) {
-            isCollapsed = ui.isCollapsed
-          }
-        } else {
-          isCollapsed = m?.isCollapsed ?? false
-        }
-        await T.RPCChat.localToggleMessageCollapseRpcPromise({
-          collapse: !isCollapsed,
-          convID: T.Chat.keyToConversationID(id),
-          msgID: messageID,
-        })
-      }
-      ignorePromise(f())
-    }
-  )
-  const toggleMessageReaction = React.useEffectEvent((ordinal: T.Chat.Ordinal, emoji: string) => {
-    const f = async () => {
-      if (!emoji) {
-        return
-      }
-      const snapshot = getSnapshot()
-      const message = snapshot.messageMap.get(ordinal)
-      if (!message) {
-        logger.warn(`toggleMessageReaction: no message found`)
-        return
-      }
-      const {type, exploded, id: messageID} = message
-      if ((type === 'text' || type === 'attachment') && exploded) {
-        logger.warn(`toggleMessageReaction: message is exploded`)
-        return
-      }
-      if (!messageID) {
-        logger.warn(`toggleMessageReaction: message has no id yet`)
-        return
-      }
-      const username = useCurrentUserState.getState().username
-      if (!username) {
-        logger.warn(`toggleMessageReaction: no current username`)
-        return
-      }
-      const displayMessage = applyOptimisticReactionsToMessage(message, snapshot.optimisticReactionMap)
-      const add =
-        !displayMessage?.reactions?.get(emoji)?.users.some(reaction => reaction.username === username)
-      const outboxID = Common.generateOutboxID()
-      const localOutboxID = T.Chat.rpcOutboxIDToOutboxID(outboxID)
-      addOptimisticReaction(localOutboxID, {
-        add,
-        decorated: emoji,
-        emoji,
-        targetOrdinal: ordinal,
-        timestamp: Date.now(),
-        username,
-      })
-      try {
-        await postConversationReaction({
-          body: emoji,
-          clientPrev: getClientPrevFromSnapshot(snapshot),
-          conversationIDKey: id,
-          messageID,
-          outboxID,
-          tlfName: getMeta(id).tlfname,
-        })
-      } catch (error) {
-        removeOptimisticReaction(localOutboxID)
-        if (error instanceof RPCError) {
-          logger.info(`toggleMessageReaction: failed to post` + error.message)
-        }
-      }
-    }
-    ignorePromise(f())
-  })
-  const unfurlRemove = React.useEffectEvent((messageID: T.Chat.MessageID) => {
-    const f = async () => {
-      if (!getInboxConversationMeta(id)) {
-        logger.debug('unfurl remove no meta found, aborting!')
-        return
-      }
-      await postConversationDelete({
-        conversationIDKey: id,
-        messageID,
-        tlfName: getMeta(id).tlfname,
-      })
-    }
-    ignorePromise(f())
-  })
-  const setMessageSubmitState = React.useEffectEvent(
-    (ordinal: T.Chat.Ordinal, submitState: T.Chat.Message['submitState']) => {
-      updateThreadState(s => {
-        setMessageSubmitStateInThreadState(s, ordinal, submitState)
-      })
-    }
-  )
-  const updateReactions = React.useEffectEvent(
-    (updates: ReadonlyArray<{targetMsgID: T.Chat.MessageID; reactions?: T.Chat.Reactions}>) => {
-      const missingTargetMsgIDs = new Array<T.Chat.MessageID>()
-      updateThreadState(s => {
-        missingTargetMsgIDs.push(...updateReactionsInThreadState(s, updates))
-        if (missingTargetMsgIDs.length !== updates.length) {
-          s.liveUpdateVersion += 1
-        }
-        clearOptimisticReactionsForUpdatesInThreadState(s, updates)
-      })
-      for (const targetMsgID of missingTargetMsgIDs) {
-        logger.info(
-          `updateReactions: couldn't find target ordinal for targetMsgID=${targetMsgID} in convID=${id}`
-        )
-      }
-      markThreadAsRead()
-    }
-  )
-  // The reload a clear issues claims the gate, so a load that merely happens to be running at the
-  // same clear generation cannot drop it out from under that reload. First claim wins: the clear
-  // issues its reload synchronously, so that reload is the first to get here.
-  const claimWindowGate = React.useEffectEvent((loadID: number) => {
-    const s = threadStore.getState()
-    if (!s.windowCleared || s.windowGateOwner !== undefined) {
-      return
-    }
-    updateThreadState(d => {
-      d.windowGateOwner = loadID
-    })
-  })
-  // applyThreadLoad drops the gate when a load refills the window, but a load can end without ever
-  // applying: offline, scchatnotinteam, or a response that carries no thread. Left alone the gate
-  // would keep dropping notifications for the life of the provider, with no window to correct it.
-  const clearWindowGate = React.useEffectEvent((loadID: number) => {
-    const s = threadStore.getState()
-    if (!s.windowCleared) {
-      return
-    }
-    // An unclaimed gate is released by whoever settles first: nothing claimed it, so there is no
-    // reload in flight to protect, and leaving it up would strand the thread.
-    if (s.windowGateOwner !== undefined && s.windowGateOwner !== loadID) {
-      return
-    }
-    updateThreadState(d => {
-      d.windowCleared = false
-      d.windowGateOwner = undefined
-    })
-  })
-  const messagesClear = React.useEffectEvent(() => {
-    activeMarkReadEnabledRef.current = false
-    shownUsernameCache.clear()
-    updateThreadState(s => {
-      s.clearVersion += 1
-      s.pendingOutboxToOrdinal.clear()
-      s.loaded = false
-      // Mark the gap. A notification landing between here and the reload would otherwise face an
-      // empty window, install itself as the whole of it, and strand once the load response arrives.
-      // Both callers reload a region disjoint from the one being dropped - a centered jump an
-      // arbitrary one, jumpToRecent the newest page - so nothing arriving first can be placed
-      // against what is coming.
-      s.windowCleared = true
-      s.windowGateOwner = undefined
-      s.messageIDToOrdinal.clear()
-      s.messageMap.clear()
-      s.messageOrdinals = undefined
-      s.messageTypeMap.clear()
-      s.optimisticReactionMap.clear()
-    })
-  })
-  const setTyping = React.useEffectEvent((typing: ReadonlySet<string>) => {
-    updateThreadState(s => {
-      if (sameStringSet(s.typing, typing)) {
-        return
-      }
-      s.typing = new Set(typing)
-    })
-  })
-  const receiveRequestInfo = React.useEffectEvent(
-    (messageID: T.Chat.MessageID, requestInfo: T.Chat.ChatRequestInfo) => {
-      updateThreadState(s => {
-        s.accountsInfoMap.set(messageID, requestInfo)
-      })
-    }
-  )
-  const receivePaymentInfo = React.useEffectEvent(
-    (messageID: T.Chat.MessageID, paymentInfo: T.Chat.ChatPaymentInfo) => {
-      updateThreadState(s => {
-        s.accountsInfoMap.set(messageID, paymentInfo)
-        s.paymentStatusMap.set(paymentInfo.paymentID, paymentInfo)
-      })
-    }
-  )
-  const showUnfurlPrompt = React.useEffectEvent((messageID: T.Chat.MessageID, domain: string) => {
-    updateThreadState(s => {
-      let prompts = s.unfurlPrompt.get(messageID)
-      if (!prompts) {
-        prompts = new Set()
-        s.unfurlPrompt.set(messageID, prompts)
-      }
-      prompts.add(domain)
-    })
-  })
-  const clearUnfurlPrompt = React.useEffectEvent((messageID: T.Chat.MessageID, domain: string) => {
-    updateThreadState(s => {
-      const prompts = s.unfurlPrompt.get(messageID)
-      prompts?.delete(domain)
-    })
-  })
-  const updateCoinFlipStatuses = React.useEffectEvent(
-    (statuses: ReadonlyArray<T.RPCChat.UICoinFlipStatus>) => {
-      updateThreadState(s => {
-        statuses.forEach(status => {
-          s.flipStatusMap.set(status.gameID, T.castDraft(status))
-        })
-      })
-    }
-  )
-  const updateAttachmentDownloadProgress = React.useEffectEvent(
-    (msgID: number, bytesComplete: number, bytesTotal: number) => {
-      updateThreadState(s => {
-        updateAttachmentDownloadProgressInThreadState(s, msgID, bytesComplete, bytesTotal)
-      })
-    }
-  )
-  const completeAttachmentDownload = React.useEffectEvent((msgID: number) => {
-    updateThreadState(s => {
-      completeAttachmentDownloadInThreadState(s, msgID)
-    })
-  })
-  const startAttachmentDownload = React.useEffectEvent((ordinal: T.Chat.Ordinal) => {
-    updateThreadState(s => {
-      startAttachmentDownloadInThreadState(s, ordinal)
-    })
-  })
-  const finishAttachmentDownload = React.useEffectEvent((ordinal: T.Chat.Ordinal, path: string) => {
-    updateThreadState(s => {
-      finishAttachmentDownloadInThreadState(s, ordinal, path)
-    })
-  })
-  const failAttachmentDownload = React.useEffectEvent((ordinal: T.Chat.Ordinal, errMsg: string) => {
-    updateThreadState(s => {
-      failAttachmentDownloadInThreadState(s, ordinal, errMsg)
-    })
-  })
-  const setAttachmentMobileSaving = React.useEffectEvent(
-    (ordinal: T.Chat.Ordinal, saving: boolean) => {
-      updateThreadState(s => {
-        setAttachmentMobileSavingInThreadState(s, ordinal, saving)
-      })
-    }
-  )
-  const updateAttachmentUploadProgress = React.useEffectEvent(
-    (outboxID: Uint8Array, bytesComplete?: number, bytesTotal?: number) => {
-      updateThreadState(s => {
-        updateAttachmentUploadProgressInThreadState(s, outboxID, bytesComplete, bytesTotal)
-      })
-    }
-  )
-  const [threadActions] = React.useState<ConversationThreadActions>(() => {
-    const impl = (p: LoadMoreMessagesParams) => loadConversationThreadMessages(id, p, threadActions)
-    const throttled = throttle(impl, 500)
-    // The throttle keeps only the last trailing call, so a centered or jump-to-recent
-    // load issued between two other loads would be silently dropped — after
-    // loadMessagesCentered already cleared the thread. Run those immediately instead.
-    const loadMoreMessages: LoadMoreMessages = Object.assign(
-      (p: LoadMoreMessagesParams) => {
-        if (p.centeredMessageID || p.messageIDControl || p.reason === 'jump to recent') {
-          throttled.cancel()
-          impl(p)
-        } else {
-          throttled(p)
-        }
-      },
-      {
-        cancel: () => {
-          throttled.cancel()
-        },
-      }
-    )
-    const threadActions: ConversationThreadActions = {
-      addMessages,
-      addOptimisticReaction,
-      applyThreadLoad,
-      clearUnfurlPrompt,
-      claimWindowGate,
-      clearWindowGate,
-      completeAttachmentDownload,
-      deleteMessages,
-      explodeMessages,
-      failAttachmentDownload,
-      finishAttachmentDownload,
-      getSnapshot,
-      loadMoreMessages,
-      markThreadAsRead,
-      messageDelete,
-      messageReplyPrivately,
-      messagesClear,
-      receivePaymentInfo,
-      receiveRequestInfo,
-      removeOptimisticReaction,
-      retryMessage,
-      setAttachmentMobileSaving,
-      setExplodingMode,
-      setMarkAsUnread,
-      setMarkReadBlocked,
-      setMessageErrored,
-      setMessageSubmitState,
-      setTyping,
-      showUnfurlPrompt,
-      startAttachmentDownload,
-      toggleMessageCollapse,
-      toggleMessageReaction,
-      unfurlRemove,
-      updateAttachmentDownloadProgress,
-      updateAttachmentUploadProgress,
-      updateCoinFlipStatuses,
-      updateOptimisticReactionDecorated,
-      updateReactions,
-    }
-    return threadActions
-  })
+  }, [thread, metaReadMsgID])
   React.useEffect(() => {
     return () => {
-      threadActions.loadMoreMessages.cancel()
+      thread.dispose()
     }
-  }, [threadActions])
-  useThreadEngineListeners(id, threadActions)
+  }, [thread])
+  useThreadEngineListeners(id, thread.actions)
 
   return (
-    <ConversationThreadContextProvider
-      id={id}
-      actions={threadActions}
-      store={threadStore}
-      shownUsernameCache={shownUsernameCache}
-    >
+    <ConversationThreadContextProvider id={id} thread={thread}>
       {children}
     </ConversationThreadContextProvider>
+  )
+}
+
+// A thread belongs to one account: its notifications, reloads and service calls are that account's.
+// An account switch keeps the logged-in screens mounted (and desktop can keep the same conversation
+// selected), so the thread is built again whenever the signed-in account changes; the store built
+// for the account that left retires itself. Between a switch's store reset and the next account's
+// sign-in nobody is signed in, and there is no thread to show.
+const ConversationThreadForSignedInAccount = (p: ConversationThreadProviderProps) => {
+  const {children, id} = p
+  const uid = useCurrentUserState(s => s.uid)
+  if (!uid) {
+    return null
+  }
+  return (
+    <ConversationThreadProviderInner key={uid} id={id} uid={uid}>
+      {children}
+    </ConversationThreadProviderInner>
   )
 }
 
@@ -1205,11 +257,11 @@ export const ConversationThreadProvider = (p: ConversationThreadProviderProps) =
     // Same-thread wrappers should share the live message/meta state instead of replacing it.
     return <>{p.children}</>
   }
-  return <ConversationThreadProviderInner {...p} />
+  return <ConversationThreadForSignedInAccount {...p} />
 }
 
 export const LiveConversationThreadProvider = (p: ConversationThreadProviderProps) => (
-  <ConversationThreadProviderInner {...p} />
+  <ConversationThreadForSignedInAccount {...p} />
 )
 
 export const useConversationThreadSetExplodingMode = () => useConversationThreadActions().setExplodingMode
@@ -1219,9 +271,12 @@ const displayMessageCache = new WeakMap<
   {
     displayMessage: T.Chat.Message | undefined
     optimisticReactionMap: ConversationThreadState['optimisticReactionMap']
+    pendingDeleteMap: ConversationThreadState['pendingDeleteMap']
   }
 >()
 
+// The row as it is shown: with this client's reactions the service has not confirmed yet, and
+// submitState 'deleting' while a delete of it is pending. 'deleting' is never stored on the row.
 export const getConversationThreadDisplayMessage = (
   snapshot: ConversationThreadState,
   ordinal: T.Chat.Ordinal
@@ -1230,12 +285,20 @@ export const getConversationThreadDisplayMessage = (
   if (!message) {
     return undefined
   }
+  const {optimisticReactionMap, pendingDeleteMap} = snapshot
   const cached = displayMessageCache.get(message)
-  if (cached?.optimisticReactionMap === snapshot.optimisticReactionMap) {
+  if (
+    cached?.optimisticReactionMap === optimisticReactionMap &&
+    cached.pendingDeleteMap === pendingDeleteMap
+  ) {
     return cached.displayMessage
   }
-  const displayMessage = applyOptimisticReactionsToMessage(message, snapshot.optimisticReactionMap)
-  displayMessageCache.set(message, {displayMessage, optimisticReactionMap: snapshot.optimisticReactionMap})
+  const withReactions = applyOptimisticReactionsToMessage(message, optimisticReactionMap)
+  const displayMessage =
+    withReactions && isPendingDelete(pendingDeleteMap, ordinal)
+      ? {...withReactions, submitState: 'deleting' as const}
+      : withReactions
+  displayMessageCache.set(message, {displayMessage, optimisticReactionMap, pendingDeleteMap})
   return displayMessage
 }
 
@@ -1345,12 +408,6 @@ export const useConversationThreadSetMarkAsUnread = () => useConversationThreadA
 
 export const useConversationThreadSetMarkReadBlocked = () => useConversationThreadActions().setMarkReadBlocked
 
-export const useConversationThreadMessageActions = () => {
-  const {messageDelete, messageReplyPrivately, toggleMessageCollapse, toggleMessageReaction, unfurlRemove} =
-    useConversationThreadActions()
-  return {messageDelete, messageReplyPrivately, toggleMessageCollapse, toggleMessageReaction, unfurlRemove}
-}
-
 export const useConversationThreadSelectedConversation = () => {
   const conversationIDKey = useConversationThreadID()
   const loadMoreMessages = useConversationThreadLoadMoreMessages()
@@ -1379,111 +436,13 @@ export const useConversationThreadSelectedConversation = () => {
   return selectedConversation
 }
 
-export const useConversationThreadToggleSearch = () => {
-  const conversationIDKey = useConversationThreadID()
-  return () => {
-    toggleConversationThreadSearch(conversationIDKey)
-  }
-}
-
-type ThreadSearchParams = {conversationIDKey?: T.Chat.ConversationIDKey; threadSearch?: {query?: string}}
-
-// Opens thread search, or closes it through closeConversationThreadSearch when it is open.
-export const toggleConversationThreadSearch = (conversationIDKey: T.Chat.ConversationIDKey) => {
-  const params = getVisibleScreen()?.params as ThreadSearchParams | undefined
-  if (params?.threadSearch) {
-    closeConversationThreadSearch(conversationIDKey)
-    return
-  }
-  const threadSearch = {}
-  if (Common.isSplit) {
-    setChatRootParams({conversationIDKey, threadSearch})
-  } else {
-    navigateAppend({name: Common.threadRouteName, params: {conversationIDKey, threadSearch}}, true)
-  }
-}
-
-// Every close of thread search: the search's own Cancel and Done, mod+f, a toggle, every Reply,
-// jumping to recent, and a send while centred on a hit. It only changes the route, and only when
-// this conversation's search is open; the search UI unmounting cancels its search, and the centre
-// provider drops the hit it centred. It looks past modals and targets the thread's route by key,
-// so it still lands while the phone message menu (a modal) is up.
-export const closeConversationThreadSearch = (conversationIDKey: T.Chat.ConversationIDKey) => {
-  const visible = getVisibleScreen(false)
-  const params = visible?.params as ThreadSearchParams | undefined
-  if (!params?.threadSearch || params.conversationIDKey !== conversationIDKey) {
-    return
-  }
-  setRouteParams(visible?.key, {threadSearch: undefined})
-}
-
-export const useConversationThreadCloseSearch = () => {
-  const conversationIDKey = useConversationThreadID()
-  return () => {
-    closeConversationThreadSearch(conversationIDKey)
-  }
-}
-
-export type ConversationInfoPanelTab = 'settings' | 'members' | 'attachments' | 'bots' | undefined
-
-export const showConversationInfoPanel = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  show: boolean,
-  tab: ConversationInfoPanelTab
-) => {
-  if (isPhone) {
-    const visibleScreen = getVisibleScreen()
-    if (show) {
-      navigateAppend(
-        {
-          name: 'chatInfoPanel',
-          params: {conversationIDKey, tab},
-        },
-        visibleScreen?.name === 'chatInfoPanel'
-      )
-    } else if (visibleScreen?.name === 'chatInfoPanel') {
-      navigateUp()
-    }
-    return
-  }
-  setChatRootParams({conversationIDKey, infoPanel: show ? {tab} : undefined})
-}
-
-export const useConversationShowInfoPanel = () => {
-  const conversationIDKey = useConversationThreadID()
-  return (show: boolean, tab: ConversationInfoPanelTab) => {
-    showConversationInfoPanel(conversationIDKey, show, tab)
-  }
-}
-
-export const useConversationThreadDismissJourneycard = () => {
-  const conversationIDKey = useConversationThreadID()
-  const {deleteMessages} = useConversationThreadActions()
-  return (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) => {
-    const f = async () => {
-      await dismissConversationJourneycardRPC(conversationIDKey, cardType).catch((error: unknown) => {
-        if (error instanceof RPCError) {
-          logger.error(`Failed to dismiss journeycard: ${error.message}`)
-        }
-      })
-      deleteMessages({ordinals: [ordinal]})
-    }
-    ignorePromise(f())
-  }
-}
-
 export const useConversationThreadUnfurlResolvePrompt = () => {
   const conversationIDKey = useConversationThreadID()
-  const {clearUnfurlPrompt} = useConversationThreadActions()
+  const {clearUnfurlPrompt, rpc} = useConversationThreadActions()
   return (messageID: T.Chat.MessageID, domain: string, result: T.RPCChat.UnfurlPromptResult) => {
     clearUnfurlPrompt(messageID, domain)
     const f = async () => {
-      await T.RPCChat.localResolveUnfurlPromptRpcPromise({
-        convID: T.Chat.keyToConversationID(conversationIDKey),
-        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-        msgID: T.Chat.messageIDToNumber(messageID),
-        result,
-      })
+      await rpc.resolveUnfurlPrompt({conversationIDKey, messageID, result})
     }
     ignorePromise(f())
   }

@@ -7,6 +7,7 @@ import {useNavigation} from '@react-navigation/native'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import logger from '@/logger'
 import {useConversationMessage} from './data-hooks'
+import {chatRpcCall} from './chat-rpc'
 import {registerExternalResetter} from '@/util/zustand'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey; messageID: T.Chat.MessageID}
@@ -56,13 +57,13 @@ const TeamPickerInner = (props: Props) => {
   const [pickerState, setPickerState] = React.useState<PickerState>('picker')
   const [term, setTerm] = React.useState('')
   const setSearchTerm = C.useDebouncedCallback(setTerm, 200)
-  const dstConvIDRef = React.useRef<Uint8Array | undefined>(undefined)
+  const destinationRef = React.useRef<T.Chat.ConversationIDKey | undefined>(undefined)
   const [results, setResults] = React.useState<ReadonlyArray<T.RPCChat.ConvSearchHit>>([])
   const [loadedTerm, setLoadedTerm] = React.useState<string>()
   const [error, setError] = React.useState('')
   const waiting = loadedTerm !== term
-  const fwdMsg = C.useRPC(T.RPCChat.localForwardMessageNonblockRpcPromise)
-  const submit = C.useRPC(T.RPCChat.localForwardMessageConvSearchRpcPromise)
+  const fwdMsg = C.useRPC(chatRpcCall.forwardMessage)
+  const submit = C.useRPC(chatRpcCall.searchForwardDestinations)
 
   React.useEffect(() => {
     forwardMessageHandoff.delete(handoffKey)
@@ -71,12 +72,12 @@ const TeamPickerInner = (props: Props) => {
   React.useEffect(() => {
     let stale = false
     submit(
-      [{term}],
+      [term],
       result => {
         if (stale) return
         setLoadedTerm(term)
         setError('')
-        setResults(result ?? [])
+        setResults(result)
       },
       error => {
         if (stale) return
@@ -127,21 +128,11 @@ const TeamPickerInner = (props: Props) => {
   const onSubmit = (event?: React.BaseSyntheticEvent) => {
     event?.preventDefault()
     event?.stopPropagation()
-    if (!dstConvIDRef.current || !message) return
-    previewConversation({
-      conversationIDKey: T.Chat.conversationIDToKey(dstConvIDRef.current),
-      reason: 'forward',
-    })
+    const destination = destinationRef.current
+    if (!destination || !message) return
+    previewConversation({conversationIDKey: destination, reason: 'forward'})
     fwdMsg(
-      [
-        {
-          dstConvID: dstConvIDRef.current,
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-          msgID: message.id,
-          srcConvID: T.Chat.keyToConversationID(srcConvID),
-          title,
-        },
-      ],
+      [{conversationIDKey: srcConvID, destination, messageID: message.id, title}],
       () => {},
       error => {
         logger.info('TeamPicker: error forwarding message: ' + error.message)
@@ -156,7 +147,7 @@ const TeamPickerInner = (props: Props) => {
       return
     }
 
-    dstConvIDRef.current = dstConvID
+    destinationRef.current = T.Chat.conversationIDToKey(dstConvID)
 
     if (message.type === 'attachment') {
       setPickerState('title')

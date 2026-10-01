@@ -9,12 +9,9 @@ import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {setMemberPublicity} from '@/teams/actions'
 import {useTeamsListMap} from '@/teams/use-teams-list'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
-import {
-  useConversationThreadDismissJourneycard,
-  useConversationThreadID,
-  useConversationThreadMessage,
-  useThreadMeta,
-} from '../../../thread-context'
+import {dismissJourneycard, useThreadMessageTarget} from '../../../message-commands'
+import {useConversationSendActions} from '../../../send-actions'
+import {useConversationThreadMessage, useThreadMeta} from '../../../thread-context'
 
 type Action = {label: string; onClick: () => void} | 'wave'
 type OwnProps = {ordinal: T.Chat.Ordinal}
@@ -32,7 +29,6 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
       channelname: m.channelname,
       teamID: m.teamID,
       teamname: m.teamname,
-      tlfname: m.tlfname,
     }))
   )
   const {cannotWrite, channelname, teamname, teamID} = conv
@@ -42,10 +38,11 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const canShowcase = teamMeta.allowPromote || teamMeta.role === 'admin' || teamMeta.role === 'owner'
   const isBigTeam = useInboxLayoutState(s => getIsBigTeam(s.layout, teamID))
   const navigateAppend = C.Router2.navigateAppend
-  const dismissJourneycard = useConversationThreadDismissJourneycard()
+  const target = useThreadMessageTarget(ordinal)
+  const {sendWave} = useConversationSendActions()
   const onAuthorClick = () => navigateAppend({name: 'team', params: {teamID}})
   const onBrowseChannels = () => navigateAppend({name: 'teamAddToChannels', params: {teamID}})
-  const onDismiss = () => dismissJourneycard(message.cardType, message.ordinal)
+  const onDismiss = () => dismissJourneycard(target, message.cardType)
   const onGoToChannel = (channelName: string) =>
     C.Router2.previewConversation({channelname: channelName, reason: 'journeyCardPopular', teamname})
   const onPublishTeam = () => {
@@ -53,7 +50,6 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
     setMemberPublicity(teamID, true)
   }
 
-  const conversationIDKey = useConversationThreadID()
   const {cardType} = message
   let textComponent: React.ReactNode
   let image: Kb.IconType | undefined
@@ -67,6 +63,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const joinableStatuses = new Set<T.Chat.ConversationMeta['membershipType']>([
     // keep in sync with journey_card_manager.go
     'notMember' as const,
+    'youLeft' as const,
     'youAreReset' as const,
   ])
   const otherChannelsBase = [...channelMetas.values()]
@@ -160,8 +157,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
               action === 'wave' ? (
                 <Kb.WaveButton
                   key="wave"
-                  conversationIDKey={conversationIDKey}
-                  tlfName={conv.tlfname}
+                  onWave={sendWave}
                   small={true}
                   style={styles.buttonSpace}
                   disabled={!!deactivateButtons}

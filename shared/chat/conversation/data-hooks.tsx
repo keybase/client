@@ -3,19 +3,13 @@ import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {
-  ensureConversationMetaLoaded,
-  getInboxConversationMeta,
-  unboxRows,
-  useInboxMetadataState,
-} from '@/chat/inbox/metadata'
-import {useEngineActionListener} from '@/engine/action-listener'
+import {ensureConversationMetaLoaded, unboxRows, useInboxMetadataState} from '@/chat/inbox/metadata'
+import {messagesTriggerConcerns, useReloadTriggers} from '@/chat/notification-registry'
 import {ignorePromise} from '@/constants/utils'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
 import logger from '@/logger'
-import {loadThreadNonblock, markConversationRead} from './thread-rpc'
-import {setConversationOrangeLine} from './orange-line-context'
+import {getChatRpc} from './chat-rpc'
 import {getExplodingModeFromGregorItems} from './thread-load'
 
 const emptyConversationMeta = Meta.makeConversationMeta()
@@ -29,38 +23,6 @@ const emptyMessages: ReadonlyArray<T.Chat.Message> = []
 const reloadConversationMetadata = (conversationIDKey: T.Chat.ConversationIDKey) => {
   if (T.Chat.isValidConversationIDKey(conversationIDKey)) {
     unboxRows([conversationIDKey])
-  }
-}
-
-const inboxUIItemConversationIDKey = (conv: T.RPCChat.InboxUIItem | null | undefined) =>
-  conv ? T.Chat.stringToConversationIDKey(conv.convID) : T.Chat.noConversationIDKey
-
-const activityConversationIDKey = (activity: T.RPCChat.ChatActivity) => {
-  switch (activity.activityType) {
-    case T.RPCChat.ChatActivityType.incomingMessage:
-      return T.Chat.conversationIDToKey(activity.incomingMessage.convID)
-    case T.RPCChat.ChatActivityType.setStatus:
-      return inboxUIItemConversationIDKey(activity.setStatus.conv)
-    case T.RPCChat.ChatActivityType.readMessage:
-      return inboxUIItemConversationIDKey(activity.readMessage.conv)
-    case T.RPCChat.ChatActivityType.newConversation:
-      return inboxUIItemConversationIDKey(activity.newConversation.conv)
-    case T.RPCChat.ChatActivityType.failedMessage:
-      return inboxUIItemConversationIDKey(activity.failedMessage.conv)
-    case T.RPCChat.ChatActivityType.membersUpdate:
-      return T.Chat.conversationIDToKey(activity.membersUpdate.convID)
-    case T.RPCChat.ChatActivityType.setAppNotificationSettings:
-      return T.Chat.conversationIDToKey(activity.setAppNotificationSettings.convID)
-    case T.RPCChat.ChatActivityType.messagesUpdated:
-      return T.Chat.conversationIDToKey(activity.messagesUpdated.convID)
-    case T.RPCChat.ChatActivityType.reactionUpdate:
-      return T.Chat.conversationIDToKey(activity.reactionUpdate.convID)
-    case T.RPCChat.ChatActivityType.expunge:
-      return T.Chat.conversationIDToKey(activity.expunge.convID)
-    case T.RPCChat.ChatActivityType.ephemeralPurge:
-      return T.Chat.conversationIDToKey(activity.ephemeralPurge.convID)
-    default:
-      return T.Chat.noConversationIDKey
   }
 }
 
@@ -81,41 +43,8 @@ export const useConversationMetadataReload = (conversationIDKey: T.Chat.Conversa
     }
   }, [conversationIDKey, loggedIn])
 
-  useEngineActionListener('chat.1.NotifyChat.NewChatActivity', action => {
-    if (activityConversationIDKey(action.payload.params.activity) === conversationIDKey) {
-      reload()
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatConvUpdate', action => {
-    if (inboxUIItemConversationIDKey(action.payload.params.conv) === conversationIDKey) {
-      reload()
-    }
-  })
-  useEngineActionListener('chat.1.chatUi.chatInboxFailed', action => {
-    if (T.Chat.conversationIDToKey(action.payload.params.convID) === conversationIDKey) {
-      reload()
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatSetConvSettings', action => {
-    if (T.Chat.conversationIDToKey(action.payload.params.convID) === conversationIDKey) {
-      reload()
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatSetConvRetention', action => {
-    if (T.Chat.conversationIDToKey(action.payload.params.convID) === conversationIDKey) {
-      reload()
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatSetTeamRetention', action => {
-    const hasConversation = (action.payload.params.convs ?? []).some(
-      conv => inboxUIItemConversationIDKey(conv) === conversationIDKey
-    )
-    if (hasConversation) {
-      reload()
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatParticipantsInfo', action => {
-    if (action.payload.params.participants?.[conversationIDKey]) {
+  useReloadTriggers(conversationIDKey, trigger => {
+    if (trigger.type === 'metadata') {
       reload()
     }
   })
@@ -158,9 +87,6 @@ export const useConversationParticipantsSelector = <TValue,>(
 export const useConversationExplodingMode = (conversationIDKey: T.Chat.ConversationIDKey) =>
   useConfigState(state => getExplodingModeFromGregorItems(conversationIDKey, state.gregorPushState) ?? 0)
 
-export const getConversationClientPrev = (conversationIDKey: T.Chat.ConversationIDKey) =>
-  getInboxConversationMeta(conversationIDKey)?.maxVisibleMsgID ?? T.Chat.numberToMessageID(0)
-
 const parseThreadMessages = (conversationIDKey: T.Chat.ConversationIDKey, thread: string) => {
   if (!thread) {
     return emptyMessages
@@ -183,36 +109,86 @@ const parseThreadMessages = (conversationIDKey: T.Chat.ConversationIDKey, thread
   return messages
 }
 
+// Which messages to load: those centered on a message, or the conversation's newest.
+type MessagesRequest = {around: T.Chat.MessageID; num: number} | {newest: number}
+
+// Each pass's thread JSON is handed to onThread. Nothing is asked for an invalid conversation or a
+// pivot that is not a message id (0, or the -1 of a placeholder meta). Rejects when the load does.
+const loadThreadPasses = async (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  request: MessagesRequest,
+  onThread: (thread: string) => void
+) => {
+  if (!T.Chat.isValidConversationIDKey(conversationIDKey)) {
+    return
+  }
+  if ('around' in request) {
+    if (T.Chat.messageIDToNumber(request.around) <= 0) {
+      return
+    }
+    await getChatRpc().loadThread({
+      conversationIDKey,
+      messageIDControl: {
+        mode: T.RPCChat.MessageIDControlMode.centered,
+        num: request.num,
+        pivot: request.around,
+      },
+      onCachedThread: onThread,
+      onFullThread: onThread,
+      pagination: null,
+    })
+  } else {
+    await getChatRpc().loadThread({
+      conversationIDKey,
+      onCachedThread: onThread,
+      onFullThread: onThread,
+      pagination: {last: false, next: '', num: request.newest, previous: ''},
+    })
+  }
+}
+
 const loadConversationMessagesAroundMessageID = async (
   conversationIDKey: T.Chat.ConversationIDKey,
   messageID: T.Chat.MessageID,
   num = 20
 ) => {
-  if (!T.Chat.isValidConversationIDKey(conversationIDKey) || !T.Chat.messageIDToNumber(messageID)) {
-    return emptyMessages
-  }
-
   const messages = new Map<T.Chat.MessageID, T.Chat.Message>()
-  const onGotThread = (thread: string) => {
+  await loadThreadPasses(conversationIDKey, {around: messageID, num}, thread => {
     parseThreadMessages(conversationIDKey, thread).forEach(message => {
       if (message.id) {
         messages.set(message.id, message)
       }
     })
-  }
-  await loadThreadNonblock({
-    conversationIDKey,
-    messageIDControl: {
-      mode: T.RPCChat.MessageIDControlMode.centered,
-      num,
-      pivot: messageID,
-    },
-    onCachedThread: onGotThread,
-    onFullThread: onGotThread,
-    pagination: null,
   })
+  return messages.size
+    ? [...messages.values()].sort((l, r) => T.Chat.messageIDToNumber(l.id) - T.Chat.messageIDToNumber(r.id))
+    : emptyMessages
+}
 
-  return [...messages.values()].sort((l, r) => T.Chat.messageIDToNumber(l.id) - T.Chat.messageIDToNumber(r.id))
+const parseThreadMessageIDs = (thread: string) => {
+  try {
+    const parsed = JSON.parse(thread) as {messages?: ReadonlyArray<T.RPCChat.UIMessage> | null} | null
+    return (parsed?.messages ?? []).map(Message.getMessageID)
+  } catch {
+    return []
+  }
+}
+
+// The ids a load holds, across both passes, in no order. Every unboxed state counts, not only the
+// ones that become thread rows. Rejects when the load does.
+export const loadConversationMessageIDs = async (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  request: MessagesRequest
+) => {
+  const ids = new Set<T.Chat.MessageID>()
+  await loadThreadPasses(conversationIDKey, request, thread => {
+    parseThreadMessageIDs(thread).forEach(id => {
+      if (id) {
+        ids.add(id)
+      }
+    })
+  })
+  return [...ids]
 }
 
 const useConversationMessagesAroundMessageID = (
@@ -258,35 +234,26 @@ const useConversationMessagesAroundMessageID = (
     }
   }, [conversationIDKey, messageID, num])
 
-  useEngineActionListener('chat.1.NotifyChat.NewChatActivity', action => {
-    const activity = action.payload.params.activity
-    if (activityConversationIDKey(activity) !== conversationIDKey) {
-      return
-    }
-    switch (activity.activityType) {
-      case T.RPCChat.ChatActivityType.incomingMessage:
-      case T.RPCChat.ChatActivityType.messagesUpdated:
-      case T.RPCChat.ChatActivityType.reactionUpdate:
-      case T.RPCChat.ChatActivityType.expunge:
-      case T.RPCChat.ChatActivityType.ephemeralPurge:
-        reload()
-        break
-      default:
-    }
-  })
-  useEngineActionListener('chat.1.NotifyChat.ChatAttachmentDownloadComplete', action => {
-    const {convID, msgID} = action.payload.params
+  const messages =
+    loaded?.conversationIDKey === conversationIDKey && loaded.messageID === messageID
+      ? loaded.messages
+      : emptyMessages
+
+  useReloadTriggers(conversationIDKey, trigger => {
+    // the shown message renders the text of the message it replies to
+    const shown = messages.find(message => message.id === messageID)
+    const replyToID = shown?.type === 'text' ? shown.replyTo?.id : undefined
     if (
-      T.Chat.conversationIDToKey(convID) === conversationIDKey &&
-      T.Chat.numberToMessageID(msgID) === messageID
+      (trigger.type === 'messages' &&
+        (messagesTriggerConcerns(trigger, messageID) ||
+          (!!replyToID && messagesTriggerConcerns(trigger, replyToID)))) ||
+      (trigger.type === 'attachmentDownloaded' && trigger.messageID === messageID)
     ) {
       reload()
     }
   })
 
-  return loaded?.conversationIDKey === conversationIDKey && loaded.messageID === messageID
-    ? loaded.messages
-    : emptyMessages
+  return messages
 }
 
 export const useConversationMessage = (
@@ -297,50 +264,3 @@ export const useConversationMessage = (
   return messages.find(message => message.id === messageID)
 }
 
-export const markConversationAsUnread = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  readMsgID?: T.Chat.MessageID | false
-) => {
-  if (readMsgID === false || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
-    return
-  }
-  const f = async () => {
-    if (!useConfigState.getState().loggedIn) {
-      logger.info('mark unread bail on not logged in')
-      return
-    }
-
-    const unreadLineID = readMsgID || getInboxConversationMeta(conversationIDKey)?.maxVisibleMsgID
-    if (!unreadLineID) {
-      logger.info(`marking unread messages ${conversationIDKey} failed due to no id`)
-      return
-    }
-    setConversationOrangeLine(
-      conversationIDKey,
-      T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(unreadLineID))
-    )
-
-    let msgID = unreadLineID
-    try {
-      const messages = await loadConversationMessagesAroundMessageID(conversationIDKey, unreadLineID, 3)
-      for (let idx = messages.length - 1; idx >= 0; --idx) {
-        const message = messages[idx]
-        if (message?.id && message.id < unreadLineID) {
-          msgID = message.id
-          break
-        }
-      }
-    } catch {}
-
-    logger.info(`marking unread messages ${conversationIDKey} ${msgID}`)
-    await markConversationRead({conversationIDKey, forceUnread: true, msgID})
-  }
-  ignorePromise(f())
-}
-
-export const useConversationMarkAsUnread = (conversationIDKey: T.Chat.ConversationIDKey) => {
-  const markAsUnread = (readMsgID?: T.Chat.MessageID | false) => {
-    markConversationAsUnread(conversationIDKey, readMsgID)
-  }
-  return markAsUnread
-}

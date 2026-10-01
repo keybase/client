@@ -6,12 +6,12 @@
 // synthesizes a composer-directed message with no engine event behind it to listen for
 // (constants/init's location-permission failure). A component that IS inside
 // ConversationInputProvider must use that context directly and must not come through here.
-// An engine event that already exists should be handled by a useEngineActionListener in the
-// provider, filtered on id, the way chatCommandStatus and chatCommandMarkdown are - not here.
+// A chat notification that already exists should be handled in the provider through
+// useThreadNotifications, the way chatCommandStatus and chatCommandMarkdown are - not here.
 //
 // commandStatus is delivered only to a consumer that is registered for the conversation when it
-// is written, matching what its sibling engine listener does; everything else waits in the map
-// until a consumer takes it. Strictly that invariant is about registration, not consumption: a
+// is written, matching what the chatCommandStatus notification does; everything else waits in
+// the map until a consumer takes it. Strictly that invariant is about registration, not consumption: a
 // consumer that registered and then never consumed would leave a commandStatus sitting here
 // durably. Unreachable today only because registration and the subscription that consumes are the
 // same effect - split them and you owe this a second look.
@@ -93,7 +93,7 @@ const hasConsumerFor = (conversationIDKey: T.Chat.ConversationIDKey, type: Input
   !!consumers.get(conversationIDKey)?.some(c => c.types.includes(type))
 
 export const setInputIntent = (conversationIDKey: T.Chat.ConversationIDKey, intent: InputIntent) => {
-  // commandStatus mirrors its sibling engine event (the chatCommandStatus useEngineActionListener
+  // commandStatus mirrors the chatCommandStatus notification (its useThreadNotifications handler
   // in input-state.tsx): with no consumer mounted there is nothing to give it context, and an
   // error banner surfacing on some later, unrelated mount of this conversation is worse than no
   // banner. The drop is a no-op and not a write-then-delete: the mailbox holds one intent per

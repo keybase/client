@@ -7,6 +7,7 @@ import type * as RTL from '@testing-library/react'
 import type * as FakeNavigatorModule from '@/test/fake-navigator'
 import type * as JumpToRecentModule from './jump-to-recent'
 import type * as ThreadContext from '../thread-context'
+import type * as CurrentUser from '@/stores/current-user'
 
 // A phone: the thread is its own screen, which the close must not push or replace. The platform
 // globals are read as the app's modules load, so they are flipped before any is required.
@@ -31,9 +32,20 @@ const NavTree = require('@/constants/nav-tree') as typeof NavTreeModule
 const FakeNav = require('@/test/fake-navigator') as typeof FakeNavigatorModule
 const {useJumpToRecent} = require('./jump-to-recent') as typeof JumpToRecentModule
 const {ConversationThreadProvider} = require('../thread-context') as typeof ThreadContext
+const {useCurrentUserState} = require('@/stores/current-user') as typeof CurrentUser
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 const convID = Types.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
+
+// the thread provider builds a thread only for a signed-in account
+beforeEach(() => {
+  useCurrentUserState.getState().dispatch.setBootstrap({
+    deviceID: 'device-id',
+    deviceName: 'testuser-mac',
+    uid: 'uid',
+    username: 'testuser',
+  })
+})
 
 afterEach(() => {
   cleanup()

@@ -18,6 +18,7 @@ let mockRouteParams: {threadSearch?: {query?: string}} | undefined
 jest.mock('./thread-context', () => ({
   useConversationThreadJumpToRecent: () => mockJumpToRecentThread,
   useConversationThreadLoadMessagesCentered: () => mockLoadMessagesCentered,
+  useConversationThreadNotifications: () => {},
   useConversationThreadSetMarkReadBlocked: () => mockSetMarkReadBlocked,
   useConversationThreadStore: () => ({getState: () => ({})}),
   useThreadMeta: (selector: (meta: object) => unknown) => selector({}),

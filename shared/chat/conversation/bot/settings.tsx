@@ -1,7 +1,8 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import logger from '@/logger'
+import {chatRpcCall} from '../chat-rpc'
 
 export const useBotSettings = (
   conversationIDKey: T.Chat.ConversationIDKey | undefined,
@@ -17,7 +18,7 @@ export const useBotSettings = (
       }
     | undefined
   >()
-  const loadBotSettings = C.useRPC(T.RPCChat.localGetBotMemberSettingsRpcPromise)
+  const loadBotSettings = C.useRPC(chatRpcCall.getBotSettings)
   const requestIDRef = React.useRef(0)
 
   React.useEffect(() => {
@@ -27,7 +28,7 @@ export const useBotSettings = (
     }
     const requestID = requestIDRef.current
     loadBotSettings(
-      [{convID: T.Chat.keyToConversationID(conversationIDKey), username: botUsername}],
+      [conversationIDKey, botUsername],
       settings => {
         if (requestIDRef.current !== requestID) {
           return

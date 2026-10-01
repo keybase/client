@@ -3,13 +3,14 @@ import {getBotsAndParticipants} from '@/constants/chat/helpers'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import Participant from './participant'
 import {useUsersState} from '@/stores/users'
 import {navToProfile} from '@/constants/router'
 import {useChatTeamMembers} from '../team-hooks'
 import {useConversationMetadata} from '../data-hooks'
 import {useRefreshParticipantsOnTeamMembershipChange} from '@/chat/inbox/refresh-participants'
+import {chatRpcCall} from '../chat-rpc'
 
 type Props = {
   commonSections: ReadonlyArray<Section>
@@ -45,7 +46,7 @@ export const useChannelMembers = (conversationIDKey: T.Chat.ConversationIDKey) =
   const {loading: loadingTeamMembers, members: teamMembers} = useChatTeamMembers(teamID)
   const isGeneral = channelname === 'general'
   const showAuditingBanner = isGeneral && loadingTeamMembers
-  const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
+  const refreshParticipants = C.useRPC(chatRpcCall.refreshParticipants)
   const participants = getBotsAndParticipants(meta, participantInfo, teamMembers).participants
   const lastTeamNameRef = React.useRef('')
   React.useEffect(() => {
@@ -54,11 +55,7 @@ export const useChannelMembers = (conversationIDKey: T.Chat.ConversationIDKey) =
     }
     lastTeamNameRef.current = teamname
     if (teamname) {
-      refreshParticipants(
-        [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
-        () => {},
-        () => {}
-      )
+      refreshParticipants([conversationIDKey], () => {}, () => {})
     }
   }, [conversationIDKey, refreshParticipants, teamname])
 

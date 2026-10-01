@@ -8,7 +8,7 @@ import * as InputState from '../input-state'
 import PlatformInput from './input'
 import ReplyPreview from '../../reply-preview'
 import UnfurlPreview from '../unfurl-preview'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import {indefiniteArticle} from '@/util/string'
 import {infoPanelWidthTablet} from '../../info-panel/common'
 import {assertionToDisplay} from '@/common-adapters/usernames'
@@ -17,13 +17,14 @@ import type {RefType as InputRef} from './input.shared'
 import {useComposerInput} from '../composer'
 import {useConversationCenter, useConversationCenterActions} from '../../center-context'
 import {
+  useConversationThreadActions,
   useConversationThreadID,
   useConversationThreadMessage,
   useConversationThreadSelector,
   useConversationThreadSetExplodingMode,
-  useConversationThreadCloseSearch,
   useThreadMeta,
 } from '../../thread-context'
+import {useConversationThreadCloseSearch} from '../../thread-navigation'
 import {useConversationParticipantsSelector} from '../../data-hooks'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useRoute} from '@react-navigation/native'
@@ -128,6 +129,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     }))
   )
   const setExplodingModeRaw = useConversationThreadSetExplodingMode()
+  const {rpc} = useConversationThreadActions()
   const {cannotWrite, minWriterRole} = meta
   const metaGood = meta.conversationIDKey === conversationIDKey
   const storeDraft = metaGood ? meta.draft : undefined
@@ -172,10 +174,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
 
   const sendTypingRaw = (typing: boolean) => {
     const f = async () => {
-      await T.RPCChat.localUpdateTypingRpcPromise({
-        conversationID: T.Chat.keyToConversationIDOrEmpty(conversationIDKey),
-        typing,
-      })
+      await rpc.setTyping(conversationIDKey, typing)
     }
     C.ignorePromise(f())
   }

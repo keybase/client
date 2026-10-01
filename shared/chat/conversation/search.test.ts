@@ -29,6 +29,9 @@ jest.mock('./thread-context', () => ({
   useConversationThreadID: () => 'conv',
   useConversationThreadSelector: (selector: (s: unknown) => unknown) =>
     selector({messageOrdinals: [mockLastOrdinal.current]}),
+}))
+
+jest.mock('./thread-navigation', () => ({
   useConversationThreadCloseSearch: () => mockCloseThreadSearch,
 }))
 

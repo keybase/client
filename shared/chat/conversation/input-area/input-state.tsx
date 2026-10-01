@@ -3,13 +3,18 @@ import * as T from '@/constants/types'
 import logger from '@/logger'
 import {findLast} from '@/util/arrays'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useEngineActionListener} from '@/engine/action-listener'
 import {metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {ignorePromise} from '@/constants/utils'
 import {whenModalsGone} from '@/constants/router'
 import {useThrottledCallback} from '@/util/use-debounce'
-import {closeConversationThreadSearch, useConversationThreadStore, useThreadMeta} from '../thread-context'
+import {
+  useConversationThreadNotifications,
+  useConversationThreadStore,
+  useThreadMeta,
+} from '../thread-context'
+import {closeConversationThreadSearch} from '../thread-navigation'
 import {useConversationSendActions} from '../send-actions'
+import {getChatRpc} from '../chat-rpc'
 import {
   consumeInputIntent,
   registerInputIntentConsumer,
@@ -103,8 +108,6 @@ DispatchContext.displayName = 'ConversationInputDispatchContext'
 const CanReplyContext = React.createContext(false)
 CanReplyContext.displayName = 'ConversationCanReplyContext'
 
-const actionConversationIDKey = (convID: string) => T.Chat.stringToConversationIDKey(convID)
-
 // 'highlight' belongs to ConversationCenterProvider; claiming it here would let this provider
 // silently eat an intent meant for the other consumer.
 // `as const` (not a widened ReadonlyArray<InputIntent['type']>) so consumeInputIntent's generic
@@ -134,11 +137,7 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
       metasReceived([{...currentMeta, draft: text}], undefined, {force: true})
     }
     const f = async () => {
-      await T.RPCChat.localUpdateUnsentTextRpcPromise({
-        conversationID: T.Chat.keyToConversationIDOrEmpty(id),
-        text,
-        tlfName: currentMeta?.tlfname ?? '',
-      })
+      await getChatRpc().saveDraft({conversationIDKey: id, text, tlfName: currentMeta?.tlfname ?? ''})
     }
     ignorePromise(f())
   }
@@ -333,40 +332,29 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
     }
   }, [id])
 
-  useEngineActionListener('chat.1.chatUi.chatCommandStatus', action => {
-    const {actions, convID, displayText, typ} = action.payload.params
-    if (actionConversationIDKey(convID) !== id) {
-      return
+  useConversationThreadNotifications(notification => {
+    switch (notification.type) {
+      case 'commandStatus':
+        setCommandStatusInfo({
+          actions: T.castDraft(notification.actions) || [],
+          displayText: notification.displayText,
+          displayType: notification.displayType,
+        })
+        return
+      case 'commandMarkdown':
+        setCommandMarkdown(notification.md || undefined)
+        return
+      case 'giphyToggleResultWindow':
+        if (notification.clearInput) {
+          injectIntoInput('')
+        }
+        setGiphyWindow(notification.show)
+        return
+      case 'giphySearchResults':
+        setGiphyResult(notification.results)
+        return
+      default:
     }
-    setCommandStatusInfo({
-      actions: T.castDraft(actions) || [],
-      displayText,
-      displayType: typ,
-    })
-  })
-  useEngineActionListener('chat.1.chatUi.chatCommandMarkdown', action => {
-    const {convID, md} = action.payload.params
-    if (actionConversationIDKey(convID) !== id) {
-      return
-    }
-    setCommandMarkdown(md || undefined)
-  })
-  useEngineActionListener('chat.1.chatUi.chatGiphyToggleResultWindow', action => {
-    const {clearInput, convID, show} = action.payload.params
-    if (actionConversationIDKey(convID) !== id) {
-      return
-    }
-    if (clearInput) {
-      injectIntoInput('')
-    }
-    setGiphyWindow(show)
-  })
-  useEngineActionListener('chat.1.chatUi.chatGiphySearchResults', action => {
-    const {convID, results} = action.payload.params
-    if (actionConversationIDKey(convID) !== id) {
-      return
-    }
-    setGiphyResult(results)
   })
 
   const canReply = useThreadMeta(m => !m.cannotWrite)

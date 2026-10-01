@@ -2,18 +2,19 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {joinConversation} from '../status-actions'
-import {useConversationThreadID, useThreadMeta} from '../thread-context'
+import {useConversationThreadID, useThreadMeta, useThreadRpc} from '../thread-context'
 
 const Preview = () => {
   const styles = useStyles()
   const conversationIDKey = useConversationThreadID()
   const channelname = useThreadMeta(m => m.channelname)
   const [clicked, setClicked] = React.useState<undefined | 'join' | 'leave'>(undefined)
+  const rpc = useThreadRpc()
 
   const _onClick = (join: boolean) => {
     setClicked(join ? 'join' : 'leave')
     if (join) {
-      joinConversation(conversationIDKey)
+      joinConversation(conversationIDKey, rpc)
     } else {
       C.Router2.leaveConversation(conversationIDKey)
     }

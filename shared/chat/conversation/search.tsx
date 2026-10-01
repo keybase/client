@@ -8,11 +8,8 @@ import {formatTimeForMessages} from '@/util/timestamp'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConversationCenterActions} from './center-context'
 import {cancelActiveThreadSearchRPC, searchInboxRPC} from '../search-rpc'
-import {
-  useConversationThreadID,
-  useConversationThreadCloseSearch,
-  useConversationThreadSelector,
-} from './thread-context'
+import {useConversationThreadID, useConversationThreadSelector} from './thread-context'
+import {useConversationThreadCloseSearch} from './thread-navigation'
 import {useThreadSearchRoute} from './thread-search-route'
 import {ThreadSearchOverlayContext} from './thread-search-overlay-context'
 

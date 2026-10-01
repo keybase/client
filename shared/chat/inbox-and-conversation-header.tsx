@@ -13,7 +13,7 @@ import {useInboxRowBig, useInboxRowSmall} from '@/chat/inbox/rows-state'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToPath} from '@/constants/fs'
-import {showConversationInfoPanel, toggleConversationThreadSearch} from '@/chat/conversation/thread-context'
+import {showConversationInfoPanel, toggleConversationThreadSearch} from '@/chat/conversation/thread-navigation'
 import {muteConversation} from '@/chat/conversation/status-actions'
 import AccountSwitchHeaderAvatar from '@/router-v2/account-switch-header-avatar'
 
