@@ -44,12 +44,16 @@ export const submitRecoverPasswordPgpWarning = (proceed: boolean) =>
 export const submitRecoverPasswordReset = (action: T.RPCGen.ResetPromptResponse) =>
   callNamed(owner, slots.submitResetPassword, action)
 
+// A restart drops the owner's handles, which would strand Go waiting on this prompt.
+let pendingPgpAnswer: ((proceed: boolean) => void) | undefined
+
 export const startRecoverPassword = ({
   abortProvisioning,
   onResetEmailSent,
   replaceRoute,
   username,
 }: StartRecoverPasswordParams) => {
+  pendingPgpAnswer?.(false)
   clearOwner(owner)
   const f = async () => {
     if (abortProvisioning) {
@@ -113,14 +117,24 @@ export const startRecoverPassword = ({
             navigateAppend({name: 'recoverPasswordDeviceSelector', params: {devices}}, !!replaceRoute)
           },
           'keybase.1.loginUi.promptPassphraseRecovery': (_params, response) => {
-            const clear = () => clearSlots(slots.cancel, slots.submitPgpWarning)
+            let settled = false
             const answer = wrapErrors((proceed: boolean) => {
-              clear()
+              if (settled) return
+              settled = true
+              pendingPgpAnswer = undefined
+              clearSlots(slots.cancel, slots.submitPgpWarning)
               response.result(proceed)
             })
-            setHandle(slots.cancel, () => answer(false))
-            setHandle(slots.submitPgpWarning, answer)
-            navigateAppend({name: 'recoverPasswordPgpWarning', params: {username}}, true)
+            // Declining leaves the flow: Go has already signed the user in and cancels
+            // with a silent CanceledError, so nothing else would close this screen.
+            const decline = () => {
+              answer(false)
+              clearModals()
+            }
+            pendingPgpAnswer = answer
+            setHandle(slots.cancel, decline)
+            setHandle(slots.submitPgpWarning, (proceed: boolean) => (proceed ? answer(true) : decline()))
+            navigateAppend({name: 'recoverPasswordPgpWarning', params: {}}, true)
           },
           'keybase.1.loginUi.promptResetAccount': (params, response) => {
             if (params.prompt.t === T.RPCGen.ResetPromptType.enterResetPw) {

@@ -9,5 +9,5 @@ export default meta
 type Story = StoryObj<typeof PgpWarning>
 
 export const Default: Story = {
-  args: {route: {params: {username: 'testuser'}}},
+  args: {},
 }

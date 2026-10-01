@@ -361,10 +361,11 @@ describe('pgp key warning', () => {
     const response = prompt(first)
     expect(nav.navigations()).toContainEqual({
       name: 'recoverPasswordPgpWarning',
-      params: {username: 'testuser'},
+      params: {},
       replace: true,
     })
     submitRecoverPasswordPgpWarning(true)
+    expect(nav.modalsCleared()).toBe(false)
     expect(response.result).toHaveBeenCalledTimes(1)
     expect(response.result).toHaveBeenCalledWith(true)
   })
@@ -372,17 +373,34 @@ describe('pgp key warning', () => {
   test('declining answers false once', async () => {
     const {first} = await startAttempt()
     const response = prompt(first)
+    nav.setRootState(makeRootState({above: [{name: openModal}]}))
     submitRecoverPasswordPgpWarning(false)
     submitRecoverPasswordPgpWarning(false)
     expect(response.result).toHaveBeenCalledTimes(1)
     expect(response.result).toHaveBeenCalledWith(false)
+    expect(nav.modalsCleared()).toBe(true)
+  })
+
+  test('restarting while the prompt is pending answers false once', async () => {
+    const attempts = mockRecoverAttempts()
+    startRecoverPassword({username: 'testuser'})
+    await flush()
+    const response = prompt(attempts[0]!)
+    startRecoverPassword({username: 'testuser'})
+    await flush()
+    expect(response.result).toHaveBeenCalledTimes(1)
+    expect(response.result).toHaveBeenCalledWith(false)
+    submitRecoverPasswordPgpWarning(true)
+    expect(response.result).toHaveBeenCalledTimes(1)
   })
 
   test('back out through cancel answers false', async () => {
     const {first} = await startAttempt()
     const response = prompt(first)
+    nav.setRootState(makeRootState({above: [{name: openModal}]}))
     cancelRecoverPassword()
     expect(response.result).toHaveBeenCalledWith(false)
     expect(response.error).not.toHaveBeenCalled()
+    expect(nav.modalsCleared()).toBe(true)
   })
 })

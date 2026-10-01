@@ -4,9 +4,7 @@ import {SignupScreen} from '@/signup/common'
 import {QuestionBody} from '../common'
 import {cancelRecoverPassword, submitRecoverPasswordPgpWarning} from './flow'
 
-type Props = {route: {params: {username: string}}}
-
-const PgpWarning = (_p: Props) => (
+const PgpWarning = () => (
   <SignupScreen
     buttons={[
       {label: 'Continue', onClick: () => submitRecoverPasswordPgpWarning(true), type: 'Danger' as ButtonType},
