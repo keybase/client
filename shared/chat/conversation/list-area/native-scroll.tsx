@@ -4,7 +4,6 @@
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import noop from 'lodash/noop'
-import sortedIndexBy from 'lodash/sortedIndexBy'
 import {ThreadRefsContext} from '../normal/context'
 import {useComposerAnchor} from '../composer-viewport-context'
 import {restingScrollOffset} from '../composer-geometry'
@@ -18,7 +17,17 @@ import {
   type ScrollEvent,
 } from './scroll-target'
 import {useHeldLatest, useScrollTarget} from './use-scroll-target'
-import {withinPageLoad} from './paging'
+import {nativePageDistances, withinPageLoad} from './paging'
+import {
+  atRestingEnd,
+  correctorStep,
+  isAppend,
+  itemScrollHeading,
+  readerMovedList,
+  rowUncovered,
+  type RowFrame,
+  type ScrollReport,
+} from './native-rules'
 import {makeSchedule, useSchedule, type Scheduled} from './schedule'
 
 export type NativeListRef = {
@@ -52,18 +61,12 @@ const maintainVisibleContentPositionNoAutoscroll = {
   minIndexForVisible: 0,
 }
 
-// An offset within this many points of the resting offset is at the end.
-const endTolerance = 8
-// A row overhanging the part of the list in view by no more than this is wholly in view.
-const rowEdgeTolerance = 1
 // Each end waits out a second after the rows last changed, so a page landing is not taken for the
 // reader nearing the new end, and a second after it last asked, so a page on its way is not asked for
 // again.
 const pageLoadGate = 1000
 // What a scroll to a row is for: a centre, or a reveal.
 type ItemScroll = 'center' | 'reveal'
-// The list moving by less than this has not moved.
-const stillPoints = 1
 
 export const useNativeThreadScroll = (p: {
   // Newest first, as the inverted list holds them.
@@ -98,7 +101,7 @@ export const useNativeThreadScroll = (p: {
     () => () => restingScrollOffset(anchorRef.current.bottomInset, anchorRef.current.keyboardHeight.value)
   )
   // Resting at the end: over the keyboard as it is now.
-  const [atEnd] = React.useState(() => (offset: number) => offset <= restingOffset() + endTolerance)
+  const [atEnd] = React.useState(() => (offset: number) => atRestingEnd(offset, restingOffset()))
 
   // Read by timers and list callbacks as they fire, so they see the target and rows as they are now.
   const centeredRef = React.useRef(centeredOrdinal)
@@ -120,7 +123,7 @@ export const useNativeThreadScroll = (p: {
   const vFirstRef = React.useRef<number | null | undefined>(undefined)
   const vLastRef = React.useRef<number | null | undefined>(undefined)
   // Where each row sits in the content, as the list last laid it out.
-  const rowFramesRef = React.useRef(new Map<T.Chat.Ordinal, {height: number; y: number}>())
+  const rowFramesRef = React.useRef(new Map<T.Chat.Ordinal, RowFrame>())
   // The oldest row the list has laid out in this dataset. The list sizes its content only as far as the
   // rows it has laid out, so rows loaded past this one are not in the content size yet.
   const oldestLaidOutRef = React.useRef<T.Chat.Ordinal | undefined>(undefined)
@@ -141,17 +144,18 @@ export const useNativeThreadScroll = (p: {
   // itself when the list has laid it out, as the lift can turn a row just past the middle of the view.
   const [scrollToItem] = React.useState(() => (item: T.Chat.Ordinal, kind: ItemScroll) => {
     const animated = kind === 'reveal'
-    const index = indexOfOrdinalNewestFirst(ordsRef.current, item)
-    const first = vFirstRef.current
-    const last = vLastRef.current
     const {offset, viewport} = metricsRef.current
     const lift = kind === 'reveal' ? -restingOffset() / 2 : 0
-    const frame = rowFramesRef.current.get(item)
-    if (lift && frame && offset !== undefined && viewport !== undefined) {
-      own.issued(offset, frame.y + (frame.height - viewport) / 2 - lift, animated)
-    } else if (first != null && last != null && index >= 0) {
-      own.issued(offset, index >= (first + last) / 2 ? Infinity : -Infinity, animated)
-    }
+    const heading = itemScrollHeading({
+      first: vFirstRef.current,
+      frame: rowFramesRef.current.get(item),
+      index: indexOfOrdinalNewestFirst(ordsRef.current, item),
+      last: vLastRef.current,
+      lift,
+      offset,
+      viewport,
+    })
+    if (heading !== undefined) own.issued(offset, heading, animated)
     listRef.current?.scrollToItem({animated, item, viewOffset: lift, viewPosition: 0.5})
   })
 
@@ -179,17 +183,15 @@ export const useNativeThreadScroll = (p: {
     [scrollToItem, timers]
   )
 
-  // Closed-loop centering corrector. scrollToItem/scrollToIndex lands at the wrong
-  // offset here (inverted list + custom keyboard scrollview + tall variable-height
-  // image rows), so instead we read the actual viewable index range each frame and
-  // scrollToOffset by the item-delta until the target sits at viewport center.
-  // Correcting toward a centered hit, which one, and how many steps taken.
+  // Closed-loop centring corrector: scrollToItem lands at the wrong offset here (inverted list, custom
+  // keyboard scroll view, tall variable-height image rows), so it steps from the viewable index range
+  // instead (correctorStep).
   const correctRef = React.useRef<{active: boolean; iters: number; target?: T.Chat.Ordinal}>({
     active: false,
     iters: 0,
   })
   // The list as its last scroll event reported it, which the next one is compared with.
-  const lastScrollRef = React.useRef<{content: number; offset: number; resting: number} | undefined>(undefined)
+  const lastScrollRef = React.useRef<ScrollReport | undefined>(undefined)
   // Compared by value, so a freeze/thaw re-mount, which keeps the list, keeps its figures.
   const measuredConvRef = React.useRef(conversationIDKey)
   React.useLayoutEffect(() => {
@@ -231,29 +233,27 @@ export const useNativeThreadScroll = (p: {
       const ords = ordsRef.current
       const num = ords.length
       if (co === undefined || !num || first == null || last == null) return
-      const targetIdx = indexOfOrdinalNewestFirst(ords, co)
-      if (targetIdx < 0) return
-      const centerIdx = (first + last) / 2
-      const diff = targetIdx - centerIdx
-      if (Math.abs(diff) <= 0.5 || st.iters > 12) {
-        settleCenter()
-        return
-      }
+      const targetIndex = indexOfOrdinalNewestFirst(ords, co)
+      if (targetIndex < 0) return
       const {content, offset, viewport} = metricsRef.current
-      // Nothing to step from until the list has reported where it is and how big.
-      if (content === undefined || offset === undefined || viewport === undefined) return
-      const avgH = content / num
-      const maxOffset = Math.max(0, content - viewport)
-      // damp by 0.9 to avoid overshoot/oscillation; higher index = older = higher offset
-      const newOffset = Math.min(maxOffset, Math.max(restingOffset(), offset + diff * avgH * 0.9))
-      // A target among the newest or oldest rows cannot reach the middle: the step is clamped to the
-      // end of the scrollable range and would move nothing, now or on any later try.
-      if (Math.abs(newOffset - offset) < 1) {
+      const step = correctorStep({
+        content,
+        first,
+        iters: st.iters,
+        last,
+        offset,
+        resting: restingOffset(),
+        rows: num,
+        targetIndex,
+        viewport,
+      })
+      if (step.type === 'settle') {
         settleCenter()
         return
       }
+      if (step.type === 'wait') return
       st.iters += 1
-      scrollToOffset(newOffset)
+      scrollToOffset(step.offset)
     }
   )
 
@@ -356,17 +356,13 @@ export const useNativeThreadScroll = (p: {
     })
   }, [atEnd, centeredOrdinal, containsLatestMessage, dispatch, loaded, messageOrdinals])
 
-  // Whether the row is wholly in the part of the list nothing covers: the keyboard, and the composer
-  // riding it, cover its bottom by as much as the resting offset sits below 0. The list's own
-  // viewability measures against the whole scroll view, covered or not.
+  // Measured against the part of the list nothing covers, not the list's own viewability, which
+  // measures against the whole scroll view, covered or not.
   const [rowFullyVisible] = React.useState(() => (ordinal: T.Chat.Ordinal) => {
     const frame = rowFramesRef.current.get(ordinal)
     const {offset, viewport} = metricsRef.current
     if (!frame || offset === undefined || viewport === undefined) return false
-    return (
-      frame.y >= offset - restingOffset() - rowEdgeTolerance &&
-      frame.y + frame.height <= offset + viewport + rowEdgeTolerance
-    )
+    return rowUncovered(frame, {offset, resting: restingOffset(), viewport})
   })
 
   React.useEffect(() => {
@@ -419,10 +415,9 @@ export const useNativeThreadScroll = (p: {
   React.useLayoutEffect(() => {
     const sameDataset = newestBaselineDatasetRef.current === datasetKey
     newestBaselineDatasetRef.current = datasetKey
-    const prev = prevNewestRef.current
+    const previousNewest = prevNewestRef.current
     prevNewestRef.current = newestOrdinal
-    const isNewer = newestOrdinal !== undefined && prev !== undefined && newestOrdinal > prev
-    if (!sameDataset || !isNewer || !heldLatest) return undefined
+    if (!isAppend({heldLatest, newest: newestOrdinal, previousNewest, sameDataset})) return undefined
     // Decided when the re-pin would fire, with the keyboard as it is then: if it closed in between,
     // the list's own anchor already shows the newest message.
     const repin = timers.after(0, () => {
@@ -486,16 +481,17 @@ export const useNativeThreadScroll = (p: {
   const nextLoadRef = React.useRef({newer: 0, older: 0})
   const [loadPages] = React.useState(() => () => {
     const {content, viewport} = metricsRef.current
-    const offset = metricsRef.current.offset ?? restingOffset()
+    const resting = restingOffset()
     const oldestLaidOut = oldestLaidOutRef.current
     if (content === undefined || viewport === undefined || oldestLaidOut === undefined) return
-    // The content ends at the oldest row laid out, which the list keeps within a screen of the view
-    // however many rows are loaded past it; those rows count toward the distance at the average height
-    // of the rows laid out, or the oldest end would always look a screen away.
-    const ords = ordsRef.current
-    const notNewer = sortedIndexBy(ords as unknown as Array<number>, oldestLaidOut as unknown as number, o => -o)
-    const laidOut = notNewer + (ords[notNewer] === oldestLaidOut ? 1 : 0)
-    const notLaidOut = ords.length - laidOut
+    const distances = nativePageDistances({
+      content,
+      offset: metricsRef.current.offset ?? resting,
+      oldestLaidOut,
+      ordinals: ordsRef.current,
+      resting,
+      viewport,
+    })
     const near = (end: 'newer' | 'older', distance: number) => {
       if (!withinPageLoad(distance, viewport)) return
       const now = Date.now()
@@ -503,9 +499,9 @@ export const useNativeThreadScroll = (p: {
       nextLoadRef.current[end] = now + pageLoadGate
       loadsRef.current[end]()
     }
-    near('older', content - offset - viewport + (notLaidOut * content) / Math.max(laidOut, 1))
+    near('older', distances.older)
     // A thread holding the newest message has nothing newer to load.
-    if (!containsLatestRef.current) near('newer', offset - restingOffset())
+    if (!containsLatestRef.current) near('newer', distances.newer)
   })
   // Only new rows schedule a check of their own: a load that brought none leaves nothing more to ask
   // for until the list moves or changes size.
@@ -516,28 +512,22 @@ export const useNativeThreadScroll = (p: {
     return pageChecks.after(pageLoadGate + 1, loadPages).cancel
   }, [loadPages, numOrdinals, pageChecks])
 
-  // Who moved the list is read from how it moved, never from the input that moved it: a drag, the
-  // status bar, VoiceOver alike. The list moves itself only by the scrolls it issues (toward where they
-  // are going), by its content changing size (its content-position anchor holding the rows in view in
-  // place) or its resting offset moving (the keyboard, the safe area), and, while it holds the end, by
-  // its anchor bringing a new message into view. Any other movement is the reader's.
+  // Who moved the list is read from how it moved (readerMovedList), never from the input that moved
+  // it: a drag, the status bar, VoiceOver alike.
   const onScroll = React.useCallback(
     (e: {
       nativeEvent: {contentOffset: {y: number}; contentSize: {height: number}; layoutMeasurement: {height: number}}
     }) => {
       const content = e.nativeEvent.contentSize.height
       const offset = e.nativeEvent.contentOffset.y
-      const resting = restingOffset()
       metricsRef.current = {content, offset, viewport: e.nativeEvent.layoutMeasurement.height}
       const last = lastScrollRef.current
-      lastScrollRef.current = {content, offset, resting}
-      const readerMoved =
-        !!last &&
-        Math.abs(offset - last.offset) >= stillPoints &&
-        content === last.content &&
-        resting === last.resting &&
-        !own.carries(last.offset, offset) &&
-        !(ownsEnd(scrollTarget.state) && Math.abs(offset - resting) < Math.abs(last.offset - resting))
+      const now = {content, offset, resting: restingOffset()}
+      lastScrollRef.current = now
+      const readerMoved = readerMovedList(last, now, {
+        carried: () => !!last && own.carries(last.offset, offset),
+        ownsEnd: ownsEnd(scrollTarget.state),
+      })
       if (readerMoved) dispatch(own.readerMoved())
       loadPages()
     },

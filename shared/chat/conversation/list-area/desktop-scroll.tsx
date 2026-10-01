@@ -15,16 +15,23 @@ import {
   type ScrollEvent,
 } from './scroll-target'
 import {useHeldLatest, useScrollTarget} from './use-scroll-target'
-
-const centerTolerancePx = 8
-// A scroller within this many pixels of its end counts as at the end.
-const endTolerancePx = 2
-// A scroller within this many pixels of where the list put it is where the list put it.
-const ownTolerancePx = 1
-// A row overhanging the viewport by no more than this is wholly in view.
-const rowEdgeTolerancePx = 1
-
-type ScrollerLike = {clientHeight: number; scrollHeight: number; scrollTop: number}
+import {
+  distanceToEnd,
+  listMovedItself,
+  offsetFromMiddle as rowOffsetFromMiddle,
+  pageOffset,
+  revealDestination,
+  rowWithinView,
+  scrollerAtEnd,
+  startCenterCheck,
+  startEndCheck,
+  stepCentering,
+  stepEndCheck,
+  stepLayoutCheck,
+  type LayoutCheck,
+  type RectLike,
+  type ScrollerLike,
+} from './desktop-rules'
 
 type ListenerOptions = {capture: boolean}
 type ScrollListener = (e: {target: unknown}) => void
@@ -32,7 +39,6 @@ type ListenerTarget = {
   addEventListener: (type: string, listener: ScrollListener, options: ListenerOptions) => void
   removeEventListener: (type: string, listener: ScrollListener, options: ListenerOptions) => void
 }
-type RectLike = {height: number; top: number}
 type MeasurableScroller = {
   getBoundingClientRect: () => RectLike
   querySelector: (s: string) => {getBoundingClientRect: () => RectLike} | null
@@ -51,7 +57,7 @@ const measureRow = (scroller: unknown, ordinal: T.Chat.Ordinal) => {
 // rendered.
 const offsetFromMiddle = (scroller: unknown, ordinal: T.Chat.Ordinal) => {
   const m = measureRow(scroller, ordinal)
-  return m && m.row.top + m.row.height / 2 - (m.view.top + m.view.height / 2)
+  return m && rowOffsetFromMiddle(m.row, m.view)
 }
 
 // Whether the ordinal's row is wholly inside the viewport, with the scroller at its end when atEnd;
@@ -59,12 +65,7 @@ const offsetFromMiddle = (scroller: unknown, ordinal: T.Chat.Ordinal) => {
 const rowFullyVisible = (scroller: unknown, ordinal: T.Chat.Ordinal, atEnd: boolean) => {
   const m = measureRow(scroller, ordinal)
   if (!m) return false
-  const s = scroller as ScrollerLike
-  const top = m.row.top - (atEnd ? s.scrollHeight - s.clientHeight - s.scrollTop : 0)
-  return (
-    top >= m.view.top - rowEdgeTolerancePx &&
-    top + m.row.height <= m.view.top + m.view.height + rowEdgeTolerancePx
-  )
+  return rowWithinView(m.row, m.view, atEnd ? distanceToEnd(scroller as ScrollerLike) : 0)
 }
 
 export const useDesktopThreadScroll = (p: {
@@ -109,7 +110,7 @@ export const useDesktopThreadScroll = (p: {
   // composer collapse leaves it reading not-at-end while the scroller is at its end.
   const isScrolledToEnd = React.useCallback(() => {
     const scroller = scrollerOf()
-    return !!scroller && scroller.scrollHeight - scroller.clientHeight - scroller.scrollTop <= endTolerancePx
+    return !!scroller && scrollerAtEnd(scroller)
   }, [scrollerOf])
 
   // The list resolves its initialScrollAtEnd target from the header size it has measured so far, and
@@ -126,18 +127,13 @@ export const useDesktopThreadScroll = (p: {
   // pin leaves a list already at its end alone: the header often settles while the thread is still
   // empty, and a scrollToEnd issued against that near-empty content becomes the target the list then
   // abandons its own bootstrap for, landing anywhere. Wait for the scroll offset to hold still, so
-  // the list has finished its own initial scroll, and only then correct what it left on the table.
-  //
-  // Done only once the end has held: at the end on two checks in a row with the content no taller on
-  // the second. The list reports a size change before the scroller's extent catches up with it, and a
-  // row can measure again a frame after its first measurement, so one look at the end proves nothing.
+  // the list has finished its own initial scroll, and only then correct what it left on the table
+  // (stepEndCheck).
   const endAnchor = useSchedule()
   const verifyEndAnchor = React.useCallback(() => {
     endAnchor.stop()
     endAnchor.start(async sleep => {
-      let previousScroll: number | undefined
-      let heldAtHeight: number | undefined
-      let corrections = 0
+      let check = startEndCheck
       for (let elapsed = 0; elapsed < 2000; ) {
         if (!(await sleep(50))) return
         elapsed += 50
@@ -146,38 +142,21 @@ export const useDesktopThreadScroll = (p: {
         const scroll = listRef.current?.getState().scroll
         const scroller = scrollerOf()
         if (scroll === undefined || !scroller) continue
-        if (isScrolledToEnd()) {
-          if (heldAtHeight === scroller.scrollHeight) return
-          heldAtHeight = scroller.scrollHeight
-          previousScroll = undefined
-          continue
-        }
-        heldAtHeight = undefined
-        // Only a scroll offset that held still across two checks means the list is done moving.
-        if (scroll === previousScroll) {
-          // Two corrections is the whole budget: one for the header, one for whatever re-measured
-          // alongside it. Past that we would be fighting something that owns the offset.
-          if (++corrections > 2) return
-          void listRef.current?.scrollToEnd({animated: false})
-          previousScroll = undefined
-        } else {
-          previousScroll = scroll
-        }
+        const next = stepEndCheck(check, {atEnd: isScrolledToEnd(), scroll, scrollHeight: scroller.scrollHeight})
+        check = next.check
+        if (next.action === 'held' || next.action === 'giveUp') return
+        if (next.action === 'correct') void listRef.current?.scrollToEnd({animated: false})
       }
     })
   }, [endAnchor, isScrolledToEnd, listRef, scrollTarget, scrollerOf])
 
-  // Owns the in-flight centering loop. It has to outlive re-renders: the messages that make
-  // centering accurate arrive after it starts, so the loop must not be torn down by an effect
-  // cleanup when messageOrdinals changes. Only a new target, a stop directive, being hidden or
-  // unmounting stops it; a user scrolling in its ~3s window must win.
+  // Outlives re-renders: the rows that make centring accurate arrive after it starts, so no effect
+  // cleanup on messageOrdinals may tear it down.
   const centering = useSchedule()
 
   // Closed loop, not one shot: rows enter at estimatedItemSize and only settle as they measure, so
-  // the first scroll lands off by however wrong the estimates above the target were. Measure the
-  // row's real offset from the viewport center and correct until it holds still, then get out of
-  // the way: maintainVisibleContentPosition owns the offset from then on. Two controllers fighting
-  // over the same scroll offset would oscillate.
+  // the first scroll lands off by however wrong the estimates above the target were. Once it settles
+  // maintainVisibleContentPosition owns the offset: two controllers on one offset would oscillate.
   //
   // Correct via LegendList's own scrollToOffset, never scrollIntoView: touching scrollTop directly
   // desyncs LegendList's internal scroll state, and the next time it recomputes item positions it
@@ -186,45 +165,27 @@ export const useDesktopThreadScroll = (p: {
     (target: T.Chat.Ordinal) => {
       centering.stop()
       centering.start(async sleep => {
-        let settled = 0
-        let pinnedChecks = 0
-        let scrollAtLastRequest: number | undefined
+        let check = startCenterCheck
         for (let elapsed = 0; elapsed < 3000; ) {
           const offBy = offsetFromMiddle(scrollerOf(), target)
-          if (offBy === undefined) {
-            // Target is outside the rendered window; get it mounted first.
+          const next = stepCentering(check, offBy, offBy === undefined ? undefined : listRef.current?.getState().scroll)
+          check = next.check
+          const {step} = next
+          if (step.type === 'done') break
+          if (step.type === 'mount') {
             const idx = indexOfOrdinal(messageOrdinalsRef.current, target)
             if (idx >= 0) {
               void listRef.current?.scrollToIndex({animated: false, index: idx, viewPosition: 0.5})
             }
-            settled = 0
-            pinnedChecks = 0
             if (!(await sleep(100))) return
             elapsed += 100
             continue
           }
-          const scroll = listRef.current?.getState().scroll
-          // Deadband, not exact centering: below this the row reads as centered, and chasing the
-          // remainder only fights maintainVisibleContentPosition's own sub-pixel adjustments.
-          if (Math.abs(offBy) <= centerTolerancePx || scroll === undefined) {
-            pinnedChecks = 0
-            // Only the iteration right after a correction can diagnose a clamp.
-            scrollAtLastRequest = undefined
-            if (++settled >= 3) break
-          } else if (scroll === scrollAtLastRequest) {
-            // A hit near either end of the thread cannot be centered: the offset we ask for gets
-            // clamped and the row never reaches the middle. Our last correction moved the scroll
-            // position not at all, so we are pinned against an edge — stop rather than spin.
-            if (++pinnedChecks >= 3) break
-          } else {
-            pinnedChecks = 0
-            scrollAtLastRequest = scroll
-            void listRef.current?.scrollToOffset({animated: false, offset: scroll + offBy})
-          }
+          if (step.type === 'scrollTo') void listRef.current?.scrollToOffset({animated: false, offset: step.offset})
           if (!(await sleep(50))) return
           elapsed += 50
         }
-        // Settled, pinned or out of time; centerSettled only ever leaves the list alone.
+        // centerSettled only ever leaves the list alone.
         scrollTarget.decide({type: 'centerSettled'})
       })
     },
@@ -260,9 +221,12 @@ export const useDesktopThreadScroll = (p: {
           // going itself: the row's middle to the viewport's when the row is rendered to measure, and
           // otherwise the end of the thread on the row's side of the view.
           const from = scroller.scrollTop
-          const max = scroller.scrollHeight - scroller.clientHeight
-          const offBy = offsetFromMiddle(scroller, directive.ordinal)
-          const to = offBy === undefined ? (idx < state.start ? 0 : max) : Math.min(max, Math.max(0, from + offBy))
+          const to = revealDestination({
+            from,
+            max: scroller.scrollHeight - scroller.clientHeight,
+            offBy: offsetFromMiddle(scroller, directive.ordinal),
+            rowBeforeRendered: idx < state.start,
+          })
           if (own.issued(from, to, true)) {
             void listRef.current?.scrollToIndex({animated: true, index: idx, viewPosition: 0.5})
           }
@@ -391,22 +355,17 @@ export const useDesktopThreadScroll = (p: {
   React.useEffect(() => {
     if (!initialLayoutRef.current) return
     initialLayout.start(async sleep => {
-      let previousScroll: number | undefined
-      let previousChanges = heldRowChangesRef.current
-      let quiet = 0
+      let check: LayoutCheck = {previousChanges: heldRowChangesRef.current, previousScroll: undefined, quiet: 0}
       for (let elapsed = 0; elapsed < 5000; ) {
         if (!(await sleep(50))) return
         if (messageOrdinalsRef.current.length === 0) continue
         elapsed += 50
-        const scroll = listRef.current?.getState().scroll
-        const changes = heldRowChangesRef.current
-        if (scroll === undefined || changes !== previousChanges || scroll !== previousScroll) {
-          previousChanges = changes
-          previousScroll = scroll
-          quiet = 0
-        } else if (++quiet >= 2) {
-          break
-        }
+        const next = stepLayoutCheck(check, {
+          changes: heldRowChangesRef.current,
+          scroll: listRef.current?.getState().scroll,
+        })
+        check = next.check
+        if (next.settled) break
       }
       initialLayoutRef.current = false
       if (heldRowChangesRef.current === 0) return
@@ -435,8 +394,8 @@ export const useDesktopThreadScroll = (p: {
       if (own.carries(from, now)) return
       const listState = listRef.current?.getState()
       if (!listState) return
-      const toward = Math.min(listState.scroll, scroller.scrollHeight - scroller.clientHeight)
-      if (now >= Math.min(from, toward) - ownTolerancePx && now <= Math.max(from, toward) + ownTolerancePx) return
+      const maxScroll = scroller.scrollHeight - scroller.clientHeight
+      if (listMovedItself({from, listScroll: listState.scroll, maxScroll, now})) return
       dispatch(own.readerMoved())
     },
     [dispatch, listRef, own, scrollerOf]
@@ -479,10 +438,7 @@ export const useDesktopThreadScroll = (p: {
       if (!state || !scroller) return
       if (direction === 'up' ? scroller.scrollTop <= 0 : isScrolledToEnd()) return
       dispatch(own.readerMoved())
-      void listRef.current?.scrollToOffset({
-        animated: false,
-        offset: direction === 'up' ? Math.max(0, state.scroll - state.scrollLength) : state.scroll + state.scrollLength,
-      })
+      void listRef.current?.scrollToOffset({animated: false, offset: pageOffset(direction, state)})
     },
     [dispatch, isScrolledToEnd, listRef, own, scrollerOf]
   )
