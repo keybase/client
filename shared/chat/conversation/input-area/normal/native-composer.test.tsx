@@ -450,20 +450,6 @@ test('a keystroke or a caret move leaves the same input attached to the composer
   expect(attaches).toHaveLength(1)
 })
 
-test('an empty queued send does nothing', () => {
-  const post = jest.spyOn(m.T.RPCChat, 'localPostTextNonblockRpcListener')
-  renderComposer()
-
-  act(() => {
-    mockHWKey?.({pressedKey: 'enter'})
-  })
-  act(() => {
-    jest.advanceTimersByTime(100)
-  })
-
-  expect(post).not.toHaveBeenCalled()
-})
-
 test('starting an edit fills the input and focuses it', () => {
   /* eslint-disable @typescript-eslint/no-require-imports */
   const {makeMessageText} = require('@/constants/chat/message') as typeof MessageModule

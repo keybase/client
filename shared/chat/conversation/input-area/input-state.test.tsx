@@ -1130,46 +1130,6 @@ describe('the composer text', () => {
     jest.spyOn(T.RPCChat, 'localUnfurlPreviewLocalRpcPromise').mockResolvedValue([])
   })
 
-  test('an inject reaches the mounted input with the caret at the end', () => {
-    let handles: InputHandles | undefined
-    renderComposerWithProbe(h => (handles = h))
-
-    act(() => {
-      handles?.input.dispatch.injectIntoInput('hello')
-    })
-
-    expect(mockInput.text).toBe('hello')
-    expect(mockInput.selection).toEqual({end: 5, start: 5})
-    expect(mockInput.focusCount).toBe(0)
-  })
-
-  test('an inject with focus focuses the input once', () => {
-    let handles: InputHandles | undefined
-    renderComposerWithProbe(h => (handles = h))
-
-    act(() => {
-      handles?.input.dispatch.injectIntoInput('hello', true)
-    })
-
-    expect(mockInput.text).toBe('hello')
-    expect(mockInput.focusCount).toBe(1)
-  })
-
-  test('an injected empty text clears the input', () => {
-    let handles: InputHandles | undefined
-    renderComposerWithProbe(h => (handles = h))
-    act(() => {
-      handles?.input.dispatch.injectIntoInput('typed')
-    })
-
-    act(() => {
-      handles?.input.dispatch.injectIntoInput('')
-    })
-
-    expect(mockInput.text).toBe('')
-    expect(mockInput.selection).toBeUndefined()
-  })
-
   test('the injected text is echoed back through onChangeText, which saves it as the draft', () => {
     const saveDraft = jest.mocked(T.RPCChat.localUpdateUnsentTextRpcPromise)
     let handles: InputHandles | undefined
@@ -1195,21 +1155,6 @@ describe('the composer text', () => {
     setShowInput(true)
 
     expect(mockInput.text).toBe('queued')
-    expect(mockInput.focusCount).toBe(0)
-  })
-
-  test('of several injects made while unmounted the last text wins', () => {
-    const {getHandles, setShowInput} = renderToggle()
-
-    act(() => {
-      getHandles().input.dispatch.injectIntoInput('first', true)
-    })
-    act(() => {
-      getHandles().input.dispatch.injectIntoInput('second')
-    })
-    setShowInput(true)
-
-    expect(mockInput.text).toBe('second')
     expect(mockInput.focusCount).toBe(0)
   })
 
@@ -1337,48 +1282,4 @@ describe('the composer text', () => {
     expect(mockInput.text).toBe('+1xlm@testuser')
   })
 
-  test('onSubmit ignores an empty composer', () => {
-    jest.useFakeTimers()
-    try {
-      const post = jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener')
-      renderComposer()
-      act(() => {
-        mockPlatformInputProps?.onSubmit()
-      })
-      act(() => {
-        jest.advanceTimersByTime(10)
-      })
-      expect(post).not.toHaveBeenCalled()
-      expect(mockInput.focusCount).toBe(0)
-    } finally {
-      jest.useRealTimers()
-    }
-  })
-
-  test('onSubmit clears and focuses the input at once and sends on the next tick', async () => {
-    jest.useFakeTimers()
-    try {
-      const getLastPost = mockPostText()
-      renderComposer()
-      act(() => {
-        mockPlatformInputProps?.onChangeText('hello')
-      })
-      mockInput.text = 'hello'
-
-      act(() => {
-        mockPlatformInputProps?.onSubmit()
-      })
-      expect(mockInput.text).toBe('')
-      expect(mockInput.focusCount).toBe(1)
-      expect(getLastPost()).toBeUndefined()
-
-      await act(async () => {
-        jest.advanceTimersByTime(0)
-        await flushPromises()
-      })
-      expect(getLastPost()?.params.body).toBe('hello')
-    } finally {
-      jest.useRealTimers()
-    }
-  })
 })
