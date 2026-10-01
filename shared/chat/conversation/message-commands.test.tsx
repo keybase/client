@@ -12,7 +12,7 @@ import {makeMessageText} from '@/constants/chat/message'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
-import {chatRpcCall} from './chat-rpc'
+import {makeThreadChatRpc} from './chat-rpc'
 import type {ConversationThreadState} from './thread-context'
 import type {OptimisticReaction} from './thread-message-state'
 import {
@@ -85,7 +85,7 @@ const makeThread = (messages: ReadonlyArray<T.Chat.Message>) => {
       pendingDeleteMap.delete(outboxID)
       state = {...state, pendingDeleteMap}
     },
-    rpc: chatRpcCall,
+    rpc: makeThreadChatRpc(() => false),
   }
   return {thread, writes}
 }

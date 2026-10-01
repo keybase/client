@@ -2,7 +2,7 @@
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
-import {chatRpcCall, getChatRpc, makeThreadChatRpc, setChatRpc} from './chat-rpc'
+import {getChatRpc, makeThreadChatRpc, setChatRpc} from './chat-rpc'
 import {makeFakeChatRpc, restoreChatRpc} from '@/test/fake-chat-rpc'
 import {threadLoadReasonToRPCReason} from './thread-load'
 
@@ -598,28 +598,6 @@ describe('service adapter', () => {
     expect(setSettings.mock.calls).toEqual([[{botSettings: settings, convID, username: 'testbot'}, 'chat:botAdd']])
     expect(remove.mock.calls).toEqual([[{convID, username: 'testbot'}, 'chat:botRemove']])
     expect(commands.mock.calls).toEqual([[{username: 'testbot'}], [{username: 'testbot'}]])
-  })
-})
-
-describe('chatRpcCall', () => {
-  afterEach(() => {
-    restoreChatRpc()
-  })
-
-  test('holds every adapter method, each reaching the adapter set after it was taken', async () => {
-    const {forwardMessage} = chatRpcCall
-    const fake = makeFakeChatRpc()
-    setChatRpc(fake)
-    const helpers = ['calls', 'clearLog', 'fail', 'failOnce', 'log', 'on', 'once', 'params']
-    const methods = Object.keys(fake).filter(k => !helpers.includes(k))
-    expect(Object.keys(chatRpcCall).sort()).toEqual(methods.sort())
-    await forwardMessage({
-      conversationIDKey,
-      destination: conversationIDKey,
-      messageID: T.Chat.numberToMessageID(1),
-      title: '',
-    })
-    expect(fake.calls('forwardMessage')).toHaveLength(1)
   })
 })
 

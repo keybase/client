@@ -1,6 +1,7 @@
 // Every chat service call the conversation modules make, as one interface. The production adapter
-// below speaks the generated RPCs; test/fake-chat-rpc.ts is the in-memory one. Callers reach it
-// through getChatRpc() at call time, so a test can swap the adapter with setChatRpc().
+// below speaks the generated RPCs; test/fake-chat-rpc.ts is the in-memory one. A thread reaches it
+// through its makeThreadChatRpc, other code through getChatRpc(); both look it up at call time, so
+// a test can swap the adapter with setChatRpc().
 import * as Common from '@/constants/chat/common'
 import * as T from '@/constants/types'
 import {enumKeys} from '@/constants/utils'
@@ -677,28 +678,20 @@ let currentChatRpc: ChatThreadRpc = serviceChatRpc
 
 export const getChatRpc = () => currentChatRpc
 
-const callAtCallTime =
-  (key: keyof ChatThreadRpc) =>
-  (...args: ReadonlyArray<unknown>) =>
-    (currentChatRpc[key] as (...args: ReadonlyArray<unknown>) => unknown)(...args)
-
-// Every method, for a caller that holds one as a function (useRPC takes one): each looks up the
-// current adapter when it is called, so the caller still reaches an adapter swapped in later.
-export const chatRpcCall = Object.fromEntries(
-  (Object.keys(serviceChatRpc) as Array<keyof ChatThreadRpc>).map(key => [key, callAtCallTime(key)])
-) as unknown as ChatThreadRpc
-
-// The chat RPCs as one thread's screen makes them. Each looks up the current adapter when it is
-// called, until isRetired says the thread's account has left: from then on a call asks the service
-// nothing and returns a promise that never settles, so nothing awaiting it runs either. The thread
-// provider builds one per store (useThreadRpc); a continuation already past its await when the
-// account leaves still checks for itself.
+// What a thread asks of the service: its screens, its store and the load pipeline running for it.
+// Each call reaches the current adapter until the thread retires; from then on a call asks nothing
+// and never settles. So code after its await, a finally included, must be nothing that has to run
+// on a retired thread. A call already in flight when the thread retires settles as usual, and its
+// continuation checks isRetired() where it acts outside the thread's store.
 export const makeThreadChatRpc = (isRetired: () => boolean): ChatThreadRpc =>
   Object.fromEntries(
-    (Object.keys(serviceChatRpc) as Array<keyof ChatThreadRpc>).map(key => {
-      const call = callAtCallTime(key)
-      return [key, (...args: ReadonlyArray<unknown>) => (isRetired() ? new Promise(() => {}) : call(...args))]
-    })
+    (Object.keys(serviceChatRpc) as Array<keyof ChatThreadRpc>).map(key => [
+      key,
+      (...args: ReadonlyArray<unknown>) =>
+        isRetired()
+          ? new Promise(() => {})
+          : (currentChatRpc[key] as (...args: ReadonlyArray<unknown>) => unknown)(...args),
+    ])
   ) as unknown as ChatThreadRpc
 
 // Swaps in another adapter - the in-memory fake in tests. Passing nothing restores the service one.
