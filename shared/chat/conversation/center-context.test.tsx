@@ -16,6 +16,8 @@ let mockRouteParams: {threadSearch?: {query?: string}} | undefined
 
 // Both providers under test pull thread/engine plumbing they don't exercise here.
 jest.mock('./thread-context', () => ({
+  // the input provider saves drafts through its thread's rpc; nothing here types one
+  useConversationThreadActions: () => ({isRetired: () => false, rpc: {}}),
   useConversationThreadJumpToRecent: () => mockJumpToRecentThread,
   useConversationThreadLoadMessagesCentered: () => mockLoadMessagesCentered,
   useConversationThreadNotifications: () => {},
