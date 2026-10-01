@@ -721,10 +721,20 @@ export const searchFor = async (query: string, timeout = 30_000) => {
     await input.waitForExist({timeout: 5_000})
     await input.clearValue().catch(() => {})
     await input.addValue(query)
-    await waitFor(`the search bar to hold "${query}"`, async () => ((await searchBarText()) === query ? true : undefined), {
-      interval: 100,
-      timeout: 10_000,
-    })
+    let held: string | null = null
+    const holds = await waitFor(
+      `the search bar to hold "${query}"`,
+      async () => {
+        held = await searchBarText()
+        return held === query ? true : undefined
+      },
+      {interval: 100, timeout: 10_000}
+    ).catch(() => false)
+    if (!holds) {
+      if (Date.now() > end) throw new Error(`the search bar holds ${JSON.stringify(held)}, not "${query}"`)
+      console.log(`the search bar holds ${JSON.stringify(held)} after typing "${query}"; typing it again`)
+      continue
+    }
     await input.addValue('\n')
     const counter = await waitFor('the thread search to finish', async () => counterText(), {
       interval: 250,
