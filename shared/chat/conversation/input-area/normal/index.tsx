@@ -13,7 +13,6 @@ import {indefiniteArticle} from '@/util/string'
 import {infoPanelWidthTablet} from '../../info-panel/common'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import {ThreadRefsContext} from '@/chat/conversation/normal/context'
-import type {RefType as InputRef} from './input.shared'
 import {useComposerInput} from '../composer'
 import {useConversationCenter, useConversationCenterActions} from '../../center-context'
 import {
@@ -146,7 +145,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const isExploding = explodingModeSecondsRaw !== 0
 
   const hintText = useHintText({cannotWrite, isEditing, isExploding, minWriterRole})
-  const {composer, setInput, textChanged} = useComposerInput<InputRef>(storeDraft, cannotWrite)
+  const {composer, setInput, textChanged} = useComposerInput(storeDraft, cannotWrite)
   const suggestionOverlayStyle = infoPanelShowing
     ? styles.suggestionOverlayInfoShowing
     : styles.suggestionOverlay
