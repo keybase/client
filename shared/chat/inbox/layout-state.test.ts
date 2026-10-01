@@ -1,17 +1,10 @@
 /// <reference types="jest" />
 
-let mockIsPhone = false
 let mockLoggedIn = true
 let mockUserSwitching = false
 let mockUsername = 'testuser'
 const mockLoggerInfo = jest.fn()
 const mockLoggerWarn = jest.fn()
-
-jest.mock('@/constants/platform', () => ({
-  get isPhone() {
-    return mockIsPhone
-  },
-}))
 
 jest.mock('@/logger', () => ({
   __esModule: true,
@@ -56,7 +49,6 @@ const layoutWithRows: T.RPCChat.UIInboxLayout = {
 }
 
 beforeEach(() => {
-  mockIsPhone = false
   mockLoggedIn = true
   mockUserSwitching = false
   mockUsername = 'testuser'
@@ -71,30 +63,18 @@ afterEach(() => {
   jest.restoreAllMocks()
 })
 
-test('refresh forces desktop reselect until layout has loaded', async () => {
+// A forced reselect would name the conversation the user has open as one to replace.
+test('refresh never forces a reselect, before or after the layout has loaded', async () => {
   const {dispatch} = useInboxLayoutState.getState()
 
   await dispatch.refresh('bootstrap')
-  expect(T.RPCChat.localRequestInboxLayoutRpcPromise).toHaveBeenLastCalledWith({
-    reselectMode: T.RPCChat.InboxLayoutReselectMode.force,
-  })
-
   dispatch.updateLayout(JSON.stringify(emptyLayout))
   await dispatch.refresh('inboxStale')
 
-  expect(T.RPCChat.localRequestInboxLayoutRpcPromise).toHaveBeenLastCalledWith({
-    reselectMode: T.RPCChat.InboxLayoutReselectMode.default,
-  })
-})
-
-test('refresh uses default reselect on phones even before layout has loaded', async () => {
-  mockIsPhone = true
-
-  await useInboxLayoutState.getState().dispatch.refresh('bootstrap')
-
-  expect(T.RPCChat.localRequestInboxLayoutRpcPromise).toHaveBeenCalledWith({
-    reselectMode: T.RPCChat.InboxLayoutReselectMode.default,
-  })
+  expect(T.RPCChat.localRequestInboxLayoutRpcPromise).toHaveBeenCalledTimes(2)
+  for (const call of jest.mocked(T.RPCChat.localRequestInboxLayoutRpcPromise).mock.calls) {
+    expect(call[0]).toEqual({reselectMode: T.RPCChat.InboxLayoutReselectMode.default})
+  }
 })
 
 test('refresh is gated on a logged-in user', async () => {
@@ -165,6 +145,6 @@ test('resetState restores the initial layout store and keeps dispatch usable', a
 
   await dispatch.refresh('bootstrap')
   expect(T.RPCChat.localRequestInboxLayoutRpcPromise).toHaveBeenCalledWith({
-    reselectMode: T.RPCChat.InboxLayoutReselectMode.force,
+    reselectMode: T.RPCChat.InboxLayoutReselectMode.default,
   })
 })

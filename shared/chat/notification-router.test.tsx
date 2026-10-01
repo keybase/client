@@ -75,6 +75,8 @@ describe('isChatNotification', () => {
     'chat.1.chatUi.chatInboxLayout',
     'chat.1.chatUi.chatCommandStatus',
     'chat.1.chatUi.chatBotCommandsUpdateStatus',
+    'chat.1.NotifyChat.ChatLeftConversation',
+    'chat.1.NotifyChat.ChatResetConversation',
   ])('%s is routed', type => {
     expect(isChatNotification({payload: {params: {}}, type} as never)).toBe(true)
   })

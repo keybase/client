@@ -2,7 +2,6 @@ import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
-import {isPhone} from '@/constants/platform'
 import {isChatSessionReady} from '@/stores/config'
 import {ignorePromise} from '@/constants/utils'
 import {registerInboxRefresh} from './inbox-refresh'
@@ -69,12 +68,12 @@ export const useInboxLayoutState = Z.createZustand<State>('chat-inbox-layout', (
       return
     }
     logger.info(`Inbox refresh due to ${reason}`)
-    const reselectMode =
-      get().hasLoaded || isPhone
-        ? T.RPCChat.InboxLayoutReselectMode.default
-        : T.RPCChat.InboxLayoutReselectMode.force
+    // Never a forced reselect: a forced layout names whatever conversation is open as one to
+    // replace, and it lands after the service's batch delay, so it swaps out a conversation the
+    // user picked in the meantime. Unforced, a layout's reselectInfo means only that the open
+    // conversation is not in this account's inbox, and an empty selection is the split shell's to fill.
     await withChatSessionRetry(async () =>
-      T.RPCChat.localRequestInboxLayoutRpcPromise({reselectMode})
+      T.RPCChat.localRequestInboxLayoutRpcPromise({reselectMode: T.RPCChat.InboxLayoutReselectMode.default})
     )
   }
 

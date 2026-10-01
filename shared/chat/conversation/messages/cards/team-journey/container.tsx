@@ -63,6 +63,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const joinableStatuses = new Set<T.Chat.ConversationMeta['membershipType']>([
     // keep in sync with journey_card_manager.go
     'notMember' as const,
+    'youLeft' as const,
     'youAreReset' as const,
   ])
   const otherChannelsBase = [...channelMetas.values()]

@@ -1,8 +1,10 @@
 import * as React from 'react'
 import type * as EngineGen from '@/constants/rpc'
 import logger from '@/logger'
-import {registerExternalResetter} from '@/util/zustand'
 
+// Every subscription is removed by whoever made it: a screen's by its effect cleanup, a module's
+// never. A store reset leaves the bus alone, because an account switch resets the stores while the
+// logged-in screens, and the subscriptions their effects made, stay mounted.
 type AnyListener = (action: EngineGen.Actions) => void
 
 declare global {
@@ -31,10 +33,7 @@ export const subscribeToEngineAction = <T extends EngineGen.ActionType>(
   listeners.add(untypedListener)
   return () => {
     listeners.delete(untypedListener)
-    // Only drop the entry if the map still holds THIS set. A reset replaces the
-    // set for a type, so an unsubscribe left over from before the reset would
-    // otherwise see its own detached, now-empty set and delete the live one,
-    // silently unsubscribing everybody who registered after the reset.
+    // A repeated unsubscribe must not drop a set subscribed since this one emptied.
     if (!listeners.size && listenersByType.get(type) === listeners) {
       listenersByType.delete(type)
     }
@@ -68,9 +67,3 @@ export const notifyEngineActionListeners = (action: EngineGen.Actions) => {
     }
   }
 }
-
-export const clearAllEngineActionListeners = () => {
-  listenersByType.clear()
-}
-
-registerExternalResetter('engine-action-listeners', clearAllEngineActionListeners)
