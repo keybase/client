@@ -721,16 +721,15 @@ export const searchFor = async (query: string, timeout = 30_000) => {
     await input.waitForExist({timeout: 5_000})
     await input.clearValue().catch(() => {})
     await input.addValue(query)
-    let held: string | null = null
-    const holds = await waitFor(
-      `the search bar to hold "${query}"`,
-      async () => {
-        held = await searchBarText()
-        return held === query ? true : undefined
-      },
-      {interval: 100, timeout: 10_000}
-    ).catch(() => false)
-    if (!holds) {
+    // Only not holding the query yet is waited out (and the query typed again); any other failure
+    // (a lost session, the eval itself) is thrown. The wait ends with the overall deadline.
+    const holdEnd = Math.min(Date.now() + 10_000, end)
+    let held = await searchBarText()
+    while (held !== query && Date.now() < holdEnd) {
+      await sleep(100)
+      held = await searchBarText()
+    }
+    if (held !== query) {
       if (Date.now() > end) throw new Error(`the search bar holds ${JSON.stringify(held)}, not "${query}"`)
       console.log(`the search bar holds ${JSON.stringify(held)} after typing "${query}"; typing it again`)
       continue
