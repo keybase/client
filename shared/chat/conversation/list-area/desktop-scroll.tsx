@@ -1,7 +1,6 @@
 // Desktop adapter for the thread scroll target: turns what the LegendList thread sees into
 // scroll-target events and carries out each directive with the list's own imperative API.
 import * as React from 'react'
-import logger from '@/logger'
 import type * as T from '@/constants/types'
 import type {LegendListRef} from '@/common-adapters'
 import {ThreadRefsContext} from '../normal/context'
@@ -27,12 +26,6 @@ const ownTolerancePx = 1
 const rowEdgeTolerancePx = 1
 
 type ScrollerLike = {clientHeight: number; scrollHeight: number; scrollTop: number}
-
-const pinLog = (...s: Array<unknown>) => logger.debug(`[scrollpin] ${Date.now()}`, ...s)
-const pinFigures = (s: ScrollerLike | null | undefined) =>
-  s
-    ? `scrollTop=${s.scrollTop} scrollHeight=${s.scrollHeight} clientHeight=${s.clientHeight} distance=${s.scrollHeight - s.clientHeight - s.scrollTop}`
-    : 'no scroller'
 
 type ListenerOptions = {capture: boolean}
 type ScrollListener = (e: {target: unknown}) => void
@@ -142,7 +135,6 @@ export const useDesktopThreadScroll = (p: {
   const endAnchor = useSchedule()
   const verifyEndAnchor = React.useCallback(() => {
     endAnchor.stop()
-    pinLog('end loop start', pinFigures(scrollerOf()))
     endAnchor.start(async sleep => {
       let previousScroll: number | undefined
       let heldAtHeight: number | undefined
@@ -151,23 +143,12 @@ export const useDesktopThreadScroll = (p: {
         if (!(await sleep(50))) return
         elapsed += 50
         // Checked after the sleep, not before: the reader may have taken the end during it.
-        if (!ownsEnd(scrollTarget.state)) {
-          pinLog('end loop stop: reader owns the end', pinFigures(scrollerOf()))
-          return
-        }
+        if (!ownsEnd(scrollTarget.state)) return
         const scroll = listRef.current?.getState().scroll
         const scroller = scrollerOf()
         if (scroll === undefined || !scroller) continue
-        const atEnd = isScrolledToEnd()
-        pinLog(
-          `end loop check elapsed=${elapsed} atEnd=${atEnd} endOwner=${scrollTarget.state.endOwner} anchorOn=${anchorsEndRef.current} listScroll=${scroll}`,
-          pinFigures(scroller)
-        )
-        if (atEnd) {
-          if (heldAtHeight === scroller.scrollHeight) {
-            pinLog('end loop stop: end held', pinFigures(scroller))
-            return
-          }
+        if (isScrolledToEnd()) {
+          if (heldAtHeight === scroller.scrollHeight) return
           heldAtHeight = scroller.scrollHeight
           previousScroll = undefined
           continue
@@ -177,18 +158,13 @@ export const useDesktopThreadScroll = (p: {
         if (scroll === previousScroll) {
           // Two corrections is the whole budget: one for the header, one for whatever re-measured
           // alongside it. Past that we would be fighting something that owns the offset.
-          if (++corrections > 2) {
-            pinLog('end loop stop: correction budget spent', pinFigures(scroller))
-            return
-          }
-          pinLog(`end loop correction ${corrections}`, pinFigures(scroller))
+          if (++corrections > 2) return
           void listRef.current?.scrollToEnd({animated: false})
           previousScroll = undefined
         } else {
           previousScroll = scroll
         }
       }
-      pinLog('end loop stop: out of time', pinFigures(scrollerOf()))
     })
   }, [endAnchor, isScrolledToEnd, listRef, scrollTarget, scrollerOf])
 
@@ -398,23 +374,13 @@ export const useDesktopThreadScroll = (p: {
   // second measurement. So during a dataset's initial layout, when every row measures and restarting
   // the loop for each would keep it from ever correcting, none restarts it: the layout ending does,
   // once, for all of them.
-  const seenRowsRef = React.useRef(new Set<string>())
-  const onItemSizeChanged = React.useCallback(
-    (info: {itemKey: string; previous: number; size: number}) => {
-      const seen = seenRowsRef.current.has(info.itemKey)
-      seenRowsRef.current.add(info.itemKey)
-      pinLog(
-        `row size key=${info.itemKey} previous=${info.previous} size=${info.size} seenBefore=${seen} initialLayout=${initialLayoutRef.current} endOwner=${scrollTarget.state.endOwner} anchorOn=${anchorsEndRef.current}`,
-        pinFigures(scrollerOf())
-      )
-      if (initialLayoutRef.current) {
-        heldRowChangesRef.current++
-        return
-      }
-      dispatch({anchorsEnd: anchorsEndRef.current, type: 'rowResized'})
-    },
-    [dispatch, scrollTarget, scrollerOf]
-  )
+  const onItemSizeChanged = React.useCallback(() => {
+    if (initialLayoutRef.current) {
+      heldRowChangesRef.current++
+      return
+    }
+    dispatch({anchorsEnd: anchorsEndRef.current, type: 'rowResized'})
+  }, [dispatch])
 
   // The initial layout ends once the list has rows and has settled: its scroll offset held still and
   // no row changed size across two checks. Timed only while there are rows, so a slow reload after a
@@ -441,13 +407,12 @@ export const useDesktopThreadScroll = (p: {
         }
       }
       initialLayoutRef.current = false
-      pinLog(`initial layout end heldRowChanges=${heldRowChangesRef.current}`, pinFigures(scrollerOf()))
       if (heldRowChangesRef.current === 0) return
       heldRowChangesRef.current = 0
       dispatch({anchorsEnd: anchorsEndRef.current, type: 'rowResized'})
     })
     return () => initialLayout.stop()
-  }, [datasetKey, dispatch, initialLayout, listRef, scrollerOf])
+  }, [datasetKey, dispatch, initialLayout, listRef])
 
   // Who moved the scroller is read from where it moved to, never from the input that moved it: the
   // list writes down where it is putting the scroller before it moves it (its initial position, every
