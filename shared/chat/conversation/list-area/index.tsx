@@ -96,32 +96,36 @@ const useThreadListData = () =>
     }))
   )
 
-// Both lists load an older page as the reader nears the oldest row loaded, within pageLoadScreens.
-const useLoadOlder = (numOrdinals: number) => {
-  const loadOlderMessagesDueToScroll = useConversationThreadLoadOlderMessagesDueToScroll()
+// What every page load is asked with: the rows loaded and the thread's load status, as they are when
+// it is asked. The row count is read through a ref, so the loaders keep their identity as rows land.
+const useLoadPageArgs = (numOrdinals: number) => {
   const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
   const numOrdinalsRef = React.useRef(numOrdinals)
   React.useEffect(() => {
     numOrdinalsRef.current = numOrdinals
   }, [numOrdinals])
+  return React.useCallback(
+    () => [numOrdinalsRef.current, getThreadLoadStatusOptions()] as const,
+    [getThreadLoadStatusOptions]
+  )
+}
+type LoadPageArgs = ReturnType<typeof useLoadPageArgs>
+
+// Both lists load an older page as the reader nears the oldest row loaded, within pageLoadScreens.
+const useLoadOlder = (loadPageArgs: LoadPageArgs) => {
+  const loadOlderMessagesDueToScroll = useConversationThreadLoadOlderMessagesDueToScroll()
   return React.useCallback(() => {
-    loadOlderMessagesDueToScroll(numOrdinalsRef.current, getThreadLoadStatusOptions())
-  }, [loadOlderMessagesDueToScroll, getThreadLoadStatusOptions])
+    loadOlderMessagesDueToScroll(...loadPageArgs())
+  }, [loadOlderMessagesDueToScroll, loadPageArgs])
 }
 
 // Only the desktop list loads a newer page, as the reader nears the newest row loaded while the
 // thread does not hold the newest message (after a jump to an old hit). On mobile a newer page
 // landing mid-drag, mid-fling or after a status-bar tap throws the reader ahead. Refs keep the
 // throttled callback stable.
-const useLoadNewer = (p: {containsLatestMessage: boolean; numOrdinals: number}) => {
-  const {containsLatestMessage, numOrdinals} = p
+const useLoadNewer = (p: {containsLatestMessage: boolean; loadPageArgs: LoadPageArgs}) => {
+  const {containsLatestMessage, loadPageArgs} = p
   const loadNewerMessagesDueToScroll = useConversationThreadLoadNewerMessagesDueToScroll()
-  const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
-
-  const numOrdinalsRef = React.useRef(numOrdinals)
-  React.useEffect(() => {
-    numOrdinalsRef.current = numOrdinals
-  }, [numOrdinals])
 
   const containsLatestMessageRef = React.useRef(containsLatestMessage)
   React.useEffect(() => {
@@ -130,7 +134,7 @@ const useLoadNewer = (p: {containsLatestMessage: boolean; numOrdinals: number}) 
 
   const loadNewer = C.useThrottledCallback(() => {
     if (!containsLatestMessageRef.current) {
-      loadNewerMessagesDueToScroll(numOrdinalsRef.current, getThreadLoadStatusOptions())
+      loadNewerMessagesDueToScroll(...loadPageArgs())
     }
   }, 200)
   React.useEffect(
@@ -217,8 +221,9 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
 
   const markInitiallyLoadedThreadAsRead = useConversationThreadMarkThreadAsRead()
 
-  const loadOlder = useLoadOlder(messageOrdinals.length)
-  const loadNewer = useLoadNewer({containsLatestMessage, numOrdinals: messageOrdinals.length})
+  const loadPageArgs = useLoadPageArgs(messageOrdinals.length)
+  const loadOlder = useLoadOlder(loadPageArgs)
+  const loadNewer = useLoadNewer({containsLatestMessage, loadPageArgs})
 
   const getItemType = useGetItemType()
 
@@ -497,7 +502,8 @@ const NativeConversationList = function NativeConversationList() {
   const listRef = React.useRef<NativeListRef | null>(null)
   const markInitiallyLoadedThreadAsRead = useConversationThreadMarkThreadAsRead()
   const numOrdinals = messageOrdinals.length
-  const loadOlder = useLoadOlder(numOrdinals)
+  const loadPageArgs = useLoadPageArgs(numOrdinals)
+  const loadOlder = useLoadOlder(loadPageArgs)
 
   const keyExtractor = (ordinal: ItemType) => {
     return String(ordinal)
