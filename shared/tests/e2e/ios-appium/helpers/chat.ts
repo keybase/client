@@ -342,19 +342,19 @@ const sameReading = (a: ThreadReading, b: ThreadReading) =>
   a.rows.length === b.rows.length &&
   a.rows.every((r, i) => Math.abs(r.top - (b.rows[i]?.top ?? Infinity)) < 0.5)
 
-// Waits until two readings 300ms apart agree, and returns the second.
+// Waits until three readings 300ms apart (600ms in all) agree with the first of them, and returns
+// the last: two close readings can both land inside one held frame of an animation.
 export const waitForThreadStable = async (timeout = 10_000) => {
   const end = Date.now() + timeout
-  let last: ThreadReading | null | undefined
+  let run: Array<ThreadReading> = []
   for (;;) {
-    const a = await readThread()
-    await sleep(300)
-    const b = await readThread()
-    if (a && b && sameReading(a, b)) return b
-    last = b
+    const t = await readThread()
+    run = t && run[0] && sameReading(run[0], t) ? [...run, t] : t ? [t] : []
+    if (t && run.length >= 3) return t
     if (Date.now() > end) {
-      throw new Error(`the thread did not settle within ${timeout}ms (last offset ${last?.offset}, ${last?.rows.length} rows)`)
+      throw new Error(`the thread did not settle within ${timeout}ms (last offset ${t?.offset}, ${t?.rows.length} rows)`)
     }
+    await sleep(300)
   }
 }
 
@@ -770,8 +770,8 @@ export const check = (ok: boolean, message: string) => {
 
 // Waits for the thread to settle and checks it rests at its end.
 // A still reading can land mid-animation: the list follows a new message with an animated scroll of
-// about 250ms, and a JS thread busy loading pages can hold a frame of it for longer than the 300ms
-// between readings (a reading 20.7 points short matched one frame of that animation). So a reading
+// about 250ms, and a JS thread busy loading pages can hold a frame of it for longer than the 600ms
+// the settling readings span (a reading 20.7 points short matched one frame of that animation). So a reading
 // short of the end is taken again, for up to 3s, before it counts.
 export const expectAtEnd = async (what = 'the thread') => {
   const end = Date.now() + 3_000

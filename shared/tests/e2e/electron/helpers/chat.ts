@@ -134,20 +134,20 @@ export const isOrdinalCentred = async (page: Page, ordinal: number, tolerancePx 
 const sameReading = (a: ThreadGeometry, b: ThreadGeometry) =>
   a.scrollTop === b.scrollTop && a.scrollHeight === b.scrollHeight && a.clientHeight === b.clientHeight
 
-// Waits until two readings 250ms apart agree (scroll offset and content size), and returns the
-// second. Throws if the list is still moving when the timeout runs out.
+// Waits until three readings 300ms apart (600ms in all) agree with the first of them (scroll offset
+// and content size), and returns the last: two close readings can both land in a pause of a
+// smooth scroll. Throws if the list is still moving when the timeout runs out.
 export const waitForScrollStable = async (page: Page, timeoutMs = 10_000) => {
   const deadline = Date.now() + timeoutMs
-  let last: ThreadGeometry | undefined
+  let run: Array<ThreadGeometry> = []
   for (;;) {
-    const first = await readThreadGeometry(page)
-    await page.waitForTimeout(250)
-    const second = await readThreadGeometry(page)
-    if (first && second && sameReading(first, second)) return second
-    last = second
+    const g = await readThreadGeometry(page)
+    run = g && run[0] && sameReading(run[0], g) ? [...run, g] : g ? [g] : []
+    if (g && run.length >= 3) return g
     if (Date.now() > deadline) {
-      throw new Error(`thread list did not settle within ${timeoutMs}ms (last: ${JSON.stringify(last && {...last, rows: last.rows.length})})`)
+      throw new Error(`thread list did not settle within ${timeoutMs}ms (last: ${JSON.stringify(g && {...g, rows: g.rows.length})})`)
     }
+    await page.waitForTimeout(300)
   }
 }
 
