@@ -18,6 +18,7 @@ import logger from '@/logger'
 import {useBotSettings} from './settings'
 import {participantInfoReceived} from '@/chat/inbox/metadata'
 import {useConversationMeta} from '../data-hooks'
+import {getChatRpc} from '../chat-rpc'
 
 const RestrictedItem = '---RESTRICTED---'
 
@@ -30,7 +31,6 @@ export const useRefreshBotMembershipOnSuccess = (
 ) => {
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
   const wasWaitingRef = React.useRef(waiting)
-  const previewConversationByID = C.useRPC(T.RPCChat.localPreviewConversationByIDLocalRpcPromise)
 
   React.useEffect(() => {
     if (!waiting && wasWaitingRef.current && !error) {
@@ -39,30 +39,22 @@ export const useRefreshBotMembershipOnSuccess = (
       } else if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
         onSuccess()
       } else {
-        previewConversationByID(
-          [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
-          preview => {
+        getChatRpc()
+          .previewConversation(conversationIDKey)
+          .then(conv => {
             participantInfoReceived(
               conversationIDKey,
-              ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? [])
+              ChatCommon.uiParticipantsToParticipantInfo(conv.participants ?? [])
             )
             onSuccess()
-          },
-          () => {
+          })
+          .catch(() => {
             onSuccess()
-          }
-        )
+          })
       }
     }
     wasWaitingRef.current = waiting
-  }, [
-    conversationIDKey,
-    error,
-    onSuccess,
-    previewConversationByID,
-    shouldRefreshMembership,
-    waiting,
-  ])
+  }, [conversationIDKey, error, onSuccess, shouldRefreshMembership, waiting])
 }
 
 export const useBotConversationIDKey = (inConvIDKey?: T.Chat.ConversationIDKey, teamID?: T.Teams.TeamID) => {
@@ -76,13 +68,9 @@ export const useBotTeamRole = (
   botUsername: string
 ) => {
   const {data: teamRole} = useRPCLoad(
-    T.RPCChat.localGetTeamRoleInConversationRpcPromise,
-    [
-      {
-        convID: conversationIDKey ? T.Chat.keyToConversationID(conversationIDKey) : new Uint8Array(),
-        username: botUsername,
-      },
-    ],
+    async (conversationIDKey: T.Chat.ConversationIDKey, username: string) =>
+      getChatRpc().getBotTeamRole(conversationIDKey, username),
+    [conversationIDKey ?? T.Chat.noConversationIDKey, botUsername],
     {
       enabled: !!conversationIDKey,
       key: `${conversationIDKey ?? ''}:${botUsername}`,
@@ -131,17 +119,14 @@ const addBotMember = async (p: {
   const {botUsername, conversationIDKey, installInConvs} = p
   const {installWithCommands, installWithMentions, installWithRestrict} = p
   try {
-    await T.RPCChat.localAddBotMemberRpcPromise(
-      {
-        botSettings: installWithRestrict
-          ? {cmds: installWithCommands, convs: installInConvs, mentions: installWithMentions}
-          : null,
-        convID: T.Chat.keyToConversationID(conversationIDKey),
-        role: installWithRestrict ? T.RPCGen.TeamRole.restrictedbot : T.RPCGen.TeamRole.bot,
-        username: botUsername,
-      },
-      C.waitingKeyChatBotAdd
-    )
+    await getChatRpc().addBotMember({
+      conversationIDKey,
+      settings: installWithRestrict
+        ? {cmds: installWithCommands, convs: installInConvs, mentions: installWithMentions}
+        : undefined,
+      username: botUsername,
+      waitingKey: C.waitingKeyChatBotAdd,
+    })
   } catch (error) {
     if (error instanceof RPCError) {
       logger.info('addBotMember: failed to add bot member: ' + error.message)
@@ -247,14 +232,12 @@ const InstallBotPopup = (props: Props) => {
     setPendingMutation('edit')
     const f = async () => {
       try {
-        await T.RPCChat.localSetBotMemberSettingsRpcPromise(
-          {
-            botSettings: {cmds: installWithCommands, convs: convsToSave, mentions: installWithMentions},
-            convID: T.Chat.keyToConversationID(conversationIDKey),
-            username: botUsername,
-          },
-          C.waitingKeyChatBotAdd
-        )
+        await getChatRpc().setBotSettings({
+          conversationIDKey,
+          settings: {cmds: installWithCommands, convs: convsToSave, mentions: installWithMentions},
+          username: botUsername,
+          waitingKey: C.waitingKeyChatBotAdd,
+        })
       } catch (error) {
         if (error instanceof RPCError) {
           logger.info('addBotMember: failed to edit bot settings: ' + error.message)
@@ -289,7 +272,6 @@ const InstallBotPopup = (props: Props) => {
   )
 
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
-  const loadBotPublicCommands = C.useRPC(T.RPCChat.localListPublicBotCommandsLocalRpcPromise)
   const botPublicCommandsRequestIDRef = React.useRef(0)
   const clearedWaitingForBotRef = React.useRef<string | undefined>(undefined)
   React.useEffect(() => {
@@ -304,28 +286,26 @@ const InstallBotPopup = (props: Props) => {
       return
     }
     const requestID = botPublicCommandsRequestIDRef.current
-    loadBotPublicCommands(
-      [{username: botUsername}],
-      res => {
+    getChatRpc()
+      .listPublicBotCommands(botUsername)
+      .then(commands => {
         if (botPublicCommandsRequestIDRef.current !== requestID) {
           return
         }
-        const commands = (res.commands ?? []).map(command => command.name)
         setLoadedBotPublicCommands({botUsername, commands: {commands, loadError: false}})
-      },
-      () => {
+      })
+      .catch(() => {
         if (botPublicCommandsRequestIDRef.current !== requestID) {
           return
         }
         setLoadedBotPublicCommands({botUsername, commands: {commands: [], loadError: true}})
-      }
-    )
+      })
     return () => {
       if (botPublicCommandsRequestIDRef.current === requestID) {
         botPublicCommandsRequestIDRef.current += 1
       }
     }
-  }, [botUsername, commandsFromMeta.length, loadBotPublicCommands])
+  }, [botUsername, commandsFromMeta.length])
 
   const restrictedButton = (
     <Kb.Box2 key={RestrictedItem} direction="vertical" fullWidth={true} style={styles.dropdownButton}>

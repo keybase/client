@@ -1,8 +1,9 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
+import {getChatRpc} from '../chat-rpc'
 import {useBotConversationIDKey, useRefreshBotMembershipOnSuccess} from './install'
 
 type Props = {
@@ -24,10 +25,11 @@ const ConfirmBotRemoveImpl = (props: {
   const onRemove = () => {
     const f = async () => {
       try {
-        await T.RPCChat.localRemoveBotMemberRpcPromise(
-          {convID: T.Chat.keyToConversationID(conversationIDKey), username: botUsername},
-          C.waitingKeyChatBotRemove
-        )
+        await getChatRpc().removeBotMember({
+          conversationIDKey,
+          username: botUsername,
+          waitingKey: C.waitingKeyChatBotRemove,
+        })
       } catch (error) {
         if (error instanceof RPCError) {
           logger.info('removeBotMember: failed to remove bot member: ' + error.message)

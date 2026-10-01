@@ -13,6 +13,7 @@ import {openAppSettings} from '@/util/storeless-actions'
 import {setThreadInputCommandStatus} from '@/constants/router'
 import {sendTextToConversation} from '../send-actions'
 import {useConversationMeta} from '../data-hooks'
+import {getChatRpc} from '../chat-rpc'
 
 const LocationButton = (props: {
   disabled: boolean
@@ -50,8 +51,7 @@ const LocationButton = (props: {
 
 const updateLocation = (coord: T.Chat.Coordinate) => {
   const f = async () => {
-    const {accuracy, lat, lon} = coord
-    await T.RPCChat.localLocationUpdateRpcPromise({coord: {accuracy, lat, lon}})
+    await getChatRpc().updateLocation(coord)
   }
   ignorePromise(f())
 }
@@ -66,9 +66,7 @@ const useWatchPosition = (
     logger.info('[location] perms check due to map')
     const f = async () => {
       try {
-        await (requestLocationPermission as (mode?: T.RPCChat.UIWatchPositionPerm) => Promise<void>)(
-          T.RPCChat.UIWatchPositionPerm.base
-        )
+        await requestLocationPermission(T.RPCChat.UIWatchPositionPerm.base)
         const sub = await ExpoLocation.watchPositionAsync(
           {accuracy: ExpoLocation.LocationAccuracy.Highest},
           (location: ExpoLocation.LocationObject) => {
