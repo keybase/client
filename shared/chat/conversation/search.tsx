@@ -14,7 +14,6 @@ import {
   useConversationThreadSelector,
 } from './thread-context'
 import {useThreadSearchRoute} from './thread-search-route'
-import {ThreadSearchOverlayContext} from './thread-search-overlay-context'
 
 type OwnProps = {style?: Kb.Styles.StylesCrossPlatform}
 export type CommonProps = OwnProps & {
@@ -498,20 +497,8 @@ const ThreadSearchMobileInner = function ThreadSearchMobileInner(p: CommonProps)
     }, 100)
   }, [])
 
-  // Report our height so the list can reserve space / lift the jump button while
-  // this bar overlays the bottom of the thread. Reset to 0 when we unmount.
-  const searchOverlayHeight = React.useContext(ThreadSearchOverlayContext)
-  const onLayout = (e: {nativeEvent: {layout: {height: number}}}) => {
-    searchOverlayHeight?.set(e.nativeEvent.layout.height)
-  }
-  React.useEffect(() => {
-    return () => {
-      searchOverlayHeight?.set(0)
-    }
-  }, [searchOverlayHeight])
-
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.mobileContainer} onLayout={onLayout}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.mobileContainer}>
       <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="space-between" padding="tiny" style={styles.outerContainer} gap="tiny">
         <Kb.Box2 direction="horizontal" centerChildren={true} noShrink={true}>
           <Kb.Text type="BodySemibold" style={styles.done} onClick={onToggleThreadSearch}>
