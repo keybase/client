@@ -283,8 +283,8 @@ export const decideScroll = (state: ScrollTargetState, event: ScrollEvent): Scro
 
 export const ownsEnd = (state: ScrollTargetState) => state.endOwner === 'list'
 
-// One list's scroll target: its state, moved only by the decisions it makes. Its one subscriber
-// (useSyncExternalStore) hears of every change to its state.
+// One list's scroll target: its state, moved only by the decisions it makes. Its subscribers
+// (useSyncExternalStore) hear of every change to its state.
 export type ScrollTarget = {
   decide: (event: ScrollEvent) => ScrollDirective
   readonly state: ScrollTargetState
@@ -293,13 +293,13 @@ export type ScrollTarget = {
 
 export const makeScrollTarget = (): ScrollTarget => {
   let state = initialScrollTargetState
-  let onChange: (() => void) | undefined
+  const listeners = new Set<() => void>()
   return {
     decide: event => {
       const decision = decideScroll(state, event)
       if (decision.state !== state) {
         state = decision.state
-        onChange?.()
+        listeners.forEach(l => l())
       }
       return decision.directive
     },
@@ -307,9 +307,9 @@ export const makeScrollTarget = (): ScrollTarget => {
       return state
     },
     subscribe: listener => {
-      onChange = listener
+      listeners.add(listener)
       return () => {
-        if (onChange === listener) onChange = undefined
+        listeners.delete(listener)
       }
     },
   }
