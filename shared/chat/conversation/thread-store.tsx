@@ -173,27 +173,10 @@ export type ConversationThreadActions = {
   ) => void
 }
 
-// What the store reads from outside the thread. Service calls are not here: they go through
-// getChatRpc() like the rest of the load pipeline, so a test swaps them with setChatRpc(). Nor is
-// the conversation's meta: the inbox metadata store owns it, and the store, the load pipeline and
-// the message commands all read it there, so a test sets real inbox metadata.
-export type ThreadStoreDeps = {
-  getSession: () => {loggedIn: boolean; uid: string}
-  loadThreadMessages: (
-    conversationIDKey: T.Chat.ConversationIDKey,
-    p: LoadMoreMessagesParams,
-    actions: ConversationThreadActions
-  ) => void
-}
-
-const defaultDeps: ThreadStoreDeps = {
-  getSession: () => ({
-    loggedIn: useConfigState.getState().loggedIn,
-    uid: useCurrentUserState.getState().uid,
-  }),
-  loadThreadMessages: (conversationIDKey, p, actions) =>
-    loadConversationThreadMessages(conversationIDKey, p, actions),
-}
+const getSession = () => ({
+  loggedIn: useConfigState.getState().loggedIn,
+  uid: useCurrentUserState.getState().uid,
+})
 
 export type ThreadStore = {
   actions: ConversationThreadActions
@@ -249,10 +232,8 @@ const makeEmptyThreadState = (): ConversationThreadState =>
 // focused, route focused). Mark read asks it each time and refuses while they are not.
 export const makeThreadStore = (
   id: T.Chat.ConversationIDKey,
-  isLookingAtThread: () => boolean,
-  overrides?: Partial<ThreadStoreDeps>
+  isLookingAtThread: () => boolean
 ): ThreadStore => {
-  const deps: ThreadStoreDeps = {...defaultDeps, ...overrides}
   const store = createStore<ConversationThreadState>(() =>
     produce(makeEmptyThreadState(), s => {
       s.explodingMode = getExplodingModeFromConfig(id)
@@ -261,7 +242,7 @@ export const makeThreadStore = (
   const shownUsernameCache = new Map<T.Chat.Ordinal, string>()
   // The account this thread was loaded for. Its screen outlives an account switch by a few renders,
   // and a mark-read sent then would mark the next account's read position.
-  const threadUid = deps.getSession().uid
+  const threadUid = getSession().uid
   let activeMarkReadEnabled = false
   // the message a mark read is on its way for; the inbox meta moves only once the service answers
   let markReadSending: T.Chat.MessageID | undefined
@@ -279,7 +260,7 @@ export const makeThreadStore = (
 
   const markThreadAsRead = () => {
     const f = async () => {
-      const session = deps.getSession()
+      const session = getSession()
       if (!session.loggedIn) {
         logger.info('mark read bail on not logged in')
         return
@@ -522,7 +503,7 @@ export const makeThreadStore = (
       return
     }
     const f = async () => {
-      if (!deps.getSession().loggedIn) {
+      if (!getSession().loggedIn) {
         logger.info('mark unread bail on not logged in')
         return
       }
@@ -632,7 +613,7 @@ export const makeThreadStore = (
     })
   }
 
-  const loadImmediately = (p: LoadMoreMessagesParams) => deps.loadThreadMessages(id, p, actions)
+  const loadImmediately = (p: LoadMoreMessagesParams) => loadConversationThreadMessages(id, p, actions)
   const throttledLoad = throttle(loadImmediately, 500)
   // The throttle keeps only the last trailing call, so a centered or jump-to-recent
   // load issued between two other loads would be silently dropped — after

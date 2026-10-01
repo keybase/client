@@ -1,6 +1,6 @@
 /// <reference types="jest" />
-// makeThreadStore on its own: no provider, no React. Its deps are faked here, the service goes
-// through the fake chat RPC, and conversation meta is real inbox metadata.
+// makeThreadStore on its own: no provider, no React. The service goes through the fake chat RPC;
+// the session and conversation meta are the real stores.
 import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
@@ -8,27 +8,19 @@ import logger from '@/logger'
 import {makeMessageAttachment, makeMessageDeleted, makeMessageText} from '@/constants/chat/message'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
 import {metasReceived, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
-import {
-  makeThreadStore,
-  type ConversationThreadActions,
-  type LoadMoreMessagesParams,
-  type ThreadStoreDeps,
-} from './thread-store'
+import {makeThreadStore, type ConversationThreadActions, type LoadMoreMessagesParams} from './thread-store'
 
 const convA = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const convB = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
 
 let rpc: FakeChatRpc
-let session: {loggedIn: boolean; uid: string}
-let loadCalls: Array<{id: T.Chat.ConversationIDKey; p: LoadMoreMessagesParams; actions: ConversationThreadActions}>
 
-const deps: ThreadStoreDeps = {
-  getSession: () => session,
-  loadThreadMessages: (id, p, actions) => {
-    loadCalls.push({actions, id, p})
-  },
+const setSession = (session: {loggedIn: boolean; uid: string}) => {
+  useConfigState.setState({loggedIn: session.loggedIn})
+  useCurrentUserState.setState({uid: session.uid})
 }
 
 const setMeta = (id: T.Chat.ConversationIDKey, over: Partial<T.Chat.ConversationMeta>) => {
@@ -65,8 +57,7 @@ const flushPromises = async () => {
 
 // whether the reader is looking at the thread, as the provider reports it when asked
 let looking = true
-const makeThread = (id = convA, overrides?: Partial<ThreadStoreDeps>) =>
-  makeThreadStore(id, () => looking, {...deps, ...overrides})
+const makeThread = (id = convA) => makeThreadStore(id, () => looking)
 
 const arm = (actions: ConversationThreadActions, messages: ReadonlyArray<T.Chat.Message>) =>
   actions.applyThreadLoad({
@@ -78,13 +69,12 @@ const arm = (actions: ConversationThreadActions, messages: ReadonlyArray<T.Chat.
   })
 
 const markReads = () => rpc.params('markRead')
+const loads = () => rpc.params('loadThread')
 
 beforeEach(() => {
   looking = true
   rpc = installFakeChatRpc()
-  useConfigState.setState({loggedIn: true})
-  session = {loggedIn: true, uid: 'uid'}
-  loadCalls = []
+  setSession({loggedIn: true, uid: 'uid'})
   setMeta(convA, {})
   setMeta(convB, {})
 })
@@ -134,7 +124,7 @@ describe('mark read', () => {
   })
 
   test('a store whose reader is not looking refuses', async () => {
-    const {actions} = makeThreadStore(convA, () => false, deps)
+    const {actions} = makeThreadStore(convA, () => false)
     arm(actions, [textAt(5)])
     actions.markThreadAsRead()
     await flushPromises()
@@ -183,20 +173,20 @@ describe('mark read', () => {
   test('the session is read at call time; the account is the one at creation', async () => {
     const {actions} = makeThread()
     arm(actions, [textAt(5)])
-    session = {loggedIn: false, uid: 'uid'}
+    setSession({loggedIn: false, uid: 'uid'})
     actions.markThreadAsRead()
-    session = {loggedIn: true, uid: 'uid-2'}
+    setSession({loggedIn: true, uid: 'uid-2'})
     actions.markThreadAsRead()
     await flushPromises()
     expect(markReads()).toEqual([])
-    session = {loggedIn: true, uid: 'uid'}
+    setSession({loggedIn: true, uid: 'uid'})
     actions.markThreadAsRead()
     await flushPromises()
     expect(markReads()).toHaveLength(1)
   })
 
   test('a store made for the second account marks for it', async () => {
-    session = {loggedIn: true, uid: 'uid-2'}
+    setSession({loggedIn: true, uid: 'uid-2'})
     const {actions} = makeThread()
     arm(actions, [textAt(5)])
     actions.markThreadAsRead()
@@ -308,7 +298,7 @@ describe('setMarkAsUnread', () => {
     expect(markReads()).toEqual([{conversationIDKey: convA, forceUnread: true, msgID: 5}])
   })
 
-  test('no read position takes the line from the meta the deps return', async () => {
+  test('no read position takes the line from the conversation meta', async () => {
     setMeta(convA, {maxVisibleMsgID: T.Chat.numberToMessageID(6)})
     const {actions} = makeThread()
     actions.addMessages([textAt(3), textAt(5), textAt(8)])
@@ -317,11 +307,11 @@ describe('setMarkAsUnread', () => {
     expect(markReads()).toEqual([{conversationIDKey: convA, forceUnread: true, msgID: 5}])
   })
 
-  test('false, or logged out by the session dep, does nothing', async () => {
+  test('false, or logged out, does nothing', async () => {
     const {actions} = makeThread()
     actions.addMessages([textAt(3)])
     actions.setMarkAsUnread(false)
-    session = {loggedIn: false, uid: 'uid'}
+    setSession({loggedIn: false, uid: 'uid'})
     actions.setMarkAsUnread(T.Chat.numberToMessageID(8))
     await flushPromises()
     expect(markReads()).toEqual([])
@@ -335,11 +325,12 @@ describe('loadMoreMessages', () => {
     scrollDirection: 'back',
   })
 
-  test('hands each load its conversation, params and the store actions', () => {
+  test('asks the service for its conversation and the window the load names', () => {
     const {actions} = makeThread()
-    const p = scroll(1)
-    actions.loadMoreMessages(p)
-    expect(loadCalls).toEqual([{actions, id: convA, p}])
+    actions.loadMoreMessages(scroll(1))
+    expect(loads()).toEqual([
+      expect.objectContaining({conversationIDKey: convA, pagination: expect.objectContaining({num: 1})}),
+    ])
   })
 
   test('throttles to the first and last call in 500ms', () => {
@@ -349,22 +340,25 @@ describe('loadMoreMessages', () => {
     actions.loadMoreMessages(scroll(2))
     actions.loadMoreMessages(scroll(3))
     jest.advanceTimersByTime(499)
-    expect(loadCalls.map(c => c.p.numberOfMessagesToLoad)).toEqual([1])
+    expect(loads().map(l => l.pagination?.num)).toEqual([1])
     jest.advanceTimersByTime(1)
-    expect(loadCalls.map(c => c.p.numberOfMessagesToLoad)).toEqual([1, 3])
+    expect(loads().map(l => l.pagination?.num)).toEqual([1, 3])
   })
 
+  // knownRemotes marks the load under test in what the service is asked
   test.each<[string, LoadMoreMessagesParams]>([
     [
       'a centered load',
       {
         centeredMessageID: {conversationIDKey: convA, highlightMode: 'flash', messageID: T.Chat.numberToMessageID(1)},
+        knownRemotes: ['p'],
         reason: 'centered',
       },
     ],
     [
       'a message-id load',
       {
+        knownRemotes: ['p'],
         messageIDControl: {
           mode: T.RPCChat.MessageIDControlMode.newermessages,
           num: 5,
@@ -373,15 +367,16 @@ describe('loadMoreMessages', () => {
         reason: 'x',
       },
     ],
-    ['jump to recent', {reason: 'jump to recent'}],
+    ['jump to recent', {knownRemotes: ['p'], reason: 'jump to recent'}],
   ])('%s runs at once and drops the pending call', (_, p) => {
     jest.useFakeTimers()
     const {actions} = makeThread()
     actions.loadMoreMessages(scroll(1))
     actions.loadMoreMessages(scroll(2))
     actions.loadMoreMessages(p)
+    expect(loads().map(l => l.knownRemotes)).toEqual([undefined, ['p']])
     jest.advanceTimersByTime(1000)
-    expect(loadCalls.map(c => c.p)).toEqual([scroll(1), p])
+    expect(loads()).toHaveLength(2)
   })
 
   test('dispose drops the pending call and leaves the store working', () => {
@@ -391,19 +386,12 @@ describe('loadMoreMessages', () => {
     thread.actions.loadMoreMessages(scroll(2))
     thread.dispose()
     jest.advanceTimersByTime(1000)
-    expect(loadCalls).toHaveLength(1)
+    expect(loads()).toHaveLength(1)
     thread.dispose()
     thread.actions.loadMoreMessages(scroll(3))
     thread.actions.addMessages([textAt(1)])
-    expect(loadCalls.map(c => c.p.numberOfMessagesToLoad)).toEqual([1, 3])
+    expect(loads().map(l => l.pagination?.num)).toEqual([1, 3])
     expect(thread.store.getState().messageOrdinals).toEqual([1])
-  })
-
-  test('the default loader goes to the service', () => {
-    const {actions} = makeThreadStore(convA, () => looking)
-    actions.loadMoreMessages({reason: 'focused'})
-    expect(rpc.params('loadThread')).toHaveLength(1)
-    expect(rpc.params('loadThread')[0]?.conversationIDKey).toBe(convA)
   })
 })
 
@@ -666,7 +654,7 @@ describe('two stores', () => {
     b.actions.loadMoreMessages({reason: 'scroll back', scrollDirection: 'back'})
     a.dispose()
     jest.advanceTimersByTime(1000)
-    expect(loadCalls.map(c => c.id)).toEqual([convA, convB, convB])
+    expect(loads().map(l => l.conversationIDKey)).toEqual([convA, convB, convB])
   })
 
   test('each looks at its own conversation meta', async () => {
