@@ -267,16 +267,14 @@ export const useComposer = (): Composer => {
 export const useComposerInput = <R extends ComposerInput>(draft: string | undefined) => {
   const composer = useComposer()
   const inputRef = React.useRef<R | null>(null)
-  // read as the ref is set, so the draft loads ahead of the writes waiting for the input
-  const currentDraft = React.useEffectEvent(() => draft)
   const [{setInput, view}] = React.useState(() => {
     const view = composer.connect()
+    // the effect below offers it only after the first commit has attached the input, too late
+    // to load ahead of the writes waiting for it
+    view.offerDraft(draft)
     return {
       setInput: (input: R | null) => {
         inputRef.current = input
-        if (input) {
-          view.offerDraft(currentDraft())
-        }
         view.setInput(input)
       },
       view,
