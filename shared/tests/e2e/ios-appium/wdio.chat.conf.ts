@@ -16,37 +16,59 @@ const debugDir = process.env['KB_IOS_APPIUM_DEBUG_DIR'] ?? 'tests/results/ios-ap
 
 let mark: ReturnType<typeof metroLogMark> | undefined
 
+// Before any flow: the app in the foreground on the current bundle, the chat data seeded, the app
+// signed in as the smoke user and the host's CLI as the second account.
+const prepare = async () => {
+  const {secondUser, smokeUser} = e2eAccounts()
+  const foreground = 4
+  if ((await browser.execute('mobile: queryAppState', {bundleId: BUNDLE_ID})) !== foreground) {
+    await browser.execute('mobile: activateApp', {bundleId: BUNDLE_ID})
+  }
+  // The runner relaunched the app for the current bundle; the JS runtime found must have started
+  // since (Metro's bundle prelude stamps when it ran). A run started without the runner has no
+  // relaunch to check against, and may be testing an old bundle: it stops here unless told to go
+  // on with KB_IOS_ALLOW_STALE_BUNDLE=1.
+  const relaunchedAt = Number(process.env['KB_IOS_RELAUNCHED_AT'] ?? 0)
+  if (!relaunchedAt) {
+    if (process.env['KB_IOS_ALLOW_STALE_BUNDLE'] !== '1') {
+      throw new Error(
+        'KB_IOS_RELAUNCHED_AT is unset, so the app may be running an old bundle: run the chat flows through tests/e2e/run-ios-chat.sh (KB_IOS_SPEC picks one spec), or set KB_IOS_ALLOW_STALE_BUNDLE=1 to run against whatever bundle the app has'
+      )
+    }
+    console.warn('⚠️  KB_IOS_ALLOW_STALE_BUNDLE=1: not checking that the app runs the current bundle')
+  } else {
+    await waitFor(
+      'a JS runtime started since the relaunch',
+      async () => {
+        const age = await jsEval<number>(
+          `const now = globalThis.nativePerformanceNow ? globalThis.nativePerformanceNow() : Date.now(); return now - globalThis.__BUNDLE_START_TIME__`
+        )
+        return Date.now() - age >= relaunchedAt - 1_000 ? true : undefined
+      },
+      {interval: 1_000, timeout: 90_000}
+    )
+  }
+  // seeding sends as the team's owner
+  await switchCliAccount(smokeUser)
+  await ensureChatData()
+  await switchAppAccount(smokeUser)
+  await switchCliAccount(secondUser)
+}
+
 export const config: WebdriverIO.Config = {
   ...base,
   specs: [process.env['KB_IOS_SPEC'] ?? './chat.test.ts'],
   // 7 minutes: the paging flows drag through 400 messages a step at a time
   mochaOpts: {bail: false, retries: 0, timeout: 420_000, ui: 'bdd'},
+  // wdio only logs what this hook throws and runs the flows anyway, against a stale bundle or
+  // missing data: a failed setup stops the run instead.
   before: async () => {
-    const {secondUser, smokeUser} = e2eAccounts()
-    const foreground = 4
-    if ((await browser.execute('mobile: queryAppState', {bundleId: BUNDLE_ID})) !== foreground) {
-      await browser.execute('mobile: activateApp', {bundleId: BUNDLE_ID})
+    try {
+      await prepare()
+    } catch (e) {
+      console.error(`❌ chat flow setup failed, stopping the run: ${e instanceof Error ? e.message : String(e)}`)
+      process.exit(1)
     }
-    // The runner relaunched the app for the current bundle; the JS runtime found must have started
-    // since (Metro's bundle prelude stamps when it ran).
-    const relaunchedAt = Number(process.env['KB_IOS_RELAUNCHED_AT'] ?? 0)
-    if (relaunchedAt) {
-      await waitFor(
-        'a JS runtime started since the relaunch',
-        async () => {
-          const age = await jsEval<number>(
-            `const now = globalThis.nativePerformanceNow ? globalThis.nativePerformanceNow() : Date.now(); return now - globalThis.__BUNDLE_START_TIME__`
-          )
-          return Date.now() - age >= relaunchedAt - 1_000 ? true : undefined
-        },
-        {interval: 1_000, timeout: 90_000}
-      )
-    }
-    // seeding sends as the team's owner
-    await switchCliAccount(smokeUser)
-    await ensureChatData()
-    await switchAppAccount(smokeUser)
-    await switchCliAccount(secondUser)
   },
   beforeTest: async test => {
      
