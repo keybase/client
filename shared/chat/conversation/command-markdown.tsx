@@ -16,7 +16,7 @@ const CommandMarkdown = () => {
   return (
     <Kb.Box2
       direction="vertical"
-      fullWidth={true}
+      fullWidth={isMobile}
       style={Kb.Styles.collapseStyles([styles.container, maxHeightStyle])}
     >
       {!!title && (
@@ -40,8 +40,10 @@ const useStyles = Kb.Styles.createStyleHook(
         ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
       },
       container: Kb.Styles.platformStyles({
+        // stretch, not fullWidth: 100% plus the side margins would overflow the conversation pane
         isElectron: {
           ...Kb.Styles.desktopStyles.boxShadow,
+          alignSelf: 'stretch',
           border: `1px solid ${theme.black_20}`,
           borderRadius: Kb.Styles.borderRadius,
           marginBottom: Kb.Styles.globalMargins.xtiny,
