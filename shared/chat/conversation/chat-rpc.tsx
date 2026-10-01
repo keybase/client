@@ -168,6 +168,12 @@ const ephemeralDataOf = (ephemeralLifetime: number) =>
 
 const identifyBehavior = T.RPCGen.TLFIdentifyBehavior.chatGui
 
+// loadThread's session rule, shared by every adapter
+export const whenChatSessionReady =
+  (load: ChatThreadRpc['loadThread']): ChatThreadRpc['loadThread'] =>
+  async p =>
+    (isChatSessionReady() ? load(p) : undefined)
+
 const serviceChatRpc: ChatThreadRpc = {
   cancelPost: async outboxID => {
     await T.RPCChat.localCancelPostRpcPromise({outboxID: T.Chat.outboxIDToRpcOutboxID(outboxID)})
@@ -221,10 +227,7 @@ const serviceChatRpc: ChatThreadRpc = {
       convID: T.Chat.keyToConversationID(conversationIDKey),
     })
   },
-  loadThread: async p => {
-    if (!isChatSessionReady()) {
-      return undefined
-    }
+  loadThread: whenChatSessionReady(async p => {
     const incomingCallMap: T.RPCChat.IncomingCallMapType = {}
     if (p.onCachedThread) {
       incomingCallMap['chat.1.chatUi.chatThreadCached'] = params => p.onCachedThread?.(params.thread || '')
@@ -256,7 +259,7 @@ const serviceChatRpc: ChatThreadRpc = {
       },
       waitingKey: p.waitingKey,
     })
-  },
+  }),
   makeAudioPreview: async (amps, duration) => T.RPCChat.localMakeAudioPreviewRpcPromise({amps, duration}),
   makeUploadTempFile: async p => T.RPCChat.localMakeUploadTempFileRpcPromise(p),
   markRead: async p => {
