@@ -226,8 +226,7 @@ type ListProps = Pick<
   conversationIDKey: T.Chat.ConversationIDKey
   filter: string
   onSelected: (item: CommandType, final: boolean) => void
-  setOnMoveRef: (r: (up: boolean) => void) => void
-  setOnSubmitRef: (r: () => boolean) => void
+  setListHandle: (h: Common.ListHandle | undefined) => void
   suppressCommandSuggestions: boolean
 } & {
   inputSnapshot: CommandInputSnapshot
@@ -241,6 +240,7 @@ export const List = (p: ListProps) => {
       <BotCommandConversationContext value={{botCommands, conversationIDKey}}>
         <Common.List
           {...rest}
+          filter={filter}
           keyExtractor={keyExtractor}
           items={items}
           ItemRenderer={ItemRenderer}

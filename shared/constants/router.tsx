@@ -460,6 +460,12 @@ export const previewConversation = (p: PreviewConversationParams) => {
 export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['chatRoot']>>): boolean =>
   getNavigator().setChatRootParams(params)
 
+// Merges params into the route with this key, even when it is not the focused one.
+export const setRouteParams = (routeKey: string | undefined, params: object): boolean =>
+  getNavigator().setRouteParams(routeKey, params)
+
+export const whenModalsGone = (cb: () => void) => getNavigator().whenModalsGone(cb)
+
 export const setThreadInputCommandStatus = (
   conversationIDKey: T.Chat.ConversationIDKey,
   info?: T.Chat.CommandStatusInfo

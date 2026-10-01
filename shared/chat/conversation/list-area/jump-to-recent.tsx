@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {useConversationCenterActions} from '../center-context'
-import {useConversationThreadSelector, useConversationThreadToggleSearch} from '../thread-context'
+import {useConversationThreadCloseSearch, useConversationThreadSelector} from '../thread-context'
 
 const JumpToRecent = (props: {onClick: () => void}) => {
   const styles = useStyles()
@@ -24,13 +24,13 @@ export const useJumpToRecent = (scrollToBottom: () => void, numOrdinals: number)
   const {moreToLoadForward, loaded} = useConversationThreadSelector(
     C.useShallow(s => ({loaded: s.loaded, moreToLoadForward: s.moreToLoadForward}))
   )
-  const toggleThreadSearch = useConversationThreadToggleSearch()
+  const closeThreadSearch = useConversationThreadCloseSearch()
   const {jumpToRecent} = useConversationCenterActions()
 
   const onJump = () => {
     scrollToBottom()
     jumpToRecent()
-    toggleThreadSearch(true)
+    closeThreadSearch()
   }
 
   return loaded && moreToLoadForward && numOrdinals > 0 && <JumpToRecent onClick={onJump} />
