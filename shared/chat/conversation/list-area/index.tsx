@@ -376,8 +376,8 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
       >
         <LegendList
           dataKey={datasetKey}
-          ref={listRef as React.Ref<LegendListRef>}
-          data={messageOrdinals as unknown as T.Chat.Ordinal[]}
+          ref={listRef}
+          data={messageOrdinals}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
           getItemType={getItemType}
@@ -406,7 +406,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           onLayout={onLayout}
           onMetricsChange={onMetricsChange}
           onLoad={onLoad}
-          onScroll={onScroll as unknown as (e: unknown) => void}
+          onScroll={onScroll}
           onStartReached={loadOlder}
           onStartReachedThreshold={pageLoadScreens}
           onEndReached={loadNewer}
