@@ -106,7 +106,8 @@ function DesktopInput(p: InputLowLevelProps) {
   const inputMultiRef = React.useRef<HtmlTextAreaRef>(null)
 
   const onChangeTextRef = React.useRef(_onChangeText)
-  React.useEffect(() => {
+  // before useImperativeHandle hands the ref the handle, whose writes report through it
+  React.useLayoutEffect(() => {
     onChangeTextRef.current = _onChangeText
   }, [_onChangeText])
   const [onChange] = React.useState(
@@ -335,9 +336,9 @@ function NativeInput(p: InputLowLevelProps) {
   }
 
   const onChangeTextRef = React.useRef(_onChangeText)
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     onChangeTextRef.current = _onChangeText
-  })
+  }, [_onChangeText])
   const [onChangeText] = React.useState(() => (s: string) => {
     setValue(s)
     // any real input releases the post-send collapse so auto-grow resumes
@@ -1261,6 +1262,8 @@ const NativePlatformInput = (p: Props) => {
     onSubmitRef.current = onSubmit
   }, [expanded, onSubmit])
 
+  // An iOS autocorrection (or predictive-text pick) of the last word reaches onChangeText only
+  // after the send tap; reading the text sooner would send the uncorrected word.
   const [onQueueSubmit] = React.useState(() => () => {
     setTimeout(() => {
       if (composer.getText()) {

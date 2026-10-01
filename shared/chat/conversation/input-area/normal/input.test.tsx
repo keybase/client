@@ -44,3 +44,20 @@ test('getSelection keeps a range selection from the change event', () => {
 
   expect(ref.current?.getSelection()).toEqual({end: 7, start: 1})
 })
+
+// the composer writes waiting for an input as its ref is set, in the commit that may also bring
+// a new onChangeText
+test('a write made as the ref is set reaches the onChangeText of that render', () => {
+  const first = jest.fn()
+  const second = jest.fn()
+  const setRef = (i: RefType | null) => {
+    i?.replaceText({text: 'waiting'}, true)
+  }
+  const {rerender} = render(<Input multiline={false} onChangeText={first} ref={setRef} />)
+  first.mockClear()
+
+  rerender(<Input multiline={true} onChangeText={second} ref={setRef} />)
+
+  expect(first).not.toHaveBeenCalled()
+  expect(second).toHaveBeenCalledWith('waiting')
+})
