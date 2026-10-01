@@ -159,12 +159,14 @@ export const useNativeThreadScroll = (p: {
     listRef.current?.scrollToItem({animated, item, viewOffset: lift, viewPosition: 0.5})
   })
 
-  // Every delayed scroll (coarse reasserts, the corrector's schedule, scroll-to-index retries, the
-  // first load's retry, the append re-pin) runs through here, so stopping centring, a new dataset or
-  // the list going away cancels whatever is pending, and a reader's drag is never followed by a jump.
-  // Stopped by the detached cleanup below, not by useSchedule's, which would run first and hide
-  // whether the first load's retry was still pending.
-  const [timers] = React.useState(makeSchedule)
+  // The delayed scrolls of a centre or a reveal (coarse reasserts, the corrector's schedule,
+  // scroll-to-index retries), which stopping centring cancels.
+  const [centring] = React.useState(makeSchedule)
+  // The delayed pins to the end (the first load's retry, the append re-pin), which stopping centring
+  // leaves alone: each asks the scroll target again when it fires, so a reader who took the end in
+  // between is left where they are. Both are stopped by the detached cleanup below, not by
+  // useSchedule's, which would run first and hide whether the first load's retry was still pending.
+  const [pins] = React.useState(makeSchedule)
 
   // coarse: scrollToItem lands at the wrong offset for tall variable-height rows,
   // but it gets the target area rendered. The closed-loop corrector below
@@ -172,7 +174,7 @@ export const useNativeThreadScroll = (p: {
   const moveToward = React.useCallback(
     (target: T.Chat.Ordinal) => {
       const reassert = (delay: number) =>
-        timers.after(delay, () => {
+        centring.after(delay, () => {
           if (centeredRef.current !== target) {
             return
           }
@@ -180,7 +182,7 @@ export const useNativeThreadScroll = (p: {
         })
       ;[50, 250].forEach(reassert)
     },
-    [scrollToItem, timers]
+    [centring, scrollToItem]
   )
 
   // Closed-loop centring corrector: scrollToItem lands at the wrong offset here (inverted list, custom
@@ -215,7 +217,7 @@ export const useNativeThreadScroll = (p: {
   const [stopCentering] = React.useState(() => () => {
     correctRef.current.active = false
     itemScrollsRef.current.clear()
-    timers.stop()
+    centring.stop()
   })
   const [settleCenter] = React.useState(() => () => {
     const {active, target} = correctRef.current
@@ -272,7 +274,7 @@ export const useNativeThreadScroll = (p: {
           // nothing, and there is no bootstrap of the list's own to wait out.
           scrollToOffset(restingOffset())
           if (directive.retry) {
-            initialRetryRef.current = timers.after(100, () => {
+            initialRetryRef.current = pins.after(100, () => {
               dispatchRef.current({hasMessages: ordsRef.current.length > 0, retry: true, type: 'initialLoad'})
             })
           }
@@ -283,7 +285,7 @@ export const useNativeThreadScroll = (p: {
           correctRef.current = {active: true, iters: 0, target: directive.ordinal}
           ladderRef.current.forEach(t => t.cancel())
           ladderRef.current = [50, 250, 500, 900].map((d, i, ladder) =>
-            timers.after(d, () => {
+            centring.after(d, () => {
               correctCenter(vFirstRef.current, vLastRef.current)
               if (i === ladder.length - 1) settleCenter()
             })
@@ -303,15 +305,16 @@ export const useNativeThreadScroll = (p: {
       }
     },
     [
+      centring,
       correctCenter,
       moveToward,
+      pins,
       requestItem,
       restingOffset,
       scrollToItem,
       scrollToOffset,
       settleCenter,
       stopCentering,
-      timers,
     ]
   )
 
@@ -420,11 +423,11 @@ export const useNativeThreadScroll = (p: {
     if (!isAppend({heldLatest, newest: newestOrdinal, previousNewest, sameDataset})) return undefined
     // Decided when the re-pin would fire, with the keyboard as it is then: if it closed in between,
     // the list's own anchor already shows the newest message.
-    const repin = timers.after(0, () => {
+    const repin = pins.after(0, () => {
       dispatch({anchorHidesNewest: isKeyboardVisibleRef.current, type: 'appended'})
     })
     return repin.cancel
-  }, [datasetKey, dispatch, heldLatest, newestOrdinal, timers])
+  }, [datasetKey, dispatch, heldLatest, newestOrdinal, pins])
 
   // Stores the conversation it last applied to (not a boolean) so a freeze/thaw of this screen —
   // which re-mounts effects without a real conversation change — does not reset it and re-trigger
@@ -447,9 +450,10 @@ export const useNativeThreadScroll = (p: {
   React.useEffect(
     () => () => {
       if (initialRetryRef.current?.pending()) loadedConvRef.current = undefined
+      pins.stop()
       dispatchRef.current({type: 'detached'})
     },
-    []
+    [pins]
   )
 
   // Waits for more rows to render and asks for the failed row again, six times per request, while the
@@ -459,7 +463,7 @@ export const useNativeThreadScroll = (p: {
     const request = item === undefined ? undefined : itemScrollsRef.current.get(item)
     if (item === undefined || !request || request.retries > 5) return
     request.retries += 1
-    timers.after(200, () => {
+    centring.after(200, () => {
       if (itemScrollsRef.current.get(item) !== request) return
       scrollToItem(item, request.kind)
     })
