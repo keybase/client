@@ -75,7 +75,7 @@ export const FakeComposerInputView = (p: {
   readOnly?: boolean
 }) => {
   const {children, draft, fake, readOnly = false} = p
-  const {setInput, textChanged} = useComposerInput<FakeComposerInput>(draft, readOnly)
+  const {setInput, textChanged} = useComposerInput(draft, readOnly)
   React.useImperativeHandle(
     setInput,
     () => {

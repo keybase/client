@@ -189,7 +189,8 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
     [id]
   )
   const reply = React.useEffectEvent((ordinal: T.Chat.Ordinal) => {
-    if (!composer.startReply()) {
+    // a reply could never be sent
+    if (getMeta()?.cannotWrite) {
       logger.info('[chat] reply refused: the conversation is read-only')
       return
     }

@@ -69,6 +69,8 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
 }
 
 
+// long enough for a modal's dismissal to commit; a callback run much later would act on whatever the
+// user has moved on to
 const modalsWaitMs = 1000
 
 export const makeNavigator = (ref: NavigatorRef): Navigator => {
