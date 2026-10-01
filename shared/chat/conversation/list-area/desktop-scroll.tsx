@@ -231,17 +231,14 @@ export const useDesktopThreadScroll = (p: {
     [centering, listRef, scrollTarget, scrollerOf]
   )
 
-  // Carries out the directive decided for event: how the list reaches the end depends on what happened.
   const perform = React.useCallback(
-    (directive: ScrollDirective, event: ScrollEvent) => {
+    (directive: ScrollDirective) => {
       switch (directive.type) {
         case 'pinEnd':
           if (directive.stopCentering) centering.stop()
-          // The header, the viewport or a row changes size while the list may still be settling its
-          // own position, and its own end anchor may already have re-pinned it. That anchor re-pins
-          // for no header change at all, for no row changing by five pixels or less, and not
-          // reliably for larger ones.
-          if (event.type === 'headerMeasured' || event.type === 'viewportResized' || event.type === 'rowResized') {
+          // The list's own end anchor re-pins for no header change at all, for no row changing by five
+          // pixels or less, and not reliably for larger ones.
+          if (directive.verify) {
             verifyEndAnchor()
             return
           }
@@ -285,7 +282,7 @@ export const useDesktopThreadScroll = (p: {
 
   const dispatch = React.useCallback(
     (event: ScrollEvent) => {
-      perform(scrollTarget.decide(event), event)
+      perform(scrollTarget.decide(event))
     },
     [perform, scrollTarget]
   )

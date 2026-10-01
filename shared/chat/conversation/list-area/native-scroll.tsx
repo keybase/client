@@ -260,6 +260,8 @@ export const useNativeThreadScroll = (p: {
   // The corrector's 50/250/500/900ms schedule, started once per target. With its 13 steps it is the
   // whole budget: the target settles where the last step leaves it.
   const ladderRef = React.useRef<Array<Scheduled>>([])
+  const initialRetryRef = React.useRef<Scheduled | undefined>(undefined)
+  const dispatchRef = React.useRef<(event: ScrollEvent) => void>(noop)
 
   const perform = React.useCallback(
     (directive: ScrollDirective) => {
@@ -269,6 +271,11 @@ export const useNativeThreadScroll = (p: {
           // The end is a fixed resting offset, so every pin is the one scroll there: from the end it moves
           // nothing, and there is no bootstrap of the list's own to wait out.
           scrollToOffset(restingOffset())
+          if (directive.retry) {
+            initialRetryRef.current = timers.after(100, () => {
+              dispatchRef.current({hasMessages: ordsRef.current.length > 0, retry: true, type: 'initialLoad'})
+            })
+          }
           return
         case 'center':
           requestItem(directive.ordinal, 'center')
@@ -314,9 +321,8 @@ export const useNativeThreadScroll = (p: {
     },
     [perform, scrollTarget]
   )
-  // The detached cleanup reads dispatch through this, so it runs only when the list is hidden or
-  // unmounted, however dispatch's dependencies change.
-  const dispatchRef = React.useRef(dispatch)
+  // Read by the detached cleanup, so it runs only when the list is hidden or unmounted however
+  // dispatch's dependencies change, and by the first load's retry, which perform schedules.
   React.useLayoutEffect(() => {
     dispatchRef.current = dispatch
   }, [dispatch])
@@ -430,24 +436,14 @@ export const useNativeThreadScroll = (p: {
   // the initial scroll, which would lose the user's scroll position (e.g. returning from the info
   // panel). It resets implicitly when conversationIDKey changes.
   const loadedConvRef = React.useRef<string | undefined>(undefined)
-  const initialRetryRef = React.useRef<Scheduled | undefined>(undefined)
   React.useLayoutEffect(() => {
     const justLoaded = loaded && loadedConvRef.current !== conversationIDKey
     if (loaded) {
       loadedConvRef.current = conversationIDKey
     }
     if (!justLoaded) return
-
-    const directive = scrollTarget.decide({hasMessages: numOrdinals > 0, type: 'initialLoad'})
-    perform(directive)
-    // Once more 100ms on, asking again with the rows as they are then, so a centre requested in
-    // between is not undone by a scroll to the end.
-    if (directive.type === 'pinEnd') {
-      initialRetryRef.current = timers.after(100, () => {
-        dispatch({hasMessages: ordsRef.current.length > 0, type: 'initialLoad'})
-      })
-    }
-  }, [conversationIDKey, dispatch, loaded, numOrdinals, perform, scrollTarget, timers])
+    dispatch({hasMessages: numOrdinals > 0, retry: false, type: 'initialLoad'})
+  }, [conversationIDKey, dispatch, loaded, numOrdinals])
 
   // Hidden (a screen pushed over this one) or unmounted: nothing scheduled may scroll a list no
   // longer shown. Work cut short is left to be done again if the list comes back: a target still
