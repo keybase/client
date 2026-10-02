@@ -69,6 +69,7 @@ test('outside the fake engine a dev build logs an undeclared fall-through', asyn
   fake.engine.onUndeclaredIncoming = undefined
   const sessionID = await startRecover(fake)
   await fake.push(resetMessage, {kind: 0}, {sessionID})
+  expect(logged).toHaveBeenCalledTimes(1)
   expect(logged).toHaveBeenCalledWith(undeclared(resetMessage))
   expect(() => uninstallFakeEngine()).not.toThrow()
 })
