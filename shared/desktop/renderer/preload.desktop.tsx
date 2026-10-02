@@ -74,6 +74,9 @@ if (isRenderer) {
             type: 'dumpNodeLogger',
           })
         },
+        engineRestartLink: () => {
+          Electron.ipcRenderer.send('engineRestartLink')
+        },
         engineSend: (send: EngineSend) => {
           Electron.ipcRenderer.send('engineSend', send)
         },

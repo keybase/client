@@ -59,8 +59,10 @@ export class EngineRelay {
   }
 
   // A reloaded renderer starts its seqids over, so replies to the old renderer's calls must not
-  // reach it: drop the connection and give the new renderer a fresh one.
-  restartLink() {
+  // reach it: drop the connection and give the new renderer a fresh one. The renderer's own engine
+  // reset reconnects after the usual delay instead: a reset the next handshake repeats (the Windows
+  // pipe-owner check failing again) would otherwise reconnect in a tight loop.
+  restartLink(p?: {afterDelay?: boolean}) {
     const socket = this._socket
     if (!socket) {
       this.replayLinkState()
@@ -69,7 +71,11 @@ export class EngineRelay {
     this._socket = undefined
     socket.destroy()
     this.sendLinkFrame(false)
-    this.connect()
+    if (p?.afterDelay) {
+      this.scheduleReconnect()
+    } else {
+      this.connect()
+    }
   }
 
   private sendLinkFrame(up: boolean) {

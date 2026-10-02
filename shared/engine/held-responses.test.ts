@@ -8,7 +8,6 @@ import {useWaitingState} from '@/stores/waiting'
 import {resetAllStores} from '@/util/zustand'
 import {tick} from '@/test/flush'
 import logger from '@/logger'
-import type {KB2} from '@/util/electron'
 
 const dev = __DEV__
 afterEach(() => {
@@ -304,15 +303,7 @@ test.each([false, true])('an unstarted session holding a prompt writes nothing w
 test.each([false, true])('a reset drops a held prompt without answering it (dangling %p)', async dangling => {
   const fake = installFakeEngine()
   const {pushed, responses} = holdPassphrase(fake, dangling)
-  const preload = globalThis._fromPreload as KB2
-  const {isRenderer} = preload.constants
-  // node's engine is the one that replaces its client on reset
-  preload.constants.isRenderer = false
-  try {
-    fake.engine.reset()
-  } finally {
-    preload.constants.isRenderer = isRenderer
-  }
+  fake.engine.reset()
   responses[0]!.result({passphrase: 'testpass', storeSecret: false})
   await tick()
   await expect(settledSoFar(pushed)).resolves.toBe('still waiting')

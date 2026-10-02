@@ -1,7 +1,7 @@
 /// <reference types="jest" />
 import {makeDesktopEnginePair, type DesktopEnginePair} from '@/test/desktop-engine-pair'
 import {tick} from '@/test/flush'
-import {errors} from './rpc-transport'
+import {encodeFrame, errors, type ResponseType} from './rpc-transport'
 
 const methodsReceived = (pair: DesktopEnginePair) => pair.serviceReceived().map(m => m[2])
 
@@ -104,6 +104,47 @@ test('a renderer call made once it knows the service is down is refused at once 
   await tick()
   expect(methodsReceived(pair)).toEqual([])
   expect(cb).toHaveBeenCalledTimes(1)
+})
+
+test('an engine reset restarts the link: a split frame and a held prompt go with the old one, and calls reach the new one', async () => {
+  const pair = makeDesktopEnginePair()
+  let held: ResponseType | undefined
+  const started = jest.fn()
+  pair.engine.createSession({
+    customResponseIncomingCallMap: {
+      'keybase.1.loginUi.promptPassphraseRecovery': (_params, response) => {
+        held = response as unknown as ResponseType
+      },
+    },
+  }).start('keybase.1.login.recoverPassphrase', {}, started)
+  await tick()
+  const [, , , [{sessionID}]] = pair.serviceReceived()[0] as [number, number, string, [{sessionID: number}]]
+  pair.serviceSends([0, 50, 'keybase.1.loginUi.promptPassphraseRecovery', [{sessionID}]])
+  // Half of a frame is still in the renderer's packetizer when the reset lands
+  pair.serviceSendsBytes(encodeFrame([2, 'keybase.1.test.notify', [{}]]).subarray(0, 4))
+  await tick()
+  expect(held).toBeDefined()
+
+  pair.engine.reset()
+  pair.serviceComesBack()
+  await tick()
+
+  expect(started).toHaveBeenCalledTimes(1)
+  expect(started.mock.calls[0]![0]).toMatchObject({code: errors.EOF})
+  expect(held?.settled).toBe(true)
+  held?.result?.({passphrase: 'testpass'})
+  await tick()
+  expect(pair.serviceReceived()).toEqual([])
+  expect(pair.linkChanges).toEqual([true, false, true])
+
+  const cb = jest.fn()
+  pair.renderer.invoke('keybase.1.config.getBootstrapStatus', [{}], cb)
+  await tick()
+  expect(methodsReceived(pair)).toEqual(['keybase.1.config.getBootstrapStatus'])
+  const [, seqid] = pair.serviceReceived()[0]!
+  pair.serviceSends([1, seqid, null, {ok: true}])
+  await tick()
+  expect(cb).toHaveBeenCalledWith(null, {ok: true})
 })
 
 test('link changes before the app has its listeners ready are not announced', async () => {

@@ -39,6 +39,7 @@ const disconnectError = {code: rpcErrors.EOF, desc: 'The service connection was 
 
 afterEach(() => {
   const {functions} = getPreload()
+  delete functions.engineRestartLink
   delete functions.engineSend
   delete functions.ipcRendererOn
 })
@@ -210,25 +211,24 @@ test('an answer to a call from an earlier link, made once a new link is up, is n
   expect(sent).toEqual([])
 })
 
-test('ProxyNativeTransport.reset fails outstanding invocations so pre-switch callbacks cannot fire against post-switch state', () => {
+test('reset asks the relay to restart the link, and the link frames, not the reset, fail what is in flight', () => {
   const {client, fromRelay, sent} = makeRendererClient()
+  const restarts = jest.fn()
+  getPreload().functions.engineRestartLink = restarts
   fromRelay(up(1))
   const cb = jest.fn()
   client.invoke('keybase.1.test.hello', [{}], cb)
 
-  expect(sent).toHaveLength(1)
+  client.transport.reset()
+  expect(restarts).toHaveBeenCalledTimes(1)
   expect(cb).not.toHaveBeenCalled()
 
-  // Desktop account switch: without this the pre-switch callback stays
-  // outstanding forever (or fires later against post-switch state).
-  client.transport.reset()
-
+  fromRelay(down(1))
+  fromRelay(up(2))
   expect(cb).toHaveBeenCalledTimes(1)
-  const [err] = cb.mock.calls[0] as [unknown, unknown]
-  expect((err as {code?: number}).code).toBe(rpcErrors.EOF)
+  expect(cb).toHaveBeenCalledWith(disconnectError, {})
 
-  // A reply for the pre-switch seqid arriving after the reset must be
-  // dropped, not delivered to the already-failed callback.
+  // A reply for the old seqid arriving later is dropped, not delivered to the already-failed callback
   const seqid = sent[0]!.message[1] as number
   client.transport.dispatchDecodedMessage([1, seqid, null, {ok: 'late'}])
   expect(cb).toHaveBeenCalledTimes(1)

@@ -104,6 +104,17 @@ test('a renderer reload gets a fresh connection, and the old renderer’s sends 
   expect(methodsWritten(socket(1))).toEqual(['newRenderer'])
 })
 
+test('a renderer engine reset drops the connection and reconnects only after the delay', () => {
+  const relay = makeRelay()
+  socket(0).emit('connect')
+  relay.restartLink({afterDelay: true})
+  expect(socket(0).destroyed).toBe(true)
+  expect(mockSockets).toHaveLength(1)
+  jest.advanceTimersByTime(1000)
+  socket(1).emit('connect')
+  expect(toRenderer).toEqual([up(1), down(1), up(2)])
+})
+
 test('a renderer reload while the service is down replays the down state and keeps retrying', () => {
   const relay = makeRelay()
   socket(0).emit('connect')
