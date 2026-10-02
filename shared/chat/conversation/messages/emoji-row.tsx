@@ -39,7 +39,8 @@ function EmojiRowContainer(p: OwnProps) {
     style,
   } = p
   const ordinal = useOrdinal()
-  const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
+  const reply = InputState.useConversationInputDispatch(s => s.reply)
+  const canReply = InputState.useCanReply()
   const target = useThreadMessageTarget(ordinal)
   const {conversationIDKey} = target
   const emojis = useReactionRowTopReacjis()
@@ -59,12 +60,12 @@ function EmojiRowContainer(p: OwnProps) {
     toggleReaction(target, emoji)
   }
   const _onReply = () => {
-    setReplyTo(ordinal)
+    reply(ordinal)
   }
 
   const onForward = hasMessageID && (hasUnfurls || messageType === 'attachment') ? _onForward : undefined
   const onReply =
-    messageType === 'text' || messageType === 'attachment' ? (onReplyProp ?? _onReply) : undefined
+    canReply && (messageType === 'text' || messageType === 'attachment') ? (onReplyProp ?? _onReply) : undefined
 
   const [showingPicker, setShowingPicker] = React.useState(false)
   const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
