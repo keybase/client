@@ -32,6 +32,7 @@ class Engine implements CallPort {
   _sessionsMap = new Map<SessionID, Session>()
   // Helper we delegate actual calls to
   _rpcClient: CreateClientType
+  _makeClient: MakeClient
   // Set which actions we don't auto respond with so listeners can themselves
   _customResponseAction: {[K in MethodKey]: true} = {
     'keybase.1.secretUi.getPassphrase': true,
@@ -80,14 +81,12 @@ class Engine implements CallPort {
     this._onConnectedCB = onConnected
     this._onEngineIncoming = onEngineIncoming
     this._emitWaiting = emitWaiting
+    this._makeClient = makeClient
     this._rpcClient = makeClient(
       payload => this._rpcIncoming(payload),
       () => this._onConnected(),
       () => this._onDisconnect()
     )
-    if (makeClient === createClient) {
-      this._setupDebugging()
-    }
   }
 
   rebindCallbacks(
@@ -338,12 +337,15 @@ class Engine implements CallPort {
     this._queuedChanges = []
     this._hasConnected = false
     this._listenersAreReady = false
-    this._rpcClient = resetClient(
-      this._rpcClient,
-      payload => this._rpcIncoming(payload),
-      () => this._onConnected(),
-      () => this._onDisconnect()
-    )
+    const incoming = (payload: PayloadType) => this._rpcIncoming(payload)
+    const connect = () => this._onConnected()
+    const disconnect = () => this._onDisconnect()
+    if (this._makeClient === createClient) {
+      this._rpcClient = resetClient(this._rpcClient, incoming, connect, disconnect)
+    } else {
+      this._rpcClient.transport.close()
+      this._rpcClient = this._makeClient(incoming, connect, disconnect)
+    }
   }
 }
 
@@ -362,10 +364,15 @@ const makeEngine = (
     logger.warn('makeEngine called multiple times')
   }
 
-  if (!engine) {
+  // An HMR'd engine built by older code may predate the call port
+  const reused = engine as Partial<Engine> | undefined
+  if (!engine || typeof reused?.call !== 'function' || typeof reused.listen !== 'function') {
     engine = new Engine(emitWaiting, onConnected, onEngineIncoming)
+    engine._setupDebugging()
   } else {
     engine.rebindCallbacks(emitWaiting, onConnected, onEngineIncoming)
+    // pick up listener.tsx edits on HMR
+    engine.listen = makeListen(engine)
   }
   installCallPort(engine)
   return engine
