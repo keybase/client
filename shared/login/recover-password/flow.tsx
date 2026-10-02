@@ -25,7 +25,7 @@ const slots = {
   submitNoDevice: 'submitNoDevice',
   submitPaperKey: 'submitPaperKey',
   submitPassword: 'submitPassword',
-  submitPgpWarning: 'submitPgpWarning',
+  submitPgpContinue: 'submitPgpContinue',
   submitResetPassword: 'submitResetPassword',
 } as const
 type Slot = (typeof slots)[keyof typeof slots]
@@ -39,8 +39,7 @@ export const submitRecoverPasswordPaperKey = (paperKey: string) =>
   callNamed(owner, slots.submitPaperKey, paperKey)
 export const submitRecoverPasswordPassword = (password: string) =>
   callNamed(owner, slots.submitPassword, password)
-export const submitRecoverPasswordPgpWarning = (proceed: boolean) =>
-  callNamed(owner, slots.submitPgpWarning, proceed)
+export const submitRecoverPasswordPgpContinue = () => callNamed(owner, slots.submitPgpContinue)
 export const submitRecoverPasswordReset = (action: T.RPCGen.ResetPromptResponse) =>
   callNamed(owner, slots.submitResetPassword, action)
 
@@ -62,6 +61,8 @@ export const startRecoverPassword = ({
     let active = true
     let hadError = false
     let ownPgpAnswer: typeof pendingPgpAnswer
+    // The warning is dead once answered, so the set-password screen that follows takes its place.
+    let pgpContinued = false
     const handles = new Map<Slot, ScopedHandle>()
     const isActive = () => active
     const clearSlots = (...slotNames: ReadonlyArray<Slot>) => {
@@ -123,19 +124,21 @@ export const startRecoverPassword = ({
               if (settled) return
               settled = true
               pendingPgpAnswer = undefined
-              clearSlots(slots.cancel, slots.submitPgpWarning)
+              clearSlots(slots.cancel, slots.submitPgpContinue)
               response.result(proceed)
             })
             // Declining makes Go cancel silently (sccanceled) and log back out, so nothing else closes this screen.
-            const decline = () => {
-              answer(false)
-              clearModals()
-            }
             ownPgpAnswer = answer
             pendingPgpAnswer = answer
-            setHandle(slots.cancel, decline)
-            setHandle(slots.submitPgpWarning, (proceed: boolean) => (proceed ? answer(true) : decline()))
-            navigateAppend({name: 'recoverPasswordPgpWarning', params: {}}, true)
+            setHandle(slots.cancel, () => {
+              answer(false)
+              clearModals()
+            })
+            setHandle(slots.submitPgpContinue, () => {
+              pgpContinued = true
+              answer(true)
+            })
+            navigateAppend({name: 'recoverPasswordPgpWarning', params: {}})
           },
           'keybase.1.loginUi.promptResetAccount': (params, response) => {
             if (params.prompt.t === T.RPCGen.ResetPromptType.enterResetPw) {
@@ -204,17 +207,10 @@ export const startRecoverPassword = ({
                   response.result({passphrase, storeSecret: true})
                 })
               )
-              if (!params.pinentry.retryLabel) {
-                navigateAppend({name: 'recoverPasswordSetPassword', params: {error: undefined}})
-              } else {
-                navigateAppend(
-                  {
-                    name: 'recoverPasswordSetPassword',
-                    params: {error: params.pinentry.retryLabel},
-                  },
-                  true
-                )
-              }
+              navigateAppend(
+                {name: 'recoverPasswordSetPassword', params: {error: params.pinentry.retryLabel || undefined}},
+                !!params.pinentry.retryLabel || pgpContinued
+              )
             }
           },
         },
@@ -255,7 +251,7 @@ export const startRecoverPassword = ({
         slots.submitNoDevice,
         slots.submitPaperKey,
         slots.submitPassword,
-        slots.submitPgpWarning,
+        slots.submitPgpContinue,
         slots.submitResetPassword
       )
       active = false

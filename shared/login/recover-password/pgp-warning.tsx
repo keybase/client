@@ -1,14 +1,20 @@
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
 import {QuestionBody} from '../common'
-import {cancelRecoverPassword, submitRecoverPasswordPgpWarning} from './flow'
+import {cancelRecoverPassword, submitRecoverPasswordPgpContinue} from './flow'
 
 const PgpWarning = () => (
   <SignupScreen
     buttons={[
-      {label: 'Continue', onClick: () => submitRecoverPasswordPgpWarning(true), type: 'Danger' as ButtonType},
-      {label: 'Cancel', onClick: () => submitRecoverPasswordPgpWarning(false), type: 'Dim' as ButtonType},
+      {
+        label: 'Continue',
+        onClick: submitRecoverPasswordPgpContinue,
+        type: 'Danger' as ButtonType,
+        waitingKey: C.waitingKeyRecoverPassword,
+      },
+      {label: 'Cancel', onClick: cancelRecoverPassword, type: 'Dim' as ButtonType},
     ]}
     noBackground={true}
     onBack={cancelRecoverPassword}

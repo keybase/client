@@ -155,13 +155,6 @@ export const newRoutes = defineRouteMap({
     },
     screen: React.lazy(async () => import('./recover-password/paper-key')),
   },
-  recoverPasswordPgpWarning: {
-    getOptions: {
-      ...recoverPasswordGetOptions,
-      ...(isIOS ? recoverBackItems(cancelRecoverPassword) : {headerLeft: () => <RecoverCancelLeft />}),
-    },
-    screen: React.lazy(async () => import('./recover-password/pgp-warning')),
-  },
   recoverPasswordPromptResetAccount: {
     getOptions: (p: {route: {params: {skipPassword: boolean; username: string}}}) => ({
       ...recoverPasswordGetOptions,
@@ -212,6 +205,15 @@ export const newModalRoutes = defineRouteMap({
   recoverPasswordErrorModal: {
     getOptions: {gestureEnabled: false, title: 'Error'},
     screen: React.lazy(async () => import('./recover-password/error-modal')),
+  },
+  // Go asks this after the paper key has logged the user in, so it is shown over the logged-in app.
+  recoverPasswordPgpWarning: {
+    getOptions: {
+      gestureEnabled: false,
+      ...(isIOS ? recoverBackItems(cancelRecoverPassword) : {headerLeft: () => <RecoverCancelLeft />}),
+      title: 'Recover password',
+    },
+    screen: React.lazy(async () => import('./recover-password/pgp-warning')),
   },
   recoverPasswordSetPassword: {
     getOptions: {gestureEnabled: false, title: 'Set password'},

@@ -2,9 +2,11 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
+import {useConfigState} from '@/stores/config'
 import {fireEvent, render} from '@testing-library/react'
+import {flush} from '@/test/flush'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
-import {newRoutes} from '../routes'
+import {newModalRoutes} from '../routes'
 import {startRecoverPassword} from './flow'
 
 jest.mock('@react-navigation/native', () => ({
@@ -12,14 +14,12 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({canGoBack: () => true, goBack: jest.fn()}),
 }))
 
-const openModal = 'recoverPasswordPromptResetPassword'
 let nav: FakeNavigator
 
+// Go asks only after the paper key has logged the user in, so the warning sits over the logged-in app.
 beforeEach(() => {
-  nav = installFakeNavigator({
-    modalRouteNames: [openModal],
-    rootState: makeRootState({above: [{name: openModal}]}),
-  })
+  useConfigState.getState().dispatch.setLoggedIn(true)
+  nav = installFakeNavigator({modalRouteNames: Object.keys(newModalRoutes), rootState: makeRootState()})
 })
 
 afterEach(() => {
@@ -36,19 +36,23 @@ test('the pgp warning header back affordance answers the prompt false and leaves
     return undefined as any
   })
   startRecoverPassword({username: 'testuser'})
-  await new Promise<void>(resolve => setTimeout(resolve, 0))
+  await flush()
   const response = {error: jest.fn(), result: jest.fn()}
   listener?.customResponseIncomingCallMap?.['keybase.1.loginUi.promptPassphraseRecovery']?.(
     {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys} as any,
     response as any
   )
-  nav.setRootState(makeRootState({above: [{name: openModal}]}))
+  expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
 
-  const headerLeft = (newRoutes.recoverPasswordPgpWarning.getOptions as any).headerLeft
-  const {container} = render(headerLeft())
-  fireEvent.click((container as unknown as {querySelector: (s: string) => never}).querySelector(".icon"))
+  const {getOptions} = newModalRoutes.recoverPasswordPgpWarning
+  expect(getOptions.gestureEnabled).toBe(false)
+  if (!('headerLeft' in getOptions)) throw new Error('expected the non-iOS headerLeft')
+  const {container} = render(getOptions.headerLeft())
+  const back = container.querySelector<HTMLElement>('.icon')
+  expect(back).not.toBeNull()
+  fireEvent.click(back!)
 
   expect(response.result).toHaveBeenCalledTimes(1)
   expect(response.result).toHaveBeenCalledWith(false)
-  expect(nav.modalsCleared()).toBe(true)
+  expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedIn'])
 })

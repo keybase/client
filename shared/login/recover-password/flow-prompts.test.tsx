@@ -11,8 +11,9 @@ import {
   submitRecoverPasswordNoDevice,
   submitRecoverPasswordPaperKey,
   submitRecoverPasswordPassword,
-  submitRecoverPasswordPgpWarning,
+  submitRecoverPasswordPgpContinue,
 } from './flow'
+import {newModalRoutes} from '../routes'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 
 let nav: FakeNavigator
@@ -347,6 +348,15 @@ describe('completion', () => {
 })
 
 describe('pgp key warning', () => {
+  // Go asks only after the paper key has logged the user in, so the warning is pushed over the
+  // logged-in app, and only the real modal routes are modals.
+  beforeEach(() => {
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    nav = installFakeNavigator({modalRouteNames: Object.keys(newModalRoutes), rootState: makeRootState()})
+  })
+
+  const rootRouteNames = () => nav.getRootState()?.routes?.map(r => r.name)
+
   const prompt = (first: Awaited<ReturnType<typeof startAttempt>>['first']) => {
     const response = {error: jest.fn(), result: jest.fn()}
     first.listener.customResponseIncomingCallMap?.['keybase.1.loginUi.promptPassphraseRecovery']?.(
@@ -356,29 +366,36 @@ describe('pgp key warning', () => {
     return response
   }
 
-  test('shows the warning screen and continues when the user agrees', async () => {
+  test('shows the warning as a modal and continues when the user agrees', async () => {
     const {first} = await startAttempt()
     const response = prompt(first)
-    expect(nav.navigations()).toContainEqual({
-      name: 'recoverPasswordPgpWarning',
-      params: {},
-      replace: true,
-    })
-    submitRecoverPasswordPgpWarning(true)
+    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
+    submitRecoverPasswordPgpContinue()
     expect(nav.modalsCleared()).toBe(false)
     expect(response.result).toHaveBeenCalledTimes(1)
     expect(response.result).toHaveBeenCalledWith(true)
   })
 
-  test('declining answers false once', async () => {
+  test('the set-password screen after continuing takes the warning\'s place', async () => {
+    const {first} = await startAttempt()
+    prompt(first)
+    submitRecoverPasswordPgpContinue()
+    first.listener.customResponseIncomingCallMap?.['keybase.1.secretUi.getPassphrase']?.(
+      {pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.passPhrase}} as any,
+      {error: jest.fn(), result: jest.fn()} as any
+    )
+    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordSetPassword'])
+  })
+
+  test('declining answers false once and removes the warning', async () => {
     const {first} = await startAttempt()
     const response = prompt(first)
-    nav.setRootState(makeRootState({above: [{name: openModal}]}))
-    submitRecoverPasswordPgpWarning(false)
-    submitRecoverPasswordPgpWarning(false)
+    cancelRecoverPassword()
+    cancelRecoverPassword()
     expect(response.result).toHaveBeenCalledTimes(1)
     expect(response.result).toHaveBeenCalledWith(false)
-    expect(nav.modalsCleared()).toBe(true)
+    expect(response.error).not.toHaveBeenCalled()
+    expect(rootRouteNames()).toEqual(['loggedIn'])
   })
 
   test('restarting while the prompt is pending answers false once', async () => {
@@ -390,7 +407,7 @@ describe('pgp key warning', () => {
     await flush()
     expect(response.result).toHaveBeenCalledTimes(1)
     expect(response.result).toHaveBeenCalledWith(false)
-    submitRecoverPasswordPgpWarning(true)
+    submitRecoverPasswordPgpContinue()
     expect(response.result).toHaveBeenCalledTimes(1)
   })
 
@@ -421,15 +438,5 @@ describe('pgp key warning', () => {
     await flush()
     expect(second.result).toHaveBeenCalledTimes(1)
     expect(second.result).toHaveBeenCalledWith(false)
-  })
-
-  test('back out through cancel answers false', async () => {
-    const {first} = await startAttempt()
-    const response = prompt(first)
-    nav.setRootState(makeRootState({above: [{name: openModal}]}))
-    cancelRecoverPassword()
-    expect(response.result).toHaveBeenCalledWith(false)
-    expect(response.error).not.toHaveBeenCalled()
-    expect(nav.modalsCleared()).toBe(true)
   })
 })
