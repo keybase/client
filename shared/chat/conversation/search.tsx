@@ -8,11 +8,8 @@ import {formatTimeForMessages} from '@/util/timestamp'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConversationCenterActions} from './center-context'
 import {cancelActiveThreadSearchRPC, searchInboxRPC} from '../search-rpc'
-import {
-  useConversationThreadID,
-  useConversationThreadSelector,
-  useConversationThreadToggleSearch,
-} from './thread-context'
+import {useConversationThreadID, useConversationThreadSelector} from './thread-context'
+import {useConversationThreadCloseSearch} from './thread-navigation'
 import {useThreadSearchRoute} from './thread-search-route'
 
 type OwnProps = {style?: Kb.Styles.StylesCrossPlatform}
@@ -98,12 +95,8 @@ const runSearchInbox = async (p: {
 
 export const useCommon = (ownProps: CommonProps) => {
   const {conversationIDKey, initialQuery, style} = ownProps
-  const toggleThreadSearch = useConversationThreadToggleSearch()
-  const {centerOnMessage, clearCenter} = useConversationCenterActions()
-  const onToggleThreadSearch = () => {
-    clearCenter()
-    toggleThreadSearch()
-  }
+  const onToggleThreadSearch = useConversationThreadCloseSearch()
+  const {centerOnMessage} = useConversationCenterActions()
 
   const [searchState, setSearchState] = React.useState<SearchState>(() => ({
     hits: [],
