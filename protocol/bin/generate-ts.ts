@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 import colors from 'colors'
+import {customResponseError, isOneway} from './message-flags.ts'
 
 type EnabledCallType = 'promise' | 'incoming' | 'engineListener' | 'custom'
 type EnabledCalls = Record<string, Partial<Record<EnabledCallType, boolean>>>
@@ -85,6 +86,7 @@ type TypeDefinition = RecordDefinition | EnumDefinition | VariantDefinition | Fi
 type MessageDefinition = {
   lint?: JsonLint
   notify?: unknown
+  oneway?: unknown
   request: ReadonlyArray<MessageArgument>
   response?: TypeRef
 }
@@ -139,6 +141,7 @@ const __dirname = path.dirname(__filename)
 const enabledCalls = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'enabled-calls.json'), 'utf8')
 ) as EnabledCalls
+const customResponseErrors: Array<string> = []
 
 const primitiveTypeMap: Record<string, string> = {
   bool: 'boolean',
@@ -356,11 +359,11 @@ function analyzeMessages(json: ProtocolJSON, project: ProjectState): Record<stri
     const methodName = `'${json.namespace}.${json.protocol}.${m}'`
     const hasIncoming = enabledCall(methodName, 'incoming')
     const wantsCustom = enabledCall(methodName, 'custom')
-    if (wantsCustom && message.hasOwnProperty('notify')) {
-      console.log(colors.red('ERROR! Custom call cannot be a notify method:\n\n '), methodName)
-      process.exit(1)
+    const customError = customResponseError(methodName, message, wantsCustom)
+    if (customError) {
+      customResponseErrors.push(customError)
     }
-    const hasCustomResponse = wantsCustom && !message.hasOwnProperty('notify')
+    const hasCustomResponse = wantsCustom && !isOneway(message)
     const isIncomingMethod = hasIncoming || hasCustomResponse
 
     if (isIncomingMethod) {
@@ -980,6 +983,10 @@ async function main(): Promise<void> {
         {consts: {}, messages: {}, types: {}}
       )
     await writeFlow(typeDefs, project)
+  }
+  if (customResponseErrors.length) {
+    customResponseErrors.forEach(e => console.log(colors.red(e)))
+    process.exit(1)
   }
   await writeAll()
   await writeActions()

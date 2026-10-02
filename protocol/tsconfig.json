@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "allowImportingTsExtensions": true,
     "allowJs": false,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
