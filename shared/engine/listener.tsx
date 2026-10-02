@@ -39,7 +39,11 @@ export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
         return r as Partial<CommonResponseHandler>
       }
 
-      const response: Partial<CommonResponseHandler> = {}
+      const response: Partial<CommonResponseHandler> & {readonly settled?: boolean} = {
+        get settled() {
+          return r.settled
+        },
+      }
 
       if (r.error) {
         response.error = (e: ErrorType) => {

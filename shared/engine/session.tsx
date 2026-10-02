@@ -39,6 +39,11 @@ class Session {
   // Responses handed to handlers and not yet settled (often we get cancel after we've replied)
   _held = new Set<HeldResponse>()
   _ended = false
+  // The start RPC was sent and its reply has not come back
+  _invokeOutstanding = false
+  // Cancelled by the client while its RPC was outstanding: the caller has its rejection, and every
+  // call the service still makes on this session is refused here until the reply or a lost link
+  _refusing = false
   // If you want to know about being cancelled
   _cancelHandler: CancelHandlerType | undefined
   // If true this session exists forever
@@ -85,6 +90,9 @@ class Session {
   }
   getDangling(): boolean {
     return this._dangling
+  }
+  isRefusing(): boolean {
+    return this._refusing
   }
 
   // Started for an account that has since logged out, so nothing it receives may reach its handlers.
@@ -148,6 +156,13 @@ class Session {
   }
 
   _cancel(heldPrompts: 'refuse' | 'forget', promptWasPending = this._held.size > 0) {
+    if (this._refusing) {
+      // Already cancelled; only a lost link ends the refusal early, since the reply can't come now
+      if (heldPrompts === 'forget') {
+        this.end()
+      }
+      return
+    }
     for (const held of [...this._held]) {
       this._settle(held, heldPrompts === 'refuse' ? () => held.response.error?.(inputCanceledError) : undefined)
     }
@@ -164,7 +179,13 @@ class Session {
       callback(new RPCError('Received RPC cancel for session', StatusCode.sccanceled))
     }
 
-    this.end()
+    // The service may still call us on this session before it replies, and a late prompt that
+    // left the session would reach a global answerer (e.g. pinentry) instead
+    if (heldPrompts === 'refuse' && this._invokeOutstanding) {
+      this._refusing = true
+    } else {
+      this.end()
+    }
   }
 
   // Settles a held response once, writing `write` if given; false if it was already settled
@@ -219,7 +240,14 @@ class Session {
 
     const updateWaiting = this._makeWaitingHandler(method)
     updateWaiting(true)
+    this._invokeOutstanding = true
     this._invoke(method, [wrappedParam], (err: unknown, data: unknown) => {
+      this._invokeOutstanding = false
+      if (this._refusing) {
+        // The cancel already answered the caller and left the session not waiting
+        this.end()
+        return
+      }
       if (this._belongsToPreviousAccount()) {
         updateWaiting(false)
         wrappedCallback(new RPCError('The account changed during this call', StatusCode.sccanceled))
@@ -251,6 +279,15 @@ class Session {
         [key: string]: undefined | ((param: object, request: ResponseType) => void)
       }
     )[method]
+
+    if (this._refusing) {
+      if (custom || mustAnswerMethods.has(method)) {
+        response?.error?.(inputCanceledError)
+      } else {
+        response?.result?.()
+      }
+      return true
+    }
 
     if (!plain && !custom) {
       return false
