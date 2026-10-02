@@ -73,23 +73,14 @@ type Chat1ResponseActionMap<K extends chat1Types.MessageKey> = {
 }
 
 type Keybase1IncomingAction =
+  'keybase.1.NotifyApp.exit' |
   'keybase.1.NotifyAudit.boxAuditError' |
   'keybase.1.NotifyAudit.rootAuditError' |
   'keybase.1.NotifyBadges.badgeState' |
   'keybase.1.NotifyDeviceHistory.deviceHistoryChanged' |
-  'keybase.1.NotifyFS.FSActivity' |
-  'keybase.1.NotifySession.loggedOut' |
-  'keybase.1.NotifyTracking.trackingChanged' |
-  'keybase.1.NotifyUsers.userChanged'
-
-type Keybase1IncomingActionMap<K extends keybase1Types.MessageKey> = {
-  [P in K]: {readonly params: keybase1Types.RpcIn<P>}
-}
-
-type Keybase1ResponseAction =
-  'keybase.1.NotifyApp.exit' |
   'keybase.1.NotifyEmailAddress.emailAddressVerified' |
   'keybase.1.NotifyEmailAddress.emailsChanged' |
+  'keybase.1.NotifyFS.FSActivity' |
   'keybase.1.NotifyFS.FSOverallSyncStatusChanged' |
   'keybase.1.NotifyFS.FSSubscriptionNotify' |
   'keybase.1.NotifyFS.FSSubscriptionNotifyPath' |
@@ -99,9 +90,7 @@ type Keybase1ResponseAction =
   'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate' |
   'keybase.1.NotifyService.HTTPSrvInfoUpdate' |
   'keybase.1.NotifyService.handleKeybaseLink' |
-  'keybase.1.NotifyService.shutdown' |
-  'keybase.1.NotifySession.clientOutOfDate' |
-  'keybase.1.NotifySession.loggedIn' |
+  'keybase.1.NotifySession.loggedOut' |
   'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged' |
   'keybase.1.NotifyTeam.avatarUpdated' |
   'keybase.1.NotifyTeam.teamChangedByID' |
@@ -112,19 +101,31 @@ type Keybase1ResponseAction =
   'keybase.1.NotifyTeam.teamTreeMembershipsDone' |
   'keybase.1.NotifyTeam.teamTreeMembershipsPartial' |
   'keybase.1.NotifyTracking.notifyUserBlocked' |
+  'keybase.1.NotifyTracking.trackingChanged' |
   'keybase.1.NotifyTracking.trackingInfo' |
   'keybase.1.NotifyUsers.identifyUpdate' |
   'keybase.1.NotifyUsers.passwordChanged' |
-  'keybase.1.gpgUi.selectKey' |
-  'keybase.1.gpgUi.wantToAddGPGKey' |
+  'keybase.1.NotifyUsers.userChanged' |
   'keybase.1.gregorUI.pushState' |
   'keybase.1.homeUI.homeUIRefresh' |
   'keybase.1.identify3Ui.identify3Result' |
-  'keybase.1.identify3Ui.identify3ShowTracker' |
   'keybase.1.identify3Ui.identify3Summary' |
   'keybase.1.identify3Ui.identify3UpdateRow' |
   'keybase.1.identify3Ui.identify3UpdateUserCard' |
   'keybase.1.identify3Ui.identify3UserReset' |
+  'keybase.1.rekeyUI.rekeySendEvent'
+
+type Keybase1IncomingActionMap<K extends keybase1Types.MessageKey> = {
+  [P in K]: {readonly params: keybase1Types.RpcIn<P>}
+}
+
+type Keybase1ResponseAction =
+  'keybase.1.NotifyService.shutdown' |
+  'keybase.1.NotifySession.clientOutOfDate' |
+  'keybase.1.NotifySession.loggedIn' |
+  'keybase.1.gpgUi.selectKey' |
+  'keybase.1.gpgUi.wantToAddGPGKey' |
+  'keybase.1.identify3Ui.identify3ShowTracker' |
   'keybase.1.logUi.log' |
   'keybase.1.loginUi.chooseDeviceToRecoverWith' |
   'keybase.1.loginUi.displayPaperKeyPhrase' |
@@ -159,7 +160,6 @@ type Keybase1ResponseAction =
   'keybase.1.provisionUi.switchToGPGSignOK' |
   'keybase.1.rekeyUI.delegateRekeyUI' |
   'keybase.1.rekeyUI.refresh' |
-  'keybase.1.rekeyUI.rekeySendEvent' |
   'keybase.1.secretUi.getPassphrase' |
   'keybase.1.teamsUi.confirmInviteLinkAccept' |
   'keybase.1.teamsUi.confirmRootTeamDelete' |
