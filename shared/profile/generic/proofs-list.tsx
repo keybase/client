@@ -151,7 +151,7 @@ const checkProofAndNavigate = async (
   }
 }
 
-const runProofFlow = async (p: {
+export const runProofFlow = async (p: {
   afterCheckProofRef: React.RefObject<undefined | (() => void)>
   cancelCurrentRef: React.RefObject<undefined | (() => void)>
   currentGenericParamsRef: React.RefObject<ProveGenericParams>
