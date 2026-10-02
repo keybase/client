@@ -17,7 +17,7 @@ import {
 
 type Props = StaticScreenProps<{inviteCode?: string; username?: string}>
 
-const checkDeviceNameAndSignup = async (
+export const checkDeviceNameAndSignup = async (
   devicename: string,
   username: string,
   inviteCode: string,

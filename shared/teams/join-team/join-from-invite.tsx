@@ -12,7 +12,7 @@ type Props = {
   inviteKey?: string
 }
 
-const getInviteError = (error: unknown, missingKey: boolean) => {
+export const getInviteError = (error: unknown, missingKey: boolean) => {
   if (error instanceof RPCError) {
     return (
       error.code === T.RPCGen.StatusCode.scteaminvitebadtoken
