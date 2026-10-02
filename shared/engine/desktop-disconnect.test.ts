@@ -1,15 +1,74 @@
 /// <reference types="jest" />
-import {makeDesktopEnginePair} from '@/test/desktop-engine-pair'
+import {makeDesktopEnginePair, type DesktopEnginePair} from '@/test/desktop-engine-pair'
 import {tick} from '@/test/flush'
+import logger from '@/logger'
+import {encodeFrame, errors, type ResponseType} from './rpc-transport'
 
-test('a renderer call reaches the service through node', () => {
+const methodsReceived = (pair: DesktopEnginePair) => pair.serviceReceived().map(m => m[2])
+
+test('a renderer call reaches the service through node, and its answer comes back', async () => {
   const pair = makeDesktopEnginePair()
-  pair.renderer.invoke('keybase.1.config.getBootstrapStatus', [{}], () => {})
-  expect(pair.serviceReceived().map(m => m[2])).toEqual(['keybase.1.config.getBootstrapStatus'])
+  const cb = jest.fn()
+  pair.renderer.invoke('keybase.1.config.getBootstrapStatus', [{}], cb)
+  await tick()
+  expect(methodsReceived(pair)).toEqual(['keybase.1.config.getBootstrapStatus'])
+  const [, seqid] = pair.serviceReceived()[0]!
+  pair.serviceSends([1, seqid, null, {ok: true}])
+  await tick()
+  expect(cb).toHaveBeenCalledWith(null, {ok: true})
 })
 
-// Known failures: each pins a desktop disconnect bug seen in the live app when the service stops and restarts.
-test.failing('a renderer call in flight when the service dies settles', async () => {
+test('after the service comes back a fresh call reaches the new service and is answered', async () => {
+  const pair = makeDesktopEnginePair()
+  pair.serviceDies()
+  pair.serviceComesBack()
+  await tick()
+  const cb = jest.fn()
+  pair.renderer.invoke('keybase.1.config.getBootstrapStatus', [{}], cb)
+  await tick()
+  expect(methodsReceived(pair)).toEqual(['keybase.1.config.getBootstrapStatus'])
+  const [, seqid] = pair.serviceReceived()[0]!
+  pair.serviceSends([1, seqid, null, {ok: true}])
+  await tick()
+  expect(cb).toHaveBeenCalledWith(null, {ok: true})
+})
+
+test('the app is told once per link change', async () => {
+  const pair = makeDesktopEnginePair()
+  pair.serviceDies()
+  pair.serviceComesBack()
+  await tick()
+  pair.serviceDies()
+  pair.serviceComesBack()
+  await tick()
+  expect(pair.linkChanges).toEqual([true, false, true, false, true])
+})
+
+test('the app saying its listeners are ready again (a store re-init) is told once more that the link is up', () => {
+  const pair = makeDesktopEnginePair()
+  pair.listenersReadyAgain()
+  expect(pair.linkChanges).toEqual([true, true])
+})
+
+test('the app saying its listeners are ready again while the link is down is told nothing', async () => {
+  const pair = makeDesktopEnginePair()
+  pair.serviceDies()
+  await tick()
+  pair.listenersReadyAgain()
+  expect(pair.linkChanges).toEqual([true, false])
+})
+
+test('a renderer call still crossing IPC when the service restarts never reaches the new service', async () => {
+  const pair = makeDesktopEnginePair()
+  pair.renderer.invoke('keybase.1.config.getBootstrapStatus', [{}], () => {})
+  pair.serviceDies()
+  pair.serviceComesBack()
+  await tick()
+  expect(methodsReceived(pair)).toEqual([])
+})
+
+// Each pins a desktop disconnect bug seen in the live app when the service stops and restarts.
+test('a renderer call in flight when the service dies settles', async () => {
   const pair = makeDesktopEnginePair()
   const cb = jest.fn()
   pair.renderer.invoke('keybase.1.config.waitForClient', [{clientType: 0, timeout: 120}], cb)
@@ -18,7 +77,7 @@ test.failing('a renderer call in flight when the service dies settles', async ()
   expect(cb).toHaveBeenCalledTimes(1)
 })
 
-test.failing('a renderer call made while the service is down is not sent to the next service before its handshake', () => {
+test('a renderer call made while the service is down is not sent to the next service before its handshake', () => {
   const pair = makeDesktopEnginePair()
   pair.serviceDies()
   const cb = jest.fn()
@@ -26,4 +85,113 @@ test.failing('a renderer call made while the service is down is not sent to the 
   pair.serviceComesBack()
   expect(pair.serviceReceived().map(m => m[2])).not.toContain('keybase.1.config.getBootstrapStatus')
   expect(cb).toHaveBeenCalledTimes(1)
+})
+
+test('a service restarting twice in quick succession fails a call in flight once and reaches neither new service with it', async () => {
+  const pair = makeDesktopEnginePair()
+  const inFlight = jest.fn()
+  pair.renderer.invoke('keybase.1.config.waitForClient', [{clientType: 0, timeout: 120}], inFlight)
+  pair.serviceDies()
+  pair.serviceComesBack()
+  pair.serviceDies()
+  pair.serviceComesBack()
+  await tick()
+  expect(inFlight).toHaveBeenCalledTimes(1)
+  expect(inFlight).toHaveBeenCalledWith({code: errors.EOF, desc: 'The service connection was lost', name: 'EOF'}, {})
+  expect(methodsReceived(pair)).toEqual([])
+  expect(pair.linkChanges).toEqual([true, false, true, false, true])
+})
+
+test('a renderer call made once it knows the service is down is refused at once and never sent', async () => {
+  const pair = makeDesktopEnginePair()
+  pair.serviceDies()
+  await tick()
+  const cb = jest.fn()
+  pair.renderer.invoke('keybase.1.config.getBootstrapStatus', [{}], cb)
+  expect(cb).toHaveBeenCalledTimes(1)
+  pair.serviceComesBack()
+  await tick()
+  expect(methodsReceived(pair)).toEqual([])
+  expect(cb).toHaveBeenCalledTimes(1)
+})
+
+test('an engine reset drops the link and it stays down until a renderer reload: a split frame and a held prompt go with the old one, and calls then reach the new one', async () => {
+  const pair = makeDesktopEnginePair()
+  let held: ResponseType | undefined
+  const started = jest.fn()
+  pair.engine.createSession({
+    customResponseIncomingCallMap: {
+      'keybase.1.loginUi.promptPassphraseRecovery': (_params, response) => {
+        held = response as unknown as ResponseType
+      },
+    },
+  }).start('keybase.1.login.recoverPassphrase', {}, started)
+  await tick()
+  const [, , , [{sessionID}]] = pair.serviceReceived()[0] as [number, number, string, [{sessionID: number}]]
+  pair.serviceSends([0, 50, 'keybase.1.loginUi.promptPassphraseRecovery', [{sessionID}]])
+  // Half of a frame is still in the renderer's packetizer when the reset lands
+  pair.serviceSendsBytes(encodeFrame([2, 'keybase.1.test.notify', [{}]]).subarray(0, 4))
+  await tick()
+  expect(held).toBeDefined()
+
+  pair.engine.reset()
+  await tick()
+  // well past the reconnect delay: node does not reconnect on its own
+  jest.advanceTimersByTime(60000)
+  await tick()
+  expect(pair.socketsOpened()).toBe(1)
+  expect(pair.linkChanges).toEqual([true, false])
+  pair.rendererReloads()
+  await tick()
+
+  expect(started).toHaveBeenCalledTimes(1)
+  expect(started.mock.calls[0]![0]).toMatchObject({code: errors.EOF})
+  expect(held?.settled).toBe(true)
+  held?.result?.({passphrase: 'testpass'})
+  await tick()
+  expect(pair.serviceReceived()).toEqual([])
+  expect(pair.linkChanges).toEqual([true, false, true])
+
+  const cb = jest.fn()
+  pair.renderer.invoke('keybase.1.config.getBootstrapStatus', [{}], cb)
+  await tick()
+  expect(methodsReceived(pair)).toEqual(['keybase.1.config.getBootstrapStatus'])
+  const [, seqid] = pair.serviceReceived()[0]!
+  pair.serviceSends([1, seqid, null, {ok: true}])
+  await tick()
+  expect(cb).toHaveBeenCalledWith(null, {ok: true})
+})
+
+test('a renderer call whose write fails in node settles, and calls reach the service once node reconnects', async () => {
+  const pair = makeDesktopEnginePair()
+  pair.socketWritesThrow()
+  const lost = jest.fn()
+  const logged = jest.spyOn(logger, 'error').mockImplementation(() => {})
+  try {
+    pair.renderer.invoke('keybase.1.config.getBootstrapStatus', [{}], lost)
+    await tick()
+  } finally {
+    logged.mockRestore()
+  }
+  await tick()
+  expect(lost).toHaveBeenCalledTimes(1)
+  expect(lost.mock.calls[0]![0]).toMatchObject({code: errors.EOF})
+
+  pair.serviceComesBack()
+  await tick()
+  const cb = jest.fn()
+  pair.renderer.invoke('keybase.1.config.getBootstrapStatus', [{}], cb)
+  await tick()
+  expect(methodsReceived(pair)).toEqual(['keybase.1.config.getBootstrapStatus'])
+})
+
+test('link changes before the app has its listeners ready are not announced', async () => {
+  const pair = makeDesktopEnginePair({listenersReady: false})
+  pair.serviceDies()
+  await tick()
+  expect(pair.linkChanges).toEqual([])
+  pair.serviceComesBack()
+  await tick()
+  pair.listenersReadyAgain()
+  expect(pair.linkChanges).toEqual([true])
 })

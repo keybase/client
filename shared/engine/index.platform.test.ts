@@ -1,188 +1,299 @@
 /// <reference types="jest" />
 
-// jest.setup.js sets isMobile=false, isRenderer=true, and _fromPreload.functions
-// with no engineSend -- exactly the "renderer up, preload never wired engineSend"
-// case this test drives.
-import {EventEmitter} from 'events'
-import {createClient, resetClient, dispatchRpcBatch, makeDispatchOne} from './index.platform'
+// jest.setup.js sets isMobile=false and _fromPreload.functions with no engineSend or ipcRendererOn;
+// each test wires what it drives.
+import {createClient, dispatchRpcBatch, makeDispatchOne} from './index.platform'
 // Aliased: two tests below declare a local `errors` array for captured log
 // messages.
-import {errors as rpcErrors, type RPCMessage} from './rpc-transport'
-import type {KB2} from '@/util/electron'
-
-// The non-renderer desktop transport opens a real unix socket via a lazy
-// require('net') inside connectOnce(). Stand in for it so the transport's
-// connect/write/close lifecycle can be driven deterministically.
-class MockSocket extends EventEmitter {
-  written = new Array<Buffer>()
-  destroyed = false
-  write(b: Buffer) {
-    this.written.push(b)
-    return true
-  }
-  destroy() {
-    this.destroyed = true
-  }
-}
-const mockSockets = new Array<MockSocket>()
-jest.mock('net', () => ({
-  connect: () => {
-    const socket = new MockSocket()
-    mockSockets.push(socket)
-    return socket
-  },
-}))
+import {encodeFrame, errors as rpcErrors} from './rpc-transport'
+import type {IncomingRPCCallbackType} from './rpc-transport'
+import type {EngineLinkFrame, EngineSend, KB2} from '@/util/electron'
+import type * as EngineModule from './index'
 
 const getPreload = () => globalThis._fromPreload as KB2
 
+// A renderer client wired to a stand-in relay: `fromRelay` is node's side of 'engineIncoming'
+const makeRendererClient = (opts?: {noEngineSend?: boolean; incoming?: IncomingRPCCallbackType}) => {
+  const preload = getPreload()
+  const sent = new Array<EngineSend>()
+  let incoming: ((e: unknown, data: unknown) => void) | undefined
+  preload.functions.ipcRendererOn = (channel, cb) => {
+    if (channel === 'engineIncoming') {
+      incoming = cb
+    }
+    return undefined
+  }
+  if (!opts?.noEngineSend) {
+    preload.functions.engineSend = s => {
+      sent.push(s)
+    }
+  }
+  const connected = jest.fn()
+  const disconnected = jest.fn()
+  const client = createClient(opts?.incoming ?? (() => {}), connected, disconnected)
+  const fromRelay = (data: Uint8Array | EngineLinkFrame) => incoming?.(undefined, data)
+  return {client, connected, disconnected, fromRelay, sent}
+}
+const up = (epoch: number): EngineLinkFrame => ({epoch, type: 'link', up: true})
+const down = (epoch: number): EngineLinkFrame => ({epoch, type: 'link', up: false})
+const disconnectError = {code: rpcErrors.EOF, desc: 'The service connection was lost', name: 'EOF'}
+
+afterEach(() => {
+  const {functions} = getPreload()
+  delete functions.engineDropLink
+  delete functions.engineSend
+  delete functions.ipcRendererOn
+})
+
 test('a missing engineSend fails the write instead of silently no-oping', () => {
-  const client = createClient(
-    () => {},
-    () => {},
-    () => {}
-  )
+  const {client, fromRelay} = makeRendererClient({noEngineSend: true})
+  fromRelay(up(1))
 
   const ok = client.transport.send([1, 3, null, {}])
 
   expect(ok).toBe(false)
 })
 
-test('ProxyNativeTransport.reset fails outstanding invocations so pre-switch callbacks cannot fire against post-switch state', () => {
-  const preload = getPreload()
-  const sent = new Array<RPCMessage>()
-  preload.functions.engineSend = m => {
-    sent.push(m)
-  }
+test('calls made before the first link-up wait for it, then go out stamped with that link', () => {
+  const {client, fromRelay, sent} = makeRendererClient()
+  client.invoke('keybase.1.test.hello', [{}], () => {})
+  expect(sent).toEqual([])
 
-  try {
-    const client = createClient(
-      () => {},
-      () => {},
-      () => {}
-    )
-    const cb = jest.fn()
-    client.invoke('keybase.1.test.hello', [{}], cb)
+  fromRelay(up(3))
 
-    expect(sent).toHaveLength(1)
-    expect(cb).not.toHaveBeenCalled()
-
-    // Desktop account switch: without this the pre-switch callback stays
-    // outstanding forever (or fires later against post-switch state).
-    client.transport.reset()
-
-    expect(cb).toHaveBeenCalledTimes(1)
-    const [err] = cb.mock.calls[0] as [unknown, unknown]
-    expect((err as {code?: number}).code).toBe(rpcErrors.EOF)
-
-    // A reply for the pre-switch seqid arriving after the reset must be
-    // dropped, not delivered to the already-failed callback.
-    const [, seqid] = sent[0] as [number, number, string, [object]]
-    client.transport.dispatchDecodedMessage([1, seqid, null, {ok: 'late'}])
-    expect(cb).toHaveBeenCalledTimes(1)
-  } finally {
-    delete preload.functions.engineSend
-  }
+  expect(sent.map(s => [s.epoch, s.message[2]])).toEqual([[3, 'keybase.1.test.hello']])
 })
 
-test('resetClient outside the renderer closes the old transport and builds a fresh one', () => {
-  const preload = getPreload()
-  const originalIsRenderer = preload.constants.isRenderer
-  preload.constants.isRenderer = false
-  mockSockets.length = 0
+test('each link change reaches the engine once, and a replayed or stale frame is ignored', () => {
+  const {connected, disconnected, fromRelay} = makeRendererClient()
+  fromRelay(down(0))
+  fromRelay(up(1))
+  fromRelay(up(1))
+  fromRelay(down(0))
+  expect(connected).toHaveBeenCalledTimes(1)
+  expect(disconnected).not.toHaveBeenCalled()
 
-  try {
-    const client = createClient(
-      () => {},
-      () => {},
-      () => {}
-    )
-    expect(mockSockets).toHaveLength(1)
-    const socket = mockSockets[0]!
-    socket.emit('connect')
+  fromRelay(down(1))
+  fromRelay(down(1))
+  fromRelay(up(2))
 
-    const cb = jest.fn()
-    client.invoke('keybase.1.test.hello', [{}], cb)
-    expect(socket.written).toHaveLength(1)
-    expect(cb).not.toHaveBeenCalled()
-
-    const next = resetClient(
-      client,
-      () => {},
-      () => {},
-      () => {}
-    )
-
-    // close() must fail what was in flight -- same invariant the renderer
-    // branch gets from transport.reset().
-    expect(cb).toHaveBeenCalledTimes(1)
-    const [err] = cb.mock.calls[0] as [unknown, unknown]
-    expect((err as {code?: number}).code).toBe(rpcErrors.EOF)
-    expect(socket.destroyed).toBe(true)
-
-    // A brand new transport on a brand new socket, not the closed one.
-    expect(next.transport).not.toBe(client.transport)
-    expect(mockSockets).toHaveLength(2)
-    expect(mockSockets[1]).not.toBe(socket)
-
-    next.transport.close()
-  } finally {
-    preload.constants.isRenderer = originalIsRenderer
-  }
+  expect(connected).toHaveBeenCalledTimes(2)
+  expect(disconnected).toHaveBeenCalledTimes(1)
 })
 
-// The reachable path for a non-empty pending queue at close() time: the
-// non-renderer transport is created with needsConnect, so it starts
-// disconnected and every invoke made before the socket connects is queued.
-// resetClient then closes it. Dropping that queue silently would hang each
-// caller forever.
-test('resetClient outside the renderer fails invokes queued on a transport that never connected', () => {
-  const preload = getPreload()
-  const originalIsRenderer = preload.constants.isRenderer
-  preload.constants.isRenderer = false
-  mockSockets.length = 0
+test('a link-up for a new connection while the old one is up takes the old one down first', () => {
+  const {connected, disconnected, fromRelay} = makeRendererClient()
+  fromRelay(up(1))
+  fromRelay(up(2))
+  expect(connected).toHaveBeenCalledTimes(2)
+  expect(disconnected).toHaveBeenCalledTimes(1)
+})
 
-  try {
-    const client = createClient(
-      () => {},
-      () => {},
-      () => {}
-    )
-    // Socket never emits 'connect', so the transport stays disconnected.
-    expect(mockSockets).toHaveLength(1)
-    const socket = mockSockets[0]!
+test('service bytes are read only while the link is up', () => {
+  const incoming = jest.fn()
+  const {fromRelay} = makeRendererClient({incoming})
+  const notify = encodeFrame([2, 'keybase.1.test.notify', [{}]])
+  fromRelay(up(1))
 
-    const cbA = jest.fn()
-    const cbB = jest.fn()
-    client.invoke('keybase.1.test.a', [{}], cbA)
-    client.invoke('keybase.1.test.b', [{}], cbB)
-    expect(socket.written).toHaveLength(0)
-    expect(cbA).not.toHaveBeenCalled()
+  fromRelay(down(1))
+  fromRelay(notify)
+  expect(incoming).not.toHaveBeenCalled()
 
-    const next = resetClient(
-      client,
-      () => {},
-      () => {},
-      () => {}
-    )
+  fromRelay(up(2))
+  fromRelay(notify)
+  expect(incoming).toHaveBeenCalledTimes(1)
+})
 
-    expect(cbA).toHaveBeenCalledTimes(1)
-    expect(cbB).toHaveBeenCalledTimes(1)
-    for (const cb of [cbA, cbB]) {
-      const [err] = cb.mock.calls[0] as [unknown, unknown]
-      expect((err as {code?: number}).code).toBe(rpcErrors.EOF)
+test('a link drop discards a partly delivered frame', () => {
+  const incoming = jest.fn()
+  const {fromRelay} = makeRendererClient({incoming})
+  const notify = encodeFrame([2, 'keybase.1.test.notify', [{n: 1}]])
+  fromRelay(up(1))
+
+  fromRelay(notify.subarray(0, 3))
+  fromRelay(down(1))
+  fromRelay(up(2))
+  fromRelay(notify)
+
+  expect(incoming).toHaveBeenCalledTimes(1)
+  expect(incoming).toHaveBeenCalledWith({method: 'keybase.1.test.notify', param: [{n: 1}]})
+})
+
+test('a link drop fails the calls in flight on it once, before the engine hears', () => {
+  const calls = new Array<string>()
+  const {client, disconnected, fromRelay} = makeRendererClient()
+  disconnected.mockImplementation(() => calls.push('engine told'))
+  fromRelay(up(1))
+  const cb = jest.fn(() => calls.push('call failed'))
+  client.invoke('keybase.1.test.hello', [{}], cb)
+
+  fromRelay(down(1))
+  fromRelay(down(1))
+  fromRelay(up(2))
+
+  expect(cb).toHaveBeenCalledTimes(1)
+  expect(cb).toHaveBeenCalledWith(disconnectError, {})
+  expect(calls).toEqual(['call failed', 'engine told'])
+})
+
+test('a service restarting twice before the renderer hears the first drop fails the call once', () => {
+  const {client, fromRelay, sent} = makeRendererClient()
+  fromRelay(up(1))
+  const cb = jest.fn()
+  client.invoke('keybase.1.test.hello', [{}], cb)
+
+  // The renderer never hears epoch 2's own link frames, only that 3 is up
+  fromRelay(up(3))
+  fromRelay(down(3))
+  fromRelay(up(4))
+
+  expect(cb).toHaveBeenCalledTimes(1)
+  expect(cb).toHaveBeenCalledWith(disconnectError, {})
+  expect(sent.map(s => s.epoch)).toEqual([1])
+})
+
+test('after the first link-up, a call made while the link is down is refused at once and never sent', () => {
+  const {client, fromRelay, sent} = makeRendererClient()
+  fromRelay(up(1))
+  fromRelay(down(1))
+  const cb = jest.fn()
+
+  client.invoke('keybase.1.test.hello', [{}], cb)
+  expect(cb).toHaveBeenCalledTimes(1)
+  expect(cb).toHaveBeenCalledWith(disconnectError, {})
+
+  fromRelay(up(2))
+  expect(sent).toEqual([])
+})
+
+test('at boot a replayed link-down does not refuse a call waiting for the first link-up', () => {
+  const {client, fromRelay, sent} = makeRendererClient()
+  const cb = jest.fn()
+  fromRelay(down(0))
+  client.invoke('keybase.1.test.hello', [{}], cb)
+  fromRelay(down(0))
+  expect(cb).not.toHaveBeenCalled()
+
+  fromRelay(up(1))
+  expect(sent.map(s => [s.epoch, s.message[2]])).toEqual([[1, 'keybase.1.test.hello']])
+})
+
+test('an answer to the service made while the link is down goes to no later link', () => {
+  let payload: Parameters<IncomingRPCCallbackType>[0] | undefined
+  const {fromRelay, sent} = makeRendererClient({
+    incoming: p => {
+      payload = p
+    },
+  })
+  fromRelay(up(1))
+  fromRelay(encodeFrame([0, 9, 'keybase.1.test.prompt', [{}]]))
+  fromRelay(down(1))
+
+  payload?.response?.result?.({answer: true})
+  fromRelay(up(2))
+
+  expect(sent).toEqual([])
+})
+
+test('an answer to a call from an earlier link, made once a new link is up, is not written to it', () => {
+  let payload: Parameters<IncomingRPCCallbackType>[0] | undefined
+  const {fromRelay, sent} = makeRendererClient({
+    incoming: p => {
+      payload = p
+    },
+  })
+  fromRelay(up(1))
+  fromRelay(encodeFrame([0, 9, 'keybase.1.test.prompt', [{}]]))
+  fromRelay(down(1))
+  fromRelay(up(2))
+
+  payload?.response?.result?.({answer: true})
+
+  expect(sent).toEqual([])
+})
+
+test('reset asks the relay to drop the link, and the link frames, not the reset, fail what is in flight', () => {
+  const {client, fromRelay, sent} = makeRendererClient()
+  const drops = jest.fn()
+  getPreload().functions.engineDropLink = drops
+  fromRelay(up(1))
+  const cb = jest.fn()
+  client.invoke('keybase.1.test.hello', [{}], cb)
+
+  client.transport.reset()
+  expect(drops).toHaveBeenCalledTimes(1)
+  expect(cb).not.toHaveBeenCalled()
+
+  fromRelay(down(1))
+  expect(cb).toHaveBeenCalledTimes(1)
+  expect(cb).toHaveBeenCalledWith(disconnectError, {})
+
+  // A reply for the old seqid arriving later is dropped, not delivered to the already-failed callback
+  const seqid = sent[0]!.message[1] as number
+  client.transport.dispatchDecodedMessage([1, seqid, null, {ok: 'late'}])
+  expect(cb).toHaveBeenCalledTimes(1)
+})
+
+// Stands in for Electron's ipcRenderer: every 'engineIncoming' listener hears each frame until removed
+const makeRelayChannel = () => {
+  const listeners = new Set<(e: unknown, data: unknown) => void>()
+  const restarts = jest.fn()
+  const {functions} = getPreload()
+  functions.engineSend = () => {}
+  functions.engineRestartLink = restarts
+  functions.ipcRendererOn = (channel, cb) => {
+    if (channel !== 'engineIncoming') return undefined
+    listeners.add(cb)
+    return () => {
+      listeners.delete(cb)
     }
-
-    // A late connect on the abandoned socket must not flush the queue it
-    // already settled.
-    socket.emit('connect')
-    expect(socket.written).toHaveLength(0)
-    expect(cbA).toHaveBeenCalledTimes(1)
-    expect(cbB).toHaveBeenCalledTimes(1)
-
-    next.transport.close()
-  } finally {
-    preload.constants.isRenderer = originalIsRenderer
   }
+  const fromRelay = (data: Uint8Array | EngineLinkFrame) => listeners.forEach(cb => cb(undefined, data))
+  return {fromRelay, listeners, restarts}
+}
+
+test('a closed renderer transport stops hearing the relay', () => {
+  const {fromRelay, listeners} = makeRelayChannel()
+  const connected = jest.fn()
+  const client = createClient(() => {}, connected, () => {})
+  expect(listeners.size).toBe(1)
+
+  client.transport.close()
+  fromRelay(up(1))
+
+  expect(listeners.size).toBe(0)
+  expect(connected).not.toHaveBeenCalled()
+})
+
+test('an engine that replaces one built by older code (HMR) is the only one hearing the relay, and gets a link of its own', () => {
+  const {fromRelay, listeners, restarts} = makeRelayChannel()
+  jest.isolateModules(() => {
+    const {makeEngine} = require('./index') as typeof EngineModule
+    const old = makeEngine(
+      () => {},
+      () => {}
+    )
+    fromRelay(up(1))
+    old.listenersAreReady()
+    // what an engine from before the call port looks like to makeEngine
+    ;(old as {listen?: unknown}).listen = undefined
+
+    const linkChanges = new Array<boolean>()
+    const next = makeEngine(
+      () => {},
+      up => linkChanges.push(up)
+    )
+    next.listenersAreReady()
+
+    expect(next).not.toBe(old)
+    expect(listeners.size).toBe(1)
+    expect(restarts).toHaveBeenCalledTimes(1)
+    // the relay's restart: the old link goes down and a new one comes up
+    fromRelay(down(1))
+    fromRelay(up(2))
+    expect(linkChanges).toEqual([true])
+    expect(next._rpcClient.transport.isLinkUp).toBe(true)
+  })
 })
 
 // dispatchRpcBatch backs the mobile global.rpcOnJs batch dispatcher (only

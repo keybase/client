@@ -37,10 +37,14 @@ function rpcLog(info: {method: string; reason: string; extra?: object; type: str
 }
 
 abstract class TransportShared extends RPCTransport {
+  // Whether the link to the service is up now
+  private _linkUp: boolean
+
   constructor(
+    incomingRPCCallback?: IncomingRPCCallbackType,
     connectCallback?: ConnectDisconnectCB,
     disconnectCallback?: ConnectDisconnectCB,
-    incomingRPCCallback?: IncomingRPCCallbackType
+    linkUp = false
   ) {
     super({
       connectCallback,
@@ -57,6 +61,25 @@ abstract class TransportShared extends RPCTransport {
             }
           : incomingRPCCallback,
     })
+    this._linkUp = linkUp
+  }
+
+  get isLinkUp() {
+    return this._linkUp
+  }
+
+  protected override isConnected() {
+    return this._linkUp
+  }
+
+  protected markLinkDown() {
+    this._linkUp = false
+    this.onLinkDown()
+  }
+
+  protected markLinkUp() {
+    this._linkUp = true
+    this.onConnected()
   }
 
   // add logging / multiple call checking
@@ -118,42 +141,11 @@ abstract class TransportShared extends RPCTransport {
   }
 }
 
-// Base for transports that are always locally connected (mobile JSI, desktop renderer IPC).
-// Only writeMessage() needs to be overridden per platform.
-abstract class LocalTransport extends TransportShared {
-  constructor(
-    incomingRPCCallback: IncomingRPCCallbackType,
-    connectCallback?: ConnectDisconnectCB,
-    disconnectCallback?: ConnectDisconnectCB
-  ) {
-    super(connectCallback, disconnectCallback, incomingRPCCallback)
-    this.needsConnect = false
-  }
-  override connect(cb: (err?: unknown) => void) {
-    cb()
-  }
-  protected override isConnected() {
-    return true
-  }
-  override reset() {}
-  override close() {}
-}
-
 function sharedCreateClient(nativeTransport: TransportShared): {invoke: InvokeType; transport: TransportShared} {
-  const rpcClient = {
+  return {
     invoke: nativeTransport.invoke.bind(nativeTransport) as InvokeType,
     transport: nativeTransport,
   }
-
-  if (rpcClient.transport.needsConnect) {
-    rpcClient.transport.connect(err => {
-      if (err) {
-        console.log('Error in connecting to transport rpc:', err)
-      }
-    })
-  }
-
-  return rpcClient
 }
 
-export {TransportShared, LocalTransport, sharedCreateClient, rpcLog}
+export {TransportShared, sharedCreateClient, rpcLog}

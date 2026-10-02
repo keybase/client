@@ -21,7 +21,7 @@ import {
 import * as RPCTypes from '@/constants/rpc/rpc-gen'
 import {ensureError} from '@/util/errors'
 import type {Action} from '../app/ipctypes'
-import type {Engine} from '@/engine'
+import type {EngineRelay} from './engine-relay.desktop'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '@/local-debug'
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
@@ -173,14 +173,22 @@ const openInDefaultDirectory = async (openPath: string) => {
 export const setupIPCHandlers = (deps: {
   getMainWindow: () => Electron.BrowserWindow | null
   markAppStartedUp: () => void
-  nodeEngine: Engine
+  engineRelay: EngineRelay
 }) => {
   Electron.ipcMain.handle('KBdispatchAction', (_: unknown, action: unknown) => {
     deps.getMainWindow()?.webContents.send('KBdispatchAction', action)
   })
 
-  Electron.ipcMain.on('engineSend', (_event, buf) => {
-    deps.nodeEngine._rpcClient.transport.send(buf)
+  Electron.ipcMain.on('engineSend', (_event, send: unknown) => {
+    deps.engineRelay.send(send)
+  })
+
+  Electron.ipcMain.on('engineRestartLink', () => {
+    deps.engineRelay.restartLink({afterDelay: true})
+  })
+
+  Electron.ipcMain.on('engineDropLink', () => {
+    deps.engineRelay.dropLink()
   })
 
   Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {

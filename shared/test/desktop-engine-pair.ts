@@ -1,12 +1,14 @@
-// The desktop engine as the app wires it: the renderer's engine talks over IPC to the node
-// process's engine, which owns the unix socket to the service. Both are the real Engine and
-// platform transports (ProxyNativeTransport in the renderer, NativeTransport in node); only the
-// socket and the Electron IPC between the two processes are stood in for.
+// The desktop engine as the app wires it: the renderer's engine talks over IPC to the node process's
+// relay, which owns the unix socket to the service. The renderer runs the real Engine and
+// ProxyNativeTransport, node the real EngineRelay; only the socket and the Electron IPC between the
+// two processes are stood in for.
 import {EventEmitter} from 'events'
+import {setImmediate} from 'node:timers'
 import {decodeMulti} from '@msgpack/msgpack'
 import {Engine} from '@/engine'
+import {EngineRelay} from '@/desktop/app/engine-relay.desktop'
+import {encodeFrame, type RPCMessage} from '@/engine/rpc-transport'
 import type {CreateClientType} from '@/engine/index.platform'
-import type {RPCMessage} from '@/engine/rpc-transport'
 import type {KB2} from '@/util/electron'
 
 class MockSocket extends EventEmitter {
@@ -21,7 +23,7 @@ class MockSocket extends EventEmitter {
   }
 }
 
-// NativeTransport requires 'net' lazily on every connect, so each (re)connect gets a fresh socket
+// The relay opens a fresh socket on every (re)connect
 const mockSockets = new Array<MockSocket>()
 jest.mock('net', () => ({
   connect: () => {
@@ -31,39 +33,55 @@ jest.mock('net', () => ({
   },
 }))
 
-// NativeTransport's reconnect timer
+// EngineRelay's reconnect timer
 const reconnectDelayMs = 1000
 
 export type DesktopEnginePair = {
+  engine: Engine
   renderer: CreateClientType
   // The service process exits: the node socket closes.
   serviceDies: () => void
-  // A new service is up and node's reconnect reaches it.
+  // Node's writes to the current socket throw.
+  socketWritesThrow: () => void
+  // Node reconnects, after the service died or a renderer reset restarted the link, and reaches a
+  // service. Takes the reconnect delay, so anything still crossing IPC arrives first.
   serviceComesBack: () => void
+  // The renderer reloads: the relay restarts its link, which reconnects at once.
+  rendererReloads: () => void
+  // How many sockets node has opened to the service so far.
+  socketsOpened: () => number
   // Every message the running service has received on its socket.
   serviceReceived: () => Array<RPCMessage>
+  // The running service writes a message to its socket.
+  serviceSends: (message: RPCMessage) => void
+  // The running service writes raw bytes to its socket, e.g. part of a frame.
+  serviceSendsBytes: (bytes: Uint8Array) => void
+  // Each time the renderer engine told the app the link went up (true) or down (false).
+  linkChanges: Array<boolean>
+  // The renderer's app says its listeners are ready again, as an HMR reload does.
+  listenersReadyAgain: () => void
 }
 
 let teardown: (() => void) | undefined
 
-export const makeDesktopEnginePair = (): DesktopEnginePair => {
+// listenersReady: false leaves the app still loading its listeners; listenersReadyAgain() then
+// finishes it.
+export const makeDesktopEnginePair = (opts?: {listenersReady?: boolean}): DesktopEnginePair => {
   if (teardown) {
     throw new Error('desktop engine pair: one is already made in this test')
   }
   const preload = globalThis._fromPreload as KB2
   const {functions} = preload
-  const {isRenderer} = preload.constants
-  const made: {node?: Engine; renderer?: Engine} = {}
+  const made: {renderer?: Engine} = {}
+  // Electron IPC is asynchronous both ways: what one process sends arrives a turn later, in order.
+  // So a renderer call can reach the relay after the socket died but before the renderer has heard.
+  const inTransit = new Array<() => void>()
   // Set before anything global changes, so a setup that throws part way is still undone
   teardown = () => {
     try {
-      try {
-        made.renderer?._rpcClient.transport.reset()
-      } finally {
-        made.node?._rpcClient.transport.close()
-      }
+      inTransit.length = 0
+      made.renderer?._rpcClient.transport.close()
     } finally {
-      preload.constants.isRenderer = isRenderer
       preload.functions = functions
       jest.useRealTimers()
       mockSockets.length = 0
@@ -78,45 +96,65 @@ export const makeDesktopEnginePair = (): DesktopEnginePair => {
     return s
   }
 
-  // In the app node.desktop.tsx sends this to the renderer as RemoteGen.engineConnection, and
-  // remote-event-handler hands it to onEngineConnected/onEngineDisconnected. Those drive app stores
-  // (daemon handshake, UI registration) and never reach the renderer's engine or transport. The
-  // stores are left out here because their handshake RPCs would reach the service, so the signal
-  // stops at the renderer's door, as it does at the engine layer in the app.
-  const deliverEngineConnectionToRenderer = (_connected: boolean) => {}
-
-  preload.constants.isRenderer = false
-  const node = new Engine(() => {}, deliverEngineConnectionToRenderer)
-  made.node = node
-  preload.constants.isRenderer = true
+  const deliverNext = () => inTransit.shift()?.()
+  const overIPC = (deliver: () => void) => {
+    inTransit.push(deliver)
+    setImmediate(deliverNext)
+  }
+  const deliverAll = () => {
+    while (inTransit.length) {
+      deliverNext()
+    }
+  }
 
   let rendererIncoming: ((e: unknown, data: unknown) => void) | undefined
+  // preload: node forwards the service's bytes and the relay's link frames to the main window's
+  // 'engineIncoming'
+  const relay = new EngineRelay(data => overIPC(() => rendererIncoming?.(undefined, data)))
+
   preload.functions = {
     ...functions,
-    // ipc-handlers.desktop.tsx: the renderer's engineSend lands as a raw send on node's transport
-    engineSend: m => {
-      node._rpcClient.transport.send(m)
-    },
+    // ipc-handlers.desktop.tsx: the renderer's engineSend, engineRestartLink and engineDropLink land on the relay
+    engineRestartLink: () => overIPC(() => relay.restartLink({afterDelay: true})),
+    engineDropLink: () => overIPC(() => relay.dropLink()),
+    engineSend: send => overIPC(() => relay.send(send)),
     ipcRendererOn: (channel, cb) => {
       if (channel === 'engineIncoming') {
         rendererIncoming = cb
       }
+      return undefined
     },
-    // preload: node forwards the service's bytes untouched to the main window's 'engineIncoming'
-    mainWindowDispatchEngineIncoming: data => rendererIncoming?.(undefined, data),
   }
 
+  const linkChanges = new Array<boolean>()
   const renderer = new Engine(
     () => {},
-    () => {}
+    up => linkChanges.push(up)
   )
   made.renderer = renderer
 
+  // As the app boots: the service is up, the renderer starts (node replays the link state to it),
+  // then the renderer's listeners are ready
   currentSocket().emit('connect')
+  relay.replayLinkState()
+  deliverAll()
+  if (opts?.listenersReady !== false) {
+    renderer.listenersAreReady()
+  }
 
   return {
+    engine: renderer,
+    linkChanges,
+    listenersReadyAgain: () => renderer.listenersAreReady(),
     renderer: renderer._rpcClient,
+    rendererReloads: () => {
+      deliverAll()
+      relay.restartLink()
+      currentSocket().emit('connect')
+    },
+    socketsOpened: () => mockSockets.length,
     serviceComesBack: () => {
+      deliverAll()
       const before = mockSockets.length
       jest.advanceTimersByTime(reconnectDelayMs)
       if (mockSockets.length !== before + 1) {
@@ -132,6 +170,17 @@ export const makeDesktopEnginePair = (): DesktopEnginePair => {
       // Each frame is a msgpack uint32 length followed by the message, so the stream decodes as
       // alternating lengths and messages
       return [...decodeMulti(bytes)].filter((m): m is RPCMessage => Array.isArray(m))
+    },
+    serviceSends: message => {
+      currentSocket().emit('data', Buffer.from(encodeFrame(message)))
+    },
+    socketWritesThrow: () => {
+      currentSocket().write = () => {
+        throw new Error('desktop engine pair: socket write failed')
+      }
+    },
+    serviceSendsBytes: bytes => {
+      currentSocket().emit('data', Buffer.from(bytes))
     },
   }
 }
