@@ -410,6 +410,20 @@ describe('pgp key warning', () => {
     await settle()
   })
 
+  test('a warning that cannot be pushed is declined at once, not at the push timeout', async () => {
+    nav = installFakeNavigator({modalRouteNames: Object.keys(newModalRoutes), ready: false, rootState: makeRootState()})
+    useFakeTimers()
+    const {held, sessionID} = await start()
+    const answered = pushPgp(sessionID)
+
+    // No timer advances: the decline comes from the push giving up
+    await expect(Promise.race([answered, settle().then(settle).then(() => 'still waiting')])).resolves.toEqual({
+      result: false,
+    })
+    held[0]!.reply(undefined)
+    await settle()
+  })
+
   test('a warning pushed but never mounted is declined at the push timeout', async () => {
     useFakeTimers()
     const {held, sessionID} = await start()
