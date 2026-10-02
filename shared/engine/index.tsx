@@ -239,7 +239,7 @@ class Engine implements CallPort {
     }
   }
 
-  // An outgoing call. ONLY called by the generated rpc helpers
+  // An outgoing call, made by the generated rpc helpers and by the listener
   call(p: {
     method: string
     params: object | undefined

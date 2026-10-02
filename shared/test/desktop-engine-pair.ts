@@ -127,7 +127,7 @@ export const makeDesktopEnginePair = (): DesktopEnginePair => {
   }
 }
 
-const teardownDesktopEnginePair =() => {
+const teardownDesktopEnginePair = () => {
   const t = teardown
   teardown = undefined
   t?.()
