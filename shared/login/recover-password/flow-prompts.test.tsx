@@ -424,6 +424,53 @@ describe('pgp key warning', () => {
     expect(response.error).not.toHaveBeenCalled()
   })
 
+  test.each([
+    ['is cancelled', new RPCError('Input canceled', T.RPCGen.StatusCode.sccanceled)],
+    ['drops', new RPCError('EOF', T.RPCGen.StatusCode.scgeneric)],
+  ])('a run that %s with the prompt unanswered closes the warning', async (_label, error) => {
+    const {first} = await startAttempt()
+    prompt(first)
+    first.reject(error)
+    await flush()
+    expect(rootRouteNames()).not.toContain('recoverPasswordPgpWarning')
+  })
+
+  test('closing a dead warning leaves a modal opened over it in place', async () => {
+    const {first} = await startAttempt()
+    prompt(first)
+    nav.setRootState(
+      makeRootState({above: [{name: 'recoverPasswordPgpWarning'}, {name: 'proxySettingsModal'}]})
+    )
+    first.reject(new RPCError('Input canceled', T.RPCGen.StatusCode.sccanceled))
+    await flush()
+    expect(rootRouteNames()).toEqual(['loggedIn', 'proxySettingsModal'])
+  })
+
+  test('a run ending after Continue leaves the set-password screen alone', async () => {
+    const {first} = await startAttempt()
+    prompt(first)
+    submitRecoverPasswordPgpContinue()
+    first.listener.customResponseIncomingCallMap?.['keybase.1.secretUi.getPassphrase']?.(
+      {pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.passPhrase}} as any,
+      {error: jest.fn(), result: jest.fn()} as any
+    )
+    nav.clearActions()
+    first.reject(new RPCError('Input canceled', T.RPCGen.StatusCode.sccanceled))
+    await flush()
+    expect(nav.actions).toEqual([])
+    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordSetPassword'])
+  })
+
+  test('a run ending after declining dispatches nothing more', async () => {
+    const {first} = await startAttempt()
+    prompt(first)
+    cancelRecoverPassword()
+    nav.clearActions()
+    first.reject(new RPCError('Input canceled', T.RPCGen.StatusCode.sccanceled))
+    await flush()
+    expect(nav.actions).toEqual([])
+  })
+
   test("an old run ending late does not drop the newer run's pending prompt", async () => {
     const attempts = mockRecoverAttempts()
     startRecoverPassword({username: 'testuser'})
@@ -438,5 +485,18 @@ describe('pgp key warning', () => {
     await flush()
     expect(second.result).toHaveBeenCalledTimes(1)
     expect(second.result).toHaveBeenCalledWith(false)
+  })
+
+  test("an old run ending late leaves the newer run's warning showing", async () => {
+    const attempts = mockRecoverAttempts()
+    startRecoverPassword({username: 'testuser'})
+    await flush()
+    prompt(attempts[0]!)
+    startRecoverPassword({username: 'testuser'})
+    await flush()
+    prompt(attempts[1]!)
+    attempts[0]!.reject(new RPCError('Input canceled', T.RPCGen.StatusCode.sccanceled))
+    await flush()
+    expect(rootRouteNames()).toContain('recoverPasswordPgpWarning')
   })
 })

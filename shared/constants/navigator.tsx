@@ -43,6 +43,8 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
   navigateUp: () => void
   popStack: () => void
   clearModals: () => void
+  // Drops the modals with this name from the root stack and leaves every other route where it is.
+  removeModal: (name: RouteKeys) => void
   // Returns whether the target is now the visible route - either because we dispatched,
   // or because we were already there. False means nothing happened and nothing will.
   navigateAppend: (path: NavigateAppendType, replace?: boolean) => boolean
@@ -87,6 +89,26 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     }
     if (!ref.isReady()) return
     ref.dispatch(StackActions.popToTop())
+  }
+
+  const removeModal = (name: RouteKeys) => {
+    if (DEBUG_NAV) {
+      console.log('[Nav] removeModal', name)
+    }
+    if (!ref.isReady()) return
+    const ns = ref.getRootState()
+    const rootRoutes = ns?.routes ?? []
+    const keepRoutes = rootRoutes.filter((route, index) => index === 0 || route.name !== name)
+    if (keepRoutes.length !== rootRoutes.length) {
+      ref.dispatch({
+        ...CommonActions.reset({
+          ...ns,
+          index: keepRoutes.length - 1,
+          routes: keepRoutes,
+        } as Parameters<typeof CommonActions.reset>[0]),
+        target: ns?.key,
+      })
+    }
   }
 
   const clearModals = () => {
@@ -342,6 +364,7 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     navigateAppendOnceRootHas,
     navigateUp,
     popStack,
+    removeModal,
     setChatRootParams,
     setRouteParams,
     showAboveTabs,

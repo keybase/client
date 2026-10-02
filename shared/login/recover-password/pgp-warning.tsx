@@ -40,9 +40,9 @@ const PgpWarning = () => {
         },
         {label: 'Cancel', onClick: onCancel, type: 'Dim' as ButtonType},
       ]}
+      // The modal's route header carries the title and the cancelling back button.
+      hideDesktopHeader={true}
       noBackground={true}
-      onBack={onCancel}
-      title="Recover password"
     >
       <QuestionBody centered={true} gap="small" topGap={false} icon={<Kb.ImageIcon type="icon-pgp-key-64" />}>
         <Kb.Text type="Body" center={true}>

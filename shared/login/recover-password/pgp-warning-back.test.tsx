@@ -88,6 +88,12 @@ describe('removing the pgp warning without a button press', () => {
     return response
   }
 
+  test('draws no header of its own under the route header', async () => {
+    await setup()
+    expect(screen.queryByText('Recover password')).toBeNull()
+    expect(screen.queryByText('Back')).toBeNull()
+  })
+
   test('answers false exactly once', async () => {
     const response = await setup()
     expect(mockBeforeRemove).toHaveLength(1)

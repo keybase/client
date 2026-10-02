@@ -1,5 +1,5 @@
 import * as T from '@/constants/types'
-import {clearModals, navigateAppend, navigateUp} from '@/constants/router'
+import {clearModals, navigateAppend, navigateUp, removeModal} from '@/constants/router'
 import {waitingKeyRecoverPassword} from '@/constants/strings'
 import {ignorePromise, wrapErrors} from '@/constants/utils'
 import logger from '@/logger'
@@ -60,6 +60,7 @@ export const startRecoverPassword = ({
     }
     let active = true
     let hadError = false
+    // Set while this run's PGP prompt is unanswered.
     let ownPgpAnswer: typeof pendingPgpAnswer
     // The warning is dead once answered, so the set-password screen that follows takes its place.
     let pgpContinued = false
@@ -123,6 +124,7 @@ export const startRecoverPassword = ({
             const answer = wrapErrors((proceed: boolean) => {
               if (settled) return
               settled = true
+              ownPgpAnswer = undefined
               pendingPgpAnswer = undefined
               clearSlots(slots.cancel, slots.submitPgpContinue)
               response.result(proceed)
@@ -255,9 +257,15 @@ export const startRecoverPassword = ({
         slots.submitResetPassword
       )
       active = false
-      // A newer run may already have stored its own answer.
-      if (ownPgpAnswer && pendingPgpAnswer === ownPgpAnswer) {
-        pendingPgpAnswer = undefined
+      if (ownPgpAnswer) {
+        // A newer run may already have stored its own answer.
+        if (pendingPgpAnswer === ownPgpAnswer) {
+          pendingPgpAnswer = undefined
+        }
+        // Nothing else closes a warning whose run is gone, and its buttons have no handle left to call.
+        // Targeted, unlike clearModals: anything opened over the warning stays put. Runs after the error
+        // modal's replace above, which already took the warning's place if it was on top.
+        removeModal('recoverPasswordPgpWarning')
       }
     }
     logger.info(`finished ${hadError ? 'with error' : 'without error'}`)

@@ -9,6 +9,7 @@ import {
   navigateAppendOnceRootHas,
   navigateUp,
   popStack,
+  removeModal,
   setChatRootParams,
   switchTab,
 } from '@/constants/router'
@@ -266,6 +267,33 @@ describe('clearModals', () => {
     })
 
     clearModals()
+
+    expect(nav.actions).toEqual([])
+  })
+})
+
+// ---- removeModal ----
+
+describe('removeModal', () => {
+  test('drops only the named modal, even below another one', () => {
+    nav = installFakeNavigator({
+      modalRouteNames: ['chatInfoPanel', 'chatNewChat'],
+      rootState: makeRootState({above: [{name: 'chatInfoPanel'}, {name: 'chatNewChat'}]}),
+    })
+
+    removeModal('chatInfoPanel')
+
+    expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedIn', 'chatNewChat'])
+    expect(nav.getRootState()?.index).toBe(1)
+  })
+
+  test('dispatches nothing when the modal is not showing', () => {
+    nav = installFakeNavigator({
+      modalRouteNames: ['chatInfoPanel', 'chatNewChat'],
+      rootState: makeRootState({above: [{name: 'chatNewChat'}]}),
+    })
+
+    removeModal('chatInfoPanel')
 
     expect(nav.actions).toEqual([])
   })

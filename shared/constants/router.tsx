@@ -166,6 +166,10 @@ export const clearModals = () => {
   getNavigator().clearModals()
 }
 
+export const removeModal = (name: RouteKeys) => {
+  getNavigator().removeModal(name)
+}
+
 export const navigateUp = () => {
   getNavigator().navigateUp()
 }
