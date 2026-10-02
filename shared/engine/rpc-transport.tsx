@@ -213,6 +213,9 @@ export abstract class RPCTransport {
   // link-up (boot); after it, they are refused, since the service they were meant for is gone and
   // the next one knows nothing of them.
   private _linkLost = false
+  // Bumped on every link drop. A reply to an incoming call is written only on the link the call came
+  // in on: the service on any later link never asked it.
+  private _linkGeneration = 0
   private _incomingRPCCallback?: IncomingRPCCallbackType
   private _connectCallback?: ConnectDisconnectCB
   private _disconnectCallback?: ConnectDisconnectCB
@@ -245,6 +248,7 @@ export abstract class RPCTransport {
   // the engine hears, so its own drop path finds them settled
   protected onLinkDown() {
     this._linkLost = true
+    this._linkGeneration += 1
     this._packetizer.reset()
     this.failOutstanding(makeDisconnectError(), {})
     this._disconnectCallback?.()
@@ -558,6 +562,14 @@ export abstract class RPCTransport {
 
   private makeResponse(seqid: number): ResponseType {
     let settled = false
+    const generation = this._linkGeneration
+    const write = (message: RPCMessage) => {
+      if (generation !== this._linkGeneration) {
+        logger.info(`Dropped the reply for seqid ${seqid}: the link it came in on is gone`)
+        return true
+      }
+      return this.send(message)
+    }
     return {
       cancelled: false,
       get settled() {
@@ -569,7 +581,7 @@ export abstract class RPCTransport {
           return
         }
         settled = true
-        if (!this.send([MESSAGE_TYPE_RESPONSE, seqid, err, null]) && !this.linkIsLost()) {
+        if (!write([MESSAGE_TYPE_RESPONSE, seqid, err, null]) && !this.linkIsLost()) {
           // The service is waiting on this reply and nothing else will tell
           // it. The write already failed (send() logged that), so there's no
           // connection left to retry on -- surface which seqid was lost.
@@ -582,7 +594,7 @@ export abstract class RPCTransport {
           return
         }
         settled = true
-        if (!this.send([MESSAGE_TYPE_RESPONSE, seqid, null, result]) && !this.linkIsLost()) {
+        if (!write([MESSAGE_TYPE_RESPONSE, seqid, null, result]) && !this.linkIsLost()) {
           // Same as above: the write failed, the connection is gone, and
           // nothing will retry this seqid.
           logger.error(`failed to write response for seqid ${seqid}`)
