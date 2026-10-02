@@ -16,7 +16,7 @@ type HeldResponse = {
   settled: boolean
 }
 
-const inputCanceled = {code: StatusCode.scinputcanceled, desc: 'Input canceled'}
+export const inputCanceledError = {code: StatusCode.scinputcanceled, desc: 'Input canceled'}
 
 // A session is a series of calls back and forth tied together with a single sessionID
 class Session {
@@ -158,7 +158,7 @@ class Session {
     held.settled = true
     this._held.delete(held)
     if (refuse) {
-      held.response?.error?.(inputCanceled)
+      held.response?.error?.(inputCanceledError)
     }
   }
 
