@@ -449,6 +449,12 @@ const makeEngine = (
   if (!engine || typeof reused?.call !== 'function' || typeof reused.listen !== 'function') {
     engine = new Engine(emitWaiting, onConnected, onEngineIncoming)
     engine._setupDebugging()
+    if (reused) {
+      // The old engine stops hearing the service, and the link restarts: the service's calls and
+      // replies in flight carry the old engine's seqids, and the new engine needs a link-up of its own
+      reused._rpcClient?.transport.close()
+      engine.reset()
+    }
   } else {
     engine.rebindCallbacks(emitWaiting, onConnected, onEngineIncoming)
     // pick up listener.tsx edits on HMR
