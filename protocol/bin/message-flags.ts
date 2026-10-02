@@ -8,6 +8,12 @@ export function isOneway(message: OnewayFlags): boolean {
   return Object.hasOwn(message, 'notify') || Object.hasOwn(message, 'oneway')
 }
 
+// The engine cannot auto-ack these: an empty result would hand Go a zero value it treats as an answer.
+// `outParam` is the generated return type, 'null' or 'void' when the method returns nothing.
+export function isMustAnswer(message: OnewayFlags, wantsCustom: boolean, outParam: string): boolean {
+  return wantsCustom && !isOneway(message) && outParam !== 'null' && outParam !== 'void'
+}
+
 export function customResponseError(
   methodName: string,
   message: OnewayFlags,

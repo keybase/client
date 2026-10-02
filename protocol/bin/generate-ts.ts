@@ -4,7 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 import colors from 'colors'
-import {customResponseError, isOneway} from './message-flags.ts'
+import {customResponseError, isMustAnswer, isOneway} from './message-flags.ts'
 
 type EnabledCallType = 'promise' | 'incoming' | 'engineListener' | 'custom'
 type EnabledCalls = Record<string, Partial<Record<EnabledCallType, boolean>>>
@@ -127,7 +127,6 @@ type ProjectState = {
 }
 
 type GeneratedAction = {
-  hasResponse: boolean
   method: string
   projectKey: ProjectKey
 }
@@ -142,6 +141,8 @@ const enabledCalls = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'enabled-calls.json'), 'utf8')
 ) as EnabledCalls
 const customResponseErrors: Array<string> = []
+// Quoted method names, as they appear in the generated code
+const mustAnswerMethods: Array<string> = []
 
 const primitiveTypeMap: Record<string, string> = {
   bool: 'boolean',
@@ -364,6 +365,9 @@ function analyzeMessages(json: ProtocolJSON, project: ProjectState): Record<stri
       customResponseErrors.push(customError)
     }
     const hasCustomResponse = wantsCustom && !isOneway(message)
+    if (isMustAnswer(message, wantsCustom, outParam)) {
+      mustAnswerMethods.push(methodName)
+    }
     const isIncomingMethod = hasIncoming || hasCustomResponse
 
     if (isIncomingMethod) {
@@ -541,7 +545,6 @@ async function writeActions(): Promise<void> {
         Object.keys(callMap).reduce((actions, method) => {
           seenProjects[projectKey] = true
           actions.push({
-            hasResponse: Boolean(projects[projectKey].customResponseIncomingMaps[method]),
             method,
             projectKey,
           })
@@ -559,79 +562,52 @@ async function writeActions(): Promise<void> {
   })
 }
 
-type GroupedActions = Partial<Record<ProjectKey, {incoming: Array<string>; response: Array<string>}>>
+type GroupedActions = Partial<Record<ProjectKey, Array<string>>>
 
 function groupActions(actions: Array<GeneratedAction>): GroupedActions {
   return actions.reduce<GroupedActions>((grouped, action) => {
-    const projectActions = grouped[action.projectKey] ?? {incoming: [], response: []}
-    const methods = action.hasResponse ? projectActions.response : projectActions.incoming
+    const methods = grouped[action.projectKey] ?? []
     methods.push(action.method)
-    grouped[action.projectKey] = projectActions
+    grouped[action.projectKey] = methods
     return grouped
   }, {})
 }
 
-function renderActionTypeName(projectKey: ProjectKey, hasResponse: boolean): string {
-  return `${capitalize(projectKey)}${hasResponse ? 'Response' : 'Incoming'}Action`
+function renderActionTypeName(projectKey: ProjectKey): string {
+  return `${capitalize(projectKey)}IncomingAction`
 }
 
-function renderActionUnion(projectKey: ProjectKey, hasResponse: boolean, methods: Array<string>): string {
-  return `type ${renderActionTypeName(projectKey, hasResponse)} =
+function renderActionUnion(projectKey: ProjectKey, methods: Array<string>): string {
+  return `type ${renderActionTypeName(projectKey)} =
   ${methods.sort().join(' |\n  ')}`
 }
 
-function renderActionHelper(projectKey: ProjectKey, hasResponse: boolean): string {
-  const typeName = `${renderActionTypeName(projectKey, hasResponse)}Map`
+// An action never carries the response: the engine answers it, or a registered answerer does.
+function renderActionHelper(projectKey: ProjectKey): string {
   const rpcNamespace = `${projectKey}Types`
-  const payload = hasResponse
-    ? `{readonly params: ${rpcNamespace}.RpcIn<P>; readonly response: ${rpcNamespace}.RpcResponse<P>}`
-    : `{readonly params: ${rpcNamespace}.RpcIn<P>}`
-
-  return `type ${typeName}<K extends ${rpcNamespace}.MessageKey> = {
-  [P in K]: ${payload}
+  return `type ${renderActionTypeName(projectKey)}Map<K extends ${rpcNamespace}.MessageKey> = {
+  [P in K]: {readonly params: ${rpcNamespace}.RpcIn<P>}
 }`
 }
 
 function compileActionsFile({prelude, actions}: CompileActionsArgs): string {
   const groupedActions = groupActions(actions)
   const usedProjects = (Object.keys(projects) as Array<ProjectKey>).filter(projectKey =>
-    Boolean(groupedActions[projectKey])
+    Boolean(groupedActions[projectKey]?.length)
   )
   const actionHelpers = usedProjects
-    .flatMap(projectKey => {
-      const projectActions = groupedActions[projectKey]
-      if (!projectActions) {
-        return []
-      }
-      const helpers: Array<string> = []
-      if (projectActions.incoming.length) {
-        helpers.push(renderActionUnion(projectKey, false, projectActions.incoming))
-        helpers.push(renderActionHelper(projectKey, false))
-      }
-      if (projectActions.response.length) {
-        helpers.push(renderActionUnion(projectKey, true, projectActions.response))
-        helpers.push(renderActionHelper(projectKey, true))
-      }
-      return helpers
-    })
+    .flatMap(projectKey => [
+      renderActionUnion(projectKey, groupedActions[projectKey] ?? []),
+      renderActionHelper(projectKey),
+    ])
     .join('\n\n')
   const actionSpec = usedProjects
-    .flatMap(projectKey => {
-      const projectActions = groupedActions[projectKey]
-      if (!projectActions) {
-        return []
-      }
-
-      const types: Array<string> = []
-      if (projectActions.incoming.length) {
-        types.push(`${renderActionTypeName(projectKey, false)}Map<${renderActionTypeName(projectKey, false)}>`)
-      }
-      if (projectActions.response.length) {
-        types.push(`${renderActionTypeName(projectKey, true)}Map<${renderActionTypeName(projectKey, true)}>`)
-      }
-      return types
-    })
+    .map(projectKey => `${renderActionTypeName(projectKey)}Map<${renderActionTypeName(projectKey)}>`)
     .join(' &\n  ')
+  const mustAnswer = [...mustAnswerMethods]
+    .sort()
+    .map(m => `\n  ${m},`)
+    .join('')
 
   return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 ${prelude.join('\n')}
@@ -654,7 +630,11 @@ export type ActionType = ActionKey
 export type ActionOf<T extends ActionType> = Extract<Actions, {readonly type: T}>
 export type PayloadOf<T extends ActionType> = ActionOf<T> extends {readonly payload: infer P} ? P : never
 export type ParamsOf<T extends ActionType> = PayloadOf<T> extends {readonly params: infer P} ? P : never
-export type ResponseOf<T extends ActionType> = PayloadOf<T> extends {readonly response: infer R} ? R : never
+
+// Custom calls that return a value: with no session and no registered answerer the engine answers
+// them with an error, since an empty result would be read as a real answer.
+export const mustAnswerMethods: ReadonlySet<string> = new Set<ActionKey>([${mustAnswer}
+])
 `
 }
 

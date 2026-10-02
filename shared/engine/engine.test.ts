@@ -55,21 +55,6 @@ test('a global prompt the engine does not hand over is auto-answered once', asyn
   uninstallFakeEngine()
 })
 
-test('getPassphrase outside a session reaches the action with its response', async () => {
-  const answer = {passphrase: 'testpass', storeSecret: false}
-  const onEngineIncoming = jest.fn((a: {type: string; payload: {response?: {result: (r: unknown) => void}}}) => {
-    if (a.type === 'keybase.1.secretUi.getPassphrase') {
-      a.payload.response?.result(answer)
-    }
-  })
-  const fake = installFakeEngine({onEngineIncoming: onEngineIncoming as never})
-  await expect(
-    fake.push('keybase.1.secretUi.getPassphrase', {pinentry: {}, terminal: null}, {sessionID: 0})
-  ).resolves.toEqual({result: answer})
-  expect(onEngineIncoming).toHaveBeenCalledTimes(1)
-  uninstallFakeEngine()
-})
-
 test('a service cancel of a pending prompt rejects the listener', async () => {
   const fake = installFakeEngine()
   const onPrompt = jest.fn()
