@@ -90,6 +90,8 @@ const generatePgp = async (
           setStepSafe({kind: 'finished', pgpKeyString, promptShouldStoreKeyOnServer: prompt})
         },
       },
+      // The service logs key generation progress; the global handler writes it to the log
+      globalFallthrough: ['keybase.1.logUi.log'],
       incomingCallMap: {'keybase.1.pgpUi.finished': () => {}},
       params: {createUids: {ids, useDefault: false}},
     })

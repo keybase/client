@@ -151,6 +151,8 @@ export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
         }
       },
       customResponseIncomingCallMap: customMap,
+      // Always a list, so an unhandled incoming method on a listener is checked against it
+      globalFallthrough: p.globalFallthrough ?? [],
       incomingCallMap: plainMap,
       method,
       params,

@@ -59,6 +59,8 @@ export const enterResetPipeline = ({onError, password = '', username}: EnterRese
     try {
       await T.RPCGen.accountEnterResetPipelineRpcListener({
         customResponseIncomingCallMap: {'keybase.1.loginUi.promptResetAccount': promptReset},
+        // Not an enabled call; the screens that follow come from promptResetAccount and displayResetProgress
+        globalFallthrough: ['keybase.1.loginUi.displayResetMessage'],
         incomingCallMap: {
           'keybase.1.loginUi.displayResetProgress': params => {
             const endTime = params.needVerify ? undefined : params.endTime * 1000

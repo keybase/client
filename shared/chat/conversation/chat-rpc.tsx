@@ -225,6 +225,12 @@ export type ChatThreadRpc = {
   showPendingRekeyStatus: () => Promise<void>
 }
 
+const threadLoadCallbacks = [
+  'chat.1.chatUi.chatThreadCached',
+  'chat.1.chatUi.chatThreadFull',
+  'chat.1.chatUi.chatThreadStatus',
+] as const
+
 const threadLoadMessageTypes = enumKeys(T.RPCChat.MessageType).reduce<Array<T.RPCChat.MessageType>>(
   (arr, key) => {
     switch (key) {
@@ -447,6 +453,8 @@ const serviceChatRpc: ChatThreadRpc = {
       incomingCallMap['chat.1.chatUi.chatThreadStatus'] = params => p.onThreadStatus?.(params.status)
     }
     return T.RPCChat.localGetThreadNonblockRpcListener({
+      // A caller that passes no callback for one of these does not need it
+      globalFallthrough: threadLoadCallbacks.filter(m => !incomingCallMap[m]),
       incomingCallMap,
       params: {
         cbMode: T.RPCChat.GetThreadNonblockCbMode.incremental,

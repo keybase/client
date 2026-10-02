@@ -9,6 +9,7 @@ export type CallParams = {
   incomingCallMap?: object
   customResponseIncomingCallMap?: object
   waitingKey?: WaitingKey
+  globalFallthrough?: ReadonlyArray<string>
 }
 
 export type ListenParams = {
@@ -18,6 +19,7 @@ export type ListenParams = {
   customResponseIncomingCallMap?: object
   waitingKey?: WaitingKey
   onSessionCreated?: (cancel: () => void) => void
+  globalFallthrough?: ReadonlyArray<string>
 }
 
 export type CallPort = {

@@ -39,6 +39,8 @@ class Session {
   _dangling: boolean
   // Name of the start method, just to help debug
   _startMethod: MethodKey | undefined
+  // Prefixes of incoming methods a listener leaves to global handling; undefined for a plain call
+  _globalFallthrough: ReadonlyArray<string> | undefined
   // Start callback so we can cancel our own callback
   _startCallback: ((err?: RPCError, ...args: Array<unknown>) => void) | undefined
   // The account generation the session started in; undefined until start
@@ -58,6 +60,7 @@ class Session {
     endHandler: EndHandlerType
     cancelHandler?: CancelHandlerType
     dangling?: boolean
+    globalFallthrough?: ReadonlyArray<string>
   }) {
     this._id = p.sessionID
     this._incomingCallMap = p.incomingCallMap || {}
@@ -68,6 +71,7 @@ class Session {
     this._endHandler = p.endHandler
     this._cancelHandler = p.cancelHandler
     this._dangling = p.dangling || false
+    this._globalFallthrough = p.globalFallthrough
   }
 
   getId(): SessionID {
@@ -287,6 +291,12 @@ class Session {
       this._settleHeld(held, true)
     }
     return true
+  }
+
+  // An incoming method this session has no handler for and did not declare as left to global handling
+  isUndeclaredFallthrough(method: MethodKey) {
+    const declared = this._globalFallthrough
+    return !!declared && !declared.some(prefix => method.startsWith(prefix))
   }
 
   // Tell engine if we can handle the cancelled call

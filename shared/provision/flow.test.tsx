@@ -13,6 +13,7 @@ import {
   startProvision,
 } from './flow'
 
+import {installFakeEngine, uninstallFakeEngine} from '@/test/fake-engine'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 
 let nav: FakeNavigator
@@ -400,4 +401,19 @@ test('pause with a pending prompt still resumes when the same step is resubmitte
 
   attempt2.resolve()
   await flush()
+})
+
+test('the reset prompt during login is answered nothing, once', async () => {
+  const fake = installFakeEngine()
+  fake.hold('keybase.1.login.login')
+  submitProvisionUsername('testuser')
+  await flush()
+  const sessionID = fake.calls[0]!.params.sessionID as number
+  const prompt = {prompt: {t: T.RPCGen.ResetPromptType.enterNoDevices}}
+  await expect(fake.push('keybase.1.loginUi.promptResetAccount', prompt, {sessionID})).resolves.toEqual({
+    result: T.RPCGen.ResetPromptResponse.nothing,
+  })
+  // The fake records a second answer to the same seqid
+  await flush()
+  expect(() => uninstallFakeEngine()).not.toThrow()
 })

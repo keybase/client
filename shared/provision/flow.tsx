@@ -231,6 +231,9 @@ const runProvision = (initialUsername: string) => {
         customResponseIncomingCallMap: {
           'keybase.1.gpgUi.selectKey': cancelOnCallback,
           'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
+          // The "I lost all my devices" row owns reset, so login never enters it from here
+          'keybase.1.loginUi.promptResetAccount': (_, response) =>
+            response.result(T.RPCGen.ResetPromptResponse.nothing),
           'keybase.1.provisionUi.DisplayAndPromptSecret': (params, response) => {
             if (isCanceled(response)) return
             const {phrase, previousErr} = params

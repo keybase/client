@@ -262,6 +262,8 @@ export const startRecoverPassword = ({
             }
           },
         },
+        // Not an enabled call; sent after a reset-password confirm, whose screen already moved on
+        globalFallthrough: ['keybase.1.loginUi.displayResetMessage'],
         incomingCallMap: {
           'keybase.1.loginUi.explainDeviceRecovery': params => {
             navigateAppend(
