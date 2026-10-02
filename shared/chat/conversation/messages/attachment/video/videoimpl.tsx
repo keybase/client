@@ -18,12 +18,11 @@ const usePosterState = (url: string) => {
     setLastUrl(url)
     setShowPoster(true)
   }
-  return {reset: () => setShowPoster(true), reveal: () => setShowPoster(false), showPoster}
+  return {reveal: () => setShowPoster(false), showPoster}
 }
 
-// The video's own surface belongs to its player controls (a click is play/pause on desktop, a tap
-// shows the controls on iOS), so fullscreen is this button in the corner the player leaves free,
-// and on desktop a double-click too.
+// The video's own surface belongs to its player controls (a tap shows the controls on iOS), so
+// fullscreen is this button in the corner the player leaves free. Desktop uses the player's own.
 const FullscreenButton = ({onClick}: {onClick: () => void}) => {
   const sharedStyles = useSharedStyles()
   const theme = Kb.Styles.useTheme()
@@ -80,22 +79,13 @@ import {Pressable} from 'react-native'
 const DesktopVideoImpl = (p: Props) => {
   const desktopStyles = useDesktopStyles()
   const sharedStyles = useSharedStyles()
-  const {allowPlay, message, openFullscreen} = p
+  const {allowPlay, message} = p
   const {fileURL: url, videoDuration} = message
   const {previewURL, height, width} = getAttachmentPreviewSize(message)
-  const {reset, reveal, showPoster} = usePosterState(url)
-  // The fullscreen view plays it, so the inline one goes back to its poster. That also discards
-  // the play/pause the two clicks of a double-click gave the controls first.
-  const onFullscreen = openFullscreen
-    ? () => {
-        reset()
-        openFullscreen()
-      }
-    : undefined
-  const fullscreenButton = onFullscreen ? <FullscreenButton onClick={onFullscreen} /> : null
+  const {reveal, showPoster} = usePosterState(url)
 
   return showPoster ? (
-    <div onClick={reveal} onDoubleClick={onFullscreen} style={desktopStyles.posterContainer}>
+    <div onClick={reveal} style={desktopStyles.posterContainer}>
       <Kb.Image src={previewURL} style={{height, width}} />
       {allowPlay ? <Kb.ImageIcon type="icon-play-64" style={sharedStyles.playButton} /> : null}
       <Kb.Box2 direction="vertical" overflow="hidden" style={sharedStyles.durationContainer}>
@@ -103,25 +93,22 @@ const DesktopVideoImpl = (p: Props) => {
           {videoDuration}
         </Kb.Text>
       </Kb.Box2>
-      {fullscreenButton}
     </div>
   ) : (
-    <Kb.Box2 direction="vertical" relative={true}>
+    <Kb.Box2 direction="vertical">
       <video
         autoPlay={true}
-        onDoubleClick={onFullscreen}
         height={height}
         width={width}
         poster={previewURL}
         preload="none"
         controls={true}
         playsInline={true}
-        controlsList="nodownload noremoteplayback nofullscreen"
+        controlsList="nodownload noremoteplayback"
         style={Kb.Styles.castStyleDesktop(desktopStyles.video)}
       >
         <source src={url} />
       </video>
-      {fullscreenButton}
     </Kb.Box2>
   )
 }
@@ -147,7 +134,7 @@ const NativeActiveVideo = (p: NativeActiveVideoProps) => {
       pl.play()
     } catch {}
   })
-  // the player's own fullscreen is off, as desktop's is: fullscreen is the app's attachment view
+  // the player's own fullscreen is off: fullscreen is the app's attachment view
   return (
     <Kb.Box2 direction="vertical" relative={true} style={nativeStyles.video}>
       <VideoView
