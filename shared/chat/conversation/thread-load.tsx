@@ -157,6 +157,14 @@ export const scrollDirectionToPagination = (
   return pagination
 }
 
+// Thread load failures handled in the load itself or expected. These and a cancel (which ignorePromise
+// keeps quiet) are not worth an error-level log.
+const quietThreadLoadErrors = new Set<number>([
+  T.RPCGen.StatusCode.scchatnotinteam,
+  T.RPCGen.StatusCode.scchatnotinconv,
+  T.RPCGen.StatusCode.scteamreaderror,
+])
+
 export const loadConversationThreadMessages = (
   conversationIDKey: T.Chat.ConversationIDKey,
   p: LoadMoreMessagesParams,
@@ -469,7 +477,7 @@ export const loadConversationThreadMessages = (
             conversationGone(conversationIDKey, `thread load: ${error.desc}`)
           }
         }
-        if (error.code !== T.RPCGen.StatusCode.scteamreaderror) {
+        if (!quietThreadLoadErrors.has(error.code)) {
           throw error
         }
       }
