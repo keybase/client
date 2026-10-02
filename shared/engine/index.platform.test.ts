@@ -8,6 +8,7 @@ import {createClient, dispatchRpcBatch, makeDispatchOne} from './index.platform'
 import {encodeFrame, errors as rpcErrors} from './rpc-transport'
 import type {IncomingRPCCallbackType} from './rpc-transport'
 import type {EngineLinkFrame, EngineSend, KB2} from '@/util/electron'
+import type * as EngineModule from './index'
 
 const getPreload = () => globalThis._fromPreload as KB2
 
@@ -232,6 +233,68 @@ test('reset asks the relay to restart the link, and the link frames, not the res
   const seqid = sent[0]!.message[1] as number
   client.transport.dispatchDecodedMessage([1, seqid, null, {ok: 'late'}])
   expect(cb).toHaveBeenCalledTimes(1)
+})
+
+// Stands in for Electron's ipcRenderer: every 'engineIncoming' listener hears each frame until removed
+const makeRelayChannel = () => {
+  const listeners = new Set<(e: unknown, data: unknown) => void>()
+  const restarts = jest.fn()
+  const {functions} = getPreload()
+  functions.engineSend = () => {}
+  functions.engineRestartLink = restarts
+  functions.ipcRendererOn = (channel, cb) => {
+    if (channel !== 'engineIncoming') return undefined
+    listeners.add(cb)
+    return () => {
+      listeners.delete(cb)
+    }
+  }
+  const fromRelay = (data: Uint8Array | EngineLinkFrame) => listeners.forEach(cb => cb(undefined, data))
+  return {fromRelay, listeners, restarts}
+}
+
+test('a closed renderer transport stops hearing the relay', () => {
+  const {fromRelay, listeners} = makeRelayChannel()
+  const connected = jest.fn()
+  const client = createClient(() => {}, connected, () => {})
+  expect(listeners.size).toBe(1)
+
+  client.transport.close()
+  fromRelay(up(1))
+
+  expect(listeners.size).toBe(0)
+  expect(connected).not.toHaveBeenCalled()
+})
+
+test('an engine that replaces one built by older code (HMR) is the only one hearing the relay, and gets a link of its own', () => {
+  const {fromRelay, listeners, restarts} = makeRelayChannel()
+  jest.isolateModules(() => {
+    const {makeEngine} = require('./index') as typeof EngineModule
+    const old = makeEngine(
+      () => {},
+      () => {}
+    )
+    fromRelay(up(1))
+    old.listenersAreReady()
+    // what an engine from before the call port looks like to makeEngine
+    ;(old as {listen?: unknown}).listen = undefined
+
+    const linkChanges = new Array<boolean>()
+    const next = makeEngine(
+      () => {},
+      up => linkChanges.push(up)
+    )
+    next.listenersAreReady()
+
+    expect(next).not.toBe(old)
+    expect(listeners.size).toBe(1)
+    expect(restarts).toHaveBeenCalledTimes(1)
+    // the relay's restart: the old link goes down and a new one comes up
+    fromRelay(down(1))
+    fromRelay(up(2))
+    expect(linkChanges).toEqual([true])
+    expect(next._rpcClient.transport.isLinkUp).toBe(true)
+  })
 })
 
 // dispatchRpcBatch backs the mobile global.rpcOnJs batch dispatcher (only

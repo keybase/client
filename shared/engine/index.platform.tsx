@@ -20,6 +20,25 @@ class ProxyNativeTransport extends TransportShared {
   // The relay connection the last link-up named. Every send carries it, so the relay can drop a
   // send made on a connection that has since gone.
   private _epoch = 0
+  private _stopListening?: () => void
+
+  // Hears the service's bytes and the link frames from the relay
+  listenToRelay() {
+    this._stopListening = KB2.functions.ipcRendererOn?.('engineIncoming', (_e: unknown, data: unknown) => {
+      try {
+        this.fromRelay(data)
+      } catch (e) {
+        logger.error('>>>> engineIncoming IPC JS thrown!', e)
+      }
+    })
+  }
+
+  // A closed transport stops hearing the relay, so an engine that replaced it is the only one that does
+  override close() {
+    this._stopListening?.()
+    this._stopListening = undefined
+    super.close()
+  }
 
   protected writeMessage(message: RPCMessage) {
     const {engineSend} = KB2.functions
@@ -200,20 +219,9 @@ function createClient(
     return client
   }
 
-  const {ipcRendererOn} = KB2.functions
   const transport = new ProxyNativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
-  const client = sharedCreateClient(transport)
-
-  // plumb back data and link changes from the node relay
-  ipcRendererOn?.('engineIncoming', (_e: unknown, data: unknown) => {
-    try {
-      transport.fromRelay(data)
-    } catch (e) {
-      logger.error('>>>> engineIncoming IPC JS thrown!', e)
-    }
-  })
-
-  return client
+  transport.listenToRelay()
+  return sharedCreateClient(transport)
 }
 
 export {createClient, rpcLog}
