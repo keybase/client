@@ -948,8 +948,8 @@ function lintError(s: string, lint?: JsonLint): void {
 }
 
 async function main(): Promise<void> {
-  const keys = Object.keys(projects)
-  for (const key of keys) {
+  // Analyze every project before writing anything, so a failing check leaves no partial output
+  const analyzed = Object.keys(projects).map(key => {
     const project = projects[key as ProjectKey]
     const typeDefs = fs
       .readdirSync(project.root)
@@ -965,11 +965,14 @@ async function main(): Promise<void> {
         },
         {consts: {}, messages: {}, types: {}}
       )
-    await writeFlow(typeDefs, project)
-  }
+    return {project, typeDefs}
+  })
   if (customResponseErrors.length) {
     customResponseErrors.forEach(e => console.log(colors.red(e)))
     process.exit(1)
+  }
+  for (const {project, typeDefs} of analyzed) {
+    await writeFlow(typeDefs, project)
   }
   await writeAll()
   await writeActions()
