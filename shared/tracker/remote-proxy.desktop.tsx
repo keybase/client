@@ -59,6 +59,31 @@ const updateResult = (state: PopupState, guiID: string, result: T.Tracker.Detail
   return {...state, usernameToDetails}
 }
 
+// onFailed: the identify failed in the service. A cancel (an account switch, the session going
+// away) is not a failure of this user's identify, so it leaves the popup as it is.
+export const runPopupIdentify = async (
+  params: {assertion: string; guiID: string; ignoreCache: boolean},
+  onFailed: () => void
+) => {
+  try {
+    await T.RPCGen.identify3Identify3RpcListener({
+      incomingCallMap: {},
+      params,
+      waitingKey: 'tracker:profileLoad',
+    })
+  } catch (error) {
+    if (
+      !(error instanceof RPCError) ||
+      error.code === T.RPCGen.StatusCode.sccanceled ||
+      error.code === T.RPCGen.StatusCode.scinputcanceled
+    ) {
+      return
+    }
+    logger.error(`Error loading tracker popup: ${error.message}`)
+    onFailed()
+  }
+}
+
 const RemoteTracker = (props: {details: T.Tracker.Details; trackerUsername: string}) => {
   const {details, trackerUsername} = props
   const blockMap = useUsersState(s => s.blockMap)
@@ -137,21 +162,11 @@ const RemoteTrackers = () => {
       return
     }
 
-    const f = async () => {
-      try {
-        await T.RPCGen.identify3Identify3RpcListener({
-          incomingCallMap: {},
-          params: {assertion, guiID, ignoreCache},
-          waitingKey: 'tracker:profileLoad',
-        })
-      } catch (error) {
-        if (error instanceof RPCError) {
-          logger.error(`Error loading tracker popup: ${error.message}`)
-          setPopupState(prev => updateResult(prev, guiID, 'error'))
-        }
-      }
-    }
-    ignorePromise(f())
+    ignorePromise(
+      runPopupIdentify({assertion, guiID, ignoreCache}, () =>
+        setPopupState(prev => updateResult(prev, guiID, 'error'))
+      )
+    )
   }, [])
 
   const closeTracker = React.useCallback((guiID: string) => {
