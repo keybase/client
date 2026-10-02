@@ -193,6 +193,23 @@ test('an answer to the service made while the link is down goes to no later link
   expect(sent).toEqual([])
 })
 
+test('an answer to a call from an earlier link, made once a new link is up, is not written to it', () => {
+  let payload: Parameters<IncomingRPCCallbackType>[0] | undefined
+  const {fromRelay, sent} = makeRendererClient({
+    incoming: p => {
+      payload = p
+    },
+  })
+  fromRelay(up(1))
+  fromRelay(encodeFrame([0, 9, 'keybase.1.test.prompt', [{}]]))
+  fromRelay(down(1))
+  fromRelay(up(2))
+
+  payload?.response?.result?.({answer: true})
+
+  expect(sent).toEqual([])
+})
+
 test('ProxyNativeTransport.reset fails outstanding invocations so pre-switch callbacks cannot fire against post-switch state', () => {
   const {client, fromRelay, sent} = makeRendererClient()
   fromRelay(up(1))

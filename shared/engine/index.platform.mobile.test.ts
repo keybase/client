@@ -150,6 +150,44 @@ test('outstanding invocations survive everything except kb-engine-reset', () => 
   }
 })
 
+test('an answer to a call Go made before kb-engine-reset is not written to the new connection', () => {
+  const originalIsMobile = global.isMobile
+  const originalRpcOnGo = global.rpcOnGo
+  const originalRpcOnJs = global.rpcOnJs
+  global.isMobile = true
+
+  let capturedMetaCb: ((payload: string) => void) | undefined
+  mockNativeModules(cb => {
+    capturedMetaCb = cb
+  })
+  jest.resetModules()
+
+  try {
+    const {createClient} = require('./index.platform') as IndexPlatformModule
+    const sent = new Array<unknown>()
+    global.rpcOnGo = m => {
+      sent.push(m)
+      return true
+    }
+    let payload: Parameters<IncomingRPCCallbackType>[0] | undefined
+    createClient(
+      p => {
+        payload = p
+      },
+      () => {},
+      () => {}
+    )
+    global.rpcOnJs?.([0, 9, 'keybase.1.test.prompt', [{}]], 1)
+    capturedMetaCb?.('kb-engine-reset')
+
+    payload?.response?.result?.({answer: true})
+
+    expect(sent).toEqual([])
+  } finally {
+    teardownMobileMocks(originalIsMobile, originalRpcOnGo, originalRpcOnJs)
+  }
+})
+
 test('NativeTransportMobile fails the invocation (not hang) when rpcOnGo reports failure', () => {
   const originalIsMobile = global.isMobile
   const originalRpcOnGo = global.rpcOnGo
