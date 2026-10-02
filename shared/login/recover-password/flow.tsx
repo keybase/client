@@ -45,6 +45,7 @@ export const submitRecoverPasswordReset = (action: T.RPCGen.ResetPromptResponse)
 
 // A restart drops the owner's handles, which would strand Go waiting on this prompt.
 let pendingPgpAnswer: ((proceed: boolean) => void) | undefined
+let latestRun = 0
 
 export const startRecoverPassword = ({
   abortProvisioning,
@@ -54,6 +55,7 @@ export const startRecoverPassword = ({
 }: StartRecoverPasswordParams) => {
   pendingPgpAnswer?.(false)
   clearOwner(owner)
+  const thisRun = ++latestRun
   const f = async () => {
     if (abortProvisioning) {
       cancelProvision()
@@ -64,6 +66,7 @@ export const startRecoverPassword = ({
     let ownPgpAnswer: typeof pendingPgpAnswer
     // The warning is dead once answered, so the set-password screen that follows takes its place.
     let pgpContinued = false
+    let showedPgpWarning = false as boolean
     const handles = new Map<Slot, ScopedHandle>()
     const isActive = () => active
     const clearSlots = (...slotNames: ReadonlyArray<Slot>) => {
@@ -140,6 +143,7 @@ export const startRecoverPassword = ({
               pgpContinued = true
               answer(true)
             })
+            showedPgpWarning = true
             navigateAppend({name: 'recoverPasswordPgpWarning', params: {}})
           },
           'keybase.1.loginUi.promptResetAccount': (params, response) => {
@@ -257,14 +261,15 @@ export const startRecoverPassword = ({
         slots.submitResetPassword
       )
       active = false
-      if (ownPgpAnswer) {
-        // A newer run may already have stored its own answer.
-        if (pendingPgpAnswer === ownPgpAnswer) {
-          pendingPgpAnswer = undefined
-        }
-        // Nothing else closes a warning whose run is gone, and its buttons have no handle left to call.
-        // Targeted, unlike clearModals: anything opened over the warning stays put. Runs after the error
-        // modal's replace above, which already took the warning's place if it was on top.
+      // A newer run may already have stored its own answer.
+      if (ownPgpAnswer && pendingPgpAnswer === ownPgpAnswer) {
+        pendingPgpAnswer = undefined
+      }
+      // Nothing else closes a warning whose run is gone, and its buttons have no handle left to call, whether
+      // it was never answered or answered Continue and awaits a prompt that will not come. Targeted, unlike
+      // clearModals: anything opened over the warning stays put. A no-op once the warning is already gone, as
+      // after the error modal's replace above or the set-password screen taking its place.
+      if (showedPgpWarning && latestRun === thisRun) {
         removeModal('recoverPasswordPgpWarning')
       }
     }

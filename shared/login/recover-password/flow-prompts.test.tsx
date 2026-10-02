@@ -435,6 +435,23 @@ describe('pgp key warning', () => {
     expect(rootRouteNames()).not.toContain('recoverPasswordPgpWarning')
   })
 
+  test.each([
+    ['is cancelled', new RPCError('Input canceled', T.RPCGen.StatusCode.sccanceled)],
+    ['ends cleanly', undefined],
+  ])('a run that %s after Continue, before any set-password prompt, closes the warning', async (_label, error) => {
+    const {first} = await startAttempt()
+    prompt(first)
+    submitRecoverPasswordPgpContinue()
+    expect(rootRouteNames()).toContain('recoverPasswordPgpWarning')
+    if (error) {
+      first.reject(error)
+    } else {
+      first.resolve()
+    }
+    await flush()
+    expect(rootRouteNames()).not.toContain('recoverPasswordPgpWarning')
+  })
+
   test('closing a dead warning leaves a modal opened over it in place', async () => {
     const {first} = await startAttempt()
     prompt(first)
