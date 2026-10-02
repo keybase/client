@@ -314,7 +314,6 @@ test('a screen that fails to show is logged with its prompt, and the run stops',
 })
 
 describe('restart', () => {
-  // Limit (b): a restart used to orphan the old run's prompts with the service still waiting on them
   test("a restart refuses the old run's open prompts and the old screen no longer answers", async () => {
     const {sessionID} = await start()
     const {answered, promptId} = await pushDevices(sessionID)
@@ -376,7 +375,7 @@ describe('restart', () => {
 })
 
 describe('account changes', () => {
-  // resetAllStores used to clear the handlers, leaving the service waiting on a screen that could not answer
+  // A logout resets the stores; the run lives outside them, so its screens still answer
   test('a logout keeps the run answerable', async () => {
     const {setLoggedIn} = useConfigState.getState().dispatch
     setLoggedIn(true)
@@ -392,7 +391,6 @@ describe('account changes', () => {
     await settle()
   })
 
-  // Limit (g)
   test('an account switch refuses a pending prompt and shows no error', async () => {
     const {sessionID} = await start()
     const {answered} = await pushDevices(sessionID)

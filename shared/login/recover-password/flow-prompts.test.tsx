@@ -167,7 +167,7 @@ describe('new password prompt', () => {
     await settle()
   })
 
-  // Limit (e): the push used to race the logged-in root's mount after the paper key login
+  // The paper key has just logged the user in, so the logged-in root may still be mounting
   test('an ask before the logged-in root mounts shows the screen once it does', async () => {
     nav = installFakeNavigator({
       modalRouteNames: Object.keys(newModalRoutes),
@@ -271,7 +271,6 @@ describe('pgp key warning', () => {
     await settle()
   })
 
-  // Limit (a): a late prompt from a restarted run used to decline the current run's
   test("a restarted run's late prompt is refused and leaves the current run's prompt pending", async () => {
     const {held, sessionID} = await start()
     const newSession = await startRun()
