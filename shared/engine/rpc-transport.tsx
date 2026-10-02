@@ -529,10 +529,6 @@ export abstract class RPCTransport {
     this.failOutstanding(makeEOFError(), {})
   }
 
-  encodeMessage(message: RPCMessage) {
-    return encodeFrame(message)
-  }
-
   // Fails every outstanding invocation while the link stays up. The renderer
   // transport calls this when the engine resets; without it the callbacks are
   // never invoked and every in-flight RPC hangs forever.
