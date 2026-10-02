@@ -7,7 +7,8 @@ import {resetAllStores} from '@/util/zustand'
 import logger from '@/logger'
 import {getBotsAndParticipants} from '@/constants/chat/helpers'
 import {makeConversationMeta} from '@/constants/chat/meta'
-import {handleConvoEngineIncoming} from './engine'
+import {routeChatNotification} from '@/chat/notification-router'
+import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 import {participantInfoReceived, useInboxMetadataState} from './metadata'
 import {
   refreshConversationParticipants,
@@ -18,6 +19,9 @@ const convA = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const convB = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
 const teamID = 'team-1' as T.Teams.TeamID
 const otherTeamID = 'team-2' as T.Teams.TeamID
+
+let rpc: FakeChatRpc
+const refreshes = () => rpc.calls('refreshParticipants')
 
 const noChanges = {keyRotated: false, membershipChanged: false, misc: false, renamed: false}
 
@@ -42,39 +46,35 @@ const teamChangedByID = (
     type: 'keybase.1.NotifyTeam.teamChangedByID',
   }) as never
 
+beforeEach(() => {
+  rpc = installFakeChatRpc()
+})
+
 afterEach(() => {
   cleanup()
+  restoreChatRpc()
   jest.restoreAllMocks()
   resetAllStores()
 })
 
 describe('refreshConversationParticipants', () => {
   test('asks the service to recompute participants for each conversation', async () => {
-    jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
-
     await refreshConversationParticipants([convA, convB])
 
-    expect(T.RPCChat.localRefreshParticipantsRpcPromise).toHaveBeenCalledTimes(2)
-    expect(T.RPCChat.localRefreshParticipantsRpcPromise).toHaveBeenCalledWith({
-      convID: T.Chat.keyToConversationID(convA),
-    })
-    expect(T.RPCChat.localRefreshParticipantsRpcPromise).toHaveBeenCalledWith({
-      convID: T.Chat.keyToConversationID(convB),
-    })
+    expect(refreshes()).toHaveLength(2)
+    expect(refreshes()).toContainEqual([convA])
+    expect(refreshes()).toContainEqual([convB])
   })
 
   test('a conversation named twice is refreshed once', async () => {
-    jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
-
     await refreshConversationParticipants([convA, convA, convB, convA])
 
-    expect(T.RPCChat.localRefreshParticipantsRpcPromise).toHaveBeenCalledTimes(2)
+    expect(refreshes()).toHaveLength(2)
   })
 
   // these are not conversations, so they must be dropped before the attempt rather than
   // failing their way through it
   test('placeholder conversation ids are never sent to the service', async () => {
-    jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
     jest.spyOn(logger, 'info').mockImplementation(() => {})
 
     await refreshConversationParticipants([
@@ -83,92 +83,80 @@ describe('refreshConversationParticipants', () => {
       T.Chat.pendingErrorConversationIDKey,
     ])
 
-    expect(T.RPCChat.localRefreshParticipantsRpcPromise).not.toHaveBeenCalled()
+    expect(refreshes()).toEqual([])
     expect(logger.info).not.toHaveBeenCalled()
   })
 
   test('nothing to refresh resolves without an rpc', async () => {
-    jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
-
     await expect(refreshConversationParticipants([])).resolves.toBeUndefined()
-    expect(T.RPCChat.localRefreshParticipantsRpcPromise).not.toHaveBeenCalled()
+    expect(refreshes()).toEqual([])
   })
 
   test('one conversation failing neither rejects nor skips the others', async () => {
-    jest
-      .spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise')
-      .mockImplementation(async ({convID}) => {
-        await Promise.resolve()
-        if (T.Chat.conversationIDToKey(convID) === convA) {
-          throw new Error('offline')
-        }
-      })
+    rpc.on('refreshParticipants', async conversationIDKey => {
+      await Promise.resolve()
+      if (conversationIDKey === convA) {
+        throw new Error('offline')
+      }
+    })
 
     await expect(refreshConversationParticipants([convA, convB])).resolves.toBeUndefined()
-    expect(T.RPCChat.localRefreshParticipantsRpcPromise).toHaveBeenCalledTimes(2)
+    expect(refreshes()).toHaveLength(2)
   })
 })
 
 describe('useRefreshParticipantsOnTeamMembershipChange', () => {
   test('a membership change in this team refreshes the conversation', () => {
-    jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
     renderHook(() => useRefreshParticipantsOnTeamMembershipChange(teamID, convA))
 
     notifyEngineActionListeners(teamChangedByID())
 
-    expect(T.RPCChat.localRefreshParticipantsRpcPromise).toHaveBeenCalledWith({
-      convID: T.Chat.keyToConversationID(convA),
-    })
+    expect(refreshes()).toContainEqual([convA])
   })
 
   // teamChangedByID also fires for every message sent in the team; refreshing on those
   // would be one participant rpc per message for as long as the list is open
   test('a team change that did not touch membership is ignored', () => {
-    jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
     renderHook(() => useRefreshParticipantsOnTeamMembershipChange(teamID, convA))
 
     notifyEngineActionListeners(teamChangedByID({changes: {...noChanges, misc: true}}))
     notifyEngineActionListeners(teamChangedByID({changes: {...noChanges, keyRotated: true}}))
     notifyEngineActionListeners(teamChangedByID({changes: {...noChanges, renamed: true}}))
 
-    expect(T.RPCChat.localRefreshParticipantsRpcPromise).not.toHaveBeenCalled()
+    expect(refreshes()).toEqual([])
   })
 
   test('a membership change in another team is ignored', () => {
-    jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
     renderHook(() => useRefreshParticipantsOnTeamMembershipChange(teamID, convA))
 
     notifyEngineActionListeners(teamChangedByID({teamID: otherTeamID}))
 
-    expect(T.RPCChat.localRefreshParticipantsRpcPromise).not.toHaveBeenCalled()
+    expect(refreshes()).toEqual([])
   })
 
   test('a disabled watcher does not refresh', () => {
-    jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
     renderHook(() => useRefreshParticipantsOnTeamMembershipChange(teamID, convA, false))
 
     notifyEngineActionListeners(teamChangedByID())
 
-    expect(T.RPCChat.localRefreshParticipantsRpcPromise).not.toHaveBeenCalled()
+    expect(refreshes()).toEqual([])
   })
 
   test('an adhoc conversation has no team to watch', () => {
-    jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
     renderHook(() => useRefreshParticipantsOnTeamMembershipChange(T.Teams.noTeamID, convA))
 
     notifyEngineActionListeners(teamChangedByID({teamID: T.Teams.noTeamID}))
 
-    expect(T.RPCChat.localRefreshParticipantsRpcPromise).not.toHaveBeenCalled()
+    expect(refreshes()).toEqual([])
   })
 
   test('an unmounted list stops refreshing', () => {
-    jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
     const {unmount} = renderHook(() => useRefreshParticipantsOnTeamMembershipChange(teamID, convA))
 
     unmount()
     notifyEngineActionListeners(teamChangedByID())
 
-    expect(T.RPCChat.localRefreshParticipantsRpcPromise).not.toHaveBeenCalled()
+    expect(refreshes()).toEqual([])
   })
 })
 
@@ -192,7 +180,7 @@ describe('the refresh reaching the members list', () => {
   ])
 
   const deliverParticipants = (usernames: ReadonlyArray<string>) => {
-    handleConvoEngineIncoming({
+    routeChatNotification({
       payload: {
         params: {
           participants: {
@@ -234,5 +222,19 @@ describe('the refresh reaching the members list', () => {
     deliverParticipants(['testuser'])
 
     expect(currentMembers()).toEqual(['testuser'])
+  })
+})
+
+describe('refreshConversationParticipants failures', () => {
+  test('a failed refresh is logged at info with the conversation id', async () => {
+    rpc.fail('refreshParticipants', new Error('offline'))
+    const info = jest.spyOn(logger, 'info').mockImplementation(() => {})
+    const error = jest.spyOn(logger, 'error')
+
+    await refreshConversationParticipants([convA])
+
+    expect(refreshes()).toContainEqual([convA])
+    expect(info).toHaveBeenCalledWith(`refreshConversationParticipants: failed for ${convA}`)
+    expect(error).not.toHaveBeenCalled()
   })
 })

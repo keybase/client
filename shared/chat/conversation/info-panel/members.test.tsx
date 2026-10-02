@@ -5,9 +5,11 @@ import {act, cleanup, renderHook} from '@testing-library/react'
 import {makeConversationMeta} from '@/constants/chat/meta'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
+import logger from '@/logger'
+import {flush} from '@/test/flush'
+import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
-const convID = T.Chat.keyToConversationID(conversationIDKey)
 const teamID = 'team-1' as T.Teams.TeamID
 
 let mockMembers = new Map<string, T.Teams.MemberInfo>()
@@ -56,13 +58,16 @@ const teamChangedByID = (changes = {...noChanges, membershipChanged: true}) =>
     type: 'keybase.1.NotifyTeam.teamChangedByID',
   }) as never
 
+let rpc: FakeChatRpc
+
 beforeEach(() => {
-  jest.spyOn(T.RPCChat, 'localRefreshParticipantsRpcPromise').mockResolvedValue(undefined)
+  rpc = installFakeChatRpc()
 })
 
 afterEach(() => {
   cleanup()
   jest.restoreAllMocks()
+  restoreChatRpc()
   resetAllStores()
   mockMembers = new Map()
   mockMeta = makeConversationMeta()
@@ -73,39 +78,39 @@ test('opening a team channel asks the service for its participants', () => {
   mockMeta = teamChannelMeta()
   renderHook(() => useChannelMembers(conversationIDKey))
 
-  expect(T.RPCChat.localRefreshParticipantsRpcPromise).toHaveBeenCalledWith({convID})
+  expect(rpc.calls('refreshParticipants')).toEqual([[conversationIDKey]])
 })
 
 test('an adhoc conversation has no team participants to refresh', () => {
   mockMeta = {...makeConversationMeta(), conversationIDKey, teamType: 'adhoc'}
   renderHook(() => useChannelMembers(conversationIDKey))
 
-  expect(T.RPCChat.localRefreshParticipantsRpcPromise).not.toHaveBeenCalled()
+  expect(rpc.calls('refreshParticipants')).toEqual([])
 })
 
 test('a membership change in the team refreshes the open list', () => {
   mockMeta = teamChannelMeta()
   renderHook(() => useChannelMembers(conversationIDKey))
-  ;(T.RPCChat.localRefreshParticipantsRpcPromise as jest.Mock).mockClear()
+  rpc.clearLog()
 
   act(() => {
     notifyEngineActionListeners(teamChangedByID())
   })
 
-  expect(T.RPCChat.localRefreshParticipantsRpcPromise).toHaveBeenCalledWith({convID})
+  expect(rpc.calls('refreshParticipants')).toEqual([[conversationIDKey]])
 })
 
 // teamChangedByID also fires for every message in the team
 test('team activity that did not change membership does not refresh the open list', () => {
   mockMeta = teamChannelMeta()
   renderHook(() => useChannelMembers(conversationIDKey))
-  ;(T.RPCChat.localRefreshParticipantsRpcPromise as jest.Mock).mockClear()
+  rpc.clearLog()
 
   act(() => {
     notifyEngineActionListeners(teamChangedByID({...noChanges, misc: true}))
   })
 
-  expect(T.RPCChat.localRefreshParticipantsRpcPromise).not.toHaveBeenCalled()
+  expect(rpc.calls('refreshParticipants')).toEqual([])
 })
 
 test('a re-render of the same channel does not re-ask for participants', () => {
@@ -114,7 +119,7 @@ test('a re-render of the same channel does not re-ask for participants', () => {
   rerender()
   rerender()
 
-  expect(T.RPCChat.localRefreshParticipantsRpcPromise).toHaveBeenCalledTimes(1)
+  expect(rpc.calls('refreshParticipants')).toHaveLength(1)
 })
 
 test('the list shows the channel participants, owners and admins first', () => {
@@ -183,4 +188,37 @@ test('general lists the whole team rather than the conversation participants', (
   const {participantsItems} = renderHook(() => useChannelMembers(conversationIDKey)).result.current
 
   expect(participantsItems.map(i => i.username)).toEqual(['testuser', 'testuser-mac'])
+})
+
+test('a failed participant refresh on open is swallowed: nothing logged, the list still renders', async () => {
+  rpc.fail('refreshParticipants', new Error('offline'))
+  const logInfo = jest.spyOn(logger, 'info')
+  const logError = jest.spyOn(logger, 'error')
+  mockMembers = new Map([member('testuser', 'writer')])
+  mockMeta = teamChannelMeta()
+  mockParticipants = {all: ['testuser'], contactName: new Map(), name: []}
+
+  const {result} = renderHook(() => useChannelMembers(conversationIDKey))
+  await flush()
+
+  expect(rpc.calls('refreshParticipants')).toEqual([[conversationIDKey]])
+  expect(logInfo).not.toHaveBeenCalled()
+  expect(logError).not.toHaveBeenCalled()
+  expect(result.current.participantsItems.map(i => i.username)).toEqual(['testuser'])
+})
+
+test('a failed refresh after a membership change is logged at info and not surfaced', async () => {
+  mockMeta = teamChannelMeta()
+  renderHook(() => useChannelMembers(conversationIDKey))
+  rpc.clearLog()
+  rpc.fail('refreshParticipants', new Error('offline'))
+  const logInfo = jest.spyOn(logger, 'info').mockImplementation(() => {})
+
+  act(() => {
+    notifyEngineActionListeners(teamChangedByID())
+  })
+  await flush()
+
+  expect(rpc.calls('refreshParticipants')).toEqual([[conversationIDKey]])
+  expect(logInfo).toHaveBeenCalledWith(`refreshConversationParticipants: failed for ${conversationIDKey}`)
 })

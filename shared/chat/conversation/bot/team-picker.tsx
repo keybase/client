@@ -5,6 +5,8 @@ import * as T from '@/constants/types'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import debounce from 'lodash/debounce'
 import logger from '@/logger'
+import {getChatRpc} from '../chat-rpc'
+import type {RPCError} from '@/util/errors'
 
 type Props = {botUsername: string}
 
@@ -16,24 +18,22 @@ const BotTeamPicker = (props: Props) => {
   const [results, setResults] = React.useState<ReadonlyArray<T.RPCChat.ConvSearchHit>>([])
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
-  const submit = C.useRPC(T.RPCChat.localAddBotConvSearchRpcPromise)
 
   const [lastTerm, setLastTerm] = React.useState('init')
   if (lastTerm !== term) {
     setLastTerm(term)
     setWaiting(true)
-    submit(
-      [{term}],
-      result => {
+    getChatRpc()
+      .searchBotDestinations(term)
+      .then(result => {
         setWaiting(false)
-        setResults(result ?? [])
-      },
-      error => {
+        setResults(result)
+      })
+      .catch((error: RPCError) => {
         setWaiting(false)
         setError('Something went wrong, please try again.')
         logger.info('BotTeamPicker: error loading search results: ' + error.message)
-      }
-    )
+      })
   }
 
   const navigateAppend = C.Router2.navigateAppend

@@ -1,6 +1,7 @@
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
 import logger from '@/logger'
+import {getChatRpc} from '@/chat/conversation/chat-rpc'
 
 // The service recomputes a team channel's participant list only on demand
 // (CachingParticipantSource): no membership change pushes ChatParticipantsInfo by itself,
@@ -14,7 +15,7 @@ export const refreshConversationParticipants = async (
   await Promise.all(
     ids.map(async id => {
       try {
-        await T.RPCChat.localRefreshParticipantsRpcPromise({convID: T.Chat.keyToConversationID(id)})
+        await getChatRpc().refreshParticipants(id)
       } catch {
         // the mutation itself already landed; a stale list self-heals on the next refresh
         logger.info(`refreshConversationParticipants: failed for ${id}`)

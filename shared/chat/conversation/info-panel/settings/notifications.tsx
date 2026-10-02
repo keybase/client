@@ -1,9 +1,10 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
 import {muteConversationPromise} from '../../status-actions'
 import {useConversationMeta} from '../../data-hooks'
+import {getChatRpc} from '../../chat-rpc'
 
 type UnmutedProps = {
   channelWide: boolean
@@ -141,32 +142,7 @@ const Notifications = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => 
     const saveID = startSave()
     const f = async () => {
       try {
-        await T.RPCChat.localSetAppNotificationSettingsLocalRpcPromise({
-          channelWide,
-          convID: T.Chat.keyToConversationID(conversationIDKey),
-          settings: [
-            {
-              deviceType: T.RPCGen.DeviceType.desktop,
-              enabled: desktop === 'onWhenAtMentioned',
-              kind: T.RPCChat.NotificationKind.atmention,
-            },
-            {
-              deviceType: T.RPCGen.DeviceType.desktop,
-              enabled: desktop === 'onAnyActivity',
-              kind: T.RPCChat.NotificationKind.generic,
-            },
-            {
-              deviceType: T.RPCGen.DeviceType.mobile,
-              enabled: mobile === 'onWhenAtMentioned',
-              kind: T.RPCChat.NotificationKind.atmention,
-            },
-            {
-              deviceType: T.RPCGen.DeviceType.mobile,
-              enabled: mobile === 'onAnyActivity',
-              kind: T.RPCChat.NotificationKind.generic,
-            },
-          ],
-        })
+        await getChatRpc().setNotificationSettings({channelWide, conversationIDKey, desktop, mobile})
         finishSave(saveID)
       } catch (error) {
         failSave(saveID, error)
