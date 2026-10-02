@@ -115,13 +115,15 @@ class Engine implements CallPort {
     }
   }
 
+  // A refusing session's caller already has its answer, but it stays until its RPC replies, so it is
+  // listed (marked) to show one that never does
   _sessionSummary() {
     return [...this._sessionsMap.values()]
-      // A refusing session's caller already has its answer
-      .filter(session => !session.getDangling() && !session.isRefusing())
+      .filter(session => !session.getDangling())
       .map(session => ({
         id: session.getId(),
         method: session._startMethod || 'unknown',
+        ...(session.isRefusing() ? {refusing: true} : {}),
       }))
   }
 
