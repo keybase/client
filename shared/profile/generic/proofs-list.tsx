@@ -150,7 +150,7 @@ const checkProofAndNavigate = async (
   }
 }
 
-const runProofFlow = async (p: {
+export const runProofFlow = async (p: {
   afterCheckProofRef: React.RefObject<undefined | (() => void)>
   cancelCurrentRef: React.RefObject<undefined | (() => void)>
   currentGenericParamsRef: React.RefObject<ProveGenericParams>
@@ -191,6 +191,7 @@ const runProofFlow = async (p: {
   }
 
   let canceled = false
+  const wasCanceled = () => canceled
   let proofText = ''
   currentUsernameRef.current = ''
   currentGenericParamsRef.current = makeProveGenericParams()
@@ -318,7 +319,8 @@ const runProofFlow = async (p: {
     }
   } catch (_error) {
     loadCurrentProfile()
-    if (!(_error instanceof RPCError)) {
+    // A cancel we sent fails the RPC too; the user is already leaving, so it has nothing to show
+    if (!(_error instanceof RPCError) || wasCanceled()) {
       return
     }
     const error = _error
