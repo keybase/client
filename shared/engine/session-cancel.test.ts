@@ -93,10 +93,10 @@ test('a late plain call on a cancelled session is acked and never reaches the ap
 
 test('the RPC reply ends the refusal and removes the session', async () => {
   const {cancel, fake, held, sessionID} = await start()
+  expect(fake.engine._sessionSummary()).toEqual([{id: sessionID, method: rpc}])
   cancel()
   expect(fake.engine._sessionsMap.has(sessionID)).toBe(true)
-  // Never listed as outstanding: the caller already has its answer
-  expect(fake.engine._sessionSummary()).toEqual([])
+  expect(fake.engine._sessionSummary()).toEqual([{id: sessionID, method: rpc, refusing: true}])
   held[0]!.reply(undefined)
   await tick()
   expect(fake.engine._sessionsMap.has(sessionID)).toBe(false)
