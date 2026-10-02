@@ -7,7 +7,7 @@ import {SignupScreen, errorBanner} from '@/signup/common'
 import {QuestionBody} from '../common'
 import type {ButtonType} from '@/common-adapters/button'
 import {enterResetPipeline} from '@/login/reset/account-reset'
-import {startRecoverPassword, submitRecoverPasswordReset} from './flow'
+import {restartRecoverPassword, submitRecoverPasswordReset} from './flow'
 
 export type Props = {
   resetPassword?: boolean
@@ -41,7 +41,7 @@ const PromptReset = (props: Props) => {
   }
   const onBack = () => {
     if (skipPassword) {
-      startRecoverPassword({replaceRoute: true, username})
+      restartRecoverPassword(username)
     } else {
       nav.safeNavigateUp()
     }

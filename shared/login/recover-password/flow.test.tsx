@@ -16,6 +16,7 @@ jest.mock('@/provision/flow', () => ({
 import {
   cancelRecoverPassword,
   isRecoverPasswordPromptOpen,
+  restartRecoverPassword,
   startRecoverPassword,
   submitRecoverPasswordDeviceSelect,
   submitRecoverPasswordNoDevice,
@@ -62,7 +63,7 @@ const start = async (p?: {onEngineIncoming?: () => void; replaceRoute?: boolean;
 
 // Starts another run on the same fake, as a screen's restart does
 const restart = async () => {
-  startRecoverPassword({replaceRoute: true, username: 'testuser'})
+  restartRecoverPassword('testuser')
   await tick()
   return fake.calls.at(-1)!.params.sessionID as number
 }
@@ -314,6 +315,36 @@ test('a screen that fails to show is logged with its prompt, and the run stops',
 })
 
 describe('restart', () => {
+  test.each([false, true])(
+    "a screen's restart keeps telling the caller a reset email was sent (old run ended: %s)",
+    async ended => {
+      const onResetEmailSent = jest.fn()
+      const {held} = await start({onResetEmailSent})
+      if (ended) {
+        held[0]!.reply(undefined)
+        await settle()
+      }
+      const newSession = await restart()
+      const {answered, promptId} = await pushResetPassword(newSession)
+      submitRecoverPasswordReset(promptId, T.RPCGen.ResetPromptResponse.confirmReset)
+      await expect(answered).resolves.toEqual({result: T.RPCGen.ResetPromptResponse.confirmReset})
+      expect(onResetEmailSent).toHaveBeenCalledTimes(1)
+      held.at(-1)!.reply(undefined)
+      await settle()
+    }
+  )
+
+  test("a restart for another user does not tell the earlier run's caller", async () => {
+    const onResetEmailSent = jest.fn()
+    await start({onResetEmailSent})
+    restartRecoverPassword('testuser-mac')
+    await tick()
+    const newSession = fake.calls.at(-1)!.params.sessionID as number
+    const {promptId} = await pushResetPassword(newSession)
+    submitRecoverPasswordReset(promptId, T.RPCGen.ResetPromptResponse.confirmReset)
+    expect(onResetEmailSent).not.toHaveBeenCalled()
+  })
+
   test("a restart refuses the old run's open prompts and the old screen no longer answers", async () => {
     const {sessionID} = await start()
     const {answered, promptId} = await pushDevices(sessionID)

@@ -36,14 +36,21 @@ type Run = {dialog: RecoverDialog; onResetEmailSent?: () => void; username: stri
 // The run the screens answer. Kept outside the stores: the run logs the user in, and the logout
 // before that must not stop its screens from answering it. A restart disposes it first.
 let current: Run | undefined
+// Who started the latest run, kept after it ends so a back that starts over still tells that caller
+let caller: Pick<StartRecoverPasswordParams, 'onResetEmailSent' | 'username'> | undefined
 
 const pgpWarningName = 'recoverPasswordPgpWarning'
 // How long a modal may wait for the logged-in root before navigateAppendOnceRootHas drops it.
 const loggedInRootTimeoutMs = 5000
 const pgpMountTimers = new Map<number, ReturnType<typeof setTimeout>>()
 
-const restart = (run: Run) =>
-  startRecoverPassword({onResetEmailSent: run.onResetEmailSent, replaceRoute: true, username: run.username})
+// A screen's back that starts the flow over, in place of the screen
+export const restartRecoverPassword = (username: string) =>
+  startRecoverPassword({
+    onResetEmailSent: caller?.username === username ? caller.onResetEmailSent : undefined,
+    replaceRoute: true,
+    username,
+  })
 
 // The prompt's own back: what each screen's cancel does
 export const cancelRecoverPassword = (promptId: number) => {
@@ -56,7 +63,7 @@ export const cancelRecoverPassword = (promptId: number) => {
   const passphrase = run.dialog.prompt(promptId, getPassphrase)
   if (passphrase?.cancel()) {
     if (passphrase.params.pinentry.type === T.RPCGen.PassphraseType.paperKey) {
-      restart(run)
+      restartRecoverPassword(run.username)
     }
     return
   }
@@ -167,6 +174,7 @@ export const startRecoverPassword = ({
   )
   const run: Run = {dialog, onResetEmailSent, username}
   current = run
+  caller = {onResetEmailSent, username}
   let pgp: Prompt<typeof promptPgp> | undefined
 
   const showEvent = (e: DialogEvent<RecoverPrompt, typeof explainDevice>) => {

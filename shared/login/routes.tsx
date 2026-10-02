@@ -11,7 +11,7 @@ import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
 import useRequestAutoInvite from '@/signup/use-request-auto-invite'
 import {useRoute} from '@react-navigation/native'
-import {cancelRecoverPassword, startRecoverPassword} from './recover-password/flow'
+import {cancelRecoverPassword, restartRecoverPassword} from './recover-password/flow'
 
 // The login route is a state multiplexer (loading / relogin / join). Only the relogin mode wants a
 // header title + "Create account" action, so the desktop header reads the same state to decide.
@@ -66,7 +66,7 @@ const RecoverRestartLeft = () => {
   return (
     <Kb.HeaderLeftButton
       autoDetectCanGoBack={true}
-      onPress={() => startRecoverPassword({replaceRoute: true, username})}
+      onPress={() => restartRecoverPassword(username)}
     />
   )
 }
@@ -78,7 +78,7 @@ const PromptResetAccountLeft = () => {
       autoDetectCanGoBack={true}
       onPress={() =>
         skipPassword
-          ? startRecoverPassword({replaceRoute: true, username})
+          ? restartRecoverPassword(username)
           : C.Router2.navigateUp()
       }
     />
@@ -154,7 +154,7 @@ export const newRoutes = defineRouteMap({
       ...recoverPasswordGetOptions,
       ...(isIOS
         ? recoverBackItems(() =>
-            startRecoverPassword({replaceRoute: true, username: p.route.params.username})
+            restartRecoverPassword(p.route.params.username)
           )
         : {headerLeft: () => <RecoverRestartLeft />}),
     }),
@@ -175,7 +175,7 @@ export const newRoutes = defineRouteMap({
       ...(isIOS
         ? recoverBackItems(() =>
             p.route.params.skipPassword
-              ? startRecoverPassword({replaceRoute: true, username: p.route.params.username})
+              ? restartRecoverPassword(p.route.params.username)
               : C.Router2.navigateUp()
           )
         : {headerLeft: () => <PromptResetAccountLeft />}),
@@ -187,7 +187,7 @@ export const newRoutes = defineRouteMap({
       ...recoverPasswordGetOptions,
       ...(isIOS
         ? recoverBackItems(() =>
-            startRecoverPassword({replaceRoute: true, username: p.route.params.username})
+            restartRecoverPassword(p.route.params.username)
           )
         : {headerLeft: () => <RecoverRestartLeft />}),
     }),
