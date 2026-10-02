@@ -70,7 +70,7 @@ const setup = async (before?: (promptId: number, held: ReturnType<FakeEngine['ho
       held[0]!.reply(undefined)
       await settle()
     })
-  return {answered, end}
+  return {answered, end, promptId}
 }
 
 test('a screen whose prompt is still open stays and its Save answers', async () => {
@@ -80,6 +80,17 @@ test('a screen whose prompt is still open stays and its Save answers', async () 
   fireEvent.click(screen.getByText('Save'))
 
   await expect(answered).resolves.toEqual({result: {passphrase: 'new password', storeSecret: true}})
+  await end()
+})
+
+test('a screen that answered stays when its effects run again while the service works on it', async () => {
+  const {answered, end, promptId} = await setup()
+  fireEvent.click(screen.getByText('Save'))
+  await expect(answered).resolves.toEqual({result: {passphrase: 'new password', storeSecret: true}})
+  // Unfreezing a screen or a hot reload runs its effects again; a remount is the same here
+  cleanup()
+  render(<Password route={{params: {promptId}}} />)
+  expect(nav.types()).toEqual([])
   await end()
 })
 

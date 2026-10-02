@@ -75,6 +75,19 @@ export const cancelRecoverPassword = (promptId: number) => {
 export const isRecoverPasswordPromptOpen = (promptId: number) =>
   !!current?.dialog.openPrompts().some(p => p.id === promptId)
 
+// Prompts of this run that a screen answered. Their screens stay while the service works on the answer.
+const answeredByScreen = new Set<number>()
+const noteAnswer = (promptId: number, answered: boolean | undefined) => {
+  if (answered) {
+    answeredByScreen.add(promptId)
+  }
+}
+
+// The prompt settled without its screen's answer (before the screen appeared, or by a restart or the
+// run ending), so the screen has nothing left to do
+export const isRecoverPasswordPromptGone = (promptId: number) =>
+  !isRecoverPasswordPromptOpen(promptId) && !answeredByScreen.has(promptId)
+
 // Refuses the prompt and navigates nowhere: its screen is already going away
 export const refuseRecoverPasswordPrompt = (promptId: number) => {
   current?.dialog
@@ -97,7 +110,7 @@ export const submitRecoverPasswordPaperKey = (promptId: number, passphrase: stri
   current?.dialog.prompt(promptId, getPassphrase)?.answer({passphrase, storeSecret: false})
 }
 export const submitRecoverPasswordPassword = (promptId: number, passphrase: string) => {
-  current?.dialog.prompt(promptId, getPassphrase)?.answer({passphrase, storeSecret: true})
+  noteAnswer(promptId, current?.dialog.prompt(promptId, getPassphrase)?.answer({passphrase, storeSecret: true}))
 }
 export const submitRecoverPasswordReset = (promptId: number, action: T.RPCGen.ResetPromptResponse) => {
   const run = current
@@ -158,6 +171,7 @@ export const startRecoverPassword = ({
     }
     previous.dialog.dispose()
   }
+  answeredByScreen.clear()
   if (abortProvisioning) {
     cancelProvision()
   }
