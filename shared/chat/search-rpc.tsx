@@ -22,11 +22,13 @@ const makeSearchOpts = (overrides: Partial<T.RPCChat.SearchOpts>): T.RPCChat.Sea
 })
 
 export const searchInboxRPC = async (p: {
+  globalFallthrough: ReadonlyArray<string>
   incomingCallMap: T.RPCChat.IncomingCallMapType
   opts: Partial<T.RPCChat.SearchOpts>
   query: string
 }) => {
   return await T.RPCChat.localSearchInboxRpcListener({
+    globalFallthrough: p.globalFallthrough,
     incomingCallMap: p.incomingCallMap,
     params: {
       identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,

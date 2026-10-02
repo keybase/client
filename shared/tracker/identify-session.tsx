@@ -191,6 +191,8 @@ export const loadNonUserProfile = (username: string) => {
 const runIdentify = async (s: Session, generation: number, guiID: string, ignoreCache: boolean) => {
   try {
     await T.RPCGen.identify3Identify3RpcListener({
+      // The identify3Ui events are handled by the engine action subscriptions below
+      globalFallthrough: ['keybase.1.identify3Ui.'],
       incomingCallMap: {},
       params: {assertion: s.username, guiID, ignoreCache},
       waitingKey: C.waitingKeyTrackerProfileLoad,

@@ -1296,6 +1296,8 @@ type ListenerArgs<M extends ListenerMethod> = {
   customResponseIncomingCallMap?: CustomResponseIncomingCallMap,
   waitingKey?: WaitingKey,
   onSessionCreated?: (cancel: () => void) => void,
+  // Prefixes of incoming methods this call leaves to global handling; any other unhandled one is reported
+  globalFallthrough?: ReadonlyArray<string>,
 }
 export type ListenerFn<M extends ListenerMethod> = (p: ListenerArgs<M>) => Promise<RpcOut<M>>
 const createListener = <M extends ListenerMethod>(method: M): ListenerFn<M> =>
@@ -1307,6 +1309,7 @@ const createListener = <M extends ListenerMethod>(method: M): ListenerFn<M> =>
       customResponseIncomingCallMap: p.customResponseIncomingCallMap,
       waitingKey: p.waitingKey,
       onSessionCreated: p.onSessionCreated,
+      globalFallthrough: p.globalFallthrough,
     }) as Promise<RpcOut<M>>) as ListenerFn<M>
 
 export enum AppLinkType {

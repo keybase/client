@@ -140,6 +140,8 @@ const RemoteTrackers = () => {
     const f = async () => {
       try {
         await T.RPCGen.identify3Identify3RpcListener({
+          // The identify3Ui events are handled by the engine action listeners below
+          globalFallthrough: ['keybase.1.identify3Ui.'],
           incomingCallMap: {},
           params: {assertion, guiID, ignoreCache},
           waitingKey: 'tracker:profileLoad',

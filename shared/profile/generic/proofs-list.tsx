@@ -288,6 +288,8 @@ const runProofFlow = async (p: {
           afterCheckProofRef.current = undefined
         },
       },
+      // The service logs "Success!" here; the global handler writes it to the log
+      globalFallthrough: ['keybase.1.logUi.log'],
       incomingCallMap: {
         'keybase.1.proveUi.displayRecheckWarning': () => {},
         'keybase.1.proveUi.outputPrechecks': () => {},

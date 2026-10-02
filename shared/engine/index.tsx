@@ -49,6 +49,9 @@ class Engine implements CallPort {
 
   _emitWaiting: (changes: BatchParams) => void
   _onEngineIncoming?: (action: EngineGen.Actions) => void
+  // Told when a listener gets an incoming method it neither handles nor declared as left to global
+  // handling. The fake engine fails the test; unset, a dev build logs it.
+  onUndeclaredIncoming?: (message: string) => void
 
   _queuedChanges: Array<{error?: RPCError; increment: boolean; key: WaitingKey}> = []
   dispatchWaitingAction = (key: WaitingKey, waiting: boolean, error?: RPCError) => {
@@ -222,6 +225,9 @@ class Engine implements CallPort {
       if (session?.incomingCall(method, param, response)) {
         // Part of a session?
       } else {
+        if (session?.isUndeclaredFallthrough(method)) {
+          this._reportUndeclaredIncoming(`${session._startMethod ?? 'unknown'} got undeclared incoming ${method}`)
+        }
         this._answerGlobalIncoming(method, param, response)
         const act = {
           payload: {params: param},
@@ -231,6 +237,14 @@ class Engine implements CallPort {
           this._onEngineIncoming(act)
         }
       }
+    }
+  }
+
+  _reportUndeclaredIncoming(message: string) {
+    if (this.onUndeclaredIncoming) {
+      this.onUndeclaredIncoming(message)
+    } else if (__DEV__) {
+      logger.error(message)
     }
   }
 
@@ -265,13 +279,15 @@ class Engine implements CallPort {
     incomingCallMap?: IncomingCallMapType
     customResponseIncomingCallMap?: CustomResponseIncomingCallMapType
     waitingKey?: WaitingKey
+    globalFallthrough?: ReadonlyArray<string>
   }) {
-    const {customResponseIncomingCallMap, incomingCallMap, waitingKey} = p
+    const {customResponseIncomingCallMap, globalFallthrough, incomingCallMap, waitingKey} = p
     const {method, params, callback} = p
     // Make a new session and start the request
     const session = this.createSession({
       customResponseIncomingCallMap,
       dangling: !!this._backgroundSessionMethods[method as MethodKey],
+      globalFallthrough,
       incomingCallMap,
       waitingKey,
     })
@@ -288,8 +304,10 @@ class Engine implements CallPort {
     cancelHandler?: CancelHandlerType
     dangling?: boolean
     waitingKey?: WaitingKey
+    globalFallthrough?: ReadonlyArray<string>
   }): Session {
-    const {customResponseIncomingCallMap, incomingCallMap, cancelHandler, dangling = false, waitingKey} = p
+    const {customResponseIncomingCallMap, incomingCallMap, cancelHandler, dangling = false} = p
+    const {globalFallthrough, waitingKey} = p
     const sessionID = this._generateSessionID()
 
     const session = new Session({
@@ -298,6 +316,7 @@ class Engine implements CallPort {
       dangling,
       dispatchWaiting: this.dispatchWaitingAction,
       endHandler: session => this._sessionEnded(session),
+      globalFallthrough,
       incomingCallMap,
       invoke: (method, param, cb) => {
         this._rpcClient.invoke(method, param, (...args: Array<unknown>) => {
