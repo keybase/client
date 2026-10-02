@@ -336,10 +336,8 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
             );
             return;
           }
-          // Nothing else ends a cancelled switch, and the logged-out status it withheld applies only then
-          if (!(error instanceof RPCError) || error.desc === cancelDesc) {
-            get().dispatch.setUserSwitching(false);
-          }
+          // Nothing else ends a failed switch, and the logged-out status it withheld applies only then
+          get().dispatch.setUserSwitching(false);
           if (!(error instanceof RPCError)) {
             return;
           }
