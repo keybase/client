@@ -140,10 +140,15 @@ class Engine implements CallPort {
   // Cancel the sessions so their promises reject and flows can react, instead of hanging forever on
   // answers that will never come (e.g. a provision prompt screen left up across a service restart).
   // When the transport died the service has forgotten every in-flight RPC, so held prompts are
-  // dropped without an answer; otherwise the link is alive and they are refused.
+  // dropped without an answer; otherwise the link is alive and they are refused. Dangling sessions
+  // are never cancelled, but a lost link still drops what they hold.
   _cancelOutstandingSessions(why: 'lostLink' | 'client') {
     for (const session of [...this._sessionsMap.values()]) {
-      if (!session.getDangling()) {
+      if (session.getDangling()) {
+        if (why === 'lostLink') {
+          session.forgetHeldForLostLink()
+        }
+      } else {
         if (why === 'lostLink') {
           session.cancelForLostLink()
         } else {
