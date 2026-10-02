@@ -16,6 +16,7 @@ import {TouchableOpacity, Keyboard} from 'react-native'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {useOnMountOnce} from '@/constants/react'
 import * as Styles from '@/styles'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import noop from 'lodash/noop'
 import './menu-layout.css'
 
@@ -135,6 +136,7 @@ const DesktopMenuLayout = (props: MenuLayoutProps) => {
       alignItems="stretch"
       fullWidth={true}
       style={Styles.collapseStyles([desktopStyles.menuContainer, style])}
+      testID={TestIDs.FLOATING_MENU}
     >
       {header}
       {items.some(item => item !== 'Divider') && (

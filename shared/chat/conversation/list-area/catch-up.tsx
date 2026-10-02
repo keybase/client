@@ -1,4 +1,5 @@
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {OrangeLineContext} from '../orange-line-context'
@@ -96,6 +97,7 @@ export const CatchUp = (p: {onClick: () => void}) => {
         gap="xtiny"
         onClick={onClick}
         style={styles.pill}
+        testID={TestIDs.CHAT_CATCH_UP}
       >
         <Kb.Icon type="iconfont-arrow-full-up" color={theme.whiteOrWhite} sizeType="Small" />
         <Kb.Text type="BodySmallSemibold" style={styles.label}>

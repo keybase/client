@@ -839,6 +839,7 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
                 onClick={onCancelEditing}
                 small={true}
                 style={desktopStyles.cancelEditingBtn}
+                testID={TestIDs.CHAT_EDIT_CANCEL}
                 type="Dim"
               />
             )}
@@ -1026,6 +1027,7 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
           small={true}
           onClick={onCancelEditing}
           label="Cancel"
+          testID={TestIDs.CHAT_EDIT_CANCEL}
           type="Dim"
         />
       )}
@@ -1039,9 +1041,9 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
       <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexGrow} />
       {!hasText && !cannotWrite && (
         <Kb.Box2 direction="horizontal" alignItems="flex-end">
-          <Kb.Icon onClick={openFilePicker} padding="tiny" type="iconfont-camera" />
+          <Kb.Icon onClick={openFilePicker} padding="tiny" type="iconfont-camera" testID={TestIDs.CHAT_CAMERA_BUTTON} />
           <AudioRecorder showAudioSend={showAudioSend} setShowAudioSend={setShowAudioSend} />
-          <Kb.Icon onClick={openMoreMenu} padding="tiny" type="iconfont-add" />
+          <Kb.Icon onClick={openMoreMenu} padding="tiny" type="iconfont-add" testID={TestIDs.CHAT_MORE_BUTTON} />
         </Kb.Box2>
       )}
       {hasText && !cannotWrite && (

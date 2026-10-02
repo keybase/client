@@ -1,5 +1,6 @@
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {Portal} from '@/common-adapters/portal.native'
 import * as React from 'react'
 import * as InputState from '@/chat/conversation/input-area/input-state'
@@ -182,7 +183,7 @@ const MicButton = (p: MicButtonProps) => {
   })
 
   return (
-    <View {...ctx.panHandlers}>
+    <View {...ctx.panHandlers} testID={TestIDs.CHAT_AUDIO_BUTTON}>
       <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
     </View>
   )

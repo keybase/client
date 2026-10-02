@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {useConversationCenterActions} from '../center-context'
 import {useConversationThreadSelector} from '../thread-context'
 import {useConversationThreadCloseSearch} from '../thread-navigation'
@@ -9,7 +10,7 @@ const JumpToRecent = (props: {onClick: () => void}) => {
   const theme = Kb.Styles.useTheme()
   return (
     <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.outerContainer}>
-      <Kb.Button label="Jump to recent messages" onClick={props.onClick} small={true}>
+      <Kb.Button label="Jump to recent messages" onClick={props.onClick} small={true} testID={TestIDs.CHAT_JUMP_TO_RECENT}>
         <Kb.Icon
           color={theme.whiteOrWhite}
           type="iconfont-arrow-full-down"

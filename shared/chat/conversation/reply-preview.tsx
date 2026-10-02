@@ -1,5 +1,6 @@
 import {zoomImage} from '@/constants/chat/helpers'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type * as T from '@/constants/types'
 import * as InputState from './input-area/input-state'
 import {useConversationThreadMessage} from './thread-context'
@@ -35,7 +36,7 @@ const ReplyPreview = () => {
   const onCancel = InputState.useConversationInputDispatch(s => s.clearReplyTo)
 
   return (
-    <Kb.Box2 direction="vertical" alignSelf="stretch" style={styles.outerContainer}>
+    <Kb.Box2 direction="vertical" alignSelf="stretch" style={styles.outerContainer} testID={TestIDs.CHAT_REPLY_PREVIEW}>
       <Kb.Box2 direction="vertical" style={styles.container} gap="xtiny" fullWidth={true}>
         <Kb.Box2 direction="vertical" style={styles.title} fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Replying to:</Kb.Text>
@@ -55,7 +56,7 @@ const ReplyPreview = () => {
               </Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
-          <Kb.Icon onClick={onCancel} type="iconfont-remove" style={styles.close} />
+          <Kb.Icon onClick={onCancel} type="iconfont-remove" style={styles.close} testID={TestIDs.CHAT_REPLY_CANCEL} />
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
