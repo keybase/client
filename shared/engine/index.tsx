@@ -1,24 +1,38 @@
 // Handles sending requests to the daemon
 import Session, {type CancelHandlerType} from './session'
-import engineListener from './listener'
+import {makeListen} from './listener'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
 import type {SessionID, MethodKey, WaitingKey} from './types'
-import {initEngine, initEngineListener} from './require'
+import {installCallPort, type CallPort} from './call-port'
 import {printOutstandingRPCs, printRPC} from '@/local-debug'
-import {resetClient, createClient, rpcLog, type CreateClientType, type PayloadType} from './index.platform'
+import {
+  resetClient,
+  createClient,
+  rpcLog,
+  type CreateClientType,
+  type IncomingRPCCallbackType,
+  type ConnectDisconnectCB,
+  type PayloadType,
+} from './index.platform'
 import {type RPCError, convertToError} from '@/util/errors'
 import type * as EngineGen from '@/constants/rpc'
 import type {IncomingCallMapType, CustomResponseIncomingCallMapType} from '@/constants/rpc/rpc-all-gen'
 
 export type BatchParams = Array<{key: WaitingKey; increment: boolean; error?: RPCError}>
+export type MakeClient = (
+  incoming: IncomingRPCCallbackType,
+  connect: ConnectDisconnectCB,
+  disconnect: ConnectDisconnectCB
+) => CreateClientType
 
-class Engine {
+class Engine implements CallPort {
   _onConnectedCB: (c: boolean) => void
   // Tracking outstanding sessions
   _sessionsMap = new Map<SessionID, Session>()
   // Helper we delegate actual calls to
   _rpcClient: CreateClientType
+  _makeClient: MakeClient
   // Set which actions we don't auto respond with so listeners can themselves
   _customResponseAction: {[K in MethodKey]: true} = {
     'keybase.1.secretUi.getPassphrase': true,
@@ -61,17 +75,18 @@ class Engine {
   constructor(
     emitWaiting: (changes: BatchParams) => void,
     onConnected: (c: boolean) => void,
-    onEngineIncoming?: (action: EngineGen.Actions) => void
+    onEngineIncoming?: (action: EngineGen.Actions) => void,
+    makeClient: MakeClient = createClient
   ) {
     this._onConnectedCB = onConnected
     this._onEngineIncoming = onEngineIncoming
     this._emitWaiting = emitWaiting
-    this._rpcClient = createClient(
+    this._makeClient = makeClient
+    this._rpcClient = makeClient(
       payload => this._rpcIncoming(payload),
       () => this._onConnected(),
       () => this._onDisconnect()
     )
-    this._setupDebugging()
   }
 
   rebindCallbacks(
@@ -223,8 +238,8 @@ class Engine {
     }
   }
 
-  // An outgoing call. ONLY called by the flow-type rpc helpers
-  _rpcOutgoing(p: {
+  // An outgoing call, made by the generated rpc helpers and by the listener
+  call(p: {
     method: string
     params: object | undefined
     callback: (...args: Array<any>) => void
@@ -245,6 +260,8 @@ class Engine {
     return session.getId()
   }
 
+  listen = makeListen(this)
+
   // Make a new session. If the session hangs around forever set dangling to true
   createSession(p: {
     incomingCallMap?: IncomingCallMapType
@@ -260,6 +277,7 @@ class Engine {
       cancelHandler,
       customResponseIncomingCallMap,
       dangling,
+      dispatchWaiting: this.dispatchWaitingAction,
       endHandler: session => this._sessionEnded(session),
       incomingCallMap,
       invoke: (method, param, cb) => {
@@ -319,12 +337,15 @@ class Engine {
     this._queuedChanges = []
     this._hasConnected = false
     this._listenersAreReady = false
-    this._rpcClient = resetClient(
-      this._rpcClient,
-      payload => this._rpcIncoming(payload),
-      () => this._onConnected(),
-      () => this._onDisconnect()
-    )
+    const incoming = (payload: PayloadType) => this._rpcIncoming(payload)
+    const connect = () => this._onConnected()
+    const disconnect = () => this._onDisconnect()
+    if (this._makeClient === createClient) {
+      this._rpcClient = resetClient(this._rpcClient, incoming, connect, disconnect)
+    } else {
+      this._rpcClient.transport.close()
+      this._rpcClient = this._makeClient(incoming, connect, disconnect)
+    }
   }
 }
 
@@ -343,13 +364,17 @@ const makeEngine = (
     logger.warn('makeEngine called multiple times')
   }
 
-  if (!engine) {
+  // An HMR'd engine built by older code may predate the call port
+  const reused = engine as Partial<Engine> | undefined
+  if (!engine || typeof reused?.call !== 'function' || typeof reused.listen !== 'function') {
     engine = new Engine(emitWaiting, onConnected, onEngineIncoming)
+    engine._setupDebugging()
   } else {
     engine.rebindCallbacks(emitWaiting, onConnected, onEngineIncoming)
+    // pick up listener.tsx edits on HMR
+    engine.listen = makeListen(engine)
   }
-  initEngine(engine)
-  initEngineListener(engineListener)
+  installCallPort(engine)
   return engine
 }
 

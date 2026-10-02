@@ -1,7 +1,7 @@
 /* eslint-disable */
 
 // This file is auto-generated. Run `yarn gen:protocol` to regenerate it.
-import {getEngine as engine} from '@/engine/require'
+import {getCallPort} from '@/engine/call-port'
 import * as Keybase1 from './rpc-gen'
 export {Keybase1}
 type WaitingKey = string | ReadonlyArray<string>
@@ -39,7 +39,7 @@ export type RpcFn<M extends PromiseMethod> = [RpcIn<M>] extends [undefined]
 const createRpc = <M extends PromiseMethod>(method: M): RpcFn<M> =>
   ((params?: RpcIn<M>, waitingKey?: WaitingKey) =>
     new Promise<RpcOut<M>>((resolve, reject) =>
-      engine()._rpcOutgoing({
+      getCallPort().call({
         method,
         params,
         callback: (error: SimpleError, result: RpcOut<M>) => error ? reject(error) : resolve(result),

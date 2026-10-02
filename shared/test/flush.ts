@@ -12,11 +12,14 @@ import {act} from '@testing-library/react'
 // nested a few levels deep - the difference is roughly 1.25ms per turn versus
 // nothing, which dominates any test that flushes in a loop. It comes from
 // node:timers because the jsdom environment does not put it on globalThis.
+//
+// tick is one such turn on its own, for tests that render nothing.
+export const tick = async () => new Promise<void>(resolve => setImmediate(resolve))
+
+// Turns inside act(), so React commits what each one scheduled
 export const flush = async (turns = 4) => {
   for (let i = 0; i < turns; i++) {
     // eslint-disable-next-line no-await-in-loop
-    await act(async () => {
-      await new Promise(resolve => setImmediate(resolve))
-    })
+    await act(tick)
   }
 }

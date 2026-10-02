@@ -1,7 +1,7 @@
 import * as T from '@/constants/types'
 import Logger from './ring-logger'
 import noop from 'lodash/noop'
-import {hasEngine} from '../engine/require'
+import {hasCallPort} from '../engine/call-port'
 import {requestIdleCallback} from '@/util/idle-callback'
 
 export type Timestamp = number
@@ -111,7 +111,7 @@ class AggregateLoggerImpl {
         if (typeof process !== 'undefined' && process['type'] !== 'renderer') {
           return await Promise.resolve()
         }
-        if (!hasEngine()) {
+        if (!hasCallPort()) {
           return await Promise.resolve()
         }
       } catch {

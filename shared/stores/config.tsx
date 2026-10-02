@@ -22,7 +22,7 @@ import { invalidPasswordErrorString } from "@/constants/config";
 import { navigateAppendOnceRootHas } from "@/constants/router";
 import { onEngineConnected as onEngineConnectedInPlatform } from "@/util/storeless-actions";
 import { useDaemonState } from "@/stores/daemon";
-import { getEngine, hasEngine } from "@/engine/require";
+import { getCallPort, hasCallPort } from "@/engine/call-port";
 
 type Store = T.Immutable<{
   allowAnimatedEmojis: boolean;
@@ -649,8 +649,8 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
           startNewAccountGeneration();
         }
         Z.resetAllStores();
-        if (hasEngine()) {
-          getEngine().cancelOutstandingSessions();
+        if (hasCallPort()) {
+          getCallPort().cancelOutstandingSessions();
         }
       }
     },
