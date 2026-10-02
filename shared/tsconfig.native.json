@@ -38,7 +38,6 @@
     "./git/delete-repo.test.tsx",
     "./git/index.test.tsx",
     "./settings/password.test.tsx",
-    "./login/recover-password/pgp-warning-back.test.tsx",
     "./provision/waiting-overlay.test.tsx",
     "./tests/e2e/ios-appium"
   ]

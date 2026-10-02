@@ -1,11 +1,10 @@
 import * as T from '@/constants/types'
 import {
   clearModals,
-  getModalStack,
+  getVisibleScreen,
   navigateAppend,
   navigateAppendOnceRootHas,
   navigateUp,
-  removeTopRootRoutes,
 } from '@/constants/router'
 import {waitingKeyRecoverPassword} from '@/constants/strings'
 import {ignorePromise, wrapErrors} from '@/constants/utils'
@@ -16,7 +15,6 @@ import {callNamed, clearOwner, setNamedScoped} from '@/stores/flow-handles'
 import {cancelProvision} from '@/provision/flow'
 import {rpcDeviceToDevice} from '@/constants/rpc-utils'
 import {RPCError} from '@/util/errors'
-import type {RootRoute} from '@/constants/navigator'
 
 type StartRecoverPasswordParams = {
   abortProvisioning?: boolean
@@ -49,82 +47,37 @@ export const submitRecoverPasswordPassword = (password: string) =>
 export const submitRecoverPasswordReset = (action: T.RPCGen.ResetPromptResponse) =>
   callNamed(owner, slots.submitResetPassword, action)
 
-type PgpPrompt = {
-  respond: (proceed: boolean) => void
-  // Stops a warning that is still waiting for the logged-in root from being shown.
-  cancelShow: () => void
-}
-// One startRecoverPassword. Only the latest run, `currentRun`, is current; a restart supersedes the one
-// before it.
-type Run = {
-  // The PGP prompts of this run Go is still waiting on, by the id their warning screen carries.
-  prompts: Map<number, PgpPrompt>
-}
+// Go asks the PGP question at most once per run and waits for the answer, so at most one is pending.
+type PgpPrompt = {respond: (proceed: boolean) => void}
+let pendingPgp: PgpPrompt | undefined
 
-// Every prompt of an older run was settled when it was superseded, and every prompt of an ended run when it
-// ended, so the current run holds every prompt still pending. A screen whose prompt is gone finds no entry,
-// so it can never answer another prompt.
-let currentRun: Run | undefined
-let lastPgpPromptID = 0
+// The prompt the warning screen answers; read when the screen mounts.
+export const getRecoverPasswordPgpPrompt = () => pendingPgp
 
-const isPgpWarningFor = (ids: ReadonlySet<number>) => (route: RootRoute) =>
-  route.name === 'recoverPasswordPgpWarning' &&
-  !!route.params &&
-  'pgpPromptID' in route.params &&
-  ids.has(route.params.pgpPromptID as number)
-
-// Takes a prompt out of the run, so nothing can answer it any more. Returns it if it was still pending.
-const takePgp = (run: Run, id: number) => {
-  const prompt = run.prompts.get(id)
-  if (!prompt) return undefined
-  run.prompts.delete(id)
-  prompt.cancelShow()
+const makePgpPrompt = (answer: (proceed: boolean) => void) => {
+  let settled = false
+  const prompt: PgpPrompt = {
+    respond: proceed => {
+      if (settled) return
+      settled = true
+      if (pendingPgp === prompt) {
+        pendingPgp = undefined
+      }
+      answer(proceed)
+    },
+  }
   return prompt
 }
 
-// The one way a PGP prompt is answered: settles it once. Returns whether it was still pending.
-const settlePgp = (run: Run, id: number, proceed: boolean) => {
-  const prompt = takePgp(run, id)
-  prompt?.respond(proceed)
-  return !!prompt
-}
-
-// Declines every pending prompt of the run, and returns their ids, whose warnings may be on screen.
-const declineAllPgp = (run: Run) => {
-  const ids = new Set(run.prompts.keys())
-  ids.forEach(id => settlePgp(run, id, false))
-  return ids
-}
-
-// Takes every pending prompt of the run without answering Go, and returns their ids.
-const abandonAllPgp = (run: Run) => {
-  const ids = new Set(run.prompts.keys())
-  ids.forEach(id => takePgp(run, id))
-  return ids
-}
-
-// Takes these prompts' warnings away where they are on top. A warning under another modal stays (removing it
-// would abort the app on iOS) and closes itself once it is uncovered: see isRecoverPasswordPgpPending.
-const removePgpWarnings = (ids: ReadonlySet<number>) => {
-  if (ids.size) {
-    removeTopRootRoutes(isPgpWarningFor(ids))
+// Declines a prompt Go is still waiting on, and takes its warning away if it is on top. A warning under
+// another modal stays: removing a covered modal crashes iOS.
+const declinePgp = (prompt: PgpPrompt) => {
+  if (pendingPgp !== prompt) return
+  prompt.respond(false)
+  if (getVisibleScreen(true)?.name === 'recoverPasswordPgpWarning') {
+    navigateUp()
   }
 }
-
-// Whether Go is still waiting on this prompt. A warning whose prompt is no longer pending has nothing to ask.
-export const isRecoverPasswordPgpPending = (id: number) => !!currentRun?.prompts.has(id)
-
-// Answers a prompt from its warning screen, then takes away that prompt's warning and nothing else.
-// `screenRemoving` is for a warning the user is already taking away, which must not be navigated again.
-export const answerRecoverPasswordPgp = (id: number, proceed: boolean, screenRemoving?: 'screenRemoving') => {
-  if (!currentRun || !settlePgp(currentRun, id, proceed)) return
-  if (!screenRemoving) {
-    removePgpWarnings(new Set([id]))
-  }
-}
-
-// The flow's own modals an error takes the place of when one of them is on top.
-const errorReplaces = new Set(['recoverPasswordSetPassword', 'recoverPasswordErrorModal'])
 
 export const startRecoverPassword = ({
   abortProvisioning,
@@ -132,30 +85,18 @@ export const startRecoverPassword = ({
   replaceRoute,
   username,
 }: StartRecoverPasswordParams) => {
-  // A restart abandons the old run, which would leave Go waiting on its prompts.
-  if (currentRun) {
-    removePgpWarnings(declineAllPgp(currentRun))
+  if (pendingPgp) {
+    declinePgp(pendingPgp)
   }
-  const run: Run = {prompts: new Map()}
-  currentRun = run
   clearOwner(owner)
+  let runPgp: PgpPrompt | undefined
   const f = async () => {
     if (abortProvisioning) {
       cancelProvision()
     }
     let active = true
-    // Anything thrown that is not an RPCError ends the run with no screen of its own.
-    let failure: RPCError | 'unexpected' | undefined
-    let unexpectedError: unknown
-    // A logout from elsewhere unmounts the warnings without a beforeRemove, so their prompts are declined
-    // here. Not on a screen's unmount: a covered modal can lose its effects while it is still on the stack.
-    // Not on an account switch starting, whose store reset also drops loggedIn: declining makes Go log out,
-    // which could race the switched-to account's login. The switch cancels the run, whose end drops them.
-    const unsubscribeConfig = useConfigState.subscribe((s, prev) => {
-      if (prev.loggedIn && !s.loggedIn && !s.userSwitching) {
-        removePgpWarnings(declineAllPgp(run))
-      }
-    })
+    let hadError = false
+    let errorShown = false
     const handles = new Map<Slot, ScopedHandle>()
     const isActive = () => active
     const clearSlots = (...slotNames: ReadonlyArray<Slot>) => {
@@ -212,23 +153,15 @@ export const startRecoverPassword = ({
             navigateAppend({name: 'recoverPasswordDeviceSelector', params: {devices}}, !!replaceRoute)
           },
           'keybase.1.loginUi.promptPassphraseRecovery': (_params, response) => {
-            // Declining makes Go cancel silently (sccanceled) and log back out.
-            const respond = wrapErrors((proceed: boolean) => response.result(proceed))
-            if (currentRun !== run) {
-              respond(false)
-              return
+            // true continues to set-password; false makes Go cancel and log back out.
+            if (pendingPgp) {
+              declinePgp(pendingPgp)
             }
-            const id = ++lastPgpPromptID
-            const prompt: PgpPrompt = {cancelShow: () => {}, respond}
-            run.prompts.set(id, prompt)
-            // Go asks right after the paper key logs in, which can be before the app has mounted the
-            // logged-in root that this modal lives on. A push before that would land nowhere. The wait has
-            // no deadline of its own: the run ending, a restart or a logout settles the prompt and stops it.
-            prompt.cancelShow = navigateAppendOnceRootHas(
-              'loggedIn',
-              {name: 'recoverPasswordPgpWarning', params: {pgpPromptID: id}},
-              'untilCancelled'
-            )
+            runPgp = makePgpPrompt(wrapErrors((proceed: boolean) => response.result(proceed)))
+            pendingPgp = runPgp
+            // The paper key has just logged the user in, so the logged-in root this modal lives on may not
+            // be mounted yet.
+            navigateAppendOnceRootHas('loggedIn', {name: 'recoverPasswordPgpWarning', params: {}})
           },
           'keybase.1.loginUi.promptResetAccount': (params, response) => {
             if (params.prompt.t === T.RPCGen.ResetPromptType.enterResetPw) {
@@ -327,11 +260,21 @@ export const startRecoverPassword = ({
       })
       console.log('Recovered account')
     } catch (error) {
-      if (error instanceof RPCError) {
-        failure = error
-      } else {
-        failure = 'unexpected'
-        unexpectedError = error
+      if (!(error instanceof RPCError)) {
+        logger.warn('recover password failed unexpectedly', error)
+        return
+      }
+      hadError = true
+      logger.warn('RPC returned error: ' + error.message)
+      if (!(error.code === T.RPCGen.StatusCode.sccanceled || error.code === T.RPCGen.StatusCode.scinputcanceled)) {
+        errorShown = true
+        navigateAppend(
+          {
+            name: useConfigState.getState().loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
+            params: {error: error.message},
+          },
+          true
+        )
       }
     } finally {
       clearSlots(
@@ -343,43 +286,19 @@ export const startRecoverPassword = ({
         slots.submitResetPassword
       )
       active = false
-      unsubscribeConfig()
+      // Go stopped waiting with the run. An error screen has already replaced a warning on top.
+      if (runPgp) {
+        if (errorShown) {
+          runPgp.respond(false)
+        } else {
+          declinePgp(runPgp)
+        }
+      }
     }
-    // A superseded run's prompts were settled by the restart, and the screens now belong to the newer run.
-    if (currentRun !== run) return
-    // Go stopped waiting with the run. Under an account switch Go is not answered at all: a decline makes it
-    // log out, which could race the switched-to account's login.
-    const unanswered = useConfigState.getState().userSwitching ? abandonAllPgp(run) : declineAllPgp(run)
-    if (failure === 'unexpected') {
-      logger.warn('recover password failed unexpectedly', unexpectedError)
-      removePgpWarnings(unanswered)
-      return
-    }
-    logger.info(`finished ${failure ? 'with error' : 'without error'}`)
-    if (!failure) {
+    logger.info(`finished ${hadError ? 'with error' : 'without error'}`)
+    if (!hadError) {
       clearModals()
-      return
     }
-    logger.warn('RPC returned error: ' + failure.message)
-    if (failure.code === T.RPCGen.StatusCode.sccanceled || failure.code === T.RPCGen.StatusCode.scinputcanceled) {
-      removePgpWarnings(unanswered)
-      return
-    }
-    if (!useConfigState.getState().loggedIn) {
-      removePgpWarnings(unanswered)
-      navigateAppend({name: 'recoverPasswordError', params: {error: failure.message}}, true)
-      return
-    }
-    // Logged in, the flow's screens are modals: the error takes the place of the flow's own modal on top,
-    // and goes over anything else rather than replacing it. Read before anything is removed, and removed
-    // together with the unanswered warnings above it in one step. Anything under another modal stays.
-    const isUnansweredWarning = isPgpWarningFor(unanswered)
-    const top = getModalStack()
-      .filter(r => !isUnansweredWarning(r))
-      .at(-1)
-    const replaced = top && errorReplaces.has(top.name) ? top.key : undefined
-    removeTopRootRoutes(r => isUnansweredWarning(r) || (replaced !== undefined && r.key === replaced))
-    navigateAppend({name: 'recoverPasswordErrorModal', params: {error: failure.message}})
   }
   ignorePromise(f())
 }

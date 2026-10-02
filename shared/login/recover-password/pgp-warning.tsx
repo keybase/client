@@ -1,39 +1,67 @@
 import * as Kb from '@/common-adapters'
-import {useCloseWhenFocusedIf, useOnRemove} from '@/util/safe-navigation'
-import {SignupScreen} from '@/signup/common'
-import {QuestionBody} from '../common'
-import {answerRecoverPasswordPgp, isRecoverPasswordPgpPending} from './flow'
+import * as React from 'react'
+import {NavigationContext} from '@react-navigation/core'
+import {navigateUp} from '@/constants/router'
+import {getRecoverPasswordPgpPrompt} from './flow'
 
-type Props = {route: {params: {pgpPromptID: number}}}
+const PgpWarning = () => {
+  const styles = useStyles()
+  const [prompt] = React.useState(getRecoverPasswordPgpPrompt)
+  // Absent outside a navigator (storybook).
+  const navigation = React.useContext(NavigationContext)
 
-const PgpWarning = ({route}: Props) => {
-  const {pgpPromptID} = route.params
-  const onContinue = () => answerRecoverPasswordPgp(pgpPromptID, true)
-  // Any removal (the header Cancel, Android back, a native dismissal, a reset elsewhere) is a decline, or Go
-  // waits forever. The flow settles its own prompts before it navigates, so its removals find this already
-  // answered. The screen is already going, so nothing navigates.
-  useOnRemove(() => answerRecoverPasswordPgp(pgpPromptID, false, 'screenRemoving'))
-  // The flow leaves a warning settled under another modal in place, and it goes once it is uncovered. Its
-  // prompt is already answered, so that removal answers nothing.
-  useCloseWhenFocusedIf(() => !isRecoverPasswordPgpPending(pgpPromptID))
+  React.useEffect(() => {
+    if (!navigation) return
+    return navigation.addListener('beforeRemove', e => {
+      // Only the user taking the warning away is a decline: the header Cancel, Android back or a native
+      // dismissal (REMOVE). Resets elsewhere also remove screens and are not answers.
+      const {type} = e.data.action
+      if (type === 'POP' || type === 'GO_BACK' || type === 'REMOVE') {
+        prompt?.respond(false)
+      }
+    })
+  }, [navigation, prompt])
+
+  const onContinue = () => {
+    prompt?.respond(true)
+    navigateUp()
+  }
 
   return (
-    <SignupScreen
-      buttons={[{label: 'Continue', onClick: onContinue, type: 'Danger'}]}
-      // The modal's route header carries the title and the declining Cancel.
-      hideDesktopHeader={true}
-      noBackground={true}
-    >
-      <QuestionBody centered={true} gap="small" topGap={false} icon={<Kb.ImageIcon type="icon-pgp-key-64" />}>
-        <Kb.Text type="Body" center={true}>
-          Your account has PGP keys stored on Keybase, encrypted with your old password.
-        </Kb.Text>
-        <Kb.Text type="Body" center={true}>
-          If you reset your password you will lose them.
-        </Kb.Text>
-      </QuestionBody>
-    </SignupScreen>
+    <>
+      <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
+        <Kb.Box2
+          centerChildren={!Kb.Styles.isTablet}
+          direction="vertical"
+          fullHeight={true}
+          flex={1}
+          gap="small"
+          padding="small"
+          style={styles.container}
+        >
+          <Kb.Text type="Body" center={true}>
+            Your account has PGP keys stored on Keybase, encrypted with your old password.
+          </Kb.Text>
+          <Kb.Text type="Body" center={true}>
+            If you reset your password you will lose them.
+          </Kb.Text>
+        </Kb.Box2>
+      </Kb.ScrollView>
+      <Kb.ModalFooter>
+        <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
+          <Kb.Button fullWidth={true} label="Continue" onClick={onContinue} type="Danger" />
+        </Kb.ButtonBar>
+      </Kb.ModalFooter>
+    </>
   )
 }
+
+const useStyles = Kb.Styles.createStyleHook(
+  theme =>
+    ({
+      buttonBar: {minHeight: undefined},
+      container: {backgroundColor: theme.blueGrey},
+    }) as const
+)
 
 export default PgpWarning

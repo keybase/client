@@ -38,9 +38,6 @@ export type FakeNavigator = Navigator & {
   commit: () => void
   // Replaces the root state and fires the 'state' listeners, as a real commit would.
   setRootState: (state?: NavTree.NavState) => void
-  // A new container mounting with this state (e.g. under a new key): the old container's 'state' listeners
-  // are gone with it, and only the root-state subscribers hear of the new state.
-  remount: (state: NavTree.NavState) => void
   setReady: (ready: boolean) => void
 }
 
@@ -191,9 +188,7 @@ export const makeFakeNavigator = (p?: {
   let insideClearModals = false
   let rootState = p?.rootState ?? makeRootState()
   let ready = p?.ready ?? true
-  // The mounted container's 'state' listeners, and the app-level root-state subscribers.
   const listeners = new Set<() => void>()
-  const rootStateSubscribers = new Set<() => void>()
   let nextKey = 0
 
   const newKey = (name: string) => `${name}-f${nextKey++}`
@@ -314,7 +309,7 @@ export const makeFakeNavigator = (p?: {
   }
 
   const fireListeners = () => {
-    for (const cb of [...listeners, ...rootStateSubscribers]) {
+    for (const cb of [...listeners]) {
       cb()
     }
   }
@@ -331,7 +326,6 @@ export const makeFakeNavigator = (p?: {
 
   const ref: NavigatorRef = {
     addListener: (_type, cb) => {
-      if (!ready) return () => {}
       listeners.add(cb)
       return () => listeners.delete(cb)
     },
@@ -350,10 +344,6 @@ export const makeFakeNavigator = (p?: {
     },
     getRootState: () => (ready ? rootState : undefined),
     isReady: () => ready,
-    subscribeRootState: cb => {
-      rootStateSubscribers.add(cb)
-      return () => rootStateSubscribers.delete(cb)
-    },
   }
 
   const navigator = makeNavigator(ref)
@@ -393,13 +383,6 @@ export const makeFakeNavigator = (p?: {
       actions
         .filter(a => a.type === 'PUSH')
         .map(a => ({name: a.payload?.['name'], params: a.payload?.['params']})),
-    remount: next => {
-      listeners.clear()
-      queued.length = 0
-      ready = true
-      rootState = next
-      fireListeners()
-    },
     setReady: next => {
       ready = next
     },

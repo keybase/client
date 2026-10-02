@@ -10,7 +10,7 @@ import type {StaticScreenProps} from '@react-navigation/core'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import * as NavTree from './nav-tree'
 import {DEBUG_NAV} from './nav-debug'
-import {getNavigator, type RootRoute} from './navigator'
+import {getNavigator} from './navigator'
 import type {GetOptionsRet, RouteDef} from './types/router'
 import {isSplit, threadRouteName} from './chat/layout'
 import {ignorePromise} from './utils'
@@ -166,10 +166,6 @@ export const clearModals = () => {
   getNavigator().clearModals()
 }
 
-export const removeTopRootRoutes = (shouldRemove: (route: RootRoute) => boolean) => {
-  getNavigator().removeTopRootRoutes(shouldRemove)
-}
-
 export const navigateUp = () => {
   getNavigator().navigateUp()
 }
@@ -191,9 +187,10 @@ export function navigateAppend(path: NavigateAppendType, replace?: boolean): boo
 export const navigateAppendOnceRootHas = (
   rootRouteName: string,
   path: NavigateAppendType,
-  timeoutMs?: number | 'untilCancelled',
-  onDrop?: () => void
-) => getNavigator().navigateAppendOnceRootHas(rootRouteName, path, timeoutMs, onDrop)
+  timeoutMs?: number
+) => {
+  getNavigator().navigateAppendOnceRootHas(rootRouteName, path, timeoutMs)
+}
 
 export const switchTab = (name: Tabs.AppTab) => {
   getNavigator().switchTab(name)

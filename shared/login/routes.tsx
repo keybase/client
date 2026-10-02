@@ -40,10 +40,12 @@ const LoginHeaderRight = () => {
 }
 
 // Recover-password back affordances must run the flow's back/cancel logic (not a plain pop), so they
-// are wired as the React Navigation headerLeft. RecoverBackLeft is handed its action; the restart and
-// reset-account ones read the username from their own route.
-const RecoverBackLeft = ({onPress}: {onPress: () => void}) => (
-  <Kb.HeaderLeftButton autoDetectCanGoBack={true} onPress={onPress} />
+// are wired as the React Navigation headerLeft. They read the current route's params via useRoute.
+const RecoverCancelLeft = () => (
+  <Kb.HeaderLeftButton autoDetectCanGoBack={true} onPress={cancelRecoverPassword} />
+)
+const RecoverPopLeft = () => (
+  <Kb.HeaderLeftButton autoDetectCanGoBack={true} onPress={C.Router2.popStack} />
 )
 const RecoverRestartLeft = () => {
   const route = useRoute()
@@ -121,7 +123,7 @@ export const newRoutes = defineRouteMap({
   },
   recoverPasswordDeviceSelector: {
     getOptions: {
-      ...(isIOS ? recoverBackItems(cancelRecoverPassword) : {headerLeft: () => <RecoverBackLeft onPress={cancelRecoverPassword} />}),
+      ...(isIOS ? recoverBackItems(cancelRecoverPassword) : {headerLeft: () => <RecoverCancelLeft />}),
       title: 'Recover password',
     },
     screen: React.lazy(async () => import('./recover-password/device-selector')),
@@ -129,7 +131,7 @@ export const newRoutes = defineRouteMap({
   recoverPasswordError: {
     getOptions: {
       gestureEnabled: false,
-      ...(isIOS ? recoverBackItems(C.Router2.popStack) : {headerLeft: () => <RecoverBackLeft onPress={C.Router2.popStack} />}),
+      ...(isIOS ? recoverBackItems(C.Router2.popStack) : {headerLeft: () => <RecoverPopLeft />}),
       headerRightActions,
       title: 'Recover password',
     },
@@ -149,7 +151,7 @@ export const newRoutes = defineRouteMap({
   recoverPasswordPaperKey: {
     getOptions: {
       ...recoverPasswordGetOptions,
-      ...(isIOS ? recoverBackItems(cancelRecoverPassword) : {headerLeft: () => <RecoverBackLeft onPress={cancelRecoverPassword} />}),
+      ...(isIOS ? recoverBackItems(cancelRecoverPassword) : {headerLeft: () => <RecoverCancelLeft />}),
     },
     screen: React.lazy(async () => import('./recover-password/paper-key')),
   },
@@ -204,8 +206,8 @@ export const newModalRoutes = defineRouteMap({
     getOptions: {gestureEnabled: false, title: 'Error'},
     screen: React.lazy(async () => import('./recover-password/error-modal')),
   },
-  // Go asks this after the paper key has logged the user in, so it is shown over the logged-in app. Its
-  // only header affordance is the modal group's Cancel, whose goBack the screen answers as a decline.
+  // Shown over the logged-in app: Go asks after the paper key has logged the user in. The modal's
+  // Cancel is the decline.
   recoverPasswordPgpWarning: {
     getOptions: {gestureEnabled: false, title: 'Recover password'},
     screen: React.lazy(async () => import('./recover-password/pgp-warning')),
