@@ -1,15 +1,14 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
-import {installFakeEngine, uninstallFakeEngine, type FakeEngine} from './fake-engine'
+import {fakeError, installFakeEngine, uninstallFakeEngine, type FakeEngine} from './fake-engine'
 import type * as FakeEngineModule from './fake-engine'
 import {getCallPort, hasCallPort, installCallPort, uninstallCallPort} from '@/engine/call-port'
 import {MESSAGE_TYPE_RESPONSE, errors} from '@/engine/rpc-transport'
 import {useWaitingState} from '@/stores/waiting'
 import {resetAllStores} from '@/util/zustand'
+import {tick} from '@/test/flush'
 
 afterEach(() => resetAllStores())
-
-const tick = async () => new Promise(resolve => setImmediate(resolve))
 
 // Starts a recoverPassphrase listener whose session the service can push prompts into.
 const startRecover = async (
@@ -40,7 +39,7 @@ test('a scripted error rejects the call with that error', async () => {
   const fake = installFakeEngine()
   fake.answer('keybase.1.config.getBootstrapStatus', async () => {
     await Promise.resolve()
-    return {error: {code: 1234, desc: 'nope'}}
+    return fakeError(1234, 'nope')
   })
   await expect(T.RPCGen.configGetBootstrapStatusRpcPromise()).rejects.toMatchObject({code: 1234})
 })
@@ -218,4 +217,24 @@ test('uninstalling restores the port that was installed before', () => {
   uninstallFakeEngine()
   expect(getCallPort()).toBe(port)
   uninstallCallPort()
+})
+
+test('an answer that throws after uninstall fails the test then running', async () => {
+  const logged = jest.spyOn(console, 'error').mockImplementation(() => {})
+  try {
+    const fake = installFakeEngine()
+    let fail: (e: Error) => void = () => {}
+    fake.answer('keybase.1.config.getBootstrapStatus', async () => new Promise((_resolve, reject) => (fail = reject)))
+    const settled = T.RPCGen.configGetBootstrapStatusRpcPromise().catch((e: unknown) => e)
+    await tick()
+    uninstallFakeEngine()
+    await expect(settled).resolves.toMatchObject({code: errors.EOF})
+    fail(new Error('late boom'))
+    await tick()
+    expect(logged).toHaveBeenCalledWith(
+      expect.stringContaining('keybase.1.config.getBootstrapStatus (its answer threw: late boom)')
+    )
+  } finally {
+    logged.mockRestore()
+  }
 })

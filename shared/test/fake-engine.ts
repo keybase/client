@@ -18,8 +18,11 @@ import {useWaitingState} from '@/stores/waiting'
 import {StatusCode} from '@/constants/rpc/rpc-gen'
 import type * as EngineGen from '@/constants/rpc'
 
-type FakeError = {error: {code: number; desc: string}}
-// The call's result, or a FakeError to fail it. An answer may also return a Promise of one.
+const fakeErrorBrand = Symbol('fakeError')
+type FakeError = {[fakeErrorBrand]: true; error: {code: number; desc: string}}
+// Fails a scripted or held call with this error. Only a value made here is sent as an error.
+export const fakeError = (code: number, desc: string): FakeError => ({[fakeErrorBrand]: true, error: {code, desc}})
+// The call's result, or a fakeError() to fail it. An answer may also return a Promise of one.
 export type FakeAnswer = unknown
 type HeldCall = {params: any; reply: (a: FakeAnswer) => void}
 type PushResult = {error?: unknown; result?: unknown}
@@ -44,11 +47,7 @@ export type FakeEngine = {
 
 const unscriptedCode = 100
 
-const isFakeError = (a: unknown): a is FakeError => {
-  if (typeof a !== 'object' || a === null || !('error' in a)) return false
-  const {error} = a as {error: unknown}
-  return typeof error === 'object' && error !== null && 'code' in error
-}
+const isFakeError = (a: unknown): a is FakeError => typeof a === 'object' && a !== null && fakeErrorBrand in a
 
 // The Engine logs on every link change; keep that out of test output.
 const quietly = (f: () => void) => {
@@ -147,7 +146,7 @@ export const installFakeEngine = (opts?: {onEngineIncoming?: (a: EngineGen.Actio
     const script = scripts.get(method)
     if (!script) {
       failures.push(method)
-      reply({error: {code: unscriptedCode, desc: `fake engine: nothing scripted for ${method}`}})
+      reply(fakeError(unscriptedCode, `fake engine: nothing scripted for ${method}`))
     } else if (script.kind === 'hold') {
       script.held.push({params, reply})
     } else {
@@ -155,8 +154,14 @@ export const installFakeEngine = (opts?: {onEngineIncoming?: (a: EngineGen.Actio
         .then(() => script.reply(params))
         .then(reply)
         .catch((e: unknown) => {
-          failures.push(`${method} (its answer threw: ${e instanceof Error ? e.message : String(e)})`)
-          reply({error: {code: unscriptedCode, desc: `fake engine: the answer for ${method} threw`}})
+          const failure = `${method} (its answer threw: ${e instanceof Error ? e.message : String(e)})`
+          if (dead) {
+            // Uninstall has already reported; fail whichever test is running now (fail-on-console)
+            console.error(`fake engine: an answer threw after uninstall: ${failure}`)
+            return
+          }
+          failures.push(failure)
+          reply(fakeError(unscriptedCode, `fake engine: the answer for ${method} threw`))
         })
     }
   }

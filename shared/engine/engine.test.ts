@@ -4,14 +4,14 @@ import {installFakeEngine, uninstallFakeEngine} from '@/test/fake-engine'
 import {errors} from './rpc-transport'
 import {useConfigState} from '@/stores/config'
 import {resetAllStores} from '@/util/zustand'
+import {tick} from '@/test/flush'
 import logger from '@/logger'
+import type {KB2} from '@/util/electron'
 
 afterEach(() => {
   resetAllStores()
   jest.restoreAllMocks()
 })
-
-const tick = async () => new Promise(resolve => setImmediate(resolve))
 
 // The transport fails its outstanding invocations before it tells the engine, so the engine's own
 // session cancel on disconnect finds the session already ended and the call sees EOF, not sccanceled.
@@ -92,4 +92,21 @@ test('a service cancel of a pending prompt rejects the listener', async () => {
   await tick()
   // The engine writes no RESPONSE of its own for the cancelled seqid; the fake would record one
   expect(() => uninstallFakeEngine()).not.toThrow()
+})
+
+test('reset rebuilds the link through the injected client, so calls still reach the fake', async () => {
+  const fake = installFakeEngine()
+  fake.answer('keybase.1.config.getBootstrapStatus', () => ({deviceName: 'after reset'}))
+  const preload = globalThis._fromPreload as KB2
+  const {isRenderer} = preload.constants
+  // node's engine is the one that replaces its client on reset; the renderer's keeps it
+  preload.constants.isRenderer = false
+  try {
+    fake.engine.reset()
+  } finally {
+    preload.constants.isRenderer = isRenderer
+  }
+  await expect(T.RPCGen.configGetBootstrapStatusRpcPromise()).resolves.toMatchObject({deviceName: 'after reset'})
+  expect(fake.calls.map(c => c.method)).toEqual(['keybase.1.config.getBootstrapStatus'])
+  uninstallFakeEngine()
 })

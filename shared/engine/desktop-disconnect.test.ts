@@ -1,5 +1,6 @@
 /// <reference types="jest" />
 import {makeDesktopEnginePair} from '@/test/desktop-engine-pair'
+import {tick} from '@/test/flush'
 
 test('a renderer call reaches the service through node', () => {
   const pair = makeDesktopEnginePair()
@@ -7,13 +8,13 @@ test('a renderer call reaches the service through node', () => {
   expect(pair.serviceReceived().map(m => m[2])).toEqual(['keybase.1.config.getBootstrapStatus'])
 })
 
-// Both reproduced against the live app (dev Electron + keybase ctl stop/start); fixed by the connection-lifetime change.
+// Known failures: each pins a desktop disconnect bug seen in the live app when the service stops and restarts.
 test.failing('a renderer call in flight when the service dies settles', async () => {
   const pair = makeDesktopEnginePair()
   const cb = jest.fn()
   pair.renderer.invoke('keybase.1.config.waitForClient', [{clientType: 0, timeout: 120}], cb)
   pair.serviceDies()
-  await new Promise(resolve => setImmediate(resolve))
+  await tick()
   expect(cb).toHaveBeenCalledTimes(1)
 })
 

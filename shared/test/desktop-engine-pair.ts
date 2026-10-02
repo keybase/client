@@ -53,6 +53,22 @@ export const makeDesktopEnginePair = (): DesktopEnginePair => {
   const preload = globalThis._fromPreload as KB2
   const {functions} = preload
   const {isRenderer} = preload.constants
+  const made: {node?: Engine; renderer?: Engine} = {}
+  // Set before anything global changes, so a setup that throws part way is still undone
+  teardown = () => {
+    try {
+      try {
+        made.renderer?._rpcClient.transport.reset()
+      } finally {
+        made.node?._rpcClient.transport.close()
+      }
+    } finally {
+      preload.constants.isRenderer = isRenderer
+      preload.functions = functions
+      jest.useRealTimers()
+      mockSockets.length = 0
+    }
+  }
   jest.useFakeTimers({doNotFake: ['nextTick', 'queueMicrotask', 'setImmediate']})
   mockSockets.length = 0
 
@@ -70,7 +86,8 @@ export const makeDesktopEnginePair = (): DesktopEnginePair => {
   const deliverEngineConnectionToRenderer = (_connected: boolean) => {}
 
   preload.constants.isRenderer = false
-  const nodeEngine = new Engine(() => {}, deliverEngineConnectionToRenderer)
+  const node = new Engine(() => {}, deliverEngineConnectionToRenderer)
+  made.node = node
   preload.constants.isRenderer = true
 
   let rendererIncoming: ((e: unknown, data: unknown) => void) | undefined
@@ -78,7 +95,7 @@ export const makeDesktopEnginePair = (): DesktopEnginePair => {
     ...functions,
     // ipc-handlers.desktop.tsx: the renderer's engineSend lands as a raw send on node's transport
     engineSend: m => {
-      nodeEngine._rpcClient.transport.send(m)
+      node._rpcClient.transport.send(m)
     },
     ipcRendererOn: (channel, cb) => {
       if (channel === 'engineIncoming') {
@@ -89,24 +106,16 @@ export const makeDesktopEnginePair = (): DesktopEnginePair => {
     mainWindowDispatchEngineIncoming: data => rendererIncoming?.(undefined, data),
   }
 
-  const rendererEngine = new Engine(
+  const renderer = new Engine(
     () => {},
     () => {}
   )
+  made.renderer = renderer
 
   currentSocket().emit('connect')
 
-  teardown = () => {
-    rendererEngine._rpcClient.transport.reset()
-    nodeEngine._rpcClient.transport.close()
-    preload.constants.isRenderer = isRenderer
-    preload.functions = functions
-    jest.useRealTimers()
-    mockSockets.length = 0
-  }
-
   return {
-    renderer: rendererEngine._rpcClient,
+    renderer: renderer._rpcClient,
     serviceComesBack: () => {
       const before = mockSockets.length
       jest.advanceTimersByTime(reconnectDelayMs)
