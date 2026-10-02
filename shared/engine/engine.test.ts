@@ -1,12 +1,12 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
-import {installFakeEngine, uninstallFakeEngine} from '@/test/fake-engine'
+import {fakeError, installFakeEngine, uninstallFakeEngine} from '@/test/fake-engine'
 import {useConfigState} from '@/stores/config'
 import {resetAllStores} from '@/util/zustand'
 import {tick} from '@/test/flush'
 import logger from '@/logger'
 import {errors as rpcErrors} from './rpc-transport'
-import {isEOFError, isErrorTransient, type RPCError} from '@/util/errors'
+import {isEOFError, isErrorTransient, RPCError} from '@/util/errors'
 
 afterEach(() => {
   resetAllStores()
@@ -84,6 +84,23 @@ test('a service cancel of a pending prompt rejects the listener', async () => {
   await tick()
   // The engine writes no RESPONSE of its own for the cancelled seqid; the fake would record one
   expect(() => uninstallFakeEngine()).not.toThrow()
+})
+
+test('a listener RPC the service fails rejects with the RPCError and its code', async () => {
+  const fake = installFakeEngine()
+  const held = fake.hold('keybase.1.pgp.pgpKeyGenDefault')
+  const done = T.RPCGen.pgpPgpKeyGenDefaultRpcListener({
+    customResponseIncomingCallMap: {},
+    incomingCallMap: {},
+    params: {createUids: {ids: [], useDefault: true}},
+  })
+  const ended = done.catch((e: unknown) => e)
+  await tick()
+  held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'boom'))
+  const err = await ended
+  expect(err).toBeInstanceOf(RPCError)
+  expect(err).toMatchObject({code: T.RPCGen.StatusCode.scgeneric, desc: 'boom'})
+  uninstallFakeEngine()
 })
 
 test('reset restarts the link, so calls still reach the fake', async () => {

@@ -148,7 +148,9 @@ export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
         setWaitingOnServer(false, error instanceof RPCError ? error : undefined)
 
         if (error) {
-          reject(ensureError(error))
+          // An RPCError as the promise RPCs reject with, so callers can read its code
+          // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+          reject(error instanceof RPCError ? error : ensureError(error))
         } else {
           resolve(params)
         }
