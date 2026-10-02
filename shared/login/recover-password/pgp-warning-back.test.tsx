@@ -131,17 +131,38 @@ describe('the user taking the warning away', () => {
     expect(nav.actions).toEqual([])
   })
 
-  // The app's own resets and replaces, like the flow closing the warning or a screen taking its place.
-  test.each(['RESET', 'REPLACE'])('a %s is not the user, and answers nothing', async type => {
+  test.each(['RESET', 'REPLACE'])('a %s removing the warning answers false once', async type => {
     const {response} = await setup()
+    nav.clearActions()
     mockBeforeRemove.current!({data: {action: {type}}})
-    expect(response.result).not.toHaveBeenCalled()
+    mockBeforeRemove.current!({data: {action: {type}}})
+    expect(response.result).toHaveBeenCalledTimes(1)
+    expect(response.result).toHaveBeenCalledWith(false)
+    expect(nav.actions).toEqual([])
   })
 
-  test('after Continue, answers nothing more', async () => {
+  test.each(['RESET', 'GO_BACK'])("the flow's own %s removal after Cancel answers nothing more", async type => {
+    const {response} = await setup()
+    fireEvent.click(screen.getByText('Cancel'))
+    mockBeforeRemove.current!({data: {action: {type}}})
+    expect(response.result).toHaveBeenCalledTimes(1)
+    expect(response.result).toHaveBeenCalledWith(false)
+  })
+
+  test('the removal when a restart settles the warning answers nothing more', async () => {
+    const {listeners, response} = await setup()
+    startRecoverPassword({username: 'testuser'})
+    await flush()
+    mockBeforeRemove.current!({data: {action: {type: 'RESET'}}})
+    expect(listeners).toHaveLength(2)
+    expect(response.result).toHaveBeenCalledTimes(1)
+    expect(response.result).toHaveBeenCalledWith(false)
+  })
+
+  test.each(['GO_BACK', 'RESET'])('after Continue, a %s answers nothing more', async type => {
     const {response} = await setup()
     fireEvent.click(screen.getByText('Continue'))
-    mockBeforeRemove.current!({data: {action: {type: 'GO_BACK'}}})
+    mockBeforeRemove.current!({data: {action: {type}}})
     expect(response.result).toHaveBeenCalledTimes(1)
     expect(response.result).toHaveBeenCalledWith(true)
   })

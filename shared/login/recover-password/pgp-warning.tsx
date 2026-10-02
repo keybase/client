@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {useOnUserRemove} from '@/util/safe-navigation'
+import {useOnRemove} from '@/util/safe-navigation'
 import {SignupScreen} from '@/signup/common'
 import {QuestionBody} from '../common'
 import {answerRecoverPasswordPgp} from './flow'
@@ -11,8 +11,10 @@ const PgpWarning = ({route}: Props) => {
   const {pgpPromptID} = route.params
   const onContinue = () => answerRecoverPasswordPgp(pgpPromptID, true)
   const onCancel = () => answerRecoverPasswordPgp(pgpPromptID, false)
-  // Android back or a native dismissal is a decline. The screen is already going, so nothing navigates.
-  useOnUserRemove(() => answerRecoverPasswordPgp(pgpPromptID, false, 'screenRemoving'))
+  // Any removal (Android back, a native dismissal, a reset elsewhere) is a decline, or Go waits forever. The
+  // flow settles its own prompts before it navigates, so its removals find this already answered. The screen
+  // is already going, so nothing navigates.
+  useOnRemove(() => answerRecoverPasswordPgp(pgpPromptID, false, 'screenRemoving'))
 
   return (
     <SignupScreen
