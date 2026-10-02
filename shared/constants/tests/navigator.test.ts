@@ -453,6 +453,28 @@ describe('navigateAppendOnceRootHas', () => {
 
     expect(onGiveUp).toHaveBeenCalledTimes(1)
   })
+
+  // A route with no name is one push navigateAppend refuses
+  test('gives up when the root is there but the push fails', () => {
+    const fake = installFakeNavigator()
+    const onGiveUp = jest.fn()
+    navigateAppendOnceRootHas('loggedIn', {name: '', params: {}} as never, 1000, onGiveUp)
+
+    expect(onGiveUp).toHaveBeenCalledTimes(1)
+    expect(fake.pushes()).toEqual([])
+  })
+
+  test('gives up when the root mounts but the push fails', () => {
+    jest.useFakeTimers()
+    const fake = installFakeNavigator({rootState: makeRootState({loggedIn: false})})
+    const onGiveUp = jest.fn()
+    navigateAppendOnceRootHas('loggedIn', {name: '', params: {}} as never, 1000, onGiveUp)
+
+    fake.setRootState(makeRootState())
+    expect(onGiveUp).toHaveBeenCalledTimes(1)
+    jest.advanceTimersByTime(10_000)
+    expect(onGiveUp).toHaveBeenCalledTimes(1)
+  })
 })
 
 // ---- the fake itself ----

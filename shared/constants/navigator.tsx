@@ -189,8 +189,14 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     onGiveUp?: () => void
   ) => {
     const rootHas = () => ref.getRootState()?.routes?.some(r => r.name === rootRouteName) ?? false
+    const push = () => {
+      if (!navigateAppend(path)) {
+        logger.warn(`[Nav] navigateAppendOnceRootHas: push failed, dropping ${path.name}`)
+        onGiveUp?.()
+      }
+    }
     if (rootHas()) {
-      navigateAppend(path)
+      push()
       return
     }
     if (!ref.isReady()) {
@@ -207,7 +213,7 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
       if (!rootHas()) return
       clearTimeout(timer)
       unsub()
-      navigateAppend(path)
+      push()
     })
   }
 
