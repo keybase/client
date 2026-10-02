@@ -1,9 +1,9 @@
 // Handles sending requests to the daemon
-import Session, {inputCanceledError, type CancelHandlerType} from './session'
+import Session, {type CancelHandlerType} from './session'
 import {makeListen} from './listener'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
-import type {SessionID, MethodKey, WaitingKey} from './types'
+import {inputCanceledError, type SessionID, type MethodKey, type WaitingKey} from './types'
 import {installCallPort, type CallPort} from './call-port'
 import {printOutstandingRPCs, printRPC} from '@/local-debug'
 import {
