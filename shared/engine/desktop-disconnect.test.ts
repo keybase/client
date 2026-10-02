@@ -44,10 +44,18 @@ test('the app is told once per link change', async () => {
   expect(pair.linkChanges).toEqual([true, false, true, false, true])
 })
 
-test('the app hearing its listeners are ready again is not told the link is up again', () => {
+test('the app saying its listeners are ready again (a store re-init) is told once more that the link is up', () => {
   const pair = makeDesktopEnginePair()
   pair.listenersReadyAgain()
-  expect(pair.linkChanges).toEqual([true])
+  expect(pair.linkChanges).toEqual([true, true])
+})
+
+test('the app saying its listeners are ready again while the link is down is told nothing', async () => {
+  const pair = makeDesktopEnginePair()
+  pair.serviceDies()
+  await tick()
+  pair.listenersReadyAgain()
+  expect(pair.linkChanges).toEqual([true, false])
 })
 
 test('a renderer call still crossing IPC when the service restarts never reaches the new service', async () => {
