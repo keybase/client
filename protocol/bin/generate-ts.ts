@@ -365,6 +365,8 @@ function analyzeMessages(json: ProtocolJSON, project: ProjectState): Record<stri
       customResponseErrors.push(customError)
     }
     const hasCustomResponse = wantsCustom && !isOneway(message)
+    // Only `custom` calls are must-answer: a value-returning method marked just `incoming` is auto-acked
+    // with nil, which Go reads as the zero value (delegateRekeyUI relies on that reading as 0).
     if (isMustAnswer(message, wantsCustom, outParam)) {
       mustAnswerMethods.push(methodName)
     }
@@ -678,8 +680,9 @@ async function writeFlow(typeDefs: AnalysisResult, project: ProjectState): Promi
   const messageEntries = Object.entries(typeDefs.messages).sort(([left], [right]) => left.localeCompare(right))
   const promiseMethods = messageEntries.filter(([, message]) => message.rpcPromise).map(([key]) => key)
   const listenerMethods = messageEntries.filter(([, message]) => message.engineListener).map(([key]) => key)
+  // A must-answer method only goes in the custom map, where its handler gets the response to answer
   const incomingMethods = Object.keys(project.incomingMaps)
-    .filter(im => enabledCall(im, 'incoming'))
+    .filter(im => enabledCall(im, 'incoming') && !mustAnswerMethods.includes(im))
     .sort()
   const customIncomingMethods = Object.keys(project.customResponseIncomingMaps)
     .filter(im => enabledCall(im, 'custom'))

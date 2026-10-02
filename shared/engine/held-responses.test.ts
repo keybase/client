@@ -239,6 +239,21 @@ test('a raw session acks a call from its incomingCallMap itself', async () => {
   uninstallFakeEngine()
 })
 
+test('a raw session refuses a must-answer call that reached its incomingCallMap instead of acking it', async () => {
+  const logged = watchErrors()
+  const fake = installFakeEngine()
+  const onPrompt = jest.fn()
+  // The generated types keep a must-answer method out of the plain map, so only a cast gets it there
+  const session = fake.engine.createSession({incomingCallMap: {[prompt]: onPrompt} as never})
+  await expect(settledSoFar(fake.push(prompt, {kind: 0}, {sessionID: session.getId()}))).resolves.toEqual({
+    error: {code: T.RPCGen.StatusCode.scinputcanceled, desc: `No handler for ${prompt}`},
+  })
+  expect(onPrompt).not.toHaveBeenCalled()
+  expect(logged).toHaveBeenCalledTimes(1)
+  session.end()
+  uninstallFakeEngine()
+})
+
 test('a session prompt handler that throws is answered once with input canceled', async () => {
   const logged = watchErrors()
   const fake = installFakeEngine()
