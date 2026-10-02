@@ -174,6 +174,25 @@ test('a second GUI answer to the same push fails the test', async () => {
   await expect(ended).resolves.toMatchObject({code: errors.EOF})
 })
 
+test('a service cancel settles the pending push and the GUI may no longer answer it', async () => {
+  const fake = installFakeEngine()
+  const {done, sessionID} = await startRecover(fake, () => {})
+  const ended = done.catch((e: unknown) => e)
+  const pushed = fake.push('keybase.1.loginUi.promptPassphraseRecovery', {kind: 0}, {sessionID})
+  fake.cancelPush('keybase.1.loginUi.promptPassphraseRecovery')
+  await expect(pushed).resolves.toMatchObject({error: {desc: 'fake engine: the service cancelled it'}})
+  await expect(ended).resolves.toMatchObject({code: T.RPCGen.StatusCode.sccanceled})
+  fake.engine._rpcClient.transport.send([MESSAGE_TYPE_RESPONSE, 1, null, true])
+  expect(() => uninstallFakeEngine()).toThrow('GUI answered push seqid 1')
+})
+
+test('cancelling a push that is not pending throws', () => {
+  const fake = installFakeEngine()
+  expect(() => fake.cancelPush('keybase.1.loginUi.promptPassphraseRecovery')).toThrow(
+    'no pending keybase.1.loginUi.promptPassphraseRecovery push to cancel'
+  )
+})
+
 test('a GUI answer to a seqid no push sent fails the test', () => {
   const fake = installFakeEngine()
   fake.engine._rpcClient.transport.send([MESSAGE_TYPE_RESPONSE, 999, null, true])
