@@ -84,7 +84,7 @@ export const answerRecoverPasswordPgp = (id: number, proceed: boolean) => settle
 
 // Settles the pending prompt and takes its warning away if it is on top. A warning under another modal
 // stays: removing a covered modal crashes iOS.
-const endPgp = (proceed: false | undefined, id = pendingPgp?.id) => {
+const endPgp = (proceed: false | undefined, id: number | undefined) => {
   if (id === undefined || !isRecoverPasswordPgpPending(id)) return
   settlePgp(id, proceed)
   if (getVisibleScreen(true)?.name === pgpWarningName) {
@@ -99,7 +99,7 @@ export const startRecoverPassword = ({
   username,
 }: StartRecoverPasswordParams) => {
   // The previous run's RPC is still live and waiting on its answer.
-  endPgp(false)
+  endPgp(false, pendingPgp?.id)
   clearOwner(owner)
   let runPgpId: number | undefined
   const f = async () => {
@@ -164,8 +164,10 @@ export const startRecoverPassword = ({
             navigateAppend({name: 'recoverPasswordDeviceSelector', params: {devices}}, !!replaceRoute)
           },
           'keybase.1.loginUi.promptPassphraseRecovery': (_params, response) => {
+            // The listener runs handlers a tick late, so the run may have ended since Go asked.
+            if (!isActive()) return
             // true continues to set-password; false makes Go cancel and log back out.
-            endPgp(false)
+            endPgp(false, pendingPgp?.id)
             const id = ++lastPgpId
             runPgpId = id
             pendingPgp = {
@@ -303,7 +305,10 @@ export const startRecoverPassword = ({
       active = false
       // Go stopped waiting with the run, so a prompt still pending is settled without an answer: one sent
       // now would leave the RPC counted as waiting on a server that has nothing more to send.
-      endPgp(undefined, runPgpId)
+      // A run that never got a prompt has no id: defaulting would settle another run's prompt.
+      if (runPgpId !== undefined) {
+        endPgp(undefined, runPgpId)
+      }
     }
     logger.info(`finished ${hadError ? 'with error' : 'without error'}`)
     if (!hadError) {

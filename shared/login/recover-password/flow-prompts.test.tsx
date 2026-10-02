@@ -457,6 +457,30 @@ describe('pgp key warning', () => {
     expect(rootRouteNames()).toEqual(['loggedIn'])
   })
 
+  test("a run that never got a prompt ending leaves another run's pending prompt alone", async () => {
+    const attempts = mockRecoverAttempts()
+    startRecoverPassword({username: 'testuser'})
+    await flush()
+    attempts[0]!.listener.customResponseIncomingCallMap?.['keybase.1.secretUi.getPassphrase']?.(
+      {pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.passPhrase}} as any,
+      {error: jest.fn(), result: jest.fn()} as any
+    )
+    startRecoverPassword({username: 'testuser'})
+    await flush()
+    const response = prompt(attempts[1]!)
+    const id = warningId()
+
+    attempts[0]!.reject(new RPCError('Canceling RPC', T.RPCGen.StatusCode.sccanceled))
+    await flush()
+
+    expect(isRecoverPasswordPgpPending(id)).toBe(true)
+    expect(rootRouteNames()?.at(-1)).toBe('recoverPasswordPgpWarning')
+    answerRecoverPasswordPgp(id, true)
+    answerRecoverPasswordPgp(id, true)
+    expect(response.result).toHaveBeenCalledTimes(1)
+    expect(response.result).toHaveBeenCalledWith(true)
+  })
+
   test('a run ending settles a pending prompt without answering and takes its warning off the top', async () => {
     const {first} = await startAttempt()
     const response = prompt(first)
@@ -607,6 +631,22 @@ describe('pgp key warning waiting state', () => {
     await new Promise<void>(resolve => setTimeout(resolve, 0))
     return response
   }
+
+  test('a prompt arriving after the run ended registers nothing', async () => {
+    startRecoverPassword({username: 'testuser'})
+    await flush()
+    const response = {error: jest.fn(), result: jest.fn()}
+    outgoing[0]!.incomingCallMap['keybase.1.loginUi.promptPassphraseRecovery']?.(
+      {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys},
+      response
+    )
+    outgoing[0]!.callback(new RPCError('Canceling RPC', T.RPCGen.StatusCode.sccanceled))
+    await new Promise<void>(resolve => setTimeout(resolve, 0))
+    await flush()
+
+    expect(nav.pushes().filter(p => p.name === 'recoverPasswordPgpWarning')).toEqual([])
+    expect(response.result).not.toHaveBeenCalled()
+  })
 
   test('answering after the run ended answers nothing and leaves the next attempt free', async () => {
     startRecoverPassword({username: 'testuser'})
