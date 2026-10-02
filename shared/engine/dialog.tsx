@@ -195,9 +195,7 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
     })
     .catch((e: unknown) => {
       end()
-      // The listener rejects with ensureError(e), which wraps an RPCError (not an Error) as the cause of a
-      // plain Error; flows match on the RPCError's code, so done rejects with it
-      rejectDone(e instanceof Error && e.cause instanceof RPCError ? e.cause : e)
+      rejectDone(e)
     })
 
   const dispose = (reason: ClientCancelReason) => {

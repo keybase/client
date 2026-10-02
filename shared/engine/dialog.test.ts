@@ -329,7 +329,7 @@ test('a service failure rejects done with the RPCError and its code', async () =
   expect(err).toMatchObject({code: T.RPCGen.StatusCode.scgeneric, desc: 'boom'})
 })
 
-test('a rejection whose cause is not an RPCError reaches done unchanged', async () => {
+test('a listener rejection that is not an RPCError reaches done unchanged', async () => {
   // The service only fails with RPCErrors, so a port stands in for a listener failing some other way
   const previous = hasCallPort() ? getCallPort() : undefined
   restores.push(() => (previous ? installCallPort(previous) : uninstallCallPort()))

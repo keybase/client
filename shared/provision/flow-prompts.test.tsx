@@ -83,11 +83,8 @@ const waitingCount = () => {
   return useWaitingState.getState().counts.get(waitingKeyProvision)
 }
 
-// The listener rejects with a plain Error that carries the RPCError as its cause, so the flow's
-// `instanceof RPCError` routing below never runs on this code: every failure ends the run quietly.
-// These are master's intended routes; they fail until the flow reads the RPCError.
 describe('final error handling', () => {
-  test.failing('an unknown username sends the user back to the username screen inline', async () => {
+  test('an unknown username sends the user back to the username screen inline', async () => {
     const {reply} = await startAttempt()
 
     reply(fakeError(T.RPCGen.StatusCode.scnotfound, 'no such user'))
@@ -101,7 +98,7 @@ describe('final error handling', () => {
     expect(nav.modalsCleared()).toBe(false)
   })
 
-  test.failing('a malformed username also stays on the username screen', async () => {
+  test('a malformed username also stays on the username screen', async () => {
     const {reply} = await startAttempt()
 
     reply(fakeError(T.RPCGen.StatusCode.scbadusername, 'bad username'))
@@ -114,7 +111,7 @@ describe('final error handling', () => {
     })
   })
 
-  test.failing('any other error clears modals and shows the error screen with the rpc details', async () => {
+  test('any other error clears modals and shows the error screen with the rpc details', async () => {
     const {reply} = await startAttempt()
 
     reply(fakeError(T.RPCGen.StatusCode.scdeviceprovisionoffline, 'something broke'))
