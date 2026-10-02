@@ -5,8 +5,7 @@ import {useConfigState} from '@/stores/config'
 import {RPCError} from '@/util/errors'
 import {useWaitingState} from '@/stores/waiting'
 import {waitingKeyRecoverPassword} from '@/constants/strings'
-import listener from '@/engine/listener'
-import {initEngine, initEngineListener} from '@/engine/require'
+import {installListenerEngine, uninstallListenerEngine} from '@/test/fake-listener-engine'
 
 import {
   answerRecoverPasswordPgp,
@@ -37,12 +36,15 @@ beforeEach(() => {
   })
 })
 
-afterEach(() => {
-  // A prompt left pending would keep its decline timer alive past the test.
+// A prompt left pending would keep its decline timer alive past the test.
+const declinePendingPgpPrompts = () =>
   nav
     .pushes()
     .filter(p => p.name === 'recoverPasswordPgpWarning')
     .forEach(p => answerRecoverPasswordPgp((p.params as {id: number}).id, false))
+
+afterEach(() => {
+  declinePendingPgpPrompts()
   restoreNavigator()
   jest.restoreAllMocks()
   resetAllStores()
@@ -597,31 +599,24 @@ describe('pgp key warning', () => {
 
 // Runs the flow through the real engine listener, so its waiting-key bookkeeping is what the app sees.
 describe('pgp key warning waiting state', () => {
-  type Outgoing = {
-    callback: (error?: RPCError) => void
-    incomingCallMap: {[method: string]: (params: unknown, response: unknown) => void}
-  }
-  let outgoing: Array<Outgoing>
+  const method = 'keybase.1.login.recoverPassphrase'
+  let engine: ReturnType<typeof installListenerEngine>
 
   beforeEach(() => {
-    outgoing = []
     useConfigState.getState().dispatch.setLoggedIn(true)
     nav = installFakeNavigator({modalRouteNames: Object.keys(newModalRoutes), rootState: makeRootState()})
-    initEngine({
-      _rpcOutgoing: (p: Outgoing) => {
-        outgoing.push(p)
-        return outgoing.length
-      },
-      cancelSession: () => {},
-      dispatchWaitingAction: (key: string, waiting: boolean, error?: RPCError) =>
-        useWaitingState.getState().dispatch.batch([{error, increment: waiting, key}]),
-    } as never)
-    initEngineListener(listener)
+    engine = installListenerEngine()
+  })
+
+  afterEach(() => {
+    // answering goes through the engine, so before it is removed
+    declinePendingPgpPrompts()
+    uninstallListenerEngine()
   })
 
   const waitingCount = () => useWaitingState.getState().counts.get(waitingKeyRecoverPassword) ?? 0
 
-  const promptOn = async (call: Outgoing) => {
+  const promptOn = async (call: (typeof engine.calls)[number]) => {
     const response = {error: jest.fn(), result: jest.fn()}
     call.incomingCallMap['keybase.1.loginUi.promptPassphraseRecovery']?.(
       {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys},
@@ -636,11 +631,11 @@ describe('pgp key warning waiting state', () => {
     startRecoverPassword({username: 'testuser'})
     await flush()
     const response = {error: jest.fn(), result: jest.fn()}
-    outgoing[0]!.incomingCallMap['keybase.1.loginUi.promptPassphraseRecovery']?.(
+    engine.pending(method).incomingCallMap['keybase.1.loginUi.promptPassphraseRecovery']?.(
       {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys},
       response
     )
-    outgoing[0]!.callback(new RPCError('Canceling RPC', T.RPCGen.StatusCode.sccanceled))
+    engine.fail(method, T.RPCGen.StatusCode.sccanceled, 'Canceling RPC')
     await new Promise<void>(resolve => setTimeout(resolve, 0))
     await flush()
 
@@ -652,11 +647,11 @@ describe('pgp key warning waiting state', () => {
     startRecoverPassword({username: 'testuser'})
     await flush()
     expect(waitingCount()).toBe(1)
-    const response = await promptOn(outgoing[0]!)
+    const response = await promptOn(engine.pending(method))
     const id = (nav.pushes().at(-1)?.params as {id: number}).id
     expect(waitingCount()).toBe(0)
 
-    outgoing[0]!.callback(new RPCError('Canceling RPC', T.RPCGen.StatusCode.sccanceled))
+    engine.fail(method, T.RPCGen.StatusCode.sccanceled, 'Canceling RPC')
     await flush()
     answerRecoverPasswordPgp(id, true)
 
@@ -667,7 +662,7 @@ describe('pgp key warning waiting state', () => {
     startRecoverPassword({username: 'testuser'})
     await flush()
     expect(waitingCount()).toBe(1)
-    await promptOn(outgoing[1]!)
+    await promptOn(engine.pending(method))
     expect(waitingCount()).toBe(0)
   })
 })
