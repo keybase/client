@@ -3,6 +3,9 @@ import * as T from '@/constants/types'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {RPCError} from '@/util/errors'
 import {resetAllStores} from '@/util/zustand'
+import {fakeError, installFakeEngine} from '@/test/fake-engine'
+import {settle} from '@/test/flush'
+import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 import {
   getProfileDetails,
   loadProfileIdentify,
@@ -398,4 +401,49 @@ test('a block notification releases expired sessions instead of updating them', 
   } as never)
   jest.spyOn(Date, 'now').mockReturnValue(now)
   expect(getProfileDetails('testuser')).toBeUndefined()
+})
+
+describe('identify failures through the engine listener', () => {
+  let nav: FakeNavigator
+  const profileStack = [{name: 'chatRoot'}, {name: 'profile', params: {username: 'testuser'}}]
+
+  const failIdentify = async (code: T.RPCGen.StatusCode) => {
+    identifySpy.mockRestore()
+    const fake = installFakeEngine()
+    fake.answer('keybase.1.identify3.identify3', () => fakeError(code, 'identify failed'))
+    // A user that is not one yet loads its non-user details next
+    fake.hold('keybase.1.userSearch.getNonUserDetails')
+    unsubscribes.push(subscribeToProfile('testuser', () => {}))
+    loadProfileIdentify('testuser', {freshAfter: Infinity, ignoreCache: false})
+    await settle()
+  }
+
+  const unsubscribes: Array<() => void> = []
+  afterEach(() => {
+    unsubscribes.splice(0).forEach(u => u())
+    restoreNavigator()
+  })
+
+  test('an assertion that resolves to no user is not a user yet', async () => {
+    nav = installFakeNavigator({rootState: makeRootState({tabStack: profileStack})})
+    await failIdentify(T.RPCGen.StatusCode.scresolutionfailed)
+
+    expect(getProfileDetails('testuser')?.state).toBe('notAUserYet')
+    expect(nav.types()).toEqual([])
+  })
+
+  test('a profile link to a user that does not exist replaces the profile with the link error', async () => {
+    nav = installFakeNavigator({rootState: makeRootState({tabStack: profileStack})})
+    await failIdentify(T.RPCGen.StatusCode.scnotfound)
+
+    expect(nav.types()[0]).toBe('GO_BACK')
+    expect(nav.navigations()).toEqual([expect.objectContaining({name: 'keybaseLinkError'})])
+  })
+
+  test('a user that does not exist leaves the screen alone when the profile is not showing', async () => {
+    nav = installFakeNavigator({rootState: makeRootState()})
+    await failIdentify(T.RPCGen.StatusCode.scnotfound)
+
+    expect(nav.types()).toEqual([])
+  })
 })
