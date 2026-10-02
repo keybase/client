@@ -213,16 +213,19 @@ const runIdentify = async (s: Session, generation: number, guiID: string, ignore
         })
       )
       loadNonUserProfile(s.username)
-    } else if (error.code === T.RPCGen.StatusCode.scnotfound && isProfileOnScreen(s.username)) {
+    } else if (error.code === T.RPCGen.StatusCode.scnotfound) {
+      setDetails(s, updateTrackerDetailsResult(s.details, 'error', `${s.username} does not exist.`))
       // A profile link to a user that does not exist. Hover cards and lists identify too, and the
       // user may have left the profile, so only the profile screen itself is replaced.
-      navigateUp()
-      navigateAppend({
-        name: 'keybaseLinkError',
-        params: {
-          error: `You followed a profile link for a user (${s.username}) that does not exist.`,
-        },
-      })
+      if (isProfileOnScreen(s.username)) {
+        navigateUp()
+        navigateAppend({
+          name: 'keybaseLinkError',
+          params: {
+            error: `You followed a profile link for a user (${s.username}) that does not exist.`,
+          },
+        })
+      }
     }
     logger.error(`Error loading profile: ${error.message}`)
   } finally {

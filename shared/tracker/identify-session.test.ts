@@ -248,6 +248,7 @@ describe('identify failures through the engine listener', () => {
 
     expect(nav.types()[0]).toBe('GO_BACK')
     expect(nav.navigations()).toEqual([expect.objectContaining({name: 'keybaseLinkError'})])
+    expect(getProfileDetails('testuser')?.state).toBe('error')
   })
 
   test('a user that does not exist leaves the screen alone when the profile is not showing', async () => {
@@ -255,5 +256,7 @@ describe('identify failures through the engine listener', () => {
     await failIdentify(T.RPCGen.StatusCode.scnotfound)
 
     expect(nav.types()).toEqual([])
+    // the hover card / list showing it stops checking even though nothing navigates
+    expect(getProfileDetails('testuser')?.state).toBe('error')
   })
 })
