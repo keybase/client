@@ -290,7 +290,10 @@ class Session {
       custom(param, request)
     } catch (e) {
       logger.error(`Session: handler for ${method} threw`, e)
-      this._settle(held, () => held.response.error?.(inputCanceledError))
+      // Refused like any answer, so the session is waiting on the service again
+      if (!held.settled) {
+        request.error?.(inputCanceledError)
+      }
     }
     return true
   }
