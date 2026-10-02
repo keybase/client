@@ -4,6 +4,7 @@ import * as RemoteGen from '@/constants/remote-actions'
 import * as T from '@/constants/types'
 import {wrapErrors} from '@/constants/utils'
 import {registerIncomingAnswerer} from '@/engine/incoming-answerers'
+import {inputCanceledError} from '@/engine/session'
 import logger from '@/logger'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
@@ -83,6 +84,11 @@ const PinentryProxy = () => {
   React.useEffect(
     () =>
       registerIncomingAnswerer('keybase.1.secretUi.getPassphrase', (params, response) => {
+        // The proxy only shows a prompt while logged in, so a held one would never be answered
+        if (!useConfigState.getState().loggedIn) {
+          response.error(inputCanceledError)
+          return
+        }
         const {pinentry} = params
         const {prompt, submitLabel, cancelLabel, windowTitle, features, type} = pinentry
         const showTyping = features.showTyping
@@ -91,9 +97,11 @@ const PinentryProxy = () => {
           retryLabel = 'Incorrect password.'
         }
         logger.info('Asked for password')
+        // Only one prompt is shown at a time; the one it replaces still needs its answer
+        handlersRef.current.cancel?.()
         handlersRef.current = {
           cancel: wrapErrors(() => {
-            response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
+            response.error(inputCanceledError)
             clearPopup()
           }),
           submit: wrapErrors((password: string) => {
