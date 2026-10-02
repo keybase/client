@@ -11,3 +11,5 @@ export const useSafeNavigation = () => ({
 export const useOnUserRemove = (_onUserRemove: () => void) => {}
 
 export const useOnRemove = (_onRemove: (actionType: string) => void) => {}
+
+export const useCloseWhenFocusedIf = (_shouldClose: () => boolean) => {}

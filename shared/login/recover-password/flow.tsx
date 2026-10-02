@@ -5,7 +5,7 @@ import {
   navigateAppend,
   navigateAppendOnceRootHas,
   navigateUp,
-  removeRootRoutes,
+  removeTopRootRoutes,
 } from '@/constants/router'
 import {waitingKeyRecoverPassword} from '@/constants/strings'
 import {ignorePromise, wrapErrors} from '@/constants/utils'
@@ -103,11 +103,16 @@ const abandonAllPgp = (run: Run) => {
   return ids
 }
 
+// Takes these prompts' warnings away where they are on top. A warning under another modal stays (removing it
+// would abort the app on iOS) and closes itself once it is uncovered: see isRecoverPasswordPgpPending.
 const removePgpWarnings = (ids: ReadonlySet<number>) => {
   if (ids.size) {
-    removeRootRoutes(isPgpWarningFor(ids))
+    removeTopRootRoutes(isPgpWarningFor(ids))
   }
 }
+
+// Whether Go is still waiting on this prompt. A warning whose prompt is no longer pending has nothing to ask.
+export const isRecoverPasswordPgpPending = (id: number) => !!currentRun?.prompts.has(id)
 
 // Answers a prompt from its warning screen, then takes away that prompt's warning and nothing else.
 // `screenRemoving` is for a warning the user is already taking away, which must not be navigated again.
@@ -367,13 +372,13 @@ export const startRecoverPassword = ({
     }
     // Logged in, the flow's screens are modals: the error takes the place of the flow's own modal on top,
     // and goes over anything else rather than replacing it. Read before anything is removed, and removed
-    // together with the unanswered warnings in one step.
+    // together with the unanswered warnings above it in one step. Anything under another modal stays.
     const isUnansweredWarning = isPgpWarningFor(unanswered)
     const top = getModalStack()
       .filter(r => !isUnansweredWarning(r))
       .at(-1)
     const replaced = top && errorReplaces.has(top.name) ? top.key : undefined
-    removeRootRoutes(r => isUnansweredWarning(r) || (replaced !== undefined && r.key === replaced))
+    removeTopRootRoutes(r => isUnansweredWarning(r) || (replaced !== undefined && r.key === replaced))
     navigateAppend({name: 'recoverPasswordErrorModal', params: {error: failure.message}})
   }
   ignorePromise(f())

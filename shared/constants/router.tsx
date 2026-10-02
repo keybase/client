@@ -166,8 +166,8 @@ export const clearModals = () => {
   getNavigator().clearModals()
 }
 
-export const removeRootRoutes = (shouldRemove: (route: RootRoute) => boolean) => {
-  getNavigator().removeRootRoutes(shouldRemove)
+export const removeTopRootRoutes = (shouldRemove: (route: RootRoute) => boolean) => {
+  getNavigator().removeTopRootRoutes(shouldRemove)
 }
 
 export const navigateUp = () => {

@@ -24,11 +24,12 @@ import logger from '@/logger'
 import {DEBUG_NAV} from './nav-debug'
 import {registerDebugClear} from '@/util/debug-registry'
 import {shallowEqual} from './utils'
+import {useRouterState} from '@/stores/router'
 import type {NavigateAppendType, RouteKeys, RootParamList} from '@/router-v2/route-params'
 
 type ContainerRef = NavigationContainerRef<RootParamList>
 export type NavAction = Parameters<ContainerRef['dispatch']>[0]
-// A route of the root stack as removeRootRoutes shows it to its predicate.
+// A route of the root stack as removeTopRootRoutes shows it to its predicate.
 export type RootRoute = {key?: string; name: string; params?: object}
 
 // What an adapter has to provide. Deliberately the smallest surface that the
@@ -38,15 +39,21 @@ export type NavigatorRef = {
   isReady: () => boolean
   getRootState: () => NavTree.NavState | undefined
   dispatch: (action: NavAction) => void
+  // Listens to the mounted container. Its listeners die with it: a container remounted under a new key
+  // (an account switch) does not carry them over.
   addListener: (type: 'state', cb: () => void) => () => void
+  // Called whenever the app's root state changes, across container remounts.
+  subscribeRootState: (cb: () => void) => () => void
 }
 
 export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
   navigateUp: () => void
   popStack: () => void
   clearModals: () => void
-  // Drops the root-stack routes above the bottom one that match, and leaves every other route where it is.
-  removeRootRoutes: (shouldRemove: (route: RootRoute) => boolean) => void
+  // Drops matching routes off the top of the root stack, down to the first that does not match (and never
+  // the bottom one). A matching route under one that stays is left where it is: removing a modal that another
+  // modal is presented over aborts the app in react-native-screens on iOS.
+  removeTopRootRoutes: (shouldRemove: (route: RootRoute) => boolean) => void
   // Returns whether the target is now the visible route - either because we dispatched,
   // or because we were already there. False means nothing happened and nothing will.
   navigateAppend: (path: NavigateAppendType, replace?: boolean) => boolean
@@ -55,7 +62,8 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
   // push dispatched before the group mounts reaches no navigator that can handle it and is
   // dropped. Gives up after `timeoutMs` so a group that never mounts can't fire the push at some
   // unrelated later time, and then calls `onDrop`. 'untilCancelled' never gives up, not even while
-  // the navigator is not ready, for a caller that owns the wait's lifetime and cancels it itself.
+  // the navigator is not ready or across a container remount, for a caller that owns the wait's
+  // lifetime and cancels it itself.
   // Returns a cancel for a wait that is no longer wanted; cancelling calls nothing.
   navigateAppendOnceRootHas: (
     rootRouteName: string,
@@ -101,9 +109,12 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
   }
 
   // One reset of the root stack. The bottom route (the logged-in or logged-out root) always stays.
-  const resetRootWithout = (ns: NavTree.NavState | undefined, shouldRemove: (route: RootRoute) => boolean) => {
+  const resetRootWithout = (
+    ns: NavTree.NavState | undefined,
+    shouldRemove: (route: RootRoute, index: number) => boolean
+  ) => {
     const rootRoutes = ns?.routes ?? []
-    const keepRoutes = rootRoutes.filter((route, index) => index === 0 || !shouldRemove(route))
+    const keepRoutes = rootRoutes.filter((route, index) => index === 0 || !shouldRemove(route, index))
     if (keepRoutes.length !== rootRoutes.length) {
       ref.dispatch({
         ...CommonActions.reset({
@@ -116,12 +127,18 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     }
   }
 
-  const removeRootRoutes = (shouldRemove: (route: RootRoute) => boolean) => {
+  const removeTopRootRoutes = (shouldRemove: (route: RootRoute) => boolean) => {
     if (DEBUG_NAV) {
-      console.log('[Nav] removeRootRoutes')
+      console.log('[Nav] removeTopRootRoutes')
     }
     if (!ref.isReady()) return
-    resetRootWithout(ref.getRootState(), shouldRemove)
+    const ns = ref.getRootState()
+    const rootRoutes = ns?.routes ?? []
+    let keepCount = rootRoutes.length
+    while (keepCount > 1 && shouldRemove(rootRoutes[keepCount - 1]!)) {
+      keepCount--
+    }
+    resetRootWithout(ns, (_route, index) => index >= keepCount)
   }
 
   const clearModals = () => {
@@ -223,7 +240,8 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
             )
             onDrop?.()
           }, timeoutMs)
-    const unsub = ref.addListener('state', () => {
+    // Not the container's own listener: the root route can mount in a container that replaced this one.
+    const unsub = ref.subscribeRootState(() => {
       if (!rootHas()) return
       cancel()
       navigateAppend(path)
@@ -378,10 +396,11 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     navigateAppendOnceRootHas,
     navigateUp,
     popStack,
-    removeRootRoutes,
+    removeTopRootRoutes,
     setChatRootParams,
     setRouteParams,
     showAboveTabs,
+    subscribeRootState: ref.subscribeRootState,
     switchTab,
   }
 }
@@ -395,8 +414,7 @@ registerDebugClear(() => {
 })
 
 const containerRefAdapter: NavigatorRef = {
-  // The container ref holds a listener added before the container mounts and attaches it on mount.
-  addListener: (type, cb) => navigationRef.addListener(type, cb),
+  addListener: (type, cb) => (navigationRef.isReady() ? navigationRef.addListener(type, cb) : () => {}),
   dispatch: action => {
     if (navigationRef.isReady()) {
       navigationRef.dispatch(action)
@@ -404,6 +422,13 @@ const containerRefAdapter: NavigatorRef = {
   },
   getRootState: () => (navigationRef.isReady() ? navigationRef.getRootState() : undefined),
   isReady: () => navigationRef.isReady(),
+  // The router store is fed by every container's onReady and onStateChange, so it outlives a remount.
+  subscribeRootState: cb =>
+    useRouterState.subscribe((s, prev) => {
+      if (s.navState !== prev.navState) {
+        cb()
+      }
+    }),
 }
 
 const realNavigator = makeNavigator(containerRefAdapter)

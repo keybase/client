@@ -1,8 +1,8 @@
 import * as Kb from '@/common-adapters'
-import {useOnRemove} from '@/util/safe-navigation'
+import {useCloseWhenFocusedIf, useOnRemove} from '@/util/safe-navigation'
 import {SignupScreen} from '@/signup/common'
 import {QuestionBody} from '../common'
-import {answerRecoverPasswordPgp} from './flow'
+import {answerRecoverPasswordPgp, isRecoverPasswordPgpPending} from './flow'
 
 type Props = {route: {params: {pgpPromptID: number}}}
 
@@ -13,6 +13,9 @@ const PgpWarning = ({route}: Props) => {
   // waits forever. The flow settles its own prompts before it navigates, so its removals find this already
   // answered. The screen is already going, so nothing navigates.
   useOnRemove(() => answerRecoverPasswordPgp(pgpPromptID, false, 'screenRemoving'))
+  // The flow leaves a warning settled under another modal in place, and it goes once it is uncovered. Its
+  // prompt is already answered, so that removal answers nothing.
+  useCloseWhenFocusedIf(() => !isRecoverPasswordPgpPending(pgpPromptID))
 
   return (
     <SignupScreen

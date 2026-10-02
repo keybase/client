@@ -8,38 +8,47 @@ import {flush} from '@/test/flush'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 import {newModalRoutes} from '../routes'
 import {startRecoverPassword} from './flow'
-import {navigateUp} from '@/constants/router'
+import {navigateAppend, navigateUp} from '@/constants/router'
 import {HeaderLeftButton} from '@/common-adapters'
 import PgpWarning from './pgp-warning'
 
 type BeforeRemove = (e: {data: {action: {type: string}}}) => void
 
+// One navigation object for the screen, as React Navigation hands a screen the same one on every render.
+const mockNavigation = {
+  addListener: (type: string, cb: BeforeRemove & (() => void)) => {
+    if (type === 'beforeRemove') {
+      mockBeforeRemove.current = cb
+    } else if (type === 'focus') {
+      mockFocus.current = cb
+    }
+    return () => {}
+  },
+  canGoBack: () => true,
+  // A goBack asks the screen's beforeRemove, then pops it.
+  goBack: () => {
+    mockBeforeRemove.current?.({data: {action: {type: 'GO_BACK'}}})
+    mockNavigateUp()
+  },
+  // The warning is focused while it is the top of the root stack.
+  isFocused: () => mockTopRouteName() === 'recoverPasswordPgpWarning',
+}
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    addListener: (type: string, cb: BeforeRemove) => {
-      if (type === 'beforeRemove') {
-        mockBeforeRemove.current = cb
-      }
-      return () => {}
-    },
-    canGoBack: () => true,
-    // A goBack asks the screen's beforeRemove, then pops it.
-    goBack: () => {
-      mockBeforeRemove.current?.({data: {action: {type: 'GO_BACK'}}})
-      mockNavigateUp()
-    },
-  }),
+  useNavigation: () => mockNavigation,
 }))
 
 const mockBeforeRemove: {current?: BeforeRemove} = {}
+const mockFocus: {current?: () => void} = {}
 const mockNavigateUp = () => navigateUp()
+const mockTopRouteName = () => nav.getRootState()?.routes?.at(-1)?.name
 
 let nav: FakeNavigator
 
 // Go asks only after the paper key has logged the user in, so the warning sits over the logged-in app.
 beforeEach(() => {
   mockBeforeRemove.current = undefined
+  mockFocus.current = undefined
   useConfigState.getState().dispatch.setLoggedIn(true)
   nav = installFakeNavigator({modalRouteNames: Object.keys(newModalRoutes), rootState: makeRootState()})
 })
@@ -183,4 +192,70 @@ test('the screen unmounting without a removal answers nothing', async () => {
   cleanup()
   expect(response.result).not.toHaveBeenCalled()
   expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
+})
+
+// The flow can't remove a warning another modal covers (iOS aborts), so it leaves it to go by itself.
+describe('a warning settled while another modal covers it', () => {
+  const coverAndSettle = async () => {
+    const {listeners, response} = await setup()
+    navigateAppend({name: 'proxySettingsModal', params: {}})
+    // A restart declines the old prompt.
+    startRecoverPassword({username: 'testuser'})
+    await flush()
+    expect(listeners).toHaveLength(2)
+    expect(response.result).toHaveBeenCalledTimes(1)
+    expect(response.result).toHaveBeenCalledWith(false)
+    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning', 'proxySettingsModal'])
+    return {response}
+  }
+
+  test('closes itself once the cover is dismissed, answering nothing more', async () => {
+    const {response} = await coverAndSettle()
+
+    navigateUp()
+    nav.clearActions()
+    mockFocus.current!()
+
+    expect(nav.types()).toEqual(['GO_BACK'])
+    expect(rootRouteNames()).toEqual(['loggedIn'])
+    expect(response.result).toHaveBeenCalledTimes(1)
+  })
+
+  test('stays while it is still covered', async () => {
+    await coverAndSettle()
+    nav.clearActions()
+
+    mockFocus.current!()
+
+    expect(nav.actions).toEqual([])
+    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning', 'proxySettingsModal'])
+  })
+
+  // A covered screen can lose its effects (Activity) and get them back when it is uncovered.
+  test('closes itself when it mounts focused with nothing to ask', async () => {
+    const {response} = await coverAndSettle()
+    navigateUp()
+    cleanup()
+    nav.clearActions()
+
+    const id = (nav.getRootState()?.routes?.at(-1)?.params as {pgpPromptID: number}).pgpPromptID
+    render(<PgpWarning route={{params: {pgpPromptID: id}}} />)
+
+    expect(nav.types()).toEqual(['GO_BACK'])
+    expect(rootRouteNames()).toEqual(['loggedIn'])
+    expect(response.result).toHaveBeenCalledTimes(1)
+  })
+})
+
+test('uncovered with its prompt still pending, it stays and answers nothing', async () => {
+  const {response} = await setup()
+  navigateAppend({name: 'proxySettingsModal', params: {}})
+  navigateUp()
+  nav.clearActions()
+
+  mockFocus.current!()
+
+  expect(nav.actions).toEqual([])
+  expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
+  expect(response.result).not.toHaveBeenCalled()
 })

@@ -1,9 +1,11 @@
 /// <reference types="jest" />
 import logger from '@/logger'
 import {navigateAppendOnceRootHas, navigationRef} from '@/constants/router'
+import {useRouterState} from '@/stores/router'
 
 const dispatch = jest.fn()
-const listeners = new Set<() => void>()
+// The mounted container's own 'state' listeners.
+let listeners = new Set<() => void>()
 let rootState: unknown
 
 const loggedIn = {key: 'loggedIn-1', name: 'loggedIn'}
@@ -16,25 +18,33 @@ const loggedOut = {
 const setRootRoutes = (routes: Array<unknown>) => {
   rootState = {index: routes.length - 1, key: 'root-1', routeNames: [], routes, stale: false, type: 'stack'}
 }
+// A commit, as the container reports it: to its own listeners, and through onStateChange to the router store.
 const emitState = () => {
   for (const l of [...listeners]) {
     l()
   }
+  useRouterState.getState().dispatch.setNavState(rootState as never)
 }
 
-beforeEach(() => {
-  dispatch.mockReset()
-  listeners.clear()
-  // the jest mock's container ref is a plain object, so stub its methods directly
+// The container stubs, for one mounted container with its own listeners.
+const mountContainer = () => {
+  const own = new Set<() => void>()
+  listeners = own
   const nr = navigationRef as unknown as Record<string, unknown>
   nr['current'] = {}
   nr['dispatch'] = dispatch
   nr['getRootState'] = () => rootState
   nr['isReady'] = () => true
   nr['addListener'] = (_: string, cb: () => void) => {
-    listeners.add(cb)
-    return () => listeners.delete(cb)
+    own.add(cb)
+    return () => own.delete(cb)
   }
+}
+
+beforeEach(() => {
+  dispatch.mockReset()
+  // the jest mock's container ref is a plain object, so stub its methods directly
+  mountContainer()
 })
 
 afterEach(() => {
@@ -145,7 +155,26 @@ test("'untilCancelled' never gives up: a root mounting late still gets the push"
   expect(dispatch).toHaveBeenCalledWith(pushOf('testuser-f'))
 })
 
-test("'untilCancelled' waits through a navigator that is not ready yet", () => {
+// An account switch remounts the NavigationContainer under a new key. A listener added to the old container
+// stays with it and never hears the new one, so the wait has to outlive the container.
+test("'untilCancelled' survives the container remounting", () => {
+  setRootRoutes([loggedIn])
+
+  navigateAppendOnceRootHas(
+    'loggedOut',
+    {name: 'username', params: {username: 'testuser-g'}} as never,
+    'untilCancelled'
+  )
+  mountContainer()
+  setRootRoutes([loggedOut])
+  emitState()
+
+  expect(dispatch).toHaveBeenCalledTimes(1)
+  expect(dispatch).toHaveBeenCalledWith(pushOf('testuser-g'))
+})
+
+// Between the old container going and the new one mounting there is no navigator to listen to.
+test("'untilCancelled' started with no navigator pushes once a container mounts with the root", () => {
   setRootRoutes([loggedIn])
   const nr = navigationRef as unknown as Record<string, unknown>
   nr['isReady'] = () => false
@@ -153,13 +182,14 @@ test("'untilCancelled' waits through a navigator that is not ready yet", () => {
 
   navigateAppendOnceRootHas(
     'loggedOut',
-    {name: 'username', params: {username: 'testuser-g'}} as never,
+    {name: 'username', params: {username: 'testuser-h'}} as never,
     'untilCancelled'
   )
   expect(warn).not.toHaveBeenCalled()
 
-  nr['isReady'] = () => true
+  mountContainer()
   setRootRoutes([loggedOut])
   emitState()
-  expect(dispatch).toHaveBeenCalledWith(pushOf('testuser-g'))
+  expect(dispatch).toHaveBeenCalledTimes(1)
+  expect(dispatch).toHaveBeenCalledWith(pushOf('testuser-h'))
 })

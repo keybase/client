@@ -9,7 +9,7 @@ import {
   navigateAppendOnceRootHas,
   navigateUp,
   popStack,
-  removeRootRoutes,
+  removeTopRootRoutes,
   setChatRootParams,
   switchTab,
 } from '@/constants/router'
@@ -272,38 +272,52 @@ describe('clearModals', () => {
   })
 })
 
-// ---- removeRootRoutes ----
+// ---- removeTopRootRoutes ----
 
-describe('removeRootRoutes', () => {
-  test('drops only the matching route, even below another modal', () => {
+describe('removeTopRootRoutes', () => {
+  test('drops the matching routes on top, down to the first that does not match', () => {
     nav = installFakeNavigator({
       modalRouteNames: ['chatInfoPanel', 'chatNewChat'],
       rootState: makeRootState({
         above: [
           {name: 'chatInfoPanel', params: {tag: 1}},
-          {name: 'chatInfoPanel', params: {tag: 2}},
           {name: 'chatNewChat'},
+          {name: 'chatInfoPanel', params: {tag: 1}},
+          {name: 'chatInfoPanel', params: {tag: 1}},
         ],
       }),
     })
 
-    removeRootRoutes(r => (r.params as {tag?: number} | undefined)?.tag === 1)
+    removeTopRootRoutes(r => (r.params as {tag?: number} | undefined)?.tag === 1)
 
     const action = nav.lastAction()
     expect(action?.type).toBe('RESET')
     expect(action?.target).toBe('root')
     expect(nav.getRootState()?.routes?.map(r => [r.name, r.params])).toEqual([
       ['loggedIn', undefined],
-      ['chatInfoPanel', {tag: 2}],
+      ['chatInfoPanel', {tag: 1}],
       ['chatNewChat', undefined],
     ])
     expect(nav.getRootState()?.index).toBe(2)
   })
 
+  // react-native-screens aborts on iOS when a modal under another one is removed.
+  test('leaves a matching route under one that stays, and dispatches nothing', () => {
+    nav = installFakeNavigator({
+      modalRouteNames: ['chatInfoPanel', 'chatNewChat'],
+      rootState: makeRootState({above: [{name: 'chatInfoPanel'}, {name: 'chatNewChat'}]}),
+    })
+
+    removeTopRootRoutes(r => r.name === 'chatInfoPanel')
+
+    expect(nav.actions).toEqual([])
+    expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedIn', 'chatInfoPanel', 'chatNewChat'])
+  })
+
   test('never drops the bottom route', () => {
     nav = installFakeNavigator({rootState: makeRootState({above: [{name: 'chatNewChat'}]})})
 
-    removeRootRoutes(() => true)
+    removeTopRootRoutes(() => true)
 
     expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedIn'])
   })
@@ -315,7 +329,7 @@ describe('removeRootRoutes', () => {
       rootState: makeRootState({above: [{name: 'chatInfoPanel'}], loggedIn: false}),
     })
 
-    removeRootRoutes(r => r.name === 'chatInfoPanel')
+    removeTopRootRoutes(r => r.name === 'chatInfoPanel')
 
     expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedOut'])
   })
@@ -326,7 +340,7 @@ describe('removeRootRoutes', () => {
       rootState: makeRootState({above: [{name: 'chatNewChat'}]}),
     })
 
-    removeRootRoutes(r => r.name === 'chatInfoPanel')
+    removeTopRootRoutes(r => r.name === 'chatInfoPanel')
 
     expect(nav.actions).toEqual([])
   })

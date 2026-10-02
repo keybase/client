@@ -33,3 +33,20 @@ export const useOnUserRemove = (onUserRemove: () => void) => {
     }
   })
 }
+
+// Takes this screen away whenever it is focused (on mount, or uncovered later) and `shouldClose` says it has
+// nothing left to show. For a screen the app can't remove while another modal covers it: only the top modal
+// may be removed on iOS, so it waits there until it is the top again.
+export const useCloseWhenFocusedIf = (shouldClose: () => boolean) => {
+  const navigation = useNavigation()
+  const shouldCloseEvent = React.useEffectEvent(shouldClose)
+  React.useEffect(() => {
+    const closeIfDone = () => {
+      if (navigation.isFocused() && shouldCloseEvent()) {
+        navigation.goBack()
+      }
+    }
+    closeIfDone()
+    return navigation.addListener('focus', closeIfDone)
+  }, [navigation])
+}
