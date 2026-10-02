@@ -17,22 +17,9 @@ const isLinkFrame = (data: unknown): data is EngineLinkFrame =>
 
 // Desktop renderer transport: talks to the service through the node relay over IPC
 class ProxyNativeTransport extends TransportShared {
-  private _linkUp = false
   // The relay connection the last link-up named. Every send carries it, so the relay can drop a
   // send made on a connection that has since gone.
   private _epoch = 0
-
-  constructor(
-    incomingRPCCallback: IncomingRPCCallbackType,
-    connectCallback?: ConnectDisconnectCB,
-    disconnectCallback?: ConnectDisconnectCB
-  ) {
-    super(connectCallback, disconnectCallback, incomingRPCCallback)
-  }
-
-  protected override isConnected() {
-    return this._linkUp
-  }
 
   protected writeMessage(message: RPCMessage) {
     const {engineSend} = KB2.functions
@@ -48,7 +35,7 @@ class ProxyNativeTransport extends TransportShared {
   fromRelay(data: unknown) {
     if (isLinkFrame(data)) {
       this.onLinkFrame(data)
-    } else if (this._linkUp) {
+    } else if (this.isLinkUp) {
       this.packetizeData(data as Uint8Array)
     }
   }
@@ -57,14 +44,12 @@ class ProxyNativeTransport extends TransportShared {
   // connection already up is a repeat, and a link-down for a connection that is not up is stale.
   private onLinkFrame({up, epoch}: EngineLinkFrame) {
     const endsCurrentLink = up ? epoch !== this._epoch : epoch === this._epoch
-    if (this._linkUp && endsCurrentLink) {
-      this._linkUp = false
-      this.onLinkDown()
+    if (this.isLinkUp && endsCurrentLink) {
+      this.markLinkDown()
     }
-    if (up && !this._linkUp) {
+    if (up && !this.isLinkUp) {
       this._epoch = epoch
-      this._linkUp = true
-      this.onConnected()
+      this.markLinkUp()
     }
   }
 
@@ -77,18 +62,12 @@ class ProxyNativeTransport extends TransportShared {
 // Mobile transport — only instantiated when isMobile. The link is up from the start; Go dropping
 // the loopback connection takes it down and back up in one step (the 'kb-engine-reset' meta event).
 class NativeTransportMobile extends TransportShared {
-  private _linkUp = true
-
   constructor(
     incomingRPCCallback: IncomingRPCCallbackType,
-    connectCallback?: ConnectDisconnectCB,
-    disconnectCallback?: ConnectDisconnectCB
+    connectCallback: ConnectDisconnectCB,
+    disconnectCallback: ConnectDisconnectCB
   ) {
-    super(connectCallback, disconnectCallback, incomingRPCCallback)
-  }
-
-  protected override isConnected() {
-    return this._linkUp
+    super(incomingRPCCallback, connectCallback, disconnectCallback, true)
   }
 
   protected writeMessage(message: RPCMessage) {
@@ -110,13 +89,11 @@ class NativeTransportMobile extends TransportShared {
   // here: failing outstanding RPCs on a switch fails login.login, proven on device. Keep any new call
   // site inside the meta-event handler, not in code shared with the account-switch path.
   linkDown() {
-    this._linkUp = false
-    this.onLinkDown()
+    this.markLinkDown()
   }
 
   linkUp() {
-    this._linkUp = true
-    this.onConnected()
+    this.markLinkUp()
   }
 }
 

@@ -44,8 +44,6 @@ class Engine implements CallPort {
   }
   // We generate sessionIDs monotonically
   _nextSessionID: number = 123
-  // Whether the link to the service is up now. Mobile's is up from the start.
-  _linkUp: boolean = isMobile
   // App tells us when the listeners are done loading so we can start emitting events
   _listenersAreReady: boolean = false
 
@@ -129,7 +127,6 @@ class Engine implements CallPort {
   }
 
   _onDisconnect() {
-    this._linkUp = false
     logger.warn('Engine disconnected', {
       listenersAreReady: this._listenersAreReady,
       sessions: this._sessionSummary(),
@@ -171,16 +168,15 @@ class Engine implements CallPort {
     }
     this._listenersAreReady = true
     logger.info('Engine listenersAreReady', {
-      linkUp: this._linkUp,
+      linkUp: this._rpcClient.transport.isLinkUp,
       sessions: this._sessionSummary(),
     })
-    if (this._linkUp) {
+    if (this._rpcClient.transport.isLinkUp) {
       this._onConnectedCB(true)
     }
   }
 
   _onConnected() {
-    this._linkUp = true
     logger.info('Engine connected', {
       listenersAreReady: this._listenersAreReady,
       sessions: this._sessionSummary(),
@@ -426,7 +422,7 @@ class Engine implements CallPort {
       return
     }
     logger.warn('Engine reset requested', {
-      linkUp: this._linkUp,
+      linkUp: this._rpcClient.transport.isLinkUp,
       listenersAreReady: this._listenersAreReady,
       sessions: this._sessionSummary(),
     })

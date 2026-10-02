@@ -37,10 +37,14 @@ function rpcLog(info: {method: string; reason: string; extra?: object; type: str
 }
 
 abstract class TransportShared extends RPCTransport {
+  // Whether the link to the service is up now
+  private _linkUp: boolean
+
   constructor(
+    incomingRPCCallback?: IncomingRPCCallbackType,
     connectCallback?: ConnectDisconnectCB,
     disconnectCallback?: ConnectDisconnectCB,
-    incomingRPCCallback?: IncomingRPCCallbackType
+    linkUp = false
   ) {
     super({
       connectCallback,
@@ -57,6 +61,25 @@ abstract class TransportShared extends RPCTransport {
             }
           : incomingRPCCallback,
     })
+    this._linkUp = linkUp
+  }
+
+  get isLinkUp() {
+    return this._linkUp
+  }
+
+  protected override isConnected() {
+    return this._linkUp
+  }
+
+  protected markLinkDown() {
+    this._linkUp = false
+    this.onLinkDown()
+  }
+
+  protected markLinkUp() {
+    this._linkUp = true
+    this.onConnected()
   }
 
   // add logging / multiple call checking
