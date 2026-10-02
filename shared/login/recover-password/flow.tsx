@@ -5,13 +5,14 @@ import {
   navigateAppend,
   navigateAppendOnceRootHas,
   navigateUp,
+  replaceTopOrPush,
 } from '@/constants/router'
+import {isLoggedIn} from '@/constants/nav-tree'
 import {waitingKeyRecoverPassword} from '@/constants/strings'
 import {ignorePromise} from '@/constants/utils'
 import {openDialog, type Dialog, type DialogEvent, type Prompt} from '@/engine/dialog'
 import logger from '@/logger'
 import {startAccountReset} from '@/login/reset/account-reset'
-import {useConfigState} from '@/stores/config'
 import {cancelProvision} from '@/provision/flow'
 import {rpcDeviceToDevice} from '@/constants/rpc-utils'
 import {RPCError} from '@/util/errors'
@@ -41,18 +42,6 @@ let current: Run | undefined
 let caller: Pick<StartRecoverPasswordParams, 'onResetEmailSent' | 'username'> | undefined
 
 const pgpWarningName = 'recoverPasswordPgpWarning'
-// The screens a run shows. Its error takes the place of the one on top; over anything else (the app,
-// the login screen) it is pushed, so going back from it leaves something to go back to.
-const runScreens = new Set([
-  'recoverPasswordDeviceSelector',
-  'recoverPasswordError',
-  'recoverPasswordErrorModal',
-  'recoverPasswordExplainDevice',
-  'recoverPasswordPaperKey',
-  pgpWarningName,
-  'recoverPasswordPromptResetPassword',
-  'recoverPasswordSetPassword',
-])
 // How long a modal may wait for the logged-in root before navigateAppendOnceRootHas drops it.
 const loggedInRootTimeoutMs = 5000
 const pgpMountTimers = new Map<number, ReturnType<typeof setTimeout>>()
@@ -289,12 +278,12 @@ export const startRecoverPassword = ({
       hadError = true
       logger.warn('RPC returned error: ' + error.message)
       if (!(error.code === T.RPCGen.StatusCode.sccanceled || error.code === T.RPCGen.StatusCode.scinputcanceled)) {
-        navigateAppend(
-          {
-            name: useConfigState.getState().loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
-            params: {error: error.message},
-          },
-          runScreens.has(getVisibleScreen(true)?.name ?? '')
+        // Over the root that is mounted, which can still be the logged-out one just after the paper
+        // key logged the user in
+        replaceTopOrPush(root =>
+          isLoggedIn(root)
+            ? {name: 'recoverPasswordErrorModal', params: {error: error.message}}
+            : {name: 'recoverPasswordError', params: {error: error.message}}
         )
       }
     } finally {

@@ -184,7 +184,8 @@ export const makeFakeNavigator = (p?: {
   onDispatch?: (action: RecordedAction) => void
 }): FakeNavigator => {
   const actions: Array<RecordedAction> = []
-  const queued: Array<RecordedAction> = []
+  // A thunk is resolved when it is folded in, against the state the actions before it left
+  const queued: Array<RecordedAction | ((root: NavTree.NavState) => RecordedAction)> = []
   // Actions dispatched from inside clearModals.
   const clearModalsActions = new Set<RecordedAction>()
   let insideClearModals = false
@@ -316,11 +317,25 @@ export const makeFakeNavigator = (p?: {
     }
   }
 
+  const record = (recorded: RecordedAction) => {
+    actions.push(recorded)
+    if (insideClearModals) {
+      clearModalsActions.add(recorded)
+    }
+    p?.onDispatch?.(recorded)
+  }
+
   const commit = () => {
     if (!queued.length) return
     const next = cloneState(rootState as FakeState)
     for (const a of queued.splice(0)) {
-      reduce(next, a)
+      if (typeof a === 'function') {
+        const resolved = a(cloneState(next) as NavTree.NavState)
+        record(resolved)
+        reduce(next, resolved)
+      } else {
+        reduce(next, a)
+      }
     }
     rootState = next as NavTree.NavState
     fireListeners()
@@ -333,13 +348,13 @@ export const makeFakeNavigator = (p?: {
     },
     dispatch: action => {
       if (!ready) return
-      const recorded = action as unknown as RecordedAction
-      actions.push(recorded)
-      if (insideClearModals) {
-        clearModalsActions.add(recorded)
+      if (typeof action === 'function') {
+        queued.push(root => action(root) as unknown as RecordedAction)
+      } else {
+        const recorded = action as unknown as RecordedAction
+        record(recorded)
+        queued.push(recorded)
       }
-      p?.onDispatch?.(recorded)
-      queued.push(recorded)
       if (p?.commit !== 'manual') {
         commit()
       }
