@@ -159,11 +159,9 @@ class Engine implements CallPort {
   }
 
   // The app is told the link is up once its listeners are ready, and once per link-up after that. A
-  // repeat call (HMR) announces nothing again.
+  // repeat call is a store re-init (mobile fast refresh, desktop HMR) whose fresh stores have heard
+  // nothing, so a link that is up is announced to them again.
   listenersAreReady = () => {
-    if (this._listenersAreReady) {
-      return
-    }
     this._listenersAreReady = true
     logger.info('Engine listenersAreReady', {
       linkUp: this._rpcClient.transport.isLinkUp,
