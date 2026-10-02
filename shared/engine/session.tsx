@@ -129,6 +129,13 @@ class Session {
     this._cancel('forget')
   }
 
+  // The link died under a dangling session, which lives on: only its held prompts go unanswered
+  forgetHeldForLostLink() {
+    for (const held of [...this._held]) {
+      this._settle(held)
+    }
+  }
+
   // The service cancelled one of its calls to us: it no longer reads an answer for that seqid.
   cancelByService(seqid: number) {
     const promptWasPending = this._held.size > 0

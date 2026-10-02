@@ -285,14 +285,16 @@ const holdPassphrase = (fake: FakeEngine, dangling: boolean) => {
     dangling,
   })
   const pushed = fake.push('keybase.1.secretUi.getPassphrase', {pinentry: {}}, {sessionID: session.getId()})
-  return {pushed, responses}
+  return {pushed, responses, session}
 }
 
-test('an unstarted session holding a prompt writes nothing when the link drops', async () => {
+test.each([false, true])('an unstarted session holding a prompt writes nothing when the link drops (dangling %p)', async dangling => {
   const fake = installFakeEngine()
-  const {pushed, responses} = holdPassphrase(fake, false)
+  const {pushed, responses, session} = holdPassphrase(fake, dangling)
   fake.drop()
   await pushed
+  // A dangling session outlives the link; only what it held is dropped
+  expect(fake.engine._sessionsMap.has(session.getId())).toBe(dangling)
   responses[0]!.result({passphrase: 'testpass', storeSecret: false})
   fake.restart()
   await tick()
