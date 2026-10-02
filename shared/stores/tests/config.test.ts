@@ -12,7 +12,7 @@ import {getAccountGeneration} from '../../engine/account-generation'
 import {useDaemonState} from '../daemon'
 import {noConversationIDKey} from '../../constants/types/chat/common'
 import {useConfigState} from '../config'
-import {installFakeEngine, uninstallFakeEngine} from '@/test/fake-engine'
+import {fakeError, installFakeEngine, uninstallFakeEngine} from '@/test/fake-engine'
 
 const resetConfigState = () => {
   const {dispatch} = useConfigState.getState()
@@ -325,6 +325,44 @@ describe('login', () => {
     const state = useConfigState.getState()
     expect(state.userSwitching).toBe(false)
     expect(state.loginError?.desc).toBeTruthy()
+  })
+
+  describe('through the engine listener', () => {
+    const switchFailingWith = async (code: T.RPCGen.StatusCode, desc: string) => {
+      const fake = installFakeEngine()
+      const held = fake.hold('keybase.1.login.login')
+      const {dispatch} = useConfigState.getState()
+      dispatch.setUserSwitching(true, 'testuser')
+      dispatch.login('testuser', '')
+      await flush()
+      held[0]!.reply(fakeError(code, desc))
+      await flush()
+    }
+
+    test('a service error ends the switch and records the nice error', async () => {
+      await switchFailingWith(T.RPCGen.StatusCode.scbadloginpassword, 'bad password')
+
+      const state = useConfigState.getState()
+      expect(state.userSwitching).toBe(false)
+      expect(state.loginError?.desc).toBe('Looks like a bad password.')
+    })
+
+    test('already logged in ends the switch without a login error', async () => {
+      await switchFailingWith(T.RPCGen.StatusCode.scalreadyloggedin, 'already logged in')
+
+      const state = useConfigState.getState()
+      expect(state.userSwitching).toBe(false)
+      expect(state.loginError).toBeUndefined()
+      expect(refresh).toHaveBeenCalledTimes(1)
+    })
+
+    test('a login that cancelled its own prompt ends the switch without a login error', async () => {
+      await switchFailingWith(T.RPCGen.StatusCode.scgeneric, 'Canceling RPC')
+
+      const state = useConfigState.getState()
+      expect(state.userSwitching).toBe(false)
+      expect(state.loginError).toBeUndefined()
+    })
   })
 })
 
