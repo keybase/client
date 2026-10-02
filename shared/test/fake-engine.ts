@@ -31,7 +31,9 @@ export type FakeEngine = {
   // The service calls the GUI (prompt or notification). Resolves with what the GUI answered.
   push: (method: string, params: object, opts?: {sessionID?: number; oneway?: boolean}) => Promise<PushResult>
   calls: Array<{method: string; params: any}>
-  drop: () => void // the link died: transport onDisconnected
+  // The link died. Models the desktop node-socket transport (onDisconnected), not the mobile JSI
+  // or renderer reset (failAllOutstanding).
+  drop: () => void
   restart: () => void // the link came back: transport onConnected
   connected: () => boolean
 }
@@ -42,6 +44,19 @@ const isFakeError = (a: unknown): a is FakeError => {
   if (typeof a !== 'object' || a === null || !('error' in a)) return false
   const {error} = a as {error: unknown}
   return typeof error === 'object' && error !== null && 'code' in error
+}
+
+// The Engine logs on every link change; keep that out of test output.
+const quietly = (f: () => void) => {
+  const {log, warn} = console
+  console.log = () => {}
+  console.warn = () => {}
+  try {
+    f()
+  } finally {
+    console.log = log
+    console.warn = warn
+  }
 }
 
 class FakeTransport extends TransportShared {
@@ -82,39 +97,32 @@ class FakeTransport extends TransportShared {
 }
 
 type Installed = {
-  fake: FakeEngine
   previousPort: CallPort | undefined
   failures: Array<string>
+  // Fails everything still in flight and stops the transport, so nothing settles into a later test.
+  shutdown: () => void
 }
 
 let installed: Installed | undefined
 
-const teardown = (i: Installed) => {
-  installed = undefined
-  i.fake.engine._throttledDispatchWaitingAction.flush()
-  if (i.previousPort) {
-    installCallPort(i.previousPort)
-  } else {
-    uninstallCallPort()
-  }
-}
-
 export const installFakeEngine = (opts?: {onEngineIncoming?: (a: EngineGen.Actions) => void}): FakeEngine => {
-  const previous = installed
-  if (previous) {
-    teardown(previous)
+  if (installed) {
+    throw new Error('fake engine: installFakeEngine called while one is already installed')
   }
-  const previousPort = previous ? previous.previousPort : hasCallPort() ? getCallPort() : undefined
+  const previousPort = hasCallPort() ? getCallPort() : undefined
 
   const scripts = new Map<
     string,
     {kind: 'answer'; reply: (params: any) => FakeAnswer} | {kind: 'hold'; held: Array<HeldCall>}
   >()
   const pushes = new Map<number, (r: PushResult) => void>()
+  // Every push ever sent, so a late or duplicate GUI answer can be named
+  const pushMethods = new Map<number, string>()
   const failures: Array<string> = []
   const calls: FakeEngine['calls'] = []
   let nextPushSeqid = 1
   let transport: FakeTransport | undefined
+  let dead = false
 
   const getTransport = () => {
     if (!transport) throw new Error('fake engine: the engine never created its client')
@@ -126,6 +134,8 @@ export const installFakeEngine = (opts?: {onEngineIncoming?: (a: EngineGen.Actio
     const t = getTransport()
     const reply = (a: FakeAnswer) => {
       queueMicrotask(() => {
+        // The real service forgets its calls when the link dies, so a late reply goes nowhere
+        if (dead || !t.linkUp) return
         t.deliver(isFakeError(a) ? [MESSAGE_TYPE_RESPONSE, seqid, a.error, null] : [MESSAGE_TYPE_RESPONSE, seqid, null, a])
       })
     }
@@ -154,8 +164,17 @@ export const installFakeEngine = (opts?: {onEngineIncoming?: (a: EngineGen.Actio
     } else if (type === MESSAGE_TYPE_RESPONSE) {
       const [seqid, error, result] = rest as [number, unknown, unknown]
       const settle = pushes.get(seqid)
+      if (!settle) {
+        const method = pushMethods.get(seqid)
+        failures.push(
+          method
+            ? `GUI answered push seqid ${seqid} (${method}) when it was no longer waiting`
+            : `GUI answered seqid ${seqid}, which no push sent`
+        )
+        return
+      }
       pushes.delete(seqid)
-      settle?.(error ? {error} : {result})
+      settle(error ? {error} : {result})
     }
   }
 
@@ -182,7 +201,7 @@ export const installFakeEngine = (opts?: {onEngineIncoming?: (a: EngineGen.Actio
       // The GUI's answer to a push can no longer reach the service, so settle those pushes here.
       const settles = [...pushes.values()]
       pushes.clear()
-      getTransport().drop()
+      quietly(() => getTransport().drop())
       settles.forEach(settle => settle({error: {code: errors.EOF, desc: 'fake engine: link dropped'}}))
     },
     engine,
@@ -193,7 +212,7 @@ export const installFakeEngine = (opts?: {onEngineIncoming?: (a: EngineGen.Actio
     },
     push: async (method, params, o) => {
       const t = getTransport()
-      if (!t.linkUp) {
+      if (dead || !t.linkUp) {
         throw new Error(`fake engine: cannot push ${method} while the link is down`)
       }
       const param = [o?.sessionID === undefined ? params : {...params, sessionID: o.sessionID}]
@@ -204,25 +223,45 @@ export const installFakeEngine = (opts?: {onEngineIncoming?: (a: EngineGen.Actio
       const seqid = nextPushSeqid++
       return new Promise<PushResult>(resolve => {
         pushes.set(seqid, resolve)
+        pushMethods.set(seqid, method)
         t.deliver([MESSAGE_TYPE_INVOKE, seqid, method, param])
       })
     },
-    restart: () => getTransport().restart(),
+    restart: () => quietly(() => getTransport().restart()),
   }
 
-  installed = {fake, previousPort, failures}
+  const shutdown = () => {
+    if (getTransport().linkUp) {
+      fake.drop()
+    }
+    // Also fails calls queued while the link was down
+    getTransport().close()
+    dead = true
+    engine._throttledDispatchWaitingAction.flush()
+  }
+
+  installed = {failures, previousPort, shutdown}
   installCallPort(engine)
   return fake
 }
 
-// Throws, listing each method, if any call reached the fake with nothing scripted or its answer threw.
+// Fails everything still in flight, then throws, naming each, if any call reached the fake with
+// nothing scripted, an answer threw, or the GUI answered a push that was not waiting.
 export const uninstallFakeEngine = () => {
   const i = installed
   if (!i) return
-  teardown(i)
+  installed = undefined
+  i.shutdown()
+  if (i.previousPort) {
+    installCallPort(i.previousPort)
+  } else {
+    uninstallCallPort()
+  }
   if (i.failures.length) {
-    throw new Error(
-      `fake engine: calls that got no scripted answer:\n  ${[...new Set(i.failures)].join('\n  ')}`
-    )
+    throw new Error(`fake engine: traffic the test did not script:\n  ${[...new Set(i.failures)].join('\n  ')}`)
   }
 }
+
+// Every test file that uses the fake gets the strict check, even when a test forgets to uninstall
+// or throws before it does.
+afterEach(() => uninstallFakeEngine())
