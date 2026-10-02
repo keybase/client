@@ -4,6 +4,7 @@ import {Engine, type MakeClient} from '@/engine'
 import {getCallPort, hasCallPort, installCallPort, uninstallCallPort, type CallPort} from '@/engine/call-port'
 import {TransportShared} from '@/engine/transport-shared'
 import {
+  MESSAGE_TYPE_CANCEL,
   MESSAGE_TYPE_INVOKE,
   MESSAGE_TYPE_NOTIFY,
   MESSAGE_TYPE_RESPONSE,
@@ -14,6 +15,7 @@ import {
   type RPCMessage,
 } from '@/engine/rpc-transport'
 import {useWaitingState} from '@/stores/waiting'
+import {StatusCode} from '@/constants/rpc/rpc-gen'
 import type * as EngineGen from '@/constants/rpc'
 
 type FakeError = {error: {code: number; desc: string}}
@@ -30,6 +32,8 @@ export type FakeEngine = {
   hold: (method: string) => Array<HeldCall>
   // The service calls the GUI (prompt or notification). Resolves with what the GUI answered.
   push: (method: string, params: object, opts?: {sessionID?: number; oneway?: boolean}) => Promise<PushResult>
+  // The service cancels every push of `method` the GUI has not answered; each settles as cancelled.
+  cancelPush: (method: string) => void
   calls: Array<{method: string; params: any}>
   // The link died. Models the desktop node-socket transport (onDisconnected), not the mobile JSI
   // or renderer reset (failAllOutstanding).
@@ -196,6 +200,19 @@ export const installFakeEngine = (opts?: {onEngineIncoming?: (a: EngineGen.Actio
       scripts.set(method, {kind: 'answer', reply})
     },
     calls,
+    cancelPush: method => {
+      const t = getTransport()
+      const seqids = [...pushes.keys()].filter(seqid => pushMethods.get(seqid) === method)
+      if (!seqids.length) {
+        throw new Error(`fake engine: no pending ${method} push to cancel`)
+      }
+      for (const seqid of seqids) {
+        const settle = pushes.get(seqid)
+        pushes.delete(seqid)
+        t.deliver([MESSAGE_TYPE_CANCEL, seqid])
+        settle?.({error: {code: StatusCode.sccanceled, desc: 'fake engine: the service cancelled it'}})
+      }
+    },
     connected: () => getTransport().linkUp,
     drop: () => {
       // The GUI's answer to a push can no longer reach the service, so settle those pushes here.

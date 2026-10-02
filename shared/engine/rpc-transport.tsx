@@ -4,7 +4,7 @@ import logger from '@/logger'
 export const MESSAGE_TYPE_INVOKE = 0
 export const MESSAGE_TYPE_RESPONSE = 1
 export const MESSAGE_TYPE_NOTIFY = 2
-const MESSAGE_TYPE_CANCEL = 3
+export const MESSAGE_TYPE_CANCEL = 3
 
 type ErrorName = 'OK' | 'UNKNOWN_METHOD' | 'EOF'
 
