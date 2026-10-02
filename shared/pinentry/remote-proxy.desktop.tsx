@@ -135,7 +135,11 @@ const PinentryProxy = () => {
         },
       }
     )
-    return unregister
+    return () => {
+      // A prompt still held when the proxy goes away needs its answer, or the service waits forever
+      handlersRef.current.cancel?.()
+      unregister()
+    }
   }, [clearPopup])
 
   const currentPopupState =

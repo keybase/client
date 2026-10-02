@@ -113,6 +113,23 @@ test('a passphrase prompt while logged out is canceled at once and not held', as
   uninstallFakeEngine()
 })
 
+test('a passphrase prompt held when the proxy unmounts is answered once with input canceled', async () => {
+  const logError = jest.spyOn(logger, 'error')
+  useConfigState.getState().dispatch.setLoggedIn(true)
+  const fake = installFakeEngine()
+  const {unmount} = render(<PinentryProxy />)
+  let pushed: Promise<unknown> = Promise.resolve()
+  act(() => {
+    pushed = fake.push('keybase.1.secretUi.getPassphrase', pinentry, {sessionID: 0})
+  })
+  await flush()
+  unmount()
+  await expect(stillWaiting(pushed)).resolves.toEqual(canceled)
+  expect(answeredTwice(logError)).toEqual([])
+  // The fake records any second write to the seqid
+  expect(() => uninstallFakeEngine()).not.toThrow()
+})
+
 describe('a passphrase prompt the service stops waiting on', () => {
   const dev = __DEV__
   afterEach(() => {
