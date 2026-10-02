@@ -8,6 +8,8 @@ import {flush} from '@/test/flush'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 import {newModalRoutes} from '../routes'
 import {startRecoverPassword} from './flow'
+import {navigateUp} from '@/constants/router'
+import {HeaderLeftButton} from '@/common-adapters'
 import PgpWarning from './pgp-warning'
 
 type BeforeRemove = (e: {data: {action: {type: string}}}) => void
@@ -22,10 +24,16 @@ jest.mock('@react-navigation/native', () => ({
       return () => {}
     },
     canGoBack: () => true,
+    // A goBack asks the screen's beforeRemove, then pops it.
+    goBack: () => {
+      mockBeforeRemove.current?.({data: {action: {type: 'GO_BACK'}}})
+      mockNavigateUp()
+    },
   }),
 }))
 
 const mockBeforeRemove: {current?: BeforeRemove} = {}
+const mockNavigateUp = () => navigateUp()
 
 let nav: FakeNavigator
 
@@ -88,31 +96,23 @@ test('Continue answers true once and closes the warning', async () => {
   const {response} = await setup()
   fireEvent.click(screen.getByText('Continue'))
   fireEvent.click(screen.getByText('Continue'))
-  fireEvent.click(screen.getByText('Cancel'))
   expect(response.result).toHaveBeenCalledTimes(1)
   expect(response.result).toHaveBeenCalledWith(true)
   expect(rootRouteNames()).toEqual(['loggedIn'])
 })
 
-test('Cancel answers false once and closes the warning', async () => {
-  const {response} = await setup()
-  fireEvent.click(screen.getByText('Cancel'))
-  fireEvent.click(screen.getByText('Cancel'))
-  expect(response.result).toHaveBeenCalledTimes(1)
-  expect(response.result).toHaveBeenCalledWith(false)
-  expect(rootRouteNames()).toEqual(['loggedIn'])
+test('has no body Cancel; the header Cancel is the only one', async () => {
+  await setup()
+  expect(screen.queryByText('Cancel')).toBeNull()
 })
 
-test('the header back affordance answers false and closes the warning', async () => {
-  const {id, response} = await setup()
-  const {getOptions} = newModalRoutes.recoverPasswordPgpWarning
-  const options = getOptions({route: {params: {pgpPromptID: id}}})
-  expect(options.gestureEnabled).toBe(false)
-  if (!('headerLeft' in options)) throw new Error('expected the non-iOS headerLeft')
-  const {container} = render(options.headerLeft())
-  const back = container.querySelector<HTMLElement>('.icon')
-  expect(back).not.toBeNull()
-  fireEvent.click(back!)
+// The route declares no header buttons of its own, so the modal group's Cancel (a plain goBack) is the header.
+test("the modal group's header Cancel answers false once and closes the warning", async () => {
+  const {response} = await setup()
+  const options = newModalRoutes.recoverPasswordPgpWarning.getOptions
+  expect(options).toEqual({gestureEnabled: false, title: 'Recover password'})
+  render(<HeaderLeftButton mode="cancel" />)
+  fireEvent.click(screen.getByText('Cancel'))
 
   expect(response.result).toHaveBeenCalledTimes(1)
   expect(response.result).toHaveBeenCalledWith(false)
@@ -139,14 +139,6 @@ describe('the user taking the warning away', () => {
     expect(response.result).toHaveBeenCalledTimes(1)
     expect(response.result).toHaveBeenCalledWith(false)
     expect(nav.actions).toEqual([])
-  })
-
-  test.each(['RESET', 'GO_BACK'])("the flow's own %s removal after Cancel answers nothing more", async type => {
-    const {response} = await setup()
-    fireEvent.click(screen.getByText('Cancel'))
-    mockBeforeRemove.current!({data: {action: {type}}})
-    expect(response.result).toHaveBeenCalledTimes(1)
-    expect(response.result).toHaveBeenCalledWith(false)
   })
 
   test('the removal when a restart settles the warning answers nothing more', async () => {
@@ -177,7 +169,6 @@ test("a stale warning's buttons and removal can't reach a newer prompt", async (
   nav.clearActions()
 
   fireEvent.click(screen.getByText('Continue'))
-  fireEvent.click(screen.getByText('Cancel'))
   mockBeforeRemove.current!({data: {action: {type: 'GO_BACK'}}})
 
   expect(response.result).toHaveBeenCalledTimes(1)

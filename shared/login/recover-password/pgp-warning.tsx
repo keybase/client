@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {useOnRemove} from '@/util/safe-navigation'
 import {SignupScreen} from '@/signup/common'
@@ -10,24 +9,15 @@ type Props = {route: {params: {pgpPromptID: number}}}
 const PgpWarning = ({route}: Props) => {
   const {pgpPromptID} = route.params
   const onContinue = () => answerRecoverPasswordPgp(pgpPromptID, true)
-  const onCancel = () => answerRecoverPasswordPgp(pgpPromptID, false)
-  // Any removal (Android back, a native dismissal, a reset elsewhere) is a decline, or Go waits forever. The
-  // flow settles its own prompts before it navigates, so its removals find this already answered. The screen
-  // is already going, so nothing navigates.
+  // Any removal (the header Cancel, Android back, a native dismissal, a reset elsewhere) is a decline, or Go
+  // waits forever. The flow settles its own prompts before it navigates, so its removals find this already
+  // answered. The screen is already going, so nothing navigates.
   useOnRemove(() => answerRecoverPasswordPgp(pgpPromptID, false, 'screenRemoving'))
 
   return (
     <SignupScreen
-      buttons={[
-        {
-          label: 'Continue',
-          onClick: onContinue,
-          type: 'Danger',
-          waitingKey: C.waitingKeyRecoverPassword,
-        },
-        {label: 'Cancel', onClick: onCancel, type: 'Dim'},
-      ]}
-      // The modal's route header carries the title and the declining back button.
+      buttons={[{label: 'Continue', onClick: onContinue, type: 'Danger'}]}
+      // The modal's route header carries the title and the declining Cancel.
       hideDesktopHeader={true}
       noBackground={true}
     >

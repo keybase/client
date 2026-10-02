@@ -54,12 +54,13 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
   // conditional root group that a store change is about to mount (e.g. the logged-out stack): a
   // push dispatched before the group mounts reaches no navigator that can handle it and is
   // dropped. Gives up after `timeoutMs` so a group that never mounts can't fire the push at some
-  // unrelated later time, and then calls `onDrop`. Returns a cancel for a wait that is no longer
-  // wanted; cancelling calls nothing.
+  // unrelated later time, and then calls `onDrop`. 'untilCancelled' never gives up, not even while
+  // the navigator is not ready, for a caller that owns the wait's lifetime and cancels it itself.
+  // Returns a cancel for a wait that is no longer wanted; cancelling calls nothing.
   navigateAppendOnceRootHas: (
     rootRouteName: string,
     path: NavigateAppendType,
-    timeoutMs?: number,
+    timeoutMs?: number | 'untilCancelled',
     onDrop?: () => void
   ) => () => void
   navUpToScreen: (nameOrPath: RouteKeys | NavigateAppendType, replaceIfMissing?: boolean) => void
@@ -195,7 +196,7 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
   const navigateAppendOnceRootHas = (
     rootRouteName: string,
     path: NavigateAppendType,
-    timeoutMs = 5000,
+    timeoutMs: number | 'untilCancelled' = 5000,
     onDrop?: () => void
   ) => {
     const rootHas = () => ref.getRootState()?.routes?.some(r => r.name === rootRouteName) ?? false
@@ -203,7 +204,7 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
       navigateAppend(path)
       return () => {}
     }
-    if (!ref.isReady()) {
+    if (timeoutMs !== 'untilCancelled' && !ref.isReady()) {
       logger.warn(`[Nav] navigateAppendOnceRootHas: no navigator, dropping ${path.name}`)
       onDrop?.()
       return () => {}
@@ -212,11 +213,16 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
       clearTimeout(timer)
       unsub()
     }
-    const timer = setTimeout(() => {
-      unsub()
-      logger.warn(`[Nav] navigateAppendOnceRootHas: ${rootRouteName} never mounted, dropping ${path.name}`)
-      onDrop?.()
-    }, timeoutMs)
+    const timer =
+      timeoutMs === 'untilCancelled'
+        ? undefined
+        : setTimeout(() => {
+            unsub()
+            logger.warn(
+              `[Nav] navigateAppendOnceRootHas: ${rootRouteName} never mounted, dropping ${path.name}`
+            )
+            onDrop?.()
+          }, timeoutMs)
     const unsub = ref.addListener('state', () => {
       if (!rootHas()) return
       cancel()
@@ -389,7 +395,8 @@ registerDebugClear(() => {
 })
 
 const containerRefAdapter: NavigatorRef = {
-  addListener: (type, cb) => (navigationRef.isReady() ? navigationRef.addListener(type, cb) : () => {}),
+  // The container ref holds a listener added before the container mounts and attaches it on mount.
+  addListener: (type, cb) => navigationRef.addListener(type, cb),
   dispatch: action => {
     if (navigationRef.isReady()) {
       navigationRef.dispatch(action)

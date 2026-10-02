@@ -125,3 +125,41 @@ test('a cancelled wait neither pushes nor reports a drop', () => {
   expect(dispatch).not.toHaveBeenCalled()
   expect(onDrop).not.toHaveBeenCalled()
 })
+
+test("'untilCancelled' never gives up: a root mounting late still gets the push", () => {
+  jest.useFakeTimers()
+  setRootRoutes([loggedIn])
+  const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
+
+  navigateAppendOnceRootHas(
+    'loggedOut',
+    {name: 'username', params: {username: 'testuser-f'}} as never,
+    'untilCancelled'
+  )
+  jest.advanceTimersByTime(60_000)
+  expect(warn).not.toHaveBeenCalled()
+
+  setRootRoutes([loggedOut])
+  emitState()
+  expect(dispatch).toHaveBeenCalledTimes(1)
+  expect(dispatch).toHaveBeenCalledWith(pushOf('testuser-f'))
+})
+
+test("'untilCancelled' waits through a navigator that is not ready yet", () => {
+  setRootRoutes([loggedIn])
+  const nr = navigationRef as unknown as Record<string, unknown>
+  nr['isReady'] = () => false
+  const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
+
+  navigateAppendOnceRootHas(
+    'loggedOut',
+    {name: 'username', params: {username: 'testuser-g'}} as never,
+    'untilCancelled'
+  )
+  expect(warn).not.toHaveBeenCalled()
+
+  nr['isReady'] = () => true
+  setRootRoutes([loggedOut])
+  emitState()
+  expect(dispatch).toHaveBeenCalledWith(pushOf('testuser-g'))
+})

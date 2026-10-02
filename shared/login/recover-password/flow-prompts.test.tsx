@@ -764,17 +764,35 @@ describe('pgp key warning', () => {
       expect(nav.pushes()).toEqual([])
     })
 
-    test('a logged-in root that never mounts declines it', async () => {
+    // Declining logs Go out, so a slow mount must not decline it: only the run, a restart, the user or a
+    // logout does.
+    test('a logged-in root that mounts late still shows the warning, and nothing is declined', async () => {
       const {first} = await startAttempt()
       jest.useFakeTimers()
       try {
         const response = promptEarly(first)
-        jest.advanceTimersByTime(5000)
-        expect(response.result).toHaveBeenCalledTimes(1)
-        expect(response.result).toHaveBeenCalledWith(false)
+        jest.advanceTimersByTime(60_000)
+        expect(response.result).not.toHaveBeenCalled()
+
+        useConfigState.getState().dispatch.setLoggedIn(true)
+        nav.setRootState(makeRootState())
+        expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
+        expect(response.result).not.toHaveBeenCalled()
       } finally {
         jest.useRealTimers()
       }
+    })
+
+    test('a navigator that is not ready yet still shows the warning once the root mounts', async () => {
+      const {first} = await startAttempt()
+      nav.setReady(false)
+      const response = promptEarly(first)
+      expect(response.result).not.toHaveBeenCalled()
+
+      nav.setReady(true)
+      nav.setRootState(makeRootState())
+      expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
+      expect(response.result).not.toHaveBeenCalled()
     })
   })
 
@@ -794,15 +812,30 @@ describe('pgp key warning', () => {
       expect(response.result).toHaveBeenCalledTimes(1)
     })
 
-    test('an account switch declines the pending prompt and takes its warning away', async () => {
+    // Declining makes Go log out, which could race the switched-to account's login. The switch's own logout
+    // declines it.
+    test('an account switch starting declines nothing', async () => {
       const {first} = await startAttempt()
       const {response} = prompt(first)
 
       useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
 
-      expect(response.result).toHaveBeenCalledTimes(1)
-      expect(response.result).toHaveBeenCalledWith(false)
+      expect(response.result).not.toHaveBeenCalled()
+      expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
+    })
+
+    test('the run ending under a switch answers Go nothing but takes the warning away', async () => {
+      const {first} = await startAttempt()
+      const {id, response} = prompt(first)
+
+      useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
+      first.reject(new RPCError('canceled', T.RPCGen.StatusCode.sccanceled))
+      await flush()
+
+      expect(response.result).not.toHaveBeenCalled()
       expect(rootRouteNames()).toEqual(['loggedIn'])
+      answerRecoverPasswordPgp(id, false, 'screenRemoving')
+      expect(response.result).not.toHaveBeenCalled()
     })
 
     test('after the run, a logout answers nothing', async () => {

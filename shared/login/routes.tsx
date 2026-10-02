@@ -11,7 +11,7 @@ import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
 import useRequestAutoInvite from '@/signup/use-request-auto-invite'
 import {useRoute} from '@react-navigation/native'
-import {answerRecoverPasswordPgp, cancelRecoverPassword, startRecoverPassword} from './recover-password/flow'
+import {cancelRecoverPassword, startRecoverPassword} from './recover-password/flow'
 
 // The login route is a state multiplexer (loading / relogin / join). Only the relogin mode wants a
 // header title + "Create account" action, so the desktop header reads the same state to decide.
@@ -40,7 +40,8 @@ const LoginHeaderRight = () => {
 }
 
 // Recover-password back affordances must run the flow's back/cancel logic (not a plain pop), so they
-// are wired as the React Navigation headerLeft. They read the current route's params via useRoute.
+// are wired as the React Navigation headerLeft. RecoverBackLeft is handed its action; the restart and
+// reset-account ones read the username from their own route.
 const RecoverBackLeft = ({onPress}: {onPress: () => void}) => (
   <Kb.HeaderLeftButton autoDetectCanGoBack={true} onPress={onPress} />
 )
@@ -203,16 +204,10 @@ export const newModalRoutes = defineRouteMap({
     getOptions: {gestureEnabled: false, title: 'Error'},
     screen: React.lazy(async () => import('./recover-password/error-modal')),
   },
-  // Go asks this after the paper key has logged the user in, so it is shown over the logged-in app.
+  // Go asks this after the paper key has logged the user in, so it is shown over the logged-in app. Its
+  // only header affordance is the modal group's Cancel, whose goBack the screen answers as a decline.
   recoverPasswordPgpWarning: {
-    getOptions: ({route}: {route: {params: {pgpPromptID: number}}}) => {
-      const onDecline = () => answerRecoverPasswordPgp(route.params.pgpPromptID, false)
-      return {
-        gestureEnabled: false,
-        ...(isIOS ? recoverBackItems(onDecline) : {headerLeft: () => <RecoverBackLeft onPress={onDecline} />}),
-        title: 'Recover password',
-      }
-    },
+    getOptions: {gestureEnabled: false, title: 'Recover password'},
     screen: React.lazy(async () => import('./recover-password/pgp-warning')),
   },
   recoverPasswordSetPassword: {

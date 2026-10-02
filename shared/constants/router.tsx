@@ -191,7 +191,7 @@ export function navigateAppend(path: NavigateAppendType, replace?: boolean): boo
 export const navigateAppendOnceRootHas = (
   rootRouteName: string,
   path: NavigateAppendType,
-  timeoutMs?: number,
+  timeoutMs?: number | 'untilCancelled',
   onDrop?: () => void
 ) => getNavigator().navigateAppendOnceRootHas(rootRouteName, path, timeoutMs, onDrop)
 
