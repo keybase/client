@@ -1,8 +1,9 @@
 // Desktop behaviour the phone shares: the pinned banner steps aside for thread search, every Reply
-// closes search and hands the composer focus, and an inline video plays once and opens fullscreen
-// from its corner button or a double-click.
+// closes search and hands the composer focus, and an inline video plays once. Desktop's fullscreen is
+// the player's own control, so its double-click goes to Chromium, not to the attachment view.
 import type {Locator, Page} from '@playwright/test'
 import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
+import {checkRendererAfterReload} from '@/tests/e2e/electron/helpers/connect'
 import {
   clickUnoccluded,
   closeSearch,
@@ -121,7 +122,7 @@ test.describe('inline video', () => {
     page
       .getByTestId(T.CHAT_MESSAGE_LIST)
       .locator('[data-ordinal]')
-      .filter({has: page.getByTestId(T.CHAT_VIDEO_FULLSCREEN)})
+      .filter({hasText: 'e2e-media-video-tall'})
       .last()
 
   type VideoState = {currentTime: number; duration: number; ended: boolean; loop: boolean; paused: boolean}
@@ -131,18 +132,12 @@ test.describe('inline video', () => {
       return {currentTime: v.currentTime, duration: v.duration, ended: v.ended, loop: v.loop, paused: v.paused}
     })
 
-  // The video's own box: the poster (its image, the play icon over it, the duration and the corner
-  // button) until it plays, then the video. The corner button sits in both.
-  const poster = (row: Locator) => row.getByTestId(T.CHAT_VIDEO_FULLSCREEN).locator('xpath=../..')
+  // The poster (its image, the play icon over it and the duration, 'm:ss, size') until the video plays.
+  const poster = (row: Locator) => row.getByText(/^\d+:\d{2}\b/).locator('xpath=../..')
 
-  // The fullscreen view's Escape handler registers a render after it shows, so an Escape pressed in
-  // that gap is dropped: press again until it closes (as closeMenu does).
-  const closeFullscreen = async (page: Page) => {
-    await expect(async () => {
-      await page.keyboard.press('Escape')
-      await expect(fullscreen(page)).toHaveCount(0, {timeout: 500})
-    }).toPass({timeout: 5_000})
-  }
+  type FullscreenDoc = {fullscreenElement: {tagName: string} | null}
+  const fullscreenTag = async (page: Page) =>
+    page.evaluate(() => (document as unknown as FullscreenDoc).fullscreenElement?.tagName ?? null)
 
   // opened fresh, so the video starts on its poster
   test.beforeEach(async ({page}) => {
@@ -152,8 +147,11 @@ test.describe('inline video', () => {
     await expect(videoRow(page)).toHaveCount(1, {timeout: 10_000})
   })
 
+  // Driven input puts the video fullscreen within the window, not the window itself, and no exit
+  // (exitFullscreen(), Escape, the controls) leaves that state; a real Escape or double-click does.
+  // A reload is the one way back.
   test.afterEach(async ({page}) => {
-    if (await fullscreen(page).count()) await closeFullscreen(page)
+    if (await fullscreenTag(page)) await checkRendererAfterReload(page)
   })
 
   test('an inline video plays once to its end and stops there', async ({page}) => {
@@ -173,51 +171,26 @@ test.describe('inline video', () => {
     expect(later.currentTime).toBe(ended.currentTime)
   })
 
-  test('the corner button opens the video fullscreen', async ({page}) => {
+  test('the playing video keeps its own fullscreen control and no corner button', async ({page}) => {
     const row = videoRow(page)
-    await clickUnoccluded(row.getByTestId(T.CHAT_VIDEO_FULLSCREEN))
-    await expect(fullscreen(page)).toBeVisible({timeout: 10_000})
-    await closeFullscreen(page)
-    // the inline one went back to its poster
-    await expect(row.locator('video')).toHaveCount(0)
+    await expect(row.getByTestId(T.CHAT_VIDEO_FULLSCREEN)).toHaveCount(0)
+    await clickUnoccluded(poster(row))
+    await expect(row.locator('video')).toHaveCount(1, {timeout: 5_000})
+    await expect(row.getByTestId(T.CHAT_VIDEO_FULLSCREEN)).toHaveCount(0)
+    expect(await row.locator('video').getAttribute('controlslist')).not.toMatch(/nofullscreen/)
   })
 
-  // A double-click at a point on the video, as a fraction of its height. Chromium's own controls
-  // panel takes the bottom ~72px of a video and keeps presses there to itself, which is why the
-  // flows below aim above it.
-  const doubleClickAt = async (page: Page, row: Locator, fy: number) => {
-    const box = await poster(row).boundingBox({timeout: 5_000})
+  // The seeded video previews 320px tall, so 0.3 of the way down sits above Chromium's own controls
+  // panel (the bottom ~72px of a video, where a press is consumed by the controls).
+  test('double-clicking a playing video puts the video itself fullscreen', async ({page}) => {
+    const row = videoRow(page)
+    await clickUnoccluded(poster(row))
+    const video = row.locator('video')
+    await expect(video).toHaveCount(1, {timeout: 5_000})
+    const box = await video.boundingBox({timeout: 5_000})
     if (!box) throw new Error('the video has no box')
-    await page.mouse.dblclick(box.x + box.width * 0.6, box.y + box.height * fy)
-  }
-
-  test('double-clicking the video poster opens it fullscreen', async ({page}) => {
-    const row = videoRow(page)
-    // the first click starts the video, the second lands on the video that replaced the poster
-    await doubleClickAt(page, row, 0.3)
-    await expect(fullscreen(page)).toBeVisible({timeout: 10_000})
-    await closeFullscreen(page)
-    await expect(row.locator('video')).toHaveCount(0)
-  })
-
-  test('double-clicking a playing video opens it fullscreen', async ({page}) => {
-    const row = videoRow(page)
-    await clickUnoccluded(poster(row))
-    await expect(row.locator('video')).toHaveCount(1, {timeout: 5_000})
-    await doubleClickAt(page, row, 0.3)
-    await expect(fullscreen(page)).toBeVisible({timeout: 10_000})
-    await closeFullscreen(page)
-    await expect(row.locator('video')).toHaveCount(0)
-  })
-
-  // The seeded video previews 320px tall, so its middle sits above Chromium's own controls panel
-  // (the bottom ~72px of a video, where a press is consumed by the controls and never reaches the
-  // page). On a preview shorter than about 150px the middle falls inside that panel.
-  test('double-clicking the middle of a playing video opens it fullscreen', async ({page}) => {
-    const row = videoRow(page)
-    await clickUnoccluded(poster(row))
-    await expect(row.locator('video')).toHaveCount(1, {timeout: 5_000})
-    await doubleClickAt(page, row, 0.5)
-    await expect(fullscreen(page)).toBeVisible({timeout: 5_000})
+    await page.mouse.dblclick(box.x + box.width * 0.6, box.y + box.height * 0.3)
+    await expect.poll(async () => fullscreenTag(page), {timeout: 5_000}).toBe('VIDEO')
+    await expect(fullscreen(page)).toHaveCount(0)
   })
 })
