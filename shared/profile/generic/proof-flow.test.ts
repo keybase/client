@@ -356,6 +356,20 @@ describe('dispose (close, close to profile, unmount)', () => {
     flow.dialog.dispose()
     await flow.finished
     held[0]!.reply(undefined)
+    await settle()
     expect(steps).toEqual([])
+  })
+
+  test('after the RPC succeeded but before the run ends, shows no result and checks no proof', async () => {
+    const {fake, flow, held, loadCurrentProfile, steps} = await start('github')
+    held[0]!.reply({sigID})
+    // The events end a timer after done resolves; this disposes in between
+    await flow.dialog.done
+    flow.dialog.dispose()
+    await flow.finished
+    await settle()
+    expect(loadCurrentProfile).toHaveBeenCalledTimes(1)
+    expect(steps).toEqual([])
+    expect(fake.calls.some(c => c.method === checkProof)).toBe(false)
   })
 })

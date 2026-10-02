@@ -220,6 +220,9 @@ export const runProofFlow = (p: {
     try {
       const [, {sigID}] = await Promise.all([showPrompts(), dialog.done])
       loadCurrentProfile()
+      if (dialog.disposed) {
+        return
+      }
       if (service) {
         ignorePromise(checkProofAndNavigate(service, sigID, username, proofText, setStep))
       } else {

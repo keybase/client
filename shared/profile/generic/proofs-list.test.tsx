@@ -100,6 +100,7 @@ describe('the proofs screen', () => {
     expect(nav.types()).toEqual(['GO_BACK'])
     await expect(fake.push(checking, {name: 'https'}, {sessionID})).resolves.toEqual({error: inputCanceled})
     held[0]!.reply(undefined)
+    await settle()
   })
 
   test('unmounting refuses the open instructions', async () => {
@@ -107,5 +108,6 @@ describe('the proofs screen', () => {
     cleanup()
     await expect(instructed).resolves.toEqual({error: inputCanceled})
     held[0]!.reply(undefined)
+    await settle()
   })
 })
