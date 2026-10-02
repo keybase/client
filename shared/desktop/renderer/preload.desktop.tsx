@@ -77,6 +77,9 @@ if (isRenderer) {
         engineRestartLink: () => {
           Electron.ipcRenderer.send('engineRestartLink')
         },
+        engineDropLink: () => {
+          Electron.ipcRenderer.send('engineDropLink')
+        },
         engineSend: (send: EngineSend) => {
           Electron.ipcRenderer.send('engineSend', send)
         },

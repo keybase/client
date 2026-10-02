@@ -451,7 +451,7 @@ const makeEngine = (
       // The old engine stops hearing the service, and the link restarts: the service's calls and
       // replies in flight carry the old engine's seqids, and the new engine needs a link-up of its own
       reused._rpcClient?.transport.close()
-      engine.reset()
+      engine._rpcClient.transport.restartLink()
     }
   } else {
     engine.rebindCallbacks(emitWaiting, onConnected, onEngineIncoming)

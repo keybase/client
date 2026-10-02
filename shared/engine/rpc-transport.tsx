@@ -520,6 +520,10 @@ export abstract class RPCTransport {
     this._pending.push({args, cb, method, type: 'invoke'})
   }
 
+  // A fresh link to the service, where there is a service to reconnect to
+  restartLink() {}
+
+  // Stop talking to the service until the app reloads
   reset() {}
 
   close() {

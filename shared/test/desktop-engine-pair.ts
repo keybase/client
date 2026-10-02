@@ -46,6 +46,10 @@ export type DesktopEnginePair = {
   // Node reconnects, after the service died or a renderer reset restarted the link, and reaches a
   // service. Takes the reconnect delay, so anything still crossing IPC arrives first.
   serviceComesBack: () => void
+  // The renderer reloads: the relay restarts its link, which reconnects at once.
+  rendererReloads: () => void
+  // How many sockets node has opened to the service so far.
+  socketsOpened: () => number
   // Every message the running service has received on its socket.
   serviceReceived: () => Array<RPCMessage>
   // The running service writes a message to its socket.
@@ -110,8 +114,9 @@ export const makeDesktopEnginePair = (opts?: {listenersReady?: boolean}): Deskto
 
   preload.functions = {
     ...functions,
-    // ipc-handlers.desktop.tsx: the renderer's engineSend and engineRestartLink land on the relay
+    // ipc-handlers.desktop.tsx: the renderer's engineSend, engineRestartLink and engineDropLink land on the relay
     engineRestartLink: () => overIPC(() => relay.restartLink({afterDelay: true})),
+    engineDropLink: () => overIPC(() => relay.dropLink()),
     engineSend: send => overIPC(() => relay.send(send)),
     ipcRendererOn: (channel, cb) => {
       if (channel === 'engineIncoming') {
@@ -142,6 +147,12 @@ export const makeDesktopEnginePair = (opts?: {listenersReady?: boolean}): Deskto
     linkChanges,
     listenersReadyAgain: () => renderer.listenersAreReady(),
     renderer: renderer._rpcClient,
+    rendererReloads: () => {
+      deliverAll()
+      relay.restartLink()
+      currentSocket().emit('connect')
+    },
+    socketsOpened: () => mockSockets.length,
     serviceComesBack: () => {
       deliverAll()
       const before = mockSockets.length
