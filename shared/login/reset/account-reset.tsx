@@ -2,7 +2,7 @@ import {navigateAppend, navUpToScreen} from '@/constants/router'
 import * as S from '@/constants/strings'
 import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
-import {openDialog, type Dialog} from '@/engine/dialog'
+import {openDialog, type Dialog, type PromptOutcome} from '@/engine/dialog'
 import logger from '@/logger'
 import {startProvision} from '@/provision/flow'
 import {RPCError} from '@/util/errors'
@@ -90,6 +90,17 @@ export const enterResetPipeline = ({onError, password = '', username}: EnterRese
     }
   }
   ignorePromise(f())
+}
+
+// Settles when the confirm screen's prompt closes; undefined once it has
+export const resetPromptClosed = (promptId: number): Promise<PromptOutcome> | undefined => {
+  for (const {dialog} of runs) {
+    const prompt = dialog.prompt(promptId, promptResetAccount)
+    if (prompt) {
+      return prompt.closed
+    }
+  }
+  return undefined
 }
 
 // Answers the confirm screen's prompt; nothing happens once the pipeline has moved past it

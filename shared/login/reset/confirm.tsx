@@ -3,7 +3,8 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
-import {submitResetPrompt} from './account-reset'
+import {useBeforeRemoveUntil} from '@/router-v2/use-before-remove-until'
+import {resetPromptClosed, submitResetPrompt} from './account-reset'
 
 type Props = {route: {params: {hasWallet: boolean; promptId: number}}}
 
@@ -35,11 +36,11 @@ const ConfirmReset = ({route}: Props) => {
     )
   }, [navigation, resolvePrompt])
 
-  React.useEffect(() => {
-    return navigation.addListener('beforeRemove', () => {
-      resolvePrompt(T.RPCGen.ResetPromptResponse.nothing)
-    })
-  }, [navigation, resolvePrompt])
+  useBeforeRemoveUntil(
+    navigation,
+    (): Promise<unknown> | undefined => resetPromptClosed(promptId),
+    () => resolvePrompt(T.RPCGen.ResetPromptResponse.nothing)
+  )
 
   const onContinue = () => {
     resolvePrompt(T.RPCGen.ResetPromptResponse.confirmReset)
