@@ -239,7 +239,8 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
     })
     .catch((e: unknown) => {
       end()
-      rejectDone(e)
+      // The listener wraps an RPCError in a plain Error (ensureError); a no-op once it rejects with the RPCError
+      rejectDone(e instanceof Error && e.cause instanceof RPCError ? e.cause : e)
     })
 
   const dispose = () => {

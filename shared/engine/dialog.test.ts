@@ -2,7 +2,8 @@
 import * as T from '@/constants/types'
 import type * as EngineGen from '@/constants/rpc'
 import {errors} from './rpc-transport'
-import {installFakeEngine, uninstallFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {fakeError, installFakeEngine, uninstallFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {RPCError} from '@/util/errors'
 import {registerIncomingAnswerer} from './incoming-answerers'
 import {disposeDialogsForLogout, openDialog, refusePrompt, type Dialog} from './dialog'
 import {useConfigState} from '@/stores/config'
@@ -322,6 +323,14 @@ test('a link drop closes prompts and rejects done with EOF', async () => {
   await expect(settledError(dialog.done)).resolves.toMatchObject({code: errors.EOF})
   await expect(e.closed).resolves.toBe('ended')
   await expect(it.next()).resolves.toMatchObject({done: true})
+})
+
+test('a service failure rejects done with the RPCError and its code', async () => {
+  const {dialog, held} = await startRecover()
+  held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'boom'))
+  const err = await settledError(dialog.done)
+  expect(err).toBeInstanceOf(RPCError)
+  expect(err).toMatchObject({code: T.RPCGen.StatusCode.scgeneric, desc: 'boom'})
 })
 
 describe('dispose', () => {
