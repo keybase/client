@@ -42,6 +42,11 @@ describe('loadThreadNonblock', () => {
     const rpc = jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockResolvedValue({offline: true})
     await expect(loadThreadNonblock({conversationIDKey})).resolves.toEqual({offline: true})
     expect(rpc).toHaveBeenCalledWith({
+      globalFallthrough: [
+        'chat.1.chatUi.chatThreadCached',
+        'chat.1.chatUi.chatThreadFull',
+        'chat.1.chatUi.chatThreadStatus',
+      ],
       incomingCallMap: {},
       params: {
         cbMode: T.RPCChat.GetThreadNonblockCbMode.incremental,
@@ -106,6 +111,11 @@ describe('loadThreadNonblock', () => {
     rpc.mockClear()
     await loadThreadNonblock({conversationIDKey, onFullThread})
     expect(Object.keys(rpc.mock.calls[0]?.[0].incomingCallMap ?? {})).toEqual(['chat.1.chatUi.chatThreadFull'])
+    // the callbacks it left out are declared as falling through to global handling
+    expect(rpc.mock.calls[0]?.[0].globalFallthrough).toEqual([
+      'chat.1.chatUi.chatThreadCached',
+      'chat.1.chatUi.chatThreadStatus',
+    ])
   })
 
   test('nothing is issued while the chat session is not ready', async () => {
