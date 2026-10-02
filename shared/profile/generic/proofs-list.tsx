@@ -6,7 +6,6 @@ import * as T from '@/constants/types'
 import {makeInsertMatcher} from '@/util/string'
 import {produce} from 'immer'
 import {useColorScheme} from 'react-native'
-import {NavigationContext} from '@react-navigation/core'
 import Modal from '../modal'
 import {SiteIcon} from './site-icon'
 import {normalizeProofUsername} from '../proof-utils'
@@ -18,6 +17,7 @@ import {navToProfile} from '@/constants/router'
 import {copyToClipboard} from '@/util/storeless-actions'
 import {useProofSuggestions} from '../use-proof-suggestions'
 import {useTrackerProfile} from '@/tracker/use-profile'
+import {registerRouteGone, useRouteKey} from '@/router-v2/route-gone'
 import {
   checkProofAndNavigate,
   runProofFlow,
@@ -59,8 +59,7 @@ const ProofsList = ({platform, reason = 'profile'}: Props) => {
     new: s.metas.some(({label}) => label === 'new'),
   }))
 
-  // Absent outside a navigator (storybook)
-  const navigation = React.useContext(NavigationContext)
+  const routeKey = useRouteKey()
   const initialProofStartedRef = React.useRef(false)
   const initialRouteRef = React.useRef({platform, reason})
   const flowRef = React.useRef<ProofFlow | undefined>(undefined)
@@ -110,10 +109,11 @@ const ProofsList = ({platform, reason = 'profile'}: Props) => {
       setStep,
     })
     flowRef.current = flow
-    // Leaving the screen ends the flow. Held for the flow's life rather than in an effect: StrictMode and a
-    // hidden screen run effect cleanups while the screen stays.
-    const stopDisposeOnLeave = navigation?.addListener('beforeRemove', () => flow.dialog.dispose())
-    ignorePromise(flow.finished.finally(() => stopDisposeOnLeave?.()))
+    ignorePromise(flow.finished)
+    // Leaving the screen ends the flow
+    if (routeKey) {
+      registerRouteGone(routeKey, flow.finished, () => flow.dialog.dispose())
+    }
   }
 
   const onSubmitProofUsername = (proofPlatform: T.More.PlatformsExpandedType, input: string) => {

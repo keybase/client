@@ -3,10 +3,12 @@
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
-import {NavigationContext} from '@react-navigation/core'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 import {flush, tick} from '@/test/flush'
+import {makeFakeRoute} from '@/test/fake-route'
+import {resetAllStores} from '@/util/zustand'
+import {useConfigState} from '@/stores/config'
 import {RPCError} from '@/util/errors'
 import Choice, {generatePgp, validatePgpInfo} from './choice'
 
@@ -63,31 +65,23 @@ const settle = async () => {
 const pushKey = async (fake: FakeEngine, sessionID: number) =>
   fake.push(keyGenerated, {key: {key: publicKey}, kid: 'kid'}, {sessionID})
 
-// The screen's route: its beforeRemove listeners, as the navigator would call them on removal
-let removeListeners: Set<() => void>
-const navigation = {
-  addListener: (type: string, cb: () => void) => {
-    if (type !== 'beforeRemove') return () => {}
-    removeListeners.add(cb)
-    return () => removeListeners.delete(cb)
-  },
-}
-const removeRoute = () => act(() => [...removeListeners].forEach(cb => cb()))
+let route: ReturnType<typeof makeFakeRoute>
 
 // `hidden` hides the screen the way native-stack does under other screens: its effects are torn down
 const OnRoute = ({hidden = false}: {hidden?: boolean}) => (
-  <NavigationContext value={navigation as never}>
+  <route.Route>
     <React.Activity mode={hidden ? 'hidden' : 'visible'}>
       <Choice />
     </React.Activity>
-  </NavigationContext>
+  </route.Route>
 )
 
 describe('the generate flow', () => {
   let nav: FakeNavigator
 
   beforeEach(() => {
-    removeListeners = new Set()
+    route = makeFakeRoute('profilePgp')
+    route.enter()
     nav = installFakeNavigator({
       modalRouteNames: ['profilePgp'],
       rootState: makeRootState({above: [{name: 'profilePgp'}]}),
@@ -97,6 +91,7 @@ describe('the generate flow', () => {
   afterEach(() => {
     cleanup()
     restoreNavigator()
+    resetAllStores()
   })
 
   // Renders the screen and walks it to the generate step; the service holds the RPC
@@ -154,7 +149,7 @@ describe('the generate flow', () => {
     fireEvent.click(screen.getByText('Done, post to Keybase'))
     await expect(pushed).resolves.toEqual({result: true})
     // clearModals removes the screen
-    removeRoute()
+    route.leave()
     cleanup()
     void fake.push('keybase.1.secretUi.getPassphrase', {pinentry: {type: 0}}, {sessionID})
     await settle()
@@ -179,7 +174,7 @@ describe('the generate flow', () => {
   test('leaving before the key is generated refuses it, without reaching a global answerer', async () => {
     const onEngineIncoming = jest.fn()
     const {fake, held, sessionID} = await startGenerating(onEngineIncoming)
-    removeRoute()
+    route.leave()
     await expect(pushKey(fake, sessionID)).resolves.toEqual({error: inputCanceled})
     await expect(fake.push(pushPrivate, {prompt: true}, {sessionID})).resolves.toEqual({error: inputCanceled})
     expect(onEngineIncoming).not.toHaveBeenCalled()
@@ -192,7 +187,7 @@ describe('the generate flow', () => {
     const pushed = fake.push(pushPrivate, {prompt: true}, {sessionID})
     await settle()
     expect(screen.getByText('Here is your unique public key!')).toBeTruthy()
-    removeRoute()
+    route.leave()
     await expect(pushed).resolves.toEqual({error: inputCanceled})
     held[0]!.reply(undefined)
   })
@@ -210,6 +205,29 @@ describe('the generate flow', () => {
     fireEvent.click(screen.getByText('Done'))
     await expect(pushed).resolves.toEqual({result: false})
     held[0]!.reply(undefined)
+  })
+
+  test('removing a hidden screen ends its run', async () => {
+    const {fake, held, sessionID, view} = await startGenerating()
+    view.rerender(<OnRoute hidden={true} />)
+    await settle()
+    route.leave()
+    await expect(pushKey(fake, sessionID)).resolves.toEqual({error: inputCanceled})
+    held[0]!.reply(undefined)
+  })
+
+  test.each([
+    ['before', true],
+    ['after', false],
+  ])('a logout swapping the screen out %s its root ends the run once', async (_, leaveFirst) => {
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    const {fake, held, sessionID} = await startGenerating()
+    if (leaveFirst) route.leave()
+    act(() => useConfigState.getState().dispatch.setLoggedIn(false))
+    if (!leaveFirst) route.leave()
+    await expect(pushKey(fake, sessionID)).resolves.toEqual({error: inputCanceled})
+    held[0]!.reply(undefined)
+    await settle()
   })
 
   test('cancel while generating clears the modals and refuses the key', async () => {

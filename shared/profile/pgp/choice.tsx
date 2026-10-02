@@ -5,7 +5,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
 import {produce} from 'immer'
-import {NavigationContext} from '@react-navigation/core'
+import {registerRouteGone, useRouteKey} from '@/router-v2/route-gone'
 import {RPCError} from '@/util/errors'
 import {openDialog, type Dialog} from '@/engine/dialog'
 import Modal from '@/profile/modal'
@@ -108,8 +108,7 @@ export const PgpMobileUnsupported = ({onCancel}: {onCancel: () => void}) => (
 export default function Choice() {
   const styles = useStyles()
   const {clearModals, navigateAppend, navigateUp} = C.Router2
-  // Absent outside a navigator (storybook)
-  const navigation = React.useContext(NavigationContext)
+  const routeKey = useRouteKey()
   const dialogRef = React.useRef<PgpDialog | undefined>(undefined)
   const [form, setForm] = React.useState(makeInitialForm)
   const [step, setStep] = React.useState<Step>({kind: 'choice'})
@@ -154,10 +153,15 @@ export default function Choice() {
     setStep({kind: 'generate'})
     const {dialog, finished} = generatePgp(form, setStep)
     dialogRef.current = dialog
-    // Leaving the screen ends the run, unless Done let it go on. Held for the run's life rather than in
-    // an effect: StrictMode and a hidden screen run effect cleanups while the screen stays.
-    const stopDisposeOnLeave = navigation?.addListener('beforeRemove', () => dialogRef.current?.dispose())
-    ignorePromise(finished.finally(() => stopDisposeOnLeave?.()))
+    ignorePromise(finished)
+    if (routeKey) {
+      // Leaving the screen ends the run, unless Done let it go on
+      registerRouteGone(routeKey, finished, () => {
+        if (dialogRef.current === dialog) {
+          dialog.dispose()
+        }
+      })
+    }
   }
 
   const content = (() => {
