@@ -3,6 +3,7 @@ import {
   type CustomResponseIncomingCallMap,
   type IncomingCallMapType,
 } from '@/constants/rpc/rpc-gen'
+import {mustAnswerMethods} from '@/constants/rpc'
 import {printRPC} from '@/local-debug'
 import {rpcLog, type InvokeType} from './index.platform'
 import {RPCError} from '@/util/errors'
@@ -254,6 +255,12 @@ class Session {
     }
 
     if (!custom) {
+      // The generated types keep these out of the plain map; an empty ack would read as a real answer
+      if (mustAnswerMethods.has(method)) {
+        logger.error(`Session: ${method} needs an answer but is in the incomingCallMap`)
+        response?.error?.({code: StatusCode.scinputcanceled, desc: `No handler for ${method}`})
+        return true
+      }
       // Nothing to answer, so ack it here: the service is not parked on the GUI
       response?.result?.()
       try {
