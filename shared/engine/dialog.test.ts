@@ -5,6 +5,7 @@ import {errors} from './rpc-transport'
 import {fakeError, installFakeEngine, uninstallFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {RPCError} from '@/util/errors'
 import {registerIncomingAnswerer} from './incoming-answerers'
+import {getCallPort, hasCallPort, installCallPort, uninstallCallPort} from './call-port'
 import {disposeDialogsForLogout, openDialog, refusePrompt, type Dialog} from './dialog'
 import {useConfigState} from '@/stores/config'
 import {useWaitingState} from '@/stores/waiting'
@@ -331,6 +332,20 @@ test('a service failure rejects done with the RPCError and its code', async () =
   const err = await settledError(dialog.done)
   expect(err).toBeInstanceOf(RPCError)
   expect(err).toMatchObject({code: T.RPCGen.StatusCode.scgeneric, desc: 'boom'})
+})
+
+test('a rejection whose cause is not an RPCError reaches done unchanged', async () => {
+  // The service only fails with RPCErrors, so a port stands in for a listener failing some other way
+  const previous = hasCallPort() ? getCallPort() : undefined
+  restores.push(() => (previous ? installCallPort(previous) : uninstallCallPort()))
+  const wrapped = new Error('not an rpc', {cause: {code: T.RPCGen.StatusCode.scgeneric, desc: 'plain'}})
+  installCallPort({
+    call: () => 0,
+    cancelOutstandingSessions: () => {},
+    listen: async () => Promise.reject(wrapped),
+  })
+  const dialog = openDialog(rpc, {username: 'testuser'}, {prompts: [choose]})
+  await expect(settledError(dialog.done)).resolves.toBe(wrapped)
 })
 
 describe('dispose', () => {
