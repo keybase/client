@@ -65,7 +65,7 @@ const setup = async (before?: (promptId: number, held: ReturnType<FakeEngine['ho
   nav.clearActions()
   render(<Password route={{params: {promptId}}} />)
   // The run's waiting state changes as it ends, which the mounted screen renders
-  const end = () =>
+  const end = async () =>
     act(async () => {
       held[0]!.reply(undefined)
       await settle()
