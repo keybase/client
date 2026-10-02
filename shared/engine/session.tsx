@@ -7,7 +7,16 @@ import {printRPC} from '@/local-debug'
 import {rpcLog, type InvokeType} from './index.platform'
 import {RPCError} from '@/util/errors'
 import {getAccountGeneration, survivesAccountChange} from './account-generation'
+import logger from '@/logger'
 import type {SessionID, ResponseType, EndHandlerType, MethodKey, WaitingKey} from './types'
+
+// A response the session handed to a handler. Settled once: by the handler, or by the session.
+type HeldResponse = {
+  response: ResponseType | undefined
+  settled: boolean
+}
+
+const inputCanceled = {code: StatusCode.scinputcanceled, desc: 'Input canceled'}
 
 // A session is a series of calls back and forth tied together with a single sessionID
 class Session {
@@ -21,8 +30,9 @@ class Session {
   _waitingKey: WaitingKey
   // Tell engine we're done
   _endHandler: EndHandlerType | undefined
-  // Sequence IDs awaiting a response; removed once we've responded (often we get cancel after we've replied)
-  _seqIDsAwaitingResponse = new Set<number>()
+  // Responses handed to handlers and not yet settled (often we get cancel after we've replied)
+  _held = new Set<HeldResponse>()
+  _ended = false
   // If you want to know about being cancelled
   _cancelHandler: CancelHandlerType | undefined
   // If true this session exists forever
@@ -99,13 +109,37 @@ class Session {
     }
   }
 
+  // Client-side cancel. The link is alive, so held prompts are refused and the service stops waiting.
   cancel() {
+    this._cancel('refuse')
+  }
+
+  // The link died or is being replaced: a held prompt's answer must not reach the next connection.
+  cancelForLostLink() {
+    this._cancel('forget')
+  }
+
+  // The service cancelled one of its calls to us: it no longer reads an answer for that seqid.
+  cancelByService(seqid: number) {
+    const promptWasPending = this._held.size > 0
+    for (const held of [...this._held]) {
+      if (held.response?.seqid === seqid) {
+        this._settleHeld(held, false)
+      }
+    }
+    this._cancel('refuse', promptWasPending)
+  }
+
+  _cancel(heldPrompts: 'refuse' | 'forget', promptWasPending = this._held.size > 0) {
+    for (const held of [...this._held]) {
+      this._settleHeld(held, heldPrompts === 'refuse')
+    }
     if (this._cancelHandler) {
       this._cancelHandler(this)
     } else if (this._startCallback) {
       // No server response is coming, so release the waiting count ourselves — but only when the
       // server owes us one; while a prompt is pending on the GUI the count was already released.
-      if (this._waitingKey && this._seqIDsAwaitingResponse.size === 0) {
+      if (this._waitingKey && !promptWasPending) {
         this._makeWaitingHandler(this._startMethod || 'unknown')(false)
       }
       const callback = this._startCallback
@@ -116,7 +150,27 @@ class Session {
     this.end()
   }
 
+  // Settled by the session rather than the handler, so no waiting change: the session is ending.
+  _settleHeld(held: HeldResponse, refuse: boolean) {
+    if (held.settled) {
+      return
+    }
+    held.settled = true
+    this._held.delete(held)
+    if (refuse) {
+      held.response?.error?.(inputCanceled)
+    }
+  }
+
   end() {
+    if (this._ended) {
+      return
+    }
+    this._ended = true
+    // However the session ended, the service no longer reads answers to its calls on it
+    for (const held of [...this._held]) {
+      this._settleHeld(held, false)
+    }
     this._endHandler?.(this)
   }
 
@@ -175,16 +229,14 @@ class Session {
       })
     }
 
-    let handler = (this._incomingCallMap as {[key: string]: unknown})[method] as
-      | undefined
-      | ((param: object | undefined, request: ResponseType) => void)
+    const plain = (this._incomingCallMap as {[key: string]: undefined | ((param: object) => void)})[method]
+    const custom = (
+      this._customResponseIncomingCallMap as {
+        [key: string]: undefined | ((param: object, request: ResponseType) => void)
+      }
+    )[method]
 
-    if (!handler) {
-      const c = this._customResponseIncomingCallMap as {[key: string]: typeof handler}
-      handler = c[method]
-    }
-
-    if (!handler) {
+    if (!plain && !custom) {
       return false
     }
 
@@ -193,30 +245,47 @@ class Session {
       return true
     }
 
-    if (response?.seqid !== undefined) {
-      this._seqIDsAwaitingResponse.add(response.seqid)
+    if (!custom) {
+      // Nothing to answer, so ack it here: the service is not parked on the GUI
+      response?.result?.()
+      try {
+        plain?.(param)
+      } catch (e) {
+        logger.error(`Session: handler for ${method} threw`, e)
+      }
+      return true
     }
+
+    const held: HeldResponse = {response, settled: false}
+    this._held.add(held)
 
     const updateWaiting = this._makeWaitingHandler(method, response?.seqid)
     updateWaiting(false) // got a call from the server so we're no longer waiting
-    // Responded; only unresponded seqids should cancel the session
-    const onResponded = () => {
-      if (response?.seqid !== undefined) {
-        this._seqIDsAwaitingResponse.delete(response.seqid)
+    const answer = (write: () => void) => {
+      if (held.settled) {
+        if (__DEV__) {
+          logger.warn(`Session: ${method} was answered after it was already settled`)
+        }
+        return
       }
+      held.settled = true
+      this._held.delete(held)
+      write()
       updateWaiting(true) // after we respond to the server we're waiting on it again
     }
     const request: ResponseType = {
-      error: (...args: Array<unknown>) => {
-        response?.error?.(...args)
-        onResponded()
-      },
-      result: (...args: Array<unknown>) => {
-        response?.result?.(...args)
-        onResponded()
+      error: (...args: Array<unknown>) => answer(() => response?.error?.(...args)),
+      result: (...args: Array<unknown>) => answer(() => response?.result?.(...args)),
+      get settled() {
+        return held.settled
       },
     }
-    handler(param, request)
+    try {
+      custom(param, request)
+    } catch (e) {
+      logger.error(`Session: handler for ${method} threw`, e)
+      this._settleHeld(held, true)
+    }
     return true
   }
 
@@ -224,7 +293,7 @@ class Session {
   hasSeqID(seqID: number) {
     // The server can cancel callback seqids after we have already responded.
     // Only unresponded callback seqids should cancel the parent session.
-    return this._seqIDsAwaitingResponse.has(seqID)
+    return [...this._held].some(held => held.response?.seqid === seqID)
   }
 }
 

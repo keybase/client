@@ -74,6 +74,8 @@ const PinentryProxy = () => {
 
   React.useEffect(() => {
     if (!loggedIn) {
+      // A held prompt still needs its answer, or the service waits on it forever
+      handlersRef.current.cancel?.()
       handlersRef.current = {}
     }
   }, [loggedIn])

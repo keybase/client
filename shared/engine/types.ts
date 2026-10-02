@@ -7,6 +7,8 @@ export type ResponseType = {
   result?: (...args: Array<any>) => void
   error?: (...args: Array<any>) => void
   seqid?: number
+  // True once answered, by the handler or by the session ending
+  readonly settled?: boolean
 }
 export type RPCErrorHandler = (e: ErrorType) => void
 export type CommonResponseHandler = {
