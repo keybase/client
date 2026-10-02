@@ -156,11 +156,11 @@ describe('new password prompt', () => {
     await settle()
   })
 
-  test('cancelling refuses the prompt without restarting', async () => {
+  test('declining refuses the prompt without restarting', async () => {
     const {held, sessionID} = await start()
     const {answered, promptId} = await pushPassphrase(sessionID, T.RPCGen.PassphraseType.passPhrase)
 
-    cancelRecoverPassword(promptId)
+    declineRecoverPasswordPrompt(promptId)
 
     await expect(answered).resolves.toEqual({error: inputCanceled})
     expect(fake.calls.filter(c => c.method === recover)).toHaveLength(1)

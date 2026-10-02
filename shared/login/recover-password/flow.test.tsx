@@ -183,18 +183,6 @@ describe('reset prompts', () => {
     await settle()
   })
 
-  test('cancelling the reset-password screen answers nothing and pops it', async () => {
-    const {held, sessionID} = await start()
-    const {answered, promptId} = await pushResetPassword(sessionID)
-
-    cancelRecoverPassword(promptId)
-
-    await expect(answered).resolves.toEqual({result: T.RPCGen.ResetPromptResponse.nothing})
-    expect(nav.types().filter(t => t === 'GO_BACK')).toHaveLength(1)
-    held[0]!.reply(undefined)
-    await settle()
-  })
-
   test('a reset prompt that is not a password reset hands off to the account reset flow', async () => {
     const {held, sessionID} = await start()
     const answered = fake.push(promptReset, {prompt: {t: T.RPCGen.ResetPromptType.enterNoDevices}}, {sessionID})

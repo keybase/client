@@ -52,23 +52,14 @@ export const restartRecoverPassword = (username: string) =>
     username,
   })
 
-// The prompt's own back: what each screen's cancel does
+// The back of the device selector, which goes back a screen, and of the paper key, which starts over
 export const cancelRecoverPassword = (promptId: number) => {
   const run = current
   if (!run) return
   if (run.dialog.prompt(promptId, chooseDevice)?.cancel()) {
     navigateUp()
-    return
-  }
-  const passphrase = run.dialog.prompt(promptId, getPassphrase)
-  if (passphrase?.cancel()) {
-    if (passphrase.params.pinentry.type === T.RPCGen.PassphraseType.paperKey) {
-      restartRecoverPassword(run.username)
-    }
-    return
-  }
-  if (run.dialog.prompt(promptId, promptReset)?.answer(T.RPCGen.ResetPromptResponse.nothing)) {
-    navigateUp()
+  } else if (run.dialog.prompt(promptId, getPassphrase)?.cancel()) {
+    restartRecoverPassword(run.username)
   }
 }
 
