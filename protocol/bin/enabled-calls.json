@@ -396,7 +396,7 @@
   "keybase.1.rekey.getRevokeWarning": {"promise":true},
   "keybase.1.rekey.rekeyStatusFinish": {"promise":true},
   "keybase.1.rekey.showPendingRekeyStatus": {"promise":true},
-  "keybase.1.rekeyUI.delegateRekeyUI": {"custom":true},
+  "keybase.1.rekeyUI.delegateRekeyUI": {"incoming":true},
   "keybase.1.rekeyUI.refresh": {"custom":true,"incoming":true},
   "keybase.1.rekeyUI.rekeySendEvent": {"incoming":true},
   "keybase.1.revoke.revokeDevice": {"promise":true},

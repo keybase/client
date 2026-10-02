@@ -3,7 +3,7 @@ import {invalidPasswordErrorString} from '@/constants/config'
 import * as RemoteGen from '@/constants/remote-actions'
 import * as T from '@/constants/types'
 import {wrapErrors} from '@/constants/utils'
-import {useEngineActionListener} from '@/engine/action-listener'
+import {registerIncomingAnswerer} from '@/engine/incoming-answerers'
 import logger from '@/logger'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
@@ -78,36 +78,39 @@ const PinentryProxy = () => {
     }
   }, [loggedIn])
 
-  useEngineActionListener('keybase.1.secretUi.getPassphrase', action => {
-    const {response, params} = action.payload
-    const {pinentry} = params
-    const {prompt, submitLabel, cancelLabel, windowTitle, features, type} = pinentry
-    const showTyping = features.showTyping
-    let {retryLabel} = pinentry
-    if (retryLabel === invalidPasswordErrorString) {
-      retryLabel = 'Incorrect password.'
-    }
-    logger.info('Asked for password')
-    handlersRef.current = {
-      cancel: wrapErrors(() => {
-        response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
-        clearPopup()
+  React.useEffect(
+    () =>
+      registerIncomingAnswerer('keybase.1.secretUi.getPassphrase', (params, response) => {
+        const {pinentry} = params
+        const {prompt, submitLabel, cancelLabel, windowTitle, features, type} = pinentry
+        const showTyping = features.showTyping
+        let {retryLabel} = pinentry
+        if (retryLabel === invalidPasswordErrorString) {
+          retryLabel = 'Incorrect password.'
+        }
+        logger.info('Asked for password')
+        handlersRef.current = {
+          cancel: wrapErrors(() => {
+            response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
+            clearPopup()
+          }),
+          submit: wrapErrors((password: string) => {
+            response.result({passphrase: password, storeSecret: false})
+            clearPopup()
+          }),
+        }
+        setPopupState({
+          cancelLabel,
+          prompt,
+          retryLabel,
+          showTyping,
+          submitLabel,
+          type,
+          windowTitle,
+        })
       }),
-      submit: wrapErrors((password: string) => {
-        response.result({passphrase: password, storeSecret: false})
-        clearPopup()
-      }),
-    }
-    setPopupState({
-      cancelLabel,
-      prompt,
-      retryLabel,
-      showTyping,
-      submitLabel,
-      type,
-      windowTitle,
-    })
-  })
+    [clearPopup]
+  )
 
   const currentPopupState =
     !loggedIn && popupState.type !== T.RPCGen.PassphraseType.none ? initialPopupState() : popupState

@@ -16,7 +16,10 @@ import {
   type PayloadType,
 } from './index.platform'
 import {type RPCError, convertToError} from '@/util/errors'
+import {mustAnswerMethods} from '@/constants/rpc'
 import type * as EngineGen from '@/constants/rpc'
+import {StatusCode} from '@/constants/rpc/rpc-gen'
+import {getIncomingAnswerer} from './incoming-answerers'
 import type {IncomingCallMapType, CustomResponseIncomingCallMapType} from '@/constants/rpc/rpc-all-gen'
 
 export type BatchParams = Array<{key: WaitingKey; increment: boolean; error?: RPCError}>
@@ -33,11 +36,6 @@ class Engine implements CallPort {
   // Helper we delegate actual calls to
   _rpcClient: CreateClientType
   _makeClient: MakeClient
-  // Set which actions we don't auto respond with so listeners can themselves
-  _customResponseAction: {[K in MethodKey]: true} = {
-    'keybase.1.secretUi.getPassphrase': true,
-    ...(isMobile ? {'chat.1.chatUi.chatWatchPosition': true} : {'keybase.1.logsend.prepareLogsend': true}),
-  }
   _backgroundSessionMethods: Partial<Record<MethodKey, true>> = {
     'keybase.1.SimpleFS.simpleFSUserEditHistory': true,
     'keybase.1.config.waitForClient': true,
@@ -219,22 +217,31 @@ class Engine implements CallPort {
       if (session?.incomingCall(method, param, response)) {
         // Part of a session?
       } else {
-        // Dispatch as an action
-        const extra: {response?: unknown} = {}
-        if (this._customResponseAction[method]) {
-          extra.response = response
-        } else {
-          // Not a custom response so we auto handle it
-          response?.result?.()
-        }
+        this._answerGlobalIncoming(method, param, response)
         const act = {
-          payload: {params: param, ...extra},
+          payload: {params: param},
           type: method as EngineGen.ActionKey,
         } as EngineGen.EngineActions
         if (this._onEngineIncoming) {
           this._onEngineIncoming(act)
         }
       }
+    }
+  }
+
+  // Exactly one answer for a call outside any session: its registered answerer's, else an ack, except
+  // a must-answer call is refused since an empty result would read as a real answer.
+  _answerGlobalIncoming(method: string, param: object, response: PayloadType['response']) {
+    const answerer = getIncomingAnswerer(method)
+    if (answerer) {
+      answerer(param, response)
+    } else if (mustAnswerMethods.has(method)) {
+      if (__DEV__) {
+        logger.error(`Engine: no answerer registered for ${method}`)
+      }
+      response?.error?.({code: StatusCode.scinputcanceled, desc: `No handler for ${method}`})
+    } else {
+      response?.result?.()
     }
   }
 
