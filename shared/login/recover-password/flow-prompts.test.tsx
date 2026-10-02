@@ -394,6 +394,35 @@ describe('pgp key warning', () => {
     expect(response.result).toHaveBeenCalledTimes(1)
   })
 
+  test('a run that ends while the prompt is pending leaves nothing for a restart to answer', async () => {
+    const attempts = mockRecoverAttempts()
+    startRecoverPassword({username: 'testuser'})
+    await flush()
+    const response = prompt(attempts[0]!)
+    attempts[0]!.reject(new RPCError('EOF', T.RPCGen.StatusCode.scgeneric))
+    await flush()
+    startRecoverPassword({username: 'testuser'})
+    await flush()
+    expect(response.result).not.toHaveBeenCalled()
+    expect(response.error).not.toHaveBeenCalled()
+  })
+
+  test("an old run ending late does not drop the newer run's pending prompt", async () => {
+    const attempts = mockRecoverAttempts()
+    startRecoverPassword({username: 'testuser'})
+    await flush()
+    prompt(attempts[0]!)
+    startRecoverPassword({username: 'testuser'})
+    await flush()
+    const second = prompt(attempts[1]!)
+    attempts[0]!.reject(new RPCError('EOF', T.RPCGen.StatusCode.scgeneric))
+    await flush()
+    startRecoverPassword({username: 'testuser'})
+    await flush()
+    expect(second.result).toHaveBeenCalledTimes(1)
+    expect(second.result).toHaveBeenCalledWith(false)
+  })
+
   test('back out through cancel answers false', async () => {
     const {first} = await startAttempt()
     const response = prompt(first)

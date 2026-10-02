@@ -61,6 +61,7 @@ export const startRecoverPassword = ({
     }
     let active = true
     let hadError = false
+    let ownPgpAnswer: typeof pendingPgpAnswer
     const handles = new Map<Slot, ScopedHandle>()
     const isActive = () => active
     const clearSlots = (...slotNames: ReadonlyArray<Slot>) => {
@@ -125,12 +126,12 @@ export const startRecoverPassword = ({
               clearSlots(slots.cancel, slots.submitPgpWarning)
               response.result(proceed)
             })
-            // Declining leaves the flow: Go has already signed the user in and cancels
-            // with a silent CanceledError, so nothing else would close this screen.
+            // Declining makes Go cancel silently (sccanceled) and log back out, so nothing else closes this screen.
             const decline = () => {
               answer(false)
               clearModals()
             }
+            ownPgpAnswer = answer
             pendingPgpAnswer = answer
             setHandle(slots.cancel, decline)
             setHandle(slots.submitPgpWarning, (proceed: boolean) => (proceed ? answer(true) : decline()))
@@ -258,6 +259,10 @@ export const startRecoverPassword = ({
         slots.submitResetPassword
       )
       active = false
+      // A newer run may already have stored its own answer.
+      if (ownPgpAnswer && pendingPgpAnswer === ownPgpAnswer) {
+        pendingPgpAnswer = undefined
+      }
     }
     logger.info(`finished ${hadError ? 'with error' : 'without error'}`)
     if (!hadError) {
