@@ -73,6 +73,8 @@ export type KB2 = {
     engineSend?: (send: EngineSend) => void
     // The relay drops its connection to the service and makes a fresh one
     engineRestartLink?: () => void
+    // The relay drops its connection to the service and does not reconnect until the renderer reloads
+    engineDropLink?: () => void
     appStartedUp?: () => Promise<void>
     isDirectory?: (path: string) => Promise<boolean>
     getPathForFile?: (file: File) => string

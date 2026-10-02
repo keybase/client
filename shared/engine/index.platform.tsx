@@ -72,15 +72,19 @@ class ProxyNativeTransport extends TransportShared {
     }
   }
 
-  // Engine.reset (the Windows pipe-owner check failing): the relay drops its connection and makes a
-  // fresh one, and its link frames take what was in flight down with the old one, as on any drop
+  override restartLink() {
+    KB2.functions.engineRestartLink?.()
+  }
+
+  // Engine.reset (the Windows pipe-owner check failing): the relay drops its connection and stays
+  // off the pipe until the renderer reloads. Its link-down frame takes what was in flight down.
   override reset() {
-    const {engineRestartLink} = KB2.functions
-    if (!engineRestartLink) {
-      logger.error('Engine reset: engineRestartLink missing')
+    const {engineDropLink} = KB2.functions
+    if (!engineDropLink) {
+      logger.error('Engine reset: engineDropLink missing')
       return
     }
-    engineRestartLink()
+    engineDropLink()
   }
 }
 

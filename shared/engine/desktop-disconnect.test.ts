@@ -115,7 +115,7 @@ test('a renderer call made once it knows the service is down is refused at once 
   expect(cb).toHaveBeenCalledTimes(1)
 })
 
-test('an engine reset restarts the link: a split frame and a held prompt go with the old one, and calls reach the new one', async () => {
+test('an engine reset drops the link and it stays down until a renderer reload: a split frame and a held prompt go with the old one, and calls then reach the new one', async () => {
   const pair = makeDesktopEnginePair()
   let held: ResponseType | undefined
   const started = jest.fn()
@@ -135,7 +135,13 @@ test('an engine reset restarts the link: a split frame and a held prompt go with
   expect(held).toBeDefined()
 
   pair.engine.reset()
-  pair.serviceComesBack()
+  await tick()
+  // well past the reconnect delay: node does not reconnect on its own
+  jest.advanceTimersByTime(60000)
+  await tick()
+  expect(pair.socketsOpened()).toBe(1)
+  expect(pair.linkChanges).toEqual([true, false])
+  pair.rendererReloads()
   await tick()
 
   expect(started).toHaveBeenCalledTimes(1)

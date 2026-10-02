@@ -20,6 +20,7 @@ const isEngineSend = (send: unknown): send is EngineSend =>
 export class EngineRelay {
   private _socket?: Socket
   private _connecting = false
+  private _dropped = false
   private _reconnectTimer?: ReturnType<typeof setTimeout>
   private _epoch = 0
   private _toRenderer: (data: Uint8Array | EngineLinkFrame) => void
@@ -66,13 +67,16 @@ export class EngineRelay {
   }
 
   // A reloaded renderer starts its seqids over, so replies to the old renderer's calls must not
-  // reach it: drop the connection and give the new renderer a fresh one. The renderer's own engine
-  // reset reconnects after the usual delay instead: a reset the next handshake repeats (the Windows
-  // pipe-owner check failing again) would otherwise reconnect in a tight loop.
+  // reach it: drop the connection and give the new renderer a fresh one. This also ends a dropLink.
   restartLink(p?: {afterDelay?: boolean}) {
+    const wasDropped = this._dropped
+    this._dropped = false
     const socket = this._socket
     if (!socket) {
       this.replayLinkState()
+      if (wasDropped) {
+        this.connect()
+      }
       return
     }
     this._socket = undefined
@@ -85,12 +89,30 @@ export class EngineRelay {
     }
   }
 
+  // The renderer's engine reset (the Windows pipe-owner check failing): the app must stop talking
+  // to this pipe, so the link goes down and stays down. The down frame fails what was in flight.
+  // Only restartLink, from a renderer reload, brings it back.
+  dropLink() {
+    this._dropped = true
+    if (this._reconnectTimer) {
+      clearTimeout(this._reconnectTimer)
+      this._reconnectTimer = undefined
+    }
+    const socket = this._socket
+    if (!socket) {
+      return
+    }
+    this._socket = undefined
+    socket.destroy()
+    this.sendLinkFrame(false)
+  }
+
   private sendLinkFrame(up: boolean) {
     this._toRenderer({epoch: this._epoch, type: 'link', up})
   }
 
   private connect() {
-    if (this._connecting || this._socket) {
+    if (this._dropped || this._connecting || this._socket) {
       return
     }
     this._connecting = true
@@ -103,6 +125,10 @@ export class EngineRelay {
       }
       settled = true
       this._connecting = false
+      if (this._dropped) {
+        socket.destroy()
+        return
+      }
       if (err) {
         socket.destroy()
         this.scheduleReconnect()

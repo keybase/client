@@ -116,6 +116,35 @@ test('a renderer engine reset drops the connection and reconnects only after the
   expect(toRenderer).toEqual([up(1), down(1), up(2)])
 })
 
+test('an engine reset drops the link and never reconnects, until a renderer reload restarts it', () => {
+  const relay = makeRelay()
+  socket(0).emit('connect')
+  relay.dropLink()
+  expect(socket(0).destroyed).toBe(true)
+  jest.advanceTimersByTime(60000)
+  expect(mockSockets).toHaveLength(1)
+  expect(toRenderer).toEqual([up(1), down(1)])
+  relay.restartLink()
+  expect(mockSockets).toHaveLength(2)
+  socket(1).emit('connect')
+  expect(toRenderer).toEqual([up(1), down(1), down(1), up(2)])
+})
+
+test('a drop while a reconnect is pending or connecting leaves the link down', () => {
+  const relay = makeRelay()
+  socket(0).emit('connect')
+  socket(0).emit('close')
+  relay.dropLink()
+  jest.advanceTimersByTime(60000)
+  expect(mockSockets).toHaveLength(1)
+  relay.restartLink()
+  relay.dropLink()
+  socket(1).emit('connect')
+  expect(socket(1).destroyed).toBe(true)
+  jest.advanceTimersByTime(60000)
+  expect(mockSockets).toHaveLength(2)
+})
+
 test('a renderer reload while the service is down replays the down state and keeps retrying', () => {
   const relay = makeRelay()
   socket(0).emit('connect')

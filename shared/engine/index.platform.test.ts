@@ -40,7 +40,7 @@ const disconnectError = {code: rpcErrors.EOF, desc: 'The service connection was 
 
 afterEach(() => {
   const {functions} = getPreload()
-  delete functions.engineRestartLink
+  delete functions.engineDropLink
   delete functions.engineSend
   delete functions.ipcRendererOn
 })
@@ -212,20 +212,19 @@ test('an answer to a call from an earlier link, made once a new link is up, is n
   expect(sent).toEqual([])
 })
 
-test('reset asks the relay to restart the link, and the link frames, not the reset, fail what is in flight', () => {
+test('reset asks the relay to drop the link, and the link frames, not the reset, fail what is in flight', () => {
   const {client, fromRelay, sent} = makeRendererClient()
-  const restarts = jest.fn()
-  getPreload().functions.engineRestartLink = restarts
+  const drops = jest.fn()
+  getPreload().functions.engineDropLink = drops
   fromRelay(up(1))
   const cb = jest.fn()
   client.invoke('keybase.1.test.hello', [{}], cb)
 
   client.transport.reset()
-  expect(restarts).toHaveBeenCalledTimes(1)
+  expect(drops).toHaveBeenCalledTimes(1)
   expect(cb).not.toHaveBeenCalled()
 
   fromRelay(down(1))
-  fromRelay(up(2))
   expect(cb).toHaveBeenCalledTimes(1)
   expect(cb).toHaveBeenCalledWith(disconnectError, {})
 
