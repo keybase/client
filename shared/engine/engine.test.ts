@@ -6,6 +6,8 @@ import {resetAllStores} from '@/util/zustand'
 import {tick} from '@/test/flush'
 import logger from '@/logger'
 import type {KB2} from '@/util/electron'
+import {errors as rpcErrors} from './rpc-transport'
+import {isEOFError, isErrorTransient, type RPCError} from '@/util/errors'
 
 afterEach(() => {
   resetAllStores()
@@ -13,16 +15,20 @@ afterEach(() => {
 })
 
 // The transport fails its outstanding invocations before it tells the engine, so the engine's own
-// session cancel on disconnect finds the session already ended and the call sees the transport's error.
-test('a call in flight when the link drops rejects with the disconnect error', async () => {
+// session cancel on disconnect finds the session already ended and the call sees the transport's error:
+// an EOF, which the app reads as a service restart rather than as a user cancel or an error to show.
+test('a call in flight when the link drops rejects with the transport EOF error', async () => {
   const fake = installFakeEngine()
   fake.hold('keybase.1.config.getBootstrapStatus')
   const p = T.RPCGen.configGetBootstrapStatusRpcPromise()
   fake.drop()
-  await expect(p).rejects.toMatchObject({
-    code: T.RPCGen.StatusCode.sccanceled,
-    desc: 'The service connection was lost',
-  })
+  const err = await p.then(
+    () => new Error('resolved'),
+    (e: unknown) => e as RPCError
+  )
+  expect(err).toMatchObject({code: rpcErrors.EOF, desc: 'The service connection was lost'})
+  expect(isEOFError(err)).toBe(true)
+  expect(isErrorTransient(err)).toBe(true)
   uninstallFakeEngine()
 })
 

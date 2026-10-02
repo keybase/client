@@ -2,7 +2,6 @@
 
 import type {CreateClientType, IncomingRPCCallbackType, ConnectDisconnectCB} from './index.platform'
 import {errors} from './rpc-transport'
-import {StatusCode} from '@/constants/rpc/rpc-gen'
 import type * as EngineModule from './index'
 import type * as ConfigModule from '@/stores/config'
 
@@ -80,7 +79,7 @@ test('disconnectCallback throwing does not prevent connectCallback from running 
     // The isolation fix: disconnectCallback throwing must not skip connectCallback,
     // or the UI is stranded on the disconnect banner forever.
     expect(connectCallback).toHaveBeenCalledTimes(1)
-    expect(duringDown).toHaveBeenCalledWith({code: StatusCode.sccanceled, desc: 'The service connection was lost'}, {})
+    expect(duringDown).toHaveBeenCalledWith({code: errors.EOF, desc: 'The service connection was lost', name: 'EOF'}, {})
     expect(sent.map(m => m[2])).toEqual(['keybase.1.test.hello'])
   } finally {
     teardownMobileMocks(originalIsMobile, originalRpcOnGo, originalRpcOnJs)
@@ -129,7 +128,7 @@ test('outstanding invocations survive everything except kb-engine-reset', () => 
 
     capturedMetaCb('kb-engine-reset')
     expect(cb).toHaveBeenCalledTimes(1)
-    expect(cb).toHaveBeenCalledWith({code: StatusCode.sccanceled, desc: 'The service connection was lost'}, {})
+    expect(cb).toHaveBeenCalledWith({code: errors.EOF, desc: 'The service connection was lost', name: 'EOF'}, {})
 
     // Each reset fails only what was in flight on the link it ended, and calls go out on the new link
     const sent = new Array<unknown>()
@@ -221,7 +220,7 @@ test('an account switch fails no outgoing call; only kb-engine-reset does', () =
     capturedMetaCb?.('kb-engine-reset')
     expect(loggedIn).toHaveBeenCalledTimes(1)
     expect(loggedIn.mock.calls[0]![0]).toMatchObject({
-      code: StatusCode.sccanceled,
+      code: errors.EOF,
       desc: 'The service connection was lost',
     })
   } finally {

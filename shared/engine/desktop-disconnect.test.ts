@@ -1,7 +1,7 @@
 /// <reference types="jest" />
 import {makeDesktopEnginePair, type DesktopEnginePair} from '@/test/desktop-engine-pair'
 import {tick} from '@/test/flush'
-import {StatusCode} from '@/constants/rpc/rpc-gen'
+import {errors} from './rpc-transport'
 
 const methodsReceived = (pair: DesktopEnginePair) => pair.serviceReceived().map(m => m[2])
 
@@ -88,7 +88,7 @@ test('a service restarting twice in quick succession fails a call in flight once
   pair.serviceComesBack()
   await tick()
   expect(inFlight).toHaveBeenCalledTimes(1)
-  expect(inFlight).toHaveBeenCalledWith({code: StatusCode.sccanceled, desc: 'The service connection was lost'}, {})
+  expect(inFlight).toHaveBeenCalledWith({code: errors.EOF, desc: 'The service connection was lost', name: 'EOF'}, {})
   expect(methodsReceived(pair)).toEqual([])
   expect(pair.linkChanges).toEqual([true, false, true, false, true])
 })

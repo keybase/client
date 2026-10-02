@@ -1,7 +1,6 @@
 /// <reference types="jest" />
 
 import logger from '@/logger'
-import {StatusCode} from '@/constants/rpc/rpc-gen'
 import {
   RPCTransport,
   encodeFrame,
@@ -99,7 +98,7 @@ test('invoke queues while disconnected and flushes on connect', () => {
   expect(cb).toHaveBeenCalledWith(null, {done: true})
 })
 
-const disconnectError = {code: StatusCode.sccanceled, desc: 'The service connection was lost'}
+const disconnectError = {code: errors.EOF, desc: 'The service connection was lost', name: 'EOF'}
 
 test('a link drop fails outstanding invocations with the disconnect error', () => {
   const transport = new TestTransport()

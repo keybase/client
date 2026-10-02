@@ -1,6 +1,5 @@
 import {decode, encode} from '@msgpack/msgpack'
 import logger from '@/logger'
-import {StatusCode} from '@/constants/rpc/rpc-gen'
 
 export const MESSAGE_TYPE_INVOKE = 0
 export const MESSAGE_TYPE_RESPONSE = 1
@@ -66,10 +65,13 @@ const makeTransportError = (name: ErrorName): ErrorType => ({
 
 const makeEOFError = () => makeTransportError('EOF')
 
-// Settles a call made on, or waiting on, a link to the service that has gone
+// Settles a call made on, or waiting on, a link to the service that has gone. An EOF, not a cancel:
+// callers read a cancel as the user's own and stay quiet, and isErrorTransient knows an EOF as a
+// service restart.
 const makeDisconnectError = (): ErrorType => ({
-  code: StatusCode.sccanceled,
+  code: errors.EOF,
   desc: 'The service connection was lost',
+  name: 'EOF',
 })
 
 const frameHeaderLength = (leadByte: number) => {

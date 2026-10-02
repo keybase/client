@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import {fakeError, installFakeEngine, uninstallFakeEngine, type FakeEngine} from './fake-engine'
 import type * as FakeEngineModule from './fake-engine'
 import {getCallPort, hasCallPort, installCallPort, uninstallCallPort} from '@/engine/call-port'
-import {MESSAGE_TYPE_RESPONSE} from '@/engine/rpc-transport'
+import {MESSAGE_TYPE_RESPONSE, errors} from '@/engine/rpc-transport'
 import {useWaitingState} from '@/stores/waiting'
 import {resetAllStores} from '@/util/zustand'
 import {tick} from '@/test/flush'
@@ -11,7 +11,7 @@ import {tick} from '@/test/flush'
 afterEach(() => resetAllStores())
 
 // Starts a recoverPassphrase listener whose session the service can push prompts into.
-const linkLost = {code: T.RPCGen.StatusCode.sccanceled, desc: 'The service connection was lost'}
+const linkLost = {code: errors.EOF, desc: 'The service connection was lost', name: 'EOF'}
 
 const startRecover = async (
   fake: FakeEngine,

@@ -6,7 +6,6 @@ import {createClient, dispatchRpcBatch, makeDispatchOne} from './index.platform'
 // Aliased: two tests below declare a local `errors` array for captured log
 // messages.
 import {encodeFrame, errors as rpcErrors} from './rpc-transport'
-import {StatusCode} from '@/constants/rpc/rpc-gen'
 import type {IncomingRPCCallbackType} from './rpc-transport'
 import type {EngineLinkFrame, EngineSend, KB2} from '@/util/electron'
 
@@ -36,7 +35,7 @@ const makeRendererClient = (opts?: {noEngineSend?: boolean; incoming?: IncomingR
 }
 const up = (epoch: number): EngineLinkFrame => ({epoch, type: 'link', up: true})
 const down = (epoch: number): EngineLinkFrame => ({epoch, type: 'link', up: false})
-const disconnectError = {code: StatusCode.sccanceled, desc: 'The service connection was lost'}
+const disconnectError = {code: rpcErrors.EOF, desc: 'The service connection was lost', name: 'EOF'}
 
 afterEach(() => {
   const {functions} = getPreload()
