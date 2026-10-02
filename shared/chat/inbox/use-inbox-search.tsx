@@ -336,6 +336,8 @@ export function useInboxSearch(): InboxSearchController {
           query.length > 0 ? inboxSearchMaxNameResults : inboxSearchMaxUnreadNameResults
         try {
           await searchInboxRPC({
+            // A /regex/ query streams per-message hits too; the inbox shows only per-conversation ones
+            globalFallthrough: ['chat.1.chatUi.chatSearchHit'],
             incomingCallMap: {
               'chat.1.chatUi.chatSearchBotHits': onBotsHits,
               'chat.1.chatUi.chatSearchConvHits': onConvHits,

@@ -1,3 +1,4 @@
+import {StatusCode} from '@/constants/rpc/rpc-gen'
 import type {ErrorType} from '@/engine/rpc-transport'
 export type MethodKey = string
 export type SessionID = number
@@ -7,9 +8,14 @@ export type ResponseType = {
   result?: (...args: Array<any>) => void
   error?: (...args: Array<any>) => void
   seqid?: number
+  // True once answered, by the handler or by the session ending
+  readonly settled?: boolean
 }
 export type RPCErrorHandler = (e: ErrorType) => void
 export type CommonResponseHandler = {
   error: RPCErrorHandler
   result: (...rest: Array<any>) => void
 }
+
+// How the GUI refuses a prompt it will not answer
+export const inputCanceledError = {code: StatusCode.scinputcanceled, desc: 'Input canceled'}

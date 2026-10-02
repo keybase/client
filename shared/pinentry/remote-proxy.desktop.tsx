@@ -3,7 +3,8 @@ import {invalidPasswordErrorString} from '@/constants/config'
 import * as RemoteGen from '@/constants/remote-actions'
 import * as T from '@/constants/types'
 import {wrapErrors} from '@/constants/utils'
-import {useEngineActionListener} from '@/engine/action-listener'
+import {registerIncomingAnswerer} from '@/engine/incoming-answerers'
+import {inputCanceledError} from '@/engine/types'
 import logger from '@/logger'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
@@ -51,7 +52,12 @@ const Pinentry = (p: ProxyProps) => {
 const PinentryProxy = () => {
   const [popupState, setPopupState] = React.useState(initialPopupState)
   const loggedIn = useConfigState(s => s.loggedIn)
-  const handlersRef = React.useRef<{cancel?: () => void; submit?: (password: string) => void}>({})
+  const handlersRef = React.useRef<{
+    cancel?: () => void
+    // The held prompt, so a cancel from the engine can tell whether it is the one shown
+    response?: unknown
+    submit?: (password: string) => void
+  }>({})
   const clearPopup = React.useCallback(() => {
     handlersRef.current = {}
     setPopupState(initialPopupState())
@@ -74,40 +80,67 @@ const PinentryProxy = () => {
 
   React.useEffect(() => {
     if (!loggedIn) {
+      // A held prompt still needs its answer, or the service waits on it forever
+      handlersRef.current.cancel?.()
       handlersRef.current = {}
     }
   }, [loggedIn])
 
-  useEngineActionListener('keybase.1.secretUi.getPassphrase', action => {
-    const {response, params} = action.payload
-    const {pinentry} = params
-    const {prompt, submitLabel, cancelLabel, windowTitle, features, type} = pinentry
-    const showTyping = features.showTyping
-    let {retryLabel} = pinentry
-    if (retryLabel === invalidPasswordErrorString) {
-      retryLabel = 'Incorrect password.'
+  React.useEffect(() => {
+    const unregister = registerIncomingAnswerer(
+      'keybase.1.secretUi.getPassphrase',
+      (params, response) => {
+        // The proxy only shows a prompt while logged in, so a held one would never be answered
+        if (!useConfigState.getState().loggedIn) {
+          response.error(inputCanceledError)
+          return
+        }
+        const {pinentry} = params
+        const {prompt, submitLabel, cancelLabel, windowTitle, features, type} = pinentry
+        const showTyping = features.showTyping
+        let {retryLabel} = pinentry
+        if (retryLabel === invalidPasswordErrorString) {
+          retryLabel = 'Incorrect password.'
+        }
+        logger.info('Asked for password')
+        // Only one prompt is shown at a time; the one it replaces still needs its answer
+        handlersRef.current.cancel?.()
+        handlersRef.current = {
+          cancel: wrapErrors(() => {
+            response.error(inputCanceledError)
+            clearPopup()
+          }),
+          response,
+          submit: wrapErrors((password: string) => {
+            response.result({passphrase: password, storeSecret: false})
+            clearPopup()
+          }),
+        }
+        setPopupState({
+          cancelLabel,
+          prompt,
+          retryLabel,
+          showTyping,
+          submitLabel,
+          type,
+          windowTitle,
+        })
+      },
+      {
+        // The service stopped waiting on the shown prompt, so nothing may answer it now
+        onCancelled: response => {
+          if (handlersRef.current.response === response) {
+            clearPopup()
+          }
+        },
+      }
+    )
+    return () => {
+      // A prompt still held when the proxy goes away needs its answer, or the service waits forever
+      handlersRef.current.cancel?.()
+      unregister()
     }
-    logger.info('Asked for password')
-    handlersRef.current = {
-      cancel: wrapErrors(() => {
-        response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
-        clearPopup()
-      }),
-      submit: wrapErrors((password: string) => {
-        response.result({passphrase: password, storeSecret: false})
-        clearPopup()
-      }),
-    }
-    setPopupState({
-      cancelLabel,
-      prompt,
-      retryLabel,
-      showTyping,
-      submitLabel,
-      type,
-      windowTitle,
-    })
-  })
+  }, [clearPopup])
 
   const currentPopupState =
     !loggedIn && popupState.type !== T.RPCGen.PassphraseType.none ? initialPopupState() : popupState

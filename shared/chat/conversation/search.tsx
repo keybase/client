@@ -40,6 +40,12 @@ const runSearchInbox = async (p: {
   const {pendingHitsRef, pendingReplaceHitsRef, scheduleFlush, updateIfCurrent} = p
   try {
     await searchInboxRPC({
+      // Name, bot and index-progress results are for the inbox search, not a thread's
+      globalFallthrough: [
+        'chat.1.chatUi.chatSearchBotHits',
+        'chat.1.chatUi.chatSearchConvHits',
+        'chat.1.chatUi.chatSearchIndexStatus',
+      ],
       incomingCallMap: {
         'chat.1.chatUi.chatSearchDone': onDone,
         'chat.1.chatUi.chatSearchHit': hit => {
