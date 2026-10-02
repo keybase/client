@@ -13,9 +13,10 @@ import {newModalRoutes} from '../routes'
 jest.mock('@/provision/flow', () => ({cancelProvision: () => {}, startProvision: () => {}}))
 
 import {
-  answerRecoverPasswordPgp,
   cancelRecoverPassword,
-  isRecoverPasswordPgpPending,
+  continueRecoverPasswordPgp,
+  declineRecoverPasswordPrompt,
+  isRecoverPasswordPromptOpen,
   markRecoverPasswordPgpShown,
   startRecoverPassword,
   submitRecoverPasswordPaperKey,
@@ -224,7 +225,7 @@ describe('pgp key warning', () => {
   // The id the flow handed the warning screen it pushed
   const warningId = () => {
     const pushed = nav.pushes().filter(p => p.name === 'recoverPasswordPgpWarning')
-    return (pushed.at(-1)?.params as {id: number}).id
+    return (pushed.at(-1)?.params as {promptId: number}).promptId
   }
 
   test('a prompt shows the warning as a modal over the logged-in app, bound to the prompt', async () => {
@@ -233,7 +234,7 @@ describe('pgp key warning', () => {
     await settle()
 
     expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
-    expect(isRecoverPasswordPgpPending(warningId())).toBe(true)
+    expect(isRecoverPasswordPromptOpen(warningId())).toBe(true)
     held[0]!.reply(undefined)
     await settle()
   })
@@ -261,12 +262,12 @@ describe('pgp key warning', () => {
     await settle()
     const id = warningId()
 
-    answerRecoverPasswordPgp(id, true)
-    answerRecoverPasswordPgp(id, true)
-    answerRecoverPasswordPgp(id, false)
+    continueRecoverPasswordPgp(id)
+    continueRecoverPasswordPgp(id)
+    declineRecoverPasswordPrompt(id)
 
     await expect(answered).resolves.toEqual({result: true})
-    expect(isRecoverPasswordPgpPending(id)).toBe(false)
+    expect(isRecoverPasswordPromptOpen(id)).toBe(false)
     held[0]!.reply(undefined)
     await settle()
   })
@@ -281,9 +282,9 @@ describe('pgp key warning', () => {
     await expect(pushPgp(sessionID)).resolves.toEqual({error: inputCanceled})
     await settle()
 
-    expect(isRecoverPasswordPgpPending(id)).toBe(true)
+    expect(isRecoverPasswordPromptOpen(id)).toBe(true)
     expect(nav.pushes().filter(p => p.name === 'recoverPasswordPgpWarning')).toHaveLength(1)
-    answerRecoverPasswordPgp(id, true)
+    continueRecoverPasswordPgp(id)
     await expect(answered).resolves.toEqual({result: true})
     held[1]!.reply(undefined)
     await settle()
@@ -298,9 +299,9 @@ describe('pgp key warning', () => {
     const newSession = await startRun()
     void pushPgp(newSession)
     await settle()
-    answerRecoverPasswordPgp(staleId, true)
+    continueRecoverPasswordPgp(staleId)
 
-    expect(isRecoverPasswordPgpPending(warningId())).toBe(true)
+    expect(isRecoverPasswordPromptOpen(warningId())).toBe(true)
     held[1]!.reply(undefined)
     await settle()
   })
@@ -312,7 +313,7 @@ describe('pgp key warning', () => {
     const id = warningId()
 
     await startRun()
-    answerRecoverPasswordPgp(id, true)
+    continueRecoverPasswordPgp(id)
     held[0]!.reply(cancelled)
     await settle()
 
@@ -345,9 +346,9 @@ describe('pgp key warning', () => {
     held[0]!.reply(cancelled)
     await settle()
     // The fake fails the test if this reached the service
-    answerRecoverPasswordPgp(id, true)
+    continueRecoverPasswordPgp(id)
 
-    expect(isRecoverPasswordPgpPending(id)).toBe(false)
+    expect(isRecoverPasswordPromptOpen(id)).toBe(false)
     expect(rootRouteNames()).toEqual(['loggedIn'])
   })
 
@@ -378,7 +379,7 @@ describe('pgp key warning', () => {
     const {held, sessionID} = await start()
     const answered = pushPgp(sessionID)
     await settle()
-    answerRecoverPasswordPgp(warningId(), false)
+    declineRecoverPasswordPrompt(warningId())
     await expect(answered).resolves.toEqual({result: false})
 
     held[0]!.reply(cancelled)
@@ -449,7 +450,7 @@ describe('pgp key warning', () => {
 
     await jest.advanceTimersByTimeAsync(10_000)
 
-    expect(isRecoverPasswordPgpPending(warningId())).toBe(true)
+    expect(isRecoverPasswordPromptOpen(warningId())).toBe(true)
     held[0]!.reply(undefined)
     await settle()
   })
@@ -459,7 +460,7 @@ describe('pgp key warning', () => {
     const {held, sessionID} = await start()
     const answered = pushPgp(sessionID)
     await settle()
-    answerRecoverPasswordPgp(warningId(), true)
+    continueRecoverPasswordPgp(warningId())
 
     await jest.advanceTimersByTimeAsync(10_000)
 
@@ -491,12 +492,12 @@ describe('waiting state', () => {
     expect(waitingCount()).toBe(1)
     void fake.push(promptPgp, {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys}, {sessionID})
     await settle()
-    const id = (nav.pushes().at(-1)?.params as {id: number}).id
+    const id = (nav.pushes().at(-1)?.params as {promptId: number}).promptId
     expect(waitingCount()).toBe(0)
 
     held[0]!.reply(cancelled)
     await settle()
-    answerRecoverPasswordPgp(id, true)
+    continueRecoverPasswordPgp(id)
     expect(waitingCount()).toBe(0)
 
     const newSession = await startRun()

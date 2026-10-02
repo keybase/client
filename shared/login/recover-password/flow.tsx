@@ -88,9 +88,12 @@ const noteAnswer = (promptId: number, answered: boolean | undefined) => {
 export const isRecoverPasswordPromptGone = (promptId: number) =>
   !isRecoverPasswordPromptOpen(promptId) && !answeredByScreen.has(promptId)
 
-// Refuses the prompt and navigates nowhere: its screen is already going away
-export const refuseRecoverPasswordPrompt = (promptId: number) => {
-  current?.dialog
+// Declines the prompt and navigates nowhere: its screen is already going away. The PGP warning is
+// answered false, which makes Go cancel and log back out; any other prompt is refused.
+export const declineRecoverPasswordPrompt = (promptId: number) => {
+  const run = current
+  if (!run || run.dialog.prompt(promptId, promptPgp)?.answer(false)) return
+  run.dialog
     .openPrompts()
     .find(p => p.id === promptId)
     ?.cancel()
@@ -120,17 +123,15 @@ export const submitRecoverPasswordReset = (promptId: number, action: T.RPCGen.Re
   }
 }
 
-export const isRecoverPasswordPgpPending = (id: number) => !!current?.dialog.prompt(id, promptPgp)
-
 // The warning screen reports its mount: from then on the user has it and the push timeout is moot.
 export const markRecoverPasswordPgpShown = (id: number) => {
   clearTimeout(pgpMountTimers.get(id))
   pgpMountTimers.delete(id)
 }
 
-// true continues to set-password; false makes Go cancel and log back out.
-export const answerRecoverPasswordPgp = (id: number, proceed: boolean) => {
-  current?.dialog.prompt(id, promptPgp)?.answer(proceed)
+// Goes on to set the new password, giving up the PGP keys stored with the old one
+export const continueRecoverPasswordPgp = (promptId: number) => {
+  noteAnswer(promptId, current?.dialog.prompt(promptId, promptPgp)?.answer(true))
 }
 
 // A warning under another modal stays: removing a covered modal crashes iOS.
@@ -154,7 +155,7 @@ const showPgpWarning = (prompt: Prompt<typeof promptPgp>) => {
   void prompt.closed.then(() => markRecoverPasswordPgpShown(id))
   // The paper key has just logged the user in, so the logged-in root this modal lives on may not be
   // mounted yet. A warning that can't be pushed is declined.
-  navigateAppendOnceRootHas('loggedIn', {name: pgpWarningName, params: {id}}, loggedInRootTimeoutMs, () =>
+  navigateAppendOnceRootHas('loggedIn', {name: pgpWarningName, params: {promptId: id}}, loggedInRootTimeoutMs, () =>
     prompt.answer(false)
   )
 }

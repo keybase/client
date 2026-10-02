@@ -9,7 +9,7 @@ import {useConfigState} from '@/stores/config'
 import {installFakeEngine} from '@/test/fake-engine'
 import {tick} from '@/test/flush'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
-import {answerRecoverPasswordPgp, isRecoverPasswordPgpPending, startRecoverPassword} from './flow'
+import {declineRecoverPasswordPrompt, isRecoverPasswordPromptOpen, startRecoverPassword} from './flow'
 import PgpWarning from './pgp-warning'
 
 jest.mock('@/provision/flow', () => ({cancelProvision: () => {}, startProvision: () => {}}))
@@ -74,7 +74,7 @@ const setup = async (before?: (id: number) => void) => {
   )
   await settle()
   const pushed = nav.pushes().find(p => p.name === 'recoverPasswordPgpWarning')
-  const id = (pushed?.params as {id: number}).id
+  const id = (pushed?.params as {promptId: number}).promptId
   before?.(id)
   nav.clearActions()
   const navigation = {
@@ -85,7 +85,7 @@ const setup = async (before?: (id: number) => void) => {
   }
   render(
     <NavigationContext value={navigation as never}>
-      <PgpWarning route={{params: {id}}} />
+      <PgpWarning route={{params: {promptId: id}}} />
     </NavigationContext>
   )
   // Settles the run, which also clears the decline timer of a prompt left pending
@@ -126,12 +126,12 @@ test('an app-initiated reset removing the warning is not an answer', async () =>
 
   remove('RESET')
 
-  expect(isRecoverPasswordPgpPending(id)).toBe(true)
+  expect(isRecoverPasswordPromptOpen(id)).toBe(true)
   await end()
 })
 
 test('a warning whose prompt was settled before it mounted closes itself without a second answer', async () => {
-  const {answered, end} = await setup(id => answerRecoverPasswordPgp(id, false))
+  const {answered, end} = await setup(id => declineRecoverPasswordPrompt(id))
 
   expect(nav.types()).toEqual(['GO_BACK'])
   fireEvent.click(screen.getByText('Continue'))
@@ -142,9 +142,9 @@ test('a warning whose prompt was settled before it mounted closes itself without
 
 test('a warning whose prompt was settled leaves the screen above it alone when covered', async () => {
   const {end} = await setup(id => {
-    answerRecoverPasswordPgp(id, false)
+    declineRecoverPasswordPrompt(id)
     nav.setRootState(
-      makeRootState({above: [{name: 'recoverPasswordPgpWarning', params: {id}}, {name: 'proxySettingsModal'}]})
+      makeRootState({above: [{name: 'recoverPasswordPgpWarning', params: {promptId: id}}, {name: 'proxySettingsModal'}]})
     )
   })
 
