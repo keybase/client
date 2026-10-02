@@ -10,6 +10,8 @@ import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {fakeError, installFakeEngine} from '@/test/fake-engine'
+import logger from '@/logger'
 import {getConversationClientPrev} from './client-prev'
 import {useConversationExplodingMode, useConversationMessage} from './data-hooks'
 
@@ -338,6 +340,20 @@ describe('useConversationMessage', () => {
     await waitForLoad()
     expect(load()).toEqual([])
     expect(result.current).toBeUndefined()
+  })
+
+  test('a load the service fails through the engine listener leaves nothing and logs why', async () => {
+    restoreChatRpc()
+    const fake = installFakeEngine()
+    const held = fake.hold('chat.1.local.getThreadNonblock')
+    const warn = jest.spyOn(logger, 'warn')
+    const {result} = renderHook(() => useConversationMessage(conversationIDKey, messageID(20)))
+    await waitForLoad()
+    held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'service down'))
+    await waitForLoad()
+
+    expect(result.current).toBeUndefined()
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('service down'))
   })
 
   test('a failed load leaves nothing', async () => {
