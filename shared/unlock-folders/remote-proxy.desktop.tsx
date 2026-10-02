@@ -37,10 +37,6 @@ const UnlockRemoteProxy = () => {
     handleUnlockFoldersEngineAction(action, open)
   })
 
-  useEngineActionListener('keybase.1.rekeyUI.delegateRekeyUI', action => {
-    handleUnlockFoldersEngineAction(action, open)
-  })
-
   if (devices.length) {
     return <UnlockFolders devices={devices} paperKeyError={paperKeyError} waiting={waiting} />
   }
