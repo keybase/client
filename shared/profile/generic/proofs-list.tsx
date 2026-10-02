@@ -192,13 +192,20 @@ export const runProofFlow = async (p: {
   }
 
   // set from the RPC's callbacks, so a plain let would narrow to its initial value
-  const flow = {canceled: false}
+  const flow = {canceled: false, left: false}
+  // Leaving the screen cancels the flow, the same as the user cancelling it, and it stays canceled
+  const wasCanceled = () => {
+    if (!mountedRef.current) {
+      flow.left = true
+    }
+    return flow.canceled || flow.left
+  }
   let proofText = ''
   currentUsernameRef.current = ''
   currentGenericParamsRef.current = makeProveGenericParams()
 
   const failIfCanceled = (response: {error: (arg0: {code: number; desc: string}) => void}) => {
-    if (flow.canceled || !mountedRef.current) {
+    if (wasCanceled()) {
       response.error(inputCancelError)
       return true
     }
@@ -215,7 +222,7 @@ export const runProofFlow = async (p: {
           response.result()
         },
         'keybase.1.proveUi.continueChecking': (_, response) =>
-          response.result(!(flow.canceled || !mountedRef.current)),
+          response.result(!wasCanceled()),
         'keybase.1.proveUi.okToCheck': (_, response) => response.result(true),
         'keybase.1.proveUi.outputInstructions': ({proof}, response) => {
           if (failIfCanceled(response)) {
@@ -308,7 +315,7 @@ export const runProofFlow = async (p: {
 
     loadCurrentProfile()
     // the user left this flow while the service finished it
-    if (flow.canceled) return
+    if (wasCanceled()) return
 
     if (service) {
       ignorePromise(
@@ -325,7 +332,7 @@ export const runProofFlow = async (p: {
   } catch (_error) {
     loadCurrentProfile()
     // the user left this flow (Back to the picker, or closed the modal)
-    if (flow.canceled || !(_error instanceof RPCError)) {
+    if (wasCanceled() || !(_error instanceof RPCError)) {
       return
     }
     const error = _error
