@@ -362,6 +362,35 @@ describe('a late answer leaves the waiting count alone', () => {
     uninstallFakeEngine()
   })
 
+  test('after a raw session refused a prompt its handler threw on', async () => {
+    watchErrors()
+    const fake = installFakeEngine()
+    const held = fake.hold('keybase.1.login.recoverPassphrase')
+    const ended = new Promise(resolve => {
+      fake.engine.call({
+        callback: resolve,
+        customResponseIncomingCallMap: {
+          [prompt]: () => {
+            throw new Error('handler broke')
+          },
+        },
+        method: 'keybase.1.login.recoverPassphrase',
+        params: {username: 'testuser'},
+        waitingKey,
+      })
+    })
+    await tick()
+    expect(waitingCount(fake)).toBe(1)
+    const sessionID = fake.calls[0]!.params.sessionID as number
+    await expect(fake.push(prompt, {kind: 0}, {sessionID})).resolves.toEqual({error: inputCanceled})
+    // The session goes on, so it is waiting on the service again
+    expect(waitingCount(fake)).toBe(1)
+    held[0]!.reply(undefined)
+    await ended
+    expect(waitingCount(fake)).toBe(0)
+    uninstallFakeEngine()
+  })
+
   test('after its session ended', async () => {
     const fake = installFakeEngine()
     const {onPrompt, responses} = capture()
