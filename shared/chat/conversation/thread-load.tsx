@@ -3,7 +3,6 @@ import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
 import * as Strings from '@/constants/strings'
 import * as T from '@/constants/types'
-import {navigateToInbox} from '@/constants/router'
 import logger from '@/logger'
 import {ignorePromise} from '@/constants/utils'
 import {RPCError} from '@/util/errors'
@@ -13,6 +12,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
 import {type ThreadLoadReconcile, getOrdinalForMessageID} from './thread-message-state'
 import {getInboxConversationMeta, updateInboxConversationMeta} from '@/chat/inbox/metadata'
+import {conversationGone} from '@/chat/inbox/selection'
 import type {ChatThreadRpc} from './chat-rpc'
 import type {
   ConversationThreadActions,
@@ -454,12 +454,20 @@ export const loadConversationThreadMessages = (
       }
       if (error instanceof RPCError) {
         logger.warn(`loadMoreMessages: error: ${error.desc}`)
-        if (error.code === T.RPCGen.StatusCode.scchatnotinteam) {
-          // We're no longer in this conv's team. Clear the persisted last-route
+        if (
+          error.code === T.RPCGen.StatusCode.scchatnotinteam ||
+          error.code === T.RPCGen.StatusCode.scchatnotinconv
+        ) {
+          // We're not in this conv or its team. Clear the persisted last-route
           // (ui.routeState2) so app startup doesn't keep restoring and reloading
           // this conv, which would re-trigger this error on every launch.
           persistRoute(true, true, () => useConfigState.getState().startup.loaded)
-          navigateToInbox(true, 'maybeKickedFromTeam')
+          // Only a conversation this account was in is gone (kicked, removed). One it never joined,
+          // opened from a link or search, stays up on every platform, as does a phone's open thread.
+          const membership = getInboxConversationMeta(conversationIDKey)?.membershipType
+          if (membership === 'active' || membership === 'youLeft') {
+            conversationGone(conversationIDKey, `thread load: ${error.desc}`)
+          }
         }
         if (error.code !== T.RPCGen.StatusCode.scteamreaderror) {
           throw error

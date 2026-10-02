@@ -38,6 +38,7 @@ import {
   unboxRows,
   updateInboxConversationMeta,
 } from '@/chat/inbox/metadata'
+import {conversationGoneForUser} from '@/chat/inbox/selection'
 import {updateInboxTyping} from '@/chat/inbox/typing-state'
 import {useUsersState} from '@/stores/users'
 import {useWaitingState} from '@/stores/waiting'
@@ -64,10 +65,12 @@ const chatNotificationTypes = [
   'chat.1.NotifyChat.ChatInboxStale',
   'chat.1.NotifyChat.ChatInboxSyncStarted',
   'chat.1.NotifyChat.ChatInboxSynced',
+  'chat.1.NotifyChat.ChatLeftConversation',
   'chat.1.NotifyChat.ChatParticipantsInfo',
   'chat.1.NotifyChat.ChatPaymentInfo',
   'chat.1.NotifyChat.ChatPromptUnfurl',
   'chat.1.NotifyChat.ChatRequestInfo',
+  'chat.1.NotifyChat.ChatResetConversation',
   'chat.1.NotifyChat.ChatSetConvRetention',
   'chat.1.NotifyChat.ChatSetConvSettings',
   'chat.1.NotifyChat.ChatSetTeamRetention',
@@ -366,6 +369,14 @@ const stagesOf = (action: ChatNotification): Stages => {
           )
         },
       }
+    }
+    case 'chat.1.NotifyChat.ChatLeftConversation': {
+      const {convID, uid} = action.payload.params
+      return {inbox: () => conversationGoneForUser(uid, T.Chat.conversationIDToKey(convID), 'left or removed')}
+    }
+    case 'chat.1.NotifyChat.ChatResetConversation': {
+      const {convID, uid} = action.payload.params
+      return {inbox: () => conversationGoneForUser(uid, T.Chat.conversationIDToKey(convID), 'reset')}
     }
     case 'chat.1.NotifyChat.ChatInboxStale':
       return {inbox: () => ignorePromise(useInboxLayoutState.getState().dispatch.refresh('inboxStale'))}
