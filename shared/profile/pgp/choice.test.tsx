@@ -1,5 +1,26 @@
 /// <reference types="jest" />
-import {validatePgpInfo} from './choice'
+import {generatePgp, validatePgpInfo} from './choice'
+import {installFakeEngine, uninstallFakeEngine} from '@/test/fake-engine'
+import {tick} from '@/test/flush'
+
+test('a password prompt while storing the key on the server is left to the global answerer', async () => {
+  const fake = installFakeEngine()
+  fake.hold('keybase.1.pgp.pgpKeyGenDefault')
+  const generated = generatePgp(
+    makeInfo(),
+    {current: true},
+    {current: undefined},
+    {current: undefined},
+    () => {}
+  ).catch(() => {})
+  await tick()
+  const sessionID = fake.calls[0]!.params.sessionID as number
+  // No answerer is registered here, so the global path refuses it; the point is that it gets there
+  // without being reported as an undeclared fall-through
+  await fake.push('keybase.1.secretUi.getPassphrase', {pinentry: {type: 0}}, {sessionID})
+  expect(() => uninstallFakeEngine()).not.toThrow()
+  await generated
+})
 
 const makeInfo = (overrides?: Partial<Parameters<typeof validatePgpInfo>[0]>) => ({
   pgpEmail1: 'testuser@example.com',

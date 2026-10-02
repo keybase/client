@@ -43,7 +43,7 @@ const makeInitialForm = (): GeneratePgpArgs => ({
   pgpFullName: '',
 })
 
-const generatePgp = async (
+export const generatePgp = async (
   args: GeneratePgpArgs,
   mountedRef: React.RefObject<boolean>,
   cancelCurrentRef: React.RefObject<undefined | (() => void)>,
@@ -90,8 +90,9 @@ const generatePgp = async (
           setStepSafe({kind: 'finished', pgpKeyString, promptShouldStoreKeyOnServer: prompt})
         },
       },
-      // The service logs key generation progress; the global handler writes it to the log
-      globalFallthrough: ['keybase.1.logUi.log'],
+      // The service logs key generation progress; the global handler writes it to the log. Storing the
+      // key on the server can need the password, which desktop pinentry answers globally.
+      globalFallthrough: ['keybase.1.logUi.log', 'keybase.1.secretUi.getPassphrase'],
       incomingCallMap: {'keybase.1.pgpUi.finished': () => {}},
       params: {createUids: {ids, useDefault: false}},
     })
