@@ -206,6 +206,12 @@ export const newModalRoutes = defineRouteMap({
     getOptions: {gestureEnabled: false, title: 'Error'},
     screen: React.lazy(async () => import('./recover-password/error-modal')),
   },
+  // Shown over the logged-in app: Go asks after the paper key has logged the user in. The modal's
+  // Cancel is the decline.
+  recoverPasswordPgpWarning: {
+    getOptions: {gestureEnabled: false, title: 'Recover password'},
+    screen: React.lazy(async () => import('./recover-password/pgp-warning')),
+  },
   recoverPasswordSetPassword: {
     getOptions: {gestureEnabled: false, title: 'Set password'},
     screen: React.lazy(async () => import('./recover-password/password')),
