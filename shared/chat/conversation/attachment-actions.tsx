@@ -17,37 +17,29 @@ import {
   useConversationThreadStore,
 } from './thread-context'
 import {registerExternalResetter} from '@/util/zustand'
+import {getAccountGeneration} from '@/engine/account-generation'
+import {getChatRpc, type ChatThreadRpc} from './chat-rpc'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
-
-export const getClientPrevFromThread = (
-  messageMap: ReadonlyMap<T.Chat.Ordinal, T.Chat.Message>,
-  messageOrdinals?: ReadonlyArray<T.Chat.Ordinal>
-): T.Chat.MessageID => {
-  for (let idx = (messageOrdinals?.length ?? 0) - 1; idx >= 0; --idx) {
-    const ordinal = messageOrdinals?.[idx]
-    const message = ordinal ? messageMap.get(ordinal) : undefined
-    if (message?.id) {
-      return message.id
-    }
-  }
-  return T.Chat.numberToMessageID(0)
-}
 
 export const cancelAttachmentUploads = (outboxIDs: ReadonlyArray<T.RPCChat.OutboxID>) => {
   const f = async () => {
     const promises = outboxIDs.map(async outboxID =>
-      T.RPCChat.localCancelUploadTempFileRpcPromise({outboxID})
+      getChatRpc().cancelUploadTempFile(outboxID)
     )
     await Promise.allSettled(promises)
   }
   ignorePromise(f())
 }
 
-export const makePasteAttachment = (conversationIDKey: T.Chat.ConversationIDKey, data: Uint8Array) => {
+export const makePasteAttachment = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  data: Uint8Array,
+  rpc: ChatThreadRpc
+) => {
   const f = async () => {
     const outboxID = Common.generateOutboxID()
-    const path = await T.RPCChat.localMakeUploadTempFileRpcPromise({
+    const path = await rpc.makeUploadTempFile({
       data,
       filename: 'paste.png',
       outboxID,
@@ -142,7 +134,6 @@ export const uploadAttachments = (p: {
       logger.warn('attachmentsUpload: missing meta for attachment upload', conversationIDKey)
       return
     }
-    const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
     const outboxIDs = paths.map(pathInfo => pathInfo.outboxID ?? Common.generateOutboxID())
     // Serial, not Promise.all: the service assigns the outbox ordinal when the RPC reaches the
     // outbox, after a variable-length preprocess (video preview gen). Concurrent calls land in
@@ -151,21 +142,23 @@ export const uploadAttachments = (p: {
     // A failure skips one attachment and keeps going so the rest of the batch still lands, but the
     // caller is fire-and-forget: without this the user gets a silently short upload.
     let failed = 0
+    // A switch cancels the post in flight, and a post started after it would be the next
+    // account's, so the batch stops at a switch.
+    const generation = getAccountGeneration()
     for (const [idx, pathInfo] of paths.entries()) {
+      if (getAccountGeneration() !== generation) {
+        logger.info(`attachmentsUpload: account changed, dropping ${paths.length - idx} remaining`)
+        return
+      }
       try {
-        await T.RPCChat.localPostFileAttachmentLocalNonblockRpcPromise({
-          arg: {
-            ...ephemeralData,
-            conversationID: T.Chat.keyToConversationID(conversationIDKey),
-            filename: Styles.unnormalizePath(pathInfo.path),
-            identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-            metadata: new Uint8Array(),
-            outboxID: outboxIDs[idx],
-            title: titles[idx] ?? '',
-            tlfName,
-            visibility: T.RPCGen.TLFVisibility.private,
-          },
+        await getChatRpc().postAttachment({
           clientPrev,
+          conversationIDKey,
+          ephemeralLifetime,
+          filename: Styles.unnormalizePath(pathInfo.path),
+          outboxID: outboxIDs[idx],
+          title: titles[idx] ?? '',
+          tlfName,
         })
       } catch (e) {
         ++failed
@@ -197,17 +190,20 @@ export const uploadAttachmentsFromDragAndDrop = (p: {
 }) => {
   const f = async () => {
     if (isDarwin && darwinCopyToChatTempUploadFile) {
+      // the copy can outlast an account switch; the drop belongs to the account it was made in
+      const generation = getAccountGeneration()
       const copiedPaths = await Promise.all(
         p.paths.map(async pathInfo => {
           const outboxID = Common.generateOutboxID()
-          const dst = await T.RPCChat.localGetUploadTempFileRpcPromise({
-            filename: pathInfo.path,
-            outboxID,
-          })
+          const dst = await getChatRpc().getUploadTempFile({filename: pathInfo.path, outboxID})
           await darwinCopyToChatTempUploadFile(dst, pathInfo.path)
           return {outboxID, path: dst}
         })
       )
+      if (getAccountGeneration() !== generation) {
+        logger.info('uploadAttachmentsFromDragAndDrop: account changed, posting nothing')
+        return
+      }
       uploadAttachments({...p, paths: copiedPaths})
     } else {
       uploadAttachments(p)
@@ -226,14 +222,7 @@ const downloadAttachmentMessage = async (
     return false
   }
   try {
-    const rpcRes = await T.RPCChat.localDownloadFileAttachmentLocalRpcPromise({
-      conversationID: T.Chat.keyToConversationID(conversationIDKey),
-      downloadToCache,
-      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-      messageID: message.id,
-      preview: false,
-    })
-    return rpcRes.filePath
+    return await getChatRpc().downloadAttachment({conversationIDKey, downloadToCache, messageID: message.id})
   } catch (error) {
     if (error instanceof RPCError) {
       logger.info(`downloadAttachmentMessage error: ${error.message}`)
@@ -315,18 +304,12 @@ export const loadNextAttachmentMessage = async (
   backInTime: boolean
 ) => {
   const {deviceName, username} = useCurrentUserState.getState()
-  const result = await T.RPCChat.localGetNextAttachmentMessageLocalRpcPromise({
-    assetTypes: [T.RPCChat.AssetMetadataType.image, T.RPCChat.AssetMetadataType.video],
-    backInTime,
-    convID: T.Chat.keyToConversationID(conversationIDKey),
-    identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-    messageID: fromMsg.id,
-  })
+  const next = await getChatRpc().getNextAttachment({backInTime, conversationIDKey, messageID: fromMsg.id})
 
-  if (result.message) {
+  if (next) {
     const goodMessage = Message.uiMessageToMessage(
       conversationIDKey,
-      result.message,
+      next,
       username,
       () => fromMsg.ordinal,
       deviceName
@@ -338,9 +321,12 @@ export const loadNextAttachmentMessage = async (
   return Promise.reject(new Error('No more results'))
 }
 
+// A screen kept through an account switch downloads, saves, shares and pastes nothing: every call
+// goes through the thread's rpc.
 export const useConversationAttachmentActions = () => {
   const conversationIDKey = useConversationThreadID()
   const actions = useConversationThreadActions()
+  const {rpc} = actions
   // Read thread state lazily at call time. Callers (TransferIcon etc) render per
   // message row, so subscribing to messageMap here would re-render every one of
   // them on every thread change.
@@ -352,16 +338,9 @@ export const useConversationAttachmentActions = () => {
       return false
     }
     try {
-      const rpcRes = await T.RPCChat.localDownloadFileAttachmentLocalRpcPromise({
-        conversationID: T.Chat.keyToConversationID(conversationIDKey),
-        downloadToCache,
-        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-        messageID,
-        preview: false,
-      })
-
-      actions.finishAttachmentDownload(ordinal, rpcRes.filePath)
-      return rpcRes.filePath
+      const filePath = await rpc.downloadAttachment({conversationIDKey, downloadToCache, messageID})
+      actions.finishAttachmentDownload(ordinal, filePath)
+      return filePath
     } catch (error) {
       const errMsg =
         error instanceof RPCError
@@ -459,6 +438,7 @@ export const useConversationAttachmentActions = () => {
     attachmentDownload,
     messageAttachmentNativeSave,
     messageAttachmentNativeShare,
+    pasteAttachment: (data: Uint8Array) => makePasteAttachment(conversationIDKey, data, rpc),
     showAttachmentPreview: (ordinal: T.Chat.Ordinal, message?: T.Chat.MessageAttachment) => {
       const existing = threadStore.getState().messageMap.get(ordinal)
       const initialMessage = message ?? (existing?.type === 'attachment' ? existing : undefined)

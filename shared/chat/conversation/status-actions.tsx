@@ -2,21 +2,14 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import {isPhone} from '@/constants/platform'
 import {navigateToInbox, setChatRootParams} from '@/constants/router'
-import logger from '@/logger'
-import {getInboxConversationMeta} from '@/chat/inbox/metadata'
 import {refreshConversationParticipants} from '@/chat/inbox/refresh-participants'
-import {setConversationOrangeLine} from './orange-line-context'
-import {loadThreadMessageIDAtIndex, markConversationRead} from './thread-rpc'
+import {getChatRpc, type ChatThreadRpc} from './chat-rpc'
 
 const setConversationStatusPromise = async (
   conversationIDKey: T.Chat.ConversationIDKey,
   status: T.RPCChat.ConversationStatus
 ) => {
-  await T.RPCChat.localSetConversationStatusLocalRpcPromise({
-    conversationID: T.Chat.keyToConversationID(conversationIDKey),
-    identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-    status,
-  })
+  await getChatRpc().setConversationStatus(conversationIDKey, status)
 }
 
 const setConversationStatus = (
@@ -39,11 +32,10 @@ export const hideConversation = (conversationIDKey: T.Chat.ConversationIDKey, hi
   )
 }
 
-export const joinConversation = (conversationIDKey: T.Chat.ConversationIDKey) => {
+// rpc: a thread screen's own (useThreadRpc)
+export const joinConversation = (conversationIDKey: T.Chat.ConversationIDKey, rpc: ChatThreadRpc = getChatRpc()) => {
   const f = async () => {
-    await T.RPCChat.localJoinConversationByIDLocalRpcPromise({
-      convID: T.Chat.keyToConversationID(conversationIDKey),
-    })
+    await rpc.joinConversation(conversationIDKey)
     // joining adds you to the participants, which nothing else recomputes
     await refreshConversationParticipants([conversationIDKey])
   }
@@ -62,31 +54,3 @@ export const muteConversationPromise = async (conversationIDKey: T.Chat.Conversa
     conversationIDKey,
     muted ? T.RPCChat.ConversationStatus.muted : T.RPCChat.ConversationStatus.unfiled
   )
-
-export const markConversationUnread = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  readMsgID?: T.Chat.MessageID
-) => {
-  const f = async () => {
-    const unreadLineID = readMsgID || getInboxConversationMeta(conversationIDKey)?.maxVisibleMsgID
-    if (unreadLineID) {
-      setConversationOrangeLine(
-        conversationIDKey,
-        T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(unreadLineID))
-      )
-    }
-    let msgID = readMsgID
-    if (!msgID) {
-      msgID = await loadThreadMessageIDAtIndex(conversationIDKey, 1)
-    }
-
-    if (!msgID) {
-      logger.info(`marking unread messages ${conversationIDKey} failed due to no id`)
-      return
-    }
-
-    logger.info(`marking unread messages ${conversationIDKey} ${msgID}`)
-    await markConversationRead({conversationIDKey, forceUnread: true, msgID})
-  }
-  C.ignorePromise(f())
-}

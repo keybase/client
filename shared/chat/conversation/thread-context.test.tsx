@@ -8,7 +8,8 @@ import HiddenString from '@/util/hidden-string'
 import {act, cleanup, renderHook} from '@testing-library/react'
 import type * as React from 'react'
 import {metasReceived, participantInfoReceived} from '@/chat/inbox/metadata'
-import {notifyEngineActionListeners} from '@/engine/action-listener'
+import {routeChatNotification} from '@/chat/notification-router'
+import {deliverThreadNotifications} from '@/chat/notification-registry'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useShellState} from '@/stores/shell'
@@ -23,11 +24,12 @@ import {
   useConversationThreadLoadOlderMessagesDueToScroll,
   useConversationThreadMarkThreadAsRead,
   useConversationThreadMessage,
-  useConversationThreadMessageActions,
+  useConversationThreadNotifications,
   useConversationThreadSelector,
   useConversationThreadStore,
 } from './thread-context'
 import {ConversationThreadLoadStatusProvider} from './thread-load-status-context'
+import {toggleReaction} from './message-commands'
 import {useConversationParticipants} from './data-hooks'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
@@ -515,7 +517,7 @@ test('mounted thread listener applies messagesUpdated for the active conversatio
   )
 
   act(() => {
-    notifyEngineActionListeners({
+    routeChatNotification({
       payload: {
         params: {
           activity: {
@@ -606,7 +608,7 @@ test('a stale reload after a jump and a scroll to the bottom marks the thread re
   const markAsRead = renderJumpedThenScrolledToBottom(true)
 
   act(() => {
-    notifyEngineActionListeners(staleThreadUpdate)
+    routeChatNotification(staleThreadUpdate)
   })
   await act(async () => {
     await flushPromises()
@@ -620,7 +622,7 @@ test('a stale reload that disallows mark read leaves the thread unread even once
   const markAsRead = renderJumpedThenScrolledToBottom(false)
 
   act(() => {
-    notifyEngineActionListeners(staleThreadUpdate)
+    routeChatNotification(staleThreadUpdate)
   })
   await act(async () => {
     await flushPromises()
@@ -665,7 +667,7 @@ test('mounted thread listener applies incoming messages for the active conversat
   markAsRead.mockClear()
 
   act(() => {
-    notifyEngineActionListeners({
+    routeChatNotification({
       payload: {
         params: {
           activity: {
@@ -721,7 +723,7 @@ test('mounted thread listener applies incoming messages while inactive without m
   })
 
   act(() => {
-    notifyEngineActionListeners({
+    routeChatNotification({
       payload: {
         params: {
           activity: {
@@ -887,6 +889,33 @@ test('a thread still on screen after an account switch does not mark read for th
   expect(markAsRead).not.toHaveBeenCalled()
 })
 
+test("a screen's thread notifications stop once the thread retires, until it is built for the next account", () => {
+  const heard: Array<string> = []
+  renderHook(
+    () =>
+      useConversationThreadNotifications(notification => {
+        heard.push(notification.type)
+      }),
+    {wrapper}
+  )
+  const commandMarkdown = () =>
+    deliverThreadNotifications([{conversationIDKey: convID, notification: {md: undefined, type: 'commandMarkdown'}}], 'test')
+  act(commandMarkdown)
+  act(() => {
+    // the next account signs in; until React renders again the screen is still registered
+    useCurrentUserState.getState().dispatch.setBootstrap({
+      deviceID: 'device-id-2',
+      deviceName: 'test-device-2',
+      uid: 'uid-2',
+      username: 'testuser-mac',
+    })
+    commandMarkdown()
+  })
+  expect(heard).toEqual(['commandMarkdown'])
+  act(commandMarkdown)
+  expect(heard).toEqual(['commandMarkdown', 'commandMarkdown'])
+})
+
 test('active change does not mark read after a centered thread load', async () => {
   useConfigState.setState({loggedIn: true})
   useShellState.getState().dispatch.setActive(false)
@@ -952,7 +981,7 @@ test('mounted thread listener applies failed outbox messages for the active conv
   })
 
   act(() => {
-    notifyEngineActionListeners({
+    routeChatNotification({
       payload: {
         params: {
           activity: {
@@ -982,7 +1011,7 @@ test('mounted thread listener ignores messagesUpdated for other conversations', 
   const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([9, 8, 7, 6]))
 
   act(() => {
-    notifyEngineActionListeners({
+    routeChatNotification({
       payload: {
         params: {
           activity: {
@@ -1010,7 +1039,7 @@ test('mounted thread listener ignores incoming messages for other conversations'
   const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([9, 8, 7, 6]))
 
   act(() => {
-    notifyEngineActionListeners({
+    routeChatNotification({
       payload: {
         params: {
           activity: {
@@ -1064,7 +1093,7 @@ test('mounted thread listener applies reaction updates for the active conversati
   markAsRead.mockClear()
 
   act(() => {
-    notifyEngineActionListeners({
+    routeChatNotification({
       payload: {
         params: {
           activity: {
@@ -1149,7 +1178,7 @@ test('loaded focus refresh does not overwrite newer streamed reaction updates', 
   expect(incomingCallMap).toBeDefined()
 
   act(() => {
-    notifyEngineActionListeners({
+    routeChatNotification({
       payload: {
         params: {
           activity: {
@@ -1214,7 +1243,6 @@ test('toggleMessageReaction overlays locally without mutating server reactions',
     () => ({
       actions: useConversationThreadActions(),
       message: useConversationThreadMessage(targetOrdinal),
-      messageActions: useConversationThreadMessageActions(),
       store: useConversationThreadStore(),
     }),
     {wrapper}
@@ -1231,7 +1259,7 @@ test('toggleMessageReaction overlays locally without mutating server reactions',
   })
 
   act(() => {
-    result.current.messageActions.toggleMessageReaction(targetOrdinal, ':+1:')
+    toggleReaction({conversationIDKey: convID, ordinal: targetOrdinal, thread: result.current.actions}, ':+1:')
   })
 
   expect(result.current.message?.reactions?.get(':+1:')?.users.map(u => u.username)).toEqual(['alice'])
@@ -1244,7 +1272,7 @@ test('toggleMessageReaction overlays locally without mutating server reactions',
   expect(outboxID).toBeDefined()
 
   act(() => {
-    notifyEngineActionListeners({
+    routeChatNotification({
       payload: {
         params: {
           activity: {
@@ -1268,7 +1296,7 @@ test('toggleMessageReaction overlays locally without mutating server reactions',
   expect(result.current.store.getState().messageMap.get(targetOrdinal)?.reactions).toBeUndefined()
 
   act(() => {
-    notifyEngineActionListeners({
+    routeChatNotification({
       payload: {
         params: {
           activity: {
@@ -1319,7 +1347,7 @@ test('mounted thread listener applies request and payment decorators for the act
   )
 
   act(() => {
-    notifyEngineActionListeners({
+    routeChatNotification({
       payload: {
         params: {
           convID: T.Chat.keyToConversationID(convID),
@@ -1330,7 +1358,7 @@ test('mounted thread listener applies request and payment decorators for the act
       },
       type: 'chat.1.NotifyChat.ChatRequestInfo',
     } as never)
-    notifyEngineActionListeners({
+    routeChatNotification({
       payload: {
         params: {
           convID: T.Chat.keyToConversationID(convID),
@@ -1361,7 +1389,7 @@ test('mounted thread listener applies unfurl prompts and coin flip status for th
   )
 
   act(() => {
-    notifyEngineActionListeners({
+    routeChatNotification({
       payload: {
         params: {
           convID: T.Chat.keyToConversationID(convID),
@@ -1371,7 +1399,7 @@ test('mounted thread listener applies unfurl prompts and coin flip status for th
       },
       type: 'chat.1.NotifyChat.ChatPromptUnfurl',
     } as never)
-    notifyEngineActionListeners({
+    routeChatNotification({
       payload: {
         params: {
           statuses: [
@@ -1402,7 +1430,7 @@ test('mounted thread listener applies typing updates for the active conversation
   const {result} = renderHook(() => useConversationThreadSelector(s => s.typing), {wrapper})
 
   act(() => {
-    notifyEngineActionListeners({
+    routeChatNotification({
       payload: {
         params: {
           typingUpdates: [
@@ -1446,7 +1474,7 @@ test('mounted thread listener applies attachment download and upload progress', 
   })
 
   act(() => {
-    notifyEngineActionListeners({
+    routeChatNotification({
       payload: {
         params: {
           bytesComplete: 25,
@@ -1457,7 +1485,7 @@ test('mounted thread listener applies attachment download and upload progress', 
       },
       type: 'chat.1.NotifyChat.ChatAttachmentDownloadProgress',
     } as never)
-    notifyEngineActionListeners({
+    routeChatNotification({
       payload: {
         params: {
           bytesComplete: 30,
@@ -1491,7 +1519,7 @@ test('mounted thread listener applies attachment download and upload progress', 
   ).toBe('uploading')
 
   act(() => {
-    notifyEngineActionListeners({
+    routeChatNotification({
       payload: {
         params: {
           convID: T.Chat.keyToConversationID(convID),

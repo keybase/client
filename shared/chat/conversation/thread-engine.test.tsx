@@ -13,7 +13,9 @@ import {
   applyIncomingMutationToThread,
   applyMessagesUpdatedToThread,
   applyReactionUpdateToThread,
+  applyThreadNotification,
 } from './thread-engine'
+import logger from '@/logger'
 import type {ConversationThreadActions, ConversationThreadState} from './thread-context'
 
 const conversationIDKey = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
@@ -466,5 +468,104 @@ describe('applyEphemeralPurgeToThread', () => {
       asActions(actions)
     )
     expect(actions.explodeMessages).toHaveBeenCalledWith([messageID(4), messageID(6)], undefined, true)
+  })
+})
+
+describe('applyThreadNotification', () => {
+  const makeAllActions = () =>
+    ({
+      ...makeActions(),
+      completeAttachmentDownload: jest.fn(),
+      receivePaymentInfo: jest.fn(),
+      receiveRequestInfo: jest.fn(),
+      setTyping: jest.fn(),
+      showUnfurlPrompt: jest.fn(),
+      updateAttachmentDownloadProgress: jest.fn(),
+      updateAttachmentUploadProgress: jest.fn(),
+      updateCoinFlipStatuses: jest.fn(),
+    }) as unknown as Actions
+
+  test('typing replaces the typers with the named usernames', () => {
+    const a = makeAllActions()
+    applyThreadNotification(
+      conversationIDKey,
+      {type: 'typing', typers: [{deviceID: 'd', uid: 'u', username: 'testuser-mac'}]},
+      asActions(a)
+    )
+    applyThreadNotification(conversationIDKey, {type: 'typing', typers: null}, asActions(a))
+    expect(a.setTyping.mock.calls).toEqual([[new Set(['testuser-mac'])], [new Set()]])
+  })
+
+  test('an upload start reports progress with no bytes', () => {
+    const a = makeAllActions()
+    const outboxID = new Uint8Array([1])
+    applyThreadNotification(conversationIDKey, {outboxID, type: 'attachmentUploadProgress'}, asActions(a))
+    expect(a.updateAttachmentUploadProgress).toHaveBeenCalledWith(outboxID, undefined, undefined)
+  })
+
+  test('download progress and completion pass the message id through', () => {
+    const a = makeAllActions()
+    applyThreadNotification(
+      conversationIDKey,
+      {bytesComplete: 1, bytesTotal: 4, msgID: 7, type: 'attachmentDownloadProgress'},
+      asActions(a)
+    )
+    applyThreadNotification(conversationIDKey, {msgID: 7, type: 'attachmentDownloadComplete'}, asActions(a))
+    expect(a.updateAttachmentDownloadProgress).toHaveBeenCalledWith(7, 1, 4)
+    expect(a.completeAttachmentDownload).toHaveBeenCalledWith(7)
+  })
+
+  test('an unfurl prompt is shown against its message', () => {
+    const a = makeAllActions()
+    applyThreadNotification(conversationIDKey, {domain: 'example.com', msgID: 3, type: 'promptUnfurl'}, asActions(a))
+    expect(a.showUnfurlPrompt).toHaveBeenCalledWith(messageID(3), 'example.com')
+  })
+
+  test('a request with no usable info is logged and dropped', () => {
+    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    const a = makeAllActions()
+    applyThreadNotification(
+      conversationIDKey,
+      {info: {} as T.RPCChat.UIRequestInfo, msgID: 3, type: 'requestInfo'},
+      asActions(a)
+    )
+    expect(a.receiveRequestInfo).not.toHaveBeenCalled()
+    expect(error).toHaveBeenCalledWith(expect.stringContaining("got 'NotifyChat.ChatRequestInfo' with no valid"))
+  })
+
+  test('a failed message only errors the records for this thread', () => {
+    const a = makeAllActions()
+    const record = (id: T.Chat.ConversationIDKey, outboxID: string) =>
+      ({
+        convID: T.Chat.keyToConversationID(id),
+        outboxID: T.Chat.outboxIDToRpcOutboxID(T.Chat.stringToOutboxID(outboxID)),
+        state: {error: {message: 'nope', typ: T.RPCChat.OutboxErrorType.misc}, state: T.RPCChat.OutboxStateType.error},
+      }) as unknown as T.RPCChat.OutboxRecord
+    applyThreadNotification(
+      conversationIDKey,
+      {
+        failedMessage: {
+          conv: null,
+          isEphemeralPurge: false,
+          outboxRecords: [record(otherConversationIDKey, '0b'), record(conversationIDKey, '0a')],
+        },
+        type: 'failedMessage',
+      },
+      asActions(a)
+    )
+    expect(a.setMessageErrored.mock.calls).toEqual([[T.Chat.stringToOutboxID('0a'), 'nope', T.RPCChat.OutboxErrorType.misc]])
+  })
+
+  test('composer and bot notifications leave the thread alone', () => {
+    const a = makeAllActions()
+    applyThreadNotification(conversationIDKey, {md: null, type: 'commandMarkdown'}, asActions(a))
+    applyThreadNotification(
+      conversationIDKey,
+      {status: {typ: T.RPCChat.UIBotCommandsUpdateStatusTyp.blank}, type: 'botCommandsUpdateStatus'},
+      asActions(a)
+    )
+    for (const fn of Object.values(a)) {
+      if (fn !== a.getSnapshot) expect(fn).not.toHaveBeenCalled()
+    }
   })
 })

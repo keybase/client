@@ -5,6 +5,7 @@ import HiddenString from '@/util/hidden-string'
 import {
   addMessagesToThreadState,
   applyOptimisticReactionsToMessage,
+  clearPendingDeletesInThreadState,
   clearOptimisticReactionsForUpdatesInThreadState,
   deleteMessagesFromThreadState,
   explodeMessagesInThreadState,
@@ -720,5 +721,25 @@ describe('local server urls', () => {
     addMessagesToThreadState(replaced, [make('http://127.0.0.1:5000/f')], {})
     addMessagesToThreadState(replaced, [make(validUrl)], {})
     expect(read(replaced)).toBe(validUrl)
+  })
+})
+
+describe('clearPendingDeletesInThreadState', () => {
+  const o = T.Chat.numberToOrdinal
+  const text = (n: number, over?: Partial<T.Chat.MessageText>) =>
+    Message.makeMessageText({conversationIDKey: convID, id: T.Chat.numberToMessageID(n), ordinal: o(n), ...over})
+
+  test('drops a delete whose row is gone, a deleted placeholder or exploded', () => {
+    const state = {
+      messageMap: new Map<T.Chat.Ordinal, T.Chat.Message>([
+        [o(2), Message.makeMessageDeleted({conversationIDKey: convID, id: T.Chat.numberToMessageID(2), ordinal: o(2)})],
+        [o(3), text(3, {exploded: true, exploding: true})],
+        [o(4), text(4, {exploding: true})],
+        [o(5), text(5)],
+      ]),
+      pendingDeleteMap: new Map([1, 2, 3, 4, 5].map(n => [T.Chat.stringToOutboxID(`d${n}`), o(n)])),
+    }
+    clearPendingDeletesInThreadState(state)
+    expect([...state.pendingDeleteMap.values()]).toEqual([o(4), o(5)])
   })
 })

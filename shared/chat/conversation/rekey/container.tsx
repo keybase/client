@@ -1,10 +1,9 @@
 import * as C from '@/constants'
 import {useCurrentUserState} from '@/stores/current-user'
-import * as T from '@/constants/types'
 import ParticipantRekey from './participant-rekey'
 import YouRekey from './you-rekey'
 import {navToProfile} from '@/constants/router'
-import {useThreadMeta} from '../thread-context'
+import {useThreadMeta, useThreadRpc} from '../thread-context'
 
 const Container = () => {
   const _you = useCurrentUserState(s => s.username)
@@ -14,13 +13,9 @@ const Container = () => {
   const onEnterPaperkey = () => {
     navigateAppend({name: 'chatEnterPaperkey', params: {}})
   }
-  const rekeyShowPendingRekeyStatus = C.useRPC(T.RPCGen.rekeyShowPendingRekeyStatusRpcPromise)
+  const rpc = useThreadRpc()
   const onRekey = () => {
-    rekeyShowPendingRekeyStatus(
-      [],
-      () => {},
-      () => {}
-    )
+    C.ignorePromise(rpc.showPendingRekeyStatus())
   }
 
   const onShowProfile = navToProfile

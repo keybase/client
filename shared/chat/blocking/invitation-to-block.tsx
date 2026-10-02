@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {useBlockButtonsInfo} from './block-buttons-state'
@@ -12,13 +12,16 @@ import {
   useConversationThreadID,
   useConversationThreadSelector,
   useThreadMeta,
+  useThreadRpc,
 } from '../conversation/thread-context'
 import {useConversationParticipantsSelector} from '../conversation/data-hooks'
+import type {ChatThreadRpc} from '../conversation/chat-rpc'
+import {useConversationSendActions} from '../conversation/send-actions'
 
-const dismissBlockButtons = (teamID: T.RPCGen.TeamID) => {
+const dismissBlockButtons = (rpc: ChatThreadRpc, teamID: T.RPCGen.TeamID) => {
   const f = async () => {
     try {
-      await T.RPCGen.userDismissBlockButtonsRpcPromise({tlfID: teamID})
+      await rpc.dismissBlockButtons(teamID)
     } catch (error) {
       if (error instanceof RPCError) {
         logger.error(`Couldn't dismiss block buttons: ${error.message}`)
@@ -33,9 +36,9 @@ const BlockButtons = () => {
   const theme = Kb.Styles.useTheme()
   const navigateAppend = C.Router2.navigateAppend
   const conversationIDKey = useConversationThreadID()
-  const {team, teamID, tlfname} = useThreadMeta(
-    C.useShallow(m => ({team: m.teamname, teamID: m.teamID, tlfname: m.tlfname}))
-  )
+  const rpc = useThreadRpc()
+  const {sendWave} = useConversationSendActions()
+  const {team, teamID} = useThreadMeta(C.useShallow(m => ({team: m.teamname, teamID: m.teamID})))
   const participantInfo = useConversationParticipantsSelector(
     conversationIDKey,
     C.useShallow(p => ({all: p.all, name: p.name}))
@@ -53,9 +56,9 @@ const BlockButtons = () => {
 
   React.useEffect(() => {
     if (hasOwnMessage && blockButtonInfo && teamID) {
-      dismissBlockButtons(teamID)
+      dismissBlockButtons(rpc, teamID)
     }
-  }, [blockButtonInfo, hasOwnMessage, teamID])
+  }, [blockButtonInfo, hasOwnMessage, rpc, teamID])
 
   if (!blockButtonInfo) {
     return null
@@ -78,7 +81,7 @@ const BlockButtons = () => {
         username: adder,
       },
     })
-  const onDismiss = () => dismissBlockButtons(teamID)
+  const onDismiss = () => dismissBlockButtons(rpc, teamID)
 
   const buttonRow = (
     <Kb.ButtonBar
@@ -88,8 +91,7 @@ const BlockButtons = () => {
     >
       <Kb.WaveButton
         small={true}
-        conversationIDKey={conversationIDKey}
-        tlfName={tlfname}
+        onWave={sendWave}
         toMany={others.length > 0 || !!team}
         style={styles.waveButton}
       />

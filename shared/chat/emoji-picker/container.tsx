@@ -13,10 +13,7 @@ import {usePickerState, type PickKey} from './use-picker'
 import {Keyboard} from 'react-native'
 import {useUserEmoji} from '@/chat/user-emoji'
 import {useCurrentSkinTone, useSetSkinTone, useTopReacjis} from '@/chat/user-reacjis'
-import {
-  toggleConversationMessageReaction,
-  toggleConversationMessageReactionByID,
-} from '@/chat/conversation/message-actions'
+import {toggleReaction} from '@/chat/conversation/message-commands'
 import {useConversationMessage, useConversationMeta} from '@/chat/conversation/data-hooks'
 
 type Props = {
@@ -53,11 +50,10 @@ const useReacji = ({
   )
   const onChoose = (emoji: string, renderableEmoji: RenderableEmoji) => {
     if (conversationIDKey !== T.Chat.noConversationIDKey && onPickAddToMessageID) {
-      if (message) {
-        toggleConversationMessageReaction(conversationIDKey, message, emoji)
-      } else {
-        toggleConversationMessageReactionByID(conversationIDKey, onPickAddToMessageID, emoji)
-      }
+      toggleReaction(
+        message ? {conversationIDKey, message} : {conversationIDKey, messageID: onPickAddToMessageID},
+        emoji
+      )
     }
     onPickAction?.(emoji, renderableEmoji)
     onDidPick?.()

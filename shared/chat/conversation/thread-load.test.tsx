@@ -1,19 +1,31 @@
 /// <reference types="jest" />
+import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
+import * as Teams from '@/constants/teams'
+import RPCError from '@/util/rpcerror'
+import logger from '@/logger'
 import {makeMessageText} from '@/constants/chat/message'
+import {getClientPrevFromThread} from './client-prev'
+import {getChatRpc, makeThreadChatRpc} from './chat-rpc'
 import {
-  getClientPrevFromSnapshot,
   getExplodingModeFromGregorItems,
   getLastOrdinalFromSnapshot,
   getOrdinalForMessageIDInSnapshot,
   loadConversationThreadMessages,
   maxBackPageReloads,
   numMessagesOnScrollback,
+  persistExplodingMode,
   scrollDirectionToPagination,
 } from './thread-load'
-import * as ThreadRpc from './thread-rpc'
 import {resetAllStores} from '@/util/zustand'
+import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
+import {
+  installFakeChatRpc,
+  restoreChatRpc,
+  type ChatRpcScript,
+  type FakeChatRpc,
+} from '@/test/fake-chat-rpc'
 import type {ThreadLoadReconcile} from './thread-message-state'
 import type {
   ConversationThreadActions,
@@ -30,6 +42,26 @@ const gregorItem = (category: string, body: string) => ({
     category,
   } as T.RPCGen.Gregor1.Item,
 })
+
+let chatRpc: FakeChatRpc
+
+beforeEach(() => {
+  // loadThread asks nothing of the service while the chat session is not ready
+  useConfigState.setState({loggedIn: true})
+  chatRpc = installFakeChatRpc()
+})
+
+afterEach(() => {
+  restoreChatRpc()
+})
+
+// Scripts every thread load; the returned function reads the loads made so far.
+const scriptLoadThread = (script?: ChatRpcScript<'loadThread'>) => {
+  if (script) {
+    chatRpc.on('loadThread', script)
+  }
+  return () => chatRpc.calls('loadThread')
+}
 
 describe('getExplodingModeFromGregorItems', () => {
   test('no exploding items at all means no exploding mode', () => {
@@ -102,11 +134,11 @@ describe('snapshot helpers', () => {
       ...extra,
     }) as unknown as ConversationThreadState
 
-  test('getClientPrevFromSnapshot returns 0 for an empty thread', () => {
-    expect(getClientPrevFromSnapshot(makeSnapshot([]))).toBe(0)
+  test('getClientPrevFromThread returns 0 for an empty thread', () => {
+    expect(getClientPrevFromThread(new Map())).toBe(0)
   })
 
-  test('getClientPrevFromSnapshot skips trailing pending messages with no id', () => {
+  test('getClientPrevFromThread skips trailing pending messages with no id', () => {
     const snapshot = makeSnapshot([
       {id: 1, ordinal: 1},
       {id: 2, ordinal: 2},
@@ -122,7 +154,7 @@ describe('snapshot helpers', () => {
       messageOrdinals: [...(snapshot.messageOrdinals ?? []), pendingOrdinal],
     } as ConversationThreadState
 
-    expect(getClientPrevFromSnapshot(withPending)).toBe(2)
+    expect(getClientPrevFromThread(withPending.messageMap, withPending.messageOrdinals)).toBe(2)
   })
 
   test('getLastOrdinalFromSnapshot returns the last ordinal or 0', () => {
@@ -209,6 +241,7 @@ describe('a back page that adds no ordinals reloads itself', () => {
         loadConversationThreadMessages(conversationIDKey, p, actions)
       }),
       markThreadAsRead: jest.fn(),
+      rpc: getChatRpc(),
     } as unknown as ConversationThreadActions
     return actions
   }
@@ -231,7 +264,7 @@ describe('a back page that adds no ordinals reloads itself', () => {
   // Each call walks one page further back, exactly as the service does, until it runs out.
   const mockWalkingBack = (oldestOverall: number) => {
     let next = 7151
-    return jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+    return scriptLoadThread(async p => {
       const from = next
       const to = Math.max(oldestOverall, from - numMessagesOnScrollback + 1)
       next = to - 1
@@ -269,7 +302,7 @@ describe('a back page that adds no ordinals reloads itself', () => {
     const rpc = mockWalkingBack(6952)
     loadBack(trackingActions())
     await flushPromises()
-    expect(rpc).toHaveBeenCalledTimes(2)
+    expect(rpc()).toHaveLength(2)
   })
 
   test('walks a run of tombstones that ends before the cap', async () => {
@@ -277,7 +310,7 @@ describe('a back page that adds no ordinals reloads itself', () => {
     const rpc = mockWalkingBack(oldest)
     loadBack(trackingActions())
     await flushPromises()
-    expect(rpc).toHaveBeenCalledTimes(Math.ceil((7151 - oldest + 1) / numMessagesOnScrollback))
+    expect(rpc()).toHaveLength(Math.ceil((7151 - oldest + 1) / numMessagesOnScrollback))
   })
 
   test('stops at the reload cap rather than walking an expunged history', async () => {
@@ -287,13 +320,13 @@ describe('a back page that adds no ordinals reloads itself', () => {
     const rpc = mockWalkingBack(1)
     loadBack(trackingActions())
     await flushPromises()
-    expect(rpc).toHaveBeenCalledTimes(maxBackPageReloads + 1)
+    expect(rpc()).toHaveLength(maxBackPageReloads + 1)
   })
 
   test('stops if a page fails to reach further back', async () => {
     // A service that keeps handing back the same window must not spin us forever. Progress in
     // message ID is the only thing permitting another attempt.
-    const rpc = jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+    const rpc = scriptLoadThread(async p => {
       await Promise.resolve()
       p.onFullThread?.(
         JSON.stringify({messages: tombstones(7151, 7052), pagination: {last: false, num: 100}})
@@ -302,12 +335,12 @@ describe('a back page that adds no ordinals reloads itself', () => {
     })
     loadBack(trackingActions())
     await flushPromises()
-    expect(rpc).toHaveBeenCalledTimes(2)
+    expect(rpc()).toHaveLength(2)
   })
 
   test('does not reload when the page actually added ordinals', async () => {
     // Renderable messages, so the store grows and the list will ask for the next page itself.
-    const rpc = jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+    const rpc = scriptLoadThread(async p => {
       await Promise.resolve()
       p.onFullThread?.(
         JSON.stringify({messages: visible(7151, 7052), pagination: {last: false, num: 100}})
@@ -316,7 +349,7 @@ describe('a back page that adds no ordinals reloads itself', () => {
     })
     loadBack(trackingActions())
     await flushPromises()
-    expect(rpc).toHaveBeenCalledTimes(1)
+    expect(rpc()).toHaveLength(1)
   })
 
   test('reloads when a warm cache delivers the tombstones', async () => {
@@ -324,7 +357,7 @@ describe('a back page that adds no ordinals reloads itself', () => {
     // wins and the cached pass carries the page - which is entirely tombstones. Judging only the
     // full pass, or refusing to judge at all once a cached pass arrived, leaves this inert.
     let next = 7151
-    const rpc = jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+    const rpc = scriptLoadThread(async p => {
       const from = next
       const to = Math.max(6952, from - numMessagesOnScrollback + 1)
       next = to - 1
@@ -340,7 +373,7 @@ describe('a back page that adds no ordinals reloads itself', () => {
     })
     loadBack(trackingActions())
     await flushPromises()
-    expect(rpc).toHaveBeenCalledTimes(2)
+    expect(rpc()).toHaveLength(2)
   })
 
   test('does not reload after a cached pass already delivered the page', async () => {
@@ -348,7 +381,7 @@ describe('a back page that adds no ordinals reloads itself', () => {
     // and the full pass that follows is INCREMENTAL - only the messages that changed, every one of
     // them already in the window. On ordinal count alone that is indistinguishable from a page of
     // tombstones, and reloading on it walks the client back through the entire conversation.
-    const rpc = jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+    const rpc = scriptLoadThread(async p => {
       await Promise.resolve()
       p.onCachedThread?.(
         JSON.stringify({messages: visible(7151, 7052), pagination: {last: false, num: 100}})
@@ -360,7 +393,7 @@ describe('a back page that adds no ordinals reloads itself', () => {
     })
     loadBack(trackingActions())
     await flushPromises()
-    expect(rpc).toHaveBeenCalledTimes(1)
+    expect(rpc()).toHaveLength(1)
   })
 
   test('stops when the window is cleared under it', async () => {
@@ -384,8 +417,9 @@ describe('a back page that adds no ordinals reloads itself', () => {
           pendingOutboxToOrdinal: new Map(),
         }) as unknown as ConversationThreadState,
       markThreadAsRead: jest.fn(),
+      rpc: getChatRpc(),
     } as unknown as ConversationThreadActions
-    const rpc = jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+    const rpc = scriptLoadThread(async p => {
       calls++
       await Promise.resolve()
       // Someone hits jump-to-recent while the first page is in flight.
@@ -399,14 +433,14 @@ describe('a back page that adds no ordinals reloads itself', () => {
     })
     loadBack(actions)
     await flushPromises()
-    expect(rpc).toHaveBeenCalledTimes(1)
+    expect(rpc()).toHaveLength(1)
   })
 
   test('does not reload an initial load', async () => {
     const rpc = mockWalkingBack(6152)
     loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, trackingActions())
     await flushPromises()
-    expect(rpc).toHaveBeenCalledTimes(1)
+    expect(rpc()).toHaveLength(1)
   })
 })
 
@@ -437,6 +471,7 @@ describe('a load releases the window gate it was issued under', () => {
         }) as unknown as ConversationThreadState,
       loadMoreMessages: jest.fn(),
       markThreadAsRead: jest.fn(),
+      rpc: getChatRpc(),
     }) as unknown as ConversationThreadActions
 
   beforeEach(() => {
@@ -456,7 +491,7 @@ describe('a load releases the window gate it was issued under', () => {
   test('releases it when the load bails before the rpc is even made', async () => {
     // The clear issues its reload synchronously, so if that reload is the one bailing there is
     // nothing else coming to take the gate down and the thread stops receiving messages for good.
-    const rpc = jest.spyOn(ThreadRpc, 'loadThreadNonblock')
+    const rpc = scriptLoadThread()
     const actions = gateActions(() => 3)
     loadConversationThreadMessages(
       conversationIDKey,
@@ -465,14 +500,23 @@ describe('a load releases the window gate it was issued under', () => {
     )
     await flushPromises()
 
-    expect(rpc).not.toHaveBeenCalled()
+    expect(rpc()).toEqual([])
     expect(actions.clearWindowGate).toHaveBeenCalledTimes(1)
+  })
+
+  test('a load for a thread that has retired asks the service nothing', async () => {
+    const rpc = scriptLoadThread()
+    const actions = {...gateActions(() => 3), rpc: makeThreadChatRpc(() => true)}
+    loadConversationThreadMessages(conversationIDKey, {reason: 'focused'}, actions)
+    await flushPromises()
+
+    expect(rpc()).toEqual([])
   })
 
   test('releases it when the load ends without ever applying', async () => {
     // A response that carries no thread: applyThreadLoad never runs, so nothing else would take the
     // gate down. Left up it drops every notification for the life of the provider.
-    jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async () => {
+    scriptLoadThread(async () => {
       await Promise.resolve()
       return undefined as never
     })
@@ -489,7 +533,7 @@ describe('a load releases the window gate it was issued under', () => {
     // dropped and lowers the gate the new load is relying on, and the two disjoint pages then
     // merge - the stranded-row bug the gate exists to prevent.
     let clearVersion = 3
-    jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+    scriptLoadThread(async p => {
       await Promise.resolve()
       clearVersion = 4
       p.onFullThread?.(
@@ -541,8 +585,9 @@ describe('a load releases the window gate it was issued under', () => {
         }) as unknown as ConversationThreadState,
       loadMoreMessages: jest.fn(),
       markThreadAsRead: jest.fn(),
+      rpc: getChatRpc(),
     } as unknown as ConversationThreadActions
-    jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+    scriptLoadThread(async p => {
       await Promise.resolve()
       p.onFullThread?.(
         JSON.stringify({
@@ -587,8 +632,9 @@ describe('a load releases the window gate it was issued under', () => {
         }) as unknown as ConversationThreadState,
       loadMoreMessages: jest.fn(),
       markThreadAsRead: jest.fn(),
+      rpc: getChatRpc(),
     } as unknown as ConversationThreadActions
-    jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+    scriptLoadThread(async p => {
       await Promise.resolve()
       p.onFullThread?.(
         JSON.stringify({
@@ -615,7 +661,7 @@ describe('a load releases the window gate it was issued under', () => {
     // generation does not move between two loads of the same conversation, so it cannot tell them
     // apart on its own.
     let clearVersion = 3
-    jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async () => {
+    scriptLoadThread(async () => {
       await Promise.resolve()
       clearVersion = 4
       return undefined as never
@@ -657,10 +703,11 @@ describe('only a pass that can account for a whole window reconciles', () => {
         }) as unknown as ConversationThreadState,
       loadMoreMessages: jest.fn(),
       markThreadAsRead: jest.fn(),
+      rpc: getChatRpc(),
     }) as unknown as ConversationThreadActions
 
   const mockPasses = (cached: string, full: string) =>
-    jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+    scriptLoadThread(async p => {
       await Promise.resolve()
       p.onCachedThread?.(cached)
       p.onFullThread?.(full)
@@ -733,8 +780,9 @@ describe('only a pass that can account for a whole window reconciles', () => {
         }) as unknown as ConversationThreadState,
       loadMoreMessages: jest.fn(),
       markThreadAsRead: jest.fn(),
+      rpc: getChatRpc(),
     } as unknown as ConversationThreadActions
-    jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+    scriptLoadThread(async p => {
       await Promise.resolve()
       p.onCachedThread?.(
         JSON.stringify({messages: page(7153, 7052), pagination: {last: false, num: 100}})
@@ -758,7 +806,7 @@ describe('only a pass that can account for a whole window reconciles', () => {
     // firing - with a thread, or with the nil a cold cache sends - is the only sign we get that
     // this did not happen.
     const actions = recordingActions()
-    jest.spyOn(ThreadRpc, 'loadThreadNonblock').mockImplementation(async p => {
+    scriptLoadThread(async p => {
       await Promise.resolve()
       p.onFullThread?.(
         JSON.stringify({messages: page(7153, 7150), pagination: {last: false, num: 100}})
@@ -787,5 +835,91 @@ describe('only a pass that can account for a whole window reconciles', () => {
     await flushPromises()
 
     expect(prunedOnLastPass(actions)).toBe(true)
+  })
+})
+
+describe('persistExplodingMode', () => {
+  const meta = (retention?: Partial<T.Retention.RetentionPolicy>) => ({
+    ...Meta.makeConversationMeta(),
+    retentionPolicy: Teams.makeRetentionPolicy(retention),
+  })
+
+  const flush = async () => {
+    for (let i = 0; i < 10; i++) {
+      await Promise.resolve()
+    }
+  }
+
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
+  test('a lifetime is stored as the gregor category body', async () => {
+    persistExplodingMode(conversationIDKey, meta(), 300, getChatRpc())
+    await flush()
+    expect(chatRpc.calls('setExplodingMode')).toEqual([[conversationIDKey, 300]])
+    expect(chatRpc.calls('clearExplodingMode')).toEqual([])
+  })
+
+  test('turning it off dismisses the category', async () => {
+    persistExplodingMode(conversationIDKey, meta(), 0, getChatRpc())
+    await flush()
+    expect(chatRpc.calls('clearExplodingMode')).toEqual([[conversationIDKey]])
+    expect(chatRpc.calls('setExplodingMode')).toEqual([])
+  })
+
+  test('a lifetime equal to the retention policy is the default, so it dismisses too', async () => {
+    persistExplodingMode(conversationIDKey, meta({seconds: 86400, type: 'explode'}), 86400, getChatRpc())
+    await flush()
+    expect(chatRpc.calls('clearExplodingMode')).toEqual([[conversationIDKey]])
+    expect(chatRpc.calls('setExplodingMode')).toEqual([])
+  })
+
+  test('an inherited policy compares against the team policy', async () => {
+    persistExplodingMode(
+      conversationIDKey,
+      {
+        ...meta({type: 'inherit'}),
+        teamRetentionPolicy: Teams.makeRetentionPolicy({seconds: 3600, type: 'explode'}),
+      },
+      3600,
+      getChatRpc()
+    )
+    await flush()
+    expect(chatRpc.calls('clearExplodingMode')).toEqual([[conversationIDKey]])
+  })
+
+  test('a thread that has retired persists nothing', async () => {
+    persistExplodingMode(conversationIDKey, meta(), 300, makeThreadChatRpc(() => true))
+    persistExplodingMode(conversationIDKey, meta(), 0, makeThreadChatRpc(() => true))
+    await flush()
+    expect(chatRpc.log).toEqual([])
+  })
+
+  test('a transient service error is logged and dropped', async () => {
+    chatRpc.fail('setExplodingMode', new RPCError('offline', T.RPCGen.StatusCode.scapinetworkerror))
+    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    persistExplodingMode(conversationIDKey, meta(), 300, getChatRpc())
+    await flush()
+    expect(error).toHaveBeenCalledTimes(1)
+    expect(error).toHaveBeenCalledWith(expect.stringContaining('Failed to set exploding mode'))
+  })
+
+  test('any other service error is logged and rethrown', async () => {
+    chatRpc.fail('clearExplodingMode', new RPCError('bad', T.RPCGen.StatusCode.scgeneric))
+    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    persistExplodingMode(conversationIDKey, meta(), 0, getChatRpc())
+    await flush()
+    expect(error).toHaveBeenCalledWith(expect.stringContaining('Failed to unset exploding mode'))
+    expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(RPCError))
+  })
+
+  test('a non-service error is rethrown without the service log', async () => {
+    chatRpc.fail('setExplodingMode', new Error('bug'))
+    const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    persistExplodingMode(conversationIDKey, meta(), 300, getChatRpc())
+    await flush()
+    expect(error).toHaveBeenCalledTimes(1)
+    expect(error).toHaveBeenCalledWith('ignorePromise error', expect.any(Error))
   })
 })

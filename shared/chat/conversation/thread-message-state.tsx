@@ -514,6 +514,36 @@ export const applyOptimisticReactionsToMessage = (
   return changed ? {...message, reactions} : message
 }
 
+// Deletes of sent rows this client has asked the service for and not yet seen land, each keyed by
+// the outbox id it was posted under, so one call's revert or failure touches only its own entry. A
+// row is shown deleting while any entry names it. Client-only: it is never merged into a row.
+export type PendingDeleteMap = ReadonlyMap<T.Chat.OutboxID, T.Chat.Ordinal>
+
+export const isPendingDelete = (pendingDeletes: PendingDeleteMap, ordinal: T.Chat.Ordinal) => {
+  for (const o of pendingDeletes.values()) {
+    if (o === ordinal) {
+      return true
+    }
+  }
+  return false
+}
+
+// Drops every entry whose delete has landed: its row is gone, a deleted placeholder, or exploded
+// (deleting an exploding message explodes it).
+export const clearPendingDeletesInThreadState = (state: {
+  messageMap: ReadonlyMap<T.Chat.Ordinal, T.Chat.Message>
+  pendingDeleteMap: Map<T.Chat.OutboxID, T.Chat.Ordinal>
+}) => {
+  const landed = (ordinal: T.Chat.Ordinal) => {
+    const m = state.messageMap.get(ordinal)
+    return !m || m.type === 'deleted' || ('exploded' in m && !!m.exploded)
+  }
+  const settled = [...state.pendingDeleteMap].filter(([, ordinal]) => landed(ordinal))
+  for (const [outboxID] of settled) {
+    state.pendingDeleteMap.delete(outboxID)
+  }
+}
+
 const clearOptimisticReactionsForOrdinal = (
   state: {optimisticReactionMap: Map<T.Chat.OutboxID, OptimisticReaction>},
   ordinal: T.Chat.Ordinal

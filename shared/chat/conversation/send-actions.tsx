@@ -3,7 +3,8 @@ import * as T from '@/constants/types'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {ignorePromise} from '@/constants/utils'
-import {getClientPrevFromThread} from './attachment-actions'
+import {getClientPrevFromThread} from './client-prev'
+import {getChatRpc, type ChatThreadRpc, type PostTextParams} from './chat-rpc'
 import {removeDismissals, restoreDismissals, suppressedURLsOf, type SuppressSnapshot} from './unfurl-preview-state'
 import {useInboxMetadataState} from '../inbox/metadata-store'
 import {
@@ -12,60 +13,27 @@ import {
   useConversationThreadStore,
 } from './thread-context'
 
-type SendTextParams = {
-  clientPrev: T.Chat.MessageID
-  conversationIDKey: T.Chat.ConversationIDKey
-  ephemeralLifetime: number
+type SendTextParams = Omit<PostTextParams, 'onStellarCanceled'> & {
   onRestoreText?: (text: string) => void
   onSent?: () => void
-  replyTo?: T.Chat.MessageID
-  text: string
-  tlfName: string
-  unfurlSuppress?: ReadonlyArray<string>
-  waitingKey?: string
 }
 
-const sendTextMessageStoreless = (p: SendTextParams) => {
+const sendText = (rpc: ChatThreadRpc, p: SendTextParams) => {
   const f = async () => {
-    const ephemeralData = p.ephemeralLifetime !== 0 ? {ephemeralLifetime: p.ephemeralLifetime} : {}
+    const {onRestoreText, onSent, ...params} = p
     // a canceled stellar confirm resolves the rpc normally but posts nothing, so it is
     // not a send and must not be treated as one
     const sendState = {stellarCanceled: false}
     try {
-      await T.RPCChat.localPostTextNonblockRpcListener({
-        customResponseIncomingCallMap: {
-          'chat.1.chatUi.chatStellarDataConfirm': (_, response) => {
-            response.result(false)
-          },
-          'chat.1.chatUi.chatStellarDataError': (_, response) => {
-            response.result(false)
-          },
+      await rpc.postText({
+        ...params,
+        onStellarCanceled: () => {
+          sendState.stellarCanceled = true
+          onRestoreText?.(p.text)
         },
-        incomingCallMap: {
-          'chat.1.chatUi.chatStellarDone': ({canceled}) => {
-            if (canceled) {
-              sendState.stellarCanceled = true
-              p.onRestoreText?.(p.text)
-            }
-          },
-          'chat.1.chatUi.chatStellarShowConfirm': () => {},
-        },
-        params: {
-          ...ephemeralData,
-          body: p.text,
-          clientPrev: p.clientPrev,
-          conversationID: T.Chat.keyToConversationID(p.conversationIDKey),
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-          outboxID: undefined,
-          replyTo: p.replyTo,
-          tlfName: p.tlfName,
-          tlfPublic: false,
-          unfurlSuppress: p.unfurlSuppress ? [...p.unfurlSuppress] : [],
-        },
-        waitingKey: p.waitingKey,
       })
       if (!sendState.stellarCanceled) {
-        p.onSent?.()
+        onSent?.()
       }
       logger.info('success')
     } catch {
@@ -76,23 +44,28 @@ const sendTextMessageStoreless = (p: SendTextParams) => {
   ignorePromise(f())
 }
 
+// never exploding, and with no clientPrev
+const plainText = (conversationIDKey: T.Chat.ConversationIDKey, tlfName: string, text: string) => ({
+  clientPrev: T.Chat.numberToMessageID(0),
+  conversationIDKey,
+  ephemeralLifetime: 0,
+  text,
+  tlfName,
+})
+
 export const sendTextToConversation = (
   conversationIDKey: T.Chat.ConversationIDKey,
   tlfName: string,
   text: string
 ) => {
-  sendTextMessageStoreless({
-    clientPrev: T.Chat.numberToMessageID(0),
-    conversationIDKey,
-    ephemeralLifetime: 0,
-    text,
-    tlfName,
-  })
+  sendText(getChatRpc(), plainText(conversationIDKey, tlfName, text))
 }
 
+// A screen kept through an account switch sends nothing: every call goes through the thread's rpc.
 export const useConversationSendActions = () => {
   const conversationIDKey = useConversationThreadID()
   const actions = useConversationThreadActions()
+  const {rpc} = actions
   // Callbacks-only hook: read thread/meta state lazily so per-row callers
   // (coinflip rows, the input provider) don't re-render on thread churn.
   const threadStore = useConversationThreadStore()
@@ -113,21 +86,30 @@ export const useConversationSendActions = () => {
     if (message.type === 'attachment' && message.title === text) {
       return
     }
+    // a failed or pending row gets its state back if the edit fails, so it can still be retried
+    const priorSubmitState = message.submitState
     actions.setMessageSubmitState(ordinal, 'editing')
     const f = async () => {
-      await T.RPCChat.localPostEditNonblockRpcPromise({
-        body: text,
-        clientPrev: getClientPrev(),
-        conversationID: T.Chat.keyToConversationID(conversationIDKey),
-        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-        outboxID: Common.generateOutboxID(),
-        target: {
+      try {
+        await rpc.postEdit({
+          clientPrev: getClientPrev(),
+          conversationIDKey,
           messageID: message.id,
-          outboxID: message.outboxID ? T.Chat.outboxIDToRpcOutboxID(message.outboxID) : undefined,
-        },
-        tlfName: getTlfName(),
-        tlfPublic: false,
-      })
+          messageOutboxID: message.outboxID,
+          text,
+          tlfName: getTlfName(),
+        })
+      } catch (error) {
+        // only undoes our own mark: a row that moved on since keeps its new state
+        if (threadStore.getState().messageMap.get(ordinal)?.submitState === 'editing') {
+          actions.setMessageSubmitState(ordinal, priorSubmitState)
+        }
+        if (error instanceof RPCError) {
+          logger.warn(`editMessage: failed to edit: ${error.message}`)
+        } else {
+          throw error
+        }
+      }
     }
     ignorePromise(f())
   }
@@ -157,7 +139,7 @@ export const useConversationSendActions = () => {
     const snapshot = context?.unfurlSuppress ?? {dismissed: [], failed: []}
     const unfurlSuppress = suppressedURLsOf(snapshot)
     const onRestoreText = context?.onRestoreText
-    sendTextMessageStoreless({
+    sendText(rpc, {
       clientPrev: getClientPrev(),
       conversationIDKey,
       ephemeralLifetime: threadStore.getState().explodingMode,
@@ -182,10 +164,10 @@ export const useConversationSendActions = () => {
   const sendGiphyResult = (result: T.RPCChat.GiphySearchResult, replyToOrdinal?: T.Chat.Ordinal) => {
     const f = async () => {
       try {
-        await T.RPCChat.localTrackGiphySelectRpcPromise({result})
+        await rpc.trackGiphySelect(result)
       } catch {}
       const replyTo = threadStore.getState().messageMap.get(replyToOrdinal ?? T.Chat.numberToOrdinal(0))?.id
-      sendTextMessageStoreless({
+      sendText(rpc, {
         clientPrev: getClientPrev(),
         conversationIDKey,
         ephemeralLifetime: threadStore.getState().explodingMode,
@@ -205,31 +187,36 @@ export const useConversationSendActions = () => {
       return
     }
 
-    const callerPreview = await T.RPCChat.localMakeAudioPreviewRpcPromise({amps, duration})
-    const explodingMode = threadStore.getState().explodingMode
-    const ephemeralData = explodingMode !== 0 ? {ephemeralLifetime: explodingMode} : {}
     try {
-      await T.RPCChat.localPostFileAttachmentLocalNonblockRpcPromise({
-        arg: {
-          ...ephemeralData,
-          callerPreview,
-          conversationID: T.Chat.keyToConversationID(conversationIDKey),
-          filename: path,
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-          metadata: new Uint8Array(),
-          outboxID,
-          title: '',
-          tlfName,
-          visibility: T.RPCGen.TLFVisibility.private,
-        },
+      const callerPreview = await rpc.makeAudioPreview(amps, duration)
+      // The thread's rpc would post nothing now, but it would never answer either: return, so the
+      // recorder waiting on this send still cleans up after itself.
+      if (actions.isRetired()) {
+        return
+      }
+      await rpc.postAttachment({
+        callerPreview,
         clientPrev: getClientPrev(),
+        conversationIDKey,
+        ephemeralLifetime: threadStore.getState().explodingMode,
+        filename: path,
+        outboxID,
+        title: '',
+        tlfName,
       })
     } catch (error) {
       if (error instanceof RPCError) {
         logger.warn('sendAudioRecording: failed to send attachment: ' + error.message)
+      } else {
+        logger.error('sendAudioRecording: failed to send attachment', error)
       }
     }
   }
 
-  return {sendAudioRecording, sendGiphyResult, sendMessage}
+  // a plain wave: never exploding, whatever the composer's mode
+  const sendWave = () => {
+    sendText(rpc, plainText(conversationIDKey, getTlfName(), ':wave:'))
+  }
+
+  return {sendAudioRecording, sendGiphyResult, sendMessage, sendWave}
 }
