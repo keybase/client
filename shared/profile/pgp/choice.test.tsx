@@ -1,8 +1,9 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import type * as React from 'react'
+import * as React from 'react'
 import * as T from '@/constants/types'
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
+import {NavigationContext} from '@react-navigation/core'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 import {flush, tick} from '@/test/flush'
@@ -62,10 +63,31 @@ const settle = async () => {
 const pushKey = async (fake: FakeEngine, sessionID: number) =>
   fake.push(keyGenerated, {key: {key: publicKey}, kid: 'kid'}, {sessionID})
 
+// The screen's route: its beforeRemove listeners, as the navigator would call them on removal
+let removeListeners: Set<() => void>
+const navigation = {
+  addListener: (type: string, cb: () => void) => {
+    if (type !== 'beforeRemove') return () => {}
+    removeListeners.add(cb)
+    return () => removeListeners.delete(cb)
+  },
+}
+const removeRoute = () => act(() => [...removeListeners].forEach(cb => cb()))
+
+// `hidden` hides the screen the way native-stack does under other screens: its effects are torn down
+const OnRoute = ({hidden = false}: {hidden?: boolean}) => (
+  <NavigationContext value={navigation as never}>
+    <React.Activity mode={hidden ? 'hidden' : 'visible'}>
+      <Choice />
+    </React.Activity>
+  </NavigationContext>
+)
+
 describe('the generate flow', () => {
   let nav: FakeNavigator
 
   beforeEach(() => {
+    removeListeners = new Set()
     nav = installFakeNavigator({
       modalRouteNames: ['profilePgp'],
       rootState: makeRootState({above: [{name: 'profilePgp'}]}),
@@ -81,7 +103,8 @@ describe('the generate flow', () => {
   const startGenerating = async (onEngineIncoming?: () => void) => {
     const fake = installFakeEngine({onEngineIncoming})
     const held = fake.hold(pgpRpc)
-    render(<Choice />)
+    // StrictMode mounts the screen's effects, unmounts them and mounts them again
+    const view = render(<OnRoute />, {reactStrictMode: true})
     fireEvent.click(screen.getByText('Get a new PGP key'))
     fireEvent.change(screen.getByPlaceholderText('Your full name'), {target: {value: 'Test User'}})
     fireEvent.change(screen.getByPlaceholderText('Email 1'), {target: {value: 'testuser@example.com'}})
@@ -89,7 +112,7 @@ describe('the generate flow', () => {
     await flush()
     expect(screen.getByText('Generating your unique key...')).toBeTruthy()
     const sessionID = fake.calls[0]!.params.sessionID as number
-    return {fake, held, sessionID}
+    return {fake, held, sessionID, view}
   }
 
   test('generating sends the uids from the form', async () => {
@@ -130,7 +153,8 @@ describe('the generate flow', () => {
     fireEvent.click(screen.getByText("Store encrypted private key on Keybase's server"))
     fireEvent.click(screen.getByText('Done, post to Keybase'))
     await expect(pushed).resolves.toEqual({result: true})
-    // clearModals unmounts the screen
+    // clearModals removes the screen
+    removeRoute()
     cleanup()
     void fake.push('keybase.1.secretUi.getPassphrase', {pinentry: {type: 0}}, {sessionID})
     await settle()
@@ -152,24 +176,39 @@ describe('the generate flow', () => {
     held[0]!.reply(undefined)
   })
 
-  test('unmounting before the key is generated refuses it, without reaching a global answerer', async () => {
+  test('leaving before the key is generated refuses it, without reaching a global answerer', async () => {
     const onEngineIncoming = jest.fn()
     const {fake, held, sessionID} = await startGenerating(onEngineIncoming)
-    cleanup()
+    removeRoute()
     await expect(pushKey(fake, sessionID)).resolves.toEqual({error: inputCanceled})
     await expect(fake.push(pushPrivate, {prompt: true}, {sessionID})).resolves.toEqual({error: inputCanceled})
     expect(onEngineIncoming).not.toHaveBeenCalled()
     held[0]!.reply(undefined)
   })
 
-  test('unmounting at the finished step refuses the store-on-server prompt', async () => {
+  test('leaving at the finished step refuses the store-on-server prompt', async () => {
     const {fake, held, sessionID} = await startGenerating()
     await pushKey(fake, sessionID)
     const pushed = fake.push(pushPrivate, {prompt: true}, {sessionID})
     await settle()
     expect(screen.getByText('Here is your unique public key!')).toBeTruthy()
-    cleanup()
+    removeRoute()
     await expect(pushed).resolves.toEqual({error: inputCanceled})
+    held[0]!.reply(undefined)
+  })
+
+  test('a screen hidden while generating and shown again keeps its run', async () => {
+    const {fake, held, sessionID, view} = await startGenerating()
+    view.rerender(<OnRoute hidden={true} />)
+    await settle()
+    await expect(pushKey(fake, sessionID)).resolves.toEqual({result: undefined})
+    const pushed = fake.push(pushPrivate, {prompt: false}, {sessionID})
+    await settle()
+    view.rerender(<OnRoute />)
+    await settle()
+    expect(screen.getByText('Here is your unique public key!')).toBeTruthy()
+    fireEvent.click(screen.getByText('Done'))
+    await expect(pushed).resolves.toEqual({result: false})
     held[0]!.reply(undefined)
   })
 
