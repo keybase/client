@@ -1,7 +1,9 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
+import * as React from 'react'
 import * as T from '@/constants/types'
-import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
+import {act, cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react'
+import {NavigationContext} from '@react-navigation/core'
 import {installFakeEngine} from '@/test/fake-engine'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 import {flush} from '@/test/flush'
@@ -51,10 +53,31 @@ const settle = async () => {
   await flush()
 }
 
+// The screen's route: its beforeRemove listeners, as the navigator would call them on removal
+let removeListeners: Set<() => void>
+const navigation = {
+  addListener: (type: string, cb: () => void) => {
+    if (type !== 'beforeRemove') return () => {}
+    removeListeners.add(cb)
+    return () => removeListeners.delete(cb)
+  },
+}
+const removeRoute = () => act(() => [...removeListeners].forEach(cb => cb()))
+
+// `hidden` hides the screen the way native-stack does under other screens: its effects are torn down
+const OnRoute = ({hidden = false, platform}: {hidden?: boolean; platform: string}) => (
+  <NavigationContext value={navigation as never}>
+    <React.Activity mode={hidden ? 'hidden' : 'visible'}>
+      <ProofsList platform={platform} />
+    </React.Activity>
+  </NavigationContext>
+)
+
 describe('the proofs screen', () => {
   let nav: FakeNavigator
 
   beforeEach(() => {
+    removeListeners = new Set()
     nav = installFakeNavigator({
       modalRouteNames: ['profileProofsList'],
       rootState: makeRootState({above: [{name: 'profileProofsList'}]}),
@@ -70,8 +93,11 @@ describe('the proofs screen', () => {
   const startWebsiteProof = async () => {
     const fake = installFakeEngine()
     const held = fake.hold(startProof)
-    render(<ProofsList platform="https" />)
+    // StrictMode mounts the screen's effects, unmounts them and mounts them again
+    const view = render(<OnRoute platform="https" />, {reactStrictMode: true})
     await flush()
+    // StrictMode's remount neither ended nor restarted the flow
+    expect(fake.calls).toHaveLength(1)
     const sessionID = fake.calls[0]!.params.sessionID as number
     const answered = fake.push(promptUsername, {prompt: 'Your website'}, {sessionID})
     await settle()
@@ -81,7 +107,7 @@ describe('the proofs screen', () => {
     const instructed = fake.push(outputInstructions, {instructions, proof: 'proof text'}, {sessionID})
     await settle()
     expect(screen.getByText('proof text')).toBeTruthy()
-    return {fake, held, instructed, sessionID}
+    return {fake, held, instructed, sessionID, view}
   }
 
   test('Continue answers the username, and the posted button answers the instructions', async () => {
@@ -103,9 +129,34 @@ describe('the proofs screen', () => {
     await settle()
   })
 
-  test('unmounting refuses the open instructions', async () => {
+  test('leaving the screen refuses the open instructions', async () => {
     const {held, instructed} = await startWebsiteProof()
-    cleanup()
+    removeRoute()
+    await expect(instructed).resolves.toEqual({error: inputCanceled})
+    held[0]!.reply(undefined)
+    await settle()
+  })
+
+  test('a screen hidden and shown again keeps its flow, and leaving it after still ends the flow', async () => {
+    const {fake, held, instructed, view} = await startWebsiteProof()
+    view.rerender(<OnRoute hidden={true} platform="https" />)
+    await settle()
+    view.rerender(<OnRoute platform="https" />)
+    await settle()
+    expect(fake.calls).toHaveLength(1)
+    expect(screen.getByText('proof text')).toBeTruthy()
+    fireEvent.click(screen.getByText('OK posted! Check for it!'))
+    await expect(instructed).resolves.toEqual({result: undefined})
+    held[0]!.reply(undefined)
+    // The flow ended, so its leave listener went with it
+    await waitFor(() => expect(removeListeners.size).toBe(0))
+  })
+
+  test('removing a hidden screen ends its flow', async () => {
+    const {held, instructed, view} = await startWebsiteProof()
+    view.rerender(<OnRoute hidden={true} platform="https" />)
+    await settle()
+    removeRoute()
     await expect(instructed).resolves.toEqual({error: inputCanceled})
     held[0]!.reply(undefined)
     await settle()

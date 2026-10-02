@@ -6,6 +6,7 @@ import * as T from '@/constants/types'
 import {makeInsertMatcher} from '@/util/string'
 import {produce} from 'immer'
 import {useColorScheme} from 'react-native'
+import {NavigationContext} from '@react-navigation/core'
 import Modal from '../modal'
 import {SiteIcon} from './site-icon'
 import {normalizeProofUsername} from '../proof-utils'
@@ -58,25 +59,12 @@ const ProofsList = ({platform, reason = 'profile'}: Props) => {
     new: s.metas.some(({label}) => label === 'new'),
   }))
 
-  const mountedRef = React.useRef(true)
+  // Absent outside a navigator (storybook)
+  const navigation = React.useContext(NavigationContext)
   const initialProofStartedRef = React.useRef(false)
   const initialRouteRef = React.useRef({platform, reason})
   const flowRef = React.useRef<ProofFlow | undefined>(undefined)
   const [step, setStep] = React.useState<Step>(platform ? {kind: 'loading'} : {kind: 'pick'})
-
-  const setStepSafe = (next: Step) => {
-    if (mountedRef.current) {
-      setStep(next)
-    }
-  }
-
-  React.useEffect(() => {
-    mountedRef.current = true
-    return () => {
-      mountedRef.current = false
-      flowRef.current?.dialog.dispose()
-    }
-  }, [])
 
   const closeModal = () => {
     flowRef.current?.dialog.dispose()
@@ -95,11 +83,11 @@ const ProofsList = ({platform, reason = 'profile'}: Props) => {
 
     switch (service) {
       case 'dnsOrGenericWebSite':
-        setStepSafe({kind: 'websiteChoice'})
+        setStep({kind: 'websiteChoice'})
         return
       case 'zcash':
       case 'btc':
-        setStepSafe({error: '', kind: 'enterUsername', platform: service, username: ''})
+        setStep({error: '', kind: 'enterUsername', platform: service, username: ''})
         return
       case 'pgp':
         navigateAppend({name: 'profilePgp', params: {}})
@@ -108,7 +96,7 @@ const ProofsList = ({platform, reason = 'profile'}: Props) => {
         break
     }
 
-    setStepSafe({kind: 'loading'})
+    setStep({kind: 'loading'})
 
     flowRef.current?.dialog.dispose()
     const flow = runProofFlow({
@@ -119,10 +107,13 @@ const ProofsList = ({platform, reason = 'profile'}: Props) => {
       proofPlatform,
       proofReason,
       service,
-      setStep: setStepSafe,
+      setStep,
     })
     flowRef.current = flow
-    ignorePromise(flow.finished)
+    // Leaving the screen ends the flow. Held for the flow's life rather than in an effect: StrictMode and a
+    // hidden screen run effect cleanups while the screen stays.
+    const stopDisposeOnLeave = navigation?.addListener('beforeRemove', () => flow.dialog.dispose())
+    ignorePromise(flow.finished.finally(() => stopDisposeOnLeave?.()))
   }
 
   const onSubmitProofUsername = (proofPlatform: T.More.PlatformsExpandedType, input: string) => {
@@ -130,7 +121,7 @@ const ProofsList = ({platform, reason = 'profile'}: Props) => {
 
     if (proofPlatform === 'btc') {
       if (!valid) {
-        setStepSafe({
+        setStep({
           error: 'Invalid address format',
           kind: 'enterUsername',
           platform: proofPlatform,
@@ -141,7 +132,7 @@ const ProofsList = ({platform, reason = 'profile'}: Props) => {
       registerCryptoAddress(
         [{address: normalized, force: true, wantedFamily: 'bitcoin'}, C.waitingKeyProfile],
         () => {
-          setStepSafe({
+          setStep({
             kind: 'confirmOrPending',
             platform: proofPlatform,
             proofFound: true,
@@ -151,7 +142,7 @@ const ProofsList = ({platform, reason = 'profile'}: Props) => {
           loadCurrentProfile()
         },
         error => {
-          setStepSafe({error: error.desc, kind: 'enterUsername', platform: proofPlatform, username: input})
+          setStep({error: error.desc, kind: 'enterUsername', platform: proofPlatform, username: input})
         }
       )
       return
@@ -161,7 +152,7 @@ const ProofsList = ({platform, reason = 'profile'}: Props) => {
       registerCryptoAddress(
         [{address: normalized, force: true, wantedFamily: 'zcash'}, C.waitingKeyProfile],
         () => {
-          setStepSafe({
+          setStep({
             kind: 'confirmOrPending',
             platform: proofPlatform,
             proofFound: true,
@@ -171,7 +162,7 @@ const ProofsList = ({platform, reason = 'profile'}: Props) => {
           loadCurrentProfile()
         },
         error => {
-          setStepSafe({error: error.desc, kind: 'enterUsername', platform: proofPlatform, username: input})
+          setStep({error: error.desc, kind: 'enterUsername', platform: proofPlatform, username: input})
         }
       )
       return
@@ -262,7 +253,7 @@ const ProofsList = ({platform, reason = 'profile'}: Props) => {
               }
               if (step.sigID) {
                 ignorePromise(
-                  checkProofAndNavigate(step.platform, step.sigID, step.username, step.proofText, setStepSafe)
+                  checkProofAndNavigate(step.platform, step.sigID, step.username, step.proofText, setStep)
                 )
               }
             }}
