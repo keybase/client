@@ -12,6 +12,7 @@ import {
   answerRecoverPasswordPgp,
   cancelRecoverPassword,
   isRecoverPasswordPgpPending,
+  markRecoverPasswordPgpShown,
   startRecoverPassword,
   submitRecoverPasswordDeviceSelect,
   submitRecoverPasswordNoDevice,
@@ -524,15 +525,32 @@ describe('pgp key warning', () => {
     expect(nav.pushes()).toEqual([])
   })
 
-  test('a warning on screen when the push timeout passes stays pending', async () => {
+  test('a warning that mounted and was then covered by another modal is not declined by the push timeout', async () => {
     const {first} = await startAttempt()
     jest.useFakeTimers()
     const response = prompt(first)
+    markRecoverPasswordPgpShown(warningId())
+    nav.setRootState(
+      makeRootState({
+        above: [{name: 'recoverPasswordPgpWarning', params: {id: warningId()}}, {name: 'proxySettingsModal'}],
+      })
+    )
 
     jest.advanceTimersByTime(10_000)
 
     expect(response.result).not.toHaveBeenCalled()
     expect(isRecoverPasswordPgpPending(warningId())).toBe(true)
+  })
+
+  test('a warning pushed but never mounted is declined at the push timeout', async () => {
+    const {first} = await startAttempt()
+    jest.useFakeTimers()
+    const response = prompt(first)
+
+    jest.advanceTimersByTime(5000)
+
+    expect(response.result).toHaveBeenCalledTimes(1)
+    expect(response.result).toHaveBeenCalledWith(false)
   })
 
   test('an answered prompt is not declined later by the push timeout', async () => {

@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {NavigationContext} from '@react-navigation/core'
 import {getVisibleScreen, navigateUp} from '@/constants/router'
-import {answerRecoverPasswordPgp, isRecoverPasswordPgpPending} from './flow'
+import {answerRecoverPasswordPgp, isRecoverPasswordPgpPending, markRecoverPasswordPgpShown} from './flow'
 
 type Props = {route: {params: {id: number}}}
 
@@ -11,6 +11,10 @@ const PgpWarning = ({route}: Props) => {
   const styles = useStyles()
   // Absent outside a navigator (storybook).
   const navigation = React.useContext(NavigationContext)
+
+  React.useEffect(() => {
+    markRecoverPasswordPgpShown(id)
+  }, [id])
 
   // A deferred push can land after its prompt was settled; there is nothing left to answer.
   React.useEffect(() => {

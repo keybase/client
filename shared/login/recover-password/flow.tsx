@@ -73,6 +73,13 @@ const settlePgp = (id: number, proceed: boolean | undefined) => {
   }
 }
 
+// The warning screen reports its mount: from then on the user has it and the push timeout is moot.
+export const markRecoverPasswordPgpShown = (id: number) => {
+  if (pendingPgp?.id === id) {
+    clearTimeout(pendingPgp.timer)
+  }
+}
+
 export const answerRecoverPasswordPgp = (id: number, proceed: boolean) => settlePgp(id, proceed)
 
 // Settles the pending prompt and takes its warning away if it is on top. A warning under another modal
@@ -165,11 +172,8 @@ export const startRecoverPassword = ({
               answer: wrapErrors((proceed: boolean) => response.result(proceed)),
               id,
               // The push below gives up silently after its timeout; decline rather than leave Go waiting.
-              timer: setTimeout(() => {
-                if (getVisibleScreen(true)?.name !== pgpWarningName) {
-                  settlePgp(id, false)
-                }
-              }, pgpWarningMountTimeoutMs),
+              // The warning mounting clears this, so it only fires for a warning that never appeared.
+              timer: setTimeout(() => settlePgp(id, false), pgpWarningMountTimeoutMs),
             }
             // The paper key has just logged the user in, so the logged-in root this modal lives on may not
             // be mounted yet.
