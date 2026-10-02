@@ -121,6 +121,26 @@ describe('the generate flow', () => {
     }
   )
 
+  test('leaving after Done lets the run finish, so a password prompt still reaches the global answerer', async () => {
+    const onEngineIncoming = jest.fn()
+    const {fake, held, sessionID} = await startGenerating(onEngineIncoming)
+    await pushKey(fake, sessionID)
+    const pushed = fake.push(pushPrivate, {prompt: true}, {sessionID})
+    await settle()
+    fireEvent.click(screen.getByText("Store encrypted private key on Keybase's server"))
+    fireEvent.click(screen.getByText('Done, post to Keybase'))
+    await expect(pushed).resolves.toEqual({result: true})
+    // clearModals unmounts the screen
+    cleanup()
+    void fake.push('keybase.1.secretUi.getPassphrase', {pinentry: {type: 0}}, {sessionID})
+    await settle()
+    expect(onEngineIncoming).toHaveBeenCalledTimes(1)
+    expect(onEngineIncoming.mock.calls[0]![0].type).toBe('keybase.1.secretUi.getPassphrase')
+    await expect(fake.push('keybase.1.pgpUi.finished', {}, {sessionID})).resolves.toEqual({result: undefined})
+    held[0]!.reply(undefined)
+    await flush()
+  })
+
   test('the finished step offers to store the key only when the service asks', async () => {
     const {fake, held, sessionID} = await startGenerating()
     await pushKey(fake, sessionID)

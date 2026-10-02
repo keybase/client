@@ -269,6 +269,9 @@ export default function Choice() {
           <Finished
             onDone={shouldStoreKeyOnServer => {
               dialogRef.current?.openPrompt(pushPrivate)?.answer(shouldStoreKeyOnServer)
+              // Storing the key may still ask for the password (desktop pinentry answers it), so
+              // leaving now must not dispose the dialog
+              dialogRef.current = undefined
               clearModals()
             }}
             pgpKeyString={step.pgpKeyString}
