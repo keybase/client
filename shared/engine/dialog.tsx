@@ -32,7 +32,8 @@ export type Prompt<M extends PromptMethod = PromptMethod> = {
 
 type PromptEventOf<M extends PromptMethod> = {readonly kind: 'prompt'} & Prompt<M>
 type NoticeEventOf<N extends NoticeMethod> = {readonly kind: 'notice'; method: N; params: RpcIn<N>}
-// Distributes over the methods, so checking `method` narrows `params`
+// Distributes over the methods, so checking `method` narrows `params` and `answer`
+export type AnyPrompt<P extends PromptMethod> = {[M in P]: Prompt<M>}[P]
 export type DialogEvent<P extends PromptMethod, N extends NoticeMethod> =
   | {[M in P]: PromptEventOf<M>}[P]
   | {[M in N]: NoticeEventOf<M>}[N]
@@ -45,12 +46,22 @@ export type Dialog<R, P extends PromptMethod, N extends NoticeMethod> = {
   readonly done: Promise<R>
   readonly disposed: boolean
   prompt: <M extends P>(id: number, method: M) => Prompt<M> | undefined
-  openPrompts: () => ReadonlyArray<Prompt<P>>
+  // The earliest open prompt of that method
+  openPrompt: <M extends P>(method: M) => Prompt<M> | undefined
+  openPrompts: () => ReadonlyArray<AnyPrompt<P>>
   // Refuses open prompts and, until the RPC ends, everything else the service sends on the session
   dispose: () => void
 }
 
-type AutoAnswer = {[K in PromptMethod]?: (params: RpcIn<K>) => RpcOut<K> | 'refuse'}
+// An autoAnswer returns this to refuse the prompt (scinputcanceled)
+declare const refusalBrand: unique symbol
+// Branded, so no RPC output can pass for it
+type Refusal = {readonly [refusalBrand]: true}
+export const refusePrompt = Object.freeze({}) as Refusal
+// A method is either surfaced or auto-answered, never both
+type AutoAnswer<P extends PromptMethod> = {
+  [K in Exclude<PromptMethod, P>]?: (params: RpcIn<K>) => RpcOut<K> | Refusal
+}
 
 type Response = Partial<CommonResponseHandler> & {readonly settled?: boolean}
 
@@ -76,13 +87,13 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
     prompts: ReadonlyArray<P>
     notices?: ReadonlyArray<N>
     // Answered as they arrive and never surfaced
-    autoAnswer?: AutoAnswer
+    autoAnswer?: NoInfer<AutoAnswer<P>>
     waitingKey?: WaitingKey
     globalFallthrough?: ReadonlyArray<string>
   }
 ): Dialog<RpcOut<M>, P, N> => {
   type Event = DialogEvent<P, N>
-  type AnyPrompt = PromptEventOf<P>
+  type OpenPrompt = PromptEventOf<P>
 
   let disposed = false
   // The iterator has nothing more to give once the queue drains
@@ -95,7 +106,7 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
     waiters = []
     w.forEach(r => r())
   }
-  const open = new Map<number, {prompt: AnyPrompt; close: (o: PromptOutcome) => void}>()
+  const open = new Map<number, {prompt: OpenPrompt; close: (o: PromptOutcome) => void}>()
 
   const finish = () => {
     finished = true
@@ -152,7 +163,7 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
         return isOpen()
       },
       params: p,
-    } as AnyPrompt
+    } as OpenPrompt
     open.set(id, {close, prompt})
     return prompt
   }
@@ -175,7 +186,11 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
     }
     customResponseIncomingCallMap[m] = (p: unknown, response: Response) => {
       const v = auto(p)
-      if (v === 'refuse') {
+      // The callback may have disposed the dialog, which refused this already
+      if (response.settled) {
+        return
+      }
+      if (v === refusePrompt) {
         response.error?.(inputCanceledError)
       } else {
         response.result?.(v)
@@ -188,23 +203,11 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
   }
 
   let cancelSession = () => {}
-  let rejectDone: (e: RPCError) => void = () => {}
+  let resolveDone: (r: RpcOut<M>) => void = () => {}
+  let rejectDone: (e: unknown) => void = () => {}
   const done = new Promise<RpcOut<M>>((resolve, reject) => {
+    resolveDone = resolve
     rejectDone = reject
-    getCallPort()
-      .listen({
-        customResponseIncomingCallMap,
-        globalFallthrough: opts.globalFallthrough,
-        incomingCallMap,
-        method,
-        onSessionCreated: cancel => {
-          cancelSession = cancel
-        },
-        params,
-        waitingKey: opts.waitingKey,
-      })
-      .then(r => resolve(r as RpcOut<M>))
-      .catch(reject)
   })
 
   const end = () => {
@@ -217,8 +220,27 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
     // RPC ended may still be on theirs; this one runs after them
     setTimeout(finish, 0)
   }
-  // Also marks done handled: a caller that disposed has stopped listening and may never await it
-  done.finally(end).catch(() => {})
+
+  getCallPort()
+    .listen({
+      customResponseIncomingCallMap,
+      globalFallthrough: opts.globalFallthrough,
+      incomingCallMap,
+      method,
+      onSessionCreated: cancel => {
+        cancelSession = cancel
+      },
+      params,
+      waitingKey: opts.waitingKey,
+    })
+    .then(r => {
+      end()
+      resolveDone(r as RpcOut<M>)
+    })
+    .catch((e: unknown) => {
+      end()
+      rejectDone(e)
+    })
 
   const dispose = () => {
     if (disposed) {
@@ -233,6 +255,9 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
     live.delete(entry)
     cancelSession()
     rejectDone(new RPCError('Dialog disposed', StatusCode.sccanceled))
+    // Whoever disposed has stopped listening and may never await done; any other rejection is
+    // left unhandled so a flow that forgot to await it is reported
+    done.catch(() => {})
   }
   const entry = {dispose, method}
   live.add(entry)
@@ -281,7 +306,11 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
         return iterator
       },
     },
-    openPrompts: () => [...open.values()].map(o => o.prompt).filter(p => p.open),
+    openPrompt: <K extends P>(m: K) => {
+      const p = [...open.values()].find(o => o.prompt.method === m && o.prompt.open)?.prompt
+      return p as unknown as Prompt<K> | undefined
+    },
+    openPrompts: () => [...open.values()].map(o => o.prompt).filter(p => p.open) as Array<AnyPrompt<P>>,
     prompt: <K extends P>(id: number, m: K) => {
       const p = open.get(id)?.prompt
       return p?.method === m && p.open ? (p as unknown as Prompt<K>) : undefined

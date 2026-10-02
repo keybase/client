@@ -4,14 +4,18 @@ import type * as EngineGen from '@/constants/rpc'
 import {errors} from './rpc-transport'
 import {installFakeEngine, uninstallFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {registerIncomingAnswerer} from './incoming-answerers'
-import {disposeDialogsForLogout, openDialog} from './dialog'
+import {disposeDialogsForLogout, openDialog, refusePrompt, type Dialog} from './dialog'
 import {useConfigState} from '@/stores/config'
 import {useWaitingState} from '@/stores/waiting'
 import {resetAllStores} from '@/util/zustand'
 import {tick} from '@/test/flush'
+import logger from '@/logger'
 
 const unregisters = new Array<() => void>()
+const restores = new Array<() => void>()
 afterEach(() => {
+  restores.splice(0).forEach(r => r())
+  jest.restoreAllMocks()
   unregisters.splice(0).forEach(u => u())
   // The store reset keeps an in-progress switch, and a later test's switch would not start
   useConfigState.getState().dispatch.setUserSwitching(false)
@@ -52,7 +56,7 @@ const startRecover = async (onEngineIncoming?: (a: EngineGen.Actions) => void) =
     rpc,
     {username: 'testuser'},
     {
-      autoAnswer: {[pgpWarning]: () => true, [resetPrompt]: () => 'refuse'},
+      autoAnswer: {[pgpWarning]: () => true, [resetPrompt]: () => refusePrompt},
       globalFallthrough: ['keybase.1.logUi.'],
       notices: [explain, progress],
       prompts: [choose, pinentry],
@@ -94,6 +98,8 @@ test('a surfaced prompt carries its typed params and an answer reaches the servi
   expect(dialog.openPrompts()).toEqual([e])
   expect(dialog.prompt(e.id, choose)).toBe(e)
   expect(dialog.prompt(e.id, pinentry)).toBeUndefined()
+  expect(dialog.openPrompt(choose)).toBe(e)
+  expect(dialog.openPrompt(pinentry)).toBeUndefined()
   expect(e.answer('d1')).toBe(true)
   expect(e.open).toBe(false)
   expect(e.answer('d2')).toBe(false)
@@ -102,6 +108,7 @@ test('a surfaced prompt carries its typed params and an answer reaches the servi
   await expect(e.closed).resolves.toBe('answered')
   expect(dialog.openPrompts()).toEqual([])
   expect(dialog.prompt(e.id, choose)).toBeUndefined()
+  expect(dialog.openPrompt(choose)).toBeUndefined()
   held[0]!.reply(undefined)
   await expect(dialog.done).resolves.toBeUndefined()
   expect(dialog.disposed).toBe(false)
@@ -121,6 +128,121 @@ test('a cancelled prompt refuses the service with input canceled, once', async (
   held[0]!.reply(undefined)
   await dialog.done
 })
+
+test('a dispose inside an autoAnswer refuses the prompt once and writes nothing more', async () => {
+  // A dev build warns about an answer to a settled response
+  const g = globalThis as {__DEV__: boolean}
+  const dev = g.__DEV__
+  g.__DEV__ = true
+  restores.push(() => {
+    g.__DEV__ = dev
+  })
+  const warn = jest.spyOn(logger, 'warn')
+  const fake = installFakeEngine()
+  const held = fake.hold(rpc)
+  const dialog: Dialog<void, typeof choose, never> = openDialog(
+    rpc,
+    {username: 'testuser'},
+    {
+      autoAnswer: {
+        [pgpWarning]: () => {
+          dialog.dispose()
+          return true
+        },
+      },
+      prompts: [choose],
+      waitingKey,
+    }
+  )
+  await tick()
+  const sessionID = fake.calls[0]!.params.sessionID as number
+  await expect(
+    fake.push(pgpWarning, {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys}, {sessionID})
+  ).resolves.toEqual({error: inputCanceled})
+  await settledError(dialog.done)
+  held[0]!.reply(undefined)
+  await tick()
+  expect(waitingCount(fake)).toBe(0)
+  expect(warn).not.toHaveBeenCalled()
+})
+
+test('in a dev build, a method cannot be both surfaced and auto-answered', () => {
+  const g = globalThis as {__DEV__: boolean}
+  const dev = g.__DEV__
+  g.__DEV__ = true
+  try {
+    expect(() =>
+      openDialog(rpc, {username: 'testuser'}, {autoAnswer: {[choose]: () => 'd1'} as never, prompts: [choose]})
+    ).toThrow(/both a prompt and auto-answered/)
+  } finally {
+    g.__DEV__ = dev
+  }
+})
+
+// A flow that forgot to await done gets an unhandled-rejection report, unless it disposed. Handlers
+// attached to done (catch and finally go through then) are what decide that.
+describe('an unawaited done', () => {
+  const watchHandlers = () => {
+    const spy = jest.spyOn(Promise.prototype, 'then')
+    let receivers: ReadonlyArray<unknown> = []
+    return {
+      handled: (p: unknown) => receivers.includes(p),
+      stop: () => {
+        receivers = [...spy.mock.contexts]
+        spy.mockRestore()
+      },
+    }
+  }
+
+  test('is left unhandled when the RPC fails', async () => {
+    const watch = watchHandlers()
+    const {dialog, fake} = await startRecover()
+    fake.drop()
+    // done rejects within microtasks; a macrotask turn would let jest report it before it is checked
+    for (let i = 0; i < 20; i++) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.resolve()
+    }
+    watch.stop()
+    expect(watch.handled(dialog.done)).toBe(false)
+    await expect(settledError(dialog.done)).resolves.toMatchObject({code: errors.EOF})
+  })
+
+  test('is handled when the dialog was disposed', async () => {
+    const watch = watchHandlers()
+    const {dialog} = await startRecover()
+    dialog.dispose()
+    await tick()
+    watch.stop()
+    expect(watch.handled(dialog.done)).toBe(true)
+  })
+})
+
+// Compiled, never run: tsc checks that a prompt only takes its own method's answer
+export const typeChecks = (dialog: Dialog<void, typeof choose | typeof pinentry, never>) => {
+  const p = dialog.openPrompt(choose)
+  p?.answer('d1')
+  // @ts-expect-error a getPassphrase result does not answer chooseDeviceToRecoverWith
+  p?.answer({passphrase: 'x', storeSecret: false})
+  const first = dialog.openPrompts()[0]
+  // @ts-expect-error an unnarrowed prompt takes no single method's answer
+  first?.answer('d1')
+  if (first?.method === choose) {
+    first.answer('d1')
+    // @ts-expect-error narrowed to chooseDeviceToRecoverWith
+    first.answer({passphrase: 'x', storeSecret: false})
+  }
+  openDialog(
+    rpc,
+    {username: 'testuser'},
+    {
+      // @ts-expect-error a surfaced prompt cannot also be auto-answered
+      autoAnswer: {[choose]: () => 'd1'},
+      prompts: [choose],
+    }
+  )
+  openDialog(rpc, {username: 'testuser'}, {autoAnswer: {[pgpWarning]: () => refusePrompt}, prompts: [choose]})
+}
 
 test('autoAnswer answers with a value or refuses, and never surfaces the prompt', async () => {
   const {dialog, fake, held, sessionID} = await startRecover()
