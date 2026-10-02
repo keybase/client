@@ -14,6 +14,7 @@ import {
 } from './flow'
 
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import {installListenerEngine, uninstallListenerEngine} from '@/test/fake-listener-engine'
 
 let nav: FakeNavigator
 
@@ -400,4 +401,46 @@ test('pause with a pending prompt still resumes when the same step is resubmitte
 
   attempt2.resolve()
   await flush()
+})
+
+describe('through the engine listener', () => {
+  afterEach(() => uninstallListenerEngine())
+
+  const failLogin = async (code: T.RPCGen.StatusCode, desc: string) => {
+    const engine = installListenerEngine()
+    submitProvisionUsername('testuser')
+    await flush()
+    engine.fail('keybase.1.login.login', code, desc)
+    await flush()
+  }
+
+  test('an unknown username replaces the username screen with its inline error', async () => {
+    await failLogin(T.RPCGen.StatusCode.scnotfound, 'not found')
+
+    expect(nav.navigations()).toContainEqual({
+      name: 'username',
+      params: {inlineErrorCode: T.RPCGen.StatusCode.scnotfound, username: 'testuser'},
+      replace: true,
+    })
+    expect(nav.modalsCleared()).toBe(false)
+  })
+
+  test('any other service error clears the modals and shows the error screen', async () => {
+    await failLogin(T.RPCGen.StatusCode.scgeneric, 'it broke')
+
+    expect(nav.modalsCleared()).toBe(true)
+    const errors = nav.navigations().filter(n => n.name === 'error')
+    expect(errors).toHaveLength(1)
+    expect(errors[0]).toMatchObject({
+      params: {error: {code: T.RPCGen.StatusCode.scgeneric, desc: 'it broke'}, username: 'testuser'},
+      replace: true,
+    })
+  })
+
+  test('an error our own prompt cancel caused shows nothing', async () => {
+    await failLogin(T.RPCGen.StatusCode.scinputcanceled, 'Input canceled')
+
+    expect(nav.navigations().filter(n => n.name === 'error' || n.name === 'username')).toEqual([])
+    expect(nav.modalsCleared()).toBe(false)
+  })
 })

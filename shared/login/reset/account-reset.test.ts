@@ -10,6 +10,7 @@ jest.mock('@/provision/flow', () => ({
 }))
 
 import {installFakeNavigator, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import {installListenerEngine, uninstallListenerEngine} from '@/test/fake-listener-engine'
 import {enterResetPipeline, startAccountReset, submitResetPrompt} from './account-reset'
 
 let nav: FakeNavigator
@@ -267,4 +268,20 @@ test('a non-rpc failure is not reported as a user facing error', async () => {
 
   expect(onError).toHaveBeenCalledTimes(1)
   expect(onError).toHaveBeenCalledWith('')
+})
+
+test('a service failure through the engine listener reports its message to the caller', async () => {
+  const engine = installListenerEngine()
+  const onError = jest.fn()
+  try {
+    enterResetPipeline({onError, password: 'password', username: 'testuser'})
+    await flush()
+    engine.fail('keybase.1.account.enterResetPipeline', T.RPCGen.StatusCode.scbadloginpassword, 'bad password')
+    await flush()
+
+    expect(onError).toHaveBeenNthCalledWith(1, '')
+    expect(onError).toHaveBeenLastCalledWith('bad password')
+  } finally {
+    uninstallListenerEngine()
+  }
 })
