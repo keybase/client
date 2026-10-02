@@ -129,18 +129,23 @@ class Engine implements CallPort {
       listenersAreReady: this._listenersAreReady,
       sessions: this._sessionSummary(),
     })
-    this._cancelOutstandingSessions()
+    this._cancelOutstandingSessions('lostLink')
     // tell renderer we're disconnected
     this._onConnectedCB(false)
   }
 
-  // The transport died, so the service has forgotten every in-flight RPC. Cancel the sessions so
-  // their promises reject and flows can react, instead of hanging forever on answers that will
-  // never come (e.g. a provision prompt screen left up across a service restart).
-  _cancelOutstandingSessions() {
+  // Cancel the sessions so their promises reject and flows can react, instead of hanging forever on
+  // answers that will never come (e.g. a provision prompt screen left up across a service restart).
+  // When the transport died the service has forgotten every in-flight RPC, so held prompts are
+  // dropped without an answer; otherwise the link is alive and they are refused.
+  _cancelOutstandingSessions(why: 'lostLink' | 'client') {
     for (const session of [...this._sessionsMap.values()]) {
       if (!session.getDangling()) {
-        session.cancel()
+        if (why === 'lostLink') {
+          session.cancelForLostLink()
+        } else {
+          session.cancel()
+        }
       }
     }
   }
@@ -192,7 +197,7 @@ class Engine implements CallPort {
           type: 'engineInternal',
         })
       }
-      cancelled.cancel()
+      cancelled.cancelByService(seqid)
     } else if (printRPC) {
       rpcLog({
         extra: {seqid},
@@ -234,7 +239,14 @@ class Engine implements CallPort {
   _answerGlobalIncoming(method: string, param: object, response: PayloadType['response']) {
     const answerer = getIncomingAnswerer(method)
     if (answerer) {
-      answerer(param, response)
+      try {
+        answerer(param, response)
+      } catch (e) {
+        logger.error(`Engine: answerer for ${method} threw`, e)
+        if (!response?.settled) {
+          response?.error?.({code: StatusCode.scinputcanceled, desc: 'Input canceled'})
+        }
+      }
     } else if (mustAnswerMethods.has(method)) {
       if (__DEV__) {
         logger.error(`Engine: no answerer registered for ${method}`)
@@ -326,7 +338,7 @@ class Engine implements CallPort {
   }
 
   cancelOutstandingSessions() {
-    this._cancelOutstandingSessions()
+    this._cancelOutstandingSessions('client')
   }
 
   // Reset the engine
@@ -339,7 +351,11 @@ class Engine implements CallPort {
       listenersAreReady: this._listenersAreReady,
       sessions: this._sessionSummary(),
     })
-    this._cancelOutstandingSessions()
+    this._cancelOutstandingSessions('lostLink')
+    // Dangling sessions survive a cancel; ending them drops their held prompts with the old link
+    for (const session of [...this._sessionsMap.values()]) {
+      session.end()
+    }
     this._sessionsMap.clear()
     this._queuedChanges = []
     this._hasConnected = false

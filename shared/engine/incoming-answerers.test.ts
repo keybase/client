@@ -119,6 +119,21 @@ test('delegateRekeyUI is answered by the engine with no value', async () => {
   uninstallFakeEngine()
 })
 
+test('an answerer that throws is answered once with input canceled, and the action still dispatches', async () => {
+  const logged = watchErrors()
+  register('keybase.1.secretUi.getPassphrase', () => {
+    throw new Error('answerer broke')
+  })
+  const onEngineIncoming = jest.fn()
+  const fake = installFakeEngine({onEngineIncoming})
+  await expect(fake.push('keybase.1.secretUi.getPassphrase', pinentry, {sessionID: 0})).resolves.toEqual({
+    error: {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'},
+  })
+  expect(onEngineIncoming).toHaveBeenCalledTimes(1)
+  expect(logged).toHaveBeenCalledTimes(1)
+  uninstallFakeEngine()
+})
+
 test('a oneway rekeySendEvent with session 0 is dispatched', async () => {
   const onEngineIncoming = jest.fn()
   const fake = installFakeEngine({onEngineIncoming})
