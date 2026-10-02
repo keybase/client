@@ -41,14 +41,8 @@ const LoginHeaderRight = () => {
 
 // Recover-password back affordances must run the flow's back/cancel logic (not a plain pop), so they
 // are wired as the React Navigation headerLeft. They read the current route's params via useRoute.
-const RecoverCancelLeft = () => (
-  <Kb.HeaderLeftButton autoDetectCanGoBack={true} onPress={cancelRecoverPassword} />
-)
-const PgpWarningDeclineLeft = ({onDecline}: {onDecline: () => void}) => (
-  <Kb.HeaderLeftButton autoDetectCanGoBack={true} onPress={onDecline} />
-)
-const RecoverPopLeft = () => (
-  <Kb.HeaderLeftButton autoDetectCanGoBack={true} onPress={C.Router2.popStack} />
+const RecoverBackLeft = ({onPress}: {onPress: () => void}) => (
+  <Kb.HeaderLeftButton autoDetectCanGoBack={true} onPress={onPress} />
 )
 const RecoverRestartLeft = () => {
   const route = useRoute()
@@ -126,7 +120,7 @@ export const newRoutes = defineRouteMap({
   },
   recoverPasswordDeviceSelector: {
     getOptions: {
-      ...(isIOS ? recoverBackItems(cancelRecoverPassword) : {headerLeft: () => <RecoverCancelLeft />}),
+      ...(isIOS ? recoverBackItems(cancelRecoverPassword) : {headerLeft: () => <RecoverBackLeft onPress={cancelRecoverPassword} />}),
       title: 'Recover password',
     },
     screen: React.lazy(async () => import('./recover-password/device-selector')),
@@ -134,7 +128,7 @@ export const newRoutes = defineRouteMap({
   recoverPasswordError: {
     getOptions: {
       gestureEnabled: false,
-      ...(isIOS ? recoverBackItems(C.Router2.popStack) : {headerLeft: () => <RecoverPopLeft />}),
+      ...(isIOS ? recoverBackItems(C.Router2.popStack) : {headerLeft: () => <RecoverBackLeft onPress={C.Router2.popStack} />}),
       headerRightActions,
       title: 'Recover password',
     },
@@ -154,7 +148,7 @@ export const newRoutes = defineRouteMap({
   recoverPasswordPaperKey: {
     getOptions: {
       ...recoverPasswordGetOptions,
-      ...(isIOS ? recoverBackItems(cancelRecoverPassword) : {headerLeft: () => <RecoverCancelLeft />}),
+      ...(isIOS ? recoverBackItems(cancelRecoverPassword) : {headerLeft: () => <RecoverBackLeft onPress={cancelRecoverPassword} />}),
     },
     screen: React.lazy(async () => import('./recover-password/paper-key')),
   },
@@ -215,7 +209,7 @@ export const newModalRoutes = defineRouteMap({
       const onDecline = () => answerRecoverPasswordPgp(route.params.pgpPromptID, false)
       return {
         gestureEnabled: false,
-        ...(isIOS ? recoverBackItems(onDecline) : {headerLeft: () => <PgpWarningDeclineLeft onDecline={onDecline} />}),
+        ...(isIOS ? recoverBackItems(onDecline) : {headerLeft: () => <RecoverBackLeft onPress={onDecline} />}),
         title: 'Recover password',
       }
     },

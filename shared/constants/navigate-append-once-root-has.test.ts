@@ -81,8 +81,12 @@ test('gives up if the root route does not mount before the timeout', () => {
 
   const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
 
-  navigateAppendOnceRootHas('loggedOut', {name: 'username', params: {username: 'testuser-c'}} as never, 5000)
-  jest.advanceTimersByTime(5000)
+  const onDrop = jest.fn()
+  navigateAppendOnceRootHas('loggedOut', {name: 'username', params: {username: 'testuser-c'}} as never, 5000, onDrop)
+  jest.advanceTimersByTime(4999)
+  expect(onDrop).not.toHaveBeenCalled()
+  jest.advanceTimersByTime(1)
+  expect(onDrop).toHaveBeenCalledTimes(1)
   expect(warn).toHaveBeenCalledWith(expect.stringContaining('loggedOut never mounted, dropping username'))
 
   setRootRoutes([loggedOut])
@@ -100,4 +104,24 @@ test('logs the push it drops when there is no navigator', () => {
 
   expect(warn).toHaveBeenCalledWith(expect.stringContaining('no navigator, dropping username'))
   expect(dispatch).not.toHaveBeenCalled()
+})
+
+test('a cancelled wait neither pushes nor reports a drop', () => {
+  jest.useFakeTimers()
+  setRootRoutes([loggedIn])
+  const onDrop = jest.fn()
+
+  const cancel = navigateAppendOnceRootHas(
+    'loggedOut',
+    {name: 'username', params: {username: 'testuser-e'}} as never,
+    5000,
+    onDrop
+  )
+  cancel()
+  setRootRoutes([loggedOut])
+  emitState()
+  jest.advanceTimersByTime(5000)
+
+  expect(dispatch).not.toHaveBeenCalled()
+  expect(onDrop).not.toHaveBeenCalled()
 })

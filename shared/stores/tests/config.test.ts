@@ -216,6 +216,7 @@ describe('login', () => {
     let switchingAtHandOff: boolean | undefined
     mockOnceRootHas.mockImplementation(() => {
       switchingAtHandOff = useConfigState.getState().userSwitching
+      return () => {}
     })
     const cancelled = jest.fn().mockRejectedValue(new RPCError('Canceling RPC', T.RPCGen.StatusCode.scgeneric))
     jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockImplementation(listener => {

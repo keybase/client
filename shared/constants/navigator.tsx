@@ -29,7 +29,7 @@ import type {NavigateAppendType, RouteKeys, RootParamList} from '@/router-v2/rou
 type ContainerRef = NavigationContainerRef<RootParamList>
 export type NavAction = Parameters<ContainerRef['dispatch']>[0]
 // A route of the root stack as removeRootRoutes shows it to its predicate.
-export type RootRoute = {name: string; params?: object}
+export type RootRoute = {key?: string; name: string; params?: object}
 
 // What an adapter has to provide. Deliberately the smallest surface that the
 // operations below need, so a fake is a handful of lines rather than a mock of
@@ -54,8 +54,14 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
   // conditional root group that a store change is about to mount (e.g. the logged-out stack): a
   // push dispatched before the group mounts reaches no navigator that can handle it and is
   // dropped. Gives up after `timeoutMs` so a group that never mounts can't fire the push at some
-  // unrelated later time.
-  navigateAppendOnceRootHas: (rootRouteName: string, path: NavigateAppendType, timeoutMs?: number) => void
+  // unrelated later time, and then calls `onDrop`. Returns a cancel for a wait that is no longer
+  // wanted; cancelling calls nothing.
+  navigateAppendOnceRootHas: (
+    rootRouteName: string,
+    path: NavigateAppendType,
+    timeoutMs?: number,
+    onDrop?: () => void
+  ) => () => void
   navUpToScreen: (nameOrPath: RouteKeys | NavigateAppendType, replaceIfMissing?: boolean) => void
   switchTab: (name: Tabs.AppTab) => void
   // Returns whether chatRoot now carries these params - by dispatch, or because it
@@ -189,27 +195,34 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
   const navigateAppendOnceRootHas = (
     rootRouteName: string,
     path: NavigateAppendType,
-    timeoutMs = 5000
+    timeoutMs = 5000,
+    onDrop?: () => void
   ) => {
     const rootHas = () => ref.getRootState()?.routes?.some(r => r.name === rootRouteName) ?? false
     if (rootHas()) {
       navigateAppend(path)
-      return
+      return () => {}
     }
     if (!ref.isReady()) {
       logger.warn(`[Nav] navigateAppendOnceRootHas: no navigator, dropping ${path.name}`)
-      return
+      onDrop?.()
+      return () => {}
+    }
+    const cancel = () => {
+      clearTimeout(timer)
+      unsub()
     }
     const timer = setTimeout(() => {
       unsub()
       logger.warn(`[Nav] navigateAppendOnceRootHas: ${rootRouteName} never mounted, dropping ${path.name}`)
+      onDrop?.()
     }, timeoutMs)
     const unsub = ref.addListener('state', () => {
       if (!rootHas()) return
-      clearTimeout(timer)
-      unsub()
+      cancel()
       navigateAppend(path)
     })
+    return cancel
   }
 
   const navUpToScreen = (nameOrPath: RouteKeys | NavigateAppendType, replaceIfMissing = false) => {

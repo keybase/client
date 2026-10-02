@@ -16,9 +16,10 @@ export const useSafeNavigation = () => {
 // Runs `onRemove` whenever this screen is about to be removed, whatever removed it.
 export const useOnRemove = (onRemove: (actionType: string) => void) => {
   const navigation = useNavigation()
+  const onRemoveEvent = React.useEffectEvent(onRemove)
   React.useEffect(() => {
-    return navigation.addListener('beforeRemove', e => onRemove(e.data.action.type))
-  }, [navigation, onRemove])
+    return navigation.addListener('beforeRemove', e => onRemoveEvent(e.data.action.type))
+  }, [navigation])
 }
 
 // Runs `onUserRemove` when the user takes this screen away: back button, hardware back, swipe or a native

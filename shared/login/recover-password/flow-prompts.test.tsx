@@ -335,8 +335,56 @@ describe('completion', () => {
       expect(nav.navigations()).toContainEqual({
         name: 'recoverPasswordErrorModal',
         params: {error: error.message},
-        replace: true,
+        replace: false,
       })
+      expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedIn', 'recoverPasswordErrorModal'])
+    })
+
+    test('a failure with a modal over the set-password screen keeps both and puts the error on top', async () => {
+      nav = installFakeNavigator({
+        modalRouteNames: Object.keys(newModalRoutes),
+        rootState: makeRootState({above: [{name: 'recoverPasswordSetPassword'}, {name: 'proxySettingsModal'}]}),
+      })
+      const {first} = await startAttempt()
+
+      first.reject(new RPCError('bad things', T.RPCGen.StatusCode.scgeneric))
+      await flush()
+
+      expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual([
+        'loggedIn',
+        'recoverPasswordSetPassword',
+        'proxySettingsModal',
+        'recoverPasswordErrorModal',
+      ])
+    })
+
+    // The navigator commits after the flow's last dispatch, so the decision can't come from reading the tree
+    // after the warnings' removal.
+    test('a failure with a warning over set-password decides before the warning is removed', async () => {
+      nav = installFakeNavigator({
+        commit: 'manual',
+        modalRouteNames: Object.keys(newModalRoutes),
+        rootState: makeRootState({above: [{name: 'recoverPasswordSetPassword'}]}),
+      })
+      const {first} = await startAttempt()
+      const response = {error: jest.fn(), result: jest.fn()}
+      first.listener.customResponseIncomingCallMap?.['keybase.1.loginUi.promptPassphraseRecovery']?.(
+        {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys} as any,
+        response as any
+      )
+      nav.commit()
+      expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual([
+        'loggedIn',
+        'recoverPasswordSetPassword',
+        'recoverPasswordPgpWarning',
+      ])
+
+      first.reject(new RPCError('bad things', T.RPCGen.StatusCode.scgeneric))
+      await flush()
+      nav.commit()
+
+      expect(response.result).toHaveBeenCalledTimes(1)
+      expect(response.result).toHaveBeenCalledWith(false)
       expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedIn', 'recoverPasswordErrorModal'])
     })
 
@@ -606,5 +654,166 @@ describe('pgp key warning', () => {
     await flush()
     expect(next.response.result).toHaveBeenCalledTimes(1)
     expect(next.response.result).toHaveBeenCalledWith(false)
+  })
+
+  describe('a superseded run', () => {
+    test('answers a later prompt false at once and shows nothing', async () => {
+      const attempts = mockRecoverAttempts()
+      startRecoverPassword({username: 'testuser'})
+      await flush()
+      startRecoverPassword({username: 'testuser'})
+      await flush()
+      nav.clearActions()
+
+      const response = {error: jest.fn(), result: jest.fn()}
+      attempts[0]!.listener.customResponseIncomingCallMap?.['keybase.1.loginUi.promptPassphraseRecovery']?.(
+        {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys} as any,
+        response as any
+      )
+
+      expect(response.result).toHaveBeenCalledTimes(1)
+      expect(response.result).toHaveBeenCalledWith(false)
+      expect(nav.actions).toEqual([])
+    })
+
+    test.each([
+      ['fails', new RPCError('EOF', T.RPCGen.StatusCode.scgeneric)],
+      ['ends cleanly', undefined],
+    ])('navigates nothing when it %s', async (_label, error) => {
+      const attempts = mockRecoverAttempts()
+      startRecoverPassword({username: 'testuser'})
+      await flush()
+      startRecoverPassword({username: 'testuser'})
+      await flush()
+      const next = prompt(attempts[1]!)
+      navigateAppend({name: 'proxySettingsModal', params: {}})
+      nav.clearActions()
+
+      if (error) {
+        attempts[0]!.reject(error)
+      } else {
+        attempts[0]!.resolve()
+      }
+      await flush()
+
+      expect(nav.actions).toEqual([])
+      expect(next.response.result).not.toHaveBeenCalled()
+      expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning', 'proxySettingsModal'])
+    })
+  })
+
+  // Go asks right after the paper key logs in; the app learns it is logged in a round trip later.
+  describe('a prompt that arrives before the logged-in root', () => {
+    beforeEach(() => {
+      useConfigState.getState().dispatch.setLoggedIn(false)
+      nav = installFakeNavigator({
+        modalRouteNames: Object.keys(newModalRoutes),
+        rootState: makeRootState({loggedIn: false}),
+      })
+    })
+
+    const promptEarly = (attempt: {listener: Listener}) => {
+      const response = {error: jest.fn(), result: jest.fn()}
+      attempt.listener.customResponseIncomingCallMap?.['keybase.1.loginUi.promptPassphraseRecovery']?.(
+        {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys} as any,
+        response as any
+      )
+      return response
+    }
+
+    test('shows the warning once the logged-in root mounts, and it answers the prompt', async () => {
+      const {first} = await startAttempt()
+      const response = promptEarly(first)
+      expect(nav.pushes()).toEqual([])
+
+      useConfigState.getState().dispatch.setLoggedIn(true)
+      nav.setRootState(makeRootState())
+
+      const top = nav.getRootState()?.routes?.at(-1)
+      expect(top?.name).toBe('recoverPasswordPgpWarning')
+      expect(nav.pushes()).toHaveLength(1)
+      const id = (top?.params as {pgpPromptID: number}).pgpPromptID
+      expect(response.result).not.toHaveBeenCalled()
+      answerRecoverPasswordPgp(id, true)
+      expect(response.result).toHaveBeenCalledWith(true)
+      expect(rootRouteNames()).toEqual(['loggedIn'])
+    })
+
+    test('a run that ends first declines it, and the logged-in root mounting shows nothing', async () => {
+      const {first} = await startAttempt()
+      const response = promptEarly(first)
+
+      first.reject(new RPCError('Input canceled', T.RPCGen.StatusCode.sccanceled))
+      await flush()
+      expect(response.result).toHaveBeenCalledTimes(1)
+      expect(response.result).toHaveBeenCalledWith(false)
+
+      nav.setRootState(makeRootState())
+      expect(nav.pushes()).toEqual([])
+    })
+
+    test('a restart first declines it, and the logged-in root mounting shows nothing', async () => {
+      const {attempts} = await startAttempt()
+      const response = promptEarly(attempts[0]!)
+
+      startRecoverPassword({username: 'testuser'})
+      await flush()
+      expect(response.result).toHaveBeenCalledWith(false)
+
+      nav.setRootState(makeRootState())
+      expect(nav.pushes()).toEqual([])
+    })
+
+    test('a logged-in root that never mounts declines it', async () => {
+      const {first} = await startAttempt()
+      jest.useFakeTimers()
+      try {
+        const response = promptEarly(first)
+        jest.advanceTimersByTime(5000)
+        expect(response.result).toHaveBeenCalledTimes(1)
+        expect(response.result).toHaveBeenCalledWith(false)
+      } finally {
+        jest.useRealTimers()
+      }
+    })
+  })
+
+  // Leaving the logged-in app unmounts the modals without a beforeRemove on the warning.
+  describe('leaving the logged-in app', () => {
+    test('a logout declines the pending prompt once', async () => {
+      const {first} = await startAttempt()
+      const {id, response} = prompt(first)
+
+      useConfigState.getState().dispatch.setLoggedIn(false)
+      useConfigState.getState().dispatch.setLoggedIn(true)
+      useConfigState.getState().dispatch.setLoggedIn(false)
+
+      expect(response.result).toHaveBeenCalledTimes(1)
+      expect(response.result).toHaveBeenCalledWith(false)
+      answerRecoverPasswordPgp(id, true)
+      expect(response.result).toHaveBeenCalledTimes(1)
+    })
+
+    test('an account switch declines the pending prompt and takes its warning away', async () => {
+      const {first} = await startAttempt()
+      const {response} = prompt(first)
+
+      useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
+
+      expect(response.result).toHaveBeenCalledTimes(1)
+      expect(response.result).toHaveBeenCalledWith(false)
+      expect(rootRouteNames()).toEqual(['loggedIn'])
+    })
+
+    test('after the run, a logout answers nothing', async () => {
+      const {first} = await startAttempt()
+      const {id, response} = prompt(first)
+      answerRecoverPasswordPgp(id, true)
+      first.resolve()
+      await flush()
+
+      useConfigState.getState().dispatch.setLoggedIn(false)
+      expect(response.result).toHaveBeenCalledTimes(1)
+    })
   })
 })

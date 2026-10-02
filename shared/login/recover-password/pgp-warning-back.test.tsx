@@ -185,3 +185,11 @@ test("a stale warning's buttons and removal can't reach a newer prompt", async (
   expect(nav.actions).toEqual([])
   expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
 })
+
+// A covered modal can lose its effects (Activity) while it is still on the stack, so only a removal answers.
+test('the screen unmounting without a removal answers nothing', async () => {
+  const {response} = await setup()
+  cleanup()
+  expect(response.result).not.toHaveBeenCalled()
+  expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
+})

@@ -191,10 +191,9 @@ export function navigateAppend(path: NavigateAppendType, replace?: boolean): boo
 export const navigateAppendOnceRootHas = (
   rootRouteName: string,
   path: NavigateAppendType,
-  timeoutMs?: number
-) => {
-  getNavigator().navigateAppendOnceRootHas(rootRouteName, path, timeoutMs)
-}
+  timeoutMs?: number,
+  onDrop?: () => void
+) => getNavigator().navigateAppendOnceRootHas(rootRouteName, path, timeoutMs, onDrop)
 
 export const switchTab = (name: Tabs.AppTab) => {
   getNavigator().switchTab(name)
