@@ -124,6 +124,7 @@ export const installFakeEngine = (opts?: {onEngineIncoming?: (a: EngineGen.Actio
   const pushMethods = new Map<number, string>()
   const failures: Array<string> = []
   const calls: FakeEngine['calls'] = []
+  // Never reset on restart(): seqids stay unique across restarts so a stale GUI answer is detectable
   let nextPushSeqid = 1
   let transport: FakeTransport | undefined
   let dead = false
@@ -268,11 +269,14 @@ export const uninstallFakeEngine = () => {
   const i = installed
   if (!i) return
   installed = undefined
-  i.shutdown()
-  if (i.previousPort) {
-    installCallPort(i.previousPort)
-  } else {
-    uninstallCallPort()
+  try {
+    i.shutdown()
+  } finally {
+    if (i.previousPort) {
+      installCallPort(i.previousPort)
+    } else {
+      uninstallCallPort()
+    }
   }
   if (i.failures.length) {
     throw new Error(`fake engine: traffic the test did not script:\n  ${[...new Set(i.failures)].join('\n  ')}`)

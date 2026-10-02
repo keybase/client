@@ -88,6 +88,8 @@ test('a service cancel of a pending prompt rejects the listener', async () => {
   expect(onPrompt).toHaveBeenCalledTimes(1)
   fake.cancelPush('keybase.1.loginUi.promptPassphraseRecovery')
   await expect(ended).resolves.toMatchObject({code: T.RPCGen.StatusCode.sccanceled})
-  await expect(pushed).resolves.toMatchObject({error: {desc: expect.stringContaining('cancelled')}})
-  uninstallFakeEngine()
+  await pushed
+  await tick()
+  // The engine writes no RESPONSE of its own for the cancelled seqid; the fake would record one
+  expect(() => uninstallFakeEngine()).not.toThrow()
 })
