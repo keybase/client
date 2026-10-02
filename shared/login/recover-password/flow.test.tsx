@@ -314,6 +314,17 @@ describe('completion', () => {
     }
   )
 
+  test('a failure while logged in over a screen pushed above the tab bar goes over it, and Back returns to it', async () => {
+    loggedInWith(['chatConversation'])
+    const {held} = await start()
+    await failWith(held)
+
+    expect(nav.navigations()).toEqual(errorAt(errorModal, false))
+    expect(screens()).toEqual(['loggedIn', 'chatConversation', errorModal])
+    nav.navigateUp()
+    expect(screens()).toEqual(['loggedIn', 'chatConversation'])
+  })
+
   test('a failure while logged out with only login goes over it, and Back returns to login', async () => {
     loggedOutWith([])
     const {held} = await start()

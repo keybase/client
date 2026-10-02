@@ -72,9 +72,10 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
   // Merges params into the route with this key, in place and without a transition. Returns
   // whether it dispatched.
   setRouteParams: (routeKey: string | undefined, params: object) => boolean
-  // Takes the place of the top route of the stack that holds `path` (the root stack for a modal),
-  // or is pushed when that route is the stack's bottom one (a root, a tab root, the login screen),
-  // so that going back from it leaves something to go back to. pathFor picks the screen from the
+  // Takes the place of the top route of the stack that holds `path`, or is pushed when that route is
+  // the stack's bottom one (a tab root, the login screen), so that going back from it leaves
+  // something to go back to. A modal goes in the root stack and takes the place only of a modal: over
+  // the app or a screen pushed above the tab bar it is pushed. pathFor picks the screen from the
   // root state; both are decided when the action is handled, after anything dispatched before it.
   replaceTopOrPush: (pathFor: (root: NavTree.NavState | undefined) => NavigateAppendType) => void
   // Runs cb once no modal route is up: now, or at the state commit that removes the last one
@@ -369,8 +370,12 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     if (!ref.isReady()) return
     ref.dispatch(root => {
       const {name, params} = pathFor(root) as {name: string; params?: object}
-      const stack = NavTree.isModalRouteName(name) ? root : NavTree.activeStack(root)
-      const action = stack?.index ? StackActions.replace(name, params) : StackActions.push(name, params)
+      const modal = NavTree.isModalRouteName(name)
+      const stack = modal ? root : NavTree.activeStack(root)
+      const top = stack?.routes?.[stack.index ?? 0]
+      // A modal takes only a modal's place: a phone's screen pushed above the tab bar is kept under it
+      const replace = modal ? !!top && NavTree.isModalRouteName(top.name) : !!stack?.index
+      const action = replace ? StackActions.replace(name, params) : StackActions.push(name, params)
       return stack?.key ? {...action, target: stack.key} : action
     })
   }
