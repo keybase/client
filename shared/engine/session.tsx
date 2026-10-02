@@ -8,15 +8,20 @@ import {rpcLog, type InvokeType} from './index.platform'
 import {RPCError} from '@/util/errors'
 import {getAccountGeneration, survivesAccountChange} from './account-generation'
 import logger from '@/logger'
-import type {SessionID, ResponseType, EndHandlerType, MethodKey, WaitingKey} from './types'
+import {
+  inputCanceledError,
+  type SessionID,
+  type ResponseType,
+  type EndHandlerType,
+  type MethodKey,
+  type WaitingKey,
+} from './types'
 
 // A response the session handed to a handler. Settled once: by the handler, or by the session.
 type HeldResponse = {
-  response: ResponseType | undefined
+  response: ResponseType
   settled: boolean
 }
-
-export const inputCanceledError = {code: StatusCode.scinputcanceled, desc: 'Input canceled'}
 
 // A session is a series of calls back and forth tied together with a single sessionID
 class Session {
@@ -127,8 +132,8 @@ class Session {
   cancelByService(seqid: number) {
     const promptWasPending = this._held.size > 0
     for (const held of [...this._held]) {
-      if (held.response?.seqid === seqid) {
-        this._settleHeld(held, false)
+      if (held.response.seqid === seqid) {
+        this._settle(held)
       }
     }
     this._cancel('refuse', promptWasPending)
@@ -136,7 +141,7 @@ class Session {
 
   _cancel(heldPrompts: 'refuse' | 'forget', promptWasPending = this._held.size > 0) {
     for (const held of [...this._held]) {
-      this._settleHeld(held, heldPrompts === 'refuse')
+      this._settle(held, heldPrompts === 'refuse' ? () => held.response.error?.(inputCanceledError) : undefined)
     }
     if (this._cancelHandler) {
       this._cancelHandler(this)
@@ -154,16 +159,15 @@ class Session {
     this.end()
   }
 
-  // Settled by the session rather than the handler, so no waiting change: the session is ending.
-  _settleHeld(held: HeldResponse, refuse: boolean) {
+  // Settles a held response once, writing `write` if given; false if it was already settled
+  _settle(held: HeldResponse, write?: () => void) {
     if (held.settled) {
-      return
+      return false
     }
     held.settled = true
     this._held.delete(held)
-    if (refuse) {
-      held.response?.error?.(inputCanceledError)
-    }
+    write?.()
+    return true
   }
 
   end() {
@@ -173,7 +177,7 @@ class Session {
     this._ended = true
     // However the session ended, the service no longer reads answers to its calls on it
     for (const held of [...this._held]) {
-      this._settleHeld(held, false)
+      this._settle(held)
     }
     this._endHandler?.(this)
   }
@@ -260,26 +264,24 @@ class Session {
       return true
     }
 
-    const held: HeldResponse = {response, settled: false}
+    // A custom call delivered as a notification has nothing to answer
+    const held: HeldResponse = {response: response ?? {}, settled: false}
     this._held.add(held)
 
     const updateWaiting = this._makeWaitingHandler(method, response?.seqid)
     updateWaiting(false) // got a call from the server so we're no longer waiting
     const answer = (write: () => void) => {
-      if (held.settled) {
+      if (!this._settle(held, write)) {
         if (__DEV__) {
           logger.warn(`Session: ${method} was answered after it was already settled`)
         }
         return
       }
-      held.settled = true
-      this._held.delete(held)
-      write()
       updateWaiting(true) // after we respond to the server we're waiting on it again
     }
     const request: ResponseType = {
-      error: (...args: Array<unknown>) => answer(() => response?.error?.(...args)),
-      result: (...args: Array<unknown>) => answer(() => response?.result?.(...args)),
+      error: (...args: Array<unknown>) => answer(() => held.response.error?.(...args)),
+      result: (...args: Array<unknown>) => answer(() => held.response.result?.(...args)),
       get settled() {
         return held.settled
       },
@@ -288,7 +290,7 @@ class Session {
       custom(param, request)
     } catch (e) {
       logger.error(`Session: handler for ${method} threw`, e)
-      this._settleHeld(held, true)
+      this._settle(held, () => held.response.error?.(inputCanceledError))
     }
     return true
   }
@@ -303,7 +305,7 @@ class Session {
   hasSeqID(seqID: number) {
     // The server can cancel callback seqids after we have already responded.
     // Only unresponded callback seqids should cancel the parent session.
-    return [...this._held].some(held => held.response?.seqid === seqID)
+    return [...this._held].some(held => held.response.seqid === seqID)
   }
 }
 
