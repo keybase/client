@@ -10,8 +10,22 @@ import {useConfigState} from '@/stores/config'
 import {resetAllStores} from '@/util/zustand'
 import {flush, tick} from '@/test/flush'
 import PinentryProxy from './remote-proxy.desktop'
+import type * as ReactTypes from 'react'
 
-jest.mock('../desktop/remote/use-browser-window.desktop', () => ({__esModule: true, default: () => {}}))
+// Whether the popup window is up: the proxy mounts the window hook only while it shows a prompt
+const mockPopup = {open: false}
+jest.mock('../desktop/remote/use-browser-window.desktop', () => ({
+  __esModule: true,
+  default: function useMockBrowserWindow() {
+    const {useEffect} = jest.requireActual<typeof ReactTypes>('react')
+    useEffect(() => {
+      mockPopup.open = true
+      return () => {
+        mockPopup.open = false
+      }
+    }, [])
+  },
+}))
 jest.mock('../desktop/remote/use-serialize-props.desktop', () => ({__esModule: true, default: () => {}}))
 
 afterEach(() => {
@@ -97,4 +111,57 @@ test('a passphrase prompt while logged out is canceled at once and not held', as
   await flush()
   expect(answeredTwice(logError)).toEqual([])
   uninstallFakeEngine()
+})
+
+describe('a passphrase prompt the service stops waiting on', () => {
+  const dev = __DEV__
+  afterEach(() => {
+    global.__DEV__ = dev
+  })
+
+  const showPrompt = async () => {
+    // Dev builds warn when a settled prompt is answered, so a stale submit shows up here
+    global.__DEV__ = true
+    const warned = jest.spyOn(logger, 'warn')
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    const fake = installFakeEngine()
+    render(<PinentryProxy />)
+    let pushed: Promise<unknown> = Promise.resolve()
+    act(() => {
+      pushed = fake.push('keybase.1.secretUi.getPassphrase', pinentry, {sessionID: 0})
+    })
+    await flush()
+    expect(mockPopup.open).toBe(true)
+    return {fake, pushed, warned}
+  }
+
+  const submitLate = async () => {
+    act(() => eventFromRemoteWindows(RemoteGen.createPinentryOnSubmit({password: 'testpass'})))
+    await flush()
+  }
+
+  test('closes when the service cancels it, and a later submit writes nothing', async () => {
+    const {fake, pushed, warned} = await showPrompt()
+    act(() => fake.cancelPush('keybase.1.secretUi.getPassphrase'))
+    await pushed
+    await flush()
+    expect(mockPopup.open).toBe(false)
+    await submitLate()
+    expect(warned).not.toHaveBeenCalledWith(expect.stringContaining('already settled'))
+    // The fake records a write to a seqid it is no longer waiting on
+    expect(() => uninstallFakeEngine()).not.toThrow()
+  })
+
+  test('closes when the link drops, and a later submit writes nothing on the next link', async () => {
+    const {fake, pushed, warned} = await showPrompt()
+    act(() => fake.drop())
+    await pushed
+    await flush()
+    expect(mockPopup.open).toBe(false)
+    await submitLate()
+    fake.restart()
+    await flush()
+    expect(warned).not.toHaveBeenCalledWith(expect.stringContaining('already settled'))
+    expect(() => uninstallFakeEngine()).not.toThrow()
+  })
 })

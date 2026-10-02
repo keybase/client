@@ -52,7 +52,12 @@ const Pinentry = (p: ProxyProps) => {
 const PinentryProxy = () => {
   const [popupState, setPopupState] = React.useState(initialPopupState)
   const loggedIn = useConfigState(s => s.loggedIn)
-  const handlersRef = React.useRef<{cancel?: () => void; submit?: (password: string) => void}>({})
+  const handlersRef = React.useRef<{
+    cancel?: () => void
+    // The held prompt, so a cancel from the engine can tell whether it is the one shown
+    response?: unknown
+    submit?: (password: string) => void
+  }>({})
   const clearPopup = React.useCallback(() => {
     handlersRef.current = {}
     setPopupState(initialPopupState())
@@ -81,9 +86,10 @@ const PinentryProxy = () => {
     }
   }, [loggedIn])
 
-  React.useEffect(
-    () =>
-      registerIncomingAnswerer('keybase.1.secretUi.getPassphrase', (params, response) => {
+  React.useEffect(() => {
+    const unregister = registerIncomingAnswerer(
+      'keybase.1.secretUi.getPassphrase',
+      (params, response) => {
         // The proxy only shows a prompt while logged in, so a held one would never be answered
         if (!useConfigState.getState().loggedIn) {
           response.error(inputCanceledError)
@@ -104,6 +110,7 @@ const PinentryProxy = () => {
             response.error(inputCanceledError)
             clearPopup()
           }),
+          response,
           submit: wrapErrors((password: string) => {
             response.result({passphrase: password, storeSecret: false})
             clearPopup()
@@ -118,9 +125,18 @@ const PinentryProxy = () => {
           type,
           windowTitle,
         })
-      }),
-    [clearPopup]
-  )
+      },
+      {
+        // The service stopped waiting on the shown prompt, so nothing may answer it now
+        onCancelled: response => {
+          if (handlersRef.current.response === response) {
+            clearPopup()
+          }
+        },
+      }
+    )
+    return unregister
+  }, [clearPopup])
 
   const currentPopupState =
     !loggedIn && popupState.type !== T.RPCGen.PassphraseType.none ? initialPopupState() : popupState

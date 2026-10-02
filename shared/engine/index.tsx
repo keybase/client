@@ -19,7 +19,8 @@ import {type RPCError, convertToError} from '@/util/errors'
 import {mustAnswerMethods} from '@/constants/rpc'
 import type * as EngineGen from '@/constants/rpc'
 import {StatusCode} from '@/constants/rpc/rpc-gen'
-import {getIncomingAnswerer} from './incoming-answerers'
+import {getIncomingAnswerer, type IncomingAnswerer} from './incoming-answerers'
+import type {ErrorType, ResponseType as RPCResponseType} from './rpc-transport'
 import type {IncomingCallMapType, CustomResponseIncomingCallMapType} from '@/constants/rpc/rpc-all-gen'
 
 export type BatchParams = Array<{key: WaitingKey; increment: boolean; error?: RPCError}>
@@ -33,6 +34,8 @@ class Engine implements CallPort {
   _onConnectedCB: (c: boolean) => void
   // Tracking outstanding sessions
   _sessionsMap = new Map<SessionID, Session>()
+  // Prompts held by global answerers, by seqid: each entry drops its prompt unanswered
+  _globalHeld = new Map<number, () => void>()
   // Helper we delegate actual calls to
   _rpcClient: CreateClientType
   _makeClient: MakeClient
@@ -133,6 +136,7 @@ class Engine implements CallPort {
       sessions: this._sessionSummary(),
     })
     this._cancelOutstandingSessions('lostLink')
+    this._forgetGlobalHeld()
     // tell renderer we're disconnected
     this._onConnectedCB(false)
   }
@@ -206,6 +210,9 @@ class Engine implements CallPort {
         })
       }
       cancelled.cancelByService(seqid)
+    } else if (this._globalHeld.has(seqid)) {
+      // A global answerer's prompt: the service no longer reads its answer
+      this._globalHeld.get(seqid)!()
     } else if (printRPC) {
       rpcLog({
         extra: {seqid},
@@ -258,12 +265,13 @@ class Engine implements CallPort {
   _answerGlobalIncoming(method: string, param: object, response: PayloadType['response']) {
     const answerer = getIncomingAnswerer(method)
     if (answerer) {
+      const held = response ? this._holdGlobal(method, response, answerer) : undefined
       try {
-        answerer(param, response)
+        answerer.answer(param, held)
       } catch (e) {
         logger.error(`Engine: answerer for ${method} threw`, e)
-        if (!response?.settled) {
-          response?.error?.(inputCanceledError)
+        if (held && !held.settled) {
+          held.error(inputCanceledError)
         }
       }
     } else if (mustAnswerMethods.has(method)) {
@@ -273,6 +281,48 @@ class Engine implements CallPort {
       response?.error?.({code: StatusCode.scinputcanceled, desc: `No handler for ${method}`})
     } else {
       response?.result?.()
+    }
+  }
+
+  // The response a global answerer holds, settled once: by the answerer, or by the engine when the
+  // service cancels the call or the link goes, which writes nothing and tells the answerer.
+  _holdGlobal(method: string, response: RPCResponseType, answerer: IncomingAnswerer) {
+    const {seqid} = response
+    let settled = false
+    const settle = () => {
+      if (settled) {
+        return false
+      }
+      settled = true
+      this._globalHeld.delete(seqid)
+      return true
+    }
+    const answer = (write: () => void) => {
+      if (settle()) {
+        write()
+      } else if (__DEV__) {
+        logger.warn(`Engine: ${method} was answered after it was already settled`)
+      }
+    }
+    const held = {
+      error: (e?: ErrorType) => answer(() => response.error?.(e)),
+      result: (r?: unknown) => answer(() => response.result?.(r)),
+      seqid,
+      get settled() {
+        return settled
+      },
+    }
+    this._globalHeld.set(seqid, () => {
+      if (settle()) {
+        answerer.onCancelled?.(held)
+      }
+    })
+    return held
+  }
+
+  _forgetGlobalHeld() {
+    for (const forget of [...this._globalHeld.values()]) {
+      forget()
     }
   }
 
@@ -381,6 +431,7 @@ class Engine implements CallPort {
       session.end()
     }
     this._sessionsMap.clear()
+    this._forgetGlobalHeld()
     this._queuedChanges = []
     this._hasConnected = false
     this._listenersAreReady = false

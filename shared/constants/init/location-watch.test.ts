@@ -152,7 +152,7 @@ test.each([
   const {getIncomingAnswerer} = require('@/engine/incoming-answerers') as typeof Answerers
   const unregisters = init.registerPlatformAnswerers()
   const result = jest.fn()
-  getIncomingAnswerer('chat.1.chatUi.chatWatchPosition')?.({}, {error: jest.fn(), result})
+  getIncomingAnswerer('chat.1.chatUi.chatWatchPosition')?.answer({}, {error: jest.fn(), result})
   unregisters.forEach(u => u())
   expect(result).toHaveBeenCalledWith(0)
 })
