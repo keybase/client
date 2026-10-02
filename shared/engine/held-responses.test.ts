@@ -92,15 +92,16 @@ test('a prompt its handler answers twice writes one response', async () => {
 test('a prompt the service cancelled writes nothing when its handler answers late', async () => {
   const fake = installFakeEngine()
   const {onPrompt, responses} = capture()
-  const {ended, push} = await startRecover(fake, onPrompt)
+  const {ended, held, push} = await startRecover(fake, onPrompt)
   const pushed = push()
   await afterTimers()
   expect(onPrompt).toHaveBeenCalledTimes(1)
   fake.cancelPush(prompt)
-  await expect(ended).resolves.toMatchObject({code: T.RPCGen.StatusCode.sccanceled})
   await pushed
   responses[0]!.result(true)
   await tick()
+  held[0]!.reply(undefined)
+  await expect(ended).resolves.toBeUndefined()
   // The fake records any response to a seqid it is no longer waiting on
   expect(() => uninstallFakeEngine()).not.toThrow()
 })

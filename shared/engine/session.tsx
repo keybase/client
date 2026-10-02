@@ -20,6 +20,7 @@ import {
 
 // A response the session handed to a handler. Settled once: by the handler, or by the session.
 type HeldResponse = {
+  method: MethodKey
   response: ResponseType
   settled: boolean
 }
@@ -140,18 +141,20 @@ class Session {
     }
   }
 
-  // The service cancelled one of its calls to us: it no longer reads an answer for that seqid.
+  // The service cancelled one of its calls to us: it no longer reads an answer for that seqid. Only that
+  // call ends; its RPC goes on and may make more calls (Go cancels a prompt's context, e.g. login's
+  // DisplayAndPromptSecret once the other device finished, then calls ProvisioneeSuccess).
   cancelByService(seqid: number) {
-    const promptWasPending = this._held.size > 0
     for (const held of [...this._held]) {
-      if (held.response.seqid === seqid) {
-        this._settle(held)
+      if (held.response.seqid === seqid && this._settle(held)) {
+        // Like an answer, the service is working on the RPC again
+        this._makeWaitingHandler(held.method, seqid)(true)
       }
     }
-    this._cancel('refuse', promptWasPending)
   }
 
-  _cancel(heldPrompts: 'refuse' | 'forget', promptWasPending = this._held.size > 0) {
+  _cancel(heldPrompts: 'refuse' | 'forget') {
+    const promptWasPending = this._held.size > 0
     if (this._refusing) {
       // Already cancelled; only a lost link ends the refusal early, since the reply can't come now
       if (heldPrompts === 'forget') {
@@ -310,7 +313,7 @@ class Session {
     }
 
     // A custom call delivered as a notification has nothing to answer
-    const held: HeldResponse = {response: response ?? {}, settled: false}
+    const held: HeldResponse = {method, response: response ?? {}, settled: false}
     this._held.add(held)
 
     const updateWaiting = this._makeWaitingHandler(method, response?.seqid)
