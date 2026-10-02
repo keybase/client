@@ -108,7 +108,7 @@ class Engine implements CallPort {
     // Print out any alive sessions periodically
     if (printOutstandingRPCs) {
       setInterval(() => {
-        if ([...this._sessionsMap.values()].some(session => !session.getDangling())) {
+        if (this._sessionSummary().length) {
           logger.localLog('outstandingSessionDebugger: ', this._sessionsMap)
         }
       }, 10 * 1000)
@@ -117,7 +117,8 @@ class Engine implements CallPort {
 
   _sessionSummary() {
     return [...this._sessionsMap.values()]
-      .filter(session => !session.getDangling())
+      // A refusing session's caller already has its answer
+      .filter(session => !session.getDangling() && !session.isRefusing())
       .map(session => ({
         id: session.getId(),
         method: session._startMethod || 'unknown',
@@ -402,8 +403,8 @@ class Engine implements CallPort {
     this._sessionsMap.delete(session.getId())
   }
 
-  // Client-side cancel of one outstanding session: rejects its start callback
-  // (sccanceled) and ends it. The service is not told; its side dies on its own.
+  // Client-side cancel of one outstanding session: rejects its start callback (sccanceled). The
+  // service is not told; until its RPC replies, the session refuses whatever it still sends.
   cancelSession(sessionID: number) {
     this._sessionsMap.get(sessionID)?.cancel()
   }
