@@ -40,6 +40,18 @@ let current: Run | undefined
 let caller: Pick<StartRecoverPasswordParams, 'onResetEmailSent' | 'username'> | undefined
 
 const pgpWarningName = 'recoverPasswordPgpWarning'
+// The screens a run shows. Its error takes the place of the one on top; over anything else (the app,
+// the login screen) it is pushed, so going back from it leaves something to go back to.
+const runScreens = new Set([
+  'recoverPasswordDeviceSelector',
+  'recoverPasswordError',
+  'recoverPasswordErrorModal',
+  'recoverPasswordExplainDevice',
+  'recoverPasswordPaperKey',
+  pgpWarningName,
+  'recoverPasswordPromptResetPassword',
+  'recoverPasswordSetPassword',
+])
 // How long a modal may wait for the logged-in root before navigateAppendOnceRootHas drops it.
 const loggedInRootTimeoutMs = 5000
 const pgpMountTimers = new Map<number, ReturnType<typeof setTimeout>>()
@@ -277,7 +289,7 @@ export const startRecoverPassword = ({
             name: useConfigState.getState().loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
             params: {error: error.message},
           },
-          true
+          runScreens.has(getVisibleScreen(true)?.name ?? '')
         )
       }
     } finally {
