@@ -113,3 +113,23 @@ test('a renderer reload while the service is down replays the down state and kee
   socket(1).emit('connect')
   expect(toRenderer).toEqual([up(1), down(1), down(1), up(2)])
 })
+
+test('bytes still arriving from a replaced connection never reach the renderer', () => {
+  const relay = makeRelay()
+  socket(0).emit('connect')
+  relay.restartLink()
+  socket(1).emit('connect')
+  socket(0).emit('data', Buffer.from([9, 9]))
+  socket(1).emit('data', Buffer.from([1]))
+  expect(toRenderer).toEqual([up(1), down(1), up(2), new Uint8Array([1])])
+})
+
+test('a send that is not an epoch-stamped rpc message is dropped without throwing', () => {
+  const relay = makeRelay()
+  socket(0).emit('connect')
+  for (const bad of [undefined, null, 'x', {epoch: 1}, {message: call('noEpoch')}, {epoch: 1, message: 'x'}]) {
+    expect(() => relay.send(bad)).not.toThrow()
+  }
+  relay.send({epoch: 1, message: call('good')})
+  expect(methodsWritten(socket(0))).toEqual(['good'])
+})

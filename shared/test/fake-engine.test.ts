@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import {fakeError, installFakeEngine, uninstallFakeEngine, type FakeEngine} from './fake-engine'
 import type * as FakeEngineModule from './fake-engine'
 import {getCallPort, hasCallPort, installCallPort, uninstallCallPort} from '@/engine/call-port'
-import {MESSAGE_TYPE_RESPONSE, errors} from '@/engine/rpc-transport'
+import {MESSAGE_TYPE_RESPONSE} from '@/engine/rpc-transport'
 import {useWaitingState} from '@/stores/waiting'
 import {resetAllStores} from '@/util/zustand'
 import {tick} from '@/test/flush'
@@ -11,6 +11,8 @@ import {tick} from '@/test/flush'
 afterEach(() => resetAllStores())
 
 // Starts a recoverPassphrase listener whose session the service can push prompts into.
+const linkLost = {code: T.RPCGen.StatusCode.sccanceled, desc: 'The service connection was lost'}
+
 const startRecover = async (
   fake: FakeEngine,
   onPrompt: NonNullable<T.RPCGen.CustomResponseIncomingCallMap['keybase.1.loginUi.promptPassphraseRecovery']>
@@ -108,7 +110,7 @@ test('a held call left at uninstall fails, and nothing reaches the stores afterw
   )
   expect(useWaitingState.getState().counts.get('test:held')).toBe(1)
   uninstallFakeEngine()
-  await expect(settled).resolves.toMatchObject({code: errors.EOF})
+  await expect(settled).resolves.toMatchObject(linkLost)
   expect(useWaitingState.getState().counts.get('test:held')).toBeUndefined()
 
   const changes = jest.fn()
@@ -125,18 +127,18 @@ test('a dropped link rejects a held call', async () => {
   const p = T.RPCGen.configWaitForClientRpcPromise({clientType: T.RPCGen.ClientType.none, timeout: 1})
   fake.drop()
   expect(fake.connected()).toBe(false)
-  await expect(p).rejects.toMatchObject({code: errors.EOF})
+  await expect(p).rejects.toMatchObject(linkLost)
 })
 
-test('a call made while dropped is sent once the link comes back', async () => {
+test('a call made while dropped is refused, and one made once the link comes back is answered', async () => {
   const fake = installFakeEngine()
   fake.answer('keybase.1.config.getBootstrapStatus', () => ({deviceName: 'back'}))
   fake.drop()
-  const p = T.RPCGen.configGetBootstrapStatusRpcPromise()
-  expect(fake.calls).toHaveLength(0)
+  await expect(T.RPCGen.configGetBootstrapStatusRpcPromise()).rejects.toMatchObject(linkLost)
   fake.restart()
   expect(fake.connected()).toBe(true)
-  await expect(p).resolves.toMatchObject({deviceName: 'back'})
+  await expect(T.RPCGen.configGetBootstrapStatusRpcPromise()).resolves.toMatchObject({deviceName: 'back'})
+  expect(fake.calls).toHaveLength(1)
 })
 
 test('a pushed prompt reaches the listener map and returns its answer', async () => {
@@ -155,7 +157,7 @@ test('a dropped link settles a push the GUI has not answered', async () => {
   const pushed = fake.push('keybase.1.loginUi.promptPassphraseRecovery', {kind: 0}, {sessionID})
   fake.drop()
   await expect(pushed).resolves.toMatchObject({error: {desc: 'fake engine: link dropped'}})
-  await expect(done).rejects.toMatchObject({code: errors.EOF})
+  await expect(done).rejects.toMatchObject(linkLost)
 })
 
 test('a second GUI answer to the same push fails the test', async () => {
@@ -170,7 +172,7 @@ test('a second GUI answer to the same push fails the test', async () => {
     'GUI answered push seqid 1 (keybase.1.loginUi.promptPassphraseRecovery) when it was no longer waiting'
   )
   // uninstall fails the session that was still open
-  await expect(ended).resolves.toMatchObject({code: errors.EOF})
+  await expect(ended).resolves.toMatchObject(linkLost)
 })
 
 test('a service cancel settles the pending push and the GUI may no longer answer it', async () => {
@@ -228,7 +230,7 @@ test('an answer that throws after uninstall fails the test then running', async 
     const settled = T.RPCGen.configGetBootstrapStatusRpcPromise().catch((e: unknown) => e)
     await tick()
     uninstallFakeEngine()
-    await expect(settled).resolves.toMatchObject({code: errors.EOF})
+    await expect(settled).resolves.toMatchObject(linkLost)
     fail(new Error('late boom'))
     await tick()
     expect(logged).toHaveBeenCalledWith(

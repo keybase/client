@@ -1,5 +1,5 @@
 import logger from '@/logger'
-import {TransportShared, LocalTransport, sharedCreateClient, rpcLog} from './transport-shared'
+import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import type {RPCMessage} from './rpc-transport'
 import type {InvokeType, PayloadType, ConnectDisconnectCB, IncomingRPCCallbackType} from '@/engine/rpc-transport'
 
@@ -68,15 +68,29 @@ class ProxyNativeTransport extends TransportShared {
     }
   }
 
-  // On account-switch reset fail outstanding invocations so pre-switch RPC
-  // callbacks can't fire later against post-switch state
+  // Engine.reset (the Windows pipe-owner check failing): nothing in flight will be answered
   override reset() {
     this.failAllOutstanding()
   }
 }
 
-// Mobile transport — only instantiated when isMobile
-class NativeTransportMobile extends LocalTransport {
+// Mobile transport — only instantiated when isMobile. The link is up from the start; Go dropping
+// the loopback connection takes it down and back up in one step (the 'kb-engine-reset' meta event).
+class NativeTransportMobile extends TransportShared {
+  private _linkUp = true
+
+  constructor(
+    incomingRPCCallback: IncomingRPCCallbackType,
+    connectCallback?: ConnectDisconnectCB,
+    disconnectCallback?: ConnectDisconnectCB
+  ) {
+    super(connectCallback, disconnectCallback, incomingRPCCallback)
+  }
+
+  protected override isConnected() {
+    return this._linkUp
+  }
+
   protected writeMessage(message: RPCMessage) {
     if (!global.rpcOnGo) {
       throw new Error('rpcOnGo send before rpcOnGo global')
@@ -89,15 +103,20 @@ class NativeTransportMobile extends LocalTransport {
       throw new Error('native rpc write failed')
     }
   }
-  // Only reachable from the 'kb-engine-reset' meta event below: Go dropped
-  // the loopback connection (e.g. a stream desync detected natively), so
-  // nothing will answer the in-flight RPCs and hanging every caller is the
-  // alternative. Engine.reset() early-returns on mobile, so an account switch
-  // does NOT land here -- and must not: failing outstanding RPCs on a switch
-  // EOFs login.login, proven on device. Keep any new call site inside the
-  // meta-event handler, not in code shared with the account-switch path.
-  override reset() {
-    this.failAllOutstanding()
+
+  // linkDown and linkUp are only reachable from the 'kb-engine-reset' meta event below: Go dropped
+  // the loopback connection (e.g. a stream desync detected natively), so nothing will answer the
+  // in-flight RPCs and hanging every caller is the alternative. An account switch must NOT land
+  // here: failing outstanding RPCs on a switch fails login.login, proven on device. Keep any new call
+  // site inside the meta-event handler, not in code shared with the account-switch path.
+  linkDown() {
+    this._linkUp = false
+    this.onLinkDown()
+  }
+
+  linkUp() {
+    this._linkUp = true
+    this.onConnected()
   }
 }
 
@@ -152,9 +171,8 @@ function createClient(
   disconnectCallback: ConnectDisconnectCB
 ) {
   if (isMobile) {
-    const client = sharedCreateClient(
-      new NativeTransportMobile(incomingRPCCallback, connectCallback, disconnectCallback)
-    )
+    const transport = new NativeTransportMobile(incomingRPCCallback, connectCallback, disconnectCallback)
+    const client = sharedCreateClient(transport)
 
     const dispatchOne = makeDispatchOne(client)
 
@@ -167,25 +185,23 @@ function createClient(
         switch (payload) {
           case 'kb-engine-reset':
             // Go dropped the loopback connection; anything in flight is dead.
-            // Report the disconnect before the reconnect so the engine cancels
-            // its sessions and the UI shows the reconnect state -- the desktop
-            // socket path does the same pair. disconnectCallback and
-            // connectCallback are isolated in their own try/catch: a throw
-            // from a session cancel handler inside disconnectCallback must
-            // not strand the UI on the disconnect banner by skipping
-            // connectCallback (which synchronously clears the daemon error
-            // via startHandshake(), so nothing here may be moved behind an
-            // await).
-            client.transport.reset()
+            // The link goes down (failing what is in flight, then telling the
+            // engine, which cancels its sessions and shows the reconnect
+            // state) before it comes back up -- the desktop link frames do the
+            // same pair. The two are isolated in their own try/catch: a throw
+            // from a session cancel handler on the way down must not strand
+            // the UI on the disconnect banner by skipping the link-up (whose
+            // connect callback synchronously clears the daemon error via
+            // startHandshake(), so nothing here may be moved behind an await).
             try {
-              disconnectCallback()
+              transport.linkDown()
             } catch (e) {
-              logger.error('>>>> meta engine event: disconnectCallback threw', e)
+              logger.error('>>>> meta engine event: link down threw', e)
             }
             try {
-              connectCallback()
+              transport.linkUp()
             } catch (e) {
-              logger.error('>>>> meta engine event: connectCallback threw', e)
+              logger.error('>>>> meta engine event: link up threw', e)
             }
         }
       } catch (e) {

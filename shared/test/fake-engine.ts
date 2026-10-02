@@ -38,8 +38,7 @@ export type FakeEngine = {
   // The service cancels every push of `method` the GUI has not answered; each settles as cancelled.
   cancelPush: (method: string) => void
   calls: Array<{method: string; params: any}>
-  // The link died. Models the desktop node-socket transport (onDisconnected), not the mobile JSI
-  // or renderer reset (failAllOutstanding).
+  // The link died: the transport's link-down path, as the renderer and mobile transports take it
   drop: () => void
   restart: () => void // the link came back: transport onConnected
   connected: () => boolean
@@ -90,7 +89,7 @@ class FakeTransport extends TransportShared {
 
   drop() {
     this.linkUp = false
-    this.onDisconnected()
+    this.onLinkDown()
   }
 
   restart() {
@@ -258,7 +257,7 @@ export const installFakeEngine = (opts?: {onEngineIncoming?: (a: EngineGen.Actio
     if (getTransport().linkUp) {
       fake.drop()
     }
-    // Also fails calls queued while the link was down
+    // Refuses any call made after uninstall
     getTransport().close()
     dead = true
     engine._throttledDispatchWaitingAction.flush()

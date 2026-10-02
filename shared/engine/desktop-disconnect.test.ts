@@ -1,6 +1,7 @@
 /// <reference types="jest" />
 import {makeDesktopEnginePair, type DesktopEnginePair} from '@/test/desktop-engine-pair'
 import {tick} from '@/test/flush'
+import {StatusCode} from '@/constants/rpc/rpc-gen'
 
 const methodsReceived = (pair: DesktopEnginePair) => pair.serviceReceived().map(m => m[2])
 
@@ -57,8 +58,8 @@ test('a renderer call still crossing IPC when the service restarts never reaches
   expect(methodsReceived(pair)).toEqual([])
 })
 
-// Known failures: each pins a desktop disconnect bug seen in the live app when the service stops and restarts.
-test.failing('a renderer call in flight when the service dies settles', async () => {
+// Each pins a desktop disconnect bug seen in the live app when the service stops and restarts.
+test('a renderer call in flight when the service dies settles', async () => {
   const pair = makeDesktopEnginePair()
   const cb = jest.fn()
   pair.renderer.invoke('keybase.1.config.waitForClient', [{clientType: 0, timeout: 120}], cb)
@@ -67,7 +68,7 @@ test.failing('a renderer call in flight when the service dies settles', async ()
   expect(cb).toHaveBeenCalledTimes(1)
 })
 
-test.failing('a renderer call made while the service is down is not sent to the next service before its handshake', () => {
+test('a renderer call made while the service is down is not sent to the next service before its handshake', () => {
   const pair = makeDesktopEnginePair()
   pair.serviceDies()
   const cb = jest.fn()
@@ -75,4 +76,43 @@ test.failing('a renderer call made while the service is down is not sent to the 
   pair.serviceComesBack()
   expect(pair.serviceReceived().map(m => m[2])).not.toContain('keybase.1.config.getBootstrapStatus')
   expect(cb).toHaveBeenCalledTimes(1)
+})
+
+test('a service restarting twice in quick succession fails a call in flight once and reaches neither new service with it', async () => {
+  const pair = makeDesktopEnginePair()
+  const inFlight = jest.fn()
+  pair.renderer.invoke('keybase.1.config.waitForClient', [{clientType: 0, timeout: 120}], inFlight)
+  pair.serviceDies()
+  pair.serviceComesBack()
+  pair.serviceDies()
+  pair.serviceComesBack()
+  await tick()
+  expect(inFlight).toHaveBeenCalledTimes(1)
+  expect(inFlight).toHaveBeenCalledWith({code: StatusCode.sccanceled, desc: 'The service connection was lost'}, {})
+  expect(methodsReceived(pair)).toEqual([])
+  expect(pair.linkChanges).toEqual([true, false, true, false, true])
+})
+
+test('a renderer call made once it knows the service is down is refused at once and never sent', async () => {
+  const pair = makeDesktopEnginePair()
+  pair.serviceDies()
+  await tick()
+  const cb = jest.fn()
+  pair.renderer.invoke('keybase.1.config.getBootstrapStatus', [{}], cb)
+  expect(cb).toHaveBeenCalledTimes(1)
+  pair.serviceComesBack()
+  await tick()
+  expect(methodsReceived(pair)).toEqual([])
+  expect(cb).toHaveBeenCalledTimes(1)
+})
+
+test('link changes before the app has its listeners ready are not announced', async () => {
+  const pair = makeDesktopEnginePair({listenersReady: false})
+  pair.serviceDies()
+  await tick()
+  expect(pair.linkChanges).toEqual([])
+  pair.serviceComesBack()
+  await tick()
+  pair.listenersReadyAgain()
+  expect(pair.linkChanges).toEqual([true])
 })

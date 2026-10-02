@@ -2,6 +2,9 @@
 
 import type {CreateClientType, IncomingRPCCallbackType, ConnectDisconnectCB} from './index.platform'
 import {errors} from './rpc-transport'
+import {StatusCode} from '@/constants/rpc/rpc-gen'
+import type * as EngineModule from './index'
+import type * as ConfigModule from '@/stores/config'
 
 type IndexPlatformModule = {
   createClient: (
@@ -50,24 +53,35 @@ test('disconnectCallback throwing does not prevent connectCallback from running 
   try {
     const {createClient} = require('./index.platform') as IndexPlatformModule
     const connectCallback = jest.fn()
+    const duringDown = jest.fn()
     const disconnectCallback = jest.fn(() => {
+      // A call made while the link is down is refused, not sent to the next one
+      client.invoke('keybase.1.test.duringDown', [{}], duringDown)
       throw new Error('disconnect handler blew up')
     })
+    const sent = new Array<Array<unknown>>()
+    global.rpcOnGo = m => {
+      sent.push(m as Array<unknown>)
+      return true
+    }
     const client = createClient(() => {}, connectCallback, disconnectCallback)
-    const resetSpy = jest.spyOn(client.transport, 'reset')
+    const inFlight = jest.fn()
+    client.invoke('keybase.1.test.hello', [{}], inFlight)
 
     if (!capturedMetaCb) {
       throw new Error('kb-engine-reset handler was never registered')
     }
     capturedMetaCb('kb-engine-reset')
 
-    // The reset must actually happen -- not just the two callbacks below --
+    // The link must actually go down -- not just the two callbacks below --
     // or pre-reset in-flight invocations stay outstanding forever.
-    expect(resetSpy).toHaveBeenCalledTimes(1)
+    expect(inFlight).toHaveBeenCalledTimes(1)
     expect(disconnectCallback).toHaveBeenCalledTimes(1)
     // The isolation fix: disconnectCallback throwing must not skip connectCallback,
     // or the UI is stranded on the disconnect banner forever.
     expect(connectCallback).toHaveBeenCalledTimes(1)
+    expect(duringDown).toHaveBeenCalledWith({code: StatusCode.sccanceled, desc: 'The service connection was lost'}, {})
+    expect(sent.map(m => m[2])).toEqual(['keybase.1.test.hello'])
   } finally {
     teardownMobileMocks(originalIsMobile, originalRpcOnGo, originalRpcOnJs)
   }
@@ -115,8 +129,23 @@ test('outstanding invocations survive everything except kb-engine-reset', () => 
 
     capturedMetaCb('kb-engine-reset')
     expect(cb).toHaveBeenCalledTimes(1)
-    const [err] = cb.mock.calls[0] as [unknown, unknown]
-    expect((err as {code?: number}).code).toBe(errors.EOF)
+    expect(cb).toHaveBeenCalledWith({code: StatusCode.sccanceled, desc: 'The service connection was lost'}, {})
+
+    // Each reset fails only what was in flight on the link it ended, and calls go out on the new link
+    const sent = new Array<unknown>()
+    global.rpcOnGo = m => {
+      sent.push(m)
+      return true
+    }
+    const after = jest.fn()
+    client.invoke('keybase.1.test.after', [{}], after)
+    capturedMetaCb('kb-engine-reset')
+    capturedMetaCb('kb-engine-reset')
+    expect(cb).toHaveBeenCalledTimes(1)
+    expect(after).toHaveBeenCalledTimes(1)
+    expect(sent).toHaveLength(1)
+    client.invoke('keybase.1.test.later', [{}], () => {})
+    expect(sent).toHaveLength(2)
   } finally {
     teardownMobileMocks(originalIsMobile, originalRpcOnGo, originalRpcOnJs)
   }
@@ -151,6 +180,50 @@ test('NativeTransportMobile fails the invocation (not hang) when rpcOnGo reports
     // thrown Error into its code/desc shape; the message survives in desc.
     expect((err as {code?: number; desc?: string}).code).toBe(errors.EOF)
     expect((err as {code?: number; desc?: string}).desc).toBe('native rpc write failed')
+  } finally {
+    teardownMobileMocks(originalIsMobile, originalRpcOnGo, originalRpcOnJs)
+  }
+})
+
+test('an account switch fails no outgoing call; only kb-engine-reset does', () => {
+  const originalIsMobile = global.isMobile
+  const originalRpcOnGo = global.rpcOnGo
+  const originalRpcOnJs = global.rpcOnJs
+  global.isMobile = true
+
+  let capturedMetaCb: ((payload: string) => void) | undefined
+  mockNativeModules(cb => {
+    capturedMetaCb = cb
+  })
+  jest.resetModules()
+
+  try {
+    const {makeEngine} = require('./index') as typeof EngineModule
+    const {useConfigState} = require('@/stores/config') as typeof ConfigModule
+    const sent = new Array<Array<unknown>>()
+    global.rpcOnGo = m => {
+      sent.push(m as Array<unknown>)
+      return true
+    }
+    const engine = makeEngine(
+      () => {},
+      () => {}
+    )
+    const loggedIn = jest.fn()
+    // switchToAccount: the switch starts, then login goes out
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
+    engine.call({callback: loggedIn, method: 'keybase.1.login.login', params: {}})
+    engine.reset()
+    useConfigState.getState().dispatch.setUserSwitching(false)
+    expect(loggedIn).not.toHaveBeenCalled()
+    expect(sent.map(m => m[2])).toEqual(['keybase.1.login.login'])
+
+    capturedMetaCb?.('kb-engine-reset')
+    expect(loggedIn).toHaveBeenCalledTimes(1)
+    expect(loggedIn.mock.calls[0]![0]).toMatchObject({
+      code: StatusCode.sccanceled,
+      desc: 'The service connection was lost',
+    })
   } finally {
     teardownMobileMocks(originalIsMobile, originalRpcOnGo, originalRpcOnJs)
   }
