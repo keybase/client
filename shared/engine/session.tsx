@@ -44,8 +44,6 @@ class Session {
   // Cancelled by the client while its RPC was outstanding: the caller has its rejection, and every
   // call the service still makes on this session is refused here until the reply or a lost link
   _refusing = false
-  // If you want to know about being cancelled
-  _cancelHandler: CancelHandlerType | undefined
   // If true this session exists forever
   _dangling: boolean
   // Name of the start method, just to help debug
@@ -69,7 +67,6 @@ class Session {
     invoke: InvokeType
     dispatchWaiting: (key: WaitingKey, waiting: boolean, err?: RPCError) => void
     endHandler: EndHandlerType
-    cancelHandler?: CancelHandlerType
     dangling?: boolean
     globalFallthrough?: ReadonlyArray<string>
   }) {
@@ -80,7 +77,6 @@ class Session {
     this._invoke = p.invoke
     this._dispatchWaiting = p.dispatchWaiting
     this._endHandler = p.endHandler
-    this._cancelHandler = p.cancelHandler
     this._dangling = p.dangling || false
     this._globalFallthrough = p.globalFallthrough
   }
@@ -166,9 +162,7 @@ class Session {
     for (const held of [...this._held]) {
       this._settle(held, heldPrompts === 'refuse' ? () => held.response.error?.(inputCanceledError) : undefined)
     }
-    if (this._cancelHandler) {
-      this._cancelHandler(this)
-    } else if (this._startCallback) {
+    if (this._startCallback) {
       // No server response is coming, so release the waiting count ourselves — but only when the
       // server owes us one; while a prompt is pending on the GUI the count was already released.
       if (this._waitingKey && !promptWasPending) {
@@ -363,5 +357,4 @@ class Session {
   }
 }
 
-export type CancelHandlerType = (session: Session) => void
 export default Session

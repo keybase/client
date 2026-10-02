@@ -1,5 +1,5 @@
 // Handles sending requests to the daemon
-import Session, {type CancelHandlerType} from './session'
+import Session from './session'
 import {makeListen} from './listener'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
@@ -354,17 +354,15 @@ class Engine implements CallPort {
   createSession(p: {
     incomingCallMap?: IncomingCallMapType
     customResponseIncomingCallMap?: CustomResponseIncomingCallMapType
-    cancelHandler?: CancelHandlerType
     dangling?: boolean
     waitingKey?: WaitingKey
     globalFallthrough?: ReadonlyArray<string>
   }): Session {
-    const {customResponseIncomingCallMap, incomingCallMap, cancelHandler, dangling = false} = p
+    const {customResponseIncomingCallMap, incomingCallMap, dangling = false} = p
     const {globalFallthrough, waitingKey} = p
     const sessionID = this._generateSessionID()
 
     const session = new Session({
-      cancelHandler,
       customResponseIncomingCallMap,
       dangling,
       dispatchWaiting: this.dispatchWaitingAction,

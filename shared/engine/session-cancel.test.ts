@@ -3,7 +3,7 @@
 // them reaches a global answerer or the app's incoming handlers.
 import * as T from '@/constants/types'
 import type * as EngineGen from '@/constants/rpc'
-import {installFakeEngine, uninstallFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {registerIncomingAnswerer} from './incoming-answerers'
 import {useConfigState} from '@/stores/config'
 import {useWaitingState} from '@/stores/waiting'
@@ -71,7 +71,6 @@ test('a late prompt on a cancelled session is refused and never reaches a global
     error: inputCanceled,
   })
   expect(answered).not.toHaveBeenCalled()
-  uninstallFakeEngine()
 })
 
 test("a late prompt from the session's own map is refused without reaching its handler", async () => {
@@ -80,7 +79,6 @@ test("a late prompt from the session's own map is refused without reaching its h
   await expect(fake.push(prompt, {kind: 0}, {sessionID})).resolves.toEqual({error: inputCanceled})
   await afterTimers()
   expect(onPrompt).not.toHaveBeenCalled()
-  uninstallFakeEngine()
 })
 
 test('a late plain call on a cancelled session is acked and never reaches the app', async () => {
@@ -91,7 +89,6 @@ test('a late plain call on a cancelled session is acked and never reaches the ap
     result: undefined,
   })
   expect(onEngineIncoming).not.toHaveBeenCalled()
-  uninstallFakeEngine()
 })
 
 test('the RPC reply ends the refusal and removes the session', async () => {
@@ -103,7 +100,6 @@ test('the RPC reply ends the refusal and removes the session', async () => {
   held[0]!.reply(undefined)
   await tick()
   expect(fake.engine._sessionsMap.has(sessionID)).toBe(false)
-  uninstallFakeEngine()
 })
 
 test('a link drop ends the refusal', async () => {
@@ -111,7 +107,6 @@ test('a link drop ends the refusal', async () => {
   cancel()
   fake.drop()
   expect(fake.engine._sessionsMap.has(sessionID)).toBe(false)
-  uninstallFakeEngine()
 })
 
 test('an engine reset ends the refusal', async () => {
@@ -119,7 +114,6 @@ test('an engine reset ends the refusal', async () => {
   cancel()
   fake.engine.reset()
   expect(fake.engine._sessionsMap.has(sessionID)).toBe(false)
-  uninstallFakeEngine()
 })
 
 test('an account switch rejects the caller at once and refuses late prompts until the reply', async () => {
@@ -137,7 +131,6 @@ test('an account switch rejects the caller at once and refuses late prompts unti
   held[0]!.reply(undefined)
   await tick()
   expect(fake.engine._sessionsMap.has(sessionID)).toBe(false)
-  uninstallFakeEngine()
 })
 
 describe('the waiting count', () => {
@@ -151,7 +144,6 @@ describe('the waiting count', () => {
     held[0]!.reply(undefined)
     await tick()
     expect(waitingCount(fake)).toBe(0)
-    uninstallFakeEngine()
   })
 
   test('of a raw call is released once when it is cancelled and its reply comes later', async () => {
@@ -168,7 +160,6 @@ describe('the waiting count', () => {
     held[0]!.reply(undefined)
     await tick()
     expect(waitingCount(fake)).toBe(0)
-    uninstallFakeEngine()
   })
 })
 
@@ -180,5 +171,4 @@ test("a listener handler sees its response's settled state through the waiting w
   expect(response.settled).toBe(false)
   cancel()
   expect(response.settled).toBe(true)
-  uninstallFakeEngine()
 })
