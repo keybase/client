@@ -2,6 +2,7 @@
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
+import logger from '@/logger'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {tick} from '@/test/flush'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
@@ -291,6 +292,25 @@ describe('completion', () => {
     // The fake fails the test if this reached the service
     submitRecoverPasswordDeviceSelect(promptId, deviceID)
   })
+})
+
+test('a screen that fails to show is logged with its prompt, and the run stops', async () => {
+  const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+  const failure = new Error('no such screen')
+  nav = installFakeNavigator({
+    modalRouteNames: [openModal],
+    onDispatch: a => {
+      if (a.payload?.['name'] === 'recoverPasswordDeviceSelector') throw failure
+    },
+    rootState: makeRootState({above: [{name: openModal}]}),
+  })
+  const {sessionID} = await start()
+  const answered = fake.push(chooseDevice, {devices, username: 'testuser'}, {sessionID})
+  await settle()
+
+  expect(error).toHaveBeenCalledWith(expect.stringContaining(chooseDevice), failure)
+  await expect(answered).resolves.toEqual({error: inputCanceled})
+  error.mockRestore()
 })
 
 describe('restart', () => {

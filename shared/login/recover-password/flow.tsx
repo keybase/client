@@ -8,7 +8,7 @@ import {
 } from '@/constants/router'
 import {waitingKeyRecoverPassword} from '@/constants/strings'
 import {ignorePromise} from '@/constants/utils'
-import {openDialog, type Dialog, type Prompt} from '@/engine/dialog'
+import {openDialog, type Dialog, type DialogEvent, type Prompt} from '@/engine/dialog'
 import logger from '@/logger'
 import {startAccountReset} from '@/login/reset/account-reset'
 import {useConfigState} from '@/stores/config'
@@ -169,62 +169,72 @@ export const startRecoverPassword = ({
   current = run
   let pgp: Prompt<typeof promptPgp> | undefined
 
+  const showEvent = (e: DialogEvent<RecoverPrompt, typeof explainDevice>) => {
+    // A dispose between the dequeue and here closed it
+    if (e.kind === 'prompt' && !e.open) {
+      return
+    }
+    if (e.kind === 'notice') {
+      navigateAppend(
+        {
+          name: 'recoverPasswordExplainDevice',
+          params: {deviceName: e.params.name, deviceType: e.params.kind, username},
+        },
+        true
+      )
+      return
+    }
+    switch (e.method) {
+      case chooseDevice: {
+        const devices = (e.params.devices || []).map(d => rpcDeviceToDevice(d))
+        navigateAppend(
+          {name: 'recoverPasswordDeviceSelector', params: {devices, promptId: e.id}},
+          !!replaceRoute
+        )
+        break
+      }
+      case promptPgp:
+        pgp = e
+        showPgpWarning(e)
+        break
+      case promptReset:
+        if (e.params.prompt.t === T.RPCGen.ResetPromptType.enterResetPw) {
+          navigateAppend({name: 'recoverPasswordPromptResetPassword', params: {promptId: e.id, username}})
+        } else {
+          startAccountReset(true, username)
+          e.answer(T.RPCGen.ResetPromptResponse.nothing)
+        }
+        break
+      case getPassphrase: {
+        const error = e.params.pinentry.retryLabel || undefined
+        if (e.params.pinentry.type === T.RPCGen.PassphraseType.paperKey) {
+          navigateAppend({name: 'recoverPasswordPaperKey', params: {error, promptId: e.id}}, true)
+        } else if (error) {
+          navigateAppend({name: 'recoverPasswordSetPassword', params: {error, promptId: e.id}}, true)
+        } else {
+          // Asked after the paper key logged the user in, so the logged-in root this modal lives on
+          // may not be mounted yet. A screen that never appears can't be answered: refuse it.
+          const prompt = e
+          navigateAppendOnceRootHas(
+            'loggedIn',
+            {name: 'recoverPasswordSetPassword', params: {error: undefined, promptId: e.id}},
+            loggedInRootTimeoutMs,
+            () => prompt.cancel()
+          )
+        }
+        break
+      }
+    }
+  }
+
   const showPrompts = async () => {
     for await (const e of dialog.events) {
-      // A dispose between the dequeue and here closed it
-      if (e.kind === 'prompt' && !e.open) {
-        continue
-      }
-      if (e.kind === 'notice') {
-        navigateAppend(
-          {
-            name: 'recoverPasswordExplainDevice',
-            params: {deviceName: e.params.name, deviceType: e.params.kind, username},
-          },
-          true
-        )
-        continue
-      }
-      switch (e.method) {
-        case chooseDevice: {
-          const devices = (e.params.devices || []).map(d => rpcDeviceToDevice(d))
-          navigateAppend(
-            {name: 'recoverPasswordDeviceSelector', params: {devices, promptId: e.id}},
-            !!replaceRoute
-          )
-          break
-        }
-        case promptPgp:
-          pgp = e
-          showPgpWarning(e)
-          break
-        case promptReset:
-          if (e.params.prompt.t === T.RPCGen.ResetPromptType.enterResetPw) {
-            navigateAppend({name: 'recoverPasswordPromptResetPassword', params: {promptId: e.id, username}})
-          } else {
-            startAccountReset(true, username)
-            e.answer(T.RPCGen.ResetPromptResponse.nothing)
-          }
-          break
-        case getPassphrase: {
-          const error = e.params.pinentry.retryLabel || undefined
-          if (e.params.pinentry.type === T.RPCGen.PassphraseType.paperKey) {
-            navigateAppend({name: 'recoverPasswordPaperKey', params: {error, promptId: e.id}}, true)
-          } else if (error) {
-            navigateAppend({name: 'recoverPasswordSetPassword', params: {error, promptId: e.id}}, true)
-          } else {
-            // Asked after the paper key logged the user in, so the logged-in root this modal lives on
-            // may not be mounted yet. A screen that never appears can't be answered: refuse it.
-            const prompt = e
-            navigateAppendOnceRootHas(
-              'loggedIn',
-              {name: 'recoverPasswordSetPassword', params: {error: undefined, promptId: e.id}},
-              loggedInRootTimeoutMs,
-              () => prompt.cancel()
-            )
-          }
-          break
-        }
+      try {
+        showEvent(e)
+      } catch (error) {
+        // Leaving the loop disposes the run, whose catch then stays quiet
+        logger.error(`recover password: showing ${e.method} failed`, error)
+        throw error
       }
     }
   }
