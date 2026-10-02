@@ -41,6 +41,8 @@ export type DesktopEnginePair = {
   renderer: CreateClientType
   // The service process exits: the node socket closes.
   serviceDies: () => void
+  // Node's writes to the current socket throw.
+  socketWritesThrow: () => void
   // Node reconnects, after the service died or a renderer reset restarted the link, and reaches a
   // service. Takes the reconnect delay, so anything still crossing IPC arrives first.
   serviceComesBack: () => void
@@ -160,6 +162,11 @@ export const makeDesktopEnginePair = (opts?: {listenersReady?: boolean}): Deskto
     },
     serviceSends: message => {
       currentSocket().emit('data', Buffer.from(encodeFrame(message)))
+    },
+    socketWritesThrow: () => {
+      currentSocket().write = () => {
+        throw new Error('desktop engine pair: socket write failed')
+      }
     },
     serviceSendsBytes: bytes => {
       currentSocket().emit('data', Buffer.from(bytes))

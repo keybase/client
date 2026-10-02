@@ -1,6 +1,7 @@
 /// <reference types="jest" />
 import {EventEmitter} from 'events'
 import {decodeMulti} from '@msgpack/msgpack'
+import logger from '@/logger'
 import {EngineRelay} from './engine-relay.desktop'
 import type {EngineLinkFrame} from '@/util/electron'
 
@@ -133,6 +134,25 @@ test('bytes still arriving from a replaced connection never reach the renderer',
   socket(0).emit('data', Buffer.from([9, 9]))
   socket(1).emit('data', Buffer.from([1]))
   expect(toRenderer).toEqual([up(1), down(1), up(2), new Uint8Array([1])])
+})
+
+test('a send whose write throws restarts the link, so the renderer hears the drop', () => {
+  const relay = makeRelay()
+  socket(0).emit('connect')
+  socket(0).write = () => {
+    throw new Error('write after end')
+  }
+  const logged = jest.spyOn(logger, 'error').mockImplementation(() => {})
+  try {
+    expect(() => relay.send({epoch: 1, message: call('lost')})).not.toThrow()
+    expect(logged).toHaveBeenCalledTimes(1)
+  } finally {
+    logged.mockRestore()
+  }
+  expect(socket(0).destroyed).toBe(true)
+  jest.advanceTimersByTime(1000)
+  socket(1).emit('connect')
+  expect(toRenderer).toEqual([up(1), down(1), up(2)])
 })
 
 test('a send that is not an epoch-stamped rpc message is dropped without throwing', () => {
