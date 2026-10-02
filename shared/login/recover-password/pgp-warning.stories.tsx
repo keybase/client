@@ -8,4 +8,4 @@ const meta: Meta<typeof PgpWarning> = {
 export default meta
 type Story = StoryObj<typeof PgpWarning>
 
-export const Default: Story = {}
+export const Default: Story = {args: {route: {params: {id: 0}}}}

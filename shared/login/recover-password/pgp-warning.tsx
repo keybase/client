@@ -1,14 +1,25 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {NavigationContext} from '@react-navigation/core'
-import {navigateUp} from '@/constants/router'
-import {getRecoverPasswordPgpPrompt} from './flow'
+import {getVisibleScreen, navigateUp} from '@/constants/router'
+import {answerRecoverPasswordPgp, isRecoverPasswordPgpPending} from './flow'
 
-const PgpWarning = () => {
+type Props = {route: {params: {id: number}}}
+
+const PgpWarning = ({route}: Props) => {
+  const {id} = route.params
   const styles = useStyles()
-  const [prompt] = React.useState(getRecoverPasswordPgpPrompt)
   // Absent outside a navigator (storybook).
   const navigation = React.useContext(NavigationContext)
+
+  // A deferred push can land after its prompt was settled; there is nothing left to answer.
+  React.useEffect(() => {
+    if (isRecoverPasswordPgpPending(id)) return
+    const visible = getVisibleScreen(true)
+    if (visible?.name === 'recoverPasswordPgpWarning' && (visible.params as {id?: number}).id === id) {
+      navigateUp()
+    }
+  }, [id])
 
   React.useEffect(() => {
     if (!navigation) return
@@ -17,13 +28,13 @@ const PgpWarning = () => {
       // dismissal (REMOVE). Resets elsewhere also remove screens and are not answers.
       const {type} = e.data.action
       if (type === 'POP' || type === 'GO_BACK' || type === 'REMOVE') {
-        prompt?.respond(false)
+        answerRecoverPasswordPgp(id, false)
       }
     })
-  }, [navigation, prompt])
+  }, [navigation, id])
 
   const onContinue = () => {
-    prompt?.respond(true)
+    answerRecoverPasswordPgp(id, true)
     navigateUp()
   }
 
