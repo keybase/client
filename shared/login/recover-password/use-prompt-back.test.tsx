@@ -7,6 +7,7 @@ import {NavigationContext} from '@react-navigation/core'
 import {resetAllStores} from '@/util/zustand'
 import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {tick} from '@/test/flush'
+import {makeFakeRoute} from '@/test/fake-route'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 
 jest.mock('@/provision/flow', () => ({cancelProvision: () => {}, startProvision: () => {}}))
@@ -16,6 +17,8 @@ import {
   isRecoverPasswordPromptOpen,
   startRecoverPassword,
   submitRecoverPasswordDeviceSelect,
+  submitRecoverPasswordPaperKey,
+  submitRecoverPasswordPassword,
 } from './flow'
 import {useRecoverPromptBack} from './use-prompt-back'
 
@@ -26,6 +29,7 @@ type BeforeRemoveEvent = {data: {action: {type: string}}; preventDefault: () => 
 
 let nav: FakeNavigator
 let fake: FakeEngine
+let route: ReturnType<typeof makeFakeRoute>
 // The screen's route: its beforeRemove listeners, as the navigator would call them on removal. Each add
 // is its own entry, so a listener added twice shows even where both adds pass the same function.
 let beforeRemove: Set<{cb: (e: BeforeRemoveEvent) => void}>
@@ -40,6 +44,7 @@ const navigation = {
 
 beforeEach(() => {
   beforeRemove = new Set()
+  route = makeFakeRoute('recoverPasswordDeviceSelector')
   nav = installFakeNavigator({rootState: makeRootState({loggedIn: false})})
 })
 
@@ -62,12 +67,24 @@ const Screen = ({onBack, promptId}: {onBack?: () => void; promptId: number}) => 
 // `hidden` hides the screen the way native-stack does under other screens: its effects are torn down
 type OnRouteProps = {hidden?: boolean; onBack?: () => void; promptId: number}
 const OnRoute = ({hidden = false, onBack, promptId}: OnRouteProps) => (
-  <NavigationContext value={navigation as never}>
-    <React.Activity mode={hidden ? 'hidden' : 'visible'}>
-      <Screen onBack={onBack} promptId={promptId} />
-    </React.Activity>
-  </NavigationContext>
+  <route.Route>
+    <NavigationContext value={navigation as never}>
+      <React.Activity mode={hidden ? 'hidden' : 'visible'}>
+        <Screen onBack={onBack} promptId={promptId} />
+      </React.Activity>
+    </NavigationContext>
+  </route.Route>
 )
+
+const pushDevices = async (sessionID: number) => {
+  const answered = fake.push(
+    'keybase.1.loginUi.chooseDeviceToRecoverWith',
+    {devices: [], username: 'testuser'},
+    {sessionID}
+  )
+  await settle()
+  return {answered, promptId: (nav.navigations().at(-1)?.params as {promptId: number}).promptId}
+}
 
 // Starts a run, has Go show the device selector, and mounts a screen for its prompt
 const setup = async (onBack?: (promptId: number) => void) => {
@@ -76,24 +93,19 @@ const setup = async (onBack?: (promptId: number) => void) => {
   startRecoverPassword({username: 'testuser'})
   await tick()
   const sessionID = fake.calls[0]!.params.sessionID as number
-  const answered = fake.push(
-    'keybase.1.loginUi.chooseDeviceToRecoverWith',
-    {devices: [], username: 'testuser'},
-    {sessionID}
-  )
-  await settle()
-  const promptId = (nav.navigations().at(-1)?.params as {promptId: number}).promptId
+  const {answered, promptId} = await pushDevices(sessionID)
   nav.clearActions()
   const back = onBack ? () => onBack(promptId) : undefined
+  route.enter({promptId})
   // StrictMode renders twice and mounts the screen's effects, unmounts them and mounts them again
   const view = render(<OnRoute onBack={back} promptId={promptId} />, {reactStrictMode: true})
   // One listener for the route, however often the screen rendered
   expect(beforeRemove.size).toBe(1)
-  const setHidden = async (hidden: boolean) => {
-    view.rerender(<OnRoute hidden={hidden} onBack={back} promptId={promptId} />)
+  const setHidden = async (hidden: boolean, shownPromptId = promptId) => {
+    view.rerender(<OnRoute hidden={hidden} onBack={back} promptId={shownPromptId} />)
     await settle()
   }
-  return {answered, held, promptId, setHidden}
+  return {answered, held, promptId, sessionID, setHidden}
 }
 
 // The screen is about to be removed by `type`; returns whether the removal was prevented
@@ -154,14 +166,16 @@ test('a screen without its own back is let go and its prompt refused', async () 
   await settle()
 })
 
-test('an app-initiated reset neither prevents nor answers', async () => {
+test('an app-initiated reset neither prevents nor runs the back, and declines once the route is gone', async () => {
   const onBack = jest.fn()
-  const {held, promptId} = await setup(onBack)
+  const {answered, held, promptId} = await setup(onBack)
 
   expect(remove('RESET')).toBe(false)
-
-  expect(onBack).not.toHaveBeenCalled()
   expect(isRecoverPasswordPromptOpen(promptId)).toBe(true)
+  route.leave()
+
+  await expect(answered).resolves.toEqual({error: inputCanceled})
+  expect(onBack).not.toHaveBeenCalled()
   held[0]!.reply(undefined)
   await settle()
 })
@@ -181,7 +195,9 @@ test('a screen removed while hidden refuses its prompt', async () => {
   const {answered, held, setHidden} = await setup(onBack)
   await setHidden(true)
 
+  // Hidden, it hears no beforeRemove
   expect(remove('REMOVE')).toBe(false)
+  route.leave()
 
   await expect(answered).resolves.toEqual({error: inputCanceled})
   expect(onBack).not.toHaveBeenCalled()
@@ -205,16 +221,84 @@ test("a screen hidden and shown again runs its back once on a back", async () =>
   await settle()
 })
 
-test('an answered prompt is not refused when its screen goes, and its listener goes with the prompt', async () => {
+test('an answered prompt is not refused when its route goes, and the run goes on', async () => {
   const onBack = jest.fn()
-  const {answered, held, promptId} = await setup(onBack)
+  const {answered, held, promptId, sessionID} = await setup(onBack)
   act(() => submitRecoverPasswordDeviceSelect(promptId, 'device1' as T.Devices.DeviceID))
   await expect(answered).resolves.toEqual({result: 'device1'})
   await settle()
-  expect(beforeRemove.size).toBe(0)
 
-  expect(remove('GO_BACK')).toBe(false)
+  // As the paper key's screen goes when its login swaps the logged-out root for the logged-in one
+  route.leave()
+
   expect(onBack).not.toHaveBeenCalled()
+  const next = await pushDevices(sessionID)
+  expect(isRecoverPasswordPromptOpen(next.promptId)).toBe(true)
+  act(() => submitRecoverPasswordDeviceSelect(next.promptId, 'device1' as T.Devices.DeviceID))
+  await expect(next.answered).resolves.toEqual({result: 'device1'})
+  held[0]!.reply(undefined)
+  await settle()
+})
+
+test("a retry's prompt set on the hidden screen's route is the one refused when the route goes", async () => {
+  const {answered, held, promptId, sessionID, setHidden} = await setup()
+  act(() => submitRecoverPasswordDeviceSelect(promptId, 'device1' as T.Devices.DeviceID))
+  await expect(answered).resolves.toEqual({result: 'device1'})
+  await setHidden(true)
+  const retry = await pushDevices(sessionID)
+  // The retry replaces onto the same route, which is a setParams
+  route.enter({promptId: retry.promptId})
+  await setHidden(true, retry.promptId)
+
+  route.leave()
+
+  await expect(retry.answered).resolves.toEqual({error: inputCanceled})
+  held[0]!.reply(undefined)
+  await settle()
+})
+
+test('a back runs the onBack of the latest render', async () => {
+  const first = jest.fn()
+  const latest = jest.fn()
+  const {held, promptId} = await setup()
+  cleanup()
+  const view = render(<OnRoute onBack={first} promptId={promptId} />)
+  view.rerender(<OnRoute onBack={latest} promptId={promptId} />)
+
+  expect(remove('GO_BACK')).toBe(true)
+
+  expect(first).not.toHaveBeenCalled()
+  expect(latest).toHaveBeenCalledTimes(1)
+  held[0]!.reply(undefined)
+  await settle()
+})
+
+test("the paper key's route going in its login's root swap leaves the run going", async () => {
+  fake = installFakeEngine()
+  const held = fake.hold(recover)
+  startRecoverPassword({username: 'testuser'})
+  await tick()
+  const sessionID = fake.calls[0]!.params.sessionID as number
+  const pinentry = (type: T.RPCGen.PassphraseType) => ({pinentry: {retryLabel: '', type}})
+  const paperKey = fake.push('keybase.1.secretUi.getPassphrase', pinentry(T.RPCGen.PassphraseType.paperKey), {sessionID})
+  await settle()
+  const promptId = (nav.navigations().at(-1)?.params as {promptId: number}).promptId
+  route.enter({promptId})
+  render(<OnRoute onBack={() => {}} promptId={promptId} />, {reactStrictMode: true})
+  act(() => submitRecoverPasswordPaperKey(promptId, 'one two three'))
+  await expect(paperKey).resolves.toEqual({result: {passphrase: 'one two three', storeSecret: false}})
+
+  // The login swaps the logged-out root, and the paper key's route with it, for the logged-in one
+  nav.setRootState(makeRootState())
+  route.leave()
+  cleanup()
+
+  const password = fake.push('keybase.1.secretUi.getPassphrase', pinentry(T.RPCGen.PassphraseType.passPhrase), {sessionID})
+  await settle()
+  const passwordPromptId = (nav.navigations().at(-1)?.params as {promptId: number}).promptId
+  expect(isRecoverPasswordPromptOpen(passwordPromptId)).toBe(true)
+  submitRecoverPasswordPassword(passwordPromptId, 'hunter2hunter2')
+  await expect(password).resolves.toEqual({result: {passphrase: 'hunter2hunter2', storeSecret: true}})
   held[0]!.reply(undefined)
   await settle()
 })

@@ -2,7 +2,7 @@ import {navigateAppend, navUpToScreen} from '@/constants/router'
 import * as S from '@/constants/strings'
 import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
-import {openDialog, type Dialog, type PromptOutcome} from '@/engine/dialog'
+import {openDialog, type Dialog} from '@/engine/dialog'
 import logger from '@/logger'
 import {startProvision} from '@/provision/flow'
 import {RPCError} from '@/util/errors'
@@ -17,7 +17,8 @@ const promptResetAccount = 'keybase.1.loginUi.promptResetAccount'
 const displayResetProgress = 'keybase.1.loginUi.displayResetProgress'
 
 type ResetDialog = Dialog<void, typeof promptResetAccount, typeof displayResetProgress>
-type ResetRun = {dialog: ResetDialog; username: string}
+// ended settles once the pipeline is over
+type ResetRun = {dialog: ResetDialog; ended?: Promise<void>; username: string}
 
 // Kept outside the stores: the pipeline runs across the logout it can lead to, and the confirm
 // screen's answer must still reach it
@@ -89,18 +90,25 @@ export const enterResetPipeline = ({onError, password = '', username}: EnterRese
       runs.delete(run)
     }
   }
-  ignorePromise(f())
+  run.ended = f()
+  ignorePromise(run.ended)
 }
 
-// Settles when the confirm screen's prompt closes; undefined once it has
-export const resetPromptClosed = (promptId: number): Promise<PromptOutcome> | undefined => {
-  for (const {dialog} of runs) {
-    const prompt = dialog.prompt(promptId, promptResetAccount)
-    if (prompt) {
-      return prompt.closed
+// Settles when the pipeline the open confirm prompt belongs to is over; undefined once it is closed
+export const resetRunEnded = (promptId: number): Promise<void> | undefined => {
+  for (const {dialog, ended} of runs) {
+    if (dialog.prompt(promptId, promptResetAccount)) {
+      return ended
     }
   }
   return undefined
+}
+
+// Answers the confirm screen's prompt nothing, navigating nowhere: its screen is already gone
+export const declineResetPrompt = (promptId: number) => {
+  for (const {dialog} of runs) {
+    dialog.prompt(promptId, promptResetAccount)?.answer(T.RPCGen.ResetPromptResponse.nothing)
+  }
 }
 
 // Answers the confirm screen's prompt; nothing happens once the pipeline has moved past it

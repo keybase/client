@@ -3,16 +3,24 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
-import {useBeforeRemoveUntil} from '@/router-v2/use-before-remove-until'
-import {resetPromptClosed, submitResetPrompt} from './account-reset'
+import {registerRouteGone, useRouteKey, type RouteParams} from '@/router-v2/route-gone'
+import {declineResetPrompt, resetRunEnded, submitResetPrompt} from './account-reset'
 
 type Props = {route: {params: {hasWallet: boolean; promptId: number}}}
+
+const declineLastPrompt = (params: RouteParams) => {
+  const {promptId} = (params ?? {}) as {promptId?: unknown}
+  if (typeof promptId === 'number') {
+    declineResetPrompt(promptId)
+  }
+}
 
 const ConfirmReset = ({route}: Props) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
   const {hasWallet, promptId} = route.params
   const navigation = useNavigation()
+  const routeKey = useRouteKey()
   const resolvedRef = React.useRef(false)
   const resolvePrompt = React.useCallback(
     (action: T.RPCGen.ResetPromptResponse) => {
@@ -36,11 +44,19 @@ const ConfirmReset = ({route}: Props) => {
     )
   }, [navigation, resolvePrompt])
 
-  useBeforeRemoveUntil(
-    navigation,
-    (): Promise<unknown> | undefined => resetPromptClosed(promptId),
-    () => resolvePrompt(T.RPCGen.ResetPromptResponse.nothing)
-  )
+  React.useEffect(() => {
+    return navigation.addListener('beforeRemove', () => {
+      resolvePrompt(T.RPCGen.ResetPromptResponse.nothing)
+    })
+  }, [navigation, resolvePrompt])
+
+  // Removed while hidden under others, or with its root swapped out, the screen hears no beforeRemove
+  React.useEffect(() => {
+    const ended = resetRunEnded(promptId)
+    if (routeKey && ended) {
+      registerRouteGone(routeKey, ended, declineLastPrompt)
+    }
+  }, [routeKey, promptId])
 
   const onContinue = () => {
     resolvePrompt(T.RPCGen.ResetPromptResponse.confirmReset)

@@ -8,7 +8,7 @@ import {
 } from '@/constants/router'
 import {waitingKeyRecoverPassword} from '@/constants/strings'
 import {ignorePromise} from '@/constants/utils'
-import {openDialog, type Dialog, type DialogEvent, type Prompt, type PromptOutcome} from '@/engine/dialog'
+import {openDialog, type Dialog, type DialogEvent, type Prompt} from '@/engine/dialog'
 import logger from '@/logger'
 import {startAccountReset} from '@/login/reset/account-reset'
 import {useConfigState} from '@/stores/config'
@@ -31,7 +31,8 @@ const explainDevice = 'keybase.1.loginUi.explainDeviceRecovery'
 
 type RecoverPrompt = typeof chooseDevice | typeof promptPgp | typeof promptReset | typeof getPassphrase
 type RecoverDialog = Dialog<void, RecoverPrompt, typeof explainDevice>
-type Run = {dialog: RecoverDialog; onResetEmailSent?: () => void; username: string}
+// ended settles once the run is over
+type Run = {dialog: RecoverDialog; ended?: Promise<void>; onResetEmailSent?: () => void; username: string}
 
 // The run the screens answer. Kept outside the stores: the run logs the user in, and the logout
 // before that must not stop its screens from answering it. A restart disposes it first.
@@ -78,9 +79,9 @@ export const cancelRecoverPassword = (promptId: number) => {
 export const isRecoverPasswordPromptOpen = (promptId: number) =>
   !!current?.dialog.openPrompts().some(p => p.id === promptId)
 
-// Settles when the prompt closes; undefined once it has
-export const recoverPasswordPromptClosed = (promptId: number): Promise<PromptOutcome> | undefined =>
-  current?.dialog.openPrompts().find(p => p.id === promptId)?.closed
+// Settles when the run the open prompt belongs to is over; undefined once the prompt is closed
+export const recoverPasswordRunEnded = (promptId: number): Promise<void> | undefined =>
+  isRecoverPasswordPromptOpen(promptId) ? current?.ended : undefined
 
 // Prompts of this run that a screen answered. Their screens stay while the service works on the answer.
 const answeredByScreen = new Set<number>()
@@ -310,5 +311,6 @@ export const startRecoverPassword = ({
       clearModals()
     }
   }
-  ignorePromise(f())
+  run.ended = f()
+  ignorePromise(run.ended)
 }

@@ -13,7 +13,13 @@ jest.mock('@/provision/flow', () => ({
 }))
 
 import {installFakeNavigator, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
-import {enterResetPipeline, startAccountReset, submitResetPrompt} from './account-reset'
+import {
+  declineResetPrompt,
+  enterResetPipeline,
+  resetRunEnded,
+  startAccountReset,
+  submitResetPrompt,
+} from './account-reset'
 
 const pipeline = 'keybase.1.account.enterResetPipeline'
 const promptReset = 'keybase.1.loginUi.promptResetAccount'
@@ -291,4 +297,31 @@ test('a non-rpc failure is not reported as a user facing error', async () => {
 
   expect(onError).toHaveBeenCalledTimes(1)
   expect(onError).toHaveBeenCalledWith('')
+})
+
+test('declining the confirm prompt answers it nothing without navigating', async () => {
+  const s = await start()
+  const {answered, promptId} = await showConfirm(s)
+  nav.clearActions()
+
+  declineResetPrompt(promptId)
+  declineResetPrompt(promptId)
+
+  await expect(answered).resolves.toEqual({result: T.RPCGen.ResetPromptResponse.nothing})
+  expect(nav.actions).toEqual([])
+  s.held[0]!.reply(undefined)
+  await settle()
+})
+
+test("the confirm prompt's pipeline end is there while the prompt is open, and settles when the pipeline does", async () => {
+  const s = await start()
+  const {promptId} = await showConfirm(s)
+  const ended = resetRunEnded(promptId)
+  expect(ended).toBeDefined()
+  expect(resetRunEnded(promptId + 1000)).toBeUndefined()
+
+  s.held[0]!.reply(undefined)
+
+  await expect(ended).resolves.toBeUndefined()
+  expect(resetRunEnded(promptId)).toBeUndefined()
 })

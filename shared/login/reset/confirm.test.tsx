@@ -4,24 +4,20 @@
 import * as React from 'react'
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import * as T from '@/constants/types'
+import {makeFakeRoute} from '@/test/fake-route'
 
-// The confirm prompt's close, settled by its answer as the pipeline's prompt would be
-let mockClosed: undefined | {promise: Promise<unknown>; resolve: () => void}
-const mockSubmitResetPrompt = jest.fn((..._args: Array<unknown>) => {
-  const closed = mockClosed
-  mockClosed = undefined
-  closed?.resolve()
-})
+// The pipeline's end, which drops the screen's route-gone entry
+let mockEnded: undefined | {promise: Promise<void>; resolve: () => void}
+const mockSubmitResetPrompt = jest.fn()
+const mockDeclineResetPrompt = jest.fn()
 const mockSetOptions = jest.fn()
-// The screen's route: its beforeRemove listeners. Each add is its own entry, so a listener added twice
-// shows even where both adds pass the same function.
-const mockBeforeRemove = new Set<{cb: () => void}>()
+// The screen's beforeRemove listeners, as the navigator would call them on a visible removal
+const mockBeforeRemove = new Set<() => void>()
 const mockNavigation = {
   addListener: (type: string, cb: () => void) => {
     if (type !== 'beforeRemove') return () => {}
-    const entry = {cb}
-    mockBeforeRemove.add(entry)
-    return () => mockBeforeRemove.delete(entry)
+    mockBeforeRemove.add(cb)
+    return () => mockBeforeRemove.delete(cb)
   },
   setOptions: mockSetOptions,
 }
@@ -77,7 +73,8 @@ jest.mock('@react-navigation/native', () => ({
 }))
 
 jest.mock('./account-reset', () => ({
-  resetPromptClosed: (): Promise<unknown> | undefined => mockClosed?.promise,
+  declineResetPrompt: (...args: Array<unknown>) => mockDeclineResetPrompt(...args),
+  resetRunEnded: (): Promise<void> | undefined => mockEnded?.promise,
   submitResetPrompt: (...args: Array<unknown>) => mockSubmitResetPrompt(...args),
 }))
 
@@ -85,66 +82,86 @@ import ConfirmReset from './confirm'
 
 const settle = async () => act(async () => {})
 
+let route: ReturnType<typeof makeFakeRoute>
+
 // `hidden` hides the screen the way native-stack does under other screens: its effects are torn down
 const OnRoute = ({hidden = false}: {hidden?: boolean}) => (
-  <React.Activity mode={hidden ? 'hidden' : 'visible'}>
-    <ConfirmReset route={{params: {hasWallet: false, promptId: 1}}} />
-  </React.Activity>
+  <route.Route>
+    <React.Activity mode={hidden ? 'hidden' : 'visible'}>
+      <ConfirmReset route={{params: {hasWallet: false, promptId: 1}}} />
+    </React.Activity>
+  </route.Route>
 )
 
-const removeRoute = () => act(() => [...mockBeforeRemove].forEach(({cb}) => cb()))
+const removeVisible = () => act(() => [...mockBeforeRemove].forEach(cb => cb()))
 
 describe('ConfirmReset', () => {
   beforeEach(() => {
-    let resolveClosed = () => {}
-    const promise = new Promise<void>(resolve => {
-      resolveClosed = resolve
+    let resolve = () => {}
+    const promise = new Promise<void>(_resolve => {
+      resolve = _resolve
     })
-    mockClosed = {promise, resolve: resolveClosed}
+    mockEnded = {promise, resolve}
     mockBeforeRemove.clear()
     mockSetOptions.mockReset()
     mockSubmitResetPrompt.mockClear()
+    mockDeclineResetPrompt.mockClear()
+    route = makeFakeRoute('resetConfirm')
+    route.enter({hasWallet: false, promptId: 1})
   })
 
-  afterEach(() => {
+  afterEach(async () => {
     cleanup()
+    // Each test's pipeline ends with it, so its route's entry goes too
+    mockEnded?.resolve()
+    await settle()
   })
 
   // StrictMode renders twice and mounts the screen's effects, unmounts them and mounts them again
   const mount = () => {
     const view = render(<OnRoute />, {reactStrictMode: true})
-    // One listener for the route, however often the screen rendered
     expect(mockBeforeRemove.size).toBe(1)
     return {setHidden: (hidden: boolean) => view.rerender(<OnRoute hidden={hidden} />), view}
   }
 
-  test('effect cleanups neither answer the prompt nor stop listening for the removal', () => {
+  test('effect cleanups answer nothing', () => {
     const {view} = mount()
     view.unmount()
 
     expect(mockSubmitResetPrompt).not.toHaveBeenCalled()
-    expect(mockBeforeRemove.size).toBe(1)
+    expect(mockDeclineResetPrompt).not.toHaveBeenCalled()
   })
 
-  test('removing the screen answers the prompt nothing, once', () => {
+  test('removing the visible screen answers the prompt nothing, once', () => {
     mount()
 
-    removeRoute()
-    removeRoute()
+    removeVisible()
+    removeVisible()
 
     expect(mockSubmitResetPrompt).toHaveBeenCalledTimes(1)
     expect(mockSubmitResetPrompt).toHaveBeenCalledWith(1, T.RPCGen.ResetPromptResponse.nothing)
   })
 
-  test('a screen removed while hidden answers the prompt nothing, once', async () => {
+  test('a screen whose route goes while hidden declines its prompt, once', async () => {
     const {setHidden} = mount()
     setHidden(true)
     await settle()
+    removeVisible()
+    expect(mockSubmitResetPrompt).not.toHaveBeenCalled()
 
-    removeRoute()
+    route.leave()
+    route.leave()
 
-    expect(mockSubmitResetPrompt).toHaveBeenCalledTimes(1)
-    expect(mockSubmitResetPrompt).toHaveBeenCalledWith(1, T.RPCGen.ResetPromptResponse.nothing)
+    expect(mockDeclineResetPrompt).toHaveBeenCalledTimes(1)
+    expect(mockDeclineResetPrompt).toHaveBeenCalledWith(1)
+  })
+
+  test('a screen whose root is swapped out declines its prompt', () => {
+    mount()
+
+    route.leave()
+
+    expect(mockDeclineResetPrompt).toHaveBeenCalledWith(1)
   })
 
   test('a screen hidden and shown again answers the prompt nothing on its header back, once', async () => {
@@ -159,21 +176,19 @@ describe('ConfirmReset', () => {
     const options = mockSetOptions.mock.calls.at(-1)![0] as {headerLeft: () => React.ReactElement}
     render(options.headerLeft())
     fireEvent.click(screen.getByText('Back'))
-    removeRoute()
+    removeVisible()
 
     expect(mockSubmitResetPrompt).toHaveBeenCalledTimes(1)
     expect(mockSubmitResetPrompt).toHaveBeenCalledWith(1, T.RPCGen.ResetPromptResponse.nothing)
   })
 
-  test('an answered prompt is not answered again when its screen goes, and its listener goes with it', async () => {
+  test('once the pipeline is over its route going answers nothing', async () => {
     mount()
-    fireEvent.click(screen.getByText('cancel the reset'))
+    mockEnded?.resolve()
     await settle()
-    expect(mockBeforeRemove.size).toBe(0)
 
-    removeRoute()
+    route.leave()
 
-    expect(mockSubmitResetPrompt).toHaveBeenCalledTimes(1)
-    expect(mockSubmitResetPrompt).toHaveBeenCalledWith(1, T.RPCGen.ResetPromptResponse.cancelReset)
+    expect(mockDeclineResetPrompt).not.toHaveBeenCalled()
   })
 })
