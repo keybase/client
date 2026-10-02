@@ -76,7 +76,12 @@ export const enterResetPipeline = ({onError, password = '', username}: EnterRese
         waitingKey: S.waitingKeyAutoresetEnterPipeline,
       })
     } catch (error) {
-      if (!(error instanceof RPCError)) {
+      // A cancel (the user backing out, the session going away) is not an error to show
+      if (
+        !(error instanceof RPCError) ||
+        error.code === T.RPCGen.StatusCode.sccanceled ||
+        error.code === T.RPCGen.StatusCode.scinputcanceled
+      ) {
         return
       }
       logger.warn('Error resetting account:', error)
