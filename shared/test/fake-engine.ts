@@ -89,6 +89,12 @@ class FakeTransport extends TransportShared {
   restart() {
     this.markLinkUp()
   }
+
+  // Engine.reset: the link drops and comes back, as the desktop relay restarts it
+  override reset() {
+    this.drop()
+    this.restart()
+  }
 }
 
 type Installed = {

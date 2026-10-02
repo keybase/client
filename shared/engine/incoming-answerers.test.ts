@@ -4,7 +4,6 @@ import type * as EngineGen from '@/constants/rpc'
 import {installFakeEngine, uninstallFakeEngine} from '@/test/fake-engine'
 import {registerIncomingAnswerer} from './incoming-answerers'
 import logger from '@/logger'
-import type {KB2} from '@/util/electron'
 
 const unregisters = new Array<() => void>()
 const register: typeof registerIncomingAnswerer = (method, answer, options) => {
@@ -173,15 +172,7 @@ describe('a prompt a registered answerer holds', () => {
   test('is dropped unanswered when the engine resets', async () => {
     const fake = installFakeEngine()
     const {onCancelled, responses} = holdOne(fake)
-    const preload = globalThis._fromPreload as KB2
-    const {isRenderer} = preload.constants
-    // node's engine is the one that replaces its client on reset
-    preload.constants.isRenderer = false
-    try {
-      fake.engine.reset()
-    } finally {
-      preload.constants.isRenderer = isRenderer
-    }
+    fake.engine.reset()
     expect(onCancelled).toHaveBeenCalledTimes(1)
     responses[0]!.result(answer)
     await afterTimers()

@@ -37,7 +37,6 @@ class Engine implements CallPort {
   _globalHeld = new Map<number, () => void>()
   // Helper we delegate actual calls to
   _rpcClient: CreateClientType
-  _makeClient: MakeClient
   _backgroundSessionMethods: Partial<Record<MethodKey, true>> = {
     'keybase.1.SimpleFS.simpleFSUserEditHistory': true,
     'keybase.1.config.waitForClient': true,
@@ -82,7 +81,6 @@ class Engine implements CallPort {
     this._onConnectedCB = onConnected
     this._onEngineIncoming = onEngineIncoming
     this._emitWaiting = emitWaiting
-    this._makeClient = makeClient
     this._rpcClient = makeClient(
       payload => this._rpcIncoming(payload),
       () => this._onConnected(),
@@ -426,24 +424,8 @@ class Engine implements CallPort {
       listenersAreReady: this._listenersAreReady,
       sessions: this._sessionSummary(),
     })
-    this._cancelOutstandingSessions('lostLink')
-    // Dangling sessions survive a cancel; ending them drops their held prompts with the old link
-    for (const session of [...this._sessionsMap.values()]) {
-      session.end()
-    }
-    this._sessionsMap.clear()
-    this._forgetGlobalHeld()
-    this._queuedChanges = []
-    if (this._makeClient === createClient) {
-      this._rpcClient.transport.reset()
-    } else {
-      this._rpcClient.transport.close()
-      this._rpcClient = this._makeClient(
-        payload => this._rpcIncoming(payload),
-        () => this._onConnected(),
-        () => this._onDisconnect()
-      )
-    }
+    // The transport restarts the link; its drop settles what was in flight and calls _onDisconnect
+    this._rpcClient.transport.reset()
   }
 }
 

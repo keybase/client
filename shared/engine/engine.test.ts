@@ -5,7 +5,6 @@ import {useConfigState} from '@/stores/config'
 import {resetAllStores} from '@/util/zustand'
 import {tick} from '@/test/flush'
 import logger from '@/logger'
-import type {KB2} from '@/util/electron'
 import {errors as rpcErrors} from './rpc-transport'
 import {isEOFError, isErrorTransient, type RPCError} from '@/util/errors'
 
@@ -87,18 +86,10 @@ test('a service cancel of a pending prompt rejects the listener', async () => {
   expect(() => uninstallFakeEngine()).not.toThrow()
 })
 
-test('reset rebuilds the link through the injected client, so calls still reach the fake', async () => {
+test('reset restarts the link, so calls still reach the fake', async () => {
   const fake = installFakeEngine()
   fake.answer('keybase.1.config.getBootstrapStatus', () => ({deviceName: 'after reset'}))
-  const preload = globalThis._fromPreload as KB2
-  const {isRenderer} = preload.constants
-  // node's engine is the one that replaces its client on reset; the renderer's keeps it
-  preload.constants.isRenderer = false
-  try {
-    fake.engine.reset()
-  } finally {
-    preload.constants.isRenderer = isRenderer
-  }
+  fake.engine.reset()
   await expect(T.RPCGen.configGetBootstrapStatusRpcPromise()).resolves.toMatchObject({deviceName: 'after reset'})
   expect(fake.calls.map(c => c.method)).toEqual(['keybase.1.config.getBootstrapStatus'])
   uninstallFakeEngine()

@@ -183,6 +183,10 @@ export const setupIPCHandlers = (deps: {
     deps.engineRelay.send(send)
   })
 
+  Electron.ipcMain.on('engineRestartLink', () => {
+    deps.engineRelay.restartLink({afterDelay: true})
+  })
+
   Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
     switch (action.type) {
       case 'uninstallDokan': {

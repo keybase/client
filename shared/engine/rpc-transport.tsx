@@ -529,16 +529,6 @@ export abstract class RPCTransport {
     this.failOutstanding(makeEOFError(), {})
   }
 
-  // Fails every outstanding invocation while the link stays up. The renderer
-  // transport calls this when the engine resets; without it the callbacks are
-  // never invoked and every in-flight RPC hangs forever.
-  failAllOutstanding(err: unknown = makeEOFError()) {
-    // Also drop any partial frame: a half-delivered pre-reset frame would
-    // otherwise concatenate with later bytes into one corrupt decode.
-    this._packetizer.reset()
-    this.failOutstanding(err, {})
-  }
-
   private invokeNow(method: string, args: [object], cb: InvocationCallback) {
     const seqid = this._seqid
     this._seqid += 1

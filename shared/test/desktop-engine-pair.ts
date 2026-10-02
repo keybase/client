@@ -37,16 +37,19 @@ jest.mock('net', () => ({
 const reconnectDelayMs = 1000
 
 export type DesktopEnginePair = {
+  engine: Engine
   renderer: CreateClientType
   // The service process exits: the node socket closes.
   serviceDies: () => void
-  // A new service is up and node's reconnect reaches it. Takes the reconnect delay, so anything
-  // still crossing IPC arrives first.
+  // Node reconnects, after the service died or a renderer reset restarted the link, and reaches a
+  // service. Takes the reconnect delay, so anything still crossing IPC arrives first.
   serviceComesBack: () => void
   // Every message the running service has received on its socket.
   serviceReceived: () => Array<RPCMessage>
   // The running service writes a message to its socket.
   serviceSends: (message: RPCMessage) => void
+  // The running service writes raw bytes to its socket, e.g. part of a frame.
+  serviceSendsBytes: (bytes: Uint8Array) => void
   // Each time the renderer engine told the app the link went up (true) or down (false).
   linkChanges: Array<boolean>
   // The renderer's app says its listeners are ready again, as an HMR reload does.
@@ -71,7 +74,7 @@ export const makeDesktopEnginePair = (opts?: {listenersReady?: boolean}): Deskto
   teardown = () => {
     try {
       inTransit.length = 0
-      made.renderer?._rpcClient.transport.reset()
+      made.renderer?._rpcClient.transport.close()
     } finally {
       preload.functions = functions
       jest.useRealTimers()
@@ -105,7 +108,8 @@ export const makeDesktopEnginePair = (opts?: {listenersReady?: boolean}): Deskto
 
   preload.functions = {
     ...functions,
-    // ipc-handlers.desktop.tsx: the renderer's engineSend lands on the relay
+    // ipc-handlers.desktop.tsx: the renderer's engineSend and engineRestartLink land on the relay
+    engineRestartLink: () => overIPC(() => relay.restartLink({afterDelay: true})),
     engineSend: send => overIPC(() => relay.send(send)),
     ipcRendererOn: (channel, cb) => {
       if (channel === 'engineIncoming') {
@@ -132,6 +136,7 @@ export const makeDesktopEnginePair = (opts?: {listenersReady?: boolean}): Deskto
   }
 
   return {
+    engine: renderer,
     linkChanges,
     listenersReadyAgain: () => renderer.listenersAreReady(),
     renderer: renderer._rpcClient,
@@ -155,6 +160,9 @@ export const makeDesktopEnginePair = (opts?: {listenersReady?: boolean}): Deskto
     },
     serviceSends: message => {
       currentSocket().emit('data', Buffer.from(encodeFrame(message)))
+    },
+    serviceSendsBytes: bytes => {
+      currentSocket().emit('data', Buffer.from(bytes))
     },
   }
 }
