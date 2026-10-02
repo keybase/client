@@ -1,6 +1,7 @@
 /// <reference types="jest" />
 
 import logger from '@/logger'
+import {StatusCode} from '@/constants/rpc/rpc-gen'
 import {
   RPCTransport,
   encodeFrame,
@@ -54,7 +55,7 @@ class TestTransport extends RPCTransport {
 
   dropConnection() {
     this.setConnected(false)
-    this.onDisconnected()
+    this.onLinkDown()
   }
 }
 
@@ -98,14 +99,55 @@ test('invoke queues while disconnected and flushes on connect', () => {
   expect(cb).toHaveBeenCalledWith(null, {done: true})
 })
 
-test('disconnect fails outstanding invocations with EOF', () => {
+const disconnectError = {code: StatusCode.sccanceled, desc: 'The service connection was lost'}
+
+test('a link drop fails outstanding invocations with the disconnect error', () => {
   const transport = new TestTransport()
   const cb = jest.fn()
 
   transport.invoke('keybase.1.test.hello', [{}], cb)
   transport.dropConnection()
 
-  expect(cb).toHaveBeenCalledWith(expect.objectContaining({code: errors.EOF, desc: 'EOF from server'}), {})
+  expect(cb).toHaveBeenCalledTimes(1)
+  expect(cb).toHaveBeenCalledWith(disconnectError, {})
+})
+
+test('after a link drop, a call made while down is refused at once and never reaches the next link', () => {
+  const transport = new TestTransport()
+  transport.dropConnection()
+  const cb = jest.fn()
+
+  transport.invoke('keybase.1.test.hello', [{}], cb)
+  expect(cb).toHaveBeenCalledTimes(1)
+  expect(cb).toHaveBeenCalledWith(disconnectError, {})
+
+  transport.flushConnected()
+  expect(transport.sent).toEqual([])
+  expect(cb).toHaveBeenCalledTimes(1)
+})
+
+test('after a link drop, an answer to the service made while down is dropped, not kept for the next link', () => {
+  let payload: Parameters<IncomingRPCCallbackType>[0] | undefined
+  const transport = new TestTransport({
+    incomingRPCCallback: incoming => {
+      payload = incoming
+    },
+  })
+  transport.dispatchDecodedMessage([0, 7, 'keybase.1.test.prompt', [{}]])
+  transport.dropConnection()
+
+  // Nothing is logged as a lost write: the link it was for is gone
+  const logged = jest.spyOn(logger, 'error')
+  try {
+    payload?.response?.result?.({ok: true})
+    expect(logged).not.toHaveBeenCalled()
+  } finally {
+    logged.mockRestore()
+  }
+  expect(transport.send([1, 8, null, {}])).toBe(false)
+
+  transport.flushConnected()
+  expect(transport.sent).toEqual([])
 })
 
 test('incoming invoke exposes response handlers', () => {

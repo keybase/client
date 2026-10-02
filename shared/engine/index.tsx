@@ -136,8 +136,10 @@ class Engine implements CallPort {
     })
     this._cancelOutstandingSessions('lostLink')
     this._forgetGlobalHeld()
-    // tell renderer we're disconnected
-    this._onConnectedCB(false)
+    // Like a link-up, a link-down is announced only once the app's listeners are ready
+    if (this._listenersAreReady) {
+      this._onConnectedCB(false)
+    }
   }
 
   // Cancel the sessions so their promises reject and flows can react, instead of hanging forever on

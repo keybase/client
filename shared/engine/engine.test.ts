@@ -1,7 +1,6 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {installFakeEngine, uninstallFakeEngine} from '@/test/fake-engine'
-import {errors} from './rpc-transport'
 import {useConfigState} from '@/stores/config'
 import {resetAllStores} from '@/util/zustand'
 import {tick} from '@/test/flush'
@@ -14,13 +13,16 @@ afterEach(() => {
 })
 
 // The transport fails its outstanding invocations before it tells the engine, so the engine's own
-// session cancel on disconnect finds the session already ended and the call sees EOF, not sccanceled.
-test('a call in flight when the link drops rejects with EOF', async () => {
+// session cancel on disconnect finds the session already ended and the call sees the transport's error.
+test('a call in flight when the link drops rejects with the disconnect error', async () => {
   const fake = installFakeEngine()
   fake.hold('keybase.1.config.getBootstrapStatus')
   const p = T.RPCGen.configGetBootstrapStatusRpcPromise()
   fake.drop()
-  await expect(p).rejects.toMatchObject({code: errors.EOF})
+  await expect(p).rejects.toMatchObject({
+    code: T.RPCGen.StatusCode.sccanceled,
+    desc: 'The service connection was lost',
+  })
   uninstallFakeEngine()
 })
 

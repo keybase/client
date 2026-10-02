@@ -1,5 +1,6 @@
 import {decode, encode} from '@msgpack/msgpack'
 import logger from '@/logger'
+import {StatusCode} from '@/constants/rpc/rpc-gen'
 
 export const MESSAGE_TYPE_INVOKE = 0
 export const MESSAGE_TYPE_RESPONSE = 1
@@ -64,6 +65,12 @@ const makeTransportError = (name: ErrorName): ErrorType => ({
 })
 
 const makeEOFError = () => makeTransportError('EOF')
+
+// Settles a call made on, or waiting on, a link to the service that has gone
+const makeDisconnectError = (): ErrorType => ({
+  code: StatusCode.sccanceled,
+  desc: 'The service connection was lost',
+})
 
 const frameHeaderLength = (leadByte: number) => {
   if (leadByte < 0x80) {
@@ -198,9 +205,12 @@ class FramePacketizer {
 }
 
 export abstract class RPCTransport {
-  needsConnect = false
   private _packetizer = new FramePacketizer()
   private _explicitClose = false
+  // Set once the link has gone down. Before that, calls made while not connected wait for the first
+  // link-up (boot); after it, they are refused, since the service they were meant for is gone and
+  // the next one knows nothing of them.
+  private _linkLost = false
   private _incomingRPCCallback?: IncomingRPCCallbackType
   private _connectCallback?: ConnectDisconnectCB
   private _disconnectCallback?: ConnectDisconnectCB
@@ -224,34 +234,23 @@ export abstract class RPCTransport {
 
   protected abstract writeMessage(message: RPCMessage): void
 
-  protected markExplicitClose() {
-    this._explicitClose = true
-  }
-
-  protected clearExplicitClose() {
-    this._explicitClose = false
-  }
-
-  protected isExplicitClose() {
-    return this._explicitClose
-  }
-
   protected onConnected() {
-    this.needsConnect = false
     this.flushPending()
     this._connectCallback?.()
   }
 
-  protected onDisconnected() {
+  // The link to the service is gone, and with it every call in flight on it: settle them all before
+  // the engine hears, so its own drop path finds them settled
+  protected onLinkDown() {
+    this._linkLost = true
     this._packetizer.reset()
-    this.failOutstanding(makeEOFError(), {})
+    this.failOutstanding(makeDisconnectError(), {})
     this._disconnectCallback?.()
   }
 
-  // The link went down without this transport failing what is in flight on it
-  protected onLinkDown() {
-    this._packetizer.reset()
-    this._disconnectCallback?.()
+  // Not connected after the link has gone down once: a write now would be for a service that is gone
+  private linkIsLost() {
+    return this._linkLost && !this.isConnected()
   }
 
   protected onPacketizeError(err: unknown) {
@@ -483,6 +482,10 @@ export abstract class RPCTransport {
       console.warn('send call after explicit close')
       return false
     }
+    if (this.linkIsLost()) {
+      logger.info('Dropped an RPC write: the link to the service is down')
+      return false
+    }
     if (this._pending.length >= queueMax) {
       console.warn('Queue overflow for raw RPC message')
       return false
@@ -500,6 +503,10 @@ export abstract class RPCTransport {
       cb(makeEOFError(), {})
       return
     }
+    if (this.linkIsLost()) {
+      cb(makeDisconnectError(), {})
+      return
+    }
     if (this._pending.length >= queueMax) {
       cb(new Error(`Queue overflow for ${method}`), {})
       return
@@ -507,14 +514,10 @@ export abstract class RPCTransport {
     this._pending.push({args, cb, method, type: 'invoke'})
   }
 
-  connect(cb: (err?: unknown) => void) {
-    cb()
-  }
-
   reset() {}
 
   close() {
-    this.markExplicitClose()
+    this._explicitClose = true
     this.failPending(makeEOFError(), {})
     this._packetizer.reset()
     this.failOutstanding(makeEOFError(), {})
@@ -524,14 +527,12 @@ export abstract class RPCTransport {
     return encodeFrame(message)
   }
 
-  // Fails every outstanding invocation. Transports that sit on a connection
-  // which can die underneath them (mobile JSI, renderer IPC) call this when
-  // the engine resets; without it the callbacks are never invoked and every
-  // in-flight RPC hangs forever.
+  // Fails every outstanding invocation while the link stays up. The renderer
+  // transport calls this when the engine resets; without it the callbacks are
+  // never invoked and every in-flight RPC hangs forever.
   failAllOutstanding(err: unknown = makeEOFError()) {
-    // Also drop any partial frame: on the renderer transport this runs on the
-    // account switch, and a half-delivered pre-switch frame would otherwise
-    // concatenate with post-switch bytes into one corrupt decode.
+    // Also drop any partial frame: a half-delivered pre-reset frame would
+    // otherwise concatenate with later bytes into one corrupt decode.
     this._packetizer.reset()
     this.failOutstanding(err, {})
   }
@@ -566,7 +567,7 @@ export abstract class RPCTransport {
           return
         }
         settled = true
-        if (!this.send([MESSAGE_TYPE_RESPONSE, seqid, err, null])) {
+        if (!this.send([MESSAGE_TYPE_RESPONSE, seqid, err, null]) && !this.linkIsLost()) {
           // The service is waiting on this reply and nothing else will tell
           // it. The write already failed (send() logged that), so there's no
           // connection left to retry on -- surface which seqid was lost.
@@ -579,7 +580,7 @@ export abstract class RPCTransport {
           return
         }
         settled = true
-        if (!this.send([MESSAGE_TYPE_RESPONSE, seqid, null, result])) {
+        if (!this.send([MESSAGE_TYPE_RESPONSE, seqid, null, result]) && !this.linkIsLost()) {
           // Same as above: the write failed, the connection is gone, and
           // nothing will retry this seqid.
           logger.error(`failed to write response for seqid ${seqid}`)

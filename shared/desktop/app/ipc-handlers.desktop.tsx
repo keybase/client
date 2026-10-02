@@ -1,4 +1,4 @@
-import KB2, {type EngineSend, type OpenDialogOptions, type SaveDialogOptions} from '@/util/electron'
+import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '@/util/electron'
 import {showDockIcon, closeWindows, getMainWindow} from './main-window.desktop'
 import * as Electron from 'electron'
 import * as R from '@/constants/remote'
@@ -179,7 +179,7 @@ export const setupIPCHandlers = (deps: {
     deps.getMainWindow()?.webContents.send('KBdispatchAction', action)
   })
 
-  Electron.ipcMain.on('engineSend', (_event, send: EngineSend) => {
+  Electron.ipcMain.on('engineSend', (_event, send: unknown) => {
     deps.engineRelay.send(send)
   })
 

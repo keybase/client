@@ -6,12 +6,14 @@ import {createClient, dispatchRpcBatch, makeDispatchOne} from './index.platform'
 // Aliased: two tests below declare a local `errors` array for captured log
 // messages.
 import {encodeFrame, errors as rpcErrors} from './rpc-transport'
+import {StatusCode} from '@/constants/rpc/rpc-gen'
+import type {IncomingRPCCallbackType} from './rpc-transport'
 import type {EngineLinkFrame, EngineSend, KB2} from '@/util/electron'
 
 const getPreload = () => globalThis._fromPreload as KB2
 
 // A renderer client wired to a stand-in relay: `fromRelay` is node's side of 'engineIncoming'
-const makeRendererClient = (opts?: {noEngineSend?: boolean}) => {
+const makeRendererClient = (opts?: {noEngineSend?: boolean; incoming?: IncomingRPCCallbackType}) => {
   const preload = getPreload()
   const sent = new Array<EngineSend>()
   let incoming: ((e: unknown, data: unknown) => void) | undefined
@@ -28,12 +30,13 @@ const makeRendererClient = (opts?: {noEngineSend?: boolean}) => {
   }
   const connected = jest.fn()
   const disconnected = jest.fn()
-  const client = createClient(() => {}, connected, disconnected)
+  const client = createClient(opts?.incoming ?? (() => {}), connected, disconnected)
   const fromRelay = (data: Uint8Array | EngineLinkFrame) => incoming?.(undefined, data)
   return {client, connected, disconnected, fromRelay, sent}
 }
 const up = (epoch: number): EngineLinkFrame => ({epoch, type: 'link', up: true})
 const down = (epoch: number): EngineLinkFrame => ({epoch, type: 'link', up: false})
+const disconnectError = {code: StatusCode.sccanceled, desc: 'The service connection was lost'}
 
 afterEach(() => {
   const {functions} = getPreload()
@@ -86,37 +89,109 @@ test('a link-up for a new connection while the old one is up takes the old one d
 })
 
 test('service bytes are read only while the link is up', () => {
-  const {client, fromRelay, sent} = makeRendererClient()
-  const cb = jest.fn()
+  const incoming = jest.fn()
+  const {fromRelay} = makeRendererClient({incoming})
+  const notify = encodeFrame([2, 'keybase.1.test.notify', [{}]])
   fromRelay(up(1))
-  client.invoke('keybase.1.test.hello', [{}], cb)
-  const seqid = sent[0]!.message[1] as number
-  const reply = encodeFrame([1, seqid, null, {ok: true}])
 
   fromRelay(down(1))
-  fromRelay(reply)
-  expect(cb).not.toHaveBeenCalled()
+  fromRelay(notify)
+  expect(incoming).not.toHaveBeenCalled()
 
   fromRelay(up(2))
-  fromRelay(reply)
-  expect(cb).toHaveBeenCalledWith(null, {ok: true})
+  fromRelay(notify)
+  expect(incoming).toHaveBeenCalledTimes(1)
 })
 
 test('a link drop discards a partly delivered frame', () => {
-  const {client, fromRelay, sent} = makeRendererClient()
-  const cb = jest.fn()
+  const incoming = jest.fn()
+  const {fromRelay} = makeRendererClient({incoming})
+  const notify = encodeFrame([2, 'keybase.1.test.notify', [{n: 1}]])
   fromRelay(up(1))
-  client.invoke('keybase.1.test.hello', [{}], cb)
-  const seqid = sent[0]!.message[1] as number
-  const reply = encodeFrame([1, seqid, null, {ok: true}])
 
-  fromRelay(reply.subarray(0, 3))
+  fromRelay(notify.subarray(0, 3))
   fromRelay(down(1))
   fromRelay(up(2))
-  fromRelay(reply)
+  fromRelay(notify)
+
+  expect(incoming).toHaveBeenCalledTimes(1)
+  expect(incoming).toHaveBeenCalledWith({method: 'keybase.1.test.notify', param: [{n: 1}]})
+})
+
+test('a link drop fails the calls in flight on it once, before the engine hears', () => {
+  const calls = new Array<string>()
+  const {client, disconnected, fromRelay} = makeRendererClient()
+  disconnected.mockImplementation(() => calls.push('engine told'))
+  fromRelay(up(1))
+  const cb = jest.fn(() => calls.push('call failed'))
+  client.invoke('keybase.1.test.hello', [{}], cb)
+
+  fromRelay(down(1))
+  fromRelay(down(1))
+  fromRelay(up(2))
 
   expect(cb).toHaveBeenCalledTimes(1)
-  expect(cb).toHaveBeenCalledWith(null, {ok: true})
+  expect(cb).toHaveBeenCalledWith(disconnectError, {})
+  expect(calls).toEqual(['call failed', 'engine told'])
+})
+
+test('a service restarting twice before the renderer hears the first drop fails the call once', () => {
+  const {client, fromRelay, sent} = makeRendererClient()
+  fromRelay(up(1))
+  const cb = jest.fn()
+  client.invoke('keybase.1.test.hello', [{}], cb)
+
+  // The renderer never hears epoch 2's own link frames, only that 3 is up
+  fromRelay(up(3))
+  fromRelay(down(3))
+  fromRelay(up(4))
+
+  expect(cb).toHaveBeenCalledTimes(1)
+  expect(cb).toHaveBeenCalledWith(disconnectError, {})
+  expect(sent.map(s => s.epoch)).toEqual([1])
+})
+
+test('after the first link-up, a call made while the link is down is refused at once and never sent', () => {
+  const {client, fromRelay, sent} = makeRendererClient()
+  fromRelay(up(1))
+  fromRelay(down(1))
+  const cb = jest.fn()
+
+  client.invoke('keybase.1.test.hello', [{}], cb)
+  expect(cb).toHaveBeenCalledTimes(1)
+  expect(cb).toHaveBeenCalledWith(disconnectError, {})
+
+  fromRelay(up(2))
+  expect(sent).toEqual([])
+})
+
+test('at boot a replayed link-down does not refuse a call waiting for the first link-up', () => {
+  const {client, fromRelay, sent} = makeRendererClient()
+  const cb = jest.fn()
+  fromRelay(down(0))
+  client.invoke('keybase.1.test.hello', [{}], cb)
+  fromRelay(down(0))
+  expect(cb).not.toHaveBeenCalled()
+
+  fromRelay(up(1))
+  expect(sent.map(s => [s.epoch, s.message[2]])).toEqual([[1, 'keybase.1.test.hello']])
+})
+
+test('an answer to the service made while the link is down goes to no later link', () => {
+  let payload: Parameters<IncomingRPCCallbackType>[0] | undefined
+  const {fromRelay, sent} = makeRendererClient({
+    incoming: p => {
+      payload = p
+    },
+  })
+  fromRelay(up(1))
+  fromRelay(encodeFrame([0, 9, 'keybase.1.test.prompt', [{}]]))
+  fromRelay(down(1))
+
+  payload?.response?.result?.({answer: true})
+  fromRelay(up(2))
+
+  expect(sent).toEqual([])
 })
 
 test('ProxyNativeTransport.reset fails outstanding invocations so pre-switch callbacks cannot fire against post-switch state', () => {

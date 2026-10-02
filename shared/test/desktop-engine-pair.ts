@@ -55,7 +55,9 @@ export type DesktopEnginePair = {
 
 let teardown: (() => void) | undefined
 
-export const makeDesktopEnginePair = (): DesktopEnginePair => {
+// listenersReady: false leaves the app still loading its listeners; listenersReadyAgain() then
+// finishes it.
+export const makeDesktopEnginePair = (opts?: {listenersReady?: boolean}): DesktopEnginePair => {
   if (teardown) {
     throw new Error('desktop engine pair: one is already made in this test')
   }
@@ -125,7 +127,9 @@ export const makeDesktopEnginePair = (): DesktopEnginePair => {
   currentSocket().emit('connect')
   relay.replayLinkState()
   deliverAll()
-  renderer.listenersAreReady()
+  if (opts?.listenersReady !== false) {
+    renderer.listenersAreReady()
+  }
 
   return {
     linkChanges,

@@ -10,6 +10,13 @@ import type {EngineLinkFrame, EngineSend} from '@/util/electron'
 
 const reconnectDelayMs = 1000
 
+// It comes over IPC from the renderer, so its shape is checked, not assumed
+const isEngineSend = (send: unknown): send is EngineSend =>
+  typeof send === 'object' &&
+  send !== null &&
+  typeof (send as {epoch?: unknown}).epoch === 'number' &&
+  isRPCMessage((send as {message?: unknown}).message)
+
 export class EngineRelay {
   private _socket?: Socket
   private _connecting = false
@@ -24,11 +31,12 @@ export class EngineRelay {
 
   // A send made on an earlier connection is dropped: the service it was meant for is gone, and its
   // seqids mean nothing to the one there now.
-  send({epoch, message}: EngineSend) {
-    if (!isRPCMessage(message)) {
-      logger.warn('Engine relay: dropped a send that is not an rpc message')
+  send(send: unknown) {
+    if (!isEngineSend(send)) {
+      logger.warn('Engine relay: dropped a send that is not an epoch-stamped rpc message')
       return
     }
+    const {epoch, message} = send
     const socket = this._socket
     if (!socket || epoch !== this._epoch) {
       logger.info('Engine relay: dropped a send from another connection', {
@@ -99,6 +107,10 @@ export class EngineRelay {
         this.scheduleReconnect()
       })
       socket.on('data', (data: Buffer | string) => {
+        // Bytes still arriving from a connection that has been replaced belong to no current epoch
+        if (this._socket !== socket) {
+          return
+        }
         const bytes = typeof data === 'string' ? Buffer.from(data) : data
         if (printRPCBytes) {
           logger.debug('[RPC] Read', bytes.length)
