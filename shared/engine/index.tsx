@@ -1,5 +1,5 @@
 // Handles sending requests to the daemon
-import Session, {type CancelHandlerType} from './session'
+import Session, {inputCanceledError, type CancelHandlerType} from './session'
 import {makeListen} from './listener'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
@@ -244,7 +244,7 @@ class Engine implements CallPort {
       } catch (e) {
         logger.error(`Engine: answerer for ${method} threw`, e)
         if (!response?.settled) {
-          response?.error?.({code: StatusCode.scinputcanceled, desc: 'Input canceled'})
+          response?.error?.(inputCanceledError)
         }
       }
     } else if (mustAnswerMethods.has(method)) {

@@ -4,6 +4,7 @@
 import * as T from '@/constants/types'
 import {installFakeEngine, uninstallFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {useConfigState} from '@/stores/config'
+import {useWaitingState} from '@/stores/waiting'
 import {resetAllStores} from '@/util/zustand'
 import {tick} from '@/test/flush'
 import logger from '@/logger'
@@ -32,16 +33,22 @@ const watchErrors = () => jest.spyOn(logger, 'error').mockImplementation(() => {
 
 type PromptResponse = {result: (r: boolean) => void; error: (e: {code: number; desc: string}) => void}
 
-const startRecover = async (fake: FakeEngine, onPrompt: (params: unknown, response: PromptResponse) => void) => {
+const startRecover = async (
+  fake: FakeEngine,
+  onPrompt: (params: unknown, response: PromptResponse) => void | Promise<void>,
+  waitingKey?: string
+) => {
   const held = fake.hold('keybase.1.login.recoverPassphrase')
   let cancel = () => {}
   const ended = T.RPCGen.loginRecoverPassphraseRpcListener({
-    customResponseIncomingCallMap: {[prompt]: onPrompt},
+    // Typed void, but the listener awaits what a handler returns, so a rejection reaches it
+    customResponseIncomingCallMap: {[prompt]: onPrompt as (params: unknown, response: PromptResponse) => void},
     incomingCallMap: {},
     onSessionCreated: c => {
       cancel = c
     },
     params: {username: 'testuser'},
+    waitingKey,
   }).catch((e: unknown) => e)
   await tick()
   const sessionID = fake.calls[0]!.params.sessionID as number
@@ -293,4 +300,79 @@ test.each([false, true])('a reset drops a held prompt without answering it (dang
   await tick()
   await expect(settledSoFar(pushed)).resolves.toBe('still waiting')
   uninstallFakeEngine()
+})
+
+describe('a listener prompt handler that fails', () => {
+  test.each([
+    [
+      'throws',
+      () => {
+        throw new Error('handler broke')
+      },
+    ],
+    ['rejects', async () => Promise.reject(new Error('handler broke'))],
+  ])('is answered once with input canceled when it %s', async (_, onPrompt) => {
+    const logged = watchErrors()
+    const fake = installFakeEngine()
+    const {push} = await startRecover(fake, onPrompt)
+    const pushed = push()
+    await afterTimers()
+    await expect(settledSoFar(pushed)).resolves.toEqual({error: inputCanceled})
+    expect(logged).toHaveBeenCalled()
+    expect(() => uninstallFakeEngine()).not.toThrow()
+  })
+
+  test('that already answered writes nothing more', async () => {
+    global.__DEV__ = true
+    watchErrors()
+    const warned = jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    const fake = installFakeEngine()
+    const {push} = await startRecover(fake, (__, response) => {
+      response.result(true)
+      throw new Error('handler broke after answering')
+    })
+    const pushed = push()
+    await afterTimers()
+    await expect(pushed).resolves.toEqual({result: true})
+    await tick()
+    expect(warned).not.toHaveBeenCalled()
+    expect(() => uninstallFakeEngine()).not.toThrow()
+  })
+})
+
+describe('a late answer leaves the waiting count alone', () => {
+  const waitingKey = 'held-responses-test'
+  const waitingCount = (fake: FakeEngine) => {
+    fake.engine._throttledDispatchWaitingAction.flush()
+    return useWaitingState.getState().counts.get(waitingKey) ?? 0
+  }
+
+  test('after a client cancel', async () => {
+    const fake = installFakeEngine()
+    const {onPrompt, responses} = capture()
+    const {cancel, ended, push} = await startRecover(fake, onPrompt, waitingKey)
+    expect(waitingCount(fake)).toBe(1)
+    void push()
+    await afterTimers()
+    expect(waitingCount(fake)).toBe(0)
+    cancel()
+    await ended
+    responses[0]!.result(true)
+    expect(waitingCount(fake)).toBe(0)
+    uninstallFakeEngine()
+  })
+
+  test('after its session ended', async () => {
+    const fake = installFakeEngine()
+    const {onPrompt, responses} = capture()
+    const {ended, held, push} = await startRecover(fake, onPrompt, waitingKey)
+    void push()
+    await afterTimers()
+    held[0]!.reply(undefined)
+    await ended
+    expect(waitingCount(fake)).toBe(0)
+    responses[0]!.result(true)
+    expect(waitingCount(fake)).toBe(0)
+    uninstallFakeEngine()
+  })
 })

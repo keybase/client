@@ -1,6 +1,6 @@
 import {ensureError, RPCError} from '@/util/errors'
 import {printOutstandingRPCs} from '@/local-debug'
-import {StatusCode} from '@/constants/rpc/rpc-gen'
+import {inputCanceledError} from './session'
 import {getAccountGeneration, survivesAccountChange} from './account-generation'
 import type {CommonResponseHandler, ResponseType, WaitingKey} from './types'
 import {wrapErrors} from '@/util/debug'
@@ -34,25 +34,28 @@ export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
     }
 
     // Wraps a response to update the waiting state
-    const makeWaitingResponse = (r?: Partial<CommonResponseHandler>) => {
-      if (!r || !waitingKey) {
-        return r
+    // A late answer to a settled response reaches no server, so it must not count as waiting on one.
+    const makeWaitingResponse = (r: ResponseType) => {
+      if (!waitingKey) {
+        return r as Partial<CommonResponseHandler>
       }
 
       const response: Partial<CommonResponseHandler> = {}
 
       if (r.error) {
         response.error = (e: ErrorType) => {
-          // Waiting on the server again
-          setWaitingOnServer(true)
+          if (!r.settled) {
+            setWaitingOnServer(true)
+          }
           r.error?.(e)
         }
       }
 
       if (r.result) {
         response.result = (...args: Array<unknown>) => {
-          // Waiting on the server again
-          setWaitingOnServer(true)
+          if (!r.settled) {
+            setWaitingOnServer(true)
+          }
           r.result?.(...args)
         }
       }
@@ -65,14 +68,20 @@ export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
 
     // Handlers run on a timer so transport work can flush before heavier state updates. By then an
     // account switch may have reset the stores the handler writes to, unless this call outlives it.
-    const runDeferred = (run: () => Promise<void>, onStale: () => void, handlerMethod: string) => {
+    const runDeferred = (
+      run: () => Promise<void>,
+      onStale: () => void,
+      onFailed: () => void,
+      handlerMethod: string
+    ) => {
       const generation = getAccountGeneration()
       setTimeout(() => {
         if (getAccountGeneration() !== generation && !survivesAccountChange(method)) {
           onStale()
           return
         }
-        wrapErrors(run, handlerMethod)().catch(() => {})
+        // wrapErrors logs the failure
+        wrapErrors(run, handlerMethod)().catch(onFailed)
       }, 0)
     }
 
@@ -88,7 +97,7 @@ export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
     const plainMap: {[key: string]: (params: unknown) => void} = {}
     for (const m of Object.keys(incomingCallMap)) {
       plainMap[m] = (params: unknown) => {
-        runDeferred(async () => incomingCallMap[m]?.(params), () => {}, m)
+        runDeferred(async () => incomingCallMap[m]?.(params), () => {}, () => {}, m)
       }
     }
 
@@ -97,19 +106,22 @@ export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
       customMap[m] = (params: unknown, sessionResponse: ResponseType) => {
         // No longer waiting on the server
         setWaitingOnServer(false)
-        const response = makeWaitingResponse(sessionResponse as Partial<CommonResponseHandler>)
+        const response = makeWaitingResponse(sessionResponse)
+        // The service is still waiting on this prompt, and no handler will answer it
+        const refuse = () => {
+          if (!sessionResponse.settled) {
+            response.error?.(inputCanceledError)
+          }
+        }
         runDeferred(
           async () => {
             // Settled meanwhile: the session ended or was cancelled, so nothing reads this answer
             if (!sessionResponse.settled) {
-              await customResponseIncomingCallMap[m]?.(params, response ?? {})
+              await customResponseIncomingCallMap[m]?.(params, response)
             }
           },
-          () => {
-            if (!sessionResponse.settled) {
-              response?.error?.({code: StatusCode.scinputcanceled, desc: 'Input canceled'})
-            }
-          },
+          refuse,
+          refuse,
           m
         )
       }
