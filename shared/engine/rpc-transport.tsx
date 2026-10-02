@@ -248,6 +248,12 @@ export abstract class RPCTransport {
     this._disconnectCallback?.()
   }
 
+  // The link went down without this transport failing what is in flight on it
+  protected onLinkDown() {
+    this._packetizer.reset()
+    this._disconnectCallback?.()
+  }
+
   protected onPacketizeError(err: unknown) {
     console.error('Got packetize error!', err)
   }
@@ -584,4 +590,4 @@ export abstract class RPCTransport {
   }
 }
 
-export {encodeFrame, makeEOFError, makeTransportError}
+export {encodeFrame, isRPCMessage, makeEOFError, makeTransportError}

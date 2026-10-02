@@ -1,11 +1,60 @@
 /// <reference types="jest" />
-import {makeDesktopEnginePair} from '@/test/desktop-engine-pair'
+import {makeDesktopEnginePair, type DesktopEnginePair} from '@/test/desktop-engine-pair'
 import {tick} from '@/test/flush'
 
-test('a renderer call reaches the service through node', () => {
+const methodsReceived = (pair: DesktopEnginePair) => pair.serviceReceived().map(m => m[2])
+
+test('a renderer call reaches the service through node, and its answer comes back', async () => {
+  const pair = makeDesktopEnginePair()
+  const cb = jest.fn()
+  pair.renderer.invoke('keybase.1.config.getBootstrapStatus', [{}], cb)
+  await tick()
+  expect(methodsReceived(pair)).toEqual(['keybase.1.config.getBootstrapStatus'])
+  const [, seqid] = pair.serviceReceived()[0]!
+  pair.serviceSends([1, seqid, null, {ok: true}])
+  await tick()
+  expect(cb).toHaveBeenCalledWith(null, {ok: true})
+})
+
+test('after the service comes back a fresh call reaches the new service and is answered', async () => {
+  const pair = makeDesktopEnginePair()
+  pair.serviceDies()
+  pair.serviceComesBack()
+  await tick()
+  const cb = jest.fn()
+  pair.renderer.invoke('keybase.1.config.getBootstrapStatus', [{}], cb)
+  await tick()
+  expect(methodsReceived(pair)).toEqual(['keybase.1.config.getBootstrapStatus'])
+  const [, seqid] = pair.serviceReceived()[0]!
+  pair.serviceSends([1, seqid, null, {ok: true}])
+  await tick()
+  expect(cb).toHaveBeenCalledWith(null, {ok: true})
+})
+
+test('the app is told once per link change', async () => {
+  const pair = makeDesktopEnginePair()
+  pair.serviceDies()
+  pair.serviceComesBack()
+  await tick()
+  pair.serviceDies()
+  pair.serviceComesBack()
+  await tick()
+  expect(pair.linkChanges).toEqual([true, false, true, false, true])
+})
+
+test('the app hearing its listeners are ready again is not told the link is up again', () => {
+  const pair = makeDesktopEnginePair()
+  pair.listenersReadyAgain()
+  expect(pair.linkChanges).toEqual([true])
+})
+
+test('a renderer call still crossing IPC when the service restarts never reaches the new service', async () => {
   const pair = makeDesktopEnginePair()
   pair.renderer.invoke('keybase.1.config.getBootstrapStatus', [{}], () => {})
-  expect(pair.serviceReceived().map(m => m[2])).toEqual(['keybase.1.config.getBootstrapStatus'])
+  pair.serviceDies()
+  pair.serviceComesBack()
+  await tick()
+  expect(methodsReceived(pair)).toEqual([])
 })
 
 // Known failures: each pins a desktop disconnect bug seen in the live app when the service stops and restarts.

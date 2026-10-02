@@ -7,7 +7,6 @@ import {inputCanceledError, type SessionID, type MethodKey, type WaitingKey} fro
 import {installCallPort, type CallPort} from './call-port'
 import {printOutstandingRPCs, printRPC} from '@/local-debug'
 import {
-  resetClient,
   createClient,
   rpcLog,
   type CreateClientType,
@@ -45,8 +44,8 @@ class Engine implements CallPort {
   }
   // We generate sessionIDs monotonically
   _nextSessionID: number = 123
-  // We call onDisconnect handlers only if we've actually disconnected (ie connected once)
-  _hasConnected: boolean = isMobile // mobile is always connected
+  // Whether the link to the service is up now. Mobile's is up from the start.
+  _linkUp: boolean = isMobile
   // App tells us when the listeners are done loading so we can start emitting events
   _listenersAreReady: boolean = false
 
@@ -130,8 +129,8 @@ class Engine implements CallPort {
   }
 
   _onDisconnect() {
+    this._linkUp = false
     logger.warn('Engine disconnected', {
-      hasConnected: this._hasConnected,
       listenersAreReady: this._listenersAreReady,
       sessions: this._sessionSummary(),
     })
@@ -162,27 +161,31 @@ class Engine implements CallPort {
     }
   }
 
-  // We want to dispatch the connect action but only after listeners boot up
+  // The app is told the link is up once its listeners are ready, and once per link-up after that. A
+  // repeat call (HMR) announces nothing again.
   listenersAreReady = () => {
+    if (this._listenersAreReady) {
+      return
+    }
     this._listenersAreReady = true
     logger.info('Engine listenersAreReady', {
-      hasConnected: this._hasConnected,
+      linkUp: this._linkUp,
       sessions: this._sessionSummary(),
     })
-    if (this._hasConnected) {
+    if (this._linkUp) {
       this._onConnectedCB(true)
     }
   }
 
-  // Called when we reconnect to the server. This only happens in node in the electron side.
-  // We proxy the stuff over the mainWindowDispatch
   _onConnected() {
-    this._hasConnected = true
+    this._linkUp = true
     logger.info('Engine connected', {
       listenersAreReady: this._listenersAreReady,
       sessions: this._sessionSummary(),
     })
-    this._onConnectedCB(true)
+    if (this._listenersAreReady) {
+      this._onConnectedCB(true)
+    }
   }
 
   // Create and return the next unique session id
@@ -421,7 +424,7 @@ class Engine implements CallPort {
       return
     }
     logger.warn('Engine reset requested', {
-      hasConnected: this._hasConnected,
+      linkUp: this._linkUp,
       listenersAreReady: this._listenersAreReady,
       sessions: this._sessionSummary(),
     })
@@ -433,16 +436,15 @@ class Engine implements CallPort {
     this._sessionsMap.clear()
     this._forgetGlobalHeld()
     this._queuedChanges = []
-    this._hasConnected = false
-    this._listenersAreReady = false
-    const incoming = (payload: PayloadType) => this._rpcIncoming(payload)
-    const connect = () => this._onConnected()
-    const disconnect = () => this._onDisconnect()
     if (this._makeClient === createClient) {
-      this._rpcClient = resetClient(this._rpcClient, incoming, connect, disconnect)
+      this._rpcClient.transport.reset()
     } else {
       this._rpcClient.transport.close()
-      this._rpcClient = this._makeClient(incoming, connect, disconnect)
+      this._rpcClient = this._makeClient(
+        payload => this._rpcIncoming(payload),
+        () => this._onConnected(),
+        () => this._onDisconnect()
+      )
     }
   }
 }
