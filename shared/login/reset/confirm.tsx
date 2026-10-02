@@ -5,12 +5,12 @@ import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {submitResetPrompt} from './account-reset'
 
-type Props = {route: {params: {hasWallet: boolean; resetKey: string}}}
+type Props = {route: {params: {hasWallet: boolean; promptId: number}}}
 
 const ConfirmReset = ({route}: Props) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
-  const {hasWallet, resetKey} = route.params
+  const {hasWallet, promptId} = route.params
   const navigation = useNavigation()
   const resolvedRef = React.useRef(false)
   const resolvePrompt = React.useCallback(
@@ -19,9 +19,9 @@ const ConfirmReset = ({route}: Props) => {
         return
       }
       resolvedRef.current = true
-      submitResetPrompt(resetKey, action)
+      submitResetPrompt(promptId, action)
     },
-    [resetKey]
+    [promptId]
   )
 
   React.useEffect(() => {

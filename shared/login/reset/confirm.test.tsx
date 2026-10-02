@@ -93,7 +93,7 @@ describe('ConfirmReset', () => {
   })
 
   test('does not resolve the prompt during effect cleanup', () => {
-    const view = render(<ConfirmReset route={{params: {hasWallet: false, resetKey: 'reset-1'}}} />)
+    const view = render(<ConfirmReset route={{params: {hasWallet: false, promptId: 1}}} />)
 
     expect(mockAddListener).toHaveBeenCalledWith('beforeRemove', expect.any(Function))
     expect(mockSubmitResetPrompt).not.toHaveBeenCalled()
@@ -105,7 +105,7 @@ describe('ConfirmReset', () => {
   })
 
   test('resolves the prompt from beforeRemove only once', () => {
-    render(<ConfirmReset route={{params: {hasWallet: false, resetKey: 'reset-1'}}} />)
+    render(<ConfirmReset route={{params: {hasWallet: false, promptId: 1}}} />)
 
     expect(beforeRemove).toBeDefined()
 
@@ -113,6 +113,6 @@ describe('ConfirmReset', () => {
     beforeRemove?.()
 
     expect(mockSubmitResetPrompt).toHaveBeenCalledTimes(1)
-    expect(mockSubmitResetPrompt).toHaveBeenCalledWith('reset-1', T.RPCGen.ResetPromptResponse.nothing)
+    expect(mockSubmitResetPrompt).toHaveBeenCalledWith(1, T.RPCGen.ResetPromptResponse.nothing)
   })
 })

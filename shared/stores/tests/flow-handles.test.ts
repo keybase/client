@@ -4,9 +4,6 @@ import {resetAllStores} from '@/util/zustand'
 import {
   callNamed,
   clearNamedIfToken,
-  consumeKeyed,
-  registerKeyed,
-  registerKeyedScoped,
   setNamed,
   setNamedScoped,
   clearOwner,
@@ -63,25 +60,4 @@ test('scoped named disposers do not clear newer replacement handlers', () => {
   currentHandle.dispose()
   callNamed('recoverPassword', 'submitPassword', 'again')
   expect(current).toHaveBeenCalledTimes(1)
-})
-
-test('keyed handles are one-shot when consumed', () => {
-  const fn = jest.fn()
-
-  const key = registerKeyed('reset', 'submitResetPrompt', fn)
-  consumeKeyed(key, 'confirm')
-  consumeKeyed(key, 'confirm-again')
-
-  expect(fn).toHaveBeenCalledTimes(1)
-  expect(fn).toHaveBeenCalledWith('confirm')
-})
-
-test('scoped keyed disposers clear unconsumed handlers', () => {
-  const fn = jest.fn()
-
-  const handle = registerKeyedScoped('reset', 'submitResetPrompt', fn)
-  handle.dispose()
-  consumeKeyed(handle.key, 'confirm')
-
-  expect(fn).not.toHaveBeenCalled()
 })
