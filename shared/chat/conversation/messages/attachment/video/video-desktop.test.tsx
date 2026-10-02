@@ -35,74 +35,23 @@ test('the poster plays the video inline, once', () => {
   expect(video()?.loop).toBe(false)
 })
 
-test('the fullscreen button on the poster opens fullscreen without playing inline', () => {
-  const openFullscreen = jest.fn()
-  renderVideo(openFullscreen)
+// Fullscreen is the player's own control: no corner button, and a double-click is left to Chromium.
+test('the playing video offers its own fullscreen control', () => {
+  renderVideo(jest.fn())
+  expect(fullscreenButton()).toBeNull()
+  fireEvent.click(screen.getByText('0:05'))
 
-  fireEvent.click(fullscreenButton()!)
-
-  expect(openFullscreen).toHaveBeenCalledTimes(1)
-  expect(video()).toBeNull()
+  expect(fullscreenButton()).toBeNull()
+  expect(video()?.getAttribute('controlsList')).not.toMatch(/nofullscreen/)
 })
 
-test('the fullscreen button over the playing video opens fullscreen and stops the inline one', () => {
+test('a double-click on the playing video does not open the attachment view', () => {
   const openFullscreen = jest.fn()
   renderVideo(openFullscreen)
   fireEvent.click(screen.getByText('0:05'))
 
-  fireEvent.click(fullscreenButton()!)
-
-  expect(openFullscreen).toHaveBeenCalledTimes(1)
-  expect(video()).toBeNull()
-})
-
-test('a click on the playing video is left to its controls', () => {
-  const openFullscreen = jest.fn()
-  renderVideo(openFullscreen)
-  fireEvent.click(screen.getByText('0:05'))
-
-  fireEvent.click(video()!)
+  fireEvent.doubleClick(video()!)
 
   expect(openFullscreen).not.toHaveBeenCalled()
   expect(video()).not.toBeNull()
-})
-
-// A double-click is two clicks first, each a play/pause for the controls. It does what the corner
-// button does, and the inline player it toggled goes away with it, so it is left neither paused
-// nor playing behind the fullscreen view.
-test('a double-click on the playing video opens fullscreen and stops the inline one', () => {
-  const openFullscreen = jest.fn()
-  renderVideo(openFullscreen)
-  fireEvent.click(screen.getByText('0:05'))
-
-  fireEvent.click(video()!)
-  fireEvent.click(video()!)
-  fireEvent.doubleClick(video()!)
-
-  expect(openFullscreen).toHaveBeenCalledTimes(1)
-  expect(video()).toBeNull()
-})
-
-test('a double-click on the poster opens fullscreen without playing inline', () => {
-  const openFullscreen = jest.fn()
-  renderVideo(openFullscreen)
-
-  fireEvent.doubleClick(screen.getByText('0:05'))
-
-  expect(openFullscreen).toHaveBeenCalledTimes(1)
-  expect(video()).toBeNull()
-})
-
-test('a double-click does nothing until the message is sent', () => {
-  renderVideo(undefined)
-  fireEvent.click(screen.getByText('0:05'))
-
-  fireEvent.doubleClick(video()!)
-
-  expect(video()).not.toBeNull()
-})
-
-test('no fullscreen button until the message is sent', () => {
-  renderVideo(undefined)
-  expect(fullscreenButton()).toBeNull()
 })
