@@ -74,7 +74,7 @@ export const enterResetPipeline = ({onError, password = '', username}: EnterRese
     try {
       await Promise.all([showPrompts(), dialog.done])
     } catch (error) {
-      // An account switch cancels the session; that is not the user's error
+      // A cancel, ours (an account switch cancels the session) or the service's, is not the user's error
       if (
         dialog.disposed ||
         !(error instanceof RPCError) ||

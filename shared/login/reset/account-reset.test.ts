@@ -42,8 +42,12 @@ const settle = async () => {
   await tick()
 }
 
-const start = async (p?: {onError?: (e: string) => void; password?: string}) => {
-  const fake = installFakeEngine()
+const start = async (p?: {
+  onEngineIncoming?: () => void
+  onError?: (e: string) => void
+  password?: string
+}) => {
+  const fake = installFakeEngine({onEngineIncoming: p?.onEngineIncoming})
   const held = fake.hold(pipeline)
   enterResetPipeline({onError: p?.onError, password: p?.password, username: 'testuser'})
   await tick()
@@ -194,8 +198,12 @@ test('a logout leaves the pipeline running, so the confirm screen still answers 
 })
 
 test('the service message falls through to the global handler', async () => {
-  const {fake, held, sessionID} = await start()
+  const onEngineIncoming = jest.fn()
+  const {fake, held, sessionID} = await start({onEngineIncoming})
   await fake.push('keybase.1.loginUi.displayResetMessage', {kind: 0}, {sessionID})
+  expect(onEngineIncoming).toHaveBeenCalledWith(
+    expect.objectContaining({type: 'keybase.1.loginUi.displayResetMessage'})
+  )
   held[0]!.reply(undefined)
   await settle()
 })
