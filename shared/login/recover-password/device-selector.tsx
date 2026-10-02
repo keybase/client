@@ -5,17 +5,22 @@ import {
   submitRecoverPasswordDeviceSelect,
   submitRecoverPasswordNoDevice,
 } from './flow'
+import {useRecoverPromptBack} from './use-prompt-back'
 
-type Props = {route: {params: {devices: ReadonlyArray<Device>}}}
+type Props = {route: {params: {devices: ReadonlyArray<Device>; promptId: number}}}
 
 const RecoverPasswordDeviceSelector = ({route}: Props) => {
-  const {devices} = route.params
+  const {devices, promptId} = route.params
+  const onBack = () => cancelRecoverPassword(promptId)
+  useRecoverPromptBack(promptId, onBack)
   return (
     <SelectOtherDevice
       devices={devices}
-      onBack={cancelRecoverPassword}
-      onResetAccount={submitRecoverPasswordNoDevice}
-      onSelect={(name: string) => submitRecoverPasswordDeviceSelect(devices.find(d => d.name === name)?.id)}
+      onBack={onBack}
+      onResetAccount={() => submitRecoverPasswordNoDevice(promptId)}
+      onSelect={(name: string) =>
+        submitRecoverPasswordDeviceSelect(promptId, devices.find(d => d.name === name)?.id)
+      }
       passwordRecovery={true}
     />
   )

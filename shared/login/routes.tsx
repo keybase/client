@@ -41,9 +41,19 @@ const LoginHeaderRight = () => {
 
 // Recover-password back affordances must run the flow's back/cancel logic (not a plain pop), so they
 // are wired as the React Navigation headerLeft. They read the current route's params via useRoute.
-const RecoverCancelLeft = () => (
-  <Kb.HeaderLeftButton autoDetectCanGoBack={true} onPress={cancelRecoverPassword} />
-)
+const RecoverCancelLeft = () => {
+  const route = useRoute()
+  const promptId =
+    route.name === 'recoverPasswordDeviceSelector' || route.name === 'recoverPasswordPaperKey'
+      ? route.params.promptId
+      : undefined
+  return (
+    <Kb.HeaderLeftButton
+      autoDetectCanGoBack={true}
+      onPress={() => promptId !== undefined && cancelRecoverPassword(promptId)}
+    />
+  )
+}
 const RecoverPopLeft = () => (
   <Kb.HeaderLeftButton autoDetectCanGoBack={true} onPress={C.Router2.popStack} />
 )
@@ -122,10 +132,12 @@ export const newRoutes = defineRouteMap({
     screen: React.lazy(async () => import('.')),
   },
   recoverPasswordDeviceSelector: {
-    getOptions: {
-      ...(isIOS ? recoverBackItems(cancelRecoverPassword) : {headerLeft: () => <RecoverCancelLeft />}),
+    getOptions: (p: {route: {params: {promptId: number}}}) => ({
+      ...(isIOS
+        ? recoverBackItems(() => cancelRecoverPassword(p.route.params.promptId))
+        : {headerLeft: () => <RecoverCancelLeft />}),
       title: 'Recover password',
-    },
+    }),
     screen: React.lazy(async () => import('./recover-password/device-selector')),
   },
   recoverPasswordError: {
@@ -149,10 +161,12 @@ export const newRoutes = defineRouteMap({
     screen: React.lazy(async () => import('./recover-password/explain-device')),
   },
   recoverPasswordPaperKey: {
-    getOptions: {
+    getOptions: (p: {route: {params: {promptId: number}}}) => ({
       ...recoverPasswordGetOptions,
-      ...(isIOS ? recoverBackItems(cancelRecoverPassword) : {headerLeft: () => <RecoverCancelLeft />}),
-    },
+      ...(isIOS
+        ? recoverBackItems(() => cancelRecoverPassword(p.route.params.promptId))
+        : {headerLeft: () => <RecoverCancelLeft />}),
+    }),
     screen: React.lazy(async () => import('./recover-password/paper-key')),
   },
   recoverPasswordPromptResetAccount: {

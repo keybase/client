@@ -11,6 +11,8 @@ import {startRecoverPassword, submitRecoverPasswordReset} from './flow'
 
 export type Props = {
   resetPassword?: boolean
+  // The reset-password prompt the Continue answers
+  resetPromptId?: number
   skipPassword: boolean
   username: string
 }
@@ -20,7 +22,7 @@ const PromptReset = (props: Props) => {
   const theme = Kb.Styles.useTheme()
   const nav = useSafeNavigation()
   const [error, setError] = React.useState('')
-  const {resetPassword, skipPassword, username} = props
+  const {resetPassword, resetPromptId, skipPassword, username} = props
 
   const onContinue = () => {
     // dont do this in preflight
@@ -28,8 +30,8 @@ const PromptReset = (props: Props) => {
       nav.safeNavigateUp()
       return
     }
-    if (resetPassword) {
-      submitRecoverPasswordReset(T.RPCGen.ResetPromptResponse.confirmReset)
+    if (resetPassword && resetPromptId !== undefined) {
+      submitRecoverPasswordReset(resetPromptId, T.RPCGen.ResetPromptResponse.confirmReset)
     }
     if (skipPassword) {
       enterResetPipeline({onError: setError, username})

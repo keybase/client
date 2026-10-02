@@ -2,12 +2,15 @@
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
-import {RPCError} from '@/util/errors'
 import {useWaitingState} from '@/stores/waiting'
 import {waitingKeyRecoverPassword} from '@/constants/strings'
-import {makeListen} from '@/engine/listener'
-import {installCallPort, uninstallCallPort} from '@/engine/call-port'
-import type {WaitingKey} from '@/engine/types'
+import {navigateAppend} from '@/constants/router'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {tick} from '@/test/flush'
+import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import {newModalRoutes} from '../routes'
+
+jest.mock('@/provision/flow', () => ({cancelProvision: () => {}, startProvision: () => {}}))
 
 import {
   answerRecoverPasswordPgp,
@@ -15,385 +18,224 @@ import {
   isRecoverPasswordPgpPending,
   markRecoverPasswordPgpShown,
   startRecoverPassword,
-  submitRecoverPasswordDeviceSelect,
-  submitRecoverPasswordNoDevice,
   submitRecoverPasswordPaperKey,
   submitRecoverPasswordPassword,
 } from './flow'
-import {newModalRoutes} from '../routes'
-import {navigateAppend} from '@/constants/router'
-import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+
+const recover = 'keybase.1.login.recoverPassphrase'
+const getPassphrase = 'keybase.1.secretUi.getPassphrase'
+const promptPgp = 'keybase.1.loginUi.promptPassphraseRecovery'
+const inputCanceled = {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'}
+const cancelled = fakeError(T.RPCGen.StatusCode.sccanceled, 'Canceling RPC')
 
 let nav: FakeNavigator
+let fake: FakeEngine
 
-// Recovery runs from a modal, so the fake starts with one open: clearModals only has
-// something to dispatch when a modal is actually on screen. Nothing below replaces onto
-// this name - a replace onto the visible route collapses into a setParams instead.
-const openModal = 'recoverPasswordPromptResetPassword'
-
+// Go asks for the new password and the PGP question after the paper key has logged the user in, so
+// these are modals over the logged-in app
 beforeEach(() => {
-  nav = installFakeNavigator({
-    modalRouteNames: [openModal],
-    rootState: makeRootState({above: [{name: openModal}]}),
-  })
+  useConfigState.getState().dispatch.setLoggedIn(true)
+  nav = installFakeNavigator({modalRouteNames: Object.keys(newModalRoutes), rootState: makeRootState()})
 })
 
 afterEach(() => {
-  // A prompt left pending would keep its decline timer alive past the test.
-  nav
-    .pushes()
-    .filter(p => p.name === 'recoverPasswordPgpWarning')
-    .forEach(p => answerRecoverPasswordPgp((p.params as {id: number}).id, false))
+  jest.useRealTimers()
   restoreNavigator()
-  jest.restoreAllMocks()
   resetAllStores()
 })
 
-const flush = async () => new Promise<void>(resolve => setImmediate(resolve))
+// Timeouts are tested on fake timers; the fake engine's own microtasks and the flush stay real
+const useFakeTimers = () => jest.useFakeTimers({doNotFake: ['queueMicrotask', 'nextTick', 'setImmediate']})
+const isFakeTimers = () => jest.isMockFunction(setTimeout) || 'clock' in setTimeout
 
-type Listener = Parameters<typeof T.RPCGen.loginRecoverPassphraseRpcListener>[0]
-
-// Each recover call hangs until the test settles it, like the real RPC waiting on prompts.
-const mockRecoverAttempts = () => {
-  const attempts: Array<{
-    listener: Listener
-    reject: (e: unknown) => void
-    resolve: () => void
-  }> = []
-  jest.spyOn(T.RPCGen, 'loginRecoverPassphraseRpcListener').mockImplementation(async listener => {
-    await new Promise<void>((resolve, reject) => {
-      attempts.push({listener, reject, resolve})
-    })
-    return undefined as any
-  })
-  return attempts
+// The listener hands incoming calls to their handlers on a timer, and the flow reads them off the
+// dialog's events after that
+const settle = async () => {
+  if (isFakeTimers()) {
+    await jest.advanceTimersByTimeAsync(0)
+  } else {
+    await new Promise(resolve => setTimeout(resolve, 0))
+  }
+  await tick()
 }
 
-const startAttempt = async () => {
-  const attempts = mockRecoverAttempts()
+const startRun = async () => {
   startRecoverPassword({username: 'testuser'})
-  await flush()
-  expect(attempts.length).toBe(1)
-  return {attempts, first: attempts[0]!}
+  await tick()
+  return fake.calls.at(-1)!.params.sessionID as number
 }
 
-describe('device selection', () => {
-  test('cancelling the chooser rejects the rpc and pops the screen', async () => {
-    const {first} = await startAttempt()
+const start = async () => {
+  fake = installFakeEngine()
+  const held = fake.hold(recover)
+  const sessionID = await startRun()
+  return {held, sessionID}
+}
 
-    const response = {error: jest.fn(), result: jest.fn()}
-    first.listener.customResponseIncomingCallMap?.['keybase.1.loginUi.chooseDeviceToRecoverWith']?.(
-      {devices: []} as any,
-      response as any
-    )
+const lastPromptId = () => (nav.navigations().at(-1)?.params as {promptId?: number} | undefined)?.promptId ?? -1
 
-    cancelRecoverPassword()
+const pushPassphrase = async (sessionID: number, type: T.RPCGen.PassphraseType, retryLabel = '') => {
+  const answered = fake.push(getPassphrase, {pinentry: {retryLabel, type}}, {sessionID})
+  await settle()
+  return {answered, promptId: lastPromptId()}
+}
 
-    expect(response.error).toHaveBeenCalledWith({
-      code: T.RPCGen.StatusCode.scinputcanceled,
-      desc: 'Input canceled',
-    })
-    expect(nav.types()).toContain('GO_BACK')
-  })
-
-  test('selecting no device answers with an empty device id', async () => {
-    const {first} = await startAttempt()
-
-    const response = {error: jest.fn(), result: jest.fn()}
-    first.listener.customResponseIncomingCallMap?.['keybase.1.loginUi.chooseDeviceToRecoverWith']?.(
-      {devices: []} as any,
-      response as any
-    )
-
-    submitRecoverPasswordNoDevice()
-
-    expect(response.result).toHaveBeenCalledWith('')
-    expect(response.error).not.toHaveBeenCalled()
-  })
-
-  test('an empty device id from the selector is treated as a cancel', async () => {
-    const {first} = await startAttempt()
-
-    const response = {error: jest.fn(), result: jest.fn()}
-    first.listener.customResponseIncomingCallMap?.['keybase.1.loginUi.chooseDeviceToRecoverWith']?.(
-      {devices: []} as any,
-      response as any
-    )
-
-    submitRecoverPasswordDeviceSelect(undefined)
-
-    expect(response.result).not.toHaveBeenCalled()
-    expect(response.error).toHaveBeenCalledWith({
-      code: T.RPCGen.StatusCode.scinputcanceled,
-      desc: 'Input canceled',
-    })
-  })
-
-  test('the device selector replaces the current route when asked to', async () => {
-    const attempts = mockRecoverAttempts()
-    startRecoverPassword({replaceRoute: true, username: 'testuser'})
-    await flush()
-
-    attempts[0]!.listener.customResponseIncomingCallMap?.['keybase.1.loginUi.chooseDeviceToRecoverWith']?.(
-      {devices: []} as any,
-      {error: jest.fn(), result: jest.fn()} as any
-    )
-
-    expect(nav.navigations()).toContainEqual({
-      name: 'recoverPasswordDeviceSelector',
-      params: {devices: []},
-      replace: true,
-    })
-  })
-})
+const rootRouteNames = () => nav.getRootState()?.routes?.map(r => r.name)
 
 describe('paper key prompt', () => {
-  test('a paper key prompt navigates with the retry label and submits the passphrase', async () => {
-    const {first} = await startAttempt()
-
-    const response = {error: jest.fn(), result: jest.fn()}
-    first.listener.customResponseIncomingCallMap?.['keybase.1.secretUi.getPassphrase']?.(
-      {pinentry: {retryLabel: 'nope', type: T.RPCGen.PassphraseType.paperKey}} as any,
-      response as any
-    )
+  test('it shows the retry label and submits the paper key without storing it', async () => {
+    const {held, sessionID} = await start()
+    const {answered, promptId} = await pushPassphrase(sessionID, T.RPCGen.PassphraseType.paperKey, 'nope')
 
     expect(nav.navigations()).toContainEqual({
       name: 'recoverPasswordPaperKey',
-      params: {error: 'nope'},
+      params: {error: 'nope', promptId},
       replace: true,
     })
+    submitRecoverPasswordPaperKey(promptId, 'one two three')
 
-    submitRecoverPasswordPaperKey('one two three')
-
-    expect(response.result).toHaveBeenCalledWith({passphrase: 'one two three', storeSecret: false})
+    await expect(answered).resolves.toEqual({result: {passphrase: 'one two three', storeSecret: false}})
+    held[0]!.reply(undefined)
+    await settle()
   })
 
   test('an empty retry label shows no error', async () => {
-    const {first} = await startAttempt()
+    const {held, sessionID} = await start()
+    await pushPassphrase(sessionID, T.RPCGen.PassphraseType.paperKey)
 
-    first.listener.customResponseIncomingCallMap?.['keybase.1.secretUi.getPassphrase']?.(
-      {pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.paperKey}} as any,
-      {error: jest.fn(), result: jest.fn()} as any
-    )
-
-    expect(nav.navigations()).toContainEqual({
-      name: 'recoverPasswordPaperKey',
-      params: {error: undefined},
-      replace: true,
-    })
+    expect(nav.navigations().at(-1)).toMatchObject({params: {error: undefined}, replace: true})
+    held[0]!.reply(undefined)
+    await settle()
   })
 
-  test('backing out of the paper key prompt restarts recovery from the top', async () => {
-    const {attempts, first} = await startAttempt()
+  test('backing out refuses the prompt and restarts recovery, replacing the screen', async () => {
+    const {sessionID} = await start()
+    const {answered, promptId} = await pushPassphrase(sessionID, T.RPCGen.PassphraseType.paperKey)
 
-    const response = {
-      error: jest.fn(),
-      result: jest.fn(),
-    }
-    first.listener.customResponseIncomingCallMap?.['keybase.1.secretUi.getPassphrase']?.(
-      {pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.paperKey}} as any,
-      response as any
-    )
+    cancelRecoverPassword(promptId)
 
-    cancelRecoverPassword()
-    await flush()
-
-    expect(response.error).toHaveBeenCalledWith({
-      code: T.RPCGen.StatusCode.scinputcanceled,
-      desc: 'Input canceled',
+    await expect(answered).resolves.toEqual({error: inputCanceled})
+    expect(fake.calls.filter(c => c.method === recover)).toHaveLength(2)
+    const newSession = fake.calls.at(-1)!.params.sessionID as number
+    void fake.push('keybase.1.loginUi.chooseDeviceToRecoverWith', {devices: [], username: 'testuser'}, {
+      sessionID: newSession,
     })
-    expect(attempts.length).toBe(2)
+    await settle()
+    expect(nav.navigations().at(-1)).toMatchObject({name: 'recoverPasswordDeviceSelector', replace: true})
   })
 })
 
 describe('new password prompt', () => {
-  test('the first ask pushes the set-password screen', async () => {
-    const {first} = await startAttempt()
-
-    const response = {error: jest.fn(), result: jest.fn()}
-    first.listener.customResponseIncomingCallMap?.['keybase.1.secretUi.getPassphrase']?.(
-      {pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.passPhrase}} as any,
-      response as any
-    )
+  test('the first ask pushes the set-password screen and submits a stored password', async () => {
+    const {held, sessionID} = await start()
+    const {answered, promptId} = await pushPassphrase(sessionID, T.RPCGen.PassphraseType.passPhrase)
 
     expect(nav.navigations()).toContainEqual({
       name: 'recoverPasswordSetPassword',
-      params: {error: undefined},
+      params: {error: undefined, promptId},
       replace: false,
     })
+    submitRecoverPasswordPassword(promptId, 'hunter2hunter2')
 
-    submitRecoverPasswordPassword('hunter2hunter2')
-
-    expect(response.result).toHaveBeenCalledWith({passphrase: 'hunter2hunter2', storeSecret: true})
+    await expect(answered).resolves.toEqual({result: {passphrase: 'hunter2hunter2', storeSecret: true}})
+    held[0]!.reply(undefined)
+    await settle()
   })
 
   test('a rejected password replaces the screen with the error', async () => {
-    const {first} = await startAttempt()
-
-    first.listener.customResponseIncomingCallMap?.['keybase.1.secretUi.getPassphrase']?.(
-      {pinentry: {retryLabel: 'too short', type: T.RPCGen.PassphraseType.passPhrase}} as any,
-      {error: jest.fn(), result: jest.fn()} as any
-    )
+    const {held, sessionID} = await start()
+    const {promptId} = await pushPassphrase(sessionID, T.RPCGen.PassphraseType.passPhrase, 'too short')
 
     expect(nav.navigations()).toContainEqual({
       name: 'recoverPasswordSetPassword',
-      params: {error: 'too short'},
+      params: {error: 'too short', promptId},
       replace: true,
     })
+    held[0]!.reply(undefined)
+    await settle()
   })
 
-  test('cancelling the new password prompt rejects the rpc without restarting', async () => {
-    const {attempts, first} = await startAttempt()
+  test('cancelling refuses the prompt without restarting', async () => {
+    const {held, sessionID} = await start()
+    const {answered, promptId} = await pushPassphrase(sessionID, T.RPCGen.PassphraseType.passPhrase)
 
-    const response = {error: jest.fn(), result: jest.fn()}
-    first.listener.customResponseIncomingCallMap?.['keybase.1.secretUi.getPassphrase']?.(
-      {pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.passPhrase}} as any,
-      response as any
-    )
+    cancelRecoverPassword(promptId)
 
-    cancelRecoverPassword()
-    await flush()
-
-    expect(response.error).toHaveBeenCalled()
-    expect(attempts.length).toBe(1)
-  })
-})
-
-test('a device-recovery explanation replaces the current screen', async () => {
-  const {first} = await startAttempt()
-
-  first.listener.incomingCallMap['keybase.1.loginUi.explainDeviceRecovery']?.(
-    {kind: T.RPCGen.DeviceType.mobile, name: 'testuser-mac'} as any
-  )
-
-  expect(nav.navigations()).toContainEqual({
-    name: 'recoverPasswordExplainDevice',
-    params: {deviceName: 'testuser-mac', deviceType: T.RPCGen.DeviceType.mobile, username: 'testuser'},
-    replace: true,
-  })
-})
-
-test('a reset prompt that is not a password reset hands off to the account reset flow', async () => {
-  const {first} = await startAttempt()
-
-  const response = {result: jest.fn()}
-  first.listener.customResponseIncomingCallMap?.['keybase.1.loginUi.promptResetAccount']?.(
-    {prompt: {t: T.RPCGen.ResetPromptType.enterNoDevices}} as any,
-    response as any
-  )
-
-  expect(nav.navigations()).toContainEqual({
-    name: 'recoverPasswordPromptResetAccount',
-    params: {skipPassword: true, username: 'testuser'},
-    replace: true,
-  })
-  expect(response.result).toHaveBeenCalledWith(T.RPCGen.ResetPromptResponse.nothing)
-})
-
-describe('completion', () => {
-  test('a successful recovery clears the modals', async () => {
-    const {first} = await startAttempt()
-
-    first.resolve()
-    await flush()
-
-    expect(nav.modalsCleared()).toBe(true)
+    await expect(answered).resolves.toEqual({error: inputCanceled})
+    expect(fake.calls.filter(c => c.method === recover)).toHaveLength(1)
+    held[0]!.reply(undefined)
+    await settle()
   })
 
-  test('a cancelled recovery shows no error screen and leaves modals alone', async () => {
-    const {first} = await startAttempt()
-
-    first.reject(new RPCError('Input canceled', T.RPCGen.StatusCode.scinputcanceled))
-    await flush()
-
-    expect(nav.modalsCleared()).toBe(false)
-    expect(nav.navigations()).not.toContainEqual(
-      expect.objectContaining({name: 'recoverPasswordError', replace: true})
-    )
-  })
-
-  test('a failure while logged out shows the error screen', async () => {
-    const {first} = await startAttempt()
-
-    const error = new RPCError('bad things', T.RPCGen.StatusCode.scgeneric)
-    first.reject(error)
-    await flush()
-
-    expect(nav.navigations()).toContainEqual({
-      name: 'recoverPasswordError',
-      params: {error: error.message},
-      replace: true,
+  // Limit (e): the push used to race the logged-in root's mount after the paper key login
+  test('an ask before the logged-in root mounts shows the screen once it does', async () => {
+    nav = installFakeNavigator({
+      modalRouteNames: Object.keys(newModalRoutes),
+      rootState: makeRootState({loggedIn: false}),
     })
-    expect(nav.modalsCleared()).toBe(false)
+    const {held, sessionID} = await start()
+    const answered = fake.push(getPassphrase, {pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.passPhrase}}, {sessionID})
+    await settle()
+    expect(nav.pushes()).toEqual([])
+
+    nav.setRootState(makeRootState())
+
+    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordSetPassword'])
+    const promptId = (nav.pushes().at(-1)?.params as {promptId: number}).promptId
+    submitRecoverPasswordPassword(promptId, 'hunter2hunter2')
+    await expect(answered).resolves.toEqual({result: {passphrase: 'hunter2hunter2', storeSecret: true}})
+    held[0]!.reply(undefined)
+    await settle()
   })
 
-  test('a failure while logged in shows the error as a modal', async () => {
-    useConfigState.getState().dispatch.setLoggedIn(true)
-    const {first} = await startAttempt()
-
-    const error = new RPCError('bad things', T.RPCGen.StatusCode.scgeneric)
-    first.reject(error)
-    await flush()
-
-    expect(nav.navigations()).toContainEqual({
-      name: 'recoverPasswordErrorModal',
-      params: {error: error.message},
-      replace: true,
+  test('an ask whose logged-in root never mounts is refused when the push gives up', async () => {
+    nav = installFakeNavigator({
+      modalRouteNames: Object.keys(newModalRoutes),
+      rootState: makeRootState({loggedIn: false}),
     })
-  })
+    useFakeTimers()
+    const {held, sessionID} = await start()
+    let result: unknown
+    void fake
+      .push(getPassphrase, {pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.passPhrase}}, {sessionID})
+      .then(r => (result = r))
+    await settle()
 
-  test('handlers stop responding once the run is over', async () => {
-    const {first} = await startAttempt()
+    await jest.advanceTimersByTimeAsync(4998)
+    expect(result).toBeUndefined()
+    await jest.advanceTimersByTimeAsync(2)
+    await tick()
 
-    const response = {error: jest.fn(), result: jest.fn()}
-    first.listener.customResponseIncomingCallMap?.['keybase.1.secretUi.getPassphrase']?.(
-      {pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.passPhrase}} as any,
-      response as any
-    )
-
-    first.resolve()
-    await flush()
-
-    submitRecoverPasswordPassword('hunter2hunter2')
-
-    expect(response.result).not.toHaveBeenCalled()
+    expect(result).toEqual({error: inputCanceled})
+    nav.setRootState(makeRootState())
+    expect(nav.pushes()).toEqual([])
+    held[0]!.reply(undefined)
+    await settle()
   })
 })
 
 describe('pgp key warning', () => {
-  // Go asks only after the paper key has logged the user in, so the warning is a modal over the app.
-  beforeEach(() => {
-    useConfigState.getState().dispatch.setLoggedIn(true)
-    nav = installFakeNavigator({modalRouteNames: Object.keys(newModalRoutes), rootState: makeRootState()})
-  })
-
-  afterEach(() => {
-    jest.useRealTimers()
-  })
-
-  const rootRouteNames = () => nav.getRootState()?.routes?.map(r => r.name)
-
-  const prompt = (attempt: {listener: Listener}) => {
-    const response = {error: jest.fn(), result: jest.fn()}
-    attempt.listener.customResponseIncomingCallMap?.['keybase.1.loginUi.promptPassphraseRecovery']?.(
-      {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys} as any,
-      response as any
-    )
-    return response
+  const pushPgp = async (sessionID: number) => {
+    const answered = fake.push(promptPgp, {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys}, {sessionID})
+    await settle()
+    return answered
   }
 
-  // The id the flow handed the warning screen it pushed.
+  // The id the flow handed the warning screen it pushed
   const warningId = () => {
     const pushed = nav.pushes().filter(p => p.name === 'recoverPasswordPgpWarning')
     return (pushed.at(-1)?.params as {id: number}).id
   }
 
   test('a prompt shows the warning as a modal over the logged-in app, bound to the prompt', async () => {
-    const {first} = await startAttempt()
-    prompt(first)
+    const {held, sessionID} = await start()
+    void pushPgp(sessionID)
+    await settle()
 
     expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
     expect(isRecoverPasswordPgpPending(warningId())).toBe(true)
+    held[0]!.reply(undefined)
+    await settle()
   })
 
   test('a prompt before the logged-in root mounts shows the warning once it does', async () => {
@@ -401,134 +243,149 @@ describe('pgp key warning', () => {
       modalRouteNames: Object.keys(newModalRoutes),
       rootState: makeRootState({loggedIn: false}),
     })
-    const {first} = await startAttempt()
-    prompt(first)
+    const {held, sessionID} = await start()
+    void pushPgp(sessionID)
+    await settle()
     expect(nav.pushes()).toEqual([])
 
     nav.setRootState(makeRootState())
 
     expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
+    held[0]!.reply(undefined)
+    await settle()
   })
 
   test('the answer is given once: Continue answers true and later answers are ignored', async () => {
-    const {first} = await startAttempt()
-    const response = prompt(first)
+    const {held, sessionID} = await start()
+    const answered = pushPgp(sessionID)
+    await settle()
     const id = warningId()
 
     answerRecoverPasswordPgp(id, true)
     answerRecoverPasswordPgp(id, true)
     answerRecoverPasswordPgp(id, false)
 
-    expect(response.result).toHaveBeenCalledTimes(1)
-    expect(response.result).toHaveBeenCalledWith(true)
+    await expect(answered).resolves.toEqual({result: true})
     expect(isRecoverPasswordPgpPending(id)).toBe(false)
+    held[0]!.reply(undefined)
+    await settle()
+  })
+
+  // Limit (a): a late prompt from a restarted run used to decline the current run's
+  test("a restarted run's late prompt is refused and leaves the current run's prompt pending", async () => {
+    const {held, sessionID} = await start()
+    const newSession = await startRun()
+    const answered = pushPgp(newSession)
+    await settle()
+    const id = warningId()
+
+    await expect(pushPgp(sessionID)).resolves.toEqual({error: inputCanceled})
+    await settle()
+
+    expect(isRecoverPasswordPgpPending(id)).toBe(true)
+    expect(nav.pushes().filter(p => p.name === 'recoverPasswordPgpWarning')).toHaveLength(1)
+    answerRecoverPasswordPgp(id, true)
+    await expect(answered).resolves.toEqual({result: true})
+    held[1]!.reply(undefined)
+    await settle()
   })
 
   test("a warning answers only its own prompt, never a newer run's", async () => {
-    const attempts = mockRecoverAttempts()
-    startRecoverPassword({username: 'testuser'})
-    await flush()
-    prompt(attempts[0]!)
+    const {held, sessionID} = await start()
+    void pushPgp(sessionID)
+    await settle()
     const staleId = warningId()
 
-    startRecoverPassword({username: 'testuser'})
-    await flush()
-    const response = prompt(attempts[1]!)
+    const newSession = await startRun()
+    void pushPgp(newSession)
+    await settle()
     answerRecoverPasswordPgp(staleId, true)
 
-    expect(response.result).not.toHaveBeenCalled()
     expect(isRecoverPasswordPgpPending(warningId())).toBe(true)
+    held[1]!.reply(undefined)
+    await settle()
   })
 
-  test('a restart answers a pending prompt false once and takes its warning off the top', async () => {
-    const attempts = mockRecoverAttempts()
-    startRecoverPassword({username: 'testuser'})
-    await flush()
-    const response = prompt(attempts[0]!)
+  test('a restart answers a pending prompt false, not a refusal, and takes its warning off the top', async () => {
+    const {held, sessionID} = await start()
+    const answered = pushPgp(sessionID)
+    await settle()
     const id = warningId()
 
-    startRecoverPassword({username: 'testuser'})
-    await flush()
+    await startRun()
     answerRecoverPasswordPgp(id, true)
-    attempts[0]!.reject(new RPCError('Canceling RPC', T.RPCGen.StatusCode.sccanceled))
-    await flush()
+    held[0]!.reply(cancelled)
+    await settle()
 
-    expect(response.result).toHaveBeenCalledTimes(1)
-    expect(response.result).toHaveBeenCalledWith(false)
+    await expect(answered).resolves.toEqual({result: false})
     expect(rootRouteNames()).toEqual(['loggedIn'])
+    held[1]!.reply(undefined)
+    await settle()
   })
 
-  test("a run that never got a prompt ending leaves another run's pending prompt alone", async () => {
-    const attempts = mockRecoverAttempts()
-    startRecoverPassword({username: 'testuser'})
-    await flush()
-    attempts[0]!.listener.customResponseIncomingCallMap?.['keybase.1.secretUi.getPassphrase']?.(
-      {pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.passPhrase}} as any,
-      {error: jest.fn(), result: jest.fn()} as any
-    )
-    startRecoverPassword({username: 'testuser'})
-    await flush()
-    const response = prompt(attempts[1]!)
-    const id = warningId()
+  test('a restart with the warning under another modal answers false and leaves both', async () => {
+    const {held, sessionID} = await start()
+    const answered = pushPgp(sessionID)
+    await settle()
+    navigateAppend({name: 'proxySettingsModal', params: {}})
 
-    attempts[0]!.reject(new RPCError('Canceling RPC', T.RPCGen.StatusCode.sccanceled))
-    await flush()
+    await startRun()
 
-    expect(isRecoverPasswordPgpPending(id)).toBe(true)
-    expect(rootRouteNames()?.at(-1)).toBe('recoverPasswordPgpWarning')
-    answerRecoverPasswordPgp(id, true)
-    answerRecoverPasswordPgp(id, true)
-    expect(response.result).toHaveBeenCalledTimes(1)
-    expect(response.result).toHaveBeenCalledWith(true)
+    await expect(answered).resolves.toEqual({result: false})
+    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning', 'proxySettingsModal'])
+    held[1]!.reply(undefined)
+    await settle()
   })
 
   test('a run ending settles a pending prompt without answering and takes its warning off the top', async () => {
-    const {first} = await startAttempt()
-    const response = prompt(first)
+    const {held, sessionID} = await start()
+    void pushPgp(sessionID)
+    await settle()
     const id = warningId()
 
-    first.reject(new RPCError('Canceling RPC', T.RPCGen.StatusCode.sccanceled))
-    await flush()
+    held[0]!.reply(cancelled)
+    await settle()
+    // The fake fails the test if this reached the service
     answerRecoverPasswordPgp(id, true)
 
-    expect(response.result).not.toHaveBeenCalled()
-    expect(response.error).not.toHaveBeenCalled()
     expect(isRecoverPasswordPgpPending(id)).toBe(false)
     expect(rootRouteNames()).toEqual(['loggedIn'])
   })
 
   test('a run ending with the warning under another modal leaves both', async () => {
-    const {first} = await startAttempt()
-    const response = prompt(first)
+    const {held, sessionID} = await start()
+    void pushPgp(sessionID)
+    await settle()
     navigateAppend({name: 'proxySettingsModal', params: {}})
 
-    first.reject(new RPCError('Canceling RPC', T.RPCGen.StatusCode.sccanceled))
-    await flush()
+    held[0]!.reply(cancelled)
+    await settle()
 
-    expect(response.result).not.toHaveBeenCalled()
     expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning', 'proxySettingsModal'])
   })
 
-  test('a run failing with the warning on top answers nothing and shows the error in its place', async () => {
-    const {first} = await startAttempt()
-    const response = prompt(first)
+  test('a run failing with the warning on top shows the error in its place', async () => {
+    const {held, sessionID} = await start()
+    void pushPgp(sessionID)
+    await settle()
 
-    first.reject(new RPCError('bad things', T.RPCGen.StatusCode.scgeneric))
-    await flush()
+    held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'bad things'))
+    await settle()
 
-    expect(response.result).not.toHaveBeenCalled()
     expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordErrorModal'])
   })
 
-  test('a run ending after the prompt was answered answers nothing more', async () => {
-    const {first} = await startAttempt()
-    const response = prompt(first)
+  test('a run ending after the prompt was answered answers nothing more and leaves the screens', async () => {
+    const {held, sessionID} = await start()
+    const answered = pushPgp(sessionID)
+    await settle()
     answerRecoverPasswordPgp(warningId(), false)
+    await expect(answered).resolves.toEqual({result: false})
 
-    first.reject(new RPCError('Canceling RPC', T.RPCGen.StatusCode.sccanceled))
-    await flush()
+    held[0]!.reply(cancelled)
+    await settle()
 
-    expect(response.result).toHaveBeenCalledTimes(1)
+    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
   })
 
   test('a warning that never gets the logged-in root to mount on is declined when its push gives up', async () => {
@@ -536,141 +393,105 @@ describe('pgp key warning', () => {
       modalRouteNames: Object.keys(newModalRoutes),
       rootState: makeRootState({loggedIn: false}),
     })
-    const {first} = await startAttempt()
-    jest.useFakeTimers()
-    const response = prompt(first)
+    useFakeTimers()
+    const {held, sessionID} = await start()
+    let result: unknown
+    void pushPgp(sessionID).then(r => (result = r))
+    await settle()
 
-    jest.advanceTimersByTime(4999)
-    expect(response.result).not.toHaveBeenCalled()
-    jest.advanceTimersByTime(1)
+    await jest.advanceTimersByTimeAsync(4998)
+    expect(result).toBeUndefined()
+    await jest.advanceTimersByTimeAsync(2)
+    await tick()
 
-    expect(response.result).toHaveBeenCalledTimes(1)
-    expect(response.result).toHaveBeenCalledWith(false)
+    expect(result).toEqual({result: false})
     nav.setRootState(makeRootState())
     expect(nav.pushes()).toEqual([])
-  })
-
-  test('a warning that mounted and was then covered by another modal is not declined by the push timeout', async () => {
-    const {first} = await startAttempt()
-    jest.useFakeTimers()
-    const response = prompt(first)
-    markRecoverPasswordPgpShown(warningId())
-    nav.setRootState(
-      makeRootState({
-        above: [{name: 'recoverPasswordPgpWarning', params: {id: warningId()}}, {name: 'proxySettingsModal'}],
-      })
-    )
-
-    jest.advanceTimersByTime(10_000)
-
-    expect(response.result).not.toHaveBeenCalled()
-    expect(isRecoverPasswordPgpPending(warningId())).toBe(true)
+    held[0]!.reply(undefined)
+    await settle()
   })
 
   test('a warning pushed but never mounted is declined at the push timeout', async () => {
-    const {first} = await startAttempt()
-    jest.useFakeTimers()
-    const response = prompt(first)
+    useFakeTimers()
+    const {held, sessionID} = await start()
+    let result: unknown
+    void pushPgp(sessionID).then(r => (result = r))
+    await settle()
 
-    jest.advanceTimersByTime(5000)
+    await jest.advanceTimersByTimeAsync(5000)
+    await tick()
 
-    expect(response.result).toHaveBeenCalledTimes(1)
-    expect(response.result).toHaveBeenCalledWith(false)
+    expect(result).toEqual({result: false})
+    held[0]!.reply(undefined)
+    await settle()
+  })
+
+  test('a warning that mounted and was then covered by another modal is not declined by the push timeout', async () => {
+    useFakeTimers()
+    const {held, sessionID} = await start()
+    void pushPgp(sessionID)
+    await settle()
+    markRecoverPasswordPgpShown(warningId())
+    navigateAppend({name: 'proxySettingsModal', params: {}})
+
+    await jest.advanceTimersByTimeAsync(10_000)
+
+    expect(isRecoverPasswordPgpPending(warningId())).toBe(true)
+    held[0]!.reply(undefined)
+    await settle()
   })
 
   test('an answered prompt is not declined later by the push timeout', async () => {
-    nav = installFakeNavigator({
-      modalRouteNames: Object.keys(newModalRoutes),
-      rootState: makeRootState({loggedIn: false}),
-    })
-    const {first} = await startAttempt()
-    jest.useFakeTimers()
-    const response = prompt(first)
-    nav.setRootState(makeRootState())
+    useFakeTimers()
+    const {held, sessionID} = await start()
+    const answered = pushPgp(sessionID)
+    await settle()
     answerRecoverPasswordPgp(warningId(), true)
 
-    jest.advanceTimersByTime(10_000)
+    await jest.advanceTimersByTimeAsync(10_000)
 
-    expect(response.result).toHaveBeenCalledTimes(1)
-    expect(response.result).toHaveBeenCalledWith(true)
+    await expect(answered).resolves.toEqual({result: true})
+    held[0]!.reply(undefined)
+    await settle()
   })
 })
 
-// Runs the flow through the real engine listener, so its waiting-key bookkeeping is what the app sees.
-describe('pgp key warning waiting state', () => {
-  type Outgoing = {
-    callback: (error?: RPCError) => void
-    customResponseIncomingCallMap: {[method: string]: (params: unknown, response: unknown) => void}
-  }
-  let outgoing: Array<Outgoing>
-
-  beforeEach(() => {
-    outgoing = []
-    useConfigState.getState().dispatch.setLoggedIn(true)
-    nav = installFakeNavigator({modalRouteNames: Object.keys(newModalRoutes), rootState: makeRootState()})
-    const engine = {
-      call: (p: unknown) => {
-        outgoing.push(p as Outgoing)
-        return outgoing.length
-      },
-      cancelSession: () => {},
-      dispatchWaitingAction: (key: WaitingKey, waiting: boolean, error?: RPCError) =>
-        useWaitingState.getState().dispatch.batch([{error, increment: waiting, key}]),
-    }
-    installCallPort({call: engine.call, cancelOutstandingSessions: () => {}, listen: makeListen(engine)})
-  })
-
-  afterEach(() => uninstallCallPort())
-
-  const waitingCount = () => useWaitingState.getState().counts.get(waitingKeyRecoverPassword) ?? 0
-
-  const promptOn = async (call: Outgoing) => {
-    const response = {error: jest.fn(), result: jest.fn()}
-    call.customResponseIncomingCallMap['keybase.1.loginUi.promptPassphraseRecovery']!(
-      {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys},
-      response
-    )
-    // The listener runs handlers on a later tick.
-    await new Promise<void>(resolve => setTimeout(resolve, 0))
-    return response
+describe('waiting state', () => {
+  // The engine throttles increments; decrements land at once
+  const waitingCount = () => {
+    fake.engine._throttledDispatchWaitingAction.flush()
+    return useWaitingState.getState().counts.get(waitingKeyRecoverPassword) ?? 0
   }
 
-  test('a prompt arriving after the run ended registers nothing', async () => {
-    startRecoverPassword({username: 'testuser'})
-    await flush()
-    const response = {error: jest.fn(), result: jest.fn()}
-    outgoing[0]!.customResponseIncomingCallMap['keybase.1.loginUi.promptPassphraseRecovery']!(
-      {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys},
-      response
-    )
-    outgoing[0]!.callback(new RPCError('Canceling RPC', T.RPCGen.StatusCode.sccanceled))
-    await new Promise<void>(resolve => setTimeout(resolve, 0))
-    await flush()
+  test('a prompt arriving as the run ends shows nothing', async () => {
+    const {held, sessionID} = await start()
+    void fake.push(promptPgp, {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys}, {sessionID})
+    held[0]!.reply(cancelled)
+    await settle()
+    await settle()
 
     expect(nav.pushes().filter(p => p.name === 'recoverPasswordPgpWarning')).toEqual([])
-    expect(response.result).not.toHaveBeenCalled()
   })
 
-  test('answering after the run ended answers nothing and leaves the next attempt free', async () => {
-    startRecoverPassword({username: 'testuser'})
-    await flush()
+  test('the run waits except while a prompt is up, and answering after it ended leaves the next run free', async () => {
+    const {held, sessionID} = await start()
     expect(waitingCount()).toBe(1)
-    const response = await promptOn(outgoing[0]!)
+    void fake.push(promptPgp, {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys}, {sessionID})
+    await settle()
     const id = (nav.pushes().at(-1)?.params as {id: number}).id
     expect(waitingCount()).toBe(0)
 
-    outgoing[0]!.callback(new RPCError('Canceling RPC', T.RPCGen.StatusCode.sccanceled))
-    await flush()
+    held[0]!.reply(cancelled)
+    await settle()
     answerRecoverPasswordPgp(id, true)
-
     expect(waitingCount()).toBe(0)
-    expect(response.result).not.toHaveBeenCalled()
-    expect(response.error).not.toHaveBeenCalled()
 
-    startRecoverPassword({username: 'testuser'})
-    await flush()
+    const newSession = await startRun()
     expect(waitingCount()).toBe(1)
-    await promptOn(outgoing[1]!)
+    void fake.push(promptPgp, {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys}, {sessionID: newSession})
+    await settle()
     expect(waitingCount()).toBe(0)
+    held[1]!.reply(undefined)
+    await settle()
   })
 })

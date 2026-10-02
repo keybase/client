@@ -51,7 +51,13 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
   // push dispatched before the group mounts reaches no navigator that can handle it and is
   // dropped. Gives up after `timeoutMs` so a group that never mounts can't fire the push at some
   // unrelated later time.
-  navigateAppendOnceRootHas: (rootRouteName: string, path: NavigateAppendType, timeoutMs?: number) => void
+  // onGiveUp runs if the root never mounts and the push is dropped
+  navigateAppendOnceRootHas: (
+    rootRouteName: string,
+    path: NavigateAppendType,
+    timeoutMs?: number,
+    onGiveUp?: () => void
+  ) => void
   navUpToScreen: (nameOrPath: RouteKeys | NavigateAppendType, replaceIfMissing?: boolean) => void
   switchTab: (name: Tabs.AppTab) => void
   // Returns whether chatRoot now carries these params - by dispatch, or because it
@@ -179,7 +185,8 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
   const navigateAppendOnceRootHas = (
     rootRouteName: string,
     path: NavigateAppendType,
-    timeoutMs = 5000
+    timeoutMs = 5000,
+    onGiveUp?: () => void
   ) => {
     const rootHas = () => ref.getRootState()?.routes?.some(r => r.name === rootRouteName) ?? false
     if (rootHas()) {
@@ -188,11 +195,13 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     }
     if (!ref.isReady()) {
       logger.warn(`[Nav] navigateAppendOnceRootHas: no navigator, dropping ${path.name}`)
+      onGiveUp?.()
       return
     }
     const timer = setTimeout(() => {
       unsub()
       logger.warn(`[Nav] navigateAppendOnceRootHas: ${rootRouteName} never mounted, dropping ${path.name}`)
+      onGiveUp?.()
     }, timeoutMs)
     const unsub = ref.addListener('state', () => {
       if (!rootHas()) return
