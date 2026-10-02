@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {generateGUIID, ignorePromise} from '@/constants/utils'
-import {navigateAppend, navigateUp} from '@/constants/router'
+import {getVisibleScreen, navigateAppend, navigateUp} from '@/constants/router'
 import {produce} from 'immer'
 import {registerExternalResetter} from '@/util/zustand'
 import {subscribeToEngineAction} from '@/engine/action-listener'
@@ -188,6 +188,12 @@ export const loadNonUserProfile = (username: string) => {
   ignorePromise(loadNonUserDetails(s, s.generation))
 }
 
+const isProfileOnScreen = (username: string) => {
+  const screen = getVisibleScreen(true)
+  const params = screen?.params as {username?: string} | undefined
+  return screen?.name === 'profile' && canonicalUsername(params?.username ?? '') === username
+}
+
 const runIdentify = async (s: Session, generation: number, guiID: string, ignoreCache: boolean) => {
   try {
     await T.RPCGen.identify3Identify3RpcListener({
@@ -207,7 +213,9 @@ const runIdentify = async (s: Session, generation: number, guiID: string, ignore
         })
       )
       loadNonUserProfile(s.username)
-    } else if (error.code === T.RPCGen.StatusCode.scnotfound) {
+    } else if (error.code === T.RPCGen.StatusCode.scnotfound && isProfileOnScreen(s.username)) {
+      // A profile link to a user that does not exist. Hover cards and lists identify too, and the
+      // user may have left the profile, so only the profile screen itself is replaced.
       navigateUp()
       navigateAppend({
         name: 'keybaseLinkError',
