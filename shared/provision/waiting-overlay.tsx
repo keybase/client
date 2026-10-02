@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {navigateUp} from '@/constants/router'
-import {useNavigation} from '@react-navigation/native'
+import {useOnUserRemove} from '@/util/safe-navigation'
 import {useAnyWaiting, useWaitingState} from '@/stores/waiting'
 import {waitingKeyProvision} from '@/constants/strings'
 import {pauseProvision} from './flow'
@@ -16,7 +16,6 @@ const ProvisionWaitingOverlay = () => {
   const styles = useStyles()
   const waiting = useAnyWaiting(waitingKeyProvision)
   const [phase, setPhase] = React.useState<'hidden' | 'spinner' | 'stillTrying'>('hidden')
-  const navigation = useNavigation()
 
   React.useEffect(() => {
     if (!waiting) {
@@ -33,21 +32,13 @@ const ProvisionWaitingOverlay = () => {
     }
   }, [waiting])
 
-  React.useEffect(() => {
-    return navigation.addListener('beforeRemove', e => {
-      // Only a genuine back-out parks the flow. beforeRemove also fires when the router removes
-      // screens on state changes (e.g. login success unmounting the logged-out stack) and pausing
-      // there would cancel an RPC that is about to resolve. Native back/swipe dismissals arrive
-      // as REMOVE (native-stack's onDismissed); we never dispatch REMOVE ourselves.
-      const {type} = e.data.action
-      if (type !== 'POP' && type !== 'GO_BACK' && type !== 'REMOVE') {
-        return
-      }
-      if ((useWaitingState.getState().counts.get(waitingKeyProvision) ?? 0) > 0) {
-        pauseProvision()
-      }
-    })
-  }, [navigation])
+  // Only a genuine back-out parks the flow: pausing when the router removes this screen on a state change
+  // (e.g. login success unmounting the logged-out stack) would cancel an RPC that is about to resolve.
+  useOnUserRemove(() => {
+    if ((useWaitingState.getState().counts.get(waitingKeyProvision) ?? 0) > 0) {
+      pauseProvision()
+    }
+  })
 
   if (phase === 'hidden') {
     return null

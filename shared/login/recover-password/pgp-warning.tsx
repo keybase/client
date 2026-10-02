@@ -1,33 +1,18 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type {ButtonType} from '@/common-adapters/button'
-import {useNavigation} from '@react-navigation/native'
+import {useOnUserRemove} from '@/util/safe-navigation'
 import {SignupScreen} from '@/signup/common'
 import {QuestionBody} from '../common'
-import {cancelRecoverPassword, submitRecoverPasswordPgpContinue} from './flow'
+import {answerRecoverPasswordPgp} from './flow'
 
-const PgpWarning = () => {
-  const navigation = useNavigation()
-  const answeredRef = React.useRef(false)
-  const onContinue = () => {
-    answeredRef.current = true
-    submitRecoverPasswordPgpContinue()
-  }
-  const onCancel = () => {
-    answeredRef.current = true
-    cancelRecoverPassword()
-  }
+type Props = {route: {params: {pgpPromptID: number}}}
 
-  // Android back and any other removal must still answer Go. After Continue the next prompt replaces this
-  // screen, and firing cancel then would hit that prompt's own cancel slot.
-  React.useEffect(() => {
-    return navigation.addListener('beforeRemove', () => {
-      if (answeredRef.current) return
-      answeredRef.current = true
-      cancelRecoverPassword()
-    })
-  }, [navigation])
+const PgpWarning = ({route}: Props) => {
+  const {pgpPromptID} = route.params
+  const onContinue = () => answerRecoverPasswordPgp(pgpPromptID, true)
+  const onCancel = () => answerRecoverPasswordPgp(pgpPromptID, false)
+  // Android back or a native dismissal is a decline. The screen is already going, so nothing navigates.
+  useOnUserRemove(() => answerRecoverPasswordPgp(pgpPromptID, false, 'screenRemoving'))
 
   return (
     <SignupScreen
@@ -35,12 +20,12 @@ const PgpWarning = () => {
         {
           label: 'Continue',
           onClick: onContinue,
-          type: 'Danger' as ButtonType,
+          type: 'Danger',
           waitingKey: C.waitingKeyRecoverPassword,
         },
-        {label: 'Cancel', onClick: onCancel, type: 'Dim' as ButtonType},
+        {label: 'Cancel', onClick: onCancel, type: 'Dim'},
       ]}
-      // The modal's route header carries the title and the cancelling back button.
+      // The modal's route header carries the title and the declining back button.
       hideDesktopHeader={true}
       noBackground={true}
     >

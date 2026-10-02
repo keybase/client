@@ -9,7 +9,7 @@ import {
   navigateAppendOnceRootHas,
   navigateUp,
   popStack,
-  removeModal,
+  removeRootRoutes,
   setChatRootParams,
   switchTab,
 } from '@/constants/router'
@@ -272,28 +272,61 @@ describe('clearModals', () => {
   })
 })
 
-// ---- removeModal ----
+// ---- removeRootRoutes ----
 
-describe('removeModal', () => {
-  test('drops only the named modal, even below another one', () => {
+describe('removeRootRoutes', () => {
+  test('drops only the matching route, even below another modal', () => {
     nav = installFakeNavigator({
       modalRouteNames: ['chatInfoPanel', 'chatNewChat'],
-      rootState: makeRootState({above: [{name: 'chatInfoPanel'}, {name: 'chatNewChat'}]}),
+      rootState: makeRootState({
+        above: [
+          {name: 'chatInfoPanel', params: {tag: 1}},
+          {name: 'chatInfoPanel', params: {tag: 2}},
+          {name: 'chatNewChat'},
+        ],
+      }),
     })
 
-    removeModal('chatInfoPanel')
+    removeRootRoutes(r => (r.params as {tag?: number} | undefined)?.tag === 1)
 
-    expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedIn', 'chatNewChat'])
-    expect(nav.getRootState()?.index).toBe(1)
+    const action = nav.lastAction()
+    expect(action?.type).toBe('RESET')
+    expect(action?.target).toBe('root')
+    expect(nav.getRootState()?.routes?.map(r => [r.name, r.params])).toEqual([
+      ['loggedIn', undefined],
+      ['chatInfoPanel', {tag: 2}],
+      ['chatNewChat', undefined],
+    ])
+    expect(nav.getRootState()?.index).toBe(2)
   })
 
-  test('dispatches nothing when the modal is not showing', () => {
+  test('never drops the bottom route', () => {
+    nav = installFakeNavigator({rootState: makeRootState({above: [{name: 'chatNewChat'}]})})
+
+    removeRootRoutes(() => true)
+
+    expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedIn'])
+  })
+
+  // Unlike clearModals, a targeted removal also works over the logged-out stack.
+  test('acts over the logged-out stack too', () => {
+    nav = installFakeNavigator({
+      modalRouteNames: ['chatInfoPanel'],
+      rootState: makeRootState({above: [{name: 'chatInfoPanel'}], loggedIn: false}),
+    })
+
+    removeRootRoutes(r => r.name === 'chatInfoPanel')
+
+    expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedOut'])
+  })
+
+  test('dispatches nothing when nothing matches', () => {
     nav = installFakeNavigator({
       modalRouteNames: ['chatInfoPanel', 'chatNewChat'],
       rootState: makeRootState({above: [{name: 'chatNewChat'}]}),
     })
 
-    removeModal('chatInfoPanel')
+    removeRootRoutes(r => r.name === 'chatInfoPanel')
 
     expect(nav.actions).toEqual([])
   })

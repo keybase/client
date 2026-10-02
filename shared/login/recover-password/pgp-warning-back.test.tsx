@@ -3,116 +3,164 @@
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
-import {fireEvent, render, screen} from '@testing-library/react'
+import {cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {flush} from '@/test/flush'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 import {newModalRoutes} from '../routes'
-import {setNamedScoped} from '@/stores/flow-handles'
 import {startRecoverPassword} from './flow'
+import PgpWarning from './pgp-warning'
+
+type BeforeRemove = (e: {data: {action: {type: string}}}) => void
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    addListener: (_type: string, cb: () => void) => {
-      mockBeforeRemove.push(cb)
+    addListener: (type: string, cb: BeforeRemove) => {
+      if (type === 'beforeRemove') {
+        mockBeforeRemove.current = cb
+      }
       return () => {}
     },
     canGoBack: () => true,
-    goBack: jest.fn(),
   }),
 }))
 
-const mockBeforeRemove: Array<() => void> = []
+const mockBeforeRemove: {current?: BeforeRemove} = {}
 
 let nav: FakeNavigator
 
 // Go asks only after the paper key has logged the user in, so the warning sits over the logged-in app.
 beforeEach(() => {
-  mockBeforeRemove.length = 0
+  mockBeforeRemove.current = undefined
   useConfigState.getState().dispatch.setLoggedIn(true)
   nav = installFakeNavigator({modalRouteNames: Object.keys(newModalRoutes), rootState: makeRootState()})
 })
 
 afterEach(() => {
+  cleanup()
   restoreNavigator()
   jest.restoreAllMocks()
   resetAllStores()
 })
 
-test('the pgp warning header back affordance answers the prompt false and leaves the flow', async () => {
-  let listener: Parameters<typeof T.RPCGen.loginRecoverPassphraseRpcListener>[0] | undefined
+type Listener = Parameters<typeof T.RPCGen.loginRecoverPassphraseRpcListener>[0]
+
+const mockRuns = () => {
+  const listeners: Array<Listener> = []
   jest.spyOn(T.RPCGen, 'loginRecoverPassphraseRpcListener').mockImplementation(async l => {
-    listener = l
+    listeners.push(l)
     await new Promise<void>(() => {})
     return undefined as any
   })
-  startRecoverPassword({username: 'testuser'})
-  await flush()
+  return listeners
+}
+
+const prompt = (listener: Listener) => {
   const response = {error: jest.fn(), result: jest.fn()}
-  listener?.customResponseIncomingCallMap?.['keybase.1.loginUi.promptPassphraseRecovery']?.(
+  listener.customResponseIncomingCallMap?.['keybase.1.loginUi.promptPassphraseRecovery']?.(
     {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys} as any,
     response as any
   )
-  expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
+  const top = nav.getRootState()?.routes?.at(-1)
+  expect(top?.name).toBe('recoverPasswordPgpWarning')
+  return {id: (top?.params as {pgpPromptID: number}).pgpPromptID, response}
+}
 
+// Starts a run, has Go ask, and renders the warning the way its route would.
+const setup = async () => {
+  const listeners = mockRuns()
+  startRecoverPassword({username: 'testuser'})
+  await flush()
+  const {id, response} = prompt(listeners[0]!)
+  render(<PgpWarning route={{params: {pgpPromptID: id}}} />)
+  return {id, listeners, response}
+}
+
+const rootRouteNames = () => nav.getRootState()?.routes?.map(r => r.name)
+
+test('draws no header of its own under the route header', async () => {
+  await setup()
+  expect(screen.queryByText('Recover password')).toBeNull()
+  expect(screen.queryByText('Back')).toBeNull()
+})
+
+test('Continue answers true once and closes the warning', async () => {
+  const {response} = await setup()
+  fireEvent.click(screen.getByText('Continue'))
+  fireEvent.click(screen.getByText('Continue'))
+  fireEvent.click(screen.getByText('Cancel'))
+  expect(response.result).toHaveBeenCalledTimes(1)
+  expect(response.result).toHaveBeenCalledWith(true)
+  expect(rootRouteNames()).toEqual(['loggedIn'])
+})
+
+test('Cancel answers false once and closes the warning', async () => {
+  const {response} = await setup()
+  fireEvent.click(screen.getByText('Cancel'))
+  fireEvent.click(screen.getByText('Cancel'))
+  expect(response.result).toHaveBeenCalledTimes(1)
+  expect(response.result).toHaveBeenCalledWith(false)
+  expect(rootRouteNames()).toEqual(['loggedIn'])
+})
+
+test('the header back affordance answers false and closes the warning', async () => {
+  const {id, response} = await setup()
   const {getOptions} = newModalRoutes.recoverPasswordPgpWarning
-  expect(getOptions.gestureEnabled).toBe(false)
-  if (!('headerLeft' in getOptions)) throw new Error('expected the non-iOS headerLeft')
-  const {container} = render(getOptions.headerLeft())
+  const options = getOptions({route: {params: {pgpPromptID: id}}})
+  expect(options.gestureEnabled).toBe(false)
+  if (!('headerLeft' in options)) throw new Error('expected the non-iOS headerLeft')
+  const {container} = render(options.headerLeft())
   const back = container.querySelector<HTMLElement>('.icon')
   expect(back).not.toBeNull()
   fireEvent.click(back!)
 
   expect(response.result).toHaveBeenCalledTimes(1)
   expect(response.result).toHaveBeenCalledWith(false)
-  expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedIn'])
+  expect(rootRouteNames()).toEqual(['loggedIn'])
 })
 
-describe('removing the pgp warning without a button press', () => {
-  const setup = async () => {
-    let listener: Parameters<typeof T.RPCGen.loginRecoverPassphraseRpcListener>[0] | undefined
-    jest.spyOn(T.RPCGen, 'loginRecoverPassphraseRpcListener').mockImplementation(async l => {
-      listener = l
-      await new Promise<void>(() => {})
-      return undefined as any
-    })
-    startRecoverPassword({username: 'testuser'})
-    await flush()
-    const response = {error: jest.fn(), result: jest.fn()}
-    listener?.customResponseIncomingCallMap?.['keybase.1.loginUi.promptPassphraseRecovery']?.(
-      {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys} as any,
-      response as any
-    )
-    const PgpWarning = (await import('./pgp-warning')).default
-    render(<PgpWarning />)
-    return response
-  }
-
-  test('draws no header of its own under the route header', async () => {
-    await setup()
-    expect(screen.queryByText('Recover password')).toBeNull()
-    expect(screen.queryByText('Back')).toBeNull()
-  })
-
-  test('answers false exactly once', async () => {
-    const response = await setup()
-    expect(mockBeforeRemove).toHaveLength(1)
-    mockBeforeRemove[0]!()
-    mockBeforeRemove[0]!()
+describe('the user taking the warning away', () => {
+  test.each(['GO_BACK', 'POP', 'REMOVE'])('%s answers false once and navigates nothing more', async type => {
+    const {response} = await setup()
+    nav.clearActions()
+    mockBeforeRemove.current!({data: {action: {type}}})
+    mockBeforeRemove.current!({data: {action: {type}}})
     expect(response.result).toHaveBeenCalledTimes(1)
     expect(response.result).toHaveBeenCalledWith(false)
+    // The removal under way takes the screen; a second navigation would take something else too.
+    expect(nav.actions).toEqual([])
   })
 
-  test('removal after Continue answers nothing more', async () => {
-    const response = await setup()
+  // The app's own resets and replaces, like the flow closing the warning or a screen taking its place.
+  test.each(['RESET', 'REPLACE'])('a %s is not the user, and answers nothing', async type => {
+    const {response} = await setup()
+    mockBeforeRemove.current!({data: {action: {type}}})
+    expect(response.result).not.toHaveBeenCalled()
+  })
+
+  test('after Continue, answers nothing more', async () => {
+    const {response} = await setup()
     fireEvent.click(screen.getByText('Continue'))
+    mockBeforeRemove.current!({data: {action: {type: 'GO_BACK'}}})
     expect(response.result).toHaveBeenCalledTimes(1)
     expect(response.result).toHaveBeenCalledWith(true)
-    // The next prompt registers its own cancel slot before replacing the warning.
-    const nextCancel = jest.fn()
-    setNamedScoped('recoverPassword', 'cancel', nextCancel)
-    mockBeforeRemove[0]!()
-    expect(response.result).toHaveBeenCalledTimes(1)
-    expect(nextCancel).not.toHaveBeenCalled()
   })
+})
+
+test("a stale warning's buttons and removal can't reach a newer prompt", async () => {
+  const {listeners, response} = await setup()
+  startRecoverPassword({username: 'testuser'})
+  await flush()
+  expect(response.result).toHaveBeenCalledTimes(1)
+  const next = prompt(listeners[1]!)
+  nav.clearActions()
+
+  fireEvent.click(screen.getByText('Continue'))
+  fireEvent.click(screen.getByText('Cancel'))
+  mockBeforeRemove.current!({data: {action: {type: 'GO_BACK'}}})
+
+  expect(response.result).toHaveBeenCalledTimes(1)
+  expect(next.response.result).not.toHaveBeenCalled()
+  expect(nav.actions).toEqual([])
+  expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
 })

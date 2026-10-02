@@ -1,5 +1,5 @@
 import * as T from '@/constants/types'
-import {clearModals, navigateAppend, navigateUp, removeModal} from '@/constants/router'
+import {clearModals, getVisibleScreen, navigateAppend, navigateUp, removeRootRoutes} from '@/constants/router'
 import {waitingKeyRecoverPassword} from '@/constants/strings'
 import {ignorePromise, wrapErrors} from '@/constants/utils'
 import logger from '@/logger'
@@ -9,6 +9,7 @@ import {callNamed, clearOwner, setNamedScoped} from '@/stores/flow-handles'
 import {cancelProvision} from '@/provision/flow'
 import {rpcDeviceToDevice} from '@/constants/rpc-utils'
 import {RPCError} from '@/util/errors'
+import type {RootRoute} from '@/constants/navigator'
 
 type StartRecoverPasswordParams = {
   abortProvisioning?: boolean
@@ -25,7 +26,6 @@ const slots = {
   submitNoDevice: 'submitNoDevice',
   submitPaperKey: 'submitPaperKey',
   submitPassword: 'submitPassword',
-  submitPgpContinue: 'submitPgpContinue',
   submitResetPassword: 'submitResetPassword',
 } as const
 type Slot = (typeof slots)[keyof typeof slots]
@@ -39,13 +39,28 @@ export const submitRecoverPasswordPaperKey = (paperKey: string) =>
   callNamed(owner, slots.submitPaperKey, paperKey)
 export const submitRecoverPasswordPassword = (password: string) =>
   callNamed(owner, slots.submitPassword, password)
-export const submitRecoverPasswordPgpContinue = () => callNamed(owner, slots.submitPgpContinue)
 export const submitRecoverPasswordReset = (action: T.RPCGen.ResetPromptResponse) =>
   callNamed(owner, slots.submitResetPassword, action)
 
-// A restart drops the owner's handles, which would strand Go waiting on this prompt.
-let pendingPgpAnswer: ((proceed: boolean) => void) | undefined
-let latestRun = 0
+// Each PGP prompt Go is still waiting on, by the id its warning screen carries. A screen whose prompt is gone
+// finds no entry, so it can never answer another prompt.
+const pendingPgpPrompts = new Map<number, (proceed: boolean) => void>()
+let lastPgpPromptID = 0
+
+const isPgpWarningFor = (id: number) => (route: RootRoute) =>
+  route.name === 'recoverPasswordPgpWarning' && !!route.params && 'pgpPromptID' in route.params && route.params.pgpPromptID === id
+
+// The one way a PGP prompt is answered. Settles once, then takes away that prompt's warning and nothing else.
+// `screenRemoving` is for a warning the user is already taking away, which must not be navigated again.
+export const answerRecoverPasswordPgp = (id: number, proceed: boolean, screenRemoving?: 'screenRemoving') => {
+  const respond = pendingPgpPrompts.get(id)
+  if (!respond) return
+  pendingPgpPrompts.delete(id)
+  respond(proceed)
+  if (!screenRemoving) {
+    removeRootRoutes(isPgpWarningFor(id))
+  }
+}
 
 export const startRecoverPassword = ({
   abortProvisioning,
@@ -53,20 +68,18 @@ export const startRecoverPassword = ({
   replaceRoute,
   username,
 }: StartRecoverPasswordParams) => {
-  pendingPgpAnswer?.(false)
+  // A restart abandons the old run, which would leave Go waiting on its prompts.
+  for (const id of [...pendingPgpPrompts.keys()]) {
+    answerRecoverPasswordPgp(id, false)
+  }
   clearOwner(owner)
-  const thisRun = ++latestRun
   const f = async () => {
     if (abortProvisioning) {
       cancelProvision()
     }
     let active = true
-    let hadError = false
-    // Set while this run's PGP prompt is unanswered.
-    let ownPgpAnswer: typeof pendingPgpAnswer
-    // The warning is dead once answered, so the set-password screen that follows takes its place.
-    let pgpContinued = false
-    let showedPgpWarning = false as boolean
+    let failure: RPCError | undefined
+    const pgpPromptIDs: Array<number> = []
     const handles = new Map<Slot, ScopedHandle>()
     const isActive = () => active
     const clearSlots = (...slotNames: ReadonlyArray<Slot>) => {
@@ -123,28 +136,11 @@ export const startRecoverPassword = ({
             navigateAppend({name: 'recoverPasswordDeviceSelector', params: {devices}}, !!replaceRoute)
           },
           'keybase.1.loginUi.promptPassphraseRecovery': (_params, response) => {
-            let settled = false
-            const answer = wrapErrors((proceed: boolean) => {
-              if (settled) return
-              settled = true
-              ownPgpAnswer = undefined
-              pendingPgpAnswer = undefined
-              clearSlots(slots.cancel, slots.submitPgpContinue)
-              response.result(proceed)
-            })
-            // Declining makes Go cancel silently (sccanceled) and log back out, so nothing else closes this screen.
-            ownPgpAnswer = answer
-            pendingPgpAnswer = answer
-            setHandle(slots.cancel, () => {
-              answer(false)
-              clearModals()
-            })
-            setHandle(slots.submitPgpContinue, () => {
-              pgpContinued = true
-              answer(true)
-            })
-            showedPgpWarning = true
-            navigateAppend({name: 'recoverPasswordPgpWarning', params: {}})
+            // Declining makes Go cancel silently (sccanceled) and log back out.
+            const id = ++lastPgpPromptID
+            pendingPgpPrompts.set(id, wrapErrors((proceed: boolean) => response.result(proceed)))
+            pgpPromptIDs.push(id)
+            navigateAppend({name: 'recoverPasswordPgpWarning', params: {pgpPromptID: id}})
           },
           'keybase.1.loginUi.promptResetAccount': (params, response) => {
             if (params.prompt.t === T.RPCGen.ResetPromptType.enterResetPw) {
@@ -213,10 +209,17 @@ export const startRecoverPassword = ({
                   response.result({passphrase, storeSecret: true})
                 })
               )
-              navigateAppend(
-                {name: 'recoverPasswordSetPassword', params: {error: params.pinentry.retryLabel || undefined}},
-                !!params.pinentry.retryLabel || pgpContinued
-              )
+              if (!params.pinentry.retryLabel) {
+                navigateAppend({name: 'recoverPasswordSetPassword', params: {error: undefined}})
+              } else {
+                navigateAppend(
+                  {
+                    name: 'recoverPasswordSetPassword',
+                    params: {error: params.pinentry.retryLabel},
+                  },
+                  true
+                )
+              }
             }
           },
         },
@@ -239,17 +242,7 @@ export const startRecoverPassword = ({
       if (!(error instanceof RPCError)) {
         return
       }
-      hadError = true
-      logger.warn('RPC returned error: ' + error.message)
-      if (!(error.code === T.RPCGen.StatusCode.sccanceled || error.code === T.RPCGen.StatusCode.scinputcanceled)) {
-        navigateAppend(
-          {
-            name: useConfigState.getState().loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
-            params: {error: error.message},
-          },
-          true
-        )
-      }
+      failure = error
     } finally {
       clearSlots(
         slots.cancel,
@@ -257,24 +250,33 @@ export const startRecoverPassword = ({
         slots.submitNoDevice,
         slots.submitPaperKey,
         slots.submitPassword,
-        slots.submitPgpContinue,
         slots.submitResetPassword
       )
       active = false
-      // A newer run may already have stored its own answer.
-      if (ownPgpAnswer && pendingPgpAnswer === ownPgpAnswer) {
-        pendingPgpAnswer = undefined
-      }
-      // Nothing else closes a warning whose run is gone, and its buttons have no handle left to call, whether
-      // it was never answered or answered Continue and awaits a prompt that will not come. Targeted, unlike
-      // clearModals: anything opened over the warning stays put. A no-op once the warning is already gone, as
-      // after the error modal's replace above or the set-password screen taking its place.
-      if (showedPgpWarning && latestRun === thisRun) {
-        removeModal('recoverPasswordPgpWarning')
+      // Go stopped waiting with the run. Done before the error screen below, so that screen never has a
+      // live warning under or over it.
+      for (const id of pgpPromptIDs) {
+        answerRecoverPasswordPgp(id, false)
       }
     }
-    logger.info(`finished ${hadError ? 'with error' : 'without error'}`)
-    if (!hadError) {
+    if (failure) {
+      logger.warn('RPC returned error: ' + failure.message)
+      if (!(failure.code === T.RPCGen.StatusCode.sccanceled || failure.code === T.RPCGen.StatusCode.scinputcanceled)) {
+        const loggedIn = useConfigState.getState().loggedIn
+        // Logged in, the flow's screens are modals: the error takes the place of one of them, and goes over
+        // anything else rather than replacing it.
+        const top = getVisibleScreen(true)?.name
+        navigateAppend(
+          {
+            name: loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
+            params: {error: failure.message},
+          },
+          !loggedIn || top === 'recoverPasswordSetPassword' || top === 'recoverPasswordErrorModal'
+        )
+      }
+    }
+    logger.info(`finished ${failure ? 'with error' : 'without error'}`)
+    if (!failure) {
       clearModals()
     }
   }

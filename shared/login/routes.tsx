@@ -11,7 +11,7 @@ import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
 import useRequestAutoInvite from '@/signup/use-request-auto-invite'
 import {useRoute} from '@react-navigation/native'
-import {cancelRecoverPassword, startRecoverPassword} from './recover-password/flow'
+import {answerRecoverPasswordPgp, cancelRecoverPassword, startRecoverPassword} from './recover-password/flow'
 
 // The login route is a state multiplexer (loading / relogin / join). Only the relogin mode wants a
 // header title + "Create account" action, so the desktop header reads the same state to decide.
@@ -43,6 +43,9 @@ const LoginHeaderRight = () => {
 // are wired as the React Navigation headerLeft. They read the current route's params via useRoute.
 const RecoverCancelLeft = () => (
   <Kb.HeaderLeftButton autoDetectCanGoBack={true} onPress={cancelRecoverPassword} />
+)
+const PgpWarningDeclineLeft = ({onDecline}: {onDecline: () => void}) => (
+  <Kb.HeaderLeftButton autoDetectCanGoBack={true} onPress={onDecline} />
 )
 const RecoverPopLeft = () => (
   <Kb.HeaderLeftButton autoDetectCanGoBack={true} onPress={C.Router2.popStack} />
@@ -208,10 +211,13 @@ export const newModalRoutes = defineRouteMap({
   },
   // Go asks this after the paper key has logged the user in, so it is shown over the logged-in app.
   recoverPasswordPgpWarning: {
-    getOptions: {
-      gestureEnabled: false,
-      ...(isIOS ? recoverBackItems(cancelRecoverPassword) : {headerLeft: () => <RecoverCancelLeft />}),
-      title: 'Recover password',
+    getOptions: ({route}: {route: {params: {pgpPromptID: number}}}) => {
+      const onDecline = () => answerRecoverPasswordPgp(route.params.pgpPromptID, false)
+      return {
+        gestureEnabled: false,
+        ...(isIOS ? recoverBackItems(onDecline) : {headerLeft: () => <PgpWarningDeclineLeft onDecline={onDecline} />}),
+        title: 'Recover password',
+      }
     },
     screen: React.lazy(async () => import('./recover-password/pgp-warning')),
   },

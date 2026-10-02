@@ -28,6 +28,8 @@ import type {NavigateAppendType, RouteKeys, RootParamList} from '@/router-v2/rou
 
 type ContainerRef = NavigationContainerRef<RootParamList>
 export type NavAction = Parameters<ContainerRef['dispatch']>[0]
+// A route of the root stack as removeRootRoutes shows it to its predicate.
+export type RootRoute = {name: string; params?: object}
 
 // What an adapter has to provide. Deliberately the smallest surface that the
 // operations below need, so a fake is a handful of lines rather than a mock of
@@ -43,8 +45,8 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
   navigateUp: () => void
   popStack: () => void
   clearModals: () => void
-  // Drops the modals with this name from the root stack and leaves every other route where it is.
-  removeModal: (name: RouteKeys) => void
+  // Drops the root-stack routes above the bottom one that match, and leaves every other route where it is.
+  removeRootRoutes: (shouldRemove: (route: RootRoute) => boolean) => void
   // Returns whether the target is now the visible route - either because we dispatched,
   // or because we were already there. False means nothing happened and nothing will.
   navigateAppend: (path: NavigateAppendType, replace?: boolean) => boolean
@@ -91,14 +93,10 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     ref.dispatch(StackActions.popToTop())
   }
 
-  const removeModal = (name: RouteKeys) => {
-    if (DEBUG_NAV) {
-      console.log('[Nav] removeModal', name)
-    }
-    if (!ref.isReady()) return
-    const ns = ref.getRootState()
+  // One reset of the root stack. The bottom route (the logged-in or logged-out root) always stays.
+  const resetRootWithout = (ns: NavTree.NavState | undefined, shouldRemove: (route: RootRoute) => boolean) => {
     const rootRoutes = ns?.routes ?? []
-    const keepRoutes = rootRoutes.filter((route, index) => index === 0 || route.name !== name)
+    const keepRoutes = rootRoutes.filter((route, index) => index === 0 || !shouldRemove(route))
     if (keepRoutes.length !== rootRoutes.length) {
       ref.dispatch({
         ...CommonActions.reset({
@@ -111,6 +109,14 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     }
   }
 
+  const removeRootRoutes = (shouldRemove: (route: RootRoute) => boolean) => {
+    if (DEBUG_NAV) {
+      console.log('[Nav] removeRootRoutes')
+    }
+    if (!ref.isReady()) return
+    resetRootWithout(ref.getRootState(), shouldRemove)
+  }
+
   const clearModals = () => {
     if (DEBUG_NAV) {
       console.log('[Nav] clearModals')
@@ -120,18 +126,7 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     if (!NavTree.isLoggedIn(ns)) {
       return
     }
-    const rootRoutes = ns?.routes ?? []
-    const keepRoutes = rootRoutes.filter((route, index) => index === 0 || !NavTree.isModalRouteName(route.name))
-    if (keepRoutes.length !== rootRoutes.length) {
-      ref.dispatch({
-        ...CommonActions.reset({
-          ...ns,
-          index: keepRoutes.length - 1,
-          routes: keepRoutes,
-        } as Parameters<typeof CommonActions.reset>[0]),
-        target: ns?.key,
-      })
-    }
+    resetRootWithout(ns, route => NavTree.isModalRouteName(route.name))
   }
 
   const navigateAppend = (path: NavigateAppendType, replace?: boolean): boolean => {
@@ -364,7 +359,7 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     navigateAppendOnceRootHas,
     navigateUp,
     popStack,
-    removeModal,
+    removeRootRoutes,
     setChatRootParams,
     setRouteParams,
     showAboveTabs,

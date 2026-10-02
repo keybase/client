@@ -5,15 +5,16 @@ import {useConfigState} from '@/stores/config'
 import {RPCError} from '@/util/errors'
 
 import {
+  answerRecoverPasswordPgp,
   cancelRecoverPassword,
   startRecoverPassword,
   submitRecoverPasswordDeviceSelect,
   submitRecoverPasswordNoDevice,
   submitRecoverPasswordPaperKey,
   submitRecoverPasswordPassword,
-  submitRecoverPasswordPgpContinue,
 } from './flow'
 import {newModalRoutes} from '../routes'
+import {navigateAppend} from '@/constants/router'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 
 let nav: FakeNavigator
@@ -314,18 +315,46 @@ describe('completion', () => {
     expect(nav.modalsCleared()).toBe(false)
   })
 
-  test('a failure while logged in shows the error as a modal', async () => {
-    useConfigState.getState().dispatch.setLoggedIn(true)
-    const {first} = await startAttempt()
+  // Logged in, the flow's only screens are its own modals over the app.
+  describe('while logged in', () => {
+    beforeEach(() => {
+      useConfigState.getState().dispatch.setLoggedIn(true)
+    })
 
-    const error = new RPCError('bad things', T.RPCGen.StatusCode.scgeneric)
-    first.reject(error)
-    await flush()
+    test('a failure shows the error as a modal in place of the set-password screen', async () => {
+      nav = installFakeNavigator({
+        modalRouteNames: Object.keys(newModalRoutes),
+        rootState: makeRootState({above: [{name: 'recoverPasswordSetPassword'}]}),
+      })
+      const {first} = await startAttempt()
 
-    expect(nav.navigations()).toContainEqual({
-      name: 'recoverPasswordErrorModal',
-      params: {error: error.message},
-      replace: true,
+      const error = new RPCError('bad things', T.RPCGen.StatusCode.scgeneric)
+      first.reject(error)
+      await flush()
+
+      expect(nav.navigations()).toContainEqual({
+        name: 'recoverPasswordErrorModal',
+        params: {error: error.message},
+        replace: true,
+      })
+      expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual(['loggedIn', 'recoverPasswordErrorModal'])
+    })
+
+    test('a failure with no flow screen showing puts the error over what is there', async () => {
+      nav = installFakeNavigator({
+        modalRouteNames: Object.keys(newModalRoutes),
+        rootState: makeRootState({above: [{name: 'proxySettingsModal'}]}),
+      })
+      const {first} = await startAttempt()
+
+      first.reject(new RPCError('bad things', T.RPCGen.StatusCode.scgeneric))
+      await flush()
+
+      expect(nav.getRootState()?.routes?.map(r => r.name)).toEqual([
+        'loggedIn',
+        'proxySettingsModal',
+        'recoverPasswordErrorModal',
+      ])
     })
   })
 
@@ -357,163 +386,225 @@ describe('pgp key warning', () => {
 
   const rootRouteNames = () => nav.getRootState()?.routes?.map(r => r.name)
 
-  const prompt = (first: Awaited<ReturnType<typeof startAttempt>>['first']) => {
+  const prompt = (attempt: {listener: Listener}) => {
     const response = {error: jest.fn(), result: jest.fn()}
-    first.listener.customResponseIncomingCallMap?.['keybase.1.loginUi.promptPassphraseRecovery']?.(
+    attempt.listener.customResponseIncomingCallMap?.['keybase.1.loginUi.promptPassphraseRecovery']?.(
       {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys} as any,
       response as any
     )
-    return response
+    // The id the warning on top was pushed with.
+    const top = nav.getRootState()?.routes?.at(-1)
+    expect(top?.name).toBe('recoverPasswordPgpWarning')
+    const id = (top?.params as {pgpPromptID: number}).pgpPromptID
+    return {id, response}
   }
 
-  test('shows the warning as a modal and continues when the user agrees', async () => {
-    const {first} = await startAttempt()
-    const response = prompt(first)
-    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
-    submitRecoverPasswordPgpContinue()
-    expect(nav.modalsCleared()).toBe(false)
-    expect(response.result).toHaveBeenCalledTimes(1)
-    expect(response.result).toHaveBeenCalledWith(true)
-  })
-
-  test('the set-password screen after continuing takes the warning\'s place', async () => {
-    const {first} = await startAttempt()
-    prompt(first)
-    submitRecoverPasswordPgpContinue()
-    first.listener.customResponseIncomingCallMap?.['keybase.1.secretUi.getPassphrase']?.(
+  const askNewPassword = (attempt: {listener: Listener}) =>
+    attempt.listener.customResponseIncomingCallMap?.['keybase.1.secretUi.getPassphrase']?.(
       {pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.passPhrase}} as any,
       {error: jest.fn(), result: jest.fn()} as any
     )
+
+  test('Continue answers true once and closes only the warning; set-password is then pushed', async () => {
+    const {first} = await startAttempt()
+    const {id, response} = prompt(first)
+    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
+
+    answerRecoverPasswordPgp(id, true)
+    answerRecoverPasswordPgp(id, true)
+    answerRecoverPasswordPgp(id, false)
+
+    expect(response.result).toHaveBeenCalledTimes(1)
+    expect(response.result).toHaveBeenCalledWith(true)
+    expect(nav.modalsCleared()).toBe(false)
+    expect(rootRouteNames()).toEqual(['loggedIn'])
+
+    nav.clearActions()
+    askNewPassword(first)
+    expect(nav.types()).toEqual(['PUSH'])
     expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordSetPassword'])
   })
 
-  test('declining answers false once and removes the warning', async () => {
+  test('declining answers false once and closes the warning', async () => {
     const {first} = await startAttempt()
-    const response = prompt(first)
-    cancelRecoverPassword()
-    cancelRecoverPassword()
+    const {id, response} = prompt(first)
+
+    answerRecoverPasswordPgp(id, false)
+    answerRecoverPasswordPgp(id, false)
+    answerRecoverPasswordPgp(id, true)
+
     expect(response.result).toHaveBeenCalledTimes(1)
     expect(response.result).toHaveBeenCalledWith(false)
     expect(response.error).not.toHaveBeenCalled()
     expect(rootRouteNames()).toEqual(['loggedIn'])
   })
 
-  test('restarting while the prompt is pending answers false once', async () => {
-    const attempts = mockRecoverAttempts()
-    startRecoverPassword({username: 'testuser'})
-    await flush()
-    const response = prompt(attempts[0]!)
-    startRecoverPassword({username: 'testuser'})
-    await flush()
-    expect(response.result).toHaveBeenCalledTimes(1)
-    expect(response.result).toHaveBeenCalledWith(false)
-    submitRecoverPasswordPgpContinue()
-    expect(response.result).toHaveBeenCalledTimes(1)
-  })
-
-  test('a run that ends while the prompt is pending leaves nothing for a restart to answer', async () => {
-    const attempts = mockRecoverAttempts()
-    startRecoverPassword({username: 'testuser'})
-    await flush()
-    const response = prompt(attempts[0]!)
-    attempts[0]!.reject(new RPCError('EOF', T.RPCGen.StatusCode.scgeneric))
-    await flush()
-    startRecoverPassword({username: 'testuser'})
-    await flush()
-    expect(response.result).not.toHaveBeenCalled()
-    expect(response.error).not.toHaveBeenCalled()
-  })
-
   test.each([
-    ['is cancelled', new RPCError('Input canceled', T.RPCGen.StatusCode.sccanceled)],
-    ['drops', new RPCError('EOF', T.RPCGen.StatusCode.scgeneric)],
-  ])('a run that %s with the prompt unanswered closes the warning', async (_label, error) => {
+    ['declining', false],
+    ['Continue', true],
+  ])('a modal opened over the warning survives %s', async (_label, proceed) => {
     const {first} = await startAttempt()
-    prompt(first)
-    first.reject(error)
+    const {id} = prompt(first)
+    navigateAppend({name: 'proxySettingsModal', params: {}})
+    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning', 'proxySettingsModal'])
+
+    answerRecoverPasswordPgp(id, proceed)
+    expect(rootRouteNames()).toEqual(['loggedIn', 'proxySettingsModal'])
+
+    if (proceed) {
+      askNewPassword(first)
+      expect(rootRouteNames()).toEqual(['loggedIn', 'proxySettingsModal', 'recoverPasswordSetPassword'])
+    }
+  })
+
+  test('answering closes the warning of that prompt and no other', async () => {
+    const {first} = await startAttempt()
+    const {id} = prompt(first)
+    // Another prompt's warning on the stack too, above and below this one.
+    nav.setRootState(
+      makeRootState({
+        above: [
+          {name: 'recoverPasswordPgpWarning', params: {pgpPromptID: id + 100}},
+          {name: 'recoverPasswordPgpWarning', params: {pgpPromptID: id}},
+          {name: 'recoverPasswordPgpWarning', params: {pgpPromptID: id + 200}},
+        ],
+      })
+    )
+
+    answerRecoverPasswordPgp(id, false)
+
+    expect(nav.getRootState()?.routes?.map(r => r.params)).toEqual([
+      undefined,
+      {pgpPromptID: id + 100},
+      {pgpPromptID: id + 200},
+    ])
+  })
+
+  test("restarting answers the old prompt false, closes its warning, and the old screen can't reach the new one", async () => {
+    const attempts = mockRecoverAttempts()
+    startRecoverPassword({username: 'testuser'})
     await flush()
-    expect(rootRouteNames()).not.toContain('recoverPasswordPgpWarning')
+    const old = prompt(attempts[0]!)
+
+    startRecoverPassword({username: 'testuser'})
+    await flush()
+    expect(old.response.result).toHaveBeenCalledTimes(1)
+    expect(old.response.result).toHaveBeenCalledWith(false)
+    expect(rootRouteNames()).toEqual(['loggedIn'])
+
+    // The new prompt gets its own screen, not the old one reused as a dupe.
+    const next = prompt(attempts[1]!)
+    expect(next.id).not.toBe(old.id)
+    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
+
+    nav.clearActions()
+    answerRecoverPasswordPgp(old.id, true)
+    answerRecoverPasswordPgp(old.id, false)
+    expect(old.response.result).toHaveBeenCalledTimes(1)
+    expect(next.response.result).not.toHaveBeenCalled()
+    expect(nav.actions).toEqual([])
+    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
   })
 
   test.each([
     ['is cancelled', new RPCError('Input canceled', T.RPCGen.StatusCode.sccanceled)],
     ['ends cleanly', undefined],
-  ])('a run that %s after Continue, before any set-password prompt, closes the warning', async (_label, error) => {
+  ])('a run that %s with the prompt unanswered answers it false once and closes the warning', async (_l, error) => {
     const {first} = await startAttempt()
-    prompt(first)
-    submitRecoverPasswordPgpContinue()
-    expect(rootRouteNames()).toContain('recoverPasswordPgpWarning')
+    const {id, response} = prompt(first)
+    navigateAppend({name: 'proxySettingsModal', params: {}})
+
     if (error) {
       first.reject(error)
     } else {
       first.resolve()
     }
     await flush()
+
+    expect(response.result).toHaveBeenCalledTimes(1)
+    expect(response.result).toHaveBeenCalledWith(false)
     expect(rootRouteNames()).not.toContain('recoverPasswordPgpWarning')
+    answerRecoverPasswordPgp(id, true)
+    expect(response.result).toHaveBeenCalledTimes(1)
   })
 
-  test('closing a dead warning leaves a modal opened over it in place', async () => {
+  test('a run that fails with the prompt unanswered answers once and keeps its error modal', async () => {
     const {first} = await startAttempt()
-    prompt(first)
-    nav.setRootState(
-      makeRootState({above: [{name: 'recoverPasswordPgpWarning'}, {name: 'proxySettingsModal'}]})
+    const {response} = prompt(first)
+
+    first.reject(new RPCError('EOF', T.RPCGen.StatusCode.scgeneric))
+    await flush()
+
+    expect(response.result).toHaveBeenCalledTimes(1)
+    expect(response.result).toHaveBeenCalledWith(false)
+    // The warning went first, so the error modal never replaced it or anything else.
+    expect(nav.types()).not.toContain('REPLACE')
+    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordErrorModal'])
+
+    // A restart after that has nothing left to answer, and leaves the error modal.
+    startRecoverPassword({username: 'testuser'})
+    await flush()
+    expect(response.result).toHaveBeenCalledTimes(1)
+    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordErrorModal'])
+  })
+
+  test.each([
+    ['is cancelled', new RPCError('Input canceled', T.RPCGen.StatusCode.sccanceled)],
+    ['fails', new RPCError('EOF', T.RPCGen.StatusCode.scgeneric)],
+    ['ends cleanly', undefined],
+  ])('a run that %s after Continue answers nothing more', async (_label, error) => {
+    const {first} = await startAttempt()
+    const {id, response} = prompt(first)
+    answerRecoverPasswordPgp(id, true)
+    expect(rootRouteNames()).toEqual(['loggedIn'])
+
+    if (error) {
+      first.reject(error)
+    } else {
+      first.resolve()
+    }
+    await flush()
+
+    expect(response.result).toHaveBeenCalledTimes(1)
+    expect(response.result).toHaveBeenCalledWith(true)
+    // Only the failure has a screen to show, and it goes on top of the app.
+    expect(nav.types()).not.toContain('REPLACE')
+    expect(rootRouteNames()).toEqual(
+      error?.code === T.RPCGen.StatusCode.scgeneric ? ['loggedIn', 'recoverPasswordErrorModal'] : ['loggedIn']
     )
-    first.reject(new RPCError('Input canceled', T.RPCGen.StatusCode.sccanceled))
-    await flush()
-    expect(rootRouteNames()).toEqual(['loggedIn', 'proxySettingsModal'])
   })
 
-  test('a run ending after Continue leaves the set-password screen alone', async () => {
+  test('a run that fails on the set-password screen after Continue shows the error in its place', async () => {
     const {first} = await startAttempt()
-    prompt(first)
-    submitRecoverPasswordPgpContinue()
-    first.listener.customResponseIncomingCallMap?.['keybase.1.secretUi.getPassphrase']?.(
-      {pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.passPhrase}} as any,
-      {error: jest.fn(), result: jest.fn()} as any
-    )
-    nav.clearActions()
-    first.reject(new RPCError('Input canceled', T.RPCGen.StatusCode.sccanceled))
+    const {id, response} = prompt(first)
+    answerRecoverPasswordPgp(id, true)
+    askNewPassword(first)
+
+    first.reject(new RPCError('EOF', T.RPCGen.StatusCode.scgeneric))
     await flush()
-    expect(nav.actions).toEqual([])
-    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordSetPassword'])
+
+    expect(response.result).toHaveBeenCalledTimes(1)
+    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordErrorModal'])
   })
 
-  test('a run ending after declining dispatches nothing more', async () => {
-    const {first} = await startAttempt()
-    prompt(first)
-    cancelRecoverPassword()
-    nav.clearActions()
-    first.reject(new RPCError('Input canceled', T.RPCGen.StatusCode.sccanceled))
-    await flush()
-    expect(nav.actions).toEqual([])
-  })
-
-  test("an old run ending late does not drop the newer run's pending prompt", async () => {
+  test("an old run ending late leaves the newer run's prompt and warning alone", async () => {
     const attempts = mockRecoverAttempts()
     startRecoverPassword({username: 'testuser'})
     await flush()
     prompt(attempts[0]!)
     startRecoverPassword({username: 'testuser'})
     await flush()
-    const second = prompt(attempts[1]!)
-    attempts[0]!.reject(new RPCError('EOF', T.RPCGen.StatusCode.scgeneric))
-    await flush()
-    startRecoverPassword({username: 'testuser'})
-    await flush()
-    expect(second.result).toHaveBeenCalledTimes(1)
-    expect(second.result).toHaveBeenCalledWith(false)
-  })
+    const next = prompt(attempts[1]!)
 
-  test("an old run ending late leaves the newer run's warning showing", async () => {
-    const attempts = mockRecoverAttempts()
-    startRecoverPassword({username: 'testuser'})
-    await flush()
-    prompt(attempts[0]!)
-    startRecoverPassword({username: 'testuser'})
-    await flush()
-    prompt(attempts[1]!)
     attempts[0]!.reject(new RPCError('Input canceled', T.RPCGen.StatusCode.sccanceled))
     await flush()
-    expect(rootRouteNames()).toContain('recoverPasswordPgpWarning')
+
+    expect(next.response.result).not.toHaveBeenCalled()
+    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
+
+    startRecoverPassword({username: 'testuser'})
+    await flush()
+    expect(next.response.result).toHaveBeenCalledTimes(1)
+    expect(next.response.result).toHaveBeenCalledWith(false)
   })
 })

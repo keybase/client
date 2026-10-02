@@ -10,7 +10,7 @@ import type {StaticScreenProps} from '@react-navigation/core'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import * as NavTree from './nav-tree'
 import {DEBUG_NAV} from './nav-debug'
-import {getNavigator} from './navigator'
+import {getNavigator, type RootRoute} from './navigator'
 import type {GetOptionsRet, RouteDef} from './types/router'
 import {isSplit, threadRouteName} from './chat/layout'
 import {ignorePromise} from './utils'
@@ -166,8 +166,8 @@ export const clearModals = () => {
   getNavigator().clearModals()
 }
 
-export const removeModal = (name: RouteKeys) => {
-  getNavigator().removeModal(name)
+export const removeRootRoutes = (shouldRemove: (route: RootRoute) => boolean) => {
+  getNavigator().removeRootRoutes(shouldRemove)
 }
 
 export const navigateUp = () => {
