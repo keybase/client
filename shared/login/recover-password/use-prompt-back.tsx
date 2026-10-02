@@ -1,7 +1,13 @@
 import * as React from 'react'
 import {NavigationContext} from '@react-navigation/core'
 import {getVisibleScreen, navigateUp} from '@/constants/router'
-import {declineRecoverPasswordPrompt, isRecoverPasswordPromptGone, isRecoverPasswordPromptOpen} from './flow'
+import {useBeforeRemoveUntil} from '@/router-v2/use-before-remove-until'
+import {
+  declineRecoverPasswordPrompt,
+  isRecoverPasswordPromptGone,
+  isRecoverPasswordPromptOpen,
+  recoverPasswordPromptClosed,
+} from './flow'
 
 // A prompt screen leaving while its prompt is open would leave the service waiting. A back (Android's
 // hardware back, a pop) runs the screen's onBack in its place, as the header back does; with no onBack
@@ -10,23 +16,21 @@ import {declineRecoverPasswordPrompt, isRecoverPasswordPromptGone, isRecoverPass
 export const useRecoverPromptBack = (promptId: number, onBack?: () => void) => {
   // Absent outside a navigator (storybook)
   const navigation = React.useContext(NavigationContext)
-  const back = React.useEffectEvent(() => onBack?.())
-  const hasBack = !!onBack
-
-  React.useEffect(() => {
-    if (!navigation) return
-    return navigation.addListener('beforeRemove', e => {
+  useBeforeRemoveUntil(
+    navigation,
+    (): Promise<unknown> | undefined => recoverPasswordPromptClosed(promptId),
+    e => {
       const {type} = e.data.action
       if (!(type === 'POP' || type === 'GO_BACK' || type === 'REMOVE')) return
       if (!isRecoverPasswordPromptOpen(promptId)) return
-      if (type !== 'REMOVE' && hasBack) {
+      if (type !== 'REMOVE' && onBack) {
         e.preventDefault()
-        back()
+        onBack()
       } else {
         declineRecoverPasswordPrompt(promptId)
       }
-    })
-  }, [navigation, promptId, hasBack])
+    }
+  )
 }
 
 // A deferred push can land after its prompt settled, leaving the screen nothing to answer. Effects

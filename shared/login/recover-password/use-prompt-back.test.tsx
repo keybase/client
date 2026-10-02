@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
+import * as React from 'react'
 import * as T from '@/constants/types'
 import {act, cleanup, render} from '@testing-library/react'
 import {NavigationContext} from '@react-navigation/core'
@@ -10,7 +11,12 @@ import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigato
 
 jest.mock('@/provision/flow', () => ({cancelProvision: () => {}, startProvision: () => {}}))
 
-import {cancelRecoverPassword, isRecoverPasswordPromptOpen, startRecoverPassword} from './flow'
+import {
+  cancelRecoverPassword,
+  isRecoverPasswordPromptOpen,
+  startRecoverPassword,
+  submitRecoverPasswordDeviceSelect,
+} from './flow'
 import {useRecoverPromptBack} from './use-prompt-back'
 
 const recover = 'keybase.1.login.recoverPassphrase'
@@ -20,10 +26,20 @@ type BeforeRemoveEvent = {data: {action: {type: string}}; preventDefault: () => 
 
 let nav: FakeNavigator
 let fake: FakeEngine
-let beforeRemove: undefined | ((e: BeforeRemoveEvent) => void)
+// The screen's route: its beforeRemove listeners, as the navigator would call them on removal. Each add
+// is its own entry, so a listener added twice shows even where both adds pass the same function.
+let beforeRemove: Set<{cb: (e: BeforeRemoveEvent) => void}>
+const navigation = {
+  addListener: (type: string, cb: (e: BeforeRemoveEvent) => void) => {
+    if (type !== 'beforeRemove') return () => {}
+    const entry = {cb}
+    beforeRemove.add(entry)
+    return () => beforeRemove.delete(entry)
+  },
+}
 
 beforeEach(() => {
-  beforeRemove = undefined
+  beforeRemove = new Set()
   nav = installFakeNavigator({rootState: makeRootState({loggedIn: false})})
 })
 
@@ -43,6 +59,16 @@ const Screen = ({onBack, promptId}: {onBack?: () => void; promptId: number}) => 
   return null
 }
 
+// `hidden` hides the screen the way native-stack does under other screens: its effects are torn down
+type OnRouteProps = {hidden?: boolean; onBack?: () => void; promptId: number}
+const OnRoute = ({hidden = false, onBack, promptId}: OnRouteProps) => (
+  <NavigationContext value={navigation as never}>
+    <React.Activity mode={hidden ? 'hidden' : 'visible'}>
+      <Screen onBack={onBack} promptId={promptId} />
+    </React.Activity>
+  </NavigationContext>
+)
+
 // Starts a run, has Go show the device selector, and mounts a screen for its prompt
 const setup = async (onBack?: (promptId: number) => void) => {
   fake = installFakeEngine()
@@ -58,24 +84,22 @@ const setup = async (onBack?: (promptId: number) => void) => {
   await settle()
   const promptId = (nav.navigations().at(-1)?.params as {promptId: number}).promptId
   nav.clearActions()
-  const navigation = {
-    addListener: (type: string, cb: (e: BeforeRemoveEvent) => void) => {
-      if (type === 'beforeRemove') beforeRemove = cb
-      return () => {}
-    },
+  const back = onBack ? () => onBack(promptId) : undefined
+  // StrictMode renders twice and mounts the screen's effects, unmounts them and mounts them again
+  const view = render(<OnRoute onBack={back} promptId={promptId} />, {reactStrictMode: true})
+  // One listener for the route, however often the screen rendered
+  expect(beforeRemove.size).toBe(1)
+  const setHidden = async (hidden: boolean) => {
+    view.rerender(<OnRoute hidden={hidden} onBack={back} promptId={promptId} />)
+    await settle()
   }
-  render(
-    <NavigationContext value={navigation as never}>
-      <Screen onBack={onBack ? () => onBack(promptId) : undefined} promptId={promptId} />
-    </NavigationContext>
-  )
-  return {answered, held, promptId}
+  return {answered, held, promptId, setHidden}
 }
 
 // The screen is about to be removed by `type`; returns whether the removal was prevented
 const remove = (type: string) => {
   const preventDefault = jest.fn()
-  act(() => beforeRemove?.({data: {action: {type}}, preventDefault}))
+  act(() => [...beforeRemove].forEach(({cb}) => cb({data: {action: {type}}, preventDefault})))
   return preventDefault.mock.calls.length > 0
 }
 
@@ -150,4 +174,47 @@ test('a screen whose prompt is closed goes without a back', async () => {
 
   expect(remove('GO_BACK')).toBe(false)
   expect(onBack).not.toHaveBeenCalled()
+})
+
+test('a screen removed while hidden refuses its prompt', async () => {
+  const onBack = jest.fn()
+  const {answered, held, setHidden} = await setup(onBack)
+  await setHidden(true)
+
+  expect(remove('REMOVE')).toBe(false)
+
+  await expect(answered).resolves.toEqual({error: inputCanceled})
+  expect(onBack).not.toHaveBeenCalled()
+  held[0]!.reply(undefined)
+  await settle()
+})
+
+test("a screen hidden and shown again runs its back once on a back", async () => {
+  const onBack = jest.fn((promptId: number) => cancelRecoverPassword(promptId))
+  const {answered, held, setHidden} = await setup(onBack)
+  await setHidden(true)
+  await setHidden(false)
+  expect(beforeRemove.size).toBe(1)
+
+  expect(remove('GO_BACK')).toBe(true)
+
+  await expect(answered).resolves.toEqual({error: inputCanceled})
+  expect(onBack).toHaveBeenCalledTimes(1)
+  expect(nav.types()).toEqual(['GO_BACK'])
+  held[0]!.reply(undefined)
+  await settle()
+})
+
+test('an answered prompt is not refused when its screen goes, and its listener goes with the prompt', async () => {
+  const onBack = jest.fn()
+  const {answered, held, promptId} = await setup(onBack)
+  act(() => submitRecoverPasswordDeviceSelect(promptId, 'device1' as T.Devices.DeviceID))
+  await expect(answered).resolves.toEqual({result: 'device1'})
+  await settle()
+  expect(beforeRemove.size).toBe(0)
+
+  expect(remove('GO_BACK')).toBe(false)
+  expect(onBack).not.toHaveBeenCalled()
+  held[0]!.reply(undefined)
+  await settle()
 })

@@ -8,7 +8,7 @@ import {
 } from '@/constants/router'
 import {waitingKeyRecoverPassword} from '@/constants/strings'
 import {ignorePromise} from '@/constants/utils'
-import {openDialog, type Dialog, type DialogEvent, type Prompt} from '@/engine/dialog'
+import {openDialog, type Dialog, type DialogEvent, type Prompt, type PromptOutcome} from '@/engine/dialog'
 import logger from '@/logger'
 import {startAccountReset} from '@/login/reset/account-reset'
 import {useConfigState} from '@/stores/config'
@@ -77,6 +77,10 @@ export const cancelRecoverPassword = (promptId: number) => {
 
 export const isRecoverPasswordPromptOpen = (promptId: number) =>
   !!current?.dialog.openPrompts().some(p => p.id === promptId)
+
+// Settles when the prompt closes; undefined once it has
+export const recoverPasswordPromptClosed = (promptId: number): Promise<PromptOutcome> | undefined =>
+  current?.dialog.openPrompts().find(p => p.id === promptId)?.closed
 
 // Prompts of this run that a screen answered. Their screens stay while the service works on the answer.
 const answeredByScreen = new Set<number>()
