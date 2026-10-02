@@ -24,7 +24,11 @@ export type SaveDialogOptions = {
 }
 
 import type {RPCMessage as EngineRPCMessage} from '@/engine/rpc-transport'
-export type {EngineRPCMessage}
+// The node relay's link to the service came up or went down. `epoch` names that connection: it
+// goes up by one on every connect.
+export type EngineLinkFrame = {type: 'link'; up: boolean; epoch: number}
+// A renderer write, stamped with the connection it was made on
+export type EngineSend = {epoch: number; message: EngineRPCMessage}
 
 export type KB2 = {
   constants: {
@@ -66,7 +70,7 @@ export type KB2 = {
     windowsBinPath: string
   }
   functions: {
-    engineSend?: (message: EngineRPCMessage) => void
+    engineSend?: (send: EngineSend) => void
     appStartedUp?: () => Promise<void>
     isDirectory?: (path: string) => Promise<boolean>
     getPathForFile?: (file: File) => string
@@ -82,7 +86,7 @@ export type KB2 = {
     getRemoteProps?: (windowComponent: string, windowParam: string) => Promise<string>
     // defined for both always
     mainWindowDispatch: (action: Actions) => void
-    mainWindowDispatchEngineIncoming?: (data: Uint8Array) => void
+    mainWindowDispatchEngineIncoming?: (data: Uint8Array | EngineLinkFrame) => void
     darwinCopyToChatTempUploadFile?: (dst: string, originalFilePath: string) => Promise<void>
     darwinCopyToKBFSTempUploadFile?: (dir: string, originalFilePath: string) => Promise<string>
     minimizeWindow?: () => void

@@ -1,7 +1,8 @@
 import * as Electron from 'electron'
 import type {Actions} from '@/constants/remote-actions'
 import {
-  type EngineRPCMessage,
+  type EngineLinkFrame,
+  type EngineSend,
   injectPreload,
   type KB2,
   type OpenDialogOptions,
@@ -73,8 +74,8 @@ if (isRenderer) {
             type: 'dumpNodeLogger',
           })
         },
-        engineSend: (buf: EngineRPCMessage) => {
-          Electron.ipcRenderer.send('engineSend', buf)
+        engineSend: (send: EngineSend) => {
+          Electron.ipcRenderer.send('engineSend', send)
         },
         exitApp: (code: number) => {
           ignorePromise(invoke({payload: {code}, type: 'exitApp'}))
@@ -114,7 +115,7 @@ if (isRenderer) {
         mainWindowDispatch: (action: Actions) => {
           ignorePromise(Electron.ipcRenderer.invoke('KBdispatchAction', action))
         },
-        mainWindowDispatchEngineIncoming: (_data: Uint8Array) => undefined,
+        mainWindowDispatchEngineIncoming: (_data: Uint8Array | EngineLinkFrame) => undefined,
         makeRenderer: (options: {
           windowComponent: string
           windowOpts: {
@@ -282,7 +283,7 @@ if (isRenderer) {
       mainWindowDispatch: (action: Actions) => {
         getMainWindow()?.webContents.send('KBdispatchAction', action)
       },
-      mainWindowDispatchEngineIncoming: (data: Uint8Array) => {
+      mainWindowDispatchEngineIncoming: (data: Uint8Array | EngineLinkFrame) => {
         getMainWindow()?.webContents.send('engineIncoming', data)
       },
     },

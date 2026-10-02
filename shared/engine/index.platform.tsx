@@ -9,18 +9,18 @@ export type CreateClientType = {
   transport: TransportShared
   invoke: InvokeType
 }
-import KB2 from '@/util/electron'
-import type {Socket} from 'net'
-import {printRPCBytes} from '@/local-debug'
-import {socketPath} from '@/constants/platform'
+import KB2, {type EngineLinkFrame} from '@/util/electron'
 import {onMetaEvent, notifyJSReady} from 'react-native-kb'
 
-// used by node
-// Desktop transport — only instantiated when !isMobile
-class NativeTransport extends TransportShared {
-  private _socket?: Socket
-  private _reconnectTimer?: ReturnType<typeof setTimeout>
-  private _connecting = false
+const isLinkFrame = (data: unknown): data is EngineLinkFrame =>
+  typeof data === 'object' && data !== null && (data as {type?: unknown}).type === 'link'
+
+// Desktop renderer transport: talks to the service through the node relay over IPC
+class ProxyNativeTransport extends TransportShared {
+  private _linkUp = false
+  // The relay connection the last link-up named. Every send carries it, so the relay can drop a
+  // send made on a connection that has since gone.
+  private _epoch = 0
 
   constructor(
     incomingRPCCallback: IncomingRPCCallbackType,
@@ -28,119 +28,12 @@ class NativeTransport extends TransportShared {
     disconnectCallback?: ConnectDisconnectCB
   ) {
     super(connectCallback, disconnectCallback, incomingRPCCallback)
-    this.needsConnect = true
   }
 
   protected override isConnected() {
-    return !!this._socket
+    return this._linkUp
   }
 
-  protected writeMessage(message: RPCMessage) {
-    if (!this._socket) {
-      throw new Error('write attempt with no active stream')
-    }
-    const framed = this.encodeMessage(message)
-    if (printRPCBytes) {
-      logger.debug('[RPC] Writing', framed.length)
-    }
-    this._socket.write(Buffer.from(framed))
-  }
-
-  override connect(cb: (err?: unknown) => void) {
-    this.clearExplicitClose()
-    if (this._socket) {
-      cb()
-      return
-    }
-    this.connectOnce(cb)
-  }
-
-  override packetizeData(m: Uint8Array) {
-    const {mainWindowDispatchEngineIncoming} = KB2.functions
-    if (printRPCBytes) {
-      logger.debug('[RPC] Read', m.length)
-    }
-    mainWindowDispatchEngineIncoming?.(m)
-  }
-
-  override close() {
-    this.markExplicitClose()
-    if (this._reconnectTimer) {
-      clearTimeout(this._reconnectTimer)
-      this._reconnectTimer = undefined
-    }
-    this._socket?.destroy()
-    this._socket = undefined
-    super.close()
-  }
-
-  private connectOnce(cb?: (err?: unknown) => void) {
-    if (this._connecting || this._socket) {
-      cb?.()
-      return
-    }
-    this._connecting = true
-
-    const socket = require('net').connect({path: socketPath}) as Socket
-    let settled = false
-
-    const finish = (err?: unknown) => {
-      if (settled) {
-        return
-      }
-      settled = true
-      this._connecting = false
-      if (err) {
-        socket.destroy()
-        cb?.(err)
-        this.scheduleReconnect()
-        return
-      }
-
-      this._socket = socket
-      socket.on('close', () => {
-        if (this._socket !== socket) {
-          return
-        }
-        this._socket = undefined
-        if (this.isExplicitClose()) {
-          return
-        }
-        this.onDisconnected()
-        this.scheduleReconnect()
-      })
-      socket.on('data', data => {
-        const bytes = typeof data === 'string' ? Buffer.from(data) : data
-        this.packetizeData(new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength))
-      })
-      socket.on('error', err => {
-        logger.warn('Desktop RPC socket error', err)
-      })
-
-      this.onConnected()
-      cb?.()
-    }
-
-    socket.once('connect', () => finish())
-    socket.once('error', err => finish(err))
-    socket.once('close', () => finish(new Error('error in connection')))
-  }
-
-  private scheduleReconnect() {
-    if (this.isExplicitClose() || this._reconnectTimer || this._connecting) {
-      return
-    }
-    this._reconnectTimer = setTimeout(() => {
-      this._reconnectTimer = undefined
-      if (this.isConnected()) {
-        return
-      }
-      this.connectOnce()
-    }, 1000)
-  }
-}
-
-class ProxyNativeTransport extends LocalTransport {
   protected writeMessage(message: RPCMessage) {
     const {engineSend} = KB2.functions
     if (!engineSend) {
@@ -149,8 +42,32 @@ class ProxyNativeTransport extends LocalTransport {
       // forever. Throwing lets the transport fail it, same as mobile.
       throw new Error('engineSend missing')
     }
-    engineSend(message)
+    engineSend({epoch: this._epoch, message})
   }
+
+  fromRelay(data: unknown) {
+    if (isLinkFrame(data)) {
+      this.onLinkFrame(data)
+    } else if (this._linkUp) {
+      this.packetizeData(data as Uint8Array)
+    }
+  }
+
+  // The relay replays its state to a renderer that may have missed it, so a link-up for the
+  // connection already up is a repeat, and a link-down for a connection that is not up is stale.
+  private onLinkFrame({up, epoch}: EngineLinkFrame) {
+    const endsCurrentLink = up ? epoch !== this._epoch : epoch === this._epoch
+    if (this._linkUp && endsCurrentLink) {
+      this._linkUp = false
+      this.onLinkDown()
+    }
+    if (up && !this._linkUp) {
+      this._epoch = epoch
+      this._linkUp = true
+      this.onConnected()
+    }
+  }
+
   // On account-switch reset fail outstanding invocations so pre-switch RPC
   // callbacks can't fire later against post-switch state
   override reset() {
@@ -285,44 +202,19 @@ function createClient(
   }
 
   const {ipcRendererOn} = KB2.functions
-  const {isRenderer} = KB2.constants
+  const transport = new ProxyNativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
+  const client = sharedCreateClient(transport)
 
-  if (!isRenderer) {
-    return sharedCreateClient(new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback))
-  } else {
-    const client = sharedCreateClient(
-      new ProxyNativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
-    )
+  // plumb back data and link changes from the node relay
+  ipcRendererOn?.('engineIncoming', (_e: unknown, data: unknown) => {
+    try {
+      transport.fromRelay(data)
+    } catch (e) {
+      logger.error('>>>> engineIncoming IPC JS thrown!', e)
+    }
+  })
 
-    // plumb back data from the node side
-    ipcRendererOn?.('engineIncoming', (_e: unknown, data: unknown) => {
-      try {
-        client.transport.packetizeData(data as Uint8Array)
-      } catch (e) {
-        logger.error('>>>> engineIncoming IPC JS thrown!', e)
-      }
-    })
-
-    return client
-  }
+  return client
 }
 
-// Desktop only; Engine.reset() is a no-op on mobile
-function resetClient(
-  client: CreateClientType,
-  incomingRPCCallback: IncomingRPCCallbackType,
-  connectCallback: ConnectDisconnectCB,
-  disconnectCallback: ConnectDisconnectCB
-) {
-  const {isRenderer} = KB2.constants
-
-  if (isRenderer) {
-    client.transport.reset()
-    return client
-  }
-
-  client.transport.close()
-  return sharedCreateClient(new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback))
-}
-
-export {resetClient, createClient, rpcLog}
+export {createClient, rpcLog}

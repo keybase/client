@@ -17,7 +17,7 @@ import {useShellState} from '@/stores/shell'
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
 import {useDarkModeState} from '@/stores/darkmode'
-import {initPlatformListener, onEngineIncoming} from '@/constants/init/index'
+import {initPlatformListener, onEngineConnected, onEngineDisconnected, onEngineIncoming} from '@/constants/init/index'
 import {eventFromRemoteWindows} from './remote-event-handler.desktop'
 import type {default as NewMainType} from '../../app/main'
 import {dumpLogs} from '@/util/storeless-actions'
@@ -47,17 +47,19 @@ if (import.meta.hot) {
   import.meta.hot.accept()
 }
 
+const onEngineLink = (up: boolean) => {
+  if (up) {
+    onEngineConnected()
+  } else {
+    onEngineDisconnected()
+  }
+}
+
 const setupApp = async () => {
   disableDragDrop()
 
   const {batch} = C.useWaitingState.getState().dispatch
-  const eng = makeEngine(
-    batch,
-    () => {
-      // do nothing we wait for the remote version from node
-    },
-    onEngineIncoming
-  )
+  const eng = makeEngine(batch, onEngineLink, onEngineIncoming)
 
   ipcRendererOn?.('KBdispatchAction', (_: unknown, action: unknown) => {
     setTimeout(() => {
@@ -69,8 +71,7 @@ const setupApp = async () => {
 
   initPlatformListener()
 
-  // Let the main process reset its transport before startup effects begin
-  // issuing RPCs on a renderer reload.
+  // The main process sends this renderer the engine link's state, a fresh link on a reload
   await appStartedUp?.()
 
   useShellState.getState().dispatch.initNotifySound()
@@ -188,13 +189,7 @@ const load = async () => {
     // new module instance so incoming RPCs hit the current handlers.
     console.log('HMR: rebinding engine and reinitializing store subscriptions')
     const {batch} = C.useWaitingState.getState().dispatch
-    const eng = makeEngine(
-      batch,
-      () => {
-        // do nothing we wait for the remote version from node
-      },
-      onEngineIncoming
-    )
+    const eng = makeEngine(batch, onEngineLink, onEngineIncoming)
     initPlatformListener()
     eng.listenersAreReady()
     return
