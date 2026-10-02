@@ -19,6 +19,7 @@ const startFlow = (p: {genericService: string | null; proofReason: 'appLink' | '
   const navigateAppend = jest.fn()
   const navigateUp = jest.fn()
   const cancelCurrentRef = {current: undefined as undefined | (() => void)}
+  const mountedRef = {current: true}
   const done = runProofFlow({
     afterCheckProofRef: {current: undefined},
     cancelCurrentRef,
@@ -26,7 +27,7 @@ const startFlow = (p: {genericService: string | null; proofReason: 'appLink' | '
     currentUsernameRef: {current: ''},
     genericService: p.genericService,
     loadCurrentProfile: jest.fn(),
-    mountedRef: {current: true},
+    mountedRef,
     navigateAppend: navigateAppend as never,
     navigateUp: navigateUp as never,
     proofPlatform: p.genericService ?? 'twitter',
@@ -36,7 +37,7 @@ const startFlow = (p: {genericService: string | null; proofReason: 'appLink' | '
     setStepSafe,
     submitUsernameRef: {current: undefined},
   })
-  return {cancelCurrentRef, done, engine, navigateAppend, navigateUp, setStepSafe}
+  return {cancelCurrentRef, done, engine, mountedRef, navigateAppend, navigateUp, setStepSafe}
 }
 
 test('a generic proof the service fails shows the failure on the result step', async () => {
@@ -80,4 +81,37 @@ test('a proof the user cancelled shows nothing when its RPC fails', async () => 
   await done
 
   expect(setStepSafe).not.toHaveBeenCalled()
+})
+
+test('a proof whose screen closed refuses the next prompt and shows nothing when its RPC fails', async () => {
+  const {done, engine, mountedRef, setStepSafe} = startFlow({genericService: 'testsite', proofReason: 'profile'})
+  // closed between prompts, so there was no pending prompt for the unmount to cancel
+  mountedRef.current = false
+  const response = {error: jest.fn(), result: jest.fn()}
+  engine.pending('keybase.1.prove.startProof').incomingCallMap['keybase.1.proveUi.promptUsername']?.(
+    {parameters: {} as never, prevError: null, prompt: '', sessionID: 0},
+    response
+  )
+  await tick()
+  await flush()
+  expect(response.error).toHaveBeenCalledWith(
+    expect.objectContaining({code: T.RPCGen.StatusCode.scinputcanceled})
+  )
+  engine.fail('keybase.1.prove.startProof', T.RPCGen.StatusCode.scinputcanceled, 'Cancel Add Proof')
+  await done
+
+  expect(setStepSafe).not.toHaveBeenCalled()
+})
+
+test('an app link whose screen closed does not navigate when its RPC fails', async () => {
+  const {done, engine, mountedRef, navigateAppend, navigateUp} = startFlow({
+    genericService: null,
+    proofReason: 'appLink',
+  })
+  mountedRef.current = false
+  engine.fail('keybase.1.prove.startProof', T.RPCGen.StatusCode.scgeneric, 'no such service')
+  await done
+
+  expect(navigateUp).not.toHaveBeenCalled()
+  expect(navigateAppend).not.toHaveBeenCalled()
 })
