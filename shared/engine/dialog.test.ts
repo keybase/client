@@ -298,8 +298,8 @@ test('when done resolves, an open prompt ends without writing, and the iterator 
   expect(answered).toBe(false)
 })
 
-test("the service cancelling a prompt closes it and rejects done", async () => {
-  const {dialog, fake, sessionID} = await startRecover()
+test('the service cancelling a prompt closes only it; later prompts surface and done resolves', async () => {
+  const {dialog, fake, held, sessionID} = await startRecover()
   const it = dialog.events[Symbol.asyncIterator]()
   void fake.push(choose, {devices}, {sessionID})
   const e = await nextEvent(it)
@@ -307,7 +307,13 @@ test("the service cancelling a prompt closes it and rejects done", async () => {
   fake.cancelPush(choose)
   expect(e.open).toBe(false)
   expect(e.answer('d1' as never)).toBe(false)
-  await expect(settledError(dialog.done)).resolves.toMatchObject({code: T.RPCGen.StatusCode.sccanceled})
+  const pushed = fake.push(choose, {devices}, {sessionID})
+  const next = await nextEvent(it)
+  if (next.kind !== 'prompt' || next.method !== choose) throw new Error('expected the next prompt')
+  expect(next.answer('d1' as never)).toBe(true)
+  await expect(pushed).resolves.toEqual({result: 'd1'})
+  held[0]!.reply(undefined)
+  await expect(dialog.done).resolves.toBeUndefined()
   await expect(e.closed).resolves.toBe('ended')
   await expect(it.next()).resolves.toMatchObject({done: true})
   expect(dialog.disposed).toBe(false)
@@ -411,11 +417,12 @@ describe('dispose', () => {
 
 describe('events', () => {
   test('a prompt that closed before it was read is skipped', async () => {
-    const {dialog, fake, sessionID} = await startRecover()
+    const {dialog, fake, held, sessionID} = await startRecover()
     void fake.push(choose, {devices}, {sessionID})
     await afterTimers()
     fake.cancelPush(choose)
-    await settledError(dialog.done)
+    held[0]!.reply(undefined)
+    await dialog.done
     const {finished, seen} = collect(dialog.events)
     await finished
     expect(seen).toEqual([])

@@ -62,10 +62,10 @@ test('a global prompt the engine does not hand over is auto-answered once', asyn
   uninstallFakeEngine()
 })
 
-test('a service cancel of a pending prompt rejects the listener', async () => {
+test('a service cancel of a pending prompt leaves the listener running until its reply', async () => {
   const fake = installFakeEngine()
   const onPrompt = jest.fn()
-  fake.hold('keybase.1.login.recoverPassphrase')
+  const held = fake.hold('keybase.1.login.recoverPassphrase')
   const done = T.RPCGen.loginRecoverPassphraseRpcListener({
     customResponseIncomingCallMap: {'keybase.1.loginUi.promptPassphraseRecovery': onPrompt},
     incomingCallMap: {},
@@ -79,9 +79,9 @@ test('a service cancel of a pending prompt rejects the listener', async () => {
   await new Promise(resolve => setTimeout(resolve, 0))
   expect(onPrompt).toHaveBeenCalledTimes(1)
   fake.cancelPush('keybase.1.loginUi.promptPassphraseRecovery')
-  await expect(ended).resolves.toMatchObject({code: T.RPCGen.StatusCode.sccanceled})
   await pushed
-  await tick()
+  held[0]!.reply(undefined)
+  await expect(ended).resolves.toBeUndefined()
   // The engine writes no RESPONSE of its own for the cancelled seqid; the fake would record one
   expect(() => uninstallFakeEngine()).not.toThrow()
 })

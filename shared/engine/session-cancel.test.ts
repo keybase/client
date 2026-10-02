@@ -172,3 +172,52 @@ test("a listener handler sees its response's settled state through the waiting w
   cancel()
   expect(response.settled).toBe(true)
 })
+
+// Go cancels one prompt's context and goes on with the RPC, e.g. login's DisplayAndPromptSecret
+// once the other device finished, followed by ProvisioneeSuccess.
+describe('a service cancel of one prompt', () => {
+  test('settles only that prompt, and the session handles later calls and the reply', async () => {
+    const answered = registerPinentry()
+    const {ended, fake, held, onPrompt, sessionID} = await start()
+    const first = fake.push(prompt, {kind: 0}, {sessionID})
+    await afterTimers()
+    fake.cancelPush(prompt)
+    await expect(first).resolves.toMatchObject({error: {code: T.RPCGen.StatusCode.sccanceled}})
+    expect(fake.engine._sessionsMap.get(sessionID)?.isRefusing()).toBe(false)
+    const second = fake.push(prompt, {kind: 0}, {sessionID})
+    await afterTimers()
+    expect(onPrompt).toHaveBeenCalledTimes(2)
+    ;(onPrompt.mock.calls[1]![1] as {result: (r: boolean) => void}).result(true)
+    await expect(second).resolves.toEqual({result: true})
+    expect(answered).not.toHaveBeenCalled()
+    held[0]!.reply(undefined)
+    await expect(ended).resolves.toBeUndefined()
+    expect(fake.engine._sessionsMap.has(sessionID)).toBe(false)
+  })
+
+  test("leaves a raw call's waiting count on the service until its reply", async () => {
+    const fake = installFakeEngine()
+    const held = fake.hold(rpc)
+    const onPrompt = jest.fn()
+    const ended = new Promise(resolve => {
+      fake.engine.call({
+        callback: resolve,
+        customResponseIncomingCallMap: {[prompt]: onPrompt},
+        method: rpc,
+        params: {username: 'testuser'},
+        waitingKey,
+      })
+    })
+    await tick()
+    const sessionID = fake.calls[0]!.params.sessionID as number
+    void fake.push(prompt, {kind: 0}, {sessionID})
+    await tick()
+    expect(onPrompt).toHaveBeenCalledTimes(1)
+    expect(waitingCount(fake)).toBe(0)
+    fake.cancelPush(prompt)
+    expect(waitingCount(fake)).toBe(1)
+    held[0]!.reply(undefined)
+    await ended
+    expect(waitingCount(fake)).toBe(0)
+  })
+})
