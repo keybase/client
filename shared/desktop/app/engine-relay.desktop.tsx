@@ -46,11 +46,18 @@ export class EngineRelay {
       })
       return
     }
-    const framed = encodeFrame(message)
-    if (printRPCBytes) {
-      logger.debug('[RPC] Writing', framed.length)
+    try {
+      const framed = encodeFrame(message)
+      if (printRPCBytes) {
+        logger.debug('[RPC] Writing', framed.length)
+      }
+      socket.write(Buffer.from(framed))
+    } catch (err) {
+      // The renderer is waiting on a reply to a write that never went out. Restarting the link is
+      // what tells it: the down frame fails everything in flight on this connection.
+      logger.error('Engine relay: a write to the service failed; restarting the link', err)
+      this.restartLink({afterDelay: true})
     }
-    socket.write(Buffer.from(framed))
   }
 
   // For a renderer that may have missed the link frames sent before it was listening

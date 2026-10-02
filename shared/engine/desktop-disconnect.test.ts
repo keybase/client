@@ -1,6 +1,7 @@
 /// <reference types="jest" />
 import {makeDesktopEnginePair, type DesktopEnginePair} from '@/test/desktop-engine-pair'
 import {tick} from '@/test/flush'
+import logger from '@/logger'
 import {encodeFrame, errors, type ResponseType} from './rpc-transport'
 
 const methodsReceived = (pair: DesktopEnginePair) => pair.serviceReceived().map(m => m[2])
@@ -145,6 +146,29 @@ test('an engine reset restarts the link: a split frame and a held prompt go with
   pair.serviceSends([1, seqid, null, {ok: true}])
   await tick()
   expect(cb).toHaveBeenCalledWith(null, {ok: true})
+})
+
+test('a renderer call whose write fails in node settles, and calls reach the service once node reconnects', async () => {
+  const pair = makeDesktopEnginePair()
+  pair.socketWritesThrow()
+  const lost = jest.fn()
+  const logged = jest.spyOn(logger, 'error').mockImplementation(() => {})
+  try {
+    pair.renderer.invoke('keybase.1.config.getBootstrapStatus', [{}], lost)
+    await tick()
+  } finally {
+    logged.mockRestore()
+  }
+  await tick()
+  expect(lost).toHaveBeenCalledTimes(1)
+  expect(lost.mock.calls[0]![0]).toMatchObject({code: errors.EOF})
+
+  pair.serviceComesBack()
+  await tick()
+  const cb = jest.fn()
+  pair.renderer.invoke('keybase.1.config.getBootstrapStatus', [{}], cb)
+  await tick()
+  expect(methodsReceived(pair)).toEqual(['keybase.1.config.getBootstrapStatus'])
 })
 
 test('link changes before the app has its listeners ready are not announced', async () => {
