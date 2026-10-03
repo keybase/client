@@ -1,5 +1,11 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
-import {makeInboxSearchInfo, nextInboxSearchSelectedIndex} from './use-inbox-search'
+import {act, renderHook} from '@testing-library/react'
+import * as T from '@/constants/types'
+import logger from '@/logger'
+import {fakeError, installFakeEngine, uninstallFakeEngine} from '@/test/fake-engine'
+import {flush} from '@/test/flush'
+import {makeInboxSearchInfo, nextInboxSearchSelectedIndex, useInboxSearch} from './use-inbox-search'
 
 test('inbox search helpers derive stable defaults', () => {
   const info = makeInboxSearchInfo()
@@ -48,4 +54,47 @@ test('inbox search selection movement respects visible result counts', () => {
   )
 
   expect(selectedIndex).toBe(8)
+})
+
+describe('a text search that fails', () => {
+  const start = async () => {
+    const fake = installFakeEngine()
+    fake.answer('chat.1.local.cancelActiveInboxSearch', () => undefined)
+    const held = fake.hold('chat.1.local.searchInbox')
+    const {result} = renderHook(() => useInboxSearch())
+    act(() => result.current.startSearch())
+    await flush()
+    expect(held).toHaveLength(1)
+    return {fake, held, result}
+  }
+
+  test("shows the service's error", async () => {
+    const logged = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    const {held, result} = await start()
+    held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'search broke'))
+    await flush()
+    expect(result.current.searchInfo.textStatus).toBe('error')
+    expect(logged).toHaveBeenCalledTimes(1)
+    uninstallFakeEngine()
+    logged.mockRestore()
+  })
+
+  // A newer search, or leaving search, cancels it in the service
+  test('is quiet when the service cancelled it', async () => {
+    const {held, result} = await start()
+    held[0]!.reply(fakeError(T.RPCGen.StatusCode.sccanceled, 'context canceled'))
+    await flush()
+    expect(result.current.searchInfo.textStatus).not.toBe('error')
+    uninstallFakeEngine()
+  })
+
+  test('shows a lost link as an error', async () => {
+    const logged = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    const {fake, result} = await start()
+    fake.drop()
+    await flush()
+    expect(result.current.searchInfo.textStatus).toBe('error')
+    uninstallFakeEngine()
+    logged.mockRestore()
+  })
 })

@@ -3,7 +3,7 @@ import {ignorePromise} from '@/constants/utils'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {useShellState} from '@/stores/shell'
-import {RPCError} from '@/util/errors'
+import {isCancelled} from '@/util/errors'
 import * as React from 'react'
 import {ensureInboxSearchMetas} from './metadata'
 import {cancelActiveInboxSearchRPC, searchInboxRPC} from '../search-rpc'
@@ -357,8 +357,10 @@ export function useInboxSearch(): InboxSearchController {
             query,
           })
         } catch (error) {
-          if (error instanceof RPCError && error.code !== T.RPCGen.StatusCode.sccanceled) {
-            logger.error('search failed: ' + error.message)
+          // A newer search cancels this one in the service. A listener rejects with an Error wrapping the
+          // RPCError, which carries its kind.
+          if (!isCancelled(error, 'caller', 'accountChange', 'service')) {
+            logger.error('search failed:', error)
             updateIfActive(prev => ({...prev, textStatus: 'error'}))
           }
         }
