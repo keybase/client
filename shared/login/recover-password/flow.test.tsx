@@ -409,6 +409,59 @@ describe('completion', () => {
     expect(screens()).toEqual(['loggedIn', errorModal])
   })
 
+  test('logged in by the paper key, then out again before any root swap, the error shows on the logged-out root', async () => {
+    nav = installFakeNavigator({modalRouteNames: [errorModal], rootState: loggedOutRoot()})
+    const {setLoggedIn} = useConfigState.getState().dispatch
+    const {held} = await start()
+    setLoggedIn(true)
+    await failWith(held)
+    expect(screens()).toEqual(['login'])
+
+    setLoggedIn(false)
+
+    expect(screens()).toEqual(['login', 'recoverPasswordError'])
+  })
+
+  describe('past the wait for the matching root', () => {
+    beforeEach(() => {
+      jest.useFakeTimers({doNotFake: ['queueMicrotask', 'nextTick', 'setImmediate']})
+    })
+    afterEach(() => {
+      jest.useRealTimers()
+    })
+    const failNow = async (held: Awaited<ReturnType<typeof start>>['held']) => {
+      held.at(-1)!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'bad things'))
+      await jest.advanceTimersByTimeAsync(0)
+      await tick()
+    }
+
+    test('a root that still disagrees with config shows the error rather than dropping it', async () => {
+      nav = installFakeNavigator({modalRouteNames: [errorModal], rootState: loggedOutRoot()})
+      const {held} = await start()
+      useConfigState.getState().dispatch.setLoggedIn(true)
+      await failNow(held)
+      expect(screens()).toEqual(['login'])
+
+      await jest.advanceTimersByTimeAsync(5000)
+
+      expect(screens()).toEqual(['login', 'recoverPasswordError'])
+    })
+
+    test("desktop's loading root is waited out however long it takes", async () => {
+      nav = installFakeNavigator({
+        rootState: {index: 0, key: 'root', routes: [{key: 'loading', name: 'loading'}], type: 'stack'},
+      })
+      const {held} = await start()
+      await failNow(held)
+      await jest.advanceTimersByTimeAsync(10000)
+      expect(nav.navigations()).toEqual([])
+
+      nav.setRootState(loggedOutRoot())
+
+      expect(screens()).toEqual(['login', 'recoverPasswordError'])
+    })
+  })
+
   test("desktop's loading root: the error waits for the logged-out root, then shows", async () => {
     nav = installFakeNavigator({
       rootState: {index: 0, key: 'root', routes: [{key: 'loading', name: 'loading'}], type: 'stack'},

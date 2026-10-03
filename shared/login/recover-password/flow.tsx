@@ -8,6 +8,7 @@ import {
   navigateUp,
   removeRoutes,
 } from '@/constants/router'
+import {getNavigator} from '@/constants/navigator'
 import type {NavState} from '@/constants/nav-tree'
 import {waitingKeyRecoverPassword} from '@/constants/strings'
 import {ignorePromise} from '@/constants/utils'
@@ -127,6 +128,41 @@ const runRoutes = (run: Run) => {
   }
   walk(getRootState())
   return keys
+}
+
+// Shows the error once the mounted root matches config's loggedIn, read again at every check: the
+// paper key may have just logged the user in, before the root swap. A root that still disagrees once
+// the wait is over shows it rather than dropping it. Desktop's loading root is waited out.
+const showRecoverError = (message: string) => {
+  const nav = getNavigator()
+  let waited = false
+  const show = () => {
+    const root = nav.getRootState()?.routes?.[0]?.name
+    if (root !== 'loggedIn' && root !== 'loggedOut') return false
+    if (!waited && (root === 'loggedIn') !== useConfigState.getState().loggedIn) return false
+    nav.navigateAppend({
+      name: root === 'loggedIn' ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
+      params: {error: message},
+    })
+    return true
+  }
+  if (show()) return
+  const check = () => {
+    if (!show()) return
+    clearTimeout(timer)
+    unsubscribeNav()
+    unsubscribeConfig()
+  }
+  const unsubscribeNav = nav.addListener('state', check)
+  const unsubscribeConfig = useConfigState.subscribe((s, prev) => {
+    if (s.loggedIn !== prev.loggedIn) {
+      check()
+    }
+  })
+  const timer = setTimeout(() => {
+    waited = true
+    check()
+  }, loggedInRootTimeoutMs)
 }
 
 export const submitRecoverPasswordDeviceSelect = (promptId: number, deviceID?: T.Devices.DeviceID) => {
@@ -325,18 +361,7 @@ export const startRecoverPassword = ({
       logger.warn('RPC returned error: ' + error.message)
       if (!(error.code === T.RPCGen.StatusCode.sccanceled || error.code === T.RPCGen.StatusCode.scinputcanceled)) {
         removeRoutes(runRoutes(run))
-        // The paper key may have just logged the user in, before the root swap; desktop shows a loading
-        // root before either
-        const loggedIn = useConfigState.getState().loggedIn
-        navigateAppendOnceRootHas(
-          loggedIn ? 'loggedIn' : 'loggedOut',
-          {
-            name: loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
-            params: {error: error.message},
-          },
-          loggedInRootTimeoutMs,
-          () => logger.warn('recover password: no root to show the error on')
-        )
+        showRecoverError(error.message)
       }
     } finally {
       if (current === run) {
