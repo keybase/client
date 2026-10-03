@@ -6,13 +6,14 @@ import {
 import {mustAnswerMethods} from '@/constants/rpc'
 import {printRPC} from '@/local-debug'
 import {rpcLog, type InvokeType} from './index.platform'
-import {convertToError, RPCError, type CancelReason} from '@/util/errors'
+import {convertToError, RPCError} from '@/util/errors'
 import {makeDisconnectError} from './rpc-transport'
 import {makeWaitingTracker, type WaitingTracker} from './waiting-tracker'
 import {getAccountGeneration, survivesAccountChange} from './account-generation'
 import logger from '@/logger'
 import {
   inputCanceledError,
+  type ClientCancelReason,
   type SessionID,
   type ResponseType,
   type EndHandlerType,
@@ -36,8 +37,6 @@ type HeldResponse = {
 
 // A custom handler the listener runs later says so, and calls what this returns once it has run
 export type DeferRun = () => () => void
-
-type ClientCancel = Extract<CancelReason, 'caller' | 'accountChange'>
 
 const errorKey = (code: unknown, desc: unknown) =>
   typeof code === 'number' && typeof desc === 'string' ? `${code}:${desc}` : undefined
@@ -149,7 +148,7 @@ class Session {
 
   // Client-side cancel, by the caller or by an account change. The link is alive, so held prompts are
   // refused and the service stops waiting.
-  cancel(reason: ClientCancel) {
+  cancel(reason: ClientCancelReason) {
     this._cancel('refuse', reason)
   }
 
@@ -181,7 +180,7 @@ class Session {
     }
   }
 
-  _cancel(heldPrompts: 'refuse' | 'forget', reason: ClientCancel = 'caller') {
+  _cancel(heldPrompts: 'refuse' | 'forget', reason: ClientCancelReason = 'caller') {
     if (this._refusing) {
       // Already cancelled; only a lost link ends the refusal early, since the reply can't come now
       if (heldPrompts === 'forget') {

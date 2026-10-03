@@ -141,6 +141,35 @@ describe('the code, desc and kind of each error the client makes', () => {
     uninstallFakeEngine()
   })
 
+  test('P9 on an account switch: a Dialog the switch disposes is cancelled by the account change', async () => {
+    const fake = installFakeEngine()
+    fake.hold('keybase.1.pgp.pgpKeyGenDefault')
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    const dialog = openDialog('keybase.1.pgp.pgpKeyGenDefault', {createUids: {ids: [], useDefault: true}}, {prompts: []})
+    await tick()
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+    expect(await rejection(dialog.done)).toMatchObject({desc: 'Dialog disposed', kind: byAccountChange})
+    uninstallFakeEngine()
+  })
+
+  test("a listener's session cancelled for an account change says so", async () => {
+    const fake = installFakeEngine()
+    fake.hold('keybase.1.login.recoverPassphrase')
+    let cancel: (reason?: 'caller' | 'accountChange') => void = () => {}
+    const p = T.RPCGen.loginRecoverPassphraseRpcListener({
+      customResponseIncomingCallMap: {},
+      incomingCallMap: {},
+      onSessionCreated: c => {
+        cancel = c
+      },
+      params: {username: 'testuser'},
+    })
+    await tick()
+    cancel('accountChange')
+    expect(kindOf(await rejection(p))).toEqual(byAccountChange)
+    uninstallFakeEngine()
+  })
+
   test("a listener rejects with an Error carrying the service error's code and desc, and the RPCError as its cause", async () => {
     const fake = installFakeEngine()
     const {held, p} = recoverListener(fake)

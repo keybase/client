@@ -3,7 +3,14 @@ import Session from './session'
 import {makeListen} from './listener'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
-import {inputCanceledError, type SessionID, type MethodKey, type WaitingChange, type WaitingKeys} from './types'
+import {
+  inputCanceledError,
+  type ClientCancelReason,
+  type SessionID,
+  type MethodKey,
+  type WaitingChange,
+  type WaitingKeys,
+} from './types'
 import {installCallPort, type CallPort} from './call-port'
 import {printOutstandingRPCs, printRPC} from '@/local-debug'
 import {
@@ -415,10 +422,10 @@ class Engine implements CallPort {
   }
 
   // Client-side cancel of one outstanding session: rejects its start callback (sccanceled, cancelled by
-  // the caller). The service is not told; until its RPC replies, the session refuses whatever it still
-  // sends.
-  cancelSession(sessionID: number) {
-    this._sessionsMap.get(sessionID)?.cancel('caller')
+  // the caller unless an account change disposes it). The service is not told; until its RPC replies,
+  // the session refuses whatever it still sends.
+  cancelSession(sessionID: number, reason: ClientCancelReason = 'caller') {
+    this._sessionsMap.get(sessionID)?.cancel(reason)
   }
 
   // An account switch: every session of the old account rejects cancelled by the account change

@@ -11,7 +11,7 @@ import {
 import {RPCError} from '@/util/errors'
 import {getCallPort} from './call-port'
 import {survivesAccountChange} from './account-generation'
-import {inputCanceledError, type CommonResponseHandler, type WaitingKeys} from './types'
+import {inputCanceledError, type ClientCancelReason, type CommonResponseHandler, type WaitingKeys} from './types'
 
 export type PromptMethod = keyof CustomResponseIncomingCallMap & MessageKey
 export type NoticeMethod = keyof IncomingCallMapType & MessageKey
@@ -69,14 +69,15 @@ type Response = Partial<CommonResponseHandler> & {
 let nextPromptID = 1
 
 // Dialogs whose RPC has not ended and that are not disposed
-const live = new Set<{method: MessageKey; dispose: () => void}>()
+const live = new Set<{method: MessageKey; dispose: (reason: ClientCancelReason) => void}>()
 
-// A logout ends every dialog of the old account. A dialog whose RPC changes the account on purpose
-// (login, recover, reset) keeps running: its own flow logs out before or during it.
+// A logout ends every dialog of the old account, cancelled by the account change. A dialog whose RPC
+// changes the account on purpose (login, recover, reset) keeps running: its own flow logs out before
+// or during it.
 export const disposeDialogsForLogout = () => {
   for (const d of [...live]) {
     if (!survivesAccountChange(d.method)) {
-      d.dispose()
+      d.dispose('accountChange')
     }
   }
 }
@@ -200,7 +201,7 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
     incomingCallMap[m] = (p: RpcIn<N>) => enqueue({kind: 'notice', method: m, params: p} as Event)
   }
 
-  let cancelSession = () => {}
+  let cancelSession: (reason: ClientCancelReason) => void = () => {}
   let holdSessionServerWork = () => () => {}
   let resolveDone: (r: RpcOut<M>) => void = () => {}
   let rejectDone: (e: unknown) => void = () => {}
@@ -244,7 +245,7 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
       rejectDone(e instanceof Error && e.cause instanceof RPCError ? e.cause : e)
     })
 
-  const dispose = () => {
+  const dispose = (reason: ClientCancelReason) => {
     if (disposed) {
       return
     }
@@ -259,13 +260,8 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
     live.delete(entry)
     // Refuses the prompts closed above once it has stopped the RPC waiting, so refusing them does not
     // show the RPC waiting on the service again on its way out
-    cancelSession()
-    rejectDone(
-      new RPCError('Dialog disposed', StatusCode.sccanceled, null, undefined, undefined, {
-        reason: 'caller',
-        type: 'cancelled',
-      })
-    )
+    cancelSession(reason)
+    rejectDone(new RPCError('Dialog disposed', StatusCode.sccanceled, null, undefined, undefined, {reason, type: 'cancelled'}))
     // Whoever disposed has stopped listening and may never await done; any other rejection is
     // left unhandled so a flow that forgot to await it is reported
     done.catch(() => {})
@@ -296,7 +292,7 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
       }
     },
     return: async () => {
-      dispose()
+      dispose('caller')
       // Disposed, so this reads the end
       return await iterator.next()
     },
@@ -306,7 +302,7 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
     get disposed() {
       return disposed
     },
-    dispose,
+    dispose: () => dispose('caller'),
     done,
     events: {
       [Symbol.asyncIterator]: () => {
