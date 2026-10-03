@@ -7,6 +7,7 @@ import {useWaitingState} from '@/stores/waiting'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {tick} from '@/test/flush'
 import * as Router from '@/constants/router'
+import logger from '@/logger'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 
 import {
@@ -48,6 +49,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  jest.restoreAllMocks()
   cancelProvision()
   restoreNavigator()
   resetAllStores()
@@ -185,7 +187,7 @@ describe('login', () => {
     expect(fake.calls.filter(c => c.method === bootstrap)).toHaveLength(1)
   })
 
-  test('a step submitted after a restart, before the new attempt asks it, starts over again', async () => {
+  test('a stale submit after a restart, to the ended attempt\'s prompt, starts nothing over', async () => {
     const held = await startLogin()
     const password = pushPassword(0)
     await settle()
@@ -195,12 +197,11 @@ describe('login', () => {
     await settle()
     expect(held).toHaveLength(2)
 
-    // the old attempt's password prompt is gone, so this is a changed answer, not an answer to it
+    // the password screen still up answers its closed prompt: nothing
     submitProvisionPassphrase('hunter2')
     await settle()
-    expect(held).toHaveLength(3)
-    await expect(pushDeviceName(2)).resolves.toEqual({result: 'dev1'})
-    await expect(pushPassword(2)).resolves.toEqual({result: {passphrase: 'hunter2', storeSecret: false}})
+    expect(held).toHaveLength(2)
+    await expect(pushDeviceName(1)).resolves.toEqual({result: 'dev1'})
   })
 
   test('a later step resubmitted replays every earlier answer in order, then answers it', async () => {
@@ -419,6 +420,7 @@ describe('login', () => {
     await settle()
     expect(fake.calls.filter(c => c.method === bootstrap)).toHaveLength(1)
     expect(nav.navigations().filter(n => n.name === 'error')).toEqual([])
+    expect(nav.modalsCleared()).toBe(false)
   })
 
   test('the gpg and email prompts are refused, once each', async () => {
@@ -468,8 +470,9 @@ describe('account changes', () => {
     await settle()
   })
 
-  // The switch cancels the login's session: a failure the run caused, so it shows nothing
-  const switchMidLogin = async (endSwitch: 'before the run reads the failure' | 'after the run is over') => {
+  // The switch cancels the login's session, and a cancel ends the run quietly
+  test('an account switch mid-login refuses the prompt and ends the run, showing nothing', async () => {
+    const logError = jest.spyOn(logger, 'error')
     const {setUserSwitching} = useConfigState.getState().dispatch
     const held = await startLogin()
     const password = pushPassword(0)
@@ -477,9 +480,6 @@ describe('account changes', () => {
     nav.clearActions()
 
     setUserSwitching(true, 'testuser2')
-    if (endSwitch === 'before the run reads the failure') {
-      setUserSwitching(false)
-    }
     await settle()
     setUserSwitching(false)
 
@@ -491,22 +491,13 @@ describe('account changes', () => {
     submitProvisionPassphrase('hunter2')
     await settle()
     expect(held).toHaveLength(1)
+    // the service's reply settles the session
     held[0]!.reply(fakeError(T.RPCGen.StatusCode.scinputcanceled, 'Input canceled'))
     await settle()
     expect(fake.engine._sessionsMap.has(sessionOf(0))).toBe(false)
     expect(nav.modalsCleared()).toBe(false)
     expect(nav.navigations()).toEqual([])
-  }
-
-  // Read while the switch runs: logged out, the switch starts no new account generation
-  test('an account switch from logged out refuses the login prompt and shows nothing', async () => {
-    await switchMidLogin('after the run is over')
-  })
-
-  // Read from the account generation, which the switch from a logged-in account moves on
-  test('an account switch from logged in shows nothing even once the switch has ended', async () => {
-    useConfigState.getState().dispatch.setLoggedIn(true)
-    await switchMidLogin('before the run reads the failure')
+    expect(logError).not.toHaveBeenCalled()
   })
 })
 
@@ -632,16 +623,19 @@ describe('add device', () => {
     expect(nav.modalsCleared()).toBe(false)
   })
 
-  // Only the run's own end leaves the modals up
+  // A cancel shows no error; only the run's own end leaves the modals up
   test.each([
     [T.RPCGen.StatusCode.sccanceled, 'Received RPC cancel for session'],
-    [T.RPCGen.StatusCode.scinputcanceled, 'kex canceled by caller'],
-  ])('a cancel from the service (%s) closes the modals', async (code, desc) => {
+    [T.RPCGen.StatusCode.scinputcanceled, 'Input canceled'],
+  ])('a cancel from the service (%s) ends quietly and closes the modals', async (code, desc) => {
+    const logError = jest.spyOn(logger, 'error')
     const held = fake.hold(deviceAdd)
     await startAdd()
     held[0]!.reply(fakeError(code, desc))
     await settle()
     expect(nav.modalsCleared()).toBe(true)
+    expect(nav.navigations()).toEqual([])
+    expect(logError).not.toHaveBeenCalled()
   })
 
   test('a lost service connection closes the modals', async () => {
@@ -655,21 +649,38 @@ describe('add device', () => {
     expect(nav.modalsCleared()).toBe(true)
   })
 
-  test('a code page that throws while showing refuses the prompt and closes the modals', async () => {
+  // As login: the exception goes to the log, the user sees a generic message
+  test('a code page that throws while showing refuses the prompt and ends on the error screen', async () => {
+    const logError = jest.spyOn(logger, 'error')
     fake.hold(deviceAdd)
     await startAdd()
-    const navigate = jest.spyOn(Router, 'navigateAppend').mockImplementation(() => {
-      throw new Error('no navigator')
+    const thrown = new Error('no navigator')
+    const navigate = jest.spyOn(Router, 'navigateAppend').mockImplementationOnce(() => {
+      throw thrown
     })
     try {
       await expect(pushAdd(secret, {phrase: 'one two three', previousErr: ''}, 0)).resolves.toEqual({
         error: inputCanceled,
       })
+      await settle()
     } finally {
       navigate.mockRestore()
     }
-    await settle()
+    expect(logError).toHaveBeenCalledWith(`Provision: showing ${secret} failed`, thrown)
     expect(nav.modalsCleared()).toBe(true)
+    expect(nav.navigations()).toEqual([
+      {
+        name: 'error',
+        params: {
+          error: expect.objectContaining({
+            code: T.RPCGen.StatusCode.scgeneric,
+            desc: 'Something went wrong. Please try again.',
+          }),
+          username: undefined,
+        },
+        replace: false,
+      },
+    ])
   })
 
   test('a failure clears modals and shows nothing else', async () => {

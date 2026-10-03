@@ -8,13 +8,16 @@ import {useWaitingState} from '@/stores/waiting'
 import {waitingKeyProvision} from '@/constants/strings'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {tick} from '@/test/flush'
+import * as Router from '@/constants/router'
 import {errors as rpcErrors} from '@/engine/rpc-transport'
+import logger from '@/logger'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 
 import {
   cancelProvision,
   startProvision,
   submitProvisionDeviceSelect,
+  submitProvisionPassphrase,
   submitProvisionTextCode,
   submitProvisionUsername,
 } from './flow'
@@ -41,6 +44,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  jest.restoreAllMocks()
   cancelProvision()
   restoreNavigator()
   resetAllStores()
@@ -152,20 +156,24 @@ describe('final error handling', () => {
     expect(nav.navigations()).toEqual([])
   })
 
-  // Only a cancel the run caused is quiet; the error screen reads scinputcanceled as "Login cancelled."
+  // Whoever cancelled: Go's own input cancel reads the same as our refusal echoed back
   test.each([
     [T.RPCGen.StatusCode.scinputcanceled, 'canceled by the service'],
     [T.RPCGen.StatusCode.sccanceled, 'canceled'],
-  ])('a cancel (%s) from the service shows the error screen', async (code, desc) => {
+  ])('a cancel (%s) ends the run quietly', async (code, desc) => {
+    const logError = jest.spyOn(logger, 'error')
     const {reply} = await startAttempt()
 
     reply(fakeError(code, desc))
     await settle()
 
-    expect(nav.modalsCleared()).toBe(true)
-    expect(nav.navigations()).toEqual([
-      {name: 'error', params: {error: expect.objectContaining({code, desc}), username: 'testuser'}, replace: true},
-    ])
+    expect(nav.modalsCleared()).toBe(false)
+    expect(nav.navigations()).toEqual([])
+    expect(logError).not.toHaveBeenCalled()
+    // the run is over: a submit starts nothing
+    submitProvisionTextCode('one two three')
+    await settle()
+    expect(fake.calls.filter(c => c.method === login)).toHaveLength(1)
   })
 
   test('a lost service connection ends the run on the error screen', async () => {
@@ -260,31 +268,48 @@ describe('passphrase prompts', () => {
     })
   })
 
-  test('a passphrase prompt of another kind is refused and ends the run on the error screen', async () => {
+  test('a passphrase prompt of another kind is refused and shows nothing; the run goes on', async () => {
+    const logWarn = jest.spyOn(logger, 'warn')
     const {push} = await startAttempt()
     const answered = pushPassphrase(push, T.RPCGen.PassphraseType.verifyPassPhrase)
     await settle()
+    expect(nav.navigations()).toEqual([])
     await expect(answered).resolves.toEqual({
       error: {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'},
     })
+    expect(logWarn).toHaveBeenCalledWith('Provision: got confused about password entry')
+    // the service asks again with a type the flow shows, and the user's answer reaches it
+    const password = pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase)
+    await settle()
+    expect(nav.navigations()).toEqual([
+      {name: 'password', params: {error: undefined, username: 'testuser'}, replace: false},
+    ])
+    submitProvisionPassphrase('hunter2')
+    await expect(password).resolves.toEqual({result: {passphrase: 'hunter2', storeSecret: false}})
+    expect(nav.modalsCleared()).toBe(false)
+  })
+
+  // The user sees a generic message; the exception goes to the log
+  const expectShowFailure = (logError: jest.SpyInstance, thrown: unknown) => {
+    expect(logError).toHaveBeenCalledWith(expect.stringContaining('Provision: showing'), thrown)
     expect(nav.modalsCleared()).toBe(true)
     expect(nav.navigations()).toEqual([
       {
         name: 'error',
         params: {
-          error: expect.objectContaining({desc: 'Got confused about password entry. Please send a log to us!'}),
+          error: expect.objectContaining({
+            code: T.RPCGen.StatusCode.scgeneric,
+            desc: 'Something went wrong. Please try again.',
+          }),
           username: 'testuser',
         },
         replace: true,
       },
     ])
-    // the run is over: the service's next prompt on that session is refused
-    await expect(pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase)).resolves.toEqual({
-      error: {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'},
-    })
-  })
+  }
 
-  test('a prompt that throws while showing is refused and ends the run on the error screen', async () => {
+  test('a prompt whose payload the flow cannot read is refused and ends the run on the error screen', async () => {
+    const logError = jest.spyOn(logger, 'error')
     const {push} = await startAttempt()
     // a device the flow cannot read
     const answered = push('keybase.1.provisionUi.chooseDevice', {devices: [null]})
@@ -292,14 +317,29 @@ describe('passphrase prompts', () => {
     await expect(answered).resolves.toEqual({
       error: {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'},
     })
-    expect(nav.modalsCleared()).toBe(true)
-    expect(nav.navigations()).toEqual([
-      {
-        name: 'error',
-        params: {error: expect.objectContaining({code: T.RPCGen.StatusCode.scgeneric}), username: 'testuser'},
-        replace: true,
-      },
-    ])
+    expectShowFailure(logError, expect.any(TypeError))
+  })
+
+  test('a screen that fails to show refuses its prompt and ends the run on the error screen', async () => {
+    const logError = jest.spyOn(logger, 'error')
+    const {push} = await startAttempt()
+    const thrown = new Error('no navigator')
+    const navigate = jest.spyOn(Router, 'navigateAppend').mockImplementationOnce(() => {
+      throw thrown
+    })
+    try {
+      await expect(pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase)).resolves.toEqual({
+        error: {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'},
+      })
+      await settle()
+    } finally {
+      navigate.mockRestore()
+    }
+    expectShowFailure(logError, thrown)
+    // the run is over: a submit starts nothing
+    submitProvisionPassphrase('hunter2')
+    await settle()
+    expect(fake.calls.filter(c => c.method === login)).toHaveLength(1)
   })
 })
 
