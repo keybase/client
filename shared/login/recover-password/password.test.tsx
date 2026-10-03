@@ -100,6 +100,22 @@ test('a screen that answered stays when its effects run again while the service 
   await end()
 })
 
+// A retry's setParams, or a restart onto the same mounted screen, changes its prompt with no mount or focus
+test('a mounted screen whose params change to a prompt with nothing to answer closes itself', async () => {
+  const {end, promptId} = await setup()
+  const retryId = promptId + 1000
+  const key = nav.getRootState()?.routes?.find(r => r.name === setPassword)?.key
+  act(() => {
+    nav.setRouteParams(key, {promptId: retryId})
+  })
+  nav.clearActions()
+
+  rendered.rerender(<Password route={{params: {promptId: retryId, recoverRunId: 'r-0'}}} />)
+
+  expect(nav.types()).toEqual(['GO_BACK'])
+  await end()
+})
+
 test('a screen whose run was restarted before it mounted closes itself', async () => {
   await setup(async () => {
     startRecoverPassword({username: 'testuser'})
