@@ -26,6 +26,10 @@ const errorCausedByUsCanceling = (e?: RPCError) => {
   const desc = e?.desc
   return desc === 'Input canceled' || desc === 'kex canceled by caller'
 }
+// A cancel is not a failure, whoever cancelled: the user, the service, or an account switch
+const isCancel = (e: unknown) =>
+  e instanceof RPCError &&
+  (e.code === T.RPCGen.StatusCode.sccanceled || e.code === T.RPCGen.StatusCode.scinputcanceled)
 
 const makeDevice = (): Device => ({
   deviceNumberOfType: 0,
@@ -400,6 +404,9 @@ const runProvision = (username: string) => {
             break
           }
           const finalError = _finalError
+          if (isCancel(finalError)) {
+            break
+          }
           // If it's a non-existent username or invalid, allow the opportunity to correct it right
           // there on the page.
           switch (finalError.code) {
@@ -484,9 +491,11 @@ export const startAddNewDevice = (otherDeviceType: 'desktop' | 'mobile') => {
   }
 
   const f = async () => {
+    let cancelled = false
     try {
       await Promise.all([showEvents(), dialog.done])
-    } catch {
+    } catch (error) {
+      cancelled = isCancel(error)
     } finally {
       for (let i = 0; i < exchangedIncrements; ++i) {
         useWaitingState.getState().dispatch.decrement(waitingKeyProvision)
@@ -497,7 +506,7 @@ export const startAddNewDevice = (otherDeviceType: 'desktop' | 'mobile') => {
     }
     // A cancelled (or superseded) run must not clear modals: by now the user has either navigated
     // away or a newer run owns the screens, and this would close the newer run's UI.
-    if (!dialog.disposed) {
+    if (!dialog.disposed && !cancelled) {
       clearModals()
     }
   }

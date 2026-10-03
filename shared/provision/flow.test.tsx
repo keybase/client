@@ -449,9 +449,8 @@ describe('account changes', () => {
     await settle()
   })
 
-  // The switch cancels the session, which is not the run disposing it, and its error is not one of
-  // the cancels the run ignores
-  test('an account switch refuses the login prompt and shows the cancel as the error', async () => {
+  // The switch cancels the session, which is not the run disposing it; a cancel is never a failure
+  test('an account switch refuses the login prompt and shows nothing', async () => {
     await startLogin()
     const password = pushPassword(0)
     await settle()
@@ -461,17 +460,8 @@ describe('account changes', () => {
     await settle()
 
     await expect(password).resolves.toEqual({error: inputCanceled})
-    expect(nav.modalsCleared()).toBe(true)
-    expect(nav.navigations()).toEqual([
-      {
-        name: 'error',
-        params: {
-          error: expect.objectContaining({code: T.RPCGen.StatusCode.sccanceled, desc: 'Received RPC cancel for session'}),
-          username: 'testuser',
-        },
-        replace: true,
-      },
-    ])
+    expect(nav.modalsCleared()).toBe(false)
+    expect(nav.navigations()).toEqual([])
   })
 })
 
@@ -594,6 +584,17 @@ describe('add device', () => {
     held[0]!.reply(fakeError(T.RPCGen.StatusCode.scinputcanceled, 'Input canceled'))
     await settle()
     expect(held).toHaveLength(1)
+    expect(nav.modalsCleared()).toBe(false)
+  })
+
+  test.each([
+    [T.RPCGen.StatusCode.sccanceled, 'Received RPC cancel for session'],
+    [T.RPCGen.StatusCode.scinputcanceled, 'Input canceled'],
+  ])('a cancel from the service (%s) is not a failure: nothing is cleared', async (code, desc) => {
+    const held = fake.hold(deviceAdd)
+    await startAdd()
+    held[0]!.reply(fakeError(code, desc))
+    await settle()
     expect(nav.modalsCleared()).toBe(false)
   })
 

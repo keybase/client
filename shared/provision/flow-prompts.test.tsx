@@ -151,6 +151,19 @@ describe('final error handling', () => {
     expect(nav.navigations()).toEqual([])
   })
 
+  test.each([
+    [T.RPCGen.StatusCode.sccanceled, 'canceled'],
+    [T.RPCGen.StatusCode.scinputcanceled, 'canceled by the service'],
+  ])('a cancel (%s) is not a failure: it shows nothing', async (code, desc) => {
+    const {reply} = await startAttempt()
+
+    reply(fakeError(code, desc))
+    await settle()
+
+    expect(nav.modalsCleared()).toBe(false)
+    expect(nav.navigations()).toEqual([])
+  })
+
   test('a lost service connection ends the run', async () => {
     const {push} = await startAttempt()
     const password = pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase)
