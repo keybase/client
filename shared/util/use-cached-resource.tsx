@@ -214,18 +214,19 @@ const runLoad = async <T, K>(
   } catch (error) {
     // record the failure even for a superseded request: the backoff belongs to
     // the shared cache, not to whichever instance happened to own the request.
-    // The client cancelling it is no failure of the resource.
+    // The client cancelling it is no failure of the resource; the service's
+    // cancel is, and a lost link's reconnect reload is forced past the backoff.
     if (!isCancelled(error, 'caller', 'accountChange')) {
       cache.setLoadFailed(generation)
     }
     if (requestVersion !== requestVersionRef.current) {
       return
     }
-    // A cancelled load is not an error to show
+    // A cancel is never an error to show. A lost link stays loading until the
+    // reconnect's handshake reloads it; any other cancel ends the load quietly.
     if (!isCancelled(error)) {
       onError?.(error)
     }
-    // A lost link reloads on reconnect, so it is still loading until then
     if (!isCancelled(error, 'disconnect')) {
       setState(
         produce(draft => {
@@ -357,8 +358,8 @@ export const useCachedResource = <T, K>(props: Props<T, K>) => {
     await loadResource(false, joinAnyEpoch)
   }, [loadResource])
 
-  // reconnects orphan any in-flight load; force so cached data from before the
-  // restart doesn't mask post-restart changes. Disabled hooks must not touch the
+  // a lost link rejects an in-flight load, which stays loading; force so cached
+  // data from before the restart doesn't mask post-restart changes. Disabled hooks must not touch the
   // shared cache (loadResource resets it when disabled)
   useReloadOnReconnect(epoch => {
     if (latestRef.current.enabled) {

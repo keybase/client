@@ -20,8 +20,8 @@ const epochForGeneration = (generation: number) => {
  * Fires cb when the daemon handshake completes after this hook has observed a
  * different handshake state — i.e. on reconnect (engine reset re-runs the
  * handshake) or recovery from a failed handshake. Mounting while already
- * 'done' never fires. Engine resets orphan in-flight rpc promises (they never
- * settle), so data hooks use this to refire loads and unstick themselves.
+ * 'done' never fires. A lost link rejects in-flight rpcs cancelled by the
+ * disconnect, and data hooks wait for this to load them again.
  * cb receives the epoch shared by every hook reacting to this same reconnect.
  */
 export const useReloadOnReconnect = (cb: (epoch: number) => void) => {
