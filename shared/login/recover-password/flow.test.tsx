@@ -783,6 +783,26 @@ describe('restart', () => {
     held[1]!.reply(fakeError(T.RPCGen.StatusCode.scinputcanceled, 'Input canceled'))
     await settle()
   })
+
+  // The run is no longer current once it is over, before it settles its PGP warning, so a run started
+  // then disposes nothing: the old run's end must see the newer run and leave the screens to it
+  test('a run whose end comes after a newer run started clears no modals', async () => {
+    const {held} = await start()
+    const info = logger.info.bind(logger)
+    jest.spyOn(logger, 'info').mockImplementation((...args: Parameters<typeof logger.info>) => {
+      if (String(args[0]).startsWith('finished')) {
+        startRecoverPassword({username: 'testuser'})
+      }
+      info(...args)
+    })
+    held[0]!.reply(undefined)
+    await settle()
+    jest.restoreAllMocks()
+
+    expect(nav.modalsCleared()).toBe(false)
+    held[1]!.reply(fakeError(T.RPCGen.StatusCode.scinputcanceled, 'Input canceled'))
+    await settle()
+  })
 })
 
 describe('account changes', () => {

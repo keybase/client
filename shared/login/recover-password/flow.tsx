@@ -424,12 +424,13 @@ export const startRecoverPassword = ({
         answeredByScreen.clear()
       }
       // The session settled a warning still unanswered when the run ended; nothing is left to answer
-      if (pgp && (await pgp.closed) === 'ended' && !dialog.disposed) {
+      if (pgp && (await pgp.closed) === 'ended' && latest === run) {
         takeWarningOffTop()
       }
     }
     logger.info(`finished ${hadError ? 'with error' : 'without error'}`)
-    if (!hadError && !dialog.disposed) {
+    // A newer run may have started while the run settled its warning; the screens are its now
+    if (!hadError && latest === run) {
       clearModals()
     }
   }
