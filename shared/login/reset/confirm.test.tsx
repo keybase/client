@@ -11,6 +11,7 @@ let mockEnded: undefined | {promise: Promise<void>; resolve: () => void}
 const mockSubmitResetPrompt = jest.fn()
 const mockDeclineResetPrompt = jest.fn()
 const mockSetOptions = jest.fn()
+const mockNavUpToScreen = jest.fn()
 // The screen's beforeRemove listeners, as the navigator would call them on a visible removal
 type BeforeRemoveEvent = {data: {action: {type: string}}; preventDefault: () => void}
 const mockBeforeRemove = new Set<(e: BeforeRemoveEvent) => void>()
@@ -69,6 +70,10 @@ jest.mock('@/common-adapters', () => {
   }
 })
 
+jest.mock('@/constants/router', () => ({
+  navUpToScreen: (...args: Array<unknown>) => mockNavUpToScreen(...args),
+}))
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
 }))
@@ -111,7 +116,9 @@ describe('ConfirmReset', () => {
     mockEnded = {promise, resolve}
     mockBeforeRemove.clear()
     mockSetOptions.mockReset()
-    mockSubmitResetPrompt.mockClear()
+    // Answers the open prompt, as the flow would
+    mockSubmitResetPrompt.mockReset().mockReturnValue(true)
+    mockNavUpToScreen.mockClear()
     mockDeclineResetPrompt.mockClear()
     route = makeFakeRoute('resetConfirm')
     route.enter({hasWallet: false, promptId: 1})
@@ -227,5 +234,31 @@ describe('ConfirmReset', () => {
     route.leave()
 
     expect(mockDeclineResetPrompt).not.toHaveBeenCalled()
+  })
+
+  test('with nothing open to answer, each button and back takes the user up to login', () => {
+    mount()
+    // The prompt closed under the screen: its RPC failed or the service cancelled it
+    mockSubmitResetPrompt.mockReturnValue(false)
+
+    fireEvent.click(screen.getByText('Close'))
+    fireEvent.click(screen.getByText('cancel the reset'))
+    const options = mockSetOptions.mock.calls.at(-1)![0] as {headerLeft: () => React.ReactElement}
+    render(options.headerLeft())
+    fireEvent.click(screen.getByText('Back'))
+
+    expect(mockSubmitResetPrompt).toHaveBeenCalledTimes(3)
+    expect(mockNavUpToScreen.mock.calls).toEqual([['login'], ['login'], ['login']])
+  })
+
+  test('once a button answered, the other buttons do nothing', () => {
+    mount()
+
+    fireEvent.click(screen.getByText('Close'))
+    fireEvent.click(screen.getByText('cancel the reset'))
+
+    expect(mockSubmitResetPrompt).toHaveBeenCalledTimes(1)
+    expect(mockSubmitResetPrompt).toHaveBeenCalledWith(1, T.RPCGen.ResetPromptResponse.nothing)
+    expect(mockNavUpToScreen).not.toHaveBeenCalled()
   })
 })

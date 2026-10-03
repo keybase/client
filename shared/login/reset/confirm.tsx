@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
+import {navUpToScreen} from '@/constants/router'
 import {promptRouteGone, registerRouteGone, useRouteKey} from '@/router-v2/route-gone'
 import {declineResetPrompt, isResetPromptOpen, resetRunEnded, submitResetPrompt} from './account-reset'
 
@@ -22,8 +23,13 @@ const ConfirmReset = ({route}: Props) => {
       if (resolvedRef.current) {
         return
       }
-      resolvedRef.current = true
-      submitResetPrompt(promptId, action)
+      if (submitResetPrompt(promptId, action)) {
+        resolvedRef.current = true
+      } else {
+        // Nothing left to answer (its RPC failed, or the service cancelled the prompt): the screen
+        // would be stuck, and it has no back gesture, so go where an answer would have
+        navUpToScreen('login')
+      }
     },
     [promptId]
   )

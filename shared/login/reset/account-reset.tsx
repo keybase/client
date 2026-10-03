@@ -113,7 +113,7 @@ export const declineResetPrompt = (promptId: number) => {
   }
 }
 
-// Answers the confirm screen's prompt; nothing happens once the pipeline has moved past it
+// Answers the confirm screen's prompt; false, doing nothing, once the pipeline has moved past it
 export const submitResetPrompt = (promptId: number, action: T.RPCGen.ResetPromptResponse) => {
   for (const {dialog, username} of runs) {
     if (dialog.prompt(promptId, promptResetAccount)?.answer(action)) {
@@ -122,7 +122,8 @@ export const submitResetPrompt = (promptId: number, action: T.RPCGen.ResetPrompt
       } else {
         navUpToScreen('login')
       }
-      return
+      return true
     }
   }
+  return false
 }

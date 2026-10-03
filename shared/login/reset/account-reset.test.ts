@@ -104,7 +104,7 @@ test('the final prompt shows the confirm screen, and confirming answers it and s
   })
   expect(mockStartProvision).not.toHaveBeenCalled()
 
-  submitResetPrompt(promptId, T.RPCGen.ResetPromptResponse.confirmReset)
+  expect(submitResetPrompt(promptId, T.RPCGen.ResetPromptResponse.confirmReset)).toBe(true)
 
   await expect(answered).resolves.toEqual({result: T.RPCGen.ResetPromptResponse.confirmReset})
   expect(mockStartProvision).toHaveBeenCalledWith('testuser', true)
@@ -180,7 +180,7 @@ test('once the pipeline ends, the confirm screen answer does nothing', async () 
   s.held[0]!.reply(undefined)
   await settle()
 
-  submitResetPrompt(promptId, T.RPCGen.ResetPromptResponse.confirmReset)
+  expect(submitResetPrompt(promptId, T.RPCGen.ResetPromptResponse.confirmReset)).toBe(false)
 
   expect(mockStartProvision).not.toHaveBeenCalled()
   expect(nav.actions).not.toContainEqual(loginPopTo)
