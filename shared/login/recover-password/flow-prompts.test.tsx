@@ -51,11 +51,16 @@ const isFakeTimers = () => jest.isMockFunction(setTimeout) || 'clock' in setTime
 
 // The listener hands incoming calls to their handlers on a timer, and the flow reads them off the
 // dialog's events after that
+// The listener's handler timer, then the one a prompt left unanswered becomes the GUI's on
 const settle = async () => {
-  if (isFakeTimers()) {
-    await jest.advanceTimersByTimeAsync(0)
-  } else {
-    await new Promise(resolve => setTimeout(resolve, 0))
+  for (let i = 0; i < 2; i++) {
+    if (isFakeTimers()) {
+      // eslint-disable-next-line no-await-in-loop
+      await jest.advanceTimersByTimeAsync(0)
+    } else {
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise(resolve => setTimeout(resolve, 0))
+    }
   }
   await tick()
 }

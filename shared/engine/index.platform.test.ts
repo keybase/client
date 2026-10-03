@@ -268,15 +268,15 @@ test('a closed renderer transport stops hearing the relay', () => {
 test('an engine that replaces one built by older code (HMR) is the only one hearing the relay, and gets a link of its own', () => {
   const {fromRelay, listeners, restarts} = makeRelayChannel()
   jest.isolateModules(() => {
-    const {makeEngine} = require('./index') as typeof EngineModule
+    const {ENGINE_VERSION, makeEngine} = require('./index') as typeof EngineModule
     const old = makeEngine(
       () => {},
       () => {}
     )
     fromRelay(up(1))
     old.listenersAreReady()
-    // what an engine from before the call port looks like to makeEngine
-    ;(old as {listen?: unknown}).listen = undefined
+    // what an engine older code built looks like to makeEngine
+    ;(old as {version?: number}).version = ENGINE_VERSION - 1
 
     const linkChanges = new Array<boolean>()
     const next = makeEngine(
@@ -293,6 +293,23 @@ test('an engine that replaces one built by older code (HMR) is the only one hear
     fromRelay(up(2))
     expect(linkChanges).toEqual([true])
     expect(next._rpcClient.transport.isLinkUp).toBe(true)
+  })
+})
+
+test('a hot reload keeps an engine of the same version', () => {
+  const {restarts} = makeRelayChannel()
+  jest.isolateModules(() => {
+    const {makeEngine} = require('./index') as typeof EngineModule
+    const old = makeEngine(
+      () => {},
+      () => {}
+    )
+    const next = makeEngine(
+      () => {},
+      () => {}
+    )
+    expect(next).toBe(old)
+    expect(restarts).not.toHaveBeenCalled()
   })
 })
 

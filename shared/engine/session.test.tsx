@@ -3,6 +3,7 @@ import Session from './session'
 import {RPCError} from '@/util/errors'
 import * as T from '@/constants/types'
 import {startNewAccountGeneration, survivesAccountChange} from './account-generation'
+import logger from '@/logger'
 
 const mockDispatchWaitingAction = jest.fn()
 
@@ -38,18 +39,52 @@ test('cancel releases the waiting count when the server owes us a response', () 
   mockDispatchWaitingAction.mockReset() // drop the +1 from start
 
   session.cancel()
-  expect(mockDispatchWaitingAction).toHaveBeenCalledWith('waiting-key', false, undefined)
+  expect(mockDispatchWaitingAction).toHaveBeenCalledWith({error: undefined, increment: false, key: 'waiting-key'})
 })
 
-test('cancel does not double-release waiting while a prompt is pending on the GUI', () => {
+test('cancel does not double-release waiting while a prompt is pending on the GUI', async () => {
   const session = makeSession('waiting-key')
   session.start('keybase.1.login.login', undefined, jest.fn())
-  // server calls us back with a prompt: waiting flips false and stays false until we respond
+  // server calls us back with a prompt: waiting flips false, once its handler's task is over, and stays
+  // false until we respond
   session.incomingCall('keybase.1.provisionUi.chooseDevice', {}, {seqid: 5} as never)
+  await new Promise(resolve => setTimeout(resolve, 0))
+  expect(mockDispatchWaitingAction).toHaveBeenLastCalledWith({error: undefined, increment: false, key: 'waiting-key'})
   mockDispatchWaitingAction.mockReset()
 
   session.cancel()
   expect(mockDispatchWaitingAction).not.toHaveBeenCalled()
+})
+
+test('a session ended before its RPC settled stops waiting, and says so in a dev build', () => {
+  const dev = __DEV__
+  global.__DEV__ = true
+  const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
+  const session = makeSession('waiting-key')
+  session.start('keybase.1.login.login', undefined, jest.fn())
+  mockDispatchWaitingAction.mockReset() // drop the +1 from start
+
+  session.end()
+  expect(mockDispatchWaitingAction).toHaveBeenCalledWith({error: undefined, increment: false, key: 'waiting-key'})
+  expect(warn).toHaveBeenCalledWith(expect.stringContaining('ended without settling'))
+  warn.mockRestore()
+  global.__DEV__ = dev
+})
+
+test('a call that fails with a plain Error stops waiting but records no error on its key', () => {
+  const invoke = jest.fn()
+  const session = new Session({
+    dispatchWaiting: mockDispatchWaitingAction,
+    endHandler: jest.fn(),
+    invoke,
+    sessionID: 8,
+    waitingKey: 'waiting-key',
+  })
+  session.start('keybase.1.login.login', undefined, jest.fn())
+  mockDispatchWaitingAction.mockReset()
+  const reply = invoke.mock.calls[0]![2] as (err: unknown, data: unknown) => void
+  reply(new Error('Queue overflow for keybase.1.login.login'), undefined)
+  expect(mockDispatchWaitingAction).toHaveBeenCalledWith({error: undefined, increment: false, key: 'waiting-key'})
 })
 
 test('a late server response after cancel does not fire the callback twice', () => {
@@ -103,7 +138,7 @@ describe('a call that outlives its account', () => {
     expect(err).toBeInstanceOf(RPCError)
     expect(err.code).toBe(T.RPCGen.StatusCode.sccanceled)
     expect(data).toBeUndefined()
-    expect(mockDispatchWaitingAction).toHaveBeenCalledWith('waiting-key', false, undefined)
+    expect(mockDispatchWaitingAction).toHaveBeenCalledWith({error: undefined, increment: false, key: 'waiting-key'})
   })
 
   test('a prompt the service sends on it is answered with an error, not handed to its handler', () => {
@@ -127,7 +162,7 @@ describe('a call that outlives its account', () => {
     reply(undefined, undefined)
 
     expect(callback).toHaveBeenCalledWith(undefined, undefined)
-    expect(mockDispatchWaitingAction).toHaveBeenCalledWith('waiting-key', false, undefined)
+    expect(mockDispatchWaitingAction).toHaveBeenCalledWith({error: undefined, increment: false, key: 'waiting-key'})
   })
 
   test('registering with the service outlives an account', () => {

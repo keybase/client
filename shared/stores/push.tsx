@@ -7,7 +7,7 @@ import {emitDeepLink} from '@/router-v2/deep-link-emitter'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
-import {useWaitingState} from '@/stores/waiting'
+import {holdWaiting} from '@/stores/waiting'
 import {openAppSettings} from '@/util/storeless-actions'
 type Store = {
   hasPermissions: boolean
@@ -189,10 +189,10 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
             return
           }
         }
-        const {increment, decrement} = useWaitingState.getState().dispatch
+        let release = () => {}
         try {
           openAppSettings()
-          increment(S.waitingKeyPushPermissionsRequesting)
+          release = holdWaiting(S.waitingKeyPushPermissionsRequesting)
           await requestPermissionsFromNative()
           const permissions = await checkPermissionsFromNative()
           if (permissions.alert || permissions.badge) {
@@ -207,7 +207,7 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
             })
           }
         } finally {
-          decrement(S.waitingKeyPushPermissionsRequesting)
+          release()
           get().dispatch.showPermissionsPrompt({persistSkip: true, show: false})
         }
       }

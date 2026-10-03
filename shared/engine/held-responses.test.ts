@@ -22,8 +22,12 @@ const prompt = 'keybase.1.loginUi.promptPassphraseRecovery'
 const row = 'keybase.1.identify3Ui.identify3UpdateRow'
 const inputCanceled = {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'}
 
-// The listener hands incoming calls to their handlers on a timer
-const afterTimers = async () => new Promise(resolve => setTimeout(resolve, 0))
+// The listener hands incoming calls to their handlers on a timer, and a prompt they leave unanswered
+// becomes the GUI's on the next
+const afterTimers = async () => {
+  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise(resolve => setTimeout(resolve, 0))
+}
 // What a push has settled to by now, or that it is still waiting on the GUI
 const settledSoFar = async <V>(p: Promise<V>) => Promise.race([p, tick().then(() => 'still waiting' as const)])
 

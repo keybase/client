@@ -18,7 +18,8 @@ export type ListenParams = {
   incomingCallMap?: object
   customResponseIncomingCallMap?: object
   waitingKey?: WaitingKey
-  onSessionCreated?: (cancel: () => void) => void
+  // holdServerWork: the service works on while the flow holds a prompt (see WaitingTracker)
+  onSessionCreated?: (cancel: () => void, session: {holdServerWork: () => () => void}) => void
   globalFallthrough?: ReadonlyArray<string>
 }
 

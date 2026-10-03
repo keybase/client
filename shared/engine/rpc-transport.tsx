@@ -595,4 +595,4 @@ export abstract class RPCTransport {
   }
 }
 
-export {encodeFrame, isRPCMessage, makeEOFError, makeTransportError}
+export {encodeFrame, isRPCMessage, makeDisconnectError, makeEOFError, makeTransportError}

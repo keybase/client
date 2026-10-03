@@ -408,11 +408,14 @@ describe('waiting', () => {
 
   test('secret-exchange progress is released when the attempt ends', async () => {
     const {push, reply} = await startAttempt()
+    void push(secret, {phrase: 'one two three', previousErr: ''})
+    await settle()
+    expect(waitingCount()).toBeUndefined()
 
     await push(exchanged, {})
     await push(exchanged, {})
     await settle()
-    expect(waitingCount()).toBe(3)
+    expect(waitingCount()).toBe(1)
 
     reply(undefined)
     await settle()
@@ -422,9 +425,10 @@ describe('waiting', () => {
 
   test('secret-exchange progress is released when the attempt is cancelled', async () => {
     const {push} = await startAttempt()
+    void push(secret, {phrase: 'one two three', previousErr: ''})
     await push(exchanged, {})
     await settle()
-    expect(waitingCount()).toBe(2)
+    expect(waitingCount()).toBe(1)
 
     cancelProvision()
     await settle()

@@ -51,6 +51,9 @@ export type Dialog<R, P extends PromptMethod, N extends NoticeMethod> = {
   openPrompts: () => ReadonlyArray<AnyPrompt<P>>
   // Refuses open prompts and, until the RPC ends, everything else the service sends on the session
   dispose: () => void
+  // Keeps the waiting key on while prompts are open, for a flow that knows the service works on
+  // meanwhile. Ends when the returned function runs or the RPC ends.
+  holdServerWork: () => () => void
 }
 
 // A method is either surfaced or auto-answered, never both
@@ -198,6 +201,7 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
   }
 
   let cancelSession = () => {}
+  let holdSessionServerWork = () => () => {}
   let resolveDone: (r: RpcOut<M>) => void = () => {}
   let rejectDone: (e: unknown) => void = () => {}
   const done = new Promise<RpcOut<M>>((resolve, reject) => {
@@ -222,8 +226,9 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
       globalFallthrough: opts.globalFallthrough,
       incomingCallMap,
       method,
-      onSessionCreated: cancel => {
+      onSessionCreated: (cancel, session) => {
         cancelSession = cancel
+        holdSessionServerWork = session.holdServerWork
       },
       params,
       waitingKey: opts.waitingKey,
@@ -244,12 +249,16 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
       return
     }
     disposed = true
-    for (const {prompt} of [...open.values()]) {
-      prompt.cancel()
+    for (const {close, prompt} of [...open.values()]) {
+      if (prompt.open) {
+        close('cancelled')
+      }
     }
     queue.length = 0
     finish()
     live.delete(entry)
+    // Refuses the prompts closed above once it has stopped the RPC waiting, so refusing them does not
+    // show the RPC waiting on the service again on its way out
     cancelSession()
     rejectDone(new RPCError('Dialog disposed', StatusCode.sccanceled))
     // Whoever disposed has stopped listening and may never await done; any other rejection is
@@ -303,6 +312,7 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
         return iterator
       },
     },
+    holdServerWork: () => holdSessionServerWork(),
     openPrompt: <K extends P>(m: K) => {
       const p = [...open.values()].find(o => o.prompt.method === m && o.prompt.open)?.prompt
       return p as unknown as Prompt<K> | undefined

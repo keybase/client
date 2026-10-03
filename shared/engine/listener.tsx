@@ -1,15 +1,15 @@
-import {ensureError, RPCError} from '@/util/errors'
+import {ensureError, type RPCError} from '@/util/errors'
 import {printOutstandingRPCs} from '@/local-debug'
 import {getAccountGeneration, survivesAccountChange} from './account-generation'
-import {inputCanceledError, type CommonResponseHandler, type ResponseType, type WaitingKey} from './types'
+import {inputCanceledError, type CommonResponseHandler, type ResponseType} from './types'
 import {wrapErrors} from '@/util/debug'
-import type {ErrorType} from './rpc-transport'
 import type {CallPort, ListenParams} from './call-port'
+import type {DeferRun} from './session'
 
 type ListenEngine = {
   call: CallPort['call']
-  dispatchWaitingAction: (key: WaitingKey, waiting: boolean, error?: RPCError) => void
   cancelSession: (sessionID: number) => void
+  holdServerWork: (sessionID: number) => () => void
 }
 
 export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
@@ -19,63 +19,6 @@ export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
     const customResponseIncomingCallMap = (p.customResponseIncomingCallMap || {}) as {
       [K in string]: (params: unknown, response: Partial<CommonResponseHandler>) => Promise<void>
     }
-
-    // Whether we've told the waiting store the server is working (vs. parked on a GUI prompt).
-    // Dispatches are deduped through this flag so a client-side cancel arriving while a prompt is
-    // up can't dispatch a second waiting=false and decrement the count below zero.
-    let waitingOnServer = false
-    const setWaitingOnServer = (waiting: boolean, error?: RPCError) => {
-      if (!waitingKey || waitingOnServer === waiting) {
-        return
-      }
-      waitingOnServer = waiting
-      engine.dispatchWaitingAction(waitingKey, waiting, error)
-    }
-
-    // Wraps a response to update the waiting state
-    // A late answer to a settled response reaches no server, so it must not count as waiting on one.
-    const makeWaitingResponse = (r: ResponseType) => {
-      if (!waitingKey) {
-        return r as Partial<CommonResponseHandler>
-      }
-
-      const response: Partial<CommonResponseHandler> & {
-        readonly settled?: boolean
-        onCancelledByService?: () => void
-      } = {
-        get settled() {
-          return r.settled
-        },
-      }
-      // The service went back to work on the RPC, as after an answer
-      r.onCancelledByService = () => {
-        setWaitingOnServer(true)
-        response.onCancelledByService?.()
-      }
-
-      if (r.error) {
-        response.error = (e: ErrorType) => {
-          if (!r.settled) {
-            setWaitingOnServer(true)
-          }
-          r.error?.(e)
-        }
-      }
-
-      if (r.result) {
-        response.result = (...args: Array<unknown>) => {
-          if (!r.settled) {
-            setWaitingOnServer(true)
-          }
-          r.result?.(...args)
-        }
-      }
-
-      return response
-    }
-
-    // Waiting on the server
-    setWaitingOnServer(true)
 
     // Handlers run on a timer so transport work can flush before heavier state updates. By then an
     // account switch may have reset the stores the handler writes to, unless this call outlives it.
@@ -112,24 +55,32 @@ export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
       }
     }
 
-    const customMap: {[key: string]: (params: unknown, response: ResponseType) => void} = {}
+    const customMap: {[key: string]: (params: unknown, response: ResponseType, deferRun: DeferRun) => void} = {}
     for (const m of Object.keys(customResponseIncomingCallMap)) {
-      customMap[m] = (params: unknown, sessionResponse: ResponseType) => {
-        // No longer waiting on the server
-        setWaitingOnServer(false)
-        const response = makeWaitingResponse(sessionResponse)
+      customMap[m] = (params: unknown, response: ResponseType, deferRun: DeferRun) => {
+        // The session learns whether the handler answered once it has run
+        const ran = deferRun()
         // The service is still waiting on this prompt, and no handler will answer it
         const refuse = () => {
-          if (!sessionResponse.settled) {
+          if (!response.settled) {
             response.error?.(inputCanceledError)
           }
         }
         runDeferred(
           async () => {
             // Settled meanwhile: the session ended or was cancelled, so nothing reads this answer
-            if (!sessionResponse.settled) {
-              await customResponseIncomingCallMap[m]?.(params, response)
+            if (response.settled) {
+              return
             }
+            const handler = customResponseIncomingCallMap[m]
+            // Gone since the listener started (a hot reload): nothing will answer it
+            if (!handler) {
+              refuse()
+              return
+            }
+            const answered = handler(params, response as Partial<CommonResponseHandler>)
+            ran()
+            await answered
           },
           refuse,
           refuse,
@@ -152,9 +103,6 @@ export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
           clearInterval(outstandingIntervalID)
         }
 
-        // No longer waiting
-        setWaitingOnServer(false, error instanceof RPCError ? error : undefined)
-
         if (error) {
           reject(ensureError(error))
         } else {
@@ -167,7 +115,10 @@ export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
       incomingCallMap: plainMap,
       method,
       params,
+      waitingKey,
     })
-    p.onSessionCreated?.(() => engine.cancelSession(sessionID))
+    p.onSessionCreated?.(() => engine.cancelSession(sessionID), {
+      holdServerWork: () => engine.holdServerWork(sessionID),
+    })
   })
 }
