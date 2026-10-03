@@ -3,8 +3,8 @@ import {UpdatePassword} from '@/settings/password'
 import {submitRecoverPasswordPassword} from './flow'
 import {useRecoverPromptBack, useRecoverPromptSelfClose} from './use-prompt-back'
 
-// runId: the run that showed it, which takes its own screens away when it fails
-type Props = {route: {params: {error?: string; promptId: number; runId: number}}}
+// recoverRunId: the run that showed it, which takes its own screens away when it fails
+type Props = {route: {params: {error?: string; promptId: number; recoverRunId: string}}}
 
 const Password = ({route}: Props) => {
   const {error, promptId} = route.params

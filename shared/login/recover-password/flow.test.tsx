@@ -111,7 +111,7 @@ describe('device selection', () => {
       params: {
         devices: [expect.objectContaining({id: deviceID, name: 'phone', type: 'mobile'})],
         promptId,
-        runId: expect.any(Number),
+        recoverRunId: expect.any(String),
       },
       replace: false,
     })
@@ -176,7 +176,7 @@ describe('reset prompts', () => {
 
     expect(nav.navigations()).toContainEqual({
       name: 'recoverPasswordPromptResetPassword',
-      params: {promptId, runId: expect.any(Number), username: 'testuser'},
+      params: {promptId, recoverRunId: expect.any(String), username: 'testuser'},
       replace: false,
     })
     submitRecoverPasswordReset(promptId, T.RPCGen.ResetPromptResponse.confirmReset)
@@ -230,6 +230,7 @@ test('a device-recovery explanation replaces the current screen', async () => {
     params: {
       deviceName: 'testuser-mac',
       deviceType: T.RPCGen.DeviceType.mobile,
+      recoverRunId: expect.any(String),
       username: 'testuser',
     },
     replace: true,
@@ -473,6 +474,25 @@ describe('completion', () => {
     nav.setRootState(loggedOutRoot())
 
     expect(screens()).toEqual(['login', 'recoverPasswordError'])
+  })
+
+  test("a screen the run shows without a prompt is the run's by its run id", async () => {
+    nav = installFakeNavigator({rootState: loggedOutRoot()})
+    const {held, sessionID} = await start()
+    await pushDevices(sessionID)
+    await fake.push(
+      'keybase.1.loginUi.explainDeviceRecovery',
+      {kind: T.RPCGen.DeviceType.mobile, name: 'testuser-mac'},
+      {sessionID}
+    )
+    await settle()
+    // Another run's
+    navigateAppend({name: 'recoverPasswordExplainDevice', params: {recoverRunId: 'other-0'}} as never)
+    expect(screens()).toEqual(['login', 'recoverPasswordExplainDevice', 'recoverPasswordExplainDevice'])
+    await failWith(held)
+
+    expect(screens()).toEqual(['login', 'recoverPasswordExplainDevice', 'recoverPasswordError'])
+    expect(nav.getRootState()?.routes?.[0]?.state?.routes[1]?.params).toEqual({recoverRunId: 'other-0'})
   })
 
   test("an earlier run's screen of the same name is not this run's", async () => {

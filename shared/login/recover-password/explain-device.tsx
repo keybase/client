@@ -6,7 +6,10 @@ import {SignupScreen} from '@/signup/common'
 import {QuestionBody} from '../common'
 import {restartRecoverPassword} from './flow'
 
-type Props = {route: {params: {deviceName: string; deviceType: T.RPCGen.DeviceType; username: string}}}
+// recoverRunId: the run that showed it, which takes its own screens away when it fails
+type Props = {
+  route: {params: {deviceName: string; deviceType: T.RPCGen.DeviceType; recoverRunId: string; username: string}}
+}
 
 const ExplainDevice = ({route}: Props) => {
   const theme = Kb.Styles.useTheme()

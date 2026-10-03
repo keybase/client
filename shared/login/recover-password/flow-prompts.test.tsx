@@ -90,7 +90,7 @@ describe('paper key prompt', () => {
 
     expect(nav.navigations()).toContainEqual({
       name: 'recoverPasswordPaperKey',
-      params: {error: 'nope', promptId, runId: expect.any(Number)},
+      params: {error: 'nope', promptId, recoverRunId: expect.any(String)},
       replace: true,
     })
     submitRecoverPasswordPaperKey(promptId, 'one two three')
@@ -133,7 +133,7 @@ describe('new password prompt', () => {
 
     expect(nav.navigations()).toContainEqual({
       name: 'recoverPasswordSetPassword',
-      params: {error: undefined, promptId, runId: expect.any(Number)},
+      params: {error: undefined, promptId, recoverRunId: expect.any(String)},
       replace: false,
     })
     submitRecoverPasswordPassword(promptId, 'hunter2hunter2')
@@ -149,7 +149,7 @@ describe('new password prompt', () => {
 
     expect(nav.navigations()).toContainEqual({
       name: 'recoverPasswordSetPassword',
-      params: {error: 'too short', promptId, runId: expect.any(Number)},
+      params: {error: 'too short', promptId, recoverRunId: expect.any(String)},
       replace: true,
     })
     held[0]!.reply(undefined)

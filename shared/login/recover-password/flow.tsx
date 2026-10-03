@@ -37,12 +37,12 @@ const explainDevice = 'keybase.1.loginUi.explainDeviceRecovery'
 type RecoverPrompt = typeof chooseDevice | typeof promptPgp | typeof promptReset | typeof getPassphrase
 type RecoverDialog = Dialog<void, RecoverPrompt, typeof explainDevice>
 // ended settles once the run is over. The run's own screens are the routes pushed with its id in
-// their params, and the screen a caller handed over to it.
+// their params (recoverRunId), and the screen a caller handed over to it.
 type Run = {
   dialog: RecoverDialog
   ended?: Promise<void>
   handedOver?: string
-  id: number
+  id: string
   onResetEmailSent?: () => void
   username: string
 }
@@ -52,6 +52,9 @@ type Run = {
 let current: Run | undefined
 // Who started the latest run, kept after it ends so a back that starts over still tells that caller
 let caller: Pick<StartRecoverPasswordParams, 'onResetEmailSent' | 'username'> | undefined
+// A reload of this module starts its count over; the prefix keeps its runs from claiming the screens
+// of runs from before it
+const runIdPrefix = Math.random().toString(36).slice(2, 10)
 let nextRunId = 0
 
 const pgpWarningName = 'recoverPasswordPgpWarning'
@@ -120,7 +123,7 @@ const runRoutes = (run: Run) => {
   const keys = run.handedOver ? [run.handedOver] : []
   const walk = (s: NavState | undefined) => {
     for (const r of s?.routes ?? []) {
-      if (r.key && (r.params as {runId?: unknown} | undefined)?.runId === run.id) {
+      if (r.key && (r.params as {recoverRunId?: unknown} | undefined)?.recoverRunId === run.id) {
         keys.push(r.key)
       }
       walk(r.state)
@@ -207,7 +210,7 @@ const takeWarningOffTop = () => {
   }
 }
 
-const showPgpWarning = (prompt: Prompt<typeof promptPgp>, runId: number) => {
+const showPgpWarning = (prompt: Prompt<typeof promptPgp>, recoverRunId: string) => {
   const {id} = prompt
   // A warning pushed but never mounted can't be answered; decline rather than leave Go waiting.
   // The warning mounting clears this.
@@ -223,7 +226,7 @@ const showPgpWarning = (prompt: Prompt<typeof promptPgp>, runId: number) => {
   // mounted yet. A warning that can't be pushed is declined.
   navigateAppendOnceRootHas(
     'loggedIn',
-    {name: pgpWarningName, params: {promptId: id, runId}},
+    {name: pgpWarningName, params: {promptId: id, recoverRunId}},
     loggedInRootTimeoutMs,
     () => prompt.answer(false)
   )
@@ -261,7 +264,7 @@ export const startRecoverPassword = ({
       waitingKey: waitingKeyRecoverPassword,
     }
   )
-  const run: Run = {dialog, handedOver, id: nextRunId++, onResetEmailSent, username}
+  const run: Run = {dialog, handedOver, id: `${runIdPrefix}-${nextRunId++}`, onResetEmailSent, username}
   current = run
   caller = {onResetEmailSent, username}
   let pgp: Prompt<typeof promptPgp> | undefined
@@ -275,7 +278,7 @@ export const startRecoverPassword = ({
       navigateAppend(
         {
           name: 'recoverPasswordExplainDevice',
-          params: {deviceName: e.params.name, deviceType: e.params.kind, username},
+          params: {deviceName: e.params.name, deviceType: e.params.kind, recoverRunId: run.id, username},
         },
         true
       )
@@ -285,7 +288,7 @@ export const startRecoverPassword = ({
       case chooseDevice: {
         const devices = (e.params.devices || []).map(d => rpcDeviceToDevice(d))
         navigateAppend(
-          {name: 'recoverPasswordDeviceSelector', params: {devices, promptId: e.id, runId: run.id}},
+          {name: 'recoverPasswordDeviceSelector', params: {devices, promptId: e.id, recoverRunId: run.id}},
           !!replaceRoute
         )
         break
@@ -298,9 +301,10 @@ export const startRecoverPassword = ({
         if (e.params.prompt.t === T.RPCGen.ResetPromptType.enterResetPw) {
           navigateAppend({
             name: 'recoverPasswordPromptResetPassword',
-            params: {promptId: e.id, runId: run.id, username},
+            params: {promptId: e.id, recoverRunId: run.id, username},
           })
         } else {
+          // The reset flow's screen, not this run's: it outlives the run
           startAccountReset(true, username)
           e.answer(T.RPCGen.ResetPromptResponse.nothing)
         }
@@ -308,10 +312,10 @@ export const startRecoverPassword = ({
       case getPassphrase: {
         const error = e.params.pinentry.retryLabel || undefined
         if (e.params.pinentry.type === T.RPCGen.PassphraseType.paperKey) {
-          navigateAppend({name: 'recoverPasswordPaperKey', params: {error, promptId: e.id, runId: run.id}}, true)
+          navigateAppend({name: 'recoverPasswordPaperKey', params: {error, promptId: e.id, recoverRunId: run.id}}, true)
         } else if (error) {
           navigateAppend(
-            {name: 'recoverPasswordSetPassword', params: {error, promptId: e.id, runId: run.id}},
+            {name: 'recoverPasswordSetPassword', params: {error, promptId: e.id, recoverRunId: run.id}},
             true
           )
         } else {
@@ -320,7 +324,7 @@ export const startRecoverPassword = ({
           const prompt = e
           navigateAppendOnceRootHas(
             'loggedIn',
-            {name: 'recoverPasswordSetPassword', params: {error: undefined, promptId: e.id, runId: run.id}},
+            {name: 'recoverPasswordSetPassword', params: {error: undefined, promptId: e.id, recoverRunId: run.id}},
             loggedInRootTimeoutMs,
             () => prompt.cancel()
           )
