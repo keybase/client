@@ -13,7 +13,6 @@ import logger from '@/logger'
 import {startAccountReset} from '@/login/reset/account-reset'
 import {useConfigState} from '@/stores/config'
 import {cancelProvision} from '@/provision/flow'
-import {promptRouteGone, registerRouteGone} from '@/router-v2/route-gone'
 import {rpcDeviceToDevice} from '@/constants/rpc-utils'
 import {RPCError} from '@/util/errors'
 
@@ -70,12 +69,9 @@ export const cancelRecoverPassword = (promptId: number) => {
 export const isRecoverPasswordPromptOpen = (promptId: number) =>
   !!current?.dialog.openPrompts().some(p => p.id === promptId)
 
-// A prompt screen whose route leaves the navigation state declines its prompt, while the prompt is open
-export const registerRecoverPasswordPromptScreen = (routeKey: string, promptId: number) => {
-  const run = current
-  if (!run?.ended || !isRecoverPasswordPromptOpen(promptId)) return
-  registerRouteGone(routeKey, run.ended, declineFromParams)
-}
+// Settles when the run the open prompt belongs to is over; undefined once the prompt is closed
+export const recoverPasswordRunEnded = (promptId: number) =>
+  isRecoverPasswordPromptOpen(promptId) ? current?.ended : undefined
 
 // Prompts of this run that a screen answered. Their screens stay while the service works on the answer.
 const answeredByScreen = new Set<number>()
@@ -100,8 +96,6 @@ export const declineRecoverPasswordPrompt = (promptId: number) => {
     .find(p => p.id === promptId)
     ?.cancel()
 }
-
-const declineFromParams = promptRouteGone(declineRecoverPasswordPrompt)
 
 export const submitRecoverPasswordDeviceSelect = (promptId: number, deviceID?: T.Devices.DeviceID) => {
   if (deviceID) {

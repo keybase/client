@@ -4,19 +4,16 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {navUpToScreen} from '@/constants/router'
-import {promptRouteGone, registerRouteGone, useRouteKey} from '@/router-v2/route-gone'
+import {usePromptRouteBack} from '@/router-v2/use-prompt-route-back'
 import {declineResetPrompt, isResetPromptOpen, resetRunEnded, submitResetPrompt} from './account-reset'
 
 type Props = {route: {params: {hasWallet: boolean; promptId: number}}}
-
-const declineFromParams = promptRouteGone(declineResetPrompt)
 
 const ConfirmReset = ({route}: Props) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
   const {hasWallet, promptId} = route.params
   const navigation = useNavigation()
-  const routeKey = useRouteKey()
   const resolvedRef = React.useRef(false)
   const resolvePrompt = React.useCallback(
     (action: T.RPCGen.ResetPromptResponse) => {
@@ -35,35 +32,27 @@ const ConfirmReset = ({route}: Props) => {
   )
 
   // A back answers nothing, which goes up to login
+  const onBack = React.useCallback(() => {
+    resolvePrompt(T.RPCGen.ResetPromptResponse.nothing)
+  }, [resolvePrompt])
   React.useEffect(() => {
-    const onBack = () => {
-      resolvePrompt(T.RPCGen.ResetPromptResponse.nothing)
-    }
     navigation.setOptions(
       isIOS
         ? ({unstable_headerLeftItems: () => [Kb.nativeBackHeaderItem(onBack)]} as object)
         : {headerLeft: () => <Kb.HeaderLeftButton onPress={onBack} />}
     )
-  }, [navigation, resolvePrompt])
+  }, [navigation, onBack])
 
-  // So does a back of the visible screen (Android's hardware back, Escape), in place of the pop
-  React.useEffect(() => {
-    return navigation.addListener('beforeRemove', e => {
-      const {type} = e.data.action
-      if (!(type === 'POP' || type === 'GO_BACK') || resolvedRef.current || !isResetPromptOpen(promptId)) return
-      e.preventDefault()
-      resolvePrompt(T.RPCGen.ResetPromptResponse.nothing)
-    })
-  }, [navigation, promptId, resolvePrompt])
-
+  // So does a back of the visible screen (Android's hardware back, Escape), in place of the pop.
   // Removed any other way (a dismissal, clearModals, its root swapped out, while hidden under
-  // others), it answers nothing without navigating, once its route has left the navigation state
-  React.useEffect(() => {
-    const ended = resetRunEnded(promptId)
-    if (routeKey && ended) {
-      registerRouteGone(routeKey, ended, declineFromParams)
-    }
-  }, [routeKey, promptId])
+  // others), it answers nothing without navigating, once its route has left the navigation state.
+  usePromptRouteBack({
+    decline: declineResetPrompt,
+    isOpen: isResetPromptOpen,
+    onBack,
+    promptId,
+    until: resetRunEnded,
+  })
 
   const onContinue = () => {
     resolvePrompt(T.RPCGen.ResetPromptResponse.confirmReset)

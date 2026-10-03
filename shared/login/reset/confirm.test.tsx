@@ -4,10 +4,13 @@
 import * as React from 'react'
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import * as T from '@/constants/types'
+import {NavigationContext} from '@react-navigation/core'
 import {makeFakeRoute} from '@/test/fake-route'
 
 // The pipeline's end, which drops the screen's route-gone entry
 let mockEnded: undefined | {promise: Promise<void>; resolve: () => void}
+// Whether the screen's prompt is still open to answer
+let mockOpen = true
 const mockSubmitResetPrompt = jest.fn()
 const mockDeclineResetPrompt = jest.fn()
 const mockSetOptions = jest.fn()
@@ -80,7 +83,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('./account-reset', () => ({
   declineResetPrompt: (...args: Array<unknown>) => mockDeclineResetPrompt(...args),
-  isResetPromptOpen: () => !!mockEnded,
+  isResetPromptOpen: () => !!mockEnded && mockOpen,
   resetRunEnded: (): Promise<void> | undefined => mockEnded?.promise,
   submitResetPrompt: (...args: Array<unknown>) => mockSubmitResetPrompt(...args),
 }))
@@ -94,9 +97,11 @@ let route: ReturnType<typeof makeFakeRoute>
 // `hidden` hides the screen the way native-stack does under other screens: its effects are torn down
 const OnRoute = ({hidden = false}: {hidden?: boolean}) => (
   <route.Route>
-    <React.Activity mode={hidden ? 'hidden' : 'visible'}>
-      <ConfirmReset route={{params: {hasWallet: false, promptId: 1}}} />
-    </React.Activity>
+    <NavigationContext value={mockNavigation as never}>
+      <React.Activity mode={hidden ? 'hidden' : 'visible'}>
+        <ConfirmReset route={{params: {hasWallet: false, promptId: 1}}} />
+      </React.Activity>
+    </NavigationContext>
   </route.Route>
 )
 
@@ -116,8 +121,13 @@ describe('ConfirmReset', () => {
     mockEnded = {promise, resolve}
     mockBeforeRemove.clear()
     mockSetOptions.mockReset()
-    // Answers the open prompt, as the flow would
-    mockSubmitResetPrompt.mockReset().mockReturnValue(true)
+    mockOpen = true
+    // Answers the open prompt, which closes it, as the flow would
+    mockSubmitResetPrompt.mockReset().mockImplementation(() => {
+      const answered = mockOpen
+      mockOpen = false
+      return answered
+    })
     mockNavUpToScreen.mockClear()
     mockDeclineResetPrompt.mockClear()
     route = makeFakeRoute('resetConfirm')
@@ -239,7 +249,7 @@ describe('ConfirmReset', () => {
   test('with nothing open to answer, each button and back takes the user up to login', () => {
     mount()
     // The prompt closed under the screen: its RPC failed or the service cancelled it
-    mockSubmitResetPrompt.mockReturnValue(false)
+    mockOpen = false
 
     fireEvent.click(screen.getByText('Close'))
     fireEvent.click(screen.getByText('cancel the reset'))

@@ -101,15 +101,5 @@ export const registerRouteGone = (
   void until.then(drop, drop)
 }
 
-// An onGone for a prompt's screen: declines the prompt in the params the route last had, as a retry
-// (a wrong paper key or password) sets the next prompt's id on the same route. Make it once, at
-// module level, so registering again is the same entry.
-export const promptRouteGone = (decline: (promptId: number) => void) => (params: RouteParams) => {
-  const {promptId} = (params ?? {}) as {promptId?: unknown}
-  if (typeof promptId === 'number') {
-    decline(promptId)
-  }
-}
-
 // The key of the route this screen renders, absent outside a navigator (storybook)
 export const useRouteKey = () => React.useContext(NavigationRouteContext)?.key
