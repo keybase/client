@@ -59,6 +59,7 @@ import {resetAllStores} from '@/util/zustand'
 import {useWaitingState} from '@/stores/waiting'
 import {useInboxMetadataState} from '@/chat/inbox/metadata'
 import {installFakeChatRpc, restoreChatRpc, type FakeChatRpc} from '@/test/fake-chat-rpc'
+import {testWaitingKey} from '@/test/waiting-key'
 import {useBotSettings} from './settings'
 import InstallBotPopup, {useBotTeamRole, useRefreshBotMembershipOnSuccess} from './install'
 
@@ -216,7 +217,7 @@ const previewResult = (participants: Array<string>) =>
   }) as unknown as T.RPCChat.InboxUIItem
 
 describe('useRefreshBotMembershipOnSuccess', () => {
-  const waitingKey = 'test:botMutation' as T.Waiting.WaitingKey
+  const waitingKey = testWaitingKey('test:botMutation')
   const run = (p: {
     conversationIDKey: T.Chat.ConversationIDKey | undefined
     error?: RPCError
