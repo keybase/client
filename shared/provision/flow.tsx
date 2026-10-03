@@ -5,26 +5,13 @@ import {type Device, type ProvisionRouteError} from '@/constants/provision'
 import {clearModals, navigateAppend} from '@/constants/router'
 import {rpcDeviceToDevice} from '@/constants/rpc-utils'
 import {waitingKeyProvision} from '@/constants/strings'
-import {ignorePromise, wrapErrors} from '@/constants/utils'
-import {type CommonResponseHandler} from '@/engine/types'
-import {callNamed, setNamedScoped} from '@/stores/flow-handles'
+import {ignorePromise} from '@/constants/utils'
+import {openDialog, type Dialog, type DialogEvent, type Prompt} from '@/engine/dialog'
+import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
 import {useWaitingState} from '@/stores/waiting'
-import {RPCError} from '@/util/errors'
-
-const owner = 'provision'
-
-const slots = {
-  cancel: 'cancel',
-  pause: 'pause',
-  submitDeviceName: 'submitDeviceName',
-  submitDeviceSelect: 'submitDeviceSelect',
-  submitPassphrase: 'submitPassphrase',
-  submitTextCode: 'submitTextCode',
-} as const
-type Slot = (typeof slots)[keyof typeof slots]
-type ScopedHandle = ReturnType<typeof setNamedScoped>
+import {isCancelError, RPCError} from '@/util/errors'
 
 // The steps the user has already answered, replayed in order when the login RPC restarts.
 type Step =
@@ -39,9 +26,6 @@ const errorCausedByUsCanceling = (e?: RPCError) => {
   const desc = e?.desc
   return desc === 'Input canceled' || desc === 'kex canceled by caller'
 }
-const cancelOnCallback = (_: unknown, response: CommonResponseHandler) => {
-  response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
-}
 
 const makeDevice = (): Device => ({
   deviceNumberOfType: 0,
@@ -50,40 +34,99 @@ const makeDevice = (): Device => ({
   type: 'mobile',
 })
 
-// Token-scoped handle registrations for one flow run. Disposing only clears handles this run set,
-// so a newer run's replacement handlers survive an older run's teardown.
-const makeHandles = () => {
-  let active = true
-  const handles = new Map<Slot, ScopedHandle>()
+const chooseDevicePrompt = 'keybase.1.provisionUi.chooseDevice'
+const deviceNamePrompt = 'keybase.1.provisionUi.PromptNewDeviceName'
+const passphrasePrompt = 'keybase.1.secretUi.getPassphrase'
+const secretPrompt = 'keybase.1.provisionUi.DisplayAndPromptSecret'
+const secretExchanged = 'keybase.1.provisionUi.DisplaySecretExchanged'
+// Login never takes these paths, so they are refused
+const refusedPrompts = [
+  'keybase.1.gpgUi.selectKey',
+  'keybase.1.loginUi.getEmailOrUsername',
+  'keybase.1.provisionUi.chooseGPGMethod',
+  'keybase.1.provisionUi.switchToGPGSignOK',
+] as const
+const successNotices = ['keybase.1.provisionUi.ProvisioneeSuccess', 'keybase.1.provisionUi.ProvisionerSuccess'] as const
+const loginPrompts = [chooseDevicePrompt, deviceNamePrompt, passphrasePrompt, secretPrompt, ...refusedPrompts] as const
+const loginNotices = ['keybase.1.loginUi.displayPrimaryPaperKey', secretExchanged, ...successNotices] as const
+
+// Holds the provision waiting key once per secret-exchanged notice until the dialog ends. A failed
+// done settles before the dialog's queued events are delivered, so a notice after release holds nothing.
+const makeExchangeHolds = () => {
+  let held = 0
+  let released = false
   return {
-    dispose: () => {
-      active = false
-      for (const handle of handles.values()) {
-        handle.dispose()
+    hold: () => {
+      if (released) {
+        return
       }
+      ++held
+      useWaitingState.getState().dispatch.increment(waitingKeyProvision)
     },
-    set: (slot: Slot, fn: (...args: Array<any>) => void) => {
-      handles.set(
-        slot,
-        setNamedScoped(owner, slot, (...args: Array<any>) => {
-          if (active) {
-            fn(...args)
-          }
-        })
-      )
+    release: () => {
+      released = true
+      for (; held > 0; --held) {
+        useWaitingState.getState().dispatch.decrement(waitingKeyProvision)
+      }
     },
   }
 }
 
-export const cancelProvision = () => callNamed(owner, slots.cancel)
+// Clears the provision screens and shows why the run failed
+const showProvisionError = (error: RPCError, replace: boolean, username?: string) => {
+  clearModals()
+  navigateAppend(
+    {
+      name: 'error',
+      params: {
+        error: {
+          code: error.code,
+          desc: error.desc,
+          details: error.details,
+          fields: error.fields as ReadonlyArray<{key?: string; value?: string}> | undefined,
+          message: error.message,
+        } satisfies ProvisionRouteError,
+        username,
+      },
+    },
+    replace
+  )
+}
+
+// A prompt the run could not show ends it. The exception goes to the log; the user sees this.
+const showFailedError = new RPCError('Something went wrong. Please try again.', T.RPCGen.StatusCode.scgeneric)
+const endOnShowFailure = (dialog: {dispose: () => void}, method: string, error: unknown) => {
+  logger.error(`Provision: showing ${method} failed`, error)
+  dialog.dispose()
+}
+
+const normalizeTextCode = (code: string) => code.replace(/\W+/g, ' ').trim()
+const secretAnswer = (code: string) => ({phrase: normalizeTextCode(code), secret: null as unknown as Uint8Array})
+
+type Submits = {
+  deviceName: (name: string) => void
+  deviceSelect: (name: string) => void
+  passphrase: (passphrase: string) => void
+  textCode: (code: string) => void
+}
+// The run the provision screens answer: a login or an add-device. Starting one cancels the other.
+// Kept outside the stores: login logs out first, and that logout must not stop its screens answering.
+type ProvisionRun = {
+  cancel: () => void
+  pause: () => void
+  submit: Partial<Submits>
+}
+let currentProvisionRun: ProvisionRun | undefined
+
+export const cancelProvision = () => currentProvisionRun?.cancel()
 // Back-out while the RPC is mid-work: abort the attempt but keep the run's answers so a
 // resubmit replays them. In the add-device flow this is a full cancel (nothing to replay).
-export const pauseProvision = () => callNamed(owner, slots.pause)
-export const submitProvisionDeviceName = (name: string) => callNamed(owner, slots.submitDeviceName, name)
-export const submitProvisionDeviceSelect = (name: string) => callNamed(owner, slots.submitDeviceSelect, name)
+export const pauseProvision = () => currentProvisionRun?.pause()
+export const submitProvisionDeviceName = (name: string) => currentProvisionRun?.submit.deviceName?.(name)
+export const submitProvisionDeviceSelect = (name: string) => currentProvisionRun?.submit.deviceSelect?.(name)
 export const submitProvisionPassphrase = (passphrase: string) =>
-  callNamed(owner, slots.submitPassphrase, passphrase)
-export const submitProvisionTextCode = (code: string) => callNamed(owner, slots.submitTextCode, code)
+  currentProvisionRun?.submit.passphrase?.(passphrase)
+export const submitProvisionTextCode = (code: string) => currentProvisionRun?.submit.textCode?.(code)
 
 export const startProvision = (name = '', fromReset = false) => {
   cancelProvision()
@@ -106,11 +149,18 @@ export const submitProvisionUsername = (username: string) => {
   runProvision(username)
 }
 
+type LoginPrompt = (typeof loginPrompts)[number]
+type LoginNotice = (typeof loginNotices)[number]
+type LoginDialog = Dialog<void, LoginPrompt, LoginNotice>
+
+// Why the run disposed its attempt. A cancel outranks a restart, which outranks a pause.
+type EndReason = 'park' | 'restart' | 'cancel'
+const endReasonRank = {cancel: 3, park: 1, restart: 2} as const
+
 // Runs the login RPC and services its prompts. The RPC has no notion of going back to an earlier
 // step, so when the user does, we record the changed answer, cancel the in-flight RPC, and run it
 // again, auto-submitting the recorded answers up to the changed step.
-const runProvision = (initialUsername: string) => {
-  const username = initialUsername
+const runProvision = (username: string) => {
   const answers = {
     deviceName: '',
     passphrase: '',
@@ -118,20 +168,40 @@ const runProvision = (initialUsername: string) => {
   }
   let knownDevices: Array<Device> = []
   const autoSubmit: Array<Step> = [{type: 'username'}]
-  let pendingResponse: CommonResponseHandler | undefined
-  let restartRequested = false
-  let pauseRequested = false
-  let userCancelled = false
-  let cancelAttempt: (() => void) | undefined
+  let attempt: LoginDialog | undefined
+  let endReason: EndReason | undefined
+  // Set when the attempt could not show one of its prompts, which ended it
+  let showFailed = false
   let resumeParked: (() => void) | undefined
-  const handles = makeHandles()
+  // The prompt each step's screen answers, from when it's shown until the user answers any step or
+  // backs out. A submit of a step with none is the user going back to change an earlier answer.
+  let showing: {
+    deviceName?: Prompt<typeof deviceNamePrompt>
+    deviceSelect?: Prompt<typeof chooseDevicePrompt>
+    passphrase?: Prompt<typeof passphrasePrompt>
+    textCode?: Prompt<typeof secretPrompt>
+  } = {}
 
-  const cancelPendingResponse = () => {
-    const response = pendingResponse
-    pendingResponse = undefined
-    if (response) {
-      cancelOnCallback(undefined, response)
+  const endAttempt = (reason: EndReason) => {
+    if (!endReason || endReasonRank[reason] > endReasonRank[endReason]) {
+      endReason = reason
     }
+    attempt?.dispose()
+  }
+
+  // Read through calls: the loop resets these, and TypeScript would keep that narrowing across the
+  // awaits during which a cancel, pause, resubmit or failed prompt sets them
+  const whyEnded = () => endReason
+  const failedToShow = () => showFailed
+
+  const wakeParked = () => {
+    resumeParked?.()
+    resumeParked = undefined
+  }
+
+  const requestRestart = () => {
+    endAttempt('restart')
+    wakeParked()
   }
 
   // add a new value to submit and clear things behind
@@ -143,76 +213,64 @@ const runProvision = (initialUsername: string) => {
     autoSubmit.push(step)
   }
 
-  const requestRestart = () => {
-    restartRequested = true
-    cancelPendingResponse()
-    cancelAttempt?.()
-    resumeParked?.()
-    resumeParked = undefined
-  }
-  const wasRestartRequested = () => restartRequested
-  const wasPauseRequested = () => pauseRequested
-  const wasUserCancelled = () => userCancelled
-  // Parks the run until a resubmit (requestRestart) or cancel wakes it back up. Kept out of the
-  // retry loop body so the executor closure isn't redeclared each iteration.
-  const parkUntilResumed = async () =>
-    new Promise<void>(resolve => {
-      resumeParked = resolve
-    })
-
-  // Idle handlers run when the user submits a step the RPC isn't currently waiting on: they went
-  // back to an earlier screen. Record the new answer and restart.
-  const setIdleHandlers = () => {
-    handles.set(
-      slots.submitDeviceName,
-      wrapErrors((name: string) => {
-        answers.deviceName = name
-        updateAutoSubmit({type: 'deviceName'})
-        requestRestart()
-      })
-    )
-    handles.set(
-      slots.submitDeviceSelect,
-      wrapErrors((name: string) => {
-        const selectedDevice = knownDevices.find(d => d.name === name)
-        if (!selectedDevice) {
-          throw new Error('Selected a non-existent device?')
-        }
-        answers.selectedDevice = selectedDevice
-        updateAutoSubmit({devices: knownDevices, type: 'chooseDevice'})
-        requestRestart()
-      })
-    )
-    handles.set(
-      slots.submitPassphrase,
-      wrapErrors((passphrase: string) => {
-        answers.passphrase = passphrase
-        updateAutoSubmit({type: 'passphrase'})
-        requestRestart()
-      })
-    )
-    handles.set(
-      slots.submitTextCode,
-      wrapErrors(() => {
-        console.log('Provision: unwatched submitTextCode called')
-        requestRestart()
-      })
-    )
-  }
-
-  const isCanceled = (response: CommonResponseHandler) => {
-    if (userCancelled || pauseRequested) {
-      cancelOnCallback(undefined, response)
-      return true
+  // Answers the prompt the step's screen shows, or starts over if it shows none. A prompt the
+  // service already settled takes nothing.
+  const answerOrRestart = <K extends keyof typeof showing>(
+    step: K,
+    answer: (p: NonNullable<(typeof showing)[K]>) => void
+  ) => {
+    const p = showing[step]
+    if (!p) {
+      requestRestart()
+      return
     }
-    return false
+    showing = {}
+    answer(p)
   }
 
-  const setPendingResponse = (response: CommonResponseHandler) => {
-    pendingResponse = response
+  const submit: Submits = {
+    deviceName: name => {
+      answers.deviceName = name
+      updateAutoSubmit({type: 'deviceName'})
+      answerOrRestart('deviceName', p => p.answer(name))
+    },
+    deviceSelect: name => {
+      const selectedDevice = knownDevices.find(d => d.name === name)
+      if (!selectedDevice) {
+        logger.warn('Provision: selected a non-existent device?')
+        return
+      }
+      answers.selectedDevice = selectedDevice
+      updateAutoSubmit({devices: knownDevices, type: 'chooseDevice'})
+      answerOrRestart('deviceSelect', p => p.answer(selectedDevice.id))
+    },
+    passphrase: passphrase => {
+      answers.passphrase = passphrase
+      updateAutoSubmit({type: 'passphrase'})
+      answerOrRestart('passphrase', p => p.answer({passphrase, storeSecret: false}))
+    },
+    textCode: code => {
+      if (!showing.textCode) {
+        console.log('Provision: unwatched submitTextCode called')
+      }
+      answerOrRestart('textCode', p => p.answer(secretAnswer(code)))
+    },
   }
 
-  const runAttempt = async () => {
+  const run: ProvisionRun = {
+    cancel: () => {
+      endAttempt('cancel')
+      wakeParked()
+    },
+    pause: () => {
+      endAttempt('park')
+      showing = {}
+    },
+    submit,
+  }
+  currentProvisionRun = run
+
+  const runAttempt = async (dialog: LoginDialog) => {
     // freeze the autosubmit for this attempt so changes don't affect us
     const frozenAutoSubmit = [...autoSubmit]
     console.log('Provision: starting attempt with auto submit', frozenAutoSubmit)
@@ -223,231 +281,177 @@ const runProvision = (initialUsername: string) => {
       }
       return isEqual(frozenAutoSubmit[submitStep], step)
     }
+    const exchangeHolds = makeExchangeHolds()
 
-    let exchangedIncrements = 0
-    let attemptEnded = false
-    try {
-      await T.RPCGen.loginLoginRpcListener({
-        customResponseIncomingCallMap: {
-          'keybase.1.gpgUi.selectKey': cancelOnCallback,
-          'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
-          // The "I lost all my devices" row owns reset, so login never enters it from here
-          'keybase.1.loginUi.promptResetAccount': (_, response) =>
-            response.result(T.RPCGen.ResetPromptResponse.nothing),
-          'keybase.1.provisionUi.DisplayAndPromptSecret': (params, response) => {
-            if (isCanceled(response)) return
-            const {phrase, previousErr} = params
-            setPendingResponse(response)
-            handles.set(
-              slots.submitTextCode,
-              wrapErrors((code: string) => {
-                pendingResponse = undefined
-                setIdleHandlers()
-                const good = code.replace(/\W+/g, ' ').trim()
-                response.result({phrase: good, secret: null as unknown as Uint8Array})
-              })
-            )
-            // we ignore the return as we never autosubmit, but we want things to increment
-            shouldAutoSubmit(!!previousErr, {type: 'promptSecret'})
-            navigateAppend(
-              {
-                name: 'codePage',
-                params: {
-                  deviceName: answers.deviceName,
-                  error: previousErr || undefined,
-                  otherDevice: answers.selectedDevice,
-                  textCode: phrase,
-                },
-              },
-              !!previousErr
-            )
-          },
-          'keybase.1.provisionUi.PromptNewDeviceName': (params, response) => {
-            if (isCanceled(response)) return
-            const {errorMessage} = params
-            setPendingResponse(response)
-            handles.set(
-              slots.submitDeviceName,
-              wrapErrors((name: string) => {
-                pendingResponse = undefined
-                answers.deviceName = name
-                updateAutoSubmit({type: 'deviceName'})
-                setIdleHandlers()
-                response.result(name)
-              })
-            )
-            if (shouldAutoSubmit(!!errorMessage, {type: 'deviceName'})) {
-              console.log('Provision: auto submit device name')
-              submitProvisionDeviceName(answers.deviceName)
-            } else {
-              navigateAppend(
-                {
-                  name: 'setPublicName',
-                  params: {devices: knownDevices, error: errorMessage || undefined},
-                },
-                !!errorMessage
-              )
-            }
-          },
-          'keybase.1.provisionUi.chooseDevice': (params, response) => {
-            if (isCanceled(response)) return
-            const devices = params.devices?.map(d => rpcDeviceToDevice(d)) ?? []
-            knownDevices = devices
-            setPendingResponse(response)
-            handles.set(
-              slots.submitDeviceSelect,
-              wrapErrors((name: string) => {
-                const selectedDevice = devices.find(d => d.name === name)
-                if (!selectedDevice) {
-                  throw new Error('Selected a non-existent device?')
-                }
-                pendingResponse = undefined
-                answers.selectedDevice = selectedDevice
-                updateAutoSubmit({devices, type: 'chooseDevice'})
-                setIdleHandlers()
-                response.result(selectedDevice.id)
-              })
-            )
-            if (shouldAutoSubmit(false, {devices, type: 'chooseDevice'})) {
-              console.log('Provision: auto submit device select')
-              submitProvisionDeviceSelect(answers.selectedDevice.name)
-            } else {
-              navigateAppend({name: 'selectOtherDevice', params: {devices, username}})
-            }
-          },
-          'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
-          'keybase.1.provisionUi.switchToGPGSignOK': cancelOnCallback,
-          'keybase.1.secretUi.getPassphrase': (params, response) => {
-            if (isCanceled(response)) return
-            const {pinentry} = params
-            const {retryLabel, type} = pinentry
-            setPendingResponse(response)
-            // Service asking us again due to an error?
-            const error = retryLabel === invalidPasswordErrorString ? 'Incorrect password.' : retryLabel
-            handles.set(
-              slots.submitPassphrase,
-              wrapErrors((passphrase: string) => {
-                pendingResponse = undefined
-                answers.passphrase = passphrase
-                updateAutoSubmit({type: 'passphrase'})
-                setIdleHandlers()
-                response.result({passphrase, storeSecret: false})
-              })
-            )
-            if (shouldAutoSubmit(!!retryLabel, {type: 'passphrase'})) {
-              console.log('Provision: auto submit passphrase')
-              submitProvisionPassphrase(answers.passphrase)
-            } else {
-              switch (type) {
-                case T.RPCGen.PassphraseType.passPhrase:
-                  navigateAppend(
-                    {name: 'password', params: {error: error || undefined, username}},
-                    !!retryLabel
-                  )
-                  break
-                case T.RPCGen.PassphraseType.paperKey:
-                  navigateAppend(
-                    {
-                      name: 'paperkey',
-                      params: {deviceName: answers.selectedDevice.name, error: error || undefined},
-                    },
-                    !!retryLabel
-                  )
-                  break
-                default:
-                  throw new Error('Got confused about password entry. Please send a log to us!')
-              }
-            }
-          },
-        },
-        incomingCallMap: {
-          'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
-          'keybase.1.provisionUi.DisplaySecretExchanged': () => {
-            // Incoming calls are dispatched via setTimeout, so this can land after the finally
-            // below already ran its decrements; don't add a count nothing will release.
-            if (attemptEnded) return
-            ++exchangedIncrements
-            useWaitingState.getState().dispatch.increment(waitingKeyProvision)
-          },
-          'keybase.1.provisionUi.ProvisioneeSuccess': () => {},
-          'keybase.1.provisionUi.ProvisionerSuccess': () => {},
-        },
-        onSessionCreated: cancel => {
-          cancelAttempt = cancel
-        },
-        params: {
-          clientType: T.RPCGen.ClientType.guiMain,
-          deviceName: '',
-          deviceType: isMobile ? 'mobile' : 'desktop',
-          doUserSwitch: true,
-          paperKey: '',
-          username,
-        },
-        waitingKey: waitingKeyProvision,
-      })
-    } finally {
-      attemptEnded = true
-      cancelAttempt = undefined
-      for (let i = 0; i < exchangedIncrements; ++i) {
-        useWaitingState.getState().dispatch.decrement(waitingKeyProvision)
+    const showEvent = (e: DialogEvent<LoginPrompt, LoginNotice>) => {
+      if (e.kind === 'notice') {
+        if (e.method === secretExchanged) {
+          exchangeHolds.hold()
+        }
+        return
       }
+      switch (e.method) {
+        case secretPrompt: {
+          const {phrase, previousErr} = e.params
+          showing.textCode = e
+          // we ignore the return as we never autosubmit, but we want things to increment
+          shouldAutoSubmit(!!previousErr, {type: 'promptSecret'})
+          navigateAppend(
+            {
+              name: 'codePage',
+              params: {
+                deviceName: answers.deviceName,
+                error: previousErr || undefined,
+                otherDevice: answers.selectedDevice,
+                textCode: phrase,
+              },
+            },
+            !!previousErr
+          )
+          return
+        }
+        case deviceNamePrompt: {
+          const {errorMessage} = e.params
+          showing.deviceName = e
+          if (shouldAutoSubmit(!!errorMessage, {type: 'deviceName'})) {
+            console.log('Provision: auto submit device name')
+            submit.deviceName(answers.deviceName)
+          } else {
+            navigateAppend(
+              {name: 'setPublicName', params: {devices: knownDevices, error: errorMessage || undefined}},
+              !!errorMessage
+            )
+          }
+          return
+        }
+        case chooseDevicePrompt: {
+          const devices = e.params.devices?.map(d => rpcDeviceToDevice(d)) ?? []
+          knownDevices = devices
+          showing.deviceSelect = e
+          if (shouldAutoSubmit(false, {devices, type: 'chooseDevice'})) {
+            console.log('Provision: auto submit device select')
+            submit.deviceSelect(answers.selectedDevice.name)
+          } else {
+            navigateAppend({name: 'selectOtherDevice', params: {devices, username}})
+          }
+          return
+        }
+        case passphrasePrompt: {
+          const {retryLabel, type} = e.params.pinentry
+          // The service may ask again with a type the flow shows
+          if (type !== T.RPCGen.PassphraseType.passPhrase && type !== T.RPCGen.PassphraseType.paperKey) {
+            logger.warn('Provision: got confused about password entry')
+            e.cancel()
+            return
+          }
+          showing.passphrase = e
+          // Service asking us again due to an error?
+          const error = (retryLabel === invalidPasswordErrorString ? 'Incorrect password.' : retryLabel) || undefined
+          if (shouldAutoSubmit(!!retryLabel, {type: 'passphrase'})) {
+            console.log('Provision: auto submit passphrase')
+            submit.passphrase(answers.passphrase)
+          } else if (type === T.RPCGen.PassphraseType.passPhrase) {
+            navigateAppend({name: 'password', params: {error, username}}, !!retryLabel)
+          } else {
+            navigateAppend(
+              {name: 'paperkey', params: {deviceName: answers.selectedDevice.name, error}},
+              !!retryLabel
+            )
+          }
+          return
+        }
+        default:
+          e.cancel()
+      }
+    }
+
+    const showEvents = async () => {
+      for await (const e of dialog.events) {
+        try {
+          showEvent(e)
+        } catch (error) {
+          showFailed = true
+          endOnShowFailure(dialog, e.method, error)
+        }
+      }
+    }
+
+    try {
+      await Promise.all([showEvents(), dialog.done])
+    } finally {
+      exchangeHolds.release()
     }
   }
 
+  const openAttempt = (): LoginDialog =>
+    openDialog(
+      'keybase.1.login.login',
+      {
+        clientType: T.RPCGen.ClientType.guiMain,
+        deviceName: '',
+        deviceType: isMobile ? 'mobile' : 'desktop',
+        doUserSwitch: true,
+        paperKey: '',
+        username,
+      },
+      {
+        autoAnswer: {
+          // The "I lost all my devices" row owns reset, so login never enters it from here
+          'keybase.1.loginUi.promptResetAccount': () => T.RPCGen.ResetPromptResponse.nothing,
+        },
+        notices: loginNotices,
+        prompts: loginPrompts,
+        waitingKey: waitingKeyProvision,
+      }
+    )
+
+  // Parked: the user backed out of a hung attempt. Waits for a resubmit (a submit with no prompt
+  // showing restarts) or a cancel.
+  const parkUntilResumed = async () =>
+    new Promise<void>(resolve => {
+      resumeParked = resolve
+    })
+
   const f = async () => {
-    // Cancel kills this run: any prompt arriving afterwards is auto-rejected so the RPC ends. The
-    // pending response (if any) is rejected now, which is also what stops a run a newer one replaces.
-    handles.set(
-      slots.cancel,
-      wrapErrors(() => {
-        userCancelled = true
-        cancelPendingResponse()
-        cancelAttempt?.()
-        resumeParked?.()
-        resumeParked = undefined
-      })
-    )
-    handles.set(
-      slots.pause,
-      wrapErrors(() => {
-        pauseRequested = true
-        cancelPendingResponse()
-        cancelAttempt?.()
-        // The rejected response's slot still holds a direct handler (calls response.result, no
-        // requestRestart). Reset to idle handlers so a resubmit of that same step wakes the park.
-        setIdleHandlers()
-      })
-    )
-    setIdleHandlers()
     try {
       for (;;) {
-        restartRequested = false
-        pauseRequested = false
+        endReason = undefined
+        showFailed = false
+        const dialog = openAttempt()
+        attempt = dialog
         try {
-          await runAttempt()
+          // eslint-disable-next-line no-await-in-loop
+          await runAttempt(dialog)
           useDaemonState.getState().dispatch.refreshSessionFromDaemon('provision login returned')
           break
         } catch (_finalError) {
-          if (wasUserCancelled()) {
+          if (failedToShow()) {
+            showProvisionError(showFailedError, true, username)
             break
           }
-          if (wasRestartRequested()) {
-            continue
-          }
-          if (wasPauseRequested()) {
-            // Parked: the user backed out of a hung attempt. Wait for a resubmit
-            // (idle handlers → requestRestart) or a cancel.
-            await parkUntilResumed()
-            if (wasUserCancelled()) {
-              break
+          if (dialog.disposed) {
+            if (whyEnded() === 'restart') {
+              continue
             }
-            continue
+            if (whyEnded() === 'park') {
+              // eslint-disable-next-line no-await-in-loop
+              await parkUntilResumed()
+              if (whyEnded() === 'cancel') {
+                break
+              }
+              continue
+            }
+            break
           }
           if (!(_finalError instanceof RPCError)) {
             console.log('Provision non rpc error at end?', _finalError)
             break
           }
           const finalError = _finalError
+          // A cancel ends the run quietly: ours (a logout, an account switch) or the service's
+          if (isCancelError(finalError)) {
+            break
+          }
           // If it's a non-existent username or invalid, allow the opportunity to correct it right
           // there on the page.
           switch (finalError.code) {
@@ -457,23 +461,7 @@ const runProvision = (initialUsername: string) => {
               break
             default:
               if (!errorCausedByUsCanceling(finalError)) {
-                clearModals()
-                navigateAppend(
-                  {
-                    name: 'error',
-                    params: {
-                      error: {
-                        code: finalError.code,
-                        desc: finalError.desc,
-                        details: finalError.details,
-                        fields: finalError.fields as ReadonlyArray<{key?: string; value?: string}> | undefined,
-                        message: finalError.message,
-                      } satisfies ProvisionRouteError,
-                      username,
-                    },
-                  },
-                  true
-                )
+                showProvisionError(finalError, true, username)
               }
               break
           }
@@ -481,7 +469,9 @@ const runProvision = (initialUsername: string) => {
         }
       }
     } finally {
-      handles.dispose()
+      if (currentProvisionRun === run) {
+        currentProvisionRun = undefined
+      }
     }
   }
   ignorePromise(f())
@@ -490,95 +480,69 @@ const runProvision = (initialUsername: string) => {
 export const startAddNewDevice = (otherDeviceType: 'desktop' | 'mobile') => {
   cancelProvision()
   const otherDevice = {...makeDevice(), type: otherDeviceType}
-  let pendingResponse: CommonResponseHandler | undefined
-  let userCancelled = false
-  let cancelAttempt: (() => void) | undefined
-  const handles = makeHandles()
-  const wasCancelled = () => userCancelled
+  const dialog = openDialog('keybase.1.device.deviceAdd', undefined, {
+    autoAnswer: {
+      'keybase.1.provisionUi.chooseDeviceType': () =>
+        otherDeviceType === 'mobile' ? T.RPCGen.DeviceType.mobile : T.RPCGen.DeviceType.desktop,
+    },
+    notices: [secretExchanged, ...successNotices],
+    prompts: [secretPrompt],
+    waitingKey: waitingKeyProvision,
+  })
+  // There's nothing to replay in this flow, so pause is a full cancel too
+  const run: ProvisionRun = {
+    cancel: dialog.dispose,
+    pause: dialog.dispose,
+    submit: {
+      textCode: code => {
+        dialog.openPrompt(secretPrompt)?.answer(secretAnswer(code))
+      },
+    },
+  }
+  currentProvisionRun = run
+
+  const exchangeHolds = makeExchangeHolds()
+  // Set when a prompt could not be shown, which ended the run
+  let showFailed = false
+  const showEvents = async () => {
+    for await (const e of dialog.events) {
+      if (e.kind === 'notice') {
+        if (e.method === secretExchanged) {
+          exchangeHolds.hold()
+        }
+        continue
+      }
+      try {
+        const {phrase, previousErr} = e.params
+        navigateAppend(
+          {name: 'codePage', params: {error: previousErr || undefined, otherDevice, textCode: phrase}},
+          !!previousErr
+        )
+      } catch (error) {
+        showFailed = true
+        endOnShowFailure(dialog, e.method, error)
+      }
+    }
+  }
 
   const f = async () => {
-    // Cancel kills this run: any prompt arriving afterwards is auto-rejected so the RPC ends. The
-    // pending response (if any) is rejected now, which is also what stops a run a newer one replaces.
-    // There's nothing to replay in this flow, so pause is a full cancel too.
-    const doCancel = wrapErrors(() => {
-      userCancelled = true
-      const pending = pendingResponse
-      pendingResponse = undefined
-      if (pending) {
-        cancelOnCallback(undefined, pending)
-      }
-      cancelAttempt?.()
-    })
-    handles.set(slots.cancel, doCancel)
-    handles.set(slots.pause, doCancel)
-    let exchangedIncrements = 0
-    let attemptEnded = false
     try {
-      await T.RPCGen.deviceDeviceAddRpcListener({
-        customResponseIncomingCallMap: {
-          'keybase.1.provisionUi.DisplayAndPromptSecret': (params, response) => {
-            if (userCancelled) {
-              cancelOnCallback(undefined, response)
-              return
-            }
-            const {phrase, previousErr} = params
-            pendingResponse = response
-            handles.set(
-              slots.submitTextCode,
-              wrapErrors((code: string) => {
-                pendingResponse = undefined
-                const good = code.replace(/\W+/g, ' ').trim()
-                response.result({phrase: good, secret: null as unknown as Uint8Array})
-              })
-            )
-            navigateAppend(
-              {
-                name: 'codePage',
-                params: {error: previousErr || undefined, otherDevice, textCode: phrase},
-              },
-              !!previousErr
-            )
-          },
-          'keybase.1.provisionUi.chooseDeviceType': (_params, response) => {
-            switch (otherDeviceType) {
-              case 'mobile':
-                response.result(T.RPCGen.DeviceType.mobile)
-                break
-              case 'desktop':
-                response.result(T.RPCGen.DeviceType.desktop)
-                break
-            }
-          },
-        },
-        incomingCallMap: {
-          'keybase.1.provisionUi.DisplaySecretExchanged': () => {
-            // Incoming calls are dispatched via setTimeout, so this can land after the finally
-            // below already ran its decrements; don't add a count nothing will release.
-            if (attemptEnded) return
-            ++exchangedIncrements
-            useWaitingState.getState().dispatch.increment(waitingKeyProvision)
-          },
-          'keybase.1.provisionUi.ProvisioneeSuccess': () => {},
-          'keybase.1.provisionUi.ProvisionerSuccess': () => {},
-        },
-        onSessionCreated: cancel => {
-          cancelAttempt = cancel
-        },
-        params: undefined,
-        waitingKey: waitingKeyProvision,
-      })
+      await Promise.all([showEvents(), dialog.done])
     } catch {
     } finally {
-      attemptEnded = true
-      cancelAttempt = undefined
-      for (let i = 0; i < exchangedIncrements; ++i) {
-        useWaitingState.getState().dispatch.decrement(waitingKeyProvision)
+      exchangeHolds.release()
+      if (currentProvisionRun === run) {
+        currentProvisionRun = undefined
       }
-      handles.dispose()
     }
-    // A cancelled (or superseded) run must not clear modals: by now the user has either navigated
-    // away or a newer run owns the screens, and this would close the newer run's UI.
-    if (!wasCancelled()) {
+    if (showFailed) {
+      showProvisionError(showFailedError, false)
+      return
+    }
+    // A run the user cancelled (or a newer run or a logout superseded) must not clear modals: by now
+    // the user has either navigated away or a newer run owns the screens. Any other end closes them,
+    // a cancel from the service included.
+    if (!dialog.disposed) {
       clearModals()
     }
   }

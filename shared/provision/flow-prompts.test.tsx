@@ -6,19 +6,29 @@ import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useWaitingState} from '@/stores/waiting'
 import {waitingKeyProvision} from '@/constants/strings'
-import {RPCError} from '@/util/errors'
+import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
+import {tick} from '@/test/flush'
+import * as Router from '@/constants/router'
+import {errors as rpcErrors} from '@/engine/rpc-transport'
+import logger from '@/logger'
+import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 
 import {
   cancelProvision,
   startProvision,
   submitProvisionDeviceSelect,
+  submitProvisionPassphrase,
   submitProvisionTextCode,
   submitProvisionUsername,
 } from './flow'
 
-import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+const login = 'keybase.1.login.login'
+const getPassphrase = 'keybase.1.secretUi.getPassphrase'
+const secret = 'keybase.1.provisionUi.DisplayAndPromptSecret'
+const exchanged = 'keybase.1.provisionUi.DisplaySecretExchanged'
 
 let nav: FakeNavigator
+let fake: FakeEngine
 
 // Provisioning runs from a modal, so the fake starts with one open: clearModals only has
 // something to dispatch when a modal is actually on screen. This one is never a
@@ -30,57 +40,60 @@ beforeEach(() => {
     modalRouteNames: [openModal],
     rootState: makeRootState({above: [{name: openModal}]}),
   })
+  fake = installFakeEngine()
 })
 
 afterEach(() => {
-  restoreNavigator()
-  cancelProvision()
   jest.restoreAllMocks()
+  cancelProvision()
+  restoreNavigator()
   resetAllStores()
 })
 
-const flush = async () => new Promise<void>(resolve => setImmediate(resolve))
-
-type Listener = Parameters<typeof T.RPCGen.loginLoginRpcListener>[0]
-
-const makeRpcDevice = (name: string, deviceID: string, type: 'mobile' | 'desktop' | 'backup') =>
-  ({
-    deviceID,
-    deviceNumberOfType: 1,
-    name,
-    type,
-  }) as any
-
-// Each loginLogin call hangs until the test rejects/resolves it, like the real RPC waiting on prompts.
-const mockLoginAttempts = () => {
-  const attempts: Array<{
-    listener: Listener
-    reject: (e: unknown) => void
-    resolve: () => void
-  }> = []
-  jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockImplementation(async listener => {
-    await new Promise<void>((resolve, reject) => {
-      attempts.push({listener, reject, resolve})
-    })
-    return undefined as any
-  })
-  return attempts
+// The listener hands incoming calls to their handlers on a timer, and a flow reading a dialog's events
+// sees its end on another
+const settle = async () => {
+  for (let i = 0; i < 2; i++) {
+    // eslint-disable-next-line no-await-in-loop
+    await new Promise(resolve => setTimeout(resolve, 0))
+    // eslint-disable-next-line no-await-in-loop
+    await tick()
+  }
 }
 
 const startAttempt = async () => {
-  const attempts = mockLoginAttempts()
+  const held = fake.hold(login)
+  fake.hold('keybase.1.config.getBootstrapStatus')
   submitProvisionUsername('testuser')
-  await flush()
-  expect(attempts.length).toBe(1)
-  return attempts[0]!
+  await tick()
+  expect(held).toHaveLength(1)
+  const sessionID = fake.calls[0]!.params.sessionID as number
+  const push = async (method: string, params: object) => fake.push(method, params, {sessionID})
+  return {push, reply: held[0]!.reply}
+}
+
+const pushPassphrase = async (
+  push: (method: string, params: object) => Promise<unknown>,
+  type: T.RPCGen.PassphraseType,
+  retryLabel = ''
+) => {
+  const answered = push(getPassphrase, {pinentry: {retryLabel, type}})
+  await settle()
+  return answered
+}
+
+// Turning waiting on is throttled; turning it off is not
+const waitingCount = () => {
+  fake.engine._throttledDispatchWaitingAction.flush()
+  return useWaitingState.getState().counts.get(waitingKeyProvision)
 }
 
 describe('final error handling', () => {
   test('an unknown username sends the user back to the username screen inline', async () => {
-    const attempt = await startAttempt()
+    const {reply} = await startAttempt()
 
-    attempt.reject(new RPCError('no such user', T.RPCGen.StatusCode.scnotfound))
-    await flush()
+    reply(fakeError(T.RPCGen.StatusCode.scnotfound, 'no such user'))
+    await settle()
 
     expect(nav.navigations()).toContainEqual({
       name: 'username',
@@ -91,10 +104,10 @@ describe('final error handling', () => {
   })
 
   test('a malformed username also stays on the username screen', async () => {
-    const attempt = await startAttempt()
+    const {reply} = await startAttempt()
 
-    attempt.reject(new RPCError('bad username', T.RPCGen.StatusCode.scbadusername))
-    await flush()
+    reply(fakeError(T.RPCGen.StatusCode.scbadusername, 'bad username'))
+    await settle()
 
     expect(nav.navigations()).toContainEqual({
       name: 'username',
@@ -104,25 +117,19 @@ describe('final error handling', () => {
   })
 
   test('any other error clears modals and shows the error screen with the rpc details', async () => {
-    const attempt = await startAttempt()
+    const {reply} = await startAttempt()
 
-    const error = new RPCError('something broke', T.RPCGen.StatusCode.scdeviceprovisionoffline, [
-      {key: 'has_active_device', value: '1'},
-    ])
-    attempt.reject(error)
-    await flush()
+    reply(fakeError(T.RPCGen.StatusCode.scdeviceprovisionoffline, 'something broke'))
+    await settle()
 
     expect(nav.modalsCleared()).toBe(true)
     expect(nav.navigations()).toContainEqual({
       name: 'error',
       params: {
-        error: {
+        error: expect.objectContaining({
           code: T.RPCGen.StatusCode.scdeviceprovisionoffline,
-          desc: error.desc,
-          details: error.details,
-          fields: [{key: 'has_active_device', value: '1'}],
-          message: error.message,
-        },
+          desc: 'something broke',
+        }),
         username: 'testuser',
       },
       replace: true,
@@ -130,83 +137,100 @@ describe('final error handling', () => {
   })
 
   test('an error caused by our own cancel shows nothing', async () => {
-    const attempt = await startAttempt()
+    const {reply} = await startAttempt()
 
-    attempt.reject(new RPCError('Input canceled', T.RPCGen.StatusCode.scgeneric))
-    await flush()
+    reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'Input canceled'))
+    await settle()
 
     expect(nav.modalsCleared()).toBe(false)
-    expect(nav.navigations()).not.toContainEqual(expect.objectContaining({name: 'error', replace: true}))
+    expect(nav.navigations()).toEqual([])
   })
 
   test('a kex cancel from the daemon shows nothing', async () => {
-    const attempt = await startAttempt()
+    const {reply} = await startAttempt()
 
-    attempt.reject(new RPCError('kex canceled by caller', T.RPCGen.StatusCode.scgeneric))
-    await flush()
-
-    expect(nav.navigations()).not.toContainEqual(expect.objectContaining({name: 'error', replace: true}))
-  })
-
-  test('a non-rpc failure does not navigate anywhere', async () => {
-    const attempt = await startAttempt()
-
-    attempt.reject(new Error('boom'))
-    await flush()
+    reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'kex canceled by caller'))
+    await settle()
 
     expect(nav.modalsCleared()).toBe(false)
-    expect(nav.navigations()).not.toContainEqual(expect.objectContaining({name: 'error', replace: true}))
+    expect(nav.navigations()).toEqual([])
+  })
+
+  // Whoever cancelled: Go's own input cancel reads the same as our refusal echoed back
+  test.each([
+    [T.RPCGen.StatusCode.scinputcanceled, 'canceled by the service'],
+    [T.RPCGen.StatusCode.sccanceled, 'canceled'],
+  ])('a cancel (%s) ends the run quietly', async (code, desc) => {
+    const logError = jest.spyOn(logger, 'error')
+    const {reply} = await startAttempt()
+
+    reply(fakeError(code, desc))
+    await settle()
+
+    expect(nav.modalsCleared()).toBe(false)
+    expect(nav.navigations()).toEqual([])
+    expect(logError).not.toHaveBeenCalled()
+    // the run is over: a submit starts nothing
+    submitProvisionTextCode('one two three')
+    await settle()
+    expect(fake.calls.filter(c => c.method === login)).toHaveLength(1)
+  })
+
+  test('a lost service connection ends the run on the error screen', async () => {
+    const {push} = await startAttempt()
+    const password = pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase)
+    await settle()
+    nav.clearActions()
+
+    fake.drop()
+    await expect(password).resolves.toEqual({error: expect.objectContaining({desc: 'fake engine: link dropped'})})
+    await settle()
+    expect(nav.modalsCleared()).toBe(true)
+    expect(nav.navigations()).toEqual([
+      {
+        name: 'error',
+        params: {error: expect.objectContaining({code: rpcErrors.EOF}), username: 'testuser'},
+        replace: true,
+      },
+    ])
+    fake.restart()
+    // the run is over: a submit reaches nothing and nothing starts again
+    submitProvisionTextCode('one two three')
+    await settle()
+    expect(fake.calls.filter(c => c.method === login)).toHaveLength(1)
   })
 })
 
 describe('passphrase prompts', () => {
   test('a password prompt navigates to the password screen', async () => {
-    const attempt = await startAttempt()
+    const {push} = await startAttempt()
+    void pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase)
+    await settle()
 
-    const response = {error: jest.fn(), result: jest.fn()}
-    attempt.listener.customResponseIncomingCallMap?.['keybase.1.secretUi.getPassphrase']?.(
-      {pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.passPhrase}} as any,
-      response as any
-    )
-
-    expect(nav.navigations()).toContainEqual({
-      name: 'password',
-      params: {error: undefined, username: 'testuser'},
-      replace: false,
-    })
+    expect(nav.navigations()).toEqual([
+      {name: 'password', params: {error: undefined, username: 'testuser'}, replace: false},
+    ])
   })
 
   test('the service rejecting the password is rewritten to a readable error and replaces the screen', async () => {
-    const attempt = await startAttempt()
+    const {push} = await startAttempt()
+    void pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase, invalidPasswordErrorString)
+    await settle()
 
-    const response = {error: jest.fn(), result: jest.fn()}
-    attempt.listener.customResponseIncomingCallMap?.['keybase.1.secretUi.getPassphrase']?.(
-      {pinentry: {retryLabel: invalidPasswordErrorString, type: T.RPCGen.PassphraseType.passPhrase}} as any,
-      response as any
-    )
-
-    expect(nav.navigations()).toContainEqual({
-      name: 'password',
-      params: {error: 'Incorrect password.', username: 'testuser'},
-      replace: true,
-    })
+    expect(nav.navigations()).toEqual([
+      {name: 'password', params: {error: 'Incorrect password.', username: 'testuser'}, replace: true},
+    ])
   })
 
   // In the app the retry prompt arrives while the password screen from the first prompt is
   // still showing, so it retargets that screen in place rather than swapping it.
   test('a retry while the password screen is showing updates that screen in place', async () => {
-    const attempt = await startAttempt()
-
-    const prompt = attempt.listener.customResponseIncomingCallMap?.['keybase.1.secretUi.getPassphrase']
-    prompt?.(
-      {pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.passPhrase}} as any,
-      {error: jest.fn(), result: jest.fn()} as any
-    )
+    const {push} = await startAttempt()
+    void pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase)
+    await settle()
     nav.clearActions()
-    prompt?.(
-      {pinentry: {retryLabel: invalidPasswordErrorString, type: T.RPCGen.PassphraseType.passPhrase}} as any,
-      {error: jest.fn(), result: jest.fn()} as any
-    )
+    void pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase, invalidPasswordErrorString)
+    await settle()
 
     expect(nav.types()).toEqual(['SET_PARAMS'])
     expect(NavTree.visibleScreen(nav.getRootState())).toMatchObject({
@@ -216,36 +240,26 @@ describe('passphrase prompts', () => {
   })
 
   test('any other retry label is passed through verbatim', async () => {
-    const attempt = await startAttempt()
+    const {push} = await startAttempt()
+    void pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase, 'Try again')
+    await settle()
 
-    const response = {error: jest.fn(), result: jest.fn()}
-    attempt.listener.customResponseIncomingCallMap?.['keybase.1.secretUi.getPassphrase']?.(
-      {pinentry: {retryLabel: 'Try again', type: T.RPCGen.PassphraseType.passPhrase}} as any,
-      response as any
-    )
-
-    expect(nav.navigations()).toContainEqual({
-      name: 'password',
-      params: {error: 'Try again', username: 'testuser'},
-      replace: true,
-    })
+    expect(nav.navigations()).toEqual([
+      {name: 'password', params: {error: 'Try again', username: 'testuser'}, replace: true},
+    ])
   })
 
   test('a paper key prompt names the device the user picked', async () => {
-    const attempt = await startAttempt()
+    const {push} = await startAttempt()
 
-    const chooseResponse = {error: jest.fn(), result: jest.fn()}
-    attempt.listener.customResponseIncomingCallMap?.['keybase.1.provisionUi.chooseDevice']?.(
-      {devices: [makeRpcDevice('paper key one', 'device-1', 'backup')]} as any,
-      chooseResponse as any
-    )
+    const choose = push('keybase.1.provisionUi.chooseDevice', {
+      devices: [{deviceID: 'device-1', deviceNumberOfType: 1, name: 'paper key one', type: 'backup'}],
+    })
+    await settle()
     submitProvisionDeviceSelect('paper key one')
-
-    const response = {error: jest.fn(), result: jest.fn()}
-    attempt.listener.customResponseIncomingCallMap?.['keybase.1.secretUi.getPassphrase']?.(
-      {pinentry: {retryLabel: '', type: T.RPCGen.PassphraseType.paperKey}} as any,
-      response as any
-    )
+    await choose
+    void pushPassphrase(push, T.RPCGen.PassphraseType.paperKey)
+    await settle()
 
     expect(nav.navigations()).toContainEqual({
       name: 'paperkey',
@@ -253,87 +267,196 @@ describe('passphrase prompts', () => {
       replace: false,
     })
   })
+
+  test('a passphrase prompt of another kind is refused and shows nothing; the run goes on', async () => {
+    const logWarn = jest.spyOn(logger, 'warn')
+    const {push} = await startAttempt()
+    const answered = pushPassphrase(push, T.RPCGen.PassphraseType.verifyPassPhrase)
+    await settle()
+    expect(nav.navigations()).toEqual([])
+    await expect(answered).resolves.toEqual({
+      error: {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'},
+    })
+    expect(logWarn).toHaveBeenCalledWith('Provision: got confused about password entry')
+    // the service asks again with a type the flow shows, and the user's answer reaches it
+    const password = pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase)
+    await settle()
+    expect(nav.navigations()).toEqual([
+      {name: 'password', params: {error: undefined, username: 'testuser'}, replace: false},
+    ])
+    submitProvisionPassphrase('hunter2')
+    await expect(password).resolves.toEqual({result: {passphrase: 'hunter2', storeSecret: false}})
+    expect(nav.modalsCleared()).toBe(false)
+  })
+
+  // The user sees a generic message; the exception goes to the log
+  const expectShowFailure = (logError: jest.SpyInstance, thrown: unknown) => {
+    expect(logError).toHaveBeenCalledWith(expect.stringContaining('Provision: showing'), thrown)
+    expect(nav.modalsCleared()).toBe(true)
+    expect(nav.navigations()).toEqual([
+      {
+        name: 'error',
+        params: {
+          error: expect.objectContaining({
+            code: T.RPCGen.StatusCode.scgeneric,
+            desc: 'Something went wrong. Please try again.',
+          }),
+          username: 'testuser',
+        },
+        replace: true,
+      },
+    ])
+  }
+
+  test('a prompt whose payload the flow cannot read is refused and ends the run on the error screen', async () => {
+    const logError = jest.spyOn(logger, 'error')
+    const {push} = await startAttempt()
+    // a device the flow cannot read
+    const answered = push('keybase.1.provisionUi.chooseDevice', {devices: [null]})
+    await settle()
+    await expect(answered).resolves.toEqual({
+      error: {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'},
+    })
+    expectShowFailure(logError, expect.any(TypeError))
+  })
+
+  test('a screen that fails to show refuses its prompt and ends the run on the error screen', async () => {
+    const logError = jest.spyOn(logger, 'error')
+    const {push} = await startAttempt()
+    const thrown = new Error('no navigator')
+    const navigate = jest.spyOn(Router, 'navigateAppend').mockImplementationOnce(() => {
+      throw thrown
+    })
+    try {
+      await expect(pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase)).resolves.toEqual({
+        error: {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'},
+      })
+      await settle()
+    } finally {
+      navigate.mockRestore()
+    }
+    expectShowFailure(logError, thrown)
+    // the run is over: a submit starts nothing
+    submitProvisionPassphrase('hunter2')
+    await settle()
+    expect(fake.calls.filter(c => c.method === login)).toHaveLength(1)
+  })
 })
 
 describe('text code prompt', () => {
   test('the submitted code is normalized to space separated words', async () => {
-    const attempt = await startAttempt()
+    const {push} = await startAttempt()
+    const answered = push(secret, {phrase: 'one two three', previousErr: ''})
+    await settle()
 
-    const response = {error: jest.fn(), result: jest.fn()}
-    attempt.listener.customResponseIncomingCallMap?.['keybase.1.provisionUi.DisplayAndPromptSecret']?.(
-      {phrase: 'one two three', previousErr: ''} as any,
-      response as any
-    )
-
-    expect(nav.navigations()).toContainEqual({
-      name: 'codePage',
-      params: {
-        deviceName: '',
-        error: undefined,
-        otherDevice: expect.objectContaining({name: ''}),
-        textCode: 'one two three',
+    expect(nav.navigations()).toEqual([
+      {
+        name: 'codePage',
+        params: {
+          deviceName: '',
+          error: undefined,
+          otherDevice: expect.objectContaining({name: ''}),
+          textCode: 'one two three',
+        },
+        replace: false,
       },
-      replace: false,
-    })
+    ])
 
     submitProvisionTextCode('  one,two\n\nthree  ')
 
-    expect(response.result).toHaveBeenCalledWith({phrase: 'one two three', secret: null})
+    await expect(answered).resolves.toEqual({result: {phrase: 'one two three', secret: null}})
   })
 
   test('a previous error replaces the code screen and is shown', async () => {
-    const attempt = await startAttempt()
+    const {push} = await startAttempt()
+    void push(secret, {phrase: 'four five six', previousErr: 'nope'})
+    await settle()
 
-    const response = {error: jest.fn(), result: jest.fn()}
-    attempt.listener.customResponseIncomingCallMap?.['keybase.1.provisionUi.DisplayAndPromptSecret']?.(
-      {phrase: 'four five six', previousErr: 'nope'} as any,
-      response as any
-    )
-
-    expect(nav.navigations()).toContainEqual(
+    expect(nav.navigations()).toEqual([
       expect.objectContaining({
         name: 'codePage',
         params: expect.objectContaining({error: 'nope', textCode: 'four five six'}),
         replace: true,
-      })
-    )
+      }),
+    ])
+  })
+
+  test('a code submitted with no secret prompt open starts the login over', async () => {
+    await startAttempt()
+    submitProvisionTextCode('one two three')
+    await settle()
+    expect(fake.calls.filter(c => c.method === login)).toHaveLength(2)
   })
 })
 
-test('secret-exchange progress is released when the attempt ends', async () => {
-  const attempt = await startAttempt()
+describe('waiting', () => {
+  test('the login holds the provision waiting key while the service works, not while a prompt waits', async () => {
+    const {push, reply} = await startAttempt()
+    await settle()
+    expect(waitingCount()).toBe(1)
+    const answered = push(secret, {phrase: 'one two three', previousErr: ''})
+    await settle()
+    expect(waitingCount()).toBeUndefined()
+    submitProvisionTextCode('one two three')
+    await answered
+    await settle()
+    expect(waitingCount()).toBe(1)
+    reply(undefined)
+    await settle()
+    expect(waitingCount()).toBeUndefined()
+  })
 
-  const exchanged = attempt.listener.incomingCallMap['keybase.1.provisionUi.DisplaySecretExchanged']
-  exchanged?.({} as any)
-  exchanged?.({} as any)
-  expect(useWaitingState.getState().counts.get(waitingKeyProvision)).toBe(2)
+  test('secret-exchange progress is released when the attempt ends', async () => {
+    const {push, reply} = await startAttempt()
 
-  attempt.resolve()
-  await flush()
+    await push(exchanged, {})
+    await push(exchanged, {})
+    await settle()
+    expect(waitingCount()).toBe(3)
 
-  expect(useWaitingState.getState().counts.get(waitingKeyProvision)).toBeUndefined()
-})
+    reply(undefined)
+    await settle()
 
-test('a secret-exchange arriving after the attempt ended does not leak a waiting count', async () => {
-  const attempt = await startAttempt()
-  const exchanged = attempt.listener.incomingCallMap['keybase.1.provisionUi.DisplaySecretExchanged']
+    expect(waitingCount()).toBeUndefined()
+  })
 
-  attempt.resolve()
-  await flush()
+  test('secret-exchange progress is released when the attempt is cancelled', async () => {
+    const {push} = await startAttempt()
+    await push(exchanged, {})
+    await settle()
+    expect(waitingCount()).toBe(2)
 
-  exchanged?.({} as any)
+    cancelProvision()
+    await settle()
+    expect(waitingCount()).toBeUndefined()
+  })
 
-  expect(useWaitingState.getState().counts.get(waitingKeyProvision)).toBeUndefined()
+  test.each([
+    ['returning', undefined],
+    ['failing', fakeError(T.RPCGen.StatusCode.scgeneric, 'kex failed')],
+  ])('a secret-exchange arriving with the attempt %s does not leak a waiting count', async (_, answer) => {
+    const {push, reply} = await startAttempt()
+
+    // the service sends it and then the reply, before the GUI's handler ran
+    void push(exchanged, {})
+    reply(answer)
+    await settle()
+    await settle()
+
+    expect(waitingCount()).toBeUndefined()
+  })
 })
 
 test('starting provisioning while logged in logs out first', async () => {
-  const logout = jest.spyOn(T.RPCGen, 'loginLogoutRpcPromise').mockResolvedValue(undefined as any)
+  fake.answer('keybase.1.login.logout', () => undefined)
   useConfigState.getState().dispatch.setLoggedIn(true)
 
   startProvision('testuser')
-  await flush()
+  await settle()
 
-  expect(logout).toHaveBeenCalledWith({force: false, keepSecrets: true}, 'config:loginAsOther')
+  expect(fake.calls).toEqual([
+    {method: 'keybase.1.login.logout', params: expect.objectContaining({force: false, keepSecrets: true})},
+  ])
   expect(nav.navigations()).toContainEqual({
     name: 'username',
     params: {fromReset: false, username: 'testuser'},
@@ -342,10 +465,8 @@ test('starting provisioning while logged in logs out first', async () => {
 })
 
 test('starting provisioning while logged out does not log out', async () => {
-  const logout = jest.spyOn(T.RPCGen, 'loginLogoutRpcPromise').mockResolvedValue(undefined as any)
-
   startProvision('testuser')
-  await flush()
+  await settle()
 
-  expect(logout).not.toHaveBeenCalled()
+  expect(fake.calls).toEqual([])
 })
