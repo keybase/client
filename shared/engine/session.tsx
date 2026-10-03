@@ -39,9 +39,14 @@ export type DeferRun = () => () => void
 
 type ClientCancel = Extract<CancelReason, 'caller' | 'accountChange'>
 
-const refusalKey = (error: unknown) => {
+const errorKey = (code: unknown, desc: unknown) =>
+  typeof code === 'number' && typeof desc === 'string' ? `${code}:${desc}` : undefined
+
+// A refusal as the service echoes it back in the RPC's error. Go reads any input cancel as its own
+// InputCanceledError, whose desc is always 'Input canceled' (e.g. our 'No handler for X').
+const echoKey = (error: unknown) => {
   const {code, desc} = (error ?? {}) as {code?: unknown; desc?: unknown}
-  return typeof code === 'number' && typeof desc === 'string' ? `${code}:${desc}` : undefined
+  return errorKey(code, code === StatusCode.scinputcanceled ? inputCanceledError.desc : desc)
 }
 
 // A session is a series of calls back and forth tied together with a single sessionID
@@ -76,9 +81,10 @@ class Session {
   _startCallback: ((err?: RPCError, ...args: Array<unknown>) => void) | undefined
   // The account generation the session started in; undefined until start
   _accountGeneration: number | undefined
-  // Every error the client wrote on this session's prompts, by code and desc. The service usually fails
-  // the RPC with the refusal it read, which is then the client's own cancel, not the service's error.
-  _refusals = new Set<string>()
+  // The refusal the RPC is still blocked on: the latest error the client wrote on one of its prompts,
+  // until a later prompt arrives or is answered. The service usually fails the RPC with the refusal it
+  // read, which is then the client's own cancel; once it has moved on, the same error is its own.
+  _blockingRefusal: string | undefined
 
   // Allow us to make calls
   _invoke: InvokeType
@@ -215,16 +221,14 @@ class Session {
 
   // Writes an error on one of the service's calls, and remembers it so its echo in the reply is known
   _refuse(response: ResponseType | undefined, error: unknown) {
-    const key = refusalKey(error)
-    if (key) {
-      this._refusals.add(key)
-    }
+    this._blockingRefusal = echoKey(error)
     response?.error?.(error)
   }
 
-  // The reply's error, as the client's own cancel when it is the echo of a refusal written here
+  // The reply's error, as the client's own cancel when it echoes the refusal the RPC is blocked on
   _attributed(err: unknown) {
-    if (err instanceof RPCError && this._refusals.has(refusalKey(err) ?? '')) {
+    const blocking = this._blockingRefusal
+    if (blocking !== undefined && err instanceof RPCError && errorKey(err.code, err.desc) === blocking) {
       return new RPCError(err.desc, err.code, err.fields, err.name, this._startMethod, {
         reason: 'caller',
         type: 'cancelled',
@@ -372,6 +376,8 @@ class Session {
       return true
     }
 
+    // The service has moved past any refusal: it is asking something new
+    this._blockingRefusal = undefined
     // A custom call delivered as a notification has nothing to answer
     const held: HeldResponse = {method, response: response ?? {}, settled: false}
     this._held.add(held)
@@ -383,7 +389,12 @@ class Session {
     }
     const request: ResponseType = {
       error: (error?: unknown) => answer(() => this._refuse(held.response, error)),
-      result: (...args: Array<unknown>) => answer(() => held.response.result?.(...args)),
+      result: (...args: Array<unknown>) =>
+        answer(() => {
+          // Answered, so the service goes on past any refusal written before
+          this._blockingRefusal = undefined
+          held.response.result?.(...args)
+        }),
       get settled() {
         return held.settled
       },

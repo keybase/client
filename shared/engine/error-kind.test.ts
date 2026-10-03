@@ -225,6 +225,62 @@ describe('a reply that echoes a refusal the client wrote', () => {
     uninstallFakeEngine()
   })
 
+  // The service moved on past the refusal, so a later failure with the same code and desc is its own
+  test.each([
+    ['answered', true],
+    ['only surfaced', false],
+  ])('a refusal followed by a later prompt %s is not what the RPC fails with', async (_, answer) => {
+    const {cancel, dialog, fake, held} = await openRecover()
+    expect(cancel()).toBe(true)
+    const sessionID = fake.calls[0]!.params.sessionID as number
+    const later = fake.push(choose, {devices: []}, {sessionID})
+    await afterTimers()
+    if (answer) {
+      expect(dialog.openPrompt(choose)?.answer('') ?? false).toBe(true)
+      await expect(later).resolves.toEqual({result: ''})
+    }
+    held[0]!.reply(fakeError(inputCanceled.code, inputCanceled.desc))
+    expect(kindOf(await rejection(dialog.done))).toEqual(byService)
+    uninstallFakeEngine()
+  })
+
+  test('a refusal followed by an answer to a prompt that was already open is not what the RPC fails with', async () => {
+    const {dialog, fake, held} = await openRecover()
+    const sessionID = fake.calls[0]!.params.sessionID as number
+    const second = fake.push(choose, {devices: []}, {sessionID})
+    await afterTimers()
+    const [first, other] = dialog.openPrompts()
+    expect(first?.cancel()).toBe(true)
+    expect(other?.answer('')).toBe(true)
+    await expect(second).resolves.toEqual({result: ''})
+    held[0]!.reply(fakeError(inputCanceled.code, inputCanceled.desc))
+    expect(kindOf(await rejection(dialog.done))).toEqual(byService)
+    uninstallFakeEngine()
+  })
+
+  test("a must-answer call with no handler is refused, and Go's 'Input canceled' echo is the caller's cancel", async () => {
+    jest.spyOn(logger, 'error').mockImplementation(() => {})
+    const fake = installFakeEngine()
+    const held = fake.hold(rpc)
+    const callback = jest.fn()
+    const sessionID = fake.engine.call({
+      callback,
+      // misconfigured: a call that needs an answer in the map that cannot give one
+      incomingCallMap: {'keybase.1.secretUi.getPassphrase': () => {}} as never,
+      method: rpc,
+      params: {username: 'testuser'},
+    })
+    await tick()
+    const pushed = fake.push('keybase.1.secretUi.getPassphrase', {pinentry: {}}, {sessionID})
+    expect(await pushed).toEqual({
+      error: {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'No handler for keybase.1.secretUi.getPassphrase'},
+    })
+    held[0]!.reply(fakeError(inputCanceled.code, inputCanceled.desc))
+    await tick()
+    expect(kindOf(callback.mock.calls[0]![0])).toEqual(byCaller)
+    uninstallFakeEngine()
+  })
+
   test("a handler that throws refuses its prompt, and the echo is the caller's cancel", async () => {
     jest.spyOn(logger, 'error').mockImplementation(() => {})
     const fake = installFakeEngine()
