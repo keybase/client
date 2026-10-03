@@ -22,6 +22,8 @@ import {
 type HeldResponse = {
   method: MethodKey
   response: ResponseType
+  // What the handler got, which carries its onCancelledByService
+  request?: ResponseType
   settled: boolean
 }
 
@@ -149,6 +151,11 @@ class Session {
       if (held.response.seqid === seqid && this._settle(held)) {
         // Like an answer, the service is working on the RPC again
         this._makeWaitingHandler(held.method, seqid)(true)
+        try {
+          held.request?.onCancelledByService?.()
+        } catch (e) {
+          logger.error(`Session: the service-cancel handler for ${held.method} threw`, e)
+        }
       }
     }
   }
@@ -334,6 +341,7 @@ class Session {
         return held.settled
       },
     }
+    held.request = request
     try {
       custom(param, request)
     } catch (e) {

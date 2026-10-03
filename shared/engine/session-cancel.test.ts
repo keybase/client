@@ -195,6 +195,34 @@ describe('a service cancel of one prompt', () => {
     expect(fake.engine._sessionsMap.has(sessionID)).toBe(false)
   })
 
+  test("turns a listener's waiting back on, as its RPC goes on", async () => {
+    const {ended, fake, held, onPrompt, sessionID} = await start()
+    expect(waitingCount(fake)).toBe(1)
+    void fake.push(prompt, {kind: 0}, {sessionID})
+    await afterTimers()
+    expect(onPrompt).toHaveBeenCalledTimes(1)
+    expect(waitingCount(fake)).toBe(0)
+    fake.cancelPush(prompt)
+    expect(waitingCount(fake)).toBe(1)
+    held[0]!.reply(undefined)
+    await ended
+    expect(waitingCount(fake)).toBe(0)
+  })
+
+  test("still on the listener's timer, turns its waiting back on and never reaches the handler", async () => {
+    const {ended, fake, held, onPrompt, sessionID} = await start()
+    void fake.push(prompt, {kind: 0}, {sessionID})
+    await tick()
+    expect(waitingCount(fake)).toBe(0)
+    fake.cancelPush(prompt)
+    expect(waitingCount(fake)).toBe(1)
+    await afterTimers()
+    expect(onPrompt).not.toHaveBeenCalled()
+    held[0]!.reply(undefined)
+    await ended
+    expect(waitingCount(fake)).toBe(0)
+  })
+
   test("leaves a raw call's waiting count on the service until its reply", async () => {
     const fake = installFakeEngine()
     const held = fake.hold(rpc)
