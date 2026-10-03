@@ -9,7 +9,7 @@ import {pluralize} from '@/util/string'
 import {navigateAppend} from '@/constants/router'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useWaitingState} from '@/stores/waiting'
+import {withWaiting} from '@/stores/waiting'
 type PermissionStatus = 'granted' | 'denied' | 'undetermined' | 'unknown'
 
 type Store = T.Immutable<{
@@ -293,19 +293,17 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
       ignorePromise(f())
     },
     requestPermissions: (thenToggleImportOn?: boolean, fromSettings?: boolean) => {
-      const f = async () => {
-        const {decrement, increment} = useWaitingState.getState().dispatch
-        increment(importContactsWaitingKey)
-        const {status} = await Contacts.requestPermissionsAsync()
+      const f = async () =>
+        withWaiting(importContactsWaitingKey, async () => {
+          const {status} = await Contacts.requestPermissionsAsync()
 
-        if (status === Contacts.PermissionStatus.GRANTED && thenToggleImportOn) {
-          get().dispatch.editContactImportEnabled(true, fromSettings)
-        }
-        set(s => {
-          s.permissionStatus = status
+          if (status === Contacts.PermissionStatus.GRANTED && thenToggleImportOn) {
+            get().dispatch.editContactImportEnabled(true, fromSettings)
+          }
+          set(s => {
+            s.permissionStatus = status
+          })
         })
-        decrement(importContactsWaitingKey)
-      }
       ignorePromise(f())
     },
     resetState: Z.defaultReset,

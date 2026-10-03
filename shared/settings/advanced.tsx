@@ -10,7 +10,7 @@ import {useShellState} from '@/stores/shell'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {pprofDir} from '@/constants/platform'
 import {clearLocalLogs} from '@/util/misc'
-import {useWaitingState} from '@/stores/waiting'
+import {withWaiting} from '@/stores/waiting'
 import {useRandomPWState} from './use-random-pw'
 import {useRPCLoad} from '@/util/use-rpc-load'
 
@@ -25,10 +25,7 @@ const runPprofAction = (
 ) => {
   const f = async () => {
     await rpc()
-    const {decrement, increment} = useWaitingState.getState().dispatch
-    increment(waitingKey)
-    await timeoutPromise(durationSeconds * 1_000)
-    decrement(waitingKey)
+    await withWaiting(waitingKey, async () => timeoutPromise(durationSeconds * 1_000))
   }
   ignorePromise(f())
 }
