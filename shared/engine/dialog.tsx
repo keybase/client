@@ -53,14 +53,9 @@ export type Dialog<R, P extends PromptMethod, N extends NoticeMethod> = {
   dispose: () => void
 }
 
-// An autoAnswer returns this to refuse the prompt (scinputcanceled)
-declare const refusalBrand: unique symbol
-// Branded, so no RPC output can pass for it
-type Refusal = {readonly [refusalBrand]: true}
-export const refusePrompt = Object.freeze({}) as Refusal
 // A method is either surfaced or auto-answered, never both
 type AutoAnswer<P extends PromptMethod> = {
-  [K in Exclude<PromptMethod, P>]?: (params: RpcIn<K>) => RpcOut<K> | Refusal
+  [K in Exclude<PromptMethod, P>]?: (params: RpcIn<K>) => RpcOut<K>
 }
 
 type Response = Partial<CommonResponseHandler> & {readonly settled?: boolean}
@@ -190,11 +185,7 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
       if (response.settled) {
         return
       }
-      if (v === refusePrompt) {
-        response.error?.(inputCanceledError)
-      } else {
-        response.result?.(v)
-      }
+      response.result?.(v)
     }
   }
   const incomingCallMap: {[K in string]: (params: never) => void} = {}

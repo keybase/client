@@ -6,7 +6,7 @@ import {fakeError, installFakeEngine, uninstallFakeEngine, type FakeEngine} from
 import {RPCError} from '@/util/errors'
 import {registerIncomingAnswerer} from './incoming-answerers'
 import {getCallPort, hasCallPort, installCallPort, uninstallCallPort} from './call-port'
-import {disposeDialogsForLogout, openDialog, refusePrompt, type Dialog} from './dialog'
+import {disposeDialogsForLogout, openDialog, type Dialog} from './dialog'
 import {useConfigState} from '@/stores/config'
 import {useWaitingState} from '@/stores/waiting'
 import {resetAllStores} from '@/util/zustand'
@@ -27,7 +27,6 @@ afterEach(() => {
 const rpc = 'keybase.1.login.recoverPassphrase'
 const choose = 'keybase.1.loginUi.chooseDeviceToRecoverWith'
 const pgpWarning = 'keybase.1.loginUi.promptPassphraseRecovery'
-const resetPrompt = 'keybase.1.loginUi.promptResetAccount'
 const explain = 'keybase.1.loginUi.explainDeviceRecovery'
 const progress = 'keybase.1.loginUi.displayResetProgress'
 const pinentry = 'keybase.1.secretUi.getPassphrase'
@@ -58,7 +57,7 @@ const startRecover = async (onEngineIncoming?: (a: EngineGen.Actions) => void) =
     rpc,
     {username: 'testuser'},
     {
-      autoAnswer: {[pgpWarning]: () => true, [resetPrompt]: () => refusePrompt},
+      autoAnswer: {[pgpWarning]: () => true},
       globalFallthrough: ['keybase.1.logUi.'],
       notices: [explain, progress],
       prompts: [choose, pinentry],
@@ -243,16 +242,14 @@ export const typeChecks = (dialog: Dialog<void, typeof choose | typeof pinentry,
       prompts: [choose],
     }
   )
-  openDialog(rpc, {username: 'testuser'}, {autoAnswer: {[pgpWarning]: () => refusePrompt}, prompts: [choose]})
 }
 
-test('autoAnswer answers with a value or refuses, and never surfaces the prompt', async () => {
+test('autoAnswer answers with a value, and never surfaces the prompt', async () => {
   const {dialog, fake, held, sessionID} = await startRecover()
   const {finished, seen} = collect(dialog.events)
   await expect(
     fake.push(pgpWarning, {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys}, {sessionID})
   ).resolves.toEqual({result: true})
-  await expect(fake.push(resetPrompt, {prompt: {t: 0}}, {sessionID})).resolves.toEqual({error: inputCanceled})
   held[0]!.reply(undefined)
   await dialog.done
   await finished
