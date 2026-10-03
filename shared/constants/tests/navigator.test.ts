@@ -293,6 +293,39 @@ describe('removeRoutes', () => {
     expect(nav.getRootState()?.routes?.[0]?.state?.key).toBe('tabs')
   })
 
+  describe('on iOS', () => {
+    const wasIOS = isIOS
+    beforeEach(() => {
+      global.isIOS = true
+    })
+    afterEach(() => {
+      global.isIOS = wasIOS
+    })
+
+    test('a modal under a modal that stays is kept, as react-native-screens cannot take it out', () => {
+      nav = installFakeNavigator({
+        modalRouteNames: ['m1', 'm2'],
+        rootState: makeRootState({above: [{name: 'm1'}, {name: 'm2'}]}),
+      })
+
+      removeRoutes(['m1-above-0'])
+
+      expect(nav.actions).toEqual([])
+      expect(rootNames()).toEqual(['loggedIn', 'm1', 'm2'])
+    })
+
+    test('modals that go with every modal over them, and pushed screens under a modal, are taken out', () => {
+      nav = installFakeNavigator({
+        modalRouteNames: ['m1', 'm2'],
+        rootState: makeRootState({above: [{name: 'chatConversation'}, {name: 'm1'}, {name: 'm2'}]}),
+      })
+
+      removeRoutes(['chatConversation-above-0', 'm1-above-1', 'm2-above-2'])
+
+      expect(rootNames()).toEqual(['loggedIn'])
+    })
+  })
+
   test('resets each stack that holds one, and only those', () => {
     nav = installFakeNavigator({
       modalRouteNames: ['m1'],

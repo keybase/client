@@ -70,7 +70,9 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
   // whether it dispatched.
   setRouteParams: (routeKey: string | undefined, params: object) => boolean
   // Takes the routes with these keys out of whichever stacks hold them, leaving every other route
-  // where it is: one reset per stack that holds one, built from the root state as it is now.
+  // where it is: one reset per stack that holds one, built from the root state as it is now. On iOS
+  // a modal under a modal that stays is kept: taking a covered modal out of the presented ones
+  // crashes react-native-screens ("Modally presented controllers are being reshuffled").
   removeRoutes: (keys: Iterable<string>) => void
   // Runs cb once no modal route is up: now, or at the state commit that removes the last one
   // within modalsWaitMs. One wait at a time: a new one drops the one before it. Returns a cancel.
@@ -366,7 +368,16 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     const prune = (s: NavTree.NavState | undefined) => {
       const routes = s?.routes
       if (!s || !routes) return
-      const kept = routes.filter(r => !r.key || !remove.has(r.key))
+      let underKeptModal = false
+      const kept = [...routes]
+        .reverse()
+        .filter(r => {
+          const modal = isIOS && NavTree.isModalRouteName(r.name)
+          const gone = !!r.key && remove.has(r.key) && !(modal && underKeptModal)
+          underKeptModal ||= modal && !gone
+          return !gone
+        })
+        .reverse()
       if (kept.length !== routes.length) {
         if (!kept.length) {
           // A stack can't be left empty; its last route goes with whatever holds it

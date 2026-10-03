@@ -329,6 +329,26 @@ describe('completion', () => {
     expect(screens()).toEqual(['loggedIn', openModal, errorModal])
   })
 
+  test("on iOS the run's modal under a modal that is not the run's stays, as a covered modal can't be taken out", async () => {
+    const wasIOS = isIOS
+    global.isIOS = true
+    nav = installFakeNavigator({
+      modalRouteNames: [openModal, errorModal, 'recoverPasswordSetPassword'],
+      rootState: makeRootState(),
+    })
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    const {held, sessionID} = await start()
+    await pushPassphrase(sessionID, T.RPCGen.PassphraseType.passPhrase)
+    mount('recoverPasswordSetPassword')
+    navigateAppend({name: openModal, params: {}} as never)
+    expect(screens()).toEqual(['loggedIn', 'recoverPasswordSetPassword', openModal])
+    await failWith(held)
+
+    global.isIOS = wasIOS
+
+    expect(screens()).toEqual(['loggedIn', 'recoverPasswordSetPassword', openModal, errorModal])
+  })
+
   test("logged out, the run's device selector goes and the error takes its place over login", async () => {
     nav = installFakeNavigator({rootState: loggedOutRoot()})
     const {held, sessionID} = await start()
