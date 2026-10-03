@@ -8,6 +8,8 @@ import {useWaitingState} from '@/stores/waiting'
 import {resetAllStores} from '@/util/zustand'
 import {tick} from '@/test/flush'
 import logger from '@/logger'
+import {testWaitingKey} from '@/test/waiting-key'
+import type {WaitingKey} from '@/constants/waiting-key-type'
 
 const dev = __DEV__
 afterEach(() => {
@@ -39,7 +41,7 @@ type PromptResponse = {result: (r: boolean) => void; error: (e: {code: number; d
 const startRecover = async (
   fake: FakeEngine,
   onPrompt: (params: unknown, response: PromptResponse) => void | Promise<void>,
-  waitingKey?: string
+  waitingKey?: WaitingKey
 ) => {
   const held = fake.hold('keybase.1.login.recoverPassphrase')
   let cancel = () => {}
@@ -354,7 +356,7 @@ describe('a listener prompt handler that fails', () => {
 })
 
 describe('a late answer leaves the waiting count alone', () => {
-  const waitingKey = 'held-responses-test'
+  const waitingKey = testWaitingKey('held-responses-test')
   const waitingCount = (fake: FakeEngine) => {
     fake.engine._throttledDispatchWaitingAction.flush()
     return useWaitingState.getState().counts.get(waitingKey) ?? 0

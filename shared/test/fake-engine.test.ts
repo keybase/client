@@ -7,6 +7,7 @@ import {MESSAGE_TYPE_RESPONSE, errors} from '@/engine/rpc-transport'
 import {useWaitingState} from '@/stores/waiting'
 import {resetAllStores} from '@/util/zustand'
 import {tick} from '@/test/flush'
+import {testWaitingKey} from './waiting-key'
 
 afterEach(() => resetAllStores())
 
@@ -30,7 +31,7 @@ const startRecover = async (
 test('a scripted call resolves through the real engine and waiting store', async () => {
   const fake = installFakeEngine()
   fake.answer('keybase.1.config.getBootstrapStatus', () => ({deviceName: 'd'}))
-  const p = T.RPCGen.configGetBootstrapStatusRpcPromise(undefined, 'test:waiting')
+  const p = T.RPCGen.configGetBootstrapStatusRpcPromise(undefined, testWaitingKey('test:waiting'))
   expect(useWaitingState.getState().counts.get('test:waiting')).toBe(1)
   await expect(p).resolves.toMatchObject({deviceName: 'd'})
   expect(useWaitingState.getState().counts.get('test:waiting')).toBeUndefined()
@@ -104,7 +105,7 @@ test('a held call settles when the test replies', async () => {
 test('a held call left at uninstall fails, and nothing reaches the stores afterwards', async () => {
   const fake = installFakeEngine()
   const held = fake.hold('keybase.1.config.getBootstrapStatus')
-  const settled = T.RPCGen.configGetBootstrapStatusRpcPromise(undefined, 'test:held').then(
+  const settled = T.RPCGen.configGetBootstrapStatusRpcPromise(undefined, testWaitingKey('test:held')).then(
     () => 'resolved',
     (e: unknown) => e
   )

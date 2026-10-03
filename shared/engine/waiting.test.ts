@@ -10,6 +10,7 @@ import {useConfigState} from '@/stores/config'
 import {useDispatchClearWaiting, useWaitingState} from '@/stores/waiting'
 import {resetAllStores} from '@/util/zustand'
 import {tick} from '@/test/flush'
+import {testWaitingKey} from '@/test/waiting-key'
 
 afterEach(() => {
   jest.restoreAllMocks()
@@ -23,7 +24,7 @@ const prompt = 'keybase.1.loginUi.promptPassphraseRecovery'
 const choose = 'keybase.1.loginUi.chooseDeviceToRecoverWith'
 const explain = 'keybase.1.loginUi.explainDeviceRecovery'
 const promiseRpc = 'keybase.1.teams.teamIgnoreRequest'
-const waitingKey = 'waiting-test'
+const waitingKey = testWaitingKey('waiting-test')
 const devices = [{deviceID: 'd1', name: 'phone', type: 'mobile'}] as unknown as ReadonlyArray<T.RPCGen.Device>
 
 // The listener hands incoming calls to their handlers on a timer, and a prompt they leave unanswered

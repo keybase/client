@@ -24,7 +24,7 @@ const RestrictedItem = '---RESTRICTED---'
 
 export const useRefreshBotMembershipOnSuccess = (
   conversationIDKey: T.Chat.ConversationIDKey | undefined,
-  waitingKey: string,
+  waitingKey: T.Waiting.WaitingKeys,
   error: RPCError | undefined,
   shouldRefreshMembership: boolean,
   onSuccess: () => void

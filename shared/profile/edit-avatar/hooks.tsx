@@ -43,7 +43,7 @@ type Ret = {
     offsetLeft?: number,
     offsetTop?: number
   ) => void
-  waitingKey: string
+  waitingKey: T.Waiting.WaitingKeys
 } & (TeamProps | ProfileProps)
 
 const useEditAvatar = (ownProps: Props): Ret => {
@@ -110,7 +110,7 @@ const useEditAvatar = (ownProps: Props): Ret => {
           : 'This image format is not supported.'
   }
   const wizard = ownProps.wizard ?? false
-  const bothProps = {
+  const bothProps: Pick<Ret, 'error' | 'image' | 'waitingKey'> = {
     error,
     image,
     waitingKey: C.waitingKeyProfileUploadAvatar,

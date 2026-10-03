@@ -36,7 +36,7 @@ const mutualTeamsKey = (usernames: ReadonlyArray<string>) => [...usernames].sort
 
 export const useMutualTeams = (
   usernames: ReadonlyArray<string>,
-  waitingKey: string,
+  waitingKey: T.Waiting.WaitingKey,
   enabled = true,
   // pass something that changes when the caller wants fresh data (a profile's
   // identify guiID, say); it re-checks the stale window rather than forcing a load
