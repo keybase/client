@@ -131,12 +131,34 @@ test('a client cancel answers a held prompt once with input canceled', async () 
 test('an account switch answers a held prompt once with input canceled', async () => {
   const fake = installFakeEngine()
   useConfigState.getState().dispatch.setLoggedIn(true)
-  const {onPrompt} = capture()
-  const {push} = await startRecover(fake, onPrompt)
-  const pushed = push()
+  fake.hold('keybase.1.device.deviceAdd')
+  void T.RPCGen.deviceDeviceAddRpcListener({
+    params: undefined,
+    customResponseIncomingCallMap: {'keybase.1.provisionUi.chooseDeviceType': () => {}},
+    incomingCallMap: {},
+  }).catch(() => {})
+  await tick()
+  const sessionID = fake.calls[0]!.params.sessionID as number
+  const pushed = fake.push('keybase.1.provisionUi.chooseDeviceType', {kind: 0}, {sessionID})
   await afterTimers()
   useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
   await expect(settledSoFar(pushed)).resolves.toEqual({error: inputCanceled})
+  uninstallFakeEngine()
+})
+
+test('an account switch leaves a recovery prompt held: the recovery outlives the account', async () => {
+  const fake = installFakeEngine()
+  useConfigState.getState().dispatch.setLoggedIn(true)
+  const {onPrompt, responses} = capture()
+  const {ended, held, push} = await startRecover(fake, onPrompt)
+  const pushed = push()
+  await afterTimers()
+  useConfigState.getState().dispatch.setUserSwitching(true, 'testuser')
+  await expect(settledSoFar(pushed)).resolves.toBe('still waiting')
+  responses[0]!.result(true)
+  await expect(pushed).resolves.toEqual({result: true})
+  held[0]!.reply(undefined)
+  await expect(ended).resolves.toBeUndefined()
   uninstallFakeEngine()
 })
 

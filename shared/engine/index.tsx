@@ -26,6 +26,7 @@ import {mustAnswerMethods} from '@/constants/rpc'
 import type * as EngineGen from '@/constants/rpc'
 import {StatusCode} from '@/constants/rpc/rpc-gen'
 import {getIncomingAnswerer, type IncomingAnswerer} from './incoming-answerers'
+import {survivesAccountChange} from './account-generation'
 import type {ErrorType, ResponseType as RPCResponseType} from './rpc-transport'
 import type {IncomingCallMapType, CustomResponseIncomingCallMapType} from '@/constants/rpc/rpc-all-gen'
 
@@ -157,19 +158,18 @@ class Engine implements CallPort {
   // answers that will never come (e.g. a provision prompt screen left up across a service restart).
   // When the transport died the service has forgotten every in-flight RPC, so held prompts are
   // dropped without an answer; otherwise the link is alive and they are refused. Dangling sessions
-  // are never cancelled, but a lost link still drops what they hold.
+  // are never cancelled, but a lost link still drops what they hold. An account change leaves the
+  // calls that survive it running (a login, an account recovery).
   _cancelOutstandingSessions(why: 'lostLink' | 'accountChange') {
     for (const session of [...this._sessionsMap.values()]) {
       if (session.getDangling()) {
         if (why === 'lostLink') {
           session.forgetHeldForLostLink()
         }
-      } else {
-        if (why === 'lostLink') {
-          session.cancelForLostLink()
-        } else {
-          session.cancel('accountChange')
-        }
+      } else if (why === 'lostLink') {
+        session.cancelForLostLink()
+      } else if (!survivesAccountChange(session._startMethod ?? '')) {
+        session.cancel('accountChange')
       }
     }
   }
