@@ -38,13 +38,13 @@ const makeElectronConfig = () => ({
 // preset's auto-added (optionless) copy must be disabled via worklets/reanimated: false.
 const workletsPlugin = ['react-native-worklets/plugin', {bundleMode: true, strictGlobal: true}]
 
-// The visual gate's opt-in call-site coverage (tests/e2e/visual/coverage). It marks the source from
-// its `pre` hook, so the compiler staying first still compiles the marked code. Metro caches
-// transforms by file, not by this env var: start Metro with --clear whenever it is toggled.
-const visualCoverage = process.env.KB_VISUAL_COVERAGE === '1'
+// The visual gate's opt-in call-site coverage (tests/e2e/visual/coverage), dev bundles only. It
+// marks the source from its `pre` hook, so the compiler staying first still compiles the marked
+// code. Metro caches transforms by file, not by this env var: start Metro with --clear whenever it
+// is toggled.
 const visualCoveragePlugin = [require.resolve('./tests/e2e/visual/coverage/babel-plugin.cjs'), {root: __dirname}]
 
-const makeReactNativeConfig = platformPlugin => ({
+const makeReactNativeConfig = (platformPlugin, visualCoverage) => ({
   plugins: [
     reactCompilerPlugin, // must run first!
     moduleResolverPlugin,
@@ -69,9 +69,11 @@ const makeReactNativeConfig = platformPlugin => ({
 module.exports = function (api /*: any */) {
   const apiEnv = api.env()
   const metroPlatform = api.caller(c => c?.platform ?? null) // 'ios' | 'android' | null
+  const isDev = api.caller(c => !!c?.isDev)
   const isElectron = apiEnv === 'test'
+  const visualCoverage = isDev && process.env.KB_VISUAL_COVERAGE === '1'
 
-  api.cache.using(() => `${apiEnv}:${metroPlatform ?? 'none'}`)
+  api.cache.using(() => `${apiEnv}:${metroPlatform ?? 'none'}:${visualCoverage ? 'coverage' : ''}`)
 
   if (isElectron) return makeElectronConfig()
 
@@ -82,5 +84,5 @@ module.exports = function (api /*: any */) {
     isIOS: metroPlatform === 'ios',
   })
 
-  return makeReactNativeConfig(platformPlugin)
+  return makeReactNativeConfig(platformPlugin, visualCoverage)
 }
