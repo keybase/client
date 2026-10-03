@@ -99,8 +99,8 @@ const setup = async (onBack?: (promptId: number) => void) => {
   route.enter({promptId})
   // StrictMode renders twice and mounts the screen's effects, unmounts them and mounts them again
   const view = render(<OnRoute onBack={back} promptId={promptId} />, {reactStrictMode: true})
-  // One listener for the route, however often the screen rendered
-  expect(beforeRemove.size).toBe(1)
+  // One listener for a screen with a back, however often it rendered; none for one without
+  expect(beforeRemove.size).toBe(back ? 1 : 0)
   const setHidden = async (hidden: boolean, shownPromptId = promptId) => {
     view.rerender(<OnRoute hidden={hidden} onBack={back} promptId={shownPromptId} />)
     await settle()
@@ -143,11 +143,13 @@ test('a back running a restart refuses the prompt and starts a new run', async (
   await settle()
 })
 
-test('a native dismissal refuses the prompt without navigating or running the back', async () => {
+test('a native dismissal neither prevents nor runs the back, and refuses the prompt once the route is gone', async () => {
   const onBack = jest.fn()
-  const {answered, held} = await setup(onBack)
+  const {answered, held, promptId} = await setup(onBack)
 
   expect(remove('REMOVE')).toBe(false)
+  expect(isRecoverPasswordPromptOpen(promptId)).toBe(true)
+  route.leave()
 
   await expect(answered).resolves.toEqual({error: inputCanceled})
   expect(onBack).not.toHaveBeenCalled()
@@ -156,10 +158,12 @@ test('a native dismissal refuses the prompt without navigating or running the ba
   await settle()
 })
 
-test('a screen without its own back is let go and its prompt refused', async () => {
-  const {answered, held} = await setup()
+test('a screen without its own back is let go and its prompt refused once the route is gone', async () => {
+  const {answered, held, promptId} = await setup()
 
   expect(remove('POP')).toBe(false)
+  expect(isRecoverPasswordPromptOpen(promptId)).toBe(true)
+  route.leave()
 
   await expect(answered).resolves.toEqual({error: inputCanceled})
   held[0]!.reply(undefined)

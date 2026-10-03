@@ -108,6 +108,8 @@ export const resetRunEnded = (promptId: number): Promise<void> | undefined => {
   return undefined
 }
 
+export const isResetPromptOpen = (promptId: number) => !!resetRunEnded(promptId)
+
 // Answers the confirm screen's prompt nothing, navigating nowhere: its screen is already gone
 export const declineResetPrompt = (promptId: number) => {
   for (const {dialog} of runs) {

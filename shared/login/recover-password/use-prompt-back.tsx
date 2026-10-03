@@ -3,7 +3,6 @@ import {NavigationContext} from '@react-navigation/core'
 import {getVisibleScreen, navigateUp} from '@/constants/router'
 import {useRouteKey} from '@/router-v2/route-gone'
 import {
-  declineRecoverPasswordPrompt,
   isRecoverPasswordPromptGone,
   isRecoverPasswordPromptOpen,
   registerRecoverPasswordScreen,
@@ -25,12 +24,11 @@ export const useRecoverRunScreen = (owner: {promptId: number} | {runId: number |
   }, [routeKey, promptId, runId])
 }
 
-// A prompt screen leaving while its prompt is open would leave the service waiting. A back (Android's
-// hardware back, a pop) of the visible screen runs its onBack in its place, as the header back does;
-// with no onBack the prompt is declined and the screen goes. A native dismissal (REMOVE) has already
-// happened, so it only declines. The flow's own navigation comes after it closed the prompt, so it
-// passes. A screen removed any other way, or while hidden under others, declines when its route
-// leaves the navigation state.
+// A prompt screen leaving while its prompt is open would leave the service waiting. A back of the
+// visible screen (Android's hardware back, a pop) runs its onBack in its place, as the header back
+// does. Any other removal, or a back of a screen with no onBack, declines the prompt once the route
+// has left the navigation state, so a removal another listener prevents declines nothing. The flow's
+// own navigation comes after it closed the prompt, so it passes.
 export const useRecoverPromptBack = (promptId: number, onBack?: () => void) => {
   // Absent outside a navigator (storybook)
   const navigation = React.useContext(NavigationContext)
@@ -38,17 +36,12 @@ export const useRecoverPromptBack = (promptId: number, onBack?: () => void) => {
   const hasBack = !!onBack
 
   React.useEffect(() => {
-    if (!navigation) return
+    if (!navigation || !hasBack) return
     return navigation.addListener('beforeRemove', e => {
       const {type} = e.data.action
-      if (!(type === 'POP' || type === 'GO_BACK' || type === 'REMOVE')) return
-      if (!isRecoverPasswordPromptOpen(promptId)) return
-      if (type !== 'REMOVE' && hasBack) {
-        e.preventDefault()
-        back()
-      } else {
-        declineRecoverPasswordPrompt(promptId)
-      }
+      if (!(type === 'POP' || type === 'GO_BACK') || !isRecoverPasswordPromptOpen(promptId)) return
+      e.preventDefault()
+      back()
     })
   }, [navigation, promptId, hasBack])
 

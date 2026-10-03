@@ -9,6 +9,7 @@ import {useConfigState} from '@/stores/config'
 import {installFakeEngine} from '@/test/fake-engine'
 import {tick} from '@/test/flush'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import {makeFakeRoute} from '@/test/fake-route'
 import {declineRecoverPasswordPrompt, isRecoverPasswordPromptOpen, startRecoverPassword} from './flow'
 import PgpWarning from './pgp-warning'
 
@@ -39,9 +40,11 @@ type BeforeRemove = (e: {data: {action: {type: string}}}) => void
 
 let nav: FakeNavigator
 let beforeRemove: BeforeRemove | undefined
+let route: ReturnType<typeof makeFakeRoute>
 
 beforeEach(() => {
   beforeRemove = undefined
+  route = makeFakeRoute('recoverPasswordPgpWarning')
   useConfigState.getState().dispatch.setLoggedIn(true)
   nav = installFakeNavigator({modalRouteNames: ['recoverPasswordPgpWarning'], rootState: makeRootState()})
 })
@@ -83,10 +86,13 @@ const setup = async (before?: (id: number) => void) => {
       return () => {}
     },
   }
+  route.enter({promptId: id})
   render(
-    <NavigationContext value={navigation as never}>
-      <PgpWarning route={{params: {promptId: id}}} />
-    </NavigationContext>
+    <route.Route>
+      <NavigationContext value={navigation as never}>
+        <PgpWarning route={{params: {promptId: id}}} />
+      </NavigationContext>
+    </route.Route>
   )
   // Settles the run, which also clears the decline timer of a prompt left pending
   const end = async () => {
@@ -111,15 +117,21 @@ test('Continue answers true once and closes the warning', async () => {
   await end()
 })
 
-test.each(['GO_BACK', 'POP', 'REMOVE'])('the user taking the warning away (%s) answers false once', async type => {
-  const {answered, end} = await setup()
+test.each(['GO_BACK', 'POP', 'REMOVE'])(
+  'the user taking the warning away (%s) answers false once, when its route has gone',
+  async type => {
+    const {answered, end, id} = await setup()
 
-  remove(type)
-  remove(type)
+    remove(type)
+    // A removal another listener prevents leaves the route, and the prompt, as they are
+    expect(isRecoverPasswordPromptOpen(id)).toBe(true)
+    route.leave()
+    route.leave()
 
-  await expect(answered).resolves.toEqual({result: false})
-  await end()
-})
+    await expect(answered).resolves.toEqual({result: false})
+    await end()
+  }
+)
 
 test('an app-initiated reset removing the warning is not an answer', async () => {
   const {end, id} = await setup()

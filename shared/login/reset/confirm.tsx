@@ -3,17 +3,12 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
-import {registerRouteGone, useRouteKey, type RouteParams} from '@/router-v2/route-gone'
-import {declineResetPrompt, resetRunEnded, submitResetPrompt} from './account-reset'
+import {promptRouteGone, registerRouteGone, useRouteKey} from '@/router-v2/route-gone'
+import {declineResetPrompt, isResetPromptOpen, resetRunEnded, submitResetPrompt} from './account-reset'
 
 type Props = {route: {params: {hasWallet: boolean; promptId: number}}}
 
-const declineLastPrompt = (params: RouteParams) => {
-  const {promptId} = (params ?? {}) as {promptId?: unknown}
-  if (typeof promptId === 'number') {
-    declineResetPrompt(promptId)
-  }
-}
+const declineFromParams = promptRouteGone(declineResetPrompt)
 
 const ConfirmReset = ({route}: Props) => {
   const styles = useStyles()
@@ -33,6 +28,7 @@ const ConfirmReset = ({route}: Props) => {
     [promptId]
   )
 
+  // A back answers nothing, which goes up to login
   React.useEffect(() => {
     const onBack = () => {
       resolvePrompt(T.RPCGen.ResetPromptResponse.nothing)
@@ -44,17 +40,22 @@ const ConfirmReset = ({route}: Props) => {
     )
   }, [navigation, resolvePrompt])
 
+  // So does a back of the visible screen (Android's hardware back, Escape), in place of the pop
   React.useEffect(() => {
-    return navigation.addListener('beforeRemove', () => {
+    return navigation.addListener('beforeRemove', e => {
+      const {type} = e.data.action
+      if (!(type === 'POP' || type === 'GO_BACK') || resolvedRef.current || !isResetPromptOpen(promptId)) return
+      e.preventDefault()
       resolvePrompt(T.RPCGen.ResetPromptResponse.nothing)
     })
-  }, [navigation, resolvePrompt])
+  }, [navigation, promptId, resolvePrompt])
 
-  // Removed while hidden under others, or with its root swapped out, the screen hears no beforeRemove
+  // Removed any other way (a dismissal, clearModals, its root swapped out, while hidden under
+  // others), it answers nothing without navigating, once its route has left the navigation state
   React.useEffect(() => {
     const ended = resetRunEnded(promptId)
     if (routeKey && ended) {
-      registerRouteGone(routeKey, ended, declineLastPrompt)
+      registerRouteGone(routeKey, ended, declineFromParams)
     }
   }, [routeKey, promptId])
 

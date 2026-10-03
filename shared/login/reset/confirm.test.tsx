@@ -12,9 +12,10 @@ const mockSubmitResetPrompt = jest.fn()
 const mockDeclineResetPrompt = jest.fn()
 const mockSetOptions = jest.fn()
 // The screen's beforeRemove listeners, as the navigator would call them on a visible removal
-const mockBeforeRemove = new Set<() => void>()
+type BeforeRemoveEvent = {data: {action: {type: string}}; preventDefault: () => void}
+const mockBeforeRemove = new Set<(e: BeforeRemoveEvent) => void>()
 const mockNavigation = {
-  addListener: (type: string, cb: () => void) => {
+  addListener: (type: string, cb: (e: BeforeRemoveEvent) => void) => {
     if (type !== 'beforeRemove') return () => {}
     mockBeforeRemove.add(cb)
     return () => mockBeforeRemove.delete(cb)
@@ -74,6 +75,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('./account-reset', () => ({
   declineResetPrompt: (...args: Array<unknown>) => mockDeclineResetPrompt(...args),
+  isResetPromptOpen: () => !!mockEnded,
   resetRunEnded: (): Promise<void> | undefined => mockEnded?.promise,
   submitResetPrompt: (...args: Array<unknown>) => mockSubmitResetPrompt(...args),
 }))
@@ -93,7 +95,12 @@ const OnRoute = ({hidden = false}: {hidden?: boolean}) => (
   </route.Route>
 )
 
-const removeVisible = () => act(() => [...mockBeforeRemove].forEach(cb => cb()))
+// The visible screen is about to be removed by `type`; returns whether that was prevented
+const removeVisible = (type = 'GO_BACK') => {
+  const preventDefault = jest.fn()
+  act(() => [...mockBeforeRemove].forEach(cb => cb({data: {action: {type}}, preventDefault})))
+  return preventDefault.mock.calls.length > 0
+}
 
 describe('ConfirmReset', () => {
   beforeEach(() => {
@@ -132,14 +139,32 @@ describe('ConfirmReset', () => {
     expect(mockDeclineResetPrompt).not.toHaveBeenCalled()
   })
 
-  test('removing the visible screen answers the prompt nothing, once', () => {
+  test.each(['GO_BACK', 'POP'])(
+    'a back (%s) of the visible screen answers the prompt nothing in place of the pop, once',
+    type => {
+      mount()
+
+      expect(removeVisible(type)).toBe(true)
+      // The navigation the answer leads to finds it answered
+      expect(removeVisible(type)).toBe(false)
+
+      expect(mockSubmitResetPrompt).toHaveBeenCalledTimes(1)
+      expect(mockSubmitResetPrompt).toHaveBeenCalledWith(1, T.RPCGen.ResetPromptResponse.nothing)
+    }
+  )
+
+  test('a removal that is not a back answers nothing until the route has gone, then declines once', () => {
     mount()
 
-    removeVisible()
-    removeVisible()
+    // Another listener may still prevent it
+    expect(removeVisible('REMOVE')).toBe(false)
+    expect(mockSubmitResetPrompt).not.toHaveBeenCalled()
+    expect(mockDeclineResetPrompt).not.toHaveBeenCalled()
+    route.leave()
 
-    expect(mockSubmitResetPrompt).toHaveBeenCalledTimes(1)
-    expect(mockSubmitResetPrompt).toHaveBeenCalledWith(1, T.RPCGen.ResetPromptResponse.nothing)
+    expect(mockSubmitResetPrompt).not.toHaveBeenCalled()
+    expect(mockDeclineResetPrompt).toHaveBeenCalledTimes(1)
+    expect(mockDeclineResetPrompt).toHaveBeenCalledWith(1)
   })
 
   test('a screen whose route goes while hidden declines its prompt, once', async () => {
@@ -176,10 +201,22 @@ describe('ConfirmReset', () => {
     const options = mockSetOptions.mock.calls.at(-1)![0] as {headerLeft: () => React.ReactElement}
     render(options.headerLeft())
     fireEvent.click(screen.getByText('Back'))
-    removeVisible()
+    expect(removeVisible('POP')).toBe(false)
 
     expect(mockSubmitResetPrompt).toHaveBeenCalledTimes(1)
     expect(mockSubmitResetPrompt).toHaveBeenCalledWith(1, T.RPCGen.ResetPromptResponse.nothing)
+  })
+
+  test('a back once the prompt is closed is let through, answering nothing', async () => {
+    mount()
+    const ended = mockEnded!
+    mockEnded = undefined
+
+    expect(removeVisible('GO_BACK')).toBe(false)
+
+    expect(mockSubmitResetPrompt).not.toHaveBeenCalled()
+    ended.resolve()
+    await settle()
   })
 
   test('once the pipeline is over its route going answers nothing', async () => {
