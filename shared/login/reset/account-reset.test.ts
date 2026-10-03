@@ -265,6 +265,15 @@ test.each([T.RPCGen.StatusCode.sccanceled, T.RPCGen.StatusCode.scinputcanceled])
   }
 )
 
+test('a lost link is reported as an error', async () => {
+  const onError = jest.fn()
+  const {fake} = await start({onError})
+  fake.drop()
+  await settle()
+
+  expect(onError).toHaveBeenLastCalledWith('The service connection was lost')
+})
+
 test('an account switch cancels the pipeline without reporting an error', async () => {
   const onError = jest.fn()
   const s = await start({onError})

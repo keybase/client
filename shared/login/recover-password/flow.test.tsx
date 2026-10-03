@@ -134,8 +134,10 @@ describe('device selection', () => {
 
     await expect(answered).resolves.toEqual({error: inputCanceled})
     expect(nav.types().filter(t => t === 'GO_BACK')).toHaveLength(1)
+    // The service fails the run with the refusal it read: the user's own cancel, not an error
     held[0]!.reply(fakeError(T.RPCGen.StatusCode.scinputcanceled, 'Input canceled'))
     await settle()
+    expect(nav.navigations()).not.toContainEqual(expect.objectContaining({name: 'recoverPasswordError'}))
   })
 
   test('an empty device id from the selector is a cancel', async () => {
@@ -247,6 +249,20 @@ describe('completion', () => {
 
     expect(nav.modalsCleared()).toBe(false)
     expect(nav.navigations()).toEqual([])
+  })
+
+  test('a lost link shows the error screen', async () => {
+    await start()
+    fake.drop()
+    await settle()
+
+    expect(nav.navigations()).toEqual([
+      {
+        name: 'recoverPasswordError',
+        params: {error: expect.stringContaining('The service connection was lost')},
+        replace: true,
+      },
+    ])
   })
 
   test('a failure while logged out shows the error screen', async () => {
