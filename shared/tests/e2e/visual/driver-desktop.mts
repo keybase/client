@@ -1,10 +1,12 @@
 // Captures tour entries from the running dev Electron app over CDP. Navigation goes through the dev
 // global DEBUGRouter2 only; the driver never clicks anything that changes account state, and never
 // closes the browser (that quits Electron).
+import {execFileSync} from 'child_process'
 import {chromium, type Browser, type CDPSession, type Page} from '@playwright/test'
 import {findMainPage, checkRendererAfterReload} from '../electron/helpers/connect.ts'
 import {pngEqual, type Rect} from './compare.mts'
 import {resolveParams} from './resolve.mts'
+import {VISUAL_ELECTRON_ARGS} from './electron-args.ts'
 import type {Theme, TourEntry, SetupStep} from './tour-types.ts'
 
 export type Capture = {
@@ -33,6 +35,12 @@ const POLL_MS = 100
 // Desktop loading indicators that carry a marker. Kb.ProgressIndicator (a lottie spinner) has none;
 // a spinner still on screen keeps changing frames, so settle reports it as unstable.
 export const LOADING_SELECTORS: ReadonlyArray<string> = ['.loading-line']
+
+// macOS overlay scrollbars fade in and out with scrolling (the chat thread scrolls itself to the end
+// as it loads), so a screenshot can catch the thumb at any opacity. Overlay scrollbars take no
+// layout space, so hiding them changes nothing else. Classic scrollbars (the app marks the body
+// layout-scrollbar-obtrusive) take space and don't fade; they stay in the capture.
+const HIDE_OVERLAY_SCROLLBARS = '* { scrollbar-width: none !important; }'
 
 const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -93,7 +101,11 @@ type PageImage = {
   getBoundingClientRect: () => {bottom: number; height: number; left: number; right: number; top: number; width: number}
 }
 type PageWindow = {
-  document: {fonts: {ready: Promise<unknown>}; images: ArrayLike<PageImage>}
+  document: {
+    body: {classList: {contains: (c: string) => boolean}}
+    fonts: {ready: Promise<unknown>}
+    images: ArrayLike<PageImage>
+  }
   getComputedStyle: (el: PageImage) => {visibility: string}
   innerHeight: number
   innerWidth: number
@@ -331,7 +343,21 @@ const applyTheme = async (page: Page, theme: Theme) => {
   await waitFor(`the app to be in ${theme} mode`, RESET_MS, async () => (await isDark()) === (theme === 'dark'))
 }
 
+// The Electron listening on this CDP port was launched with launch-app.mts --visual.
+const checkVisualSwitches = (cdpPort: number) => {
+  const lines = execFileSync('ps', ['-axww', '-o', 'args='], {encoding: 'utf8', timeout: 5_000}).split('\n')
+  const app = lines.find(l => l.includes('Electron') && l.includes(`--remote-debugging-port=${cdpPort}`))
+  if (!app) throw new Error(`no Electron process with --remote-debugging-port=${cdpPort}`)
+  const missing = VISUAL_ELECTRON_ARGS.filter(a => !app.split(' ').includes(a))
+  if (missing.length) {
+    throw new Error(
+      `the app was not launched for visual runs (missing ${missing.join(' ')}); relaunch with node tests/e2e/electron/launch-app.mts --visual`
+    )
+  }
+}
+
 export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
+  checkVisualSwitches(cdpPort)
   let browser: Browser
   try {
     browser = await chromium.connectOverCDP(`http://127.0.0.1:${cdpPort}`, {timeout: CONNECT_MS})
@@ -341,6 +367,8 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
   const page = findMainPage(browser)
   page.setDefaultTimeout(READY_MS)
   const cdp = await withDeadline(page.context().newCDPSession(page), CONNECT_MS, 'opening a CDP session')
+  // without it, scripts added with Page.addScriptToEvaluateOnNewDocument never run
+  await withDeadline(cdp.send('Page.enable'), EVAL_MS, 'Page.enable')
   let theme: Theme | undefined
   let dateScript: string | undefined
 
@@ -354,6 +382,8 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
     dateScript = added.identifier
     await withDeadline(page.evaluate(fixDate, opts.frozenAt), EVAL_MS, 'fixing Date')
     if (opts.reload) await checkRendererAfterReload(page)
+    const now = await withDeadline(page.evaluate(() => Date.now()), EVAL_MS, 'reading Date.now')
+    if (now !== opts.frozenAt) throw new Error(`Date is not fixed in the page: Date.now() is ${now}, wanted ${opts.frozenAt}`)
     await fixViewport(cdp, page)
     await applyTheme(page, opts.theme)
     theme = opts.theme
@@ -386,8 +416,16 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
       await waitForNoLoading(page)
       for (const s of entry.setup ?? []) await runStep(page, s)
       await waitForAssets(page)
+      const obtrusive = await withDeadline(
+        page.evaluate(() =>
+          (globalThis as unknown as PageWindow).document.body.classList.contains('layout-scrollbar-obtrusive')
+        ),
+        EVAL_MS,
+        'reading the scrollbar kind'
+      )
+      const style = obtrusive ? undefined : HIDE_OVERLAY_SCROLLBARS
       const settled = await settle(async () => {
-        png = await page.screenshot({animations: 'disabled', caret: 'hide', timeout: EVAL_MS})
+        png = await page.screenshot({animations: 'disabled', caret: 'hide', style, timeout: EVAL_MS})
         return png
       }, SETTLE)
       png = settled.png
