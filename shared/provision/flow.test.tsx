@@ -413,7 +413,7 @@ describe('login', () => {
     expect(count()).toBeUndefined()
   })
 
-  test.failing('the exchange hold ends at the next prompt: a retried secret or a password shows waiting off', async () => {
+  test('the exchange hold ends at the next prompt: a retried secret or a password shows waiting off', async () => {
     const held = await startLogin()
     const count = () => {
       fake.engine._throttledDispatchWaitingAction.flush()
@@ -780,6 +780,27 @@ describe('add device', () => {
     held[0]!.reply(undefined)
     await settle()
     expect(nav.modalsCleared()).toBe(true)
+  })
+
+  test('a retried secret after the exchange shows waiting off', async () => {
+    const held = fake.hold(deviceAdd)
+    await startAdd()
+    const count = () => {
+      fake.engine._throttledDispatchWaitingAction.flush()
+      return useWaitingState.getState().counts.get(waitingKeyProvision)
+    }
+    void pushAdd(secret, {phrase: 'one two three', previousErr: ''}, 0)
+    await settle()
+    await pushAdd(secretExchanged, {})
+    await pushAdd(secretExchanged, {})
+    await settle()
+    expect(count()).toBe(1)
+    void pushAdd(secret, {phrase: 'one two three', previousErr: 'bad code'}, 0)
+    await settle()
+    expect(count()).toBeUndefined()
+    held[0]!.reply(undefined)
+    await settle()
+    expect(count()).toBeUndefined()
   })
 
   test('secret-exchange progress holds the provision waiting key until the run ends', async () => {

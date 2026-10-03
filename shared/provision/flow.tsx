@@ -49,6 +49,21 @@ const successNotices = ['keybase.1.provisionUi.ProvisioneeSuccess', 'keybase.1.p
 const loginPrompts = [chooseDevicePrompt, deviceNamePrompt, passphrasePrompt, secretPrompt, ...refusedPrompts] as const
 const loginNotices = ['keybase.1.loginUi.displayPrimaryPaperKey', secretExchanged, ...successNotices] as const
 
+// Go works on the secret exchange while codePage's secret prompt stays open, so the waiting key stays
+// on from an exchanged notice until the next prompt (a retried code, a password), or the RPC's end
+const makeExchangeHold = (dialog: {holdWaiting: () => () => void}) => {
+  let release: (() => void) | undefined
+  return {
+    hold: () => {
+      release ??= dialog.holdWaiting()
+    },
+    release: () => {
+      release?.()
+      release = undefined
+    },
+  }
+}
+
 // Clears the provision screens and shows why the run failed
 const showProvisionError = (error: RPCError, replace: boolean, username?: string) => {
   clearModals()
@@ -258,14 +273,15 @@ const runProvision = (username: string) => {
       }
       return isEqual(frozenAutoSubmit[submitStep], step)
     }
+    const exchange = makeExchangeHold(dialog)
     const showEvent = (e: DialogEvent<LoginPrompt, LoginNotice>) => {
       if (e.kind === 'notice') {
         if (e.method === secretExchanged) {
-          // Go works on the exchange while codePage's secret prompt stays open; the RPC's end releases it
-          dialog.holdWaiting()
+          exchange.hold()
         }
         return
       }
+      exchange.release()
       switch (e.method) {
         case secretPrompt: {
           const {phrase, previousErr} = e.params
@@ -473,17 +489,18 @@ export const startAddNewDevice = (otherDeviceType: 'desktop' | 'mobile') => {
   }
   currentProvisionRun = run
 
+  const exchange = makeExchangeHold(dialog)
   // Set when a prompt could not be shown, which ended the run
   let showFailed = false
   const showEvents = async () => {
     for await (const e of dialog.events) {
       if (e.kind === 'notice') {
         if (e.method === secretExchanged) {
-          // Go works on the exchange while codePage's secret prompt stays open; the RPC's end releases it
-          dialog.holdWaiting()
+          exchange.hold()
         }
         continue
       }
+      exchange.release()
       try {
         const {phrase, previousErr} = e.params
         navigateAppend(
