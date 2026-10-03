@@ -3,6 +3,7 @@ import * as path from 'path'
 import {homedir} from 'os'
 import {androidCapabilities, androidSerial, requireSmokeUser} from './helpers/app'
 import {escapeToTabs} from './helpers/navigate'
+import {assertNotLocked} from '../visual/lock.mts'
 
 // The uiautomator2 driver is installed under ~/.appium; the appium service
 // spawns its own appium process, so point it at that home or it won't find the
@@ -24,6 +25,9 @@ export const config: WebdriverIO.Config = {
   // KB_ANDROID_SPEC: run a single flow file instead, for fast iteration.
   specs: [process.env['KB_ANDROID_SPEC'] ?? './all.test.ts'],
   maxInstances: 1,
+  onPrepare: () => {
+    assertNotLocked('Android e2e')
+  },
   capabilities: [androidCapabilities(serial)],
   logLevel: 'warn',
   framework: 'mocha',

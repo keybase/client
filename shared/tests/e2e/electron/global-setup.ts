@@ -3,8 +3,10 @@
 // aborts the whole run here in seconds, with the app log's tail, instead of every test failing on it.
 import {chromium} from '@playwright/test'
 import {checkRendererAfterReload, findMainPage} from './helpers/connect'
+import {assertNotLocked} from '../visual/lock.mts'
 
 export default async function globalSetup() {
+  assertNotLocked('desktop e2e')
   const browser = await chromium.connectOverCDP('http://localhost:9222', {timeout: 5_000}).catch(() => {
     throw new Error('the dev app is not answering on CDP (relaunch with node tests/e2e/electron/launch-app.mts)')
   })
