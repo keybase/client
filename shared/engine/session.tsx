@@ -351,9 +351,15 @@ class Session {
     // The GUI owes the service only once the task its handler ran in is over, unanswered. An answer
     // in that task (an auto-answer, or a Dialog consumer a few microtasks later, as provision's replay)
     // never shows waiting off: the engine flushes an "off" at once but throttles the "on" after it.
+    // Once, however often the handler reports it ran: one held prompt is one hold
+    let reported = false
     const ran = () => {
+      if (reported) {
+        return
+      }
+      reported = true
       setTimeout(() => {
-        if (!held.settled) {
+        if (!held.settled && !held.release) {
           held.release = this._tracker?.holdPrompt()
         }
       }, 0)

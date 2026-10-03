@@ -528,3 +528,35 @@ test("a screen clearing its key's error mid-call keeps the call's waiting", asyn
   second.held[0]!.reply(undefined)
   await second.ended
 })
+
+test("a handler's ran() called twice holds the prompt once, so its answer turns waiting back on", async () => {
+  const fake = installFakeEngine()
+  const held = fake.hold(rpc)
+  const responses: Array<{result: (r?: unknown) => void}> = []
+  const ended = new Promise(resolve => {
+    fake.engine.call({
+      callback: resolve,
+      customResponseIncomingCallMap: {
+        [prompt]: ((_: unknown, response: {result: (r?: unknown) => void}, deferRun: () => () => void) => {
+          const ran = deferRun()
+          responses.push(response)
+          ran()
+          ran()
+        }) as never,
+      },
+      method: rpc,
+      params: {username: 'testuser'},
+      waitingKey,
+    })
+  })
+  await tick()
+  const sessionID = fake.calls[0]!.params.sessionID as number
+  void fake.push(prompt, {kind: 0}, {sessionID})
+  await afterTimers()
+  expect(count(fake)).toBe(0)
+  responses[0]!.result(true)
+  expect(count(fake)).toBe(1)
+  held[0]!.reply(undefined)
+  await ended
+  expect(count(fake)).toBe(0)
+})
