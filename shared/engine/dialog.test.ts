@@ -316,6 +316,30 @@ test('the service cancelling a prompt closes only it; later prompts surface and 
   expect(dialog.disposed).toBe(false)
 })
 
+test('a service cancel closes the prompt as ended at once, while the RPC goes on', async () => {
+  const {dialog, fake, held, sessionID} = await startRecover()
+  const it = dialog.events[Symbol.asyncIterator]()
+  void fake.push(choose, {devices}, {sessionID})
+  const e = await nextEvent(it)
+  if (e.kind !== 'prompt') throw new Error('expected a prompt')
+  let outcome: string | undefined
+  void e.closed.then(o => (outcome = o))
+  let done = false
+  void dialog.done.then(() => (done = true))
+
+  fake.cancelPush(choose)
+  await tick()
+
+  expect(outcome).toBe('ended')
+  expect(dialog.openPrompts()).toEqual([])
+  expect(dialog.prompt(e.id, choose)).toBeUndefined()
+  expect(waitingCount(fake)).toBe(1)
+  expect(done).toBe(false)
+  held[0]!.reply(undefined)
+  await dialog.done
+  expect(waitingCount(fake)).toBe(0)
+})
+
 test('a link drop closes prompts and rejects done with EOF', async () => {
   const {dialog, fake, sessionID} = await startRecover()
   const it = dialog.events[Symbol.asyncIterator]()

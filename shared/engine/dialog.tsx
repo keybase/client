@@ -58,7 +58,10 @@ type AutoAnswer<P extends PromptMethod> = {
   [K in Exclude<PromptMethod, P>]?: (params: RpcIn<K>) => RpcOut<K>
 }
 
-type Response = Partial<CommonResponseHandler> & {readonly settled?: boolean}
+type Response = Partial<CommonResponseHandler> & {
+  readonly settled?: boolean
+  onCancelledByService?: () => void
+}
 
 let nextPromptID = 1
 
@@ -159,6 +162,7 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
       },
       params: p,
     } as OpenPrompt
+    response.onCancelledByService = () => close('ended')
     open.set(id, {close, prompt})
     return prompt
   }

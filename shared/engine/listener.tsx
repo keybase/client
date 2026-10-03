@@ -39,10 +39,18 @@ export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
         return r as Partial<CommonResponseHandler>
       }
 
-      const response: Partial<CommonResponseHandler> & {readonly settled?: boolean} = {
+      const response: Partial<CommonResponseHandler> & {
+        readonly settled?: boolean
+        onCancelledByService?: () => void
+      } = {
         get settled() {
           return r.settled
         },
+      }
+      // The service went back to work on the RPC, as after an answer
+      r.onCancelledByService = () => {
+        setWaitingOnServer(true)
+        response.onCancelledByService?.()
       }
 
       if (r.error) {
