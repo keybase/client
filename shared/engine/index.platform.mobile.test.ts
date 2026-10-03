@@ -218,7 +218,7 @@ test('NativeTransportMobile fails the invocation (not hang) when rpcOnGo reports
     expect((err as {code?: number; desc?: string}).code).toBe(errors.EOF)
     expect((err as {code?: number; desc?: string}).desc).toBe('native rpc write failed')
     // A local failure while the link is up, not a lost link
-    expect((err as {kind?: unknown}).kind).toBeUndefined()
+    expect((err as {kind?: unknown}).kind).toEqual({type: 'local'})
   } finally {
     teardownMobileMocks(originalIsMobile, originalRpcOnGo, originalRpcOnJs)
   }

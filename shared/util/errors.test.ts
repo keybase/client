@@ -1,6 +1,6 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
-import {convertToError, ensureError, errorKind, isCancelled, RPCError} from './errors'
+import {convertToError, ensureError, errorKind, isCancelled, isQuietCancel, RPCError} from './errors'
 
 const S = T.RPCGen.StatusCode
 
@@ -46,4 +46,21 @@ test('isCancelled matches any reason, or only the ones named', () => {
   expect(isCancelled(byCaller, 'caller')).toBe(true)
   expect(isCancelled(byCaller, 'accountChange', 'disconnect')).toBe(false)
   expect(isCancelled(new RPCError('x', S.scgeneric))).toBe(false)
+})
+
+test.each([
+  ['caller', true],
+  ['accountChange', true],
+  ['service', true],
+  ['disconnect', false],
+] as const)('isQuietCancel: cancelled by %s -> %s', (reason, expected) => {
+  expect(isQuietCancel(new RPCError('x', S.sccanceled, null, undefined, undefined, {reason, type: 'cancelled'}))).toBe(expected)
+})
+
+test.each([
+  ['a service error', new RPCError('x', S.scgeneric)],
+  ['a local failure', new RPCError('x', 101, null, 'EOF', undefined, {type: 'local'})],
+  ['a plain Error', new Error('boom')],
+])('isQuietCancel: %s is not a cancel', (_, e) => {
+  expect(isQuietCancel(e)).toBe(false)
 })

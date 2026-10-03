@@ -363,3 +363,13 @@ test("the service's own error still surfaces", async () => {
   expect(result.current.error).toBe(error)
   expect(onError).toHaveBeenCalledWith(error)
 })
+
+test('a local failure fails the load', async () => {
+  const error = new RPCError('write failed', 101, null, 'EOF', undefined, {type: 'local'})
+  const call = jest.fn<() => Promise<number>>().mockRejectedValue(error)
+  const {result} = renderHook(() => useRPCLoad(call, [], {map: (r: number) => r}))
+  advancePastMountLoad()
+  await flush()
+  expect(result.current.error).toBe(error)
+  expect(result.current.loading).toBe(false)
+})

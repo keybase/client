@@ -192,7 +192,7 @@ test('invoke fails the caller when the native write throws', () => {
   )
   // The link is up: a local failure, which no reconnect retries, so not a lost link
   const err = (cb.mock.calls[0] as [unknown])[0]
-  expect((err as {kind?: unknown}).kind).toBeUndefined()
+  expect((err as {kind?: unknown}).kind).toEqual({type: 'local'})
   expect(isCancelled(convertToError(err))).toBe(false)
 })
 

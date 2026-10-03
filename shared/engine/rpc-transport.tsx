@@ -556,7 +556,7 @@ export abstract class RPCTransport {
       // code; the original message survives in desc. The link is up, so this
       // is a local failure, not a lost link: no reconnect will retry it.
       this._invocations.delete(seqid)
-      cb({code: errors.EOF, desc: err instanceof Error ? err.message : String(err), name: 'EOF'}, {})
+      cb({code: errors.EOF, desc: err instanceof Error ? err.message : String(err), kind: {type: 'local'}, name: 'EOF'}, {})
     }
   }
 

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import {isCancelled, type RPCError} from './errors'
+import {isCancelled, isQuietCancel, type RPCError} from './errors'
 import {useReloadOnReconnect} from './use-reload-on-reconnect'
 
 type Options<RESULT, DATA> = {
@@ -82,7 +82,7 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
       })
       .catch((error: RPCError) => {
         if (requestID.current !== id) return
-        if (isCancelled(error, 'caller', 'accountChange', 'service')) {
+        if (isQuietCancel(error)) {
           endQuietly()
         } else if (!isCancelled(error, 'disconnect')) {
           fail(error)

@@ -19,14 +19,13 @@ const submitRejecting = async (error: unknown) => {
 }
 
 // The client cancelled it, so the action did not fail
-test.each(['caller', 'accountChange'] as const)('a call cancelled by %s does not reach setError', async reason => {
+test.each(['caller', 'accountChange', 'service'] as const)('a call cancelled by %s does not reach setError', async reason => {
   expect(await submitRejecting(cancelledBy(reason))).not.toHaveBeenCalled()
 })
 
 // The action did not happen, and a caller resets what it showed in its error callback
 test.each([
   ['a lost link', cancelledBy('disconnect')],
-  ["the service's cancel", cancelledBy('service')],
   ["the service's error", new RPCError('nope', T.RPCGen.StatusCode.scgeneric)],
 ])('%s reaches setError', async (_, error) => {
   expect(await submitRejecting(error)).toHaveBeenCalledWith(error)

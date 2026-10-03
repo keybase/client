@@ -1,15 +1,15 @@
 import {useNavigation} from '@react-navigation/core'
 import {type RouteKeys} from '@/router-v2/route-params'
 import logger from '@/logger'
-import {errorKind} from '@/util/errors'
+import {errorKind, isQuietCancel} from '@/util/errors'
 
 export const generateGUIID = () => Math.floor(Math.random() * 0xfffffffffffff).toString(16)
 
 export const ignorePromise = (f: Promise<void> | Promise<PromiseSettledResult<void>[]>) => {
   f.then(() => {}).catch((e: unknown) => {
-    // A cancelled call (a switch, a lost link, a dispose) is not a failure of the work
+    // A quiet cancel (a switch, a dispose, the service's cancel) is not a failure of the work
     const kind = errorKind(e)
-    if (kind?.type === 'cancelled') {
+    if (isQuietCancel(e) && kind?.type === 'cancelled') {
       logger.info('ignorePromise cancelled', kind.reason, (e as {details?: unknown}).details)
       return
     }

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {isCancelled, type RPCError} from './errors'
+import {isQuietCancel, type RPCError} from './errors'
 
 type RPCPromiseType<F extends (...rest: any[]) => any, RF = ReturnType<F>> =
   RF extends Promise<infer U> ? U : RF
@@ -21,9 +21,9 @@ function useRPC<
           setResult(result)
         })
         .catch((error: RPCError) => {
-          // The client cancelled it, so nothing failed. A lost link is still an error: the action did
-          // not happen, and the caller may need to reset what it showed meanwhile.
-          if (!isCancelled(error, 'caller', 'accountChange')) {
+          // Cancelled, so nothing failed. A lost link is still an error: the action did not happen, and
+          // the caller may need to reset what it showed meanwhile.
+          if (!isQuietCancel(error)) {
             setError(error)
           }
         })

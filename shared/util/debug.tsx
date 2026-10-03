@@ -1,10 +1,10 @@
 import logger from '@/logger'
-import {errorKind} from './errors'
+import {errorKind, isQuietCancel} from './errors'
 
 const logFailure = (logExtra: string, e: unknown) => {
-  // A cancelled call (a switch, a lost link, a dispose) is not a failure of the wrapped work
+  // A quiet cancel (a switch, a dispose, the service's cancel) is not a failure of the wrapped work
   const kind = errorKind(e)
-  if (kind?.type === 'cancelled') {
+  if (isQuietCancel(e) && kind?.type === 'cancelled') {
     logger.info('Cancelled wrapped call', logExtra, kind.reason)
   } else if (__DEV__) {
     logger.error('Error in wrapped call', logExtra, e)

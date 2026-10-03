@@ -83,6 +83,10 @@ export const isCancelled = (error: unknown, ...reasons: ReadonlyArray<CancelReas
   return kind?.type === 'cancelled' && (reasons.length === 0 || reasons.includes(kind.reason))
 }
 
+// A cancel that is no failure to show: by the caller, an account change, or the service (often the
+// echo of the client's own refusal). A lost link is not one: the call did not happen.
+export const isQuietCancel = (error: unknown) => isCancelled(error) && !isCancelled(error, 'disconnect')
+
 export function logError(error: unknown) {
   logger.info(`logError: ${JSON.stringify(error)}`)
 }

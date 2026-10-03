@@ -20,7 +20,7 @@ const settle = async (failure: unknown) => {
   return {info, logged}
 }
 
-test.each(['caller', 'accountChange', 'disconnect', 'service'] as const)(
+test.each(['caller', 'accountChange', 'service'] as const)(
   'a call cancelled by %s is logged as info, not as an error',
   async (reason: CancelReason) => {
     const error = new RPCError('cancelled', T.RPCGen.StatusCode.sccanceled, null, undefined, 'keybase.1.test.call', {
@@ -34,6 +34,10 @@ test.each(['caller', 'accountChange', 'disconnect', 'service'] as const)(
 )
 
 test.each([
+  [
+    'a lost link',
+    new RPCError('lost', 101, null, 'EOF', undefined, {reason: 'disconnect', type: 'cancelled'}),
+  ],
   ["the service's error", new RPCError('nope', T.RPCGen.StatusCode.scgeneric)],
   ['a plain Error', new Error('boom')],
 ])('%s is logged as an error', async (_, error) => {

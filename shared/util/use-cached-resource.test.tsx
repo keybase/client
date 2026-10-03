@@ -651,13 +651,14 @@ test('a cacheKey change resets the cache and refetches', async () => {
 const cancelledBy = (reason: CancelReason) =>
   new RPCError('cancelled', T.RPCGen.StatusCode.sccanceled, null, undefined, undefined, {reason, type: 'cancelled'})
 
-// Silent for every cancel. The client's own cancel is no failure, so it neither backs off nor stays
-// loading; a lost link stays loading until the reconnect reload, which bypasses the backoff anyway.
+// Silent for every cancel. A quiet cancel (the client's own, or the service's, often the echo of our
+// refusal) is no failure, so it neither backs off nor stays loading; a lost link stays loading until
+// the reconnect reload, which bypasses the backoff anyway.
 test.each([
   ['caller', {backsOff: false, loading: false}],
   ['accountChange', {backsOff: false, loading: false}],
   ['disconnect', {backsOff: true, loading: true}],
-  ['service', {backsOff: true, loading: false}],
+  ['service', {backsOff: false, loading: false}],
 ] as const)('a load cancelled by %s', async (reason, expected) => {
   const initialData = {v: 0}
   const cache = createCachedResourceCache<Data, string>(initialData, 'k')
