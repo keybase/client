@@ -1,5 +1,7 @@
 /// <reference types="jest" />
 import {useRouterState, type NavState} from '@/stores/router'
+import logger from '@/logger'
+import {installFakeNavigator, restoreNavigator} from '@/test/fake-navigator'
 import {registerRouteGone} from './route-gone'
 
 const setRootState = (state: NavState | undefined) =>
@@ -149,4 +151,44 @@ test('registering the same entry twice (StrictMode, a re-shown screen) is one en
   setRootState(rootWith([]))
 
   expect(onGone).toHaveBeenCalledTimes(1)
+})
+
+test("a route in the navigator's state when it registers, which leaves before the store's copy had it, is gone", () => {
+  const onGone = jest.fn()
+  installFakeNavigator({rootState: rootWith([{key, params: {promptId: 4}}])})
+  setRootState(rootWith([]))
+  registerRouteGone(key, pending().promise, onGone)
+
+  setRootState(rootWith([{key: 'other'}]))
+  restoreNavigator()
+
+  expect(onGone).toHaveBeenCalledWith({promptId: 4})
+})
+
+test("a route in neither the navigator's state nor the store's copy when it registers waits to be seen", () => {
+  const onGone = jest.fn()
+  installFakeNavigator({rootState: rootWith([])})
+  registerRouteGone(key, pending().promise, onGone)
+
+  setRootState(rootWith([{key: 'other'}]))
+  restoreNavigator()
+
+  expect(onGone).not.toHaveBeenCalled()
+})
+
+test('a flow that throws as its route goes is logged and the others still end', () => {
+  const error = jest.spyOn(logger, 'error').mockImplementation(() => {})
+  const failure = new Error('failed')
+  const other = jest.fn()
+  setRootState(rootWith([{key}, {key: `${key}-other`}]))
+  registerRouteGone(key, pending().promise, () => {
+    throw failure
+  })
+  registerRouteGone(`${key}-other`, pending().promise, other)
+
+  setRootState(rootWith([]))
+
+  expect(error).toHaveBeenCalledWith(expect.stringContaining(key), failure)
+  expect(other).toHaveBeenCalledTimes(1)
+  error.mockRestore()
 })

@@ -1,5 +1,7 @@
 import * as React from 'react'
 import {NavigationRouteContext} from '@react-navigation/core'
+import {getNavigator} from '@/constants/navigator'
+import logger from '@/logger'
 import {useRouterState, type NavState} from '@/stores/router'
 import type {Immutable} from 'immer'
 
@@ -14,8 +16,9 @@ export type RouteParams = Immutable<object> | undefined
 type Entry = {
   onGone: (lastParams: RouteParams) => void
   params: RouteParams
-  // In a root state since registering. A route registered before its first commit reaches the
-  // state is not gone until it has been there.
+  // In a root state since registering, or in the navigator's own state when it registered. A route
+  // not yet in either is not gone until it has been there: a state without it can't tell a route
+  // not yet committed from one already removed.
   seen: boolean
   until: Promise<unknown>
 }
@@ -35,7 +38,7 @@ const routeParams = (state: Immutable<NavState> | undefined, out = new Map<strin
 const onRootState = (state: Immutable<NavState> | undefined) => {
   // No container (between an account switch's unmount and the new one's first state) is not a
   // removal
-  if (!state) return
+  if (!state || !entries.size) return
   const present = routeParams(state)
   for (const [key, entry] of [...entries]) {
     if (present.has(key)) {
@@ -43,7 +46,12 @@ const onRootState = (state: Immutable<NavState> | undefined) => {
       entry.params = present.get(key)
     } else if (entry.seen) {
       entries.delete(key)
-      entry.onGone(entry.params)
+      // One flow's failure doesn't keep the others from ending
+      try {
+        entry.onGone(entry.params)
+      } catch (error) {
+        logger.error(`route gone: ending the flow of ${key} failed`, error)
+      }
     }
   }
 }
@@ -64,7 +72,12 @@ export const registerRouteGone = (
 ) => {
   const prev = entries.get(routeKey)
   if (prev?.until === until && prev.onGone === onGone) return
-  const present = routeParams(useRouterState.getState().navState)
+  // The navigator's state is ahead of the router store's copy, which a screen's mount effect runs
+  // before: a route that leaves before the copy has it would otherwise never be seen
+  const present = routeParams(
+    getNavigator().getRootState() as Immutable<NavState> | undefined,
+    routeParams(useRouterState.getState().navState)
+  )
   const entry: Entry = {
     onGone,
     params: present.has(routeKey) ? present.get(routeKey) : prev?.params,
