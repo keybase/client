@@ -17,10 +17,16 @@ import {resolveParams} from './resolve.mts'
 import type {Theme, TourEntry, SetupStep} from './tour-types.ts'
 
 export type IosSession = {
+  // Fixes Date, remounts every screen under it, and visits each phone tab once.
   prepare: (opts: {theme: Theme; frozenAt: number; reload: boolean}) => Promise<void>
+  // Resets to the entry's tab root (modals cleared, stack popped). It does not reset scroll
+  // position or a selected sub-tab: a setup step that scrolls or switches leaves that screen so
+  // until the next reload.
   capture: (entry: TourEntry) => Promise<Capture>
   // Restores the app (real Date, which takes a JS reload) and the simulator settings prepare
-  // changed, ends the Appium session and stops the Appium server this session started.
+  // changed, ends the Appium session and stops the Appium server this session started. The
+  // running app keeps Reduce Motion and Reduce Transparency on until its next launch: both are
+  // read at startup.
   close: () => Promise<void>
 }
 
@@ -128,6 +134,22 @@ const stopAppium = async (child: ChildProcess) => {
 }
 
 const ROUTER = `const r = kbModule('constants/router.tsx');`
+// Host views (fiber tag 5) that carry a testID, read through the React DevTools hook a dev build has.
+const HOSTS_WITH_TESTID = `
+  const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
+  if (!hook?.getFiberRoots) throw new Error('no React DevTools hook; is this a dev build?')
+  const hosts = []
+  for (const id of hook.renderers.keys()) {
+    for (const root of hook.getFiberRoots(id)) {
+      const stack = [root.current]
+      while (stack.length) {
+        const f = stack.pop()
+        if (f.tag === 5 && f.stateNode && f.memoizedProps?.testID) hosts.push(f.stateNode)
+        if (f.child) stack.push(f.child)
+        if (f.sibling) stack.push(f.sibling)
+      }
+    }
+  }`
 const HOP_TAB = 'tabs.settingsTab'
 const HOP_TAB_ALT = 'tabs.peopleTab'
 
@@ -358,6 +380,41 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     }
   }
 
+  // Screens mounted before Date was fixed (the restored tab, anything memoized at boot) rendered
+  // with the real time. Resetting the navigation root to its own state without route keys gives
+  // every route a new key, so every screen remounts under the fixed Date. Checked: no host view
+  // that carried a testID before the reset is still mounted after it.
+  const remountScreens = async () => {
+    const before = await appEval<number>(
+      `${HOSTS_WITH_TESTID}
+       globalThis.__kbVisualBeforeRemount = new Set(hosts)
+       return hosts.length`,
+      'listing mounted views'
+    )
+    if (before === 0) throw new Error('no mounted view carries a testID; is the app at its tabs?')
+    await appEval(
+      `const nav = kbModule('constants/navigator.tsx').navigationRef
+       const strip = s => s && {index: s.index, routes: s.routes.map(r => ({name: r.name, params: r.params, state: strip(r.state)}))}
+       nav.resetRoot(strip(nav.getRootState()))`,
+      'resetting the navigation root'
+    )
+    let left = before
+    await waitFor('every screen to remount after the navigation reset', READY_MS, async () => {
+      const r = await appEval<{left: number; now: number}>(
+        `${HOSTS_WITH_TESTID}
+         const old = globalThis.__kbVisualBeforeRemount
+         return {left: hosts.filter(x => old.has(x)).length, now: hosts.length}`,
+        'checking remounted views'
+      )
+      left = r.left
+      return r.left === 0 && r.now > 0
+    }).catch((e: unknown) => {
+      throw new Error(`${(e as Error).message}: ${left} of ${before} views kept their instance`, {cause: e})
+    })
+    await appEval('delete globalThis.__kbVisualBeforeRemount', 'clearing the remount check')
+    await waitForRuntime(false)
+  }
+
   const coverageSeq = async () =>
     appEval<number | null>('return globalThis.__kbVisualCoverage?.seq() ?? null', 'coverage seq')
   const coverageSince = async (seq: number | null) =>
@@ -394,9 +451,10 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     if (!(await accessibilityOn())) throw new Error('the app does not report Reduce Motion and Reduce Transparency after a relaunch')
     await appEval(`(${fixDate.toString()})(${p.frozenAt})`, 'fixing Date')
     datePatched = true
+    await applyLight()
+    await remountScreens()
     const now = await appEval<number>('return Date.now()', 'reading Date.now')
     if (now !== p.frozenAt) throw new Error(`Date is not fixed in the app: Date.now() is ${now}, wanted ${p.frozenAt}`)
-    await applyLight()
     await warmTabs()
     prepared = true
   }
