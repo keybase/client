@@ -39,25 +39,18 @@ export const useRecoverPromptBack = (promptId: number, onBack?: () => void) => {
   }, [routeKey, promptId])
 }
 
-// A deferred push can land after its prompt settled, or the run can end while another modal covers
-// the screen, leaving it nothing to answer. It closes once it is the top screen: on mount and whenever
-// it is focused again. A covered screen stays: removing a covered modal crashes iOS. Effects also re-run
-// after the screen answered (a screen unfreezing, a hot reload), when it must stay while its run goes on.
+// A deferred push can land after its prompt settled, leaving the screen nothing to answer. Effects
+// also re-run after the screen answered (a screen unfreezing, a hot reload), when it must stay. A
+// covered screen stays: removing a covered modal crashes iOS.
 export const useRecoverPromptSelfClose = (promptId: number, routeName: string) => {
-  // Absent outside a navigator (storybook)
-  const navigation = React.useContext(NavigationContext)
   React.useEffect(() => {
-    const closeIfGone = () => {
-      if (!isRecoverPasswordPromptGone(promptId)) return
-      const visible = getVisibleScreen(true)
-      if (
-        visible?.name === routeName &&
-        (visible.params as {promptId?: number} | undefined)?.promptId === promptId
-      ) {
-        navigateUp()
-      }
+    if (!isRecoverPasswordPromptGone(promptId)) return
+    const visible = getVisibleScreen(true)
+    if (
+      visible?.name === routeName &&
+      (visible.params as {promptId?: number} | undefined)?.promptId === promptId
+    ) {
+      navigateUp()
     }
-    closeIfGone()
-    return navigation?.addListener('focus', closeIfGone)
-  }, [navigation, promptId, routeName])
+  }, [promptId, routeName])
 }
