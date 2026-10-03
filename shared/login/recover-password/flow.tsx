@@ -87,7 +87,8 @@ export const registerRecoverPasswordScreen = (routeKey: string, owner: {promptId
   registerRouteGone(routeKey, run.ended, prompt ? declineFromParams : keepRoute)
 }
 
-// Prompts of this run that a screen answered. Their screens stay while the service works on the answer.
+// Prompts of the current run that a screen answered. Their screens stay while the service works on the
+// answer; once the run is over they have nothing left to wait for.
 const answeredByScreen = new Set<number>()
 const noteAnswer = (promptId: number, answered: boolean | undefined) => {
   if (answered) {
@@ -96,7 +97,7 @@ const noteAnswer = (promptId: number, answered: boolean | undefined) => {
 }
 
 // The prompt settled without its screen's answer (before the screen appeared, or by a restart or the
-// run ending), so the screen has nothing left to do
+// run ending), or its run is over, so the screen has nothing left to do
 export const isRecoverPasswordPromptGone = (promptId: number) =>
   !isRecoverPasswordPromptOpen(promptId) && !answeredByScreen.has(promptId)
 
@@ -318,6 +319,7 @@ export const startRecoverPassword = ({
     } finally {
       if (current === run) {
         current = undefined
+        answeredByScreen.clear()
       }
       // The session settled a warning still unanswered when the run ended; nothing is left to answer
       if (pgp && (await pgp.closed) === 'ended' && !dialog.disposed) {
