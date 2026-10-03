@@ -11,14 +11,14 @@ import {homedir} from 'os'
 import {remote} from 'webdriverio'
 import {iosCapabilities, udidForName} from '../ios-appium/helpers/app.ts'
 import {evalInPage, inspectorPageFor} from '../shared/metro-eval.ts'
-import {fixDate, settle, waitFor, withDeadline, type Capture} from './driver-desktop.mts'
+import {fixDate, settle, waitFor, withDeadline, type Capture, type Prepared} from './driver-desktop.mts'
 import type {Rect} from './compare.mts'
 import {resolveParams} from './resolve.mts'
 import type {Theme, TourEntry, SetupStep} from './tour-types.ts'
 
 export type IosSession = {
   // Fixes Date, remounts every screen under it, and visits each phone tab once.
-  prepare: (opts: {theme: Theme; frozenAt: number; reload: boolean}) => Promise<void>
+  prepare: (opts: {theme: Theme; frozenAt: number; reload: boolean}) => Promise<Prepared>
   // Resets to the entry's tab root (modals cleared, stack popped). It does not reset scroll
   // position or a selected sub-tab: a setup step that scrolls or switches leaves that screen so
   // until the next reload.
@@ -417,6 +417,8 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
 
   const coverageSeq = async () =>
     appEval<number | null>('return globalThis.__kbVisualCoverage?.seq() ?? null', 'coverage seq')
+  const coverageMounted = async () =>
+    appEval<Array<string> | null>('return globalThis.__kbVisualCoverage?.mounted() ?? null', 'coverage mounted')
   const coverageSince = async (seq: number | null) =>
     seq === null
       ? null
@@ -446,17 +448,22 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
       }
     }
     await waitForRuntime(false)
+    let reloaded = true
     if (changed || !(await accessibilityOn())) await relaunchApp()
     else if (p.reload) await reloadJs()
+    else reloaded = false
     if (!(await accessibilityOn())) throw new Error('the app does not report Reduce Motion and Reduce Transparency after a relaunch')
     await appEval(`(${fixDate.toString()})(${p.frozenAt})`, 'fixing Date')
     datePatched = true
     await applyLight()
     await remountScreens()
+    // after the remount, which waits for the reloaded app to show its views; before warmTabs
+    const chrome = reloaded ? await coverageMounted() : null
     const now = await appEval<number>('return Date.now()', 'reading Date.now')
     if (now !== p.frozenAt) throw new Error(`Date is not fixed in the app: Date.now() is ${now}, wanted ${p.frozenAt}`)
     await warmTabs()
     prepared = true
+    return {chrome}
   }
 
   const capture: IosSession['capture'] = async entry => {
