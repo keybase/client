@@ -676,7 +676,9 @@ async function writeFlow(typeDefs: AnalysisResult, project: ProjectState): Promi
   }
 
   const engineImport =
-    project.hasEngine || project.hasEngineListener ? `import {getCallPort} from '@/engine/call-port'` : ''
+    project.hasEngine || project.hasEngineListener
+      ? `import {getCallPort${project.hasEngineListener ? ', type ListenParams' : ''}} from '@/engine/call-port'`
+      : ''
   const messageEntries = Object.entries(typeDefs.messages).sort(([left], [right]) => left.localeCompare(right))
   const promiseMethods = messageEntries.filter(([, message]) => message.rpcPromise).map(([key]) => key)
   const listenerMethods = messageEntries.filter(([, message]) => message.engineListener).map(([key]) => key)
@@ -718,7 +720,7 @@ type ListenerArgs<M extends ListenerMethod> = {
   incomingCallMap: IncomingCallMapType,
   customResponseIncomingCallMap?: CustomResponseIncomingCallMap,
   waitingKey?: WaitingKey,
-  onSessionCreated?: (cancel: () => void) => void,
+  onSessionCreated?: ListenParams['onSessionCreated'],
   // Prefixes of incoming methods this call leaves to global handling; any other unhandled one is reported
   globalFallthrough?: ReadonlyArray<string>,
 }

@@ -10,7 +10,6 @@ import {type CommonResponseHandler} from '@/engine/types'
 import {callNamed, setNamedScoped} from '@/stores/flow-handles'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
-import {useWaitingState} from '@/stores/waiting'
 import {RPCError} from '@/util/errors'
 
 const owner = 'provision'
@@ -224,8 +223,8 @@ const runProvision = (initialUsername: string) => {
       return isEqual(frozenAutoSubmit[submitStep], step)
     }
 
-    let exchangedIncrements = 0
-    let attemptEnded = false
+    // The RPC's own waiting stays on from the secret exchange until it ends
+    let holdServerWork: (() => () => void) | undefined
     try {
       await T.RPCGen.loginLoginRpcListener({
         customResponseIncomingCallMap: {
@@ -363,17 +362,14 @@ const runProvision = (initialUsername: string) => {
         incomingCallMap: {
           'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
           'keybase.1.provisionUi.DisplaySecretExchanged': () => {
-            // Incoming calls are dispatched via setTimeout, so this can land after the finally
-            // below already ran its decrements; don't add a count nothing will release.
-            if (attemptEnded) return
-            ++exchangedIncrements
-            useWaitingState.getState().dispatch.increment(waitingKeyProvision)
+            holdServerWork?.()
           },
           'keybase.1.provisionUi.ProvisioneeSuccess': () => {},
           'keybase.1.provisionUi.ProvisionerSuccess': () => {},
         },
-        onSessionCreated: cancel => {
+        onSessionCreated: (cancel, session) => {
           cancelAttempt = cancel
+          holdServerWork = session.holdServerWork
         },
         params: {
           clientType: T.RPCGen.ClientType.guiMain,
@@ -386,11 +382,7 @@ const runProvision = (initialUsername: string) => {
         waitingKey: waitingKeyProvision,
       })
     } finally {
-      attemptEnded = true
       cancelAttempt = undefined
-      for (let i = 0; i < exchangedIncrements; ++i) {
-        useWaitingState.getState().dispatch.decrement(waitingKeyProvision)
-      }
     }
   }
 
@@ -511,8 +503,8 @@ export const startAddNewDevice = (otherDeviceType: 'desktop' | 'mobile') => {
     })
     handles.set(slots.cancel, doCancel)
     handles.set(slots.pause, doCancel)
-    let exchangedIncrements = 0
-    let attemptEnded = false
+    // The RPC's own waiting stays on from the secret exchange until it ends
+    let holdServerWork: (() => () => void) | undefined
     try {
       await T.RPCGen.deviceDeviceAddRpcListener({
         customResponseIncomingCallMap: {
@@ -552,28 +544,21 @@ export const startAddNewDevice = (otherDeviceType: 'desktop' | 'mobile') => {
         },
         incomingCallMap: {
           'keybase.1.provisionUi.DisplaySecretExchanged': () => {
-            // Incoming calls are dispatched via setTimeout, so this can land after the finally
-            // below already ran its decrements; don't add a count nothing will release.
-            if (attemptEnded) return
-            ++exchangedIncrements
-            useWaitingState.getState().dispatch.increment(waitingKeyProvision)
+            holdServerWork?.()
           },
           'keybase.1.provisionUi.ProvisioneeSuccess': () => {},
           'keybase.1.provisionUi.ProvisionerSuccess': () => {},
         },
-        onSessionCreated: cancel => {
+        onSessionCreated: (cancel, session) => {
           cancelAttempt = cancel
+          holdServerWork = session.holdServerWork
         },
         params: undefined,
         waitingKey: waitingKeyProvision,
       })
     } catch {
     } finally {
-      attemptEnded = true
       cancelAttempt = undefined
-      for (let i = 0; i < exchangedIncrements; ++i) {
-        useWaitingState.getState().dispatch.decrement(waitingKeyProvision)
-      }
       handles.dispose()
     }
     // A cancelled (or superseded) run must not clear modals: by now the user has either navigated
