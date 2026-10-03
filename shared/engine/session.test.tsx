@@ -171,7 +171,7 @@ describe('a call that outlives its account', () => {
     expect(mockDispatchWaitingAction).toHaveBeenCalledWith({error: undefined, increment: false, key: waitingKey})
   })
 
-  test('the calls that outlived an account before the flag moved to enabled-calls.json still do', () => {
+  test('the calls that outlived an account before the flag moved to enabled-calls.json still do, and the chat static config', () => {
     const named = [
       'keybase.1.account.cancelReset',
       'keybase.1.account.enterResetPipeline',
@@ -201,7 +201,9 @@ describe('a call that outlives its account', () => {
       'keybase.1.delegateUiCtl.registerSecretUI',
       'keybase.1.notifyCtl.setNotifications',
     ]
-    expect([...survivesAccountChangeMethods].sort()).toEqual([...named, ...prefixed].sort())
+    expect([...survivesAccountChangeMethods].sort()).toEqual(
+      [...named, ...prefixed, 'chat.1.local.getStaticConfig'].sort()
+    )
   })
 
   test('registering with the service outlives an account', () => {
@@ -211,7 +213,7 @@ describe('a call that outlives its account', () => {
   })
 
   // A handshake step, so a reconnect during a switch would otherwise wait for the switch to end
-  test.failing('K9: the chat static config outlives an account', () => {
+  test('K9: the chat static config outlives an account', () => {
     expect(survivesAccountChange('chat.1.local.getStaticConfig')).toBe(true)
   })
 
