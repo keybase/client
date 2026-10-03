@@ -307,7 +307,7 @@ const cancelledBy = (reason: CancelReason) =>
 test.each(['caller', 'accountChange', 'disconnect', 'service'] as const)(
   'a load cancelled by %s is not an error',
   async reason => {
-    const call = jest.fn(async () => Promise.reject(cancelledBy(reason)))
+    const call = jest.fn<() => Promise<number>>().mockRejectedValue(cancelledBy(reason))
     const onError = jest.fn()
     const {result} = renderHook(() => useRPCLoad(call, [], {map: (r: number) => r, onError}))
     advancePastMountLoad()
@@ -320,7 +320,7 @@ test.each(['caller', 'accountChange', 'disconnect', 'service'] as const)(
 
 test("the service's own error still surfaces", async () => {
   const error = new RPCError('nope', T.RPCGen.StatusCode.scgeneric)
-  const call = jest.fn(async () => Promise.reject(error))
+  const call = jest.fn<() => Promise<number>>().mockRejectedValue(error)
   const onError = jest.fn()
   const {result} = renderHook(() => useRPCLoad(call, [], {map: (r: number) => r, onError}))
   advancePastMountLoad()

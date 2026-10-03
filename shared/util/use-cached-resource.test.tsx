@@ -661,12 +661,7 @@ test.each([
 ] as const)('a load cancelled by %s', async (reason, expected) => {
   const initialData = {v: 0}
   const cache = createCachedResourceCache<Data, string>(initialData, 'k')
-  let calls = 0
-  const load = jest.fn(async () => {
-    calls++
-    await Promise.resolve()
-    throw cancelledBy(reason)
-  })
+  const load = jest.fn<() => Promise<Data>>().mockRejectedValue(cancelledBy(reason))
   const onError = jest.fn()
   let resource: ReturnType<typeof useCachedResource<Data, string>> | undefined
   const Comp = () => {
@@ -677,24 +672,21 @@ test.each([
   }
   render(<Comp />)
   await flush()
-  expect(calls).toBe(1)
+  expect(load).toHaveBeenCalledTimes(1)
   expect(onError).not.toHaveBeenCalled()
   expect(resource?.loading).toBe(expected.loading)
   await act(async () => {
     await resource?.loadIfStale()
   })
   await flush()
-  expect(calls).toBe(expected.backsOff ? 1 : 2)
+  expect(load).toHaveBeenCalledTimes(expected.backsOff ? 1 : 2)
 })
 
 test("the service's own error still reaches onError", async () => {
   const initialData = {v: 0}
   const cache = createCachedResourceCache<Data, string>(initialData, 'k')
   const error = new RPCError('nope', T.RPCGen.StatusCode.scgeneric)
-  const load = async () => {
-    await Promise.resolve()
-    throw error
-  }
+  const load = jest.fn<() => Promise<Data>>().mockRejectedValue(error)
   const onError = jest.fn()
   const Comp = () => {
     const {data} = useCachedResource({cache, cacheKey: 'k', initialData, load, onError, staleMs: 5000})

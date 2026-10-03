@@ -10,7 +10,7 @@ const cancelledBy = (reason: CancelReason) =>
   new RPCError('cancelled', T.RPCGen.StatusCode.sccanceled, null, undefined, undefined, {reason, type: 'cancelled'})
 
 const submitRejecting = async (error: unknown) => {
-  const call = async () => Promise.reject(error)
+  const call = jest.fn<() => Promise<void>>().mockRejectedValue(error)
   const {result} = renderHook(() => useRPC(call))
   const setError = jest.fn()
   result.current([], () => {}, setError)
