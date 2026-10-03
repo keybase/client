@@ -364,6 +364,25 @@ test("the service's own error still surfaces", async () => {
   expect(onError).toHaveBeenCalledWith(error)
 })
 
+// A lost link waits only for a reload that will come; with none coming it fails like any error
+test.each([
+  ["when: 'manual'", {when: 'manual'} as const],
+  ['enabled: false', {enabled: false}],
+])('a load cancelled by a lost link, %s, fails', async (_, opts) => {
+  const error = cancelledBy('disconnect')
+  const call = jest.fn<() => Promise<number>>().mockRejectedValue(error)
+  const onError = jest.fn()
+  const {result} = renderHook(() => useRPCLoad(call, [], {map: (r: number) => r, onError, ...opts}))
+  act(() => {
+    result.current.reload()
+  })
+  await flush()
+  expect(call).toHaveBeenCalledTimes(1)
+  expect(result.current.error).toBe(error)
+  expect(onError).toHaveBeenCalledWith(error)
+  expect(result.current.loading).toBe(false)
+})
+
 test('a local failure fails the load', async () => {
   const error = new RPCError('write failed', 101, null, 'EOF', undefined, {type: 'local'})
   const call = jest.fn<() => Promise<number>>().mockRejectedValue(error)

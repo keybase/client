@@ -84,10 +84,10 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
         if (requestID.current !== id) return
         if (isQuietCancel(error)) {
           endQuietly()
-        } else if (!isCancelled(error, 'disconnect')) {
+        } else if (!(isCancelled(error, 'disconnect') && enabled && when !== 'manual')) {
           fail(error)
         }
-        // A lost link: still loading, until the reconnect's handshake reloads it
+        // A lost link with a reconnect reload coming: still loading until it runs
       })
   })
 
