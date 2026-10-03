@@ -51,12 +51,13 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
   // push dispatched before the group mounts reaches no navigator that can handle it and is
   // dropped. Gives up after `timeoutMs` so a group that never mounts can't fire the push at some
   // unrelated later time.
-  // onGiveUp runs if the root never mounts and the push is dropped
+  // onGiveUp runs if the root never mounts and the push is dropped; onPushed once the push is dispatched
   navigateAppendOnceRootHas: (
     rootRouteName: string,
     path: NavigateAppendType,
     timeoutMs?: number,
-    onGiveUp?: () => void
+    onGiveUp?: () => void,
+    onPushed?: () => void
   ) => void
   navUpToScreen: (nameOrPath: RouteKeys | NavigateAppendType, replaceIfMissing?: boolean) => void
   switchTab: (name: Tabs.AppTab) => void
@@ -186,11 +187,14 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     rootRouteName: string,
     path: NavigateAppendType,
     timeoutMs = 5000,
-    onGiveUp?: () => void
+    onGiveUp?: () => void,
+    onPushed?: () => void
   ) => {
     const rootHas = () => ref.getRootState()?.routes?.some(r => r.name === rootRouteName) ?? false
     const push = () => {
-      if (!navigateAppend(path)) {
+      if (navigateAppend(path)) {
+        onPushed?.()
+      } else {
         logger.warn(`[Nav] navigateAppendOnceRootHas: push failed, dropping ${path.name}`)
         onGiveUp?.()
       }

@@ -440,6 +440,33 @@ describe('pgp key warning', () => {
     await settle()
   })
 
+  test("the mount timeout starts at the push, not while the warning waits for the logged-in root", async () => {
+    nav = installFakeNavigator({
+      modalRouteNames: Object.keys(newModalRoutes),
+      rootState: makeRootState({loggedIn: false}),
+    })
+    useFakeTimers()
+    const {held, sessionID} = await start()
+    let result: unknown
+    void pushPgp(sessionID).then(r => (result = r))
+    await settle()
+    await jest.advanceTimersByTimeAsync(4000)
+
+    // The root mounts near the root wait's deadline, and the warning is pushed then
+    nav.setRootState(makeRootState())
+    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
+    await jest.advanceTimersByTimeAsync(4999)
+    await tick()
+    expect(result).toBeUndefined()
+    expect(isRecoverPasswordPromptOpen(warningId())).toBe(true)
+
+    await jest.advanceTimersByTimeAsync(1)
+    await tick()
+    expect(result).toEqual({result: false})
+    held[0]!.reply(undefined)
+    await settle()
+  })
+
   test('a warning that mounted and was then covered by another modal is not declined by the push timeout', async () => {
     useFakeTimers()
     const {held, sessionID} = await start()

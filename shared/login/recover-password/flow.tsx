@@ -142,19 +142,24 @@ const takeWarningOffTop = () => {
 const showPgpWarning = (prompt: Prompt<typeof promptPgp>) => {
   const {id} = prompt
   // A warning pushed but never mounted can't be answered; decline rather than leave Go waiting.
-  // The warning mounting clears this.
-  pgpMountTimers.set(
-    id,
-    setTimeout(() => {
-      pgpMountTimers.delete(id)
-      prompt.answer(false)
-    }, loggedInRootTimeoutMs)
-  )
+  // Timed from the push, as the wait for the root has its own timeout. The warning mounting clears it.
+  const startMountTimeout = () =>
+    pgpMountTimers.set(
+      id,
+      setTimeout(() => {
+        pgpMountTimers.delete(id)
+        prompt.answer(false)
+      }, loggedInRootTimeoutMs)
+    )
   void prompt.closed.then(() => markRecoverPasswordPgpShown(id))
   // The paper key has just logged the user in, so the logged-in root this modal lives on may not be
   // mounted yet. A warning that can't be pushed is declined.
-  navigateAppendOnceRootHas('loggedIn', {name: pgpWarningName, params: {promptId: id}}, loggedInRootTimeoutMs, () =>
-    prompt.answer(false)
+  navigateAppendOnceRootHas(
+    'loggedIn',
+    {name: pgpWarningName, params: {promptId: id}},
+    loggedInRootTimeoutMs,
+    () => prompt.answer(false),
+    startMountTimeout
   )
 }
 
