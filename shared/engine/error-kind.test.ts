@@ -14,6 +14,7 @@ import {ignorePromise} from '@/constants/utils'
 import {resetAllStores} from '@/util/zustand'
 import {tick} from '@/test/flush'
 import logger from '@/logger'
+import {testWaitingKey} from '@/test/waiting-key'
 
 afterEach(() => {
   jest.restoreAllMocks()
@@ -37,6 +38,10 @@ const afterTimers = async () => {
 }
 
 const kindOf = (e: unknown) => (e as {kind?: unknown}).kind
+const byCaller = {reason: 'caller', type: 'cancelled'}
+const byAccountChange = {reason: 'accountChange', type: 'cancelled'}
+const byDisconnect = {reason: 'disconnect', type: 'cancelled'}
+const byService = {reason: 'service', type: 'cancelled'}
 
 const recoverListener = (fake: FakeEngine) => {
   const held = fake.hold('keybase.1.login.recoverPassphrase')
@@ -52,13 +57,17 @@ const recoverListener = (fake: FakeEngine) => {
   return {cancel: () => cancel(), held, p}
 }
 
-describe('the code and desc of each error the client makes', () => {
+describe('the code, desc and kind of each error the client makes', () => {
   test('P1: a client cancel of a session', async () => {
     const fake = installFakeEngine()
     const {cancel, p} = recoverListener(fake)
     await tick()
     cancel()
-    expect(await rejection(p)).toMatchObject({code: T.RPCGen.StatusCode.sccanceled, desc: 'Received RPC cancel for session'})
+    expect(await rejection(p)).toMatchObject({
+      code: T.RPCGen.StatusCode.sccanceled,
+      desc: 'Received RPC cancel for session',
+      kind: byCaller,
+    })
     uninstallFakeEngine()
   })
 
@@ -68,7 +77,11 @@ describe('the code and desc of each error the client makes', () => {
     useConfigState.getState().dispatch.setLoggedIn(true)
     const p = T.RPCGen.userLoadMySettingsRpcPromise()
     useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
-    expect(await rejection(p)).toMatchObject({code: T.RPCGen.StatusCode.sccanceled, desc: 'Received RPC cancel for session'})
+    expect(await rejection(p)).toMatchObject({
+      code: T.RPCGen.StatusCode.sccanceled,
+      desc: 'Received RPC cancel for session',
+      kind: byAccountChange,
+    })
     uninstallFakeEngine()
   })
 
@@ -83,6 +96,7 @@ describe('the code and desc of each error the client makes', () => {
     expect(await rejection(p)).toMatchObject({
       code: T.RPCGen.StatusCode.sccanceled,
       desc: 'The account changed during this call',
+      kind: byAccountChange,
     })
     uninstallFakeEngine()
   })
@@ -92,7 +106,7 @@ describe('the code and desc of each error the client makes', () => {
     fake.hold('keybase.1.config.getBootstrapStatus')
     const p = T.RPCGen.configGetBootstrapStatusRpcPromise()
     fake.drop()
-    expect(await rejection(p)).toMatchObject({code: errors.EOF, desc: 'The service connection was lost', name: 'EOF'})
+    expect(await rejection(p)).toMatchObject({code: errors.EOF, desc: 'The service connection was lost', kind: byDisconnect, name: 'EOF'})
     uninstallFakeEngine()
   })
 
@@ -100,7 +114,7 @@ describe('the code and desc of each error the client makes', () => {
     const fake = installFakeEngine()
     fake.drop()
     const p = T.RPCGen.configGetBootstrapStatusRpcPromise()
-    expect(await rejection(p)).toMatchObject({code: errors.EOF, desc: 'The service connection was lost', name: 'EOF'})
+    expect(await rejection(p)).toMatchObject({code: errors.EOF, desc: 'The service connection was lost', kind: byDisconnect, name: 'EOF'})
     uninstallFakeEngine()
   })
 
@@ -109,7 +123,7 @@ describe('the code and desc of each error the client makes', () => {
     fake.hold('keybase.1.config.getBootstrapStatus')
     const p = T.RPCGen.configGetBootstrapStatusRpcPromise()
     fake.engine._rpcClient.transport.close()
-    expect(await rejection(p)).toMatchObject({code: errors.EOF, desc: 'EOF from server', name: 'EOF'})
+    expect(await rejection(p)).toMatchObject({code: errors.EOF, desc: 'EOF from server', kind: byDisconnect, name: 'EOF'})
     uninstallFakeEngine()
   })
 
@@ -119,7 +133,11 @@ describe('the code and desc of each error the client makes', () => {
     const dialog = openDialog('keybase.1.login.recoverPassphrase', {username: 'testuser'}, {prompts: []})
     await tick()
     dialog.dispose()
-    expect(await rejection(dialog.done)).toMatchObject({code: T.RPCGen.StatusCode.sccanceled, desc: 'Dialog disposed'})
+    expect(await rejection(dialog.done)).toMatchObject({
+      code: T.RPCGen.StatusCode.sccanceled,
+      desc: 'Dialog disposed',
+      kind: byCaller,
+    })
     uninstallFakeEngine()
   })
 
@@ -130,7 +148,7 @@ describe('the code and desc of each error the client makes', () => {
     held[0]!.reply(fakeError(T.RPCGen.StatusCode.scnotfound, 'no such user'))
     const e = await rejection(p)
     expect(e).toBeInstanceOf(Error)
-    expect(e).toMatchObject({code: T.RPCGen.StatusCode.scnotfound, desc: 'no such user'})
+    expect(e).toMatchObject({code: T.RPCGen.StatusCode.scnotfound, desc: 'no such user', kind: {type: 'service'}})
     expect((e as unknown as Error).cause).toBeInstanceOf(RPCError)
     uninstallFakeEngine()
   })
@@ -143,7 +161,90 @@ describe('the code and desc of each error the client makes', () => {
     held[0]!.reply(fakeError(T.RPCGen.StatusCode.scnotfound, 'no such user'))
     const e = await rejection(dialog.done)
     expect(e).toBeInstanceOf(RPCError)
-    expect(e).toMatchObject({code: T.RPCGen.StatusCode.scnotfound, desc: 'no such user'})
+    expect(e).toMatchObject({code: T.RPCGen.StatusCode.scnotfound, desc: 'no such user', kind: {type: 'service'}})
+    uninstallFakeEngine()
+  })
+})
+
+// The service fails an RPC with the refusal it read on one of its prompts. The session knows what it
+// wrote, so that echo is the client's own cancel; any other cancel code is the service's.
+describe('a reply that echoes a refusal the client wrote', () => {
+  const rpc = 'keybase.1.login.recoverPassphrase'
+  const choose = 'keybase.1.loginUi.chooseDeviceToRecoverWith'
+  const waitingKey = testWaitingKey('error-kind-test')
+  const inputCanceled = {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'}
+  const keyError = (fake: FakeEngine) => {
+    fake.engine._throttledDispatchWaitingAction.flush()
+    return useWaitingState.getState().errors.get(waitingKey)
+  }
+
+  const openRecover = async () => {
+    const fake = installFakeEngine()
+    const held = fake.hold(rpc)
+    const dialog = openDialog(rpc, {username: 'testuser'}, {prompts: [choose], waitingKey})
+    await tick()
+    const sessionID = fake.calls[0]!.params.sessionID as number
+    const pushed = fake.push(choose, {devices: []}, {sessionID})
+    await afterTimers()
+    const prompt = dialog.openPrompt(choose)
+    expect(prompt).toBeDefined()
+    return {cancel: () => prompt?.cancel(), dialog, fake, held, pushed}
+  }
+
+  test('a cancelled prompt: cancelled by the caller, and nothing recorded on the key', async () => {
+    const {cancel, dialog, fake, held, pushed} = await openRecover()
+    expect(cancel()).toBe(true)
+    expect(await pushed).toEqual({error: inputCanceled})
+    held[0]!.reply(fakeError(inputCanceled.code, inputCanceled.desc))
+    expect(kindOf(await rejection(dialog.done))).toEqual(byCaller)
+    expect(keyError(fake)).toBeUndefined()
+    uninstallFakeEngine()
+  })
+
+  test('the same code and desc with no refusal written: cancelled by the service, and recorded', async () => {
+    const {dialog, fake, held} = await openRecover()
+    held[0]!.reply(fakeError(inputCanceled.code, inputCanceled.desc))
+    expect(kindOf(await rejection(dialog.done))).toEqual(byService)
+    expect(keyError(fake)).toMatchObject(inputCanceled)
+    uninstallFakeEngine()
+  })
+
+  test('a reply that differs from the refusal in its desc is not ours', async () => {
+    const {cancel, dialog, held} = await openRecover()
+    expect(cancel()).toBe(true)
+    held[0]!.reply(fakeError(inputCanceled.code, 'Input canceled due to skip secret prompt'))
+    expect(kindOf(await rejection(dialog.done))).toEqual(byService)
+    uninstallFakeEngine()
+  })
+
+  test('a reply that differs from the refusal in its code is not ours', async () => {
+    const {cancel, dialog, held} = await openRecover()
+    expect(cancel()).toBe(true)
+    held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, inputCanceled.desc))
+    expect(kindOf(await rejection(dialog.done))).toEqual({type: 'service'})
+    uninstallFakeEngine()
+  })
+
+  test("a handler that throws refuses its prompt, and the echo is the caller's cancel", async () => {
+    jest.spyOn(logger, 'error').mockImplementation(() => {})
+    const fake = installFakeEngine()
+    const held = fake.hold(rpc)
+    const p = T.RPCGen.loginRecoverPassphraseRpcListener({
+      customResponseIncomingCallMap: {
+        [choose]: () => {
+          throw new Error('handler broke')
+        },
+      },
+      incomingCallMap: {},
+      params: {username: 'testuser'},
+    })
+    await tick()
+    const sessionID = fake.calls[0]!.params.sessionID as number
+    const pushed = fake.push(choose, {devices: []}, {sessionID})
+    await afterTimers()
+    expect(await pushed).toEqual({error: inputCanceled})
+    held[0]!.reply(fakeError(inputCanceled.code, inputCanceled.desc))
+    expect(kindOf(await rejection(p))).toEqual(byCaller)
     uninstallFakeEngine()
   })
 })
@@ -161,23 +262,23 @@ describe('known bugs', () => {
     uninstallFakeEngine()
   })
 
-  test.failing('K2: a client cancel and an account-switch cancel are told apart', async () => {
+  test('K2: a client cancel and an account-switch cancel are told apart', async () => {
     const fake = installFakeEngine()
     const {cancel, p} = recoverListener(fake)
     fake.hold('keybase.1.user.loadMySettings')
     await tick()
     cancel()
-    const byCaller = await rejection(p)
+    const byCallerError = await rejection(p)
     useConfigState.getState().dispatch.setLoggedIn(true)
     const q = T.RPCGen.userLoadMySettingsRpcPromise()
     useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
     const bySwitch = await rejection(q)
-    expect(kindOf(byCaller)).toEqual({reason: 'caller', type: 'cancelled'})
-    expect(kindOf(bySwitch)).toEqual({reason: 'accountChange', type: 'cancelled'})
+    expect(kindOf(byCallerError)).toEqual(byCaller)
+    expect(kindOf(bySwitch)).toEqual(byAccountChange)
     uninstallFakeEngine()
   })
 
-  test.failing("K3: the service's assertion-parse error (code 101) is not read as a lost link", async () => {
+  test("K3: the service's assertion-parse error (code 101) is not read as a lost link", async () => {
     const fake = installFakeEngine()
     fake.answer('keybase.1.config.getBootstrapStatus', () =>
       fakeError(T.RPCGen.StatusCode.scassertionparseerror, 'bad assertion')
@@ -188,7 +289,7 @@ describe('known bugs', () => {
     uninstallFakeEngine()
   })
 
-  test.failing("K4: config login's own refusal leaves no error on its waiting key", async () => {
+  test("K4: config login's own refusal leaves no error on its waiting key", async () => {
     useDaemonState.setState(s => ({dispatch: {...s.dispatch, refreshSessionFromDaemon: () => {}}}))
     const fake = installFakeEngine()
     const held = fake.hold('keybase.1.login.login')

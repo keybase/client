@@ -151,7 +151,7 @@ class Engine implements CallPort {
   // When the transport died the service has forgotten every in-flight RPC, so held prompts are
   // dropped without an answer; otherwise the link is alive and they are refused. Dangling sessions
   // are never cancelled, but a lost link still drops what they hold.
-  _cancelOutstandingSessions(why: 'lostLink' | 'client') {
+  _cancelOutstandingSessions(why: 'lostLink' | 'accountChange') {
     for (const session of [...this._sessionsMap.values()]) {
       if (session.getDangling()) {
         if (why === 'lostLink') {
@@ -161,7 +161,7 @@ class Engine implements CallPort {
         if (why === 'lostLink') {
           session.cancelForLostLink()
         } else {
-          session.cancel()
+          session.cancel('accountChange')
         }
       }
     }
@@ -414,14 +414,16 @@ class Engine implements CallPort {
     return this._sessionsMap.get(sessionID)?.holdServerWork() ?? (() => {})
   }
 
-  // Client-side cancel of one outstanding session: rejects its start callback (sccanceled). The
-  // service is not told; until its RPC replies, the session refuses whatever it still sends.
+  // Client-side cancel of one outstanding session: rejects its start callback (sccanceled, cancelled by
+  // the caller). The service is not told; until its RPC replies, the session refuses whatever it still
+  // sends.
   cancelSession(sessionID: number) {
-    this._sessionsMap.get(sessionID)?.cancel()
+    this._sessionsMap.get(sessionID)?.cancel('caller')
   }
 
+  // An account switch: every session of the old account rejects cancelled by the account change
   cancelOutstandingSessions() {
-    this._cancelOutstandingSessions('client')
+    this._cancelOutstandingSessions('accountChange')
   }
 
   // Reset the engine

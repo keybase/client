@@ -79,7 +79,7 @@ test('disconnectCallback throwing does not prevent connectCallback from running 
     // The isolation fix: disconnectCallback throwing must not skip connectCallback,
     // or the UI is stranded on the disconnect banner forever.
     expect(connectCallback).toHaveBeenCalledTimes(1)
-    expect(duringDown).toHaveBeenCalledWith({code: errors.EOF, desc: 'The service connection was lost', name: 'EOF'}, {})
+    expect(duringDown).toHaveBeenCalledWith({code: errors.EOF, desc: 'The service connection was lost', kind: {reason: 'disconnect', type: 'cancelled'}, name: 'EOF'}, {})
     expect(sent.map(m => m[2])).toEqual(['keybase.1.test.hello'])
   } finally {
     teardownMobileMocks(originalIsMobile, originalRpcOnGo, originalRpcOnJs)
@@ -128,7 +128,7 @@ test('outstanding invocations survive everything except kb-engine-reset', () => 
 
     capturedMetaCb('kb-engine-reset')
     expect(cb).toHaveBeenCalledTimes(1)
-    expect(cb).toHaveBeenCalledWith({code: errors.EOF, desc: 'The service connection was lost', name: 'EOF'}, {})
+    expect(cb).toHaveBeenCalledWith({code: errors.EOF, desc: 'The service connection was lost', kind: {reason: 'disconnect', type: 'cancelled'}, name: 'EOF'}, {})
 
     // Each reset fails only what was in flight on the link it ended, and calls go out on the new link
     const sent = new Array<unknown>()

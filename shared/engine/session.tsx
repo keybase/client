@@ -6,7 +6,7 @@ import {
 import {mustAnswerMethods} from '@/constants/rpc'
 import {printRPC} from '@/local-debug'
 import {rpcLog, type InvokeType} from './index.platform'
-import {convertToError, RPCError} from '@/util/errors'
+import {convertToError, RPCError, type CancelReason} from '@/util/errors'
 import {makeDisconnectError} from './rpc-transport'
 import {makeWaitingTracker, type WaitingTracker} from './waiting-tracker'
 import {getAccountGeneration, survivesAccountChange} from './account-generation'
@@ -36,6 +36,13 @@ type HeldResponse = {
 
 // A custom handler the listener runs later says so, and calls what this returns once it has run
 export type DeferRun = () => () => void
+
+type ClientCancel = Extract<CancelReason, 'caller' | 'accountChange'>
+
+const refusalKey = (error: unknown) => {
+  const {code, desc} = (error ?? {}) as {code?: unknown; desc?: unknown}
+  return typeof code === 'number' && typeof desc === 'string' ? `${code}:${desc}` : undefined
+}
 
 // A session is a series of calls back and forth tied together with a single sessionID
 class Session {
@@ -69,6 +76,9 @@ class Session {
   _startCallback: ((err?: RPCError, ...args: Array<unknown>) => void) | undefined
   // The account generation the session started in; undefined until start
   _accountGeneration: number | undefined
+  // Every error the client wrote on this session's prompts, by code and desc. The service usually fails
+  // the RPC with the refusal it read, which is then the client's own cancel, not the service's error.
+  _refusals = new Set<string>()
 
   // Allow us to make calls
   _invoke: InvokeType
@@ -131,9 +141,10 @@ class Session {
     return this._tracker?.holdServerWork() ?? (() => {})
   }
 
-  // Client-side cancel. The link is alive, so held prompts are refused and the service stops waiting.
-  cancel() {
-    this._cancel('refuse')
+  // Client-side cancel, by the caller or by an account change. The link is alive, so held prompts are
+  // refused and the service stops waiting.
+  cancel(reason: ClientCancel) {
+    this._cancel('refuse', reason)
   }
 
   // The link died or is being replaced: a held prompt's answer must not reach the next connection.
@@ -164,7 +175,7 @@ class Session {
     }
   }
 
-  _cancel(heldPrompts: 'refuse' | 'forget') {
+  _cancel(heldPrompts: 'refuse' | 'forget', reason: ClientCancel = 'caller') {
     if (this._refusing) {
       // Already cancelled; only a lost link ends the refusal early, since the reply can't come now
       if (heldPrompts === 'forget') {
@@ -179,12 +190,18 @@ class Session {
     // Before the held prompts, whose releases would otherwise show it waiting on the service again
     this._tracker?.settle(lostLink)
     for (const held of [...this._held]) {
-      this._settle(held, heldPrompts === 'refuse' ? () => held.response.error?.(inputCanceledError) : undefined)
+      this._settle(held, heldPrompts === 'refuse' ? () => this._refuse(held.response, inputCanceledError) : undefined)
     }
     if (this._startCallback) {
       const callback = this._startCallback
       this._startCallback = undefined
-      callback(lostLink ?? new RPCError('Received RPC cancel for session', StatusCode.sccanceled))
+      callback(
+        lostLink ??
+          new RPCError('Received RPC cancel for session', StatusCode.sccanceled, null, undefined, undefined, {
+            reason,
+            type: 'cancelled',
+          })
+      )
     }
 
     // The service may still call us on this session before it replies, and a late prompt that
@@ -194,6 +211,26 @@ class Session {
     } else {
       this.end()
     }
+  }
+
+  // Writes an error on one of the service's calls, and remembers it so its echo in the reply is known
+  _refuse(response: ResponseType | undefined, error: unknown) {
+    const key = refusalKey(error)
+    if (key) {
+      this._refusals.add(key)
+    }
+    response?.error?.(error)
+  }
+
+  // The reply's error, as the client's own cancel when it is the echo of a refusal written here
+  _attributed(err: unknown) {
+    if (err instanceof RPCError && this._refusals.has(refusalKey(err) ?? '')) {
+      return new RPCError(err.desc, err.code, err.fields, err.name, this._startMethod, {
+        reason: 'caller',
+        type: 'cancelled',
+      })
+    }
+    return err
   }
 
   // Settles a held response once, writing `write` if given; false if it was already settled
@@ -263,12 +300,18 @@ class Session {
       }
       if (this._belongsToPreviousAccount()) {
         tracker.settle()
-        wrappedCallback(new RPCError('The account changed during this call', StatusCode.sccanceled))
+        wrappedCallback(
+          new RPCError('The account changed during this call', StatusCode.sccanceled, null, undefined, undefined, {
+            reason: 'accountChange',
+            type: 'cancelled',
+          })
+        )
         return
       }
+      const error = this._attributed(err)
       // Only the service's errors belong on the key, not a local failure like a queue overflow
-      tracker.settle(err instanceof RPCError ? err : undefined)
-      wrappedCallback(err as RPCError | undefined, data)
+      tracker.settle(error instanceof RPCError ? error : undefined)
+      wrappedCallback(error as RPCError | undefined, data)
     })
   }
 
@@ -296,7 +339,7 @@ class Session {
 
     if (this._refusing) {
       if (custom || mustAnswerMethods.has(method)) {
-        response?.error?.(inputCanceledError)
+        this._refuse(response, inputCanceledError)
       } else {
         response?.result?.()
       }
@@ -308,7 +351,7 @@ class Session {
     }
 
     if (this._belongsToPreviousAccount()) {
-      response?.error?.({code: StatusCode.sccanceled, desc: 'The account changed during this call'})
+      this._refuse(response, {code: StatusCode.sccanceled, desc: 'The account changed during this call'})
       return true
     }
 
@@ -316,7 +359,7 @@ class Session {
       // The generated types keep these out of the plain map; an empty ack would read as a real answer
       if (mustAnswerMethods.has(method)) {
         logger.error(`Session: ${method} needs an answer but is in the incomingCallMap`)
-        response?.error?.({code: StatusCode.scinputcanceled, desc: `No handler for ${method}`})
+        this._refuse(response, {code: StatusCode.scinputcanceled, desc: `No handler for ${method}`})
         return true
       }
       // Nothing to answer, so ack it here: the service is not parked on the GUI
@@ -339,7 +382,7 @@ class Session {
       }
     }
     const request: ResponseType = {
-      error: (...args: Array<unknown>) => answer(() => held.response.error?.(...args)),
+      error: (error?: unknown) => answer(() => this._refuse(held.response, error)),
       result: (...args: Array<unknown>) => answer(() => held.response.result?.(...args)),
       get settled() {
         return held.settled

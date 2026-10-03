@@ -12,7 +12,7 @@ import {testWaitingKey} from './waiting-key'
 afterEach(() => resetAllStores())
 
 // Starts a recoverPassphrase listener whose session the service can push prompts into.
-const linkLost = {code: errors.EOF, desc: 'The service connection was lost', name: 'EOF'}
+const linkLost = {code: errors.EOF, desc: 'The service connection was lost', kind: {reason: 'disconnect', type: 'cancelled'}, name: 'EOF'}
 
 const startRecover = async (
   fake: FakeEngine,

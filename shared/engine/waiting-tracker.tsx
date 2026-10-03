@@ -1,7 +1,7 @@
 // What one RPC shows on its waiting key. The service owes the GUI an answer (waiting) until it hands
 // the GUI a prompt; while any prompt is held the GUI owes the service, so the key stops waiting unless
 // the flow says the service is still working. Settled once, by whatever ends the RPC.
-import type {RPCError} from '@/util/errors'
+import {isCancelled, type RPCError} from '@/util/errors'
 import {releaseOnce} from '@/util/release-once'
 import type {WaitingChange, WaitingKeys} from './types'
 
@@ -11,7 +11,7 @@ export type WaitingTracker = {
   // The service works while a prompt is held; the release runs once, and settling ends it too
   holdServerWork: () => () => void
   // Ends the RPC. Only the first call does anything; it returns whether it was that one. An error is
-  // recorded on the key even if it was not waiting.
+  // recorded on the key even if it was not waiting, unless the client cancelled the call itself.
   settle: (error?: RPCError) => boolean
 }
 
@@ -62,10 +62,12 @@ export const makeWaitingTracker = (
         return false
       }
       settled = true
+      // The client's own cancels are not failures to show
+      const recorded = isCancelled(error, 'caller', 'accountChange') ? undefined : error
       if (waiting) {
-        show(false, error)
-      } else if (error && key) {
-        emit({error, key})
+        show(false, recorded)
+      } else if (recorded && key) {
+        emit({error: recorded, key})
       }
       return true
     },

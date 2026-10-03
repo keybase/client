@@ -260,7 +260,12 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
     // Refuses the prompts closed above once it has stopped the RPC waiting, so refusing them does not
     // show the RPC waiting on the service again on its way out
     cancelSession()
-    rejectDone(new RPCError('Dialog disposed', StatusCode.sccanceled))
+    rejectDone(
+      new RPCError('Dialog disposed', StatusCode.sccanceled, null, undefined, undefined, {
+        reason: 'caller',
+        type: 'cancelled',
+      })
+    )
     // Whoever disposed has stopped listening and may never await done; any other rejection is
     // left unhandled so a flow that forgot to await it is reported
     done.catch(() => {})

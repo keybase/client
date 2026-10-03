@@ -98,7 +98,7 @@ test('invoke queues while disconnected and flushes on connect', () => {
   expect(cb).toHaveBeenCalledWith(null, {done: true})
 })
 
-const disconnectError = {code: errors.EOF, desc: 'The service connection was lost', name: 'EOF'}
+const disconnectError = {code: errors.EOF, desc: 'The service connection was lost', kind: {reason: 'disconnect', type: 'cancelled'}, name: 'EOF'}
 
 test('a link drop fails outstanding invocations with the disconnect error', () => {
   const transport = new TestTransport()
@@ -186,7 +186,7 @@ test('invoke fails the caller when the native write throws', () => {
   // The raw exception is wrapped into the transport error shape (code/desc)
   // so convertToError produces an RPCError; the message survives in desc.
   expect(cb).toHaveBeenCalledWith(
-    expect.objectContaining({code: errors.EOF, desc: writeError.message}),
+    expect.objectContaining({code: errors.EOF, desc: writeError.message, kind: {reason: 'disconnect', type: 'cancelled'}}),
     {}
   )
 })

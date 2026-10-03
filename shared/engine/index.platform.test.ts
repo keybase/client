@@ -36,7 +36,7 @@ const makeRendererClient = (opts?: {noEngineSend?: boolean; incoming?: IncomingR
 }
 const up = (epoch: number): EngineLinkFrame => ({epoch, type: 'link', up: true})
 const down = (epoch: number): EngineLinkFrame => ({epoch, type: 'link', up: false})
-const disconnectError = {code: rpcErrors.EOF, desc: 'The service connection was lost', name: 'EOF'}
+const disconnectError = {code: rpcErrors.EOF, desc: 'The service connection was lost', kind: {reason: 'disconnect', type: 'cancelled'}, name: 'EOF'}
 
 afterEach(() => {
   const {functions} = getPreload()
