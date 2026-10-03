@@ -27,10 +27,7 @@ import {shallowEqual} from './utils'
 import type {NavigateAppendType, RouteKeys, RootParamList} from '@/router-v2/route-params'
 
 type ContainerRef = NavigationContainerRef<RootParamList>
-export type NavAction = Exclude<Parameters<ContainerRef['dispatch']>[0], (...args: never) => unknown>
-// Builds the action from the root state as it is when the action is handled, so a navigation
-// dispatched just before and not yet committed is seen
-export type NavThunk = (root: NavTree.NavState | undefined) => NavAction
+export type NavAction = Parameters<ContainerRef['dispatch']>[0]
 
 // What an adapter has to provide. Deliberately the smallest surface that the
 // operations below need, so a fake is a handful of lines rather than a mock of
@@ -38,7 +35,7 @@ export type NavThunk = (root: NavTree.NavState | undefined) => NavAction
 export type NavigatorRef = {
   isReady: () => boolean
   getRootState: () => NavTree.NavState | undefined
-  dispatch: (action: NavAction | NavThunk) => void
+  dispatch: (action: NavAction) => void
   addListener: (type: 'state', cb: () => void) => () => void
 }
 
@@ -72,11 +69,6 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
   // Merges params into the route with this key, in place and without a transition. Returns
   // whether it dispatched.
   setRouteParams: (routeKey: string | undefined, params: object) => boolean
-  // Takes the place of the top route of the stack that holds `path` (the root stack for a modal),
-  // or is pushed when that route is the stack's bottom one (a root, a tab root, the login screen),
-  // so that going back from it leaves something to go back to. pathFor picks the screen from the
-  // root state; both are decided when the action is handled, after anything dispatched before it.
-  replaceTopOrPush: (pathFor: (root: NavTree.NavState | undefined) => NavigateAppendType) => void
   // Runs cb once no modal route is up: now, or at the state commit that removes the last one
   // within modalsWaitMs. One wait at a time: a new one drops the one before it. Returns a cancel.
   whenModalsGone: (cb: () => void) => () => void
@@ -362,19 +354,6 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     return true
   }
 
-  const replaceTopOrPush = (pathFor: (root: NavTree.NavState | undefined) => NavigateAppendType) => {
-    if (DEBUG_NAV) {
-      console.log('[Nav] replaceTopOrPush')
-    }
-    if (!ref.isReady()) return
-    ref.dispatch(root => {
-      const {name, params} = pathFor(root) as {name: string; params?: object}
-      const stack = NavTree.isModalRouteName(name) ? root : NavTree.activeStack(root)
-      const action = stack?.index ? StackActions.replace(name, params) : StackActions.push(name, params)
-      return stack?.key ? {...action, target: stack.key} : action
-    })
-  }
-
   let cancelModalsWait: (() => void) | undefined
   const whenModalsGone = (cb: () => void) => {
     cancelModalsWait?.()
@@ -410,7 +389,6 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     navigateAppendOnceRootHas,
     navigateUp,
     popStack,
-    replaceTopOrPush,
     setChatRootParams,
     setRouteParams,
     showAboveTabs,
@@ -431,11 +409,7 @@ const containerRefAdapter: NavigatorRef = {
   addListener: (type, cb) => (navigationRef.isReady() ? navigationRef.addListener(type, cb) : () => {}),
   dispatch: action => {
     if (navigationRef.isReady()) {
-      // React Navigation calls a thunk as it handles the action, with the focused navigator's state;
-      // ours reads the root's then
-      navigationRef.dispatch(
-        typeof action === 'function' ? () => action(navigationRef.getRootState() as NavTree.NavState) : action
-      )
+      navigationRef.dispatch(action)
     }
   },
   getRootState: () => (navigationRef.isReady() ? navigationRef.getRootState() : undefined),

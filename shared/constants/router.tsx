@@ -184,9 +184,6 @@ export function navigateAppend(path: NavigateAppendType, replace?: boolean): boo
   return getNavigator().navigateAppend(path, replace)
 }
 
-export const replaceTopOrPush = (pathFor: (root: NavState | undefined) => NavigateAppendType) => {
-  getNavigator().replaceTopOrPush(pathFor)
-}
 export const navigateAppendOnceRootHas = (
   rootRouteName: string,
   path: NavigateAppendType,

@@ -260,107 +260,69 @@ describe('completion', () => {
     await settle()
   }
 
-  const errorModal = 'recoverPasswordErrorModal'
-  const loggedInModals = [errorModal, 'recoverPasswordPgpWarning', 'recoverPasswordSetPassword', openModal]
-  // The logged-out root with these screens pushed over login
-  const loggedOutWith = (names: ReadonlyArray<string>, commit?: 'manual') => {
-    nav = installFakeNavigator({commit, rootState: makeRootState({loggedIn: false})})
-    for (const name of names) {
-      nav.navigateAppend({name, params: {}} as never)
-      nav.commit()
-    }
-    nav.clearActions()
-  }
-  const loggedInWith = (above: ReadonlyArray<string>) => {
-    nav = installFakeNavigator({
-      modalRouteNames: loggedInModals,
-      rootState: makeRootState({above: above.map(name => ({name, params: {}}))}),
+  test('a failure while logged out takes the place of the run\'s screen, and Back returns to login', async () => {
+    nav = installFakeNavigator({rootState: makeRootState({loggedIn: false})})
+    const {held, sessionID} = await start()
+    await pushDevices(sessionID)
+    expect(screens()).toEqual(['login', 'recoverPasswordDeviceSelector'])
+    await failWith(held)
+
+    expect(nav.navigations().at(-1)).toEqual({
+      name: 'recoverPasswordError',
+      params: {error: expect.stringContaining('bad things')},
+      replace: true,
     })
-  }
-  const errorAt = (name: string, replace: boolean) => [
-    {name, params: {error: expect.stringContaining('bad things')}, replace},
-  ]
-
-  test.each([
-    'password',
-    'recoverPasswordDeviceSelector',
-    'recoverPasswordExplainDevice',
-    'recoverPasswordPaperKey',
-    'recoverPasswordPromptResetAccount',
-    'recoverPasswordPromptResetPassword',
-    'recoverPasswordError',
-  ])('a failure while logged out takes the place of %s on top, and Back returns to login', async name => {
-    loggedOutWith([name])
-    const {held} = await start()
-    await failWith(held)
-
-    expect(nav.navigations()).toEqual(errorAt('recoverPasswordError', true))
     expect(screens()).toEqual(['login', 'recoverPasswordError'])
     nav.popStack()
     expect(screens()).toEqual(['login'])
   })
 
-  test.each(['recoverPasswordSetPassword', 'recoverPasswordPgpWarning', errorModal, openModal])(
-    'a failure while logged in takes the place of %s on top, and Back returns to the app',
-    async name => {
-      loggedInWith([name])
-      const {held} = await start()
-      await failWith(held)
-
-      expect(nav.navigations()).toEqual(errorAt(errorModal, true))
-      expect(screens()).toEqual(['loggedIn', errorModal])
-      nav.navigateUp()
-      expect(screens()).toEqual(['loggedIn'])
-    }
-  )
-
-  test('a failure while logged out with only login goes over it, and Back returns to login', async () => {
-    loggedOutWith([])
+  test('a failure while logged out before any of the run\'s screens goes over login', async () => {
+    nav = installFakeNavigator({rootState: makeRootState({loggedIn: false})})
     const {held} = await start()
     await failWith(held)
 
-    expect(nav.navigations()).toEqual(errorAt('recoverPasswordError', false))
     expect(screens()).toEqual(['login', 'recoverPasswordError'])
     nav.popStack()
     expect(screens()).toEqual(['login'])
   })
 
-  test('a failure while logged in with nothing over the app goes over it, and Back returns to the app', async () => {
-    loggedInWith([])
-    const {held} = await start()
-    await failWith(held)
-
-    expect(nav.navigations()).toEqual(errorAt(errorModal, false))
-    expect(screens()).toEqual(['loggedIn', errorModal])
-    nav.navigateUp()
-    expect(screens()).toEqual(['loggedIn'])
-  })
-
-  test('a failure just after the paper key logged in, before the logged-in root mounts, goes on the logged-out root', async () => {
-    loggedOutWith(['recoverPasswordPaperKey'])
+  test('a failure while logged in with nothing over the app shows the error over it, and Back returns to the app', async () => {
+    nav = installFakeNavigator({modalRouteNames: ['recoverPasswordErrorModal'], rootState: makeRootState()})
     useConfigState.getState().dispatch.setLoggedIn(true)
     const {held} = await start()
     await failWith(held)
 
-    expect(nav.navigations()).toEqual(errorAt('recoverPasswordError', true))
-    expect(screens()).toEqual(['login', 'recoverPasswordError'])
+    expect(nav.navigations()).toEqual([
+      {name: 'recoverPasswordErrorModal', params: {error: expect.stringContaining('bad things')}, replace: false},
+    ])
+    expect(screens()).toEqual(['loggedIn', 'recoverPasswordErrorModal'])
+    nav.navigateUp()
+    expect(screens()).toEqual(['loggedIn'])
   })
 
-  test("a failure right after a run screen's push, before it commits, takes that screen's place", async () => {
-    loggedOutWith([], 'manual')
-    const {held, sessionID} = await start()
-    void fake.push(chooseDevice, {devices, username: 'testuser'}, {sessionID})
-    await settle()
+  test('a failure while logged in takes the place of the run\'s modal', async () => {
+    nav = installFakeNavigator({
+      modalRouteNames: ['recoverPasswordErrorModal', 'recoverPasswordSetPassword'],
+      rootState: makeRootState({above: [{name: 'recoverPasswordSetPassword', params: {promptId: 1}}]}),
+    })
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    const {held} = await start()
     await failWith(held)
-    expect(screens()).toEqual(['login'])
 
-    nav.commit()
+    expect(screens()).toEqual(['loggedIn', 'recoverPasswordErrorModal'])
+    nav.navigateUp()
+    expect(screens()).toEqual(['loggedIn'])
+  })
 
-    expect(nav.navigations().map(n => [n.name, n.replace])).toEqual([
-      ['recoverPasswordDeviceSelector', false],
-      ['recoverPasswordError', true],
+  test('a failure while logged in goes over a modal that is not the run\'s', async () => {
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    const {held} = await start()
+    await failWith(held)
+
+    expect(nav.navigations()).toEqual([
+      {name: 'recoverPasswordErrorModal', params: {error: expect.stringContaining('bad things')}, replace: false},
     ])
-    expect(screens()).toEqual(['login', 'recoverPasswordError'])
   })
 
   test('once the run is over its screens answer nothing', async () => {

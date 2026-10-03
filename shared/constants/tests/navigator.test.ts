@@ -9,7 +9,6 @@ import {
   navigateAppendOnceRootHas,
   navigateUp,
   popStack,
-  replaceTopOrPush,
   setChatRootParams,
   switchTab,
 } from '@/constants/router'
@@ -479,79 +478,6 @@ describe('navigateAppendOnceRootHas', () => {
 })
 
 // ---- the fake itself ----
-
-describe('replaceTopOrPush', () => {
-  const names = () => {
-    const root = nav.getRootState()
-    return {
-      root: root?.routes?.map(r => r.name),
-      stack: NavTree.activeStack(root)?.routes?.map(r => r.name),
-    }
-  }
-
-  test('a modal takes the place of the modal on top', () => {
-    nav = installFakeNavigator({modalRouteNames: ['m1', 'm2'], rootState: makeRootState({above: [{name: 'm1'}]})})
-
-    replaceTopOrPush(() => ({name: 'm2', params: {}}) as never)
-
-    expect(nav.actions).toEqual([expect.objectContaining({target: 'root', type: 'REPLACE'})])
-    expect(names().root).toEqual(['loggedIn', 'm2'])
-  })
-
-  test('a modal goes over the app, which is the root stack bottom', () => {
-    nav = installFakeNavigator({modalRouteNames: ['m2'], rootState: makeRootState()})
-
-    replaceTopOrPush(() => ({name: 'm2', params: {}}) as never)
-
-    expect(nav.actions).toEqual([expect.objectContaining({target: 'root', type: 'PUSH'})])
-    expect(names().root).toEqual(['loggedIn', 'm2'])
-  })
-
-  test.each([
-    ['over its root screen', [], 'PUSH', ['peopleRoot', 'screen']],
-    ['in place of the screen on top', ['other'], 'REPLACE', ['peopleRoot', 'screen']],
-  ])('a screen goes in the active stack %s', (_, pushed, type, stack) => {
-    nav = installFakeNavigator({
-      modalRouteNames: [],
-      rootState: makeRootState({
-        tab: Tabs.peopleTab,
-        tabStack: [{name: 'peopleRoot'}, ...pushed.map(name => ({name}))],
-      }),
-    })
-
-    replaceTopOrPush(() => ({name: 'screen', params: {}}) as never)
-
-    expect(nav.actions).toEqual([expect.objectContaining({target: `${Tabs.peopleTab}-stack`, type})])
-    expect(names().stack).toEqual(stack)
-  })
-
-  test('it is decided with the root as it is when handled, after a push not yet committed', () => {
-    nav = installFakeNavigator({commit: 'manual', modalRouteNames: ['m1', 'm2'], rootState: makeRootState()})
-    const seen: Array<unknown> = []
-
-    navigateAppend({name: 'm1', params: {}} as never)
-    replaceTopOrPush(root => {
-      seen.push(root?.routes?.map(r => r.name))
-      return {name: 'm2', params: {}} as never
-    })
-    expect(seen).toEqual([])
-    nav.commit()
-
-    expect(seen).toEqual([['loggedIn', 'm1']])
-    expect(nav.types()).toEqual(['PUSH', 'REPLACE'])
-    expect(names().root).toEqual(['loggedIn', 'm2'])
-  })
-
-  test('a not-ready navigator dispatches nothing', () => {
-    nav = installFakeNavigator({ready: false})
-    const pathFor = jest.fn()
-
-    replaceTopOrPush(pathFor)
-
-    expect(pathFor).not.toHaveBeenCalled()
-    expect(nav.actions).toEqual([])
-  })
-})
 
 describe('fake navigator', () => {
   test('a push lands in the tree, so the next navigation sees it', () => {
