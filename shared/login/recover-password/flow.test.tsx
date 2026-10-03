@@ -6,7 +6,7 @@ import logger from '@/logger'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {tick} from '@/test/flush'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
-import {navigateAppend, type NavState, type Route as NavRoute} from '@/constants/router'
+import {navigateAppend} from '@/constants/router'
 
 const mockCancelProvision = jest.fn()
 jest.mock('@/provision/flow', () => ({
@@ -74,9 +74,10 @@ const restart = async () => {
 // What a run's screen does once mounted: registers its route with the run that showed it. The last
 // route of that name.
 const mount = (name: string) => {
-  const find = (s?: NavState): NavRoute | undefined =>
-    (s?.routes ?? []).reduce<NavRoute | undefined>((found, r) => find(r.state) ?? (r.name === name ? r : found), undefined)
-  const route = find(nav.getRootState())!
+  type R = {key?: string; name: string; params?: object; state?: {routes?: ReadonlyArray<R>}}
+  const find = (routes: ReadonlyArray<R> = []): R | undefined =>
+    routes.reduce<R | undefined>((found, r) => find(r.state?.routes) ?? (r.name === name ? r : found), undefined)
+  const route = find(nav.getRootState()?.routes as ReadonlyArray<R> | undefined)!
   const {promptId, runId} = (route.params ?? {}) as {promptId?: number; runId?: number}
   registerRecoverPasswordScreen(route.key!, promptId !== undefined ? {promptId} : {runId: runId!})
 }
