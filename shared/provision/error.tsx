@@ -240,14 +240,6 @@ const RenderError = ({route}: Props) => {
           </Kb.Box2>
         </Wrapper>
       )
-    case T.RPCGen.StatusCode.scinputcanceled:
-      return (
-        <Wrapper onBack={onBack}>
-          <Kb.Text center={true} type="Body">
-            Login cancelled.
-          </Kb.Text>
-        </Wrapper>
-      )
     case T.RPCGen.StatusCode.sckeycorrupted:
       return (
         <Wrapper onBack={onBack}>
