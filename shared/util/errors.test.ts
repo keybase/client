@@ -1,6 +1,6 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
-import {convertToError, ensureError, errorKind, isCancelled, RPCError} from './errors'
+import {convertToError, ensureError, errorKind, isCancelled, isCancelledNotLostLink, RPCError} from './errors'
 
 const S = T.RPCGen.StatusCode
 
@@ -8,10 +8,8 @@ describe("an error the service sent reads by its code", () => {
   test.each([
     ['sccanceled', S.sccanceled, {reason: 'service', type: 'cancelled'}],
     ['scinputcanceled', S.scinputcanceled, {reason: 'service', type: 'cancelled'}],
-    ['scloginrequired', S.scloginrequired, {type: 'loginRequired'}],
-    ['scgenericapierror', S.scgenericapierror, {type: 'network'}],
-    ['scapinetworkerror', S.scapinetworkerror, {type: 'network'}],
-    ['sctimeout', S.sctimeout, {type: 'network'}],
+    ['scloginrequired', S.scloginrequired, {type: 'service'}],
+    ['sctimeout', S.sctimeout, {type: 'service'}],
     ['scassertionparseerror (101, the EOF code)', S.scassertionparseerror, {type: 'service'}],
     ['scgeneric', S.scgeneric, {type: 'service'}],
     ['scnotfound', S.scnotfound, {type: 'service'}],
@@ -48,4 +46,18 @@ test('isCancelled matches any reason, or only the ones named', () => {
   expect(isCancelled(byCaller, 'caller')).toBe(true)
   expect(isCancelled(byCaller, 'accountChange', 'disconnect')).toBe(false)
   expect(isCancelled(new RPCError('x', S.scgeneric))).toBe(false)
+})
+
+test.each([
+  ['caller', true],
+  ['accountChange', true],
+  ['service', true],
+  ['disconnect', false],
+] as const)('isCancelledNotLostLink: cancelled by %s -> %s', (reason, expected) => {
+  const e = new RPCError('x', S.sccanceled, null, undefined, undefined, {reason, type: 'cancelled'})
+  expect(isCancelledNotLostLink(e)).toBe(expected)
+})
+
+test('isCancelledNotLostLink: a service error is not a cancel', () => {
+  expect(isCancelledNotLostLink(new RPCError('x', S.scgeneric))).toBe(false)
 })

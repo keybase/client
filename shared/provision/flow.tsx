@@ -10,7 +10,7 @@ import {openDialog, type Dialog, type DialogEvent, type Prompt} from '@/engine/d
 import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
-import {isCancelled, RPCError} from '@/util/errors'
+import {isCancelledNotLostLink, RPCError} from '@/util/errors'
 
 // The steps the user has already answered, replayed in order when the login RPC restarts.
 type Step =
@@ -438,7 +438,7 @@ const runProvision = (username: string) => {
           const finalError = _finalError
           // A cancel ends the run quietly: ours (a logout, an account switch) or the service's. A lost
           // link is an error.
-          if (isCancelled(finalError, 'caller', 'accountChange', 'service')) {
+          if (isCancelledNotLostLink(finalError)) {
             break
           }
           // If it's a non-existent username or invalid, allow the opportunity to correct it right

@@ -5,7 +5,7 @@ import * as React from 'react'
 import {ignorePromise} from '@/constants/utils'
 import {produce} from 'immer'
 import {registerRouteGone, useRouteKey} from '@/router-v2/route-gone'
-import {isCancelled, RPCError} from '@/util/errors'
+import {isCancelledNotLostLink, RPCError} from '@/util/errors'
 import {openDialog, type Dialog} from '@/engine/dialog'
 import Modal from '@/profile/modal'
 import * as Validators from '@/util/simple-validators'
@@ -86,7 +86,7 @@ export const generatePgp = (args: GeneratePgpArgs, onFinished: (next: FinishedSt
         return
       }
       // A cancel, ours or the service's, ends the run quietly; a lost link is an error
-      if (!isCancelled(error, 'caller', 'accountChange', 'service')) {
+      if (!isCancelledNotLostLink(error)) {
         throw error
       }
     }

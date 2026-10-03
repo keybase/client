@@ -14,7 +14,7 @@ import {startAccountReset} from '@/login/reset/account-reset'
 import {useConfigState} from '@/stores/config'
 import {cancelProvision} from '@/provision/flow'
 import {rpcDeviceToDevice} from '@/constants/rpc-utils'
-import {isCancelled, RPCError} from '@/util/errors'
+import {isCancelledNotLostLink, RPCError} from '@/util/errors'
 
 type StartRecoverPasswordParams = {
   abortProvisioning?: boolean
@@ -289,7 +289,7 @@ export const startRecoverPassword = ({
       hadError = true
       logger.warn('RPC returned error: ' + error.message)
       // A lost link is an error; any other cancel is not the user's
-      if (!isCancelled(error, 'caller', 'accountChange', 'service')) {
+      if (!isCancelledNotLostLink(error)) {
         navigateAppend(
           {
             name: useConfigState.getState().loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError',

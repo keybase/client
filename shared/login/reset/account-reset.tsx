@@ -5,7 +5,7 @@ import {ignorePromise} from '@/constants/utils'
 import {openDialog, type Dialog} from '@/engine/dialog'
 import logger from '@/logger'
 import {startProvision} from '@/provision/flow'
-import {isCancelled, RPCError} from '@/util/errors'
+import {isCancelledNotLostLink, RPCError} from '@/util/errors'
 
 type EnterResetPipelineParams = {
   onError?: (error: string) => void
@@ -79,7 +79,7 @@ export const enterResetPipeline = ({onError, password = '', username}: EnterRese
       if (
         dialog.disposed ||
         !(error instanceof RPCError) ||
-        isCancelled(error, 'caller', 'accountChange', 'service')
+        isCancelledNotLostLink(error)
       ) {
         return
       }

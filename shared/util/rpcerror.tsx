@@ -7,30 +7,15 @@ export type CancelReason = 'caller' | 'accountChange' | 'disconnect' | 'service'
 // error the service sent reads by its code.
 export type RPCErrorKind =
   | {readonly type: 'cancelled'; readonly reason: CancelReason}
-  | {readonly type: 'loginRequired'}
-  | {readonly type: 'network'}
   | {readonly type: 'service'}
 
-export const networkErrorCodes: ReadonlyArray<number> = [
-  StatusCode.scgenericapierror,
-  StatusCode.scapinetworkerror,
-  StatusCode.sctimeout,
-]
-
 const cancelCodes: ReadonlyArray<number> = [StatusCode.sccanceled, StatusCode.scinputcanceled]
-const loginRequiredCode: number = StatusCode.scloginrequired
 
 // An error the service sent. A cancel code here is the service's own unless the session finds it is
 // the echo of a refusal the client wrote (see Session).
 export const classifyCode = (code: number): RPCErrorKind => {
   if (cancelCodes.includes(code)) {
     return {reason: 'service', type: 'cancelled'}
-  }
-  if (code === loginRequiredCode) {
-    return {type: 'loginRequired'}
-  }
-  if (networkErrorCodes.includes(code)) {
-    return {type: 'network'}
   }
   return {type: 'service'}
 }

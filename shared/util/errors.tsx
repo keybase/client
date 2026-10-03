@@ -1,7 +1,7 @@
 import logger from '@/logger'
 import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
-import RPCError, {networkErrorCodes, type CancelReason, type RPCErrorKind} from './rpcerror'
+import RPCError, {type CancelReason, type RPCErrorKind} from './rpcerror'
 
 function isRPCErrorLike(err: object): err is RPCErrorLike {
   return Object.hasOwn(err, 'desc') && Object.hasOwn(err, 'code')
@@ -83,6 +83,11 @@ export const isCancelled = (error: unknown, ...reasons: ReadonlyArray<CancelReas
   return kind?.type === 'cancelled' && (reasons.length === 0 || reasons.includes(kind.reason))
 }
 
+// Cancelled by the user, an account change or the service, which a flow ends quietly on. A lost link
+// is not one of them: the flow did not finish, and nothing reloads it.
+export const isCancelledNotLostLink = (error: unknown) =>
+  isCancelled(error, 'caller', 'accountChange', 'service')
+
 export function logError(error: unknown) {
   logger.info(`logError: ${JSON.stringify(error)}`)
 }
@@ -149,5 +154,11 @@ export function isErrorTransient(error: RPCError | Error) {
 
 export {RPCError}
 export type {CancelReason, RPCErrorKind}
+
+const networkErrorCodes: ReadonlyArray<number> = [
+  T.RPCGen.StatusCode.scgenericapierror,
+  T.RPCGen.StatusCode.scapinetworkerror,
+  T.RPCGen.StatusCode.sctimeout,
+]
 
 export const isNetworkErr = (code: number) => networkErrorCodes.includes(code)
