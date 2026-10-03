@@ -1,9 +1,9 @@
 /// <reference types="jest" />
 import logger from '@/logger'
 import {navigateAppendOnceRootHas, navigationRef} from '@/constants/router'
+import {useRouterState} from '@/stores/router'
 
 const dispatch = jest.fn()
-const listeners = new Set<() => void>()
 let rootState: unknown
 
 const loggedIn = {key: 'loggedIn-1', name: 'loggedIn'}
@@ -16,25 +16,21 @@ const loggedOut = {
 const setRootRoutes = (routes: Array<unknown>) => {
   rootState = {index: routes.length - 1, key: 'root-1', routeNames: [], routes, stale: false, type: 'stack'}
 }
+// What the container's onStateChange does
 const emitState = () => {
-  for (const l of [...listeners]) {
-    l()
-  }
+  useRouterState.getState().dispatch.setNavState(rootState as never)
 }
 
 beforeEach(() => {
   dispatch.mockReset()
-  listeners.clear()
   // the jest mock's container ref is a plain object, so stub its methods directly
   const nr = navigationRef as unknown as Record<string, unknown>
   nr['current'] = {}
   nr['dispatch'] = dispatch
   nr['getRootState'] = () => rootState
   nr['isReady'] = () => true
-  nr['addListener'] = (_: string, cb: () => void) => {
-    listeners.add(cb)
-    return () => listeners.delete(cb)
-  }
+  // Not ready, the container's own listeners are a no-op: the wait must not depend on them
+  nr['addListener'] = () => () => {}
 })
 
 afterEach(() => {
@@ -45,13 +41,17 @@ afterEach(() => {
 // These drive the real container adapter, whose Navigator lives for the whole file. Each test
 // pushes distinct params: its in-flight dupe check would otherwise swallow a same-shaped push
 // from an earlier test.
+const toUsername = (username: string) => ({
+  path: () => ({name: 'username', params: {username}}) as never,
+  rootOk: (root: string) => root === 'loggedOut',
+})
 const pushOf = (username: string) =>
   expect.objectContaining({payload: {name: 'username', params: {username}}, type: 'PUSH'})
 
 test('pushes right away when the root already has the route', () => {
   setRootRoutes([loggedOut])
 
-  navigateAppendOnceRootHas('loggedOut', {name: 'username', params: {username: 'testuser-a'}} as never)
+  navigateAppendOnceRootHas(toUsername('testuser-a'))
 
   expect(dispatch).toHaveBeenCalledTimes(1)
   expect(dispatch).toHaveBeenCalledWith(pushOf('testuser-a'))
@@ -60,7 +60,7 @@ test('pushes right away when the root already has the route', () => {
 test('waits for the root route to mount, then pushes once', () => {
   setRootRoutes([loggedIn])
 
-  navigateAppendOnceRootHas('loggedOut', {name: 'username', params: {username: 'testuser-b'}} as never)
+  navigateAppendOnceRootHas(toUsername('testuser-b'))
   expect(dispatch).not.toHaveBeenCalled()
 
   emitState()
@@ -81,23 +81,27 @@ test('gives up if the root route does not mount before the timeout', () => {
 
   const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
 
-  navigateAppendOnceRootHas('loggedOut', {name: 'username', params: {username: 'testuser-c'}} as never, 5000)
+  navigateAppendOnceRootHas(toUsername('testuser-c'))
   jest.advanceTimersByTime(5000)
-  expect(warn).toHaveBeenCalledWith(expect.stringContaining('loggedOut never mounted, dropping username'))
+  expect(warn).toHaveBeenCalledWith(expect.stringContaining('gave up on root loggedIn, dropping username'))
 
   setRootRoutes([loggedOut])
   emitState()
   expect(dispatch).not.toHaveBeenCalled()
 })
 
-test('logs the push it drops when there is no navigator', () => {
-  setRootRoutes([loggedIn])
+test('a container not ready yet is waited for: its onReady state is the next check', () => {
+  setRootRoutes([loggedOut])
   const nr = navigationRef as unknown as Record<string, unknown>
-  nr['isReady'] = () => false
-  const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
+  let ready = false
+  nr['isReady'] = () => ready
 
-  navigateAppendOnceRootHas('loggedOut', {name: 'username', params: {username: 'testuser-d'}} as never)
-
-  expect(warn).toHaveBeenCalledWith(expect.stringContaining('no navigator, dropping username'))
+  navigateAppendOnceRootHas(toUsername('testuser-d'))
   expect(dispatch).not.toHaveBeenCalled()
+
+  ready = true
+  emitState()
+
+  expect(dispatch).toHaveBeenCalledTimes(1)
+  expect(dispatch).toHaveBeenCalledWith(pushOf('testuser-d'))
 })

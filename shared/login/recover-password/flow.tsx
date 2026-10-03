@@ -224,12 +224,16 @@ const showPgpWarning = (prompt: Prompt<typeof promptPgp>, recoverRunId: string) 
   void prompt.closed.then(() => markRecoverPasswordPgpShown(id))
   // The paper key has just logged the user in, so the logged-in root this modal lives on may not be
   // mounted yet. A warning that can't be pushed is declined.
-  navigateAppendOnceRootHas(
-    'loggedIn',
-    {name: pgpWarningName, params: {promptId: id, recoverRunId}},
-    loggedInRootTimeoutMs,
-    () => prompt.answer(false)
-  )
+  navigateAppendOnceRootHas({
+    onEnd: pushed => {
+      if (!pushed) {
+        prompt.answer(false)
+      }
+    },
+    path: () => ({name: pgpWarningName, params: {promptId: id, recoverRunId}}),
+    rootOk: root => root === 'loggedIn',
+    timeoutMs: loggedInRootTimeoutMs,
+  })
 }
 
 export const startRecoverPassword = ({
@@ -322,12 +326,19 @@ export const startRecoverPassword = ({
           // Asked after the paper key logged the user in, so the logged-in root this modal lives on
           // may not be mounted yet. A screen that never appears can't be answered: refuse it.
           const prompt = e
-          navigateAppendOnceRootHas(
-            'loggedIn',
-            {name: 'recoverPasswordSetPassword', params: {error: undefined, promptId: e.id, recoverRunId: run.id}},
-            loggedInRootTimeoutMs,
-            () => prompt.cancel()
-          )
+          navigateAppendOnceRootHas({
+            onEnd: pushed => {
+              if (!pushed) {
+                prompt.cancel()
+              }
+            },
+            path: () => ({
+              name: 'recoverPasswordSetPassword',
+              params: {error: undefined, promptId: e.id, recoverRunId: run.id},
+            }),
+            rootOk: root => root === 'loggedIn',
+            timeoutMs: loggedInRootTimeoutMs,
+          })
         }
         break
       }

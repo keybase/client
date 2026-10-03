@@ -21,6 +21,7 @@ import {
   type NavigationContainerRef,
 } from '@react-navigation/core'
 import logger from '@/logger'
+import {useRouterState} from '@/stores/router'
 import {DEBUG_NAV} from './nav-debug'
 import {registerDebugClear} from '@/util/debug-registry'
 import {shallowEqual} from './utils'
@@ -37,27 +38,47 @@ export type NavigatorRef = {
   getRootState: () => NavTree.NavState | undefined
   dispatch: (action: NavAction) => void
   addListener: (type: 'state', cb: () => void) => () => void
+  // Every root state change, and the container becoming ready, before which addListener is a no-op
+  subscribeRoot: (cb: () => void) => () => void
 }
 
-export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
+// A navigateAppendOnceRootHas wait. It checks at once, at every root state change (the router
+// store's copy, which also changes when the container becomes ready), at whatever recheckOn adds, and
+// at its timeout. It ends at the first push that happens, or when it gives up; a push the navigator
+// refuses leaves it waiting.
+export type RootWait = {
+  // The screen to push on this root; undefined when it has no place there
+  path: (rootName: string) => NavigateAppendType | undefined
+  // Whether to push on this root now; read at every check. Absent: any root path has a place on.
+  rootOk?: (rootName: string) => boolean
+  // How long rootOk is waited for. Default 5000.
+  timeoutMs?: number
+  // At the timeout: give up ('giveUp', the default), or push on whichever root is mounted then,
+  // or the next one the path has a place on, until rootWaitLimitMs in all ('anyRoot')
+  atTimeout?: 'giveUp' | 'anyRoot'
+  // Checked at every check: false ends the wait without a push
+  isStillWanted?: () => boolean
+  // More moments to check at (a store the root predicate reads); torn down with the wait
+  recheckOn?: (check: () => void) => () => void
+  // Once, unless cancelled: whether the push happened
+  onEnd?: (pushed: boolean) => void
+}
+
+// No wait for a root outlasts this, whatever its policy
+export const rootWaitLimitMs = 30_000
+
+export type Navigator = Omit<NavigatorRef, 'dispatch' | 'subscribeRoot'> & {
   navigateUp: () => void
   popStack: () => void
   clearModals: () => void
   // Returns whether the target is now the visible route - either because we dispatched,
   // or because we were already there. False means nothing happened and nothing will.
   navigateAppend: (path: NavigateAppendType, replace?: boolean) => boolean
-  // Push once the root stack has a `rootRouteName` route. For a push whose target lives in a
-  // conditional root group that a store change is about to mount (e.g. the logged-out stack): a
-  // push dispatched before the group mounts reaches no navigator that can handle it and is
-  // dropped. Gives up after `timeoutMs` so a group that never mounts can't fire the push at some
-  // unrelated later time.
-  // onGiveUp runs if the root never mounts and the push is dropped
-  navigateAppendOnceRootHas: (
-    rootRouteName: string,
-    path: NavigateAppendType,
-    timeoutMs?: number,
-    onGiveUp?: () => void
-  ) => void
+  // Pushes once the mounted root (the root stack's first route: loggedIn, loggedOut or desktop's
+  // loading) is one to push on. For a push whose target lives in a root a store change is about to
+  // mount: one dispatched before then reaches no navigator that can handle it and is dropped. Returns
+  // a cancel.
+  navigateAppendOnceRootHas: (wait: RootWait) => () => void
   navUpToScreen: (nameOrPath: RouteKeys | NavigateAppendType, replaceIfMissing?: boolean) => void
   switchTab: (name: Tabs.AppTab) => void
   // Returns whether chatRoot now carries these params - by dispatch, or because it
@@ -193,39 +214,75 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     return true
   }
 
-  const navigateAppendOnceRootHas = (
-    rootRouteName: string,
-    path: NavigateAppendType,
-    timeoutMs = 5000,
-    onGiveUp?: () => void
-  ) => {
-    const rootHas = () => ref.getRootState()?.routes?.some(r => r.name === rootRouteName) ?? false
-    const push = () => {
-      if (!navigateAppend(path)) {
-        logger.warn(`[Nav] navigateAppendOnceRootHas: push failed, dropping ${path.name}`)
-        onGiveUp?.()
+  const navigateAppendOnceRootHas = (wait: RootWait) => {
+    const {atTimeout = 'giveUp', isStillWanted, onEnd, path, recheckOn, rootOk, timeoutMs = 5000} = wait
+    let ended = false
+    let pushing = false
+    let timedOut = false
+    const teardown: Array<() => void> = []
+    const cancel = () => {
+      ended = true
+      for (const t of teardown.splice(0)) {
+        t()
       }
     }
-    if (rootHas()) {
-      push()
-      return
+    const end = (pushed: boolean) => {
+      cancel()
+      onEnd?.(pushed)
     }
-    if (!ref.isReady()) {
-      logger.warn(`[Nav] navigateAppendOnceRootHas: no navigator, dropping ${path.name}`)
-      onGiveUp?.()
-      return
+    const rootName = () => ref.getRootState()?.routes?.[0]?.name
+    const giveUp = () => {
+      if (ended) return
+      const root = rootName()
+      const dropped = root === undefined ? undefined : path(root)?.name
+      logger.warn(
+        `[Nav] navigateAppendOnceRootHas: gave up on root ${root ?? '(none)'}${dropped ? `, dropping ${dropped}` : ''}`
+      )
+      end(false)
     }
-    const timer = setTimeout(() => {
-      unsub()
-      logger.warn(`[Nav] navigateAppendOnceRootHas: ${rootRouteName} never mounted, dropping ${path.name}`)
-      onGiveUp?.()
-    }, timeoutMs)
-    const unsub = ref.addListener('state', () => {
-      if (!rootHas()) return
-      clearTimeout(timer)
-      unsub()
-      push()
-    })
+    const check = () => {
+      if (ended || pushing) return
+      if (isStillWanted && !isStillWanted()) {
+        end(false)
+        return
+      }
+      const root = rootName()
+      if (root === undefined || (!timedOut && rootOk && !rootOk(root))) return
+      const target = path(root)
+      if (!target) return
+      if (push(target)) {
+        end(true)
+      }
+    }
+    // The push's own state change comes back to check before it returns
+    const push = (target: NavigateAppendType) => {
+      pushing = true
+      try {
+        return navigateAppend(target)
+      } finally {
+        pushing = false
+      }
+    }
+    teardown.push(ref.subscribeRoot(check))
+    if (recheckOn) {
+      teardown.push(recheckOn(check))
+    }
+    const timers = [
+      setTimeout(() => {
+        if (atTimeout === 'giveUp') {
+          giveUp()
+        } else {
+          timedOut = true
+          check()
+        }
+      }, Math.min(timeoutMs, rootWaitLimitMs)),
+    ]
+    if (atTimeout === 'anyRoot') {
+      timers.push(setTimeout(giveUp, rootWaitLimitMs))
+    }
+    teardown.push(() => timers.forEach(clearTimeout))
+    check()
+    return cancel
   }
 
   const navUpToScreen = (nameOrPath: RouteKeys | NavigateAppendType, replaceIfMissing = false) => {
@@ -468,6 +525,13 @@ const containerRefAdapter: NavigatorRef = {
   },
   getRootState: () => (navigationRef.isReady() ? navigationRef.getRootState() : undefined),
   isReady: () => navigationRef.isReady(),
+  // The router store's copy is set from the container's onReady and onStateChange
+  subscribeRoot: cb =>
+    useRouterState.subscribe((s, prev) => {
+      if (s.navState !== prev.navState) {
+        cb()
+      }
+    }),
 }
 
 const realNavigator = makeNavigator(containerRefAdapter)

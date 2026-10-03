@@ -13,7 +13,8 @@ import {
   setChatRootParams,
   switchTab,
 } from '@/constants/router'
-import {getNavigator} from '@/constants/navigator'
+import {getNavigator, rootWaitLimitMs, type RootWait} from '@/constants/navigator'
+import logger from '@/logger'
 import {
   installFakeNavigator,
   makeRootState,
@@ -611,75 +612,216 @@ describe('setRouteParams', () => {
 // ---- navigateAppendOnceRootHas ----
 
 describe('navigateAppendOnceRootHas', () => {
+  const profile = {name: 'profile', params: {username: 'testuser'}} as const
+  const onLoggedIn = (extra?: Partial<RootWait>): RootWait => ({
+    path: () => profile,
+    rootOk: root => root === 'loggedIn',
+    timeoutMs: 1000,
+    ...extra,
+  })
+  const loadingRoot = {index: 0, key: 'root', routes: [{key: 'loading', name: 'loading'}], type: 'stack'}
+  let warn: jest.SpyInstance
+  beforeEach(() => {
+    jest.useFakeTimers()
+    warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
+  })
+  afterEach(() => {
+    warn.mockRestore()
+  })
+
+  test('pushes at once on a root it wants, and says so', () => {
+    const fake = installFakeNavigator()
+    const onEnd = jest.fn()
+    navigateAppendOnceRootHas(onLoggedIn({onEnd}))
+
+    expect(fake.pushes()).toEqual([profile])
+    expect(onEnd).toHaveBeenCalledWith(true)
+    expect(fake.listenerCount()).toBe(0)
+    expect(jest.getTimerCount()).toBe(0)
+  })
+
   // The wait belongs to the navigator it started on: swapping in another one (a test's
   // teardown, say) must neither check nor push onto the newcomer.
   test('stays bound to the navigator it was called on', () => {
-    jest.useFakeTimers()
     const first = installFakeNavigator({rootState: makeRootState({loggedIn: false})})
-    navigateAppendOnceRootHas('loggedIn', {name: 'profile', params: {username: 'testuser'}})
+    navigateAppendOnceRootHas(onLoggedIn())
 
     const second = installFakeNavigator()
     first.setRootState(makeRootState())
 
-    expect(first.pushes()).toEqual([{name: 'profile', params: {username: 'testuser'}}])
+    expect(first.pushes()).toEqual([profile])
     expect(second.actions).toEqual([])
   })
 
-  test('tells the caller when it gives up on a root that never mounts', () => {
-    jest.useFakeTimers()
+  test('gives up at the timeout on a root that never mounts, and tears everything down', () => {
     const fake = installFakeNavigator({rootState: makeRootState({loggedIn: false})})
-    const onGiveUp = jest.fn()
-    navigateAppendOnceRootHas('loggedIn', {name: 'profile', params: {username: 'testuser'}}, 1000, onGiveUp)
+    const onEnd = jest.fn()
+    const unsubscribe = jest.fn()
+    navigateAppendOnceRootHas(onLoggedIn({onEnd, recheckOn: () => unsubscribe}))
 
     jest.advanceTimersByTime(999)
-    expect(onGiveUp).not.toHaveBeenCalled()
+    expect(onEnd).not.toHaveBeenCalled()
     jest.advanceTimersByTime(1)
-    expect(onGiveUp).toHaveBeenCalledTimes(1)
+    expect(onEnd).toHaveBeenCalledWith(false)
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('gave up on root loggedOut'))
+    expect(fake.listenerCount()).toBe(0)
+    expect(unsubscribe).toHaveBeenCalledTimes(1)
+    expect(jest.getTimerCount()).toBe(0)
+
     fake.setRootState(makeRootState())
     expect(fake.pushes()).toEqual([])
   })
 
-  test('does not give up on a root that mounts in time', () => {
-    jest.useFakeTimers()
+  test('pushes once a root it wants mounts in time', () => {
     const fake = installFakeNavigator({rootState: makeRootState({loggedIn: false})})
-    const onGiveUp = jest.fn()
-    navigateAppendOnceRootHas('loggedIn', {name: 'profile', params: {username: 'testuser'}}, 1000, onGiveUp)
+    const onEnd = jest.fn()
+    navigateAppendOnceRootHas(onLoggedIn({onEnd}))
 
     fake.setRootState(makeRootState())
-    jest.advanceTimersByTime(10_000)
+    jest.advanceTimersByTime(60_000)
 
-    expect(onGiveUp).not.toHaveBeenCalled()
-    expect(fake.pushes()).toEqual([{name: 'profile', params: {username: 'testuser'}}])
+    expect(fake.pushes()).toEqual([profile])
+    expect(onEnd).toHaveBeenCalledTimes(1)
+    expect(onEnd).toHaveBeenCalledWith(true)
   })
 
-  test('gives up at once without a navigator', () => {
-    installFakeNavigator({ready: false, rootState: makeRootState({loggedIn: false})})
-    const onGiveUp = jest.fn()
-    navigateAppendOnceRootHas('loggedIn', {name: 'profile', params: {username: 'testuser'}}, 1000, onGiveUp)
+  test('waits for a navigator that is not ready, and pushes once it is', () => {
+    const fake = installFakeNavigator({ready: false})
+    const onEnd = jest.fn()
+    navigateAppendOnceRootHas(onLoggedIn({onEnd}))
+    expect(onEnd).not.toHaveBeenCalled()
 
-    expect(onGiveUp).toHaveBeenCalledTimes(1)
+    fake.setReady(true)
+
+    expect(fake.pushes()).toEqual([profile])
+    expect(onEnd).toHaveBeenCalledWith(true)
   })
 
   // A route with no name is one push navigateAppend refuses
-  test('gives up when the root is there but the push fails', () => {
+  test('a push the navigator refuses keeps waiting, then gives up at the timeout', () => {
     const fake = installFakeNavigator()
-    const onGiveUp = jest.fn()
-    navigateAppendOnceRootHas('loggedIn', {name: '', params: {}} as never, 1000, onGiveUp)
+    const onEnd = jest.fn()
+    navigateAppendOnceRootHas(onLoggedIn({onEnd, path: () => ({name: '', params: {}}) as never}))
+    expect(onEnd).not.toHaveBeenCalled()
 
-    expect(onGiveUp).toHaveBeenCalledTimes(1)
+    fake.setRootState(makeRootState())
+    expect(onEnd).not.toHaveBeenCalled()
+    jest.advanceTimersByTime(1000)
+
+    expect(onEnd).toHaveBeenCalledTimes(1)
+    expect(onEnd).toHaveBeenCalledWith(false)
+    expect(warn).toHaveBeenCalledTimes(1)
     expect(fake.pushes()).toEqual([])
   })
 
-  test('gives up when the root mounts but the push fails', () => {
-    jest.useFakeTimers()
+  test('reads its root predicate at every check, including the moments recheckOn adds', () => {
     const fake = installFakeNavigator({rootState: makeRootState({loggedIn: false})})
-    const onGiveUp = jest.fn()
-    navigateAppendOnceRootHas('loggedIn', {name: '', params: {}} as never, 1000, onGiveUp)
+    let want = 'loggedIn'
+    let recheck = () => {}
+    navigateAppendOnceRootHas({
+      path: root => ({name: 'profile', params: {username: root}}),
+      recheckOn: check => {
+        recheck = check
+        return () => {}
+      },
+      rootOk: root => root === want,
+      timeoutMs: 1000,
+    })
+    expect(fake.pushes()).toEqual([])
 
+    want = 'loggedOut'
+    recheck()
+
+    expect(fake.pushes()).toEqual([{name: 'profile', params: {username: 'loggedOut'}}])
+  })
+
+  test('a wait no longer wanted pushes nothing and ends', () => {
+    const fake = installFakeNavigator({rootState: makeRootState({loggedIn: false})})
+    const onEnd = jest.fn()
+    let wanted = true
+    navigateAppendOnceRootHas(onLoggedIn({isStillWanted: () => wanted, onEnd}))
+
+    wanted = false
     fake.setRootState(makeRootState())
-    expect(onGiveUp).toHaveBeenCalledTimes(1)
-    jest.advanceTimersByTime(10_000)
-    expect(onGiveUp).toHaveBeenCalledTimes(1)
+
+    expect(fake.pushes()).toEqual([])
+    expect(onEnd).toHaveBeenCalledWith(false)
+    expect(fake.listenerCount()).toBe(0)
+    expect(jest.getTimerCount()).toBe(0)
+  })
+
+  test('a cancelled wait pushes nothing, says nothing and tears everything down', () => {
+    const fake = installFakeNavigator({rootState: makeRootState({loggedIn: false})})
+    const onEnd = jest.fn()
+    const unsubscribe = jest.fn()
+    const cancel = navigateAppendOnceRootHas(onLoggedIn({atTimeout: 'anyRoot', onEnd, recheckOn: () => unsubscribe}))
+
+    cancel()
+    fake.setRootState(makeRootState())
+    jest.advanceTimersByTime(60_000)
+
+    expect(fake.pushes()).toEqual([])
+    expect(onEnd).not.toHaveBeenCalled()
+    expect(unsubscribe).toHaveBeenCalledTimes(1)
+    expect(fake.listenerCount()).toBe(0)
+    expect(jest.getTimerCount()).toBe(0)
+  })
+
+  describe("atTimeout 'anyRoot'", () => {
+    test('pushes on the mounted root once the timeout is up', () => {
+      const fake = installFakeNavigator({rootState: makeRootState({loggedIn: false})})
+      const onEnd = jest.fn()
+      navigateAppendOnceRootHas(onLoggedIn({atTimeout: 'anyRoot', onEnd}))
+
+      jest.advanceTimersByTime(1000)
+
+      expect(fake.pushes()).toEqual([profile])
+      expect(onEnd).toHaveBeenCalledWith(true)
+      expect(jest.getTimerCount()).toBe(0)
+    })
+
+    test('a root the path has no place on is waited out, up to the limit, then it gives up', () => {
+      const fake = installFakeNavigator({rootState: loadingRoot})
+      const onEnd = jest.fn()
+      navigateAppendOnceRootHas(
+        onLoggedIn({
+          atTimeout: 'anyRoot',
+          onEnd,
+          path: root => (root === 'loading' ? undefined : profile),
+        })
+      )
+
+      jest.advanceTimersByTime(rootWaitLimitMs - 1)
+      expect(onEnd).not.toHaveBeenCalled()
+      jest.advanceTimersByTime(1)
+
+      expect(onEnd).toHaveBeenCalledWith(false)
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('gave up on root loading'))
+      fake.setRootState(makeRootState())
+      expect(fake.pushes()).toEqual([])
+    })
+
+    test('a root the path has a place on, mounting past the timeout, takes it', () => {
+      const fake = installFakeNavigator({rootState: loadingRoot})
+      navigateAppendOnceRootHas(
+        onLoggedIn({atTimeout: 'anyRoot', path: root => (root === 'loading' ? undefined : profile)})
+      )
+      jest.advanceTimersByTime(10_000)
+
+      fake.setRootState(makeRootState({loggedIn: false}))
+
+      expect(fake.pushes()).toEqual([profile])
+    })
+  })
+
+  test("a 'giveUp' wait longer than the limit still ends at the limit", () => {
+    installFakeNavigator({rootState: makeRootState({loggedIn: false})})
+    const onEnd = jest.fn()
+    navigateAppendOnceRootHas(onLoggedIn({onEnd, timeoutMs: 10 * rootWaitLimitMs}))
+
+    jest.advanceTimersByTime(rootWaitLimitMs)
+
+    expect(onEnd).toHaveBeenCalledWith(false)
   })
 })
 
