@@ -32,9 +32,9 @@ test('a scripted call resolves through the real engine and waiting store', async
   const fake = installFakeEngine()
   fake.answer('keybase.1.config.getBootstrapStatus', () => ({deviceName: 'd'}))
   const p = T.RPCGen.configGetBootstrapStatusRpcPromise(undefined, testWaitingKey('test:waiting'))
-  expect(useWaitingState.getState().counts.get('test:waiting')).toBe(1)
+  expect(useWaitingState.getState().counts.get(testWaitingKey('test:waiting'))).toBe(1)
   await expect(p).resolves.toMatchObject({deviceName: 'd'})
-  expect(useWaitingState.getState().counts.get('test:waiting')).toBeUndefined()
+  expect(useWaitingState.getState().counts.get(testWaitingKey('test:waiting'))).toBeUndefined()
   expect(fake.calls.map(c => c.method)).toEqual(['keybase.1.config.getBootstrapStatus'])
 })
 
@@ -109,10 +109,10 @@ test('a held call left at uninstall fails, and nothing reaches the stores afterw
     () => 'resolved',
     (e: unknown) => e
   )
-  expect(useWaitingState.getState().counts.get('test:held')).toBe(1)
+  expect(useWaitingState.getState().counts.get(testWaitingKey('test:held'))).toBe(1)
   uninstallFakeEngine()
   await expect(settled).resolves.toMatchObject(linkLost)
-  expect(useWaitingState.getState().counts.get('test:held')).toBeUndefined()
+  expect(useWaitingState.getState().counts.get(testWaitingKey('test:held'))).toBeUndefined()
 
   const changes = jest.fn()
   const unsubscribe = useWaitingState.subscribe(changes)
