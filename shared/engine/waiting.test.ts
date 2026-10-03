@@ -136,7 +136,8 @@ describe('a promise call', () => {
     const fake = installFakeEngine()
     const {ended} = await startPromise(fake)
     fake.drop()
-    await ended
+    // The caller and the key agree on why it ended
+    await expect(ended).resolves.toMatchObject({code: 101})
     expect(count(fake)).toBe(0)
     expect(keyError(fake)).toMatchObject({code: 101})
   })
@@ -333,13 +334,73 @@ describe('how a held prompt ends', () => {
   })
 })
 
+describe('the GUI owing the service', () => {
+  test.failing('a prompt its handler answers a few microtasks later never turns waiting off', async () => {
+    const fake = installFakeEngine()
+    const {ended, held, push} = await startListener(fake, async response => {
+      await Promise.resolve()
+      await Promise.resolve()
+      response.result(true)
+    })
+    const counts = recordCounts()
+    await push()
+    await afterTimers()
+    await afterTimers()
+    expect(count(fake)).toBe(1)
+    counts.unsubscribe()
+    expect(counts.seen).not.toContain(0)
+    held[0]!.reply(undefined)
+    await ended
+  })
+
+  test('a prompt left for the user turns waiting off within a task of its handler running', async () => {
+    const fake = installFakeEngine()
+    const {ended, held, push, responses} = await startListener(fake)
+    const pushed = push()
+    await afterTimers()
+    await afterTimers()
+    expect(count(fake)).toBe(0)
+    responses[0]!.result(true)
+    await pushed
+    held[0]!.reply(undefined)
+    await ended
+  })
+
+  // A hot reload can leave the listener without the handler it was built with
+  test.failing('a prompt whose handler is gone is refused, and waiting never turns off', async () => {
+    const fake = installFakeEngine()
+    const handlers: {[m: string]: unknown} = {[prompt]: () => {}}
+    const held = fake.hold(rpc)
+    const ended = T.RPCGen.loginRecoverPassphraseRpcListener({
+      customResponseIncomingCallMap: handlers as never,
+      incomingCallMap: {},
+      params: {username: 'testuser'},
+      waitingKey,
+    }).catch((e: unknown) => e)
+    await tick()
+    const sessionID = fake.calls[0]!.params.sessionID as number
+    delete handlers[prompt]
+    const counts = recordCounts()
+    await expect(fake.push(prompt, {kind: 0}, {sessionID})).resolves.toMatchObject({
+      error: {code: T.RPCGen.StatusCode.scinputcanceled},
+    })
+    await afterTimers()
+    await afterTimers()
+    counts.unsubscribe()
+    expect(counts.seen).not.toContain(0)
+    expect(count(fake)).toBe(1)
+    held[0]!.reply(undefined)
+    await ended
+  })
+})
+
 describe('a lost link', () => {
   test('is recorded when the engine cancels the session before the transport fails its call', async () => {
     const fake = installFakeEngine()
     const {ended} = await startPromise(fake)
     const sessionID = fake.calls[0]!.params.sessionID as number
     fake.engine._sessionsMap.get(sessionID)!.cancelForLostLink()
-    await ended
+    await expect(ended).resolves.toMatchObject({code: 101, desc: 'The service connection was lost'})
     expect(count(fake)).toBe(0)
     expect(keyError(fake)).toMatchObject({code: 101})
   })

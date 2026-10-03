@@ -68,6 +68,22 @@ test('a session ended before its RPC settled stops waiting, and says so in a dev
   global.__DEV__ = dev
 })
 
+test('a call that fails with a plain Error stops waiting but records no error on its key', () => {
+  const invoke = jest.fn()
+  const session = new Session({
+    dispatchWaiting: mockDispatchWaitingAction,
+    endHandler: jest.fn(),
+    invoke,
+    sessionID: 8,
+    waitingKey: 'waiting-key',
+  })
+  session.start('keybase.1.login.login', undefined, jest.fn())
+  mockDispatchWaitingAction.mockReset()
+  const reply = invoke.mock.calls[0]![2] as (err: unknown, data: unknown) => void
+  reply(new Error('Queue overflow for keybase.1.login.login'), undefined)
+  expect(mockDispatchWaitingAction).toHaveBeenCalledWith({error: undefined, increment: false, key: 'waiting-key'})
+})
+
 test('a late server response after cancel does not fire the callback twice', () => {
   const callback = jest.fn()
   const invoke = jest.fn()

@@ -172,19 +172,19 @@ class Session {
       }
       return
     }
-    // Before the held prompts, whose releases would otherwise show it waiting on the service again.
-    // A client cancel is the user's own and records nothing; a lost link is recorded whichever of this
-    // and the transport's failed reply comes first.
-    this._tracker?.settle(
+    // A lost link ends the call as the transport's failed reply would, whichever comes first, so the
+    // caller and the key agree. A client cancel is the user's own and records nothing.
+    const lostLink =
       heldPrompts === 'forget' ? (convertToError(makeDisconnectError(), this._startMethod) as RPCError) : undefined
-    )
+    // Before the held prompts, whose releases would otherwise show it waiting on the service again
+    this._tracker?.settle(lostLink)
     for (const held of [...this._held]) {
       this._settle(held, heldPrompts === 'refuse' ? () => held.response.error?.(inputCanceledError) : undefined)
     }
     if (this._startCallback) {
       const callback = this._startCallback
       this._startCallback = undefined
-      callback(new RPCError('Received RPC cancel for session', StatusCode.sccanceled))
+      callback(lostLink ?? new RPCError('Received RPC cancel for session', StatusCode.sccanceled))
     }
 
     // The service may still call us on this session before it replies, and a late prompt that
@@ -266,7 +266,8 @@ class Session {
         wrappedCallback(new RPCError('The account changed during this call', StatusCode.sccanceled))
         return
       }
-      tracker.settle(err as RPCError | undefined)
+      // Only the service's errors belong on the key, not a local failure like a queue overflow
+      tracker.settle(err instanceof RPCError ? err : undefined)
       wrappedCallback(err as RPCError | undefined, data)
     })
   }

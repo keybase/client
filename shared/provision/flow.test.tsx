@@ -413,6 +413,64 @@ describe('login', () => {
     expect(count()).toBeUndefined()
   })
 
+  test.failing('the exchange hold ends at the next prompt: a retried secret or a password shows waiting off', async () => {
+    const held = await startLogin()
+    const count = () => {
+      fake.engine._throttledDispatchWaitingAction.flush()
+      return useWaitingState.getState().counts.get(waitingKeyProvision)
+    }
+    void push(secret, {phrase: 'one two three', previousErr: ''}, 0)
+    await settle()
+    await push(secretExchanged, {}, 0)
+    await push(secretExchanged, {}, 0)
+    await settle()
+    expect(count()).toBe(1)
+    // Go says the code was wrong and asks again
+    void push(secret, {phrase: 'one two three', previousErr: 'bad code'}, 0)
+    await settle()
+    expect(count()).toBeUndefined()
+    await push(secretExchanged, {}, 0)
+    await settle()
+    expect(count()).toBe(1)
+    void pushPassword(0)
+    await settle()
+    expect(count()).toBeUndefined()
+    held[0]!.reply(undefined)
+    await settle()
+    expect(count()).toBeUndefined()
+  })
+
+  test.failing('a restart replays its recorded answers without the waiting key turning off', async () => {
+    const held = await startLogin()
+    const name1 = push(deviceName, {errorMessage: '', existingDevices: []}, 0)
+    await settle()
+    submitProvisionDeviceName('dev1')
+    await name1
+    const choose1 = push(chooseDevice, {devices: [makeRpcDevice('phone', 'device-1', 'mobile')]}, 0)
+    await settle()
+    submitProvisionDeviceSelect('phone')
+    await choose1
+    // the user resubmits the device choice: the RPC starts over and replays both answers
+    submitProvisionDeviceSelect('phone')
+    await settle()
+    expect(held).toHaveLength(2)
+    fake.engine._throttledDispatchWaitingAction.flush()
+    expect(useWaitingState.getState().counts.get(waitingKeyProvision)).toBe(1)
+    const seen: Array<number> = []
+    const unsubscribe = useWaitingState.subscribe(st => seen.push(st.counts.get(waitingKeyProvision) ?? 0))
+    await expect(pushDeviceName(1)).resolves.toEqual({result: 'dev1'})
+    await expect(push(chooseDevice, {devices: [makeRpcDevice('phone', 'device-1', 'mobile')]}, 1)).resolves.toEqual({
+      result: T.Devices.stringToDeviceID('device-1'),
+    })
+    await settle()
+    unsubscribe()
+    fake.engine._throttledDispatchWaitingAction.flush()
+    expect(seen).not.toContain(0)
+    expect(useWaitingState.getState().counts.get(waitingKeyProvision)).toBe(1)
+    held[1]!.reply(undefined)
+    await settle()
+  })
+
   test('the service cancelling the secret prompt, then the provisionee success, ends the login', async () => {
     const held = await startLogin()
     const shown = push(secret, {phrase: 'one two three', previousErr: ''}, 0)
