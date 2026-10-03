@@ -7,6 +7,8 @@ import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {tick} from '@/test/flush'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 import {navigateAppend} from '@/constants/router'
+import {rootWaitLimitMs} from '@/constants/navigator'
+import {useRouterState} from '@/stores/router'
 
 const mockCancelProvision = jest.fn()
 jest.mock('@/provision/flow', () => ({
@@ -37,6 +39,10 @@ const openModal = 'proxySettingsModal'
 
 let nav: FakeNavigator
 let fake: FakeEngine
+
+// What the app's container does on every state change: route-gone reads the router store's copy
+const mirrorRouterStore = () =>
+  nav.addListener('state', () => useRouterState.getState().dispatch.setNavState(nav.getRootState()!))
 
 beforeEach(() => {
   nav = installFakeNavigator({modalRouteNames: [openModal], rootState: makeRootState({above: [{name: openModal}]})})
@@ -448,13 +454,45 @@ describe('completion', () => {
       expect(screens()).toEqual(['login', 'recoverPasswordError'])
     })
 
-    test("desktop's loading root is waited out however long it takes", async () => {
+    test("desktop's loading root is waited out up to the limit, then the error is dropped with a warning", async () => {
+      const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
       nav = installFakeNavigator({
         rootState: {index: 0, key: 'root', routes: [{key: 'loading', name: 'loading'}], type: 'stack'},
       })
       const {held} = await start()
       await failNow(held)
-      await jest.advanceTimersByTimeAsync(10000)
+      await jest.advanceTimersByTimeAsync(rootWaitLimitMs)
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('gave up on root loading'))
+
+      nav.setRootState(loggedOutRoot())
+
+      expect(nav.navigations()).toEqual([])
+      warn.mockRestore()
+    })
+
+    test('the error on a root swapped out past the sweep window is not shown again', async () => {
+      nav = installFakeNavigator({modalRouteNames: [errorModal], rootState: makeRootState()})
+      mirrorRouterStore()
+      useConfigState.getState().dispatch.setLoggedIn(true)
+      const {held} = await start()
+      await failNow(held)
+      expect(screens()).toEqual(['loggedIn', errorModal])
+
+      await jest.advanceTimersByTimeAsync(5000)
+      useConfigState.getState().dispatch.setLoggedIn(false)
+      nav.setRootState(loggedOutRoot())
+      await jest.advanceTimersByTimeAsync(60_000)
+
+      expect(screens()).toEqual(['login'])
+    })
+
+    test("desktop's loading root is waited out however long it takes, within the limit", async () => {
+      nav = installFakeNavigator({
+        rootState: {index: 0, key: 'root', routes: [{key: 'loading', name: 'loading'}], type: 'stack'},
+      })
+      const {held} = await start()
+      await failNow(held)
+      await jest.advanceTimersByTimeAsync(rootWaitLimitMs - 1)
       expect(nav.navigations()).toEqual([])
 
       nav.setRootState(loggedOutRoot())
@@ -474,6 +512,92 @@ describe('completion', () => {
     nav.setRootState(loggedOutRoot())
 
     expect(screens()).toEqual(['login', 'recoverPasswordError'])
+  })
+
+  // Go's changePassword failing after the paper key logged the user in logs out, then returns the error
+  describe('a logout racing the error', () => {
+    const failOnLoggedIn = async () => {
+      nav = installFakeNavigator({modalRouteNames: [errorModal], rootState: makeRootState()})
+      mirrorRouterStore()
+      useConfigState.getState().dispatch.setLoggedIn(true)
+      const {held} = await start()
+      await failWith(held)
+      expect(screens()).toEqual(['loggedIn', errorModal])
+      return held
+    }
+    const swapRoot = (loggedIn: boolean) => {
+      useConfigState.getState().dispatch.setLoggedIn(loggedIn)
+      nav.setRootState(loggedIn ? makeRootState() : loggedOutRoot())
+    }
+
+    test('a root swap that takes the error away soon after it showed shows it again on the new root, once', async () => {
+      await failOnLoggedIn()
+
+      swapRoot(false)
+      expect(screens()).toEqual(['login', 'recoverPasswordError'])
+      expect(nav.getRootState()?.routes?.[0]?.state?.routes.at(-1)?.params).toEqual({
+        error: expect.stringContaining('bad things'),
+      })
+
+      swapRoot(true)
+      expect(screens()).toEqual(['loggedIn'])
+    })
+
+    test('the user dismissing the error does not show it again', async () => {
+      await failOnLoggedIn()
+
+      nav.navigateUp()
+      expect(screens()).toEqual(['loggedIn'])
+      swapRoot(false)
+
+      expect(screens()).toEqual(['login'])
+    })
+
+    // The swap in the same turn as the restart, before the watch's entry is gone
+    test('a restart before the swap shows nothing again', async () => {
+      const held = await failOnLoggedIn()
+      nav.clearActions()
+      startRecoverPassword({username: 'testuser'})
+      swapRoot(false)
+      await tick()
+
+      expect(nav.navigations()).toEqual([])
+      held.at(-1)!.reply(undefined)
+      await settle()
+    })
+  })
+
+  test('logged in by the paper key, failing while the root disagrees, then restarted: the old error never shows', async () => {
+    nav = installFakeNavigator({modalRouteNames: [errorModal], rootState: loggedOutRoot()})
+    // The wait's config subscription, to see the restart end it
+    const subscribe = useConfigState.subscribe
+    const unsubscribes: Array<jest.Mock> = []
+    jest.spyOn(useConfigState, 'subscribe').mockImplementation(listener => {
+      const unsubscribe = jest.fn(subscribe(listener))
+      unsubscribes.push(unsubscribe)
+      return unsubscribe
+    })
+    const {held, sessionID} = await start()
+    await pushDevices(sessionID)
+    await pushPassphrase(sessionID, T.RPCGen.PassphraseType.paperKey)
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    await failWith(held)
+    expect(screens()).toEqual(['login'])
+
+    expect(unsubscribes).toHaveLength(1)
+    expect(unsubscribes[0]).not.toHaveBeenCalled()
+
+    await restart()
+    expect(unsubscribes[0]).toHaveBeenCalledTimes(1)
+    nav.setRootState(makeRootState())
+    useConfigState.getState().dispatch.setLoggedIn(false)
+    nav.setRootState(loggedOutRoot())
+
+    expect(nav.navigations().map(n => n.name)).not.toContain(errorModal)
+    expect(nav.navigations().map(n => n.name)).not.toContain('recoverPasswordError')
+    held.at(-1)!.reply(undefined)
+    await settle()
+    jest.restoreAllMocks()
   })
 
   test("a screen the run shows without a prompt is the run's by its run id", async () => {
