@@ -1,4 +1,5 @@
 import type {RPCError} from '@/util/errors'
+import type {WaitingChange} from '@/engine/types'
 import type * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 
@@ -14,9 +15,7 @@ export type State = T.Waiting.State & {
     clear: (keys: string | ReadonlyArray<string>) => void
     increment: (keys: string | ReadonlyArray<string>) => void
     decrement: (keys: string | ReadonlyArray<string>, error?: RPCError) => void
-    batch: (
-      changes: ReadonlyArray<{key: string | ReadonlyArray<string>; increment: boolean; error?: RPCError}>
-    ) => void
+    batch: (changes: ReadonlyArray<WaitingChange>) => void
   }
 }
 
@@ -52,7 +51,14 @@ export const useWaitingState = Z.createZustand<State>('waiting', (set, get) => {
   const dispatch: State['dispatch'] = {
     batch: changes => {
       changes.forEach(c => {
-        if (c.increment) {
+        if (c.increment === undefined) {
+          const {error, key} = c
+          set(s => {
+            getKeys(key).forEach(k => {
+              s.errors.set(k, error)
+            })
+          })
+        } else if (c.increment) {
           get().dispatch.increment(c.key)
         } else {
           get().dispatch.decrement(c.key, c.error)

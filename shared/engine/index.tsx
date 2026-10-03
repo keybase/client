@@ -3,7 +3,7 @@ import Session from './session'
 import {makeListen} from './listener'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
-import {inputCanceledError, type SessionID, type MethodKey, type WaitingKey} from './types'
+import {inputCanceledError, type SessionID, type MethodKey, type WaitingChange, type WaitingKey} from './types'
 import {installCallPort, type CallPort} from './call-port'
 import {printOutstandingRPCs, printRPC} from '@/local-debug'
 import {
@@ -14,7 +14,7 @@ import {
   type ConnectDisconnectCB,
   type PayloadType,
 } from './index.platform'
-import {type RPCError, convertToError} from '@/util/errors'
+import {convertToError} from '@/util/errors'
 import {mustAnswerMethods} from '@/constants/rpc'
 import type * as EngineGen from '@/constants/rpc'
 import {StatusCode} from '@/constants/rpc/rpc-gen'
@@ -22,7 +22,7 @@ import {getIncomingAnswerer, type IncomingAnswerer} from './incoming-answerers'
 import type {ErrorType, ResponseType as RPCResponseType} from './rpc-transport'
 import type {IncomingCallMapType, CustomResponseIncomingCallMapType} from '@/constants/rpc/rpc-all-gen'
 
-export type BatchParams = Array<{key: WaitingKey; increment: boolean; error?: RPCError}>
+export type BatchParams = ReadonlyArray<WaitingChange>
 export type MakeClient = (
   incoming: IncomingRPCCallbackType,
   connect: ConnectDisconnectCB,
@@ -52,14 +52,15 @@ class Engine implements CallPort {
   // handling. The fake engine fails the test; unset, a dev build logs it.
   onUndeclaredIncoming?: (message: string) => void
 
-  _queuedChanges: Array<{error?: RPCError; increment: boolean; key: WaitingKey}> = []
-  dispatchWaitingAction = (key: WaitingKey, waiting: boolean, error?: RPCError) => {
-    this._queuedChanges.push({error, increment: waiting, key})
+  _queuedChanges: Array<WaitingChange> = []
+  dispatchWaitingAction = (change: WaitingChange) => {
+    this._queuedChanges.push(change)
     this._throttledDispatchWaitingAction()
     // Screens mount right after a prompt arrives and gate interaction/overlays on the waiting
-    // state, so a "no longer waiting" change must land immediately — a throttled flush leaves
-    // freshly pushed screens stuck seeing waiting=true for up to the throttle window.
-    if (!waiting) {
+    // state, so a "no longer waiting" change (or the error a call ended with) must land immediately —
+    // a throttled flush leaves freshly pushed screens stuck seeing waiting=true for up to the
+    // throttle window.
+    if (change.increment !== true) {
       this._throttledDispatchWaitingAction.flush()
     }
   }
@@ -401,6 +402,11 @@ class Engine implements CallPort {
       })
     }
     this._sessionsMap.delete(session.getId())
+  }
+
+  // Server work a listener's flow declares while it holds a prompt; see WaitingTracker
+  holdServerWork(sessionID: number) {
+    return this._sessionsMap.get(sessionID)?.holdServerWork() ?? (() => {})
   }
 
   // Client-side cancel of one outstanding session: rejects its start callback (sccanceled). The

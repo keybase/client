@@ -244,12 +244,16 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
       return
     }
     disposed = true
-    for (const {prompt} of [...open.values()]) {
-      prompt.cancel()
+    for (const {close, prompt} of [...open.values()]) {
+      if (prompt.open) {
+        close('cancelled')
+      }
     }
     queue.length = 0
     finish()
     live.delete(entry)
+    // Refuses the prompts closed above once it has stopped the RPC waiting, so refusing them does not
+    // show the RPC waiting on the service again on its way out
     cancelSession()
     rejectDone(new RPCError('Dialog disposed', StatusCode.sccanceled))
     // Whoever disposed has stopped listening and may never await done; any other rejection is

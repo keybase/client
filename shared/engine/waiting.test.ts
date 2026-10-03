@@ -11,6 +11,7 @@ import {resetAllStores} from '@/util/zustand'
 import {tick} from '@/test/flush'
 
 afterEach(() => {
+  jest.restoreAllMocks()
   // The store reset keeps an in-progress switch, and a later test's switch would not start
   useConfigState.getState().dispatch.setUserSwitching(false)
   resetAllStores()
@@ -61,16 +62,17 @@ const startPromise = async (fake: FakeEngine) => {
 type Response = {result: (r?: unknown) => void; error: (e: {code: number; desc: string}) => void}
 
 // A listener whose prompt handler keeps each response, so the test answers them
-const startListener = async (fake: FakeEngine, onPrompt?: (response: Response) => void) => {
+const startListener = async (fake: FakeEngine, onPrompt?: (response: Response) => void | Promise<void>) => {
   const held = fake.hold(rpc)
   const responses: Array<Response> = []
   let cancel = () => {}
   const ended = T.RPCGen.loginRecoverPassphraseRpcListener({
     customResponseIncomingCallMap: {
-      [prompt]: (_: unknown, response: Response) => {
+      // Typed void, but the listener awaits what a handler returns
+      [prompt]: ((_: unknown, response: Response): void | Promise<void> => {
         responses.push(response)
-        onPrompt?.(response)
-      },
+        return onPrompt?.(response)
+      }) as never,
     },
     incomingCallMap: {},
     onSessionCreated: c => {
@@ -203,19 +205,21 @@ describe('a listener', () => {
   })
 
   // B1
-  test.failing("records the RPC's error when it ends while a prompt is held", async () => {
+  test("records the RPC's error when it ends while a prompt is held", async () => {
     const fake = installFakeEngine()
     const {ended, held, push} = await startListener(fake)
     void push()
     await afterTimers()
     held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'nope'))
     await ended
+    // Lands at once, like a stop
+    expect(useWaitingState.getState().errors.get(waitingKey)).toMatchObject({code: T.RPCGen.StatusCode.scgeneric})
     expect(count(fake)).toBe(0)
     expect(keyError(fake)).toMatchObject({code: T.RPCGen.StatusCode.scgeneric})
   })
 
   // B2
-  test.failing('a client cancel records no error on its key', async () => {
+  test('a client cancel records no error on its key', async () => {
     const fake = installFakeEngine()
     const {cancel, ended, held} = await startListener(fake)
     cancel()
@@ -227,7 +231,7 @@ describe('a listener', () => {
   })
 
   // B3
-  test.failing('with two prompts held, answering one keeps waiting off', async () => {
+  test('with two prompts held, answering one keeps waiting off', async () => {
     const fake = installFakeEngine()
     const {ended, held, push, responses} = await startListener(fake)
     const first = push()
@@ -246,7 +250,7 @@ describe('a listener', () => {
   })
 
   // B5
-  test.failing('a prompt its handler answers at once never turns waiting off', async () => {
+  test('a prompt its handler answers at once never turns waiting off', async () => {
     const fake = installFakeEngine()
     const {ended, held, push} = await startListener(fake, response => response.result(true))
     expect(count(fake)).toBe(1)
@@ -262,6 +266,96 @@ describe('a listener', () => {
   })
 })
 
+describe('how a held prompt ends', () => {
+  test('a handler that throws before answering is refused, and waiting never turns off', async () => {
+    jest.spyOn(console, 'error').mockImplementation(() => {})
+    jest.spyOn(console, 'log').mockImplementation(() => {})
+    const fake = installFakeEngine()
+    const {ended, held, push} = await startListener(fake, () => {
+      throw new Error('handler broke')
+    })
+    const counts = recordCounts()
+    await expect(push()).resolves.toMatchObject({error: {code: T.RPCGen.StatusCode.scinputcanceled}})
+    expect(count(fake)).toBe(1)
+    counts.unsubscribe()
+    expect(counts.seen).not.toContain(0)
+    held[0]!.reply(undefined)
+    await ended
+    expect(count(fake)).toBe(0)
+  })
+
+  test('a handler that fails after it returned is refused, and waiting comes back on', async () => {
+    jest.spyOn(console, 'error').mockImplementation(() => {})
+    jest.spyOn(console, 'log').mockImplementation(() => {})
+    const fake = installFakeEngine()
+    let fail = () => {}
+    const failing = new Promise<void>((_resolve, reject) => {
+      fail = () => reject(new Error('handler broke'))
+    })
+    const {ended, held, push} = await startListener(fake, async () => failing)
+    const pushed = push()
+    await afterTimers()
+    expect(count(fake)).toBe(0)
+    fail()
+    await expect(pushed).resolves.toMatchObject({error: {code: T.RPCGen.StatusCode.scinputcanceled}})
+    expect(count(fake)).toBe(1)
+    held[0]!.reply(undefined)
+    await ended
+    expect(count(fake)).toBe(0)
+  })
+
+  test('a prompt refused after a logout leaves the RPC waiting until its reply, with no error', async () => {
+    const fake = installFakeEngine()
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    const onConfirm = jest.fn()
+    const held = fake.hold('keybase.1.teams.teamDelete')
+    const ended = T.RPCGen.teamsTeamDeleteRpcListener({
+      customResponseIncomingCallMap: {'keybase.1.teamsUi.confirmRootTeamDelete': onConfirm},
+      incomingCallMap: {},
+      params: {teamID: 'teamid'},
+      waitingKey,
+    }).catch((e: unknown) => e)
+    await tick()
+    const sessionID = fake.calls[0]!.params.sessionID as number
+    const counts = recordCounts()
+    const pushed = fake.push('keybase.1.teamsUi.confirmRootTeamDelete', {teamName: 'testteam'}, {sessionID})
+    useConfigState.getState().dispatch.setLoggedIn(false)
+    await expect(pushed).resolves.toMatchObject({error: {code: T.RPCGen.StatusCode.scinputcanceled}})
+    expect(onConfirm).not.toHaveBeenCalled()
+    expect(count(fake)).toBe(1)
+    held[0]!.reply(undefined)
+    await ended
+    counts.unsubscribe()
+    expect(count(fake)).toBe(0)
+    expect(counts.seen).toEqual([0])
+    expect(keyError(fake)).toBeUndefined()
+  })
+})
+
+describe('a lost link', () => {
+  test('is recorded when the engine cancels the session before the transport fails its call', async () => {
+    const fake = installFakeEngine()
+    const {ended} = await startPromise(fake)
+    const sessionID = fake.calls[0]!.params.sessionID as number
+    fake.engine._sessionsMap.get(sessionID)!.cancelForLostLink()
+    await ended
+    expect(count(fake)).toBe(0)
+    expect(keyError(fake)).toMatchObject({code: 101})
+  })
+
+  test('while a prompt is held is recorded too', async () => {
+    const fake = installFakeEngine()
+    const {ended, push} = await startListener(fake)
+    void push()
+    await afterTimers()
+    expect(count(fake)).toBe(0)
+    fake.drop()
+    await ended
+    expect(count(fake)).toBe(0)
+    expect(keyError(fake)).toMatchObject({code: 101})
+  })
+})
+
 describe('a dialog', () => {
   test('dispose while a prompt is up stops waiting', async () => {
     const fake = installFakeEngine()
@@ -270,15 +364,19 @@ describe('a dialog', () => {
     void fake.push(choose, {devices}, {sessionID})
     await it.next()
     expect(count(fake)).toBe(0)
+    const counts = recordCounts()
     dialog.dispose()
     expect(count(fake)).toBe(0)
+    counts.unsubscribe()
+    // Releasing the refused prompt does not show it waiting on the service on its way out
+    expect(counts.seen).toEqual([])
     held[0]!.reply(undefined)
     await tick()
     expect(count(fake)).toBe(0)
   })
 
   // B2
-  test.failing('dispose records no error on its key', async () => {
+  test('dispose records no error on its key', async () => {
     const fake = installFakeEngine()
     const {dialog, held} = await startDialog(fake)
     dialog.dispose()
@@ -290,7 +388,7 @@ describe('a dialog', () => {
   })
 
   // B5
-  test.failing('an auto-answered prompt never turns waiting off', async () => {
+  test('an auto-answered prompt never turns waiting off', async () => {
     const fake = installFakeEngine()
     const {dialog, held, sessionID} = await startDialog(fake)
     expect(count(fake)).toBe(1)
