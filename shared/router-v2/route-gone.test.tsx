@@ -2,7 +2,7 @@
 import {useRouterState, type NavState} from '@/stores/router'
 import logger from '@/logger'
 import {installFakeNavigator, restoreNavigator} from '@/test/fake-navigator'
-import {registerRouteGone} from './route-gone'
+import {findRoutes, registerRouteGone} from './route-gone'
 
 const setRootState = (state: NavState | undefined) =>
   useRouterState.getState().dispatch.setNavState(state)
@@ -191,4 +191,45 @@ test('a flow that throws as its route goes is logged and the others still end', 
   expect(error).toHaveBeenCalledWith(expect.stringContaining(key), failure)
   expect(other).toHaveBeenCalledTimes(1)
   error.mockRestore()
+})
+
+// A route whose nested navigator counts how often a walk reads it
+const counted = () => {
+  let reads = 0
+  const route = {
+    key: 'deep-route',
+    name: 'loggedOut',
+    get state() {
+      reads++
+      return {index: 0, key: 'deep', routes: [{key: 'deep-screen', name: 'screen'}], type: 'stack'}
+    },
+  }
+  return {reads: () => reads, route}
+}
+
+test('finding routes stops walking once every key is found', () => {
+  const {reads, route} = counted()
+  const state = {
+    index: 1,
+    key: 'root',
+    routes: [{key, name: 'screen', params: {promptId: 5}}, route],
+    type: 'stack',
+  } as unknown as NavState
+
+  expect(findRoutes(state, new Set([key]))).toEqual(new Map([[key, {promptId: 5}]]))
+  expect(reads()).toBe(0)
+  expect([...findRoutes(state, new Set([key, 'deep-screen'])).keys()]).toEqual([key, 'deep-screen'])
+  expect(reads()).toBe(1)
+})
+
+test("registering a route in the navigator's state does not walk the store's copy", () => {
+  const {reads, route} = counted()
+  installFakeNavigator({rootState: rootWith([{key}])})
+  setRootState({index: 1, key: 'root', routes: [{key: 'app', name: 'app'}, route], type: 'stack'} as unknown as NavState)
+  const before = reads()
+
+  registerRouteGone(key, pending().promise, jest.fn())
+  restoreNavigator()
+
+  expect(reads()).toBe(before)
 })

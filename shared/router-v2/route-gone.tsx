@@ -25,21 +25,30 @@ type Entry = {
 
 const entries = new Map<string, Entry>()
 
-const routeParams = (state: Immutable<NavState> | undefined, out = new Map<string, RouteParams>()) => {
-  for (const r of state?.routes ?? []) {
-    if (r.key) {
-      out.set(r.key, r.params)
+// The params of each of these routes in the state, walking it only until every one is found
+export const findRoutes = (
+  state: Immutable<NavState> | undefined,
+  keys: {has: (key: string) => boolean; readonly size: number}
+) => {
+  const found = new Map<string, RouteParams>()
+  const walk = (s: Immutable<NavState> | undefined) => {
+    for (const r of s?.routes ?? []) {
+      if (found.size === keys.size) return
+      if (r.key && keys.has(r.key)) {
+        found.set(r.key, r.params)
+      }
+      walk(r.state)
     }
-    routeParams(r.state, out)
   }
-  return out
+  walk(state)
+  return found
 }
 
 const onRootState = (state: Immutable<NavState> | undefined) => {
   // No container (between an account switch's unmount and the new one's first state) is not a
   // removal
   if (!state || !entries.size) return
-  const present = routeParams(state)
+  const present = findRoutes(state, entries)
   for (const [key, entry] of [...entries]) {
     if (present.has(key)) {
       entry.seen = true
@@ -74,10 +83,9 @@ export const registerRouteGone = (
   if (prev?.until === until && prev.onGone === onGone) return
   // The navigator's state is ahead of the router store's copy, which a screen's mount effect runs
   // before: a route that leaves before the copy has it would otherwise never be seen
-  const present = routeParams(
-    getNavigator().getRootState() as Immutable<NavState> | undefined,
-    routeParams(useRouterState.getState().navState)
-  )
+  const keys = new Set([routeKey])
+  const live = findRoutes(getNavigator().getRootState() as Immutable<NavState> | undefined, keys)
+  const present = live.size ? live : findRoutes(useRouterState.getState().navState, keys)
   const entry: Entry = {
     onGone,
     params: present.has(routeKey) ? present.get(routeKey) : prev?.params,
