@@ -45,9 +45,9 @@ export const LOADING_SELECTORS: ReadonlyArray<string> = ['.loading-line']
 // layout-scrollbar-obtrusive) take space and don't fade; they stay in the capture.
 const HIDE_OVERLAY_SCROLLBARS = '* { scrollbar-width: none !important; }'
 
-const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+export const sleep = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
-const withDeadline = async <T,>(p: Promise<T>, ms: number, what: string): Promise<T> => {
+export const withDeadline = async <T,>(p: Promise<T>, ms: number, what: string): Promise<T> => {
   let timer: ReturnType<typeof setTimeout> | undefined
   const timeout = new Promise<never>((_resolve, reject) => {
     timer = setTimeout(() => reject(new Error(`${what}: no answer in ${ms / 1000}s`)), ms)
@@ -59,7 +59,7 @@ const withDeadline = async <T,>(p: Promise<T>, ms: number, what: string): Promis
   }
 }
 
-const waitFor = async (what: string, ms: number, check: () => Promise<boolean>) => {
+export const waitFor = async (what: string, ms: number, check: () => Promise<boolean>) => {
   const start = Date.now()
   for (;;) {
     if (await check()) return
@@ -264,10 +264,11 @@ const maskRects = async (page: Page, entry: TourEntry, dpr: number) => {
 }
 
 // Replaces Date so that `new Date()` and `Date.now()` return `now`; timers keep running. Runs in the
-// page, both on the live document and before every new one. Only Date: Playwright's clock.install +
+// page, both on the live document and before every new one (the iOS driver runs it through Metro
+// after each reload). Only Date: Playwright's clock.install +
 // pauseAt also freezes setTimeout and requestAnimationFrame, and the renderer then never finishes
 // booting after a reload.
-const fixDate = (now: number) => {
+export const fixDate = (now: number) => {
   const g = globalThis as unknown as DateGlobals
   g.__kbVisualNow = now
   if (g.__kbVisualRealDate) return
