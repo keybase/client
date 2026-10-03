@@ -6,7 +6,7 @@ import {useWaitingState} from '@/stores/waiting'
 import {waitingKeyRecoverPassword} from '@/constants/strings'
 import {navigateAppend} from '@/constants/router'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
-import {tick} from '@/test/flush'
+import {settle as settleTimers, tick} from '@/test/flush'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 import {newModalRoutes} from '../routes'
 
@@ -49,15 +49,15 @@ afterEach(() => {
 const useFakeTimers = () => jest.useFakeTimers({doNotFake: ['queueMicrotask', 'nextTick', 'setImmediate']})
 const isFakeTimers = () => jest.isMockFunction(setTimeout) || 'clock' in setTimeout
 
-// The listener hands incoming calls to their handlers on a timer, and the flow reads them off the
-// dialog's events after that
+// On fake timers every due timer runs in creation order, so one advance covers the listener's and
+// the dialog's; real timers go through the shared settle
 const settle = async () => {
   if (isFakeTimers()) {
     await jest.advanceTimersByTimeAsync(0)
+    await tick()
   } else {
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await settleTimers()
   }
-  await tick()
 }
 
 const startRun = async () => {

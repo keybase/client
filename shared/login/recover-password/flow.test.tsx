@@ -4,7 +4,7 @@ import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import logger from '@/logger'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
-import {tick} from '@/test/flush'
+import {settle, tick} from '@/test/flush'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 
 const mockCancelProvision = jest.fn()
@@ -45,13 +45,6 @@ afterEach(() => {
   mockCancelProvision.mockReset()
   resetAllStores()
 })
-
-// The listener hands incoming calls to their handlers on a timer, and the flow reads them off the
-// dialog's events after that
-const settle = async () => {
-  await new Promise(resolve => setTimeout(resolve, 0))
-  await tick()
-}
 
 const start = async (p?: {onEngineIncoming?: () => void; replaceRoute?: boolean; onResetEmailSent?: () => void}) => {
   fake = installFakeEngine({onEngineIncoming: p?.onEngineIncoming})
