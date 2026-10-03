@@ -18,7 +18,6 @@ import {e164ToDisplay} from '@/util/phone-numbers'
 import {navToProfile} from '@/constants/router'
 import {clearSignupEmail, useSignupEmail} from './signup-email'
 
-const getPeopleDataWaitingKey = 'getPeopleData'
 const waitToRefresh = 1000 * 60 * 5
 const defaultNumFollowSuggestions = 10
 
@@ -331,7 +330,7 @@ const usePeoplePageState = () => {
         try {
           const data = await T.RPCGen.homeHomeGetScreenRpcPromise(
             {markViewed, numFollowSuggestionsWanted},
-            getPeopleDataWaitingKey
+            C.waitingKeyPeopleGetData
           )
           if (!mountedRef.current) {
             return
@@ -423,7 +422,7 @@ const PeopleReloadable = () => {
   const navigation = useNavigation()
   const username = useCurrentUserState(s => s.username)
   const signupEmail = useSignupEmail()
-  const waiting = C.Waiting.useAnyWaiting(getPeopleDataWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyPeopleGetData)
   const lastRefreshRef = React.useRef(0)
   const didInitialLoadRef = React.useRef(false)
 
@@ -466,7 +465,7 @@ const PeopleReloadable = () => {
   }, [navigation])
 
   return (
-    <Kb.Reloadable onReload={onReload} reloadOnMount={false} waitingKeys={getPeopleDataWaitingKey}>
+    <Kb.Reloadable onReload={onReload} reloadOnMount={false} waitingKeys={C.waitingKeyPeopleGetData}>
       <People
         followSuggestions={followSuggestions}
         getData={getData}

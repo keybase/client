@@ -4,6 +4,7 @@ import * as Crypto from '@/constants/crypto'
 import * as Tabs from '@/constants/tabs'
 import {RPCError} from '@/util/errors'
 import {ignorePromise} from '@/constants/utils'
+import {waitingKeyUnlockFolders} from '@/constants/waiting-keys'
 import {navigateAppend, navigateToThread, previewConversation, switchTab} from '@/constants/router'
 import {emitDeepLink} from '@/router-v2/linking'
 import {isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
@@ -146,7 +147,7 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.unlockFoldersSubmitPaperKey: {
-      T.RPCGen.loginPaperKeySubmitRpcPromise({paperPhrase: action.payload.paperKey}, 'unlock-folders:waiting')
+      T.RPCGen.loginPaperKeySubmitRpcPromise({paperPhrase: action.payload.paperKey}, waitingKeyUnlockFolders)
         .then(() => {
           useUnlockFoldersState.getState().dispatch.close()
         })

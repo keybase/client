@@ -19,7 +19,7 @@ const InviteByEmail = (ownProps: OwnProps) => {
   const {
     teamMeta: {teamname},
   } = useLoadedTeam(teamID)
-  const waitingKey = C.waitingKeyTeamsAddToTeamByEmail(teamname) || ''
+  const waitingKey = C.waitingKeyTeamsAddToTeamByEmail(teamname)
   const inviteToTeamByEmail = C.useRPC(T.RPCGen.teamsTeamAddEmailsBulkRpcPromise)
 
   const [invitees, setInvitees] = React.useState('')

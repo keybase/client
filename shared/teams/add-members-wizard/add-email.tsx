@@ -9,7 +9,7 @@ type Props = {
   errorMessage?: string
 }
 
-const waitingKey = 'emailLookup'
+const waitingKey = C.waitingKeyTeamsEmailLookup
 
 const AddEmail = (props: Props) => {
   const styles = useStyles()

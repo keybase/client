@@ -1,6 +1,3 @@
-export const traceInProgressKey = 'settings:traceInProgress'
-export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
-
 export const settingsAboutTab = 'settingsTabs.aboutTab'
 export const settingsAdvancedTab = 'settingsTabs.advancedTab'
 export const settingsArchiveTab = 'settingsTabs.archiveTab'
