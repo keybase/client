@@ -10,7 +10,7 @@ import {type CommonResponseHandler} from '@/engine/types'
 import {callNamed, setNamedScoped} from '@/stores/flow-handles'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
-import {RPCError} from '@/util/errors'
+import {isQuietCancel, RPCError} from '@/util/errors'
 
 const owner = 'provision'
 
@@ -440,6 +440,12 @@ const runProvision = (initialUsername: string) => {
             break
           }
           const finalError = _finalError
+          // A cancel ends the run quietly: Go cancels the secret prompt once the other device finished
+          // the key exchange. A lost link is no cancel: the login did not happen, so it shows the error
+          // screen.
+          if (isQuietCancel(finalError)) {
+            break
+          }
           // If it's a non-existent username or invalid, allow the opportunity to correct it right
           // there on the page.
           switch (finalError.code) {

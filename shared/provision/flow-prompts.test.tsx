@@ -8,6 +8,7 @@ import {useWaitingState} from '@/stores/waiting'
 import {waitingKeyProvision} from '@/constants/strings'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {tick} from '@/test/flush'
+import logger from '@/logger'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 
 import {
@@ -42,6 +43,7 @@ beforeEach(() => {
 afterEach(() => {
   cancelProvision()
   restoreNavigator()
+  jest.restoreAllMocks()
   resetAllStores()
 })
 
@@ -149,6 +151,33 @@ describe('final error handling', () => {
 
     expect(nav.modalsCleared()).toBe(false)
     expect(nav.navigations()).toEqual([])
+  })
+
+  test.each([
+    ['an input cancel', T.RPCGen.StatusCode.scinputcanceled, 'canceled by the service'],
+    ['a session cancel', T.RPCGen.StatusCode.sccanceled, 'Received RPC cancel for session'],
+  ])('a cancel from the service (%s) ends the run quietly', async (_, code, desc) => {
+    const logError = jest.spyOn(logger, 'error')
+    const {reply} = await startAttempt()
+
+    reply(fakeError(code, desc))
+    await settle()
+
+    expect(nav.modalsCleared()).toBe(false)
+    expect(nav.navigations()).toEqual([])
+    expect(logError).not.toHaveBeenCalled()
+  })
+
+  test('a lost service connection shows the error screen', async () => {
+    await startAttempt()
+
+    fake.drop()
+    await settle()
+
+    expect(nav.modalsCleared()).toBe(true)
+    expect(nav.navigations()).toContainEqual(
+      expect.objectContaining({name: 'error', params: expect.objectContaining({username: 'testuser'})})
+    )
   })
 
   test('a lost service connection ends the run', async () => {
