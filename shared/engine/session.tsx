@@ -23,10 +23,7 @@ import {
 
 // A response the session handed to a handler. Settled once: by the handler, or by the session.
 type HeldResponse = {
-  method: MethodKey
   response: ResponseType
-  // What the handler got, which carries its onCancelledByService
-  request?: ResponseType
   settled: boolean
   // Its handler runs later, and says when it has
   deferred?: boolean
@@ -154,12 +151,8 @@ class Session {
   cancelByService(seqid: number) {
     for (const held of [...this._held]) {
       // Like an answer, settling it has the service working on the RPC again
-      if (held.response.seqid === seqid && this._settle(held)) {
-        try {
-          held.request?.onCancelledByService?.()
-        } catch (e) {
-          logger.error(`Session: the service-cancel handler for ${held.method} threw`, e)
-        }
+      if (held.response.seqid === seqid) {
+        this._settle(held)
       }
     }
   }
@@ -332,7 +325,7 @@ class Session {
     }
 
     // A custom call delivered as a notification has nothing to answer
-    const held: HeldResponse = {method, response: response ?? {}, settled: false}
+    const held: HeldResponse = {response: response ?? {}, settled: false}
     this._held.add(held)
 
     const answer = (write: () => void) => {
@@ -347,7 +340,6 @@ class Session {
         return held.settled
       },
     }
-    held.request = request
     // The GUI owes the service only once the task its handler ran in is over, unanswered. An answer
     // in that task (an auto-answer, or a Dialog consumer a few microtasks later, as provision's replay)
     // never shows waiting off: the engine flushes an "off" at once but throttles the "on" after it.
