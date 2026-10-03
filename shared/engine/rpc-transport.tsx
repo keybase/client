@@ -70,6 +70,9 @@ const makeTransportError = (name: ErrorName): ErrorType => ({
 // service. Its code stays EOF, and isErrorTransient knows it as a service restart.
 const disconnectKind: RPCErrorKind = {reason: 'disconnect', type: 'cancelled'}
 
+// The transport was closed under its calls. Only makeEngine closes one, when a hot reload replaces the
+// engine, and the new engine's link-up runs the handshake again, so the calls' owners reload as after
+// any lost link.
 const makeEOFError = (): ErrorType => ({...makeTransportError('EOF'), kind: disconnectKind})
 
 // Settles a call made on, or waiting on, a link to the service that has gone
@@ -550,12 +553,10 @@ export abstract class RPCTransport {
       // rather than leaving the seqid outstanding for the rest of the session.
       // Shaped like every other transport-level failure (code/desc, not the
       // raw exception) so downstream convertToError yields an RPCError with a
-      // code; the original message survives in desc.
+      // code; the original message survives in desc. The link is up, so this
+      // is a local failure, not a lost link: no reconnect will retry it.
       this._invocations.delete(seqid)
-      cb(
-        {code: errors.EOF, desc: err instanceof Error ? err.message : String(err), kind: disconnectKind, name: 'EOF'},
-        {}
-      )
+      cb({code: errors.EOF, desc: err instanceof Error ? err.message : String(err), name: 'EOF'}, {})
     }
   }
 

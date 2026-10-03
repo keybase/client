@@ -1,6 +1,7 @@
 /// <reference types="jest" />
 
 import logger from '@/logger'
+import {convertToError, isCancelled} from '@/util/errors'
 import {
   RPCTransport,
   encodeFrame,
@@ -186,9 +187,13 @@ test('invoke fails the caller when the native write throws', () => {
   // The raw exception is wrapped into the transport error shape (code/desc)
   // so convertToError produces an RPCError; the message survives in desc.
   expect(cb).toHaveBeenCalledWith(
-    expect.objectContaining({code: errors.EOF, desc: writeError.message, kind: {reason: 'disconnect', type: 'cancelled'}}),
+    expect.objectContaining({code: errors.EOF, desc: writeError.message}),
     {}
   )
+  // The link is up: a local failure, which no reconnect retries, so not a lost link
+  const err = (cb.mock.calls[0] as [unknown])[0]
+  expect((err as {kind?: unknown}).kind).toBeUndefined()
+  expect(isCancelled(convertToError(err))).toBe(false)
 })
 
 test('a failed write leaves no outstanding invocation', () => {

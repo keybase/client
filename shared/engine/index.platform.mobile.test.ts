@@ -217,6 +217,44 @@ test('NativeTransportMobile fails the invocation (not hang) when rpcOnGo reports
     // thrown Error into its code/desc shape; the message survives in desc.
     expect((err as {code?: number; desc?: string}).code).toBe(errors.EOF)
     expect((err as {code?: number; desc?: string}).desc).toBe('native rpc write failed')
+    // A local failure while the link is up, not a lost link
+    expect((err as {kind?: unknown}).kind).toBeUndefined()
+  } finally {
+    teardownMobileMocks(originalIsMobile, originalRpcOnGo, originalRpcOnJs)
+  }
+})
+
+test('an engine that replaces one built by older code (HMR) fails its calls as a lost link and announces a link-up', () => {
+  const originalIsMobile = global.isMobile
+  const originalRpcOnGo = global.rpcOnGo
+  const originalRpcOnJs = global.rpcOnJs
+  global.isMobile = true
+  mockNativeModules(() => {})
+  jest.resetModules()
+
+  try {
+    const {ENGINE_VERSION, makeEngine} = require('./index') as typeof EngineModule
+    global.rpcOnGo = () => true
+    const old = makeEngine(
+      () => {},
+      () => {}
+    )
+    old.listenersAreReady()
+    const inFlight = jest.fn()
+    old.call({callback: inFlight, method: 'keybase.1.test.hello', params: {}})
+    ;(old as {version?: number}).version = ENGINE_VERSION - 1
+
+    const linkChanges = new Array<boolean>()
+    const next = makeEngine(
+      () => {},
+      up => linkChanges.push(up)
+    )
+    next.listenersAreReady()
+
+    expect(next).not.toBe(old)
+    expect(inFlight.mock.calls[0]![0]).toMatchObject({code: errors.EOF, kind: {reason: 'disconnect', type: 'cancelled'}})
+    // The link-up that runs the handshake again, and with it the reloads
+    expect(linkChanges).toEqual([true])
   } finally {
     teardownMobileMocks(originalIsMobile, originalRpcOnGo, originalRpcOnJs)
   }
