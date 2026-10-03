@@ -449,9 +449,14 @@ const makeEngine = (
     logger.warn('makeEngine called multiple times')
   }
 
-  // An HMR'd engine built by older code may predate the call port
+  // An HMR'd engine built by older code may predate the call port or the session's waiting tracker
   const reused = engine as Partial<Engine> | undefined
-  if (!engine || typeof reused?.call !== 'function' || typeof reused.listen !== 'function') {
+  if (
+    !engine ||
+    typeof reused?.call !== 'function' ||
+    typeof reused.listen !== 'function' ||
+    typeof reused.holdServerWork !== 'function'
+  ) {
     engine = new Engine(emitWaiting, onConnected, onEngineIncoming)
     engine._setupDebugging()
     if (reused) {
