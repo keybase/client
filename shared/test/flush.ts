@@ -23,3 +23,14 @@ export const flush = async (turns = 4) => {
     await act(tick)
   }
 }
+
+// One pass of the engine's timers for tests that render nothing: the listener hands incoming calls
+// to their handlers on a 0ms timer, and a dialog ends its events on another once its RPC settles.
+// Both are armed by microtasks a reply or push sets off, so those drain first: Node fires
+// equal-delay timers in creation order, so ours has to be created after theirs. Armed earlier, ours
+// can come due a millisecond before theirs and let the caller's check run ahead of them.
+export const settle = async () => {
+  await tick()
+  await new Promise(resolve => setTimeout(resolve, 0))
+  await tick()
+}

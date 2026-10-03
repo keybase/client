@@ -5,7 +5,7 @@ import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
-import {tick} from '@/test/flush'
+import {settle, tick} from '@/test/flush'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 import {startRecoverPassword} from './flow'
 import Password from './password'
@@ -38,13 +38,6 @@ afterEach(() => {
   restoreNavigator()
   resetAllStores()
 })
-
-// The listener hands incoming calls to their handlers on a timer, and the flow reads them off the
-// dialog's events after that
-const settle = async () => {
-  await new Promise(resolve => setTimeout(resolve, 0))
-  await tick()
-}
 
 // Starts a run, has Go ask for the new password, and renders the screen the flow pushed.
 // `before` runs between the push and the screen mounting, as a deferred mount would see it.
