@@ -118,12 +118,10 @@ describe('navigateAppend', () => {
   })
 })
 
-// A push dispatched this tick is not in getRootState() until React Navigation commits, so
-// the visible-route check above cannot see it. Repeat taps that land inside that window -
-// a janky JS thread queueing both - would otherwise push the same screen twice.
+// The in-flight push is dropped until the next 'state' event. In the app the visible-route check
+// above already sees a push dispatched this tick (getRootState() has it at once); these tests hold
+// the push out of the tree with a manual commit so that only the in-flight check can drop it.
 describe('navigateAppend in-flight dedupe', () => {
-  // Manual commit keeps the pushed screen out of the tree, as it is in the app until React
-  // Navigation commits.
   beforeEach(() => {
     jest.useFakeTimers()
     nav = installFakeNavigator({commit: 'manual'})
@@ -324,6 +322,113 @@ describe('removeRoutes', () => {
 
       expect(rootNames()).toEqual(['loggedIn'])
     })
+
+    test('a modal under a pushed screen that stays is kept too', () => {
+      nav = installFakeNavigator({
+        modalRouteNames: ['m1'],
+        rootState: makeRootState({above: [{name: 'm1'}, {name: 'chatConversation'}]}),
+      })
+
+      removeRoutes(['m1-above-0'])
+
+      expect(nav.actions).toEqual([])
+      expect(rootNames()).toEqual(['loggedIn', 'm1', 'chatConversation'])
+    })
+
+    test('the guard is for the root stack: a tab stack loses a route under one that stays', () => {
+      nav = installFakeNavigator({
+        rootState: makeRootState({tab: Tabs.peopleTab, tabStack: [{name: 'peopleRoot'}, {name: 'a'}, {name: 'b'}]}),
+      })
+
+      removeRoutes(['a-1'])
+
+      expect(stackNames()).toEqual(['peopleRoot', 'b'])
+    })
+  })
+
+  test('a push dispatched this tick is in the root state it reads, so it goes too', () => {
+    nav = installFakeNavigator({modalRouteNames: ['m1']})
+    navigateAppend({name: 'm1', params: {}} as never)
+    const key = nav.getRootState()?.routes?.at(-1)?.key
+
+    removeRoutes([key!])
+
+    expect(rootNames()).toEqual(['loggedIn'])
+  })
+
+  test('a tab navigator is never reset; the stacks in its tabs are', () => {
+    nav = installFakeNavigator({
+      rootState: makeRootState({tab: Tabs.peopleTab, tabStack: [{name: 'peopleRoot'}, {name: 'a'}]}),
+    })
+
+    removeRoutes([Tabs.peopleTab, 'a-1'])
+
+    expect(nav.actions).toEqual([expect.objectContaining({target: `${Tabs.peopleTab}-stack`, type: 'RESET'})])
+    expect(stackNames()).toEqual(['peopleRoot'])
+  })
+
+  test('a stack with no key is not rewritten, and the stacks under it are still pruned', () => {
+    const root = makeRootState({tab: Tabs.peopleTab, tabStack: [{name: 'peopleRoot'}, {name: 'a'}]})
+    nav = installFakeNavigator({
+      rootState: {
+        ...root,
+        routes: [
+          {
+            key: 'outer',
+            name: 'outer',
+            state: {
+              index: 1,
+              routes: [
+                {key: 'x', name: 'x'},
+                {key: 'y', name: 'y', state: root?.routes?.[0]?.state},
+              ],
+              type: 'stack',
+            },
+          },
+        ],
+      } as never,
+    })
+
+    removeRoutes(['x', 'a-1'])
+
+    expect(nav.actions).toEqual([expect.objectContaining({target: `${Tabs.peopleTab}-stack`, type: 'RESET'})])
+  })
+
+  test('the stack stays focused on the route it was, or the nearest kept one below it', () => {
+    const stack = (index: number) =>
+      ({
+        index: 0,
+        key: 'root',
+        routes: [
+          {
+            key: 'loggedOut',
+            name: 'loggedOut',
+            state: {
+              index,
+              key: 'loggedOut-stack',
+              routes: ['a', 'b', 'c', 'd'].map(n => ({key: n, name: n})),
+              type: 'stack',
+            },
+          },
+        ],
+        type: 'stack',
+      }) as never
+    const focused = () => {
+      const s = nav.getRootState()?.routes?.[0]?.state
+      return s?.routes[s.index ?? 0]?.name
+    }
+
+    nav = installFakeNavigator({rootState: stack(2)})
+    removeRoutes(['a', 'd'])
+    expect(focused()).toBe('c')
+
+    nav = installFakeNavigator({rootState: stack(2)})
+    removeRoutes(['b', 'c'])
+    expect(focused()).toBe('a')
+
+    nav = installFakeNavigator({rootState: stack(0)})
+    removeRoutes(['a'])
+    expect(focused()).toBe('b')
   })
 
   test('resets each stack that holds one, and only those', () => {

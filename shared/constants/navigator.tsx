@@ -27,7 +27,7 @@ import {shallowEqual} from './utils'
 import type {NavigateAppendType, RouteKeys, RootParamList} from '@/router-v2/route-params'
 
 type ContainerRef = NavigationContainerRef<RootParamList>
-export type NavAction = Parameters<ContainerRef['dispatch']>[0]
+export type NavAction = Exclude<Parameters<ContainerRef['dispatch']>[0], (...args: never) => unknown>
 
 // What an adapter has to provide. Deliberately the smallest surface that the
 // operations below need, so a fake is a handful of lines rather than a mock of
@@ -70,9 +70,10 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
   // whether it dispatched.
   setRouteParams: (routeKey: string | undefined, params: object) => boolean
   // Takes the routes with these keys out of whichever stacks hold them, leaving every other route
-  // where it is: one reset per stack that holds one, built from the root state as it is now. On iOS
-  // a modal under a modal that stays is kept: taking a covered modal out of the presented ones
-  // crashes react-native-screens ("Modally presented controllers are being reshuffled").
+  // where it is: one reset per stack that holds one, built from the root state as it is now (which
+  // already has every navigation dispatched before). On iOS a route under one that stays in the root
+  // stack is kept: taking a covered screen out of the presented ones crashes react-native-screens
+  // ("Modally presented controllers are being reshuffled").
   removeRoutes: (keys: Iterable<string>) => void
   // Runs cb once no modal route is up: now, or at the state commit that removes the last one
   // within modalsWaitMs. One wait at a time: a new one drops the one before it. Returns a cancel.
@@ -85,10 +86,10 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
 const modalsWaitMs = 1000
 
 export const makeNavigator = (ref: NavigatorRef): Navigator => {
-  // A push dispatched this tick isn't in getRootState() until React Navigation commits, so the
-  // visible-route dupe check below misses repeat taps that land before the commit (e.g. a janky JS
-  // thread queueing both). Track the in-flight push until the next state event; the time bound is a
-  // backstop in case the container tears down before the listener fires.
+  // getRootState() has a push as soon as it is dispatched: React Navigation updates its state at
+  // once, and only the 'state' event waits for React's commit. So the visible-route dupe check below
+  // already sees a repeat tap's first push. This drops an identical push until that event too; the
+  // time bound is a backstop in case the container tears down before the listener fires.
   let pendingAppend: {name: string; params?: object; time: number} | undefined
 
   const navigateUp = () => {
@@ -107,26 +108,31 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     ref.dispatch(StackActions.popToTop())
   }
 
+  // The reset that leaves stack `s` holding only `kept`, still focused on the route it was, or the
+  // nearest kept one below it once that route is gone
+  const resetStackTo = (s: NonNullable<NavTree.NavState>, kept: ReadonlyArray<object>) => {
+    const routes: ReadonlyArray<object> = s.routes ?? []
+    const focused = s.index ?? routes.length - 1
+    const index = Math.max(0, routes.filter((r, i) => i <= focused && kept.includes(r)).length - 1)
+    return {
+      ...CommonActions.reset({...s, index, routes: kept} as Parameters<typeof CommonActions.reset>[0]),
+      target: s.key,
+    }
+  }
+
   const clearModals = () => {
     if (DEBUG_NAV) {
       console.log('[Nav] clearModals')
     }
     if (!ref.isReady()) return
     const ns = ref.getRootState()
-    if (!NavTree.isLoggedIn(ns)) {
+    if (!ns || !NavTree.isLoggedIn(ns)) {
       return
     }
-    const rootRoutes = ns?.routes ?? []
+    const rootRoutes = ns.routes ?? []
     const keepRoutes = rootRoutes.filter((route, index) => index === 0 || !NavTree.isModalRouteName(route.name))
     if (keepRoutes.length !== rootRoutes.length) {
-      ref.dispatch({
-        ...CommonActions.reset({
-          ...ns,
-          index: keepRoutes.length - 1,
-          routes: keepRoutes,
-        } as Parameters<typeof CommonActions.reset>[0]),
-        target: ns?.key,
-      })
+      ref.dispatch(resetStackTo(ns, keepRoutes))
     }
   }
 
@@ -365,16 +371,24 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     }
     const remove = new Set(keys)
     if (!ref.isReady() || !remove.size) return
+    const root = ref.getRootState()
     const prune = (s: NavTree.NavState | undefined) => {
       const routes = s?.routes
       if (!s || !routes) return
-      let underKeptModal = false
+      // Only a keyed stack is rebuilt. A tab navigator holds no route this removes, and a state with
+      // no key has nothing to target; their routes' stacks are pruned as they are.
+      if (s.type !== 'stack' || !s.key) {
+        for (const r of routes) {
+          prune(r.state)
+        }
+        return
+      }
+      let underKept = false
       const kept = [...routes]
         .reverse()
         .filter(r => {
-          const modal = isIOS && NavTree.isModalRouteName(r.name)
-          const gone = !!r.key && remove.has(r.key) && !(modal && underKeptModal)
-          underKeptModal ||= modal && !gone
+          const gone = !!r.key && remove.has(r.key) && !(isIOS && s === root && underKept)
+          underKept ||= !gone
           return !gone
         })
         .reverse()
@@ -384,18 +398,13 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
           logger.warn('[Nav] removeRoutes: not emptying a stack')
           return
         }
-        ref.dispatch({
-          ...CommonActions.reset({...s, index: kept.length - 1, routes: kept} as Parameters<
-            typeof CommonActions.reset
-          >[0]),
-          target: s.key,
-        })
+        ref.dispatch(resetStackTo(s, kept))
       }
       for (const r of kept) {
         prune(r.state)
       }
     }
-    prune(ref.getRootState())
+    prune(root)
   }
 
   let cancelModalsWait: (() => void) | undefined
