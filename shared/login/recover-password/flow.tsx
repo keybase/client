@@ -31,8 +31,15 @@ const explainDevice = 'keybase.1.loginUi.explainDeviceRecovery'
 
 type RecoverPrompt = typeof chooseDevice | typeof promptPgp | typeof promptReset | typeof getPassphrase
 type RecoverDialog = Dialog<void, RecoverPrompt, typeof explainDevice>
-// ended settles once the run is over
-type Run = {dialog: RecoverDialog; ended?: Promise<void>; onResetEmailSent?: () => void; username: string}
+type Run = {
+  // Prompts a screen answered. Their screens stay while the service works on the answer.
+  answered: Set<number>
+  dialog: RecoverDialog
+  // Settles once the run is over
+  ended?: Promise<void>
+  onResetEmailSent?: () => void
+  username: string
+}
 
 // The run the screens answer. Kept outside the stores: the run logs the user in, and the logout
 // before that must not stop its screens from answering it. A restart disposes it first.
@@ -73,18 +80,10 @@ export const isRecoverPasswordPromptOpen = (promptId: number) =>
 export const recoverPasswordRunEnded = (promptId: number) =>
   isRecoverPasswordPromptOpen(promptId) ? current?.ended : undefined
 
-// Prompts of this run that a screen answered. Their screens stay while the service works on the answer.
-const answeredByScreen = new Set<number>()
-const noteAnswer = (promptId: number, answered: boolean | undefined) => {
-  if (answered) {
-    answeredByScreen.add(promptId)
-  }
-}
-
 // The prompt settled without its screen's answer (before the screen appeared, or by a restart or the
 // run ending), so the screen has nothing left to do
 export const isRecoverPasswordPromptGone = (promptId: number) =>
-  !isRecoverPasswordPromptOpen(promptId) && !answeredByScreen.has(promptId)
+  !isRecoverPasswordPromptOpen(promptId) && !latest?.answered.has(promptId)
 
 // Declines the prompt and navigates nowhere: its screen is already going away. The PGP warning is
 // answered false, which makes Go cancel and log back out; any other prompt is refused.
@@ -111,7 +110,10 @@ export const submitRecoverPasswordPaperKey = (promptId: number, passphrase: stri
   current?.dialog.prompt(promptId, getPassphrase)?.answer({passphrase, storeSecret: false})
 }
 export const submitRecoverPasswordPassword = (promptId: number, passphrase: string) => {
-  noteAnswer(promptId, current?.dialog.prompt(promptId, getPassphrase)?.answer({passphrase, storeSecret: true}))
+  const run = current
+  if (run?.dialog.prompt(promptId, getPassphrase)?.answer({passphrase, storeSecret: true})) {
+    run.answered.add(promptId)
+  }
 }
 export const submitRecoverPasswordReset = (promptId: number, action: T.RPCGen.ResetPromptResponse) => {
   const run = current
@@ -129,7 +131,10 @@ export const markRecoverPasswordPgpShown = (id: number) => {
 
 // Goes on to set the new password, giving up the PGP keys stored with the old one
 export const continueRecoverPasswordPgp = (promptId: number) => {
-  noteAnswer(promptId, current?.dialog.prompt(promptId, promptPgp)?.answer(true))
+  const run = current
+  if (run?.dialog.prompt(promptId, promptPgp)?.answer(true)) {
+    run.answered.add(promptId)
+  }
 }
 
 // A warning under another modal stays: removing a covered modal crashes iOS.
@@ -177,7 +182,6 @@ export const startRecoverPassword = ({
     }
     previous.dialog.dispose()
   }
-  answeredByScreen.clear()
   if (abortProvisioning) {
     cancelProvision()
   }
@@ -192,7 +196,7 @@ export const startRecoverPassword = ({
       waitingKey: waitingKeyRecoverPassword,
     }
   )
-  const run: Run = {dialog, onResetEmailSent, username}
+  const run: Run = {answered: new Set(), dialog, onResetEmailSent, username}
   current = run
   latest = run
   caller = {onResetEmailSent, username}

@@ -95,6 +95,25 @@ test('a screen that answered stays when its effects run again while the service 
   await end()
 })
 
+test('a screen that answered stays when its effects run again after its run ended', async () => {
+  let held: ReturnType<FakeEngine['hold']> = []
+  const {answered, promptId} = await setup((_, h) => {
+    held = h
+  })
+  fireEvent.click(screen.getByText('Save'))
+  await expect(answered).resolves.toEqual({result: {passphrase: 'new password', storeSecret: true}})
+  await act(async () => {
+    held[0]!.reply(fakeError(T.RPCGen.StatusCode.sccanceled, 'Canceling RPC'))
+    await settle()
+  })
+  nav.clearActions()
+
+  cleanup()
+  render(<Password route={{params: {promptId}}} />)
+
+  expect(nav.types()).toEqual([])
+})
+
 // A retry's setParams, or a restart onto the same mounted screen, changes its prompt with no mount or focus
 test('a mounted screen whose params change to a prompt with nothing to answer closes itself', async () => {
   const {end, promptId} = await setup()
