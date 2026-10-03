@@ -6,7 +6,6 @@ import {clearModals, navigateAppend} from '@/constants/router'
 import {rpcDeviceToDevice} from '@/constants/rpc-utils'
 import {waitingKeyProvision} from '@/constants/strings'
 import {ignorePromise, wrapErrors} from '@/constants/utils'
-import {getAccountGeneration} from '@/engine/account-generation'
 import {type CommonResponseHandler} from '@/engine/types'
 import {callNamed, setNamedScoped} from '@/stores/flow-handles'
 import {useConfigState} from '@/stores/config'
@@ -118,12 +117,6 @@ const runProvision = (initialUsername: string) => {
     selectedDevice: makeDevice(),
   }
   let knownDevices: Array<Device> = []
-  // A logout or an account switch cancels the login's session; that failure is ours, not the user's
-  const accountGeneration = getAccountGeneration()
-  const accountChanged = () =>
-    accountGeneration !== getAccountGeneration() || useConfigState.getState().userSwitching
-  // The secret prompt's response while it waits on the user
-  let secretResponse: CommonResponseHandler | undefined
   const autoSubmit: Array<Step> = [{type: 'username'}]
   let pendingResponse: CommonResponseHandler | undefined
   let restartRequested = false
@@ -242,7 +235,6 @@ const runProvision = (initialUsername: string) => {
             if (isCanceled(response)) return
             const {phrase, previousErr} = params
             setPendingResponse(response)
-            secretResponse = response
             handles.set(
               slots.submitTextCode,
               wrapErrors((code: string) => {
@@ -453,19 +445,10 @@ const runProvision = (initialUsername: string) => {
             break
           }
           const finalError = _finalError
-          if (accountChanged() && isCancelError(finalError)) {
-            break
-          }
-          // Once the other device completes the key exchange, Go's deferred canceler cancels the
-          // secret prompt still waiting here and the login goes on to succeed. This engine ends the
-          // whole session on that cancel, so the login rejects first; it is not a failure. A lost
-          // link while that prompt waits reads the same and stays quiet too.
-          if (
-            finalError.code === T.RPCGen.StatusCode.sccanceled &&
-            finalError.desc === 'Received RPC cancel for session' &&
-            secretResponse !== undefined &&
-            pendingResponse === secretResponse
-          ) {
+          // A cancel ends the run quietly, whoever cancelled: an account switch, a lost link, or Go
+          // cancelling the secret prompt once the other device finished the key exchange (this engine
+          // ends the whole session on that cancel, so the login rejects before it succeeds)
+          if (isCancelError(finalError)) {
             break
           }
           // If it's a non-existent username or invalid, allow the opportunity to correct it right

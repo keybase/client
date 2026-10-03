@@ -4,6 +4,7 @@ import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {RPCError} from '@/util/errors'
 import {getEngine} from '@/engine/require'
+import logger from '@/logger'
 
 import {
   cancelProvision,
@@ -11,7 +12,6 @@ import {
   startAddNewDevice,
   submitProvisionDeviceName,
   submitProvisionDeviceSelect,
-  submitProvisionTextCode,
   submitProvisionUsername,
   startProvision,
 } from './flow'
@@ -443,36 +443,30 @@ describe('through the engine listener', () => {
     })
   })
 
-  // Only a cancel the run caused is quiet; the error screen reads scinputcanceled as "Login cancelled."
-  test('a service-side input cancel shows the error screen', async () => {
-    await failLogin(T.RPCGen.StatusCode.scinputcanceled, 'canceled by the service')
+  // Whoever cancelled, as on master: Go's own input cancel reads the same as our refusal echoed back
+  test.each([
+    [T.RPCGen.StatusCode.scinputcanceled, 'canceled by the service'],
+    [T.RPCGen.StatusCode.sccanceled, 'Received RPC cancel for session'],
+  ])('a cancel (%s) ends the login quietly', async (code, desc) => {
+    const logError = jest.spyOn(logger, 'error')
+    await failLogin(code, desc)
 
-    expect(nav.modalsCleared()).toBe(true)
-    expect(nav.navigations().filter(n => n.name === 'error')).toEqual([
-      {
-        name: 'error',
-        params: {error: expect.objectContaining({code: T.RPCGen.StatusCode.scinputcanceled}), username: 'testuser'},
-        replace: true,
-      },
-    ])
+    expect(nav.navigations().filter(n => n.name === 'error' || n.name === 'username')).toEqual([])
+    expect(nav.modalsCleared()).toBe(false)
+    expect(logError).not.toHaveBeenCalled()
   })
 
-  // The engine cancels every session when the link drops, with no account change
-  test('a lost link shows the error screen', async () => {
-    installListenerEngine()
+  // The engine cancels every session when the link drops
+  test('a lost link ends the login quietly', async () => {
+    const engine = installListenerEngine()
     submitProvisionUsername('testuser')
     await flush()
     getEngine().cancelOutstandingSessions()
     await flush()
 
-    expect(nav.modalsCleared()).toBe(true)
-    expect(nav.navigations().filter(n => n.name === 'error')).toEqual([
-      {
-        name: 'error',
-        params: {error: expect.objectContaining({code: T.RPCGen.StatusCode.sccanceled}), username: 'testuser'},
-        replace: true,
-      },
-    ])
+    expect(() => engine.pending(loginMethod)).toThrow()
+    expect(nav.navigations().filter(n => n.name === 'error' || n.name === 'username')).toEqual([])
+    expect(nav.modalsCleared()).toBe(false)
   })
 
   test('our own cancel shows nothing', async () => {
@@ -487,18 +481,15 @@ describe('through the engine listener', () => {
     expect(nav.modalsCleared()).toBe(false)
   })
 
-  // The switch cancels the login's session: a failure the run caused
-  const switchMidLogin = async (endSwitch: 'before the run reads the failure' | 'after the run is over') => {
-    const {setUserSwitching} = useConfigState.getState().dispatch
+  // The switch cancels the login's session, and a cancel ends the run quietly
+  test('an account switch during a login ends it quietly', async () => {
+    const logError = jest.spyOn(logger, 'error')
     const engine = installListenerEngine()
     submitProvisionUsername('testuser')
     await flush()
-    setUserSwitching(true, 'testuser2')
-    if (endSwitch === 'before the run reads the failure') {
-      setUserSwitching(false)
-    }
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
     await flush()
-    setUserSwitching(false)
+    useConfigState.getState().dispatch.setUserSwitching(false)
 
     // the session was cancelled, and the run is over: a submit starts nothing
     expect(() => engine.pending(loginMethod)).toThrow()
@@ -507,17 +498,7 @@ describe('through the engine listener', () => {
     expect(engine.calls.filter(c => c.method === loginMethod)).toHaveLength(1)
     expect(nav.navigations().filter(n => n.name === 'error' || n.name === 'username')).toEqual([])
     expect(nav.modalsCleared()).toBe(false)
-  }
-
-  // Read while the switch runs: logged out, the switch starts no new account generation
-  test('an account switch from logged out during a login shows nothing', async () => {
-    await switchMidLogin('after the run is over')
-  })
-
-  // Read from the account generation, which a switch from a logged-in account moves on
-  test('an account switch from logged in shows nothing even once the switch has ended', async () => {
-    useConfigState.getState().dispatch.setLoggedIn(true)
-    await switchMidLogin('before the run reads the failure')
+    expect(logError).not.toHaveBeenCalled()
   })
 
   test('an error our own prompt cancel caused shows nothing', async () => {
@@ -554,28 +535,6 @@ describe('through the engine listener', () => {
     expect(response.error).not.toHaveBeenCalled()
   })
 
-  test('the same cancel after the user answered the secret prompt shows the error screen', async () => {
-    const engine = installListenerEngine()
-    submitProvisionUsername('testuser')
-    await flush()
-    const response = {error: jest.fn(), result: jest.fn()}
-    engine.pending(loginMethod).incomingCallMap[secretMethod]?.({phrase: 'one two three', previousErr: ''}, response)
-    await new Promise(resolve => setTimeout(resolve, 0))
-    submitProvisionTextCode('one two three')
-    expect(response.result).toHaveBeenCalled()
-
-    engine.fail(loginMethod, T.RPCGen.StatusCode.sccanceled, 'Received RPC cancel for session')
-    await flush()
-    expect(nav.modalsCleared()).toBe(true)
-    expect(nav.navigations().filter(n => n.name === 'error')).toHaveLength(1)
-  })
-
-  test('the same cancel with no secret prompt waiting shows the error screen', async () => {
-    await failLogin(T.RPCGen.StatusCode.sccanceled, 'Received RPC cancel for session')
-    expect(nav.modalsCleared()).toBe(true)
-    expect(nav.navigations().filter(n => n.name === 'error')).toHaveLength(1)
-  })
-
   test('add-device: a lost link closes the modals', async () => {
     installListenerEngine()
     startAddNewDevice('mobile')
@@ -583,6 +542,22 @@ describe('through the engine listener', () => {
     getEngine().cancelOutstandingSessions()
     await flush()
     expect(nav.modalsCleared()).toBe(true)
+  })
+
+  // As on master: a cancel shows no error, and only the user's own cancel leaves the modals up
+  test.each([
+    [T.RPCGen.StatusCode.scinputcanceled, 'Input canceled'],
+    [T.RPCGen.StatusCode.sccanceled, 'Received RPC cancel for session'],
+  ])('add-device: a cancel (%s) from the service ends quietly and closes the modals', async (code, desc) => {
+    const logError = jest.spyOn(logger, 'error')
+    const engine = installListenerEngine()
+    startAddNewDevice('mobile')
+    await flush()
+    engine.fail('keybase.1.device.deviceAdd', code, desc)
+    await flush()
+    expect(nav.modalsCleared()).toBe(true)
+    expect(nav.navigations().filter(n => n.name === 'error')).toEqual([])
+    expect(logError).not.toHaveBeenCalled()
   })
 
   test('add-device: our own cancel leaves the modals', async () => {
