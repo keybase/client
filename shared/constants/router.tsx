@@ -462,6 +462,7 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
   getNavigator().setChatRootParams(params)
 
 // Merges params into the route with this key, even when it is not the focused one.
+export const removeRoutes = (keys: Iterable<string>) => getNavigator().removeRoutes(keys)
 export const setRouteParams = (routeKey: string | undefined, params: object): boolean =>
   getNavigator().setRouteParams(routeKey, params)
 

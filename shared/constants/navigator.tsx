@@ -69,6 +69,9 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
   // Merges params into the route with this key, in place and without a transition. Returns
   // whether it dispatched.
   setRouteParams: (routeKey: string | undefined, params: object) => boolean
+  // Takes the routes with these keys out of whichever stacks hold them, leaving every other route
+  // where it is: one reset per stack that holds one, built from the root state as it is now.
+  removeRoutes: (keys: Iterable<string>) => void
   // Runs cb once no modal route is up: now, or at the state commit that removes the last one
   // within modalsWaitMs. One wait at a time: a new one drops the one before it. Returns a cancel.
   whenModalsGone: (cb: () => void) => () => void
@@ -354,6 +357,36 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     return true
   }
 
+  const removeRoutes = (keys: Iterable<string>) => {
+    if (DEBUG_NAV) {
+      console.log('[Nav] removeRoutes')
+    }
+    const remove = new Set(keys)
+    if (!ref.isReady() || !remove.size) return
+    const prune = (s: NavTree.NavState | undefined) => {
+      const routes = s?.routes
+      if (!s || !routes) return
+      const kept = routes.filter(r => !remove.has(r.key))
+      if (kept.length !== routes.length) {
+        if (!kept.length) {
+          // A stack can't be left empty; its last route goes with whatever holds it
+          logger.warn('[Nav] removeRoutes: not emptying a stack')
+          return
+        }
+        ref.dispatch({
+          ...CommonActions.reset({...s, index: kept.length - 1, routes: kept} as Parameters<
+            typeof CommonActions.reset
+          >[0]),
+          target: s.key,
+        })
+      }
+      for (const r of kept) {
+        prune(r.state)
+      }
+    }
+    prune(ref.getRootState())
+  }
+
   let cancelModalsWait: (() => void) | undefined
   const whenModalsGone = (cb: () => void) => {
     cancelModalsWait?.()
@@ -389,6 +422,7 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     navigateAppendOnceRootHas,
     navigateUp,
     popStack,
+    removeRoutes,
     setChatRootParams,
     setRouteParams,
     showAboveTabs,

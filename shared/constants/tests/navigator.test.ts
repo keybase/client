@@ -9,6 +9,7 @@ import {
   navigateAppendOnceRootHas,
   navigateUp,
   popStack,
+  removeRoutes,
   setChatRootParams,
   switchTab,
 } from '@/constants/router'
@@ -266,6 +267,73 @@ describe('clearModals', () => {
     })
 
     clearModals()
+
+    expect(nav.actions).toEqual([])
+  })
+})
+
+// ---- removeRoutes ----
+
+describe('removeRoutes', () => {
+  const rootNames = () => nav.getRootState()?.routes?.map(r => r.name)
+  const stackNames = () => NavTree.activeStack(nav.getRootState())?.routes?.map(r => r.name)
+
+  test('takes a covered modal out of the root stack and keeps the ones around it', () => {
+    nav = installFakeNavigator({
+      modalRouteNames: ['m1', 'm2', 'm3'],
+      rootState: makeRootState({above: [{name: 'm1'}, {name: 'm2'}, {name: 'm3'}]}),
+    })
+
+    removeRoutes(['m2-above-1'])
+
+    expect(nav.actions).toEqual([expect.objectContaining({target: 'root', type: 'RESET'})])
+    expect(rootNames()).toEqual(['loggedIn', 'm1', 'm3'])
+    // the other routes keep their keys, and so their screens
+    expect(nav.getRootState()?.routes?.map(r => r.key)).toEqual(['loggedIn', 'm1-above-0', 'm3-above-2'])
+    expect(nav.getRootState()?.routes?.[0]?.state?.key).toBe('tabs')
+  })
+
+  test('resets each stack that holds one, and only those', () => {
+    nav = installFakeNavigator({
+      modalRouteNames: ['m1'],
+      rootState: makeRootState({
+        above: [{name: 'm1'}],
+        tab: Tabs.peopleTab,
+        tabStack: [{name: 'peopleRoot'}, {name: 'a'}, {name: 'b'}],
+      }),
+    })
+
+    removeRoutes(['a-1', 'm1-above-0'])
+
+    expect(nav.actions).toEqual([
+      expect.objectContaining({target: 'root', type: 'RESET'}),
+      expect.objectContaining({target: `${Tabs.peopleTab}-stack`, type: 'RESET'}),
+    ])
+    expect(rootNames()).toEqual(['loggedIn'])
+    expect(stackNames()).toEqual(['peopleRoot', 'b'])
+  })
+
+  test('a key in no stack, or none at all, dispatches nothing', () => {
+    nav = installFakeNavigator()
+
+    removeRoutes(['gone'])
+    removeRoutes([])
+
+    expect(nav.actions).toEqual([])
+  })
+
+  test('a stack is never emptied', () => {
+    nav = installFakeNavigator({rootState: makeRootState({loggedIn: false})})
+
+    removeRoutes(['login-0'])
+
+    expect(nav.actions).toEqual([])
+  })
+
+  test('a not-ready navigator dispatches nothing', () => {
+    nav = installFakeNavigator({ready: false})
+
+    removeRoutes(['m1-above-0'])
 
     expect(nav.actions).toEqual([])
   })
