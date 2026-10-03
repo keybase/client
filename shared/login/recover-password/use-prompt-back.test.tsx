@@ -6,7 +6,7 @@ import {act, cleanup, render} from '@testing-library/react'
 import {NavigationContext} from '@react-navigation/core'
 import {resetAllStores} from '@/util/zustand'
 import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
-import {tick} from '@/test/flush'
+import {settle, tick} from '@/test/flush'
 import {makeFakeRoute} from '@/test/fake-route'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 
@@ -53,11 +53,6 @@ afterEach(() => {
   restoreNavigator()
   resetAllStores()
 })
-
-const settle = async () => {
-  await new Promise(resolve => setTimeout(resolve, 0))
-  await tick()
-}
 
 const Screen = ({onBack, promptId}: {onBack?: () => void; promptId: number}) => {
   useRecoverPromptBack(promptId, onBack)

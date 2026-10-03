@@ -1,7 +1,7 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
-import {tick} from '@/test/flush'
+import {settle, tick} from '@/test/flush'
 import {openURL} from '@/util/misc'
 import {runProofFlow, type Step} from './proof-flow'
 
@@ -29,13 +29,6 @@ const genericParams: T.RPCGen.ProveParameters = {
 }
 const linkError =
   "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated."
-
-// The listener hands incoming calls to their handlers on a timer, and the flow reads them off the
-// dialog's events after that
-const settle = async () => {
-  await new Promise(resolve => setTimeout(resolve, 0))
-  await tick()
-}
 
 const start = async (
   proofPlatform: string,

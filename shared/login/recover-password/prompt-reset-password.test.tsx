@@ -6,7 +6,7 @@ import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {NavigationContext} from '@react-navigation/core'
 import {resetAllStores} from '@/util/zustand'
 import {installFakeEngine} from '@/test/fake-engine'
-import {tick} from '@/test/flush'
+import {settle, tick} from '@/test/flush'
 import {makeFakeRoute} from '@/test/fake-route'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 import {navigateUp} from '@/constants/router'
@@ -68,11 +68,6 @@ afterEach(() => {
   restoreNavigator()
   resetAllStores()
 })
-
-const settle = async () => {
-  await new Promise(resolve => setTimeout(resolve, 0))
-  await tick()
-}
 
 test("on an Android test device, Continue declines the reset prompt and goes back, without starting over", async () => {
   const fake = installFakeEngine()
