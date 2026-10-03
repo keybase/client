@@ -2,7 +2,7 @@ import logger from '@/logger'
 import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
 import {errors as transportErrors} from '@/engine/rpc-transport'
-import RPCError from './rpcerror'
+import RPCError, {networkErrorCodes, type CancelReason, type RPCErrorKind} from './rpcerror'
 
 function isRPCErrorLike(err: object): err is RPCErrorLike {
   return Object.hasOwn(err, 'desc') && Object.hasOwn(err, 'code')
@@ -62,10 +62,26 @@ type RPCErrorLike = {
   desc: string
   fields?: unknown
   name?: string
+  // Set by the client on the errors it makes; the service's errors have none
+  kind?: RPCErrorKind
 }
 
 function convertToRPCError(err: RPCErrorLike, method?: string): RPCError {
-  return new RPCError(err.desc, err.code, err.fields, err.name, method)
+  return new RPCError(err.desc, err.code, err.fields, err.name, method, err.kind)
+}
+
+// The kind of an RPCError, or of the Error a listener wraps one in (which copies its fields)
+export const errorKind = (error: unknown): RPCErrorKind | undefined => {
+  const kind = error && typeof error === 'object' ? (error as {kind?: unknown}).kind : undefined
+  return kind && typeof kind === 'object' && typeof (kind as {type?: unknown}).type === 'string'
+    ? (kind as RPCErrorKind)
+    : undefined
+}
+
+// A call that was cancelled for one of these reasons, or for any reason when none is given
+export const isCancelled = (error: unknown, ...reasons: ReadonlyArray<CancelReason>) => {
+  const kind = errorKind(error)
+  return kind?.type === 'cancelled' && (reasons.length === 0 || reasons.includes(kind.reason))
 }
 
 export function logError(error: unknown) {
@@ -146,11 +162,6 @@ export function isErrorTransient(error: RPCError | Error) {
 }
 
 export {RPCError}
-
-const networkErrorCodes = [
-  T.RPCGen.StatusCode.scgenericapierror,
-  T.RPCGen.StatusCode.scapinetworkerror,
-  T.RPCGen.StatusCode.sctimeout,
-]
+export type {CancelReason, RPCErrorKind}
 
 export const isNetworkErr = (code: number) => networkErrorCodes.includes(code)
