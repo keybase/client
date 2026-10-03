@@ -346,18 +346,16 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
             );
             return;
           }
+          // Our own refusal, echoed back. Read by its kind: the listener rejects with an Error that
+          // copies the RPCError's fields, so its class says nothing.
+          const ourRefusal = isCancelled(error, "caller");
           // Nothing else ends a cancelled switch, and the logged-out status it withheld applies only then
-          if (!(error instanceof RPCError) || isCancelled(error, "caller")) {
+          if (ourRefusal || !(error instanceof RPCError)) {
             get().dispatch.setUserSwitching(false);
-          }
-          if (!(error instanceof RPCError)) {
             return;
           }
-          // Already logged in: the daemon's session says so. Our own refusal: nothing to report.
-          if (
-            error.code !== T.RPCGen.StatusCode.scalreadyloggedin &&
-            !isCancelled(error, "caller")
-          ) {
+          // Already logged in: the daemon's session says so.
+          if (error.code !== T.RPCGen.StatusCode.scalreadyloggedin) {
             error.desc = niceError(error);
             get().dispatch.setLoginError(error);
           }

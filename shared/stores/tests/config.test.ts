@@ -12,7 +12,7 @@ import {getAccountGeneration} from '../../engine/account-generation'
 import {useDaemonState} from '../daemon'
 import {noConversationIDKey} from '../../constants/types/chat/common'
 import {useConfigState} from '../config'
-import {installFakeEngine, uninstallFakeEngine} from '@/test/fake-engine'
+import {fakeError, installFakeEngine, uninstallFakeEngine} from '@/test/fake-engine'
 
 const resetConfigState = () => {
   const {dispatch} = useConfigState.getState()
@@ -262,6 +262,30 @@ describe('login', () => {
     const state = useConfigState.getState()
     expect(state.userSwitching).toBe(false)
     expect(state.loginError).toBeUndefined()
+  })
+
+  // The real path: the session attributes the echo, and the listener rejects with an Error copying it
+  test('a switch whose login the service fails with our own refusal ends quietly, through the listener', async () => {
+    const fake = installFakeEngine()
+    const held = fake.hold('keybase.1.login.login')
+    const {dispatch} = useConfigState.getState()
+    dispatch.setUserSwitching(true, 'testuser')
+    dispatch.login('testuser', '')
+    await flush()
+    const sessionID = fake.calls[0]!.params.sessionID as number
+    const refusal = {code: T.RPCGen.StatusCode.scgeneric, desc: 'Canceling RPC'}
+    const pushed = fake.push('keybase.1.provisionUi.chooseDevice', {canSelectNoDevice: false, devices: []}, {sessionID})
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(await pushed).toEqual({error: refusal})
+    expect(useConfigState.getState().userSwitching).toBe(true)
+    held[0]!.reply(fakeError(refusal.code, refusal.desc))
+    await new Promise(resolve => setTimeout(resolve, 0))
+    await flush()
+
+    const state = useConfigState.getState()
+    expect(state.userSwitching).toBe(false)
+    expect(state.loginError).toBeUndefined()
+    uninstallFakeEngine()
   })
 
   test("the service's own error is shown even when its desc reads like our refusal", async () => {
