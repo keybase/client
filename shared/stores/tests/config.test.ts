@@ -205,6 +205,13 @@ describe('login', () => {
     expect(useConfigState.getState().loginError).toBeDefined()
   })
 
+  // The service failing the login with the refusal a prompt handler wrote, which the session knows
+  const ourRefusal = () =>
+    new RPCError('Canceling RPC', T.RPCGen.StatusCode.scgeneric, null, undefined, undefined, {
+      reason: 'caller',
+      type: 'cancelled',
+    })
+
   const switchWithLoginFailure = async (failure: unknown) => {
     jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockRejectedValue(failure)
     const {dispatch} = useConfigState.getState()
@@ -218,7 +225,7 @@ describe('login', () => {
     mockOnceRootHas.mockImplementation(() => {
       switchingAtHandOff = useConfigState.getState().userSwitching
     })
-    const cancelled = jest.fn().mockRejectedValue(new RPCError('Canceling RPC', T.RPCGen.StatusCode.scgeneric))
+    const cancelled = jest.fn().mockRejectedValue(ourRefusal())
     jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockImplementation(listener => {
       const prompt = (listener as any).customResponseIncomingCallMap['keybase.1.provisionUi.PromptNewDeviceName']
       prompt({}, {error: jest.fn(), result: jest.fn()})
@@ -237,11 +244,32 @@ describe('login', () => {
   })
 
   test('a prompt login cancelled itself clears userSwitching without a login error', async () => {
-    await switchWithLoginFailure(new RPCError('Canceling RPC', T.RPCGen.StatusCode.scgeneric))
+    await switchWithLoginFailure(ourRefusal())
 
     const state = useConfigState.getState()
     expect(state.userSwitching).toBe(false)
     expect(state.loginError).toBeUndefined()
+  })
+
+  test('any refusal of ours echoed back ends the switch without a login error', async () => {
+    await switchWithLoginFailure(
+      new RPCError('Input canceled', T.RPCGen.StatusCode.scinputcanceled, null, undefined, undefined, {
+        reason: 'caller',
+        type: 'cancelled',
+      })
+    )
+
+    const state = useConfigState.getState()
+    expect(state.userSwitching).toBe(false)
+    expect(state.loginError).toBeUndefined()
+  })
+
+  test("the service's own error is shown even when its desc reads like our refusal", async () => {
+    await switchWithLoginFailure(new RPCError('Canceling RPC', T.RPCGen.StatusCode.scgeneric))
+
+    const state = useConfigState.getState()
+    expect(state.userSwitching).toBe(false)
+    expect(state.loginError).toMatchObject({code: T.RPCGen.StatusCode.scgeneric})
   })
 
   test('a failure that is not an RPCError clears userSwitching', async () => {

@@ -319,7 +319,13 @@ describe('the session comes from the daemon; notifications only say to read it',
   })
 
   test.each([
-    ['cancelled', new RPCError('Canceling RPC', T.RPCGen.StatusCode.scgeneric)],
+    [
+      'cancelled',
+      new RPCError('Canceling RPC', T.RPCGen.StatusCode.scgeneric, null, undefined, undefined, {
+        reason: 'caller',
+        type: 'cancelled',
+      }),
+    ],
     ['ended by a non-RPC error', new Error('engine reset')],
   ])('a switch whose login is %s ends logged out, no longer switching', async (_, error) => {
     await readReplying(userA)

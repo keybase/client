@@ -13,6 +13,7 @@ import type { Tab } from "@/constants/tabs";
 import {
   RPCError,
   convertToError,
+  isCancelled,
   isErrorTransient,
   niceError,
 } from "@/util/errors";
@@ -252,14 +253,13 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
       ignorePromise(f());
     },
     login: (username, passphrase) => {
-      const cancelDesc = "Canceling RPC";
       const cancelOnCallback = (
         _: unknown,
         response: CommonResponseHandler,
       ) => {
         response.error({
           code: T.RPCGen.StatusCode.scgeneric,
-          desc: cancelDesc,
+          desc: "Canceling RPC",
         });
       };
       const ignoreCallback = () => {};
@@ -347,16 +347,16 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
             return;
           }
           // Nothing else ends a cancelled switch, and the logged-out status it withheld applies only then
-          if (!(error instanceof RPCError) || error.desc === cancelDesc) {
+          if (!(error instanceof RPCError) || isCancelled(error, "caller")) {
             get().dispatch.setUserSwitching(false);
           }
           if (!(error instanceof RPCError)) {
             return;
           }
-          // Already logged in: the daemon's session says so. Canceling: nothing to report.
+          // Already logged in: the daemon's session says so. Our own refusal: nothing to report.
           if (
             error.code !== T.RPCGen.StatusCode.scalreadyloggedin &&
-            error.desc !== cancelDesc
+            !isCancelled(error, "caller")
           ) {
             error.desc = niceError(error);
             get().dispatch.setLoginError(error);
