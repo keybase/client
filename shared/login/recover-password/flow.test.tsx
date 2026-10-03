@@ -17,7 +17,6 @@ jest.mock('@/provision/flow', () => ({
 import {
   cancelRecoverPassword,
   isRecoverPasswordPromptOpen,
-  registerRecoverPasswordScreen,
   restartRecoverPassword,
   startRecoverPassword,
   submitRecoverPasswordDeviceSelect,
@@ -71,17 +70,6 @@ const restart = async () => {
   return fake.calls.at(-1)!.params.sessionID as number
 }
 
-// What a run's screen does once mounted: registers its route with the run that showed it. The last
-// route of that name.
-const mount = (name: string) => {
-  type R = {key?: string; name: string; params?: object; state?: {routes?: ReadonlyArray<R>}}
-  const find = (routes: ReadonlyArray<R> = []): R | undefined =>
-    routes.reduce<R | undefined>((found, r) => find(r.state?.routes) ?? (r.name === name ? r : found), undefined)
-  const route = find(nav.getRootState()?.routes as ReadonlyArray<R> | undefined)!
-  const {promptId, runId} = (route.params ?? {}) as {promptId?: number; runId?: number}
-  registerRecoverPasswordScreen(route.key!, promptId !== undefined ? {promptId} : {runId: runId!})
-}
-
 // The id the flow handed the screen it navigated to last
 const lastPromptId = () => (nav.navigations().at(-1)?.params as {promptId?: number} | undefined)?.promptId ?? -1
 
@@ -120,7 +108,11 @@ describe('device selection', () => {
 
     expect(nav.navigations()).toContainEqual({
       name: 'recoverPasswordDeviceSelector',
-      params: {devices: [expect.objectContaining({id: deviceID, name: 'phone', type: 'mobile'})], promptId},
+      params: {
+        devices: [expect.objectContaining({id: deviceID, name: 'phone', type: 'mobile'})],
+        promptId,
+        runId: expect.any(Number),
+      },
       replace: false,
     })
     submitRecoverPasswordDeviceSelect(promptId, deviceID)
@@ -184,7 +176,7 @@ describe('reset prompts', () => {
 
     expect(nav.navigations()).toContainEqual({
       name: 'recoverPasswordPromptResetPassword',
-      params: {promptId, username: 'testuser'},
+      params: {promptId, runId: expect.any(Number), username: 'testuser'},
       replace: false,
     })
     submitRecoverPasswordReset(promptId, T.RPCGen.ResetPromptResponse.confirmReset)
@@ -204,7 +196,7 @@ describe('reset prompts', () => {
     await expect(answered).resolves.toEqual({result: T.RPCGen.ResetPromptResponse.nothing})
     expect(nav.navigations()).toContainEqual({
       name: 'recoverPasswordPromptResetAccount',
-      params: {runId: expect.any(Number), skipPassword: true, username: 'testuser'},
+      params: {skipPassword: true, username: 'testuser'},
       replace: true,
     })
     held[0]!.reply(undefined)
@@ -238,7 +230,6 @@ test('a device-recovery explanation replaces the current screen', async () => {
     params: {
       deviceName: 'testuser-mac',
       deviceType: T.RPCGen.DeviceType.mobile,
-      runId: expect.any(Number),
       username: 'testuser',
     },
     replace: true,
@@ -321,7 +312,6 @@ describe('completion', () => {
     useConfigState.getState().dispatch.setLoggedIn(true)
     const {held, sessionID} = await start()
     await pushPassphrase(sessionID, T.RPCGen.PassphraseType.passPhrase)
-    mount('recoverPasswordSetPassword')
     navigateAppend({name: openModal, params: {}} as never)
     expect(screens()).toEqual(['loggedIn', 'recoverPasswordSetPassword', openModal])
     await failWith(held)
@@ -339,7 +329,6 @@ describe('completion', () => {
     useConfigState.getState().dispatch.setLoggedIn(true)
     const {held, sessionID} = await start()
     await pushPassphrase(sessionID, T.RPCGen.PassphraseType.passPhrase)
-    mount('recoverPasswordSetPassword')
     navigateAppend({name: openModal, params: {}} as never)
     expect(screens()).toEqual(['loggedIn', 'recoverPasswordSetPassword', openModal])
     await failWith(held)
@@ -353,7 +342,6 @@ describe('completion', () => {
     nav = installFakeNavigator({rootState: loggedOutRoot()})
     const {held, sessionID} = await start()
     await pushDevices(sessionID)
-    mount('recoverPasswordDeviceSelector')
     expect(screens()).toEqual(['login', 'recoverPasswordDeviceSelector'])
     await failWith(held)
 
@@ -376,7 +364,6 @@ describe('completion', () => {
     startRecoverPassword({abortProvisioning: true, username: 'testuser'})
     await tick()
     await pushDevices(fake.calls[0]!.params.sessionID as number)
-    mount('recoverPasswordDeviceSelector')
     expect(screens()).toEqual(['login', 'username', 'password', 'recoverPasswordDeviceSelector'])
     await failWith(held)
 
@@ -385,25 +372,17 @@ describe('completion', () => {
     expect(screens()).toEqual(['login', 'username'])
   })
 
-  test("a screen the run shows without a prompt is the run's by its run id", async () => {
+  test("a failure right after a run screen's push, before the screen mounts, takes it away", async () => {
     nav = installFakeNavigator({rootState: loggedOutRoot()})
     const {held, sessionID} = await start()
-    await pushDevices(sessionID)
-    await fake.push(
-      'keybase.1.loginUi.explainDeviceRecovery',
-      {kind: T.RPCGen.DeviceType.mobile, name: 'testuser-mac'},
-      {sessionID}
-    )
+    void fake.push(chooseDevice, {devices, username: 'testuser'}, {sessionID})
     await settle()
-    mount('recoverPasswordExplainDevice')
-    // Another run's
-    navigateAppend({name: 'recoverPasswordExplainDevice', params: {runId: -1}} as never)
-    mount('recoverPasswordExplainDevice')
-    expect(screens()).toEqual(['login', 'recoverPasswordExplainDevice', 'recoverPasswordExplainDevice'])
-    await failWith(held)
+    // Pushed, so in the root state, with nothing of the screen run yet
+    expect(screens()).toEqual(['login', 'recoverPasswordDeviceSelector'])
+    held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'bad things'))
+    await settle()
 
-    expect(screens()).toEqual(['login', 'recoverPasswordExplainDevice', 'recoverPasswordError'])
-    expect(nav.getRootState()?.routes?.[0]?.state?.routes[1]?.params).toEqual({runId: -1})
+    expect(screens()).toEqual(['login', 'recoverPasswordError'])
   })
 
   test('logged out with only login, the error goes over it and Back returns to it', async () => {
@@ -421,7 +400,6 @@ describe('completion', () => {
     const {held, sessionID} = await start()
     await pushDevices(sessionID)
     await pushPassphrase(sessionID, T.RPCGen.PassphraseType.paperKey)
-    mount('recoverPasswordPaperKey')
     useConfigState.getState().dispatch.setLoggedIn(true)
     await failWith(held)
     expect(screens()).toEqual(['login'])
@@ -448,12 +426,10 @@ describe('completion', () => {
     nav = installFakeNavigator({rootState: loggedOutRoot()})
     const {held, sessionID} = await start()
     await pushDevices(sessionID)
-    // The new run starts before the earlier run's screen mounts
+    // A new run, not a restart: no screen is handed over
     startRecoverPassword({username: 'testuser'})
     await tick()
-    mount('recoverPasswordDeviceSelector')
     await pushDevices(fake.calls.at(-1)!.params.sessionID as number)
-    mount('recoverPasswordDeviceSelector')
     expect(screens()).toEqual(['login', 'recoverPasswordDeviceSelector', 'recoverPasswordDeviceSelector'])
     await failWith(held)
 
@@ -575,6 +551,21 @@ describe('restart', () => {
     expect(nav.actions).toEqual([])
     submitRecoverPasswordDeviceSelect(promptId, deviceID)
     await expect(answered).resolves.toEqual({result: deviceID})
+    held[1]!.reply(undefined)
+    await settle()
+  })
+
+  test("the old run failing after a restart took its screen removes nothing and shows no error", async () => {
+    nav = installFakeNavigator({rootState: makeRootState({loggedIn: false})})
+    const {held, sessionID} = await start()
+    await pushDevices(sessionID)
+    await restart()
+    nav.clearActions()
+
+    held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'bad things'))
+    await settle()
+
+    expect(nav.actions).toEqual([])
     held[1]!.reply(undefined)
     await settle()
   })

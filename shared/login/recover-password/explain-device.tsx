@@ -5,16 +5,12 @@ import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
 import {QuestionBody} from '../common'
 import {restartRecoverPassword} from './flow'
-import {useRecoverRunScreen} from './use-prompt-back'
 
-type Props = {
-  route: {params: {deviceName: string; deviceType: T.RPCGen.DeviceType; runId: number; username: string}}
-}
+type Props = {route: {params: {deviceName: string; deviceType: T.RPCGen.DeviceType; username: string}}}
 
 const ExplainDevice = ({route}: Props) => {
   const theme = Kb.Styles.useTheme()
-  const {deviceName, deviceType, runId, username} = route.params
-  useRecoverRunScreen({runId})
+  const {deviceName, deviceType, username} = route.params
   const onBack = () => {
     restartRecoverPassword(username)
   }

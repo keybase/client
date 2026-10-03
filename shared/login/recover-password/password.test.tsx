@@ -69,7 +69,7 @@ const setup = async (before?: (promptId: number, held: ReturnType<FakeEngine['ho
   const promptId = (pushed?.params as {promptId: number}).promptId
   await before?.(promptId, held)
   nav.clearActions()
-  rendered = render(<Password route={{params: {promptId}}} />)
+  rendered = render(<Password route={{params: {promptId, runId: 0}}} />)
   // The run's waiting state changes as it ends, which the mounted screen renders
   const end = async () =>
     act(async () => {
@@ -95,7 +95,7 @@ test('a screen that answered stays when its effects run again while the service 
   await expect(answered).resolves.toEqual({result: {passphrase: 'new password', storeSecret: true}})
   // Unfreezing a screen or a hot reload runs its effects again; a remount is the same here
   cleanup()
-  render(<Password route={{params: {promptId}}} />)
+  render(<Password route={{params: {promptId, runId: 0}}} />)
   expect(nav.types()).toEqual([])
   await end()
 })
@@ -184,7 +184,7 @@ describe('on its route, after the run ended under a modal that is not the run\'s
     rendered.rerender(
       <NavigationRouteContext value={{key, name: setPassword}}>
         <NavigationContext value={navigation as never}>
-          <Password route={{params: {promptId}}} />
+          <Password route={{params: {promptId, runId: 0}}} />
         </NavigationContext>
       </NavigationRouteContext>
     )
@@ -267,7 +267,7 @@ describe('on its route, after the run ended under a modal that is not the run\'s
       <NavigationRouteContext value={{key, name: setPassword}}>
         <NavigationContext value={navigation as never}>
           <React.Activity mode={mode}>
-            <Password route={{params: {promptId}}} />
+            <Password route={{params: {promptId, runId: 0}}} />
           </React.Activity>
         </NavigationContext>
       </NavigationRouteContext>

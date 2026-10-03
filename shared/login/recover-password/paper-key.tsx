@@ -6,7 +6,8 @@ import {SignupScreen} from '@/signup/common'
 import {cancelRecoverPassword, submitRecoverPasswordPaperKey} from './flow'
 import {useRecoverPromptBack} from './use-prompt-back'
 
-type Props = {route: {params: {error?: string; promptId: number}}}
+// runId: the run that showed it, which takes its own screens away when it fails
+type Props = {route: {params: {error?: string; promptId: number; runId: number}}}
 
 const PaperKey = ({route}: Props) => {
   const styles = useStyles()

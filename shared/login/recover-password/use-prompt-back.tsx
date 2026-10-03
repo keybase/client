@@ -5,24 +5,8 @@ import {useRouteKey} from '@/router-v2/route-gone'
 import {
   isRecoverPasswordPromptGone,
   isRecoverPasswordPromptOpen,
-  registerRecoverPasswordScreen,
+  registerRecoverPasswordPromptScreen,
 } from './flow'
-
-// Registers the screen's route with the run that showed it (see registerRecoverPasswordScreen), once
-// mounted and again on a retry's new prompt. Never undone on cleanup: the entry ends with the run.
-export const useRecoverRunScreen = (owner: {promptId: number} | {runId: number | undefined}) => {
-  const routeKey = useRouteKey()
-  const promptId = 'promptId' in owner ? owner.promptId : undefined
-  const runId = 'runId' in owner ? owner.runId : undefined
-  React.useEffect(() => {
-    if (!routeKey) return
-    if (promptId !== undefined) {
-      registerRecoverPasswordScreen(routeKey, {promptId})
-    } else if (runId !== undefined) {
-      registerRecoverPasswordScreen(routeKey, {runId})
-    }
-  }, [routeKey, promptId, runId])
-}
 
 // A prompt screen leaving while its prompt is open would leave the service waiting. A back of the
 // visible screen (Android's hardware back, a pop) runs its onBack in its place, as the header back
@@ -45,7 +29,14 @@ export const useRecoverPromptBack = (promptId: number, onBack?: () => void) => {
     })
   }, [navigation, promptId, hasBack])
 
-  useRecoverRunScreen({promptId})
+  // Registered once mounted and again on a retry's new prompt; never undone on cleanup, as the entry
+  // ends with the run
+  const routeKey = useRouteKey()
+  React.useEffect(() => {
+    if (routeKey) {
+      registerRecoverPasswordPromptScreen(routeKey, promptId)
+    }
+  }, [routeKey, promptId])
 }
 
 // A deferred push can land after its prompt settled, or the run can end while another modal covers

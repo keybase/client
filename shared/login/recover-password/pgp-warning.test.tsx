@@ -90,7 +90,7 @@ const setup = async (before?: (id: number) => void) => {
   render(
     <route.Route>
       <NavigationContext value={navigation as never}>
-        <PgpWarning route={{params: {promptId: id}}} />
+        <PgpWarning route={{params: {promptId: id, runId: 0}}} />
       </NavigationContext>
     </route.Route>
   )
