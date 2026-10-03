@@ -308,6 +308,14 @@ describe('login', () => {
     expect(nav.navigations()).toEqual([{name: 'password', params: {error: undefined, username: 'testuser'}, replace: false}])
   })
 
+  test('a resubmit and a back-out in the same moment start over rather than park', async () => {
+    const held = await startLogin()
+    submitProvisionPassphrase('hunter2')
+    pauseProvision()
+    await settle()
+    expect(held).toHaveLength(2)
+  })
+
   test('a prompt arriving after pause is refused and does not navigate', async () => {
     await startLogin()
 
@@ -420,6 +428,50 @@ describe('login', () => {
     await push('keybase.1.loginUi.displayPrimaryPaperKey', {phrase: 'a b c'}, 0)
     await push('keybase.1.provisionUi.ProvisionerSuccess', {deviceName: 'dev1', deviceType: 'mobile'}, 0)
     expect(nav.navigations()).toEqual([])
+  })
+})
+
+describe('account changes', () => {
+  // The login logs out first; the run lives outside the stores the logout resets
+  test('a logout keeps the login run answerable', async () => {
+    const {setLoggedIn} = useConfigState.getState().dispatch
+    setLoggedIn(true)
+    const held = await startLogin()
+    const password = pushPassword(0)
+    await settle()
+
+    setLoggedIn(false)
+    await settle()
+    submitProvisionPassphrase('hunter2')
+
+    await expect(password).resolves.toEqual({result: {passphrase: 'hunter2', storeSecret: false}})
+    held[0]!.reply(undefined)
+    await settle()
+  })
+
+  // The switch cancels the session, which is not the run disposing it, and its error is not one of
+  // the cancels the run ignores
+  test('an account switch refuses the login prompt and shows the cancel as the error', async () => {
+    await startLogin()
+    const password = pushPassword(0)
+    await settle()
+    nav.clearActions()
+
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+    await settle()
+
+    await expect(password).resolves.toEqual({error: inputCanceled})
+    expect(nav.modalsCleared()).toBe(true)
+    expect(nav.navigations()).toEqual([
+      {
+        name: 'error',
+        params: {
+          error: expect.objectContaining({code: T.RPCGen.StatusCode.sccanceled, desc: 'Received RPC cancel for session'}),
+          username: 'testuser',
+        },
+        replace: true,
+      },
+    ])
   })
 })
 
