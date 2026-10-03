@@ -210,6 +210,11 @@ describe('a call that outlives its account', () => {
     expect(survivesAccountChange('keybase.1.user.getUserBlocks')).toBe(false)
   })
 
+  // A handshake step, so a reconnect during a switch would otherwise wait for the switch to end
+  test.failing('K9: the chat static config outlives an account', () => {
+    expect(survivesAccountChange('chat.1.local.getStaticConfig')).toBe(true)
+  })
+
   test('a call started after the logout is answered normally', () => {
     logOut()
     const {callback, reply} = startCall('keybase.1.user.getUserBlocks')
