@@ -217,7 +217,6 @@ describe('login', () => {
     let switchingAtHandOff: boolean | undefined
     mockOnceRootHas.mockImplementation(() => {
       switchingAtHandOff = useConfigState.getState().userSwitching
-      return () => {}
     })
     const cancelled = jest.fn().mockRejectedValue(new RPCError('Canceling RPC', T.RPCGen.StatusCode.scgeneric))
     jest.spyOn(T.RPCGen, 'loginLoginRpcListener').mockImplementation(listener => {
@@ -230,11 +229,10 @@ describe('login', () => {
     dispatch.login('testuser', '')
     await flush()
 
-    expect(mockOnceRootHas).toHaveBeenCalledTimes(1)
-    const wait = mockOnceRootHas.mock.calls[0]![0]
-    expect(wait.path('loggedOut')).toEqual({name: 'username', params: {autoSubmit: true, username: 'testuser'}})
-    expect(wait.rootOk?.('loggedOut')).toBe(true)
-    expect(wait.rootOk?.('loggedIn')).toBe(false)
+    expect(mockOnceRootHas).toHaveBeenCalledWith('loggedOut', {
+      name: 'username',
+      params: {autoSubmit: true, username: 'testuser'},
+    })
     expect(switchingAtHandOff).toBe(false)
   })
 

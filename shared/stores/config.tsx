@@ -282,12 +282,9 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
                 // the logged-out stack, which the routers keep unmounted while userSwitching is set, so
                 // end the switch and push once that stack is up.
                 get().dispatch.setUserSwitching(false);
-                navigateAppendOnceRootHas({
-                  path: () => ({
-                    name: "username",
-                    params: { autoSubmit: true, username },
-                  }),
-                  rootOk: (root) => root === "loggedOut",
+                navigateAppendOnceRootHas("loggedOut", {
+                  name: "username",
+                  params: { autoSubmit: true, username },
                 });
               },
               "keybase.1.provisionUi.chooseDevice": cancelOnCallback,

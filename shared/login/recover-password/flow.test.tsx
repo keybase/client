@@ -6,9 +6,6 @@ import logger from '@/logger'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {tick} from '@/test/flush'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
-import {navigateAppend} from '@/constants/router'
-import {rootWaitLimitMs} from '@/constants/navigator'
-import {useRouterState} from '@/stores/router'
 
 const mockCancelProvision = jest.fn()
 jest.mock('@/provision/flow', () => ({
@@ -29,7 +26,6 @@ import {
 const recover = 'keybase.1.login.recoverPassphrase'
 const chooseDevice = 'keybase.1.loginUi.chooseDeviceToRecoverWith'
 const promptReset = 'keybase.1.loginUi.promptResetAccount'
-const getPassphrase = 'keybase.1.secretUi.getPassphrase'
 const inputCanceled = {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'}
 const deviceID = T.Devices.stringToDeviceID('device-1')
 const devices = [{deviceID: 'device-1', deviceNumberOfType: 1, name: 'phone', type: 'mobile'}]
@@ -39,10 +35,6 @@ const openModal = 'proxySettingsModal'
 
 let nav: FakeNavigator
 let fake: FakeEngine
-
-// What the app's container does on every state change: route-gone reads the router store's copy
-const mirrorRouterStore = () =>
-  nav.addListener('state', () => useRouterState.getState().dispatch.setNavState(nav.getRootState()!))
 
 beforeEach(() => {
   nav = installFakeNavigator({modalRouteNames: [openModal], rootState: makeRootState({above: [{name: openModal}]})})
@@ -114,11 +106,7 @@ describe('device selection', () => {
 
     expect(nav.navigations()).toContainEqual({
       name: 'recoverPasswordDeviceSelector',
-      params: {
-        devices: [expect.objectContaining({id: deviceID, name: 'phone', type: 'mobile'})],
-        promptId,
-        recoverRunId: expect.any(String),
-      },
+      params: {devices: [expect.objectContaining({id: deviceID, name: 'phone', type: 'mobile'})], promptId},
       replace: false,
     })
     submitRecoverPasswordDeviceSelect(promptId, deviceID)
@@ -182,7 +170,7 @@ describe('reset prompts', () => {
 
     expect(nav.navigations()).toContainEqual({
       name: 'recoverPasswordPromptResetPassword',
-      params: {promptId, recoverRunId: expect.any(String), username: 'testuser'},
+      params: {promptId, username: 'testuser'},
       replace: false,
     })
     submitRecoverPasswordReset(promptId, T.RPCGen.ResetPromptResponse.confirmReset)
@@ -233,12 +221,7 @@ test('a device-recovery explanation replaces the current screen', async () => {
 
   expect(nav.navigations()).toContainEqual({
     name: 'recoverPasswordExplainDevice',
-    params: {
-      deviceName: 'testuser-mac',
-      deviceType: T.RPCGen.DeviceType.mobile,
-      recoverRunId: expect.any(String),
-      username: 'testuser',
-    },
+    params: {deviceName: 'testuser-mac', deviceType: T.RPCGen.DeviceType.mobile, username: 'testuser'},
     replace: true,
   })
   held[0]!.reply(undefined)
@@ -266,386 +249,26 @@ describe('completion', () => {
     expect(nav.navigations()).toEqual([])
   })
 
-  // The root's routes, with the logged-out stack's screens in place of its route
-  const screens = () =>
-    (nav.getRootState()?.routes ?? []).flatMap(r =>
-      r.name === 'loggedOut' ? (r.state?.routes ?? []).map(s => s.name) : [r.name]
-    )
-
-  const failWith = async (held: Awaited<ReturnType<typeof start>>['held'], message = 'bad things') => {
-    held.at(-1)!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, message))
-    await settle()
-  }
-
-  const loggedOutRoot = () => makeRootState({loggedIn: false})
-  const errorModal = 'recoverPasswordErrorModal'
-
-  const pushPassphrase = async (sessionID: number, type: T.RPCGen.PassphraseType) => {
-    void fake.push(getPassphrase, {pinentry: {retryLabel: '', type}}, {sessionID})
-    await settle()
-  }
-
-  test('logged in with a conversation pushed over the tabs, the error goes over it and Back returns to it', async () => {
-    nav = installFakeNavigator({
-      modalRouteNames: [errorModal],
-      rootState: makeRootState({above: [{name: 'chatConversation'}]}),
-    })
-    useConfigState.getState().dispatch.setLoggedIn(true)
+  test('a failure while logged out shows the error screen', async () => {
     const {held} = await start()
-    await failWith(held)
-
-    expect(nav.navigations()).toEqual([
-      {name: errorModal, params: {error: expect.stringContaining('bad things')}, replace: false},
-    ])
-    expect(screens()).toEqual(['loggedIn', 'chatConversation', errorModal])
-    nav.navigateUp()
-    expect(screens()).toEqual(['loggedIn', 'chatConversation'])
-  })
-
-  test("logged in, a modal that is not the run's stays and the error goes over it", async () => {
-    nav = installFakeNavigator({modalRouteNames: [openModal, errorModal], rootState: makeRootState({above: [{name: openModal}]})})
-    useConfigState.getState().dispatch.setLoggedIn(true)
-    const {held} = await start()
-    await failWith(held)
-
-    expect(screens()).toEqual(['loggedIn', openModal, errorModal])
-  })
-
-  test("the run's modal under a modal that is not the run's goes, the other stays, and the error goes on top", async () => {
-    nav = installFakeNavigator({
-      modalRouteNames: [openModal, errorModal, 'recoverPasswordSetPassword'],
-      rootState: makeRootState(),
-    })
-    useConfigState.getState().dispatch.setLoggedIn(true)
-    const {held, sessionID} = await start()
-    await pushPassphrase(sessionID, T.RPCGen.PassphraseType.passPhrase)
-    navigateAppend({name: openModal, params: {}} as never)
-    expect(screens()).toEqual(['loggedIn', 'recoverPasswordSetPassword', openModal])
-    await failWith(held)
-
-    expect(screens()).toEqual(['loggedIn', openModal, errorModal])
-  })
-
-  test("on iOS the run's modal under a modal that is not the run's stays, as a covered modal can't be taken out", async () => {
-    const wasIOS = isIOS
-    global.isIOS = true
-    nav = installFakeNavigator({
-      modalRouteNames: [openModal, errorModal, 'recoverPasswordSetPassword'],
-      rootState: makeRootState(),
-    })
-    useConfigState.getState().dispatch.setLoggedIn(true)
-    const {held, sessionID} = await start()
-    await pushPassphrase(sessionID, T.RPCGen.PassphraseType.passPhrase)
-    navigateAppend({name: openModal, params: {}} as never)
-    expect(screens()).toEqual(['loggedIn', 'recoverPasswordSetPassword', openModal])
-    await failWith(held)
-
-    global.isIOS = wasIOS
-
-    expect(screens()).toEqual(['loggedIn', 'recoverPasswordSetPassword', openModal, errorModal])
-  })
-
-  test("logged out, the run's device selector goes and the error takes its place over login", async () => {
-    nav = installFakeNavigator({rootState: loggedOutRoot()})
-    const {held, sessionID} = await start()
-    await pushDevices(sessionID)
-    expect(screens()).toEqual(['login', 'recoverPasswordDeviceSelector'])
-    await failWith(held)
-
-    expect(nav.navigations().at(-1)).toEqual({
-      name: 'recoverPasswordError',
-      params: {error: expect.stringContaining('bad things')},
-      replace: false,
-    })
-    expect(screens()).toEqual(['login', 'recoverPasswordError'])
-    nav.navigateUp()
-    expect(screens()).toEqual(['login'])
-  })
-
-  test("provision's password screen, handed over to the run, goes with the run's screens", async () => {
-    nav = installFakeNavigator({rootState: loggedOutRoot()})
-    navigateAppend({name: 'username', params: {}} as never)
-    navigateAppend({name: 'password', params: {username: 'testuser'}} as never)
-    fake = installFakeEngine()
-    const held = fake.hold(recover)
-    startRecoverPassword({abortProvisioning: true, username: 'testuser'})
-    await tick()
-    await pushDevices(fake.calls[0]!.params.sessionID as number)
-    expect(screens()).toEqual(['login', 'username', 'password', 'recoverPasswordDeviceSelector'])
-    await failWith(held)
-
-    expect(screens()).toEqual(['login', 'username', 'recoverPasswordError'])
-    nav.navigateUp()
-    expect(screens()).toEqual(['login', 'username'])
-  })
-
-  test("a failure right after a run screen's push, before the screen mounts, takes it away", async () => {
-    nav = installFakeNavigator({rootState: loggedOutRoot()})
-    const {held, sessionID} = await start()
-    void fake.push(chooseDevice, {devices, username: 'testuser'}, {sessionID})
-    await settle()
-    // Pushed, so in the root state, with nothing of the screen run yet
-    expect(screens()).toEqual(['login', 'recoverPasswordDeviceSelector'])
     held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'bad things'))
     await settle()
 
-    expect(screens()).toEqual(['login', 'recoverPasswordError'])
+    expect(nav.navigations()).toEqual([
+      {name: 'recoverPasswordError', params: {error: expect.stringContaining('bad things')}, replace: true},
+    ])
+    expect(nav.modalsCleared()).toBe(false)
   })
 
-  test('logged out with only login, the error goes over it and Back returns to it', async () => {
-    nav = installFakeNavigator({rootState: loggedOutRoot()})
-    const {held} = await start()
-    await failWith(held)
-
-    expect(screens()).toEqual(['login', 'recoverPasswordError'])
-    nav.navigateUp()
-    expect(screens()).toEqual(['login'])
-  })
-
-  test('logged in by the paper key before the root swap, the error shows once the logged-in root mounts', async () => {
-    nav = installFakeNavigator({modalRouteNames: [errorModal], rootState: loggedOutRoot()})
-    const {held, sessionID} = await start()
-    await pushDevices(sessionID)
-    await pushPassphrase(sessionID, T.RPCGen.PassphraseType.paperKey)
+  test('a failure while logged in shows the error as a modal', async () => {
     useConfigState.getState().dispatch.setLoggedIn(true)
-    await failWith(held)
-    expect(screens()).toEqual(['login'])
-
-    nav.setRootState(makeRootState())
-
-    expect(screens()).toEqual(['loggedIn', errorModal])
-  })
-
-  test('logged in by the paper key, then out again before any root swap, the error shows on the logged-out root', async () => {
-    nav = installFakeNavigator({modalRouteNames: [errorModal], rootState: loggedOutRoot()})
-    const {setLoggedIn} = useConfigState.getState().dispatch
     const {held} = await start()
-    setLoggedIn(true)
-    await failWith(held)
-    expect(screens()).toEqual(['login'])
-
-    setLoggedIn(false)
-
-    expect(screens()).toEqual(['login', 'recoverPasswordError'])
-  })
-
-  describe('past the wait for the matching root', () => {
-    beforeEach(() => {
-      jest.useFakeTimers({doNotFake: ['queueMicrotask', 'nextTick', 'setImmediate']})
-    })
-    afterEach(() => {
-      jest.useRealTimers()
-    })
-    const failNow = async (held: Awaited<ReturnType<typeof start>>['held']) => {
-      held.at(-1)!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'bad things'))
-      await jest.advanceTimersByTimeAsync(0)
-      await tick()
-    }
-
-    test('a root that still disagrees with config shows the error rather than dropping it', async () => {
-      nav = installFakeNavigator({modalRouteNames: [errorModal], rootState: loggedOutRoot()})
-      const {held} = await start()
-      useConfigState.getState().dispatch.setLoggedIn(true)
-      await failNow(held)
-      expect(screens()).toEqual(['login'])
-
-      await jest.advanceTimersByTimeAsync(5000)
-
-      expect(screens()).toEqual(['login', 'recoverPasswordError'])
-    })
-
-    test("desktop's loading root is waited out up to the limit, then the error is dropped with a warning", async () => {
-      const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
-      nav = installFakeNavigator({
-        rootState: {index: 0, key: 'root', routes: [{key: 'loading', name: 'loading'}], type: 'stack'},
-      })
-      const {held} = await start()
-      await failNow(held)
-      await jest.advanceTimersByTimeAsync(rootWaitLimitMs)
-      expect(warn).toHaveBeenCalledWith(expect.stringContaining('gave up on root loading'))
-
-      nav.setRootState(loggedOutRoot())
-
-      expect(nav.navigations()).toEqual([])
-      warn.mockRestore()
-    })
-
-    test('the error on a root swapped out past the sweep window is not shown again', async () => {
-      nav = installFakeNavigator({modalRouteNames: [errorModal], rootState: makeRootState()})
-      mirrorRouterStore()
-      useConfigState.getState().dispatch.setLoggedIn(true)
-      const {held} = await start()
-      await failNow(held)
-      expect(screens()).toEqual(['loggedIn', errorModal])
-
-      await jest.advanceTimersByTimeAsync(5000)
-      useConfigState.getState().dispatch.setLoggedIn(false)
-      nav.setRootState(loggedOutRoot())
-      await jest.advanceTimersByTimeAsync(60_000)
-
-      expect(screens()).toEqual(['login'])
-    })
-
-    test("desktop's loading root is waited out however long it takes, within the limit", async () => {
-      nav = installFakeNavigator({
-        rootState: {index: 0, key: 'root', routes: [{key: 'loading', name: 'loading'}], type: 'stack'},
-      })
-      const {held} = await start()
-      await failNow(held)
-      await jest.advanceTimersByTimeAsync(rootWaitLimitMs - 1)
-      expect(nav.navigations()).toEqual([])
-
-      nav.setRootState(loggedOutRoot())
-
-      expect(screens()).toEqual(['login', 'recoverPasswordError'])
-    })
-  })
-
-  test("desktop's loading root: the error waits for the logged-out root, then shows", async () => {
-    nav = installFakeNavigator({
-      rootState: {index: 0, key: 'root', routes: [{key: 'loading', name: 'loading'}], type: 'stack'},
-    })
-    const {held} = await start()
-    await failWith(held)
-    expect(nav.navigations()).toEqual([])
-
-    nav.setRootState(loggedOutRoot())
-
-    expect(screens()).toEqual(['login', 'recoverPasswordError'])
-  })
-
-  // Go's changePassword failing after the paper key logged the user in logs out, then returns the error
-  describe('a logout racing the error', () => {
-    const failOnLoggedIn = async () => {
-      nav = installFakeNavigator({modalRouteNames: [errorModal], rootState: makeRootState()})
-      mirrorRouterStore()
-      useConfigState.getState().dispatch.setLoggedIn(true)
-      const {held} = await start()
-      await failWith(held)
-      expect(screens()).toEqual(['loggedIn', errorModal])
-      return held
-    }
-    const swapRoot = (loggedIn: boolean) => {
-      useConfigState.getState().dispatch.setLoggedIn(loggedIn)
-      nav.setRootState(loggedIn ? makeRootState() : loggedOutRoot())
-    }
-
-    test('a root swap that takes the error away soon after it showed shows it again on the new root, once', async () => {
-      await failOnLoggedIn()
-
-      swapRoot(false)
-      expect(screens()).toEqual(['login', 'recoverPasswordError'])
-      expect(nav.getRootState()?.routes?.[0]?.state?.routes.at(-1)?.params).toEqual({
-        error: expect.stringContaining('bad things'),
-      })
-
-      swapRoot(true)
-      expect(screens()).toEqual(['loggedIn'])
-    })
-
-    test('the user dismissing the error does not show it again', async () => {
-      await failOnLoggedIn()
-
-      nav.navigateUp()
-      expect(screens()).toEqual(['loggedIn'])
-      swapRoot(false)
-
-      expect(screens()).toEqual(['login'])
-    })
-
-    // The swap in the same turn as the restart, before the watch's entry is gone
-    test('a restart before the swap shows nothing again', async () => {
-      const held = await failOnLoggedIn()
-      nav.clearActions()
-      startRecoverPassword({username: 'testuser'})
-      swapRoot(false)
-      await tick()
-
-      expect(nav.navigations()).toEqual([])
-      held.at(-1)!.reply(undefined)
-      await settle()
-    })
-  })
-
-  test('logged in by the paper key, failing while the root disagrees, then restarted: the old error never shows', async () => {
-    nav = installFakeNavigator({modalRouteNames: [errorModal], rootState: loggedOutRoot()})
-    // The wait's config subscription, to see the restart end it
-    const subscribe = useConfigState.subscribe
-    const unsubscribes: Array<jest.Mock> = []
-    jest.spyOn(useConfigState, 'subscribe').mockImplementation(listener => {
-      const unsubscribe = jest.fn(subscribe(listener))
-      unsubscribes.push(unsubscribe)
-      return unsubscribe
-    })
-    const {held, sessionID} = await start()
-    await pushDevices(sessionID)
-    await pushPassphrase(sessionID, T.RPCGen.PassphraseType.paperKey)
-    useConfigState.getState().dispatch.setLoggedIn(true)
-    await failWith(held)
-    expect(screens()).toEqual(['login'])
-
-    expect(unsubscribes).toHaveLength(1)
-    expect(unsubscribes[0]).not.toHaveBeenCalled()
-
-    await restart()
-    expect(unsubscribes[0]).toHaveBeenCalledTimes(1)
-    nav.setRootState(makeRootState())
-    useConfigState.getState().dispatch.setLoggedIn(false)
-    nav.setRootState(loggedOutRoot())
-
-    expect(nav.navigations().map(n => n.name)).not.toContain(errorModal)
-    expect(nav.navigations().map(n => n.name)).not.toContain('recoverPasswordError')
-    held.at(-1)!.reply(undefined)
+    held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'bad things'))
     await settle()
-    jest.restoreAllMocks()
-  })
 
-  test("a screen the run shows without a prompt is the run's by its run id", async () => {
-    nav = installFakeNavigator({rootState: loggedOutRoot()})
-    const {held, sessionID} = await start()
-    await pushDevices(sessionID)
-    await fake.push(
-      'keybase.1.loginUi.explainDeviceRecovery',
-      {kind: T.RPCGen.DeviceType.mobile, name: 'testuser-mac'},
-      {sessionID}
-    )
-    await settle()
-    // Another run's
-    navigateAppend({name: 'recoverPasswordExplainDevice', params: {recoverRunId: 'other-0'}} as never)
-    expect(screens()).toEqual(['login', 'recoverPasswordExplainDevice', 'recoverPasswordExplainDevice'])
-    await failWith(held)
-
-    expect(screens()).toEqual(['login', 'recoverPasswordExplainDevice', 'recoverPasswordError'])
-    expect(nav.getRootState()?.routes?.[0]?.state?.routes[1]?.params).toEqual({recoverRunId: 'other-0'})
-  })
-
-  test("an earlier run's screen of the same name is not this run's", async () => {
-    nav = installFakeNavigator({rootState: loggedOutRoot()})
-    const {held, sessionID} = await start()
-    await pushDevices(sessionID)
-    // A new run, not a restart: no screen is handed over
-    startRecoverPassword({username: 'testuser'})
-    await tick()
-    await pushDevices(fake.calls.at(-1)!.params.sessionID as number)
-    expect(screens()).toEqual(['login', 'recoverPasswordDeviceSelector', 'recoverPasswordDeviceSelector'])
-    await failWith(held)
-
-    expect(screens()).toEqual(['login', 'recoverPasswordDeviceSelector', 'recoverPasswordError'])
-  })
-
-  test('a retry from the error screen that fails again leaves one error, the new one', async () => {
-    nav = installFakeNavigator({rootState: loggedOutRoot()})
-    const {held} = await start()
-    await failWith(held, 'first failure')
-    expect(screens()).toEqual(['login', 'recoverPasswordError'])
-
-    await restart()
-    await failWith(held, 'second failure')
-
-    expect(screens()).toEqual(['login', 'recoverPasswordError'])
-    expect(nav.getRootState()?.routes?.[0]?.state?.routes.at(-1)?.params).toEqual({
-      error: expect.stringContaining('second failure'),
-    })
+    expect(nav.navigations()).toEqual([
+      {name: 'recoverPasswordErrorModal', params: {error: expect.stringContaining('bad things')}, replace: true},
+    ])
   })
 
   test('once the run is over its screens answer nothing', async () => {
@@ -748,21 +371,6 @@ describe('restart', () => {
     expect(nav.actions).toEqual([])
     submitRecoverPasswordDeviceSelect(promptId, deviceID)
     await expect(answered).resolves.toEqual({result: deviceID})
-    held[1]!.reply(undefined)
-    await settle()
-  })
-
-  test("the old run failing after a restart took its screen removes nothing and shows no error", async () => {
-    nav = installFakeNavigator({rootState: makeRootState({loggedIn: false})})
-    const {held, sessionID} = await start()
-    await pushDevices(sessionID)
-    await restart()
-    nav.clearActions()
-
-    held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'bad things'))
-    await settle()
-
-    expect(nav.actions).toEqual([])
     held[1]!.reply(undefined)
     await settle()
   })

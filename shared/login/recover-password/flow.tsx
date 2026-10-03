@@ -1,14 +1,11 @@
 import * as T from '@/constants/types'
 import {
   clearModals,
-  getRootState,
   getVisibleScreen,
   navigateAppend,
   navigateAppendOnceRootHas,
   navigateUp,
-  removeRoutes,
 } from '@/constants/router'
-import type {NavState} from '@/constants/nav-tree'
 import {waitingKeyRecoverPassword} from '@/constants/strings'
 import {ignorePromise} from '@/constants/utils'
 import {openDialog, type Dialog, type DialogEvent, type Prompt} from '@/engine/dialog'
@@ -35,38 +32,20 @@ const explainDevice = 'keybase.1.loginUi.explainDeviceRecovery'
 
 type RecoverPrompt = typeof chooseDevice | typeof promptPgp | typeof promptReset | typeof getPassphrase
 type RecoverDialog = Dialog<void, RecoverPrompt, typeof explainDevice>
-// ended settles once the run is over. The run's own screens are the routes pushed with its id in
-// their params (recoverRunId), and the screen a caller handed over to it. errorWaits stop showing its
-// error: the next run starting ends them.
-type Run = {
-  dialog: RecoverDialog
-  ended?: Promise<void>
-  errorWaits: Array<() => void>
-  handedOver?: string
-  id: string
-  onResetEmailSent?: () => void
-  username: string
-}
+// ended settles once the run is over
+type Run = {dialog: RecoverDialog; ended?: Promise<void>; onResetEmailSent?: () => void; username: string}
 
 // The run the screens answer. Kept outside the stores: the run logs the user in, and the logout
 // before that must not stop its screens from answering it. A restart disposes it first.
 let current: Run | undefined
-// The run started last, kept after it ends: its error may still be on its way to the screen
+// The run started last, kept after it ends: a newer one owns the screens once it starts
 let latest: Run | undefined
 // Who started the latest run, kept after it ends so a back that starts over still tells that caller
 let caller: Pick<StartRecoverPasswordParams, 'onResetEmailSent' | 'username'> | undefined
-// A reload of this module starts its count over; the prefix keeps its runs from claiming the screens
-// of runs from before it
-const runIdPrefix = Math.random().toString(36).slice(2, 10)
-let nextRunId = 0
 
 const pgpWarningName = 'recoverPasswordPgpWarning'
-// How long a screen may wait for its root
+// How long a modal may wait for the logged-in root before navigateAppendOnceRootHas drops it.
 const loggedInRootTimeoutMs = 5000
-// How long after the error shows a root swap may still sweep it away. Go's changePassword failing
-// after the paper key logged the user in logs out and then returns the error, so the error can land on
-// the logged-in root just before the swap to the logged-out one takes it.
-const errorSweepWindowMs = 5000
 const pgpMountTimers = new Map<number, ReturnType<typeof setTimeout>>()
 
 // A screen's back that starts the flow over, in place of the screen
@@ -98,8 +77,7 @@ export const registerRecoverPasswordPromptScreen = (routeKey: string, promptId: 
   registerRouteGone(routeKey, run.ended, declineFromParams)
 }
 
-// Prompts of the current run that a screen answered. Their screens stay while the service works on the
-// answer; once the run is over they have nothing left to wait for.
+// Prompts of this run that a screen answered. Their screens stay while the service works on the answer.
 const answeredByScreen = new Set<number>()
 const noteAnswer = (promptId: number, answered: boolean | undefined) => {
   if (answered) {
@@ -108,7 +86,7 @@ const noteAnswer = (promptId: number, answered: boolean | undefined) => {
 }
 
 // The prompt settled without its screen's answer (before the screen appeared, or by a restart or the
-// run ending), or its run is over, so the screen has nothing left to do
+// run ending), so the screen has nothing left to do
 export const isRecoverPasswordPromptGone = (promptId: number) =>
   !isRecoverPasswordPromptOpen(promptId) && !answeredByScreen.has(promptId)
 
@@ -124,76 +102,6 @@ export const declineRecoverPasswordPrompt = (promptId: number) => {
 }
 
 const declineFromParams = promptRouteGone(declineRecoverPasswordPrompt)
-
-// The run's screens now: a push that has not mounted yet is already in the root state
-const runRoutes = (run: Run) => {
-  const keys = run.handedOver ? [run.handedOver] : []
-  const walk = (s: NavState | undefined) => {
-    for (const r of s?.routes ?? []) {
-      if (r.key && (r.params as {recoverRunId?: unknown} | undefined)?.recoverRunId === run.id) {
-        keys.push(r.key)
-      }
-      walk(r.state)
-    }
-  }
-  walk(getRootState())
-  return keys
-}
-
-const rootName = () => getRootState()?.routes?.[0]?.name
-
-// Shows the error once the mounted root matches config's loggedIn, read again at every check: the
-// paper key may have just logged the user in, before the root swap. A root that still disagrees once
-// the wait is over shows it rather than dropping it. A newer run ends the wait. Once shown, a root swap
-// that takes it away soon after shows it once more, on the new root; the user dismissing it does not.
-const showRecoverError = (run: Run, message: string, again = true) => {
-  const isStillWanted = () => latest === run
-  const watchForSweep = () => {
-    const shown = getVisibleScreen(true)
-    const root = rootName()
-    if (!again || !shown?.key) return
-    let stop = () => {}
-    const window = new Promise<void>(resolve => {
-      const timer = setTimeout(resolve, errorSweepWindowMs)
-      stop = () => {
-        clearTimeout(timer)
-        resolve()
-      }
-    })
-    run.errorWaits.push(stop)
-    registerRouteGone(shown.key, window, () => {
-      stop()
-      if (isStillWanted() && rootName() !== root) {
-        showRecoverError(run, message, false)
-      }
-    })
-  }
-  run.errorWaits.push(
-    navigateAppendOnceRootHas({
-      atTimeout: 'anyRoot',
-      isStillWanted,
-      onEnd: pushed => {
-        if (pushed) {
-          watchForSweep()
-        }
-      },
-      path: root =>
-        root === 'loggedIn'
-          ? {name: 'recoverPasswordErrorModal', params: {error: message}}
-          : root === 'loggedOut'
-            ? {name: 'recoverPasswordError', params: {error: message}}
-            : undefined,
-      recheckOn: check =>
-        useConfigState.subscribe((s, prev) => {
-          if (s.loggedIn !== prev.loggedIn) {
-            check()
-          }
-        }),
-      rootOk: root => (root === 'loggedIn') === useConfigState.getState().loggedIn,
-      timeoutMs: loggedInRootTimeoutMs,
-    })
-  )
-}
 
 export const submitRecoverPasswordDeviceSelect = (promptId: number, deviceID?: T.Devices.DeviceID) => {
   if (deviceID) {
@@ -237,7 +145,7 @@ const takeWarningOffTop = () => {
   }
 }
 
-const showPgpWarning = (prompt: Prompt<typeof promptPgp>, recoverRunId: string) => {
+const showPgpWarning = (prompt: Prompt<typeof promptPgp>) => {
   const {id} = prompt
   // A warning pushed but never mounted can't be answered; decline rather than leave Go waiting.
   // The warning mounting clears this.
@@ -251,16 +159,9 @@ const showPgpWarning = (prompt: Prompt<typeof promptPgp>, recoverRunId: string) 
   void prompt.closed.then(() => markRecoverPasswordPgpShown(id))
   // The paper key has just logged the user in, so the logged-in root this modal lives on may not be
   // mounted yet. A warning that can't be pushed is declined.
-  navigateAppendOnceRootHas({
-    onEnd: pushed => {
-      if (!pushed) {
-        prompt.answer(false)
-      }
-    },
-    path: () => ({name: pgpWarningName, params: {promptId: id, recoverRunId}}),
-    rootOk: root => root === 'loggedIn',
-    timeoutMs: loggedInRootTimeoutMs,
-  })
+  navigateAppendOnceRootHas('loggedIn', {name: pgpWarningName, params: {promptId: id}}, loggedInRootTimeoutMs, () =>
+    prompt.answer(false)
+  )
 }
 
 export const startRecoverPassword = ({
@@ -269,14 +170,6 @@ export const startRecoverPassword = ({
   replaceRoute,
   username,
 }: StartRecoverPasswordParams) => {
-  // A caller that hands its screen over (provision's password screen, a run's screen restarting it)
-  // makes it this run's
-  const handedOver = abortProvisioning || replaceRoute ? getVisibleScreen(true)?.key : undefined
-  if (latest) {
-    for (const stop of latest.errorWaits.splice(0)) {
-      stop()
-    }
-  }
   const previous = current
   if (previous) {
     // Answered rather than refused, as the warning's own decline would be
@@ -300,14 +193,7 @@ export const startRecoverPassword = ({
       waitingKey: waitingKeyRecoverPassword,
     }
   )
-  const run: Run = {
-    dialog,
-    errorWaits: [],
-    handedOver,
-    id: `${runIdPrefix}-${nextRunId++}`,
-    onResetEmailSent,
-    username,
-  }
+  const run: Run = {dialog, onResetEmailSent, username}
   current = run
   latest = run
   caller = {onResetEmailSent, username}
@@ -322,7 +208,7 @@ export const startRecoverPassword = ({
       navigateAppend(
         {
           name: 'recoverPasswordExplainDevice',
-          params: {deviceName: e.params.name, deviceType: e.params.kind, recoverRunId: run.id, username},
+          params: {deviceName: e.params.name, deviceType: e.params.kind, username},
         },
         true
       )
@@ -332,23 +218,19 @@ export const startRecoverPassword = ({
       case chooseDevice: {
         const devices = (e.params.devices || []).map(d => rpcDeviceToDevice(d))
         navigateAppend(
-          {name: 'recoverPasswordDeviceSelector', params: {devices, promptId: e.id, recoverRunId: run.id}},
+          {name: 'recoverPasswordDeviceSelector', params: {devices, promptId: e.id}},
           !!replaceRoute
         )
         break
       }
       case promptPgp:
         pgp = e
-        showPgpWarning(e, run.id)
+        showPgpWarning(e)
         break
       case promptReset:
         if (e.params.prompt.t === T.RPCGen.ResetPromptType.enterResetPw) {
-          navigateAppend({
-            name: 'recoverPasswordPromptResetPassword',
-            params: {promptId: e.id, recoverRunId: run.id, username},
-          })
+          navigateAppend({name: 'recoverPasswordPromptResetPassword', params: {promptId: e.id, username}})
         } else {
-          // The reset flow's screen, not this run's: it outlives the run
           startAccountReset(true, username)
           e.answer(T.RPCGen.ResetPromptResponse.nothing)
         }
@@ -356,29 +238,19 @@ export const startRecoverPassword = ({
       case getPassphrase: {
         const error = e.params.pinentry.retryLabel || undefined
         if (e.params.pinentry.type === T.RPCGen.PassphraseType.paperKey) {
-          navigateAppend({name: 'recoverPasswordPaperKey', params: {error, promptId: e.id, recoverRunId: run.id}}, true)
+          navigateAppend({name: 'recoverPasswordPaperKey', params: {error, promptId: e.id}}, true)
         } else if (error) {
-          navigateAppend(
-            {name: 'recoverPasswordSetPassword', params: {error, promptId: e.id, recoverRunId: run.id}},
-            true
-          )
+          navigateAppend({name: 'recoverPasswordSetPassword', params: {error, promptId: e.id}}, true)
         } else {
           // Asked after the paper key logged the user in, so the logged-in root this modal lives on
           // may not be mounted yet. A screen that never appears can't be answered: refuse it.
           const prompt = e
-          navigateAppendOnceRootHas({
-            onEnd: pushed => {
-              if (!pushed) {
-                prompt.cancel()
-              }
-            },
-            path: () => ({
-              name: 'recoverPasswordSetPassword',
-              params: {error: undefined, promptId: e.id, recoverRunId: run.id},
-            }),
-            rootOk: root => root === 'loggedIn',
-            timeoutMs: loggedInRootTimeoutMs,
-          })
+          navigateAppendOnceRootHas(
+            'loggedIn',
+            {name: 'recoverPasswordSetPassword', params: {error: undefined, promptId: e.id}},
+            loggedInRootTimeoutMs,
+            () => prompt.cancel()
+          )
         }
         break
       }
@@ -403,8 +275,7 @@ export const startRecoverPassword = ({
       await Promise.all([showPrompts(), dialog.done])
       logger.info('Recovered account')
     } catch (error) {
-      // A run no longer current (a restart disposed it) removes nothing and shows nothing. Its done
-      // rejects as cancelled, so this only makes that explicit.
+      // A restart disposed this run and took over the screens, maybe after its RPC had already failed
       if (dialog.disposed) {
         return
       }
@@ -415,13 +286,17 @@ export const startRecoverPassword = ({
       hadError = true
       logger.warn('RPC returned error: ' + error.message)
       if (!(error.code === T.RPCGen.StatusCode.sccanceled || error.code === T.RPCGen.StatusCode.scinputcanceled)) {
-        removeRoutes(runRoutes(run))
-        showRecoverError(run, error.message)
+        navigateAppend(
+          {
+            name: useConfigState.getState().loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
+            params: {error: error.message},
+          },
+          true
+        )
       }
     } finally {
       if (current === run) {
         current = undefined
-        answeredByScreen.clear()
       }
       // The session settled a warning still unanswered when the run ended; nothing is left to answer
       if (pgp && (await pgp.closed) === 'ended' && latest === run) {

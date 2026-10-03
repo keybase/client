@@ -4,8 +4,7 @@ import {navigateUp} from '@/constants/router'
 import {continueRecoverPasswordPgp, markRecoverPasswordPgpShown} from './flow'
 import {useRecoverPromptBack, useRecoverPromptSelfClose} from './use-prompt-back'
 
-// recoverRunId: the run that showed it, which takes its own screens away when it fails
-type Props = {route: {params: {promptId: number; recoverRunId: string}}}
+type Props = {route: {params: {promptId: number}}}
 
 const PgpWarning = ({route}: Props) => {
   const {promptId} = route.params

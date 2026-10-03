@@ -7,8 +7,7 @@ import {
 } from './flow'
 import {useRecoverPromptBack} from './use-prompt-back'
 
-// recoverRunId: the run that showed it, which takes its own screens away when it fails
-type Props = {route: {params: {devices: ReadonlyArray<Device>; promptId: number; recoverRunId: string}}}
+type Props = {route: {params: {devices: ReadonlyArray<Device>; promptId: number}}}
 
 const RecoverPasswordDeviceSelector = ({route}: Props) => {
   const {devices, promptId} = route.params

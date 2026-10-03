@@ -15,7 +15,6 @@ export const Desktop: Story = {
       params: {
         deviceName: 'work-laptop',
         deviceType: T.RPCGen.DeviceType.desktop,
-        recoverRunId: 'r-0',
         username: 'testuser',
       },
     },
@@ -28,7 +27,6 @@ export const Mobile: Story = {
       params: {
         deviceName: 'iPhone 15',
         deviceType: T.RPCGen.DeviceType.mobile,
-        recoverRunId: 'r-0',
         username: 'testuser',
       },
     },

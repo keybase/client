@@ -38,7 +38,6 @@ export type FakeNavigator = Navigator & {
   commit: () => void
   // Replaces the root state and fires the 'state' listeners, as a real commit would.
   setRootState: (state?: NavTree.NavState) => void
-  // Fires the 'state' listeners, as the app's onReady sets the router store's copy
   setReady: (ready: boolean) => void
   // How many 'state' listeners are subscribed right now.
   listenerCount: () => number
@@ -347,10 +346,6 @@ export const makeFakeNavigator = (p?: {
     },
     getRootState: () => (ready ? rootState : undefined),
     isReady: () => ready,
-    subscribeRoot: cb => {
-      listeners.add(cb)
-      return () => listeners.delete(cb)
-    },
   }
 
   const navigator = makeNavigator(ref)
@@ -393,7 +388,6 @@ export const makeFakeNavigator = (p?: {
         .map(a => ({name: a.payload?.['name'], params: a.payload?.['params']})),
     setReady: next => {
       ready = next
-      fireListeners()
     },
     setRootState: next => {
       queued.length = 0

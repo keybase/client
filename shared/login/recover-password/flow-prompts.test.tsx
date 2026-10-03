@@ -90,7 +90,7 @@ describe('paper key prompt', () => {
 
     expect(nav.navigations()).toContainEqual({
       name: 'recoverPasswordPaperKey',
-      params: {error: 'nope', promptId, recoverRunId: expect.any(String)},
+      params: {error: 'nope', promptId},
       replace: true,
     })
     submitRecoverPasswordPaperKey(promptId, 'one two three')
@@ -133,7 +133,7 @@ describe('new password prompt', () => {
 
     expect(nav.navigations()).toContainEqual({
       name: 'recoverPasswordSetPassword',
-      params: {error: undefined, promptId, recoverRunId: expect.any(String)},
+      params: {error: undefined, promptId},
       replace: false,
     })
     submitRecoverPasswordPassword(promptId, 'hunter2hunter2')
@@ -149,7 +149,7 @@ describe('new password prompt', () => {
 
     expect(nav.navigations()).toContainEqual({
       name: 'recoverPasswordSetPassword',
-      params: {error: 'too short', promptId, recoverRunId: expect.any(String)},
+      params: {error: 'too short', promptId},
       replace: true,
     })
     held[0]!.reply(undefined)
@@ -364,7 +364,7 @@ describe('pgp key warning', () => {
     expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning', 'proxySettingsModal'])
   })
 
-  test('a run failing with its warning up takes the warning away and shows the error', async () => {
+  test('a run failing with the warning on top shows the error in its place', async () => {
     const {held, sessionID} = await start()
     void pushPgp(sessionID)
     await settle()
@@ -373,25 +373,6 @@ describe('pgp key warning', () => {
     await settle()
 
     expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordErrorModal'])
-  })
-
-  // The run's end settles the unanswered warning after the error path has taken it away
-  test("a failure's error stays: the run's end does not go back from it as if it were the warning", async () => {
-    nav = installFakeNavigator({
-      modalRouteNames: Object.keys(newModalRoutes),
-      rootState: makeRootState({above: [{name: 'chatConversation'}]}),
-    })
-    const {held, sessionID} = await start()
-    void pushPgp(sessionID)
-    await settle()
-    expect(rootRouteNames()).toEqual(['loggedIn', 'chatConversation', 'recoverPasswordPgpWarning'])
-    nav.clearActions()
-
-    held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'bad things'))
-    await settle()
-
-    expect(rootRouteNames()).toEqual(['loggedIn', 'chatConversation', 'recoverPasswordErrorModal'])
-    expect(nav.types()).not.toContain('GO_BACK')
   })
 
   test('a run ending after the prompt was answered answers nothing more and leaves the screens', async () => {
@@ -430,17 +411,16 @@ describe('pgp key warning', () => {
     await settle()
   })
 
-  test('a warning waits for a navigator not ready yet, and goes up once it is', async () => {
+  test('a warning that cannot be pushed is declined at once, not at the push timeout', async () => {
     nav = installFakeNavigator({modalRouteNames: Object.keys(newModalRoutes), ready: false, rootState: makeRootState()})
     useFakeTimers()
     const {held, sessionID} = await start()
-    void pushPgp(sessionID)
-    await settle()
-    expect(nav.pushes()).toEqual([])
+    const answered = pushPgp(sessionID)
 
-    nav.setReady(true)
-
-    expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning'])
+    // No timer advances: the decline comes from the push giving up
+    await expect(Promise.race([answered, settle().then(settle).then(() => 'still waiting')])).resolves.toEqual({
+      result: false,
+    })
     held[0]!.reply(undefined)
     await settle()
   })

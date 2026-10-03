@@ -10,7 +10,7 @@ import type {StaticScreenProps} from '@react-navigation/core'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import * as NavTree from './nav-tree'
 import {DEBUG_NAV} from './nav-debug'
-import {getNavigator, type RootWait} from './navigator'
+import {getNavigator} from './navigator'
 import type {GetOptionsRet, RouteDef} from './types/router'
 import {isSplit, threadRouteName} from './chat/layout'
 import {ignorePromise} from './utils'
@@ -184,7 +184,14 @@ export function navigateAppend(path: NavigateAppendType, replace?: boolean): boo
   return getNavigator().navigateAppend(path, replace)
 }
 
-export const navigateAppendOnceRootHas = (wait: RootWait) => getNavigator().navigateAppendOnceRootHas(wait)
+export const navigateAppendOnceRootHas = (
+  rootRouteName: string,
+  path: NavigateAppendType,
+  timeoutMs?: number,
+  onGiveUp?: () => void
+) => {
+  getNavigator().navigateAppendOnceRootHas(rootRouteName, path, timeoutMs, onGiveUp)
+}
 
 export const switchTab = (name: Tabs.AppTab) => {
   getNavigator().switchTab(name)
@@ -454,7 +461,6 @@ export const previewConversation = (p: PreviewConversationParams) => {
 export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['chatRoot']>>): boolean =>
   getNavigator().setChatRootParams(params)
 
-export const removeRoutes = (keys: Iterable<string>) => getNavigator().removeRoutes(keys)
 // Merges params into the route with this key, even when it is not the focused one.
 export const setRouteParams = (routeKey: string | undefined, params: object): boolean =>
   getNavigator().setRouteParams(routeKey, params)
