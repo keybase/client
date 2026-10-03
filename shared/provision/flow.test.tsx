@@ -3,6 +3,7 @@ import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {RPCError} from '@/util/errors'
+import {getEngine} from '@/engine/require'
 
 import {
   cancelProvision,
@@ -10,6 +11,7 @@ import {
   startAddNewDevice,
   submitProvisionDeviceName,
   submitProvisionDeviceSelect,
+  submitProvisionTextCode,
   submitProvisionUsername,
   startProvision,
 } from './flow'
@@ -407,6 +409,9 @@ test('pause with a pending prompt still resumes when the same step is resubmitte
 describe('through the engine listener', () => {
   afterEach(() => uninstallListenerEngine())
 
+  const loginMethod = 'keybase.1.login.login'
+  const secretMethod = 'keybase.1.provisionUi.DisplayAndPromptSecret'
+
   const failLogin = async (code: T.RPCGen.StatusCode, desc: string) => {
     const engine = installListenerEngine()
     submitProvisionUsername('testuser')
@@ -438,32 +443,154 @@ describe('through the engine listener', () => {
     })
   })
 
-  test.each([
-    [T.RPCGen.StatusCode.sccanceled, 'Received RPC cancel for session'],
-    [T.RPCGen.StatusCode.scinputcanceled, 'canceled by the service'],
-  ])('a cancel (%s) is not a failure: it shows nothing', async (code, desc) => {
-    await failLogin(code, desc)
+  // Only a cancel the run caused is quiet; the error screen reads scinputcanceled as "Login cancelled."
+  test('a service-side input cancel shows the error screen', async () => {
+    await failLogin(T.RPCGen.StatusCode.scinputcanceled, 'canceled by the service')
 
-    expect(nav.navigations().filter(n => n.name === 'error' || n.name === 'username')).toEqual([])
-    expect(nav.modalsCleared()).toBe(false)
+    expect(nav.modalsCleared()).toBe(true)
+    expect(nav.navigations().filter(n => n.name === 'error')).toEqual([
+      {
+        name: 'error',
+        params: {error: expect.objectContaining({code: T.RPCGen.StatusCode.scinputcanceled}), username: 'testuser'},
+        replace: true,
+      },
+    ])
   })
 
-  // The switch cancels the login's session, which is not the run cancelling it
-  test('an account switch during a login shows nothing', async () => {
+  // The engine cancels every session when the link drops, with no account change
+  test('a lost link shows the error screen', async () => {
     installListenerEngine()
     submitProvisionUsername('testuser')
     await flush()
-    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+    getEngine().cancelOutstandingSessions()
     await flush()
+
+    expect(nav.modalsCleared()).toBe(true)
+    expect(nav.navigations().filter(n => n.name === 'error')).toEqual([
+      {
+        name: 'error',
+        params: {error: expect.objectContaining({code: T.RPCGen.StatusCode.sccanceled}), username: 'testuser'},
+        replace: true,
+      },
+    ])
+  })
+
+  test('our own cancel shows nothing', async () => {
+    const engine = installListenerEngine()
+    submitProvisionUsername('testuser')
+    await flush()
+    cancelProvision()
+    await flush()
+
+    expect(() => engine.pending(loginMethod)).toThrow()
+    expect(nav.navigations().filter(n => n.name === 'error' || n.name === 'username')).toEqual([])
+    expect(nav.modalsCleared()).toBe(false)
+  })
+
+  // The switch cancels the login's session: a failure the run caused
+  const switchMidLogin = async (endSwitch: 'before the run reads the failure' | 'after the run is over') => {
+    const {setUserSwitching} = useConfigState.getState().dispatch
+    const engine = installListenerEngine()
+    submitProvisionUsername('testuser')
+    await flush()
+    setUserSwitching(true, 'testuser2')
+    if (endSwitch === 'before the run reads the failure') {
+      setUserSwitching(false)
+    }
+    await flush()
+    setUserSwitching(false)
+
+    // the session was cancelled, and the run is over: a submit starts nothing
+    expect(() => engine.pending(loginMethod)).toThrow()
+    submitProvisionDeviceName('dev1')
+    await flush()
+    expect(engine.calls.filter(c => c.method === loginMethod)).toHaveLength(1)
+    expect(nav.navigations().filter(n => n.name === 'error' || n.name === 'username')).toEqual([])
+    expect(nav.modalsCleared()).toBe(false)
+  }
+
+  // Read while the switch runs: logged out, the switch starts no new account generation
+  test('an account switch from logged out during a login shows nothing', async () => {
+    await switchMidLogin('after the run is over')
+  })
+
+  // Read from the account generation, which a switch from a logged-in account moves on
+  test('an account switch from logged in shows nothing even once the switch has ended', async () => {
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    await switchMidLogin('before the run reads the failure')
+  })
+
+  test('an error our own prompt cancel caused shows nothing', async () => {
+    await failLogin(T.RPCGen.StatusCode.scgeneric, 'Input canceled')
 
     expect(nav.navigations().filter(n => n.name === 'error' || n.name === 'username')).toEqual([])
     expect(nav.modalsCleared()).toBe(false)
   })
 
-  test('an error our own prompt cancel caused shows nothing', async () => {
-    await failLogin(T.RPCGen.StatusCode.scinputcanceled, 'Input canceled')
+  // Go cancels the secret prompt still waiting here once the other device finished, and the login
+  // succeeds; this engine ends the session on that cancel, so the login rejects first
+  test('a key exchange the other device finished shows nothing, and Go\'s late reply is harmless', async () => {
+    const engine = installListenerEngine()
+    submitProvisionUsername('testuser')
+    await flush()
+    const call = engine.pending(loginMethod)
+    const response = {error: jest.fn(), result: jest.fn()}
+    call.incomingCallMap[secretMethod]?.({phrase: 'one two three', previousErr: ''}, response)
+    // the listener hands the prompt to its handler on a timer
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(nav.navigations()).toContainEqual(expect.objectContaining({name: 'codePage', replace: false}))
+    nav.clearActions()
 
-    expect(nav.navigations().filter(n => n.name === 'error' || n.name === 'username')).toEqual([])
+    engine.fail(loginMethod, T.RPCGen.StatusCode.sccanceled, 'Received RPC cancel for session')
+    await flush()
+    expect(nav.navigations()).toEqual([])
+    expect(nav.modalsCleared()).toBe(false)
+
+    // the login's success reply reaches a settled call
+    call.callback(undefined, undefined)
+    await flush()
+    expect(nav.navigations()).toEqual([])
+    expect(response.result).not.toHaveBeenCalled()
+    expect(response.error).not.toHaveBeenCalled()
+  })
+
+  test('the same cancel after the user answered the secret prompt shows the error screen', async () => {
+    const engine = installListenerEngine()
+    submitProvisionUsername('testuser')
+    await flush()
+    const response = {error: jest.fn(), result: jest.fn()}
+    engine.pending(loginMethod).incomingCallMap[secretMethod]?.({phrase: 'one two three', previousErr: ''}, response)
+    await new Promise(resolve => setTimeout(resolve, 0))
+    submitProvisionTextCode('one two three')
+    expect(response.result).toHaveBeenCalled()
+
+    engine.fail(loginMethod, T.RPCGen.StatusCode.sccanceled, 'Received RPC cancel for session')
+    await flush()
+    expect(nav.modalsCleared()).toBe(true)
+    expect(nav.navigations().filter(n => n.name === 'error')).toHaveLength(1)
+  })
+
+  test('the same cancel with no secret prompt waiting shows the error screen', async () => {
+    await failLogin(T.RPCGen.StatusCode.sccanceled, 'Received RPC cancel for session')
+    expect(nav.modalsCleared()).toBe(true)
+    expect(nav.navigations().filter(n => n.name === 'error')).toHaveLength(1)
+  })
+
+  test('add-device: a lost link closes the modals', async () => {
+    installListenerEngine()
+    startAddNewDevice('mobile')
+    await flush()
+    getEngine().cancelOutstandingSessions()
+    await flush()
+    expect(nav.modalsCleared()).toBe(true)
+  })
+
+  test('add-device: our own cancel leaves the modals', async () => {
+    installListenerEngine()
+    startAddNewDevice('mobile')
+    await flush()
+    cancelProvision()
+    await flush()
     expect(nav.modalsCleared()).toBe(false)
   })
 })

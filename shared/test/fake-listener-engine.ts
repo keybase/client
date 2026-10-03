@@ -21,7 +21,7 @@ export const installListenerEngine = () => {
   const cancel = (call: Outgoing | undefined) => {
     if (call && !settled.has(call)) {
       settled.add(call)
-      call.callback(new RPCError('Canceling RPC', T.RPCGen.StatusCode.sccanceled))
+      call.callback(new RPCError('Received RPC cancel for session', T.RPCGen.StatusCode.sccanceled))
     }
   }
   initEngine({
