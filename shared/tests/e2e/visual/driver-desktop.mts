@@ -19,6 +19,9 @@ export type Capture = {
 export type DesktopSession = {
   prepare: (opts: {theme: Theme; frozenAt: number; reload: boolean}) => Promise<void>
   capture: (entry: TourEntry) => Promise<Capture>
+  // Restores the app and detaches this driver's CDP session. It does not close the browser (that
+  // quits Electron), so the Playwright connection stays open: the caller must exit its process,
+  // under its own deadline, to drop it.
   close: () => Promise<void>
 }
 
@@ -397,8 +400,9 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
       // scheme to its own default, so the emulation is reasserted for every capture.
       await fixViewport(cdp, page)
       await applyTheme(page, theme)
-      await resetTo(page, entry.nav.tab)
+      // before the reset, so coverage includes what switching to the tab mounts
       const seq = await coverageSeq(page)
+      await resetTo(page, entry.nav.tab)
       const nav = await resolveParams(entry.nav)
       const append = nav.append
       if (append) {
@@ -443,12 +447,15 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
   const close: DesktopSession['close'] = async () => {
     await withDeadline(page.emulateMedia({colorScheme: null}), EVAL_MS, 'clearing the color scheme').catch(() => {})
     await withDeadline(cdp.send('Emulation.clearDeviceMetricsOverride'), EVAL_MS, 'clearing the viewport').catch(() => {})
-    if (dateScript) {
-      await withDeadline(cdp.send('Page.removeScriptToEvaluateOnNewDocument', {identifier: dateScript}), EVAL_MS, 'removing the Date script')
-      dateScript = undefined
-      await checkRendererAfterReload(page)
+    try {
+      if (dateScript) {
+        await withDeadline(cdp.send('Page.removeScriptToEvaluateOnNewDocument', {identifier: dateScript}), EVAL_MS, 'removing the Date script')
+        dateScript = undefined
+        await checkRendererAfterReload(page)
+      }
+    } finally {
+      await withDeadline(cdp.detach(), EVAL_MS, 'detaching CDP').catch(() => {})
     }
-    await withDeadline(cdp.detach(), EVAL_MS, 'detaching CDP').catch(() => {})
   }
 
   return {capture, close, prepare}
