@@ -1,6 +1,9 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
+import {waitingKeyProvision} from '@/constants/strings'
+import {useConfigState} from '@/stores/config'
+import {useWaitingState} from '@/stores/waiting'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {tick} from '@/test/flush'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
@@ -24,6 +27,7 @@ const deviceName = 'keybase.1.provisionUi.PromptNewDeviceName'
 const chooseDevice = 'keybase.1.provisionUi.chooseDevice'
 const getPassphrase = 'keybase.1.secretUi.getPassphrase'
 const secret = 'keybase.1.provisionUi.DisplayAndPromptSecret'
+const secretExchanged = 'keybase.1.provisionUi.DisplaySecretExchanged'
 const inputCanceled = {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'}
 
 let nav: FakeNavigator
@@ -426,7 +430,7 @@ describe('add device', () => {
   }
   const addSession = (attempt: number) =>
     fake.calls.filter(c => c.method === deviceAdd)[attempt]!.params.sessionID as number
-  const pushAdd = async (method: string, params: object, attempt: number) =>
+  const pushAdd = async (method: string, params: object, attempt = 0) =>
     fake.push(method, params, {sessionID: addSession(attempt)})
 
   test('the device type is answered from the button the user picked', async () => {
@@ -563,6 +567,46 @@ describe('add device', () => {
     held[0]!.reply(undefined)
     await settle()
     expect(nav.modalsCleared()).toBe(true)
+  })
+
+  test('secret-exchange progress holds the provision waiting key until the run ends', async () => {
+    const held = fake.hold(deviceAdd)
+    await startAdd()
+    const count = () => {
+      fake.engine._throttledDispatchWaitingAction.flush()
+      return useWaitingState.getState().counts.get(waitingKeyProvision)
+    }
+    await pushAdd(secretExchanged, {})
+    await pushAdd(secretExchanged, {})
+    await settle()
+    expect(count()).toBe(3)
+    held[0]!.reply(undefined)
+    await settle()
+    expect(count()).toBeUndefined()
+
+    await startAdd()
+    await pushAdd(secretExchanged, {}, 1)
+    await settle()
+    expect(count()).toBe(2)
+    cancelProvision()
+    await settle()
+    expect(count()).toBeUndefined()
+  })
+
+  test('a logout ends the run: its prompt is refused and it closes nothing', async () => {
+    const {setLoggedIn} = useConfigState.getState().dispatch
+    setLoggedIn(true)
+    const held = fake.hold(deviceAdd)
+    await startAdd()
+    const answered = pushAdd(secret, {phrase: 'one two three', previousErr: ''}, 0)
+    await settle()
+
+    setLoggedIn(false)
+    await expect(answered).resolves.toEqual({error: inputCanceled})
+    submitProvisionTextCode('one two three')
+    held[0]!.reply(fakeError(T.RPCGen.StatusCode.scinputcanceled, 'Input canceled'))
+    await settle()
+    expect(nav.modalsCleared()).toBe(false)
   })
 
   test('starting add-device ends a running login', async () => {

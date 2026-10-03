@@ -6,6 +6,7 @@ import {clearModals, navigateAppend} from '@/constants/router'
 import {rpcDeviceToDevice} from '@/constants/rpc-utils'
 import {waitingKeyProvision} from '@/constants/strings'
 import {ignorePromise, wrapErrors} from '@/constants/utils'
+import {openDialog} from '@/engine/dialog'
 import {type CommonResponseHandler} from '@/engine/types'
 import {callNamed, setNamedScoped} from '@/stores/flow-handles'
 import {useConfigState} from '@/stores/config'
@@ -75,15 +76,24 @@ const makeHandles = () => {
   }
 }
 
-export const cancelProvision = () => callNamed(owner, slots.cancel)
+export const cancelProvision = () => {
+  currentProvisionRun?.cancel()
+  callNamed(owner, slots.cancel)
+}
 // Back-out while the RPC is mid-work: abort the attempt but keep the run's answers so a
 // resubmit replays them. In the add-device flow this is a full cancel (nothing to replay).
-export const pauseProvision = () => callNamed(owner, slots.pause)
+export const pauseProvision = () => {
+  currentProvisionRun?.pause()
+  callNamed(owner, slots.pause)
+}
 export const submitProvisionDeviceName = (name: string) => callNamed(owner, slots.submitDeviceName, name)
 export const submitProvisionDeviceSelect = (name: string) => callNamed(owner, slots.submitDeviceSelect, name)
 export const submitProvisionPassphrase = (passphrase: string) =>
   callNamed(owner, slots.submitPassphrase, passphrase)
-export const submitProvisionTextCode = (code: string) => callNamed(owner, slots.submitTextCode, code)
+export const submitProvisionTextCode = (code: string) => {
+  currentProvisionRun?.submitTextCode(code)
+  callNamed(owner, slots.submitTextCode, code)
+}
 
 export const startProvision = (name = '', fromReset = false) => {
   cancelProvision()
@@ -487,98 +497,73 @@ const runProvision = (initialUsername: string) => {
   ignorePromise(f())
 }
 
+// The run the provision screens answer: the add-device run, while one is going
+type ProvisionRun = {
+  cancel: () => void
+  pause: () => void
+  submitTextCode: (code: string) => void
+}
+let currentProvisionRun: ProvisionRun | undefined
+
+const secretPrompt = 'keybase.1.provisionUi.DisplayAndPromptSecret'
+const secretExchanged = 'keybase.1.provisionUi.DisplaySecretExchanged'
+const normalizeTextCode = (code: string) => code.replace(/\W+/g, ' ').trim()
+
 export const startAddNewDevice = (otherDeviceType: 'desktop' | 'mobile') => {
   cancelProvision()
   const otherDevice = {...makeDevice(), type: otherDeviceType}
-  let pendingResponse: CommonResponseHandler | undefined
-  let userCancelled = false
-  let cancelAttempt: (() => void) | undefined
-  const handles = makeHandles()
-  const wasCancelled = () => userCancelled
+  const dialog = openDialog('keybase.1.device.deviceAdd', undefined, {
+    autoAnswer: {
+      'keybase.1.provisionUi.chooseDeviceType': () =>
+        otherDeviceType === 'mobile' ? T.RPCGen.DeviceType.mobile : T.RPCGen.DeviceType.desktop,
+    },
+    notices: [secretExchanged, 'keybase.1.provisionUi.ProvisioneeSuccess', 'keybase.1.provisionUi.ProvisionerSuccess'],
+    prompts: [secretPrompt],
+    waitingKey: waitingKeyProvision,
+  })
+  // There's nothing to replay in this flow, so pause is a full cancel too
+  const run: ProvisionRun = {
+    cancel: dialog.dispose,
+    pause: dialog.dispose,
+    submitTextCode: code => {
+      dialog.openPrompt(secretPrompt)?.answer({phrase: normalizeTextCode(code), secret: null as unknown as Uint8Array})
+    },
+  }
+  currentProvisionRun = run
+
+  let exchangedIncrements = 0
+  const showEvents = async () => {
+    for await (const e of dialog.events) {
+      if (e.kind === 'notice') {
+        if (e.method === secretExchanged) {
+          ++exchangedIncrements
+          useWaitingState.getState().dispatch.increment(waitingKeyProvision)
+        }
+        continue
+      }
+      const {phrase, previousErr} = e.params
+      navigateAppend(
+        {name: 'codePage', params: {error: previousErr || undefined, otherDevice, textCode: phrase}},
+        !!previousErr
+      )
+    }
+  }
 
   const f = async () => {
-    // Cancel kills this run: any prompt arriving afterwards is auto-rejected so the RPC ends. The
-    // pending response (if any) is rejected now, which is also what stops a run a newer one replaces.
-    // There's nothing to replay in this flow, so pause is a full cancel too.
-    const doCancel = wrapErrors(() => {
-      userCancelled = true
-      const pending = pendingResponse
-      pendingResponse = undefined
-      if (pending) {
-        cancelOnCallback(undefined, pending)
-      }
-      cancelAttempt?.()
-    })
-    handles.set(slots.cancel, doCancel)
-    handles.set(slots.pause, doCancel)
-    let exchangedIncrements = 0
-    let attemptEnded = false
     try {
-      await T.RPCGen.deviceDeviceAddRpcListener({
-        customResponseIncomingCallMap: {
-          'keybase.1.provisionUi.DisplayAndPromptSecret': (params, response) => {
-            if (userCancelled) {
-              cancelOnCallback(undefined, response)
-              return
-            }
-            const {phrase, previousErr} = params
-            pendingResponse = response
-            handles.set(
-              slots.submitTextCode,
-              wrapErrors((code: string) => {
-                pendingResponse = undefined
-                const good = code.replace(/\W+/g, ' ').trim()
-                response.result({phrase: good, secret: null as unknown as Uint8Array})
-              })
-            )
-            navigateAppend(
-              {
-                name: 'codePage',
-                params: {error: previousErr || undefined, otherDevice, textCode: phrase},
-              },
-              !!previousErr
-            )
-          },
-          'keybase.1.provisionUi.chooseDeviceType': (_params, response) => {
-            switch (otherDeviceType) {
-              case 'mobile':
-                response.result(T.RPCGen.DeviceType.mobile)
-                break
-              case 'desktop':
-                response.result(T.RPCGen.DeviceType.desktop)
-                break
-            }
-          },
-        },
-        incomingCallMap: {
-          'keybase.1.provisionUi.DisplaySecretExchanged': () => {
-            // Incoming calls are dispatched via setTimeout, so this can land after the finally
-            // below already ran its decrements; don't add a count nothing will release.
-            if (attemptEnded) return
-            ++exchangedIncrements
-            useWaitingState.getState().dispatch.increment(waitingKeyProvision)
-          },
-          'keybase.1.provisionUi.ProvisioneeSuccess': () => {},
-          'keybase.1.provisionUi.ProvisionerSuccess': () => {},
-        },
-        onSessionCreated: cancel => {
-          cancelAttempt = cancel
-        },
-        params: undefined,
-        waitingKey: waitingKeyProvision,
-      })
+      await Promise.all([showEvents(), dialog.done])
     } catch {
     } finally {
-      attemptEnded = true
-      cancelAttempt = undefined
       for (let i = 0; i < exchangedIncrements; ++i) {
         useWaitingState.getState().dispatch.decrement(waitingKeyProvision)
       }
-      handles.dispose()
+      if (currentProvisionRun === run) {
+        currentProvisionRun = undefined
+      }
     }
     // A cancelled (or superseded) run must not clear modals: by now the user has either navigated
     // away or a newer run owns the screens, and this would close the newer run's UI.
-    if (!wasCancelled()) {
+    if (!dialog.disposed) {
       clearModals()
     }
   }
