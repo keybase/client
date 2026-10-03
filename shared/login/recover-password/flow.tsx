@@ -14,7 +14,7 @@ import {startAccountReset} from '@/login/reset/account-reset'
 import {useConfigState} from '@/stores/config'
 import {cancelProvision} from '@/provision/flow'
 import {rpcDeviceToDevice} from '@/constants/rpc-utils'
-import {RPCError} from '@/util/errors'
+import {isCancelError, RPCError} from '@/util/errors'
 
 type StartRecoverPasswordParams = {
   abortProvisioning?: boolean
@@ -288,7 +288,7 @@ export const startRecoverPassword = ({
       }
       hadError = true
       logger.warn('RPC returned error: ' + error.message)
-      if (!(error.code === T.RPCGen.StatusCode.sccanceled || error.code === T.RPCGen.StatusCode.scinputcanceled)) {
+      if (!isCancelError(error)) {
         navigateAppend(
           {
             name: useConfigState.getState().loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
