@@ -2,7 +2,7 @@
 // the GUI a prompt; while any prompt is held the GUI owes the service, so the key stops waiting unless
 // the flow says the service is still working. Settled once, by whatever ends the RPC.
 import type {RPCError} from '@/util/errors'
-import {releaseOnce} from '@/util/release-once'
+import once from 'lodash/once'
 import type {WaitingChange, WaitingKey} from './types'
 
 export type WaitingTracker = {
@@ -40,7 +40,7 @@ export const makeWaitingTracker = (
   const hold = (change: (by: 1 | -1) => void) => {
     change(1)
     update()
-    return releaseOnce(() => {
+    return once(() => {
       change(-1)
       update()
     })

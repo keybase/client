@@ -3,7 +3,7 @@ import type {WaitingChange} from '@/engine/types'
 import type * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
-import {releaseOnce} from '@/util/release-once'
+import once from 'lodash/once'
 
 // This store has no dependencies on other stores and is safe to import directly from other stores.
 const initialStore: T.Waiting.State = {
@@ -132,7 +132,7 @@ export const useDispatchClearWaiting = () => useWaitingState(s => s.dispatch.cle
 export const holdWaiting = (key: string): (() => void) => {
   const {decrement, increment} = useWaitingState.getState().dispatch
   increment(key)
-  return releaseOnce(() => decrement(key))
+  return once(() => decrement(key))
 }
 
 // Holds a key on while f runs, however it ends
