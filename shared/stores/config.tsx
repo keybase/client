@@ -18,6 +18,7 @@ import {
 } from "@/util/errors";
 import { type CommonResponseHandler } from "@/engine/types";
 import { startNewAccountGeneration } from "@/engine/account-generation";
+import { disposeDialogsForLogout } from "@/engine/dialog";
 import { invalidPasswordErrorString } from "@/constants/config";
 import { navigateAppendOnceRootHas } from "@/constants/router";
 import { onEngineConnected as onEngineConnectedInPlatform } from "@/util/storeless-actions";
@@ -603,6 +604,7 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
       const changed = get().loggedIn !== loggedIn;
       if (changed && !loggedIn) {
         startNewAccountGeneration();
+        disposeDialogsForLogout();
       }
       set((s) => {
         s.loggedIn = loggedIn;
@@ -657,6 +659,7 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
         if (fromLoggedIn) {
           startNewAccountGeneration();
         }
+        disposeDialogsForLogout();
         Z.resetAllStores();
         if (hasCallPort()) {
           getCallPort().cancelOutstandingSessions();
