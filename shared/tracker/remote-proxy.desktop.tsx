@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as RemoteGen from '@/constants/remote-actions'
 import * as T from '@/constants/types'
 import {generateGUIID, ignorePromise} from '@/constants/utils'
+import {waitingKeyTracker, waitingKeyTrackerProfileLoad} from '@/constants/waiting-keys'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import {useUsersState} from '@/stores/users'
@@ -144,7 +145,7 @@ const RemoteTrackers = () => {
           globalFallthrough: ['keybase.1.identify3Ui.'],
           incomingCallMap: {},
           params: {assertion, guiID, ignoreCache},
-          waitingKey: 'tracker:profileLoad',
+          waitingKey: waitingKeyTrackerProfileLoad,
         })
       } catch (error) {
         if (error instanceof RPCError) {
@@ -173,7 +174,7 @@ const RemoteTrackers = () => {
   const changeFollow = React.useCallback((guiID: string, follow: boolean) => {
     const f = async () => {
       try {
-        await T.RPCGen.identify3Identify3FollowUserRpcPromise({follow, guiID}, 'tracker:waitingKey')
+        await T.RPCGen.identify3Identify3FollowUserRpcPromise({follow, guiID}, waitingKeyTracker)
         setPopupState(prev =>
           updateResult(prev, guiID, 'valid', `Successfully ${follow ? 'followed' : 'unfollowed'}!`)
         )
@@ -189,7 +190,7 @@ const RemoteTrackers = () => {
   const ignore = React.useCallback((guiID: string) => {
     const f = async () => {
       try {
-        await T.RPCGen.identify3Identify3IgnoreUserRpcPromise({guiID}, 'tracker:waitingKey')
+        await T.RPCGen.identify3Identify3IgnoreUserRpcPromise({guiID}, waitingKeyTracker)
         setPopupState(prev => updateResult(prev, guiID, 'valid', 'Successfully ignored'))
       } catch {
         setPopupState(prev => updateResult(prev, guiID, 'error', 'Failed to ignore'))

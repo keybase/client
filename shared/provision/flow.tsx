@@ -4,7 +4,7 @@ import {invalidPasswordErrorString} from '@/constants/config'
 import {type Device, type ProvisionRouteError} from '@/constants/provision'
 import {clearModals, navigateAppend} from '@/constants/router'
 import {rpcDeviceToDevice} from '@/constants/rpc-utils'
-import {waitingKeyProvision} from '@/constants/strings'
+import {waitingKeyConfigLoginAsOther, waitingKeyProvision} from '@/constants/strings'
 import {ignorePromise} from '@/constants/utils'
 import {openDialog, type Dialog, type DialogEvent, type Prompt} from '@/engine/dialog'
 import logger from '@/logger'
@@ -128,7 +128,7 @@ export const startProvision = (name = '', fromReset = false) => {
     // If we're logged in, we're coming from the user switcher; log out first to prevent the service
     // from getting out of sync with the GUI about our logged-in-ness
     if (useConfigState.getState().loggedIn) {
-      await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true}, 'config:loginAsOther')
+      await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true}, waitingKeyConfigLoginAsOther)
     }
   }
   ignorePromise(f())

@@ -14,7 +14,6 @@ type FollowProps = {
   username: string
   small?: boolean
 }
-const getFollowWaitingKey = (username: string) => `settings:followButton:${username}`
 
 // used by people/follow-notification
 export const FollowButton = (props: FollowProps) => {
@@ -25,7 +24,7 @@ export const FollowButton = (props: FollowProps) => {
   const {guiID} = userDetails
 
   const followUser = C.useRPC(T.RPCGen.identify3Identify3FollowUserRpcPromise)
-  const followWaitingKey = getFollowWaitingKey(username)
+  const followWaitingKey = C.waitingKeySettingsFollowButton(username)
 
   const onFollow = () =>
     followUser(

@@ -31,7 +31,7 @@ const UnlockRemoteProxy = () => {
       paperKeyError: s.paperKeyError,
     }))
   )
-  const waiting = C.Waiting.useAnyWaiting('unlock-folders:waiting')
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyUnlockFolders)
 
   useEngineActionListener('keybase.1.rekeyUI.refresh', action => {
     handleUnlockFoldersEngineAction(action, open)

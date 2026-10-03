@@ -30,17 +30,13 @@ type Props = {
   | {onWave?: never; username: string}
 )
 
-const getWaveWaitingKey = (recipient: string) => {
-  return `settings:waveButton:${recipient}`
-}
-
 // A button that sends a wave emoji into a chat.
 const WaveButton = (props: Props) => {
   const {disabled, onWave: sendWave, small, style, toMany, username: recipient} = props
   const styles = useStyles()
   const theme = Styles.useTheme()
   const [waved, setWaved] = React.useState(false)
-  const waitingKey = getWaveWaitingKey(recipient || 'missing')
+  const waitingKey = C.waitingKeySettingsWaveButton(recipient || 'missing')
   const waving = C.Waiting.useAnyWaiting(waitingKey)
   const username = useCurrentUserState(s => s.username)
   const createConversation = C.useRPC(T.RPCChat.localNewConversationLocalRpcPromise)
