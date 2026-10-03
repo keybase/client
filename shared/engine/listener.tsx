@@ -1,14 +1,19 @@
 import {ensureError, type RPCError} from '@/util/errors'
 import {printOutstandingRPCs} from '@/local-debug'
 import {getAccountGeneration, survivesAccountChange} from './account-generation'
-import {inputCanceledError, type CommonResponseHandler, type ResponseType} from './types'
+import {
+  inputCanceledError,
+  type ClientCancelReason,
+  type CommonResponseHandler,
+  type ResponseType,
+} from './types'
 import {wrapErrors} from '@/util/debug'
 import type {CallPort, ListenParams} from './call-port'
 import type {DeferRun} from './session'
 
 type ListenEngine = {
   call: CallPort['call']
-  cancelSession: (sessionID: number) => void
+  cancelSession: (sessionID: number, reason?: ClientCancelReason) => void
   holdServerWork: (sessionID: number) => () => void
 }
 
@@ -117,7 +122,7 @@ export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
       params,
       waitingKey,
     })
-    p.onSessionCreated?.(() => engine.cancelSession(sessionID), {
+    p.onSessionCreated?.(reason => engine.cancelSession(sessionID, reason), {
       holdServerWork: () => engine.holdServerWork(sessionID),
     })
   })

@@ -1,7 +1,6 @@
 import logger from '@/logger'
 import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
-import {errors as transportErrors} from '@/engine/rpc-transport'
 import RPCError, {type CancelReason, type RPCErrorKind} from './rpcerror'
 
 function isRPCErrorLike(err: object): err is RPCErrorLike {
@@ -133,10 +132,6 @@ function isRPCError(error: RPCError | Error): error is RPCError {
   return typeof (error as RPCError).code === 'number'
 }
 
-export function isEOFError(error: RPCError | Error) {
-  return isRPCError(error) && (error.code as number) === transportErrors['EOF']
-}
-
 const ignoredMsgs = ['context deadline exceeded in method keybase.1.SimpleFS.simpleFSSyncStatus']
 const isIgnoredError = (error: RPCError | Error) => {
   if (isRPCError(error)) {
@@ -148,9 +143,8 @@ const isIgnoredError = (error: RPCError | Error) => {
 }
 
 export function isErrorTransient(error: RPCError | Error) {
-  // 'EOF from server' error from rpc library thrown when service
-  // restarts no need to show to user
-  return isEOFError(error) || isIgnoredError(error)
+  // The link to the service went away (a service restart): no need to show the user
+  return isCancelled(error, 'disconnect') || isIgnoredError(error)
 }
 
 export {RPCError}

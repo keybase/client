@@ -12,7 +12,7 @@ import {testWaitingKey} from './waiting-key'
 afterEach(() => resetAllStores())
 
 // Starts a recoverPassphrase listener whose session the service can push prompts into.
-const linkLost = {code: errors.EOF, desc: 'The service connection was lost', name: 'EOF'}
+const linkLost = {code: errors.EOF, desc: 'The service connection was lost', kind: {reason: 'disconnect', type: 'cancelled'}, name: 'EOF'}
 
 const startRecover = async (
   fake: FakeEngine,
@@ -157,7 +157,7 @@ test('a dropped link settles a push the GUI has not answered', async () => {
   const {done, sessionID} = await startRecover(fake, () => {})
   const pushed = fake.push('keybase.1.loginUi.promptPassphraseRecovery', {kind: 0}, {sessionID})
   fake.drop()
-  await expect(pushed).resolves.toMatchObject({error: {desc: 'fake engine: link dropped'}})
+  await expect(pushed).resolves.toEqual({error: linkLost})
   await expect(done).rejects.toMatchObject(linkLost)
 })
 

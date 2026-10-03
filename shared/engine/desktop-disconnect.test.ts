@@ -97,7 +97,7 @@ test('a service restarting twice in quick succession fails a call in flight once
   pair.serviceComesBack()
   await tick()
   expect(inFlight).toHaveBeenCalledTimes(1)
-  expect(inFlight).toHaveBeenCalledWith({code: errors.EOF, desc: 'The service connection was lost', name: 'EOF'}, {})
+  expect(inFlight).toHaveBeenCalledWith({code: errors.EOF, desc: 'The service connection was lost', kind: {reason: 'disconnect', type: 'cancelled'}, name: 'EOF'}, {})
   expect(methodsReceived(pair)).toEqual([])
   expect(pair.linkChanges).toEqual([true, false, true, false, true])
 })

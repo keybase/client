@@ -13,6 +13,7 @@ import {getAccountGeneration, survivesAccountChange} from './account-generation'
 import logger from '@/logger'
 import {
   inputCanceledError,
+  type ClientCancelReason,
   type SessionID,
   type ResponseType,
   type EndHandlerType,
@@ -128,9 +129,10 @@ class Session {
     return this._tracker?.holdServerWork() ?? (() => {})
   }
 
-  // Client-side cancel. The link is alive, so held prompts are refused and the service stops waiting.
-  cancel() {
-    this._cancel('refuse')
+  // Client-side cancel, by the caller or by an account change. The link is alive, so held prompts are
+  // refused and the service stops waiting.
+  cancel(reason: ClientCancelReason) {
+    this._cancel('refuse', reason)
   }
 
   // The link died or is being replaced: a held prompt's answer must not reach the next connection.
@@ -157,7 +159,7 @@ class Session {
     }
   }
 
-  _cancel(heldPrompts: 'refuse' | 'forget') {
+  _cancel(heldPrompts: 'refuse' | 'forget', reason: ClientCancelReason = 'caller') {
     if (this._refusing) {
       // Already cancelled; only a lost link ends the refusal early, since the reply can't come now
       if (heldPrompts === 'forget') {
@@ -177,7 +179,13 @@ class Session {
     if (this._startCallback) {
       const callback = this._startCallback
       this._startCallback = undefined
-      callback(lostLink ?? new RPCError('Received RPC cancel for session', StatusCode.sccanceled))
+      callback(
+        lostLink ??
+          new RPCError('Received RPC cancel for session', StatusCode.sccanceled, null, undefined, undefined, {
+            reason,
+            type: 'cancelled',
+          })
+      )
     }
 
     // The service may still call us on this session before it replies, and a late prompt that
@@ -256,7 +264,12 @@ class Session {
       }
       if (this._belongsToPreviousAccount()) {
         tracker.settle()
-        wrappedCallback(new RPCError('The account changed during this call', StatusCode.sccanceled))
+        wrappedCallback(
+          new RPCError('The account changed during this call', StatusCode.sccanceled, null, undefined, undefined, {
+            reason: 'accountChange',
+            type: 'cancelled',
+          })
+        )
         return
       }
       // Only the service's errors belong on the key, not a local failure like a queue overflow
