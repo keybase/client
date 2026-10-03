@@ -4,7 +4,7 @@
 import {getCallPort} from '@/engine/call-port'
 import * as Keybase1 from './rpc-gen'
 export {Keybase1}
-type WaitingKey = string | ReadonlyArray<string>
+import type {WaitingKeys} from '@/constants/waiting-key-type'
 type SimpleError = {code?: number, desc?: string}
 export type IncomingErrorCallback = (err?: SimpleError | null) => void
 
@@ -34,10 +34,10 @@ export type RpcOut<M extends MessageKey> = MessageTypes[M]['outParam']
 export type RpcResponse<M extends MessageKey> = {error: IncomingErrorCallback, result: (res: RpcOut<M>) => void}
 type PromiseMethod = 'stellar.1.local.deleteWalletAccountLocal' | 'stellar.1.local.getWalletAccountSecretKeyLocal' | 'stellar.1.local.getWalletAccountsLocal' | 'stellar.1.local.hasAcceptedDisclaimerLocal'
 export type RpcFn<M extends PromiseMethod> = [RpcIn<M>] extends [undefined]
-  ? (params?: undefined, waitingKey?: WaitingKey) => Promise<RpcOut<M>>
-  : (params: RpcIn<M>, waitingKey?: WaitingKey) => Promise<RpcOut<M>>
+  ? (params?: undefined, waitingKey?: WaitingKeys) => Promise<RpcOut<M>>
+  : (params: RpcIn<M>, waitingKey?: WaitingKeys) => Promise<RpcOut<M>>
 const createRpc = <M extends PromiseMethod>(method: M): RpcFn<M> =>
-  ((params?: RpcIn<M>, waitingKey?: WaitingKey) =>
+  ((params?: RpcIn<M>, waitingKey?: WaitingKeys) =>
     new Promise<RpcOut<M>>((resolve, reject) =>
       getCallPort().call({
         method,

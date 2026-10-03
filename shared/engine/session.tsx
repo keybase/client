@@ -18,7 +18,7 @@ import {
   type EndHandlerType,
   type MethodKey,
   type WaitingChange,
-  type WaitingKey,
+  type WaitingKeys,
 } from './types'
 
 // A response the session handed to a handler. Settled once: by the handler, or by the session.
@@ -46,7 +46,7 @@ class Session {
   // Map of methods => callbacks
   _customResponseIncomingCallMap: CustomResponseIncomingCallMap
   // Let the outside know we're waiting
-  _waitingKey: WaitingKey | undefined
+  _waitingKey: WaitingKeys | undefined
   // What the RPC shows on its waiting key; made at start
   _tracker: WaitingTracker | undefined
   // Tell engine we're done
@@ -78,7 +78,7 @@ class Session {
     sessionID: SessionID
     incomingCallMap?: IncomingCallMapType
     customResponseIncomingCallMap?: CustomResponseIncomingCallMap
-    waitingKey?: WaitingKey
+    waitingKey?: WaitingKeys
     invoke: InvokeType
     dispatchWaiting: (change: WaitingChange) => void
     endHandler: EndHandlerType

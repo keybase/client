@@ -699,10 +699,10 @@ async function writeFlow(typeDefs: AnalysisResult, project: ProjectState): Promi
     project.hasEngine
       ? `type PromiseMethod = ${promiseMethodUnion}
 export type RpcFn<M extends PromiseMethod> = [RpcIn<M>] extends [undefined]
-  ? (params?: undefined, waitingKey?: WaitingKey) => Promise<RpcOut<M>>
-  : (params: RpcIn<M>, waitingKey?: WaitingKey) => Promise<RpcOut<M>>
+  ? (params?: undefined, waitingKey?: WaitingKeys) => Promise<RpcOut<M>>
+  : (params: RpcIn<M>, waitingKey?: WaitingKeys) => Promise<RpcOut<M>>
 const createRpc = <M extends PromiseMethod>(method: M): RpcFn<M> =>
-  ((params?: RpcIn<M>, waitingKey?: WaitingKey) =>
+  ((params?: RpcIn<M>, waitingKey?: WaitingKeys) =>
     new Promise<RpcOut<M>>((resolve, reject) =>
       getCallPort().call({
         method,
@@ -717,7 +717,7 @@ type ListenerArgs<M extends ListenerMethod> = {
   params: RpcIn<M>,
   incomingCallMap: IncomingCallMapType,
   customResponseIncomingCallMap?: CustomResponseIncomingCallMap,
-  waitingKey?: WaitingKey,
+  waitingKey?: WaitingKeys,
   onSessionCreated?: (cancel: () => void) => void,
   // Prefixes of incoming methods this call leaves to global handling; any other unhandled one is reported
   globalFallthrough?: ReadonlyArray<string>,
@@ -744,7 +744,7 @@ const createListener = <M extends ListenerMethod>(method: M): ListenerFn<M> =>
 ${engineImport}
 ${project.import.map(n => importMap[n] || '').join('\n')}
 ${project.import.map(n => `export {${n}}`).join('\n')}
-${project.hasEngine ? 'type WaitingKey = string | ReadonlyArray<string>' : ''}
+${project.hasEngine ? "import type {WaitingKeys} from '@/constants/waiting-key-type'" : ''}
 type SimpleError = {code?: number, desc?: string}
 export type IncomingErrorCallback = (err?: SimpleError | null) => void
 

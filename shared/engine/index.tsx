@@ -3,7 +3,7 @@ import Session from './session'
 import {makeListen} from './listener'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
-import {inputCanceledError, type SessionID, type MethodKey, type WaitingChange, type WaitingKey} from './types'
+import {inputCanceledError, type SessionID, type MethodKey, type WaitingChange, type WaitingKeys} from './types'
 import {installCallPort, type CallPort} from './call-port'
 import {printOutstandingRPCs, printRPC} from '@/local-debug'
 import {
@@ -339,7 +339,7 @@ class Engine implements CallPort {
     callback: (...args: Array<any>) => void
     incomingCallMap?: IncomingCallMapType
     customResponseIncomingCallMap?: CustomResponseIncomingCallMapType
-    waitingKey?: WaitingKey
+    waitingKey?: WaitingKeys
     globalFallthrough?: ReadonlyArray<string>
   }) {
     const {customResponseIncomingCallMap, globalFallthrough, incomingCallMap, waitingKey} = p
@@ -363,7 +363,7 @@ class Engine implements CallPort {
     incomingCallMap?: IncomingCallMapType
     customResponseIncomingCallMap?: CustomResponseIncomingCallMapType
     dangling?: boolean
-    waitingKey?: WaitingKey
+    waitingKey?: WaitingKeys
     globalFallthrough?: ReadonlyArray<string>
   }): Session {
     const {customResponseIncomingCallMap, incomingCallMap, dangling = false} = p

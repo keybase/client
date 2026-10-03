@@ -11,7 +11,7 @@ import {
 import {RPCError} from '@/util/errors'
 import {getCallPort} from './call-port'
 import {survivesAccountChange} from './account-generation'
-import {inputCanceledError, type CommonResponseHandler, type WaitingKey} from './types'
+import {inputCanceledError, type CommonResponseHandler, type WaitingKeys} from './types'
 
 export type PromptMethod = keyof CustomResponseIncomingCallMap & MessageKey
 export type NoticeMethod = keyof IncomingCallMapType & MessageKey
@@ -89,7 +89,7 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
     notices?: ReadonlyArray<N>
     // Answered as they arrive and never surfaced
     autoAnswer?: NoInfer<AutoAnswer<P>>
-    waitingKey?: WaitingKey
+    waitingKey?: WaitingKeys
     globalFallthrough?: ReadonlyArray<string>
   }
 ): Dialog<RpcOut<M>, P, N> => {
