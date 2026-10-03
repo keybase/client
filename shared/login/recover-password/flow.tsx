@@ -77,7 +77,7 @@ export const isRecoverPasswordPromptOpen = (promptId: number) =>
   !!current?.dialog.openPrompts().some(p => p.id === promptId)
 
 // Settles when the run the open prompt belongs to is over; undefined once the prompt is closed
-export const recoverPasswordRunEnded = (promptId: number) =>
+export const recoverPasswordRunEnded = (promptId: number): Promise<void> | undefined =>
   isRecoverPasswordPromptOpen(promptId) ? current?.ended : undefined
 
 // The prompt settled without its screen's answer (before the screen appeared, or by a restart or the

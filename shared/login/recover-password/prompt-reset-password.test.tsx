@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
-import * as React from 'react'
+import type * as React from 'react'
 import * as T from '@/constants/types'
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {NavigationContext} from '@react-navigation/core'
@@ -19,12 +19,9 @@ type BeforeRemoveEvent = {data: {action: {type: string}}; preventDefault: () => 
 const mockBeforeRemove = new Set<(e: BeforeRemoveEvent) => void>()
 // A back of the visible screen: its beforeRemove listeners first, then the pop unless one prevented it
 const mockNavigateUp = () => {
-  let prevented = false
-  const preventDefault = () => {
-    prevented = true
-  }
+  const preventDefault = jest.fn()
   ;[...mockBeforeRemove].forEach(cb => cb({data: {action: {type: 'GO_BACK'}}, preventDefault}))
-  if (!prevented) {
+  if (!preventDefault.mock.calls.length) {
     navigateUp()
   }
 }
@@ -103,7 +100,9 @@ test("on an Android test device, Continue declines the reset prompt and goes bac
   )
   nav.clearActions()
 
-  act(() => fireEvent.click(screen.getByText('Send a link')))
+  act(() => {
+    fireEvent.click(screen.getByText('Send a link'))
+  })
 
   await expect(answered).resolves.toEqual({error: inputCanceled})
   expect(isRecoverPasswordPromptOpen(promptId)).toBe(false)
