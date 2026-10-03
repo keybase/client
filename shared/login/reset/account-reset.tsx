@@ -24,8 +24,12 @@ type ResetRun = {dialog: ResetDialog; ended?: Promise<void>; username: string}
 // screen's answer must still reach it
 const runs = new Set<ResetRun>()
 
-export const startAccountReset = (skipPassword: boolean, username: string) => {
-  navigateAppend({name: 'recoverPasswordPromptResetAccount', params: {skipPassword, username}}, true)
+// recoverRunId: the recover-password run showing it, which owns the screen
+export const startAccountReset = (skipPassword: boolean, username: string, recoverRunId?: number) => {
+  navigateAppend(
+    {name: 'recoverPasswordPromptResetAccount', params: {runId: recoverRunId, skipPassword, username}},
+    true
+  )
 }
 
 export const enterResetPipeline = ({onError, password = '', username}: EnterResetPipelineParams) => {

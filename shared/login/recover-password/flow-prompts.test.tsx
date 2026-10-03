@@ -18,6 +18,7 @@ import {
   declineRecoverPasswordPrompt,
   isRecoverPasswordPromptOpen,
   markRecoverPasswordPgpShown,
+  registerRecoverPasswordScreen,
   startRecoverPassword,
   submitRecoverPasswordPaperKey,
   submitRecoverPasswordPassword,
@@ -364,10 +365,13 @@ describe('pgp key warning', () => {
     expect(rootRouteNames()).toEqual(['loggedIn', 'recoverPasswordPgpWarning', 'proxySettingsModal'])
   })
 
-  test('a run failing with the warning on top shows the error in its place', async () => {
+  test('a run failing with its warning up takes the warning away and shows the error', async () => {
     const {held, sessionID} = await start()
     void pushPgp(sessionID)
     await settle()
+    // The warning mounts, and registers its route with the run
+    const warning = nav.getRootState()?.routes?.find(r => r.name === 'recoverPasswordPgpWarning')
+    registerRecoverPasswordScreen(warning!.key!, {promptId: warningId()})
 
     held[0]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'bad things'))
     await settle()

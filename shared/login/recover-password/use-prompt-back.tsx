@@ -1,21 +1,28 @@
 import * as React from 'react'
 import {NavigationContext} from '@react-navigation/core'
 import {getVisibleScreen, navigateUp} from '@/constants/router'
-import {registerRouteGone, useRouteKey, type RouteParams} from '@/router-v2/route-gone'
+import {useRouteKey} from '@/router-v2/route-gone'
 import {
   declineRecoverPasswordPrompt,
   isRecoverPasswordPromptGone,
   isRecoverPasswordPromptOpen,
-  recoverPasswordRunEnded,
+  registerRecoverPasswordScreen,
 } from './flow'
 
-// The prompt in the params the route last had: a retry (a wrong paper key or password) sets the
-// next prompt's id on the same route. A no-op once that prompt is answered.
-const declineLastPrompt = (params: RouteParams) => {
-  const {promptId} = (params ?? {}) as {promptId?: unknown}
-  if (typeof promptId === 'number') {
-    declineRecoverPasswordPrompt(promptId)
-  }
+// Registers the screen's route with the run that showed it (see registerRecoverPasswordScreen), once
+// mounted and again on a retry's new prompt. Never undone on cleanup: the entry ends with the run.
+export const useRecoverRunScreen = (owner: {promptId: number} | {runId: number | undefined}) => {
+  const routeKey = useRouteKey()
+  const promptId = 'promptId' in owner ? owner.promptId : undefined
+  const runId = 'runId' in owner ? owner.runId : undefined
+  React.useEffect(() => {
+    if (!routeKey) return
+    if (promptId !== undefined) {
+      registerRecoverPasswordScreen(routeKey, {promptId})
+    } else if (runId !== undefined) {
+      registerRecoverPasswordScreen(routeKey, {runId})
+    }
+  }, [routeKey, promptId, runId])
 }
 
 // A prompt screen leaving while its prompt is open would leave the service waiting. A back (Android's
@@ -27,7 +34,6 @@ const declineLastPrompt = (params: RouteParams) => {
 export const useRecoverPromptBack = (promptId: number, onBack?: () => void) => {
   // Absent outside a navigator (storybook)
   const navigation = React.useContext(NavigationContext)
-  const routeKey = useRouteKey()
   const back = React.useEffectEvent(() => onBack?.())
   const hasBack = !!onBack
 
@@ -46,12 +52,7 @@ export const useRecoverPromptBack = (promptId: number, onBack?: () => void) => {
     })
   }, [navigation, promptId, hasBack])
 
-  React.useEffect(() => {
-    const ended = recoverPasswordRunEnded(promptId)
-    if (routeKey && ended) {
-      registerRouteGone(routeKey, ended, declineLastPrompt)
-    }
-  }, [routeKey, promptId])
+  useRecoverRunScreen({promptId})
 }
 
 // A deferred push can land after its prompt settled, leaving the screen nothing to answer. Effects

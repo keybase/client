@@ -366,7 +366,7 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
     const prune = (s: NavTree.NavState | undefined) => {
       const routes = s?.routes
       if (!s || !routes) return
-      const kept = routes.filter(r => !remove.has(r.key))
+      const kept = routes.filter(r => !r.key || !remove.has(r.key))
       if (kept.length !== routes.length) {
         if (!kept.length) {
           // A stack can't be left empty; its last route goes with whatever holds it
