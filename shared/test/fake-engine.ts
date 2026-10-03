@@ -8,7 +8,7 @@ import {
   MESSAGE_TYPE_INVOKE,
   MESSAGE_TYPE_NOTIFY,
   MESSAGE_TYPE_RESPONSE,
-  errors,
+  makeDisconnectError,
   type ConnectDisconnectCB,
   type IncomingRPCCallbackType,
   type InvokeType,
@@ -220,11 +220,12 @@ export const installFakeEngine = (opts?: {onEngineIncoming?: (a: EngineGen.Actio
     },
     connected: () => getTransport().isLinkUp,
     drop: () => {
-      // The GUI's answer to a push can no longer reach the service, so settle those pushes here.
+      // The GUI's answer to a push can no longer reach the service, so settle those pushes here, with
+      // the error the transport gives its own calls on a lost link
       const settles = [...pushes.values()]
       pushes.clear()
       quietly(() => getTransport().drop())
-      settles.forEach(settle => settle({error: {code: errors.EOF, desc: 'fake engine: link dropped'}}))
+      settles.forEach(settle => settle({error: makeDisconnectError()}))
     },
     engine,
     hold: method => {

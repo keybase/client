@@ -157,7 +157,7 @@ test('a dropped link settles a push the GUI has not answered', async () => {
   const {done, sessionID} = await startRecover(fake, () => {})
   const pushed = fake.push('keybase.1.loginUi.promptPassphraseRecovery', {kind: 0}, {sessionID})
   fake.drop()
-  await expect(pushed).resolves.toMatchObject({error: {desc: 'fake engine: link dropped'}})
+  await expect(pushed).resolves.toEqual({error: linkLost})
   await expect(done).rejects.toMatchObject(linkLost)
 })
 

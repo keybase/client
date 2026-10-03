@@ -183,7 +183,9 @@ describe('final error handling', () => {
     nav.clearActions()
 
     fake.drop()
-    await expect(password).resolves.toEqual({error: expect.objectContaining({desc: 'fake engine: link dropped'})})
+    await expect(password).resolves.toEqual({
+      error: expect.objectContaining({desc: 'The service connection was lost', kind: {reason: 'disconnect', type: 'cancelled'}}),
+    })
     await settle()
     expect(nav.modalsCleared()).toBe(true)
     expect(nav.navigations()).toEqual([
