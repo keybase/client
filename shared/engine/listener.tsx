@@ -72,7 +72,13 @@ export const makeListen = (engine: ListenEngine) => async (p: ListenParams) => {
             if (response.settled) {
               return
             }
-            const answered = customResponseIncomingCallMap[m]?.(params, response as Partial<CommonResponseHandler>)
+            const handler = customResponseIncomingCallMap[m]
+            // Gone since the listener started (a hot reload): nothing will answer it
+            if (!handler) {
+              refuse()
+              return
+            }
+            const answered = handler(params, response as Partial<CommonResponseHandler>)
             ran()
             await answered
           },

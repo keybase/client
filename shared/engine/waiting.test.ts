@@ -371,7 +371,7 @@ describe('the GUI owing the service', () => {
   })
 
   // A hot reload can leave the listener without the handler it was built with
-  test.failing('a prompt whose handler is gone is refused, and waiting never turns off', async () => {
+  test('a prompt whose handler is gone is refused, and waiting never turns off', async () => {
     const fake = installFakeEngine()
     const handlers: {[m: string]: unknown} = {[prompt]: () => {}}
     const held = fake.hold(rpc)
