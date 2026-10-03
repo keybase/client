@@ -6,12 +6,13 @@ import {clearModals, navigateAppend} from '@/constants/router'
 import {rpcDeviceToDevice} from '@/constants/rpc-utils'
 import {waitingKeyProvision} from '@/constants/strings'
 import {ignorePromise} from '@/constants/utils'
+import {getAccountGeneration} from '@/engine/account-generation'
 import {openDialog, type Dialog, type DialogEvent, type Prompt} from '@/engine/dialog'
 import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
 import {useWaitingState} from '@/stores/waiting'
-import {RPCError} from '@/util/errors'
+import {isCancelError, RPCError} from '@/util/errors'
 
 // The steps the user has already answered, replayed in order when the login RPC restarts.
 type Step =
@@ -26,10 +27,6 @@ const errorCausedByUsCanceling = (e?: RPCError) => {
   const desc = e?.desc
   return desc === 'Input canceled' || desc === 'kex canceled by caller'
 }
-// A cancel is not a failure, whoever cancelled: the user, the service, or an account switch
-const isCancel = (e: unknown) =>
-  e instanceof RPCError &&
-  (e.code === T.RPCGen.StatusCode.sccanceled || e.code === T.RPCGen.StatusCode.scinputcanceled)
 
 const makeDevice = (): Device => ({
   deviceNumberOfType: 0,
@@ -51,6 +48,37 @@ const refusedPrompts = [
   'keybase.1.provisionUi.switchToGPGSignOK',
 ] as const
 const successNotices = ['keybase.1.provisionUi.ProvisioneeSuccess', 'keybase.1.provisionUi.ProvisionerSuccess'] as const
+const loginPrompts = [chooseDevicePrompt, deviceNamePrompt, passphrasePrompt, secretPrompt, ...refusedPrompts] as const
+const loginNotices = ['keybase.1.loginUi.displayPrimaryPaperKey', secretExchanged, ...successNotices] as const
+
+// Holds the provision waiting key once per secret-exchanged notice until the dialog ends. A failed
+// done settles before the dialog's queued events are delivered, so a notice after release holds nothing.
+const makeExchangeHolds = () => {
+  let held = 0
+  let released = false
+  return {
+    hold: () => {
+      if (released) {
+        return
+      }
+      ++held
+      useWaitingState.getState().dispatch.increment(waitingKeyProvision)
+    },
+    release: () => {
+      released = true
+      for (; held > 0; --held) {
+        useWaitingState.getState().dispatch.decrement(waitingKeyProvision)
+      }
+    },
+  }
+}
+
+// A prompt the flow could not show ends its run with an error the user sees
+const showFailedError = (method: string, error: unknown) =>
+  new RPCError(
+    error instanceof Error ? error.message : `Could not show ${method}`,
+    T.RPCGen.StatusCode.scgeneric
+  )
 
 const normalizeTextCode = (code: string) => code.replace(/\W+/g, ' ').trim()
 const secretAnswer = (code: string) => ({phrase: normalizeTextCode(code), secret: null as unknown as Uint8Array})
@@ -101,16 +129,8 @@ export const submitProvisionUsername = (username: string) => {
   runProvision(username)
 }
 
-type LoginPrompt =
-  | typeof chooseDevicePrompt
-  | typeof deviceNamePrompt
-  | typeof passphrasePrompt
-  | typeof secretPrompt
-  | (typeof refusedPrompts)[number]
-type LoginNotice =
-  | 'keybase.1.loginUi.displayPrimaryPaperKey'
-  | typeof secretExchanged
-  | (typeof successNotices)[number]
+type LoginPrompt = (typeof loginPrompts)[number]
+type LoginNotice = (typeof loginNotices)[number]
 type LoginDialog = Dialog<void, LoginPrompt, LoginNotice>
 
 // Why the run disposed its attempt. A cancel outranks a restart, which outranks a pause.
@@ -127,9 +147,15 @@ const runProvision = (username: string) => {
     selectedDevice: makeDevice(),
   }
   let knownDevices: Array<Device> = []
+  // A logout or an account switch cancels the login's session; that failure is ours, not the user's
+  const accountGeneration = getAccountGeneration()
+  const accountChanged = () =>
+    accountGeneration !== getAccountGeneration() || useConfigState.getState().userSwitching
   const autoSubmit: Array<Step> = [{type: 'username'}]
   let attempt: LoginDialog | undefined
   let endReason: EndReason | undefined
+  // Set when the attempt could not show one of its prompts, which ended it
+  let showFailure: RPCError | undefined
   let resumeParked: (() => void) | undefined
   // The prompt each step's screen answers, from when it's shown until the user answers any step or
   // backs out. A submit of a step with none is the user going back to change an earlier answer.
@@ -147,9 +173,10 @@ const runProvision = (username: string) => {
     attempt?.dispose()
   }
 
-  // Read through a call: the loop resets it, and TypeScript would keep that narrowing across the awaits
-  // during which a cancel, pause or resubmit sets it
+  // Read through calls: the loop resets these, and TypeScript would keep that narrowing across the
+  // awaits during which a cancel, pause, resubmit or failed prompt sets them
   const whyEnded = () => endReason
+  const failedToShow = () => showFailure
 
   const wakeParked = () => {
     resumeParked?.()
@@ -158,6 +185,8 @@ const runProvision = (username: string) => {
 
   const requestRestart = () => {
     endAttempt('restart')
+    // Those prompts were the ended attempt's
+    showing = {}
     wakeParked()
   }
 
@@ -238,13 +267,12 @@ const runProvision = (username: string) => {
       }
       return isEqual(frozenAutoSubmit[submitStep], step)
     }
-    let exchangedIncrements = 0
+    const exchangeHolds = makeExchangeHolds()
 
     const showEvent = (e: DialogEvent<LoginPrompt, LoginNotice>) => {
       if (e.kind === 'notice') {
         if (e.method === secretExchanged) {
-          ++exchangedIncrements
-          useWaitingState.getState().dispatch.increment(waitingKeyProvision)
+          exchangeHolds.hold()
         }
         return
       }
@@ -297,9 +325,7 @@ const runProvision = (username: string) => {
         case passphrasePrompt: {
           const {retryLabel, type} = e.params.pinentry
           if (type !== T.RPCGen.PassphraseType.passPhrase && type !== T.RPCGen.PassphraseType.paperKey) {
-            logger.warn('Provision: got confused about password entry')
-            e.cancel()
-            return
+            throw new Error('Got confused about password entry. Please send a log to us!')
           }
           showing.passphrase = e
           // Service asking us again due to an error?
@@ -328,9 +354,8 @@ const runProvision = (username: string) => {
           showEvent(e)
         } catch (error) {
           logger.error(`Provision: showing ${e.method} failed`, error)
-          if (e.kind === 'prompt') {
-            e.cancel()
-          }
+          showFailure ??= showFailedError(e.method, error)
+          dialog.dispose()
         }
       }
     }
@@ -338,9 +363,7 @@ const runProvision = (username: string) => {
     try {
       await Promise.all([showEvents(), dialog.done])
     } finally {
-      for (let i = 0; i < exchangedIncrements; ++i) {
-        useWaitingState.getState().dispatch.decrement(waitingKeyProvision)
-      }
+      exchangeHolds.release()
     }
   }
 
@@ -360,8 +383,8 @@ const runProvision = (username: string) => {
           // The "I lost all my devices" row owns reset, so login never enters it from here
           'keybase.1.loginUi.promptResetAccount': () => T.RPCGen.ResetPromptResponse.nothing,
         },
-        notices: ['keybase.1.loginUi.displayPrimaryPaperKey', secretExchanged, ...successNotices],
-        prompts: [chooseDevicePrompt, deviceNamePrompt, passphrasePrompt, secretPrompt, ...refusedPrompts],
+        notices: loginNotices,
+        prompts: loginPrompts,
         waitingKey: waitingKeyProvision,
       }
     )
@@ -373,10 +396,32 @@ const runProvision = (username: string) => {
       resumeParked = resolve
     })
 
+  // Clears the screens the run showed and shows why it failed
+  const showError = (error: RPCError) => {
+    clearModals()
+    navigateAppend(
+      {
+        name: 'error',
+        params: {
+          error: {
+            code: error.code,
+            desc: error.desc,
+            details: error.details,
+            fields: error.fields as ReadonlyArray<{key?: string; value?: string}> | undefined,
+            message: error.message,
+          } satisfies ProvisionRouteError,
+          username,
+        },
+      },
+      true
+    )
+  }
+
   const f = async () => {
     try {
       for (;;) {
         endReason = undefined
+        showFailure = undefined
         const dialog = openAttempt()
         attempt = dialog
         try {
@@ -385,6 +430,11 @@ const runProvision = (username: string) => {
           useDaemonState.getState().dispatch.refreshSessionFromDaemon('provision login returned')
           break
         } catch (_finalError) {
+          const failure = failedToShow()
+          if (failure) {
+            showError(failure)
+            break
+          }
           if (dialog.disposed) {
             if (whyEnded() === 'restart') {
               continue
@@ -404,7 +454,7 @@ const runProvision = (username: string) => {
             break
           }
           const finalError = _finalError
-          if (isCancel(finalError)) {
+          if (accountChanged() && isCancelError(finalError)) {
             break
           }
           // If it's a non-existent username or invalid, allow the opportunity to correct it right
@@ -416,23 +466,7 @@ const runProvision = (username: string) => {
               break
             default:
               if (!errorCausedByUsCanceling(finalError)) {
-                clearModals()
-                navigateAppend(
-                  {
-                    name: 'error',
-                    params: {
-                      error: {
-                        code: finalError.code,
-                        desc: finalError.desc,
-                        details: finalError.details,
-                        fields: finalError.fields as ReadonlyArray<{key?: string; value?: string}> | undefined,
-                        message: finalError.message,
-                      } satisfies ProvisionRouteError,
-                      username,
-                    },
-                  },
-                  true
-                )
+                showError(finalError)
               }
               break
           }
@@ -472,41 +506,44 @@ export const startAddNewDevice = (otherDeviceType: 'desktop' | 'mobile') => {
   }
   currentProvisionRun = run
 
-  let exchangedIncrements = 0
+  const exchangeHolds = makeExchangeHolds()
+  // Set when a prompt could not be shown, which ended the run
+  let showFailed = false
   const showEvents = async () => {
     for await (const e of dialog.events) {
       if (e.kind === 'notice') {
         if (e.method === secretExchanged) {
-          ++exchangedIncrements
-          useWaitingState.getState().dispatch.increment(waitingKeyProvision)
+          exchangeHolds.hold()
         }
         continue
       }
-      const {phrase, previousErr} = e.params
-      navigateAppend(
-        {name: 'codePage', params: {error: previousErr || undefined, otherDevice, textCode: phrase}},
-        !!previousErr
-      )
+      try {
+        const {phrase, previousErr} = e.params
+        navigateAppend(
+          {name: 'codePage', params: {error: previousErr || undefined, otherDevice, textCode: phrase}},
+          !!previousErr
+        )
+      } catch (error) {
+        logger.error(`Provision: showing ${e.method} failed`, error)
+        showFailed = true
+        dialog.dispose()
+      }
     }
   }
 
   const f = async () => {
-    let cancelled = false
     try {
       await Promise.all([showEvents(), dialog.done])
-    } catch (error) {
-      cancelled = isCancel(error)
+    } catch {
     } finally {
-      for (let i = 0; i < exchangedIncrements; ++i) {
-        useWaitingState.getState().dispatch.decrement(waitingKeyProvision)
-      }
+      exchangeHolds.release()
       if (currentProvisionRun === run) {
         currentProvisionRun = undefined
       }
     }
-    // A cancelled (or superseded) run must not clear modals: by now the user has either navigated
-    // away or a newer run owns the screens, and this would close the newer run's UI.
-    if (!dialog.disposed && !cancelled) {
+    // A run the user cancelled (or a newer run or a logout superseded) must not clear modals: by now
+    // the user has either navigated away or a newer run owns the screens. Any other end closes them.
+    if (showFailed || !dialog.disposed) {
       clearModals()
     }
   }

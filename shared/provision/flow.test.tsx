@@ -6,6 +6,7 @@ import {useConfigState} from '@/stores/config'
 import {useWaitingState} from '@/stores/waiting'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {tick} from '@/test/flush'
+import * as Router from '@/constants/router'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 
 import {
@@ -182,6 +183,24 @@ describe('login', () => {
     await settle()
     // the login returned: the session is read again
     expect(fake.calls.filter(c => c.method === bootstrap)).toHaveLength(1)
+  })
+
+  test('a step submitted after a restart, before the new attempt asks it, starts over again', async () => {
+    const held = await startLogin()
+    const password = pushPassword(0)
+    await settle()
+    // the user goes back and changes the device name while the password screen is up
+    submitProvisionDeviceName('dev1')
+    await expect(password).resolves.toEqual({error: inputCanceled})
+    await settle()
+    expect(held).toHaveLength(2)
+
+    // the old attempt's password prompt is gone, so this is a changed answer, not an answer to it
+    submitProvisionPassphrase('hunter2')
+    await settle()
+    expect(held).toHaveLength(3)
+    await expect(pushDeviceName(2)).resolves.toEqual({result: 'dev1'})
+    await expect(pushPassword(2)).resolves.toEqual({result: {passphrase: 'hunter2', storeSecret: false}})
   })
 
   test('a later step resubmitted replays every earlier answer in order, then answers it', async () => {
@@ -449,19 +468,45 @@ describe('account changes', () => {
     await settle()
   })
 
-  // The switch cancels the session, which is not the run disposing it; a cancel is never a failure
-  test('an account switch refuses the login prompt and shows nothing', async () => {
-    await startLogin()
+  // The switch cancels the login's session: a failure the run caused, so it shows nothing
+  const switchMidLogin = async (endSwitch: 'before the run reads the failure' | 'after the run is over') => {
+    const {setUserSwitching} = useConfigState.getState().dispatch
+    const held = await startLogin()
     const password = pushPassword(0)
     await settle()
     nav.clearActions()
 
-    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+    setUserSwitching(true, 'testuser2')
+    if (endSwitch === 'before the run reads the failure') {
+      setUserSwitching(false)
+    }
     await settle()
+    setUserSwitching(false)
 
+    // the session was cancelled: its prompt and the service's next one are refused
     await expect(password).resolves.toEqual({error: inputCanceled})
+    expect(fake.engine._sessionsMap.get(sessionOf(0))?.isRefusing()).toBe(true)
+    await expect(pushPassword(0)).resolves.toEqual({error: inputCanceled})
+    // and the run is over: a submit starts nothing
+    submitProvisionPassphrase('hunter2')
+    await settle()
+    expect(held).toHaveLength(1)
+    held[0]!.reply(fakeError(T.RPCGen.StatusCode.scinputcanceled, 'Input canceled'))
+    await settle()
+    expect(fake.engine._sessionsMap.has(sessionOf(0))).toBe(false)
     expect(nav.modalsCleared()).toBe(false)
     expect(nav.navigations()).toEqual([])
+  }
+
+  // Read while the switch runs: logged out, the switch starts no new account generation
+  test('an account switch from logged out refuses the login prompt and shows nothing', async () => {
+    await switchMidLogin('after the run is over')
+  })
+
+  // Read from the account generation, which the switch from a logged-in account moves on
+  test('an account switch from logged in shows nothing even once the switch has ended', async () => {
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    await switchMidLogin('before the run reads the failure')
   })
 })
 
@@ -587,15 +632,44 @@ describe('add device', () => {
     expect(nav.modalsCleared()).toBe(false)
   })
 
+  // Only the run's own end leaves the modals up
   test.each([
     [T.RPCGen.StatusCode.sccanceled, 'Received RPC cancel for session'],
-    [T.RPCGen.StatusCode.scinputcanceled, 'Input canceled'],
-  ])('a cancel from the service (%s) is not a failure: nothing is cleared', async (code, desc) => {
+    [T.RPCGen.StatusCode.scinputcanceled, 'kex canceled by caller'],
+  ])('a cancel from the service (%s) closes the modals', async (code, desc) => {
     const held = fake.hold(deviceAdd)
     await startAdd()
     held[0]!.reply(fakeError(code, desc))
     await settle()
-    expect(nav.modalsCleared()).toBe(false)
+    expect(nav.modalsCleared()).toBe(true)
+  })
+
+  test('a lost service connection closes the modals', async () => {
+    fake.hold(deviceAdd)
+    await startAdd()
+    const answered = pushAdd(secret, {phrase: 'one two three', previousErr: ''}, 0)
+    await settle()
+    fake.drop()
+    await answered
+    await settle()
+    expect(nav.modalsCleared()).toBe(true)
+  })
+
+  test('a code page that throws while showing refuses the prompt and closes the modals', async () => {
+    fake.hold(deviceAdd)
+    await startAdd()
+    const navigate = jest.spyOn(Router, 'navigateAppend').mockImplementation(() => {
+      throw new Error('no navigator')
+    })
+    try {
+      await expect(pushAdd(secret, {phrase: 'one two three', previousErr: ''}, 0)).resolves.toEqual({
+        error: inputCanceled,
+      })
+    } finally {
+      navigate.mockRestore()
+    }
+    await settle()
+    expect(nav.modalsCleared()).toBe(true)
   })
 
   test('a failure clears modals and shows nothing else', async () => {
@@ -642,6 +716,14 @@ describe('add device', () => {
     await settle()
     expect(count()).toBe(2)
     cancelProvision()
+    await settle()
+    expect(count()).toBeUndefined()
+
+    // the service sends one and then fails, before the GUI's handler ran
+    await startAdd()
+    void pushAdd(secretExchanged, {}, 2)
+    held[2]!.reply(fakeError(T.RPCGen.StatusCode.scgeneric, 'kex failed'))
+    await settle()
     await settle()
     expect(count()).toBeUndefined()
   })

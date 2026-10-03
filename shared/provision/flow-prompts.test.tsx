@@ -8,6 +8,7 @@ import {useWaitingState} from '@/stores/waiting'
 import {waitingKeyProvision} from '@/constants/strings'
 import {fakeError, installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {tick} from '@/test/flush'
+import {errors as rpcErrors} from '@/engine/rpc-transport'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 
 import {
@@ -151,27 +152,39 @@ describe('final error handling', () => {
     expect(nav.navigations()).toEqual([])
   })
 
+  // Only a cancel the run caused is quiet; the error screen reads scinputcanceled as "Login cancelled."
   test.each([
-    [T.RPCGen.StatusCode.sccanceled, 'canceled'],
     [T.RPCGen.StatusCode.scinputcanceled, 'canceled by the service'],
-  ])('a cancel (%s) is not a failure: it shows nothing', async (code, desc) => {
+    [T.RPCGen.StatusCode.sccanceled, 'canceled'],
+  ])('a cancel (%s) from the service shows the error screen', async (code, desc) => {
     const {reply} = await startAttempt()
 
     reply(fakeError(code, desc))
     await settle()
 
-    expect(nav.modalsCleared()).toBe(false)
-    expect(nav.navigations()).toEqual([])
+    expect(nav.modalsCleared()).toBe(true)
+    expect(nav.navigations()).toEqual([
+      {name: 'error', params: {error: expect.objectContaining({code, desc}), username: 'testuser'}, replace: true},
+    ])
   })
 
-  test('a lost service connection ends the run', async () => {
+  test('a lost service connection ends the run on the error screen', async () => {
     const {push} = await startAttempt()
     const password = pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase)
     await settle()
+    nav.clearActions()
 
     fake.drop()
     await expect(password).resolves.toEqual({error: expect.objectContaining({desc: 'fake engine: link dropped'})})
     await settle()
+    expect(nav.modalsCleared()).toBe(true)
+    expect(nav.navigations()).toEqual([
+      {
+        name: 'error',
+        params: {error: expect.objectContaining({code: rpcErrors.EOF}), username: 'testuser'},
+        replace: true,
+      },
+    ])
     fake.restart()
     // the run is over: a submit reaches nothing and nothing starts again
     submitProvisionTextCode('one two three')
@@ -247,18 +260,45 @@ describe('passphrase prompts', () => {
     })
   })
 
-  test('a passphrase prompt of another kind is refused and shows nothing; the run goes on', async () => {
+  test('a passphrase prompt of another kind is refused and ends the run on the error screen', async () => {
     const {push} = await startAttempt()
     const answered = pushPassphrase(push, T.RPCGen.PassphraseType.verifyPassPhrase)
     await settle()
-    expect(nav.navigations()).toEqual([])
     await expect(answered).resolves.toEqual({
       error: {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'},
     })
-    void pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase)
-    await settle()
+    expect(nav.modalsCleared()).toBe(true)
     expect(nav.navigations()).toEqual([
-      {name: 'password', params: {error: undefined, username: 'testuser'}, replace: false},
+      {
+        name: 'error',
+        params: {
+          error: expect.objectContaining({desc: 'Got confused about password entry. Please send a log to us!'}),
+          username: 'testuser',
+        },
+        replace: true,
+      },
+    ])
+    // the run is over: the service's next prompt on that session is refused
+    await expect(pushPassphrase(push, T.RPCGen.PassphraseType.passPhrase)).resolves.toEqual({
+      error: {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'},
+    })
+  })
+
+  test('a prompt that throws while showing is refused and ends the run on the error screen', async () => {
+    const {push} = await startAttempt()
+    // a device the flow cannot read
+    const answered = push('keybase.1.provisionUi.chooseDevice', {devices: [null]})
+    await settle()
+    await expect(answered).resolves.toEqual({
+      error: {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'},
+    })
+    expect(nav.modalsCleared()).toBe(true)
+    expect(nav.navigations()).toEqual([
+      {
+        name: 'error',
+        params: {error: expect.objectContaining({code: T.RPCGen.StatusCode.scgeneric}), username: 'testuser'},
+        replace: true,
+      },
     ])
   })
 })
@@ -351,12 +391,15 @@ describe('waiting', () => {
     expect(waitingCount()).toBeUndefined()
   })
 
-  test('a secret-exchange arriving with the attempt ending does not leak a waiting count', async () => {
+  test.each([
+    ['returning', undefined],
+    ['failing', fakeError(T.RPCGen.StatusCode.scgeneric, 'kex failed')],
+  ])('a secret-exchange arriving with the attempt %s does not leak a waiting count', async (_, answer) => {
     const {push, reply} = await startAttempt()
 
     // the service sends it and then the reply, before the GUI's handler ran
     void push(exchanged, {})
-    reply(undefined)
+    reply(answer)
     await settle()
     await settle()
 
