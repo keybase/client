@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import type {RPCError} from './errors'
+import {isCancelled, type RPCError} from './errors'
 import {useReloadOnReconnect} from './use-reload-on-reconnect'
 
 type Options<RESULT, DATA> = {
@@ -45,6 +45,8 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
     dataKey?: string
     error?: RPCError
     errorKey?: string
+    // The key whose load was cancelled, which ended it with neither data nor an error
+    cancelledKey?: string
     loadCount: number
     loaded: boolean
   }>({loadCount: 0, loaded: false})
@@ -69,13 +71,23 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
       setState(s => ({...s, error, errorKey: keyAtCall, loaded: true}))
       onError?.(error)
     }
+    // Nothing failed, so there is no error to show, but the load is over
+    const endQuietly = () => {
+      setState(s => ({...s, cancelledKey: keyAtCall, loaded: true}))
+    }
 
     call(...args)
       .then((result: Awaited<ReturnType<F>>) => {
         if (requestID.current === id) adopt(map(result))
       })
       .catch((error: RPCError) => {
-        if (requestID.current === id) fail(error)
+        if (requestID.current !== id) return
+        if (isCancelled(error, 'caller', 'accountChange', 'service')) {
+          endQuietly()
+        } else if (!isCancelled(error, 'disconnect')) {
+          fail(error)
+        }
+        // A lost link: still loading, until the reconnect's handshake reloads it
       })
   })
 
@@ -114,8 +126,8 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
     if (keyed && when !== 'manual') autoLoad()
   }, [keyed, when, key])
 
-  // reconnects orphan any in-flight load without settling its promise, so the
-  // hook would sit on stale data forever without a refire
+  // a lost link rejects an in-flight load cancelled by the disconnect, which
+  // leaves it loading; the reconnect's handshake loads it again
   useReloadOnReconnect(() => {
     if (enabled && when !== 'manual') load()
   })
@@ -123,7 +135,9 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
   const data = keyed ? (state.dataKey === key ? state.data : undefined) : state.data
   const error = keyed ? (state.errorKey === key ? state.error : undefined) : state.error
   const loaded = keyed
-    ? state.dataKey === key || (state.error !== undefined && state.errorKey === key)
+    ? state.dataKey === key ||
+      (state.error !== undefined && state.errorKey === key) ||
+      state.cancelledKey === key
     : state.loaded
 
   // useEffectEvent returns a NEW wrapper identity every render (only its inner ref is

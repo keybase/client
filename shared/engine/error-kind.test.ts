@@ -8,8 +8,10 @@ import {isErrorTransient, RPCError} from '@/util/errors'
 import {openDialog} from './dialog'
 import {useConfigState} from '@/stores/config'
 import {useWaitingState} from '@/stores/waiting'
+import {ignorePromise} from '@/constants/utils'
 import {resetAllStores} from '@/util/zustand'
 import {tick} from '@/test/flush'
+import logger from '@/logger'
 import {testWaitingKey} from '@/test/waiting-key'
 
 afterEach(() => {
@@ -271,6 +273,22 @@ describe('telling errors apart', () => {
     const e = await rejection(T.RPCGen.configGetBootstrapStatusRpcPromise())
     expect(e.code).toBe(T.RPCGen.StatusCode.scassertionparseerror)
     expect(isErrorTransient(e)).toBe(false)
+    uninstallFakeEngine()
+  })
+
+  test('ignorePromise does not log a cancel as an error', async () => {
+    const fake = installFakeEngine()
+    fake.hold('keybase.1.user.loadMySettings')
+    const logged = jest.spyOn(logger, 'error').mockImplementation(() => {})
+    useConfigState.getState().dispatch.setLoggedIn(true)
+    ignorePromise(
+      (async () => {
+        await T.RPCGen.userLoadMySettingsRpcPromise()
+      })()
+    )
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+    await afterTimers()
+    expect(logged).not.toHaveBeenCalled()
     uninstallFakeEngine()
   })
 })
