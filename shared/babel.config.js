@@ -38,12 +38,19 @@ const makeElectronConfig = () => ({
 // preset's auto-added (optionless) copy must be disabled via worklets/reanimated: false.
 const workletsPlugin = ['react-native-worklets/plugin', {bundleMode: true, strictGlobal: true}]
 
+// The visual gate's opt-in call-site coverage (tests/e2e/visual/coverage). It marks the source from
+// its `pre` hook, so the compiler staying first still compiles the marked code. Metro caches
+// transforms by file, not by this env var: start Metro with --clear whenever it is toggled.
+const visualCoverage = process.env.KB_VISUAL_COVERAGE === '1'
+const visualCoveragePlugin = [require.resolve('./tests/e2e/visual/coverage/babel-plugin.cjs'), {root: __dirname}]
+
 const makeReactNativeConfig = platformPlugin => ({
   plugins: [
     reactCompilerPlugin, // must run first!
     moduleResolverPlugin,
     platformPlugin,
     workletsPlugin,
+    ...(visualCoverage ? [visualCoveragePlugin] : []),
   ],
   presets: [
     [

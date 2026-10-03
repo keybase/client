@@ -10,6 +10,7 @@ import path from 'node:path'
 import {createRequire} from 'node:module'
 import {fileURLToPath} from 'node:url'
 import {defineConfig, type Plugin} from 'vite'
+import {visualCoveragePlugin} from './tests/e2e/visual/coverage/vite-plugin.mts'
 
 const require = createRequire(import.meta.url)
 const rootDir = path.dirname(fileURLToPath(import.meta.url))
@@ -267,7 +268,13 @@ export default defineConfig(({mode}) => {
     base: isHot ? '/' : './',
     define: makeDefines(isDev, isHot, isProfile, fileSuffix),
     resolve: sharedResolve,
-    plugins: [emptyFileModulesPlugin(isDev), ...makeReactPlugins(), htmlPlugin(isDev)],
+    plugins: [
+      emptyFileModulesPlugin(isDev),
+      // the visual gate's opt-in call-site coverage (tests/e2e/visual/coverage)
+      ...(isDev && process.env['KB_VISUAL_COVERAGE'] === '1' ? [visualCoveragePlugin()] : []),
+      ...makeReactPlugins(),
+      htmlPlugin(isDev),
+    ],
     server: {
       port: devServerPort,
       strictPort: true,

@@ -16,8 +16,11 @@ export type Capture = {
   status: 'ok' | 'unstable' | 'failed'
   error?: string
 }
+// `chrome` is the `__chrome__` coverage pseudo-entry: the call sites mounted right after the
+// reload, at the first tab root. Null without a reload or without coverage marks.
+export type Prepared = {chrome: Array<string> | null}
 export type DesktopSession = {
-  prepare: (opts: {theme: Theme; frozenAt: number; reload: boolean}) => Promise<void>
+  prepare: (opts: {theme: Theme; frozenAt: number; reload: boolean}) => Promise<Prepared>
   capture: (entry: TourEntry) => Promise<Capture>
   // Restores the app and detaches this driver's CDP session. It does not close the browser (that
   // quits Electron), so the Playwright connection stays open: the caller must exit its process,
@@ -116,7 +119,7 @@ type PageWindow = {
 }
 type DateGlobals = {Date: DateConstructor; __kbVisualRealDate?: DateConstructor; __kbVisualNow?: number}
 type WaitingStore = {getState: () => {counts: Map<string, number>}}
-type Coverage = {seq: () => number; mountedSince: (seq: number) => Array<string>}
+type Coverage = {seq: () => number; mountedSince: (seq: number) => Array<string>; mounted: () => Array<string>}
 type DevGlobals = {
   DEBUGRouter2?: Router
   DEBUGNavigator?: {getRootState: () => NavState | undefined}
@@ -295,6 +298,13 @@ const coverageSeq = async (page: Page) =>
     'coverage seq'
   )
 
+const coverageMounted = async (page: Page) =>
+  withDeadline(
+    page.evaluate(() => (globalThis as unknown as DevGlobals).__kbVisualCoverage?.mounted() ?? null),
+    EVAL_MS,
+    'coverage mounted'
+  )
+
 const coverageSince = async (page: Page, seq: number | null) =>
   seq === null
     ? null
@@ -385,12 +395,17 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
     )
     dateScript = added.identifier
     await withDeadline(page.evaluate(fixDate, opts.frozenAt), EVAL_MS, 'fixing Date')
-    if (opts.reload) await checkRendererAfterReload(page)
+    let chrome: Prepared['chrome'] = null
+    if (opts.reload) {
+      await checkRendererAfterReload(page)
+      chrome = await coverageMounted(page)
+    }
     const now = await withDeadline(page.evaluate(() => Date.now()), EVAL_MS, 'reading Date.now')
     if (now !== opts.frozenAt) throw new Error(`Date is not fixed in the page: Date.now() is ${now}, wanted ${opts.frozenAt}`)
     await fixViewport(cdp, page)
     await applyTheme(page, opts.theme)
     theme = opts.theme
+    return {chrome}
   }
 
   const capture: DesktopSession['capture'] = async entry => {

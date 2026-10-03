@@ -5,6 +5,8 @@
 //   node tests/e2e/electron/launch-app.mts            kill any previous app, launch, wait
 //   node tests/e2e/electron/launch-app.mts --check    only check the running app is ready
 //   node tests/e2e/electron/launch-app.mts --visual   launch with the visual gate's Chromium switches
+//   ... --coverage                                    also mark Box2/ClickableBox call sites
+//                                                     (KB_VISUAL_COVERAGE=1, tests/e2e/visual/coverage)
 //
 // Options: --deadline <seconds> (default 120), --cdp-port <port> (default 9222), --log <path>
 // (default /tmp/chat-e2e-electron.log, appended to, one separator per launch).
@@ -22,6 +24,7 @@ const arg = (name: string) => {
 }
 const checkOnly = process.argv.includes('--check')
 const visual = process.argv.includes('--visual')
+const coverage = process.argv.includes('--coverage')
 const deadlineMs = Number(arg('deadline') ?? 120) * 1000
 const cdpPort = Number(arg('cdp-port') ?? 9222)
 const logPath = arg('log') ?? '/tmp/chat-e2e-electron.log'
@@ -182,9 +185,13 @@ await killApp()
 // that went white, say) is still there after a relaunch
 const out = fs.openSync(logPath, 'a')
 fs.writeSync(out, `\n=== launch ${new Date().toISOString()} ===\n`)
-const env = {...process.env, KB_ELECTRON_EXTRA_ARGS: visual ? VISUAL_ELECTRON_ARGS.join(' ') : ''}
+const env = {
+  ...process.env,
+  KB_ELECTRON_EXTRA_ARGS: visual ? VISUAL_ELECTRON_ARGS.join(' ') : '',
+  KB_VISUAL_COVERAGE: coverage ? '1' : '',
+}
 const child = spawn('yarn', ['desktop:start:hot:e2e'], {cwd: sharedDir, detached: true, env, stdio: ['ignore', out, out]})
 child.unref()
-log(`started the app (pid ${child.pid}), log at ${logPath}`)
+log(`started the app (pid ${child.pid})${coverage ? ' with coverage marks' : ''}, log at ${logPath}`)
 if (!(await waitForReady())) await fail('launch failed')
 process.exit(0)
