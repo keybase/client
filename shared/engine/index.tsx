@@ -39,7 +39,7 @@ export type MakeClient = (
 
 // Bump when a change to the Engine, Session or listener would break an engine a hot reload keeps:
 // makeEngine replaces any engine stamped with another version
-export const ENGINE_VERSION = 3
+export const ENGINE_VERSION = 4
 
 class Engine implements CallPort {
   readonly version = ENGINE_VERSION

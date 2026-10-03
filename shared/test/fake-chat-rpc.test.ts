@@ -120,7 +120,7 @@ test('loadThread keeps the contract: no request while the chat session is not re
 describe('known bugs', () => {
   test.failing('K7: a reply that lands after a switch began is the account change, as the engine has it', async () => {
     let reply: (id: T.Chat.MessageID | undefined) => void = () => {}
-    fake.on('getUnreadline', async () => new Promise(resolve => (reply = resolve)))
+    fake.on('getUnreadline', async () => new Promise<T.Chat.MessageID | undefined>(resolve => (reply = resolve)))
     const {dispatch} = useConfigState.getState()
     const p = fake.getUnreadline(conversationIDKey, T.Chat.numberToMessageID(1))
     dispatch.setUserSwitching(true, 'testuser2')

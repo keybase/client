@@ -9,7 +9,7 @@ import {rpcLog, type InvokeType} from './index.platform'
 import {convertToError, RPCError} from '@/util/errors'
 import {makeDisconnectError} from './rpc-transport'
 import {makeWaitingTracker, type WaitingTracker} from './waiting-tracker'
-import {getAccountGeneration, survivesAccountChange} from './account-generation'
+import {getAccountGeneration, holdDuringSwitch, survivesAccountChange} from './account-generation'
 import logger from '@/logger'
 import {
   inputCanceledError,
@@ -35,6 +35,12 @@ type HeldResponse = {
 // A custom handler the listener runs later says so, and calls what this returns once it has run
 export type DeferRun = () => () => void
 
+const accountChangedError = () =>
+  new RPCError('The account changed during this call', StatusCode.sccanceled, null, undefined, undefined, {
+    reason: 'accountChange',
+    type: 'cancelled',
+  })
+
 // A session is a series of calls back and forth tied together with a single sessionID
 class Session {
   // Our id
@@ -54,6 +60,8 @@ class Session {
   _ended = false
   // The start RPC was sent and its reply has not come back
   _invokeOutstanding = false
+  // Set while its RPC waits for an account switch to end, before it is sent; drops it from the wait
+  _dropHeld: (() => void) | undefined
   // Cancelled by the client while its RPC was outstanding: the caller has its rejection, and every
   // call the service still makes on this session is refused here until the reply or a lost link
   _refusing = false
@@ -135,8 +143,12 @@ class Session {
     this._cancel('refuse', reason)
   }
 
-  // The link died or is being replaced: a held prompt's answer must not reach the next connection.
+  // The link died or is being replaced: a held prompt's answer must not reach the next connection. A
+  // call still waiting for an account switch was never sent, so it waits on.
   cancelForLostLink() {
+    if (this._dropHeld) {
+      return
+    }
     this._cancel('forget')
   }
 
@@ -167,6 +179,9 @@ class Session {
       }
       return
     }
+    // Never sent, so the service has nothing to forget
+    this._dropHeld?.()
+    this._dropHeld = undefined
     // A lost link ends the call as the transport's failed reply would, whichever comes first, so the
     // caller and the key agree. A client cancel is the user's own and records nothing.
     const lostLink =
@@ -252,30 +267,40 @@ class Session {
       })
     }
 
+    // Waiting from here, also while the call is held for an account switch
     const tracker = makeWaitingTracker(this._waitingKey, this._dispatchWaiting, w => this._logWaiting(w))
     this._tracker = tracker
-    this._invokeOutstanding = true
-    this._invoke(method, [wrappedParam], (err: unknown, data: unknown) => {
-      this._invokeOutstanding = false
-      if (this._refusing) {
-        // The cancel already answered the caller and left the session not waiting
-        this.end()
-        return
-      }
-      if (this._belongsToPreviousAccount()) {
+    const send = () => {
+      this._invokeOutstanding = true
+      this._invoke(method, [wrappedParam], (err: unknown, data: unknown) => {
+        this._invokeOutstanding = false
+        if (this._refusing) {
+          // The cancel already answered the caller and left the session not waiting
+          this.end()
+          return
+        }
+        if (this._belongsToPreviousAccount()) {
+          tracker.settle()
+          wrappedCallback(accountChangedError())
+          return
+        }
+        // Only the service's errors belong on the key, not a local failure like a queue overflow
+        tracker.settle(err instanceof RPCError ? err : undefined)
+        wrappedCallback(err as RPCError | undefined, data)
+      })
+    }
+    this._dropHeld = holdDuringSwitch(method, accountChanged => {
+      this._dropHeld = undefined
+      if (accountChanged) {
         tracker.settle()
-        wrappedCallback(
-          new RPCError('The account changed during this call', StatusCode.sccanceled, null, undefined, undefined, {
-            reason: 'accountChange',
-            type: 'cancelled',
-          })
-        )
-        return
+        wrappedCallback(accountChangedError())
+      } else {
+        send()
       }
-      // Only the service's errors belong on the key, not a local failure like a queue overflow
-      tracker.settle(err instanceof RPCError ? err : undefined)
-      wrappedCallback(err as RPCError | undefined, data)
     })
+    if (!this._dropHeld) {
+      send()
+    }
   }
 
   // We have an incoming call tied to a sessionID, called only by engine

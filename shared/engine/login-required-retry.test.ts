@@ -16,7 +16,7 @@ const loginRequired = () => fakeError(T.RPCGen.StatusCode.scloginrequired, 'logi
 
 describe('known bugs', () => {
   test.failing('a login-required failure while logged in is tried again', async () => {
-    jest.useFakeTimers()
+    jest.useFakeTimers({doNotFake: ['queueMicrotask']})
     const fake = installFakeEngine()
     let attempts = 0
     fake.answer('keybase.1.user.loadMySettings', () => (++attempts === 1 ? loginRequired() : {}))
