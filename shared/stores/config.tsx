@@ -336,10 +336,9 @@ export const useConfigState = Z.createZustand<State>("config", (set, get) => {
             );
             return;
           }
-          // Nothing else ends a cancelled switch, and the logged-out status it withheld applies only then
-          if (!(error instanceof RPCError) || error.desc === cancelDesc) {
-            get().dispatch.setUserSwitching(false);
-          }
+          // Every failure that was not superseded ends the switch here; nothing else would. The session
+          // refresh in finally then applies whatever the daemon says, a logged-out status included.
+          get().dispatch.setUserSwitching(false);
           if (!(error instanceof RPCError)) {
             return;
           }

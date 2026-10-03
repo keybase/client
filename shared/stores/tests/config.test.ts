@@ -12,6 +12,7 @@ import {getAccountGeneration} from '../../engine/account-generation'
 import {useDaemonState} from '../daemon'
 import {noConversationIDKey} from '../../constants/types/chat/common'
 import {useConfigState} from '../config'
+import {installListenerEngine, uninstallListenerEngine} from '../../test/fake-listener-engine'
 
 const resetConfigState = () => {
   const {dispatch} = useConfigState.getState()
@@ -308,6 +309,43 @@ describe('login', () => {
     const state = useConfigState.getState()
     expect(state.userSwitching).toBe(false)
     expect(state.loginError?.desc).toBeTruthy()
+  })
+
+  describe('through the engine listener', () => {
+    afterEach(() => uninstallListenerEngine())
+    const switchFailingWith = async (code: T.RPCGen.StatusCode, desc: string) => {
+      const engine = installListenerEngine()
+      const {dispatch} = useConfigState.getState()
+      dispatch.setUserSwitching(true, 'testuser')
+      dispatch.login('testuser', '')
+      engine.fail('keybase.1.login.login', code, desc)
+      await flush()
+    }
+
+    test('a service error ends the switch and records the nice error', async () => {
+      await switchFailingWith(T.RPCGen.StatusCode.scbadloginpassword, 'bad password')
+
+      const state = useConfigState.getState()
+      expect(state.userSwitching).toBe(false)
+      expect(state.loginError?.desc).toBe('Looks like a bad password.')
+    })
+
+    test('already logged in ends the switch without a login error', async () => {
+      await switchFailingWith(T.RPCGen.StatusCode.scalreadyloggedin, 'already logged in')
+
+      const state = useConfigState.getState()
+      expect(state.userSwitching).toBe(false)
+      expect(state.loginError).toBeUndefined()
+      expect(refresh).toHaveBeenCalledTimes(1)
+    })
+
+    test('a login that cancelled its own prompt ends the switch without a login error', async () => {
+      await switchFailingWith(T.RPCGen.StatusCode.scgeneric, 'Canceling RPC')
+
+      const state = useConfigState.getState()
+      expect(state.userSwitching).toBe(false)
+      expect(state.loginError).toBeUndefined()
+    })
   })
 })
 

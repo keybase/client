@@ -43,7 +43,7 @@ const makeInitialForm = (): GeneratePgpArgs => ({
   pgpFullName: '',
 })
 
-const generatePgp = async (
+export const generatePgp = async (
   args: GeneratePgpArgs,
   mountedRef: React.RefObject<boolean>,
   cancelCurrentRef: React.RefObject<undefined | (() => void)>,

@@ -23,7 +23,7 @@ import {
 } from './model'
 import {registerRemoteActionHandler} from '@/desktop/renderer/remote-event-handler.desktop'
 import logger from '@/logger'
-import {RPCError} from '@/util/errors'
+import {isCancelError, RPCError} from '@/util/errors'
 
 const MAX_TRACKERS = 5
 const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320}
@@ -57,6 +57,30 @@ const updateResult = (state: PopupState, guiID: string, result: T.Tracker.Detail
   const usernameToDetails = new Map(state.usernameToDetails)
   usernameToDetails.set(username, updateTrackerDetailsResult(current, result, reason))
   return {...state, usernameToDetails}
+}
+
+// onFailed: the identify failed in the service. A cancel (an account switch, the session going
+// away) is not a failure of this user's identify, so it leaves the popup as it is.
+export const runPopupIdentify = async (
+  params: {assertion: string; guiID: string; ignoreCache: boolean},
+  onFailed: () => void
+) => {
+  try {
+    await T.RPCGen.identify3Identify3RpcListener({
+      incomingCallMap: {},
+      params,
+      waitingKey: 'tracker:profileLoad',
+    })
+  } catch (error) {
+    if (
+      !(error instanceof RPCError) ||
+      isCancelError(error)
+    ) {
+      return
+    }
+    logger.error(`Error loading tracker popup: ${error.message}`)
+    onFailed()
+  }
 }
 
 const RemoteTracker = (props: {details: T.Tracker.Details; trackerUsername: string}) => {
@@ -137,21 +161,11 @@ const RemoteTrackers = () => {
       return
     }
 
-    const f = async () => {
-      try {
-        await T.RPCGen.identify3Identify3RpcListener({
-          incomingCallMap: {},
-          params: {assertion, guiID, ignoreCache},
-          waitingKey: 'tracker:profileLoad',
-        })
-      } catch (error) {
-        if (error instanceof RPCError) {
-          logger.error(`Error loading tracker popup: ${error.message}`)
-          setPopupState(prev => updateResult(prev, guiID, 'error'))
-        }
-      }
-    }
-    ignorePromise(f())
+    ignorePromise(
+      runPopupIdentify({assertion, guiID, ignoreCache}, () =>
+        setPopupState(prev => updateResult(prev, guiID, 'error'))
+      )
+    )
   }, [])
 
   const closeTracker = React.useCallback((guiID: string) => {

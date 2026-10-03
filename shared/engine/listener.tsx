@@ -126,7 +126,9 @@ async function listener(p: {
         setWaitingOnServer(false, error instanceof RPCError ? error : undefined)
 
         if (error) {
-          reject(ensureError(error))
+          // The RPCError itself, as the promise RPCs reject with, so callers can match on it
+          // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+          reject(error instanceof RPCError ? error : ensureError(error))
         } else {
           resolve(params)
         }

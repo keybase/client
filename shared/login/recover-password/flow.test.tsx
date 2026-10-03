@@ -3,6 +3,7 @@ import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 
 import {installFakeNavigator, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
+import {installListenerEngine, uninstallListenerEngine} from '@/test/fake-listener-engine'
 import {
   startRecoverPassword,
   submitRecoverPasswordDeviceSelect,
@@ -156,4 +157,33 @@ test('reset-password prompt resolves callback and local banner handler', async (
     finishListener()
     await flush()
   }
+})
+
+describe('through the engine listener', () => {
+  afterEach(() => uninstallListenerEngine())
+
+  test('a service error replaces the screen with the recovery error', async () => {
+    const engine = installListenerEngine()
+    startRecoverPassword({username: 'testuser'})
+    await flush()
+    engine.fail('keybase.1.login.recoverPassphrase', T.RPCGen.StatusCode.scnotfound, 'no such user')
+    await flush()
+
+    const errors = nav.navigations().filter(n => n.name === 'recoverPasswordError')
+    expect(errors).toHaveLength(1)
+    expect(errors[0]!.replace).toBe(true)
+    expect((errors[0]!.params as {error: string}).error).toContain('no such user')
+    expect(nav.modalsCleared()).toBe(false)
+  })
+
+  test('a cancelled recovery shows no error and leaves the modals', async () => {
+    const engine = installListenerEngine()
+    startRecoverPassword({username: 'testuser'})
+    await flush()
+    engine.fail('keybase.1.login.recoverPassphrase', T.RPCGen.StatusCode.scinputcanceled, 'Input canceled')
+    await flush()
+
+    expect(nav.navigations().filter(n => n.name === 'recoverPasswordError')).toEqual([])
+    expect(nav.modalsCleared()).toBe(false)
+  })
 })

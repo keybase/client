@@ -8,7 +8,7 @@ import Success from './success'
 import {useNavigation} from '@react-navigation/native'
 
 type OwnProps = {initialTeamname?: string; success?: boolean}
-const getJoinTeamError = (error: unknown) => {
+export const getJoinTeamError = (error: unknown) => {
   if (error instanceof RPCError) {
     return (
       error.code === T.RPCGen.StatusCode.scteaminvitebadtoken
