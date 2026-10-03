@@ -5,6 +5,7 @@ import * as T from '@/constants/types'
 import type * as EngineGen from '@/constants/rpc'
 import {installFakeEngine, type FakeEngine} from '@/test/fake-engine'
 import {registerIncomingAnswerer} from './incoming-answerers'
+import {startNewAccountGeneration} from './account-generation'
 import {useConfigState} from '@/stores/config'
 import {useWaitingState} from '@/stores/waiting'
 import {resetAllStores} from '@/util/zustand'
@@ -247,5 +248,46 @@ describe('a service cancel of one prompt', () => {
     held[0]!.reply(undefined)
     await ended
     expect(waitingCount(fake)).toBe(0)
+  })
+})
+
+// A logout bumps the account generation without cancelling the old account's sessions; whatever the
+// service still sends on one is refused there and reaches no global answerer or app handler.
+describe("a previous account's session", () => {
+  const startDeviceAdd = async (onEngineIncoming: (a: EngineGen.Actions) => void) => {
+    const fake = installFakeEngine({onEngineIncoming})
+    const held = fake.hold('keybase.1.device.deviceAdd')
+    const ended = T.RPCGen.deviceDeviceAddRpcListener({
+      params: undefined,
+      customResponseIncomingCallMap: {},
+      globalFallthrough: ['keybase.1.secretUi.', 'keybase.1.logUi.'],
+      incomingCallMap: {},
+    }).catch((e: unknown) => e)
+    await tick()
+    const sessionID = fake.calls[0]!.params.sessionID as number
+    startNewAccountGeneration()
+    return {ended, fake, held, sessionID}
+  }
+
+  test('refuses a must-answer call it has no handler for, without reaching the global answerer', async () => {
+    const answered = registerPinentry()
+    const onEngineIncoming = jest.fn()
+    const {ended, fake, held, sessionID} = await startDeviceAdd(onEngineIncoming)
+    await expect(fake.push(pinentry, {pinentry: {type: 0}}, {sessionID})).resolves.toEqual({
+      error: {code: T.RPCGen.StatusCode.sccanceled, desc: 'The account changed during this call'},
+    })
+    expect(answered).not.toHaveBeenCalled()
+    held[0]!.reply(undefined)
+    await ended
+  })
+
+  test('keeps a call it has no handler for away from the app', async () => {
+    const onEngineIncoming = jest.fn()
+    const {ended, fake, held, sessionID} = await startDeviceAdd(onEngineIncoming)
+    await fake.push(log, {level: 0, text: {data: 'hi', markup: false}}, {sessionID})
+    await afterTimers()
+    expect(onEngineIncoming).not.toHaveBeenCalled()
+    held[0]!.reply(undefined)
+    await ended
   })
 })

@@ -293,13 +293,15 @@ class Session {
       return true
     }
 
-    if (!plain && !custom) {
-      return false
-    }
-
+    // Before the global fall-through: nothing the old account's RPC still sends may reach a global
+    // answerer or the app
     if (this._belongsToPreviousAccount()) {
       response?.error?.({code: StatusCode.sccanceled, desc: 'The account changed during this call'})
       return true
+    }
+
+    if (!plain && !custom) {
+      return false
     }
 
     if (!custom) {
