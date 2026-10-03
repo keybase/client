@@ -383,7 +383,7 @@ describe('completion', () => {
     await failWith(held)
 
     expect(screens()).toEqual(['login', 'recoverPasswordExplainDevice', 'recoverPasswordError'])
-    expect(nav.getRootState()?.routes?.[0]?.state?.routes?.[1]?.params).toEqual({runId: -1})
+    expect(nav.getRootState()?.routes?.[0]?.state?.routes[1]?.params).toEqual({runId: -1})
   })
 
   test('logged out with only login, the error goes over it and Back returns to it', async () => {
@@ -450,7 +450,7 @@ describe('completion', () => {
     await failWith(held, 'second failure')
 
     expect(screens()).toEqual(['login', 'recoverPasswordError'])
-    expect(nav.getRootState()?.routes?.[0]?.state?.routes?.at(-1)?.params).toEqual({
+    expect(nav.getRootState()?.routes?.[0]?.state?.routes.at(-1)?.params).toEqual({
       error: expect.stringContaining('second failure'),
     })
   })
