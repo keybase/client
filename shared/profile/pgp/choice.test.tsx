@@ -282,13 +282,39 @@ describe('generatePgp', () => {
     expect((error as RPCError).code).toBe(T.RPCGen.StatusCode.scgeneric)
   })
 
-  test('an input-canceled error from the service ends the run quietly', async () => {
+  test.each([
+    ['an input-canceled', T.RPCGen.StatusCode.scinputcanceled],
+    ['a canceled', T.RPCGen.StatusCode.sccanceled],
+  ])('%s error from the service ends the run quietly', async (_, code) => {
     const fake = installFakeEngine()
     const held = fake.hold(pgpRpc)
     const {finished} = generatePgp(makeInfo(), () => {})
     await tick()
-    held[0]!.reply(fakeError(T.RPCGen.StatusCode.scinputcanceled, 'Input canceled'))
+    held[0]!.reply(fakeError(code, 'Input canceled'))
     await expect(finished).resolves.toBeUndefined()
+  })
+
+  test('the service failing with the refusal of a prompt the user turned down ends the run quietly', async () => {
+    const fake = installFakeEngine()
+    const held = fake.hold(pgpRpc)
+    const {dialog, finished} = generatePgp(makeInfo(), () => {})
+    await tick()
+    const sessionID = fake.calls[0]!.params.sessionID as number
+    const pushed = fake.push(pushPrivate, {prompt: true}, {sessionID})
+    await settle()
+    expect(dialog.openPrompt(pushPrivate)?.cancel()).toBe(true)
+    await expect(pushed).resolves.toEqual({error: inputCanceled})
+    held[0]!.reply(fakeError(inputCanceled.code, inputCanceled.desc))
+    await expect(finished).resolves.toBeUndefined()
+  })
+
+  test('a lost link is rethrown', async () => {
+    const fake = installFakeEngine()
+    fake.hold(pgpRpc)
+    const {finished} = generatePgp(makeInfo(), () => {})
+    await tick()
+    fake.drop()
+    await expect(finished).rejects.toMatchObject({desc: 'The service connection was lost'})
   })
 
   test('a password prompt while storing the key on the server is left to the global answerer', async () => {

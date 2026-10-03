@@ -2,11 +2,10 @@ import * as Kb from '@/common-adapters'
 import PlatformIcon from '@/profile/platform-icon'
 import * as C from '@/constants'
 import * as React from 'react'
-import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
 import {produce} from 'immer'
 import {registerRouteGone, useRouteKey} from '@/router-v2/route-gone'
-import {RPCError} from '@/util/errors'
+import {isCancelled, RPCError} from '@/util/errors'
 import {openDialog, type Dialog} from '@/engine/dialog'
 import Modal from '@/profile/modal'
 import * as Validators from '@/util/simple-validators'
@@ -86,7 +85,8 @@ export const generatePgp = (args: GeneratePgpArgs, onFinished: (next: FinishedSt
       if (dialog.disposed || !(error instanceof RPCError)) {
         return
       }
-      if (error.code !== T.RPCGen.StatusCode.scinputcanceled) {
+      // A cancel, ours or the service's, ends the run quietly; a lost link is an error
+      if (!isCancelled(error, 'caller', 'accountChange', 'service')) {
         throw error
       }
     }
