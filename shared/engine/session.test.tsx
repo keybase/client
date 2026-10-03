@@ -3,6 +3,7 @@ import Session from './session'
 import {RPCError} from '@/util/errors'
 import * as T from '@/constants/types'
 import {startNewAccountGeneration, survivesAccountChange} from './account-generation'
+import {survivesAccountChangeMethods} from '@/constants/rpc'
 import logger from '@/logger'
 import {testWaitingKey} from '@/test/waiting-key'
 import type {WaitingKey} from '@/constants/waiting-key-type'
@@ -168,6 +169,39 @@ describe('a call that outlives its account', () => {
 
     expect(callback).toHaveBeenCalledWith(undefined, undefined)
     expect(mockDispatchWaitingAction).toHaveBeenCalledWith({error: undefined, increment: false, key: waitingKey})
+  })
+
+  test('the calls that outlived an account before the flag moved to enabled-calls.json still do', () => {
+    const named = [
+      'keybase.1.account.cancelReset',
+      'keybase.1.account.enterResetPipeline',
+      'keybase.1.config.appendGUILogs',
+      'keybase.1.config.getBootstrapStatus',
+      'keybase.1.config.guiGetValue',
+      'keybase.1.config.guiSetValue',
+      'keybase.1.config.helloIAm',
+      'keybase.1.config.logSend',
+      'keybase.1.config.waitForClient',
+      'keybase.1.login.accountDelete',
+      'keybase.1.login.deprovision',
+      'keybase.1.login.getConfiguredAccounts',
+      'keybase.1.login.login',
+      'keybase.1.login.logout',
+      'keybase.1.login.recoverPassphrase',
+      'keybase.1.signup.signup',
+    ]
+    // What the old delegateUiCtl./notifyCtl. prefixes matched among the calls the GUI makes
+    const prefixed = [
+      'keybase.1.delegateUiCtl.registerChatUI',
+      'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered',
+      'keybase.1.delegateUiCtl.registerHomeUI',
+      'keybase.1.delegateUiCtl.registerIdentify3UI',
+      'keybase.1.delegateUiCtl.registerLogUI',
+      'keybase.1.delegateUiCtl.registerRekeyUI',
+      'keybase.1.delegateUiCtl.registerSecretUI',
+      'keybase.1.notifyCtl.setNotifications',
+    ]
+    expect([...survivesAccountChangeMethods].sort()).toEqual([...named, ...prefixed].sort())
   })
 
   test('registering with the service outlives an account', () => {
