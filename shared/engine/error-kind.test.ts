@@ -205,22 +205,32 @@ describe('what a reply records on its waiting key', () => {
     return useWaitingState.getState().errors.get(waitingKey)
   }
 
+  // A listener whose prompt handler keeps the response, so the test refuses it
   const openRecover = async () => {
     const fake = installFakeEngine()
     const held = fake.hold(rpc)
-    const dialog = openDialog(rpc, {username: 'testuser'}, {prompts: [choose], waitingKey})
+    let response: {error: (e: typeof inputCanceled) => void} | undefined
+    const done = T.RPCGen.loginRecoverPassphraseRpcListener({
+      customResponseIncomingCallMap: {
+        [choose]: (_, r) => {
+          response = r
+        },
+      },
+      incomingCallMap: {},
+      params: {username: 'testuser'},
+      waitingKey,
+    })
     await tick()
     const sessionID = fake.calls[0]!.params.sessionID as number
     const pushed = fake.push(choose, {devices: []}, {sessionID})
     await afterTimers()
-    const prompt = dialog.openPrompt(choose)
-    expect(prompt).toBeDefined()
-    return {cancel: () => prompt?.cancel(), dialog, fake, held, pushed}
+    expect(response).toBeDefined()
+    return {cancel: () => response?.error(inputCanceled), dialog: {done}, fake, held, pushed}
   }
 
   test('the echo of a refused prompt: cancelled by the service, and nothing recorded', async () => {
     const {cancel, dialog, fake, held, pushed} = await openRecover()
-    expect(cancel()).toBe(true)
+    cancel()
     expect(await pushed).toEqual({error: inputCanceled})
     held[0]!.reply(fakeError(inputCanceled.code, inputCanceled.desc))
     expect(kindOf(await rejection(dialog.done))).toEqual(byService)
