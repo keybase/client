@@ -1,14 +1,15 @@
 import {StatusCode} from '@/constants/rpc/rpc-gen'
 import type {ErrorType} from '@/engine/rpc-transport'
 import type {RPCError} from '@/util/errors'
+import type {WaitingKeys} from '@/constants/waiting-key-type'
 export type MethodKey = string
 export type SessionID = number
-export type WaitingKey = string | ReadonlyArray<string>
+export type {WaitingKeys}
 // One change to a waiting key: a call starts or stops waiting on it, or, having stopped already, only
 // records how it ended
 export type WaitingChange =
-  | {readonly key: WaitingKey; readonly increment: boolean; readonly error?: RPCError}
-  | {readonly key: WaitingKey; readonly increment?: undefined; readonly error: RPCError}
+  | {readonly key: WaitingKeys; readonly increment: boolean; readonly error?: RPCError}
+  | {readonly key: WaitingKeys; readonly increment?: undefined; readonly error: RPCError}
 export type EndHandlerType = (session: {getId: () => SessionID; _startMethod?: MethodKey}) => void
 export type ResponseType = {
   result?: (...args: Array<any>) => void

@@ -3,7 +3,7 @@
 // the flow says the service is still working. Settled once, by whatever ends the RPC.
 import type {RPCError} from '@/util/errors'
 import once from 'lodash/once'
-import type {WaitingChange, WaitingKey} from './types'
+import type {WaitingChange, WaitingKeys} from './types'
 
 export type WaitingTracker = {
   // A prompt is held for the GUI; the release (answer, refusal, service cancel) runs once
@@ -16,7 +16,7 @@ export type WaitingTracker = {
 }
 
 export const makeWaitingTracker = (
-  key: WaitingKey | undefined,
+  key: WaitingKeys | undefined,
   emit: (change: WaitingChange) => void,
   log?: (waiting: boolean) => void
 ): WaitingTracker => {

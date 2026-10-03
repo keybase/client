@@ -1,6 +1,6 @@
 // Generated rpc code calls the engine through this port; it must not import engine/index, which
 // imports the generated code (the cycle would leave one side undefined at module init).
-import type {SessionID, WaitingKey} from './types'
+import type {SessionID, WaitingKeys} from './types'
 
 export type CallParams = {
   method: string
@@ -8,7 +8,7 @@ export type CallParams = {
   callback: (...args: Array<any>) => void
   incomingCallMap?: object
   customResponseIncomingCallMap?: object
-  waitingKey?: WaitingKey
+  waitingKey?: WaitingKeys
   globalFallthrough?: ReadonlyArray<string>
 }
 
@@ -17,7 +17,7 @@ export type ListenParams = {
   params?: object
   incomingCallMap?: object
   customResponseIncomingCallMap?: object
-  waitingKey?: WaitingKey
+  waitingKey?: WaitingKeys
   // holdServerWork: the service works on while the flow holds a prompt (see WaitingTracker)
   onSessionCreated?: (cancel: () => void, session: {holdServerWork: () => () => void}) => void
   globalFallthrough?: ReadonlyArray<string>
