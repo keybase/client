@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import {default as Button, type ButtonProps} from './button'
 import type {MeasureRef} from './measure-ref'
-import type {WaitingKeys} from '@/constants/waiting-key-type'
+import type * as T from '@/constants/types'
 
 const Kb = {
   Button,
@@ -10,7 +10,7 @@ const Kb = {
 
 export type Props = {
   onlyDisable?: boolean
-  waitingKey?: WaitingKeys
+  waitingKey?: T.Waiting.WaitingKeys
 } & ButtonProps
 
 /* Waiting button is a <Kb.Button /> with handling of waiting states.
