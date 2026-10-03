@@ -26,8 +26,12 @@ const promiseRpc = 'keybase.1.teams.teamIgnoreRequest'
 const waitingKey = 'waiting-test'
 const devices = [{deviceID: 'd1', name: 'phone', type: 'mobile'}] as unknown as ReadonlyArray<T.RPCGen.Device>
 
-// The listener hands incoming calls to their handlers on a timer
-const afterTimers = async () => new Promise(resolve => setTimeout(resolve, 0))
+// The listener hands incoming calls to their handlers on a timer, and a prompt they leave unanswered
+// becomes the GUI's on the next
+const afterTimers = async () => {
+  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise(resolve => setTimeout(resolve, 0))
+}
 
 // The engine throttles waiting changes; flush them before reading the store
 const count = (fake: FakeEngine) => {
@@ -335,7 +339,7 @@ describe('how a held prompt ends', () => {
 })
 
 describe('the GUI owing the service', () => {
-  test.failing('a prompt its handler answers a few microtasks later never turns waiting off', async () => {
+  test('a prompt its handler answers a few microtasks later never turns waiting off', async () => {
     const fake = installFakeEngine()
     const {ended, held, push} = await startListener(fake, async response => {
       await Promise.resolve()
@@ -425,6 +429,7 @@ describe('a dialog', () => {
     const it = dialog.events[Symbol.asyncIterator]()
     void fake.push(choose, {devices}, {sessionID})
     await it.next()
+    await afterTimers()
     expect(count(fake)).toBe(0)
     const counts = recordCounts()
     dialog.dispose()
@@ -444,6 +449,7 @@ describe('a dialog', () => {
     void fake.push(choose, {devices}, {sessionID})
     const e = (await it.next()).value
     if (e?.kind !== 'prompt') throw new Error('expected a prompt')
+    await afterTimers()
     expect(count(fake)).toBe(0)
     const release = dialog.holdWaiting()
     expect(count(fake)).toBe(1)
@@ -468,6 +474,7 @@ describe('a dialog', () => {
     const it = dialog.events[Symbol.asyncIterator]()
     void fake.push(choose, {devices}, {sessionID})
     await it.next()
+    await afterTimers()
     dialog.holdWaiting()
     expect(count(fake)).toBe(1)
     dialog.dispose()

@@ -25,8 +25,12 @@ const log = 'keybase.1.logUi.log'
 const inputCanceled = {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'}
 const waitingKey = 'session-cancel-test'
 
-// The listener hands incoming calls to their handlers on a timer
-const afterTimers = async () => new Promise(resolve => setTimeout(resolve, 0))
+// The listener hands incoming calls to their handlers on a timer, and a prompt they leave unanswered
+// becomes the GUI's on the next
+const afterTimers = async () => {
+  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise(resolve => setTimeout(resolve, 0))
+}
 
 const registerPinentry = () => {
   // Answers, so a push that wrongly reaches it does not hang
@@ -240,7 +244,7 @@ describe('a service cancel of one prompt', () => {
     await tick()
     const sessionID = fake.calls[0]!.params.sessionID as number
     void fake.push(prompt, {kind: 0}, {sessionID})
-    await tick()
+    await afterTimers()
     expect(onPrompt).toHaveBeenCalledTimes(1)
     expect(waitingCount(fake)).toBe(0)
     fake.cancelPush(prompt)

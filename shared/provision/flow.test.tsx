@@ -440,7 +440,7 @@ describe('login', () => {
     expect(count()).toBeUndefined()
   })
 
-  test.failing('a restart replays its recorded answers without the waiting key turning off', async () => {
+  test('a restart replays its recorded answers without the waiting key turning off', async () => {
     const held = await startLogin()
     const name1 = push(deviceName, {errorMessage: '', existingDevices: []}, 0)
     await settle()

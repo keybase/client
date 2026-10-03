@@ -42,11 +42,14 @@ test('cancel releases the waiting count when the server owes us a response', () 
   expect(mockDispatchWaitingAction).toHaveBeenCalledWith({error: undefined, increment: false, key: 'waiting-key'})
 })
 
-test('cancel does not double-release waiting while a prompt is pending on the GUI', () => {
+test('cancel does not double-release waiting while a prompt is pending on the GUI', async () => {
   const session = makeSession('waiting-key')
   session.start('keybase.1.login.login', undefined, jest.fn())
-  // server calls us back with a prompt: waiting flips false and stays false until we respond
+  // server calls us back with a prompt: waiting flips false, once its handler's task is over, and stays
+  // false until we respond
   session.incomingCall('keybase.1.provisionUi.chooseDevice', {}, {seqid: 5} as never)
+  await new Promise(resolve => setTimeout(resolve, 0))
+  expect(mockDispatchWaitingAction).toHaveBeenLastCalledWith({error: undefined, increment: false, key: 'waiting-key'})
   mockDispatchWaitingAction.mockReset()
 
   session.cancel()

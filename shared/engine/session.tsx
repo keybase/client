@@ -346,12 +346,15 @@ class Session {
       },
     }
     held.request = request
-    // An answer while its handler runs never shows the GUI owing, so an auto-answered prompt does not
-    // blink the waiting key off
+    // The GUI owes the service only once the task its handler ran in is over, unanswered. An answer
+    // in that task (an auto-answer, or a Dialog consumer a few microtasks later, as provision's replay)
+    // never shows waiting off: the engine flushes an "off" at once but throttles the "on" after it.
     const ran = () => {
-      if (!held.settled) {
-        held.release = this._tracker?.holdPrompt()
-      }
+      setTimeout(() => {
+        if (!held.settled) {
+          held.release = this._tracker?.holdPrompt()
+        }
+      }, 0)
     }
     const deferRun: DeferRun = () => {
       held.deferred = true
