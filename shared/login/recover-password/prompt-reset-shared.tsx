@@ -7,10 +7,12 @@ import {SignupScreen, errorBanner} from '@/signup/common'
 import {QuestionBody} from '../common'
 import type {ButtonType} from '@/common-adapters/button'
 import {enterResetPipeline} from '@/login/reset/account-reset'
-import {startRecoverPassword, submitRecoverPasswordReset} from './flow'
+import {declineRecoverPasswordPrompt, restartRecoverPassword, submitRecoverPasswordReset} from './flow'
 
 export type Props = {
   resetPassword?: boolean
+  // The reset-password prompt the Continue answers
+  resetPromptId?: number
   skipPassword: boolean
   username: string
 }
@@ -20,16 +22,20 @@ const PromptReset = (props: Props) => {
   const theme = Kb.Styles.useTheme()
   const nav = useSafeNavigation()
   const [error, setError] = React.useState('')
-  const {resetPassword, skipPassword, username} = props
+  const {resetPassword, resetPromptId, skipPassword, username} = props
 
   const onContinue = () => {
     // dont do this in preflight
     if (C.androidIsTestDevice) {
+      // Declined first, so the back that follows goes back rather than starting the recovery over
+      if (resetPromptId !== undefined) {
+        declineRecoverPasswordPrompt(resetPromptId)
+      }
       nav.safeNavigateUp()
       return
     }
-    if (resetPassword) {
-      submitRecoverPasswordReset(T.RPCGen.ResetPromptResponse.confirmReset)
+    if (resetPassword && resetPromptId !== undefined) {
+      submitRecoverPasswordReset(resetPromptId, T.RPCGen.ResetPromptResponse.confirmReset)
     }
     if (skipPassword) {
       enterResetPipeline({onError: setError, username})
@@ -39,7 +45,7 @@ const PromptReset = (props: Props) => {
   }
   const onBack = () => {
     if (skipPassword) {
-      startRecoverPassword({replaceRoute: true, username})
+      restartRecoverPassword(username)
     } else {
       nav.safeNavigateUp()
     }

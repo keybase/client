@@ -43,6 +43,7 @@ const makeNavigationContainerRef = () => ({
 })
 
 exports.NavigationContext = React.createContext(navigation)
+exports.NavigationRouteContext = React.createContext(undefined)
 exports.useNavigation = () => navigation
 exports.useIsFocused = () => true
 exports.useFocusEffect = fn => {

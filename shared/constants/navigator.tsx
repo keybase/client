@@ -51,7 +51,14 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
   // push dispatched before the group mounts reaches no navigator that can handle it and is
   // dropped. Gives up after `timeoutMs` so a group that never mounts can't fire the push at some
   // unrelated later time.
-  navigateAppendOnceRootHas: (rootRouteName: string, path: NavigateAppendType, timeoutMs?: number) => void
+  // onGiveUp runs if the root never mounts and the push is dropped; onPushed once the push is dispatched
+  navigateAppendOnceRootHas: (
+    rootRouteName: string,
+    path: NavigateAppendType,
+    timeoutMs?: number,
+    onGiveUp?: () => void,
+    onPushed?: () => void
+  ) => void
   navUpToScreen: (nameOrPath: RouteKeys | NavigateAppendType, replaceIfMissing?: boolean) => void
   switchTab: (name: Tabs.AppTab) => void
   // Returns whether chatRoot now carries these params - by dispatch, or because it
@@ -74,10 +81,10 @@ export type Navigator = Omit<NavigatorRef, 'dispatch'> & {
 const modalsWaitMs = 1000
 
 export const makeNavigator = (ref: NavigatorRef): Navigator => {
-  // A push dispatched this tick isn't in getRootState() until React Navigation commits, so the
-  // visible-route dupe check below misses repeat taps that land before the commit (e.g. a janky JS
-  // thread queueing both). Track the in-flight push until the next state event; the time bound is a
-  // backstop in case the container tears down before the listener fires.
+  // getRootState() has a push as soon as it is dispatched: React Navigation updates its state at
+  // once, and only the 'state' event waits for React's commit. So the visible-route dupe check below
+  // already sees a repeat tap's first push. This drops an identical push until that event too; the
+  // time bound is a backstop in case the container tears down before the listener fires.
   let pendingAppend: {name: string; params?: object; time: number} | undefined
 
   const navigateUp = () => {
@@ -179,26 +186,38 @@ export const makeNavigator = (ref: NavigatorRef): Navigator => {
   const navigateAppendOnceRootHas = (
     rootRouteName: string,
     path: NavigateAppendType,
-    timeoutMs = 5000
+    timeoutMs = 5000,
+    onGiveUp?: () => void,
+    onPushed?: () => void
   ) => {
     const rootHas = () => ref.getRootState()?.routes?.some(r => r.name === rootRouteName) ?? false
+    const push = () => {
+      if (navigateAppend(path)) {
+        onPushed?.()
+      } else {
+        logger.warn(`[Nav] navigateAppendOnceRootHas: push failed, dropping ${path.name}`)
+        onGiveUp?.()
+      }
+    }
     if (rootHas()) {
-      navigateAppend(path)
+      push()
       return
     }
     if (!ref.isReady()) {
       logger.warn(`[Nav] navigateAppendOnceRootHas: no navigator, dropping ${path.name}`)
+      onGiveUp?.()
       return
     }
     const timer = setTimeout(() => {
       unsub()
       logger.warn(`[Nav] navigateAppendOnceRootHas: ${rootRouteName} never mounted, dropping ${path.name}`)
+      onGiveUp?.()
     }, timeoutMs)
     const unsub = ref.addListener('state', () => {
       if (!rootHas()) return
       clearTimeout(timer)
       unsub()
-      navigateAppend(path)
+      push()
     })
   }
 

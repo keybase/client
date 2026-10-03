@@ -20,7 +20,10 @@ import {
 
 // A response the session handed to a handler. Settled once: by the handler, or by the session.
 type HeldResponse = {
+  method: MethodKey
   response: ResponseType
+  // What the handler got, which carries its onCancelledByService
+  request?: ResponseType
   settled: boolean
 }
 
@@ -39,8 +42,11 @@ class Session {
   // Responses handed to handlers and not yet settled (often we get cancel after we've replied)
   _held = new Set<HeldResponse>()
   _ended = false
-  // If you want to know about being cancelled
-  _cancelHandler: CancelHandlerType | undefined
+  // The start RPC was sent and its reply has not come back
+  _invokeOutstanding = false
+  // Cancelled by the client while its RPC was outstanding: the caller has its rejection, and every
+  // call the service still makes on this session is refused here until the reply or a lost link
+  _refusing = false
   // If true this session exists forever
   _dangling: boolean
   // Name of the start method, just to help debug
@@ -64,7 +70,6 @@ class Session {
     invoke: InvokeType
     dispatchWaiting: (key: WaitingKey, waiting: boolean, err?: RPCError) => void
     endHandler: EndHandlerType
-    cancelHandler?: CancelHandlerType
     dangling?: boolean
     globalFallthrough?: ReadonlyArray<string>
   }) {
@@ -75,7 +80,6 @@ class Session {
     this._invoke = p.invoke
     this._dispatchWaiting = p.dispatchWaiting
     this._endHandler = p.endHandler
-    this._cancelHandler = p.cancelHandler
     this._dangling = p.dangling || false
     this._globalFallthrough = p.globalFallthrough
   }
@@ -85,6 +89,9 @@ class Session {
   }
   getDangling(): boolean {
     return this._dangling
+  }
+  isRefusing(): boolean {
+    return this._refusing
   }
 
   // Started for an account that has since logged out, so nothing it receives may reach its handlers.
@@ -136,24 +143,36 @@ class Session {
     }
   }
 
-  // The service cancelled one of its calls to us: it no longer reads an answer for that seqid.
+  // The service cancelled one of its calls to us: it no longer reads an answer for that seqid. Only that
+  // call ends; its RPC goes on and may make more calls (Go cancels a prompt's context, e.g. login's
+  // DisplayAndPromptSecret once the other device finished, then calls ProvisioneeSuccess).
   cancelByService(seqid: number) {
-    const promptWasPending = this._held.size > 0
     for (const held of [...this._held]) {
-      if (held.response.seqid === seqid) {
-        this._settle(held)
+      if (held.response.seqid === seqid && this._settle(held)) {
+        // Like an answer, the service is working on the RPC again
+        this._makeWaitingHandler(held.method, seqid)(true)
+        try {
+          held.request?.onCancelledByService?.()
+        } catch (e) {
+          logger.error(`Session: the service-cancel handler for ${held.method} threw`, e)
+        }
       }
     }
-    this._cancel('refuse', promptWasPending)
   }
 
-  _cancel(heldPrompts: 'refuse' | 'forget', promptWasPending = this._held.size > 0) {
+  _cancel(heldPrompts: 'refuse' | 'forget') {
+    const promptWasPending = this._held.size > 0
+    if (this._refusing) {
+      // Already cancelled; only a lost link ends the refusal early, since the reply can't come now
+      if (heldPrompts === 'forget') {
+        this.end()
+      }
+      return
+    }
     for (const held of [...this._held]) {
       this._settle(held, heldPrompts === 'refuse' ? () => held.response.error?.(inputCanceledError) : undefined)
     }
-    if (this._cancelHandler) {
-      this._cancelHandler(this)
-    } else if (this._startCallback) {
+    if (this._startCallback) {
       // No server response is coming, so release the waiting count ourselves — but only when the
       // server owes us one; while a prompt is pending on the GUI the count was already released.
       if (this._waitingKey && !promptWasPending) {
@@ -164,7 +183,13 @@ class Session {
       callback(new RPCError('Received RPC cancel for session', StatusCode.sccanceled))
     }
 
-    this.end()
+    // The service may still call us on this session before it replies, and a late prompt that
+    // left the session would reach a global answerer (e.g. pinentry) instead
+    if (heldPrompts === 'refuse' && this._invokeOutstanding) {
+      this._refusing = true
+    } else {
+      this.end()
+    }
   }
 
   // Settles a held response once, writing `write` if given; false if it was already settled
@@ -219,7 +244,14 @@ class Session {
 
     const updateWaiting = this._makeWaitingHandler(method)
     updateWaiting(true)
+    this._invokeOutstanding = true
     this._invoke(method, [wrappedParam], (err: unknown, data: unknown) => {
+      this._invokeOutstanding = false
+      if (this._refusing) {
+        // The cancel already answered the caller and left the session not waiting
+        this.end()
+        return
+      }
       if (this._belongsToPreviousAccount()) {
         updateWaiting(false)
         wrappedCallback(new RPCError('The account changed during this call', StatusCode.sccanceled))
@@ -252,6 +284,15 @@ class Session {
       }
     )[method]
 
+    if (this._refusing) {
+      if (custom || mustAnswerMethods.has(method)) {
+        response?.error?.(inputCanceledError)
+      } else {
+        response?.result?.()
+      }
+      return true
+    }
+
     if (!plain && !custom) {
       return false
     }
@@ -279,7 +320,7 @@ class Session {
     }
 
     // A custom call delivered as a notification has nothing to answer
-    const held: HeldResponse = {response: response ?? {}, settled: false}
+    const held: HeldResponse = {method, response: response ?? {}, settled: false}
     this._held.add(held)
 
     const updateWaiting = this._makeWaitingHandler(method, response?.seqid)
@@ -300,6 +341,7 @@ class Session {
         return held.settled
       },
     }
+    held.request = request
     try {
       custom(param, request)
     } catch (e) {
@@ -326,5 +368,4 @@ class Session {
   }
 }
 
-export type CancelHandlerType = (session: Session) => void
 export default Session

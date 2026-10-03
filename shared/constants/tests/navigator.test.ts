@@ -418,6 +418,80 @@ describe('navigateAppendOnceRootHas', () => {
     expect(first.pushes()).toEqual([{name: 'profile', params: {username: 'testuser'}}])
     expect(second.actions).toEqual([])
   })
+
+  test('tells the caller when it gives up on a root that never mounts', () => {
+    jest.useFakeTimers()
+    const fake = installFakeNavigator({rootState: makeRootState({loggedIn: false})})
+    const onGiveUp = jest.fn()
+    navigateAppendOnceRootHas('loggedIn', {name: 'profile', params: {username: 'testuser'}}, 1000, onGiveUp)
+
+    jest.advanceTimersByTime(999)
+    expect(onGiveUp).not.toHaveBeenCalled()
+    jest.advanceTimersByTime(1)
+    expect(onGiveUp).toHaveBeenCalledTimes(1)
+    fake.setRootState(makeRootState())
+    expect(fake.pushes()).toEqual([])
+  })
+
+  test('does not give up on a root that mounts in time', () => {
+    jest.useFakeTimers()
+    const fake = installFakeNavigator({rootState: makeRootState({loggedIn: false})})
+    const onGiveUp = jest.fn()
+    navigateAppendOnceRootHas('loggedIn', {name: 'profile', params: {username: 'testuser'}}, 1000, onGiveUp)
+
+    fake.setRootState(makeRootState())
+    jest.advanceTimersByTime(10_000)
+
+    expect(onGiveUp).not.toHaveBeenCalled()
+    expect(fake.pushes()).toEqual([{name: 'profile', params: {username: 'testuser'}}])
+  })
+
+  test('tells the caller when the push is dispatched, at once or once the root mounts, and not on a failed push', () => {
+    jest.useFakeTimers()
+    const fake = installFakeNavigator({rootState: makeRootState({loggedIn: false})})
+    const onPushed = jest.fn()
+    const onGiveUp = jest.fn()
+    navigateAppendOnceRootHas('loggedIn', {name: 'profile', params: {username: 'testuser'}}, 1000, onGiveUp, onPushed)
+    expect(onPushed).not.toHaveBeenCalled()
+
+    fake.setRootState(makeRootState())
+    expect(onPushed).toHaveBeenCalledTimes(1)
+    navigateAppendOnceRootHas('loggedIn', {name: 'people', params: {}} as never, 1000, onGiveUp, onPushed)
+    expect(onPushed).toHaveBeenCalledTimes(2)
+    navigateAppendOnceRootHas('loggedIn', {name: '', params: {}} as never, 1000, onGiveUp, onPushed)
+    expect(onPushed).toHaveBeenCalledTimes(2)
+    expect(onGiveUp).toHaveBeenCalledTimes(1)
+  })
+
+  test('gives up at once without a navigator', () => {
+    installFakeNavigator({ready: false, rootState: makeRootState({loggedIn: false})})
+    const onGiveUp = jest.fn()
+    navigateAppendOnceRootHas('loggedIn', {name: 'profile', params: {username: 'testuser'}}, 1000, onGiveUp)
+
+    expect(onGiveUp).toHaveBeenCalledTimes(1)
+  })
+
+  // A route with no name is one push navigateAppend refuses
+  test('gives up when the root is there but the push fails', () => {
+    const fake = installFakeNavigator()
+    const onGiveUp = jest.fn()
+    navigateAppendOnceRootHas('loggedIn', {name: '', params: {}} as never, 1000, onGiveUp)
+
+    expect(onGiveUp).toHaveBeenCalledTimes(1)
+    expect(fake.pushes()).toEqual([])
+  })
+
+  test('gives up when the root mounts but the push fails', () => {
+    jest.useFakeTimers()
+    const fake = installFakeNavigator({rootState: makeRootState({loggedIn: false})})
+    const onGiveUp = jest.fn()
+    navigateAppendOnceRootHas('loggedIn', {name: '', params: {}} as never, 1000, onGiveUp)
+
+    fake.setRootState(makeRootState())
+    expect(onGiveUp).toHaveBeenCalledTimes(1)
+    jest.advanceTimersByTime(10_000)
+    expect(onGiveUp).toHaveBeenCalledTimes(1)
+  })
 })
 
 // ---- the fake itself ----

@@ -1,44 +1,24 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {NavigationContext} from '@react-navigation/core'
-import {getVisibleScreen, navigateUp} from '@/constants/router'
-import {answerRecoverPasswordPgp, isRecoverPasswordPgpPending, markRecoverPasswordPgpShown} from './flow'
+import {navigateUp} from '@/constants/router'
+import {continueRecoverPasswordPgp, markRecoverPasswordPgpShown} from './flow'
+import {useRecoverPromptBack, useRecoverPromptSelfClose} from './use-prompt-back'
 
-type Props = {route: {params: {id: number}}}
+type Props = {route: {params: {promptId: number}}}
 
 const PgpWarning = ({route}: Props) => {
-  const {id} = route.params
+  const {promptId} = route.params
   const styles = useStyles()
-  // Absent outside a navigator (storybook).
-  const navigation = React.useContext(NavigationContext)
+  // The user taking the warning away (the header Cancel, Android back, a native dismissal) declines it
+  useRecoverPromptBack(promptId)
+  useRecoverPromptSelfClose(promptId, 'recoverPasswordPgpWarning')
 
   React.useEffect(() => {
-    markRecoverPasswordPgpShown(id)
-  }, [id])
-
-  // A deferred push can land after its prompt was settled; there is nothing left to answer.
-  React.useEffect(() => {
-    if (isRecoverPasswordPgpPending(id)) return
-    const visible = getVisibleScreen(true)
-    if (visible?.name === 'recoverPasswordPgpWarning' && (visible.params as {id?: number}).id === id) {
-      navigateUp()
-    }
-  }, [id])
-
-  React.useEffect(() => {
-    if (!navigation) return
-    return navigation.addListener('beforeRemove', e => {
-      // Only the user taking the warning away is a decline: the header Cancel, Android back or a native
-      // dismissal (REMOVE). Resets elsewhere also remove screens and are not answers.
-      const {type} = e.data.action
-      if (type === 'POP' || type === 'GO_BACK' || type === 'REMOVE') {
-        answerRecoverPasswordPgp(id, false)
-      }
-    })
-  }, [navigation, id])
+    markRecoverPasswordPgpShown(promptId)
+  }, [promptId])
 
   const onContinue = () => {
-    answerRecoverPasswordPgp(id, true)
+    continueRecoverPasswordPgp(promptId)
     navigateUp()
   }
 

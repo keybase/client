@@ -6,9 +6,14 @@ import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 import {NavigationContext} from '@react-navigation/core'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
+import {installFakeEngine} from '@/test/fake-engine'
+import {tick} from '@/test/flush'
 import {installFakeNavigator, makeRootState, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
-import {answerRecoverPasswordPgp, startRecoverPassword} from './flow'
+import {makeFakeRoute} from '@/test/fake-route'
+import {declineRecoverPasswordPrompt, isRecoverPasswordPromptOpen, startRecoverPassword} from './flow'
 import PgpWarning from './pgp-warning'
+
+jest.mock('@/provision/flow', () => ({cancelProvision: () => {}, startProvision: () => {}}))
 
 // The real components need native/electron rendering; only the Continue button matters here.
 jest.mock('@/common-adapters', () => {
@@ -35,45 +40,44 @@ type BeforeRemove = (e: {data: {action: {type: string}}}) => void
 
 let nav: FakeNavigator
 let beforeRemove: BeforeRemove | undefined
-let shownId: number | undefined
+let route: ReturnType<typeof makeFakeRoute>
 
 beforeEach(() => {
   beforeRemove = undefined
-  shownId = undefined
+  route = makeFakeRoute('recoverPasswordPgpWarning')
   useConfigState.getState().dispatch.setLoggedIn(true)
   nav = installFakeNavigator({modalRouteNames: ['recoverPasswordPgpWarning'], rootState: makeRootState()})
 })
 
 afterEach(() => {
   cleanup()
-  // A prompt left pending would keep its decline timer alive past the test.
-  if (shownId !== undefined) answerRecoverPasswordPgp(shownId, false)
   restoreNavigator()
-  jest.restoreAllMocks()
   resetAllStores()
 })
 
-const flush = async () => new Promise<void>(resolve => setTimeout(resolve, 0))
+// The listener hands incoming calls to their handlers on a timer, and the flow reads them off the
+// dialog's events after that
+const settle = async () => {
+  await new Promise(resolve => setTimeout(resolve, 0))
+  await tick()
+}
 
 // Starts a run, has Go ask, and renders the warning the flow pushed inside a screen's navigation context.
 // `before` runs between the push and the screen mounting, as a deferred mount would see it.
 const setup = async (before?: (id: number) => void) => {
-  let listener: Parameters<typeof T.RPCGen.loginRecoverPassphraseRpcListener>[0] | undefined
-  jest.spyOn(T.RPCGen, 'loginRecoverPassphraseRpcListener').mockImplementation(async l => {
-    listener = l
-    await new Promise<void>(() => {})
-    return undefined as any
-  })
+  const fake = installFakeEngine()
+  const held = fake.hold('keybase.1.login.recoverPassphrase')
   startRecoverPassword({username: 'testuser'})
-  await flush()
-  const response = {error: jest.fn(), result: jest.fn()}
-  listener?.customResponseIncomingCallMap?.['keybase.1.loginUi.promptPassphraseRecovery']?.(
-    {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys} as any,
-    response as any
+  await tick()
+  const sessionID = fake.calls[0]!.params.sessionID as number
+  const answered = fake.push(
+    'keybase.1.loginUi.promptPassphraseRecovery',
+    {kind: T.RPCGen.PassphraseRecoveryPromptType.encryptedPgpKeys},
+    {sessionID}
   )
+  await settle()
   const pushed = nav.pushes().find(p => p.name === 'recoverPasswordPgpWarning')
-  const id = (pushed?.params as {id: number}).id
-  shownId = id
+  const id = (pushed?.params as {promptId: number}).promptId
   before?.(id)
   nav.clearActions()
   const navigation = {
@@ -82,70 +86,87 @@ const setup = async (before?: (id: number) => void) => {
       return () => {}
     },
   }
+  route.enter({promptId: id})
   render(
-    <NavigationContext value={navigation as never}>
-      <PgpWarning route={{params: {id}}} />
-    </NavigationContext>
+    <route.Route>
+      <NavigationContext value={navigation as never}>
+        <PgpWarning route={{params: {promptId: id}}} />
+      </NavigationContext>
+    </route.Route>
   )
-  return {id, response}
+  // Settles the run, which also clears the decline timer of a prompt left pending
+  const end = async () => {
+    held[0]!.reply(undefined)
+    await settle()
+  }
+  return {answered, end, id}
 }
 
 const remove = (type: string) => act(() => beforeRemove?.({data: {action: {type}}}))
 
 test('Continue answers true once and closes the warning', async () => {
-  const {response} = await setup()
+  const {answered, end} = await setup()
 
   fireEvent.click(screen.getByText('Continue'))
-  // Closing the warning is not a second answer.
+  // Closing the warning is not a second answer; the fake fails the test if one reached the service
   remove('GO_BACK')
   fireEvent.click(screen.getByText('Continue'))
 
-  expect(response.result).toHaveBeenCalledTimes(1)
-  expect(response.result).toHaveBeenCalledWith(true)
+  await expect(answered).resolves.toEqual({result: true})
   expect(nav.types()[0]).toBe('GO_BACK')
+  await end()
 })
 
-test.each(['GO_BACK', 'POP', 'REMOVE'])('the user taking the warning away (%s) answers false once', async type => {
-  const {response} = await setup()
+test.each(['GO_BACK', 'POP', 'REMOVE'])(
+  'the user taking the warning away (%s) answers false once, when its route has gone',
+  async type => {
+    const {answered, end, id} = await setup()
 
-  remove(type)
-  remove(type)
+    remove(type)
+    // A removal another listener prevents leaves the route, and the prompt, as they are
+    expect(isRecoverPasswordPromptOpen(id)).toBe(true)
+    route.leave()
+    route.leave()
 
-  expect(response.result).toHaveBeenCalledTimes(1)
-  expect(response.result).toHaveBeenCalledWith(false)
-})
+    await expect(answered).resolves.toEqual({result: false})
+    await end()
+  }
+)
 
 test('an app-initiated reset removing the warning is not an answer', async () => {
-  const {response} = await setup()
+  const {end, id} = await setup()
 
   remove('RESET')
 
-  expect(response.result).not.toHaveBeenCalled()
+  expect(isRecoverPasswordPromptOpen(id)).toBe(true)
+  await end()
 })
 
 test('a warning whose prompt was settled before it mounted closes itself without a second answer', async () => {
-  const {response} = await setup(id => answerRecoverPasswordPgp(id, false))
+  const {answered, end} = await setup(id => declineRecoverPasswordPrompt(id))
 
   expect(nav.types()).toEqual(['GO_BACK'])
   fireEvent.click(screen.getByText('Continue'))
 
-  expect(response.result).toHaveBeenCalledTimes(1)
-  expect(response.result).toHaveBeenCalledWith(false)
+  await expect(answered).resolves.toEqual({result: false})
+  await end()
 })
 
 test('a warning whose prompt was settled leaves the screen above it alone when covered', async () => {
-  await setup(id => {
-    answerRecoverPasswordPgp(id, false)
+  const {end} = await setup(id => {
+    declineRecoverPasswordPrompt(id)
     nav.setRootState(
-      makeRootState({above: [{name: 'recoverPasswordPgpWarning', params: {id}}, {name: 'proxySettingsModal'}]})
+      makeRootState({above: [{name: 'recoverPasswordPgpWarning', params: {promptId: id}}, {name: 'proxySettingsModal'}]})
     )
   })
 
   expect(nav.types()).toEqual([])
+  await end()
 })
 
 test('a warning for a still-pending prompt stays open on mount', async () => {
-  await setup()
+  const {end} = await setup()
 
   expect(nav.types()).toEqual([])
+  await end()
 })

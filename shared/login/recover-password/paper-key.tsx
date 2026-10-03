@@ -4,19 +4,21 @@ import * as React from 'react'
 import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
 import {cancelRecoverPassword, submitRecoverPasswordPaperKey} from './flow'
+import {useRecoverPromptBack} from './use-prompt-back'
 
-type Props = {route: {params: {error?: string}}}
+type Props = {route: {params: {error?: string; promptId: number}}}
 
 const PaperKey = ({route}: Props) => {
   const styles = useStyles()
-  const {error} = route.params
+  const {error, promptId} = route.params
   const onBack = () => {
-    cancelRecoverPassword()
+    cancelRecoverPassword(promptId)
   }
+  useRecoverPromptBack(promptId, onBack)
   const [paperKey, setPaperKey] = React.useState('')
   const onSubmit = () => {
     if (paperKey) {
-      submitRecoverPasswordPaperKey(paperKey)
+      submitRecoverPasswordPaperKey(promptId, paperKey)
     }
   }
 

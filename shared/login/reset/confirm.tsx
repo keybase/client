@@ -3,14 +3,16 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
-import {submitResetPrompt} from './account-reset'
+import {navUpToScreen} from '@/constants/router'
+import {usePromptRouteBack} from '@/router-v2/use-prompt-route-back'
+import {declineResetPrompt, isResetPromptOpen, resetRunEnded, submitResetPrompt} from './account-reset'
 
-type Props = {route: {params: {hasWallet: boolean; resetKey: string}}}
+type Props = {route: {params: {hasWallet: boolean; promptId: number}}}
 
 const ConfirmReset = ({route}: Props) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
-  const {hasWallet, resetKey} = route.params
+  const {hasWallet, promptId} = route.params
   const navigation = useNavigation()
   const resolvedRef = React.useRef(false)
   const resolvePrompt = React.useCallback(
@@ -18,28 +20,39 @@ const ConfirmReset = ({route}: Props) => {
       if (resolvedRef.current) {
         return
       }
-      resolvedRef.current = true
-      submitResetPrompt(resetKey, action)
+      if (submitResetPrompt(promptId, action)) {
+        resolvedRef.current = true
+      } else {
+        // Nothing left to answer (its RPC failed, or the service cancelled the prompt): the screen
+        // would be stuck, and it has no back gesture, so go where an answer would have
+        navUpToScreen('login')
+      }
     },
-    [resetKey]
+    [promptId]
   )
 
+  // A back answers nothing, which goes up to login
+  const onBack = React.useCallback(() => {
+    resolvePrompt(T.RPCGen.ResetPromptResponse.nothing)
+  }, [resolvePrompt])
   React.useEffect(() => {
-    const onBack = () => {
-      resolvePrompt(T.RPCGen.ResetPromptResponse.nothing)
-    }
     navigation.setOptions(
       isIOS
         ? ({unstable_headerLeftItems: () => [Kb.nativeBackHeaderItem(onBack)]} as object)
         : {headerLeft: () => <Kb.HeaderLeftButton onPress={onBack} />}
     )
-  }, [navigation, resolvePrompt])
+  }, [navigation, onBack])
 
-  React.useEffect(() => {
-    return navigation.addListener('beforeRemove', () => {
-      resolvePrompt(T.RPCGen.ResetPromptResponse.nothing)
-    })
-  }, [navigation, resolvePrompt])
+  // So does a back of the visible screen (Android's hardware back, Escape), in place of the pop.
+  // Removed any other way (a dismissal, clearModals, its root swapped out, while hidden under
+  // others), it answers nothing without navigating, once its route has left the navigation state.
+  usePromptRouteBack({
+    decline: declineResetPrompt,
+    isOpen: isResetPromptOpen,
+    onBack,
+    promptId,
+    until: resetRunEnded,
+  })
 
   const onContinue = () => {
     resolvePrompt(T.RPCGen.ResetPromptResponse.confirmReset)

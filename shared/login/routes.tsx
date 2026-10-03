@@ -11,7 +11,7 @@ import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
 import useRequestAutoInvite from '@/signup/use-request-auto-invite'
 import {useRoute} from '@react-navigation/native'
-import {cancelRecoverPassword, startRecoverPassword} from './recover-password/flow'
+import {cancelRecoverPassword, restartRecoverPassword} from './recover-password/flow'
 
 // The login route is a state multiplexer (loading / relogin / join). Only the relogin mode wants a
 // header title + "Create account" action, so the desktop header reads the same state to decide.
@@ -41,9 +41,19 @@ const LoginHeaderRight = () => {
 
 // Recover-password back affordances must run the flow's back/cancel logic (not a plain pop), so they
 // are wired as the React Navigation headerLeft. They read the current route's params via useRoute.
-const RecoverCancelLeft = () => (
-  <Kb.HeaderLeftButton autoDetectCanGoBack={true} onPress={cancelRecoverPassword} />
-)
+const RecoverCancelLeft = () => {
+  const route = useRoute()
+  const promptId =
+    route.name === 'recoverPasswordDeviceSelector' || route.name === 'recoverPasswordPaperKey'
+      ? route.params.promptId
+      : undefined
+  return (
+    <Kb.HeaderLeftButton
+      autoDetectCanGoBack={true}
+      onPress={() => promptId !== undefined && cancelRecoverPassword(promptId)}
+    />
+  )
+}
 const RecoverPopLeft = () => (
   <Kb.HeaderLeftButton autoDetectCanGoBack={true} onPress={C.Router2.popStack} />
 )
@@ -56,7 +66,7 @@ const RecoverRestartLeft = () => {
   return (
     <Kb.HeaderLeftButton
       autoDetectCanGoBack={true}
-      onPress={() => startRecoverPassword({replaceRoute: true, username})}
+      onPress={() => restartRecoverPassword(username)}
     />
   )
 }
@@ -68,7 +78,7 @@ const PromptResetAccountLeft = () => {
       autoDetectCanGoBack={true}
       onPress={() =>
         skipPassword
-          ? startRecoverPassword({replaceRoute: true, username})
+          ? restartRecoverPassword(username)
           : C.Router2.navigateUp()
       }
     />
@@ -122,10 +132,12 @@ export const newRoutes = defineRouteMap({
     screen: React.lazy(async () => import('.')),
   },
   recoverPasswordDeviceSelector: {
-    getOptions: {
-      ...(isIOS ? recoverBackItems(cancelRecoverPassword) : {headerLeft: () => <RecoverCancelLeft />}),
+    getOptions: (p: {route: {params: {promptId: number}}}) => ({
+      ...(isIOS
+        ? recoverBackItems(() => cancelRecoverPassword(p.route.params.promptId))
+        : {headerLeft: () => <RecoverCancelLeft />}),
       title: 'Recover password',
-    },
+    }),
     screen: React.lazy(async () => import('./recover-password/device-selector')),
   },
   recoverPasswordError: {
@@ -142,17 +154,19 @@ export const newRoutes = defineRouteMap({
       ...recoverPasswordGetOptions,
       ...(isIOS
         ? recoverBackItems(() =>
-            startRecoverPassword({replaceRoute: true, username: p.route.params.username})
+            restartRecoverPassword(p.route.params.username)
           )
         : {headerLeft: () => <RecoverRestartLeft />}),
     }),
     screen: React.lazy(async () => import('./recover-password/explain-device')),
   },
   recoverPasswordPaperKey: {
-    getOptions: {
+    getOptions: (p: {route: {params: {promptId: number}}}) => ({
       ...recoverPasswordGetOptions,
-      ...(isIOS ? recoverBackItems(cancelRecoverPassword) : {headerLeft: () => <RecoverCancelLeft />}),
-    },
+      ...(isIOS
+        ? recoverBackItems(() => cancelRecoverPassword(p.route.params.promptId))
+        : {headerLeft: () => <RecoverCancelLeft />}),
+    }),
     screen: React.lazy(async () => import('./recover-password/paper-key')),
   },
   recoverPasswordPromptResetAccount: {
@@ -161,7 +175,7 @@ export const newRoutes = defineRouteMap({
       ...(isIOS
         ? recoverBackItems(() =>
             p.route.params.skipPassword
-              ? startRecoverPassword({replaceRoute: true, username: p.route.params.username})
+              ? restartRecoverPassword(p.route.params.username)
               : C.Router2.navigateUp()
           )
         : {headerLeft: () => <PromptResetAccountLeft />}),
@@ -173,7 +187,7 @@ export const newRoutes = defineRouteMap({
       ...recoverPasswordGetOptions,
       ...(isIOS
         ? recoverBackItems(() =>
-            startRecoverPassword({replaceRoute: true, username: p.route.params.username})
+            restartRecoverPassword(p.route.params.username)
           )
         : {headerLeft: () => <RecoverRestartLeft />}),
     }),
