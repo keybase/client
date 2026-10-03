@@ -383,7 +383,7 @@ describe('the GUI owing the service', () => {
     }).catch((e: unknown) => e)
     await tick()
     const sessionID = fake.calls[0]!.params.sessionID as number
-    delete handlers[prompt]
+    Reflect.deleteProperty(handlers, prompt)
     const counts = recordCounts()
     await expect(fake.push(prompt, {kind: 0}, {sessionID})).resolves.toMatchObject({
       error: {code: T.RPCGen.StatusCode.scinputcanceled},
@@ -442,7 +442,7 @@ describe('a dialog', () => {
     expect(count(fake)).toBe(0)
   })
 
-  test('holdWaiting keeps waiting on while a prompt is open, until released', async () => {
+  test('holdServerWork keeps waiting on while a prompt is open, until released', async () => {
     const fake = installFakeEngine()
     const {dialog, held, sessionID} = await startDialog(fake)
     const it = dialog.events[Symbol.asyncIterator]()
@@ -451,31 +451,31 @@ describe('a dialog', () => {
     if (e?.kind !== 'prompt') throw new Error('expected a prompt')
     await afterTimers()
     expect(count(fake)).toBe(0)
-    const release = dialog.holdWaiting()
+    const release = dialog.holdServerWork()
     expect(count(fake)).toBe(1)
     release()
     expect(count(fake)).toBe(0)
     release()
     expect(count(fake)).toBe(0)
-    dialog.holdWaiting()
+    dialog.holdServerWork()
     e.answer('d1' as never)
     expect(count(fake)).toBe(1)
     held[0]!.reply(undefined)
     await dialog.done
     expect(count(fake)).toBe(0)
     // Nothing to hold once the RPC ended
-    dialog.holdWaiting()
+    dialog.holdServerWork()
     expect(count(fake)).toBe(0)
   })
 
-  test('holdWaiting ends with a dispose', async () => {
+  test('holdServerWork ends with a dispose', async () => {
     const fake = installFakeEngine()
     const {dialog, held, sessionID} = await startDialog(fake)
     const it = dialog.events[Symbol.asyncIterator]()
     void fake.push(choose, {devices}, {sessionID})
     await it.next()
     await afterTimers()
-    dialog.holdWaiting()
+    dialog.holdServerWork()
     expect(count(fake)).toBe(1)
     dialog.dispose()
     expect(count(fake)).toBe(0)

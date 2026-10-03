@@ -2,12 +2,10 @@
 // the GUI a prompt; while any prompt is held the GUI owes the service, so the key stops waiting unless
 // the flow says the service is still working. Settled once, by whatever ends the RPC.
 import type {RPCError} from '@/util/errors'
+import {releaseOnce} from '@/util/release-once'
 import type {WaitingChange, WaitingKey} from './types'
 
-export type WaitingPhase = 'serverOwes' | 'guiOwes' | 'settled'
-
 export type WaitingTracker = {
-  readonly phase: WaitingPhase
   // A prompt is held for the GUI; the release (answer, refusal, service cancel) runs once
   holdPrompt: () => () => void
   // The service works while a prompt is held; the release runs once, and settling ends it too
@@ -42,15 +40,10 @@ export const makeWaitingTracker = (
   const hold = (change: (by: 1 | -1) => void) => {
     change(1)
     update()
-    let released = false
-    return () => {
-      if (released) {
-        return
-      }
-      released = true
+    return releaseOnce(() => {
       change(-1)
       update()
-    }
+    })
   }
 
   update()
@@ -64,9 +57,6 @@ export const makeWaitingTracker = (
       hold(by => {
         serverWork += by
       }),
-    get phase(): WaitingPhase {
-      return settled ? 'settled' : prompts > 0 ? 'guiOwes' : 'serverOwes'
-    },
     settle: error => {
       if (settled) {
         return false

@@ -3,6 +3,7 @@ import type {WaitingChange} from '@/engine/types'
 import type * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
+import {releaseOnce} from '@/util/release-once'
 
 // This store has no dependencies on other stores and is safe to import directly from other stores.
 const initialStore: T.Waiting.State = {
@@ -28,50 +29,54 @@ const getKeys = (k?: string | ReadonlyArray<string>) => {
   return k
 }
 
-export const useWaitingState = Z.createZustand<State>('waiting', (set, get) => {
+// One change to one key's count, on the store's draft
+const changeCount = (
+  s: {counts: Map<string, number>; errors: Map<string, RPCError | undefined>},
+  k: string,
+  diff: 1 | -1,
+  error?: RPCError
+) => {
+  const oldCount = s.counts.get(k) || 0
+  // going from 0 => 1, clear errors
+  if (oldCount === 0 && diff === 1) {
+    s.errors.delete(k)
+  } else if (error) {
+    s.errors.set(k, error)
+  }
+  let newCount = oldCount + diff
+  if (newCount < 0) {
+    if (__DEV__) {
+      logger.warn(`waiting: ${k} released more often than it was held`)
+    }
+    newCount = 0
+  }
+  if (newCount === 0) {
+    s.counts.delete(k)
+  } else {
+    s.counts.set(k, newCount)
+  }
+}
+
+export const useWaitingState = Z.createZustand<State>('waiting', set => {
   const changeHelper = (keys: string | ReadonlyArray<string>, diff: 1 | -1, error?: RPCError) => {
     set(s => {
-      getKeys(keys).forEach(k => {
-        const oldCount = s.counts.get(k) || 0
-        // going from 0 => 1, clear errors
-        if (oldCount === 0 && diff === 1) {
-          s.errors.delete(k)
-        } else {
-          if (error) {
-            s.errors.set(k, error)
-          }
-        }
-        let newCount = oldCount + diff
-        if (newCount < 0) {
-          if (__DEV__) {
-            logger.warn(`waiting: ${k} released more often than it was held`)
-          }
-          newCount = 0
-        }
-        if (newCount === 0) {
-          s.counts.delete(k)
-        } else {
-          s.counts.set(k, newCount)
-        }
-      })
+      getKeys(keys).forEach(k => changeCount(s, k, diff, error))
     })
   }
 
   const dispatch: State['dispatch'] = {
+    // One store update for the whole batch, so no reader sees part of it
     batch: changes => {
-      changes.forEach(c => {
-        if (c.increment === undefined) {
-          const {error, key} = c
-          set(s => {
-            getKeys(key).forEach(k => {
-              s.errors.set(k, error)
-            })
+      set(s => {
+        changes.forEach(c => {
+          getKeys(c.key).forEach(k => {
+            if (c.increment === undefined) {
+              s.errors.set(k, c.error)
+            } else {
+              changeCount(s, k, c.increment ? 1 : -1, c.error)
+            }
           })
-        } else if (c.increment) {
-          get().dispatch.increment(c.key)
-        } else {
-          get().dispatch.decrement(c.key, c.error)
-        }
+        })
       })
     },
     clear: keys => {
@@ -127,13 +132,7 @@ export const useDispatchClearWaiting = () => useWaitingState(s => s.dispatch.cle
 export const holdWaiting = (key: string): (() => void) => {
   const {decrement, increment} = useWaitingState.getState().dispatch
   increment(key)
-  let released = false
-  return () => {
-    if (!released) {
-      released = true
-      decrement(key)
-    }
-  }
+  return releaseOnce(() => decrement(key))
 }
 
 // Holds a key on while f runs, however it ends

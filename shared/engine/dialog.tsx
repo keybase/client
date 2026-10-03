@@ -53,7 +53,7 @@ export type Dialog<R, P extends PromptMethod, N extends NoticeMethod> = {
   dispose: () => void
   // Keeps the waiting key on while prompts are open, for a flow that knows the service works on
   // meanwhile. Ends when the returned function runs or the RPC ends.
-  holdWaiting: () => () => void
+  holdServerWork: () => () => void
 }
 
 // A method is either surfaced or auto-answered, never both
@@ -201,7 +201,7 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
   }
 
   let cancelSession = () => {}
-  let holdServerWork = () => () => {}
+  let holdSessionServerWork = () => () => {}
   let resolveDone: (r: RpcOut<M>) => void = () => {}
   let rejectDone: (e: unknown) => void = () => {}
   const done = new Promise<RpcOut<M>>((resolve, reject) => {
@@ -228,7 +228,7 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
       method,
       onSessionCreated: (cancel, session) => {
         cancelSession = cancel
-        holdServerWork = session.holdServerWork
+        holdSessionServerWork = session.holdServerWork
       },
       params,
       waitingKey: opts.waitingKey,
@@ -312,7 +312,7 @@ export const openDialog = <M extends MessageKey, P extends PromptMethod, N exten
         return iterator
       },
     },
-    holdWaiting: () => holdServerWork(),
+    holdServerWork: () => holdSessionServerWork(),
     openPrompt: <K extends P>(m: K) => {
       const p = [...open.values()].find(o => o.prompt.method === m && o.prompt.open)?.prompt
       return p as unknown as Prompt<K> | undefined

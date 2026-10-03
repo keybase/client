@@ -21,8 +21,7 @@ const make = (opts?: {noKey: true}) => {
 const boom = new RPCError('boom', 7)
 
 test('starts waiting on the service', () => {
-  const {changes, logged, tracker} = make()
-  expect(tracker.phase).toBe('serverOwes')
+  const {changes, logged} = make()
   expect(changes).toEqual([{increment: true, key}])
   expect(logged).toEqual([true])
 })
@@ -30,10 +29,8 @@ test('starts waiting on the service', () => {
 test('a held prompt stops waiting until it is released', () => {
   const {changes, count, tracker} = make()
   const release = tracker.holdPrompt()
-  expect(tracker.phase).toBe('guiOwes')
   expect(count()).toBe(0)
   release()
-  expect(tracker.phase).toBe('serverOwes')
   expect(count()).toBe(1)
   expect(changes).toEqual([
     {increment: true, key},
@@ -47,7 +44,6 @@ test('with two prompts held, it waits again only once both are released', () => 
   const a = tracker.holdPrompt()
   const b = tracker.holdPrompt()
   a()
-  expect(tracker.phase).toBe('guiOwes')
   expect(count()).toBe(0)
   b()
   expect(count()).toBe(1)
@@ -59,7 +55,6 @@ test('a release runs once', () => {
   const b = tracker.holdPrompt()
   a()
   a()
-  expect(tracker.phase).toBe('guiOwes')
   expect(count()).toBe(0)
   b()
   b()
@@ -73,7 +68,6 @@ test('server work held while a prompt is held keeps waiting on', () => {
   expect(count()).toBe(0)
   const work = tracker.holdServerWork()
   expect(count()).toBe(1)
-  expect(tracker.phase).toBe('guiOwes')
   work()
   work()
   expect(count()).toBe(0)
@@ -94,7 +88,6 @@ test('server work held with no prompt changes nothing', () => {
 test('settle stops waiting with its error, once', () => {
   const {changes, count, logged, tracker} = make()
   expect(tracker.settle(boom)).toBe(true)
-  expect(tracker.phase).toBe('settled')
   expect(count()).toBe(0)
   expect(changes.at(-1)).toEqual({error: boom, increment: false, key})
   expect(tracker.settle(boom)).toBe(false)
@@ -138,13 +131,11 @@ test('nothing can be held after settle', () => {
   tracker.holdPrompt()()
   tracker.holdServerWork()()
   expect(changes).toHaveLength(before)
-  expect(tracker.phase).toBe('settled')
 })
 
-test('with no key it emits nothing but still tracks its phase and logs', () => {
+test('with no key it emits nothing but still logs', () => {
   const {changes, logged, tracker} = make({noKey: true})
   const release = tracker.holdPrompt()
-  expect(tracker.phase).toBe('guiOwes')
   release()
   tracker.settle(boom)
   expect(changes).toEqual([])
@@ -160,7 +151,7 @@ const makeRandom = (seed: number) => {
   }
 }
 
-test('any interleaving keeps the count 0 or 1, matching the phases, and settles once', () => {
+test('any interleaving keeps the count 0 or 1, matching the model, and settles once', () => {
   for (let seed = 1; seed <= 500; seed++) {
     const random = makeRandom(seed)
     const {changes, count, tracker} = make()
@@ -209,7 +200,6 @@ test('any interleaving keeps the count 0 or 1, matching the phases, and settles 
       }
       const expected = !settledWith && (livePrompts === 0 || liveWork > 0)
       expect(count()).toBe(expected ? 1 : 0)
-      expect(tracker.phase).toBe(settledWith ? 'settled' : livePrompts > 0 ? 'guiOwes' : 'serverOwes')
       if (settledWith && step > 0) {
         // Nothing but the settle itself is emitted once settled
         expect(changes.slice(before).every(c => c.increment !== true)).toBe(true)

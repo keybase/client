@@ -29,7 +29,12 @@ export type MakeClient = (
   disconnect: ConnectDisconnectCB
 ) => CreateClientType
 
+// Bump when a change to the Engine, Session or listener would break an engine a hot reload keeps:
+// makeEngine replaces any engine stamped with another version
+export const ENGINE_VERSION = 2
+
 class Engine implements CallPort {
+  readonly version = ENGINE_VERSION
   _onConnectedCB: (c: boolean) => void
   // Tracking outstanding sessions
   _sessionsMap = new Map<SessionID, Session>()
@@ -449,14 +454,9 @@ const makeEngine = (
     logger.warn('makeEngine called multiple times')
   }
 
-  // An HMR'd engine built by older code may predate the call port or the session's waiting tracker
+  // A hot reload keeps the engine, which older code may have built
   const reused = engine as Partial<Engine> | undefined
-  if (
-    !engine ||
-    typeof reused?.call !== 'function' ||
-    typeof reused.listen !== 'function' ||
-    typeof reused.holdServerWork !== 'function'
-  ) {
+  if (!engine || reused?.version !== ENGINE_VERSION) {
     engine = new Engine(emitWaiting, onConnected, onEngineIncoming)
     engine._setupDebugging()
     if (reused) {

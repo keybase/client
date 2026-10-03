@@ -51,11 +51,11 @@ const loginNotices = ['keybase.1.loginUi.displayPrimaryPaperKey', secretExchange
 
 // Go works on the secret exchange while codePage's secret prompt stays open, so the waiting key stays
 // on from an exchanged notice until the next prompt (a retried code, a password), or the RPC's end
-const makeExchangeHold = (dialog: {holdWaiting: () => () => void}) => {
+const makeExchangeHold = (dialog: {holdServerWork: () => () => void}) => {
   let release: (() => void) | undefined
   return {
     hold: () => {
-      release ??= dialog.holdWaiting()
+      release ??= dialog.holdServerWork()
     },
     release: () => {
       release?.()

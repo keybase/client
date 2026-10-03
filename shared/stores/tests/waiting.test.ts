@@ -114,3 +114,17 @@ test('withWaiting holds the key while its work runs, however it ends', async () 
   ).rejects.toThrow('broke')
   expect(useWaitingState.getState().counts.get('load5')).toBeUndefined()
 })
+
+test('a batch lands as one store update', () => {
+  const updates = jest.fn()
+  const unsubscribe = useWaitingState.subscribe(updates)
+  useWaitingState.getState().dispatch.batch([
+    {increment: true, key: 'load6'},
+    {increment: false, key: 'load6'},
+    {increment: true, key: 'load7'},
+  ])
+  unsubscribe()
+  expect(updates).toHaveBeenCalledTimes(1)
+  expect(useWaitingState.getState().counts.get('load6')).toBeUndefined()
+  expect(useWaitingState.getState().counts.get('load7')).toBe(1)
+})
