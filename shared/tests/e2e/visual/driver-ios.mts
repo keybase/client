@@ -457,8 +457,12 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     datePatched = true
     await applyLight()
     await remountScreens()
-    // after the remount, which waits for the reloaded app to show its views; before warmTabs
-    const chrome = reloaded ? await coverageMounted() : null
+    // the same moment as desktop's: the reloaded app at its tab root and idle, before warmTabs
+    let chrome: Prepared['chrome'] = null
+    if (reloaded) {
+      await waitForNoLoading()
+      chrome = await coverageMounted()
+    }
     const now = await appEval<number>('return Date.now()', 'reading Date.now')
     if (now !== p.frozenAt) throw new Error(`Date is not fixed in the app: Date.now() is ${now}, wanted ${p.frozenAt}`)
     await warmTabs()

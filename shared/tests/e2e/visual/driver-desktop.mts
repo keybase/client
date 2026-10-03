@@ -16,8 +16,9 @@ export type Capture = {
   status: 'ok' | 'unstable' | 'failed'
   error?: string
 }
-// `chrome` is the `__chrome__` coverage pseudo-entry: the call sites mounted right after the
-// reload, at the first tab root. Null without a reload or without coverage marks.
+// `chrome` is the `__chrome__` coverage pseudo-entry: the call sites mounted after the reload, at
+// the first tab root, once the waiting store is idle. Null without a reload or without coverage
+// marks.
 export type Prepared = {chrome: Array<string> | null}
 export type DesktopSession = {
   prepare: (opts: {theme: Theme; frozenAt: number; reload: boolean}) => Promise<Prepared>
@@ -398,6 +399,7 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
     let chrome: Prepared['chrome'] = null
     if (opts.reload) {
       await checkRendererAfterReload(page)
+      await waitForNoLoading(page)
       chrome = await coverageMounted(page)
     }
     const now = await withDeadline(page.evaluate(() => Date.now()), EVAL_MS, 'reading Date.now')
