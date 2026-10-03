@@ -1,3 +1,4 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
 // What a waiting key shows for one RPC, end to end: the session's tracking through the real Engine,
 // listener and Dialog, into the waiting store.
@@ -445,7 +446,7 @@ describe('a dialog', () => {
 })
 
 // B6
-test.failing("a screen clearing its key's error mid-call keeps the call's waiting", async () => {
+test("a screen clearing its key's error mid-call keeps the call's waiting", async () => {
   const fake = installFakeEngine()
   const {result} = renderHook(() => useDispatchClearWaiting())
   const first = await startPromise(fake)

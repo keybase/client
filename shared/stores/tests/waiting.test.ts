@@ -1,7 +1,8 @@
 /// <reference types="jest" />
 import {RPCError} from '../../util/errors'
 import {resetAllStores} from '../../util/zustand'
-import {useWaitingState} from '../waiting'
+import {holdWaiting, useWaitingState, withWaiting} from '../waiting'
+import logger from '../../logger'
 
 afterEach(() => {
   resetAllStores()
@@ -49,4 +50,67 @@ test('a logout keeps in-flight counts so the calls that end afterwards bring the
   expect(useWaitingState.getState().counts.get('load')).toBe(1)
   dispatch.decrement('load')
   expect(useWaitingState.getState().counts.get('load')).toBeUndefined()
+})
+
+test('a release with nothing held never leaves a negative count, and says so in a dev build', () => {
+  const dev = __DEV__
+  global.__DEV__ = true
+  const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {})
+  const {dispatch} = useWaitingState.getState()
+  dispatch.decrement('load1')
+  expect(useWaitingState.getState().counts.get('load1')).toBeUndefined()
+  expect(warn).toHaveBeenCalledWith(expect.stringContaining('load1'))
+  dispatch.increment('load1')
+  expect(useWaitingState.getState().counts.get('load1')).toBe(1)
+  dispatch.decrement('load1')
+  expect(useWaitingState.getState().counts.get('load1')).toBeUndefined()
+  warn.mockRestore()
+  global.__DEV__ = dev
+})
+
+test('clearErrors drops the error and keeps the count', () => {
+  const {dispatch} = useWaitingState.getState()
+  const error = new RPCError('boom', 7)
+  dispatch.increment('load2')
+  dispatch.increment('load2')
+  dispatch.decrement('load2', error)
+  dispatch.clearErrors(['load2'])
+  expect(useWaitingState.getState().errors.get('load2')).toBeUndefined()
+  expect(useWaitingState.getState().counts.get('load2')).toBe(1)
+})
+
+test('an error-only batch entry records the error and leaves the count', () => {
+  const {dispatch} = useWaitingState.getState()
+  const error = new RPCError('boom', 7)
+  dispatch.increment('load3')
+  dispatch.batch([{error, key: 'load3'}])
+  expect(useWaitingState.getState().errors.get('load3')).toBe(error)
+  expect(useWaitingState.getState().counts.get('load3')).toBe(1)
+})
+
+test('holdWaiting holds the key until its release, which runs once', () => {
+  const a = holdWaiting('load4')
+  const b = holdWaiting('load4')
+  expect(useWaitingState.getState().counts.get('load4')).toBe(2)
+  a()
+  a()
+  expect(useWaitingState.getState().counts.get('load4')).toBe(1)
+  b()
+  expect(useWaitingState.getState().counts.get('load4')).toBeUndefined()
+})
+
+test('withWaiting holds the key while its work runs, however it ends', async () => {
+  let during: number | undefined
+  await expect(
+    withWaiting('load5', async () => {
+      during = useWaitingState.getState().counts.get('load5')
+      return Promise.resolve(3)
+    })
+  ).resolves.toBe(3)
+  expect(during).toBe(1)
+  expect(useWaitingState.getState().counts.get('load5')).toBeUndefined()
+  await expect(
+    withWaiting('load5', async () => Promise.reject(new Error('broke')))
+  ).rejects.toThrow('broke')
+  expect(useWaitingState.getState().counts.get('load5')).toBeUndefined()
 })
