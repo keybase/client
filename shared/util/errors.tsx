@@ -122,8 +122,10 @@ export function isEOFError(error: RPCError | Error) {
 }
 
 // A call cancelled by either side: the client (a dispose, a logout, an account switch) or the service,
-// including a prompt refused with input canceled
-export const isCancelError = (error: unknown) =>
+// including a prompt refused with input canceled. Narrows on the code too, so a false result still
+// leaves an RPCError an RPCError.
+type CancelError = RPCError & {code: T.RPCGen.StatusCode.sccanceled | T.RPCGen.StatusCode.scinputcanceled}
+export const isCancelError = (error: unknown): error is CancelError =>
   error instanceof RPCError &&
   (error.code === T.RPCGen.StatusCode.sccanceled || error.code === T.RPCGen.StatusCode.scinputcanceled)
 
