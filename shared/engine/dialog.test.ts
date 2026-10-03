@@ -96,38 +96,16 @@ test('a surfaced prompt carries its typed params and an answer reaches the servi
   if (e.kind !== 'prompt' || e.method !== choose) throw new Error('expected the choose prompt')
   expect(e.params.devices?.[0]?.name).toBe('phone')
   expect(e.open).toBe(true)
-  expect(dialog.openPrompts()).toEqual([e])
-  expect(dialog.prompt(e.id, choose)).toBe(e)
-  expect(dialog.prompt(e.id, pinentry)).toBeUndefined()
   expect(dialog.openPrompt(choose)).toBe(e)
   expect(dialog.openPrompt(pinentry)).toBeUndefined()
   expect(e.answer('d1')).toBe(true)
   expect(e.open).toBe(false)
   expect(e.answer('d2')).toBe(false)
-  expect(e.cancel()).toBe(false)
   await expect(pushed).resolves.toEqual({result: 'd1'})
-  await expect(e.closed).resolves.toBe('answered')
-  expect(dialog.openPrompts()).toEqual([])
-  expect(dialog.prompt(e.id, choose)).toBeUndefined()
   expect(dialog.openPrompt(choose)).toBeUndefined()
   held[0]!.reply(undefined)
   await expect(dialog.done).resolves.toBeUndefined()
   expect(dialog.disposed).toBe(false)
-})
-
-test('a cancelled prompt refuses the service with input canceled, once', async () => {
-  const {dialog, fake, held, sessionID} = await startRecover()
-  const it = dialog.events[Symbol.asyncIterator]()
-  const pushed = fake.push(choose, {devices}, {sessionID})
-  const e = await nextEvent(it)
-  if (e.kind !== 'prompt') throw new Error('expected a prompt')
-  expect(e.cancel()).toBe(true)
-  expect(e.cancel()).toBe(false)
-  expect(e.answer('d1' as never)).toBe(false)
-  await expect(pushed).resolves.toEqual({error: inputCanceled})
-  await expect(e.closed).resolves.toBe('cancelled')
-  held[0]!.reply(undefined)
-  await dialog.done
 })
 
 test('a dispose inside an autoAnswer refuses the prompt once and writes nothing more', async () => {
@@ -225,14 +203,6 @@ export const typeChecks = (dialog: Dialog<void, typeof choose | typeof pinentry,
   p?.answer('d1')
   // @ts-expect-error a getPassphrase result does not answer chooseDeviceToRecoverWith
   p?.answer({passphrase: 'x', storeSecret: false})
-  const first = dialog.openPrompts()[0]
-  // @ts-expect-error an unnarrowed prompt takes no single method's answer
-  first?.answer('d1')
-  if (first?.method === choose) {
-    first.answer('d1')
-    // @ts-expect-error narrowed to chooseDeviceToRecoverWith
-    first.answer({passphrase: 'x', storeSecret: false})
-  }
   openDialog(
     rpc,
     {username: 'testuser'},
@@ -284,7 +254,6 @@ test('when done resolves, an open prompt ends without writing, and the iterator 
   if (e.kind !== 'prompt') throw new Error('expected a prompt')
   held[0]!.reply(undefined)
   await dialog.done
-  await expect(e.closed).resolves.toBe('ended')
   expect(e.open).toBe(false)
   expect(e.answer('d1' as never)).toBe(false)
   await expect(it.next()).resolves.toEqual({done: true, value: undefined})
@@ -311,28 +280,23 @@ test('the service cancelling a prompt closes only it; later prompts surface and 
   await expect(pushed).resolves.toEqual({result: 'd1'})
   held[0]!.reply(undefined)
   await expect(dialog.done).resolves.toBeUndefined()
-  await expect(e.closed).resolves.toBe('ended')
   await expect(it.next()).resolves.toMatchObject({done: true})
   expect(dialog.disposed).toBe(false)
 })
 
-test('a service cancel closes the prompt as ended at once, while the RPC goes on', async () => {
+test('a service cancel closes the prompt at once, while the RPC goes on', async () => {
   const {dialog, fake, held, sessionID} = await startRecover()
   const it = dialog.events[Symbol.asyncIterator]()
   void fake.push(choose, {devices}, {sessionID})
   const e = await nextEvent(it)
   if (e.kind !== 'prompt') throw new Error('expected a prompt')
-  let outcome: string | undefined
-  void e.closed.then(o => (outcome = o))
   let done = false
   void dialog.done.then(() => (done = true))
 
   fake.cancelPush(choose)
-  await tick()
 
-  expect(outcome).toBe('ended')
-  expect(dialog.openPrompts()).toEqual([])
-  expect(dialog.prompt(e.id, choose)).toBeUndefined()
+  expect(e.open).toBe(false)
+  expect(dialog.openPrompt(choose)).toBeUndefined()
   expect(waitingCount(fake)).toBe(1)
   expect(done).toBe(false)
   held[0]!.reply(undefined)
@@ -349,7 +313,6 @@ test('a link drop closes prompts and rejects done with EOF', async () => {
   fake.drop()
   expect(e.open).toBe(false)
   await expect(settledError(dialog.done)).resolves.toMatchObject({code: errors.EOF})
-  await expect(e.closed).resolves.toBe('ended')
   await expect(it.next()).resolves.toMatchObject({done: true})
 })
 
@@ -391,9 +354,9 @@ describe('dispose', () => {
     dialog.dispose()
     expect(dialog.disposed).toBe(true)
     expect(e.open).toBe(false)
-    expect(dialog.openPrompts()).toEqual([])
+    expect(e.answer('d1' as never)).toBe(false)
+    expect(dialog.openPrompt(choose)).toBeUndefined()
     await expect(pushed).resolves.toEqual({error: inputCanceled})
-    await expect(e.closed).resolves.toBe('cancelled')
     await expect(pending).resolves.toEqual({done: true, value: undefined})
     await expect(settledError(dialog.done)).resolves.toMatchObject({code: T.RPCGen.StatusCode.sccanceled})
     // The service is refused on the session until its RPC ends, and nothing goes global
@@ -547,7 +510,7 @@ describe('logout', () => {
     useConfigState.getState().dispatch.setLoggedIn(false)
     expect(pgp.disposed).toBe(true)
     await expect(pushed).resolves.toEqual({error: inputCanceled})
-    await expect(e.closed).resolves.toBe('cancelled')
+    expect(e.open).toBe(false)
     await settledError(pgp.done)
   })
 
@@ -573,7 +536,7 @@ describe('logout', () => {
     if (e.kind !== 'prompt') throw new Error('expected a prompt')
     useConfigState.getState().dispatch.setUserSwitching(true, 'testuser-mac')
     await expect(pushed).resolves.toEqual({error: inputCanceled})
-    await expect(e.closed).resolves.toBe('ended')
+    expect(e.open).toBe(false)
     await expect(settledError(dialog.done)).resolves.toMatchObject({code: T.RPCGen.StatusCode.sccanceled})
     await expect(fake.push(pinentry, {pinentry: {}, terminal: null}, {sessionID})).resolves.toEqual({
       error: inputCanceled,
