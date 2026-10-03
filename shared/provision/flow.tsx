@@ -39,6 +39,9 @@ const errorCausedByUsCanceling = (e?: RPCError) => {
   const desc = e?.desc
   return desc === 'Input canceled' || desc === 'kex canceled by caller'
 }
+// A cancel is not a failure, whoever cancelled: the user, the service, or an account switch
+const isCancel = (e: RPCError) =>
+  e.code === T.RPCGen.StatusCode.sccanceled || e.code === T.RPCGen.StatusCode.scinputcanceled
 const cancelOnCallback = (_: unknown, response: CommonResponseHandler) => {
   response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
 }
@@ -445,6 +448,9 @@ const runProvision = (initialUsername: string) => {
             break
           }
           const finalError = _finalError
+          if (isCancel(finalError)) {
+            break
+          }
           // If it's a non-existent username or invalid, allow the opportunity to correct it right
           // there on the page.
           switch (finalError.code) {

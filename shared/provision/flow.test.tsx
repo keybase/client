@@ -1,6 +1,7 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
+import {useConfigState} from '@/stores/config'
 import {RPCError} from '@/util/errors'
 
 import {
@@ -435,6 +436,28 @@ describe('through the engine listener', () => {
       params: {error: {code: T.RPCGen.StatusCode.scgeneric, desc: 'it broke'}, username: 'testuser'},
       replace: true,
     })
+  })
+
+  test.each([
+    [T.RPCGen.StatusCode.sccanceled, 'Received RPC cancel for session'],
+    [T.RPCGen.StatusCode.scinputcanceled, 'canceled by the service'],
+  ])('a cancel (%s) is not a failure: it shows nothing', async (code, desc) => {
+    await failLogin(code, desc)
+
+    expect(nav.navigations().filter(n => n.name === 'error' || n.name === 'username')).toEqual([])
+    expect(nav.modalsCleared()).toBe(false)
+  })
+
+  // The switch cancels the login's session, which is not the run cancelling it
+  test('an account switch during a login shows nothing', async () => {
+    installListenerEngine()
+    submitProvisionUsername('testuser')
+    await flush()
+    useConfigState.getState().dispatch.setUserSwitching(true, 'testuser2')
+    await flush()
+
+    expect(nav.navigations().filter(n => n.name === 'error' || n.name === 'username')).toEqual([])
+    expect(nav.modalsCleared()).toBe(false)
   })
 
   test('an error our own prompt cancel caused shows nothing', async () => {
