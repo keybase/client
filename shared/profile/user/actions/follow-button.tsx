@@ -1,12 +1,12 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type {WaitingKeys} from '@/constants/waiting-key-type'
+import type * as T from '@/constants/types'
 
 type Props = {
   disabled?: boolean
   following?: boolean
   followsYou?: boolean
-  waitingKey: WaitingKeys
+  waitingKey: T.Waiting.WaitingKeys
   small?: boolean
   style?: object
   onFollow?: () => void

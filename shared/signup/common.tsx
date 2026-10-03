@@ -5,7 +5,7 @@ import {type ButtonProps} from '@/common-adapters/button'
 import {openURL} from '@/util/misc'
 import {useConfigState} from '@/stores/config'
 import ProvisionWaitingOverlay from '@/provision/waiting-overlay'
-import type {WaitingKeys} from '@/constants/waiting-key-type'
+import type * as T from '@/constants/types'
 
 export const desktopInputWidth = Kb.Styles.platformStyles({
   isElectron: {width: 368},
@@ -127,7 +127,7 @@ type ButtonMeta = {
   onClick: () => void
   type?: ButtonProps['type']
   waiting?: boolean
-  waitingKey?: WaitingKeys // makes this a WaitingButton
+  waitingKey?: T.Waiting.WaitingKeys // makes this a WaitingButton
 }
 
 type SignupScreenProps = {
