@@ -7,7 +7,7 @@ import {SignupScreen, errorBanner} from '@/signup/common'
 import {QuestionBody} from '../common'
 import type {ButtonType} from '@/common-adapters/button'
 import {enterResetPipeline} from '@/login/reset/account-reset'
-import {restartRecoverPassword, submitRecoverPasswordReset} from './flow'
+import {declineRecoverPasswordPrompt, restartRecoverPassword, submitRecoverPasswordReset} from './flow'
 
 export type Props = {
   resetPassword?: boolean
@@ -27,6 +27,10 @@ const PromptReset = (props: Props) => {
   const onContinue = () => {
     // dont do this in preflight
     if (C.androidIsTestDevice) {
+      // Declined first, so the back that follows goes back rather than starting the recovery over
+      if (resetPromptId !== undefined) {
+        declineRecoverPasswordPrompt(resetPromptId)
+      }
       nav.safeNavigateUp()
       return
     }
