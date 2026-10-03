@@ -132,14 +132,6 @@ function isRPCError(error: RPCError | Error): error is RPCError {
   return typeof (error as RPCError).code === 'number'
 }
 
-// A call cancelled by either side: the client (a dispose, a logout, an account switch) or the service,
-// including a prompt refused with input canceled. Narrows on the code too, so a false result still
-// leaves an RPCError an RPCError.
-type CancelError = RPCError & {code: T.RPCGen.StatusCode.sccanceled | T.RPCGen.StatusCode.scinputcanceled}
-export const isCancelError = (error: unknown): error is CancelError =>
-  error instanceof RPCError &&
-  (error.code === T.RPCGen.StatusCode.sccanceled || error.code === T.RPCGen.StatusCode.scinputcanceled)
-
 const ignoredMsgs = ['context deadline exceeded in method keybase.1.SimpleFS.simpleFSSyncStatus']
 const isIgnoredError = (error: RPCError | Error) => {
   if (isRPCError(error)) {
