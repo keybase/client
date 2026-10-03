@@ -7,6 +7,8 @@ import {act, cleanup, renderHook} from '@testing-library/react'
 import {NavigationContext} from '@react-navigation/core'
 import {useDaemonState} from '@/stores/daemon'
 import {useRPCLoad} from './use-rpc-load'
+import * as T from '@/constants/types'
+import {RPCError, type CancelReason} from './errors'
 
 const flush = async () => {
   await act(async () => {
@@ -297,4 +299,32 @@ test('setData survives until the next load lands', async () => {
   })
   await flush()
   expect(result.current.data).toBe('got:2')
+})
+
+const cancelledBy = (reason: CancelReason) =>
+  new RPCError('cancelled', T.RPCGen.StatusCode.sccanceled, null, undefined, undefined, {reason, type: 'cancelled'})
+
+test.each(['caller', 'accountChange', 'disconnect', 'service'] as const)(
+  'a load cancelled by %s is not an error',
+  async reason => {
+    const call = jest.fn(async () => Promise.reject(cancelledBy(reason)))
+    const onError = jest.fn()
+    const {result} = renderHook(() => useRPCLoad(call, [], {map: (r: number) => r, onError}))
+    advancePastMountLoad()
+    await flush()
+    expect(call).toHaveBeenCalledTimes(1)
+    expect(result.current.error).toBeUndefined()
+    expect(onError).not.toHaveBeenCalled()
+  }
+)
+
+test("the service's own error still surfaces", async () => {
+  const error = new RPCError('nope', T.RPCGen.StatusCode.scgeneric)
+  const call = jest.fn(async () => Promise.reject(error))
+  const onError = jest.fn()
+  const {result} = renderHook(() => useRPCLoad(call, [], {map: (r: number) => r, onError}))
+  advancePastMountLoad()
+  await flush()
+  expect(result.current.error).toBe(error)
+  expect(onError).toHaveBeenCalledWith(error)
 })

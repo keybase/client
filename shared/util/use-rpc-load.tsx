@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import type {RPCError} from './errors'
+import {isCancelled, type RPCError} from './errors'
 import {useReloadOnReconnect} from './use-reload-on-reconnect'
 
 type Options<RESULT, DATA> = {
@@ -75,7 +75,8 @@ export function useRPCLoad<F extends (...rest: any[]) => Promise<any>, DATA>(
         if (requestID.current === id) adopt(map(result))
       })
       .catch((error: RPCError) => {
-        if (requestID.current === id) fail(error)
+        // A cancelled load failed nothing; a lost link reloads on reconnect
+        if (requestID.current === id && !isCancelled(error)) fail(error)
       })
   })
 

@@ -309,7 +309,7 @@ describe('known bugs', () => {
     uninstallFakeEngine()
   })
 
-  test.failing('K5: ignorePromise does not log a cancel as an error', async () => {
+  test('K5: ignorePromise does not log a cancel as an error', async () => {
     const fake = installFakeEngine()
     fake.hold('keybase.1.user.loadMySettings')
     const logged = jest.spyOn(logger, 'error').mockImplementation(() => {})

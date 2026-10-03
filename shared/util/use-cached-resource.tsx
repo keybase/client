@@ -3,6 +3,7 @@ import * as React from 'react'
 import {produce} from 'immer'
 import {joinAnyEpoch, nextReloadEpoch} from './reload-epoch'
 import {useReloadOnReconnect} from './use-reload-on-reconnect'
+import {isCancelled} from './errors'
 
 export type CachedResourceCache<T, K> = {
   clearInFlight: (request: Promise<T>) => void
@@ -212,17 +213,26 @@ const runLoad = async <T, K>(
     }
   } catch (error) {
     // record the failure even for a superseded request: the backoff belongs to
-    // the shared cache, not to whichever instance happened to own the request
-    cache.setLoadFailed(generation)
+    // the shared cache, not to whichever instance happened to own the request.
+    // The client cancelling it is no failure of the resource.
+    if (!isCancelled(error, 'caller', 'accountChange')) {
+      cache.setLoadFailed(generation)
+    }
     if (requestVersion !== requestVersionRef.current) {
       return
     }
-    onError?.(error)
-    setState(
-      produce(draft => {
-        draft.loading = false
-      })
-    )
+    // A cancelled load is not an error to show
+    if (!isCancelled(error)) {
+      onError?.(error)
+    }
+    // A lost link reloads on reconnect, so it is still loading until then
+    if (!isCancelled(error, 'disconnect')) {
+      setState(
+        produce(draft => {
+          draft.loading = false
+        })
+      )
+    }
   } finally {
     if (request) {
       cache.clearInFlight(request)
