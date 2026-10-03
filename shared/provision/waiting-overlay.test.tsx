@@ -1,14 +1,26 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 
-import type * as React from 'react'
+import * as React from 'react'
 import {act, cleanup, render, screen} from '@testing-library/react'
 import {resetAllStores} from '@/util/zustand'
 import {useWaitingState} from '@/stores/waiting'
 import {waitingKeyProvision} from '@/constants/strings'
 
 const mockPauseProvision = jest.fn()
-const mockAddListener = jest.fn()
+
+type BeforeRemoveEvent = {data: {action: {type: string}}}
+// The screen's beforeRemove listeners, as the navigator would call them on removal. Each add is its own
+// entry, so a listener added twice shows even where both adds pass the same function.
+const mockBeforeRemove = new Set<{cb: (e: BeforeRemoveEvent) => void}>()
+const mockNavigation = {
+  addListener: (type: string, cb: (e: BeforeRemoveEvent) => void) => {
+    if (type !== 'beforeRemove') return () => {}
+    const entry = {cb}
+    mockBeforeRemove.add(entry)
+    return () => mockBeforeRemove.delete(entry)
+  },
+}
 
 jest.mock('@/common-adapters', () => {
   const React = require('react')
@@ -28,7 +40,7 @@ jest.mock('@/common-adapters', () => {
 })
 
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({addListener: mockAddListener}),
+  useNavigation: () => mockNavigation,
 }))
 
 jest.mock('./flow', () => ({
@@ -38,29 +50,33 @@ jest.mock('./flow', () => ({
 import {installFakeNavigator, restoreNavigator, type FakeNavigator} from '@/test/fake-navigator'
 import ProvisionWaitingOverlay from './waiting-overlay'
 
-type BeforeRemoveEvent = {data: {action: {type: string}}}
+// The screen is about to be removed by `type`
+const remove = (type: string) => {
+  act(() => [...mockBeforeRemove].forEach(({cb}) => cb({data: {action: {type}}})))
+}
+
+// `hidden` hides the screen the way native-stack does under other screens: its effects are torn down
+const Overlay = ({hidden = false}: {hidden?: boolean}) => (
+  <React.Activity mode={hidden ? 'hidden' : 'visible'}>
+    <ProvisionWaitingOverlay />
+  </React.Activity>
+)
+// StrictMode renders twice and mounts the effects, unmounts them and mounts them again
+const renderOverlay = () => render(<Overlay />, {reactStrictMode: true})
 
 describe('ProvisionWaitingOverlay', () => {
-  let beforeRemove: undefined | ((e: BeforeRemoveEvent) => void)
   let nav: FakeNavigator
 
   beforeEach(() => {
     nav = installFakeNavigator()
     jest.useFakeTimers()
-    beforeRemove = undefined
-    mockAddListener.mockImplementation((event: string, callback: (e: BeforeRemoveEvent) => void) => {
-      if (event === 'beforeRemove') {
-        beforeRemove = callback
-      }
-      return jest.fn()
-    })
+    mockBeforeRemove.clear()
   })
 
   afterEach(() => {
     restoreNavigator()
     cleanup()
     jest.useRealTimers()
-    mockAddListener.mockReset()
     mockPauseProvision.mockReset()
     // a logout keeps in-flight waiting counts, and some tests end mid-wait
     useWaitingState.getState().dispatch.clear(waitingKeyProvision)
@@ -71,7 +87,7 @@ describe('ProvisionWaitingOverlay', () => {
   const stopWaiting = () => act(() => useWaitingState.getState().dispatch.decrement(waitingKeyProvision))
 
   test('hidden until 300ms of waiting, cancel affordance at 10s', () => {
-    render(<ProvisionWaitingOverlay />)
+    renderOverlay()
     expect(screen.queryByTestId('spinner')).toBeNull()
 
     startWaiting()
@@ -87,7 +103,7 @@ describe('ProvisionWaitingOverlay', () => {
   })
 
   test('overlay box fills its container (desktop Box2 centers abspos children otherwise)', () => {
-    render(<ProvisionWaitingOverlay />)
+    renderOverlay()
     startWaiting()
     act(() => jest.advanceTimersByTime(400))
     const box = screen.getByTestId('box2')
@@ -96,7 +112,7 @@ describe('ProvisionWaitingOverlay', () => {
   })
 
   test('hides and resets when waiting stops', () => {
-    render(<ProvisionWaitingOverlay />)
+    renderOverlay()
     startWaiting()
     act(() => jest.advanceTimersByTime(400))
     expect(screen.queryByTestId('spinner')).not.toBeNull()
@@ -106,7 +122,7 @@ describe('ProvisionWaitingOverlay', () => {
   })
 
   test('fast RPC never flashes the overlay', () => {
-    render(<ProvisionWaitingOverlay />)
+    renderOverlay()
     startWaiting()
     act(() => jest.advanceTimersByTime(100))
     stopWaiting()
@@ -115,7 +131,7 @@ describe('ProvisionWaitingOverlay', () => {
   })
 
   test('cancel pauses the flow and navigates up', () => {
-    render(<ProvisionWaitingOverlay />)
+    renderOverlay()
     startWaiting()
     act(() => jest.advanceTimersByTime(10300))
 
@@ -124,33 +140,47 @@ describe('ProvisionWaitingOverlay', () => {
     expect(nav.types()).toContain('GO_BACK')
   })
 
-  test('popping the screen while waiting pauses the flow', () => {
-    render(<ProvisionWaitingOverlay />)
-    expect(beforeRemove).toBeDefined()
+  test('popping the screen while waiting pauses the flow, once', () => {
+    renderOverlay()
+    expect(mockBeforeRemove.size).toBe(1)
 
-    beforeRemove?.({data: {action: {type: 'POP'}}})
+    remove('POP')
     expect(mockPauseProvision).not.toHaveBeenCalled()
 
     startWaiting()
-    beforeRemove?.({data: {action: {type: 'POP'}}})
-    expect(mockPauseProvision).toHaveBeenCalled()
+    remove('POP')
+    expect(mockPauseProvision).toHaveBeenCalledTimes(1)
   })
 
   test('a native back/swipe dismissal while waiting pauses the flow', () => {
-    render(<ProvisionWaitingOverlay />)
-    expect(beforeRemove).toBeDefined()
-
+    renderOverlay()
     startWaiting()
-    beforeRemove?.({data: {action: {type: 'REMOVE'}}})
-    expect(mockPauseProvision).toHaveBeenCalled()
+    remove('REMOVE')
+    expect(mockPauseProvision).toHaveBeenCalledTimes(1)
   })
 
-  test('a non-back removal (e.g. login success unmounting the stack) does not pause', () => {
-    render(<ProvisionWaitingOverlay />)
-    expect(beforeRemove).toBeDefined()
-
+  // Login success swaps the logged-out root, with this screen, for the logged-in one while the RPC is
+  // still finishing; pausing then would cancel it
+  test.each(['RESET', 'NAVIGATE', 'REPLACE'])('a removal that is not a back (%s) does not pause', type => {
+    renderOverlay()
     startWaiting()
-    beforeRemove?.({data: {action: {type: 'RESET'}}})
+    remove(type)
     expect(mockPauseProvision).not.toHaveBeenCalled()
+  })
+
+  // Only a back of the visible screen is the user backing out; a hidden screen goes with a reset or a
+  // root swap
+  test('a screen hidden under another does not pause when it is removed, and does again once shown', () => {
+    const view = renderOverlay()
+    startWaiting()
+    view.rerender(<Overlay hidden={true} />)
+    expect(mockBeforeRemove.size).toBe(0)
+    remove('POP')
+    expect(mockPauseProvision).not.toHaveBeenCalled()
+
+    view.rerender(<Overlay />)
+    expect(mockBeforeRemove.size).toBe(1)
+    remove('GO_BACK')
+    expect(mockPauseProvision).toHaveBeenCalledTimes(1)
   })
 })

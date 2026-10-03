@@ -33,12 +33,15 @@ const ProvisionWaitingOverlay = () => {
     }
   }, [waiting])
 
+  // Only the user backing out of the visible screen parks the flow, so this is a back intercept, as
+  // router-v2/use-prompt-route-back's is, and not an end of the flow when the route leaves the state
+  // (route-gone): that also happens when login success swaps out the logged-out root while the RPC is
+  // still finishing, and pausing then would cancel it. A screen hidden under another can't be backed
+  // out of, so its effects being torn down loses nothing.
   React.useEffect(() => {
     return navigation.addListener('beforeRemove', e => {
-      // Only a genuine back-out parks the flow. beforeRemove also fires when the router removes
-      // screens on state changes (e.g. login success unmounting the logged-out stack) and pausing
-      // there would cancel an RPC that is about to resolve. Native back/swipe dismissals arrive
-      // as REMOVE (native-stack's onDismissed); we never dispatch REMOVE ourselves.
+      // beforeRemove also fires when the router removes screens on state changes. Native back/swipe
+      // dismissals arrive as REMOVE (native-stack's onDismissed); we never dispatch REMOVE ourselves.
       const {type} = e.data.action
       if (type !== 'POP' && type !== 'GO_BACK' && type !== 'REMOVE') {
         return
