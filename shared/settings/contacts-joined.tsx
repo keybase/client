@@ -39,7 +39,7 @@ export const FollowButton = (props: FollowProps) => {
       () => {}
     )
 
-  const waitingKey = [followWaitingKey, C.waitingKeyTrackerProfileLoad]
+  const waitingKey: T.Waiting.WaitingKeys = [followWaitingKey, C.waitingKeyTrackerProfileLoad]
 
   return (
     <UnconnectedFollowButton

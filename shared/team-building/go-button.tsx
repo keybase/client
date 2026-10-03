@@ -4,7 +4,7 @@ import type * as T from '@/constants/types'
 export type Props = {
   onClick: () => void
   label: T.TB.GoButtonLabel
-  waitingKey?: string
+  waitingKey?: T.Waiting.WaitingKeys
 }
 
 const GoButton = (props: Props) => {

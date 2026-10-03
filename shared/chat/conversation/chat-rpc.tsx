@@ -8,7 +8,7 @@ import {enumKeys} from '@/constants/utils'
 import {isChatSessionReady} from '@/stores/config'
 import {hexToUint8Array} from '@/util/uint8array'
 
-type WaitingKey = string | ReadonlyArray<string>
+type WaitingKey = T.Waiting.WaitingKeys
 
 export type LoadThreadParams = {
   conversationIDKey: T.Chat.ConversationIDKey

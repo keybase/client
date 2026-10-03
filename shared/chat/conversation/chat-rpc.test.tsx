@@ -81,7 +81,7 @@ describe('loadThreadNonblock', () => {
       messageIDControl,
       pagination,
       reason: T.RPCChat.GetThreadReason.push,
-      waitingKey: 'wk',
+      waitingKey: 'wk' as T.Waiting.WaitingKey,
     })
     const arg = rpc.mock.calls[0]?.[0]
     expect(arg?.params.knownRemotes).toEqual(['a'])
@@ -344,7 +344,7 @@ describe('service adapter', () => {
   test('createAdhocConversation makes a private implicit-team chat of the distinct users', async () => {
     const res = {conv: {}, uiConv: {}} as T.RPCChat.NewConversationLocalRes
     const spy = jest.spyOn(T.RPCChat, 'localNewConversationLocalRpcPromise').mockResolvedValue(res)
-    await expect(rpc().createAdhocConversation(['testuser', 'testuser2', 'testuser'], 'wk')).resolves.toBe(res)
+    await expect(rpc().createAdhocConversation(['testuser', 'testuser2', 'testuser'], 'wk' as T.Waiting.WaitingKey)).resolves.toBe(res)
     expect(spy).toHaveBeenCalledWith(
       {
         identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
@@ -455,7 +455,7 @@ describe('service adapter', () => {
   test('pins: unpin with the caller waiting key, ignore without one', async () => {
     const unpin = jest.spyOn(T.RPCChat, 'localUnpinMessageRpcPromise').mockResolvedValue({} as never)
     const ignore = jest.spyOn(T.RPCChat, 'localIgnorePinnedMessageRpcPromise').mockResolvedValue(undefined)
-    await rpc().unpinMessage(conversationIDKey, 'chat:unpin')
+    await rpc().unpinMessage(conversationIDKey, 'chat:unpin' as T.Waiting.WaitingKey)
     await rpc().ignorePinnedMessage(conversationIDKey)
     expect(unpin.mock.calls).toEqual([[{convID}, 'chat:unpin']])
     expect(ignore.mock.calls).toEqual([[{convID}]])

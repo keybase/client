@@ -9,6 +9,7 @@ import {useConfigState} from '@/stores/config'
 import {useWaitingState} from '@/stores/waiting'
 import {resetAllStores} from '@/util/zustand'
 import {tick} from '@/test/flush'
+import {testWaitingKey} from '@/test/waiting-key'
 
 const unregisters = new Array<() => void>()
 afterEach(() => {
@@ -23,7 +24,7 @@ const prompt = 'keybase.1.loginUi.promptPassphraseRecovery'
 const pinentry = 'keybase.1.secretUi.getPassphrase'
 const log = 'keybase.1.logUi.log'
 const inputCanceled = {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'}
-const waitingKey = 'session-cancel-test'
+const waitingKey = testWaitingKey('session-cancel-test')
 
 // The listener hands incoming calls to their handlers on a timer, and a prompt they leave unanswered
 // becomes the GUI's on the next

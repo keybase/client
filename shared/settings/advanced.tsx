@@ -20,7 +20,7 @@ const showMakeIcons = __DEV__ && (false as boolean)
 
 const runPprofAction = (
   rpc: () => Promise<void>,
-  waitingKey: string,
+  waitingKey: T.Waiting.WaitingKey,
   durationSeconds: number
 ) => {
   const f = async () => {

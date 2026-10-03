@@ -1,11 +1,12 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import type {WaitingKeys} from '@/constants/waiting-key-type'
 
 type Props = {
   disabled?: boolean
   following?: boolean
   followsYou?: boolean
-  waitingKey: string | Array<string>
+  waitingKey: WaitingKeys
   small?: boolean
   style?: object
   onFollow?: () => void

@@ -185,7 +185,7 @@ const settle = async () => {
 // flight, and on settle drop the count, recording the error on a failure
 const settleWithWaiting = async <R,>(
   outcome: {error: unknown} | {result: R},
-  waitingKey?: string | ReadonlyArray<string>
+  waitingKey?: T.Waiting.WaitingKeys
 ): Promise<R> => {
   const {dispatch} = useWaitingState.getState()
   if (waitingKey) dispatch.increment(waitingKey)
@@ -216,7 +216,7 @@ const previewResult = (participants: Array<string>) =>
   }) as unknown as T.RPCChat.InboxUIItem
 
 describe('useRefreshBotMembershipOnSuccess', () => {
-  const waitingKey = 'test:botMutation'
+  const waitingKey = 'test:botMutation' as T.Waiting.WaitingKey
   const run = (p: {
     conversationIDKey: T.Chat.ConversationIDKey | undefined
     error?: RPCError

@@ -3,6 +3,7 @@ import ButtonBar from './button-bar'
 import WaitingButton from './waiting-button'
 import {Box2} from './box'
 import * as Styles from '@/styles'
+import type {WaitingKeys} from '@/constants/waiting-key-type'
 
 const Kb = {
   Box2,
@@ -22,7 +23,7 @@ type Props = {
   split?: boolean
   style?: Styles.StylesCrossPlatform
   // either follow keys in the waiting store, or drive directly with a boolean
-  waitingKey?: string | Array<string>
+  waitingKey?: WaitingKeys
   waiting?: boolean
 }
 

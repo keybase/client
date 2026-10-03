@@ -12,6 +12,7 @@ import {useWaitingState} from '@/stores/waiting'
 import {resetAllStores} from '@/util/zustand'
 import {tick} from '@/test/flush'
 import logger from '@/logger'
+import {testWaitingKey} from '@/test/waiting-key'
 
 const unregisters = new Array<() => void>()
 const restores = new Array<() => void>()
@@ -33,7 +34,7 @@ const pinentry = 'keybase.1.secretUi.getPassphrase'
 const pgpRpc = 'keybase.1.pgp.pgpKeyGenDefault'
 const pushPrivate = 'keybase.1.pgpUi.shouldPushPrivate'
 const inputCanceled = {code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'}
-const waitingKey = 'dialog-test'
+const waitingKey = testWaitingKey('dialog-test')
 
 // The listener hands incoming calls to their handlers on a timer, and a prompt they leave unanswered
 // becomes the GUI's on the next
