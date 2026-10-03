@@ -5,7 +5,7 @@ import * as Strings from '@/constants/strings'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {ignorePromise} from '@/constants/utils'
-import {RPCError} from '@/util/errors'
+import {isCancelError, RPCError} from '@/util/errors'
 import {persistRoute} from '@/util/storeless-actions'
 import {uint8ArrayToString} from '@/util/uint8array'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -157,14 +157,12 @@ export const scrollDirectionToPagination = (
   return pagination
 }
 
-// Thread load failures handled in the load itself, expected, or our own cancel (an account change,
-// the thread leaving): only anything else is worth an error-level log.
+// Thread load failures handled in the load itself or expected. These and a cancel (ours on an account
+// change or the thread leaving) are quiet: only anything else is worth an error-level log.
 const quietThreadLoadErrors = new Set<number>([
   T.RPCGen.StatusCode.scchatnotinteam,
   T.RPCGen.StatusCode.scchatnotinconv,
   T.RPCGen.StatusCode.scteamreaderror,
-  T.RPCGen.StatusCode.sccanceled,
-  T.RPCGen.StatusCode.scinputcanceled,
 ])
 
 export const loadConversationThreadMessages = (
@@ -479,7 +477,7 @@ export const loadConversationThreadMessages = (
             conversationGone(conversationIDKey, `thread load: ${error.desc}`)
           }
         }
-        if (!quietThreadLoadErrors.has(error.code)) {
+        if (!quietThreadLoadErrors.has(error.code) && !isCancelError(error)) {
           throw error
         }
       }

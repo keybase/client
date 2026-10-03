@@ -121,6 +121,12 @@ export function isEOFError(error: RPCError | Error) {
   return isRPCError(error) && (error.code as number) === transportErrors['EOF']
 }
 
+// A call cancelled by either side: the client (a session cancel, a logout, an account switch) or the
+// service, including a prompt refused with input canceled
+export const isCancelError = (error: unknown) =>
+  error instanceof RPCError &&
+  (error.code === T.RPCGen.StatusCode.sccanceled || error.code === T.RPCGen.StatusCode.scinputcanceled)
+
 const ignoredMsgs = ['context deadline exceeded in method keybase.1.SimpleFS.simpleFSSyncStatus']
 const isIgnoredError = (error: RPCError | Error) => {
   if (isRPCError(error)) {

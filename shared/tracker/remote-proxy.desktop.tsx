@@ -23,7 +23,7 @@ import {
 } from './model'
 import {registerRemoteActionHandler} from '@/desktop/renderer/remote-event-handler.desktop'
 import logger from '@/logger'
-import {RPCError} from '@/util/errors'
+import {isCancelError, RPCError} from '@/util/errors'
 
 const MAX_TRACKERS = 5
 const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320}
@@ -74,8 +74,7 @@ export const runPopupIdentify = async (
   } catch (error) {
     if (
       !(error instanceof RPCError) ||
-      error.code === T.RPCGen.StatusCode.sccanceled ||
-      error.code === T.RPCGen.StatusCode.scinputcanceled
+      isCancelError(error)
     ) {
       return
     }
