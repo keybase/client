@@ -10,7 +10,6 @@ import {openDialog, type Dialog, type DialogEvent, type Prompt} from '@/engine/d
 import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
-import {useWaitingState} from '@/stores/waiting'
 import {isCancelError, RPCError} from '@/util/errors'
 
 // The steps the user has already answered, replayed in order when the login RPC restarts.
@@ -49,28 +48,6 @@ const refusedPrompts = [
 const successNotices = ['keybase.1.provisionUi.ProvisioneeSuccess', 'keybase.1.provisionUi.ProvisionerSuccess'] as const
 const loginPrompts = [chooseDevicePrompt, deviceNamePrompt, passphrasePrompt, secretPrompt, ...refusedPrompts] as const
 const loginNotices = ['keybase.1.loginUi.displayPrimaryPaperKey', secretExchanged, ...successNotices] as const
-
-// Holds the provision waiting key once per secret-exchanged notice until the dialog ends. A failed
-// done settles before the dialog's queued events are delivered, so a notice after release holds nothing.
-const makeExchangeHolds = () => {
-  let held = 0
-  let released = false
-  return {
-    hold: () => {
-      if (released) {
-        return
-      }
-      ++held
-      useWaitingState.getState().dispatch.increment(waitingKeyProvision)
-    },
-    release: () => {
-      released = true
-      for (; held > 0; --held) {
-        useWaitingState.getState().dispatch.decrement(waitingKeyProvision)
-      }
-    },
-  }
-}
 
 // Clears the provision screens and shows why the run failed
 const showProvisionError = (error: RPCError, replace: boolean, username?: string) => {
@@ -281,12 +258,11 @@ const runProvision = (username: string) => {
       }
       return isEqual(frozenAutoSubmit[submitStep], step)
     }
-    const exchangeHolds = makeExchangeHolds()
-
     const showEvent = (e: DialogEvent<LoginPrompt, LoginNotice>) => {
       if (e.kind === 'notice') {
         if (e.method === secretExchanged) {
-          exchangeHolds.hold()
+          // Go works on the exchange while codePage's secret prompt stays open; the RPC's end releases it
+          dialog.holdWaiting()
         }
         return
       }
@@ -376,11 +352,7 @@ const runProvision = (username: string) => {
       }
     }
 
-    try {
-      await Promise.all([showEvents(), dialog.done])
-    } finally {
-      exchangeHolds.release()
-    }
+    await Promise.all([showEvents(), dialog.done])
   }
 
   const openAttempt = (): LoginDialog =>
@@ -501,14 +473,14 @@ export const startAddNewDevice = (otherDeviceType: 'desktop' | 'mobile') => {
   }
   currentProvisionRun = run
 
-  const exchangeHolds = makeExchangeHolds()
   // Set when a prompt could not be shown, which ended the run
   let showFailed = false
   const showEvents = async () => {
     for await (const e of dialog.events) {
       if (e.kind === 'notice') {
         if (e.method === secretExchanged) {
-          exchangeHolds.hold()
+          // Go works on the exchange while codePage's secret prompt stays open; the RPC's end releases it
+          dialog.holdWaiting()
         }
         continue
       }
@@ -530,7 +502,6 @@ export const startAddNewDevice = (otherDeviceType: 'desktop' | 'mobile') => {
       await Promise.all([showEvents(), dialog.done])
     } catch {
     } finally {
-      exchangeHolds.release()
       if (currentProvisionRun === run) {
         currentProvisionRun = undefined
       }

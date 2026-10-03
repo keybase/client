@@ -375,6 +375,47 @@ describe('a dialog', () => {
     expect(count(fake)).toBe(0)
   })
 
+  test('holdWaiting keeps waiting on while a prompt is open, until released', async () => {
+    const fake = installFakeEngine()
+    const {dialog, held, sessionID} = await startDialog(fake)
+    const it = dialog.events[Symbol.asyncIterator]()
+    void fake.push(choose, {devices}, {sessionID})
+    const e = (await it.next()).value
+    if (e?.kind !== 'prompt') throw new Error('expected a prompt')
+    expect(count(fake)).toBe(0)
+    const release = dialog.holdWaiting()
+    expect(count(fake)).toBe(1)
+    release()
+    expect(count(fake)).toBe(0)
+    release()
+    expect(count(fake)).toBe(0)
+    dialog.holdWaiting()
+    e.answer('d1' as never)
+    expect(count(fake)).toBe(1)
+    held[0]!.reply(undefined)
+    await dialog.done
+    expect(count(fake)).toBe(0)
+    // Nothing to hold once the RPC ended
+    dialog.holdWaiting()
+    expect(count(fake)).toBe(0)
+  })
+
+  test('holdWaiting ends with a dispose', async () => {
+    const fake = installFakeEngine()
+    const {dialog, held, sessionID} = await startDialog(fake)
+    const it = dialog.events[Symbol.asyncIterator]()
+    void fake.push(choose, {devices}, {sessionID})
+    await it.next()
+    dialog.holdWaiting()
+    expect(count(fake)).toBe(1)
+    dialog.dispose()
+    expect(count(fake)).toBe(0)
+    expect(keyError(fake)).toBeUndefined()
+    held[0]!.reply(undefined)
+    await tick()
+    expect(count(fake)).toBe(0)
+  })
+
   // B2
   test('dispose records no error on its key', async () => {
     const fake = installFakeEngine()

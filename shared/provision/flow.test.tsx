@@ -396,6 +396,23 @@ describe('login', () => {
     await expect(password2).resolves.toEqual({result: {passphrase: 'hunter2', storeSecret: false}})
   })
 
+  test('secret-exchange progress keeps the provision waiting key on while the code page is up', async () => {
+    const held = await startLogin()
+    const count = () => {
+      fake.engine._throttledDispatchWaitingAction.flush()
+      return useWaitingState.getState().counts.get(waitingKeyProvision)
+    }
+    void push(secret, {phrase: 'one two three', previousErr: ''}, 0)
+    await settle()
+    expect(count()).toBeUndefined()
+    await push(secretExchanged, {}, 0)
+    await settle()
+    expect(count()).toBe(1)
+    held[0]!.reply(undefined)
+    await settle()
+    expect(count()).toBeUndefined()
+  })
+
   test('the service cancelling the secret prompt, then the provisionee success, ends the login', async () => {
     const held = await startLogin()
     const shown = push(secret, {phrase: 'one two three', previousErr: ''}, 0)
@@ -714,10 +731,17 @@ describe('add device', () => {
       fake.engine._throttledDispatchWaitingAction.flush()
       return useWaitingState.getState().counts.get(waitingKeyProvision)
     }
+    const shown = pushAdd(secret, {phrase: 'one two three', previousErr: ''}, 0)
+    await settle()
+    // The secret prompt is the GUI's, until Go says it is working on the exchange
+    expect(count()).toBeUndefined()
     await pushAdd(secretExchanged, {})
     await pushAdd(secretExchanged, {})
     await settle()
-    expect(count()).toBe(3)
+    expect(count()).toBe(1)
+    submitProvisionTextCode('one two three')
+    await shown
+    expect(count()).toBe(1)
     held[0]!.reply(undefined)
     await settle()
     expect(count()).toBeUndefined()
@@ -725,7 +749,7 @@ describe('add device', () => {
     await startAdd()
     await pushAdd(secretExchanged, {}, 1)
     await settle()
-    expect(count()).toBe(2)
+    expect(count()).toBe(1)
     cancelProvision()
     await settle()
     expect(count()).toBeUndefined()
