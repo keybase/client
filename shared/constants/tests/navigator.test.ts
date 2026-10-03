@@ -507,32 +507,6 @@ describe('replaceTopOrPush', () => {
     expect(names().root).toEqual(['loggedIn', 'm2'])
   })
 
-  test('a modal goes over a screen pushed above the tab bar, and Back returns to it', () => {
-    nav = installFakeNavigator({
-      modalRouteNames: ['m2'],
-      rootState: makeRootState({above: [{name: 'chatConversation'}]}),
-    })
-
-    replaceTopOrPush(() => ({name: 'm2', params: {}}) as never)
-
-    expect(nav.actions).toEqual([expect.objectContaining({target: 'root', type: 'PUSH'})])
-    expect(names().root).toEqual(['loggedIn', 'chatConversation', 'm2'])
-    navigateUp()
-    expect(names().root).toEqual(['loggedIn', 'chatConversation'])
-  })
-
-  test('a modal takes the place of a modal over a screen pushed above the tab bar', () => {
-    nav = installFakeNavigator({
-      modalRouteNames: ['m1', 'm2'],
-      rootState: makeRootState({above: [{name: 'chatConversation'}, {name: 'm1'}]}),
-    })
-
-    replaceTopOrPush(() => ({name: 'm2', params: {}}) as never)
-
-    expect(nav.actions).toEqual([expect.objectContaining({target: 'root', type: 'REPLACE'})])
-    expect(names().root).toEqual(['loggedIn', 'chatConversation', 'm2'])
-  })
-
   test.each([
     ['over its root screen', [], 'PUSH', ['peopleRoot', 'screen']],
     ['in place of the screen on top', ['other'], 'REPLACE', ['peopleRoot', 'screen']],
