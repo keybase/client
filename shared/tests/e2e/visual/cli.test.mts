@@ -33,6 +33,7 @@ const deps = (over = {}) => ({
   readBaseMeta: () => ({createdAt: 0, frozenAt: 1000, seal: {fields: {inbox: [1]}, hash: 'h', newestMessageMs: 0, takenAt: 0}}),
   readSeal: async () => ({fields: {inbox: [1]}, hash: 'h', newestMessageMs: 0, takenAt: 1}),
   servedFrom: () => '/tree/shared',
+  team: () => 'testteam',
   ...over,
 })
 
@@ -253,6 +254,38 @@ test('gate is void when the full seal changes during the run', async () => {
   const code = await runGate(deps({capture: async () => failed, log: (l: string) => lines.push(l), readSeal}), [])
   assert.equal(code, 1)
   assert.match(lines.join('\n'), /gate void: the account changed during the run: teams\[0\]: 0 → 1/)
+})
+
+const convEntries: ReadonlyArray<TourEntry> = [
+  {id: 'chat/short', nav: {tab: 'tabs.chatTab', thread: {channel: 'e2e-short', ref: 'conversationIDKey'}}, platforms: ['desktop'], ready: 'x', seal: ['inbox']},
+  {
+    id: 'team/channel',
+    nav: {append: {name: 'teamChannel', params: {conversationIDKey: {channel: 'e2e-media', ref: 'conversationIDKey'}}}, tab: 'tabs.teamsTab'},
+    platforms: ['desktop'],
+    ready: 'x',
+    seal: ['inbox'],
+  },
+]
+const inboxSeal = (unread: ReadonlyArray<string>) => {
+  const rows = ['e2e-short', 'e2e-media', 'other'].map(c => ({activeAtMs: 0, id: `id-${c}`, name: `testteam#${c}`, unread: unread.includes(c)}))
+  return {fields: {inbox: rows}, hash: 'h', newestMessageMs: 0, takenAt: 0}
+}
+
+test('check, gate and aa refuse before capturing when a conversation the tour opens is unread', async () => {
+  const seal = inboxSeal(['e2e-media'])
+  const conv = deps({entries: convEntries, readBaseMeta: () => ({createdAt: 0, frozenAt: 1000, seal}), readSeal: async () => seal})
+  const want = /unread: testteam#e2e-media \(conversation id-e2e-media\)\. The tour opens it.*Read it by hand first/
+  await assert.rejects(runCheck(conv, ['team/channel']), want)
+  await assert.rejects(runGate(conv, []), want)
+  await assert.rejects(runAa(conv, []), want)
+  // only the selected entries' conversations count
+  await assert.rejects(runCheck(conv, ['chat/short']), /should not capture/)
+})
+
+test('an unread conversation the tour never opens does not refuse', async () => {
+  const seal = inboxSeal(['other'])
+  const conv = deps({entries: convEntries, readBaseMeta: () => ({createdAt: 0, frozenAt: 1000, seal}), readSeal: async () => seal})
+  await assert.rejects(runCheck(conv, ['*']), /should not capture/)
 })
 
 test('coverage: a bare ref is the working tree; ranges name both sides', () => {

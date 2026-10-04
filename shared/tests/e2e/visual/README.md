@@ -127,6 +127,9 @@ change with `--compare <baseline dir>`.
 - **Deadlines.** Every wait has a deadline that names what it waited for; each command exits under
   an overall deadline. If `base` is interrupted while the app is served from the base tree, it
   prints the commands to restore your tree.
+- **Unread conversations.** Opening an unread conversation marks it read, so `base`, `check`,
+  `gate` and `aa` refuse before capturing when the seal shows a conversation the tour opens as
+  unread (`unread: <team>#e2e-short …`). Read it by hand, then rerun.
 - **Read-only.** The tour only navigates, switches sub-tabs, opens popups and hovers. Nothing is
   sent, saved, toggled or confirmed, and every CLI call is read-only.
 

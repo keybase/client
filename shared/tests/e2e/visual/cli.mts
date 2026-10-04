@@ -17,6 +17,7 @@ import * as path from 'path'
 import {fileURLToPath, pathToFileURL} from 'url'
 import {parseArgs, promisify} from 'util'
 import {udidForName} from '../ios-appium/helpers/app.ts'
+import {e2eAccounts} from '../shared/chat-data.ts'
 import {evalInPage, inspectorPageFor} from '../shared/metro-eval.ts'
 import {comparePng, type Rect} from './compare.mts'
 import {changedRanges, callSiteRanges, parseDiffHunks, unmarkedFile, unmountedChanged, type Hunk, type Range} from './coverage/changed-sites.mts'
@@ -100,6 +101,27 @@ const pickSeal = (s: Seal, fields: ReadonlyArray<SealField>): Seal => ({
   fields: Object.fromEntries(fields.map(f => [f, s.fields[f]])),
 })
 
+const conversationChannels = (e: TourEntry): Array<string> =>
+  [e.nav.thread, ...Object.values(e.nav.append?.params ?? {})].flatMap(r =>
+    r && typeof r === 'object' && r.ref === 'conversationIDKey' ? [r.channel ?? 'general'] : []
+  )
+
+// Opening an unread conversation marks it read, which is a write to the account and changes the
+// inbox seal mid-run. Refuses before any capture; a person reads it by hand first.
+export const assertTouredConversationsRead = (entries: ReadonlyArray<TourEntry>, seal: Seal, team: string) => {
+  const names = new Set(entries.flatMap(conversationChannels).map(c => `${team}#${c}`))
+  if (!names.size) return
+  const inbox = seal.fields.inbox as Array<{id: string; name: string; unread: boolean}> | undefined
+  if (!inbox) throw new Error(`the seal has no inbox, so it cannot show whether ${[...names].join(', ')} are read`)
+  const unread = inbox.filter(r => r.unread && names.has(r.name))
+  if (unread.length) {
+    throw new Error(
+      `unread: ${unread.map(r => `${r.name} (conversation ${r.id})`).join(', ')}. The tour opens it, which marks it read ` +
+        '(a write to the account). Read it by hand first, then rerun'
+    )
+  }
+}
+
 const isUnder = (p: string, dir: string) => p === dir || p.startsWith(dir + path.sep)
 
 const portOf = (p: RunPlatform) => (p === 'ios' ? METRO_PORT : DESKTOP_PORT)
@@ -113,6 +135,8 @@ export type CheckDeps = {
   readSeal: (fields?: ReadonlyArray<SealField>) => Promise<Seal>
   // the realpath'd cwd of whatever listens on the port
   servedFrom: (port: number) => string | undefined
+  // the e2e team, whose channels the tour opens
+  team: () => string
   currentShared: string
   hasBasePng: (sha: string, platform: RunPlatform, theme: Theme, id: string) => boolean
   // prepares (with a reload) whenever the theme or frozen instant changes, then captures
@@ -196,6 +220,7 @@ const checkEntries = async (
     const now = opts.sealNow ?? (await deps.readSeal(fields))
     const diffs = diffSeals(pickSeal(meta.seal, fields), pickSeal(now, fields))
     if (diffs.length) throw new Error(`seal changed: ${diffs.join('; ')}`)
+    assertTouredConversationsRead(entries, now, deps.team())
   }
   assertServed(deps, platform)
 
@@ -268,6 +293,7 @@ export async function runAa(deps: CheckDeps, argv: ReadonlyArray<string>): Promi
   const entries = selectEntries(deps.entries, cmd.patterns, platform)
   assertServed(deps, platform)
   const before = await deps.readSeal()
+  assertTouredConversationsRead(entries, before, deps.team())
   const frozenAt = before.newestMessageMs + FROZEN_AFTER_NEWEST_MS
   const dir = Store.runDir(`${Store.runStamp()}-aa`)
   const rows: Array<ReportRow> = []
@@ -564,6 +590,7 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
   const current = fs.realpathSync(SHARED_DIR)
 
   const before = await readSeal()
+  assertTouredConversationsRead(entries, before, e2eAccounts().team)
   const frozenAt = before.newestMessageMs + FROZEN_AFTER_NEWEST_MS
   log(`base ${sha.slice(0, 10)}: frozen at ${new Date(frozenAt).toISOString()}`)
 
@@ -764,6 +791,7 @@ export const realDeps = (cmd: Command): CheckDeps => {
       const cwd = listenerCwd(port)
       return cwd ? fs.realpathSync(cwd) : undefined
     },
+    team: () => e2eAccounts().team,
   }
 }
 
