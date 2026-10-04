@@ -1,7 +1,18 @@
 /* eslint-disable @typescript-eslint/no-floating-promises -- node:test registers top-level tests; they are not awaited */
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
-import {applyCleanup, cleanupCandidates, gatePlatforms, pinSource, unmountedPlatforms} from './box2-stretch-default.mts'
+import * as fs from 'fs'
+import * as os from 'os'
+import * as path from 'path'
+import {
+  applyCleanup,
+  cleanupCandidates,
+  gatePlatforms,
+  pinSource,
+  platformCoverage,
+  skipReason,
+  unmountedPlatforms,
+} from './box2-stretch-default.mts'
 
 const run = (code: string) => pinSource(code, '/x/shared/settings/a.tsx')
 const runCA = (code: string) => pinSource(code, '/x/shared/common-adapters/rounded-box.tsx')
@@ -631,4 +642,40 @@ test('a candidate needs coverage on every platform its file renders on', () => {
     rel: 'a.tsx',
   })
   assert.deepEqual(shifted, [])
+})
+
+test('a masked entry never qualifies a site; a coverage file without the masked flag is refused', () => {
+  const prev = process.env['KB_VISUAL_RESULTS']
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'box2-cov-'))
+  process.env['KB_VISUAL_RESULTS'] = root
+  try {
+    const write = (platform: string, theme: string, id: string, body: unknown) => {
+      const dir = path.join(root, 'base', 's1', platform, theme, 'coverage')
+      fs.mkdirSync(dir, {recursive: true})
+      fs.writeFileSync(path.join(dir, `${id}.json`), JSON.stringify(body))
+    }
+    write('desktop', 'light', 'a', {ids: ['a.tsx:10'], masked: false})
+    write('desktop', 'dark', 'people', {ids: ['a.tsx:10', 'm.tsx:4'], masked: true})
+    write('ios', 'light', 'people', {ids: ['m.tsx:4'], masked: true})
+    assert.deepEqual(platformCoverage('s1', 'desktop'), ['a.tsx:10'])
+    assert.deepEqual(platformCoverage('s1', 'ios'), [])
+    const mounted = {desktop: platformCoverage('s1', 'desktop'), ios: platformCoverage('s1', 'ios')}
+    assert.deepEqual(unmountedPlatforms({hunks: [], mounted, range: {end: 4, start: 4}, rel: 'm.tsx'}), [
+      'desktop',
+      'ios',
+    ])
+    write('ios', 'light', 'old', ['m.tsx:4'])
+    assert.throws(() => platformCoverage('s1', 'ios'), /no masked flag/)
+  } finally {
+    if (prev === undefined) delete process.env['KB_VISUAL_RESULTS']
+    else process.env['KB_VISUAL_RESULTS'] = prev
+  }
+})
+
+test('a skip-listed site is matched by file, rule and line text', () => {
+  const line = '          <Kb.ClickableBox onClick={_onLabelClick} direction="vertical" fullWidth={true}>'
+  assert.match(skipReason('settings/feedback/index.tsx', 'C1', line) ?? '', /iOS/)
+  assert.equal(skipReason('settings/feedback/index.tsx', 'C3', line), undefined)
+  assert.equal(skipReason('settings/other.tsx', 'C1', line), undefined)
+  assert.equal(skipReason('settings/feedback/index.tsx', 'C1', '<Kb.ClickableBox fullWidth={true}>'), undefined)
 })
