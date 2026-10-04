@@ -122,9 +122,9 @@ export const tour: ReadonlyArray<TourEntry> = [
     ready: T.CHAT_MESSAGE_LIST,
     seal: ['inbox'],
   },
-  // The hover bar and the ... menu of e2e-media's image. The menu's popup outlives Escape and a tab
-  // switch, so the entry after it opens another conversation, which unmounts it; with the popup
-  // open, hovering the row draws no hover bar.
+  // The hover bar and the ... menu of e2e-media's image. The menu leaves its popup open
+  // (leavesPopup), so the entry after it opens another conversation; with the popup open, hovering
+  // the row draws no hover bar.
   {
     id: 'chat/message-react',
     nav: {tab: 'tabs.chatTab', thread: {channel: 'e2e-media', ref: 'conversationIDKey'}},
@@ -146,6 +146,7 @@ export const tour: ReadonlyArray<TourEntry> = [
       {kind: 'hover', testID: T.CHAT_ATTACHMENT_IMAGE},
       {kind: 'openPopup', testID: T.CHAT_MESSAGE_MENU_BUTTON},
     ],
+    leavesPopup: true,
   },
   {
     id: 'chat/thread-search',
@@ -209,8 +210,7 @@ export const tour: ReadonlyArray<TourEntry> = [
   teamTab('emoji', T.TEAMS_TAB_EMOJI_BUTTON, T.TEAMS_EMOJI_TAB),
   teamTab('settings', T.TEAMS_TAB_SETTINGS_BUTTON, T.TEAMS_SETTINGS_TAB),
   teamTab('bots', T.TEAMS_TAB_BOTS_BUTTON, T.TEAMS_BOTS_TAB),
-  // Switching tabs keeps a tab's stack mounted, and with it any popup open on it; only the reset to
-  // the teams tab pops it. So each popup entry here is followed by another teams entry.
+  // team/menu leaves its popup open (leavesPopup), so another teams entry follows it.
   {
     id: 'team/member-add-role',
     nav: {append: {name: 'teamMember', params: {...team, username: {ref: 'secondUser'}}}, tab: 'tabs.teamsTab'},
@@ -229,6 +229,7 @@ export const tour: ReadonlyArray<TourEntry> = [
       {kind: 'switchSubTab', testID: T.TEAMS_TAB_MEMBERS_BUTTON},
       {kind: 'openPopup', testID: T.TEAMS_HEADER_MENU_BUTTON},
     ],
+    leavesPopup: true,
   },
   // A phone menu is a bottom sheet whose container is a single accessibility element, so nothing
   // inside it can be waited on: ready is the screen under it, and settle waits out the sheet.

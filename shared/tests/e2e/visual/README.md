@@ -66,10 +66,11 @@ pinned:
 
 - **Seal.** A read-only snapshot of the account through the CLI: inbox (ids, names, unread,
   `activeAtMs`), teams and members, follows, devices, the team folder's and the private folder's
-  listings. Each tour entry names the fields it shows. `base` and `gate` read a full seal before and after and are void if it
-  changed (`gate void: … inbox[…].activeAtMs …`). `check` compares the entries' fields with the
-  base's seal before capturing (`seal changed: …`). Traffic on the account voids runs; wait for a
-  quiet account, or retake the base.
+  listings. Each tour entry names the fields it shows. `base` and `gate` read a full seal before
+  and after and are void if it changed (`gate void: … inbox[…].activeAtMs …`). `check` compares the
+  entries' fields with the base's seal before capturing (`seal changed: …`). Traffic on the account
+  voids runs; wait for a quiet account, or retake the base. Adding a seal field changes what a seal
+  holds, so a base taken before it reports `seal changed` on every check: retake the base.
 - **Frozen clock.** `Date` is fixed to the base's `frozenAt` (the newest message time + 60s), so
   relative times ("2m ago", day separators) render the same in base and check. Desktop fixes it
   with a page init script; iOS fixes it over Metro's inspector and remounts every screen.
@@ -113,6 +114,11 @@ than passed. Untracked new `.tsx` files are not in `git diff`: `git add -N` them
 reaches it, or prove it another way. Exit 1 if any are listed. Metro caches transforms per file,
 not per env var, so switching coverage on or off needs `--clear` (the CLI does this).
 
+An entry with any mask counts for no coverage: a call site under a mask mounts, but the compare
+never sees its pixels. Each stored coverage file says whether its entry is masked; `coverage`
+skips those and prints how many it skipped. A base written before that flag counts every entry;
+retake it.
+
 Box2 itself (`common-adapters/box.tsx`) is covered separately: `box2-native-styles.test.tsx` pins
 the native style of every prop combination (`yarn test:unit`), and the `Common/Box2 matrix`
 stories pin the desktop classes: `yarn storybook:screenshot --only 'Common/Box2 matrix'`, copy
@@ -145,6 +151,10 @@ Routes the tour leaves out are listed with reasons at the bottom of `tour.ts`. N
   follower spinners that never finish (`tracker/identify-session.tsx`); also on master.
 - Phone `files/team`: the header's "..." dots draw 1px off on the first push of a launch.
 - Desktop chat info panel: it stays open for the conversation entries after it.
+- A desktop floating menu stays open while its screen stays mounted, across Escape and tab
+  switches. An entry that opens one carries `leavesPopup`; `yarn visual:unit` requires the next
+  desktop entry to close it (same tab; on chat, another conversation), and selecting the entry by
+  id also selects that follower.
 - Phone menus are bottom sheets that expose nothing inside them to Appium: their entries wait on
   the screen under the sheet.
 - Screens reached only through a write, or showing server-picked lists.

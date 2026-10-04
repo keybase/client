@@ -39,10 +39,23 @@ test('masks default to none; coverage is the union of every stored coverage JSON
   const b = store.baseCoveragePath('c1', 'ios', 'light', '__chrome__')
   fs.mkdirSync(path.dirname(a), {recursive: true})
   fs.mkdirSync(path.dirname(b), {recursive: true})
-  fs.writeFileSync(a, JSON.stringify(['b.tsx:2', 'a.tsx:1']))
+  fs.writeFileSync(a, store.writeCoverageJson(['b.tsx:2', 'a.tsx:1'], false))
   fs.writeFileSync(b, JSON.stringify(['a.tsx:1', 'c.tsx:3']))
   fs.writeFileSync(path.join(path.dirname(a), '..', 'tab__chat.masks.json'), '[]')
-  assert.deepEqual(store.readBaseCoverage('c1'), ['a.tsx:1', 'b.tsx:2', 'c.tsx:3'])
+  assert.deepEqual(store.readBaseCoverage('c1'), {masked: [], mounted: ['a.tsx:1', 'b.tsx:2', 'c.tsx:3']})
+})
+
+test('a masked entry contributes no coverage and is reported', () => {
+  const kept = store.baseCoveragePath('c2', 'desktop', 'light', 'tab/chat')
+  const masked = store.baseCoveragePath('c2', 'desktop', 'dark', 'tab/people')
+  fs.mkdirSync(path.dirname(kept), {recursive: true})
+  fs.mkdirSync(path.dirname(masked), {recursive: true})
+  fs.writeFileSync(kept, store.writeCoverageJson(['a.tsx:1'], false))
+  fs.writeFileSync(masked, store.writeCoverageJson(['a.tsx:1', 'm.tsx:9'], true))
+  assert.deepEqual(store.readBaseCoverage('c2'), {
+    masked: [path.join('desktop', 'dark', 'tab__people')],
+    mounted: ['a.tsx:1'],
+  })
 })
 
 test('run stamps have no characters a path dislikes', () => {
