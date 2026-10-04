@@ -25,7 +25,7 @@ const SimpleToast = (props: Props) => {
   const theme = Styles.useTheme()
   return (
     <Kb.Toast visible={props.visible} attachTo={props.toastTargetRef}>
-      <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
+      <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny" centerChildren={true}>
         <Kb.IconAuto type={props.iconType} color={theme.white} />
         <Kb.Text type="BodySemibold" style={styles.toastText}>
           {props.text}

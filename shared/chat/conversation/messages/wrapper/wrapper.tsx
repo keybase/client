@@ -156,7 +156,7 @@ function AuthorSection(p: AuthorProps) {
   )
 
   const ownerAdminTooltipIcon = allowCrown ? (
-    <Kb.Box2 direction="vertical" tooltip={authorIsOwner ? 'Owner' : 'Admin'}>
+    <Kb.Box2 alignSelf="center" direction="vertical" tooltip={authorIsOwner ? 'Owner' : 'Admin'}>
       <Kb.Icon
         color={authorIsOwner ? theme.yellowDark : theme.black_35}
         fontSize={10}
@@ -166,7 +166,7 @@ function AuthorSection(p: AuthorProps) {
   ) : null
 
   const botIcon = authorIsBot ? (
-    <Kb.Box2 direction="vertical" tooltip="Bot">
+    <Kb.Box2 alignSelf="center" direction="vertical" tooltip="Bot">
       <Kb.Icon fontSize={13} color={theme.black_35} type="iconfont-bot" />
     </Kb.Box2>
   ) : null
@@ -616,7 +616,7 @@ function TextAndSiblings(p: TSProps) {
 
   return (
     <LongPressable {...pressableProps}>
-      <Kb.Box2
+      <Kb.Box2 alignSelf={(!isMobile) ? undefined : 'center'}
         direction="vertical"
         flex={1}
         relative={true}
@@ -876,7 +876,7 @@ function RightSide(p: RProps) {
   ) : null
 
   const revokedIcon = showRevoked ? (
-    <Kb.Box2 direction="vertical" tooltip="Revoked device" className="tooltip-bottom-left">
+    <Kb.Box2 alignSelf="center" direction="vertical" tooltip="Revoked device" className="tooltip-bottom-left">
       <Kb.Icon type="iconfont-rip" color={theme.black_35} />
     </Kb.Box2>
   ) : null
@@ -884,7 +884,7 @@ function RightSide(p: RProps) {
   const coinsIcon = showCoinsIcon ? <Kb.ImageIcon type="icon-stellar-coins-stacked-16" /> : null
 
   const bot = botname ? (
-    <Kb.Box2 direction="vertical" tooltip={`Encrypted for @${botname}`} className="tooltip-bottom-left">
+    <Kb.Box2 alignSelf="center" direction="vertical" tooltip={`Encrypted for @${botname}`} className="tooltip-bottom-left">
       <Kb.Icon color={theme.black_35} type="iconfont-bot" />
     </Kb.Box2>
   ) : null
@@ -899,7 +899,7 @@ function RightSide(p: RProps) {
 
   const menu =
     isMobile || !shouldShowPopup ? null : (
-      <Kb.Box2
+      <Kb.Box2 alignSelf="center"
         direction="vertical"
         tooltip="More actions..."
         className={Kb.Styles.classNames(
@@ -907,7 +907,7 @@ function RightSide(p: RProps) {
           'tooltip-left'
         )}
       >
-        <Kb.Box2 direction="vertical">
+        <Kb.Box2 alignSelf="center" direction="vertical">
           <Kb.Icon type="iconfont-ellipsis" onClick={showPopup} />
         </Kb.Box2>
       </Kb.Box2>

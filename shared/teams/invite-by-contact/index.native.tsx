@@ -18,12 +18,12 @@ const ContactRow = (props: ContactRowProps) => {
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.contactRowBox}>
-      <Kb.Box2 direction="horizontal" alignItems="center" flex={1}>
+      <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" flex={1}>
         {!!hasThumbnail && !!props.pictureUri && (
           <Kb.Image style={styles.thumbnail} src={props.pictureUri} />
         )}
         {!hasThumbnail && <Kb.Avatar size={48} style={styles.placeHolderAvatar} />}
-        <Kb.Box2 direction="vertical" flex={1}>
+        <Kb.Box2 alignSelf="center" direction="vertical" flex={1}>
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <Kb.Text type="BodySemibold">{props.name}</Kb.Text>
           </Kb.Box2>
@@ -86,7 +86,7 @@ export const InviteByContact = (props: InviteByContactProps) => {
       )}
       {hasItems && (
         <Kb.Box2 direction="vertical" fullWidth={true} flex={1} style={styles.listContainer}>
-          <Kb.Box2 direction="horizontal" style={styles.filterContainer}>
+          <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.filterContainer}>
             <Kb.Input3
               autoFocus={true}
               keyboardType="email-address"
@@ -106,7 +106,7 @@ export const InviteByContact = (props: InviteByContactProps) => {
             position="bottom center"
             disabledRoles={{owner: 'Cannot invite an owner via email.'}}
           />
-          <Kb.ClickableBox direction="vertical" centerChildren={true} onClick={() => setRolePickerOpen(true)} style={styles.rolePickerBox}>
+          <Kb.ClickableBox alignSelf="center" direction="vertical" centerChildren={true} onClick={() => setRolePickerOpen(true)} style={styles.rolePickerBox}>
             <Kb.Text center={true} type="BodySmall">
               Users will be invited to {teamName} as
               <Kb.Text type="BodySmallPrimaryLink">{' ' + selectedRole + 's'}</Kb.Text>.

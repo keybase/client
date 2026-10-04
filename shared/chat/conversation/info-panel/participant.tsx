@@ -15,7 +15,7 @@ const Participant = ({firstItem, fullname, isAdmin, isOwner, username, onShowPro
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="xtiny">
       {fullname !== '' && <Kb.Text type="BodySmall">{fullname}</Kb.Text>}
       {(isAdmin || isOwner) && (
-        <Kb.Box2 direction="horizontal" alignItems="center" gap="xxtiny">
+        <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" gap="xxtiny">
           <Kb.Text type="BodySmall">(</Kb.Text>
           <Kb.Icon
             color={isOwner ? theme.yellowDark : theme.black_35}
@@ -35,7 +35,7 @@ const Participant = ({firstItem, fullname, isAdmin, isOwner, username, onShowPro
       type="Large"
       icon={<Kb.Avatar size={isMobile ? 48 : 32} username={username} />}
       body={
-        <Kb.Box2 direction="vertical">
+        <Kb.Box2 alignSelf="center" direction="vertical">
           <Kb.ConnectedUsernames usernames={username} colorFollowing={true} type="BodyBold" />
           {lower}
         </Kb.Box2>

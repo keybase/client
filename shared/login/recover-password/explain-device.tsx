@@ -42,11 +42,11 @@ const ExplainDevice = ({route}: Props) => {
         topGap={false}
         icon={<Kb.ImageIcon type={explainingMobile ? 'icon-phone-96' : 'icon-computer-96'} />}
       >
-        <Kb.Box2 alignItems="center" direction="vertical">
+        <Kb.Box2 alignSelf="center" alignItems="center" direction="vertical">
           <Kb.Text type="Body">
             On <Kb.Text type="BodySemiboldItalic">{deviceName}</Kb.Text>, go to
           </Kb.Text>
-          <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
+          <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" gap="xtiny">
             {explainingMobile ? (
               <Kb.Icon type="iconfont-nav-2-hamburger" color={theme.black} />
             ) : (

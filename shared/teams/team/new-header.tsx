@@ -187,7 +187,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           </Kb.Text>
         )}
         <Activity level={activityLevel} style={styles.alignSelfFlexStart} />
-        <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
+        <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
           {meta.isMember && <Kb.Button label="Chat" onClick={onChat} small={true} />}
           {yourOperations.editTeamDescription && (
             <Kb.Button label="Edit" onClick={onEditDescription} small={true} mode="Secondary" />

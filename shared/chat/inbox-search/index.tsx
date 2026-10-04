@@ -234,7 +234,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
   ) => {
     const showMore = resultsLength > 3 && !collapsed
     const label = (
-      <Kb.Box2 direction="horizontal" gap="xtiny">
+      <Kb.Box2 alignSelf="center" direction="horizontal" gap="xtiny">
         <Kb.Text type="BodySmallSemibold">{section.title}</Kb.Text>
         {showMore && (
           <Kb.Text

@@ -114,7 +114,7 @@ const Confirm = (props: {showPopup: () => void; disableSync: () => void; waiting
     }
   }, [waiting, showPopup])
   return (
-    <Kb.Box2 direction="vertical" style={styles.popupContainer} centerChildren={true}>
+    <Kb.Box2 alignSelf="center" direction="vertical" style={styles.popupContainer} centerChildren={true}>
       <Kb.Text key="title" type="BodyBig">
         Unsync this folder now?
       </Kb.Text>

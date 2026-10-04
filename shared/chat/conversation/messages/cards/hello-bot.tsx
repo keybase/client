@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 const HelloBot = () => {
   const styles = useStyles()
   return (
-    <Kb.Box2 direction="horizontal" style={styles.container} alignItems="flex-start">
+    <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.container} alignItems="flex-start">
       <Kb.ImageIcon type="icon-fancy-hellobot-hi-96" style={styles.image} />
       <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} padding="medium">
         <Kb.Text type="BodySmallSemibold" style={styles.header} negative={true}>

@@ -56,7 +56,7 @@ const ResetUser = () => {
             }
           </Kb.Text>
         </Kb.Text>
-        <Kb.Box2 direction="vertical" style={styles.bullet} gap="tiny" gapStart={true}>
+        <Kb.Box2 alignSelf="center" direction="vertical" style={styles.bullet} gap="tiny" gapStart={true}>
           <Kb.Text type="BodySemibold" negative={true}>
             1. Be satisfied with their new proofs, or
           </Kb.Text>

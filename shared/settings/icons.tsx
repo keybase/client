@@ -18,7 +18,7 @@ const IconCell = ({type}: {type: IconType}) => {
   const styles = useStyles()
   const name = type.replace(/^iconfont-/, '')
   return (
-    <Kb.Box2 direction="vertical" padding="xtiny" style={styles.cell} alignItems="center">
+    <Kb.Box2 alignSelf="center" direction="vertical" padding="xtiny" style={styles.cell} alignItems="center">
       <Kb.Icon type={type} sizeType="Big" />
       <Kb.Text type="BodyTiny" style={styles.cellLabel} lineClamp={2}>
         {name}
@@ -40,7 +40,7 @@ const SFToggleCell = ({off, on}: {off: SFSymbolName; on: SFSymbolName}) => {
   const [isOn, setOn] = React.useState(false)
   const name = isOn ? on : off
   return (
-    <Kb.ClickableBox
+    <Kb.ClickableBox alignSelf="center"
       onClick={() => setOn(s => !s)}
       direction="vertical"
       padding="xtiny"
@@ -65,7 +65,7 @@ const SFVariableCell = () => {
   const theme = Kb.Styles.useTheme()
   const [value, setValue] = React.useState(1)
   return (
-    <Kb.ClickableBox
+    <Kb.ClickableBox alignSelf="center"
       onClick={() => setValue(v => (v >= 1 ? 0 : Math.min(1, v + 0.34)))}
       direction="vertical"
       padding="xtiny"
@@ -124,7 +124,7 @@ const Icons = () => {
       </Kb.Box2>
       <Kb.ScrollView style={styles.scroll}>
         {isIOS && !query && <SFSymbolDemos />}
-        <Kb.Box2 direction="horizontal" padding="tiny" style={styles.grid}>
+        <Kb.Box2 alignSelf="center" direction="horizontal" padding="tiny" style={styles.grid}>
           {filtered.map(t => (
             <IconCell key={t} type={t} />
           ))}

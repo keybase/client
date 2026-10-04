@@ -292,7 +292,7 @@ const TeamBuilding = ({
             onFinishTeamBuilding={finishTeamBuilding}
           />
           {waitingForCreate && (
-            <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
+            <Kb.Box2 alignSelf="center" direction="vertical" style={styles.waiting} alignItems="center">
               <Kb.ProgressIndicator type="Small" white={true} style={styles.waitingProgress} />
             </Kb.Box2>
           )}

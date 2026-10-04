@@ -25,7 +25,7 @@ export const SiteIcon = (props: SiteIconProps) => {
       style={Kb.Styles.collapseStyles([style, props.style])}
     />
   ) : (
-    <Kb.Box2
+    <Kb.Box2 alignSelf="center"
       direction="vertical"
       style={Kb.Styles.collapseStyles([
         style,

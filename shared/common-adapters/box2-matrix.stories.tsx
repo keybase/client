@@ -24,7 +24,12 @@ const Child = (p: {spec: ChildSpec}) => {
   const {spec} = p
   const {label, color, props} = spec
   return (
-    <Box2 direction="vertical" {...props} style={{backgroundColor: color}}>
+    <Box2
+      direction="vertical"
+      {...props}
+      alignSelf={props.alignSelf ?? (props.fullWidth || props.fullHeight ? undefined : 'center')}
+      style={{backgroundColor: color}}
+    >
       <Text type="BodyTiny">{label}</Text>
     </Box2>
   )
@@ -40,7 +45,7 @@ const Cell = (p: {
   return (
     <Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny">
       <Text type="BodySmallSemibold">{title}</Text>
-      <Box2 direction={direction} alignItems={alignItems} style={styles.parent}>
+      <Box2 alignSelf="center" direction={direction} alignItems={alignItems} style={styles.parent}>
         {childSpecs.map(c => (
           <Child key={c.label} spec={c} />
         ))}

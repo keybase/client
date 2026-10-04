@@ -28,12 +28,12 @@ function Editing({editSession}: Props) {
         />
       }
       icon={
-        <Kb.Box2 direction="vertical" style={rowStyles.pathItemIcon}>
+        <Kb.Box2 alignSelf="center" direction="vertical" style={rowStyles.pathItemIcon}>
           <Kb.ImageIcon type="icon-folder-32" />
         </Kb.Box2>
       }
       body={
-        <Kb.Box2 direction="vertical" key="main" flex={1} justifyContent="center" style={rowStyles.itemBox}>
+        <Kb.Box2 alignSelf="center" direction="vertical" key="main" flex={1} justifyContent="center" style={rowStyles.itemBox}>
           <Kb.Input3
             value={edit.name}
             placeholder={edit.originalName}
@@ -48,7 +48,7 @@ function Editing({editSession}: Props) {
         </Kb.Box2>
       }
       action={
-        <Kb.Box2 direction="horizontal" alignItems="center" key="right" style={styles.rightBox} justifyContent="flex-end">
+        <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" key="right" style={styles.rightBox} justifyContent="flex-end">
           {!!edit.error && (
             <Kb.WithTooltip tooltip={edit.error} showOnPressMobile={true}>
               <Kb.Icon type="iconfont-exclamation" color={theme.red} />

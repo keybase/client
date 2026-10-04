@@ -76,7 +76,7 @@ const DesktopExplodingHeightRetainer = (p: Props) => {
   }, [])
 
   return (
-    <Kb.Box2
+    <Kb.Box2 alignSelf="center"
       direction="vertical"
       style={Kb.Styles.collapseStyles([
         styles.container,
@@ -156,13 +156,13 @@ function FlameFront(props: {height: number; stop: boolean}) {
   const children: Array<React.ReactNode> = []
   for (let i = 0; i < numBoxes; i++) {
     children.push(
-      <Kb.Box2 direction="vertical" key={String(i)} style={styles.flame}>
+      <Kb.Box2 alignSelf="center" direction="vertical" key={String(i)} style={styles.flame}>
         <Kb.Animation animationType={isDarkMode ? 'darkExploding' : 'exploding'} width={64} height={64} />
       </Kb.Box2>
     )
   }
   return (
-    <Kb.Box2 direction="vertical" className="flame-container" style={styles.flameContainer}>
+    <Kb.Box2 alignSelf="center" direction="vertical" className="flame-container" style={styles.flameContainer}>
       {children}
     </Kb.Box2>
   )
@@ -319,7 +319,7 @@ const EmojiTower = (p: {numImages: number; animatedValue: NativeAnimated.Value})
     }
   }, [animatedValue, forceRender, numImages])
 
-  return <Kb.Box2 direction="vertical" overflow="hidden" style={styles.emojiTower}>{children}</Kb.Box2>
+  return <Kb.Box2 alignSelf="center" direction="vertical" overflow="hidden" style={styles.emojiTower}>{children}</Kb.Box2>
 }
 
 const AshTower = (p: {explodedBy?: string; numImages: number; showExploded: boolean}) => {
@@ -361,7 +361,7 @@ const AshTower = (p: {explodedBy?: string; numImages: number; showExploded: bool
   return (
     <>
       {children}
-      <Kb.Box2 direction="vertical" alignItems="flex-end" style={styles.tagBox}>{exploded}</Kb.Box2>
+      <Kb.Box2 alignSelf="center" direction="vertical" alignItems="flex-end" style={styles.tagBox}>{exploded}</Kb.Box2>
     </>
   )
 }

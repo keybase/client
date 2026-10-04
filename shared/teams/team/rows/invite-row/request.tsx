@@ -119,7 +119,7 @@ const TeamRequestRow = (props: Props) => {
         </Kb.Box2>
       }
       action={
-        <Kb.Box2 direction="horizontal">
+        <Kb.Box2 alignSelf="center" direction="horizontal">
           <FloatingRolePicker
             footerComponent={props.footerComponent}
             onConfirm={props.onConfirmRolePicker}

@@ -60,7 +60,7 @@ const Row = ({description, disabled, name, onToggle, selected}: RowProps) => {
       type="Small"
       firstItem={false}
       body={
-        <Kb.Box2 direction="vertical" flex={1} style={disabled ? {opacity: 0.4} : undefined}>
+        <Kb.Box2 alignSelf="center" direction="vertical" flex={1} style={disabled ? {opacity: 0.4} : undefined}>
           <Kb.Box2 direction="horizontal" alignSelf="flex-start">
             <Kb.Text lineClamp={1} type="Body" style={styles.channelHash}>
               #
@@ -129,12 +129,12 @@ const ChannelPicker = (props: Props) => {
         />
       </Kb.Box2>
       {!channelsKnown ? (
-        <Kb.Box2 direction="vertical" style={styles.rowsContainer} centerChildren={true}>
+        <Kb.Box2 alignSelf="center" direction="vertical" style={styles.rowsContainer} centerChildren={true}>
           <Kb.ProgressIndicator type="Large" />
         </Kb.Box2>
       ) : (
       <Kb.ScrollView style={styles.rowsContainer}>
-        <Kb.Box2 direction="horizontal" style={{backgroundColor: theme.blueGrey}}>
+        <Kb.Box2 alignSelf="center" direction="horizontal" style={{backgroundColor: theme.blueGrey}}>
           <Kb.ListItem
             type="Small"
             firstItem={true}

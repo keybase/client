@@ -82,8 +82,8 @@ function ConversationFilterInput(ownProps: OwnProps) {
       onEnterKeyDown={onEnterKeyDown}
     />
   ) : (
-    <Kb.Box2 direction="horizontal" style={styles.searchPlaceholderOuter} alignItems="center">
-      <Kb.ClickableBox direction="horizontal" alignItems="center" flex={1} onClick={startSearch} style={styles.searchPlaceholder}>
+    <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.searchPlaceholderOuter} alignItems="center">
+      <Kb.ClickableBox alignSelf="center" direction="horizontal" alignItems="center" flex={1} onClick={startSearch} style={styles.searchPlaceholder}>
         <Kb.Icon
           type="iconfont-search"
           sizeType={isMobile ? 'Small' : 'Default'}

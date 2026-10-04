@@ -138,7 +138,7 @@ const Banner = (props: BannerProps) => {
             {props.title}
           </Kb.Text>
           {props.body && (
-            <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexGrow}>
+            <Kb.Box2 alignSelf="center" direction="vertical" style={Kb.Styles.globalStyles.flexGrow}>
               <Kb.Text type="Body" style={backgroundToTextStyle(props.background, styles)}>
                 {props.body}
               </Kb.Text>
@@ -171,7 +171,7 @@ const Banner = (props: BannerProps) => {
           </Kb.Box2>
         )}
       </Kb.Box2>
-      <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexGrow} />
+      <Kb.Box2 alignSelf="center" direction="horizontal" style={Kb.Styles.globalStyles.flexGrow} />
       {!!props.onDismiss && (
         <Kb.Box2 direction="vertical" alignSelf="flex-start">
           <Kb.Icon

@@ -52,8 +52,8 @@ const ExplodingPopupHeader = (props: Props) => {
   const icon = <Kb.ImageIcon style={styles.headerIcon} type={headerIconType} />
   const info = (
     <Kb.Box2 direction="vertical" fullWidth={true} padding="xsmall">
-      <Kb.Box2 direction="horizontal">
-        <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} alignItems="center">
+      <Kb.Box2 alignSelf="center" direction="horizontal">
+        <Kb.Box2 alignSelf="center" direction="horizontal" gap="xtiny" gapStart={true} alignItems="center">
           <Kb.Avatar username={author} size={16} onClick="profile" />
           <Kb.ConnectedUsernames
             onUsernameClicked={onUsernameClicked}
@@ -69,9 +69,9 @@ const ExplodingPopupHeader = (props: Props) => {
         </Kb.Box2>
       </Kb.Box2>
       {botUsername ? (
-        <Kb.Box2 direction="horizontal">
+        <Kb.Box2 alignSelf="center" direction="horizontal">
           <Kb.Text type="BodySmall">also encrypted for</Kb.Text>
-          <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} alignItems="center">
+          <Kb.Box2 alignSelf="center" direction="horizontal" gap="xtiny" gapStart={true} alignItems="center">
             <Kb.Avatar username={botUsername} size={16} onClick="profile" />
             <Kb.ConnectedUsernames
               onUsernameClicked="profile"
@@ -114,7 +114,7 @@ const ExplodingPopupHeader = (props: Props) => {
         },
       ])}
     >
-      <Kb.Box2 direction="vertical">
+      <Kb.Box2 alignSelf="center" direction="vertical">
         <Kb.Text type="BodySmall" style={styles.whiteText}>
           {props.explodesAt === 0 ? 'EXPLODED MESSAGE' : 'EXPLODING MESSAGE'}
         </Kb.Text>
@@ -122,7 +122,7 @@ const ExplodingPopupHeader = (props: Props) => {
       {props.explodesAt === 0 ? null : hideTimer ? (
         <Kb.ProgressIndicator white={true} style={Kb.Styles.size(17)} />
       ) : (
-        <Kb.Box2 direction="horizontal" gap="tiny" gapStart={true} gapEnd={true}>
+        <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny" gapStart={true} gapEnd={true}>
           <Kb.Icon
             type="iconfont-timer"
             fontSize={isMobile ? 20 : 16}

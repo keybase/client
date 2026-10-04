@@ -122,7 +122,7 @@ const LockdownCheckbox = (p: {
       disabled={disabled}
       onCheck={setLockdownMode}
       labelComponent={
-        <Kb.Box2 direction="vertical" alignItems="flex-start" style={Kb.Styles.globalStyles.flexOne}>
+        <Kb.Box2 alignSelf="center" direction="vertical" alignItems="flex-start" style={Kb.Styles.globalStyles.flexOne}>
           <Kb.Text type="Body">{label}</Kb.Text>
           <Kb.Text type="BodySmall">Prevent making account changes from the website.</Kb.Text>
           <Kb.Text type="BodySmall">
@@ -249,7 +249,7 @@ const Advanced = () => {
                 checked={!!rememberPassword}
                 disabled={rememberPassword === undefined}
                 labelComponent={
-                  <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
+                  <Kb.Box2 alignSelf="center" direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
                     <Kb.Text type="Body">Always stay logged in</Kb.Text>
                     <Kb.Text type="BodySmall">
                       {"You won't be asked for your password when restarting the app or your device."}
@@ -411,7 +411,7 @@ const Developer = () => {
           </Kb.Text>
         </>
       )}
-      <Kb.Box2 direction="vertical" flex={1} />
+      <Kb.Box2 alignSelf="center" direction="vertical" flex={1} />
     </Kb.Box2>
   )
 }

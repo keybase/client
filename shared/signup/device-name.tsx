@@ -174,7 +174,7 @@ const EnterDevicename = (props: EnterDevicenameProps) => {
               : 'icon-computer-background-1-96'
           }
         />
-        <Kb.Box2 direction="vertical" fullWidth={Kb.Styles.isPhone} gap="tiny">
+        <Kb.Box2 alignSelf={(Kb.Styles.isPhone) ? undefined : 'center'} direction="vertical" fullWidth={Kb.Styles.isPhone} gap="tiny">
           <Kb.Input3
             textType="BodySemibold"
             autoFocus={true}

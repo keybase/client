@@ -13,7 +13,7 @@ const SyncingFoldersUI = ({
   negative?: boolean
 }) => (
   <Kb.WithTooltip tooltip={tooltip} containerStyle={{alignSelf: 'center'}}>
-    <Kb.Box2 direction="horizontal" alignItems="center">
+    <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center">
       <PieSlice degrees={progress * 360} animated={false} negative={negative} />
       <Kb.Text type="BodyTiny" negative={negative} style={{marginLeft: 5}}>
         Syncing folders...

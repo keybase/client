@@ -19,10 +19,10 @@ const TeamRow = ({isOpen, loading = false, name, onClick, popup, popupAnchor}: P
     <Kb.ClickableBox direction="horizontal" fullWidth={true} gap="tiny" style={styles.row} ref={popupAnchor} onClick={onClick}>
       <>
         {popup}
-        <Kb.Box2 direction="vertical" relative={true} style={styles.avatar}>
+        <Kb.Box2 alignSelf="center" direction="vertical" relative={true} style={styles.avatar}>
           <Kb.Avatar size={32} teamname={name} isTeam={true} />
           {showOpen && isMobile && (
-            <Kb.Box2 direction="vertical" alignItems="center" style={styles.openBadge} pointerEvents="none">
+            <Kb.Box2 alignSelf="center" direction="vertical" alignItems="center" style={styles.openBadge} pointerEvents="none">
               <Kb.Meta variant="open" size="Small" />
             </Kb.Box2>
           )}

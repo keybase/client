@@ -415,7 +415,7 @@ const InstallBotPopup = (props: Props) => {
               <Kb.Text type="BodyBig">In these channels:</Kb.Text>
               <Kb.DropdownButton
                 selected={
-                  <Kb.Box2 direction="horizontal" alignItems="center">
+                  <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center">
                     <Kb.Avatar
                       size={16}
                       teamname={teamname}
@@ -445,7 +445,7 @@ const InstallBotPopup = (props: Props) => {
           </Kb.Text>
         </Kb.Box2>
       ) : (
-        <Kb.Box2 direction="vertical" gap="tiny">
+        <Kb.Box2 alignSelf="center" direction="vertical" gap="tiny">
           <Kb.Text type="Body">
             <Kb.Text type="BodySemibold">Warning:</Kb.Text> This bot will be able to read all messages,
             channels, files, and repositories.

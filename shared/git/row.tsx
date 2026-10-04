@@ -106,7 +106,7 @@ const ChatRow = (p: {
           label=""
           labelComponent={
             channelLoading ? (
-              <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
+              <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" gap="xtiny">
                 <Kb.Text type="BodySmall">Announce pushes in</Kb.Text>
                 <Kb.ProgressIndicator type="Small" />
               </Kb.Box2>
@@ -126,7 +126,7 @@ const ChatRow = (p: {
       )}
       {!canEdit &&
         (channelLoading ? (
-          <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
+          <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" gap="xtiny">
             <Kb.Text type="BodySmall">{`Pushes are announced in ${teamname}`}</Kb.Text>
             <Kb.ProgressIndicator type="Small" />
           </Kb.Box2>

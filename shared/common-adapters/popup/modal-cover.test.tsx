@@ -10,7 +10,7 @@ const renderCover = (onHidden?: () => void) => {
   const {container} = render(
     <GlobalKeyEventHandler>
       <ModalCover onHidden={onHidden}>
-        <Box2 direction="vertical">content</Box2>
+        <Box2 alignSelf="center" direction="vertical">content</Box2>
       </ModalCover>
     </GlobalKeyEventHandler>
   )

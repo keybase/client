@@ -20,7 +20,7 @@ const TurnOnNotifications = () => {
       overflow="hidden"
       style={styles.turnOnOuter}
     >
-      <Kb.Box2 direction="vertical" style={styles.turnOnIllustration}>
+      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.turnOnIllustration}>
         <Kb.ImageIcon type="illustration-turn-on-notifications" />
       </Kb.Box2>
       <Kb.Text type="BodySemibold" center={true} negative={true} style={styles.turnOnText}>

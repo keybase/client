@@ -182,7 +182,7 @@ const EnterUsername = (props: EnterUsernameProps) => {
           fullWidth={true}
         >
           <Kb.Avatar size={C.isLargeScreen ? 96 : 64} />
-          <Kb.Box2 direction="vertical" fullWidth={Kb.Styles.isPhone} gap="tiny">
+          <Kb.Box2 alignSelf={(Kb.Styles.isPhone) ? undefined : 'center'} direction="vertical" fullWidth={Kb.Styles.isPhone} gap="tiny">
             <Kb.Input3
               textType="BodySemibold"
               autoFocus={!isMobile}

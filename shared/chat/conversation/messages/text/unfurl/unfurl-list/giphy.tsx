@@ -31,7 +31,7 @@ function UnfurlGiphy(p: {
       {!isMobile && <Kb.Box2 direction="horizontal" alignSelf="stretch" style={styles.quoteContainer} />}
       <Kb.Box2 alignSelf="flex-start" gap="xtiny" direction="vertical" style={styles.innerContainer}>
         <Kb.Box2 alignSelf="flex-start" gap="tiny" fullWidth={true} direction="horizontal" justifyContent="space-between" style={styles.siteNameContainer}>
-          <Kb.Box2 direction="horizontal" gap="tiny">
+          <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny">
             {favicon?.url ? <Kb.Image src={favicon.url} style={styles.favicon} /> : null}
             <Kb.Text type="BodySmall">
               Giphy

@@ -171,7 +171,7 @@ export const Bot = (props: BotProps) => {
         ) : null
       }
       body={
-        <Kb.Box2 direction="vertical" style={styles.container}>
+        <Kb.Box2 alignSelf="center" direction="vertical" style={styles.container}>
           {usernameDisplay}
           {description ? lower : null}
         </Kb.Box2>

@@ -95,7 +95,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
           onClick: () => onGoToChannel(chan),
         }))
         textComponent = (
-          <Kb.Box2 direction="vertical">
+          <Kb.Box2 alignSelf="center" direction="vertical">
             <Kb.Text type="BodySmall">
               You are in <Kb.Text type="BodySmallBold">#{channelname}</Kb.Text>.
             </Kb.Text>

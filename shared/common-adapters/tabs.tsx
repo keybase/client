@@ -40,7 +40,7 @@ type Props<TitleT extends string> = {
 const TabText = ({selected, text}: {selected: boolean; text: string}) => {
   const styles = useStyles()
   return (
-    <Kb.Box2 direction="horizontal" justifyContent="center">
+    <Kb.Box2 alignSelf="center" direction="horizontal" justifyContent="center">
       <Kb.Text type="BodySmallSemibold" style={selected ? styles.selected : undefined}>
         {text}
       </Kb.Text>
@@ -62,7 +62,7 @@ const Tabs = <TitleT extends string>(props: Props<TitleT>) => {
       {props.tabs.map((tab: Tab<TitleT>) => {
         const selected = props.selectedTab === tab.title
         return (
-          <Kb.ClickableBox
+          <Kb.ClickableBox alignSelf="center"
             onClick={() => onSelect(tab.title)}
             key={tab.title}
             testID={tab.testID}

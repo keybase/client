@@ -34,7 +34,7 @@ const Arrow = (props: ArrowProps) => {
   const theme = Kb.Styles.useTheme()
   const {left, onClick} = props
   return (
-    <Kb.ClickableBox
+    <Kb.ClickableBox alignSelf="center"
       direction="vertical"
       centerChildren={true}
       className="hover_background_color_black background_color_black_50 fade-background-color"
@@ -118,7 +118,7 @@ const DesktopFullscreen = (p: Props) => {
         <Kb.Markdown lineClamp={2} style={Kb.Styles.globalStyles.flexOne} styleOverride={titleOverride}>
           {title}
         </Kb.Markdown>
-        <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.ellipsisContainer}>
+        <Kb.Box2 alignSelf="center" direction="vertical" ref={popupAnchor} style={styles.ellipsisContainer}>
           <Kb.Icon
             type="iconfont-ellipsis"
             color={theme.black_50}

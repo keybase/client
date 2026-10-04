@@ -22,7 +22,7 @@ const LastOwnerDialog = (props: Props) => {
           centerChildren={true}
         >
           <Kb.Box2 direction="vertical" gap="medium" fullWidth={true} centerChildren={true}>
-            <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.positionRelative}>
+            <Kb.Box2 alignSelf="center" direction="vertical" style={Kb.Styles.globalStyles.positionRelative}>
               <Kb.Avatar teamname={props.name} size={isMobile ? 96 : 64} />
               <Kb.Icon type="iconfont-leave" style={styles.leaveIcon} />
             </Kb.Box2>

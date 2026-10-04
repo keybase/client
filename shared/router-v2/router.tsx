@@ -714,7 +714,7 @@ function NativeRouter() {
 
   if (!loggedInLoaded || (loggedIn && !startupLoaded)) {
     return (
-      <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.fillAbsolute}>
+      <Kb.Box2 alignSelf="center" direction="vertical" style={Kb.Styles.globalStyles.fillAbsolute}>
         <SimpleLoading />
       </Kb.Box2>
     )

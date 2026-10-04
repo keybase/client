@@ -23,7 +23,7 @@ const UnknownMentionPopup = (props: PopupProps) => {
   const styles = useStyles()
   const {attachTo, onHidden, onResolve, text, visible} = props
   const header = (
-    <Kb.Box2 direction="vertical" gap="tiny" padding="tiny" style={styles.popupContainer} gapStart={true}>
+    <Kb.Box2 alignSelf="center" direction="vertical" gap="tiny" padding="tiny" style={styles.popupContainer} gapStart={true}>
       <Kb.Text type="BodySemibold">User or team?</Kb.Text>
       <Kb.Text type="BodySmall">
         {text} could be either a user or team. You can find out with a quick request to Keybase.
@@ -100,7 +100,7 @@ const UnknownMention = (props: Props) => {
       {popups}
     </>
   ) : (
-    <Kb.Box2
+    <Kb.Box2 alignSelf="center"
       direction="horizontal"
       style={styles.container}
       onMouseOver={handleMouseOver}

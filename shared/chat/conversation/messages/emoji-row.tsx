@@ -138,7 +138,7 @@ function EmojiRowContainer(p: OwnProps) {
   const _showPicker = () => _setShowingPicker(true)
   const _hidePicker = () => _setShowingPicker(false)
   return (
-    <Kb.Box2
+    <Kb.Box2 alignSelf="center"
       direction="horizontal"
       ref={popupAnchor}
       style={Kb.Styles.collapseStyles([
@@ -150,14 +150,14 @@ function EmojiRowContainer(p: OwnProps) {
       ])}
       className={className}
     >
-      <Kb.Box2 direction="horizontal" gap="tiny">
+      <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny">
         {emojis.map(e => (
           <HoverEmoji emoji={e} key={e.name} onClick={() => onReact(e.name)} />
         ))}
       </Kb.Box2>
-      <Kb.Box2 direction="horizontal">
+      <Kb.Box2 alignSelf="center" direction="horizontal">
         <Kb.Divider style={styles.divider} vertical={true} />
-        <Kb.ClickableBox
+        <Kb.ClickableBox alignSelf="center"
           direction="vertical"
           className="hover_container"
           onClick={hasMessageID ? _showPicker : undefined}
@@ -167,7 +167,7 @@ function EmojiRowContainer(p: OwnProps) {
           <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reacji" />
         </Kb.ClickableBox>
         {!!onReply && (
-          <Kb.ClickableBox
+          <Kb.ClickableBox alignSelf="center"
             direction="vertical"
             className="hover_container"
             onClick={onReply}
@@ -178,7 +178,7 @@ function EmojiRowContainer(p: OwnProps) {
           </Kb.ClickableBox>
         )}
         {!!onForward && (
-          <Kb.ClickableBox
+          <Kb.ClickableBox alignSelf="center"
             direction="vertical"
             className="hover_container"
             onClick={onForward}
@@ -215,7 +215,7 @@ const HoverEmoji = (props: {emoji: T.RPCGen.UserReacji; onClick: () => void}) =>
   const _setHovering = () => setHovering(true)
   const _setNotHovering = () => setHovering(false)
   return (
-    <Kb.ClickableBox
+    <Kb.ClickableBox alignSelf="center"
       direction="horizontal"
       centerChildren={true}
       onClick={props.onClick}

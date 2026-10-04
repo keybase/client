@@ -121,7 +121,7 @@ const FsNavHeaderTitleInner = (props: Props) => {
         Files
       </Kb.Text>
     ) : (
-      <Kb.Box2 direction="vertical" style={styles.container}>
+      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.container}>
         <Breadcrumb {...props} />
         <MainTitle {...props} />
       </Kb.Box2>

@@ -19,8 +19,8 @@ const ConfirmWarning = (props: Props) => {
   const [enabled, setEnabled] = React.useState(false)
 
   return (
-    <Kb.Box2 direction="vertical" alignItems="center" style={styles.container}>
-      <Kb.Box2 direction="vertical" style={styles.iconBox}>
+    <Kb.Box2 alignSelf="center" direction="vertical" alignItems="center" style={styles.container}>
+      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.iconBox}>
         {props.icon}
       </Kb.Box2>
       <Kb.Text center={true} type="Header" style={styles.header}>
@@ -35,7 +35,7 @@ const ConfirmWarning = (props: Props) => {
         style={styles.checkbox}
         label=""
         labelComponent={
-          <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.label}>
+          <Kb.Box2 alignSelf="center" direction="vertical" alignItems="flex-start" style={styles.label}>
             {props.checkboxLabel}
           </Kb.Box2>
         }

@@ -54,7 +54,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
         type={isMobile ? 'icon-skull-64' : 'icon-skull-48'}
         style={{height: Kb.Styles.globalMargins.xlarge, margin: Kb.Styles.globalMargins.medium}}
       />
-      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.textIntro}>
+      <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} style={styles.textIntro}>
         <Kb.Text type="BodySemibold" negative={true}>
           <Kb.ConnectedUsernames
             type="BodySemiboldLink"
@@ -81,7 +81,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
           If you want to let them into this folder and the matching chat, you should either:
         </Kb.Text>
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" style={styles.listTextContainer} gap="tiny" gapStart={true} justifyContent="center">
+      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.listTextContainer} gap="tiny" gapStart={true} justifyContent="center">
         <Kb.Text type="BodySemibold" negative={true}>
           1. Be satisfied with their new proofs, or
         </Kb.Text>
@@ -89,14 +89,14 @@ const ConnectedBanner = (ownProps: OwnProps) => {
           2. Know them outside Keybase and have gotten a thumbs up from them.
         </Kb.Text>
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.textDontLetThemIn}>
+      <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} style={styles.textDontLetThemIn}>
         <Kb.Text type="BodySemibold" negative={true}>
           {"Don't let them in until one of those is true."}
         </Kb.Text>
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" gap="small">
+      <Kb.Box2 alignSelf="center" direction="vertical" gap="small">
         {resetParticipants.map(p => (
-          <Kb.Box2 direction={isMobile ? 'vertical' : 'horizontal'} key={p} gap="tiny">
+          <Kb.Box2 alignSelf="center" direction={isMobile ? 'vertical' : 'horizontal'} key={p} gap="tiny">
             <Kb.Button
               mode="Secondary"
               label={'View ' + p + "'s profile"}

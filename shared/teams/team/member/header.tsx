@@ -89,9 +89,9 @@ export const TeamMemberHeader = (props: Props) => {
             alignItems="flex-end"
             style={styles.headerTextContainer}
           >
-            <Kb.Box2 direction="horizontal" gap="small">
+            <Kb.Box2 alignSelf="center" direction="horizontal" gap="small">
               <Kb.Avatar size={64} username={username} onClick={onViewProfile} />
-              <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.headerText}>
+              <Kb.Box2 alignSelf="center" direction="vertical" alignItems="flex-start" style={styles.headerText}>
                 <Kb.ConnectedUsernames type="Header" usernames={username} onUsernameClicked={onViewProfile} />
                 {!!member.fullName && (
                   <Kb.Text type="BodySemibold" lineClamp={1}>

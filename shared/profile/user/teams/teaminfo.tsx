@@ -39,7 +39,7 @@ const TeamInfo = (props: Props) => {
       visible={props.visible}
       propagateOutsideClicks={true}
       header={
-        <Kb.Box2
+        <Kb.Box2 alignSelf="center"
           centerChildren={true}
           direction="vertical"
           gap="tiny"

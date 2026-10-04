@@ -73,7 +73,7 @@ const RoleRow = (p: RoleRowProps) => {
           {p.title}
         </Kb.Text>
       </Kb.Box2>
-      <Kb.Box2 style={styles.rowBody} direction="vertical" gap="xxtiny" gapStart={true}>
+      <Kb.Box2 alignSelf="center" style={styles.rowBody} direction="vertical" gap="xxtiny" gapStart={true}>
         {!p.disabledReason && p.body}
       </Kb.Box2>
     </Kb.Box2>
@@ -243,7 +243,7 @@ const roleAbilities = (
 const Header = () => {
   const styles = useStyles()
   return (
-    <Kb.Box2 direction="horizontal" style={styles.header}>
+    <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.header}>
       <Kb.Text type="Header">Pick a role</Kb.Text>
     </Kb.Box2>
   )
@@ -266,7 +266,7 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
     Role<IncludeSetIndividually>
   >
   return (
-    <Kb.Box2 direction="vertical" alignItems="stretch" style={styles.container} fullHeight={isMobile}>
+    <Kb.Box2 alignSelf={(isMobile) ? undefined : 'center'} direction="vertical" alignItems="stretch" style={styles.container} fullHeight={isMobile}>
       {!isMobile && <Header />}
       <Kb.ScrollView style={styles.innerScroll}>
         {roles.map(role => {
@@ -400,7 +400,7 @@ export function FloatingRolePicker<IncludeSetIndividually extends boolean = fals
   return (
     <>
       {children}
-      <Kb.Box2 direction="vertical" ref={popupAnchor} />
+      <Kb.Box2 alignSelf="center" direction="vertical" ref={popupAnchor} />
       {open && (
         <Kb.AnchoredPopup
           attachTo={popupAnchor}
@@ -409,7 +409,7 @@ export function FloatingRolePicker<IncludeSetIndividually extends boolean = fals
           hideKeyboard={true}
         >
           <Kb.SafeAreaView>
-            <Kb.Box2 direction="vertical" fullHeight={isMobile} style={styles.opaqueContainer}>
+            <Kb.Box2 alignSelf={(isMobile) ? undefined : 'center'} direction="vertical" fullHeight={isMobile} style={styles.opaqueContainer}>
               {isMobile && (
                 <Kb.Box2
                   direction="horizontal"
@@ -421,7 +421,7 @@ export function FloatingRolePicker<IncludeSetIndividually extends boolean = fals
                     Cancel
                   </Kb.Text>
                   <Kb.Text type="BodyBig">Pick a role</Kb.Text>
-                  <Kb.Box2 direction="horizontal" style={styles.popupHeaderSide} />
+                  <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.popupHeaderSide} />
                 </Kb.Box2>
               )}
               {picker}

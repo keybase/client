@@ -53,7 +53,7 @@ const positionOf = (
       position={position}
       {...rest}
     >
-      <Box2 direction="vertical">content</Box2>
+      <Box2 alignSelf="center" direction="vertical">content</Box2>
     </RelativeFloatingBox>
   )
   const modalRoot = document.getElementById('modal-root')!
@@ -171,7 +171,7 @@ describe('RelativeFloatingBox positioning', () => {
         onClosePopup={() => {}}
         position="bottom left"
       >
-        <Box2 direction="vertical">content</Box2>
+        <Box2 alignSelf="center" direction="vertical">content</Box2>
       </RelativeFloatingBox>
     )
     expect(container.innerHTML).toBe('')

@@ -59,7 +59,7 @@ const LocationMap = (props: Props) => {
   )
 
   if (!isMobile) {
-    return <Kb.Box2 direction="vertical" style={styles.outer}>{inner}</Kb.Box2>
+    return <Kb.Box2 alignSelf="center" direction="vertical" style={styles.outer}>{inner}</Kb.Box2>
   }
   return inner
 }

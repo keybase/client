@@ -55,7 +55,7 @@ const Row = (p: {account: Account}) => {
         padding="tiny"
         alignItems="flex-start"
       >
-        <Kb.Box2
+        <Kb.Box2 alignSelf="center"
           direction="horizontal"
           alignItems="center"
           gap={isMobile ? undefined : 'tiny'}
