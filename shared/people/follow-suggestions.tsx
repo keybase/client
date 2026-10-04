@@ -1,5 +1,6 @@
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const horizontalScrollProps = isMobile ? ({alwaysBounceHorizontal: false, horizontal: true} as const) : {}
 
@@ -19,6 +20,7 @@ const FollowSuggestions = (props: Props) => {
       <Kb.ScrollView
         {...horizontalScrollProps}
         contentContainerStyle={styles.scrollViewContainer}
+        testID={TestIDs.PEOPLE_FOLLOW_SUGGESTIONS}
       >
         {props.suggestions.map(suggestion => (
           <Kb.NameWithIcon

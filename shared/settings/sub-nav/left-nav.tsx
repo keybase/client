@@ -52,6 +52,7 @@ const LeftNav = (props: Props) => {
       )}
       <SettingsItem
         text="Account"
+        testID={TestIDs.SETTINGS_ROW_ACCOUNT}
         selected={props.selected === Settings.settingsAccountTab}
         type={Settings.settingsAccountTab}
         onClick={props.onClick}
@@ -59,12 +60,14 @@ const LeftNav = (props: Props) => {
       />
       <SettingsItem
         text="Advanced"
+        testID={TestIDs.SETTINGS_ROW_ADVANCED}
         type={Settings.settingsAdvancedTab}
         selected={props.selected === Settings.settingsAdvancedTab}
         onClick={props.onClick}
       />
       <SettingsItem
         text="Backup"
+        testID={TestIDs.SETTINGS_ROW_ARCHIVE}
         type={Settings.settingsArchiveTab}
         selected={props.selected === Settings.settingsArchiveTab}
         onClick={props.onClick}
@@ -86,12 +89,14 @@ const LeftNav = (props: Props) => {
       )}
       <SettingsItem
         text="Display"
+        testID={TestIDs.SETTINGS_ROW_DISPLAY}
         type={Settings.settingsDisplayTab}
         selected={props.selected === Settings.settingsDisplayTab}
         onClick={props.onClick}
       />
       <SettingsItem
         text="Feedback"
+        testID={TestIDs.SETTINGS_ROW_FEEDBACK}
         type={Settings.settingsFeedbackTab}
         selected={props.selected === Settings.settingsFeedbackTab}
         onClick={props.onClick}
@@ -106,6 +111,7 @@ const LeftNav = (props: Props) => {
       <SettingsItem
         badgeNumber={badgeNotifications}
         text="Notifications"
+        testID={TestIDs.SETTINGS_ROW_NOTIFICATIONS}
         type={Settings.settingsNotificationsTab}
         selected={props.selected === Settings.settingsNotificationsTab}
         onClick={props.onClick}
@@ -113,6 +119,7 @@ const LeftNav = (props: Props) => {
       {!Kb.Styles.isTablet && (
         <SettingsItem
           text="Screen protector"
+          testID={TestIDs.SETTINGS_ROW_SCREENPROTECTOR}
           type={Settings.settingsScreenprotectorTab}
           selected={props.selected === Settings.settingsScreenprotectorTab}
           onClick={props.onClick}
@@ -120,6 +127,7 @@ const LeftNav = (props: Props) => {
       )}
       <SettingsItem
         text="Wallet"
+        testID={TestIDs.SETTINGS_ROW_WALLET}
         type={Settings.settingsWalletsTab}
         selected={props.selected === Settings.settingsWalletsTab}
         onClick={props.onClick}
@@ -127,6 +135,7 @@ const LeftNav = (props: Props) => {
       {__DEV__ && (
         <SettingsItem
           text="Typography"
+          testID={TestIDs.SETTINGS_ROW_TYPOGRAPHY}
           type={Settings.settingsTypographyTab}
           selected={props.selected === Settings.settingsTypographyTab}
           onClick={props.onClick}
@@ -135,6 +144,7 @@ const LeftNav = (props: Props) => {
       {__DEV__ && (
         <SettingsItem
           text="Icons"
+          testID={TestIDs.SETTINGS_ROW_ICONS}
           type={Settings.settingsIconsTab}
           selected={props.selected === Settings.settingsIconsTab}
           onClick={props.onClick}
@@ -143,6 +153,7 @@ const LeftNav = (props: Props) => {
       {__DEV__ && (
         <SettingsItem
           text="Markdown"
+          testID={TestIDs.SETTINGS_ROW_MARKDOWN}
           type={Settings.settingsMarkdownTab}
           selected={props.selected === Settings.settingsMarkdownTab}
           onClick={props.onClick}
@@ -151,6 +162,7 @@ const LeftNav = (props: Props) => {
       <Kb.Divider />
       <SettingsItem
         text="About"
+        testID={TestIDs.SETTINGS_ROW_ABOUT}
         type={Settings.settingsAboutTab}
         selected={props.selected === Settings.settingsAboutTab}
         onClick={props.onClick}

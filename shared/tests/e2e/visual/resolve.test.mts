@@ -52,5 +52,14 @@ test('a missing channel fails loudly', async () => {
 })
 test('a nav without params passes through', async () => {
   const nav = {tab: 'tabs.chatTab'}
-  assert.equal(await resolveParams(nav, run), nav)
+  assert.deepEqual(await resolveParams(nav, run), nav)
+})
+test('the team folder and the smoke user resolve from the environment', async () => {
+  process.env['KB_SMOKE_USER'] = 'testuser'
+  const nav = {tab: 't', append: {name: 'x', params: {path: {ref: 'teamFolder' as const}, u: {ref: 'username' as const}}}}
+  assert.deepEqual((await resolveParams(nav, run)).append?.params, {path: '/keybase/team/testteam', u: 'testuser'})
+})
+test('a thread ref resolves to its conversation', async () => {
+  const nav = {tab: 'tabs.chatTab', thread: {ref: 'conversationIDKey' as const, channel: 'other'}}
+  assert.deepEqual(await resolveParams(nav, run), {tab: 'tabs.chatTab', thread: 'c-other'})
 })

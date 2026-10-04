@@ -11,7 +11,16 @@ import {homedir} from 'os'
 import {remote} from 'webdriverio'
 import {iosCapabilities, udidForName} from '../ios-appium/helpers/app.ts'
 import {evalInPage, inspectorPageFor} from '../shared/metro-eval.ts'
-import {fixDate, settle, waitFor, withDeadline, type Capture, type Prepared} from './driver-desktop.mts'
+import {
+  fixDate,
+  IDLE_QUIET_MS,
+  settle,
+  waitFor,
+  waitForQuiet,
+  withDeadline,
+  type Capture,
+  type Prepared,
+} from './driver-desktop.mts'
 import type {Rect} from './compare.mts'
 import {resolveParams} from './resolve.mts'
 import type {Theme, TourEntry, SetupStep} from './tour-types.ts'
@@ -44,6 +53,10 @@ const RESET_MS = 5_000
 const READY_MS = 10_000
 const SETUP_MS = 5_000
 const SETTLE = {deadlineMs: 5_000, intervalMs: 250}
+// The glass header buttons of a pushed screen fade their shadow out for about 2s after the push,
+// and two screenshots 250ms apart can match in the middle of it, so a capture waits for two that
+// match a second apart.
+const CAPTURE_SETTLE = {deadlineMs: 8_000, intervalMs: 1_000}
 
 export const appiumHome = () => process.env['APPIUM_HOME'] || `${homedir()}/.appium`
 export const appiumPort = () => Number(process.env['KB_APPIUM_PORT'] ?? 4723)
@@ -280,8 +293,12 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
   }
   // The glass tab bar's rendering depends on which tab was selected before (seen live: files after
   // chat differs from files after teams), so every capture arrives from the same tab.
+  // A screen the last capture pushed is popped on its own tab before leaving it: popped later, its
+  // pop would run on the target tab, under the capture, and the tab bar draws differently after it.
   const resetTo = async (tab: string) => {
     await appEval(`${ROUTER} r.clearModals()`, 'clearModals')
+    await appEval(`${ROUTER} r.popStack()`, 'popStack')
+    await waitFor('the current tab to be at its root', RESET_MS, async () => (await routerAt()).atRoot)
     await switchTo(tab === HOP_TAB ? HOP_TAB_ALT : HOP_TAB)
     await settle(screenshot, SETTLE)
     await switchTo(tab)
@@ -306,7 +323,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
   const waitForNoLoading = async () => {
     let busy: Array<string> = []
     try {
-      await waitFor('the waiting store to be idle', READY_MS, async () => {
+      await waitForQuiet('the waiting store to be idle', READY_MS, IDLE_QUIET_MS, async () => {
         busy = await appEval<Array<string>>(
           `return Array.from(globalThis.__ZUSTAND_HMR__.get('waiting').getState().counts.keys())`,
           'reading the waiting store'
@@ -486,17 +503,34 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
         )
         if (!ok) throw new Error(`navigateAppend ${append.name} did not navigate`)
       }
-      await byTestID(entry.ready).waitForDisplayed({
+      if (nav.thread) {
+        await appEval(`${ROUTER} r.navigateToThread(${JSON.stringify(nav.thread)}, 'misc')`, 'navigateToThread')
+      }
+      if (entry.setup?.length) {
+        await waitForNoLoading()
+        for (const s of entry.setup) await runStep(s)
+      }
+      // Exists, not displayed: XCUITest reports a container view that holds other elements (most
+      // screen roots) as not visible.
+      await byTestID(entry.ready).waitForExist({
         interval: 150,
         timeout: READY_MS,
-        timeoutMsg: `testID ${entry.ready} was not displayed after ${READY_MS / 1000}s`,
+        timeoutMsg: `testID ${entry.ready} did not appear after ${READY_MS / 1000}s`,
       })
       await waitForNoLoading()
-      for (const s of entry.setup ?? []) await runStep(s)
+      // An auto-focused input blinks its caret, so a capture could catch either phase. Desktop
+      // screenshots hide the caret; iOS can't, so the input loses focus instead.
+      await appEval(
+        `const m = kbModule('node_modules/react-native/Libraries/Components/TextInput/TextInputState.js')
+         const S = m.default ?? m
+         const focused = S.currentlyFocusedInput()
+         if (focused) S.blurTextInput(focused)`,
+        'blurring the focused input'
+      )
       const settled = await settle(async () => {
         png = await screenshot()
         return png
-      }, SETTLE)
+      }, CAPTURE_SETTLE)
       png = settled.png
       const masks = await maskRects(entry)
       const coverage = await coverageSince(seq)

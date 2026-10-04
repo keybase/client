@@ -2,7 +2,7 @@
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
 import {createRequire} from 'module'
-import {settle} from './driver-desktop.mts'
+import {settle, waitForQuiet} from './driver-desktop.mts'
 import {makePng, type PNGData} from './compare.mts'
 
 const {PNG} = createRequire(import.meta.url)('pngjs') as {PNG: {sync: {write: (p: PNGData) => Buffer}}}
@@ -29,5 +29,28 @@ test('a snapshot that throws fails the settle instead of hanging', async () => {
   await assert.rejects(
     settle(async () => Promise.reject(new Error('page gone')), {deadlineMs: 200, intervalMs: 1}),
     /page gone/
+  )
+})
+
+test('a quiet wait needs the check to hold for the whole window', async () => {
+  // idle, busy (a loader starting after the first reading), then idle for good
+  const readings = [true, false]
+  const start = Date.now()
+  let idleSince = 0
+  await waitForQuiet('idle', 2000, 300, async () => {
+    const r = readings.shift() ?? true
+    if (r && !idleSince) idleSince = Date.now()
+    if (!r) idleSince = 0
+    return Promise.resolve(r)
+  })
+  assert.ok(Date.now() - idleSince >= 300, 'returned before the check had held for 300ms')
+  assert.ok(Date.now() - start < 2000)
+})
+
+test('a quiet wait that never settles fails at its deadline', async () => {
+  let n = 0
+  await assert.rejects(
+    waitForQuiet('idle', 300, 200, async () => Promise.resolve(n++ % 2 === 0)),
+    /timed out after 0.3s waiting for idle/
   )
 })

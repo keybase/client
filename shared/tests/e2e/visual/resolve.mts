@@ -1,5 +1,7 @@
 // Replaces a Nav's ParamRefs with real values, read-only through the `keybase` CLI:
 //   teamname           KB_E2E_TEAM
+//   teamFolder         /keybase/team/<KB_E2E_TEAM>
+//   username           KB_SMOKE_USER
 //   teamID             `team list-memberships --json` -> {teams: [{team_id, fq_name, ...}]}
 //   conversationIDKey  `chat api -m '{"method":"list"}'` -> {result: {conversations: [{id,
 //                      channel: {name, topic_name, members_type}}]}}, matched on team and channel
@@ -51,6 +53,13 @@ const resolveRef = async (ref: ParamRef, run: CliRunner): Promise<string> => {
   switch (ref.ref) {
     case 'teamname':
       return teamname()
+    case 'teamFolder':
+      return `/keybase/team/${teamname()}`
+    case 'username': {
+      const u = process.env['KB_SMOKE_USER']
+      if (!u) throw new Error('resolving a username param needs KB_SMOKE_USER set in the environment')
+      return u
+    }
     case 'teamID': {
       const team = teamname()
       return cached(`teamID:${team}`, async () => {
@@ -81,12 +90,24 @@ const resolveRef = async (ref: ParamRef, run: CliRunner): Promise<string> => {
 
 const isRef = (v: unknown): v is ParamRef => !!v && typeof v === 'object' && 'ref' in v
 
-export async function resolveParams(nav: Nav, run: CliRunner = runCli): Promise<Nav> {
-  const append = nav.append
-  if (!append?.params) return nav
-  const params: Record<string, string | number | boolean> = {}
-  for (const [k, v] of Object.entries(append.params)) {
-    params[k] = isRef(v) ? await resolveRef(v, run) : v
+export type ResolvedNav = {
+  tab: string
+  append?: {name: string; params?: Record<string, string | number | boolean>}
+  thread?: string
+}
+
+export async function resolveParams(nav: Nav, run: CliRunner = runCli): Promise<ResolvedNav> {
+  const {append, thread} = nav
+  let params: Record<string, string | number | boolean> | undefined
+  if (append?.params) {
+    params = {}
+    for (const [k, v] of Object.entries(append.params)) {
+      params[k] = isRef(v) ? await resolveRef(v, run) : v
+    }
   }
-  return {...nav, append: {...append, params}}
+  return {
+    tab: nav.tab,
+    ...(append ? {append: {name: append.name, ...(params ? {params} : {})}} : {}),
+    ...(thread ? {thread: await resolveRef(thread, run)} : {}),
+  }
 }
