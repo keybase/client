@@ -31,7 +31,7 @@ const Display = () => {
   return (
     <Kb.ScrollView style={Kb.Styles.globalStyles.fullWidth} testID={TestIDs.SETTINGS_DISPLAY}>
       <Kb.Box2 direction="vertical" fullWidth={true} flex={1} padding="small" gap="medium">
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+        <Kb.Box2 direction="vertical" gap="tiny">
           <Kb.Text type="Header">Appearance</Kb.Text>
           {supported && (
             <Kb.RadioButton
@@ -51,7 +51,7 @@ const Display = () => {
             onSelect={() => onSetDarkModePreference('alwaysLight')}
           />
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+        <Kb.Box2 direction="vertical" gap="tiny">
           <Kb.Text type="Header">Emoji</Kb.Text>
           <Kb.Checkbox
             label="Allow animated emoji"
@@ -60,7 +60,7 @@ const Display = () => {
           />
         </Kb.Box2>
         {isElectron && (
-          <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+          <Kb.Box2 direction="vertical" gap="tiny">
             <Kb.Text type="Header">Navigation</Kb.Text>
             <Kb.Checkbox
               label="Force small navigation"

@@ -488,7 +488,7 @@ const Archive = () => {
   return (
     <Kb.ScrollView style={styles.scroll} testID={TestIDs.SETTINGS_ARCHIVE}>
       <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" style={styles.container}>
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+        <Kb.Box2 direction="vertical" gap="tiny">
           {isMobile ? null : <Kb.Text type="Header">Archive</Kb.Text>}
           <Kb.Box2 direction="vertical" flex={1} style={styles.jobs} fullWidth={true} alignItems="center">
             <Kb.Text type="BodySmall">
@@ -498,7 +498,7 @@ const Archive = () => {
             </Kb.Text>
           </Kb.Box2>
           {isMobile ? (
-            <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" gap="xtiny">
+            <Kb.Box2 direction="vertical" alignItems="center" gap="xtiny">
               <ArchiveButtonRow>
                 <Kb.Button small={isMobile} label="Backup all chat" onClick={archiveChat} />
                 <Kb.Button small={isMobile} label="Backup all files" onClick={archiveFS} />
@@ -515,7 +515,7 @@ const Archive = () => {
             </ArchiveButtonRow>
           )}
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+        <Kb.Box2 direction="vertical" gap="tiny">
           <Kb.Text type="Header">Active backup jobs</Kb.Text>
           {chatJobsList.length + kbfsJobsList.length ? (
             <Kb.Box2 direction="vertical" flex={1} style={styles.jobs} fullWidth={true}>
