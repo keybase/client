@@ -43,17 +43,42 @@ const tryLink = (info: LockInfo): boolean => {
   }
 }
 
-export const acquireLock = (cmd: string): (() => void) => {
+// Moves the lock aside (atomic) and removes it only if it is still the stale one seen: another
+// run may have cleared it and taken the lock in between, and that fresh lock is put back.
+export const clearStale = (stale: LockInfo | undefined) => {
+  const aside = `${lockPath()}.${process.pid}.stale`
+  try {
+    fs.renameSync(lockPath(), aside)
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code === 'ENOENT') return
+    throw e
+  }
+  try {
+    let moved: LockInfo | undefined
+    try {
+      moved = JSON.parse(fs.readFileSync(aside, 'utf8')) as LockInfo
+    } catch {}
+    if (moved && moved.pid !== stale?.pid) {
+      try {
+        fs.linkSync(aside, lockPath())
+      } catch {}
+      throw new Error(heldMessage(moved))
+    }
+  } finally {
+    fs.rmSync(aside, {force: true})
+  }
+}
+
+export const acquireLock =(cmd: string): (() => void) => {
   const info: LockInfo = {cmd, pid: process.pid, start: Date.now()}
   if (!tryLink(info)) {
     const held = readLock()
     if (held && isAlive(held.pid)) throw new Error(heldMessage(held))
+    clearStale(held)
     console.log(`cleared stale lock from pid ${held?.pid ?? 'unknown'}`)
-    fs.rmSync(lockPath(), {force: true})
-    if (!tryLink(info)) {
-      const winner = readLock()
-      throw new Error(winner ? heldMessage(winner) : 'visual gate lock contended')
-    }
+    const won = tryLink(info)
+    const owner = readLock()
+    if (!won || owner?.pid !== process.pid) throw new Error(owner ? heldMessage(owner) : 'visual gate lock contended')
   }
   let released = false
   const release = () => {
