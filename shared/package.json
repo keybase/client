@@ -83,7 +83,7 @@
     "test:e2e:android": "bash tests/e2e/run-android-appium.sh",
     "test:e2e:android:report": "node tests/e2e/generate-appium-report.mts android && open tests/results/android-appium-report.html",
     "test:unit": "napi-postinstall unrs-resolver 1.11.1 check; jest --runInBand",
-    "visual:unit": "node --test tests/e2e/visual/",
+    "visual:unit": "node --test tests/e2e/visual/ scripts/codemods/",
     "visual:base": "node tests/e2e/visual/cli.mts base",
     "visual:check": "node tests/e2e/visual/cli.mts check",
     "visual:gate": "node tests/e2e/visual/cli.mts gate",
