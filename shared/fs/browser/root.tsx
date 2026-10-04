@@ -76,6 +76,13 @@ const canonRecentItem = (name: string, tlfType: T.FS.TlfType): SectionListItem =
   return item
 }
 
+// Newest first; TLFs touched at the same time keep a stable order by name instead of whatever order
+// the service listed them in.
+export const newestTlfFirst = (
+  a: {name: string; tlfMtime: number},
+  b: {name: string; tlfMtime: number}
+) => b.tlfMtime - a.tlfMtime || a.name.localeCompare(b.name)
+
 const useTopNTlfs = (
   tlfType: T.FS.TlfType,
   tlfs: T.FS.TlfList,
@@ -88,7 +95,7 @@ const useTopNTlfs = (
   // TODO move these sorting to Go HOTPOT-433
   [...tlfs.values()]
     .filter(({isIgnored}) => !isIgnored)
-    .sort((tlf1, tlf2) => tlf2.tlfMtime - tlf1.tlfMtime)
+    .sort(newestTlfFirst)
     .slice(0, n)
     .map(({name, tlfMtime}) => ({
       name,
@@ -106,7 +113,7 @@ const useRecentTlfs = (
   const publicTopN = useTopNTlfs(T.FS.TlfType.Public, tlfs.public, n)
   const teamTopN = useTopNTlfs(T.FS.TlfType.Team, tlfs.team, n)
   const recent = [...privateTopN, ...publicTopN, ...teamTopN]
-    .sort(({tlfMtime: t1}, {tlfMtime: t2}) => t2 - t1)
+    .sort(newestTlfFirst)
     .map(({name, tlfType}) => canonRecentItem(name, tlfType))
   const afterFilter =
     // This isn't perfect since it doesn't cover the case where a team TLF
