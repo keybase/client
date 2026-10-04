@@ -66,7 +66,7 @@ export const readLastBase = (platform: RunPlatform): string | undefined => {
   }
 }
 
-export const readBaseMasks =(sha: string, platform: RunPlatform, theme: Theme, id: string): Array<Rect> => {
+export const readBaseMasks = (sha: string, platform: RunPlatform, theme: Theme, id: string): Array<Rect> => {
   try {
     return JSON.parse(fs.readFileSync(baseMasksPath(sha, platform, theme, id), 'utf8')) as Array<Rect>
   } catch (e) {

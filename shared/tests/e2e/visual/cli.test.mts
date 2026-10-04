@@ -9,7 +9,7 @@ import type {TourEntry} from './tour-types.ts'
 import type {Capture} from './driver-desktop.mts'
 import {makePng} from './compare.mts'
 process.env['KB_VISUAL_RESULTS'] = fs.mkdtempSync(path.join(os.tmpdir(), 'vcli-'))
-const {parseCommand, runCheck, runGate, checkBaseInfra} = await import('./cli.mts')
+const {parseCommand, runAa, runCheck, runGate, checkBaseInfra, realDeps} = await import('./cli.mts')
 const Store = await import('./store.mts')
 const {PNG} = createRequire(import.meta.url)('pngjs') as {PNG: {sync: {write: (p: unknown) => Buffer}}}
 
@@ -120,9 +120,16 @@ test('parseCommand: flags, themes and refusals', () => {
   assert.deepEqual(parseCommand(['--theme', 'dark']).themes, ['dark'])
   assert.deepEqual(parseCommand([]).themes, ['light', 'dark'])
   assert.equal(parseCommand(['--base', 'HEAD~1']).base, 'HEAD~1')
+  assert.equal(parseCommand(['--base=HEAD~1']).base, 'HEAD~1')
   assert.throws(() => parseCommand(['--ios', '--theme', 'dark']), /iOS captures are light only/)
   assert.throws(() => parseCommand(['--themes', 'sepia']), /unknown theme sepia/)
   assert.throws(() => parseCommand(['--bogus']), /bogus/)
+})
+
+test('check and gate resolve the --base the command was given, in either spelling', async () => {
+  for (const argv of [['tab/*', '--base=no-such-ref-for-visual-test'], ['tab/*', '--base', 'no-such-ref-for-visual-test']]) {
+    await assert.rejects(realDeps(parseCommand(argv)).baseSha(), /cannot resolve the base no-such-ref-for-visual-test/)
+  }
 })
 
 test('checkBaseInfra refuses a base without the visual driver or launch-app --visual', () => {
@@ -130,13 +137,48 @@ test('checkBaseInfra refuses a base without the visual driver or launch-app --vi
   const launch = 'shared/tests/e2e/electron/launch-app.mts'
   const driver = 'shared/tests/e2e/visual/driver-desktop.mts'
   const ok = {[driver]: 'x', [launch]: "const visual = process.argv.includes('--visual')\nconst coverage = process.argv.includes('--coverage')"}
-  assert.doesNotThrow(() => checkBaseInfra('abc', files(ok), {coverage: true}))
-  assert.throws(() => checkBaseInfra('abc', files({[launch]: ok[launch]!}), {coverage: false}), /abc has no visual gate .*--base <ref>/s)
-  assert.throws(() => checkBaseInfra('abc', files({[driver]: 'x', [launch]: 'old'}), {coverage: false}), /--base <ref>/)
+  const desktop = (coverage: boolean) => ({coverage, ios: false})
+  assert.doesNotThrow(() => checkBaseInfra('abc', files(ok), desktop(true)))
+  assert.throws(() => checkBaseInfra('abc', files({[launch]: ok[launch]!}), desktop(false)), /abc has no visual gate .*--base <ref>/s)
+  assert.throws(() => checkBaseInfra('abc', files({[driver]: 'x', [launch]: 'old'}), desktop(false)), /--base <ref>/)
   assert.throws(
-    () => checkBaseInfra('abc', files({[driver]: 'x', [launch]: "process.argv.includes('--visual')"}), {coverage: true}),
+    () => checkBaseInfra('abc', files({[driver]: 'x', [launch]: "process.argv.includes('--visual')"}), desktop(true)),
     /--coverage/
   )
+})
+
+test('checkBaseInfra on iOS needs the iOS driver, and the babel coverage hook for --coverage', () => {
+  const files = (m: Record<string, string>) => (p: string) => m[p]
+  const iosDriver = 'shared/tests/e2e/visual/driver-ios.mts'
+  const babel = 'shared/babel.config.js'
+  const ios = (coverage: boolean) => ({coverage, ios: true})
+  // the desktop pieces are not what iOS needs
+  assert.doesNotThrow(() => checkBaseInfra('abc', files({[iosDriver]: 'x'}), ios(false)))
+  assert.throws(() => checkBaseInfra('abc', files({}), ios(false)), /abc has no visual gate infra \(.*driver-ios\.mts\).*--base <ref>/)
+  assert.doesNotThrow(() => checkBaseInfra('abc', files({[babel]: "process.env.KB_VISUAL_COVERAGE === '1'", [iosDriver]: 'x'}), ios(true)))
+  assert.throws(() => checkBaseInfra('abc', files({[babel]: 'module.exports = {}', [iosDriver]: 'x'}), ios(true)), /coverage hook in shared\/babel\.config\.js.*--coverage/)
+})
+
+test('aa: an unstable first capture fails the pair even when the second matches it', async () => {
+  const lines: Array<string> = []
+  let n = 0
+  const capture = async (): Promise<Capture> => ({coverage: null, masks: [], png: pngOf(false), status: n++ === 0 ? 'unstable' : 'ok'})
+  const code = await runAa(deps({capture, log: (l: string) => lines.push(l)}), ['tab/chat', '--theme', 'light'])
+  assert.equal(code, 1)
+  assert.match(lines[0]!, /^✗ tab\/chat desktop light round 1 unstable/)
+  assert.match(lines.at(-1)!, /^✗ 1 of 2 pairs differ/)
+})
+
+test('aa: equal pairs pass; a seal change during the run voids it', async () => {
+  const ok = async (): Promise<Capture> => ({coverage: null, masks: [], png: pngOf(false), status: 'ok'})
+  const lines: Array<string> = []
+  assert.equal(await runAa(deps({capture: ok, log: (l: string) => lines.push(l)}), ['tab/chat', '--theme', 'light']), 0)
+  assert.equal(lines.at(-1), '✓ all 2 pairs equal')
+  let s = 0
+  const readSeal = async () => ({fields: {inbox: [s++]}, hash: 'h', newestMessageMs: 0, takenAt: 1})
+  lines.length = 0
+  assert.equal(await runAa(deps({capture: ok, log: (l: string) => lines.push(l), readSeal}), ['tab/chat', '--theme', 'light']), 1)
+  assert.match(lines.join('\n'), /aa void: the account changed during the run: inbox\[0\]: 0 → 1/)
 })
 
 const pngOf = (paint: boolean) => {

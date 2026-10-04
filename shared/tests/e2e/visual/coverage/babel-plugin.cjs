@@ -66,3 +66,5 @@ module.exports = function kbVisualCoverage({types: t}) {
     visitor: {},
   }
 }
+// changed-sites.mts skips the same files
+module.exports.skipped = skipped
