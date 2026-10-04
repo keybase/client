@@ -226,13 +226,13 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     return (
       <Kb.Box2 alignItems="flex-start" direction="vertical" fullWidth={true} style={styles.backgroundWhite}>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.outerBoxMobile}>
-          <Kb.Box2 direction="horizontal" gap="tiny">
+          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
             {avatar}
             {topDescriptors}
           </Kb.Box2>
           {bottomDescriptorsAndButtons}
           {yourOperations.manageMembers && (
-            <Kb.Box2 direction="horizontal">
+            <Kb.Box2 direction="horizontal" fullWidth={true}>
               {addInviteAndLinkBox}
             </Kb.Box2>
           )}

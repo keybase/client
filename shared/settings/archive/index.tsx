@@ -498,7 +498,7 @@ const Archive = () => {
             </Kb.Text>
           </Kb.Box2>
           {isMobile ? (
-            <Kb.Box2 direction="vertical" alignItems="center" gap="xtiny">
+            <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" gap="xtiny">
               <ArchiveButtonRow>
                 <Kb.Button small={isMobile} label="Backup all chat" onClick={archiveChat} />
                 <Kb.Button small={isMobile} label="Backup all files" onClick={archiveFS} />
