@@ -20,13 +20,13 @@ const BigButton = ({onClick, icon, mainText, subText, waiting}: BigButtonProps) 
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
   return (
-    <Kb.ClickableBox
+    <Kb.ClickableBox alignSelf="center"
       onClick={waiting ? undefined : onClick}
       direction={isMobile ? 'horizontal' : 'vertical'}
       style={styles.bigButton}
       className="hover_background_color_blueLighter2"
     >
-        <Kb.Box2
+        <Kb.Box2 alignSelf="center"
           direction="horizontal"
           centerChildren={true}
           style={Kb.Styles.collapseStyles([styles.buttonIcon, waiting && Kb.Styles.globalStyles.opacity0])}
@@ -34,7 +34,7 @@ const BigButton = ({onClick, icon, mainText, subText, waiting}: BigButtonProps) 
         >
           <Kb.IconAuto type={icon} sizeType="Big" color={theme.blue} />
         </Kb.Box2>
-        <Kb.Box2
+        <Kb.Box2 alignSelf="center"
           direction="vertical"
           style={Kb.Styles.collapseStyles([styles.buttonText, waiting && Kb.Styles.globalStyles.opacity0])}
         >
@@ -42,7 +42,7 @@ const BigButton = ({onClick, icon, mainText, subText, waiting}: BigButtonProps) 
           <Kb.Text type="BodySmall">{subText}</Kb.Text>
         </Kb.Box2>
         {waiting && (
-          <Kb.Box2 direction="vertical" style={styles.bigButtonWaiting} centerChildren={true}>
+          <Kb.Box2 alignSelf="center" direction="vertical" style={styles.bigButtonWaiting} centerChildren={true}>
             <Kb.ProgressIndicator />
           </Kb.Box2>
         )}
@@ -74,7 +74,7 @@ const Troubleshooting = (props: Props) => {
           fullHeight={true}
           flex={1}
         >
-          <Kb.Box2 direction="horizontal" flex={1} style={styles.headerSide}>
+          <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} style={styles.headerSide}>
             {isMobile ? (
               <Kb.Text type="BodySemiboldLink" onClick={onBack}>
                 Back
@@ -84,11 +84,11 @@ const Troubleshooting = (props: Props) => {
           <Kb.Text type={isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
             Troubleshooting
           </Kb.Text>
-          <Kb.Box2 direction="horizontal" flex={1} style={styles.headerSide} />
+          <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} style={styles.headerSide} />
         </Kb.Box2>
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" gap="small" alignItems="center">
-        <Kb.Box2 direction="vertical" style={styles.bodyMargins}>
+      <Kb.Box2 alignSelf="center" direction="vertical" gap="small" alignItems="center">
+        <Kb.Box2 alignSelf="center" direction="vertical" style={styles.bodyMargins}>
           <Kb.Text type="Body" center={true}>
             This appears to be a new {isMobile ? 'phone' : 'computer'}. Perhaps you restored from a
             {
@@ -100,7 +100,7 @@ const Troubleshooting = (props: Props) => {
             How do you want to proceed?
           </Kb.Text>
         </Kb.Box2>
-        <Kb.Box2
+        <Kb.Box2 alignSelf="center"
           direction={isMobile ? 'vertical' : 'horizontal'}
           style={styles.buttonBar}
           gap="xsmall"

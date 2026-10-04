@@ -47,7 +47,7 @@ const TLFContainer = (p: OwnProps) => {
   )
 
   const avatar = (
-    <Kb.Box2 direction="horizontal" style={styles.avatarBox}>
+    <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.avatarBox}>
       {FS.isTeamPath(path) ? (
         <Kb.Avatar size={32} isTeam={true} teamname={usernames[0]} />
       ) : (

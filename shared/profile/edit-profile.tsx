@@ -93,7 +93,7 @@ const EditProfile = () => {
             hideBorder={true}
           />
         </Kb.RoundedBox>
-        <Kb.Box2 direction="vertical" flex={1} style={styles.gap} />
+        <Kb.Box2 alignSelf="center" direction="vertical" flex={1} style={styles.gap} />
         <Kb.WaitingButton
           waitingKey={C.waitingKeyTracker}
           label="Save"

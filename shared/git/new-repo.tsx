@@ -30,7 +30,7 @@ const NewTeamItem = () => {
 const TeamItem = (p: {teamname: string}) => {
   const styles = useStyles()
   return (
-    <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" style={styles.avatarBox}>
+    <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" gap="tiny" style={styles.avatarBox}>
       <Kb.Avatar isTeam={true} teamname={p.teamname} size={16} />
       <Kb.Text type="Header" style={styles.teamName}>
         {p.teamname}

@@ -16,7 +16,7 @@ const CoinFlipParticipants = (props: Props) => {
   const howThisWorksUrlProps = Kb.useClickURL('https://keybase.io/coin-flip')
   const header = (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.container}>
+      <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} style={styles.container}>
         <Kb.Text type="BodySmall">{participants?.length ?? 0} participants</Kb.Text>
       </Kb.Box2>
       <Kb.Divider />
@@ -36,7 +36,7 @@ const CoinFlipParticipants = (props: Props) => {
         )) ?? null}
       </Kb.ScrollView>
       <Kb.Divider />
-      <Kb.Box2 direction="vertical" style={styles.container} centerChildren={true}>
+      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.container} centerChildren={true}>
         <Kb.Text type="BodySmallPrimaryLink" {...howThisWorksUrlProps}>
           How this works
         </Kb.Text>

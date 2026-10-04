@@ -28,7 +28,7 @@ const FsNavHeaderRightActionsInner = (props: Props) => {
   }, [setFolderViewFilter, props.path]) // clear if path changes or it's a new layer of mount
 
   return !hasSoftError ? (
-    <Kb.Box2 direction="horizontal" style={styles.container} centerChildren={true}>
+    <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.container} centerChildren={true}>
       <Kbfs.UploadButton path={props.path} style={styles.uploadButton} />
       {/* iOS uses the native header search bar instead; see ios-header.tsx */}
       {isIOS ? null : isMobile ? (

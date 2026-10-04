@@ -14,9 +14,9 @@ const TimelineMarker = (p: {first: boolean; last: boolean; closedCircle: boolean
   const {first, last, closedCircle} = p
   return (
     <Kb.Box2 direction="vertical" alignItems="center" alignSelf="stretch">
-      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.timelineLineTop, first && styles.invisible])} />
-      <Kb.Box2 direction="vertical" style={closedCircle ? styles.circleClosed : styles.circleOpen} />
-      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.timelineLineBottom, last && styles.invisible])} />
+      <Kb.Box2 alignSelf="center" direction="vertical" style={Kb.Styles.collapseStyles([styles.timelineLineTop, first && styles.invisible])} />
+      <Kb.Box2 alignSelf="center" direction="vertical" style={closedCircle ? styles.circleClosed : styles.circleOpen} />
+      <Kb.Box2 alignSelf="center" direction="vertical" style={Kb.Styles.collapseStyles([styles.timelineLineBottom, last && styles.invisible])} />
     </Kb.Box2>
   )
 }
@@ -31,7 +31,7 @@ const TimelineLabel = (p: {
   const styles = useStyles()
   const {desc, subDesc, subDescIsName, spacerOnBottom, testID} = p
   return (
-    <Kb.Box2 direction="vertical" alignItems="flex-start" testID={testID}>
+    <Kb.Box2 alignSelf="center" direction="vertical" alignItems="flex-start" testID={testID}>
       <Kb.Text type="Body">{desc}</Kb.Text>
       {!!subDesc && subDescIsName && (
         <Kb.Text type="BodySmall">
@@ -42,7 +42,7 @@ const TimelineLabel = (p: {
         </Kb.Text>
       )}
       {!!subDesc && !subDescIsName && <Kb.Text type="BodySmall">{subDesc}</Kb.Text>}
-      {spacerOnBottom && <Kb.Box2 direction="vertical" style={styles.timelineSpacer} />}
+      {spacerOnBottom && <Kb.Box2 alignSelf="center" direction="vertical" style={styles.timelineSpacer} />}
     </Kb.Box2>
   )
 }
@@ -78,7 +78,7 @@ const Timeline = (p: {device: T.Devices.Device}) => {
   ]
 
   return (
-    <Kb.Box2 direction="vertical">
+    <Kb.Box2 alignSelf="center" direction="vertical">
       {timeline.map(({type, desc, subDesc}, idx) => (
         <Kb.Box2 direction="horizontal" key={desc} gap="small" fullWidth={true}>
           <TimelineMarker

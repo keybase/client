@@ -82,7 +82,7 @@ const Waiting = ({endTime: routeEndTime, pipelineStarted, username}: Props) => {
           />
         }
       >
-        <Kb.Box2 direction="vertical" centerChildren={true} gap="small">
+        <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} gap="small">
           <Kb.Text type="Header" center={true}>
             {pipelineStarted ? `Check back in ${formattedTime}` : 'Check your email or phone.'}
           </Kb.Text>
@@ -92,16 +92,16 @@ const Waiting = ({endTime: routeEndTime, pipelineStarted, username}: Props) => {
               {formattedTime}. We will notify you once you can proceed with the reset.
             </Kb.Text>
           ) : (
-            <Kb.Box2 direction="vertical" centerChildren={true}>
+            <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true}>
               <Kb.Text type="Body" style={styles.mainText} center={true}>
                 We are sending instructions to your email address or phone number.
               </Kb.Text>
-              <Kb.Box2 direction="horizontal" centerChildren={true} relative={true}>
+              <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren={true} relative={true}>
                 <Kb.Text type="BodyPrimaryLink" onClick={sendAgainWaiting ? undefined : onSendAgain}>
                   Send again
                 </Kb.Text>
                 {sendAgainWaiting && (
-                  <Kb.Box2 direction="horizontal" style={styles.progressContainer} centerChildren={true}>
+                  <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.progressContainer} centerChildren={true}>
                     <Kb.ProgressIndicator />
                   </Kb.Box2>
                 )}

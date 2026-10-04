@@ -29,7 +29,7 @@ const KnowPassword = ({route}: Props) => {
       ]}
     >
       <QuestionBody icon={<Kb.Icon type="iconfont-password" color={theme.black} fontSize={24} />}>
-        <Kb.Box2 direction="vertical" centerChildren={true}>
+        <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true}>
           <Kb.Text type="Header" center={true}>
             Do you know your
           </Kb.Text>

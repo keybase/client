@@ -107,7 +107,7 @@ const MobileHeader = (props: Props) => {
         style={styles.userBox}
       >
         <Kb.Avatar username={props.username} onClick={props.onProfileClick} size={128} />
-        <Kb.Box2 direction="vertical" centerChildren={true}>
+        <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true}>
           <Kb.Text type="BodyBig" onClick={props.onProfileClick}>
             {props.username}
           </Kb.Text>

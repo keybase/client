@@ -67,7 +67,7 @@ function BackButton(props: Props) {
   const onBack = props.disabled ? noop : (props.onClick ?? onNavUp)
   return (
     <Pressable onPress={onBack} testID="backButton">
-      <Box2
+      <Box2 alignSelf="center"
         direction="horizontal"
         alignItems="center"
         style={Styles.collapseStyles([styles.container, props.style])}

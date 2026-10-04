@@ -122,7 +122,7 @@ const AssertionRow = (props: {assertion: T.Tracker.Assertion}) => {
     <Kb.Box2 direction="vertical" fullWidth={true} noShrink={true} style={styles.assertionRow}>
       <Kb.Box2 alignItems="flex-start" direction="horizontal" gap="tiny" fullWidth={true} gapStart={true} gapEnd={true}>
         {iconSet.length > 0 && (
-          <Kb.Box2
+          <Kb.Box2 alignSelf="center"
             direction="vertical"
             style={Kb.Styles.collapseStyles([
               styles.siteIcon,
@@ -205,7 +205,7 @@ const Tracker = (props: Props) => {
         <Kb.Icon type="iconfont-close" color={theme.black_20} onClick={props.onClose} style={styles.close} />
       </Kb.Box2>
       <Kb.ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
-        <Kb.Box2 direction="vertical">
+        <Kb.Box2 alignSelf="center" direction="vertical">
           <Kb.Text type="BodySmallSemibold" style={styles.reasonInvisible}>
             {props.reason}
           </Kb.Text>
@@ -217,7 +217,7 @@ const Tracker = (props: Props) => {
             centerChildren={true}
             gap="tiny"
           >
-            <Kb.Box2 direction="vertical" style={styles.avatarBackground} />
+            <Kb.Box2 alignSelf="center" direction="vertical" style={styles.avatarBackground} />
             <img
               src={avatarUrl(props.httpSrvAddress, props.httpSrvToken, props.trackerUsername, isDarkMode)}
               width={96}
@@ -258,7 +258,7 @@ const Tracker = (props: Props) => {
         </Kb.Box2>
       </Kb.ScrollView>
       {!!buttons.length && (
-        <Kb.Box2 gap="small" centerChildren={true} direction="horizontal" style={styles.buttons}>
+        <Kb.Box2 alignSelf="center" gap="small" centerChildren={true} direction="horizontal" style={styles.buttons}>
           {buttons}
         </Kb.Box2>
       )}

@@ -12,9 +12,9 @@ const Slice = (props: Props) => {
   const styleFilled = props.negative ? styles.filledNegative : styles.filledPositive
   const styleUnfilled = props.negative ? styles.unfilledNegative : styles.unfilledPositive
   return (
-    <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.container, ...(props.style ? [props.style] : [])])}>
-      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.wholeUnfilled, styleUnfilled])} />
-      <Kb.Box2
+    <Kb.Box2 alignSelf="center" direction="vertical" style={Kb.Styles.collapseStyles([styles.container, ...(props.style ? [props.style] : [])])}>
+      <Kb.Box2 alignSelf="center" direction="vertical" style={Kb.Styles.collapseStyles([styles.wholeUnfilled, styleUnfilled])} />
+      <Kb.Box2 alignSelf="center"
         direction="vertical"
         style={Kb.Styles.collapseStyles([
           styles.rotateContainer,
@@ -24,9 +24,9 @@ const Slice = (props: Props) => {
           }),
         ])}
       >
-        <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.leftFilled, styleFilled])} />
+        <Kb.Box2 alignSelf="center" direction="vertical" style={Kb.Styles.collapseStyles([styles.leftFilled, styleFilled])} />
       </Kb.Box2>
-      <Kb.Box2
+      <Kb.Box2 alignSelf="center"
         direction="vertical"
         style={Kb.Styles.collapseStyles(
           props.degrees <= 180 ? [styles.leftUnfilled, styleUnfilled] : [styles.rightFilled, styleFilled]

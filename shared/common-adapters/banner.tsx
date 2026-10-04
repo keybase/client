@@ -109,7 +109,7 @@ export const Banner = (props: BannerProps) => {
         props.style,
       ] as const)}
     >
-      <Box2
+      <Box2 alignSelf="center"
         key="textBox"
         direction="vertical"
         style={Styles.collapseStyles([
@@ -136,7 +136,7 @@ export const Banner = (props: BannerProps) => {
         )}
       </Box2>
       {!!props.onClose && (
-        <Box2 direction="vertical" key="iconBox" style={styles.iconContainer}>
+        <Box2 alignSelf="center" direction="vertical" key="iconBox" style={styles.iconContainer}>
           <Icon
             padding="xtiny"
             sizeType="Small"

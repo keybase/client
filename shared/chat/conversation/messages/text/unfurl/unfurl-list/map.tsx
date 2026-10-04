@@ -42,7 +42,7 @@ function UnfurlMap(p: {
   }
 
   return (
-    <Kb.Box2 direction="vertical">
+    <Kb.Box2 alignSelf="center" direction="vertical">
       <UnfurlImage
         url={imageURL}
         height={height}
@@ -57,7 +57,7 @@ function UnfurlMap(p: {
           style={Kb.Styles.collapseStyles([styles.liveLocation, {width: maxWidth}])}
           fullWidth={true}
         >
-          <Kb.Box2 direction="vertical">
+          <Kb.Box2 alignSelf="center" direction="vertical">
             <Kb.Text type="BodyTinySemibold" style={styles.fastStyle}>
               Live location
             </Kb.Text>

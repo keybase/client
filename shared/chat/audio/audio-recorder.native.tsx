@@ -67,7 +67,7 @@ const useTooltip = () => {
   const tooltip = showTooltip ? (
     <Portal hostName="convOverlay" useFullScreenOverlay={false}>
       <Animated.View style={animatedStyles}>
-        <Kb.Box2 direction="horizontal" style={styles.tooltipContainer}>
+        <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.tooltipContainer}>
           <Kb.Text type="BodySmall" negative={true}>
             Hold to record audio.
           </Kb.Text>
@@ -686,10 +686,10 @@ const LockHint = (props: {fadeSV: SVN; lockedSV: SVN; dragXSV: SVN; dragYSV: SVN
   })
   return (
     <>
-      <AnimatedBox2 direction="vertical" style={[styles.lockHintStyle, arrowStyle as Kb.Styles._StylesCrossPlatform]}>
+      <AnimatedBox2 alignSelf="center" direction="vertical" style={[styles.lockHintStyle, arrowStyle as Kb.Styles._StylesCrossPlatform]}>
         <Kb.Icon type="iconfont-arrow-up" sizeType="Tiny" />
       </AnimatedBox2>
-      <AnimatedBox2 direction="vertical" style={[styles.lockHintStyle, lockStyle as Kb.Styles._StylesCrossPlatform]}>
+      <AnimatedBox2 alignSelf="center" direction="vertical" style={[styles.lockHintStyle, lockStyle as Kb.Styles._StylesCrossPlatform]}>
         <Kb.Icon type="iconfont-lock" />
       </AnimatedBox2>
     </>
@@ -763,10 +763,10 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: 
 
   return (
     <>
-      <AnimatedBox2 direction="vertical" style={[styles.cancelHintStyle, arrowStyle as Kb.Styles._StylesCrossPlatform]}>
+      <AnimatedBox2 alignSelf="center" direction="vertical" style={[styles.cancelHintStyle, arrowStyle as Kb.Styles._StylesCrossPlatform]}>
         <Kb.Icon sizeType="Tiny" type={'iconfont-arrow-left'} />
       </AnimatedBox2>
-      <AnimatedBox2 direction="vertical" style={[styles.cancelHintStyle, closeStyle as Kb.Styles._StylesCrossPlatform]}>
+      <AnimatedBox2 alignSelf="center" direction="vertical" style={[styles.cancelHintStyle, closeStyle as Kb.Styles._StylesCrossPlatform]}>
         <Kb.Icon sizeType="Tiny" type={'iconfont-close'} color={theme.black_20} />
       </AnimatedBox2>
       <AnimatedText

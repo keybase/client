@@ -20,7 +20,7 @@ const IncomingShareHeaderLeft = () => {
 export const IncomingShareHeaderTitle = ({title}: {title?: string}) => {
   const {width} = useSafeAreaFrame()
   return (
-    <Kb.Box2 direction="vertical" centerChildren={true} style={{maxWidth: width - 240}}>
+    <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} style={{maxWidth: width - 240}}>
       {title ? (
         <Kb.Text type="BodyTiny" lineClamp={1}>
           {title}

@@ -15,7 +15,7 @@ const CommandMarkdown = () => {
   const {commandMarkdownMaxHeight} = React.useContext(ComposerBoxContext)
   const maxHeightStyle = isMobile ? {maxHeight: commandMarkdownMaxHeight} : undefined
   return (
-    <Kb.Box2
+    <Kb.Box2 alignSelf={(isMobile) ? undefined : 'center'}
       direction="vertical"
       fullWidth={isMobile}
       style={Kb.Styles.collapseStyles([styles.container, maxHeightStyle])}
@@ -27,7 +27,7 @@ const CommandMarkdown = () => {
         </Kb.Box2>
       )}
       <Kb.ScrollView style={styles.scrollContainer}>
-        <Kb.Box2 direction="vertical" style={styles.bodyContainer}>
+        <Kb.Box2 alignSelf="center" direction="vertical" style={styles.bodyContainer}>
           <Kb.Markdown selectable={true}>{body}</Kb.Markdown>
         </Kb.Box2>
       </Kb.ScrollView>

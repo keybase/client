@@ -51,7 +51,7 @@ const AudioVis = (props: VisProps) => {
       {content}
     </Kb.ScrollView>
   ) : (
-    <Kb.Box2
+    <Kb.Box2 alignSelf="center"
       direction="horizontal"
       style={{height: maxHeight, marginTop: Kb.Styles.globalMargins.xtiny, maxWidth: maxWidth}}
     >
@@ -98,12 +98,12 @@ const AudioPlayer = (props: Props) => {
 
   const timeLeft = duration - playedRatio * duration
   return (
-    <Kb.Box2
+    <Kb.Box2 alignSelf="center"
       direction="horizontal"
       style={Kb.Styles.collapseStyles([styles.container, {height: big ? 56 : 40}])}
       gap="tiny"
     >
-      <Kb.ClickableBox direction="vertical" justifyContent="center" onClick={url ? onClick : undefined}>
+      <Kb.ClickableBox alignSelf="center" direction="vertical" justifyContent="center" onClick={url ? onClick : undefined}>
         {isIOS ? (
           <SFSymbol
             name={paused ? 'play.fill' : 'pause.fill'}

@@ -186,8 +186,8 @@ function ExplodingMetaInner(p: ExplodingMetaInnerProps) {
   switch (m) {
     case 'countdown':
       children = (
-        <Kb.Box2 direction="horizontal" gap="xtiny">
-          <Kb.Box2
+        <Kb.Box2 alignSelf="center" direction="horizontal" gap="xtiny">
+          <Kb.Box2 alignSelf="center"
             className={Kb.Styles.classNames('explodingTimeContainer', 'tooltip-top-left')}
             direction="horizontal"
             tooltip="Exploding message"
@@ -230,7 +230,7 @@ function ExplodingMetaInner(p: ExplodingMetaInnerProps) {
   }
 
   return (
-    <Kb.ClickableBox direction="horizontal" relative={true} onClick={onClick} style={styles.container}>
+    <Kb.ClickableBox alignSelf="center" direction="horizontal" relative={true} onClick={onClick} style={styles.container}>
       {children}
     </Kb.ClickableBox>
   )

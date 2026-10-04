@@ -38,12 +38,12 @@ const VerifyBody = (props: BodyProps) => {
         containerStyle={styles.inputContainer2}
         inputStyle={styles.inputText2}
       />
-      <Kb.ClickableBox
+      <Kb.ClickableBox alignSelf="center"
         onClick={props.resendWaiting || resendDisabled ? undefined : onResend}
         direction="vertical"
         relative={true}
       >
-        <Kb.Box2
+        <Kb.Box2 alignSelf="center"
           alignItems="center"
           direction="horizontal"
           gap="tiny"
@@ -62,7 +62,7 @@ const VerifyBody = (props: BodyProps) => {
           </Kb.Text>
         </Kb.Box2>
         {props.resendWaiting && (
-          <Kb.Box2 direction="horizontal" style={styles.progressContainer} centerChildren={true}>
+          <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.progressContainer} centerChildren={true}>
             <Kb.ProgressIndicator type="Small" white={true} />
           </Kb.Box2>
         )}

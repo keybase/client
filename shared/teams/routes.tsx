@@ -72,7 +72,7 @@ const SubteamMembersHeaderRight = () => {
   )
   if (!isMobile) return null
   return (
-    <Kb.Box2 direction="horizontal" style={{width: 48}} justifyContent="flex-end">
+    <Kb.Box2 alignSelf="center" direction="horizontal" style={{width: 48}} justifyContent="flex-end">
       <Kb.Text type="BodyBigLink" onClick={onAction}>
         {title || 'Skip'}
       </Kb.Text>
@@ -89,7 +89,7 @@ const AddContactsHeaderRight = () => {
     C.useShallow(s => ({enabled: s.actionEnabled, onAction: s.onAction, waiting: s.actionWaiting}))
   )
   return (
-    <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.positionRelative}>
+    <Kb.Box2 alignSelf="center" direction="horizontal" style={Kb.Styles.globalStyles.positionRelative}>
       <Kb.Text
         type="BodyBigLink"
         onClick={!waiting && enabled ? onAction : undefined}

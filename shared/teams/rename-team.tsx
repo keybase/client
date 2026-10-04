@@ -62,7 +62,7 @@ const RenameTeam = (ownProps: OwnProps) => {
     <Kb.Box2 alignItems="center" direction="vertical" style={styles.container} fullWidth={true}>
       <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} gap="medium" gapStart={true}>
         <Kb.Avatar teamname={teamname} size={isMobile ? 64 : 48} />
-        <Kb.Box2 alignItems="center" direction="vertical" gap="tiny" style={styles.teamnameHeader}>
+        <Kb.Box2 alignSelf="center" alignItems="center" direction="vertical" gap="tiny" style={styles.teamnameHeader}>
           <Kb.Text type="BodySmall" center={true}>
             Subteam of {prefix}
           </Kb.Text>

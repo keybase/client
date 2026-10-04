@@ -76,7 +76,7 @@ const MessagePopupHeader = (props: Props) => {
           ENCRYPTED & SIGNED
         </Kb.Text>
       )}
-      <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} alignItems="center">
+      <Kb.Box2 alignSelf="center" direction="horizontal" gap="xtiny" gapStart={true} alignItems="center">
         <Kb.Avatar username={author} size={16} onClick="profile" />
         <Kb.ConnectedUsernames
           onUsernameClicked={onUsernameClicked}
@@ -89,7 +89,7 @@ const MessagePopupHeader = (props: Props) => {
         <Kb.Text type="BodySmallSemibold">{deviceName}</Kb.Text>
       </Kb.Box2>
       {botUsername && (
-        <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} alignItems="center">
+        <Kb.Box2 alignSelf="center" direction="horizontal" gap="xtiny" gapStart={true} alignItems="center">
           <Kb.Text type="BodySmall">also encrypted for</Kb.Text>
           <Kb.Avatar username={botUsername} size={16} onClick="profile" />
           <Kb.ConnectedUsernames

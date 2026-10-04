@@ -171,7 +171,7 @@ function FileContainer(p: OwnProps) {
           </Kb.Box2>
         )}
         {!!arrowColor && (
-          <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.downloadedIconWrapperStyle}>
+          <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren={true} style={styles.downloadedIconWrapperStyle}>
             <Kb.Icon type="iconfont-download" style={styles.downloadedIcon} color={arrowColor} />
           </Kb.Box2>
         )}

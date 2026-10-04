@@ -23,7 +23,7 @@ const TeamInviteRow = (props: Props) => {
       type="Small"
       icon={<Kb.Avatar username={isKeybaseUser ? label : '+'} size={32} />}
       body={
-        <Kb.Box2 direction="vertical" justifyContent="center">
+        <Kb.Box2 alignSelf="center" direction="vertical" justifyContent="center">
           <Kb.Text type="BodySemibold" lineClamp={1}>
             {label}
           </Kb.Text>

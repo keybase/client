@@ -76,7 +76,7 @@ function SeparatorConnector(p: Props) {
       pointerEvents="box-none"
       className="WrapperMessage-hoverColor"
     >
-      <Kb.Box2 key="orangeLine" direction="vertical" noShrink={true} style={styles.orangeLine}>
+      <Kb.Box2 alignSelf="center" key="orangeLine" direction="vertical" noShrink={true} style={styles.orangeLine}>
         {orangeTime ? (
           <Kb.Text type="BodyTiny" key="orangeLineLabel" style={styles.orangeLabel}>
             {orangeTime}

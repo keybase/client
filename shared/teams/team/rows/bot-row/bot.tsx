@@ -80,13 +80,13 @@ const TeamBotRow = (props: Props) => {
       alignItems="center"
       style={Kb.Styles.collapseStyles([styles.container, !active && styles.containerReset])}
     >
-        <Kb.Box2 direction="horizontal" alignItems="center" flex={1}>
+        <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" flex={1}>
           <Kb.Avatar
             username={props.username}
             size={isMobile ? 48 : 32}
             onClick={props.onOpenProfile}
           />
-          <Kb.Box2 direction="vertical" style={styles.nameContainer}>
+          <Kb.Box2 alignSelf="center" direction="vertical" style={styles.nameContainer}>
             {usernameDisplay}
             {descriptionLabel}
           </Kb.Box2>

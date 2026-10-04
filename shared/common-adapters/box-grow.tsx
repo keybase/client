@@ -19,7 +19,7 @@ const BoxGrowImpl = (p: Props & {direction: 'vertical' | 'horizontal'}) => {
       style={Styles.collapseStyles([direction === 'vertical' ? styles.outer : styles.outer2, style])}
       onLayout={onLayout}
     >
-      <Box2 direction={direction} style={styles.inner}>
+      <Box2 alignSelf="center" direction={direction} style={styles.inner}>
         {children}
       </Box2>
     </Box2>

@@ -12,7 +12,7 @@ const addSpacer = (into: string, add: string) => {
 const Badge = (p: {backgroundColor: string; menuItem?: boolean}) => {
   const styles = useStyles()
   return (
-    <Kb.Box2
+    <Kb.Box2 alignSelf="center"
       direction="vertical"
       style={Kb.Styles.collapseStyles([
         styles.badge,
@@ -81,7 +81,7 @@ const EmailPhoneRow = (p: {contactKey: string; onEmailVerificationSuccess: (emai
   })()
 
   const header = (
-    <Kb.Box2 direction="vertical" centerChildren={true} style={styles.menuHeader}>
+    <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} style={styles.menuHeader}>
       <Kb.Text type="BodySmallSemibold">{address}</Kb.Text>
       {primary && <Kb.Text type="BodySmall">Primary</Kb.Text>}
     </Kb.Box2>
@@ -139,7 +139,7 @@ const EmailPhoneRow = (p: {contactKey: string; onEmailVerificationSuccess: (emai
 
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.container}>
-      <Kb.Box2 alignItems="flex-start" direction="vertical" flex={1}>
+      <Kb.Box2 alignSelf="center" alignItems="flex-start" direction="vertical" flex={1}>
         <Kb.Text type="BodySemibold" selectable={true} lineClamp={1}>
           {address}
         </Kb.Text>
@@ -152,7 +152,7 @@ const EmailPhoneRow = (p: {contactKey: string; onEmailVerificationSuccess: (emai
       </Kb.Box2>
       {!!menuItems.length && (
         <>
-          <Kb.ClickableBox
+          <Kb.ClickableBox alignSelf="center"
             className="hover_container"
             onClick={showPopup}
             ref={popupAnchor}

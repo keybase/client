@@ -75,7 +75,7 @@ const TeamMemberRow = (props: Props) => {
   const body = (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
       <Kb.Avatar username={props.username} size={32} />
-      <Kb.Box2 direction="vertical" flex={1} style={selectionStyles.nameContainer} justifyContent="center">
+      <Kb.Box2 alignSelf="center" direction="vertical" flex={1} style={selectionStyles.nameContainer} justifyContent="center">
         <Kb.ConnectedUsernames
           type="BodyBold"
           usernames={props.username}

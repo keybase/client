@@ -28,7 +28,7 @@ const DeleteHistoryWarning = (props: Props) => {
   }
 
   return (
-    <Kb.Box2
+    <Kb.Box2 alignSelf="center"
       direction="vertical"
       centerChildren={true}
       style={Kb.Styles.collapseStyles([styles.padding, styles.box])}
@@ -40,7 +40,7 @@ const DeleteHistoryWarning = (props: Props) => {
       <Kb.Text center={isMobile} style={styles.text} type="Body">
         You are about to delete all the messages in this conversation. For everyone.
       </Kb.Text>
-      <Kb.Box2 direction={isMobile ? 'verticalReverse' : 'horizontal'} style={styles.buttonBox}>
+      <Kb.Box2 alignSelf="center" direction={isMobile ? 'verticalReverse' : 'horizontal'} style={styles.buttonBox}>
         <Kb.Button
           type="Dim"
           style={styles.button}

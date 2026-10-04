@@ -51,7 +51,7 @@ const CopyableText = (props: Props) => {
         <Text style={Styles.collapseStyles([styles.text, props.textStyle])} type="BodySmall">
           {props.value}
         </Text>
-        <Box2 direction="horizontal" alignItems="center" style={styles.copyToast}>
+        <Box2 alignSelf="center" direction="horizontal" alignItems="center" style={styles.copyToast}>
           <Text style={styles.copyToastText} type="Body">
             {hasCopied ? 'Copied!' : 'Tap to copy'}
           </Text>

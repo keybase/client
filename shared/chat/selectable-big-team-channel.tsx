@@ -113,7 +113,7 @@ const SelectableBigTeamChannel = (ownProps: OwnProps) => {
           </Kb.Text>
         )}
       </Kb.Box2>
-      {props.showBadge && <Kb.Box2 direction="horizontal" style={styles.badge} />}
+      {props.showBadge && <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.badge} />}
     </>
   )
   return (

@@ -32,7 +32,7 @@ const LocationButton = (props: {
       type="Default"
       style={styles.liveButton}
     >
-      <Kb.Box2 direction="vertical" centerChildren={true}>
+      <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true}>
         <Kb.Text
           type="BodySemibold"
           style={props.primary ? styles.liveButtonLabelPrimary : styles.liveButtonLabel}
@@ -138,7 +138,7 @@ const LocationPopupInner = (props: {conversationIDKey: T.Chat.ConversationIDKey}
   return (
     <>
       {locationDenied ? (
-        <Kb.Box2 direction="vertical" padding="small" style={styles.denied} gap="small" justifyContent="center">
+        <Kb.Box2 alignSelf="center" direction="vertical" padding="small" style={styles.denied} gap="small" justifyContent="center">
           <Kb.Text center={true} type="Body" style={styles.deniedText}>
             Location permission denied.
           </Kb.Text>

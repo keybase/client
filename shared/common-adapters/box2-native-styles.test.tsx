@@ -55,11 +55,17 @@ const comboKey = (c: Combo) =>
 const sortKeys = (s: Style): Style =>
   Object.fromEntries(Object.keys(s).sort().map(k => [k, s[k]]))
 
+// The fixture was recorded when Box2 centered itself whenever fullWidth, fullHeight and alignSelf were
+// all unset. Call sites that relied on that now pass alignSelf="center"; applying the same pin here
+// shows the fixture still holds.
+const pinned = (c: Combo): Combo =>
+  !c.fullWidth && !c.fullHeight && c.alignSelf === undefined ? {...c, alignSelf: 'center'} : c
+
 // Undefined values are dropped, as JSON would drop them.
 const flatStyle = (c: Combo): Style => {
   // flatten returns undefined when every style entry is empty, which its typing omits
   const flat =
-    (StyleSheet.flatten(box2SharedPropsForTest(c as Props).style as RN.StyleProp<RN.ViewStyle>) as
+    (StyleSheet.flatten(box2SharedPropsForTest(pinned(c) as Props).style as RN.StyleProp<RN.ViewStyle>) as
       | Style
       | undefined) ?? {}
   return sortKeys(Object.fromEntries(Object.entries(flat).filter(([, v]) => v !== undefined)))

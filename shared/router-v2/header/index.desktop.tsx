@@ -54,7 +54,7 @@ type Props = {
 const PlainTitle = ({title}: {title: React.ReactNode}) => {
   const styles = useStyles()
   return (
-    <Kb.Box2 direction="horizontal" style={styles.plainContainer}>
+    <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.plainContainer}>
       <Kb.Text style={styles.plainText} type="Header">
         {title}
       </Kb.Text>
@@ -74,8 +74,8 @@ const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
     closeWindow?.()
   }
   return (
-    <Kb.Box2 direction="horizontal">
-      <Kb.ClickableBox
+    <Kb.Box2 alignSelf="center" direction="horizontal">
+      <Kb.ClickableBox alignSelf="center"
         className="hover_background_color_black_05  color_black_50 hover_color_black"
         onClick={onMinimize}
         style={styles.appIconBox}
@@ -83,7 +83,7 @@ const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
       >
         <Kb.Icon color="inherit" onClick={onMinimize} style={styles.appIcon} type="iconfont-app-minimize" />
       </Kb.ClickableBox>
-      <Kb.ClickableBox
+      <Kb.ClickableBox alignSelf="center"
         className="hover_background_color_black_05 color_black_50 hover_color_black"
         onClick={onToggleMaximizeWindow}
         style={styles.appIconBox}
@@ -96,7 +96,7 @@ const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
           type={isMaximized ? 'iconfont-app-un-maximize' : 'iconfont-app-maximize'}
         />
       </Kb.ClickableBox>
-      <Kb.ClickableBox
+      <Kb.ClickableBox alignSelf="center"
         className="hover_background_color_red hover_color_white color_black_50"
         onClick={onCloseWindow}
         style={styles.appIconBox}
@@ -169,7 +169,7 @@ function DesktopHeader(p: Props) {
       : theme.transparent
 
   const defaultBackButton = (
-    <Kb.ClickableBox
+    <Kb.ClickableBox alignSelf="center"
       className={Kb.Styles.classNames('hover_container', {
         hover_background_color_black_10: !!back,
       })}
@@ -193,9 +193,9 @@ function DesktopHeader(p: Props) {
   if (headerLeft === null) {
     backButton = null
   } else if (typeof headerLeft === 'function') {
-    backButton = <Kb.Box2 direction="vertical" style={styles.headerLeftClickable}>{headerLeft({tintColor: iconColor})}</Kb.Box2>
+    backButton = <Kb.Box2 alignSelf="center" direction="vertical" style={styles.headerLeftClickable}>{headerLeft({tintColor: iconColor})}</Kb.Box2>
   } else if (headerLeft !== undefined) {
-    backButton = <Kb.Box2 direction="vertical" style={styles.headerLeftClickable}>{headerLeft}</Kb.Box2>
+    backButton = <Kb.Box2 alignSelf="center" direction="vertical" style={styles.headerLeftClickable}>{headerLeft}</Kb.Box2>
   } else {
     backButton = defaultBackButton
   }
@@ -231,7 +231,7 @@ function DesktopHeader(p: Props) {
           </Kb.Box2>
         )}
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.singleRow}>
-          <Kb.Box2 direction="horizontal" flex={1} alignItems="center" justifyContent="flex-start">
+          <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} alignItems="center" justifyContent="flex-start">
             {backButton}
           </Kb.Box2>
           {headerTitle ? (
@@ -241,7 +241,7 @@ function DesktopHeader(p: Props) {
               {title}
             </Kb.Text>
           )}
-          <Kb.Box2
+          <Kb.Box2 alignSelf="center"
             direction="horizontal"
             flex={1}
             alignItems="center"
@@ -278,7 +278,7 @@ function DesktopHeader(p: Props) {
         >
           {/* TODO have headerLeft be the back button */}
           {backButton}
-          <Kb.Box2 direction="horizontal" flex={1} justifyContent="flex-end">
+          <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} justifyContent="flex-end">
             <SyncingFolders
               negative={
                 p.style?.backgroundColor !== theme.transparent &&
@@ -295,7 +295,7 @@ function DesktopHeader(p: Props) {
           fullWidth={true}
           style={Kb.Styles.collapseStyles([styles.bottom, headerBottomStyle])}
         >
-          <Kb.Box2 direction="horizontal" flex={1} overflow="hidden" style={styles.bottomTitle}>
+          <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} overflow="hidden" style={styles.bottomTitle}>
             {titleNode}
           </Kb.Box2>
           {!!title && rightActions}

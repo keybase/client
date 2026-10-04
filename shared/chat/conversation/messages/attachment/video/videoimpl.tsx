@@ -27,7 +27,7 @@ const FullscreenButton = ({onClick}: {onClick: () => void}) => {
   const sharedStyles = useSharedStyles()
   const theme = Kb.Styles.useTheme()
   return (
-    <Kb.Box2 direction="vertical" style={sharedStyles.fullscreenButton}>
+    <Kb.Box2 alignSelf="center" direction="vertical" style={sharedStyles.fullscreenButton}>
       <Kb.Icon
         type="iconfont-app-maximize"
         color={theme.white}
@@ -88,14 +88,14 @@ const DesktopVideoImpl = (p: Props) => {
     <div onClick={reveal} style={desktopStyles.posterContainer}>
       <Kb.Image src={previewURL} style={{height, width}} />
       {allowPlay ? <Kb.ImageIcon type="icon-play-64" style={sharedStyles.playButton} /> : null}
-      <Kb.Box2 direction="vertical" overflow="hidden" style={sharedStyles.durationContainer}>
+      <Kb.Box2 alignSelf="center" direction="vertical" overflow="hidden" style={sharedStyles.durationContainer}>
         <Kb.Text type="BodyTinyBold" style={sharedStyles.durationText}>
           {videoDuration}
         </Kb.Text>
       </Kb.Box2>
     </div>
   ) : (
-    <Kb.Box2 direction="vertical">
+    <Kb.Box2 alignSelf="center" direction="vertical">
       <video
         autoPlay={true}
         height={height}
@@ -136,7 +136,7 @@ const NativeActiveVideo = (p: NativeActiveVideoProps) => {
   })
   // the player's own fullscreen is off: fullscreen is the app's attachment view
   return (
-    <Kb.Box2 direction="vertical" relative={true} style={nativeStyles.video}>
+    <Kb.Box2 alignSelf="center" direction="vertical" relative={true} style={nativeStyles.video}>
       <VideoView
         player={player}
         nativeControls={true}
@@ -192,13 +192,13 @@ const NativeVideoImpl = (p: Props) => {
           style={nativeStyles.pressable}
           onLongPress={showPopup}
         >
-          <Kb.Box2
+          <Kb.Box2 alignSelf="center"
             direction="vertical"
             style={Kb.Styles.collapseStyles([nativeStyles.posterContainer, {height, width}])}
           >
             <Kb.Image src={previewURL} style={Kb.Styles.collapseStyles([nativeStyles.poster, {height, width}])} />
             {allowPlay ? <Kb.ImageIcon type="icon-play-64" style={sharedStyles.playButton} /> : null}
-            <Kb.Box2 direction="vertical" overflow="hidden" style={sharedStyles.durationContainer}>
+            <Kb.Box2 alignSelf="center" direction="vertical" overflow="hidden" style={sharedStyles.durationContainer}>
               <Kb.Text type="BodyTinyBold" style={sharedStyles.durationText}>
                 {videoDuration}
               </Kb.Text>

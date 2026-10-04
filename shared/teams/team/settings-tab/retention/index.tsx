@@ -174,7 +174,7 @@ const RetentionPicker = (p: Props) => {
         <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
         {showSaveIndicator && <SaveIndicator saving={saving} style={styles.saveState} />}
       </Kb.Box2>
-      <Kb.ClickableBox
+      <Kb.ClickableBox alignSelf="center"
         onClick={showPopup}
         ref={popupAnchor}
         direction="horizontal"

@@ -46,7 +46,7 @@ const UserCard = (p: Props) => {
       style={Kb.Styles.collapseStyles([styles.container, outerStyle])}
     >
       <Kb.Box2 direction="vertical" alignItems="center" alignSelf="stretch">
-        <Kb.Box2
+        <Kb.Box2 alignSelf="center"
           direction="vertical"
           style={Kb.Styles.collapseStyles([
             styles.avatarBackground,

@@ -146,7 +146,7 @@ const GlobalError = () => {
 
   if (isMobile) {
     return (
-      <Kb.Box2
+      <Kb.Box2 alignSelf="center"
         direction="vertical"
         style={Kb.Styles.collapseStyles([
           styles.mobileContainer,
@@ -154,8 +154,8 @@ const GlobalError = () => {
         ])}
       >
         <Kb.SafeAreaViewTop style={styles.mobileSafeAreaView} />
-        <Kb.Box2 direction="vertical">
-          <Kb.Box2
+        <Kb.Box2 alignSelf="center" direction="vertical">
+          <Kb.Box2 alignSelf="center"
             direction="horizontal"
             style={Kb.Styles.collapseStyles([styles.mobileSummaryRow, styles.mobileErrorTextContainer])}
           >
@@ -182,7 +182,7 @@ const GlobalError = () => {
               fontSize={21}
             />
           </Kb.Box2>
-          <Kb.Box2 direction="horizontal" style={styles.mobileSummaryRow}>
+          <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.mobileSummaryRow}>
             <Kb.Button fullWidth={true} label="Please tell us" onClick={onFeedback} small={true} type="Dim" />
           </Kb.Box2>
         </Kb.Box2>
@@ -213,8 +213,8 @@ const GlobalError = () => {
   }
 
   return (
-    <Kb.ClickableBox style={stylesContainer} onClick={onExpandClick} direction="vertical">
-      <Kb.Box2 direction="horizontal" flex={1} centerChildren={true} gap="small" style={styles.innerContainer}>
+    <Kb.ClickableBox alignSelf="center" style={stylesContainer} onClick={onExpandClick} direction="vertical">
+      <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} centerChildren={true} gap="small" style={styles.innerContainer}>
         <Kb.Text center={true} type="BodyBig" style={styles.summary}>
           {summary}
         </Kb.Text>

@@ -126,7 +126,7 @@ function ReloadableDevices() {
       <NewItemsContext value={badged}>
         <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} relative={true} testID={TestIDs.DEVICES_LIST}>
           {isMobile ? (
-            <Kb.ClickableBox onClick={() => onAddDevice()} direction="horizontal" centerChildren={true} relative={true} style={styles.mobileAddHeader}>
+            <Kb.ClickableBox alignSelf="center" onClick={() => onAddDevice()} direction="horizontal" centerChildren={true} relative={true} style={styles.mobileAddHeader}>
               <Kb.Button label="Add a device or paper key" fullWidth={true} />
               <Kb.LoadingOverlay show={waiting} />
             </Kb.ClickableBox>
@@ -191,7 +191,7 @@ const PaperKeyNudge = ({onAddDevice}: {onAddDevice: () => void}) => {
       <Kb.IconAuto
         type={isMobile ? 'icon-onboarding-paper-key-48' : 'icon-onboarding-paper-key-32'}
       />
-      <Kb.Box2 direction="vertical" flex={1}>
+      <Kb.Box2 alignSelf="center" direction="vertical" flex={1}>
         <Kb.Text type="BodySemibold">Create a paper key</Kb.Text>
         <Kb.Text type={isMobile ? 'BodySmall' : 'Body'} style={styles.paperKeyNudgeDesc}>
           A paper key can be used to access your account in case you lose all your devices. Keep one in a

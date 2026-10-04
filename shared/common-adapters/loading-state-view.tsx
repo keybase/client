@@ -29,7 +29,7 @@ const LoadingStateView = (props: Props) => {
         gap="small"
         style={styles.loadingContainer}
       >
-        <Kb.Box2 direction="horizontal" gap="tiny">
+        <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny">
           <Kb.ProgressIndicator white={props.white} />
           <Kb.Text type="BodySmall" style={props.white && {color: theme.white_40OrWhite_40}}>
             Loading ...

@@ -81,7 +81,7 @@ const FloatingPicker = <T extends string | number>(props: Props<T>): React.React
           <Kb.Text type="BodySemibold" style={styles.link} onClick={props.onCancel}>
             Cancel
           </Kb.Text>
-          <Kb.Box2 direction="horizontal" flex={1} />
+          <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} />
           <Kb.Text type="BodySemibold" style={styles.link} onClick={props.onDone}>
             Done
           </Kb.Text>

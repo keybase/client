@@ -84,7 +84,7 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}, s
             {isMobile ? ' going into Settings / Feedback' : ' running this command in your terminal:'}
           </Text>
           {!isMobile && (
-            <Box2
+            <Box2 alignSelf="center"
               direction="vertical"
               style={{
                 backgroundColor: theme.blueDarker2,

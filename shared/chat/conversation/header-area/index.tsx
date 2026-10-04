@@ -41,7 +41,7 @@ const HeaderAreaRight = (props: HeaderConversationProps) => {
   }
 
   return (
-    <Kb.Box2
+    <Kb.Box2 alignSelf="center"
       direction="horizontal"
       gap="small"
       noShrink={true}
@@ -394,7 +394,7 @@ const ChannelHeader = (props: HeaderConversationProps & {teamname: string; chann
   const maxWidthStyle = useMaxWidthStyle(conversationIDKey)
 
   return (
-    <Kb.Box2 direction="vertical" style={maxWidthStyle}>
+    <Kb.Box2 alignSelf="center" direction="vertical" style={maxWidthStyle}>
       <Kb.Box2 direction="horizontal" alignItems="center" alignSelf="center" style={styles.channelHeaderContainer}>
         <Kb.Avatar
           teamname={teamname || undefined}
@@ -442,7 +442,7 @@ const UsernameHeader = (props: HeaderParticipantsProps) => {
   const maxWidthStyle = useMaxWidthStyle(conversationIDKey)
 
   return (
-    <Kb.Box2
+    <Kb.Box2 alignSelf="center"
       direction="vertical"
       style={Kb.Styles.collapseStyles([styles.usernameHeaderContainer, maxWidthStyle])}
     >
@@ -451,7 +451,7 @@ const UsernameHeader = (props: HeaderParticipantsProps) => {
           {theirFullname}
         </Kb.Text>
       )}
-      <Kb.Box2 direction="horizontal" centerChildren={true}>
+      <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren={true}>
         <Kb.ConnectedUsernames
           colorFollowing={true}
           inline={false}
@@ -477,11 +477,11 @@ const PhoneOrEmailHeader = (props: HeaderParticipantsProps) => {
   const name = useConversationParticipantsSelector(conversationIDKey, p => p.contactName.get(phoneOrEmail))
   const maxWidthStyle = useMaxWidthStyle(conversationIDKey)
   return (
-    <Kb.Box2
+    <Kb.Box2 alignSelf="center"
       direction="vertical"
       style={Kb.Styles.collapseStyles([styles.usernameHeaderContainer, maxWidthStyle])}
     >
-      <Kb.Box2 direction="horizontal" style={styles.lessMargins}>
+      <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.lessMargins}>
         <Kb.Text type="BodyBig" lineClamp={1} ellipsizeMode="middle">
           {formattedPhoneOrEmail}
         </Kb.Text>

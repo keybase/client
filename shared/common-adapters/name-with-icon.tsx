@@ -120,7 +120,7 @@ export const NameWithIcon = (props: NameWithIconProps) => {
     )
   } else if (props.icon) {
     avatarOrIcon = (
-      <Box2 direction="vertical" style={props.iconBoxStyle}>
+      <Box2 alignSelf="center" direction="vertical" style={props.iconBoxStyle}>
         <IconAuto
           type={props.icon}
           style={
@@ -216,7 +216,7 @@ export const NameWithIcon = (props: NameWithIconProps) => {
   const children = (
     <>
       {avatarOrIcon}
-      <Box2 direction="vertical" centerChildren={!props.horizontal} style={metaContainerStyle}>
+      <Box2 alignSelf="center" direction="vertical" centerChildren={!props.horizontal} style={metaContainerStyle}>
         {botAlias}
         {usernameOrTitle}
         {metas}
@@ -226,6 +226,7 @@ export const NameWithIcon = (props: NameWithIconProps) => {
 
   const boxProps = {
     alignItems: 'center',
+    alignSelf: 'center',
     direction: props.horizontal ? 'horizontal' : 'vertical',
     style: containerStyle,
   } as const

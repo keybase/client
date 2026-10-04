@@ -130,7 +130,7 @@ const ManageComponent = (props: Props) => {
   }
   if (addee === you) {
     return (
-      <Kb.Box2 direction="vertical">
+      <Kb.Box2 alignSelf="center" direction="vertical">
         <Kb.Text onClick={onManageNotifications} type={textType}>
           Manage phone and computer notifications
         </Kb.Text>

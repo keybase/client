@@ -254,8 +254,8 @@ const ArchiveModal = (p: Props) => {
     case 'fsAll':
       content =
         archiveAllFilesResponseWaiter.state === 'idle' ? (
-          <Kb.Box2 direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
-            <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
+          <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
+            <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
               <Kb.Icon type="iconfont-nav-2-files" fontSize={72} />
               <Kb.Text type="Header">All Files</Kb.Text>
             </Kb.Box2>
@@ -267,12 +267,12 @@ const ArchiveModal = (p: Props) => {
         ) : archiveAllFilesResponseWaiter.state === 'waiting' ? (
           <Kb.LoadingLine />
         ) : (
-          <Kb.Box2 direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
-            <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
+          <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
+            <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
               <Kb.Icon type="iconfont-nav-2-files" fontSize={72} />
               <Kb.Text type="Header">All Files</Kb.Text>
             </Kb.Box2>
-            <Kb.Box2 direction="vertical" centerChildren={true}>
+            <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true}>
               <Kb.Text type="Body">
                 Started {archiveAllFilesResponseWaiter.started} jobs successfully.
               </Kb.Text>
@@ -285,19 +285,19 @@ const ArchiveModal = (p: Props) => {
     case 'gitAll':
       content =
         archiveAllGitResponseWaiter.state === 'idle' ? (
-          <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
+          <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
             <Kb.Icon type="iconfont-nav-2-git" fontSize={72} />
             <Kb.Text type="Header">All Git Repos</Kb.Text>
           </Kb.Box2>
         ) : archiveAllGitResponseWaiter.state === 'waiting' ? (
           <Kb.LoadingLine />
         ) : (
-          <Kb.Box2 direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
-            <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
+          <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
+            <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
               <Kb.Icon type="iconfont-nav-2-git" fontSize={72} />
               <Kb.Text type="Header">All Git Repos</Kb.Text>
             </Kb.Box2>
-            <Kb.Box2 direction="vertical" centerChildren={true}>
+            <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true}>
               <Kb.Text type="Body">Started {archiveAllGitResponseWaiter.started} jobs successfully.</Kb.Text>
               <Kb.Text type="Body">Encountered {archiveAllGitResponseWaiter.errors.size} errors.</Kb.Text>
             </Kb.Box2>
@@ -317,7 +317,7 @@ const ArchiveModal = (p: Props) => {
       break
     case 'git':
       content = (
-        <Kb.Box2 direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
+        <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
           <Kb.Icon type="iconfont-nav-2-git" fontSize={72} />
           <Kb.Text type="TerminalInline" lineClamp={2}>
             {p.gitURL}

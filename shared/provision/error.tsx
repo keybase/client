@@ -19,7 +19,7 @@ const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => {
         <Kb.Text type="Header" style={styles.header}>
           Oops, something went wrong.
         </Kb.Text>
-        <Kb.Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true} style={styles.container}>
+        <Kb.Box2 alignSelf="center" direction="vertical" gap="small" gapStart={true} gapEnd={true} style={styles.container}>
           {p.children}
         </Kb.Box2>
       </Kb.ScrollView>
@@ -120,7 +120,7 @@ const RenderError = ({route}: Props) => {
               You have options:
             </Kb.Text>
 
-            <Kb.Box2 direction="vertical" style={styles.list}>
+            <Kb.Box2 alignSelf="center" direction="vertical" style={styles.list}>
               <Kb.Text center={true} type="Body">
                 {' - Go back and select a device or paper key'}
               </Kb.Text>
@@ -149,7 +149,7 @@ const RenderError = ({route}: Props) => {
             <Kb.Text center={true} type="BodySemibold" style={{textAlign: 'left'}}>
               You have options:
             </Kb.Text>
-            <Kb.Box2 direction="vertical" style={styles.list}>
+            <Kb.Box2 alignSelf="center" direction="vertical" style={styles.list}>
               <Kb.Text center={true} type="Body">
                 {' - Use '}
                 <Kb.Text type="TerminalInline">keybase login</Kb.Text> on the command line to log in
@@ -217,7 +217,7 @@ const RenderError = ({route}: Props) => {
           <Kb.Text center={true} type="BodySemibold">
             You have options:
           </Kb.Text>
-          <Kb.Box2 direction="vertical" style={styles.list}>
+          <Kb.Box2 alignSelf="center" direction="vertical" style={styles.list}>
             <Kb.Text center={true} type="Body">
               {' - Run '}
               <Kb.Text type="TerminalInline">keybase login</Kb.Text> on the device with the corresponding PGP
@@ -278,7 +278,7 @@ const RenderError = ({route}: Props) => {
     default:
       return (
         <Wrapper onBack={onBack}>
-          <Kb.Box2 direction="vertical">
+          <Kb.Box2 alignSelf="center" direction="vertical">
             <Kb.Text center={true} type="Body" selectable={true}>
               {rewriteErrorDesc(error.desc)}
             </Kb.Text>

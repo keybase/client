@@ -108,7 +108,7 @@ const DragAndDrop = (props: Props): React.ReactNode => {
       onDrop={_onDrop as never}
       style={styles.dropOverlay}
     >
-      <Box2 direction="vertical" centerChildren={true} gap="medium">
+      <Box2 alignSelf="center" direction="vertical" centerChildren={true} gap="medium">
         {rejectReason ? (
           <Icon type="iconfont-remove" color={theme.red} sizeType="Huge" />
         ) : (
@@ -124,7 +124,7 @@ const DragAndDrop = (props: Props): React.ReactNode => {
   )
 
   return (
-    <Box2
+    <Box2 alignSelf={(fullWidth) || (fullHeight) ? undefined : 'center'}
       direction="vertical"
       fullHeight={fullHeight}
       fullWidth={fullWidth}

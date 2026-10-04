@@ -123,9 +123,9 @@ const ServiceIconNative = function ServiceIcon(props: IconProps) {
   })
 
   return (
-    <Kb.ClickableBox onClick={() => onClick(service)} direction="vertical" relative={true}>
-      <AnimatedBox2 direction="vertical" style={[nativeStyles.serviceIconContainer, animatedWidth]}>
-        <Kb.Box2 direction="vertical" relative={true}>
+    <Kb.ClickableBox alignSelf="center" onClick={() => onClick(service)} direction="vertical" relative={true}>
+      <AnimatedBox2 alignSelf="center" direction="vertical" style={[nativeStyles.serviceIconContainer, animatedWidth]}>
+        <Kb.Box2 alignSelf="center" direction="vertical" relative={true}>
           {serviceIdToBadge(service) && (
             <Kb.Badge
               border={true}
@@ -137,9 +137,9 @@ const ServiceIconNative = function ServiceIcon(props: IconProps) {
           )}
           <Kb.Icon fontSize={18} type={serviceIdToIconFont(service)} color={color} />
         </Kb.Box2>
-        <AnimatedBox2 direction="vertical" style={[nativeStyles.labelContainer, animatedOpacity]}>
-          <Kb.Box2 direction="vertical" style={{height: labelHeight, width: 74}}>
-            <Kb.Box2 direction="vertical">
+        <AnimatedBox2 alignSelf="center" direction="vertical" style={[nativeStyles.labelContainer, animatedOpacity]}>
+          <Kb.Box2 alignSelf="center" direction="vertical" style={{height: labelHeight, width: 74}}>
+            <Kb.Box2 alignSelf="center" direction="vertical">
               {label.map((label, i) => (
                 <Kb.Text key={i} center={true} type="BodyTiny" style={{color}}>
                   {label}
@@ -319,7 +319,7 @@ const ServiceIconDesktop = (props: IconProps) => {
   const color =
     props.isActive || hover ? serviceIdToAccentColor(service, isDarkMode) : theme.black
   return (
-    <Kb.ClickableBox
+    <Kb.ClickableBox alignSelf="center"
       onClick={() => onClick(service)}
       onMouseOver={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
@@ -327,14 +327,14 @@ const ServiceIconDesktop = (props: IconProps) => {
       flex={1}
       style={desktopStyles.serviceIconFlex}
     >
-      <Kb.Box2
+      <Kb.Box2 alignSelf="center"
         direction="vertical"
         alignItems="center"
         justifyContent="flex-start"
         flex={1}
         style={desktopStyles.serviceIconContainer}
       >
-        <Kb.Box2 direction="vertical" relative={true}>
+        <Kb.Box2 alignSelf="center" direction="vertical" relative={true}>
           {serviceIdToBadge(service) && (
             <Kb.Badge
               border={true}
@@ -344,11 +344,11 @@ const ServiceIconDesktop = (props: IconProps) => {
               leftRightPadding={0}
             />
           )}
-          <Kb.Box2 direction="vertical" style={desktopStyles.serviceIconBox}>
+          <Kb.Box2 alignSelf="center" direction="vertical" style={desktopStyles.serviceIconBox}>
             <Kb.Icon color={color} fontSize={16} type={serviceIdToIconFont(service)} />
           </Kb.Box2>
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" style={desktopStyles.label}>
+        <Kb.Box2 alignSelf="center" direction="vertical" style={desktopStyles.label}>
           {props.label.map((label, i) => (
             <Kb.Text key={i} center={true} type="BodyTiny" style={{color}}>
               {label}

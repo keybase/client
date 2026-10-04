@@ -17,8 +17,8 @@ const DeviceRow = ({device}: {device: UnlockFolderDevice}) => {
   )[device.type]
 
   return (
-    <Kb.Box2 direction="horizontal" gap="small">
-      <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.iconWrapper}>
+    <Kb.Box2 alignSelf="center" direction="horizontal" gap="small">
+      <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren={true} style={styles.iconWrapper}>
         <Kb.ImageIcon type={icon} style={{height: 22}} />
       </Kb.Box2>
       <Kb.Text type="BodySemibold">{device.name}</Kb.Text>
@@ -29,17 +29,17 @@ const DeviceRow = ({device}: {device: UnlockFolderDevice}) => {
 const DeviceList = (props: Props) => {
   const styles = useStyles()
   return (
-    <Kb.Box2 direction="vertical" alignItems="center">
+    <Kb.Box2 alignSelf="center" direction="vertical" alignItems="center">
       <Kb.Text center={true} type="Body" style={styles.infoText}>
         This computer and possibly others are unable to read some of your folders. To avoid losing data forever,
         please turn on one of the devices below:
       </Kb.Text>
-      <Kb.Box2 direction="vertical" gap="small" style={styles.devicesContainer}>
+      <Kb.Box2 alignSelf="center" direction="vertical" gap="small" style={styles.devicesContainer}>
         {props.devices.map(d => (
           <DeviceRow key={d.deviceID} device={d} />
         ))}
       </Kb.Box2>
-      <Kb.Box2 direction="horizontal" style={styles.buttonsContainer}>
+      <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.buttonsContainer}>
         <Kb.Button
           type="Dim"
           label="Enter a paper key instead"

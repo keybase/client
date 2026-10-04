@@ -120,11 +120,11 @@ const LogoutContainer = () => {
               label="Test password"
               onClick={() => onCheckPassword(password)}
             />
-            <Kb.Box2 direction="horizontal">
+            <Kb.Box2 alignSelf="center" direction="horizontal">
               {loggingOut ? (
                 <Kb.ProgressIndicator style={styles.smallProgress} type="Small" />
               ) : (
-                <Kb.ClickableBox
+                <Kb.ClickableBox alignSelf="center"
                   onClick={logOut}
                   direction="horizontal"
                   justifyContent="center"

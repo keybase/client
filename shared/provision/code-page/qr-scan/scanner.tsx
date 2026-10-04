@@ -27,7 +27,7 @@ const QRScannerMobile = (p: Props): React.ReactElement | null => {
 
   if (!permission) {
     return (
-      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([style, styles.gettingPermissions])} />
+      <Kb.Box2 alignSelf="center" direction="vertical" style={Kb.Styles.collapseStyles([style, styles.gettingPermissions])} />
     )
   }
   if (!permission.granted) {

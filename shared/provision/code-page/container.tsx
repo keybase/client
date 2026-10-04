@@ -312,7 +312,7 @@ const SwitchTab = (props: {
   }
 
   return (
-    <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center">
+    <Kb.Box2 alignSelf="center" direction="horizontal" gap="xtiny" alignItems="center">
       <Kb.Text
         type="BodySmallPrimaryLink"
         negative={true}
@@ -328,18 +328,18 @@ const SwitchTab = (props: {
 const Qr = (props: {textCode: string; currentDeviceAlreadyProvisioned: boolean}) => {
   const styles = useStyles()
   return currentDeviceType === 'desktop' ? (
-      <Kb.Box2 direction="vertical" style={styles.qrOnlyContainer}>
+      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.qrOnlyContainer}>
         <QRImage code={props.textCode} cellSize={8} />
       </Kb.Box2>
     ) : (
-      <Kb.Box2
+      <Kb.Box2 alignSelf="center"
         style={Kb.Styles.collapseStyles([
           styles.qrContainer,
           props.currentDeviceAlreadyProvisioned && styles.qrContainerFlip,
         ])}
         direction="vertical"
       >
-        <Kb.Box2 direction="vertical" style={styles.qrImageContainer}>
+        <Kb.Box2 alignSelf="center" direction="vertical" style={styles.qrImageContainer}>
           <QRImage code={props.textCode} />
         </Kb.Box2>
         <QRScan />
@@ -389,7 +389,7 @@ const EnterText = (props: {
 const ViewText = (props: {textCode: string}) => {
   const styles = useStyles()
   return (
-    <Kb.Box2 direction="vertical" alignItems="center" style={styles.viewTextContainer}>
+    <Kb.Box2 alignSelf="center" direction="vertical" alignItems="center" style={styles.viewTextContainer}>
       <Kb.Text center={true} type="Terminal" style={styles.viewTextCode}>
         {props.textCode}
       </Kb.Text>
@@ -437,7 +437,7 @@ const Instructions = (p: {
 
   if (p.currentDeviceAlreadyProvisioned) {
     content = (
-      <Kb.Box2 alignItems="center" direction="horizontal" style={styles.flexWrap}>
+      <Kb.Box2 alignSelf="center" alignItems="center" direction="horizontal" style={styles.flexWrap}>
         <Kb.Text type={textType} style={styles.instructions}>
           Ready to authorize using
         </Kb.Text>
@@ -450,7 +450,7 @@ const Instructions = (p: {
   } else {
     const hamburger =
       p.otherDevice.type === 'mobile' ? (
-        <Kb.Box2
+        <Kb.Box2 alignSelf="center"
           alignItems="center"
           direction="horizontal"
           centerChildren={true}
@@ -471,7 +471,7 @@ const Instructions = (p: {
       ) : null
     content = (
       <>
-        <Kb.Box2 alignItems="flex-end" direction="horizontal" gap="xtiny">
+        <Kb.Box2 alignSelf="center" alignItems="flex-end" direction="horizontal" gap="xtiny">
           <Kb.Text
             type={textType}
             style={Kb.Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
@@ -499,7 +499,7 @@ const Instructions = (p: {
     )
   }
 
-  return <Kb.Box2 direction="vertical">{content}</Kb.Box2>
+  return <Kb.Box2 alignSelf="center" direction="vertical">{content}</Kb.Box2>
 }
 
 const useStyles = Kb.Styles.createStyleHook(
