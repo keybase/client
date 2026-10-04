@@ -8,16 +8,17 @@
 // fullWidth, fullHeight or alignSelf); they are listed for pinning by hand. Sites the codemod cannot
 // classify are listed as unresolved with a reason.
 //
-//   node scripts/codemods/box2-stretch-default.mts cleanup --coverage-from <base sha> [--write] [--report <file>]
+//   node scripts/codemods/box2-stretch-default.mts cleanup --coverage-from <base sha> [--at <ref>] [--write] [--report <file>]
 //
 // Once the default is gone, `cleanup` removes props that only restate the stretch (rules below),
-// at call sites the visual gate's coverage base for <base sha> mounted.
+// at call sites that the visual gate's coverage base for <base sha> mounted on every platform the
+// file renders on (gatePlatforms).
 import * as babel from '@babel/core'
 import {parse, parseExpression} from '@babel/parser'
 import MagicString from 'magic-string'
 import {execFileSync} from 'child_process'
-import {readFileSync, readdirSync, writeFileSync} from 'fs'
-import {dirname, join, relative, resolve} from 'path'
+import {existsSync, readFileSync, readdirSync, writeFileSync} from 'fs'
+import {basename, dirname, join, relative, resolve} from 'path'
 import {fileURLToPath} from 'url'
 import {
   callSiteRanges,
@@ -25,8 +26,9 @@ import {
   unmarkedFile,
   unmountedChanged,
   type Hunk,
+  type Range,
 } from '../../tests/e2e/visual/coverage/changed-sites.mts'
-import {readBaseCoverage} from '../../tests/e2e/visual/store.mts'
+import {basePlatformDir, type RunPlatform} from '../../tests/e2e/visual/store.mts'
 
 type Site = {line: number}
 type Unresolved = {line: number; reason: string}
@@ -285,10 +287,12 @@ const styleSheetEntry = (
   const body = t.isTSAsExpression(fn.body) ? fn.body.expression : fn.body
   if (!t.isObjectExpression(body)) return undefined
   const name = e.property.name
+  // a later duplicate key wins, as in the object at runtime
+  let found: babel.types.Node | undefined
   for (const p of body.properties) {
-    if (t.isObjectProperty(p) && !p.computed && t.isIdentifier(p.key, {name})) return p.value
+    if (t.isObjectProperty(p) && !p.computed && t.isIdentifier(p.key, {name})) found = p.value
   }
-  return undefined
+  return found
 }
 
 const styleKeepsCrossAxis = (scope: babel.NodePath['scope'], e: babel.types.Node | null | undefined, depth = 0): boolean => {
@@ -323,13 +327,38 @@ const styleAttrKeepsCrossAxis = (scope: babel.NodePath['scope'], attr: babel.typ
   !t.isJSXEmptyExpression(attr.value.expression) &&
   styleKeepsCrossAxis(scope, attr.value.expression)
 
-// The nearest JSX element whose children contain this one; undefined when the nearest one holds it
-// in an attribute, or there is none.
+const isMapCall = (p: babel.NodePath | null) =>
+  !!p?.isCallExpression() &&
+  t.isMemberExpression(p.node.callee) &&
+  !p.node.callee.computed &&
+  t.isIdentifier(p.node.callee.property, {name: 'map'})
+
+// Whether `child` renders in place inside `p`: JSX children and fragments, `{…}`, either branch of a
+// ternary or logical expression, and the callback of a `.map(…)` (expression body, or a top-level
+// return of its block body).
+const rendersInPlace = (p: babel.NodePath, child: babel.NodePath) => {
+  if (p.isJSXFragment()) return child.listKey === 'children'
+  if (p.isJSXExpressionContainer() || p.isParenthesizedExpression() || p.isTSAsExpression()) return true
+  if (p.isConditionalExpression()) return child.key === 'consequent' || child.key === 'alternate'
+  if (p.isLogicalExpression()) return true
+  if (p.isReturnStatement()) return true
+  // only a function's own block: a return nested in an if or a loop is not followed
+  if (p.isBlockStatement()) return p.parentPath.isFunction()
+  if (p.isArrowFunctionExpression() || p.isFunctionExpression()) {
+    return child.key === 'body' && p.listKey === 'arguments' && p.key === 0 && isMapCall(p.parentPath)
+  }
+  if (p.isCallExpression()) return isMapCall(p) && child.listKey === 'arguments'
+  return false
+}
+
+// The nearest JSX element whose children render this one in place; undefined when it is held in an
+// attribute, passed through anything else (a helper call, a variable), or there is none.
 const parentElement = (path: babel.NodePath<babel.types.JSXElement>) => {
   let last: babel.NodePath = path
   let p: babel.NodePath | null = path.parentPath
   while (p) {
     if (p.isJSXElement()) return last.listKey === 'children' ? p : undefined
+    if (!rendersInPlace(p, last)) return undefined
     last = p
     p = p.parentPath
   }
@@ -405,16 +434,64 @@ const walk = (dir: string, out: Array<string>) => {
 const git = (cwd: string, args: ReadonlyArray<string>) =>
   execFileSync('git', [...args], {cwd, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024})
 
-// Only candidates whose call site a base capture (desktop or iOS) mounted are kept. Coverage ids are
-// base-tree `file:line`, carried forward to HEAD through the base..HEAD diff.
-const runCleanup = (root: string, opts: {base: string; write: boolean; reportFile: string | undefined}) => {
-  if (git(root, ['status', '--porcelain', '--', '*.tsx']).trim()) {
-    throw new Error('cleanup reads the tree as HEAD and maps coverage over base..HEAD: commit or stash .tsx changes first')
+// The gate platforms whose tour must have mounted a call site before it is cleaned. A shared file
+// renders on both, and an in-file platform branch gets no exemption, so a shared file needs both;
+// a platform file only renders on its own platform.
+export const gatePlatforms = (rel: string): Array<RunPlatform> =>
+  rel.endsWith('.desktop.tsx') ? ['desktop'] : /\.(native|ios|android)\.tsx$/.test(rel) ? ['ios'] : ['desktop', 'ios']
+
+// The gate platforms whose base coverage misses a call site. Coverage ids are base-tree
+// `file:line`, carried forward through `hunks` (the base..tree diff of that file).
+export const unmountedPlatforms = (opts: {
+  rel: string
+  range: Range
+  hunks: ReadonlyArray<Hunk>
+  mounted: Readonly<Record<RunPlatform, ReadonlyArray<string>>>
+}): Array<RunPlatform> =>
+  gatePlatforms(opts.rel).filter(
+    platform =>
+      unmountedChanged({
+        baseHunks: new Map([[opts.rel, opts.hunks]]),
+        changed: new Map([[opts.rel, [opts.range]]]),
+        mounted: opts.mounted[platform],
+      }).length > 0
+  )
+
+const platformCoverage = (sha: string, platform: RunPlatform) => {
+  const out = new Set<string>()
+  const walkCoverage = (dir: string) => {
+    if (!existsSync(dir)) return
+    for (const d of readdirSync(dir, {withFileTypes: true})) {
+      const p = join(dir, d.name)
+      if (d.isDirectory()) walkCoverage(p)
+      else if (basename(dir) === 'coverage' && d.name.endsWith('.json')) {
+        for (const id of JSON.parse(readFileSync(p, 'utf8')) as Array<string>) out.add(id)
+      }
+    }
+  }
+  walkCoverage(basePlatformDir(sha, platform))
+  return [...out]
+}
+
+// Candidates are computed on the tree at `at` (HEAD by default; --write needs HEAD and a clean tree)
+// and kept only where every platform from gatePlatforms mounted their call site.
+const runCleanup = (
+  root: string,
+  opts: {base: string; at: string; write: boolean; reportFile: string | undefined}
+) => {
+  const atSha = git(root, ['rev-parse', '--verify', `${opts.at}^{commit}`]).trim()
+  if (opts.write) {
+    if (atSha !== git(root, ['rev-parse', 'HEAD']).trim()) throw new Error('--write needs --at HEAD')
+    if (git(root, ['status', '--porcelain', '--', '*.tsx']).trim()) {
+      throw new Error('cleanup --write reads the tree as HEAD: commit or stash .tsx changes first')
+    }
   }
   const sha = git(root, ['rev-parse', '--verify', `${opts.base}^{commit}`]).trim()
-  const mounted = readBaseCoverage(sha)
-  if (!mounted.length) throw new Error(`no coverage stored for base ${sha}`)
-  const repoHunks = parseDiffHunks(git(root, ['diff', '--no-ext-diff', '-U0', sha, 'HEAD', '--', '*.tsx']))
+  const mounted = {desktop: platformCoverage(sha, 'desktop'), ios: platformCoverage(sha, 'ios')}
+  if (!mounted.desktop.length || !mounted.ios.length) {
+    throw new Error(`base ${sha} needs stored coverage for both desktop and iOS`)
+  }
+  const repoHunks = parseDiffHunks(git(root, ['diff', '--no-ext-diff', '-U0', sha, atSha, '--', '*.tsx']))
   const baseHunks = new Map<string, ReadonlyArray<Hunk>>()
   for (const [p, h] of repoHunks) baseHunks.set(relative('shared', p), h)
   type Row = {site: string; rule: CleanupRule; attr: string}
@@ -422,23 +499,30 @@ const runCleanup = (root: string, opts: {base: string; write: boolean; reportFil
   const uncovered: Array<Row & {why: string}> = []
   const before: Record<CleanupRule, number> = {C1: 0, C2: 0, C3: 0}
   const after: Record<CleanupRule, number> = {C1: 0, C2: 0, C3: 0}
-  for (const file of walk(root, []).sort()) {
-    const src = readFileSync(file, 'utf8')
+  const tracked = git(root, ['ls-tree', '-r', '--name-only', atSha, '--', '.'])
+    .split('\n')
+    .filter(f => f.endsWith('.tsx') && !f.split('/').some(seg => skipDirs.has(seg)))
+    .sort()
+  for (const rel of tracked) {
+    const file = join(root, rel)
+    const src = git(root, ['show', `${atSha}:./${rel}`])
     const cands = cleanupCandidates(src, file)
     if (!cands.length) continue
-    const rel = relative(root, file)
     const ranges = callSiteRanges(src)
     const keep: Array<CleanupCandidate> = []
     for (const c of cands) {
       before[c.rule]++
       const row = {attr: c.attr, rule: c.rule, site: `${rel}:${c.line}`}
       const range = ranges.find(r => r.start === c.line)
+      const missing = range
+        ? unmountedPlatforms({hunks: baseHunks.get(rel) ?? [], mounted, range, rel})
+        : []
       const why = unmarkedFile(rel)
         ? 'file not marked by coverage'
         : !range
           ? 'call site not marked by coverage'
-          : unmountedChanged({baseHunks, changed: new Map([[rel, [range]]]), mounted}).length
-            ? 'never mounted by the base tour'
+          : missing.length
+            ? `never mounted on ${missing.join(' or ')}`
             : undefined
       if (why) {
         uncovered.push({...row, why})
@@ -475,13 +559,19 @@ const main = (argv: Array<string>) => {
       console.error('cleanup needs --coverage-from <base sha>')
       process.exit(2)
     }
-    runCleanup(root, {base, reportFile, write})
+    const ai = rest.indexOf('--at')
+    const at = ai >= 0 ? rest[ai + 1] : 'HEAD'
+    if (!at) {
+      console.error('--at needs a ref')
+      process.exit(2)
+    }
+    runCleanup(root, {at, base, reportFile, write})
     return
   }
   if (mode !== 'pin') {
     console.error(
       'usage: box2-stretch-default.mts pin [--write] [--report <file>]\n' +
-        '       box2-stretch-default.mts cleanup --coverage-from <base sha> [--write] [--report <file>]'
+        '       box2-stretch-default.mts cleanup --coverage-from <base sha> [--at <ref>] [--write] [--report <file>]'
     )
     process.exit(2)
   }
