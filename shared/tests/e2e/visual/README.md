@@ -101,8 +101,12 @@ suggestions, device last-used times.
 ```sh
 yarn visual:base --base HEAD --coverage        # desktop: relaunches the app with --coverage
 yarn visual:base --base HEAD --coverage --ios  # iOS: restarts Metro with KB_VISUAL_COVERAGE=1 --clear
-yarn visual:coverage HEAD..                    # working tree vs HEAD
+yarn visual:coverage HEAD                      # working tree vs HEAD (or a range, origin/master..HEAD)
 ```
+
+A bare ref diffs the working tree against it; `A..B` diffs two commits. A range whose two sides
+are the same commit (`HEAD..` is `HEAD..HEAD`), or that touches no `.tsx` file, is refused rather
+than passed. Untracked new `.tsx` files are not in `git diff`: `git add -N` them (or commit) first.
 
 `✗ never mounted: file.tsx:line` means the gate cannot see that change: add a tour entry that
 reaches it, or prove it another way. Exit 1 if any are listed. Metro caches transforms per file,
