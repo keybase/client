@@ -4,6 +4,7 @@ import {getBotsAndParticipants} from '@/constants/chat/helpers'
 import * as React from 'react'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {useEngineActionListener} from '@/engine/action-listener'
@@ -312,7 +313,7 @@ const ChannelBody = (props: OwnProps) => {
         selectedMembers={props.selectedMembers}
         onSelectedMembersChange={selectedMembers => navigation.setParams({selectedMembers})}
       >
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} relative={true}>
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} relative={true} testID={TestIDs.TEAMS_CHANNEL_PAGE}>
           <Kb.SectionList
             renderSectionHeader={({section}) =>
               section.title ? <Kb.SectionDivider label={section.title} /> : null

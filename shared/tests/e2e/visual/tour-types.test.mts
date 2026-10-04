@@ -23,6 +23,14 @@ test('mask without reason is refused', () => {
   const bad = {...base, masks: [{testID: 'a', reason: ''}]}
   assert.match(validateEntry(bad).join(), /mask a needs a reason/)
 })
+test('a nav with both append and thread is refused', () => {
+  const bad: TourEntry = {...base, nav: {append: {name: 'x'}, tab: 't', thread: {ref: 'conversationIDKey'}}}
+  assert.match(validateEntry(bad).join(), /both append and thread/)
+})
+test('a thread that is not a conversation is refused', () => {
+  const bad: TourEntry = {...base, nav: {tab: 't', thread: {ref: 'teamID'}}}
+  assert.match(validateEntry(bad).join(), /conversationIDKey ref/)
+})
 test('glob matching', () => {
   const es = [base, {...base, id: 'settings/chat'}, {...base, id: 'teams/root'}]
   assert.deepEqual(
@@ -35,12 +43,16 @@ test('glob matching', () => {
   )
   assert.deepEqual(matchEntries(es, 'nope'), [])
 })
-test('every entry in the real tour validates and ids are unique', async () => {
+// An id may name one screen reached differently per platform (desktop's settings sub-tab, the
+// phone's pushed page); captures are stored per platform.
+test('every entry in the real tour validates and ids are unique per platform', async () => {
   const {tour} = await import('./tour.ts')
   const ids = new Set<string>()
   for (const e of tour) {
     assert.deepEqual(validateEntry(e), [], e.id)
-    assert.ok(!ids.has(e.id), `duplicate ${e.id}`)
-    ids.add(e.id)
+    for (const p of e.platforms) {
+      assert.ok(!ids.has(`${p}:${e.id}`), `duplicate ${e.id} on ${p}`)
+      ids.add(`${p}:${e.id}`)
+    }
   }
 })

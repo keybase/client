@@ -38,6 +38,7 @@ const SETUP_MS = 5_000
 const ASSETS_MS = 10_000
 const SETTLE = {deadlineMs: 5_000, intervalMs: 250}
 const POLL_MS = 100
+export const IDLE_QUIET_MS = 500
 
 // Desktop loading indicators that carry a marker. Kb.ProgressIndicator (a lottie spinner) has none;
 // a spinner still on screen keeps changing frames, so settle reports it as unstable.
@@ -72,6 +73,20 @@ export const waitFor = async (what: string, ms: number, check: () => Promise<boo
   }
 }
 
+// Like waitFor, but the check must hold for quietMs in a row: a screen's loaders start from effects
+// that run after its first paint, so a single idle reading can come before the first one starts.
+export const waitForQuiet = async (what: string, ms: number, quietMs: number, idle: () => Promise<boolean>) => {
+  let since: number | undefined
+  await waitFor(what, ms, async () => {
+    if (!(await idle())) {
+      since = undefined
+      return false
+    }
+    since ??= Date.now()
+    return Date.now() - since >= quietMs
+  })
+}
+
 export async function settle(
   snap: () => Promise<Buffer>,
   opts: {deadlineMs: number; intervalMs: number}
@@ -93,6 +108,7 @@ type Router = {
   popStack: () => void
   navigateAppend: (p: {name: string; params?: object}) => boolean
   getTab: () => string | undefined
+  navigateToThread: (conversationIDKey: string, reason: string) => void
 }
 type NavState = {routes?: Array<{name: string; state?: NavState}>}
 type DarkStore = {
@@ -173,7 +189,7 @@ const resetTo = async (page: Page, tab: string) => {
 }
 
 const runStep = async (page: Page, s: SetupStep) => {
-  const target = page.getByTestId(s.testID).first()
+  const target = page.getByTestId(s.testID).locator('visible=true').first()
   switch (s.kind) {
     case 'openPopup':
     case 'switchSubTab':
@@ -232,7 +248,7 @@ const waitForAssets = async (page: Page) => {
 const waitForNoLoading = async (page: Page) => {
   let busy: Array<string> = []
   try {
-    await waitFor('the waiting store to be idle', READY_MS, async () => {
+    await waitForQuiet('the waiting store to be idle', READY_MS, IDLE_QUIET_MS, async () => {
       busy = await withDeadline(
         page.evaluate(() => {
           const store = (globalThis as unknown as DevGlobals).__ZUSTAND_HMR__?.get('waiting') as WaitingStore | undefined
@@ -421,6 +437,9 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
       // before the reset, so coverage includes what switching to the tab mounts
       const seq = await coverageSeq(page)
       await resetTo(page, entry.nav.tab)
+      // A setup click leaves the pointer where it clicked, and whatever lands under it later draws
+      // hovered. Parked outside the viewport, nothing is hovered unless a hover step asks for it.
+      await withDeadline(page.mouse.move(-1, -1), EVAL_MS, 'parking the mouse')
       const nav = await resolveParams(entry.nav)
       const append = nav.append
       if (append) {
@@ -434,9 +453,24 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
         )
         if (!ok) throw new Error(`navigateAppend ${append.name} did not navigate`)
       }
-      await page.getByTestId(entry.ready).first().waitFor({state: 'visible', timeout: READY_MS})
+      const thread = nav.thread
+      if (thread) {
+        await withDeadline(
+          page.evaluate(id => {
+            const r = (globalThis as unknown as DevGlobals).DEBUGRouter2
+            if (!r) throw new Error('DEBUGRouter2 is not defined; is this a dev build?')
+            r.navigateToThread(id, 'misc')
+          }, thread),
+          EVAL_MS,
+          'navigateToThread'
+        )
+      }
+      if (entry.setup?.length) {
+        await waitForNoLoading(page)
+        for (const s of entry.setup) await runStep(page, s)
+      }
+      await page.getByTestId(entry.ready).locator('visible=true').first().waitFor({state: 'visible', timeout: READY_MS})
       await waitForNoLoading(page)
-      for (const s of entry.setup ?? []) await runStep(page, s)
       await waitForAssets(page)
       const obtrusive = await withDeadline(
         page.evaluate(() =>

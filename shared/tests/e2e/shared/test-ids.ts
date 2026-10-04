@@ -71,6 +71,7 @@ export const TEAMS_TABS         = 'teams-tabs'
 export const TEAMS_MEMBER_LIST  = 'teams-member-list'
 export const TEAMS_MEMBER_PAGE  = 'teams-member-page'
 export const TEAMS_CHANNEL_LIST = 'teams-channel-list'
+export const TEAMS_CHANNEL_PAGE = 'teams-channel-page'
 export const TEAMS_SETTINGS_TAB = 'teams-settings-tab'
 export const TEAMS_BOTS_TAB     = 'teams-bots-tab'
 // The settings team-tab is an icon-only gear on phone (no tappable text), so it
@@ -78,14 +79,23 @@ export const TEAMS_BOTS_TAB     = 'teams-bots-tab'
 // which marks the settings tab's content).
 export const TEAMS_TAB_SETTINGS_BUTTON = 'teams-tab-settings-button'
 export const TEAMS_TAB_MEMBERS_BUTTON  = 'teams-tab-members-button'
+export const TEAMS_TAB_CHANNELS_BUTTON = 'teams-tab-channels-button'
+export const TEAMS_TAB_EMOJI_BUTTON = 'teams-tab-emoji-button'
+export const TEAMS_TAB_BOTS_BUTTON = 'teams-tab-bots-button'
+export const TEAMS_TAB_SUBTEAMS_BUTTON = 'teams-tab-subteams-button'
 
 // Devices
 export const DEVICES_LIST = 'devices-list'
 export const DEVICES_ROW  = 'devices-row'
 export const DEVICE_PAGE  = 'device-page'
+// last-used times: the service updates them while a device is in use
+export const DEVICES_ROW_LAST_USED = 'devices-row-last-used'
+export const DEVICE_PAGE_LAST_USED = 'device-page-last-used'
 
 // Settings
 export const SETTINGS_ACCOUNT           = 'settings-account'
+// the account sub-page itself (SETTINGS_ACCOUNT is the settings nav that holds it)
+export const SETTINGS_ACCOUNT_PAGE = 'settings-account-page'
 export const SETTINGS_ADVANCED          = 'settings-advanced'
 export const SETTINGS_ABOUT             = 'settings-about'
 export const SETTINGS_ARCHIVE           = 'settings-archive'
@@ -98,6 +108,19 @@ export const SETTINGS_FILES             = 'settings-files'
 // "Chat"/"Files" tabs, making a text match ambiguous.
 export const SETTINGS_ROW_CHAT          = 'settings-row-chat'
 export const SETTINGS_ROW_FILES         = 'settings-row-files'
+// the desktop left nav's other rows
+export const SETTINGS_ROW_ACCOUNT = 'settings-row-account'
+export const SETTINGS_ROW_ADVANCED = 'settings-row-advanced'
+export const SETTINGS_ROW_ARCHIVE = 'settings-row-archive'
+export const SETTINGS_ROW_DISPLAY = 'settings-row-display'
+export const SETTINGS_ROW_FEEDBACK = 'settings-row-feedback'
+export const SETTINGS_ROW_NOTIFICATIONS = 'settings-row-notifications'
+export const SETTINGS_ROW_SCREENPROTECTOR = 'settings-row-screenprotector'
+export const SETTINGS_ROW_WALLET = 'settings-row-wallet'
+export const SETTINGS_ROW_TYPOGRAPHY = 'settings-row-typography'
+export const SETTINGS_ROW_ICONS = 'settings-row-icons'
+export const SETTINGS_ROW_MARKDOWN = 'settings-row-markdown'
+export const SETTINGS_ROW_ABOUT = 'settings-row-about'
 export const SETTINGS_NOTIFICATIONS     = 'settings-notifications'
 export const SETTINGS_SCREENPROTECTOR   = 'settings-screenprotector'
 // Dev-only debug pages (gated by __DEV__ in nav + routes)
@@ -107,6 +130,8 @@ export const SETTINGS_MARKDOWN          = 'settings-markdown'
 // People
 export const PEOPLE_FEED = 'people-feed'
 export const PEOPLE_HEADER_AVATAR = 'people-header-avatar'
+// the server-picked "Consider following..." users
+export const PEOPLE_FOLLOW_SUGGESTIONS = 'people-follow-suggestions'
 
 // Profile
 export const PROFILE_PAGE = 'profile-page'
