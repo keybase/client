@@ -30,6 +30,8 @@ if (compareDir && (compareDir === outputDir || compareDir.startsWith(outputDir +
   throw new Error(`--compare ${compareDir} is inside ${outputDir}, which every run deletes`)
 }
 if (compareDir && !fs.existsSync(compareDir)) throw new Error(`--compare ${compareDir} does not exist`)
+const strict = args.only !== undefined || compareDir !== undefined
+const PLAIN_GRACE_MS = 2000
 
 // Build storybook to a static directory
 console.log('Building storybook (this compiles everything upfront)...')
@@ -133,17 +135,25 @@ await Promise.all(
         const slug = name.replaceAll(/\s+/g, '-')
 
         // 'load' fires while storybook still shows its preparing spinner; the body only gets
-        // sb-show-main once the story has rendered.
+        // sb-show-main once the story has rendered. With --only or --compare a story must render
+        // into #storybook-root or it is skipped, so a spinner is never captured as the story. A
+        // plain run captures every story as before: a story that renders into a portal (empty
+        // root) or shows an error is captured after a short grace rather than skipped.
+        const rendered = async (timeout: number) =>
+          page
+            .waitForFunction(
+              () => {
+                const {document: d} = globalThis as unknown as PageWindow
+                return d.body.classList.contains('sb-show-main') && !!d.querySelector('#storybook-root')?.childElementCount
+              },
+              undefined,
+              {timeout}
+            )
+            .then(() => true)
         const capture = async (url: string, file: string) => {
           await page.goto(url, {timeout: 10000, waitUntil: 'load'})
-          await page.waitForFunction(
-            () => {
-              const {document: d} = globalThis as unknown as PageWindow
-              return d.body.classList.contains('sb-show-main') && !!d.querySelector('#storybook-root')?.childElementCount
-            },
-            undefined,
-            {timeout: 10000}
-          )
+          if (strict) await rendered(10000)
+          else await rendered(PLAIN_GRACE_MS).catch(() => false)
           await page.evaluate(async () => {
             await (globalThis as unknown as PageWindow).document.fonts.ready
           })
@@ -190,8 +200,10 @@ if (compareDir) {
     if (r.sizeMismatch) differing.push(`${rel}: size differs`)
     else if (!r.equal) differing.push(`${rel}: ${r.changed} px differ`)
   }
+  // A story skipped here is a difference only if the baseline captured it (listed above as
+  // missing); one skipped in both runs alike is not.
   for (const rel of base) differing.push(`${rel}: missing from this run`)
-  if (done !== total) differing.push(`${total - done} screenshots were skipped`)
+  if (done !== total) console.log(`\n${total - done} screenshots were skipped (see SKIP lines)`)
   console.log(`\nCompared ${now.length} screenshots against ${compareDir}: ${differing.length} differences`)
   for (const d of differing) console.log(`  ${d}`)
   if (differing.length) process.exit(1)
