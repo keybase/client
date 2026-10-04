@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises -- node:test registers top-level tests; they are not awaited */
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
-import {applyCleanup, cleanupCandidates, pinSource} from './box2-stretch-default.mts'
+import {applyCleanup, cleanupCandidates, gatePlatforms, pinSource, unmountedPlatforms} from './box2-stretch-default.mts'
 
 const run = (code: string) => pinSource(code, '/x/shared/settings/a.tsx')
 const runCA = (code: string) => pinSource(code, '/x/shared/common-adapters/rounded-box.tsx')
@@ -517,7 +517,7 @@ test('parent style that may change alignment or direction, or cannot be read: no
     const hooked = `const A = () => {\n  const styles = useStyles()\n  return (\n    <Kb.Box2 direction="vertical" style={styles.x}>\n      <Kb.Box2 direction="vertical" fullWidth />\n    </Kb.Box2>\n  )\n}\nconst useStyles = Kb.Styles.createStyleHook(theme => (${sheet}))`
     assert.deepEqual(rules(hooked), [], sheet)
   }
-  const flipped =`${inVertical(`<Kb.Box2 direction="vertical" fullWidth alignSelf="center" />`, ` style={styles.x}`)}\nconst styles = Kb.Styles.styleSheetCreate(() => ({x: {flexDirection: 'row'}}))`
+  const flipped = `${inVertical(`<Kb.Box2 direction="vertical" fullWidth alignSelf="center" />`, ` style={styles.x}`)}\nconst styles = Kb.Styles.styleSheetCreate(() => ({x: {flexDirection: 'row'}}))`
   assert.deepEqual(rules(flipped), [])
 })
 
@@ -579,4 +579,56 @@ test('one change per site per pass: C3 now, C1 on a later pass', () => {
   const src = inVertical(`<Kb.Box2 direction="vertical" fullWidth alignSelf="flex-start" />`)
   const once = clean(src)
   assert.deepEqual(rules(once), ['C1:fullWidth:3'])
+})
+
+test('a child reaching the parent through anything but map, &&, ?: or a fragment has no parent', () => {
+  for (const inner of [
+    `{helper(<Kb.Box2 direction="horizontal" fullWidth />)}`,
+    `{xs.forEach(() => <Kb.Box2 direction="horizontal" fullWidth />)}`,
+    `{xs.map(x => { if (x) { return <Kb.Box2 direction="horizontal" fullWidth /> } return null })}`,
+    `{xs.map(x => [<Kb.Box2 key={x} direction="horizontal" fullWidth />])}`,
+    `{xs.map(x => x, () => <Kb.Box2 direction="horizontal" fullWidth />)}`,
+    `{(() => <Kb.Box2 direction="horizontal" fullWidth />)()}`,
+  ]) {
+    assert.deepEqual(rules(`const A = () => <Kb.Box2 direction="vertical">${inner}</Kb.Box2>`), [], inner)
+  }
+  assert.deepEqual(
+    rules(
+      `const A = () => <Kb.Box2 direction="vertical">{xs.map(x => {\n  const y = x\n  return <Kb.Box2 key={y} direction="horizontal" fullWidth />\n})}{a && <Kb.Box2 direction="horizontal" fullWidth />}{(<Kb.Box2 direction="horizontal" fullWidth />)}</Kb.Box2>`
+    ),
+    ['C1:fullWidth:3', 'C1:fullWidth:4', 'C1:fullWidth:4']
+  )
+})
+
+test('a duplicate style sheet key: the last one counts', () => {
+  assert.deepEqual(rules(styled(`styles.x`, `{x: {padding: 1}, x: {alignItems: 'center'}}`)), [])
+  assert.deepEqual(rules(styled(`styles.x`, `{x: {alignItems: 'center'}, x: {padding: 1}}`)), ['C1:fullWidth:3'])
+})
+
+test('gate platforms by file name', () => {
+  assert.deepEqual(gatePlatforms('settings/a.tsx'), ['desktop', 'ios'])
+  assert.deepEqual(gatePlatforms('settings/a.desktop.tsx'), ['desktop'])
+  for (const f of ['a.native.tsx', 'a.ios.tsx', 'a.android.tsx']) assert.deepEqual(gatePlatforms(`x/${f}`), ['ios'], f)
+})
+
+test('a candidate needs coverage on every platform its file renders on', () => {
+  const range = {end: 12, start: 10}
+  const at = (rel: string, desktop: Array<string>, ios: Array<string>) =>
+    unmountedPlatforms({hunks: [], mounted: {desktop, ios}, range, rel})
+  assert.deepEqual(at('a.tsx', ['a.tsx:10'], ['a.tsx:11']), [])
+  assert.deepEqual(at('a.tsx', ['a.tsx:10'], []), ['ios'])
+  assert.deepEqual(at('a.tsx', [], ['a.tsx:12']), ['desktop'])
+  assert.deepEqual(at('a.tsx', ['b.tsx:10'], ['a.tsx:9']), ['desktop', 'ios'])
+  assert.deepEqual(at('a.desktop.tsx', ['a.desktop.tsx:10'], []), [])
+  assert.deepEqual(at('a.desktop.tsx', [], ['a.desktop.tsx:10']), ['desktop'])
+  assert.deepEqual(at('a.native.tsx', [], ['a.native.tsx:10']), [])
+  assert.deepEqual(at('a.ios.tsx', ['a.ios.tsx:10'], []), ['ios'])
+  // base ids are carried forward through the base..tree diff: 3 lines inserted after base line 4
+  const shifted = unmountedPlatforms({
+    hunks: [{newCount: 3, newStart: 5, oldCount: 0, oldStart: 4}],
+    mounted: {desktop: ['a.tsx:7'], ios: ['a.tsx:8']},
+    range,
+    rel: 'a.tsx',
+  })
+  assert.deepEqual(shifted, [])
 })
