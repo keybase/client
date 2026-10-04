@@ -63,7 +63,7 @@ const EmailPhone = ({onEmailVerificationSuccess}: {onEmailVerificationSuccess: (
   return (
     <SettingsSection>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
-        <Kb.Box2 alignItems="center" direction="horizontal" gap="tiny" fullWidth={true}>
+        <Kb.Box2 alignItems="center" direction="horizontal" gap="tiny">
           <Kb.Text type="Header">Email & phone</Kb.Text>
           {waiting && <Kb.ProgressIndicator style={styles.progress} />}
         </Kb.Box2>

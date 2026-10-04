@@ -74,7 +74,7 @@ const FinderIntegration = () => {
   return Platform.isDarwin || Platform.isWindows ? (
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} padding="small">
-        <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Box2 direction="vertical">
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.contentHeader}>
             <Kb.Text type="Header">{Platform.fileUIName} integration</Kb.Text>
             {isPending && <Kb.ProgressIndicator style={styles.spinner} />}
@@ -107,7 +107,7 @@ const FinderIntegration = () => {
               </Kb.Box2>
             </Kb.Box2>
           ) : (
-            <Kb.Box2 direction="vertical" fullWidth={true}>
+            <Kb.Box2 direction="vertical">
               <Kb.Text type="BodySmall">
                 {
                   "Get access to your files and folders just like you normally do with your local files. It's encrypted and secure."

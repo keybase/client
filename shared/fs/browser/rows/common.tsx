@@ -54,7 +54,7 @@ export const StillCommon = (
               props.writingToJournal && !props.uploadErrored && rowStyles.opacity30,
             ])}
           >
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
+            <Kb.Box2 direction="horizontal">
               {props.content}
             </Kb.Box2>
             {props.status || null}

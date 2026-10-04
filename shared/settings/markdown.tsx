@@ -112,7 +112,7 @@ const Sample = ({name, source}: SampleType) => {
   const styles = useStyles()
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.sample}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+      <Kb.Box2 direction="horizontal" alignItems="center">
         <Kb.Text type="BodySmallSemibold">{name}</Kb.Text>
         <Kb.Text type="BodyTiny" style={styles.count}>
           {countNodes(parseMarkdown(source) as Array<Node>)} nodes / {source.length} chars
@@ -134,7 +134,7 @@ const MarkdownDebug = () => {
     <Kb.ScrollView style={styles.scroll} testID={TestIDs.SETTINGS_MARKDOWN}>
       <Kb.Box2 direction="vertical" fullWidth={true} padding="small" gap="tiny">
         {sections.map(section => (
-          <Kb.Box2 key={section.title} direction="vertical" fullWidth={true} gap="tiny">
+          <Kb.Box2 key={section.title} direction="vertical" gap="tiny">
             <Kb.Text type="Header">{section.title}</Kb.Text>
             {section.samples.map(sample => (
               <Sample key={sample.name} name={sample.name} source={sample.source} />

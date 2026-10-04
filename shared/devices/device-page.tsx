@@ -80,7 +80,7 @@ const Timeline = (p: {device: T.Devices.Device}) => {
   return (
     <Kb.Box2 alignSelf="center" direction="vertical">
       {timeline.map(({type, desc, subDesc}, idx) => (
-        <Kb.Box2 direction="horizontal" key={desc} gap="small" fullWidth={true}>
+        <Kb.Box2 direction="horizontal" key={desc} gap="small">
           <TimelineMarker
             first={idx === 0}
             last={idx === timeline.length - 1}
