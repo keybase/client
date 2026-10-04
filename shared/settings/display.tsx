@@ -60,7 +60,7 @@ const Display = () => {
           />
         </Kb.Box2>
         {isElectron && (
-          <Kb.Box2 direction="vertical" gap="tiny">
+          <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
             <Kb.Text type="Header">Navigation</Kb.Text>
             <Kb.Checkbox
               label="Force small navigation"
