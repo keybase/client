@@ -5,7 +5,7 @@ tree. Use it to prove a layout refactor changes nothing on screen, or to see exa
 changes. The compare is exact RGBA with no threshold; a size mismatch is a failure.
 
 Platforms: Electron light and dark (1280x800 @2x), and iOS light on the `iPhoneTest` simulator
-(`KB_IOS_DEVICE` overrides). The tour of screens is `tour.ts`: 40 desktop entries and 29 phone
+(`KB_IOS_DEVICE` overrides). The tour of screens is `tour.ts`: 68 desktop entries and 53 phone
 entries, all signed in as the e2e smoke account.
 
 ## Before you start
@@ -65,8 +65,8 @@ A base and a check are taken minutes or days apart, so anything that can change 
 pinned:
 
 - **Seal.** A read-only snapshot of the account through the CLI: inbox (ids, names, unread,
-  `activeAtMs`), teams and members, follows, devices, the team folder's listing. Each tour entry
-  names the fields it shows. `base` and `gate` read a full seal before and after and are void if it
+  `activeAtMs`), teams and members, follows, devices, the team folder's and the private folder's
+  listings. Each tour entry names the fields it shows. `base` and `gate` read a full seal before and after and are void if it
   changed (`gate void: … inbox[…].activeAtMs …`). `check` compares the entries' fields with the
   base's seal before capturing (`seal changed: …`). Traffic on the account voids runs; wait for a
   quiet account, or retake the base.
@@ -91,7 +91,8 @@ pinned:
 A mask hides a region from the compare. Only for content the server picks or pushes that no seal
 field can pin, never for layout. Each one names a testID and a reason in `tour.ts`. A compare masks
 the union of the base's and the current capture's mask rects. Current masks: people feed follow
-suggestions, device last-used times.
+suggestions, device last-used times, the team builder's recommendation list (server-picked and
+server-ordered; the builder's service tabs and search box stay compared).
 
 ## Coverage
 
@@ -140,8 +141,10 @@ change with `--compare <baseline dir>`.
 
 Routes the tour leaves out are listed with reasons at the bottom of `tour.ts`. Notable:
 
-- `profile` (self): reopening a profile within 30s of closing it shows an empty profile with
+- `profile` (anyone's): reopening a profile within 30s of closing it shows an empty profile with
   follower spinners that never finish (`tracker/identify-session.tsx`); also on master.
 - Phone `files/team`: the header's "..." dots draw 1px off on the first push of a launch.
 - Desktop chat info panel: it stays open for the conversation entries after it.
+- Phone menus are bottom sheets that expose nothing inside them to Appium: their entries wait on
+  the screen under the sheet.
 - Screens reached only through a write, or showing server-picked lists.
