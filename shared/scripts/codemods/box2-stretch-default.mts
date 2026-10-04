@@ -28,7 +28,7 @@ import {
   type Hunk,
   type Range,
 } from '../../tests/e2e/visual/coverage/changed-sites.mts'
-import {basePlatformDir, type RunPlatform} from '../../tests/e2e/visual/store.mts'
+import {basePlatformDir, type CoverageFile, type RunPlatform} from '../../tests/e2e/visual/store.mts'
 
 type Site = {line: number}
 type Unresolved = {line: number; reason: string}
@@ -457,7 +457,10 @@ export const unmountedPlatforms = (opts: {
       }).length > 0
   )
 
-const platformCoverage = (sha: string, platform: RunPlatform) => {
+// The call sites a platform's base captures mounted. A masked entry counts for nothing: its sites
+// may sit under a mask the compare never sees. A bare id list predates the masked flag and may
+// come from a masked entry, so it is refused rather than trusted.
+export const platformCoverage = (sha: string, platform: RunPlatform) => {
   const out = new Set<string>()
   const walkCoverage = (dir: string) => {
     if (!existsSync(dir)) return
@@ -465,13 +468,28 @@ const platformCoverage = (sha: string, platform: RunPlatform) => {
       const p = join(dir, d.name)
       if (d.isDirectory()) walkCoverage(p)
       else if (basename(dir) === 'coverage' && d.name.endsWith('.json')) {
-        for (const id of JSON.parse(readFileSync(p, 'utf8')) as Array<string>) out.add(id)
+        const file = JSON.parse(readFileSync(p, 'utf8')) as CoverageFile | Array<string>
+        if (Array.isArray(file)) throw new Error(`${p} has no masked flag: retake the coverage base`)
+        if (!file.masked) for (const id of file.ids) out.add(id)
       }
     }
   }
   walkCoverage(basePlatformDir(sha, platform))
   return [...out]
 }
+
+// Sites a gate run proved unsafe, matched by file, rule and a piece of the site's first line.
+const cleanupSkips: ReadonlyArray<{rel: string; rule: CleanupRule; line: string; reason: string}> = [
+  {
+    line: '<Kb.ClickableBox onClick={_onLabelClick} direction="vertical" fullWidth={true}>',
+    reason: 'its parent sizes to its content on iOS (alignSelf center, no width), where width 100% is not stretch',
+    rel: 'settings/feedback/index.tsx',
+    rule: 'C1',
+  },
+]
+
+export const skipReason = (rel: string, rule: CleanupRule, lineText: string) =>
+  cleanupSkips.find(s => s.rel === rel && s.rule === rule && lineText.includes(s.line))?.reason
 
 // Candidates are computed on the tree at `at` (HEAD by default; --write needs HEAD and a clean tree)
 // and kept only where every platform from gatePlatforms mounted their call site.
@@ -509,6 +527,7 @@ const runCleanup = (
     const cands = cleanupCandidates(src, file)
     if (!cands.length) continue
     const ranges = callSiteRanges(src)
+    const lines = src.split('\n')
     const keep: Array<CleanupCandidate> = []
     for (const c of cands) {
       before[c.rule]++
@@ -517,13 +536,16 @@ const runCleanup = (
       const missing = range
         ? unmountedPlatforms({hunks: baseHunks.get(rel) ?? [], mounted, range, rel})
         : []
-      const why = unmarkedFile(rel)
-        ? 'file not marked by coverage'
-        : !range
-          ? 'call site not marked by coverage'
-          : missing.length
-            ? `never mounted on ${missing.join(' or ')}`
-            : undefined
+      const skipped = skipReason(rel, c.rule, lines[c.line - 1] ?? '')
+      const why = skipped
+        ? `skipped: ${skipped}`
+        : unmarkedFile(rel)
+          ? 'file not marked by coverage'
+          : !range
+            ? 'call site not marked by coverage'
+            : missing.length
+              ? `never mounted on ${missing.join(' or ')}`
+              : undefined
       if (why) {
         uncovered.push({...row, why})
       } else {
