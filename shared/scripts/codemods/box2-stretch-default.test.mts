@@ -6,11 +6,12 @@ import * as os from 'os'
 import * as path from 'path'
 import {
   applyCleanup,
+  assertPinWritable,
   cleanupCandidates,
   gatePlatforms,
+  hasImplicitCenter,
   pinSource,
   platformCoverage,
-  skipReason,
   unmountedPlatforms,
 } from './box2-stretch-default.mts'
 
@@ -347,9 +348,9 @@ test('output is idempotent', () => {
 const cands = (code: string) => cleanupCandidates(code, '/x/shared/settings/a.tsx')
 const clean = (code: string) => applyCleanup(code, cands(code))
 const rules = (code: string) => cands(code).map(c => `${c.rule}:${c.attr}:${c.line}`)
-const inVertical = (child: string, parent = '') =>
+const inVertical = (child: string, parent = ' fullWidth') =>
   `const A = () => (\n  <Kb.Box2 direction="vertical"${parent}>\n    ${child}\n  </Kb.Box2>\n)`
-const inHorizontal = (child: string, parent = '') =>
+const inHorizontal = (child: string, parent = ' fullHeight') =>
   `const A = () => (\n  <Kb.Box2 direction="horizontal"${parent}>\n    ${child}\n  </Kb.Box2>\n)`
 
 test('C1: fullWidth on a child of a vertical stretch parent is removed', () => {
@@ -358,13 +359,13 @@ test('C1: fullWidth on a child of a vertical stretch parent is removed', () => {
     assert.deepEqual(rules(src), ['C1:fullWidth:3'], fw)
     assert.equal(clean(src), inVertical(`<Kb.Box2 direction="horizontal" gap="tiny" />`), fw)
   }
-  const stretch = inVertical(`<Kb.ClickableBox direction="vertical" fullWidth />`, ` alignItems="stretch"`)
+  const stretch = inVertical(`<Kb.ClickableBox direction="vertical" fullWidth />`, ` fullWidth alignItems="stretch"`)
   assert.deepEqual(rules(stretch), ['C1:fullWidth:3'])
 })
 
 test('C1: an attribute on its own line goes with its line', () => {
   const src = `const A = () => (
-  <Kb.Box2 direction="vertical">
+  <Kb.Box2 direction="vertical" fullWidth>
     <Kb.Box2
       direction="horizontal"
       fullWidth
@@ -375,7 +376,7 @@ test('C1: an attribute on its own line goes with its line', () => {
   assert.equal(
     clean(src),
     `const A = () => (
-  <Kb.Box2 direction="vertical">
+  <Kb.Box2 direction="vertical" fullWidth>
     <Kb.Box2
       direction="horizontal"
       gap="tiny"
@@ -427,7 +428,7 @@ test('C3: alignSelf literal on a fullWidth child of a vertical parent is removed
 })
 
 test('C3: whatever the parent alignItems is', () => {
-  const src = inVertical(`<Kb.Box2 direction="vertical" fullWidth alignSelf="center" />`, ` alignItems="center"`)
+  const src = inVertical(`<Kb.Box2 direction="vertical" fullWidth alignSelf="center" />`, ` fullWidth alignItems="center"`)
   assert.deepEqual(rules(src), ['C3:alignSelf:3'])
 })
 
@@ -473,21 +474,21 @@ test('no rule fires for a child with a style prop, a className or a spread', () 
 
 test('parent alignItems other than stretch: no C1 or C2', () => {
   for (const ai of [` alignItems="center"`, ` alignItems="flex-start"`, ` alignItems={x}`, ` centerChildren`]) {
-    assert.deepEqual(rules(inVertical(`<Kb.Box2 direction="vertical" fullWidth />`, ai)), [], ai)
-    assert.deepEqual(rules(inHorizontal(`<Kb.Box2 direction="vertical" fullHeight />`, ai)), [], ai)
+    assert.deepEqual(rules(inVertical(`<Kb.Box2 direction="vertical" fullWidth />`, ` fullWidth${ai}`)), [], ai)
+    assert.deepEqual(rules(inHorizontal(`<Kb.Box2 direction="vertical" fullHeight />`, ` fullHeight${ai}`)), [], ai)
   }
 })
 
 test('parent with a spread or a className: nothing', () => {
   for (const extra of [` {...p}`, ` className="x"`]) {
-    assert.deepEqual(rules(inVertical(`<Kb.Box2 direction="vertical" fullWidth />`, extra)), [], extra)
-    assert.deepEqual(rules(inVertical(`<Kb.Box2 direction="vertical" fullWidth alignSelf="center" />`, extra)), [], extra)
-    assert.deepEqual(rules(inHorizontal(`<Kb.Box2 direction="vertical" fullHeight />`, extra)), [], extra)
+    assert.deepEqual(rules(inVertical(`<Kb.Box2 direction="vertical" fullWidth />`, ` fullWidth${extra}`)), [], extra)
+    assert.deepEqual(rules(inVertical(`<Kb.Box2 direction="vertical" fullWidth alignSelf="center" />`, ` fullWidth${extra}`)), [], extra)
+    assert.deepEqual(rules(inHorizontal(`<Kb.Box2 direction="vertical" fullHeight />`, ` fullHeight${extra}`)), [], extra)
   }
 })
 
 const styled = (style: string, sheet: string) =>
-  `${inVertical(`<Kb.Box2 direction="vertical" fullWidth />`, ` style={${style}}`)}\nconst styles = Kb.Styles.styleSheetCreate(() => (${sheet}))`
+  `${inVertical(`<Kb.Box2 direction="vertical" fullWidth />`, ` fullWidth style={${style}}`)}\nconst styles = Kb.Styles.styleSheetCreate(() => (${sheet}))`
 
 test('parent style that provably keeps the cross axis: rules still apply', () => {
   for (const [style, sheet] of [
@@ -501,7 +502,7 @@ test('parent style that provably keeps the cross axis: rules still apply', () =>
   ] as const) {
     assert.deepEqual(rules(styled(style, sheet)), ['C1:fullWidth:3'], `${style} ${sheet}`)
   }
-  const hooked = `const A = () => {\n  const styles = useStyles()\n  return (\n    <Kb.Box2 direction="vertical" style={styles.x}>\n      <Kb.Box2 direction="vertical" fullWidth />\n    </Kb.Box2>\n  )\n}\nconst useStyles = Kb.Styles.createStyleHook(theme => ({x: {backgroundColor: theme.white}}))`
+  const hooked = `const A = () => {\n  const styles = useStyles()\n  return (\n    <Kb.Box2 direction="vertical" fullWidth style={styles.x}>\n      <Kb.Box2 direction="vertical" fullWidth />\n    </Kb.Box2>\n  )\n}\nconst useStyles = Kb.Styles.createStyleHook(theme => ({x: {backgroundColor: theme.white}}))`
   assert.deepEqual(rules(hooked), ['C1:fullWidth:5'])
 })
 
@@ -525,29 +526,29 @@ test('parent style that may change alignment or direction, or cannot be read: no
     assert.deepEqual(rules(styled(style, sheet)), [], `${style} ${sheet}`)
   }
   for (const sheet of [`{x: {alignItems: 'center'}}`, `{y: {}}`]) {
-    const hooked = `const A = () => {\n  const styles = useStyles()\n  return (\n    <Kb.Box2 direction="vertical" style={styles.x}>\n      <Kb.Box2 direction="vertical" fullWidth />\n    </Kb.Box2>\n  )\n}\nconst useStyles = Kb.Styles.createStyleHook(theme => (${sheet}))`
+    const hooked = `const A = () => {\n  const styles = useStyles()\n  return (\n    <Kb.Box2 direction="vertical" fullWidth style={styles.x}>\n      <Kb.Box2 direction="vertical" fullWidth />\n    </Kb.Box2>\n  )\n}\nconst useStyles = Kb.Styles.createStyleHook(theme => (${sheet}))`
     assert.deepEqual(rules(hooked), [], sheet)
   }
-  const flipped = `${inVertical(`<Kb.Box2 direction="vertical" fullWidth alignSelf="center" />`, ` style={styles.x}`)}\nconst styles = Kb.Styles.styleSheetCreate(() => ({x: {flexDirection: 'row'}}))`
+  const flipped = `${inVertical(`<Kb.Box2 direction="vertical" fullWidth alignSelf="center" />`, ` fullWidth style={styles.x}`)}\nconst styles = Kb.Styles.styleSheetCreate(() => ({x: {flexDirection: 'row'}}))`
   assert.deepEqual(rules(flipped), [])
 })
 
 test('parent direction that is not a literal vertical or horizontal: nothing', () => {
   for (const dir of [`{dir}`, `{isMobile ? 'vertical' : 'horizontal'}`, `"verticalReverse"`, `"horizontalReverse"`]) {
-    const src = `const A = () => <Kb.Box2 direction=${dir}><Kb.Box2 direction="vertical" fullWidth fullHeight={false} alignSelf="center" /><Kb.Box2 direction="vertical" fullWidth /><Kb.Box2 direction="vertical" fullHeight /></Kb.Box2>`
+    const src = `const A = () => <Kb.Box2 direction=${dir} fullWidth fullHeight><Kb.Box2 direction="vertical" fullWidth fullHeight={false} alignSelf="center" /><Kb.Box2 direction="vertical" fullWidth /><Kb.Box2 direction="vertical" fullHeight /></Kb.Box2>`
     assert.deepEqual(rules(src), [], dir)
   }
-  assert.deepEqual(rules(`const A = () => <Kb.Box2 direction={'vertical'}><Kb.Box2 direction="vertical" fullWidth /></Kb.Box2>`), ['C1:fullWidth:1'])
+  assert.deepEqual(rules(`const A = () => <Kb.Box2 direction={'vertical'} fullWidth><Kb.Box2 direction="vertical" fullWidth /></Kb.Box2>`), ['C1:fullWidth:1'])
 })
 
 test('non-target parent or child: nothing', () => {
   for (const src of [
     `const A = () => <Kb.ScrollView direction="vertical"><Kb.Box2 direction="vertical" fullWidth /></Kb.ScrollView>`,
     `const A = () => <View><Kb.Box2 direction="vertical" fullWidth alignSelf="center" /></View>`,
-    `const A = () => <Kb.Box2 direction="vertical"><Kb.Button fullWidth /></Kb.Box2>`,
-    `const A = () => <Kb.Box2 direction="vertical"><Kb.Text type="Body" alignSelf="center" fullWidth /></Kb.Box2>`,
-    `const A = () => <Kb.Box2 direction="vertical"><Kb.ScrollView><Kb.Box2 direction="vertical" fullWidth /></Kb.ScrollView></Kb.Box2>`,
-    `const A = () => <Kb.Box2 direction="vertical"><Kb.List renderItem={() => <Kb.Box2 direction="vertical" fullWidth />} /></Kb.Box2>`,
+    `const A = () => <Kb.Box2 direction="vertical" fullWidth><Kb.Button fullWidth /></Kb.Box2>`,
+    `const A = () => <Kb.Box2 direction="vertical" fullWidth><Kb.Text type="Body" alignSelf="center" fullWidth /></Kb.Box2>`,
+    `const A = () => <Kb.Box2 direction="vertical" fullWidth><Kb.ScrollView><Kb.Box2 direction="vertical" fullWidth /></Kb.ScrollView></Kb.Box2>`,
+    `const A = () => <Kb.Box2 direction="vertical" fullWidth><Kb.List renderItem={() => <Kb.Box2 direction="vertical" fullWidth />} /></Kb.Box2>`,
   ]) {
     assert.deepEqual(rules(src), [], src)
   }
@@ -555,7 +556,7 @@ test('non-target parent or child: nothing', () => {
 
 test('the nearest parent is the one whose children hold the child', () => {
   assert.deepEqual(
-    rules(`const A = () => <Kb.Box2 direction="vertical">{xs.map(x => <Kb.Box2 key={x} direction="horizontal" fullWidth />)}{c ? <><Kb.Box2 direction="horizontal" fullWidth /></> : null}</Kb.Box2>`),
+    rules(`const A = () => <Kb.Box2 direction="vertical" fullWidth>{xs.map(x => <Kb.Box2 key={x} direction="horizontal" fullWidth />)}{c ? <><Kb.Box2 direction="horizontal" fullWidth /></> : null}</Kb.Box2>`),
     ['C1:fullWidth:1', 'C1:fullWidth:1']
   )
   assert.deepEqual(rules(`const B = () => <Kb.Box2 direction="horizontal" fullWidth />`), [])
@@ -567,23 +568,56 @@ test('the nearest parent is the one whose children hold the child', () => {
 
 test('both a child and its parent can be candidates', () => {
   const src = `const A = () => (
-  <Kb.Box2 direction="vertical">
-    <Kb.Box2 direction="horizontal" fullWidth>
+  <Kb.Box2 direction="vertical" fullWidth>
+    <Kb.Box2 direction="horizontal" fullWidth fullHeight alignSelf="center">
       <Kb.Box2 direction="vertical" fullHeight />
     </Kb.Box2>
   </Kb.Box2>
 )`
-  assert.deepEqual(rules(src), ['C1:fullWidth:3', 'C2:fullHeight:4'])
+  assert.deepEqual(rules(src), ['C3:alignSelf:3', 'C2:fullHeight:4'])
   assert.equal(
     clean(src),
     `const A = () => (
-  <Kb.Box2 direction="vertical">
-    <Kb.Box2 direction="horizontal">
+  <Kb.Box2 direction="vertical" fullWidth>
+    <Kb.Box2 direction="horizontal" fullWidth fullHeight>
       <Kb.Box2 direction="vertical" />
     </Kb.Box2>
   </Kb.Box2>
 )`
   )
+})
+
+test('a parent not full on the cross axis: nothing', () => {
+  for (const parent of ['', ' fullWidth={x}', ' fullWidth={false}', ' fullHeight']) {
+    assert.deepEqual(rules(inVertical(`<Kb.Box2 direction="horizontal" fullWidth />`, parent)), [], parent)
+    assert.deepEqual(rules(inVertical(`<Kb.Box2 direction="vertical" fullWidth alignSelf="center" />`, parent)), [], parent)
+  }
+  for (const parent of ['', ' fullHeight={x}', ' fullWidth']) {
+    assert.deepEqual(rules(inHorizontal(`<Kb.Box2 direction="vertical" fullHeight />`, parent)), [], parent)
+  }
+})
+
+test('a fullWidth child of a centered, content-sized parent is not a candidate', () => {
+  const src = `const A = () => {
+  const styles = useStyles()
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Box2 alignSelf="center" direction="vertical" padding="small" style={styles.mainBox} gap="xsmall">
+        <Kb.ClickableBox onClick={_onLabelClick} direction="vertical" fullWidth={true}>
+          <Kb.Checkbox label="x" checked={a} onCheck={b} />
+        </Kb.ClickableBox>
+      </Kb.Box2>
+    </Kb.Box2>
+  )
+}
+const useStyles = Kb.Styles.createStyleHook(() => ({
+  mainBox: Kb.Styles.platformStyles({
+    isElectron: {alignSelf: 'flex-start', maxWidth: 550, width: '100%'},
+    isTablet: {alignSelf: 'flex-start', width: Kb.Styles.globalStyles.largeWidthPercent},
+  }),
+}))`
+  assert.deepEqual(rules(src), [])
+  assert.deepEqual(rules(src.replace('padding="small" style', 'padding="small" fullWidth style')), ['C1:fullWidth:6'])
 })
 
 test('one change per site per pass: C3 now, C1 on a later pass', () => {
@@ -601,11 +635,11 @@ test('a child reaching the parent through anything but map, &&, ?: or a fragment
     `{xs.map(x => x, () => <Kb.Box2 direction="horizontal" fullWidth />)}`,
     `{(() => <Kb.Box2 direction="horizontal" fullWidth />)()}`,
   ]) {
-    assert.deepEqual(rules(`const A = () => <Kb.Box2 direction="vertical">${inner}</Kb.Box2>`), [], inner)
+    assert.deepEqual(rules(`const A = () => <Kb.Box2 direction="vertical" fullWidth>${inner}</Kb.Box2>`), [], inner)
   }
   assert.deepEqual(
     rules(
-      `const A = () => <Kb.Box2 direction="vertical">{xs.map(x => {\n  const y = x\n  return <Kb.Box2 key={y} direction="horizontal" fullWidth />\n})}{a && <Kb.Box2 direction="horizontal" fullWidth />}{(<Kb.Box2 direction="horizontal" fullWidth />)}</Kb.Box2>`
+      `const A = () => <Kb.Box2 direction="vertical" fullWidth>{xs.map(x => {\n  const y = x\n  return <Kb.Box2 key={y} direction="horizontal" fullWidth />\n})}{a && <Kb.Box2 direction="horizontal" fullWidth />}{(<Kb.Box2 direction="horizontal" fullWidth />)}</Kb.Box2>`
     ),
     ['C1:fullWidth:3', 'C1:fullWidth:4', 'C1:fullWidth:4']
   )
@@ -669,13 +703,24 @@ test('a masked entry never qualifies a site; a coverage file without the masked 
   } finally {
     if (prev === undefined) delete process.env['KB_VISUAL_RESULTS']
     else process.env['KB_VISUAL_RESULTS'] = prev
+    fs.rmSync(root, {force: true, recursive: true})
   }
 })
 
-test('a skip-listed site is matched by file, rule and line text', () => {
-  const line = '          <Kb.ClickableBox onClick={_onLabelClick} direction="vertical" fullWidth={true}>'
-  assert.match(skipReason('settings/feedback/index.tsx', 'C1', line) ?? '', /iOS/)
-  assert.equal(skipReason('settings/feedback/index.tsx', 'C3', line), undefined)
-  assert.equal(skipReason('settings/other.tsx', 'C1', line), undefined)
-  assert.equal(skipReason('settings/feedback/index.tsx', 'C1', '<Kb.ClickableBox fullWidth={true}>'), undefined)
+const preFlipBox = `const box2SharedProps = (p: Box2Props) => {
+  const style = Styles.collapseStyles([
+    fullWidth && nativeStyles.fullWidth,
+    !fullHeight && !fullWidth && nativeStyles.centered,
+  ])
+}
+const box2ClassNames = (p: Box2Props) => Styles.classNames({box2_centered: !fullHeight && !fullWidth, box2_fullWidth: fullWidth})`
+
+test('pin --write needs a box.tsx that still centers by default', () => {
+  assert.equal(hasImplicitCenter(preFlipBox), true)
+  assert.equal(hasImplicitCenter(preFlipBox.replace('box2_centered: !fullHeight && !fullWidth, ', '')), true)
+  assert.equal(hasImplicitCenter(preFlipBox.replace('    !fullHeight && !fullWidth && nativeStyles.centered,\n', '')), true)
+  assert.doesNotThrow(() => assertPinWritable(preFlipBox))
+  const tree = fs.readFileSync(path.join(import.meta.dirname, '../../common-adapters/box.tsx'), 'utf8')
+  assert.equal(hasImplicitCenter(tree), false)
+  assert.throws(() => assertPinWritable(tree), /still center by default/)
 })

@@ -1,6 +1,7 @@
-// Box2 and ClickableBox center themselves (alignSelf: 'center') when neither fullWidth nor fullHeight
-// is set. Before that default is removed, `pin` mode writes the centering out at every call site
-// that relied on it, so removing the default changes no pixels.
+// `pin` applies only to a tree whose Box2 and ClickableBox still center themselves (alignSelf:
+// 'center') when neither fullWidth nor fullHeight is set. It writes that centering out at every call
+// site that relies on it, so removing the default afterwards changes no pixels. On a tree without the
+// default, a pin would center boxes that now stretch, so --write refuses to run there.
 //
 //   node scripts/codemods/box2-stretch-default.mts pin [--write] [--report <file>]
 //
@@ -214,6 +215,29 @@ export const pinSource = (code: string, filename: string): PinResult => {
   return {code: ms.toString(), pinned, spreads, unresolved}
 }
 
+// Whether common-adapters/box.tsx still centers a box that sets neither fullWidth nor fullHeight:
+// the native style list uses `nativeStyles.centered`, or the desktop class list has `box2_centered`.
+export const hasImplicitCenter = (boxSource: string) => {
+  const ast = parse(boxSource, {plugins: ['jsx', 'typescript'], sourceType: 'module'})
+  let found = false
+  babel.traverse(ast as babel.types.File, {
+    MemberExpression(path) {
+      const {object, property} = path.node
+      if (t.isIdentifier(object, {name: 'nativeStyles'}) && t.isIdentifier(property, {name: 'centered'})) found = true
+    },
+    ObjectProperty(path) {
+      if (t.isIdentifier(path.node.key, {name: 'box2_centered'})) found = true
+    },
+  })
+  return found
+}
+
+export const assertPinWritable = (boxSource: string) => {
+  if (!hasImplicitCenter(boxSource)) {
+    throw new Error('pin --write needs common-adapters/box.tsx to still center by default; this tree stretches')
+  }
+}
+
 // ---------------------------------------------------------------- cleanup
 //
 // With the default gone, a child of a Box2/ClickableBox stretches across its parent's cross axis
@@ -222,7 +246,9 @@ export const pinSource = (code: string, filename: string): PinResult => {
 //   C2  fullHeight on a child of a horizontal parent, same alignItems condition
 //   C3  a literal alignSelf on a fullWidth child of a vertical parent: a 100%-wide child has no
 //       horizontal position to choose
-// The parent is the nearest enclosing JSX element, holding the child among its children. A child
+// The parent is the nearest enclosing JSX element, holding the child among its children, and it must
+// itself be fullWidth (C1, C3) or fullHeight (C2): a parent sized to its content on that axis gives a
+// 100% child nothing definite to fill, so 100% and stretch can differ there. A child
 // with a style, a className or a spread is never touched, nor a child of a parent with a className,
 // a spread or a style that may set its alignment or direction: those can set width, margins,
 // alignment or direction that the rules cannot see. C1 needs a child without alignSelf (it would
@@ -394,17 +420,19 @@ export const cleanupCandidates = (code: string, filename: string): Array<Cleanup
       const fullWidth = findAttr(child, 'fullWidth')
       const fullHeight = findAttr(child, 'fullHeight')
       const alignSelf = findAttr(child, 'alignSelf')
+      const parentFullWidth = isTrue(findAttr(parent, 'fullWidth'))
+      const parentFullHeight = isTrue(findAttr(parent, 'fullHeight'))
       if (alignSelf) {
-        if (direction === 'vertical' && isTrue(fullWidth) && alignSelfLiterals.has(stringValue(alignSelf) ?? '')) {
+        if (direction === 'vertical' && parentFullWidth && isTrue(fullWidth) && alignSelfLiterals.has(stringValue(alignSelf) ?? '')) {
           out.push({attr: 'alignSelf', line, rule: 'C3', ...removal(alignSelf)})
         }
         return
       }
       const alignItems = findAttr(parent, 'alignItems')
       if ((alignItems && stringValue(alignItems) !== 'stretch') || findAttr(parent, 'centerChildren')) return
-      if (direction === 'vertical' && fullWidth && isTrue(fullWidth) && !fullHeight) {
+      if (direction === 'vertical' && parentFullWidth && fullWidth && isTrue(fullWidth) && !fullHeight) {
         out.push({attr: 'fullWidth', line, rule: 'C1', ...removal(fullWidth)})
-      } else if (direction === 'horizontal' && fullHeight && isTrue(fullHeight) && !fullWidth) {
+      } else if (direction === 'horizontal' && parentFullHeight && fullHeight && isTrue(fullHeight) && !fullWidth) {
         out.push({attr: 'fullHeight', line, rule: 'C2', ...removal(fullHeight)})
       }
     },
@@ -478,19 +506,6 @@ export const platformCoverage = (sha: string, platform: RunPlatform) => {
   return [...out]
 }
 
-// Sites a gate run proved unsafe, matched by file, rule and a piece of the site's first line.
-const cleanupSkips: ReadonlyArray<{rel: string; rule: CleanupRule; line: string; reason: string}> = [
-  {
-    line: '<Kb.ClickableBox onClick={_onLabelClick} direction="vertical" fullWidth={true}>',
-    reason: 'its parent sizes to its content on iOS (alignSelf center, no width), where width 100% is not stretch',
-    rel: 'settings/feedback/index.tsx',
-    rule: 'C1',
-  },
-]
-
-export const skipReason = (rel: string, rule: CleanupRule, lineText: string) =>
-  cleanupSkips.find(s => s.rel === rel && s.rule === rule && lineText.includes(s.line))?.reason
-
 // Candidates are computed on the tree at `at` (HEAD by default; --write needs HEAD and a clean tree)
 // and kept only where every platform from gatePlatforms mounted their call site.
 const runCleanup = (
@@ -527,7 +542,6 @@ const runCleanup = (
     const cands = cleanupCandidates(src, file)
     if (!cands.length) continue
     const ranges = callSiteRanges(src)
-    const lines = src.split('\n')
     const keep: Array<CleanupCandidate> = []
     for (const c of cands) {
       before[c.rule]++
@@ -536,16 +550,13 @@ const runCleanup = (
       const missing = range
         ? unmountedPlatforms({hunks: baseHunks.get(rel) ?? [], mounted, range, rel})
         : []
-      const skipped = skipReason(rel, c.rule, lines[c.line - 1] ?? '')
-      const why = skipped
-        ? `skipped: ${skipped}`
-        : unmarkedFile(rel)
-          ? 'file not marked by coverage'
-          : !range
-            ? 'call site not marked by coverage'
-            : missing.length
-              ? `never mounted on ${missing.join(' or ')}`
-              : undefined
+      const why = unmarkedFile(rel)
+        ? 'file not marked by coverage'
+        : !range
+          ? 'call site not marked by coverage'
+          : missing.length
+            ? `never mounted on ${missing.join(' or ')}`
+            : undefined
       if (why) {
         uncovered.push({...row, why})
       } else {
@@ -597,6 +608,7 @@ const main = (argv: Array<string>) => {
     )
     process.exit(2)
   }
+  if (write) assertPinWritable(readFileSync(join(root, 'common-adapters/box.tsx'), 'utf8'))
   const report = {
     pinned: [] as Array<string>,
     spreads: [] as Array<string>,
