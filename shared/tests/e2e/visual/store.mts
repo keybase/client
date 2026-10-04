@@ -80,14 +80,17 @@ export const hasBasePng = (sha: string, platform: RunPlatform, theme: Theme, id:
 
 // A coverage file: the `file:line` ids an entry mounted, and whether the entry has masks. A masked
 // entry's call sites may sit under a mask, where the compare never sees their pixels, so a masked
-// entry counts for no coverage. Bases written before `masked` existed hold a bare id list.
+// entry counts for no coverage. A file without the `masked` flag cannot say whether its entry was
+// masked, so it is refused rather than counted.
 export type CoverageFile = {ids: ReadonlyArray<string>; masked: boolean}
 
 export const writeCoverageJson = (ids: ReadonlyArray<string>, masked: boolean) =>
   JSON.stringify({ids, masked} satisfies CoverageFile)
 
-const parseCoverageFile = (raw: unknown): CoverageFile =>
-  Array.isArray(raw) ? {ids: raw as Array<string>, masked: false} : (raw as CoverageFile)
+const parseCoverageFile = (raw: unknown, file: string): CoverageFile => {
+  if (Array.isArray(raw)) throw new Error(`${file} has no masked flag: retake the coverage base`)
+  return raw as CoverageFile
+}
 
 // The union of every unmasked coverage file stored under base/<sha>, and the files skipped
 // because their entry is masked (`<platform>/<theme>/<id>`).
@@ -101,7 +104,7 @@ export const readBaseCoverage = (sha: string): {mounted: Array<string>; masked: 
       const p = path.join(dir, d.name)
       if (d.isDirectory()) walk(p)
       else if (path.basename(dir) === 'coverage' && d.name.endsWith('.json')) {
-        const file = parseCoverageFile(JSON.parse(fs.readFileSync(p, 'utf8')))
+        const file = parseCoverageFile(JSON.parse(fs.readFileSync(p, 'utf8')), p)
         if (file.masked) masked.push(path.relative(root, p).replace(`${path.sep}coverage${path.sep}`, path.sep).replace(/\.json$/, ''))
         else for (const id of file.ids) out.add(id)
       }
