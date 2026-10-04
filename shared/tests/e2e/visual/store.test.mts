@@ -40,7 +40,7 @@ test('masks default to none; coverage is the union of every stored coverage JSON
   fs.mkdirSync(path.dirname(a), {recursive: true})
   fs.mkdirSync(path.dirname(b), {recursive: true})
   fs.writeFileSync(a, store.writeCoverageJson(['b.tsx:2', 'a.tsx:1'], false))
-  fs.writeFileSync(b, JSON.stringify(['a.tsx:1', 'c.tsx:3']))
+  fs.writeFileSync(b, store.writeCoverageJson(['a.tsx:1', 'c.tsx:3'], false))
   fs.writeFileSync(path.join(path.dirname(a), '..', 'tab__chat.masks.json'), '[]')
   assert.deepEqual(store.readBaseCoverage('c1'), {masked: [], mounted: ['a.tsx:1', 'b.tsx:2', 'c.tsx:3']})
 })
@@ -56,6 +56,13 @@ test('a masked entry contributes no coverage and is reported', () => {
     masked: [path.join('desktop', 'dark', 'tab__people')],
     mounted: ['a.tsx:1'],
   })
+})
+
+test('a coverage file without the masked flag is refused', () => {
+  const p = store.baseCoveragePath('c3', 'desktop', 'light', 'tab/chat')
+  fs.mkdirSync(path.dirname(p), {recursive: true})
+  fs.writeFileSync(p, JSON.stringify(['a.tsx:1']))
+  assert.throws(() => store.readBaseCoverage('c3'), /has no masked flag: retake the coverage base/)
 })
 
 test('run stamps have no characters a path dislikes', () => {
