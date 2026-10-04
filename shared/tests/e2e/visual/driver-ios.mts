@@ -41,7 +41,17 @@ export type IosSession = {
   cleanupCommands: () => Array<string>
 }
 
-export type IosOriginal = {accessibility: Array<{key: string; value: string | undefined}>; appearance: string}
+// Each rect clipped to the window, dropping those wholly outside it. Window points, origin 0,0.
+export const clipToWindow = (rects: ReadonlyArray<Rect>, win: {width: number; height: number}): Array<Rect> =>
+  rects.flatMap(r => {
+    const x = Math.max(0, r.x)
+    const y = Math.max(0, r.y)
+    const width = Math.min(win.width, r.x + r.width) - x
+    const height = Math.min(win.height, r.y + r.height) - y
+    return width > 0 && height > 0 ? [{height, width, x, y}] : []
+  })
+
+export type IosOriginal ={accessibility: Array<{key: string; value: string | undefined}>; appearance: string}
 
 // `original` is what prepare found (undefined before prepare touched the simulator); `appium` is
 // whether the Appium server this session started may still be running.
@@ -405,16 +415,23 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     return scale
   }
 
+  // `$$` also finds elements on screens stacked under the current one and rows scrolled out of
+  // view; only displayed elements inside the window mask, so a hidden one can't hide a visible region.
   const maskRects = async (entry: TourEntry) => {
     const s = await screenScale()
+    const win = await withDeadline(browser.getWindowRect(), SETUP_MS, 'window rect')
     const rects: Array<Rect> = []
     for (const m of entry.masks ?? []) {
       const all = await withDeadline(Promise.resolve(browser.$$(`~${m.testID}`).getElements()), SETUP_MS, `finding mask ${m.testID}`)
-      if (all.length === 0) throw new Error(`mask target ${m.testID} is not on screen`)
+      const found: Array<Rect> = []
       for (const e of all) {
-        const r = await withDeadline(browser.getElementRect(e.elementId), SETUP_MS, `rect of ${m.testID}`)
-        rects.push({height: r.height * s, width: r.width * s, x: r.x * s, y: r.y * s})
+        const shown = await withDeadline(browser.isElementDisplayed(e.elementId), SETUP_MS, `is ${m.testID} displayed`)
+        if (!shown) continue
+        found.push(await withDeadline(browser.getElementRect(e.elementId), SETUP_MS, `rect of ${m.testID}`))
       }
+      const visible = clipToWindow(found, win)
+      if (visible.length === 0) throw new Error(`mask target ${m.testID} is not on screen (${all.length} found, none displayed in the window)`)
+      rects.push(...visible.map(r => ({height: r.height * s, width: r.width * s, x: r.x * s, y: r.y * s})))
     }
     return rects
   }

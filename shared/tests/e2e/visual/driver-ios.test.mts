@@ -1,7 +1,26 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
-import {ACCESSIBILITY_KEYS, STATUS_BAR_ARGS, appiumPort, iosCleanupCommands, visualCapabilities} from './driver-ios.mts'
+import {ACCESSIBILITY_KEYS, STATUS_BAR_ARGS, appiumPort, clipToWindow, iosCleanupCommands, visualCapabilities} from './driver-ios.mts'
+
+test('mask rects outside the window are dropped and the rest clipped to it', () => {
+  const win = {height: 800, width: 400}
+  assert.deepEqual(
+    clipToWindow(
+      [
+        {height: 20, width: 100, x: 10, y: 10},
+        {height: 20, width: 100, x: 10, y: 900},
+        {height: 20, width: 100, x: -500, y: 10},
+        {height: 40, width: 100, x: 350, y: 790},
+      ],
+      win
+    ),
+    [
+      {height: 20, width: 100, x: 10, y: 10},
+      {height: 10, width: 50, x: 350, y: 790},
+    ]
+  )
+})
 
 const withPort = <T,>(port: string | undefined, f: () => T): T => {
   const saved = process.env['KB_APPIUM_PORT']
