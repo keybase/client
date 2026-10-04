@@ -78,21 +78,37 @@ export const readBaseMasks = (sha: string, platform: RunPlatform, theme: Theme, 
 export const hasBasePng = (sha: string, platform: RunPlatform, theme: Theme, id: string) =>
   fs.existsSync(basePng(sha, platform, theme, id))
 
-// Every coverage JSON stored under base/<sha>, each a list of `file:line` ids.
-export const readBaseCoverage = (sha: string): Array<string> => {
+// A coverage file: the `file:line` ids an entry mounted, and whether the entry has masks. A masked
+// entry's call sites may sit under a mask, where the compare never sees their pixels, so a masked
+// entry counts for no coverage. Bases written before `masked` existed hold a bare id list.
+export type CoverageFile = {ids: ReadonlyArray<string>; masked: boolean}
+
+export const writeCoverageJson = (ids: ReadonlyArray<string>, masked: boolean) =>
+  JSON.stringify({ids, masked} satisfies CoverageFile)
+
+const parseCoverageFile = (raw: unknown): CoverageFile =>
+  Array.isArray(raw) ? {ids: raw as Array<string>, masked: false} : (raw as CoverageFile)
+
+// The union of every unmasked coverage file stored under base/<sha>, and the files skipped
+// because their entry is masked (`<platform>/<theme>/<id>`).
+export const readBaseCoverage = (sha: string): {mounted: Array<string>; masked: Array<string>} => {
   const out = new Set<string>()
+  const masked: Array<string> = []
+  const root = baseDir(sha)
   const walk = (dir: string) => {
     if (!fs.existsSync(dir)) return
     for (const d of fs.readdirSync(dir, {withFileTypes: true})) {
       const p = path.join(dir, d.name)
       if (d.isDirectory()) walk(p)
       else if (path.basename(dir) === 'coverage' && d.name.endsWith('.json')) {
-        for (const id of JSON.parse(fs.readFileSync(p, 'utf8')) as Array<string>) out.add(id)
+        const file = parseCoverageFile(JSON.parse(fs.readFileSync(p, 'utf8')))
+        if (file.masked) masked.push(path.relative(root, p).replace(`${path.sep}coverage${path.sep}`, path.sep).replace(/\.json$/, ''))
+        else for (const id of file.ids) out.add(id)
       }
     }
   }
-  walk(baseDir(sha))
-  return [...out].sort()
+  walk(root)
+  return {masked: masked.sort(), mounted: [...out].sort()}
 }
 
 export const runStamp = (d = new Date()) => d.toISOString().replace(/[:.]/g, '-')

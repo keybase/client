@@ -32,6 +32,40 @@ export type TourEntry = {
   setup?: ReadonlyArray<SetupStep>
   masks?: ReadonlyArray<Mask>
   seal: ReadonlyArray<SealField>
+  // Desktop: setup opens a popup that is no route (a floating menu), so it stays open while its
+  // screen stays mounted, which survives Escape and a tab switch. The desktop reset pops only the
+  // next entry's tab, so the next desktop entry must reset this one's: the same tab, and on chat
+  // another conversation (the chat root keeps the thread). See popupFollowerProblems. iOS needs no
+  // follower: its reset pops the current tab's stack before switching, unmounting the popup's owner.
+  leavesPopup?: true
+}
+
+const sameRef = (a: ParamRef | undefined, b: ParamRef | undefined) =>
+  a?.ref === b?.ref && a?.channel === b?.channel && a?.sub === b?.sub
+
+// The desktop entry captured after each entry: the next one, or the first after the last (aa and
+// gate capture the list again from the top).
+export const nextDesktopEntry = (entries: ReadonlyArray<TourEntry>, e: TourEntry): TourEntry | undefined => {
+  const on = entries.filter(x => x.platforms.includes('desktop'))
+  const i = on.indexOf(e)
+  return i < 0 || on.length < 2 ? undefined : on[(i + 1) % on.length]
+}
+
+// Desktop entries that leave a popup open without a follower that closes it.
+export const popupFollowerProblems = (entries: ReadonlyArray<TourEntry>): Array<string> => {
+  const problems: Array<string> = []
+  for (const e of entries) {
+    if (!e.leavesPopup || !e.platforms.includes('desktop')) continue
+    const next = nextDesktopEntry(entries, e)
+    if (!next) {
+      problems.push(`${e.id}: leaves a popup open and no desktop entry follows it`)
+    } else if (next.nav.tab !== e.nav.tab) {
+      problems.push(`${e.id}: leaves a popup open on ${e.nav.tab}, but ${next.id} resets ${next.nav.tab}`)
+    } else if (e.nav.thread && (!next.nav.thread || sameRef(next.nav.thread, e.nav.thread))) {
+      problems.push(`${e.id}: leaves a popup open in its conversation, but ${next.id} opens no other conversation`)
+    }
+  }
+  return problems
 }
 
 export const SETUP_KINDS: ReadonlySet<string> = new Set(['openPopup', 'switchSubTab', 'scrollIntoView', 'hover'])
