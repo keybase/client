@@ -15,12 +15,13 @@
 //   devices  `device list` -> a text table (Name, Type, ID, Created, Last Used; it has no --json).
 //            Keeps name, type, id; Created and Last Used are dropped.
 //   kbfs     `fs ls -1 --nocolor /keybase/team/<team>` -> one entry name per line.
+//   kbfsPrivate  the same for /keybase/private/<smoke user>.
 // `git` is left out: nothing here can confirm `keybase git list` is read-only.
 import {createHash} from 'crypto'
 import {execFile} from 'child_process'
 import {e2eAccounts} from '../shared/chat-data.ts'
 
-export type SealField = 'inbox' | 'teams' | 'follows' | 'devices' | 'kbfs'
+export type SealField = 'inbox' | 'teams' | 'follows' | 'devices' | 'kbfs' | 'kbfsPrivate'
 export type Seal = {
   takenAt: number
   newestMessageMs: number
@@ -28,7 +29,7 @@ export type Seal = {
   hash: string
 }
 
-const ALL_FIELDS: ReadonlyArray<SealField> = ['inbox', 'teams', 'follows', 'devices', 'kbfs']
+const ALL_FIELDS: ReadonlyArray<SealField> = ['inbox', 'teams', 'follows', 'devices', 'kbfs', 'kbfsPrivate']
 
 type Obj = Record<string, unknown>
 const asObj = (v: unknown): Obj => (v && typeof v === 'object' ? (v as Obj) : {})
@@ -130,6 +131,7 @@ export const normalize = (field: SealField, raw: unknown): unknown => {
     case 'devices':
       return normalizeDevices(raw)
     case 'kbfs':
+    case 'kbfsPrivate':
       return lines(raw).sort()
   }
 }
@@ -214,6 +216,8 @@ const readRaw = async (field: SealField): Promise<unknown> => {
       return run(['device', 'list'])
     case 'kbfs':
       return run(['fs', 'ls', '-1', '--nocolor', `/keybase/team/${team}`])
+    case 'kbfsPrivate':
+      return run(['fs', 'ls', '-1', '--nocolor', `/keybase/private/${smokeUser}`])
   }
 }
 

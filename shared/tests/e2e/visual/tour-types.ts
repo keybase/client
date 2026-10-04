@@ -9,8 +9,10 @@ export type SetupStep =
   | {kind: 'hover'; testID: string} // desktop only
 export type Mask = {testID: string; reason: string}
 export type ParamRef = {
-  ref: 'teamID' | 'teamname' | 'teamFolder' | 'username' | 'conversationIDKey'
+  ref: 'teamID' | 'teamname' | 'teamFolder' | 'privateFolder' | 'username' | 'secondUser' | 'conversationIDKey'
   channel?: string
+  // a path under teamFolder or privateFolder
+  sub?: string
 }
 // Navigation is data, never code: a tab plus an optional route to append, so a tour entry can't
 // call arbitrary app functions. `tab` is a name from constants/tabs.tsx (e.g. 'tabs.chatTab'); the
