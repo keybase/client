@@ -201,6 +201,7 @@
     "eslint-plugin-react-hooks": "7.1.1",
     "jest": "30.5.2",
     "jest-environment-jsdom": "30.5.2",
+    "magic-string": "0.30.21",
     "oxc-transform-react": "0.145.0",
     "patch-package": "8.0.1",
     "react-refresh": "0.19.0",
