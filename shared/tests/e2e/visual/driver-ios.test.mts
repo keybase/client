@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
-import {ACCESSIBILITY_KEYS, STATUS_BAR_ARGS, appiumPort, visualCapabilities} from './driver-ios.mts'
+import {ACCESSIBILITY_KEYS, STATUS_BAR_ARGS, appiumPort, iosCleanupCommands, visualCapabilities} from './driver-ios.mts'
 
 const withPort = <T,>(port: string | undefined, f: () => T): T => {
   const saved = process.env['KB_APPIUM_PORT']
@@ -52,4 +52,27 @@ test('another Appium port gets its own WDA port', () => {
     const caps = visualCapabilities('udid-1') as Record<string, unknown>
     assert.equal(caps['appium:wdaLocalPort'], 8102)
   })
+})
+
+test('cleanup commands undo what prepare changed, then relaunch the app and stop Appium', () => {
+  const original = {
+    accessibility: [
+      {key: 'ReduceMotionEnabled', value: undefined},
+      {key: 'EnhancedBackgroundContrastEnabled', value: '0'},
+    ],
+    appearance: 'dark',
+  }
+  assert.deepEqual(iosCleanupCommands({appium: true, original, port: 4723, udid: 'U'}), [
+    'xcrun simctl status_bar U clear',
+    'xcrun simctl ui U appearance dark',
+    'xcrun simctl spawn U defaults delete com.apple.Accessibility ReduceMotionEnabled',
+    'xcrun simctl spawn U defaults write com.apple.Accessibility EnhancedBackgroundContrastEnabled -bool false',
+    'xcrun simctl terminate U keybase.ios; xcrun simctl launch U keybase.ios',
+    "kill $(lsof -t -iTCP:4723 -sTCP:LISTEN)   # the gate's Appium",
+  ])
+  // before prepare touched the simulator, only Appium is left to stop
+  assert.deepEqual(iosCleanupCommands({appium: true, original: undefined, port: 4724, udid: 'U'}), [
+    "kill $(lsof -t -iTCP:4724 -sTCP:LISTEN)   # the gate's Appium",
+  ])
+  assert.deepEqual(iosCleanupCommands({appium: false, original: undefined, port: 4723, udid: 'U'}), [])
 })

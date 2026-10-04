@@ -2,6 +2,8 @@
 // global DEBUGRouter2 only; the driver never clicks anything that changes account state, and never
 // closes the browser (that quits Electron).
 import {execFileSync} from 'child_process'
+import * as path from 'path'
+import {fileURLToPath} from 'url'
 import {chromium, type Browser, type CDPSession, type Page} from '@playwright/test'
 import {findMainPage, checkRendererAfterReload} from '../electron/helpers/connect.ts'
 import {pngEqual, type Rect} from './compare.mts'
@@ -27,8 +29,17 @@ export type DesktopSession = {
   // quits Electron), so the Playwright connection stays open: the caller must exit its process,
   // under its own deadline, to drop it.
   close: () => Promise<void>
+  // What close would undo, as commands for a person to run when the process dies before close.
+  cleanupCommands: () => Array<string>
 }
 
+// The renderer keeps the fixed Date and the in-memory dark mode preference 'system' until it
+// reloads; relaunching the app reloads it.
+export const desktopCleanupCommands = (shared: string): Array<string> => [
+  `cd ${shared} && node tests/e2e/electron/launch-app.mts --visual   # or reload the Keybase window (Cmd+R)`,
+]
+
+const SHARED_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
 const VIEWPORT = {deviceScaleFactor: 2, height: 800, width: 1280}
 const CONNECT_MS = 5_000
 const EVAL_MS = 5_000
@@ -510,5 +521,7 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
     }
   }
 
-  return {capture, close, prepare}
+  const cleanupCommands = () => desktopCleanupCommands(SHARED_DIR)
+
+  return {capture, cleanupCommands, close, prepare}
 }
