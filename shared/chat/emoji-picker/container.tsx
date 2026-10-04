@@ -122,7 +122,7 @@ const WrapperMobile = (props: Props) => {
       testID={TestIDs.CHAT_EMOJI_PICKER}
       collapsable={false}
     >
-      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+      <Kb.Box2 direction="horizontal" alignItems="center">
         <Kb.ClickableBox alignSelf="center" direction="vertical" onClick={onCancel} style={styles.cancelContainerMobile}>
           <Kb.Text type="BodyBigLink">Cancel</Kb.Text>
         </Kb.ClickableBox>

@@ -42,7 +42,6 @@ const Group = (props: GroupProps) => {
         gap="xtiny"
         gapStart={true}
         gapEnd={true}
-        fullWidth={true}
       >
         {!!settings &&
           settings.map(s => (
@@ -56,7 +55,7 @@ const Group = (props: GroupProps) => {
           ))}
       </Kb.Box2>
       {!!unsub && (
-        <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Box2 direction="vertical">
           <Kb.Text type="BodySmall">Or</Kb.Text>
           <Kb.Checkbox
             style={{marginTop: Kb.Styles.globalMargins.xtiny}}
