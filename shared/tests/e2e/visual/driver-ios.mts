@@ -37,6 +37,34 @@ export type IosSession = {
   // running app keeps Reduce Motion and Reduce Transparency on until its next launch: both are
   // read at startup.
   close: () => Promise<void>
+  // What close would undo, as commands for a person to run when the process dies before close.
+  cleanupCommands: () => Array<string>
+}
+
+export type IosOriginal = {accessibility: Array<{key: string; value: string | undefined}>; appearance: string}
+
+// `original` is what prepare found (undefined before prepare touched the simulator); `appium` is
+// whether the Appium server this session started may still be running.
+export const iosCleanupCommands = (opts: {udid: string; port: number; original: IosOriginal | undefined; appium: boolean}) => {
+  const {udid, original} = opts
+  const out: Array<string> = []
+  if (original) {
+    out.push(`xcrun simctl status_bar ${udid} clear`)
+    if (original.appearance === 'light' || original.appearance === 'dark') {
+      out.push(`xcrun simctl ui ${udid} appearance ${original.appearance}`)
+    }
+    for (const {key, value} of original.accessibility) {
+      out.push(
+        value === undefined
+          ? `xcrun simctl spawn ${udid} defaults delete com.apple.Accessibility ${key}`
+          : `xcrun simctl spawn ${udid} defaults write com.apple.Accessibility ${key} -bool ${value === '1' ? 'true' : 'false'}`
+      )
+    }
+    // a relaunch drops the fixed Date and picks up the accessibility settings
+    out.push(`xcrun simctl terminate ${udid} ${BUNDLE_ID}; xcrun simctl launch ${udid} ${BUNDLE_ID}`)
+  }
+  if (opts.appium) out.push(`kill $(lsof -t -iTCP:${opts.port} -sTCP:LISTEN)   # the gate's Appium`)
+  return out
 }
 
 const BUNDLE_ID = 'keybase.ios'
@@ -119,6 +147,12 @@ const startAppium = async (port: number): Promise<ChildProcess> => {
     ['--port', String(port), '--base-path', '/', '--log-level', 'error'],
     {env: {...process.env, APPIUM_HOME: appiumHome()}, stdio: ['ignore', 'ignore', 'pipe']}
   )
+  // A run that exits before close (its overall deadline, a signal) would otherwise orphan Appium.
+  const killOnExit = () => {
+    if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL')
+  }
+  process.on('exit', killOnExit)
+  child.once('exit', () => process.off('exit', killOnExit))
   let stderr = ''
   child.stderr.on('data', (d: Buffer) => {
     stderr = (stderr + d.toString()).slice(-2_000)
@@ -444,7 +478,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
   let prepared = false
   let datePatched = false
   // what prepare found, so close can put it back
-  let original: {accessibility: Array<{key: string; value: string | undefined}>; appearance: string} | undefined
+  let original: IosOriginal | undefined
 
   const prepare: IosSession['prepare'] = async p => {
     if (p.theme !== 'light') throw new Error(`iOS captures are light only (asked for ${p.theme})`)
@@ -569,5 +603,8 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     }
   }
 
-  return {capture, close, prepare}
+  const cleanupCommands = () =>
+    iosCleanupCommands({appium: appium.exitCode === null && appium.signalCode === null, original, port, udid})
+
+  return {capture, cleanupCommands, close, prepare}
 }

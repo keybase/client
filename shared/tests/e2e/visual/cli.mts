@@ -579,6 +579,27 @@ let pendingRestore: Restore | undefined
 const printRestoreCommands = (r: Restore) =>
   console.error(`the app may still be served from the base tree; to restore it by hand:\n  ${r.commands.join('\n  ')}`)
 
+// Set while a capture session is open (prepare patches Date, the theme and, on iOS, simulator
+// settings), so the deadline and signal paths can close it or say how to undo it by hand.
+let openSession: DesktopSession | IosSession | undefined
+const CLOSE_ON_ABORT_MS = 60_000
+
+const printCleanupCommands = (s: DesktopSession | IosSession) => {
+  const cmds = s.cleanupCommands()
+  if (cmds.length) console.error(`the capture session was not closed; to undo what it changed by hand:\n  ${cmds.join('\n  ')}`)
+}
+
+const closeSession = async (s: DesktopSession | IosSession) => {
+  try {
+    await s.close()
+  } catch (e) {
+    printCleanupCommands(s)
+    throw e
+  } finally {
+    if (openSession === s) openSession = undefined
+  }
+}
+
 export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => void): Promise<number> {
   const cmd = parseCommand(argv)
   const platform: RunPlatform = cmd.ios ? 'ios' : 'desktop'
@@ -614,6 +635,7 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
         launchDesktop(baseShared, cmd.coverage, log)
       }
       const session: DesktopSession | IosSession = cmd.ios ? await openIos({device: iosDevice()}) : await openDesktop()
+      openSession = session
       const problems: Array<string> = []
       try {
         for (const theme of cmd.themes) {
@@ -638,7 +660,7 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
           }
         }
       } finally {
-        await session.close()
+        await closeSession(session)
       }
       if (problems.length) throw new Error(`base not written; captures that were not ok:\n  ${problems.join('\n  ')}`)
     } catch (e) {
@@ -755,7 +777,10 @@ const sessionCapturer = () => {
   let session: DesktopSession | IosSession | undefined
   let preparedFor = ''
   const capture = async (entry: TourEntry, o: CaptureOpts) => {
-    session ??= o.platform === 'ios' ? await openIos({device: iosDevice()}) : await openDesktop()
+    if (!session) {
+      session = o.platform === 'ios' ? await openIos({device: iosDevice()}) : await openDesktop()
+      openSession = session
+    }
     const key = `${o.theme}:${o.frozenAt}`
     if (preparedFor !== key) {
       await session.prepare({frozenAt: o.frozenAt, reload: true, theme: o.theme})
@@ -767,7 +792,7 @@ const sessionCapturer = () => {
     const s = session
     session = undefined
     preparedFor = ''
-    await s?.close()
+    if (s) await closeSession(s)
   }
   return {capture, close}
 }
@@ -806,6 +831,17 @@ const main = async () => {
   setTimeout(() => {
     void (async () => {
       console.error(`visual:${name} did not finish in ${deadline / MIN} minutes; exiting`)
+      const session = openSession
+      if (session) {
+        console.error('closing the capture session')
+        try {
+          await withDeadline(session.close(), CLOSE_ON_ABORT_MS, 'closing the capture session')
+          console.error('closed')
+        } catch (e) {
+          console.error(`close failed: ${(e as Error).message}`)
+          printCleanupCommands(session)
+        }
+      }
       const restore = pendingRestore
       if (restore) {
         printRestoreCommands(restore)
@@ -820,8 +856,10 @@ const main = async () => {
       process.exit(1)
     })()
   }, deadline)
-  // Registered before the lock's own handler, which exits at once, so there is no time to restore.
+  // Registered before the lock's own handler, which exits at once, so there is no time to close
+  // or restore; the driver's exit hook still stops its Appium.
   const onSignal = () => {
+    if (openSession) printCleanupCommands(openSession)
     if (pendingRestore) printRestoreCommands(pendingRestore)
   }
   process.on('SIGINT', onSignal)

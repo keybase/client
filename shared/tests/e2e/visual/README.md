@@ -126,7 +126,10 @@ change with `--compare <baseline dir>`.
   served from this tree, and refuses otherwise. `base` checks the same for the base tree.
 - **Deadlines.** Every wait has a deadline that names what it waited for; each command exits under
   an overall deadline. If `base` is interrupted while the app is served from the base tree, it
-  prints the commands to restore your tree.
+  prints the commands to restore your tree. A run past its deadline tries to close the capture
+  session (real `Date`, theme, iOS status bar, appearance and accessibility settings) for up to a
+  minute; a run stopped by Ctrl-C, or whose close fails, prints the commands that undo them. The
+  driver's Appium is killed when the process exits.
 - **Unread conversations.** Opening an unread conversation marks it read, so `base`, `check`,
   `gate` and `aa` refuse before capturing when the seal shows a conversation the tour opens as
   unread (`unread: <team>#e2e-short …`). Read it by hand, then rerun.
