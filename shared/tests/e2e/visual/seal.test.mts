@@ -84,6 +84,7 @@ test('normalize devices parses the table by column and drops Created and Last Us
 test('normalize kbfs strips colour codes and sorts names', () => {
   assert.deepEqual(normalize('kbfs', '\u001b[0;34mzdir\u001b[0m\nafile.txt\n'), ['afile.txt', 'zdir'])
   assert.deepEqual(normalize('kbfs', ''), [])
+  assert.deepEqual(normalize('kbfsPrivate', 'b.png\na.txt\n'), ['a.txt', 'b.png'])
 })
 
 test('diffSeals names the changed path', () => {

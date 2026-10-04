@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
-import {validateEntry, matchEntries, type TourEntry} from './tour-types.ts'
+import {validateEntry, matchEntries, popupFollowerProblems, type TourEntry} from './tour-types.ts'
 
 const base: TourEntry = {
   id: 'settings/advanced',
@@ -55,4 +55,30 @@ test('every entry in the real tour validates and ids are unique per platform', a
       ids.add(`${p}:${e.id}`)
     }
   }
+})
+const at = (id: string, tab: string, thread?: string, extra: Partial<TourEntry> = {}): TourEntry => ({
+  ...base,
+  id,
+  nav: thread ? {tab, thread: {channel: thread, ref: 'conversationIDKey'}} : {tab},
+  ...extra,
+})
+test('a popup entry needs a desktop follower on its tab; on chat, another conversation', () => {
+  const menu = at('team/menu', 'tabs.teamsTab', undefined, {leavesPopup: true})
+  assert.deepEqual(popupFollowerProblems([menu, at('team/x', 'tabs.teamsTab')]), [])
+  assert.match(popupFollowerProblems([menu, at('tab/git', 'tabs.gitTab')]).join(), /resets tabs.gitTab/)
+  // a phone-only entry in between is not captured on desktop
+  const phone = at('team/p', 'tabs.gitTab', undefined, {platforms: ['phone']})
+  assert.deepEqual(popupFollowerProblems([menu, phone, at('team/x', 'tabs.teamsTab')]), [])
+  // the last entry is followed by the first
+  assert.deepEqual(popupFollowerProblems([at('team/x', 'tabs.teamsTab'), menu]), [])
+  const msg = at('chat/menu', 'tabs.chatTab', 'a', {leavesPopup: true})
+  assert.deepEqual(popupFollowerProblems([msg, at('chat/b', 'tabs.chatTab', 'b')]), [])
+  assert.match(popupFollowerProblems([msg, at('chat/a', 'tabs.chatTab', 'a')]).join(), /no other conversation/)
+  assert.match(popupFollowerProblems([msg, at('chat/root', 'tabs.chatTab')]).join(), /no other conversation/)
+  assert.match(popupFollowerProblems([msg]).join(), /no desktop entry follows/)
+})
+test('every popup entry in the real tour is followed by an entry that closes it', async () => {
+  const {tour} = await import('./tour.ts')
+  assert.ok(tour.some(e => e.leavesPopup), 'the tour has popup entries')
+  assert.deepEqual(popupFollowerProblems(tour), [])
 })

@@ -10,6 +10,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {makeAddMembersWizard} from '../add-members-wizard/state'
 import {useLoadedTeam} from './use-loaded-team'
 import {setMemberPublicity} from '@/teams/actions'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const AddPeopleButton = ({teamID}: {teamID: T.Teams.TeamID}) => {
   const styles = useStyles()
@@ -193,7 +194,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
             <Kb.Button label="Edit" onClick={onEditDescription} small={true} mode="Secondary" />
           )}
           <Kb.Button label="Share" onClick={showPopup} small={true} mode="Secondary" ref={popupAnchor} />
-          <Kb.Button mode="Secondary" small={true} ref={tmpopupAnchor} onClick={tmshowPopup}>
+          <Kb.Button mode="Secondary" small={true} ref={tmpopupAnchor} onClick={tmshowPopup} testID={TestIDs.TEAMS_HEADER_MENU_BUTTON}>
             <Kb.Icon type="iconfont-ellipsis" color={theme.blue} />
           </Kb.Button>
           {tmpopup}

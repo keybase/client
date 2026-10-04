@@ -8,6 +8,7 @@ import {useReactionRowTopReacjis} from '@/chat/user-reacjis'
 import {showForwardMessagePicker} from '../fwd-msg'
 import {toggleReaction, useThreadMessageTarget} from '../message-commands'
 import {useConversationThreadMessage} from '../thread-context'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 // A raised hover bar stops this far above the scroller's bottom edge instead of flush against it.
 const edgeClearance = 2
@@ -164,7 +165,7 @@ function EmojiRowContainer(p: OwnProps) {
           style={Kb.Styles.collapseStyles([styles.iconContainer, !hasMessageID && styles.disabled])}
           tooltip="React"
         >
-          <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reacji" />
+          <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reacji" testID={TestIDs.CHAT_MESSAGE_REACT_BUTTON} />
         </Kb.ClickableBox>
         {!!onReply && (
           <Kb.ClickableBox alignSelf="center"

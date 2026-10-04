@@ -29,7 +29,7 @@ import {diffSeals, readSeal, type Seal, type SealField} from './seal.mts'
 import {assertServedFrom, listenerCwd} from './served-tree.mts'
 import * as Store from './store.mts'
 import {tour} from './tour.ts'
-import {matchEntries, type Platform, type Theme, type TourEntry} from './tour-types.ts'
+import {matchEntries, nextDesktopEntry, type Platform, type Theme, type TourEntry} from './tour-types.ts'
 
 type RunPlatform = Store.RunPlatform
 
@@ -90,6 +90,13 @@ export const selectEntries = (entries: ReadonlyArray<TourEntry>, patterns: Reado
     const m = matchEntries(on, p)
     if (!m.length) throw new Error(`no tour entry matches ${p} on ${platform}`)
     for (const e of m) hit.add(e)
+  }
+  // a desktop entry that leaves a popup open brings the entry that closes it
+  if (platform === 'desktop') {
+    for (const e of [...hit]) {
+      const next = e.leavesPopup ? nextDesktopEntry(entries, e) : undefined
+      if (next) hit.add(next)
+    }
   }
   return on.filter(e => hit.has(e))
 }
@@ -642,7 +649,7 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
           const {chrome} = await session.prepare({frozenAt, reload: true, theme})
           if (cmd.coverage) {
             if (!chrome) throw new Error('the app has no coverage marks after a --coverage launch')
-            writeStaged(Store.baseCoveragePath(sha, platform, theme, '__chrome__'), JSON.stringify(chrome))
+            writeStaged(Store.baseCoveragePath(sha, platform, theme, '__chrome__'), Store.writeCoverageJson(chrome, false))
           }
           for (const e of entries) {
             const cap = await session.capture(e)
@@ -654,7 +661,7 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
             writeStaged(Store.baseMasksPath(sha, platform, theme, e.id), JSON.stringify(cap.masks))
             if (cmd.coverage) {
               if (!cap.coverage) throw new Error(`${e.id}: no coverage from a --coverage launch`)
-              writeStaged(Store.baseCoveragePath(sha, platform, theme, e.id), JSON.stringify(cap.coverage))
+              writeStaged(Store.baseCoveragePath(sha, platform, theme, e.id), Store.writeCoverageJson(cap.coverage, !!e.masks?.length))
             }
             log(`✓ base ${e.id} ${platform} ${theme}`)
           }
@@ -741,8 +748,9 @@ export async function runCoverage(argv: ReadonlyArray<string>, log: (l: string) 
     throw new Error('coverage needs one git range or ref, e.g. yarn visual:coverage HEAD (working tree) or origin/master..HEAD')
   }
   const sha = await usedBaseSha(cmd.ios ? 'ios' : 'desktop', cmd.base)
-  const mounted = Store.readBaseCoverage(sha)
+  const {mounted, masked} = Store.readBaseCoverage(sha)
   if (!mounted.length) throw new Error(`no coverage stored for base ${sha}; run yarn visual:base --coverage (and --ios) first`)
+  if (masked.length) log(`skipped ${masked.length} masked capture${masked.length === 1 ? '' : 's'}: ${masked.join(', ')}`)
   const {left, right, symmetric} = parseCoverageRange(range)
   const revParse = (ref: string) => git(['rev-parse', '--verify', `${ref}^{commit}`]).trim()
   const rightSha = right === undefined ? undefined : revParse(right)

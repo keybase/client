@@ -5,7 +5,7 @@ tree. Use it to prove a layout refactor changes nothing on screen, or to see exa
 changes. The compare is exact RGBA with no threshold; a size mismatch is a failure.
 
 Platforms: Electron light and dark (1280x800 @2x), and iOS light on the `iPhoneTest` simulator
-(`KB_IOS_DEVICE` overrides). The tour of screens is `tour.ts`: 40 desktop entries and 29 phone
+(`KB_IOS_DEVICE` overrides). The tour of screens is `tour.ts`: 68 desktop entries and 53 phone
 entries, all signed in as the e2e smoke account.
 
 ## Before you start
@@ -65,11 +65,12 @@ A base and a check are taken minutes or days apart, so anything that can change 
 pinned:
 
 - **Seal.** A read-only snapshot of the account through the CLI: inbox (ids, names, unread,
-  `activeAtMs`), teams and members, follows, devices, the team folder's listing. Each tour entry
-  names the fields it shows. `base` and `gate` read a full seal before and after and are void if it
-  changed (`gate void: … inbox[…].activeAtMs …`). `check` compares the entries' fields with the
-  base's seal before capturing (`seal changed: …`). Traffic on the account voids runs; wait for a
-  quiet account, or retake the base.
+  `activeAtMs`), teams and members, follows, devices, the team folder's and the private folder's
+  listings. Each tour entry names the fields it shows. `base` and `gate` read a full seal before
+  and after and are void if it changed (`gate void: … inbox[…].activeAtMs …`). `check` compares the
+  entries' fields with the base's seal before capturing (`seal changed: …`). Traffic on the account
+  voids runs; wait for a quiet account, or retake the base. Adding a seal field changes what a seal
+  holds, so a base taken before it reports `seal changed` on every check: retake the base.
 - **Frozen clock.** `Date` is fixed to the base's `frozenAt` (the newest message time + 60s), so
   relative times ("2m ago", day separators) render the same in base and check. Desktop fixes it
   with a page init script; iOS fixes it over Metro's inspector and remounts every screen.
@@ -91,7 +92,8 @@ pinned:
 A mask hides a region from the compare. Only for content the server picks or pushes that no seal
 field can pin, never for layout. Each one names a testID and a reason in `tour.ts`. A compare masks
 the union of the base's and the current capture's mask rects. Current masks: people feed follow
-suggestions, device last-used times.
+suggestions, device last-used times, the team builder's recommendation list (server-picked and
+server-ordered; the builder's service tabs and search box stay compared).
 
 ## Coverage
 
@@ -111,6 +113,11 @@ than passed. Untracked new `.tsx` files are not in `git diff`: `git add -N` them
 `✗ never mounted: file.tsx:line` means the gate cannot see that change: add a tour entry that
 reaches it, or prove it another way. Exit 1 if any are listed. Metro caches transforms per file,
 not per env var, so switching coverage on or off needs `--clear` (the CLI does this).
+
+An entry with any mask counts for no coverage: a call site under a mask mounts, but the compare
+never sees its pixels. Each stored coverage file says whether its entry is masked; `coverage`
+skips those and prints how many it skipped. A base written before that flag counts every entry;
+retake it.
 
 Box2 itself (`common-adapters/box.tsx`) is covered separately: `box2-native-styles.test.tsx` pins
 the native style of every prop combination (`yarn test:unit`), and the `Common/Box2 matrix`
@@ -140,8 +147,14 @@ change with `--compare <baseline dir>`.
 
 Routes the tour leaves out are listed with reasons at the bottom of `tour.ts`. Notable:
 
-- `profile` (self): reopening a profile within 30s of closing it shows an empty profile with
+- `profile` (anyone's): reopening a profile within 30s of closing it shows an empty profile with
   follower spinners that never finish (`tracker/identify-session.tsx`); also on master.
 - Phone `files/team`: the header's "..." dots draw 1px off on the first push of a launch.
 - Desktop chat info panel: it stays open for the conversation entries after it.
+- A desktop floating menu stays open while its screen stays mounted, across Escape and tab
+  switches. An entry that opens one carries `leavesPopup`; `yarn visual:unit` requires the next
+  desktop entry to close it (same tab; on chat, another conversation), and selecting the entry by
+  id also selects that follower.
+- Phone menus are bottom sheets that expose nothing inside them to Appium: their entries wait on
+  the screen under the sheet.
 - Screens reached only through a write, or showing server-picked lists.

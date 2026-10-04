@@ -9,7 +9,8 @@ import type {TourEntry} from './tour-types.ts'
 import type {Capture} from './driver-desktop.mts'
 import {makePng} from './compare.mts'
 process.env['KB_VISUAL_RESULTS'] = fs.mkdtempSync(path.join(os.tmpdir(), 'vcli-'))
-const {parseCommand, runAa, runCheck, runGate, checkBaseInfra, realDeps, parseCoverageRange, coverageRangeRefusal} = await import('./cli.mts')
+const {parseCommand, runAa, runCheck, runGate, checkBaseInfra, realDeps, parseCoverageRange, coverageRangeRefusal, selectEntries} =
+  await import('./cli.mts')
 const Store = await import('./store.mts')
 const {PNG} = createRequire(import.meta.url)('pngjs') as {PNG: {sync: {write: (p: unknown) => Buffer}}}
 
@@ -306,4 +307,14 @@ test('coverage refuses a range whose sides are one commit, and a diff with no .t
   )
   assert.equal(coverageRangeRefusal({changedFiles: 1, leftSha: 'abc', range: 'HEAD', rightSha: undefined}), undefined)
   assert.equal(coverageRangeRefusal({changedFiles: 1, leftSha: 'abc', range: 'abc..def', rightSha: 'def'}), undefined)
+})
+test('selecting a desktop entry that leaves a popup open brings the entry after it', () => {
+  const es: ReadonlyArray<TourEntry> = [
+    {id: 'team/menu', leavesPopup: true, nav: {tab: 'tabs.teamsTab'}, platforms: ['desktop', 'phone'], ready: 'x', seal: []},
+    {id: 'team/phone', nav: {tab: 'tabs.teamsTab'}, platforms: ['phone'], ready: 'x', seal: []},
+    {id: 'team/next', nav: {tab: 'tabs.teamsTab'}, platforms: ['desktop', 'phone'], ready: 'x', seal: []},
+    {id: 'tab/git', nav: {tab: 'tabs.gitTab'}, platforms: ['desktop'], ready: 'x', seal: []},
+  ]
+  assert.deepEqual(selectEntries(es, ['team/menu'], 'desktop').map(e => e.id), ['team/menu', 'team/next'])
+  assert.deepEqual(selectEntries(es, ['team/menu'], 'ios').map(e => e.id), ['team/menu'])
 })

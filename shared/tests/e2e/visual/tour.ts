@@ -8,8 +8,10 @@ import type {Mask, TourEntry} from './tour-types.ts'
 // sub-tabs selects its own (switchSubTab), and nothing here scrolls.
 
 const team = {teamID: {ref: 'teamID'}} as const
+const short = {channel: 'e2e-short', ref: 'conversationIDKey'} as const
 const followSuggestions: Mask = {reason: 'people feed follow suggestions, server-picked', testID: T.PEOPLE_FOLLOW_SUGGESTIONS}
 const deviceLastUsed: Mask = {reason: 'device last-used time, server-pushed', testID: T.DEVICES_ROW_LAST_USED}
+const teamBuilderRecs: Mask = {reason: 'team builder recommendations, server-picked and server-ordered', testID: T.TEAM_BUILDING_RECS}
 
 // A settings sub-page: on desktop a sub-tab of the settings tab, on phone a page pushed from the
 // settings list.
@@ -47,6 +49,38 @@ const teamTab = (id: string, button: string, ready: string): TourEntry => ({
   ready,
   seal: ['teams'],
   setup: [{kind: 'switchSubTab', testID: button}],
+})
+
+// A modal that only shows something: it changes nothing until a button in it is pressed, which the
+// tour never does. On desktop those that aren't a team's open over the git tab, whose list holds
+// nothing that changes on its own: behind a modal, settings would show whichever sub-tab an earlier
+// entry left selected, chat whichever conversation, and the devices list carries live last-used
+// times. A phone modal covers the whole screen.
+type Params = NonNullable<TourEntry['nav']['append']>['params']
+type ModalOpts = {seal?: TourEntry['seal']; tab?: string; phone?: boolean; masks?: TourEntry['masks']; ready?: string}
+const modal = (id: string, name: string, params: Params = {}, opts: ModalOpts = {}): Array<TourEntry> => {
+  const append = {name, params}
+  const base = {id: `modal/${id}`, seal: opts.seal ?? [], ...(opts.masks ? {masks: opts.masks} : {})}
+  return [
+    {...base, nav: {append, tab: opts.tab ?? 'tabs.gitTab'}, platforms: ['desktop'], ready: opts.ready ?? T.MODAL_CLOSE},
+    ...(opts.phone
+      ? [{...base, nav: {append, tab: opts.tab ?? 'tabs.settingsTab'}, platforms: ['phone'] as const, ready: opts.ready ?? T.MODAL_SCREEN}]
+      : []),
+  ]
+}
+const teamModal = (id: string, name: string, params: Params = team, opts: ModalOpts = {}) =>
+  modal(id, name, params, {seal: ['teams'], tab: 'tabs.teamsTab', ...opts})
+
+// The phone's info panel, its own route. Desktop's is left out (see the exclusions below).
+const infoPanel = (tab: string, channel: string): TourEntry => ({
+  id: `chat/info-panel-${tab}`,
+  nav: {
+    append: {name: 'chatInfoPanel', params: {conversationIDKey: {channel, ref: 'conversationIDKey'}, tab}},
+    tab: 'tabs.chatTab',
+  },
+  platforms: ['phone'],
+  ready: T.CHAT_INFO_PANEL,
+  seal: ['inbox', 'teams'],
 })
 
 const cryptoTab = (id: string, nav: string, ready: string): TourEntry => ({
@@ -88,18 +122,56 @@ export const tour: ReadonlyArray<TourEntry> = [
     ready: T.CHAT_MESSAGE_LIST,
     seal: ['inbox'],
   },
+  // The hover bar and the ... menu of e2e-media's image. The menu leaves its popup open
+  // (leavesPopup), so the entry after it opens another conversation; with the popup open, hovering
+  // the row draws no hover bar.
   {
-    id: 'chat/info-panel',
-    nav: {
-      append: {
-        name: 'chatInfoPanel',
-        params: {conversationIDKey: {channel: 'e2e-short', ref: 'conversationIDKey'}, tab: 'members'},
-      },
-      tab: 'tabs.chatTab',
-    },
-    platforms: ['phone'],
-    ready: T.CHAT_INFO_PANEL,
-    seal: ['inbox', 'teams'],
+    id: 'chat/message-react',
+    nav: {tab: 'tabs.chatTab', thread: {channel: 'e2e-media', ref: 'conversationIDKey'}},
+    platforms: ['desktop'],
+    ready: T.CHAT_EMOJI_PICKER,
+    seal: ['inbox'],
+    setup: [
+      {kind: 'hover', testID: T.CHAT_ATTACHMENT_IMAGE},
+      {kind: 'openPopup', testID: T.CHAT_MESSAGE_REACT_BUTTON},
+    ],
+  },
+  {
+    id: 'chat/message-menu',
+    nav: {tab: 'tabs.chatTab', thread: {channel: 'e2e-media', ref: 'conversationIDKey'}},
+    platforms: ['desktop'],
+    ready: T.FLOATING_MENU,
+    seal: ['inbox'],
+    setup: [
+      {kind: 'hover', testID: T.CHAT_ATTACHMENT_IMAGE},
+      {kind: 'openPopup', testID: T.CHAT_MESSAGE_MENU_BUTTON},
+    ],
+    leavesPopup: true,
+  },
+  {
+    id: 'chat/thread-search',
+    nav: {tab: 'tabs.chatTab', thread: {channel: 'e2e-long', ref: 'conversationIDKey'}},
+    platforms: ['desktop'],
+    ready: T.CHAT_THREAD_SEARCH,
+    seal: ['inbox'],
+    setup: [{kind: 'openPopup', testID: T.CHAT_HEADER_SEARCH_BUTTON}],
+  },
+  {
+    id: 'chat/attachment-fullscreen',
+    nav: {tab: 'tabs.chatTab', thread: {channel: 'e2e-media', ref: 'conversationIDKey'}},
+    platforms: ['desktop'],
+    ready: T.CHAT_ATTACHMENT_FULLSCREEN,
+    seal: ['inbox'],
+    setup: [{kind: 'openPopup', testID: T.CHAT_ATTACHMENT_IMAGE}],
+  },
+  {...infoPanel('members', 'e2e-short'), id: 'chat/info-panel'},
+  infoPanel('attachments', 'e2e-short'),
+  infoPanel('settings', 'e2e-short'),
+  infoPanel('bots', 'e2e-short'),
+  {
+    ...infoPanel('members', 'e2e-short'),
+    id: 'chat/info-panel-menu',
+    setup: [{kind: 'openPopup', testID: T.CHAT_INFO_PANEL_MENU_BUTTON}],
   },
   {
     id: 'tab/fs',
@@ -114,6 +186,13 @@ export const tour: ReadonlyArray<TourEntry> = [
     platforms: ['desktop'],
     ready: T.FILES_BROWSER,
     seal: ['kbfs'],
+  },
+  {
+    id: 'files/private',
+    nav: {append: {name: 'fsBrowse', params: {path: {ref: 'privateFolder'}}}, tab: 'tabs.fsTab'},
+    platforms: ['desktop', 'phone'],
+    ready: T.FILES_BROWSER,
+    seal: ['kbfsPrivate'],
   },
   cryptoTab('encrypt', T.CRYPTO_NAV_ENCRYPT, T.CRYPTO_ENCRYPT_INPUT),
   cryptoTab('decrypt', T.CRYPTO_NAV_DECRYPT, T.CRYPTO_DECRYPT_INPUT),
@@ -131,6 +210,40 @@ export const tour: ReadonlyArray<TourEntry> = [
   teamTab('emoji', T.TEAMS_TAB_EMOJI_BUTTON, T.TEAMS_EMOJI_TAB),
   teamTab('settings', T.TEAMS_TAB_SETTINGS_BUTTON, T.TEAMS_SETTINGS_TAB),
   teamTab('bots', T.TEAMS_TAB_BOTS_BUTTON, T.TEAMS_BOTS_TAB),
+  // team/menu leaves its popup open (leavesPopup), so another teams entry follows it.
+  {
+    id: 'team/member-add-role',
+    nav: {append: {name: 'teamMember', params: {...team, username: {ref: 'secondUser'}}}, tab: 'tabs.teamsTab'},
+    platforms: ['desktop', 'phone'],
+    ready: T.TEAMS_ROLE_PICKER,
+    seal: ['teams'],
+    setup: [{kind: 'openPopup', testID: T.TEAMS_MEMBER_ADD_TO_TEAM_BUTTON}],
+  },
+  {
+    id: 'team/menu',
+    nav: {append: {name: 'team', params: team}, tab: 'tabs.teamsTab'},
+    platforms: ['desktop'],
+    ready: T.FLOATING_MENU,
+    seal: ['teams'],
+    setup: [
+      {kind: 'switchSubTab', testID: T.TEAMS_TAB_MEMBERS_BUTTON},
+      {kind: 'openPopup', testID: T.TEAMS_HEADER_MENU_BUTTON},
+    ],
+    leavesPopup: true,
+  },
+  // A phone menu is a bottom sheet whose container is a single accessibility element, so nothing
+  // inside it can be waited on: ready is the screen under it, and settle waits out the sheet.
+  {
+    id: 'team/menu',
+    nav: {append: {name: 'team', params: team}, tab: 'tabs.teamsTab'},
+    platforms: ['phone'],
+    ready: T.TEAMS_MEMBER_LIST,
+    seal: ['teams'],
+    setup: [
+      {kind: 'switchSubTab', testID: T.TEAMS_TAB_MEMBERS_BUTTON},
+      {kind: 'openPopup', testID: T.TEAMS_HEADER_MENU_BUTTON},
+    ],
+  },
   {
     id: 'team/channel',
     nav: {
@@ -217,104 +330,93 @@ export const tour: ReadonlyArray<TourEntry> = [
     ready: T.SETTINGS_ACCOUNT,
     seal: [],
   },
-  // Modals that only show something; they change nothing until a button in them is pressed, which
-  // the tour never does. Those that aren't a team's open over the git tab, whose list holds nothing
-  // that changes on its own: behind a modal, settings would show whichever sub-tab an earlier entry
-  // left selected, and the devices list carries live last-used times.
-  {
-    id: 'modal/device-add',
-    nav: {append: {name: 'deviceAdd', params: {}}, tab: 'tabs.gitTab'},
-    platforms: ['desktop'],
-    ready: T.MODAL_CLOSE,
-    seal: [],
-  },
-  {
-    id: 'modal/add-email',
-    nav: {append: {name: 'settingsAddEmail', params: {}}, tab: 'tabs.gitTab'},
-    platforms: ['desktop'],
-    ready: T.MODAL_CLOSE,
-    seal: [],
-  },
-  {
-    id: 'modal/add-phone',
-    nav: {append: {name: 'settingsAddPhone', params: {}}, tab: 'tabs.gitTab'},
-    platforms: ['desktop'],
-    ready: T.MODAL_CLOSE,
-    seal: [],
-  },
-  {
-    id: 'modal/kext-permission',
-    nav: {append: {name: 'kextPermission', params: {}}, tab: 'tabs.gitTab'},
-    platforms: ['desktop'],
-    ready: T.MODAL_CLOSE,
-    seal: [],
-  },
-  {
-    id: 'modal/team-edit-info',
-    nav: {append: {name: 'teamEditTeamInfo', params: team}, tab: 'tabs.teamsTab'},
-    platforms: ['desktop'],
-    ready: T.MODAL_CLOSE,
-    seal: ['teams'],
-  },
-  {
-    id: 'modal/team-edit-description',
-    nav: {append: {name: 'teamEditTeamDescription', params: team}, tab: 'tabs.teamsTab'},
-    platforms: ['desktop'],
-    ready: T.MODAL_CLOSE,
-    seal: ['teams'],
-  },
+  ...modal('device-add', 'deviceAdd'),
+  ...modal('add-email', 'settingsAddEmail'),
+  ...modal('add-phone', 'settingsAddPhone'),
+  ...modal('kext-permission', 'kextPermission'),
+  ...teamModal('team-edit-info', 'teamEditTeamInfo', team, {phone: true}),
+  ...teamModal('team-edit-description', 'teamEditTeamDescription', team, {phone: true}),
+  ...modal('backup-files', 'archiveModal', {type: 'fsAll'}, {phone: true}),
+  ...modal('backup-repos', 'archiveModal', {type: 'gitAll'}, {phone: true}),
+  ...modal('backup-repo', 'archiveModal', {gitURL: 'keybase://team/testteam/repo', type: 'git'}),
+  ...modal('profile-proofs', 'profileProofsList'),
+  ...modal('profile-pgp', 'profilePgp', {}, {phone: true}),
+  ...modal('profile-avatar', 'profileEditAvatar'),
+  ...modal('profile-showcase-teams', 'profileShowcaseTeamOffer', {}, {phone: true, seal: ['teams']}),
+  ...modal('profile-add-to-team', 'profileAddToTeam', {username: {ref: 'secondUser'}}, {phone: true, seal: ['teams']}),
+  ...modal('people-builder', 'peopleTeamBuilder', {}, {masks: [teamBuilderRecs], phone: true, seal: ['follows']}),
+  ...modal('feedback', 'signupSendFeedbackLoggedIn', {}, {phone: true}),
+  ...modal('chat-block', 'chatBlockingModal', {blockUserByDefault: true, username: {ref: 'secondUser'}}, {phone: true, seal: ['follows']}),
+  ...teamModal('team-rename', 'teamRename', {teamname: {ref: 'teamname'}}, {phone: true}),
+  ...teamModal('team-delete', 'teamDeleteTeam'),
+  ...teamModal('team-leave', 'teamReallyLeaveTeam', team, {phone: true}),
+  ...teamModal('team-invite-email', 'teamInviteByEmail', team, {phone: true}),
+  ...teamModal('team-add-to-channels', 'teamAddToChannels', team, {phone: true, seal: ['teams', 'inbox']}),
+  ...teamModal('team-add-emoji', 'teamAddEmoji', {...team, conversationIDKey: short}, {seal: ['teams', 'inbox']}),
+  ...teamModal('team-add-alias', 'teamAddEmojiAlias', {conversationIDKey: short}, {phone: true, seal: ['teams', 'inbox']}),
+  ...teamModal('chat-create-channel', 'chatCreateChannel'),
+  ...teamModal('chat-delete-history', 'chatDeleteHistoryWarning', {conversationIDKey: short}, {phone: true, seal: ['inbox']}),
+  ...modal(
+    'chat-emoji',
+    'chatChooseEmoji',
+    {conversationIDKey: short, pickKey: 'reaction'},
+    {phone: true, ready: T.CHAT_EMOJI_PICKER, seal: ['inbox']}
+  ),
 ]
 
 // Routes from `yarn visual:routes` the tour leaves out, and why.
 //
-// Signed out (the gate runs signed in):
-//   login, feedback, recoverPassword*, reset*, proxySettingsModal, signupError, signupEnter*,
-//   signupSendFeedback*, signupVerifyPhoneNumber
+// Signed out, provisioning or resetting (the gate runs signed in): login, feedback,
+//   recoverPassword*, reset*, proxySettingsModal, signupError, signupEnter*,
+//   signupSendFeedbackLoggedOut, signupVerifyPhoneNumber, and the provision screens
 //
-// Reached only through a write, or a form whose only exit is a write:
-//   chatAddToChannel, chatBlockingModal, chatConfirmRemoveBot, chatCreateChannel,
-//   chatDeleteHistoryWarning, chatForwardMsgPick, chatInstallBot, chatInstallBotPick,
+// Reached only through a write, or a form whose state no ParamRef can supply:
+//   chatAddToChannel, chatConfirmRemoveBot, chatForwardMsgPick, chatInstallBot, chatInstallBotPick,
 //   chatSendToChat, chatShowNewTeamDialog, chatEnterPaperkey (rekey), devicePaperKey (makes a
 //   paper key on open), deviceRevoke, confirmDelete, destinationPicker, gitDeleteRepo,
-//   gitNewRepo, gitSelectChannel, incomingShareNew, profileAddToTeam, profileEdit,
-//   profileEditAvatar, profileImport, profilePgp, profileProofsList, profileRevoke,
-//   profileShowcaseTeamOffer, checkPassphraseBeforeDeleteAccount, dbNukeConfirm, deleteConfirm,
-//   archiveModal, settingsTabs.password, settingsTabs.logOutTab, settingsPushPrompt,
-//   settingsContactsJoined, settingsVerifyPhone, settingsDeleteAddress, contactRestricted,
-//   openTeamWarning, retentionWarning, teamAddEmoji, teamAddEmojiAlias, teamAddToChannels,
-//   teamAddToTeam*, teamCreateChannels, teamDeleteChannel, teamDeleteTeam, teamInviteBy*,
-//   teamInviteLinkJoin, teamJoinTeamDialog,
-//   teamNewTeamDialog, teamReallyLeaveTeam, teamReallyRemove*, teamRename, teamWizard*,
-//   reallyRemoveAccount, removeAccount
+//   gitSelectChannel, incomingShareNew (an OS share), profileImport, profileRevoke,
+//   checkPassphraseBeforeDeleteAccount, dbNukeConfirm, deleteConfirm, settingsTabs.password,
+//   settingsTabs.logOutTab, settingsPushPrompt, settingsContactsJoined, settingsVerifyPhone,
+//   settingsDeleteAddress, contactRestricted, openTeamWarning, retentionWarning, teamAddToTeam*
+//   and teamWizard* (their params are the wizard's state object), teamDeleteChannel,
+//   teamInviteByContact (needs the contacts permission), teamInviteLinkJoin, teamJoinTeamDialog,
+//   teamNewTeamDialog, teamReallyRemove* (an array param), reallyRemoveAccount, removeAccount
 //
 // Need a specific message, file or output the account doesn't hold, or that only a typed input
-// produces (setup steps can't type): chatAttachmentFullscreen, chatAttachmentGetTitles, chatPDF,
-// chatLocationPreview, chatUnfurlMapPopup, chatMessagePopup, chatConfirmNavigateExternal,
-// chatChooseEmoji, fsFilePreview (the team folder is empty), decryptOutput, encryptOutput,
-// signOutput, verifyOutput, keybaseLinkError, webLinks (an external page), teamExternalTeam (a
-// team the account is not in), team subteams tab (the team has none)
+// produces (setup steps can't type): chatAttachmentGetTitles, chatPDF, chatLocationPreview,
+// chatUnfurlMapPopup, chatConfirmNavigateExternal, decryptOutput, encryptOutput, signOutput,
+// verifyOutput, keybaseLinkError, webLinks (an external page), teamExternalTeam (a team the account
+// is not in), team subteams tab (the team has none), and the message kinds no seeded channel holds
+// (coin flips, exploding, payments, git pushes, pins, replies, reactions, journey cards, unfurls)
 //
-// Edit forms change nothing until saved, so the tour opens them (modal/team-edit-info,
-// modal/team-edit-description) except teamEditChannel: it takes the channel's current name and
-// description as params, which no ParamRef supplies.
+// Mount nothing the tour doesn't already: gitNewRepo, teamCreateChannels, chatMessagePopup and
+// fsFilePreview (images and PDFs; the private folder holds no text file), chatNewChat,
+// cryptoTeamBuilder and teamsTeamBuilder (the same builder as modal/people-builder)
+//
+// Edit forms change nothing until saved, so the tour opens them, except teamEditChannel (it takes
+// the channel's current name and description as params, which no ParamRef supplies) and
+// profileEdit: its fields fill in from a profile load that holds no waiting key, so the first open
+// after a launch shows the placeholders and every later one the values.
 //
 // Covered inside other entries: desktop's chat root is the inbox beside a conversation, so the
 // chat/e2e-short and chat/e2e-media entries capture the desktop inbox (a separate tab/chat entry
 // would show whichever conversation an earlier entry selected); tab/settings is settings/account on
 // desktop, tab/crypto is crypto/encrypt.
 //
-// Server-picked content that would fill most of the screen: chatNewChat, chatSearchBots,
-// peopleTeamBuilder, cryptoTeamBuilder, teamsTeamBuilder (recommendation lists)
-//
 // Platform or build: settingsTabs.cryptoTab, settingsTabs.devicesTab and settingsTabs.gitTab are
 // tablet-only sub-tabs on desktop (desktop has them as tabs); settingsTabs.contactsTab and
 // accountSwitcher are phone screens with nothing to wait on (contacts also needs the OS
 // permission); makeIcons is a developer tool; kextPermission, the modal add email/phone/device
-// entries and the settings sub-pages without a phone testID are desktop only.
+// entries and the settings sub-pages without a phone testID are desktop only; the phone's
+// add-email/phone/device, proofs list and team delete modals mount nothing the tour doesn't
+// already. Not in the main window: the menubar, the tracker popup and the unlock-folders window
+// are separate desktop windows; global errors and runtime stats are debug overlays.
+//
+// Thread search on phone: its button is a native header bar item with no testID.
 //
 // Unstable, not masked:
-//   profile (self): reopening a profile within 30s of closing it shows an empty profile with
-//     spinning follower counts that never fill in (tracker/identify-session.tsx: the closed
+//   profile (self and others): reopening a profile within 30s of closing it shows an empty profile
+//     with spinning follower counts that never fill in (tracker/identify-session.tsx: the closed
 //     profile's session is dropped, and the 30s recheck window then skips the reload). Seen in
 //     real time too, and the same on master. The tour opens every entry twice, and with Date
 //     frozen the window never ends, so the second capture is always the empty one.
@@ -325,3 +427,5 @@ export const tour: ReadonlyArray<TourEntry> = [
 //   desktop chat info panel: it opens by setting infoPanel on the chat root's params, which
 //     navigateToThread merges rather than clears, so it would stay open for the conversation
 //     entries captured after it. The phone's info panel is its own route and is in the tour.
+//   archiveModal of a folder (type fsPath): the folder's info line spins without end for the
+//     empty team folder.
