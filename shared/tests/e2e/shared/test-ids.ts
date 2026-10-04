@@ -35,6 +35,7 @@ export const CHAT_CAMERA_BUTTON         = 'chat-camera-button'
 export const CHAT_AUDIO_BUTTON          = 'chat-audio-button'
 export const CHAT_MORE_BUTTON           = 'chat-more-button'
 export const CHAT_INFO_PANEL_SETTINGS_TAB = 'chat-info-panel-settings-tab'
+export const CHAT_INFO_PANEL_MENU_BUTTON = 'chat-info-panel-menu-button'
 // Android only: iOS 26 folds Search/Info into one native "More" header menu,
 // but the Android header keeps the plain info icon — icons have no tappable text
 export const CHAT_HEADER_INFO_BUTTON = 'chat-header-info-button'
@@ -53,6 +54,9 @@ export const CHAT_PINNED_BANNER       = 'chat-pinned-banner'
 export const CHAT_REPLY_PREVIEW       = 'chat-reply-preview'
 export const CHAT_REPLY_CANCEL        = 'chat-reply-cancel'
 export const CHAT_EDIT_CANCEL         = 'chat-edit-cancel'
+// desktop message hover bar and ... menu
+export const CHAT_MESSAGE_REACT_BUTTON = 'chat-message-react-button'
+export const CHAT_MESSAGE_MENU_BUTTON  = 'chat-message-menu-button'
 // a suggestion row carries the _SELECTED id while it is the highlighted one
 export const CHAT_SUGGESTION_ROW          = 'chat-suggestion-row'
 export const CHAT_SUGGESTION_ROW_SELECTED = 'chat-suggestion-row-selected'
@@ -70,6 +74,9 @@ export const TEAMS_BODY         = 'teams-body'
 export const TEAMS_TABS         = 'teams-tabs'
 export const TEAMS_MEMBER_LIST  = 'teams-member-list'
 export const TEAMS_MEMBER_PAGE  = 'teams-member-page'
+export const TEAMS_MEMBER_ADD_TO_TEAM_BUTTON = 'teams-member-add-to-team-button'
+export const TEAMS_ROLE_PICKER = 'teams-role-picker'
+export const TEAMS_HEADER_MENU_BUTTON = 'teams-header-menu-button'
 export const TEAMS_CHANNEL_LIST = 'teams-channel-list'
 export const TEAMS_CHANNEL_PAGE = 'teams-channel-page'
 export const TEAMS_SETTINGS_TAB = 'teams-settings-tab'
@@ -168,3 +175,7 @@ export const COMMON_BACK_BUTTON = 'backButton'
 // close iconfont also matches the unfurl dismiss icons in the conversation
 // behind the modal, which sit earlier in the DOM and are covered by the overlay.
 export const MODAL_CLOSE = 'modal-close'
+// a phone modal screen's container
+export const MODAL_SCREEN = 'modal-screen'
+// the team builder's recommendation list
+export const TEAM_BUILDING_RECS = 'team-building-recs'

@@ -4,6 +4,7 @@ import capitalize from 'lodash/capitalize'
 import {pluralize} from '@/util/string'
 import type * as T from '@/constants/types'
 import RoleCrown from './common/role-crown'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 // Controls the ordering of the role picker
 const orderedRoles: Array<Role<true>> = ['owner', 'admin', 'writer', 'reader', 'setIndividually']
@@ -266,7 +267,7 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
     Role<IncludeSetIndividually>
   >
   return (
-    <Kb.Box2 direction="vertical" alignItems="stretch" style={styles.container} fullHeight={isMobile}>
+    <Kb.Box2 direction="vertical" alignItems="stretch" style={styles.container} fullHeight={isMobile} testID={TestIDs.TEAMS_ROLE_PICKER}>
       {!isMobile && <Header />}
       <Kb.ScrollView style={styles.innerScroll}>
         {roles.map(role => {

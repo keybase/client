@@ -33,6 +33,7 @@ import {deleteMessage, toggleReaction, useThreadMessageTarget} from '../../messa
 import {useInboxMetadataState} from '@/chat/inbox/metadata'
 import type {ConversationInputState} from '../../input-area/input-state'
 import {useChatTeamMemberRole} from '../../team-hooks'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type AccountsInfoMap = ReadonlyMap<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
 type PaymentStatusMap = ReadonlyMap<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
@@ -908,7 +909,7 @@ function RightSide(p: RProps) {
         )}
       >
         <Kb.Box2 direction="vertical">
-          <Kb.Icon type="iconfont-ellipsis" onClick={showPopup} />
+          <Kb.Icon type="iconfont-ellipsis" onClick={showPopup} testID={TestIDs.CHAT_MESSAGE_MENU_BUTTON} />
         </Kb.Box2>
       </Kb.Box2>
     )

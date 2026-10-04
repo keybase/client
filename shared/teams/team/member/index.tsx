@@ -230,6 +230,7 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
                 onClick={() => setOpen(!open)}
                 small={true}
                 style={styles.inviteButton}
+                testID={TestIDs.TEAMS_MEMBER_ADD_TO_TEAM_BUTTON}
                 waitingKey={onAddWaitingKey}
               />
             </FloatingRolePicker>
