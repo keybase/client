@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises -- node:test registers top-level tests; they are not awaited */
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
-import {pinSource} from './box2-stretch-default.mts'
+import {applyCleanup, cleanupCandidates, pinSource} from './box2-stretch-default.mts'
 
 const run = (code: string) => pinSource(code, '/x/shared/settings/a.tsx')
 const runCA = (code: string) => pinSource(code, '/x/shared/common-adapters/rounded-box.tsx')
@@ -94,20 +94,38 @@ test('literal false counts as absent', () => {
   )
   assert.equal(
     run(`const A = () => <Kb.Box2 fullWidth={false} fullHeight={y} />`).code,
-    `const A = () => <Kb.Box2 alignSelf={(y) ? undefined : 'center'} fullWidth={false} fullHeight={y} />`
+    `const A = () => <Kb.Box2 alignSelf={y ? undefined : 'center'} fullWidth={false} fullHeight={y} />`
   )
 })
 
 test('one expression: conditional pin', () => {
   const r = run(`const A = () => <Kb.Box2 direction="vertical" fullWidth={x} />`)
-  assert.equal(r.code, `const A = () => <Kb.Box2 alignSelf={(x) ? undefined : 'center'} direction="vertical" fullWidth={x} />`)
+  assert.equal(r.code, `const A = () => <Kb.Box2 alignSelf={x ? undefined : 'center'} direction="vertical" fullWidth={x} />`)
   assert.deepEqual(r.pinned, [{line: 1}])
 })
 
 test('two expressions: joined with ||', () => {
   assert.equal(
     run(`const A = () => <Kb.Box2 direction="vertical" fullWidth={x} fullHeight={y} />`).code,
-    `const A = () => <Kb.Box2 alignSelf={(x) || (y) ? undefined : 'center'} direction="vertical" fullWidth={x} fullHeight={y} />`
+    `const A = () => <Kb.Box2 alignSelf={x || y ? undefined : 'center'} direction="vertical" fullWidth={x} fullHeight={y} />`
+  )
+})
+
+test('the same expression on both axes is emitted once', () => {
+  assert.equal(
+    run(`const A = () => <Kb.Box2 fullWidth={isMobile} fullHeight={isMobile} />`).code,
+    `const A = () => <Kb.Box2 alignSelf={isMobile ? undefined : 'center'} fullWidth={isMobile} fullHeight={isMobile} />`
+  )
+  assert.equal(
+    run(`const A = () => <Kb.Box2 fullWidth={a && b} fullHeight={a && b} />`).code,
+    `const A = () => <Kb.Box2 alignSelf={(a && b) ? undefined : 'center'} fullWidth={a && b} fullHeight={a && b} />`
+  )
+})
+
+test('member expressions are not parenthesized', () => {
+  assert.equal(
+    run(`const A = () => <Kb.Box2 fullWidth={p.fullWidth} fullHeight={p?.h} />`).code,
+    `const A = () => <Kb.Box2 alignSelf={p.fullWidth || p?.h ? undefined : 'center'} fullWidth={p.fullWidth} fullHeight={p?.h} />`
   )
 })
 
@@ -253,7 +271,7 @@ test('nested Box2 inside Box2: both handled', () => {
   const r = run(src)
   assert.equal(
     r.code,
-    `const A = () => <Kb.Box2 alignSelf="center" direction="vertical"><Kb.Box2 alignSelf={(w) ? undefined : 'center'} direction="horizontal" fullWidth={w}><Kb.ClickableBox fullHeight /></Kb.Box2></Kb.Box2>`
+    `const A = () => <Kb.Box2 alignSelf="center" direction="vertical"><Kb.Box2 alignSelf={w ? undefined : 'center'} direction="horizontal" fullWidth={w}><Kb.ClickableBox fullHeight /></Kb.Box2></Kb.Box2>`
   )
   assert.equal(r.pinned.length, 2)
 })
@@ -311,4 +329,254 @@ test('output is idempotent', () => {
   const twice = run(once)
   assert.equal(twice.code, once)
   assert.equal(twice.pinned.length, 0)
+})
+
+// ---------------------------------------------------------------- cleanup
+
+const cands = (code: string) => cleanupCandidates(code, '/x/shared/settings/a.tsx')
+const clean = (code: string) => applyCleanup(code, cands(code))
+const rules = (code: string) => cands(code).map(c => `${c.rule}:${c.attr}:${c.line}`)
+const inVertical = (child: string, parent = '') =>
+  `const A = () => (\n  <Kb.Box2 direction="vertical"${parent}>\n    ${child}\n  </Kb.Box2>\n)`
+const inHorizontal = (child: string, parent = '') =>
+  `const A = () => (\n  <Kb.Box2 direction="horizontal"${parent}>\n    ${child}\n  </Kb.Box2>\n)`
+
+test('C1: fullWidth on a child of a vertical stretch parent is removed', () => {
+  for (const fw of ['fullWidth', 'fullWidth={true}']) {
+    const src = inVertical(`<Kb.Box2 direction="horizontal" ${fw} gap="tiny" />`)
+    assert.deepEqual(rules(src), ['C1:fullWidth:3'], fw)
+    assert.equal(clean(src), inVertical(`<Kb.Box2 direction="horizontal" gap="tiny" />`), fw)
+  }
+  const stretch = inVertical(`<Kb.ClickableBox direction="vertical" fullWidth />`, ` alignItems="stretch"`)
+  assert.deepEqual(rules(stretch), ['C1:fullWidth:3'])
+})
+
+test('C1: an attribute on its own line goes with its line', () => {
+  const src = `const A = () => (
+  <Kb.Box2 direction="vertical">
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth
+      gap="tiny"
+    />
+  </Kb.Box2>
+)`
+  assert.equal(
+    clean(src),
+    `const A = () => (
+  <Kb.Box2 direction="vertical">
+    <Kb.Box2
+      direction="horizontal"
+      gap="tiny"
+    />
+  </Kb.Box2>
+)`
+  )
+})
+
+test('C1: not with fullHeight, alignSelf expressions, false or expression fullWidth', () => {
+  for (const child of [
+    `<Kb.Box2 direction="vertical" fullWidth fullHeight />`,
+    `<Kb.Box2 direction="vertical" fullWidth fullHeight={x} />`,
+    `<Kb.Box2 direction="vertical" fullWidth alignSelf={x ? 'center' : undefined} />`,
+    `<Kb.Box2 direction="vertical" fullWidth={x} />`,
+    `<Kb.Box2 direction="vertical" fullWidth={false} />`,
+    `<Kb.Box2 direction="vertical" fullWidth="yes" />`,
+  ]) {
+    assert.deepEqual(rules(inVertical(child)), [], child)
+  }
+})
+
+test('C2: fullHeight on a child of a horizontal stretch parent is removed', () => {
+  const src = inHorizontal(`<Kb.Box2 direction="vertical" fullHeight flex={1} />`)
+  assert.deepEqual(rules(src), ['C2:fullHeight:3'])
+  assert.equal(clean(src), inHorizontal(`<Kb.Box2 direction="vertical" flex={1} />`))
+  for (const child of [
+    `<Kb.Box2 direction="vertical" fullHeight fullWidth />`,
+    `<Kb.Box2 direction="vertical" fullHeight fullWidth={false} />`,
+    `<Kb.Box2 direction="vertical" fullHeight alignSelf="center" />`,
+  ]) {
+    assert.deepEqual(rules(inHorizontal(child)), [], child)
+  }
+})
+
+test('C2 does not fire in a vertical parent, nor C1 in a horizontal one', () => {
+  assert.deepEqual(rules(inVertical(`<Kb.Box2 direction="vertical" fullHeight />`)), [])
+  assert.deepEqual(rules(inHorizontal(`<Kb.Box2 direction="vertical" fullWidth />`)), [])
+})
+
+test('C3: alignSelf literal on a fullWidth child of a vertical parent is removed', () => {
+  for (const v of ['stretch', 'center', 'flex-start', 'flex-end']) {
+    for (const a of [`alignSelf="${v}"`, `alignSelf={'${v}'}`]) {
+      const src = inVertical(`<Kb.Box2 direction="vertical" fullWidth fullHeight ${a} />`)
+      assert.deepEqual(rules(src), ['C3:alignSelf:3'], a)
+      assert.equal(clean(src), inVertical(`<Kb.Box2 direction="vertical" fullWidth fullHeight />`), a)
+    }
+  }
+})
+
+test('C3: whatever the parent alignItems is', () => {
+  const src = inVertical(`<Kb.Box2 direction="vertical" fullWidth alignSelf="center" />`, ` alignItems="center"`)
+  assert.deepEqual(rules(src), ['C3:alignSelf:3'])
+})
+
+test('C3: not for expressions, other values or a fullWidth that is not true', () => {
+  for (const child of [
+    `<Kb.Box2 direction="vertical" fullWidth alignSelf={x} />`,
+    `<Kb.Box2 direction="vertical" fullWidth alignSelf={x ? 'center' : 'stretch'} />`,
+    `<Kb.Box2 direction="vertical" fullWidth={x} alignSelf="center" />`,
+    `<Kb.Box2 direction="vertical" alignSelf="center" />`,
+    `<Kb.Box2 direction="vertical" fullHeight alignSelf="center" />`,
+  ]) {
+    assert.deepEqual(rules(inVertical(child)), [], child)
+  }
+})
+
+test('C3 never fires for a horizontal parent', () => {
+  for (const v of ['stretch', 'center', 'flex-start', 'flex-end']) {
+    assert.deepEqual(rules(inHorizontal(`<Kb.Box2 direction="vertical" fullWidth alignSelf="${v}" />`)), [], v)
+    assert.deepEqual(rules(inHorizontal(`<Kb.Box2 direction="vertical" fullWidth fullHeight alignSelf="${v}" />`)), [], v)
+  }
+})
+
+test('C1 and C3 on the same child: only C3', () => {
+  const src = inVertical(`<Kb.Box2 direction="vertical" fullWidth alignSelf="flex-start" />`)
+  assert.deepEqual(rules(src), ['C3:alignSelf:3'])
+  assert.equal(clean(src), inVertical(`<Kb.Box2 direction="vertical" fullWidth />`))
+})
+
+test('a pin is never a candidate', () => {
+  const pinned = pinSource(inVertical(`<Kb.Box2 direction="vertical" />`), '/x/shared/settings/a.tsx').code
+  assert.deepEqual(rules(pinned), [])
+  const conditional = pinSource(inVertical(`<Kb.Box2 direction="vertical" fullWidth={x} />`), '/x/shared/settings/a.tsx').code
+  assert.deepEqual(rules(conditional), [])
+})
+
+test('no rule fires for a child with a style prop, a className or a spread', () => {
+  for (const extra of [`style={styles.x}`, `className="x"`, `{...p}`]) {
+    assert.deepEqual(rules(inVertical(`<Kb.Box2 direction="vertical" fullWidth ${extra} />`)), [], extra)
+    assert.deepEqual(rules(inVertical(`<Kb.Box2 direction="vertical" fullWidth alignSelf="center" ${extra} />`)), [], extra)
+    assert.deepEqual(rules(inHorizontal(`<Kb.Box2 direction="vertical" fullHeight ${extra} />`)), [], extra)
+  }
+})
+
+test('parent alignItems other than stretch: no C1 or C2', () => {
+  for (const ai of [` alignItems="center"`, ` alignItems="flex-start"`, ` alignItems={x}`, ` centerChildren`]) {
+    assert.deepEqual(rules(inVertical(`<Kb.Box2 direction="vertical" fullWidth />`, ai)), [], ai)
+    assert.deepEqual(rules(inHorizontal(`<Kb.Box2 direction="vertical" fullHeight />`, ai)), [], ai)
+  }
+})
+
+test('parent with a spread or a className: nothing', () => {
+  for (const extra of [` {...p}`, ` className="x"`]) {
+    assert.deepEqual(rules(inVertical(`<Kb.Box2 direction="vertical" fullWidth />`, extra)), [], extra)
+    assert.deepEqual(rules(inVertical(`<Kb.Box2 direction="vertical" fullWidth alignSelf="center" />`, extra)), [], extra)
+    assert.deepEqual(rules(inHorizontal(`<Kb.Box2 direction="vertical" fullHeight />`, extra)), [], extra)
+  }
+})
+
+const styled = (style: string, sheet: string) =>
+  `${inVertical(`<Kb.Box2 direction="vertical" fullWidth />`, ` style={${style}}`)}\nconst styles = Kb.Styles.styleSheetCreate(() => (${sheet}))`
+
+test('parent style that provably keeps the cross axis: rules still apply', () => {
+  for (const [style, sheet] of [
+    [`styles.x`, `{x: {padding: 8, backgroundColor: Kb.Styles.globalColors.white}}`],
+    [`styles.x`, `{x: Kb.Styles.platformStyles({common: {flex: 1}, isMobile: {padding: 4}, isElectron: {height: 40}})}`],
+    [`styles.x`, `{x: {width: 10}, y: {alignItems: 'center'}}`],
+    [`Kb.Styles.collapseStyles([styles.x, a && styles.y, b ? styles.x : undefined])`, `{x: {padding: 1}, y: {margin: 2}}`],
+    [`styles.x`, `{x: {...Kb.Styles.padding(8), backgroundColor: 'red'}}`],
+    [`{paddingTop: 4}`, `{}`],
+    [`Kb.Styles.padding(4)`, `{}`],
+  ] as const) {
+    assert.deepEqual(rules(styled(style, sheet)), ['C1:fullWidth:3'], `${style} ${sheet}`)
+  }
+  const hooked = `const A = () => {\n  const styles = useStyles()\n  return (\n    <Kb.Box2 direction="vertical" style={styles.x}>\n      <Kb.Box2 direction="vertical" fullWidth />\n    </Kb.Box2>\n  )\n}\nconst useStyles = Kb.Styles.createStyleHook(theme => ({x: {backgroundColor: theme.white}}))`
+  assert.deepEqual(rules(hooked), ['C1:fullWidth:5'])
+})
+
+test('parent style that may change alignment or direction, or cannot be read: nothing', () => {
+  for (const [style, sheet] of [
+    [`styles.x`, `{x: {alignItems: 'center'}}`],
+    [`styles.x`, `{x: {flexDirection: 'row'}}`],
+    [`styles.x`, `{x: {display: 'flex'}}`],
+    [`styles.x`, `{x: {flexWrap: 'wrap'}}`],
+    [`styles.x`, `{x: Kb.Styles.platformStyles({isMobile: {alignItems: 'flex-start'}})}`],
+    [`styles.x`, `{x: {...Kb.Styles.globalStyles.flexBoxRow}}`],
+    [`styles.x`, `{x: Kb.Styles.platformStyles({common: shared})}`],
+    [`styles.missing`, `{x: {}}`],
+    [`other.x`, `{x: {}}`],
+    [`Kb.Styles.collapseStyles([styles.x, getStyle(a)])`, `{x: {}}`],
+    [`a || styles.y`, `{y: {}}`],
+    [`[styles.y, ...more]`, `{y: {}}`],
+    [`{['alignItems']: 'center'}`, `{}`],
+    [`s`, `{}`],
+  ] as const) {
+    assert.deepEqual(rules(styled(style, sheet)), [], `${style} ${sheet}`)
+  }
+  for (const sheet of [`{x: {alignItems: 'center'}}`, `{y: {}}`]) {
+    const hooked = `const A = () => {\n  const styles = useStyles()\n  return (\n    <Kb.Box2 direction="vertical" style={styles.x}>\n      <Kb.Box2 direction="vertical" fullWidth />\n    </Kb.Box2>\n  )\n}\nconst useStyles = Kb.Styles.createStyleHook(theme => (${sheet}))`
+    assert.deepEqual(rules(hooked), [], sheet)
+  }
+  const flipped =`${inVertical(`<Kb.Box2 direction="vertical" fullWidth alignSelf="center" />`, ` style={styles.x}`)}\nconst styles = Kb.Styles.styleSheetCreate(() => ({x: {flexDirection: 'row'}}))`
+  assert.deepEqual(rules(flipped), [])
+})
+
+test('parent direction that is not a literal vertical or horizontal: nothing', () => {
+  for (const dir of [`{dir}`, `{isMobile ? 'vertical' : 'horizontal'}`, `"verticalReverse"`, `"horizontalReverse"`]) {
+    const src = `const A = () => <Kb.Box2 direction=${dir}><Kb.Box2 direction="vertical" fullWidth fullHeight={false} alignSelf="center" /><Kb.Box2 direction="vertical" fullWidth /><Kb.Box2 direction="vertical" fullHeight /></Kb.Box2>`
+    assert.deepEqual(rules(src), [], dir)
+  }
+  assert.deepEqual(rules(`const A = () => <Kb.Box2 direction={'vertical'}><Kb.Box2 direction="vertical" fullWidth /></Kb.Box2>`), ['C1:fullWidth:1'])
+})
+
+test('non-target parent or child: nothing', () => {
+  for (const src of [
+    `const A = () => <Kb.ScrollView direction="vertical"><Kb.Box2 direction="vertical" fullWidth /></Kb.ScrollView>`,
+    `const A = () => <View><Kb.Box2 direction="vertical" fullWidth alignSelf="center" /></View>`,
+    `const A = () => <Kb.Box2 direction="vertical"><Kb.Button fullWidth /></Kb.Box2>`,
+    `const A = () => <Kb.Box2 direction="vertical"><Kb.Text type="Body" alignSelf="center" fullWidth /></Kb.Box2>`,
+    `const A = () => <Kb.Box2 direction="vertical"><Kb.ScrollView><Kb.Box2 direction="vertical" fullWidth /></Kb.ScrollView></Kb.Box2>`,
+    `const A = () => <Kb.Box2 direction="vertical"><Kb.List renderItem={() => <Kb.Box2 direction="vertical" fullWidth />} /></Kb.Box2>`,
+  ]) {
+    assert.deepEqual(rules(src), [], src)
+  }
+})
+
+test('the nearest parent is the one whose children hold the child', () => {
+  assert.deepEqual(
+    rules(`const A = () => <Kb.Box2 direction="vertical">{xs.map(x => <Kb.Box2 key={x} direction="horizontal" fullWidth />)}{c ? <><Kb.Box2 direction="horizontal" fullWidth /></> : null}</Kb.Box2>`),
+    ['C1:fullWidth:1', 'C1:fullWidth:1']
+  )
+  assert.deepEqual(rules(`const B = () => <Kb.Box2 direction="horizontal" fullWidth />`), [])
+  assert.deepEqual(
+    rules(`const C = () => <Kb.Box2 direction="vertical" tooltip={<Kb.Box2 direction="horizontal" fullWidth />} />`),
+    []
+  )
+})
+
+test('both a child and its parent can be candidates', () => {
+  const src = `const A = () => (
+  <Kb.Box2 direction="vertical">
+    <Kb.Box2 direction="horizontal" fullWidth>
+      <Kb.Box2 direction="vertical" fullHeight />
+    </Kb.Box2>
+  </Kb.Box2>
+)`
+  assert.deepEqual(rules(src), ['C1:fullWidth:3', 'C2:fullHeight:4'])
+  assert.equal(
+    clean(src),
+    `const A = () => (
+  <Kb.Box2 direction="vertical">
+    <Kb.Box2 direction="horizontal">
+      <Kb.Box2 direction="vertical" />
+    </Kb.Box2>
+  </Kb.Box2>
+)`
+  )
+})
+
+test('one change per site per pass: C3 now, C1 on a later pass', () => {
+  const src = inVertical(`<Kb.Box2 direction="vertical" fullWidth alignSelf="flex-start" />`)
+  const once = clean(src)
+  assert.deepEqual(rules(once), ['C1:fullWidth:3'])
 })
