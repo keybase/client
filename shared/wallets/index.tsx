@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as T from '@/constants/types'
 import {loadAccountsWaitingKey} from '@/constants/strings'
 import {makeRemoveAccountRouteParams, sortAccounts, toAccount, type Account} from './account-utils'
@@ -146,7 +147,7 @@ const WalletsScreen = () => {
   const loading = C.Waiting.useAnyWaiting(loadAccountsWaitingKey)
 
   return (
-    <Kb.ScrollView style={styles.scroll}>
+    <Kb.ScrollView style={styles.scroll} testID={TestIDs.SETTINGS_WALLET}>
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} padding="small">
         {loading ? <Kb.ProgressIndicator /> : null}
         <Kb.Text type="BodyBig">Stellar Transactions Are No Longer Supported in the Keybase App</Kb.Text>

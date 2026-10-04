@@ -128,7 +128,7 @@ export const tour: ReadonlyArray<TourEntry> = [
   },
   teamTab('members', T.TEAMS_TAB_MEMBERS_BUTTON, T.TEAMS_MEMBER_LIST),
   teamTab('channels', T.TEAMS_TAB_CHANNELS_BUTTON, T.TEAMS_CHANNEL_LIST),
-  teamTab('emoji', T.TEAMS_TAB_EMOJI_BUTTON, T.TEAMS_TABS),
+  teamTab('emoji', T.TEAMS_TAB_EMOJI_BUTTON, T.TEAMS_EMOJI_TAB),
   teamTab('settings', T.TEAMS_TAB_SETTINGS_BUTTON, T.TEAMS_SETTINGS_TAB),
   teamTab('bots', T.TEAMS_TAB_BOTS_BUTTON, T.TEAMS_BOTS_TAB),
   {
@@ -195,7 +195,7 @@ export const tour: ReadonlyArray<TourEntry> = [
     id: 'settings/icons',
     nav: {tab: 'tabs.settingsTab'},
     platforms: ['desktop'],
-    ready: T.SETTINGS_ACCOUNT,
+    ready: T.SETTINGS_ICONS,
     seal: [],
     setup: [{kind: 'switchSubTab', testID: T.SETTINGS_ROW_ICONS}],
   },
@@ -203,7 +203,7 @@ export const tour: ReadonlyArray<TourEntry> = [
     id: 'settings/wallet',
     nav: {tab: 'tabs.settingsTab'},
     platforms: ['desktop'],
-    ready: T.SETTINGS_ACCOUNT,
+    ready: T.SETTINGS_WALLET,
     seal: [],
     setup: [{kind: 'switchSubTab', testID: T.SETTINGS_ROW_WALLET}],
   },
@@ -218,43 +218,47 @@ export const tour: ReadonlyArray<TourEntry> = [
     seal: [],
   },
   // Modals that only show something; they change nothing until a button in them is pressed, which
-  // the tour never does. Those opened from settings open over the devices tab instead: behind the
-  // modal, settings would show whichever sub-tab an earlier entry left selected.
+  // the tour never does. Those that aren't a team's open over the git tab, whose list holds nothing
+  // that changes on its own: behind a modal, settings would show whichever sub-tab an earlier entry
+  // left selected, and the devices list carries live last-used times.
   {
     id: 'modal/device-add',
-    masks: [deviceLastUsed],
-    nav: {append: {name: 'deviceAdd', params: {}}, tab: 'tabs.devicesTab'},
+    nav: {append: {name: 'deviceAdd', params: {}}, tab: 'tabs.gitTab'},
     platforms: ['desktop'],
     ready: T.MODAL_CLOSE,
-    seal: ['devices'],
+    seal: [],
   },
   {
     id: 'modal/add-email',
-    masks: [deviceLastUsed],
-    nav: {append: {name: 'settingsAddEmail', params: {}}, tab: 'tabs.devicesTab'},
+    nav: {append: {name: 'settingsAddEmail', params: {}}, tab: 'tabs.gitTab'},
     platforms: ['desktop'],
     ready: T.MODAL_CLOSE,
-    seal: ['devices'],
+    seal: [],
   },
   {
     id: 'modal/add-phone',
-    masks: [deviceLastUsed],
-    nav: {append: {name: 'settingsAddPhone', params: {}}, tab: 'tabs.devicesTab'},
+    nav: {append: {name: 'settingsAddPhone', params: {}}, tab: 'tabs.gitTab'},
     platforms: ['desktop'],
     ready: T.MODAL_CLOSE,
-    seal: ['devices'],
+    seal: [],
   },
   {
     id: 'modal/kext-permission',
-    masks: [deviceLastUsed],
-    nav: {append: {name: 'kextPermission', params: {}}, tab: 'tabs.devicesTab'},
+    nav: {append: {name: 'kextPermission', params: {}}, tab: 'tabs.gitTab'},
     platforms: ['desktop'],
     ready: T.MODAL_CLOSE,
-    seal: ['devices'],
+    seal: [],
   },
   {
     id: 'modal/team-edit-info',
     nav: {append: {name: 'teamEditTeamInfo', params: team}, tab: 'tabs.teamsTab'},
+    platforms: ['desktop'],
+    ready: T.MODAL_CLOSE,
+    seal: ['teams'],
+  },
+  {
+    id: 'modal/team-edit-description',
+    nav: {append: {name: 'teamEditTeamDescription', params: team}, tab: 'tabs.teamsTab'},
     platforms: ['desktop'],
     ready: T.MODAL_CLOSE,
     seal: ['teams'],
@@ -278,8 +282,8 @@ export const tour: ReadonlyArray<TourEntry> = [
 //   archiveModal, settingsTabs.password, settingsTabs.logOutTab, settingsPushPrompt,
 //   settingsContactsJoined, settingsVerifyPhone, settingsDeleteAddress, contactRestricted,
 //   openTeamWarning, retentionWarning, teamAddEmoji, teamAddEmojiAlias, teamAddToChannels,
-//   teamAddToTeam*, teamCreateChannels, teamDeleteChannel, teamDeleteTeam, teamEditChannel,
-//   teamEditTeamDescription, teamInviteBy*, teamInviteLinkJoin, teamJoinTeamDialog,
+//   teamAddToTeam*, teamCreateChannels, teamDeleteChannel, teamDeleteTeam, teamInviteBy*,
+//   teamInviteLinkJoin, teamJoinTeamDialog,
 //   teamNewTeamDialog, teamReallyLeaveTeam, teamReallyRemove*, teamRename, teamWizard*,
 //   reallyRemoveAccount, removeAccount
 //
@@ -289,6 +293,15 @@ export const tour: ReadonlyArray<TourEntry> = [
 // chatChooseEmoji, fsFilePreview (the team folder is empty), decryptOutput, encryptOutput,
 // signOutput, verifyOutput, keybaseLinkError, webLinks (an external page), teamExternalTeam (a
 // team the account is not in), team subteams tab (the team has none)
+//
+// Edit forms change nothing until saved, so the tour opens them (modal/team-edit-info,
+// modal/team-edit-description) except teamEditChannel: it takes the channel's current name and
+// description as params, which no ParamRef supplies.
+//
+// Covered inside other entries: desktop's chat root is the inbox beside a conversation, so the
+// chat/e2e-short and chat/e2e-media entries capture the desktop inbox (a separate tab/chat entry
+// would show whichever conversation an earlier entry selected); tab/settings is settings/account on
+// desktop, tab/crypto is crypto/encrypt.
 //
 // Server-picked content that would fill most of the screen: chatNewChat, chatSearchBots,
 // peopleTeamBuilder, cryptoTeamBuilder, teamsTeamBuilder (recommendation lists)

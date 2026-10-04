@@ -74,6 +74,7 @@ export const TEAMS_CHANNEL_LIST = 'teams-channel-list'
 export const TEAMS_CHANNEL_PAGE = 'teams-channel-page'
 export const TEAMS_SETTINGS_TAB = 'teams-settings-tab'
 export const TEAMS_BOTS_TAB     = 'teams-bots-tab'
+export const TEAMS_EMOJI_TAB = 'teams-emoji-tab'
 // The settings team-tab is an icon-only gear on phone (no tappable text), so it
 // needs its own testID on the tab button (distinct from TEAMS_SETTINGS_TAB,
 // which marks the settings tab's content).
@@ -123,9 +124,11 @@ export const SETTINGS_ROW_MARKDOWN = 'settings-row-markdown'
 export const SETTINGS_ROW_ABOUT = 'settings-row-about'
 export const SETTINGS_NOTIFICATIONS     = 'settings-notifications'
 export const SETTINGS_SCREENPROTECTOR   = 'settings-screenprotector'
+export const SETTINGS_WALLET = 'settings-wallet'
 // Dev-only debug pages (gated by __DEV__ in nav + routes)
 export const SETTINGS_TYPOGRAPHY        = 'settings-typography'
 export const SETTINGS_MARKDOWN          = 'settings-markdown'
+export const SETTINGS_ICONS = 'settings-icons'
 
 // People
 export const PEOPLE_FEED = 'people-feed'

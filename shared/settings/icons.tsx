@@ -1,5 +1,6 @@
 // Dev-only icon browser. Gated by __DEV__ in nav and routes — never visible in production.
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {iconMeta} from '@/common-adapters/icon.constants-gen.shared'
 import type {IconType} from '@/common-adapters/icon.constants-gen.d'
 import * as React from 'react'
@@ -108,7 +109,7 @@ const Icons = () => {
     : iconfontTypes
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} testID={TestIDs.SETTINGS_ICONS}>
       <Kb.Box2 direction="horizontal" fullWidth={true} padding="small" style={styles.searchRow} alignItems="center">
         <Kb.SearchFilter
           onChange={setQuery}
