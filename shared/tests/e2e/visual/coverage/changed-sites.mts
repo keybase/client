@@ -1,5 +1,6 @@
 // Which Box2/ClickableBox call sites a diff touches, and which of those a base run mounted. Call
 // site ids are `<file under shared/>:<line of the opening element>`, as babel-plugin.cjs marks them.
+import {createRequire} from 'module'
 import {parse} from '@babel/parser'
 
 export type Hunk = {oldStart: number; oldCount: number; newStart: number; newCount: number}
@@ -7,8 +8,8 @@ export type Range = {start: number; end: number}
 
 const TARGETS: ReadonlySet<string> = new Set(['Box2', 'Kb.Box2', 'ClickableBox', 'Kb.ClickableBox'])
 
-// The same files the babel plugin leaves unmarked.
-export const unmarkedFile = (rel: string) => rel.startsWith('..') || /(^|\/)(node_modules|common-adapters)\//.test(rel)
+// The files the babel plugin leaves unmarked.
+export const unmarkedFile = (createRequire(import.meta.url)('./babel-plugin.cjs') as {skipped: (rel: string) => boolean}).skipped
 
 // `git diff -U0` output → hunks per post-change path (repo-relative). Deleted files are dropped.
 export const parseDiffHunks = (diff: string): Map<string, Array<Hunk>> => {

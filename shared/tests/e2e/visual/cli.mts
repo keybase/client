@@ -20,7 +20,7 @@ import {udidForName} from '../ios-appium/helpers/app.ts'
 import {evalInPage, inspectorPageFor} from '../shared/metro-eval.ts'
 import {comparePng, type Rect} from './compare.mts'
 import {changedRanges, callSiteRanges, parseDiffHunks, unmarkedFile, unmountedChanged, type Hunk, type Range} from './coverage/changed-sites.mts'
-import {openDesktop, sleep, waitFor, type Capture, type DesktopSession} from './driver-desktop.mts'
+import {openDesktop, sleep, waitFor, withDeadline, type Capture, type DesktopSession} from './driver-desktop.mts'
 import {openIos, type IosSession} from './driver-ios.mts'
 import {acquireLock} from './lock.mts'
 import {writeReport, verdict, type ReportRow, type RowStatus} from './report.mts'
@@ -41,6 +41,7 @@ const FROZEN_AFTER_NEWEST_MS = 60_000
 const GIT_MS = 60_000
 const INSTALL_MS = 20 * 60_000
 const LAUNCH_MS = 5 * 60_000
+const RESTORE_MS = 10 * 60_000
 const METRO_STOP_MS = 15_000
 const METRO_START_MS = 3 * 60_000
 const IOS_BOOT_MS = 5 * 60_000
@@ -348,21 +349,33 @@ export const resolveBaseSha = async (ref?: string): Promise<string> => {
 const usedBaseSha = async (platform: RunPlatform, ref?: string) =>
   ref ? resolveBaseSha(ref) : (Store.readLastBase(platform) ?? resolveBaseSha())
 
-const LAUNCH_APP ='shared/tests/e2e/electron/launch-app.mts'
+const LAUNCH_APP = 'shared/tests/e2e/electron/launch-app.mts'
 const DESKTOP_DRIVER = 'shared/tests/e2e/visual/driver-desktop.mts'
+const IOS_DRIVER = 'shared/tests/e2e/visual/driver-ios.mts'
+const BABEL_CONFIG = 'shared/babel.config.js'
+const PASS_BASE = 'pass --base <ref> naming a commit that has it, e.g. the commit before your layout change'
 
-// The base is captured by launching the app from the base tree with the visual switches, so the
-// base commit must already carry them. Never patched in: a refusal names --base instead.
-export const checkBaseInfra = (sha: string, readFile: (repoPath: string) => string | undefined, opts: {coverage: boolean}) => {
+// The base is captured from the app served by the base tree (desktop: launched with the visual
+// switches; iOS: its Metro), so the base commit must already carry the visual gate. Never patched
+// in: a refusal names --base instead.
+export const checkBaseInfra = (
+  sha: string,
+  readFile: (repoPath: string) => string | undefined,
+  opts: {coverage: boolean; ios: boolean}
+) => {
+  if (opts.ios) {
+    if (!readFile(IOS_DRIVER)) throw new Error(`base ${sha} has no visual gate infra (${IOS_DRIVER}); ${PASS_BASE}`)
+    if (opts.coverage && !readFile(BABEL_CONFIG)?.includes('KB_VISUAL_COVERAGE')) {
+      throw new Error(`base ${sha} has no visual coverage hook in ${BABEL_CONFIG}; ${PASS_BASE}, or drop --coverage`)
+    }
+    return
+  }
   const launch = readFile(LAUNCH_APP)
   if (!readFile(DESKTOP_DRIVER) || !launch?.includes("'--visual'")) {
-    throw new Error(
-      `base ${sha} has no visual gate infra (${DESKTOP_DRIVER} and ${LAUNCH_APP} --visual); ` +
-        'pass --base <ref> naming a commit that has it, e.g. the commit before your layout change'
-    )
+    throw new Error(`base ${sha} has no visual gate infra (${DESKTOP_DRIVER} and ${LAUNCH_APP} --visual); ${PASS_BASE}`)
   }
   if (opts.coverage && !launch.includes("'--coverage'")) {
-    throw new Error(`base ${sha} has no ${LAUNCH_APP} --coverage; pass --base <ref> naming a commit that has it, or drop --coverage`)
+    throw new Error(`base ${sha} has no ${LAUNCH_APP} --coverage; ${PASS_BASE}, or drop --coverage`)
   }
 }
 
@@ -407,7 +420,7 @@ const ensureInstalled = (shared: string, log: (l: string) => void) => {
 
 const launchDesktop = (shared: string, coverage: boolean, log: (l: string) => void) => {
   log(`desktop: launching the app from ${shared} (--visual${coverage ? ' --coverage' : ''})`)
-  const r = spawnSync('node', [path.join(shared, 'tests/e2e/electron/launch-app.mts'), '--visual', ...(coverage ? ['--coverage'] : [])], {
+  const r = spawnSync('node', [path.join(path.dirname(shared), LAUNCH_APP), '--visual', ...(coverage ? ['--coverage'] : [])], {
     cwd: shared,
     env: process.env,
     stdio: 'inherit',
@@ -512,12 +525,40 @@ const relaunchIosApp = async (log: (l: string) => void) => {
 
 // ---------------------------------------------------------------- base
 
+// Puts the user back on their own tree after `base` served the app from the base tree: the
+// desktop app with the plain visual switches, or this tree's Metro without coverage.
+type Restore = {commands: Array<string>; run: () => Promise<void> | void}
+
+const restoreFor = (ios: boolean, current: string, log: (l: string) => void): Restore =>
+  ios
+    ? {
+        commands: [
+          `kill $(lsof -t -iTCP:${METRO_PORT} -sTCP:LISTEN)`,
+          `cd ${current} && yarn rn:start`,
+          `xcrun simctl terminate ${iosDevice()} ${IOS_BUNDLE_ID}; xcrun simctl launch ${iosDevice()} ${IOS_BUNDLE_ID}`,
+        ],
+        run: async () => {
+          await serveMetro(current, false, log)
+          await relaunchIosApp(log)
+        },
+      }
+    : {
+        commands: [`cd ${current} && node ${path.join(path.dirname(current), LAUNCH_APP)} --visual`],
+        run: () => launchDesktop(current, false, log),
+      }
+
+// Set while the app is served from the base tree, so the deadline and signal paths can restore.
+let pendingRestore: Restore | undefined
+
+const printRestoreCommands = (r: Restore) =>
+  console.error(`the app may still be served from the base tree; to restore it by hand:\n  ${r.commands.join('\n  ')}`)
+
 export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => void): Promise<number> {
   const cmd = parseCommand(argv)
   const platform: RunPlatform = cmd.ios ? 'ios' : 'desktop'
   const entries = selectEntries(tour, cmd.patterns, platform)
   const sha = await resolveBaseSha(cmd.base)
-  checkBaseInfra(sha, p => gitShow(sha, p), {coverage: cmd.coverage})
+  checkBaseInfra(sha, p => gitShow(sha, p), {coverage: cmd.coverage, ios: cmd.ios})
   const baseShared = ensureBaseTree(sha, log)
   ensureInstalled(baseShared, log)
   const current = fs.realpathSync(SHARED_DIR)
@@ -534,7 +575,10 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
     fs.writeFileSync(staged(p), data)
   }
   fs.rmSync(stage, {force: true, recursive: true})
+  const restore = restoreFor(cmd.ios, current, log)
   try {
+    let failure: Error | undefined
+    pendingRestore = restore
     try {
       if (cmd.ios) {
         await serveMetro(baseShared, cmd.coverage, log)
@@ -570,15 +614,22 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
         await session.close()
       }
       if (problems.length) throw new Error(`base not written; captures that were not ok:\n  ${problems.join('\n  ')}`)
-    } finally {
-      log(`restoring ${platform === 'ios' ? 'Metro and the app' : 'the app'} from ${current}`)
-      if (cmd.ios) {
-        await serveMetro(current, false, log)
-        await relaunchIosApp(log)
-      } else {
-        launchDesktop(current, false, log)
-      }
+    } catch (e) {
+      // logged before the restore, so a restore that hangs or throws can't hide it
+      failure = e as Error
+      log(`✗ ${failure.message}`)
     }
+    log(`restoring ${platform === 'ios' ? 'Metro and the app' : 'the app'} from ${current}`)
+    try {
+      await restore.run()
+      pendingRestore = undefined
+    } catch (e) {
+      printRestoreCommands(restore)
+      pendingRestore = undefined
+      const msg = `restoring the app from ${current} failed: ${(e as Error).message}`
+      throw new Error(failure ? `${failure.message}\nand then ${msg}` : msg, {cause: e})
+    }
+    if (failure) throw failure
     const after = await readSeal()
     const diffs = diffSeals(before, after)
     if (diffs.length) throw new Error(`base not written; the account changed during the run: ${diffs.join('; ')}`)
@@ -661,11 +712,10 @@ const sessionCapturer = () => {
   return {capture, close}
 }
 
-const realDeps = (argv: ReadonlyArray<string>): CheckDeps => {
+export const realDeps = (cmd: Command): CheckDeps => {
   const capturer = sessionCapturer()
-  const platform: RunPlatform = argv.includes('--ios') ? 'ios' : 'desktop'
   return {
-    baseSha: async () => usedBaseSha(platform, baseFlag(argv)),
+    baseSha: async () => usedBaseSha(cmd.ios ? 'ios' : 'desktop', cmd.base),
     capture: capturer.capture,
     closeCapture: capturer.close,
     currentShared: fs.realpathSync(SHARED_DIR),
@@ -684,11 +734,6 @@ const realDeps = (argv: ReadonlyArray<string>): CheckDeps => {
   }
 }
 
-const baseFlag = (argv: ReadonlyArray<string>) => {
-  const i = argv.indexOf('--base')
-  return i === -1 ? undefined : argv[i + 1]
-}
-
 const main = async () => {
   process.env['KB_VISUAL_RUN'] = '1'
   const [name = '', ...argv] = process.argv.slice(2)
@@ -698,9 +743,28 @@ const main = async () => {
     process.exit(2)
   }
   setTimeout(() => {
-    console.error(`visual:${name} did not finish in ${deadline / MIN} minutes; exiting`)
-    process.exit(1)
+    void (async () => {
+      console.error(`visual:${name} did not finish in ${deadline / MIN} minutes; exiting`)
+      const restore = pendingRestore
+      if (restore) {
+        printRestoreCommands(restore)
+        console.error('trying the restore now')
+        try {
+          await withDeadline(Promise.resolve().then(restore.run), RESTORE_MS, 'restoring the app')
+          console.error('restored')
+        } catch (e) {
+          console.error(`restore failed: ${(e as Error).message}`)
+        }
+      }
+      process.exit(1)
+    })()
   }, deadline)
+  // Registered before the lock's own handler, which exits at once, so there is no time to restore.
+  const onSignal = () => {
+    if (pendingRestore) printRestoreCommands(pendingRestore)
+  }
+  process.on('SIGINT', onSignal)
+  process.on('SIGTERM', onSignal)
   const log = (l: string) => console.log(l)
   let code = 1
   try {
@@ -710,13 +774,13 @@ const main = async () => {
         code = await runBase(argv, log)
         break
       case 'check':
-        code = await runCheck(realDeps(argv), argv)
+        code = await runCheck(realDeps(parseCommand(argv)), argv)
         break
       case 'gate':
-        code = await runGate(realDeps(argv), argv)
+        code = await runGate(realDeps(parseCommand(argv)), argv)
         break
       case 'aa':
-        code = await runAa(realDeps(argv), argv)
+        code = await runAa(realDeps(parseCommand(argv)), argv)
         break
       case 'coverage':
         code = await runCoverage(argv, log)
