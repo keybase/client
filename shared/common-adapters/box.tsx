@@ -218,6 +218,8 @@ const box2ClassNames = (p: Box2Props, extra?: string): string => {
   )
 }
 
+export const box2ClassNamesForTest = box2ClassNames
+
 export const Box2 = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
   if (!isMobile) {
     const {ref} = p
