@@ -9,7 +9,7 @@ import type {TourEntry} from './tour-types.ts'
 import type {Capture} from './driver-desktop.mts'
 import {makePng} from './compare.mts'
 process.env['KB_VISUAL_RESULTS'] = fs.mkdtempSync(path.join(os.tmpdir(), 'vcli-'))
-const {parseCommand, runAa, runCheck, runGate, checkBaseInfra, realDeps} = await import('./cli.mts')
+const {parseCommand, runAa, runCheck, runGate, checkBaseInfra, realDeps, parseCoverageRange, coverageRangeRefusal} = await import('./cli.mts')
 const Store = await import('./store.mts')
 const {PNG} = createRequire(import.meta.url)('pngjs') as {PNG: {sync: {write: (p: unknown) => Buffer}}}
 
@@ -253,4 +253,24 @@ test('gate is void when the full seal changes during the run', async () => {
   const code = await runGate(deps({capture: async () => failed, log: (l: string) => lines.push(l), readSeal}), [])
   assert.equal(code, 1)
   assert.match(lines.join('\n'), /gate void: the account changed during the run: teams\[0\]: 0 → 1/)
+})
+
+test('coverage: a bare ref is the working tree; ranges name both sides', () => {
+  assert.deepEqual(parseCoverageRange('HEAD'), {left: 'HEAD', right: undefined, symmetric: false})
+  assert.deepEqual(parseCoverageRange('HEAD..'), {left: 'HEAD', right: 'HEAD', symmetric: false})
+  assert.deepEqual(parseCoverageRange('origin/master...topic'), {left: 'origin/master', right: 'topic', symmetric: true})
+  assert.deepEqual(parseCoverageRange('..HEAD~1'), {left: 'HEAD', right: 'HEAD~1', symmetric: false})
+})
+
+test('coverage refuses a range whose sides are one commit, and a diff with no .tsx file', () => {
+  assert.match(
+    coverageRangeRefusal({changedFiles: 3, leftSha: 'abc', range: 'HEAD..', rightSha: 'abc'}) ?? '',
+    /HEAD\.\. is empty: both sides are abc.*yarn visual:coverage HEAD/
+  )
+  assert.match(
+    coverageRangeRefusal({changedFiles: 0, leftSha: 'abc', range: 'HEAD', rightSha: undefined}) ?? '',
+    /no \.tsx file changed in HEAD.*git add -N/
+  )
+  assert.equal(coverageRangeRefusal({changedFiles: 1, leftSha: 'abc', range: 'HEAD', rightSha: undefined}), undefined)
+  assert.equal(coverageRangeRefusal({changedFiles: 1, leftSha: 'abc', range: 'abc..def', rightSha: 'def'}), undefined)
 })

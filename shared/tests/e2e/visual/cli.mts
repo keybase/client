@@ -4,7 +4,7 @@
 //   check <id|glob>… [--ios] [--theme t]   captures the current tree and compares with the base
 //   gate [--ios]                           check over every entry, bracketed by a full seal
 //   aa [--ios]                             captures every entry twice from the current tree, twice
-//   coverage <git-range> [--base <ref>]    changed Box2/ClickableBox call sites no base run mounted
+//   coverage <ref|range> [--base <ref>]    changed Box2/ClickableBox call sites no base run mounted
 // `base` captures `git merge-base HEAD origin/master` unless --base names a commit; check, gate and
 // coverage use the commit the last `base` for the platform captured, or --base. Every command
 // that drives the app takes the gate lock, sets KB_VISUAL_RUN=1 for what it spawns, and exits its
@@ -652,10 +652,35 @@ export async function runBase(argv: ReadonlyArray<string>, log: (l: string) => v
 
 // ---------------------------------------------------------------- coverage
 
-const rightSideOf = (range: string): string | undefined => {
-  const m = /\.\.\.?(.*)$/.exec(range)
-  if (!m) return undefined
-  return m[1] || 'HEAD'
+// `A..B` and `A...B` diff two commits (`A...B` from their merge base); a bare ref diffs the
+// working tree against it, and the changed sources are read from disk.
+export const parseCoverageRange = (range: string): {left: string; right: string | undefined; symmetric: boolean} => {
+  const m = /^(.*?)(\.\.\.?)(.*)$/.exec(range)
+  if (!m) return {left: range, right: undefined, symmetric: false}
+  return {left: m[1] || 'HEAD', right: m[3] || 'HEAD', symmetric: m[2] === '...'}
+}
+
+// A range that compares a commit with itself, or touches no .tsx file, checks nothing; exiting 0
+// on it would read as a pass.
+export const coverageRangeRefusal = (opts: {
+  range: string
+  leftSha: string
+  rightSha: string | undefined
+  changedFiles: number
+}): string | undefined => {
+  if (opts.rightSha !== undefined && opts.leftSha === opts.rightSha) {
+    return (
+      `coverage range ${opts.range} is empty: both sides are ${opts.leftSha.slice(0, 10)}. ` +
+      'To check the working tree against a commit, pass the commit alone, e.g. yarn visual:coverage HEAD'
+    )
+  }
+  if (!opts.changedFiles) {
+    return (
+      `no .tsx file changed in ${opts.range}, so there is nothing to check. ` +
+      'Untracked new files are not in git diff: git add -N them (or commit) first'
+    )
+  }
+  return undefined
 }
 
 const sharedRel = (repoPath: string) => path.posix.relative('shared', repoPath)
@@ -663,15 +688,23 @@ const sharedRel = (repoPath: string) => path.posix.relative('shared', repoPath)
 export async function runCoverage(argv: ReadonlyArray<string>, log: (l: string) => void): Promise<number> {
   const cmd = parseCommand(argv)
   const range = cmd.patterns[0]
-  if (!range || cmd.patterns.length > 1) throw new Error('coverage needs one git range, e.g. yarn visual:coverage origin/master..HEAD')
+  if (!range || cmd.patterns.length > 1) {
+    throw new Error('coverage needs one git range or ref, e.g. yarn visual:coverage HEAD (working tree) or origin/master..HEAD')
+  }
   const sha = await usedBaseSha(cmd.ios ? 'ios' : 'desktop', cmd.base)
   const mounted = Store.readBaseCoverage(sha)
   if (!mounted.length) throw new Error(`no coverage stored for base ${sha}; run yarn visual:base --coverage (and --ios) first`)
-  const right = rightSideOf(range)
+  const {left, right, symmetric} = parseCoverageRange(range)
+  const revParse = (ref: string) => git(['rev-parse', '--verify', `${ref}^{commit}`]).trim()
+  const rightSha = right === undefined ? undefined : revParse(right)
+  const leftSha = symmetric && rightSha ? git(['merge-base', revParse(left), rightSha]).trim() : revParse(left)
   const diff = git(['diff', '--no-ext-diff', '-U0', range, '--', '*.tsx'])
+  const files = parseDiffHunks(diff)
+  const refusal = coverageRangeRefusal({changedFiles: files.size, leftSha, range, rightSha})
+  if (refusal) throw new Error(refusal)
   const changed = new Map<string, ReadonlyArray<Range>>()
   const baseHunks = new Map<string, ReadonlyArray<Hunk>>()
-  for (const [file, hunks] of parseDiffHunks(diff)) {
+  for (const [file, hunks] of files) {
     const rel = sharedRel(file)
     if (unmarkedFile(rel)) continue
     const src = right ? gitShow(right, file) : fs.readFileSync(path.join(REPO_DIR, file), 'utf8')
