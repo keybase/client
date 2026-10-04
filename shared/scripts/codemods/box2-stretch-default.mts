@@ -110,9 +110,28 @@ const readAxis = (attr: babel.types.JSXAttribute | undefined, code: string): Axi
     const e = v.expression
     if (t.isJSXEmptyExpression(e)) return {kind: 'unresolved', reason: 'empty expression'}
     if (t.isBooleanLiteral(e)) return e.value ? {kind: 'true'} : {kind: 'absent'}
+    if (t.isNullLiteral(e) || (t.isIdentifier(e) && e.name === 'undefined')) return {kind: 'absent'}
     return {kind: 'expr', text: code.slice(e.start ?? 0, e.end ?? 0)}
   }
   return {kind: 'unresolved', reason: `unsupported ${attr.name.type === 'JSXIdentifier' ? attr.name.name : ''} value`}
+}
+
+// The old default applied whenever alignSelf was unset at runtime, so alignSelf only replaces the
+// default when every value it can take is a non-empty string.
+const alwaysNonEmptyString = (e: babel.types.Node): boolean => {
+  if (t.isStringLiteral(e)) return e.value !== ''
+  if (t.isConditionalExpression(e)) return alwaysNonEmptyString(e.consequent) && alwaysNonEmptyString(e.alternate)
+  if (t.isLogicalExpression(e)) return alwaysNonEmptyString(e.left) && alwaysNonEmptyString(e.right)
+  if (t.isTSAsExpression(e) || t.isTSSatisfiesExpression(e) || t.isParenthesizedExpression(e)) {
+    return alwaysNonEmptyString(e.expression)
+  }
+  return false
+}
+
+const alignSelfCovers = (attr: babel.types.JSXAttribute) => {
+  const v = attr.value
+  if (t.isStringLiteral(v)) return v.value !== ''
+  return t.isJSXExpressionContainer(v) && alwaysNonEmptyString(v.expression)
 }
 
 const findAttr = (node: babel.types.JSXOpeningElement, name: string) => {
@@ -148,9 +167,14 @@ export const pinSource = (code: string, filename: string): PinResult => {
         spreads.push({line})
         return
       }
-      if (findAttr(node, 'alignSelf')) return
+      const alignSelf = findAttr(node, 'alignSelf')
+      if (alignSelf && alignSelfCovers(alignSelf)) return
       const axes = [readAxis(findAttr(node, 'fullWidth'), code), readAxis(findAttr(node, 'fullHeight'), code)]
       if (axes.some(a => a.kind === 'true')) return
+      if (alignSelf) {
+        unresolved.push({line, reason: 'alignSelf expression may be undefined'})
+        return
+      }
       const bad = axes.find(a => a.kind === 'unresolved')
       if (bad?.kind === 'unresolved') {
         unresolved.push({line, reason: bad.reason})

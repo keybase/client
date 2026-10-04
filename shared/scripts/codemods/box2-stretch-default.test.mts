@@ -40,6 +40,53 @@ test('alignSelf as expression: untouched', () => {
   assert.equal(run(src).code, src)
 })
 
+test('alignSelf that always yields a non-empty string covers the element', () => {
+  for (const attr of [
+    `alignSelf="flex-end"`,
+    `alignSelf={'center'}`,
+    `alignSelf={a ? 'stretch' : 'flex-start'}`,
+    `alignSelf={a ? 'stretch' : b ? 'center' : 'flex-end'}`,
+    `alignSelf={('center' as const)}`,
+  ]) {
+    const src = `const A = () => <Kb.Box2 direction="vertical" ${attr} />`
+    const r = run(src)
+    assert.equal(r.code, src, attr)
+    assert.equal(r.pinned.length + r.unresolved.length, 0, attr)
+  }
+})
+
+test('alignSelf that may be undefined: unresolved, never edited', () => {
+  for (const attr of [
+    `alignSelf={a ? 'stretch' : undefined}`,
+    `alignSelf={p.alignSelf}`,
+    `alignSelf={alignSelf}`,
+    `alignSelf={a && 'center'}`,
+    `alignSelf={a ?? 'center'}`,
+    `alignSelf={a || 'center'}`,
+    `alignSelf=""`,
+  ]) {
+    const src = `const A = () => <Kb.Box2 direction="vertical" ${attr} fullWidth={x} />`
+    const r = run(src)
+    assert.equal(r.code, src, attr)
+    assert.equal(r.pinned.length, 0, attr)
+    assert.deepEqual(r.unresolved, [{line: 1, reason: 'alignSelf expression may be undefined'}], attr)
+  }
+})
+
+test('alignSelf that may be undefined is fine when an axis is true', () => {
+  const src = `const A = () => <Kb.Box2 direction="vertical" alignSelf={p.alignSelf} fullWidth={true} />`
+  const r = run(src)
+  assert.equal(r.code, src)
+  assert.equal(r.unresolved.length + r.pinned.length, 0)
+})
+
+test('undefined and null axis values count as absent', () => {
+  assert.equal(
+    run(`const A = () => <Kb.Box2 fullWidth={undefined} fullHeight={null} />`).code,
+    `const A = () => <Kb.Box2 alignSelf="center" fullWidth={undefined} fullHeight={null} />`
+  )
+})
+
 test('literal false counts as absent', () => {
   assert.equal(
     run(`const A = () => <Kb.Box2 direction="vertical" fullWidth={false} />`).code,
