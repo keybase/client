@@ -40,7 +40,7 @@ const TeamMember = (props: Props) => {
 
   const makeTitle = (label: string) => {
     return (
-      <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" gap="small">
+      <Kb.Box2 direction="horizontal" alignItems="center" gap="small">
         <Kb.Text type="BodySmallSemibold">{label}</Kb.Text>
         {loading && <Kb.ProgressIndicator type="Small" />}
       </Kb.Box2>
@@ -194,7 +194,7 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
           ] as const)}
         >
           <Kb.Avatar teamname={props.node.teamname} size={32} />
-          <Kb.Box2 alignSelf="center"
+          <Kb.Box2
             direction="vertical"
             alignItems="flex-start"
             style={Kb.Styles.collapseStyles([
@@ -375,7 +375,7 @@ const NodeInRow = (props: NodeInRowProps) => {
             <Kb.Box2 direction="horizontal" style={styles.expandIcon}>
               <Kb.Icon type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'} sizeType="Tiny" />
             </Kb.Box2>
-            <Kb.Box2 alignSelf="center"
+            <Kb.Box2
               direction="horizontal"
               style={Kb.Styles.collapseStyles([
                 {flexGrow: 1, flexShrink: 1},

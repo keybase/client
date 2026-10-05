@@ -23,7 +23,7 @@ const TeamBigButtons = (props: {onCreateTeam: () => void; onJoinTeam: () => void
   const styles = useStyles()
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamButtons} gap="tiny">
-      <Kb.ClickableBox alignSelf="center"
+      <Kb.ClickableBox
         style={styles.bigButton}
         onClick={props.onCreateTeam}
         className="background_color_white hover_background_color_blueLighter2"
@@ -32,12 +32,12 @@ const TeamBigButtons = (props: {onCreateTeam: () => void; onJoinTeam: () => void
         alignItems="center"
       >
         <Kb.Text type="BodyBig">Create a team</Kb.Text>
-        <Kb.Box2 alignSelf="center" direction="vertical" relative={true}>
+        <Kb.Box2 direction="vertical" relative={true}>
           <Kb.Avatar isTeam={true} size={96} showPlaceholder={true} />
           <Kb.Icon type="iconfont-add-solid" sizeType="Default" style={styles.teamPlus} />
         </Kb.Box2>
       </Kb.ClickableBox>
-      <Kb.ClickableBox alignSelf="center"
+      <Kb.ClickableBox
         style={styles.bigButton}
         onClick={props.onJoinTeam}
         className="background_color_white hover_background_color_blueLighter2"

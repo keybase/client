@@ -17,7 +17,7 @@ const ModalHeader = (props: ModalHeaderProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header}>
       <Kb.Box2 direction="horizontal" alignItems="center" fullHeight={true} flex={1}>
-        <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} style={styles.headerLeft}>
+        <Kb.Box2 direction="horizontal" flex={1} style={styles.headerLeft}>
           {!!props.leftButton && props.leftButton}
         </Kb.Box2>
         <Kb.Box2 direction="vertical">
@@ -29,7 +29,7 @@ const ModalHeader = (props: ModalHeaderProps) => {
             props.title
           )}
         </Kb.Box2>
-        <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} style={styles.headerRight}>
+        <Kb.Box2 direction="horizontal" flex={1} style={styles.headerRight}>
           {!!props.rightButton && props.rightButton}
         </Kb.Box2>
       </Kb.Box2>
@@ -148,7 +148,7 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
           modalSize === 'fullscreen' && styles.overlayStretch,
         ])}
       >
-        <Kb.Box2 alignSelf="center"
+        <Kb.Box2
           direction="vertical"
           style={Kb.Styles.collapseStyles([
             styles.modalBox,

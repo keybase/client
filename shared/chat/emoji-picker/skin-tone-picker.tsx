@@ -5,9 +5,9 @@ import {emojiData} from '@/common-adapters/emoji'
 
 const circle = (skinTone: undefined | T.Chat.EmojiSkinTone, isExpanded: boolean, outerCircle: boolean, styles: ReturnType<typeof useStyles>) => {
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" relative={true}>
+    <Kb.Box2 direction="vertical" relative={true}>
       {outerCircle && <Kb.Box2 alignSelf="center" direction="vertical" style={styles.circleOuter} />}
-      <Kb.Box2 alignSelf="center"
+      <Kb.Box2
         direction="vertical"
         style={Kb.Styles.collapseStyles([
           !isExpanded && styles.circleCollapsed,

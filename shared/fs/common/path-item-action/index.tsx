@@ -46,7 +46,7 @@ function IconClickable(props: ICProps) {
   const {measureRef, actionIconWhite, sizeType, onClick} = props
   return (
     <Kb.WithTooltip tooltip="More actions">
-      <Kb.Box2 alignSelf="center" direction="vertical" ref={measureRef}>
+      <Kb.Box2 direction="vertical" ref={measureRef}>
         <Kb.Icon
           type="iconfont-ellipsis"
           color={actionIconWhite ? theme.whiteOrBlueDark : theme.black_50}

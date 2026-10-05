@@ -72,7 +72,7 @@ const Feedback = (props: Props) => {
             <Kb.BannerParagraph bannerColor="green" content="Thanks! Your feedback was sent." />
           </Kb.Banner>
         )}
-        <Kb.Box2 alignSelf="center" direction="vertical" padding="small" style={styles.mainBox} gap="xsmall">
+        <Kb.Box2 direction="vertical" padding="small" style={styles.mainBox} gap="xsmall">
           <Kb.Input3
             textType="BodySemibold"
             autoCapitalize="sentences"

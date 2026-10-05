@@ -255,7 +255,7 @@ const AddToTeam = (ownProps: OwnProps) => {
                     />
                   ))
                 ) : (
-                  <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true}>
+                  <Kb.Box2 direction="vertical" centerChildren={true}>
                     <Kb.Text center={true} type="Body">
                       {"Looks like you haven't joined any teams yet yourself!"}
                     </Kb.Text>
@@ -272,7 +272,7 @@ const AddToTeam = (ownProps: OwnProps) => {
             </Kb.Box2>
           </Kb.ScrollView>
         </Kb.BoxGrow>
-        <Kb.Box2 alignSelf="center" direction="horizontal" noShrink={true} alignItems="center" style={styles.addToTeam}>
+        <Kb.Box2 direction="horizontal" noShrink={true} alignItems="center" style={styles.addToTeam}>
           <Kb.Text style={styles.addToTeamTitle} type="BodySmall">
             {them} will be added as a
           </Kb.Text>
@@ -333,7 +333,7 @@ const TeamRow = (props: RowProps) => {
           style={styles.teamRowAvatar}
           teamname={props.name}
         />
-        <Kb.Box2 alignSelf="center" direction="vertical">
+        <Kb.Box2 direction="vertical">
           <Kb.Box2 direction="horizontal" alignSelf="flex-start">
             <Kb.Text
               style={props.canAddThem ? styles.teamNameEnabled : styles.teamNameDisabled}

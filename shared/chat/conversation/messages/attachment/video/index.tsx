@@ -89,7 +89,6 @@ function Video(p: Props) {
       direction="vertical"
       fullWidth={true}
       relative={true}
-      alignSelf="center"
       alignItems="flex-start"
       style={styles.container}
     >

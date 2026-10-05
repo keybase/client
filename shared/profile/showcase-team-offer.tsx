@@ -21,7 +21,7 @@ const ShowcaseTeamOffer = () => {
   }
 
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" flex={1} overflow="hidden">
+    <Kb.Box2 direction="vertical" flex={1} overflow="hidden">
       {!isMobile && <ShowcaseTeamOfferHeader />}
       <Kb.ScrollView>
         {isMobile && <ShowcaseTeamOfferHeader />}

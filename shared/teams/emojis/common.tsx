@@ -24,7 +24,7 @@ export function AliasInput(props: AliasInputProps & {ref?: React.Ref<AliasRef>})
   }))
 
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" overflow="hidden" style={styles.aliasInputContainer} gap="xxtiny">
+    <Kb.Box2 direction="vertical" overflow="hidden" style={styles.aliasInputContainer} gap="xxtiny">
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center">
         <Kb.Input3
           ref={inputRef}
@@ -63,7 +63,7 @@ type ModalProps = {
 export const Modal = (props: ModalProps) => {
   const styles = useStyles()
   return (
-    <Kb.Box2 alignSelf={isMobile ? undefined : 'center'}
+    <Kb.Box2
       direction="vertical"
       fullHeight={isMobile}
       fullWidth={isMobile}
