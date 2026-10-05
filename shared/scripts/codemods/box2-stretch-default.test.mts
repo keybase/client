@@ -7,12 +7,14 @@ import * as path from 'path'
 import {
   applyCleanup,
   assertPinWritable,
+  assertUnpinWritable,
   cleanupCandidates,
   gatePlatforms,
   hasImplicitCenter,
   pinSource,
   platformCoverage,
   unmountedPlatforms,
+  unpinCandidates,
 } from './box2-stretch-default.mts'
 
 const run = (code: string) => pinSource(code, '/x/shared/settings/a.tsx')
@@ -723,4 +725,236 @@ test('pin --write needs a box.tsx that still centers by default', () => {
   const tree = fs.readFileSync(path.join(import.meta.dirname, '../../common-adapters/box.tsx'), 'utf8')
   assert.equal(hasImplicitCenter(tree), false)
   assert.throws(() => assertPinWritable(tree), /still center by default/)
+})
+
+test('unpin --write needs a box.tsx that stretches by default', () => {
+  assert.throws(() => assertUnpinWritable(preFlipBox), /still centers/)
+  const tree = fs.readFileSync(path.join(import.meta.dirname, '../../common-adapters/box.tsx'), 'utf8')
+  assert.doesNotThrow(() => assertUnpinWritable(tree))
+})
+
+// ---------------------------------------------------------------- unpin
+
+const unpin = (code: string) => unpinCandidates(code, '/x/shared/settings/a.tsx')
+const unpinned = (code: string) => applyCleanup(code, unpin(code).candidates)
+const unpinRules = (code: string) => unpin(code).candidates.map(c => `${c.rule}:${c.line}`)
+const unpinSkips = (code: string) => unpin(code).skipped.map(s => s.reason)
+const inCentering = (child: string, parent = ' alignItems="center"', tag = 'Kb.Box2') =>
+  `const A = () => (\n  <${tag} direction="vertical"${parent}>\n    ${child}\n  </${tag}>\n)`
+
+test('U1: a center pin under a parent that centers its children is removed', () => {
+  for (const parent of [
+    ' alignItems="center"',
+    ` alignItems={'center'}`,
+    ' centerChildren',
+    ' centerChildren={true}',
+    ' centerChildren alignItems="center"',
+    ' fullWidth alignItems="center" style={{padding: 4}}',
+  ]) {
+    for (const pin of [`alignSelf="center"`, `alignSelf={'center'}`]) {
+      const src = inCentering(`<Kb.Box2 ${pin} direction="horizontal" gap="tiny" />`, parent)
+      assert.deepEqual(unpinRules(src), ['U1:3'], `${parent} ${pin}`)
+      assert.equal(unpinned(src), inCentering(`<Kb.Box2 direction="horizontal" gap="tiny" />`, parent), `${parent} ${pin}`)
+    }
+  }
+  const clickable = inCentering(`<Kb.ClickableBox alignSelf="center" direction="vertical" />`, ' centerChildren', 'Kb.ClickableBox')
+  assert.deepEqual(unpinRules(clickable), ['U1:3'])
+})
+
+test('U1: a pin on its own line goes with its line', () => {
+  const src = inCentering(`<Kb.Box2\n      alignSelf="center"\n      direction="vertical"\n    />`)
+  assert.deepEqual(unpinRules(src), ['U1:3'])
+  assert.equal(unpinned(src), inCentering(`<Kb.Box2\n      direction="vertical"\n    />`))
+})
+
+test('U2: a conditional pin under a centering parent is removed', () => {
+  for (const test of [`x`, `(x)`, `p.fullWidth`, `a || b`, `!a && b.c`, `Kb.Styles.isPhone`]) {
+    const src = inCentering(`<Kb.Box2 alignSelf={${test} ? undefined : 'center'} direction="vertical" fullWidth={x} />`)
+    assert.deepEqual(unpinRules(src), ['U2:3'], test)
+    assert.equal(unpinned(src), inCentering(`<Kb.Box2 direction="vertical" fullWidth={x} />`), test)
+  }
+})
+
+test('U2: a test that may have side effects is skipped', () => {
+  for (const test of [`f()`, `a.b()`, `x++`, `a[f()]`, '`${a}`']) {
+    const src = inCentering(`<Kb.Box2 alignSelf={${test} ? undefined : 'center'} direction="vertical" />`)
+    assert.deepEqual(unpinRules(src), [], test)
+    assert.deepEqual(unpinSkips(src), ['conditional pin test may have side effects'], test)
+  }
+})
+
+test('only a center pin is a candidate', () => {
+  for (const a of [
+    `alignSelf="flex-start"`,
+    `alignSelf="stretch"`,
+    `alignSelf={x}`,
+    `alignSelf={x ? 'center' : undefined}`,
+    `alignSelf={x ? undefined : 'flex-start'}`,
+    `alignSelf={x ? 'stretch' : 'center'}`,
+  ]) {
+    const src = inCentering(`<Kb.Box2 ${a} direction="vertical" />`)
+    assert.deepEqual(unpin(src), {candidates: [], skipped: []}, a)
+  }
+})
+
+test('a parent that does not center, or may not: skipped', () => {
+  for (const [parent, reason] of [
+    ['', 'parent does not center'],
+    [' alignItems="flex-start"', 'parent does not center'],
+    [' alignItems="stretch" centerChildren', 'parent does not center'],
+    [' alignItems="flex-end" centerChildren', 'parent does not center'],
+    [' centerChildren={false}', 'parent does not center'],
+    [' centerChildren={undefined}', 'parent does not center'],
+    [' alignItems={a}', 'parent alignItems is not a literal'],
+    [` alignItems={a ? 'center' : 'center'}`, 'parent alignItems is not a literal'],
+    [' centerChildren={c}', 'parent centerChildren is not a literal'],
+    [' fullWidth', 'parent does not center'],
+  ] as const) {
+    const src = inCentering(`<Kb.Box2 alignSelf="center" direction="vertical" />`, parent)
+    assert.deepEqual(unpinRules(src), [], parent)
+    assert.deepEqual(unpinSkips(src), [reason], parent)
+  }
+})
+
+test('a parent with a spread, a className or a style that may change its cross axis: skipped', () => {
+  for (const [parent, reason] of [
+    [' alignItems="center" {...p}', 'parent has a spread'],
+    [' centerChildren className="x"', 'parent has a className'],
+    [` alignItems="center" style={{alignItems: 'flex-start'}}`, 'parent style may change its cross axis'],
+    [` centerChildren style={{flexDirection: 'row'}}`, 'parent style may change its cross axis'],
+    [` alignItems="center" style={{display: 'block'}}`, 'parent style may change its cross axis'],
+    [' alignItems="center" style={s}', 'parent style may change its cross axis'],
+  ] as const) {
+    const src = inCentering(`<Kb.Box2 alignSelf="center" direction="vertical" />`, parent)
+    assert.deepEqual(unpinRules(src), [], parent)
+    assert.deepEqual(unpinSkips(src), [reason], parent)
+  }
+})
+
+test('a child with a spread, a className or a style that may set position: skipped', () => {
+  for (const [extra, reason] of [
+    ['{...p}', 'child has a spread'],
+    ['className="x"', 'child has a className'],
+    [`style={{position: 'absolute', top: 0, bottom: 0}}`, 'child style may set position'],
+    ['style={styles.abs}', 'child style may set position'],
+    ['style={s}', 'child style may set position'],
+  ] as const) {
+    const src = `${inCentering(`<Kb.Box2 alignSelf="center" direction="vertical" ${extra} />`)}\nconst styles = Kb.Styles.styleSheetCreate(() => ({abs: Kb.Styles.platformStyles({isElectron: {position: 'absolute'}})}))`
+    assert.deepEqual(unpinRules(src), [], extra)
+    assert.deepEqual(unpinSkips(src), [reason], extra)
+  }
+})
+
+test('a child style that provably leaves position alone is fine, alignSelf in it included', () => {
+  for (const style of [`{padding: 4}`, `styles.x`, `Kb.Styles.collapseStyles([styles.x, a && {alignSelf: 'flex-start'}])`]) {
+    const src = `${inCentering(`<Kb.Box2 alignSelf="center" direction="vertical" relative={true} style={${style}} />`)}\nconst styles = Kb.Styles.styleSheetCreate(() => ({x: {height: 8, width: 2}}))`
+    assert.deepEqual(unpinRules(src), ['U1:3'], style)
+  }
+})
+
+test('no in-place Box2/ClickableBox parent: skipped', () => {
+  for (const [src, reason] of [
+    [`const A = () => <Kb.Box2 alignSelf="center" direction="vertical" />`, 'no in-place parent element'],
+    [
+      `const A = () => <Kb.Box2 direction="vertical" centerChildren tooltip={<Kb.Box2 alignSelf="center" direction="vertical" />} />`,
+      'no in-place parent element',
+    ],
+    [
+      `const A = () => <Kb.Box2 direction="vertical" centerChildren>{helper(<Kb.Box2 alignSelf="center" direction="vertical" />)}</Kb.Box2>`,
+      'no in-place parent element',
+    ],
+    [`const A = () => <View style={{alignItems: 'center'}}><Kb.Box2 alignSelf="center" direction="vertical" /></View>`, 'parent is not Box2/ClickableBox'],
+    [
+      `const A = () => <Kb.Box2 direction="vertical" centerChildren><Kb.ScrollView><Kb.Box2 alignSelf="center" direction="vertical" /></Kb.ScrollView></Kb.Box2>`,
+      'parent is not Box2/ClickableBox',
+    ],
+  ] as const) {
+    assert.deepEqual(unpinRules(src), [], src)
+    assert.deepEqual(unpinSkips(src), [reason], src)
+  }
+})
+
+test('the parent is reached through map, &&, ?: and fragments', () => {
+  const src = `const A = () => <Kb.Box2 direction="vertical" centerChildren>{xs.map(x => <Kb.Box2 key={x} alignSelf="center" direction="vertical" />)}{c ? <><Kb.Box2 alignSelf="center" direction="vertical" /></> : null}{d && <Kb.Box2 alignSelf={e ? undefined : 'center'} direction="vertical" fullWidth={e} />}</Kb.Box2>`
+  assert.deepEqual(unpinRules(src), ['U1:1', 'U1:1', 'U2:1'])
+  assert.equal(
+    unpinned(src),
+    `const A = () => <Kb.Box2 direction="vertical" centerChildren>{xs.map(x => <Kb.Box2 key={x} direction="vertical" />)}{c ? <><Kb.Box2 direction="vertical" /></> : null}{d && <Kb.Box2 direction="vertical" fullWidth={e} />}</Kb.Box2>`
+  )
+})
+
+test('nested pins are judged by their own parent, and a pinned parent can still center', () => {
+  const src = `const A = () => (
+  <Kb.Box2 direction="vertical" alignItems="center">
+    <Kb.Box2 alignSelf="center" direction="horizontal">
+      <Kb.Box2 alignSelf="center" direction="vertical" />
+    </Kb.Box2>
+    <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren>
+      <Kb.Box2 alignSelf="center" direction="vertical" />
+    </Kb.Box2>
+  </Kb.Box2>
+)`
+  assert.deepEqual(unpinRules(src), ['U1:3', 'U1:6', 'U1:7'])
+  assert.deepEqual(unpinSkips(src), ['parent does not center'])
+  assert.equal(unpin(unpinned(src)).candidates.length, 0)
+})
+
+test('a pin from pinSource under a centering parent is a candidate', () => {
+  const pinned = pinSource(inCentering(`<Kb.Box2 direction="vertical" />`), '/x/shared/settings/a.tsx').code
+  assert.deepEqual(unpinRules(pinned), ['U1:3'])
+  const conditional = pinSource(inCentering(`<Kb.Box2 direction="vertical" fullWidth={x} />`), '/x/shared/settings/a.tsx').code
+  assert.deepEqual(unpinRules(conditional), ['U2:3'])
+})
+
+const withSheet = (child: string, sheet: string, parent = '') =>
+  `${inCentering(child, parent)}\nconst styles = Kb.Styles.styleSheetCreate(() => (${sheet}))`
+
+test('U3: a pin under a child style that sets alignSelf on every platform is removed, whatever the parent', () => {
+  for (const [style, sheet] of [
+    [`{alignSelf: 'flex-start'}`, `{}`],
+    [`styles.x`, `{x: {alignSelf: 'stretch', padding: 4}}`],
+    [`styles.x`, `{x: {...Kb.Styles.padding(4), alignSelf: 'auto'}}`],
+    [`styles.x`, `{x: Kb.Styles.platformStyles({common: {alignSelf: 'flex-end'}, isElectron: {padding: 4}})}`],
+    [`styles.x`, `{x: Kb.Styles.platformStyles({isMobile: {alignSelf: 'stretch'}, isElectron: {alignSelf: 'center'}, isIOS: {padding: 2}})}`],
+    [`Kb.Styles.collapseStyles([styles.y, styles.x, a && {padding: 4}])`, `{x: {alignSelf: 'flex-start'}, y: {}}`],
+    [`[styles.x, {margin: 2}]`, `{x: {alignSelf: 'flex-start'}}`],
+    [`a ? styles.x : {alignSelf: 'stretch'}`, `{x: {alignSelf: 'flex-start'}}`],
+  ] as const) {
+    for (const parent of ['', ' alignItems="flex-start"', ' className="x"']) {
+      const src = withSheet(`<Kb.Box2 alignSelf="center" direction="vertical" style={${style}} />`, sheet, parent)
+      assert.deepEqual(unpinRules(src), ['U3:3'], `${style} ${sheet} ${parent}`)
+    }
+  }
+  const conditional = withSheet(`<Kb.Box2 alignSelf={x ? undefined : 'center'} direction="vertical" fullWidth={x} style={styles.x} />`, `{x: {alignSelf: 'flex-start'}}`)
+  assert.deepEqual(unpinRules(conditional), ['U3:3'])
+  assert.equal(
+    unpinned(conditional),
+    withSheet(`<Kb.Box2 direction="vertical" fullWidth={x} style={styles.x} />`, `{x: {alignSelf: 'flex-start'}}`)
+  )
+})
+
+test('U3: not when alignSelf may be unset on some platform or device, or a spread may replace the style', () => {
+  for (const [style, sheet] of [
+    [`styles.x`, `{x: {alignSelf: undefined}}`],
+    [`styles.x`, `{x: {alignSelf: ''}}`],
+    [`styles.x`, `{x: {alignSelf: a}}`],
+    [`styles.x`, `{x: {alignSelf: 'flex-start', ...more}}`],
+    [`styles.x`, `{x: {alignSelf: 'flex-start', ['alignSelf']: a}}`],
+    [`styles.x`, `{x: Kb.Styles.platformStyles({isElectron: {alignSelf: 'center'}})}`],
+    [`styles.x`, `{x: Kb.Styles.platformStyles({isMobile: {alignSelf: 'center'}})}`],
+    [`styles.x`, `{x: Kb.Styles.platformStyles({isElectron: {alignSelf: 'center'}, isIOS: {alignSelf: 'center'}, isAndroid: {alignSelf: 'center'}})}`],
+    [`styles.x`, `{x: Kb.Styles.platformStyles({common: {alignSelf: 'center'}, isTablet: {alignSelf: a}})}`],
+    [`styles.x`, `{x: Kb.Styles.platformStyles({common: {alignSelf: 'center'}, isElectron: s})}`],
+    [`Kb.Styles.collapseStyles([styles.x, a && b])`, `{x: {alignSelf: 'flex-start'}}`],
+    [`a && styles.x`, `{x: {alignSelf: 'flex-start'}}`],
+    [`a ? styles.x : undefined`, `{x: {alignSelf: 'flex-start'}}`],
+    [`s`, `{}`],
+  ] as const) {
+    const src = withSheet(`<Kb.Box2 alignSelf="center" direction="vertical" style={${style}} />`, sheet)
+    assert.deepEqual(unpinRules(src), [], `${style} ${sheet}`)
+  }
+  const spread = withSheet(`<Kb.Box2 alignSelf="center" direction="vertical" style={styles.x} {...p} />`, `{x: {alignSelf: 'flex-start'}}`)
+  assert.deepEqual(unpinRules(spread), [])
+  const impure = withSheet(`<Kb.Box2 alignSelf={f() ? undefined : 'center'} direction="vertical" style={styles.x} />`, `{x: {alignSelf: 'flex-start'}}`)
+  assert.deepEqual(unpinSkips(impure), ['conditional pin test may have side effects'])
 })

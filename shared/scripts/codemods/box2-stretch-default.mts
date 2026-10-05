@@ -14,6 +14,13 @@
 // Once the default is gone, `cleanup` removes props that only restate the stretch (rules below),
 // at call sites that the visual gate's coverage base for <base sha> mounted on every platform the
 // file renders on (gatePlatforms).
+//
+//   node scripts/codemods/box2-stretch-default.mts unpin [--write] [--report <file>]
+//
+// Also once the default is gone, `unpin` removes the pins whose centering the parent already
+// provides (rules below). It reads the working tree and needs no coverage: each removal is
+// equivalent by construction against the stretch default, so --write refuses a tree that still
+// centers by default.
 import * as babel from '@babel/core'
 import {parse, parseExpression} from '@babel/parser'
 import MagicString from 'magic-string'
@@ -282,8 +289,9 @@ const isTrue = (attr: babel.types.JSXAttribute | undefined) => {
 const opaque = (node: babel.types.JSXOpeningElement) =>
   node.attributes.some(a => t.isJSXSpreadAttribute(a)) || !!findAttr(node, 'style') || !!findAttr(node, 'className')
 
-// A parent style may stand when it provably leaves the parent's cross-axis layout alone: it
-// resolves, in this file, to object literals without these keys (any platform branch included).
+// A style may stand when it provably leaves some keys alone: it resolves, in this file, to object
+// literals without them (any platform branch included). A parent style must leave its cross-axis
+// layout alone.
 const crossAxisKeys = new Set(['alignItems', 'display', 'flexDirection', 'flexWrap'])
 const platformKeys = new Set(['common', 'isAndroid', 'isElectron', 'isIOS', 'isMobile', 'isPhone', 'isTablet'])
 
@@ -321,9 +329,14 @@ const styleSheetEntry = (
   return found
 }
 
-const styleKeepsCrossAxis = (scope: babel.NodePath['scope'], e: babel.types.Node | null | undefined, depth = 0): boolean => {
+const styleLeaves = (
+  scope: babel.NodePath['scope'],
+  e: babel.types.Node | null | undefined,
+  keys: ReadonlySet<string>,
+  depth = 0
+): boolean => {
   if (!e || depth > 8) return false
-  const recur = (x: babel.types.Node | null | undefined) => styleKeepsCrossAxis(scope, x, depth + 1)
+  const recur = (x: babel.types.Node | null | undefined) => styleLeaves(scope, x, keys, depth + 1)
   if (t.isNullLiteral(e) || t.isBooleanLiteral(e, {value: false}) || t.isIdentifier(e, {name: 'undefined'})) return true
   if (t.isTSAsExpression(e) || t.isTSSatisfiesExpression(e) || t.isParenthesizedExpression(e)) return recur(e.expression)
   if (t.isConditionalExpression(e)) return recur(e.consequent) && recur(e.alternate)
@@ -335,7 +348,7 @@ const styleKeepsCrossAxis = (scope: babel.NodePath['scope'], e: babel.types.Node
       if (t.isSpreadElement(p)) return recur(p.argument)
       if (!t.isObjectProperty(p) || p.computed) return false
       const key = t.isIdentifier(p.key) ? p.key.name : t.isStringLiteral(p.key) ? p.key.value : undefined
-      if (key === undefined || crossAxisKeys.has(key)) return false
+      if (key === undefined || keys.has(key)) return false
       return platformKeys.has(key) ? recur(p.value) : true
     })
   }
@@ -348,10 +361,10 @@ const styleKeepsCrossAxis = (scope: babel.NodePath['scope'], e: babel.types.Node
   return false
 }
 
-const styleAttrKeepsCrossAxis = (scope: babel.NodePath['scope'], attr: babel.types.JSXAttribute) =>
+const styleAttrLeaves = (scope: babel.NodePath['scope'], attr: babel.types.JSXAttribute, keys: ReadonlySet<string>) =>
   t.isJSXExpressionContainer(attr.value) &&
   !t.isJSXEmptyExpression(attr.value.expression) &&
-  styleKeepsCrossAxis(scope, attr.value.expression)
+  styleLeaves(scope, attr.value.expression, keys)
 
 const isMapCall = (p: babel.NodePath | null) =>
   !!p?.isCallExpression() &&
@@ -391,6 +404,13 @@ const parentElement = (path: babel.NodePath<babel.types.JSXElement>) => {
   return undefined
 }
 
+// The attribute and the whitespace before it, so an attribute on its own line takes the line along.
+const removalRange = (code: string, attr: babel.types.JSXAttribute) => {
+  let start = attr.start ?? 0
+  while (start > 0 && /\s/.test(code[start - 1] ?? '')) start--
+  return {end: attr.end ?? 0, start}
+}
+
 export const cleanupCandidates = (code: string, filename: string): Array<CleanupCandidate> => {
   let ast: ReturnType<typeof parse>
   try {
@@ -399,12 +419,7 @@ export const cleanupCandidates = (code: string, filename: string): Array<Cleanup
     return []
   }
   const out: Array<CleanupCandidate> = []
-  // the attribute and the whitespace before it, so an attribute on its own line takes the line along
-  const removal = (attr: babel.types.JSXAttribute) => {
-    let start = attr.start ?? 0
-    while (start > 0 && /\s/.test(code[start - 1] ?? '')) start--
-    return {end: attr.end ?? 0, start}
-  }
+  const removal = (attr: babel.types.JSXAttribute) => removalRange(code, attr)
   babel.traverse(ast as babel.types.File, {
     JSXElement(path) {
       const child = path.node.openingElement
@@ -414,7 +429,7 @@ export const cleanupCandidates = (code: string, filename: string): Array<Cleanup
       const parent = parentPath.node.openingElement
       if (parent.attributes.some(a => t.isJSXSpreadAttribute(a)) || findAttr(parent, 'className')) return
       const parentStyle = findAttr(parent, 'style')
-      if (parentStyle && !styleAttrKeepsCrossAxis(parentPath.scope, parentStyle)) return
+      if (parentStyle && !styleAttrLeaves(parentPath.scope, parentStyle, crossAxisKeys)) return
       const direction = stringValue(findAttr(parent, 'direction'))
       const line = child.loc?.start.line ?? 0
       const fullWidth = findAttr(child, 'fullWidth')
@@ -440,10 +455,219 @@ export const cleanupCandidates = (code: string, filename: string): Array<Cleanup
   return out.sort((a, b) => a.start - b.start)
 }
 
-export const applyCleanup = (code: string, candidates: ReadonlyArray<CleanupCandidate>) => {
+export const applyCleanup = (code: string, candidates: ReadonlyArray<{start: number; end: number}>) => {
   const ms = new MagicString(code)
   for (const c of candidates) ms.remove(c.start, c.end)
   return ms.toString()
+}
+
+// ---------------------------------------------------------------- unpin
+//
+// `pin` wrote alignSelf="center", or alignSelf={test ? undefined : 'center'}, wherever the old default
+// centered a box. `unpin` removes the pins that change nothing:
+//   U1  alignSelf="center" on a child of a parent that centers its children
+//   U2  alignSelf={test ? undefined : 'center'} on such a child: neither branch moves it
+//   U3  either pin on a child whose own style sets alignSelf on every platform
+// U1, U2: a box without alignSelf takes its parent's align-items, on Yoga and in CSS, so centering
+// from the parent places the child exactly where its own alignSelf="center" did. A parent centers
+// its children when it has a literal alignItems="center", or centerChildren and no alignItems:
+// alignItems overrides centerChildren on both platforms (box.tsx lists the alignItems style after
+// the centerChildren one; box.css puts box2_alignItems_* after box2_centeredChildren), so a parent
+// that sets both centers only when alignItems is "center". The parent is found as in cleanup, must
+// be a Box2/ClickableBox without a spread or className, and its style must provably leave its
+// cross-axis layout alone. The child must have no spread or className, and its style must provably
+// not set position: CSS aligns an absolutely positioned box with align-self auto as normal, not as
+// its parent's align-items.
+// U3: the style prop wins over the alignSelf prop on both platforms (box.tsx collapses the style
+// last on native and sets it inline on desktop, over the box2_alignSelf_* class), so the pin never
+// applies. The child must have no spread, which could replace the style.
+// A conditional pin's test must be free of side effects, since removing the attribute stops
+// evaluating it.
+
+export type UnpinRule = 'U1' | 'U2' | 'U3'
+export type UnpinCandidate = {line: number; rule: UnpinRule; start: number; end: number}
+export type UnpinResult = {candidates: Array<UnpinCandidate>; skipped: Array<Unresolved>}
+
+const positionKeys = new Set(['position'])
+
+const pinRule = (attr: babel.types.JSXAttribute): UnpinRule | undefined => {
+  if (stringValue(attr) === 'center') return 'U1'
+  const v = attr.value
+  if (!t.isJSXExpressionContainer(v)) return undefined
+  const e = v.expression
+  return t.isConditionalExpression(e) &&
+    t.isIdentifier(e.consequent, {name: 'undefined'}) &&
+    t.isStringLiteral(e.alternate, {value: 'center'})
+    ? 'U2'
+    : undefined
+}
+
+const pureTest = (e: babel.types.Node): boolean => {
+  if (t.isIdentifier(e) || t.isThisExpression(e) || t.isLiteral(e)) return !t.isTemplateLiteral(e)
+  if (t.isMemberExpression(e) || t.isOptionalMemberExpression(e)) {
+    return pureTest(e.object) && (!e.computed || t.isLiteral(e.property))
+  }
+  if (t.isLogicalExpression(e)) return pureTest(e.left) && pureTest(e.right)
+  if (t.isUnaryExpression(e, {operator: '!'})) return pureTest(e.argument)
+  if (t.isParenthesizedExpression(e) || t.isTSNonNullExpression(e) || t.isTSAsExpression(e)) return pureTest(e.expression)
+  return false
+}
+
+const alignSelfKeys = new Set(['alignSelf'])
+
+// Whether a style sets a non-empty literal alignSelf on every platform, provably from this file.
+// Later entries must leave alignSelf alone. In platformStyles only common and isMobile count as
+// setting it on native, since isIOS, isAndroid, isPhone and isTablet apply on some devices only.
+const styleSetsAlignSelf = (scope: babel.NodePath['scope'], e: babel.types.Node | null | undefined, depth = 0): boolean => {
+  if (!e || depth > 8) return false
+  const recur = (x: babel.types.Node | null | undefined) => styleSetsAlignSelf(scope, x, depth + 1)
+  const leaves = (x: babel.types.Node | null | undefined) => styleLeaves(scope, x, alignSelfKeys)
+  const lastSets = (xs: ReadonlyArray<babel.types.Node | null | undefined>) =>
+    xs.some((x, i) => recur(x) && xs.slice(i + 1).every(leaves))
+  if (t.isTSAsExpression(e) || t.isTSSatisfiesExpression(e) || t.isParenthesizedExpression(e)) return recur(e.expression)
+  if (t.isConditionalExpression(e)) return recur(e.consequent) && recur(e.alternate)
+  if (t.isArrayExpression(e)) return lastSets(e.elements)
+  if (t.isObjectExpression(e)) {
+    const props = e.properties
+    const keyOf = (p: (typeof props)[number]) =>
+      t.isObjectProperty(p) && !p.computed
+        ? t.isIdentifier(p.key)
+          ? p.key.name
+          : t.isStringLiteral(p.key)
+            ? p.key.value
+            : undefined
+        : undefined
+    const later = (q: (typeof props)[number]) =>
+      t.isSpreadElement(q) ? leaves(q.argument) : keyOf(q) !== undefined && keyOf(q) !== 'alignSelf'
+    return props.some(
+      (p, i) =>
+        keyOf(p) === 'alignSelf' &&
+        t.isObjectProperty(p) &&
+        t.isStringLiteral(p.value) &&
+        p.value.value !== '' &&
+        props.slice(i + 1).every(later)
+    )
+  }
+  if (t.isCallExpression(e)) {
+    const name = calleeName(e.callee)
+    if (e.arguments.length !== 1) return false
+    if (name === 'collapseStyles') return recur(e.arguments[0])
+    const o = e.arguments[0]
+    if (name !== 'platformStyles' || !t.isObjectExpression(o)) return false
+    const branch: Record<string, babel.types.Node> = {}
+    for (const p of o.properties) {
+      if (!t.isObjectProperty(p) || p.computed || !t.isIdentifier(p.key) || !platformKeys.has(p.key.name)) return false
+      branch[p.key.name] = p.value
+    }
+    const desktop = [branch['common'], branch['isElectron']]
+    const native = [branch['common'], branch['isMobile']]
+    const deviceBranches = ['isIOS', 'isAndroid', 'isPhone', 'isTablet'].map(k => branch[k])
+    return (
+      desktop.some((x, i) => x && recur(x) && desktop.slice(i + 1).every(y => !y || leaves(y))) &&
+      native.some((x, i) => x && recur(x) && native.slice(i + 1).every(y => !y || leaves(y))) &&
+      deviceBranches.every(y => !y || leaves(y))
+    )
+  }
+  if (t.isMemberExpression(e)) return recur(styleSheetEntry(scope, e))
+  return false
+}
+
+// undefined when the parent centers its children, else why it may not
+const parentNotCentering = (parent: babel.types.JSXOpeningElement) => {
+  const alignItems = findAttr(parent, 'alignItems')
+  if (alignItems) {
+    const v = stringValue(alignItems)
+    return v === 'center' ? undefined : v === undefined ? 'parent alignItems is not a literal' : 'parent does not center'
+  }
+  const centerChildren = findAttr(parent, 'centerChildren')
+  if (!centerChildren || isTrue(centerChildren)) return centerChildren ? undefined : 'parent does not center'
+  const v = centerChildren.value
+  const e = t.isJSXExpressionContainer(v) ? v.expression : undefined
+  return t.isBooleanLiteral(e, {value: false}) || t.isNullLiteral(e) || t.isIdentifier(e, {name: 'undefined'})
+    ? 'parent does not center'
+    : 'parent centerChildren is not a literal'
+}
+
+export const unpinCandidates = (code: string, filename: string): UnpinResult => {
+  const candidates: Array<UnpinCandidate> = []
+  const skipped: Array<Unresolved> = []
+  let ast: ReturnType<typeof parse>
+  try {
+    ast = parse(code, {plugins: ['jsx', 'typescript'], sourceFilename: filename, sourceType: 'module'})
+  } catch (e) {
+    return {candidates, skipped: [{line: 0, reason: `parse error: ${String(e)}`}]}
+  }
+  babel.traverse(ast as babel.types.File, {
+    JSXElement(path) {
+      const child = path.node.openingElement
+      if (classifyName(path.get('openingElement'), filename).kind !== 'target') return
+      const alignSelf = findAttr(child, 'alignSelf')
+      const shape = alignSelf && pinRule(alignSelf)
+      if (!alignSelf || !shape) return
+      const line = child.loc?.start.line ?? 0
+      const childSpread = child.attributes.some(a => t.isJSXSpreadAttribute(a))
+      const childStyle = findAttr(child, 'style')
+      const childStyleExpr =
+        t.isJSXExpressionContainer(childStyle?.value) && !t.isJSXEmptyExpression(childStyle.value.expression)
+          ? childStyle.value.expression
+          : undefined
+      const rule: UnpinRule = !childSpread && styleSetsAlignSelf(path.scope, childStyleExpr) ? 'U3' : shape
+      const v = alignSelf.value
+      const test = t.isJSXExpressionContainer(v) && t.isConditionalExpression(v.expression) ? v.expression.test : undefined
+      const why = (() => {
+        if (test && !pureTest(test)) return 'conditional pin test may have side effects'
+        if (rule === 'U3') return undefined
+        const parentPath = parentElement(path)
+        if (!parentPath) return 'no in-place parent element'
+        if (classifyName(parentPath.get('openingElement'), filename).kind !== 'target') {
+          return 'parent is not Box2/ClickableBox'
+        }
+        const parent = parentPath.node.openingElement
+        if (parent.attributes.some(a => t.isJSXSpreadAttribute(a))) return 'parent has a spread'
+        if (findAttr(parent, 'className')) return 'parent has a className'
+        const parentStyle = findAttr(parent, 'style')
+        if (parentStyle && !styleAttrLeaves(parentPath.scope, parentStyle, crossAxisKeys)) {
+          return 'parent style may change its cross axis'
+        }
+        const notCentering = parentNotCentering(parent)
+        if (notCentering) return notCentering
+        if (childSpread) return 'child has a spread'
+        if (findAttr(child, 'className')) return 'child has a className'
+        if (childStyle && !styleAttrLeaves(path.scope, childStyle, positionKeys)) return 'child style may set position'
+        return undefined
+      })()
+      if (why) skipped.push({line, reason: why})
+      else candidates.push({line, rule, ...removalRange(code, alignSelf)})
+    },
+  })
+  return {candidates: candidates.sort((a, b) => a.start - b.start), skipped}
+}
+
+export const assertUnpinWritable = (boxSource: string) => {
+  if (hasImplicitCenter(boxSource)) {
+    throw new Error('unpin --write needs common-adapters/box.tsx to stretch by default; this tree still centers')
+  }
+}
+
+const runUnpin = (root: string, opts: {write: boolean; reportFile: string | undefined}) => {
+  if (opts.write) assertUnpinWritable(readFileSync(join(root, 'common-adapters/box.tsx'), 'utf8'))
+  const removed: Record<UnpinRule, Array<string>> = {U1: [], U2: [], U3: []}
+  const skipped: Array<{site: string; reason: string}> = []
+  for (const file of walk(root, []).sort()) {
+    const src = readFileSync(file, 'utf8')
+    const r = unpinCandidates(src, file)
+    const rel = relative(root, file)
+    for (const c of r.candidates) removed[c.rule].push(`${rel}:${c.line}`)
+    skipped.push(...r.skipped.map(s => ({reason: s.reason, site: `${rel}:${s.line}`})))
+    if (opts.write && r.candidates.length) writeFileSync(file, applyCleanup(src, r.candidates))
+  }
+  const reasons: Record<string, number> = {}
+  for (const s of skipped) reasons[s.reason] = (reasons[s.reason] ?? 0) + 1
+  if (opts.reportFile) {
+    writeFileSync(opts.reportFile, JSON.stringify({reasons, removed, skipped}, null, 2) + '\n')
+  }
+  console.log(`U1 ${removed.U1.length}, U2 ${removed.U2.length}, U3 ${removed.U3.length}${opts.write ? ' (written)' : ' (report only)'}`)
+  for (const [reason, n] of Object.entries(reasons).sort((a, b) => b[1] - a[1])) console.log(`skipped ${n}: ${reason}`)
 }
 
 const skipDirs = new Set(['node_modules', '.tsOuts', 'dist', '.git'])
@@ -601,10 +825,15 @@ const main = (argv: Array<string>) => {
     runCleanup(root, {at, base, reportFile, write})
     return
   }
+  if (mode === 'unpin') {
+    runUnpin(root, {reportFile, write})
+    return
+  }
   if (mode !== 'pin') {
     console.error(
       'usage: box2-stretch-default.mts pin [--write] [--report <file>]\n' +
-        '       box2-stretch-default.mts cleanup --coverage-from <base sha> [--at <ref>] [--write] [--report <file>]'
+        '       box2-stretch-default.mts cleanup --coverage-from <base sha> [--at <ref>] [--write] [--report <file>]\n' +
+        '       box2-stretch-default.mts unpin [--write] [--report <file>]'
     )
     process.exit(2)
   }
