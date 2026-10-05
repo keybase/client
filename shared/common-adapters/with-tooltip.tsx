@@ -168,10 +168,10 @@ function WithTooltip(p: Props) {
   return (
     <>
       <View style={Styles.castStyleNative(containerStyle)} ref={clickableRef} collapsable={false}>
-        <Kb.ClickableBox alignSelf="center" onClick={_onClick} direction="vertical">{children}</Kb.ClickableBox>
+        <Kb.ClickableBox onClick={_onClick} direction="vertical">{children}</Kb.ClickableBox>
       </View>
       <Kb.Portal hostName="popup-root">
-        <Kb.Box2 alignSelf="center"
+        <Kb.Box2
           direction="vertical"
           pointerEvents="box-none"
           style={Styles.collapseStyles([Styles.globalStyles.fillAbsolute, animatedStyle])}

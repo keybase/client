@@ -133,7 +133,7 @@ const SmallTeam = (p: Props) => {
       {showingPopup && popup}
       <SwipeConvActions conversationIDKey={conversationIDKey} onPress={onSelectConversation} onLongPress={onLongPress}>
         {isMobile ? (
-          <Kb.Box2 alignSelf="center" direction="vertical" style={containerStyle}>
+          <Kb.Box2 direction="vertical" style={containerStyle}>
             {rowContents}
           </Kb.Box2>
         ) : (

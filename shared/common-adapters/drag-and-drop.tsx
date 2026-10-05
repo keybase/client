@@ -124,7 +124,7 @@ const DragAndDrop = (props: Props): React.ReactNode => {
   )
 
   return (
-    <Box2 alignSelf={(fullWidth) || (fullHeight) ? undefined : 'center'}
+    <Box2
       direction="vertical"
       fullHeight={fullHeight}
       fullWidth={fullWidth}

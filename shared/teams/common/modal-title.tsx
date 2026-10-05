@@ -18,7 +18,7 @@ export const ModalTitle = ({title, teamID, newTeamWizard}: Props) => {
   const avatarCrop = isNewTeamWizard ? newTeamWizard?.avatarCrop : undefined
 
   return isMobile ? (
-    <Kb.Box2 alignSelf="center" direction="vertical" alignItems="center">
+    <Kb.Box2 direction="vertical" alignItems="center">
       {!!displayTeamname && (
         <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="middle">
           {displayTeamname}
@@ -27,7 +27,7 @@ export const ModalTitle = ({title, teamID, newTeamWizard}: Props) => {
       <Kb.Text type="BodyBig">{title}</Kb.Text>
     </Kb.Box2>
   ) : (
-    <Kb.Box2 alignSelf="center" direction="vertical" gap="xtiny" alignItems="center" style={styles.title}>
+    <Kb.Box2 direction="vertical" gap="xtiny" alignItems="center" style={styles.title}>
       <Kb.Avatar
         size={32}
         teamname={displayTeamname === 'New team' ? '' : displayTeamname}

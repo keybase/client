@@ -257,7 +257,7 @@ const AddEmojiPrompt = (props: AddEmojiPromptProps) => {
           Choose images from your library
         </Kb.Text>
       ) : (
-        <Kb.Box2 alignSelf="center" direction="vertical">
+        <Kb.Box2 direction="vertical">
           <Kb.Text type="Body" center={true}>
             Drag and drop images or
           </Kb.Text>
@@ -270,7 +270,7 @@ const AddEmojiPrompt = (props: AddEmojiPromptProps) => {
         </Kb.Box2>
       )}
       {!isMobile && (
-        <Kb.Box2 alignSelf="center"
+        <Kb.Box2
           direction="vertical"
           style={Kb.Styles.collapseStyles([styles.dropArea, dragOver && styles.dropAreaDragOver])}
           centerChildren={true}

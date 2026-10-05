@@ -48,7 +48,7 @@ const InputFrame = (p: {
       ])}
     >
       {!!icon && (
-        <Box2 alignSelf="center" direction="horizontal" style={styles.icon}>
+        <Box2 direction="horizontal" style={styles.icon}>
           <IconAuto color={theme.black_20} type={icon} fontSize={fontSize} style={styles.displayFlex} />
         </Box2>
       )}

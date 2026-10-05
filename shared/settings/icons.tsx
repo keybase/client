@@ -18,7 +18,7 @@ const IconCell = ({type}: {type: IconType}) => {
   const styles = useStyles()
   const name = type.replace(/^iconfont-/, '')
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" padding="xtiny" style={styles.cell} alignItems="center">
+    <Kb.Box2 direction="vertical" padding="xtiny" style={styles.cell} alignItems="center">
       <Kb.Icon type={type} sizeType="Big" />
       <Kb.Text type="BodyTiny" style={styles.cellLabel} lineClamp={2}>
         {name}
@@ -124,7 +124,7 @@ const Icons = () => {
       </Kb.Box2>
       <Kb.ScrollView style={styles.scroll}>
         {isIOS && !query && <SFSymbolDemos />}
-        <Kb.Box2 alignSelf="center" direction="horizontal" padding="tiny" style={styles.grid}>
+        <Kb.Box2 direction="horizontal" padding="tiny" style={styles.grid}>
           {filtered.map(t => (
             <IconCell key={t} type={t} />
           ))}

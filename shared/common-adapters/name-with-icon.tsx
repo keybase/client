@@ -216,7 +216,7 @@ export const NameWithIcon = (props: NameWithIconProps) => {
   const children = (
     <>
       {avatarOrIcon}
-      <Box2 alignSelf="center" direction="vertical" centerChildren={!props.horizontal} style={metaContainerStyle}>
+      <Box2 direction="vertical" centerChildren={!props.horizontal} style={metaContainerStyle}>
         {botAlias}
         {usernameOrTitle}
         {metas}

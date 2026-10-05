@@ -83,16 +83,16 @@ const TeamRow = function TeamRow(props: Props) {
         <Kb.Divider style={styles.divider} />
         {avatarBlock}
         {isMobile ? (
-          <Kb.Box2 alignSelf="center" direction="vertical" flex={1} justifyContent="center" style={styles.bodyMobile}>
+          <Kb.Box2 direction="vertical" flex={1} justifyContent="center" style={styles.bodyMobile}>
             {nameAndMemberCount}
             {activity}
           </Kb.Box2>
         ) : (
-          <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} alignItems="center" style={styles.bodyDesktop}>
-            <Kb.Box2 alignSelf="center" direction="vertical" flex={1} justifyContent="center" style={styles.bodyLeft}>
+          <Kb.Box2 direction="horizontal" flex={1} alignItems="center" style={styles.bodyDesktop}>
+            <Kb.Box2 direction="vertical" flex={1} justifyContent="center" style={styles.bodyLeft}>
               {nameAndMemberCount}
             </Kb.Box2>
-            <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" style={styles.bodyRight}>
+            <Kb.Box2 direction="horizontal" alignItems="center" style={styles.bodyRight}>
               {activity}
             </Kb.Box2>
           </Kb.Box2>

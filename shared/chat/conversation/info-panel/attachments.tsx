@@ -298,13 +298,12 @@ const AttachmentTypeSelector = (props: SelectorProps) => {
   const {onSelectView} = props
   return (
     <Kb.Box2
-      alignSelf="center"
       direction="horizontal"
       padding="small"
       style={styles.selectorContainer}
       fullWidth={true}
     >
-      <Kb.ClickableBox alignSelf="center"
+      <Kb.ClickableBox
         direction="vertical"
         centerChildren={true}
         flex={1}
@@ -320,7 +319,7 @@ const AttachmentTypeSelector = (props: SelectorProps) => {
           Media
         </Kb.Text>
       </Kb.ClickableBox>
-      <Kb.ClickableBox alignSelf="center"
+      <Kb.ClickableBox
         direction="vertical"
         centerChildren={true}
         flex={1}
@@ -336,7 +335,7 @@ const AttachmentTypeSelector = (props: SelectorProps) => {
           Docs
         </Kb.Text>
       </Kb.ClickableBox>
-      <Kb.ClickableBox alignSelf="center"
+      <Kb.ClickableBox
         direction="vertical"
         centerChildren={true}
         flex={1}
