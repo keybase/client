@@ -21,6 +21,11 @@
 // provides (rules below). It reads the working tree and needs no coverage: each removal is
 // equivalent by construction against the stretch default, so --write refuses a tree that still
 // centers by default.
+//
+//   node scripts/codemods/box2-stretch-default.mts unpin --coverage-from <base sha> [--at <ref>] [--write] [--report <file>]
+//
+// With a coverage base, `unpin` instead removes every pin the gate renders on every platform its
+// file renders on, except those on the skip list (U4 below). The gate run on the result decides.
 import * as babel from '@babel/core'
 import {parse, parseExpression} from '@babel/parser'
 import MagicString from 'magic-string'
@@ -799,6 +804,179 @@ const runCleanup = (
   console.log(`covered by base ${sha.slice(0, 10)}: ${counts(after)}${opts.write ? ' (written)' : ' (report only)'}`)
 }
 
+// ---------------------------------------------------------------- unpin by coverage
+//
+//   U4  either pin at a call site the coverage base mounted, in an unmasked entry, on every platform
+//       its file renders on (gatePlatforms), unless the skip list names it
+// Unlike U1-U3, U4 is not equivalent by construction: it removes pins the gate can see, and a gate
+// run on the result is the proof. A pin whose removal moved pixels goes on the skip list
+// (box2-unpin-skips.json) and the pass is redone from HEAD. A site the gate never renders keeps its
+// pin. The child must have no spread (it may carry alignSelf, fullWidth or fullHeight), and a
+// conditional pin's test must be free of side effects.
+//
+// A skip entry names a site by file, by its opening tag without the alignSelf attribute (whitespace
+// collapsed), and by `nth` (1-based, in source order) when several Box2/ClickableBox tags in the file
+// read the same. Neither moves when lines shift or other pins in the file are removed. An entry that
+// matches no pin, or matches several without `nth`, fails the run.
+
+export type U4Site = {line: number; start: number; end: number; tag: string; nth: number}
+export type U4Skip = {rel: string; tag: string; nth?: number; reason: string}
+export type U4Result = {sites: Array<U4Site>; unusable: Array<Unresolved>}
+
+const collapse = (s: string) => s.replace(/\s+/g, ' ').trim()
+
+export const u4Candidates = (code: string, filename: string): U4Result => {
+  const sites: Array<U4Site> = []
+  const unusable: Array<Unresolved> = []
+  let ast: ReturnType<typeof parse>
+  try {
+    ast = parse(code, {plugins: ['jsx', 'typescript'], sourceFilename: filename, sourceType: 'module'})
+  } catch (e) {
+    return {sites, unusable: [{line: 0, reason: `parse error: ${String(e)}`}]}
+  }
+  const seen = new Map<string, number>()
+  babel.traverse(ast as babel.types.File, {
+    JSXOpeningElement(path) {
+      if (classifyName(path, filename).kind !== 'target') return
+      const node = path.node
+      const alignSelf = findAttr(node, 'alignSelf')
+      const cut = alignSelf ? removalRange(code, alignSelf) : undefined
+      const text = code.slice(node.start ?? 0, node.end ?? 0)
+      const off = node.start ?? 0
+      const tag = collapse(cut ? text.slice(0, cut.start - off) + text.slice(cut.end - off) : text)
+      const nth = (seen.get(tag) ?? 0) + 1
+      seen.set(tag, nth)
+      if (!alignSelf || !cut || !pinRule(alignSelf)) return
+      const line = node.loc?.start.line ?? 0
+      const v = alignSelf.value
+      const test = t.isJSXExpressionContainer(v) && t.isConditionalExpression(v.expression) ? v.expression.test : undefined
+      if (node.attributes.some(a => t.isJSXSpreadAttribute(a))) unusable.push({line, reason: 'child has a spread'})
+      else if (test && !pureTest(test)) unusable.push({line, reason: 'conditional pin test may have side effects'})
+      else sites.push({line, nth, tag, ...cut})
+    },
+  })
+  return {sites: sites.sort((a, b) => a.start - b.start), unusable}
+}
+
+export const readU4Skips = (raw: string): Array<U4Skip> => {
+  const list = JSON.parse(raw) as unknown
+  if (!Array.isArray(list)) throw new Error('the skip list must be a JSON array')
+  return list.map((e: unknown, i) => {
+    const s = e as Partial<U4Skip>
+    if (typeof s.rel !== 'string' || typeof s.tag !== 'string' || typeof s.reason !== 'string' || !s.reason) {
+      throw new Error(`skip ${i}: needs rel, tag and reason strings`)
+    }
+    if (s.nth !== undefined && !(Number.isInteger(s.nth) && s.nth > 0)) throw new Error(`skip ${i}: nth must be a positive integer`)
+    return {nth: s.nth, reason: s.reason, rel: s.rel, tag: collapse(s.tag)}
+  })
+}
+
+// Which of a file's sites the skip list keeps, and the entries for this file that are stale or
+// ambiguous.
+export const matchU4Skips = (rel: string, sites: ReadonlyArray<U4Site>, skips: ReadonlyArray<U4Skip>) => {
+  const kept = new Map<U4Site, U4Skip>()
+  const errors: Array<string> = []
+  for (const s of skips) {
+    if (s.rel !== rel) continue
+    const hits = sites.filter(x => x.tag === s.tag && (s.nth === undefined || x.nth === s.nth))
+    const name = `${rel} ${s.tag}${s.nth === undefined ? '' : ` (nth ${s.nth})`}`
+    if (!hits.length) errors.push(`skip matches no pin: ${name}`)
+    else if (hits.length > 1) errors.push(`skip matches ${hits.length} pins, add nth: ${name}`)
+    else kept.set(hits[0]!, s)
+  }
+  return {errors, kept}
+}
+
+export const u4SkipsPath = () => join(dirname(fileURLToPath(import.meta.url)), 'box2-unpin-skips.json')
+
+export type U4Plan = {
+  base: string
+  files: Array<{rel: string; src: string; remove: Array<U4Site>}>
+  removed: Array<string>
+  kept: Array<{site: string; reason: string}>
+  uncovered: Array<{site: string; why: string}>
+  unusable: Array<{site: string; reason: string}>
+  errors: Array<string>
+}
+
+// U4 over the tree at `at`, against the coverage base `base`.
+export const planU4 = (root: string, opts: {base: string; at: string; skips: ReadonlyArray<U4Skip>}): U4Plan => {
+  const atSha = git(root, ['rev-parse', '--verify', `${opts.at}^{commit}`]).trim()
+  const sha = git(root, ['rev-parse', '--verify', `${opts.base}^{commit}`]).trim()
+  const mounted = {desktop: platformCoverage(sha, 'desktop'), ios: platformCoverage(sha, 'ios')}
+  if (!mounted.desktop.length || !mounted.ios.length) {
+    throw new Error(`base ${sha} needs stored coverage for both desktop and iOS`)
+  }
+  const repoHunks = parseDiffHunks(git(root, ['diff', '--no-ext-diff', '-U0', sha, atSha, '--', '*.tsx']))
+  const baseHunks = new Map<string, ReadonlyArray<Hunk>>()
+  for (const [p, h] of repoHunks) baseHunks.set(relative('shared', p), h)
+  const plan: U4Plan = {base: sha, errors: [], files: [], kept: [], removed: [], uncovered: [], unusable: []}
+  const skipFiles = new Set(opts.skips.map(s => s.rel))
+  const tracked = git(root, ['ls-tree', '-r', '--name-only', atSha, '--', '.'])
+    .split('\n')
+    .filter(f => f.endsWith('.tsx') && !f.split('/').some(seg => skipDirs.has(seg)))
+    .sort()
+  for (const rel of tracked) {
+    const src = git(root, ['show', `${atSha}:./${rel}`])
+    const r = u4Candidates(src, join(root, rel))
+    skipFiles.delete(rel)
+    plan.unusable.push(...r.unusable.map(u => ({reason: u.reason, site: `${rel}:${u.line}`})))
+    const {errors, kept} = matchU4Skips(rel, r.sites, opts.skips)
+    plan.errors.push(...errors)
+    if (!r.sites.length) continue
+    const ranges = callSiteRanges(src)
+    const remove: Array<U4Site> = []
+    for (const c of r.sites) {
+      const site = `${rel}:${c.line}`
+      const range = ranges.find(x => x.start === c.line)
+      const missing = range ? unmountedPlatforms({hunks: baseHunks.get(rel) ?? [], mounted, range, rel}) : []
+      const why = unmarkedFile(rel)
+        ? 'file not marked by coverage'
+        : !range
+          ? 'call site not marked by coverage'
+          : missing.length
+            ? `never mounted on ${missing.join(' or ')}`
+            : undefined
+      const skip = kept.get(c)
+      if (why) plan.uncovered.push({site, why})
+      else if (skip) plan.kept.push({reason: skip.reason, site})
+      else {
+        plan.removed.push(site)
+        remove.push(c)
+      }
+    }
+    if (remove.length) plan.files.push({remove, rel, src})
+  }
+  for (const rel of skipFiles) plan.errors.push(`skip names a file with no .tsx at ${opts.at}: ${rel}`)
+  return plan
+}
+
+const runUnpinCoverage = (
+  root: string,
+  opts: {base: string; at: string; write: boolean; reportFile: string | undefined}
+) => {
+  if (opts.write) {
+    if (git(root, ['rev-parse', '--verify', `${opts.at}^{commit}`]).trim() !== git(root, ['rev-parse', 'HEAD']).trim()) {
+      throw new Error('--write needs --at HEAD')
+    }
+    if (git(root, ['status', '--porcelain', '--', '*.tsx']).trim()) {
+      throw new Error('unpin --write reads the tree as HEAD: commit or stash .tsx changes first')
+    }
+    assertUnpinWritable(readFileSync(join(root, 'common-adapters/box.tsx'), 'utf8'))
+  }
+  const plan = planU4(root, {at: opts.at, base: opts.base, skips: readU4Skips(readFileSync(u4SkipsPath(), 'utf8'))})
+  if (plan.errors.length) throw new Error(`skip list:\n  ${plan.errors.join('\n  ')}`)
+  if (opts.write) for (const f of plan.files) writeFileSync(join(root, f.rel), applyCleanup(f.src, f.remove))
+  if (opts.reportFile) {
+    const {base, errors, kept, removed, uncovered, unusable} = plan
+    writeFileSync(opts.reportFile, JSON.stringify({base, errors, kept, removed, uncovered, unusable}, null, 2) + '\n')
+  }
+  console.log(
+    `U4 ${plan.removed.length}${opts.write ? ' (written)' : ' (report only)'}; kept: skip list ${plan.kept.length}, ` +
+      `not covered ${plan.uncovered.length}, unusable ${plan.unusable.length} (base ${plan.base.slice(0, 10)})`
+  )
+}
+
 const main = (argv: Array<string>) => {
   const [mode, ...rest] = argv
   const write = rest.includes('--write')
@@ -809,31 +987,32 @@ const main = (argv: Array<string>) => {
     process.exit(2)
   }
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
+  const bi = rest.indexOf('--coverage-from')
+  const base = bi >= 0 ? rest[bi + 1] : undefined
+  const ai = rest.indexOf('--at')
+  const at = ai >= 0 ? rest[ai + 1] : 'HEAD'
+  if (!at || (bi >= 0 && !base)) {
+    console.error(!at ? '--at needs a ref' : '--coverage-from needs a base sha')
+    process.exit(2)
+  }
   if (mode === 'cleanup') {
-    const bi = rest.indexOf('--coverage-from')
-    const base = bi >= 0 ? rest[bi + 1] : undefined
     if (!base) {
       console.error('cleanup needs --coverage-from <base sha>')
-      process.exit(2)
-    }
-    const ai = rest.indexOf('--at')
-    const at = ai >= 0 ? rest[ai + 1] : 'HEAD'
-    if (!at) {
-      console.error('--at needs a ref')
       process.exit(2)
     }
     runCleanup(root, {at, base, reportFile, write})
     return
   }
   if (mode === 'unpin') {
-    runUnpin(root, {reportFile, write})
+    if (base) runUnpinCoverage(root, {at, base, reportFile, write})
+    else runUnpin(root, {reportFile, write})
     return
   }
   if (mode !== 'pin') {
     console.error(
       'usage: box2-stretch-default.mts pin [--write] [--report <file>]\n' +
         '       box2-stretch-default.mts cleanup --coverage-from <base sha> [--at <ref>] [--write] [--report <file>]\n' +
-        '       box2-stretch-default.mts unpin [--write] [--report <file>]'
+        '       box2-stretch-default.mts unpin [--coverage-from <base sha> [--at <ref>]] [--write] [--report <file>]'
     )
     process.exit(2)
   }

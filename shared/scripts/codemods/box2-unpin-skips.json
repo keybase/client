@@ -1,0 +1,68 @@
+[
+  {
+    "rel": "chat/conversation/messages/wrapper/wrapper.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\" flex={1} relative={true} style={styles.middle} fullWidth={!isMobile} >",
+    "reason": "gate ios chat/e2e-short: moves the message body column"
+  },
+  {
+    "rel": "chat/conversation/messages/wrapper/wrapper.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\" tooltip={authorIsOwner ? 'Owner' : 'Admin'}>",
+    "reason": "gate desktop chat/message-menu: moves the owner/admin crown beside the author name"
+  },
+  {
+    "rel": "chat/delete-history-warning.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\" centerChildren={true} style={Kb.Styles.collapseStyles([styles.padding, styles.box])} >",
+    "reason": "gate desktop modal/chat-delete-history: moves the delete history warning content"
+  },
+  {
+    "rel": "chat/emoji-picker/index.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\" key={bookmark.sectionIndex} className=\"emoji-picker-emoji-box\" style={isActive ? styles.activeBookmark : undefined} >",
+    "reason": "gate desktop chat/message-react: moves the emoji picker section bookmarks"
+  },
+  {
+    "rel": "chat/inbox/row/small-team/index.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\" alignItems=\"center\" style={styles.nameContainer}>",
+    "reason": "gate desktop chat/message-menu: moves the conversation name in every inbox row"
+  },
+  {
+    "rel": "router-v2/screen-layout-modal.desktop.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\" style={Kb.Styles.collapseStyles([ styles.overlayStyle, modalSize === 'fullscreen' && styles.overlayStretch, ])} >",
+    "reason": "gate desktop modal/team-edit-info: moves the modal box"
+  },
+  {
+    "rel": "settings/archive/index.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\" gap=\"xtiny\">",
+    "reason": "gate desktop settings/backup: moves the archive buttons row"
+  },
+  {
+    "rel": "settings/archive/modal.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\" centerChildren={true} style={styles.contentContainer} gap=\"small\">",
+    "nth": 3,
+    "reason": "gate ios modal/backup-repos: moves the archive all git repos content"
+  },
+  {
+    "rel": "teams/role-picker.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\" ref={popupAnchor} />",
+    "reason": "gate desktop team/member-add-role: moves the role picker popup anchor, so the popup moves"
+  },
+  {
+    "rel": "teams/role-picker.tsx",
+    "tag": "<Kb.Box2 style={styles.rowBody} direction=\"vertical\" gap=\"xxtiny\" gapStart={true}>",
+    "reason": "gate desktop team/member-add-role: moves the role capability list"
+  },
+  {
+    "rel": "teams/team/member/header.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\" alignItems=\"flex-start\" style={styles.headerText}>",
+    "reason": "gate desktop team/member-self: moves the member name block beside the avatar"
+  },
+  {
+    "rel": "teams/team/member/index.tsx",
+    "tag": "<Kb.Box2 direction=\"vertical\" gap=\"xtiny\" alignItems=\"flex-end\">",
+    "reason": "gate desktop team/member-self: moves the role picker column on a team row"
+  },
+  {
+    "rel": "teams/team/rows/bot-row/add-row.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\" alignItems=\"center\" style={styles.container}>",
+    "reason": "gate desktop team/bots: moves the add a bot row"
+  }
+]
