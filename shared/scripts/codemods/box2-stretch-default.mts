@@ -35,6 +35,7 @@ import {basename, dirname, join, posix, relative, resolve} from 'path'
 import {fileURLToPath} from 'url'
 import {
   callSiteRanges,
+  outOfScopeFile,
   parseDiffHunks,
   unmarkedFile,
   unmountedChanged,
@@ -1207,7 +1208,8 @@ const exits = (s: babel.types.Node | null | undefined): boolean => {
   return t.isBlockStatement(s) && exits(s.body[s.body.length - 1])
 }
 
-// The sources of a project: every .ts/.tsx/.js file under shared/, by path relative to `root`.
+// The sources of a project: every .ts/.tsx/.js file under shared/ that the app can load, by path
+// relative to `root` (stories and tests are left out: they render components outside the app).
 export type Project = {root: string; files: ReadonlyMap<string, string>}
 
 // The devices a call site can mount on.
@@ -1611,7 +1613,7 @@ const indexOf = (project: Project) => {
 export const projectAt = (root: string, sha: string): Project => {
   const rels = git(root, ['ls-tree', '-r', '--name-only', sha, '--', '.'])
     .split('\n')
-    .filter(f => /\.(tsx?|js)$/.test(f) && !f.endsWith('.d.ts') && !f.split('/').some(seg => skipDirs.has(seg)))
+    .filter(f => /\.(tsx?|js)$/.test(f) && !f.endsWith('.d.ts') && !f.split('/').some(seg => skipDirs.has(seg)) && !outOfScopeFile(f))
   const files = new Map<string, string>()
   const out = execFileSync('git', ['cat-file', '--batch'], {
     cwd: root,

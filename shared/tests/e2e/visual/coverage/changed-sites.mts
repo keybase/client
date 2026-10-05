@@ -11,6 +11,9 @@ const TARGETS: ReadonlySet<string> = new Set(['Box2', 'Kb.Box2', 'ClickableBox',
 // The files the babel plugin leaves unmarked.
 export const unmarkedFile = (createRequire(import.meta.url)('./babel-plugin.cjs') as {skipped: (rel: string) => boolean}).skipped
 
+// Stories and tests render components outside the app: their call sites are not the gate's to cover.
+export const outOfScopeFile = (rel: string) => /\.(stories|test)\.tsx?$/.test(rel)
+
 // `git diff -U0` output → hunks per post-change path (repo-relative). Deleted files are dropped.
 export const parseDiffHunks = (diff: string): Map<string, Array<Hunk>> => {
   const out = new Map<string, Array<Hunk>>()

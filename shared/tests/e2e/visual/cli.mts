@@ -20,7 +20,16 @@ import {udidForName} from '../ios-appium/helpers/app.ts'
 import {e2eAccounts} from '../shared/chat-data.ts'
 import {evalInPage, inspectorPageFor} from '../shared/metro-eval.ts'
 import {comparePng, type Rect} from './compare.mts'
-import {changedRanges, callSiteRanges, parseDiffHunks, unmarkedFile, unmountedChanged, type Hunk, type Range} from './coverage/changed-sites.mts'
+import {
+  changedRanges,
+  callSiteRanges,
+  outOfScopeFile,
+  parseDiffHunks,
+  unmarkedFile,
+  unmountedChanged,
+  type Hunk,
+  type Range,
+} from './coverage/changed-sites.mts'
 import {openDesktop, sleep, waitFor, withDeadline, type Capture, type DesktopSession} from './driver-desktop.mts'
 import {openIos, type IosSession} from './driver-ios.mts'
 import {acquireLock} from './lock.mts'
@@ -773,7 +782,7 @@ export async function runCoverage(argv: ReadonlyArray<string>, log: (l: string) 
   const baseHunks = new Map<string, ReadonlyArray<Hunk>>()
   for (const [file, hunks] of files) {
     const rel = sharedRel(file)
-    if (unmarkedFile(rel)) continue
+    if (unmarkedFile(rel) || outOfScopeFile(rel)) continue
     const src = right ? gitShow(right, file) : fs.readFileSync(path.join(REPO_DIR, file), 'utf8')
     if (src === undefined) continue
     const sites = changedRanges(callSiteRanges(src), hunks)

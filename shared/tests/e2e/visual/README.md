@@ -134,7 +134,8 @@ are the same commit (`HEAD..` is `HEAD..HEAD`), or that touches no `.tsx` file, 
 than passed. Untracked new `.tsx` files are not in `git diff`: `git add -N` them (or commit) first.
 
 `✗ never mounted: file.tsx:line` means the gate cannot see that change: add a tour entry that
-reaches it, or prove it another way. Exit 1 if any are listed. Metro caches transforms per file,
+reaches it, or prove it another way. Exit 1 if any are listed. Stories and tests (`*.stories.tsx`,
+`*.test.tsx`) render outside the app and are out of scope here and in the codemod's reports. Metro caches transforms per file,
 not per env var, so switching coverage on or off needs `--clear` (the CLI does this).
 
 An entry with any mask counts for no coverage: a call site under a mask mounts, but the compare

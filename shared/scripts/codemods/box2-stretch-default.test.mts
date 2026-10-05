@@ -1445,6 +1445,9 @@ test('U4 plan: needs coverage on every gate platform, carries base lines forward
     ]
     fs.writeFileSync(path.join(shared, 'settings', 'a.tsx'), file(sites))
     fs.writeFileSync(path.join(shared, 'settings', 'b.desktop.tsx'), file(sites.slice(0, 1)))
+    // stories and tests are out of scope: never covered, never edited, never reported
+    fs.writeFileSync(path.join(shared, 'settings', 'b.stories.tsx'), file(sites.slice(0, 1)))
+    fs.writeFileSync(path.join(shared, 'settings', 'b.test.tsx'), file(sites.slice(0, 1)))
     g('init', '-q')
     g('add', '.')
     g('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-qm', 'base')
