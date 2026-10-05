@@ -62,7 +62,7 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
   container: Kb.Styles.platformStyles({
     isElectron: {
       ...Kb.Styles.size('100%'),
-      marginBottom: 48, // footer height
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.small),
     },
     isMobile: {
       ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
