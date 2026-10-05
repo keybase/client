@@ -13,7 +13,7 @@ g.isAndroid = false
 g.isElectron = false
 
 /* eslint-disable @typescript-eslint/no-require-imports */
-const {box2ClassNamesForTest, box2SharedPropsForTest} = require('./box') as typeof BoxModule
+const {box2ClassNamesForTest, box2DesktopStyleForTest, box2SharedPropsForTest} = require('./box') as typeof BoxModule
 const {StyleSheet} = require('react-native') as typeof RN
 /* eslint-enable @typescript-eslint/no-require-imports */
 
@@ -129,9 +129,15 @@ const cascade = (classes: ReadonlySet<string>, parentClasses: ReadonlySet<string
   return decls
 }
 
+const kebab = (k: string) => k.replace(/[A-Z]/g, c => `-${c.toLowerCase()}`)
+
 const resolveDesktop = (p: Props): Resolved => {
   const classes = new Set(box2ClassNamesForTest(p).split(' '))
   const decls = cascade(classes, undefined)
+  // inline style beats every class, applied in key order as the DOM applies it
+  for (const [k, v] of Object.entries(box2DesktopStyleForTest(p) ?? {})) {
+    if (v !== undefined) expand(decls, kebab(k), v as string | number)
+  }
   const pointerEvents = decls.get('pointer-events') ?? 'auto'
   // pointer-events inherits: a plain child takes the box's value unless a rule sets its own
   const childPointerEvents = cascade(new Set(), classes).get('pointer-events') ?? pointerEvents
@@ -217,7 +223,7 @@ test('alignment, overflow and pointerEvents resolve the same on desktop and nati
   expect(mismatches(combos)).toEqual([])
 })
 
-test('flex, noShrink, padding and gaps resolve the same on desktop and native', () => {
+test('flex, noShrink, padding and gaps resolve the same on desktop and native, with or without a style', () => {
   const combos = sweep({
     direction: directions,
     flex: [undefined, 1],
@@ -226,6 +232,15 @@ test('flex, noShrink, padding and gaps resolve the same on desktop and native', 
     gap: [undefined, 'tiny'],
     gapStart: [false, true],
     gapEnd: [false, true],
+    style: [
+      undefined,
+      {flex: 1},
+      {flex: 1, flexShrink: 1},
+      {padding: 4},
+      {padding: 4, paddingLeft: 2, paddingTop: 2},
+      {columnGap: 2},
+      {rowGap: 2},
+    ],
   })
   expect(mismatches(combos)).toEqual([])
 })
@@ -236,4 +251,9 @@ test('a box-none child keeps its own pointer-events', () => {
   expect(own({direction: 'vertical'})).toBe('auto')
   expect(own({direction: 'vertical', pointerEvents: 'none'})).toBe('none')
   expect(own({direction: 'vertical', pointerEvents: 'box-none'})).toBe('none')
+})
+
+test('a style without a shorthand passes through as the same object', () => {
+  const style = {flexShrink: 1, paddingTop: 2}
+  expect(box2DesktopStyleForTest({direction: 'vertical', gap: 'tiny', gapStart: true, noShrink: true, style})).toBe(style)
 })
