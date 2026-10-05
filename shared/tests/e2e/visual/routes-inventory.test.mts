@@ -13,3 +13,8 @@ test('finds known routes and a sane count', () => {
 test('computed keys resolve to their string value', () => {
   assert.ok(listRoutes().some(r => r.name === 'settingsTabs.aboutTab'))
 })
+test('spreads of a local map and of an inline conditional are listed', () => {
+  const routes = listRoutes()
+  assert.ok(routes.some(r => r.name === 'settingsTabs.logOutTab' && r.modal))
+  assert.ok(routes.some(r => r.name === 'settingsTabs.typographyTab' && !r.modal))
+})

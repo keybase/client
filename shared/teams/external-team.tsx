@@ -9,6 +9,7 @@ import {pluralize} from '@/util/string'
 import capitalize from 'lodash/capitalize'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {navToProfile} from '@/constants/router'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {teamname: string}
 type TeamInfoResult = {teamname: string; info?: T.RPCGen.UntrustedTeamInfo}
@@ -50,14 +51,20 @@ const ExternalTeam = (props: Props) => {
 
   if (teamInfo) {
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} testID={TestIDs.TEAMS_EXTERNAL_TEAM}>
         <ExternalTeamInfo info={teamInfo} />
       </Kb.Box2>
     )
   }
 
   return (
-    <Kb.Box2 direction="vertical" gap="small" padding="small" fullWidth={true}>
+    <Kb.Box2
+      direction="vertical"
+      gap="small"
+      padding="small"
+      fullWidth={true}
+      testID={waiting ? undefined : TestIDs.TEAMS_EXTERNAL_TEAM}
+    >
       {waiting ? (
         <Kb.Box2
           direction="horizontal"

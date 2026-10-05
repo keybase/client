@@ -9,7 +9,7 @@
 //                      channel: {name, topic_name, members_type}}]}}, matched on team and channel
 // Results are cached for the process.
 import {execFile} from 'child_process'
-import type {Nav, ParamRef} from './tour-types.ts'
+import type {Nav, ParamRef, ParamValue} from './tour-types.ts'
 
 export type CliRunner = (args: Array<string>) => Promise<string>
 
@@ -102,22 +102,34 @@ const resolveRef = async (ref: ParamRef, run: CliRunner): Promise<string> => {
   }
 }
 
-const isRef = (v: unknown): v is ParamRef => !!v && typeof v === 'object' && 'ref' in v
+export const isRef = (v: unknown): v is ParamRef =>
+  !!v && typeof v === 'object' && !Array.isArray(v) && typeof (v as {ref?: unknown}).ref === 'string'
+
+export type Resolved = string | number | boolean | null | Array<Resolved> | {[k: string]: Resolved}
+
+const resolveValue = async (v: ParamValue, run: CliRunner): Promise<Resolved> => {
+  if (isRef(v)) return resolveRef(v, run)
+  if (Array.isArray(v)) return Promise.all(v.map(async x => resolveValue(x as ParamValue, run)))
+  if (v && typeof v === 'object') {
+    const out: {[k: string]: Resolved} = {}
+    for (const [k, x] of Object.entries(v as {[k: string]: ParamValue})) out[k] = await resolveValue(x, run)
+    return out
+  }
+  return v as string | number | boolean | null
+}
 
 export type ResolvedNav = {
   tab: string
-  append?: {name: string; params?: Record<string, string | number | boolean>}
+  append?: {name: string; params?: Record<string, Resolved>}
   thread?: string
 }
 
 export async function resolveParams(nav: Nav, run: CliRunner = runCli): Promise<ResolvedNav> {
   const {append, thread} = nav
-  let params: Record<string, string | number | boolean> | undefined
+  let params: Record<string, Resolved> | undefined
   if (append?.params) {
     params = {}
-    for (const [k, v] of Object.entries(append.params)) {
-      params[k] = isRef(v) ? await resolveRef(v, run) : v
-    }
+    for (const [k, v] of Object.entries(append.params)) params[k] = await resolveValue(v, run)
   }
   return {
     tab: nav.tab,

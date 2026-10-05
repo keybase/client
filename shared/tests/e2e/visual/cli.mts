@@ -24,12 +24,13 @@ import {changedRanges, callSiteRanges, parseDiffHunks, unmarkedFile, unmountedCh
 import {openDesktop, sleep, waitFor, withDeadline, type Capture, type DesktopSession} from './driver-desktop.mts'
 import {openIos, type IosSession} from './driver-ios.mts'
 import {acquireLock} from './lock.mts'
+import {isRef} from './resolve.mts'
 import {writeReport, verdict, type ReportRow, type RowStatus} from './report.mts'
 import {diffSeals, readSeal, type Seal, type SealField} from './seal.mts'
 import {assertServedFrom, listenerCwd} from './served-tree.mts'
 import * as Store from './store.mts'
 import {tour} from './tour.ts'
-import {matchEntries, nextDesktopEntry, type Platform, type Theme, type TourEntry} from './tour-types.ts'
+import {matchEntries, nextDesktopEntry, type ParamRef, type ParamValue, type Platform, type Theme, type TourEntry} from './tour-types.ts'
 
 type RunPlatform = Store.RunPlatform
 
@@ -108,10 +109,19 @@ const pickSeal = (s: Seal, fields: ReadonlyArray<SealField>): Seal => ({
   fields: Object.fromEntries(fields.map(f => [f, s.fields[f]])),
 })
 
+const refsIn = (v: ParamValue | undefined): Array<ParamRef> =>
+  isRef(v)
+    ? [v]
+    : Array.isArray(v)
+      ? v.flatMap(x => refsIn(x as ParamValue))
+      : v && typeof v === 'object'
+        ? Object.values(v as {[k: string]: ParamValue}).flatMap(refsIn)
+        : []
+
 const conversationChannels = (e: TourEntry): Array<string> =>
-  [e.nav.thread, ...Object.values(e.nav.append?.params ?? {})].flatMap(r =>
-    r && typeof r === 'object' && r.ref === 'conversationIDKey' ? [r.channel ?? 'general'] : []
-  )
+  [e.nav.thread, ...Object.values(e.nav.append?.params ?? {})]
+    .flatMap(refsIn)
+    .flatMap(r => (r.ref === 'conversationIDKey' ? [r.channel ?? 'general'] : []))
 
 // Opening an unread conversation marks it read, which is a write to the account and changes the
 // inbox seal mid-run. Refuses before any capture; a person reads it by hand first.
