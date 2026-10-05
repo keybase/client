@@ -133,7 +133,6 @@ const DesktopMenuLayout = (props: MenuLayoutProps) => {
         event?.stopPropagation()
       }}
       direction="vertical"
-      alignItems="stretch"
       fullWidth={true}
       style={Styles.collapseStyles([desktopStyles.menuContainer, style])}
       testID={TestIDs.FLOATING_MENU}

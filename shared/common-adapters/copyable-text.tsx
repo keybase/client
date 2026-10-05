@@ -95,7 +95,7 @@ const useStyles = Styles.createStyleHook(
       }),
       copyToast: {
         ...Styles.paddingH(Styles.globalMargins.medium),
-        // Box2 defaults to alignSelf center, which centers the absolute pill horizontally
+        // the box's alignSelf center centers the absolute pill horizontally
         backgroundColor: theme.black_50,
         borderRadius: Styles.globalMargins.large,
         bottom: Styles.globalMargins.small,

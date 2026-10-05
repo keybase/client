@@ -28,7 +28,7 @@ function UnfurlGiphy(p: {
 
   return (
     <Kb.Box2 alignSelf="flex-start" gap="tiny" direction="horizontal" style={styles.container}>
-      {!isMobile && <Kb.Box2 direction="horizontal" alignSelf="stretch" style={styles.quoteContainer} />}
+      {!isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
       <Kb.Box2 alignSelf="flex-start" gap="xtiny" direction="vertical" style={styles.innerContainer}>
         <Kb.Box2 alignSelf="flex-start" gap="tiny" fullWidth={true} direction="horizontal" justifyContent="space-between" style={styles.siteNameContainer}>
           <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny">

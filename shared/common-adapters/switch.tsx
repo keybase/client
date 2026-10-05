@@ -101,7 +101,7 @@ function Switch(props: Props & {ref?: React.Ref<MeasureRef>}) {
   return isMobile || !props.labelTooltip ? (
     <Kb.Box2
       direction={props.align !== 'right' ? 'horizontal' : 'horizontalReverse'}
-      style={Styles.collapseStyles([styles.autoAlignSelf, styles.container, props.style])}
+      style={Styles.collapseStyles([styles.container, props.style])}
     >
       {content}
     </Kb.Box2>
@@ -119,10 +119,6 @@ function Switch(props: Props & {ref?: React.Ref<MeasureRef>}) {
 export default Switch
 
 const useStyles = Styles.createStyleHook(() => ({
-  // undo Box2's alignSelf:center default (applied whenever fullWidth/fullHeight are unset) so we
-  // inherit the parent's alignItems. Deliberately not fullWidth: width:100% makes a Switch inside a
-  // horizontal row shrink-fit the leftover space and push its siblings right.
-  autoAlignSelf: {alignSelf: 'auto'},
   container: Styles.platformStyles({
     isElectron: {
       alignItems: 'center',

@@ -153,14 +153,14 @@ const Header = ({info}: ExternalTeamProps) => {
 
   const metaInfo = (
     <Kb.Box2 direction="vertical" alignSelf="stretch" gap={isMobile ? 'small' : 'tiny'}>
-      <Kb.Box2 direction="vertical" alignSelf="stretch" gap={isMobile ? 'xtiny' : 'xxtiny'}>
+      <Kb.Box2 direction="vertical" gap={isMobile ? 'xtiny' : 'xxtiny'}>
         {!!info.description && <Kb.Text type="Body">{info.description}</Kb.Text>}
         <Kb.Text type="BodySmall">
           {info.numMembers.toLocaleString()} {pluralize('member', info.numMembers)}
         </Kb.Text>
         {/* TODO add activity */}
       </Kb.Box2>
-      <Kb.Box2 direction="horizontal" alignSelf="stretch" gap="tiny" fullWidth={true}>
+      <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
         <Kb.Button onClick={onJoin} type="Success" label="Join team" small={true} />
         <Kb.Button mode="Secondary" label="Share" small={true} ref={popupAnchor} onClick={showPopup} />
         {popup}

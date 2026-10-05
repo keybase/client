@@ -59,8 +59,6 @@ const ProvisionWaitingOverlay = () => {
   }
 
   return (
-    // fullWidth/fullHeight required: without them desktop Box2 adds align-self:center, which
-    // collapses this absolutely-positioned box to a content-height band instead of filling.
     <Kb.Box2
       direction="vertical"
       fullHeight={true}

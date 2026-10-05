@@ -43,7 +43,6 @@ const DesktopGiphySearch = () => {
     <Kb.Box2 direction="vertical" alignSelf="stretch" relative={true} style={styles.outerContainer}>
       <Kb.Box2
         direction="vertical"
-        alignSelf="stretch"
         ref={divRef as React.RefObject<DivRef>}
         style={Kb.Styles.collapseStyles([
           styles.scrollContainer,
