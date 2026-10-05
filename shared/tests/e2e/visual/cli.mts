@@ -816,6 +816,7 @@ export const realDeps = (cmd: Command): CheckDeps => {
     hasBasePng: Store.hasBasePng,
     log: l => console.log(l),
     openReport: p => {
+      if (process.env['KB_VISUAL_NO_OPEN']) return
       spawn('open', [p], {detached: true, stdio: 'ignore'}).unref()
     },
     readBaseMeta: Store.readBaseMeta,

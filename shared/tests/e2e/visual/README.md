@@ -44,7 +44,8 @@ yarn visual:gate && yarn visual:gate --ios     # everything
 
 `check` prints one line per capture: `✓ id platform theme 0 px`, or
 `✗ id platform theme N px in WxH at (x,y) → <diff.png>`, `unstable`, or `failed: …`. Any
-non-`✓` line exits 1 and opens the HTML report (base/change slider, diff overlay, hatched masks).
+non-`✓` line exits 1 and opens the HTML report (base/change slider, diff overlay, hatched masks);
+`KB_VISUAL_NO_OPEN=1` only prints its path, for unattended runs.
 Results live in `tests/results/visual/` (gitignored): `base/<sha>/<platform>/…` and `runs/<stamp>/`.
 
 ## The base must contain the gate
