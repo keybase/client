@@ -119,7 +119,7 @@ const InviteByEmail = (ownProps: OwnProps) => {
 }
 
 const _makeDropdownItem = (item: string, styles: ReturnType<typeof useStyles>) => (
-  <Kb.Box2 alignSelf="center" key={item} direction="horizontal" alignItems="center" style={styles.dropdownItem}>
+  <Kb.Box2 key={item} direction="horizontal" alignItems="center" style={styles.dropdownItem}>
     <Kb.Text type="BodyBig">{capitalize(item)}</Kb.Text>
   </Kb.Box2>
 )

@@ -254,7 +254,7 @@ const ArchiveModal = (p: Props) => {
     case 'fsAll':
       content =
         archiveAllFilesResponseWaiter.state === 'idle' ? (
-          <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
+          <Kb.Box2 direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
             <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.contentContainer} gap="small">
               <Kb.Icon type="iconfont-nav-2-files" fontSize={72} />
               <Kb.Text type="Header">All Files</Kb.Text>

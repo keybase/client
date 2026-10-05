@@ -73,7 +73,7 @@ const BigTeamChannel = (props: Props) => {
   )
 
   const mutedIcon = isMuted ? (
-    <Kb.Box2 alignSelf="center" direction="vertical" tooltip="Muted conversation">
+    <Kb.Box2 direction="vertical" tooltip="Muted conversation">
       <Kb.IconAuto
         color={selected ? theme.white : theme.black_20}
         style={styles.muted}
@@ -94,7 +94,7 @@ const BigTeamChannel = (props: Props) => {
   return (
     <Kb.ClickableBox direction="vertical" fullWidth={true} onClick={onSelectConversation} style={styles.container}>
       <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.rowContainer}>
-        <Kb.Box2 alignSelf={(!isMobile) ? undefined : 'center'}
+        <Kb.Box2
           className="hover_background_color_blueGreyDark"
           direction="horizontal"
           fullWidth={!isMobile}
@@ -108,7 +108,6 @@ const BigTeamChannel = (props: Props) => {
           {mutedIcon}
           <Kb.Box2
             direction="horizontal"
-            alignSelf="center"
             alignItems="center"
             justifyContent="flex-end"
             flex={1}

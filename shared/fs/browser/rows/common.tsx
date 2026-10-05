@@ -66,7 +66,7 @@ export const StillCommon = (
         !props.inDestinationPicker &&
         !props.writingToJournal &&
         T.FS.getPathLevel(props.path) > 2 && (
-          <Kb.Box2 alignSelf="center" direction="horizontal">
+          <Kb.Box2 direction="horizontal">
             <OpenInSystemFileManager path={props.path} />
             <PathItemAction
               path={props.path}

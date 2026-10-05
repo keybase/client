@@ -173,7 +173,7 @@ export const MemberActions = (props: MemberMenuProps) => {
   const {showPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Box2 alignSelf="center"
+    <Kb.Box2
       direction="horizontal"
       gap="tiny"
       style={youCanManageMembers ? selectionStyles.mobileMarginsHack : undefined}

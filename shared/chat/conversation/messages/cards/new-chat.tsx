@@ -36,7 +36,7 @@ function NewCard(outerProps: Props) {
         text: 'This conversation is end-to-end encrypted.',
       }
   return (
-    <Kb.Box2 alignSelf="center"
+    <Kb.Box2
       direction="horizontal"
       style={Kb.Styles.collapseStyles([styles.container, props.tall ? styles.containerTall : null])}
       alignItems="flex-start"

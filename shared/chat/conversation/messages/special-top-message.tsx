@@ -155,7 +155,7 @@ function SpecialTopMessage() {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
       {hasLoadedEver && loadMoreType === 'noMoreToLoad' && showRetentionNotice && <RetentionNotice />}
-      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.spacer} />
+      <Kb.Box2 direction="vertical" style={styles.spacer} />
       {hasOlderResetConversation && <ProfileResetNotice />}
       {pendingState === 'waiting' && (
         <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.more}>

@@ -329,7 +329,7 @@ const BottomLineDisplay = (p: BottomLineDisplayProps) => {
     )
   } else {
     content = (
-      <Kb.Box2 alignSelf="center" direction="horizontal" gap="xtiny" style={styles.contentBox}>
+      <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
         <SnippetContent snippet={snippet} snippetDecoration={snippetDecoration} isSelected={isSelected} style={style} />
       </Kb.Box2>
     )
@@ -347,7 +347,7 @@ const BottomLineDisplay = (p: BottomLineDisplayProps) => {
           backgroundColor={theme.red}
         />
       )}
-      <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" style={styles.innerBox}>{content}</Kb.Box2>
+      <Kb.Box2 direction="horizontal" alignItems="center" style={styles.innerBox}>{content}</Kb.Box2>
     </Kb.Box2>
   )
 }
