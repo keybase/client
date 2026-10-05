@@ -296,6 +296,7 @@ export const tour: ReadonlyArray<TourEntry> = [
   teamTab('emoji', T.TEAMS_TAB_EMOJI_BUTTON, T.TEAMS_EMOJI_TAB),
   teamTab('settings', T.TEAMS_TAB_SETTINGS_BUTTON, T.TEAMS_SETTINGS_TAB),
   teamTab('bots', T.TEAMS_TAB_BOTS_BUTTON, T.TEAMS_BOTS_TAB),
+  teamTab('subteams', T.TEAMS_TAB_SUBTEAMS_BUTTON, T.TEAMS_SUBTEAMS_TAB),
   // team/menu leaves its popup open (leavesPopup), so another teams entry follows it.
   {
     id: 'team/member-add-role',
@@ -346,6 +347,15 @@ export const tour: ReadonlyArray<TourEntry> = [
     platforms: ['desktop', 'phone'],
     ready: T.TEAMS_MEMBER_PAGE,
     seal: ['teams'],
+  },
+  // the member's team row expanded: last activity and the channels they're in
+  {
+    id: 'team/member-self-expanded',
+    nav: {append: {name: 'teamMember', params: {...team, username: {ref: 'username'}}}, tab: 'tabs.teamsTab'},
+    platforms: ['desktop', 'phone'],
+    ready: T.TEAMS_MEMBER_TEAM_ACTIVITY,
+    seal: ['teams', 'inbox'],
+    setup: [{kind: 'openPopup', testID: T.TEAMS_MEMBER_TEAM_EXPAND}],
   },
   {
     id: 'tab/git',
@@ -486,7 +496,7 @@ export const tour: ReadonlyArray<TourEntry> = [
 // produces (setup steps can't type): chatAttachmentGetTitles, chatPDF, chatLocationPreview,
 // chatUnfurlMapPopup, chatConfirmNavigateExternal, decryptOutput, encryptOutput, signOutput,
 // verifyOutput, keybaseLinkError, webLinks (an external page), teamExternalTeam (a team the account
-// is not in), team subteams tab (the team has none), and the message kinds no seeded channel holds
+// is not in), and the message kinds no seeded channel holds
 // (coin flips, exploding, payments, git pushes, pins, replies, reactions, journey cards, unfurls)
 //
 // Mount nothing the tour doesn't already: gitNewRepo for a personal repo, teamCreateChannels, chatMessagePopup and

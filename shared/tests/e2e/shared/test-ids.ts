@@ -107,6 +107,10 @@ export const TEAMS_TAB_CHANNELS_BUTTON = 'teams-tab-channels-button'
 export const TEAMS_TAB_EMOJI_BUTTON = 'teams-tab-emoji-button'
 export const TEAMS_TAB_BOTS_BUTTON = 'teams-tab-bots-button'
 export const TEAMS_TAB_SUBTEAMS_BUTTON = 'teams-tab-subteams-button'
+export const TEAMS_SUBTEAMS_TAB = 'teams-subteams-tab'
+// a team row on a member's page: its expand caret, and the last-activity line it reveals
+export const TEAMS_MEMBER_TEAM_EXPAND = 'teams-member-team-expand'
+export const TEAMS_MEMBER_TEAM_ACTIVITY = 'teams-member-team-activity'
 
 // Devices
 export const DEVICES_LIST = 'devices-list'

@@ -372,7 +372,7 @@ const NodeInRow = (props: NodeInRowProps) => {
           {props.idx !== 0 && <Kb.Divider />}
 
           <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.row}>
-            <Kb.Box2 direction="horizontal" style={styles.expandIcon}>
+            <Kb.Box2 direction="horizontal" style={styles.expandIcon} testID={TestIDs.TEAMS_MEMBER_TEAM_EXPAND}>
               <Kb.Icon type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'} sizeType="Tiny" />
             </Kb.Box2>
             <Kb.Box2
@@ -426,7 +426,13 @@ const NodeInRow = (props: NodeInRowProps) => {
                   </Kb.Box2>
                 )}
                 {expanded && (
-                  <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" alignItems="center">
+                  <Kb.Box2
+                    direction="horizontal"
+                    gap="tiny"
+                    alignSelf="flex-start"
+                    alignItems="center"
+                    testID={TestIDs.TEAMS_MEMBER_TEAM_ACTIVITY}
+                  >
                     <Kb.Icon
                       type="iconfont-typing"
                       sizeType="Small"
