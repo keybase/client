@@ -4,7 +4,7 @@ Pixel-exact screenshots of read-only screens, compared between a base commit and
 tree. Use it to prove a layout refactor changes nothing on screen, or to see exactly what it
 changes. The compare is exact RGBA with no threshold; a size mismatch is a failure.
 
-Platforms: Electron light and dark (1280x800 @2x), and iOS light on the `iPhoneTest` simulator
+Platforms: Electron light, plus dark with `--themes light,dark` (1280x800 @2x; layout never depends on the theme, so dark is opt-in), and iOS light on the `iPhoneTest` simulator
 (`KB_IOS_DEVICE` overrides). The tour of screens is `tour.ts`: 84 desktop entries and 76 phone
 entries, all signed in as the e2e smoke account.
 

@@ -80,7 +80,7 @@ test('an entry not on the platform does not match it', async () => {
   await assert.rejects(runCheck(deps(), ['tab/git', '--ios']), /no tour entry matches tab\/git on ios/)
 })
 
-test('captures with the base frozen instant, every theme on desktop and light only on iOS', async () => {
+test('captures with the base frozen instant, light by default and dark on request', async () => {
   const seen: Array<string> = []
   const capture = async (e: TourEntry, o: {frozenAt: number; theme: string; platform: string}) => {
     seen.push(`${e.id} ${o.platform} ${o.theme} ${o.frozenAt}`)
@@ -91,7 +91,6 @@ test('captures with the base frozen instant, every theme on desktop and light on
   assert.equal(await runCheck(deps({capture}), ['tab/chat', '--theme', 'dark']), 1)
   assert.deepEqual(seen, [
     'tab/chat desktop light 1000',
-    'tab/chat desktop dark 1000',
     'tab/chat ios light 1000',
     'tab/chat desktop dark 1000',
   ])
@@ -120,7 +119,7 @@ test('parseCommand: flags, themes and refusals', () => {
   assert.deepEqual(parseCommand(['tab/*', '--ios']), {base: undefined, coverage: false, ios: true, patterns: ['tab/*'], themes: ['light']})
   assert.deepEqual(parseCommand(['--themes', 'dark', 'a', 'b']).themes, ['dark'])
   assert.deepEqual(parseCommand(['--theme', 'dark']).themes, ['dark'])
-  assert.deepEqual(parseCommand([]).themes, ['light', 'dark'])
+  assert.deepEqual(parseCommand([]).themes, ['light'])
   assert.equal(parseCommand(['--base', 'HEAD~1']).base, 'HEAD~1')
   assert.equal(parseCommand(['--base=HEAD~1']).base, 'HEAD~1')
   assert.throws(() => parseCommand(['--ios', '--theme', 'dark']), /iOS captures are light only/)
