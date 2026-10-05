@@ -40,7 +40,7 @@ type Props<TitleT extends string> = {
 const TabText = ({selected, text}: {selected: boolean; text: string}) => {
   const styles = useStyles()
   return (
-    <Kb.Box2 alignSelf="center" direction="horizontal" justifyContent="center">
+    <Kb.Box2 direction="horizontal" justifyContent="center">
       <Kb.Text type="BodySmallSemibold" style={selected ? styles.selected : undefined}>
         {text}
       </Kb.Text>

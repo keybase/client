@@ -68,25 +68,25 @@ function SkinTonePicker(props: Props) {
         {optionSkinTones}
       </Kb.Box2>
     ) : (
-      <Kb.ClickableBox alignSelf="center" direction="horizontal" alignItems="center" gap="tiny" onClick={() => setExpanded(true)}>
+      <Kb.ClickableBox direction="horizontal" alignItems="center" gap="tiny" onClick={() => setExpanded(true)}>
         {circle(currentSkinTone, false, false, styles)}
         <Kb.Text type="BodySmallSemibold">Skin tone</Kb.Text>
       </Kb.ClickableBox>
     )
   ) : (
-    <Kb.Box2 alignSelf="center" direction="vertical" relative={true}>
+    <Kb.Box2 direction="vertical" relative={true}>
       {expanded ? (
         <Kb.Box2 alignSelf="center" direction="vertical" overflow="hidden" style={styles.popupContainer}>
           {optionSkinTones}
         </Kb.Box2>
       ) : (
         <Kb.WithTooltip tooltip="Skin tone" containerStyle={styles.absolute}>
-          <Kb.ClickableBox alignSelf="center" direction="vertical" style={styles.dotContainerDesktop} onClick={() => setExpanded(true)}>
+          <Kb.ClickableBox direction="vertical" style={styles.dotContainerDesktop} onClick={() => setExpanded(true)}>
             {circle(currentSkinTone, false, false, styles)}
           </Kb.ClickableBox>
         </Kb.WithTooltip>
       )}
-      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.dotPlaceholder} />
+      <Kb.Box2 direction="vertical" style={styles.dotPlaceholder} />
     </Kb.Box2>
   )
 }

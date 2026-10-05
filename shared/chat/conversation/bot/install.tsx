@@ -416,7 +416,6 @@ const InstallBotPopup = (props: Props) => {
               <Kb.DropdownButton
                 selected={
                   <Kb.Box2
-                    alignSelf="center"
                     direction="horizontal"
                     alignItems="center"
                     testID={TestIDs.CHAT_BOT_CHANNELS_DROPDOWN}

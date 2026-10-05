@@ -54,7 +54,7 @@ const ConfirmModal = (props: Props) => {
           </Box2>
         )}
         {props.header && (
-          <Box2 alignSelf="center" alignItems="center" direction="vertical" style={styles.icon} noShrink={true}>
+          <Box2 alignItems="center" direction="vertical" style={styles.icon} noShrink={true}>
             {props.header}
           </Box2>
         )}

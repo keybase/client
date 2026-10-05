@@ -422,7 +422,7 @@ export function FloatingRolePicker<IncludeSetIndividually extends boolean = fals
                     Cancel
                   </Kb.Text>
                   <Kb.Text type="BodyBig">Pick a role</Kb.Text>
-                  <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.popupHeaderSide} />
+                  <Kb.Box2 direction="horizontal" style={styles.popupHeaderSide} />
                 </Kb.Box2>
               )}
               {picker}

@@ -190,7 +190,7 @@ export default function Choice() {
     switch (step.kind) {
       case 'choice':
         return (
-          <Kb.Box2 alignSelf="center" direction="vertical" gap="small">
+          <Kb.Box2 direction="vertical" gap="small">
             <Kb.Text type="Header">Add a PGP key</Kb.Text>
             <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
               <Kb.ListItem

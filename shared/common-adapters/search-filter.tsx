@@ -244,7 +244,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
     }
     if (isMobile) {
       return (
-        <Kb.ClickableBox alignSelf="center" onClick={mobileCancelButton ? clear : cancel} hitSlop={10} direction="vertical">
+        <Kb.ClickableBox onClick={mobileCancelButton ? clear : cancel} hitSlop={10} direction="vertical">
           <Kb.Icon
             type="iconfont-remove"
             sizeType={iconSizeType()}
@@ -255,7 +255,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
       )
     } else {
       return (
-        <Kb.ClickableBox alignSelf="center"
+        <Kb.ClickableBox
           onClick={() => {}}
           onMouseDown={cancel}
           direction="vertical"
@@ -289,7 +289,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
   )
 
   const content = isMobile ? (
-    <Kb.ClickableBox alignSelf="center"
+    <Kb.ClickableBox
       data-search-filter={true}
       direction="horizontal"
       style={Styles.collapseStyles([
@@ -324,7 +324,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
   )
 
   return isMobile ? (
-    <Kb.Box2 alignSelf="center"
+    <Kb.Box2
       direction="horizontal"
       style={Styles.collapseStyles([styles.containerMobile, style])}
       alignItems="center"

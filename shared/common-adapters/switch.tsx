@@ -81,7 +81,7 @@ function Switch(props: Props & {ref?: React.Ref<MeasureRef>}) {
         />
       </Kb.ClickableBox>
       {!!props.gapInBetween && <Kb.Box2 alignSelf="center" direction="vertical" flex={1} />}
-      {!!props.gapSize && <Kb.Box2 alignSelf="center" direction="vertical" style={{width: props.gapSize}} />}
+      {!!props.gapSize && <Kb.Box2 direction="vertical" style={{width: props.gapSize}} />}
       {typeof props.label === 'string' ? (
         <LabelContainer {...props}>
           <Kb.Text type={props.labelType ?? 'BodySemibold'}>{props.label}</Kb.Text>
@@ -99,7 +99,7 @@ function Switch(props: Props & {ref?: React.Ref<MeasureRef>}) {
   )
 
   return isMobile || !props.labelTooltip ? (
-    <Kb.Box2 alignSelf="center"
+    <Kb.Box2
       direction={props.align !== 'right' ? 'horizontal' : 'horizontalReverse'}
       style={Styles.collapseStyles([styles.autoAlignSelf, styles.container, props.style])}
     >

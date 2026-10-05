@@ -77,7 +77,7 @@ function Animation(props: Props) {
   if (!isMobile) {
     const {style, width, height} = props
     return (
-      <Box2 alignSelf="center" direction="vertical" className={props.className} style={props.containerStyle}>
+      <Box2 direction="vertical" className={props.className} style={props.containerStyle}>
         <div
           style={
             {

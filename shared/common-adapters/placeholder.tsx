@@ -9,7 +9,7 @@ type PlaceholderProps = {
 const Placeholder = (props: PlaceholderProps) => {
   const styles = useStyles()
   return (
-    <Box2 alignSelf="center"
+    <Box2
       direction="vertical"
       style={Styles.collapseStyles([
         styles.placeholder,

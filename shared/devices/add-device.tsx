@@ -48,7 +48,7 @@ export default function AddDevice(ownProps: AddDeviceProps) {
   }
   return (
     <Kb.ScrollView alwaysBounceVertical={false}>
-      <Kb.Box2 alignSelf="center"
+      <Kb.Box2
         direction="vertical"
         gap="medium"
         alignItems="center"
@@ -100,7 +100,7 @@ const deviceOptionTypeMap = {
 const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps) => {
   const styles = useStyles()
   return (
-    <Kb.ClickableBox alignSelf="center"
+    <Kb.ClickableBox
       onClick={onClick}
       className="hover_background_color_blueLighter2"
       style={Kb.Styles.collapseStyles([

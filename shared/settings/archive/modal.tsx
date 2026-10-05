@@ -317,7 +317,7 @@ const ArchiveModal = (p: Props) => {
       break
     case 'git':
       content = (
-        <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
+        <Kb.Box2 direction="vertical" centerChildren={true} style={styles.contentContainer} gap="small">
           <Kb.Icon type="iconfont-nav-2-git" fontSize={72} />
           <Kb.Text type="TerminalInline" lineClamp={2}>
             {p.gitURL}

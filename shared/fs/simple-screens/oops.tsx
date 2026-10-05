@@ -80,7 +80,7 @@ const NonExistent = (props: Props) => {
         <Kb.Text type="Header" style={styles.textYouDontHave}>
           {"This file or folder doesn't exist."}
         </Kb.Text>
-        <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.explainBox}>
+        <Kb.Box2 direction="horizontal" style={styles.explainBox}>
           <Kb.Text center={true} type="Body">
             Either it was deleted, or the path is incorrect.
           </Kb.Text>

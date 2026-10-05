@@ -295,7 +295,7 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
       }
       firstItem={false}
       body={
-        <Kb.Box2 alignSelf="center" direction="vertical" alignItems="stretch">
+        <Kb.Box2 direction="vertical" alignItems="stretch">
           <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start">
             <Kb.Text type="BodySemibold" lineClamp={1}>
               #{channelMeta.channelname}
