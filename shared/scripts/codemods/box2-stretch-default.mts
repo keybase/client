@@ -83,7 +83,7 @@ const refersToTarget = (e: babel.types.Node | null | undefined): boolean => {
   return false
 }
 
-export const classifyName = (path: babel.NodePath<babel.types.JSXOpeningElement>, filename: string): Classified => {
+const classifyName = (path: babel.NodePath<babel.types.JSXOpeningElement>, filename: string): Classified => {
   const name = path.node.name
   if (t.isJSXIdentifier(name)) {
     const binding = path.scope.getBinding(name.name)
@@ -126,7 +126,7 @@ export const classifyName = (path: babel.NodePath<babel.types.JSXOpeningElement>
   return {kind: 'none'}
 }
 
-export type AxisValue = {kind: 'absent'} | {kind: 'true'} | {kind: 'expr'; text: string} | {kind: 'unresolved'; reason: string}
+type AxisValue = {kind: 'absent'} | {kind: 'true'} | {kind: 'expr'; text: string} | {kind: 'unresolved'; reason: string}
 
 // Identifiers and member expressions bind tighter than || and ?:, so they need no parens.
 const operand = (text: string) => {
@@ -278,7 +278,7 @@ export type CleanupCandidate = {
 
 const alignSelfLiterals = new Set(['stretch', 'center', 'flex-start', 'flex-end'])
 
-export const stringValue = (attr: babel.types.JSXAttribute | undefined) => {
+const stringValue = (attr: babel.types.JSXAttribute | undefined) => {
   const v = attr?.value
   if (t.isStringLiteral(v)) return v.value
   if (t.isJSXExpressionContainer(v) && t.isStringLiteral(v.expression)) return v.expression.value
@@ -380,7 +380,7 @@ export const isMapCall = (p: babel.NodePath | null) =>
 // Whether `child` renders in place inside `p`: JSX children and fragments, `{…}`, either branch of a
 // ternary or logical expression, and the callback of a `.map(…)` (expression body, or a top-level
 // return of its block body).
-export const rendersInPlace = (p: babel.NodePath, child: babel.NodePath) => {
+const rendersInPlace = (p: babel.NodePath, child: babel.NodePath) => {
   if (p.isJSXFragment()) return child.listKey === 'children'
   if (p.isJSXExpressionContainer() || p.isParenthesizedExpression() || p.isTSAsExpression()) return true
   if (p.isConditionalExpression()) return child.key === 'consequent' || child.key === 'alternate'
@@ -410,7 +410,7 @@ const parentElement = (path: babel.NodePath<babel.types.JSXElement>) => {
 }
 
 // The attribute and the whitespace before it, so an attribute on its own line takes the line along.
-export const removalRange = (code: string, attr: babel.types.JSXAttribute) => {
+const removalRange = (code: string, attr: babel.types.JSXAttribute) => {
   let start = attr.start ?? 0
   while (start > 0 && /\s/.test(code[start - 1] ?? '')) start--
   return {end: attr.end ?? 0, start}
@@ -677,7 +677,7 @@ const runUnpin = (root: string, opts: {write: boolean; reportFile: string | unde
 
 export const skipDirs = new Set(['node_modules', '.tsOuts', 'dist', '.git'])
 
-export const walk = (dir: string, out: Array<string>) => {
+const walk = (dir: string, out: Array<string>) => {
   for (const ent of readdirSync(dir, {withFileTypes: true})) {
     if (ent.isDirectory()) {
       if (!skipDirs.has(ent.name)) walk(join(dir, ent.name), out)
