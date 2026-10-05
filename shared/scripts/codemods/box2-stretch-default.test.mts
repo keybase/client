@@ -11,6 +11,7 @@ import {
   cleanupCandidates,
   hasImplicitCenter,
   matchU4Skips,
+  noopCandidates,
   pinSource,
   planU4,
   platformCoverage,
@@ -1323,4 +1324,119 @@ test('U4 plan: needs coverage on every gate platform, carries base lines forward
     else process.env['KB_VISUAL_RESULTS'] = prev
     fs.rmSync(tmp, {force: true, recursive: true})
   }
+})
+
+// ---------------------------------------------------------------- noop
+
+const noop = (code: string) => noopCandidates(code, '/x/shared/settings/a.tsx')
+const noops = (code: string) => noop(code).map(c => `${c.rule}:${c.line}`)
+const nooped = (code: string) => applyCleanup(code, noop(code))
+const under = (child: string, parent = '') =>
+  `const A = () => (\n  <Kb.Box2 direction="vertical"${parent}>\n    ${child}\n  </Kb.Box2>\n)`
+
+test('N1: alignSelf stretch under a parent that stretches its children', () => {
+  for (const parent of ['', ' fullWidth', ' style={{padding: 4}}', ' style={Kb.Styles.globalStyles.flexOne}', ' gap="tiny"']) {
+    const src = under(`<Kb.Box2 direction="horizontal" alignSelf="stretch" gap="tiny" />`, parent)
+    assert.deepEqual(noops(src), ['N1:3'], parent)
+    assert.equal(nooped(src), under(`<Kb.Box2 direction="horizontal" gap="tiny" />`, parent), parent)
+  }
+  for (const parent of [
+    ' alignItems="center"',
+    ' centerChildren',
+    ' centerChildren={false}',
+    " style={{alignItems: 'center'}}",
+    ' style={s}',
+    ' {...p}',
+    ' className="x"',
+  ]) {
+    assert.deepEqual(noops(under(`<Kb.Box2 direction="horizontal" alignSelf="stretch" />`, parent)), [], parent)
+  }
+  for (const child of [
+    `<Kb.Box2 alignSelf="center" />`,
+    `<Kb.Box2 alignSelf={x} />`,
+    `<Kb.Box2 alignSelf="stretch" {...p} />`,
+    `<Kb.Box2 alignSelf="stretch" className="c" />`,
+    `<Kb.Box2 alignSelf="stretch" style={{position: 'absolute'}} />`,
+    `<Kb.Box2 alignSelf="stretch" style={s} />`,
+    `<Kb.Text alignSelf="stretch" />`,
+  ]) {
+    assert.deepEqual(noops(under(child)), [], child)
+  }
+  assert.deepEqual(noops(`const A = () => <Kb.Box2 alignSelf="stretch" />`), [])
+  assert.deepEqual(noops(`const A = () => <View><Kb.Box2 alignSelf="stretch" /></View>`), [])
+  assert.deepEqual(noops(under(`<Kb.Box2 alignSelf="stretch" style={{padding: 2}} />`)), ['N1:3'])
+  // a parent's explicit alignItems="stretch" goes first (N2); its children follow on the next pass
+  const nested = under(`<Kb.Box2 alignSelf="stretch" />`, ' alignItems="stretch"')
+  assert.deepEqual(noops(nested), ['N2:2'])
+  assert.deepEqual(noops(nooped(nested)), ['N1:3'])
+})
+
+test('N2: alignItems stretch without centerChildren', () => {
+  const src = `const A = () => <Kb.Box2 direction="vertical" alignItems="stretch" style={s} />`
+  assert.deepEqual(noops(src), ['N2:1'])
+  assert.equal(nooped(src), `const A = () => <Kb.Box2 direction="vertical" style={s} />`)
+  for (const attrs of [
+    'alignItems="stretch" centerChildren',
+    'alignItems="stretch" centerChildren={x}',
+    'alignItems="center"',
+    'alignItems={x}',
+    'alignItems="stretch" {...p}',
+    'alignItems="stretch" className="c"',
+  ]) {
+    assert.deepEqual(noops(`const A = () => <Kb.Box2 ${attrs} />`), [], attrs)
+  }
+})
+
+test('N3: a style flexDirection the direction already sets', () => {
+  const inline = (dir: string, style: string) => `const A = () => <Kb.Box2${dir} style={${style}} />`
+  assert.equal(nooped(inline(' direction="horizontal"', "{flexDirection: 'row', padding: 4}")), inline(' direction="horizontal"', '{padding: 4}'))
+  assert.equal(nooped(inline(' direction="horizontal"', "{padding: 4, flexDirection: 'row'}")), inline(' direction="horizontal"', '{padding: 4}'))
+  assert.equal(nooped(inline('', "{flexDirection: 'column'}")), `const A = () => <Kb.Box2 />`)
+  assert.equal(nooped(inline(' direction="verticalReverse"', "{flexDirection: 'column-reverse'}")), `const A = () => <Kb.Box2 direction="verticalReverse" />`)
+  for (const [dir, style] of [
+    [' direction="vertical"', "{flexDirection: 'row'}"],
+    [' direction={d}', "{flexDirection: 'row'}"],
+    [' direction="horizontal"', "{...base, flexDirection: 'row'}"],
+    [' direction="horizontal"', "{flexDirection: 'column', flexDirection: 'row'}"],
+    [' direction="horizontal" {...p}', "{flexDirection: 'row'}"],
+    [' direction="horizontal" className="c"', "{flexDirection: 'row'}"],
+  ] as const) {
+    assert.deepEqual(noops(inline(dir, style)), [], `${dir} ${style}`)
+  }
+  assert.deepEqual(noops(inline(' direction="horizontal"', "{...Kb.Styles.padding(4), flexDirection: 'row'}")), ['N3:1'])
+  const sheet = (uses: string, decl = 'const', entry = "{flexDirection: 'row', padding: 4}") =>
+    `const A = () => <>${uses}</>\n${decl} styles = Kb.Styles.styleSheetCreate(() => ({x: ${entry}}))`
+  const two = '<Kb.Box2 direction="horizontal" style={styles.x} /><Kb.ClickableBox direction="horizontal" style={styles.x} />'
+  assert.deepEqual(noops(sheet(two)), ['N3:1'])
+  assert.equal(nooped(sheet(two)), sheet(two, 'const', '{padding: 4}'))
+  assert.equal(nooped(sheet(two, 'const', "{flexDirection: 'row'}")), sheet(two, 'const', '{}'))
+  for (const [uses, decl] of [
+    ['<Kb.Box2 direction="horizontal" style={styles.x} /><Kb.Box2 direction="vertical" style={styles.x} />', 'const'],
+    ['<Kb.Box2 direction="horizontal" style={styles.x} /><View style={styles.x} />', 'const'],
+    ['<Kb.Box2 direction="horizontal" style={styles.x} /><Kb.Box2 direction="horizontal" title={styles.x} />', 'const'],
+    ['<Kb.Box2 direction="horizontal" style={styles.x} />{f(styles)}', 'const'],
+    ['<Kb.Box2 direction="horizontal" style={styles.x} />{f(styles[k])}', 'const'],
+    ['<Kb.Box2 direction="horizontal" style={styles.x} />', 'export const'],
+    ['<Kb.Box2 direction="horizontal" style={[styles.x]} />', 'const'],
+  ] as const) {
+    assert.deepEqual(noops(sheet(uses, decl)), [], `${decl} ${uses}`)
+  }
+  const hook = (extra: string, decl = 'const') =>
+    `const A = () => {\n  const styles = useStyles()\n  return <Kb.Box2 direction="horizontal" style={styles.x} />\n}\n${extra}${decl} useStyles = Kb.Styles.createStyleHook(() => ({x: {flexDirection: 'row'}}))`
+  assert.deepEqual(noops(hook('')), ['N3:3'])
+  assert.deepEqual(noops(hook('', 'export const')), [])
+  assert.deepEqual(noops(hook('const B = () => g(useStyles())\n')), [])
+  assert.deepEqual(noops(hook('const B = () => {\n  const s = useStyles()\n  return g(s)\n}\n')), [])
+})
+
+test('N4: an alignSelf prop the box\'s own style overrides on every platform', () => {
+  const sheet = `\nconst styles = Kb.Styles.styleSheetCreate(() => ({x: {alignSelf: 'flex-end'}}))`
+  for (const a of ['alignSelf="flex-start"', 'alignSelf="stretch"', `alignSelf={x ? 'center' : undefined}`]) {
+    const src = `const A = () => <Kb.Box2 ${a} style={styles.x} />${sheet}`
+    assert.deepEqual(noops(src), ['N4:1'], a)
+    assert.equal(nooped(src), `const A = () => <Kb.Box2 style={styles.x} />${sheet}`, a)
+  }
+  assert.deepEqual(noops(`const A = () => <Kb.Box2 alignSelf={f() ? 'center' : undefined} style={styles.x} />${sheet}`), [])
+  assert.deepEqual(noops(`const A = () => <Kb.Box2 alignSelf="center" style={styles.x} {...p} />${sheet}`), [])
+  assert.deepEqual(noops(`const A = () => <Kb.Box2 alignSelf="center" style={Kb.Styles.platformStyles({isMobile: {alignSelf: 'center'}})} />`), [])
 })
