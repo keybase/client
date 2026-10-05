@@ -208,6 +208,7 @@ const box2ClassNames = (p: Box2Props, extra?: string): string => {
       box2_fullWidth: fullWidth,
       box2_horizontal: horizontal,
       box2_no_shrink: noShrink,
+      'box2_pointerEvents_box-none': pointerEvents === 'box-none',
       box2_pointerEvents_none: pointerEvents === 'none',
       box2_relative: relative,
       box2_reverse: reverse,
