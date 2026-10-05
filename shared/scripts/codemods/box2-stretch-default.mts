@@ -31,7 +31,7 @@ import {parse, parseExpression} from '@babel/parser'
 import MagicString from 'magic-string'
 import {execFileSync} from 'child_process'
 import {existsSync, readFileSync, readdirSync, writeFileSync} from 'fs'
-import {basename, dirname, join, relative, resolve} from 'path'
+import {basename, dirname, join, posix, relative, resolve} from 'path'
 import {fileURLToPath} from 'url'
 import {
   callSiteRanges,
@@ -550,7 +550,7 @@ const removalRange = (code: string, attr: babel.types.JSXAttribute) => {
   return {end: attr.end ?? 0, start}
 }
 
-export const cleanupCandidates = (code: string, filename: string): Array<CleanupCandidate> => {
+export const cleanupCandidates = (code: string, filename: string, project?: Project): Array<CleanupCandidate> => {
   let ast: ReturnType<typeof parse>
   try {
     ast = parse(code, {plugins: ['jsx', 'typescript'], sourceFilename: filename, sourceType: 'module'})
@@ -578,16 +578,16 @@ export const cleanupCandidates = (code: string, filename: string): Array<Cleanup
       const parentFullHeight = isTrue(findAttr(parent, 'fullHeight'))
       if (alignSelf) {
         if (direction === 'vertical' && parentFullWidth && isTrue(fullWidth) && alignSelfLiterals.has(stringValue(alignSelf) ?? '')) {
-          out.push({attr: 'alignSelf', line, need: siteGateNeed(path, filename), rule: 'C3', ...removal(alignSelf)})
+          out.push({attr: 'alignSelf', line, need: siteGateNeed(path, filename, project), rule: 'C3', ...removal(alignSelf)})
         }
         return
       }
       const alignItems = findAttr(parent, 'alignItems')
       if ((alignItems && stringValue(alignItems) !== 'stretch') || findAttr(parent, 'centerChildren')) return
       if (direction === 'vertical' && parentFullWidth && fullWidth && isTrue(fullWidth) && !fullHeight) {
-        out.push({attr: 'fullWidth', line, need: siteGateNeed(path, filename), rule: 'C1', ...removal(fullWidth)})
+        out.push({attr: 'fullWidth', line, need: siteGateNeed(path, filename, project), rule: 'C1', ...removal(fullWidth)})
       } else if (direction === 'horizontal' && parentFullHeight && fullHeight && isTrue(fullHeight) && !fullWidth) {
-        out.push({attr: 'fullHeight', line, need: siteGateNeed(path, filename), rule: 'C2', ...removal(fullHeight)})
+        out.push({attr: 'fullHeight', line, need: siteGateNeed(path, filename, project), rule: 'C2', ...removal(fullHeight)})
       }
     },
   })
@@ -1052,35 +1052,69 @@ const git = (cwd: string, args: ReadonlyArray<string>) =>
 // ---------------------------------------------------------------- per-site platforms
 //
 // A call site inside a platform branch can only mount where that branch runs, so it needs coverage
-// only from the gate platforms that stand for those devices. The gate captures desktop and an
-// iPhone; the iPhone stands for every mobile device a site reaches only when the site reaches an
-// iPhone. A site whose mobile devices exclude the iPhone (iPad only, Android only, or iPad and
-// desktop as in `isPhone ? … : <site>`) has devices no capture sees, and is never covered.
+// only from the gate platforms that stand for those devices. The gate captures a Mac and an iPhone;
+// the iPhone stands for every mobile device a site reaches only when the site reaches an iPhone,
+// and the Mac for every desktop only when the site reaches a Mac. A site whose mobile devices
+// exclude the iPhone (iPad only, Android only, or iPad and desktop as in `isPhone ? … : <site>`), or
+// whose desktops exclude the Mac (Linux and Windows window buttons), has devices no capture sees,
+// and is never covered.
 //
 // Branches followed: either arm of a ternary, the right side of && and ||, an if's consequent and
 // alternate, and the statements after `if (test) return|throw` (or after an if whose alternate
 // exits) in the same block. Tests are evaluated per device in three values, so `isMobile && x`
-// narrows and `x` alone does not. Closures (arrows, function expressions, methods) are followed
-// outwards, since one created in a branch only exists on that branch's devices; a function
-// declaration is hoisted above any guard, so it stops the walk. The flags are the platform globals (isMobile, isElectron, isIOS,
-// isAndroid; never when shadowed) and isPhone/isTablet imported from @/constants, its platform
-// module or @/styles, by name or through a namespace (`C.isTablet`, `Kb.Styles.isPhone`).
+// narrows and `x` alone does not; a const whose initializer is such a test reads as its initializer.
+// Closures (arrows, function expressions, methods) are followed outwards, since one created in a
+// branch only exists on that branch's devices; a function declaration is hoisted above any guard, so
+// it stops the walk. The flags are the platform globals (isMobile, isElectron, isIOS, isAndroid;
+// never when shadowed) and isPhone/isTablet/isDarwin/isMac/isLinux/isWindows imported from
+// @/constants, its platform module or @/styles, by name or through a namespace (`C.isTablet`,
+// `Kb.Styles.isPhone`).
+//
+// With a Project, a site also narrows to the devices its enclosing component renders on. Code in a
+// function runs only where something reads that function, so a component (a const, function or
+// class holding the site's outermost function, through object and array literals, JSX and React's
+// memo, forwardRef and lazy) reaches the union of the devices of every read of its binding: each
+// read is a site of its own, narrowed the same way, and an exported binding adds every read of the
+// export across the project (imports, namespace members, re-exports, dynamic import() and require()).
+// A component with no reader in the project (an entry point) reaches every device, as does one held
+// in anything else (a call that may invoke it at load time, a destructuring). Reads in type
+// positions, closing tags and property writes (`X.displayName = …`) run nothing. Recursion settles
+// at the least fixpoint: a read inside the component itself adds nothing.
 
-type Device = 'desktop' | 'iPhone' | 'iPad' | 'android'
+type Device = 'mac' | 'linux' | 'windows' | 'iPhone' | 'iPad' | 'android'
+const desktopDevices: ReadonlyArray<Device> = ['mac', 'linux', 'windows']
 const mobileDevices: ReadonlyArray<Device> = ['iPhone', 'iPad', 'android']
-const allDevices: ReadonlyArray<Device> = ['desktop', ...mobileDevices]
-// constants/platform.tsx: isTablet is an iPad; isPhone is any other mobile device
+const allDevices: ReadonlyArray<Device> = [...desktopDevices, ...mobileDevices]
+// constants/platform.tsx: isTablet is an iPad; isPhone is any other mobile device; isDarwin and isMac
+// are a Mac desktop, never iOS
 const flagDevices: Readonly<Record<string, ReadonlyArray<Device>>> = {
   isAndroid: ['android'],
-  isElectron: ['desktop'],
+  isDarwin: ['mac'],
+  isElectron: desktopDevices,
   isIOS: ['iPhone', 'iPad'],
+  isLinux: ['linux'],
+  isMac: ['mac'],
   isMobile: mobileDevices,
   isPhone: ['iPhone', 'android'],
   isTablet: ['iPad'],
+  isWindows: ['windows'],
 }
 const globalFlags = new Set(['isMobile', 'isElectron', 'isIOS', 'isAndroid'])
-const moduleFlags = new Set(['isPhone', 'isTablet'])
+const moduleFlags = new Set(['isPhone', 'isTablet', 'isDarwin', 'isMac', 'isLinux', 'isWindows'])
 const flagModules = ['constants', 'constants/index', 'constants/platform', 'styles', 'styles/index']
+
+// Reviewed reachability the analysis cannot prove, by file under shared/. `devices` narrows every
+// site in the file; `unreachable` names why the gate never renders the file (a site there is
+// reported as unreachable by the gate, never as covered).
+export const platformOnly: Readonly<Record<string, {devices: ReadonlyArray<Device>; reason: string}>> = {
+  'fs/banner/system-file-manager-integration-banner/kext-permission-popup.tsx': {
+    devices: desktopDevices,
+    reason: 'the kextPermission route is pushed by name only from the desktop FUSE install (fs/common/sfmi.tsx, settings/files)',
+  },
+}
+export const gateUnreachable: Readonly<Record<string, string>> = {
+  'settings/make-icons.page.tsx': 'a developer tool that renders icon sheets for export, not an app screen',
+}
 
 const isFlagModule = (source: string, filename: string) => {
   if (source.startsWith('@/')) return flagModules.includes(source.slice(2))
@@ -1091,7 +1125,7 @@ const isFlagModule = (source: string, filename: string) => {
 
 const fileDevices = (filename: string): ReadonlyArray<Device> =>
   filename.endsWith('.desktop.tsx')
-    ? ['desktop']
+    ? desktopDevices
     : filename.endsWith('.native.tsx')
       ? mobileDevices
       : filename.endsWith('.ios.tsx')
@@ -1133,9 +1167,11 @@ export const truthOn = (
   scope: babel.NodePath['scope'],
   e: babel.types.Node,
   device: Device,
-  filename: string
+  filename: string,
+  project?: Project,
+  depth = 0
 ): boolean | undefined => {
-  const recur = (x: babel.types.Node) => truthOn(scope, x, device, filename)
+  const recur = (x: babel.types.Node) => truthOn(scope, x, device, filename, project, depth)
   if (t.isParenthesizedExpression(e) || t.isTSAsExpression(e) || t.isTSNonNullExpression(e)) return recur(e.expression)
   if (t.isBooleanLiteral(e)) return e.value
   if (t.isUnaryExpression(e, {operator: '!'})) {
@@ -1149,7 +1185,16 @@ export const truthOn = (
     return l === true || r === true ? true : l === false && r === false ? false : undefined
   }
   const flag = flagOf(scope, e, filename)
-  return flag ? flagDevices[flag]!.includes(device) : undefined
+  if (flag) return flagDevices[flag]!.includes(device)
+  if (depth >= 8) return undefined
+  // a const holds its initializer's value, in this module or (with a project) the one exporting it
+  const b = t.isIdentifier(e) ? scope.getBinding(e.name) : undefined
+  const decl = b?.kind === 'const' ? b.path : undefined
+  if (decl?.isVariableDeclarator() && t.isIdentifier(decl.node.id) && decl.node.init) {
+    return truthOn(decl.scope, decl.node.init, device, filename, project, depth + 1)
+  }
+  const found = project && indexOf(project).importedConst(scope, e, filename)
+  return found ? truthOn(found.scope, found.init, device, join(project.root, found.rel), project, depth + 1) : undefined
 }
 
 // Whether a statement never completes normally, so the statements after it in its block do not run
@@ -1162,11 +1207,16 @@ const exits = (s: babel.types.Node | null | undefined): boolean => {
   return t.isBlockStatement(s) && exits(s.body[s.body.length - 1])
 }
 
+// The sources of a project: every .ts/.tsx/.js file under shared/, by path relative to `root`.
+export type Project = {root: string; files: ReadonlyMap<string, string>}
+
 // The devices a call site can mount on.
-export const siteDevices = (path: babel.NodePath, filename: string): Array<Device> => {
-  let devices = [...fileDevices(filename)]
+export const siteDevices = (path: babel.NodePath, filename: string, project?: Project): Array<Device> => {
+  const rel = project ? relative(project.root, filename) : undefined
+  const reviewed = rel === undefined ? undefined : platformOnly[rel]?.devices
+  let devices = fileDevices(filename).filter(d => !reviewed || reviewed.includes(d))
   const narrow = (test: babel.types.Node, scope: babel.NodePath['scope'], when: boolean) => {
-    devices = devices.filter(d => truthOn(scope, test, d, filename) !== !when)
+    devices = devices.filter(d => truthOn(scope, test, d, filename, project) !== !when)
   }
   let last: babel.NodePath = path
   let p: babel.NodePath | null = path.parentPath
@@ -1187,7 +1237,396 @@ export const siteDevices = (path: babel.NodePath, filename: string): Array<Devic
     last = p
     p = p.parentPath
   }
-  return devices
+  if (!project || rel === undefined || !devices.length || !p) return devices
+  const reach = indexOf(project).holderDevices(p, path, rel)
+  return reach ? devices.filter(d => reach.includes(d)) : devices
+}
+
+// ------------------------------------------------ project reachability
+
+type Binding = NonNullable<ReturnType<babel.NodePath['scope']['getBinding']>>
+type ConstInit = {init: babel.types.Expression; rel: string; scope: babel.NodePath['scope']}
+type Edge =
+  | {kind: 'import'; from: string; imported: string; local: string}
+  | {kind: 'namespace'; from: string; local: string}
+  | {kind: 'reexport'; from: string; imported: string; exported: string}
+  | {kind: 'all'; from: string}
+  | {kind: 'namespace-export'; from: string; exported: string}
+  | {kind: 'dynamic'; from: string; start: number}
+
+const parseModule = (code: string, filename: string) =>
+  parse(code, {plugins: ['jsx', 'typescript'], sourceFilename: filename, sourceType: 'module'})
+
+// Every file a module specifier may load, platform variants included: an import of `./x` reads
+// x.desktop.tsx on desktop and x.native.tsx on a phone, so it is a read of both.
+const specExts = ['', '.tsx', '.ts', '.js', '.desktop.tsx', '.native.tsx', '.ios.tsx', '.android.tsx', '.desktop.ts', '.native.ts']
+export const resolveSpecifier = (files: ReadonlyMap<string, string>, fromRel: string, source: string) => {
+  let base: string
+  if (source.startsWith('@/')) base = posix.normalize(source.slice(2))
+  else if (source.startsWith('.')) base = posix.normalize(posix.join(posix.dirname(fromRel), source))
+  else return []
+  if (base.startsWith('..')) return []
+  return [...specExts.map(e => base + e), ...specExts.slice(1).map(e => `${base}/index${e}`)].filter(f => files.has(f))
+}
+
+const specName = (n: babel.types.Identifier | babel.types.StringLiteral) => (t.isIdentifier(n) ? n.name : n.value)
+
+// React's memo, forwardRef and lazy call their argument only when the component they return renders.
+const deferringCall = (call: babel.NodePath<babel.types.CallExpression>) => {
+  const callee = call.node.callee
+  const fromReact = (name: string) => importOf(call.scope.getBinding(name)?.path)?.decl.source.value === 'react'
+  const wrappers = new Set(['memo', 'forwardRef', 'lazy'])
+  if (t.isIdentifier(callee)) {
+    const imp = importOf(call.scope.getBinding(callee.name)?.path)
+    return (
+      !!imp &&
+      imp.decl.source.value === 'react' &&
+      t.isImportSpecifier(imp.spec) &&
+      wrappers.has(specName(imp.spec.imported))
+    )
+  }
+  return (
+    t.isMemberExpression(callee) &&
+    !callee.computed &&
+    t.isIdentifier(callee.object) &&
+    t.isIdentifier(callee.property) &&
+    wrappers.has(callee.property.name) &&
+    fromReact(callee.object.name)
+  )
+}
+
+// Whether a function held at `child` stays uncalled while its parent `q` evaluates, and reachable
+// only through what holds `q`.
+const holdsUncalled = (q: babel.NodePath, child: babel.NodePath) => {
+  if (q.isObjectProperty() || q.isClassProperty()) return child.key === 'value'
+  if (q.isConditionalExpression()) return child.key === 'consequent' || child.key === 'alternate'
+  if (q.isCallExpression()) return child.listKey === 'arguments' && deferringCall(q)
+  return (
+    q.isObjectExpression() ||
+    q.isArrayExpression() ||
+    q.isSpreadElement() ||
+    q.isLogicalExpression() ||
+    q.isParenthesizedExpression() ||
+    q.isTSAsExpression() ||
+    q.isTSSatisfiesExpression() ||
+    q.isTSNonNullExpression() ||
+    q.isClassBody() ||
+    q.isClassExpression() ||
+    q.isJSXExpressionContainer() ||
+    q.isJSXAttribute() ||
+    q.isJSXSpreadAttribute() ||
+    q.isJSXOpeningElement() ||
+    q.isJSXElement() ||
+    q.isJSXFragment()
+  )
+}
+
+class ProjectIndex {
+  private programs = new Map<string, babel.NodePath<babel.types.Program>>()
+  private edges: Map<string, Array<Edge>> | undefined
+  private bindingMemo = new Map<Binding, ReadonlyArray<Device>>()
+  private exportMemo = new Map<string, ReadonlyArray<Device>>()
+  private inProgress = new Map<unknown, number>()
+  private lowest = Infinity
+
+  private project: Project
+
+  constructor(project: Project) {
+    this.project = project
+  }
+
+  private program(rel: string) {
+    let prog = this.programs.get(rel)
+    if (!prog) {
+      const ast = parseModule(this.project.files.get(rel) ?? '', join(this.project.root, rel))
+      babel.traverse(ast as babel.types.File, {
+        Program(p) {
+          prog = p
+          p.stop()
+        },
+      })
+      this.programs.set(rel, prog!)
+    }
+    return prog!
+  }
+
+  // The initializer of `export const <name> = …` that a module exports as `name`, through
+  // re-exports, or undefined when it is anything else or several files may provide it.
+  private exportedConst(rel: string, name: string, depth = 0): ConstInit | undefined {
+    if (depth > 8) return undefined
+    const follow = (source: string, imported: string) => {
+      const targets = resolveSpecifier(this.project.files, rel, source)
+      return targets.length === 1 ? this.exportedConst(targets[0]!, imported, depth + 1) : undefined
+    }
+    const prog = this.program(rel)
+    const local = (l: string): ConstInit | undefined => {
+      const b = prog.scope.getBinding(l)
+      if (!b) return undefined
+      const imp = importOf(b.path)
+      if (imp) return t.isImportSpecifier(imp.spec) ? follow(imp.decl.source.value, specName(imp.spec.imported)) : undefined
+      const d = b.kind === 'const' ? b.path : undefined
+      return d?.isVariableDeclarator() && t.isIdentifier(d.node.id) && d.node.init ? {init: d.node.init, rel, scope: d.scope} : undefined
+    }
+    for (const s of prog.get('body')) {
+      if (s.isExportNamedDeclaration()) {
+        const decl = s.node.declaration
+        if (t.isVariableDeclaration(decl) && decl.declarations.some(d => t.isIdentifier(d.id, {name}))) return local(name)
+        for (const spec of s.node.specifiers) {
+          if (!t.isExportSpecifier(spec) || specName(spec.exported) !== name) continue
+          return s.node.source ? follow(s.node.source.value, spec.local.name) : local(spec.local.name)
+        }
+      }
+    }
+    for (const s of prog.node.body) {
+      if (t.isExportAllDeclaration(s) && name !== 'default') {
+        const found = follow(s.source.value, name)
+        if (found) return found
+      }
+    }
+    return undefined
+  }
+
+  // The const a test operand imports from a project module: `x` from `import {x} from …`, or
+  // `M.x` from `import * as M from …`.
+  importedConst(scope: babel.NodePath['scope'], e: babel.types.Node, filename: string): ConstInit | undefined {
+    const rel = relative(this.project.root, filename)
+    const from = (local: string) => importOf(scope.getBinding(local)?.path)
+    let imp: ReturnType<typeof importOf>
+    let name: string
+    if (t.isIdentifier(e)) {
+      imp = from(e.name)
+      if (!imp || !t.isImportSpecifier(imp.spec)) return undefined
+      name = specName(imp.spec.imported)
+    } else if (t.isMemberExpression(e) && !e.computed && t.isIdentifier(e.object) && t.isIdentifier(e.property)) {
+      imp = from(e.object.name)
+      if (!imp || !t.isImportNamespaceSpecifier(imp.spec)) return undefined
+      name = e.property.name
+    } else return undefined
+    const targets = resolveSpecifier(this.project.files, rel, imp.decl.source.value)
+    return targets.length === 1 ? this.exportedConst(targets[0]!, name) : undefined
+  }
+
+  // Who reads each module, by the module's path.
+  private importers(rel: string): ReadonlyArray<Edge> {
+    if (!this.edges) {
+      const edges = new Map<string, Array<Edge>>()
+      const add = (fromRel: string, source: string, e: Edge) => {
+        for (const target of resolveSpecifier(this.project.files, fromRel, source)) {
+          edges.set(target, [...(edges.get(target) ?? []), e])
+        }
+      }
+      for (const [from, src] of this.project.files) {
+        const ast = parseModule(src, join(this.project.root, from))
+        for (const s of ast.program.body) {
+          if (t.isImportDeclaration(s) && s.importKind !== 'type') {
+            for (const spec of s.specifiers) {
+              if (t.isImportNamespaceSpecifier(spec)) add(from, s.source.value, {from, kind: 'namespace', local: spec.local.name})
+              else if (!(t.isImportSpecifier(spec) && spec.importKind === 'type')) {
+                const imported = t.isImportDefaultSpecifier(spec) ? 'default' : specName(spec.imported)
+                add(from, s.source.value, {from, imported, kind: 'import', local: spec.local.name})
+              }
+            }
+          } else if (t.isExportNamedDeclaration(s) && s.source && s.exportKind !== 'type') {
+            for (const spec of s.specifiers) {
+              const exported = specName(spec.exported)
+              if (t.isExportNamespaceSpecifier(spec)) add(from, s.source.value, {exported, from, kind: 'namespace-export'})
+              else if (t.isExportSpecifier(spec) && spec.exportKind !== 'type') {
+                add(from, s.source.value, {exported, from, imported: specName(spec.local), kind: 'reexport'})
+              }
+            }
+          } else if (t.isExportAllDeclaration(s) && s.exportKind !== 'type') {
+            add(from, s.source.value, {from, kind: 'all'})
+          }
+        }
+        if (!/\b(import|require)\s*\(/.test(src)) continue
+        this.program(from).traverse({
+          CallExpression(c) {
+            const [arg] = c.node.arguments
+            const dynamic =
+              t.isImport(c.node.callee) ||
+              (t.isIdentifier(c.node.callee, {name: 'require'}) && !c.scope.getBinding('require'))
+            if (dynamic && t.isStringLiteral(arg)) add(from, arg.value, {from, kind: 'dynamic', start: c.node.start ?? -1})
+          },
+        })
+      }
+      this.edges = edges
+    }
+    return this.edges.get(rel) ?? []
+  }
+
+  // Memoized with least-fixpoint recursion: a key read again while it is being computed adds
+  // nothing, and a result that leaned on an outer key still in progress is not kept.
+  private settle(memo: Map<never, ReadonlyArray<Device>>, key: unknown, compute: () => ReadonlyArray<Device>) {
+    const m = memo as Map<unknown, ReadonlyArray<Device>>
+    const known = m.get(key)
+    if (known) return known
+    const at = this.inProgress.get(key)
+    if (at !== undefined) {
+      this.lowest = Math.min(this.lowest, at)
+      return []
+    }
+    const depth = this.inProgress.size
+    this.inProgress.set(key, depth)
+    const outer = this.lowest
+    this.lowest = Infinity
+    const out = compute()
+    this.inProgress.delete(key)
+    if (this.lowest >= depth) m.set(key, out)
+    this.lowest = Math.min(outer, this.lowest >= depth ? Infinity : this.lowest)
+    return out
+  }
+
+  private union(parts: Iterable<ReadonlyArray<Device>>) {
+    const out = new Set<Device>()
+    for (const p of parts) for (const d of p) out.add(d)
+    return allDevices.filter(d => out.has(d))
+  }
+
+  // The devices on which code reads a binding.
+  bindingDevices(b: Binding, rel: string): ReadonlyArray<Device> {
+    return this.settle(this.bindingMemo as Map<never, ReadonlyArray<Device>>, b, () => {
+      const parts: Array<ReadonlyArray<Device>> = []
+      const decl = b.path.parentPath
+      if ((b.path.isFunctionDeclaration() || b.path.isClassDeclaration()) && decl?.isExportDefaultDeclaration()) {
+        parts.push(this.exportDevices(rel, 'default'))
+      }
+      for (const r of b.referencePaths) {
+        const parent = r.parentPath
+        if (parent?.isJSXClosingElement()) continue
+        if (r.findParent(x => x.isTSType() || x.isTSTypeAliasDeclaration() || x.isTSInterfaceDeclaration())) continue
+        if (parent?.isMemberExpression() && r.key === 'object' && parent.parentPath.isAssignmentExpression() && parent.key === 'left') {
+          continue
+        }
+        if (r.isExportNamedDeclaration()) parts.push(this.exportDevices(rel, b.identifier.name))
+        else if (parent?.isExportSpecifier()) parts.push(this.exportDevices(rel, specName(parent.node.exported)))
+        else if (parent?.isExportDefaultDeclaration()) parts.push(this.exportDevices(rel, 'default'))
+        else parts.push(siteDevices(r, join(this.project.root, rel), this.project))
+      }
+      return this.union(parts)
+    })
+  }
+
+  // The devices on which code reads one member of a namespace import, or the namespace whole.
+  private namespaceDevices(b: Binding, rel: string, name: string) {
+    const parts: Array<ReadonlyArray<Device>> = []
+    for (const r of b.referencePaths) {
+      const parent = r.parentPath
+      if (r.findParent(x => x.isTSType())) continue
+      const member =
+        (parent?.isMemberExpression() && r.key === 'object' && !parent.node.computed && t.isIdentifier(parent.node.property)
+          ? parent.node.property.name
+          : undefined) ??
+        (parent?.isJSXMemberExpression() && r.key === 'object' ? parent.node.property.name : undefined)
+      if (member !== undefined && member !== name) continue
+      if (parent?.parentPath?.isJSXClosingElement()) continue
+      parts.push(siteDevices(member === undefined ? r : parent!, join(this.project.root, rel), this.project))
+    }
+    return this.union(parts)
+  }
+
+  // The devices on which code reads a module's export.
+  exportDevices(rel: string, name: string): ReadonlyArray<Device> {
+    return this.settle(this.exportMemo as Map<never, ReadonlyArray<Device>>, `${rel}#${name}`, () => {
+      const edges = this.importers(rel)
+      if (!edges.length) return allDevices
+      const parts: Array<ReadonlyArray<Device>> = []
+      for (const e of edges) {
+        const binding = (local: string) => this.program(e.from).scope.getBinding(local)
+        if (e.kind === 'import') {
+          if (e.imported !== name) continue
+          const b = binding(e.local)
+          parts.push(b ? this.bindingDevices(b, e.from) : allDevices)
+        } else if (e.kind === 'namespace') {
+          const b = binding(e.local)
+          parts.push(b ? this.namespaceDevices(b, e.from, name) : allDevices)
+        } else if (e.kind === 'reexport') {
+          if (e.imported === name) parts.push(this.exportDevices(e.from, e.exported))
+        } else if (e.kind === 'all') {
+          if (name !== 'default') parts.push(this.exportDevices(e.from, name))
+        } else if (e.kind === 'dynamic') {
+          let call: babel.NodePath | undefined
+          this.program(e.from).traverse({
+            CallExpression(c) {
+              if (c.node.start === e.start) {
+                call = c
+                c.stop()
+              }
+            },
+          })
+          parts.push(call ? siteDevices(call, join(this.project.root, e.from), this.project) : allDevices)
+        } else {
+          parts.push(this.exportDevices(e.from, e.exported))
+        }
+      }
+      return this.union(parts)
+    })
+  }
+
+  // The devices on which the component holding a site renders, or undefined when that is not known.
+  // `stop` is where siteDevices' walk ended: a function declaration, or the program.
+  holderDevices(stop: babel.NodePath, site: babel.NodePath, rel: string): ReadonlyArray<Device> | undefined {
+    if (stop.isFunctionDeclaration()) {
+      const id = stop.node.id
+      if (!id) return stop.parentPath.isExportDefaultDeclaration() ? this.exportDevices(rel, 'default') : undefined
+      const b = stop.parentPath.scope.getBinding(id.name)
+      return b ? this.bindingDevices(b, rel) : undefined
+    }
+    let fn: babel.NodePath | undefined
+    for (let q: babel.NodePath | null = site; q && !q.isProgram(); q = q.parentPath) if (q.isFunction()) fn = q
+    // code outside any function runs when its module loads
+    if (!fn) return undefined
+    let child = fn
+    for (let q = fn.parentPath; q && !q.isProgram(); q = q.parentPath) {
+      if (q.isVariableDeclarator()) {
+        if (child.key !== 'init' || !t.isIdentifier(q.node.id)) return undefined
+        const b = q.scope.getBinding(q.node.id.name)
+        return b ? this.bindingDevices(b, rel) : undefined
+      }
+      if (q.isClassDeclaration()) {
+        if (q.node.id) {
+          const b = q.parentPath.scope.getBinding(q.node.id.name)
+          return b ? this.bindingDevices(b, rel) : undefined
+        }
+        return q.parentPath.isExportDefaultDeclaration() ? this.exportDevices(rel, 'default') : undefined
+      }
+      if (q.isExportDefaultDeclaration()) return this.exportDevices(rel, 'default')
+      if (!holdsUncalled(q, child)) return undefined
+      child = q
+    }
+    return undefined
+  }
+}
+
+const indexes = new WeakMap<Project, ProjectIndex>()
+const indexOf = (project: Project) => {
+  let ix = indexes.get(project)
+  if (!ix) {
+    ix = new ProjectIndex(project)
+    indexes.set(project, ix)
+  }
+  return ix
+}
+
+// A project read from the tree at a commit.
+export const projectAt = (root: string, sha: string): Project => {
+  const rels = git(root, ['ls-tree', '-r', '--name-only', sha, '--', '.'])
+    .split('\n')
+    .filter(f => /\.(tsx?|js)$/.test(f) && !f.endsWith('.d.ts') && !f.split('/').some(seg => skipDirs.has(seg)))
+  const files = new Map<string, string>()
+  const out = execFileSync('git', ['cat-file', '--batch'], {
+    cwd: root,
+    input: rels.map(r => `${sha}:./${r}`).join('\n') + '\n',
+    maxBuffer: 1024 * 1024 * 1024,
+  })
+  let at = 0
+  for (const rel of rels) {
+    const nl = out.indexOf(10, at)
+    const header = out.subarray(at, nl).toString('utf8').split(' ')
+    const size = Number(header[2])
+    files.set(rel, out.subarray(nl + 1, nl + 1 + size).toString('utf8'))
+    at = nl + 1 + size + 1
+  }
+  return {files, root}
 }
 
 // The gate platforms a site needs coverage from, or why no coverage can stand for it.
@@ -1195,17 +1634,24 @@ export type GateNeed = {platforms: Array<RunPlatform>} | {why: string}
 
 export const gateNeed = (devices: ReadonlyArray<Device>): GateNeed => {
   if (!devices.length) return {why: 'reachable on no device'}
-  const mobile = devices.some(d => d !== 'desktop')
-  if (mobile && !devices.includes('iPhone')) {
-    return {why: `only reachable on ${devices.filter(d => d !== 'desktop').join(' or ')} among mobile devices`}
-  }
+  const mobile = devices.filter(d => mobileDevices.includes(d))
+  const desktop = devices.filter(d => desktopDevices.includes(d))
+  const unseen = [
+    ...(mobile.length && !mobile.includes('iPhone') ? [`${mobile.join(' or ')} among mobile devices`] : []),
+    ...(desktop.length && !desktop.includes('mac') ? [`${desktop.join(' or ')} among desktops`] : []),
+  ]
+  if (unseen.length) return {why: `unreachable by the gate: only on ${unseen.join(', and ')}`}
   const platforms: Array<RunPlatform> = []
-  if (devices.includes('desktop')) platforms.push('desktop')
-  if (mobile) platforms.push('ios')
+  if (desktop.length) platforms.push('desktop')
+  if (mobile.length) platforms.push('ios')
   return {platforms}
 }
 
-export const siteGateNeed = (path: babel.NodePath, filename: string) => gateNeed(siteDevices(path, filename))
+export const siteGateNeed = (path: babel.NodePath, filename: string, project?: Project): GateNeed => {
+  const rel = project ? relative(project.root, filename) : undefined
+  const unreachable = rel === undefined ? undefined : gateUnreachable[rel]
+  return unreachable ? {why: `unreachable by the gate: ${unreachable}`} : gateNeed(siteDevices(path, filename, project))
+}
 
 // The gate platforms whose base coverage misses a call site. Coverage ids are base-tree
 // `file:line`, carried forward through `hunks` (the base..tree diff of that file).
@@ -1295,14 +1741,12 @@ const runCleanup = (
   const uncovered: Array<Row & {why: string}> = []
   const before: Record<CleanupRule, number> = {C1: 0, C2: 0, C3: 0}
   const after: Record<CleanupRule, number> = {C1: 0, C2: 0, C3: 0}
-  const tracked = git(root, ['ls-tree', '-r', '--name-only', atSha, '--', '.'])
-    .split('\n')
-    .filter(f => f.endsWith('.tsx') && !f.split('/').some(seg => skipDirs.has(seg)))
-    .sort()
+  const project = projectAt(root, atSha)
+  const tracked = [...project.files.keys()].filter(f => f.endsWith('.tsx')).sort()
   for (const rel of tracked) {
     const file = join(root, rel)
-    const src = git(root, ['show', `${atSha}:./${rel}`])
-    const cands = cleanupCandidates(src, file)
+    const src = project.files.get(rel)!
+    const cands = cleanupCandidates(src, file, project)
     if (!cands.length) continue
     const ranges = callSiteRanges(src)
     const keep: Array<CleanupCandidate> = []
@@ -1349,7 +1793,7 @@ export type U4Result = {sites: Array<U4Site>; unusable: Array<Unresolved>}
 
 const collapse = (s: string) => s.replace(/\s+/g, ' ').trim()
 
-export const u4Candidates = (code: string, filename: string): U4Result => {
+export const u4Candidates = (code: string, filename: string, project?: Project): U4Result => {
   const sites: Array<U4Site> = []
   const unusable: Array<Unresolved> = []
   let ast: ReturnType<typeof parse>
@@ -1376,7 +1820,7 @@ export const u4Candidates = (code: string, filename: string): U4Result => {
       const test = t.isJSXExpressionContainer(v) && t.isConditionalExpression(v.expression) ? v.expression.test : undefined
       if (node.attributes.some(a => t.isJSXSpreadAttribute(a))) unusable.push({line, reason: 'child has a spread'})
       else if (test && !pureTest(test)) unusable.push({line, reason: 'conditional pin test may have side effects'})
-      else sites.push({line, need: siteGateNeed(path, filename), nth, tag, ...cut})
+      else sites.push({line, need: siteGateNeed(path, filename, project), nth, tag, ...cut})
     },
   })
   return {sites: sites.sort((a, b) => a.start - b.start), unusable}
@@ -1436,13 +1880,11 @@ export const planU4 = (root: string, opts: {base: string; at: string; skips: Rea
   for (const [p, h] of repoHunks) baseHunks.set(relative('shared', p), h)
   const plan: U4Plan = {base: sha, errors: [], files: [], kept: [], removed: [], uncovered: [], unusable: []}
   const skipFiles = new Set(opts.skips.map(s => s.rel))
-  const tracked = git(root, ['ls-tree', '-r', '--name-only', atSha, '--', '.'])
-    .split('\n')
-    .filter(f => f.endsWith('.tsx') && !f.split('/').some(seg => skipDirs.has(seg)))
-    .sort()
+  const project = projectAt(root, atSha)
+  const tracked = [...project.files.keys()].filter(f => f.endsWith('.tsx')).sort()
   for (const rel of tracked) {
-    const src = git(root, ['show', `${atSha}:./${rel}`])
-    const r = u4Candidates(src, join(root, rel))
+    const src = project.files.get(rel)!
+    const r = u4Candidates(src, join(root, rel), project)
     skipFiles.delete(rel)
     plan.unusable.push(...r.unusable.map(u => ({reason: u.reason, site: `${rel}:${u.line}`})))
     const {errors, kept} = matchU4Skips(rel, r.sites, opts.skips)
