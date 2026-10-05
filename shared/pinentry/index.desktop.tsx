@@ -2,6 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import DragHeader from '../desktop/remote/drag-header.desktop'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 export type Props = {
   onSubmit: (password: string) => void
@@ -35,7 +36,7 @@ const Pinentry = (props: Props) => {
   const isPaperKey = props.type === T.RPCGen.PassphraseType.paperKey
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} testID={TestIDs.PINENTRY}>
       <DragHeader icon={false} title="" onClose={props.onCancel} windowDragging={true} />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inner}>
         <Kb.Text type="Body" center={true}>

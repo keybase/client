@@ -3,6 +3,7 @@ import type * as T from '@/constants/types'
 import {openURL as openUrl} from '@/util/misc'
 import {useColorScheme} from 'react-native'
 import Bio from './bio'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {assertionColorToColor, assertionColorToTextColor, stateToIcon} from './model'
 
 export type Props = {
@@ -258,7 +259,14 @@ const Tracker = (props: Props) => {
         </Kb.Box2>
       </Kb.ScrollView>
       {!!buttons.length && (
-        <Kb.Box2 alignSelf="center" gap="small" centerChildren={true} direction="horizontal" style={styles.buttons}>
+        <Kb.Box2
+          alignSelf="center"
+          gap="small"
+          centerChildren={true}
+          direction="horizontal"
+          style={styles.buttons}
+          testID={TestIDs.TRACKER_BUTTONS}
+        >
           {buttons}
         </Kb.Box2>
       )}

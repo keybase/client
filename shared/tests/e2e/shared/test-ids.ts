@@ -196,6 +196,17 @@ export const CRYPTO_RECIPIENTS    = 'crypto-recipients'
 // A desktop floating menu (message "..." menu, header menus); mobile menus are bottom sheets
 export const FLOATING_MENU = 'floating-menu'
 
+// The desktop app's other windows (desktop/remote)
+export const MENUBAR_MENU_BUTTON = 'menubar-menu-button'
+// a folder's row in the widget's recent files, there once its edit history has loaded
+export const MENUBAR_TLF_ROW = 'menubar-tlf-row'
+export const PINENTRY = 'pinentry'
+// the tracker popup's buttons, there once the identify has a result (for yourself, at once)
+export const TRACKER_BUTTONS = 'tracker-buttons'
+export const UNLOCK_FOLDERS_DEVICES = 'unlock-folders-devices'
+export const UNLOCK_FOLDERS_PAPER_KEY_BUTTON = 'unlock-folders-paper-key-button'
+export const UNLOCK_FOLDERS_PAPER_KEY_INPUT = 'unlock-folders-paper-key-input'
+
 // Common — keep value matching existing testID="backButton" in .maestro subflows
 export const COMMON_BACK_BUTTON = 'backButton'
 // The X on a desktop modal route. Needed because a page-wide search for the

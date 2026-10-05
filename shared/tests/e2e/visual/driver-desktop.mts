@@ -1,15 +1,16 @@
 // Captures tour entries from the running dev Electron app over CDP. Navigation goes through the dev
-// global DEBUGRouter2 only; the driver never clicks anything that changes account state, and never
-// closes the browser (that quits Electron).
+// global DEBUGRouter2 only, and the app's other windows open through the main window's preload
+// functions and remote actions (openWindow); the driver never clicks anything that changes account
+// state, and never closes the browser (that quits Electron).
 import {execFileSync} from 'child_process'
 import * as path from 'path'
 import {fileURLToPath} from 'url'
-import {chromium, type Browser, type CDPSession, type Page} from '@playwright/test'
+import {chromium, type Browser, type BrowserContext, type CDPSession, type Page} from '@playwright/test'
 import {findMainPage, checkRendererAfterReload} from '../electron/helpers/connect.ts'
 import {pngEqual, type Rect} from './compare.mts'
-import {resolveParams} from './resolve.mts'
+import {resolveParams, resolveValue} from './resolve.mts'
 import {VISUAL_CAPTURE_ARGS, VISUAL_VIEWPORT} from './electron-args.ts'
-import type {Theme, TourEntry, SetupStep} from './tour-types.ts'
+import type {RemoteWindow, Theme, TourEntry, SetupStep, WindowSize} from './tour-types.ts'
 
 export type Capture = {
   png: Buffer
@@ -40,7 +41,8 @@ export const desktopCleanupCommands = (shared: string): Array<string> => [
 ]
 
 const SHARED_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
-const VIEWPORT = {deviceScaleFactor: 2, ...VISUAL_VIEWPORT}
+const DEVICE_SCALE_FACTOR = 2
+const VIEWPORT = {deviceScaleFactor: DEVICE_SCALE_FACTOR, ...VISUAL_VIEWPORT}
 const CONNECT_MS = 5_000
 const EVAL_MS = 5_000
 const RESET_MS = 5_000
@@ -159,11 +161,21 @@ type PageWindow = {
 type DateGlobals = {Date: DateConstructor; __kbVisualRealDate?: DateConstructor; __kbVisualNow?: number}
 type WaitingStore = {getState: () => {counts: Map<string, number>}}
 type Coverage = {seq: () => number; mountedSince: (seq: number) => Array<string>; mounted: () => Array<string>}
+type ConfigStore = {getState: () => {windowShownCount: Map<string, number>}}
+// The preload's functions (desktop/renderer/preload.desktop.tsx) the driver calls in the main window.
+type PreloadFunctions = {
+  closeRenderer: (o: {windowComponent: string; windowParam: string}) => void
+  getRemoteProps: (windowComponent: string, windowParam: string) => Promise<string>
+  mainWindowDispatch: (action: {type: string; payload: object}) => void
+  makeRenderer: (o: {windowComponent: string; windowOpts: object; windowParam: string}) => void
+  rendererNewProps: (o: {propsStr: string; windowComponent: string; windowParam: string}) => void
+}
 type DevGlobals = {
   DEBUGRouter2?: Router
   DEBUGNavigator?: {getRootState: () => NavState | undefined}
   __ZUSTAND_HMR__?: Map<string, unknown>
   __kbVisualCoverage?: Coverage
+  _fromPreload?: {functions: PreloadFunctions}
 }
 
 // Where the router is: the current tab, and whether that tab is at its root (its stack holds one
@@ -299,9 +311,9 @@ const stillVideos = async (page: Page) =>
     'pausing autoplay videos on their first frame'
   )
 
-// Nothing in flight in the app's waiting store (the keys its RPC loaders hold while they fetch),
-// and no marked loading indicator on screen.
-const waitForNoLoading = async (page: Page) => {
+// Nothing in flight in the app's waiting store (the keys its RPC loaders hold while they fetch; the
+// main window makes every RPC, a remote window's too), and no marked loading indicator on `shown`.
+const waitForNoLoading = async (page: Page, shown: Page = page) => {
   let busy: Array<string> = []
   try {
     await waitForQuiet('the waiting store to be idle', READY_MS, IDLE_QUIET_MS, async () => {
@@ -321,7 +333,7 @@ const waitForNoLoading = async (page: Page) => {
   }
   for (const sel of LOADING_SELECTORS) {
     await waitFor(`no visible ${sel}`, READY_MS, async () => {
-      const all = await page.locator(sel).all()
+      const all = await shown.locator(sel).all()
       for (const l of all) if (await l.isVisible()) return false
       return true
     })
@@ -390,25 +402,159 @@ const coverageSince = async (page: Page, seq: number | null) =>
 // Electron implements neither Browser.getWindowForTarget nor Browser.setWindowBounds, so the
 // viewport and pixel ratio are emulated: captures don't depend on the window size or display the
 // user left. The override lasts while this CDP session is attached.
-const fixViewport = async (cdp: CDPSession, page: Page) => {
+const fixViewport = async (cdp: CDPSession, page: Page, viewport: typeof VIEWPORT = VIEWPORT) => {
   await withDeadline(
-    cdp.send('Emulation.setDeviceMetricsOverride', {...VIEWPORT, mobile: false}),
+    cdp.send('Emulation.setDeviceMetricsOverride', {...viewport, mobile: false}),
     EVAL_MS,
     'Emulation.setDeviceMetricsOverride'
   )
-  await waitFor(`the viewport to be ${VIEWPORT.width}x${VIEWPORT.height}@${VIEWPORT.deviceScaleFactor}x`, RESET_MS, async () =>
+  await waitFor(`the viewport to be ${viewport.width}x${viewport.height}@${viewport.deviceScaleFactor}x`, RESET_MS, async () =>
     withDeadline(
       page.evaluate(
         ([width, height, dpr]) => {
           const w = globalThis as unknown as PageWindow
           return w.innerWidth === width && w.innerHeight === height && w.devicePixelRatio === dpr
         },
-        [VIEWPORT.width, VIEWPORT.height, VIEWPORT.deviceScaleFactor] as const
+        [viewport.width, viewport.height, viewport.deviceScaleFactor] as const
       ),
       EVAL_MS,
       'reading the viewport size'
     )
   )
+}
+
+// ---------------------------------------------------------------- other windows
+
+const REMOTE_HTML = '/desktop/remote/remote.html'
+// The tray widget's window options that change what it draws (desktop/app/menu-bar.desktop.tsx):
+// it is transparent around the arrow at its top.
+const MENUBAR_WINDOW_OPTS = {hasShadow: true, transparent: true}
+
+// Date fixed in every remote window from its first script; the main window keeps its own script.
+const remoteDateScript = (now: number) =>
+  `if (location.pathname.endsWith(${JSON.stringify(REMOTE_HTML)})) (${fixDate.toString()})(${now})`
+
+const preloadCall = async <K extends keyof PreloadFunctions>(page: Page, name: K, args: Parameters<PreloadFunctions[K]>) =>
+  withDeadline(
+    page.evaluate(
+      ([n, a]) => {
+        const f = (globalThis as unknown as DevGlobals)._fromPreload?.functions
+        if (!f) throw new Error('the preload functions (_fromPreload) are not in the main window')
+        return (f[n] as (...x: Array<unknown>) => unknown)(...a)
+      },
+      [name, args as Array<unknown>] as const
+    ),
+    EVAL_MS,
+    `preload ${name}`
+  ) as Promise<Awaited<ReturnType<PreloadFunctions[K]>>>
+
+const dispatchRemote = async (page: Page, type: string, payload: object) => preloadCall(page, 'mainWindowDispatch', [{payload, type}])
+
+const remoteWindowsOf = (ctx: BrowserContext, component: string, param: string) =>
+  ctx.pages().filter(p => {
+    if (p.isClosed()) return false
+    const u = new URL(p.url(), 'http://x')
+    return u.pathname.endsWith(REMOTE_HTML) && u.searchParams.get('component') === component && u.searchParams.get('param') === param
+  })
+
+type OpenWindow = {page: Page; close: () => Promise<void>}
+
+// Opens an entry's window and returns its page once its props have rendered. In a dev build a
+// proxy that makes its window from an effect makes it twice (strict mode closes the first at
+// once), so the page is the one that renders.
+const openWindow = async (ctx: BrowserContext, main: Page, w: RemoteWindow, theme: Theme): Promise<OpenWindow> => {
+  const windowComponent = w.component
+  const username = w.component === 'tracker' ? await resolveValue(w.username) : undefined
+  if (username !== undefined && typeof username !== 'string') throw new Error('the tracker username is not a string')
+  const windowParam = username ?? w.component
+  const what = `the ${windowComponent} window${w.component === 'tracker' ? ` for ${windowParam}` : ''}`
+  if (remoteWindowsOf(ctx, windowComponent, windowParam).length) {
+    throw new Error(`${what} is already open; close it (or relaunch the app) and rerun`)
+  }
+  const windowOpts = {...w.size, ...(w.component === 'menubar' ? MENUBAR_WINDOW_OPTS : {})}
+  const waitClosed = async () =>
+    waitFor(`${what} to close`, RESET_MS, async () => Promise.resolve(remoteWindowsOf(ctx, windowComponent, windowParam).length === 0))
+  let closeIt: () => Promise<void>
+  switch (w.component) {
+    case 'menubar': {
+      // The tray's first show is what starts the widget loading its recent files.
+      const shown = await withDeadline(
+        main.evaluate(() => {
+          const store = (globalThis as unknown as DevGlobals).__ZUSTAND_HMR__?.get('config') as ConfigStore | undefined
+          if (!store) throw new Error('the config store is not in __ZUSTAND_HMR__; is this a dev build?')
+          return store.getState().windowShownCount.get('menu') ?? 0
+        }),
+        EVAL_MS,
+        'reading the menu window count'
+      )
+      if (!shown) await dispatchRemote(main, 'remote:updateWindowShown', {component: 'menu'})
+      if (!(await preloadCall(main, 'getRemoteProps', [windowComponent, windowParam]))) {
+        throw new Error('the main window has sent the menubar no props')
+      }
+      await preloadCall(main, 'makeRenderer', [{windowComponent, windowOpts, windowParam}])
+      // Closing a window drops its cached props, and the proxy sends only on a change, so the
+      // latest props go back in the cache for the next window.
+      closeIt = async () => {
+        const props = await preloadCall(main, 'getRemoteProps', [windowComponent, windowParam])
+        await preloadCall(main, 'closeRenderer', [{windowComponent, windowParam}])
+        await waitClosed()
+        if (props) await preloadCall(main, 'rendererNewProps', [{propsStr: props, windowComponent, windowParam}])
+      }
+      break
+    }
+    case 'pinentry':
+    case 'unlock-folders': {
+      const props = await resolveValue(w.props)
+      const propsStr = JSON.stringify({...(props as object), darkMode: theme === 'dark'})
+      await preloadCall(main, 'rendererNewProps', [{propsStr, windowComponent, windowParam}])
+      await preloadCall(main, 'makeRenderer', [{windowComponent, windowOpts, windowParam}])
+      closeIt = async () => {
+        await preloadCall(main, 'closeRenderer', [{windowComponent, windowParam}])
+        await waitClosed()
+      }
+      break
+    }
+    case 'tracker': {
+      const guiID = `visual-gate-${Date.now()}`
+      const load = {assertion: windowParam, forceDisplay: true, fromDaemon: false, guiID, ignoreCache: false, inTracker: true, reason: w.reason}
+      await dispatchRemote(main, 'remote:trackerLoad', load)
+      closeIt = async () => {
+        await dispatchRemote(main, 'remote:trackerCloseTracker', {guiID})
+        await waitClosed()
+      }
+      break
+    }
+  }
+  let page: Page | undefined
+  try {
+    await waitFor(`${what} to render`, READY_MS, async () => {
+      for (const p of remoteWindowsOf(ctx, windowComponent, windowParam)) {
+        const rendered = await p
+          .evaluate(() => ((globalThis as unknown as {document: {getElementById: (id: string) => {childElementCount: number} | null}}).document.getElementById('root')?.childElementCount ?? 0) > 0)
+          .catch(() => false)
+        if (rendered) {
+          page = p
+          return true
+        }
+      }
+      return false
+    })
+  } catch (e) {
+    await closeIt().catch(() => {})
+    throw e
+  }
+  return {close: closeIt, page: page!}
+}
+
+// The window's viewport, color scheme and Date, as the main window's.
+const fixWindow = async (ctx: BrowserContext, page: Page, size: WindowSize, theme: Theme, frozenAt: number) => {
+  // left attached: the override lasts while it is, and it goes with the window
+  const cdp = await withDeadline(ctx.newCDPSession(page), CONNECT_MS, 'opening a CDP session to the window')
+  await fixViewport(cdp, page, {...size, deviceScaleFactor: DEVICE_SCALE_FACTOR})
+  await withDeadline(page.emulateMedia({colorScheme: theme}), EVAL_MS, 'emulating the window color scheme')
+  const now = await withDeadline(page.evaluate(() => Date.now()), EVAL_MS, 'reading Date.now in the window')
+  if (now !== frozenAt) throw new Error(`Date is not fixed in the window: Date.now() is ${now}, wanted ${frozenAt}`)
+  await withDeadline(page.mouse.move(-1, -1), EVAL_MS, 'parking the mouse in the window')
 }
 
 // The app follows prefers-color-scheme while its preference is 'system'. Any other preference is
@@ -453,11 +599,14 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
   }
   const page = findMainPage(browser)
   page.setDefaultTimeout(READY_MS)
-  const cdp = await withDeadline(page.context().newCDPSession(page), CONNECT_MS, 'opening a CDP session')
+  const ctx = page.context()
+  const cdp = await withDeadline(ctx.newCDPSession(page), CONNECT_MS, 'opening a CDP session')
   // without it, scripts added with Page.addScriptToEvaluateOnNewDocument never run
   await withDeadline(cdp.send('Page.enable'), EVAL_MS, 'Page.enable')
   let theme: Theme | undefined
+  let frozenAt: number | undefined
   let dateScript: string | undefined
+  let remoteDate: {dispose: () => Promise<void>} | undefined
 
   const prepare: DesktopSession['prepare'] = async opts => {
     if (dateScript) await withDeadline(cdp.send('Page.removeScriptToEvaluateOnNewDocument', {identifier: dateScript}), EVAL_MS, 'removing the Date script')
@@ -467,6 +616,8 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
       'adding the Date script'
     )
     dateScript = added.identifier
+    await remoteDate?.dispose()
+    remoteDate = await withDeadline(ctx.addInitScript({content: remoteDateScript(opts.frozenAt)}), EVAL_MS, 'adding the window Date script')
     await withDeadline(page.evaluate(fixDate, opts.frozenAt), EVAL_MS, 'fixing Date')
     let chrome: Prepared['chrome'] = null
     if (opts.reload) {
@@ -479,19 +630,23 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
     await fixViewport(cdp, page)
     await applyTheme(page, opts.theme)
     theme = opts.theme
+    frozenAt = opts.frozenAt
     return {chrome}
   }
 
   const capture: DesktopSession['capture'] = async entry => {
     let png: Buffer | undefined
+    let win: OpenWindow | undefined
+    let result: Capture
     try {
-      if (!theme) throw new Error('capture called before prepare')
+      if (!theme || frozenAt === undefined) throw new Error('capture called before prepare')
       // Another CDP client attaching (a second Playwright connection) resets the emulated color
       // scheme to its own default, so the emulation is reasserted for every capture.
       await fixViewport(cdp, page)
       await applyTheme(page, theme)
-      // before the reset, so coverage includes what switching to the tab mounts
-      const seq = await coverageSeq(page)
+      // before the reset, so coverage includes what switching to the tab mounts; a window's
+      // coverage is everything mounted in it, since it opens for this capture
+      const seq = entry.window ? null : await coverageSeq(page)
       await resetTo(page, entry.nav.tab)
       // A setup click leaves the pointer where it clicked, and whatever lands under it later draws
       // hovered. Parked outside the viewport, nothing is hovered unless a hover step asks for it.
@@ -522,16 +677,23 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
           'navigateToThread'
         )
       }
-      if (entry.setup?.length) {
-        await waitForNoLoading(page)
-        for (const s of entry.setup) await runStep(page, s)
+      let shown = page
+      if (entry.window) {
+        win = await openWindow(ctx, page, entry.window, theme)
+        shown = win.page
+        shown.setDefaultTimeout(READY_MS)
+        await fixWindow(ctx, shown, entry.window.size, theme, frozenAt)
       }
-      await page.getByTestId(entry.ready).locator('visible=true').first().waitFor({state: 'visible', timeout: READY_MS})
-      await waitForNoLoading(page)
-      await waitForAssets(page)
-      await stillVideos(page)
+      if (entry.setup?.length) {
+        await waitForNoLoading(page, shown)
+        for (const s of entry.setup) await runStep(shown, s)
+      }
+      await shown.getByTestId(entry.ready).locator('visible=true').first().waitFor({state: 'visible', timeout: READY_MS})
+      await waitForNoLoading(page, shown)
+      await waitForAssets(shown)
+      await stillVideos(shown)
       const obtrusive = await withDeadline(
-        page.evaluate(() =>
+        shown.evaluate(() =>
           (globalThis as unknown as PageWindow).document.body.classList.contains('layout-scrollbar-obtrusive')
         ),
         EVAL_MS,
@@ -539,23 +701,34 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
       )
       const style = obtrusive ? undefined : HIDE_OVERLAY_SCROLLBARS
       const settled = await settle(async () => {
-        png = await page.screenshot({animations: 'disabled', caret: 'hide', style, timeout: EVAL_MS})
+        png = await shown.screenshot({animations: 'disabled', caret: 'hide', style, timeout: EVAL_MS})
         return png
       }, SETTLE)
       png = settled.png
-      const dpr = await withDeadline(page.evaluate(() => (globalThis as unknown as PageWindow).devicePixelRatio), EVAL_MS, 'devicePixelRatio')
-      const masks = await maskRects(page, entry, dpr)
-      const coverage = await coverageSince(page, seq)
-      return {coverage, masks, png, status: settled.stable ? 'ok' : 'unstable'}
+      const dpr = await withDeadline(shown.evaluate(() => (globalThis as unknown as PageWindow).devicePixelRatio), EVAL_MS, 'devicePixelRatio')
+      const masks = await maskRects(shown, entry, dpr)
+      const coverage = win ? await coverageMounted(shown) : await coverageSince(page, seq)
+      result = {coverage, masks, png, status: settled.stable ? 'ok' : 'unstable'}
     } catch (e) {
-      return {coverage: null, error: (e as Error).message, masks: [], png: png ?? Buffer.alloc(0), status: 'failed'}
+      result = {coverage: null, error: (e as Error).message, masks: [], png: png ?? Buffer.alloc(0), status: 'failed'}
     }
+    if (win) {
+      try {
+        await win.close()
+      } catch (e) {
+        const why = `closing the window: ${(e as Error).message}`
+        result = {...result, error: result.error ? `${result.error}; ${why}` : why, status: 'failed'}
+      }
+    }
+    return result
   }
 
   // Hands the app back as it was: real Date (which takes a reload), its own dark mode preference,
   // its window size. Never closes the browser.
   const close: DesktopSession['close'] = async () => {
     await withDeadline(page.emulateMedia({colorScheme: null}), EVAL_MS, 'clearing the color scheme').catch(() => {})
+    await withDeadline(remoteDate?.dispose() ?? Promise.resolve(), EVAL_MS, 'removing the window Date script').catch(() => {})
+    remoteDate = undefined
     await withDeadline(cdp.send('Emulation.clearDeviceMetricsOverride'), EVAL_MS, 'clearing the viewport').catch(() => {})
     try {
       if (dateScript) {

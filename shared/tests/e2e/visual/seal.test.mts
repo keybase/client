@@ -85,6 +85,12 @@ test('normalize kbfs strips colour codes and sorts names', () => {
   assert.deepEqual(normalize('kbfs', '\u001b[0;34mzdir\u001b[0m\nafile.txt\n'), ['afile.txt', 'zdir'])
   assert.deepEqual(normalize('kbfs', ''), [])
   assert.deepEqual(normalize('kbfsPrivate', 'b.png\na.txt\n'), ['a.txt', 'b.png'])
+  // the history's order is the widget's
+  assert.deepEqual(normalize('fsHistory', 'private/a (a)\n\t2: /keybase/private/a/y\n\t1: /keybase/private/a/x\n'), [
+    'private/a (a)',
+    '2: /keybase/private/a/y',
+    '1: /keybase/private/a/x',
+  ])
 })
 
 test('diffSeals names the changed path', () => {

@@ -31,6 +31,14 @@ test('a thread that is not a conversation is refused', () => {
   const bad: TourEntry = {...base, nav: {tab: 't', thread: {ref: 'teamID'}}}
   assert.match(validateEntry(bad).join(), /conversationIDKey ref/)
 })
+test('a window entry is desktop only, navigates nowhere and leaves no popup', () => {
+  const window = {component: 'menubar', size: {height: 640, width: 360}} as const
+  assert.deepEqual(validateEntry({...base, window}), [])
+  assert.match(validateEntry({...base, platforms: ['desktop', 'phone'], window}).join(), /desktop only/)
+  assert.match(validateEntry({...base, nav: {append: {name: 'x'}, tab: 't'}, window}).join(), /only resets the main window/)
+  assert.match(validateEntry({...base, leavesPopup: true, window}).join(), /leaves no popup open/)
+  assert.match(validateEntry({...base, window: {...window, size: {height: 0, width: 360}}}).join(), /size must be positive/)
+})
 test('glob matching', () => {
   const es = [base, {...base, id: 'settings/chat'}, {...base, id: 'teams/root'}]
   assert.deepEqual(

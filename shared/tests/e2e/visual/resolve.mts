@@ -116,7 +116,7 @@ export const isRef = (v: unknown): v is ParamRef =>
 
 export type Resolved = string | number | boolean | null | Array<Resolved> | {[k: string]: Resolved}
 
-const resolveValue = async (v: ParamValue, run: CliRunner): Promise<Resolved> => {
+export const resolveValue = async (v: ParamValue, run: CliRunner = runCli): Promise<Resolved> => {
   if (isRef(v)) return resolveRef(v, run)
   if (Array.isArray(v)) return Promise.all(v.map(async x => resolveValue(x as ParamValue, run)))
   if (v && typeof v === 'object') {

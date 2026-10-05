@@ -1,5 +1,5 @@
 import * as T from '../shared/test-ids.ts'
-import type {Mask, SetupStep, TourEntry} from './tour-types.ts'
+import type {Mask, ParamValue, SetupStep, TourEntry} from './tour-types.ts'
 
 // Tab names are the values in constants/tabs.tsx. Desktop shows eight tabs; phone shows people,
 // chat, files, teams and settings.
@@ -188,6 +188,99 @@ const cryptoTab = (id: string, nav: string, ready: string): Array<TourEntry> => 
     platforms: ['phone'],
     ready,
     seal: [],
+  },
+]
+
+// The app's other windows (desktop/remote), captured instead of the main window, which sits on the
+// git tab behind them. Each opens for its capture and closes after it.
+const pinentryArg = {
+  cancelLabel: 'Cancel',
+  prompt: 'Please enter the Keybase password for testuser (8+ characters)',
+  showTyping: {allow: true, defaultValue: false, label: 'Show typing', readonly: true},
+  submitLabel: 'Submit',
+  type: 2, // PassphraseType.passPhrase
+  windowTitle: 'Keybase password',
+}
+const pinentry = (id: string, props: Record<string, ParamValue>): TourEntry => ({
+  id: `window/pinentry${id}`,
+  nav: {tab: 'tabs.gitTab'},
+  platforms: ['desktop'],
+  ready: T.PINENTRY,
+  seal: [],
+  window: {component: 'pinentry', props, size: {height: 230, width: 440}},
+})
+const unlockFolders = {
+  component: 'unlock-folders',
+  props: {
+    devices: [
+      {deviceID: 'visual-gate-1', name: 'work-laptop', type: 'desktop'},
+      {deviceID: 'visual-gate-2', name: 'phone', type: 'mobile'},
+      {deviceID: 'visual-gate-3', name: 'paper key', type: 'backup'},
+    ],
+    paperKeyError: '',
+    waiting: false,
+  },
+  size: {height: 300, width: 500},
+} as const
+const menubar = {component: 'menubar', size: {height: 640, width: 360}} as const
+const windows: Array<TourEntry> = [
+  // The tray widget: the inbox's widget conversations and the account's recent file edits. Its
+  // nav badges are the main window's tab badges.
+  {
+    id: 'window/menubar',
+    nav: {tab: 'tabs.gitTab'},
+    platforms: ['desktop'],
+    ready: T.MENUBAR_TLF_ROW,
+    seal: ['inbox', 'follows', 'fsHistory'],
+    window: menubar,
+  },
+  {
+    id: 'window/menubar-menu',
+    nav: {tab: 'tabs.gitTab'},
+    platforms: ['desktop'],
+    ready: T.FLOATING_MENU,
+    seal: ['inbox', 'follows', 'fsHistory'],
+    setup: [{kind: 'openPopup', testID: T.MENUBAR_MENU_BUTTON}],
+    window: menubar,
+  },
+  // The tracker popup, as profile/self and profile/other show the same people.
+  ...(['secondUser', 'username'] as const).map(
+    (ref): TourEntry => ({
+      id: `window/tracker-${ref === 'username' ? 'self' : 'other'}`,
+      nav: {tab: 'tabs.gitTab'},
+      platforms: ['desktop'],
+      ready: T.TRACKER_BUTTONS,
+      seal: ['follows', 'teams'],
+      window: {component: 'tracker', reason: 'You opened a private folder with this user', size: {height: 470, width: 320}, username: {ref}},
+    })
+  ),
+  // Pinentry's props are the service's GUIEntryArg (go/libkb/passphrase_helper.go).
+  pinentry('', pinentryArg),
+  pinentry('-retry', {...pinentryArg, retryLabel: 'Incorrect password.'}),
+  pinentry('-paper-key', {
+    cancelLabel: 'Cancel',
+    prompt: "Please enter the paper key 'example words...'",
+    submitLabel: 'Submit',
+    type: 1, // PassphraseType.paperKey
+    windowTitle: 'Paper Key',
+  }),
+  {
+    id: 'window/unlock-folders',
+    nav: {tab: 'tabs.gitTab'},
+    platforms: ['desktop'],
+    ready: T.UNLOCK_FOLDERS_DEVICES,
+    seal: [],
+    window: unlockFolders,
+  },
+  // its paper key step is the window's own state, a click away
+  {
+    id: 'window/unlock-folders-paper-key',
+    nav: {tab: 'tabs.gitTab'},
+    platforms: ['desktop'],
+    ready: T.UNLOCK_FOLDERS_PAPER_KEY_INPUT,
+    seal: [],
+    setup: [{kind: 'switchSubTab', testID: T.UNLOCK_FOLDERS_PAPER_KEY_BUTTON}],
+    window: unlockFolders,
   },
 ]
 
@@ -792,6 +885,7 @@ export const tour: ReadonlyArray<TourEntry> = [
     {conversationIDKey: short, pickKey: 'reaction'},
     {phone: true, ready: T.CHAT_EMOJI_PICKER, seal: ['inbox']}
   ),
+  ...windows,
 ]
 
 // Routes from `yarn visual:routes` the tour leaves out, and why. Every other route has an entry,
@@ -841,9 +935,10 @@ export const tour: ReadonlyArray<TourEntry> = [
 // chat/message-menu (the phone opens them with a long press, which setup can't do),
 // chat/thread-search (its phone button is a native header bar item with no testID), and
 // chat/info-panel-media, -docs, -links and files/team (their notes), and modal/profile-avatar (the
-// phone opens the system photo picker over it). Not in the main window: the menubar, the tracker
-// popup and the unlock-folders window are separate desktop windows; global errors and runtime
-// stats are debug overlays.
+// phone opens the system photo picker over it). Not routes: the menubar, the tracker popup,
+// pinentry and unlock-folders are windows of their own, toured as window/* (unlock-folders' success
+// step needs a paper key submitted, and the menubar's logged-out views a signed-out app); global
+// errors and runtime stats are debug overlays.
 //
 // One screen, one id: an entry that's a tab on one platform and a page on the other keeps the tab's
 // id on both (tab/git, tab/devices, tab/settings). Two phone roots have no desktop screen of their

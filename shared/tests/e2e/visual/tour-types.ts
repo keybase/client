@@ -27,9 +27,25 @@ export type Nav = {
   append?: {name: string; params?: Record<string, ParamValue>}
   thread?: ParamRef
 }
+// The app's other windows, each its own renderer (desktop/remote). An entry with a window captures
+// that window instead of the main one; the main window is only reset to nav.tab. The driver opens
+// the window through the main window's preload functions and remote actions, as the app does:
+//   menubar         the tray widget. The main window's proxy (menubar/remote-proxy) already sends
+//                   its props; the driver only makes the window (the e2e launch has no tray).
+//   pinentry,       open only on a service request (secretUi.getPassphrase, rekeyUI.refresh), so
+//   unlock-folders  the driver sends `props` itself, standing in for the proxy.
+//   tracker         a trackerLoad remote action with forceDisplay, as the tracker's own reload
+//                   button sends: the proxy identifies `username` and opens the window.
+// `size` is the window's content size, which the capture emulates like the main viewport.
+export type WindowSize = {width: number; height: number}
+export type RemoteWindow =
+  | {component: 'menubar'; size: WindowSize}
+  | {component: 'pinentry' | 'unlock-folders'; size: WindowSize; props: {readonly [k: string]: ParamValue}}
+  | {component: 'tracker'; size: WindowSize; username: ParamRef; reason: string}
 export type TourEntry = {
   id: string
   nav: Nav
+  window?: RemoteWindow
   ready: string // testID that must be visible once navigation and setup are done
   platforms: ReadonlyArray<Platform>
   setup?: ReadonlyArray<SetupStep>
@@ -93,6 +109,14 @@ export function validateEntry(e: TourEntry): Array<string> {
   }
   for (const m of e.masks ?? []) {
     if (!m.reason.trim()) problems.push(`${e.id}: mask ${m.testID} needs a reason`)
+  }
+  if (e.window) {
+    if (e.platforms.some(p => p !== 'desktop')) problems.push(`${e.id}: a window entry is desktop only`)
+    if (e.nav.append || e.nav.thread) problems.push(`${e.id}: a window entry only resets the main window to nav.tab`)
+    // the window closes after the capture, and its popup with it
+    if (e.leavesPopup) problems.push(`${e.id}: a window entry leaves no popup open`)
+    const {width, height} = e.window.size
+    if (!(width > 0 && height > 0)) problems.push(`${e.id}: window size must be positive`)
   }
   return problems
 }

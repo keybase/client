@@ -16,6 +16,7 @@ import {isLinux, isDarwin} from '@/constants/platform'
 import {type _InnerMenuItem} from '@/common-adapters/floating-menu/menu-layout'
 import {useUploadCountdown} from '@/fs/footer/use-upload-countdown'
 import {useDarkModeState} from '@/stores/darkmode'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const {hideWindow, ctlQuit} = KB2.functions
 
@@ -262,7 +263,14 @@ const FilesPreview = (p: {remoteTlfUpdates: ReadonlyArray<RemoteTlfUpdates>; fol
           const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(tlf)
           const tlfType = T.FS.getPathVisibility(update.tlf) || T.FS.TlfType.Private
           return (
-            <Kb.Box2 key={tlf + update.writer + String(update.timestamp)} direction="horizontal" fullWidth={true} gap="tiny" style={styles.tlfRowContainer}>
+            <Kb.Box2
+              key={tlf + update.writer + String(update.timestamp)}
+              direction="horizontal"
+              fullWidth={true}
+              gap="tiny"
+              style={styles.tlfRowContainer}
+              testID={TestIDs.MENUBAR_TLF_ROW}
+            >
               <HttpAvatar
                 name={update.writer}
                 size={32}
@@ -450,6 +458,7 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
           onClick={showPopup}
           type="iconfont-nav-2-hamburger"
           sizeType="Big"
+          testID={TestIDs.MENUBAR_MENU_BUTTON}
         />
         {!!badgeCountInMenu && <Kb.Badge badgeNumber={badgeCountInMenu} badgeStyle={styles.badge} />}
       </Kb.Box2>
