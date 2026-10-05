@@ -109,7 +109,7 @@ const PinnedMessage = function PinnedMessage() {
           <Kb.ProgressIndicator type="Small" />
         </Kb.Box2>
       ) : (
-        <Kb.Box2 alignSelf="center" direction="vertical" ref={closeref} style={styles.close}>
+        <Kb.Box2 direction="vertical" ref={closeref} style={styles.close}>
           <Kb.Icon
             onClick={onIconClick}
             type="iconfont-close"
@@ -148,7 +148,7 @@ const UnpinPrompt = (props: UnpinProps) => {
   const header = (
     <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} gap="xsmall" style={styles.popup}>
       <Kb.Text type="BodyBig">Unpin this message?</Kb.Text>
-      <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true}>
+      <Kb.Box2 direction="vertical" centerChildren={true}>
         <Kb.Text type="BodySmall">This will remove the pin from</Kb.Text>
         <Kb.Text type="BodySmall">{"everyone's view."}</Kb.Text>
       </Kb.Box2>

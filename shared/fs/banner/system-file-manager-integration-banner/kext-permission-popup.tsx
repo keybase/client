@@ -37,7 +37,7 @@ const InstallSecurityPrefs = () => {
           You need to change your system security preferences.
         </Kb.Text>
         <Kb.Text type="Body">Open your macOS Security & Privacy Settings and follow these steps.</Kb.Text>
-        <Kb.Box2 alignSelf="center" direction="horizontal">
+        <Kb.Box2 direction="horizontal">
           <Kb.Box2 alignSelf="center" direction="vertical" relative={true}>
             <Kb.ImageIcon style={styles.image} type="illustration-security-preferences" />
           </Kb.Box2>

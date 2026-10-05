@@ -20,7 +20,7 @@ const ConfirmWarning = (props: Props) => {
 
   return (
     <Kb.Box2 alignSelf="center" direction="vertical" alignItems="center" style={styles.container}>
-      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.iconBox}>
+      <Kb.Box2 direction="vertical" style={styles.iconBox}>
         {props.icon}
       </Kb.Box2>
       <Kb.Text center={true} type="Header" style={styles.header}>

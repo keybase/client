@@ -105,7 +105,7 @@ export const ContactsBanner = (props: {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.banner}>
       <Kb.ImageIcon type="icon-fancy-contact-import-mobile-72-96" style={styles.bannerIcon} />
-      <Kb.Box2 alignSelf="center" direction="vertical" flex={1} justifyContent="center">
+      <Kb.Box2 direction="vertical" flex={1} justifyContent="center">
         <Kb.Text type="BodySmallSemibold" negative={true} style={styles.bannerText}>
           Import your phone contacts and start encrypted chats with your friends.
         </Kb.Text>
@@ -148,7 +148,7 @@ export const ContactsImportButton = () => {
 
   return (
     <Kb.ClickableBox onClick={onImportContacts} direction="horizontal" fullWidth={true} alignItems="center" gap="small" style={styles.importContactsContainer}>
-      <Kb.Box2 alignSelf="center" direction="vertical" alignItems="center" style={styles.iconContactBookContainer}>
+      <Kb.Box2 direction="vertical" alignItems="center" style={styles.iconContactBookContainer}>
         <Kb.Icon type="iconfont-contact-book" color={theme.black} />
       </Kb.Box2>
       <Kb.Text type="BodyBig" lineClamp={1}>

@@ -135,9 +135,9 @@ const ChatRow = (p: {conv: Conversation; httpSrvAddress: string; httpSrvToken: s
         httpSrvAddress={httpSrvAddress}
         httpSrvToken={httpSrvToken}
       />
-      <Kb.Box2 alignSelf="center" direction="vertical" flex={1} overflow="hidden">
+      <Kb.Box2 direction="vertical" flex={1} overflow="hidden">
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" justifyContent="space-between">
-          <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" gap="xtiny" overflow="hidden" style={styles.chatRowNameLeft}>
+          <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny" overflow="hidden" style={styles.chatRowNameLeft}>
             <Kb.Text type={conv.hasUnread ? 'BodyBold' : 'BodySemibold'} lineClamp={1} style={styles.chatRowName}>
               {isTeam && conv.channelname ? `${name}#${conv.channelname}` : name}
             </Kb.Text>
@@ -574,7 +574,7 @@ const TabView = (p: {title: string; iconType: Kb.IconType; count?: number}) => {
   const {count, iconType, title} = p
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
-      <Kb.Box2 alignSelf="center" direction="vertical" relative={true}>
+      <Kb.Box2 direction="vertical" relative={true}>
         <Kb.Icon type={iconType} color={theme.blue} sizeType="Big" />
         {!!count && <Kb.Badge badgeNumber={count} badgeStyle={styles.badge} />}
       </Kb.Box2>

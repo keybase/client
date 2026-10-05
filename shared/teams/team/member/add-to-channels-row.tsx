@@ -136,7 +136,7 @@ const SelfChannelActions = function SelfChannelActions(p: {
       centerChildren={true}
     >
       {popup}
-      <Kb.Box2 alignSelf="center"
+      <Kb.Box2
         direction="horizontal"
         onMouseOver={() => setMouseover(true)}
         onMouseLeave={() => setMouseover(false)}

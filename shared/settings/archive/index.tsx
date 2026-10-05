@@ -397,7 +397,7 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
         >
           <Kb.ProgressBar ratio={progress} />
           <Kb.Text type="Body">{String(Math.round(progress * 100)) + '%'}</Kb.Text>
-          <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} />
+          <Kb.Box2 direction="horizontal" flex={1} />
           {errorStr && <JobError error={errorStr} fontSize={14} />}
           {!isMobile && revisionBehindStr && (
             <Kb.WithTooltip tooltip={revisionBehindStr}>

@@ -94,7 +94,7 @@ const SortHeader = ({onChangeSort, sortOrder}: {onChangeSort: Props['onChangeSor
   const {popup, showPopup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <Kb.Box2 direction="horizontal" style={styles.sortHeader} alignItems="center" fullWidth={true}>
-      <Kb.ClickableBox alignSelf="center" onClick={showPopup} ref={popupAnchor} direction="horizontal" gap="tiny" alignItems="center">
+      <Kb.ClickableBox onClick={showPopup} ref={popupAnchor} direction="horizontal" gap="tiny" alignItems="center">
         <Kb.Icon type="iconfont-arrow-full-down" />
         <Kb.Text type="BodySmallSemibold">{sortOrderToTitle[sortOrder]}</Kb.Text>
       </Kb.ClickableBox>

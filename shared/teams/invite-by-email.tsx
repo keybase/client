@@ -74,7 +74,7 @@ const InviteByEmail = (ownProps: OwnProps) => {
         <Kb.Text style={styles.header} type="Header">
           Invite by email
         </Kb.Text>
-        <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" style={styles.roleRow}>
+        <Kb.Box2 direction="horizontal" alignItems="center" style={styles.roleRow}>
           <Kb.Text style={styles.addAsText} type="Body">
             Add these team members to {teamname} as:
           </Kb.Text>
