@@ -415,7 +415,12 @@ const InstallBotPopup = (props: Props) => {
               <Kb.Text type="BodyBig">In these channels:</Kb.Text>
               <Kb.DropdownButton
                 selected={
-                  <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center">
+                  <Kb.Box2
+                    alignSelf="center"
+                    direction="horizontal"
+                    alignItems="center"
+                    testID={TestIDs.CHAT_BOT_CHANNELS_DROPDOWN}
+                  >
                     <Kb.Avatar
                       size={16}
                       teamname={teamname}
@@ -545,6 +550,7 @@ const InstallBotPopup = (props: Props) => {
       disabled={editDisabled}
       fullWidth={true}
       label="Edit settings"
+      testID={TestIDs.CHAT_BOT_EDIT_BUTTON}
       onClick={() => {
         if (!settings) return
         setInstallWithCommands(settings.cmds)
@@ -743,7 +749,7 @@ const PermsList = (props: PermsListProps) => {
     <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
       <Kb.Text type="BodySemibold">This bot can currently read:</Kb.Text>
       {settings ? (
-        <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
+        <Kb.Box2 direction="vertical" gap="small" fullWidth={true} testID={TestIDs.CHAT_BOT_PERMS}>
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
             {!(settings.cmds || settings.mentions) && (
               <Kb.Text type="Body">{'• no messages, the bot is in write only mode'}</Kb.Text>

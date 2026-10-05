@@ -388,6 +388,9 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
         await withDeadline(byTestID(s.testID).click(), SETUP_MS, `${s.kind} ${s.testID}`)
         return
       case 'scrollIntoView': {
+        // waits for the element, as desktop's scrollIntoViewIfNeeded does, so the step can gate
+        // later steps on something that loads
+        await withDeadline(byTestID(s.testID).waitForExist({timeout: SETUP_MS}), SETUP_MS + 1_000, `finding ${s.testID}`)
         const elementId = await withDeadline(byTestID(s.testID).elementId, SETUP_MS, `finding ${s.testID}`)
         await withDeadline(browser.execute('mobile: scroll', {elementId, toVisible: true}), SETUP_MS, `scrolling to ${s.testID}`)
         return

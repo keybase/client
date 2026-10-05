@@ -45,6 +45,7 @@ const CONNECT_MS = 5_000
 const EVAL_MS = 5_000
 const RESET_MS = 5_000
 const READY_MS = 10_000
+const CHAT_TAB = 'tabs.chatTab'
 const SETUP_MS = 5_000
 const ASSETS_MS = 10_000
 const SETTLE = {deadlineMs: 5_000, intervalMs: 250}
@@ -120,6 +121,7 @@ type Router = {
   navigateAppend: (p: {name: string; params?: object}) => boolean
   getTab: () => string | undefined
   navigateToThread: (conversationIDKey: string, reason: string) => void
+  setChatRootParams: (p: {infoPanel?: undefined}) => boolean
 }
 type NavState = {routes?: Array<{name: string; state?: NavState}>}
 type DarkStore = {
@@ -174,13 +176,14 @@ const routerAt = async (page: Page) =>
     'reading the router state'
   )
 
-const routerCall = async (page: Page, step: 'clearModals' | 'switchTab' | 'popStack', tab = '') =>
+const routerCall = async (page: Page, step: 'clearModals' | 'switchTab' | 'popStack' | 'closeInfoPanel', tab = '') =>
   withDeadline(
     page.evaluate(
       ([s, t]) => {
         const r = (globalThis as unknown as DevGlobals).DEBUGRouter2
         if (!r) throw new Error('DEBUGRouter2 is not defined; is this a dev build?')
         if (s === 'switchTab') r.switchTab(t)
+        else if (s === 'closeInfoPanel') r.setChatRootParams({infoPanel: undefined})
         else r[s]()
       },
       [step, tab] as const
@@ -197,6 +200,9 @@ const resetTo = async (page: Page, tab: string) => {
   await waitFor(`tab ${tab} to be current`, RESET_MS, async () => (await routerAt(page)).tab === tab)
   await routerCall(page, 'popStack')
   await waitFor(`the root of ${tab}`, RESET_MS, async () => (await routerAt(page)).atRoot)
+  // The info panel is a param of the chat root, which navigateToThread merges into rather than
+  // replaces, so an entry that opened it would leave it open for every conversation after it.
+  if (tab === CHAT_TAB) await routerCall(page, 'closeInfoPanel')
 }
 
 const runStep = async (page: Page, s: SetupStep) => {

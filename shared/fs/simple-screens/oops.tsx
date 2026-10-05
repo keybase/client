@@ -1,5 +1,6 @@
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
 type OwnProps = {
@@ -50,7 +51,7 @@ const Explain = (props: Props) => {
 const NoAccess = (props: Props) => {
   const styles = useStyles()
   return (
-    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
+    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true} testID={TestIDs.FILES_OOPS}>
       <Kb.EmptyState
         illustration={isMobile ? 'icon-fancy-no-access-mobile-128-125' : 'icon-fancy-no-access-desktop-96-94'}
         action={{label: 'Go to parent folder', onClick: props.openParent}}
@@ -67,7 +68,7 @@ const NoAccess = (props: Props) => {
 const NonExistent = (props: Props) => {
   const styles = useStyles()
   return (
-    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
+    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true} testID={TestIDs.FILES_OOPS}>
       <Kb.EmptyState
         illustration={
           isMobile

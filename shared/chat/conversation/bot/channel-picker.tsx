@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type * as T from '@/constants/types'
 import {makeInsertMatcher} from '@/util/string'
 
@@ -134,7 +135,12 @@ const ChannelPicker = (props: Props) => {
         </Kb.Box2>
       ) : (
       <Kb.ScrollView style={styles.rowsContainer}>
-        <Kb.Box2 alignSelf="center" direction="horizontal" style={{backgroundColor: theme.blueGrey}}>
+        <Kb.Box2
+          alignSelf="center"
+          direction="horizontal"
+          style={{backgroundColor: theme.blueGrey}}
+          testID={TestIDs.CHAT_BOT_CHANNEL_PICKER}
+        >
           <Kb.ListItem
             type="Small"
             firstItem={true}
