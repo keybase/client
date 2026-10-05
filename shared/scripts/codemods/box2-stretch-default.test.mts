@@ -9,7 +9,6 @@ import {
   assertPinWritable,
   assertUnpinWritable,
   cleanupCandidates,
-  gatePlatforms,
   hasImplicitCenter,
   matchU4Skips,
   pinSource,
@@ -658,28 +657,150 @@ test('a duplicate style sheet key: the last one counts', () => {
   assert.deepEqual(rules(styled(`styles.x`, `{x: {alignItems: 'center'}, x: {padding: 1}}`)), ['C1:fullWidth:3'])
 })
 
+// the gate platforms each pin-shaped site in `body` needs, or why none can stand for it
+const needs = (body: string, file = 'settings/a.tsx', imports = '') =>
+  u4Candidates(`import * as Kb from '@/common-adapters'\n${imports}\n${body}`, `/x/shared/${file}`).sites.map(s =>
+    'why' in s.need ? s.need.why : s.need.platforms.join('+')
+  )
+const pinBox = (n: string | number = '') => `<Kb.Box2 alignSelf="center" direction="vertical" gap="${n}" />`
+
 test('gate platforms by file name', () => {
-  assert.deepEqual(gatePlatforms('settings/a.tsx'), ['desktop', 'ios'])
-  assert.deepEqual(gatePlatforms('settings/a.desktop.tsx'), ['desktop'])
-  for (const f of ['a.native.tsx', 'a.ios.tsx', 'a.android.tsx']) assert.deepEqual(gatePlatforms(`x/${f}`), ['ios'], f)
+  assert.deepEqual(needs(`const A = () => ${pinBox()}`), ['desktop+ios'])
+  assert.deepEqual(needs(`const A = () => ${pinBox()}`, 'settings/a.desktop.tsx'), ['desktop'])
+  assert.deepEqual(needs(`const A = () => ${pinBox()}`, 'settings/a.native.tsx'), ['ios'])
+  assert.deepEqual(needs(`const A = () => ${pinBox()}`, 'settings/a.ios.tsx'), ['ios'])
+  assert.deepEqual(needs(`const A = () => ${pinBox()}`, 'settings/a.android.tsx'), [
+    'only reachable on android among mobile devices',
+  ])
 })
 
-test('a candidate needs coverage on every platform its file renders on', () => {
+test('a site in a platform branch needs only the gate platforms of that branch', () => {
+  const both = 'desktop+ios'
+  // ternary, &&, ||, either arm
+  assert.deepEqual(needs(`const A = () => (isMobile ? ${pinBox(1)} : ${pinBox(2)})`), ['ios', 'desktop'])
+  assert.deepEqual(needs(`const A = () => (!isElectron ? ${pinBox(1)} : ${pinBox(2)})`), ['ios', 'desktop'])
+  assert.deepEqual(needs(`const A = () => <>{isMobile && ${pinBox(1)}}{isElectron || ${pinBox(2)}}</>`), ['ios', 'ios'])
+  assert.deepEqual(needs(`const A = () => <>{Kb.Styles.isMobile && ${pinBox(1)}}{isMobile ?? ${pinBox(2)}}</>`), [
+    both,
+    both,
+  ])
+  // compound tests are evaluated per device
+  assert.deepEqual(needs(`const A = () => (isMobile && x ? ${pinBox(1)} : ${pinBox(2)})`), ['ios', both])
+  assert.deepEqual(needs(`const A = () => (x || isElectron ? ${pinBox(1)} : ${pinBox(2)})`), [both, 'ios'])
+  assert.deepEqual(needs(`const A = () => (x ? ${pinBox(1)} : ${pinBox(2)})`), [both, both])
+  // nested branches narrow in turn; an iPad-only or Android-only site has no gate device
+  assert.deepEqual(
+    needs(`const A = () => (isMobile ? (C.isTablet ? ${pinBox(1)} : ${pinBox(2)}) : isIOS && ${pinBox(3)})`, 'settings/a.tsx', `import * as C from '@/constants'`),
+    ['only reachable on iPad among mobile devices', 'ios', 'reachable on no device']
+  )
+  assert.deepEqual(needs(`const A = () => (isAndroid ? ${pinBox(1)} : ${pinBox(2)})`), [
+    'only reachable on android among mobile devices',
+    both,
+  ])
+  // the other arm of isIOS reaches Android and desktop: no capture sees the Android half
+  assert.deepEqual(needs(`const A = () => (isIOS ? ${pinBox(1)} : ${pinBox(2)})`), [
+    'ios',
+    'only reachable on android among mobile devices',
+  ])
+  // isPhone's other arm is desktop and iPad: the iPad half has no gate device
+  assert.deepEqual(needs(`const A = () => (Kb.Styles.isPhone ? ${pinBox(1)} : ${pinBox(2)})`), [
+    'ios',
+    'only reachable on iPad among mobile devices',
+  ])
+  assert.deepEqual(needs(`const A = () => (isPhone ? ${pinBox(1)} : null)`, 'settings/a.tsx', `import {isPhone} from '@/constants/platform'`), ['ios'])
+  assert.deepEqual(needs(`const A = () => (isTablet ? null : ${pinBox(1)})`, 'chat/a.tsx', `import {isTablet} from '../styles'`), [both])
+  // a platform file's branch for another platform is dead
+  assert.deepEqual(needs(`const A = () => isMobile && ${pinBox(1)}`, 'settings/a.desktop.tsx'), ['reachable on no device'])
+})
+
+test('if statements and early returns narrow the statements they guard', () => {
+  assert.deepEqual(
+    needs(`function A() {\n  if (isMobile) {\n    return ${pinBox(1)}\n  } else {\n    return ${pinBox(2)}\n  }\n}`),
+    ['ios', 'desktop']
+  )
+  assert.deepEqual(needs(`function A() {\n  if (isMobile) return null\n  return ${pinBox(1)}\n}`), ['desktop'])
+  assert.deepEqual(
+    needs(`const A = () => {\n  if (!isMobile) {\n    f()\n    return ${pinBox(1)}\n  }\n  const x = () => ${pinBox(2)}\n  return x()\n}`),
+    ['desktop', 'ios']
+  )
+  assert.deepEqual(needs(`function A() {\n  if (isElectron) {\n    f()\n  } else throw new Error()\n  return ${pinBox(1)}\n}`), [
+    'desktop',
+  ])
+  // nested blocks: the outer guard holds inside the inner block
+  assert.deepEqual(
+    needs(`function A() {\n  if (isElectron) return null\n  if (x) {\n    if (C.isPhone) return null\n    return ${pinBox(1)}\n  }\n  return ${pinBox(2)}\n}`, 'settings/a.tsx', `import * as C from '@/constants'`),
+    ['only reachable on iPad among mobile devices', 'ios']
+  )
+  // break and continue leave the block too; an if whose branches both exit is an exit
+  assert.deepEqual(
+    needs(`function A() {\n  for (const x of xs) {\n    if (isMobile) {\n      if (x) break\n      continue\n    }\n    out.push(${pinBox(1)})\n  }\n}`),
+    ['desktop']
+  )
+  assert.deepEqual(
+    needs(`function A() {\n  if (isMobile) {\n    if (x) return null\n    else throw e\n  }\n  return ${pinBox(1)}\n}`),
+    ['desktop']
+  )
+  // a guard that may fall through, guards only its loop, follows the site, or sits in another
+  // function narrows nothing
+  for (const body of [
+    `function A() {\n  for (const x of xs) {\n    if (isMobile) break\n  }\n  return ${pinBox(1)}\n}`,
+    `function A() {\n  if (isMobile) {\n    if (x) return null\n  }\n  return ${pinBox(1)}\n}`,
+    `function A() {\n  if (isMobile) {\n    f()\n  }\n  return ${pinBox(1)}\n}`,
+    `function A() {\n  const b = ${pinBox(1)}\n  if (isMobile) return null\n  return b\n}`,
+    `function A() {\n  const g = () => {\n    if (isMobile) return null\n  }\n  return ${pinBox(1)}\n}`,
+  ]) {
+    assert.deepEqual(needs(body), ['desktop+ios'], body)
+  }
+})
+
+test('closures follow their branch; declarations, unknown names and shadowed flags do not', () => {
+  assert.deepEqual(needs(`const A = () => (isMobile ? xs.map(x => ${pinBox(1)}) : null)`), ['ios'])
+  assert.deepEqual(needs(`const A = () => {\n  if (isMobile) return null\n  const r = function () { return ${pinBox(1)} }\n  return r()\n}`), [
+    'desktop',
+  ])
+  assert.deepEqual(
+    needs(`function A() {\n  if (isMobile) return null\n  function r() { return ${pinBox(1)} }\n  return r()\n}`),
+    ['desktop+ios']
+  )
+  assert.deepEqual(needs(`class A { render() { return isMobile ? ${pinBox(1)} : null } }`), ['ios'])
+  assert.deepEqual(needs(`const A = () => {\n  if (isMobile) return null\n  return {r() { return ${pinBox(1)} }}\n}`), ['desktop'])
+  assert.deepEqual(
+    needs(`const A = () => isMobile && <B r={() => { if (isIOS) return null; return ${pinBox(1)} }} />`),
+    ['only reachable on android among mobile devices']
+  )
+  for (const [body, imports] of [
+    [`const A = (isMobile: boolean) => isMobile && ${pinBox(1)}`, ''],
+    [`const A = () => isPhone && ${pinBox(1)}`, ''],
+    [`const A = () => isPhone && ${pinBox(1)}`, `import {isPhone} from './phone'`],
+    [`const A = () => isTablet && ${pinBox(1)}`, `import {isPhone as isTablet} from '@/constants/platform'`],
+    [`const A = () => C.isTablet && ${pinBox(1)}`, `import * as C from './c'`],
+    [`const A = () => Kb.Styles.isMobile && ${pinBox(1)}`, ''],
+    [`const A = () => X.Styles.isTablet && ${pinBox(1)}`, `import * as X from './x'`],
+    [`const A = () => C[isTablet] && ${pinBox(1)}`, `import * as C from '@/constants'`],
+    [`const A = () => Kb.Other.isTablet && ${pinBox(1)}`, ''],
+  ] as const) {
+    assert.deepEqual(needs(body, 'settings/a.tsx', imports), ['desktop+ios'], `${imports} ${body}`)
+  }
+})
+
+test('a candidate needs coverage on every platform it renders on', () => {
   const range = {end: 12, start: 10}
-  const at = (rel: string, desktop: Array<string>, ios: Array<string>) =>
-    unmountedPlatforms({hunks: [], mounted: {desktop, ios}, range, rel})
+  const both = ['desktop', 'ios'] as const
+  const at = (rel: string, desktop: Array<string>, ios: Array<string>, platforms: ReadonlyArray<'desktop' | 'ios'> = both) =>
+    unmountedPlatforms({hunks: [], mounted: {desktop, ios}, platforms, range, rel})
   assert.deepEqual(at('a.tsx', ['a.tsx:10'], ['a.tsx:11']), [])
   assert.deepEqual(at('a.tsx', ['a.tsx:10'], []), ['ios'])
   assert.deepEqual(at('a.tsx', [], ['a.tsx:12']), ['desktop'])
   assert.deepEqual(at('a.tsx', ['b.tsx:10'], ['a.tsx:9']), ['desktop', 'ios'])
-  assert.deepEqual(at('a.desktop.tsx', ['a.desktop.tsx:10'], []), [])
-  assert.deepEqual(at('a.desktop.tsx', [], ['a.desktop.tsx:10']), ['desktop'])
-  assert.deepEqual(at('a.native.tsx', [], ['a.native.tsx:10']), [])
-  assert.deepEqual(at('a.ios.tsx', ['a.ios.tsx:10'], []), ['ios'])
+  assert.deepEqual(at('a.tsx', ['a.tsx:10'], [], ['desktop']), [])
+  assert.deepEqual(at('a.tsx', [], ['a.tsx:10'], ['desktop']), ['desktop'])
+  assert.deepEqual(at('a.tsx', [], ['a.tsx:10'], ['ios']), [])
+  assert.deepEqual(at('a.tsx', ['a.tsx:10'], [], ['ios']), ['ios'])
   // base ids are carried forward through the base..tree diff: 3 lines inserted after base line 4
   const shifted = unmountedPlatforms({
     hunks: [{newCount: 3, newStart: 5, oldCount: 0, oldStart: 4}],
     mounted: {desktop: ['a.tsx:7'], ios: ['a.tsx:8']},
+    platforms: both,
     range,
     rel: 'a.tsx',
   })
@@ -702,7 +823,7 @@ test('a masked entry never qualifies a site; a coverage file without the masked 
     assert.deepEqual(platformCoverage('s1', 'desktop'), ['a.tsx:10'])
     assert.deepEqual(platformCoverage('s1', 'ios'), [])
     const mounted = {desktop: platformCoverage('s1', 'desktop'), ios: platformCoverage('s1', 'ios')}
-    assert.deepEqual(unmountedPlatforms({hunks: [], mounted, range: {end: 4, start: 4}, rel: 'm.tsx'}), [
+    assert.deepEqual(unmountedPlatforms({hunks: [], mounted, platforms: ['desktop', 'ios'], range: {end: 4, start: 4}, rel: 'm.tsx'}), [
       'desktop',
       'ios',
     ])
@@ -1091,6 +1212,8 @@ test('U4 plan: needs coverage on every gate platform, carries base lines forward
       '    <Kb.Box2 alignSelf="center" direction="horizontal" />',
       '    <Kb.Box2 alignSelf="center" gap="tiny" />',
       '    <Kb.Box2 alignSelf="center" gap="small" />',
+      '    {isMobile && <Kb.Box2 alignSelf="center" gap="large" />}',
+      '    {isAndroid && <Kb.Box2 alignSelf="center" gap="huge" />}',
     ]
     fs.writeFileSync(path.join(shared, 'settings', 'a.tsx'), file(sites))
     fs.writeFileSync(path.join(shared, 'settings', 'b.desktop.tsx'), file(sites.slice(0, 1)))
@@ -1103,9 +1226,10 @@ test('U4 plan: needs coverage on every gate platform, carries base lines forward
       fs.mkdirSync(dir, {recursive: true})
       fs.writeFileSync(path.join(dir, `e${fs.readdirSync(dir).length}.json`), JSON.stringify({ids, masked}))
     }
-    // lines 3-6 in a.tsx: 3 on both, 4 on both, 5 desktop only, 6 on iOS only under a mask
-    cover('desktop', ['settings/a.tsx:3', 'settings/a.tsx:4', 'settings/a.tsx:5', 'settings/b.desktop.tsx:3'])
-    cover('ios', ['settings/a.tsx:3', 'settings/a.tsx:4'])
+    // lines 3-8 in a.tsx: 3 on both, 4 on both, 5 desktop only, 6 on iOS only under a mask, 7 (mobile
+    // only) on iOS, 8 (Android only) on both
+    cover('desktop', ['settings/a.tsx:3', 'settings/a.tsx:4', 'settings/a.tsx:5', 'settings/a.tsx:8', 'settings/b.desktop.tsx:3'])
+    cover('ios', ['settings/a.tsx:3', 'settings/a.tsx:4', 'settings/a.tsx:7', 'settings/a.tsx:8'])
     cover('ios', ['settings/a.tsx:6'], true)
     cover('desktop', ['settings/a.tsx:6'])
     fs.writeFileSync(path.join(shared, 'settings', 'a.tsx'), `// shifted\n${file(sites)}`)
@@ -1113,11 +1237,12 @@ test('U4 plan: needs coverage on every gate platform, carries base lines forward
     const skips = [{reason: 'moved 2px', rel: 'settings/a.tsx', tag: '<Kb.Box2 direction="horizontal" />'}]
     const plan = planU4(shared, {at: 'HEAD', base, skips})
     assert.deepEqual(plan.errors, [])
-    assert.deepEqual(plan.removed, ['settings/a.tsx:4', 'settings/b.desktop.tsx:3'])
+    assert.deepEqual(plan.removed, ['settings/a.tsx:4', 'settings/a.tsx:8', 'settings/b.desktop.tsx:3'])
     assert.deepEqual(plan.kept, [{reason: 'moved 2px', site: 'settings/a.tsx:5'}])
     assert.deepEqual(plan.uncovered, [
       {site: 'settings/a.tsx:6', why: 'never mounted on ios'},
       {site: 'settings/a.tsx:7', why: 'never mounted on ios'},
+      {site: 'settings/a.tsx:9', why: 'only reachable on android among mobile devices'},
     ])
     const stale = planU4(shared, {at: 'HEAD', base, skips: [...skips, {reason: 'r', rel: 'settings/gone.tsx', tag: 'x'}]})
     assert.deepEqual(stale.errors, ['skip names a file with no .tsx at HEAD: settings/gone.tsx'])
