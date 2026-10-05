@@ -1,5 +1,10 @@
 [
   {
+    "rel": "chat/conversation/info-panel/menu.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\" gap=\"tiny\">",
+    "reason": "gate ios chat/info-panel-menu: moves the team name in the channel menu header"
+  },
+  {
     "rel": "chat/conversation/messages/wrapper/wrapper.tsx",
     "tag": "<Kb.Box2 direction=\"vertical\" flex={1} relative={true} style={styles.middle} fullWidth={!isMobile} >",
     "reason": "gate ios chat/e2e-short: moves the message body column"
@@ -23,6 +28,41 @@
     "rel": "chat/inbox/row/small-team/index.tsx",
     "tag": "<Kb.Box2 direction=\"horizontal\" alignItems=\"center\" style={styles.nameContainer}>",
     "reason": "gate desktop chat/message-menu: moves the conversation name in every inbox row"
+  },
+  {
+    "rel": "common-adapters/banner.tsx",
+    "tag": "<Box2 key=\"textBox\" direction=\"vertical\" style={Styles.collapseStyles([ props.narrow ? styles.textContainer : props.inline ? styles.inlineTextContainer : props.small ? styles.smallTextContainer : styles.textContainer, props.textContainerStyle, ])} centerChildren={true} >",
+    "reason": "gate ios crypto/sign: moves the banner text"
+  },
+  {
+    "rel": "common-adapters/divider.tsx",
+    "tag": "<Box2 direction=\"vertical\" flex={1} style={Styles.collapseStyles([ styles.divider, props.vertical ? styles.vertical : styles.horizontal, props.style, ])} />",
+    "reason": "gate desktop settings/display: shows the nav header divider, which a centered box drew 0 wide"
+  },
+  {
+    "rel": "common-adapters/input3.tsx",
+    "tag": "<Box2 direction=\"horizontal\" alignItems=\"center\" padding=\"xtiny\" style={Styles.collapseStyles([ styles.container, focused && styles.focused, error && styles.error, hideBorder && styles.hideBorder, disabled && styles.disabled, containerStyle, ])} >",
+    "reason": "gate desktop crypto/decrypt: widens the input frame, rewrapping a multiline input's placeholder"
+  },
+  {
+    "rel": "common-adapters/search-filter.tsx",
+    "tag": "<Kb.Box2 ref={measureRef} direction=\"horizontal\" alignItems=\"center\" fullWidth={!isMobile} // With onClick the input is display-only; block it from taking focus so // clicks hit the ClickableBox and window refocus can't refire onFocus. pointerEvents={onClick ? 'none' : undefined} >",
+    "reason": "gate ios modal/bot-channels: moves a centered placeholder in the mobile search field"
+  },
+  {
+    "rel": "common-adapters/switch.tsx",
+    "tag": "<Kb.ClickableBox onClick={props.allowLabelClick ? props.onClick : undefined} direction=\"vertical\" style={styles.labelContainer} >",
+    "reason": "gate ios settings/display: moves a switch's label"
+  },
+  {
+    "rel": "common-adapters/switch.tsx",
+    "tag": "<Kb.ClickableBox onClick={props.disabled ? undefined : props.onClick} ref={ref} direction=\"vertical\">",
+    "reason": "gate ios settings/advanced: moves the switch toggle"
+  },
+  {
+    "rel": "common-adapters/tabs.tsx",
+    "tag": "<Kb.ClickableBox onClick={() => onSelect(tab.title)} key={tab.title} testID={tab.testID} direction=\"vertical\" style={Styles.collapseStyles([ styles.tabContainer, props.clickableBoxStyle, props.clickableTabStyle, ])} >",
+    "reason": "gate desktop team/members: moves the tab labels vertically in their row"
   },
   {
     "rel": "router-v2/screen-layout-modal.desktop.tsx",
@@ -49,6 +89,11 @@
     "rel": "teams/role-picker.tsx",
     "tag": "<Kb.Box2 style={styles.rowBody} direction=\"vertical\" gap=\"xxtiny\" gapStart={true}>",
     "reason": "gate desktop team/member-add-role: moves the role capability list"
+  },
+  {
+    "rel": "teams/team/member/add-to-channels-row.tsx",
+    "tag": "<Kb.Box2 direction=\"horizontal\">",
+    "reason": "gate desktop modal/team-add-to-channels: stretches the participant count box beside each channel"
   },
   {
     "rel": "teams/team/member/header.tsx",
