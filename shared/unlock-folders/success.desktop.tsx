@@ -5,7 +5,7 @@ const Success = ({onClose}: {onClose: () => void}) => {
   return (
     <Kb.Box2 alignSelf="center" direction="vertical" alignItems="center" justifyContent="space-between" style={styles.container}>
       <Kb.ImageIcon type="icon-folder-success-48" />
-      <Kb.Box2 alignSelf="center" direction="vertical">
+      <Kb.Box2 direction="vertical">
         <Kb.Text center={true} type="BodySemibold">
           Success!
         </Kb.Text>

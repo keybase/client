@@ -92,11 +92,11 @@ const Waiting = ({endTime: routeEndTime, pipelineStarted, username}: Props) => {
               {formattedTime}. We will notify you once you can proceed with the reset.
             </Kb.Text>
           ) : (
-            <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true}>
+            <Kb.Box2 direction="vertical" centerChildren={true}>
               <Kb.Text type="Body" style={styles.mainText} center={true}>
                 We are sending instructions to your email address or phone number.
               </Kb.Text>
-              <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren={true} relative={true}>
+              <Kb.Box2 direction="horizontal" centerChildren={true} relative={true}>
                 <Kb.Text type="BodyPrimaryLink" onClick={sendAgainWaiting ? undefined : onSendAgain}>
                   Send again
                 </Kb.Text>

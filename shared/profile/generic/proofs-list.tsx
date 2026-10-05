@@ -890,14 +890,14 @@ const GenericEnterUsername = ({
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
       {!unreachable && !isMobile && <Kb.BackButton onClick={onCancel} style={styles.backButton} />}
       <Kb.Box2 alignSelf="center" alignItems="center" direction="vertical" gap="xtiny" style={styles.serviceIconHeaderContainer}>
-        <Kb.Box2 alignSelf="center" direction="vertical" relative={true}>
+        <Kb.Box2 direction="vertical" relative={true}>
           <SiteIcon set={step.genericParams.logoFull} full={true} style={styles.serviceIconFull} />
           <Kb.IconAuto
             type={unreachable ? 'icon-proof-broken' : 'icon-proof-unfinished'}
             style={styles.serviceProofIcon}
           />
         </Kb.Box2>
-        <Kb.Box2 alignSelf="center" direction="vertical" alignItems="center" style={styles.serviceMeta}>
+        <Kb.Box2 direction="vertical" alignItems="center" style={styles.serviceMeta}>
           <Kb.Text type="BodySemibold">{step.genericParams.title}</Kb.Text>
           <Kb.Text type="BodySmall" center={true}>
             {step.genericParams.subtext}
@@ -1159,7 +1159,7 @@ const GenericResult = ({onClose, step}: {onClose: () => void; step: GenericResul
         fullWidth={true}
         style={styles.topContainer}
       >
-        <Kb.Box2 alignSelf="center" direction="vertical" relative={true} style={styles.serviceIconContainer}>
+        <Kb.Box2 direction="vertical" relative={true} style={styles.serviceIconContainer}>
           <SiteIcon set={step.genericParams.logoFull} full={true} />
           <Kb.Box2 alignSelf="center" direction="vertical" style={styles.iconBadgeContainer}>
             <Kb.ImageIcon type={iconType} />

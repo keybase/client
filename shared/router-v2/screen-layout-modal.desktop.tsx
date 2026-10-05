@@ -20,7 +20,7 @@ const ModalHeader = (props: ModalHeaderProps) => {
         <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} style={styles.headerLeft}>
           {!!props.leftButton && props.leftButton}
         </Kb.Box2>
-        <Kb.Box2 alignSelf="center" direction="vertical">
+        <Kb.Box2 direction="vertical">
           {typeof props.title === 'string' ? (
             <Kb.Text type="Header" lineClamp={1} center={true}>
               {props.title}

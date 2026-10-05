@@ -64,7 +64,7 @@ function Reload(props: ReloadProps) {
             {"We're having a hard time loading this page."}
           </Kb.Text>
           {expanded && (
-            <Kb.Box2 alignSelf="center" direction="vertical" style={styles.detailContainer}>
+            <Kb.Box2 direction="vertical" style={styles.detailContainer}>
               <Kb.Text type="Terminal" style={styles.details}>
                 {props.reason}
               </Kb.Text>
@@ -73,7 +73,7 @@ function Reload(props: ReloadProps) {
           <Kb.Text type="BodySecondaryLink" onClick={toggle}>
             {expanded ? 'Hide details' : 'Show details'}
           </Kb.Text>
-          <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny">
+          <Kb.Box2 direction="horizontal" gap="tiny">
             <Kb.Button label="Retry" mode="Secondary" onClick={() => onReload(true)} />
             <Kb.Button label="Feedback" mode="Primary" onClick={onFeedback} />
           </Kb.Box2>

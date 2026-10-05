@@ -139,7 +139,7 @@ const EmailPhoneRow = (p: {contactKey: string; onEmailVerificationSuccess: (emai
 
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.container}>
-      <Kb.Box2 alignSelf="center" alignItems="flex-start" direction="vertical" flex={1}>
+      <Kb.Box2 alignItems="flex-start" direction="vertical" flex={1}>
         <Kb.Text type="BodySemibold" selectable={true} lineClamp={1}>
           {address}
         </Kb.Text>

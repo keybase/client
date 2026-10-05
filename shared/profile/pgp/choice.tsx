@@ -339,7 +339,7 @@ const Finished = (props: {
         />
       )}
       {props.promptShouldStoreKeyOnServer && (
-        <Kb.Box2 alignSelf="center" direction="vertical">
+        <Kb.Box2 direction="vertical">
           <Kb.Checkbox
             onCheck={setShouldStoreKeyOnServer}
             checked={shouldStoreKeyOnServer}

@@ -18,12 +18,12 @@ const ContactRow = (props: ContactRowProps) => {
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.contactRowBox}>
-      <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" flex={1}>
+      <Kb.Box2 direction="horizontal" alignItems="center" flex={1}>
         {!!hasThumbnail && !!props.pictureUri && (
           <Kb.Image style={styles.thumbnail} src={props.pictureUri} />
         )}
         {!hasThumbnail && <Kb.Avatar size={48} style={styles.placeHolderAvatar} />}
-        <Kb.Box2 alignSelf="center" direction="vertical" flex={1}>
+        <Kb.Box2 direction="vertical" flex={1}>
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <Kb.Text type="BodySemibold">{props.name}</Kb.Text>
           </Kb.Box2>

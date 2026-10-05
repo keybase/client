@@ -137,7 +137,7 @@ const TextInput = (props: TextProps) => {
     </Kb.Text>
   )
   const clearButton = value ? (
-    <Kb.Box2 alignSelf="center" direction="vertical" style={styles.clearButtonInput}>
+    <Kb.Box2 direction="vertical" style={styles.clearButtonInput}>
       <Kb.Text type="BodySmallPrimaryLink" onClick={() => onChangeText('')}>
         Clear
       </Kb.Text>
@@ -198,7 +198,7 @@ const FileInput = ({fileIcon, onClearFiles, state}: FileProps) => {
         padding="small"
       >
         <Kb.ImageIcon type={fileIcon} />
-        <Kb.Box2 alignSelf="center" direction="vertical">
+        <Kb.Box2 direction="vertical">
           <Kb.Text type="BodySemibold">{state.input}</Kb.Text>
           {state.bytesTotal ? (
             <Kb.Text type="BodySmallSemibold">{FS.humanReadableFileSize(state.bytesTotal)}</Kb.Text>
@@ -206,7 +206,7 @@ const FileInput = ({fileIcon, onClearFiles, state}: FileProps) => {
         </Kb.Box2>
       </Kb.Box2>
       {state.input && !waiting && (
-        <Kb.Box2 alignSelf="center" direction="vertical" style={styles.clearButtonInput}>
+        <Kb.Box2 direction="vertical" style={styles.clearButtonInput}>
           <Kb.Text type="BodySmallPrimaryLink" onClick={onClearFiles} style={styles.clearButtonInput}>
             Clear
           </Kb.Text>

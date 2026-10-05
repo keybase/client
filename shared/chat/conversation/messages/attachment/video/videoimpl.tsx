@@ -88,7 +88,7 @@ const DesktopVideoImpl = (p: Props) => {
     <div onClick={reveal} style={desktopStyles.posterContainer}>
       <Kb.Image src={previewURL} style={{height, width}} />
       {allowPlay ? <Kb.ImageIcon type="icon-play-64" style={sharedStyles.playButton} /> : null}
-      <Kb.Box2 alignSelf="center" direction="vertical" overflow="hidden" style={sharedStyles.durationContainer}>
+      <Kb.Box2 direction="vertical" overflow="hidden" style={sharedStyles.durationContainer}>
         <Kb.Text type="BodyTinyBold" style={sharedStyles.durationText}>
           {videoDuration}
         </Kb.Text>
@@ -136,7 +136,7 @@ const NativeActiveVideo = (p: NativeActiveVideoProps) => {
   })
   // the player's own fullscreen is off: fullscreen is the app's attachment view
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" relative={true} style={nativeStyles.video}>
+    <Kb.Box2 direction="vertical" relative={true} style={nativeStyles.video}>
       <VideoView
         player={player}
         nativeControls={true}
@@ -198,7 +198,7 @@ const NativeVideoImpl = (p: Props) => {
           >
             <Kb.Image src={previewURL} style={Kb.Styles.collapseStyles([nativeStyles.poster, {height, width}])} />
             {allowPlay ? <Kb.ImageIcon type="icon-play-64" style={sharedStyles.playButton} /> : null}
-            <Kb.Box2 alignSelf="center" direction="vertical" overflow="hidden" style={sharedStyles.durationContainer}>
+            <Kb.Box2 direction="vertical" overflow="hidden" style={sharedStyles.durationContainer}>
               <Kb.Text type="BodyTinyBold" style={sharedStyles.durationText}>
                 {videoDuration}
               </Kb.Text>

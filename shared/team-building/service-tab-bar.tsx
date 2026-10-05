@@ -334,7 +334,7 @@ const ServiceIconDesktop = (props: IconProps) => {
         flex={1}
         style={desktopStyles.serviceIconContainer}
       >
-        <Kb.Box2 alignSelf="center" direction="vertical" relative={true}>
+        <Kb.Box2 direction="vertical" relative={true}>
           {serviceIdToBadge(service) && (
             <Kb.Badge
               border={true}
@@ -348,7 +348,7 @@ const ServiceIconDesktop = (props: IconProps) => {
             <Kb.Icon color={color} fontSize={16} type={serviceIdToIconFont(service)} />
           </Kb.Box2>
         </Kb.Box2>
-        <Kb.Box2 alignSelf="center" direction="vertical" style={desktopStyles.label}>
+        <Kb.Box2 direction="vertical" style={desktopStyles.label}>
           {props.label.map((label, i) => (
             <Kb.Text key={i} center={true} type="BodyTiny" style={{color}}>
               {label}

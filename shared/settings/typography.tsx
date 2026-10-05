@@ -201,7 +201,7 @@ const CenteringSection = () => {
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="small" alignItems="flex-start" style={styles.wrap}>
         {containerHeights.map(h => (
           <Kb.Box2 alignSelf="center" key={h} direction="vertical" alignItems="center" gap="xtiny">
-            <Kb.Box2 alignSelf="center"
+            <Kb.Box2
               direction="horizontal"
               centerChildren={true}
               relative={true}

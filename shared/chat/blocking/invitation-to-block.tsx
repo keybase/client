@@ -148,7 +148,7 @@ const BlockButtons = () => {
       </Kb.Box2>
     </Kb.Box2>
   ) : (
-    <Kb.Box2 alignSelf="center" direction="horizontal" gap="xsmall" alignItems="center" style={styles.container}>
+    <Kb.Box2 direction="horizontal" gap="xsmall" alignItems="center" style={styles.container}>
       <Kb.Text type="BodySmall">
         {team ? `${adder} added you to this team.` : `You don't follow ${adder}.`}
       </Kb.Text>

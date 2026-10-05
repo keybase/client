@@ -69,7 +69,7 @@ const TeamHeader = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
             />
           </>
         ) : (
-          <Kb.Box2 alignSelf="center" direction="vertical" gap="xxtiny" flex={1}>
+          <Kb.Box2 direction="vertical" gap="xxtiny" flex={1}>
             <Kb.Box2
               alignSelf="flex-start"
               direction="horizontal"

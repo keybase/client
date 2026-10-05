@@ -14,7 +14,7 @@ const Banner = ({onReadMore, onHideChatBanner}: Props) => {
         style={styles.illustration}
         type={isMobile ? 'icon-illustration-teams-216' : 'icon-illustration-teams-180'}
       />
-      <Kb.Box2 alignSelf="center" direction="vertical" style={styles.containerHeader}>
+      <Kb.Box2 direction="vertical" style={styles.containerHeader}>
         <Kb.Text negative={true} type="Header" style={styles.header}>
           Create a team on Keybase
         </Kb.Text>

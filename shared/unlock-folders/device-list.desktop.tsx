@@ -39,7 +39,7 @@ const DeviceList = (props: Props) => {
           <DeviceRow key={d.deviceID} device={d} />
         ))}
       </Kb.Box2>
-      <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.buttonsContainer}>
+      <Kb.Box2 direction="horizontal" style={styles.buttonsContainer}>
         <Kb.Button
           type="Dim"
           label="Enter a paper key instead"

@@ -88,7 +88,7 @@ const Troubleshooting = (props: Props) => {
         </Kb.Box2>
       </Kb.Box2>
       <Kb.Box2 alignSelf="center" direction="vertical" gap="small" alignItems="center">
-        <Kb.Box2 alignSelf="center" direction="vertical" style={styles.bodyMargins}>
+        <Kb.Box2 direction="vertical" style={styles.bodyMargins}>
           <Kb.Text type="Body" center={true}>
             This appears to be a new {isMobile ? 'phone' : 'computer'}. Perhaps you restored from a
             {

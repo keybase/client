@@ -489,7 +489,7 @@ const ExplodingButton = function ExplodingButton(p: ExplodingButtonProps) {
   const {popup, popupAnchor, showingPopup, showPopup} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.ClickableBox alignSelf="center"
+    <Kb.ClickableBox
       direction="vertical"
       alignItems="center"
       justifyContent="flex-end"
@@ -555,7 +555,7 @@ const EmojiButton = function EmojiButton() {
 
   return (
     <>
-      <Kb.Box2 alignSelf="center"
+      <Kb.Box2
         direction="vertical"
         style={desktopStyles.icon}
         ref={popupAnchor}
@@ -578,7 +578,7 @@ const GiphyButton = function GiphyButton() {
   const toggleGiphyPrefill = InputState.useConversationInputDispatch(s => s.toggleGiphyPrefill)
 
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" style={desktopStyles.icon} tooltip="GIF" className="tooltip-top-left">
+    <Kb.Box2 direction="vertical" style={desktopStyles.icon} tooltip="GIF" className="tooltip-top-left">
       <Kb.Icon onClick={toggleGiphyPrefill} type="iconfont-gif" />
     </Kb.Box2>
   )
@@ -624,7 +624,7 @@ const FileButton = function FileButton(p: {setHtmlInputRef: (i: HtmlInputRef | n
   }
 
   return (
-    <Kb.Box2 alignSelf="center"
+    <Kb.Box2
       direction="vertical"
       style={desktopStyles.icon}
       tooltip="Attachment"
@@ -755,7 +755,7 @@ const SideButtons = (p: SideButtonsProps) => {
   const desktopStyles = useDesktopStyles()
   const {setHtmlInputRef, cannotWrite} = p
   return (
-    <Kb.Box2 alignSelf="center" direction="horizontal" style={desktopStyles.sideButtons}>
+    <Kb.Box2 direction="horizontal" style={desktopStyles.sideButtons}>
       {!cannotWrite && (
         <>
           <GiphyButton />
@@ -1040,7 +1040,7 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
       )}
       <Kb.Box2 alignSelf="center" direction="vertical" style={Kb.Styles.globalStyles.flexGrow} />
       {!hasText && !cannotWrite && (
-        <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="flex-end">
+        <Kb.Box2 direction="horizontal" alignItems="flex-end">
           <Kb.Icon onClick={openFilePicker} padding="tiny" type="iconfont-camera" testID={TestIDs.CHAT_CAMERA_BUTTON} />
           <AudioRecorder showAudioSend={showAudioSend} setShowAudioSend={setShowAudioSend} />
           <Kb.Icon onClick={openMoreMenu} padding="tiny" type="iconfont-add" testID={TestIDs.CHAT_MORE_BUTTON} />

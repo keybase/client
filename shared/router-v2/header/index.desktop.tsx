@@ -231,7 +231,7 @@ function DesktopHeader(p: Props) {
           </Kb.Box2>
         )}
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.singleRow}>
-          <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} alignItems="center" justifyContent="flex-start">
+          <Kb.Box2 direction="horizontal" flex={1} alignItems="center" justifyContent="flex-start">
             {backButton}
           </Kb.Box2>
           {headerTitle ? (

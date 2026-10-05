@@ -230,7 +230,7 @@ const AddToTeam = (ownProps: OwnProps) => {
             </Kb.Text>
           </Kb.Box2>
         )}
-        <Kb.Box2 alignSelf="center" direction="horizontal">
+        <Kb.Box2 direction="horizontal">
           <Kb.Text type="Header">Add</Kb.Text>
           <Kb.Avatar isTeam={false} size={16} style={styles.headerAvatar} username={them} />
           <Kb.Text type="Header">{them} to...</Kb.Text>

@@ -264,7 +264,7 @@ const Settings = (p: Props) => {
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outerBox}>
-      <Kb.Box2 alignSelf="center" direction="vertical" alignItems="flex-start" flex={1} style={styles.main}>
+      <Kb.Box2 direction="vertical" alignItems="flex-start" flex={1} style={styles.main}>
         <Kb.ErrorBanner error={error} />
         <SetMemberShowcase
           yourOperationsJoinTeam={yourOperations.joinTeam}

@@ -36,7 +36,7 @@ export function AliasInput(props: AliasInputProps & {ref?: React.Ref<AliasRef>})
           onEnterKeyDown={onEnterKeyDown}
         />
         {onRemove && (
-          <Kb.ClickableBox alignSelf="center" direction="horizontal" centerChildren={true} onClick={onRemove} style={styles.removeBox}>
+          <Kb.ClickableBox direction="horizontal" centerChildren={true} onClick={onRemove} style={styles.removeBox}>
             <Kb.Icon type="iconfont-remove" />
           </Kb.ClickableBox>
         )}

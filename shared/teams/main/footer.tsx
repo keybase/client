@@ -14,7 +14,7 @@ const TeamsFooter = (props: {empty: boolean}) => {
       ) : (
         <>
           {props.empty && (
-            <Kb.Box2 alignSelf="center"
+            <Kb.Box2
               direction="vertical"
               alignItems="center"
               justifyContent="center"
@@ -25,7 +25,7 @@ const TeamsFooter = (props: {empty: boolean}) => {
               <Kb.Text type="BodySmall">You are not a part of any team, lone wolf.</Kb.Text>
             </Kb.Box2>
           )}
-          <Kb.Box2 alignSelf="center" direction="vertical" flex={1} />
+          <Kb.Box2 direction="vertical" flex={1} />
           {(isMobile || !props.empty) && (
             <Kb.Text type="BodySmall" center={true}>
               Keybase team chats are encrypted – unlike Slack – and work for any size group, from casual

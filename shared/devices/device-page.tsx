@@ -14,9 +14,9 @@ const TimelineMarker = (p: {first: boolean; last: boolean; closedCircle: boolean
   const {first, last, closedCircle} = p
   return (
     <Kb.Box2 direction="vertical" alignItems="center" alignSelf="stretch">
-      <Kb.Box2 alignSelf="center" direction="vertical" style={Kb.Styles.collapseStyles([styles.timelineLineTop, first && styles.invisible])} />
+      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.timelineLineTop, first && styles.invisible])} />
       <Kb.Box2 alignSelf="center" direction="vertical" style={closedCircle ? styles.circleClosed : styles.circleOpen} />
-      <Kb.Box2 alignSelf="center" direction="vertical" style={Kb.Styles.collapseStyles([styles.timelineLineBottom, last && styles.invisible])} />
+      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.timelineLineBottom, last && styles.invisible])} />
     </Kb.Box2>
   )
 }
