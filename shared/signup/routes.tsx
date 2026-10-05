@@ -97,7 +97,10 @@ export const newModalRoutes = defineRouteMap({
     screen: React.lazy(async () => import('./phone-number')),
   },
   signupSendFeedbackLoggedIn: {
-    getOptions: {title: 'Send feedback'},
+    getOptions: {
+      ...(isMobile ? {} : {headerLeft: () => <Kb.HeaderLeftButton autoDetectCanGoBack={true} />}),
+      title: 'Send feedback',
+    },
     screen: React.lazy(async () => import('./feedback')),
   },
   signupVerifyPhoneNumber: {

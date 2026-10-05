@@ -64,7 +64,6 @@ type HeaderProps = {
   title?: string
   titleComponent?: React.ReactNode
   showInfoIcon: boolean
-  showInfoIconRow: boolean
   style: Kb.Styles.StylesCrossPlatform
   negative: boolean
   rightActionLabel?: string
@@ -81,9 +80,9 @@ const Header = (props: HeaderProps) => {
       fullWidth={true}
       style={Kb.Styles.collapseStyles([styles.headerContainer, props.style])}
     >
-      {(props.showInfoIcon || props.showInfoIconRow) && (
+      {props.showInfoIcon && (
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.infoIconContainer} justifyContent="flex-end">
-          <InfoIcon invisible={props.negative || (props.showInfoIconRow && !props.showInfoIcon)} />
+          <InfoIcon invisible={props.negative} />
         </Kb.Box2>
       )}
       <Kb.Box2 direction="horizontal" centerChildren={true} relative={true} style={styles.titleContainer} fullWidth={true}>
@@ -146,7 +145,6 @@ type SignupScreenProps = {
   rightActionLabel?: string
   onRightAction?: () => void
   showHeaderInfoIcon?: boolean
-  showHeaderInfoIconRow?: boolean
   hideDesktopHeader?: boolean
   waitingOverlay?: boolean
 }
@@ -155,7 +153,7 @@ type SignupScreenProps = {
 export const SignupScreen = (props: SignupScreenProps) => {
   const styles = useStyles()
   // When logged out, React Navigation's header owns the title/back/action row, so this screen-level
-  // header would be a second header. Only draw it for logged-in uses (e.g. the feedback modal).
+  // header would be a second header. Only draw it for logged-in uses (e.g. the email and phone modals).
   const loggedIn = useConfigState(s => s.loggedIn)
   const showDesktopHeader = !isMobile && !props.hideDesktopHeader && loggedIn
 
@@ -174,7 +172,6 @@ export const SignupScreen = (props: SignupScreenProps) => {
           title={props.title}
           titleComponent={props.titleComponent}
           showInfoIcon={!!props.showHeaderInfoIcon}
-          showInfoIconRow={!!props.showHeaderInfoIconRow}
           style={Kb.Styles.collapseStyles([
             props.noBackground && styles.whiteHeaderContainer,
             props.headerStyle,
