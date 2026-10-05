@@ -120,23 +120,24 @@ const desktopInfoPanel = (
 // its Media / Docs / Links views. The header's member count fills in once the team's members
 // load, with no waiting key, so the phone entry opens on the members tab and waits for a member
 // row first, as desktop's panel does.
-const attachmentsView = (id: string, view: string, ready: string): Array<TourEntry> => [
-  desktopInfoPanel(`-${id}`, 'e2e-media', T.CHAT_INFO_PANEL_ATTACHMENTS_TAB, ready, [{kind: 'switchSubTab', testID: view}]),
-  {
-    id: `chat/info-panel-${id}`,
-    nav: {
-      append: {name: 'chatInfoPanel', params: {conversationIDKey: {channel: 'e2e-media', ref: 'conversationIDKey'}}},
-      tab: 'tabs.chatTab',
-    },
-    platforms: ['phone'],
-    ready,
-    seal: ['inbox', 'teams'],
-    setup: [
-      {kind: 'scrollIntoView', testID: T.CHAT_INFO_PANEL_PARTICIPANT},
-      {kind: 'switchSubTab', testID: T.CHAT_INFO_PANEL_ATTACHMENTS_TAB},
-      {kind: 'switchSubTab', testID: view},
-    ],
+const phoneAttachmentsView = (id: string, view: string, ready: string): TourEntry => ({
+  id: `chat/info-panel-${id}`,
+  nav: {
+    append: {name: 'chatInfoPanel', params: {conversationIDKey: {channel: 'e2e-media', ref: 'conversationIDKey'}}},
+    tab: 'tabs.chatTab',
   },
+  platforms: ['phone'],
+  ready,
+  seal: ['inbox', 'teams'],
+  setup: [
+    {kind: 'scrollIntoView', testID: T.CHAT_INFO_PANEL_PARTICIPANT},
+    {kind: 'switchSubTab', testID: T.CHAT_INFO_PANEL_ATTACHMENTS_TAB},
+    {kind: 'switchSubTab', testID: view},
+  ],
+})
+const attachmentsView = (id: string, view: string, ready: string, phone = true): Array<TourEntry> => [
+  desktopInfoPanel(`-${id}`, 'e2e-media', T.CHAT_INFO_PANEL_ATTACHMENTS_TAB, ready, [{kind: 'switchSubTab', testID: view}]),
+  ...(phone ? [phoneAttachmentsView(id, view, ready)] : []),
 ]
 
 // The team's restricted bot, from its install modal: what it can read, the edit screen (nothing
@@ -240,7 +241,9 @@ export const tour: ReadonlyArray<TourEntry> = [
     ]),
     leavesPopup: true,
   },
-  ...attachmentsView('media', T.CHAT_INFO_PANEL_MEDIA, T.CHAT_INFO_PANEL_MEDIA),
+  // Phone media: after another conversation's entry, the sheet's top-right corner shadow draws
+  // 1 level off in one channel in about half the captures (aa), so it's desktop only.
+  ...attachmentsView('media', T.CHAT_INFO_PANEL_MEDIA, T.CHAT_INFO_PANEL_MEDIA, false),
   ...attachmentsView('docs', T.CHAT_INFO_PANEL_DOCS, T.CHAT_INFO_PANEL_DOCS),
   ...attachmentsView('links', T.CHAT_INFO_PANEL_LINKS, T.CHAT_INFO_PANEL_LINKS),
   {...infoPanel('members', 'e2e-short'), id: 'chat/info-panel'},
@@ -426,7 +429,7 @@ export const tour: ReadonlyArray<TourEntry> = [
     ready: T.SETTINGS_ACCOUNT,
     seal: [],
   },
-  ...modal('device-add', 'deviceAdd', {}, {phone: true}),
+  ...modal('device-add', 'deviceAdd', {}, {phone: true, ready: T.DEVICES_ADD_DEVICE}),
   ...modal('add-email', 'settingsAddEmail', {}, {phone: true}),
   ...modal('add-phone', 'settingsAddPhone', {}, {phone: true}),
   ...modal('kext-permission', 'kextPermission'),
