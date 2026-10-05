@@ -164,16 +164,80 @@ test('subscribers are notified when their session details change', () => {
   expect(cb).toHaveBeenCalledTimes(2)
 })
 
-test('an idle session is dropped once its last subscriber leaves and its identify finished', async () => {
+const minutes = (n: number) => n * 60_000
+const mountOptions = {freshAfter: 0, ignoreCache: true, maxAgeMs: 30_000}
+
+// Open a profile, let its identify finish with an ok result and one follower, and close it.
+const openAndClose = async () => {
+  jest
+    .spyOn(T.RPCGen, 'userListTrackersUnverifiedRpcPromise')
+    .mockImplementation(async () => Promise.resolve({users: [{fullName: '', username: 'testuser-mac'}]} as never))
   const unsub = subscribeToProfile('testuser', () => {})
-  loadProfileIdentify('testuser', {freshAfter: 0, ignoreCache: true})
+  loadProfileIdentify('testuser', mountOptions)
+  notifyEngineActionListeners({
+    payload: {params: {guiID: getProfileDetails('testuser')?.guiID ?? '', result: T.RPCGen.Identify3ResultType.ok}},
+    type: 'keybase.1.identify3Ui.identify3Result',
+  } as never)
+  await flush()
+  unsub()
+}
+
+test('an idle session lets its result go once the last completed check expires', async () => {
+  const now = Date.now()
+  await openAndClose()
+  expect(getProfileDetails('testuser')?.guiID).toBeTruthy()
+
+  jest.spyOn(Date, 'now').mockReturnValue(now + minutes(6))
+  expect(getProfileDetails('testuser')).toBeUndefined()
+})
+
+test('a profile reopened within the recheck window shows its last result without a new identify', async () => {
+  await openAndClose()
+  expect(identifySpy).toHaveBeenCalledTimes(1)
+
+  const unsub = subscribeToProfile('testuser', () => {})
+  loadProfileIdentify('testuser', mountOptions)
   await flush()
 
+  expect(identifySpy).toHaveBeenCalledTimes(1)
   const details = getProfileDetails('testuser')
-  expect(details?.username).toBe('testuser')
+  expect(details?.followers).toEqual(new Set(['testuser-mac']))
+  expect(details?.following).toEqual(new Set())
   expect(details?.guiID).toBeTruthy()
+  expect(details?.state).toBe('valid')
   unsub()
-  expect(getProfileDetails('testuser')).toBeUndefined()
+})
+
+test('a profile reopened after the recheck window runs a full load again', async () => {
+  const now = Date.now()
+  await openAndClose()
+
+  jest.spyOn(Date, 'now').mockReturnValue(now + minutes(1))
+  const unsubA = subscribeToProfile('testuser', () => {})
+  loadProfileIdentify('testuser', mountOptions)
+  expect(identifySpy).toHaveBeenCalledTimes(2)
+  await flush()
+  unsubA()
+
+  jest.spyOn(Date, 'now').mockReturnValue(now + minutes(10))
+  const unsubB = subscribeToProfile('testuser', () => {})
+  loadProfileIdentify('testuser', mountOptions)
+  expect(identifySpy).toHaveBeenCalledTimes(3)
+  expect(getProfileDetails('testuser')?.state).toBe('checking')
+  unsubB()
+})
+
+test('a tracking change to a closed profile makes its reopen check again', async () => {
+  await openAndClose()
+  notifyEngineActionListeners({
+    payload: {params: {isTrackedByUs: true, uid: '', username: 'testuser'}},
+    type: 'keybase.1.NotifyTracking.trackingChanged',
+  } as never)
+
+  const unsub = subscribeToProfile('testuser', () => {})
+  loadProfileIdentify('testuser', mountOptions)
+  expect(identifySpy).toHaveBeenCalledTimes(2)
+  unsub()
 })
 
 test('a session with an identify still running is kept even with no subscribers', () => {
