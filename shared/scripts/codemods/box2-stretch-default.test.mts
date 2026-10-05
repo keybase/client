@@ -18,8 +18,12 @@ import {
   readU4Skips,
   u4Candidates,
   u4SkipsPath,
+  gateUnreachable,
+  platformOnly,
+  resolveSpecifier,
   unmountedPlatforms,
   unpinCandidates,
+  type Project,
 } from './box2-stretch-default.mts'
 import {execFileSync} from 'child_process'
 
@@ -743,7 +747,7 @@ test('gate platforms by file name', () => {
   assert.deepEqual(needs(`const A = () => ${pinBox()}`, 'settings/a.native.tsx'), ['ios'])
   assert.deepEqual(needs(`const A = () => ${pinBox()}`, 'settings/a.ios.tsx'), ['ios'])
   assert.deepEqual(needs(`const A = () => ${pinBox()}`, 'settings/a.android.tsx'), [
-    'only reachable on android among mobile devices',
+    'unreachable by the gate: only on android among mobile devices',
   ])
 })
 
@@ -764,21 +768,21 @@ test('a site in a platform branch needs only the gate platforms of that branch',
   // nested branches narrow in turn; an iPad-only or Android-only site has no gate device
   assert.deepEqual(
     needs(`const A = () => (isMobile ? (C.isTablet ? ${pinBox(1)} : ${pinBox(2)}) : isIOS && ${pinBox(3)})`, 'settings/a.tsx', `import * as C from '@/constants'`),
-    ['only reachable on iPad among mobile devices', 'ios', 'reachable on no device']
+    ['unreachable by the gate: only on iPad among mobile devices', 'ios', 'reachable on no device']
   )
   assert.deepEqual(needs(`const A = () => (isAndroid ? ${pinBox(1)} : ${pinBox(2)})`), [
-    'only reachable on android among mobile devices',
+    'unreachable by the gate: only on android among mobile devices',
     both,
   ])
   // the other arm of isIOS reaches Android and desktop: no capture sees the Android half
   assert.deepEqual(needs(`const A = () => (isIOS ? ${pinBox(1)} : ${pinBox(2)})`), [
     'ios',
-    'only reachable on android among mobile devices',
+    'unreachable by the gate: only on android among mobile devices',
   ])
   // isPhone's other arm is desktop and iPad: the iPad half has no gate device
   assert.deepEqual(needs(`const A = () => (Kb.Styles.isPhone ? ${pinBox(1)} : ${pinBox(2)})`), [
     'ios',
-    'only reachable on iPad among mobile devices',
+    'unreachable by the gate: only on iPad among mobile devices',
   ])
   assert.deepEqual(needs(`const A = () => (isPhone ? ${pinBox(1)} : null)`, 'settings/a.tsx', `import {isPhone} from '@/constants/platform'`), ['ios'])
   assert.deepEqual(needs(`const A = () => (isTablet ? null : ${pinBox(1)})`, 'chat/a.tsx', `import {isTablet} from '../styles'`), [both])
@@ -802,7 +806,7 @@ test('if statements and early returns narrow the statements they guard', () => {
   // nested blocks: the outer guard holds inside the inner block
   assert.deepEqual(
     needs(`function A() {\n  if (isElectron) return null\n  if (x) {\n    if (C.isPhone) return null\n    return ${pinBox(1)}\n  }\n  return ${pinBox(2)}\n}`, 'settings/a.tsx', `import * as C from '@/constants'`),
-    ['only reachable on iPad among mobile devices', 'ios']
+    ['unreachable by the gate: only on iPad among mobile devices', 'ios']
   )
   // break and continue leave the block too; an if whose branches both exit is an exit
   assert.deepEqual(
@@ -839,7 +843,7 @@ test('closures follow their branch; declarations, unknown names and shadowed fla
   assert.deepEqual(needs(`const A = () => {\n  if (isMobile) return null\n  return {r() { return ${pinBox(1)} }}\n}`), ['desktop'])
   assert.deepEqual(
     needs(`const A = () => isMobile && <B r={() => { if (isIOS) return null; return ${pinBox(1)} }} />`),
-    ['only reachable on android among mobile devices']
+    ['unreachable by the gate: only on android among mobile devices']
   )
   for (const [body, imports] of [
     [`const A = (isMobile: boolean) => isMobile && ${pinBox(1)}`, ''],
@@ -854,6 +858,157 @@ test('closures follow their branch; declarations, unknown names and shadowed fla
   ] as const) {
     assert.deepEqual(needs(body, 'settings/a.tsx', imports), ['desktop+ios'], `${imports} ${body}`)
   }
+})
+
+// the gate platforms each pin-shaped site in `rel` needs, read as part of `files`
+const projectNeeds = (files: Record<string, string>, rel: string) => {
+  const project: Project = {files: new Map(Object.entries(files)), root: '/x/shared'}
+  return u4Candidates(files[rel]!, `/x/shared/${rel}`, project).sites.map(s =>
+    'why' in s.need ? s.need.why : s.need.platforms.join('+')
+  )
+}
+const kb = `import * as Kb from '@/common-adapters'\n`
+const pinned = `${kb}const Pin = () => ${pinBox()}\nexport default Pin\n`
+
+test('a component reaches the devices of every read of it, across files', () => {
+  // EmojiRow: rendered only on desktop, from two files
+  const emoji = {
+    'chat/emoji-row.tsx': pinned,
+    'chat/rows.tsx': `import EmojiRow from './emoji-row'\nexport const R = () => (isMobile ? null : <EmojiRow />)\n`,
+    'chat/wrapper.tsx': `import ER from '@/chat/emoji-row'\nconst show = !isMobile && x\nexport const W = () => (show && y ? <ER /> : null)\n`,
+  }
+  assert.deepEqual(projectNeeds(emoji, 'chat/emoji-row.tsx'), ['desktop'])
+  // one read anywhere else makes it reach that read's devices too
+  assert.deepEqual(projectNeeds({...emoji, 'chat/other.tsx': `import E from './emoji-row'\nexport const O = () => <E />\n`}, 'chat/emoji-row.tsx'), [
+    'desktop+ios',
+  ])
+  // a platform file is a read on its platform only; the component file itself can be one too
+  assert.deepEqual(projectNeeds({'a.tsx': pinned, 'b.native.tsx': `import P from './a'\nexport const B = () => <P />\n`}, 'a.tsx'), ['ios'])
+  // a module nothing in the project reads is an entry point, and reaches every device
+  assert.deepEqual(projectNeeds({'a.tsx': pinned}, 'a.tsx'), ['desktop+ios'])
+  // a component nothing reads is dead
+  assert.deepEqual(projectNeeds({'a.tsx': `${kb}const Pin = () => ${pinBox()}\n`}, 'a.tsx'), ['reachable on no device'])
+  // names, namespaces and barrels; a namespace read of another member is not a read
+  const named = `${kb}export function Pin() {\n  return ${pinBox()}\n}\n`
+  assert.deepEqual(
+    projectNeeds(
+      {
+        'a.tsx': named,
+        'b.tsx': `import * as A from './a'\nexport const B = () => <>{isMobile && <A.Pin />}{A.other}</>\n`,
+        'c.tsx': `export {Pin as Shown} from './a'\n`,
+        'd.tsx': `import {Shown} from './c'\nexport const D = () => isIOS && <Shown></Shown>\n`,
+        'e.tsx': `import * as A from './a'\nexport const E = () => <A.Other />\n`,
+      },
+      'a.tsx'
+    ),
+    ['ios']
+  )
+  assert.deepEqual(
+    projectNeeds({'a.tsx': named, 'i.tsx': `export * from './a'\n`, 'u.tsx': `import {Pin} from './i'\nexport const U = () => <Pin />\n`}, 'a.tsx'),
+    ['desktop+ios']
+  )
+  // dynamic import() and require() read the module where the call runs
+  assert.deepEqual(
+    projectNeeds({'a.tsx': pinned, 'r.tsx': `import * as React from 'react'\nexport const routes = isMobile ? {} : {a: {screen: React.lazy(async () => import('./a'))}}\n`}, 'a.tsx'),
+    ['desktop']
+  )
+  assert.deepEqual(projectNeeds({'a.tsx': pinned, 'r.tsx': `export const f = () => isAndroid && require('./a')\n`}, 'a.tsx'), [
+    'unreachable by the gate: only on android among mobile devices',
+  ])
+})
+
+test('a component held in a route table, a ternary or a React wrapper narrows by where it is read', () => {
+  // the tablet header: only an iPad reads the options holding it
+  const tablet = `${kb}function TabletHeader() {\n  return ${pinBox()}\n}\nexport default Kb.Styles.isTablet ? {headerTitle: () => <TabletHeader />} : {}\n`
+  assert.deepEqual(projectNeeds({'o.tsx': tablet, 'r.tsx': `import o from './o'\nexport const r = {getOptions: o}\n`}, 'o.tsx'), [
+    'unreachable by the gate: only on iPad among mobile devices',
+  ])
+  // memo and forwardRef from react defer their argument; any other call may run it at load
+  const wrapped = (wrap: string, imports: string) =>
+    projectNeeds({'a.tsx': `${kb}${imports}\nconst Pin = ${wrap}(() => ${pinBox()})\nexport default Pin\n`, 'b.tsx': `import P from './a'\nexport const B = () => isMobile && <P />\n`}, 'a.tsx')
+  assert.deepEqual(wrapped('React.memo', `import * as React from 'react'`), ['ios'])
+  assert.deepEqual(wrapped('memo', `import {memo} from 'react'`), ['ios'])
+  assert.deepEqual(wrapped('memo', `import {memo} from './memo'`), ['desktop+ios'])
+  assert.deepEqual(wrapped('register', ''), ['desktop+ios'])
+  // a class component, and a site at module level
+  assert.deepEqual(
+    projectNeeds({'a.tsx': `${kb}export class Pin extends C {\n  render() { return ${pinBox()} }\n}\n`, 'b.tsx': `import {Pin} from './a'\nexport const B = () => isElectron && <Pin />\n`}, 'a.tsx'),
+    ['desktop']
+  )
+  assert.deepEqual(projectNeeds({'a.tsx': `${kb}export const el = ${pinBox()}\n`, 'b.tsx': `import {el} from './a'\nexport const B = () => isMobile && el\n`}, 'a.tsx'), [
+    'desktop+ios',
+  ])
+})
+
+test('reads that run nothing do not widen a component, and recursion settles', () => {
+  const files = {
+    'a.tsx': `${kb}import type {X} from './x'\nconst Pin = (): X => <>{${pinBox(1)}}{x && <Pin />}</>\nPin.displayName = 'Pin'\nexport type P = React.ComponentProps<typeof Pin>\nexport default Pin\n`,
+    'b.tsx': `import Pin from './a'\nexport const B = () => isMobile && <Pin></Pin>\n`,
+  }
+  assert.deepEqual(projectNeeds(files, 'a.tsx'), ['ios'])
+  // mutual recursion between two files still settles on the reads from outside the cycle
+  const cycle = {
+    'a.tsx': `${kb}import B from './b'\nconst A = () => <>{${pinBox(1)}}<B /></>\nexport default A\n`,
+    'b.tsx': `import A from './a'\nconst B = () => (x ? <A /> : null)\nexport default B\n`,
+    'c.tsx': `import A from './a'\nimport B from './b'\nexport const C = () => <>{isElectron && <A />}{isElectron && <B />}</>\n`,
+  }
+  assert.deepEqual(projectNeeds(cycle, 'a.tsx'), ['desktop'])
+  // a function assigned rather than declared is held by the assignment, which may run anywhere
+  assert.deepEqual(projectNeeds({'a.tsx': `${kb}let Pin\nPin = () => ${pinBox(1)}\nexport default Pin\n`, 'b.tsx': `import P from './a'\nexport const B = () => isMobile && <P />\n`}, 'a.tsx'), [
+    'desktop+ios',
+  ])
+})
+
+test('platform consts read through imports, and the desktop operating systems', () => {
+  const files = {
+    'constants/chat/index.tsx': `export * from './common'\n`,
+    'constants/chat/common.tsx': `export {isSplit} from './layout'\n`,
+    'constants/chat/layout.tsx': `import {isTablet} from '@/constants/platform'\nexport const isSplit = !isMobile || isTablet\n`,
+    'constants/platform.tsx': `export const isTablet = f()\n`,
+    'chat/a.tsx': `${kb}import * as Chat from '@/constants/chat'\nimport {isSplit} from '@/constants/chat/layout'\nexport const A = () => <>{Chat.isSplit && ${pinBox(1)}}{!isSplit && ${pinBox(2)}}</>\n`,
+  }
+  assert.deepEqual(projectNeeds(files, 'chat/a.tsx'), ['unreachable by the gate: only on iPad among mobile devices', 'ios'])
+  // two files that may provide the const: unknown
+  assert.deepEqual(
+    projectNeeds({...files, 'constants/chat/layout.native.tsx': `export const isSplit = false\n`}, 'chat/a.tsx'),
+    ['desktop+ios', 'desktop+ios']
+  )
+  const os = `${kb}import * as Platform from '@/constants/platform'\nimport {isLinux} from '@/constants'\n`
+  assert.deepEqual(
+    projectNeeds({'a.desktop.tsx': `${os}export const A = () => <>{!Platform.isMac && ${pinBox(1)}}{isLinux && ${pinBox(2)}}{Platform.isDarwin && ${pinBox(3)}}</>\n`}, 'a.desktop.tsx'),
+    [
+      'unreachable by the gate: only on linux or windows among desktops',
+      'unreachable by the gate: only on linux among desktops',
+      'desktop',
+    ]
+  )
+})
+
+test('module specifiers resolve to every platform variant', () => {
+  const files = new Map(['a/b.desktop.tsx', 'a/b.native.tsx', 'a/c/index.tsx', 'a/d.tsx', 'x.ts'].map(f => [f, '']))
+  assert.deepEqual(resolveSpecifier(files, 'a/e.tsx', './b'), ['a/b.desktop.tsx', 'a/b.native.tsx'])
+  assert.deepEqual(resolveSpecifier(files, 'a/e.tsx', './c'), ['a/c/index.tsx'])
+  assert.deepEqual(resolveSpecifier(files, 'q/e.tsx', '@/a/d'), ['a/d.tsx'])
+  assert.deepEqual(resolveSpecifier(files, 'a/e.tsx', '../x'), ['x.ts'])
+  assert.deepEqual(resolveSpecifier(files, 'a/e.tsx', 'react'), [])
+  assert.deepEqual(resolveSpecifier(files, 'e.tsx', '../outside'), [])
+})
+
+test('reviewed reachability: every entry names a file in the tree and gives a reason', () => {
+  const root = path.resolve(import.meta.dirname, '../..')
+  for (const [rel, e] of Object.entries(platformOnly)) {
+    assert.ok(fs.existsSync(path.join(root, rel)), rel)
+    assert.ok(e.reason && e.devices.length, rel)
+  }
+  for (const [rel, reason] of Object.entries(gateUnreachable)) {
+    assert.ok(fs.existsSync(path.join(root, rel)), rel)
+    assert.ok(reason, rel)
+  }
+  const kext = 'fs/banner/system-file-manager-integration-banner/kext-permission-popup.tsx'
+  assert.deepEqual(projectNeeds({[kext]: pinned}, kext), ['desktop'])
+  assert.deepEqual(projectNeeds({'settings/make-icons.page.tsx': pinned}, 'settings/make-icons.page.tsx'), [
+    `unreachable by the gate: ${gateUnreachable['settings/make-icons.page.tsx']}`,
+  ])
 })
 
 test('a candidate needs coverage on every platform it renders on', () => {
@@ -1279,7 +1434,7 @@ test('U4 plan: needs coverage on every gate platform, carries base lines forward
   try {
     const shared = path.join(tmp, 'shared')
     fs.mkdirSync(path.join(shared, 'settings'), {recursive: true})
-    const file = (lines: Array<string>) => ['const A = () => (', '  <>', ...lines, '  </>', ')', ''].join('\n')
+    const file = (lines: Array<string>) => ['export const A = () => (', '  <>', ...lines, '  </>', ')', ''].join('\n')
     const sites = [
       '    <Kb.Box2 alignSelf="center" direction="vertical" />',
       '    <Kb.Box2 alignSelf="center" direction="horizontal" />',
@@ -1315,7 +1470,7 @@ test('U4 plan: needs coverage on every gate platform, carries base lines forward
     assert.deepEqual(plan.uncovered, [
       {site: 'settings/a.tsx:6', why: 'never mounted on ios'},
       {site: 'settings/a.tsx:7', why: 'never mounted on ios'},
-      {site: 'settings/a.tsx:9', why: 'only reachable on android among mobile devices'},
+      {site: 'settings/a.tsx:9', why: 'unreachable by the gate: only on android among mobile devices'},
     ])
     const stale = planU4(shared, {at: 'HEAD', base, skips: [...skips, {reason: 'r', rel: 'settings/gone.tsx', tag: 'x'}]})
     assert.deepEqual(stale.errors, ['skip names a file with no .tsx at HEAD: settings/gone.tsx'])
