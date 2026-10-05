@@ -75,7 +75,7 @@ export const parseCommand = (argv: ReadonlyArray<string>): Command => {
   for (const t of asked ?? []) {
     if (!THEMES.includes(t as Theme)) throw new Error(`unknown theme ${t} (light or dark)`)
   }
-  const themes = (asked as Array<Theme> | undefined) ?? (ios ? ['light'] : [...THEMES])
+  const themes = (asked as Array<Theme> | undefined) ?? ['light']
   if (ios && themes.some(t => t !== 'light')) throw new Error('iOS captures are light only')
   return {base: values.base, coverage: !!values.coverage, ios, patterns: positionals, themes}
 }
