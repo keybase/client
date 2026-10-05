@@ -72,6 +72,13 @@ const defaultWindowState = {
 
 const windowState = {...defaultWindowState}
 
+// The visual gate (tests/e2e/visual) captures an emulated viewport of this size; a content area that
+// matches it shows whoever watches a run what is captured. The size is not saved as window state.
+const visualContentSize = (() => {
+  const m = /^(\d+)x(\d+)$/.exec(Electron.app.commandLine.getSwitchValue('kb-visual-content-size'))
+  return m ? {height: Number(m[2]), width: Number(m[1])} : undefined
+})()
+
 const setupWindowEvents = (win: Electron.BrowserWindow) => {
   const saveWindowState = debounce(() => {
     const winBounds = win.getNormalBounds()
@@ -84,10 +91,12 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
     R.remoteDispatch(RemoteGen.createUpdateWindowState({windowState}))
   }, 5000)
 
-  win.on('show', saveWindowState)
-  win.on('close', saveWindowState)
-  win.on('resize', saveWindowState)
-  win.on('move', saveWindowState)
+  if (!visualContentSize) {
+    win.on('show', saveWindowState)
+    win.on('close', saveWindowState)
+    win.on('resize', saveWindowState)
+    win.on('move', saveWindowState)
+  }
 
   const hideInsteadOfClose = (event: Electron.Event) => {
     event.preventDefault()
@@ -319,7 +328,7 @@ const MainWindow = () => {
   const win = new Electron.BrowserWindow({
     backgroundColor: isDarkMode ? '#191919' : '#ffffff',
     frame: useNativeFrame,
-    height: windowState.height,
+    height: visualContentSize?.height ?? windowState.height,
     minHeight: 600,
     minWidth: 740,
     show: false,
@@ -332,7 +341,8 @@ const MainWindow = () => {
       preload: preloadPath,
       spellcheck: !disableSpellCheck,
     },
-    width: windowState.width,
+    useContentSize: !!visualContentSize,
+    width: visualContentSize?.width ?? windowState.width,
     x: windowState.x,
     y: windowState.y,
     ...(isDarwin ? {titleBarStyle: 'hiddenInset'} : {}),
@@ -350,7 +360,7 @@ const MainWindow = () => {
     )
   }
 
-  if (windowState.isFullScreen) {
+  if (windowState.isFullScreen && !visualContentSize) {
     win.setFullScreen(true)
   }
 

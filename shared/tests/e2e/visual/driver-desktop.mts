@@ -8,7 +8,7 @@ import {chromium, type Browser, type CDPSession, type Page} from '@playwright/te
 import {findMainPage, checkRendererAfterReload} from '../electron/helpers/connect.ts'
 import {pngEqual, type Rect} from './compare.mts'
 import {resolveParams} from './resolve.mts'
-import {VISUAL_ELECTRON_ARGS} from './electron-args.ts'
+import {VISUAL_CAPTURE_ARGS, VISUAL_VIEWPORT} from './electron-args.ts'
 import type {Theme, TourEntry, SetupStep} from './tour-types.ts'
 
 export type Capture = {
@@ -40,7 +40,7 @@ export const desktopCleanupCommands = (shared: string): Array<string> => [
 ]
 
 const SHARED_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
-const VIEWPORT = {deviceScaleFactor: 2, height: 800, width: 1280}
+const VIEWPORT = {deviceScaleFactor: 2, ...VISUAL_VIEWPORT}
 const CONNECT_MS = 5_000
 const EVAL_MS = 5_000
 const RESET_MS = 5_000
@@ -396,7 +396,7 @@ const checkVisualSwitches = (cdpPort: number) => {
   const lines = execFileSync('ps', ['-axww', '-o', 'args='], {encoding: 'utf8', timeout: 5_000}).split('\n')
   const app = lines.find(l => l.includes('Electron') && l.includes(`--remote-debugging-port=${cdpPort}`))
   if (!app) throw new Error(`no Electron process with --remote-debugging-port=${cdpPort}`)
-  const missing = VISUAL_ELECTRON_ARGS.filter(a => !app.split(' ').includes(a))
+  const missing = VISUAL_CAPTURE_ARGS.filter(a => !app.split(' ').includes(a))
   if (missing.length) {
     throw new Error(
       `the app was not launched for visual runs (missing ${missing.join(' ')}); relaunch with node tests/e2e/electron/launch-app.mts --visual`
