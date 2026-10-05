@@ -520,6 +520,45 @@ export const tour: ReadonlyArray<TourEntry> = [
   ...modal('profile-avatar', 'profileEditAvatar'),
   ...modal('profile-showcase-teams', 'profileShowcaseTeamOffer', {}, {phone: true, seal: ['teams']}),
   ...modal('profile-add-to-team', 'profileAddToTeam', {username: {ref: 'secondUser'}}, {phone: true, seal: ['teams']}),
+  ...modal('profile-edit', 'profileEdit', {}, {phone: true}),
+  // A profile: the second account's, and the smoke account's own. Teams in common and the
+  // followers come from the seal's teams and follows. On the phone the rim of the glass back
+  // button over the colored header draws a level or two off depending on how the keyboard has come
+  // and gone in the sitting: an aa of only these and modal/profile-edit (its first field
+  // autofocuses) differs between its two passes, while with the keyboard modals before them in the
+  // tour it is stable. Scope a phone run of them from modal/add-email.
+  ...(['secondUser', 'username'] as const).map(
+    (ref): TourEntry => ({
+      id: `profile/${ref === 'username' ? 'self' : 'other'}`,
+      nav: {append: {name: 'profile', params: {username: {ref}}}, tab: 'tabs.peopleTab'},
+      platforms: ['desktop', 'phone'],
+      ready: T.PROFILE_PAGE,
+      seal: ['follows', 'teams'],
+    })
+  ),
+  // One contact who is on Keybase, the second account, which the smoke account does not follow.
+  ...modal(
+    'settings-contacts-joined',
+    'settingsContactsJoined',
+    {
+      contacts: [
+        {
+          assertion: {ref: 'secondUser'},
+          component: {email: 'visualgate@example.com', label: 'home'},
+          contactIndex: 0,
+          contactName: 'Visual Gate',
+          displayLabel: 'visualgate@example.com',
+          displayName: 'Visual Gate',
+          following: false,
+          fullName: '',
+          resolved: true,
+          uid: '',
+          username: {ref: 'secondUser'},
+        },
+      ],
+    },
+    {phone: true, seal: ['follows']}
+  ),
   ...modal('people-builder', 'peopleTeamBuilder', {}, {masks: [teamBuilderRecs], phone: true, seal: ['follows']}),
   ...modal('feedback', 'signupSendFeedbackLoggedIn', {}, {phone: true}),
   ...modal('chat-block', 'chatBlockingModal', {blockUserByDefault: true, username: {ref: 'secondUser'}}, {phone: true, seal: ['follows']}),
@@ -782,17 +821,8 @@ export const tour: ReadonlyArray<TourEntry> = [
 //   teamAddToTeamContacts, teamInviteByContact (phone; desktop renders nothing): open the system's
 //     contacts permission prompt, which no step can answer, and answering it changes the
 //     simulator's privacy settings
-//   profileEdit: under the frozen clock its fields never fill in (the profile's user card never
-//     arrives in the run; with the real clock it does in about 3s)
 //
 // Unstable, not masked:
-//   profile (self and others): reopening a profile within 30s of closing it shows an empty profile
-//     with spinning follower counts that never fill in (tracker/identify-session.tsx: the closed
-//     profile's session is dropped, and the 30s recheck window then skips the reload). Seen in
-//     real time too, and the same on master. The tour opens every entry twice, and with Date
-//     frozen the window never ends, so the second capture is always the empty one.
-//   settingsContactsJoined: the same identify recheck; its second open draws the Follow button
-//     disabled (no identify session)
 //   accountSwitcher (phone): in the round after a reload, its row avatars and the next entry's
 //     composer icons draw a subpixel off between the two captures
 //   phone files/team: in some app launches the first time the folder is pushed, its header's
