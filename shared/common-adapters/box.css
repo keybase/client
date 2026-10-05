@@ -210,9 +210,6 @@
 .box2_alignSelf_stretch {
   align-self: stretch;
 }
-.box2_no_shrink {
-  flex-shrink: 0;
-}
 .box2_alignItems_center {
   align-items: center;
 }
@@ -222,11 +219,27 @@
 .box2_alignItems_flex-end {
   align-items: flex-end;
 }
+/* after .box2_centeredChildren, which it overrides as on native */
+.box2_alignItems_stretch {
+  align-items: stretch;
+}
 .box2_pointerEvents_none {
   pointer-events: none;
 }
+/* React Native's box-none: the box ignores the pointer, its children do not. :where keeps the child
+   rule at zero specificity, so a child's own pointer-events (none, or a nested box-none) wins. */
+.box2_pointerEvents_box-none {
+  pointer-events: none;
+}
+:where(.box2_pointerEvents_box-none) > * {
+  pointer-events: auto;
+}
 .box2_flex1 {
   flex: 1;
+}
+/* after .box2_flex1, whose shorthand would reset flex-shrink to 1 */
+.box2_no_shrink {
+  flex-shrink: 0;
 }
 .box2_justifyContent_center {
   justify-content: center;
