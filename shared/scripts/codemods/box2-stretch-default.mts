@@ -451,7 +451,7 @@ const styleLeaves = (at: At, keys: ReadonlySet<string>, depth = 0): boolean => {
   if (depth > 16) return false
   const recur = (x: babel.types.Node | null | undefined, to: Partial<At> = {}) =>
     !!x && styleLeaves({...at, ...to, node: x}, keys, depth + 1)
-  if (t.isNullLiteral(e) || t.isBooleanLiteral(e, {value: false}) || t.isIdentifier(e, {name: 'undefined'})) return true
+  if (t.isNullLiteral(e) || t.isBooleanLiteral(e, {value: false}) || (t.isIdentifier(e) && e.name === 'undefined')) return true
   if (t.isTSAsExpression(e) || t.isTSSatisfiesExpression(e) || t.isParenthesizedExpression(e)) return recur(e.expression)
   if (t.isConditionalExpression(e)) return recur(e.consequent) && recur(e.alternate)
   // `a && style`: a falsy `a` adds nothing to the style
@@ -652,6 +652,9 @@ const pureTest = (e: babel.types.Node): boolean => {
   return false
 }
 
+const pureExpr = (e: babel.types.Node): boolean =>
+  t.isConditionalExpression(e) ? pureTest(e.test) && pureExpr(e.consequent) && pureExpr(e.alternate) : pureTest(e)
+
 const alignSelfKeys = new Set(['alignSelf'])
 
 // Whether a style sets a non-empty literal alignSelf on every platform, provably from this file.
@@ -812,6 +815,222 @@ const runUnpin = (root: string, opts: {write: boolean; reportFile: string | unde
   }
   console.log(`U1 ${removed.U1.length}, U2 ${removed.U2.length}, U3 ${removed.U3.length}${opts.write ? ' (written)' : ' (report only)'}`)
   for (const [reason, n] of Object.entries(reasons).sort((a, b) => b[1] - a[1])) console.log(`skipped ${n}: ${reason}`)
+}
+
+// ---------------------------------------------------------------- noop
+//
+// Props and style keys that restate what the box already does, on both platforms, by construction:
+//   N1  alignSelf="stretch" on a child of an in-file Box2/ClickableBox parent without alignItems or
+//       centerChildren, whose style provably leaves alignItems alone: the parent stretches its
+//       children (vbox/hbox natively, box2_vertical/box2_horizontal on desktop), and a child without
+//       alignSelf takes that. The child must have no spread or className, and its style must
+//       provably not set position (an absolutely positioned box aligns as normal in CSS).
+//   N2  alignItems="stretch" without centerChildren: the base already stretches. No spread or
+//       className, which could bring centerChildren or an align-items rule the class outranks.
+//   N3  a style flexDirection equal to the one `direction` sets (a literal direction, or none:
+//       vertical). The key must be a top-level property of an object literal that is the element's
+//       style, or a style sheet entry every use of which is such a style, with nothing before it in
+//       the object that may set flexDirection. No spread or className on any of those elements.
+//   N4  an alignSelf prop on a box whose own style sets alignSelf on every platform: the style is
+//       collapsed last natively and set inline on desktop, so the prop never applies (U3 for any
+//       value). No spread; an expression value must be free of side effects.
+
+export type NoopRule = 'N1' | 'N2' | 'N3' | 'N4'
+export type NoopCandidate = {line: number; rule: NoopRule; start: number; end: number}
+
+const alignItemsKeys = new Set(['alignItems'])
+const flexDirectionKeys = new Set(['flexDirection'])
+const directionFlex: Readonly<Record<string, string>> = {
+  horizontal: 'row',
+  horizontalReverse: 'row-reverse',
+  vertical: 'column',
+  verticalReverse: 'column-reverse',
+}
+
+// The flexDirection a box's `direction` prop sets, when it is a literal or absent.
+const directionOf = (node: babel.types.JSXOpeningElement) => {
+  const attr = findAttr(node, 'direction')
+  if (!attr) return directionFlex['vertical']
+  const v = stringValue(attr)
+  return v === undefined ? undefined : directionFlex[v]
+}
+
+const keyName = (p: babel.types.Node) =>
+  t.isObjectProperty(p) && !p.computed
+    ? t.isIdentifier(p.key)
+      ? p.key.name
+      : t.isStringLiteral(p.key)
+        ? p.key.value
+        : undefined
+    : undefined
+
+// The removal range of an object property: up to the next property, or back to the previous one
+// when last, or the whole inside of the braces when alone.
+const propertyRange = (obj: babel.types.ObjectExpression, i: number) => {
+  const p = obj.properties[i]!
+  const next = obj.properties[i + 1]
+  if (next) return {end: next.start ?? 0, start: p.start ?? 0}
+  const prev = obj.properties[i - 1]
+  if (prev) return {end: p.end ?? 0, start: prev.end ?? 0}
+  return {end: (obj.end ?? 1) - 1, start: (obj.start ?? 0) + 1}
+}
+
+// The index of a removable `flexDirection: <want>` in an object literal, or -1.
+const flexDirectionKey = (at: At, obj: babel.types.ObjectExpression, want: string) => {
+  const i = obj.properties.findIndex(p => keyName(p) === 'flexDirection')
+  if (i < 0) return -1
+  const p = obj.properties[i]
+  if (!t.isObjectProperty(p) || !t.isStringLiteral(p.value, {value: want})) return -1
+  const before = obj.properties.slice(0, i)
+  const quiet = before.every(q =>
+    t.isSpreadElement(q) ? styleLeaves({...at, node: q.argument}, flexDirectionKeys) : keyName(q) !== undefined
+  )
+  return quiet ? i : -1
+}
+
+export const noopCandidates = (code: string, filename: string): Array<NoopCandidate> => {
+  let ast: ReturnType<typeof parse>
+  try {
+    ast = parse(code, {plugins: ['jsx', 'typescript'], sourceFilename: filename, sourceType: 'module'})
+  } catch {
+    return []
+  }
+  const out: Array<NoopCandidate> = []
+  const plain = (node: babel.types.JSXOpeningElement) =>
+    !node.attributes.some(a => t.isJSXSpreadAttribute(a)) && !findAttr(node, 'className')
+  // style sheet entries used as a box's whole style: entry node → each use, or undefined once any
+  // use is something else
+  const entryUses = new Map<babel.types.Node, Array<string | undefined>>()
+  const entryAt = new Map<babel.types.Node, At>()
+  babel.traverse(ast as babel.types.File, {
+    MemberExpression(path) {
+      const entry = styleSheetEntryAt(path.scope, path.node, filename)
+      if (!entry) return
+      const attr = path.parentPath.parentPath
+      const el = attr?.parentPath
+      const use =
+        path.parentPath.isJSXExpressionContainer() &&
+        attr?.isJSXAttribute() &&
+        t.isJSXIdentifier(attr.node.name, {name: 'style'}) &&
+        el?.isJSXOpeningElement() &&
+        classifyName(el, filename).kind === 'target' &&
+        plain(el.node)
+          ? directionOf(el.node)
+          : undefined
+      entryUses.set(entry.node, [...(entryUses.get(entry.node) ?? []), use])
+      entryAt.set(entry.node, entry)
+    },
+  })
+  // A sheet can be followed only when every read of it is a plain `holder.key`: the holder (or the
+  // hook that returns it) is not exported, and is never passed whole or read by a computed key.
+  const escaped = new Set<babel.types.Node>()
+  const onlyMembers = (b: ReturnType<babel.NodePath['scope']['getBinding']>): boolean =>
+    !!b &&
+    !b.path.parentPath?.parentPath?.isExportNamedDeclaration() &&
+    b.referencePaths.every(r => {
+      const m = r.parentPath
+      return !!m?.isMemberExpression() && m.node.object === r.node && !m.node.computed
+    })
+  babel.traverse(ast as babel.types.File, {
+    VariableDeclarator(path) {
+      const init = path.get('init')
+      if (!init.isCallExpression() || !t.isIdentifier(path.node.id)) return
+      const name = calleeName(init.node.callee)
+      if (name !== 'styleSheetCreate' && name !== 'createStyleHook') return
+      const fn = init.node.arguments[0]
+      const body = t.isArrowFunctionExpression(fn) ? (t.isTSAsExpression(fn.body) ? fn.body.expression : fn.body) : undefined
+      if (!t.isObjectExpression(body)) return
+      const b = path.scope.getBinding(path.node.id.name)
+      const ok =
+        name === 'styleSheetCreate'
+          ? onlyMembers(b)
+          : !!b &&
+            !b.path.parentPath?.parentPath?.isExportNamedDeclaration() &&
+            b.referencePaths.every(r => {
+              const call = r.parentPath
+              const decl = call?.parentPath
+              return (
+                !!call?.isCallExpression() &&
+                call.node.callee === r.node &&
+                !!decl?.isVariableDeclarator() &&
+                t.isIdentifier(decl.node.id) &&
+                onlyMembers(decl.scope.getBinding(decl.node.id.name))
+              )
+            })
+      if (!ok) for (const p of body.properties) if (t.isObjectProperty(p)) escaped.add(p.value)
+    },
+  })
+  babel.traverse(ast as babel.types.File, {
+    JSXElement(path) {
+      const node = path.node.openingElement
+      if (classifyName(path.get('openingElement'), filename).kind !== 'target') return
+      const line = node.loc?.start.line ?? 0
+      const add = (rule: NoopRule, r: {start: number; end: number}) => out.push({line, rule, ...r})
+      const spread = node.attributes.some(a => t.isJSXSpreadAttribute(a))
+      const style = findAttr(node, 'style')
+      const styleExpr =
+        t.isJSXExpressionContainer(style?.value) && !t.isJSXEmptyExpression(style.value.expression)
+          ? style.value.expression
+          : undefined
+      const alignSelf = findAttr(node, 'alignSelf')
+      const v = alignSelf?.value
+      const test = t.isJSXExpressionContainer(v) && !t.isJSXEmptyExpression(v.expression) ? v.expression : undefined
+      if (alignSelf && !spread && (!test || pureExpr(test)) && styleSetsAlignSelf(path.scope, styleExpr, filename)) {
+        add('N4', removalRange(code, alignSelf))
+      } else if (alignSelf && stringValue(alignSelf) === 'stretch' && plain(node)) {
+        const parentPath = parentElement(path)
+        const parent = parentPath?.node.openingElement
+        const parentStyle = parent && findAttr(parent, 'style')
+        if (
+          parentPath &&
+          parent &&
+          classifyName(parentPath.get('openingElement'), filename).kind === 'target' &&
+          plain(parent) &&
+          !findAttr(parent, 'alignItems') &&
+          !findAttr(parent, 'centerChildren') &&
+          (!parentStyle || styleAttrLeaves(parentPath.scope, parentStyle, alignItemsKeys, filename)) &&
+          (!style || styleAttrLeaves(path.scope, style, positionKeys, filename))
+        ) {
+          add('N1', removalRange(code, alignSelf))
+        }
+      }
+      const alignItems = findAttr(node, 'alignItems')
+      if (alignItems && stringValue(alignItems) === 'stretch' && !findAttr(node, 'centerChildren') && plain(node)) {
+        add('N2', removalRange(code, alignItems))
+      }
+      const want = directionOf(node)
+      if (!want || !style || !styleExpr || !plain(node)) return
+      if (t.isObjectExpression(styleExpr)) {
+        const i = flexDirectionKey({filename, node: styleExpr, scope: path.scope}, styleExpr, want)
+        if (i < 0) return
+        add('N3', styleExpr.properties.length === 1 ? removalRange(code, style) : propertyRange(styleExpr, i))
+      } else if (t.isMemberExpression(styleExpr)) {
+        const entry = styleSheetEntryAt(path.scope, styleExpr, filename)
+        if (!entry || !t.isObjectExpression(entry.node)) return
+        // judged once, at the first use; every use must agree
+        const uses = entryUses.get(entry.node) ?? []
+        if (entryAt.get(entry.node) === undefined || uses.some(u => u !== want) || escaped.has(entry.node)) return
+        entryAt.delete(entry.node)
+        const i = flexDirectionKey(entry, entry.node, want)
+        if (i >= 0) add('N3', propertyRange(entry.node, i))
+      }
+    },
+  })
+  return out.sort((a, b) => a.start - b.start)
+}
+
+const runNoop = (root: string, opts: {write: boolean; reportFile: string | undefined}) => {
+  if (opts.write) assertUnpinWritable(readFileSync(join(root, 'common-adapters/box.tsx'), 'utf8'))
+  const removed: Record<NoopRule, Array<string>> = {N1: [], N2: [], N3: [], N4: []}
+  for (const file of walk(root, []).sort()) {
+    const src = readFileSync(file, 'utf8')
+    const cands = noopCandidates(src, file)
+    for (const c of cands) removed[c.rule].push(`${relative(root, file)}:${c.line}`)
+    if (opts.write && cands.length) writeFileSync(file, applyCleanup(src, cands))
+  }
+  if (opts.reportFile) writeFileSync(opts.reportFile, JSON.stringify({removed}, null, 2) + '\n')
+  const n = (r: NoopRule) => `${r} ${removed[r].length}`
+  console.log(`${(['N1', 'N2', 'N3', 'N4'] as const).map(n).join(', ')}${opts.write ? ' (written)' : ' (report only)'}`)
 }
 
 export const skipDirs = new Set(['node_modules', '.tsOuts', 'dist', '.git'])
@@ -1300,6 +1519,10 @@ const main = (argv: Array<string>) => {
     runCleanup(root, {at, base, reportFile, write})
     return
   }
+  if (mode === 'noop') {
+    runNoop(root, {reportFile, write})
+    return
+  }
   if (mode === 'unpin') {
     if (base) runUnpinCoverage(root, {at, base, reportFile, write})
     else runUnpin(root, {reportFile, write})
@@ -1309,7 +1532,8 @@ const main = (argv: Array<string>) => {
     console.error(
       'usage: box2-stretch-default.mts pin [--write] [--report <file>]\n' +
         '       box2-stretch-default.mts cleanup --coverage-from <base sha> [--at <ref>] [--write] [--report <file>]\n' +
-        '       box2-stretch-default.mts unpin [--coverage-from <base sha> [--at <ref>]] [--write] [--report <file>]'
+        '       box2-stretch-default.mts unpin [--coverage-from <base sha> [--at <ref>]] [--write] [--report <file>]\n' +
+          '       box2-stretch-default.mts noop [--write] [--report <file>]'
     )
     process.exit(2)
   }
