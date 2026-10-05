@@ -12,8 +12,8 @@
 //   node scripts/codemods/box2-stretch-default.mts cleanup --coverage-from <base sha> [--at <ref>] [--write] [--report <file>]
 //
 // Once the default is gone, `cleanup` removes props that only restate the stretch (rules below),
-// at call sites that the visual gate's coverage base for <base sha> mounted on every platform the
-// file renders on (gatePlatforms).
+// at call sites that the visual gate's coverage base for <base sha> mounted on every gate platform
+// the site renders on (siteGateNeed).
 //
 //   node scripts/codemods/box2-stretch-default.mts unpin [--write] [--report <file>]
 //
@@ -24,8 +24,8 @@
 //
 //   node scripts/codemods/box2-stretch-default.mts unpin --coverage-from <base sha> [--at <ref>] [--write] [--report <file>]
 //
-// With a coverage base, `unpin` instead removes every pin the gate renders on every platform its
-// file renders on, except those on the skip list (U4 below). The gate run on the result decides.
+// With a coverage base, `unpin` instead removes every pin the gate renders on every gate platform
+// the site renders on, except those on the skip list (U4 below). The gate run on the result decides.
 import * as babel from '@babel/core'
 import {parse, parseExpression} from '@babel/parser'
 import MagicString from 'magic-string'
@@ -274,6 +274,7 @@ export type CleanupCandidate = {
   attr: 'fullWidth' | 'fullHeight' | 'alignSelf'
   start: number
   end: number
+  need: GateNeed
 }
 
 const alignSelfLiterals = new Set(['stretch', 'center', 'flex-start', 'flex-end'])
@@ -444,16 +445,16 @@ export const cleanupCandidates = (code: string, filename: string): Array<Cleanup
       const parentFullHeight = isTrue(findAttr(parent, 'fullHeight'))
       if (alignSelf) {
         if (direction === 'vertical' && parentFullWidth && isTrue(fullWidth) && alignSelfLiterals.has(stringValue(alignSelf) ?? '')) {
-          out.push({attr: 'alignSelf', line, rule: 'C3', ...removal(alignSelf)})
+          out.push({attr: 'alignSelf', line, need: siteGateNeed(path, filename), rule: 'C3', ...removal(alignSelf)})
         }
         return
       }
       const alignItems = findAttr(parent, 'alignItems')
       if ((alignItems && stringValue(alignItems) !== 'stretch') || findAttr(parent, 'centerChildren')) return
       if (direction === 'vertical' && parentFullWidth && fullWidth && isTrue(fullWidth) && !fullHeight) {
-        out.push({attr: 'fullWidth', line, rule: 'C1', ...removal(fullWidth)})
+        out.push({attr: 'fullWidth', line, need: siteGateNeed(path, filename), rule: 'C1', ...removal(fullWidth)})
       } else if (direction === 'horizontal' && parentFullHeight && fullHeight && isTrue(fullHeight) && !fullWidth) {
-        out.push({attr: 'fullHeight', line, rule: 'C2', ...removal(fullHeight)})
+        out.push({attr: 'fullHeight', line, need: siteGateNeed(path, filename), rule: 'C2', ...removal(fullHeight)})
       }
     },
   })
@@ -691,21 +692,174 @@ const walk = (dir: string, out: Array<string>) => {
 const git = (cwd: string, args: ReadonlyArray<string>) =>
   execFileSync('git', [...args], {cwd, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024})
 
-// The gate platforms whose tour must have mounted a call site before it is cleaned. A shared file
-// renders on both, and an in-file platform branch gets no exemption, so a shared file needs both;
-// a platform file only renders on its own platform.
-export const gatePlatforms = (rel: string): Array<RunPlatform> =>
-  rel.endsWith('.desktop.tsx') ? ['desktop'] : /\.(native|ios|android)\.tsx$/.test(rel) ? ['ios'] : ['desktop', 'ios']
+// ---------------------------------------------------------------- per-site platforms
+//
+// A call site inside a platform branch can only mount where that branch runs, so it needs coverage
+// only from the gate platforms that stand for those devices. The gate captures desktop and an
+// iPhone; the iPhone stands for every mobile device a site reaches only when the site reaches an
+// iPhone. A site whose mobile devices exclude the iPhone (iPad only, Android only, or iPad and
+// desktop as in `isPhone ? … : <site>`) has devices no capture sees, and is never covered.
+//
+// Branches followed: either arm of a ternary, the right side of && and ||, an if's consequent and
+// alternate, and the statements after `if (test) return|throw` (or after an if whose alternate
+// exits) in the same block. Tests are evaluated per device in three values, so `isMobile && x`
+// narrows and `x` alone does not. Closures (arrows, function expressions, methods) are followed
+// outwards, since one created in a branch only exists on that branch's devices; a function
+// declaration is hoisted above any guard, so it stops the walk. The flags are the platform globals (isMobile, isElectron, isIOS,
+// isAndroid; never when shadowed) and isPhone/isTablet imported from @/constants, its platform
+// module or @/styles, by name or through a namespace (`C.isTablet`, `Kb.Styles.isPhone`).
+
+type Device = 'desktop' | 'iPhone' | 'iPad' | 'android'
+const mobileDevices: ReadonlyArray<Device> = ['iPhone', 'iPad', 'android']
+const allDevices: ReadonlyArray<Device> = ['desktop', ...mobileDevices]
+// constants/platform.tsx: isTablet is an iPad; isPhone is any other mobile device
+const flagDevices: Readonly<Record<string, ReadonlyArray<Device>>> = {
+  isAndroid: ['android'],
+  isElectron: ['desktop'],
+  isIOS: ['iPhone', 'iPad'],
+  isMobile: mobileDevices,
+  isPhone: ['iPhone', 'android'],
+  isTablet: ['iPad'],
+}
+const globalFlags = new Set(['isMobile', 'isElectron', 'isIOS', 'isAndroid'])
+const moduleFlags = new Set(['isPhone', 'isTablet'])
+const flagModules = ['constants', 'constants/index', 'constants/platform', 'styles', 'styles/index']
+
+const isFlagModule = (source: string, filename: string) => {
+  if (source.startsWith('@/')) return flagModules.includes(source.slice(2))
+  if (!source.startsWith('.')) return false
+  const abs = resolve(dirname(filename), source)
+  return flagModules.some(m => abs.endsWith(`/${m}`))
+}
+
+const fileDevices = (filename: string): ReadonlyArray<Device> =>
+  filename.endsWith('.desktop.tsx')
+    ? ['desktop']
+    : filename.endsWith('.native.tsx')
+      ? mobileDevices
+      : filename.endsWith('.ios.tsx')
+        ? ['iPhone', 'iPad']
+        : filename.endsWith('.android.tsx')
+          ? ['android']
+          : allDevices
+
+// Which flag a test operand reads, when it provably is one.
+const flagOf = (scope: babel.NodePath['scope'], e: babel.types.Node, filename: string): string | undefined => {
+  if (t.isIdentifier(e)) {
+    const binding = scope.getBinding(e.name)
+    if (!binding) return globalFlags.has(e.name) ? e.name : undefined
+    const imp = importOf(binding.path)
+    if (!imp || !moduleFlags.has(e.name) || !t.isImportSpecifier(imp.spec)) return undefined
+    const imported = t.isIdentifier(imp.spec.imported) ? imp.spec.imported.name : imp.spec.imported.value
+    return imported === e.name && isFlagModule(imp.decl.source.value, filename) ? e.name : undefined
+  }
+  if (!t.isMemberExpression(e) || e.computed || !t.isIdentifier(e.property) || !moduleFlags.has(e.property.name)) {
+    return undefined
+  }
+  const name = e.property.name
+  // Kb.Styles.isPhone, with Kb a namespace import of common-adapters
+  if (t.isMemberExpression(e.object)) {
+    const o = e.object
+    if (o.computed || !t.isIdentifier(o.property, {name: 'Styles'}) || !t.isIdentifier(o.object)) return undefined
+    const imp = importOf(scope.getBinding(o.object.name)?.path)
+    return imp && t.isImportNamespaceSpecifier(imp.spec) && isCommonAdaptersSource(imp.decl.source.value, filename)
+      ? name
+      : undefined
+  }
+  if (!t.isIdentifier(e.object)) return undefined
+  const imp = importOf(scope.getBinding(e.object.name)?.path)
+  return imp && t.isImportNamespaceSpecifier(imp.spec) && isFlagModule(imp.decl.source.value, filename) ? name : undefined
+}
+
+// A test's truthiness on a device: true, false, or undefined when it is not known statically.
+export const truthOn = (
+  scope: babel.NodePath['scope'],
+  e: babel.types.Node,
+  device: Device,
+  filename: string
+): boolean | undefined => {
+  const recur = (x: babel.types.Node) => truthOn(scope, x, device, filename)
+  if (t.isParenthesizedExpression(e) || t.isTSAsExpression(e) || t.isTSNonNullExpression(e)) return recur(e.expression)
+  if (t.isBooleanLiteral(e)) return e.value
+  if (t.isUnaryExpression(e, {operator: '!'})) {
+    const v = recur(e.argument)
+    return v === undefined ? undefined : !v
+  }
+  if (t.isLogicalExpression(e) && e.operator !== '??') {
+    const l = recur(e.left)
+    const r = recur(e.right)
+    if (e.operator === '&&') return l === false || r === false ? false : l && r ? true : undefined
+    return l === true || r === true ? true : l === false && r === false ? false : undefined
+  }
+  const flag = flagOf(scope, e, filename)
+  return flag ? flagDevices[flag]!.includes(device) : undefined
+}
+
+// Whether a statement never completes normally, so the statements after it in its block do not run
+// when it does: return, throw, break or continue, a block ending in one, or an if whose branches
+// both are. A jump inside the block that skips its last statement still leaves the block abruptly,
+// since only a label on the block itself could catch it, and an unlabeled block has none.
+const exits = (s: babel.types.Node | null | undefined): boolean => {
+  if (t.isReturnStatement(s) || t.isThrowStatement(s) || t.isBreakStatement(s) || t.isContinueStatement(s)) return true
+  if (t.isIfStatement(s)) return exits(s.consequent) && exits(s.alternate)
+  return t.isBlockStatement(s) && exits(s.body[s.body.length - 1])
+}
+
+// The devices a call site can mount on.
+export const siteDevices = (path: babel.NodePath, filename: string): Array<Device> => {
+  let devices = [...fileDevices(filename)]
+  const narrow = (test: babel.types.Node, scope: babel.NodePath['scope'], when: boolean) => {
+    devices = devices.filter(d => truthOn(scope, test, d, filename) !== !when)
+  }
+  let last: babel.NodePath = path
+  let p: babel.NodePath | null = path.parentPath
+  while (p && !p.isProgram() && !p.isFunctionDeclaration()) {
+    if (p.isConditionalExpression() && (last.key === 'consequent' || last.key === 'alternate')) {
+      narrow(p.node.test, p.scope, last.key === 'consequent')
+    } else if (p.isLogicalExpression() && last.key === 'right' && p.node.operator !== '??') {
+      narrow(p.node.left, p.scope, p.node.operator === '&&')
+    } else if (p.isIfStatement() && (last.key === 'consequent' || last.key === 'alternate')) {
+      narrow(p.node.test, p.scope, last.key === 'consequent')
+    } else if (p.isBlockStatement() && last.listKey === 'body' && typeof last.key === 'number') {
+      for (const s of p.node.body.slice(0, last.key)) {
+        if (!t.isIfStatement(s)) continue
+        if (exits(s.consequent)) narrow(s.test, p.scope, false)
+        else if (exits(s.alternate)) narrow(s.test, p.scope, true)
+      }
+    }
+    last = p
+    p = p.parentPath
+  }
+  return devices
+}
+
+// The gate platforms a site needs coverage from, or why no coverage can stand for it.
+export type GateNeed = {platforms: Array<RunPlatform>} | {why: string}
+
+export const gateNeed = (devices: ReadonlyArray<Device>): GateNeed => {
+  if (!devices.length) return {why: 'reachable on no device'}
+  const mobile = devices.some(d => d !== 'desktop')
+  if (mobile && !devices.includes('iPhone')) {
+    return {why: `only reachable on ${devices.filter(d => d !== 'desktop').join(' or ')} among mobile devices`}
+  }
+  const platforms: Array<RunPlatform> = []
+  if (devices.includes('desktop')) platforms.push('desktop')
+  if (mobile) platforms.push('ios')
+  return {platforms}
+}
+
+export const siteGateNeed = (path: babel.NodePath, filename: string) => gateNeed(siteDevices(path, filename))
 
 // The gate platforms whose base coverage misses a call site. Coverage ids are base-tree
 // `file:line`, carried forward through `hunks` (the base..tree diff of that file).
 export const unmountedPlatforms = (opts: {
   rel: string
+  platforms: ReadonlyArray<RunPlatform>
   range: Range
   hunks: ReadonlyArray<Hunk>
   mounted: Readonly<Record<RunPlatform, ReadonlyArray<string>>>
 }): Array<RunPlatform> =>
-  gatePlatforms(opts.rel).filter(
+  opts.platforms.filter(
     platform =>
       unmountedChanged({
         baseHunks: new Map([[opts.rel, opts.hunks]]),
@@ -713,6 +867,29 @@ export const unmountedPlatforms = (opts: {
         mounted: opts.mounted[platform],
       }).length > 0
   )
+
+// Why the base's coverage cannot stand for a call site, or undefined when it can.
+const coverageGap = (o: {
+  rel: string
+  line: number
+  need: GateNeed
+  ranges: ReadonlyArray<Range>
+  baseHunks: ReadonlyMap<string, ReadonlyArray<Hunk>>
+  mounted: Readonly<Record<RunPlatform, ReadonlyArray<string>>>
+}) => {
+  if (unmarkedFile(o.rel)) return 'file not marked by coverage'
+  const range = o.ranges.find(r => r.start === o.line)
+  if (!range) return 'call site not marked by coverage'
+  if ('why' in o.need) return o.need.why
+  const missing = unmountedPlatforms({
+    hunks: o.baseHunks.get(o.rel) ?? [],
+    mounted: o.mounted,
+    platforms: o.need.platforms,
+    range,
+    rel: o.rel,
+  })
+  return missing.length ? `never mounted on ${missing.join(' or ')}` : undefined
+}
 
 // The call sites a platform's base captures mounted. A masked entry counts for nothing: its sites
 // may sit under a mask the compare never sees. A bare id list predates the masked flag and may
@@ -736,7 +913,7 @@ export const platformCoverage = (sha: string, platform: RunPlatform) => {
 }
 
 // Candidates are computed on the tree at `at` (HEAD by default; --write needs HEAD and a clean tree)
-// and kept only where every platform from gatePlatforms mounted their call site.
+// and kept only where every gate platform the site needs (siteGateNeed) mounted it.
 const runCleanup = (
   root: string,
   opts: {base: string; at: string; write: boolean; reportFile: string | undefined}
@@ -775,17 +952,7 @@ const runCleanup = (
     for (const c of cands) {
       before[c.rule]++
       const row = {attr: c.attr, rule: c.rule, site: `${rel}:${c.line}`}
-      const range = ranges.find(r => r.start === c.line)
-      const missing = range
-        ? unmountedPlatforms({hunks: baseHunks.get(rel) ?? [], mounted, range, rel})
-        : []
-      const why = unmarkedFile(rel)
-        ? 'file not marked by coverage'
-        : !range
-          ? 'call site not marked by coverage'
-          : missing.length
-            ? `never mounted on ${missing.join(' or ')}`
-            : undefined
+      const why = coverageGap({baseHunks, mounted, need: c.need, ranges, rel, line: c.line})
       if (why) {
         uncovered.push({...row, why})
       } else {
@@ -807,7 +974,7 @@ const runCleanup = (
 // ---------------------------------------------------------------- unpin by coverage
 //
 //   U4  either pin at a call site the coverage base mounted, in an unmasked entry, on every platform
-//       its file renders on (gatePlatforms), unless the skip list names it
+//       the site renders on (siteGateNeed), unless the skip list names it
 // Unlike U1-U3, U4 is not equivalent by construction: it removes pins the gate can see, and a gate
 // run on the result is the proof. A pin whose removal moved pixels goes on the skip list
 // (box2-unpin-skips.json) and the pass is redone from HEAD. A site the gate never renders keeps its
@@ -819,7 +986,7 @@ const runCleanup = (
 // read the same. Neither moves when lines shift or other pins in the file are removed. An entry that
 // matches no pin, or matches several without `nth`, fails the run.
 
-export type U4Site = {line: number; start: number; end: number; tag: string; nth: number}
+export type U4Site = {line: number; start: number; end: number; tag: string; nth: number; need: GateNeed}
 export type U4Skip = {rel: string; tag: string; nth?: number; reason: string}
 export type U4Result = {sites: Array<U4Site>; unusable: Array<Unresolved>}
 
@@ -852,7 +1019,7 @@ export const u4Candidates = (code: string, filename: string): U4Result => {
       const test = t.isJSXExpressionContainer(v) && t.isConditionalExpression(v.expression) ? v.expression.test : undefined
       if (node.attributes.some(a => t.isJSXSpreadAttribute(a))) unusable.push({line, reason: 'child has a spread'})
       else if (test && !pureTest(test)) unusable.push({line, reason: 'conditional pin test may have side effects'})
-      else sites.push({line, nth, tag, ...cut})
+      else sites.push({line, need: siteGateNeed(path, filename), nth, tag, ...cut})
     },
   })
   return {sites: sites.sort((a, b) => a.start - b.start), unusable}
@@ -928,15 +1095,7 @@ export const planU4 = (root: string, opts: {base: string; at: string; skips: Rea
     const remove: Array<U4Site> = []
     for (const c of r.sites) {
       const site = `${rel}:${c.line}`
-      const range = ranges.find(x => x.start === c.line)
-      const missing = range ? unmountedPlatforms({hunks: baseHunks.get(rel) ?? [], mounted, range, rel}) : []
-      const why = unmarkedFile(rel)
-        ? 'file not marked by coverage'
-        : !range
-          ? 'call site not marked by coverage'
-          : missing.length
-            ? `never mounted on ${missing.join(' or ')}`
-            : undefined
+      const why = coverageGap({baseHunks, mounted, need: c.need, ranges, rel, line: c.line})
       const skip = kept.get(c)
       if (why) plan.uncovered.push({site, why})
       else if (skip) plan.kept.push({reason: skip.reason, site})
