@@ -17,7 +17,8 @@ const isTarget = name =>
     name.object.name === 'Kb' &&
     TAGS.has(name.property.name))
 
-const skipped = rel => rel.startsWith('..') || /(^|\/)(node_modules|common-adapters)\//.test(rel)
+// Box2 itself is covered by its own tests (README: Coverage), so box.tsx stays unmarked.
+const skipped = rel => rel.startsWith('..') || /(^|\/)node_modules\//.test(rel) || rel === 'common-adapters/box.tsx'
 
 module.exports = function kbVisualCoverage({types: t}) {
   return {

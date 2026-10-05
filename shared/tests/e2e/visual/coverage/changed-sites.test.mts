@@ -91,4 +91,5 @@ test('unmarkedFile matches what the babel plugin skips', () => {
   assert.equal(unmarkedFile('common-adapters/box.tsx'), true)
   assert.equal(unmarkedFile('../x.tsx'), true)
   assert.equal(unmarkedFile('chat/inbox.tsx'), false)
+  assert.equal(unmarkedFile('common-adapters/switch.tsx'), false)
 })
