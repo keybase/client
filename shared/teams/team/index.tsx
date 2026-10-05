@@ -272,7 +272,9 @@ const TeamBody = (props: Props) => {
                   ? TestIDs.TEAMS_BOTS_TAB
                   : selectedTab === 'emoji'
                     ? TestIDs.TEAMS_EMOJI_TAB
-                    : undefined
+                    : selectedTab === 'subteams'
+                      ? TestIDs.TEAMS_SUBTEAMS_TAB
+                      : undefined
         }
       >
         <Kb.SectionList
