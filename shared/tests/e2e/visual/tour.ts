@@ -11,6 +11,7 @@ const team = {teamID: {ref: 'teamID'}} as const
 const short = {channel: 'e2e-short', ref: 'conversationIDKey'} as const
 const followSuggestions: Mask = {reason: 'people feed follow suggestions, server-picked', testID: T.PEOPLE_FOLLOW_SUGGESTIONS}
 const deviceLastUsed: Mask = {reason: 'device last-used time, server-pushed', testID: T.DEVICES_ROW_LAST_USED}
+const devicePageLastUsed: Mask = {reason: 'device last-used time, server-pushed', testID: T.DEVICE_PAGE_LAST_USED}
 const teamBuilderRecs: Mask = {reason: 'team builder recommendations, server-picked and server-ordered', testID: T.TEAM_BUILDING_RECS}
 
 // A settings sub-page: on desktop a sub-tab of the settings tab, on phone a page pushed from the
@@ -132,14 +133,25 @@ const botInstall = {botUsername: TEAM_BOT, conversationIDKey: short}
 const waitForBotPerms: SetupStep = {kind: 'scrollIntoView', testID: T.CHAT_BOT_PERMS}
 const editBot: SetupStep = {kind: 'openPopup', testID: T.CHAT_BOT_EDIT_BUTTON}
 
-const cryptoTab = (id: string, nav: string, ready: string): TourEntry => ({
-  id: `crypto/${id}`,
-  nav: {tab: 'tabs.cryptoTab'},
-  platforms: ['desktop'],
-  ready,
-  seal: [],
-  setup: [{kind: 'switchSubTab', testID: nav}],
-})
+// A crypto page: on desktop a sub-tab of the crypto tab, on phone a page pushed from the crypto list
+// in settings.
+const cryptoTab = (id: string, nav: string, ready: string): Array<TourEntry> => [
+  {
+    id: `crypto/${id}`,
+    nav: {tab: 'tabs.cryptoTab'},
+    platforms: ['desktop'],
+    ready,
+    seal: [],
+    setup: [{kind: 'switchSubTab', testID: nav}],
+  },
+  {
+    id: `crypto/${id}`,
+    nav: {append: {name: `${id}Tab`, params: {}}, tab: 'tabs.settingsTab'},
+    platforms: ['phone'],
+    ready,
+    seal: [],
+  },
+]
 
 export const tour: ReadonlyArray<TourEntry> = [
   {
@@ -150,6 +162,8 @@ export const tour: ReadonlyArray<TourEntry> = [
     ready: T.PEOPLE_FEED,
     seal: ['follows'],
   },
+  // The inbox: the phone's chat tab root. Desktop has no inbox screen of its own (see the notes at
+  // the bottom).
   {
     id: 'tab/chat',
     nav: {tab: 'tabs.chatTab'},
@@ -208,7 +222,7 @@ export const tour: ReadonlyArray<TourEntry> = [
   {
     id: 'chat/attachment-fullscreen',
     nav: {tab: 'tabs.chatTab', thread: {channel: 'e2e-media', ref: 'conversationIDKey'}},
-    platforms: ['desktop'],
+    platforms: ['desktop', 'phone'],
     ready: T.CHAT_ATTACHMENT_FULLSCREEN,
     seal: ['inbox'],
     setup: [{kind: 'openPopup', testID: T.CHAT_ATTACHMENT_IMAGE}],
@@ -264,10 +278,10 @@ export const tour: ReadonlyArray<TourEntry> = [
     ready: T.FILES_BROWSER,
     seal: ['kbfsPrivate'],
   },
-  cryptoTab('encrypt', T.CRYPTO_NAV_ENCRYPT, T.CRYPTO_ENCRYPT_INPUT),
-  cryptoTab('decrypt', T.CRYPTO_NAV_DECRYPT, T.CRYPTO_DECRYPT_INPUT),
-  cryptoTab('sign', T.CRYPTO_NAV_SIGN, T.CRYPTO_SIGN_INPUT),
-  cryptoTab('verify', T.CRYPTO_NAV_VERIFY, T.CRYPTO_VERIFY_INPUT),
+  ...cryptoTab('encrypt', T.CRYPTO_NAV_ENCRYPT, T.CRYPTO_ENCRYPT_INPUT),
+  ...cryptoTab('decrypt', T.CRYPTO_NAV_DECRYPT, T.CRYPTO_DECRYPT_INPUT),
+  ...cryptoTab('sign', T.CRYPTO_NAV_SIGN, T.CRYPTO_SIGN_INPUT),
+  ...cryptoTab('verify', T.CRYPTO_NAV_VERIFY, T.CRYPTO_VERIFY_INPUT),
   {
     id: 'tab/teams',
     nav: {tab: 'tabs.teamsTab'},
@@ -341,6 +355,7 @@ export const tour: ReadonlyArray<TourEntry> = [
     seal: ['teams', 'inbox'],
     setup: [{kind: 'openPopup', testID: T.TEAMS_MEMBER_TEAM_EXPAND}],
   },
+  // Git, devices and crypto are tabs on desktop and pages in the phone's settings list.
   {
     id: 'tab/git',
     nav: {tab: 'tabs.gitTab'},
@@ -348,6 +363,7 @@ export const tour: ReadonlyArray<TourEntry> = [
     ready: T.GIT_REPO_LIST,
     seal: [],
   },
+  phoneSettingsPage('tab/git', 'gitTab', T.GIT_REPO_LIST, []),
   {
     id: 'tab/devices',
     masks: [deviceLastUsed],
@@ -356,15 +372,23 @@ export const tour: ReadonlyArray<TourEntry> = [
     ready: T.DEVICES_LIST,
     seal: ['devices'],
   },
+  {...phoneSettingsPage('tab/devices', 'devicesTab', T.DEVICES_LIST, ['devices']), masks: [deviceLastUsed]},
   {
     id: 'devices/page',
-    masks: [{reason: 'device last-used time, server-pushed', testID: T.DEVICE_PAGE_LAST_USED}],
+    masks: [devicePageLastUsed],
     nav: {tab: 'tabs.devicesTab'},
     platforms: ['desktop'],
     ready: T.DEVICE_PAGE,
     seal: ['devices'],
     setup: [{kind: 'openPopup', testID: T.DEVICES_ROW}],
   },
+  {
+    ...phoneSettingsPage('devices/page', 'devicesTab', T.DEVICE_PAGE, ['devices']),
+    masks: [devicePageLastUsed],
+    setup: [{kind: 'openPopup', testID: T.DEVICES_ROW}],
+  },
+  // the phone's crypto list; desktop has none (its crypto tab opens on encrypt beside the same list)
+  phoneSettingsPage('tab/crypto', 'cryptoTab', T.CRYPTO_INPUT, []),
   ...settingsPage('account', 'accountTab', T.SETTINGS_ROW_ACCOUNT, T.SETTINGS_ACCOUNT_PAGE),
   ...settingsPage('advanced', 'advancedTab', T.SETTINGS_ROW_ADVANCED, T.SETTINGS_ADVANCED),
   ...settingsPage('backup', 'archiveTab', T.SETTINGS_ROW_ARCHIVE, T.SETTINGS_ARCHIVE),
@@ -384,31 +408,24 @@ export const tour: ReadonlyArray<TourEntry> = [
     seal: [],
     setup: [{kind: 'switchSubTab', testID: T.SETTINGS_ROW_SCREENPROTECTOR}],
   },
-  {
-    id: 'settings/icons',
-    nav: {tab: 'tabs.settingsTab'},
-    platforms: ['desktop'],
-    ready: T.SETTINGS_ICONS,
-    seal: [],
-    setup: [{kind: 'switchSubTab', testID: T.SETTINGS_ROW_ICONS}],
-  },
-  {
-    id: 'settings/wallet',
-    nav: {tab: 'tabs.settingsTab'},
-    platforms: ['desktop'],
-    ready: T.SETTINGS_WALLET,
-    seal: [],
-    setup: [{kind: 'switchSubTab', testID: T.SETTINGS_ROW_WALLET}],
-  },
-  {...phoneSettingsPage('settings/devices', 'devicesTab', T.DEVICES_LIST, ['devices']), masks: [deviceLastUsed]},
-  phoneSettingsPage('settings/git', 'gitTab', T.GIT_REPO_LIST, []),
-  phoneSettingsPage('settings/crypto', 'cryptoTab', T.CRYPTO_INPUT, []),
+  ...settingsPage('icons', 'iconsTab', T.SETTINGS_ROW_ICONS, T.SETTINGS_ICONS),
+  ...settingsPage('wallet', 'walletsTab', T.SETTINGS_ROW_WALLET, T.SETTINGS_WALLET),
+  // The settings list: the phone's settings tab root. Desktop's sits beside a sub-page, always the
+  // same one here, as settings/account captures it.
   {
     id: 'tab/settings',
     nav: {tab: 'tabs.settingsTab'},
     platforms: ['phone'],
     ready: T.SETTINGS_ACCOUNT,
     seal: [],
+  },
+  {
+    id: 'tab/settings',
+    nav: {tab: 'tabs.settingsTab'},
+    platforms: ['desktop'],
+    ready: T.SETTINGS_ACCOUNT_PAGE,
+    seal: [],
+    setup: [{kind: 'switchSubTab', testID: T.SETTINGS_ROW_ACCOUNT}],
   },
   ...modal('device-add', 'deviceAdd', {}, {phone: true, ready: T.DEVICES_ADD_DEVICE}),
   ...modal('add-email', 'settingsAddEmail', {}, {phone: true}),
@@ -433,7 +450,7 @@ export const tour: ReadonlyArray<TourEntry> = [
   ...teamModal('team-leave', 'teamReallyLeaveTeam', team, {phone: true}),
   ...teamModal('team-invite-email', 'teamInviteByEmail', team, {phone: true}),
   ...teamModal('team-add-to-channels', 'teamAddToChannels', team, {phone: true, seal: ['teams', 'inbox']}),
-  ...teamModal('team-add-emoji', 'teamAddEmoji', {...team, conversationIDKey: short}, {seal: ['teams', 'inbox']}),
+  ...teamModal('team-add-emoji', 'teamAddEmoji', {...team, conversationIDKey: short}, {phone: true, seal: ['teams', 'inbox']}),
   ...teamModal('team-add-alias', 'teamAddEmojiAlias', {conversationIDKey: short}, {phone: true, seal: ['teams', 'inbox']}),
   ...teamModal('chat-create-channel', 'chatCreateChannel', team, {phone: true}),
   ...teamModal('bot-installed', 'chatInstallBot', botInstall, {phone: true, ready: T.CHAT_BOT_PERMS, seal: ['teams', 'inbox']}),
@@ -492,16 +509,23 @@ export const tour: ReadonlyArray<TourEntry> = [
 // profileEdit: its fields fill in from a profile load that holds no waiting key, so the first open
 // after a launch shows the placeholders and every later one the values.
 //
-// Covered inside other entries: desktop's chat root is the inbox beside a conversation, so the
-// chat/e2e-short and chat/e2e-media entries capture the desktop inbox (a separate tab/chat entry
-// would show whichever conversation an earlier entry selected); tab/settings is settings/account on
-// desktop, tab/crypto is crypto/encrypt.
+// One screen, one id: an entry that's a tab on one platform and a page on the other keeps the tab's
+// id on both (tab/git, tab/devices, tab/settings). Two phone roots have no desktop screen of their
+// own. tab/crypto is the phone's crypto list; desktop's crypto tab opens on crypto/encrypt beside
+// the same list. tab/chat is the phone's inbox; desktop's sits beside a conversation, so every
+// desktop chat entry captures it. A desktop tab/chat entry would be one of those again, and the
+// first chat entry of a session can't be one: until its conversation loads, the conversation the
+// app opened at launch satisfies ready (aa: 2 of 4 pairs differ).
 //
 // Platform or build: settingsTabs.cryptoTab, settingsTabs.devicesTab and settingsTabs.gitTab are
 // tablet-only sub-tabs on desktop (desktop has them as tabs); settingsTabs.contactsTab and
 // accountSwitcher are phone screens with nothing to wait on (contacts also needs the OS
-// permission); makeIcons is a developer tool; kextPermission and the settings sub-pages without a
-// phone testID are desktop only. Not in the main window: the menubar, the tracker popup and the
+// permission); makeIcons is a developer tool; kextPermission is macOS only. Desktop-only entries
+// for screens the phone also has: chat/message-react and chat/message-menu (the phone opens them
+// with a long press, which setup can't do), chat/thread-search (below), and chat/info-panel-media,
+// -docs, -links and files/team (their notes), settings/screen-protector (the phone lists it on
+// Android only; iOS shows a one-line notice with no testID), and modal/profile-avatar (the phone
+// opens the system photo picker over it). Not in the main window: the menubar, the tracker popup and the
 // unlock-folders window are separate desktop windows; global errors and runtime stats are debug
 // overlays.
 //
