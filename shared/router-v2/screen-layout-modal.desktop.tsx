@@ -5,6 +5,7 @@ import type {GetOptionsRet} from '@/constants/types/router'
 import type {ParamListBase} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
+import {getTextStyle} from '@/common-adapters/text.styles'
 
 type ModalHeaderProps = {
   title?: React.ReactNode
@@ -12,25 +13,29 @@ type ModalHeaderProps = {
   rightButton?: React.ReactNode
 }
 
-const ModalHeader = (props: ModalHeaderProps) => {
+export const ModalHeader = (props: ModalHeaderProps) => {
+  const {title, leftButton, rightButton} = props
   const styles = useStyles()
+  const isStringTitle = typeof title === 'string'
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header}>
       <Kb.Box2 direction="horizontal" alignItems="center" fullHeight={true} flex={1}>
         <Kb.Box2 direction="horizontal" flex={1} style={styles.headerLeft}>
-          {!!props.leftButton && props.leftButton}
+          {!!leftButton && leftButton}
         </Kb.Box2>
-        <Kb.Box2 direction="vertical">
-          {typeof props.title === 'string' ? (
+        {/* a title component that renders bare text inherits the Header style from this box;
+            Kb.Text children set their own and are unaffected */}
+        <Kb.Box2 direction="vertical" style={isStringTitle ? undefined : styles.componentTitle}>
+          {isStringTitle ? (
             <Kb.Text type="Header" lineClamp={1} center={true}>
-              {props.title}
+              {title}
             </Kb.Text>
           ) : (
-            props.title
+            title
           )}
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" flex={1} style={styles.headerRight}>
-          {!!props.rightButton && props.rightButton}
+          {!!rightButton && rightButton}
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
@@ -185,6 +190,7 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
       top: 0,
     },
   }),
+  componentTitle: getTextStyle('Header', theme),
   header: {
     ...Kb.Styles.bottomDivider(theme, 48),
   },
