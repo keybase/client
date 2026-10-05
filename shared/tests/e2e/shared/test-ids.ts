@@ -208,3 +208,7 @@ export const MODAL_CLOSE = 'modal-close'
 export const MODAL_SCREEN = 'modal-screen'
 // the team builder's recommendation list
 export const TEAM_BUILDING_RECS = 'team-building-recs'
+// the bot search's results: the users it found and the featured bots
+export const CHAT_BOT_SEARCH_RESULTS = 'chat-bot-search-results'
+// the paper key form (chat's rekey prompt and provisioning)
+export const PAPER_KEY_FORM = 'paper-key-form'

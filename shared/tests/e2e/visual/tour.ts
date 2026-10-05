@@ -64,6 +64,8 @@ type ModalOpts = {
   seal?: TourEntry['seal']
   tab?: string
   phone?: boolean
+  // false for a modal only the phone opens
+  desktop?: boolean
   masks?: TourEntry['masks']
   ready?: string
   setup?: TourEntry['setup']
@@ -77,7 +79,9 @@ const modal = (id: string, name: string, params: Params = {}, opts: ModalOpts = 
     ...(opts.setup ? {setup: opts.setup} : {}),
   }
   return [
-    {...base, nav: {append, tab: opts.tab ?? 'tabs.gitTab'}, platforms: ['desktop'], ready: opts.ready ?? T.MODAL_CLOSE},
+    ...(opts.desktop === false
+      ? []
+      : [{...base, nav: {append, tab: opts.tab ?? 'tabs.gitTab'}, platforms: ['desktop'] as const, ready: opts.ready ?? T.MODAL_CLOSE}]),
     ...(opts.phone
       ? [{...base, nav: {append, tab: opts.tab ?? 'tabs.settingsTab'}, platforms: ['phone'] as const, ready: opts.ready ?? T.MODAL_SCREEN}]
       : []),
@@ -145,6 +149,24 @@ const newTeam = {
 } as const
 const addMembers = {addingMembers: [], membersAlreadyInTeam: [], role: 'writer', teamID: {ref: 'teamID'}} as const
 const teamBuilderServices = ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews']
+const featuredBots: Mask = {reason: 'featured bots, server-picked and server-ordered', testID: T.CHAT_BOT_SEARCH_RESULTS}
+// A crypto operation's result as its output screen takes it; the phone pushes the screen once an
+// operation finishes, desktop shows the same output beside the input.
+const cryptoOutput = {
+  bytesComplete: 0,
+  bytesTotal: 0,
+  errorMessage: '',
+  inProgress: false,
+  input: 'Hello from the visual gate.',
+  inputType: 'text',
+  output: 'BEGIN KEYBASE SALTPACK MESSAGE. kiNJamlTJ7PqxyP HMpzfDiAlgM3Uv0 END KEYBASE SALTPACK MESSAGE.',
+  outputSenderUsername: {ref: 'username'},
+  outputSigned: true,
+  outputStatus: 'success',
+  outputType: 'text',
+  outputValid: true,
+  warningMessage: '',
+} as const
 const botInstall = {botUsername: TEAM_BOT, conversationIDKey: short}
 const waitForBotPerms: SetupStep = {kind: 'scrollIntoView', testID: T.CHAT_BOT_PERMS}
 const editBot: SetupStep = {kind: 'openPopup', testID: T.CHAT_BOT_EDIT_BUTTON}
@@ -218,12 +240,11 @@ export const tour: ReadonlyArray<TourEntry> = [
     ],
   },
   // The same thread scrolled up to its older half: the pinned message, the reactions, the reply,
-  // the plain link and the giphy. Desktop only: on the phone the row is off screen, and Appium's
-  // `mobile: scroll` toVisible gives up on the thread's list (max scroll count reached).
+  // the plain link and the giphy.
   {
     id: 'chat/e2e-kinds-older',
     nav: {tab: 'tabs.chatTab', thread: kinds},
-    platforms: ['desktop'],
+    platforms: ['desktop', 'phone'],
     ready: T.CHAT_REACTIONS_ROW,
     seal: ['inbox'],
     setup: [
@@ -596,6 +617,71 @@ export const tour: ReadonlyArray<TourEntry> = [
     },
     {phone: true}
   ),
+  ...modal(
+    'chat-navigate-external',
+    'chatConfirmNavigateExternal',
+    {display: 'https://exаmple.com', punycode: 'https://xn--exmple-4nf.com', url: 'https://xn--exmple-4nf.com'},
+    {phone: true}
+  ),
+  ...teamModal('chat-remove-bot', 'chatConfirmRemoveBot', {...team, botUsername: TEAM_BOT, conversationIDKey: short}, {
+    phone: true,
+    seal: ['teams', 'inbox'],
+  }),
+  ...teamModal('chat-search-bots', 'chatSearchBots', {...team, conversationIDKey: short}, {
+    masks: [featuredBots],
+    phone: true,
+    ready: T.CHAT_BOT_SEARCH_RESULTS,
+    seal: ['teams', 'inbox'],
+  }),
+  ...modal('chat-install-bot-pick', 'chatInstallBotPick', {botUsername: TEAM_BOT}, {phone: true, seal: ['teams', 'inbox']}),
+  // the destination picker only; the message it would forward is never shown
+  ...modal('chat-forward', 'chatForwardMsgPick', {conversationIDKey: short, messageID: 1}, {phone: true, seal: ['teams', 'inbox']}),
+  ...modal('chat-send-to-chat', 'chatSendToChat', {sendPaths: [{ref: 'privateFolder', sub: 'test.txt'}]}, {
+    phone: true,
+    seal: ['teams', 'inbox'],
+  }),
+  // The services leave out 'phone': with it the phone shows a contacts banner whose effect can save
+  // the address book to the server.
+  ...modal('chat-new-chat', 'chatNewChat', {filterServices: teamBuilderServices, namespace: 'chat', title: 'New chat'}, {
+    masks: [teamBuilderRecs],
+    phone: true,
+    seal: ['follows'],
+  }),
+  ...modal(
+    'crypto-builder',
+    'cryptoTeamBuilder',
+    {filterServices: teamBuilderServices, goButtonLabel: 'Add', namespace: 'crypto', recommendedHideYourself: true, teamBuilderNonce: 'visual', title: 'Recipients'},
+    {masks: [teamBuilderRecs], phone: true, seal: ['follows']}
+  ),
+  // a file the title step only names: nothing is uploaded until Send
+  ...modal(
+    'chat-attachment-titles',
+    'chatAttachmentGetTitles',
+    {conversationIDKey: short, pathAndOutboxIDs: [{path: '/visual-gate/report.pdf'}]},
+    {phone: true, seal: ['inbox']}
+  ),
+  ...modal('chat-pdf', 'chatPDF', {conversationIDKey: short, messageID: 1}, {phone: true, seal: ['inbox']}),
+  ...modal('chat-new-team', 'chatShowNewTeamDialog', {conversationIDKey: short}, {phone: true, seal: ['inbox']}),
+  ...teamModal('chat-add-to-channel', 'chatAddToChannel', {...team, conversationIDKey: short}, {phone: true, seal: ['teams', 'inbox']}),
+  {
+    id: 'chat/enter-paper-key',
+    nav: {append: {name: 'chatEnterPaperkey', params: {}}, tab: 'tabs.chatTab'},
+    platforms: ['desktop', 'phone'],
+    ready: T.PAPER_KEY_FORM,
+    seal: [],
+  },
+  ...modal('crypto-encrypt-output', 'encryptOutput', {...cryptoOutput, hasRecipients: true, includeSelf: true, recipients: [{ref: 'secondUser'}]}, {
+    desktop: false,
+    phone: true,
+    ready: T.CRYPTO_OUTPUT,
+  }),
+  ...modal('crypto-decrypt-output', 'decryptOutput', cryptoOutput, {desktop: false, phone: true, ready: T.CRYPTO_OUTPUT}),
+  ...modal('crypto-sign-output', 'signOutput', cryptoOutput, {desktop: false, phone: true, ready: T.CRYPTO_OUTPUT}),
+  ...modal('crypto-verify-output', 'verifyOutput', {...cryptoOutput, output: 'Hello from the visual gate.'}, {
+    desktop: false,
+    phone: true,
+    ready: T.CRYPTO_OUTPUT,
+  }),
   {
     id: 'team/external',
     nav: {append: {name: 'teamExternalTeam', params: {teamname: {ref: 'teamname'}}}, tab: 'tabs.teamsTab'},

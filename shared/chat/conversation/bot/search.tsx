@@ -7,6 +7,7 @@ import * as S from '@/constants/strings'
 import logger from '@/logger'
 import {Bot} from '../info-panel/bot'
 import {getFeaturedSorted, useFeaturedBotPage} from '@/util/featured-bots'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey; teamID?: T.Teams.TeamID}
 type BotSearchResults = {
@@ -208,6 +209,7 @@ const SearchBotPopupInner = (props: Props & {conversationIDKey: T.Chat.Conversat
           stickySectionHeadersEnabled={true}
           sections={[usersSection, botSection]}
           style={{flexGrow: 1}}
+          testID={TestIDs.CHAT_BOT_SEARCH_RESULTS}
         />
       </Kb.Box2>
     </>

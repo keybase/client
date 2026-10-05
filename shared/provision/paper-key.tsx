@@ -3,6 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SignupScreen, errorBanner} from '../signup/common'
 import {submitProvisionPassphrase} from './flow'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type RouteProps = {
   route: {
@@ -64,6 +65,7 @@ export const PaperKey = (props: Props) => {
         direction="vertical"
         fullWidth={true}
         style={styles.contents}
+        testID={TestIDs.PAPER_KEY_FORM}
         centerChildren={!isAndroid /* android keyboardAvoiding doesnt work well */}
         gap={isMobile ? 'tiny' : 'medium'}
       >
