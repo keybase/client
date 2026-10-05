@@ -1,5 +1,5 @@
 import * as T from '../shared/test-ids.ts'
-import type {Mask, TourEntry} from './tour-types.ts'
+import type {Mask, SetupStep, TourEntry} from './tour-types.ts'
 
 // Tab names are the values in constants/tabs.tsx. Desktop shows eight tabs; phone shows people,
 // chat, files, teams and settings.
@@ -57,10 +57,22 @@ const teamTab = (id: string, button: string, ready: string): TourEntry => ({
 // entry left selected, chat whichever conversation, and the devices list carries live last-used
 // times. A phone modal covers the whole screen.
 type Params = NonNullable<TourEntry['nav']['append']>['params']
-type ModalOpts = {seal?: TourEntry['seal']; tab?: string; phone?: boolean; masks?: TourEntry['masks']; ready?: string}
+type ModalOpts = {
+  seal?: TourEntry['seal']
+  tab?: string
+  phone?: boolean
+  masks?: TourEntry['masks']
+  ready?: string
+  setup?: TourEntry['setup']
+}
 const modal = (id: string, name: string, params: Params = {}, opts: ModalOpts = {}): Array<TourEntry> => {
   const append = {name, params}
-  const base = {id: `modal/${id}`, seal: opts.seal ?? [], ...(opts.masks ? {masks: opts.masks} : {})}
+  const base = {
+    id: `modal/${id}`,
+    seal: opts.seal ?? [],
+    ...(opts.masks ? {masks: opts.masks} : {}),
+    ...(opts.setup ? {setup: opts.setup} : {}),
+  }
   return [
     {...base, nav: {append, tab: opts.tab ?? 'tabs.gitTab'}, platforms: ['desktop'], ready: opts.ready ?? T.MODAL_CLOSE},
     ...(opts.phone
@@ -71,7 +83,7 @@ const modal = (id: string, name: string, params: Params = {}, opts: ModalOpts = 
 const teamModal = (id: string, name: string, params: Params = team, opts: ModalOpts = {}) =>
   modal(id, name, params, {seal: ['teams'], tab: 'tabs.teamsTab', ...opts})
 
-// The phone's info panel, its own route. Desktop's is left out (see the exclusions below).
+// The phone's info panel, its own route.
 const infoPanel = (tab: string, channel: string): TourEntry => ({
   id: `chat/info-panel-${tab}`,
   nav: {
@@ -82,6 +94,59 @@ const infoPanel = (tab: string, channel: string): TourEntry => ({
   ready: T.CHAT_INFO_PANEL,
   seal: ['inbox', 'teams'],
 })
+
+// Desktop's info panel opens beside the conversation from the header's info button; the driver
+// closes it again on every reset to the chat tab.
+const desktopInfoPanel = (
+  id: string,
+  channel: string,
+  tabButton: string,
+  ready: string,
+  more: ReadonlyArray<SetupStep> = []
+): TourEntry => ({
+  id: `chat/info-panel${id}`,
+  nav: {tab: 'tabs.chatTab', thread: {channel, ref: 'conversationIDKey'}},
+  platforms: ['desktop'],
+  ready,
+  seal: ['inbox', 'teams'],
+  setup: [
+    {kind: 'openPopup', testID: T.CHAT_HEADER_INFO_BUTTON},
+    {kind: 'switchSubTab', testID: tabButton},
+    ...more,
+  ],
+})
+
+// The attachments tab of e2e-media, which holds an image, two videos and a text file, on one of
+// its Media / Docs / Links views. The header's member count fills in once the team's members
+// load, with no waiting key, so the phone entry opens on the members tab and waits for a member
+// row first, as desktop's panel does.
+const attachmentsView = (id: string, view: string, ready: string): Array<TourEntry> => [
+  desktopInfoPanel(`-${id}`, 'e2e-media', T.CHAT_INFO_PANEL_ATTACHMENTS_TAB, ready, [{kind: 'switchSubTab', testID: view}]),
+  {
+    id: `chat/info-panel-${id}`,
+    nav: {
+      append: {name: 'chatInfoPanel', params: {conversationIDKey: {channel: 'e2e-media', ref: 'conversationIDKey'}}},
+      tab: 'tabs.chatTab',
+    },
+    platforms: ['phone'],
+    ready,
+    seal: ['inbox', 'teams'],
+    setup: [
+      {kind: 'scrollIntoView', testID: T.CHAT_INFO_PANEL_PARTICIPANT},
+      {kind: 'switchSubTab', testID: T.CHAT_INFO_PANEL_ATTACHMENTS_TAB},
+      {kind: 'switchSubTab', testID: view},
+    ],
+  },
+]
+
+// The team's restricted bot, from its install modal: what it can read, the edit screen (nothing
+// is saved until its Save button), and that screen's channel picker. The permissions list waits
+// for the bot's settings, and Edit settings stays disabled until they load, so the edit entries
+// wait for the list (scrollIntoView) before pressing it.
+const TEAM_BOT = 'bottender'
+const botInstall = {botUsername: TEAM_BOT, conversationIDKey: short}
+const waitForBotPerms: SetupStep = {kind: 'scrollIntoView', testID: T.CHAT_BOT_PERMS}
+const editBot: SetupStep = {kind: 'openPopup', testID: T.CHAT_BOT_EDIT_BUTTON}
 
 const cryptoTab = (id: string, nav: string, ready: string): TourEntry => ({
   id: `crypto/${id}`,
@@ -164,6 +229,20 @@ export const tour: ReadonlyArray<TourEntry> = [
     seal: ['inbox'],
     setup: [{kind: 'openPopup', testID: T.CHAT_ATTACHMENT_IMAGE}],
   },
+  desktopInfoPanel('', 'e2e-short', T.CHAT_INFO_PANEL_MEMBERS_TAB, T.CHAT_INFO_PANEL),
+  desktopInfoPanel('-attachments', 'e2e-short', T.CHAT_INFO_PANEL_ATTACHMENTS_TAB, T.CHAT_INFO_PANEL_MEDIA),
+  desktopInfoPanel('-settings', 'e2e-short', T.CHAT_INFO_PANEL_SETTINGS_TAB, T.CHAT_INFO_PANEL),
+  desktopInfoPanel('-bots', 'e2e-short', T.CHAT_INFO_PANEL_BOTS_TAB, T.CHAT_BOT_ROW),
+  // leaves its menu open (leavesPopup); chat/info-panel-media opens another conversation
+  {
+    ...desktopInfoPanel('-menu', 'e2e-short', T.CHAT_INFO_PANEL_MEMBERS_TAB, T.FLOATING_MENU, [
+      {kind: 'openPopup', testID: T.CHAT_INFO_PANEL_MENU_BUTTON},
+    ]),
+    leavesPopup: true,
+  },
+  ...attachmentsView('media', T.CHAT_INFO_PANEL_MEDIA, T.CHAT_INFO_PANEL_MEDIA),
+  ...attachmentsView('docs', T.CHAT_INFO_PANEL_DOCS, T.CHAT_INFO_PANEL_DOCS),
+  ...attachmentsView('links', T.CHAT_INFO_PANEL_LINKS, T.CHAT_INFO_PANEL_LINKS),
   {...infoPanel('members', 'e2e-short'), id: 'chat/info-panel'},
   infoPanel('attachments', 'e2e-short'),
   infoPanel('settings', 'e2e-short'),
@@ -186,6 +265,13 @@ export const tour: ReadonlyArray<TourEntry> = [
     platforms: ['desktop'],
     ready: T.FILES_BROWSER,
     seal: ['kbfs'],
+  },
+  {
+    id: 'files/missing',
+    nav: {append: {name: 'fsBrowse', params: {path: {ref: 'privateFolder', sub: 'visual-gate-missing'}}}, tab: 'tabs.fsTab'},
+    platforms: ['desktop', 'phone'],
+    ready: T.FILES_OOPS,
+    seal: ['kbfsPrivate'],
   },
   {
     id: 'files/private',
@@ -330,16 +416,17 @@ export const tour: ReadonlyArray<TourEntry> = [
     ready: T.SETTINGS_ACCOUNT,
     seal: [],
   },
-  ...modal('device-add', 'deviceAdd'),
-  ...modal('add-email', 'settingsAddEmail'),
-  ...modal('add-phone', 'settingsAddPhone'),
+  ...modal('device-add', 'deviceAdd', {}, {phone: true}),
+  ...modal('add-email', 'settingsAddEmail', {}, {phone: true}),
+  ...modal('add-phone', 'settingsAddPhone', {}, {phone: true}),
   ...modal('kext-permission', 'kextPermission'),
   ...teamModal('team-edit-info', 'teamEditTeamInfo', team, {phone: true}),
   ...teamModal('team-edit-description', 'teamEditTeamDescription', team, {phone: true}),
   ...modal('backup-files', 'archiveModal', {type: 'fsAll'}, {phone: true}),
   ...modal('backup-repos', 'archiveModal', {type: 'gitAll'}, {phone: true}),
-  ...modal('backup-repo', 'archiveModal', {gitURL: 'keybase://team/testteam/repo', type: 'git'}),
-  ...modal('profile-proofs', 'profileProofsList'),
+  ...modal('backup-repo', 'archiveModal', {gitURL: 'keybase://team/testteam/repo', type: 'git'}, {phone: true}),
+  ...modal('profile-proofs', 'profileProofsList', {}, {phone: true}),
+  ...modal('git-new-team-repo', 'gitNewRepo', {isTeam: true}, {phone: true, seal: ['teams']}),
   ...modal('profile-pgp', 'profilePgp', {}, {phone: true}),
   ...modal('profile-avatar', 'profileEditAvatar'),
   ...modal('profile-showcase-teams', 'profileShowcaseTeamOffer', {}, {phone: true, seal: ['teams']}),
@@ -348,13 +435,26 @@ export const tour: ReadonlyArray<TourEntry> = [
   ...modal('feedback', 'signupSendFeedbackLoggedIn', {}, {phone: true}),
   ...modal('chat-block', 'chatBlockingModal', {blockUserByDefault: true, username: {ref: 'secondUser'}}, {phone: true, seal: ['follows']}),
   ...teamModal('team-rename', 'teamRename', {teamname: {ref: 'teamname'}}, {phone: true}),
-  ...teamModal('team-delete', 'teamDeleteTeam'),
+  ...teamModal('team-delete', 'teamDeleteTeam', team, {phone: true}),
   ...teamModal('team-leave', 'teamReallyLeaveTeam', team, {phone: true}),
   ...teamModal('team-invite-email', 'teamInviteByEmail', team, {phone: true}),
   ...teamModal('team-add-to-channels', 'teamAddToChannels', team, {phone: true, seal: ['teams', 'inbox']}),
   ...teamModal('team-add-emoji', 'teamAddEmoji', {...team, conversationIDKey: short}, {seal: ['teams', 'inbox']}),
   ...teamModal('team-add-alias', 'teamAddEmojiAlias', {conversationIDKey: short}, {phone: true, seal: ['teams', 'inbox']}),
-  ...teamModal('chat-create-channel', 'chatCreateChannel'),
+  ...teamModal('chat-create-channel', 'chatCreateChannel', team, {phone: true}),
+  ...teamModal('bot-installed', 'chatInstallBot', botInstall, {phone: true, ready: T.CHAT_BOT_PERMS, seal: ['teams', 'inbox']}),
+  ...teamModal('bot-edit', 'chatInstallBot', botInstall, {
+    phone: true,
+    ready: T.CHAT_BOT_CHANNELS_DROPDOWN,
+    seal: ['teams', 'inbox'],
+    setup: [waitForBotPerms, editBot],
+  }),
+  ...teamModal('bot-channels', 'chatInstallBot', botInstall, {
+    phone: true,
+    ready: T.CHAT_BOT_CHANNEL_PICKER,
+    seal: ['teams', 'inbox'],
+    setup: [waitForBotPerms, editBot, {kind: 'openPopup', testID: T.CHAT_BOT_CHANNELS_DROPDOWN}],
+  }),
   ...teamModal('chat-delete-history', 'chatDeleteHistoryWarning', {conversationIDKey: short}, {phone: true, seal: ['inbox']}),
   ...modal(
     'chat-emoji',
@@ -371,7 +471,7 @@ export const tour: ReadonlyArray<TourEntry> = [
 //   signupSendFeedbackLoggedOut, signupVerifyPhoneNumber, and the provision screens
 //
 // Reached only through a write, or a form whose state no ParamRef can supply:
-//   chatAddToChannel, chatConfirmRemoveBot, chatForwardMsgPick, chatInstallBot, chatInstallBotPick,
+//   chatAddToChannel, chatConfirmRemoveBot, chatForwardMsgPick, chatInstallBotPick,
 //   chatSendToChat, chatShowNewTeamDialog, chatEnterPaperkey (rekey), devicePaperKey (makes a
 //   paper key on open), deviceRevoke, confirmDelete, destinationPicker, gitDeleteRepo,
 //   gitSelectChannel, incomingShareNew (an OS share), profileImport, profileRevoke,
@@ -389,7 +489,7 @@ export const tour: ReadonlyArray<TourEntry> = [
 // is not in), team subteams tab (the team has none), and the message kinds no seeded channel holds
 // (coin flips, exploding, payments, git pushes, pins, replies, reactions, journey cards, unfurls)
 //
-// Mount nothing the tour doesn't already: gitNewRepo, teamCreateChannels, chatMessagePopup and
+// Mount nothing the tour doesn't already: gitNewRepo for a personal repo, teamCreateChannels, chatMessagePopup and
 // fsFilePreview (images and PDFs; the private folder holds no text file), chatNewChat,
 // cryptoTeamBuilder and teamsTeamBuilder (the same builder as modal/people-builder)
 //
@@ -406,11 +506,10 @@ export const tour: ReadonlyArray<TourEntry> = [
 // Platform or build: settingsTabs.cryptoTab, settingsTabs.devicesTab and settingsTabs.gitTab are
 // tablet-only sub-tabs on desktop (desktop has them as tabs); settingsTabs.contactsTab and
 // accountSwitcher are phone screens with nothing to wait on (contacts also needs the OS
-// permission); makeIcons is a developer tool; kextPermission, the modal add email/phone/device
-// entries and the settings sub-pages without a phone testID are desktop only; the phone's
-// add-email/phone/device, proofs list and team delete modals mount nothing the tour doesn't
-// already. Not in the main window: the menubar, the tracker popup and the unlock-folders window
-// are separate desktop windows; global errors and runtime stats are debug overlays.
+// permission); makeIcons is a developer tool; kextPermission and the settings sub-pages without a
+// phone testID are desktop only. Not in the main window: the menubar, the tracker popup and the
+// unlock-folders window are separate desktop windows; global errors and runtime stats are debug
+// overlays.
 //
 // Thread search on phone: its button is a native header bar item with no testID.
 //
@@ -424,8 +523,5 @@ export const tour: ReadonlyArray<TourEntry> = [
 //     "..." button draws its dots 1px off from every later push (327 px; seen in 5 of 8 rounds,
 //     always the first push of the launch). Native header layout, not data; no ready state to
 //     wait for. Desktop captures it.
-//   desktop chat info panel: it opens by setting infoPanel on the chat root's params, which
-//     navigateToThread merges rather than clears, so it would stay open for the conversation
-//     entries captured after it. The phone's info panel is its own route and is in the tour.
 //   archiveModal of a folder (type fsPath): the folder's info line spins without end for the
 //     empty team folder.

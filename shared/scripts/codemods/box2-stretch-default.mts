@@ -83,7 +83,7 @@ const refersToTarget = (e: babel.types.Node | null | undefined): boolean => {
   return false
 }
 
-const classifyName = (path: babel.NodePath<babel.types.JSXOpeningElement>, filename: string): Classified => {
+export const classifyName = (path: babel.NodePath<babel.types.JSXOpeningElement>, filename: string): Classified => {
   const name = path.node.name
   if (t.isJSXIdentifier(name)) {
     const binding = path.scope.getBinding(name.name)
@@ -126,7 +126,7 @@ const classifyName = (path: babel.NodePath<babel.types.JSXOpeningElement>, filen
   return {kind: 'none'}
 }
 
-type AxisValue = {kind: 'absent'} | {kind: 'true'} | {kind: 'expr'; text: string} | {kind: 'unresolved'; reason: string}
+export type AxisValue = {kind: 'absent'} | {kind: 'true'} | {kind: 'expr'; text: string} | {kind: 'unresolved'; reason: string}
 
 // Identifiers and member expressions bind tighter than || and ?:, so they need no parens.
 const operand = (text: string) => {
@@ -134,7 +134,7 @@ const operand = (text: string) => {
   return t.isIdentifier(e) || t.isMemberExpression(e) || t.isOptionalMemberExpression(e) ? text : `(${text})`
 }
 
-const readAxis = (attr: babel.types.JSXAttribute | undefined, code: string): AxisValue => {
+export const readAxis = (attr: babel.types.JSXAttribute | undefined, code: string): AxisValue => {
   if (!attr) return {kind: 'absent'}
   const v = attr.value
   if (v === null || v === undefined) return {kind: 'true'}
@@ -169,7 +169,7 @@ const alignSelfCovers = (attr: babel.types.JSXAttribute) => {
   return t.isJSXExpressionContainer(v) && alwaysNonEmptyString(v.expression)
 }
 
-const findAttr = (node: babel.types.JSXOpeningElement, name: string) => {
+export const findAttr = (node: babel.types.JSXOpeningElement, name: string) => {
   let found: babel.types.JSXAttribute | undefined
   for (const a of node.attributes) {
     if (t.isJSXAttribute(a) && t.isJSXIdentifier(a.name) && a.name.name === name) found = a
@@ -278,7 +278,7 @@ export type CleanupCandidate = {
 
 const alignSelfLiterals = new Set(['stretch', 'center', 'flex-start', 'flex-end'])
 
-const stringValue = (attr: babel.types.JSXAttribute | undefined) => {
+export const stringValue = (attr: babel.types.JSXAttribute | undefined) => {
   const v = attr?.value
   if (t.isStringLiteral(v)) return v.value
   if (t.isJSXExpressionContainer(v) && t.isStringLiteral(v.expression)) return v.expression.value
@@ -300,10 +300,10 @@ const opaque = (node: babel.types.JSXOpeningElement) =>
 const crossAxisKeys = new Set(['alignItems', 'display', 'flexDirection', 'flexWrap'])
 const platformKeys = new Set(['common', 'isAndroid', 'isElectron', 'isIOS', 'isMobile', 'isPhone', 'isTablet'])
 
-const calleeName = (e: babel.types.Node) =>
+export const calleeName = (e: babel.types.Node) =>
   t.isMemberExpression(e) && t.isIdentifier(e.property) ? e.property.name : t.isIdentifier(e) ? e.name : ''
 
-const styleSheetEntry = (
+export const styleSheetEntry = (
   scope: babel.NodePath['scope'],
   e: babel.types.MemberExpression
 ): babel.types.Node | undefined => {
@@ -371,7 +371,7 @@ const styleAttrLeaves = (scope: babel.NodePath['scope'], attr: babel.types.JSXAt
   !t.isJSXEmptyExpression(attr.value.expression) &&
   styleLeaves(scope, attr.value.expression, keys)
 
-const isMapCall = (p: babel.NodePath | null) =>
+export const isMapCall = (p: babel.NodePath | null) =>
   !!p?.isCallExpression() &&
   t.isMemberExpression(p.node.callee) &&
   !p.node.callee.computed &&
@@ -380,7 +380,7 @@ const isMapCall = (p: babel.NodePath | null) =>
 // Whether `child` renders in place inside `p`: JSX children and fragments, `{…}`, either branch of a
 // ternary or logical expression, and the callback of a `.map(…)` (expression body, or a top-level
 // return of its block body).
-const rendersInPlace = (p: babel.NodePath, child: babel.NodePath) => {
+export const rendersInPlace = (p: babel.NodePath, child: babel.NodePath) => {
   if (p.isJSXFragment()) return child.listKey === 'children'
   if (p.isJSXExpressionContainer() || p.isParenthesizedExpression() || p.isTSAsExpression()) return true
   if (p.isConditionalExpression()) return child.key === 'consequent' || child.key === 'alternate'
@@ -410,7 +410,7 @@ const parentElement = (path: babel.NodePath<babel.types.JSXElement>) => {
 }
 
 // The attribute and the whitespace before it, so an attribute on its own line takes the line along.
-const removalRange = (code: string, attr: babel.types.JSXAttribute) => {
+export const removalRange = (code: string, attr: babel.types.JSXAttribute) => {
   let start = attr.start ?? 0
   while (start > 0 && /\s/.test(code[start - 1] ?? '')) start--
   return {end: attr.end ?? 0, start}
@@ -675,9 +675,9 @@ const runUnpin = (root: string, opts: {write: boolean; reportFile: string | unde
   for (const [reason, n] of Object.entries(reasons).sort((a, b) => b[1] - a[1])) console.log(`skipped ${n}: ${reason}`)
 }
 
-const skipDirs = new Set(['node_modules', '.tsOuts', 'dist', '.git'])
+export const skipDirs = new Set(['node_modules', '.tsOuts', 'dist', '.git'])
 
-const walk = (dir: string, out: Array<string>) => {
+export const walk = (dir: string, out: Array<string>) => {
   for (const ent of readdirSync(dir, {withFileTypes: true})) {
     if (ent.isDirectory()) {
       if (!skipDirs.has(ent.name)) walk(join(dir, ent.name), out)

@@ -25,6 +25,12 @@ export const CHAT_BOT_ROW               = 'chat-bot-row'
 // the install modal's footer button varies with the bot's state (Install /
 // Review / Edit settings / Uninstall), so tests key off the modal itself
 export const CHAT_BOT_INSTALL           = 'chat-bot-install'
+// an installed restricted bot's permissions list, its Edit settings button, the edit screen's
+// channel dropdown, and the channel picker it opens
+export const CHAT_BOT_PERMS             = 'chat-bot-perms'
+export const CHAT_BOT_EDIT_BUTTON       = 'chat-bot-edit-button'
+export const CHAT_BOT_CHANNELS_DROPDOWN = 'chat-bot-channels-dropdown'
+export const CHAT_BOT_CHANNEL_PICKER    = 'chat-bot-channel-picker'
 export const CHAT_SUGGESTION_LIST       = 'chat-suggestion-list'
 // a bot command's help, shown over the composer once its text names the command
 export const CHAT_COMMAND_MARKDOWN      = 'chat-command-markdown'
@@ -35,8 +41,16 @@ export const CHAT_CAMERA_BUTTON         = 'chat-camera-button'
 export const CHAT_AUDIO_BUTTON          = 'chat-audio-button'
 export const CHAT_MORE_BUTTON           = 'chat-more-button'
 export const CHAT_INFO_PANEL_SETTINGS_TAB = 'chat-info-panel-settings-tab'
+export const CHAT_INFO_PANEL_MEMBERS_TAB = 'chat-info-panel-members-tab'
+export const CHAT_INFO_PANEL_ATTACHMENTS_TAB = 'chat-info-panel-attachments-tab'
+export const CHAT_INFO_PANEL_BOTS_TAB = 'chat-info-panel-bots-tab'
+export const CHAT_INFO_PANEL_PARTICIPANT = 'chat-info-panel-participant'
+// the attachments tab's Media / Docs / Links selector
+export const CHAT_INFO_PANEL_MEDIA = 'chat-info-panel-media'
+export const CHAT_INFO_PANEL_DOCS = 'chat-info-panel-docs'
+export const CHAT_INFO_PANEL_LINKS = 'chat-info-panel-links'
 export const CHAT_INFO_PANEL_MENU_BUTTON = 'chat-info-panel-menu-button'
-// Android only: iOS 26 folds Search/Info into one native "More" header menu,
+// Desktop and Android: iOS 26 folds Search/Info into one native "More" header menu,
 // but the Android header keeps the plain info icon — icons have no tappable text
 export const CHAT_HEADER_INFO_BUTTON = 'chat-header-info-button'
 // Desktop conversation header: the title row (team#channel, or the participants) and the search
@@ -65,6 +79,8 @@ export const CHAT_VIDEO_FULLSCREEN    = 'video-fullscreen'
 
 // Files
 export const FILES_BROWSER = 'files-browser'
+// a path the account can't read, or that doesn't exist
+export const FILES_OOPS = 'files-oops'
 export const FILES_TLF_ROW = 'files-tlf-row'
 
 // Teams
