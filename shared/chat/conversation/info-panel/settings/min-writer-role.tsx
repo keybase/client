@@ -91,7 +91,7 @@ const MinWriterRole = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => 
   ])
   return (
     <Kb.Box2 direction="vertical" gap={canSetMinWriterRole ? 'tiny' : 'xxtiny'} fullWidth={true}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" alignItems="center">
+      <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center">
         <Kb.Text type="BodySmallSemibold">Minimum role to post</Kb.Text>
         {canSetMinWriterRole && <Kb.SaveIndicator saving={saving} style={saveIndicatorStyle} />}
       </Kb.Box2>

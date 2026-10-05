@@ -78,7 +78,7 @@ const CreateChannel = (p: Props) => {
         </Kb.Banner>
       )}
       <Kb.Box2 direction="vertical" fullWidth={true} style={nativeStyles.box}>
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
+        <Kb.Box2 direction="vertical" gap="small">
           <Kb.Input3
             textType="BodySemibold"
             autoFocus={true}

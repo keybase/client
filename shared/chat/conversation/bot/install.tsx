@@ -331,7 +331,7 @@ const InstallBotPopup = (props: Props) => {
   )
   const featuredContent = !!featured && (
     <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="small">
-      <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
+      <Kb.Box2 direction="vertical" gap="small">
         <Kb.NameWithIcon
           botAlias={featured.botAlias}
           horizontal={true}
@@ -391,9 +391,9 @@ const InstallBotPopup = (props: Props) => {
         size="big"
       />
       {installWithRestrict ? (
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
+        <Kb.Box2 direction="vertical" gap="small">
           <Kb.Text type="BodyBig">It will be able to read:</Kb.Text>
-          <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
+          <Kb.Box2 direction="vertical" gap="xtiny">
             <Kb.Checkbox
               checked={installWithCommands}
               labelComponent={<CommandsLabel commands={commands} />}
@@ -411,7 +411,7 @@ const InstallBotPopup = (props: Props) => {
             />
           </Kb.Box2>
           {teamID && teamname && (
-            <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+            <Kb.Box2 direction="vertical" gap="tiny">
               <Kb.Text type="BodyBig">In these channels:</Kb.Text>
               <Kb.DropdownButton
                 selected={
@@ -517,7 +517,7 @@ const InstallBotPopup = (props: Props) => {
           Ask an admin or owner to install this bot
         </Kb.Text>
       ) : (
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+        <Kb.Box2 direction="vertical" gap="tiny">
           <Kb.Text type="BodySmall" style={{alignSelf: 'center'}}>
             Install as
           </Kb.Text>
@@ -720,7 +720,7 @@ const CommandsLabel = (props: CommandsLabelProps) => {
   return (
     <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
       <Kb.Text type="Body">{`messages that begin with bot commands${punct}`}</Kb.Text>
-      <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Box2 direction="vertical">
         {inner}
       </Kb.Box2>
     </Kb.Box2>
@@ -749,13 +749,13 @@ const PermsList = (props: PermsListProps) => {
     <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
       <Kb.Text type="BodySemibold">This bot can currently read:</Kb.Text>
       {settings ? (
-        <Kb.Box2 direction="vertical" gap="small" fullWidth={true} testID={TestIDs.CHAT_BOT_PERMS}>
-          <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+        <Kb.Box2 direction="vertical" gap="small" testID={TestIDs.CHAT_BOT_PERMS}>
+          <Kb.Box2 direction="vertical" gap="tiny">
             {!(settings.cmds || settings.mentions) && (
               <Kb.Text type="Body">{'• no messages, the bot is in write only mode'}</Kb.Text>
             )}
             {settings.cmds && (
-              <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+              <Kb.Box2 direction="horizontal" gap="xtiny">
                 <Kb.Text type="Body">{'•'}</Kb.Text>
                 <CommandsLabel commands={commands} />
               </Kb.Box2>
@@ -765,7 +765,7 @@ const PermsList = (props: PermsListProps) => {
             )}
           </Kb.Box2>
           {hasTeam && (
-          <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+          <Kb.Box2 direction="vertical" gap="tiny">
             <Kb.Text type="BodySemibold">In these channels:</Kb.Text>
             {convs.length === 0 ? (
               <Kb.Text type="Body">{'• all channels in this team'}</Kb.Text>

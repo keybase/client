@@ -65,7 +65,7 @@ const TeamRow = (p: RowProps) => {
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="small" style={styles.teamRowShowcaseTeamOffer}>
         <Kb.Avatar isTeam={true} size={isMobile ? 48 : 32} teamname={name} />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamNameShowcaseTeamOffer}>
-          <Kb.Box2 direction="horizontal" fullWidth={true}>
+          <Kb.Box2 direction="horizontal">
             <Kb.Text type="BodySemibold" lineClamp={1}>
               {name}
             </Kb.Text>

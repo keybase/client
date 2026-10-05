@@ -118,7 +118,7 @@ const ChannelPicker = (props: Props) => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-      <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <Kb.Box2 direction="horizontal">
         <Kb.SearchFilter
           size="full-width"
           icon="iconfont-search"
