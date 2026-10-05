@@ -105,7 +105,13 @@ const BotInstallHeaderLeft = () => {
 const AddToChannelHeaderTitle = ({teamID}: {teamID: T.Teams.TeamID}) => {
   const title = useModalHeaderState(s => s.title)
   const displayTitle = title || 'Add to channel'
-  if (isMobile) return <>{displayTitle}</>
+  if (isMobile) {
+    return (
+      <Kb.Text type="BodyBig" lineClamp={1} center={true}>
+        {displayTitle}
+      </Kb.Text>
+    )
+  }
   return <ModalTitle teamID={teamID} title={displayTitle} />
 }
 
