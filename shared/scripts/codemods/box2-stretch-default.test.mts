@@ -11,11 +11,17 @@ import {
   cleanupCandidates,
   gatePlatforms,
   hasImplicitCenter,
+  matchU4Skips,
   pinSource,
+  planU4,
   platformCoverage,
+  readU4Skips,
+  u4Candidates,
+  u4SkipsPath,
   unmountedPlatforms,
   unpinCandidates,
 } from './box2-stretch-default.mts'
+import {execFileSync} from 'child_process'
 
 const run = (code: string) => pinSource(code, '/x/shared/settings/a.tsx')
 const runCA = (code: string) => pinSource(code, '/x/shared/common-adapters/rounded-box.tsx')
@@ -957,4 +963,167 @@ test('U3: not when alignSelf may be unset on some platform or device, or a sprea
   assert.deepEqual(unpinRules(spread), [])
   const impure = withSheet(`<Kb.Box2 alignSelf={f() ? undefined : 'center'} direction="vertical" style={styles.x} />`, `{x: {alignSelf: 'flex-start'}}`)
   assert.deepEqual(unpinSkips(impure), ['conditional pin test may have side effects'])
+})
+
+// ---------------------------------------------------------------- unpin by coverage
+
+const u4 = (code: string) => u4Candidates(code, '/x/shared/settings/a.tsx')
+const u4Sites = (code: string) => u4(code).sites.map(c => `${c.line}:${c.nth}:${c.tag}`)
+
+test('U4: every pin-shaped site is a candidate, whatever its parent', () => {
+  const src = [
+    'const A = () => (',
+    '  <Kb.Box2 direction="horizontal" alignItems="flex-start">',
+    '    <Kb.Box2 alignSelf="center" direction="vertical" gap="tiny" />',
+    `    <Kb.ClickableBox alignSelf={x ? undefined : 'center'} direction="vertical" fullWidth={x} />`,
+    `    {cond && <Kb.Box2 alignSelf={'center'} direction="vertical" />}`,
+    '  </Kb.Box2>',
+    ')',
+  ].join('\n')
+  assert.deepEqual(u4Sites(src), [
+    '3:1:<Kb.Box2 direction="vertical" gap="tiny" />',
+    '4:1:<Kb.ClickableBox direction="vertical" fullWidth={x} />',
+    '5:1:<Kb.Box2 direction="vertical" />',
+  ])
+  assert.deepEqual(u4(src).unusable, [])
+  assert.equal(
+    applyCleanup(src, u4(src).sites),
+    src
+      .replace(' alignSelf="center"', '')
+      .replace(` alignSelf={x ? undefined : 'center'}`, '')
+      .replace(` alignSelf={'center'}`, '')
+  )
+})
+
+test('U4: only center pins; a spread or a test with side effects makes a pin unusable', () => {
+  for (const a of [`alignSelf="flex-start"`, `alignSelf={x}`, `alignSelf={x ? 'center' : undefined}`]) {
+    assert.deepEqual(u4(`const A = () => <Kb.Box2 ${a} direction="vertical" />`), {sites: [], unusable: []}, a)
+  }
+  assert.deepEqual(u4(`const A = () => <Kb.Box2 alignSelf="center" direction="vertical" />`).sites.length, 1)
+  assert.deepEqual(u4(`const A = () => <Kb.Box2 alignSelf="center" {...p} />`), {
+    sites: [],
+    unusable: [{line: 1, reason: 'child has a spread'}],
+  })
+  assert.deepEqual(u4(`const A = () => <Kb.Box2 alignSelf={f() ? undefined : 'center'} direction="vertical" />`), {
+    sites: [],
+    unusable: [{line: 1, reason: 'conditional pin test may have side effects'}],
+  })
+  assert.deepEqual(u4(`const A = () => <Kb.Text alignSelf="center" />`), {sites: [], unusable: []})
+})
+
+test('U4: a site key collapses whitespace, drops the pin and survives line shifts and other removals', () => {
+  const box = (pin: string) => `<Kb.Box2${pin}\n      direction="vertical"\n    />`
+  const src = [
+    'const A = () => (',
+    '  <>',
+    `    ${box('')}`,
+    `    ${box('\n      alignSelf="center"')}`,
+    `    ${box(' alignSelf="center"')}`,
+    '  </>',
+    ')',
+  ].join('\n')
+  const sites = u4(src).sites
+  assert.deepEqual(
+    sites.map(c => [c.line, c.nth, c.tag]),
+    [
+      [6, 2, '<Kb.Box2 direction="vertical" />'],
+      [10, 3, '<Kb.Box2 direction="vertical" />'],
+    ]
+  )
+  const shifted = `// one\n// two\n${applyCleanup(src, sites.slice(0, 1))}`
+  assert.deepEqual(
+    u4(shifted).sites.map(c => [c.line, c.nth]),
+    [[11, 3]]
+  )
+})
+
+test('U4 skips: matched by file, tag and nth; stale and ambiguous entries are errors', () => {
+  const src = [
+    'const A = () => (',
+    '  <Kb.Box2 direction="vertical" fullWidth>',
+    '    <Kb.Box2 alignSelf="center" direction="vertical" />',
+    '    <Kb.Box2 alignSelf="center" direction="vertical" />',
+    '    <Kb.Box2 alignSelf="center" direction="horizontal" />',
+    '  </Kb.Box2>',
+    ')',
+  ].join('\n')
+  const sites = u4(src).sites
+  const skip = (tag: string, nth?: number, rel = 'settings/a.tsx') => ({nth, reason: 'r', rel, tag})
+  const lines = (r: ReturnType<typeof matchU4Skips>) => [...r.kept.keys()].map(c => c.line)
+  assert.deepEqual(lines(matchU4Skips('settings/a.tsx', sites, [skip('<Kb.Box2 direction="horizontal" />')])), [5])
+  assert.deepEqual(lines(matchU4Skips('settings/a.tsx', sites, [skip('<Kb.Box2 direction="vertical" />', 2)])), [4])
+  assert.deepEqual(matchU4Skips('settings/a.tsx', sites, [skip('<Kb.Box2 direction="vertical" />', 2, 'settings/b.tsx')]), {
+    errors: [],
+    kept: new Map(),
+  })
+  assert.deepEqual(matchU4Skips('settings/a.tsx', sites, [skip('<Kb.Box2 direction="vertical" />')]).errors, [
+    'skip matches 2 pins, add nth: settings/a.tsx <Kb.Box2 direction="vertical" />',
+  ])
+  assert.deepEqual(matchU4Skips('settings/a.tsx', sites, [skip('<Kb.Box2 direction="vertical" fullWidth>')]).errors, [
+    'skip matches no pin: settings/a.tsx <Kb.Box2 direction="vertical" fullWidth>',
+  ])
+  assert.deepEqual(matchU4Skips('settings/a.tsx', sites, [skip('<Kb.Box2 direction="vertical" />', 4)]).errors, [
+    'skip matches no pin: settings/a.tsx <Kb.Box2 direction="vertical" /> (nth 4)',
+  ])
+})
+
+test('U4 skip list: entries need rel, tag and a reason; the committed list parses', () => {
+  assert.deepEqual(readU4Skips('[{"rel": "a.tsx", "tag": "<Kb.Box2\\n  x />", "reason": "moved"}]'), [
+    {nth: undefined, reason: 'moved', rel: 'a.tsx', tag: '<Kb.Box2 x />'},
+  ])
+  assert.throws(() => readU4Skips('{}'), /array/)
+  assert.throws(() => readU4Skips('[{"rel": "a.tsx", "tag": "<Kb.Box2 />"}]'), /reason/)
+  assert.throws(() => readU4Skips('[{"rel": "a.tsx", "tag": "<Kb.Box2 />", "reason": "r", "nth": 0}]'), /nth/)
+  assert.doesNotThrow(() => readU4Skips(fs.readFileSync(u4SkipsPath(), 'utf8')))
+})
+
+test('U4 plan: needs coverage on every gate platform, carries base lines forward, honors skips', () => {
+  const prev = process.env['KB_VISUAL_RESULTS']
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'box2-u4-'))
+  process.env['KB_VISUAL_RESULTS'] = path.join(tmp, 'results')
+  const g = (...args: Array<string>) => execFileSync('git', args, {cwd: tmp, encoding: 'utf8'}).trim()
+  try {
+    const shared = path.join(tmp, 'shared')
+    fs.mkdirSync(path.join(shared, 'settings'), {recursive: true})
+    const file = (lines: Array<string>) => ['const A = () => (', '  <>', ...lines, '  </>', ')', ''].join('\n')
+    const sites = [
+      '    <Kb.Box2 alignSelf="center" direction="vertical" />',
+      '    <Kb.Box2 alignSelf="center" direction="horizontal" />',
+      '    <Kb.Box2 alignSelf="center" gap="tiny" />',
+      '    <Kb.Box2 alignSelf="center" gap="small" />',
+    ]
+    fs.writeFileSync(path.join(shared, 'settings', 'a.tsx'), file(sites))
+    fs.writeFileSync(path.join(shared, 'settings', 'b.desktop.tsx'), file(sites.slice(0, 1)))
+    g('init', '-q')
+    g('add', '.')
+    g('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-qm', 'base')
+    const base = g('rev-parse', 'HEAD')
+    const cover = (platform: string, ids: Array<string>, masked = false) => {
+      const dir = path.join(tmp, 'results', 'base', base, platform, 'light', 'coverage')
+      fs.mkdirSync(dir, {recursive: true})
+      fs.writeFileSync(path.join(dir, `e${fs.readdirSync(dir).length}.json`), JSON.stringify({ids, masked}))
+    }
+    // lines 3-6 in a.tsx: 3 on both, 4 on both, 5 desktop only, 6 on iOS only under a mask
+    cover('desktop', ['settings/a.tsx:3', 'settings/a.tsx:4', 'settings/a.tsx:5', 'settings/b.desktop.tsx:3'])
+    cover('ios', ['settings/a.tsx:3', 'settings/a.tsx:4'])
+    cover('ios', ['settings/a.tsx:6'], true)
+    cover('desktop', ['settings/a.tsx:6'])
+    fs.writeFileSync(path.join(shared, 'settings', 'a.tsx'), `// shifted\n${file(sites)}`)
+    g('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-qam', 'shift')
+    const skips = [{reason: 'moved 2px', rel: 'settings/a.tsx', tag: '<Kb.Box2 direction="horizontal" />'}]
+    const plan = planU4(shared, {at: 'HEAD', base, skips})
+    assert.deepEqual(plan.errors, [])
+    assert.deepEqual(plan.removed, ['settings/a.tsx:4', 'settings/b.desktop.tsx:3'])
+    assert.deepEqual(plan.kept, [{reason: 'moved 2px', site: 'settings/a.tsx:5'}])
+    assert.deepEqual(plan.uncovered, [
+      {site: 'settings/a.tsx:6', why: 'never mounted on ios'},
+      {site: 'settings/a.tsx:7', why: 'never mounted on ios'},
+    ])
+    const stale = planU4(shared, {at: 'HEAD', base, skips: [...skips, {reason: 'r', rel: 'settings/gone.tsx', tag: 'x'}]})
+    assert.deepEqual(stale.errors, ['skip names a file with no .tsx at HEAD: settings/gone.tsx'])
+  } finally {
+    if (prev === undefined) delete process.env['KB_VISUAL_RESULTS']
+    else process.env['KB_VISUAL_RESULTS'] = prev
+    fs.rmSync(tmp, {force: true, recursive: true})
+  }
 })
