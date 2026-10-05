@@ -249,14 +249,8 @@
 .box2_overflow_hidden {
   overflow: hidden;
 }
-.box2_overflow_scroll {
-  overflow: scroll;
-}
 .box2_overflow_visible {
   overflow: visible;
-}
-.box2_overflow_auto {
-  overflow: auto;
 }
 .box2_padding_xxtiny {
   padding: var(--size-xxtiny);
