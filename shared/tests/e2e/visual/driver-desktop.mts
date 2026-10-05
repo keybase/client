@@ -136,9 +136,18 @@ type PageImage = {
   src: string
   getBoundingClientRect: () => {bottom: number; height: number; left: number; right: number; top: number; width: number}
 }
+type PageVideo = {
+  autoplay: boolean
+  currentTime: number
+  paused: boolean
+  readyState: number
+  pause: () => void
+  addEventListener: (event: 'loadeddata' | 'seeked', f: () => void, o: {once: true}) => void
+}
 type PageWindow = {
   document: {
     body: {classList: {contains: (c: string) => boolean}}
+    querySelectorAll: (sel: 'video') => ArrayLike<PageVideo>
     fonts: {ready: Promise<unknown>}
     images: ArrayLike<PageImage>
   }
@@ -259,6 +268,36 @@ const waitForAssets = async (page: Page) => {
     throw new Error(`${(e as Error).message}: ${pending.slice(0, 5).join(', ')}`, {cause: e})
   }
 }
+
+// A looping autoplay video (a giphy unfurl) shows a different frame on every screenshot. Each one
+// is paused on its first frame; videos that don't play on their own are left as they are.
+const stillVideos = async (page: Page) =>
+  withDeadline(
+    page.evaluate(async () => {
+      const w = globalThis as unknown as PageWindow
+      const playing = Array.from(w.document.querySelectorAll('video')).filter(v => v.autoplay || !v.paused)
+      await Promise.all(
+        playing.map(
+          async v =>
+            new Promise<void>(resolve => {
+              v.pause()
+              const decoded = () => {
+                if (v.readyState >= 2) resolve()
+                else v.addEventListener('loadeddata', resolve, {once: true})
+              }
+              if (v.currentTime === 0) {
+                decoded()
+              } else {
+                v.addEventListener('seeked', decoded, {once: true})
+                v.currentTime = 0
+              }
+            })
+        )
+      )
+    }),
+    ASSETS_MS,
+    'pausing autoplay videos on their first frame'
+  )
 
 // Nothing in flight in the app's waiting store (the keys its RPC loaders hold while they fetch),
 // and no marked loading indicator on screen.
@@ -489,6 +528,7 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
       await page.getByTestId(entry.ready).locator('visible=true').first().waitFor({state: 'visible', timeout: READY_MS})
       await waitForNoLoading(page)
       await waitForAssets(page)
+      await stillVideos(page)
       const obtrusive = await withDeadline(
         page.evaluate(() =>
           (globalThis as unknown as PageWindow).document.body.classList.contains('layout-scrollbar-obtrusive')

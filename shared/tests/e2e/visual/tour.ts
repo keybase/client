@@ -5,10 +5,12 @@ import type {Mask, SetupStep, TourEntry} from './tour-types.ts'
 // chat, files, teams and settings.
 //
 // Capture never resets scroll position or a selected sub-tab, so every entry on a screen with
-// sub-tabs selects its own (switchSubTab), and nothing here scrolls.
+// sub-tabs selects its own (switchSubTab), and every entry on a thread that another entry scrolls
+// scrolls to its own place (scrollIntoView).
 
 const team = {teamID: {ref: 'teamID'}} as const
 const short = {channel: 'e2e-short', ref: 'conversationIDKey'} as const
+const kinds = {channel: 'e2e-kinds', ref: 'conversationIDKey'} as const
 const followSuggestions: Mask = {reason: 'people feed follow suggestions, server-picked', testID: T.PEOPLE_FOLLOW_SUGGESTIONS}
 const deviceLastUsed: Mask = {reason: 'device last-used time, server-pushed', testID: T.DEVICES_ROW_LAST_USED}
 const devicePageLastUsed: Mask = {reason: 'device last-used time, server-pushed', testID: T.DEVICE_PAGE_LAST_USED}
@@ -185,6 +187,36 @@ export const tour: ReadonlyArray<TourEntry> = [
     ready: T.CHAT_MESSAGE_LIST,
     seal: ['inbox'],
   },
+  // One message of each kind the CLI can make: a pinned message (and the pinned banner above the
+  // thread), reactions, a reply, links with and without an unfurl, a giphy, a coin flip, a bot
+  // command and a git push. The banner loads apart from the thread, so setup waits for it. A
+  // desktop thread keeps its scroll position, so this one scrolls back to the git push, the newest
+  // message, after chat/e2e-kinds-older.
+  {
+    id: 'chat/e2e-kinds',
+    nav: {tab: 'tabs.chatTab', thread: kinds},
+    platforms: ['desktop', 'phone'],
+    ready: T.CHAT_GIT_PUSH,
+    seal: ['inbox'],
+    setup: [
+      {kind: 'scrollIntoView', testID: T.CHAT_PINNED_BANNER},
+      {kind: 'scrollIntoView', testID: T.CHAT_GIT_PUSH},
+    ],
+  },
+  // The same thread scrolled up to its older half: the pinned message, the reactions, the reply,
+  // the plain link and the giphy. Desktop only: on the phone the row is off screen, and Appium's
+  // `mobile: scroll` toVisible gives up on the thread's list (max scroll count reached).
+  {
+    id: 'chat/e2e-kinds-older',
+    nav: {tab: 'tabs.chatTab', thread: kinds},
+    platforms: ['desktop'],
+    ready: T.CHAT_REACTIONS_ROW,
+    seal: ['inbox'],
+    setup: [
+      {kind: 'scrollIntoView', testID: T.CHAT_PINNED_BANNER},
+      {kind: 'scrollIntoView', testID: T.CHAT_REACTIONS_ROW},
+    ],
+  },
   // The hover bar and the ... menu of e2e-media's image. The menu leaves its popup open
   // (leavesPopup), so the entry after it opens another conversation; with the popup open, hovering
   // the row draws no hover bar.
@@ -238,6 +270,8 @@ export const tour: ReadonlyArray<TourEntry> = [
     ]),
     leavesPopup: true,
   },
+  // a channel with a description, which the panel's header shows
+  desktopInfoPanel('-kinds', 'e2e-kinds', T.CHAT_INFO_PANEL_MEMBERS_TAB, T.CHAT_INFO_PANEL),
   attachmentsView('media', T.CHAT_INFO_PANEL_MEDIA, T.CHAT_INFO_PANEL_MEDIA),
   attachmentsView('docs', T.CHAT_INFO_PANEL_DOCS, T.CHAT_INFO_PANEL_DOCS),
   attachmentsView('links', T.CHAT_INFO_PANEL_LINKS, T.CHAT_INFO_PANEL_LINKS),
@@ -276,6 +310,13 @@ export const tour: ReadonlyArray<TourEntry> = [
     nav: {append: {name: 'fsBrowse', params: {path: {ref: 'privateFolder'}}}, tab: 'tabs.fsTab'},
     platforms: ['desktop', 'phone'],
     ready: T.FILES_BROWSER,
+    seal: ['kbfsPrivate'],
+  },
+  {
+    id: 'files/text',
+    nav: {append: {name: 'fsBrowse', params: {path: {ref: 'privateFolder', sub: 'test.txt'}}}, tab: 'tabs.fsTab'},
+    platforms: ['desktop', 'phone'],
+    ready: T.FILES_TEXT_PREVIEW,
     seal: ['kbfsPrivate'],
   },
   ...cryptoTab('encrypt', T.CRYPTO_NAV_ENCRYPT, T.CRYPTO_ENCRYPT_INPUT),
@@ -497,11 +538,11 @@ export const tour: ReadonlyArray<TourEntry> = [
 // produces (setup steps can't type): chatAttachmentGetTitles, chatPDF, chatLocationPreview,
 // chatUnfurlMapPopup, chatConfirmNavigateExternal, decryptOutput, encryptOutput, signOutput,
 // verifyOutput, keybaseLinkError, webLinks (an external page), teamExternalTeam (a team the account
-// is not in), and the message kinds no seeded channel holds
-// (coin flips, exploding, payments, git pushes, pins, replies, reactions, journey cards, unfurls)
+// is not in), and the message kinds no seeded channel holds (exploding, payments, journey cards,
+// audio and location; the CLI can't send the last two)
 //
 // Mount nothing the tour doesn't already: gitNewRepo for a personal repo, teamCreateChannels, chatMessagePopup and
-// fsFilePreview (images and PDFs; the private folder holds no text file), chatNewChat,
+// fsFilePreview (the preview files/text reaches through fsBrowse, as a click on a file does), chatNewChat,
 // cryptoTeamBuilder and teamsTeamBuilder (the same builder as modal/people-builder)
 //
 // Edit forms change nothing until saved, so the tour opens them, except teamEditChannel (it takes

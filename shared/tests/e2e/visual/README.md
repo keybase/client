@@ -5,7 +5,7 @@ tree. Use it to prove a layout refactor changes nothing on screen, or to see exa
 changes. The compare is exact RGBA with no threshold; a size mismatch is a failure.
 
 Platforms: Electron light, plus dark with `--themes light,dark` (1280x800 @2x; layout never depends on the theme, so dark is opt-in), and iOS light on the `iPhoneTest` simulator
-(`KB_IOS_DEVICE` overrides). The tour of screens is `tour.ts`: 84 desktop entries and 76 phone
+(`KB_IOS_DEVICE` overrides). The tour of screens is `tour.ts`: 88 desktop entries and 78 phone
 entries, all signed in as the e2e smoke account.
 
 ## Before you start
@@ -80,8 +80,8 @@ pinned:
 
 - Desktop `--visual` launches Electron with `--disable-gpu --disable-partial-raster
   --force-color-profile=srgb` (see `electron-args.ts` for why each is needed), emulates the
-  viewport and color scheme, hides overlay scrollbars and the caret, and parks the mouse outside
-  the window.
+  viewport and color scheme, hides overlay scrollbars and the caret, pauses autoplay videos (giphy
+  unfurls) on their first frame, and parks the mouse outside the window.
 - iOS: status bar override (9:41, full signal and battery), Reduce Motion and Reduce Transparency
   on (the app is relaunched to pick them up), auto-focused inputs blurred, and captures settle on
   two equal frames a second apart. `close` clears the status bar override; the app keeps the

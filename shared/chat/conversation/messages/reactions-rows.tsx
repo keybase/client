@@ -1,6 +1,7 @@
 import * as Message from '@/constants/chat/message'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import EmojiRow from './emoji-row'
 import ReactButton, {NewReactionButton} from './react-button'
 import ReactionTooltip from './reaction-tooltip'
@@ -27,7 +28,14 @@ function ReactionsRowContainer(p: OwnProps) {
   )
 
   return emojis.length === 0 ? null : (
-    <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} alignItems="flex-start" style={styles.container}>
+    <Kb.Box2
+      direction="horizontal"
+      gap="xtiny"
+      fullWidth={true}
+      alignItems="flex-start"
+      style={styles.container}
+      testID={TestIDs.CHAT_REACTIONS_ROW}
+    >
       {emojis.map((emoji, idx) => {
         const reaction = reactions?.get(emoji)
         return reaction ? (

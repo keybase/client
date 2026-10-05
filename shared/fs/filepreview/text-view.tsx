@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {colors, darkColors} from '@/styles/colors'
 
 type Props = {
@@ -42,7 +43,13 @@ const TextView = (props: Props) => {
   if (!isMobile) {
     return (
       <Kb.Box2 fullWidth={true} fullHeight={true} direction="vertical" padding="small" style={styles.container}>
-        <Kb.Box2 alignSelf="center" style={styles.innerContainer} direction="horizontal" alignItems="flex-start">
+        <Kb.Box2
+          alignSelf="center"
+          style={styles.innerContainer}
+          direction="horizontal"
+          alignItems="flex-start"
+          testID={content ? TestIDs.FILES_TEXT_PREVIEW : undefined}
+        >
           <Kb.Text type="Terminal" selectable={true} style={styles.text}>
             {content}
           </Kb.Text>
@@ -52,7 +59,7 @@ const TextView = (props: Props) => {
   }
 
   return (
-    <Kb.Box2 fullHeight={true} fullWidth={true} direction="vertical">
+    <Kb.Box2 fullHeight={true} fullWidth={true} direction="vertical" testID={TestIDs.FILES_TEXT_PREVIEW}>
       <Kb.WebView
         url={url}
         pinnedURLMode={true}
