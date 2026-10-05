@@ -53,7 +53,7 @@ const AddingMembers = ({
         />
       ))}
       {showDivider && (
-        <Kb.ClickableBox onClick={toggleExpanded} direction="horizontal" alignSelf="stretch" style={styles.addingMemberDivider} centerChildren={true}>
+        <Kb.ClickableBox onClick={toggleExpanded} direction="horizontal" style={styles.addingMemberDivider} centerChildren={true}>
           <Kb.Text type="BodySemibold" negative={true}>
             {expanded ? 'Show less' : `+${addingMembers.length - 4} more`}
           </Kb.Text>

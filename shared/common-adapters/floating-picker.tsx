@@ -69,12 +69,11 @@ const FloatingPicker = <T extends string | number>(props: Props<T>): React.React
 
   return (
     <Kb.Sheet key={isAndroid ? props.selectedValue || 0 : undefined} onHidden={props.onHidden}>
-      <Kb.Box2 direction="vertical" fullWidth={true} alignItems="stretch" justifyContent="flex-end" style={styles.menu}>
+      <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="flex-end" style={styles.menu}>
         {props.header}
         <Kb.Box2
           direction="horizontal"
           fullWidth={true}
-          alignItems="stretch"
           justifyContent="flex-end"
           style={styles.actionButtons}
         >

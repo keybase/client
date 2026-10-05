@@ -179,7 +179,6 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
-        alignItems="stretch"
         style={Kb.Styles.collapseStyles([styles.row, styles.contentCollapsedFixedHeight])}
       >
         <Kb.Box2
