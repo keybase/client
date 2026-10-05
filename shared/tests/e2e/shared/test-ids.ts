@@ -65,6 +65,10 @@ export const CHAT_JUMP_TO_RECENT      = 'chat-jump-to-recent'
 export const CHAT_CATCH_UP            = 'chat-catch-up'
 export const CHAT_PINNED_BANNER       = 'chat-pinned-banner'
 export const CHAT_REPLY_PREVIEW       = 'chat-reply-preview'
+// a message's row of reactions
+export const CHAT_REACTIONS_ROW       = 'chat-reactions-row'
+// a git push system message's body
+export const CHAT_GIT_PUSH            = 'chat-git-push'
 export const CHAT_REPLY_CANCEL        = 'chat-reply-cancel'
 export const CHAT_EDIT_CANCEL         = 'chat-edit-cancel'
 // desktop message hover bar and ... menu
@@ -81,6 +85,8 @@ export const FILES_BROWSER = 'files-browser'
 // a path the account can't read, or that doesn't exist
 export const FILES_OOPS = 'files-oops'
 export const FILES_TLF_ROW = 'files-tlf-row'
+// a text file's preview; on desktop only once its content has loaded
+export const FILES_TEXT_PREVIEW = 'files-text-preview'
 
 // Teams
 export const TEAMS_LIST         = 'teams-list'
