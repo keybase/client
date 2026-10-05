@@ -141,7 +141,7 @@ const ChatRow = (p: {conv: Conversation; httpSrvAddress: string; httpSrvToken: s
             <Kb.Text type={conv.hasUnread ? 'BodyBold' : 'BodySemibold'} lineClamp={1} style={styles.chatRowName}>
               {isTeam && conv.channelname ? `${name}#${conv.channelname}` : name}
             </Kb.Text>
-            {conv.hasBadge && <Kb.Box2 alignSelf="center" direction="vertical" style={styles.chatBadge} />}
+            {conv.hasBadge && <Kb.Box2 direction="vertical" style={styles.chatBadge} />}
           </Kb.Box2>
           {!!timestamp && (
             <Kb.Text
@@ -436,7 +436,7 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
         {backgroundColor: isDarkMode ? '#2d2d2d' : theme.blueDark},
       ])}
     >
-      <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren={true} flex={1} style={styles.headerBadgesContainer}>
+      <Kb.Box2 direction="horizontal" centerChildren={true} flex={1} style={styles.headerBadgesContainer}>
         {showBadges
           ? badgeTypesInHeader.map(tab => (
               <BadgeIcon key={tab} tab={tab} countMap={navBadges} openApp={openApp} />

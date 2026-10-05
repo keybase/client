@@ -26,11 +26,11 @@ const ReactionItem = (props: Props) => {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} flex={1} alignItems="center" style={styles.container} justifyContent="space-between">
       {topReacjis.map((r, idx) => (
-        <Kb.ClickableBox alignSelf="center" direction="vertical" centerChildren={true} key={r.name || idx} onClick={() => onReact(r.name)} style={styles.clickableBox}>
+        <Kb.ClickableBox direction="vertical" centerChildren={true} key={r.name || idx} onClick={() => onReact(r.name)} style={styles.clickableBox}>
           <Kb.Emoji userReacji={r} noAnim={true} showTooltip={false} size={28} />
         </Kb.ClickableBox>
       ))}
-      <Kb.ClickableBox alignSelf="center" direction="vertical" centerChildren={true} onClick={showPicker} style={styles.clickableBox}>
+      <Kb.ClickableBox direction="vertical" centerChildren={true} onClick={showPicker} style={styles.clickableBox}>
         <Kb.Icon type="iconfont-reacji" />
       </Kb.ClickableBox>
     </Kb.Box2>

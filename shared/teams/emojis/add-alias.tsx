@@ -131,7 +131,7 @@ const AddAliasModal = (props: Props) => {
       footerButtonWaiting={addAliasWaiting}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.container}>
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+        <Kb.Box2 direction="vertical" gap="tiny">
           <Kb.Text type="BodySemibold">Choose an existing emoji:</Kb.Text>
           <Kb.Box2 direction="horizontal" gap="small">
             <SelectedEmoji chosen={emoji} />

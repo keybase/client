@@ -399,7 +399,7 @@ const SampleRow = ({textType, decoration, sample}: {textType: TextType; decorati
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.sampleRow}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" gap="tiny">
+      <Kb.Box2 direction="horizontal" alignItems="flex-start" gap="tiny">
         <Kb.Text type="BodyTiny" style={styles.label}>{textType}</Kb.Text>
         <Kb.Text type={textType} style={textStyle}
           // @ts-expect-error onTextLayout is RN-only

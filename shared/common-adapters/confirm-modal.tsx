@@ -44,7 +44,7 @@ const ConfirmModal = (props: Props) => {
         noShrink={true}
       >
         {props.icon && (
-          <Box2 alignSelf="center" direction="vertical" style={styles.icon}>
+          <Box2 direction="vertical" style={styles.icon}>
             <IconAuto
               color={props.iconColor ? props.iconColor : theme.black_50}
               fontSize={isMobile ? 64 : 48}

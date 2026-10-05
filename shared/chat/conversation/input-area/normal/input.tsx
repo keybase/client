@@ -817,7 +817,7 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
         onKeyPress={globalKeyDownPressHandler as never}
       >
         <Kb.Box2 direction="vertical" fullWidth={true} style={desktopStyles.container}>
-          <Kb.Box2 alignSelf="center"
+          <Kb.Box2
             direction="horizontal"
             alignItems="flex-end"
             style={Kb.Styles.collapseStyles([
@@ -1008,7 +1008,7 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
   const explodingIcon = !isEditing && !cannotWrite && (
     <Kb.ClickableBox alignSelf="center" direction="vertical" centerChildren={true} style={nativeStyles.explodingWrapper} onClick={toggleShowingMenu}>
       {isExploding ? (
-        <Kb.Box2 alignSelf="center" direction="horizontal" style={nativeStyles.exploding} centerChildren={true}>
+        <Kb.Box2 direction="horizontal" style={nativeStyles.exploding} centerChildren={true}>
           <Kb.Text type="BodyTinyBold" negative={true} style={nativeStyles.explodingText}>
             {formatDurationShort(explodingModeSeconds * 1000)}
           </Kb.Text>
@@ -1038,7 +1038,7 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
           <Kb.Icon padding="tiny" onClick={insertMentionMarker} type="iconfont-mention" testID={TestIDs.CHAT_MENTION_BUTTON} />
         </>
       )}
-      <Kb.Box2 alignSelf="center" direction="vertical" style={Kb.Styles.globalStyles.flexGrow} />
+      <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexGrow} />
       {!hasText && !cannotWrite && (
         <Kb.Box2 direction="horizontal" alignItems="flex-end">
           <Kb.Icon onClick={openFilePicker} padding="tiny" type="iconfont-camera" testID={TestIDs.CHAT_CAMERA_BUTTON} />

@@ -142,7 +142,7 @@ const Assertion = (ownProps: OwnProps) => {
           style={styles.menuHeader}
           fullWidth={true}
         >
-          <Kb.Box2 alignSelf="center" direction="vertical" relative={true}>
+          <Kb.Box2 direction="vertical" relative={true}>
             <AssertionSiteIcon
               full={true}
               siteIconFullDarkmode={siteIconFullDarkmode}

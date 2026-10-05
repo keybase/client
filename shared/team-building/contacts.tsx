@@ -109,7 +109,7 @@ export const ContactsBanner = (props: {
         <Kb.Text type="BodySmallSemibold" negative={true} style={styles.bannerText}>
           Import your phone contacts and start encrypted chats with your friends.
         </Kb.Text>
-        <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny" style={styles.bannerButtonContainer}>
+        <Kb.Box2 direction="horizontal" gap="tiny" style={styles.bannerButtonContainer}>
           <Kb.Button
             label="Import contacts"
             onClick={onImportContacts}

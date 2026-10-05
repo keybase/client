@@ -307,7 +307,7 @@ const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsStat
           />
         )}
 
-        <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Box2 direction="vertical">
           <Kb.Checkbox
             label="Only let someone message you or add you to a team if..."
             onCheck={() => setContactSettingsEnabled(s => !s)}

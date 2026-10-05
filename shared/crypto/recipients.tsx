@@ -42,7 +42,7 @@ const Recipients = ({inProgress, onAddRecipients, onClearRecipients, recipients}
           </Kb.ClickableBox>
         )}
         {recipients.length ? (
-          <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.removeRecipients}>
+          <Kb.Box2 direction="horizontal" style={styles.removeRecipients}>
             <Kb.Icon
               type="iconfont-remove"
               color={theme.black_20}

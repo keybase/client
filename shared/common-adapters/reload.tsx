@@ -44,10 +44,10 @@ function Reload(props: ReloadProps) {
       {isMobile && props.onBack && (
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.header}>
           <Kb.BackButton onClick={props.onBack} />
-          <Kb.Box2 alignSelf="center" direction="horizontal" centerChildren={true} flex={1}>
+          <Kb.Box2 direction="horizontal" centerChildren={true} flex={1}>
             {props.title && <Kb.Text type="BodyBig">{props.title}</Kb.Text>}
           </Kb.Box2>
-          <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.headerSide} />
+          <Kb.Box2 direction="horizontal" style={styles.headerSide} />
         </Kb.Box2>
       )}
       <Kb.ScrollView style={styles.container}>

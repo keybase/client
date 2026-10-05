@@ -321,7 +321,7 @@ const EmojiToAddRow = (p: {item: EmojiToAddOrAddRow}) => {
   const {item} = p
   return item.type === 'add' ? (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.emojiToAddRow}>
-      <Kb.ClickableBox alignSelf="center" direction="vertical" centerChildren={true} onClick={item.add} style={styles.addEmojiIconContainer}>
+      <Kb.ClickableBox direction="vertical" centerChildren={true} onClick={item.add} style={styles.addEmojiIconContainer}>
         <Kb.Icon type="iconfont-new" color={theme.blue} />
       </Kb.ClickableBox>
     </Kb.Box2>
