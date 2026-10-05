@@ -68,7 +68,7 @@ const NavMobileHeaderInner = (props: Props) => {
             <Kb.Text type="BodyBig">Files</Kb.Text>
             <FilesTabStatusIcon />
           </Kb.Box2>
-          <Kb.Box2 alignSelf="center" direction="vertical" style={styles.rootSpacer} />
+          <Kb.Box2 direction="vertical" style={styles.rootSpacer} />
         </Kb.Box2>
       </Kb.Box2>
     </Kb.SafeAreaViewTop>

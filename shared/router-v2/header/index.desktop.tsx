@@ -241,7 +241,7 @@ function DesktopHeader(p: Props) {
               {title}
             </Kb.Text>
           )}
-          <Kb.Box2 alignSelf="center"
+          <Kb.Box2
             direction="horizontal"
             flex={1}
             alignItems="center"

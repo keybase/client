@@ -191,7 +191,7 @@ const PaperKeyNudge = ({onAddDevice}: {onAddDevice: () => void}) => {
       <Kb.IconAuto
         type={isMobile ? 'icon-onboarding-paper-key-48' : 'icon-onboarding-paper-key-32'}
       />
-      <Kb.Box2 alignSelf="center" direction="vertical" flex={1}>
+      <Kb.Box2 direction="vertical" flex={1}>
         <Kb.Text type="BodySemibold">Create a paper key</Kb.Text>
         <Kb.Text type={isMobile ? 'BodySmall' : 'Body'} style={styles.paperKeyNudgeDesc}>
           A paper key can be used to access your account in case you lose all your devices. Keep one in a

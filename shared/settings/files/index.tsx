@@ -248,7 +248,7 @@ const FilesSettings = () => {
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} testID={TestIDs.SETTINGS_FILES}>
         <FinderIntegration />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent}>
-          <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.Box2 direction="vertical">
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.contentHeader}>
               <Kb.Text type="Header">File sync</Kb.Text>
             </Kb.Box2>

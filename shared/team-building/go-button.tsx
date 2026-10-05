@@ -11,7 +11,7 @@ const GoButton = (props: Props) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" style={styles.container}>
+    <Kb.Box2 direction="vertical" style={styles.container}>
       <Kb.WithTooltip
         tooltip={
           <Kb.Box2 alignSelf="center" direction="horizontal">

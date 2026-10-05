@@ -156,7 +156,7 @@ const Card = (props: CardType) => {
       style={styles.card}
       title={cardToTitle(cards[props.card])}
     >
-      <Kb.Box2 alignSelf="center" direction="horizontal">
+      <Kb.Box2 direction="horizontal">
         <Kb.Text
           selectable={true}
           type={isMobile ? 'BodySmall' : 'Body'}
@@ -165,7 +165,7 @@ const Card = (props: CardType) => {
           {cards[props.card].value}
         </Kb.Text>
       </Kb.Box2>
-      <Kb.Box2 alignSelf="center" direction="horizontal">
+      <Kb.Box2 direction="horizontal">
         <Kb.Icon
           fontSize={isMobile ? 10 : 12}
           type={suits[cards[props.card].suit].icon}
@@ -306,7 +306,7 @@ const CoinFlipResultShuffleItem = (props: {index: number; item: string}) => {
   const styles = useStyles()
   return (
     <Kb.Box2 direction="horizontal" alignSelf="flex-start" centerChildren={true}>
-      <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} style={styles.listOrderContainer}>
+      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.listOrderContainer}>
         <Kb.Text
           selectable={true}
           center={true}

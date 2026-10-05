@@ -115,7 +115,7 @@ const AddingMember = (
   }
   return (
     <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center" style={styles.addingMember} justifyContent="space-between">
-      <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" gap="tiny" flex={1} style={styles.memberPill}>
+      <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" flex={1} style={styles.memberPill}>
         <Kb.Avatar size={16} username={props.assertion} />
         <Kb.ConnectedUsernames
           type="BodyBold"
@@ -132,7 +132,7 @@ const AddingMember = (
           </Kb.Text>
         )}
       </Kb.Box2>
-      <Kb.Box2 alignSelf="center" direction="horizontal" alignItems="center" gap="tiny">
+      <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
         {showDropdown && (
           <FloatingRolePicker
             open={showingMenu}

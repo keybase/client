@@ -78,7 +78,7 @@ const SelectOtherDevice = (props: Props) => {
             icon={<DeviceIcon device={item.device} size={32} />}
             body={
               <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
-                <Kb.Box2 alignSelf="center" direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
+                <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
                   <Kb.Text type="BodySemibold">{item.device.name}</Kb.Text>
                   <Kb.Text type="BodySmall">{descriptions[item.device.type]}</Kb.Text>
                 </Kb.Box2>
