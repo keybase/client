@@ -5,7 +5,7 @@ tree. Use it to prove a layout refactor changes nothing on screen, or to see exa
 changes. The compare is exact RGBA with no threshold; a size mismatch is a failure.
 
 Platforms: Electron light and dark (1280x800 @2x), and iOS light on the `iPhoneTest` simulator
-(`KB_IOS_DEVICE` overrides). The tour of screens is `tour.ts`: 68 desktop entries and 53 phone
+(`KB_IOS_DEVICE` overrides). The tour of screens is `tour.ts`: 81 desktop entries and 68 phone
 entries, all signed in as the e2e smoke account.
 
 ## Before you start
@@ -98,8 +98,8 @@ server-ordered; the builder's service tabs and search box stay compared).
 
 ## Coverage
 
-`--coverage` builds mark every Box2 / ClickableBox JSX call site (outside `common-adapters/` and
-`node_modules/`) so each capture records which ones mounted. Take a coverage base, then:
+`--coverage` builds mark every Box2 / ClickableBox JSX call site (outside `common-adapters/box.tsx`
+and `node_modules/`) so each capture records which ones mounted. Take a coverage base, then:
 
 ```sh
 yarn visual:base --base HEAD --coverage        # desktop: relaunches the app with --coverage
@@ -151,7 +151,6 @@ Routes the tour leaves out are listed with reasons at the bottom of `tour.ts`. N
 - `profile` (anyone's): reopening a profile within 30s of closing it shows an empty profile with
   follower spinners that never finish (`tracker/identify-session.tsx`); also on master.
 - Phone `files/team`: the header's "..." dots draw 1px off on the first push of a launch.
-- Desktop chat info panel: it stays open for the conversation entries after it.
 - A desktop floating menu stays open while its screen stays mounted, across Escape and tab
   switches. An entry that opens one carries `leavesPopup`; `yarn visual:unit` requires the next
   desktop entry to close it (same tab; on chat, another conversation), and selecting the entry by

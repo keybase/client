@@ -26,10 +26,14 @@ test('wraps Kb.Box2 with its file:line and moves key', () => {
   assert.match(out, /import \{ KbSrcMark as __KbSrcMark \} from "@\/tests\/e2e\/visual\/coverage\/src-mark"/)
 })
 
-test('leaves other elements and common-adapters alone', () => {
+test('leaves other elements, box.tsx and node_modules alone', () => {
   assert.doesNotMatch(run(`const A = () => <Kb.Text type="Body" />`), /__KbSrcMark/)
-  assert.doesNotMatch(run(`const A = () => <Box2 direction="vertical" />`, '/repo/shared/common-adapters/y.tsx'), /__KbSrcMark/)
+  assert.doesNotMatch(run(`const A = () => <Box2 direction="vertical" />`, '/repo/shared/common-adapters/box.tsx'), /__KbSrcMark/)
   assert.doesNotMatch(run(`const A = () => <Box2 direction="vertical" />`, '/repo/shared/node_modules/z/a.tsx'), /__KbSrcMark/)
+})
+
+test('the other common-adapters are marked', () => {
+  assert.match(run(`const A = () => <Box2 direction="vertical" />`, '/repo/shared/common-adapters/y.tsx'), /id="common-adapters\/y\.tsx:1"/)
 })
 
 test('ClickableBox is wrapped too', () => {
