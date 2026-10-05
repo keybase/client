@@ -117,28 +117,11 @@ const desktopInfoPanel = (
 })
 
 // The attachments tab of e2e-media, which holds an image, two videos and a text file, on one of
-// its Media / Docs / Links views. The header's member count fills in once the team's members
-// load, with no waiting key, so the phone entry opens on the members tab and waits for a member
-// row first, as desktop's panel does.
-const phoneAttachmentsView = (id: string, view: string, ready: string): TourEntry => ({
-  id: `chat/info-panel-${id}`,
-  nav: {
-    append: {name: 'chatInfoPanel', params: {conversationIDKey: {channel: 'e2e-media', ref: 'conversationIDKey'}}},
-    tab: 'tabs.chatTab',
-  },
-  platforms: ['phone'],
-  ready,
-  seal: ['inbox', 'teams'],
-  setup: [
-    {kind: 'scrollIntoView', testID: T.CHAT_INFO_PANEL_PARTICIPANT},
-    {kind: 'switchSubTab', testID: T.CHAT_INFO_PANEL_ATTACHMENTS_TAB},
-    {kind: 'switchSubTab', testID: view},
-  ],
-})
-const attachmentsView = (id: string, view: string, ready: string, phone = true): Array<TourEntry> => [
-  desktopInfoPanel(`-${id}`, 'e2e-media', T.CHAT_INFO_PANEL_ATTACHMENTS_TAB, ready, [{kind: 'switchSubTab', testID: view}]),
-  ...(phone ? [phoneAttachmentsView(id, view, ready)] : []),
-]
+// its Media / Docs / Links views. Desktop only: on the phone the sheet's top-right corner shadow
+// draws one level off in one channel in the first capture of e2e-media's panel after another
+// conversation's entry (aa), which no ready state settles.
+const attachmentsView = (id: string, view: string, ready: string): TourEntry =>
+  desktopInfoPanel(`-${id}`, 'e2e-media', T.CHAT_INFO_PANEL_ATTACHMENTS_TAB, ready, [{kind: 'switchSubTab', testID: view}])
 
 // The team's restricted bot, from its install modal: what it can read, the edit screen (nothing
 // is saved until its Save button), and that screen's channel picker. The permissions list waits
@@ -241,11 +224,9 @@ export const tour: ReadonlyArray<TourEntry> = [
     ]),
     leavesPopup: true,
   },
-  // Phone media: after another conversation's entry, the sheet's top-right corner shadow draws
-  // 1 level off in one channel in about half the captures (aa), so it's desktop only.
-  ...attachmentsView('media', T.CHAT_INFO_PANEL_MEDIA, T.CHAT_INFO_PANEL_MEDIA, false),
-  ...attachmentsView('docs', T.CHAT_INFO_PANEL_DOCS, T.CHAT_INFO_PANEL_DOCS),
-  ...attachmentsView('links', T.CHAT_INFO_PANEL_LINKS, T.CHAT_INFO_PANEL_LINKS),
+  attachmentsView('media', T.CHAT_INFO_PANEL_MEDIA, T.CHAT_INFO_PANEL_MEDIA),
+  attachmentsView('docs', T.CHAT_INFO_PANEL_DOCS, T.CHAT_INFO_PANEL_DOCS),
+  attachmentsView('links', T.CHAT_INFO_PANEL_LINKS, T.CHAT_INFO_PANEL_LINKS),
   {...infoPanel('members', 'e2e-short'), id: 'chat/info-panel'},
   infoPanel('attachments', 'e2e-short'),
   infoPanel('settings', 'e2e-short'),

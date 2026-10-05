@@ -1,5 +1,4 @@
 import * as Kb from '@/common-adapters'
-import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {
   firstItem: boolean
@@ -36,7 +35,7 @@ const Participant = ({firstItem, fullname, isAdmin, isOwner, username, onShowPro
       type="Large"
       icon={<Kb.Avatar size={isMobile ? 48 : 32} username={username} />}
       body={
-        <Kb.Box2 alignSelf="center" direction="vertical" testID={TestIDs.CHAT_INFO_PANEL_PARTICIPANT}>
+        <Kb.Box2 alignSelf="center" direction="vertical">
           <Kb.ConnectedUsernames usernames={username} colorFollowing={true} type="BodyBold" />
           {lower}
         </Kb.Box2>

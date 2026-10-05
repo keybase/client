@@ -44,7 +44,6 @@ export const CHAT_INFO_PANEL_SETTINGS_TAB = 'chat-info-panel-settings-tab'
 export const CHAT_INFO_PANEL_MEMBERS_TAB = 'chat-info-panel-members-tab'
 export const CHAT_INFO_PANEL_ATTACHMENTS_TAB = 'chat-info-panel-attachments-tab'
 export const CHAT_INFO_PANEL_BOTS_TAB = 'chat-info-panel-bots-tab'
-export const CHAT_INFO_PANEL_PARTICIPANT = 'chat-info-panel-participant'
 // the attachments tab's Media / Docs / Links selector
 export const CHAT_INFO_PANEL_MEDIA = 'chat-info-panel-media'
 export const CHAT_INFO_PANEL_DOCS = 'chat-info-panel-docs'
