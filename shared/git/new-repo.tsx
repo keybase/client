@@ -110,7 +110,6 @@ const NewRepo = (ownProps: OwnProps) => {
     <Kb.ScrollView>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} alignItems="center" gap="medium" style={styles.container}>
         <Kb.ErrorBanner error={error} />
-        <Kb.Text type="Header">New {isTeam ? 'team' : 'personal'} git repository</Kb.Text>
         <Kb.IconAuto type={isTeam ? 'icon-repo-team-add-48' : 'icon-repo-personal-add-48'} />
         <Kb.Text type="Body">
           {isTeam
