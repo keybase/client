@@ -100,7 +100,7 @@ const normalizeFollows = (raw: unknown) => {
 }
 
 // Columns start where their header does; names contain spaces, so splitting on whitespace is wrong.
-const normalizeDevices = (raw: unknown) => {
+export const normalizeDevices = (raw: unknown) => {
   const [header = '', , ...rows] = str(raw).split('\n')
   const typeAt = header.indexOf('Type')
   const idAt = header.indexOf('ID')

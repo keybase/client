@@ -5,10 +5,13 @@
 //   username           KB_SMOKE_USER
 //   secondUser         KB_SECOND_USER
 //   teamID             `team list-memberships --json` -> {teams: [{team_id, fq_name, ...}]}
+//   deviceID           `device list` (a text table) -> the ID that sorts first: any one device,
+//                      the same one every run
 //   conversationIDKey  `chat api -m '{"method":"list"}'` -> {result: {conversations: [{id,
 //                      channel: {name, topic_name, members_type}}]}}, matched on team and channel
 // Results are cached for the process.
 import {execFile} from 'child_process'
+import {normalizeDevices} from './seal.mts'
 import type {Nav, ParamRef, ParamValue} from './tour-types.ts'
 
 export type CliRunner = (args: Array<string>) => Promise<string>
@@ -84,6 +87,12 @@ const resolveRef = async (ref: ParamRef, run: CliRunner): Promise<string> => {
         return id
       })
     }
+    case 'deviceID':
+      return cached('deviceID', async () => {
+        const [first] = normalizeDevices(await run(['device', 'list'])).map(d => d.id).sort()
+        if (!first) throw new Error('device list has no devices')
+        return first
+      })
     case 'conversationIDKey': {
       const team = teamname()
       const channel = ref.channel ?? 'general'

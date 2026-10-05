@@ -8,6 +8,14 @@ let calls: Array<string> = []
 const run: CliRunner = async args => {
   await Promise.resolve()
   calls.push(args[0] ?? '')
+  if (args[0] === 'device') {
+    return [
+      'Name    Type      ID      Created      Last Used',
+      '====    ====      ====    ====         ====',
+      'phone   mobile    bbb2    2024 Jan 1   2024 Jan 2',
+      'laptop  desktop   aaa1    2023 Jan 1   2023 Jan 2',
+    ].join('\n')
+  }
   if (args[0] === 'team') return JSON.stringify({teams: [{team_id: 'tid1', fq_name: 'testteam'}]})
   return JSON.stringify({
     result: {
@@ -105,4 +113,8 @@ test('refs nested in literal objects and arrays are replaced', async () => {
   assert.deepEqual((await resolveParams(nav, run)).append?.params, {
     wizard: {members: ['testteam', 'a'], none: null, teamID: 'tid1'},
   })
+})
+test('a device ref resolves to the device ID that sorts first', async () => {
+  const nav = {tab: 't', append: {name: 'x', params: {deviceID: {ref: 'deviceID' as const}}}}
+  assert.deepEqual((await resolveParams(nav, run)).append?.params, {deviceID: 'aaa1'})
 })

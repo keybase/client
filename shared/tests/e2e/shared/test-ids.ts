@@ -210,5 +210,9 @@ export const MODAL_SCREEN = 'modal-screen'
 export const TEAM_BUILDING_RECS = 'team-building-recs'
 // the bot search's results: the users it found and the featured bots
 export const CHAT_BOT_SEARCH_RESULTS = 'chat-bot-search-results'
+// the local database nuke confirmation (a debug page in settings)
+export const SETTINGS_DB_NUKE_CONFIRM = 'settings-db-nuke-confirm'
+// the page a bad keybase:// link opens
+export const KEYBASE_LINK_ERROR = 'keybase-link-error'
 // the paper key form (chat's rekey prompt and provisioning)
 export const PAPER_KEY_FORM = 'paper-key-form'

@@ -9,7 +9,7 @@ export type SetupStep =
   | {kind: 'hover'; testID: string} // desktop only
 export type Mask = {testID: string; reason: string}
 export type ParamRef = {
-  ref: 'teamID' | 'teamname' | 'teamFolder' | 'privateFolder' | 'username' | 'secondUser' | 'conversationIDKey'
+  ref: 'teamID' | 'teamname' | 'teamFolder' | 'privateFolder' | 'username' | 'secondUser' | 'conversationIDKey' | 'deviceID'
   channel?: string
   // a path under teamFolder or privateFolder
   sub?: string

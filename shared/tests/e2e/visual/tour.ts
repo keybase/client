@@ -484,6 +484,8 @@ export const tour: ReadonlyArray<TourEntry> = [
     seal: [],
     setup: [{kind: 'switchSubTab', testID: T.SETTINGS_ROW_SCREENPROTECTOR}],
   },
+  // iOS lists no row for it (it shows a notice that only Android supports it), but the route opens
+  phoneSettingsPage('settings/screen-protector', 'screenprotector', T.SETTINGS_SCREENPROTECTOR, []),
   ...settingsPage('icons', 'iconsTab', T.SETTINGS_ROW_ICONS, T.SETTINGS_ICONS),
   ...settingsPage('wallet', 'walletsTab', T.SETTINGS_ROW_WALLET, T.SETTINGS_WALLET),
   // The settings list: the phone's settings tab root. Desktop's sits beside a sub-page, always the
@@ -682,6 +684,62 @@ export const tour: ReadonlyArray<TourEntry> = [
     phone: true,
     ready: T.CRYPTO_OUTPUT,
   }),
+  ...modal('fs-confirm-delete', 'confirmDelete', {mode: 'screen', path: {ref: 'privateFolder', sub: 'test.txt'}}, {phone: true}),
+  ...modal(
+    'fs-destination-picker',
+    'destinationPicker',
+    {parentPath: {ref: 'privateFolder'}, source: {path: {ref: 'privateFolder', sub: 'test.txt'}, type: 'move-or-copy'}},
+    {phone: true, seal: ['kbfsPrivate']}
+  ),
+  // The preview screen a file row pushes. Without the file's last-modified time (which the row
+  // passes and no ParamRef supplies) it shows its "content has updated" banner.
+  {
+    id: 'files/preview',
+    nav: {append: {name: 'fsFilePreview', params: {path: {ref: 'privateFolder', sub: 'test.txt'}}}, tab: 'tabs.fsTab'},
+    platforms: ['desktop', 'phone'],
+    ready: T.FILES_TEXT_PREVIEW,
+    seal: ['kbfsPrivate'],
+  },
+  ...modal('git-delete-repo', 'gitDeleteRepo', {name: 'e2e-kinds-repo', teamname: {ref: 'teamname'}}, {phone: true}),
+  ...teamModal(
+    'git-select-channel',
+    'gitSelectChannel',
+    {...team, repoID: 'visual-gate', selected: 'general', teamname: {ref: 'teamname'}},
+    {phone: true, seal: ['teams', 'inbox']}
+  ),
+  ...modal('device-revoke', 'deviceRevoke', {deviceID: {ref: 'deviceID'}}, {phone: true, seal: ['devices']}),
+  ...modal('profile-import', 'profileImport', {}, {phone: true}),
+  ...modal(
+    'profile-revoke',
+    'profileRevoke',
+    {icon: [], platform: 'github', platformHandle: 'visualgate', proofId: 'visual-gate'},
+    {phone: true}
+  ),
+  ...modal('settings-password', 'settingsTabs.password', {}, {phone: true}),
+  ...modal('settings-log-out', 'settingsTabs.logOutTab', {}, {phone: true}),
+  ...modal('settings-feedback', 'modalFeedback', {}, {phone: true, ready: T.SETTINGS_FEEDBACK}),
+  ...modal('proxy-settings', 'proxySettingsModal', {}, {phone: true}),
+  ...modal('delete-account', 'deleteConfirm', {}, {phone: true}),
+  ...modal('delete-account-password', 'checkPassphraseBeforeDeleteAccount', {}, {desktop: false, phone: true}),
+  ...modal('settings-delete-email', 'settingsDeleteAddress', {address: 'visualgate@example.com', searchable: false, type: 'email'}, {phone: true}),
+  // Without initialResend nothing is sent on open.
+  ...modal('settings-verify-phone', 'settingsVerifyPhone', {initialResend: false, phoneNumber: '+12015550123'}, {phone: true}),
+  ...modal('settings-push-prompt', 'settingsPushPrompt', {}, {desktop: false, phone: true}),
+  ...modal('wallet-remove', 'removeAccount', {accountID: 'visual-gate', balanceDescription: '0 XLM', name: 'Visual gate'}, {phone: true}),
+  {
+    id: 'settings/db-nuke',
+    nav: {append: {name: 'dbNukeConfirm', params: {}}, tab: 'tabs.settingsTab'},
+    platforms: ['desktop', 'phone'],
+    ready: T.SETTINGS_DB_NUKE_CONFIRM,
+    seal: [],
+  },
+  {
+    id: 'settings/link-error',
+    nav: {append: {name: 'keybaseLinkError', params: {error: 'This link is not valid.'}}, tab: 'tabs.settingsTab'},
+    platforms: ['desktop', 'phone'],
+    ready: T.KEYBASE_LINK_ERROR,
+    seal: [],
+  },
   {
     id: 'team/external',
     nav: {append: {name: 'teamExternalTeam', params: {teamname: {ref: 'teamname'}}}, tab: 'tabs.teamsTab'},
@@ -697,61 +755,35 @@ export const tour: ReadonlyArray<TourEntry> = [
   ),
 ]
 
-// Routes from `yarn visual:routes` the tour leaves out, and why.
+// Routes from `yarn visual:routes` the tour leaves out, and why. Every other route has an entry,
+// on each platform it exists on.
 //
 // Signed out, provisioning or resetting (the gate runs signed in): login, feedback,
-//   recoverPassword*, reset*, proxySettingsModal, signupError, signupEnter*,
-//   signupSendFeedbackLoggedOut, signupVerifyPhoneNumber, and the provision screens
+//   recoverPassword*, reset*, signupError, signupEnter*, signupSendFeedbackLoggedOut,
+//   signupVerifyPhoneNumber, and the provision screens
 //
-// Reached only through a write, or a form whose state no ParamRef can supply:
-//   chatAddToChannel, chatConfirmRemoveBot, chatForwardMsgPick, chatInstallBotPick,
-//   chatSendToChat, chatShowNewTeamDialog, chatEnterPaperkey (rekey), devicePaperKey (makes a
-//   paper key on open), deviceRevoke, confirmDelete, destinationPicker, gitDeleteRepo,
-//   gitSelectChannel, incomingShareNew (an OS share), profileImport, profileRevoke,
-//   checkPassphraseBeforeDeleteAccount, dbNukeConfirm, deleteConfirm, settingsTabs.password,
-//   settingsTabs.logOutTab, settingsPushPrompt, settingsContactsJoined, settingsVerifyPhone,
-//   settingsDeleteAddress, contactRestricted, openTeamWarning, retentionWarning, teamAddToTeam*
-//   and teamWizard* (their params are the wizard's state object), teamDeleteChannel,
-//   teamInviteByContact (needs the contacts permission), teamInviteLinkJoin, teamJoinTeamDialog,
-//   teamNewTeamDialog, teamReallyRemove* (an array param), reallyRemoveAccount, removeAccount
+// A write on open:
+//   devicePaperKey: makes and provisions a new paper key
+//   settingsTabs.contactsTab (phone): saves the address book, or an empty one, to the server
+//   chatLocationPreview (phone): sends the device's position to the service on every fix (and
+//     shows a live map)
 //
-// Need a specific message, file or output the account doesn't hold, or that only a typed input
-// produces (setup steps can't type): chatAttachmentGetTitles, chatPDF, chatLocationPreview,
-// chatUnfurlMapPopup, chatConfirmNavigateExternal, decryptOutput, encryptOutput, signOutput,
-// verifyOutput, keybaseLinkError, webLinks (an external page), teamExternalTeam (a team the account
-// is not in), and the message kinds no seeded channel holds (exploding, payments, journey cards,
-// audio and location; the CLI can't send the last two)
+// Data the account lacks, or content the server picks:
+//   reallyRemoveAccount: fetches the secret key of a wallet account; the account has none, and with
+//     a made-up ID it waits without end
+//   incomingShareNew: needs items shared from another app; without them it loads without end
+//   chatUnfurlMapPopup: a map tile fetched for the coordinates, most of the screen; it would need a
+//     mask over nearly all of it
+//   webLinks: an external web page
+//   chatMessagePopup (phone): needs a message ID, which no ParamRef supplies; the app itself never
+//     opens this route (message menus are in-place popups, which chat/message-menu covers)
 //
-// Mount nothing the tour doesn't already: gitNewRepo for a personal repo, teamCreateChannels, chatMessagePopup and
-// fsFilePreview (the preview files/text reaches through fsBrowse, as a click on a file does), chatNewChat,
-// cryptoTeamBuilder and teamsTeamBuilder (the same builder as modal/people-builder)
-//
-// Edit forms change nothing until saved, so the tour opens them, except teamEditChannel (it takes
-// the channel's current name and description as params, which no ParamRef supplies) and
-// profileEdit: its fields fill in from a profile load that holds no waiting key, so the first open
-// after a launch shows the placeholders and every later one the values.
-//
-// One screen, one id: an entry that's a tab on one platform and a page on the other keeps the tab's
-// id on both (tab/git, tab/devices, tab/settings). Two phone roots have no desktop screen of their
-// own. tab/crypto is the phone's crypto list; desktop's crypto tab opens on crypto/encrypt beside
-// the same list. tab/chat is the phone's inbox; desktop's sits beside a conversation, so every
-// desktop chat entry captures it. A desktop tab/chat entry would be one of those again, and the
-// first chat entry of a session can't be one: until its conversation loads, the conversation the
-// app opened at launch satisfies ready (aa: 2 of 4 pairs differ).
-//
-// Platform or build: settingsTabs.cryptoTab, settingsTabs.devicesTab and settingsTabs.gitTab are
-// tablet-only sub-tabs on desktop (desktop has them as tabs); settingsTabs.contactsTab and
-// accountSwitcher are phone screens with nothing to wait on (contacts also needs the OS
-// permission); makeIcons is a developer tool; kextPermission is macOS only. Desktop-only entries
-// for screens the phone also has: chat/message-react and chat/message-menu (the phone opens them
-// with a long press, which setup can't do), chat/thread-search (below), and chat/info-panel-media,
-// -docs, -links and files/team (their notes), settings/screen-protector (the phone lists it on
-// Android only; iOS shows a one-line notice with no testID), and modal/profile-avatar (the phone
-// opens the system photo picker over it). Not in the main window: the menubar, the tracker popup and the
-// unlock-folders window are separate desktop windows; global errors and runtime stats are debug
-// overlays.
-//
-// Thread search on phone: its button is a native header bar item with no testID.
+// Driver limitations:
+//   teamAddToTeamContacts, teamInviteByContact (phone; desktop renders nothing): open the system's
+//     contacts permission prompt, which no step can answer, and answering it changes the
+//     simulator's privacy settings
+//   profileEdit: under the frozen clock its fields never fill in (the profile's user card never
+//     arrives in the run; with the real clock it does in about 3s)
 //
 // Unstable, not masked:
 //   profile (self and others): reopening a profile within 30s of closing it shows an empty profile
@@ -759,9 +791,35 @@ export const tour: ReadonlyArray<TourEntry> = [
 //     profile's session is dropped, and the 30s recheck window then skips the reload). Seen in
 //     real time too, and the same on master. The tour opens every entry twice, and with Date
 //     frozen the window never ends, so the second capture is always the empty one.
+//   settingsContactsJoined: the same identify recheck; its second open draws the Follow button
+//     disabled (no identify session)
+//   accountSwitcher (phone): in the round after a reload, its row avatars and the next entry's
+//     composer icons draw a subpixel off between the two captures
 //   phone files/team: in some app launches the first time the folder is pushed, its header's
 //     "..." button draws its dots 1px off from every later push (327 px; seen in 5 of 8 rounds,
 //     always the first push of the launch). Native header layout, not data; no ready state to
 //     wait for. Desktop captures it.
 //   archiveModal of a folder (type fsPath): the folder's info line spins without end for the
 //     empty team folder.
+//
+// Platform or build: settingsTabs.cryptoTab, settingsTabs.devicesTab and settingsTabs.gitTab are
+// tablet-only sub-tabs on desktop (desktop has them as tabs; the phone entries tab/crypto,
+// tab/devices and tab/git open them); makeIcons is a desktop developer tool that renders only in
+// dev builds; kextPermission is macOS only; checkPassphraseBeforeDeleteAccount, settingsPushPrompt
+// and the crypto *Output routes are phone screens (desktop renders nothing, or shows the output
+// beside the input). Desktop-only entries for screens the phone also has: chat/message-react and
+// chat/message-menu (the phone opens them with a long press, which setup can't do),
+// chat/thread-search (its phone button is a native header bar item with no testID), and
+// chat/info-panel-media, -docs, -links and files/team (their notes), and modal/profile-avatar (the
+// phone opens the system photo picker over it). Not in the main window: the menubar, the tracker
+// popup and the unlock-folders window are separate desktop windows; global errors and runtime
+// stats are debug overlays.
+//
+// One screen, one id: an entry that's a tab on one platform and a page on the other keeps the tab's
+// id on both (tab/git, tab/devices, tab/settings). Two phone roots have no desktop screen of their
+// own. tab/crypto is the phone's crypto list; desktop's crypto tab opens on crypto/encrypt beside
+// the same list. tab/chat is the phone's inbox; desktop's sits beside a conversation, so every
+// desktop chat entry captures it. A desktop tab/chat entry would be one of those again, and the
+// first chat entry of a session can't be one: until its conversation loads, the conversation the
+// app opened at launch satisfies ready (aa: 2 of 4 pairs differ). walletsRoot is the screen of
+// settingsTabs.walletsTab (settings/wallet).
