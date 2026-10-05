@@ -51,6 +51,7 @@
     "./git/index.test.tsx",
     "./settings/password.test.tsx",
     "./provision/waiting-overlay.test.tsx",
+    "./router-v2/screen-layout-modal.desktop.test.tsx",
     "./tests/e2e/ios-appium"
   ]
 }
