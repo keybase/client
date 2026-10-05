@@ -442,7 +442,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                   </Kb.Box2>
                 )}
                 {expanded && !isSmallTeam && (
-                  <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" fullWidth={true}>
+                  <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
                     <Kb.Icon type="iconfont-hash" sizeType="Small" color={theme.black_20} />
                     <Kb.Text
                       type="BodySmall"

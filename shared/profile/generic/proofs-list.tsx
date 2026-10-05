@@ -733,7 +733,7 @@ const ProviderPicker = ({
                       {provider.name}
                     </Kb.Text>
                     {(provider.new || !!provider.desc) && (
-                      <Kb.Box2 direction="horizontal" alignItems="flex-start" fullWidth={true}>
+                      <Kb.Box2 direction="horizontal" alignItems="flex-start">
                         {provider.new && (
                           <Kb.Meta
                             title="NEW"
@@ -759,7 +759,7 @@ const ProviderPicker = ({
           />
         </Kb.BoxGrow2>
         <Kb.Divider />
-        <Kb.Box2 direction="horizontal" justifyContent="center" fullWidth={true} padding="medium">
+        <Kb.Box2 direction="horizontal" justifyContent="center" padding="medium">
           <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />
         </Kb.Box2>
       </Kb.Box2>
