@@ -210,7 +210,11 @@ const AddFromWhereHeaderTitle = ({wizard}: {wizard: AddMembersWizard}) => (
   />
 )
 
-const JoinTeamHeaderTitle = ({success}: {success?: boolean}) => <>{success ? 'Request sent' : 'Join a team'}</>
+const JoinTeamHeaderTitle = ({success}: {success?: boolean}) => (
+  <Kb.Text type={isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
+    {success ? 'Request sent' : 'Join a team'}
+  </Kb.Text>
+)
 
 const JoinTeamHeaderLeft = ({success}: {success?: boolean}) => (success ? null : <HeaderLeftButton />)
 
