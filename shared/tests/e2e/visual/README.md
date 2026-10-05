@@ -5,7 +5,7 @@ tree. Use it to prove a layout refactor changes nothing on screen, or to see exa
 changes. The compare is exact RGBA with no threshold; a size mismatch is a failure.
 
 Platforms: Electron light, plus dark with `--themes light,dark` (1280x800 @2x; layout never depends on the theme, so dark is opt-in), and iOS light on the `iPhoneTest` simulator
-(`KB_IOS_DEVICE` overrides). The tour of screens is `tour.ts`: 148 desktop entries and 146 phone
+(`KB_IOS_DEVICE` overrides). The tour of screens is `tour.ts`: 157 desktop entries and 146 phone
 entries, all signed in as the e2e smoke account.
 
 ## Before you start
@@ -67,7 +67,7 @@ pinned:
 
 - **Seal.** A read-only snapshot of the account through the CLI: inbox (ids, names, unread,
   `activeAtMs`), teams and members, follows, devices, the team folder's and the private folder's
-  listings. Each tour entry names the fields it shows. `base` and `gate` read a full seal before
+  listings, and the account's recent file edits (`fs history`, the menubar's recent files). Each tour entry names the fields it shows. `base` and `gate` read a full seal before
   and after and are void if it changed (`gate void: … inbox[…].activeAtMs …`). `check` compares the
   entries' fields with the base's seal before capturing (`seal changed: …`). Traffic on the account
   voids runs; wait for a quiet account, or retake the base. Adding a seal field changes what a seal
@@ -89,6 +89,19 @@ pinned:
   Appium's `mobile: scroll` gives up on the inverted chat thread. `close` clears the status bar override; the app keeps the
   accessibility settings until its next launch.
 - Each entry waits for its `ready` testID and then for the waiting store to be idle for 500ms.
+
+## Other windows
+
+The menubar widget, the tracker popup, pinentry and unlock-folders are windows of their own
+(`desktop/remote`). A `window/*` entry captures one of them instead of the main window, which it
+resets to `nav.tab`; the window opens for the capture and closes after it, with the same ready,
+setup, mask, settle, frozen clock (an init script in every remote window) and coverage as the main
+window, and its content size emulated at 2x. The driver opens each the way the app does, from the
+main window: the menubar with the preload's `makeRenderer` (the e2e launch has no tray; the main
+window's proxy already sends its props), the tracker with a `trackerLoad` remote action for a user
+(the identify is the profile's), and pinentry and unlock-folders, which open only on a service
+request, with props from the tour sent through `rendererNewProps`. Nothing in the app is added for
+it beyond testIDs.
 
 ## Params
 
