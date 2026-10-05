@@ -144,6 +144,23 @@ export const Padding: Story = {
   ),
 }
 
+// Props whose desktop classes once resolved differently from native.
+export const Overrides: Story = {
+  render: () => (
+    <VariantMatrix
+      childSpecs={[
+        {
+          color: theme.blueLight,
+          label: 'centerChildren + alignItems stretch',
+          props: {alignItems: 'stretch', centerChildren: true, fullWidth: true},
+        },
+        {color: theme.greenLight, label: 'noShrink + flex 1', props: {flex: 1, noShrink: true}},
+        {color: theme.yellow, label: 'noShrink + style flex 1', props: {noShrink: true, style: {flex: 1}}},
+      ]}
+    />
+  ),
+}
+
 const styles = {
   column: {padding: Styles.globalMargins.small},
   parent: {backgroundColor: theme.greyLight, height: 120, width: 300},
