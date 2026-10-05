@@ -295,36 +295,42 @@ const isTrue = (attr: babel.types.JSXAttribute | undefined) => {
 const opaque = (node: babel.types.JSXOpeningElement) =>
   node.attributes.some(a => t.isJSXSpreadAttribute(a)) || !!findAttr(node, 'style') || !!findAttr(node, 'className')
 
-// A style may stand when it provably leaves some keys alone: it resolves, in this file, to object
-// literals without them (any platform branch included). A parent style must leave its cross-axis
-// layout alone.
+// A style may stand when it provably leaves some keys alone: every object literal it can resolve to
+// lacks them, on any platform branch. It resolves through in-file consts, style sheet entries, and
+// the shared/styles module (read from its source): globalStyles / desktopStyles members, the style
+// helpers it exports as arrows with an expression body (padding, paddingH, size, …), and
+// collapseStyles / platformStyles. Anything else is not provable. A parent style must leave its
+// cross-axis layout alone.
 const crossAxisKeys = new Set(['alignItems', 'display', 'flexDirection', 'flexWrap'])
 const platformKeys = new Set(['common', 'isAndroid', 'isElectron', 'isIOS', 'isMobile', 'isPhone', 'isTablet'])
+
+type Scope = babel.NodePath['scope']
+// a node and the scope its names resolve in, in `filename`
+type At = {node: babel.types.Node; scope: Scope; filename: string}
 
 export const calleeName = (e: babel.types.Node) =>
   t.isMemberExpression(e) && t.isIdentifier(e.property) ? e.property.name : t.isIdentifier(e) ? e.name : ''
 
-export const styleSheetEntry = (
-  scope: babel.NodePath['scope'],
-  e: babel.types.MemberExpression
-): babel.types.Node | undefined => {
+const styleSheetEntryAt = (scope: Scope, e: babel.types.MemberExpression, filename: string): At | undefined => {
   if (!t.isIdentifier(e.object) || e.computed || !t.isIdentifier(e.property)) return undefined
   const init = (name: string) => {
-    const decl = scope.getBinding(name)?.path.node
-    return t.isVariableDeclarator(decl) && t.isCallExpression(decl.init) ? decl.init : undefined
+    const decl = scope.getBinding(name)?.path
+    return decl?.isVariableDeclarator() && t.isCallExpression(decl.node.init)
+      ? (decl.get('init') as babel.NodePath<babel.types.CallExpression>)
+      : undefined
   }
   // `styles = Kb.Styles.styleSheetCreate(fn)`, or `styles = useStyles()` with
   // `useStyles = Kb.Styles.createStyleHook(fn)`
   let sheet = init(e.object.name)
-  if (sheet && t.isIdentifier(sheet.callee) && !sheet.arguments.length) {
-    const hook = init(sheet.callee.name)
-    sheet = hook && calleeName(hook.callee) === 'createStyleHook' ? hook : undefined
-  } else if (sheet && calleeName(sheet.callee) !== 'styleSheetCreate') {
+  if (sheet && t.isIdentifier(sheet.node.callee) && !sheet.node.arguments.length) {
+    const hook = init(sheet.node.callee.name)
+    sheet = hook && calleeName(hook.node.callee) === 'createStyleHook' ? hook : undefined
+  } else if (sheet && calleeName(sheet.node.callee) !== 'styleSheetCreate') {
     sheet = undefined
   }
-  const fn = sheet?.arguments[0]
-  if (!t.isArrowFunctionExpression(fn)) return undefined
-  const body = t.isTSAsExpression(fn.body) ? fn.body.expression : fn.body
+  const fn = sheet?.get('arguments')[0]
+  if (!fn?.isArrowFunctionExpression()) return undefined
+  const body = t.isTSAsExpression(fn.node.body) ? fn.node.body.expression : fn.node.body
   if (!t.isObjectExpression(body)) return undefined
   const name = e.property.name
   // a later duplicate key wins, as in the object at runtime
@@ -332,17 +338,119 @@ export const styleSheetEntry = (
   for (const p of body.properties) {
     if (t.isObjectProperty(p) && !p.computed && t.isIdentifier(p.key, {name})) found = p.value
   }
-  return found
+  return found && {filename, node: found, scope: fn.scope}
 }
 
-const styleLeaves = (
-  scope: babel.NodePath['scope'],
-  e: babel.types.Node | null | undefined,
-  keys: ReadonlySet<string>,
-  depth = 0
-): boolean => {
-  if (!e || depth > 8) return false
-  const recur = (x: babel.types.Node | null | undefined) => styleLeaves(scope, x, keys, depth + 1)
+export const styleSheetEntry = (scope: Scope, e: babel.types.MemberExpression): babel.types.Node | undefined =>
+  styleSheetEntryAt(scope, e, '')?.node
+
+// The value of a `const x = init` binding (not a destructure), where it was declared.
+const constInit = (scope: Scope, name: string, filename: string): At | undefined => {
+  const b = scope.getBinding(name)
+  if (b?.kind !== 'const' || !b.path.isVariableDeclarator() || !t.isIdentifier(b.path.node.id)) return undefined
+  const init = b.path.get('init')
+  return init.node ? {filename, node: init.node, scope: init.scope} : undefined
+}
+
+const stylesFile = join(dirname(fileURLToPath(import.meta.url)), '../../styles/index.tsx')
+let stylesProgram: babel.NodePath<babel.types.Program> | undefined
+const stylesModule = () => {
+  if (!stylesProgram) {
+    const ast = parse(readFileSync(stylesFile, 'utf8'), {plugins: ['jsx', 'typescript'], sourceType: 'module'})
+    babel.traverse(ast as babel.types.File, {
+      Program(p) {
+        stylesProgram = p
+        p.stop()
+      },
+    })
+  }
+  return stylesProgram!
+}
+
+const isStylesSource = (source: string, filename: string) => {
+  if (source === '@/styles' || source === '@/styles/index') return true
+  if (!source.startsWith('.')) return false
+  const abs = resolve(dirname(filename), source)
+  return abs.endsWith('/shared/styles') || abs.endsWith('/shared/styles/index')
+}
+
+// The shared/styles export a reference names (`Kb.Styles.x`, `Styles.x`, or an `x` imported from
+// it), with its declaration there.
+const stylesExport = (scope: Scope, e: babel.types.Node, filename: string) => {
+  const namespaceOf = (name: string, fromSource: (source: string) => boolean) => {
+    const imp = importOf(scope.getBinding(name)?.path)
+    return !!imp && t.isImportNamespaceSpecifier(imp.spec) && fromSource(imp.decl.source.value)
+  }
+  let name: string | undefined
+  if (t.isIdentifier(e)) {
+    const imp = importOf(scope.getBinding(e.name)?.path)
+    if (imp && t.isImportSpecifier(imp.spec) && isStylesSource(imp.decl.source.value, filename)) {
+      name = t.isIdentifier(imp.spec.imported) ? imp.spec.imported.name : imp.spec.imported.value
+    }
+  } else if (t.isMemberExpression(e) && !e.computed && t.isIdentifier(e.property)) {
+    const o = e.object
+    const viaStyles = t.isIdentifier(o) && namespaceOf(o.name, s => isStylesSource(s, filename))
+    const viaKb =
+      t.isMemberExpression(o) &&
+      !o.computed &&
+      t.isIdentifier(o.property, {name: 'Styles'}) &&
+      t.isIdentifier(o.object) &&
+      // an unbound Kb is taken as the common-adapters namespace, as classifyName does
+      ((o.object.name === 'Kb' && !scope.getBinding('Kb')) ||
+        namespaceOf(o.object.name, s => isCommonAdaptersSource(s, filename)))
+    if (viaStyles || viaKb) name = e.property.name
+  }
+  if (!name) return undefined
+  const decl = stylesModule().scope.getBinding(name)?.path
+  const exported = decl?.isVariableDeclarator()
+    ? !!decl.parentPath.parentPath?.isExportNamedDeclaration()
+    : !!decl?.parentPath?.isExportNamedDeclaration()
+  return exported ? {decl: decl!, name} : undefined
+}
+
+// What `<obj>.<name>` can be, for an object built from literals, spreads, consts, ternaries and
+// getters: each value it may take, or 'absent'. Undefined when that cannot be read.
+const memberValues = (at: At, name: string, depth = 0): Array<At | 'absent'> | undefined => {
+  if (depth > 12) return undefined
+  const recur = (node: babel.types.Node, scope = at.scope) => memberValues({...at, node, scope}, name, depth + 1)
+  const e = at.node
+  if (t.isTSAsExpression(e) || t.isTSSatisfiesExpression(e) || t.isParenthesizedExpression(e)) return recur(e.expression)
+  if (t.isIdentifier(e)) {
+    const c = constInit(at.scope, e.name, at.filename)
+    return c && memberValues(c, name, depth + 1)
+  }
+  if (t.isConditionalExpression(e)) {
+    const a = recur(e.consequent)
+    const b = recur(e.alternate)
+    return a && b && [...a, ...b]
+  }
+  if (!t.isObjectExpression(e)) return undefined
+  const out: Array<At | 'absent'> = []
+  for (const p of [...e.properties].reverse()) {
+    if (t.isSpreadElement(p)) {
+      const sub = recur(p.argument)
+      if (!sub) return undefined
+      out.push(...sub.filter(x => x !== 'absent'))
+      if (!sub.includes('absent')) return out
+      continue
+    }
+    if (p.computed) return undefined
+    const key = t.isIdentifier(p.key) ? p.key.name : t.isStringLiteral(p.key) ? p.key.value : undefined
+    if (key === undefined) return undefined
+    if (key !== name) continue
+    if (t.isObjectProperty(p)) return [...out, {...at, node: p.value}]
+    // a getter with a lone return and no parameters: its value is that expression
+    const only = t.isObjectMethod(p) && p.kind === 'get' && p.body.body.length === 1 ? p.body.body[0] : undefined
+    return t.isReturnStatement(only) && only.argument ? [...out, {...at, node: only.argument}] : undefined
+  }
+  return [...out, 'absent']
+}
+
+const styleLeaves = (at: At, keys: ReadonlySet<string>, depth = 0): boolean => {
+  const e = at.node
+  if (depth > 16) return false
+  const recur = (x: babel.types.Node | null | undefined, to: Partial<At> = {}) =>
+    !!x && styleLeaves({...at, ...to, node: x}, keys, depth + 1)
   if (t.isNullLiteral(e) || t.isBooleanLiteral(e, {value: false}) || t.isIdentifier(e, {name: 'undefined'})) return true
   if (t.isTSAsExpression(e) || t.isTSSatisfiesExpression(e) || t.isParenthesizedExpression(e)) return recur(e.expression)
   if (t.isConditionalExpression(e)) return recur(e.consequent) && recur(e.alternate)
@@ -358,19 +466,44 @@ const styleLeaves = (
       return platformKeys.has(key) ? recur(p.value) : true
     })
   }
-  if (t.isCallExpression(e)) {
-    const name = calleeName(e.callee)
-    if (name === 'collapseStyles' || name === 'platformStyles') return e.arguments.length === 1 && recur(e.arguments[0])
-    return name === 'padding'
+  if (t.isIdentifier(e)) {
+    const c = constInit(at.scope, e.name, at.filename)
+    return !!c && recur(c.node, c)
   }
-  if (t.isMemberExpression(e)) return recur(styleSheetEntry(scope, e))
+  if (t.isCallExpression(e)) {
+    const ref = stylesExport(at.scope, e.callee, at.filename)
+    if (!ref) return false
+    if (ref.name === 'collapseStyles' || ref.name === 'platformStyles') {
+      return e.arguments.length === 1 && recur(e.arguments[0])
+    }
+    // a helper's arguments only fill in values, so its body decides the keys
+    const fn = ref.decl.isVariableDeclarator() ? ref.decl.get('init') : undefined
+    if (!fn?.isArrowFunctionExpression()) return false
+    return recur(fn.node.body, {filename: stylesFile, scope: fn.scope})
+  }
+  if (t.isMemberExpression(e)) {
+    const entry = styleSheetEntryAt(at.scope, e, at.filename)
+    if (entry) return recur(entry.node, entry)
+    if (e.computed || !t.isIdentifier(e.property)) return false
+    const obj = stylesExport(at.scope, e.object, at.filename)
+    if (obj?.name !== 'globalStyles' && obj?.name !== 'desktopStyles') return false
+    const init = obj.decl.isVariableDeclarator() ? obj.decl.get('init') : undefined
+    if (!init?.node) return false
+    const values = memberValues({filename: stylesFile, node: init.node, scope: init.scope}, e.property.name)
+    return !!values && values.every(v => v !== 'absent' && recur(v.node, v))
+  }
   return false
 }
 
-const styleAttrLeaves = (scope: babel.NodePath['scope'], attr: babel.types.JSXAttribute, keys: ReadonlySet<string>) =>
+const styleAttrLeaves = (
+  scope: Scope,
+  attr: babel.types.JSXAttribute,
+  keys: ReadonlySet<string>,
+  filename: string
+) =>
   t.isJSXExpressionContainer(attr.value) &&
   !t.isJSXEmptyExpression(attr.value.expression) &&
-  styleLeaves(scope, attr.value.expression, keys)
+  styleLeaves({filename, node: attr.value.expression, scope}, keys)
 
 export const isMapCall = (p: babel.NodePath | null) =>
   !!p?.isCallExpression() &&
@@ -435,7 +568,7 @@ export const cleanupCandidates = (code: string, filename: string): Array<Cleanup
       const parent = parentPath.node.openingElement
       if (parent.attributes.some(a => t.isJSXSpreadAttribute(a)) || findAttr(parent, 'className')) return
       const parentStyle = findAttr(parent, 'style')
-      if (parentStyle && !styleAttrLeaves(parentPath.scope, parentStyle, crossAxisKeys)) return
+      if (parentStyle && !styleAttrLeaves(parentPath.scope, parentStyle, crossAxisKeys, filename)) return
       const direction = stringValue(findAttr(parent, 'direction'))
       const line = child.loc?.start.line ?? 0
       const fullWidth = findAttr(child, 'fullWidth')
@@ -524,10 +657,15 @@ const alignSelfKeys = new Set(['alignSelf'])
 // Whether a style sets a non-empty literal alignSelf on every platform, provably from this file.
 // Later entries must leave alignSelf alone. In platformStyles only common and isMobile count as
 // setting it on native, since isIOS, isAndroid, isPhone and isTablet apply on some devices only.
-const styleSetsAlignSelf = (scope: babel.NodePath['scope'], e: babel.types.Node | null | undefined, depth = 0): boolean => {
+const styleSetsAlignSelf = (
+  scope: Scope,
+  e: babel.types.Node | null | undefined,
+  filename: string,
+  depth = 0
+): boolean => {
   if (!e || depth > 8) return false
-  const recur = (x: babel.types.Node | null | undefined) => styleSetsAlignSelf(scope, x, depth + 1)
-  const leaves = (x: babel.types.Node | null | undefined) => styleLeaves(scope, x, alignSelfKeys)
+  const recur = (x: babel.types.Node | null | undefined) => styleSetsAlignSelf(scope, x, filename, depth + 1)
+  const leaves = (x: babel.types.Node | null | undefined) => !!x && styleLeaves({filename, node: x, scope}, alignSelfKeys)
   const lastSets = (xs: ReadonlyArray<babel.types.Node | null | undefined>) =>
     xs.some((x, i) => recur(x) && xs.slice(i + 1).every(leaves))
   if (t.isTSAsExpression(e) || t.isTSSatisfiesExpression(e) || t.isParenthesizedExpression(e)) return recur(e.expression)
@@ -617,7 +755,7 @@ export const unpinCandidates = (code: string, filename: string): UnpinResult => 
         t.isJSXExpressionContainer(childStyle?.value) && !t.isJSXEmptyExpression(childStyle.value.expression)
           ? childStyle.value.expression
           : undefined
-      const rule: UnpinRule = !childSpread && styleSetsAlignSelf(path.scope, childStyleExpr) ? 'U3' : shape
+      const rule: UnpinRule = !childSpread && styleSetsAlignSelf(path.scope, childStyleExpr, filename) ? 'U3' : shape
       const v = alignSelf.value
       const test = t.isJSXExpressionContainer(v) && t.isConditionalExpression(v.expression) ? v.expression.test : undefined
       const why = (() => {
@@ -632,14 +770,14 @@ export const unpinCandidates = (code: string, filename: string): UnpinResult => 
         if (parent.attributes.some(a => t.isJSXSpreadAttribute(a))) return 'parent has a spread'
         if (findAttr(parent, 'className')) return 'parent has a className'
         const parentStyle = findAttr(parent, 'style')
-        if (parentStyle && !styleAttrLeaves(parentPath.scope, parentStyle, crossAxisKeys)) {
+        if (parentStyle && !styleAttrLeaves(parentPath.scope, parentStyle, crossAxisKeys, filename)) {
           return 'parent style may change its cross axis'
         }
         const notCentering = parentNotCentering(parent)
         if (notCentering) return notCentering
         if (childSpread) return 'child has a spread'
         if (findAttr(child, 'className')) return 'child has a className'
-        if (childStyle && !styleAttrLeaves(path.scope, childStyle, positionKeys)) return 'child style may set position'
+        if (childStyle && !styleAttrLeaves(path.scope, childStyle, positionKeys, filename)) return 'child style may set position'
         return undefined
       })()
       if (why) skipped.push({line, reason: why})

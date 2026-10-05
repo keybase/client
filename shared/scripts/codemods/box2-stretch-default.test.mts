@@ -513,6 +513,78 @@ test('parent style that provably keeps the cross axis: rules still apply', () =>
   assert.deepEqual(rules(hooked), ['C1:fullWidth:5'])
 })
 
+test('the styles module resolves: globalStyles and desktopStyles members, exported helpers, consts', () => {
+  const provable = (style: string, sheet = '{}', prelude = '') =>
+    rules(`${prelude}\n${styled(style, sheet)}`).length === 1
+  for (const style of [
+    'Kb.Styles.globalStyles.fullWidth',
+    'Kb.Styles.globalStyles.flexOne',
+    'Kb.Styles.globalStyles.fontBold',
+    'Kb.Styles.globalStyles.fillAbsolute',
+    'Kb.Styles.desktopStyles.boxShadow',
+    'Kb.Styles.desktopStyles.clickable',
+    'Kb.Styles.paddingH(4)',
+    'Kb.Styles.size(32)',
+    'Kb.Styles.marginV(2)',
+    'Kb.Styles.bottomDivider(theme, 40)',
+    "Kb.Styles.border('red', 1, 4)",
+    'Kb.Styles.collapseStyles([Kb.Styles.globalStyles.flexOne, Kb.Styles.padding(4)])',
+  ]) {
+    assert.ok(provable(style), style)
+  }
+  for (const style of [
+    'Kb.Styles.globalStyles.flexBoxRow',
+    'Kb.Styles.globalStyles.flexBoxColumn',
+    'Kb.Styles.globalStyles.flexBoxCenter',
+    'Kb.Styles.globalStyles.flexWrap',
+    'Kb.Styles.globalStyles.missing',
+    'Kb.Styles.globalMargins.tiny',
+    'Kb.Styles.centered()',
+    'Kb.Styles.initDesktopStyles()',
+    'Kb.Styles.nope(4)',
+    'Kb.Other.padding(4)',
+    'padding(4)',
+    "Kb.Styles.collapseStyles([Kb.Styles.padding(1)], {alignItems: 'center'})",
+  ]) {
+    assert.ok(!provable(style), style)
+  }
+  // through a namespace or named import of @/styles (or a relative path to it), never another module
+  assert.ok(provable('Styles.globalStyles.flexOne', '{}', "import * as Styles from '@/styles'"))
+  assert.ok(provable('Styles.paddingV(4)', '{}', "import * as Styles from '../styles'"))
+  assert.ok(provable('paddingV(4)', '{}', "import {paddingV} from '@/styles'"))
+  assert.ok(provable('pv(4)', '{}', "import {paddingV as pv} from '@/styles'"))
+  assert.ok(!provable('Styles.paddingV(4)', '{}', "import * as Styles from './styles'"))
+  assert.ok(!provable('paddingV(4)', '{}', "import {paddingV} from './elsewhere'"))
+  assert.ok(!provable('Kb.Styles.paddingV(4)', '{}', "import * as Kb from './kb'"))
+  assert.ok(!provable('centered()', '{}', "import {centered} from '@/styles'"))
+  // in-file consts resolve where they are declared; let, destructures and parameters do not
+  assert.ok(provable('styles.x', '{x: {...row, margin: 1}}', 'const row = {padding: 4}'))
+  assert.ok(provable('row', '{}', 'const row = Kb.Styles.platformStyles({isMobile: Kb.Styles.paddingH(4)})'))
+  assert.ok(!provable('styles.x', '{x: {...row}}', "const row = {alignItems: 'center'}"))
+  assert.ok(!provable('row', '{}', 'let row = {padding: 4}'))
+  assert.ok(!provable('row', '{}', "const {row} = {row: {alignItems: 'center'}}"))
+  const shadowed = (outer: string, inner: string) =>
+    rules(
+      `const base = ${outer}\nconst A = () => {\n  const base = ${inner}\n  return (\n    <Kb.Box2 direction="vertical" fullWidth style={styles.x}>\n      <Kb.Box2 direction="vertical" fullWidth />\n    </Kb.Box2>\n  )\n}\nconst styles = Kb.Styles.styleSheetCreate(() => ({x: {...base}}))`
+    ).length === 1
+  assert.ok(shadowed('{padding: 1}', "{alignItems: 'center'}"))
+  // a const's own initializer resolves where it was declared, not where it is used
+  assert.deepEqual(
+    rules(
+      `const inner = {padding: 1}\nconst row = {...inner}\nconst A = () => {\n  const inner = {alignItems: 'center'}\n  return (\n    <Kb.Box2 direction="vertical" fullWidth style={row}>\n      <Kb.Box2 direction="vertical" fullWidth />\n    </Kb.Box2>\n  )\n}`
+    ),
+    ['C1:fullWidth:7']
+  )
+  assert.ok(!shadowed("{alignItems: 'center'}", '{padding: 1}'))
+  // a sheet's own parameter shadows a module const of the same name
+  assert.deepEqual(
+    rules(
+      `const theme = {padding: 1}\nconst A = () => {\n  const styles = useStyles()\n  return (\n    <Kb.Box2 direction="vertical" fullWidth style={styles.x}>\n      <Kb.Box2 direction="vertical" fullWidth />\n    </Kb.Box2>\n  )\n}\nconst useStyles = Kb.Styles.createStyleHook(theme => ({x: {...theme}}))`
+    ),
+    []
+  )
+})
+
 test('parent style that may change alignment or direction, or cannot be read: nothing', () => {
   for (const [style, sheet] of [
     [`styles.x`, `{x: {alignItems: 'center'}}`],
