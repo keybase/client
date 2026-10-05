@@ -5,7 +5,7 @@ tree. Use it to prove a layout refactor changes nothing on screen, or to see exa
 changes. The compare is exact RGBA with no threshold; a size mismatch is a failure.
 
 Platforms: Electron light, plus dark with `--themes light,dark` (1280x800 @2x; layout never depends on the theme, so dark is opt-in), and iOS light on the `iPhoneTest` simulator
-(`KB_IOS_DEVICE` overrides). The tour of screens is `tour.ts`: 88 desktop entries and 78 phone
+(`KB_IOS_DEVICE` overrides). The tour of screens is `tour.ts`: 144 desktop entries and 142 phone
 entries, all signed in as the e2e smoke account.
 
 ## Before you start
@@ -83,10 +83,18 @@ pinned:
   viewport and color scheme, hides overlay scrollbars and the caret, pauses autoplay videos (giphy
   unfurls) on their first frame, and parks the mouse outside the window.
 - iOS: status bar override (9:41, full signal and battery), Reduce Motion and Reduce Transparency
-  on (the app is relaunched to pick them up), auto-focused inputs blurred, and captures settle on
-  two equal frames a second apart. `close` clears the status bar override; the app keeps the
+  on (the app is relaunched to pick them up), auto-focused inputs blurred, video players paused on
+  their first frame, and captures settle on two equal frames a second apart. A `scrollIntoView`
+  whose target is off screen scrolls its list from JS (`scrollToIndex` on the row holding it):
+  Appium's `mobile: scroll` gives up on the inverted chat thread. `close` clears the status bar override; the app keeps the
   accessibility settings until its next launch.
 - Each entry waits for its `ready` testID and then for the waiting store to be idle for 500ms.
+
+## Params
+
+An entry's route params are data: literals, plain objects and arrays (a wizard's state), and refs
+that `resolve.mts` fills in through the read-only CLI (team, conversation, folders, users, and
+`deviceID`, the account's device whose ID sorts first).
 
 ## Masks
 
@@ -94,7 +102,8 @@ A mask hides a region from the compare. Only for content the server picks or pus
 field can pin, never for layout. Each one names a testID and a reason in `tour.ts`. A compare masks
 the union of the base's and the current capture's mask rects. Current masks: people feed follow
 suggestions, device last-used times, the team builder's recommendation list (server-picked and
-server-ordered; the builder's service tabs and search box stay compared).
+server-ordered; the builder's service tabs and search box stay compared), the bot search's
+featured bots.
 
 ## Coverage
 
@@ -157,4 +166,4 @@ Routes the tour leaves out are listed with reasons at the bottom of `tour.ts`. N
   id also selects that follower.
 - Phone menus are bottom sheets that expose nothing inside them to Appium: their entries wait on
   the screen under the sheet.
-- Screens reached only through a write, or showing server-picked lists.
+- Screens that write when opened, need data the account lacks, or wait on a system prompt.

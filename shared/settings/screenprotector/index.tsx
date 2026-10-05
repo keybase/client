@@ -58,11 +58,15 @@ const Screenprotector = () => {
     }
 
     if (!isAndroid) {
-      return <Kb.Text type="Body">Screenprotector is only supported on Android</Kb.Text>
+      return (
+        <Kb.Box2 direction="vertical" testID={TestIDs.SETTINGS_SCREENPROTECTOR}>
+          <Kb.Text type="Body">Screenprotector is only supported on Android</Kb.Text>
+        </Kb.Box2>
+      )
     }
 
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true} padding="small">
+      <Kb.Box2 direction="vertical" fullWidth={true} padding="small" testID={TestIDs.SETTINGS_SCREENPROTECTOR}>
         <Kb.Checkbox
           label="Disable App switcher preview and screenshots"
           onCheck={changeSecureFlagOption}
