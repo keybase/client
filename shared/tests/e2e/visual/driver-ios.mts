@@ -207,6 +207,68 @@ const HOSTS_WITH_TESTID = `
       }
     }
   }`
+// Scrolls the virtualized list holding the host view with this testID so that the view's row is
+// centred: from the host fiber up to the list cell (whose props carry its index), then on to the
+// FlatList instance above it. Read off React's fiber tree as React DevTools does.
+export const scrollToRow = (testID: string) => `
+  const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
+  if (!hook?.getFiberRoots) throw new Error('no React DevTools hook; is this a dev build?')
+  const id = ${JSON.stringify(testID)}
+  let target
+  for (const id2 of hook.renderers.keys()) {
+    for (const root of hook.getFiberRoots(id2)) {
+      const stack = [root.current]
+      while (stack.length && !target) {
+        const f = stack.pop()
+        if (f.tag === 5 && f.memoizedProps?.testID === id) target = f
+        if (f.child) stack.push(f.child)
+        if (f.sibling) stack.push(f.sibling)
+      }
+    }
+  }
+  if (!target) throw new Error('no host view with testID ' + id)
+  let index
+  for (let f = target.return; f; f = f.return) {
+    const p = f.memoizedProps
+    if (index === undefined && p && typeof p.index === 'number' && 'cellKey' in p) index = p.index
+    if (index !== undefined && f.stateNode && typeof f.stateNode.scrollToIndex === 'function') {
+      f.stateNode.scrollToIndex({animated: false, index, viewPosition: 0.5})
+      return index
+    }
+  }
+  throw new Error('testID ' + id + ' is in no virtualized list row')`
+// Pauses every expo-video player on its first frame, as desktop pauses autoplay videos (a looping
+// giphy unfurl shows a different frame in every screenshot). Players live in hook state
+// (useVideoPlayer), so each mounted fiber's hooks are searched for one, as React DevTools reads them.
+export const STILL_VIDEOS = `
+  const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
+  if (!hook?.getFiberRoots) throw new Error('no React DevTools hook; is this a dev build?')
+  const isPlayer = v => !!v && typeof v === 'object' && typeof v.pause === 'function' && typeof v.replace === 'function' && 'currentTime' in v
+  const players = new Set()
+  for (const id of hook.renderers.keys()) {
+    for (const root of hook.getFiberRoots(id)) {
+      const stack = [root.current]
+      while (stack.length) {
+        const f = stack.pop()
+        if (f.tag === 0 || f.tag === 11 || f.tag === 15) {
+          for (let h = f.memoizedState; h && typeof h === 'object' && 'next' in h; h = h.next) {
+            const v = h.memoizedState
+            if (isPlayer(v)) players.add(v)
+            else if (Array.isArray(v) && isPlayer(v[0])) players.add(v[0])
+          }
+        }
+        if (f.child) stack.push(f.child)
+        if (f.sibling) stack.push(f.sibling)
+      }
+    }
+  }
+  for (const p of players) {
+    try {
+      p.pause()
+      p.currentTime = 0
+    } catch {}
+  }
+  return players.size`
 const HOP_TAB = 'tabs.settingsTab'
 const HOP_TAB_ALT = 'tabs.peopleTab'
 
@@ -391,8 +453,10 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
         // waits for the element, as desktop's scrollIntoViewIfNeeded does, so the step can gate
         // later steps on something that loads
         await withDeadline(byTestID(s.testID).waitForExist({timeout: SETUP_MS}), SETUP_MS + 1_000, `finding ${s.testID}`)
-        const elementId = await withDeadline(byTestID(s.testID).elementId, SETUP_MS, `finding ${s.testID}`)
-        await withDeadline(browser.execute('mobile: scroll', {elementId, toVisible: true}), SETUP_MS, `scrolling to ${s.testID}`)
+        if (await withDeadline(byTestID(s.testID).isDisplayed(), SETUP_MS, `is ${s.testID} displayed`)) return
+        // Appium's \`mobile: scroll\` gives up on the inverted chat thread (and can wedge WDA), so the
+        // list is scrolled from JS instead: the row holding the element, centred without animation.
+        await appEval(scrollToRow(s.testID), `scrolling to ${s.testID}`)
         return
       }
       case 'hover':
@@ -581,6 +645,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
          if (focused) S.blurTextInput(focused)`,
         'blurring the focused input'
       )
+      await appEval(STILL_VIDEOS, 'pausing videos on their first frame')
       const settled = await settle(async () => {
         png = await screenshot()
         return png
