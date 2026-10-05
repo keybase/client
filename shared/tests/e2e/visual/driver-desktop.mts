@@ -500,9 +500,10 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
       const append = nav.append
       if (append) {
         const ok = await withDeadline(
+          // as JSON: Playwright's serializable type check recurses without end on a JSON value type
           page.evaluate(
-            p => (globalThis as unknown as DevGlobals).DEBUGRouter2?.navigateAppend(p) ?? false,
-            {name: append.name, params: append.params}
+            json => (globalThis as unknown as DevGlobals).DEBUGRouter2?.navigateAppend(JSON.parse(json) as {name: string}) ?? false,
+            JSON.stringify({name: append.name, params: append.params})
           ),
           EVAL_MS,
           `navigateAppend ${append.name}`

@@ -116,6 +116,8 @@ export const TEAMS_SUBTEAMS_TAB = 'teams-subteams-tab'
 // a team row on a member's page: its expand caret, and the last-activity line it reveals
 export const TEAMS_MEMBER_TEAM_EXPAND = 'teams-member-team-expand'
 export const TEAMS_MEMBER_TEAM_ACTIVITY = 'teams-member-team-activity'
+// an external team's page once its public info (or the error saying there is none) has loaded
+export const TEAMS_EXTERNAL_TEAM = 'teams-external-team'
 
 // Devices
 export const DEVICES_LIST = 'devices-list'

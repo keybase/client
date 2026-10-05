@@ -131,6 +131,20 @@ const attachmentsView = (id: string, view: string, ready: string): TourEntry =>
 // for the bot's settings, and Edit settings stays disabled until they load, so the edit entries
 // wait for the list (scrollIntoView) before pressing it.
 const TEAM_BOT = 'bottender'
+// The team wizards' state: a new team's (NewTeamWizard) and adding members to the e2e team's
+// (AddMembersWizard), as the app makes them before anything is filled in.
+const newTeam = {
+  addYourself: true,
+  description: '',
+  isBig: false,
+  name: '',
+  open: false,
+  openTeamJoinRole: 'reader',
+  profileShowcase: false,
+  teamType: 'friends',
+} as const
+const addMembers = {addingMembers: [], membersAlreadyInTeam: [], role: 'writer', teamID: {ref: 'teamID'}} as const
+const teamBuilderServices = ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews']
 const botInstall = {botUsername: TEAM_BOT, conversationIDKey: short}
 const waitForBotPerms: SetupStep = {kind: 'scrollIntoView', testID: T.CHAT_BOT_PERMS}
 const editBot: SetupStep = {kind: 'openPopup', testID: T.CHAT_BOT_EDIT_BUTTON}
@@ -508,6 +522,87 @@ export const tour: ReadonlyArray<TourEntry> = [
     setup: [waitForBotPerms, editBot, {kind: 'openPopup', testID: T.CHAT_BOT_CHANNELS_DROPDOWN}],
   }),
   ...teamModal('chat-delete-history', 'chatDeleteHistoryWarning', {conversationIDKey: short}, {phone: true, seal: ['inbox']}),
+  ...teamModal('team-remove-member', 'teamReallyRemoveMember', {...team, members: [{ref: 'secondUser'}]}, {phone: true}),
+  ...teamModal(
+    'team-remove-channel-member',
+    'teamReallyRemoveChannelMember',
+    {...team, conversationIDKey: short, members: [{ref: 'secondUser'}]},
+    {phone: true, seal: ['teams', 'inbox']}
+  ),
+  ...teamModal('team-delete-channel', 'teamDeleteChannel', {...team, conversationIDKey: short}, {phone: true, seal: ['teams', 'inbox']}),
+  ...teamModal('team-open-warning', 'openTeamWarning', {isOpenTeam: false, teamname: {ref: 'teamname'}}, {phone: true}),
+  ...teamModal(
+    'team-retention-warning',
+    'retentionWarning',
+    {entityType: 'big team', policy: {seconds: 604800, title: '7 days', type: 'expire'}},
+    {phone: true}
+  ),
+  ...teamModal('team-contact-restricted', 'contactRestricted', {source: 'teamAddAllFailed', usernames: [{ref: 'secondUser'}]}, {phone: true}),
+  ...teamModal(
+    'team-builder',
+    'teamsTeamBuilder',
+    {...team, addMembersWizard: addMembers, filterServices: teamBuilderServices, goButtonLabel: 'Add', namespace: 'teams', title: ''},
+    {masks: [teamBuilderRecs], phone: true, seal: ['teams', 'follows']}
+  ),
+  ...teamModal('team-create-channels', 'teamCreateChannels', team, {phone: true}),
+  ...teamModal(
+    'team-edit-channel',
+    'teamEditChannel',
+    {...team, channelname: 'e2e-short', conversationIDKey: short, description: 'A channel description'},
+    {phone: true, seal: ['teams', 'inbox']}
+  ),
+  ...teamModal('team-wizard-purpose', 'teamWizard1TeamPurpose', {wizard: newTeam}, {phone: true}),
+  ...teamModal('team-wizard-info', 'teamWizard2TeamInfo', {wizard: newTeam}, {phone: true}),
+  ...teamModal('team-wizard-size', 'teamWizard4TeamSize', {wizard: newTeam}, {phone: true}),
+  ...teamModal('team-wizard-channels', 'teamWizard5Channels', {wizard: {...newTeam, isBig: true}}, {phone: true}),
+  ...teamModal('team-wizard-subteams', 'teamWizard6Subteams', {wizard: {...newTeam, isBig: true}}, {phone: true}),
+  ...teamModal(
+    'team-wizard-subteam-members',
+    'teamWizardSubteamMembers',
+    {wizard: {...newTeam, name: 'sub', parentTeamID: {ref: 'teamID'}, teamType: 'subteam'}},
+    {phone: true}
+  ),
+  ...teamModal('team-add-from-where', 'teamAddToTeamFromWhere', {wizard: addMembers}, {phone: true}),
+  ...teamModal('team-add-email', 'teamAddToTeamEmail', {wizard: addMembers}, {phone: true}),
+  ...teamModal('team-add-phone', 'teamAddToTeamPhone', {wizard: addMembers}, {phone: true}),
+  ...teamModal(
+    'team-add-confirm',
+    'teamAddToTeamConfirm',
+    {wizard: {...addMembers, addingMembers: [{assertion: 'visualgate@example.com', role: 'writer'}]}},
+    {phone: true}
+  ),
+  ...teamModal('team-new', 'teamNewTeamDialog', {}, {phone: true}),
+  ...teamModal('team-new-subteam', 'teamNewTeamDialog', {subteamOf: {ref: 'teamID'}}, {phone: true}),
+  ...teamModal('team-join', 'teamJoinTeamDialog', {}, {phone: true}),
+  ...teamModal('team-join-sent', 'teamJoinTeamDialog', {success: true}, {phone: true}),
+  ...teamModal(
+    'team-invite-link',
+    'teamInviteLinkJoin',
+    {
+      inviteDetails: {
+        inviteID: 'visualgate',
+        inviterResetOrDel: false,
+        inviterUID: '',
+        inviterUsername: {ref: 'secondUser'},
+        isMember: false,
+        teamAvatars: null,
+        teamDesc: 'A team description',
+        teamID: {ref: 'teamID'},
+        teamIsOpen: false,
+        teamName: {parts: [{ref: 'teamname'}]},
+        teamNumMembers: 3,
+      },
+      inviteKey: 'visualgate',
+    },
+    {phone: true}
+  ),
+  {
+    id: 'team/external',
+    nav: {append: {name: 'teamExternalTeam', params: {teamname: {ref: 'teamname'}}}, tab: 'tabs.teamsTab'},
+    platforms: ['desktop', 'phone'],
+    ready: T.TEAMS_EXTERNAL_TEAM,
+    seal: ['teams'],
+  },
   ...modal(
     'chat-emoji',
     'chatChooseEmoji',

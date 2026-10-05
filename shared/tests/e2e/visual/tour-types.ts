@@ -19,9 +19,12 @@ export type ParamRef = {
 // driver maps it to switchTab, `append` to navigateAppend({name, params}), and `thread` (a
 // conversationIDKey ref) to navigateToThread, the path an inbox row click takes: desktop selects the
 // conversation beside the inbox, phone pushes it.
+// A param value: a literal, a ref, or plain objects and arrays of them (a route whose param is a
+// state object, like the team wizards').
+export type ParamValue = ParamRef | string | number | boolean | null | ReadonlyArray<ParamValue> | {readonly [k: string]: ParamValue}
 export type Nav = {
   tab: string
-  append?: {name: string; params?: Record<string, ParamRef | string | number | boolean>}
+  append?: {name: string; params?: Record<string, ParamValue>}
   thread?: ParamRef
 }
 export type TourEntry = {

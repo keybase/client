@@ -94,3 +94,15 @@ test('a thread ref resolves to its conversation', async () => {
   const nav = {tab: 'tabs.chatTab', thread: {ref: 'conversationIDKey' as const, channel: 'other'}}
   assert.deepEqual(await resolveParams(nav, run), {tab: 'tabs.chatTab', thread: 'c-other'})
 })
+test('refs nested in literal objects and arrays are replaced', async () => {
+  const nav = {
+    tab: 't',
+    append: {
+      name: 'x',
+      params: {wizard: {members: [{ref: 'teamname' as const}, 'a'], none: null, teamID: {ref: 'teamID' as const}}},
+    },
+  }
+  assert.deepEqual((await resolveParams(nav, run)).append?.params, {
+    wizard: {members: ['testteam', 'a'], none: null, teamID: 'tid1'},
+  })
+})
