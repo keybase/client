@@ -28,7 +28,7 @@ const Child = (p: {spec: ChildSpec}) => {
       direction="vertical"
       {...props}
       alignSelf={props.alignSelf ?? (props.fullWidth || props.fullHeight ? undefined : 'center')}
-      style={{backgroundColor: color}}
+      style={Styles.collapseStyles([props.style, {backgroundColor: color}])}
     >
       <Text type="BodyTiny">{label}</Text>
     </Box2>
@@ -105,7 +105,7 @@ export const Flex: Story = {
     <VariantMatrix
       childSpecs={[
         {color: theme.blueLight, label: 'flex 1', props: {flex: 1}},
-        {color: theme.greenLight, label: 'flex 2', props: {flex: 2}},
+        {color: theme.greenLight, label: 'flex 2', props: {style: {flex: 2}}},
         {color: theme.yellow, label: 'no width props', props: {}},
       ]}
     />

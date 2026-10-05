@@ -13,12 +13,12 @@ export type Box2Props = {
   className?: string
   collapsable?: boolean
   direction: 'horizontal' | 'vertical' | 'horizontalReverse' | 'verticalReverse'
-  flex?: number
+  flex?: 1
   fullHeight?: boolean
   fullWidth?: boolean
   justifyContent?: 'center' | 'flex-start' | 'flex-end' | 'space-between' | 'space-around' | 'space-evenly'
   noShrink?: boolean
-  overflow?: 'hidden' | 'scroll' | 'visible' | 'auto'
+  overflow?: 'hidden' | 'visible'
   onDragLeave?: (syntheticDragEvent: React.DragEvent) => void
   onDragOver?: (syntheticDragEvent: React.DragEvent) => void
   onDrop?: (syntheticDragEvent: React.DragEvent) => void
@@ -161,7 +161,7 @@ const box2SharedProps = (p: Box2Props) => {
     alignItemsStyle,
     justifyContentStyle,
     noShrink && nativeStyles.noShrink,
-    flex != null && (flex === 1 ? nativeStyles.flex1 : {flex}),
+    flex && nativeStyles.flex1,
     relative && nativeStyles.relative,
     overflowStyle,
     padding && paddingStyles.get(padding),
@@ -224,14 +224,8 @@ export const Box2 = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
   if (!isMobile) {
     const {ref} = p
     const {onMouseMove, onMouseDown, onMouseLeave, onMouseUp, onMouseOver, onCopyCapture, children, testID} = p
-    const {onContextMenu, flex, onDragLeave, onDragOver, onDrop} = p
-    const {style: _style, title, tooltip} = p
-
-    const style = Styles.collapseStyles([
-      flex != null && flex !== 1 ? {flex} : undefined,
-      _style,
-    ]) as unknown as React.CSSProperties
-
+    const {onContextMenu, onDragLeave, onDragOver, onDrop, style: _style, title, tooltip} = p
+    const style = Styles.collapseStyles([_style]) as unknown as React.CSSProperties
     const className = box2ClassNames(p)
 
     return (
@@ -324,9 +318,9 @@ export const ClickableBox = (p: ClickableBoxProps & {ref?: React.Ref<MeasureRef 
   const {onClick, onLongPress, hitSlop, asButton, ref, ...box2p} = p
 
   if (!isMobile) {
-    const {children, style: _style, onMouseOver, onMouseEnter, onMouseDown, onMouseLeave, onMouseMove, onMouseUp, onContextMenu, testID, flex, title, tooltip} = box2p
+    const {children, style: _style, onMouseOver, onMouseEnter, onMouseDown, onMouseLeave, onMouseMove, onMouseUp, onContextMenu, testID, title, tooltip} = box2p
     const cn = box2ClassNames(box2p, 'clickable-box2')
-    const s = Styles.collapseStyles([flex != null && flex !== 1 ? {flex} : undefined, _style]) as React.CSSProperties
+    const s = Styles.collapseStyles([_style]) as React.CSSProperties
     const onKeyDown =
       asButton && onClick
         ? (e: React.KeyboardEvent) => {
