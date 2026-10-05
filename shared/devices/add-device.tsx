@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as Kb from '@/common-adapters'
 import {startAddNewDevice} from '@/provision/flow'
 import * as T from '@/constants/types'
@@ -17,7 +18,7 @@ const defaultIconNumbers = {
 export default function AddDevice(ownProps: AddDeviceProps) {
   const styles = useStyles()
   const highlight = ownProps.highlight ?? noHighlight
-  const {data: iconNumbers = defaultIconNumbers} = useRPCLoad(
+  const {data: iconNumbers = defaultIconNumbers, loaded} = useRPCLoad(
     T.RPCGen.deviceDeviceHistoryListRpcPromise,
     [undefined, C.waitingKeyDevices],
     {
@@ -54,6 +55,8 @@ export default function AddDevice(ownProps: AddDeviceProps) {
         padding="small"
         gapStart={true}
         gapEnd={true}
+        // e2e: the illustrations follow the device history, so this marks them final
+        testID={loaded ? TestIDs.DEVICES_ADD_DEVICE : undefined}
       >
         <Kb.Text type="Body" center={true}>
           Protect your account by having more devices and paper keys.

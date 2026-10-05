@@ -194,6 +194,8 @@ export const COMMON_BACK_BUTTON = 'backButton'
 // The X on a desktop modal route. Needed because a page-wide search for the
 // close iconfont also matches the unfurl dismiss icons in the conversation
 // behind the modal, which sit earlier in the DOM and are covered by the overlay.
+// the add-device modal once its illustrations are final
+export const DEVICES_ADD_DEVICE = 'devices-add-device'
 export const MODAL_CLOSE = 'modal-close'
 // a phone modal screen's container
 export const MODAL_SCREEN = 'modal-screen'
