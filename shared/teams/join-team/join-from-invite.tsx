@@ -148,7 +148,7 @@ const JoinFromInviteInner = ({inviteDetails: initialInviteDetails, inviteID = ''
         </Kb.Box2>
         <Kb.Text type="Header">Join {teamname}</Kb.Text>
         <Kb.Text type="BodySmall">{details.teamNumMembers.toLocaleString()} members</Kb.Text>
-        <Kb.Text type="Body" lineClamp={3} style={styles.description}>
+        <Kb.Text type="Body" lineClamp={3} center={!isMobile} style={styles.description}>
           {details.teamDesc}
         </Kb.Text>
         <Kb.Box2
@@ -194,8 +194,8 @@ const useStyles = Kb.Styles.createStyleHook(
   theme =>
     ({
       avatar: Kb.Styles.platformStyles({
-        common: {marginBottom: -36, position: 'relative', top: -48},
-        isElectron: {paddingTop: 80},
+        isElectron: {marginBottom: -36, paddingTop: 80, position: 'relative', top: -48},
+        isMobile: {marginBottom: Kb.Styles.globalMargins.tiny, marginTop: Kb.Styles.globalMargins.medium},
       }),
       body: Kb.Styles.platformStyles({
         common: {
@@ -207,15 +207,18 @@ const useStyles = Kb.Styles.createStyleHook(
         },
       }),
       button: Kb.Styles.platformStyles({
-        isElectron: {width: 360},
+        isElectron: {maxWidth: 360, width: '100%'},
         isMobile: {
           flex: 1,
           ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
         },
       }),
-      buttonBar: {paddingTop: Kb.Styles.globalMargins.small},
+      buttonBar: Kb.Styles.platformStyles({
+        common: {paddingTop: Kb.Styles.globalMargins.small},
+        isElectron: Kb.Styles.paddingH(Kb.Styles.globalMargins.medium),
+      }),
       description: Kb.Styles.platformStyles({
-        isElectron: {width: 460},
+        isElectron: {...Kb.Styles.paddingH(Kb.Styles.globalMargins.medium), alignSelf: 'stretch'},
         isMobile: Kb.Styles.padding(0, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small),
       }),
       inviterBox: {paddingBottom: Kb.Styles.globalMargins.small},
