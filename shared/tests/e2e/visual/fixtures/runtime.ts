@@ -52,6 +52,8 @@ export type LeakReport = {
   refusedWrites: Array<string>
   cancelledReplies: Array<string>
   storesNotRestored: Array<string>
+  // follow-ups that could not be built or delivered, with why
+  failedFollowUps: Array<string>
 }
 export type EndReport = LeakReport & {teardown: FixtureDef['teardown']}
 export type VisualFixtures = {
@@ -110,6 +112,7 @@ type Active = {
   refused: Array<string>
   injecting: boolean
   followTimers: Set<ReturnType<typeof setTimeout>>
+  failedFollowUps: Array<string>
 }
 
 export const createRuntime = (deps: {
@@ -122,22 +125,42 @@ export const createRuntime = (deps: {
 }) => {
   let cur: Active | undefined
 
-  const deliver = (a: Active, payloads: ReadonlyArray<{method: string; param: (ctx: FixtureContext) => object}>) => {
+  type Payload = {method: string; param: object}
+  const build = (a: Active, defs: ReadonlyArray<{method: string; param: (ctx: FixtureContext) => object}>): Array<Payload> => {
+    const ctx = a.ctx()
+    return defs.map(d => ({method: d.method, param: d.param(ctx)}))
+  }
+  const deliver = (a: Active, payloads: ReadonlyArray<Payload>) => {
     a.injecting = true
     try {
-      for (const i of payloads) deps.inject({method: i.method, param: [i.param(a.ctx())]})
+      for (const p of payloads) deps.inject({method: p.method, param: [p.param]})
     } finally {
       a.injecting = false
     }
   }
 
-  // the def's follow-ups of an incoming call, on the next tick
+  // The def's follow-ups of an incoming call, delivered on the next tick. Their payloads are built
+  // now, in the incoming call: an error building or delivering them goes into end()'s report, never
+  // out of the engine's handler or a timer.
   const followUp = (a: Active, method: string) => {
     const due = (a.def.follow ?? []).filter(f => f.after === method)
     if (!due.length) return
+    const failed = (e: unknown) => a.failedFollowUps.push(`after ${method}: ${e instanceof Error ? e.message : String(e)}`)
+    let payloads: Array<Payload>
+    try {
+      payloads = build(a, due)
+    } catch (e) {
+      failed(e)
+      return
+    }
     const timer = setTimeout(() => {
       a.followTimers.delete(timer)
-      if (cur === a) deliver(a, due)
+      if (cur !== a) return
+      try {
+        deliver(a, payloads)
+      } catch (e) {
+        failed(e)
+      }
     }, 0)
     a.followTimers.add(timer)
   }
@@ -198,7 +221,7 @@ export const createRuntime = (deps: {
       const a = cur
       if (!a) throw new Error('afterReady with no fixture active')
       a.def.afterReady?.(deps.stores, a.ctx())
-      deliver(a, a.def.inject ?? [])
+      deliver(a, build(a, a.def.inject ?? []))
     },
     begin: (name, args) => {
       if (cur) throw new Error(`fixture ${cur.name} is still active`)
@@ -214,6 +237,7 @@ export const createRuntime = (deps: {
         answered: new Set(),
         ctx: () => ({args: frozenArgs, now: deps.now()}),
         def,
+        failedFollowUps: [],
         followTimers: new Set(),
         injecting: false,
         name,
@@ -243,7 +267,7 @@ export const createRuntime = (deps: {
         const now = deps.stores.get(key)
         if (snap.existed ? now?.getState() !== snap.state : now) storesNotRestored.push(key)
       }
-      return {cancelledReplies, refusedWrites: a.refused, storesNotRestored, teardown: a.def.teardown}
+      return {cancelledReplies, failedFollowUps: a.failedFollowUps, refusedWrites: a.refused, storesNotRestored, teardown: a.def.teardown}
     },
     served: () => !!cur && cur.def.rpc.every(r => !r.required || cur?.answered.has(r)),
     version: FIXTURE_RUNTIME_VERSION,

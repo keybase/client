@@ -125,7 +125,7 @@ test('stubs answer on a later tick, transforms rewrite the live answer, served w
     assert.equal(h.rt.fixtures.served(), true)
     // a read no rule names goes to the service untouched
     assert.equal(call(h.rt, 'a.1.x.getThing').handled, false)
-    assert.deepEqual(h.rt.fixtures.end(), {cancelledReplies: [], refusedWrites: [], storesNotRestored: [], teardown: 'remount'})
+    assert.deepEqual(h.rt.fixtures.end(), {cancelledReplies: [], failedFollowUps: [], refusedWrites: [], storesNotRestored: [], teardown: 'remount'})
     assert.equal(h.rt.fixtures.served(), false)
   } finally {
     h.restore()
@@ -243,6 +243,59 @@ test('a follow-up is delivered on the tick after each of its incoming calls, and
     h.restore()
   }
 })
+test("a follow-up whose payload throws is reported by end, and the incoming call it follows still passes", async () => {
+  const h = harness({
+    follow: [
+      {
+        after: 'a.1.x.thread',
+        method: 'a.1.x.status',
+        param: () => {
+          throw new Error('no conversationIDKey')
+        },
+      },
+    ],
+    rpc: [],
+    teardown: 'remount',
+  })
+  try {
+    h.begin()
+    const thread = {method: 'a.1.x.thread', param: [{sessionID: 1}]}
+    assert.equal(h.rt.rpc.incoming(thread, {customResponse: false, inSession: true}), thread)
+    await tick()
+    assert.deepEqual(h.injected, [])
+    assert.deepEqual(h.rt.fixtures.end().failedFollowUps, ['after a.1.x.thread: no conversationIDKey'])
+  } finally {
+    h.restore()
+  }
+})
+
+test('a follow-up the app fails to take is reported by end', async () => {
+  const name = 'device-last-used'
+  const saved = definitions[name]
+  ;(definitions as Record<string, FixtureDef>)[name] = {
+    follow: [{after: 'a.1.x.thread', method: 'a.1.x.status', param: () => ({})}],
+    rpc: [],
+    teardown: 'remount',
+  }
+  try {
+    const rt = createRuntime({
+      forget: () => {},
+      inject: () => {
+        throw new Error('handler threw')
+      },
+      install: () => {},
+      now: () => 1,
+      stores: {get: () => undefined},
+    })
+    rt.fixtures.begin(name, {})
+    rt.rpc.incoming({method: 'a.1.x.thread', param: [{sessionID: 1}]}, {customResponse: false, inSession: true})
+    await tick()
+    assert.deepEqual(rt.fixtures.end().failedFollowUps, ['after a.1.x.thread: handler threw'])
+  } finally {
+    ;(definitions as Record<string, FixtureDef>)[name] = saved
+  }
+})
+
 test('declared stores are put back: a store that existed gets its state, one made during the fixture goes', () => {
   const kept = store({recs: 'live'})
   const registry = new Map<StoreKey, StoreApi>([['tb:chat', kept]])
@@ -261,7 +314,7 @@ test('declared stores are put back: a store that existed gets its state, one mad
     assert.deepEqual(kept.state, {recs: 'cleared'})
     registry.set('tb:people', store({recs: 'fixture'}))
     h.rt.fixtures.afterReady()
-    assert.deepEqual(h.rt.fixtures.end(), {cancelledReplies: [], refusedWrites: [], storesNotRestored: [], teardown: 'remount'})
+    assert.deepEqual(h.rt.fixtures.end(), {cancelledReplies: [], failedFollowUps: [], refusedWrites: [], storesNotRestored: [], teardown: 'remount'})
     assert.deepEqual(kept.state, {recs: 'live'})
     assert.equal(registry.has('tb:people'), false)
   } finally {

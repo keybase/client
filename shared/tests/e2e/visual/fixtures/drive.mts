@@ -13,11 +13,13 @@ export const fixtureArgs = async (f: EntryFixture, run: CliRunner = runCli) =>
   (await resolveValue(f.args ?? {}, run)) as Record<string, unknown>
 
 // A fixture that refused a write, ended with replies still owed, or could not put a store back
-// leaves the app in a state no live capture may follow.
+// leaves the app in a state no live capture may follow; one whose follow-ups failed drew something
+// other than what it describes.
 export const leakProblems = (name: string, r: EndReport): Array<string> => [
   ...r.refusedWrites.map(m => `fixture ${name} refused the write ${m}`),
   ...r.cancelledReplies.map(m => `fixture ${name} ended before answering ${m}`),
   ...r.storesNotRestored.map(k => `fixture ${name} did not put store ${k} back`),
+  ...r.failedFollowUps.map(f => `fixture ${name} failed a follow-up ${f}`),
 ]
 
 // What a driver gives the fixture lifecycle.
