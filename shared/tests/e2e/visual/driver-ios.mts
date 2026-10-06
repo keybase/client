@@ -17,6 +17,7 @@ import {
   settle,
   waitFor,
   waitForQuiet,
+  waitsAtTabRoot,
   withDeadline,
   type Capture,
 } from './driver-desktop.mts'
@@ -470,24 +471,32 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     await appEval(`${ROUTER} r.switchTab(${JSON.stringify(tab)})`, `switching to ${tab}`)
     await waitFor(`tab ${tab} to be current`, RESET_MS, async () => (await routerAt()).tab === tab)
   }
-  // The glass tab bar's rendering depends on which tab was selected before (seen live: files after
-  // chat differs from files after teams), so every capture arrives from the same tab.
-  // The target is visited and popped to its root before that hop, so that:
-  // - a screen an earlier capture pushed is popped on its own tab (popped under the capture, its
-  //   pop would change how the tab bar draws);
+  // A capture goes to its tab's root, then hops to another tab and back:
+  // - the glass tab bar's rendering depends on which tab was selected before (seen live: files
+  //   after chat differs from files after teams), so every capture arrives from the same tab;
+  // - a screen an earlier capture pushed is popped on its own tab, before the hop (popped under the
+  //   capture, its pop would change how the tab bar draws);
   // - the capture is never the first visit of the tab's screen: the native header lays its title
-  //   out a fraction of a pixel off on a screen's first visit, and a visit before the hop makes
-  //   every capture a later one, whatever remounted the screen since warmTabs.
-  const resetTo = async (tab: string) => {
+  //   out a fraction of a pixel off on a screen's first visit, and the visit before the hop makes
+  //   every capture a later one. A remount (a fixture's) starts every tab's visits over, so a
+  //   fixture capture visits every tab again after its remount (warmTabs) before the hop: a lone
+  //   hop right after the remount left the native tab bar on the hop tab while the router had
+  //   switched back, and the next push hung the app.
+  // The switch back settles on screen before the capture goes on: a tab root captured right after
+  // it drew its header title and the tab bar a little differently from one captured later.
+  const toTabRoot = async (tab: string) => {
     await appEval(`${ROUTER} r.clearModals()`, 'clearModals')
     await appEval(`${ROUTER} r.popStack()`, 'popStack')
     await waitFor('the current tab to be at its root', RESET_MS, async () => (await routerAt()).atRoot)
     await switchTo(tab)
     await appEval(`${ROUTER} r.popStack()`, 'popStack')
     await waitFor(`the root of ${tab}`, RESET_MS, async () => (await routerAt()).atRoot)
+  }
+  const hopBack = async (tab: string) => {
     await switchTo(tab === HOP_TAB ? HOP_TAB_ALT : HOP_TAB)
     await settle(screenshot, SETTLE)
     await switchTo(tab)
+    await settle(screenshot, SETTLE)
   }
 
   // The app follows the system appearance while its preference is 'system'. Any other preference
@@ -642,7 +651,8 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
   // Screens mounted before Date was fixed (the restored tab, anything memoized at boot) rendered
   // with the real time. Resetting the navigation root to its own state without route keys gives
   // every route a new key, so every screen remounts under the fixed Date. Checked: no host view
-  // in a screen that carried a testID before the reset is still mounted after it.
+  // in a screen that carried a testID before the reset is still mounted after it. Then what the
+  // remounted screens load settles.
   const remountScreens = async () => {
     const before = await appEval<number>(
       `${HOSTS_WITH_TESTID}
@@ -672,6 +682,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     })
     await appEval('delete globalThis.__kbVisualBeforeRemount', 'clearing the remount check')
     await waitForRuntime(false)
+    await waitForNoLoading()
   }
 
   const coverageVisible = async () => appEval<Array<string> | null>(VISIBLE_SITES, 'reading the visible coverage marks')
@@ -709,8 +720,6 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     frozenAt = p.frozenAt
     await applyLight()
     await remountScreens()
-    // what the remounted app starts loading settles before warmTabs and the first capture
-    await waitForNoLoading()
     const now = await appEval<number>('return Date.now()', 'reading Date.now')
     if (now !== p.frozenAt) throw new Error(`Date is not fixed in the app: Date.now() is ${now}, wanted ${p.frozenAt}`)
     await warmTabs()
@@ -750,15 +759,19 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     try {
       if (!prepared) throw new Error('capture called before prepare')
       await fixture.assertNoneActive()
-      await resetTo(entry.nav.tab)
-      // the tab root's own loads finish before the entry navigates from it; a fixture is installed
-      // on this idle app
-      await waitForNoLoading()
+      const {tab} = entry.nav
+      await toTabRoot(tab)
       if (entry.fixture) {
-        // every screen remounts so none keeps live data
+        // installed on an idle app; then every screen remounts so none keeps live data, and the
+        // visits come after the remount
+        await waitForNoLoading()
         await fixture.begin()
         await remountScreens()
+        await warmTabs()
       }
+      await hopBack(tab)
+      // the tab root's own loads finish before the entry navigates from it
+      if (waitsAtTabRoot(entry)) await waitForNoLoading()
       const nav = await resolveParams(entry.nav)
       const append = nav.append
       if (append) {

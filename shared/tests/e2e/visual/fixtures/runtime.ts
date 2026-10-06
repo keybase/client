@@ -10,7 +10,8 @@
 //   active()           whether a fixture is installed
 // While a fixture is active, an RPC whose name says it writes (post, set, send, delete, create, add,
 // remove, mark) and that no rule answers is refused rather than sent, apart from the few local UI
-// writes navigation makes (localWrites).
+// writes navigation makes (localWrites), and the writes leaving a screen makes (focusWrites), which
+// are answered here.
 import {FIXTURE_RUNTIME_VERSION, FIXTURES, isFixtureName, type FixtureName} from './names.ts'
 import type {FixtureContext, FixtureDef, RpcRule, StoreApi, StoreKey, Stores} from './def.ts'
 import {chatThreadContent} from './chat-thread.ts'
@@ -82,6 +83,11 @@ const localWrites: ReadonlyArray<{method: string; allows: (param: unknown) => bo
   {allows: p => (p as {path?: string} | undefined)?.path === 'ui.routeState2', method: 'keybase.1.config.guiSetValue'},
 ]
 export const isLocalWrite = (method: string, param: unknown) => localWrites.some(w => w.method === method && w.allows(param))
+
+// Writes the app makes on its own when a screen loses focus, which an iOS fixture capture's hop to
+// another tab and back causes: answered here, empty, and never sent to the service.
+//   homeMarkViewed  the people screen, on blur (people/container.tsx)
+export const focusWrites: ReadonlySet<string> = new Set(['keybase.1.home.homeMarkViewed'])
 
 // Whether a method's name says it writes: a write verb as one of the camel-case words of its last
 // part (teamAddMember, simpleFSRemove; getSettings is a read).
@@ -203,6 +209,14 @@ export const createRuntime = (deps: {
       const a = cur
       if (!a) return false
       const rule = a.def.rpc.find(r => r.method === call.method)
+      if (!rule && focusWrites.has(call.method)) {
+        const timer = setTimeout(() => {
+          a.pending.delete(timer)
+          call.reply(undefined, undefined)
+        }, 0)
+        a.pending.set(timer, {method: call.method, reply: call.reply})
+        return true
+      }
       if (!rule) {
         if (!isWriteMethod(call.method) || isLocalWrite(call.method, call.param)) return false
         a.refused.push(call.method)

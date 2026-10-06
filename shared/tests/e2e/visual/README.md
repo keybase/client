@@ -91,8 +91,9 @@ pinned:
   (`scrollToIndex` on the row holding it):
   Appium's `mobile: scroll` gives up on the inverted chat thread. `close` clears the status bar override; the app keeps the
   accessibility settings until its next launch.
-- Each entry waits for the waiting store to be idle for 500ms at its tab root before it navigates
-  (so the tab under a modal has loaded), and again after its `ready` testID shows.
+- An entry that leaves its tab root (append, thread), acts on it (setup) or has a fixture waits
+  for the waiting store to be idle for 500ms at the root first (so the tab under a modal has
+  loaded); every entry waits again after its `ready` testID shows.
 
 ## Other windows
 
@@ -140,20 +141,23 @@ entry's ready state shows or right after an incoming call (`follow`: coin flip s
 thread is in, so a setup step can reach them), hold the service's notifications, and set stores
 directly. Prompts that
 need an answer always pass. An RPC whose name says it writes (post, set, send, delete, create, add,
-remove, mark) that no rule answers is refused.
+remove, mark) that no rule answers is refused, apart from a write the app makes when a screen loses
+focus (the people screen's `homeMarkViewed`, which an iOS capture's tab hop causes): that is
+answered empty and never reaches the service.
 
 Per fixture entry the driver resets to the tab, waits for an idle app, begins the fixture, remounts
-every screen (so none keeps live data), navigates, runs the setup, waits for `ready` (a testID only
-the fixture's data draws) and for every rule the fixture needs to have answered, runs its afterReady,
-and captures. `end()` runs whatever happened: it puts the fixture's stores back and reports a
-refused write, a reply still owed, a rewrite that threw (live data without what the fixture
-builds on, like a thread page with no message of the account's) or a store it could not restore,
-any of which fails the capture.
-Then every screen remounts again (or the app reloads, if the fixture says so). Every capture first
-checks that no fixture is active, and fixture entries run after every live entry
-(`fixtureOrderProblems`, in `yarn visual:unit`). A base records a hash of each fixture's definition;
-`check` refuses when it changed since, and `base` refuses a base commit whose fixture runtime
-speaks another version than the driver (`FIXTURE_RUNTIME_VERSION`).
+every screen (so none keeps live data) and waits for what they load (on iOS it then visits every tab
+and hops back to the entry's, so the capture is not the remounted screen's first visit), navigates,
+runs the setup, waits for `ready` (a testID only the fixture's data draws) and for every rule the
+fixture needs to have answered, runs its afterReady, and captures. `end()` runs whatever happened:
+it puts the fixture's stores back and reports a refused write, a reply still owed, a rewrite that
+threw (live data without what the fixture builds on, like a thread page with no message of the
+account's) or a store it could not restore, any of which fails the capture. Then every screen
+remounts again (or the app reloads, if the fixture says so). Every capture first checks that no
+fixture is active, and fixture entries run after every live entry (`fixtureOrderProblems`, in `yarn
+visual:unit`). A base records a hash of each fixture's definition; `check` refuses when it changed
+since, and `base` refuses a base commit whose fixture runtime speaks another version than the driver
+(`FIXTURE_RUNTIME_VERSION`).
 
 ## Coverage
 
