@@ -123,7 +123,7 @@ const AssertionRow = (props: {assertion: T.Tracker.Assertion}) => {
     <Kb.Box2 direction="vertical" fullWidth={true} noShrink={true} style={styles.assertionRow}>
       <Kb.Box2 alignItems="flex-start" direction="horizontal" gap="tiny" fullWidth={true} gapStart={true} gapEnd={true}>
         {iconSet.length > 0 && (
-          <Kb.Box2 alignSelf="center"
+          <Kb.Box2
             direction="vertical"
             style={Kb.Styles.collapseStyles([
               styles.siteIcon,
@@ -206,7 +206,7 @@ const Tracker = (props: Props) => {
         <Kb.Icon type="iconfont-close" color={theme.black_20} onClick={props.onClose} style={styles.close} />
       </Kb.Box2>
       <Kb.ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
-        <Kb.Box2 alignSelf="center" direction="vertical">
+        <Kb.Box2 direction="vertical">
           <Kb.Text type="BodySmallSemibold" style={styles.reasonInvisible}>
             {props.reason}
           </Kb.Text>
@@ -260,7 +260,6 @@ const Tracker = (props: Props) => {
       </Kb.ScrollView>
       {!!buttons.length && (
         <Kb.Box2
-          alignSelf="center"
           gap="small"
           centerChildren={true}
           direction="horizontal"

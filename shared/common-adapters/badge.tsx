@@ -64,7 +64,7 @@ function Badge(p: Badge2Props) {
     return badge
   }
   return (
-    <Kb.Box2 alignSelf="center"
+    <Kb.Box2
       direction="vertical"
       pointerEvents="none"
       centerChildren={true}

@@ -44,7 +44,6 @@ const Pinentry = (props: Props) => {
         </Kb.Text>
         {isPaperKey && <Kb.ImageIcon type="icon-paper-key-48" style={styles.paperKeyIcon} />}
         <Kb.Box2
-          alignSelf="center"
           direction="vertical"
           fullWidth={true}
           gap="tiny"

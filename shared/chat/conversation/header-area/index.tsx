@@ -394,8 +394,8 @@ const ChannelHeader = (props: HeaderConversationProps & {teamname: string; chann
   const maxWidthStyle = useMaxWidthStyle(conversationIDKey)
 
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" style={maxWidthStyle}>
-      <Kb.Box2 direction="horizontal" alignItems="center" alignSelf="center" style={styles.channelHeaderContainer}>
+    <Kb.Box2 direction="vertical" style={maxWidthStyle}>
+      <Kb.Box2 direction="horizontal" alignItems="center" style={styles.channelHeaderContainer}>
         <Kb.Avatar
           teamname={teamname || undefined}
           size={16}

@@ -292,7 +292,7 @@ const RoleSelector = ({disabledRoles, memberCount, updateWizard, wizard}: RoleSe
     updateWizard(setWizardRole(wizard, newRole))
   }
   return (
-    <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny" alignItems="center">
+    <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center">
       <Kb.Text type="BodySmall">Invite as: </Kb.Text>
       <FloatingRolePicker<true>
         open={showingMenu}

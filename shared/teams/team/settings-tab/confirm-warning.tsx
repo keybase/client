@@ -35,7 +35,7 @@ const ConfirmWarning = (props: Props) => {
         style={styles.checkbox}
         label=""
         labelComponent={
-          <Kb.Box2 alignSelf="center" direction="vertical" alignItems="flex-start" style={styles.label}>
+          <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.label}>
             {props.checkboxLabel}
           </Kb.Box2>
         }

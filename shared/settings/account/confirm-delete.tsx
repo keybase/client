@@ -61,7 +61,7 @@ const DeleteModal = (props: OwnProps) => {
 
   const prompt =
     itemType === 'email' ? (
-      <Kb.Box2 alignSelf="center" direction="vertical" alignItems="center">
+      <Kb.Box2 direction="vertical" alignItems="center">
         <Kb.Text type="HeaderBig">Delete email</Kb.Text>
         <Kb.Text type="HeaderBig">{props.address}?</Kb.Text>
       </Kb.Box2>

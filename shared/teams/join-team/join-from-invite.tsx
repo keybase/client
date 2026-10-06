@@ -127,7 +127,7 @@ const JoinFromInviteInner = ({inviteDetails: initialInviteDetails, inviteID = ''
         gap="xtiny"
         style={styles.body}
       >
-        <Kb.Box2 alignSelf="center" direction="vertical" style={styles.avatar}>
+        <Kb.Box2 direction="vertical" style={styles.avatar}>
           <Kb.Avatar
             size={96}
             teamname={teamname}

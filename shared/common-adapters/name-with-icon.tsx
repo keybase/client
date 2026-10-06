@@ -121,7 +121,7 @@ export const NameWithIcon = (props: NameWithIconProps) => {
     )
   } else if (props.icon) {
     avatarOrIcon = (
-      <Box2 alignSelf="center" direction="vertical" style={props.iconBoxStyle}>
+      <Box2 direction="vertical" style={props.iconBoxStyle}>
         <IconAuto
           type={props.icon}
           style={

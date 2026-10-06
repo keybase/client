@@ -504,7 +504,7 @@ const ExplodingButton = function ExplodingButton(p: ExplodingButtonProps) {
       ])}
     >
       {popup}
-      <Kb.Box2 alignSelf="center"
+      <Kb.Box2
         direction="vertical"
         alignItems="center"
         style={desktopStyles.explodingInsideWrapper}
@@ -843,7 +843,7 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
                 type="Dim"
               />
             )}
-            <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} overflow="hidden" style={desktopStyles.inputBox}>
+            <Kb.Box2 direction="horizontal" flex={1} overflow="hidden" style={desktopStyles.inputBox}>
               <DesktopInput
                 allowKeyboardEvents={true}
                 disabled={cannotWrite}
@@ -1006,7 +1006,7 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
   }
 
   const explodingIcon = !isEditing && !cannotWrite && (
-    <Kb.ClickableBox alignSelf="center" direction="vertical" centerChildren={true} style={nativeStyles.explodingWrapper} onClick={toggleShowingMenu}>
+    <Kb.ClickableBox direction="vertical" centerChildren={true} style={nativeStyles.explodingWrapper} onClick={toggleShowingMenu}>
       {isExploding ? (
         <Kb.Box2 direction="horizontal" style={nativeStyles.exploding} centerChildren={true}>
           <Kb.Text type="BodyTinyBold" negative={true} style={nativeStyles.explodingText}>

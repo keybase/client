@@ -43,7 +43,7 @@ const VerifyBody = (props: BodyProps) => {
         direction="vertical"
         relative={true}
       >
-        <Kb.Box2 alignSelf="center"
+        <Kb.Box2
           alignItems="center"
           direction="horizontal"
           gap="tiny"

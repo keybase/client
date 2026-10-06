@@ -76,7 +76,7 @@ function CoinFlipContainer() {
   const {showPopup, hidePopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const statusText = showParticipants ? (
-    <Kb.Box2 alignSelf="center" direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor} testID={TestIDs.CHAT_COINFLIP_PARTICIPANTS}>
+    <Kb.Box2 direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor} testID={TestIDs.CHAT_COINFLIP_PARTICIPANTS}>
       {!isMobile && (
         <Kb.Text selectable={true} type="BodySmall">
           Secured by{' '}
@@ -88,7 +88,7 @@ function CoinFlipContainer() {
       {popup}
     </Kb.Box2>
   ) : (
-    <Kb.Box2 alignSelf="center" direction="vertical">
+    <Kb.Box2 direction="vertical">
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
         <Kb.Text selectable={true} type="BodySmallSemibold">
           {!isMobile && 'Collecting '}commitments: {numParticipants}
@@ -121,21 +121,21 @@ function CoinFlipContainer() {
       ) : (
         <>
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-            <Kb.Box2 alignSelf="center" direction="vertical">
+            <Kb.Box2 direction="vertical">
               {(commitmentVis?.length ?? 0) > 0 ? (
                 <Kb.Image src={commitSrc} style={styles.progressVis} />
               ) : (
-                <Kb.Box2 alignSelf="center"
+                <Kb.Box2
                   direction="vertical"
                   style={Kb.Styles.collapseStyles([styles.placeholder, styles.progressVis])}
                 />
               )}
             </Kb.Box2>
-            <Kb.Box2 alignSelf="center" direction="vertical">
+            <Kb.Box2 direction="vertical">
               {(revealVis?.length ?? 0) > 0 && phase !== T.RPCChat.UICoinFlipPhase.commitment ? (
                 <Kb.Image src={revealSrc} style={styles.progressVis} />
               ) : (
-                <Kb.Box2 alignSelf="center"
+                <Kb.Box2
                   direction="vertical"
                   style={Kb.Styles.collapseStyles([styles.placeholder, styles.progressVis])}
                 />

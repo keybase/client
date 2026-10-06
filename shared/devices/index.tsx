@@ -126,7 +126,7 @@ function ReloadableDevices() {
       <NewItemsContext value={badged}>
         <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} relative={true} testID={TestIDs.DEVICES_LIST}>
           {isMobile ? (
-            <Kb.ClickableBox alignSelf="center" onClick={() => onAddDevice()} direction="horizontal" centerChildren={true} relative={true} style={styles.mobileAddHeader}>
+            <Kb.ClickableBox onClick={() => onAddDevice()} direction="horizontal" centerChildren={true} relative={true} style={styles.mobileAddHeader}>
               <Kb.Button label="Add a device or paper key" fullWidth={true} />
               <Kb.LoadingOverlay show={waiting} />
             </Kb.ClickableBox>

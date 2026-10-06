@@ -212,7 +212,7 @@ const DesktopDragLine = (p: {
               <Kb.Box2 alignSelf="center" direction="horizontal" style={desktopStyles.grabberLine} />
             </Kb.Box2>
           </div>
-          <Kb.Box2 alignSelf="center" direction="vertical" style={desktopStyles.spacer} />
+          <Kb.Box2 direction="vertical" style={desktopStyles.spacer} />
         </>
       )}
       <ConnectedTeamsDivider

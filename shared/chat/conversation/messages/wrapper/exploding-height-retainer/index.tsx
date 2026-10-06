@@ -76,7 +76,7 @@ const DesktopExplodingHeightRetainer = (p: Props) => {
   }, [])
 
   return (
-    <Kb.Box2 alignSelf="center"
+    <Kb.Box2
       direction="vertical"
       style={Kb.Styles.collapseStyles([
         styles.container,

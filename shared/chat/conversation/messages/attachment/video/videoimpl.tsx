@@ -27,7 +27,7 @@ const FullscreenButton = ({onClick}: {onClick: () => void}) => {
   const sharedStyles = useSharedStyles()
   const theme = Kb.Styles.useTheme()
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" style={sharedStyles.fullscreenButton}>
+    <Kb.Box2 direction="vertical" style={sharedStyles.fullscreenButton}>
       <Kb.Icon
         type="iconfont-app-maximize"
         color={theme.white}
@@ -192,7 +192,7 @@ const NativeVideoImpl = (p: Props) => {
           style={nativeStyles.pressable}
           onLongPress={showPopup}
         >
-          <Kb.Box2 alignSelf="center"
+          <Kb.Box2
             direction="vertical"
             style={Kb.Styles.collapseStyles([nativeStyles.posterContainer, {height, width}])}
           >

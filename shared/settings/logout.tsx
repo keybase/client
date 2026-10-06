@@ -124,7 +124,7 @@ const LogoutContainer = () => {
               {loggingOut ? (
                 <Kb.ProgressIndicator style={styles.smallProgress} type="Small" />
               ) : (
-                <Kb.ClickableBox alignSelf="center"
+                <Kb.ClickableBox
                   onClick={logOut}
                   direction="horizontal"
                   justifyContent="center"

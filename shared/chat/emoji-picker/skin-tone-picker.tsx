@@ -45,7 +45,7 @@ function SkinTonePicker(props: Props) {
     onExpandChange?.(toSet)
   }
   const optionSkinTones = reorderedSkinTones(currentSkinTone).map((skinTone, index) => (
-    <Kb.ClickableBox alignSelf="center"
+    <Kb.ClickableBox
       direction="vertical"
       key={index.toString()}
       style={styles.dotContainerExpanded}

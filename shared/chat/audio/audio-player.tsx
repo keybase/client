@@ -99,13 +99,13 @@ const AudioPlayer = (props: Props) => {
 
   const timeLeft = duration - playedRatio * duration
   return (
-    <Kb.Box2 alignSelf="center"
+    <Kb.Box2
       direction="horizontal"
       style={Kb.Styles.collapseStyles([styles.container, {height: big ? 56 : 40}])}
       testID={TestIDs.CHAT_AUDIO_PLAYER}
       gap="tiny"
     >
-      <Kb.ClickableBox alignSelf="center" direction="vertical" justifyContent="center" onClick={url ? onClick : undefined}>
+      <Kb.ClickableBox direction="vertical" justifyContent="center" onClick={url ? onClick : undefined}>
         {isIOS ? (
           <SFSymbol
             name={paused ? 'play.fill' : 'pause.fill'}

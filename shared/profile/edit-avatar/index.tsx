@@ -153,7 +153,7 @@ const DesktopEditAvatar = (_p: Props) => {
           </Kb.Text>{' '}
           for one.
         </Kb.Text>
-        <Kb.ClickableBox alignSelf="center"
+        <Kb.ClickableBox
           direction="vertical"
           className={Kb.Styles.classNames('hoverbox', {filled: loading !== 'loaded'})}
           onClick={!loading ? filePickerOpen : undefined}
