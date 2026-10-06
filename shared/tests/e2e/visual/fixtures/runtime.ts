@@ -169,14 +169,14 @@ export const createRuntime = (deps: {
     a.followTimers.add(timer)
   }
 
-  // A rule's rewrite of live data; one that throws is reported by end(), never thrown into the
-  // engine, and the data goes on as it was.
-  const rewrite = <T,>(a: Active, method: string, data: T, f: () => T): T => {
+  // A rule's rewrite of live data, or undefined when it threw: that is reported by end(), never
+  // thrown into the engine, and the caller passes the data on as it was.
+  const rewrite = <T,>(a: Active, method: string, f: () => T): {value: T} | undefined => {
     try {
-      return f()
+      return {value: f()}
     } catch (e) {
       a.failedTransforms.push(`${method}: ${e instanceof Error ? e.message : String(e)}`)
-      return data
+      return undefined
     }
   }
 
@@ -188,8 +188,9 @@ export const createRuntime = (deps: {
       const t = a.def.incoming?.find(r => r.method === payload.method)
       if (t) {
         const [first, ...rest] = payload.param
-        const param = rewrite(a, payload.method, first ?? {}, () => t.transform(first ?? {}, a.ctx()))
-        return {...payload, param: [{...param, sessionID: first?.sessionID}, ...rest]}
+        const r = rewrite(a, payload.method, () => t.transform(first ?? {}, a.ctx()))
+        if (!r) return payload
+        return {...payload, param: [{...r.value, sessionID: first?.sessionID}, ...rest]}
       }
       if (a.def.hold && !how.inSession) {
         // answered as the engine would answer a notification, then dropped
@@ -225,7 +226,8 @@ export const createRuntime = (deps: {
           return
         }
         a.answered.add(rule)
-        call.reply(undefined, rewrite(a, call.method, result, () => rule.transform(result, call.param, a.ctx())))
+        const r = rewrite(a, call.method, () => rule.transform(result, call.param, a.ctx()))
+        call.reply(undefined, r ? r.value : result)
       })
       return true
     },
