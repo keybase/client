@@ -113,7 +113,11 @@ const useStyles = Styles.createStyleHook(
   theme =>
     ({
       blueText: {color: theme.blueDark, paddingRight: Styles.globalMargins.xtiny},
-      button: Styles.platformStyles({isElectron: {width: 'auto'}}),
+      // the label is children, so the button would get the icon-only fixed width
+      button: Styles.platformStyles({
+        isElectron: {width: 'auto'},
+        isMobile: {...Styles.paddingH(Styles.globalMargins.small), width: 'auto'},
+      }),
       hiddenButton: {opacity: 0},
       waved: {
         ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small, Styles.globalMargins.xtiny),
