@@ -41,7 +41,8 @@ export const transform = <M extends Method>(
 // (`tb:<namespace>`), or a store registered under an HMR key (`z:<key>`, util/zustand.tsx). The
 // runtime snapshots each at begin and puts it back at end.
 export type StoreKey = `tb:${T.TB.AllowedNamespace}` | `z:${string}`
-export type StoreApi = {getState: () => unknown; setState: (s: unknown, replace: true) => void}
+// zustand's: setState merges `s` into the state, or replaces the state with it when `replace`
+export type StoreApi = {getState: () => unknown; setState: (s: unknown, replace?: boolean) => void}
 export type Stores = {get: (key: StoreKey) => StoreApi | undefined}
 
 export type FixtureDef = {

@@ -303,7 +303,7 @@ const threadContentEntry = (id: string, at: ReadonlyArray<SetupStep>, ready: str
 })
 const fixtureEntries: Array<TourEntry> = [
   // Debug overlays over a screen whose content never moves: the git tab, the phone's settings list.
-  // Desktop dismisses the error bar 10s after it shows, well after the capture.
+  // The global-error fixture keeps the error bar up past desktop's 10s auto-dismiss.
   ...(['global-error', 'runtime-stats'] as const).flatMap((name): Array<TourEntry> => {
     const ready = name === 'global-error' ? T.GLOBAL_ERROR : T.RUNTIME_STATS
     return [
