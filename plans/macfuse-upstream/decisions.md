@@ -128,3 +128,11 @@ Settled in the 2026-10-06 grilling session.
   - Before each removal, check the mount table (03's safety guard).
   - **Supersedes** D41's single-user scope.
 - **D47 — Keep the bundled helper copy until D42.** The installer keeps shipping its bundled helper copy until the D42 cleanup. The retirement talks to the already-installed helper, so dropping the copy now gains nothing, and keeping it keeps `.pbxproj` edits off this branch.
+- **D48 — Project-file edits are allowed on this branch (narrows D47).**
+  - **Allowed:** `.pbxproj` edits, e.g. removing `Fuse.icns` and its credit, and KBKit project references to deleted files.
+  - **Unchanged:** D47 still holds for the bundled helper copy. Its Copy Files phase, target and Podfile line stay until D42.
+- **D49 — Corrects D45: try the old unprivileged swap first.**
+  - **When:** renaming `/Applications/Keybase.app` fails.
+  - **First:** the updater does what the old `KBAppBundle` path did, as the user: verify the signature, then swap `Keybase.app/Contents` in place. This now lives in Go next to the updater.
+  - **Only if that also fails:** show the D28/D45 one-time admin prompt.
+  - **Why:** the old fallback never ran as root; it went through the helper only because the `app` component required it. Users who update today with no prompt must keep doing so.

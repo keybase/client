@@ -2,7 +2,7 @@
 
 ## Goal
 
-Stop shipping Keybase's white-labeled kbfuse driver on macOS. Users who want KBFS in Finder install stock macFUSE 5.x (kext mode) from https://macfuse.io themselves; the app only links there and tells them how to allow the kext. KBFS and the in-app Files tab keep working without it. The `/keybase` redirector and the root helper go away: nothing can install the helper any more, and upgraders' helper, kbfuse and old redirector/mount directories are removed once, using methods the installed helper 1.0.47 already has (D1, D6, D7, D25, D29, D38, D40, D41, D46). The updater's privileged fallback becomes a one-time admin prompt (D45).
+Stop shipping Keybase's white-labeled kbfuse driver on macOS. Users who want KBFS in Finder install stock macFUSE 5.x (kext mode) from https://macfuse.io themselves; the app only links there and tells them how to allow the kext. KBFS and the in-app Files tab keep working without it. The `/keybase` redirector and the root helper go away: nothing can install the helper any more, and upgraders' helper, kbfuse and old redirector/mount directories are removed once, using methods the installed helper 1.0.47 already has (D1, D6, D7, D25, D29, D38, D40, D41, D46). When the updater cannot rename the app, it swaps the bundle's `Contents` in place as the user, as the old helper-era path did, now in Go (D49), and shows a one-time admin prompt only if that fails (D45).
 
 - Worktree: `$GOPATH/src/github.com/keybase/client-macfuse`
 - Branch: `nojima/macfuse-upstream` (off `master`, base `6b06505404`)
@@ -13,14 +13,14 @@ Stop shipping Keybase's white-labeled kbfuse driver on macOS. Users who want KBF
 |---|---|---|
 | 00 | [00-macfuse-facts.md](00-macfuse-facts.md) | ✓ reference (no code) |
 | 01 | [01-mounter.md](01-mounter.md) — mount on stock macFUSE, drop darwin redirector, mount point; **spike gate** | not started |
-| 02 | [02-install-status-cli.md](02-install-status-cli.md) — status, install, CLI, D27 marker, D28 CLI prompt shared with the updater's D45 rename prompt, D29 retirement, no `app` component (D38) | not started |
-| 03 | [03-osx-packaging.md](03-osx-packaging.md) — delete kbfuse and every helper install path (D38), `--retire-helper` with D40 and every-account D41/D46 cleanup, helper copy kept and no `.pbxproj` edits (D47), release gate | not started |
+| 02 | [02-install-status-cli.md](02-install-status-cli.md) — status, install, CLI, D27 marker, D28 CLI prompt shared with the updater's rename fallback (D49 unprivileged `Contents` swap first, D45 prompt only if it fails), D29 retirement, no `app` component (D38) | not started |
+| 03 | [03-osx-packaging.md](03-osx-packaging.md) — delete kbfuse and every helper install path (D38), `--retire-helper` with D40 and every-account D41/D46 cleanup, stale KBKit project refs, `Fuse.icns` and its credit removed (D48), helper copy kept (D47), release gate | not started |
 | 04 | [04-ui.md](04-ui.md) — macFUSE states, approval help, Settings switch with no off-confirm (D43), "Install command line tool" button (D39) | not started |
 | 05 | [05-docs-audit.md](05-docs-audit.md) — docs, `CHANGELOG.txt` entry (D44), grep gate | not started |
 
 Later, separate effort: [fskit-future.md](fskit-future.md) (our own FSKit module, D8).
 
-Decisions: [decisions.md](decisions.md) is authoritative and append-only. D25–D37 supersede parts of D11, D12, D14–D16 and D20. D38–D44 answer the owner questions the reconciled specs raised; D45–D47 answer the next three (updater fallback, other accounts' mount dirs, bundled helper copy).
+Decisions: [decisions.md](decisions.md) is authoritative and append-only. D25–D37 supersede parts of D11, D12, D14–D16 and D20. D38–D44 answer the owner questions the reconciled specs raised; D45–D47 answer the next three (updater fallback, other accounts' mount dirs, bundled helper copy). D48 allows `.pbxproj` edits except the bundled helper copy, and D49 corrects D45: the updater tries the unprivileged `Contents` swap before any prompt.
 
 ## Next step
 
@@ -53,7 +53,7 @@ Run the spike in `01-mounter.md`:
 ## How to resume
 
 1. Read this README.
-2. Read `decisions.md` in full (D1–D47; D25 onward change a lot).
+2. Read `decisions.md` in full (D1–D49; D25 onward change a lot).
 3. Read the spec of the first layer whose status is not ✓, then its Log.
 4. Check the worktree: `git -C $GOPATH/src/github.com/keybase/client-macfuse status` and `git log --oneline master..`.
 
@@ -61,11 +61,11 @@ Run the spike in `01-mounter.md`:
 
 Collected from the specs' Risks sections (not spike questions). Each spec states the default it assumes until answered.
 
-- **Updater rename fallback: try without a prompt first? (02, from D45).** The old `app` fallback did not move the bundle as root. It swapped `Keybase.app/Contents` in place as the user, after a signature check (`KBAppBundle.m:80-113`), so upgraders whose helper was already installed updated with no prompt. D45 as written prompts on every update that hits the rename failure. Try the unprivileged, signature-checked `Contents` swap first and prompt only if it fails, or always prompt (default, D45 as written)?
+- None. (The updater-fallback question is answered by D49.)
 
 ## Follow-ups after ship (not on this branch)
 
-- **D42:** one or two releases after this ships, delete `osx/Helper/` and stop bundling the helper in `KeybaseInstaller` (Copy Files phase, `osx/Keybase.xcodeproj/project.pbxproj:25,94`, the `keybase.Helper` target, `project.pbxproj:524`, and `osx/Podfile:30`), all kept on this branch by D47. Also remove `osx/Resources/Fuse.icns` with its `Keybase.xcodeproj` references (`:14,104,244,766`) and the `osx/Resources/README.md:3` credit, plus the stale `KBFuseComponent`/`KBRedirector`/`KBCommandLine`/`KBAppBundle` references in `osx/KBKit/KBKit.xcodeproj/project.pbxproj` that 03 leaves behind (D47). Nothing will be left that can talk to an installed helper, so decide then what happens to `--retire-helper` and Go's `retireLegacyHelper` for anyone who still has not upgraded.
+- **D42:** one or two releases after this ships, delete `osx/Helper/` and stop bundling the helper in `KeybaseInstaller`: the Copy Files phase (`osx/Keybase.xcodeproj/project.pbxproj:88-96`, build file `:25`, Installer phase list `:585`), the `keybase.Helper` target (`:522-538`) with its other project references, and `osx/Podfile:30`, all kept on this branch by D47. (`Fuse.icns`, its credit and the stale KBKit project references are removed on this branch, D48.) Nothing will be left that can talk to an installed helper, so decide then what happens to `--retire-helper` and Go's `retireLegacyHelper` for anyone who still has not upgraded.
 - **D26:** drop `kbfuse` from the KBFS fstype list once the legacy removal has had time to run.
 
 ## Spike results
