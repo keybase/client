@@ -9,6 +9,7 @@ import {useIsBigTeam, useLoadedTeamChannels} from './use-loaded-team-channels'
 import {useChannelSelectionState, useTeamSelectionState} from './selection-state'
 import {useLoadedTeam} from '../team/use-loaded-team'
 import {pluralize} from '@/util/string'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type UnselectableTab = string
 type TeamSelectableTab = 'teamMembers' | 'teamChannels'
@@ -89,6 +90,7 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
       ])}
       gap={Kb.Styles.isPhone ? 'tiny' : undefined}
       className="selectionPopup"
+      testID={TestIDs.TEAMS_SELECTION_POPUP}
       onLayout={isMobile ? event => setHeight(event.nativeEvent.layout.height) : undefined}
     >
       {Kb.Styles.isPhone && (

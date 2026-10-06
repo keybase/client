@@ -3,6 +3,7 @@ import * as Kb from '@/common-adapters'
 import {useRowStyles} from './common'
 import * as T from '@/constants/types'
 import type {BrowserEditSession} from '../edit-state'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {
   editSession: BrowserEditSession
@@ -20,6 +21,7 @@ function Editing({editSession}: Props) {
     <Kb.ListItem
       type="Small"
       firstItem={true /* we add divider in Rows */}
+      testID={TestIDs.FILES_EDITING_ROW}
       statusIcon={
         <Kb.Icon
           type={edit.type === T.FS.EditType.NewFolder ? 'iconfont-add' : 'iconfont-edit'}

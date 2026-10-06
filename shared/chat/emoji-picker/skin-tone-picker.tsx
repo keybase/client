@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {emojiData} from '@/common-adapters/emoji'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const circle = (skinTone: undefined | T.Chat.EmojiSkinTone, isExpanded: boolean, outerCircle: boolean, styles: ReturnType<typeof useStyles>) => {
   return (
@@ -64,11 +65,12 @@ function SkinTonePicker(props: Props) {
         fullWidth={true}
         alignItems="center"
         justifyContent="space-between"
+        testID={TestIDs.CHAT_SKIN_TONE_OPTIONS}
       >
         {optionSkinTones}
       </Kb.Box2>
     ) : (
-      <Kb.ClickableBox direction="horizontal" alignItems="center" gap="tiny" onClick={() => setExpanded(true)}>
+      <Kb.ClickableBox direction="horizontal" alignItems="center" gap="tiny" onClick={() => setExpanded(true)} testID={TestIDs.CHAT_SKIN_TONE_BUTTON}>
         {circle(currentSkinTone, false, false, styles)}
         <Kb.Text type="BodySmallSemibold">Skin tone</Kb.Text>
       </Kb.ClickableBox>
@@ -76,12 +78,12 @@ function SkinTonePicker(props: Props) {
   ) : (
     <Kb.Box2 direction="vertical" relative={true}>
       {expanded ? (
-        <Kb.Box2 alignSelf="center" direction="vertical" overflow="hidden" style={styles.popupContainer}>
+        <Kb.Box2 alignSelf="center" direction="vertical" overflow="hidden" style={styles.popupContainer} testID={TestIDs.CHAT_SKIN_TONE_OPTIONS}>
           {optionSkinTones}
         </Kb.Box2>
       ) : (
         <Kb.WithTooltip tooltip="Skin tone" containerStyle={styles.absolute}>
-          <Kb.ClickableBox direction="vertical" style={styles.dotContainerDesktop} onClick={() => setExpanded(true)}>
+          <Kb.ClickableBox direction="vertical" style={styles.dotContainerDesktop} onClick={() => setExpanded(true)} testID={TestIDs.CHAT_SKIN_TONE_BUTTON}>
             {circle(currentSkinTone, false, false, styles)}
           </Kb.ClickableBox>
         </Kb.WithTooltip>
