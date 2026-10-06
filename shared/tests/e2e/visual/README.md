@@ -124,10 +124,12 @@ compared and counts for coverage. An entry names one with `fixture: {name, args}
 like nav's, refs resolved). The names are in `fixtures/names.ts`, the definitions in
 `fixtures/<area>.ts`, typed against the app's RPC types.
 
-The runtime (`fixtures/runtime.ts`) is in every dev build: `engine/index.tsx` imports it, and
-production builds resolve that import to an empty module (`vite.config.mts`, `desktop/vite.node.mts`,
-`metro.config.js`; `fixtures/prod-exclusion.test.mts`). While a fixture is active the engine hands it
-every outgoing RPC and incoming call. A rule stubs an RPC (answered on a later tick, optionally with
+The runtime (`fixtures/runtime.ts`) is in every dev build: the app entries (`app/index.native.tsx`,
+`desktop/renderer/main2.desktop.tsx`) import it, and production builds resolve that import to an
+empty module (`vite.config.mts`, `desktop/vite.node.mts`, `metro.config.js`;
+`fixtures/prod-exclusion.test.mts`, which also refuses any other import of `fixtures/` from the app).
+The engine never imports it: while a fixture is active the runtime sets `__kbVisualRpc`, and the
+engine hands it every outgoing RPC and incoming call. A rule stubs an RPC (answered on a later tick, optionally with
 calls into its session first) or transforms the live answer; a fixture can also rewrite incoming
 calls, inject notifications, hold the service's notifications, and set stores directly. Prompts that
 need an answer always pass. An RPC whose name says it writes (post, set, send, delete, create, add,

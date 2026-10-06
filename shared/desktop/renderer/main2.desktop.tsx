@@ -21,6 +21,8 @@ import {initPlatformListener, onEngineIncoming} from '@/constants/init/index'
 import {eventFromRemoteWindows} from './remote-event-handler.desktop'
 import type {default as NewMainType} from '../../app/main'
 import {dumpLogs} from '@/util/storeless-actions'
+// the visual gate's dev-only fixture runtime; production builds resolve this to an empty module
+import '@/tests/e2e/visual/fixtures/runtime'
 setServiceDecoration(ServiceDecoration)
 
 const {ipcRendererOn, requestWindowsStartService, appStartedUp} = KB2.functions

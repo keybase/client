@@ -28,8 +28,12 @@ const harness = (def: FixtureDef, registry = new Map<StoreKey, StoreApi>()) => {
   const name = 'device-last-used'
   const saved = definitions[name]
   ;(definitions as Record<string, FixtureDef>)[name] = def
+  const installed: Array<boolean> = []
   const rt = createRuntime({
     forget: key => registry.delete(key),
+    install: r => {
+      installed.push(r === rt.rpc)
+    },
     inject: p => {
       injected.push(rt.rpc.incoming(p, {customResponse: false, inSession: false}) ?? {method: 'dropped', param: []})
     },
@@ -39,6 +43,7 @@ const harness = (def: FixtureDef, registry = new Map<StoreKey, StoreApi>()) => {
   return {
     begin: (args: Record<string, unknown> = {}) => rt.fixtures.begin(name, args),
     injected,
+    installed,
     registry,
     restore: () => {
       ;(definitions as Record<string, FixtureDef>)[name] = saved
@@ -279,4 +284,36 @@ test('the device fixture rewrites last-used times from the frozen clock, in devi
   const ago = Object.fromEntries(out.map(d => [d.device.deviceID, 10_000_000_000 - d.device.lastUsedTime]))
   assert.deepEqual(ago, {a: 5 * 60 * 1000, b: 3 * 60 * 60 * 1000, c: 4 * 24 * 60 * 60 * 1000})
   assert.equal(rule.transform(null, undefined, {args: {}, now: 0}), null)
+})
+
+test('the engine hook is installed only while a fixture is active', () => {
+  const h = harness({rpc: [], teardown: 'remount'})
+  try {
+    assert.deepEqual(h.installed, [])
+    h.begin()
+    assert.deepEqual(h.installed, [true])
+    h.rt.fixtures.end()
+    assert.deepEqual(h.installed, [true, false])
+  } finally {
+    h.restore()
+  }
+})
+
+test('a beforeNav that throws leaves the hook installed with its fixture, for end to remove', () => {
+  const h = harness({
+    beforeNav: () => {
+      throw new Error('boom')
+    },
+    rpc: [],
+    teardown: 'remount',
+  })
+  try {
+    assert.throws(() => h.begin(), /boom/)
+    assert.ok(h.rt.fixtures.active())
+    assert.deepEqual(h.installed, [true])
+    h.rt.fixtures.end()
+    assert.deepEqual(h.installed, [true, false])
+  } finally {
+    h.restore()
+  }
 })

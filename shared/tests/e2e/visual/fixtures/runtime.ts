@@ -1,7 +1,8 @@
-// The visual gate's fixtures, inside the dev app. engine/index.tsx imports this module (production
-// builds resolve the import to an empty module, vite.config.mts and metro.config.js) and, while a
-// fixture is active, hands every outgoing RPC and incoming call to __kbVisualRpc. The drivers run a
-// fixture through __kbVisualFixtures:
+// The visual gate's fixtures, inside the dev app. The app entries import this module
+// (app/index.native.tsx, desktop/renderer/main2.desktop.tsx; production builds resolve the import to
+// an empty module, vite.config.mts and metro.config.js). __kbVisualRpc is set only while a fixture
+// is active, and the engine hands every outgoing RPC and incoming call to it then; idle, the engine
+// reads one undefined global. The drivers run a fixture through __kbVisualFixtures:
 //   begin(name, args)  snapshots the fixture's stores, installs its rules, runs its beforeNav
 //   served()           whether every rule it marks required has answered
 //   afterReady()       its afterReady store sets and injected notifications
@@ -108,6 +109,8 @@ type Active = {
 export const createRuntime = (deps: {
   stores: Stores
   forget: (key: StoreKey) => void
+  // sets the engine's hook (__kbVisualRpc): rpc while a fixture is active, undefined otherwise
+  install: (rpc: VisualRpc | undefined) => void
   inject: (payload: IncomingPayload) => void
   now: () => number
 }) => {
@@ -195,12 +198,14 @@ export const createRuntime = (deps: {
         refused: [],
         snapshots,
       }
+      deps.install(rpc)
       def.beforeNav?.(deps.stores, cur.ctx())
     },
     end: () => {
       const a = cur
       if (!a) throw new Error('end with no fixture active')
       cur = undefined
+      deps.install(undefined)
       const cancelledReplies: Array<string> = []
       for (const [timer, p] of a.pending) {
         clearTimeout(timer)
@@ -223,12 +228,14 @@ export const createRuntime = (deps: {
 }
 
 if (__DEV__) {
-  const {fixtures, rpc} = createRuntime({
+  const {fixtures} = createRuntime({
     forget,
     inject: payload => (globalThis.DEBUGEngine as {_rpcIncoming: (p: IncomingPayload) => void})._rpcIncoming(payload),
+    install: rpc => {
+      globalThis.__kbVisualRpc = rpc
+    },
     now: () => Date.now(),
     stores: devStores(),
   })
-  globalThis.__kbVisualRpc = rpc
   globalThis.__kbVisualFixtures = fixtures
 }
