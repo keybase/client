@@ -13,6 +13,9 @@ import {previousRouteIsModal} from '@/constants/nav-tree'
 
 type LayoutProps = {
   children: React.ReactNode
+  // the live options React Navigation resolved for this route: getOptions, the navigator's
+  // screenOptions and anything the screen set with navigation.setOptions
+  options?: GetOptionsRet
   route: GetOptionsParams['route']
   navigation: GetOptionsParams['navigation']
 }
@@ -74,16 +77,13 @@ const LoggedOutScreenWrapper = ({children}: {children: React.ReactNode}) => {
   )
 }
 
-const desktopMakeLayout = (
+export const desktopMakeLayout = (
   isModal: boolean,
   _isLoggedOut: boolean,
   _isTabScreen: boolean,
-  getOptions?: GetOptions
+  _getOptions?: GetOptions
 ) => {
-  return ({children, route, navigation}: LayoutProps) => {
-    const navigationOptions: GetOptionsRet | undefined =
-      typeof getOptions === 'function' ? getOptions({navigation, route}) : getOptions
-
+  return ({children, options: navigationOptions, route, navigation}: LayoutProps) => {
     let body = children
 
     if (isModal) {

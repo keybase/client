@@ -178,12 +178,14 @@ if (!isMobile) {
   })
   const LoggedOutDesktop = loggedOutNav.getComponent()
 
+  // ModalWrapper draws a modal's header from its live options, so React Navigation's own header
+  // renders nothing here; headerShown stays the route's, for ModalWrapper to read.
   const desktopRootScreenOptions = {
-    headerLeft: () => <HeaderLeftButton mode="cancel" />,
-    headerShown: false, // eventually do this after we pull apart modal2 etc
+    header: () => null,
     presentation: 'transparentModal' as const,
     title: '',
   } satisfies NativeStackNavigationOptions
+  const noHeader = {headerShown: false} satisfies NativeStackNavigationOptions
 
   const useIsLoadingDesktop = () => !useHandshakeEverDone()
 
@@ -206,14 +208,14 @@ if (!isMobile) {
       loggedIn: {
         if: useIsLoggedInDesktop,
         screens: {
-          loggedIn: {screen: AppTabsDesktop},
+          loggedIn: {options: noHeader, screen: AppTabsDesktop},
           ...desktopModalScreensConfig,
         },
       },
       loggedOut: {
         if: useIsLoggedOutDesktop,
         screens: {
-          loggedOut: {screen: LoggedOutDesktop},
+          loggedOut: {options: noHeader, screen: LoggedOutDesktop},
         },
       },
     },
@@ -221,6 +223,7 @@ if (!isMobile) {
     screens: {
       loading: {
         if: useIsLoadingDesktop,
+        options: noHeader,
         screen: SimpleLoading,
       },
     },
