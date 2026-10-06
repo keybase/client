@@ -24,6 +24,8 @@ export const FIXTURES = {
       T.CHAT_PAYMENT,
     ],
   },
+  'global-error': {files: ['debug.ts'], ready: [T.GLOBAL_ERROR]},
+  'runtime-stats': {files: ['debug.ts'], ready: [T.RUNTIME_STATS]},
   'device-last-used': {files: ['devices.ts'], ready: [T.DEVICES_ROW_LAST_USED, T.DEVICE_PAGE_LAST_USED]},
   'featured-bots': {files: ['bots.ts'], ready: [T.CHAT_BOT_ROW]},
   'people-follow-suggestions': {files: ['people.ts'], ready: [T.PEOPLE_FOLLOW_SUGGESTION]},

@@ -14,6 +14,7 @@
 import {FIXTURE_RUNTIME_VERSION, FIXTURES, isFixtureName, type FixtureName} from './names.ts'
 import type {FixtureContext, FixtureDef, RpcRule, StoreApi, StoreKey, Stores} from './def.ts'
 import {chatThreadContent} from './chat-thread.ts'
+import {globalError, runtimeStats} from './debug.ts'
 import {deviceLastUsed} from './devices.ts'
 import {featuredBots} from './bots.ts'
 import {peopleFollowSuggestions} from './people.ts'
@@ -23,7 +24,9 @@ export const definitions: Readonly<Record<FixtureName, FixtureDef>> = {
   'chat-thread-content': chatThreadContent,
   'device-last-used': deviceLastUsed,
   'featured-bots': featuredBots,
+  'global-error': globalError,
   'people-follow-suggestions': peopleFollowSuggestions,
+  'runtime-stats': runtimeStats,
   'team-builder-recs': teamBuilderRecs,
 }
 

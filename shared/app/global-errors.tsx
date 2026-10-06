@@ -7,6 +7,7 @@ import {useConfigState} from '@/stores/config'
 import type {RPCError} from '@/util/errors'
 import {settingsFeedbackTab} from '@/constants/settings'
 import {useDaemonState} from '@/stores/daemon'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Size = 'Closed' | 'Small' | 'Big'
 
@@ -152,6 +153,7 @@ const GlobalError = () => {
           styles.mobileContainer,
           size === 'Big' && Kb.Styles.globalStyles.fillAbsolute,
         ])}
+        testID={TestIDs.GLOBAL_ERROR}
       >
         <Kb.SafeAreaViewTop style={styles.mobileSafeAreaView} />
         <Kb.Box2 alignSelf="center" direction="vertical">
@@ -213,7 +215,7 @@ const GlobalError = () => {
   }
 
   return (
-    <Kb.ClickableBox alignSelf="center" style={stylesContainer} onClick={onExpandClick} direction="vertical">
+    <Kb.ClickableBox alignSelf="center" style={stylesContainer} onClick={onExpandClick} direction="vertical" testID={TestIDs.GLOBAL_ERROR}>
       <Kb.Box2 alignSelf="center" direction="horizontal" flex={1} centerChildren={true} gap="small" style={styles.innerContainer}>
         <Kb.Text center={true} type="BodyBig" style={styles.summary}>
           {summary}

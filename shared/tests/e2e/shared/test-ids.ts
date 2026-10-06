@@ -264,3 +264,7 @@ export const SETTINGS_DB_NUKE_CONFIRM = 'settings-db-nuke-confirm'
 export const KEYBASE_LINK_ERROR = 'keybase-link-error'
 // the paper key form (chat's rekey prompt and provisioning)
 export const PAPER_KEY_FORM = 'paper-key-form'
+
+// Debug overlays: the global error bar and the runtime stats the service sends when turned on
+export const GLOBAL_ERROR = 'global-error'
+export const RUNTIME_STATS = 'runtime-stats'
