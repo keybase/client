@@ -12,6 +12,9 @@ export type GetOptionsParams<
   navigation: NativeStackNavigationProp<ParamList, RouteName>
   route: RouteProp<ParamList, RouteName>
 }
+
+export type ModalSize = 'small' | 'medium' | 'large'
+
 // Properties consumed by our layout functions (not React Navigation)
 export type LayoutOptions = {
   safeAreaStyle?: Styles.StylesCrossPlatform
@@ -22,8 +25,9 @@ export type LayoutOptions = {
   overlayAvoidTabs?: boolean
   overlayTransparent?: boolean
   overlayNoClose?: boolean
-  // desktop modal size preset; omitted = 400w × maxHeight 560
-  modalSize?: 'wide' | 'fullscreen'
+  // desktop modal box: small (default) 400w with auto height up to min(560px, 85vh); medium 560w
+  // with a fixed min(560px, 85vh) height; large 80% × 80%
+  modalSize?: ModalSize
   headerBottomStyle?: Styles.StylesCrossPlatform
   headerRightActions?: (p: HeaderBackButtonProps) => React.ReactNode
 }

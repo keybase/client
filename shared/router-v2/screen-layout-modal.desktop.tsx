@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as C from '@/constants'
-import type {GetOptionsRet} from '@/constants/types/router'
+import type {GetOptionsRet, ModalSize} from '@/constants/types/router'
 import type {ParamListBase} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
@@ -20,18 +20,17 @@ export const ModalHeader = (props: ModalHeaderProps) => {
   const styles = useStyles()
   const isStringTitle = typeof title === 'string'
   return (
-    <Kb.Box2
-      direction="vertical"
-      fullWidth={true}
-      style={Kb.Styles.collapseStyles([styles.header, style && styles.headerColored, style])}
-    >
+    <Kb.Box2 direction="vertical" fullWidth={true} noShrink={true} style={Kb.Styles.collapseStyles([styles.header, style])}>
       <Kb.Box2 direction="horizontal" alignItems="center" fullHeight={true} flex={1}>
         <Kb.Box2 direction="horizontal" flex={1} style={styles.headerLeft}>
           {!!leftButton && leftButton}
         </Kb.Box2>
         {/* a title component that renders bare text inherits the Header style from this box;
             Kb.Text children set their own and are unaffected */}
-        <Kb.Box2 direction="vertical" style={isStringTitle ? undefined : styles.componentTitle}>
+        <Kb.Box2
+          direction="vertical"
+          style={Kb.Styles.collapseStyles([styles.title, !isStringTitle && styles.componentTitle])}
+        >
           {isStringTitle ? (
             <Kb.Text type="Header" lineClamp={1} center={true}>
               {title}
@@ -81,6 +80,13 @@ const useMouseClick = (navigation: NativeStackNavigationProp<ParamListBase>, noC
   return [backgroundRef, onMouseUp, onMouseDown] as const
 }
 
+// small sizes to its content up to the cap; medium and large are fixed, so a list body can fill them
+export const modalSizeStyles = {
+  large: {height: '80%', width: '80%'},
+  medium: {height: 'min(560px, 85vh)', width: 560},
+  small: {maxHeight: 'min(560px, 85vh)', width: 400},
+} as const satisfies Record<ModalSize, React.CSSProperties>
+
 export type ModalWrapperProps = {
   // the root-stack route below this one is a modal, so a header Back leads to it
   canGoBack: boolean
@@ -90,10 +96,10 @@ export type ModalWrapperProps = {
 }
 
 export const ModalWrapper = (p: ModalWrapperProps) => {
+  const {canGoBack, navigationOptions, navigation, children} = p
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
-  const {canGoBack, navigationOptions, navigation, children} = p
-  const {overlayAvoidTabs, overlayTransparent, overlayNoClose, modalSize} = navigationOptions ?? {}
+  const {overlayAvoidTabs, overlayTransparent, overlayNoClose, modalSize = 'small'} = navigationOptions ?? {}
 
   const headerTitle = navigationOptions?.['headerTitle'] ?? navigationOptions?.['title']
   const headerLeft = navigationOptions?.['headerLeft']
@@ -126,6 +132,8 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
     return () => window.removeEventListener('keydown', handler, true)
   }, [topMostModal, overlayNoClose, navigation])
 
+  const modalBox = {size: modalSize}
+
   const titleNode =
     typeof headerTitle === 'function'
       ? headerTitle({
@@ -154,31 +162,30 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
       {overlayAvoidTabs && (
         <Kb.Box2 alignSelf="center" direction="vertical" className="tab-container" style={styles.overlayAvoidTabs} />
       )}
-      <Kb.Box2 alignSelf="center"
+      <Kb.Box2
+        alignSelf="center"
         direction="vertical"
-        style={Kb.Styles.collapseStyles([
-          styles.overlayStyle,
-          modalSize === 'fullscreen' && styles.overlayStretch,
-        ])}
+        style={Kb.Styles.collapseStyles([styles.overlayStyle, modalSize === 'large' && styles.overlayStretch])}
       >
         <Kb.Box2
           direction="vertical"
-          style={Kb.Styles.collapseStyles([
-            styles.modalBox,
-            modalSize === 'wide' && styles.sizeWide,
-            modalSize === 'fullscreen' && styles.sizeFullscreen,
-            !modalSize && styles.sizeDefault,
-          ])}
+          style={Kb.Styles.collapseStyles([styles.modalFrame, modalSizeStyles[modalSize]])}
         >
-          {hasHeader ? (
-            <ModalHeader
-              style={navigationOptions?.headerStyle}
-              title={titleNode}
-              leftButton={leftNode}
-              rightButton={rightNode}
-            />
-          ) : null}
-          {children}
+          {/* clips the body to the rounded box; the close X sits outside the box, so it's a sibling */}
+          <Kb.Box2 direction="vertical" style={styles.modalClip}>
+            {hasHeader ? (
+              <ModalHeader
+                style={navigationOptions?.headerStyle}
+                title={titleNode}
+                leftButton={leftNode}
+                rightButton={rightNode}
+              />
+            ) : null}
+            {/* the area under the header, so a screen's 100% height is the body, not the whole box */}
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.modalBody}>
+              <Kb.ModalBoxContext value={modalBox}>{children}</Kb.ModalBoxContext>
+            </Kb.Box2>
+          </Kb.Box2>
           {!overlayTransparent && !overlayNoClose && (
             <Kb.Icon
               type="iconfont-close"
@@ -207,12 +214,8 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
   }),
   componentTitle: getTextStyle('Header', theme),
   header: {
-    ...Kb.Styles.bottomDivider(theme, 48),
-  },
-  // the modal box doesn't clip, so a colored header rounds its own top corners
-  headerColored: {
-    borderTopLeftRadius: Kb.Styles.borderRadius,
-    borderTopRightRadius: Kb.Styles.borderRadius,
+    ...Kb.Styles.bottomDivider(theme),
+    height: 48,
   },
   headerLeft: {
     justifyContent: 'flex-start',
@@ -223,7 +226,17 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
     ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
   },
   hidden: {display: 'none'},
-  modalBox: Kb.Styles.platformStyles({
+  modalBody: {flexGrow: 1, flexShrink: 1, minHeight: 0},
+  modalClip: Kb.Styles.platformStyles({
+    isElectron: {
+      borderRadius: Kb.Styles.borderRadius,
+      flexGrow: 1,
+      flexShrink: 1,
+      minHeight: 0,
+      overflow: 'hidden',
+    },
+  }),
+  modalFrame: Kb.Styles.platformStyles({
     isElectron: {
       ...Kb.Styles.desktopStyles.boxShadow,
       backgroundColor: theme.white,
@@ -247,7 +260,5 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
     isElectron: {...Kb.Styles.centered(), flexGrow: 1, pointerEvents: 'none'},
   }),
   overlayTransparent: {backgroundColor: undefined},
-  sizeDefault: Kb.Styles.platformStyles({isElectron: {maxHeight: 560, width: 400}}),
-  sizeFullscreen: Kb.Styles.platformStyles({isElectron: {height: '80%', width: '80%'}}),
-  sizeWide: Kb.Styles.platformStyles({isElectron: {height: 560, width: 560}}),
+  title: {flexShrink: 1, minWidth: 0},
 }))

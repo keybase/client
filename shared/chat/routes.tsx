@@ -192,14 +192,14 @@ export const newModalRoutes = defineRouteMap({
         orientation: 'all',
         ...(isIOS ? {presentation: 'transparentModal'} : {}),
         headerShown: false,
-        modalSize: 'fullscreen',
+        modalSize: 'large',
         safeAreaStyle: {backgroundColor: 'black'}, // true black
       },
     }
   ),
   chatAttachmentGetTitles: makeChatScreen(
     React.lazy(async () => import('./conversation/attachment-get-titles')),
-    {getOptions: {modalSize: 'wide'}}
+    {getOptions: {modalSize: 'medium'}}
   ),
   chatBlockingModal: {
     ...makeChatScreen(
@@ -217,7 +217,7 @@ export const newModalRoutes = defineRouteMap({
   chatChooseEmoji: makeChatScreen(
     React.lazy(async () => import('./emoji-picker/container')),
     {
-      getOptions: {headerShown: false, modalSize: 'wide'},
+      getOptions: {headerShown: false, modalSize: 'medium'},
     }
   ),
   chatConfirmNavigateExternal: makeChatScreen(
@@ -251,7 +251,7 @@ export const newModalRoutes = defineRouteMap({
           // (its content inset clears the home indicator) instead of leaving a
           // blank safe-area strip below the last row
           {...Kb.doneModalOptions(''), safeAreaEdges: ['top', 'left', 'right'] as const}
-        : {...Kb.doneModalOptions(''), modalSize: 'fullscreen'},
+        : {...Kb.doneModalOptions(''), modalSize: 'large'},
     }
   ),
   chatInstallBot: makeChatScreen(
@@ -260,7 +260,7 @@ export const newModalRoutes = defineRouteMap({
       getOptions: {
         headerLeft: () => <BotInstallHeaderLeft />,
         headerTitle: () => <BotInstallHeaderTitle />,
-        modalSize: 'wide',
+        modalSize: 'medium',
       },
       skipProvider: true,
     }
@@ -296,7 +296,7 @@ export const newModalRoutes = defineRouteMap({
               ],
             }
           : {headerRight: isMobile ? () => <PDFShareButton url={p.route.params.url} /> : undefined}),
-        modalSize: 'fullscreen',
+        modalSize: 'large',
         title: 'PDF',
       }),
     }
@@ -323,7 +323,7 @@ export const newModalRoutes = defineRouteMap({
             ? {headerLeft: () => <SendToChatHeaderLeft />}
             : {}),
         // sized like chatAttachmentGetTitles, which it pushes, so the modal doesn't jump
-        modalSize: 'wide',
+        modalSize: 'medium',
         title: FS.getSharePathArrayDescription(route.params.sendPaths || []),
       }),
       skipProvider: true,
