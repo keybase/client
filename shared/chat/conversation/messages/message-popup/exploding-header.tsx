@@ -85,7 +85,7 @@ const ExplodingPopupHeader = (props: Props) => {
           </Kb.Box2>
         </Kb.Box2>
       ) : null}
-      <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Box2 direction="vertical">
         <Kb.Text center={true} type="BodySmall">
           {formatTimeForPopup(timestamp)}
         </Kb.Text>

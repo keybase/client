@@ -92,7 +92,7 @@ const PinnedMessage = function PinnedMessage() {
       <Kb.Box2 direction="horizontal" alignSelf="stretch" style={styles.blueBar} />
       {!!imageURL && <ZoomedImage src={imageURL} sizing={sizing} />}
       <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
-        <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+        <Kb.Box2 direction="horizontal" gap="tiny">
           <Kb.Text type="BodyTinyBold" style={styles.author}>
             {author}
           </Kb.Text>

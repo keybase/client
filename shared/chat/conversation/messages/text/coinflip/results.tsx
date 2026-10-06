@@ -226,7 +226,7 @@ const CoinFlipResultHands = (props: HandType) => {
   const [handsWithCards, handsWithoutCards] = partition(props.hands, hand => hand.hand)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <Kb.Box2 direction="horizontal">
         <Kb.Box2 direction="vertical" fullHeight={true} justifyContent="space-around" style={styles.handTarget}>
           {handsWithCards.map(hand => (
             <Kb.Box2 key={hand.target} alignSelf="flex-start" direction="vertical">
