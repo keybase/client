@@ -10,7 +10,10 @@ import {findMainPage, checkRendererAfterReload} from '../electron/helpers/connec
 import {pngEqual, type Rect} from './compare.mts'
 import {resolveParams, resolveValue} from './resolve.mts'
 import {VISUAL_CAPTURE_ARGS, VISUAL_VIEWPORT} from './electron-args.ts'
-import type {RemoteWindow, Theme, TourEntry, SetupStep, WindowSize} from './tour-types.ts'
+import type {EntryFixture, RemoteWindow, Theme, TourEntry, SetupStep, WindowSize} from './tour-types.ts'
+import {fixtureArgs, leakProblems} from './fixtures/drive.mts'
+import {FIXTURE_RUNTIME_VERSION} from './fixtures/names.ts'
+import type {EndReport, VisualFixtures} from './fixtures/runtime.ts'
 
 export type Capture = {
   png: Buffer
@@ -172,7 +175,8 @@ type PreloadFunctions = {
 }
 type DevGlobals = {
   DEBUGRouter2?: Router
-  DEBUGNavigator?: {getRootState: () => NavState | undefined}
+  DEBUGNavigator?: {getRootState: () => NavState | undefined; resetRoot: (s: unknown) => void}
+  __kbVisualFixtures?: VisualFixtures
   __ZUSTAND_HMR__?: Map<string, unknown>
   __kbVisualCoverage?: Coverage
   _fromPreload?: {functions: PreloadFunctions}
@@ -224,6 +228,83 @@ const resetTo = async (page: Page, tab: string) => {
   // The info panel is a param of the chat root, which navigateToThread merges into rather than
   // replaces, so an entry that opened it would leave it open for every conversation after it.
   if (tab === CHAT_TAB) await routerCall(page, 'closeInfoPanel')
+}
+
+// ---------------------------------------------------------------- fixtures (fixtures/runtime.ts)
+
+const fixtureActive = async (page: Page) =>
+  withDeadline(
+    page.evaluate(() => (globalThis as unknown as DevGlobals).__kbVisualFixtures?.active() ?? false),
+    EVAL_MS,
+    'reading whether a fixture is active'
+  )
+
+// Screens mounted before the fixture began hold live data in their state. Resetting the root to its
+// own state without route keys gives every route a new key, so every screen remounts.
+const remountScreens = async (page: Page) => {
+  type S = {index?: number; routes: Array<{name: string; params?: unknown; state?: S}>}
+  await withDeadline(
+    page.evaluate(() => {
+      const nav = (globalThis as unknown as DevGlobals).DEBUGNavigator
+      if (!nav) throw new Error('DEBUGNavigator is not defined; is this a dev build?')
+      const strip = (x: S | undefined): S | undefined =>
+        x && {index: x.index, routes: x.routes.map(r => ({name: r.name, params: r.params, state: strip(r.state)}))}
+      nav.resetRoot(strip(nav.getRootState() as S | undefined))
+    }),
+    EVAL_MS,
+    'remounting every screen'
+  )
+  await waitForNoLoading(page)
+}
+
+const beginFixture = async (page: Page, f: EntryFixture) => {
+  const args = await fixtureArgs(f)
+  await withDeadline(
+    page.evaluate(
+      ([name, json, version]) => {
+        const fx = (globalThis as unknown as DevGlobals).__kbVisualFixtures
+        if (!fx) throw new Error('the app has no visual fixtures runtime; is this a dev build of a tree that has one?')
+        if (fx.version !== version) throw new Error(`the app's fixture runtime is version ${fx.version}, the driver wants ${version}`)
+        fx.begin(name, JSON.parse(json) as Record<string, unknown>)
+      },
+      [f.name, JSON.stringify(args), FIXTURE_RUNTIME_VERSION] as const
+    ),
+    EVAL_MS,
+    `beginning fixture ${f.name}`
+  )
+}
+
+const fixtureServed = async (page: Page, name: string) =>
+  waitFor(`fixture ${name} to answer every rule it needs`, READY_MS, async () =>
+    withDeadline(
+      page.evaluate(() => (globalThis as unknown as DevGlobals).__kbVisualFixtures?.served() ?? false),
+      EVAL_MS,
+      'reading whether the fixture has answered'
+    )
+  )
+
+const fixtureCall = async <R,>(page: Page, step: 'afterReady' | 'end') =>
+  withDeadline(
+    page.evaluate(s => {
+      const fx = (globalThis as unknown as DevGlobals).__kbVisualFixtures
+      if (!fx) throw new Error('the app has no visual fixtures runtime')
+      return fx[s]()
+    }, step) as Promise<R>,
+    EVAL_MS,
+    `fixture ${step}`
+  )
+
+// end() always runs once begin did; then the app is put back as the fixture says.
+const endFixture = async (page: Page, name: string): Promise<Array<string>> => {
+  const report = await fixtureCall<EndReport>(page, 'end')
+  if (report.teardown === 'reload') {
+    await withDeadline(page.reload(), READY_MS, 'reloading after the fixture')
+    await checkRendererAfterReload(page)
+    await waitForNoLoading(page)
+  } else {
+    await remountScreens(page)
+  }
+  return leakProblems(name, report)
 }
 
 const runStep = async (page: Page, s: SetupStep) => {
@@ -637,9 +718,11 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
   const capture: DesktopSession['capture'] = async entry => {
     let png: Buffer | undefined
     let win: OpenWindow | undefined
+    let fixtureOn = false
     let result: Capture
     try {
       if (!theme || frozenAt === undefined) throw new Error('capture called before prepare')
+      if (await fixtureActive(page)) throw new Error('a fixture is still active from an earlier entry')
       // Another CDP client attaching (a second Playwright connection) resets the emulated color
       // scheme to its own default, so the emulation is reasserted for every capture.
       await fixViewport(cdp, page)
@@ -651,6 +734,13 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
       // A setup click leaves the pointer where it clicked, and whatever lands under it later draws
       // hovered. Parked outside the viewport, nothing is hovered unless a hover step asks for it.
       await withDeadline(page.mouse.move(-1, -1), EVAL_MS, 'parking the mouse')
+      if (entry.fixture) {
+        // installed on an idle app, then every screen remounts so none keeps live data
+        await waitForNoLoading(page)
+        await beginFixture(page, entry.fixture)
+        fixtureOn = true
+        await remountScreens(page)
+      }
       const nav = await resolveParams(entry.nav)
       const append = nav.append
       if (append) {
@@ -689,6 +779,10 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
         for (const s of entry.setup) await runStep(shown, s)
       }
       await shown.getByTestId(entry.ready).locator('visible=true').first().waitFor({state: 'visible', timeout: READY_MS})
+      if (entry.fixture) {
+        await fixtureServed(page, entry.fixture.name)
+        await fixtureCall(page, 'afterReady')
+      }
       await waitForNoLoading(page, shown)
       await waitForAssets(shown)
       await stillVideos(shown)
@@ -712,12 +806,22 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
     } catch (e) {
       result = {coverage: null, error: (e as Error).message, masks: [], png: png ?? Buffer.alloc(0), status: 'failed'}
     }
+    const fail = (why: string) => {
+      result = {...result, error: result.error ? `${result.error}; ${why}` : why, status: 'failed'}
+    }
     if (win) {
       try {
         await win.close()
       } catch (e) {
-        const why = `closing the window: ${(e as Error).message}`
-        result = {...result, error: result.error ? `${result.error}; ${why}` : why, status: 'failed'}
+        fail(`closing the window: ${(e as Error).message}`)
+      }
+    }
+    if (fixtureOn && entry.fixture) {
+      try {
+        const problems = await endFixture(page, entry.fixture.name)
+        if (problems.length) fail(problems.join('; '))
+      } catch (e) {
+        fail(`ending fixture ${entry.fixture.name}: ${(e as Error).message}`)
       }
     }
     return result

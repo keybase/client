@@ -28,6 +28,7 @@ const deps = (over = {}) => ({
   closeCapture: async () => {},
   currentShared: '/tree/shared',
   entries,
+  fixtureHash: (name: string) => `hash-of-${name}`,
   hasBasePng: () => true,
   log: () => {},
   openReport: () => {},
@@ -146,6 +147,15 @@ test('checkBaseInfra refuses a base without the visual driver or launch-app --vi
     () => checkBaseInfra('abc', files({[driver]: 'x', [launch]: "process.argv.includes('--visual')"}), desktop(true)),
     /--coverage/
   )
+})
+
+test('checkBaseInfra refuses fixture entries from a base without the fixture runtime', () => {
+  const files = (m: Record<string, string>) => (p: string) => m[p]
+  const iosDriver = 'shared/tests/e2e/visual/driver-ios.mts'
+  const runtime = 'shared/tests/e2e/visual/fixtures/runtime.ts'
+  assert.throws(() => checkBaseInfra('abc', files({[iosDriver]: 'x'}), {coverage: false, fixtures: true, ios: true}), /abc has no fixture runtime/)
+  assert.doesNotThrow(() => checkBaseInfra('abc', files({[iosDriver]: 'x', [runtime]: 'x'}), {coverage: false, fixtures: true, ios: true}))
+  assert.doesNotThrow(() => checkBaseInfra('abc', files({[iosDriver]: 'x'}), {coverage: false, fixtures: false, ios: true}))
 })
 
 test('checkBaseInfra on iOS needs the iOS driver, and the babel coverage hook for --coverage', () => {
@@ -316,4 +326,27 @@ test('selecting a desktop entry that leaves a popup open brings the entry after 
   ]
   assert.deepEqual(selectEntries(es, ['team/menu'], 'desktop').map(e => e.id), ['team/menu', 'team/next'])
   assert.deepEqual(selectEntries(es, ['team/menu'], 'ios').map(e => e.id), ['team/menu'])
+})
+
+test('a fixture entry needs a base that ran the fixture as this tree defines it', async () => {
+  const fx: TourEntry = {fixture: {name: 'featured-bots'}, id: 'modal/bots', nav: {tab: 'tabs.gitTab'}, platforms: ['desktop'], ready: 'x', seal: []}
+  const meta = (fixtures?: Record<string, string>) => () => ({createdAt: 0, fixtures, frozenAt: 1000, seal: {fields: {}, hash: 'h', newestMessageMs: 0, takenAt: 0}})
+  await assert.rejects(runCheck(deps({entries: [fx], readBaseMeta: meta()}), ['modal/bots']), /fixture featured-bots was not run since the base at abc/)
+  await assert.rejects(
+    runCheck(deps({entries: [fx], readBaseMeta: meta({'featured-bots': 'older'})}), ['modal/bots']),
+    /fixture featured-bots changed since the base at abc; retake the base/
+  )
+  const ran: Array<string> = []
+  await runCheck(
+    deps({
+      capture: async (e: TourEntry) => {
+        ran.push(e.id)
+        return failed
+      },
+      entries: [fx],
+      readBaseMeta: meta({'featured-bots': 'hash-of-featured-bots'}),
+    }),
+    ['modal/bots']
+  )
+  assert.deepEqual(ran, ['modal/bots'])
 })

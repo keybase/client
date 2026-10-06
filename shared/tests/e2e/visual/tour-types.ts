@@ -1,4 +1,5 @@
 import type {SealField} from './seal.mts'
+import {FIXTURES, isFixtureName} from './fixtures/names.ts'
 
 export type Platform = 'desktop' | 'phone'
 export type Theme = 'light' | 'dark'
@@ -42,9 +43,13 @@ export type RemoteWindow =
   | {component: 'menubar'; size: WindowSize}
   | {component: 'pinentry' | 'unlock-folders'; size: WindowSize; props: {readonly [k: string]: ParamValue}}
   | {component: 'tracker'; size: WindowSize; username: ParamRef; reason: string}
+// A dev-only fixture (fixtures/) the app runs while the entry is captured: server-picked content
+// replaced with data the fixture supplies. `args` are params like nav's, refs resolved first.
+export type EntryFixture = {name: string; args?: {readonly [k: string]: ParamValue}}
 export type TourEntry = {
   id: string
   nav: Nav
+  fixture?: EntryFixture
   window?: RemoteWindow
   ready: string // testID that must be visible once navigation and setup are done
   platforms: ReadonlyArray<Platform>
@@ -87,6 +92,20 @@ export const popupFollowerProblems = (entries: ReadonlyArray<TourEntry>): Array<
   return problems
 }
 
+// Fixture entries run after every live entry, so a fixture that leaks can't change a live capture.
+export const fixtureOrderProblems = (entries: ReadonlyArray<TourEntry>): Array<string> => {
+  const problems: Array<string> = []
+  for (const platform of ['desktop', 'phone'] as const) {
+    const on = entries.filter(e => e.platforms.includes(platform))
+    const first = on.findIndex(e => e.fixture)
+    if (first < 0) continue
+    for (const e of on.slice(first)) {
+      if (!e.fixture) problems.push(`${e.id} (${platform}): a live entry after the fixture entry ${on[first]!.id}`)
+    }
+  }
+  return problems
+}
+
 export const SETUP_KINDS: ReadonlySet<string> = new Set(['openPopup', 'switchSubTab', 'scrollIntoView', 'hover'])
 
 export function validateEntry(e: TourEntry): Array<string> {
@@ -109,6 +128,16 @@ export function validateEntry(e: TourEntry): Array<string> {
   }
   for (const m of e.masks ?? []) {
     if (!m.reason.trim()) problems.push(`${e.id}: mask ${m.testID} needs a reason`)
+  }
+  if (e.fixture) {
+    const {name} = e.fixture
+    if (!isFixtureName(name)) problems.push(`${e.id}: unknown fixture ${name}`)
+    // the fixture replaces what a mask would hide, so the entry is compared and counts for coverage
+    else if (!(FIXTURES[name].ready as ReadonlyArray<string>).includes(e.ready)) {
+      problems.push(`${e.id}: ready ${e.ready} is not a testID only fixture ${name}'s state shows (${FIXTURES[name].ready.join(', ')})`)
+    }
+    if (e.masks?.length) problems.push(`${e.id}: a fixture entry has no masks`)
+    if (e.window) problems.push(`${e.id}: a window entry runs no fixture`)
   }
   if (e.window) {
     if (e.platforms.some(p => p !== 'desktop')) problems.push(`${e.id}: a window entry is desktop only`)
