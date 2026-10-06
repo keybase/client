@@ -47,6 +47,9 @@ export const fixtureCapture = (h: FixtureHooks, f: EntryFixture | undefined, run
     begin: async () => {
       if (!f) return
       const args = await fixtureArgs(f, run)
+      // before the call: begin can run in the app and still fail here (a deadline), and end must
+      // then take it out again
+      begun = true
       await h.evalApp(
         `const fx = ${FX}
          if (!fx) throw new Error('the app has no visual fixtures runtime; is this a dev build of a tree that has one?')
@@ -54,7 +57,6 @@ export const fixtureCapture = (h: FixtureHooks, f: EntryFixture | undefined, run
          fx.begin(${JSON.stringify(f.name)}, ${JSON.stringify(args)})`,
         `beginning fixture ${f.name}`
       )
-      begun = true
     },
     // the entry's ready testID is up: wait for every required rule, then the fixture's afterReady
     ready: async () => {
@@ -65,12 +67,13 @@ export const fixtureCapture = (h: FixtureHooks, f: EntryFixture | undefined, run
       await h.evalApp(`${FX}.afterReady()`, 'fixture afterReady')
     },
     // Ends the fixture begin installed and puts the app back as it says; never throws. Returns what
-    // fails the capture.
+    // fails the capture. A begin that failed before the app ran it left nothing to end.
     end: async (): Promise<Array<string>> => {
       if (!f || !begun) return []
       begun = false
       try {
-        const report = await h.evalApp<EndReport>(`return ${FX}.end()`, 'fixture end')
+        const report = await h.evalApp<EndReport | null>(`const fx = ${FX}; return fx?.active() ? fx.end() : null`, 'fixture end')
+        if (!report) return []
         if (report.teardown === 'reload') await h.reload()
         else await h.remount()
         return leakProblems(f.name, report)
