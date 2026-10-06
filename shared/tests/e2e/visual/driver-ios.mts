@@ -208,10 +208,14 @@ const HOSTS_WITH_TESTID = `
       }
     }
   }`
-// Scrolls the virtualized list holding the host view with this testID so that the view's row is
-// centred: from the host fiber up to the list cell (whose props carry its index), then on to the
-// FlatList instance above it. Read off React's fiber tree as React DevTools does.
-export const scrollToRow = (testID: string) => `
+// Scrolls the host view with this testID into the middle of what scrolls it, read off React's fiber
+// tree as React DevTools does, walking up from the host fiber:
+// - in a virtualized list row (a cell, whose props carry its index): the list (the first instance
+//   above with scrollToIndex) centres that row;
+// - otherwise in a ScrollView (its class instance): scrollTo the view's offset in the content,
+//   measured synchronously (getBoundingClientRect, RN's DOM API) and clamped to the content.
+// Both without animation. Returns 'row', 'scrollView', or 'none' when neither holds the view.
+export const scrollToTarget = (testID: string) => `
   const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
   if (!hook?.getFiberRoots) throw new Error('no React DevTools hook; is this a dev build?')
   const id = ${JSON.stringify(testID)}
@@ -228,16 +232,31 @@ export const scrollToRow = (testID: string) => `
     }
   }
   if (!target) throw new Error('no host view with testID ' + id)
+  const rectOf = (el, what) => {
+    if (typeof el?.getBoundingClientRect !== 'function') throw new Error('no synchronous layout for ' + what + ' of ' + id)
+    return el.getBoundingClientRect()
+  }
   let index
   for (let f = target.return; f; f = f.return) {
     const p = f.memoizedProps
+    const node = f.stateNode
     if (index === undefined && p && typeof p.index === 'number' && 'cellKey' in p) index = p.index
-    if (index !== undefined && f.stateNode && typeof f.stateNode.scrollToIndex === 'function') {
-      f.stateNode.scrollToIndex({animated: false, index, viewPosition: 0.5})
-      return index
+    if (index !== undefined && node && typeof node.scrollToIndex === 'function') {
+      node.scrollToIndex({animated: false, index, viewPosition: 0.5})
+      return 'row'
+    }
+    if (index === undefined && node && typeof node.scrollTo === 'function' && typeof node.getInnerViewRef === 'function' && typeof node.getNativeScrollRef === 'function') {
+      // a host view's public instance is made on demand, so one no ref asked for has none yet
+      const renderer = kbModule('node_modules/react-native/Libraries/ReactNative/RendererImplementation.js')
+      const t = rectOf(renderer.getPublicInstanceFromInternalInstanceHandle(target), 'the view')
+      const c = rectOf(node.getInnerViewRef(), 'the scroll content')
+      const v = rectOf(node.getNativeScrollRef(), 'the scroll view')
+      const along = (start, size) => Math.min(Math.max(0, c[size] - v[size]), Math.max(0, t[start] - c[start] - (v[size] - t[size]) / 2))
+      node.scrollTo(node.props?.horizontal ? {animated: false, x: along('left', 'width'), y: 0} : {animated: false, x: 0, y: along('top', 'height')})
+      return 'scrollView'
     }
   }
-  throw new Error('testID ' + id + ' is in no virtualized list row')`
+  return 'none'`
 // Pauses every expo-video player on its first frame, as desktop pauses autoplay videos (a looping
 // giphy unfurl shows a different frame in every screenshot). Players live in hook state
 // (useVideoPlayer), so each mounted fiber's hooks are searched for one, as React DevTools reads them.
@@ -455,9 +474,14 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
         // later steps on something that loads
         await withDeadline(byTestID(s.testID).waitForExist({timeout: SETUP_MS}), SETUP_MS + 1_000, `finding ${s.testID}`)
         if (await withDeadline(byTestID(s.testID).isDisplayed(), SETUP_MS, `is ${s.testID} displayed`)) return
-        // Appium's \`mobile: scroll\` gives up on the inverted chat thread (and can wedge WDA), so the
-        // list is scrolled from JS instead: the row holding the element, centred without animation.
-        await appEval(scrollToRow(s.testID), `scrolling to ${s.testID}`)
+        // Appium's \`mobile: scroll\` gives up on the inverted chat thread (and can wedge WDA), so what
+        // scrolls the element is scrolled from JS where it can be (scrollToTarget); only an element
+        // in neither a list row nor a ScrollView is left to Appium.
+        const how = await appEval<'row' | 'scrollView' | 'none'>(scrollToTarget(s.testID), `scrolling to ${s.testID}`)
+        if (how === 'none') {
+          const elementId = await withDeadline(byTestID(s.testID).elementId, SETUP_MS, `finding ${s.testID}`)
+          await withDeadline(browser.execute('mobile: scroll', {elementId, toVisible: true}), SETUP_MS, `scrolling to ${s.testID}`)
+        }
         return
       }
       case 'hover':
