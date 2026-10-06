@@ -196,7 +196,7 @@ const ROUTER = `const r = kbModule('constants/router.tsx');`
 // The app's fibers (`roots`), read through the React DevTools hook a dev build has, with the walks
 // and placements of coverage/visible.ts: screenPlacement says whether a view is in the focused
 // screen, a hidden one (a hidden tab, a screen under the top one), or outside every screen (the
-// overlays and sheets drawn over the navigator: the global error bar, runtime stats).
+// overlays and sheets drawn over the navigator: the global error bar, runtime stats, popups).
 const FIBERS = `
   const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
   if (!hook?.getFiberRoots) throw new Error('no React DevTools hook; is this a dev build?')
@@ -214,8 +214,8 @@ const FIBERS = `
     })
     return out
   }
-  // what nativeInWindow needs: host rects in window points, read synchronously (RN's DOM API; a
-  // host view's public instance is made on demand, so one no ref asked for has none yet)
+  // what the native placements need: host rects in window points, read synchronously (RN's DOM
+  // API; a host view's public instance is made on demand, so one no ref asked for has none yet)
   let nativeEnv
   const env = () => {
     if (nativeEnv) return nativeEnv
@@ -260,7 +260,7 @@ export const targetState = (testID: string) => `${findTarget(testID)}
   return nativeInWindow(target, env()) ? 'inWindow' : 'outside'`
 // The call sites the capture draws (coverage/visible.ts), or null without coverage marks.
 export const VISIBLE_SITES = `${FIBERS}
-  const r = visibleSites(roots, m => nativeVisible(m, env()))
+  const r = nativeVisibleSites(roots, env())
   return r.marks ? r.ids : null`
 // Types into the text input at or under the host view with testID, through the native input's own
 // onChangeText (and, for Enter, onSubmitEditing): XCUITest's typing into a controlled field that

@@ -161,14 +161,24 @@ capture the driver walks the app's fiber tree for the marks (`coverage/visible.t
 site when one of its instances is on screen:
 
 - desktop: one of its elements is rendered (not `display: none` or `visibility: hidden`, not
-  empty) and overlaps the viewport once clipped by the ancestors that clip it;
+  empty, its opacity times its ancestors' above 0), overlaps the viewport once clipped by the
+  ancestors that clip it, and shows at one of five points of that part (its centre and corners,
+  inset 1px): `elementsFromPoint` lists nothing opaque above it there (an opaque background, an
+  image or a video, at full opacity; not its own children). A translucent backdrop, like a modal's
+  dim, covers nothing: the pixels under it still compare;
 - phone: it is in the focused screen, or outside every screen (overlays, sheets), and one of its
-  views overlaps the window once clipped by the scroll views and `overflow: hidden` views around it.
+  views has an opacity above 0 along its views, overlaps the window once clipped by the scroll
+  views and `overflow: hidden` views around it, and is not covered. While the focused screen is a
+  natively presented modal, only it and FullWindowOverlay content (popups, sheets) count: the
+  views outside every screen are under the modal. A view outside every screen with an opaque
+  background at full opacity that fills the window covers what is drawn under it. Views of one
+  screen covering others of that screen are not modelled.
 
 So a site mounted only on the way (a loading row replaced before ready), in a hidden tab or a
-screen under the top one, or scrolled out of view is not covered: no compare sees its pixels. The
-tab bar and other chrome count in every capture that draws them. A coverage file without the
-`visible` flag is refused. Take a coverage base, then:
+screen under the top one, scrolled out of view, transparent, or covered is not counted: no compare
+sees its pixels. Where a rule cannot tell, it counts the site as not drawn, which only costs a
+restored prop. The tab bar and other chrome count in every capture that draws them. A coverage
+file without the `visible` flag is refused. Take a coverage base, then:
 
 ```sh
 yarn visual:base --base HEAD --coverage        # desktop: relaunches the app with --coverage
