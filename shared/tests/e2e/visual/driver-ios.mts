@@ -464,17 +464,22 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
   }
   // The glass tab bar's rendering depends on which tab was selected before (seen live: files after
   // chat differs from files after teams), so every capture arrives from the same tab.
-  // A screen the last capture pushed is popped on its own tab before leaving it: popped later, its
-  // pop would run on the target tab, under the capture, and the tab bar draws differently after it.
+  // The target is visited and popped to its root before that hop, so that:
+  // - a screen an earlier capture pushed is popped on its own tab (popped under the capture, its
+  //   pop would change how the tab bar draws);
+  // - the capture is never the first visit of the tab's screen: the native header lays its title
+  //   out a fraction of a pixel off on a screen's first visit, and a visit before the hop makes
+  //   every capture a later one, whatever remounted the screen since warmTabs.
   const resetTo = async (tab: string) => {
     await appEval(`${ROUTER} r.clearModals()`, 'clearModals')
     await appEval(`${ROUTER} r.popStack()`, 'popStack')
     await waitFor('the current tab to be at its root', RESET_MS, async () => (await routerAt()).atRoot)
-    await switchTo(tab === HOP_TAB ? HOP_TAB_ALT : HOP_TAB)
-    await settle(screenshot, SETTLE)
     await switchTo(tab)
     await appEval(`${ROUTER} r.popStack()`, 'popStack')
     await waitFor(`the root of ${tab}`, RESET_MS, async () => (await routerAt()).atRoot)
+    await switchTo(tab === HOP_TAB ? HOP_TAB_ALT : HOP_TAB)
+    await settle(screenshot, SETTLE)
+    await switchTo(tab)
   }
 
   // The app follows the system appearance while its preference is 'system'. Any other preference
