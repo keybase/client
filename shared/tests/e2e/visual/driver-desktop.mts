@@ -10,10 +10,9 @@ import {findMainPage, checkRendererAfterReload} from '../electron/helpers/connec
 import {pngEqual, type Rect} from './compare.mts'
 import {resolveParams, resolveValue} from './resolve.mts'
 import {VISUAL_CAPTURE_ARGS, VISUAL_VIEWPORT} from './electron-args.ts'
-import type {EntryFixture, RemoteWindow, Theme, TourEntry, SetupStep, WindowSize} from './tour-types.ts'
-import {fixtureArgs, leakProblems} from './fixtures/drive.mts'
-import {FIXTURE_RUNTIME_VERSION} from './fixtures/names.ts'
-import type {EndReport, VisualFixtures} from './fixtures/runtime.ts'
+import type {RemoteWindow, Theme, TourEntry, SetupStep, WindowSize} from './tour-types.ts'
+import {fixtureCapture, type FixtureHooks} from './fixtures/drive.mts'
+import type {VisualFixtures} from './fixtures/runtime.ts'
 
 export type Capture = {
   png: Buffer
@@ -232,13 +231,6 @@ const resetTo = async (page: Page, tab: string) => {
 
 // ---------------------------------------------------------------- fixtures (fixtures/runtime.ts)
 
-const fixtureActive = async (page: Page) =>
-  withDeadline(
-    page.evaluate(() => (globalThis as unknown as DevGlobals).__kbVisualFixtures?.active() ?? false),
-    EVAL_MS,
-    'reading whether a fixture is active'
-  )
-
 // Screens mounted before the fixture began hold live data in their state. Resetting the root to its
 // own state without route keys gives every route a new key, so every screen remounts.
 const remountScreens = async (page: Page) => {
@@ -257,60 +249,24 @@ const remountScreens = async (page: Page) => {
   await waitForNoLoading(page)
 }
 
-const beginFixture = async (page: Page, f: EntryFixture) => {
-  const args = await fixtureArgs(f)
-  await withDeadline(
-    page.evaluate(
-      ([name, json, version]) => {
-        const fx = (globalThis as unknown as DevGlobals).__kbVisualFixtures
-        if (!fx) throw new Error('the app has no visual fixtures runtime; is this a dev build of a tree that has one?')
-        if (fx.version !== version) throw new Error(`the app's fixture runtime is version ${fx.version}, the driver wants ${version}`)
-        fx.begin(name, JSON.parse(json) as Record<string, unknown>)
-      },
-      [f.name, JSON.stringify(args), FIXTURE_RUNTIME_VERSION] as const
-    ),
-    EVAL_MS,
-    `beginning fixture ${f.name}`
-  )
-}
-
-const fixtureServed = async (page: Page, name: string) =>
-  waitFor(`fixture ${name} to answer every rule it needs`, READY_MS, async () =>
-    withDeadline(
-      page.evaluate(() => (globalThis as unknown as DevGlobals).__kbVisualFixtures?.served() ?? false),
-      EVAL_MS,
-      'reading whether the fixture has answered'
-    )
-  )
-
-const fixtureCall = async <R,>(page: Page, step: 'afterReady' | 'end') =>
-  withDeadline(
-    page.evaluate(s => {
-      const fx = (globalThis as unknown as DevGlobals).__kbVisualFixtures
-      if (!fx) throw new Error('the app has no visual fixtures runtime')
-      return fx[s]()
-    }, step) as Promise<R>,
-    EVAL_MS,
-    `fixture ${step}`
-  )
-
-// end() always runs once begin did; then the app is put back as the fixture says.
-const endFixture = async (page: Page, name: string): Promise<Array<string>> => {
-  const report = await fixtureCall<EndReport>(page, 'end')
-  if (report.teardown === 'reload') {
+// How a capture's fixture (fixtures/drive.mts) reaches the app and puts it back after end().
+const fixtureHooks = (page: Page): FixtureHooks => ({
+  evalApp: async <R,>(body: string, what: string) => withDeadline(page.evaluate(`(() => {${body}})()`) as Promise<R>, EVAL_MS, what),
+  reload: async () => {
     await withDeadline(page.reload(), READY_MS, 'reloading after the fixture')
     await checkRendererAfterReload(page)
     await waitForNoLoading(page)
-  } else {
+  },
+  remount: async () => {
     // a remount of a state holding a pushed screen can leave the navigator with no state (seen on
     // the phone with the device page), so the reset to the tab root comes first
     await routerCall(page, 'clearModals')
     await routerCall(page, 'popStack')
     await waitFor('the current tab to be at its root', RESET_MS, async () => (await routerAt(page)).atRoot)
     await remountScreens(page)
-  }
-  return leakProblems(name, report)
-}
+  },
+  waitFor: async (what, check) => waitFor(what, READY_MS, check),
+})
 
 const runStep = async (page: Page, s: SetupStep) => {
   const target = page.getByTestId(s.testID).locator('visible=true').first()
@@ -723,11 +679,11 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
   const capture: DesktopSession['capture'] = async entry => {
     let png: Buffer | undefined
     let win: OpenWindow | undefined
-    let fixtureOn = false
+    const fixture = fixtureCapture(fixtureHooks(page), entry.fixture)
     let result: Capture
     try {
       if (!theme || frozenAt === undefined) throw new Error('capture called before prepare')
-      if (await fixtureActive(page)) throw new Error('a fixture is still active from an earlier entry')
+      await fixture.assertNoneActive()
       // Another CDP client attaching (a second Playwright connection) resets the emulated color
       // scheme to its own default, so the emulation is reasserted for every capture.
       await fixViewport(cdp, page)
@@ -742,8 +698,7 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
       if (entry.fixture) {
         // installed on an idle app, then every screen remounts so none keeps live data
         await waitForNoLoading(page)
-        await beginFixture(page, entry.fixture)
-        fixtureOn = true
+        await fixture.begin()
         await remountScreens(page)
       }
       const nav = await resolveParams(entry.nav)
@@ -784,10 +739,7 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
         for (const s of entry.setup) await runStep(shown, s)
       }
       await shown.getByTestId(entry.ready).locator('visible=true').first().waitFor({state: 'visible', timeout: READY_MS})
-      if (entry.fixture) {
-        await fixtureServed(page, entry.fixture.name)
-        await fixtureCall(page, 'afterReady')
-      }
+      await fixture.ready()
       await waitForNoLoading(page, shown)
       await waitForAssets(shown)
       await stillVideos(shown)
@@ -821,14 +773,8 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
         fail(`closing the window: ${(e as Error).message}`)
       }
     }
-    if (fixtureOn && entry.fixture) {
-      try {
-        const problems = await endFixture(page, entry.fixture.name)
-        if (problems.length) fail(problems.join('; '))
-      } catch (e) {
-        fail(`ending fixture ${entry.fixture.name}: ${(e as Error).message}`)
-      }
-    }
+    const problems = await fixture.end()
+    if (problems.length) fail(problems.join('; '))
     return result
   }
 
