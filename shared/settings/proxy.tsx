@@ -12,9 +12,6 @@ const useConnect = () => {
   const [showDisableCertPinningWarning, setShowDisableCertPinningWarning] = React.useState(false)
   const loadProxyData = C.useRPC(T.RPCGen.configGetProxyDataRpcPromise)
   const saveProxyData = C.useRPC(T.RPCGen.configSetProxyDataRpcPromise)
-  const onBack = () => {
-    C.Router2.navigateUp()
-  }
   const onDisableCertPinning = () => {
     setShowDisableCertPinningWarning(true)
   }
@@ -31,7 +28,6 @@ const useConnect = () => {
   const props = {
     allowTlsMitmToggle,
     loadProxyData,
-    onBack,
     onCancelDisableCertPinning,
     onConfirmDisableCertPinning,
     onDisableCertPinning,
@@ -89,7 +85,6 @@ type Props = {
     setResult: (result: T.RPCGen.ProxyData) => void,
     setError: (error: RPCError) => void
   ) => void
-  onBack: () => void
   onCancelDisableCertPinning: () => void
   onConfirmDisableCertPinning: () => void
   onDisableCertPinning: () => void
@@ -270,7 +265,6 @@ const ProxySettingsPopup = (props: Props) => {
   const styles = useStyles()
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} padding="small" style={styles.popupBox}>
-      {!isMobile && <Kb.BackButton onClick={props.onBack} />}
       <Kb.Box2 direction="vertical" padding="xlarge">
         <ProxySettingsComponent {...props} />
       </Kb.Box2>
