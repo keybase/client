@@ -374,9 +374,12 @@ const fixtureEntries: Array<TourEntry> = [
     fixture: {name: 'device-last-used'},
     setup: [{kind: 'openPopup', testID: T.DEVICES_ROW}],
   },
-  // the params the people tab's search opens it with (appendPeopleBuilder)
+  // every service, the phone number and email ones with their new badges
+  ...modal('people-builder', 'peopleTeamBuilder', {}, {fixture: recs, phone: true, ready: T.TEAM_BUILDING_RESULT_ROW, seal: ['follows']}),
+  // the params the people tab's search opens it with (appendPeopleBuilder); its desktop overlay
+  // leaves the tabs uncovered
   ...modal(
-    'people-builder',
+    'people-builder-search',
     'peopleTeamBuilder',
     {filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'], namespace: 'people', title: ''},
     {fixture: recs, phone: true, ready: T.TEAM_BUILDING_RESULT_ROW, seal: ['follows']}

@@ -166,7 +166,8 @@ const synthetic = (ctx: FixtureContext, base: Valid, media: Valid): Array<UIMess
         decorate({emoji, typ: 7}),
       ].join(' '),
     }),
-    text(5, 'This message explodes.', {etime: ctx.now + 6 * hour, isEphemeral: true}),
+    // also encrypted for the team's bot, which its menu's header names
+    text(5, 'This message explodes.', {botUsername: bot, etime: ctx.now + 6 * hour, isEphemeral: true}),
     image
       ? valid(6, {
           assetUrlInfo: media.assetUrlInfo,
