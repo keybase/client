@@ -116,3 +116,15 @@ Settled in the 2026-10-06 grilling session.
 - **D42 — When to delete `osx/Helper/`.** It is deleted, and the helper stops being bundled, one or two releases after this ships. This is tracked in the README; it does not happen on this branch.
 - **D43 — No confirmation when turning Finder access off.** Turning it off just unmounts, so the macOS "Remove & Restart" dialog goes away with no replacement.
 - **D44 — Release notes.** User-facing notes go in `shared/desktop/CHANGELOG.txt` (the bulleted lines starting with `•`). Layer 05 adds the entry: macFUSE is now installed by the user from macfuse.io, and `/keybase` is gone on macOS.
+
+## Fourth round (2026-10-06)
+
+- **D45 — An admin prompt replaces the updater fallback.**
+  - **When:** the updater cannot rename `/Applications/Keybase.app`.
+  - **What:** a one-time admin prompt (`osascript … with administrator privileges`) replaces the deleted `install --components=app` fallback. It shares code with D28.
+  - **Why:** silently losing auto-update for some users is worse than a rare prompt.
+- **D46 — Retirement cleans up every user's mount folder.** The D29 retirement removes every `/Volumes/Keybase (*)` directory that is not currently a mount point, not just the folder of the user who happens to launch first.
+  - **Why:** once the helper is gone, nobody can remove the others without root.
+  - Before each removal, check the mount table (03's safety guard).
+  - **Supersedes** D41's single-user scope.
+- **D47 — Keep the bundled helper copy until D42.** The installer keeps shipping its bundled helper copy until the D42 cleanup. The retirement talks to the already-installed helper, so dropping the copy now gains nothing, and keeping it keeps `.pbxproj` edits off this branch.

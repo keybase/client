@@ -41,7 +41,7 @@ Owner key: **01** mounter · **02** install/status/CLI · **03** osx packaging �
 | go/install/install_darwin.go:771-779 | mount only if the mount dir exists | 02 (D27, D30) |
 | go/install/install_darwin.go:822-914,916-935 | `Uninstall` redirector/fuse/helper/clipaths; `UninstallKBFSOnStop` mountdir | 02 |
 | go/install/install_darwin.go:499-505,881-887; libnativeinstaller/app.go:140-150; go/client/cmd_install_osx.go:52-55,308-311 | `app` component (`--install-app-bundle`/`--uninstall-app`) and `--source-path` | 02 (D38) |
-| go/updater/keybase/platform_darwin.go:334-353 | rename-failure fallback runs `keybase install --components=app` | 02 ⚠ (D38: the only automatic caller) |
+| go/updater/keybase/platform_darwin.go:334-353 | rename-failure fallback runs `keybase install --components=app` | 02 ⚠ (D38: the only automatic caller; D45: replaced by a one-time admin prompt through the shared `go/install/adminprompt` helper, 02 changes 10–11) |
 | go/install/libnativeinstaller/app.go:81-137 | `--install/uninstall-{mountdir,redirector,fuse,helper,cli}` wrappers | 02 |
 | go/client/cmd_install_osx.go:87-96,166-175 | default install/uninstall components include helper, fuse, mountdir, redirector | 02 ⚠ (plain `keybase install` must stay green without macFUSE) |
 | go/client/cmd_fuse_osx.go:29-35,46,60 | "Status for fuse…", `--bundle-version` | 02 |
@@ -72,12 +72,13 @@ Owner key: **01** mounter · **02** install/status/CLI · **03** osx packaging �
 | osx/Installer/Options.{h,m} | `--install/uninstall-{fuse,redirector,helper,cli}`, `--install-app-bundle`, `--uninstall-app`, `--source-path`; new `--retire-helper` | 03 (D25, D28, D29, D38) |
 | osx/Installer/Uninstaller.m:15-45 | fuse, cli, helper, redirector, app uninstall | 03 |
 | osx/Installer/Info.plist:41-45; osx/Status/Info.plist:39-43 | `SMPrivilegedExecutables` | 03 (D38) |
-| osx/KBKit/KBKit/Component/KBAppBundle.* | privileged app-bundle move through the helper | 03 (delete, D38) |
+| osx/KBKit/KBKit/Component/KBAppBundle.* | app-bundle `Contents` swap after a helper bless (02 Current state) | 03 (delete, D38) |
 | osx/KBKit/KBKit/Component/KBFuseComponent.*, KBRedirector.*, KBCommandLine.* | kbfuse, redirector and helper `addToPath` components | 03 (delete) |
 | osx/KBKit/KBKit/System/KBEnvironment.m:47-102; KBEnvConfig.h; KBKit.h:47,55,59; KBDefines.h:36-39 | installables, `helperRequired`, error codes | 03 |
 | osx/KBKit/KBKit/Component/KBHelperTool.m:20,41-254 | helper path, version check, critical update, macFuse alert, `SMJobBless`, uninstall leaving the plist; keeps the XPC client and `remove`, gains `retireLegacy:` | 03 (D38) |
 | osx/KBKit/KBKit/Component/KBMountDir.m:65-117 | helper `createMountDirectory` branch | 03 (D30 decides keep/delete) |
-| osx/KBKit/KBKit.xcodeproj/project.pbxproj (KBFuseComponent/KBRedirector/KBCommandLine refs); osx/Keybase.xcodeproj/project.pbxproj:14,104,244,766 + osx/Resources/Fuse.icns + osx/Resources/README.md:3 | build refs and icon | 03 |
+| osx/KBKit/KBKit.xcodeproj/project.pbxproj (KBFuseComponent/KBRedirector/KBCommandLine/KBAppBundle refs); osx/Keybase.xcodeproj/project.pbxproj:14,104,244,766 + osx/Resources/Fuse.icns + osx/Resources/README.md:3 | build refs and icon | R until D42 (D47: no `.pbxproj` edits on this branch; the KBKit refs go stale when 03 deletes the sources) |
+| osx/Keybase.xcodeproj/project.pbxproj:25,94,524; osx/Podfile:30 | helper Copy Files phase and `keybase.Helper` target | R until D42 (D47) |
 | osx/Helper/** | helper 1.0.47 source, unchanged (D29) | R (deleted and unbundled one or two releases after ship, D42, tracked in README) |
 | osx/README.md:84-133; osx/Scripts/README.md:12,54 | docs | 05 |
 
@@ -120,7 +121,7 @@ Owner key: **01** mounter · **02** install/status/CLI · **03** osx packaging �
 
 1. **shared/docs/installer_and_updater_architecture.md**
    - `:12` item 3 → "FUSE is not shipped. macOS users who want KBFS in Finder install stock macFUSE 5.x from https://macfuse.io (kext mode)."
-   - `:18-19` and `:42`: no privileged helper on new installs (D25). The installer's only privileged job is the one-time `--retire-helper` run for upgraders (D29); the CLI symlink uses a one-time admin prompt (D28).
+   - `:18-19` and `:42`: no privileged helper on new installs (D25). The installer's only privileged job is the one-time `--retire-helper` run for upgraders (D29); the CLI symlink uses a one-time admin prompt (D28). If the updater cannot rename `Keybase.app` in `/Applications`, it shows the same kind of one-time admin prompt to do the move (D45).
    - `:60` broken link `go/client/install_osx.go` → `go/client/cmd_install_osx.go`.
    - `:68` `keybase fuse status` reports the stock macFUSE install (D14).
 2. **go/kbfs/README.md**: `:68-70` the redirector is mounted at `/keybase` on Linux only (D25); `:95` and `:111-113` "FUSE for OS X"/osxfuse.github.io → macFUSE (https://macfuse.io), delete the `--use-system-fuse` bullet (D14); `:123-127` delete the "branded version of FUSE for OS X" paragraph and its `osx/Fuse/build.sh` link.
@@ -147,7 +148,7 @@ Run from the worktree root once 01–04 have landed. Every check must print noth
 cd "$GOPATH/src/github.com/keybase/client-macfuse"
 X=(-- ':!plans' ':!*node_modules*' ':!go/chat/unfurl/testcases')
 # A. Gone entirely.
-git grep -n -I -E 'use-system-fuse|UseSystemFuse|ClosedSourceConsent|closed-source kernel extension|KBFuseVersion|KBFuseBuild|kbfuse\.bundle|desktop/kbfuse\.sh|Fuse kext|Security & Privacy|OSXFUSELocationV3|/dev/kbfuse|mount_kbfuse|KBFuseComponent|KBRedirector|KBCommandLine|KBAppBundle|install-fuse|install-redirector|install-helper|install-cli|install-app-bundle|uninstall-app|components=app|uninstallKBFSDialog|setCriticalUpdate|fsCriticalUpdate|ExitFuseCriticalUpdate|ExitCodeAuthCanceledError|ExitCodeFuseKextError' "${X[@]}"
+git grep -n -I -E 'use-system-fuse|UseSystemFuse|ClosedSourceConsent|closed-source kernel extension|KBFuseVersion|KBFuseBuild|kbfuse\.bundle|desktop/kbfuse\.sh|Fuse kext|Security & Privacy|OSXFUSELocationV3|/dev/kbfuse|mount_kbfuse|KBFuseComponent|KBRedirector|KBCommandLine|KBAppBundle|install-fuse|install-redirector|install-helper|install-cli|install-app-bundle|uninstall-app|components=app|uninstallKBFSDialog|setCriticalUpdate|fsCriticalUpdate|ExitFuseCriticalUpdate|ExitCodeAuthCanceledError|ExitCodeFuseKextError' "${X[@]}" ':!osx/KBKit/KBKit.xcodeproj/project.pbxproj'
 # A2. Nothing outside the legacy helper source can bless it (D38).
 git grep -n -I -E 'SMJobBless|SMPrivilegedExecutables|KBErrorCodeFuse' "${X[@]}" ':!osx/Helper'
 test -e osx/Fuse && echo "osx/Fuse still present"
@@ -155,17 +156,22 @@ test -e packaging/desktop/kbfuse.sh && echo "kbfuse.sh still present"
 # B. kbfuse / osxfuse only in allow-listed files.
 git grep -n -I -i -E 'kbfuse|osxfuse|fuse\.kext' "${X[@]}" \
   | grep -v -E 'OSXFUSE(Location|Paths)|ErrOSXFUSENotFound' \
-  | grep -v -E '^(osx/Helper/|osx/KBKit/KBKit/Component/KBHelperTool\.m|go/mounter/mounter_osx\.go|go/install/(fuse_status|install)_darwin\.go|go/kbfs/libfuse/(dir|file|folderlist|fs|start)\.go|go/kbfs/libfs/(fs_notifications|tlf)\.go):'
+  | grep -v -E '^(osx/Helper/|osx/KBKit/KBKit/Component/KBHelperTool\.m|go/mounter/mounter_osx\.go|go/install/(fuse_status|install)_darwin\.go|go/kbfs/libfuse/(dir|file|folderlist|fs|start)\.go|go/kbfs/libfs/(fs_notifications|tlf)\.go|osx/Resources/README\.md|osx/KBKit/KBKit\.xcodeproj/project\.pbxproj):'
 # C. The redirector exists only for Linux.
 git grep -n -I -E 'keybase-redirector|startRedirector|stopRedirector' "${X[@]}" \
   | grep -v -E '^(packaging/linux/|go/kbfs/redirector/|go/client/cmd_ctl_(nix|autostart)\.go|go/install/stop_nix\.go|go/status/log_send\.go|go/kbfs/README\.md|packaging/prerelease/build_kbfs\.sh|osx/Helper/|osx/KBKit/KBKit/Component/KBHelperTool\.m):'
 # D. No Go path execs a helper-installing installer switch (D25, D38).
 git grep -n -E 'libnativeinstaller\.(Install|Uninstall)(Fuse|Redirector|Helper|CommandLinePrivileged|AppBundle|App)\b' -- go
+# E. osascript only in the shared admin-prompt helper (D28, D45).
+git grep -n -I osascript -- go | grep -v '^go/install/adminprompt/'
+# F. No .pbxproj or Podfile edits on this branch (D47).
+git diff --stat master -- '*.pbxproj' osx/Podfile
 ```
 
 Allowed residuals, each with a reason:
 
-- `osx/Helper/**`: the 1.0.47 helper source, unchanged so the D29 run talks to known code. Deleted, and no longer bundled, one or two releases after ship (D42, tracked in `README.md`); not on this branch.
+- `osx/Helper/**`: the 1.0.47 helper source, unchanged so the D29 run talks to known code. Deleted, and no longer bundled, one or two releases after ship (D42, tracked in `README.md`); not on this branch. The bundled copy stays until then (D47).
+- `osx/KBKit/KBKit.xcodeproj/project.pbxproj` (stale `KBFuseComponent`/`KBRedirector`/`KBCommandLine`/`KBAppBundle` file references, excluded from gate A) and `osx/Resources/README.md:3` (the `Fuse.icns` osxfuse credit): no `.pbxproj` edits on this branch (D47); cleaned up with D42.
 - `KBHelperTool.m`: `retireLegacy:` names `kbfuse.fs`, the kbfuse kext ID and `stopRedirector` (D29).
 - `go/mounter/mounter_osx.go` (`kbfuse` fstype, D26) and `go/install/{fuse_status,install}_darwin.go` (`legacyKbfusePath`, `retireLegacyHelper`). Each hit has "legacy" or a D26/D29 reference on that line or the one above.
 - `go/kbfs/libfuse/*`, `go/kbfs/libfs/*` historical osxfuse comments.
@@ -176,7 +182,7 @@ Allowed residuals, each with a reason:
 ## Acceptance criteria
 
 - [ ] Every Inventory row is changed by its owning layer or listed as an allowed residual; the ⚠ rows are covered in their layer specs.
-- [ ] Grep gates A–D print nothing with the final allow-lists.
+- [ ] Grep gates A–F print nothing with the final allow-lists.
 - [ ] Doc changes 1–4 and 9 (the `CHANGELOG.txt` bullets, D44) made; 5–6 confirmed against what 02 and 04 shipped.
 - [ ] `keybase install` with no `--components` exits 0 on a Mac without macFUSE (cmd_install_osx.go ⚠ row).
 - [ ] The two `CHANGELOG.txt` bullets are repeated in the PR description when a PR is opened (D21, D44).
