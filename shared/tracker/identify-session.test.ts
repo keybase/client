@@ -1,6 +1,7 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
+import {RPCError} from '@/util/errors'
 import {resetAllStores} from '@/util/zustand'
 import {
   getProfileDetails,
@@ -9,9 +10,9 @@ import {
 } from './identify-session'
 
 const flush = async () => {
-  await Promise.resolve()
-  await Promise.resolve()
-  await Promise.resolve()
+  for (let i = 0; i < 10; ++i) {
+    await Promise.resolve()
+  }
 }
 
 let identifySpy: jest.SpyInstance
@@ -19,7 +20,14 @@ let identifySpy: jest.SpyInstance
 beforeEach(() => {
   identifySpy = jest
     .spyOn(T.RPCGen, 'identify3Identify3RpcListener')
-    .mockImplementation(async () => Promise.resolve() as unknown as Promise<never>)
+    .mockImplementation((async (p: {params: {guiID: string}}) => {
+      // like the service, report a result before the call returns
+      await Promise.resolve()
+      notifyEngineActionListeners({
+        payload: {params: {guiID: p.params.guiID, result: T.RPCGen.Identify3ResultType.ok}},
+        type: 'keybase.1.identify3Ui.identify3Result',
+      } as never)
+    }) as never)
   jest
     .spyOn(T.RPCGen, 'userListTrackersUnverifiedRpcPromise')
     .mockImplementation(async () => Promise.resolve({users: []} as never))
@@ -274,4 +282,38 @@ test('events for an unknown guiID are dropped', () => {
 
   expect(getProfileDetails('testuser')?.state).toBe('checking')
   unsub()
+})
+
+const failNextIdentify = () =>
+  identifySpy.mockImplementationOnce(async () =>
+    // the engine rejects with an RPCError, which is not an Error subclass
+    // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+    Promise.reject(new RPCError('network', T.RPCGen.StatusCode.scgeneric))
+  )
+
+test('a failed identify does not count as a recent check', async () => {
+  failNextIdentify()
+  const unsubA = subscribeToProfile('testuser', () => {})
+  loadProfileIdentify('testuser', mountOptions)
+  await flush()
+  unsubA()
+
+  const unsubB = subscribeToProfile('testuser', () => {})
+  loadProfileIdentify('testuser', mountOptions)
+  expect(identifySpy).toHaveBeenCalledTimes(2)
+  unsubB()
+})
+
+test('a failed reload drops the earlier recent check instead of reviving its session', async () => {
+  await openAndClose()
+  const unsubA = subscribeToProfile('testuser', () => {})
+  failNextIdentify()
+  loadProfileIdentify('testuser', {freshAfter: Infinity, ignoreCache: true})
+  await flush()
+  unsubA()
+
+  const unsubB = subscribeToProfile('testuser', () => {})
+  loadProfileIdentify('testuser', mountOptions)
+  expect(identifySpy).toHaveBeenCalledTimes(3)
+  unsubB()
 })
