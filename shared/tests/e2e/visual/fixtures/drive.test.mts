@@ -14,7 +14,7 @@ const harness = (opts: {failAfter?: string; teardown?: EndReport['teardown']; ve
     active: false,
     begins: 0,
     ended: 0,
-    report: {cancelledReplies: [], refusedWrites: [], storesNotRestored: [], teardown: opts.teardown ?? 'remount'},
+    report: {cancelledReplies: [], failedFollowUps: [], refusedWrites: [], storesNotRestored: [], teardown: opts.teardown ?? 'remount'},
   }
   const fx = {
     active: () => app.active,
@@ -78,10 +78,14 @@ test('a begin the app refused leaves nothing to end, and end does not fail on it
 test('end runs once, tears down as the report says and fails the capture on what leaked', async () => {
   const h = harness({teardown: 'reload'})
   h.app.report.refusedWrites.push('keybase.1.teams.teamAddMember')
+  h.app.report.failedFollowUps.push('after a.1.x.thread: no conversationIDKey')
   const fixture = fixtureCapture(h.hooks, f)
   await fixture.begin()
   await fixture.ready()
-  assert.deepEqual(await fixture.end(), ['fixture featured-bots refused the write keybase.1.teams.teamAddMember'])
+  assert.deepEqual(await fixture.end(), [
+    'fixture featured-bots refused the write keybase.1.teams.teamAddMember',
+    'fixture featured-bots failed a follow-up after a.1.x.thread: no conversationIDKey',
+  ])
   assert.deepEqual(await fixture.end(), [])
   assert.equal(h.app.ended, 1)
   assert.deepEqual(h.teardowns, ['reload'])
