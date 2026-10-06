@@ -32,6 +32,7 @@ const FollowSuggestions = (props: Props) => {
             colorFollowing={true}
             size="small"
             containerStyle={styles.suggestionContainer}
+            testID={TestIDs.PEOPLE_FOLLOW_SUGGESTION}
           />
         ))}
       </Kb.ScrollView>

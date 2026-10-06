@@ -54,6 +54,7 @@ export type NameWithIconProps = {
   selectable?: boolean
   size?: Size
   teamname?: string
+  testID?: string
   channelname?: string
   // for non-users
   title?: string | React.ReactNode
@@ -229,6 +230,7 @@ export const NameWithIcon = (props: NameWithIconProps) => {
     alignSelf: 'center',
     direction: props.horizontal ? 'horizontal' : 'vertical',
     style: containerStyle,
+    testID: props.testID,
   } as const
 
   // ClickableBox only when clickable: it renders Pressable/clickable-box2 with different semantics

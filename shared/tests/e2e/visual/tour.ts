@@ -1,5 +1,5 @@
 import * as T from '../shared/test-ids.ts'
-import type {Mask, ParamValue, SetupStep, TourEntry} from './tour-types.ts'
+import type {ParamValue, SetupStep, TourEntry} from './tour-types.ts'
 
 // Tab names are the values in constants/tabs.tsx. Desktop shows eight tabs; phone shows people,
 // chat, files, teams and settings.
@@ -11,10 +11,6 @@ import type {Mask, ParamValue, SetupStep, TourEntry} from './tour-types.ts'
 const team = {teamID: {ref: 'teamID'}} as const
 const short = {channel: 'e2e-short', ref: 'conversationIDKey'} as const
 const kinds = {channel: 'e2e-kinds', ref: 'conversationIDKey'} as const
-const followSuggestions: Mask = {reason: 'people feed follow suggestions, server-picked', testID: T.PEOPLE_FOLLOW_SUGGESTIONS}
-const deviceLastUsed: Mask = {reason: 'device last-used time, server-pushed', testID: T.DEVICES_ROW_LAST_USED}
-const devicePageLastUsed: Mask = {reason: 'device last-used time, server-pushed', testID: T.DEVICE_PAGE_LAST_USED}
-const teamBuilderRecs: Mask = {reason: 'team builder recommendations, server-picked and server-ordered', testID: T.TEAM_BUILDING_RECS}
 
 // A settings sub-page: on desktop a sub-tab of the settings tab, on phone a page pushed from the
 // settings list.
@@ -66,7 +62,7 @@ type ModalOpts = {
   phone?: boolean
   // false for a modal only the phone opens
   desktop?: boolean
-  masks?: TourEntry['masks']
+  fixture?: TourEntry['fixture']
   ready?: string
   setup?: TourEntry['setup']
 }
@@ -75,7 +71,7 @@ const modal = (id: string, name: string, params: Params = {}, opts: ModalOpts = 
   const base = {
     id: `modal/${id}`,
     seal: opts.seal ?? [],
-    ...(opts.masks ? {masks: opts.masks} : {}),
+    ...(opts.fixture ? {fixture: opts.fixture} : {}),
     ...(opts.setup ? {setup: opts.setup} : {}),
   }
   return [
@@ -149,7 +145,6 @@ const newTeam = {
 } as const
 const addMembers = {addingMembers: [], membersAlreadyInTeam: [], role: 'writer', teamID: {ref: 'teamID'}} as const
 const teamBuilderServices = ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews']
-const featuredBots: Mask = {reason: 'featured bots, server-picked and server-ordered', testID: T.CHAT_BOT_SEARCH_RESULTS}
 // A crypto operation's result as its output screen takes it; the phone pushes the screen once an
 // operation finishes, desktop shows the same output beside the input.
 const cryptoOutput = {
@@ -284,15 +279,74 @@ const windows: Array<TourEntry> = [
   },
 ]
 
-export const tour: ReadonlyArray<TourEntry> = [
+// Entries under a dev-only fixture (fixtures/): server-picked content the fixture replaces, so it
+// is compared instead of masked. They run after every live entry (fixtureOrderProblems).
+const recs = {name: 'team-builder-recs'} as const
+const fixtureEntries: Array<TourEntry> = [
   {
+    fixture: {args: {users: [{ref: 'secondUser'}, 'vg-ada', 'vg-ben']}, name: 'people-follow-suggestions'},
     id: 'tab/people',
-    masks: [followSuggestions],
     nav: {tab: 'tabs.peopleTab'},
     platforms: ['desktop', 'phone'],
-    ready: T.PEOPLE_FEED,
+    ready: T.PEOPLE_FOLLOW_SUGGESTION,
     seal: ['follows'],
   },
+  {
+    fixture: {name: 'device-last-used'},
+    id: 'tab/devices',
+    nav: {tab: 'tabs.devicesTab'},
+    platforms: ['desktop'],
+    ready: T.DEVICES_ROW_LAST_USED,
+    seal: ['devices'],
+  },
+  {
+    ...phoneSettingsPage('tab/devices', 'devicesTab', T.DEVICES_ROW_LAST_USED, ['devices']),
+    fixture: {name: 'device-last-used'},
+  },
+  {
+    fixture: {name: 'device-last-used'},
+    id: 'devices/page',
+    nav: {tab: 'tabs.devicesTab'},
+    platforms: ['desktop'],
+    ready: T.DEVICE_PAGE_LAST_USED,
+    seal: ['devices'],
+    setup: [{kind: 'openPopup', testID: T.DEVICES_ROW}],
+  },
+  {
+    ...phoneSettingsPage('devices/page', 'devicesTab', T.DEVICE_PAGE_LAST_USED, ['devices']),
+    fixture: {name: 'device-last-used'},
+    setup: [{kind: 'openPopup', testID: T.DEVICES_ROW}],
+  },
+  ...modal('people-builder', 'peopleTeamBuilder', {}, {fixture: recs, phone: true, ready: T.TEAM_BUILDING_RESULT_ROW, seal: ['follows']}),
+  ...teamModal(
+    'team-builder',
+    'teamsTeamBuilder',
+    {...team, addMembersWizard: addMembers, filterServices: teamBuilderServices, goButtonLabel: 'Add', namespace: 'teams', title: ''},
+    {fixture: recs, phone: true, ready: T.TEAM_BUILDING_RESULT_ROW, seal: ['teams', 'follows']}
+  ),
+  ...teamModal('chat-search-bots', 'chatSearchBots', {...team, conversationIDKey: short}, {
+    fixture: {args: {bots: [TEAM_BOT, 'vg-helper-bot']}, name: 'featured-bots'},
+    phone: true,
+    ready: T.CHAT_BOT_ROW,
+    seal: ['teams', 'inbox'],
+  }),
+  // The services leave out 'phone': with it the phone shows a contacts banner whose effect can save
+  // the address book to the server.
+  ...modal('chat-new-chat', 'chatNewChat', {filterServices: teamBuilderServices, namespace: 'chat', title: 'New chat'}, {
+    fixture: recs,
+    phone: true,
+    ready: T.TEAM_BUILDING_RESULT_ROW,
+    seal: ['follows'],
+  }),
+  ...modal(
+    'crypto-builder',
+    'cryptoTeamBuilder',
+    {filterServices: teamBuilderServices, goButtonLabel: 'Add', namespace: 'crypto', recommendedHideYourself: true, teamBuilderNonce: 'visual', title: 'Recipients'},
+    {fixture: recs, phone: true, ready: T.TEAM_BUILDING_RESULT_ROW, seal: ['follows']}
+  ),
+]
+
+export const tour: ReadonlyArray<TourEntry> = [
   // The inbox: the phone's chat tab root. Desktop has no inbox screen of its own (see the notes at
   // the bottom).
   {
@@ -533,29 +587,6 @@ export const tour: ReadonlyArray<TourEntry> = [
     seal: [],
   },
   phoneSettingsPage('tab/git', 'gitTab', T.GIT_REPO_LIST, []),
-  {
-    id: 'tab/devices',
-    masks: [deviceLastUsed],
-    nav: {tab: 'tabs.devicesTab'},
-    platforms: ['desktop'],
-    ready: T.DEVICES_LIST,
-    seal: ['devices'],
-  },
-  {...phoneSettingsPage('tab/devices', 'devicesTab', T.DEVICES_LIST, ['devices']), masks: [deviceLastUsed]},
-  {
-    id: 'devices/page',
-    masks: [devicePageLastUsed],
-    nav: {tab: 'tabs.devicesTab'},
-    platforms: ['desktop'],
-    ready: T.DEVICE_PAGE,
-    seal: ['devices'],
-    setup: [{kind: 'openPopup', testID: T.DEVICES_ROW}],
-  },
-  {
-    ...phoneSettingsPage('devices/page', 'devicesTab', T.DEVICE_PAGE, ['devices']),
-    masks: [devicePageLastUsed],
-    setup: [{kind: 'openPopup', testID: T.DEVICES_ROW}],
-  },
   // the phone's crypto list; desktop has none (its crypto tab opens on encrypt beside the same list)
   phoneSettingsPage('tab/crypto', 'cryptoTab', T.CRYPTO_INPUT, []),
   ...settingsPage('account', 'accountTab', T.SETTINGS_ROW_ACCOUNT, T.SETTINGS_ACCOUNT_PAGE),
@@ -652,7 +683,6 @@ export const tour: ReadonlyArray<TourEntry> = [
     },
     {phone: true, seal: ['follows']}
   ),
-  ...modal('people-builder', 'peopleTeamBuilder', {}, {masks: [teamBuilderRecs], phone: true, seal: ['follows']}),
   ...modal('feedback', 'signupSendFeedbackLoggedIn', {}, {phone: true}),
   ...modal('chat-block', 'chatBlockingModal', {blockUserByDefault: true, username: {ref: 'secondUser'}}, {phone: true, seal: ['follows']}),
   ...teamModal('team-rename', 'teamRename', {teamname: {ref: 'teamname'}}, {phone: true}),
@@ -693,12 +723,6 @@ export const tour: ReadonlyArray<TourEntry> = [
     {phone: true}
   ),
   ...teamModal('team-contact-restricted', 'contactRestricted', {source: 'teamAddAllFailed', usernames: [{ref: 'secondUser'}]}, {phone: true}),
-  ...teamModal(
-    'team-builder',
-    'teamsTeamBuilder',
-    {...team, addMembersWizard: addMembers, filterServices: teamBuilderServices, goButtonLabel: 'Add', namespace: 'teams', title: ''},
-    {masks: [teamBuilderRecs], phone: true, seal: ['teams', 'follows']}
-  ),
   ...teamModal('team-create-channels', 'teamCreateChannels', team, {phone: true}),
   ...teamModal(
     'team-edit-channel',
@@ -761,12 +785,6 @@ export const tour: ReadonlyArray<TourEntry> = [
     phone: true,
     seal: ['teams', 'inbox'],
   }),
-  ...teamModal('chat-search-bots', 'chatSearchBots', {...team, conversationIDKey: short}, {
-    masks: [featuredBots],
-    phone: true,
-    ready: T.CHAT_BOT_SEARCH_RESULTS,
-    seal: ['teams', 'inbox'],
-  }),
   ...modal('chat-install-bot-pick', 'chatInstallBotPick', {botUsername: TEAM_BOT}, {phone: true, seal: ['teams', 'inbox']}),
   // the destination picker only; the message it would forward is never shown
   ...modal('chat-forward', 'chatForwardMsgPick', {conversationIDKey: short, messageID: 1}, {phone: true, seal: ['teams', 'inbox']}),
@@ -774,19 +792,6 @@ export const tour: ReadonlyArray<TourEntry> = [
     phone: true,
     seal: ['teams', 'inbox'],
   }),
-  // The services leave out 'phone': with it the phone shows a contacts banner whose effect can save
-  // the address book to the server.
-  ...modal('chat-new-chat', 'chatNewChat', {filterServices: teamBuilderServices, namespace: 'chat', title: 'New chat'}, {
-    masks: [teamBuilderRecs],
-    phone: true,
-    seal: ['follows'],
-  }),
-  ...modal(
-    'crypto-builder',
-    'cryptoTeamBuilder',
-    {filterServices: teamBuilderServices, goButtonLabel: 'Add', namespace: 'crypto', recommendedHideYourself: true, teamBuilderNonce: 'visual', title: 'Recipients'},
-    {masks: [teamBuilderRecs], phone: true, seal: ['follows']}
-  ),
   // a file the title step only names: nothing is uploaded until Send
   ...modal(
     'chat-attachment-titles',
@@ -886,6 +891,7 @@ export const tour: ReadonlyArray<TourEntry> = [
     {phone: true, ready: T.CHAT_EMOJI_PICKER, seal: ['inbox']}
   ),
   ...windows,
+  ...fixtureEntries,
 ]
 
 // Routes from `yarn visual:routes` the tour leaves out, and why. Every other route has an entry,
