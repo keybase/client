@@ -176,6 +176,7 @@ export const MemberActions = (props: MemberMenuProps) => {
 
   return (
     <Kb.Box2
+      alignSelf="center"
       direction="horizontal"
       gap="tiny"
       style={youCanManageMembers ? selectionStyles.mobileMarginsHack : undefined}

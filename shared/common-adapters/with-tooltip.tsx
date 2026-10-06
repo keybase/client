@@ -172,6 +172,7 @@ function WithTooltip(p: Props) {
       </View>
       <Kb.Portal hostName="popup-root">
         <Kb.Box2
+          alignSelf="center"
           direction="vertical"
           pointerEvents="box-none"
           style={Styles.collapseStyles([Styles.globalStyles.fillAbsolute, animatedStyle])}

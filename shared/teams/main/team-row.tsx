@@ -98,6 +98,7 @@ const TeamRow = function TeamRow(props: Props) {
           </Kb.Box2>
         )}
         <Kb.Box2
+          alignSelf="center"
           direction="horizontal"
           className={isMobile ? undefined : 'fade'}
           gap={isMobile ? 'tiny' : 'xtiny'}
