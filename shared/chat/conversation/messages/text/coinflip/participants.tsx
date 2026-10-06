@@ -1,5 +1,6 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 export type Props = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -15,7 +16,7 @@ const CoinFlipParticipants = (props: Props) => {
   const {attachTo, onHidden, participants, visible} = props
   const howThisWorksUrlProps = Kb.useClickURL('https://keybase.io/coin-flip')
   const header = (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true} testID={TestIDs.CHAT_COINFLIP_PARTICIPANT_LIST}>
       <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true} style={styles.container}>
         <Kb.Text type="BodySmall">{participants?.length ?? 0} participants</Kb.Text>
       </Kb.Box2>

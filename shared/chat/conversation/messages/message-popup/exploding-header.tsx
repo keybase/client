@@ -4,6 +4,7 @@ import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '@/util/timesta
 import {addTicker, removeTicker} from '@/util/second-timer'
 import {navToProfile} from '@/constants/router'
 import {humanReadableFileSize} from '@/constants/fs'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {
   explodesAt: number
@@ -51,7 +52,7 @@ const ExplodingPopupHeader = (props: Props) => {
   const prettySize = fileSize ? humanReadableFileSize(fileSize) : ''
   const icon = <Kb.ImageIcon style={styles.headerIcon} type={headerIconType} />
   const info = (
-    <Kb.Box2 direction="vertical" fullWidth={true} padding="xsmall">
+    <Kb.Box2 direction="vertical" fullWidth={true} padding="xsmall" testID={TestIDs.CHAT_EXPLODING_HEADER}>
       <Kb.Box2 alignSelf="center" direction="horizontal">
         <Kb.Box2 alignSelf="center" direction="horizontal" gap="xtiny" gapStart={true} alignItems="center">
           <Kb.Avatar username={author} size={16} onClick="profile" />

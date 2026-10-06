@@ -5,6 +5,7 @@ import * as React from 'react'
 import UnfurlImage from './image'
 import {formatDurationForLocation} from '@/util/timestamp'
 import {maxWidth} from '@/chat/conversation/messages/attachment/shared'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 function UnfurlMap(p: {
   author: string
@@ -42,7 +43,7 @@ function UnfurlMap(p: {
   }
 
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical">
+    <Kb.Box2 alignSelf="center" direction="vertical" testID={TestIDs.CHAT_MAP_UNFURL}>
       <UnfurlImage
         url={imageURL}
         height={height}
