@@ -85,7 +85,10 @@ pinned:
 - iOS: status bar override (9:41, full signal and battery), Reduce Motion and Reduce Transparency
   on (the app is relaunched to pick them up), auto-focused inputs blurred, video players paused on
   their first frame, and captures settle on two equal frames a second apart. A `scrollIntoView`
-  whose target is off screen scrolls its list from JS (`scrollToIndex` on the row holding it):
+  whose target does not show whole (as much of it as fits, for one longer than what scrolls it)
+  scrolls it to the middle, as desktop's `scrollIntoViewIfNeeded` does (again once it stops moving,
+  up to three times, while a row still laying out leaves it in part), from JS
+  (`scrollToIndex` on the row holding it):
   Appium's `mobile: scroll` gives up on the inverted chat thread. `close` clears the status bar override; the app keeps the
   accessibility settings until its next launch.
 - Each entry waits for the waiting store to be idle for 500ms at its tab root before it navigates

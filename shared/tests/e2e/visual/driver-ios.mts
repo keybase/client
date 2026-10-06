@@ -97,6 +97,8 @@ const SETTLE = {deadlineMs: 5_000, intervalMs: 250}
 // and two screenshots 250ms apart can match in the middle of it, so a capture waits for two that
 // match a second apart.
 const CAPTURE_SETTLE = {deadlineMs: 8_000, intervalMs: 1_000}
+const SCROLL_ATTEMPTS = 4
+const TARGET_QUIET_MS = 300
 
 export const appiumHome = () => process.env['APPIUM_HOME'] || `${homedir()}/.appium`
 export const appiumPort = () => Number(process.env['KB_APPIUM_PORT'] ?? 4723)
@@ -253,11 +255,17 @@ const findTarget = (testID: string) => `${FIBERS}
     }, true)[0] ?? overlay`
 const targetByTestID = (testID: string) => `${findTarget(testID)}
   if (!target) throw new Error('no host view with testID ' + id + ' in the focused screen or an overlay')`
-// 'missing' until the target is there, then whether it draws in the window, clipped by what
-// scrolls it: 'inWindow' or 'outside'
+// 'missing' until the target is there, then 'inView' when all of it shows in the window, clipped by
+// what scrolls it (or, for a target longer than that, when it fills it), else 'outside': desktop's
+// scrollIntoViewIfNeeded scrolls a target that shows only in part, too.
 export const targetState = (testID: string) => `${findTarget(testID)}
   if (!target) return 'missing'
-  return nativeInWindow(target, env()) ? 'inWindow' : 'outside'`
+  const r = env().rect(target)
+  if (!r || !(r.right > r.left && r.bottom > r.top)) return 'outside'
+  return showsAll(r, nativeClip(target, env())) ? 'inView' : 'outside'`
+// The target's rect in window points, or null when it is missing.
+export const targetBox = (testID: string) => `${findTarget(testID)}
+  return target ? env().rect(target) ?? null : null`
 // The call sites the capture draws (coverage/visible.ts), or null without coverage marks.
 export const VISIBLE_SITES = `${FIBERS}
   const r = nativeVisibleSites(roots, env())
@@ -513,14 +521,14 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
 
   const byTestID = (id: string) => browser.$(`~${id}`)
   // Waits for the step's target in the focused screen or an overlay (Appium's ~testID would also
-  // find another screen's), and says whether it draws in the window.
+  // find another screen's), and says whether all of it shows (targetState).
   const waitForTarget = async (testID: string) => {
     let state = 'missing'
     await waitFor(`${testID} in the focused screen or an overlay`, SETUP_MS, async () => {
       state = await appEval<string>(targetState(testID), `finding ${testID}`)
       return state !== 'missing'
     })
-    return state === 'inWindow'
+    return state === 'inView'
   }
 
   const runStep = async (s: SetupStep) => {
@@ -546,17 +554,34 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
       }
       case 'scrollIntoView': {
         // waits for the element, as desktop's scrollIntoViewIfNeeded does, so the step can gate
-        // later steps on something that loads
+        // later steps on something that loads; one that shows only in part is scrolled too
         if (await waitForTarget(s.testID)) return
         // Appium's \`mobile: scroll\` gives up on the inverted chat thread (and can wedge WDA), so what
         // scrolls the element is scrolled from JS where it can be (scrollToTarget); only an element
         // in neither a list row nor a ScrollView is left to Appium.
-        const how = await appEval<'row' | 'scrollView' | 'none'>(scrollToTarget(s.testID), `scrolling to ${s.testID}`)
-        if (how === 'none') {
-          const elementId = await withDeadline(byTestID(s.testID).elementId, SETUP_MS, `finding ${s.testID}`)
-          await withDeadline(browser.execute('mobile: scroll', {elementId, toVisible: true}), SETUP_MS, `scrolling to ${s.testID}`)
+        // A scroll lands where the list's row heights put the target, and rows not measured yet
+        // (or still laying out, an image arriving) move it after: the scroll is repeated, each
+        // time once the target has stopped moving, until a scroll leaves it where the one before
+        // did.
+        let landed = ''
+        for (let attempt = 0; attempt < SCROLL_ATTEMPTS; attempt++) {
+          const how = await appEval<'row' | 'scrollView' | 'none'>(scrollToTarget(s.testID), `scrolling to ${s.testID}`)
+          if (how === 'none') {
+            const elementId = await withDeadline(byTestID(s.testID).elementId, SETUP_MS, `finding ${s.testID}`)
+            await withDeadline(browser.execute('mobile: scroll', {elementId, toVisible: true}), SETUP_MS, `scrolling to ${s.testID}`)
+            return
+          }
+          let box = ''
+          await waitForQuiet(`${s.testID} to stop moving`, SETUP_MS, TARGET_QUIET_MS, async () => {
+            const next = JSON.stringify(await appEval<unknown>(targetBox(s.testID), `measuring ${s.testID}`))
+            const same = next === box
+            box = next
+            return same
+          })
+          if (box === landed) return
+          landed = box
         }
-        return
+        throw new Error(`scrollIntoView ${s.testID}: the target still moved after ${SCROLL_ATTEMPTS} scrolls`)
       }
       case 'hover':
         throw new Error(`hover ${s.testID}: hover is desktop only`)

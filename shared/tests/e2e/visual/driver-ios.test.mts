@@ -216,17 +216,28 @@ test('the target lookup stops at the first focused match', () => {
     },
   })
   const root = parent({tag: 3}, chain(screen(true), parent({tag: 0}, host('target', rect), poisoned)))
-  assert.equal(runScript(root, targetState('target')), 'inWindow')
+  assert.equal(runScript(root, targetState('target')), 'inView')
 })
 
-test('targetState waits for a target, then says whether it draws in the window, clipped by what scrolls it', () => {
-  const at = (top: number) => ({height: 50, left: 0, top, width: 100})
+test('targetState waits for a target, then says whether all of it shows in the window, clipped by what scrolls it', () => {
+  const at = (top: number, height = 50) => ({height, left: 0, top, width: 100})
+  const state = (...fs: Array<Fiber>) => runScript(parent({tag: 3}, chain(screen(true), ...fs)), targetState('target'))
   assert.equal(runScript(parent({tag: 3}, chain(screen(false), host('target', at(10)))), targetState('target')), 'missing')
-  assert.equal(runScript(parent({tag: 3}, chain(screen(true), host('target', at(10)))), targetState('target')), 'inWindow')
-  assert.equal(runScript(parent({tag: 3}, chain(screen(true), host('target', at(900)))), targetState('target')), 'outside')
-  // below the fold of a scroll view that ends at 400, though inside the window
-  const list = {...host('list', {height: 400, left: 0, top: 0, width: 400}), type: 'RCTScrollView'}
-  assert.equal(runScript(parent({tag: 3}, chain(screen(true), list, host('target', at(500)))), targetState('target')), 'outside')
+  assert.equal(state(host('target', at(10))), 'inView')
+  assert.equal(state(host('target', at(900))), 'outside')
+  // across the bottom of the 800 tall window: it shows only in part
+  assert.equal(state(host('target', at(780))), 'outside')
+  assert.equal(state(host('target', at(750))), 'inView')
+  // below the fold of a scroll view that ends at 400, though inside the window; or across its fold
+  const list = () => ({...host('list', {height: 400, left: 0, top: 0, width: 400}), type: 'RCTScrollView'})
+  assert.equal(state(list(), host('target', at(500))), 'outside')
+  assert.equal(state(list(), host('target', at(380))), 'outside')
+  assert.equal(state(list(), host('target', at(340))), 'inView')
+  // taller than the scroll view: in view when it fills it, as much of it as fits
+  assert.equal(state(list(), host('target', at(-100, 600))), 'inView')
+  assert.equal(state(list(), host('target', at(100, 600))), 'outside')
+  // empty
+  assert.equal(state(host('target', at(10, 0))), 'outside')
 })
 
 test('STILL_VIDEOS pauses every player held in hook state on its first frame', () => {
