@@ -1035,7 +1035,7 @@ test('a candidate needs coverage on every platform it renders on', () => {
   assert.deepEqual(shifted, [])
 })
 
-test('a masked entry never qualifies a site; a coverage file without the masked flag is refused', () => {
+test('a masked entry never qualifies a site; a coverage file without the masked or atCapture flag is refused', () => {
   const prev = process.env['KB_VISUAL_RESULTS']
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'box2-cov-'))
   process.env['KB_VISUAL_RESULTS'] = root
@@ -1045,9 +1045,9 @@ test('a masked entry never qualifies a site; a coverage file without the masked 
       fs.mkdirSync(dir, {recursive: true})
       fs.writeFileSync(path.join(dir, `${id}.json`), JSON.stringify(body))
     }
-    write('desktop', 'light', 'a', {ids: ['a.tsx:10'], masked: false})
-    write('desktop', 'dark', 'people', {ids: ['a.tsx:10', 'm.tsx:4'], masked: true})
-    write('ios', 'light', 'people', {ids: ['m.tsx:4'], masked: true})
+    write('desktop', 'light', 'a', {atCapture: true, ids: ['a.tsx:10'], masked: false})
+    write('desktop', 'dark', 'people', {atCapture: true, ids: ['a.tsx:10', 'm.tsx:4'], masked: true})
+    write('ios', 'light', 'people', {atCapture: true, ids: ['m.tsx:4'], masked: true})
     assert.deepEqual(platformCoverage('s1', 'desktop'), ['a.tsx:10'])
     assert.deepEqual(platformCoverage('s1', 'ios'), [])
     const mounted = {desktop: platformCoverage('s1', 'desktop'), ios: platformCoverage('s1', 'ios')}
@@ -1055,7 +1055,9 @@ test('a masked entry never qualifies a site; a coverage file without the masked 
       'desktop',
       'ios',
     ])
-    write('ios', 'light', 'old', ['m.tsx:4'])
+    write('ios', 'light', 'any-time', {ids: ['m.tsx:4'], masked: false})
+    assert.throws(() => platformCoverage('s1', 'ios'), /mounted at any time during its entry/)
+    write('ios', 'light', 'any-time', ['m.tsx:4'])
     assert.throws(() => platformCoverage('s1', 'ios'), /no masked flag/)
   } finally {
     if (prev === undefined) delete process.env['KB_VISUAL_RESULTS']
@@ -1455,7 +1457,7 @@ test('U4 plan: needs coverage on every gate platform, carries base lines forward
     const cover = (platform: string, ids: Array<string>, masked = false) => {
       const dir = path.join(tmp, 'results', 'base', base, platform, 'light', 'coverage')
       fs.mkdirSync(dir, {recursive: true})
-      fs.writeFileSync(path.join(dir, `e${fs.readdirSync(dir).length}.json`), JSON.stringify({ids, masked}))
+      fs.writeFileSync(path.join(dir, `e${fs.readdirSync(dir).length}.json`), JSON.stringify({atCapture: true, ids, masked}))
     }
     // lines 3-8 in a.tsx: 3 on both, 4 on both, 5 desktop only, 6 on iOS only under a mask, 7 (mobile
     // only) on iOS, 8 (Android only) on both

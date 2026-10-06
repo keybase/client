@@ -635,10 +635,18 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     appEval<number | null>('return globalThis.__kbVisualCoverage?.seq() ?? null', 'coverage seq')
   const coverageMounted = async () =>
     appEval<Array<string> | null>('return globalThis.__kbVisualCoverage?.mounted() ?? null', 'coverage mounted')
-  const coverageSince = async (seq: number | null) =>
+  // what the capture shows of what its entry mounted: the call sites mounted after `seq` that are
+  // still mounted now
+  const coverageNowSince = async (seq: number | null) =>
     seq === null
       ? null
-      : appEval<Array<string> | null>(`return globalThis.__kbVisualCoverage?.mountedSince(${seq}) ?? null`, 'coverage mountedSince')
+      : appEval<Array<string> | null>(
+          `const c = globalThis.__kbVisualCoverage
+           if (!c) return null
+           if (typeof c.mountedNowSince !== 'function') throw new Error('the app records coverage without capture-time sites; serve a tree whose coverage/registry.ts has mountedNowSince')
+           return c.mountedNowSince(${seq})`,
+          'coverage mountedNowSince'
+        )
 
   let prepared = false
   let datePatched = false
@@ -771,7 +779,7 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
       }, CAPTURE_SETTLE)
       png = settled.png
       const masks = await maskRects(entry)
-      const coverage = await coverageSince(seq)
+      const coverage = await coverageNowSince(seq)
       result = {coverage, masks, png, status: settled.stable ? 'ok' : 'unstable'}
     } catch (e) {
       result = {coverage: null, error: (e as Error).message, masks: [], png: png ?? Buffer.alloc(0), status: 'failed'}

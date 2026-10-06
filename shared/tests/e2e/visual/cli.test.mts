@@ -138,15 +138,23 @@ test('checkBaseInfra refuses a base without the visual driver or launch-app --vi
   const files = (m: Record<string, string>) => (p: string) => m[p]
   const launch = 'shared/tests/e2e/electron/launch-app.mts'
   const driver = 'shared/tests/e2e/visual/driver-desktop.mts'
-  const ok = {[driver]: 'x', [launch]: "const visual = process.argv.includes('--visual')\nconst coverage = process.argv.includes('--coverage')"}
+  const registry = 'shared/tests/e2e/visual/coverage/registry.ts'
+  const ok = {
+    [driver]: 'x',
+    [launch]: "const visual = process.argv.includes('--visual')\nconst coverage = process.argv.includes('--coverage')",
+    [registry]: 'mountedNowSince',
+  }
   const desktop = (coverage: boolean) => ({coverage, ios: false})
   assert.doesNotThrow(() => checkBaseInfra('abc', files(ok), desktop(true)))
   assert.throws(() => checkBaseInfra('abc', files({[launch]: ok[launch]!}), desktop(false)), /abc has no visual gate .*--base <ref>/s)
   assert.throws(() => checkBaseInfra('abc', files({[driver]: 'x', [launch]: 'old'}), desktop(false)), /--base <ref>/)
   assert.throws(
-    () => checkBaseInfra('abc', files({[driver]: 'x', [launch]: "process.argv.includes('--visual')"}), desktop(true)),
+    () => checkBaseInfra('abc', files({[driver]: 'x', [launch]: "process.argv.includes('--visual')", [registry]: 'mountedNowSince'}), desktop(true)),
     /--coverage/
   )
+  // a base whose coverage counts every site mounted during an entry, not those at its capture
+  assert.throws(() => checkBaseInfra('abc', files({...ok, [registry]: 'mountedSince'}), desktop(true)), /no capture-time coverage/)
+  assert.doesNotThrow(() => checkBaseInfra('abc', files({[driver]: 'x', [launch]: ok[launch]!}), desktop(false)))
 })
 
 test('checkBaseInfra refuses fixture entries from a base without the fixture runtime', () => {
@@ -166,8 +174,10 @@ test('checkBaseInfra on iOS needs the iOS driver, and the babel coverage hook fo
   // the desktop pieces are not what iOS needs
   assert.doesNotThrow(() => checkBaseInfra('abc', files({[iosDriver]: 'x'}), ios(false)))
   assert.throws(() => checkBaseInfra('abc', files({}), ios(false)), /abc has no visual gate infra \(.*driver-ios\.mts\).*--base <ref>/)
-  assert.doesNotThrow(() => checkBaseInfra('abc', files({[babel]: "process.env.KB_VISUAL_COVERAGE === '1'", [iosDriver]: 'x'}), ios(true)))
-  assert.throws(() => checkBaseInfra('abc', files({[babel]: 'module.exports = {}', [iosDriver]: 'x'}), ios(true)), /coverage hook in shared\/babel\.config\.js.*--coverage/)
+  const registry = {'shared/tests/e2e/visual/coverage/registry.ts': 'mountedNowSince'}
+  assert.doesNotThrow(() => checkBaseInfra('abc', files({...registry, [babel]: "process.env.KB_VISUAL_COVERAGE === '1'", [iosDriver]: 'x'}), ios(true)))
+  assert.throws(() => checkBaseInfra('abc', files({[babel]: "process.env.KB_VISUAL_COVERAGE === '1'", [iosDriver]: 'x'}), ios(true)), /no capture-time coverage/)
+  assert.throws(() => checkBaseInfra('abc', files({...registry, [babel]: 'module.exports = {}', [iosDriver]: 'x'}), ios(true)), /coverage hook in shared\/babel\.config\.js.*--coverage/)
 })
 
 test('aa: an unstable first capture fails the pair even when the second matches it', async () => {

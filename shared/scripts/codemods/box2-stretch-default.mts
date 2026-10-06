@@ -42,7 +42,7 @@ import {
   type Hunk,
   type Range,
 } from '../../tests/e2e/visual/coverage/changed-sites.mts'
-import {basePlatformDir, type CoverageFile, type RunPlatform} from '../../tests/e2e/visual/store.mts'
+import {basePlatformDir, parseCoverageFile, type RunPlatform} from '../../tests/e2e/visual/store.mts'
 
 type Site = {line: number}
 type Unresolved = {line: number; reason: string}
@@ -1707,8 +1707,7 @@ export const platformCoverage = (sha: string, platform: RunPlatform) => {
       const p = join(dir, d.name)
       if (d.isDirectory()) walkCoverage(p)
       else if (basename(dir) === 'coverage' && d.name.endsWith('.json')) {
-        const file = JSON.parse(readFileSync(p, 'utf8')) as CoverageFile | Array<string>
-        if (Array.isArray(file)) throw new Error(`${p} has no masked flag: retake the coverage base`)
+        const file = parseCoverageFile(JSON.parse(readFileSync(p, 'utf8')), p)
         if (!file.masked) for (const id of file.ids) out.add(id)
       }
     }

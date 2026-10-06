@@ -151,7 +151,11 @@ checks that no fixture is active, and fixture entries run after every live entry
 ## Coverage
 
 `--coverage` builds mark every Box2 / ClickableBox JSX call site (outside `common-adapters/box.tsx`
-and `node_modules/`) so each capture records which ones mounted. Take a coverage base, then:
+and `node_modules/`) so each capture records which ones are mounted when it is taken: the call
+sites the entry mounted that are still mounted at the screenshot. A site mounted only on the way
+(a loading row replaced before ready) is not covered, since no compare sees it. A coverage base
+written before this (no `atCapture` in its coverage files) is refused; retake it. Take a coverage
+base, then:
 
 ```sh
 yarn visual:base --base HEAD --coverage        # desktop: relaunches the app with --coverage
