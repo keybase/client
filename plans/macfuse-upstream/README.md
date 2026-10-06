@@ -20,7 +20,7 @@ Stop shipping Keybase's white-labeled kbfuse driver on macOS. Users who want KBF
 
 Later, separate effort: [fskit-future.md](fskit-future.md) (our own FSKit module, D8).
 
-Decisions: [decisions.md](decisions.md) is authoritative and append-only. D25–D37 supersede parts of D11, D12, D14–D16 and D20. D38–D44 answer the owner questions the reconciled specs raised; D45–D47 answer the next three (updater fallback, other accounts' mount dirs, bundled helper copy). D48 allows `.pbxproj` edits except the bundled helper copy, and D49 corrects D45: the updater tries the unprivileged `Contents` swap before any prompt.
+Decisions: [decisions.md](decisions.md) is authoritative and append-only. D25–D37 supersede parts of D11, D12, D14–D16 and D20. D38–D44 answer the owner questions the reconciled specs raised; D45–D47 answer the next three (updater fallback, other accounts' mount dirs, bundled helper copy). D48 allows `.pbxproj` edits except the bundled helper copy, and D49 corrects D45: the updater tries the unprivileged `Contents` swap before any prompt. D50 puts the Keybase Homebrew cask out of scope.
 
 ## Next step
 
@@ -53,7 +53,7 @@ Run the spike in `01-mounter.md`:
 ## How to resume
 
 1. Read this README.
-2. Read `decisions.md` in full (D1–D49; D25 onward change a lot).
+2. Read `decisions.md` in full (D1–D50; D25 onward change a lot).
 3. Read the spec of the first layer whose status is not ✓, then its Log.
 4. Check the worktree: `git -C $GOPATH/src/github.com/keybase/client-macfuse status` and `git log --oneline master..`.
 

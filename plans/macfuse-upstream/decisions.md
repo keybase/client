@@ -136,3 +136,9 @@ Settled in the 2026-10-06 grilling session.
   - **First:** the updater does what the old `KBAppBundle` path did, as the user: verify the signature, then swap `Keybase.app/Contents` in place. This now lives in Go next to the updater.
   - **Only if that also fails:** show the D28/D45 one-time admin prompt.
   - **Why:** the old fallback never ran as root; it went through the helper only because the `app` component required it. Users who update today with no prompt must keep doing so.
+
+## Fifth round (2026-10-06)
+
+- **D50 — The Keybase Homebrew cask is out of scope.** Keybase is no longer distributed through Homebrew, so no layer plans for a Homebrew-installed Keybase.
+  - **Leave alone:** the `homebrew.mxcl.*` service labels and brew-prefix lookups in `go/install/install_darwin.go`, `go/client/cmd_install_osx.go` and `cmd_launchd_osx.go`; KBKit's "Homebrew Install Found" view (`KBAppView.m`); `packaging/brew/`. No spec adds work for them, and no layer is blocked on them.
+  - The macFUSE Homebrew cask references in `00-macfuse-facts.md` are third-party reference only and stay.
