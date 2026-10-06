@@ -95,9 +95,9 @@ const BigTeamChannel = (props: Props) => {
     <Kb.ClickableBox direction="vertical" fullWidth={true} onClick={onSelectConversation} style={styles.container}>
       <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.rowContainer}>
         <Kb.Box2
-          alignSelf={(!isMobile) ? undefined : 'center'}
           className="hover_background_color_blueGreyDark"
           direction="horizontal"
+          alignSelf={isMobile ? 'center' : undefined}
           fullWidth={!isMobile}
           alignItems="center"
           style={Kb.Styles.collapseStyles([

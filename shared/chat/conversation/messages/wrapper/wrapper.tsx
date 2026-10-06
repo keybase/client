@@ -617,11 +617,12 @@ function TextAndSiblings(p: TSProps) {
 
   return (
     <LongPressable {...pressableProps}>
-      <Kb.Box2 alignSelf={(!isMobile) ? undefined : 'center'}
+      <Kb.Box2
         direction="vertical"
         flex={1}
         relative={true}
         style={styles.middle}
+        alignSelf={isMobile ? 'center' : undefined}
         fullWidth={!isMobile}
       >
         <NormalWrapper style={styles.background}>

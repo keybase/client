@@ -1130,6 +1130,14 @@ test('U2: a conditional pin under a centering parent is removed', () => {
     assert.deepEqual(unpinRules(src), ['U2:3'], test)
     assert.equal(unpinned(src), inCentering(`<Kb.Box2 direction="vertical" fullWidth={x} />`), test)
   }
+  // read the other way round
+  const flipped = inCentering(`<Kb.Box2 direction="vertical" alignSelf={isMobile ? 'center' : undefined} fullWidth={!isMobile} />`)
+  assert.deepEqual(unpinRules(flipped), ['U2:3'])
+  assert.equal(unpinned(flipped), inCentering(`<Kb.Box2 direction="vertical" fullWidth={!isMobile} />`))
+  // not a pin: no branch is undefined, or none is 'center'
+  for (const a of [`x ? 'center' : 'stretch'`, `x ? undefined : 'stretch'`, `x ? 'center' : 'center'`]) {
+    assert.deepEqual(unpinRules(inCentering(`<Kb.Box2 alignSelf={${a}} direction="vertical" />`)), [], a)
+  }
 })
 
 test('U2: a test that may have side effects is skipped', () => {
@@ -1145,7 +1153,7 @@ test('only a center pin is a candidate', () => {
     `alignSelf="flex-start"`,
     `alignSelf="stretch"`,
     `alignSelf={x}`,
-    `alignSelf={x ? 'center' : undefined}`,
+    `alignSelf={x ? 'flex-start' : undefined}`,
     `alignSelf={x ? undefined : 'flex-start'}`,
     `alignSelf={x ? 'stretch' : 'center'}`,
   ]) {
@@ -1347,10 +1355,11 @@ test('U4: every pin-shaped site is a candidate, whatever its parent', () => {
 })
 
 test('U4: only center pins; a spread or a test with side effects makes a pin unusable', () => {
-  for (const a of [`alignSelf="flex-start"`, `alignSelf={x}`, `alignSelf={x ? 'center' : undefined}`]) {
+  for (const a of [`alignSelf="flex-start"`, `alignSelf={x}`, `alignSelf={x ? 'stretch' : undefined}`]) {
     assert.deepEqual(u4(`const A = () => <Kb.Box2 ${a} direction="vertical" />`), {sites: [], unusable: []}, a)
   }
   assert.deepEqual(u4(`const A = () => <Kb.Box2 alignSelf="center" direction="vertical" />`).sites.length, 1)
+  assert.deepEqual(u4(`const A = () => <Kb.Box2 alignSelf={x ? 'center' : undefined} direction="vertical" />`).sites.length, 1)
   assert.deepEqual(u4(`const A = () => <Kb.Box2 alignSelf="center" {...p} />`), {
     sites: [],
     unusable: [{line: 1, reason: 'child has a spread'}],

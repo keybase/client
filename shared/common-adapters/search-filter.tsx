@@ -272,10 +272,11 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
   }
 
   const inside = (
-    <Kb.Box2 alignSelf={(!isMobile) ? undefined : 'center'}
+    <Kb.Box2
       ref={measureRef}
       direction="horizontal"
       alignItems="center"
+      alignSelf={isMobile ? 'center' : undefined}
       fullWidth={!isMobile}
       // With onClick the input is display-only; block it from taking focus so
       // clicks hit the ClickableBox and window refocus can't refire onFocus.

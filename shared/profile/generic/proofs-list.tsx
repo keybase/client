@@ -1193,11 +1193,12 @@ const Unreachable = ({
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
   return (
-    <Kb.Box2 alignSelf={(isMobile) ? undefined : 'center'}
+    <Kb.Box2
       direction="horizontal"
       gap="xtiny"
       alignItems="flex-start"
       style={Kb.Styles.collapseStyles([styles.inputBox, styles.unreachableBox])}
+      alignSelf={isMobile ? undefined : 'center'}
       fullWidth={isMobile}
     >
       <SiteIcon
