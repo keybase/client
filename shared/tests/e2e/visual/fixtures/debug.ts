@@ -7,10 +7,14 @@
 import type * as T from '@/constants/types'
 import type {FixtureDef, StoreApi} from './def.ts'
 
-type ConfigState = {globalError?: Error; runtimeStats?: T.RPCGen.RuntimeStats}
-const setConfig = (config: StoreApi | undefined, change: Partial<ConfigState>) => {
+type ConfigState = {
+  globalError?: Error
+  runtimeStats?: T.RPCGen.RuntimeStats
+  dispatch: {setGlobalError: (e?: unknown) => void}
+}
+const configOf = (config: StoreApi | undefined) => {
   if (!config) throw new Error('the config store is not in __ZUSTAND_HMR__; is this a dev build?')
-  config.setState({...(config.getState() as ConfigState), ...change}, true)
+  return config
 }
 
 // The bar shows the message, and its details (shown expanded) the stack, which is set so it holds
@@ -21,14 +25,24 @@ const fixtureError = () => {
   return e
 }
 
+// Desktop clears the error 10s after it shows (app/global-errors.tsx). While the fixture is active
+// the store's setGlobalError ignores a clear, so the bar stays up however long the capture takes;
+// end() puts the store's own dispatch back.
 export const globalError: FixtureDef = {
-  beforeNav: s => setConfig(s.get('z:config'), {globalError: fixtureError()}),
+  beforeNav: s => {
+    const config = configOf(s.get('z:config'))
+    const {dispatch} = config.getState() as ConfigState
+    const setGlobalError = (e?: unknown) => {
+      if (e) dispatch.setGlobalError(e)
+    }
+    config.setState({dispatch: {...dispatch, setGlobalError}, globalError: fixtureError()} satisfies Partial<ConfigState>)
+  },
   rpc: [],
   stores: ['z:config'],
   teardown: 'reload',
 }
 
-const process = (type: T.RPCGen.ProcessType, severity: T.RPCGen.StatsSeverityLevel): T.RPCGen.ProcessRuntimeStats => ({
+const processStats = (type: T.RPCGen.ProcessType, severity: T.RPCGen.StatsSeverityLevel): T.RPCGen.ProcessRuntimeStats => ({
   cpu: '12.50%',
   cpuSeverity: severity,
   free: '1.20GB',
@@ -43,7 +57,7 @@ const process = (type: T.RPCGen.ProcessType, severity: T.RPCGen.StatsSeverityLev
 
 export const runtimeStats: FixtureDef = {
   beforeNav: s =>
-    setConfig(s.get('z:config'), {
+    configOf(s.get('z:config')).setState({
       runtimeStats: {
         convLoaderActive: true,
         dbStats: [
@@ -51,10 +65,10 @@ export const runtimeStats: FixtureDef = {
           {memCompActive: false, tableCompActive: false, type: 2},
         ],
         perfEvents: null,
-        processStats: [process(0, 1), process(1, 0)],
+        processStats: [processStats(0, 1), processStats(1, 0)],
         selectiveSyncActive: false,
       },
-    }),
+    } satisfies Partial<ConfigState>),
   rpc: [],
   stores: ['z:config'],
   teardown: 'reload',
