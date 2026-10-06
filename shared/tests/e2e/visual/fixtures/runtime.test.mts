@@ -294,9 +294,19 @@ test('a rewrite that throws is reported by end, and the call goes on unchanged',
     h.begin()
     const thread = {method: 'a.1.x.thread', param: [{sessionID: 1, thread: 'live'}]}
     assert.deepEqual(h.rt.rpc.incoming(thread, {customResponse: false, inSession: true}), thread)
+    // a call with no first param keeps its param array as it came, not one with an empty object
+    const bare = {method: 'a.1.x.thread', param: []}
+    const sparse = {method: 'a.1.x.thread', param: [undefined as unknown as {sessionID?: number}, {sessionID: 2}]}
+    assert.equal(h.rt.rpc.incoming(bare, {customResponse: false, inSession: true})?.param, bare.param)
+    assert.equal(h.rt.rpc.incoming(sparse, {customResponse: false, inSession: true})?.param, sparse.param)
     const {c} = call(h.rt, 'a.1.x.get')
     assert.deepEqual([c.err, c.result], [undefined, 'live'])
-    assert.deepEqual(h.rt.fixtures.end().failedTransforms, ['a.1.x.thread: no message of testuser', 'a.1.x.get: no rows'])
+    assert.deepEqual(h.rt.fixtures.end().failedTransforms, [
+      'a.1.x.thread: no message of testuser',
+      'a.1.x.thread: no message of testuser',
+      'a.1.x.thread: no message of testuser',
+      'a.1.x.get: no rows',
+    ])
   } finally {
     h.restore()
   }
