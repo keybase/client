@@ -230,7 +230,16 @@ const runIdentify = async (s: Session, generation: number, guiID: string, ignore
     if (s.generation === generation) {
       s.inFlight = false
       pruneLastCompleted()
-      lastCompleted.set(s.username, {at: Date.now(), ignoreCache: s.ignoreCache, session: s})
+      // Only an identify that reached a result vouches for the session. One that
+      // failed (network error, cancel) leaves it in 'checking', and an earlier
+      // entry for it would otherwise bring that back on a reopen and skip the
+      // identify that should replace it.
+      const {state} = s.details
+      if (state === 'checking' || state === 'unknown') {
+        lastCompleted.delete(s.username)
+      } else {
+        lastCompleted.set(s.username, {at: Date.now(), ignoreCache: s.ignoreCache, session: s})
+      }
       dropSessionIfIdle(s)
     }
   }
