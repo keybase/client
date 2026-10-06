@@ -375,3 +375,27 @@ test('a new identify on a remembered session drops proofs the previous one repor
   expect([...(getProfileDetails('testuser')?.assertions?.keys() ?? [])]).toEqual(['github:a', 'github:b'])
   unsubB()
 })
+
+test('an expired recent check is released by a getter, not only by a new load', async () => {
+  const now = Date.now()
+  await openAndClose()
+
+  jest.spyOn(Date, 'now').mockReturnValue(now + minutes(6))
+  expect(getProfileDetails('testuser')).toBeUndefined()
+  // had the getter only skipped the entry, it would be readable again here
+  jest.spyOn(Date, 'now').mockReturnValue(now)
+  expect(getProfileDetails('testuser')).toBeUndefined()
+})
+
+test('a block notification releases expired sessions instead of updating them', async () => {
+  const now = Date.now()
+  await openAndClose()
+
+  jest.spyOn(Date, 'now').mockReturnValue(now + minutes(6))
+  notifyEngineActionListeners({
+    payload: {params: {b: {blocker: 'testuser', blocks: {}}}},
+    type: 'keybase.1.NotifyTracking.notifyUserBlocked',
+  } as never)
+  jest.spyOn(Date, 'now').mockReturnValue(now)
+  expect(getProfileDetails('testuser')).toBeUndefined()
+})
