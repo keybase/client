@@ -90,6 +90,7 @@
     "visual:aa": "node tests/e2e/visual/cli.mts aa",
     "visual:coverage": "node tests/e2e/visual/cli.mts coverage",
     "visual:routes": "node tests/e2e/visual/routes-inventory.mts",
+    "visual:gallery": "node tests/e2e/visual/gallery.mts",
     "test:unit:ios": "xcodebuild test -project ./ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'",
     "tsc": "./node_modules/typescript-native/bin/tsc --project ./tsconfig.desktop.json && ./node_modules/typescript-native/bin/tsc --project ./tsconfig.native.json && ./node_modules/typescript-native/bin/tsc --project ./tests/e2e/ios-appium/tsconfig.json"
   },
