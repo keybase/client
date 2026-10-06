@@ -54,6 +54,9 @@ export type LeakReport = {
   storesNotRestored: Array<string>
   // follow-ups that could not be built or delivered, with why
   failedFollowUps: Array<string>
+  // rewrites that threw (a precondition of the fixture missing from the live data), with why:
+  // the call went on unchanged
+  failedTransforms: Array<string>
 }
 export type EndReport = LeakReport & {teardown: FixtureDef['teardown']}
 export type VisualFixtures = {
@@ -113,6 +116,7 @@ type Active = {
   injecting: boolean
   followTimers: Set<ReturnType<typeof setTimeout>>
   failedFollowUps: Array<string>
+  failedTransforms: Array<string>
 }
 
 export const createRuntime = (deps: {
@@ -165,6 +169,17 @@ export const createRuntime = (deps: {
     a.followTimers.add(timer)
   }
 
+  // A rule's rewrite of live data; one that throws is reported by end(), never thrown into the
+  // engine, and the data goes on as it was.
+  const rewrite = <T,>(a: Active, method: string, data: T, f: () => T): T => {
+    try {
+      return f()
+    } catch (e) {
+      a.failedTransforms.push(`${method}: ${e instanceof Error ? e.message : String(e)}`)
+      return data
+    }
+  }
+
   const rpc: VisualRpc = {
     incoming: (payload, how) => {
       const a = cur
@@ -173,7 +188,8 @@ export const createRuntime = (deps: {
       const t = a.def.incoming?.find(r => r.method === payload.method)
       if (t) {
         const [first, ...rest] = payload.param
-        return {...payload, param: [{...t.transform(first ?? {}, a.ctx()), sessionID: first?.sessionID}, ...rest]}
+        const param = rewrite(a, payload.method, first ?? {}, () => t.transform(first ?? {}, a.ctx()))
+        return {...payload, param: [{...param, sessionID: first?.sessionID}, ...rest]}
       }
       if (a.def.hold && !how.inSession) {
         // answered as the engine would answer a notification, then dropped
@@ -209,7 +225,7 @@ export const createRuntime = (deps: {
           return
         }
         a.answered.add(rule)
-        call.reply(undefined, rule.transform(result, call.param, a.ctx()))
+        call.reply(undefined, rewrite(a, call.method, result, () => rule.transform(result, call.param, a.ctx())))
       })
       return true
     },
@@ -238,6 +254,7 @@ export const createRuntime = (deps: {
         ctx: () => ({args: frozenArgs, now: deps.now()}),
         def,
         failedFollowUps: [],
+        failedTransforms: [],
         followTimers: new Set(),
         injecting: false,
         name,
@@ -267,7 +284,14 @@ export const createRuntime = (deps: {
         const now = deps.stores.get(key)
         if (snap.existed ? now?.getState() !== snap.state : now) storesNotRestored.push(key)
       }
-      return {cancelledReplies, failedFollowUps: a.failedFollowUps, refusedWrites: a.refused, storesNotRestored, teardown: a.def.teardown}
+      return {
+        cancelledReplies,
+        failedFollowUps: a.failedFollowUps,
+        failedTransforms: a.failedTransforms,
+        refusedWrites: a.refused,
+        storesNotRestored,
+        teardown: a.def.teardown,
+      }
     },
     served: () => !!cur && cur.def.rpc.every(r => !r.required || cur?.answered.has(r)),
     version: FIXTURE_RUNTIME_VERSION,

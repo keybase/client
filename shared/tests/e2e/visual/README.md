@@ -142,11 +142,14 @@ Per fixture entry the driver resets to the tab, waits for an idle app, begins th
 every screen (so none keeps live data), navigates, runs the setup, waits for `ready` (a testID only
 the fixture's data draws) and for every rule the fixture needs to have answered, runs its afterReady,
 and captures. `end()` runs whatever happened: it puts the fixture's stores back and reports a
-refused write, a reply still owed or a store it could not restore, any of which fails the capture.
+refused write, a reply still owed, a rewrite that threw (live data without what the fixture
+builds on, like a thread page with no message of the account's) or a store it could not restore,
+any of which fails the capture.
 Then every screen remounts again (or the app reloads, if the fixture says so). Every capture first
 checks that no fixture is active, and fixture entries run after every live entry
 (`fixtureOrderProblems`, in `yarn visual:unit`). A base records a hash of each fixture's definition;
-`check` refuses when it changed since.
+`check` refuses when it changed since, and `base` refuses a base commit whose fixture runtime
+speaks another version than the driver (`FIXTURE_RUNTIME_VERSION`).
 
 ## Coverage
 

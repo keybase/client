@@ -8,6 +8,7 @@ import {createRequire} from 'module'
 import type {TourEntry} from './tour-types.ts'
 import type {Capture} from './driver-desktop.mts'
 import {makePng} from './compare.mts'
+import {FIXTURE_RUNTIME_VERSION} from './fixtures/names.ts'
 process.env['KB_VISUAL_RESULTS'] = fs.mkdtempSync(path.join(os.tmpdir(), 'vcli-'))
 const {parseCommand, runAa, runCheck, runGate, checkBaseInfra, realDeps, parseCoverageRange, coverageRangeRefusal, selectEntries} =
   await import('./cli.mts')
@@ -154,13 +155,21 @@ test('checkBaseInfra refuses a base without the visual driver or launch-app --vi
   assert.doesNotThrow(() => checkBaseInfra('abc', files({[driver]: 'x', [launch]: ok[launch]!}), desktop(false)))
 })
 
-test('checkBaseInfra refuses fixture entries from a base without the fixture runtime', () => {
+test('checkBaseInfra refuses fixture entries from a base without the fixture runtime, or with another version of it', () => {
   const files = (m: Record<string, string>) => (p: string) => m[p]
   const iosDriver = 'shared/tests/e2e/visual/driver-ios.mts'
   const runtime = 'shared/tests/e2e/visual/fixtures/runtime.ts'
-  assert.throws(() => checkBaseInfra('abc', files({[iosDriver]: 'x'}), {coverage: false, fixtures: true, ios: true}), /abc has no fixture runtime/)
-  assert.doesNotThrow(() => checkBaseInfra('abc', files({[iosDriver]: 'x', [runtime]: 'x'}), {coverage: false, fixtures: true, ios: true}))
-  assert.doesNotThrow(() => checkBaseInfra('abc', files({[iosDriver]: 'x'}), {coverage: false, fixtures: false, ios: true}))
+  const names = 'shared/tests/e2e/visual/fixtures/names.ts'
+  const ios = {coverage: false, fixtures: true, ios: true}
+  const version = (v: number) => `export const FIXTURE_RUNTIME_VERSION = ${v}\n`
+  assert.throws(() => checkBaseInfra('abc', files({[iosDriver]: 'x'}), ios), /abc has no fixture runtime/)
+  assert.doesNotThrow(() => checkBaseInfra('abc', files({[iosDriver]: 'x', [names]: version(FIXTURE_RUNTIME_VERSION), [runtime]: 'x'}), ios))
+  assert.throws(
+    () => checkBaseInfra('abc', files({[iosDriver]: 'x', [names]: version(FIXTURE_RUNTIME_VERSION - 1), [runtime]: 'x'}), ios),
+    new RegExp(`abc has fixture runtime version ${FIXTURE_RUNTIME_VERSION - 1} .*this driver speaks ${FIXTURE_RUNTIME_VERSION}`)
+  )
+  assert.throws(() => checkBaseInfra('abc', files({[iosDriver]: 'x', [runtime]: 'x'}), ios), /fixture runtime version unknown/)
+  assert.doesNotThrow(() => checkBaseInfra('abc', files({[iosDriver]: 'x'}), {...ios, fixtures: false}))
 })
 
 test('checkBaseInfra on iOS needs the iOS driver, and the babel coverage hook for --coverage', () => {

@@ -242,30 +242,27 @@ const synthetic = (ctx: FixtureContext, base: Valid, media: Media): Array<UIMess
   ]
 }
 
-const validOf = (m: UIMessage) => (m.state === 1 ? m.valid : undefined)
-const oldest = <M extends {valid: Valid}>(ms: ReadonlyArray<M>) =>
-  ms.reduce<M | undefined>((o, m) => (!o || m.valid.messageID < o.valid.messageID ? m : o), undefined)
+const oldest = <M extends {messageID: number}>(ms: ReadonlyArray<M>) =>
+  ms.reduce<M | undefined>((o, m) => (!o || m.messageID < o.messageID ? m : o), undefined)
 
 const imageOf = (valid: Valid): Media | undefined =>
   valid.messageBody.messageType === 2 && valid.assetUrlInfo?.mimeType.startsWith('image/')
     ? {asset: valid.messageBody.attachment.object, valid}
     : undefined
 
-// Without a message of the account's or an image the thread is left as it is, and the entry's
-// ready testID never shows.
+// Throws without a message of the account's or an image in the page: the runtime reports it at end().
 const addMessages = (thread: string, ctx: FixtureContext) => {
   const t = JSON.parse(thread) as ThreadJSON
   const messages = t.messages ?? []
-  const valids = messages.flatMap(m => {
-    const valid = validOf(m)
-    return valid ? [{valid}] : []
-  })
+  const valids = messages.flatMap(m => (m.state === 1 ? [m.valid] : []))
   const me = str(ctx, 'username')
-  const base = oldest(valids.filter(m => m.valid.senderUsername === me))
-  const media = oldest(valids.flatMap(m => imageOf(m.valid) ?? []))
-  if (!base || !media) return thread
+  const base = oldest(valids.filter(v => v.senderUsername === me))
+  if (!base) throw new Error(`no message of ${me} in the thread page, whose sender fields its messages copy`)
+  const image = oldest(valids.filter(v => !!imageOf(v)))
+  const media = image && imageOf(image)
+  if (!media) throw new Error('no image in the thread page, whose media its messages show')
   // the thread's replies are newest first
-  return JSON.stringify({...t, messages: [...synthetic(ctx, base.valid, media).reverse(), ...messages]})
+  return JSON.stringify({...t, messages: [...synthetic(ctx, base, media).reverse(), ...messages]})
 }
 
 const rewriteThread = (param: object, ctx: FixtureContext) => {
