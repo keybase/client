@@ -8,17 +8,23 @@ import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {getTextStyle} from '@/common-adapters/text.styles'
 
 type ModalHeaderProps = {
+  // the route's headerStyle, for a colored header
+  style?: Kb.Styles.StylesCrossPlatform
   title?: React.ReactNode
   leftButton?: React.ReactNode
   rightButton?: React.ReactNode
 }
 
 export const ModalHeader = (props: ModalHeaderProps) => {
-  const {title, leftButton, rightButton} = props
+  const {style, title, leftButton, rightButton} = props
   const styles = useStyles()
   const isStringTitle = typeof title === 'string'
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header}>
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      style={Kb.Styles.collapseStyles([styles.header, style && styles.headerColored, style])}
+    >
       <Kb.Box2 direction="horizontal" alignItems="center" fullHeight={true} flex={1}>
         <Kb.Box2 direction="horizontal" flex={1} style={styles.headerLeft}>
           {!!leftButton && leftButton}
@@ -164,7 +170,14 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
             !modalSize && styles.sizeDefault,
           ])}
         >
-          {hasHeader ? <ModalHeader title={titleNode} leftButton={leftNode} rightButton={rightNode} /> : null}
+          {hasHeader ? (
+            <ModalHeader
+              style={navigationOptions?.headerStyle}
+              title={titleNode}
+              leftButton={leftNode}
+              rightButton={rightNode}
+            />
+          ) : null}
           {children}
           {!overlayTransparent && !overlayNoClose && (
             <Kb.Icon
@@ -195,6 +208,11 @@ const useStyles = Kb.Styles.createStyleHook(theme => ({
   componentTitle: getTextStyle('Header', theme),
   header: {
     ...Kb.Styles.bottomDivider(theme, 48),
+  },
+  // the modal box doesn't clip, so a colored header rounds its own top corners
+  headerColored: {
+    borderTopLeftRadius: Kb.Styles.borderRadius,
+    borderTopRightRadius: Kb.Styles.borderRadius,
   },
   headerLeft: {
     justifyContent: 'flex-start',
