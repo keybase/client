@@ -193,49 +193,48 @@ const stopAppium = async (child: ChildProcess) => {
 }
 
 const ROUTER = `const r = kbModule('constants/router.tsx');`
-// Host views (fiber tag 5) in a screen that carry a testID, read through the React DevTools hook a
-// dev build has.
-const HOSTS_WITH_TESTID = `
+// The app's fibers, read through the React DevTools hook a dev build has, and where a view sits:
+// in a screen (some component above it takes a route and its navigation; the overlays drawn over
+// every screen, the global error bar and runtime stats, sit outside the navigator), and in the
+// focused one (navigation.isFocused also asks every navigator above it), not a hidden tab or a
+// screen under the top one.
+const FIBERS = `
   const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
   if (!hook?.getFiberRoots) throw new Error('no React DevTools hook; is this a dev build?')
-  // a view in a screen: some component above it takes a route and its navigation; the overlays
-  // drawn over every screen (the global error bar, runtime stats) sit outside the navigator
-  const inScreen = f => {
-    for (let p = f.return; p; p = p.return) if (p.memoizedProps?.route && p.memoizedProps?.navigation) return true
-    return false
+  const screenNavigation = f => {
+    for (let p = f.return; p; p = p.return) if (p.memoizedProps?.route && p.memoizedProps?.navigation) return p.memoizedProps.navigation
+    return undefined
   }
-  const hosts = []
-  for (const id of hook.renderers.keys()) {
-    for (const root of hook.getFiberRoots(id)) {
-      const stack = [root.current]
-      while (stack.length) {
-        const f = stack.pop()
-        if (f.tag === 5 && f.stateNode && f.memoizedProps?.testID && inScreen(f)) hosts.push(f.stateNode)
-        if (f.child) stack.push(f.child)
-        if (f.sibling) stack.push(f.sibling)
+  const inScreen = f => !!screenNavigation(f)
+  const inFocusedScreen = f => !!screenNavigation(f)?.isFocused?.()
+  // host views (fiber tag 5) with a testID that keep accepts, in the order the walk meets them
+  const hostsWithTestID = keep => {
+    const out = []
+    for (const id of hook.renderers.keys()) {
+      for (const root of hook.getFiberRoots(id)) {
+        const stack = [root.current]
+        while (stack.length) {
+          const f = stack.pop()
+          if (f.tag === 5 && f.memoizedProps?.testID && keep(f)) out.push(f)
+          if (f.child) stack.push(f.child)
+          if (f.sibling) stack.push(f.sibling)
+        }
       }
     }
+    return out
   }`
+// `hosts`: the host views in any screen that carry a testID
+const HOSTS_WITH_TESTID = `${FIBERS}
+  const hosts = hostsWithTestID(f => !!f.stateNode && inScreen(f)).map(f => f.stateNode)`
+// `target`: the first host fiber with this testID in the focused screen, and `id` the testID
+const targetByTestID = (testID: string) => `${FIBERS}
+  const id = ${JSON.stringify(testID)}
+  const target = hostsWithTestID(f => f.memoizedProps.testID === id && inFocusedScreen(f))[0]
+  if (!target) throw new Error('no host view with testID ' + id + ' in the focused screen')`
 // Types into the text input at or under the host view with testID, through the input's own
 // onChangeText (and, for Enter, onSubmitEditing): XCUITest's typing into a controlled field that
 // selects its text on focus drops and keeps characters unevenly.
-export const typeIntoTarget = (testID: string, text: string, enter: boolean) => `
-  const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
-  if (!hook?.getFiberRoots) throw new Error('no React DevTools hook; is this a dev build?')
-  const id = ${JSON.stringify(testID)}
-  let target
-  for (const id2 of hook.renderers.keys()) {
-    for (const root of hook.getFiberRoots(id2)) {
-      const stack = [root.current]
-      while (stack.length && !target) {
-        const f = stack.pop()
-        if (f.tag === 5 && f.memoizedProps?.testID === id) target = f
-        if (f.child) stack.push(f.child)
-        if (f.sibling) stack.push(f.sibling)
-      }
-    }
-  }
-  if (!target) throw new Error('no host view with testID ' + id)
+export const typeIntoTarget = (testID: string, text: string, enter: boolean) => `${targetByTestID(testID)}
   let input
   const stack = [target]
   while (stack.length && !input) {
@@ -256,23 +255,7 @@ export const typeIntoTarget = (testID: string, text: string, enter: boolean) => 
 // - otherwise in a ScrollView (its class instance): scrollTo the view's offset in the content,
 //   measured synchronously (getBoundingClientRect, RN's DOM API) and clamped to the content.
 // Both without animation. Returns 'row', 'scrollView', or 'none' when neither holds the view.
-export const scrollToTarget = (testID: string) => `
-  const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
-  if (!hook?.getFiberRoots) throw new Error('no React DevTools hook; is this a dev build?')
-  const id = ${JSON.stringify(testID)}
-  let target
-  for (const id2 of hook.renderers.keys()) {
-    for (const root of hook.getFiberRoots(id2)) {
-      const stack = [root.current]
-      while (stack.length && !target) {
-        const f = stack.pop()
-        if (f.tag === 5 && f.memoizedProps?.testID === id) target = f
-        if (f.child) stack.push(f.child)
-        if (f.sibling) stack.push(f.sibling)
-      }
-    }
-  }
-  if (!target) throw new Error('no host view with testID ' + id)
+export const scrollToTarget = (testID: string) => `${targetByTestID(testID)}
   const rectOf = (el, what) => {
     if (typeof el?.getBoundingClientRect !== 'function') throw new Error('no synchronous layout for ' + what + ' of ' + id)
     return el.getBoundingClientRect()
