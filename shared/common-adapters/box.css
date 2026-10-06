@@ -223,16 +223,20 @@
 .box2_alignItems_stretch {
   align-items: stretch;
 }
+/* --kb-pe-none inherits down the whole subtree, as React Native's none disables it, so a box-none
+   below can tell its children apart from ones that may take the pointer. */
 .box2_pointerEvents_none {
   pointer-events: none;
+  --kb-pe-none: none;
 }
-/* React Native's box-none: the box ignores the pointer, its children do not. :where keeps the child
-   rule at zero specificity, so a child's own pointer-events (none, or a nested box-none) wins. */
+/* React Native's box-none: the box ignores the pointer, its children do not, unless a none above
+   it already disabled them. :where keeps the child rule at zero specificity, so a child's own
+   pointer-events (none, or a nested box-none) wins. */
 .box2_pointerEvents_box-none {
   pointer-events: none;
 }
 :where(.box2_pointerEvents_box-none) > * {
-  pointer-events: auto;
+  pointer-events: var(--kb-pe-none, auto);
 }
 .box2_flex1 {
   flex: 1;
