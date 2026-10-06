@@ -255,7 +255,7 @@ const AddToTeam = (ownProps: OwnProps) => {
                     />
                   ))
                 ) : (
-                  <Kb.Box2 direction="vertical" centerChildren={true}>
+                  <Kb.Box2 alignSelf="center" direction="vertical" centerChildren={true}>
                     <Kb.Text center={true} type="Body">
                       {"Looks like you haven't joined any teams yet yourself!"}
                     </Kb.Text>

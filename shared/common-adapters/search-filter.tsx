@@ -244,7 +244,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
     }
     if (isMobile) {
       return (
-        <Kb.ClickableBox onClick={mobileCancelButton ? clear : cancel} hitSlop={10} direction="vertical">
+        <Kb.ClickableBox alignSelf="center" onClick={mobileCancelButton ? clear : cancel} hitSlop={10} direction="vertical">
           <Kb.Icon
             type="iconfont-remove"
             sizeType={iconSizeType()}
