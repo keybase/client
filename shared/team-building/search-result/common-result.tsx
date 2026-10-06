@@ -211,7 +211,7 @@ const ServicesIcons = (props: ServicesIconsProps) => {
   const serviceIds = serviceMapToArray(props.services)
   const firstIconNoMargin = shouldOmitFirstIconMargin(props)
   return (
-    <Kb.Box2 alignSelf={(isMobile) ? undefined : 'center'} direction="horizontal" fullWidth={isMobile} justifyContent="flex-start">
+    <Kb.Box2 direction="horizontal" alignSelf={isMobile ? undefined : 'center'} fullWidth={isMobile} justifyContent="flex-start">
       {serviceIds.map((serviceName, index) => {
         const iconStyle =
           firstIconNoMargin && index === 0

@@ -135,9 +135,10 @@ const JoinFromInviteInner = ({inviteDetails: initialInviteDetails, inviteID = ''
             imageOverrideUrl={details.teamAvatars?.['square_192']}
           />
           {details.teamIsOpen && (
-            <Kb.Box2 alignSelf={(!isMobile) ? undefined : 'center'}
+            <Kb.Box2
               direction="horizontal"
               style={styles.meta}
+              alignSelf={isMobile ? 'center' : undefined}
               fullWidth={!isMobile}
               centerChildren={true}
             >

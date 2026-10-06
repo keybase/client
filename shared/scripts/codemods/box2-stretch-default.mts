@@ -604,9 +604,10 @@ export const applyCleanup = (code: string, candidates: ReadonlyArray<{start: num
 // ---------------------------------------------------------------- unpin
 //
 // `pin` wrote alignSelf="center", or alignSelf={test ? undefined : 'center'}, wherever the old default
-// centered a box. `unpin` removes the pins that change nothing:
+// centered a box (some since read the other way round: alignSelf={test ? 'center' : undefined}).
+// `unpin` removes the pins that change nothing:
 //   U1  alignSelf="center" on a child of a parent that centers its children
-//   U2  alignSelf={test ? undefined : 'center'} on such a child: neither branch moves it
+//   U2  a conditional pin, either way round, on such a child: neither branch moves it
 //   U3  either pin on a child whose own style sets alignSelf on every platform
 // U1, U2: a box without alignSelf takes its parent's align-items, on Yoga and in CSS, so centering
 // from the parent places the child exactly where its own alignSelf="center" did. A parent centers
@@ -635,9 +636,9 @@ const pinRule = (attr: babel.types.JSXAttribute): UnpinRule | undefined => {
   const v = attr.value
   if (!t.isJSXExpressionContainer(v)) return undefined
   const e = v.expression
-  return t.isConditionalExpression(e) &&
-    t.isIdentifier(e.consequent, {name: 'undefined'}) &&
-    t.isStringLiteral(e.alternate, {value: 'center'})
+  if (!t.isConditionalExpression(e)) return undefined
+  const branches = [e.consequent, e.alternate]
+  return branches.some(b => t.isIdentifier(b, {name: 'undefined'})) && branches.some(b => t.isStringLiteral(b, {value: 'center'}))
     ? 'U2'
     : undefined
 }
