@@ -2,7 +2,7 @@
 //   base/<sha>/<platform>/meta.json                       BaseMeta for that platform's base set
 //   base/<sha>/<platform>/<theme>/<id>.png                base capture
 //   base/<sha>/<platform>/<theme>/<id>.masks.json         mask rects the base capture had
-//   base/<sha>/<platform>/<theme>/coverage/<id>.json      call sites the entry mounted (--coverage)
+//   base/<sha>/<platform>/<theme>/coverage/<id>.json      call sites the capture drew (--coverage)
 //   runs/<stamp>/...                                      one check, gate or aa run and its report
 // Ids map to file names with '/' replaced by '__'.
 import * as fs from 'fs'
@@ -79,21 +79,20 @@ export const readBaseMasks = (sha: string, platform: RunPlatform, theme: Theme, 
 export const hasBasePng = (sha: string, platform: RunPlatform, theme: Theme, id: string) =>
   fs.existsSync(basePng(sha, platform, theme, id))
 
-// A coverage file: the `file:line` ids mounted when the entry was captured (atCapture), and
-// whether the entry has masks. A masked entry's call sites may sit under a mask, where the compare
-// never sees their pixels, so a masked entry counts for no coverage. A file without the `masked`
-// flag cannot say whether its entry was masked, and one without `atCapture` holds every site
-// mounted at any time during the entry (a loading row gone before the capture included), so either
-// is refused rather than counted.
-export type CoverageFile = {ids: ReadonlyArray<string>; masked: boolean; atCapture: true}
+// A coverage file: the `file:line` ids drawn in the entry's capture (`visible`: an instance on
+// screen when it was taken, coverage/visible.ts), and whether the entry has masks. A masked entry's
+// call sites may sit under a mask, where the compare never sees their pixels, so a masked entry
+// counts for no coverage. A file without the `masked` flag cannot say whether its entry was masked,
+// and one without `visible` counts sites the capture did not show, so either is refused.
+export type CoverageFile = {ids: ReadonlyArray<string>; masked: boolean; visible: true}
 
 export const writeCoverageJson = (ids: ReadonlyArray<string>, masked: boolean) =>
-  JSON.stringify({atCapture: true, ids, masked} satisfies CoverageFile)
+  JSON.stringify({ids, masked, visible: true} satisfies CoverageFile)
 
 export const parseCoverageFile = (raw: unknown, file: string): CoverageFile => {
   if (Array.isArray(raw)) throw new Error(`${file} has no masked flag: retake the coverage base`)
-  if ((raw as Partial<CoverageFile>).atCapture !== true) {
-    throw new Error(`${file} counts sites mounted at any time during its entry, not at its capture: retake the coverage base`)
+  if ((raw as Partial<CoverageFile>).visible !== true) {
+    throw new Error(`${file} counts sites its capture did not show: retake the coverage base`)
   }
   return raw as CoverageFile
 }

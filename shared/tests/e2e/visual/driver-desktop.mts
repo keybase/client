@@ -13,7 +13,7 @@ import {resolveParams, resolveValue} from './resolve.mts'
 import {VISUAL_CAPTURE_ARGS, VISUAL_VIEWPORT} from './electron-args.ts'
 import type {RemoteWindow, Theme, TourEntry, SetupStep, WindowSize} from './tour-types.ts'
 import {fixtureCapture, type FixtureHooks} from './fixtures/drive.mts'
-import type {Coverage} from './coverage/registry.ts'
+import {DESKTOP_VISIBLE_SITES} from './coverage/visible.ts'
 import type {VisualFixtures} from './fixtures/runtime.ts'
 
 export type Capture = {
@@ -23,12 +23,8 @@ export type Capture = {
   status: 'ok' | 'unstable' | 'failed'
   error?: string
 }
-// `chrome` is the `__chrome__` coverage pseudo-entry: the call sites mounted after the reload, at
-// the first tab root, once the waiting store is idle. Null without a reload or without coverage
-// marks.
-export type Prepared = {chrome: Array<string> | null}
 export type DesktopSession = {
-  prepare: (opts: {theme: Theme; frozenAt: number; reload: boolean}) => Promise<Prepared>
+  prepare: (opts: {theme: Theme; frozenAt: number; reload: boolean}) => Promise<void>
   capture: (entry: TourEntry) => Promise<Capture>
   // Restores the app and detaches this driver's CDP session. It does not close the browser (that
   // quits Electron), so the Playwright connection stays open: the caller must exit its process,
@@ -179,7 +175,6 @@ type DevGlobals = {
   DEBUGNavigator?: {getRootState: () => NavState | undefined; resetRoot: (s: unknown) => void}
   __kbVisualFixtures?: VisualFixtures
   __ZUSTAND_HMR__?: Map<string, unknown>
-  __kbVisualCoverage?: Coverage
   _fromPreload?: {functions: PreloadFunctions}
 }
 
@@ -446,37 +441,9 @@ export const fixDate = (now: number) => {
   g.Date = FixedDate as unknown as DateConstructor
 }
 
-const coverageSeq = async (page: Page) =>
-  withDeadline(
-    page.evaluate(() => (globalThis as unknown as DevGlobals).__kbVisualCoverage?.seq() ?? null),
-    EVAL_MS,
-    'coverage seq'
-  )
-
-const coverageMounted = async (page: Page) =>
-  withDeadline(
-    page.evaluate(() => (globalThis as unknown as DevGlobals).__kbVisualCoverage?.mounted() ?? null),
-    EVAL_MS,
-    'coverage mounted'
-  )
-
-// What the capture shows of what its entry mounted: the call sites mounted after `seq` that are
-// still mounted now.
-const coverageNowSince = async (page: Page, seq: number | null) =>
-  seq === null
-    ? null
-    : withDeadline(
-        page.evaluate(s => {
-          const c = (globalThis as unknown as DevGlobals).__kbVisualCoverage
-          if (!c) return null
-          if (typeof c.mountedNowSince !== 'function') {
-            throw new Error('the app records coverage without capture-time sites; serve a tree whose coverage/registry.ts has mountedNowSince')
-          }
-          return c.mountedNowSince(s)
-        }, seq),
-        EVAL_MS,
-        'coverage mountedNowSince'
-      )
+// The call sites the capture of `shown` draws (coverage/visible.ts), or null without coverage marks.
+const coverageVisible = async (shown: Page) =>
+  withDeadline(shown.evaluate(DESKTOP_VISIBLE_SITES) as Promise<Array<string> | null>, EVAL_MS, 'reading the visible coverage marks')
 
 // Electron implements neither Browser.getWindowForTarget nor Browser.setWindowBounds, so the
 // viewport and pixel ratio are emulated: captures don't depend on the window size or display the
@@ -698,19 +665,13 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
     await remoteDate?.dispose()
     remoteDate = await withDeadline(ctx.addInitScript({content: remoteDateScript(opts.frozenAt)}), EVAL_MS, 'adding the window Date script')
     await withDeadline(page.evaluate(fixDate, opts.frozenAt), EVAL_MS, 'fixing Date')
-    let chrome: Prepared['chrome'] = null
-    if (opts.reload) {
-      await checkRendererAfterReload(page)
-      await waitForNoLoading(page)
-      chrome = await coverageMounted(page)
-    }
+    if (opts.reload) await checkRendererAfterReload(page)
     const now = await withDeadline(page.evaluate(() => Date.now()), EVAL_MS, 'reading Date.now')
     if (now !== opts.frozenAt) throw new Error(`Date is not fixed in the page: Date.now() is ${now}, wanted ${opts.frozenAt}`)
     await fixViewport(cdp, page)
     await applyTheme(page, opts.theme)
     theme = opts.theme
     frozenAt = opts.frozenAt
-    return {chrome}
   }
 
   const capture: DesktopSession['capture'] = async entry => {
@@ -725,9 +686,6 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
       // scheme to its own default, so the emulation is reasserted for every capture.
       await fixViewport(cdp, page)
       await applyTheme(page, theme)
-      // before the reset, so coverage includes what switching to the tab mounts; a window's
-      // coverage is everything mounted in it, since it opens for this capture
-      const seq = entry.window ? null : await coverageSeq(page)
       await resetTo(page, entry.nav.tab)
       // A setup click leaves the pointer where it clicked, and whatever lands under it later draws
       // hovered. Parked outside the viewport, nothing is hovered unless a hover step asks for it.
@@ -795,7 +753,7 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
       png = settled.png
       const dpr = await withDeadline(shown.evaluate(() => (globalThis as unknown as PageWindow).devicePixelRatio), EVAL_MS, 'devicePixelRatio')
       const masks = await maskRects(shown, entry, dpr)
-      const coverage = win ? await coverageMounted(shown) : await coverageNowSince(page, seq)
+      const coverage = await coverageVisible(shown)
       result = {coverage, masks, png, status: settled.stable ? 'ok' : 'unstable'}
     } catch (e) {
       result = {coverage: null, error: (e as Error).message, masks: [], png: png ?? Buffer.alloc(0), status: 'failed'}
