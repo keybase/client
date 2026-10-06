@@ -76,6 +76,8 @@ const useMouseClick = (navigation: NativeStackNavigationProp<ParamListBase>, noC
 }
 
 export type ModalWrapperProps = {
+  // the root-stack route below this one is a modal, so a header Back leads to it
+  canGoBack: boolean
   children: React.ReactNode
   navigationOptions?: GetOptionsRet
   navigation: NativeStackNavigationProp<ParamListBase>
@@ -84,7 +86,7 @@ export type ModalWrapperProps = {
 export const ModalWrapper = (p: ModalWrapperProps) => {
   const styles = useStyles()
   const theme = Kb.Styles.useTheme()
-  const {navigationOptions, navigation, children} = p
+  const {canGoBack, navigationOptions, navigation, children} = p
   const {overlayAvoidTabs, overlayTransparent, overlayNoClose, modalSize} = navigationOptions ?? {}
 
   const headerTitle = navigationOptions?.['headerTitle'] ?? navigationOptions?.['title']
@@ -126,7 +128,7 @@ export const ModalWrapper = (p: ModalWrapperProps) => {
           tintColor: '',
         })
       : headerTitle
-  const leftNode = typeof headerLeft === 'function' ? headerLeft({canGoBack: true}) : undefined
+  const leftNode = typeof headerLeft === 'function' ? headerLeft({canGoBack}) : undefined
   const rightNode = typeof headerRight === 'function' ? headerRight({tintColor: ''}) : undefined
 
   return (

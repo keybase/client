@@ -8,6 +8,7 @@ import {useKeyboardState} from 'react-native-keyboard-controller'
 import type {GetOptions, GetOptionsParams, GetOptionsRet} from '@/constants/types/router'
 import {SafeAreaView as RNScreensSafeAreaView} from 'react-native-screens/experimental'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
+import {previousRouteIsModal} from '@/constants/nav-tree'
 
 
 type LayoutProps = {
@@ -87,7 +88,11 @@ const desktopMakeLayout = (
 
     if (isModal) {
       body = (
-        <ModalWrapper navigation={navigation} navigationOptions={navigationOptions}>
+        <ModalWrapper
+          canGoBack={previousRouteIsModal(navigation.getState(), route.key)}
+          navigation={navigation}
+          navigationOptions={navigationOptions}
+        >
           {body}
         </ModalWrapper>
       )
