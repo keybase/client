@@ -21,7 +21,7 @@ import {
   gateUnreachable,
   platformOnly,
   resolveSpecifier,
-  unmountedPlatforms,
+  undrawnPlatforms,
   unpinCandidates,
   type Project,
 } from './box2-stretch-default.mts'
@@ -1015,7 +1015,7 @@ test('a candidate needs coverage on every platform it renders on', () => {
   const range = {end: 12, start: 10}
   const both = ['desktop', 'ios'] as const
   const at = (rel: string, desktop: Array<string>, ios: Array<string>, platforms: ReadonlyArray<'desktop' | 'ios'> = both) =>
-    unmountedPlatforms({hunks: [], mounted: {desktop, ios}, platforms, range, rel})
+    undrawnPlatforms({hunks: [], drawn: {desktop, ios}, platforms, range, rel})
   assert.deepEqual(at('a.tsx', ['a.tsx:10'], ['a.tsx:11']), [])
   assert.deepEqual(at('a.tsx', ['a.tsx:10'], []), ['ios'])
   assert.deepEqual(at('a.tsx', [], ['a.tsx:12']), ['desktop'])
@@ -1025,9 +1025,9 @@ test('a candidate needs coverage on every platform it renders on', () => {
   assert.deepEqual(at('a.tsx', [], ['a.tsx:10'], ['ios']), [])
   assert.deepEqual(at('a.tsx', ['a.tsx:10'], [], ['ios']), ['ios'])
   // base ids are carried forward through the base..tree diff: 3 lines inserted after base line 4
-  const shifted = unmountedPlatforms({
+  const shifted = undrawnPlatforms({
     hunks: [{newCount: 3, newStart: 5, oldCount: 0, oldStart: 4}],
-    mounted: {desktop: ['a.tsx:7'], ios: ['a.tsx:8']},
+    drawn: {desktop: ['a.tsx:7'], ios: ['a.tsx:8']},
     platforms: both,
     range,
     rel: 'a.tsx',
@@ -1050,8 +1050,8 @@ test('a masked entry never qualifies a site; a coverage file without the masked 
     write('ios', 'light', 'people', {ids: ['m.tsx:4'], masked: true, visible: true})
     assert.deepEqual(platformCoverage('s1', 'desktop'), ['a.tsx:10'])
     assert.deepEqual(platformCoverage('s1', 'ios'), [])
-    const mounted = {desktop: platformCoverage('s1', 'desktop'), ios: platformCoverage('s1', 'ios')}
-    assert.deepEqual(unmountedPlatforms({hunks: [], mounted, platforms: ['desktop', 'ios'], range: {end: 4, start: 4}, rel: 'm.tsx'}), [
+    const drawn = {desktop: platformCoverage('s1', 'desktop'), ios: platformCoverage('s1', 'ios')}
+    assert.deepEqual(undrawnPlatforms({hunks: [], drawn, platforms: ['desktop', 'ios'], range: {end: 4, start: 4}, rel: 'm.tsx'}), [
       'desktop',
       'ios',
     ])
@@ -1473,8 +1473,8 @@ test('U4 plan: needs coverage on every gate platform, carries base lines forward
     assert.deepEqual(plan.removed, ['settings/a.tsx:4', 'settings/a.tsx:8', 'settings/b.desktop.tsx:3'])
     assert.deepEqual(plan.kept, [{reason: 'moved 2px', site: 'settings/a.tsx:5'}])
     assert.deepEqual(plan.uncovered, [
-      {site: 'settings/a.tsx:6', why: 'never mounted on ios'},
-      {site: 'settings/a.tsx:7', why: 'never mounted on ios'},
+      {site: 'settings/a.tsx:6', why: 'never drawn on ios'},
+      {site: 'settings/a.tsx:7', why: 'never drawn on ios'},
       {site: 'settings/a.tsx:9', why: 'unreachable by the gate: only on android among mobile devices'},
     ])
     const stale = planU4(shared, {at: 'HEAD', base, skips: [...skips, {reason: 'r', rel: 'settings/gone.tsx', tag: 'x'}]})

@@ -99,7 +99,7 @@ export const parseCoverageFile = (raw: unknown, file: string): CoverageFile => {
 
 // The union of every unmasked coverage file stored under base/<sha>, and the files skipped
 // because their entry is masked (`<platform>/<theme>/<id>`).
-export const readBaseCoverage = (sha: string): {mounted: Array<string>; masked: Array<string>} => {
+export const readBaseCoverage = (sha: string): {drawn: Array<string>; masked: Array<string>} => {
   const out = new Set<string>()
   const masked: Array<string> = []
   const root = baseDir(sha)
@@ -116,7 +116,7 @@ export const readBaseCoverage = (sha: string): {mounted: Array<string>; masked: 
     }
   }
   walk(root)
-  return {masked: masked.sort(), mounted: [...out].sort()}
+  return {drawn: [...out].sort(), masked: masked.sort()}
 }
 
 export const runStamp = (d = new Date()) => d.toISOString().replace(/[:.]/g, '-')

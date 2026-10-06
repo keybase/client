@@ -4,7 +4,7 @@
 //   check <id|glob>… [--ios] [--theme t]   captures the current tree and compares with the base
 //   gate [--ios]                           check over every entry, bracketed by a full seal
 //   aa [--ios]                             captures every entry twice from the current tree, twice
-//   coverage <ref|range> [--base <ref>]    changed Box2/ClickableBox call sites no base run mounted
+//   coverage <ref|range> [--base <ref>]    changed Box2/ClickableBox call sites no base run drew
 // `base` captures `git merge-base HEAD origin/master` unless --base names a commit; check, gate and
 // coverage use the commit the last `base` for the platform captured, or --base. Every command
 // that drives the app takes the gate lock, sets KB_VISUAL_RUN=1 for what it spawns, and exits its
@@ -26,7 +26,7 @@ import {
   outOfScopeFile,
   parseDiffHunks,
   unmarkedFile,
-  unmountedChanged,
+  undrawnChanged,
   type Hunk,
   type Range,
 } from './coverage/changed-sites.mts'
@@ -809,8 +809,8 @@ export async function runCoverage(argv: ReadonlyArray<string>, log: (l: string) 
     throw new Error('coverage needs one git range or ref, e.g. yarn visual:coverage HEAD (working tree) or origin/master..HEAD')
   }
   const sha = await usedBaseSha(cmd.ios ? 'ios' : 'desktop', cmd.base)
-  const {mounted, masked} = Store.readBaseCoverage(sha)
-  if (!mounted.length) throw new Error(`no coverage stored for base ${sha}; run yarn visual:base --coverage (and --ios) first`)
+  const {drawn, masked} = Store.readBaseCoverage(sha)
+  if (!drawn.length) throw new Error(`no coverage stored for base ${sha}; run yarn visual:base --coverage (and --ios) first`)
   if (masked.length) log(`skipped ${masked.length} masked capture${masked.length === 1 ? '' : 's'}: ${masked.join(', ')}`)
   const {left, right, symmetric} = parseCoverageRange(range)
   const revParse = (ref: string) => git(['rev-parse', '--verify', `${ref}^{commit}`]).trim()
@@ -834,9 +834,9 @@ export async function runCoverage(argv: ReadonlyArray<string>, log: (l: string) 
     baseHunks.set(rel, parseDiffHunks(toBase).get(file) ?? [])
   }
   const total = [...changed.values()].reduce((n, r) => n + r.length, 0)
-  const missing = unmountedChanged({baseHunks, changed, mounted})
-  for (const id of missing) log(`✗ never mounted: ${id}`)
-  log(`${total} changed call site${total === 1 ? '' : 's'}, ${missing.length} never mounted by base ${sha.slice(0, 10)}`)
+  const missing = undrawnChanged({baseHunks, changed, drawn})
+  for (const id of missing) log(`✗ never drawn: ${id}`)
+  log(`${total} changed call site${total === 1 ? '' : 's'}, ${missing.length} never drawn by base ${sha.slice(0, 10)}`)
   return missing.length ? 1 : 0
 }
 

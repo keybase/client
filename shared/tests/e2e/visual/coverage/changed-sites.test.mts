@@ -8,7 +8,7 @@ import {
   outOfScopeFile,
   parseDiffHunks,
   unmarkedFile,
-  unmountedChanged,
+  undrawnChanged,
 } from './changed-sites.mts'
 
 const DIFF = `diff --git a/shared/a.tsx b/shared/a.tsx
@@ -85,14 +85,14 @@ test('mapBaseLine shifts by the hunks above and clamps lines inside a hunk to it
   assert.equal(mapBaseLine(30, hunks), 30)
 })
 
-test('unmountedChanged lists changed sites no mapped base mount lands in', () => {
+test('undrawnChanged lists changed sites no mapped drawn base site lands in', () => {
   const baseHunks = new Map([['a.tsx', [{newCount: 2, newStart: 1, oldCount: 0, oldStart: 0}]]])
   const changed = new Map([
     ['a.tsx', [{end: 5, start: 3}, {end: 12, start: 10}]],
     ['b.tsx', [{end: 1, start: 1}]],
   ])
   // base a.tsx:2 is now line 4, inside the first site; nothing lands in the second
-  assert.deepEqual(unmountedChanged({baseHunks, changed, mounted: ['a.tsx:2', 'c.tsx:1']}), ['a.tsx:10', 'b.tsx:1'])
+  assert.deepEqual(undrawnChanged({baseHunks, changed, drawn: ['a.tsx:2', 'c.tsx:1']}), ['a.tsx:10', 'b.tsx:1'])
 })
 
 test('unmarkedFile matches what the babel plugin skips', () => {
