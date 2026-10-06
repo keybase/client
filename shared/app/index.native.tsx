@@ -21,6 +21,8 @@ import {colors, darkColors} from '@/styles/colors'
 import {initPlatformListener, onEngineConnected, onEngineDisconnected, onEngineIncoming} from '@/constants/init/index'
 import {listenForAppLifecycle} from '@/constants/init/shared'
 import logger from '@/logger'
+// the visual gate's dev-only fixture runtime; production builds resolve this to an empty module
+import '@/tests/e2e/visual/fixtures/runtime'
 
 logger.info('INIT App index module load')
 

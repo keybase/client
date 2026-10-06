@@ -69,8 +69,8 @@ type AliasEntry = {find: string | RegExp; replacement: string}
 
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
-// The visual gate's fixture runtime is dev-only: a production build resolves the engine's import
-// of it to the empty module (metro.config.js does the same for the phone).
+// The visual gate's fixture runtime is dev-only: a production build resolves the app
+// entries' import of it to the empty module (metro.config.js does the same for the phone).
 export const devOnlyAlias = (isDev: boolean): Array<AliasEntry> =>
   isDev ? [] : [{find: /^@\/tests\/e2e\/visual\/fixtures\/runtime(\.ts)?$/, replacement: emptyModulePath}]
 

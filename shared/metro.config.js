@@ -7,8 +7,8 @@ const desktopOnlyModules = require('./desktop-only-modules')
 const root = path.resolve(__dirname, '.')
 const rootRe = root.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 const nullModule = path.join(root, 'null-module.js')
-// The visual gate's fixture runtime is dev-only: a production bundle resolves the engine's import of
-// it to the null module (vite.config.mts does the same for desktop).
+// The visual gate's fixture runtime is dev-only: a production bundle resolves the app
+// entry's import of it to the null module (vite.config.mts does the same for desktop).
 const devOnlyFiles = new Set([path.join(root, 'tests/e2e/visual/fixtures/runtime.ts')])
 
 const config = getDefaultConfig(__dirname)

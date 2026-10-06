@@ -29,8 +29,6 @@ import {getIncomingAnswerer, type IncomingAnswerer} from './incoming-answerers'
 import {survivesAccountChange} from './account-generation'
 import type {ErrorType, ResponseType as RPCResponseType} from './rpc-transport'
 import type {IncomingCallMapType, CustomResponseIncomingCallMapType} from '@/constants/rpc/rpc-all-gen'
-// the visual gate's dev-only fixtures (__kbVisualRpc); production builds resolve this to an empty module
-import '@/tests/e2e/visual/fixtures/runtime'
 
 export type BatchParams = ReadonlyArray<WaitingChange>
 export type MakeClient = (
@@ -241,9 +239,11 @@ class Engine implements CallPort {
   // An incoming rpc call
   _rpcIncoming(incoming: PayloadType) {
     let payload = incoming
-    if (__DEV__ && globalThis.__kbVisualRpc) {
+    // the visual gate's fixture hook: set only while a dev app runs a fixture
+    const visualRpc = __DEV__ ? globalThis.__kbVisualRpc : undefined
+    if (visualRpc) {
       const sessionID = payload.param[0]?.sessionID
-      const next = globalThis.__kbVisualRpc.incoming(payload, {
+      const next = visualRpc.incoming(payload, {
         customResponse: !!this._customResponseAction[payload.method as MethodKey],
         inSession: typeof sessionID === 'number' && this._sessionsMap.has(sessionID),
       })
@@ -406,9 +406,9 @@ class Engine implements CallPort {
             done(args[0], args[1])
           })
         }
+        const visualRpc = __DEV__ ? globalThis.__kbVisualRpc : undefined
         if (
-          __DEV__ &&
-          globalThis.__kbVisualRpc?.invoke({
+          visualRpc?.invoke({
             deliver: (m, p) => session.incomingCall(m as MethodKey, {...p, sessionID}),
             method,
             param: param[0],
