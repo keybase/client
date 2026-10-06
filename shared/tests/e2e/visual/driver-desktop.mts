@@ -665,7 +665,12 @@ export async function openDesktop(cdpPort = 9222): Promise<DesktopSession> {
     await remoteDate?.dispose()
     remoteDate = await withDeadline(ctx.addInitScript({content: remoteDateScript(opts.frozenAt)}), EVAL_MS, 'adding the window Date script')
     await withDeadline(page.evaluate(fixDate, opts.frozenAt), EVAL_MS, 'fixing Date')
-    if (opts.reload) await checkRendererAfterReload(page)
+    if (opts.reload) {
+      await checkRendererAfterReload(page)
+      // what the reloaded app starts loading settles before the first capture: without it, a
+      // modal over the git tab captured first after a reload drew the repo list under it empty
+      await waitForNoLoading(page)
+    }
     const now = await withDeadline(page.evaluate(() => Date.now()), EVAL_MS, 'reading Date.now')
     if (now !== opts.frozenAt) throw new Error(`Date is not fixed in the page: Date.now() is ${now}, wanted ${opts.frozenAt}`)
     await fixViewport(cdp, page)
