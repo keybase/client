@@ -439,7 +439,7 @@ const ThreadSearchDesktopInner = function ThreadSearchDesktopInner(p: CommonProp
           <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny" noShrink={true}>
             {inProgress && <Kb.ProgressIndicator style={styles.progress} />}
             {hasResults && (
-              <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny">
+              <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny" testID={TestIDs.CHAT_THREAD_SEARCH_STATUS}>
                 <Kb.Text type="BodySmall" style={styles.results}>
                   {noResults ? 'No results' : `${selectedIndex + 1} of ${hits.length}`}
                 </Kb.Text>
@@ -520,7 +520,7 @@ const ThreadSearchMobileInner = function ThreadSearchMobileInner(p: CommonProps)
           <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny" noShrink={true}>
             {inProgress && <Kb.ProgressIndicator style={styles.progress} />}
             {hasResults && (
-              <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny">
+              <Kb.Box2 alignSelf="center" direction="horizontal" gap="tiny" testID={TestIDs.CHAT_THREAD_SEARCH_STATUS}>
                 <Kb.Text type="BodySmall" style={styles.results}>
                   {status === 'done' && numHits === 0 ? 'No results' : `${selectedIndex + 1} of ${numHits}`}
                 </Kb.Text>

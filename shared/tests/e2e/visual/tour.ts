@@ -317,7 +317,13 @@ const fixtureEntries: Array<TourEntry> = [
     fixture: {name: 'device-last-used'},
     setup: [{kind: 'openPopup', testID: T.DEVICES_ROW}],
   },
-  ...modal('people-builder', 'peopleTeamBuilder', {}, {fixture: recs, phone: true, ready: T.TEAM_BUILDING_RESULT_ROW, seal: ['follows']}),
+  // the params the people tab's search opens it with (appendPeopleBuilder)
+  ...modal(
+    'people-builder',
+    'peopleTeamBuilder',
+    {filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'], namespace: 'people', title: ''},
+    {fixture: recs, phone: true, ready: T.TEAM_BUILDING_RESULT_ROW, seal: ['follows']}
+  ),
   ...teamModal(
     'team-builder',
     'teamsTeamBuilder',
@@ -399,6 +405,36 @@ export const tour: ReadonlyArray<TourEntry> = [
       {kind: 'scrollIntoView', testID: T.CHAT_REACTIONS_ROW},
     ],
   },
+  // Who reacted, in the tooltip a reaction shows on hover.
+  {
+    id: 'chat/reaction-tooltip',
+    nav: {tab: 'tabs.chatTab', thread: kinds},
+    platforms: ['desktop'],
+    ready: T.CHAT_REACTION_TOOLTIP,
+    seal: ['inbox'],
+    setup: [
+      {kind: 'scrollIntoView', testID: T.CHAT_PINNED_BANNER},
+      {kind: 'scrollIntoView', testID: T.CHAT_REACTIONS_ROW},
+      {kind: 'hover', testID: T.CHAT_REACTION_ITEM},
+    ],
+  },
+  // The prompt the pinned banner's close button asks before unpinning (the account pinned the
+  // message, so it asks). Desktop leaves the prompt open (leavesPopup): chat/message-react opens
+  // another conversation. On the phone the prompt is a bottom sheet, so ready is the banner.
+  ...(['desktop', 'phone'] as const).map(
+    (platform): TourEntry => ({
+      id: 'chat/unpin-prompt',
+      nav: {tab: 'tabs.chatTab', thread: kinds},
+      platforms: [platform],
+      ready: platform === 'desktop' ? T.CHAT_UNPIN_PROMPT : T.CHAT_PINNED_BANNER,
+      seal: ['inbox'],
+      setup: [
+        {kind: 'scrollIntoView', testID: T.CHAT_PINNED_BANNER},
+        {kind: 'click', testID: T.CHAT_PINNED_UNPIN},
+      ],
+      ...(platform === 'desktop' ? {leavesPopup: true as const} : {}),
+    })
+  ),
   // The hover bar and the ... menu of e2e-media's image. The menu leaves its popup open
   // (leavesPopup), so the entry after it opens another conversation; with the popup open, hovering
   // the row draws no hover bar.
@@ -433,6 +469,17 @@ export const tour: ReadonlyArray<TourEntry> = [
     seal: ['inbox'],
     setup: [{kind: 'openPopup', testID: T.CHAT_HEADER_SEARCH_BUTTON}],
   },
+  // Thread search run on a word no message holds: its "No results" count. A word with a hit
+  // centres the thread on it, and opening that same search again (the next capture) leaves the
+  // thread at its top instead, every other time.
+  {
+    id: 'chat/thread-search-no-results',
+    nav: {tab: 'tabs.chatTab', thread: short},
+    platforms: ['desktop', 'phone'],
+    ready: T.CHAT_THREAD_SEARCH_STATUS,
+    seal: ['inbox'],
+    setup: [{kind: 'searchThread', query: 'visualgatenomatch'}],
+  },
   {
     id: 'chat/attachment-fullscreen',
     nav: {tab: 'tabs.chatTab', thread: {channel: 'e2e-media', ref: 'conversationIDKey'}},
@@ -459,6 +506,8 @@ export const tour: ReadonlyArray<TourEntry> = [
   attachmentsView('links', T.CHAT_INFO_PANEL_LINKS, T.CHAT_INFO_PANEL_LINKS),
   {...infoPanel('members', 'e2e-short'), id: 'chat/info-panel'},
   infoPanel('attachments', 'e2e-short'),
+  // a channel with a description, which the panel's header shows
+  {...infoPanel('members', 'e2e-kinds'), id: 'chat/info-panel-kinds'},
   infoPanel('settings', 'e2e-short'),
   infoPanel('bots', 'e2e-short'),
   {
@@ -487,6 +536,14 @@ export const tour: ReadonlyArray<TourEntry> = [
     ready: T.FILES_OOPS,
     seal: ['kbfsPrivate'],
   },
+  // a folder the account can't read: the second account's private folder
+  {
+    id: 'files/no-access',
+    nav: {append: {name: 'fsBrowse', params: {path: {ref: 'otherPrivateFolder'}}}, tab: 'tabs.fsTab'},
+    platforms: ['desktop', 'phone'],
+    ready: T.FILES_OOPS,
+    seal: [],
+  },
   {
     id: 'files/private',
     nav: {append: {name: 'fsBrowse', params: {path: {ref: 'privateFolder'}}}, tab: 'tabs.fsTab'},
@@ -513,6 +570,17 @@ export const tour: ReadonlyArray<TourEntry> = [
     seal: ['teams'],
   },
   teamTab('members', T.TEAMS_TAB_MEMBERS_BUTTON, T.TEAMS_MEMBER_LIST),
+  // A member selected, and the bulk actions bar that shows for it. Desktop only: on the phone the
+  // bar renders through a portal outside the team's selection provider and throws
+  // (TeamSelectionProvider missing).
+  {
+    ...teamTab('members-selected', T.TEAMS_TAB_MEMBERS_BUTTON, T.TEAMS_SELECTION_POPUP),
+    platforms: ['desktop'],
+    setup: [
+      {kind: 'switchSubTab', testID: T.TEAMS_TAB_MEMBERS_BUTTON},
+      {kind: 'click', testID: T.TEAMS_MEMBER_CHECK},
+    ],
+  },
   teamTab('channels', T.TEAMS_TAB_CHANNELS_BUTTON, T.TEAMS_CHANNEL_LIST),
   teamTab('emoji', T.TEAMS_TAB_EMOJI_BUTTON, T.TEAMS_EMOJI_TAB),
   teamTab('settings', T.TEAMS_TAB_SETTINGS_BUTTON, T.TEAMS_SETTINGS_TAB),
@@ -828,6 +896,21 @@ export const tour: ReadonlyArray<TourEntry> = [
     {parentPath: {ref: 'privateFolder'}, source: {path: {ref: 'privateFolder', sub: 'test.txt'}, type: 'move-or-copy'}},
     {phone: true, seal: ['kbfsPrivate']}
   ),
+  // its new folder row, named but not made: the folder exists only once its Create is pressed
+  ...modal(
+    'fs-destination-picker-new-folder',
+    'destinationPicker',
+    {parentPath: {ref: 'privateFolder'}, source: {path: {ref: 'privateFolder', sub: 'test.txt'}, type: 'move-or-copy'}},
+    {
+      phone: true,
+      ready: T.FILES_EDITING_ROW,
+      seal: ['kbfsPrivate'],
+      setup: [
+        {kind: 'click', testID: T.FILES_NEW_FOLDER},
+        {kind: 'type', testID: T.FILES_EDITING_ROW, text: 'visual gate'},
+      ],
+    }
+  ),
   // The preview screen a file row pushes. Without the file's last-modified time (which the row
   // passes and no ParamRef supplies) it shows its "content has updated" banner.
   {
@@ -890,6 +973,13 @@ export const tour: ReadonlyArray<TourEntry> = [
     {conversationIDKey: short, pickKey: 'reaction'},
     {phone: true, ready: T.CHAT_EMOJI_PICKER, seal: ['inbox']}
   ),
+  // its skin tones expanded; picking one would save it
+  ...modal(
+    'chat-emoji-skin-tones',
+    'chatChooseEmoji',
+    {conversationIDKey: short, pickKey: 'reaction'},
+    {phone: true, ready: T.CHAT_SKIN_TONE_OPTIONS, seal: ['inbox'], setup: [{kind: 'click', testID: T.CHAT_SKIN_TONE_BUTTON}]}
+  ),
   ...windows,
   ...fixtureEntries,
 ]
@@ -918,6 +1008,8 @@ export const tour: ReadonlyArray<TourEntry> = [
 //     opens this route (message menus are in-place popups, which chat/message-menu covers)
 //
 // Driver limitations:
+//   the profile card a username shows on hover (desktop): it opens through a lodash debounce, which
+//     measures its wait with Date.now(), and under the frozen clock that wait never passes
 //   teamAddToTeamContacts, teamInviteByContact (phone; desktop renders nothing): open the system's
 //     contacts permission prompt, which no step can answer, and answering it changes the
 //     simulator's privacy settings
@@ -939,7 +1031,9 @@ export const tour: ReadonlyArray<TourEntry> = [
 // and the crypto *Output routes are phone screens (desktop renders nothing, or shows the output
 // beside the input). Desktop-only entries for screens the phone also has: chat/message-react and
 // chat/message-menu (the phone opens them with a long press, which setup can't do),
-// chat/thread-search (its phone button is a native header bar item with no testID), and
+// chat/thread-search (its phone button is a native header bar item with no testID; the phone's
+// search opens from its route param in chat/thread-search-no-results), chat/reaction-tooltip (a
+// long press on the phone), team/members-selected (its note), and
 // chat/info-panel-media, -docs, -links and files/team (their notes), and modal/profile-avatar (the
 // phone opens the system photo picker over it). Not routes: the menubar, the tracker popup,
 // pinentry and unlock-folders are windows of their own, toured as window/* (unlock-folders' success

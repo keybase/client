@@ -11,6 +11,7 @@ import {FsBrowserSortProvider} from './sort-state'
 import Rows from './rows/rows-container'
 import * as FS from '@/constants/fs'
 import {makeUUID} from '@/util/uuid'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type OwnProps = {
   parentPath: T.FS.Path
@@ -209,7 +210,7 @@ const NewFolder = (p: {onNewFolder?: () => void}) => {
   const theme = Kb.Styles.useTheme()
   const {onNewFolder} = p
   return (
-    <Kb.ClickableBox direction="horizontal" alignItems="center" fullWidth={true} style={styles.newFolderBox} onClick={onNewFolder}>
+    <Kb.ClickableBox direction="horizontal" alignItems="center" fullWidth={true} style={styles.newFolderBox} onClick={onNewFolder} testID={TestIDs.FILES_NEW_FOLDER}>
       <Kb.Icon type="iconfont-folder-new" color={theme.blue} />
       <Kb.Text type="BodyBig" style={styles.newFolderText}>
         Create new folder

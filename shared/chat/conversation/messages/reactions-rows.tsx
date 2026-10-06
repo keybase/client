@@ -95,7 +95,7 @@ function RowItem(p: IProps) {
   ) : null
 
   return (
-    <Kb.Box2 alignSelf="center" direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor}>
+    <Kb.Box2 alignSelf="center" direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor} testID={TestIDs.CHAT_REACTION_ITEM}>
       <ReactButton
         className={btnClassName}
         emoji={emoji}
