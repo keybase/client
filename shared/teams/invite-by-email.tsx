@@ -133,7 +133,7 @@ const _makeDropdownItem = (item: string, styles: ReturnType<typeof useStyles>) =
 
 const useStyles = Kb.Styles.createStyleHook(theme => ({
   addAsText: {margin: Kb.Styles.globalMargins.tiny},
-  dropdown: {width: isMobile ? 160 : 100},
+  dropdown: {flexShrink: 0, width: isMobile ? 160 : 130},
   dropdownItem: {...Kb.Styles.paddingH(Kb.Styles.globalMargins.small)},
   errorText: {color: theme.redDark},
   header: {padding: Kb.Styles.globalMargins.tiny},
