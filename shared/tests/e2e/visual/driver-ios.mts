@@ -636,6 +636,9 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
       await warmTabs()
     } else {
       await remountScreens()
+      // every tab remounted, so each is at its first visit again (see warmTabs), and the next reset's
+      // hop through a cold tab can outlast its deadline
+      await warmTabs()
     }
     return leakProblems(name, report)
   }
