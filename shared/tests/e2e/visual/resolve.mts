@@ -2,6 +2,7 @@
 //   teamname           KB_E2E_TEAM
 //   teamFolder         /keybase/team/<KB_E2E_TEAM>
 //   privateFolder      /keybase/private/<KB_SMOKE_USER>
+//   otherPrivateFolder /keybase/private/<KB_SECOND_USER>, a folder the smoke account can't read
 //   username           KB_SMOKE_USER
 //   secondUser         KB_SECOND_USER
 //   teamID             `team list-memberships --json` -> {teams: [{team_id, fq_name, ...}]}
@@ -60,6 +61,12 @@ const smokeUser = () => {
   return u
 }
 
+const secondUser = () => {
+  const u = process.env['KB_SECOND_USER']
+  if (!u) throw new Error('resolving a secondUser param needs KB_SECOND_USER set in the environment')
+  return u
+}
+
 const inFolder = (folder: string, sub: string | undefined) => (sub ? `${folder}/${sub}` : folder)
 
 const resolveRef = async (ref: ParamRef, run: CliRunner): Promise<string> => {
@@ -70,13 +77,12 @@ const resolveRef = async (ref: ParamRef, run: CliRunner): Promise<string> => {
       return inFolder(`/keybase/team/${teamname()}`, ref.sub)
     case 'privateFolder':
       return inFolder(`/keybase/private/${smokeUser()}`, ref.sub)
+    case 'otherPrivateFolder':
+      return inFolder(`/keybase/private/${secondUser()}`, ref.sub)
     case 'username':
       return smokeUser()
-    case 'secondUser': {
-      const u = process.env['KB_SECOND_USER']
-      if (!u) throw new Error('resolving a secondUser param needs KB_SECOND_USER set in the environment')
-      return u
-    }
+    case 'secondUser':
+      return secondUser()
     case 'teamID': {
       const team = teamname()
       return cached(`teamID:${team}`, async () => {

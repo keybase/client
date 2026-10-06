@@ -61,12 +61,23 @@ export const CHAT_HEADER_SEARCH_BUTTON = 'chat-header-search-button'
 export const CHAT_THREAD_SEARCH       = 'chat-thread-search'
 export const CHAT_THREAD_SEARCH_INPUT = 'chat-thread-search-input'
 export const CHAT_THREAD_SEARCH_HIT   = 'chat-thread-search-hit'
+// the hit count (or "No results") once a search has run
+export const CHAT_THREAD_SEARCH_STATUS = 'chat-thread-search-status'
 export const CHAT_JUMP_TO_RECENT      = 'chat-jump-to-recent'
 export const CHAT_CATCH_UP            = 'chat-catch-up'
 export const CHAT_PINNED_BANNER       = 'chat-pinned-banner'
 export const CHAT_REPLY_PREVIEW       = 'chat-reply-preview'
 // a message's row of reactions
 export const CHAT_REACTIONS_ROW       = 'chat-reactions-row'
+// one reaction in that row (desktop: hovering it shows who reacted) and that tooltip
+export const CHAT_REACTION_ITEM       = 'chat-reaction-item'
+export const CHAT_REACTION_TOOLTIP    = 'chat-reaction-tooltip'
+// the pinned banner's close icon, only while it would ask before unpinning, and that prompt
+export const CHAT_PINNED_UNPIN        = 'chat-pinned-unpin'
+export const CHAT_UNPIN_PROMPT        = 'chat-unpin-prompt'
+// the emoji picker's skin tone button, and the tones it expands to
+export const CHAT_SKIN_TONE_BUTTON    = 'chat-skin-tone-button'
+export const CHAT_SKIN_TONE_OPTIONS   = 'chat-skin-tone-options'
 // a git push system message's body
 export const CHAT_GIT_PUSH            = 'chat-git-push'
 export const CHAT_REPLY_CANCEL        = 'chat-reply-cancel'
@@ -87,6 +98,9 @@ export const FILES_OOPS = 'files-oops'
 export const FILES_TLF_ROW = 'files-tlf-row'
 // a text file's preview; on desktop only once its content has loaded
 export const FILES_TEXT_PREVIEW = 'files-text-preview'
+// the destination picker's new folder button, and the unsaved name row it adds
+export const FILES_NEW_FOLDER = 'files-new-folder'
+export const FILES_EDITING_ROW = 'files-editing-row'
 
 // Teams
 export const TEAMS_LIST         = 'teams-list'
@@ -96,6 +110,9 @@ export const TEAMS_TABS         = 'teams-tabs'
 export const TEAMS_MEMBER_LIST  = 'teams-member-list'
 export const TEAMS_MEMBER_PAGE  = 'teams-member-page'
 export const TEAMS_MEMBER_ADD_TO_TEAM_BUTTON = 'teams-member-add-to-team-button'
+// a member row's selection circle, and the bar that shows while any member is selected
+export const TEAMS_MEMBER_CHECK = 'teams-member-check'
+export const TEAMS_SELECTION_POPUP = 'teams-selection-popup'
 export const TEAMS_ROLE_PICKER = 'teams-role-picker'
 export const TEAMS_HEADER_MENU_BUTTON = 'teams-header-menu-button'
 export const TEAMS_CHANNEL_LIST = 'teams-channel-list'

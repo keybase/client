@@ -22,6 +22,7 @@ import {
   type Prepared,
 } from './driver-desktop.mts'
 import type {Rect} from './compare.mts'
+import {CHAT_MESSAGE_LIST} from '../shared/test-ids.ts'
 import {resolveParams} from './resolve.mts'
 import type {Theme, TourEntry, SetupStep} from './tour-types.ts'
 import {fixtureCapture, type FixtureHooks} from './fixtures/drive.mts'
@@ -215,6 +216,39 @@ const HOSTS_WITH_TESTID = `
 // - otherwise in a ScrollView (its class instance): scrollTo the view's offset in the content,
 //   measured synchronously (getBoundingClientRect, RN's DOM API) and clamped to the content.
 // Both without animation. Returns 'row', 'scrollView', or 'none' when neither holds the view.
+// Types into the text input at or under the host view with testID, through the input's own
+// onChangeText (and, for Enter, onSubmitEditing): XCUITest's typing into a controlled field that
+// selects its text on focus drops and keeps characters unevenly.
+export const typeIntoTarget = (testID: string, text: string, enter: boolean) => `
+  const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
+  if (!hook?.getFiberRoots) throw new Error('no React DevTools hook; is this a dev build?')
+  const id = ${JSON.stringify(testID)}
+  let target
+  for (const id2 of hook.renderers.keys()) {
+    for (const root of hook.getFiberRoots(id2)) {
+      const stack = [root.current]
+      while (stack.length && !target) {
+        const f = stack.pop()
+        if (f.tag === 5 && f.memoizedProps?.testID === id) target = f
+        if (f.child) stack.push(f.child)
+        if (f.sibling) stack.push(f.sibling)
+      }
+    }
+  }
+  if (!target) throw new Error('no host view with testID ' + id)
+  let input
+  const stack = [target]
+  while (stack.length && !input) {
+    const f = stack.pop()
+    if (typeof f.memoizedProps?.onChangeText === 'function') input = f.memoizedProps
+    if (f.child) stack.push(f.child)
+    if (f !== target && f.sibling) stack.push(f.sibling)
+  }
+  if (!input) throw new Error('no text input under testID ' + id)
+  input.onChangeText(${JSON.stringify(text)})
+  if (${enter}) input.onSubmitEditing?.({nativeEvent: {text: ${JSON.stringify(text)}}})
+`
+
 export const scrollToTarget = (testID: string) => `
   const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__
   if (!hook?.getFiberRoots) throw new Error('no React DevTools hook; is this a dev build?')
@@ -467,8 +501,23 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
     switch (s.kind) {
       case 'openPopup':
       case 'switchSubTab':
+      case 'click':
         await withDeadline(byTestID(s.testID).click(), SETUP_MS, `${s.kind} ${s.testID}`)
         return
+      case 'type':
+        await withDeadline(byTestID(s.testID).waitForExist({timeout: SETUP_MS}), SETUP_MS + 1_000, `finding ${s.testID}`)
+        await appEval(typeIntoTarget(s.testID, s.text, !!s.enter), `typing into ${s.testID}`)
+        return
+      case 'searchThread': {
+        await withDeadline(byTestID(CHAT_MESSAGE_LIST).waitForExist({timeout: SETUP_MS}), SETUP_MS + 1_000, 'the conversation')
+        const ok = await appEval<boolean>(
+          `${ROUTER} const v = r.getVisibleScreen()
+           return !!v?.params?.conversationIDKey && r.setRouteParams(v.key, {threadSearch: {query: ${JSON.stringify(s.query)}}})`,
+          'opening thread search'
+        )
+        if (!ok) throw new Error('searchThread: no open conversation to search')
+        return
+      }
       case 'scrollIntoView': {
         // waits for the element, as desktop's scrollIntoViewIfNeeded does, so the step can gate
         // later steps on something that loads
