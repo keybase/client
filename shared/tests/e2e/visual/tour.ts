@@ -333,7 +333,7 @@ const fixtureEntries: Array<TourEntry> = [
     (platform): TourEntry => ({
       ...threadContentEntry(
         'exploding-menu',
-        [...toExploding, ...scrollTo(T.CHAT_ADDED_TO_TEAM)],
+        toExploding,
         platform === 'desktop' ? T.CHAT_EXPLODING_HEADER : T.CHAT_EXPLODING_META,
         [{kind: 'openPopup', testID: T.CHAT_EXPLODING_META}]
       ),
