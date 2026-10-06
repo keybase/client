@@ -345,6 +345,8 @@ test('a beforeNav that throws leaves the hook installed with its fixture, for en
   }
 })
 
+const threadCtx = {args: {bot: 'b', conversationIDKey: 'ab', secondUser: 'testuser-mac', teamname: 't', username: 'testuser'}, now: 1_000_000}
+
 test("the chat thread fixture adds its messages after the thread's newest, in the synthetic ID range", async () => {
   const {chatThreadContent} = await import('./chat-thread.ts')
   const {SYNTHETIC_FIRST} = await import('./chat-thread.ts')
@@ -354,9 +356,10 @@ test("the chat thread fixture adds its messages after the thread's newest, in th
       assetUrlInfo: {fullUrl: 'f', fullUrlCached: false, inlineVideoPlayable: false, mimeType: 'image/png', previewUrl: 'p'},
       messageBody: {attachment: {object: {filename: 'a.png', metadata: {}}}, messageType: 2},
       messageID: 7,
+      senderUsername: 'testuser',
     },
   }
-  const ctx = {args: {bot: 'b', conversationIDKey: 'ab', secondUser: 'testuser-mac', teamname: 't', username: 'testuser'}, now: 1_000_000}
+  const ctx = threadCtx
   const rewrite = chatThreadContent.incoming!.find(i => i.method === 'chat.1.chatUi.chatThreadFull')!.transform
   const out = rewrite({sessionID: 1, thread: JSON.stringify({messages: [image], pagination: null})}, ctx) as {sessionID: number; thread: string}
   const messages = (JSON.parse(out.thread) as {messages: Array<{state: number; valid?: {messageID: number}; journeycard?: {ordinal: number}}>}).messages
@@ -368,4 +371,41 @@ test("the chat thread fixture adds its messages after the thread's newest, in th
   assert.deepEqual([...ids].sort((a, b) => b - a), ids)
   const noImage = JSON.stringify({messages: [], pagination: null})
   assert.equal((rewrite({thread: noImage}, ctx) as {thread: string}).thread, noImage)
+})
+
+test("the chat thread fixture's messages are the account's, sent like its oldest message, with the oldest image's media", async () => {
+  const {chatThreadContent, SYNTHETIC_FIRST} = await import('./chat-thread.ts')
+  type Msg = {state: number; valid?: {assetUrlInfo?: {mimeType: string; previewUrl: string}; messageID: number; senderUsername?: string; senderUID?: string; messageBody?: {messageType: number; attachment?: {object: {filename: string}}}}}
+  const msg = (messageID: number, senderUsername: string, image?: string): Msg => ({
+    state: 1,
+    valid: {
+      ...(image
+        ? {
+            assetUrlInfo: {mimeType: 'image/png', previewUrl: image},
+            messageBody: {attachment: {object: {filename: image}}, messageType: 2},
+          }
+        : {messageBody: {messageType: 1}}),
+      messageID,
+      senderUID: `uid-${messageID}`,
+      senderUsername,
+    },
+  })
+  // newest first, as the service sends a thread: the newest image is the other user's
+  const real = [msg(9, 'testuser-mac', 'new.png'), msg(8, 'testuser'), msg(5, 'testuser-mac', 'old.png'), msg(3, 'testuser'), msg(2, 'testuser-mac')]
+  const rewrite = chatThreadContent.incoming!.find(i => i.method === 'chat.1.chatUi.chatThreadFull')!.transform
+  const thread = (messages: Array<Msg>) =>
+    (JSON.parse((rewrite({thread: JSON.stringify({messages, pagination: null})}, threadCtx) as {thread: string}).thread) as {messages: Array<Msg>}).messages
+  const added = thread(real).filter(m => (m.valid?.messageID ?? 0) >= SYNTHETIC_FIRST)
+  // all but the bot's (bot 'b')
+  const sent = added.filter(m => m.valid && m.valid.senderUsername !== 'b')
+  assert.ok(sent.length > 10)
+  assert.ok(sent.every(m => m.valid?.senderUsername === 'testuser' && m.valid.senderUID === 'uid-3'))
+  const audio = added.find(m => m.valid?.messageBody?.messageType === 2)
+  assert.equal(audio?.valid?.messageBody?.attachment?.object.filename, 'vg-audio.m4a')
+  assert.equal(audio.valid.assetUrlInfo?.previewUrl, 'old.png')
+  // an order the service never sends changes nothing
+  assert.deepEqual(thread([...real].reverse()).filter(m => (m.valid?.messageID ?? 0) >= SYNTHETIC_FIRST), added)
+  // nothing of the account's to send as: the thread is left as it is
+  const others = [msg(9, 'testuser-mac', 'new.png')]
+  assert.deepEqual(thread(others), others)
 })
