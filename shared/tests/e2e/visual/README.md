@@ -88,7 +88,8 @@ pinned:
   whose target is off screen scrolls its list from JS (`scrollToIndex` on the row holding it):
   Appium's `mobile: scroll` gives up on the inverted chat thread. `close` clears the status bar override; the app keeps the
   accessibility settings until its next launch.
-- Each entry waits for its `ready` testID and then for the waiting store to be idle for 500ms.
+- Each entry waits for the waiting store to be idle for 500ms at its tab root before it navigates
+  (so the tab under a modal has loaded), and again after its `ready` testID shows.
 
 ## Other windows
 
