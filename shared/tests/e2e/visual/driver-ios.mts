@@ -635,6 +635,10 @@ export async function openIos(opts: {device: string}): Promise<IosSession> {
       await remountScreens()
       await warmTabs()
     } else {
+      // remounting a state that holds a pushed screen can leave the navigator with no state at all
+      // (seen with the device page), so the reset to the tab root comes first
+      await appEval(`${ROUTER} r.clearModals(); r.popStack()`, 'popping to the tab root')
+      await waitFor('the current tab to be at its root', RESET_MS, async () => (await routerAt()).atRoot)
       await remountScreens()
       // every tab remounted, so each is at its first visit again (see warmTabs), and the next reset's
       // hop through a cold tab can outlast its deadline
