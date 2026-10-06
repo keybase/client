@@ -1775,7 +1775,7 @@ const runCleanup = (
 
 // ---------------------------------------------------------------- unpin by coverage
 //
-//   U4  either pin at a call site the coverage base mounted, in an unmasked entry, on every platform
+//   U4  either pin at a call site the coverage base drew, in an unmasked entry, on every platform
 //       the site renders on (siteGateNeed), unless the skip list names it
 // Unlike U1-U3, U4 is not equivalent by construction: it removes pins the gate can see, and a gate
 // run on the result is the proof. A pin whose removal moved pixels goes on the skip list
